@@ -152,6 +152,8 @@ export class BranchList extends React.Component<
   IBranchListProps,
   IBranchListState
 > {
+  private branchFilterList: FilterList<IBranchListItem> | null = null
+
   public constructor(props: IBranchListProps) {
     super(props)
     this.state = createState(props)
@@ -161,9 +163,16 @@ export class BranchList extends React.Component<
     this.setState(createState(nextProps))
   }
 
+  public selectFirstItem(focus: boolean = false) {
+    if (this.branchFilterList !== null) {
+      this.branchFilterList.selectFirstItem(focus)
+    }
+  }
+
   public render() {
     return (
       <BranchesFilterList
+        ref={this.onBranchesFilterListRef}
         className="branches-list"
         rowHeight={RowHeight}
         filterText={this.props.filterText}
@@ -181,6 +190,12 @@ export class BranchList extends React.Component<
         filterTextBox={this.props.textbox}
       />
     )
+  }
+
+  private onBranchesFilterListRef = (
+    filterList: FilterList<IBranchListItem> | null
+  ) => {
+    this.branchFilterList = filterList
   }
 
   private renderItem = (
