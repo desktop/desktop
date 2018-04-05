@@ -224,7 +224,7 @@ export class CompareSidebar extends React.Component<
           disabled={count <= 0}
           onClick={this.onMergeClicked}
         >
-          Merge into {this.props.currentBranch.name}
+          Merge into <strong>{this.props.currentBranch.name}</strong>
         </Button>
         <div className="merge-message">
           This will merge{` `}
