@@ -23,6 +23,7 @@ import {
   CompareActionKind,
   IDisplayHistory,
   ICompareBranch,
+  ComparisonCache,
 } from '../app-state'
 import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
@@ -40,7 +41,7 @@ import {
 } from '../../lib/repository-matching'
 import { API, getAccountForEndpoint, IAPIUser } from '../../lib/api'
 import { caseInsensitiveCompare } from '../compare'
-import { Branch, BranchType, IAheadBehind } from '../../models/branch'
+import { Branch, BranchType } from '../../models/branch'
 import { TipState } from '../../models/tip'
 import { CloningRepository } from '../../models/cloning-repository'
 import { Commit } from '../../models/commit'
@@ -443,7 +444,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         formState: { kind: ComparisonView.None },
         commitSHAs: [],
         isCrunching: false,
-        aheadBehindCache: new Map<string, IAheadBehind>(),
+        aheadBehindCache: new ComparisonCache(),
         allBranches: [],
         recentBranches: [],
         defaultBranch: null,
@@ -711,9 +712,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     currentBranch: Branch,
     branches: ReadonlyArray<Branch>
   ): Promise<void> {
+    log.warn(`[Compare] - beginning crunching for ${currentBranch.name}`)
+
     this.updateCompareState(repository, state => ({
       isCrunching: true,
     }))
+
+    const from = currentBranch.tip.sha
 
     const uniqueBranchSha = new Set<string>(branches.map(b => b.tip.sha))
 
@@ -723,19 +728,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const state = this.getRepositoryState(repository)
       const cache = state.compareState.aheadBehindCache
 
-      if (cache.has(sha)) {
+      if (cache.has(from, sha)) {
         continue
       }
 
       const aheadBehind = await gitStore.getAheadBehind(currentBranch.name, sha)
 
       if (aheadBehind != null) {
-        cache.set(sha, aheadBehind)
+        cache.set(from, sha, aheadBehind)
       } else {
         log.debug(
-          `[AppStore] unable to cache ${
+          `[AppStore] unable to cache '${
             currentBranch.name
-          } as no result returned`
+          }...${sha}' as no result returned`
         )
       }
 
@@ -749,6 +754,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.updateCompareState(repository, state => ({
       isCrunching: false,
     }))
+
+    log.warn(`[Compare] - ending crunching for ${currentBranch.name}`)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -794,7 +801,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const newSha = currentBranch ? currentBranch.tip.sha : ''
 
     if (baseSha !== newSha) {
-      log.debug('[AppStore] clearing cache as the base branch SHA has changed')
+      log.warn(`[Compare] time to start crunching for ${newSha}`)
 
       aheadBehindCache.clear()
 
@@ -810,7 +817,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this._executeCompare(repository, action)
 
     if (currentBranch != null && aheadBehindCache.size === 0) {
-      log.debug('[AppStore] computing ahead/behind counts')
+      log.warn('[Compare] computing ahead/behind counts')
 
       let allOtherBranches = [...recentBranches, ...allBranches]
 
