@@ -111,11 +111,15 @@ export class CompareSidebar extends React.Component<
           : 'Select branch to compare...'
         : undefined
 
+    const symbol = this.props.compareState.isCrunching
+      ? OcticonSymbol.sync
+      : OcticonSymbol.gitBranch
+
     return (
       <div id="compare-view">
         <div className="the-box">
           <FancyTextBox
-            symbol={OcticonSymbol.gitBranch}
+            symbol={symbol}
             type="search"
             placeholder={placeholderText}
             onFocus={this.onTextBoxFocused}

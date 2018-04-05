@@ -442,6 +442,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       compareState: {
         formState: { kind: ComparisonView.None },
         commitSHAs: [],
+        isCrunching: false,
         aheadBehindCache: new Map<string, IAheadBehind>(),
         allBranches: [],
         recentBranches: [],
@@ -710,6 +711,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     currentBranch: Branch,
     branches: ReadonlyArray<Branch>
   ): Promise<void> {
+    this.updateCompareState(repository, state => ({
+      isCrunching: true,
+    }))
+
     const uniqueBranchSha = new Set<string>(branches.map(b => b.tip.sha))
 
     const gitStore = this.getGitStore(repository)
@@ -740,6 +745,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       this.emitUpdate()
     }
+
+    this.updateCompareState(repository, state => ({
+      isCrunching: false,
+    }))
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
