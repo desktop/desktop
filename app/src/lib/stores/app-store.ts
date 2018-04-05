@@ -23,7 +23,6 @@ import {
   CompareActionKind,
   IDisplayHistory,
   ICompareBranch,
-  ComparisonCache,
 } from '../app-state'
 import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
@@ -128,6 +127,7 @@ import { PullRequestUpdater } from './helpers/pull-request-updater'
 import * as QueryString from 'querystring'
 import { IRemote, ForkedRemotePrefix } from '../../models/remote'
 import { IAuthor } from '../../models/author'
+import { ComparisonCache } from '../comparison-cache'
 
 /**
  * Enum used by fetch to determine if
