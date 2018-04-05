@@ -762,15 +762,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
       ? branchesState.recentBranches.filter(b => b.name !== currentBranch.name)
       : branchesState.recentBranches
 
-    const storedDefaultBranch = branchesState.defaultBranch
+    const cachedDefaultBranch = branchesState.defaultBranch
 
     // only include the default branch when comparing if the user is not on the default branch
     // and it also exists in the repository
     const defaultBranch =
       currentBranch != null &&
-      storedDefaultBranch != null &&
-      currentBranch.name !== storedDefaultBranch.name
-        ? storedDefaultBranch
+      cachedDefaultBranch != null &&
+      currentBranch.name !== cachedDefaultBranch.name
+        ? cachedDefaultBranch
         : null
 
     this.updateCompareState(repository, state => ({
