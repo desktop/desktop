@@ -68,6 +68,20 @@ export class CompareSidebar extends React.Component<
     }
   }
 
+  public componentWillReceiveProps(nextProps: ICompareSidebarProps) {
+    const hasFormStateChanged =
+      nextProps.compareState.formState.kind !==
+      this.props.compareState.formState.kind
+
+    if (
+      hasFormStateChanged &&
+      nextProps.compareState.formState.kind === ComparisonView.None
+    ) {
+      // the comparison form should be reset to its default state
+      this.setState({ filterText: '', focusedBranch: null })
+    }
+  }
+
   public componentWillMount() {
     this.props.dispatcher.initializeCompare(this.props.repository)
   }
