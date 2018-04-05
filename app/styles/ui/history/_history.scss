@@ -81,6 +81,11 @@
     margin-top: var(--spacing);
   }
 
+  .no-branches {
+    color: var(--text-secondary-color);
+    margin-top: var(--spacing-double);
+  }
+
   .branch-commit-counter {
     color: var(--text-secondary-color);
     display: flex;

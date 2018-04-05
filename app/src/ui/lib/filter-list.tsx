@@ -234,6 +234,20 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     )
   }
 
+  public selectFirstItem(focus: boolean = false) {
+    if (this.list !== null) {
+      const next = this.list.nextSelectableRow('down', -1)
+
+      if (next !== null) {
+        this.setState({ selectedRow: next })
+      }
+
+      if (focus) {
+        this.list.focus()
+      }
+    }
+  }
+
   private renderContent() {
     if (this.state.rows.length === 0 && this.props.renderNoItems) {
       return this.props.renderNoItems()

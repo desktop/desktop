@@ -29,6 +29,9 @@ interface ICommitListProps {
   /** The list of known local commits for the current branch */
   readonly localCommitSHAs: ReadonlyArray<string>
 
+  /** The message to display inside the list when no results are displayed */
+  readonly emptyListMessage: string
+
   /** Callback which fires when a commit has been selected in the list */
   readonly onCommitSelected: (commit: Commit) => void
 
@@ -99,7 +102,9 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
 
   public render() {
     if (this.props.commitSHAs.length === 0) {
-      return <div className="panel blankslate">No history</div>
+      return (
+        <div className="panel blankslate">{this.props.emptyListMessage}</div>
+      )
     }
 
     return (

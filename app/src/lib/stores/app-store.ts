@@ -21,6 +21,8 @@ import {
   ComparisonView,
   CompareAction,
   CompareActionKind,
+  IDisplayHistory,
+  ICompareBranch,
 } from '../app-state'
 import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
@@ -133,6 +135,27 @@ import { IAuthor } from '../../models/author'
 export enum FetchType {
   BackgroundTask,
   UserInitiatedTask,
+}
+
+/**
+ * Map the cached state of the compare view to an action
+ * to perform which is then used to compute the compare
+ * view contents.
+ */
+function getInitialAction(
+  cachedState: IDisplayHistory | ICompareBranch
+): CompareAction {
+  if (cachedState.kind === ComparisonView.None) {
+    return {
+      kind: CompareActionKind.History,
+    }
+  }
+
+  return {
+    kind: CompareActionKind.Branch,
+    branch: cachedState.comparisonBranch,
+    mode: cachedState.kind,
+  }
 }
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
@@ -696,20 +719,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const cache = state.compareState.aheadBehindCache
 
       if (cache.has(sha)) {
-        log.debug(
-          `[AppStore] skipping work for ${sha} as a value has been found`
-        )
         continue
       }
 
       const aheadBehind = await gitStore.getAheadBehind(currentBranch.name, sha)
 
       if (aheadBehind != null) {
-        log.debug(
-          `[AppStore] adding value for ${
-            currentBranch.name
-          } to cache: ${JSON.stringify(aheadBehind)}`
-        )
         cache.set(sha, aheadBehind)
       } else {
         log.debug(
@@ -728,7 +743,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _initializeCompare(repository: Repository) {
+  public async _initializeCompare(
+    repository: Repository,
+    initialAction?: CompareAction
+  ) {
     log.debug('[AppStore] initializing compare state')
 
     const state = this.getRepositoryState(repository)
@@ -744,15 +762,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
       ? branchesState.recentBranches.filter(b => b.name !== currentBranch.name)
       : branchesState.recentBranches
 
-    const storedDefaultBranch = branchesState.defaultBranch
+    const cachedDefaultBranch = branchesState.defaultBranch
 
     // only include the default branch when comparing if the user is not on the default branch
     // and it also exists in the repository
     const defaultBranch =
       currentBranch != null &&
-      storedDefaultBranch != null &&
-      currentBranch.name !== storedDefaultBranch.name
-        ? storedDefaultBranch
+      cachedDefaultBranch != null &&
+      currentBranch.name !== cachedDefaultBranch.name
+        ? cachedDefaultBranch
         : null
 
     this.updateCompareState(repository, state => ({
@@ -768,27 +786,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     if (baseSha !== newSha) {
       log.debug('[AppStore] clearing cache as the base branch SHA has changed')
+
+      aheadBehindCache.clear()
+
       this.updateCompareState(repository, state => ({
-        aheadBehindCache: new Map<string, IAheadBehind>(),
+        aheadBehindCache,
         baseSha: newSha,
       }))
     }
 
-    log.debug('[AppStore] loading first history for compare')
-
     const cachedState = compareState.formState
 
-    if (cachedState.kind === ComparisonView.None) {
-      this._executeCompare(repository, {
-        kind: CompareActionKind.History,
-      })
-    } else {
-      this._executeCompare(repository, {
-        kind: CompareActionKind.Branch,
-        branch: cachedState.comparisonBranch,
-        mode: cachedState.kind,
-      })
-    }
+    const action = initialAction ? initialAction : getInitialAction(cachedState)
+    this._executeCompare(repository, action)
 
     if (currentBranch != null && aheadBehindCache.size === 0) {
       log.debug('[AppStore] computing ahead/behind counts')
@@ -1891,7 +1901,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       await this._refreshRepository(repository)
     } finally {
       this.updateCheckoutProgress(repository, null)
-      this._initializeCompare(repository)
+      this._initializeCompare(repository, { kind: CompareActionKind.History })
     }
 
     return repository
