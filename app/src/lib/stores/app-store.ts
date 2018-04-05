@@ -448,7 +448,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
         allBranches: [],
         recentBranches: [],
         defaultBranch: null,
-        baseSha: null,
       },
       commitAuthor: null,
       gitHubUsers: new Map<string, IGitHubUser>(),
@@ -796,27 +795,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }))
 
     const compareState = state.compareState
-    const { aheadBehindCache, baseSha } = compareState
-
-    const newSha = currentBranch ? currentBranch.tip.sha : ''
-
-    if (baseSha !== newSha) {
-      log.warn(`[Compare] time to start crunching for ${newSha}`)
-
-      aheadBehindCache.clear()
-
-      this.updateCompareState(repository, state => ({
-        aheadBehindCache,
-        baseSha: newSha,
-      }))
-    }
 
     const cachedState = compareState.formState
 
     const action = initialAction ? initialAction : getInitialAction(cachedState)
     this._executeCompare(repository, action)
 
-    if (currentBranch != null && aheadBehindCache.size === 0) {
+    if (currentBranch != null) {
       log.warn('[Compare] computing ahead/behind counts')
 
       let allOtherBranches = [...recentBranches, ...allBranches]

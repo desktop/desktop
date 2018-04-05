@@ -653,13 +653,6 @@ export interface ICompareState {
   readonly defaultBranch: Branch | null
 
   /**
-   * The base SHA associated with the current ahead/behind cache.
-   *
-   * When this changes, the cache needs to be invalidated.
-   */
-  readonly baseSha: string | null
-
-  /**
    * A local cache of ahead/behind computations to compare other refs to the current branch
    */
   readonly aheadBehindCache: ComparisonCache
