@@ -137,6 +137,27 @@ export enum FetchType {
   UserInitiatedTask,
 }
 
+/**
+ * Map the cached state of the compare view to an action
+ * to perform which is then used to compute the compare
+ * view contents.
+ */
+function getInitialAction(
+  cachedState: IDisplayHistory | ICompareBranch
+): CompareAction {
+  if (cachedState.kind === ComparisonView.None) {
+    return {
+      kind: CompareActionKind.History,
+    }
+  }
+
+  return {
+    kind: CompareActionKind.Branch,
+    branch: cachedState.comparisonBranch,
+    mode: cachedState.kind,
+  }
+}
+
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
 const defaultSidebarWidth: number = 250
@@ -785,22 +806,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     log.debug('[AppStore] loading first history for compare')
 
     const cachedState = compareState.formState
-
-    const getInitialAction = (
-      cachedState: IDisplayHistory | ICompareBranch
-    ): CompareAction => {
-      if (cachedState.kind === ComparisonView.None) {
-        return {
-          kind: CompareActionKind.History,
-        }
-      }
-
-      return {
-        kind: CompareActionKind.Branch,
-        branch: cachedState.comparisonBranch,
-        mode: cachedState.kind,
-      }
-    }
 
     const action = initialAction ? initialAction : getInitialAction(cachedState)
     this._executeCompare(repository, action)
