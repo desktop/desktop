@@ -1153,8 +1153,11 @@ export class Dispatcher {
   /**
    * Initialze the compare state for the current repository.
    */
-  public initializeCompare(repository: Repository) {
-    return this.appStore._initializeCompare(repository)
+  public initializeCompare(
+    repository: Repository,
+    initialAction?: CompareAction
+  ) {
+    return this.appStore._initializeCompare(repository, initialAction)
   }
 
   /**

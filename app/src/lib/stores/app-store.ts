@@ -21,6 +21,8 @@ import {
   ComparisonView,
   CompareAction,
   CompareActionKind,
+  IDisplayHistory,
+  ICompareBranch,
 } from '../app-state'
 import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
@@ -728,7 +730,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _initializeCompare(repository: Repository) {
+  public async _initializeCompare(
+    repository: Repository,
+    initialAction?: CompareAction
+  ) {
     log.debug('[AppStore] initializing compare state')
 
     const state = this.getRepositoryState(repository)
@@ -778,17 +783,24 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const cachedState = compareState.formState
 
-    if (cachedState.kind === ComparisonView.None) {
-      this._executeCompare(repository, {
-        kind: CompareActionKind.History,
-      })
-    } else {
-      this._executeCompare(repository, {
+    const getInitialAction = (
+      cachedState: IDisplayHistory | ICompareBranch
+    ): CompareAction => {
+      if (cachedState.kind === ComparisonView.None) {
+        return {
+          kind: CompareActionKind.History,
+        }
+      }
+
+      return {
         kind: CompareActionKind.Branch,
         branch: cachedState.comparisonBranch,
         mode: cachedState.kind,
-      })
+      }
     }
+
+    const action = initialAction ? initialAction : getInitialAction(cachedState)
+    this._executeCompare(repository, action)
 
     if (currentBranch != null && aheadBehindCache.size === 0) {
       log.debug('[AppStore] computing ahead/behind counts')
@@ -1891,7 +1903,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       await this._refreshRepository(repository)
     } finally {
       this.updateCheckoutProgress(repository, null)
-      this._initializeCompare(repository)
+      this._initializeCompare(repository, { kind: CompareActionKind.History })
     }
 
     return repository
