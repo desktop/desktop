@@ -1,9 +1,9 @@
 import { IAheadBehind } from '../models/branch'
 
 export class ComparisonCache {
-  backingStore = new Map<string, IAheadBehind>()
+  private backingStore = new Map<string, IAheadBehind>()
 
-  static getKey(from: string, to: string) {
+  private static getKey(from: string, to: string) {
     return `${from}...${to}`
   }
 
