@@ -55,6 +55,7 @@ export class CompareSidebar extends React.Component<
 > {
   private textbox: TextBox | null = null
   private readonly loadChangedFilesScheduler = new ThrottledScheduler(200)
+  private branchList: BranchList | null = null
 
   public constructor(props: ICompareSidebarProps) {
     super(props)
@@ -132,6 +133,10 @@ export class CompareSidebar extends React.Component<
     )
   }
 
+  private onBranchesListRef = (branchList: BranchList | null) => {
+    this.branchList = branchList
+  }
+
   private renderCommits() {
     const formState = this.props.compareState.formState
     return (
@@ -193,6 +198,7 @@ export class CompareSidebar extends React.Component<
     const compareState = this.props.compareState
     return (
       <BranchList
+        ref={this.onBranchesListRef}
         defaultBranch={compareState.defaultBranch}
         currentBranch={this.props.currentBranch}
         allBranches={compareState.allBranches}
