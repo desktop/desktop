@@ -719,20 +719,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const cache = state.compareState.aheadBehindCache
 
       if (cache.has(sha)) {
-        log.debug(
-          `[AppStore] skipping work for ${sha} as a value has been found`
-        )
         continue
       }
 
       const aheadBehind = await gitStore.getAheadBehind(currentBranch.name, sha)
 
       if (aheadBehind != null) {
-        log.debug(
-          `[AppStore] adding value for ${
-            currentBranch.name
-          } to cache: ${JSON.stringify(aheadBehind)}`
-        )
         cache.set(sha, aheadBehind)
       } else {
         log.debug(
@@ -802,8 +794,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
         baseSha: newSha,
       }))
     }
-
-    log.debug('[AppStore] loading first history for compare')
 
     const cachedState = compareState.formState
 
