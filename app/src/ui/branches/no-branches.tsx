@@ -43,11 +43,7 @@ export class NoBranches extends React.Component<INoBranchesProps> {
       )
     }
 
-    return (
-      <div className="no-branches">
-        Sorry, I can't find that branch
-      </div>
-    )
+    return <div className="no-branches">Sorry, I can't find that branch</div>
   }
 
   private renderShortcut() {

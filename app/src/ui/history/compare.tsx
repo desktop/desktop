@@ -223,6 +223,7 @@ export class CompareSidebar extends React.Component<
     const branch = formState.comparisonBranch
     const count = formState.behind
     const pluralized = count === 1 ? 'commit' : 'commits'
+
     return (
       <div className="merge-cta">
         <Button
@@ -232,6 +233,7 @@ export class CompareSidebar extends React.Component<
         >
           Merge into <strong>{this.props.currentBranch.name}</strong>
         </Button>
+
         <div className="merge-message">
           This will merge{` `}
           <strong>{`${count} ${pluralized}`}</strong>
