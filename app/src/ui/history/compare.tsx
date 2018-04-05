@@ -208,6 +208,7 @@ export class CompareSidebar extends React.Component<
         selectedBranch={this.state.focusedBranch}
         canCreateNewBranch={false}
         onSelectionChanged={this.onSelectionChanged}
+        onItemClick={this.onBranchItemClicked}
         onFilterTextChanged={this.onBranchFilterTextChanged}
         renderBranch={this.renderCompareBranchListItem}
       />
@@ -397,33 +398,24 @@ export class CompareSidebar extends React.Component<
     this.viewHistoryForBranch()
   }
 
-  private onSelectionChanged = (
-    branch: Branch | null,
-    source: SelectionSource
-  ) => {
-    if (branch === null) {
-      this.setState({ focusedBranch: null })
-      return
-    }
+  private onBranchItemClicked = (branch: Branch) => {
+    console.log('onBranchItemClicked', branch.name)
+    this.props.dispatcher.executeCompare(this.props.repository, {
+      branch,
+      kind: CompareActionKind.Branch,
+      mode: ComparisonView.Behind,
+    })
 
-    if (source.kind === 'filter') {
-      this.setState({
-        focusedBranch: branch,
-      })
-      return
-    }
+    this.setState({
+      filterText: branch.name,
+      focusedBranch: null,
+    })
+  }
 
-    if (source.kind === 'mouseclick') {
-      this.props.dispatcher.executeCompare(this.props.repository, {
-        kind: CompareActionKind.Branch,
-        branch,
-        mode: ComparisonView.Behind,
-      })
-
-      this.setState({
-        filterText: branch.name,
-      })
-    }
+  private onSelectionChanged = (branch: Branch | null) => {
+    this.setState({
+      focusedBranch: branch,
+    })
   }
 
   private onTextBoxFocused = () => {
