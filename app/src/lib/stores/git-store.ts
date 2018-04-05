@@ -7,7 +7,7 @@ import { Branch, BranchType } from '../../models/branch'
 import { Tip, TipState } from '../../models/tip'
 import { Commit } from '../../models/commit'
 import { IRemote } from '../../models/remote'
-import { IFetchProgress, IRevertProgress, CompareType } from '../app-state'
+import { IFetchProgress, IRevertProgress, ComparisonView } from '../app-state'
 
 import { IAppShell } from '../app-shell'
 import { ErrorWithMetadata, IErrorMetadata } from '../error-with-metadata'
@@ -1239,42 +1239,56 @@ export class GitStore extends BaseStore {
     )
   }
 
+  public async getAheadBehind(
+    from: string,
+    to: string
+  ): Promise<IAheadBehind | null> {
+    return await getAheadBehind(this.repository, `${from}...${to}`)
+  }
+
   /**
    * Returns the commits associated with `branch` and ahead/behind info;
    */
-  public async getCompareStateDetails(
+  public async getCompareCommits(
     branch: Branch,
-    compareType: CompareType
+    compareType: ComparisonView.Ahead | ComparisonView.Behind
   ): Promise<ICompareResult | null> {
     if (this.tip.kind !== TipState.Valid) {
       return null
     }
 
     const base = this.tip.branch
-    const revisionRange =
-      compareType === CompareType.Ahead
-        ? `${branch.name}..${base.name}`
-        : `${base.name}..${branch.name}`
-    const commits = await getCommits(this.repository, revisionRange, 250)
-
-    if (commits != null) {
-      this.storeCommits(commits, true)
-    }
-
     const aheadBehind = await getAheadBehind(
       this.repository,
       `${base.name}...${branch.name}`
     )
 
-    let result: ICompareResult | null = null
-    if (aheadBehind) {
-      result = {
-        commits,
-        ahead: aheadBehind.ahead,
-        behind: aheadBehind.behind,
-      }
+    if (aheadBehind == null) {
+      return null
     }
 
-    return result
+    const revisionRange =
+      compareType === ComparisonView.Ahead
+        ? `${branch.name}..${base.name}`
+        : `${base.name}..${branch.name}`
+    const commitsToLoad =
+      compareType === ComparisonView.Ahead
+        ? aheadBehind.ahead
+        : aheadBehind.behind
+    const commits = await getCommits(
+      this.repository,
+      revisionRange,
+      commitsToLoad
+    )
+
+    if (commits.length > 0) {
+      this.storeCommits(commits, true)
+    }
+
+    return {
+      commits,
+      ahead: aheadBehind.ahead,
+      behind: aheadBehind.behind,
+    }
   }
 }

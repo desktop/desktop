@@ -15,6 +15,7 @@ cache:
 branches:
   only:
     - master
+    - compare-branches
     - /^__release-.*/
 
 skip_tags: true

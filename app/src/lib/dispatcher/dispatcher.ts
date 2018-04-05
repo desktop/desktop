@@ -17,7 +17,7 @@ import {
   Foldout,
   FoldoutType,
   ImageDiffType,
-  CompareState,
+  CompareAction,
 } from '../app-state'
 import { AppStore } from '../stores/app-store'
 import { CloningRepository } from '../../models/cloning-repository'
@@ -1151,16 +1151,16 @@ export class Dispatcher {
   }
 
   /**
-   * Load the state for comparing `branch` to the base branch
+   * Initialze the compare state for the current repository.
    */
-  public loadCompareState(repository: Repository, state: CompareState) {
-    return this.appStore._loadCompareState(repository, state)
+  public initializeCompare(repository: Repository) {
+    return this.appStore._initializeCompare(repository)
   }
 
   /**
-   * Gets the `ICompareResult` of the given `branch`
+   * Update the compare state for the current repository
    */
-  public getCompareResult(repository: Repository, branch: Branch) {
-    return this.appStore._getCompareResult(repository, branch)
+  public executeCompare(repository: Repository, action: CompareAction) {
+    return this.appStore._executeCompare(repository, action)
   }
 }
