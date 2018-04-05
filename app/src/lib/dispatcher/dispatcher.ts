@@ -879,10 +879,6 @@ export class Dispatcher {
 
   /**
    * Sets the user's preference so that confirmation to discard changes is not asked
-   *
-   * @param {boolean} value
-   * @returns {Promise<void>}
-   * @memberof Dispatcher
    */
   public setConfirmDiscardChangesSetting(value: boolean): Promise<void> {
     return this.appStore._setConfirmDiscardChangesSetting(value)
