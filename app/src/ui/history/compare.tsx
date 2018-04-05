@@ -73,12 +73,17 @@ export class CompareSidebar extends React.Component<
       nextProps.compareState.formState.kind !==
       this.props.compareState.formState.kind
 
-    if (
-      hasFormStateChanged &&
-      nextProps.compareState.formState.kind === ComparisonView.None
-    ) {
+    const newFormState = nextProps.compareState.formState
+
+    if (hasFormStateChanged && newFormState.kind === ComparisonView.None) {
       // the comparison form should be reset to its default state
       this.setState({ filterText: '', focusedBranch: null })
+      return
+    }
+
+    if (!hasFormStateChanged && newFormState.kind !== ComparisonView.None) {
+      // ensure the filter text is in sync with the comparison branch
+      this.setState({ filterText: newFormState.comparisonBranch.name })
     }
   }
 
