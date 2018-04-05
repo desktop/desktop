@@ -20,7 +20,6 @@ import { TabBar } from '../tab-bar'
 import { CompareBranchListItem } from './compare-branch-list-item'
 import { FancyTextBox } from '../lib/fancy-text-box'
 import { OcticonSymbol } from '../octicons'
-import { SelectionSource } from '../lib/filter-list'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -43,7 +42,7 @@ interface ICompareSidebarState {
    */
   readonly focusedBranch: Branch | null
   readonly filterText: string
-  readonly showBranchList: boolean
+  readonly branchFilterHasFocus: boolean
   readonly selectedCommit: Commit | null
 }
 
@@ -63,7 +62,7 @@ export class CompareSidebar extends React.Component<
     this.state = {
       focusedBranch: null,
       filterText: '',
-      showBranchList: false,
+      branchFilterHasFocus: false,
       selectedCommit: null,
     }
   }
@@ -96,7 +95,7 @@ export class CompareSidebar extends React.Component<
   }
 
   public componentDidMount() {
-    if (this.textbox !== null && this.state.showBranchList) {
+    if (this.textbox !== null && this.state.branchFilterHasFocus) {
       this.textbox.focus()
     }
   }
@@ -126,7 +125,7 @@ export class CompareSidebar extends React.Component<
             onKeyDown={this.onBranchFilterKeyDown}
           />
         </div>
-        {this.state.showBranchList
+        {this.state.focusedBranch !== null || this.state.branchFilterHasFocus
           ? this.renderFilterList()
           : this.renderCommits()}
       </div>
@@ -422,11 +421,11 @@ export class CompareSidebar extends React.Component<
   }
 
   private onTextBoxFocused = () => {
-    this.setState({ showBranchList: true })
+    this.setState({ branchFilterHasFocus: true })
   }
 
   private onTextBoxBlurred = () => {
-    this.setState({ showBranchList: false })
+    this.setState({ branchFilterHasFocus: false })
   }
 
   private onTextBoxRef = (textbox: TextBox) => {
