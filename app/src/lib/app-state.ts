@@ -628,9 +628,6 @@ export interface ICompareState {
   /** The current state of the compare form, based on user input */
   readonly formState: IDisplayHistory | ICompareBranch
 
-  /** A flag to indicate when background Git operations are being performed */
-  readonly isCrunching: boolean
-
   /** The SHAs of commits to render in the compare list */
   readonly commitSHAs: ReadonlyArray<string>
 

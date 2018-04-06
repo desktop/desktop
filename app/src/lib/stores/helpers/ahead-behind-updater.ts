@@ -35,22 +35,18 @@ export class AheadBehindUpdater {
 
   public constructor(
     private repository: Repository,
-    private onPerformingWork: (working: boolean) => void,
     private onCacheUpdate: (cache: ComparisonCache) => void
   ) {}
 
   public start() {
-    this.aheadBehindQueue.on(
-      'success',
-      (result: IAheadBehind | null, job: any) => {
-        if (result != null) {
-          this.onCacheUpdate(this.comparisonCache)
-        }
+    this.aheadBehindQueue.on('success', (result: IAheadBehind | null) => {
+      if (result != null) {
+        this.onCacheUpdate(this.comparisonCache)
       }
-    )
+    })
 
     this.aheadBehindQueue.on('error', (err: Error) => {
-      log.error(
+      log.debug(
         '[AheadBehindUpdater] an error with the queue was reported',
         err
       )
@@ -58,10 +54,8 @@ export class AheadBehindUpdater {
 
     this.aheadBehindQueue.on('end', (err?: Error) => {
       if (err != null) {
-        log.warn(`[AheadBehindUpdater] ended with an error`, err)
+        log.debug(`[AheadBehindUpdater] ended with an error`, err)
       }
-
-      this.onPerformingWork(false)
     })
 
     this.aheadBehindQueue.start()
@@ -105,7 +99,7 @@ export class AheadBehindUpdater {
 
     const newRefsToCompare = new Set<string>(branchesNotInCache)
 
-    log.warn(
+    log.debug(
       `[AheadBehindUpdater] - found ${
         newRefsToCompare.size
       } comparisons to perform`
@@ -114,8 +108,6 @@ export class AheadBehindUpdater {
     if (newRefsToCompare.size === 0) {
       return
     }
-
-    this.onPerformingWork(true)
 
     for (const sha of newRefsToCompare) {
       this.aheadBehindQueue.push<IAheadBehind | null>(callback =>

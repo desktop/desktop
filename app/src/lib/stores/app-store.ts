@@ -447,7 +447,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       compareState: {
         formState: { kind: ComparisonView.None },
         commitSHAs: [],
-        isCrunching: false,
         aheadBehindCache: new ComparisonCache(),
         allBranches: [],
         recentBranches: [],
@@ -721,21 +720,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const updater = new AheadBehindUpdater(
-      repository,
-      isCrunching => {
-        this.updateCompareState(repository, state => ({
-          isCrunching,
-        }))
-        this.emitUpdate()
-      },
-      aheadBehindCache => {
-        this.updateCompareState(repository, state => ({
-          aheadBehindCache,
-        }))
-        this.emitUpdate()
-      }
-    )
+    const updater = new AheadBehindUpdater(repository, aheadBehindCache => {
+      this.updateCompareState(repository, state => ({
+        aheadBehindCache,
+      }))
+      this.emitUpdate()
+    })
 
     this.currentAheadBehindUpdater = updater
 
@@ -796,8 +786,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this._executeCompare(repository, action)
 
     if (currentBranch != null && this.currentAheadBehindUpdater != null) {
-      log.warn('[Compare] computing ahead/behind counts')
-
       let allOtherBranches = [...recentBranches, ...allBranches]
 
       if (defaultBranch != null) {
