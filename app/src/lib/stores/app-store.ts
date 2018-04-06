@@ -723,15 +723,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const updater = new AheadBehindUpdater(
       repository,
-      working => {
+      isCrunching => {
+        log.warn(`[AppStore] isCrunching: ${isCrunching}!`)
         this.updateCompareState(repository, state => ({
-          isCrunching: working,
+          isCrunching,
         }))
+        this.emitUpdate()
       },
-      cache => {
+      aheadBehindCache => {
+        log.warn(`[AppStore] the cache has been updated!`)
         this.updateCompareState(repository, state => ({
-          aheadBehindCache: cache,
+          aheadBehindCache,
         }))
+        this.emitUpdate()
       }
     )
 
