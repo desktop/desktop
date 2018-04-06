@@ -819,6 +819,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     action: CompareAction
   ): Promise<void> {
     const gitStore = this.getGitStore(repository)
+    const kind = action.kind
 
     if (action.kind === CompareActionKind.History) {
       await gitStore.loadHistory()
@@ -833,25 +834,28 @@ export class AppStore extends TypedBaseStore<IAppState> {
         commitSHAs: commits,
       }))
       return this.emitUpdate()
-    }
+    } else if (action.kind === CompareActionKind.Branch) {
+      const comparisonBranch = action.branch
+      const compare = await gitStore.getCompareCommits(
+        comparisonBranch,
+        action.mode
+      )
 
-    const { branch } = action
-    const compare = await gitStore.getCompareCommits(branch, action.mode)
+      if (compare !== null) {
+        this.updateCompareState(repository, s => ({
+          formState: {
+            comparisonBranch,
+            kind: action.mode,
+            ahead: compare.ahead,
+            behind: compare.behind,
+          },
+          commitSHAs: compare.commits.map(commit => commit.sha),
+        }))
 
-    const comparisonBranch = action.branch
-
-    if (compare != null) {
-      this.updateCompareState(repository, s => ({
-        formState: {
-          kind: action.mode,
-          comparisonBranch,
-          ahead: compare.ahead,
-          behind: compare.behind,
-        },
-        commitSHAs: compare.commits.map(commit => commit.sha),
-      }))
-
-      return this.emitUpdate()
+        return this.emitUpdate()
+      }
+    } else {
+      return assertNever(action, `Unknown action: ${kind}`)
     }
   }
 
