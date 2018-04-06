@@ -1710,6 +1710,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this._updateCurrentPullRequest(repository)
     this.updateMenuItemLabels(repository)
+    this._initializeCompare(repository)
   }
 
   /**
