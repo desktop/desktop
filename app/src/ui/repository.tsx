@@ -165,6 +165,7 @@ export class RepositoryView extends React.Component<
         dispatcher={this.props.dispatcher}
         onRevertCommit={this.onRevertCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
+        sidebarHasFocusWithin={this.state.sidebarHasFocusWithin}
       />
     )
   }
