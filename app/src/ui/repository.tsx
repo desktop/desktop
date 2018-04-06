@@ -19,6 +19,7 @@ import { assertNever } from '../lib/fatal-error'
 import { Octicon, OcticonSymbol } from './octicons'
 import { Account } from '../models/account'
 import { enableCompareSidebar } from '../lib/feature-flag'
+import { FocusContainer } from './lib/focus-container'
 
 /** The widest the sidebar can be with the minimum window size. */
 const MaxSidebarWidth = 495
@@ -192,17 +193,23 @@ export class RepositoryView extends React.Component<
 
   private renderSidebar(): JSX.Element {
     return (
-      <Resizable
-        id="repository-sidebar"
-        width={this.props.sidebarWidth}
-        onReset={this.handleSidebarWidthReset}
-        onResize={this.handleSidebarResize}
-        maximumWidth={MaxSidebarWidth}
-      >
-        {this.renderTabs()}
-        {this.renderSidebarContents()}
-      </Resizable>
+      <FocusContainer onFocusWithinChanged={this.onSidebarFocusWithinChanged}>
+        <Resizable
+          id="repository-sidebar"
+          width={this.props.sidebarWidth}
+          onReset={this.handleSidebarWidthReset}
+          onResize={this.handleSidebarResize}
+          maximumWidth={MaxSidebarWidth}
+        >
+          {this.renderTabs()}
+          {this.renderSidebarContents()}
+        </Resizable>
+      </FocusContainer>
     )
+  }
+
+  private onSidebarFocusWithinChanged = (sidebarHasFocusWithin: boolean) => {
+    this.setState({ sidebarHasFocusWithin })
   }
 
   private renderContent(): JSX.Element {
