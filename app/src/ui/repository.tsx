@@ -47,6 +47,10 @@ interface IRepositoryViewProps {
   readonly onOpenInExternalEditor: (path: string) => void
 }
 
+interface IRepositoryViewState {
+  readonly sidebarHasFocusWithin: boolean
+}
+
 const enum Tab {
   Changes = 0,
   History = 1,
@@ -54,7 +58,16 @@ const enum Tab {
 
 export class RepositoryView extends React.Component<
   IRepositoryViewProps,
+  IRepositoryViewState
 > {
+  public constructor(props: IRepositoryViewProps) {
+    super(props)
+
+    this.state = {
+      sidebarHasFocusWithin: false,
+    }
+  }
+
   private renderTabs(): JSX.Element {
     const hasChanges =
       this.props.state.changesState.workingDirectory.files.length > 0
