@@ -28,7 +28,7 @@ import { ComparisonCache } from '../../comparison-cache'
 export class AheadBehindUpdater {
   private comparisonCache = new ComparisonCache()
 
-  private q = queue({
+  private aheadBehindQueue = queue({
     concurrency: 1,
     autostart: true,
   })
@@ -40,20 +40,23 @@ export class AheadBehindUpdater {
   ) {}
 
   public start() {
-    this.q.on('success', (result: IAheadBehind | null, job: any) => {
-      if (result != null) {
-        this.onCacheUpdate(this.comparisonCache)
+    this.aheadBehindQueue.on(
+      'success',
+      (result: IAheadBehind | null, job: any) => {
+        if (result != null) {
+          this.onCacheUpdate(this.comparisonCache)
+        }
       }
-    })
+    )
 
-    this.q.on('error', (err: Error) => {
+    this.aheadBehindQueue.on('error', (err: Error) => {
       log.error(
         '[AheadBehindUpdater] an error with the queue was reported',
         err
       )
     })
 
-    this.q.on('end', (err?: Error) => {
+    this.aheadBehindQueue.on('end', (err?: Error) => {
       if (err != null) {
         log.warn(`[AheadBehindUpdater] ended with an error`, err)
       }
@@ -61,11 +64,11 @@ export class AheadBehindUpdater {
       this.onPerformingWork(false)
     })
 
-    this.q.start()
+    this.aheadBehindQueue.start()
   }
 
   public stop() {
-    this.q.end()
+    this.aheadBehindQueue.end()
   }
 
   private executeTask = (
@@ -92,7 +95,7 @@ export class AheadBehindUpdater {
 
   public enqueue(currentBranch: Branch, branches: ReadonlyArray<Branch>) {
     // remove any queued work to prioritize this new set of tasks
-    this.q.end()
+    this.aheadBehindQueue.end()
 
     const from = currentBranch.tip.sha
 
@@ -115,7 +118,7 @@ export class AheadBehindUpdater {
     this.onPerformingWork(true)
 
     for (const sha of newRefsToCompare) {
-      this.q.push<IAheadBehind | null>(callback =>
+      this.aheadBehindQueue.push<IAheadBehind | null>(callback =>
         requestIdleCallback(() => {
           this.executeTask(from, sha, callback)
         })
