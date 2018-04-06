@@ -1,5 +1,6 @@
 const queue: (config: QueueConfig) => Queue = require('queue')
 
+// eslint-disable-next-line typescript/interface-name-prefix
 interface QueueConfig {
   // Max number of jobs the queue should process concurrently, defaults to Infinity.
   readonly concurrency: number
@@ -8,6 +9,7 @@ interface QueueConfig {
   readonly autostart: boolean
 }
 
+// eslint-disable-next-line typescript/interface-name-prefix
 interface Queue extends NodeJS.EventEmitter {
   readonly length: number
 
