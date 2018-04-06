@@ -43,7 +43,7 @@ interface ICompareSidebarState {
    */
   readonly focusedBranch: Branch | null
   readonly filterText: string
-  readonly branchFilterHasFocus: boolean
+  readonly showBranchList: boolean
   readonly selectedCommit: Commit | null
 }
 
@@ -64,7 +64,7 @@ export class CompareSidebar extends React.Component<
     this.state = {
       focusedBranch: null,
       filterText: '',
-      branchFilterHasFocus: false,
+      showBranchList: false,
       selectedCommit: null,
     }
   }
@@ -97,7 +97,7 @@ export class CompareSidebar extends React.Component<
   }
 
   public componentDidMount() {
-    if (this.textbox !== null && this.state.branchFilterHasFocus) {
+    if (this.textbox !== null && this.state.showBranchList) {
       this.textbox.focus()
     }
   }
@@ -126,7 +126,8 @@ export class CompareSidebar extends React.Component<
             onKeyDown={this.onBranchFilterKeyDown}
           />
         </div>
-        {this.state.focusedBranch !== null || this.state.branchFilterHasFocus
+
+        {this.state.showBranchList
           ? this.renderFilterList()
           : this.renderCommits()}
       </div>
@@ -426,7 +427,7 @@ export class CompareSidebar extends React.Component<
   }
 
   private onTextBoxFocused = () => {
-    this.setState({ branchFilterHasFocus: true })
+    this.setState({ showBranchList: true })
   }
 
   private onTextBoxRef = (textbox: TextBox) => {
