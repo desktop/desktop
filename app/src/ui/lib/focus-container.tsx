@@ -27,20 +27,38 @@ export class FocusContainer extends React.Component<
   IFocusContainerState
 > {
   private wrapperRef: HTMLDivElement | null = null
+  private focusWithinChangedTimeoutId: number | null = null
 
   public constructor(props: IFocusContainerProps) {
     super(props)
     this.state = { focusWithin: false }
   }
 
+  private onFocusWithinChanged(focusWithin: boolean) {
+    if (this.focusWithinChangedTimeoutId !== null) {
+      cancelAnimationFrame(this.focusWithinChangedTimeoutId)
+      this.focusWithinChangedTimeoutId = null
+    }
+
+    this.focusWithinChangedTimeoutId = requestAnimationFrame(() => {
+      if (this.props.onFocusWithinChanged) {
+        this.props.onFocusWithinChanged(focusWithin)
+      }
+
+      this.focusWithinChangedTimeoutId = null
+    })
+  }
+
   private onWrapperRef = (elem: HTMLDivElement) => {
     if (elem) {
       elem.addEventListener('focusin', () => {
         this.setState({ focusWithin: true })
+        this.onFocusWithinChanged(true)
       })
 
       elem.addEventListener('focusout', () => {
         this.setState({ focusWithin: false })
+        this.onFocusWithinChanged(false)
       })
     }
 
