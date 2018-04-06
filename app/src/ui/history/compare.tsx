@@ -86,6 +86,12 @@ export class CompareSidebar extends React.Component<
       // ensure the filter text is in sync with the comparison branch
       this.setState({ filterText: newFormState.comparisonBranch.name })
     }
+
+    if (nextProps.sidebarHasFocusWithin !== this.props.sidebarHasFocusWithin) {
+      if (nextProps.sidebarHasFocusWithin === false) {
+        this.setState({ showBranchList: false })
+      }
+    }
   }
 
   public componentWillMount() {
@@ -104,7 +110,6 @@ export class CompareSidebar extends React.Component<
 
   public render() {
     const formState = this.props.compareState.formState
-
     const placeholderText =
       formState.kind === ComparisonView.None
         ? __DARWIN__
