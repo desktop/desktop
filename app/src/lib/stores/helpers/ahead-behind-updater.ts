@@ -116,7 +116,7 @@ export class AheadBehindUpdater {
 
     for (const sha of newRefsToCompare) {
       this.q.push<IAheadBehind | null>(callback =>
-        requestAnimationFrame(() => {
+        requestIdleCallback(() => {
           this.executeTask(from, sha, callback)
         })
       )
