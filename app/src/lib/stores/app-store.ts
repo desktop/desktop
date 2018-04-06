@@ -128,6 +128,7 @@ import * as QueryString from 'querystring'
 import { IRemote, ForkedRemotePrefix } from '../../models/remote'
 import { IAuthor } from '../../models/author'
 import { ComparisonCache } from '../comparison-cache'
+import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
 
 /**
  * Enum used by fetch to determine if
@@ -193,6 +194,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** The pull request updater for the currently selected repository */
   private currentPullRequestUpdater: PullRequestUpdater | null = null
+
+  /** The ahead/behind updater or the currently selected repository */
+  private currentAheadBehindUpdater: AheadBehindUpdater | null = null
 
   private repositoryState = new Map<string, IRepositoryState>()
   private showWelcomeFlow = false
@@ -706,59 +710,35 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  private async refreshAheadBehind(
-    repository: Repository,
-    currentBranch: Branch,
-    branches: ReadonlyArray<Branch>
-  ): Promise<void> {
-    console.time('encrunchening')
+  private startAheadBehindUpdater(repository: Repository) {
+    if (this.currentAheadBehindUpdater) {
+      fatalError(
+        `An ahead/behind updater is already active and cannot start updating on ${
+          repository.name
+        }`
+      )
 
-    log.warn(`[Compare] - beginning crunching for ${currentBranch.name}`)
+      return
+    }
 
-    this.updateCompareState(repository, state => ({
-      isCrunching: true,
-    }))
-
-    const from = currentBranch.tip.sha
-
-    const uniqueBranchSha = new Set<string>(branches.map(b => b.tip.sha))
-
-    const gitStore = this.getGitStore(repository)
-
-    for (const sha of uniqueBranchSha) {
-      const state = this.getRepositoryState(repository)
-      const cache = state.compareState.aheadBehindCache
-
-      if (cache.has(from, sha)) {
-        continue
-      }
-
-      const aheadBehind = await gitStore.getAheadBehind(from, sha)
-
-      if (aheadBehind != null) {
-        cache.set(from, sha, aheadBehind)
-      } else {
-        log.debug(
-          `[AppStore] unable to cache '${
-            currentBranch.name
-          }...${sha}' as no result returned`
-        )
-      }
-
+    const updater = new AheadBehindUpdater(repository, cache => {
       this.updateCompareState(repository, state => ({
         aheadBehindCache: cache,
       }))
+    })
 
-      this.emitUpdate()
+    this.currentAheadBehindUpdater = updater
+
+    this.currentAheadBehindUpdater.start()
+  }
+
+  private stopAheadBehindUpdate() {
+    const updater = this.currentAheadBehindUpdater
+
+    if (updater) {
+      updater.stop()
+      this.currentAheadBehindUpdater = null
     }
-
-    this.updateCompareState(repository, state => ({
-      isCrunching: false,
-    }))
-
-    log.warn(`[Compare] - ending crunching for ${currentBranch.name}`)
-
-    console.timeEnd('encrunchening')
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -805,7 +785,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const action = initialAction ? initialAction : getInitialAction(cachedState)
     this._executeCompare(repository, action)
 
-    if (currentBranch != null) {
+    if (currentBranch != null && this.currentAheadBehindUpdater != null) {
       log.warn('[Compare] computing ahead/behind counts')
 
       let allOtherBranches = [...recentBranches, ...allBranches]
@@ -814,7 +794,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         allOtherBranches = [defaultBranch, ...allOtherBranches]
       }
 
-      this.refreshAheadBehind(repository, currentBranch, allOtherBranches)
+      this.currentAheadBehindUpdater.enqueue(currentBranch, allOtherBranches)
     }
   }
 
@@ -1063,9 +1043,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // ensures we clean up the existing background fetcher correctly (if set)
     this.stopBackgroundFetching()
     this.stopPullRequestUpdater()
+    this.stopAheadBehindUpdate()
 
     this.startBackgroundFetching(repository, !previouslySelectedRepository)
     this.startPullRequestUpdater(repository)
+    this.startAheadBehindUpdater(repository)
 
     this.refreshMentionables(repository)
 
