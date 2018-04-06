@@ -9,6 +9,7 @@ export class AheadBehindUpdater {
 
   public constructor(
     private repository: Repository,
+    private onPerformingWork: (working: boolean) => void,
     private onCacheUpdate: (cache: ComparisonCache) => void
   ) {}
 
@@ -23,6 +24,7 @@ export class AheadBehindUpdater {
     uniqueBranchSha: Set<string>
   ) {
     this.abortInflightRequests = false
+    this.onPerformingWork(true)
 
     let count = uniqueBranchSha.size
 
@@ -31,6 +33,7 @@ export class AheadBehindUpdater {
         log.debug(
           `[AheadBehindUpdater] - aborting with ${count} branches unresolved`
         )
+        this.onPerformingWork(false)
         break
       }
 
@@ -52,6 +55,8 @@ export class AheadBehindUpdater {
       }
       count -= 1
     }
+
+    this.onPerformingWork(false)
   }
 
   public enqueue(currentBranch: Branch, branches: ReadonlyArray<Branch>) {
