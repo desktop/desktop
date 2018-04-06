@@ -93,7 +93,7 @@ export class AheadBehindUpdater {
     })
   }
 
-  public enqueue(currentBranch: Branch, branches: ReadonlyArray<Branch>) {
+  public schedule(currentBranch: Branch, branches: ReadonlyArray<Branch>) {
     // remove any queued work to prioritize this new set of tasks
     this.aheadBehindQueue.end()
 

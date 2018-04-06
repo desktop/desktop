@@ -804,7 +804,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         allOtherBranches = [defaultBranch, ...allOtherBranches]
       }
 
-      this.currentAheadBehindUpdater.enqueue(currentBranch, allOtherBranches)
+      this.currentAheadBehindUpdater.schedule(currentBranch, allOtherBranches)
     }
   }
 
