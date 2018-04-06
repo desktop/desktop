@@ -711,6 +711,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     currentBranch: Branch,
     branches: ReadonlyArray<Branch>
   ): Promise<void> {
+    console.time('encrunchening')
+
     log.warn(`[Compare] - beginning crunching for ${currentBranch.name}`)
 
     this.updateCompareState(repository, state => ({
@@ -755,6 +757,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }))
 
     log.warn(`[Compare] - ending crunching for ${currentBranch.name}`)
+
+    console.timeEnd('encrunchening')
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
