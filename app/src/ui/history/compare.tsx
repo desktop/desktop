@@ -120,7 +120,6 @@ export class CompareSidebar extends React.Component<
             type="search"
             placeholder={placeholderText}
             onFocus={this.onTextBoxFocused}
-            onBlur={this.onTextBoxBlurred}
             value={this.state.filterText}
             onRef={this.onTextBoxRef}
             onValueChanged={this.onBranchFilterTextChanged}
@@ -428,10 +427,6 @@ export class CompareSidebar extends React.Component<
 
   private onTextBoxFocused = () => {
     this.setState({ branchFilterHasFocus: true })
-  }
-
-  private onTextBoxBlurred = () => {
-    this.setState({ branchFilterHasFocus: false })
   }
 
   private onTextBoxRef = (textbox: TextBox) => {
