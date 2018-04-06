@@ -23,7 +23,7 @@ import { enableCompareSidebar } from '../lib/feature-flag'
 /** The widest the sidebar can be with the minimum window size. */
 const MaxSidebarWidth = 495
 
-interface IRepositoryProps {
+interface IRepositoryViewProps {
   readonly repository: Repo
   readonly state: IRepositoryState
   readonly dispatcher: Dispatcher
@@ -52,7 +52,9 @@ const enum Tab {
   History = 1,
 }
 
-export class RepositoryView extends React.Component<IRepositoryProps, {}> {
+export class RepositoryView extends React.Component<
+  IRepositoryViewProps,
+> {
   private renderTabs(): JSX.Element {
     const hasChanges =
       this.props.state.changesState.workingDirectory.files.length > 0
