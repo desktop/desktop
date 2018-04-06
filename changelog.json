@@ -1,5 +1,12 @@
 {
   "releases": {
+    "1.1.2-beta2": [
+      "[New] Render bitmap images in diffs - #4367. Thanks @MagicMarvMan!",
+      "[New] Add PowerShell Core support for Windows and macOS - #3791. Thanks @saschanaz!",
+      "[Fixed] Fix lfs log file creation - #4307. Thanks @MagicMarvMan!",
+      "[Fixed] `Open File in External Editor` does not launch existing window - #4381",
+      "[Improved] Pull request status text now matches format on GitHub website - #3521"
+    ],
     "1.1.2-beta1": [
 
     ],
