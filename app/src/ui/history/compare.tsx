@@ -30,6 +30,7 @@ interface ICompareSidebarProps {
   readonly localCommitSHAs: ReadonlyArray<string>
   readonly dispatcher: Dispatcher
   readonly currentBranch: Branch | null
+  readonly sidebarHasFocusWithin: boolean
   readonly onRevertCommit: (commit: Commit) => void
   readonly onViewCommitOnGitHub: (sha: string) => void
 }
@@ -42,7 +43,7 @@ interface ICompareSidebarState {
    */
   readonly focusedBranch: Branch | null
   readonly filterText: string
-  readonly branchFilterHasFocus: boolean
+  readonly showBranchList: boolean
   readonly selectedCommit: Commit | null
 }
 
@@ -63,7 +64,7 @@ export class CompareSidebar extends React.Component<
     this.state = {
       focusedBranch: null,
       filterText: '',
-      branchFilterHasFocus: false,
+      showBranchList: false,
       selectedCommit: null,
     }
   }
@@ -85,6 +86,12 @@ export class CompareSidebar extends React.Component<
       // ensure the filter text is in sync with the comparison branch
       this.setState({ filterText: newFormState.comparisonBranch.name })
     }
+
+    if (nextProps.sidebarHasFocusWithin !== this.props.sidebarHasFocusWithin) {
+      if (nextProps.sidebarHasFocusWithin === false) {
+        this.setState({ showBranchList: false })
+      }
+    }
   }
 
   public componentWillMount() {
@@ -96,14 +103,13 @@ export class CompareSidebar extends React.Component<
   }
 
   public componentDidMount() {
-    if (this.textbox !== null && this.state.branchFilterHasFocus) {
+    if (this.textbox !== null && this.state.showBranchList) {
       this.textbox.focus()
     }
   }
 
   public render() {
     const formState = this.props.compareState.formState
-
     const placeholderText =
       formState.kind === ComparisonView.None
         ? __DARWIN__
@@ -119,14 +125,14 @@ export class CompareSidebar extends React.Component<
             type="search"
             placeholder={placeholderText}
             onFocus={this.onTextBoxFocused}
-            onBlur={this.onTextBoxBlurred}
             value={this.state.filterText}
             onRef={this.onTextBoxRef}
             onValueChanged={this.onBranchFilterTextChanged}
             onKeyDown={this.onBranchFilterKeyDown}
           />
         </div>
-        {this.state.focusedBranch !== null || this.state.branchFilterHasFocus
+
+        {this.state.showBranchList
           ? this.renderFilterList()
           : this.renderCommits()}
       </div>
@@ -430,11 +436,7 @@ export class CompareSidebar extends React.Component<
   }
 
   private onTextBoxFocused = () => {
-    this.setState({ branchFilterHasFocus: true })
-  }
-
-  private onTextBoxBlurred = () => {
-    this.setState({ branchFilterHasFocus: false })
+    this.setState({ showBranchList: true })
   }
 
   private onTextBoxRef = (textbox: TextBox) => {
