@@ -98,10 +98,11 @@ interface IChangesListProps {
   readonly externalEditorLabel?: string
 
   /**
-   * Called to open a file using the user's configured applications
-   * @param path The path of the file relative to the root of the repository
+   * Callback to open a selected file using the configured external editor
+   *
+   * @param fullPath The full path to the file on disk
    */
-  readonly onOpenInExternalEditor: (path: string) => void
+  readonly onOpenInExternalEditor: (fullPath: string) => void
 }
 
 export class ChangesList extends React.Component<IChangesListProps, {}> {
@@ -226,7 +227,10 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
       },
       {
         label: openInExternalEditor,
-        action: () => this.props.onOpenInExternalEditor(path),
+        action: () => {
+          const fullPath = Path.join(this.props.repository.path, path)
+          this.props.onOpenInExternalEditor(fullPath)
+        },
         enabled: isSafeExtension && status !== AppFileStatus.Deleted,
       },
       {

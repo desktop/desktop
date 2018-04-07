@@ -23,8 +23,13 @@ export async function executionOptionsWithProgress(
   let lfsProgressPath = null
   let env = {}
   if (options.trackLFSProgress) {
-    lfsProgressPath = await createLFSProgressFile()
-    env = { GIT_LFS_PROGRESS: lfsProgressPath }
+    try {
+      lfsProgressPath = await createLFSProgressFile()
+      env = { GIT_LFS_PROGRESS: lfsProgressPath }
+    } catch (e) {
+      log.error('Error writing LFS progress file', e)
+      env = { GIT_LFS_PROGRESS: null }
+    }
   }
 
   return merge(options, {

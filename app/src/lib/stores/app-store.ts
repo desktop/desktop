@@ -2575,14 +2575,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return shell.openExternal(url)
   }
 
-  /** Takes a repository path and opens it using the user's configured editor */
-  public async _openInExternalEditor(path: string): Promise<void> {
+  /** Open a path to a repository or file using the user's configured editor */
+  public async _openInExternalEditor(fullPath: string): Promise<void> {
     const selectedExternalEditor =
       this.getState().selectedExternalEditor || null
 
     try {
       const match = await findEditorOrDefault(selectedExternalEditor)
-      await launchExternalEditor(path, match)
+      await launchExternalEditor(fullPath, match)
     } catch (error) {
       this.emitError(error)
     }

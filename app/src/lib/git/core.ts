@@ -81,17 +81,17 @@ export class GitError extends Error {
 /**
  * Shell out to git with the given arguments, at the given path.
  *
- * @param {args}             The arguments to pass to `git`.
+ * @param args             The arguments to pass to `git`.
  *
- * @param {path}             The working directory path for the execution of the
- *                           command.
+ * @param path             The working directory path for the execution of the
+ *                         command.
  *
- * @param {name}             The name for the command based on its caller's
- *                           context. This will be used for performance
- *                           measurements and debugging.
+ * @param name             The name for the command based on its caller's
+ *                         context. This will be used for performance
+ *                         measurements and debugging.
  *
- * @param {options}          Configuration options for the execution of git,
- *                           see IGitExecutionOptions for more information.
+ * @param options          Configuration options for the execution of git,
+ *                         see IGitExecutionOptions for more information.
  *
  * Returns the result. If the command exits with a code not in
  * `successExitCodes` or an error not in `expectedErrors`, a `GitError` will be
@@ -245,6 +245,8 @@ function getDescriptionForError(error: DugiteError): string {
       return 'This branch cannot be deleted from the remote repository because it is marked as protected.'
     case DugiteError.ProtectedBranchRequiredStatus:
       return 'The push was rejected by the remote server because a required status check has not been satisfied.'
+    case DugiteError.BranchRenameFailed:
+      return 'The branch could not be renamed.'
     default:
       return assertNever(error, `Unknown error: ${error}`)
   }
