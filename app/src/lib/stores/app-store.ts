@@ -3288,12 +3288,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       // to just crash and burn on checkout, but that's okay
       if (defaultRemote) {
         // the remote ref will be something like `origin/my-cool-branch`
-        // so we should look for that rather than a local branch
-        // named `my-cool-branch`
         const remoteRef = `${defaultRemote.name}/${head.ref}`
         const gitStore = this.getGitStore(repository)
-        // branch.name here is the fully-qualified ref - perhaps that
-        // isn't quite clear from the name?
+
         const remoteRefExists =
           gitStore.allBranches.find(branch => branch.name === remoteRef) != null
 
