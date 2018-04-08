@@ -602,9 +602,11 @@ export class Dispatcher {
     }
   }
 
-  /** Opens a Git repository in the user provided program */
-  public async openInExternalEditor(path: string): Promise<void> {
-    return this.appStore._openInExternalEditor(path)
+  /**
+   * Opens a path in the external editor selected by the user.
+   */
+  public async openInExternalEditor(fullPath: string): Promise<void> {
+    return this.appStore._openInExternalEditor(fullPath)
   }
 
   /**
@@ -879,10 +881,6 @@ export class Dispatcher {
 
   /**
    * Sets the user's preference so that confirmation to discard changes is not asked
-   *
-   * @param {boolean} value
-   * @returns {Promise<void>}
-   * @memberof Dispatcher
    */
   public setConfirmDiscardChangesSetting(value: boolean): Promise<void> {
     return this.appStore._setConfirmDiscardChangesSetting(value)
