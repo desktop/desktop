@@ -2,11 +2,7 @@ import * as React from 'react'
 import * as Path from 'path'
 import { pathExists } from '../../lib/file-system'
 
-import {
-  FileChange,
-  mapStatus,
-  iconForStatus,
-} from '../../models/status'
+import { FileChange, mapStatus, iconForStatus } from '../../models/status'
 import { PathLabel } from '../lib/path-label'
 import { Octicon } from '../octicons'
 import { List } from '../lib/list'
@@ -112,10 +108,9 @@ export class FileList extends React.Component<IFileListProps, {}> {
     event.preventDefault()
 
     if (this.props.selectedFile !== null) {
-      const filePath = this.props.selectedFile.path 
+      const filePath = this.props.selectedFile.path
       const fullPath = Path.join(this.props.repository.path, filePath)
       const fileExistsOnDisk = await pathExists(fullPath)
-      console.log( fullPath )
       const extension = Path.extname(filePath)
       const items: IMenuItem[] = []
 
