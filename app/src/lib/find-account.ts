@@ -89,6 +89,7 @@ export async function findAccountForRemoteURL(
   //     truly don't care.
   const parsedURL = parseRemote(urlOrRepositoryAlias)
   if (parsedURL) {
+    console.log(`[test] we parsed a URL: ${JSON.stringify(parsedURL)}`)
     const account =
       allAccounts.find(a => {
         const htmlURL = getHTMLURL(a.endpoint)
@@ -99,17 +100,22 @@ export async function findAccountForRemoteURL(
     // If we find an account whose hostname matches the URL to be cloned, it's
     // always gonna be our best bet for success. We're not gonna do better.
     if (account) {
+      console.log(`[test] returning an account: ${JSON.stringify(account)}`)
       return account
     }
   }
 
   const repositoryIdentifier = parseRepositoryIdentifier(urlOrRepositoryAlias)
   if (repositoryIdentifier) {
+    console.log(
+      `[test] we got an identifier: ${JSON.stringify(repositoryIdentifier)}`
+    )
     const account = await findRepositoryAccount(
       allAccounts,
       repositoryIdentifier
     )
     if (account) {
+      console.log(`[test] returning an account: ${JSON.stringify(account)}`)
       return account
     }
   }
