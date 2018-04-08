@@ -6,6 +6,7 @@ import * as webpack from 'webpack'
 import * as merge from 'webpack-merge'
 import * as ExtractTextPlugin from 'extract-text-webpack-plugin'
 import * as BabelPlugin from 'babel-webpack-plugin'
+import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer'
 
 const config: webpack.Configuration = {
   devtool: 'source-map',
@@ -52,6 +53,16 @@ const rendererConfig = merge({}, common.renderer, config, {
   plugins: [
     // Necessary to be able to use ExtractTextPlugin as a loader.
     new ExtractTextPlugin('ui.css'),
+    new BundleAnalyzerPlugin({
+      // this generates the static HTML file to view afterwards, rather
+      // than disrupting the user
+      analyzerMode: 'static',
+      openAnalyzer: false,
+      // we can't emit this directly to the dist directory because the
+      // build script immediately blows away dist after webpack is done
+      // compiling the source into bundles
+      reportFilename: 'renderer.report.html',
+    }),
   ],
 })
 
