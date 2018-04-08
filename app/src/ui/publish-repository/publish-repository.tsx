@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Account } from '../../models/account'
-import { API, IAPIUser } from '../../lib/api'
+import { API, IAPIUser, IAPITeam } from '../../lib/api'
 import { TextBox } from '../lib/text-box'
 import { Select } from '../lib/select'
 import { DialogContent } from '../dialog'
@@ -34,10 +34,17 @@ export interface IPublishRepositorySettings {
    * published as a personal repository.
    */
   readonly org: IAPIUser | null
+
+  /**
+   * The team which will be granted access to this repository. Only valid when
+   * publishing a repository to an organization.
+   */
+  readonly team: IAPITeam | null
 }
 
 interface IPublishRepositoryState {
   readonly orgs: ReadonlyArray<IAPIUser>
+  readonly teams: ReadonlyArray<IAPITeam>
 }
 
 /** The Publish Repository component. */
@@ -48,7 +55,7 @@ export class PublishRepository extends React.Component<
   public constructor(props: IPublishRepositoryProps) {
     super(props)
 
-    this.state = { orgs: [] }
+    this.state = { orgs: [], teams: [] }
   }
 
   public async componentWillMount() {
@@ -57,7 +64,7 @@ export class PublishRepository extends React.Component<
 
   public componentWillReceiveProps(nextProps: IPublishRepositoryProps) {
     if (this.props.account !== nextProps.account) {
-      this.setState({ orgs: [] })
+      this.setState({ orgs: [], teams: [] })
 
       this.fetchOrgs(nextProps.account)
     }
@@ -68,6 +75,13 @@ export class PublishRepository extends React.Component<
     const orgs = (await api.fetchOrgs()) as Array<IAPIUser>
     orgs.sort((a, b) => caseInsensitiveCompare(a.login, b.login))
     this.setState({ orgs })
+  }
+
+  private async fetchTeams(account: Account, org: IAPIUser) {
+    const api = API.fromAccount(account)
+    const teams = (await api.fetchTeams(org)) as Array<IAPITeam>
+    teams.sort((a, b) => caseInsensitiveCompare(a.name, b.name))
+    this.setState({ teams })
   }
 
   private updateSettings<K extends keyof IPublishRepositorySettings>(
@@ -94,10 +108,24 @@ export class PublishRepository extends React.Component<
     const value = event.currentTarget.value
     const index = parseInt(value, 10)
     if (index < 0 || isNaN(index)) {
-      this.updateSettings({ org: null })
+      this.updateSettings({ org: null, team: null })
+      // clear teams
+      this.setState({ teams: [] })
     } else {
       const org = this.state.orgs[index]
-      this.updateSettings({ org })
+      this.updateSettings({ org, team: null })
+      this.fetchTeams(this.props.account, org)
+    }
+  }
+
+  private onTeamChange = (event: React.FormEvent<HTMLSelectElement>) => {
+    const value = event.currentTarget.value
+    const index = parseInt(value, 10)
+    if (index < 0 || isNaN(index)) {
+      this.updateSettings({ team: null })
+    } else {
+      const team = this.state.teams[index]
+      this.updateSettings({ team })
     }
   }
 
@@ -138,6 +166,43 @@ export class PublishRepository extends React.Component<
     )
   }
 
+  private renderTeams(): JSX.Element | null {
+    if (this.state.teams.length === 0) {
+      return null
+    }
+
+    const options = new Array<JSX.Element>()
+    options.push(
+      <option value={-1} key={-1}>
+        None
+      </option>
+    )
+
+    let selectedIndex = -1
+    const selectedOrg = this.props.settings.team
+    for (const [index, team] of this.state.teams.entries()) {
+      if (selectedOrg && selectedOrg.id === team.id) {
+        selectedIndex = index
+      }
+
+      options.push(
+        <option value={index} key={index}>
+          {team.name}
+        </option>
+      )
+    }
+
+    return (
+      <Select
+        label="Team"
+        value={selectedIndex.toString()}
+        onChange={this.onTeamChange}
+      >
+        {options}
+      </Select>
+    )
+  }
+
   public render() {
     return (
       <DialogContent>
@@ -170,6 +235,7 @@ export class PublishRepository extends React.Component<
         </Row>
 
         {this.renderOrgs()}
+        {this.renderTeams()}
       </DialogContent>
     )
   }
