@@ -52,7 +52,6 @@
     "yarn": ">= 1.2.0"
   },
   "dependencies": {
-    "@types/webpack-bundle-analyzer": "^2.9.2",
     "ajv": "^6.4.0",
     "awesome-typescript-loader": "^3.4.0",
     "aws-sdk": "^2.23.0",
@@ -145,6 +144,7 @@
     "@types/untildify": "^3.0.0",
     "@types/uuid": "^3.4.0",
     "@types/webpack": "^3.0.13",
+    "@types/webpack-bundle-analyzer": "^2.9.2",
     "@types/webpack-dev-middleware": "^1.12.0",
     "@types/webpack-hot-middleware": "^2.16.2",
     "@types/webpack-merge": "^4.1.0",
