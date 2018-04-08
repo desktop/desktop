@@ -1,8 +1,8 @@
 import * as React from 'react'
 import * as Path from 'path'
+import { pathExists } from '../../lib/file-system'
 
 import {
-  AppFileStatus,
   FileChange,
   mapStatus,
   iconForStatus,
@@ -12,6 +12,7 @@ import { Octicon } from '../octicons'
 import { List } from '../lib/list'
 import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'
+import { Repository } from '../../models/repository'
 
 const RestrictedFileExtensions = ['.cmd', '.exe', '.bat', '.sh']
 const defaultEditorLabel = __DARWIN__
@@ -43,6 +44,12 @@ interface IFileListProps {
    * @param path The path of the file relative to the root of the repository
    */
   readonly onOpenInExternalEditor: (path: string) => void
+
+  /**
+   * Repository that we use to get the base path and build
+   * full path for the file in commit to check for file existence
+   */
+  readonly repository: Repository
 }
 
 export class FileList extends React.Component<IFileListProps, {}> {
@@ -101,12 +108,15 @@ export class FileList extends React.Component<IFileListProps, {}> {
     )
   }
 
-  private onContextMenu = (event: React.MouseEvent<any>) => {
+  private onContextMenu = async (event: React.MouseEvent<any>) => {
     event.preventDefault()
 
     if (this.props.selectedFile !== null) {
-      const filePath = this.props.selectedFile.path
-      const extension = Path.extname(this.props.selectedFile.path)
+      const filePath = this.props.selectedFile.path 
+      const fullPath = Path.join(this.props.repository.path, filePath)
+      const fileExistsOnDisk = await pathExists(fullPath)
+      console.log( fullPath )
+      const extension = Path.extname(filePath)
       const items: IMenuItem[] = []
 
       const isSafeExtension = __WIN32__
@@ -125,23 +135,19 @@ export class FileList extends React.Component<IFileListProps, {}> {
         {
           label: revealInFileManagerLabel,
           action: () => this.props.onRevealInFileManager(filePath),
-          enabled: this.props.selectedFile.status !== AppFileStatus.Deleted,
+          enabled: fileExistsOnDisk,
         },
         {
           label: openInExternalEditor,
-          action: () => this.props.onOpenInExternalEditor(filePath),
-          enabled:
-            isSafeExtension &&
-            this.props.selectedFile.status !== AppFileStatus.Deleted,
+          action: () => this.props.onOpenInExternalEditor(fullPath),
+          enabled: isSafeExtension && fileExistsOnDisk,
         },
         {
           label: __DARWIN__
             ? 'Open with Default Program'
             : 'Open with default program',
-          action: () => this.props.onOpenItem(filePath),
-          enabled:
-            isSafeExtension &&
-            this.props.selectedFile.status !== AppFileStatus.Deleted,
+          action: () => this.props.onOpenItem(fullPath),
+          enabled: isSafeExtension && fileExistsOnDisk,
         }
       )
       showContextualMenu(items)

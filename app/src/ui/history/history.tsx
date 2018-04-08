@@ -146,6 +146,7 @@ export class History extends React.Component<IHistoryProps, IHistoryState> {
         onOpenItem={this.onOpenItem}
         externalEditorLabel={this.props.externalEditorLabel}
         onOpenInExternalEditor={this.props.onOpenInExternalEditor}
+        repository={this.props.repository}
       />
     )
   }
