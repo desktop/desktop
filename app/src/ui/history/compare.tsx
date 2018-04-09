@@ -20,6 +20,7 @@ import { TabBar } from '../tab-bar'
 import { CompareBranchListItem } from './compare-branch-list-item'
 import { FancyTextBox } from '../lib/fancy-text-box'
 import { OcticonSymbol } from '../octicons'
+import { SelectionSource } from '../lib/filter-list'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -425,7 +426,23 @@ export class CompareSidebar extends React.Component<
     })
   }
 
-  private onSelectionChanged = (branch: Branch | null) => {
+  private onSelectionChanged = (
+    branch: Branch | null,
+    source: SelectionSource
+  ) => {
+    if (source.kind === 'mouseclick' && branch != null) {
+      this.props.dispatcher.executeCompare(this.props.repository, {
+        branch,
+        kind: CompareActionKind.Branch,
+        mode: ComparisonView.Behind,
+      })
+      this.setState({
+        focusedBranch: null,
+        filterText: '',
+      })
+      return
+    }
+
     this.setState({
       focusedBranch: branch,
     })
