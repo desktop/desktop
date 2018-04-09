@@ -435,11 +435,6 @@ export class CompareSidebar extends React.Component<
         kind: CompareActionKind.Branch,
         mode: ComparisonView.Behind,
       })
-      this.setState({
-        focusedBranch: null,
-        filterText: '',
-      })
-      return
     }
 
     this.setState({
