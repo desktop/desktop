@@ -26,6 +26,7 @@ import { CloneRepositoryTab } from '../models/clone-repository-tab'
 import { BranchesTab } from '../models/branches-tab'
 import { PullRequest } from '../models/pull-request'
 import { IAuthor } from '../models/author'
+import { ComparisonCache } from './comparison-cache'
 
 export { ICommitMessage }
 
@@ -649,16 +650,9 @@ export interface ICompareState {
   readonly defaultBranch: Branch | null
 
   /**
-   * The base SHA associated with the current ahead/behind cache.
-   *
-   * When this changes, the cache needs to be invalidated.
-   */
-  readonly baseSha: string | null
-
-  /**
    * A local cache of ahead/behind computations to compare other refs to the current branch
    */
-  readonly aheadBehindCache: Map<string, IAheadBehind>
+  readonly aheadBehindCache: ComparisonCache
 }
 
 export enum CompareActionKind {

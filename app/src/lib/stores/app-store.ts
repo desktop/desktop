@@ -40,7 +40,7 @@ import {
 } from '../../lib/repository-matching'
 import { API, getAccountForEndpoint, IAPIUser } from '../../lib/api'
 import { caseInsensitiveCompare } from '../compare'
-import { Branch, BranchType, IAheadBehind } from '../../models/branch'
+import { Branch, BranchType } from '../../models/branch'
 import { TipState } from '../../models/tip'
 import { CloningRepository } from '../../models/cloning-repository'
 import { Commit } from '../../models/commit'
@@ -127,6 +127,8 @@ import { PullRequestUpdater } from './helpers/pull-request-updater'
 import * as QueryString from 'querystring'
 import { IRemote, ForkedRemotePrefix } from '../../models/remote'
 import { IAuthor } from '../../models/author'
+import { ComparisonCache } from '../comparison-cache'
+import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
 
 /**
  * Enum used by fetch to determine if
@@ -192,6 +194,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** The pull request updater for the currently selected repository */
   private currentPullRequestUpdater: PullRequestUpdater | null = null
+
+  /** The ahead/behind updater or the currently selected repository */
+  private currentAheadBehindUpdater: AheadBehindUpdater | null = null
 
   private repositoryState = new Map<string, IRepositoryState>()
   private showWelcomeFlow = false
@@ -442,11 +447,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       compareState: {
         formState: { kind: ComparisonView.None },
         commitSHAs: [],
-        aheadBehindCache: new Map<string, IAheadBehind>(),
+        aheadBehindCache: new ComparisonCache(),
         allBranches: [],
         recentBranches: [],
         defaultBranch: null,
-        baseSha: null,
       },
       commitAuthor: null,
       gitHubUsers: new Map<string, IGitHubUser>(),
@@ -705,40 +709,35 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  private async refreshAheadBehind(
-    repository: Repository,
-    currentBranch: Branch,
-    branches: ReadonlyArray<Branch>
-  ): Promise<void> {
-    const uniqueBranchSha = new Set<string>(branches.map(b => b.tip.sha))
+  private startAheadBehindUpdater(repository: Repository) {
+    if (this.currentAheadBehindUpdater) {
+      fatalError(
+        `An ahead/behind updater is already active and cannot start updating on ${
+          repository.name
+        }`
+      )
 
-    const gitStore = this.getGitStore(repository)
+      return
+    }
 
-    for (const sha of uniqueBranchSha) {
-      const state = this.getRepositoryState(repository)
-      const cache = state.compareState.aheadBehindCache
-
-      if (cache.has(sha)) {
-        continue
-      }
-
-      const aheadBehind = await gitStore.getAheadBehind(currentBranch.name, sha)
-
-      if (aheadBehind != null) {
-        cache.set(sha, aheadBehind)
-      } else {
-        log.debug(
-          `[AppStore] unable to cache ${
-            currentBranch.name
-          } as no result returned`
-        )
-      }
-
+    const updater = new AheadBehindUpdater(repository, aheadBehindCache => {
       this.updateCompareState(repository, state => ({
-        aheadBehindCache: cache,
+        aheadBehindCache,
       }))
-
       this.emitUpdate()
+    })
+
+    this.currentAheadBehindUpdater = updater
+
+    this.currentAheadBehindUpdater.start()
+  }
+
+  private stopAheadBehindUpdate() {
+    const updater = this.currentAheadBehindUpdater
+
+    if (updater) {
+      updater.stop()
+      this.currentAheadBehindUpdater = null
     }
   }
 
@@ -780,36 +779,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }))
 
     const compareState = state.compareState
-    const { aheadBehindCache, baseSha } = compareState
-
-    const newSha = currentBranch ? currentBranch.tip.sha : ''
-
-    if (baseSha !== newSha) {
-      log.debug('[AppStore] clearing cache as the base branch SHA has changed')
-
-      aheadBehindCache.clear()
-
-      this.updateCompareState(repository, state => ({
-        aheadBehindCache,
-        baseSha: newSha,
-      }))
-    }
 
     const cachedState = compareState.formState
 
     const action = initialAction ? initialAction : getInitialAction(cachedState)
     this._executeCompare(repository, action)
 
-    if (currentBranch != null && aheadBehindCache.size === 0) {
-      log.debug('[AppStore] computing ahead/behind counts')
-
+    if (currentBranch != null && this.currentAheadBehindUpdater != null) {
       let allOtherBranches = [...recentBranches, ...allBranches]
 
       if (defaultBranch != null) {
         allOtherBranches = [defaultBranch, ...allOtherBranches]
       }
 
-      this.refreshAheadBehind(repository, currentBranch, allOtherBranches)
+      this.currentAheadBehindUpdater.schedule(currentBranch, allOtherBranches)
     }
   }
 
@@ -819,6 +802,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     action: CompareAction
   ): Promise<void> {
     const gitStore = this.getGitStore(repository)
+    const kind = action.kind
 
     if (action.kind === CompareActionKind.History) {
       await gitStore.loadHistory()
@@ -833,25 +817,28 @@ export class AppStore extends TypedBaseStore<IAppState> {
         commitSHAs: commits,
       }))
       return this.emitUpdate()
-    }
+    } else if (action.kind === CompareActionKind.Branch) {
+      const comparisonBranch = action.branch
+      const compare = await gitStore.getCompareCommits(
+        comparisonBranch,
+        action.mode
+      )
 
-    const { branch } = action
-    const compare = await gitStore.getCompareCommits(branch, action.mode)
+      if (compare !== null) {
+        this.updateCompareState(repository, s => ({
+          formState: {
+            comparisonBranch,
+            kind: action.mode,
+            ahead: compare.ahead,
+            behind: compare.behind,
+          },
+          commitSHAs: compare.commits.map(commit => commit.sha),
+        }))
 
-    const comparisonBranch = action.branch
-
-    if (compare != null) {
-      this.updateCompareState(repository, s => ({
-        formState: {
-          kind: action.mode,
-          comparisonBranch,
-          ahead: compare.ahead,
-          behind: compare.behind,
-        },
-        commitSHAs: compare.commits.map(commit => commit.sha),
-      }))
-
-      return this.emitUpdate()
+        return this.emitUpdate()
+      }
+    } else {
+      return assertNever(action, `Unknown action: ${kind}`)
     }
   }
 
@@ -1058,9 +1045,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // ensures we clean up the existing background fetcher correctly (if set)
     this.stopBackgroundFetching()
     this.stopPullRequestUpdater()
+    this.stopAheadBehindUpdate()
 
     this.startBackgroundFetching(repository, !previouslySelectedRepository)
     this.startPullRequestUpdater(repository)
+    this.startAheadBehindUpdater(repository)
 
     this.refreshMentionables(repository)
 
@@ -1713,6 +1702,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this._updateCurrentPullRequest(repository)
     this.updateMenuItemLabels(repository)
+    this._initializeCompare(repository)
   }
 
   /**

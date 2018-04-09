@@ -19,11 +19,12 @@ import { assertNever } from '../lib/fatal-error'
 import { Octicon, OcticonSymbol } from './octicons'
 import { Account } from '../models/account'
 import { enableCompareSidebar } from '../lib/feature-flag'
+import { FocusContainer } from './lib/focus-container'
 
 /** The widest the sidebar can be with the minimum window size. */
 const MaxSidebarWidth = 495
 
-interface IRepositoryProps {
+interface IRepositoryViewProps {
   readonly repository: Repo
   readonly state: IRepositoryState
   readonly dispatcher: Dispatcher
@@ -47,12 +48,27 @@ interface IRepositoryProps {
   readonly onOpenInExternalEditor: (path: string) => void
 }
 
+interface IRepositoryViewState {
+  readonly sidebarHasFocusWithin: boolean
+}
+
 const enum Tab {
   Changes = 0,
   History = 1,
 }
 
-export class RepositoryView extends React.Component<IRepositoryProps, {}> {
+export class RepositoryView extends React.Component<
+  IRepositoryViewProps,
+  IRepositoryViewState
+> {
+  public constructor(props: IRepositoryViewProps) {
+    super(props)
+
+    this.state = {
+      sidebarHasFocusWithin: false,
+    }
+  }
+
   private renderTabs(): JSX.Element {
     const hasChanges =
       this.props.state.changesState.workingDirectory.files.length > 0
@@ -149,6 +165,7 @@ export class RepositoryView extends React.Component<IRepositoryProps, {}> {
         dispatcher={this.props.dispatcher}
         onRevertCommit={this.onRevertCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
+        sidebarHasFocusWithin={this.state.sidebarHasFocusWithin}
       />
     )
   }
@@ -177,17 +194,23 @@ export class RepositoryView extends React.Component<IRepositoryProps, {}> {
 
   private renderSidebar(): JSX.Element {
     return (
-      <Resizable
-        id="repository-sidebar"
-        width={this.props.sidebarWidth}
-        onReset={this.handleSidebarWidthReset}
-        onResize={this.handleSidebarResize}
-        maximumWidth={MaxSidebarWidth}
-      >
-        {this.renderTabs()}
-        {this.renderSidebarContents()}
-      </Resizable>
+      <FocusContainer onFocusWithinChanged={this.onSidebarFocusWithinChanged}>
+        <Resizable
+          id="repository-sidebar"
+          width={this.props.sidebarWidth}
+          onReset={this.handleSidebarWidthReset}
+          onResize={this.handleSidebarResize}
+          maximumWidth={MaxSidebarWidth}
+        >
+          {this.renderTabs()}
+          {this.renderSidebarContents()}
+        </Resizable>
+      </FocusContainer>
     )
+  }
+
+  private onSidebarFocusWithinChanged = (sidebarHasFocusWithin: boolean) => {
+    this.setState({ sidebarHasFocusWithin })
   }
 
   private renderContent(): JSX.Element {
