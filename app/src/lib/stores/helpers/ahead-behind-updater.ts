@@ -105,10 +105,6 @@ export class AheadBehindUpdater {
       } comparisons to perform`
     )
 
-    if (newRefsToCompare.size === 0) {
-      return
-    }
-
     for (const sha of newRefsToCompare) {
       this.aheadBehindQueue.push<IAheadBehind | null>(callback =>
         requestIdleCallback(() => {
