@@ -117,6 +117,8 @@ export class GitStore extends BaseStore {
 
   private _lastFetched: Date | null = null
 
+  private _inflightStatus: Promise<IStatusResult | undefined> | null = null
+
   public constructor(repository: Repository, shell: IAppShell) {
     super()
 
@@ -844,9 +846,24 @@ export class GitStore extends BaseStore {
   }
 
   public async loadStatus(): Promise<IStatusResult | null> {
-    const status = await this.performFailableOperation(() =>
+    if (this._inflightStatus != null) {
+      // prevents re-entrant status calls and queuing
+      log.debug(
+        `[GitStore] a re-entrant 'git status' has been requested, deferring while the current one is in-flight`
+      )
+      return null
+    }
+
+    // assign a new status call
+    this._inflightStatus = this.performFailableOperation(() =>
       getStatus(this.repository)
     )
+
+    // wait for this status to complete
+    const status = await this._inflightStatus
+
+    // unassign it to indicate that the "lock" is no longer necessary
+    this._inflightStatus = null
 
     if (!status) {
       return null
