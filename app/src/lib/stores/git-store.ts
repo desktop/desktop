@@ -25,6 +25,7 @@ import {
   getBranches,
   deleteRef,
   IAheadBehind,
+  getStatusSpawn,
   getCommits,
   merge,
   setRemoteURL,
@@ -847,7 +848,7 @@ export class GitStore extends BaseStore {
     console.time('loadStatus')
 
     const status = await this.performFailableOperation(() =>
-      getStatus(this.repository)
+      getStatusSpawn(this.repository)
     )
 
     console.timeEnd('loadStatus')
