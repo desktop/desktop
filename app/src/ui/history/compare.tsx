@@ -404,8 +404,12 @@ export class CompareSidebar extends React.Component<
     this.setState({ filterText: '' })
   }
 
-  private onBranchFilterTextChanged = (text: string) => {
-    this.setState({ filterText: text })
+  private onBranchFilterTextChanged = (filterText: string) => {
+    if (filterText.length === 0) {
+      this.setState({ focusedBranch: null, filterText })
+    } else {
+      this.setState({ filterText })
+    }
   }
 
   private clearFilterState = () => {
