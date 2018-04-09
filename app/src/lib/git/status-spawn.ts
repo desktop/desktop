@@ -55,8 +55,6 @@ function convertToAppStatus(status: FileEntry): AppFileStatus {
   return fatalError(`Unknown file status ${status}`)
 }
 
-type StatusItem = IStatusHeader | IStatusEntry
-
 export interface IStatusHeader {
   readonly kind: 'header'
   readonly value: string
@@ -86,6 +84,49 @@ function indexOfNextNull(str: String) {
   return str.indexOf('\0')
 }
 
+function parseStatusItem(
+  entry: IStatusEntry,
+  files: Array<WorkingDirectoryFileChange>
+) {
+  const status = mapStatus(entry.statusCode)
+
+  if (status.kind === 'ordinary') {
+    // when a file is added in the index but then removed in the working
+    // directory, the file won't be part of the commit, so we can skip
+    // displaying this entry in the changes list
+    if (
+      status.index === GitStatusEntry.Added &&
+      status.workingTree === GitStatusEntry.Deleted
+    ) {
+      return
+    }
+  }
+
+  if (status.kind === 'untracked') {
+    // when a delete has been staged, but an untracked file exists with the
+    // same path, we should ensure that we only draw one entry in the
+    // changes list - see if an entry already exists for this path and
+    // remove it if found
+    const existingEntry = files.findIndex(p => p.path === entry.path)
+    if (existingEntry > -1) {
+      files.splice(existingEntry, 1)
+    }
+  }
+
+  // for now we just poke at the existing summary
+  const summary = convertToAppStatus(status)
+  const selection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
+
+  files.push(
+    new WorkingDirectoryFileChange(
+      entry.path,
+      summary,
+      selection,
+      entry.oldPath
+    )
+  )
+}
+
 /**
  *  Retrieve the status for a given repository,
  *  and fail gracefully if the location is not a Git repository
@@ -102,7 +143,12 @@ export async function getStatusSpawn(
       '-z',
     ]
 
-    const entries = new Array<StatusItem>()
+    const files = new Array<WorkingDirectoryFileChange>()
+
+    let currentBranch: string | undefined = undefined
+    let currentUpstreamBranch: string | undefined = undefined
+    let currentTip: string | undefined = undefined
+    let branchAheadBehind: IAheadBehind | undefined = undefined
 
     const status = GitProcess.spawn(args, repository.path)
 
@@ -128,7 +174,27 @@ export async function getStatusSpawn(
           remainingText = remainingText.slice(nextNewLine + 1)
 
           if (field.startsWith('# ') && field.length > 2) {
-            entries.push({ kind: 'header', value: field.substr(2) })
+            let m: RegExpMatchArray | null
+            const value = field.substr(2)
+
+            // This intentionally does not match branch.oid initial
+            if ((m = value.match(/^branch\.oid ([a-f0-9]+)$/))) {
+              currentTip = m[1]
+            } else if ((m = value.match(/^branch.head (.*)/))) {
+              if (m[1] !== '(detached)') {
+                currentBranch = m[1]
+              }
+            } else if ((m = value.match(/^branch.upstream (.*)/))) {
+              currentUpstreamBranch = m[1]
+            } else if ((m = value.match(/^branch.ab \+(\d+) -(\d+)$/))) {
+              const ahead = parseInt(m[1], 10)
+              const behind = parseInt(m[2], 10)
+
+              if (!isNaN(ahead) && !isNaN(behind)) {
+                branchAheadBehind = { ahead, behind }
+              }
+            }
+
             nextNewLine = indexOfNextNull(remainingText)
             continue
           }
@@ -136,18 +202,18 @@ export async function getStatusSpawn(
           const entryKind = field.substr(0, 1)
 
           if (entryKind === ChangedEntryType) {
-            entries.push(parseChangedEntry(field))
+            parseStatusItem(parseChangedEntry(field), files)
           } else if (entryKind === RenamedOrCopiedEntryType) {
             let nextNewLine = indexOfNextNull(remainingText)
 
             const oldPath = remainingText.slice(0, nextNewLine)
             remainingText = remainingText.slice(nextNewLine + 1)
 
-            entries.push(parsedRenamedOrCopiedEntry(field, oldPath))
+            parseStatusItem(parsedRenamedOrCopiedEntry(field, oldPath), files)
           } else if (entryKind === UnmergedEntryType) {
-            entries.push(parseUnmergedEntry(field))
+            parseStatusItem(parseUnmergedEntry(field), files)
           } else if (entryKind === UntrackedEntryType) {
-            entries.push(parseUntrackedEntry(field))
+            parseStatusItem(parseUntrackedEntry(field), files)
           } else if (entryKind === IgnoredEntryType) {
             // Ignored, we don't care about these for now
             debugger
@@ -167,78 +233,6 @@ export async function getStatusSpawn(
 
     status.on('close', (code, signal) => {
       if (code === 0 || signal) {
-        const files = new Array<WorkingDirectoryFileChange>()
-
-        let currentBranch: string | undefined = undefined
-        let currentUpstreamBranch: string | undefined = undefined
-        let currentTip: string | undefined = undefined
-        let branchAheadBehind: IAheadBehind | undefined = undefined
-
-        for (const entry of entries) {
-          if (entry.kind === 'entry') {
-            const status = mapStatus(entry.statusCode)
-
-            if (status.kind === 'ordinary') {
-              // when a file is added in the index but then removed in the working
-              // directory, the file won't be part of the commit, so we can skip
-              // displaying this entry in the changes list
-              if (
-                status.index === GitStatusEntry.Added &&
-                status.workingTree === GitStatusEntry.Deleted
-              ) {
-                continue
-              }
-            }
-
-            if (status.kind === 'untracked') {
-              // when a delete has been staged, but an untracked file exists with the
-              // same path, we should ensure that we only draw one entry in the
-              // changes list - see if an entry already exists for this path and
-              // remove it if found
-              const existingEntry = files.findIndex(p => p.path === entry.path)
-              if (existingEntry > -1) {
-                files.splice(existingEntry, 1)
-              }
-            }
-
-            // for now we just poke at the existing summary
-            const summary = convertToAppStatus(status)
-            const selection = DiffSelection.fromInitialSelection(
-              DiffSelectionType.All
-            )
-
-            files.push(
-              new WorkingDirectoryFileChange(
-                entry.path,
-                summary,
-                selection,
-                entry.oldPath
-              )
-            )
-          } else if (entry.kind === 'header') {
-            let m: RegExpMatchArray | null
-            const value = entry.value
-
-            // This intentionally does not match branch.oid initial
-            if ((m = value.match(/^branch\.oid ([a-f0-9]+)$/))) {
-              currentTip = m[1]
-            } else if ((m = value.match(/^branch.head (.*)/))) {
-              if (m[1] !== '(detached)') {
-                currentBranch = m[1]
-              }
-            } else if ((m = value.match(/^branch.upstream (.*)/))) {
-              currentUpstreamBranch = m[1]
-            } else if ((m = value.match(/^branch.ab \+(\d+) -(\d+)$/))) {
-              const ahead = parseInt(m[1], 10)
-              const behind = parseInt(m[2], 10)
-
-              if (!isNaN(ahead) && !isNaN(behind)) {
-                branchAheadBehind = { ahead, behind }
-              }
-            }
-          }
-        }
-
         const workingDirectory = WorkingDirectoryStatus.fromFiles(files)
 
         resolve({
