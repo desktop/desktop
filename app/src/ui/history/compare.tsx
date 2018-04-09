@@ -413,7 +413,6 @@ export class CompareSidebar extends React.Component<
   }
 
   private onBranchItemClicked = (branch: Branch) => {
-    console.log('onBranchItemClicked', branch.name)
     this.props.dispatcher.executeCompare(this.props.repository, {
       branch,
       kind: CompareActionKind.Branch,
