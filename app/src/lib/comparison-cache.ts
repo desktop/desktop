@@ -14,7 +14,7 @@ export class ComparisonCache {
 
   public get(from: string, to: string) {
     const key = ComparisonCache.getKey(from, to)
-    return this.backingStore.get(key)
+    return this.backingStore.get(key) || null
   }
 
   public has(from: string, to: string) {
