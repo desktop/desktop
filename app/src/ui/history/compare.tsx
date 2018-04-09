@@ -297,7 +297,7 @@ export class CompareSidebar extends React.Component<
           currentBranch.tip.sha,
           branch.tip.sha
         )
-      : undefined
+      : null
 
     return (
       <CompareBranchListItem
