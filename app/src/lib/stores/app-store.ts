@@ -1486,6 +1486,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const state = this.getRepositoryState(repository)
     const gitStore = this.getGitStore(repository)
 
+    log.debug('[AppStore] _refreshRepository fires')
+
     // When refreshing we *always* check the status so that we can update the
     // changes indicator in the tab bar. But we only load History if it's
     // selected.
@@ -1527,6 +1529,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     options: { includingStatus: boolean; clearPartialState: boolean }
   ): Promise<void> {
     if (options.includingStatus) {
+      log.debug('[AppStore] refreshChangesSection fires to update status')
       await this._loadStatus(repository, options.clearPartialState)
     }
 
