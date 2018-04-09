@@ -13,7 +13,7 @@ interface ICompareBranchListItemProps {
   /** The characters in the branch name to highlight */
   readonly matches: ReadonlyArray<number>
 
-  readonly aheadBehind?: IAheadBehind
+  readonly aheadBehind: IAheadBehind | null
 }
 
 export class CompareBranchListItem extends React.Component<

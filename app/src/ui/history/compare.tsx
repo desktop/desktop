@@ -287,13 +287,17 @@ export class CompareSidebar extends React.Component<
     item: IBranchListItem,
     matches: ReadonlyArray<number>
   ) => {
-    const currentBranchName =
-      this.props.currentBranch != null ? this.props.currentBranch.name : null
+    const currentBranch = this.props.currentBranch
+
+    const currentBranchName = currentBranch != null ? currentBranch.name : null
     const branch = item.branch
 
-    const aheadBehind = this.props.compareState.aheadBehindCache.get(
-      branch.tip.sha
-    )
+    const aheadBehind = currentBranch
+      ? this.props.compareState.aheadBehindCache.get(
+          currentBranch.tip.sha,
+          branch.tip.sha
+        )
+      : null
 
     return (
       <CompareBranchListItem
