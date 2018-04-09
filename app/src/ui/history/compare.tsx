@@ -20,6 +20,7 @@ import { TabBar } from '../tab-bar'
 import { CompareBranchListItem } from './compare-branch-list-item'
 import { FancyTextBox } from '../lib/fancy-text-box'
 import { OcticonSymbol } from '../octicons'
+import { SelectionSource } from '../lib/filter-list'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -84,7 +85,12 @@ export class CompareSidebar extends React.Component<
 
     if (!hasFormStateChanged && newFormState.kind !== ComparisonView.None) {
       // ensure the filter text is in sync with the comparison branch
-      this.setState({ filterText: newFormState.comparisonBranch.name })
+      const branch = newFormState.comparisonBranch
+
+      this.setState({
+        filterText: branch.name,
+        focusedBranch: branch,
+      })
     }
 
     if (nextProps.sidebarHasFocusWithin !== this.props.sidebarHasFocusWithin) {
@@ -402,8 +408,12 @@ export class CompareSidebar extends React.Component<
     this.setState({ filterText: '' })
   }
 
-  private onBranchFilterTextChanged = (text: string) => {
-    this.setState({ filterText: text })
+  private onBranchFilterTextChanged = (filterText: string) => {
+    if (filterText.length === 0) {
+      this.setState({ focusedBranch: null, filterText })
+    } else {
+      this.setState({ filterText })
+    }
   }
 
   private clearFilterState = () => {
@@ -416,7 +426,6 @@ export class CompareSidebar extends React.Component<
   }
 
   private onBranchItemClicked = (branch: Branch) => {
-    console.log('onBranchItemClicked', branch.name)
     this.props.dispatcher.executeCompare(this.props.repository, {
       branch,
       kind: CompareActionKind.Branch,
@@ -429,7 +438,18 @@ export class CompareSidebar extends React.Component<
     })
   }
 
-  private onSelectionChanged = (branch: Branch | null) => {
+  private onSelectionChanged = (
+    branch: Branch | null,
+    source: SelectionSource
+  ) => {
+    if (source.kind === 'mouseclick' && branch != null) {
+      this.props.dispatcher.executeCompare(this.props.repository, {
+        branch,
+        kind: CompareActionKind.Branch,
+        mode: ComparisonView.Behind,
+      })
+    }
+
     this.setState({
       focusedBranch: branch,
     })
