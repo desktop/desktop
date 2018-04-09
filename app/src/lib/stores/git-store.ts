@@ -844,9 +844,13 @@ export class GitStore extends BaseStore {
   }
 
   public async loadStatus(): Promise<IStatusResult | null> {
+    console.time('loadStatus')
+
     const status = await this.performFailableOperation(() =>
       getStatus(this.repository)
     )
+
+    console.timeEnd('loadStatus')
 
     if (!status) {
       return null
