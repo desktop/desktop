@@ -45,12 +45,8 @@ function computeAverage(
   }
 
   console.log(
-    `[${context}] values ${JSON.stringify(
-      values.map(v => (v / 1000).toFixed(3))
-    )}`
+    `[${context}] ignoring first ${skip} values to let the code warmup`
   )
-
-  console.log(`[${context}] excluding first ${skip} values`)
 
   const results = values.slice(skip)
   const count = results.length
