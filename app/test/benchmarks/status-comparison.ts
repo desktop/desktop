@@ -18,7 +18,7 @@ const Benchmark = benchmark.runInContext({ _, process })
 const hack = window as any
 hack.Benchmark = Benchmark
 
-const SLOW_TEST_RUN_COUNT = 10
+const SLOW_TEST_RUN_COUNT = 15
 
 async function timeSlowTest(
   action: () => Promise<any>
@@ -35,16 +35,35 @@ async function timeSlowTest(
   }
 }
 
-function computeAverage(context: string, values: ReadonlyArray<number>) {
+function computeAverage(
+  context: string,
+  values: ReadonlyArray<number>,
+  skip: number = 2
+) {
+  if (skip < 0) {
+    throw new Error('Cannot skip a negative number of items')
+  }
+
   console.log(
     `[${context}] values ${JSON.stringify(
       values.map(v => (v / 1000).toFixed(3))
     )}`
   )
 
+  console.log(`[${context}] excluding first ${skip} values`)
+
+  const results = values.slice(skip)
+  const count = results.length
+
+  console.log(
+    `[${context}] results ${JSON.stringify(
+      results.map(v => (v / 1000).toFixed(3))
+    )}`
+  )
+
   let total = 0
-  values.forEach(v => (total += v))
-  const averageTime = total / values.length
+  results.forEach(v => (total += v))
+  const averageTime = total / count
   const timeInSeconds = (averageTime / 1000).toFixed(3)
 
   console.log(
@@ -57,7 +76,6 @@ const dugitePath = Path.join(Path.dirname(root), 'dugite')
 console.log(`dugite repo: ${dugitePath}`)
 
 const dugiteRepo = new Repository(dugitePath, -1, null, false)
-
 const classroomPath = Path.join(Path.dirname(root), 'classroom-desktop')
 
 console.log(`github-classroom repo: ${classroomPath}`)
@@ -110,10 +128,10 @@ describe('status benchmark', () => {
       const suite = new Benchmark.Suite('status')
 
       suite
-        .add('GitProcess.exec (raw)', async function() {
+        .add('GitProcess.exec', async function() {
           await getStatusRaw(classroomRepo)
         })
-        .add('GitProcess.spawn (raw)', async function() {
+        .add('GitProcess.spawn', async function() {
           await getStatusSpawnRaw(classroomRepo)
         })
         .on('cycle', function(event: { target: any }) {
