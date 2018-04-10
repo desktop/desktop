@@ -79,11 +79,9 @@ describe('status benchmark', () => {
         .on('cycle', function(event: { target: any }) {
           console.log(String(event.target))
         })
-        .on('complete', function(this: any) {
-          console.log('Fastest is ' + this.filter('fastest').map('name'))
+        .on('complete', function() {
           done()
         })
-        // run async
         .run({ async: true })
     })
 
@@ -100,11 +98,9 @@ describe('status benchmark', () => {
         .on('cycle', function(event: { target: any }) {
           console.log(String(event.target))
         })
-        .on('complete', function(this: any) {
-          console.log('Fastest is ' + this.filter('fastest').map('name'))
+        .on('complete', function() {
           done()
         })
-        // run async
         .run({ async: true })
     })
   })
@@ -123,11 +119,9 @@ describe('status benchmark', () => {
         .on('cycle', function(event: { target: any }) {
           console.log(String(event.target))
         })
-        .on('complete', function(this: any) {
-          console.log('Fastest is ' + this.filter('fastest').map('name'))
+        .on('complete', function() {
           done()
         })
-        // run async
         .run({ async: true })
     })
 
