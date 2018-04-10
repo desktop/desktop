@@ -168,6 +168,38 @@ export async function getStatusSpawnRaw(
   })
 }
 
+class StatusTokenizer {
+  private remainingText: string | null = null
+
+  public nextToken(): string | null {
+    if (this.remainingText == null) {
+      return null
+    }
+
+    const nextIndex = this.remainingText.indexOf('\0')
+    if (nextIndex === -1) {
+      return null
+    }
+
+    const token = this.remainingText.slice(0, nextIndex)
+    this.remainingText = this.remainingText.slice(nextIndex + 1)
+
+    return token
+  }
+
+  public enqueueData(chunk: Buffer) {
+    const newText = chunk.toString()
+
+    if (this.remainingText != null) {
+      // append any remaining output from the previous call
+      // because spawn might emit a partial entry
+      this.remainingText = this.remainingText + newText
+    } else {
+      this.remainingText = newText
+    }
+  }
+}
+
 /**
  *  Retrieve the status for a given repository,
  *  and fail gracefully if the location is not a Git repository
@@ -193,76 +225,62 @@ export async function getStatusSpawn(
 
     const status = GitProcess.spawn(args, repository.path)
 
-    let remainingText: string | null = null
+    const tokenizer = new StatusTokenizer()
 
     status.stdout.setEncoding('utf8')
 
     status.stdout.on('data', (chunk: Buffer) => {
-      const newText = chunk.toString()
+      tokenizer.enqueueData(chunk)
 
-      try {
-        if (remainingText != null) {
-          // append any remaining output from the previous call
-          // because spawn might emit a partial entry
-          remainingText = remainingText + newText
-        } else {
-          remainingText = newText
-        }
+      let field = tokenizer.nextToken()
+      while (field != null) {
+        if (field.startsWith('# ') && field.length > 2) {
+          let m: RegExpMatchArray | null
+          const value = field.substr(2)
 
-        let nextNewLine = indexOfNextNull(remainingText)
-        while (nextNewLine >= 0) {
-          const field = remainingText.slice(0, nextNewLine)
-          remainingText = remainingText.slice(nextNewLine + 1)
-
-          if (field.startsWith('# ') && field.length > 2) {
-            let m: RegExpMatchArray | null
-            const value = field.substr(2)
-
-            // This intentionally does not match branch.oid initial
-            if ((m = value.match(/^branch\.oid ([a-f0-9]+)$/))) {
-              currentTip = m[1]
-            } else if ((m = value.match(/^branch.head (.*)/))) {
-              if (m[1] !== '(detached)') {
-                currentBranch = m[1]
-              }
-            } else if ((m = value.match(/^branch.upstream (.*)/))) {
-              currentUpstreamBranch = m[1]
-            } else if ((m = value.match(/^branch.ab \+(\d+) -(\d+)$/))) {
-              const ahead = parseInt(m[1], 10)
-              const behind = parseInt(m[2], 10)
-
-              if (!isNaN(ahead) && !isNaN(behind)) {
-                branchAheadBehind = { ahead, behind }
-              }
+          // This intentionally does not match branch.oid initial
+          if ((m = value.match(/^branch\.oid ([a-f0-9]+)$/))) {
+            currentTip = m[1]
+          } else if ((m = value.match(/^branch.head (.*)/))) {
+            if (m[1] !== '(detached)') {
+              currentBranch = m[1]
             }
+          } else if ((m = value.match(/^branch.upstream (.*)/))) {
+            currentUpstreamBranch = m[1]
+          } else if ((m = value.match(/^branch.ab \+(\d+) -(\d+)$/))) {
+            const ahead = parseInt(m[1], 10)
+            const behind = parseInt(m[2], 10)
 
-            nextNewLine = indexOfNextNull(remainingText)
-            continue
+            if (!isNaN(ahead) && !isNaN(behind)) {
+              branchAheadBehind = { ahead, behind }
+            }
           }
 
-          const entryKind = field.substr(0, 1)
-
-          if (entryKind === ChangedEntryType) {
-            parseStatusItem(parseChangedEntry(field), files)
-          } else if (entryKind === RenamedOrCopiedEntryType) {
-            let nextNewLine = indexOfNextNull(remainingText)
-
-            const oldPath = remainingText.slice(0, nextNewLine)
-            remainingText = remainingText.slice(nextNewLine + 1)
-
-            parseStatusItem(parsedRenamedOrCopiedEntry(field, oldPath), files)
-          } else if (entryKind === UnmergedEntryType) {
-            parseStatusItem(parseUnmergedEntry(field), files)
-          } else if (entryKind === UntrackedEntryType) {
-            parseStatusItem(parseUntrackedEntry(field), files)
-          } else if (entryKind === IgnoredEntryType) {
-            // Ignored, we don't care about these for now
-            debugger
-          }
-          nextNewLine = indexOfNextNull(remainingText)
+          field = tokenizer.nextToken()
+          continue
         }
-      } catch (err) {
-        debugger
+
+        const entryKind = field.substr(0, 1)
+
+        if (entryKind === ChangedEntryType) {
+          parseStatusItem(parseChangedEntry(field), files)
+        } else if (entryKind === RenamedOrCopiedEntryType) {
+          const oldPath = tokenizer.nextToken()
+          if (oldPath == null) {
+            log.debug(
+              '[status] we ran out of tokens at a really inappropriate time'
+            )
+          } else {
+            parseStatusItem(parsedRenamedOrCopiedEntry(field, oldPath), files)
+          }
+        } else if (entryKind === UnmergedEntryType) {
+          parseStatusItem(parseUnmergedEntry(field), files)
+        } else if (entryKind === UntrackedEntryType) {
+          parseStatusItem(parseUntrackedEntry(field), files)
+        } else if (entryKind === IgnoredEntryType) {
+          // Ignored, we don't care about these for now
+        }
+        field = tokenizer.nextToken()
       }
     })
 
