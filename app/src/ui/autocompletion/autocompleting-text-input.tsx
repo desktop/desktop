@@ -28,6 +28,9 @@ interface IAutocompletingTextInputProps<ElementType> {
   /** Disabled state for input field. */
   readonly disabled?: boolean
 
+  /** Indicates if input field should be required */
+  readonly isRequired?: boolean
+
   /**
    * Called when the user changes the value in the input field.
    */
