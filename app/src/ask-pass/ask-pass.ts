@@ -6,7 +6,7 @@ export async function responseForPrompt(
   prompt: string
 ): Promise<string | null> {
   const username = process.env.DESKTOP_USERNAME
-  if (username == null || !username.length) {
+  if (username == null || username.length === 0) {
     return null
   }
 
@@ -14,7 +14,7 @@ export async function responseForPrompt(
     return username
   } else if (prompt.startsWith('Password')) {
     const endpoint = process.env.DESKTOP_ENDPOINT
-    if (endpoint == null || !endpoint.length) {
+    if (endpoint == null || endpoint.length === 0) {
       return null
     }
 
