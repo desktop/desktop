@@ -123,7 +123,7 @@
     "@types/keytar": "^4.0.0",
     "@types/mocha": "^2.2.48",
     "@types/mri": "^1.1.0",
-    "@types/node": "^7.0.18",
+    "@types/node": "^8.10.4",
     "@types/react": "^16.0.40",
     "@types/react-dom": "^16.0.4",
     "@types/react-transition-group": "1.1.1",
