@@ -18,7 +18,7 @@ const Benchmark = benchmark.runInContext({ _, process })
 const hack = window as any
 hack.Benchmark = Benchmark
 
-const SLOW_TEST_RUN_COUNT = 15
+const SLOW_TEST_RUN_COUNT = 12
 
 async function timeSlowTest(
   action: () => Promise<any>
@@ -62,9 +62,7 @@ function computeAverage(
   const averageTime = total / count
   const timeInSeconds = (averageTime / 1000).toFixed(3)
 
-  console.log(
-    `[${context}] averaged ${timeInSeconds}s over ${values.length} runs`
-  )
+  console.log(`[${context}] averaged ${timeInSeconds}s over ${count} runs`)
 }
 
 const root = Path.dirname(Path.dirname(Path.dirname(__dirname)))
@@ -169,7 +167,7 @@ describe('status benchmark', () => {
       })
     })
 
-    it('☝️  parsing output and generating objects - new spawn-based approach', async () => {
+    it('☝️  parsing output and generating objects - spawn-based approach with optimizations', async () => {
       heapdump.writeSnapshot('spawn-before.heapsnapshot', err => {
         if (err) {
           console.log(`couldn't write before snapshot`, err)
