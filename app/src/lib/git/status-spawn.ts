@@ -94,7 +94,7 @@ function parseStatusItem(
       status.index === GitStatusEntry.Added &&
       status.workingTree === GitStatusEntry.Deleted
     ) {
-      return
+      return null
     }
   }
 
@@ -113,13 +113,11 @@ function parseStatusItem(
   const summary = convertToAppStatus(status)
   const selection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
 
-  files.push(
-    new WorkingDirectoryFileChange(
-      entry.path,
-      summary,
-      selection,
-      entry.oldPath
-    )
+  return new WorkingDirectoryFileChange(
+    entry.path,
+    summary,
+    selection,
+    entry.oldPath
   )
 }
 
@@ -223,15 +221,19 @@ export async function getStatusSpawn(
 
     const tokenizer = new StatusTokenizer()
 
+    let m: RegExpMatchArray | null
+
     status.stdout.setEncoding('utf8')
+
+    let item: WorkingDirectoryFileChange | null = null
 
     status.stdout.on('data', (chunk: Buffer) => {
       tokenizer.enqueueData(chunk)
 
       let field = tokenizer.nextToken()
+
       while (field != null) {
         if (field.startsWith('# ') && field.length > 2) {
-          let m: RegExpMatchArray | null
           const value = field.substr(2)
 
           // This intentionally does not match branch.oid initial
@@ -258,24 +260,42 @@ export async function getStatusSpawn(
 
         const entryKind = field.substr(0, 1)
 
-        if (entryKind === ChangedEntryType) {
-          parseStatusItem(parseChangedEntry(field), files)
-        } else if (entryKind === RenamedOrCopiedEntryType) {
-          const oldPath = tokenizer.nextToken()
-          if (oldPath == null) {
-            log.debug(
-              '[status] we ran out of tokens at a really inappropriate time'
+        switch (entryKind) {
+          case ChangedEntryType:
+            item = parseStatusItem(parseChangedEntry(field), files)
+            break
+          case RenamedOrCopiedEntryType:
+            const oldPath = tokenizer.nextToken()
+            if (oldPath == null) {
+              log.debug(
+                '[status] we ran out of tokens at a really inappropriate time'
+              )
+              break
+            }
+            item = parseStatusItem(
+              parsedRenamedOrCopiedEntry(field, oldPath),
+              files
             )
-          } else {
-            parseStatusItem(parsedRenamedOrCopiedEntry(field, oldPath), files)
-          }
-        } else if (entryKind === UnmergedEntryType) {
-          parseStatusItem(parseUnmergedEntry(field), files)
-        } else if (entryKind === UntrackedEntryType) {
-          parseStatusItem(parseUntrackedEntry(field), files)
-        } else if (entryKind === IgnoredEntryType) {
-          // Ignored, we don't care about these for now
+            if (item != null) {
+              files.push(item)
+            }
+
+            break
+          case UnmergedEntryType:
+            item = parseStatusItem(parseUnmergedEntry(field), files)
+            break
+          case UntrackedEntryType:
+            item = parseStatusItem(parseUntrackedEntry(field), files)
+            break
+          default:
+            // Ignored, we don't care about these for now
+            item = null
         }
+
+        if (item != null) {
+          files.push(item)
+        }
+
         field = tokenizer.nextToken()
       }
     })
