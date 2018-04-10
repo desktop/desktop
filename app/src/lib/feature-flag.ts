@@ -14,10 +14,7 @@ function enableDevelopmentFeatures(): boolean {
     return true
   }
 
-  if (
-    process.env.GITHUB_DESKTOP_PREVIEW_FEATURES !== undefined &&
-    process.env.GITHUB_DESKTOP_PREVIEW_FEATURES === '1'
-  ) {
+  if (process.env.GITHUB_DESKTOP_PREVIEW_FEATURES === '1') {
     return true
   }
 
