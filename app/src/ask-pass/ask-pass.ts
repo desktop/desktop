@@ -5,7 +5,7 @@ import { TokenStore } from '../lib/stores/token-store'
 export async function responseForPrompt(
   prompt: string
 ): Promise<string | null> {
-  const username: string | undefined = process.env.DESKTOP_USERNAME
+  const username = process.env.DESKTOP_USERNAME
   if (username == null || !username.length) {
     return null
   }
@@ -13,7 +13,7 @@ export async function responseForPrompt(
   if (prompt.startsWith('Username')) {
     return username
   } else if (prompt.startsWith('Password')) {
-    const endpoint: string | undefined = process.env.DESKTOP_ENDPOINT
+    const endpoint = process.env.DESKTOP_ENDPOINT
     if (endpoint == null || !endpoint.length) {
       return null
     }
