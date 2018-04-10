@@ -20,18 +20,36 @@ hack.Benchmark = Benchmark
 
 const SLOW_TEST_RUN_COUNT = 10
 
-async function timeSlowTest(context: string, action: () => Promise<any>) {
+async function timeSlowTest(
+  action: () => Promise<any>
+): Promise<number | null> {
   const startTime = performance && performance.now ? performance.now() : null
 
   await action()
 
   if (startTime != null) {
     const rawTime = performance.now() - startTime
-    const timeInSeconds = (rawTime / 1000).toFixed(3)
-    console.log(`[${context}] took ${timeInSeconds}s`)
+    return rawTime
   } else {
-    console.log(`[${context}] unable to measure performance of function`)
+    return null
   }
+}
+
+function computeAverage(context: string, values: ReadonlyArray<number>) {
+  console.log(
+    `[${context}] values ${JSON.stringify(
+      values.map(v => (v / 1000).toFixed(3))
+    )}`
+  )
+
+  let total = 0
+  values.forEach(v => (total += v))
+  const averageTime = total / values.length
+  const timeInSeconds = (averageTime / 1000).toFixed(3)
+
+  console.log(
+    `[${context}] averaged ${timeInSeconds}s over ${values.length} runs`
+  )
 }
 
 const root = Path.dirname(Path.dirname(Path.dirname(__dirname)))
@@ -120,9 +138,21 @@ describe('status benchmark', () => {
         }
       })
 
+      const values = new Array<number>()
+      const context = 'GitProcess.exec'
+
       for (let i = 0; i < SLOW_TEST_RUN_COUNT; i++) {
-        await timeSlowTest('GitProcess.exec', () => getStatus(classroomRepo))
+        const time = await timeSlowTest(() => getStatus(classroomRepo))
+        if (time == null) {
+          console.log(
+            `unable to record time as APIs don't exist in this context`
+          )
+        } else {
+          values.push(time)
+        }
       }
+
+      computeAverage(context, values)
 
       heapdump.writeSnapshot('exec-after.heapsnapshot', err => {
         if (err) {
@@ -138,11 +168,21 @@ describe('status benchmark', () => {
         }
       })
 
+      const values = new Array<number>()
+      const context = 'GitProcess.spawn'
+
       for (let i = 0; i < SLOW_TEST_RUN_COUNT; i++) {
-        await timeSlowTest('GitProcess.spawn', () =>
-          getStatusSpawn(classroomRepo)
-        )
+        const time = await timeSlowTest(() => getStatusSpawn(classroomRepo))
+        if (time == null) {
+          console.log(
+            `unable to record time as APIs don't exist in this context`
+          )
+        } else {
+          values.push(time)
+        }
       }
+
+      computeAverage(context, values)
 
       heapdump.writeSnapshot('spawn-after.heapsnapshot', err => {
         if (err) {
