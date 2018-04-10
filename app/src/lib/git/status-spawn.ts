@@ -131,6 +131,47 @@ function parseStatusItem(
  *  Retrieve the status for a given repository,
  *  and fail gracefully if the location is not a Git repository
  */
+export async function getStatusSpawnRaw(
+  repository: Repository
+): Promise<string> {
+  return new Promise<string>((resolve, reject) => {
+    const args = [
+      'status',
+      '--untracked-files=all',
+      '--branch',
+      '--porcelain=2',
+      '-z',
+    ]
+
+    let output = ''
+
+    const status = GitProcess.spawn(args, repository.path)
+
+    status.stdout.setEncoding('utf8')
+
+    status.stdout.on('data', (chunk: Buffer) => {
+      const newText = chunk.toString()
+      output += newText
+    })
+
+    status.on('close', (code, signal) => {
+      if (code === 0 || signal) {
+        resolve(output)
+      } else {
+        reject(
+          new Error(
+            `Git returned an unexpected exit code '${code}' which should be handled by the caller.'`
+          )
+        )
+      }
+    })
+  })
+}
+
+/**
+ *  Retrieve the status for a given repository,
+ *  and fail gracefully if the location is not a Git repository
+ */
 export async function getStatusSpawn(
   repository: Repository
 ): Promise<IStatusResult> {
