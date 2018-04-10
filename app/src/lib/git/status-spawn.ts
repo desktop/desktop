@@ -80,10 +80,6 @@ const UnmergedEntryType = 'u'
 const UntrackedEntryType = '?'
 const IgnoredEntryType = '!'
 
-function indexOfNextNull(str: String) {
-  return str.indexOf('\0')
-}
-
 function parseStatusItem(
   entry: IStatusEntry,
   files: Array<WorkingDirectoryFileChange>
