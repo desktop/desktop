@@ -58,7 +58,7 @@ function getQueryStringValue(
   query: ParsedUrlQueryWithUndefined,
   key: string
 ): string | null {
-  const value = query['key']
+  const value = query[key]
   if (value == null) {
     return null
   }
@@ -111,13 +111,15 @@ export function parseAppURL(url: string): URLActionType {
     const branch = getQueryStringValue(query, 'branch')
     const filepath = getQueryStringValue(query, 'filepath')
 
-    if (pr != null && !/^\d+$/.test(pr)) {
-      return unknown
-    }
+    if (pr != null) {
+      if (!/^\d+$/.test(pr)) {
+        return unknown
+      }
 
-    // we also expect the branch for a forked PR to be a given ref format
-    if (branch != null && !/^pr\/\d+$/.test(branch)) {
-      return unknown
+      // we also expect the branch for a forked PR to be a given ref format
+      if (branch != null && !/^pr\/\d+$/.test(branch)) {
+        return unknown
+      }
     }
 
     if (branch != null && testForInvalidChars(branch)) {
