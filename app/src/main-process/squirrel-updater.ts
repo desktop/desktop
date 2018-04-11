@@ -1,8 +1,8 @@
 import * as ChildProcess from 'child_process'
 import * as Path from 'path'
 import * as Os from 'os'
-import { pathExists } from 'fs-extra'
-import { mkdirIfNeeded, writeFile } from '../lib/file-system'
+import { pathExists, ensureDir } from 'fs-extra'
+import { writeFile } from '../lib/file-system'
 
 const appFolder = Path.resolve(process.execPath, '..')
 const rootAppDir = Path.resolve(appFolder, '..')
@@ -47,7 +47,7 @@ async function handleUpdated(): Promise<void> {
 
 async function installCLI(): Promise<void> {
   const binPath = getBinPath()
-  await mkdirIfNeeded(binPath)
+  await ensureDir(binPath)
   await writeBatchScriptCLITrampoline(binPath)
   await writeShellScriptCLITrampoline(binPath)
   const paths = await getPathSegments()

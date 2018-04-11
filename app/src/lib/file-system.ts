@@ -6,22 +6,6 @@ import { Tailer } from './tailer'
 
 const byline = require('byline')
 
-/** Create directory using basic Fs.mkdir but ignores
- * the error thrown when directory already exists.
- * All other errors must be handled by caller.
- *
- * @param directoryPath the path of the directory the caller wants to create.
- */
-export async function mkdirIfNeeded(directoryPath: string): Promise<void> {
-  try {
-    await FSE.mkdir(directoryPath)
-  } catch (err) {
-    if (err && err.code !== 'EEXIST') {
-      throw err
-    }
-  }
-}
-
 /*
  * Write a file using the standard fs.writeFile API, but wrapped in a promise.
  *
