@@ -1,9 +1,7 @@
-/* eslint-disable no-sync */
-
 import { expect } from 'chai'
 
 import * as Path from 'path'
-import * as Fs from 'fs'
+import * as FSE from 'fs'
 import { GitProcess } from 'dugite'
 
 import {
@@ -116,7 +114,7 @@ describe('AppStore', () => {
       const file = 'README.md'
       const filePath = Path.join(repo.path, file)
 
-      Fs.writeFileSync(filePath, 'SOME WORDS GO HERE\n')
+      await FSE.writeFile(filePath, 'SOME WORDS GO HERE\n')
 
       await GitProcess.exec(['add', file], repo.path)
       await GitProcess.exec(['commit', '-m', 'added file'], repo.path)
