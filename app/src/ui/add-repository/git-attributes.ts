@@ -1,21 +1,12 @@
-import * as FS from 'fs'
+import * as FSE from 'fs-extra'
 import * as Path from 'path'
 
 /**
  * Write the .gitAttributes file to the given repository
  */
-export function writeGitAttributes(path: string): Promise<void> {
-  return new Promise<void>((resolve, reject) => {
-    const fullPath = Path.join(path, '.gitattributes')
-    const contents =
-      '# Auto detect text files and perform LF normalization\n* text=auto\n'
-
-    FS.writeFile(fullPath, contents, err => {
-      if (err) {
-        reject(err)
-      } else {
-        resolve()
-      }
-    })
-  })
+export async function writeGitAttributes(path: string): Promise<void> {
+  const fullPath = Path.join(path, '.gitattributes')
+  const contents =
+    '# Auto detect text files and perform LF normalization\n* text=auto\n'
+  await FSE.writeFile(fullPath, contents)
 }
