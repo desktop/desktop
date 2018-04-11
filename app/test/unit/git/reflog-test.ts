@@ -1,5 +1,3 @@
-/* eslint-disable no-sync */
-
 import { expect } from 'chai'
 
 import { Repository } from '../../../src/models/repository'

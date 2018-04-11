@@ -1,7 +1,7 @@
-/* eslint-disable no-sync */
-
 import * as path from 'path'
 import { expect } from 'chai'
+import * as FSE from 'fs-extra'
+import { GitProcess } from 'dugite'
 
 import { Repository } from '../../../src/models/repository'
 import { getStatus } from '../../../src/lib/git/status'
@@ -10,9 +10,6 @@ import {
   setupEmptyRepository,
 } from '../../helpers/repositories'
 import { AppFileStatus } from '../../../src/models/status'
-import { GitProcess } from 'dugite'
-
-import * as fs from 'fs-extra'
 
 describe('git/status', () => {
   let repository: Repository | null = null
@@ -24,7 +21,10 @@ describe('git/status', () => {
 
   describe('getStatus', () => {
     it('parses changed files', async () => {
-      fs.writeFileSync(path.join(repository!.path, 'README.md'), 'Hi world\n')
+      await FSE.writeFile(
+        path.join(repository!.path, 'README.md'),
+        'Hi world\n'
+      )
 
       const status = await getStatus(repository!)
       const files = status.workingDirectory.files
@@ -44,7 +44,7 @@ describe('git/status', () => {
     it('reflects renames', async () => {
       const repo = await setupEmptyRepository()
 
-      fs.writeFileSync(path.join(repo.path, 'foo'), 'foo\n')
+      await FSE.writeFile(path.join(repo.path, 'foo'), 'foo\n')
 
       await GitProcess.exec(['add', 'foo'], repo.path)
       await GitProcess.exec(['commit', '-m', 'Initial commit'], repo.path)

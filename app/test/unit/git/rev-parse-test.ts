@@ -1,7 +1,5 @@
-/* eslint-disable no-sync */
-
 import * as path from 'path'
-import * as Fs from 'fs'
+import * as FSE from 'fs-extra'
 import * as os from 'os'
 import { expect } from 'chai'
 
@@ -39,10 +37,7 @@ describe('git/rev-parse', () => {
       expect(result).to.equal(repository!.path)
 
       const subdirPath = path.join(repository!.path, 'subdir')
-
-      await new Promise<void>((resolve, reject) => {
-        Fs.mkdir(subdirPath, e => (e ? reject(e) : resolve()))
-      })
+      await FSE.mkdir(subdirPath)
 
       const subDirResult = await getTopLevelWorkingDirectory(repository!.path)
       expect(subDirResult).to.equal(repository!.path)

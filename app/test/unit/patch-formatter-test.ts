@@ -1,9 +1,7 @@
-/* eslint-disable no-sync */
-
 import { expect } from 'chai'
 
 import * as Path from 'path'
-import * as FS from 'fs'
+import * as FSE from 'fs-extra'
 
 import { Repository } from '../../src/models/repository'
 import {
@@ -161,7 +159,7 @@ describe('patch formatting', () => {
 
     it(`creates the right patch when an addition is selected but preceding deletions aren't`, async () => {
       const modifiedFile = 'modified-file.md'
-      FS.writeFileSync(Path.join(repository!.path, modifiedFile), 'line 1\n')
+      await FSE.writeFile(Path.join(repository!.path, modifiedFile), 'line 1\n')
 
       const unselectedFile = DiffSelection.fromInitialSelection(
         DiffSelectionType.None

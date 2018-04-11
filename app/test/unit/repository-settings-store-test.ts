@@ -1,6 +1,4 @@
-/* eslint-disable no-sync */
-
-import * as FS from 'fs'
+import * as FSE from 'fs-extra'
 import * as Path from 'path'
 import { GitProcess } from 'dugite'
 import { expect } from 'chai'
@@ -30,7 +28,7 @@ describe('RepositorySettingsStore', () => {
     const path = repo.path
 
     const ignoreFile = `${path}/.gitignore`
-    FS.writeFileSync(ignoreFile, 'node_modules\n')
+    await FSE.writeFile(ignoreFile, 'node_modules\n')
 
     const sut = new RepositorySettingsStore(repo)
 
@@ -54,7 +52,7 @@ describe('RepositorySettingsStore', () => {
     // Create a txt file
     const file = Path.join(repo.path, 'a.txt')
 
-    FS.writeFileSync(file, 'thrvbnmerkl;,iuw')
+    await FSE.writeFile(file, 'thrvbnmerkl;,iuw')
 
     // Check status of repo
     const status = await getStatus(repo)

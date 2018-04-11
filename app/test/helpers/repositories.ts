@@ -51,10 +51,10 @@ export async function setupFixtureRepository(
     entry => Path.basename(entry.path) === '_git'
   )
 
-  submodules.forEach(entry => {
+  submodules.forEach(async entry => {
     const directory = Path.dirname(entry.path)
     const newPath = Path.join(directory, '.git')
-    FSE.renameSync(entry.path, newPath)
+    await FSE.rename(entry.path, newPath)
   })
 
   return testRepoPath
@@ -86,19 +86,19 @@ export async function setupConflictedRepo(): Promise<Repository> {
   const repo = await setupEmptyRepository()
   const filePath = Path.join(repo.path, 'foo')
 
-  FSE.writeFileSync(filePath, '')
+  await FSE.writeFile(filePath, '')
   await GitProcess.exec(['add', 'foo'], repo.path)
   await GitProcess.exec(['commit', '-m', 'Commit'], repo.path)
 
   await GitProcess.exec(['branch', 'other-branch'], repo.path)
 
-  FSE.writeFileSync(filePath, 'b1')
+  await FSE.writeFile(filePath, 'b1')
   await GitProcess.exec(['add', 'foo'], repo.path)
   await GitProcess.exec(['commit', '-m', 'Commit'], repo.path)
 
   await GitProcess.exec(['checkout', 'other-branch'], repo.path)
 
-  FSE.writeFileSync(filePath, 'b2')
+  await FSE.writeFile(filePath, 'b2')
   await GitProcess.exec(['add', 'foo'], repo.path)
   await GitProcess.exec(['commit', '-m', 'Commit'], repo.path)
 
