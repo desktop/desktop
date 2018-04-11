@@ -150,25 +150,13 @@ export class CreateRepository extends React.Component<
     this.setState({ isRepository, path })
   }
 
-  private ensureDirectory(directory: string): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-      FSE.ensureDir(directory, err => {
-        if (err) {
-          return reject(err)
-        }
-
-        return resolve()
-      })
-    })
-  }
-
   private resolveRepositoryRoot = async (): Promise<string> => {
     const currentPath = this.state.path
     if (this.props.initialPath && this.props.initialPath === currentPath) {
       // if the user provided an initial path and didn't change it, we should
       // validate it is an existing path and use that for the repository
       try {
-        await this.ensureDirectory(currentPath)
+        await FSE.ensureDir(currentPath)
         return currentPath
       } catch {}
     }
@@ -180,7 +168,7 @@ export class CreateRepository extends React.Component<
     const fullPath = await this.resolveRepositoryRoot()
 
     try {
-      await this.ensureDirectory(fullPath)
+      await FSE.ensureDir(fullPath)
       this.setState({ isValidPath: true })
     } catch (e) {
       if (e.code === 'EACCES' && e.errno === -13) {
