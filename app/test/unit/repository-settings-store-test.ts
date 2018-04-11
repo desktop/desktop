@@ -6,7 +6,6 @@ import { expect } from 'chai'
 import { RepositorySettingsStore } from '../../src/lib/stores'
 import { setupEmptyRepository } from '../helpers/repositories'
 import { getStatus } from '../../src/lib/git'
-import { pathExists } from '../../src/lib/file-system'
 
 describe('RepositorySettingsStore', () => {
   it('can create a gitignore file', async () => {
@@ -18,7 +17,7 @@ describe('RepositorySettingsStore', () => {
     await sut.saveGitIgnore('node_modules\n')
 
     // Make sure file exists on FS
-    const exists = await pathExists(`${path}/.gitignore`)
+    const exists = await FSE.pathExists(`${path}/.gitignore`)
 
     expect(exists).is.true
   })
@@ -35,7 +34,7 @@ describe('RepositorySettingsStore', () => {
     // update gitignore file to be empty
     await sut.saveGitIgnore('')
 
-    const exists = await pathExists(ignoreFile)
+    const exists = await FSE.pathExists(ignoreFile)
     expect(exists).is.false
   })
 

@@ -1,7 +1,8 @@
 import * as ChildProcess from 'child_process'
 import * as Path from 'path'
 import * as Os from 'os'
-import { pathExists, mkdirIfNeeded, writeFile } from '../lib/file-system'
+import { pathExists } from 'fs-extra'
+import { mkdirIfNeeded, writeFile } from '../lib/file-system'
 
 const appFolder = Path.resolve(process.execPath, '..')
 const rootAppDir = Path.resolve(appFolder, '..')

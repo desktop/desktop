@@ -83,20 +83,6 @@ export function tailByLine(
   })
 }
 
-/*
- * Helper function to promisify and simplify fs.stat.
- *
- * @param path Path to check for existence.
- */
-export async function pathExists(path: string): Promise<boolean> {
-  try {
-    await FSE.stat(path)
-    return true
-  } catch {
-    return false
-  }
-}
-
 /**
  * Asynchronous readFile - Asynchronously reads the entire contents of a file.
  *
