@@ -43,8 +43,8 @@ async function getTextDiff(
 describe('git/diff', () => {
   let repository: Repository | null = null
 
-  beforeEach(() => {
-    const testRepoPath = setupFixtureRepository('repo-with-image-changes')
+  beforeEach(async () => {
+    const testRepoPath = await setupFixtureRepository('repo-with-image-changes')
     repository = new Repository(testRepoPath, -1, null, false)
   })
 
@@ -135,7 +135,7 @@ describe('git/diff', () => {
     })
 
     it('changes for text are not set', async () => {
-      const testRepoPath = setupFixtureRepository('repo-with-changes')
+      const testRepoPath = await setupFixtureRepository('repo-with-changes')
       repository = new Repository(testRepoPath, -1, null, false)
 
       const diffSelection = DiffSelection.fromInitialSelection(
@@ -153,8 +153,8 @@ describe('git/diff', () => {
   })
 
   describe('getWorkingDirectoryDiff', () => {
-    beforeEach(() => {
-      const testRepoPath = setupFixtureRepository('repo-with-changes')
+    beforeEach(async () => {
+      const testRepoPath = await setupFixtureRepository('repo-with-changes')
       repository = new Repository(testRepoPath, -1, null, false)
     })
 

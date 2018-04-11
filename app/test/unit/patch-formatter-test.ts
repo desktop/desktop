@@ -36,8 +36,8 @@ describe('patch formatting', () => {
   let repository: Repository | null = null
 
   describe('formatPatchesForModifiedFile', () => {
-    beforeEach(() => {
-      const testRepoPath = setupFixtureRepository('repo-with-changes')
+    beforeEach(async () => {
+      const testRepoPath = await setupFixtureRepository('repo-with-changes')
       repository = new Repository(testRepoPath, -1, null, false)
     })
 

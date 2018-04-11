@@ -17,7 +17,9 @@ import {
 describe('git/remote', () => {
   describe('getRemotes', () => {
     it('should return both remotes', async () => {
-      const testRepoPath = setupFixtureRepository('repo-with-multiple-remotes')
+      const testRepoPath = await setupFixtureRepository(
+        'repo-with-multiple-remotes'
+      )
       const repository = new Repository(testRepoPath, -1, null, false)
 
       // NB: We don't check for exact URL equality because CircleCI's git config
@@ -36,7 +38,9 @@ describe('git/remote', () => {
 
   describe('getDefaultRemote', () => {
     it('returns origin when multiple remotes found', async () => {
-      const testRepoPath = setupFixtureRepository('repo-with-multiple-remotes')
+      const testRepoPath = await setupFixtureRepository(
+        'repo-with-multiple-remotes'
+      )
       const repository = new Repository(testRepoPath, -1, null, false)
 
       const result = await getDefaultRemote(repository)
@@ -45,7 +49,9 @@ describe('git/remote', () => {
     })
 
     it('returns something when origin removed', async () => {
-      const testRepoPath = setupFixtureRepository('repo-with-multiple-remotes')
+      const testRepoPath = await setupFixtureRepository(
+        'repo-with-multiple-remotes'
+      )
       const repository = new Repository(testRepoPath, -1, null, false)
       await removeRemote(repository, 'origin')
 

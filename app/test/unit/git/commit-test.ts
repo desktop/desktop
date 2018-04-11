@@ -46,7 +46,7 @@ describe('git/commit', () => {
   let repository: Repository | null = null
 
   beforeEach(async () => {
-    const testRepoPath = setupFixtureRepository('test-repo')
+    const testRepoPath = await setupFixtureRepository('test-repo')
     repository = new Repository(testRepoPath, -1, null, false)
   })
 
@@ -147,7 +147,7 @@ describe('git/commit', () => {
 
   describe('createCommit partials', () => {
     beforeEach(async () => {
-      const testRepoPath = setupFixtureRepository('repo-with-changes')
+      const testRepoPath = await setupFixtureRepository('repo-with-changes')
       repository = new Repository(testRepoPath, -1, null, false)
     })
 

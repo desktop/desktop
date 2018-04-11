@@ -28,8 +28,8 @@ async function createAndCheckout(
 describe('git/reflog', () => {
   let repository: Repository | null = null
 
-  beforeEach(() => {
-    const testRepoPath = setupFixtureRepository('test-repo')
+  beforeEach(async () => {
+    const testRepoPath = await setupFixtureRepository('test-repo')
     repository = new Repository(testRepoPath, -1, null, false)
   })
 

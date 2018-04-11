@@ -23,7 +23,9 @@ export const openSync = _temp.openSync
  *
  * @returns The path to the set up fixture repository.
  */
-export function setupFixtureRepository(repositoryName: string): string {
+export async function setupFixtureRepository(
+  repositoryName: string
+): Promise<string> {
   const testRepoFixturePath = Path.join(
     __dirname,
     '..',
@@ -31,9 +33,9 @@ export function setupFixtureRepository(repositoryName: string): string {
     repositoryName
   )
   const testRepoPath = _temp.mkdirSync('desktop-git-test-')
-  FSE.copySync(testRepoFixturePath, testRepoPath)
+  await FSE.copy(testRepoFixturePath, testRepoPath)
 
-  FSE.renameSync(
+  await FSE.rename(
     Path.join(testRepoPath, '_git'),
     Path.join(testRepoPath, '.git')
   )
