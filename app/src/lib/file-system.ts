@@ -1,4 +1,4 @@
-import * as Fs from 'fs-extra'
+import * as Fs from 'fs'
 import * as Os from 'os'
 import * as Path from 'path'
 import { Disposable } from 'event-kit'

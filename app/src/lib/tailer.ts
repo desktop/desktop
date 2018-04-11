@@ -1,4 +1,4 @@
-import * as Fs from 'fs-extra'
+import * as Fs from 'fs'
 import { Emitter, Disposable } from 'event-kit'
 
 interface ICurrentFileTailState {
