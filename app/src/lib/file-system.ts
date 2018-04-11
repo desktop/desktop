@@ -1,4 +1,4 @@
-import * as Fs from 'fs'
+import * as FSE from 'fs-extra'
 import * as Os from 'os'
 import * as Path from 'path'
 import { Disposable } from 'event-kit'
@@ -12,16 +12,14 @@ const byline = require('byline')
  *
  * @param directoryPath the path of the directory the caller wants to create.
  */
-export function mkdirIfNeeded(directoryPath: string): Promise<void> {
-  return new Promise<void>((resolve, reject) => {
-    Fs.mkdir(directoryPath, err => {
-      if (err && err.code !== 'EEXIST') {
-        reject(err)
-        return
-      }
-      resolve()
-    })
-  })
+export async function mkdirIfNeeded(directoryPath: string): Promise<void> {
+  try {
+    await FSE.mkdir(directoryPath)
+  } catch (err) {
+    if (err && err.code !== 'EEXIST') {
+      throw err
+    }
+  }
 }
 
 /*
@@ -36,33 +34,17 @@ export function writeFile(
   data: any,
   options: { encoding?: string; mode?: number; flag?: string } = {}
 ): Promise<void> {
-  return new Promise<void>((resolve, reject) => {
-    Fs.writeFile(path, data, options, err => {
-      if (err) {
-        reject(err)
-      } else {
-        resolve()
-      }
-    })
-  })
+  return FSE.writeFile(path, data, options)
 }
 
 /**
  * Get a path to a temp file using the given name. Note that the file itself
  * will not be created.
  */
-export function getTempFilePath(name: string): Promise<string> {
-  return new Promise<string>((resolve, reject) => {
-    const tempDir = Path.join(Os.tmpdir(), `${name}-`)
-    Fs.mkdtemp(tempDir, (err, directory) => {
-      if (err) {
-        reject(err)
-      } else {
-        const fullPath = Path.join(directory, name)
-        resolve(fullPath)
-      }
-    })
-  })
+export async function getTempFilePath(name: string): Promise<string> {
+  const tempDir = Path.join(Os.tmpdir(), `${name}-`)
+  const directory = await FSE.mkdtemp(tempDir)
+  return Path.join(directory, name)
 }
 
 /**
@@ -106,16 +88,13 @@ export function tailByLine(
  *
  * @param path Path to check for existence.
  */
-export function pathExists(path: string): Promise<boolean> {
-  return new Promise<boolean>((resolve, reject) => {
-    Fs.stat(path, (error, stats) => {
-      if (error) {
-        resolve(false)
-      } else {
-        resolve(true)
-      }
-    })
-  })
+export async function pathExists(path: string): Promise<boolean> {
+  try {
+    await FSE.stat(path)
+    return true
+  } catch {
+    return false
+  }
 }
 
 /**
@@ -141,7 +120,7 @@ export async function readFile(
 ): Promise<Buffer | string> {
   return new Promise<string | Buffer>((resolve, reject) => {
     options = options || { flag: 'r' }
-    Fs.readFile(filename, options, (err, data) => {
+    FSE.readFile(filename, options, (err, data) => {
       if (err) {
         reject(err)
       } else {
@@ -169,7 +148,7 @@ export async function readPartialFile(
     const chunks = new Array<Buffer>()
     let total = 0
 
-    Fs.createReadStream(path, { start, end })
+    FSE.createReadStream(path, { start, end })
       .on('data', (chunk: Buffer) => {
         chunks.push(chunk)
         total += chunk.length
