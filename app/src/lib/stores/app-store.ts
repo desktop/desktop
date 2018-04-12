@@ -1249,15 +1249,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
 
       // The file selection could have changed if the previously selected files
-      // are no longer selectable (they were reverted or committed) but if they were not
-      // changed we can reuse the diff.
+      // are no longer selectable (they were discarded or committed) but if they
+      // were not changed we can reuse the diff. Note, however that we only render
+      // a diff when a single file is selected. If the previous selection was
+      // a single file with the same id as the current selection we can keep the
+      // diff we had, if not we'll clear it.
       const workingDirectory = WorkingDirectoryStatus.fromFiles(mergedFiles)
-      const sameSelectedFileExists = state.selectedFileIDs.length
-        ? state.selectedFileIDs.every(
-            fileID => workingDirectory.findFileWithID(fileID) !== null
-          )
-        : null
-      const diff = sameSelectedFileExists ? state.diff : null
+
+      const diff =
+        selectedFileIDs.length === 1 &&
+        state.selectedFileIDs.length === 1 &&
+        state.selectedFileIDs[0] === selectedFileIDs[0]
+          ? state.diff
+          : null
+
       return { workingDirectory, selectedFileIDs, diff }
     })
     this.emitUpdate()
