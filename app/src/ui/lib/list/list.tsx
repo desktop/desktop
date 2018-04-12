@@ -518,9 +518,8 @@ export class List extends React.Component<IListProps, IListState> {
     const newRow = this.nextSelectableRow(direction, lastSelection, false)
 
     if (newRow != null) {
-      const newSelection = createSelectionBetween(selectionOrigin, newRow)
-
       if (this.props.onSelectionChanged) {
+        const newSelection = createSelectionBetween(selectionOrigin, newRow)
         this.props.onSelectionChanged(newSelection, { kind: 'keyboard', event })
       }
 
@@ -880,9 +879,9 @@ export class List extends React.Component<IListProps, IListState> {
          * select all in-between first selection and current row
          */
         const selectionOrigin = this.props.selectedRows[0]
-        const newSelection = createSelectionBetween(selectionOrigin, row)
 
         if (this.props.onSelectionChanged) {
+          const newSelection = createSelectionBetween(selectionOrigin, row)
           this.props.onSelectionChanged(newSelection, {
             kind: 'mouseclick',
             event,
@@ -902,17 +901,18 @@ export class List extends React.Component<IListProps, IListState> {
          * if [ctrl] is pressed and selectionMode is 'multi',
          * toggle selection of the targeted row
          */
-        let newSelection
-        if (this.props.selectedRows.includes(row)) {
-          // remove the ability to deselect the last item
-          if (this.props.selectedRows.length === 1) {
-            return
-          }
-          newSelection = this.props.selectedRows.filter(ix => ix !== row)
-        } else {
-          newSelection = [...this.props.selectedRows, row]
-        }
         if (this.props.onSelectionChanged) {
+          let newSelection: ReadonlyArray<number>
+          if (this.props.selectedRows.includes(row)) {
+            // remove the ability to deselect the last item
+            if (this.props.selectedRows.length === 1) {
+              return
+            }
+            newSelection = this.props.selectedRows.filter(ix => ix !== row)
+          } else {
+            newSelection = [...this.props.selectedRows, row]
+          }
+
           this.props.onSelectionChanged(newSelection, {
             kind: 'mouseclick',
             event,
