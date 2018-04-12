@@ -108,6 +108,16 @@ export class FileList extends React.Component<IFileListProps, {}> {
       const filePath = this.props.selectedFile.path
       const fullPath = Path.join(this.props.repository.path, filePath)
       const fileExistsOnDisk = await pathExists(fullPath)
+      if (!fileExistsOnDisk) {
+        showContextualMenu([
+          {
+            label: 'File does not exist on disk',
+            enabled: false,
+          },
+        ])
+        return
+      }
+
       const extension = Path.extname(filePath)
       const items: IMenuItem[] = []
 
