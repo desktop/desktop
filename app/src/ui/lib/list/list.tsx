@@ -509,6 +509,10 @@ export class List extends React.Component<IListProps, IListState> {
     direction: 'up' | 'down',
     event: React.KeyboardEvent<any>
   ) {
+    if (this.props.selectedRows.length === 0) {
+      return this.moveSelection(direction, event)
+    }
+
     const lastSelection = this.props.selectedRows[
       this.props.selectedRows.length - 1
     ]
