@@ -33,6 +33,7 @@ dependencies:
 compile:
   override:
     - yarn lint
+    - yarn validate-changelog
     - yarn build:prod
 
 test:

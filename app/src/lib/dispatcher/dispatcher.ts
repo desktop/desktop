@@ -487,8 +487,8 @@ export class Dispatcher {
   }
 
   /** Update the repository's issues from GitHub. */
-  public updateIssues(repository: GitHubRepository): Promise<void> {
-    return this.appStore._updateIssues(repository)
+  public refreshIssues(repository: GitHubRepository): Promise<void> {
+    return this.appStore._refreshIssues(repository)
   }
 
   /** End the Welcome flow. */
@@ -602,9 +602,11 @@ export class Dispatcher {
     }
   }
 
-  /** Opens a Git repository in the user provided program */
-  public async openInExternalEditor(path: string): Promise<void> {
-    return this.appStore._openInExternalEditor(path)
+  /**
+   * Opens a path in the external editor selected by the user.
+   */
+  public async openInExternalEditor(fullPath: string): Promise<void> {
+    return this.appStore._openInExternalEditor(fullPath)
   }
 
   /**
@@ -806,6 +808,18 @@ export class Dispatcher {
         } catch (e) {
           rejectOAuthRequest(e)
         }
+
+        if (__DARWIN__) {
+          // workaround for user reports that the application doesn't receive focus
+          // after completing the OAuth signin in the browser
+          const window = remote.getCurrentWindow()
+          if (!window.isFocused()) {
+            log.info(
+              `refocusing the main window after the OAuth flow is completed`
+            )
+            window.focus()
+          }
+        }
         break
 
       case 'open-repository-from-url':
@@ -867,10 +881,6 @@ export class Dispatcher {
 
   /**
    * Sets the user's preference so that confirmation to discard changes is not asked
-   *
-   * @param {boolean} value
-   * @returns {Promise<void>}
-   * @memberof Dispatcher
    */
   public setConfirmDiscardChangesSetting(value: boolean): Promise<void> {
     return this.appStore._setConfirmDiscardChangesSetting(value)

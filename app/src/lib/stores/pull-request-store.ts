@@ -293,6 +293,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       return {
         id: x.id,
         state: x.state,
+        description: x.description,
       }
     })
 
