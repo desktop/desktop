@@ -296,7 +296,7 @@ export class StatsStore {
   }
 
   /** Record that the user checked out a PR branch */
-  public prBranchCheckout(): Promise<void> {
+  public recordPRBranchCheckout(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       prBranchCheckouts: m.prBranchCheckouts + 1,
     }))
