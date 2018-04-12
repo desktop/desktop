@@ -182,25 +182,30 @@ export class RepositoryView extends React.Component<IRepositoryProps, {}> {
           selectedFiles.push(file)
         }
       })
-      const diff = changesState.diff
+
+      if (selectedFiles.length > 1) {
+        return <MultipleSelection count={selectedFiles.length} />
+      }
+
       if (
-        !changesState.workingDirectory.files.length ||
-        !selectedFiles.length ||
-        !diff
+        changesState.workingDirectory.files.length === 0 ||
+        selectedFiles.length === 0 ||
+        changesState.diff === null
       ) {
+        // TODO: The case where diff is null is likely while the diff is loading,
+        // we should have a dedicated loading state for diffs instead of showing
+        // NoChanges.
         return <NoChanges onOpenRepository={this.openRepository} />
-      } else if (selectedFiles.length === 1) {
+      } else {
         return (
           <Changes
             repository={this.props.repository}
             dispatcher={this.props.dispatcher}
             file={selectedFiles[0]}
-            diff={diff}
+            diff={changesState.diff}
             imageDiffType={this.props.imageDiffType}
           />
         )
-      } else {
-        return <MultipleSelection count={selectedFiles.length} />
       }
     } else if (selectedSection === RepositorySection.History) {
       return (
