@@ -79,7 +79,7 @@ function resolveVersionedPath(binPath: string, relativePath: string): string {
  * rewrite the trampoline to point to the new, version-specific path. Bingo
  * bango Bob's your uncle.
  */
-async function writeBatchScriptCLITrampoline(binPath: string): Promise<void> {
+function writeBatchScriptCLITrampoline(binPath: string): Promise<void> {
   const versionedPath = resolveVersionedPath(
     binPath,
     'resources/app/static/github.bat'
@@ -91,7 +91,7 @@ async function writeBatchScriptCLITrampoline(binPath: string): Promise<void> {
   return writeFile(trampolinePath, trampoline)
 }
 
-async function writeShellScriptCLITrampoline(binPath: string): Promise<void> {
+function writeShellScriptCLITrampoline(binPath: string): Promise<void> {
   const versionedPath = resolveVersionedPath(
     binPath,
     'resources/app/static/github.sh'
