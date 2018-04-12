@@ -13,7 +13,6 @@ import {
   RevealInFileManagerLabel,
 } from '../lib/context-menu'
 import { List } from '../lib/list'
-import { IMenuItem } from '../../lib/menu-item'
 
 import { Octicon } from '../octicons'
 import { showContextualMenu } from '../main-process-proxy'
