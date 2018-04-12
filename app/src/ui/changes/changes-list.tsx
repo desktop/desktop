@@ -22,6 +22,7 @@ import { IAuthor } from '../../models/author'
 import { ITrailer } from '../../lib/git/interpret-trailers'
 import { IMenuItem } from '../../lib/menu-item'
 import { isSafeFileExtension, DefaultEditorLabel } from '../lib/context-menu'
+import { revealInFileManager } from '../../lib/app-shell'
 
 const RowHeight = 29
 const GitIgnoreFileName = '.gitignore'
@@ -42,12 +43,6 @@ interface IChangesListProps {
   readonly onDiscardAllChanges: (
     files: ReadonlyArray<WorkingDirectoryFileChange>
   ) => void
-
-  /**
-   * Called to reveal a file in the native file manager.
-   * @param path The path of the file relative to the root of the repository
-   */
-  readonly onRevealInFileManager: (path: string) => void
 
   /**
    * Called to open a file it its default application
@@ -217,7 +212,7 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
       { type: 'separator' },
       {
         label: revealInFileManagerLabel,
-        action: () => this.props.onRevealInFileManager(path),
+        action: () => revealInFileManager(this.props.repository, path),
         enabled: status !== AppFileStatus.Deleted,
       },
       {

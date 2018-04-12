@@ -1,6 +1,8 @@
 import * as React from 'react'
 import { LinkButton } from '../lib/link-button'
 import { encodePathAsUrl } from '../../lib/path'
+import { revealInFileManager } from '../../lib/app-shell'
+import { Repository } from '../../models/repository'
 
 const BlankSlateImage = encodePathAsUrl(
   __dirname,
@@ -8,8 +10,7 @@ const BlankSlateImage = encodePathAsUrl(
 )
 
 interface INoChangesProps {
-  /** Called when the user chooses to open the repository. */
-  readonly onOpenRepository: () => void
+  readonly repository: Repository
 }
 
 /** The component to display when there are no local changes. */
@@ -33,6 +34,6 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
   }
 
   private open = () => {
-    this.props.onOpenRepository()
+    revealInFileManager(this.props.repository, '')
   }
 }

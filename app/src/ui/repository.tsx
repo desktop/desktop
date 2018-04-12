@@ -184,7 +184,7 @@ export class RepositoryView extends React.Component<IRepositoryProps, {}> {
         !selectedFile ||
         !diff
       ) {
-        return <NoChanges onOpenRepository={this.openRepository} />
+        return <NoChanges repository={this.props.repository} />
       } else {
         return (
           <Changes
@@ -223,10 +223,6 @@ export class RepositoryView extends React.Component<IRepositoryProps, {}> {
         {this.renderContent()}
       </UiView>
     )
-  }
-
-  private openRepository = () => {
-    this.props.dispatcher.revealInFileManager(this.props.repository, '')
   }
 
   private onRevertCommit = (commit: Commit) => {

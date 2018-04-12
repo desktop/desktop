@@ -142,21 +142,12 @@ export class History extends React.Component<IHistoryProps, IHistoryState> {
         onSelectedFileChanged={this.onFileSelected}
         selectedFile={this.props.history.selection.file}
         availableWidth={availableWidth}
-        onRevealInFileManager={this.onRevealInFileManager}
         onOpenItem={this.onOpenItem}
         externalEditorLabel={this.props.externalEditorLabel}
         onOpenInExternalEditor={this.props.onOpenInExternalEditor}
         repository={this.props.repository}
       />
     )
-  }
-
-  /**
-   * Reveals a file from a repository in the native file manager.
-   * @param path The path of the file relative to the root of the repository
-   */
-  private onRevealInFileManager = (path: string) => {
-    this.props.dispatcher.revealInFileManager(this.props.repository, path)
   }
 
   /**

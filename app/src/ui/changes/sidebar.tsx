@@ -182,14 +182,6 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
   }
 
   /**
-   * Reveals a file from a repository in the native file manager.
-   * @param path The path of the file relative to the root of the repository
-   */
-  private onRevealInFileManager = (path: string) => {
-    this.props.dispatcher.revealInFileManager(this.props.repository, path)
-  }
-
-  /**
    * Open file with default application.
    * @param path The path of the file relative to the root of the repository
    */
@@ -296,7 +288,6 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           onSelectAll={this.onSelectAll}
           onDiscardChanges={this.onDiscardChanges}
           onDiscardAllChanges={this.onDiscardAllChanges}
-          onRevealInFileManager={this.onRevealInFileManager}
           onOpenItem={this.onOpenItem}
           onRowClick={this.onChangedItemClick}
           commitAuthor={this.props.commitAuthor}

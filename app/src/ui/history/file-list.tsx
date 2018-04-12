@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Path from 'path'
 import { pathExists } from '../../lib/file-system'
+import { revealInFileManager } from '../../lib/app-shell'
 
 import { FileChange, mapStatus, iconForStatus } from '../../models/status'
 import { PathLabel } from '../lib/path-label'
@@ -17,11 +18,6 @@ interface IFileListProps {
   readonly selectedFile: FileChange | null
   readonly onSelectedFileChanged: (file: FileChange) => void
   readonly availableWidth: number
-  /**
-   * Called to reveal a file in the native file manager.
-   * @param path The path of the file relative to the root of the repository
-   */
-  readonly onRevealInFileManager: (path: string) => void
 
   /**
    * Called to open a file it its default application
@@ -133,7 +129,7 @@ export class FileList extends React.Component<IFileListProps, {}> {
       items.push(
         {
           label: revealInFileManagerLabel,
-          action: () => this.props.onRevealInFileManager(filePath),
+          action: () => revealInFileManager(this.props.repository, filePath),
           enabled: fileExistsOnDisk,
         },
         {
