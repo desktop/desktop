@@ -1328,7 +1328,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const diff = await getWorkingDirectoryDiff(repository, selectedFileBeforeLoad)
+    const diff = await getWorkingDirectoryDiff(
+      repository,
+      selectedFileBeforeLoad
+    )
 
     const stateAfterLoad = this.getRepositoryState(repository)
     const changesState = stateAfterLoad.changesState
