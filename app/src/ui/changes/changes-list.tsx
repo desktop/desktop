@@ -193,18 +193,18 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
     event.preventDefault()
 
     const fileList = this.props.workingDirectory.files
-    const selectedFiles: WorkingDirectoryFileChange[] = []
+    const selectedFiles = new Array<WorkingDirectoryFileChange>()
+    const paths = new Array<string>()
+    const extensions = new Set<string>()
+
     this.props.selectedFileIDs.forEach(fileID => {
       const newFile = fileList.find(file => file.id === fileID)
       if (newFile) {
         selectedFiles.push(newFile)
+        paths.push(newFile.path)
+        extensions.add(Path.extname(newFile.path))
       }
     })
-
-    const paths = selectedFiles.map(file => file.path)
-    const extensions = [
-      ...new Set(selectedFiles.map(x => Path.extname(x.path))),
-    ]
 
     const items: IMenuItem[] = [
       {
