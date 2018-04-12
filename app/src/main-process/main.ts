@@ -170,6 +170,13 @@ function setAsDefaultProtocolClient(protocol: string) {
   }
 }
 
+if (process.env.GITHUB_DESKTOP_DISABLE_HARDWARE_ACCELERATION) {
+  log.info(
+    `GITHUB_DESKTOP_DISABLE_HARDWARE_ACCELERATION environment variable set, disabling hardware acceleration`
+  )
+  app.disableHardwareAcceleration()
+}
+
 app.on('ready', () => {
   if (isDuplicateInstance || handlingSquirrelEvent) {
     return
