@@ -238,6 +238,15 @@ interface IListState {
   readonly rowIdPrefix?: string
 }
 
+function createSelectionBetween(
+  firstRow: number,
+  lastRow: number
+): ReadonlyArray<number> {
+  // range is upper bound exclusive
+  const end = lastRow > firstRow ? lastRow + 1 : lastRow - 1
+  return range(firstRow, end)
+}
+
 export class List extends React.Component<IListProps, IListState> {
   private focusItem: HTMLDivElement | null = null
   private fakeScroll: HTMLDivElement | null = null
@@ -502,11 +511,14 @@ export class List extends React.Component<IListProps, IListState> {
     const lastSelection = this.props.selectedRows[
       this.props.selectedRows.length - 1
     ]
-    const newRow = this.nextSelectableRow(direction, lastSelection)
+
+    const selectionOrigin = this.props.selectedRows[0]
+
+    const newRow = this.nextSelectableRow(direction, lastSelection, false)
 
     if (newRow != null) {
-      const newSelection = [...this.props.selectedRows]
-      newSelection.push(newRow)
+      const newSelection = createSelectionBetween(selectionOrigin, newRow)
+
       if (this.props.onSelectionChanged) {
         this.props.onSelectionChanged(newSelection, { kind: 'keyboard', event })
       }
@@ -515,7 +527,7 @@ export class List extends React.Component<IListProps, IListState> {
         this.props.selectionMode === 'range' &&
         this.props.onSelectedRangeChanged
       ) {
-        this.props.onSelectedRangeChanged(this.props.selectedRows[0], newRow, {
+        this.props.onSelectedRangeChanged(selectionOrigin, newRow, {
           kind: 'keyboard',
           event,
         })
@@ -867,16 +879,7 @@ export class List extends React.Component<IListProps, IListState> {
          * select all in-between first selection and current row
          */
         const selectionOrigin = this.props.selectedRows[0]
-        if (selectionOrigin === row) {
-          return
-        }
-        const difference = row - selectionOrigin
-        const polarity = difference / Math.abs(difference)
-        const newSelection = []
-        for (let i = selectionOrigin; i !== row; i += polarity) {
-          newSelection.push(i)
-        }
-        newSelection.push(row)
+        const newSelection = createSelectionBetween(selectionOrigin, row)
 
         if (this.props.onSelectionChanged) {
           this.props.onSelectionChanged(newSelection, {
@@ -898,15 +901,15 @@ export class List extends React.Component<IListProps, IListState> {
          * if [ctrl] is pressed and selectionMode is 'multi',
          * toggle selection of the targeted row
          */
-        let newSelection = [...this.props.selectedRows]
-        if (newSelection.includes(row)) {
+        let newSelection
+        if (this.props.selectedRows.includes(row)) {
           // remove the ability to deselect the last item
-          if (newSelection.length === 1) {
+          if (this.props.selectedRows.length === 1) {
             return
           }
-          newSelection = newSelection.filter(selection => selection !== row)
+          newSelection = this.props.selectedRows.filter(ix => ix !== row)
         } else {
-          newSelection.push(row)
+          newSelection = [...this.props.selectedRows, row]
         }
         if (this.props.onSelectionChanged) {
           this.props.onSelectionChanged(newSelection, {
