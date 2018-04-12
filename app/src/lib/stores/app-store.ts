@@ -1482,8 +1482,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
 
       const workingDirectory = WorkingDirectoryStatus.fromFiles(newFiles)
-      const diff = state.selectedFileIDs.length > 0 ? state.diff : null
-      return { workingDirectory, diff }
+
+      return { workingDirectory }
     })
 
     this.emitUpdate()
