@@ -5,6 +5,7 @@ import { shallowEquals, arrayEquals } from '../../../lib/equality'
 import { FocusContainer } from '../../lib/focus-container'
 import { ListRow } from './list-row'
 import { createUniqueId, releaseUniqueId } from '../../lib/id-pool'
+import { range } from '../../../lib/range'
 
 /**
  * Describe the first argument given to the cellRenderer,
