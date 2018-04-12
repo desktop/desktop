@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 
 import * as Path from 'path'
-import * as FSE from 'fs'
+import * as FSE from 'fs-extra'
 import { GitProcess } from 'dugite'
 
 import {
