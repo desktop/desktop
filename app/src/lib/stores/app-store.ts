@@ -1319,8 +1319,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     // We only render diffs when a single file is selected.
     if (selectedFileIDsBeforeLoad.length !== 1) {
-      this.updateChangesState(repository, state => ({ diff: null }))
-      this.emitUpdate()
+      if (changesStateBeforeLoad.diff !== null) {
+        this.updateChangesState(repository, state => ({ diff: null }))
+        this.emitUpdate()
+      }
       return
     }
 
