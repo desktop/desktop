@@ -545,9 +545,11 @@ export class List extends React.Component<IListProps, IListState> {
     direction: 'up' | 'down',
     event: React.KeyboardEvent<any>
   ) {
-    const lastSelection = this.props.selectedRows[
-      this.props.selectedRows.length - 1
-    ]
+    const lastSelection =
+      this.props.selectedRows.length > 0
+        ? this.props.selectedRows[this.props.selectedRows.length - 1]
+        : -1
+
     const newRow = this.nextSelectableRow(direction, lastSelection)
 
     if (newRow != null) {
