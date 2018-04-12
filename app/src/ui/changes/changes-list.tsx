@@ -202,7 +202,6 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
     })
 
     const paths = selectedFiles.map(file => file.path)
-    const filenames = selectedFiles.map(file => Path.basename(file.path))
     const extensions = [
       ...new Set(selectedFiles.map(x => Path.extname(x.path))),
     ]
@@ -219,13 +218,13 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
       { type: 'separator' },
     ]
 
-    if (filenames.length === 1) {
+    if (paths.length === 1) {
       items.push({
         label: __DARWIN__ ? 'Ignore File' : 'Ignore file',
         action: () => this.props.onIgnore(path),
         enabled: Path.basename(path) !== GitIgnoreFileName,
       })
-    } else if (filenames.length > 1) {
+    } else if (paths.length > 1) {
       items.push({
         label: `Ignore ${paths.length} selected files`,
         action: () => {
