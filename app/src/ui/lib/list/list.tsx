@@ -669,8 +669,8 @@ export class List extends React.Component<IListProps, IListState> {
    * Renders the react-virtualized Grid component and optionally
    * a fake scroll bar component if running on Windows.
    *
-   * @param {width} - The width of the Grid as given by AutoSizer
-   * @param {height} - The height of the Grid as given by AutoSizer
+   * @param width - The width of the Grid as given by AutoSizer
+   * @param height - The height of the Grid as given by AutoSizer
    *
    */
   private renderContents(width: number, height: number) {
@@ -692,8 +692,8 @@ export class List extends React.Component<IListProps, IListState> {
   /**
    * Renders the react-virtualized Grid component
    *
-   * @param {width} - The width of the Grid as given by AutoSizer
-   * @param {height} - The height of the Grid as given by AutoSizer
+   * @param width - The width of the Grid as given by AutoSizer
+   * @param height - The height of the Grid as given by AutoSizer
    */
   private renderGrid(width: number, height: number) {
     let scrollToRow = this.props.scrollToRow
@@ -748,7 +748,7 @@ export class List extends React.Component<IListProps, IListState> {
    * be coupled with styling that hides scroll bars on Grid
    * and accurately positions the fake scroll bar.
    *
-   * @param {height} - The height of the Grid as given by AutoSizer
+   * @param height The height of the Grid as given by AutoSizer
    *
    */
   private renderFakeScroll(height: number) {

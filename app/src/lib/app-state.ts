@@ -347,7 +347,7 @@ export interface IRepositoryState {
 
   /**
    * The ordered local commit SHAs. The commits themselves can be looked up in
-   * `commits.`
+   * `commitLookup.`
    */
   readonly localCommitSHAs: ReadonlyArray<string>
 

@@ -6,7 +6,7 @@ export class ThrottledScheduler {
   /**
    * Initialize a new instance of the ThrottledScheduler class
    *
-   * @param {delay} - The minimum interval between invocations
+   * @param delay The minimum interval between invocations
    *                  of callbacks.
    */
   public constructor(delay: number) {

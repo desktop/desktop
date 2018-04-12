@@ -29,6 +29,20 @@ This seems to be caused by the Keychain being in an invalid state, affecting app
 - Right-click on the `login` keychain and try unlocking it
 - Sign into your GitHub account again
 
+### Checking for updates triggers a 'Could not create temporary directory: Permission denied' message - [#4115](https://github.com/desktop/desktop/issues/4115)
+
+This issue seems to be caused by missing permissions for the `~/Library/Caches/com.github.GitHubClient.ShipIt` folder. This is a directory that Desktop uses to create and unpack temporary files as part of updating the application.
+
+**Workaround:**
+
+ - Close Desktop
+ - Open Finder and navigate to `~/Library/Caches/`
+ - Context-click `com.github.GitHubClient.ShipIt` and select **Get Info**
+ - Expand the **Sharing & Permissions** section
+ - If you do not see the "You can read and write" message, add yourself with
+   the "Read & Write" permissions
+ - Start Desktop again and check for updates
+
 ## Windows
 
 ### Window is hidden after detaching secondary monitor - [#2107](https://github.com/desktop/desktop/issues/2107)
@@ -104,3 +118,9 @@ are unable to find another cygwin DLL.
 Enabling Mandatory ASLR affects the MSYS2 core library, which is relied upon by Git for Windows to emulate process forking.
 
 **Not supported:** this is an upstream limitation of MSYS2, and it is recommend that you either disable Mandatory ASLR or whitelist all executables under `<Git>\usr\bin` which depend on MSYS2.
+
+### I get a black screen when launching Desktop
+
+Electron enables hardware accelerated graphics by default, but some graphics cards have issues with hardware acceleration which means the application will launch successfully but it will be a black screen.
+
+**Workaround:** if you set the `GITHUB_DESKTOP_DISABLE_HARDWARE_ACCELERATION` environment variable to any value and launch Desktop again it will disable hardware acceleration on launch, so the application is usable.

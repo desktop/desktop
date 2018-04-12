@@ -823,7 +823,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const gitHubRepository = repository.gitHubRepository
 
     if (gitHubRepository != null) {
-      this._updateIssues(gitHubRepository)
+      this._refreshIssues(gitHubRepository)
       this.loadPullRequests(repository, async () => {
         const promiseForPRs = this.pullRequestStore.fetchPullRequestsFromCache(
           gitHubRepository
@@ -871,14 +871,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this._repositoryWithRefreshedGitHubRepository(repository)
   }
 
-  public async _updateIssues(repository: GitHubRepository) {
+  public async _refreshIssues(repository: GitHubRepository) {
     const user = getAccountForEndpoint(this.accounts, repository.endpoint)
     if (!user) {
       return
     }
 
     try {
-      await this._issuesStore.fetchIssues(repository, user)
+      await this._issuesStore.refreshIssues(repository, user)
     } catch (e) {
       log.warn(`Unable to fetch issues for ${repository.fullName}`, e)
     }
@@ -2468,6 +2468,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
         if (fetchType === FetchType.UserInitiatedTask) {
           this._refreshPullRequests(repository)
+          if (repository.gitHubRepository != null) {
+            this._refreshIssues(repository.gitHubRepository)
+          }
         }
       }
     })
@@ -2601,14 +2604,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return shell.openExternal(url)
   }
 
-  /** Takes a repository path and opens it using the user's configured editor */
-  public async _openInExternalEditor(path: string): Promise<void> {
+  /** Open a path to a repository or file using the user's configured editor */
+  public async _openInExternalEditor(fullPath: string): Promise<void> {
     const selectedExternalEditor =
       this.getState().selectedExternalEditor || null
 
     try {
       const match = await findEditorOrDefault(selectedExternalEditor)
-      await launchExternalEditor(path, match)
+      await launchExternalEditor(fullPath, match)
     } catch (error) {
       this.emitError(error)
     }

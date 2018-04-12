@@ -48,10 +48,10 @@ export class IssuesStore {
   }
 
   /**
-   * Fetch the issues for the repository. This will delete any issues that have
+   * Refresh the issues for the current repository. This will delete any issues that have
    * been closed and update or add any issues that have changed or been added.
    */
-  public async fetchIssues(repository: GitHubRepository, account: Account) {
+  public async refreshIssues(repository: GitHubRepository, account: Account) {
     const api = API.fromAccount(account)
     const lastUpdatedAt = await this.getLatestUpdatedAt(repository)
 

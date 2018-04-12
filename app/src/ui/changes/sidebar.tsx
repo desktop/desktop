@@ -52,10 +52,11 @@ interface IChangesSidebarProps {
   readonly externalEditorLabel?: string
 
   /**
-   * Called to open a file using the user's configured applications
-   * @param path The path of the file relative to the root of the repository
+   * Callback to open a selected file using the configured external editor
+   *
+   * @param fullPath The full path to the file on disk
    */
-  readonly onOpenInExternalEditor: (path: string) => void
+  readonly onOpenInExternalEditor: (fullPath: string) => void
 }
 
 export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
@@ -169,15 +170,11 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
   private onDiscardAllChanges = (
     files: ReadonlyArray<WorkingDirectoryFileChange>
   ) => {
-    if (!this.props.askForConfirmationOnDiscardChanges) {
-      this.props.dispatcher.discardChanges(this.props.repository, files)
-    } else {
-      this.props.dispatcher.showPopup({
-        type: PopupType.ConfirmDiscardChanges,
-        repository: this.props.repository,
-        files,
-      })
-    }
+    this.props.dispatcher.showPopup({
+      type: PopupType.ConfirmDiscardChanges,
+      repository: this.props.repository,
+      files,
+    })
   }
 
   private onIgnore = (pattern: string | string[]) => {

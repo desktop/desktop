@@ -472,7 +472,18 @@ export abstract class AutocompletingTextInput<
       this.props.onValueChanged(str)
     }
 
-    const caretPosition = this.element!.selectionStart
+    const element = this.element
+
+    if (element === null) {
+      return
+    }
+
+    const caretPosition = element.selectionStart
+
+    if (caretPosition === null) {
+      return
+    }
+
     const requestID = ++this.autocompletionRequestID
     const autocompletionState = await this.attemptAutocompletion(
       str,
