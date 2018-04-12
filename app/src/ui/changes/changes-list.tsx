@@ -245,16 +245,17 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
       })
     }
 
-    extensions.forEach(extension => {
-      if (extension) {
+    // Five menu items should be enough for everyone
+    Array.from(extensions)
+      .slice(0, 5)
+      .forEach(extension => {
         items.push({
           label: __DARWIN__
             ? `Ignore All ${extension} Files`
             : `Ignore all ${extension} files`,
           action: () => this.props.onIgnore(`*${extension}`),
         })
-      }
-    })
+      })
 
     const isSafeExtension = __WIN32__
       ? extensions.every(
