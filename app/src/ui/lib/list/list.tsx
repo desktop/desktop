@@ -412,33 +412,78 @@ export class List extends React.Component<IListProps, IListState> {
   }
 
   /**
-   * Determine the next selectable row, given the direction and row. This will
-   * take `canSelectRow` into account.
+   * Determine the next selectable row, given the direction and a starting
+   * row index. Whether a row is selectable or not is determined using
+   * the `canSelectRow` method.
    *
-   * Returns null if no row can be selected.
+   * Returns null if no row can be selected or if the only selectable row is
+   * identical to the given row parameter.
+   *
+   * @param direction The vertical direction use when searching for a
+   *                  selectable row.
+   *
+   * @param row       The starting row index to search from.
+   *
+   * @param wrap      Whether or not to look beyond the last or first
+   *                  row(depending on direction) such that given the
+   *                  last row and a downward direction we'll consider
+   *                  the first row as a candidate or given the first row
+   *                  and an upward direction we'll consider the last
+   *                  row as a candidate. Default is true.
+   *
    */
   public nextSelectableRow(
     direction: 'up' | 'down',
-    row: number
+    row: number,
+    wrap: boolean = true
   ): number | null {
-    // If the row we're starting from is outside our list, make sure we start
-    // walking from _just_ outside the list. We'll also need to walk one more
-    // row than we normally would since the first step is just getting us into
-    // the list.
-    const baseRow = Math.min(Math.max(row, -1), this.props.rowCount)
-    const startOutsideList = row < 0 || row >= this.props.rowCount
-    const rowDelta = startOutsideList
-      ? this.props.rowCount + 1
-      : this.props.rowCount
+    if (this.props.rowCount === 0) {
+      return null
+    }
 
-    for (let i = 1; i < rowDelta; i++) {
-      const delta = direction === 'up' ? i * -1 : i
-      // Modulo accounting for negative values, see https://stackoverflow.com/a/4467559
-      const nextRow =
-        (baseRow + delta + this.props.rowCount) % this.props.rowCount
+    // If we've been given a row that's out of bounds
+    // we'll coerce it to a valid index starting either
+    // at the bottom or the top depending on the direction.
+    //
+    // Given a row that would be below the last item and
+    // an upward direction we'll pick the last selectable row
+    // or the first selectable given an upward direction.
+    //
+    // Given a row that would be before the first item (-1)
+    // and a downward direction we'll pick the first selectable
+    // row or the first selectable given an upward direction.
+    let currentRow =
+      row < 0 || row >= this.props.rowCount
+        ? direction === 'up' ? this.props.rowCount - 1 : 0
+        : row
 
-      if (this.canSelectRow(nextRow)) {
-        return nextRow
+    const delta = direction === 'up' ? -1 : 1
+
+    // Iterate through all rows (starting offset from the
+    // given row and ending on and including the given row)
+    for (let i = 0; i < this.props.rowCount; i++) {
+      currentRow += delta
+
+      if (currentRow >= this.props.rowCount) {
+        // We've hit rock bottom, wrap around to the top
+        // if we're allowed to or give up.
+        if (wrap) {
+          currentRow = 0
+        } else {
+          break
+        }
+      } else if (currentRow < 0) {
+        // We've reached the top, wrap around to the bottom
+        // if we're allowed to or give up
+        if (wrap) {
+          currentRow = this.props.rowCount - 1
+        } else {
+          break
+        }
+      }
+
+      if (this.canSelectRow(currentRow) && row !== currentRow) {
+        return currentRow
       }
     }
 
