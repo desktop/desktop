@@ -18,7 +18,6 @@ import {
   IRevertProgress,
   IFetchProgress,
 } from '../app-state'
-import { arrayEquals } from '../equality'
 import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
 import { GitHubRepository } from '../../models/github-repository'
@@ -1313,36 +1312,44 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const changesStateBeforeLoad = stateBeforeLoad.changesState
     const selectedFileIDsBeforeLoad = changesStateBeforeLoad.selectedFileIDs
 
-    if (!selectedFileIDsBeforeLoad.length) {
+    // We only render diffs when a single file is selected.
+    if (selectedFileIDsBeforeLoad.length !== 1) {
+      this.updateChangesState(repository, state => ({ diff: null }))
+      this.emitUpdate()
       return
     }
 
-    const lastSelectedFileId = selectedFileIDsBeforeLoad[selectedFileIDsBeforeLoad.length - 1]
-    const lastSelectedFile = changesStateBeforeLoad.workingDirectory.findFileWithID(lastSelectedFileId)
+    const selectedFileIdBeforeLoad = selectedFileIDsBeforeLoad[0]
+    const selectedFileBeforeLoad = changesStateBeforeLoad.workingDirectory.findFileWithID(
+      selectedFileIdBeforeLoad
+    )
 
-    if (!lastSelectedFile) {
+    if (selectedFileBeforeLoad === null) {
       return
     }
 
-    const diff = await getWorkingDirectoryDiff(repository, lastSelectedFile)
+    const diff = await getWorkingDirectoryDiff(repository, selectedFileBeforeLoad)
 
     const stateAfterLoad = this.getRepositoryState(repository)
     const changesState = stateAfterLoad.changesState
-    const selectedFileIDs = changesState.selectedFileIDs
 
-    // A different file could have been selected while we were loading the diff
-    // in which case we no longer care about the diff we just loaded.
-    if (!selectedFileIDs.length) {
+    // A different file (or files) could have been selected while we were
+    // loading the diff in which case we no longer care about the diff we
+    // just loaded.
+    if (changesState.selectedFileIDs.length !== 1) {
       return
     }
-    if (!arrayEquals(selectedFileIDs, selectedFileIDsBeforeLoad)) {
+
+    const selectedFileID = changesState.selectedFileIDs[0]
+
+    if (selectedFileID !== selectedFileIdBeforeLoad) {
       return
     }
 
     const currentlySelectedFile = changesState.workingDirectory.findFileWithID(
-      selectedFileIDs[selectedFileIDs.length - 1]
+      selectedFileID
     )
-    if (!currentlySelectedFile) {
+    if (currentlySelectedFile === null) {
       return
     }
 
