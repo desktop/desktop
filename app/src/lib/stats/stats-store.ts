@@ -294,6 +294,13 @@ export class StatsStore {
     }))
   }
 
+  /** Record that the user checked out a PR branch */
+  public prBranchCheckout(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      prBranchCheckouts: m.prBranchCheckouts + 1,
+    }))
+  }
+
   /** Set whether the user has opted out of stats reporting. */
   public async setOptOut(optOut: boolean): Promise<void> {
     const changed = this.optOut !== optOut
