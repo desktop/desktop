@@ -10,10 +10,10 @@ import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'
 import { Repository } from '../../models/repository'
 
-const RestrictedFileExtensions = ['.cmd', '.exe', '.bat', '.sh']
-const defaultEditorLabel = __DARWIN__
-  ? 'Open in External Editor'
-  : 'Open in external editor'
+import {
+  RestrictedFileExtensions,
+  DefaultEditorLabel,
+} from '../lib/context-menu'
 
 interface IFileListProps {
   readonly files: ReadonlyArray<FileChange>
@@ -124,7 +124,7 @@ export class FileList extends React.Component<IFileListProps, {}> {
 
       const openInExternalEditor = this.props.externalEditorLabel
         ? `Open in ${this.props.externalEditorLabel}`
-        : defaultEditorLabel
+        : DefaultEditorLabel
 
       items.push(
         {

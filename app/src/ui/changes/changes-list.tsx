@@ -21,12 +21,12 @@ import { showContextualMenu } from '../main-process-proxy'
 import { IAuthor } from '../../models/author'
 import { ITrailer } from '../../lib/git/interpret-trailers'
 import { IMenuItem } from '../../lib/menu-item'
+import {
+  RestrictedFileExtensions,
+  DefaultEditorLabel,
+} from '../lib/context-menu'
 
 const RowHeight = 29
-const RestrictedFileExtensions = ['.cmd', '.exe', '.bat', '.sh']
-const defaultEditorLabel = __DARWIN__
-  ? 'Open in External Editor'
-  : 'Open in external editor'
 const GitIgnoreFileName = '.gitignore'
 
 interface IChangesListProps {
@@ -189,7 +189,7 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
       : __WIN32__ ? 'Show in Explorer' : 'Show in your File Manager'
     const openInExternalEditor = this.props.externalEditorLabel
       ? `Open in ${this.props.externalEditorLabel}`
-      : defaultEditorLabel
+      : DefaultEditorLabel
     const items: IMenuItem[] = [
       {
         label: __DARWIN__ ? 'Discard Changes…' : 'Discard changes…',
