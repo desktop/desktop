@@ -397,7 +397,7 @@ export class List extends React.Component<IListProps, IListState> {
   private onRowMouseOver = (row: number, event: React.MouseEvent<any>) => {
     if (this.props.selectOnHover && this.canSelectRow(row)) {
       if (
-        this.props.selectedRows.indexOf(row) === -1 &&
+        this.props.selectedRows.includes(row) &&
         this.props.onSelectionChanged
       ) {
         this.props.onSelectionChanged([row], { kind: 'hover', event })
