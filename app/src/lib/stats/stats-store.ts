@@ -29,6 +29,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   partialCommits: 0,
   openShellCount: 0,
   coAuthoredCommits: 0,
+  prBranchCheckouts: 0,
 }
 
 interface ICalculatedStats {
