@@ -221,13 +221,13 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
 
     if (filenames.length === 1) {
       items.push({
-        label: 'Ignore',
+        label: __DARWIN__ ? 'Ignore File' : 'Ignore file',
         action: () => this.props.onIgnore(path),
         enabled: Path.basename(path) !== GitIgnoreFileName,
       })
     } else if (filenames.length > 1) {
       items.push({
-        label: 'Ignore all',
+        label: `Ignore ${paths.length} selected files`,
         action: () => {
           // Filter out any .gitignores that happens to be selected, ignoring
           // those doesn't make sense.
