@@ -3338,6 +3338,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       await this._checkoutBranch(repository, localBranchName)
     }
+
+    this.statsStore.recordPRBranchCheckout()
   }
 
   /**
