@@ -257,11 +257,10 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
         })
       })
 
+    const extension = Path.extname(path)
+
     const isSafeExtension = __WIN32__
-      ? extensions.every(
-          extension =>
-            !RestrictedFileExtensions.includes(extension.toLowerCase())
-        )
+      ? !RestrictedFileExtensions.includes(extension.toLowerCase())
       : true
 
     const revealInFileManagerLabel = __DARWIN__
