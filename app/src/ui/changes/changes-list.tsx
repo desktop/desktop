@@ -32,7 +32,7 @@ interface IChangesListProps {
   readonly repository: Repository
   readonly workingDirectory: WorkingDirectoryStatus
   readonly selectedFileIDs: string[]
-  readonly onFileSelectionChanged: (row: number[]) => void
+  readonly onFileSelectionChanged: (row: ReadonlyArray<number>) => void
   readonly onIncludeChanged: (path: string, include: boolean) => void
   readonly onSelectAll: (selectAll: boolean) => void
   readonly onCreateCommit: (

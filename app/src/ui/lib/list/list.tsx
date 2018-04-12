@@ -94,7 +94,7 @@ interface IListProps {
    * selection class on those row's containers as well as being used
    * for keyboard selection.
    */
-  readonly selectedRows: number[]
+  readonly selectedRows: ReadonlyArray<number>
 
   /**
    * This function will be called when a pointer device is pressed and then
@@ -171,7 +171,7 @@ interface IListProps {
    *                 a keyboard event (arrow up/down)
    */
   readonly onSelectionChanged?: (
-    rows: number[],
+    rows: ReadonlyArray<number>,
     source: SelectionSource
   ) => void
 
@@ -460,7 +460,7 @@ export class List extends React.Component<IListProps, IListState> {
     const newRow = this.nextSelectableRow(direction, lastSelection)
 
     if (newRow != null) {
-      const newSelection = this.props.selectedRows
+      const newSelection = [...this.props.selectedRows]
       newSelection.push(newRow)
       if (this.props.onSelectionChanged) {
         this.props.onSelectionChanged(newSelection, { kind: 'keyboard', event })
@@ -853,7 +853,7 @@ export class List extends React.Component<IListProps, IListState> {
          * if [ctrl] is pressed and selectionMode is 'multi',
          * toggle selection of the targeted row
          */
-        let newSelection = this.props.selectedRows
+        let newSelection = [...this.props.selectedRows]
         if (newSelection.includes(row)) {
           // remove the ability to deselect the last item
           if (newSelection.length === 1) {
