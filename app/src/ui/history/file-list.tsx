@@ -4,14 +4,15 @@ import { pathExists } from '../../lib/file-system'
 import { revealInFileManager } from '../../lib/app-shell'
 
 import { FileChange, mapStatus, iconForStatus } from '../../models/status'
-import { PathLabel } from '../lib/path-label'
-import { Octicon } from '../octicons'
-import { List } from '../lib/list'
-import { showContextualMenu } from '../main-process-proxy'
-import { IMenuItem } from '../../lib/menu-item'
 import { Repository } from '../../models/repository'
 
+import { PathLabel } from '../lib/path-label'
 import { isSafeFileExtension, DefaultEditorLabel } from '../lib/context-menu'
+import { List } from '../lib/list'
+import { IMenuItem } from '../../lib/menu-item'
+
+import { Octicon } from '../octicons'
+import { showContextualMenu } from '../main-process-proxy'
 
 interface IFileListProps {
   readonly files: ReadonlyArray<FileChange>

@@ -1,9 +1,13 @@
 import * as React from 'react'
 import * as Path from 'path'
 
-import { CommitMessage } from './commit-message'
-import { ChangedFile } from './changed-file'
-import { List, ClickSource } from '../lib/list'
+import { ICommitMessage } from '../../lib/app-state'
+import { IGitHubUser } from '../../lib/databases'
+import { Dispatcher } from '../../lib/dispatcher'
+import { ITrailer } from '../../lib/git/interpret-trailers'
+import { IMenuItem } from '../../lib/menu-item'
+import { revealInFileManager } from '../../lib/app-shell'
+
 import {
   WorkingDirectoryStatus,
   WorkingDirectoryFileChange,
@@ -11,18 +15,18 @@ import {
 } from '../../models/status'
 import { DiffSelectionType } from '../../models/diff'
 import { CommitIdentity } from '../../models/commit-identity'
-import { Checkbox, CheckboxValue } from '../lib/checkbox'
-import { ICommitMessage } from '../../lib/app-state'
-import { IGitHubUser } from '../../lib/databases'
-import { Dispatcher } from '../../lib/dispatcher'
-import { IAutocompletionProvider } from '../autocompletion'
 import { Repository } from '../../models/repository'
-import { showContextualMenu } from '../main-process-proxy'
 import { IAuthor } from '../../models/author'
-import { ITrailer } from '../../lib/git/interpret-trailers'
-import { IMenuItem } from '../../lib/menu-item'
+
+import { List, ClickSource } from '../lib/list'
+import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { isSafeFileExtension, DefaultEditorLabel } from '../lib/context-menu'
-import { revealInFileManager } from '../../lib/app-shell'
+
+import { CommitMessage } from './commit-message'
+import { ChangedFile } from './changed-file'
+
+import { IAutocompletionProvider } from '../autocompletion'
+import { showContextualMenu } from '../main-process-proxy'
 
 const RowHeight = 29
 const GitIgnoreFileName = '.gitignore'
