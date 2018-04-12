@@ -105,48 +105,49 @@ export class FileList extends React.Component<IFileListProps, {}> {
   private onContextMenu = async (event: React.MouseEvent<HTMLDivElement>) => {
     event.preventDefault()
 
-    if (this.props.selectedFile !== null) {
-      const filePath = this.props.selectedFile.path
-      const fullPath = Path.join(this.props.repository.path, filePath)
-      const fileExistsOnDisk = await pathExists(fullPath)
-      if (!fileExistsOnDisk) {
-        showContextualMenu([
-          {
-            label: 'File does not exist on disk',
-            enabled: false,
-          },
-        ])
-        return
-      }
-
-      const extension = Path.extname(filePath)
-      const items: IMenuItem[] = []
-
-      const isSafeExtension = isSafeFileExtension(extension)
-      const openInExternalEditor = this.props.externalEditorLabel
-        ? `Open in ${this.props.externalEditorLabel}`
-        : DefaultEditorLabel
-
-      items.push(
-        {
-          label: RevealInFileManagerLabel,
-          action: () => revealInFileManager(this.props.repository, filePath),
-          enabled: fileExistsOnDisk,
-        },
-        {
-          label: openInExternalEditor,
-          action: () => this.props.onOpenInExternalEditor(fullPath),
-          enabled: isSafeExtension && fileExistsOnDisk,
-        },
-        {
-          label: __DARWIN__
-            ? 'Open with Default Program'
-            : 'Open with default program',
-          action: () => this.props.onOpenItem(fullPath),
-          enabled: isSafeExtension && fileExistsOnDisk,
-        }
-      )
-      showContextualMenu(items)
+    if (this.props.selectedFile == null) {
+      return
     }
+
+    const filePath = this.props.selectedFile.path
+    const fullPath = Path.join(this.props.repository.path, filePath)
+    const fileExistsOnDisk = await pathExists(fullPath)
+    if (!fileExistsOnDisk) {
+      showContextualMenu([
+        {
+          label: 'File does not exist on disk',
+          enabled: false,
+        },
+      ])
+      return
+    }
+
+    const extension = Path.extname(filePath)
+
+    const isSafeExtension = isSafeFileExtension(extension)
+    const openInExternalEditor = this.props.externalEditorLabel
+      ? `Open in ${this.props.externalEditorLabel}`
+      : DefaultEditorLabel
+
+    const items = [
+      {
+        label: RevealInFileManagerLabel,
+        action: () => revealInFileManager(this.props.repository, filePath),
+        enabled: fileExistsOnDisk,
+      },
+      {
+        label: openInExternalEditor,
+        action: () => this.props.onOpenInExternalEditor(fullPath),
+        enabled: isSafeExtension && fileExistsOnDisk,
+      },
+      {
+        label: __DARWIN__
+          ? 'Open with Default Program'
+          : 'Open with default program',
+        action: () => this.props.onOpenItem(fullPath),
+        enabled: isSafeExtension && fileExistsOnDisk,
+      },
+    ]
+    showContextualMenu(items)
   }
 }
