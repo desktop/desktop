@@ -1,6 +1,5 @@
 import * as Path from 'path'
-import * as Fs from 'fs'
-import { writeFile, readFile } from 'fs-extra'
+import { readdir, writeFile, readFile } from 'fs-extra'
 
 const GitIgnoreExtension = '.gitignore'
 
@@ -8,31 +7,22 @@ const root = Path.join(__dirname, 'static', 'gitignore')
 
 let cachedGitIgnores: Map<string, string> | null = null
 
-function getCachedGitIgnores(): Promise<Map<string, string>> {
-  if (cachedGitIgnores) {
-    return Promise.resolve(cachedGitIgnores)
+async function getCachedGitIgnores(): Promise<Map<string, string>> {
+  if (cachedGitIgnores != null) {
+    return cachedGitIgnores
   } else {
-    return new Promise((resolve, reject) => {
-      Fs.readdir(root, (err, files) => {
-        if (err) {
-          reject(err)
-        } else {
-          const ignoreFiles = files.filter(file =>
-            file.endsWith(GitIgnoreExtension)
-          )
+    const files = await readdir(root)
+    const ignoreFiles = files.filter(file => file.endsWith(GitIgnoreExtension))
 
-          cachedGitIgnores = new Map()
-          for (const file of ignoreFiles) {
-            cachedGitIgnores.set(
-              Path.basename(file, GitIgnoreExtension),
-              Path.join(root, file)
-            )
-          }
+    cachedGitIgnores = new Map()
+    for (const file of ignoreFiles) {
+      cachedGitIgnores.set(
+        Path.basename(file, GitIgnoreExtension),
+        Path.join(root, file)
+      )
+    }
 
-          resolve(cachedGitIgnores)
-        }
-      })
-    })
+    return cachedGitIgnores
   }
 }
 
