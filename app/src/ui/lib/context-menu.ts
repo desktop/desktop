@@ -3,7 +3,7 @@ export const DefaultEditorLabel = __DARWIN__
   ? 'Open in External Editor'
   : 'Open in external editor'
 
-export const revealInFileManagerLabel = __DARWIN__
+export const RevealInFileManagerLabel = __DARWIN__
   ? 'Reveal in Finder'
   : __WIN32__ ? 'Show in Explorer' : 'Show in your File Manager'
 
