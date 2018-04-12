@@ -208,7 +208,12 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
 
     const items: IMenuItem[] = [
       {
-        label: __DARWIN__ ? 'Discard Changes…' : 'Discard changes…',
+        label:
+          paths.length === 1
+            ? __DARWIN__ ? `Discard Changes…` : `Discard changes…`
+            : __DARWIN__
+              ? `Discard ${paths.length} Selected Changes…`
+              : `Discard ${paths.length} selected changes…`,
         action: () => this.onDiscardChanges(paths),
       },
       {
