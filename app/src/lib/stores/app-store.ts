@@ -1232,11 +1232,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
         })
         .sort((x, y) => caseInsensitiveCompare(x.path, y.path))
 
+      // Collect all the currently available file ids into a set to avoid O(N)
+      // lookups using .find on the mergedFiles array.
+      const mergedFileIds = new Set(mergedFiles.map(x => x.id))
+
       // The previously selected files might not be available in the working
       // directory any more due to having been committed or discarded so we'll
       // do a pass over and filter out any selected files that aren't available.
       let selectedFileIDs = state.selectedFileIDs.filter(id =>
-        mergedFiles.find(file => file.id === id) !== undefined
+        mergedFileIds.has(id)
       )
 
       // Select the first file if we don't have anything selected and we
