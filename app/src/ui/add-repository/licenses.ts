@@ -1,5 +1,5 @@
 import * as Path from 'path'
-import * as Fs from 'fs'
+import { writeFile } from 'fs-extra'
 
 export interface ILicense {
   /** The human-readable name. */
@@ -83,29 +83,21 @@ function replaceTokens(
 }
 
 /** Write the license to the the repository at the given path. */
-export function writeLicense(
+export async function writeLicense(
   repositoryPath: string,
   license: ILicense,
   fields: ILicenseFields
 ): Promise<void> {
   const fullPath = Path.join(repositoryPath, 'LICENSE')
 
-  return new Promise<void>((resolve, reject) => {
-    const tokens: ReadonlyArray<keyof ILicenseFields> = [
-      'fullname',
-      'email',
-      'project',
-      'description',
-      'year',
-    ]
-    const body = replaceTokens(license.body, tokens, fields)
+  const tokens: ReadonlyArray<keyof ILicenseFields> = [
+    'fullname',
+    'email',
+    'project',
+    'description',
+    'year',
+  ]
 
-    Fs.writeFile(fullPath, body, err => {
-      if (err) {
-        reject(err)
-      } else {
-        resolve()
-      }
-    })
-  })
+  const body = replaceTokens(license.body, tokens, fields)
+  await writeFile(fullPath, body)
 }

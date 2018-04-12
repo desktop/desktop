@@ -1,5 +1,6 @@
 import * as Path from 'path'
 import * as Fs from 'fs'
+import { writeFile, readFile } from 'fs-extra'
 
 const GitIgnoreExtension = '.gitignore'
 
@@ -45,25 +46,14 @@ export async function getGitIgnoreNames(): Promise<ReadonlyArray<string>> {
 async function getGitIgnoreText(name: string): Promise<string> {
   const gitIgnores = await getCachedGitIgnores()
 
-  return new Promise<string>((resolve, reject) => {
-    const path = gitIgnores.get(name)
-    if (!path) {
-      reject(
-        new Error(
-          `Unknown gitignore: ${name}. Only names returned from getGitIgnoreNames() can be used.`
-        )
-      )
-      return
-    }
+  const path = gitIgnores.get(name)
+  if (!path) {
+    throw new Error(
+      `Unknown gitignore: ${name}. Only names returned from getGitIgnoreNames() can be used.`
+    )
+  }
 
-    Fs.readFile(path, 'utf8', (err, data) => {
-      if (err) {
-        reject(err)
-      } else {
-        resolve(data)
-      }
-    })
-  })
+  return await readFile(path, 'utf8')
 }
 
 /** Write the named gitignore to the repository. */
@@ -72,16 +62,6 @@ export async function writeGitIgnore(
   name: string
 ): Promise<void> {
   const fullPath = Path.join(repositoryPath, '.gitignore')
-
   const text = await getGitIgnoreText(name)
-
-  return new Promise<void>((resolve, reject) => {
-    Fs.writeFile(fullPath, text, err => {
-      if (err) {
-        reject(err)
-      } else {
-        resolve()
-      }
-    })
-  })
+  await writeFile(fullPath, text)
 }
