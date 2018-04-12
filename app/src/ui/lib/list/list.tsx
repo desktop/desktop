@@ -817,7 +817,7 @@ export class List extends React.Component<IListProps, IListState> {
         this.props.selectionMode &&
         this.props.selectionMode !== 'single'
       ) {
-        /* 
+        /*
          * if [shift] is pressed and selectionMode is different than 'single',
          * select all in-between first selection and current row
          */
@@ -849,7 +849,7 @@ export class List extends React.Component<IListProps, IListState> {
           })
         }
       } else if (multiSelectKey && this.props.selectionMode === 'multi') {
-        /* 
+        /*
          * if [ctrl] is pressed and selectionMode is 'multi',
          * toggle selection of the targeted row
          */
@@ -874,8 +874,8 @@ export class List extends React.Component<IListProps, IListState> {
         (this.props.selectedRows.length === 1 &&
           row !== this.props.selectedRows[0])
       ) {
-        /* 
-         * if no special key is pressed, and that the selection is different, 
+        /*
+         * if no special key is pressed, and that the selection is different,
          * single selection occurs
          */
         if (this.props.onSelectionChanged) {
