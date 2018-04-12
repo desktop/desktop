@@ -3316,7 +3316,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         )
 
         log.error(error.message)
-        this.emitError(error)
+        return this.emitError(error)
       }
 
       await this._fetchRemote(repository, remote, FetchType.UserInitiatedTask)
