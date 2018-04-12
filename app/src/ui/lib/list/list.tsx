@@ -114,15 +114,15 @@ interface IListProps {
   /**
    * This prop defines the behaviour of the selection of items whithin this list.
    *  - 'single' : (default) single list-item selection. [shift] and [ctrl] have
-   * no effect. Use in combinaison with one of:
+   * no effect. Use in combination with one of:
    *             onSelectedRowChanged(row: number)
    *             onSelectionChanged(rows: number[])
    *  - 'range' : allows for selecting continuous ranges. [shift] can be used.
-   * [ctrl] has no effect. Use in combinaison with one of:
+   * [ctrl] has no effect. Use in combination with one of:
    *             onSelectedRangeChanged(start: number, end: number)
    *             onSelectionChanged(rows: number[])
    *  - 'multi' : allows range and/or arbitrary selection. [shift] and [ctrl]
-   * can be used. Use in combinaison with:
+   * can be used. Use in combination with:
    *             onSelectionChanged(rows: number[])
    */
   readonly selectionMode?: 'single' | 'range' | 'multi'
