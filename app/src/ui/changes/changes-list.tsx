@@ -176,7 +176,7 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
   private onItemContextMenu = (
     path: string,
     status: AppFileStatus,
-    event: React.MouseEvent<any>
+    event: React.MouseEvent<HTMLDivElement>
   ) => {
     event.preventDefault()
 
