@@ -20,7 +20,11 @@ import { IAuthor } from '../../models/author'
 
 import { List, ClickSource } from '../lib/list'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
-import { isSafeFileExtension, DefaultEditorLabel } from '../lib/context-menu'
+import {
+  isSafeFileExtension,
+  DefaultEditorLabel,
+  RevealInFileManagerLabel,
+} from '../lib/context-menu'
 
 import { CommitMessage } from './commit-message'
 import { ChangedFile } from './changed-file'
@@ -179,9 +183,6 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
     const extension = Path.extname(path)
     const fileName = Path.basename(path)
     const isSafeExtension = isSafeFileExtension(extension)
-    const revealInFileManagerLabel = __DARWIN__
-      ? 'Reveal in Finder'
-      : __WIN32__ ? 'Show in Explorer' : 'Show in your File Manager'
     const openInExternalEditor = this.props.externalEditorLabel
       ? `Open in ${this.props.externalEditorLabel}`
       : DefaultEditorLabel
@@ -215,7 +216,7 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
     items.push(
       { type: 'separator' },
       {
-        label: revealInFileManagerLabel,
+        label: RevealInFileManagerLabel,
         action: () => revealInFileManager(this.props.repository, path),
         enabled: status !== AppFileStatus.Deleted,
       },

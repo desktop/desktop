@@ -7,7 +7,11 @@ import { FileChange, mapStatus, iconForStatus } from '../../models/status'
 import { Repository } from '../../models/repository'
 
 import { PathLabel } from '../lib/path-label'
-import { isSafeFileExtension, DefaultEditorLabel } from '../lib/context-menu'
+import {
+  isSafeFileExtension,
+  DefaultEditorLabel,
+  RevealInFileManagerLabel,
+} from '../lib/context-menu'
 import { List } from '../lib/list'
 import { IMenuItem } from '../../lib/menu-item'
 
@@ -119,17 +123,13 @@ export class FileList extends React.Component<IFileListProps, {}> {
       const items: IMenuItem[] = []
 
       const isSafeExtension = isSafeFileExtension(extension)
-      const revealInFileManagerLabel = __DARWIN__
-        ? 'Reveal in Finder'
-        : __WIN32__ ? 'Show in Explorer' : 'Show in your File Manager'
-
       const openInExternalEditor = this.props.externalEditorLabel
         ? `Open in ${this.props.externalEditorLabel}`
         : DefaultEditorLabel
 
       items.push(
         {
-          label: revealInFileManagerLabel,
+          label: RevealInFileManagerLabel,
           action: () => revealInFileManager(this.props.repository, filePath),
           enabled: fileExistsOnDisk,
         },
