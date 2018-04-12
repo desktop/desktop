@@ -1312,15 +1312,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const stateBeforeLoad = this.getRepositoryState(repository)
     const changesStateBeforeLoad = stateBeforeLoad.changesState
     const selectedFileIDsBeforeLoad = changesStateBeforeLoad.selectedFileIDs
+
     if (!selectedFileIDsBeforeLoad.length) {
       return
     }
 
-    const selectedFilesBeforeLoad = selectedFileIDsBeforeLoad.map(fileID => {
-      return changesStateBeforeLoad.workingDirectory.findFileWithID(fileID)
-    })
-    const lastSelectedFile =
-      selectedFilesBeforeLoad[selectedFilesBeforeLoad.length - 1]
+    const lastSelectedFileId = selectedFileIDsBeforeLoad[selectedFileIDsBeforeLoad.length - 1]
+    const lastSelectedFile = changesStateBeforeLoad.workingDirectory.findFileWithID(lastSelectedFileId)
+
     if (!lastSelectedFile) {
       return
     }
