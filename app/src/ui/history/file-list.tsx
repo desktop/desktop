@@ -10,10 +10,7 @@ import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'
 import { Repository } from '../../models/repository'
 
-import {
-  RestrictedFileExtensions,
-  DefaultEditorLabel,
-} from '../lib/context-menu'
+import { isSafeFileExtension, DefaultEditorLabel } from '../lib/context-menu'
 
 interface IFileListProps {
   readonly files: ReadonlyArray<FileChange>
@@ -114,10 +111,7 @@ export class FileList extends React.Component<IFileListProps, {}> {
       const extension = Path.extname(filePath)
       const items: IMenuItem[] = []
 
-      const isSafeExtension = __WIN32__
-        ? RestrictedFileExtensions.indexOf(extension.toLowerCase()) === -1
-        : true
-
+      const isSafeExtension = isSafeFileExtension(extension)
       const revealInFileManagerLabel = __DARWIN__
         ? 'Reveal in Finder'
         : __WIN32__ ? 'Show in Explorer' : 'Show in your File Manager'

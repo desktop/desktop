@@ -21,10 +21,7 @@ import { showContextualMenu } from '../main-process-proxy'
 import { IAuthor } from '../../models/author'
 import { ITrailer } from '../../lib/git/interpret-trailers'
 import { IMenuItem } from '../../lib/menu-item'
-import {
-  RestrictedFileExtensions,
-  DefaultEditorLabel,
-} from '../lib/context-menu'
+import { isSafeFileExtension, DefaultEditorLabel } from '../lib/context-menu'
 
 const RowHeight = 29
 const GitIgnoreFileName = '.gitignore'
@@ -181,9 +178,7 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
 
     const extension = Path.extname(path)
     const fileName = Path.basename(path)
-    const isSafeExtension = __WIN32__
-      ? RestrictedFileExtensions.indexOf(extension.toLowerCase()) === -1
-      : true
+    const isSafeExtension = isSafeFileExtension(extension)
     const revealInFileManagerLabel = __DARWIN__
       ? 'Reveal in Finder'
       : __WIN32__ ? 'Show in Explorer' : 'Show in your File Manager'
