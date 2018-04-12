@@ -1232,24 +1232,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
         })
         .sort((x, y) => caseInsensitiveCompare(x.path, y.path))
 
-      const workingDirectory = WorkingDirectoryStatus.fromFiles(mergedFiles)
-
-      let selectedFileIDs = state.selectedFileIDs
-      const matchedFiles = selectedFileIDs.map(fileID =>
-        mergedFiles.find(x => x.id === fileID)
+      // The previously selected files might not be available in the working
+      // directory any more due to having been committed or discarded so we'll
+      // do a pass over and filter out any selected files that aren't available.
+      let selectedFileIDs = state.selectedFileIDs.filter(id =>
+        mergedFiles.find(file => file.id === id) !== undefined
       )
 
-      // Select the first file if we don't have anything selected.
-      if (
-        (!selectedFileIDs.length || !matchedFiles.length) &&
-        mergedFiles.length
-      ) {
-        selectedFileIDs = [mergedFiles[0].id] || []
+      // Select the first file if we don't have anything selected and we
+      // have something to select.
+      if (selectedFileIDs.length === 0 && mergedFiles.length > 0) {
+        selectedFileIDs = [mergedFiles[0].id]
       }
 
       // The file selection could have changed if the previously selected files
       // are no longer selectable (they were reverted or committed) but if they were not
       // changed we can reuse the diff.
+      const workingDirectory = WorkingDirectoryStatus.fromFiles(mergedFiles)
       const sameSelectedFileExists = state.selectedFileIDs.length
         ? state.selectedFileIDs.every(
             fileID => workingDirectory.findFileWithID(fileID) !== null
