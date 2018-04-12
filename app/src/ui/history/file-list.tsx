@@ -102,7 +102,7 @@ export class FileList extends React.Component<IFileListProps, {}> {
     )
   }
 
-  private onContextMenu = async (event: React.MouseEvent<any>) => {
+  private onContextMenu = async (event: React.MouseEvent<HTMLDivElement>) => {
     event.preventDefault()
 
     if (this.props.selectedFile !== null) {
