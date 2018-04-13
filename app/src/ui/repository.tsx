@@ -19,7 +19,6 @@ import { IssuesStore, GitHubUserStore } from '../lib/stores'
 import { assertNever } from '../lib/fatal-error'
 import { Octicon, OcticonSymbol } from './octicons'
 import { Account } from '../models/account'
-import { WorkingDirectoryFileChange } from '../models/status'
 
 /** The widest the sidebar can be with the minimum window size. */
 const MaxSidebarWidth = 495
@@ -171,27 +170,20 @@ export class RepositoryView extends React.Component<IRepositoryProps, {}> {
     )
   }
 
-  private renderContent(): JSX.Element {
+  private renderContent(): JSX.Element | null {
     const selectedSection = this.props.state.selectedSection
 
     if (selectedSection === RepositorySection.Changes) {
       const changesState = this.props.state.changesState
       const selectedFileIDs = changesState.selectedFileIDs
-      const selectedFiles: WorkingDirectoryFileChange[] = []
-      selectedFileIDs.forEach(fileID => {
-        const file = changesState.workingDirectory.findFileWithID(fileID)
-        if (file) {
-          selectedFiles.push(file)
-        }
-      })
 
-      if (selectedFiles.length > 1) {
-        return <MultipleSelection count={selectedFiles.length} />
+      if (selectedFileIDs.length > 1) {
+        return <MultipleSelection count={selectedFileIDs.length} />
       }
 
       if (
         changesState.workingDirectory.files.length === 0 ||
-        selectedFiles.length === 0 ||
+        selectedFileIDs.length === 0 ||
         changesState.diff === null
       ) {
         // TODO: The case where diff is null is likely while the diff is loading,
@@ -199,11 +191,18 @@ export class RepositoryView extends React.Component<IRepositoryProps, {}> {
         // NoChanges.
         return <NoChanges onOpenRepository={this.openRepository} />
       } else {
+        const workingDirectory = changesState.workingDirectory
+        const selectedFile = workingDirectory.findFileWithID(selectedFileIDs[0])
+
+        if (!selectedFile) {
+          return null
+        }
+
         return (
           <Changes
             repository={this.props.repository}
             dispatcher={this.props.dispatcher}
-            file={selectedFiles[0]}
+            file={selectedFile}
             diff={changesState.diff}
             imageDiffType={this.props.imageDiffType}
           />
