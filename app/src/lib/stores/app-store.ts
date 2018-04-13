@@ -1291,13 +1291,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _changeChangesSelection(
     repository: Repository,
-    selectedFiles: WorkingDirectoryFileChange[] | null
+    selectedFiles: WorkingDirectoryFileChange[]
   ): Promise<void> {
     this.updateChangesState(repository, state => ({
-      selectedFileIDs:
-        selectedFiles && selectedFiles.length
-          ? selectedFiles.map(file => file.id)
-          : [],
+      selectedFileIDs: selectedFiles.map(file => file.id),
       diff: null,
     }))
     this.emitUpdate()
