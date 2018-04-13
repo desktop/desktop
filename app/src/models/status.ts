@@ -221,9 +221,9 @@ export class WorkingDirectoryStatus {
   /**
    * The list of changes in the repository's working directory
    */
-  public readonly files: ReadonlyArray<WorkingDirectoryFileChange> = new Array<
-    WorkingDirectoryFileChange
-  >()
+  public readonly files: ReadonlyArray<WorkingDirectoryFileChange> = []
+
+  private readonly fileIxById = new Map<string, number>()
 
   /**
    * Update the include checkbox state of the form
@@ -244,6 +244,8 @@ export class WorkingDirectoryStatus {
     includeAll: boolean | null
   ) {
     this.files = files
+    files.forEach((f, ix) => this.fileIxById.set(f.id, ix))
+
     this.includeAll = includeAll
   }
 
@@ -257,7 +259,14 @@ export class WorkingDirectoryStatus {
 
   /** Find the file with the given ID. */
   public findFileWithID(id: string): WorkingDirectoryFileChange | null {
-    return this.files.find(f => f.id === id) || null
+    const ix = this.fileIxById.get(id)
+    return ix !== undefined ? this.files[ix] || null : null
+  }
+
+  /** Find the index of the file with the given ID. Returns -1 if not found */
+  public findFileIndexByID(id: string): number {
+    const ix = this.fileIxById.get(id)
+    return ix !== undefined ? ix : -1
   }
 }
 
