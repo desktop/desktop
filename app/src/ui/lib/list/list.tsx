@@ -239,6 +239,12 @@ interface IListState {
   readonly rowIdPrefix?: string
 }
 
+/**
+ * Create an array with row indices between firstRow and lastRow (inclusive).
+ *
+ * This is essentially a range function with the explicit behavior of
+ * inclusive upper and lower bound.
+ */
 function createSelectionBetween(
   firstRow: number,
   lastRow: number
