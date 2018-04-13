@@ -21,6 +21,7 @@ import { showContextualMenu } from '../main-process-proxy'
 import { IAuthor } from '../../models/author'
 import { ITrailer } from '../../lib/git/interpret-trailers'
 import { IMenuItem } from '../../lib/menu-item'
+import { arrayEquals } from '../../lib/equality'
 
 const RowHeight = 29
 
@@ -32,7 +33,7 @@ interface IChangesListProps {
   readonly repository: Repository
   readonly workingDirectory: WorkingDirectoryStatus
   readonly selectedFileIDs: string[]
-  readonly onFileSelectionChanged: (row: ReadonlyArray<number>) => void
+  readonly onFileSelectionChanged: (rows: ReadonlyArray<number>) => void
   readonly onIncludeChanged: (path: string, include: boolean) => void
   readonly onSelectAll: (selectAll: boolean) => void
   readonly onCreateCommit: (
@@ -104,7 +105,51 @@ interface IChangesListProps {
   readonly onOpenInExternalEditor: (fullPath: string) => void
 }
 
-export class ChangesList extends React.Component<IChangesListProps, {}> {
+interface IChangesState {
+  readonly selectedRows: ReadonlyArray<number>
+}
+
+function getSelectedRowsFromProps(
+  props: IChangesListProps
+): ReadonlyArray<number> {
+  const selectedFileIDs = props.selectedFileIDs
+  const selectedRows = []
+
+  for (const id of selectedFileIDs) {
+    const ix = props.workingDirectory.findFileIndexByID(id)
+    if (ix !== -1) {
+      selectedRows.push(ix)
+    }
+  }
+
+  return selectedRows
+}
+
+export class ChangesList extends React.Component<
+  IChangesListProps,
+  IChangesState
+> {
+  public constructor(props: IChangesListProps) {
+    super(props)
+    this.state = {
+      selectedRows: getSelectedRowsFromProps(props),
+    }
+  }
+
+  public componentWillReceiveProps(nextProps: IChangesListProps) {
+    // No need to update state unless we haven't done it yet or the
+    // selected file id list has changed.
+    if (
+      !arrayEquals(nextProps.selectedFileIDs, this.props.selectedFileIDs) ||
+      !arrayEquals(
+        nextProps.workingDirectory.files,
+        this.props.workingDirectory.files
+      )
+    ) {
+      this.setState({ selectedRows: getSelectedRowsFromProps(nextProps) })
+    }
+  }
+
   private onIncludeAllChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const include = event.currentTarget.checked
     this.props.onSelectAll(include)
@@ -301,9 +346,6 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
 
   public render() {
     const fileList = this.props.workingDirectory.files
-    const selectedRows = this.props.selectedFileIDs.map(id =>
-      fileList.findIndex(file => file.id === id)
-    )
     const fileCount = fileList.length
     const filesPlural = fileCount === 1 ? 'file' : 'files'
     const filesDescription = `${fileCount} changed ${filesPlural}`
@@ -326,7 +368,7 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
           rowCount={this.props.workingDirectory.files.length}
           rowHeight={RowHeight}
           rowRenderer={this.renderRow}
-          selectedRows={selectedRows}
+          selectedRows={this.state.selectedRows}
           selectionMode="multi"
           onSelectionChanged={this.props.onFileSelectionChanged}
           invalidationProps={this.props.workingDirectory}
