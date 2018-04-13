@@ -29,6 +29,11 @@ const DefaultDailyMeasures: IDailyMeasures = {
   partialCommits: 0,
   openShellCount: 0,
   coAuthoredCommits: 0,
+  branchComparisons: 0,
+  comparisonsToMaster: 0,
+  mergesInitiatedFromComparison: 0,
+  updateFromDefaultBranchMenuCount: 0,
+  mergeIntoCurrentBranchMenuCount: 0,
 }
 
 interface ICalculatedStats {
