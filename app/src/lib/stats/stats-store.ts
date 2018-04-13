@@ -299,6 +299,41 @@ export class StatsStore {
     }))
   }
 
+  /** Record that a branch comparison has been made */
+  public recordBranchComparison(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      branchComparisons: m.branchComparisons + 1,
+    }))
+  }
+
+  /** Record that a branch comparison has been made to the `master` branch */
+  public recordBranchComparisonToMaster(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      comparisonsToMaster: m.comparisonsToMaster + 1,
+    }))
+  }
+
+  /** Record that a merge has been initated from the `compare` sidebar */
+  public recordCompareInitatedMerge(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      mergesInitiatedFromComparison: m.mergesInitiatedFromComparison + 1,
+    }))
+  }
+
+  /** Record that a merge has been initated from the `Branch -> Update From Default Branch` menu item */
+  public recordMenuInitatedUpdate(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      updateFromDefaultBranchMenuCount: m.updateFromDefaultBranchMenuCount + 1,
+    }))
+  }
+
+  /** Record that a merge has been initated from the `Branch -> Merge Into Current Branch` menu item */
+  public recordMenuInitatedMerge(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      mergeIntoCurrentBranchMenuCount: m.mergeIntoCurrentBranchMenuCount + 1,
+    }))
+  }
+
   /** Set whether the user has opted out of stats reporting. */
   public async setOptOut(optOut: boolean): Promise<void> {
     const changed = this.optOut !== optOut
