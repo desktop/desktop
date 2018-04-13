@@ -144,15 +144,14 @@ export class FileChange {
   /** the status of the change to the file */
   public readonly status: AppFileStatus
 
+  /** An ID for the file change. */
+  public readonly id: string
+
   public constructor(path: string, status: AppFileStatus, oldPath?: string) {
     this.path = path
     this.status = status
     this.oldPath = oldPath
-  }
-
-  /** An ID for the file change. */
-  public get id(): string {
-    return `${this.status}+${this.path}`
+    this.id = `${this.status}+${this.path}`
   }
 }
 
