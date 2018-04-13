@@ -62,7 +62,6 @@ export async function getStatus(
     'getStatus'
   )
 
-  const files = new Array<WorkingDirectoryFileChange>()
   // Map of files keyed on their paths.
   // Note, map maintains insertion order
   const files = new Map<string, WorkingDirectoryFileChange>()
