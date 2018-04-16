@@ -1238,13 +1238,6 @@ export class GitStore extends BaseStore {
     )
   }
 
-  public async getAheadBehind(
-    from: string,
-    to: string
-  ): Promise<IAheadBehind | null> {
-    return await getAheadBehind(this.repository, `${from}...${to}`)
-  }
-
   /**
    * Returns the commits associated with `branch` and ahead/behind info;
    */
