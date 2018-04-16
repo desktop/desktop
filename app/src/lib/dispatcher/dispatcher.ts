@@ -916,7 +916,7 @@ export class Dispatcher {
   ): Promise<void> {
     const { filepath, pr, branch } = action
 
-    if (pr && branch) {
+    if (pr != null && branch != null) {
       // we need to refetch for a forked PR and check that out
       await this.fetchRefspec(repository, `pull/${pr}/head:${branch}`)
     }
@@ -937,11 +937,11 @@ export class Dispatcher {
       }
     }
 
-    if (branch) {
+    if (branch != null) {
       await this.checkoutBranch(repository, branch)
     }
 
-    if (filepath) {
+    if (filepath != null) {
       const fullPath = Path.join(repository.path, filepath)
       // because Windows uses different path separators here
       const normalized = Path.normalize(fullPath)
