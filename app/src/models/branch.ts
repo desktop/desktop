@@ -14,6 +14,13 @@ export interface IAheadBehind {
   readonly behind: number
 }
 
+/** The number of commits a revision range is ahead/behind. */
+export interface ICompareResult {
+  readonly commits: ReadonlyArray<Commit>
+  readonly ahead: number
+  readonly behind: number
+}
+
 /** A branch as loaded from Git. */
 export class Branch {
   /** The short name of the branch. E.g., `master`. */

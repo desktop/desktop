@@ -3,7 +3,12 @@ import * as Path from 'path'
 import { Disposable } from 'event-kit'
 import { Repository } from '../../models/repository'
 import { WorkingDirectoryFileChange, AppFileStatus } from '../../models/status'
-import { Branch, BranchType, IAheadBehind } from '../../models/branch'
+import {
+  Branch,
+  BranchType,
+  IAheadBehind,
+  ICompareResult,
+} from '../../models/branch'
 import { Tip, TipState } from '../../models/tip'
 import { Commit } from '../../models/commit'
 import { IRemote } from '../../models/remote'
@@ -46,7 +51,6 @@ import {
   getTrailerSeparatorCharacters,
   parseSingleUnfoldedTrailer,
   isCoAuthoredByTrailer,
-  ICompareResult,
   getAheadBehind,
 } from '../git'
 import { IGitAccount } from '../git/authentication'
