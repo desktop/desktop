@@ -241,10 +241,10 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.push()
       case 'pull':
         return this.pull()
-      case 'commit':
-        return this.selectChanges()
-      case 'compare':
-        return this.selectHistory()
+      case 'create-commit':
+        return this.createCommit()
+      case 'compare-to-branch':
+        return this.compareToBranch()
       case 'choose-repository':
         return this.chooseRepository()
       case 'add-local-repository':
@@ -461,7 +461,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.showPopup({ type: PopupType.About })
   }
 
-  private selectChanges() {
+  private createCommit() {
     const state = this.state.selectedState
     if (state == null || state.type !== SelectionType.Repository) {
       return
@@ -474,7 +474,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
-  private selectHistory() {
+  private compareToBranch() {
     const state = this.state.selectedState
     if (state == null || state.type !== SelectionType.Repository) {
       return
