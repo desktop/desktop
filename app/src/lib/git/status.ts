@@ -53,6 +53,20 @@ function convertToAppStatus(status: FileEntry): AppFileStatus {
  *  Retrieve the status for a given repository,
  *  and fail gracefully if the location is not a Git repository
  */
+export async function getStatusRaw(repository: Repository): Promise<string> {
+  const result = await git(
+    ['status', '--untracked-files=all', '--branch', '--porcelain=2', '-z'],
+    repository.path,
+    'getStatus'
+  )
+
+  return result.stdout
+}
+
+/**
+ *  Retrieve the status for a given repository,
+ *  and fail gracefully if the location is not a Git repository
+ */
 export async function getStatus(
   repository: Repository
 ): Promise<IStatusResult> {

@@ -9,6 +9,7 @@
     "test:integration": "cross-env TEST_ENV=1 ELECTRON_NO_ATTACH_CONSOLE=1 xvfb-maybe mocha -t 30000 --require ts-node/register app/test/integration/*.ts",
     "test:unit": "cross-env GIT_AUTHOR_NAME=\"Joe Bloggs\" GIT_AUTHOR_EMAIL=\"joe.bloggs@somewhere.com\" GIT_COMMITTER_NAME=\"Joe Bloggs\" GIT_COMMITTER_EMAIL=\"joe.bloggs@somewhere.com\" TEST_ENV=1 ELECTRON_NO_ATTACH_CONSOLE=1 xvfb-maybe electron-mocha -t 10000 --renderer --require ts-node/register --require ./app/test/globals.ts app/test/unit/*.{ts,tsx} app/test/unit/**/*.{ts,tsx}",
     "test:script": "mocha -t 10000 --require ts-node/register script/changelog/test/*.ts",
+    "benchmark": "cross-env TEST_ENV=1 ELECTRON_NO_ATTACH_CONSOLE=1 electron-mocha -t 150000 --renderer --require ts-node/register --require ./app/test/globals.ts app/test/benchmarks/status-comparison.ts",
     "test": "yarn test:unit && yarn test:script && yarn test:integration",
     "test:setup": "ts-node script/test-setup.ts",
     "test:review": "ts-node script/test-review.ts",
@@ -109,6 +110,7 @@
     "xvfb-maybe": "^0.2.1"
   },
   "devDependencies": {
+    "@types/benchmark": "^1.0.31",
     "@types/byline": "^4.2.31",
     "@types/chai": "^4.1.2",
     "@types/chai-datetime": "^0.0.31",
@@ -120,10 +122,12 @@
     "@types/file-url": "^2.0.0",
     "@types/fs-extra": "2.1.0",
     "@types/fuzzaldrin-plus": "^0.0.1",
+    "@types/heapdump": "^0.3.0",
     "@types/keytar": "^4.0.0",
+    "@types/lodash": "^4.14.106",
     "@types/mocha": "^2.2.48",
     "@types/mri": "^1.1.0",
-    "@types/node": "^7.0.18",
+    "@types/node": "^8.10.4",
     "@types/react": "^16.0.40",
     "@types/react-dom": "^16.0.4",
     "@types/react-transition-group": "1.1.1",
@@ -138,10 +142,13 @@
     "@types/uuid": "^3.4.0",
     "@types/winston": "^2.2.0",
     "@types/xml2js": "^0.4.0",
+    "benchmark": "^2.1.4",
     "electron": "1.8.3",
     "electron-builder": "20.2.0",
     "electron-mocha": "^6.0.1",
     "electron-packager": "^11.0.0",
-    "electron-winstaller": "2.5.2"
+    "electron-winstaller": "2.5.2",
+    "lodash": "^4.17.5",
+    "microtime": "^2.1.7"
   }
 }

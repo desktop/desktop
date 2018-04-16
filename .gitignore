@@ -9,3 +9,4 @@ app/node_modules/
 .idea/
 .vs/
 .eslintcache
+*.heapsnapshot
