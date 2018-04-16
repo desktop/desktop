@@ -921,6 +921,22 @@ export class Dispatcher {
       await this.fetchRefspec(repository, `pull/${pr}/head:${branch}`)
     }
 
+    if (pr == null && branch != null) {
+      const state = this.appStore.getRepositoryState(repository)
+      const branches = state.branchesState.allBranches
+
+      // I don't want to invoke Git functionality from the dispatcher, which
+      // would help by using getDefaultRemote here to get the definitive ref,
+      // so this falls back to finding any remote branch matching the name
+      // received from the "Clone in Desktop" action
+      const localBranch =
+        branches.find(b => b.upstreamWithoutRemote === branch) || null
+
+      if (localBranch == null) {
+        await this.fetch(repository, FetchType.BackgroundTask)
+      }
+    }
+
     if (branch) {
       await this.checkoutBranch(repository, branch)
     }
