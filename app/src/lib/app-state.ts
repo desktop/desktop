@@ -617,11 +617,8 @@ export interface ICompareBranch {
   /** The branch to compare against the base branch */
   readonly comparisonBranch: Branch
 
-  /** The number of commits the selected branch is ahead of the current branch */
-  readonly ahead: number
-
-  /** The number of commits the selected branch is behind the current branch */
-  readonly behind: number
+  /** The number of commits the selected branch is ahead/behind the current branch */
+  readonly aheadBehind: IAheadBehind
 }
 
 export interface ICompareState {

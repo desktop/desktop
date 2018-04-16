@@ -233,7 +233,7 @@ export class CompareSidebar extends React.Component<
     }
 
     const branch = formState.comparisonBranch
-    const count = formState.behind
+    const count = formState.aheadBehind.behind
     const pluralized = count === 1 ? 'commit' : 'commits'
 
     return (
@@ -281,8 +281,8 @@ export class CompareSidebar extends React.Component<
     return (
       <div className="compare-content">
         <TabBar selectedIndex={selectedTab} onTabClicked={this.onTabClicked}>
-          <span>{`Behind (${formState.behind})`}</span>
-          <span>{`Ahead (${formState.ahead})`}</span>
+          <span>{`Behind (${formState.aheadBehind.behind})`}</span>
+          <span>{`Ahead (${formState.aheadBehind})`}</span>
         </TabBar>
         {this.renderActiveTab()}
       </div>

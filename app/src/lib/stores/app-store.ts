@@ -830,8 +830,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           formState: {
             comparisonBranch,
             kind: action.mode,
-            ahead: compare.ahead,
-            behind: compare.behind,
+            aheadBehind: { ahead: compare.ahead, behind: compare.behind },
           },
           commitSHAs: compare.commits.map(commit => commit.sha),
         }))
