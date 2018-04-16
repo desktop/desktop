@@ -232,9 +232,7 @@ export class CompareSidebar extends React.Component<
       return null
     }
 
-    const branch = formState.comparisonBranch
     const count = formState.aheadBehind.behind
-    const pluralized = count === 1 ? 'commit' : 'commits'
 
     return (
       <div className="merge-cta">
@@ -246,14 +244,28 @@ export class CompareSidebar extends React.Component<
           Merge into <strong>{this.props.currentBranch.name}</strong>
         </Button>
 
-        <div className="merge-message">
-          This will merge{` `}
-          <strong>{`${count} ${pluralized}`}</strong>
-          {` `}from{` `}
-          <strong>{branch.name}</strong>
-        </div>
+        {this.a(formState)}
       </div>
     )
+  }
+
+  private a(formState: ICompareBranch) {
+    const branch = formState.comparisonBranch
+    const count = formState.aheadBehind.behind
+
+    if (count > 0) {
+      const pluralized = count === 1 ? 'commit' : 'commits'
+      return (
+        <div className="merge-message">
+          This will merge
+          <strong>{`${count} ${pluralized}`}</strong>
+          {` `}from{` `}
+          <strong>{branch.name}</strong>)
+        </div>
+      )
+    }
+
+    return <div className="merge-message">There are no commits</div>
   }
 
   private onTabClicked = (index: number) => {
@@ -282,7 +294,7 @@ export class CompareSidebar extends React.Component<
       <div className="compare-content">
         <TabBar selectedIndex={selectedTab} onTabClicked={this.onTabClicked}>
           <span>{`Behind (${formState.aheadBehind.behind})`}</span>
-          <span>{`Ahead (${formState.aheadBehind})`}</span>
+          <span>{`Ahead (${formState.aheadBehind.ahead})`}</span>
         </TabBar>
         {this.renderActiveTab()}
       </div>
