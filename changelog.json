@@ -3,6 +3,15 @@
     "1.1.2-test3": [
       "[New] Comparison Branch demo build"
     ],
+    "1.1.2-beta2": [
+      "[New] Render bitmap images in diffs - #4367. Thanks @MagicMarvMan!",
+      "[New] Add PowerShell Core support for Windows and macOS - #3791. Thanks @saschanaz!",
+      "[Fixed] Error when creating Git LFS progress causes clone to fail - #4307. Thanks @MagicMarvMan!",
+      "[Fixed] 'Open File in External Editor' does not use existing window - #4381",
+      "[Fixed] Always ask for confirmation when discarding all changes - #4423",
+      "[Improved] Pull request status text now matches format on GitHub - #3521",
+      "[Improved] Add escape hatch to disable hardware acceleration when launching - #3921"
+    ],
     "1.1.2-beta1": [
 
     ],
