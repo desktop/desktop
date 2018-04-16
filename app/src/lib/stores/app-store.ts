@@ -3283,16 +3283,25 @@ export class AppStore extends TypedBaseStore<IAppState> {
       head.gitHubRepository.cloneURL === gitHubRepository.cloneURL
 
     if (isRefInThisRepo) {
-      // We need to fetch FIRST because someone may have created a PR since the last fetch
       const defaultRemote = await getDefaultRemote(repository)
-      // TODO: I think we could skip this fetch if we know that we have the branch locally
-      // already. That way we'd match the behavior of checking out a branch.
-      if (defaultRemote) {
-        await this._fetchRemote(
-          repository,
-          defaultRemote,
-          FetchType.UserInitiatedTask
-        )
+      // if we don't have a default remote here, it's probably going
+      // to just crash and burn on checkout, but that's okay
+      if (defaultRemote != null) {
+        // the remote ref will be something like `origin/my-cool-branch`
+        const remoteRef = `${defaultRemote.name}/${head.ref}`
+        const gitStore = this.getGitStore(repository)
+
+        const remoteRefExists =
+          gitStore.allBranches.find(branch => branch.name === remoteRef) != null
+
+        // only try a fetch here if we can't find the ref
+        if (!remoteRefExists) {
+          await this._fetchRemote(
+            repository,
+            defaultRemote,
+            FetchType.UserInitiatedTask
+          )
+        }
       }
       await this._checkoutBranch(repository, head.ref)
     } else if (head.gitHubRepository != null) {
