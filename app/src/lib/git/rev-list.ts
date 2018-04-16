@@ -1,14 +1,8 @@
 import { GitError } from 'dugite'
 import { git } from './core'
 import { Repository } from '../../models/repository'
-import { Branch, BranchType } from '../../models/branch'
+import { Branch, BranchType, IAheadBehind } from '../../models/branch'
 import { Commit } from '../../models/commit'
-
-/** The number of commits a revision range is ahead/behind. */
-export interface IAheadBehind {
-  readonly ahead: number
-  readonly behind: number
-}
 
 /** The number of commits a revision range is ahead/behind. */
 export interface ICompareResult {

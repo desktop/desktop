@@ -129,6 +129,7 @@ import { IRemote, ForkedRemotePrefix } from '../../models/remote'
 import { IAuthor } from '../../models/author'
 import { ComparisonCache } from '../comparison-cache'
 import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
+import { enableCompareSidebar } from '../feature-flag'
 
 /**
  * Enum used by fetch to determine if
@@ -1049,7 +1050,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.startBackgroundFetching(repository, !previouslySelectedRepository)
     this.startPullRequestUpdater(repository)
-    this.startAheadBehindUpdater(repository)
+
+    if (enableCompareSidebar()) {
+      this.startAheadBehindUpdater(repository)
+    }
 
     this.refreshMentionables(repository)
 

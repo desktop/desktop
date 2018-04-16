@@ -3,7 +3,7 @@ import * as Path from 'path'
 import { Disposable } from 'event-kit'
 import { Repository } from '../../models/repository'
 import { WorkingDirectoryFileChange, AppFileStatus } from '../../models/status'
-import { Branch, BranchType } from '../../models/branch'
+import { Branch, BranchType, IAheadBehind } from '../../models/branch'
 import { Tip, TipState } from '../../models/tip'
 import { Commit } from '../../models/commit'
 import { IRemote } from '../../models/remote'
@@ -24,7 +24,6 @@ import {
   getRecentBranches,
   getBranches,
   deleteRef,
-  IAheadBehind,
   getCommits,
   merge,
   setRemoteURL,
