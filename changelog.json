@@ -1,7 +1,13 @@
 {
   "releases": {
-    "1.1.2-test3": [
+     "1.1.2-test3": [
       "[New] Comparison Branch demo build"
+    ],
+    "1.1.2-test2": [
+      "Refactoring the diff internals to potentially land some SVG improvements"
+    ],
+    "1.1.2-test1": [
+      "Refactoring the diff internals to potentially land some SVG improvements"
     ],
     "1.1.2-beta2": [
       "[New] Render bitmap images in diffs - #4367. Thanks @MagicMarvMan!",

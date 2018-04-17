@@ -141,6 +141,13 @@ export enum FetchType {
 }
 
 /**
+ * As fast-forwarding local branches is proportional to the number of local
+ * branches, and is run after every fetch/push/pull, this is skipped when the
+ * number of eligible branches is greater than a given threshold.
+ */
+const FastForwardBranchesThreshold = 20
+
+/**
  * Map the cached state of the compare view to an action
  * to perform which is then used to compute the compare
  * view contents.
@@ -2367,6 +2374,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
         b.upstream
       )
     })
+
+    if (eligibleBranches.length >= FastForwardBranchesThreshold) {
+      log.info(
+        `skipping fast-forward work because there are ${
+          eligibleBranches.length
+        } local branches - this will run again when there are less than ${FastForwardBranchesThreshold} local branches tracking remotes`
+      )
+      return
+    }
 
     for (const branch of eligibleBranches) {
       const aheadBehind = await getBranchAheadBehind(repository, branch)
