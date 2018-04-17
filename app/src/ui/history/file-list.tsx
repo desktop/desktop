@@ -117,7 +117,7 @@ export class FileList extends React.Component<IFileListProps, {}> {
         {
           label: __DARWIN__
           ? 'File Does Not Exist on Disk'
-          : 'File does not exist on disk',          
+          : 'File does not exist on disk',
           enabled: false,
         },
       ])
