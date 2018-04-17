@@ -9,6 +9,7 @@ import { IFoundShell } from './found-shell'
 export enum Shell {
   Cmd = 'Command Prompt',
   PowerShell = 'PowerShell',
+  PowerShellCore = 'PowerShell Core',
   Hyper = 'Hyper',
   GitBash = 'Git Bash',
 }
@@ -22,6 +23,10 @@ export function parse(label: string): Shell {
 
   if (label === Shell.PowerShell) {
     return Shell.PowerShell
+  }
+
+  if (label === Shell.PowerShellCore) {
+    return Shell.PowerShellCore
   }
 
   if (label === Shell.Hyper) {
@@ -50,6 +55,14 @@ export async function getAvailableShells(): Promise<
     shells.push({
       shell: Shell.PowerShell,
       path: powerShellPath,
+    })
+  }
+
+  const powerShellCorePath = await findPowerShellCore()
+  if (powerShellCorePath != null) {
+    shells.push({
+      shell: Shell.PowerShellCore,
+      path: powerShellCorePath,
     })
   }
 
@@ -104,6 +117,32 @@ async function findPowerShell(): Promise<string | null> {
     } else {
       log.debug(
         `[PowerShell] registry entry found but does not exist at '${path}'`
+      )
+    }
+  }
+
+  return null
+}
+
+async function findPowerShellCore(): Promise<string | null> {
+  const powerShellCore = enumerateValues(
+    HKEY.HKEY_LOCAL_MACHINE,
+    'Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\pwsh.exe'
+  )
+
+  if (powerShellCore.length === 0) {
+    return null
+  }
+
+  const first = powerShellCore[0]
+  if (first.type === RegistryValueType.REG_SZ) {
+    const path = first.data
+
+    if (await pathExists(path)) {
+      return path
+    } else {
+      log.debug(
+        `[PowerShellCore] registry entry found but does not exist at '${path}'`
       )
     }
   }
@@ -178,6 +217,12 @@ export function launch(
     case Shell.PowerShell:
       const psCommand = `"Set-Location -LiteralPath '${path}'"`
       return spawn('START', ['powershell', '-NoExit', '-Command', psCommand], {
+        shell: true,
+        cwd: path,
+      })
+    case Shell.PowerShellCore:
+      const psCoreCommand = `"Set-Location -LiteralPath '${path}'"`
+      return spawn('START', ['pwsh', '-NoExit', '-Command', psCoreCommand], {
         shell: true,
         cwd: path,
       })
