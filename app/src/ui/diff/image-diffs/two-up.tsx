@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { DiffImage } from './diff-image'
+import { ImageContainer } from './image-container'
 import { ICommonImageDiffProperties } from './modified-image-diff'
 import { ISize } from './sizing'
 
@@ -36,7 +36,7 @@ export class TwoUp extends React.Component<ITwoUpProps, {}> {
       <div className="image-diff-two-up" ref={this.props.onContainerRef}>
         <div className="image-diff-previous">
           <div className="image-diff-header">Deleted</div>
-          <DiffImage
+          <ImageContainer
             image={this.props.previous}
             onElementLoad={this.props.onPreviousImageLoad}
             style={style}
@@ -50,7 +50,7 @@ export class TwoUp extends React.Component<ITwoUpProps, {}> {
 
         <div className="image-diff-current">
           <div className="image-diff-header">Added</div>
-          <DiffImage
+          <ImageContainer
             image={this.props.current}
             onElementLoad={this.props.onCurrentImageLoad}
             style={style}

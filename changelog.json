@@ -1,5 +1,11 @@
 {
   "releases": {
+    "1.1.2-test2": [
+      "Refactoring the diff internals to potentially land some SVG improvements"
+    ],
+    "1.1.2-test1": [
+      "Refactoring the diff internals to potentially land some SVG improvements"
+    ],
     "1.1.2-beta2": [
       "[New] Render bitmap images in diffs - #4367. Thanks @MagicMarvMan!",
       "[New] Add PowerShell Core support for Windows and macOS - #3791. Thanks @saschanaz!",
