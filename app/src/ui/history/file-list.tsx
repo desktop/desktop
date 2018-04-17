@@ -11,6 +11,7 @@ import {
   isSafeFileExtension,
   DefaultEditorLabel,
   RevealInFileManagerLabel,
+  OpenWithDefaultProgramLabel,
 } from '../lib/context-menu'
 import { List } from '../lib/list'
 
@@ -142,9 +143,7 @@ export class FileList extends React.Component<IFileListProps, {}> {
         enabled: isSafeExtension && fileExistsOnDisk,
       },
       {
-        label: __DARWIN__
-          ? 'Open with Default Program'
-          : 'Open with default program',
+        label: OpenWithDefaultProgramLabel,
         action: () => this.props.onOpenItem(fullPath),
         enabled: isSafeExtension && fileExistsOnDisk,
       },

@@ -24,6 +24,7 @@ import {
   isSafeFileExtension,
   DefaultEditorLabel,
   RevealInFileManagerLabel,
+  OpenWithDefaultProgramLabel,
 } from '../lib/context-menu'
 
 import { CommitMessage } from './commit-message'
@@ -229,9 +230,7 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
         enabled: isSafeExtension && status !== AppFileStatus.Deleted,
       },
       {
-        label: __DARWIN__
-          ? 'Open with Default Program'
-          : 'Open with default program',
+        label: OpenWithDefaultProgramLabel,
         action: () => this.props.onOpenItem(path),
         enabled: isSafeExtension && status !== AppFileStatus.Deleted,
       }
