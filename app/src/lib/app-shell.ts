@@ -39,6 +39,6 @@ export const shell: IAppShell = {
  * @param path The path of the file relative to the root of the repository
  */
 export function revealInFileManager(repository: Repository, path: string) {
-  const normalized = Path.join(repository.path, path)
-  return shell.showItemInFolder(normalized)
+  const fullyQualifiedFilePath = Path.join(repository.path, path)
+  return shell.showItemInFolder(fullyQualifiedFilePath)
 }
