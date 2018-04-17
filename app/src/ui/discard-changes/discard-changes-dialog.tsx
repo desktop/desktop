@@ -65,15 +65,17 @@ export class DiscardChanges extends React.Component<
           <p>
             Changes can be restored by retrieving them from the {trashName}.
           </p>
-          <Checkbox
-            label="Do not show this message again"
-            value={
-              this.state.confirmDiscardChanges
-                ? CheckboxValue.Off
-                : CheckboxValue.On
-            }
-            onChange={this.onCheckboxChanged}
-          />
+          {this.props.files.length === 1 ? (
+            <Checkbox
+              label="Do not show this message again"
+              value={
+                this.state.confirmDiscardChanges
+                  ? CheckboxValue.Off
+                  : CheckboxValue.On
+              }
+              onChange={this.onCheckboxChanged}
+            />
+          ) : null}
         </DialogContent>
 
         <DialogFooter>
