@@ -144,7 +144,7 @@ export class FileList extends React.Component<IFileListProps, {}> {
       },
       {
         label: OpenWithDefaultProgramLabel,
-        action: () => this.props.onOpenItem(fullPath),
+        action: () => this.props.onOpenItem(filePath),
         enabled: isSafeExtension && fileExistsOnDisk,
       },
     ]
