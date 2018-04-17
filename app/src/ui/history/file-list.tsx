@@ -116,8 +116,8 @@ export class FileList extends React.Component<IFileListProps, {}> {
       showContextualMenu([
         {
           label: __DARWIN__
-          ? 'File Does Not Exist on Disk'
-          : 'File does not exist on disk',
+            ? 'File Does Not Exist on Disk'
+            : 'File does not exist on disk',
           enabled: false,
         },
       ])
