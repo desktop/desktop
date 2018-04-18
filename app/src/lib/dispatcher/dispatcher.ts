@@ -916,16 +916,32 @@ export class Dispatcher {
   ): Promise<void> {
     const { filepath, pr, branch } = action
 
-    if (pr && branch) {
+    if (pr != null && branch != null) {
       // we need to refetch for a forked PR and check that out
       await this.fetchRefspec(repository, `pull/${pr}/head:${branch}`)
     }
 
-    if (branch) {
+    if (pr == null && branch != null) {
+      const state = this.appStore.getRepositoryState(repository)
+      const branches = state.branchesState.allBranches
+
+      // I don't want to invoke Git functionality from the dispatcher, which
+      // would help by using getDefaultRemote here to get the definitive ref,
+      // so this falls back to finding any remote branch matching the name
+      // received from the "Clone in Desktop" action
+      const localBranch =
+        branches.find(b => b.upstreamWithoutRemote === branch) || null
+
+      if (localBranch == null) {
+        await this.fetch(repository, FetchType.BackgroundTask)
+      }
+    }
+
+    if (branch != null) {
       await this.checkoutBranch(repository, branch)
     }
 
-    if (filepath) {
+    if (filepath != null) {
       const fullPath = Path.join(repository.path, filepath)
       // because Windows uses different path separators here
       const normalized = Path.normalize(fullPath)

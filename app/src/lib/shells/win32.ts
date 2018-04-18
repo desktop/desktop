@@ -167,11 +167,17 @@ async function findHyper(): Promise<string | null> {
     // This regex is designed to get the path to the version-specific Hyper.
     // commandPieces = ['"{installationPath}\app-x.x.x\Hyper.exe"', '"', '{installationPath}\app-x.x.x\Hyper.exe', ...]
     const commandPieces = first.data.match(/(["'])(.*?)\1/)
+    const localAppData = process.env.LocalAppData
+
     const path = commandPieces
       ? commandPieces[2]
-      : process.env.LocalAppData.concat('\\hyper\\Hyper.exe') // fall back to the launcher in install root
+      : localAppData != null ? localAppData.concat('\\hyper\\Hyper.exe') : null // fall back to the launcher in install root
 
-    if (await pathExists(path)) {
+    if (path == null) {
+      log.debug(
+        `[Hyper] LOCALAPPDATA environment variable is unset, aborting fallback behavior`
+      )
+    } else if (await pathExists(path)) {
       return path
     } else {
       log.debug(`[Hyper] registry entry found but does not exist at '${path}'`)
