@@ -170,15 +170,11 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
   private onDiscardAllChanges = (
     files: ReadonlyArray<WorkingDirectoryFileChange>
   ) => {
-    if (!this.props.askForConfirmationOnDiscardChanges) {
-      this.props.dispatcher.discardChanges(this.props.repository, files)
-    } else {
-      this.props.dispatcher.showPopup({
-        type: PopupType.ConfirmDiscardChanges,
-        repository: this.props.repository,
-        files,
-      })
-    }
+    this.props.dispatcher.showPopup({
+      type: PopupType.ConfirmDiscardChanges,
+      repository: this.props.repository,
+      files,
+    })
   }
 
   private onIgnore = (pattern: string) => {
