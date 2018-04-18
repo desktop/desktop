@@ -9,7 +9,8 @@
       "[Fixed] Image diffs not working for files with upper-case file extension - #4466",
       "[Fixed] Syntax highlighting not working for files with upper-case file extension - #4462. Thanks @say25!",
       "[Improved] Getting list of changed files is now more efficient when dealing with thousands of files - #4443",
-      "[Improved] Checking out a Pull Request may skip unnecessary fetch - #4068. Thanks @agisilaos!"
+      "[Improved] Checking out a Pull Request may skip unnecessary fetch - #4068. Thanks @agisilaos!",
+      "[Improved] Commit summary now has a hint to indicate why committing is disabled - #4429."
     ],
     "1.1.2-test2": [
       "Refactoring the diff internals to potentially land some SVG improvements"
