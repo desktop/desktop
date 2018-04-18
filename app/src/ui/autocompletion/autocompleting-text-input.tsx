@@ -28,6 +28,9 @@ interface IAutocompletingTextInputProps<ElementType> {
   /** Disabled state for input field. */
   readonly disabled?: boolean
 
+  /** Indicates if input field should be required */
+  readonly isRequired?: boolean
+
   /**
    * Called when the user changes the value in the input field.
    */
@@ -270,6 +273,7 @@ export abstract class AutocompletingTextInput<
       onBlur: this.onBlur,
       onContextMenu: this.onContextMenu,
       disabled: this.props.disabled,
+      'aria-required': this.props.isRequired ? true : false,
     }
 
     return React.createElement<React.HTMLAttributes<ElementType>, ElementType>(

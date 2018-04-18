@@ -491,8 +491,9 @@ export class CommitMessage extends React.Component<
           {this.renderAvatar()}
 
           <AutocompletingInput
+            isRequired={true}
             className="summary-field"
-            placeholder="Summary"
+            placeholder="Summary (required)"
             value={this.state.summary}
             onValueChanged={this.onSummaryChanged}
             autocompletionProviders={this.props.autocompletionProviders}
