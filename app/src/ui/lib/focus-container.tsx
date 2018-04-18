@@ -4,6 +4,8 @@ import * as classNames from 'classnames'
 interface IFocusContainerProps {
   readonly className?: string
   readonly onClick?: (event: React.MouseEvent<HTMLDivElement>) => void
+
+  /** Callback used when focus is within container */
   readonly onFocusWithinChanged?: (focusWithin: boolean) => void
 }
 
