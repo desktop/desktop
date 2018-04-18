@@ -149,7 +149,8 @@ function guessMimeType(contents: string) {
 
 function detectMode(request: IHighlightRequest): CodeMirror.Mode<{}> | null {
   const mimeType =
-    extensionMIMEMap.get(request.extension.toLowerCase()) || guessMimeType(request.contents)
+    extensionMIMEMap.get(request.extension.toLowerCase()) ||
+    guessMimeType(request.contents)
 
   if (!mimeType) {
     return null
