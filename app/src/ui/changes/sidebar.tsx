@@ -3,11 +3,7 @@ import * as React from 'react'
 
 import { ChangesList } from './changes-list'
 import { DiffSelectionType } from '../../models/diff'
-import {
-  IChangesState,
-  PopupType,
-  DiscardChangesSource,
-} from '../../lib/app-state'
+import { IChangesState, PopupType } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../../lib/dispatcher'
 import { IGitHubUser } from '../../lib/databases'
@@ -167,7 +163,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
         type: PopupType.ConfirmDiscardChanges,
         repository: this.props.repository,
         files: [file],
-        source: DiscardChangesSource.manualSelection,
+        forceConfirmation: false,
       })
     }
   }
@@ -178,7 +174,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     this.props.dispatcher.showPopup({
       type: PopupType.ConfirmDiscardChanges,
       repository: this.props.repository,
-      source: DiscardChangesSource.all,
+      forceConfirmation: true,
       files,
     })
   }

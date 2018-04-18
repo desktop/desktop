@@ -210,11 +210,6 @@ export enum PopupType {
   DeletePullRequest,
 }
 
-export enum DiscardChangesSource {
-  manualSelection,
-  all,
-}
-
 export type Popup =
   | { type: PopupType.RenameBranch; repository: Repository; branch: Branch }
   | {
@@ -227,7 +222,7 @@ export type Popup =
       type: PopupType.ConfirmDiscardChanges
       repository: Repository
       files: ReadonlyArray<WorkingDirectoryFileChange>
-      source: DiscardChangesSource
+      forceConfirmation: boolean
     }
   | { type: PopupType.Preferences; initialSelectedTab?: PreferencesTab }
   | { type: PopupType.MergeBranch; repository: Repository }

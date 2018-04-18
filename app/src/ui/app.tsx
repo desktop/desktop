@@ -963,6 +963,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             confirmDiscardChanges={
               this.state.askForConfirmationOnDiscardChanges
             }
+            forceConfirmation={popup.forceConfirmation}
             onDismissed={this.onPopupDismissed}
             onConfirmDiscardChangesChanged={this.onConfirmDiscardChangesChanged}
           />
