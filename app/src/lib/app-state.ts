@@ -2,7 +2,6 @@ import { Account } from '../models/account'
 import { CommitIdentity } from '../models/commit-identity'
 import { IDiff } from '../models/diff'
 import { Repository } from '../models/repository'
-import { IAheadBehind } from './git'
 import { Branch } from '../models/branch'
 import { Tip } from '../models/tip'
 import { Commit } from '../models/commit'
@@ -26,6 +25,7 @@ import { CloneRepositoryTab } from '../models/clone-repository-tab'
 import { BranchesTab } from '../models/branches-tab'
 import { PullRequest } from '../models/pull-request'
 import { IAuthor } from '../models/author'
+import { IAheadBehind } from './git'
 
 export { ICommitMessage }
 export { IAheadBehind }
@@ -210,6 +210,11 @@ export enum PopupType {
   DeletePullRequest,
 }
 
+export enum DiscardChangesSource {
+  manualSelection,
+  all,
+}
+
 export type Popup =
   | { type: PopupType.RenameBranch; repository: Repository; branch: Branch }
   | {
@@ -222,6 +227,7 @@ export type Popup =
       type: PopupType.ConfirmDiscardChanges
       repository: Repository
       files: ReadonlyArray<WorkingDirectoryFileChange>
+      source: DiscardChangesSource
     }
   | { type: PopupType.Preferences; initialSelectedTab?: PreferencesTab }
   | { type: PopupType.MergeBranch; repository: Repository }
