@@ -112,6 +112,9 @@ import 'codemirror-mode-elixir'
 extensionMIMEMap.set('.ex', 'text/x-elixir')
 extensionMIMEMap.set('.exs', 'text/x-elixir')
 
+import 'codemirror/mode/haxe/haxe'
+extensionMIMEMap.set('.hx', 'text/x-haxe')
+
 function guessMimeType(contents: string) {
   if (contents.startsWith('<?xml')) {
     return 'text/xml'
