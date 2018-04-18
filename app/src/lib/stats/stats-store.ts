@@ -30,7 +30,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   openShellCount: 0,
   coAuthoredCommits: 0,
   branchComparisons: 0,
-  comparisonsToMaster: 0,
+  defaultBranchComparisons: 0,
   mergesInitiatedFromComparison: 0,
   updateFromDefaultBranchMenuCount: 0,
   mergeIntoCurrentBranchMenuCount: 0,
@@ -309,7 +309,7 @@ export class StatsStore {
   /** Record that a branch comparison has been made to the `master` branch */
   public recordBranchComparisonToMaster(): Promise<void> {
     return this.updateDailyMeasures(m => ({
-      comparisonsToMaster: m.comparisonsToMaster + 1,
+      defaultBranchComparisons: m.defaultBranchComparisons + 1,
     }))
   }
 

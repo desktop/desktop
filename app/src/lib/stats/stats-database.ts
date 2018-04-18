@@ -45,7 +45,7 @@ export interface IDailyMeasures {
   readonly branchComparisons: number
 
   /** The number of times a branch is compared to `master` */
-  readonly comparisonsToMaster: number
+  readonly defaultBranchComparisons: number
 
   /** The number of times a merge is initiated in the `compare` sidebar */
   readonly mergesInitiatedFromComparison: number
