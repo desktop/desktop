@@ -9,12 +9,14 @@ import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { PathText } from '../lib/path-text'
 import { Monospaced } from '../lib/monospaced'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
+import { DiscardChangesSource } from '../../lib/app-state'
 
 interface IDiscardChangesProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
   readonly files: ReadonlyArray<WorkingDirectoryFileChange>
   readonly confirmDiscardChanges: boolean
+  readonly source?: DiscardChangesSource
   readonly onDismissed: () => void
   readonly onConfirmDiscardChangesChanged: (optOut: boolean) => void
 }
@@ -65,7 +67,7 @@ export class DiscardChanges extends React.Component<
           <p>
             Changes can be restored by retrieving them from the {trashName}.
           </p>
-          {this.props.files.length === 1 ? (
+          {this.props.source === DiscardChangesSource.manualSelection ? (
             <Checkbox
               label="Do not show this message again"
               value={
