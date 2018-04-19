@@ -14,11 +14,11 @@ interface ISelectionAction {
   readonly row: number
 
   /**
-   * Whether or not to look beyond the last or first row
-   * (depending on direction) such that given the last row and
-   * a downward direction we'll consider the first row as a
+   * A flag to indicate or not to look beyond the last or first
+   * row (depending on direction) such that given the last row and
+   * a downward direction will consider the first row as a
    * candidate or given the first row and an upward direction
-   * we'll consider the last row as a candidate.
+   * will consider the last row as a candidate.
    *
    * Defaults to true if not set.
    */
@@ -57,9 +57,12 @@ export interface IKeyboardSource {
 export type SelectionSource = IMouseClickSource | IHoverSource | IKeyboardSource
 
 /**
- * Determine the next selectable row, provided the starting row and a direction to move.
+ * Determine the next selectable row, given the direction and a starting
+ * row index. Whether a row is selectable or not is determined using
+ * the `canSelectRow` function, which defaults to true if not provided.
  *
- * Returns null if no row can be selected.
+ * Returns null if no row can be selected or if the only selectable row is
+ * identical to the given row parameter.
  */
 export function findNextSelectableRow(
   rowCount: number,
