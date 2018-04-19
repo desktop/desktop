@@ -138,7 +138,7 @@ is as follows:
 * Run `yarn` to get all required dependencies on your machine.
 * Run `yarn build:dev` to create a development build of the app.
 * Run `yarn start` to launch the application. Changes will be compiled in the
-  background. The app can then be reloaded to see the changes (Ctrl/Command+Alt+R).
+  background. The app can then be reloaded to see the changes (<kbd>Ctrl/Command+Alt+R</kbd>).
 
 **Optional Tip**: On macOS and Linux, you can use `screen` to avoid filling your terminal with logging output:
 
