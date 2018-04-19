@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { List, SelectionSource } from '../lib/list'
+import { List, SelectionSource, findNextSelectableRow } from '../lib/list'
 import { IAutocompletionProvider } from './index'
 import { fatalError } from '../../lib/fatal-error'
 import * as classNames from 'classnames'
@@ -405,11 +405,12 @@ export abstract class AutocompletingTextInput<
     const direction = this.getMovementDirection(event)
     if (direction) {
       event.preventDefault()
+      const rowCount = currentAutoCompletionState.items.length
 
-      const nextRow = this.autocompletionList!.nextSelectableRow(
+      const nextRow = findNextSelectableRow(rowCount, row => true, {
         direction,
-        selectedRow
-      )
+        row: selectedRow,
+      })
 
       if (nextRow !== null) {
         const newSelectedItem = currentAutoCompletionState.items[nextRow]
