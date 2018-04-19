@@ -1,6 +1,6 @@
 export type SelectionDirection = 'up' | 'down'
 
-interface ISelectionEvent {
+interface ISelectionAction {
   /**
    * The vertical direction use when searching for a selectable row.
    */
@@ -30,15 +30,15 @@ interface ISelectionEvent {
  */
 export function findNextSelectableRow(
   rowCount: number,
-  event: ISelectionEvent,
+  action: ISelectionAction,
   canSelectRow: (row: number) => boolean = row => true
 ): number | null {
   if (rowCount === 0) {
     return null
   }
 
-  const { direction, row } = event
-  const wrap = event.wrap === undefined ? true : event.wrap
+  const { direction, row } = action
+  const wrap = action.wrap === undefined ? true : action.wrap
 
   // If we've been given a row that's out of bounds
   // we'll coerce it to a valid index starting either
