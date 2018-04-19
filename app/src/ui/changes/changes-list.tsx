@@ -248,7 +248,11 @@ export class ChangesList extends React.Component<
       if (newFile) {
         selectedFiles.push(newFile)
         paths.push(newFile.path)
-        extensions.add(Path.extname(newFile.path))
+
+        const extension = Path.extname(newFile.path)
+        if (extension.length) {
+          extensions.add(extension)
+        }
       }
     })
 
