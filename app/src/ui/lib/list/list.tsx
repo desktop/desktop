@@ -434,7 +434,7 @@ export class List extends React.Component<IListProps, IListState> {
   }
 
   private addSelection(
-    direction: 'up' | 'down',
+    direction: SelectionDirection,
     event: React.KeyboardEvent<any>
   ) {
     if (this.props.selectedRows.length === 0) {
