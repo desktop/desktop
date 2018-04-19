@@ -15,7 +15,7 @@ interface ISelectionEvent {
 }
 
 /**
- * Determine the next selectable row, given the direction and row.
+ * Determine the next selectable row, provided the starting row and a direction to move.
  *
  * Returns null if no row can be selected.
  */
