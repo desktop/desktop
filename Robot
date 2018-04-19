@@ -1,0 +1,21 @@
+=====================
+http://garoostop.ir/
+=====================
+
+**Install Bot**
+
+git clone https://github.com/janlou/AdvanSource && cd AdvanSource
+
+chmod 700 start.sh
+
+./start.sh install
+
+./start.sh
+
+*********************
+
+**Launch Bot**
+
+cd AdvanSource
+
+./start.sh
