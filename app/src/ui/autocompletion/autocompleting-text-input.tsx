@@ -409,7 +409,6 @@ export abstract class AutocompletingTextInput<
       const nextRow = findNextSelectableRow(rowCount, {
         direction,
         row: selectedRow,
-        wrap: false,
       })
 
       if (nextRow !== null) {
