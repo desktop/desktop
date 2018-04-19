@@ -21,8 +21,8 @@ interface ISelectionEvent {
  */
 export function findNextSelectableRow(
   rowCount: number,
-  canSelectRow: (row: number) => boolean,
-  event: ISelectionEvent
+  event: ISelectionEvent,
+  canSelectRow: (row: number) => boolean = row => true
 ): number | null {
   if (rowCount === 0) {
     return null

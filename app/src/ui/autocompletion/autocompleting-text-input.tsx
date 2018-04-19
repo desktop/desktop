@@ -406,7 +406,7 @@ export abstract class AutocompletingTextInput<
       event.preventDefault()
       const rowCount = currentAutoCompletionState.items.length
 
-      const nextRow = findNextSelectableRow(rowCount, row => true, {
+      const nextRow = findNextSelectableRow(rowCount, {
         direction,
         row: selectedRow,
         wrap: false,
