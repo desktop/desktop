@@ -40,6 +40,9 @@ export interface IDailyMeasures {
 
   /** The number of commits created with one or more co-authors. */
   readonly coAuthoredCommits: number
+
+  /** The number of times the user checks out a branch using the PR menu */
+  readonly prBranchCheckouts: number
 }
 
 export class StatsDatabase extends Dexie {

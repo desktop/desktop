@@ -29,6 +29,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   partialCommits: 0,
   openShellCount: 0,
   coAuthoredCommits: 0,
+  prBranchCheckouts: 0,
 }
 
 interface ICalculatedStats {
@@ -291,6 +292,13 @@ export class StatsStore {
   public recordOpenShell(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       openShellCount: m.openShellCount + 1,
+    }))
+  }
+
+  /** Record that the user checked out a PR branch */
+  public recordPRBranchCheckout(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      prBranchCheckouts: m.prBranchCheckouts + 1,
     }))
   }
 

@@ -118,3 +118,9 @@ are unable to find another cygwin DLL.
 Enabling Mandatory ASLR affects the MSYS2 core library, which is relied upon by Git for Windows to emulate process forking.
 
 **Not supported:** this is an upstream limitation of MSYS2, and it is recommend that you either disable Mandatory ASLR or whitelist all executables under `<Git>\usr\bin` which depend on MSYS2.
+
+### I get a black screen when launching Desktop
+
+Electron enables hardware accelerated graphics by default, but some graphics cards have issues with hardware acceleration which means the application will launch successfully but it will be a black screen.
+
+**Workaround:** if you set the `GITHUB_DESKTOP_DISABLE_HARDWARE_ACCELERATION` environment variable to any value and launch Desktop again it will disable hardware acceleration on launch, so the application is usable.
