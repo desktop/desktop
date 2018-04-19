@@ -1,5 +1,10 @@
 import * as React from 'react'
-import { List, SelectionSource, findNextSelectableRow } from '../lib/list'
+import {
+  List,
+  SelectionSource,
+  findNextSelectableRow,
+  SelectionDirection,
+} from '../lib/list'
 import { IAutocompletionProvider } from './index'
 import { fatalError } from '../../lib/fatal-error'
 import * as classNames from 'classnames'
@@ -361,7 +366,7 @@ export abstract class AutocompletingTextInput<
 
   private getMovementDirection(
     event: React.KeyboardEvent<any>
-  ): 'up' | 'down' | null {
+  ): SelectionDirection | null {
     switch (event.key) {
       case 'ArrowUp':
         return 'up'

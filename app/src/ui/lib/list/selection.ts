@@ -1,5 +1,14 @@
+export type SelectionDirection = 'up' | 'down'
+
 interface SelectionEvent {
-  readonly direction: 'up' | 'down'
+  /**
+   * The direction to move from the current row.
+   */
+  readonly direction: SelectionDirection
+
+  /**
+   * The selected row in the list to use as a starting point.
+   */
   readonly row: number
 
   readonly wrap: boolean

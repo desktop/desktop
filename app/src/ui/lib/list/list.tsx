@@ -4,7 +4,7 @@ import { Grid, AutoSizer } from 'react-virtualized'
 import { shallowEquals, arrayEquals } from '../../../lib/equality'
 import { FocusContainer } from '../../lib/focus-container'
 import { ListRow } from './list-row'
-import { findNextSelectableRow } from './selection'
+import { findNextSelectableRow, SelectionDirection } from './selection'
 import { createUniqueId, releaseUniqueId } from '../../lib/id-pool'
 import { range } from '../../../lib/range'
 
@@ -549,7 +549,7 @@ export class List extends React.Component<IListProps, IListState> {
   }
 
   private moveSelection(
-    direction: 'up' | 'down',
+    direction: SelectionDirection,
     event: React.KeyboardEvent<any>
   ) {
     const lastSelection =
