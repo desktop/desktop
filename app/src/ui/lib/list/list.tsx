@@ -10,6 +10,7 @@ import { range } from '../../../lib/range'
 interface SelectionEvent {
   readonly direction: 'up' | 'down'
   readonly row: number
+  readonly wrap: boolean
 }
 
 /**
@@ -22,23 +23,53 @@ export function findNextSelectableRow(
   canSelectRow: (row: number) => boolean,
   event: SelectionEvent
 ): number | null {
-  const { row, direction } = event
+  if (rowCount === 0) {
+    return null
+  }
 
-  // If the row we're starting from is outside our list, make sure we start
-  // walking from _just_ outside the list. We'll also need to walk one more
-  // row than we normally would since the first step is just getting us into
-  // the list.
-  const baseRow = Math.min(Math.max(row, -1), rowCount)
-  const startOutsideList = row < 0 || row >= rowCount
-  const rowDelta = startOutsideList ? rowCount + 1 : rowCount
+  const { direction, row, wrap } = event
 
-  for (let i = 1; i < rowDelta; i++) {
-    const delta = direction === 'up' ? i * -1 : i
-    // Modulo accounting for negative values, see https://stackoverflow.com/a/4467559
-    const nextRow = (baseRow + delta + rowCount) % rowCount
+  // If we've been given a row that's out of bounds
+  // we'll coerce it to a valid index starting either
+  // at the bottom or the top depending on the direction.
+  //
+  // Given a row that would be below the last item and
+  // an upward direction we'll pick the last selectable row
+  // or the first selectable given an upward direction.
+  //
+  // Given a row that would be before the first item (-1)
+  // and a downward direction we'll pick the first selectable
+  // row or the first selectable given an upward direction.
+  let currentRow =
+    row < 0 || row >= rowCount ? (direction === 'up' ? rowCount - 1 : 0) : row
 
-    if (canSelectRow(nextRow)) {
-      return nextRow
+  const delta = direction === 'up' ? -1 : 1
+
+  // Iterate through all rows (starting offset from the
+  // given row and ending on and including the given row)
+  for (let i = 0; i < rowCount; i++) {
+    currentRow += delta
+
+    if (currentRow >= rowCount) {
+      // We've hit rock bottom, wrap around to the top
+      // if we're allowed to or give up.
+      if (wrap) {
+        currentRow = 0
+      } else {
+        break
+      }
+    } else if (currentRow < 0) {
+      // We've reached the top, wrap around to the bottom
+      // if we're allowed to or give up
+      if (wrap) {
+        currentRow = rowCount - 1
+      } else {
+        break
+      }
+    }
+
+    if (canSelectRow(currentRow) && row !== currentRow) {
+      return currentRow
     }
   }
 
@@ -594,7 +625,11 @@ export class List extends React.Component<IListProps, IListState> {
         ? this.props.selectedRows[this.props.selectedRows.length - 1]
         : -1
 
-    const newRow = this.nextSelectableRow(direction, lastSelection)
+    const newRow = findNextSelectableRow(
+      this.props.rowCount,
+      this.canSelectRow,
+      { direction, row: lastSelection, wrap: false }
+    )
 
     if (newRow != null) {
       if (this.props.onSelectionChanged) {
