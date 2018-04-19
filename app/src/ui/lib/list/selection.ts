@@ -1,6 +1,6 @@
 export type SelectionDirection = 'up' | 'down'
 
-interface SelectionEvent {
+interface ISelectionEvent {
   /**
    * The direction to move from the current row.
    */
@@ -22,7 +22,7 @@ interface SelectionEvent {
 export function findNextSelectableRow(
   rowCount: number,
   canSelectRow: (row: number) => boolean,
-  event: SelectionEvent
+  event: ISelectionEvent
 ): number | null {
   if (rowCount === 0) {
     return null
