@@ -356,10 +356,12 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
       return
     }
 
+    const rowCount = this.state.rows.length
+
     if (key === 'ArrowDown') {
-      if (this.state.rows.length > 0) {
+      if (rowCount > 0) {
         const selectedRow = findNextSelectableRow(
-          this.state.rows.length,
+          rowCount,
           { direction: 'down', row: -1 },
           this.canSelectRow
         )
@@ -372,9 +374,9 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
 
       event.preventDefault()
     } else if (key === 'ArrowUp') {
-      if (this.state.rows.length > 0) {
+      if (rowCount > 0) {
         const selectedRow = findNextSelectableRow(
-          this.state.rows.length,
+          rowCount,
           { direction: 'up', row: 0 },
           this.canSelectRow
         )
@@ -388,7 +390,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
       event.preventDefault()
     } else if (key === 'Enter') {
       // no repositories currently displayed, bail out
-      if (!this.state.rows.length) {
+      if (rowCount === 0) {
         return event.preventDefault()
       }
 
@@ -399,7 +401,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
       }
 
       const row = findNextSelectableRow(
-        this.state.rows.length,
+        rowCount,
         { direction: 'down', row: -1 },
         this.canSelectRow
       )
