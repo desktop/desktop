@@ -1,3 +1,5 @@
+import * as React from 'react'
+
 export type SelectionDirection = 'up' | 'down'
 
 interface ISelectionAction {
@@ -22,6 +24,37 @@ interface ISelectionAction {
    */
   readonly wrap?: boolean
 }
+
+/**
+ * Interface describing a user initiated selection change event
+ * originating from a pointer device clicking or pressing on an item.
+ */
+export interface IMouseClickSource {
+  readonly kind: 'mouseclick'
+  readonly event: React.MouseEvent<any>
+}
+
+/**
+ * Interface describing a user initiated selection change event
+ * originating from a pointer device hovering over an item.
+ * Only applicable when selectedOnHover is set.
+ */
+export interface IHoverSource {
+  readonly kind: 'hover'
+  readonly event: React.MouseEvent<any>
+}
+
+/**
+ * Interface describing a user initiated selection change event
+ * originating from a keyboard
+ */
+export interface IKeyboardSource {
+  readonly kind: 'keyboard'
+  readonly event: React.KeyboardEvent<any>
+}
+
+/** A type union of possible sources of a selection changed event */
+export type SelectionSource = IMouseClickSource | IHoverSource | IKeyboardSource
 
 /**
  * Determine the next selectable row, provided the starting row and a direction to move.

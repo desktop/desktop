@@ -4,7 +4,13 @@ import { Grid, AutoSizer } from 'react-virtualized'
 import { shallowEquals, arrayEquals } from '../../../lib/equality'
 import { FocusContainer } from '../../lib/focus-container'
 import { ListRow } from './list-row'
-import { findNextSelectableRow, SelectionDirection } from './selection'
+import {
+  findNextSelectableRow,
+  SelectionSource,
+  SelectionDirection,
+  IMouseClickSource,
+  IKeyboardSource,
+} from './selection'
 import { createUniqueId, releaseUniqueId } from '../../lib/id-pool'
 import { range } from '../../../lib/range'
 
@@ -30,37 +36,6 @@ export interface IRowRendererParams {
   /** Style object to be applied to cell */
   readonly style: React.CSSProperties
 }
-
-/**
- * Interface describing a user initiated selection change event
- * originating from a pointer device clicking or pressing on an item.
- */
-export interface IMouseClickSource {
-  readonly kind: 'mouseclick'
-  readonly event: React.MouseEvent<any>
-}
-
-/**
- * Interface describing a user initiated selection change event
- * originating from a pointer device hovering over an item.
- * Only applicable when selectedOnHover is set.
- */
-export interface IHoverSource {
-  readonly kind: 'hover'
-  readonly event: React.MouseEvent<any>
-}
-
-/**
- * Interface describing a user initiated selection change event
- * originating from a keyboard
- */
-export interface IKeyboardSource {
-  readonly kind: 'keyboard'
-  readonly event: React.KeyboardEvent<any>
-}
-
-/** A type union of possible sources of a selection changed event */
-export type SelectionSource = IMouseClickSource | IHoverSource | IKeyboardSource
 
 export type ClickSource = IMouseClickSource | IKeyboardSource
 
