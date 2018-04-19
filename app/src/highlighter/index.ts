@@ -112,6 +112,12 @@ import 'codemirror-mode-elixir'
 extensionMIMEMap.set('.ex', 'text/x-elixir')
 extensionMIMEMap.set('.exs', 'text/x-elixir')
 
+import 'codemirror/mode/haxe/haxe'
+extensionMIMEMap.set('.hx', 'text/x-haxe')
+
+import 'codemirror/mode/r/r'
+extensionMIMEMap.set('.r', 'text/x-rsrc')
+
 function guessMimeType(contents: string) {
   if (contents.startsWith('<?xml')) {
     return 'text/xml'
@@ -146,7 +152,8 @@ function guessMimeType(contents: string) {
 
 function detectMode(request: IHighlightRequest): CodeMirror.Mode<{}> | null {
   const mimeType =
-    extensionMIMEMap.get(request.extension) || guessMimeType(request.contents)
+    extensionMIMEMap.get(request.extension.toLowerCase()) ||
+    guessMimeType(request.contents)
 
   if (!mimeType) {
     return null

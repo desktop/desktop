@@ -131,6 +131,13 @@ export enum FetchType {
   UserInitiatedTask,
 }
 
+/**
+ * As fast-forwarding local branches is proportional to the number of local
+ * branches, and is run after every fetch/push/pull, this is skipped when the
+ * number of eligible branches is greater than a given threshold.
+ */
+const FastForwardBranchesThreshold = 20
+
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
 const defaultSidebarWidth: number = 250
@@ -2176,6 +2183,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
     })
 
+    if (eligibleBranches.length >= FastForwardBranchesThreshold) {
+      log.info(
+        `skipping fast-forward work because there are ${
+          eligibleBranches.length
+        } local branches - this will run again when there are less than ${FastForwardBranchesThreshold} local branches tracking remotes`
+      )
+      return
+    }
+
     for (const branch of eligibleBranches) {
       const aheadBehind = await getBranchAheadBehind(repository, branch)
       if (!aheadBehind) {
@@ -3283,16 +3299,25 @@ export class AppStore extends TypedBaseStore<IAppState> {
       head.gitHubRepository.cloneURL === gitHubRepository.cloneURL
 
     if (isRefInThisRepo) {
-      // We need to fetch FIRST because someone may have created a PR since the last fetch
       const defaultRemote = await getDefaultRemote(repository)
-      // TODO: I think we could skip this fetch if we know that we have the branch locally
-      // already. That way we'd match the behavior of checking out a branch.
-      if (defaultRemote) {
-        await this._fetchRemote(
-          repository,
-          defaultRemote,
-          FetchType.UserInitiatedTask
-        )
+      // if we don't have a default remote here, it's probably going
+      // to just crash and burn on checkout, but that's okay
+      if (defaultRemote != null) {
+        // the remote ref will be something like `origin/my-cool-branch`
+        const remoteRef = `${defaultRemote.name}/${head.ref}`
+        const gitStore = this.getGitStore(repository)
+
+        const remoteRefExists =
+          gitStore.allBranches.find(branch => branch.name === remoteRef) != null
+
+        // only try a fetch here if we can't find the ref
+        if (!remoteRefExists) {
+          await this._fetchRemote(
+            repository,
+            defaultRemote,
+            FetchType.UserInitiatedTask
+          )
+        }
       }
       await this._checkoutBranch(repository, head.ref)
     } else if (head.gitHubRepository != null) {
@@ -3316,7 +3341,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         )
 
         log.error(error.message)
-        this.emitError(error)
+        return this.emitError(error)
       }
 
       await this._fetchRemote(repository, remote, FetchType.UserInitiatedTask)
@@ -3338,6 +3363,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       await this._checkoutBranch(repository, localBranchName)
     }
+
+    this.statsStore.recordPRBranchCheckout()
   }
 
   /**
