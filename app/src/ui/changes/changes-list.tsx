@@ -238,13 +238,13 @@ export class ChangesList extends React.Component<
   ) => {
     event.preventDefault()
 
-    const fileList = this.props.workingDirectory.files
+    const wd = this.props.workingDirectory
     const selectedFiles = new Array<WorkingDirectoryFileChange>()
     const paths = new Array<string>()
     const extensions = new Set<string>()
 
     this.props.selectedFileIDs.forEach(fileID => {
-      const newFile = fileList.find(file => file.id === fileID)
+      const newFile = wd.findFileWithID(fileID)
       if (newFile) {
         selectedFiles.push(newFile)
         paths.push(newFile.path)
