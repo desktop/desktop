@@ -313,12 +313,12 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
 
     const firstSelectableRow = findNextSelectableRow(
       rowCount,
-      { direction: 'down', row: -1, wrap: true },
+      { direction: 'down', row: -1 },
       this.canSelectRow
     )
     const lastSelectableRow = findNextSelectableRow(
       rowCount,
-      { direction: 'up', row: 0, wrap: true },
+      { direction: 'up', row: 0 },
       this.canSelectRow
     )
 
@@ -360,7 +360,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
       if (this.state.rows.length > 0) {
         const selectedRow = findNextSelectableRow(
           this.state.rows.length,
-          { direction: 'down', row: -1, wrap: true },
+          { direction: 'down', row: -1 },
           this.canSelectRow
         )
         if (selectedRow != null) {
@@ -375,7 +375,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
       if (this.state.rows.length > 0) {
         const selectedRow = findNextSelectableRow(
           this.state.rows.length,
-          { direction: 'up', row: 0, wrap: true },
+          { direction: 'up', row: 0 },
           this.canSelectRow
         )
         if (selectedRow != null) {
@@ -400,7 +400,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
 
       const row = findNextSelectableRow(
         this.state.rows.length,
-        { direction: 'down', row: -1, wrap: true },
+        { direction: 'down', row: -1 },
         this.canSelectRow
       )
 

@@ -2,16 +2,25 @@ export type SelectionDirection = 'up' | 'down'
 
 interface ISelectionEvent {
   /**
-   * The direction to move from the current row.
+   * The vertical direction use when searching for a selectable row.
    */
   readonly direction: SelectionDirection
 
   /**
-   * The selected row in the list to use as a starting point.
+   * The starting row index to search from.
    */
   readonly row: number
 
-  readonly wrap: boolean
+  /**
+   * Whether or not to look beyond the last or first row
+   * (depending on direction) such that given the last row and
+   * a downward direction we'll consider the first row as a
+   * candidate or given the first row and an upward direction
+   * we'll consider the last row as a candidate.
+   *
+   * Defaults to true if not set.
+   */
+  readonly wrap?: boolean
 }
 
 /**
@@ -28,7 +37,8 @@ export function findNextSelectableRow(
     return null
   }
 
-  const { direction, row, wrap } = event
+  const { direction, row } = event
+  const wrap = event.wrap === undefined ? true : event.wrap
 
   // If we've been given a row that's out of bounds
   // we'll coerce it to a valid index starting either
