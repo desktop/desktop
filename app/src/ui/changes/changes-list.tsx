@@ -315,7 +315,7 @@ export class ChangesList extends React.Component<
           action: () => this.props.onIgnore(`*${extension}`),
         })
       })
-    
+
     items.push(
       { type: 'separator' },
       {
