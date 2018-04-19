@@ -526,7 +526,11 @@ export class List extends React.Component<IListProps, IListState> {
 
     const selectionOrigin = this.props.selectedRows[0]
 
-    const newRow = this.nextSelectableRow(direction, lastSelection, false)
+    const newRow = findNextSelectableRow(
+      this.props.rowCount,
+      { direction, row: lastSelection, wrap: false },
+      this.canSelectRow
+    )
 
     if (newRow != null) {
       if (this.props.onSelectionChanged) {
