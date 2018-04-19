@@ -404,7 +404,7 @@ export class List extends React.Component<IListProps, IListState> {
   }
 
   /** Convenience method for invoking canSelectRow callback when it exists */
-  private canSelectRow(rowIndex: number) {
+  private canSelectRow = (rowIndex: number) => {
     return this.props.canSelectRow ? this.props.canSelectRow(rowIndex) : true
   }
 
