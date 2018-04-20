@@ -90,3 +90,6 @@ This is done to ensure we keep the number of reviews under control.
 The reviewer should ask if the contributor is still interested in working on
 this, and indicate that they are welcome to open a fresh pull request later if
 they lack the time currently to continue on.
+
+If it's agreed to put this contribution on hold, or if no feedback is
+received after 3 days, the pull request will be closed.
