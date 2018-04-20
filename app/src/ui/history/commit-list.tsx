@@ -77,7 +77,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
   }
 
   private onSelectedRowChanged = (row: number) => {
-    const sha = this.props.commits[row]
+    const sha = this.props.commitSHAs[row]
     const commit = this.props.commitLookup.get(sha)
     if (commit) {
       this.props.onCommitSelected(commit)
