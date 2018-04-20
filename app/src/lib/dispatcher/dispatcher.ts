@@ -54,6 +54,7 @@ import { FetchType } from '../../lib/stores'
 import { PullRequest } from '../../models/pull-request'
 import { IAuthor } from '../../models/author'
 import { ITrailer } from '../git/interpret-trailers'
+import { isGitRepository } from "../git";
 
 /**
  * An error handler function.
@@ -848,9 +849,8 @@ export class Dispatcher {
         // this ensures we use the repository root, if it is actually a repository
         // otherwise we consider it an untracked repository
         const path = (await validatedRepositoryPath(action.path)) || action.path
-
         const state = this.appStore.getState()
-        const existingRepository = matchExistingRepository(
+        let existingRepository = matchExistingRepository(
           state.repositories,
           path
         )
