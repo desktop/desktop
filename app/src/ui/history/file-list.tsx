@@ -12,7 +12,7 @@ interface IFileListProps {
 }
 
 export class FileList extends React.Component<IFileListProps, {}> {
-  private onSelectionChanged = (row: number) => {
+  private onSelectedRowChanged = (row: number) => {
     const file = this.props.files[row]
     this.props.onSelectedFileChanged(file)
   }
@@ -60,8 +60,8 @@ export class FileList extends React.Component<IFileListProps, {}> {
           rowRenderer={this.renderFile}
           rowCount={this.props.files.length}
           rowHeight={29}
-          selectedRow={this.rowForFile(this.props.selectedFile)}
-          onSelectionChanged={this.onSelectionChanged}
+          selectedRows={[this.rowForFile(this.props.selectedFile)]}
+          onSelectedRowChanged={this.onSelectedRowChanged}
         />
       </div>
     )
