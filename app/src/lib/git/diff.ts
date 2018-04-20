@@ -84,6 +84,7 @@ const imageFileExtensions = new Set([
   '.gif',
   '.ico',
   '.webp',
+  '.bmp',
 ])
 
 /**
@@ -267,9 +268,9 @@ export async function convertDiff(
   commitish: string,
   lineEndingsChange?: LineEndingsChange
 ): Promise<IDiff> {
-  if (diff.isBinary) {
-    const extension = Path.extname(file.path)
+  const extension = Path.extname(file.path).toLowerCase()
 
+  if (diff.isBinary) {
     // some extension we don't know how to parse, never mind
     if (!imageFileExtensions.has(extension)) {
       return {
@@ -306,6 +307,9 @@ function getMediaType(extension: string) {
   }
   if (extension === '.webp') {
     return 'image/webp'
+  }
+  if (extension === '.bmp') {
+    return 'image/bmp'
   }
 
   // fallback value as per the spec

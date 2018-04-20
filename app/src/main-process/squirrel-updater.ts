@@ -157,9 +157,9 @@ async function updateShortcut(): Promise<void> {
 /** Get the path segments in the user's `Path`. */
 async function getPathSegments(): Promise<ReadonlyArray<string>> {
   let powershellPath: string
-  const systemRoot = process.env['SystemRoot']
-  if (systemRoot) {
-    const system32Path = Path.join(process.env.SystemRoot, 'System32')
+  const systemRoot = process.env.SystemRoot
+  if (systemRoot != null) {
+    const system32Path = Path.join(systemRoot, 'System32')
     powershellPath = Path.join(
       system32Path,
       'WindowsPowerShell',

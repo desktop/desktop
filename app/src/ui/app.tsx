@@ -1355,8 +1355,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.openShell(repository.path)
   }
 
-  private openFileInExternalEditor = (path: string) => {
-    this.props.dispatcher.openInExternalEditor(path)
+  private openFileInExternalEditor = (fullPath: string) => {
+    this.props.dispatcher.openInExternalEditor(fullPath)
   }
 
   private openInExternalEditor = (

@@ -9,6 +9,29 @@ import * as packager from 'electron-packager'
 
 const legalEagle: LegalEagle = require('legal-eagle')
 
+interface IFrontMatterResult<T> {
+  readonly attributes: T
+  readonly body: string
+}
+
+interface IChooseALicense {
+  readonly title: string
+  readonly nickname?: string
+  readonly featured?: boolean
+  readonly hidden?: boolean
+}
+
+export interface ILicense {
+  readonly name: string
+  readonly featured: boolean
+  readonly body: string
+  readonly hidden: boolean
+}
+
+const frontMatter: <T>(
+  path: string
+) => IFrontMatterResult<T> = require('front-matter')
+
 import {
   getBundleID,
   getCompanyName,
@@ -36,6 +59,11 @@ copyEmoji()
 
 console.log('Copying static resources…')
 copyStaticResources()
+
+console.log('Parsing license metadata…')
+generateLicenseMetadata(outRoot)
+
+moveAnalysisFiles()
 
 const isFork = process.env.CIRCLE_PR_USERNAME
 if (process.platform === 'darwin' && process.env.CIRCLECI && !isFork) {
@@ -176,6 +204,22 @@ function copyStaticResources() {
     fs.copySync(platformSpecific, destination)
   }
   fs.copySync(common, destination, { clobber: false })
+}
+
+function moveAnalysisFiles() {
+  const rendererReport = 'renderer.report.html'
+  const analysisSource = path.join(outRoot, rendererReport)
+  if (fs.existsSync(analysisSource)) {
+    const distRoot = getDistRoot()
+    const destination = path.join(distRoot, rendererReport)
+    fs.mkdirpSync(distRoot)
+    // there's no moveSync API here, so let's do it the old fashioned way
+    //
+    // unlinkSync below ensures that the analysis file isn't bundled into
+    // the app by accident
+    fs.copySync(analysisSource, destination, { clobber: true })
+    fs.unlinkSync(analysisSource)
+  }
 }
 
 function copyDependencies() {
@@ -352,4 +396,55 @@ function updateLicenseDump(callback: (err: Error | null) => void) {
       }
     }
   )
+}
+
+function generateLicenseMetadata(outRoot: string) {
+  const chooseALicense = path.join(outRoot, 'static', 'choosealicense.com')
+  const licensesDir = path.join(chooseALicense, '_licenses')
+
+  const files = fs.readdirSync(licensesDir)
+
+  const licenses = new Array<ILicense>()
+  for (const file of files) {
+    const fullPath = path.join(licensesDir, file)
+    const contents = fs.readFileSync(fullPath, 'utf8')
+    const result = frontMatter<IChooseALicense>(contents)
+    const license: ILicense = {
+      name: result.attributes.nickname || result.attributes.title,
+      featured: result.attributes.featured || false,
+      hidden:
+        result.attributes.hidden === undefined || result.attributes.hidden,
+      body: result.body.trim(),
+    }
+
+    if (!license.hidden) {
+      licenses.push(license)
+    }
+  }
+
+  const licensePayload = path.join(outRoot, 'static', 'available-licenses.json')
+  const text = JSON.stringify(licenses)
+  fs.writeFileSync(licensePayload, text, 'utf8')
+
+  // embed the license alongside the generated license payload
+  const chooseALicenseLicense = path.join(chooseALicense, 'LICENSE.md')
+  const licenseDestination = path.join(
+    outRoot,
+    'static',
+    'LICENSE.choosealicense.md'
+  )
+
+  const licenseText = fs.readFileSync(chooseALicenseLicense, 'utf8')
+  const licenseWithHeader = `GitHub Desktop uses licensing information provided by choosealicense.com.
+
+The bundle in available-licenses.json has been generated from a source list provided at https://github.com/github/choosealicense.com, which is made available under the below license:
+
+------------
+
+${licenseText}`
+
+  fs.writeFileSync(licenseDestination, licenseWithHeader, 'utf8')
+
+  // sweep up the choosealicense directory as the important bits have been bundled in the app
+  fs.removeSync(chooseALicense)
 }

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { ICommonImageDiffProperties } from './modified-image-diff'
-import { DiffImage } from './diff-image'
+import { ImageContainer } from './image-container'
 
 /** How much bigger the slider should be than the images. */
 const SliderOverflow = 14
@@ -35,7 +35,7 @@ export class Swipe extends React.Component<
         <div className="sizing-container" ref={this.props.onContainerRef}>
           <div className="image-container" style={style}>
             <div className="image-diff-current" style={style}>
-              <DiffImage
+              <ImageContainer
                 image={this.props.current}
                 onElementLoad={this.props.onCurrentImageLoad}
                 style={maxSize}
@@ -49,7 +49,7 @@ export class Swipe extends React.Component<
               }}
             >
               <div className="image-diff-previous" style={style}>
-                <DiffImage
+                <ImageContainer
                   image={this.props.previous}
                   onElementLoad={this.props.onPreviousImageLoad}
                   style={maxSize}

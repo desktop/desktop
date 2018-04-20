@@ -28,6 +28,9 @@ interface IAutocompletingTextInputProps<ElementType> {
   /** Disabled state for input field. */
   readonly disabled?: boolean
 
+  /** Indicates if input field should be required */
+  readonly isRequired?: boolean
+
   /**
    * Called when the user changes the value in the input field.
    */
@@ -183,14 +186,14 @@ export abstract class AutocompletingTextInput<
           ref={this.storeAutocompletionListRef}
           rowCount={items.length}
           rowHeight={RowHeight}
-          selectedRow={selectedRow}
+          selectedRows={[selectedRow]}
           rowRenderer={this.renderItem}
           scrollToRow={selectedRow}
           selectOnHover={true}
           focusOnHover={false}
           onRowMouseDown={this.onRowMouseDown}
           onRowClick={this.insertCompletionOnClick}
-          onSelectionChanged={this.onSelectionChanged}
+          onSelectedRowChanged={this.onSelectedRowChanged}
           invalidationProps={searchText}
         />
       </div>
@@ -211,7 +214,7 @@ export abstract class AutocompletingTextInput<
     }
   }
 
-  private onSelectionChanged = (row: number, source: SelectionSource) => {
+  private onSelectedRowChanged = (row: number, source: SelectionSource) => {
     const currentAutoCompletionState = this.state.autocompletionState
 
     if (!currentAutoCompletionState) {
@@ -270,6 +273,7 @@ export abstract class AutocompletingTextInput<
       onBlur: this.onBlur,
       onContextMenu: this.onContextMenu,
       disabled: this.props.disabled,
+      'aria-required': this.props.isRequired ? true : false,
     }
 
     return React.createElement<React.HTMLAttributes<ElementType>, ElementType>(
