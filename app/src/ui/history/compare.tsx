@@ -244,12 +244,12 @@ export class CompareSidebar extends React.Component<
           Merge into <strong>{this.props.currentBranch.name}</strong>
         </Button>
 
-        {this.a(formState)}
+        {this.renderMergeDetails(formState)}
       </div>
     )
   }
 
-  private a(formState: ICompareBranch) {
+  private renderMergeDetails(formState: ICompareBranch) {
     const branch = formState.comparisonBranch
     const count = formState.aheadBehind.behind
 
@@ -258,7 +258,7 @@ export class CompareSidebar extends React.Component<
       return (
         <div className="merge-message">
           This will merge
-          <strong>{`${count} ${pluralized}`}</strong>
+          <strong>{` ${count} ${pluralized}`}</strong>
           {` `}from{` `}
           <strong>{branch.name}</strong>)
         </div>
