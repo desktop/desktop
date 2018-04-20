@@ -193,27 +193,29 @@ export class ChangesList extends React.Component<
     this.props.onDiscardAllChanges(this.props.workingDirectory.files)
   }
 
-  private onDiscardChanges = (paths: string | string[]) => {
+  private onDiscardChanges = (files: ReadonlyArray<string>) => {
     const workingDirectory = this.props.workingDirectory
 
-    if (paths instanceof Array) {
-      const files: WorkingDirectoryFileChange[] = []
-      paths.forEach(path => {
-        const file = workingDirectory.files.find(f => f.path === path)
-        if (file) {
-          files.push(file)
+    if (files.length === 1) {
+      const modifiedFile = workingDirectory.files.find(f => f.path === files[0])
+
+      return modifiedFile && this.props.onDiscardChanges(modifiedFile)
+    } else {
+      const modifiedFiles: Array<WorkingDirectoryFileChange> = []
+
+      modifiedFiles.forEach(file => {
+        const modifiedFile = workingDirectory.files.find(
+          f => f.path === file.path
+        )
+
+        if (modifiedFile !== undefined) {
+          modifiedFiles.push(file)
         }
       })
-      if (files.length) {
-        this.props.onDiscardAllChanges(files)
-      }
-    } else {
-      const file = workingDirectory.files.find(f => f.path === paths)
-      if (!file) {
-        return
-      }
 
-      this.props.onDiscardChanges(file)
+      if (modifiedFiles.length) {
+        this.props.onDiscardAllChanges(modifiedFiles)
+      }
     }
   }
 
