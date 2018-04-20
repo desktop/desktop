@@ -118,7 +118,7 @@
     "@types/electron-winstaller": "^2.6.0",
     "@types/event-kit": "^1.2.28",
     "@types/file-url": "^2.0.0",
-    "@types/fs-extra": "^5.0.1",
+    "@types/fs-extra": "^5.0.2",
     "@types/fuzzaldrin-plus": "^0.0.1",
     "@types/keytar": "^4.0.0",
     "@types/mocha": "^2.2.48",
