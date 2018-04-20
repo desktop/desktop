@@ -211,12 +211,11 @@ export class RepositoryView extends React.Component<
       </FocusContainer>
     )
   }
-  
+
   private onSidebarFocusWithinChanged = (sidebarHasFocusWithin: boolean) => {
     // this lets us know that focus is somewhere within the sidebar
     this.setState({ sidebarHasFocusWithin })
   }
-
 
   private renderContent(): JSX.Element | null {
     const selectedSection = this.props.state.selectedSection
