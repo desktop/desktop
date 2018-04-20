@@ -3,7 +3,7 @@
  */
 const enum Sign {
   Normal,
-  Forced
+  Forced,
 }
 
 /**
@@ -21,7 +21,7 @@ export const formatBytes = (bytes: number, signType: Sign = Sign.Normal) => {
   }
   const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
   const sizeIndex = Math.floor(Math.log(Math.abs(bytes)) / Math.log(1024))
-  const sign = signType == Sign.Forced && bytes > 0 ? '+' : ''
+  const sign = signType === Sign.Forced && bytes > 0 ? '+' : ''
   const value = Math.round(bytes / Math.pow(1024, sizeIndex))
   return `${sign}${value}${sizes[sizeIndex]}`
 }

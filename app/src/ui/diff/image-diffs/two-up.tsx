@@ -2,7 +2,7 @@ import * as React from 'react'
 import { ImageContainer } from './image-container'
 import { ICommonImageDiffProperties } from './modified-image-diff'
 import { ISize } from './sizing'
-import { formatBytes } from "../../lib/bytes";
+import { formatBytes } from '../../lib/bytes'
 import * as classNames from 'classnames'
 
 /**
@@ -37,7 +37,10 @@ export class TwoUp extends React.Component<ITwoUpProps, {}> {
     const zeroSize = { width: 0, height: 0 }
     const previousImageSize = this.props.previousImageSize || zeroSize
     const currentImageSize = this.props.currentImageSize || zeroSize
-    const diffPercent = percentDiff(this.props.previous.bytes, this.props.current.bytes)
+    const diffPercent = percentDiff(
+      this.props.previous.bytes,
+      this.props.current.bytes
+    )
     const diffBytes = this.props.current.bytes - this.props.previous.bytes
 
     return (
@@ -54,7 +57,8 @@ export class TwoUp extends React.Component<ITwoUpProps, {}> {
             <div className="image-diff-footer">
               <span className="strong">W:</span> {previousImageSize.width}px |{' '}
               <span className="strong">H:</span> {previousImageSize.height}px |{' '}
-              <span className="strong">Size:</span>{' '} {formatBytes(this.props.previous.bytes)}
+              <span className="strong">Size:</span>{' '}
+              {formatBytes(this.props.previous.bytes)}
             </div>
           </div>
 
@@ -69,17 +73,22 @@ export class TwoUp extends React.Component<ITwoUpProps, {}> {
             <div className="image-diff-footer">
               <span className="strong">W:</span> {currentImageSize.width}px |{' '}
               <span className="strong">H:</span> {currentImageSize.height}px |{' '}
-              <span className="strong">Size:</span> {formatBytes(this.props.current.bytes)}
+              <span className="strong">Size:</span>{' '}
+              {formatBytes(this.props.current.bytes)}
             </div>
           </div>
         </div>
         <div className="image-diff-summary">
           Diff:{' '}
-          <span className={classNames({
-            'added' : diffBytes > 0,
-            'removed': diffBytes < 0
-          })}>
-            {diffBytes != 0 ? `${formatBytes(diffBytes)} | ${diffPercent}` : 'No size difference'}
+          <span
+            className={classNames({
+              added: diffBytes > 0,
+              removed: diffBytes < 0,
+            })}
+          >
+            {diffBytes !== 0
+              ? `${formatBytes(diffBytes)} | ${diffPercent}`
+              : 'No size difference'}
           </span>
         </div>
       </div>
