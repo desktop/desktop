@@ -76,17 +76,14 @@ export function findNextSelectableRow(
   const { direction, row } = action
   const wrap = action.wrap === undefined ? true : action.wrap
 
-  // If we've been given a row that's out of bounds
-  // we'll coerce it to a valid index starting either
-  // at the bottom or the top depending on the direction.
+  // Ensure the row value is in the range between 0 and rowCount - 1
   //
-  // Given a row that would be below the last item and
-  // an upward direction we'll pick the last selectable row
-  // or the first selectable given an upward direction.
+  // If the row falls outside this range, use the direction
+  // given to choose a suitable value:
   //
-  // Given a row that would be before the first item (-1)
-  // and a downward direction we'll pick the first selectable
-  // row or the first selectable given an upward direction.
+  //  - move in an upward direction -> select last row
+  //  - move in a downward direction -> select first row
+  //
   let currentRow =
     row < 0 || row >= rowCount ? (direction === 'up' ? rowCount - 1 : 0) : row
 
