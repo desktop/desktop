@@ -115,7 +115,7 @@ export function findNextSelectableRow(
       }
     }
 
-    if (canSelectRow(currentRow) && row !== currentRow) {
+    if (row !== currentRow && canSelectRow(currentRow)) {
       return currentRow
     }
   }
