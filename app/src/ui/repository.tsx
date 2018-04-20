@@ -5,6 +5,7 @@ import { TipState } from '../models/tip'
 import { UiView } from './ui-view'
 import { Changes, ChangesSidebar } from './changes'
 import { NoChanges } from './changes/no-changes'
+import { MultipleSelection } from './changes/multiple-selection'
 import { History, HistorySidebar } from './history'
 import { Resizable } from './resizable'
 import { TabBar } from './tab-bar'
@@ -169,29 +170,40 @@ export class RepositoryView extends React.Component<IRepositoryProps, {}> {
     )
   }
 
-  private renderContent(): JSX.Element {
+  private renderContent(): JSX.Element | null {
     const selectedSection = this.props.state.selectedSection
 
     if (selectedSection === RepositorySection.Changes) {
       const changesState = this.props.state.changesState
-      const selectedFileID = changesState.selectedFileID
-      const selectedFile = selectedFileID
-        ? changesState.workingDirectory.findFileWithID(selectedFileID)
-        : null
-      const diff = changesState.diff
+      const selectedFileIDs = changesState.selectedFileIDs
+
+      if (selectedFileIDs.length > 1) {
+        return <MultipleSelection count={selectedFileIDs.length} />
+      }
+
       if (
-        !changesState.workingDirectory.files.length ||
-        !selectedFile ||
-        !diff
+        changesState.workingDirectory.files.length === 0 ||
+        selectedFileIDs.length === 0 ||
+        changesState.diff === null
       ) {
+        // TODO: The case where diff is null is likely while the diff is loading,
+        // we should have a dedicated loading state for diffs instead of showing
+        // NoChanges.
         return <NoChanges onOpenRepository={this.openRepository} />
       } else {
+        const workingDirectory = changesState.workingDirectory
+        const selectedFile = workingDirectory.findFileWithID(selectedFileIDs[0])
+
+        if (!selectedFile) {
+          return null
+        }
+
         return (
           <Changes
             repository={this.props.repository}
             dispatcher={this.props.dispatcher}
             file={selectedFile}
-            diff={diff}
+            diff={changesState.diff}
             imageDiffType={this.props.imageDiffType}
           />
         )

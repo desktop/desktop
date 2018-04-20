@@ -186,14 +186,14 @@ export abstract class AutocompletingTextInput<
           ref={this.storeAutocompletionListRef}
           rowCount={items.length}
           rowHeight={RowHeight}
-          selectedRow={selectedRow}
+          selectedRows={[selectedRow]}
           rowRenderer={this.renderItem}
           scrollToRow={selectedRow}
           selectOnHover={true}
           focusOnHover={false}
           onRowMouseDown={this.onRowMouseDown}
           onRowClick={this.insertCompletionOnClick}
-          onSelectionChanged={this.onSelectionChanged}
+          onSelectedRowChanged={this.onSelectedRowChanged}
           invalidationProps={searchText}
         />
       </div>
@@ -214,7 +214,7 @@ export abstract class AutocompletingTextInput<
     }
   }
 
-  private onSelectionChanged = (row: number, source: SelectionSource) => {
+  private onSelectedRowChanged = (row: number, source: SelectionSource) => {
     const currentAutoCompletionState = this.state.autocompletionState
 
     if (!currentAutoCompletionState) {

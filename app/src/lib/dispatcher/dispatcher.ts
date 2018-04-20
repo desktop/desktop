@@ -185,9 +185,9 @@ export class Dispatcher {
   /** Change the currently selected file in Changes. */
   public changeChangesSelection(
     repository: Repository,
-    selectedFile: WorkingDirectoryFileChange
+    selectedFiles: WorkingDirectoryFileChange[]
   ): Promise<void> {
-    return this.appStore._changeChangesSelection(repository, selectedFile)
+    return this.appStore._changeChangesSelection(repository, selectedFiles)
   }
 
   /**
@@ -585,7 +585,10 @@ export class Dispatcher {
   }
 
   /** Add the pattern to the repository's gitignore. */
-  public ignore(repository: Repository, pattern: string): Promise<void> {
+  public ignore(
+    repository: Repository,
+    pattern: string | string[]
+  ): Promise<void> {
     return this.appStore._ignore(repository, pattern)
   }
 
