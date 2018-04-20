@@ -81,8 +81,8 @@ function revParse(gitDir: string, ref: string): string {
 export function getSHA() {
   // CircleCI does some funny stuff where HEAD points to an packed ref, but
   // luckily it gives us the SHA we want in the environment.
-  const circleSHA: string = process.env.CIRCLE_SHA1
-  if (circleSHA) {
+  const circleSHA = process.env.CIRCLE_SHA1
+  if (circleSHA != null) {
     return circleSHA
   }
 
