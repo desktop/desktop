@@ -458,7 +458,7 @@ describe('git/commit', () => {
       const repo = await setupConflictedRepo()
       const filePath = path.join(repo.path, 'foo')
 
-      const inMerge = await FSE.exists(
+      const inMerge = await FSE.pathExists(
         path.join(repo.path, '.git', 'MERGE_HEAD')
       )
       expect(inMerge).to.equal(true)
