@@ -447,6 +447,7 @@ export class CompareSidebar extends React.Component<
     this.setState({
       filterText: branch.name,
       focusedBranch: null,
+      showBranchList: false,
     })
   }
 
