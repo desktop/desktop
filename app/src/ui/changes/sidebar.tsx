@@ -163,7 +163,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
         type: PopupType.ConfirmDiscardChanges,
         repository: this.props.repository,
         files: [file],
-        forceConfirmation: false,
+        showDiscardChangesSetting: false,
       })
     }
   }
@@ -174,7 +174,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     this.props.dispatcher.showPopup({
       type: PopupType.ConfirmDiscardChanges,
       repository: this.props.repository,
-      forceConfirmation: true,
+      showDiscardChangesSetting: true,
       files,
     })
   }

@@ -15,7 +15,7 @@ interface IDiscardChangesProps {
   readonly dispatcher: Dispatcher
   readonly files: ReadonlyArray<WorkingDirectoryFileChange>
   readonly confirmDiscardChanges: boolean
-  readonly forceConfirmation: boolean
+  readonly showDiscardChangesSetting: boolean
   readonly onDismissed: () => void
   readonly onConfirmDiscardChangesChanged: (optOut: boolean) => void
 }
@@ -66,7 +66,7 @@ export class DiscardChanges extends React.Component<
           <p>
             Changes can be restored by retrieving them from the {trashName}.
           </p>
-          {!this.props.forceConfirmation ? (
+          {!this.props.showDiscardChangesSetting ? (
             <Checkbox
               label="Do not show this message again"
               value={
