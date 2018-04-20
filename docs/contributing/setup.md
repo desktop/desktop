@@ -200,5 +200,5 @@ You're almost there! Here's a couple of things we recommend you read next:
 
  - [Help Wanted](../../.github/CONTRIBUTING.md#help-wanted) - we've marked some tasks in
    the backlog that are ideal for external contributors
- - [Code Reviews](../process/reviews.md) - some notes on how the team does
+ - [Notes for Contributors](../process/notes-for-contributors.md) - some notes on how the team does
    code reviews
