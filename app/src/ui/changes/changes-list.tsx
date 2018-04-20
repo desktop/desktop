@@ -7,7 +7,6 @@ import { Dispatcher } from '../../lib/dispatcher'
 import { ITrailer } from '../../lib/git/interpret-trailers'
 import { IMenuItem } from '../../lib/menu-item'
 import { revealInFileManager } from '../../lib/app-shell'
-
 import {
   AppFileStatus,
   WorkingDirectoryStatus,
@@ -17,7 +16,6 @@ import { DiffSelectionType } from '../../models/diff'
 import { CommitIdentity } from '../../models/commit-identity'
 import { Repository } from '../../models/repository'
 import { IAuthor } from '../../models/author'
-
 import { List, ClickSource } from '../lib/list'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import {
@@ -26,10 +24,8 @@ import {
   RevealInFileManagerLabel,
   OpenWithDefaultProgramLabel,
 } from '../lib/context-menu'
-
 import { CommitMessage } from './commit-message'
 import { ChangedFile } from './changed-file'
-
 import { IAutocompletionProvider } from '../autocompletion'
 import { showContextualMenu } from '../main-process-proxy'
 import { arrayEquals } from '../../lib/equality'
@@ -72,7 +68,6 @@ interface IChangesListProps {
    * List Props for documentation.
    */
   readonly onRowClick?: (row: number, source: ClickSource) => void
-
   readonly commitMessage: ICommitMessage | null
   readonly contextualCommitMessage: ICommitMessage | null
 
