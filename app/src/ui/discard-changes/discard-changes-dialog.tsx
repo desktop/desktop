@@ -66,17 +66,7 @@ export class DiscardChanges extends React.Component<
           <p>
             Changes can be restored by retrieving them from the {trashName}.
           </p>
-          {!this.props.showDiscardChangesSetting ? (
-            <Checkbox
-              label="Do not show this message again"
-              value={
-                this.state.confirmDiscardChanges
-                  ? CheckboxValue.Off
-                  : CheckboxValue.On
-              }
-              onChange={this.onCheckboxChanged}
-            />
-          ) : null}
+          {this.renderCheckbox()}
         </DialogContent>
 
         <DialogFooter>
@@ -89,6 +79,27 @@ export class DiscardChanges extends React.Component<
         </DialogFooter>
       </Dialog>
     )
+  }
+
+  private renderCheckbox() {
+    if (this.props.showDiscardChangesSetting) {
+      return (
+        <Checkbox
+          label="Do not show this message again"
+          value={
+            this.state.confirmDiscardChanges
+              ? CheckboxValue.Off
+              : CheckboxValue.On
+          }
+          onChange={this.onCheckboxChanged}
+        />
+      )
+    } else {
+      // since we ignore the users option to not show
+      // confirmation, we don't want to show a checkbox
+      // that will have no effect
+      return null
+    }
   }
 
   private renderFileList() {
