@@ -560,10 +560,10 @@ export interface IChangesState {
   readonly workingDirectory: WorkingDirectoryStatus
 
   /**
-   * The ID of the selected file. The file itself can be looked up in
+   * The ID of the selected files. The files themselves can be looked up in
    * `workingDirectory`.
    */
-  readonly selectedFileID: string | null
+  readonly selectedFileIDs: string[]
 
   readonly diff: IDiff | null
 

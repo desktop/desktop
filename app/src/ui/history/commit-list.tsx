@@ -76,8 +76,8 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     )
   }
 
-  private onRowChanged = (row: number) => {
-    const sha = this.props.commitSHAs[row]
+  private onSelectedRowChanged = (row: number) => {
+    const sha = this.props.commits[row]
     const commit = this.props.commitLookup.get(sha)
     if (commit) {
       this.props.onCommitSelected(commit)
@@ -112,9 +112,9 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         <List
           rowCount={this.props.commitSHAs.length}
           rowHeight={RowHeight}
-          selectedRow={this.rowForSHA(this.props.selectedSHA)}
+          selectedRows={[this.rowForSHA(this.props.selectedSHA)]}
           rowRenderer={this.renderCommit}
-          onSelectionChanged={this.onRowChanged}
+          onSelectedRowChanged={this.onSelectedRowChanged}
           onScroll={this.onScroll}
           invalidationProps={{
             commits: this.props.commitSHAs,

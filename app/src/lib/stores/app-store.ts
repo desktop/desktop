@@ -414,7 +414,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         workingDirectory: WorkingDirectoryStatus.fromFiles(
           new Array<WorkingDirectoryFileChange>()
         ),
-        selectedFileID: null,
+        selectedFileIDs: [],
         diff: null,
         contextualCommitMessage: null,
         commitMessage: null,
@@ -1407,24 +1407,39 @@ export class AppStore extends TypedBaseStore<IAppState> {
         })
         .sort((x, y) => caseInsensitiveCompare(x.path, y.path))
 
-      const workingDirectory = WorkingDirectoryStatus.fromFiles(mergedFiles)
+      // Collect all the currently available file ids into a set to avoid O(N)
+      // lookups using .find on the mergedFiles array.
+      const mergedFileIds = new Set(mergedFiles.map(x => x.id))
 
-      let selectedFileID = state.selectedFileID
-      const matchedFile = mergedFiles.find(x => x.id === selectedFileID)
+      // The previously selected files might not be available in the working
+      // directory any more due to having been committed or discarded so we'll
+      // do a pass over and filter out any selected files that aren't available.
+      let selectedFileIDs = state.selectedFileIDs.filter(id =>
+        mergedFileIds.has(id)
+      )
 
-      // Select the first file if we don't have anything selected.
-      if ((!selectedFileID || !matchedFile) && mergedFiles.length) {
-        selectedFileID = mergedFiles[0].id || null
+      // Select the first file if we don't have anything selected and we
+      // have something to select.
+      if (selectedFileIDs.length === 0 && mergedFiles.length > 0) {
+        selectedFileIDs = [mergedFiles[0].id]
       }
 
-      // The file selection could have changed if the previously selected file
-      // is no longer selectable (it was reverted or committed) but if it hasn't
-      // changed we can reuse the diff.
-      const sameSelectedFileExists = state.selectedFileID
-        ? workingDirectory.findFileWithID(state.selectedFileID)
-        : null
-      const diff = sameSelectedFileExists ? state.diff : null
-      return { workingDirectory, selectedFileID, diff }
+      // The file selection could have changed if the previously selected files
+      // are no longer selectable (they were discarded or committed) but if they
+      // were not changed we can reuse the diff. Note, however that we only render
+      // a diff when a single file is selected. If the previous selection was
+      // a single file with the same id as the current selection we can keep the
+      // diff we had, if not we'll clear it.
+      const workingDirectory = WorkingDirectoryStatus.fromFiles(mergedFiles)
+
+      const diff =
+        selectedFileIDs.length === 1 &&
+        state.selectedFileIDs.length === 1 &&
+        state.selectedFileIDs[0] === selectedFileIDs[0]
+          ? state.diff
+          : null
+
+      return { workingDirectory, selectedFileIDs, diff }
     })
     this.emitUpdate()
 
@@ -1452,10 +1467,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _changeChangesSelection(
     repository: Repository,
-    selectedFile: WorkingDirectoryFileChange | null
+    selectedFiles: WorkingDirectoryFileChange[]
   ): Promise<void> {
     this.updateChangesState(repository, state => ({
-      selectedFileID: selectedFile ? selectedFile.id : null,
+      selectedFileIDs: selectedFiles.map(file => file.id),
       diff: null,
     }))
     this.emitUpdate()
@@ -1473,15 +1488,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<void> {
     const stateBeforeLoad = this.getRepositoryState(repository)
     const changesStateBeforeLoad = stateBeforeLoad.changesState
-    const selectedFileIDBeforeLoad = changesStateBeforeLoad.selectedFileID
-    if (!selectedFileIDBeforeLoad) {
+    const selectedFileIDsBeforeLoad = changesStateBeforeLoad.selectedFileIDs
+
+    // We only render diffs when a single file is selected.
+    if (selectedFileIDsBeforeLoad.length !== 1) {
+      if (changesStateBeforeLoad.diff !== null) {
+        this.updateChangesState(repository, state => ({ diff: null }))
+        this.emitUpdate()
+      }
       return
     }
 
+    const selectedFileIdBeforeLoad = selectedFileIDsBeforeLoad[0]
     const selectedFileBeforeLoad = changesStateBeforeLoad.workingDirectory.findFileWithID(
-      selectedFileIDBeforeLoad
+      selectedFileIdBeforeLoad
     )
-    if (!selectedFileBeforeLoad) {
+
+    if (selectedFileBeforeLoad === null) {
       return
     }
 
@@ -1492,21 +1515,24 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const stateAfterLoad = this.getRepositoryState(repository)
     const changesState = stateAfterLoad.changesState
-    const selectedFileID = changesState.selectedFileID
 
-    // A different file could have been selected while we were loading the diff
-    // in which case we no longer care about the diff we just loaded.
-    if (!selectedFileID) {
+    // A different file (or files) could have been selected while we were
+    // loading the diff in which case we no longer care about the diff we
+    // just loaded.
+    if (changesState.selectedFileIDs.length !== 1) {
       return
     }
-    if (selectedFileID !== selectedFileIDBeforeLoad) {
+
+    const selectedFileID = changesState.selectedFileIDs[0]
+
+    if (selectedFileID !== selectedFileIdBeforeLoad) {
       return
     }
 
     const currentlySelectedFile = changesState.workingDirectory.findFileWithID(
       selectedFileID
     )
-    if (!currentlySelectedFile) {
+    if (currentlySelectedFile === null) {
       return
     }
 
@@ -1629,8 +1655,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
 
       const workingDirectory = WorkingDirectoryStatus.fromFiles(newFiles)
-      const diff = state.selectedFileID ? state.diff : null
-      return { workingDirectory, diff }
+
+      return { workingDirectory }
     })
 
     this.emitUpdate()
@@ -2863,7 +2889,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this.statsStore.recordLaunchStats(stats)
   }
 
-  public async _ignore(repository: Repository, pattern: string): Promise<void> {
+  public async _ignore(
+    repository: Repository,
+    pattern: string | string[]
+  ): Promise<void> {
     const repoSettingsStore = this.getRepositorySettingsStore(repository)
 
     await repoSettingsStore.ignore(pattern)
@@ -3512,7 +3541,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         )
 
         log.error(error.message)
-        this.emitError(error)
+        return this.emitError(error)
       }
 
       await this._fetchRemote(repository, remote, FetchType.UserInitiatedTask)
@@ -3534,6 +3563,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       await this._checkoutBranch(repository, localBranchName)
     }
+
+    this.statsStore.recordPRBranchCheckout()
   }
 
   /**

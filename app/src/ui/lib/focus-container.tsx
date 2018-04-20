@@ -4,6 +4,7 @@ import * as classNames from 'classnames'
 interface IFocusContainerProps {
   readonly className?: string
   readonly onClick?: (event: React.MouseEvent<HTMLDivElement>) => void
+  readonly onKeyDown?: (event: React.KeyboardEvent<HTMLDivElement>) => void
 
   /** Callback used when focus is within container */
   readonly onFocusWithinChanged?: (focusWithin: boolean) => void
@@ -73,6 +74,12 @@ export class FocusContainer extends React.Component<
     }
   }
 
+  private onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (this.props.onKeyDown) {
+      this.props.onKeyDown(e)
+    }
+  }
+
   private onMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     // If someone is clicking on the focuscontainer itself we'll
     // cancel it, that saves us from having a focusout/in cycle
@@ -93,6 +100,7 @@ export class FocusContainer extends React.Component<
         ref={this.onWrapperRef}
         onClick={this.onClick}
         onMouseDown={this.onMouseDown}
+        onKeyDown={this.onKeyDown}
       >
         {this.props.children}
       </div>
