@@ -1,5 +1,17 @@
 {
   "releases": {
+    "1.1.2-beta3": [
+      "[Added] Syntax highlighting for Haxe files - #4445. Thanks @Gama11!",
+      "[Added] Syntax highlighting for R files - #4455. Thanks @say25!",
+      "[Fixed] Fetch to ensure \"Open in Desktop\" has a branch to checkout - #3006",
+      "[Fixed] Handle the click event when opening a binary file - #4446",
+      "[Fixed] Skip fast-forwarding when there are a lot of eligible local branches - #4392",
+      "[Fixed] Image diffs not working for files with upper-case file extension - #4466",
+      "[Fixed] Syntax highlighting not working for files with upper-case file extension - #4462. Thanks @say25!",
+      "[Improved] Getting list of changed files is now more efficient when dealing with thousands of files - #4443",
+      "[Improved] Checking out a Pull Request may skip unnecessary fetch - #4068. Thanks @agisilaos!",
+      "[Improved] Commit summary now has a hint to indicate why committing is disabled - #4429."
+    ],
     "1.1.2-test2": [
       "Refactoring the diff internals to potentially land some SVG improvements"
     ],
