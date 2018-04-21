@@ -53,10 +53,10 @@ aren't as familiar. This spreads knowledge across the team
 
 ### 24 Hours Cooling Off
 
-After being approved, most contributions will remain in this state for 24 hours
-before being merged. The review team does this to ensure everyone on the team,
-who are scattered around the world, has a chance to provide feedback about the
-changes.
+After being approved, most contributions will remain in this state for at least
+24 hours before merging. The review team does this to ensure everyone on the team,
+who are normally spread around the world, has a chance to provide feedback about
+the changes.
 
 ### No Self-Merges
 
