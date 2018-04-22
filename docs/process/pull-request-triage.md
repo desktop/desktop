@@ -21,6 +21,11 @@ a consistent process for contributions from the core team and the community.
 1. The **reviewer** hits the big green merge button and deletes the branch (if
     applicable).
 
+Merged contributions are first published to the beta channel (we aim to publish
+new versions weekly if contributions are availlable) before then being
+published to the production channel (we aim to publish new versions on a monthly
+cadence).
+
 ### When The Review Is Done
 
 We're using GitHub's review tools to co-ordinate feedback, and we like to be
