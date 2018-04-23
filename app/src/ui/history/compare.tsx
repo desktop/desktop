@@ -179,7 +179,7 @@ export class CompareSidebar extends React.Component<
 
       emptyListMessage = (
         <p>
-          The compared branch (<Ref>${currentlyComparedBranchName}</Ref>) is up
+          The compared branch (<Ref>{currentlyComparedBranchName}</Ref>) is up
           to date with your branch
         </p>
       )
@@ -190,7 +190,7 @@ export class CompareSidebar extends React.Component<
       emptyListMessage = (
         <p>
           Your branch is up to date with the compared branch (<Ref>
-            ${currentlyComparedBranchName}
+            {currentlyComparedBranchName}
           </Ref>)
         </p>
       )
