@@ -775,13 +775,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this._executeCompare(repository, action)
 
     if (currentBranch != null && this.currentAheadBehindUpdater != null) {
-      let allOtherBranches = [...recentBranches, ...allBranches]
-
-      if (defaultBranch != null) {
-        allOtherBranches = [defaultBranch, ...allOtherBranches]
-      }
-
-      this.currentAheadBehindUpdater.schedule(currentBranch, allOtherBranches)
+      this.currentAheadBehindUpdater.schedule(currentBranch, allBranches)
     }
   }
 
