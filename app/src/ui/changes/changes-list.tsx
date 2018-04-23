@@ -199,9 +199,11 @@ export class ChangesList extends React.Component<
     if (files.length === 1) {
       const modifiedFile = workingDirectory.files.find(f => f.path === files[0])
 
-      return modifiedFile && this.props.onDiscardChanges(modifiedFile)
+      if (modifiedFile != null) {
+        this.props.onDiscardChanges(modifiedFile)
+      }
     } else {
-      const modifiedFiles: Array<WorkingDirectoryFileChange> = []
+      const modifiedFiles = new Array<WorkingDirectoryFileChange>()
 
       modifiedFiles.forEach(file => {
         const modifiedFile = workingDirectory.files.find(
@@ -213,7 +215,7 @@ export class ChangesList extends React.Component<
         }
       })
 
-      if (modifiedFiles.length) {
+      if (modifiedFiles.length > 0) {
         this.props.onDiscardAllChanges(modifiedFiles)
       }
     }
