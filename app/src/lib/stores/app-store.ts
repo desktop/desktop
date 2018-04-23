@@ -2201,7 +2201,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     //  2. It's not the current branch.
     //  3. It has an upstream.
     //  4. It's not ahead of its upstream.
-    const eligibleBranches = branches.filter(b => {
+    let eligibleBranches = branches.filter(b => {
       return (
         b.type === BranchType.Local &&
         b.name !== currentBranchName &&
@@ -2211,11 +2211,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     if (eligibleBranches.length >= FastForwardBranchesThreshold) {
       log.info(
-        `skipping fast-forward work because there are ${
+        `skipping fast-forward for all branches as there are ${
           eligibleBranches.length
         } local branches - this will run again when there are less than ${FastForwardBranchesThreshold} local branches tracking remotes`
       )
-      return
+
+      const defaultBranch = state.branchesState.defaultBranch
+      eligibleBranches = defaultBranch != null ? [defaultBranch] : []
     }
 
     for (const branch of eligibleBranches) {
