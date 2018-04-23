@@ -125,7 +125,7 @@ export class CompareSidebar extends React.Component<
 
     return (
       <div id="compare-view">
-        <div className="the-box">
+        <div className="compare-form">
           <FancyTextBox
             symbol={OcticonSymbol.gitBranch}
             type="search"
