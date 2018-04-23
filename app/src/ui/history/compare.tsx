@@ -152,7 +152,7 @@ export class CompareSidebar extends React.Component<
   private renderCommits() {
     const formState = this.props.compareState.formState
     return (
-      <div className="the-commits">
+      <div className="compare-commit-list">
         {formState.kind === ComparisonView.None
           ? this.renderCommitList()
           : this.renderTabBar(formState)}
@@ -203,7 +203,7 @@ export class CompareSidebar extends React.Component<
   private renderActiveTab() {
     const formState = this.props.compareState.formState
     return (
-      <div className="the-commits">
+      <div className="compare-commit-list">
         {this.renderCommitList()}
         {formState.kind === ComparisonView.Behind
           ? this.renderMergeCallToAction(formState)
