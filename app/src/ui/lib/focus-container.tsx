@@ -38,6 +38,8 @@ export class FocusContainer extends React.Component<
   }
 
   private onFocusWithinChanged(focusWithin: boolean) {
+    this.setState({ focusWithin })
+
     if (this.focusWithinChangedTimeoutId !== null) {
       cancelAnimationFrame(this.focusWithinChangedTimeoutId)
       this.focusWithinChangedTimeoutId = null
@@ -55,12 +57,10 @@ export class FocusContainer extends React.Component<
   private onWrapperRef = (elem: HTMLDivElement) => {
     if (elem) {
       elem.addEventListener('focusin', () => {
-        this.setState({ focusWithin: true })
         this.onFocusWithinChanged(true)
       })
 
       elem.addEventListener('focusout', () => {
-        this.setState({ focusWithin: false })
         this.onFocusWithinChanged(false)
       })
     }
