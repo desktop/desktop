@@ -1,4 +1,5 @@
 const queue: (config: QueueConfig) => Queue = require('queue')
+import { asRange } from '../../../lib/git'
 
 // eslint-disable-next-line typescript/interface-name-prefix
 interface QueueConfig {
@@ -74,7 +75,7 @@ export class AheadBehindUpdater {
       return
     }
 
-    const range = `${from}...${to}`
+    const range = asRange(from, to)
     getAheadBehind(this.repository, range).then(result => {
       if (result != null) {
         this.comparisonCache.set(from, to, result)

@@ -70,6 +70,6 @@ export async function getBranchAheadBehind(
   // NB: The three dot form means we'll go all the way back to the merge base
   // of the branch and its upstream. Practically this is important for seeing
   // "through" merges.
-  const range = `${branch.name}...${upstream}`
+  const range = asRange(branch.name, upstream)
   return getAheadBehind(repository, range)
 }

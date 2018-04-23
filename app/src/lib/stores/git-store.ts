@@ -52,6 +52,7 @@ import {
   parseSingleUnfoldedTrailer,
   isCoAuthoredByTrailer,
   getAheadBehind,
+  asRange,
 } from '../git'
 import { IGitAccount } from '../git/authentication'
 import { RetryAction, RetryActionType } from '../retry-actions'
@@ -1256,7 +1257,7 @@ export class GitStore extends BaseStore {
     const base = this.tip.branch
     const aheadBehind = await getAheadBehind(
       this.repository,
-      `${base.name}...${branch.name}`
+      asRange(base.name, branch.name)
     )
 
     if (aheadBehind == null) {

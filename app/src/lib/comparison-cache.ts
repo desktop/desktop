@@ -1,24 +1,21 @@
 import { IAheadBehind } from '../models/branch'
+import { asRange } from '../lib/git'
 
 export class ComparisonCache {
   private backingStore = new Map<string, IAheadBehind>()
 
-  private static getKey(from: string, to: string) {
-    return `${from}...${to}`
-  }
-
   public set(from: string, to: string, value: IAheadBehind) {
-    const key = ComparisonCache.getKey(from, to)
+    const key = asRange(from, to)
     this.backingStore.set(key, value)
   }
 
   public get(from: string, to: string) {
-    const key = ComparisonCache.getKey(from, to)
+    const key = asRange(from, to)
     return this.backingStore.get(key) || null
   }
 
   public has(from: string, to: string) {
-    const key = ComparisonCache.getKey(from, to)
+    const key = asRange(from, to)
     return this.backingStore.has(key)
   }
 
