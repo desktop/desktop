@@ -34,6 +34,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   mergesInitiatedFromComparison: 0,
   updateFromDefaultBranchMenuCount: 0,
   mergeIntoCurrentBranchMenuCount: 0,
+  prBranchCheckouts: 0,
 }
 
 interface ICalculatedStats {
@@ -331,6 +332,13 @@ export class StatsStore {
   public recordMenuInitatedMerge(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       mergeIntoCurrentBranchMenuCount: m.mergeIntoCurrentBranchMenuCount + 1,
+    }))
+  }
+
+  /** Record that the user checked out a PR branch */
+  public recordPRBranchCheckout(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      prBranchCheckouts: m.prBranchCheckouts + 1,
     }))
   }
 

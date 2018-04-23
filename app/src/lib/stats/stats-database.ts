@@ -55,6 +55,9 @@ export interface IDailyMeasures {
 
   /** The number of times the `Branch -> Merge Into Current Branch` menu item is used */
   readonly mergeIntoCurrentBranchMenuCount: number
+
+  /** The number of times the user checks out a branch using the PR menu */
+  readonly prBranchCheckouts: number
 }
 
 export class StatsDatabase extends Dexie {
