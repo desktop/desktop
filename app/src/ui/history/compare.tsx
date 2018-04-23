@@ -21,6 +21,7 @@ import { CompareBranchListItem } from './compare-branch-list-item'
 import { FancyTextBox } from '../lib/fancy-text-box'
 import { OcticonSymbol } from '../octicons'
 import { SelectionSource } from '../lib/filter-list'
+import { Ref } from '../lib/ref'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -174,10 +175,20 @@ export class CompareSidebar extends React.Component<
     let emptyListMessage
     if (compareState.formState.kind === ComparisonView.Ahead) {
         const currentlyComparedBranchName = compareState.formState.comparisonBranch.name
-        emptyListMessage = `The compared branch (${currentlyComparedBranchName}) is up to date with your branch.`
+        emptyListMessage = (
+          <p>
+            The compared branch (<Ref>${currentlyComparedBranchName}</Ref>)
+            is up to date with your branch
+          </p>
+        )
     } else if (compareState.formState.kind === ComparisonView.Behind) {
         const currentlyComparedBranchName = compareState.formState.comparisonBranch.name
-        emptyListMessage = `Your branch is up to date with the compared branch (${currentlyComparedBranchName})`
+        emptyListMessage = (
+          <p>
+            Your branch is up to date with the compared branch
+            (<Ref>${currentlyComparedBranchName}</Ref>)
+          </p>
+        )
     } else {
       emptyListMessage = 'No history'
     }
