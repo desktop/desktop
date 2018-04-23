@@ -3,6 +3,18 @@ import { git } from './core'
 import { Repository } from '../../models/repository'
 import { Branch, BranchType, IAheadBehind } from '../../models/branch'
 
+/**
+ * Convert two refs into the Git range syntax.
+ *
+ * Each parameter can be the commit SHA or a ref name.
+ *
+ * @param from The start of the range
+ * @param to The end of the range
+ */
+export function asRange(from: string, to: string) {
+  return `${from}...${to}`
+}
+
 /** Calculate the number of commits the range is ahead and behind. */
 export async function getAheadBehind(
   repository: Repository,
