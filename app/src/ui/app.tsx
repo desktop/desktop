@@ -307,10 +307,12 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
 
     const target = document.activeElement
+    const webContents = remote.getCurrentWebContents()
 
     if (target.dispatchEvent(event)) {
+      webContents.selectAll()
     } else {
-      remote.getCurrentWebContents().unselect()
+      webContents.unselect()
     }
   }
 
