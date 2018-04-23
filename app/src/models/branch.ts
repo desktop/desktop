@@ -8,6 +8,17 @@ export enum BranchType {
   Remote = 1,
 }
 
+/**
+ * Check if a branch is eligible for beign fast forarded.
+ *
+ * Requirements:
+ *   1. It's local.
+ *   2. It's not the current branch.
+ *   3. It has an upstream.
+ *
+ * @param branch The branch to validate
+ * @param currentBranchName The current branch in the repository
+ */
 export function eligibleForFastForward(
   branch: Branch,
   currentBranchName: string | null

@@ -2196,12 +2196,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const currentBranchName =
       tip.kind === TipState.Valid ? tip.branch.name : null
 
-    // A branch is only eligible for being fast forwarded if:
-    //  1. It's local.
-    //  2. It's not the current branch.
-    //  3. It has an upstream.
-    //  4. It's not ahead of its upstream.
-
     let eligibleBranches = branches.filter(b =>
       eligibleForFastForward(b, currentBranchName)
     )
@@ -2228,6 +2222,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
 
       const { ahead, behind } = aheadBehind
+      // Only perform the fast forward if the branch is behind it's upstream
+      // branch and has no local commits.
       if (ahead === 0 && behind > 0) {
         // At this point we're guaranteed this is non-null since we've filtered
         // out any branches will null upstreams above when creating
