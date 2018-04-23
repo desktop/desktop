@@ -260,7 +260,7 @@ export class CompareSidebar extends React.Component<
           This will merge
           <strong>{` ${count} ${pluralized}`}</strong>
           {` `}from{` `}
-          <strong>{branch.name}</strong>)
+          <strong>{branch.name}</strong>
         </div>
       )
     }
