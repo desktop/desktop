@@ -34,7 +34,7 @@ import {
 } from '../../lib/repository-matching'
 import { API, getAccountForEndpoint, IAPIUser } from '../../lib/api'
 import { caseInsensitiveCompare } from '../compare'
-import { Branch, BranchType } from '../../models/branch'
+import { Branch, eligibleForFastForward } from '../../models/branch'
 import { TipState } from '../../models/tip'
 import { CloningRepository } from '../../models/cloning-repository'
 import { Commit } from '../../models/commit'
@@ -2201,13 +2201,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     //  2. It's not the current branch.
     //  3. It has an upstream.
     //  4. It's not ahead of its upstream.
-    let eligibleBranches = branches.filter(b => {
-      return (
-        b.type === BranchType.Local &&
-        b.name !== currentBranchName &&
-        b.upstream
-      )
-    })
+
+    let eligibleBranches = branches.filter(b =>
+      eligibleForFastForward(b, currentBranchName)
+    )
 
     if (eligibleBranches.length >= FastForwardBranchesThreshold) {
       log.info(
@@ -2217,7 +2214,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
 
       const defaultBranch = state.branchesState.defaultBranch
-      eligibleBranches = defaultBranch != null ? [defaultBranch] : []
+      eligibleBranches =
+        defaultBranch != null &&
+        eligibleForFastForward(defaultBranch, currentBranchName)
+          ? [defaultBranch]
+          : []
     }
 
     for (const branch of eligibleBranches) {
