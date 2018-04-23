@@ -208,7 +208,7 @@ export class ChangesList extends React.Component<
       files.forEach(file => {
         const modifiedFile = workingDirectory.files.find(f => f.path === file)
 
-        if (modifiedFile !== undefined) {
+        if (modifiedFile != null) {
           modifiedFiles.push(modifiedFile)
         }
       })
