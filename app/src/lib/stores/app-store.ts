@@ -697,7 +697,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private startAheadBehindUpdater(repository: Repository) {
-    if (this.currentAheadBehindUpdater) {
+    if (this.currentAheadBehindUpdater != null) {
       fatalError(
         `An ahead/behind updater is already active and cannot start updating on ${
           repository.name
@@ -722,7 +722,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private stopAheadBehindUpdate() {
     const updater = this.currentAheadBehindUpdater
 
-    if (updater) {
+    if (updater != null) {
       updater.stop()
       this.currentAheadBehindUpdater = null
     }
@@ -741,9 +741,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const tip = branchesState.tip
     const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
 
-    const allBranches = currentBranch
-      ? branchesState.allBranches.filter(b => b.name !== currentBranch.name)
-      : branchesState.allBranches
+    const allBranches =
+      currentBranch != null
+        ? branchesState.allBranches.filter(b => b.name !== currentBranch.name)
+        : branchesState.allBranches
     const recentBranches = currentBranch
       ? branchesState.recentBranches.filter(b => b.name !== currentBranch.name)
       : branchesState.recentBranches
@@ -769,7 +770,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const cachedState = compareState.formState
 
-    const action = initialAction ? initialAction : getInitialAction(cachedState)
+    const action =
+      initialAction != null ? initialAction : getInitialAction(cachedState)
     this._executeCompare(repository, action)
 
     if (currentBranch != null && this.currentAheadBehindUpdater != null) {
