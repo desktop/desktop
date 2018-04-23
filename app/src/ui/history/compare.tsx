@@ -265,7 +265,7 @@ export class CompareSidebar extends React.Component<
       )
     }
 
-    return <div className="merge-message">There are no commits</div>
+    return null
   }
 
   private onTabClicked = (index: number) => {
