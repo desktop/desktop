@@ -171,10 +171,14 @@ export class CompareSidebar extends React.Component<
     const selectedCommit = this.state.selectedCommit
     const commitSHAs = compareState.commitSHAs
 
-    const emptyListMessage =
-      compareState.formState.kind === ComparisonView.None
-        ? 'No history'
-        : 'No commits'
+    let emptyListMessage
+    if (compareState.formState.kind === ComparisonView.Ahead) {
+        emptyListMessage = 'No commits ahead'
+    } else if (compareState.formState.kind === ComparisonView.Behind) {
+        emptyListMessage = 'No commits behind'
+    } else {
+      emptyListMessage = 'No history'
+    }
 
     return (
       <CommitList
