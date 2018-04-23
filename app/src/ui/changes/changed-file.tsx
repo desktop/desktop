@@ -17,7 +17,7 @@ interface IChangedFileProps {
   readonly onContextMenu: (
     path: string,
     status: AppFileStatus,
-    event: React.MouseEvent<any>
+    event: React.MouseEvent<HTMLDivElement>
   ) => void
 }
 
