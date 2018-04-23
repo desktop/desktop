@@ -8,6 +8,17 @@ export enum BranchType {
   Remote = 1,
 }
 
+export function eligibleForFastForward(
+  branch: Branch,
+  currentBranchName: string | null
+): boolean {
+  return (
+    branch.type === BranchType.Local &&
+    branch.name !== currentBranchName &&
+    branch.upstream != null
+  )
+}
+
 /** A branch as loaded from Git. */
 export class Branch {
   /** The short name of the branch. E.g., `master`. */
