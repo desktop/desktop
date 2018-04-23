@@ -20,14 +20,6 @@ export class CompareBranchListItem extends React.Component<
   ICompareBranchListItemProps,
   {}
 > {
-  public constructor(props: ICompareBranchListItemProps) {
-    super(props)
-
-    this.state = {
-      compareResult: null,
-    }
-  }
-
   public render() {
     const isCurrentBranch = this.props.isCurrentBranch
     const branch = this.props.branch
