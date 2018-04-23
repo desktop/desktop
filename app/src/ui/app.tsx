@@ -298,7 +298,11 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   /**
-   * Handler for the edit menu item 'Select All'.
+   * Handler for the 'select-all' menu event, dispatches
+   * a custom DOM event originating from the element which
+   * currently has keyboard focus. Components have a chance
+   * to intercept this event and implement their own 'select
+   * all' logic.
    */
   private selectAll() {
     const event = new CustomEvent('select-all', {
@@ -306,13 +310,8 @@ export class App extends React.Component<IAppProps, IAppState> {
       cancelable: true,
     })
 
-    const target = document.activeElement
-    const webContents = remote.getCurrentWebContents()
-
-    if (target.dispatchEvent(event)) {
-      webContents.selectAll()
-    } else {
-      webContents.unselect()
+    if (document.activeElement.dispatchEvent(event)) {
+      remote.getCurrentWebContents().selectAll()
     }
   }
 
