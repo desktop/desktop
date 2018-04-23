@@ -301,7 +301,17 @@ export class App extends React.Component<IAppProps, IAppState> {
    * Handler for the edit menu item 'Select All'.
    */
   private selectAll() {
-    remote.getCurrentWebContents().selectAll()
+    const event = new CustomEvent('select-all', {
+      bubbles: true,
+      cancelable: true,
+    })
+
+    const target = document.activeElement
+
+    if (target.dispatchEvent(event)) {
+    } else {
+      remote.getCurrentWebContents().unselect()
+    }
   }
 
   private boomtown() {
