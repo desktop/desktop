@@ -173,9 +173,11 @@ export class CompareSidebar extends React.Component<
 
     let emptyListMessage
     if (compareState.formState.kind === ComparisonView.Ahead) {
-        emptyListMessage = 'No commits ahead'
+        const currentlyComparedBranchName = compareState.formState.comparisonBranch.name
+        emptyListMessage = `The branch "${currentlyComparedBranchName}" is up to date with your branch.`
     } else if (compareState.formState.kind === ComparisonView.Behind) {
-        emptyListMessage = 'No commits behind'
+        const currentlyComparedBranchName = compareState.formState.comparisonBranch.name
+        emptyListMessage = `Your branch is up to date with the branch "${currentlyComparedBranchName}".`
     } else {
       emptyListMessage = 'No history'
     }
