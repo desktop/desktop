@@ -808,11 +808,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
 
       if (compare !== null) {
+        const { ahead, behind } = compare
+        const aheadBehind = { ahead, behind }
+
         this.updateCompareState(repository, s => ({
           formState: {
             comparisonBranch,
             kind: action.mode,
-            aheadBehind: { ahead: compare.ahead, behind: compare.behind },
+            aheadBehind,
           },
           commitSHAs: compare.commits.map(commit => commit.sha),
         }))
