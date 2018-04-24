@@ -172,30 +172,26 @@ export class CompareSidebar extends React.Component<
     const selectedCommit = this.state.selectedCommit
     const commitSHAs = compareState.commitSHAs
 
-    let emptyListMessage
-    if (compareState.formState.kind === ComparisonView.Ahead) {
-      const currentlyComparedBranchName =
-        compareState.formState.comparisonBranch.name
-
-      emptyListMessage = (
-        <p>
-          The compared branch (<Ref>{currentlyComparedBranchName}</Ref>) is up
-          to date with your branch
-        </p>
-      )
-    } else if (compareState.formState.kind === ComparisonView.Behind) {
-      const currentlyComparedBranchName =
-        compareState.formState.comparisonBranch.name
-
-      emptyListMessage = (
-        <p>
-          Your branch is up to date with the compared branch (<Ref>
-            {currentlyComparedBranchName}
-          </Ref>)
-        </p>
-      )
-    } else {
+    let emptyListMessage: string | JSX.Element
+    if (compareState.formState.kind === ComparisonView.None) {
       emptyListMessage = 'No history'
+    } else {
+      const currentlyComparedBranchName =
+        compareState.formState.comparisonBranch.name
+
+      emptyListMessage =
+        compareState.formState.kind === ComparisonView.Ahead ? (
+          <p>
+            The compared branch (<Ref>{currentlyComparedBranchName}</Ref>) is up
+            to date with your branch
+          </p>
+        ) : (
+          <p>
+            Your branch is up to date with the compared branch (<Ref>
+              {currentlyComparedBranchName}
+            </Ref>)
+          </p>
+        )
     }
 
     return (
