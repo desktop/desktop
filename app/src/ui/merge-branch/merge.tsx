@@ -1,12 +1,16 @@
 import * as React from 'react'
-import { Button } from '../lib/button'
+
+import { getAheadBehind } from '../../lib/git'
 import { Dispatcher } from '../../lib/dispatcher'
+
 import { Branch } from '../../models/branch'
 import { Repository } from '../../models/repository'
-import { getAheadBehind } from '../../lib/git'
+
+import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
+
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
-import { BranchList } from '../branches'
+import { BranchList, IBranchListItem, renderDefaultBranch } from '../branches'
 
 interface IMergeProps {
   readonly dispatcher: Dispatcher
@@ -128,6 +132,13 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     )
   }
 
+  private renderBranch = (
+    item: IBranchListItem,
+    matches: ReadonlyArray<number>
+  ) => {
+    return renderDefaultBranch(item, matches, this.props.currentBranch)
+  }
+
   public render() {
     const selectedBranch = this.state.selectedBranch
     const currentBranch = this.props.currentBranch
@@ -156,6 +167,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
             selectedBranch={selectedBranch}
             onSelectionChanged={this.onSelectionChanged}
             canCreateNewBranch={false}
+            renderBranch={this.renderBranch}
           />
         </DialogContent>
         <DialogFooter>

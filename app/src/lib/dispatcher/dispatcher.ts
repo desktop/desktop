@@ -17,6 +17,7 @@ import {
   Foldout,
   FoldoutType,
   ImageDiffType,
+  CompareAction,
 } from '../app-state'
 import { AppStore } from '../stores/app-store'
 import { CloningRepository } from '../../models/cloning-repository'
@@ -1164,5 +1165,22 @@ export class Dispatcher {
     coAuthors: ReadonlyArray<IAuthor>
   ) {
     return this.appStore._setCoAuthors(repository, coAuthors)
+  }
+
+  /**
+   * Initialze the compare state for the current repository.
+   */
+  public initializeCompare(
+    repository: Repository,
+    initialAction?: CompareAction
+  ) {
+    return this.appStore._initializeCompare(repository, initialAction)
+  }
+
+  /**
+   * Update the compare state for the current repository
+   */
+  public executeCompare(repository: Repository, action: CompareAction) {
+    return this.appStore._executeCompare(repository, action)
   }
 }

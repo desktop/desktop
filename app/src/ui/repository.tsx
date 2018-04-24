@@ -6,11 +6,11 @@ import { UiView } from './ui-view'
 import { Changes, ChangesSidebar } from './changes'
 import { NoChanges } from './changes/no-changes'
 import { MultipleSelection } from './changes/multiple-selection'
-import { History, HistorySidebar } from './history'
+import { History, HistorySidebar, CompareSidebar } from './history'
 import { Resizable } from './resizable'
 import { TabBar } from './tab-bar'
 import {
-  IRepositoryState as IRepositoryModelState,
+  IRepositoryState,
   RepositorySection,
   ImageDiffType,
 } from '../lib/app-state'
@@ -19,13 +19,15 @@ import { IssuesStore, GitHubUserStore } from '../lib/stores'
 import { assertNever } from '../lib/fatal-error'
 import { Octicon, OcticonSymbol } from './octicons'
 import { Account } from '../models/account'
+import { enableCompareSidebar } from '../lib/feature-flag'
+import { FocusContainer } from './lib/focus-container'
 
 /** The widest the sidebar can be with the minimum window size. */
 const MaxSidebarWidth = 495
 
-interface IRepositoryProps {
+interface IRepositoryViewProps {
   readonly repository: Repo
-  readonly state: IRepositoryModelState
+  readonly state: IRepositoryState
   readonly dispatcher: Dispatcher
   readonly emoji: Map<string, string>
   readonly sidebarWidth: number
@@ -49,12 +51,27 @@ interface IRepositoryProps {
   readonly onOpenInExternalEditor: (fullPath: string) => void
 }
 
+interface IRepositoryViewState {
+  readonly sidebarHasFocusWithin: boolean
+}
+
 const enum Tab {
   Changes = 0,
   History = 1,
 }
 
-export class RepositoryView extends React.Component<IRepositoryProps, {}> {
+export class RepositoryView extends React.Component<
+  IRepositoryViewProps,
+  IRepositoryViewState
+> {
+  public constructor(props: IRepositoryViewProps) {
+    super(props)
+
+    this.state = {
+      sidebarHasFocusWithin: false,
+    }
+  }
+
   private renderTabs(): JSX.Element {
     const hasChanges =
       this.props.state.changesState.workingDirectory.files.length > 0
@@ -66,7 +83,7 @@ export class RepositoryView extends React.Component<IRepositoryProps, {}> {
     return (
       <TabBar selectedIndex={selectedTab} onTabClicked={this.onTabClicked}>
         <span className="with-indicator">
-          <span>Changes</span>
+          <span>{enableCompareSidebar() ? 'Commit' : 'Changes'}</span>
           {hasChanges ? (
             <Octicon
               className="indicator"
@@ -74,7 +91,7 @@ export class RepositoryView extends React.Component<IRepositoryProps, {}> {
             />
           ) : null}
         </span>
-        <span>History</span>
+        <span>{enableCompareSidebar() ? 'Compare' : 'History'}</span>
       </TabBar>
     )
   }
@@ -135,13 +152,36 @@ export class RepositoryView extends React.Component<IRepositoryProps, {}> {
     )
   }
 
+  private renderCompareSidebar(): JSX.Element {
+    const tip = this.props.state.branchesState.tip
+    const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
+
+    return (
+      <CompareSidebar
+        repository={this.props.repository}
+        compareState={this.props.state.compareState}
+        currentBranch={currentBranch}
+        gitHubUsers={this.props.state.gitHubUsers}
+        emoji={this.props.emoji}
+        commitLookup={this.props.state.commitLookup}
+        localCommitSHAs={this.props.state.localCommitSHAs}
+        dispatcher={this.props.dispatcher}
+        onRevertCommit={this.onRevertCommit}
+        onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
+        sidebarHasFocusWithin={this.state.sidebarHasFocusWithin}
+      />
+    )
+  }
+
   private renderSidebarContents(): JSX.Element {
     const selectedSection = this.props.state.selectedSection
 
     if (selectedSection === RepositorySection.Changes) {
       return this.renderChangesSidebar()
     } else if (selectedSection === RepositorySection.History) {
-      return this.renderHistorySidebar()
+      return enableCompareSidebar()
+        ? this.renderCompareSidebar()
+        : this.renderHistorySidebar()
     } else {
       return assertNever(selectedSection, 'Unknown repository section')
     }
@@ -157,17 +197,24 @@ export class RepositoryView extends React.Component<IRepositoryProps, {}> {
 
   private renderSidebar(): JSX.Element {
     return (
-      <Resizable
-        id="repository-sidebar"
-        width={this.props.sidebarWidth}
-        onReset={this.handleSidebarWidthReset}
-        onResize={this.handleSidebarResize}
-        maximumWidth={MaxSidebarWidth}
-      >
-        {this.renderTabs()}
-        {this.renderSidebarContents()}
-      </Resizable>
+      <FocusContainer onFocusWithinChanged={this.onSidebarFocusWithinChanged}>
+        <Resizable
+          id="repository-sidebar"
+          width={this.props.sidebarWidth}
+          onReset={this.handleSidebarWidthReset}
+          onResize={this.handleSidebarResize}
+          maximumWidth={MaxSidebarWidth}
+        >
+          {this.renderTabs()}
+          {this.renderSidebarContents()}
+        </Resizable>
+      </FocusContainer>
     )
+  }
+
+  private onSidebarFocusWithinChanged = (sidebarHasFocusWithin: boolean) => {
+    // this lets us know that focus is somewhere within the sidebar
+    this.setState({ sidebarHasFocusWithin })
   }
 
   private renderContent(): JSX.Element | null {

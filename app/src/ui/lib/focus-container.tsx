@@ -5,6 +5,9 @@ interface IFocusContainerProps {
   readonly className?: string
   readonly onClick?: (event: React.MouseEvent<HTMLDivElement>) => void
   readonly onKeyDown?: (event: React.KeyboardEvent<HTMLDivElement>) => void
+
+  /** Callback used when focus is within container */
+  readonly onFocusWithinChanged?: (focusWithin: boolean) => void
 }
 
 interface IFocusContainerState {
@@ -27,20 +30,43 @@ export class FocusContainer extends React.Component<
   IFocusContainerState
 > {
   private wrapperRef: HTMLDivElement | null = null
+  private focusWithinChangedTimeoutId: number | null = null
 
   public constructor(props: IFocusContainerProps) {
     super(props)
     this.state = { focusWithin: false }
   }
 
+  /**
+   * Update the focus state of the container, aborting any in-flight animation
+   *
+   * @param focusWithin the new focus state of the control
+   */
+  private onFocusWithinChanged(focusWithin: boolean) {
+    this.setState({ focusWithin })
+
+    if (this.focusWithinChangedTimeoutId !== null) {
+      cancelAnimationFrame(this.focusWithinChangedTimeoutId)
+      this.focusWithinChangedTimeoutId = null
+    }
+
+    this.focusWithinChangedTimeoutId = requestAnimationFrame(() => {
+      if (this.props.onFocusWithinChanged) {
+        this.props.onFocusWithinChanged(focusWithin)
+      }
+
+      this.focusWithinChangedTimeoutId = null
+    })
+  }
+
   private onWrapperRef = (elem: HTMLDivElement) => {
     if (elem) {
       elem.addEventListener('focusin', () => {
-        this.setState({ focusWithin: true })
+        this.onFocusWithinChanged(true)
       })
 
       elem.addEventListener('focusout', () => {
-        this.setState({ focusWithin: false })
+        this.onFocusWithinChanged(false)
       })
     }
 
