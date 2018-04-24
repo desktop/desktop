@@ -820,6 +820,29 @@ export class AppStore extends TypedBaseStore<IAppState> {
           commitSHAs: compare.commits.map(commit => commit.sha),
         }))
 
+        const tip = gitStore.tip
+
+        let currentSha: string | null = null
+
+        if (tip.kind === TipState.Valid) {
+          currentSha = tip.branch.tip.sha
+        } else if (tip.kind === TipState.Detached) {
+          currentSha = tip.currentSha
+        }
+
+        if (this.currentAheadBehindUpdater != null && currentSha != null) {
+          const from =
+            action.mode === ComparisonView.Ahead
+              ? comparisonBranch.tip.sha
+              : currentSha
+          const to =
+            action.mode === ComparisonView.Ahead
+              ? currentSha
+              : comparisonBranch.tip.sha
+
+          this.currentAheadBehindUpdater.insert(from, to, aheadBehind)
+        }
+
         return this.emitUpdate()
       }
     } else {
