@@ -370,7 +370,7 @@ export class List extends React.Component<IListProps, IListState> {
 
     this.list = element
 
-    if (element) {
+    if (element !== null) {
       // This is a custom event that desktop emits through <App />
       // when the user selects the Edit > Select all menu item. We
       // hijack it and select all list items rather than let it bubble
@@ -382,7 +382,7 @@ export class List extends React.Component<IListProps, IListState> {
     if (this.resizeObserver) {
       this.resizeObserver.disconnect()
 
-      if (element) {
+      if (element !== null) {
         this.resizeObserver.observe(element)
       } else {
         this.setState({ width: undefined, height: undefined })
