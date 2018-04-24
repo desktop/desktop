@@ -9,7 +9,7 @@ import {
 import { parsePorcelainStatus, mapStatus } from '../status-parser'
 import { DiffSelectionType, DiffSelection } from '../../models/diff'
 import { Repository } from '../../models/repository'
-import { IAheadBehind } from './rev-list'
+import { IAheadBehind } from '../../models/branch'
 import { fatalError } from '../../lib/fatal-error'
 
 /** The encapsulation of the result from 'git status' */

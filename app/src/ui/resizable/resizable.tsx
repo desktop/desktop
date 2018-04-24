@@ -9,8 +9,8 @@ import * as React from 'react'
 export class Resizable extends React.Component<IResizableProps, {}> {
   public static defaultProps: IResizableProps = {
     width: 250,
-    minimumWidth: 150,
     maximumWidth: 350,
+    minimumWidth: 200,
   }
 
   private startWidth: number | null = null

@@ -8,6 +8,17 @@ export enum BranchType {
   Remote = 1,
 }
 
+/** The number of commits a revision range is ahead/behind. */
+export interface IAheadBehind {
+  readonly ahead: number
+  readonly behind: number
+}
+
+/** The result of comparing two refs in a repository. */
+export interface ICompareResult extends IAheadBehind {
+  readonly commits: ReadonlyArray<Commit>
+}
+
 /**
  * Check if a branch is eligible for beign fast forarded.
  *

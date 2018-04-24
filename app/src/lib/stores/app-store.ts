@@ -17,6 +17,12 @@ import {
   ImageDiffType,
   IRevertProgress,
   IFetchProgress,
+  ICompareState,
+  ComparisonView,
+  CompareAction,
+  CompareActionKind,
+  IDisplayHistory,
+  ICompareBranch,
 } from '../app-state'
 import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
@@ -121,6 +127,9 @@ import { PullRequestUpdater } from './helpers/pull-request-updater'
 import * as QueryString from 'querystring'
 import { IRemote, ForkedRemotePrefix } from '../../models/remote'
 import { IAuthor } from '../../models/author'
+import { ComparisonCache } from '../comparison-cache'
+import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
+import { enableCompareSidebar } from '../feature-flag'
 
 /**
  * Enum used by fetch to determine if
@@ -172,6 +181,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** The pull request updater for the currently selected repository */
   private currentPullRequestUpdater: PullRequestUpdater | null = null
+
+  /** The ahead/behind updater or the currently selected repository */
+  private currentAheadBehindUpdater: AheadBehindUpdater | null = null
 
   private repositoryState = new Map<string, IRepositoryState>()
   private showWelcomeFlow = false
@@ -419,6 +431,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
         currentPullRequest: null,
         isLoadingPullRequests: false,
       },
+      compareState: {
+        formState: { kind: ComparisonView.None },
+        commitSHAs: [],
+        aheadBehindCache: new ComparisonCache(),
+        allBranches: new Array<Branch>(),
+        recentBranches: new Array<Branch>(),
+        defaultBranch: null,
+      },
       commitAuthor: null,
       gitHubUsers: new Map<string, IGitHubUser>(),
       commitLookup: new Map<string, Commit>(),
@@ -466,6 +486,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const historyState = state.historyState
       const newValues = fn(historyState)
       return { historyState: merge(historyState, newValues) }
+    })
+  }
+
+  private updateCompareState<K extends keyof ICompareState>(
+    repository: Repository,
+    fn: (state: ICompareState) => Pick<ICompareState, K>
+  ) {
+    this.updateRepositoryState(repository, state => {
+      const compareState = state.compareState
+      const newValues = fn(compareState)
+
+      return { compareState: merge(compareState, newValues) }
     })
   }
 
@@ -662,6 +694,134 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     this.emitUpdate()
+  }
+
+  private startAheadBehindUpdater(repository: Repository) {
+    if (this.currentAheadBehindUpdater != null) {
+      fatalError(
+        `An ahead/behind updater is already active and cannot start updating on ${
+          repository.name
+        }`
+      )
+
+      return
+    }
+
+    const updater = new AheadBehindUpdater(repository, aheadBehindCache => {
+      this.updateCompareState(repository, state => ({
+        aheadBehindCache,
+      }))
+      this.emitUpdate()
+    })
+
+    this.currentAheadBehindUpdater = updater
+
+    this.currentAheadBehindUpdater.start()
+  }
+
+  private stopAheadBehindUpdate() {
+    const updater = this.currentAheadBehindUpdater
+
+    if (updater != null) {
+      updater.stop()
+      this.currentAheadBehindUpdater = null
+    }
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _initializeCompare(
+    repository: Repository,
+    initialAction?: CompareAction
+  ) {
+    log.debug('[AppStore] initializing compare state')
+
+    const state = this.getRepositoryState(repository)
+
+    const branchesState = state.branchesState
+    const tip = branchesState.tip
+    const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
+
+    const allBranches =
+      currentBranch != null
+        ? branchesState.allBranches.filter(b => b.name !== currentBranch.name)
+        : branchesState.allBranches
+    const recentBranches = currentBranch
+      ? branchesState.recentBranches.filter(b => b.name !== currentBranch.name)
+      : branchesState.recentBranches
+
+    const cachedDefaultBranch = branchesState.defaultBranch
+
+    // only include the default branch when comparing if the user is not on the default branch
+    // and it also exists in the repository
+    const defaultBranch =
+      currentBranch != null &&
+      cachedDefaultBranch != null &&
+      currentBranch.name !== cachedDefaultBranch.name
+        ? cachedDefaultBranch
+        : null
+
+    this.updateCompareState(repository, state => ({
+      allBranches,
+      recentBranches,
+      defaultBranch,
+    }))
+
+    const compareState = state.compareState
+
+    const cachedState = compareState.formState
+
+    const action =
+      initialAction != null ? initialAction : getInitialAction(cachedState)
+    this._executeCompare(repository, action)
+
+    if (currentBranch != null && this.currentAheadBehindUpdater != null) {
+      this.currentAheadBehindUpdater.schedule(currentBranch, allBranches)
+    }
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _executeCompare(
+    repository: Repository,
+    action: CompareAction
+  ): Promise<void> {
+    const gitStore = this.getGitStore(repository)
+    const kind = action.kind
+
+    if (action.kind === CompareActionKind.History) {
+      await gitStore.loadHistory()
+
+      const repoState = this.getRepositoryState(repository).historyState
+      const commits = repoState.history
+
+      this.updateCompareState(repository, state => ({
+        formState: {
+          kind: ComparisonView.None,
+        },
+        commitSHAs: commits,
+      }))
+      return this.emitUpdate()
+    } else if (action.kind === CompareActionKind.Branch) {
+      const comparisonBranch = action.branch
+      const compare = await gitStore.getCompareCommits(
+        comparisonBranch,
+        action.mode
+      )
+
+      if (compare !== null) {
+        this.updateCompareState(repository, s => ({
+          formState: {
+            comparisonBranch,
+            kind: action.mode,
+            aheadBehind: { ahead: compare.ahead, behind: compare.behind },
+          },
+          commitSHAs: compare.commits.map(commit => commit.sha),
+        }))
+
+        return this.emitUpdate()
+      }
+    } else {
+      return assertNever(action, `Unknown action: ${kind}`)
+    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -867,9 +1027,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // ensures we clean up the existing background fetcher correctly (if set)
     this.stopBackgroundFetching()
     this.stopPullRequestUpdater()
+    this.stopAheadBehindUpdate()
 
     this.startBackgroundFetching(repository, !previouslySelectedRepository)
     this.startPullRequestUpdater(repository)
+
+    if (enableCompareSidebar()) {
+      this.startAheadBehindUpdater(repository)
+    }
 
     this.refreshMentionables(repository)
 
@@ -1548,6 +1713,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this._updateCurrentPullRequest(repository)
     this.updateMenuItemLabels(repository)
+    this._initializeCompare(repository)
   }
 
   /**
@@ -1736,6 +1902,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       await this._refreshRepository(repository)
     } finally {
       this.updateCheckoutProgress(repository, null)
+      this._initializeCompare(repository, { kind: CompareActionKind.History })
     }
 
     return repository
@@ -3424,4 +3591,25 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
 function forkPullRequestRemoteName(remoteName: string) {
   return `${ForkedRemotePrefix}${remoteName}`
+}
+
+/**
+ * Map the cached state of the compare view to an action
+ * to perform which is then used to compute the compare
+ * view contents.
+ */
+function getInitialAction(
+  cachedState: IDisplayHistory | ICompareBranch
+): CompareAction {
+  if (cachedState.kind === ComparisonView.None) {
+    return {
+      kind: CompareActionKind.History,
+    }
+  }
+
+  return {
+    kind: CompareActionKind.Branch,
+    branch: cachedState.comparisonBranch,
+    mode: cachedState.kind,
+  }
 }
