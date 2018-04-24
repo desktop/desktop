@@ -37,6 +37,11 @@ export class FocusContainer extends React.Component<
     this.state = { focusWithin: false }
   }
 
+  /**
+   * Update the focus state of the container, aborting any in-flight animation
+   *
+   * @param focusWithin the new focus state of the control
+   */
   private onFocusWithinChanged(focusWithin: boolean) {
     this.setState({ focusWithin })
 
