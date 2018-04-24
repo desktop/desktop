@@ -53,8 +53,21 @@ export interface IKeyboardSource {
   readonly event: React.KeyboardEvent<any>
 }
 
+/**
+ * Interface describing a user initiated selection of all list
+ * items (usually by clicking the Edit > Select all menu item in
+ * the application window). This is highly specific to GitHub Desktop
+ */
+export interface ISelectAllSource {
+  readonly kind: 'select-all'
+}
+
 /** A type union of possible sources of a selection changed event */
-export type SelectionSource = IMouseClickSource | IHoverSource | IKeyboardSource
+export type SelectionSource =
+  | IMouseClickSource
+  | IHoverSource
+  | IKeyboardSource
+  | ISelectAllSource
 
 /**
  * Determine the next selectable row, given the direction and a starting

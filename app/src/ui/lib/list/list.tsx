@@ -10,6 +10,7 @@ import {
   SelectionDirection,
   IMouseClickSource,
   IKeyboardSource,
+  ISelectAllSource,
 } from './selection'
 import { createUniqueId, releaseUniqueId } from '../../lib/id-pool'
 import { range } from '../../../lib/range'
@@ -299,13 +300,53 @@ export class List extends React.Component<IListProps, IListState> {
     }
   }
 
+  private onSelectAll = (event: Event) => {
+    const selectionMode = this.props.selectionMode
+
+    if (selectionMode !== 'range' && selectionMode !== 'multi') {
+      return
+    }
+
+    event.preventDefault()
+
+    if (this.props.rowCount <= 0) {
+      return
+    }
+
+    const source: ISelectAllSource = { kind: 'select-all' }
+    const firstRow = 0
+    const lastRow = this.props.rowCount - 1
+
+    if (this.props.onSelectionChanged) {
+      const newSelection = createSelectionBetween(firstRow, lastRow)
+      this.props.onSelectionChanged(newSelection, source)
+    }
+
+    if (selectionMode === 'range' && this.props.onSelectedRangeChanged) {
+      this.props.onSelectedRangeChanged(firstRow, lastRow, source)
+    }
+  }
+
   private onRef = (element: HTMLDivElement | null) => {
+    if (element === null && this.list !== null) {
+      this.list.removeEventListener('select-all', this.onSelectAll)
+    }
+
     this.list = element
+
+    if (element !== null) {
+      // This is a custom event that desktop emits through <App />
+      // when the user selects the Edit > Select all menu item. We
+      // hijack it and select all list items rather than let it bubble
+      // to electron's default behavior which is to select all selectable
+      // text in the renderer.
+      element.addEventListener('select-all', this.onSelectAll)
+    }
 
     if (this.resizeObserver) {
       this.resizeObserver.disconnect()
 
-      if (element) {
+      if (element !== null) {
         this.resizeObserver.observe(element)
       } else {
         this.setState({ width: undefined, height: undefined })
