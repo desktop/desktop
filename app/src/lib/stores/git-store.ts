@@ -52,6 +52,7 @@ import {
   parseSingleUnfoldedTrailer,
   isCoAuthoredByTrailer,
   getAheadBehind,
+  asDistinctRange,
   asSymmetricDifferenceRange,
 } from '../git'
 import { IGitAccount } from '../git/authentication'
@@ -156,8 +157,10 @@ export class GitStore extends BaseStore {
 
     this.requestsInFight.add(LoadingHistoryRequestKey)
 
+    const range = asDistinctRange('HEAD', mergeBase)
+
     const commits = await this.performFailableOperation(() =>
-      getCommits(this.repository, `HEAD..${mergeBase}`, CommitBatchSize)
+      getCommits(this.repository, range, CommitBatchSize)
     )
     if (commits == null) {
       return
@@ -413,7 +416,7 @@ export class GitStore extends BaseStore {
 
     let localCommits: ReadonlyArray<Commit> | undefined
     if (branch.upstream) {
-      const revRange = `${branch.upstream}..${branch.name}`
+      const revRange = asDistinctRange(branch.upstream, branch.name)
       localCommits = await this.performFailableOperation(() =>
         getCommits(this.repository, revRange, CommitBatchSize)
       )
@@ -1266,8 +1269,8 @@ export class GitStore extends BaseStore {
 
     const revisionRange =
       compareType === ComparisonView.Ahead
-        ? `${branch.name}..${base.name}`
-        : `${base.name}..${branch.name}`
+        ? asDistinctRange(branch.name, base.name)
+        : asDistinctRange(base.name, branch.name)
     const commitsToLoad =
       compareType === ComparisonView.Ahead
         ? aheadBehind.ahead

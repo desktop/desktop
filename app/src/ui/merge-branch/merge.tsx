@@ -11,6 +11,7 @@ import { ButtonGroup } from '../lib/button-group'
 
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { BranchList, IBranchListItem, renderDefaultBranch } from '../branches'
+import { asSymmetricDifferenceRange } from '../../lib/git'
 
 interface IMergeProps {
   readonly dispatcher: Dispatcher
@@ -184,7 +185,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
   }
 
   private async updateCommitCount(branch: Branch) {
-    const range = `...${branch.name}`
+    const range = asSymmetricDifferenceRange('', branch.name)
     const aheadBehind = await getAheadBehind(this.props.repository, range)
     const commitCount = aheadBehind ? aheadBehind.behind : 0
 
