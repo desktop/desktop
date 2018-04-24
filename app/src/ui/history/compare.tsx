@@ -390,8 +390,8 @@ export class CompareSidebar extends React.Component<
     const formState = compareState.formState
 
     if (formState.kind !== ComparisonView.None) {
-      // TODO: we're not loading in more history because we're comparing
-      // our branch to some other branch, and should have everything loaded
+      // as the app is currently comparing the current branch to some other
+      // branch, everything needed should be loaded
       return
     }
 
@@ -405,8 +405,6 @@ export class CompareSidebar extends React.Component<
     const formState = this.props.compareState.formState
 
     if (formState.kind === ComparisonView.None) {
-      // we have not selected a branch, thus the form should never be shown
-      // TODO: can we enforce this with T Y P E S?
       return
     }
 
