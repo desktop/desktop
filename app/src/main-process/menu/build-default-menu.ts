@@ -114,7 +114,11 @@ export function buildDefaultMenu(
       { role: 'cut', label: __DARWIN__ ? 'Cut' : 'Cu&t' },
       { role: 'copy', label: __DARWIN__ ? 'Copy' : '&Copy' },
       { role: 'paste', label: __DARWIN__ ? 'Paste' : '&Paste' },
-      { role: 'selectall', label: __DARWIN__ ? 'Select All' : 'Select &all' },
+      {
+        label: __DARWIN__ ? 'Select All' : 'Select &all',
+        accelerator: 'CmdOrCtrl+A',
+        click: emit('select-all'),
+      },
     ],
   })
 

@@ -25,3 +25,4 @@ export type MenuEvent =
   | 'open-pull-request'
   | 'install-cli'
   | 'open-external-editor'
+  | 'select-all'

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { ipcRenderer } from 'electron'
+import { ipcRenderer, remote } from 'electron'
 import { CSSTransitionGroup } from 'react-transition-group'
 
 import {
@@ -290,9 +290,29 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.props.dispatcher.installCLI()
       case 'open-external-editor':
         return this.openCurrentRepositoryInExternalEditor()
+      case 'select-all':
+        return this.selectAll()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
+  }
+
+  /**
+   * Handler for the 'select-all' menu event, dispatches
+   * a custom DOM event originating from the element which
+   * currently has keyboard focus. Components have a chance
+   * to intercept this event and implement their own 'select
+   * all' logic.
+   */
+  private selectAll() {
+    const event = new CustomEvent('select-all', {
+      bubbles: true,
+      cancelable: true,
+    })
+
+    if (document.activeElement.dispatchEvent(event)) {
+      remote.getCurrentWebContents().selectAll()
+    }
   }
 
   private boomtown() {
