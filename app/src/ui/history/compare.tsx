@@ -418,7 +418,7 @@ export class CompareSidebar extends React.Component<
   private onBranchFilterTextChanged = (filterText: string) => {
     if (filterText.length === 0) {
       this.setState({ focusedBranch: null, filterText })
-      if (this.props.compareState.formState.kind != ComparisonView.None) {
+      if (this.props.compareState.formState.kind !== ComparisonView.None) {
         // ensure any previous filter branch selection is cleared
         this.props.dispatcher.executeCompare(this.props.repository, {
           kind: CompareActionKind.History,
