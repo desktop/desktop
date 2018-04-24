@@ -272,8 +272,6 @@ export class CompareSidebar extends React.Component<
     const formState = this.props.compareState.formState
 
     if (formState.kind === ComparisonView.None) {
-      // the tab control should never be shown in this case
-      // TODO: can we enforce this with TYPES?
       return
     }
 
