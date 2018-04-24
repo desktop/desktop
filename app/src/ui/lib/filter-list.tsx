@@ -117,6 +117,14 @@ interface IFilterListProps<T extends IFilterListItem> {
 
   /** Called when there are no items to render.  */
   readonly renderNoItems?: () => JSX.Element | null
+
+  /**
+   * A reference to a TextBox that will be used to control this component.
+   *
+   * See https://github.com/desktop/desktop/issues/4317 for refactoring work to
+   * make this more composable which should make this unnecessary.
+   */
+  readonly filterTextBox?: TextBox
 }
 
 interface IFilterListState<T extends IFilterListItem> {
@@ -149,6 +157,12 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     super(props)
 
     this.state = createStateUpdate(props)
+  }
+
+  public componentWillMount() {
+    if (this.props.filterTextBox !== undefined) {
+      this.filterTextBox = this.props.filterTextBox
+    }
   }
 
   public componentWillReceiveProps(nextProps: IFilterListProps<T>) {
@@ -189,9 +203,25 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
   }
 
   public componentDidMount() {
-    if (this.filterTextBox != null) {
+    if (this.filterTextBox !== null) {
       this.filterTextBox.selectAll()
     }
+  }
+
+  public renderTextBox() {
+    return (
+      <TextBox
+        ref={this.onTextBoxRef}
+        type="search"
+        autoFocus={true}
+        placeholder="Filter"
+        className="filter-list-filter-field"
+        onValueChanged={this.onFilterValueChanged}
+        onKeyDown={this.onKeyDown}
+        value={this.props.filterText}
+        disabled={this.props.disabled}
+      />
+    )
   }
 
   public render() {
@@ -200,24 +230,27 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
         {this.props.renderPreList ? this.props.renderPreList() : null}
 
         <Row className="filter-field-row">
-          <TextBox
-            ref={this.onTextBoxRef}
-            type="search"
-            autoFocus={true}
-            placeholder="Filter"
-            className="filter-list-filter-field"
-            onValueChanged={this.onFilterValueChanged}
-            onKeyDown={this.onKeyDown}
-            value={this.props.filterText}
-            disabled={this.props.disabled}
-          />
-
+          {this.props.filterTextBox === undefined ? this.renderTextBox() : null}
           {this.props.renderPostFilter ? this.props.renderPostFilter() : null}
         </Row>
 
         <div className="filter-list-container">{this.renderContent()}</div>
       </div>
     )
+  }
+
+  public selectFirstItem(focus: boolean = false) {
+    if (this.list !== null) {
+      const next = this.list.nextSelectableRow('down', -1)
+
+      if (next !== null) {
+        this.setState({ selectedRow: next })
+      }
+
+      if (focus) {
+        this.list.focus()
+      }
+    }
   }
 
   private renderContent() {

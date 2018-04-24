@@ -1,12 +1,18 @@
 import { GitError } from 'dugite'
 import { git } from './core'
 import { Repository } from '../../models/repository'
-import { Branch, BranchType } from '../../models/branch'
+import { Branch, BranchType, IAheadBehind } from '../../models/branch'
 
-/** The number of commits a revision range is ahead/behind. */
-export interface IAheadBehind {
-  readonly ahead: number
-  readonly behind: number
+/**
+ * Convert two refs into the Git range syntax.
+ *
+ * Each parameter can be the commit SHA or a ref name.
+ *
+ * @param from The start of the range
+ * @param to The end of the range
+ */
+export function asRange(from: string, to: string) {
+  return `${from}...${to}`
 }
 
 /** Calculate the number of commits the range is ahead and behind. */
@@ -64,6 +70,6 @@ export async function getBranchAheadBehind(
   // NB: The three dot form means we'll go all the way back to the merge base
   // of the branch and its upstream. Practically this is important for seeing
   // "through" merges.
-  const range = `${branch.name}...${upstream}`
+  const range = asRange(branch.name, upstream)
   return getAheadBehind(repository, range)
 }
