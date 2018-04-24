@@ -1,21 +1,21 @@
 import { IAheadBehind } from '../models/branch'
-import { asRange } from '../lib/git'
+import { asSymmetricDifferenceRange } from '../lib/git'
 
 export class ComparisonCache {
   private backingStore = new Map<string, IAheadBehind>()
 
   public set(from: string, to: string, value: IAheadBehind) {
-    const key = asRange(from, to)
+    const key = asSymmetricDifferenceRange(from, to)
     this.backingStore.set(key, value)
   }
 
   public get(from: string, to: string) {
-    const key = asRange(from, to)
+    const key = asSymmetricDifferenceRange(from, to)
     return this.backingStore.get(key) || null
   }
 
   public has(from: string, to: string) {
-    const key = asRange(from, to)
+    const key = asSymmetricDifferenceRange(from, to)
     return this.backingStore.has(key)
   }
 
