@@ -14,11 +14,9 @@ export interface IAheadBehind {
   readonly behind: number
 }
 
-/** The number of commits a revision range is ahead/behind. */
-export interface ICompareResult {
+/** The result of comparing two refs in a repository. */
+export interface ICompareResult extends IAheadBehind {
   readonly commits: ReadonlyArray<Commit>
-  readonly ahead: number
-  readonly behind: number
 }
 
 /** A branch as loaded from Git. */
