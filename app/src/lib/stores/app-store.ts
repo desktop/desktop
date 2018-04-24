@@ -34,7 +34,7 @@ import {
 } from '../../lib/repository-matching'
 import { API, getAccountForEndpoint, IAPIUser } from '../../lib/api'
 import { caseInsensitiveCompare } from '../compare'
-import { Branch, BranchType } from '../../models/branch'
+import { Branch, eligibleForFastForward } from '../../models/branch'
 import { TipState } from '../../models/tip'
 import { CloningRepository } from '../../models/cloning-repository'
 import { Commit } from '../../models/commit'
@@ -2196,26 +2196,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const currentBranchName =
       tip.kind === TipState.Valid ? tip.branch.name : null
 
-    // A branch is only eligible for being fast forwarded if:
-    //  1. It's local.
-    //  2. It's not the current branch.
-    //  3. It has an upstream.
-    //  4. It's not ahead of its upstream.
-    const eligibleBranches = branches.filter(b => {
-      return (
-        b.type === BranchType.Local &&
-        b.name !== currentBranchName &&
-        b.upstream
-      )
-    })
+    let eligibleBranches = branches.filter(b =>
+      eligibleForFastForward(b, currentBranchName)
+    )
 
     if (eligibleBranches.length >= FastForwardBranchesThreshold) {
       log.info(
-        `skipping fast-forward work because there are ${
+        `skipping fast-forward for all branches as there are ${
           eligibleBranches.length
         } local branches - this will run again when there are less than ${FastForwardBranchesThreshold} local branches tracking remotes`
       )
-      return
+
+      const defaultBranch = state.branchesState.defaultBranch
+      eligibleBranches =
+        defaultBranch != null &&
+        eligibleForFastForward(defaultBranch, currentBranchName)
+          ? [defaultBranch]
+          : []
     }
 
     for (const branch of eligibleBranches) {
@@ -2225,6 +2222,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
 
       const { ahead, behind } = aheadBehind
+      // Only perform the fast forward if the branch is behind it's upstream
+      // branch and has no local commits.
       if (ahead === 0 && behind > 0) {
         // At this point we're guaranteed this is non-null since we've filtered
         // out any branches will null upstreams above when creating
