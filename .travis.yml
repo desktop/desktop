@@ -34,7 +34,6 @@ addons:
 branches:
   only:
     - master
-    - compare-branches
     - /^__release-.*/
 
 language: node_js
