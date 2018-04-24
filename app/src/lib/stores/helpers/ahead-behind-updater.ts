@@ -88,6 +88,14 @@ export class AheadBehindUpdater {
     })
   }
 
+  public insert(from: string, to: string, value: IAheadBehind) {
+    if (this.comparisonCache.has(from, to)) {
+      return
+    }
+
+    this.comparisonCache.set(from, to, value)
+  }
+
   public schedule(currentBranch: Branch, branches: ReadonlyArray<Branch>) {
     // remove any queued work to prioritize this new set of tasks
     this.aheadBehindQueue.end()
