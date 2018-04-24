@@ -54,7 +54,7 @@ import { FetchType } from '../../lib/stores'
 import { PullRequest } from '../../models/pull-request'
 import { IAuthor } from '../../models/author'
 import { ITrailer } from '../git/interpret-trailers'
-import { isGitRepository } from "../git";
+import { isGitRepository } from '../git'
 
 /**
  * An error handler function.
@@ -854,6 +854,12 @@ export class Dispatcher {
           state.repositories,
           path
         )
+
+        // in case this is valid git repository, there is no need to ask
+        // user for confirmation and it can be added automatically
+        if (!existingRepository && (await isGitRepository(path))) {
+          existingRepository = (await this.addRepositories([path]))[0]
+        }
 
         if (existingRepository) {
           await this.selectRepository(existingRepository)
