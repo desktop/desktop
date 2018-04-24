@@ -119,7 +119,7 @@ export class CompareSidebar extends React.Component<
     const placeholderText =
       formState.kind === ComparisonView.None
         ? __DARWIN__
-          ? 'Select Branch To Compare...'
+          ? 'Select Branch to Compare...'
           : 'Select branch to compare...'
         : undefined
 
