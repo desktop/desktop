@@ -58,8 +58,21 @@ export interface IKeyboardSource {
   readonly event: React.KeyboardEvent<any>
 }
 
+/**
+ * Interface describing a user initiated selection of all list
+ * items (usually by clicking the Edit > Select all menu item in
+ * the application window). This is highly specific to GitHub Desktop
+ */
+export interface ISelectAllSource {
+  readonly kind: 'select-all'
+}
+
 /** A type union of possible sources of a selection changed event */
-export type SelectionSource = IMouseClickSource | IHoverSource | IKeyboardSource
+export type SelectionSource =
+  | IMouseClickSource
+  | IHoverSource
+  | IKeyboardSource
+  | ISelectAllSource
 
 export type ClickSource = IMouseClickSource | IKeyboardSource
 
@@ -323,13 +336,53 @@ export class List extends React.Component<IListProps, IListState> {
     }
   }
 
+  private onSelectAll = (event: Event) => {
+    const selectionMode = this.props.selectionMode
+
+    if (selectionMode !== 'range' && selectionMode !== 'multi') {
+      return
+    }
+
+    event.preventDefault()
+
+    if (this.props.rowCount <= 0) {
+      return
+    }
+
+    const source: ISelectAllSource = { kind: 'select-all' }
+    const firstRow = 0
+    const lastRow = this.props.rowCount - 1
+
+    if (this.props.onSelectionChanged) {
+      const newSelection = createSelectionBetween(firstRow, lastRow)
+      this.props.onSelectionChanged(newSelection, source)
+    }
+
+    if (selectionMode === 'range' && this.props.onSelectedRangeChanged) {
+      this.props.onSelectedRangeChanged(firstRow, lastRow, source)
+    }
+  }
+
   private onRef = (element: HTMLDivElement | null) => {
+    if (element === null && this.list !== null) {
+      this.list.removeEventListener('select-all', this.onSelectAll)
+    }
+
     this.list = element
+
+    if (element !== null) {
+      // This is a custom event that desktop emits through <App />
+      // when the user selects the Edit > Select all menu item. We
+      // hijack it and select all list items rather than let it bubble
+      // to electron's default behavior which is to select all selectable
+      // text in the renderer.
+      element.addEventListener('select-all', this.onSelectAll)
+    }
 
     if (this.resizeObserver) {
       this.resizeObserver.disconnect()
 
-      if (element) {
+      if (element !== null) {
         this.resizeObserver.observe(element)
       } else {
         this.setState({ width: undefined, height: undefined })
