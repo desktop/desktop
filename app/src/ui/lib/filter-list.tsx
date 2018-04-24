@@ -118,8 +118,13 @@ interface IFilterListProps<T extends IFilterListItem> {
   /** Called when there are no items to render.  */
   readonly renderNoItems?: () => JSX.Element | null
 
-  /** Used to get a reference to a TextBox that will be used to control this component */
-  readonly filterTextBox?: TextBox //Todo: don't rely on passing textbox to component
+  /**
+   * A reference to a TextBox that will be used to control this component.
+   *
+   * See https://github.com/desktop/desktop/issues/4317 for refactoring work to
+   * make this more composable which should make this unnecessary.
+   */
+  readonly filterTextBox?: TextBox
 }
 
 interface IFilterListState<T extends IFilterListItem> {
