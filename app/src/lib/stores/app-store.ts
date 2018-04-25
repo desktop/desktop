@@ -3602,6 +3602,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _recordMenuInitatedMerge() {
     this.statsStore.recordMenuInitatedMerge()
   }
+
+  /**
+   * Increments the `updateFromDefaultBranchMenuCount` metric
+   */
+  public _recordMenuInitatedUpdate() {
+    this.statsStore.recordMenuInitatedUpdate()
+  }
 }
 
 function forkPullRequestRemoteName(remoteName: string) {

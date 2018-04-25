@@ -265,9 +265,10 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.props.dispatcher.showPopup({ type: PopupType.Preferences })
       case 'open-working-directory':
         return this.openCurrentRepositoryWorkingDirectory()
-      case 'update-branch':
+      case 'update-branch': {
+        this.props.dispatcher.recordMenuInitatedUpdate()
         return this.updateBranch()
-      case 'merge-branch':
+      }
       case 'merge-branch': {
         this.props.dispatcher.recordMenuInitatedMerge()
         return this.mergeBranch()

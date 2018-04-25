@@ -1180,4 +1180,11 @@ export class Dispatcher {
   public recordMenuInitatedMerge() {
     return this.appStore._recordMenuInitatedMerge()
   }
+
+  /**
+   * Increments the `updateFromDefaultBranchMenuCount` metric
+   */
+  public recordMenuInitatedUpdate() {
+    return this.appStore._recordMenuInitatedUpdate()
+  }
 }
