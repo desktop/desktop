@@ -368,6 +368,7 @@ export class ChangesList extends React.Component<
           invalidationProps={this.props.workingDirectory}
           onRowClick={this.props.onRowClick}
           onOpenInExternalEditor={this.props.onOpenInExternalEditor}
+          repository={this.props.repository}
         />
 
         <CommitMessage

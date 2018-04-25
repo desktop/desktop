@@ -1,5 +1,7 @@
 import * as React from 'react'
 import * as classNames from 'classnames'
+import * as Path from 'path'
+import { Repository } from '../../../models/repository'
 
 interface IListRowProps {
   /** the total number of row in this list */
@@ -45,6 +47,7 @@ interface IListRowProps {
    */
   readonly onOpenInExternalEditor?: (fullPath: string) => void
 
+  readonly repository?: Repository
   readonly path?: string
 }
 
@@ -66,6 +69,13 @@ export class ListRow extends React.Component<IListRowProps, {}> {
   }
 
   private onDoubleClick = () => {
+    if (this.props.onOpenInExternalEditor) {
+      const { repository = { path: '' }, path = '' } = this.props
+      const fullPath = Path.join(repository.path, path)
+      // because Windows uses different path separators here
+      // const normalized = Path.normalize(fullPath)
+      this.props.onOpenInExternalEditor(fullPath)
+    }
   }
 
   public render() {

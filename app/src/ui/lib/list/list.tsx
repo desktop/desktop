@@ -14,6 +14,7 @@ import {
 } from './selection'
 import { createUniqueId, releaseUniqueId } from '../../lib/id-pool'
 import { range } from '../../../lib/range'
+import { Repository } from '../../../models/repository'
 
 /**
  * Describe the first argument given to the cellRenderer,
@@ -211,6 +212,8 @@ interface IListProps {
    * @param fullPath The full path to the file on disk
    */
   readonly onOpenInExternalEditor?: (fullPath: string) => void
+
+  readonly repository?: Repository
 }
 
 interface IListState {
@@ -644,6 +647,7 @@ export class List extends React.Component<IListProps, IListState> {
         children={element}
         onOpenInExternalEditor={this.props.onOpenInExternalEditor}
         path={path}
+        repository={this.props.repository}
       />
     )
   }
