@@ -424,6 +424,7 @@ export class CompareSidebar extends React.Component<
       return
     }
 
+    this.props.dispatcher.recordCompareInitatedMerge()
     await this.props.dispatcher.mergeBranch(
       this.props.repository,
       formState.comparisonBranch.name

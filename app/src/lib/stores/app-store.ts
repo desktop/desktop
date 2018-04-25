@@ -3609,6 +3609,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _recordMenuInitatedUpdate() {
     this.statsStore.recordMenuInitatedUpdate()
   }
+
+  /**
+   * Increments the `mergesInitiatedFromComparison` metric
+   */
+  public _recordCompareInitatedMerge() {
+    this.statsStore.recordCompareInitatedMerge()
+  }
 }
 
 function forkPullRequestRemoteName(remoteName: string) {

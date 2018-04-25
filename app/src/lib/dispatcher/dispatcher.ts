@@ -1187,4 +1187,11 @@ export class Dispatcher {
   public recordMenuInitatedUpdate() {
     return this.appStore._recordMenuInitatedUpdate()
   }
+
+  /**
+   * Increments the `mergesInitiatedFromComparison` metric
+   */
+  public recordCompareInitatedMerge() {
+    return this.appStore._recordCompareInitatedMerge()
+  }
 }
