@@ -8,6 +8,13 @@ interface IFocusContainerProps {
 
   /** Callback used when focus is within container */
   readonly onFocusWithinChanged?: (focusWithin: boolean) => void
+
+  /**
+   * Callback to open a selected file using the configured external editor
+   *
+   * @param fullPath The full path to the file on disk
+   */
+  readonly onOpenInExternalEditor?: (fullPath: string) => void
 }
 
 interface IFocusContainerState {
@@ -94,6 +101,10 @@ export class FocusContainer extends React.Component<
     }
   }
 
+  private onDoubleClick = () => {
+  }
+
+
   public render() {
     const className = classNames('focus-container', this.props.className, {
       'focus-within': this.state.focusWithin,
@@ -106,6 +117,7 @@ export class FocusContainer extends React.Component<
         onClick={this.onClick}
         onMouseDown={this.onMouseDown}
         onKeyDown={this.onKeyDown}
+        onDoubleClick={this.onDoubleClick}
       >
         {this.props.children}
       </div>

@@ -204,6 +204,13 @@ interface IListProps {
   readonly focusOnHover?: boolean
 
   readonly ariaMode?: 'list' | 'menu'
+
+  /**
+   * Callback to open a selected file using the configured external editor
+   *
+   * @param fullPath The full path to the file on disk
+   */
+  readonly onOpenInExternalEditor?: (fullPath: string) => void
 }
 
 interface IListState {
@@ -728,6 +735,7 @@ export class List extends React.Component<IListProps, IListState> {
       <FocusContainer
         className="list-focus-container"
         onKeyDown={this.onKeyDown}
+        onOpenInExternalEditor={this.props.onOpenInExternalEditor}
       >
         <Grid
           aria-label={''}
