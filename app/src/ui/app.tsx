@@ -268,7 +268,10 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'update-branch':
         return this.updateBranch()
       case 'merge-branch':
+      case 'merge-branch': {
+        this.props.dispatcher.recordMenuInitatedMerge()
         return this.mergeBranch()
+      }
       case 'show-repository-settings':
         return this.showRepositorySettings()
       case 'view-repository-on-github':

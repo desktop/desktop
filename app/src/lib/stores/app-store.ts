@@ -3595,6 +3595,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.getGitStore(repository).setCoAuthors(coAuthors)
     return Promise.resolve()
   }
+
+  /**
+   * Increments the `mergeIntoCurrentBranchMenuCount` metric
+   */
+  public _recordMenuInitatedMerge() {
+    this.statsStore.recordMenuInitatedMerge()
+  }
 }
 
 function forkPullRequestRemoteName(remoteName: string) {
