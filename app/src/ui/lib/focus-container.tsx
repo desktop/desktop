@@ -101,10 +101,6 @@ export class FocusContainer extends React.Component<
     }
   }
 
-  private onDoubleClick = () => {
-  }
-
-
   public render() {
     const className = classNames('focus-container', this.props.className, {
       'focus-within': this.state.focusWithin,
@@ -117,7 +113,6 @@ export class FocusContainer extends React.Component<
         onClick={this.onClick}
         onMouseDown={this.onMouseDown}
         onKeyDown={this.onKeyDown}
-        onDoubleClick={this.onDoubleClick}
       >
         {this.props.children}
       </div>

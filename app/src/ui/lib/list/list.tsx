@@ -618,7 +618,9 @@ export class List extends React.Component<IListProps, IListState> {
     // We only need to keep a reference to the focused element
     const ref = focused ? this.onFocusedItemRef : undefined
 
-    const element = this.props.rowRenderer(params.rowIndex)
+    const element = this.props.rowRenderer(params.rowIndex) || { props: {} }
+
+    const { props: { path } } = element
 
     const id = this.state.rowIdPrefix
       ? `${this.state.rowIdPrefix}-${rowIndex}`
@@ -640,6 +642,8 @@ export class List extends React.Component<IListProps, IListState> {
         style={params.style}
         tabIndex={tabIndex}
         children={element}
+        onOpenInExternalEditor={this.props.onOpenInExternalEditor}
+        path={path}
       />
     )
   }
@@ -735,7 +739,6 @@ export class List extends React.Component<IListProps, IListState> {
       <FocusContainer
         className="list-focus-container"
         onKeyDown={this.onKeyDown}
-        onOpenInExternalEditor={this.props.onOpenInExternalEditor}
       >
         <Grid
           aria-label={''}

@@ -37,6 +37,15 @@ interface IListRowProps {
 
   /** callback to fire when the row receives a keyboard event */
   readonly onRowKeyDown: (index: number, e: React.KeyboardEvent<any>) => void
+
+  /**
+   * Callback to open a selected file using the configured external editor
+   *
+   * @param fullPath The full path to the file on disk
+   */
+  readonly onOpenInExternalEditor?: (fullPath: string) => void
+
+  readonly path?: string
 }
 
 export class ListRow extends React.Component<IListRowProps, {}> {
@@ -54,6 +63,9 @@ export class ListRow extends React.Component<IListRowProps, {}> {
 
   private onRowKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     this.props.onRowKeyDown(this.props.rowIndex, e)
+  }
+
+  private onDoubleClick = () => {
   }
 
   public render() {
@@ -83,6 +95,7 @@ export class ListRow extends React.Component<IListRowProps, {}> {
         onMouseOver={this.onRowMouseOver}
         onMouseDown={this.onRowMouseDown}
         onClick={this.onRowClick}
+        onDoubleClick={this.onDoubleClick}
         onKeyDown={this.onRowKeyDown}
         style={style}
       >
