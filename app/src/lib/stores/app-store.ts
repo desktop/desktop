@@ -807,6 +807,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
         action.mode
       )
 
+      this.statsStore.recordBranchComparison()
+      const {branchesState } = this.getRepositoryState(repository)
+
+      if (branchesState.defaultBranch !== null &&
+        comparisonBranch.name === branchesState.defaultBranch.name) {
+        this.statsStore.recordDefaultBranchComparison()
+      }
+
       if (compare !== null) {
         this.updateCompareState(repository, s => ({
           formState: {

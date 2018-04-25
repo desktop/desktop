@@ -308,7 +308,7 @@ export class StatsStore {
   }
 
   /** Record that a branch comparison has been made to the `master` branch */
-  public recordBranchComparisonToMaster(): Promise<void> {
+  public recordDefaultBranchComparison(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       defaultBranchComparisons: m.defaultBranchComparisons + 1,
     }))
