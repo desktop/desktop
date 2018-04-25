@@ -233,10 +233,7 @@ export class RepositoryView extends React.Component<
         selectedFileIDs.length === 0 ||
         changesState.diff === null
       ) {
-        // TODO: The case where diff is null is likely while the diff is loading,
-        // we should have a dedicated loading state for diffs instead of showing
-        // NoChanges.
-        return <NoChanges onOpenRepository={this.openRepository} />
+        return <NoChanges repository={this.props.repository} />
       } else {
         const workingDirectory = changesState.workingDirectory
         const selectedFile = workingDirectory.findFileWithID(selectedFileIDs[0])
@@ -266,6 +263,8 @@ export class RepositoryView extends React.Component<
           commitSummaryWidth={this.props.commitSummaryWidth}
           gitHubUsers={this.props.state.gitHubUsers}
           imageDiffType={this.props.imageDiffType}
+          externalEditorLabel={this.props.externalEditorLabel}
+          onOpenInExternalEditor={this.props.onOpenInExternalEditor}
         />
       )
     } else {
@@ -280,10 +279,6 @@ export class RepositoryView extends React.Component<
         {this.renderContent()}
       </UiView>
     )
-  }
-
-  private openRepository = () => {
-    this.props.dispatcher.revealInFileManager(this.props.repository, '')
   }
 
   private onRevertCommit = (commit: Commit) => {
