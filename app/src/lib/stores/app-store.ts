@@ -808,10 +808,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
 
       this.statsStore.recordBranchComparison()
-      const {branchesState } = this.getRepositoryState(repository)
+      const { branchesState } = this.getRepositoryState(repository)
 
-      if (branchesState.defaultBranch !== null &&
-        comparisonBranch.name === branchesState.defaultBranch.name) {
+      if (
+        branchesState.defaultBranch !== null &&
+        comparisonBranch.name === branchesState.defaultBranch.name
+      ) {
         this.statsStore.recordDefaultBranchComparison()
       }
 
