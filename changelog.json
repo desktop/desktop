@@ -1,5 +1,10 @@
 {
   "releases": {
+    "1.1.2-beta4": [
+      "[Fixed] Add support for multiple selection in changes list - #1712. Thanks @icosamuel!",
+      "[Fixed] 'Select All' shortcut now works for changes list - #3821",
+      "[Improved] Always fast-forward the default branch - #4506"
+    ],
     "1.1.2-beta3": [
       "[Added] Syntax highlighting for Haxe files - #4445. Thanks @Gama11!",
       "[Added] Syntax highlighting for R files - #4455. Thanks @say25!",
