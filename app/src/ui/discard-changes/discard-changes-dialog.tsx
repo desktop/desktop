@@ -96,7 +96,7 @@ export class DiscardChanges extends React.Component<
               ? CheckboxValue.Off
               : CheckboxValue.On
           }
-          onChange={this.onCheckboxChanged}
+          onChange={this.onConfirmDiscardChangesChanged}
         />
       )
     } else {
@@ -145,7 +145,9 @@ export class DiscardChanges extends React.Component<
     this.props.onDismissed()
   }
 
-  private onCheckboxChanged = (event: React.FormEvent<HTMLInputElement>) => {
+  private onConfirmDiscardChangesChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
     const value = !event.currentTarget.checked
 
     this.setState({ confirmDiscardChanges: value })
