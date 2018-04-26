@@ -3601,7 +3601,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /**
    * Increments the `mergeIntoCurrentBranchMenuCount` metric
    */
-  public _recordMenuInitatedMerge() {
+  public _recordMenuInitiatedMerge() {
     this.statsStore.recordMenuInitatedMerge()
   }
 

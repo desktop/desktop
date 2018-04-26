@@ -1178,7 +1178,7 @@ export class Dispatcher {
    * Increments the `mergeIntoCurrentBranchMenuCount` metric
    */
   public recordMenuInitatedMerge() {
-    return this.appStore._recordMenuInitatedMerge()
+    return this.appStore._recordMenuInitiatedMerge()
   }
 
   /**
