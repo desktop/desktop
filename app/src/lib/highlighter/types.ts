@@ -44,6 +44,12 @@ export interface IHighlightRequest {
   readonly tabSize: number
 
   /**
+   * The file basename of the path in question as returned
+   * by node's basename() function.
+   */
+  readonly basename: string
+
+  /**
    * The file extension of the path in question as returned
    * by node's extname() function (i.e. with a leading dot).
    */

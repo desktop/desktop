@@ -27,6 +27,7 @@ const workerUri = encodePathAsUrl(__dirname, 'highlighter.js')
  */
 export function highlight(
   contents: string,
+  basename: string,
   extension: string,
   tabSize: number,
   lines: Array<number>
@@ -68,6 +69,7 @@ export function highlight(
 
     const request: IHighlightRequest = {
       contents,
+      basename,
       extension,
       tabSize,
       lines,

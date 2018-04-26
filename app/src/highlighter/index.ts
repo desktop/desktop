@@ -118,6 +118,9 @@ extensionMIMEMap.set('.hx', 'text/x-haxe')
 import 'codemirror/mode/r/r'
 extensionMIMEMap.set('.r', 'text/x-rsrc')
 
+import 'codemirror/mode/dockerfile/dockerfile'
+extensionMIMEMap.set('dockerfile', 'text/x-dockerfile')
+
 function guessMimeType(contents: string) {
   if (contents.startsWith('<?xml')) {
     return 'text/xml'
@@ -152,8 +155,9 @@ function guessMimeType(contents: string) {
 
 function detectMode(request: IHighlightRequest): CodeMirror.Mode<{}> | null {
   const mimeType =
-    extensionMIMEMap.get(request.extension.toLowerCase()) ||
-    guessMimeType(request.contents)
+    extensionMIMEMap.get(
+      request.extension.toLowerCase() || request.basename.toLowerCase()
+    ) || guessMimeType(request.contents)
 
   if (!mimeType) {
     return null
