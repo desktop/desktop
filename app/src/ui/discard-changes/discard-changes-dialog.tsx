@@ -71,7 +71,7 @@ export class DiscardChanges extends React.Component<
           <p>
             Changes can be restored by retrieving them from the {trashName}.
           </p>
-          {this.renderCheckbox()}
+          {this.renderConfirmDiscardChanges()}
         </DialogContent>
 
         <DialogFooter>
@@ -86,7 +86,7 @@ export class DiscardChanges extends React.Component<
     )
   }
 
-  private renderCheckbox() {
+  private renderConfirmDiscardChanges() {
     if (this.props.showDiscardChangesSetting) {
       return (
         <Checkbox
