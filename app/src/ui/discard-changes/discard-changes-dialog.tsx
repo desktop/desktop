@@ -15,6 +15,11 @@ interface IDiscardChangesProps {
   readonly dispatcher: Dispatcher
   readonly files: ReadonlyArray<WorkingDirectoryFileChange>
   readonly confirmDiscardChanges: boolean
+  /**
+   * Determines whether to show the option
+   * to ask for confirmation when discarding
+   * changes
+   */
   readonly showDiscardChangesSetting: boolean
   readonly onDismissed: () => void
   readonly onConfirmDiscardChangesChanged: (optOut: boolean) => void
