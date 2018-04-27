@@ -8,13 +8,6 @@ interface IFocusContainerProps {
 
   /** Callback used when focus is within container */
   readonly onFocusWithinChanged?: (focusWithin: boolean) => void
-
-  /**
-   * Callback to open a selected file using the configured external editor
-   *
-   * @param fullPath The full path to the file on disk
-   */
-  readonly onOpenInExternalEditor?: (fullPath: string) => void
 }
 
 interface IFocusContainerState {
