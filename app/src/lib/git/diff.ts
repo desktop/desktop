@@ -44,7 +44,7 @@ const MaxReasonableDiffSize = MaxDiffBufferSize / 16 // ~4.375MB in decimal
  * The longest line length we should try to display. If a diff has a line longer
  * than this, we probably shouldn't attempt it
  */
-const MaxLineLength = 500000
+const MaxCharactersPerLine = 5000
 
 /**
  * Utility function to check whether parsing this buffer is going to cause
@@ -65,7 +65,7 @@ function isBufferTooLarge(buffer: Buffer) {
 function isDiffTooLarge(diff: IRawDiff) {
   for (const hunk of diff.hunks) {
     for (const line of hunk.lines) {
-      if (line.text.length > MaxLineLength) {
+      if (line.text.length > MaxCharactersPerLine) {
         return true
       }
     }
