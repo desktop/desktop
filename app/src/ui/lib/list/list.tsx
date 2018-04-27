@@ -14,6 +14,7 @@ import {
 } from './selection'
 import { createUniqueId, releaseUniqueId } from '../../lib/id-pool'
 import { range } from '../../../lib/range'
+import { Repository } from '../../../models/repository'
 
 /**
  * Describe the first argument given to the cellRenderer,
@@ -204,6 +205,15 @@ interface IListProps {
   readonly focusOnHover?: boolean
 
   readonly ariaMode?: 'list' | 'menu'
+
+  /**
+   * Callback to open a selected file using the configured external editor
+   *
+   * @param fullPath The full path to the file on disk
+   */
+  readonly onOpenInExternalEditor?: (fullPath: string) => void
+
+  readonly repository?: Repository
 }
 
 interface IListState {
@@ -611,7 +621,9 @@ export class List extends React.Component<IListProps, IListState> {
     // We only need to keep a reference to the focused element
     const ref = focused ? this.onFocusedItemRef : undefined
 
-    const element = this.props.rowRenderer(params.rowIndex)
+    const element = this.props.rowRenderer(params.rowIndex) || { props: {} }
+
+    const { props: { path } } = element
 
     const id = this.state.rowIdPrefix
       ? `${this.state.rowIdPrefix}-${rowIndex}`
@@ -633,6 +645,9 @@ export class List extends React.Component<IListProps, IListState> {
         style={params.style}
         tabIndex={tabIndex}
         children={element}
+        onOpenInExternalEditor={this.props.onOpenInExternalEditor}
+        path={path}
+        repository={this.props.repository}
       />
     )
   }

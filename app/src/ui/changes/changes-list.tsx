@@ -367,6 +367,8 @@ export class ChangesList extends React.Component<
           onSelectionChanged={this.props.onFileSelectionChanged}
           invalidationProps={this.props.workingDirectory}
           onRowClick={this.props.onRowClick}
+          onOpenInExternalEditor={this.props.onOpenInExternalEditor}
+          repository={this.props.repository}
         />
 
         <CommitMessage
