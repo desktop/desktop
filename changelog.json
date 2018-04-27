@@ -1,9 +1,14 @@
 {
   "releases": {
     "1.1.2-beta4": [
-      "[Fixed] Add support for multiple selection in changes list - #1712. Thanks @icosamuel!",
+      "[New] New Compare tab allowing visualization of the relationship between branches",
+      "[New] Support for selecting more than one file in the changes list - #1712. Thanks @icosamuel!",
       "[Fixed] 'Select All' shortcut now works for changes list - #3821",
-      "[Improved] Always fast-forward the default branch - #4506"
+      "[Fixed] Always fast-forward the default branch - #4506",
+      "[Improved] Always fast-forward the default branch - #4506",
+      "[Improved] Warn when trying to rename a published branch - #4035. Thanks @agisilaos!",
+      "[Improved] Added context menu for files in commit history - #2845. Thanks @crea7or",
+      "[Improved] Discarding all changes always prompts for confirmation - #4459"
     ],
     "1.1.2-beta3": [
       "[Added] Syntax highlighting for Haxe files - #4445. Thanks @Gama11!",
