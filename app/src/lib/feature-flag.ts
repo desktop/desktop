@@ -37,5 +37,5 @@ export function enableMergeTool(): boolean {
 }
 
 export function enableCompareSidebar(): boolean {
-  return enableDevelopmentFeatures()
+  return enableBetaFeatures()
 }
