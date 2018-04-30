@@ -314,22 +314,22 @@ export class StatsStore {
     }))
   }
 
-  /** Record that a merge has been initiated from the `compare` sidebar */
-  public recordCompareInitiatedMerge(): Promise<void> {
+  /** Record that a merge has been initated from the `compare` sidebar */
+  public recordCompareInitatedMerge(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       mergesInitiatedFromComparison: m.mergesInitiatedFromComparison + 1,
     }))
   }
 
-  /** Record that a merge has been initiated from the `Branch -> Update From Default Branch` menu item */
-  public recordMenuInitiatedUpdate(): Promise<void> {
+  /** Record that a merge has been initated from the `Branch -> Update From Default Branch` menu item */
+  public recordMenuInitatedUpdate(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       updateFromDefaultBranchMenuCount: m.updateFromDefaultBranchMenuCount + 1,
     }))
   }
 
-  /** Record that a merge has been initiated from the `Branch -> Merge Into Current Branch` menu item */
-  public recordMenuInitiatedMerge(): Promise<void> {
+  /** Record that a merge has been initated from the `Branch -> Merge Into Current Branch` menu item */
+  public recordMenuInitatedMerge(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       mergeIntoCurrentBranchMenuCount: m.mergeIntoCurrentBranchMenuCount + 1,
     }))
