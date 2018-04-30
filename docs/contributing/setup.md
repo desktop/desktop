@@ -179,7 +179,7 @@ This example will run all test names containing `CloneProgressParser`.
 Electron ships with Chrome Dev Tools to assist with debugging, profiling and
 other measurement tools.
 
-1. Run the command `npm start` to launch the app
+1. Run the command `yarn start` to launch the app
 2. Under the **View** menu, select **Toggle Developer Tools**
 
 When running the app in development mode,
