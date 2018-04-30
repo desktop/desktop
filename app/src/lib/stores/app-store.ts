@@ -3602,21 +3602,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * Increments the `mergeIntoCurrentBranchMenuCount` metric
    */
   public _recordMenuInitiatedMerge() {
-    this.statsStore.recordMenuInitatedMerge()
+    this.statsStore.recordMenuInitiatedMerge()
   }
 
   /**
    * Increments the `updateFromDefaultBranchMenuCount` metric
    */
   public _recordMenuInitatedUpdate() {
-    this.statsStore.recordMenuInitatedUpdate()
+    this.statsStore.recordMenuInitiatedUpdate()
   }
 
   /**
    * Increments the `mergesInitiatedFromComparison` metric
    */
   public _recordCompareInitatedMerge() {
-    this.statsStore.recordCompareInitatedMerge()
+    this.statsStore.recordCompareInitiatedMerge()
   }
 }
 
