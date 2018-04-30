@@ -29,6 +29,9 @@ import 'codemirror/mode/htmlmixed/htmlmixed'
 extensionMIMEMap.set('.html', 'text/html')
 extensionMIMEMap.set('.htm', 'text/html')
 
+import 'codemirror/mode/htmlembedded/htmlembedded'
+extensionMIMEMap.set('.jsp', 'application/x-jsp')
+
 import 'codemirror/mode/css/css'
 extensionMIMEMap.set('.css', 'text/css')
 extensionMIMEMap.set('.scss', 'text/x-scss')
