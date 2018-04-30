@@ -208,6 +208,7 @@ export enum PopupType {
   LFSAttributeMismatch,
   UpstreamAlreadyExists,
   DeletePullRequest,
+  TroubleshootSSH,
 }
 
 export type Popup =
@@ -281,6 +282,9 @@ export type Popup =
       repository: Repository
       branch: Branch
       pullRequest: PullRequest
+    }
+  | {
+      type: PopupType.TroubleshootSSH
     }
 
 export enum FoldoutType {

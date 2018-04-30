@@ -245,6 +245,33 @@ export async function pushNeedsPullHandler(
   return error
 }
 
+export async function sshAuthenticationErrorHandler(
+  error: Error,
+  dispatcher: Dispatcher
+): Promise<Error | null> {
+  const gitError = asGitError(error)
+  if (!gitError) {
+    return error
+  }
+
+  const dugiteError = gitError.result.gitError
+  if (!dugiteError) {
+    return error
+  }
+
+  if (
+    dugiteError === DugiteError.SSHAuthenticationFailed ||
+    dugiteError === DugiteError.SSHPermissionDenied ||
+    dugiteError === DugiteError.SSHRepositoryNotFound
+  ) {
+    dispatcher.showPopup({ type: PopupType.TroubleshootSSH })
+    return null
+  }
+  // TODO: what's a reliable way to handle the fetch/push/pull errors that indicate an SSH error?
+
+  return error
+}
+
 /**
  * Handler for when we attempt to install the global LFS filters and LFS throws
  * an error.

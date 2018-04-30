@@ -13,6 +13,7 @@ import {
   externalEditorErrorHandler,
   openShellErrorHandler,
   lfsAttributeMismatchHandler,
+  sshAuthenticationErrorHandler,
   defaultErrorHandler,
   missingRepositoryHandler,
   backgroundTaskHandler,
@@ -139,6 +140,7 @@ dispatcher.registerErrorHandler(upstreamAlreadyExistsHandler)
 dispatcher.registerErrorHandler(externalEditorErrorHandler)
 dispatcher.registerErrorHandler(openShellErrorHandler)
 dispatcher.registerErrorHandler(lfsAttributeMismatchHandler)
+dispatcher.registerErrorHandler(sshAuthenticationErrorHandler)
 dispatcher.registerErrorHandler(gitAuthenticationErrorHandler)
 dispatcher.registerErrorHandler(pushNeedsPullHandler)
 dispatcher.registerErrorHandler(backgroundTaskHandler)
