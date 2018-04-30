@@ -1177,21 +1177,21 @@ export class Dispatcher {
   /**
    * Increments the `mergeIntoCurrentBranchMenuCount` metric
    */
-  public recordMenuInitatedMerge() {
+  public recordMenuInitiatedMerge() {
     return this.appStore._recordMenuInitiatedMerge()
   }
 
   /**
    * Increments the `updateFromDefaultBranchMenuCount` metric
    */
-  public recordMenuInitatedUpdate() {
-    return this.appStore._recordMenuInitatedUpdate()
+  public recordMenuInitiatedUpdate() {
+    return this.appStore._recordMenuInitiatedUpdate()
   }
 
   /**
    * Increments the `mergesInitiatedFromComparison` metric
    */
-  public recordCompareInitatedMerge() {
-    return this.appStore._recordCompareInitatedMerge()
+  public recordCompareInitiatedMerge() {
+    return this.appStore._recordCompareInitiatedMerge()
   }
 }

@@ -266,11 +266,11 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'open-working-directory':
         return this.openCurrentRepositoryWorkingDirectory()
       case 'update-branch': {
-        this.props.dispatcher.recordMenuInitatedUpdate()
+        this.props.dispatcher.recordMenuInitiatedUpdate()
         return this.updateBranch()
       }
       case 'merge-branch': {
-        this.props.dispatcher.recordMenuInitatedMerge()
+        this.props.dispatcher.recordMenuInitiatedMerge()
         return this.mergeBranch()
       }
       case 'show-repository-settings':

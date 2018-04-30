@@ -3608,14 +3608,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /**
    * Increments the `updateFromDefaultBranchMenuCount` metric
    */
-  public _recordMenuInitatedUpdate() {
+  public _recordMenuInitiatedUpdate() {
     this.statsStore.recordMenuInitiatedUpdate()
   }
 
   /**
    * Increments the `mergesInitiatedFromComparison` metric
    */
-  public _recordCompareInitatedMerge() {
+  public _recordCompareInitiatedMerge() {
     this.statsStore.recordCompareInitiatedMerge()
   }
 }
