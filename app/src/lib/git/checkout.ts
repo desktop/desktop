@@ -67,10 +67,26 @@ export async function checkoutBranch(
       ? [...gitNetworkArguments, 'checkout', '--progress']
       : [...gitNetworkArguments, 'checkout']
 
-  const args =
-    branch.type === BranchType.Remote
-      ? baseArgs.concat(branch.name, '-b', branch.nameWithoutRemote, '--')
-      : baseArgs.concat(branch.name, '--')
+  let args: Array<string>
+
+  if (branch.type === BranchType.Remote) {
+    // `git rev-parse` returns 0 if the ref exists, and 1 if the ref does not exist
+    const localRefExists = await git(
+      ['rev-parse', '--verify', '--quiet', branch.nameWithoutRemote],
+      repository.path,
+      'checkLocalBranchExists',
+      { successExitCodes: new Set<number>([0, 1]) }
+    )
+
+    const localBranchName =
+      localRefExists.exitCode === 0
+        ? `${branch.remote}-${branch.nameWithoutRemote}`
+        : branch.nameWithoutRemote
+
+    args = baseArgs.concat(branch.name, '-b', localBranchName, '--')
+  } else {
+    args = baseArgs.concat(branch.name, '--')
+  }
 
   await git(args, repository.path, 'checkoutBranch', opts)
 }
