@@ -119,32 +119,36 @@ describe('git/checkout', () => {
     expect(validBranch.branch.remote).to.equal('first-remote')
   })
 
-  it('will fail when an existing branch matches the remote branch', async () => {
+  it('uses the remote name as a prefix when an existing branch has the same local name', async () => {
     const path = await setupFixtureRepository('checkout-test-cases')
     const repository = new Repository(path, -1, null, false)
 
     const expectedBranch = 'first'
     const firstRemote = 'first-remote'
 
-    const branches = await getBranches(repository)
-    const firstBranch = `${firstRemote}/${expectedBranch}`
-    const remoteBranch = branches.find(b => b.name === firstBranch)
+    let branches = await getBranches(repository)
+    const remoteBranchName = `${firstRemote}/${expectedBranch}`
+    const remoteBranch = branches.find(b => b.name === remoteBranchName)
 
     if (remoteBranch == null) {
-      throw new Error(`Could not find branch: '${firstBranch}'`)
+      throw new Error(`Could not find branch: '${remoteBranchName}'`)
     }
 
     await createBranch(repository, expectedBranch)
 
-    let errorRaised = false
+    await checkoutBranch(repository, null, remoteBranch)
 
-    try {
-      await checkoutBranch(repository, null, remoteBranch)
-    } catch (error) {
-      errorRaised = true
-      expect(error.message).to.equal('A branch with that name already exists.')
-    }
+    branches = await getBranches(repository)
 
-    expect(errorRaised).to.be.true
+    const localBranchName = `${firstRemote}-${expectedBranch}`
+
+    const newLocalBranch = branches.find(
+      b =>
+        b.type === BranchType.Local &&
+        b.nameWithoutRemote === localBranchName &&
+        b.remote === firstRemote
+    )
+
+    expect(newLocalBranch).is.not.null
   })
 })
