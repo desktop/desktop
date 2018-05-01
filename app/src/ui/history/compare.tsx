@@ -116,18 +116,8 @@ export class CompareSidebar extends React.Component<
   }
 
   public render() {
-    const formState = this.props.compareState.formState
-    const placeholderText =
-      numBranches <= 1
-        ? __DARWIN__
-          ? 'There Are No Branches to Compare'
-          : 'There are no branches to compare'
-        : formState.kind === ComparisonView.None
-          ? __DARWIN__
-            ? 'Select Branch to Compare...'
-            : 'Select branch to compare...'
-          : undefined
     const { allBranches } = this.props.compareState
+    const placeholderText = getPlaceholderText(this.props.compareState)
 
     return (
       <div id="compare-view">
@@ -499,5 +489,19 @@ export class CompareSidebar extends React.Component<
 
   private onTextBoxRef = (textbox: TextBox) => {
     this.textbox = textbox
+  }
+}
+
+function getPlaceholderText(state: ICompareState) {
+  const { allBranches, formState } = state
+
+  if (allBranches.length <= 1) {
+    return __DARWIN__ ? 'No Branches to Compare' : 'No branches to compare'
+  } else if (formState.kind === ComparisonView.None) {
+    return __DARWIN__
+      ? 'Select Branch to Compare...'
+      : 'Select branch to compare...'
+  } else {
+    return undefined
   }
 }
