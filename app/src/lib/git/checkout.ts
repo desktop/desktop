@@ -77,7 +77,7 @@ export async function checkoutBranch(
     const localRefExists = await git(
       ['rev-parse', '--verify', '--quiet', branch.nameWithoutRemote],
       repository.path,
-      'checkLocalBranchExists',
+      'checkLocalRefExists',
       opts
     )
 
