@@ -117,7 +117,6 @@ export class CompareSidebar extends React.Component<
 
   public render() {
     const formState = this.props.compareState.formState
-    const numBranches = this.props.compareState.allBranches.length
     const placeholderText =
       numBranches <= 1
         ? __DARWIN__
@@ -128,6 +127,7 @@ export class CompareSidebar extends React.Component<
             ? 'Select Branch to Compare...'
             : 'Select branch to compare...'
           : undefined
+    const { allBranches } = this.props.compareState
 
     return (
       <div id="compare-view">
@@ -138,7 +138,7 @@ export class CompareSidebar extends React.Component<
             placeholder={placeholderText}
             onFocus={this.onTextBoxFocused}
             value={this.state.filterText}
-            disabled={numBranches <= 1}
+            disabled={allBranches.length <= 1}
             onRef={this.onTextBoxRef}
             onValueChanged={this.onBranchFilterTextChanged}
             onKeyDown={this.onBranchFilterKeyDown}
