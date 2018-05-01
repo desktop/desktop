@@ -388,7 +388,7 @@
 ### Github.com
   - [ ] If Desktop linked to .com (/settings/applications), the Desktop icon should show on File Revisions tab for all Pull Requests.
     - [ ] Clicking the "computer icon" opens from a Pull Request page opens the branch on Desktop
-  - [ ] `Open is Desktop` button under a repo's `Clone and Download` button should open repo in Desktop
+  - [ ] `Open in Desktop` button under a repo's `Clone and Download` button should open repo in Desktop
   - [ ] If private email is enabled (http://github.com/settings/emails), user is blocked from pushing to all associated repositories on Desktop?
   - [ ] If user updates name in Settings, change should reflect in Preferences
 
