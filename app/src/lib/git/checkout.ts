@@ -70,12 +70,15 @@ export async function checkoutBranch(
   let args: Array<string>
 
   if (branch.type === BranchType.Remote) {
-    // `git rev-parse` returns 0 if the ref exists, and 1 if the ref does not exist
+    // `git rev-parse` will return 0 if the ref exists in the repository, and 1
+    // if the ref does not exist
+    const opts = { successExitCodes: new Set<number>([0, 1]) }
+
     const localRefExists = await git(
       ['rev-parse', '--verify', '--quiet', branch.nameWithoutRemote],
       repository.path,
       'checkLocalBranchExists',
-      { successExitCodes: new Set<number>([0, 1]) }
+      opts
     )
 
     const localBranchName =
