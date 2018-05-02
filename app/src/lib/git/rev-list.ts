@@ -8,7 +8,8 @@ import { Branch, BranchType, IAheadBehind } from '../../models/branch'
  * that are reachable from `to` but excluding those that are reachable from
  * `from`.
  *
- * Each parameter can be the commit SHA or a ref name.
+ * Each parameter can be the commit SHA or a ref name, or specify an empty
+ * string to represent HEAD.
  *
  * @param from The start of the range
  * @param to The end of the range
@@ -18,10 +19,12 @@ export function revRange(from: string, to: string) {
 }
 
 /**
- * Convert two refs into the Git range syntax representing the set of commits
- * that are reachable from either `from` or `to` but not from both.
+ * Convert two refs into the Git symmetric difference syntax, which represents
+ * the set of commits that are reachable from either `from` or `to` but not
+ * from both.
  *
- * Each parameter can be the commit SHA or a ref name.
+ * Each parameter can be the commit SHA or a ref name, or you can use an empty
+ * string to represent HEAD.
  *
  * @param from The start of the range
  * @param to The end of the range
