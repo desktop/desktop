@@ -30,7 +30,7 @@ interface ICommitListProps {
   readonly localCommitSHAs: ReadonlyArray<string>
 
   /** The message to display inside the list when no results are displayed */
-  readonly emptyListMessage: string
+  readonly emptyListMessage: JSX.Element | string
 
   /** Callback which fires when a commit has been selected in the list */
   readonly onCommitSelected: (commit: Commit) => void

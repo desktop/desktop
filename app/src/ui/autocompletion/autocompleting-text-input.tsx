@@ -1,5 +1,10 @@
 import * as React from 'react'
-import { List, SelectionSource } from '../lib/list'
+import {
+  List,
+  SelectionSource,
+  findNextSelectableRow,
+  SelectionDirection,
+} from '../lib/list'
 import { IAutocompletionProvider } from './index'
 import { fatalError } from '../../lib/fatal-error'
 import * as classNames from 'classnames'
@@ -99,7 +104,6 @@ export abstract class AutocompletingTextInput<
   IAutocompletingTextInputState<Object>
 > {
   private element: ElementType | null = null
-  private autocompletionList: List | null = null
 
   /** The identifier for each autocompletion request. */
   private autocompletionRequestID = 0
@@ -123,10 +127,6 @@ export abstract class AutocompletingTextInput<
         {state.provider.renderItem(item)}
       </div>
     )
-  }
-
-  private storeAutocompletionListRef = (ref: List | null) => {
-    this.autocompletionList = ref
   }
 
   private renderAutocompletions() {
@@ -183,7 +183,6 @@ export abstract class AutocompletingTextInput<
     return (
       <div className={className} style={{ top, left, height }}>
         <List
-          ref={this.storeAutocompletionListRef}
           rowCount={items.length}
           rowHeight={RowHeight}
           selectedRows={[selectedRow]}
@@ -367,7 +366,7 @@ export abstract class AutocompletingTextInput<
 
   private getMovementDirection(
     event: React.KeyboardEvent<any>
-  ): 'up' | 'down' | null {
+  ): SelectionDirection | null {
     switch (event.key) {
       case 'ArrowUp':
         return 'up'
@@ -405,11 +404,12 @@ export abstract class AutocompletingTextInput<
     const direction = this.getMovementDirection(event)
     if (direction) {
       event.preventDefault()
+      const rowCount = currentAutoCompletionState.items.length
 
-      const nextRow = this.autocompletionList!.nextSelectableRow(
+      const nextRow = findNextSelectableRow(rowCount, {
         direction,
-        selectedRow
-      )
+        row: selectedRow,
+      })
 
       if (nextRow !== null) {
         const newSelectedItem = currentAutoCompletionState.items[nextRow]

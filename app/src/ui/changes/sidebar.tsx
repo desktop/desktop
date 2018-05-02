@@ -173,20 +173,13 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     this.props.dispatcher.showPopup({
       type: PopupType.ConfirmDiscardChanges,
       repository: this.props.repository,
+      showDiscardChangesSetting: false,
       files,
     })
   }
 
   private onIgnore = (pattern: string | string[]) => {
     this.props.dispatcher.ignore(this.props.repository, pattern)
-  }
-
-  /**
-   * Reveals a file from a repository in the native file manager.
-   * @param path The path of the file relative to the root of the repository
-   */
-  private onRevealInFileManager = (path: string) => {
-    this.props.dispatcher.revealInFileManager(this.props.repository, path)
   }
 
   /**
@@ -303,7 +296,6 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           onSelectAll={this.onSelectAll}
           onDiscardChanges={this.onDiscardChanges}
           onDiscardAllChanges={this.onDiscardAllChanges}
-          onRevealInFileManager={this.onRevealInFileManager}
           onOpenItem={this.onOpenItem}
           onRowClick={this.onChangedItemClick}
           commitAuthor={this.props.commitAuthor}

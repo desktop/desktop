@@ -21,6 +21,7 @@ import { CompareBranchListItem } from './compare-branch-list-item'
 import { FancyTextBox } from '../lib/fancy-text-box'
 import { OcticonSymbol } from '../octicons'
 import { SelectionSource } from '../lib/filter-list'
+import { Ref } from '../lib/ref'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -125,7 +126,7 @@ export class CompareSidebar extends React.Component<
 
     return (
       <div id="compare-view">
-        <div className="the-box">
+        <div className="compare-form">
           <FancyTextBox
             symbol={OcticonSymbol.gitBranch}
             type="search"
@@ -152,7 +153,7 @@ export class CompareSidebar extends React.Component<
   private renderCommits() {
     const formState = this.props.compareState.formState
     return (
-      <div className="the-commits">
+      <div className="compare-commit-list">
         {formState.kind === ComparisonView.None
           ? this.renderCommitList()
           : this.renderTabBar(formState)}
@@ -171,10 +172,27 @@ export class CompareSidebar extends React.Component<
     const selectedCommit = this.state.selectedCommit
     const commitSHAs = compareState.commitSHAs
 
-    const emptyListMessage =
-      compareState.formState.kind === ComparisonView.None
-        ? 'No history'
-        : 'No commits'
+    let emptyListMessage: string | JSX.Element
+    if (compareState.formState.kind === ComparisonView.None) {
+      emptyListMessage = 'No history'
+    } else {
+      const currentlyComparedBranchName =
+        compareState.formState.comparisonBranch.name
+
+      emptyListMessage =
+        compareState.formState.kind === ComparisonView.Ahead ? (
+          <p>
+            The compared branch (<Ref>{currentlyComparedBranchName}</Ref>) is up
+            to date with your branch
+          </p>
+        ) : (
+          <p>
+            Your branch is up to date with the compared branch (<Ref>
+              {currentlyComparedBranchName}
+            </Ref>)
+          </p>
+        )
+    }
 
     return (
       <CommitList
@@ -197,7 +215,7 @@ export class CompareSidebar extends React.Component<
   private renderActiveTab() {
     const formState = this.props.compareState.formState
     return (
-      <div className="the-commits">
+      <div className="compare-commit-list">
         {this.renderCommitList()}
         {formState.kind === ComparisonView.Behind
           ? this.renderMergeCallToAction(formState)
@@ -260,12 +278,12 @@ export class CompareSidebar extends React.Component<
           This will merge
           <strong>{` ${count} ${pluralized}`}</strong>
           {` `}from{` `}
-          <strong>{branch.name}</strong>)
+          <strong>{branch.name}</strong>
         </div>
       )
     }
 
-    return <div className="merge-message">There are no commits</div>
+    return null
   }
 
   private onTabClicked = (index: number) => {

@@ -55,14 +55,14 @@
   flex-direction: column;
   flex: 1;
 
-  .the-box {
+  .compare-form {
     background: var(--box-alt-background-color);
     flex: initial;
     padding: var(--spacing-half);
     border-bottom: var(--base-border);
   }
 
-  .the-commits {
+  .compare-commit-list {
     flex: 1;
     display: flex;
     flex-direction: column;

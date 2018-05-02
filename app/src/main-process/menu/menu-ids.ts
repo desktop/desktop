@@ -13,7 +13,7 @@ export type MenuIDs =
   | 'repository'
   | 'create-branch'
   | 'create-commit'
-  | 'compare-branch'
+  | 'compare-to-branch'
   | 'show-repository-list'
   | 'show-branches-list'
   | 'open-working-directory'
