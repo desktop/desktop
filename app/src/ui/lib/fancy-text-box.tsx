@@ -29,6 +29,7 @@ export class FancyTextBox extends React.Component<
     const componentCSS = classNames(
       'fancy-text-box-component',
       this.props.className,
+      { disabled: this.props.disabled },
       { focused: this.state.isFocused }
     )
     const octiconCSS = classNames('fancy-octicon')

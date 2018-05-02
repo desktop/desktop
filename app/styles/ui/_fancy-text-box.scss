@@ -1,6 +1,7 @@
 @import '../mixins';
 
 .fancy-text-box-component {
+  background: var(--background-color);
   display: flex;
   align-items: center;
   border: var(--base-border);
@@ -32,5 +33,9 @@
     &:focus {
       box-shadow: none;
     }
+  }
+
+  &.disabled {
+    background: var(--box-alt-background-color);
   }
 }
