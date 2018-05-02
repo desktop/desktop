@@ -13,7 +13,7 @@ import { Branch, BranchType, IAheadBehind } from '../../models/branch'
  * @param from The start of the range
  * @param to The end of the range
  */
-export function asDistinctRange(from: string, to: string) {
+export function revRange(from: string, to: string) {
   return `${from}..${to}`
 }
 
@@ -26,7 +26,7 @@ export function asDistinctRange(from: string, to: string) {
  * @param from The start of the range
  * @param to The end of the range
  */
-export function asSymmetricDifferenceRange(from: string, to: string) {
+export function revSymmetricDifference(from: string, to: string) {
   return `${from}...${to}`
 }
 
@@ -85,6 +85,6 @@ export async function getBranchAheadBehind(
   // NB: The three dot form means we'll go all the way back to the merge base
   // of the branch and its upstream. Practically this is important for seeing
   // "through" merges.
-  const range = asSymmetricDifferenceRange(branch.name, upstream)
+  const range = revSymmetricDifference(branch.name, upstream)
   return getAheadBehind(repository, range)
 }

@@ -52,8 +52,8 @@ import {
   parseSingleUnfoldedTrailer,
   isCoAuthoredByTrailer,
   getAheadBehind,
-  asDistinctRange,
-  asSymmetricDifferenceRange,
+  revRange,
+  revSymmetricDifference,
 } from '../git'
 import { IGitAccount } from '../git/authentication'
 import { RetryAction, RetryActionType } from '../retry-actions'
@@ -157,7 +157,7 @@ export class GitStore extends BaseStore {
 
     this.requestsInFight.add(LoadingHistoryRequestKey)
 
-    const range = asDistinctRange('HEAD', mergeBase)
+    const range = revRange('HEAD', mergeBase)
 
     const commits = await this.performFailableOperation(() =>
       getCommits(this.repository, range, CommitBatchSize)
@@ -416,9 +416,9 @@ export class GitStore extends BaseStore {
 
     let localCommits: ReadonlyArray<Commit> | undefined
     if (branch.upstream) {
-      const revRange = asDistinctRange(branch.upstream, branch.name)
+      const range = revRange(branch.upstream, branch.name)
       localCommits = await this.performFailableOperation(() =>
-        getCommits(this.repository, revRange, CommitBatchSize)
+        getCommits(this.repository, range, CommitBatchSize)
       )
     } else {
       localCommits = await this.performFailableOperation(() =>
@@ -1260,7 +1260,7 @@ export class GitStore extends BaseStore {
     const base = this.tip.branch
     const aheadBehind = await getAheadBehind(
       this.repository,
-      asSymmetricDifferenceRange(base.name, branch.name)
+      revSymmetricDifference(base.name, branch.name)
     )
 
     if (aheadBehind == null) {
@@ -1269,8 +1269,8 @@ export class GitStore extends BaseStore {
 
     const revisionRange =
       compareType === ComparisonView.Ahead
-        ? asDistinctRange(branch.name, base.name)
-        : asDistinctRange(base.name, branch.name)
+        ? revRange(branch.name, base.name)
+        : revRange(base.name, branch.name)
     const commitsToLoad =
       compareType === ComparisonView.Ahead
         ? aheadBehind.ahead
