@@ -68,7 +68,8 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
     // open the publish dialog - we'll handle publishing the current branch afterwards
     // if it exists
     const validState = this.props.remoteName
-      ? this.props.tipState === TipState.Valid
+      ? this.props.tipState === TipState.Valid ||
+        this.props.tipState === TipState.Unborn
       : true
 
     const disabled = !validState || networkActive
@@ -127,6 +128,13 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
     if (!this.props.remoteName) {
       return 'Publish repository'
     }
+
+    // repository has a remote but no branch to manage
+    // -> can fetch to see if someone else has puhed remote commits
+    if (this.props.tipState === TipState.Unborn) {
+      return 'Fetch'
+    }
+
     if (!this.props.aheadBehind) {
       return 'Publish branch'
     }
@@ -153,6 +161,11 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
     if (!this.props.remoteName) {
       return OcticonSymbol.cloudUpload
     }
+
+    if (this.props.tipState === TipState.Unborn) {
+      return OcticonSymbol.sync
+    }
+
     if (!this.props.aheadBehind) {
       return OcticonSymbol.cloudUpload
     }
@@ -180,7 +193,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
     }
 
     if (tipState === TipState.Unborn) {
-      return 'Cannot publish unborn HEAD'
+      return `Fetch ${this.props.remoteName}`
     }
 
     if (!this.props.aheadBehind) {
@@ -206,6 +219,11 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
     const repository = this.props.repository
     const dispatcher = this.props.dispatcher
     const aheadBehind = this.props.aheadBehind
+
+    if (this.props.tipState === TipState.Unborn) {
+      dispatcher.fetch(repository, FetchType.UserInitiatedTask)
+      return
+    }
 
     if (!aheadBehind) {
       dispatcher.push(repository)
