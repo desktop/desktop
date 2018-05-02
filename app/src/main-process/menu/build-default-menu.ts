@@ -162,7 +162,7 @@ export function buildDefaultMenu(
       },
       {
         label: __DARWIN__ ? 'Zoom In' : 'Zoom in',
-        accelerator: 'CmdOrCtrl+=',
+        accelerator: 'CmdOrCtrl+Plus',
         click: zoom(ZoomDirection.In),
       },
       {
