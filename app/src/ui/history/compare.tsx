@@ -116,13 +116,8 @@ export class CompareSidebar extends React.Component<
   }
 
   public render() {
-    const formState = this.props.compareState.formState
-    const placeholderText =
-      formState.kind === ComparisonView.None
-        ? __DARWIN__
-          ? 'Select Branch to Compare...'
-          : 'Select branch to compare...'
-        : undefined
+    const { allBranches } = this.props.compareState
+    const placeholderText = getPlaceholderText(this.props.compareState)
 
     return (
       <div id="compare-view">
@@ -133,6 +128,7 @@ export class CompareSidebar extends React.Component<
             placeholder={placeholderText}
             onFocus={this.onTextBoxFocused}
             value={this.state.filterText}
+            disabled={allBranches.length <= 1}
             onRef={this.onTextBoxRef}
             onValueChanged={this.onBranchFilterTextChanged}
             onKeyDown={this.onBranchFilterKeyDown}
@@ -424,6 +420,7 @@ export class CompareSidebar extends React.Component<
       return
     }
 
+    this.props.dispatcher.recordCompareInitiatedMerge()
     await this.props.dispatcher.mergeBranch(
       this.props.repository,
       formState.comparisonBranch.name
@@ -493,5 +490,19 @@ export class CompareSidebar extends React.Component<
 
   private onTextBoxRef = (textbox: TextBox) => {
     this.textbox = textbox
+  }
+}
+
+function getPlaceholderText(state: ICompareState) {
+  const { allBranches, formState } = state
+
+  if (allBranches.length <= 1) {
+    return __DARWIN__ ? 'No Branches to Compare' : 'No branches to compare'
+  } else if (formState.kind === ComparisonView.None) {
+    return __DARWIN__
+      ? 'Select Branch to Compare...'
+      : 'Select branch to compare...'
+  } else {
+    return undefined
   }
 }
