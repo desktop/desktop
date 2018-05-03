@@ -807,6 +807,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
         action.mode
       )
 
+      this.statsStore.recordBranchComparison()
+      const { branchesState } = this.getRepositoryState(repository)
+
+      if (
+        branchesState.defaultBranch !== null &&
+        comparisonBranch.name === branchesState.defaultBranch.name
+      ) {
+        this.statsStore.recordDefaultBranchComparison()
+      }
+
       if (compare !== null) {
         this.updateCompareState(repository, s => ({
           formState: {
@@ -3586,6 +3596,27 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ) {
     this.getGitStore(repository).setCoAuthors(coAuthors)
     return Promise.resolve()
+  }
+
+  /**
+   * Increments the `mergeIntoCurrentBranchMenuCount` metric
+   */
+  public _recordMenuInitiatedMerge() {
+    this.statsStore.recordMenuInitiatedMerge()
+  }
+
+  /**
+   * Increments the `updateFromDefaultBranchMenuCount` metric
+   */
+  public _recordMenuInitiatedUpdate() {
+    this.statsStore.recordMenuInitiatedUpdate()
+  }
+
+  /**
+   * Increments the `mergesInitiatedFromComparison` metric
+   */
+  public _recordCompareInitiatedMerge() {
+    this.statsStore.recordCompareInitiatedMerge()
   }
 }
 
