@@ -1,5 +1,15 @@
 {
   "releases": {
+    "1.1.2-beta5": [
+      "[Added] Syntax highlighting for java server pages (jsp) - #4470. Thanks @damaneice!",
+      "[Fixed] Add compare value into cache - #4517",
+      "[Fixed] Prevent Octicon from shrinking in rename dialog - #4566",
+      "[Fixed] Fix background color behind octicon when textfield is disabled - #4580",
+      "[Fixed] Disable textbox if there are no branches to compare - #4559",
+      "[???] Fix typo(s) across the codebase - #4543. Thanks @agisilaos!",
+      "[???] Fixed a minor typo in the testing manifest - #4568. Thanks @bitsol!",
+      "[???] Use yarn for an example command, instead of npm - #4549. Thanks @streeter!"
+    ],
     "1.1.2-beta4": [
       "[New] New Compare tab allowing visualization of the relationship between branches",
       "[New] Support for selecting more than one file in the changes list - #1712. Thanks @icosamuel!",
