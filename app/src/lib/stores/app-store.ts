@@ -818,14 +818,40 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
 
       if (compare !== null) {
+        const { ahead, behind } = compare
+        const aheadBehind = { ahead, behind }
+
         this.updateCompareState(repository, s => ({
           formState: {
             comparisonBranch,
             kind: action.mode,
-            aheadBehind: { ahead: compare.ahead, behind: compare.behind },
+            aheadBehind,
           },
           commitSHAs: compare.commits.map(commit => commit.sha),
         }))
+
+        const tip = gitStore.tip
+
+        let currentSha: string | null = null
+
+        if (tip.kind === TipState.Valid) {
+          currentSha = tip.branch.tip.sha
+        } else if (tip.kind === TipState.Detached) {
+          currentSha = tip.currentSha
+        }
+
+        if (this.currentAheadBehindUpdater != null && currentSha != null) {
+          const from =
+            action.mode === ComparisonView.Ahead
+              ? comparisonBranch.tip.sha
+              : currentSha
+          const to =
+            action.mode === ComparisonView.Ahead
+              ? currentSha
+              : comparisonBranch.tip.sha
+
+          this.currentAheadBehindUpdater.insert(from, to, aheadBehind)
+        }
 
         return this.emitUpdate()
       }
