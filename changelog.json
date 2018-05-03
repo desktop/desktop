@@ -2,10 +2,7 @@
   "releases": {
     "1.1.2-beta5": [
       "[Added] Syntax highlighting for java server pages (jsp) - #4470. Thanks @damaneice!",
-      "[Fixed] Prevent Octicon from shrinking in rename dialog - #4566",
-      "[Fixed] Octicon is wrong background color when textbox is disabled - #4580",
-      "[Fixed] Disable textbox if there are no branches to compare - #4559",
-      "[Improved] Ahead/behind info is not remembered when selecting branch to compare  - #4517"
+      "[Fixed] Prevent Octicon from shrinking in rename dialog - #4566"
     ],
     "1.1.2-beta4": [
       "[New] New Compare tab allowing visualization of the relationship between branches",
