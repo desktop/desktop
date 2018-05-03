@@ -1,8 +1,8 @@
 {
   "releases": {
     "1.1.2-beta5": [
-      "[Added] Syntax highlighting for java server pages (jsp) - #4470. Thanks @damaneice!",
-      "[Fixed] Prevent Octicon from shrinking in rename dialog - #4566"
+      "[Added] Syntax highlighting for JavaServer Pages (JSP) - #4470. Thanks @damaneice!",
+      "[Fixed] Prevent icon from shrinking in rename dialog - #4566"
     ],
     "1.1.2-beta4": [
       "[New] New Compare tab allowing visualization of the relationship between branches",
