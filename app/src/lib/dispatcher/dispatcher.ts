@@ -1173,4 +1173,25 @@ export class Dispatcher {
   public executeCompare(repository: Repository, action: CompareAction) {
     return this.appStore._executeCompare(repository, action)
   }
+
+  /**
+   * Increments the `mergeIntoCurrentBranchMenuCount` metric
+   */
+  public recordMenuInitiatedMerge() {
+    return this.appStore._recordMenuInitiatedMerge()
+  }
+
+  /**
+   * Increments the `updateFromDefaultBranchMenuCount` metric
+   */
+  public recordMenuInitiatedUpdate() {
+    return this.appStore._recordMenuInitiatedUpdate()
+  }
+
+  /**
+   * Increments the `mergesInitiatedFromComparison` metric
+   */
+  public recordCompareInitiatedMerge() {
+    return this.appStore._recordCompareInitiatedMerge()
+  }
 }
