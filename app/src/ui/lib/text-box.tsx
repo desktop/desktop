@@ -4,7 +4,7 @@ import { createUniqueId, releaseUniqueId } from './id-pool'
 import { LinkButton } from './link-button'
 import { showContextualMenu } from '../main-process-proxy'
 
-interface ITextBoxProps {
+export interface ITextBoxProps {
   /** The label for the input field. */
   readonly label?: string | JSX.Element
 
@@ -74,6 +74,16 @@ interface ITextBoxProps {
 
   /** The tab index of the input element. */
   readonly tabIndex?: number
+
+  /**
+   * Callback used when the component is focused.
+   */
+  readonly onFocus?: () => void
+
+  /**
+   * Callback used when the component loses focus.
+   */
+  readonly onBlur?: () => void
 }
 
 interface ITextBoxState {
@@ -128,11 +138,18 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
    * (i.e. if it's not disabled explicitly or implicitly through for example a fieldset).
    */
   public focus() {
-    if (this.inputElement === null) {
-      return
+    if (this.inputElement !== null) {
+      this.inputElement.focus()
     }
+  }
 
-    this.inputElement.focus()
+  /**
+   * Programmatically removes keyboard focus from the inner text input element
+   */
+  public blur() {
+    if (this.inputElement !== null) {
+      this.inputElement.blur()
+    }
   }
 
   private onChange = (event: React.FormEvent<HTMLInputElement>) => {
@@ -184,8 +201,10 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
   }
 
   private onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    const value = this.state.value
+
     if (
-      this.state.value !== '' &&
+      value !== '' &&
       this.props.type === 'search' &&
       event.key === 'Escape'
     ) {
@@ -196,6 +215,17 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
 
       if (this.props.onValueChanged) {
         this.props.onValueChanged(value)
+      }
+    } else if (
+      this.props.type === 'search' &&
+      event.key === 'Escape' &&
+      value === ''
+    ) {
+      if (this.props.onBlur) {
+        this.props.onBlur()
+        if (this.inputElement !== null) {
+          this.inputElement.blur()
+        }
       }
     }
 
@@ -215,6 +245,8 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
         <input
           id={inputId}
           ref={this.onInputRef}
+          onFocus={this.onFocus}
+          onBlur={this.onBlur}
           autoFocus={this.props.autoFocus}
           disabled={this.props.disabled}
           type={this.props.type}
@@ -227,5 +259,17 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
         />
       </div>
     )
+  }
+
+  private onFocus = (event: React.FocusEvent<HTMLInputElement>) => {
+    if (!this.props.autoFocus && this.props.onFocus !== undefined) {
+      this.props.onFocus()
+    }
+  }
+
+  private onBlur = (event: React.FocusEvent<HTMLInputElement>) => {
+    if (this.props.onBlur !== undefined) {
+      this.props.onBlur()
+    }
   }
 }

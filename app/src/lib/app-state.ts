@@ -2,8 +2,8 @@ import { Account } from '../models/account'
 import { CommitIdentity } from '../models/commit-identity'
 import { IDiff } from '../models/diff'
 import { Repository } from '../models/repository'
-import { IAheadBehind } from './git'
-import { Branch } from '../models/branch'
+
+import { Branch, IAheadBehind } from '../models/branch'
 import { Tip } from '../models/tip'
 import { Commit } from '../models/commit'
 import {
@@ -26,9 +26,9 @@ import { CloneRepositoryTab } from '../models/clone-repository-tab'
 import { BranchesTab } from '../models/branches-tab'
 import { PullRequest } from '../models/pull-request'
 import { IAuthor } from '../models/author'
+import { ComparisonCache } from './comparison-cache'
 
 export { ICommitMessage }
-export { IAheadBehind }
 
 export enum SelectionType {
   Repository,
@@ -222,6 +222,7 @@ export type Popup =
       type: PopupType.ConfirmDiscardChanges
       repository: Repository
       files: ReadonlyArray<WorkingDirectoryFileChange>
+      showDiscardChangesSetting?: boolean
     }
   | { type: PopupType.Preferences; initialSelectedTab?: PreferencesTab }
   | { type: PopupType.MergeBranch; repository: Repository }
@@ -323,6 +324,7 @@ export enum RepositorySection {
 export interface IRepositoryState {
   readonly historyState: IHistoryState
   readonly changesState: IChangesState
+  readonly compareState: ICompareState
   readonly selectedSection: RepositorySection
 
   /**
@@ -590,3 +592,81 @@ export interface IChangesState {
    */
   readonly coAuthors: ReadonlyArray<IAuthor>
 }
+
+export enum ComparisonView {
+  None = 'none',
+  Ahead = 'ahead',
+  Behind = 'behind',
+}
+
+/**
+ * The default comparison state is to display the history for the current
+ * branch.
+ */
+export interface IDisplayHistory {
+  readonly kind: ComparisonView.None
+}
+
+/**
+ * When the user has chosen another branch to compare, using their current
+ * branch as the base branch.
+ */
+export interface ICompareBranch {
+  /** The chosen comparison mode determines which commits to show */
+  readonly kind: ComparisonView.Ahead | ComparisonView.Behind
+
+  /** The branch to compare against the base branch */
+  readonly comparisonBranch: Branch
+
+  /** The number of commits the selected branch is ahead/behind the current branch */
+  readonly aheadBehind: IAheadBehind
+}
+
+export interface ICompareState {
+  /** The current state of the compare form, based on user input */
+  readonly formState: IDisplayHistory | ICompareBranch
+
+  /** The SHAs of commits to render in the compare list */
+  readonly commitSHAs: ReadonlyArray<string>
+
+  /** A list of all branches (remote and local) currently in the repository. */
+  readonly allBranches: ReadonlyArray<Branch>
+
+  /**
+   * A list of zero to a few (at time of writing 5 but check loadRecentBranches
+   * in git-store for definitive answer) branches that have been checked out
+   * recently. This list is compiled by reading the reflog and tracking branch
+   * switches over the last couple of thousand reflog entries.
+   */
+  readonly recentBranches: ReadonlyArray<Branch>
+
+  /**
+   * The default branch for a given repository. Most commonly this
+   * will be the 'master' branch but GitHub users are able to change
+   * their default branch in the web UI.
+   */
+  readonly defaultBranch: Branch | null
+
+  /**
+   * A local cache of ahead/behind computations to compare other refs to the current branch
+   */
+  readonly aheadBehindCache: ComparisonCache
+}
+
+export enum CompareActionKind {
+  History = 'History',
+  Branch = 'Branch',
+}
+
+/**
+ * An action to send to the application store to update the compare state
+ */
+export type CompareAction =
+  | {
+      readonly kind: CompareActionKind.History
+    }
+  | {
+      readonly kind: CompareActionKind.Branch
+      readonly branch: Branch
+      readonly mode: ComparisonView.Ahead | ComparisonView.Behind
+    }

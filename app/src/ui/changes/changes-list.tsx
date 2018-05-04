@@ -1,9 +1,12 @@
 import * as React from 'react'
 import * as Path from 'path'
 
-import { CommitMessage } from './commit-message'
-import { ChangedFile } from './changed-file'
-import { List, ClickSource } from '../lib/list'
+import { ICommitMessage } from '../../lib/app-state'
+import { IGitHubUser } from '../../lib/databases'
+import { Dispatcher } from '../../lib/dispatcher'
+import { ITrailer } from '../../lib/git/interpret-trailers'
+import { IMenuItem } from '../../lib/menu-item'
+import { revealInFileManager } from '../../lib/app-shell'
 import {
   AppFileStatus,
   WorkingDirectoryStatus,
@@ -11,23 +14,25 @@ import {
 } from '../../models/status'
 import { DiffSelectionType } from '../../models/diff'
 import { CommitIdentity } from '../../models/commit-identity'
-import { Checkbox, CheckboxValue } from '../lib/checkbox'
-import { ICommitMessage } from '../../lib/app-state'
-import { IGitHubUser } from '../../lib/databases'
-import { Dispatcher } from '../../lib/dispatcher'
-import { IAutocompletionProvider } from '../autocompletion'
 import { Repository } from '../../models/repository'
-import { showContextualMenu } from '../main-process-proxy'
 import { IAuthor } from '../../models/author'
-import { ITrailer } from '../../lib/git/interpret-trailers'
-import { IMenuItem } from '../../lib/menu-item'
+import { List, ClickSource } from '../lib/list'
+import { Checkbox, CheckboxValue } from '../lib/checkbox'
+import {
+  isSafeFileExtension,
+  DefaultEditorLabel,
+  RevealInFileManagerLabel,
+  OpenWithDefaultProgramLabel,
+} from '../lib/context-menu'
+import { CommitMessage } from './commit-message'
+import { ChangedFile } from './changed-file'
+import { IAutocompletionProvider } from '../autocompletion'
+import { showContextualMenu } from '../main-process-proxy'
 import { arrayEquals } from '../../lib/equality'
 
 const RowHeight = 29
 
 const GitIgnoreFileName = '.gitignore'
-
-const RestrictedFileExtensions = ['.cmd', '.exe', '.bat', '.sh']
 
 interface IChangesListProps {
   readonly repository: Repository
@@ -47,12 +52,6 @@ interface IChangesListProps {
   ) => void
 
   /**
-   * Called to reveal a file in the native file manager.
-   * @param path The path of the file relative to the root of the repository
-   */
-  readonly onRevealInFileManager: (path: string) => void
-
-  /**
    * Called to open a file it its default application
    * @param path The path of the file relative to the root of the repository
    */
@@ -69,7 +68,6 @@ interface IChangesListProps {
    * List Props for documentation.
    */
   readonly onRowClick?: (row: number, source: ClickSource) => void
-
   readonly commitMessage: ICommitMessage | null
   readonly contextualCommitMessage: ICommitMessage | null
 
@@ -193,27 +191,29 @@ export class ChangesList extends React.Component<
     this.props.onDiscardAllChanges(this.props.workingDirectory.files)
   }
 
-  private onDiscardChanges = (paths: string | string[]) => {
+  private onDiscardChanges = (files: ReadonlyArray<string>) => {
     const workingDirectory = this.props.workingDirectory
 
-    if (paths instanceof Array) {
-      const files: WorkingDirectoryFileChange[] = []
-      paths.forEach(path => {
-        const file = workingDirectory.files.find(f => f.path === path)
-        if (file) {
-          files.push(file)
-        }
-      })
-      if (files.length) {
-        this.props.onDiscardAllChanges(files)
+    if (files.length === 1) {
+      const modifiedFile = workingDirectory.files.find(f => f.path === files[0])
+
+      if (modifiedFile != null) {
+        this.props.onDiscardChanges(modifiedFile)
       }
     } else {
-      const file = workingDirectory.files.find(f => f.path === paths)
-      if (!file) {
-        return
-      }
+      const modifiedFiles = new Array<WorkingDirectoryFileChange>()
 
-      this.props.onDiscardChanges(file)
+      files.forEach(file => {
+        const modifiedFile = workingDirectory.files.find(f => f.path === file)
+
+        if (modifiedFile != null) {
+          modifiedFiles.push(modifiedFile)
+        }
+      })
+
+      if (modifiedFiles.length > 0) {
+        this.props.onDiscardAllChanges(modifiedFiles)
+      }
     }
   }
 
@@ -234,9 +234,15 @@ export class ChangesList extends React.Component<
   private onItemContextMenu = (
     path: string,
     status: AppFileStatus,
-    event: React.MouseEvent<any>
+    event: React.MouseEvent<HTMLDivElement>
   ) => {
     event.preventDefault()
+
+    const extension = Path.extname(path)
+    const isSafeExtension = isSafeFileExtension(extension)
+    const openInExternalEditor = this.props.externalEditorLabel
+      ? `Open in ${this.props.externalEditorLabel}`
+      : DefaultEditorLabel
 
     const wd = this.props.workingDirectory
     const selectedFiles = new Array<WorkingDirectoryFileChange>()
@@ -307,25 +313,11 @@ export class ChangesList extends React.Component<
         })
       })
 
-    const extension = Path.extname(path)
-
-    const isSafeExtension = __WIN32__
-      ? !RestrictedFileExtensions.includes(extension.toLowerCase())
-      : true
-
-    const revealInFileManagerLabel = __DARWIN__
-      ? 'Reveal in Finder'
-      : __WIN32__ ? 'Show in Explorer' : 'Show in your File Manager'
-
-    const openInExternalEditor = this.props.externalEditorLabel
-      ? `Open in ${this.props.externalEditorLabel}`
-      : __DARWIN__ ? 'Open in External Editor' : 'Open in external editor'
-
     items.push(
       { type: 'separator' },
       {
-        label: revealInFileManagerLabel,
-        action: () => this.props.onRevealInFileManager(path),
+        label: RevealInFileManagerLabel,
+        action: () => revealInFileManager(this.props.repository, path),
         enabled: status !== AppFileStatus.Deleted,
       },
       {
@@ -337,9 +329,7 @@ export class ChangesList extends React.Component<
         enabled: isSafeExtension && status !== AppFileStatus.Deleted,
       },
       {
-        label: __DARWIN__
-          ? 'Open with Default Program'
-          : 'Open with default program',
+        label: OpenWithDefaultProgramLabel,
         action: () => this.props.onOpenItem(path),
         enabled: isSafeExtension && status !== AppFileStatus.Deleted,
       }
