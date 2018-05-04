@@ -1,5 +1,18 @@
 {
   "releases": {
+    "1.1.2-beta5": [
+      "[Added] Syntax highlighting for JavaServer Pages (JSP) - #4470. Thanks @damaneice!",
+      "[Fixed] Prevent icon from shrinking in rename dialog - #4566"
+    ],
+    "1.1.2-beta4": [
+      "[New] New Compare tab allowing visualization of the relationship between branches",
+      "[New] Support for selecting more than one file in the changes list - #1712. Thanks @icosamuel!",
+      "[Fixed] 'Select All' shortcut now works for changes list - #3821",
+      "[Improved] Always fast-forward the default branch - #4506",
+      "[Improved] Warn when trying to rename a published branch - #4035. Thanks @agisilaos!",
+      "[Improved] Added context menu for files in commit history - #2845. Thanks @crea7or",
+      "[Improved] Discarding all changes always prompts for confirmation - #4459"
+    ],
     "1.1.2-beta3": [
       "[Added] Syntax highlighting for Haxe files - #4445. Thanks @Gama11!",
       "[Added] Syntax highlighting for R files - #4455. Thanks @say25!",
@@ -11,6 +24,9 @@
       "[Improved] Getting list of changed files is now more efficient when dealing with thousands of files - #4443",
       "[Improved] Checking out a Pull Request may skip unnecessary fetch - #4068. Thanks @agisilaos!",
       "[Improved] Commit summary now has a hint to indicate why committing is disabled - #4429."
+    ],
+    "1.1.2-test3": [
+      "[New] Comparison Branch demo build"
     ],
     "1.1.2-test2": [
       "Refactoring the diff internals to potentially land some SVG improvements"

@@ -15,7 +15,6 @@
     "postinstall": "cd app && yarn install --force && cd .. && git submodule update --recursive --init && yarn compile:tslint",
     "start": "cross-env NODE_ENV=development node script/start",
     "start:prod": "cross-env NODE_ENV=production node script/start",
-    "debug": "cross-env NODE_ENV=development node script/debug",
     "compile:dev": "cross-env NODE_ENV=development parallel-webpack --config app/webpack.development.js",
     "compile:prod": "cross-env NODE_ENV=production parallel-webpack --config app/webpack.production.js",
     "build:dev": "yarn compile:dev && cross-env NODE_ENV=development ts-node script/build.ts",

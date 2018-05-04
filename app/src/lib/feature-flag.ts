@@ -35,3 +35,7 @@ export function enableCompareBranch(): boolean {
 export function enableMergeTool(): boolean {
   return enableDevelopmentFeatures()
 }
+
+export function enableCompareSidebar(): boolean {
+  return enableBetaFeatures()
+}

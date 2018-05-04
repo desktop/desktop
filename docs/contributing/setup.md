@@ -179,7 +179,7 @@ This example will run all test names containing `CloneProgressParser`.
 Electron ships with Chrome Dev Tools to assist with debugging, profiling and
 other measurement tools.
 
-1. Run the command `npm start` to launch the app
+1. Run the command `yarn start` to launch the app
 2. Under the **View** menu, select **Toggle Developer Tools**
 
 When running the app in development mode,
@@ -198,7 +198,7 @@ require('devtron').install()
 
 You're almost there! Here's a couple of things we recommend you read next:
 
- - [Help Wanted](../../.github/CONTRIBUTING.md#help-wanted) - we've marked some tasks in
-   the backlog that are ideal for external contributors
- - [Code Reviews](../process/reviews.md) - some notes on how the team does
-   code reviews
+ - [Help Wanted](../../.github/CONTRIBUTING.md#help-wanted) - we've marked some
+   tasks in the backlog that are ideal for external contributors
+ - [Notes for Contributors](../process/notes-for-contributors.md) - some notes
+   for new contributors getting started
