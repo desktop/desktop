@@ -10,6 +10,7 @@ const BabelPlugin = require('babel-webpack-plugin')
 const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer')
 
 const config = {
+  mode: 'production',
   devtool: 'source-map',
   plugins: [
     new BabelPlugin({
