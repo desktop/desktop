@@ -5,31 +5,12 @@ const common = require('./webpack.common')
 const webpack = require('webpack')
 const merge = require('webpack-merge')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
-const BabelPlugin = require('babel-webpack-plugin')
 
 const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer')
 
 const config = {
   mode: 'production',
   devtool: 'source-map',
-  plugins: [
-    new BabelPlugin({
-      test: /\.js$/,
-      sourceMaps: true,
-      compact: true,
-      minified: true,
-      comments: false,
-      presets: [
-        [
-          'minify',
-          {
-            evaluate: false,
-          },
-        ],
-      ],
-    }),
-    new webpack.optimize.ModuleConcatenationPlugin(),
-  ],
 }
 
 const mainConfig = merge({}, common.main, config)
