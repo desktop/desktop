@@ -3,8 +3,6 @@ import { spawn, SpawnOptions } from 'child_process'
 import { statSync } from 'fs'
 import { getDistPath, getExecutableName } from './dist-info'
 
-import { assertNever } from '../app/src/lib/fatal-error'
-
 const distPath = getDistPath()
 const productName = getExecutableName()
 
@@ -21,17 +19,9 @@ if (process.platform === 'darwin') {
   binaryPath = join(distPath, `${productName}.exe`)
 } else if (process.platform === 'linux') {
   binaryPath = join(distPath, productName)
-} else if (
-  process.platform === 'aix' ||
-  process.platform === 'android' ||
-  process.platform === 'freebsd' ||
-  process.platform === 'openbsd' ||
-  process.platform === 'sunos'
-) {
+} else {
   console.error(`I dunno how to run on ${process.platform} ${process.arch} :(`)
   process.exit(1)
-} else {
-  assertNever(process.platform, `Unknown platform ${process.platform}`)
 }
 
 export function run(spawnOptions: SpawnOptions) {
