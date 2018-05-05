@@ -1,5 +1,3 @@
-'use strict'
-
 import * as common from './webpack.common'
 
 import * as webpack from 'webpack'

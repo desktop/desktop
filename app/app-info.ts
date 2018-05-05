@@ -1,5 +1,3 @@
-///<reference types="node" />
-
 import { readdirSync } from 'fs'
 import * as Path from 'path'
 

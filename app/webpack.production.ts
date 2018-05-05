@@ -1,5 +1,3 @@
-'use strict'
-
 const common = require('./webpack.common')
 
 import * as webpack from 'webpack'

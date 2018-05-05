@@ -1,7 +1,3 @@
-'use strict'
-
-///<reference types="node"/>
-
 import * as path from 'path'
 import * as HtmlWebpackPlugin from 'html-webpack-plugin'
 import * as CleanWebpackPlugin from 'clean-webpack-plugin'
