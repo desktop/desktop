@@ -70,7 +70,7 @@ function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
     case ExternalEditor.TextMate:
       return ['com.macromates.TextMate']
     case ExternalEditor.Brackets:
-        return ['io.Brackets.appshell']
+        return ['io.brackets.appshell']
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
