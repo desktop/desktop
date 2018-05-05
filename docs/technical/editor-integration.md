@@ -211,6 +211,7 @@ These editors are currently supported:
  - [PhpStorm](https://www.jetbrains.com/phpstorm/)
  - [RubyMine](https://www.jetbrains.com/rubymine/)
  - [TextMate](https://macromates.com)
+ - [Brackets](http://brackets.io/)
 
 These are defined in an enum at the top of the file:
 
@@ -225,6 +226,7 @@ export enum ExternalEditor {
   PhpStorm = 'PhpStorm',
   RubyMine = 'RubyMine',
   TextMate = 'TextMate',
+  Brackets = 'Brackets',
 }
 ```
 
