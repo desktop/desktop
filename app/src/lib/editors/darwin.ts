@@ -12,6 +12,7 @@ export enum ExternalEditor {
   PhpStorm = 'PhpStorm',
   RubyMine = 'RubyMine',
   TextMate = 'TextMate',
+  Brackets = 'Brackets'
 }
 
 export function parse(label: string): ExternalEditor | null {
@@ -39,6 +40,9 @@ export function parse(label: string): ExternalEditor | null {
   if (label === ExternalEditor.TextMate) {
     return ExternalEditor.TextMate
   }
+  if (label === ExternalEditor.Brackets) {
+    return ExternalEditor.Brackets
+  }
   return null
 }
 
@@ -65,6 +69,8 @@ function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
       return ['com.jetbrains.RubyMine']
     case ExternalEditor.TextMate:
       return ['com.macromates.TextMate']
+    case ExternalEditor.Brackets:
+        return ['io.Brackets.appshell']
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -97,6 +103,8 @@ function getExecutableShim(
       return Path.join(installPath, 'Contents', 'MacOS', 'rubymine')
     case ExternalEditor.TextMate:
       return Path.join(installPath, 'Contents', 'Resources', 'mate')
+    case ExternalEditor.Brackets:
+        return Path.join(installPath, 'Contents', 'MacOS', 'Brackets')
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -140,6 +148,7 @@ export async function getAvailableEditors(): Promise<
     phpStormPath,
     rubyMinePath,
     textMatePath,
+    bracketsPath,
   ] = await Promise.all([
     findApplication(ExternalEditor.Atom),
     findApplication(ExternalEditor.VisualStudioCode),
@@ -149,6 +158,7 @@ export async function getAvailableEditors(): Promise<
     findApplication(ExternalEditor.PhpStorm),
     findApplication(ExternalEditor.RubyMine),
     findApplication(ExternalEditor.TextMate),
+    findApplication(ExternalEditor.Brackets),
   ])
 
   if (atomPath) {
@@ -184,6 +194,10 @@ export async function getAvailableEditors(): Promise<
 
   if (textMatePath) {
     results.push({ editor: ExternalEditor.TextMate, path: textMatePath })
+  }
+
+  if (bracketsPath) {
+    results.push({ editor: ExternalEditor.Brackets, path: bracketsPath })
   }
 
   return results
