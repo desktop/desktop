@@ -1,1 +1,1 @@
-export { InitializeSSH } from './initialize-ssh'
+export { TroubleshootSSH } from './troubleshoot-ssh'

@@ -31,6 +31,7 @@ import {
   TokenStore,
   AccountsStore,
   PullRequestStore,
+  TroubleshootingStore,
 } from '../lib/stores'
 import { GitHubUserDatabase } from '../lib/databases'
 import { URLActionType } from '../lib/parse-app-url'
@@ -121,6 +122,8 @@ const pullRequestStore = new PullRequestStore(
   repositoriesStore
 )
 
+const troubleshootingStore = new TroubleshootingStore()
+
 const appStore = new AppStore(
   gitHubUserStore,
   cloningRepositoriesStore,
@@ -130,7 +133,8 @@ const appStore = new AppStore(
   signInStore,
   accountsStore,
   repositoriesStore,
-  pullRequestStore
+  pullRequestStore,
+  troubleshootingStore
 )
 
 const dispatcher = new Dispatcher(appStore)

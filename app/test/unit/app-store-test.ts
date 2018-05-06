@@ -16,6 +16,7 @@ import {
   RepositoriesStore,
   AccountsStore,
   PullRequestStore,
+  TroubleshootingStore,
 } from '../../src/lib/stores'
 import {
   TestGitHubUserDatabase,
@@ -63,6 +64,8 @@ describe('AppStore', () => {
       repositoriesStore
     )
 
+    const troubleshootingStore = new TroubleshootingStore()
+
     return new AppStore(
       new GitHubUserStore(db),
       new CloningRepositoriesStore(),
@@ -72,7 +75,8 @@ describe('AppStore', () => {
       new SignInStore(),
       accountsStore,
       repositoriesStore,
-      pullRequestStore
+      pullRequestStore,
+      troubleshootingStore
     )
   }
 

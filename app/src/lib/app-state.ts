@@ -27,6 +27,7 @@ import { BranchesTab } from '../models/branches-tab'
 import { PullRequest } from '../models/pull-request'
 import { IAuthor } from '../models/author'
 import { ComparisonCache } from './comparison-cache'
+import { TroubleshootingState } from '../models/ssh'
 
 export { ICommitMessage }
 
@@ -79,6 +80,8 @@ export interface IAppState {
    * showDotcomSignInDialog and showEnterpriseSignInDialog methods.
    */
   readonly signInState: SignInState | null
+
+  readonly troubleshootingState: TroubleshootingState | null
 
   /**
    * The current state of the window, ie maximized, minimized full-screen etc.
@@ -285,6 +288,7 @@ export type Popup =
     }
   | {
       type: PopupType.TroubleshootSSH
+      repository: Repository
     }
 
 export enum FoldoutType {

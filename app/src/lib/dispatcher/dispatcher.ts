@@ -1194,4 +1194,12 @@ export class Dispatcher {
   public recordCompareInitiatedMerge() {
     return this.appStore._recordCompareInitiatedMerge()
   }
+
+  public resetTroubleshooting() {
+    return this.appStore._resetTroubleshooting()
+  }
+
+  public startTroubleshooting(repository: Repository) {
+    return this.appStore._startTroubleshooting(repository)
+  }
 }

@@ -249,7 +249,12 @@ export async function sshAuthenticationErrorHandler(
   error: Error,
   dispatcher: Dispatcher
 ): Promise<Error | null> {
-  const gitError = asGitError(error)
+  const e = asErrorWithMetadata(error)
+  if (!e) {
+    return error
+  }
+
+  const gitError = asGitError(e.underlyingError)
   if (!gitError) {
     return error
   }
@@ -259,12 +264,20 @@ export async function sshAuthenticationErrorHandler(
     return error
   }
 
+  const repository = e.metadata.repository
+  if (!(repository instanceof Repository)) {
+    return error
+  }
+
   if (
     dugiteError === DugiteError.SSHAuthenticationFailed ||
     dugiteError === DugiteError.SSHPermissionDenied ||
     dugiteError === DugiteError.SSHRepositoryNotFound
   ) {
-    dispatcher.showPopup({ type: PopupType.TroubleshootSSH })
+    dispatcher.showPopup({
+      type: PopupType.TroubleshootSSH,
+      repository,
+    })
     return null
   }
   // TODO: what's a reliable way to handle the fetch/push/pull errors that indicate an SSH error?

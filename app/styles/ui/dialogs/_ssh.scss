@@ -1,0 +1,18 @@
+#troubleshoot-ssh {
+  .submit {
+    background-color: var(--button-background);
+    color: var(--button-text-color);
+    border: 1px solid var(--button-background);
+
+    &:not(:disabled):hover {
+      border-color: var(--button-background);
+      background-color: var(--button-hover-background);
+    }
+
+    &:focus {
+      border: 1px solid var(--button-focus-border-color);
+      background-color: var(--button-hover-background);
+      box-shadow: 0 0 0 2px var(--text-field-focus-shadow-color);
+    }
+  }
+}
