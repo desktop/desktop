@@ -22,6 +22,7 @@ import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Loading } from '../lib/loading'
 import { Ref } from '../lib/ref'
 import { Octicon, OcticonSymbol } from '../octicons'
+import { LinkButton } from '../lib/link-button'
 
 interface ITroubleshootSSHProps {
   readonly dispatcher: Dispatcher
@@ -84,12 +85,16 @@ export class TroubleshootSSH extends React.Component<
     return (
       <DialogContent>
         <p>
-          Unfortunately Desktop has exhausted all known troubleshooting this
-          issue.
+          Unfortunately Desktop has exhausted all known troubleshooting tricks
+          for this issue.
         </p>
         <p>
-          A trace file has been generated here that will help with a human
-          troubleshooting the issue.
+          A trace file has been generated here that will help a human
+          troubleshoot the issue. Please reach out to the{' '}
+          <LinkButton uri="https://github.com/desktop/desktop/issues/new">
+            GitHub Desktop
+          </LinkButton>
+          issue tracker for further support.
         </p>
       </DialogContent>
     )
