@@ -76,19 +76,31 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | 
           // TODO: poke at these details, pass them through
         }
 
-        const regex = /Host key verification failed\./g
+        const noValidHostKeyFoundRe = /No RSA host key is known for (.*) and you have requested strict checking/
+        const hostMatch = noValidHostKeyFoundRe.exec(stderr)
 
-        if (regex.test(stderr)) {
-          const rawOutput = `The authenticity of host 'github.com (192.30.255.112)' can't be established.
-          RSA key fingerprint is SHA256:nThbg6kXUpJWGl7E1IGOCspRomTxdCARLviKw6E5SY8.`
+        if (hostMatch != null) {
+          const host = hostMatch[1]
 
-          // TODO: how to resolve the host from the raw text?
-          // TODO: how to resolve the host from the Git config?
+          const fingerprintRe = /Server host key: (.*) (.*)/
+          const match = fingerprintRe.exec(stderr)
+
+          if (match == null) {
+            log.warn(
+              `Could not find fingerprint details where they were expected`
+            )
+            // TODO: redirect to generic error
+            return
+          }
+
+          const fingerprint = match[2]
+          const rawOutput = `The authenticity of host '${host}' can't be established.
+          RSA key fingerprint is ${fingerprint}.`
 
           this.setState({
             kind: TroubleshootingStep.ValidateHost,
             rawOutput,
-            host: 'github.com',
+            host,
           })
         } else {
           this.setState({

@@ -84,10 +84,11 @@ export class TroubleshootSSH extends React.Component<
     return (
       <DialogContent>
         <p>
-          Unfortunately Desktop couldn't figure out the root cause of the issue.
+          Unfortunately Desktop has exhausted all known troubleshooting this
+          issue.
         </p>
         <p>
-          A trace file has been generated here that will help with
+          A trace file has been generated here that will help with a human
           troubleshooting the issue.
         </p>
       </DialogContent>
