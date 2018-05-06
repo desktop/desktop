@@ -37,6 +37,10 @@ export class TroubleshootSSH extends React.Component<
   ITroubleshootSSHProps,
   {}
 > {
+  public componentDidMount() {
+    this.props.dispatcher.resetTroubleshooting()
+  }
+
   private renderInitialState = (state: InitialState) => {
     return (
       <DialogContent>
