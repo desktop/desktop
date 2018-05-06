@@ -12,7 +12,7 @@ export enum ExternalEditor {
   PhpStorm = 'PhpStorm',
   RubyMine = 'RubyMine',
   TextMate = 'TextMate',
-  Brackets = 'Brackets'
+  Brackets = 'Brackets',
 }
 
 export function parse(label: string): ExternalEditor | null {
@@ -70,7 +70,7 @@ function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
     case ExternalEditor.TextMate:
       return ['com.macromates.TextMate']
     case ExternalEditor.Brackets:
-        return ['io.brackets.appshell']
+      return ['io.brackets.appshell']
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -104,7 +104,7 @@ function getExecutableShim(
     case ExternalEditor.TextMate:
       return Path.join(installPath, 'Contents', 'Resources', 'mate')
     case ExternalEditor.Brackets:
-        return Path.join(installPath, 'Contents', 'MacOS', 'Brackets')
+      return Path.join(installPath, 'Contents', 'MacOS', 'Brackets')
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
