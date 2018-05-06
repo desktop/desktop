@@ -3538,6 +3538,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.troubleshootingStore.start(repository)
   }
 
+  public _validateHost(host: string): Promise<void> {
+    return this.troubleshootingStore.validateHost(host)
+  }
+
   public async _checkoutPullRequest(
     repository: Repository,
     pullRequest: PullRequest

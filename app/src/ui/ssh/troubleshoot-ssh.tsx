@@ -121,6 +121,17 @@ export class TroubleshootSSH extends React.Component<
     this.props.dispatcher.startTroubleshooting(this.props.repository)
   }
 
+  private verifyHost = async () => {
+    const state = this.props.troubleshootingState
+    if (state == null || state.kind !== TroubleshootingStep.ValidateHost) {
+      log.warn('trying to validate host when in the wrong state')
+      return
+    }
+
+    await this.props.dispatcher.validateHost(state.host)
+    this.props.dispatcher.startTroubleshooting(this.props.repository)
+  }
+
   private saveFile = () => {
     const state = this.props.troubleshootingState
     if (state == null || state.kind !== TroubleshootingStep.Unknown) {
@@ -174,7 +185,7 @@ export class TroubleshootSSH extends React.Component<
           <DialogFooter>
             <ButtonGroup>
               <Button onClick={this.props.onDismissed}>Cancel</Button>
-              <Button className="submit" onClick={this.props.onDismissed}>
+              <Button className="submit" onClick={this.verifyHost}>
                 Verify
               </Button>
             </ButtonGroup>

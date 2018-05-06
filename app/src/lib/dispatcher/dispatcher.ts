@@ -1202,4 +1202,8 @@ export class Dispatcher {
   public startTroubleshooting(repository: Repository) {
     return this.appStore._startTroubleshooting(repository)
   }
+
+  public validateHost(host: string): Promise<void> {
+    return this.appStore._validateHost(host)
+  }
 }

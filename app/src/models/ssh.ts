@@ -12,6 +12,7 @@ export type InitialState = {
 
 export type ValidateHostAction = {
   readonly kind: TroubleshootingStep.ValidateHost
+  readonly host: string
   readonly rawOutput: string
 }
 
