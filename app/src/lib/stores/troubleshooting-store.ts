@@ -37,7 +37,7 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | 
     this.setState({ kind: TroubleshootingStep.InitialState, isLoading: true })
 
     exec(
-      'ssh -Tv git@github.com',
+      `ssh -Tv  -o 'StrictHostKeyChecking=yes' git@github.com`,
       { timeout: 15000 },
       (error, stdout, stderr) => {
         if (error != null) {
