@@ -8,6 +8,7 @@ import {
   TroubleshootingState,
   TroubleshootingStep,
   InitialState,
+  ValidateHostAction,
   SuggestedAction,
   UnknownResult,
 } from '../../models/ssh'
@@ -55,6 +56,17 @@ export class TroubleshootSSH extends React.Component<
     )
   }
 
+  private renderValidateHost = (state: ValidateHostAction) => {
+    return (
+      <DialogContent>
+        <p>
+          Desktop is unable to connect to the host. To connect to the remote,
+          you need to confirm the host.
+        </p>
+      </DialogContent>
+    )
+  }
+
   private renderSuggestedAction = (state: SuggestedAction) => {
     return (
       <DialogContent>
@@ -89,6 +101,8 @@ export class TroubleshootSSH extends React.Component<
     switch (state.kind) {
       case TroubleshootingStep.InitialState:
         return this.renderInitialState(state)
+      case TroubleshootingStep.ValidateHost:
+        return this.renderValidateHost(state)
       case TroubleshootingStep.SuggestAction:
         return this.renderSuggestedAction(state)
       case TroubleshootingStep.Unknown:
@@ -146,6 +160,18 @@ export class TroubleshootSSH extends React.Component<
               >
                 {state.isLoading ? <Loading /> : null}
                 Start
+              </Button>
+            </ButtonGroup>
+          </DialogFooter>
+        )
+      case TroubleshootingStep.ValidateHost:
+        // TODO: what should we do here?
+        return (
+          <DialogFooter>
+            <ButtonGroup>
+              <Button onClick={this.props.onDismissed}>Cancel</Button>
+              <Button className="submit" onClick={this.props.onDismissed}>
+                Do it
               </Button>
             </ButtonGroup>
           </DialogFooter>

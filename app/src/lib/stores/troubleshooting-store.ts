@@ -44,11 +44,19 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | 
           // TODO: poke at these details, pass them through
         }
 
-        this.setState({
-          kind: TroubleshootingStep.Unknown,
-          output: stdout,
-          error: stderr,
-        })
+        const regex = /Host key verification failed\./g
+
+        if (regex.test(stderr)) {
+          this.setState({
+            kind: TroubleshootingStep.ValidateHost,
+          })
+        } else {
+          this.setState({
+            kind: TroubleshootingStep.Unknown,
+            output: stdout,
+            error: stderr,
+          })
+        }
       }
     )
   }

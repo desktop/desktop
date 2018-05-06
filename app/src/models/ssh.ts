@@ -1,12 +1,17 @@
 export enum TroubleshootingStep {
   InitialState = 'InitialState',
   SuggestAction = 'SuggestAction',
+  ValidateHost = 'ValidateHost',
   Unknown = 'Unknown',
 }
 
 export type InitialState = {
   readonly kind: TroubleshootingStep.InitialState
   readonly isLoading: boolean
+}
+
+export type ValidateHostAction = {
+  readonly kind: TroubleshootingStep.ValidateHost
 }
 
 export type SuggestedAction = {
@@ -21,5 +26,6 @@ export type UnknownResult = {
 
 export type TroubleshootingState =
   | InitialState
+  | ValidateHostAction
   | UnknownResult
   | SuggestedAction
