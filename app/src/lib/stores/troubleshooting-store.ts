@@ -38,7 +38,7 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | 
 
     exec(
       'ssh -Tv git@github.com',
-      { timeout: 30000 },
+      { timeout: 15000 },
       (error, stdout, stderr) => {
         if (error != null) {
           // TODO: poke at these details, pass them through
