@@ -1,4 +1,8 @@
 #troubleshoot-ssh {
+  .spin {
+    margin-right: var(--spacing-half);
+  }
+
   .submit {
     background-color: var(--button-background);
     color: var(--button-text-color);
