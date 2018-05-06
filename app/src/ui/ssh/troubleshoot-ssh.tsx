@@ -20,6 +20,7 @@ import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Loading } from '../lib/loading'
+import { Ref } from '../lib/ref'
 import { Octicon, OcticonSymbol } from '../octicons'
 
 interface ITroubleshootSSHProps {
@@ -60,9 +61,13 @@ export class TroubleshootSSH extends React.Component<
     return (
       <DialogContent>
         <p>
-          Desktop is unable to connect to the host. To connect to the remote,
-          you need to confirm the host.
+          Desktop is unable to connect to the host as the host key has not been
+          verified.
         </p>
+        <p>
+          <Ref>{state.rawOutput}</Ref>
+        </p>
+        <p>Would you like to verify this is the correct host?</p>
       </DialogContent>
     )
   }
@@ -165,13 +170,12 @@ export class TroubleshootSSH extends React.Component<
           </DialogFooter>
         )
       case TroubleshootingStep.ValidateHost:
-        // TODO: what should we do here?
         return (
           <DialogFooter>
             <ButtonGroup>
               <Button onClick={this.props.onDismissed}>Cancel</Button>
               <Button className="submit" onClick={this.props.onDismissed}>
-                Do it
+                Verify
               </Button>
             </ButtonGroup>
           </DialogFooter>

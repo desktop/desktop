@@ -47,8 +47,12 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | 
         const regex = /Host key verification failed\./g
 
         if (regex.test(stderr)) {
+          const rawOutput = `The authenticity of host 'github.com (192.30.255.112)' can't be established.
+          RSA key fingerprint is SHA256:nThbg6kXUpJWGl7E1IGOCspRomTxdCARLviKw6E5SY8.`
+
           this.setState({
             kind: TroubleshootingStep.ValidateHost,
+            rawOutput,
           })
         } else {
           this.setState({
