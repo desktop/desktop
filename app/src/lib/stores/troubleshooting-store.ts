@@ -94,8 +94,7 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | 
           }
 
           const fingerprint = match[2]
-          const rawOutput = `The authenticity of host '${host}' can't be established.
-          RSA key fingerprint is ${fingerprint}.`
+          const rawOutput = `The authenticity of host '${host}' can't be established.\nRSA key fingerprint is ${fingerprint}.`
 
           this.setState({
             kind: TroubleshootingStep.ValidateHost,

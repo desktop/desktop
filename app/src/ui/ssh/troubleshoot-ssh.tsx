@@ -20,7 +20,6 @@ import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Loading } from '../lib/loading'
-import { Ref } from '../lib/ref'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { LinkButton } from '../lib/link-button'
 
@@ -59,16 +58,18 @@ export class TroubleshootSSH extends React.Component<
   }
 
   private renderValidateHost = (state: ValidateHostAction) => {
+    // TODO: what verification can we do as part of a GHE setup?
     return (
       <DialogContent>
+        <p>A problem was encountered connecting to the host.</p>
+        <p className="output">{state.rawOutput}</p>
         <p>
-          Desktop is unable to connect to the host as the host key has not been
-          verified.
+          You will need to verify that this is the correct host to contiune. You
+          can compare the value above with the entries documented in the{' '}
+          <LinkButton uri="https://help.github.com/articles/testing-your-ssh-connection/">
+            GitHub help documentation
+          </LinkButton>.
         </p>
-        <p>
-          <Ref>{state.rawOutput}</Ref>
-        </p>
-        <p>Would you like to verify this is the correct host?</p>
       </DialogContent>
     )
   }

@@ -3,6 +3,22 @@
     margin-right: var(--spacing-half);
   }
 
+  p.output {
+    -webkit-user-select: auto;
+    user-select: auto;
+    cursor: text;
+
+    // Preserve newlines and other white space in error messages
+    // but make sure we wrap if necessary.
+    white-space: pre-wrap;
+
+    background: var(--path-segment-background);
+    border: var(--path-segment-background);
+    border-radius: var(--border-radius);
+
+    font-family: var(--font-family-monospace);
+  }
+
   .submit {
     background-color: var(--button-background);
     color: var(--button-text-color);
