@@ -8,7 +8,7 @@ import { mkdirIfNeeded } from '../file-system'
 
 import { TroubleshootingState, TroubleshootingStep } from '../../models/ssh'
 import { Repository } from '../../models/repository'
-import { getSSHEnvironment } from '../ssh'
+import { getSSHEnvironment, isHostVerificationError } from '../ssh'
 
 export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | null> {
   private state: TroubleshootingState | null = null
@@ -83,26 +83,9 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | 
           // TODO: poke at these details, pass them through
         }
 
-        const noValidHostKeyFoundRe = /No RSA host key is known for (.*) and you have requested strict checking/
-        const hostMatch = noValidHostKeyFoundRe.exec(stderr)
-
-        if (hostMatch != null) {
-          const host = hostMatch[1]
-
-          const fingerprintRe = /Server host key: (.*) (.*)/
-          const match = fingerprintRe.exec(stderr)
-
-          if (match == null) {
-            log.warn(
-              `Could not find fingerprint details where they were expected`
-            )
-            // TODO: redirect to generic error
-            return
-          }
-
-          const fingerprint = match[2]
-          const rawOutput = `The authenticity of host '${host}' can't be established.\nRSA key fingerprint is ${fingerprint}.`
-
+        const verificationError = isHostVerificationError(stderr)
+        if (verificationError !== null) {
+          const { rawOutput, host } = verificationError
           this.setState({
             kind: TroubleshootingStep.ValidateHost,
             rawOutput,
