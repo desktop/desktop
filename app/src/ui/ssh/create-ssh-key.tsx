@@ -55,10 +55,8 @@ export class CreateSSHKey extends React.Component<
         onSubmit={this.onCreateSSHKey}
       >
         <DialogContent>
-          <Row>
-            No existing SSH keys were found. To create one, fill out these
-            details:
-          </Row>
+          <Row>No existing SSH keys were found on this machine.</Row>
+          <Row>To create one, fill out these details:</Row>
           <Row>
             <TextBox
               value={this.state.emailAddress}
@@ -66,12 +64,16 @@ export class CreateSSHKey extends React.Component<
               autoFocus={true}
               label="Email address (required)"
             />
+          </Row>
+          <Row>
             <TextBox
               value={this.state.passphrase}
               onValueChanged={this.onPassPhraseChanged}
               type="password"
               label="Passphrase (optional)"
             />
+          </Row>
+          <Row>
             <TextBox
               value={this.state.emailAddress}
               onValueChanged={this.onConfirmPassPhraseChanged}
