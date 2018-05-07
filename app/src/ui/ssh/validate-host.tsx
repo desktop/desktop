@@ -31,6 +31,7 @@ export class ValidateHost extends React.Component<IValidateHostProps, {}> {
         id="troubleshoot-ssh"
         title="Verify SSH Server"
         onDismissed={this.props.onDismissed}
+        onSubmit={this.verifyHost}
       >
         <DialogContent>
           <p>A problem was encountered connecting to the host.</p>
@@ -45,15 +46,11 @@ export class ValidateHost extends React.Component<IValidateHostProps, {}> {
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>
-            <Button onClick={this.props.onDismissed}>Cancel</Button>
-            <Button
-              className="submit"
-              disabled={disabled}
-              onClick={this.verifyHost}
-            >
+            <Button type="submit" disabled={disabled}>
               {state.isLoading ? <Loading /> : null}
               Verify
             </Button>
+            <Button onClick={this.props.onDismissed}>Cancel</Button>
           </ButtonGroup>
         </DialogFooter>
       </Dialog>

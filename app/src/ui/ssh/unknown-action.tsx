@@ -16,8 +16,15 @@ interface IUnknownActionProps {
 }
 
 export class UnknownAction extends React.Component<IUnknownActionProps, {}> {
-  private saveFile = () => {
-    saveLogFile(this.props.state.error)
+  private saveFile = async () => {
+    try {
+      await saveLogFile(this.props.state.error)
+    } catch (err) {
+      log.error(
+        `[saveLogFile] an error occurred while trying to save the log file`,
+        err
+      )
+    }
   }
 
   public render() {
@@ -25,6 +32,7 @@ export class UnknownAction extends React.Component<IUnknownActionProps, {}> {
       <Dialog
         id="troubleshoot-ssh"
         title="Troubleshooting SSH"
+        onSubmit={this.saveFile}
         onDismissed={this.props.onDismissed}
       >
         <DialogContent>
@@ -43,10 +51,10 @@ export class UnknownAction extends React.Component<IUnknownActionProps, {}> {
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>
-            <Button onClick={this.props.onDismissed}>Close</Button>
-            <Button className="submit" onClick={this.saveFile}>
+            <Button type="submit">
               <Octicon symbol={OcticonSymbol.desktopDownload} /> Save log file
             </Button>
+            <Button onClick={this.props.onDismissed}>Close</Button>
           </ButtonGroup>
         </DialogFooter>
       </Dialog>

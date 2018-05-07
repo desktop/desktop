@@ -31,6 +31,7 @@ export class Welcome extends React.Component<IWelcomeProps, {}> {
         id="troubleshoot-ssh"
         title="Verify SSH Server"
         onDismissed={this.props.onDismissed}
+        onSubmit={this.startTroubleshooting}
       >
         <DialogContent>
           <p>
@@ -43,15 +44,11 @@ export class Welcome extends React.Component<IWelcomeProps, {}> {
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>
-            <Button onClick={this.props.onDismissed}>Cancel</Button>
-            <Button
-              className="submit"
-              disabled={disabled}
-              onClick={this.startTroubleshooting}
-            >
+            <Button type="submit" disabled={disabled}>
               {state.isLoading ? <Loading /> : null}
               Start
             </Button>
+            <Button onClick={this.props.onDismissed}>Cancel</Button>
           </ButtonGroup>
         </DialogFooter>
       </Dialog>
