@@ -148,9 +148,12 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | 
     const knownHostsPath = Path.join(homeDir, '.ssh', 'known_hosts')
 
     return new Promise<void>((resolve, reject) => {
-      const keyscan = spawn(`ssh-keyscan`, [host])
+      const command = 'ssh-keyscan'
+      const env = getEnvironment(command)
+
+      const keyscan = spawn(`ssh-keyscan`, [host], { env })
       keyscan.stdout.pipe(fs.createWriteStream(knownHostsPath))
-      keyscan.on('close', (code, signal) => {
+      keyscan.on('close', code => {
         if (code !== 0) {
           reject(
             new Error(
