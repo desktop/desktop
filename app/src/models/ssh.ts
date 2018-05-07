@@ -1,7 +1,7 @@
 export enum TroubleshootingStep {
   InitialState = 'InitialState',
-  SuggestAction = 'SuggestAction',
   ValidateHost = 'ValidateHost',
+  NoAccount = 'NoAccount',
   Unknown = 'Unknown',
 }
 
@@ -16,8 +16,9 @@ export type ValidateHostAction = {
   readonly rawOutput: string
 }
 
-export type SuggestedAction = {
-  readonly kind: TroubleshootingStep.SuggestAction
+export type NoAccountAction = {
+  readonly kind: TroubleshootingStep.NoAccount
+  readonly foundAccounts: ReadonlyArray<{ file: string; emailAddress: string }>
 }
 
 export type UnknownResult = {
@@ -29,5 +30,5 @@ export type UnknownResult = {
 export type TroubleshootingState =
   | InitialState
   | ValidateHostAction
+  | NoAccountAction
   | UnknownResult
-  | SuggestedAction

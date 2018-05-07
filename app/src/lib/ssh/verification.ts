@@ -29,3 +29,8 @@ export function isHostVerificationError(
 
   return { host, fingerprint, rawOutput }
 }
+
+export function isPermissionError(stderr: string): boolean {
+  const permissionDeniedRe = /.*: Permission denied \(publickey\)\./
+  return permissionDeniedRe.test(stderr)
+}

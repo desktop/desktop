@@ -1,7 +1,4 @@
 import * as React from 'react'
-import { remote } from 'electron'
-import * as Fs from 'fs'
-import * as moment from 'moment'
 
 import { Repository } from '../../models/repository'
 import {
@@ -9,8 +6,8 @@ import {
   TroubleshootingStep,
   InitialState,
   ValidateHostAction,
-  SuggestedAction,
   UnknownResult,
+  NoAccountAction,
 } from '../../models/ssh'
 
 import { Dispatcher } from '../../lib/dispatcher'
@@ -22,6 +19,7 @@ import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Loading } from '../lib/loading'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { LinkButton } from '../lib/link-button'
+import { saveLogFile } from '../../lib/ssh'
 
 interface ITroubleshootSSHProps {
   readonly dispatcher: Dispatcher
@@ -64,7 +62,7 @@ export class TroubleshootSSH extends React.Component<
         <p>A problem was encountered connecting to the host.</p>
         <p className="output">{state.rawOutput}</p>
         <p>
-          You will need to verify that this is the correct host to contiune. You
+          You will need to verify that this is the correct host to continue. You
           can compare the value above with the entries documented in the{' '}
           <LinkButton uri="https://help.github.com/articles/testing-your-ssh-connection/">
             GitHub help documentation
@@ -74,10 +72,10 @@ export class TroubleshootSSH extends React.Component<
     )
   }
 
-  private renderSuggestedAction = (state: SuggestedAction) => {
+  private renderNoAccount = (state: NoAccountAction) => {
     return (
       <DialogContent>
-        <p>WHAT ARE WE PUTTING IN HERE?</p>
+        <p>It looks like a valid SSH key was not found.</p>
       </DialogContent>
     )
   }
@@ -94,7 +92,7 @@ export class TroubleshootSSH extends React.Component<
           troubleshoot the issue. Please reach out to the{' '}
           <LinkButton uri="https://github.com/desktop/desktop/issues/new">
             GitHub Desktop
-          </LinkButton>
+          </LinkButton>{' '}
           issue tracker for further support.
         </p>
       </DialogContent>
@@ -115,8 +113,8 @@ export class TroubleshootSSH extends React.Component<
         return this.renderInitialState(state)
       case TroubleshootingStep.ValidateHost:
         return this.renderValidateHost(state)
-      case TroubleshootingStep.SuggestAction:
-        return this.renderSuggestedAction(state)
+      case TroubleshootingStep.NoAccount:
+        return this.renderNoAccount(state)
       case TroubleshootingStep.Unknown:
         return this.renderUnknown(state)
       default:
@@ -146,18 +144,7 @@ export class TroubleshootSSH extends React.Component<
       return
     }
 
-    const timestamp = moment().format('YYYYMMDD-HHmmss')
-    const defaultPath = `ssh-output-${timestamp}.txt`
-
-    // TODO: null should be a valid argument here
-    const window: any = null
-    remote.dialog.showSaveDialog(window, { defaultPath }, filename => {
-      if (filename == null) {
-        log.warn('filename returned null, this needs to be in the signature')
-        return
-      }
-      Fs.writeFileSync(filename, state.error)
-    })
+    saveLogFile(state.error)
   }
 
   private renderFooter(): JSX.Element | null {
@@ -198,7 +185,7 @@ export class TroubleshootSSH extends React.Component<
             </ButtonGroup>
           </DialogFooter>
         )
-      case TroubleshootingStep.SuggestAction:
+      case TroubleshootingStep.NoAccount:
         // TODO: what should we do here?
         return (
           <DialogFooter>

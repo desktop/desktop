@@ -8,7 +8,11 @@ import { mkdirIfNeeded } from '../file-system'
 
 import { TroubleshootingState, TroubleshootingStep } from '../../models/ssh'
 import { Repository } from '../../models/repository'
-import { getSSHEnvironment, isHostVerificationError } from '../ssh'
+import {
+  getSSHEnvironment,
+  isHostVerificationError,
+  isPermissionError,
+} from '../ssh'
 
 export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | null> {
   private state: TroubleshootingState | null = null
@@ -97,13 +101,28 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | 
             rawOutput,
             host,
           })
-        } else {
-          this.setState({
-            kind: TroubleshootingStep.Unknown,
-            output: stdout,
-            error: stderr,
-          })
+          return
         }
+
+        if (isPermissionError(stderr)) {
+          // TODO: find accounts listed using ssh-add -l
+          const accounts: ReadonlyArray<{
+            file: string
+            emailAddress: string
+          }> = []
+
+          this.setState({
+            kind: TroubleshootingStep.NoAccount,
+            foundAccounts: accounts,
+          })
+          return
+        }
+
+        this.setState({
+          kind: TroubleshootingStep.Unknown,
+          output: stdout,
+          error: stderr,
+        })
       }
     )
   }
