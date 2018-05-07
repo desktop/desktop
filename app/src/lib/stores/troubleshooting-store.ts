@@ -2,121 +2,13 @@ import { exec, spawn } from 'child_process'
 import * as os from 'os'
 import * as Path from 'path'
 import * as fs from 'fs'
-import { mkdirIfNeeded } from '../file-system'
-import { isExecutableOnPath } from '../find-executable'
 
 import { TypedBaseStore } from './base-store'
+import { mkdirIfNeeded } from '../file-system'
+
 import { TroubleshootingState, TroubleshootingStep } from '../../models/ssh'
 import { Repository } from '../../models/repository'
-
-/** Spawn a command with arguments and capture its output. */
-function spawnAndComplete(
-  command: string,
-  args: ReadonlyArray<string>
-): Promise<string> {
-  try {
-    const child = spawn(command, args as string[])
-    return new Promise<string>((resolve, reject) => {
-      let stdout = ''
-      child.stdout.on('data', data => {
-        stdout += data
-      })
-
-      child.on('close', code => {
-        if (code === 0) {
-          resolve(stdout)
-        } else {
-          reject(new Error(`Command "${command} ${args}" failed: "${stdout}"`))
-        }
-      })
-
-      child.on('error', (err: Error) => {
-        reject(err)
-      })
-
-      // This is necessary if using Powershell 2 on Windows 7 to get the events
-      // to raise.
-      // See http://stackoverflow.com/questions/9155289/calling-powershell-from-nodejs
-      child.stdin.end()
-    })
-  } catch (error) {
-    return Promise.reject(error)
-  }
-}
-
-/** Get the path segments in the user's `Path`. */
-async function getPathSegments(): Promise<ReadonlyArray<string>> {
-  let powershellPath: string
-  const systemRoot = process.env.SystemRoot
-  if (systemRoot != null) {
-    const system32Path = Path.join(systemRoot, 'System32')
-    powershellPath = Path.join(
-      system32Path,
-      'WindowsPowerShell',
-      'v1.0',
-      'powershell.exe'
-    )
-  } else {
-    powershellPath = 'powershell.exe'
-  }
-
-  const args = [
-    '-noprofile',
-    '-ExecutionPolicy',
-    'RemoteSigned',
-    '-command',
-    // Set encoding and execute the command, capture the output, and return it
-    // via .NET's console in order to have consistent UTF-8 encoding.
-    // See http://stackoverflow.com/questions/22349139/utf-8-output-from-powershell
-    // to address https://github.com/atom/atom/issues/5063
-    `
-      [Console]::OutputEncoding=[System.Text.Encoding]::UTF8
-      $output=[environment]::GetEnvironmentVariable('Path', 'User')
-      [Console]::WriteLine($output)
-    `,
-  ]
-
-  const stdout = await spawnAndComplete(powershellPath, args)
-  const pathOutput = stdout.replace(/^\s+|\s+$/g, '')
-  return pathOutput.split(/;+/).filter(segment => segment.length)
-}
-
-async function getEnvironment(executable: string) {
-  const found = await isExecutableOnPath(executable)
-
-  if (found) {
-    // no need to setup our own environment, inherit the default
-    return process.env
-  }
-
-  if (!__WIN32__) {
-    log.warn('appending the path is currently Windows-specific code for now')
-    log.warn(
-      `skipping this work because I'm not sure how many users are actually affected by this`
-    )
-    return process.env
-  }
-
-  const paths = await getPathSegments()
-  const localGitDir = process.env['LOCAL_GIT_DIRECTORY']
-
-  if (localGitDir == null) {
-    log.warn('unable to find path to the embedded Git installation')
-    return process.env
-  }
-  const updatedPaths = [...paths, Path.join(localGitDir, 'usr', 'bin')]
-  const path = updatedPaths.join(';')
-
-  const newEnvironment = Object.assign({}, process.env, { path })
-
-  if (newEnvironment.Path != null) {
-    // this is a stupid win32 hack because `Path` and `path` are distinct keys
-    // on a Javascript hash, but Windows will choose Path and ignore the other value
-    delete newEnvironment.Path
-  }
-
-  return newEnvironment
-}
+import { getSSHEnvironment } from '../ssh'
 
 export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | null> {
   private state: TroubleshootingState | null = null
@@ -154,7 +46,7 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | 
     await mkdirIfNeeded(sshDir)
 
     const command = 'ssh-keyscan'
-    const env = await getEnvironment(command)
+    const env = await getSSHEnvironment(command)
 
     return new Promise<void>((resolve, reject) => {
       const keyscan = spawn(`ssh-keyscan`, [host], { env })
@@ -178,7 +70,7 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | 
   public async start(repository: Repository) {
     this.setState({ kind: TroubleshootingStep.InitialState, isLoading: true })
     const command = 'ssh'
-    const env = await getEnvironment(command)
+    const env = await getSSHEnvironment(command)
 
     // TODO: how to resolve the host for GHE environments?
     const host = 'git@github.com'
