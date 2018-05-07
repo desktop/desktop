@@ -1,4 +1,4 @@
-import { exec, spawn } from 'child_process'
+import { spawn } from 'child_process'
 import * as os from 'os'
 import * as Path from 'path'
 import * as fs from 'fs'
@@ -6,12 +6,17 @@ import * as fs from 'fs'
 import { TypedBaseStore } from './base-store'
 import { mkdirIfNeeded } from '../file-system'
 
-import { TroubleshootingState, TroubleshootingStep } from '../../models/ssh'
+import {
+  TroubleshootingState,
+  TroubleshootingStep,
+  ValidateHostAction,
+} from '../../models/ssh'
 import { Repository } from '../../models/repository'
 import {
   getSSHEnvironment,
   isHostVerificationError,
   isPermissionError,
+  executeSSHTest,
 } from '../ssh'
 
 export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | null> {
@@ -44,23 +49,9 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | 
     this.setState({ kind: TroubleshootingStep.InitialState, isLoading: false })
   }
 
-  public async validateHost(host: string) {
-    if (
-      this.state == null ||
-      this.state.kind !== TroubleshootingStep.ValidateHost
-    ) {
-      log.warn('trying to validate when not in the right state')
-      return
-    }
-
-    const { rawOutput } = this.state
-
-    this.setState({
-      kind: TroubleshootingStep.ValidateHost,
-      rawOutput,
-      host,
-      isLoading: true,
-    })
+  public async validateHost(state: ValidateHostAction) {
+    const nextState = { ...state, isLoading: true }
+    this.setState(nextState)
 
     const homeDir = os.homedir()
     const sshDir = Path.join(homeDir, '.ssh')
@@ -70,7 +61,7 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | 
     const env = await getSSHEnvironment(command)
 
     return new Promise<void>((resolve, reject) => {
-      const keyscan = spawn(command, [host], { shell: true, env })
+      const keyscan = spawn(command, [state.host], { shell: true, env })
       const knownHostsPath = Path.join(homeDir, '.ssh', 'known_hosts')
 
       keyscan.stdout.pipe(fs.createWriteStream(knownHostsPath))
@@ -84,7 +75,9 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | 
         if (code !== 0) {
           reject(
             new Error(
-              `ssh-keyscan exited with code '${code}' while adding '${host}' which was not expected`
+              `ssh-keyscan exited with code '${code}' while adding '${
+                state.host
+              }' which was not expected`
             )
           )
           return
@@ -96,52 +89,41 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | 
 
   public async start(repository: Repository) {
     this.setState({ kind: TroubleshootingStep.InitialState, isLoading: true })
-    const command = 'ssh'
-    const env = await getSSHEnvironment(command)
 
     // TODO: how to resolve the host for GHE environments?
-    const host = 'git@github.com'
+    const sshUrl = 'git@github.com'
 
-    exec(
-      `${command} -Tv  -o 'StrictHostKeyChecking=yes' ${host}`,
-      { timeout: 15000, env },
-      (error, stdout, stderr) => {
-        if (error != null) {
-          // TODO: poke at these details, pass them through
-        }
+    const stderr = await executeSSHTest(sshUrl)
 
-        const verificationError = isHostVerificationError(stderr)
-        if (verificationError !== null) {
-          const { rawOutput, host } = verificationError
-          this.setState({
-            kind: TroubleshootingStep.ValidateHost,
-            rawOutput,
-            host,
-            isLoading: false,
-          })
-          return
-        }
+    const verificationError = isHostVerificationError(stderr)
+    if (verificationError !== null) {
+      const { rawOutput, host } = verificationError
+      this.setState({
+        kind: TroubleshootingStep.ValidateHost,
+        rawOutput,
+        host,
+        isLoading: false,
+      })
+      return
+    }
 
-        if (isPermissionError(stderr)) {
-          // TODO: find accounts listed using ssh-add -l
-          const accounts: ReadonlyArray<{
-            file: string
-            emailAddress: string
-          }> = []
+    if (isPermissionError(stderr)) {
+      // TODO: find accounts listed using ssh-add -l
+      const accounts: ReadonlyArray<{
+        file: string
+        emailAddress: string
+      }> = []
 
-          this.setState({
-            kind: TroubleshootingStep.NoAccount,
-            foundAccounts: accounts,
-          })
-          return
-        }
+      this.setState({
+        kind: TroubleshootingStep.NoAccount,
+        foundAccounts: accounts,
+      })
+      return
+    }
 
-        this.setState({
-          kind: TroubleshootingStep.Unknown,
-          output: stdout,
-          error: stderr,
-        })
-      }
-    )
+    this.setState({
+      kind: TroubleshootingStep.Unknown,
+      error: stderr,
+    })
   }
 }

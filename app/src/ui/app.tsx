@@ -1209,6 +1209,10 @@ export class App extends React.Component<IAppProps, IAppState> {
         )
       case PopupType.TroubleshootSSH:
         const state = this.props.appStore.getState()
+        if (state.troubleshootingState == null) {
+          return null
+        }
+
         return (
           <TroubleshootSSH
             dispatcher={this.props.dispatcher}

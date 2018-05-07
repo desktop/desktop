@@ -55,6 +55,7 @@ import { FetchType } from '../../lib/stores'
 import { PullRequest } from '../../models/pull-request'
 import { IAuthor } from '../../models/author'
 import { ITrailer } from '../git/interpret-trailers'
+import { ValidateHostAction } from '../../models/ssh'
 
 /**
  * An error handler function.
@@ -1203,7 +1204,7 @@ export class Dispatcher {
     return this.appStore._startTroubleshooting(repository)
   }
 
-  public validateHost(host: string): Promise<void> {
-    return this.appStore._validateHost(host)
+  public validateHost(action: ValidateHostAction): Promise<void> {
+    return this.appStore._validateHost(action)
   }
 }

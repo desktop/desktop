@@ -131,6 +131,7 @@ import { IAuthor } from '../../models/author'
 import { ComparisonCache } from '../comparison-cache'
 import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
 import { enableCompareSidebar } from '../feature-flag'
+import { ValidateHostAction } from '../../models/ssh';
 
 /**
  * Enum used by fetch to determine if
@@ -3538,8 +3539,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.troubleshootingStore.start(repository)
   }
 
-  public _validateHost(host: string): Promise<void> {
-    return this.troubleshootingStore.validateHost(host)
+  public _validateHost(action: ValidateHostAction): Promise<void> {
+    return this.troubleshootingStore.validateHost(action)
   }
 
   public async _checkoutPullRequest(

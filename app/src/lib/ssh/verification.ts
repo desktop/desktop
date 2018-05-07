@@ -1,7 +1,29 @@
+import { exec } from 'child_process'
+import { getSSHEnvironment } from './ssh-environment'
+
 type HostVerificationError = {
   host: string
   fingerprint: string
   rawOutput: string
+}
+
+export async function executeSSHTest(sshUrl: string): Promise<string> {
+  const command = 'ssh'
+  const env = await getSSHEnvironment(command)
+  return new Promise<string>((resolve, reject) => {
+    exec(
+      `${command} -Tv  -o 'StrictHostKeyChecking=yes' ${sshUrl}`,
+      { timeout: 15000, env },
+      (error, stdout, stderr) => {
+        if (error != null) {
+          // TODO: poke at these details, pass them through?
+          log.warn(`[executeSSHTest] - an error occurred when invoking ssh`)
+        }
+
+        resolve(stderr)
+      }
+    )
+  })
 }
 
 export function isHostVerificationError(

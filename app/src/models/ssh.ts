@@ -24,7 +24,6 @@ export type NoAccountAction = {
 
 export type UnknownResult = {
   readonly kind: TroubleshootingStep.Unknown
-  readonly output: string
   readonly error: string
 }
 
