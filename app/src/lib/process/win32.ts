@@ -38,8 +38,27 @@ export async function getPathSegments(): Promise<ReadonlyArray<string>> {
   return pathOutput.split(/;+/).filter(segment => segment.length)
 }
 
+/** Set the user's `Path`. */
+export async function setPathSegments(
+  paths: ReadonlyArray<string>
+): Promise<void> {
+  let setxPath: string
+  const systemRoot = process.env['SystemRoot']
+  if (systemRoot) {
+    const system32Path = Path.join(systemRoot, 'System32')
+    setxPath = Path.join(system32Path, 'setx.exe')
+  } else {
+    setxPath = 'setx.exe'
+  }
+
+  await spawn(setxPath, ['Path', paths.join(';')])
+}
+
 /** Spawn a command with arguments and capture its output. */
-function spawn(command: string, args: ReadonlyArray<string>): Promise<string> {
+export function spawn(
+  command: string,
+  args: ReadonlyArray<string>
+): Promise<string> {
   try {
     const child = spawnInternal(command, args as string[])
     return new Promise<string>((resolve, reject) => {
