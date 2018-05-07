@@ -49,10 +49,16 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | 
     const env = await getSSHEnvironment(command)
 
     return new Promise<void>((resolve, reject) => {
-      const keyscan = spawn(`ssh-keyscan`, [host], { env })
+      const keyscan = spawn(command, [host], { shell: true, env })
       const knownHostsPath = Path.join(homeDir, '.ssh', 'known_hosts')
 
       keyscan.stdout.pipe(fs.createWriteStream(knownHostsPath))
+
+      keyscan.on('error', err => {
+        // TODO: need to end up in the "I give up" part of the flow
+        log.warn(`unable to spawn ssh-keyscan`, err)
+      })
+
       keyscan.on('close', code => {
         if (code !== 0) {
           reject(
