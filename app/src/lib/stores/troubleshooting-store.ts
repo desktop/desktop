@@ -53,9 +53,28 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | 
     const nextState = { ...state, isLoading: true }
     this.setState(nextState)
 
-    const homeDir = os.homedir()
-    const sshDir = Path.join(homeDir, '.ssh')
+    const sshDir = Path.join(os.homedir(), '.ssh')
     await mkdirIfNeeded(sshDir)
+
+    await this.verifyHost(state)
+
+    // TODO: how to resolve this from the repository?
+    // TODO: how to resolve the host for GHE environments?
+    const sshUrl = 'git@github.com'
+    await this.validate(sshUrl)
+  }
+
+  public async start(repository: Repository) {
+    this.setState({ kind: TroubleshootingStep.InitialState, isLoading: true })
+
+    // TODO: how to resolve this from the repository?
+    // TODO: how to resolve the host for GHE environments?
+    const sshUrl = 'git@github.com'
+    await this.validate(sshUrl)
+  }
+
+  private verifyHost = async (state: ValidateHostAction) => {
+    const homeDir = os.homedir()
 
     const command = 'ssh-keyscan'
     const env = await getSSHEnvironment(command)
@@ -87,12 +106,7 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | 
     })
   }
 
-  public async start(repository: Repository) {
-    this.setState({ kind: TroubleshootingStep.InitialState, isLoading: true })
-
-    // TODO: how to resolve the host for GHE environments?
-    const sshUrl = 'git@github.com'
-
+  private async validate(sshUrl: string) {
     const stderr = await executeSSHTest(sshUrl)
 
     const verificationError = isHostVerificationError(stderr)
