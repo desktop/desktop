@@ -180,6 +180,7 @@ export class TroubleshootSSH extends React.Component<
             <ButtonGroup>
               <Button onClick={this.props.onDismissed}>Cancel</Button>
               <Button className="submit" onClick={this.verifyHost}>
+                {state.isLoading ? <Loading /> : null}
                 Verify
               </Button>
             </ButtonGroup>

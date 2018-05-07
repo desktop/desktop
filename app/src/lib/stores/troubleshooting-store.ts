@@ -45,6 +45,23 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | 
   }
 
   public async validateHost(host: string) {
+    if (
+      this.state == null ||
+      this.state.kind !== TroubleshootingStep.ValidateHost
+    ) {
+      log.warn('trying to validate when not in the right state')
+      return
+    }
+
+    const { rawOutput } = this.state
+
+    this.setState({
+      kind: TroubleshootingStep.ValidateHost,
+      rawOutput,
+      host,
+      isLoading: true,
+    })
+
     const homeDir = os.homedir()
     const sshDir = Path.join(homeDir, '.ssh')
     await mkdirIfNeeded(sshDir)
@@ -100,6 +117,7 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | 
             kind: TroubleshootingStep.ValidateHost,
             rawOutput,
             host,
+            isLoading: false,
           })
           return
         }

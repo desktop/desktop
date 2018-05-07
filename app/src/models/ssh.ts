@@ -14,6 +14,7 @@ export type ValidateHostAction = {
   readonly kind: TroubleshootingStep.ValidateHost
   readonly host: string
   readonly rawOutput: string
+  readonly isLoading: boolean
 }
 
 export type NoAccountAction = {
