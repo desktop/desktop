@@ -280,7 +280,6 @@ export async function sshAuthenticationErrorHandler(
     })
     return null
   }
-  // TODO: what's a reliable way to handle the fetch/push/pull errors that indicate an SSH error?
 
   return error
 }
