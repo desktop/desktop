@@ -29,7 +29,7 @@ export class Welcome extends React.Component<IWelcomeProps, {}> {
     return (
       <Dialog
         id="troubleshoot-ssh"
-        title="Verify SSH Server"
+        title="Troubleshoot SSH Authentication"
         onDismissed={this.props.onDismissed}
         onSubmit={this.startTroubleshooting}
       >

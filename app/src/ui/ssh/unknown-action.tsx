@@ -31,7 +31,7 @@ export class UnknownAction extends React.Component<IUnknownActionProps, {}> {
     return (
       <Dialog
         id="troubleshoot-ssh"
-        title="Troubleshooting SSH"
+        title="Unable to resolve issue"
         onSubmit={this.saveFile}
         onDismissed={this.props.onDismissed}
       >
