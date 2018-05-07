@@ -107,7 +107,15 @@ async function getEnvironment(executable: string) {
   const updatedPaths = [...paths, Path.join(localGitDir, 'usr', 'bin')]
   const path = updatedPaths.join(';')
 
-  return Object.assign({}, process.env, { path })
+  const newEnvironment = Object.assign({}, process.env, { path })
+
+  if (newEnvironment.Path != null) {
+    // this is a stupid win32 hack because `Path` and `path` are distinct keys
+    // on a Javascript hash, but Windows will choose Path and ignore the other value
+    delete newEnvironment.Path
+  }
+
+  return newEnvironment
 }
 
 export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | null> {
@@ -145,13 +153,13 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | 
     const sshDir = Path.join(homeDir, '.ssh')
     await mkdirIfNeeded(sshDir)
 
-    const knownHostsPath = Path.join(homeDir, '.ssh', 'known_hosts')
+    const command = 'ssh-keyscan'
+    const env = await getEnvironment(command)
 
     return new Promise<void>((resolve, reject) => {
-      const command = 'ssh-keyscan'
-      const env = getEnvironment(command)
-
       const keyscan = spawn(`ssh-keyscan`, [host], { env })
+      const knownHostsPath = Path.join(homeDir, '.ssh', 'known_hosts')
+
       keyscan.stdout.pipe(fs.createWriteStream(knownHostsPath))
       keyscan.on('close', code => {
         if (code !== 0) {
@@ -167,10 +175,10 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | 
     })
   }
 
-  public start(repository: Repository) {
+  public async start(repository: Repository) {
     this.setState({ kind: TroubleshootingStep.InitialState, isLoading: true })
     const command = 'ssh'
-    const env = getEnvironment(command)
+    const env = await getEnvironment(command)
 
     // TODO: how to resolve the host for GHE environments?
     const host = 'git@github.com'
