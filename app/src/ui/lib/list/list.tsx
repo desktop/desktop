@@ -728,6 +728,7 @@ export class List extends React.Component<IListProps, IListState> {
       <FocusContainer
         className="list-focus-container"
         onKeyDown={this.onKeyDown}
+        key="focus-container"
       >
         <Grid
           aria-label={''}
