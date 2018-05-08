@@ -1,5 +1,8 @@
 {
   "releases": {
+    "1.1.2-test5": [
+      "Actually upgrading fs-extra to v6 in the app"
+    ],
     "1.1.2-test4": [
       "Upgrading fs-extra to v6"
     ],
