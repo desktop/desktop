@@ -51,11 +51,11 @@ export async function setupFixtureRepository(
     entry => Path.basename(entry.path) === '_git'
   )
 
-  submodules.forEach(async entry => {
-    const directory = Path.dirname(entry.path)
+  for (const submodule of submodules) {
+    const directory = Path.dirname(submodule.path)
     const newPath = Path.join(directory, '.git')
-    await FSE.rename(entry.path, newPath)
-  })
+    await FSE.rename(submodule.path, newPath)
+  }
 
   return testRepoPath
 }
