@@ -182,6 +182,7 @@ interface IAPIAccessToken {
 /** The partial server response when creating a new authorization on behalf of a user */
 interface IAPIAuthorization {
   readonly token: string
+  readonly scopes: ReadonlyArray<string>
 }
 
 /** The response we receive from fetching mentionables. */
@@ -287,6 +288,21 @@ export class API {
       return result
     } catch (e) {
       log.warn(`fetchAccount: failed with endpoint ${this.endpoint}`, e)
+      throw e
+    }
+  }
+
+  /** Fetch the scopes associated with a token. */
+  public async fetchScopes(token: string): Promise<ReadonlyArray<string>> {
+    try {
+      const response = await this.request('GET', `user`)
+      const scopes = response.headers.get('X-OAuth-Scopes')
+      if (scopes == null) {
+        return []
+      }
+      return scopes.split(',').map(scope => scope.trim())
+    } catch (e) {
+      log.warn(`fetchScopes: failed with endpoint ${this.endpoint}`, e)
       throw e
     }
   }
@@ -711,6 +727,7 @@ export async function fetchUser(
   const api = new API(endpoint, token)
   try {
     const user = await api.fetchAccount()
+    const scopes = await api.fetchScopes(token)
     const emails = await api.fetchEmails()
     const defaultEmail = emails[0].email || ''
     const avatarURL = getAvatarWithEnterpriseFallback(
@@ -725,7 +742,8 @@ export async function fetchUser(
       emails,
       avatarURL,
       user.id,
-      user.name || user.login
+      user.name || user.login,
+      scopes
     )
   } catch (e) {
     log.warn(`fetchUser: failed with endpoint ${endpoint}`, e)
