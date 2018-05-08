@@ -213,7 +213,7 @@ export class AccountsStore extends BaseStore {
 async function updatedAccount(account: Account): Promise<Account> {
   if (!account.token) {
     return fatalError(
-      `Cannot update an account which doesn't have a token: ${account}`
+      `Cannot update an account which doesn't have a token: ${account.login}`
     )
   }
 
