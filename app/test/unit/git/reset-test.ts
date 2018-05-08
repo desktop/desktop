@@ -33,7 +33,7 @@ describe('git/reset', () => {
   })
 
   describe('resetPaths', () => {
-    it('resets discarded staged file', async () => {
+    it.skip('resets discarded staged file', async () => {
       const repoPath = repository!.path
       const fileName = 'README.md'
       const filePath = path.join(repoPath, fileName)
