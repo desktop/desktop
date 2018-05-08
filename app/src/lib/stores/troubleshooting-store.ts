@@ -122,15 +122,18 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | 
     }
 
     if (isPermissionError(stderr)) {
-      // TODO: find accounts listed using ssh-add -l
-      const accounts: ReadonlyArray<{
-        file: string
-        emailAddress: string
-      }> = []
+      // TODO: nail down this flow
+      //  - if we have existing keys, show and let the user choose
+      //     - they may wish to skip to instead create a new key
+      //  - choose a GitHub or GitHub Enterprise account
+      //     - detect whether these accounts have
+
+      const homeDir = os.homedir()
+      const initialPath = Path.join(homeDir, '.ssh', 'github_desktop_shiftkey')
 
       this.setState({
-        kind: TroubleshootingStep.NoAccount,
-        foundAccounts: accounts,
+        kind: TroubleshootingStep.CreateSSHKey,
+        initialPath,
       })
       return
     }

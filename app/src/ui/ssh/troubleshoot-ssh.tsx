@@ -49,8 +49,13 @@ export class TroubleshootSSH extends React.Component<
             onDismissed={this.props.onDismissed}
           />
         )
-      case TroubleshootingStep.NoAccount:
-        return <CreateSSHKey onDismissed={this.props.onDismissed} />
+      case TroubleshootingStep.CreateSSHKey:
+        return (
+          <CreateSSHKey
+            initialPath={state.initialPath}
+            onDismissed={this.props.onDismissed}
+          />
+        )
       case TroubleshootingStep.Unknown:
         return (
           <UnknownAction state={state} onDismissed={this.props.onDismissed} />

@@ -1,7 +1,8 @@
 export enum TroubleshootingStep {
   InitialState = 'InitialState',
   ValidateHost = 'ValidateHost',
-  NoAccount = 'NoAccount',
+  ChooseAccount = 'ChooseAccount',
+  CreateSSHKey = 'CreateSSHKey',
   Unknown = 'Unknown',
 }
 
@@ -17,9 +18,14 @@ export type ValidateHostAction = {
   readonly isLoading: boolean
 }
 
-export type NoAccountAction = {
-  readonly kind: TroubleshootingStep.NoAccount
-  readonly foundAccounts: ReadonlyArray<{ file: string; emailAddress: string }>
+export type ChooseAccount = {
+  readonly kind: TroubleshootingStep.ChooseAccount
+  readonly accounts: ReadonlyArray<Account>
+}
+
+export type CreateSSHKey = {
+  readonly kind: TroubleshootingStep.CreateSSHKey
+  readonly initialPath: string
 }
 
 export type UnknownResult = {
@@ -30,5 +36,5 @@ export type UnknownResult = {
 export type TroubleshootingState =
   | InitialState
   | ValidateHostAction
-  | NoAccountAction
+  | CreateSSHKey
   | UnknownResult
