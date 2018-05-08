@@ -132,7 +132,7 @@ export function buildDefaultMenu(
         click: emit('create-commit'),
       },
       {
-        label: __DARWIN__ ? 'Compare to Branch' : '&Compare',
+        label: __DARWIN__ ? 'Compare to Branch' : 'C&ompare',
         id: 'compare-to-branch',
         accelerator: 'CmdOrCtrl+2',
         click: emit('compare-to-branch'),

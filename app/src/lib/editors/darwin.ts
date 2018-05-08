@@ -5,6 +5,7 @@ import { assertNever } from '../fatal-error'
 
 export enum ExternalEditor {
   Atom = 'Atom',
+  MacVim = 'MacVim',
   VisualStudioCode = 'Visual Studio Code',
   VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
   SublimeText = 'Sublime Text',
@@ -17,6 +18,9 @@ export enum ExternalEditor {
 export function parse(label: string): ExternalEditor | null {
   if (label === ExternalEditor.Atom) {
     return ExternalEditor.Atom
+  }
+  if (label === ExternalEditor.MacVim) {
+    return ExternalEditor.MacVim
   }
   if (label === ExternalEditor.VisualStudioCode) {
     return ExternalEditor.VisualStudioCode
@@ -51,6 +55,8 @@ function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
   switch (editor) {
     case ExternalEditor.Atom:
       return ['com.github.atom']
+    case ExternalEditor.MacVim:
+      return ['org.vim.MacVim']
     case ExternalEditor.VisualStudioCode:
       return ['com.microsoft.VSCode']
     case ExternalEditor.VisualStudioCodeInsiders:
@@ -87,6 +93,8 @@ function getExecutableShim(
         'bin',
         'code'
       )
+    case ExternalEditor.MacVim:
+      return Path.join(installPath, 'Contents', 'MacOS', 'MacVim')
     case ExternalEditor.SublimeText:
       return Path.join(installPath, 'Contents', 'SharedSupport', 'bin', 'subl')
     case ExternalEditor.BBEdit:
@@ -133,6 +141,7 @@ export async function getAvailableEditors(): Promise<
 
   const [
     atomPath,
+    macVimPath,
     codePath,
     codeInsidersPath,
     sublimePath,
@@ -142,6 +151,7 @@ export async function getAvailableEditors(): Promise<
     textMatePath,
   ] = await Promise.all([
     findApplication(ExternalEditor.Atom),
+    findApplication(ExternalEditor.MacVim),
     findApplication(ExternalEditor.VisualStudioCode),
     findApplication(ExternalEditor.VisualStudioCodeInsiders),
     findApplication(ExternalEditor.SublimeText),
@@ -153,6 +163,10 @@ export async function getAvailableEditors(): Promise<
 
   if (atomPath) {
     results.push({ editor: ExternalEditor.Atom, path: atomPath })
+  }
+
+  if (macVimPath) {
+    results.push({ editor: ExternalEditor.MacVim, path: macVimPath })
   }
 
   if (codePath) {
