@@ -232,6 +232,11 @@ function toGitHubIsoDateString(date: Date) {
   return date.toISOString().replace(/\.\d{3}Z$/, 'Z')
 }
 
+type UserWithTokenScopes = {
+  user: IAPIUser
+  scopes: ReadonlyArray<string>
+}
+
 /**
  * An object for making authenticated requests to the GitHub API
  */
@@ -280,29 +285,20 @@ export class API {
     }
   }
 
-  /** Fetch the logged in account. */
-  public async fetchAccount(): Promise<IAPIUser> {
+  /** Fetch the logged in account and the current scopes associated with the token. */
+  public async fetchAccount(): Promise<UserWithTokenScopes> {
     try {
       const response = await this.request('GET', 'user')
-      const result = await parsedResponse<IAPIUser>(response)
-      return result
+      const user = await parsedResponse<IAPIUser>(response)
+      const scopeHeader = response.headers.get('X-OAuth-Scopes')
+      const scopes =
+        scopeHeader == null
+          ? []
+          : scopeHeader.split(',').map(scope => scope.trim())
+
+      return { user, scopes }
     } catch (e) {
       log.warn(`fetchAccount: failed with endpoint ${this.endpoint}`, e)
-      throw e
-    }
-  }
-
-  /** Fetch the scopes associated with a token. */
-  public async fetchScopes(token: string): Promise<ReadonlyArray<string>> {
-    try {
-      const response = await this.request('GET', `user`)
-      const scopes = response.headers.get('X-OAuth-Scopes')
-      if (scopes == null) {
-        return []
-      }
-      return scopes.split(',').map(scope => scope.trim())
-    } catch (e) {
-      log.warn(`fetchScopes: failed with endpoint ${this.endpoint}`, e)
       throw e
     }
   }
@@ -726,8 +722,7 @@ export async function fetchUser(
 ): Promise<Account> {
   const api = new API(endpoint, token)
   try {
-    const user = await api.fetchAccount()
-    const scopes = await api.fetchScopes(token)
+    const { user, scopes } = await api.fetchAccount()
     const emails = await api.fetchEmails()
     const defaultEmail = emails[0].email || ''
     const avatarURL = getAvatarWithEnterpriseFallback(
