@@ -205,6 +205,7 @@ The source for the editor integration on macOS is found in
 These editors are currently supported:
 
  - [Atom](https://atom.io/)
+ - [MacVim](https://macvim-dev.github.io/macvim/)
  - [Visual Studio Code](https://code.visualstudio.com/) - both stable and Insiders channel
  - [Sublime Text](https://www.sublimetext.com/)
  - [BBEdit](http://www.barebones.com/products/bbedit/)
@@ -218,6 +219,7 @@ These are defined in an enum at the top of the file:
 
 export enum ExternalEditor {
   Atom = 'Atom',
+  MacVim = 'MacVim',
   VisualStudioCode = 'Visual Studio Code',
   VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
   SublimeText = 'Sublime Text',
