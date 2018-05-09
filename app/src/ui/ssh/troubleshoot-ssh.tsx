@@ -8,9 +8,8 @@ import { assertNever } from '../../lib/fatal-error'
 
 import { Welcome } from './welcome'
 import { ValidateHost } from './validate-host'
-import { CreateSSHKey } from './create-ssh-key'
 import { UnknownAction } from './unknown-action'
-import { ChooseAccount } from './choose-account'
+import { SetupNewSSHKey } from './setup-new-ssh-key'
 
 interface ITroubleshootSSHProps {
   readonly dispatcher: Dispatcher
@@ -19,44 +18,12 @@ interface ITroubleshootSSHProps {
   readonly onDismissed: () => void
 }
 
-interface ITroubleshootSSHState {
-  readonly selectedAccounts: ReadonlyArray<number>
-}
-
 export class TroubleshootSSH extends React.Component<
   ITroubleshootSSHProps,
-  ITroubleshootSSHState
+  {}
 > {
-  public constructor(props: ITroubleshootSSHProps) {
-    super(props)
-
-    this.state = {
-      selectedAccounts: [],
-    }
-  }
-
   public componentDidMount() {
     this.props.dispatcher.resetTroubleshooting()
-  }
-
-  private onAccountSelectionChanged = (
-    selectedAccounts: ReadonlyArray<number>
-  ) => {
-    const state = this.props.troubleshootingState
-    if (state.kind !== TroubleshootingStep.ChooseAccount) {
-      return
-    }
-
-    this.setState({ selectedAccounts })
-  }
-
-  private onRowClick = (row: number) => {
-    const state = this.props.troubleshootingState
-    if (state.kind !== TroubleshootingStep.ChooseAccount) {
-      return
-    }
-
-    this.setState({ selectedAccounts: [row] })
   }
 
   public render() {
@@ -82,20 +49,10 @@ export class TroubleshootSSH extends React.Component<
             onDismissed={this.props.onDismissed}
           />
         )
-      case TroubleshootingStep.ChooseAccount:
-        return (
-          <ChooseAccount
-            accounts={state.accounts}
-            selectedAccounts={this.state.selectedAccounts}
-            onDismissed={this.props.onDismissed}
-            onAccountSelectionChanged={this.onAccountSelectionChanged}
-            onRowClick={this.onRowClick}
-          />
-        )
       case TroubleshootingStep.CreateSSHKey:
         return (
-          <CreateSSHKey
-            initialPath={state.initialPath}
+          <SetupNewSSHKey
+            accounts={state.accounts}
             onDismissed={this.props.onDismissed}
           />
         )

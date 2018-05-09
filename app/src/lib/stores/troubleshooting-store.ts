@@ -82,6 +82,9 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | 
   }
 
   private verifyHost = async (state: ValidateHostAction) => {
+    const nextState = { ...state, isLoading: true }
+    this.setState(nextState)
+
     const homeDir = os.homedir()
 
     const command = 'ssh-keyscan'
@@ -142,19 +145,11 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | 
         // TODO: list keys and let the user select a key
       } else {
         this.setState({
-          kind: TroubleshootingStep.ChooseAccount,
+          kind: TroubleshootingStep.CreateSSHKey,
           accounts: this.accounts,
         })
         return
       }
-
-      // const homeDir = os.homedir()
-      // const initialPath = Path.join(homeDir, '.ssh', 'github_desktop_shiftkey')
-
-      // this.setState({
-      //   kind: TroubleshootingStep.CreateSSHKey,
-      //   initialPath,
-      // })
       return
     }
 

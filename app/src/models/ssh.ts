@@ -3,7 +3,6 @@ import { Account } from './account'
 export enum TroubleshootingStep {
   InitialState = 'InitialState',
   ValidateHost = 'ValidateHost',
-  ChooseAccount = 'ChooseAccount',
   CreateSSHKey = 'CreateSSHKey',
   Unknown = 'Unknown',
 }
@@ -20,14 +19,9 @@ export type ValidateHostAction = {
   readonly isLoading: boolean
 }
 
-export type ChooseAccountAction = {
-  readonly kind: TroubleshootingStep.ChooseAccount
-  readonly accounts: ReadonlyArray<Account>
-}
-
 export type CreateSSHKey = {
   readonly kind: TroubleshootingStep.CreateSSHKey
-  readonly initialPath: string
+  readonly accounts: ReadonlyArray<Account>
 }
 
 export type UnknownResult = {
@@ -38,6 +32,5 @@ export type UnknownResult = {
 export type TroubleshootingState =
   | InitialState
   | ValidateHostAction
-  | ChooseAccountAction
   | CreateSSHKey
   | UnknownResult
