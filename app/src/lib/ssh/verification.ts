@@ -14,6 +14,25 @@ type HostVerificationError = {
   rawOutput: string
 }
 
+type SSHAgentProcess = {
+  readonly id: number
+  readonly stdout: string
+}
+
+export function launchSSHAgent(
+  sshAgentLocation: string
+): Promise<SSHAgentProcess> {
+  return new Promise<SSHAgentProcess>((resolve, reject) => {
+    let id = 0
+    const sshAgent = exec(sshAgentLocation, (error, stdout, stderr) => {
+      resolve({ id, stdout })
+    })
+    id = sshAgent.pid
+
+    sshAgent.unref()
+  })
+}
+
 export async function executeSSHTest(sshUrl: string): Promise<string> {
   const command = 'ssh'
   const env = await getSSHEnvironment(command)

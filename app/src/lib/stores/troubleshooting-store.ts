@@ -11,11 +11,14 @@ import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
 import {
   scanAndWriteToKnownHostsFile,
+  launchSSHAgent,
   isHostVerificationError,
   isPermissionError,
   executeSSHTest,
   findSSHAgentProcess,
 } from '../ssh'
+import { getRemotes } from '../git'
+import { parseRemote } from '../remote-parsing'
 
 export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | null> {
   private state: TroubleshootingState | null = null
@@ -62,28 +65,40 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | 
   public async launchSSHAgent(state: INoRunningAgentState) {
     this.setState({ ...state, isLoading: true })
 
-    // TODO: actually launch the process
+    const { id, stdout } = await launchSSHAgent(state.sshLocation)
     // TODO: IPC to the main process to indicate it should cleanup this process
-    // TODO: grab environment variables from ssh-agent process
+    log.debug(`[TroubleshootingStore] launched ssh-agent process with id ${id}`)
     // TODO: how to pass this through when invoking Git
+    log.debug(
+      `[TroubleshootingStore] found environment variables to pass through: '${stdout}'`
+    )
 
-    // for now, just dummy this up and re-evaluate again
-    window.setTimeout(() => {
-      this.validate(state.sshUrl)
-    }, 2000)
+    this.validate(state.sshUrl)
   }
 
   public async start(repository: Repository) {
-    // TODO: how to resolve this from the repository?
-    // TODO: how to resolve the host for GHE environments?
-    const sshUrl = 'git@github.com'
-
     this.setState({
       kind: TroubleshootingStep.WelcomeState,
-      sshUrl,
+      sshUrl: '',
       isLoading: true,
     })
 
+    const remotes = await getRemotes(repository)
+
+    const sshRemotes: Array<string> = []
+    for (const remote of remotes) {
+      const gitRemote = parseRemote(remote.url)
+      if (gitRemote != null && gitRemote.protocol === 'ssh') {
+        sshRemotes.push(gitRemote.hostname)
+      }
+    }
+
+    // TODO: it'd be nice to know the specific remote associated with this error
+    // for multi-remote scenarios, but these are less common than the
+    // single-remote scenario so this isn't a priority. Maybe we can show a UI
+    // for displaying the remotes to work with, where there are multiple SSH
+    // remotes?
+    const sshUrl = `git@${sshRemotes[0]}`
     await this.validate(sshUrl)
   }
 
