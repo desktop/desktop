@@ -23,7 +23,9 @@ export const openSync = _temp.openSync
  *
  * @returns The path to the set up fixture repository.
  */
-export function setupFixtureRepository(repositoryName: string): string {
+export async function setupFixtureRepository(
+  repositoryName: string
+): Promise<string> {
   const testRepoFixturePath = Path.join(
     __dirname,
     '..',
@@ -31,9 +33,9 @@ export function setupFixtureRepository(repositoryName: string): string {
     repositoryName
   )
   const testRepoPath = _temp.mkdirSync('desktop-git-test-')
-  FSE.copySync(testRepoFixturePath, testRepoPath)
+  await FSE.copy(testRepoFixturePath, testRepoPath)
 
-  FSE.renameSync(
+  await FSE.rename(
     Path.join(testRepoPath, '_git'),
     Path.join(testRepoPath, '.git')
   )
@@ -49,11 +51,11 @@ export function setupFixtureRepository(repositoryName: string): string {
     entry => Path.basename(entry.path) === '_git'
   )
 
-  submodules.forEach(entry => {
-    const directory = Path.dirname(entry.path)
+  for (const submodule of submodules) {
+    const directory = Path.dirname(submodule.path)
     const newPath = Path.join(directory, '.git')
-    FSE.renameSync(entry.path, newPath)
-  })
+    await FSE.rename(submodule.path, newPath)
+  }
 
   return testRepoPath
 }
@@ -84,19 +86,19 @@ export async function setupConflictedRepo(): Promise<Repository> {
   const repo = await setupEmptyRepository()
   const filePath = Path.join(repo.path, 'foo')
 
-  FSE.writeFileSync(filePath, '')
+  await FSE.writeFile(filePath, '')
   await GitProcess.exec(['add', 'foo'], repo.path)
   await GitProcess.exec(['commit', '-m', 'Commit'], repo.path)
 
   await GitProcess.exec(['branch', 'other-branch'], repo.path)
 
-  FSE.writeFileSync(filePath, 'b1')
+  await FSE.writeFile(filePath, 'b1')
   await GitProcess.exec(['add', 'foo'], repo.path)
   await GitProcess.exec(['commit', '-m', 'Commit'], repo.path)
 
   await GitProcess.exec(['checkout', 'other-branch'], repo.path)
 
-  FSE.writeFileSync(filePath, 'b2')
+  await FSE.writeFile(filePath, 'b2')
   await GitProcess.exec(['add', 'foo'], repo.path)
   await GitProcess.exec(['commit', '-m', 'Commit'], repo.path)
 

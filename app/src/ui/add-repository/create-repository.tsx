@@ -28,7 +28,6 @@ import { Dialog, DialogContent, DialogFooter, DialogError } from '../dialog'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { LinkButton } from '../lib/link-button'
 import { PopupType } from '../../lib/app-state'
-import { pathExists } from '../../lib/file-system'
 
 /** The sentinel value used to indicate no gitignore should be used. */
 const NoGitIgnoreValue = 'None'
@@ -150,25 +149,13 @@ export class CreateRepository extends React.Component<
     this.setState({ isRepository, path })
   }
 
-  private ensureDirectory(directory: string): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-      FSE.ensureDir(directory, err => {
-        if (err) {
-          return reject(err)
-        }
-
-        return resolve()
-      })
-    })
-  }
-
   private resolveRepositoryRoot = async (): Promise<string> => {
     const currentPath = this.state.path
     if (this.props.initialPath && this.props.initialPath === currentPath) {
       // if the user provided an initial path and didn't change it, we should
       // validate it is an existing path and use that for the repository
       try {
-        await this.ensureDirectory(currentPath)
+        await FSE.ensureDir(currentPath)
         return currentPath
       } catch {}
     }
@@ -180,7 +167,7 @@ export class CreateRepository extends React.Component<
     const fullPath = await this.resolveRepositoryRoot()
 
     try {
-      await this.ensureDirectory(fullPath)
+      await FSE.ensureDir(fullPath)
       this.setState({ isValidPath: true })
     } catch (e) {
       if (e.code === 'EACCES' && e.errno === -13) {
@@ -274,7 +261,7 @@ export class CreateRepository extends React.Component<
 
     try {
       const gitAttributes = Path.join(fullPath, '.gitattributes')
-      const gitAttributesExists = await pathExists(gitAttributes)
+      const gitAttributesExists = await FSE.pathExists(gitAttributes)
       if (!gitAttributesExists) {
         await writeGitAttributes(fullPath)
       }

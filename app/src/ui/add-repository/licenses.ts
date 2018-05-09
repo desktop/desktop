@@ -1,5 +1,5 @@
 import * as Path from 'path'
-import * as Fs from 'fs'
+import { writeFile, readFile } from 'fs-extra'
 
 export interface ILicense {
   /** The human-readable name. */
@@ -23,37 +23,29 @@ interface ILicenseFields {
 let cachedLicenses: ReadonlyArray<ILicense> | null = null
 
 /** Get the available licenses. */
-export function getLicenses(): Promise<ReadonlyArray<ILicense>> {
-  if (cachedLicenses) {
-    return Promise.resolve(cachedLicenses)
+export async function getLicenses(): Promise<ReadonlyArray<ILicense>> {
+  if (cachedLicenses != null) {
+    return cachedLicenses
   } else {
-    return new Promise((resolve, reject) => {
-      const licensesMetadataPath = Path.join(
-        __dirname,
-        'static',
-        'available-licenses.json'
-      )
-      Fs.readFile(licensesMetadataPath, 'utf8', (err, json) => {
-        if (err) {
-          reject(err)
-          return
-        }
+    const licensesMetadataPath = Path.join(
+      __dirname,
+      'static',
+      'available-licenses.json'
+    )
+    const json = await readFile(licensesMetadataPath, 'utf8')
+    const licenses: Array<ILicense> = JSON.parse(json)
 
-        const licenses: Array<ILicense> = JSON.parse(json)
-
-        cachedLicenses = licenses.sort((a, b) => {
-          if (a.featured) {
-            return -1
-          }
-          if (b.featured) {
-            return 1
-          }
-          return a.name.localeCompare(b.name)
-        })
-
-        resolve(cachedLicenses)
-      })
+    cachedLicenses = licenses.sort((a, b) => {
+      if (a.featured) {
+        return -1
+      }
+      if (b.featured) {
+        return 1
+      }
+      return a.name.localeCompare(b.name)
     })
+
+    return cachedLicenses
   }
 }
 
@@ -83,29 +75,21 @@ function replaceTokens(
 }
 
 /** Write the license to the the repository at the given path. */
-export function writeLicense(
+export async function writeLicense(
   repositoryPath: string,
   license: ILicense,
   fields: ILicenseFields
 ): Promise<void> {
   const fullPath = Path.join(repositoryPath, 'LICENSE')
 
-  return new Promise<void>((resolve, reject) => {
-    const tokens: ReadonlyArray<keyof ILicenseFields> = [
-      'fullname',
-      'email',
-      'project',
-      'description',
-      'year',
-    ]
-    const body = replaceTokens(license.body, tokens, fields)
+  const tokens: ReadonlyArray<keyof ILicenseFields> = [
+    'fullname',
+    'email',
+    'project',
+    'description',
+    'year',
+  ]
 
-    Fs.writeFile(fullPath, body, err => {
-      if (err) {
-        reject(err)
-      } else {
-        resolve()
-      }
-    })
-  })
+  const body = replaceTokens(license.body, tokens, fields)
+  await writeFile(fullPath, body)
 }
