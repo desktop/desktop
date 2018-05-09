@@ -1204,11 +1204,25 @@ export class Dispatcher {
     return this.appStore._startTroubleshooting(repository)
   }
 
-  public validateHost(state: IValidateHostState): Promise<void> {
+  public validateHost(state: IValidateHostState) {
     return this.appStore._validateHost(state)
   }
 
-  public launchSSHAgent(state: INoRunningAgentState): Promise<void> {
+  public launchSSHAgent(state: INoRunningAgentState) {
     return this.appStore._launchSSHAgent(state)
+  }
+
+  public createSSHKey(
+    account: Account,
+    emailAddress: string,
+    passphrase: string,
+    outputFile: string
+  ) {
+    return this.appStore._createSSHKey(
+      account,
+      emailAddress,
+      passphrase,
+      outputFile
+    )
   }
 }

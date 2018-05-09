@@ -17,6 +17,7 @@ import { Avatar } from '../lib/avatar'
 
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { List } from '../lib/list'
+import { Dispatcher } from '../../lib/dispatcher'
 
 function getPathForNewSSHKey(fileName: string) {
   const homeDir = os.homedir()
@@ -24,6 +25,7 @@ function getPathForNewSSHKey(fileName: string) {
 }
 
 interface ISetupNewSSHKeyProps {
+  readonly dispatcher: Dispatcher
   readonly accounts: ReadonlyArray<Account>
   readonly onDismissed: () => void
 }
@@ -33,7 +35,7 @@ interface ISetupNewSSHKeyState {
   readonly emailAddress: string
   readonly passphrase: string
   readonly confirmPassPhrase: string
-  readonly path: string
+  readonly outputFile: string
 }
 
 export class SetupNewSSHKey extends React.Component<
@@ -47,23 +49,37 @@ export class SetupNewSSHKey extends React.Component<
       emailAddress: '',
       passphrase: '',
       confirmPassPhrase: '',
-      path: getPathForNewSSHKey('github_desktop'),
+      outputFile: getPathForNewSSHKey('github_desktop'),
     }
   }
 
-  private onContinue = () => {}
+  private onContinue = () => {
+    if (this.state.selectedAccount == null) {
+      return
+    }
+
+    const account = this.props.accounts[this.state.selectedAccount]
+
+    this.props.dispatcher.createSSHKey(
+      account,
+      this.state.emailAddress,
+      this.state.passphrase,
+      this.state.outputFile
+    )
+  }
 
   private showFilePicker = async () => {
+    // TODO: this needs to be a file chooser
     const directory: string[] | null = remote.dialog.showOpenDialog({
       properties: ['createDirectory', 'openDirectory'],
     })
 
-    if (!directory) {
+    if (directory == null) {
       return
     }
 
-    const path = directory[0]
-    this.setState({ path })
+    const outputFile = directory[0]
+    this.setState({ outputFile })
   }
 
   private onEmailAddressChanged = (emailAddress: string) => {
@@ -82,11 +98,11 @@ export class SetupNewSSHKey extends React.Component<
   private updateState = (selectedAccount: number) => {
     // TODO: validate that this is an entry in the array
     const account = this.props.accounts[selectedAccount]
-    const path = getPathForNewSSHKey(`github_desktop_${account.login}`)
+    const outputFile = getPathForNewSSHKey(`github_desktop_${account.login}`)
 
     const email = lookupPreferredEmail(account.emails)
     const emailAddress = email == null ? '' : email.email
-    this.setState({ selectedAccount, path, emailAddress })
+    this.setState({ selectedAccount, outputFile, emailAddress })
   }
 
   private onAccountSelectionChanged = (rows: ReadonlyArray<number>) => {
@@ -97,8 +113,8 @@ export class SetupNewSSHKey extends React.Component<
     this.updateState(row)
   }
 
-  private onPathChanged = (path: string) => {
-    this.setState({ path })
+  private onPathChanged = (outputFile: string) => {
+    this.setState({ outputFile })
   }
 
   private renderRow = (index: number) => {
@@ -191,9 +207,9 @@ export class SetupNewSSHKey extends React.Component<
           </Row>
           <Row>
             <TextBox
-              value={this.state.path}
-              label={__DARWIN__ ? 'Local Path' : 'Local path'}
-              placeholder="repository path"
+              value={this.state.outputFile}
+              label={__DARWIN__ ? 'Key Path' : 'Key path'}
+              placeholder="SSH key path"
               onValueChanged={this.onPathChanged}
             />
             <Button onClick={this.showFilePicker}>Choose…</Button>

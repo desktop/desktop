@@ -3675,6 +3675,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _launchSSHAgent(state: INoRunningAgentState): Promise<void> {
     return this.troubleshootingStore.launchSSHAgent(state)
   }
+
+  public _createSSHKey(
+    account: Account,
+    emailAddress: string,
+    passphrase: string,
+    outputFile: string
+  ) {
+    return this.troubleshootingStore.createSSHKey(
+      account,
+      emailAddress,
+      passphrase,
+      outputFile
+    )
+  }
 }
 
 function forkPullRequestRemoteName(remoteName: string) {

@@ -16,18 +16,24 @@ import {
   isPermissionError,
   executeSSHTest,
   findSSHAgentProcess,
+  createSSHKey,
+  addToSSHAgent,
 } from '../ssh'
 import { getRemotes } from '../git'
 import { parseRemote } from '../remote-parsing'
 
-export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | null> {
-  private state: TroubleshootingState | null = null
+const initialState: TroubleshootingState = {
+  kind: TroubleshootingStep.WelcomeState,
+  sshUrl: '',
+  isLoading: false,
+}
+
+export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState> {
+  private state = initialState
   private accounts: ReadonlyArray<Account> = []
 
   public constructor(private accountsStore: AccountsStore) {
     super()
-
-    this.reset()
 
     this.accountsStore.onDidUpdate(async () => {
       const accounts = await this.accountsStore.getAll()
@@ -39,7 +45,7 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | 
    * Update the internal state of the store and emit an update
    * event.
    */
-  private setState(state: TroubleshootingState | null) {
+  private setState(state: TroubleshootingState) {
     this.state = state
     this.emitUpdate(this.getState())
   }
@@ -48,32 +54,12 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | 
    * Returns the current state of the sign in store or null if
    * no sign in process is in flight.
    */
-  public getState(): TroubleshootingState | null {
+  public getState(): TroubleshootingState {
     return this.state
   }
 
   public reset() {
-    this.setState({ kind: TroubleshootingStep.WelcomeState, sshUrl: '' })
-  }
-
-  public async validateHost(state: IValidateHostState) {
-    this.setState({ ...state, isLoading: true })
-    await scanAndWriteToKnownHostsFile(state.host)
-    await this.validate(state.sshUrl)
-  }
-
-  public async launchSSHAgent(state: INoRunningAgentState) {
-    this.setState({ ...state, isLoading: true })
-
-    const { id, stdout } = await launchSSHAgent(state.sshLocation)
-    // TODO: IPC to the main process to indicate it should cleanup this process
-    log.debug(`[TroubleshootingStore] launched ssh-agent process with id ${id}`)
-    // TODO: how to pass this through when invoking Git
-    log.debug(
-      `[TroubleshootingStore] found environment variables to pass through: '${stdout}'`
-    )
-
-    this.validate(state.sshUrl)
+    this.setState(initialState)
   }
 
   public async start(repository: Repository) {
@@ -99,10 +85,51 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | 
     // for displaying the remotes to work with, where there are multiple SSH
     // remotes?
     const sshUrl = `git@${sshRemotes[0]}`
-    await this.validate(sshUrl)
+    await this.validateSSHConnection(sshUrl)
   }
 
-  private async validate(sshUrl: string) {
+  public async validateHost(state: IValidateHostState) {
+    this.setState({ ...state, isLoading: true })
+    await scanAndWriteToKnownHostsFile(state.host)
+    await this.validateSSHConnection(state.sshUrl)
+  }
+
+  public async launchSSHAgent(state: INoRunningAgentState) {
+    this.setState({ ...state, isLoading: true })
+
+    const { id, stdout } = await launchSSHAgent(state.sshLocation)
+    // TODO: IPC to the main process to indicate it should cleanup this process
+    log.debug(`[TroubleshootingStore] launched ssh-agent process with id ${id}`)
+    // TODO: how to pass this through when invoking Git
+    log.debug(
+      `[TroubleshootingStore] found environment variables to pass through: '${stdout}'`
+    )
+
+    this.validateSSHConnection(state.sshUrl)
+  }
+
+  public async createSSHKey(
+    account: Account,
+    emailAddress: string,
+    passphrase: string,
+    outputFile: string
+  ) {
+    const { privateKeyFile } = await createSSHKey(
+      emailAddress,
+      passphrase,
+      outputFile
+    )
+    await addToSSHAgent(privateKeyFile, passphrase)
+    //await uploadToGitHub(publicKeyFile)
+
+    const state = this.state
+
+    if (state.kind !== TroubleshootingStep.Unknown) {
+      return this.validateSSHConnection(state.sshUrl)
+    }
+  }
+
+  private async validateSSHConnection(sshUrl: string) {
     const isSSHAgentRunning = await findSSHAgentProcess()
 
     if (!isSSHAgentRunning) {
