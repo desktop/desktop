@@ -1,7 +1,5 @@
-/* eslint-disable no-sync */
-
 import { expect } from 'chai'
-import * as Fs from 'fs'
+import * as FSE from 'fs-extra'
 import * as Path from 'path'
 import { GitProcess } from 'dugite'
 
@@ -26,18 +24,18 @@ describe('GitStore', () => {
     const readmeFile = 'README.md'
     const readmeFilePath = Path.join(repo.path, readmeFile)
 
-    Fs.writeFileSync(readmeFilePath, 'SOME WORDS GO HERE\n')
+    await FSE.writeFile(readmeFilePath, 'SOME WORDS GO HERE\n')
 
     const licenseFile = 'LICENSE.md'
     const licenseFilePath = Path.join(repo.path, licenseFile)
 
-    Fs.writeFileSync(licenseFilePath, 'SOME WORDS GO HERE\n')
+    await FSE.writeFile(licenseFilePath, 'SOME WORDS GO HERE\n')
 
     // commit the readme file but leave the license
     await GitProcess.exec(['add', readmeFile], repo.path)
     await GitProcess.exec(['commit', '-m', 'added readme file'], repo.path)
 
-    Fs.writeFileSync(readmeFilePath, 'WRITING SOME NEW WORDS\n')
+    await FSE.writeFile(readmeFilePath, 'WRITING SOME NEW WORDS\n')
     // setup requires knowing about the current tip
     await gitStore.loadStatus()
 
@@ -65,7 +63,7 @@ describe('GitStore', () => {
     const renamedFile = 'NEW-README.md'
     const filePath = Path.join(repo.path, file)
 
-    Fs.writeFileSync(filePath, 'SOME WORDS GO HERE\n')
+    await FSE.writeFile(filePath, 'SOME WORDS GO HERE\n')
 
     // commit the file, and then rename it
     await GitProcess.exec(['add', file], repo.path)
@@ -96,7 +94,7 @@ describe('GitStore', () => {
       const file = 'README.md'
       const filePath = Path.join(repo.path, file)
 
-      Fs.writeFileSync(filePath, 'SOME WORDS GO HERE\n')
+      await FSE.writeFile(filePath, 'SOME WORDS GO HERE\n')
 
       await GitProcess.exec(['add', file], repo.path)
       await GitProcess.exec(['commit', '-m', commitMessage], repo.path)
@@ -199,7 +197,7 @@ describe('GitStore', () => {
       const file = 'README.md'
       const filePath = Path.join(repo.path, file)
 
-      Fs.writeFileSync(filePath, 'SOME WORDS GO HERE\n')
+      await FSE.writeFile(filePath, 'SOME WORDS GO HERE\n')
 
       let status = await getStatus(repo!)
       let files = status.workingDirectory.files

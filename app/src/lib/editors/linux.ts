@@ -1,5 +1,6 @@
+import { pathExists } from 'fs-extra'
+
 import { IFoundEditor } from './found-editor'
-import { pathExists } from '../file-system'
 import { assertNever } from '../fatal-error'
 
 export enum ExternalEditor {

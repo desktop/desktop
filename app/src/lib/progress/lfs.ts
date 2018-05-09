@@ -1,19 +1,12 @@
-import * as Fs from 'fs'
+import * as FSE from 'fs-extra'
 import { getTempFilePath } from '../file-system'
 import { IGitProgress, IGitProgressInfo, IGitOutput } from './git'
 
 /** Create the Git LFS progress reporting file and return the path. */
 export async function createLFSProgressFile(): Promise<string> {
   const path = await getTempFilePath('GitHubDesktop-lfs-progress')
-  return new Promise<string>((resolve, reject) => {
-    Fs.writeFile(path, '', err => {
-      if (err) {
-        reject(err)
-      } else {
-        resolve(path)
-      }
-    })
-  })
+  await FSE.ensureFile(path)
+  return path
 }
 
 // The regex for parsing LFS progress lines. See
