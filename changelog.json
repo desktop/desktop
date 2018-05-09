@@ -1,5 +1,8 @@
 {
   "releases": {
+    "1.1.2-test6": [
+      "Testing the Webpack v4 output from the project"
+    ],
     "1.1.2-test5": [
       "Actually upgrading fs-extra to v6 in the app"
     ],
