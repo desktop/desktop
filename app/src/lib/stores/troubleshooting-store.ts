@@ -4,6 +4,7 @@ import * as Path from 'path'
 import * as fs from 'fs'
 
 import { TypedBaseStore } from './base-store'
+import { AccountsStore } from './accounts-store'
 import { mkdirIfNeeded } from '../file-system'
 
 import {
@@ -11,6 +12,7 @@ import {
   TroubleshootingStep,
   ValidateHostAction,
 } from '../../models/ssh'
+import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
 import {
   getSSHEnvironment,
@@ -21,11 +23,17 @@ import {
 
 export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | null> {
   private state: TroubleshootingState | null = null
+  private accounts: ReadonlyArray<Account> = []
 
-  public constructor() {
+  public constructor(private accountsStore: AccountsStore) {
     super()
 
     this.reset()
+
+    this.accountsStore.onDidUpdate(async () => {
+      const accounts = await this.accountsStore.getAll()
+      this.accounts = accounts
+    })
   }
 
   /**
@@ -128,13 +136,25 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | 
       //  - choose a GitHub or GitHub Enterprise account
       //     - detect whether these accounts have
 
-      const homeDir = os.homedir()
-      const initialPath = Path.join(homeDir, '.ssh', 'github_desktop_shiftkey')
+      const foundKeys = 0
 
-      this.setState({
-        kind: TroubleshootingStep.CreateSSHKey,
-        initialPath,
-      })
+      if (foundKeys > 0) {
+        // TODO: list keys and let the user select a key
+      } else {
+        this.setState({
+          kind: TroubleshootingStep.ChooseAccount,
+          accounts: this.accounts,
+        })
+        return
+      }
+
+      // const homeDir = os.homedir()
+      // const initialPath = Path.join(homeDir, '.ssh', 'github_desktop_shiftkey')
+
+      // this.setState({
+      //   kind: TroubleshootingStep.CreateSSHKey,
+      //   initialPath,
+      // })
       return
     }
 

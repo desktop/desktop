@@ -64,7 +64,7 @@ describe('AppStore', () => {
       repositoriesStore
     )
 
-    const troubleshootingStore = new TroubleshootingStore()
+    const troubleshootingStore = new TroubleshootingStore(accountsStore)
 
     return new AppStore(
       new GitHubUserStore(db),

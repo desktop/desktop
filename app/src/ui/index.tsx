@@ -122,7 +122,7 @@ const pullRequestStore = new PullRequestStore(
   repositoriesStore
 )
 
-const troubleshootingStore = new TroubleshootingStore()
+const troubleshootingStore = new TroubleshootingStore(accountsStore)
 
 const appStore = new AppStore(
   gitHubUserStore,

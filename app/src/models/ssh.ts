@@ -1,3 +1,5 @@
+import { Account } from './account'
+
 export enum TroubleshootingStep {
   InitialState = 'InitialState',
   ValidateHost = 'ValidateHost',
@@ -18,7 +20,7 @@ export type ValidateHostAction = {
   readonly isLoading: boolean
 }
 
-export type ChooseAccount = {
+export type ChooseAccountAction = {
   readonly kind: TroubleshootingStep.ChooseAccount
   readonly accounts: ReadonlyArray<Account>
 }
@@ -36,5 +38,6 @@ export type UnknownResult = {
 export type TroubleshootingState =
   | InitialState
   | ValidateHostAction
+  | ChooseAccountAction
   | CreateSSHKey
   | UnknownResult
