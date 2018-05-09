@@ -1,13 +1,5 @@
-import { spawn } from 'child_process'
-import * as os from 'os'
-import * as Path from 'path'
-import * as fs from 'fs'
-
-const processExists = require('process-exists')
-
 import { TypedBaseStore } from './base-store'
 import { AccountsStore } from './accounts-store'
-import { mkdirIfNeeded } from '../file-system'
 
 import {
   TroubleshootingState,
@@ -18,16 +10,12 @@ import {
 import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
 import {
-  getSSHEnvironment,
+  scanAndWriteToKnownHostsFile,
   isHostVerificationError,
   isPermissionError,
   executeSSHTest,
+  findSSHAgentProcess,
 } from '../ssh'
-
-async function findSSHAgentProcess(): Promise<boolean> {
-  const found: boolean = await processExists('ssh-agent')
-  return found
-}
 
 export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | null> {
   private state: TroubleshootingState | null = null
@@ -67,16 +55,8 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | 
 
   public async validateHost(state: IValidateHostState) {
     this.setState({ ...state, isLoading: true })
-
-    const sshDir = Path.join(os.homedir(), '.ssh')
-    await mkdirIfNeeded(sshDir)
-
-    await this.verifyHost(state)
-
-    // TODO: how to resolve this from the repository?
-    // TODO: how to resolve the host for GHE environments?
-    const sshUrl = 'git@github.com'
-    await this.validate(sshUrl)
+    await scanAndWriteToKnownHostsFile(state.host)
+    await this.validate(state.sshUrl)
   }
 
   public async launchSSHAgent(state: INoRunningAgentState) {
@@ -107,42 +87,6 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | 
     await this.validate(sshUrl)
   }
 
-  private verifyHost = async (state: IValidateHostState) => {
-    const nextState = { ...state, isLoading: true }
-    this.setState(nextState)
-
-    const homeDir = os.homedir()
-
-    const command = 'ssh-keyscan'
-    const env = await getSSHEnvironment(command)
-
-    return new Promise<void>((resolve, reject) => {
-      const keyscan = spawn(command, [state.host], { shell: true, env })
-      const knownHostsPath = Path.join(homeDir, '.ssh', 'known_hosts')
-
-      keyscan.stdout.pipe(fs.createWriteStream(knownHostsPath))
-
-      keyscan.on('error', err => {
-        // TODO: need to end up in the "I give up" part of the flow
-        log.warn(`unable to spawn ssh-keyscan`, err)
-      })
-
-      keyscan.on('close', code => {
-        if (code !== 0) {
-          reject(
-            new Error(
-              `ssh-keyscan exited with code '${code}' while adding '${
-                state.host
-              }' which was not expected`
-            )
-          )
-          return
-        }
-        resolve()
-      })
-    })
-  }
-
   private async validate(sshUrl: string) {
     const isSSHAgentRunning = await findSSHAgentProcess()
 
@@ -153,6 +97,7 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | 
         sshLocation: '/usr/bin/ssh-agent',
         sshUrl,
       })
+      return
     }
 
     const stderr = await executeSSHTest(sshUrl)
