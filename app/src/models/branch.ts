@@ -8,6 +8,39 @@ export enum BranchType {
   Remote = 1,
 }
 
+/** The number of commits a revision range is ahead/behind. */
+export interface IAheadBehind {
+  readonly ahead: number
+  readonly behind: number
+}
+
+/** The result of comparing two refs in a repository. */
+export interface ICompareResult extends IAheadBehind {
+  readonly commits: ReadonlyArray<Commit>
+}
+
+/**
+ * Check if a branch is eligible for beign fast forarded.
+ *
+ * Requirements:
+ *   1. It's local.
+ *   2. It's not the current branch.
+ *   3. It has an upstream.
+ *
+ * @param branch The branch to validate
+ * @param currentBranchName The current branch in the repository
+ */
+export function eligibleForFastForward(
+  branch: Branch,
+  currentBranchName: string | null
+): boolean {
+  return (
+    branch.type === BranchType.Local &&
+    branch.name !== currentBranchName &&
+    branch.upstream != null
+  )
+}
+
 /** A branch as loaded from Git. */
 export class Branch {
   /** The short name of the branch. E.g., `master`. */

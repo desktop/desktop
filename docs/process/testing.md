@@ -162,7 +162,7 @@
 
 ### View top-level menu
   - [ ] Show Changes (Mac: `⌘1`; Windows: `Ctrl+1`)
-  - [ ] Show History (Mac: `⌘2`; Windows: `Ctrl+2`)
+  - [ ] Show Compare (Mac: `⌘2`; Windows: `Ctrl+2`)
   - [ ] Show Repositories List (Mac: `⌘T`; Windows: `Ctrl+T`)
   - [ ] Show Branches List (Mac: `⌘B`; Windows: `Ctrl+B`)
   - [ ] Enter Full Zoom (Mac: `^⌘F`; Windows: `F11`)
@@ -247,7 +247,7 @@
       - [ ] User must have paid account for private repos
       - [ ] Repo icon is updated if admin changes status (public vs private)
   - [ ] Repositories cloned from non-github servers should always be in the Other group, and have the 'computer' icon.
-  - [ ] Selecting a repo updates Changes/History/Diff areas
+  - [ ] Selecting a repo updates Changes/Compare/Diff areas
     - [ ] If no Changes, Diff area shows `Open this repository` link to Finder/Explorer on local
   - [ ] `Right-click` on any repo shows `Open in Terminal`, `Open in Finder/Explorer`, `Open in External Editor`, and `Remove` options
   - [ ] Repos which have been removed locally (and trash emptied) have 'cannot find repository' warning
@@ -285,6 +285,20 @@
         - [ ] After successful merge, tab counts update and merge button is disabled
         - [ ] Merge conflict results in dialog shown directing user to commit view
 	
+### Relationship between branches
+  - [ ] Clicking in field with placeholder text `Select Branch to Compare…` shows a list of all branches and their number of commits ahead and behind the currently checked out branch
+  - [ ] Pressing `esc` key clears the current filter
+  - [ ] Filtering for branch name that doesn't exist shows "Sorry, I can't find that branch"
+  - [ ] Selecting a branch from the list populates the tab with that branch comparison data
+    - [ ] Behind tab is shown by default
+      - [ ] See number of commits behind in tab header
+      - [ ] If more than 0 commits behind, a list of commits are shown in reverse chronological order
+      - [ ] See button to merge into current branch (button disabled if 0 commits behind)
+      - [ ] Clicking the merge button shows merge conflicts if any, or successfully merges the commit(s)
+      - [ ] After merging, the comparison branch is 0 commits behind
+    - [ ] Ahead tab is on the right-hand side
+      - [ ] If more than 0 commits ahead, a list of commits are shown in reverse chronological order
+
 ### Diffs tab		
   - [ ] All commits have avatar, selectable SHA, # of files changed, commit message, commit description (optional)
     - [ ] Long commit descriptions can be toggled with expand/collapse icon
@@ -310,7 +324,8 @@
     - [ ] `Push` with number of commits badge is decremented or reverts to `Fetch origin`
   - [ ] `Undo` button disabled if user is pushing commit
   - [ ] User can publish a new repo with no commits (aka unborn repo/branch)
-  - [ ] User can make new branch the default branch, by making the intial commit on the new branch. 
+  - [ ] User can make new branch the default branch, by making the intial commit on the new branch.
+  - [ ] User can select individual files to commit at a time
   
 ### Co-authoring
   - [ ] clicking co-author icon toggles co-author field; or right-click within commit area
@@ -325,7 +340,7 @@
         - [ ] Found names are tagged; all others are turned red
         - [ ] Navigating away from the Changes tab will clear red tags 
      - [ ] Toggling the co-author icon clears the field
-  - [ ] All co-authors show up in History and diff view
+  - [ ] All co-authors show up in Compare and diff view
     - [ ] Commits with `Co-Authored-By: Name <username@github.com>`in the decription field reveal avatar of user    
     - [ ] Hovering over an avatar reveals all tagged users
     - [ ] Hovering over the "people" text reveals all names/emails of tagged users
@@ -373,7 +388,7 @@
 ### Github.com
   - [ ] If Desktop linked to .com (/settings/applications), the Desktop icon should show on File Revisions tab for all Pull Requests.
     - [ ] Clicking the "computer icon" opens from a Pull Request page opens the branch on Desktop
-  - [ ] `Open is Desktop` button under a repo's `Clone and Download` button should open repo in Desktop
+  - [ ] `Open in Desktop` button under a repo's `Clone and Download` button should open repo in Desktop
   - [ ] If private email is enabled (http://github.com/settings/emails), user is blocked from pushing to all associated repositories on Desktop?
   - [ ] If user updates name in Settings, change should reflect in Preferences
 
@@ -393,17 +408,9 @@
 ### Security
  - [ ] `Untrusted server` warning surfaced if GitHub cannot verify the identity of `api.github.com`; user can `Cancel` or `Continue`
 
+
 ### TBD placeholder (WIP)
-- Merge tool for conflicted files
-- Conflicted files vs changed files
-- Relationship between branches
-  - Commit/Compare tabs now occupy left pane
-    - Compare tab shows branch dropdown
-      - Choose a branch from the list (same order as branch list? current branch present?) or user filter; `ESC` clears filter
-       - Once branch selected, quantity of commits behind surfaced; matches commits shown
-         - `Merge X commits` button is activated
-           - Merge conflict count surfaced below button if relevant
-           - Clicking `Merge` button merges all shown commits 
-    - Commit history present, chronological order, descending
-- Show Git LFS (Cloning, Committing, Checking out, Reverting, Switching branches)
-- Report Git LFS (Cloning, Pushing, Pulling, Switching branches, Reverting)
+  - Merge tool for conflicted files
+  - Conflicted files vs changed files
+  - Show Git LFS (Cloning, Committing, Checking out, Reverting, Switching branches)
+  - Report Git LFS (Cloning, Pushing, Pulling, Switching branches, Reverting)

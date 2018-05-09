@@ -3,11 +3,16 @@ import * as Path from 'path'
 import { Disposable } from 'event-kit'
 import { Repository } from '../../models/repository'
 import { WorkingDirectoryFileChange, AppFileStatus } from '../../models/status'
-import { Branch, BranchType } from '../../models/branch'
+import {
+  Branch,
+  BranchType,
+  IAheadBehind,
+  ICompareResult,
+} from '../../models/branch'
 import { Tip, TipState } from '../../models/tip'
 import { Commit } from '../../models/commit'
 import { IRemote } from '../../models/remote'
-import { IFetchProgress, IRevertProgress } from '../app-state'
+import { IFetchProgress, IRevertProgress, ComparisonView } from '../app-state'
 
 import { IAppShell } from '../app-shell'
 import { ErrorWithMetadata, IErrorMetadata } from '../error-with-metadata'
@@ -24,7 +29,6 @@ import {
   getRecentBranches,
   getBranches,
   deleteRef,
-  IAheadBehind,
   getCommits,
   merge,
   setRemoteURL,
@@ -47,6 +51,9 @@ import {
   getTrailerSeparatorCharacters,
   parseSingleUnfoldedTrailer,
   isCoAuthoredByTrailer,
+  getAheadBehind,
+  revRange,
+  revSymmetricDifference,
 } from '../git'
 import { IGitAccount } from '../git/authentication'
 import { RetryAction, RetryActionType } from '../retry-actions'
@@ -150,8 +157,10 @@ export class GitStore extends BaseStore {
 
     this.requestsInFight.add(LoadingHistoryRequestKey)
 
+    const range = revRange('HEAD', mergeBase)
+
     const commits = await this.performFailableOperation(() =>
-      getCommits(this.repository, `HEAD..${mergeBase}`, CommitBatchSize)
+      getCommits(this.repository, range, CommitBatchSize)
     )
     if (commits == null) {
       return
@@ -173,11 +182,8 @@ export class GitStore extends BaseStore {
       this._history = [...commits.map(c => c.sha), ...remainingHistory]
     }
 
-    this.storeCommits(commits)
-
+    this.storeCommits(commits, true)
     this.requestsInFight.delete(LoadingHistoryRequestKey)
-
-    this.emitNewCommitsLoaded(commits)
     this.emitUpdate()
   }
 
@@ -214,11 +220,8 @@ export class GitStore extends BaseStore {
     }
 
     this._history = [...commits.map(c => c.sha), ...existingHistory]
-    this.storeCommits(commits)
-
+    this.storeCommits(commits, true)
     this.requestsInFight.delete(LoadingHistoryRequestKey)
-
-    this.emitNewCommitsLoaded(commits)
     this.emitUpdate()
   }
 
@@ -248,11 +251,8 @@ export class GitStore extends BaseStore {
     }
 
     this._history = this._history.concat(commits.map(c => c.sha))
-    this.storeCommits(commits)
-
+    this.storeCommits(commits, true)
     this.requestsInFight.delete(requestKey)
-
-    this.emitNewCommitsLoaded(commits)
     this.emitUpdate()
   }
 
@@ -416,9 +416,9 @@ export class GitStore extends BaseStore {
 
     let localCommits: ReadonlyArray<Commit> | undefined
     if (branch.upstream) {
-      const revRange = `${branch.upstream}..${branch.name}`
+      const range = revRange(branch.upstream, branch.name)
       localCommits = await this.performFailableOperation(() =>
-        getCommits(this.repository, revRange, CommitBatchSize)
+        getCommits(this.repository, range, CommitBatchSize)
       )
     } else {
       localCommits = await this.performFailableOperation(() =>
@@ -447,9 +447,16 @@ export class GitStore extends BaseStore {
   }
 
   /** Store the given commits. */
-  private storeCommits(commits: ReadonlyArray<Commit>) {
+  private storeCommits(
+    commits: ReadonlyArray<Commit>,
+    emitUpdate: boolean = false
+  ) {
     for (const commit of commits) {
       this.commitLookup.set(commit.sha, commit)
+    }
+
+    if (emitUpdate) {
+      this.emitNewCommitsLoaded(commits)
     }
   }
 
@@ -1237,5 +1244,51 @@ export class GitStore extends BaseStore {
     await this.performFailableOperation(() =>
       setRemoteURL(this.repository, UpstreamRemoteName, url)
     )
+  }
+
+  /**
+   * Returns the commits associated with `branch` and ahead/behind info;
+   */
+  public async getCompareCommits(
+    branch: Branch,
+    compareType: ComparisonView.Ahead | ComparisonView.Behind
+  ): Promise<ICompareResult | null> {
+    if (this.tip.kind !== TipState.Valid) {
+      return null
+    }
+
+    const base = this.tip.branch
+    const aheadBehind = await getAheadBehind(
+      this.repository,
+      revSymmetricDifference(base.name, branch.name)
+    )
+
+    if (aheadBehind == null) {
+      return null
+    }
+
+    const revisionRange =
+      compareType === ComparisonView.Ahead
+        ? revRange(branch.name, base.name)
+        : revRange(base.name, branch.name)
+    const commitsToLoad =
+      compareType === ComparisonView.Ahead
+        ? aheadBehind.ahead
+        : aheadBehind.behind
+    const commits = await getCommits(
+      this.repository,
+      revisionRange,
+      commitsToLoad
+    )
+
+    if (commits.length > 0) {
+      this.storeCommits(commits, true)
+    }
+
+    return {
+      commits,
+      ahead: aheadBehind.ahead,
+      behind: aheadBehind.behind,
+    }
   }
 }

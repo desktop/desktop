@@ -17,6 +17,7 @@ import {
   Foldout,
   FoldoutType,
   ImageDiffType,
+  CompareAction,
 } from '../app-state'
 import { AppStore } from '../stores/app-store'
 import { CloningRepository } from '../../models/cloning-repository'
@@ -903,16 +904,6 @@ export class Dispatcher {
     return this.appStore._setShell(shell)
   }
 
-  /**
-   * Reveals a file from a repository in the native file manager.
-   * @param repository The currently active repository instance
-   * @param path The path of the file relative to the root of the repository
-   */
-  public revealInFileManager(repository: Repository, path: string) {
-    const normalized = Path.join(repository.path, path)
-    return shell.showItemInFolder(normalized)
-  }
-
   private async handleCloneInDesktopOptions(
     repository: Repository,
     action: IOpenRepositoryFromURLAction
@@ -1164,5 +1155,43 @@ export class Dispatcher {
     coAuthors: ReadonlyArray<IAuthor>
   ) {
     return this.appStore._setCoAuthors(repository, coAuthors)
+  }
+
+  /**
+   * Initialze the compare state for the current repository.
+   */
+  public initializeCompare(
+    repository: Repository,
+    initialAction?: CompareAction
+  ) {
+    return this.appStore._initializeCompare(repository, initialAction)
+  }
+
+  /**
+   * Update the compare state for the current repository
+   */
+  public executeCompare(repository: Repository, action: CompareAction) {
+    return this.appStore._executeCompare(repository, action)
+  }
+
+  /**
+   * Increments the `mergeIntoCurrentBranchMenuCount` metric
+   */
+  public recordMenuInitiatedMerge() {
+    return this.appStore._recordMenuInitiatedMerge()
+  }
+
+  /**
+   * Increments the `updateFromDefaultBranchMenuCount` metric
+   */
+  public recordMenuInitiatedUpdate() {
+    return this.appStore._recordMenuInitiatedUpdate()
+  }
+
+  /**
+   * Increments the `mergesInitiatedFromComparison` metric
+   */
+  public recordCompareInitiatedMerge() {
+    return this.appStore._recordCompareInitiatedMerge()
   }
 }

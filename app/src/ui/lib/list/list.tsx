@@ -4,6 +4,14 @@ import { Grid, AutoSizer } from 'react-virtualized'
 import { shallowEquals, arrayEquals } from '../../../lib/equality'
 import { FocusContainer } from '../../lib/focus-container'
 import { ListRow } from './list-row'
+import {
+  findNextSelectableRow,
+  SelectionSource,
+  SelectionDirection,
+  IMouseClickSource,
+  IKeyboardSource,
+  ISelectAllSource,
+} from './selection'
 import { createUniqueId, releaseUniqueId } from '../../lib/id-pool'
 import { range } from '../../../lib/range'
 
@@ -29,37 +37,6 @@ export interface IRowRendererParams {
   /** Style object to be applied to cell */
   readonly style: React.CSSProperties
 }
-
-/**
- * Interface describing a user initiated selection change event
- * originating from a pointer device clicking or pressing on an item.
- */
-export interface IMouseClickSource {
-  readonly kind: 'mouseclick'
-  readonly event: React.MouseEvent<any>
-}
-
-/**
- * Interface describing a user initiated selection change event
- * originating from a pointer device hovering over an item.
- * Only applicable when selectedOnHover is set.
- */
-export interface IHoverSource {
-  readonly kind: 'hover'
-  readonly event: React.MouseEvent<any>
-}
-
-/**
- * Interface describing a user initiated selection change event
- * originating from a keyboard
- */
-export interface IKeyboardSource {
-  readonly kind: 'keyboard'
-  readonly event: React.KeyboardEvent<any>
-}
-
-/** A type union of possible sources of a selection changed event */
-export type SelectionSource = IMouseClickSource | IHoverSource | IKeyboardSource
 
 export type ClickSource = IMouseClickSource | IKeyboardSource
 
@@ -323,13 +300,53 @@ export class List extends React.Component<IListProps, IListState> {
     }
   }
 
+  private onSelectAll = (event: Event) => {
+    const selectionMode = this.props.selectionMode
+
+    if (selectionMode !== 'range' && selectionMode !== 'multi') {
+      return
+    }
+
+    event.preventDefault()
+
+    if (this.props.rowCount <= 0) {
+      return
+    }
+
+    const source: ISelectAllSource = { kind: 'select-all' }
+    const firstRow = 0
+    const lastRow = this.props.rowCount - 1
+
+    if (this.props.onSelectionChanged) {
+      const newSelection = createSelectionBetween(firstRow, lastRow)
+      this.props.onSelectionChanged(newSelection, source)
+    }
+
+    if (selectionMode === 'range' && this.props.onSelectedRangeChanged) {
+      this.props.onSelectedRangeChanged(firstRow, lastRow, source)
+    }
+  }
+
   private onRef = (element: HTMLDivElement | null) => {
+    if (element === null && this.list !== null) {
+      this.list.removeEventListener('select-all', this.onSelectAll)
+    }
+
     this.list = element
+
+    if (element !== null) {
+      // This is a custom event that desktop emits through <App />
+      // when the user selects the Edit > Select all menu item. We
+      // hijack it and select all list items rather than let it bubble
+      // to electron's default behavior which is to select all selectable
+      // text in the renderer.
+      element.addEventListener('select-all', this.onSelectAll)
+    }
 
     if (this.resizeObserver) {
       this.resizeObserver.disconnect()
 
-      if (element) {
+      if (element !== null) {
         this.resizeObserver.observe(element)
       } else {
         this.setState({ width: undefined, height: undefined })
@@ -427,92 +444,13 @@ export class List extends React.Component<IListProps, IListState> {
     }
   }
 
-  /**
-   * Determine the next selectable row, given the direction and a starting
-   * row index. Whether a row is selectable or not is determined using
-   * the `canSelectRow` method.
-   *
-   * Returns null if no row can be selected or if the only selectable row is
-   * identical to the given row parameter.
-   *
-   * @param direction The vertical direction use when searching for a
-   *                  selectable row.
-   *
-   * @param row       The starting row index to search from.
-   *
-   * @param wrap      Whether or not to look beyond the last or first
-   *                  row(depending on direction) such that given the
-   *                  last row and a downward direction we'll consider
-   *                  the first row as a candidate or given the first row
-   *                  and an upward direction we'll consider the last
-   *                  row as a candidate. Default is true.
-   *
-   */
-  public nextSelectableRow(
-    direction: 'up' | 'down',
-    row: number,
-    wrap: boolean = true
-  ): number | null {
-    if (this.props.rowCount === 0) {
-      return null
-    }
-
-    // If we've been given a row that's out of bounds
-    // we'll coerce it to a valid index starting either
-    // at the bottom or the top depending on the direction.
-    //
-    // Given a row that would be below the last item and
-    // an upward direction we'll pick the last selectable row
-    // or the first selectable given an upward direction.
-    //
-    // Given a row that would be before the first item (-1)
-    // and a downward direction we'll pick the first selectable
-    // row or the first selectable given an upward direction.
-    let currentRow =
-      row < 0 || row >= this.props.rowCount
-        ? direction === 'up' ? this.props.rowCount - 1 : 0
-        : row
-
-    const delta = direction === 'up' ? -1 : 1
-
-    // Iterate through all rows (starting offset from the
-    // given row and ending on and including the given row)
-    for (let i = 0; i < this.props.rowCount; i++) {
-      currentRow += delta
-
-      if (currentRow >= this.props.rowCount) {
-        // We've hit rock bottom, wrap around to the top
-        // if we're allowed to or give up.
-        if (wrap) {
-          currentRow = 0
-        } else {
-          break
-        }
-      } else if (currentRow < 0) {
-        // We've reached the top, wrap around to the bottom
-        // if we're allowed to or give up
-        if (wrap) {
-          currentRow = this.props.rowCount - 1
-        } else {
-          break
-        }
-      }
-
-      if (this.canSelectRow(currentRow) && row !== currentRow) {
-        return currentRow
-      }
-    }
-
-    return null
-  }
-
   /** Convenience method for invoking canSelectRow callback when it exists */
-  private canSelectRow(rowIndex: number) {
+  private canSelectRow = (rowIndex: number) => {
     return this.props.canSelectRow ? this.props.canSelectRow(rowIndex) : true
   }
 
   private addSelection(
-    direction: 'up' | 'down',
+    direction: SelectionDirection,
     event: React.KeyboardEvent<any>
   ) {
     if (this.props.selectedRows.length === 0) {
@@ -525,7 +463,11 @@ export class List extends React.Component<IListProps, IListState> {
 
     const selectionOrigin = this.props.selectedRows[0]
 
-    const newRow = this.nextSelectableRow(direction, lastSelection, false)
+    const newRow = findNextSelectableRow(
+      this.props.rowCount,
+      { direction, row: lastSelection, wrap: false },
+      this.canSelectRow
+    )
 
     if (newRow != null) {
       if (this.props.onSelectionChanged) {
@@ -548,7 +490,7 @@ export class List extends React.Component<IListProps, IListState> {
   }
 
   private moveSelection(
-    direction: 'up' | 'down',
+    direction: SelectionDirection,
     event: React.KeyboardEvent<any>
   ) {
     const lastSelection =
@@ -556,7 +498,11 @@ export class List extends React.Component<IListProps, IListState> {
         ? this.props.selectedRows[this.props.selectedRows.length - 1]
         : -1
 
-    const newRow = this.nextSelectableRow(direction, lastSelection)
+    const newRow = findNextSelectableRow(
+      this.props.rowCount,
+      { direction, row: lastSelection },
+      this.canSelectRow
+    )
 
     if (newRow != null) {
       if (this.props.onSelectionChanged) {
@@ -782,6 +728,7 @@ export class List extends React.Component<IListProps, IListState> {
       <FocusContainer
         className="list-focus-container"
         onKeyDown={this.onKeyDown}
+        key="focus-container"
       >
         <Grid
           aria-label={''}

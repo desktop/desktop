@@ -29,6 +29,11 @@ const DefaultDailyMeasures: IDailyMeasures = {
   partialCommits: 0,
   openShellCount: 0,
   coAuthoredCommits: 0,
+  branchComparisons: 0,
+  defaultBranchComparisons: 0,
+  mergesInitiatedFromComparison: 0,
+  updateFromDefaultBranchMenuCount: 0,
+  mergeIntoCurrentBranchMenuCount: 0,
   prBranchCheckouts: 0,
 }
 
@@ -292,6 +297,41 @@ export class StatsStore {
   public recordOpenShell(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       openShellCount: m.openShellCount + 1,
+    }))
+  }
+
+  /** Record that a branch comparison has been made */
+  public recordBranchComparison(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      branchComparisons: m.branchComparisons + 1,
+    }))
+  }
+
+  /** Record that a branch comparison has been made to the `master` branch */
+  public recordDefaultBranchComparison(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      defaultBranchComparisons: m.defaultBranchComparisons + 1,
+    }))
+  }
+
+  /** Record that a merge has been initiated from the `compare` sidebar */
+  public recordCompareInitiatedMerge(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      mergesInitiatedFromComparison: m.mergesInitiatedFromComparison + 1,
+    }))
+  }
+
+  /** Record that a merge has been initiated from the `Branch -> Update From Default Branch` menu item */
+  public recordMenuInitiatedUpdate(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      updateFromDefaultBranchMenuCount: m.updateFromDefaultBranchMenuCount + 1,
+    }))
+  }
+
+  /** Record that a merge has been initiated from the `Branch -> Merge Into Current Branch` menu item */
+  public recordMenuInitiatedMerge(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      mergeIntoCurrentBranchMenuCount: m.mergeIntoCurrentBranchMenuCount + 1,
     }))
   }
 
