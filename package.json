@@ -53,7 +53,7 @@
   "dependencies": {
     "ajv": "^6.4.0",
     "awesome-node-loader": "^1.1.0",
-    "awesome-typescript-loader": "^3.4.0",
+    "awesome-typescript-loader": "^5.0.0",
     "aws-sdk": "^2.23.0",
     "babel-core": "^6.26.3",
     "chai": "^4.1.1",
