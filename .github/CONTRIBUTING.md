@@ -108,7 +108,7 @@ information you would like to add.
 Enhancement suggestions are tracked as [GitHub issues](https://guides.github.com/features/issues/).
 
 Simply create an issue on the [GitHub Desktop issue tracker](https://github.com/desktop/desktop/issues/new?template=feature_request.md)
-and fill out the template.
+and fill out the provided issue template.
 
 Some additional advice:
 
