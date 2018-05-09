@@ -1,5 +1,11 @@
 {
   "releases": {
+    "1.1.2-test5": [
+      "Actually upgrading fs-extra to v6 in the app"
+    ],
+    "1.1.2-test4": [
+      "Upgrading fs-extra to v6"
+    ],
     "1.1.2-beta5": [
       "[Added] Syntax highlighting for JavaServer Pages (JSP) - #4470. Thanks @damaneice!",
       "[Fixed] Prevent icon from shrinking in rename dialog - #4566"
