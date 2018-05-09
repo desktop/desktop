@@ -10,6 +10,7 @@ import { Welcome } from './welcome'
 import { ValidateHost } from './validate-host'
 import { UnknownAction } from './unknown-action'
 import { SetupNewSSHKey } from './setup-new-ssh-key'
+import { StartSSHAgent } from './start-ssh-agent'
 
 interface ITroubleshootSSHProps {
   readonly dispatcher: Dispatcher
@@ -31,7 +32,7 @@ export class TroubleshootSSH extends React.Component<
     const stepKind = state.kind
 
     switch (state.kind) {
-      case TroubleshootingStep.InitialState:
+      case TroubleshootingStep.WelcomeState:
         return (
           <Welcome
             dispatcher={this.props.dispatcher}
@@ -45,6 +46,14 @@ export class TroubleshootSSH extends React.Component<
           <ValidateHost
             dispatcher={this.props.dispatcher}
             repository={this.props.repository}
+            state={state}
+            onDismissed={this.props.onDismissed}
+          />
+        )
+      case TroubleshootingStep.NoRunningAgent:
+        return (
+          <StartSSHAgent
+            dispatcher={this.props.dispatcher}
             state={state}
             onDismissed={this.props.onDismissed}
           />

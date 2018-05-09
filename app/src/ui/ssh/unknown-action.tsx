@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import { UnknownResult } from '../../models/ssh'
+import { IUnknownResultState } from '../../models/ssh'
 
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
@@ -11,7 +11,7 @@ import { LinkButton } from '../lib/link-button'
 import { saveLogFile } from '../../lib/ssh'
 
 interface IUnknownActionProps {
-  readonly state: UnknownResult
+  readonly state: IUnknownResultState
   readonly onDismissed: () => void
 }
 

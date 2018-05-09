@@ -55,7 +55,7 @@ import { FetchType } from '../../lib/stores'
 import { PullRequest } from '../../models/pull-request'
 import { IAuthor } from '../../models/author'
 import { ITrailer } from '../git/interpret-trailers'
-import { ValidateHostAction } from '../../models/ssh'
+import { IValidateHostState, INoRunningAgentState } from '../../models/ssh'
 
 /**
  * An error handler function.
@@ -1204,7 +1204,11 @@ export class Dispatcher {
     return this.appStore._startTroubleshooting(repository)
   }
 
-  public validateHost(action: ValidateHostAction): Promise<void> {
-    return this.appStore._validateHost(action)
+  public validateHost(state: IValidateHostState): Promise<void> {
+    return this.appStore._validateHost(state)
+  }
+
+  public launchSSHAgent(state: INoRunningAgentState): Promise<void> {
+    return this.appStore._launchSSHAgent(state)
   }
 }

@@ -1,25 +1,25 @@
 import * as React from 'react'
 
-import { Repository } from '../../models/repository'
-import { IWelcomeState } from '../../models/ssh'
+import { INoRunningAgentState } from '../../models/ssh'
 
 import { Dispatcher } from '../../lib/dispatcher'
 
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
-import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Loading } from '../lib/loading'
+import { Ref } from '../lib/ref'
 
-interface IWelcomeProps {
+import { Dialog, DialogContent, DialogFooter } from '../dialog'
+
+interface IStartSSHAgentProps {
   readonly dispatcher: Dispatcher
-  readonly repository: Repository
-  readonly state: IWelcomeState
+  readonly state: INoRunningAgentState
   readonly onDismissed: () => void
 }
 
-export class Welcome extends React.Component<IWelcomeProps, {}> {
-  private startTroubleshooting = () => {
-    this.props.dispatcher.startTroubleshooting(this.props.repository)
+export class StartSSHAgent extends React.Component<IStartSSHAgentProps, {}> {
+  private launchSSHAgent = () => {
+    this.props.dispatcher.launchSSHAgent(this.props.state)
   }
 
   public render() {
@@ -31,15 +31,16 @@ export class Welcome extends React.Component<IWelcomeProps, {}> {
         id="troubleshoot-ssh"
         title="Troubleshoot SSH Authentication"
         onDismissed={this.props.onDismissed}
-        onSubmit={this.startTroubleshooting}
+        onSubmit={this.launchSSHAgent}
       >
         <DialogContent>
           <p>
-            It looks like you are having an issue connecting to an SSH remote.
+            A running <Ref>ssh-agent</Ref> process is required to perform
+            authentication.
           </p>
           <p>
-            Do you want to troubleshoot your setup to see if Desktop can get
-            this working?
+            Do you want to start the <Ref>ssh-agent</Ref> process found at{' '}
+            <Ref>{state.sshLocation}</Ref>?
           </p>
         </DialogContent>
         <DialogFooter>

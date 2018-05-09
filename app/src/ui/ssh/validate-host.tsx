@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 import { Repository } from '../../models/repository'
-import { ValidateHostAction } from '../../models/ssh'
+import { IValidateHostState } from '../../models/ssh'
 
 import { Dispatcher } from '../../lib/dispatcher'
 
@@ -14,7 +14,7 @@ import { LinkButton } from '../lib/link-button'
 interface IValidateHostProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
-  readonly state: ValidateHostAction
+  readonly state: IValidateHostState
   readonly onDismissed: () => void
 }
 

@@ -3,6 +3,8 @@ import * as os from 'os'
 import * as Path from 'path'
 import * as fs from 'fs'
 
+const processExists = require('process-exists')
+
 import { TypedBaseStore } from './base-store'
 import { AccountsStore } from './accounts-store'
 import { mkdirIfNeeded } from '../file-system'
@@ -10,7 +12,8 @@ import { mkdirIfNeeded } from '../file-system'
 import {
   TroubleshootingState,
   TroubleshootingStep,
-  ValidateHostAction,
+  IValidateHostState,
+  INoRunningAgentState,
 } from '../../models/ssh'
 import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
@@ -20,6 +23,11 @@ import {
   isPermissionError,
   executeSSHTest,
 } from '../ssh'
+
+async function findSSHAgentProcess(): Promise<boolean> {
+  const found: boolean = await processExists('ssh-agent')
+  return found
+}
 
 export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | null> {
   private state: TroubleshootingState | null = null
@@ -54,12 +62,11 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | 
   }
 
   public reset() {
-    this.setState({ kind: TroubleshootingStep.InitialState, isLoading: false })
+    this.setState({ kind: TroubleshootingStep.WelcomeState, sshUrl: '' })
   }
 
-  public async validateHost(state: ValidateHostAction) {
-    const nextState = { ...state, isLoading: true }
-    this.setState(nextState)
+  public async validateHost(state: IValidateHostState) {
+    this.setState({ ...state, isLoading: true })
 
     const sshDir = Path.join(os.homedir(), '.ssh')
     await mkdirIfNeeded(sshDir)
@@ -72,16 +79,35 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | 
     await this.validate(sshUrl)
   }
 
-  public async start(repository: Repository) {
-    this.setState({ kind: TroubleshootingStep.InitialState, isLoading: true })
+  public async launchSSHAgent(state: INoRunningAgentState) {
+    this.setState({ ...state, isLoading: true })
 
+    // TODO: actually launch the process
+    // TODO: IPC to the main process to indicate it should cleanup this process
+    // TODO: grab environment variables from ssh-agent process
+    // TODO: how to pass this through when invoking Git
+
+    // for now, just dummy this up and re-evaluate again
+    window.setTimeout(() => {
+      this.validate(state.sshUrl)
+    }, 2000)
+  }
+
+  public async start(repository: Repository) {
     // TODO: how to resolve this from the repository?
     // TODO: how to resolve the host for GHE environments?
     const sshUrl = 'git@github.com'
+
+    this.setState({
+      kind: TroubleshootingStep.WelcomeState,
+      sshUrl,
+      isLoading: true,
+    })
+
     await this.validate(sshUrl)
   }
 
-  private verifyHost = async (state: ValidateHostAction) => {
+  private verifyHost = async (state: IValidateHostState) => {
     const nextState = { ...state, isLoading: true }
     this.setState(nextState)
 
@@ -118,6 +144,17 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | 
   }
 
   private async validate(sshUrl: string) {
+    const isSSHAgentRunning = await findSSHAgentProcess()
+
+    if (!isSSHAgentRunning) {
+      // TODO: find ssh-agent on PATH? Or somewhere else?
+      this.setState({
+        kind: TroubleshootingStep.NoRunningAgent,
+        sshLocation: '/usr/bin/ssh-agent',
+        sshUrl,
+      })
+    }
+
     const stderr = await executeSSHTest(sshUrl)
 
     const verificationError = isHostVerificationError(stderr)
@@ -127,7 +164,7 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | 
         kind: TroubleshootingStep.ValidateHost,
         rawOutput,
         host,
-        isLoading: false,
+        sshUrl,
       })
       return
     }
@@ -147,6 +184,7 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState | 
         this.setState({
           kind: TroubleshootingStep.CreateSSHKey,
           accounts: this.accounts,
+          sshUrl,
         })
         return
       }

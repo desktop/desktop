@@ -131,7 +131,7 @@ import { IAuthor } from '../../models/author'
 import { ComparisonCache } from '../comparison-cache'
 import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
 import { enableCompareSidebar } from '../feature-flag'
-import { ValidateHostAction } from '../../models/ssh'
+import { IValidateHostState, INoRunningAgentState } from '../../models/ssh'
 
 /**
  * Enum used by fetch to determine if
@@ -3531,18 +3531,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return gitStore.addUpstreamRemoteIfNeeded()
   }
 
-  public _resetTroubleshooting() {
-    this.troubleshootingStore.reset()
-  }
-
-  public _startTroubleshooting(repository: Repository) {
-    this.troubleshootingStore.start(repository)
-  }
-
-  public _validateHost(action: ValidateHostAction): Promise<void> {
-    return this.troubleshootingStore.validateHost(action)
-  }
-
   public async _checkoutPullRequest(
     repository: Repository,
     pullRequest: PullRequest
@@ -3670,6 +3658,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
    */
   public _recordCompareInitiatedMerge() {
     this.statsStore.recordCompareInitiatedMerge()
+  }
+
+  public _resetTroubleshooting() {
+    this.troubleshootingStore.reset()
+  }
+
+  public _startTroubleshooting(repository: Repository) {
+    this.troubleshootingStore.start(repository)
+  }
+
+  public _validateHost(state: IValidateHostState): Promise<void> {
+    return this.troubleshootingStore.validateHost(state)
+  }
+
+  public _launchSSHAgent(state: INoRunningAgentState): Promise<void> {
+    return this.troubleshootingStore.launchSSHAgent(state)
   }
 }
 
