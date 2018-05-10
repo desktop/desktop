@@ -14,14 +14,13 @@ import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
 import {
   scanAndWriteToKnownHostsFile,
-  launchSSHAgent,
   isHostVerificationError,
   isPermissionError,
   executeSSHTest,
-  findSSHAgentProcess,
-  findSSHAgentPath,
   createSSHKey,
   addToSSHAgent,
+  SSHAgentManager,
+  AgentStateKind,
 } from '../ssh'
 import { getRemotes } from '../git'
 import { parseRemote } from '../remote-parsing'
@@ -36,6 +35,7 @@ const initialState: TroubleshootingState = {
 export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState> {
   private state = initialState
   private accounts: ReadonlyArray<Account> = []
+  private sshAgentManager = new SSHAgentManager()
 
   public constructor(private accountsStore: AccountsStore) {
     super()
@@ -65,6 +65,7 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState> {
 
   public reset() {
     this.setState(initialState)
+    this.sshAgentManager.reset()
   }
 
   public async start(repository: Repository) {
@@ -102,7 +103,7 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState> {
   public async launchSSHAgent(state: INoRunningAgentState) {
     this.setState({ ...state, isLoading: true })
 
-    const { pid, env } = await launchSSHAgent(state.sshAgentLocation)
+    const { pid, env } = await this.sshAgentManager.launch()
 
     // TODO: we should make the main process spawn this process so we can leverage
     // the OS to cleanup the process when the main process exits. The alternative
@@ -142,8 +143,16 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState> {
       outputFile
     )
 
-    const { env } = await launchSSHAgent(state.sshAgentLocation)
-    await addToSSHAgent(privateKeyFile, passphrase, env)
+    const agentState = await this.sshAgentManager.getState()
+
+    if (agentState.kind !== AgentStateKind.Running) {
+      log.warn(
+        'Creating an SSH key before ssh-agent is running. This is not the right order. Skipping...'
+      )
+      return
+    }
+
+    await addToSSHAgent(privateKeyFile, passphrase, agentState.env)
 
     if (account.scopes.includes('write:public_key')) {
       const api = new API(account.endpoint, account.token)
@@ -165,17 +174,16 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState> {
   }
 
   private async validateSSHConnection(sshUrl: string) {
-    const isSSHAgentRunning = await findSSHAgentProcess()
+    const agentState = await this.sshAgentManager.getState()
 
-    if (!isSSHAgentRunning) {
-      const sshAgentLocation = await findSSHAgentPath()
-      if (sshAgentLocation == null) {
-        log.warn(
-          `[TroubleshootingStore] unable to find an ssh-agent on the machine. what to do?`
-        )
-        return
-      }
+    if (agentState.kind === AgentStateKind.NotFound) {
+      // TODO: how to handle this sitatuion?
+      return
+    }
 
+    const sshAgentLocation = agentState.executablePath
+
+    if (agentState.kind === AgentStateKind.NotStarted) {
       this.setState({
         kind: TroubleshootingStep.NoRunningAgent,
         sshAgentLocation,
@@ -184,16 +192,7 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState> {
       return
     }
 
-    const sshAgentLocation = await findSSHAgentPath()
-    if (sshAgentLocation == null) {
-      log.warn(
-        `[TroubleshootingStore] unable to find an ssh-agent on the machine. what to do?`
-      )
-      return
-    }
-
-    const { env } = await launchSSHAgent(sshAgentLocation)
-    const stderr = await executeSSHTest(sshUrl, env)
+    const stderr = await executeSSHTest(sshUrl, agentState.env)
 
     const verificationError = isHostVerificationError(stderr)
     if (verificationError !== null) {
@@ -219,14 +218,6 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState> {
       if (foundKeys > 0) {
         // TODO: list keys and let the user select a key
       } else {
-        const sshAgentLocation = await findSSHAgentPath()
-        if (sshAgentLocation == null) {
-          log.warn(
-            `[TroubleshootingStore] unable to find an ssh-agent on the machine. what to do?`
-          )
-          return
-        }
-
         this.setState({
           kind: TroubleshootingStep.CreateSSHKey,
           accounts: this.accounts,
