@@ -15,7 +15,7 @@ describe('Database', () => {
   })
 
   describe('Adding data', () => {
-    it.only('persists the data to disk', async () => {
+    it('persists the data to disk', async () => {
       const repos = testDb().getCollection(Collections.Repository)
       await repos.insertOne({
         kind: 'repository',

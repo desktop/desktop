@@ -6,7 +6,7 @@ const testDb = getTestGHDatabase()
 
 describe('Repository Commands', () => {
   describe('Add repository', () => {
-    it('works', async () => {
+    it.only('works', async () => {
       const testPath = 'test'
       await RepositoryCommands.addRepository(testPath)
 
