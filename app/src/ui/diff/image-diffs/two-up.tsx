@@ -32,7 +32,7 @@ export class TwoUp extends React.Component<ITwoUpProps, {}> {
     const percentDiff = (previous: number, current: number) => {
       const diff = Math.round(100 * (current - previous) / previous)
       const sign = diff > 0 ? '+' : ''
-      return `${sign}${diff}%`
+      return sign + diff + '%'
     }
 
     const zeroSize = { width: 0, height: 0 }
