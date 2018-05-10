@@ -45,7 +45,7 @@ describe('Repository Commands', () => {
   })
 
   describe('addGHRepository', () => {
-    it.only('performs no-op if given repo does not exist', async () => {
+    it('performs no-op if given repo does not exist', async () => {
       const dummyKey: RepositoryKey = {
         name: 'no-name',
         path: 'no-path',
@@ -64,7 +64,7 @@ describe('Repository Commands', () => {
       expect(repos.length).to.equal(0)
     })
 
-    it.only('performs no-op if given a repo that already has an associated GHRepository', async () => {
+    it('performs no-op if given a repo that already has an associated GHRepository', async () => {
       // create new repo
       const testPath = 'path'
       const key: RepositoryKey = {
