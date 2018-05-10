@@ -4,7 +4,6 @@ import * as os from 'os'
 import * as Path from 'path'
 
 import { lookupPreferredEmail } from '../../lib/email'
-import { Account } from '../../models/account'
 import { IAvatarUser } from '../../models/avatar'
 
 import { Button } from '../lib/button'
@@ -14,10 +13,12 @@ import { TextBox } from '../lib/text-box'
 import { Ref } from '../lib/ref'
 
 import { Avatar } from '../lib/avatar'
+import { Loading } from '../lib/loading'
 
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { List } from '../lib/list'
 import { Dispatcher } from '../../lib/dispatcher'
+import { ICreateSSHKeyState } from '../../models/ssh'
 
 function getPathForNewSSHKey(fileName: string) {
   const homeDir = os.homedir()
@@ -26,7 +27,7 @@ function getPathForNewSSHKey(fileName: string) {
 
 interface ISetupNewSSHKeyProps {
   readonly dispatcher: Dispatcher
-  readonly accounts: ReadonlyArray<Account>
+  readonly state: ICreateSSHKeyState
   readonly onDismissed: () => void
 }
 
@@ -58,7 +59,7 @@ export class SetupNewSSHKey extends React.Component<
       return
     }
 
-    const account = this.props.accounts[this.state.selectedAccount]
+    const account = this.props.state.accounts[this.state.selectedAccount]
 
     this.props.dispatcher.createSSHKey(
       account,
@@ -97,7 +98,7 @@ export class SetupNewSSHKey extends React.Component<
 
   private updateState = (selectedAccount: number) => {
     // TODO: validate that this is an entry in the array
-    const account = this.props.accounts[selectedAccount]
+    const account = this.props.state.accounts[selectedAccount]
     const outputFile = getPathForNewSSHKey(`github_desktop_${account.login}`)
 
     const email = lookupPreferredEmail(account.emails)
@@ -118,7 +119,7 @@ export class SetupNewSSHKey extends React.Component<
   }
 
   private renderRow = (index: number) => {
-    const account = this.props.accounts[index]
+    const account = this.props.state.accounts[index]
 
     const found = lookupPreferredEmail(account.emails)
     const email = found ? found.email : ''
@@ -141,8 +142,9 @@ export class SetupNewSSHKey extends React.Component<
   }
 
   public render() {
+    const isLoading = this.props.state.isLoading
     // TODO: other validation rules here
-    const disabled = this.state.selectedAccount == null
+    const disabled = this.state.selectedAccount == null || isLoading
 
     const selectedRows =
       this.state.selectedAccount == null ? [] : [this.state.selectedAccount]
@@ -161,11 +163,11 @@ export class SetupNewSSHKey extends React.Component<
             <div className="account-list-container">
               <List
                 rowRenderer={this.renderRow}
-                rowCount={this.props.accounts.length}
+                rowCount={this.props.state.accounts.length}
                 rowHeight={34}
                 selectedRows={selectedRows}
                 selectionMode="single"
-                invalidationProps={this.props.accounts}
+                invalidationProps={this.props.state.accounts}
                 onSelectionChanged={this.onAccountSelectionChanged}
                 onRowClick={this.onAccountRowClick}
               />
@@ -221,8 +223,9 @@ export class SetupNewSSHKey extends React.Component<
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>
-            <Button disabled={disabled} type="submit">
-              Continue
+            <Button type="submit" disabled={disabled}>
+              {isLoading ? <Loading /> : null}
+              Create
             </Button>
             <Button onClick={this.props.onDismissed}>Cancel</Button>
           </ButtonGroup>

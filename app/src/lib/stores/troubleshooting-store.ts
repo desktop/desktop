@@ -117,6 +117,16 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState> {
     passphrase: string,
     outputFile: string
   ) {
+    const state = this.state
+    if (state.kind !== TroubleshootingStep.CreateSSHKey) {
+      return
+    }
+
+    this.setState({
+      ...state,
+      isLoading: true,
+    })
+
     const { privateKeyFile } = await createSSHKey(
       emailAddress,
       passphrase,
@@ -125,11 +135,7 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState> {
     await addToSSHAgent(privateKeyFile, passphrase)
     //await uploadToGitHub(publicKeyFile)
 
-    const state = this.state
-
-    if (state.kind !== TroubleshootingStep.Unknown) {
-      return this.validateSSHConnection(state.sshUrl)
-    }
+    await this.validateSSHConnection(state.sshUrl)
   }
 
   private async validateSSHConnection(sshUrl: string) {

@@ -62,7 +62,7 @@ export class TroubleshootSSH extends React.Component<
         return (
           <SetupNewSSHKey
             dispatcher={this.props.dispatcher}
-            accounts={state.accounts}
+            state={state}
             onDismissed={this.props.onDismissed}
           />
         )
