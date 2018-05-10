@@ -59,7 +59,7 @@ export class RepositoriesList extends React.Component<
 > {
   private renderItem = (
     item: IRepositoryListItem,
-    matches: ReadonlyArray<number>
+    matches: ReadonlyArray<ReadonlyArray<number>>
   ) => {
     const repository = item.repository
     return (

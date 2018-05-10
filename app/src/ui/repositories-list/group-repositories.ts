@@ -9,7 +9,7 @@ export type RepositoryGroupIdentifier = 'github' | 'enterprise' | 'other'
 export type Repositoryish = Repository | CloningRepository
 
 export interface IRepositoryListItem extends IFilterListItem {
-  readonly text: string
+  readonly text: ReadonlyArray<string>
   readonly id: string
   readonly repository: Repositoryish
   readonly needsDisambiguation: boolean
@@ -60,7 +60,7 @@ export function groupRepositories(
     const items: ReadonlyArray<IRepositoryListItem> = repositories.map(r => {
       const nameCount = names.get(r.name) || 0
       return {
-        text: r.name,
+        text: [r.name],
         id: r.id.toString(),
         repository: r,
         needsDisambiguation: nameCount > 1,

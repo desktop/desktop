@@ -103,7 +103,7 @@ interface IBranchListProps {
    */
   readonly renderBranch: (
     item: IBranchListItem,
-    matches: ReadonlyArray<number>
+    matches: ReadonlyArray<ReadonlyArray<number>>
   ) => JSX.Element
 }
 
@@ -200,7 +200,7 @@ export class BranchList extends React.Component<
 
   private renderItem = (
     item: IBranchListItem,
-    matches: ReadonlyArray<number>
+    matches: ReadonlyArray<ReadonlyArray<number>>
   ) => {
     return this.props.renderBranch(item, matches)
   }

@@ -32,7 +32,7 @@ export interface IPullRequestListItemProps {
   readonly loading?: boolean
 
   /** The characters in the PR title to highlight */
-  readonly matches: ReadonlyArray<number>
+  readonly matches: ReadonlyArray<ReadonlyArray<number>>
 }
 
 /** Pull requests as rendered in the Pull Requests list. */
@@ -51,7 +51,11 @@ export class PullRequestListItem extends React.Component<
   public render() {
     const title = this.props.loading === true ? undefined : this.props.title
     const subtitle = this.getSubtitle()
-
+    const matches = this.props.matches
+    const hasTitleMatches = matches.length > 0
+    const titleMatches = hasTitleMatches ? matches[0] : []
+    const hasSubtitleMatches = matches.length > 1
+    const subtitleMatches = hasSubtitleMatches ? matches[1] : []
     const className = classNames('pull-request-item', {
       loading: this.props.loading === true,
     })
@@ -61,10 +65,10 @@ export class PullRequestListItem extends React.Component<
         <Octicon className="icon" symbol={OcticonSymbol.gitPullRequest} />
         <div className="info">
           <div className="title" title={title}>
-            <HighlightText text={title || ''} highlight={this.props.matches} />
+            <HighlightText text={title || ''} highlight={titleMatches} />
           </div>
           <div className="subtitle" title={subtitle}>
-            {subtitle}
+            <HighlightText text={subtitle || ''} highlight={subtitleMatches} />
           </div>
         </div>
         {this.renderPullRequestStatus()}

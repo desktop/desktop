@@ -315,7 +315,7 @@ export class CompareSidebar extends React.Component<
 
   private renderCompareBranchListItem = (
     item: IBranchListItem,
-    matches: ReadonlyArray<number>
+    matches: ReadonlyArray<ReadonlyArray<number>>
   ) => {
     const currentBranch = this.props.currentBranch
 

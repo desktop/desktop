@@ -11,7 +11,7 @@ interface ICompareBranchListItemProps {
   readonly isCurrentBranch: boolean
 
   /** The characters in the branch name to highlight */
-  readonly matches: ReadonlyArray<number>
+  readonly matches: ReadonlyArray<ReadonlyArray<number>>
 
   readonly aheadBehind: IAheadBehind | null
 }
@@ -41,11 +41,13 @@ export class CompareBranchListItem extends React.Component<
       </div>
     ) : null
 
+    const hasMatches = this.props.matches.length > 0
+    const matches = hasMatches ? this.props.matches[0] : []
     return (
       <div className="branches-list-item">
         <Octicon className="icon" symbol={icon} />
         <div className="name" title={branch.name}>
-          <HighlightText text={branch.name} highlight={this.props.matches} />
+          <HighlightText text={branch.name} highlight={matches} />
         </div>
         {aheadBehindElement}
       </div>

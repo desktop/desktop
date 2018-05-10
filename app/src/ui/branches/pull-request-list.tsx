@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as moment from 'moment'
 import {
   FilterList,
   IFilterListGroup,
@@ -11,7 +12,7 @@ import { NoPullRequests } from './no-pull-requests'
 
 interface IPullRequestListItem extends IFilterListItem {
   readonly id: string
-  readonly text: string
+  readonly text: ReadonlyArray<string>
   readonly pullRequest: PullRequest
 }
 
@@ -157,7 +158,7 @@ export class PullRequestList extends React.Component<
 
   private renderPullRequest = (
     item: IPullRequestListItem,
-    matches: ReadonlyArray<number>
+    matches: ReadonlyArray<ReadonlyArray<number>>
   ) => {
     const pr = item.pullRequest
     const refStatuses = pr.status != null ? pr.status.statuses : []
@@ -206,8 +207,12 @@ export class PullRequestList extends React.Component<
 function createListItems(
   pullRequests: ReadonlyArray<PullRequest>
 ): IFilterListGroup<IPullRequestListItem> {
+  function getSubtitle(pr: PullRequest) {
+    const timeAgo = moment(pr.created).fromNow()
+    return `#${pr.number} opened ${timeAgo} by ${pr.author}`
+  }
   const items = pullRequests.map(pr => ({
-    text: pr.title,
+    text: [pr.title, getSubtitle(pr)],
     id: pr.number.toString(),
     pullRequest: pr,
   }))

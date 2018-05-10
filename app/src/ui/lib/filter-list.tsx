@@ -14,7 +14,7 @@ import { match, IMatch } from '../../lib/fuzzy-find'
 /** An item in the filter list. */
 export interface IFilterListItem {
   /** The text which represents the item. This is used for filtering. */
-  readonly text: string
+  readonly text: ReadonlyArray<string>
 
   /** A unique identifier for the item. */
   readonly id: string
@@ -38,7 +38,7 @@ interface IFlattenedItem<T extends IFilterListItem> {
   readonly kind: 'item'
   readonly item: T
   /** Array of indexes in `item.text` that should be highlighted */
-  readonly matches: ReadonlyArray<number>
+  readonly matches: ReadonlyArray<ReadonlyArray<number>>
 }
 
 /**
@@ -65,7 +65,7 @@ interface IFilterListProps<T extends IFilterListItem> {
   /** Called to render each visible item. */
   readonly renderItem: (
     item: T,
-    matches: ReadonlyArray<number>
+    matches: ReadonlyArray<ReadonlyArray<number>>
   ) => JSX.Element | null
 
   /** Called to render header for the group with the given identifier. */
@@ -449,6 +449,10 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
   }
 }
 
+function getText<T extends IFilterListItem>(item: T): ReadonlyArray<string> {
+  return item['text']
+}
+
 function createStateUpdate<T extends IFilterListItem>(
   props: IFilterListProps<T>
 ) {
@@ -457,7 +461,7 @@ function createStateUpdate<T extends IFilterListItem>(
 
   for (const group of props.groups) {
     const items: ReadonlyArray<IMatch<T>> = filter
-      ? match(filter, group.items, 'text')
+      ? match(filter, group.items, getText)
       : group.items.map(item => ({ score: 1, matches: [], item }))
 
     if (!items.length) {

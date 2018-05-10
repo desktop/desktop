@@ -7,7 +7,7 @@ import { BranchListItem } from './branch-list-item'
 
 export function renderDefaultBranch(
   item: IBranchListItem,
-  matches: ReadonlyArray<number>,
+  matches: ReadonlyArray<ReadonlyArray<number>>,
   currentBranch: Branch | null
 ): JSX.Element {
   const branch = item.branch

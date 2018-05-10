@@ -99,7 +99,7 @@ export class BranchesContainer extends React.Component<
 
   private renderBranch = (
     item: IBranchListItem,
-    matches: ReadonlyArray<number>
+    matches: ReadonlyArray<ReadonlyArray<number>>
   ) => {
     return renderDefaultBranch(item, matches, this.props.currentBranch)
   }

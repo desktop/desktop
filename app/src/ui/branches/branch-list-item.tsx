@@ -15,7 +15,7 @@ interface IBranchListItemProps {
   readonly lastCommitDate: Date | null
 
   /** The characters in the branch name to highlight */
-  readonly matches: ReadonlyArray<number>
+  readonly matches: ReadonlyArray<ReadonlyArray<number>>
 }
 
 /** The branch component. */
@@ -24,17 +24,20 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
     const lastCommitDate = this.props.lastCommitDate
     const isCurrentBranch = this.props.isCurrentBranch
     const name = this.props.name
+    const hasMatches = this.props.matches.length > 0
+    const matches = hasMatches ? this.props.matches[0] : []
 
     const date = lastCommitDate ? moment(lastCommitDate).fromNow() : ''
     const icon = isCurrentBranch ? OcticonSymbol.check : OcticonSymbol.gitBranch
     const infoTitle = isCurrentBranch
       ? 'Current branch'
       : lastCommitDate ? lastCommitDate.toString() : ''
+
     return (
       <div className="branches-list-item">
         <Octicon className="icon" symbol={icon} />
         <div className="name" title={name}>
-          <HighlightText text={name} highlight={this.props.matches} />
+          <HighlightText text={name} highlight={matches} />
         </div>
         <div className="description" title={infoTitle}>
           {date}

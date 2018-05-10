@@ -35,7 +35,7 @@ interface IRepositoryListItemProps {
   readonly shellLabel: string
 
   /** The characters in the repository name to highlight */
-  readonly matches: ReadonlyArray<number>
+  readonly matches: ReadonlyArray<ReadonlyArray<number>>
 }
 
 /** A repository item. */
@@ -56,7 +56,8 @@ export class RepositoryListItem extends React.Component<
     if (this.props.needsDisambiguation && gitHubRepo) {
       prefix = `${gitHubRepo.owner.login}/`
     }
-
+    const hasMatches = this.props.matches.length > 0
+    const matches = hasMatches ? this.props.matches[0] : []
     return (
       <div
         onContextMenu={this.onContextMenu}
@@ -67,10 +68,7 @@ export class RepositoryListItem extends React.Component<
 
         <div className="name">
           {prefix ? <span className="prefix">{prefix}</span> : null}
-          <HighlightText
-            text={repository.name}
-            highlight={this.props.matches}
-          />
+          <HighlightText text={repository.name} highlight={matches} />
         </div>
       </div>
     )

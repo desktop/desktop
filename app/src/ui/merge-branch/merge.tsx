@@ -135,7 +135,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
 
   private renderBranch = (
     item: IBranchListItem,
-    matches: ReadonlyArray<number>
+    matches: ReadonlyArray<ReadonlyArray<number>>
   ) => {
     return renderDefaultBranch(item, matches, this.props.currentBranch)
   }
