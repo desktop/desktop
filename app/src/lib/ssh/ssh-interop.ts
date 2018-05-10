@@ -150,7 +150,46 @@ export async function addToSSHAgent(
   passphrase: string,
   sshEnvironment: object
 ): Promise<void> {
-  return Promise.resolve()
+  const command = 'ssh-add'
+  const env = await getSSHEnvironment(command, sshEnvironment)
+
+  return new Promise<void>((resolve, reject) => {
+    const sshAdd = spawn(command, [privateKeyFile], { shell: true, env })
+
+    const stdoutBuffers = new Array<Buffer>()
+    let stdoutLength = 0
+
+    sshAdd.stdout.on('data', (chunk: Buffer) => {
+      stdoutBuffers.push(chunk)
+      stdoutLength += chunk.length
+    })
+
+    const stderrBuffers = new Array<Buffer>()
+    let stderrLength = 0
+    sshAdd.stderr.on('data', (chunk: Buffer) => {
+      stderrBuffers.push(chunk)
+      stderrLength += chunk.length
+    })
+
+    if (passphrase.length > 0) {
+      sshAdd.stdin.end(passphrase)
+    }
+
+    sshAdd.on('close', code => {
+      const stdout = Buffer.concat(stdoutBuffers, stdoutLength)
+      const stderr = Buffer.concat(stderrBuffers, stderrLength)
+
+      log.debug(`[addToSSHAgent] got stdout: '${stdout}'`)
+      log.debug(`[addToSSHAgent] got stderr: '${stderr}'`)
+
+      debugger
+
+      if (code !== 0) {
+        reject('Probably unable to pass in a passphrase with this coding trick')
+      }
+      resolve()
+    })
+  })
 }
 
 export async function executeSSHTest(
