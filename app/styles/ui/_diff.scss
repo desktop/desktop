@@ -298,12 +298,12 @@
     align-items: center;
 
     .image-diff-previous {
-      margin-right: 7.5px;
-      margin-bottom: 7.5px;
+      margin-right: var(--spacing-half);
+      margin-bottom: var(--spacing-half);
     }
     .image-diff-current {
-      margin-left: 7.5px;
-      margin-bottom: 7.5px;
+      margin-left: var(--spacing-half);
+      margin-bottom: var(--spacing-half);
     }
   }
 

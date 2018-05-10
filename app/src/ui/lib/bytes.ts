@@ -1,7 +1,7 @@
 /**
  * Number sign display mode
  */
-const enum Sign {
+export const enum Sign {
   Normal,
   Forced,
 }

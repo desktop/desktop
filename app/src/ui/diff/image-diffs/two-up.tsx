@@ -2,7 +2,7 @@ import * as React from 'react'
 import { ImageContainer } from './image-container'
 import { ICommonImageDiffProperties } from './modified-image-diff'
 import { ISize } from './sizing'
-import { formatBytes } from '../../lib/bytes'
+import { formatBytes, Sign } from '../../lib/bytes'
 import * as classNames from 'classnames'
 
 /**
@@ -31,7 +31,8 @@ export class TwoUp extends React.Component<ITwoUpProps, {}> {
     }
     const percentDiff = (previous: number, current: number) => {
       const diff = Math.round(100 * (current - previous) / previous)
-      return `${diff}%`
+      const sign = diff > 0 ? '+' : ''
+      return `${sign}${diff}%`
     }
 
     const zeroSize = { width: 0, height: 0 }
@@ -87,7 +88,7 @@ export class TwoUp extends React.Component<ITwoUpProps, {}> {
             })}
           >
             {diffBytes !== 0
-              ? `${formatBytes(diffBytes)} | ${diffPercent}`
+              ? `${formatBytes(diffBytes, Sign.Forced)} | ${diffPercent}`
               : 'No size difference'}
           </span>
         </div>
