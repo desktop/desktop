@@ -1,4 +1,5 @@
 import { ipcRenderer } from 'electron'
+import { readFile } from 'fs-extra'
 
 import { TypedBaseStore } from './base-store'
 import { AccountsStore } from './accounts-store'
@@ -24,6 +25,7 @@ import {
 } from '../ssh'
 import { getRemotes } from '../git'
 import { parseRemote } from '../remote-parsing'
+import { API } from '../api'
 
 const initialState: TroubleshootingState = {
   kind: TroubleshootingStep.WelcomeState,
@@ -136,15 +138,22 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState> {
       isLoading: true,
     })
 
-    const { privateKeyFile } = await createSSHKey(
+    const { publicKeyFile, privateKeyFile } = await createSSHKey(
       emailAddress,
       passphrase,
       outputFile
     )
     await addToSSHAgent(privateKeyFile, passphrase)
-    //await uploadToGitHub(publicKeyFile)
 
-    await this.validateSSHConnection(state.sshUrl)
+    if (account.scopes.includes('write:public_key')) {
+      const api = new API(account.endpoint, account.token)
+      const title = 'GitHub Desktop on [MACHINE NAME GOES HERE]'
+      const keyContents = await readFile(publicKeyFile)
+      api.createPublicKey(title, keyContents.toString())
+      await this.validateSSHConnection(state.sshUrl)
+    } else {
+      // TODO: gotta reauth the user which ohmigod is gonna be fun
+    }
   }
 
   private async validateSSHConnection(sshUrl: string) {
