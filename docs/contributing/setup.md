@@ -95,6 +95,11 @@ In order to build for arm64, you will need the following:
 on setup there.
 * Instead of running `yarn` to get all required dependencies on your machine, you will
 instead need to run `script/install-arm64-deps.sh`.
+* Before building with `yarn build:dev` or `yarn build:prod`, you will need to
+set the environment variable `TARGET_ARCH` to `arm64` eg:
+```shellsession
+export TARGET_ARCH=arm64
+```
 
 ## Install Yarn
 
