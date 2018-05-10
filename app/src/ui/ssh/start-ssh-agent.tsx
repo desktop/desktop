@@ -40,7 +40,7 @@ export class StartSSHAgent extends React.Component<IStartSSHAgentProps, {}> {
           </p>
           <p>
             Do you want to start the <Ref>ssh-agent</Ref> process found at{' '}
-            <Ref>{state.sshLocation}</Ref>?
+            <Ref>{state.sshAgentLocation}</Ref>?
           </p>
         </DialogContent>
         <DialogFooter>

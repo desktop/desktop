@@ -25,7 +25,7 @@ export interface IValidateHostState {
 
 export interface INoRunningAgentState {
   readonly kind: TroubleshootingStep.NoRunningAgent
-  readonly sshLocation: string
+  readonly sshAgentLocation: string
   readonly sshUrl: string
   readonly isLoading?: boolean
 }
@@ -33,6 +33,7 @@ export interface INoRunningAgentState {
 export interface ICreateSSHKeyState {
   readonly kind: TroubleshootingStep.CreateSSHKey
   readonly accounts: ReadonlyArray<Account>
+  readonly sshAgentLocation: string
   readonly sshUrl: string
   readonly isLoading?: boolean
 }

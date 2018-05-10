@@ -47,10 +47,10 @@ async function appendToPath(directory: string) {
   return env
 }
 
-export async function getSSHEnvironment(executable: string) {
+export async function getSSHEnvironment(executable: string, env: object = {}) {
   // don't even bother checking for macOS as it should be there by default
   if (__DARWIN__) {
-    return process.env
+    return Object.assign({}, process.env, env)
   }
 
   const found = await isExecutableOnPath(executable)
@@ -60,14 +60,14 @@ export async function getSSHEnvironment(executable: string) {
     log.debug(
       `[getSSHEnvironment] found ${executable} on PATH, no need to tweak the environment`
     )
-    return process.env
+    return Object.assign({}, process.env, env)
   }
 
   if (__LINUX__) {
     log.warn(
       '[getSSHEnvironment] TODO: what should we be doing for the Linux support?'
     )
-    return process.env
+    return Object.assign({}, process.env, env)
   }
 
   const foundGitInstall = await findGitForWindowsInstall()
@@ -85,5 +85,5 @@ export async function getSSHEnvironment(executable: string) {
   log.warn(
     '[getSSHEnvironment] unable to find path to the embedded Git installation'
   )
-  return process.env
+  return Object.assign({}, process.env, env)
 }

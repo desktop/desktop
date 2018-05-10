@@ -102,9 +102,7 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState> {
   public async launchSSHAgent(state: INoRunningAgentState) {
     this.setState({ ...state, isLoading: true })
 
-    const { pid, environmentVariables } = await launchSSHAgent(
-      state.sshLocation
-    )
+    const { pid, env } = await launchSSHAgent(state.sshAgentLocation)
 
     // TODO: we should make the main process spawn this process so we can leverage
     // the OS to cleanup the process when the main process exits. The alternative
@@ -114,8 +112,8 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState> {
     ipcRenderer.send('track-new-process', { name: 'ssh-agent', pid })
     // TODO: how to pass environment variables through when invoking Git
     log.debug(
-      `[TroubleshootingStore] found environment variables to pass through: '${environmentVariables.join(
-        ', '
+      `[TroubleshootingStore] found environment variables to pass through: '${JSON.stringify(
+        env
       )}'`
     )
 
@@ -143,7 +141,9 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState> {
       passphrase,
       outputFile
     )
-    await addToSSHAgent(privateKeyFile, passphrase)
+
+    const { env } = await launchSSHAgent(state.sshAgentLocation)
+    await addToSSHAgent(privateKeyFile, passphrase, env)
 
     if (account.scopes.includes('write:public_key')) {
       const api = new API(account.endpoint, account.token)
@@ -175,13 +175,22 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState> {
 
       this.setState({
         kind: TroubleshootingStep.NoRunningAgent,
-        sshLocation: sshAgentLocation,
+        sshAgentLocation,
         sshUrl,
       })
       return
     }
 
-    const stderr = await executeSSHTest(sshUrl)
+    const sshAgentLocation = await findSSHAgentPath()
+    if (sshAgentLocation == null) {
+      log.warn(
+        `[TroubleshootingStore] unable to find an ssh-agent on the machine. what to do?`
+      )
+      return
+    }
+
+    const { env } = await launchSSHAgent(sshAgentLocation)
+    const stderr = await executeSSHTest(sshUrl, env)
 
     const verificationError = isHostVerificationError(stderr)
     if (verificationError !== null) {
@@ -207,9 +216,18 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState> {
       if (foundKeys > 0) {
         // TODO: list keys and let the user select a key
       } else {
+        const sshAgentLocation = await findSSHAgentPath()
+        if (sshAgentLocation == null) {
+          log.warn(
+            `[TroubleshootingStore] unable to find an ssh-agent on the machine. what to do?`
+          )
+          return
+        }
+
         this.setState({
           kind: TroubleshootingStep.CreateSSHKey,
           accounts: this.accounts,
+          sshAgentLocation,
           sshUrl,
         })
         return

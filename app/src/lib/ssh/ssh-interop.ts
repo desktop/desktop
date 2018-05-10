@@ -12,7 +12,7 @@ const processExists = require('process-exists')
 
 type SSHAgentProcess = {
   readonly pid: number
-  readonly environmentVariables: ReadonlyArray<string>
+  readonly env: object
 }
 
 export async function scanAndWriteToKnownHostsFile(
@@ -90,11 +90,11 @@ export function launchSSHAgent(
       const sshAgentPidMatch = sshAgentPidRe.exec(stdout)
 
       if (sshAuthSockMatch != null && sshAgentPidMatch != null) {
-        const environmentVariables = [
-          `SSH_AUTH_SOCK=${sshAuthSockMatch[1]}`,
-          `SSH_AGENT_PID=${sshAgentPidMatch[1]}`,
-        ]
-        resolve({ pid, environmentVariables })
+        const env = {
+          SSH_AUTH_SOCK: sshAuthSockMatch[1],
+          SSH_AGENT_PID: sshAgentPidMatch[1],
+        }
+        resolve({ pid, env })
       } else {
         reject('Unable to retrieve environment variables from ssh-agent -s')
       }
@@ -147,14 +147,18 @@ export async function createSSHKey(
 
 export async function addToSSHAgent(
   privateKeyFile: string,
-  passphrase: string
+  passphrase: string,
+  sshEnvironment: object
 ): Promise<void> {
   return Promise.resolve()
 }
 
-export async function executeSSHTest(sshUrl: string): Promise<string> {
+export async function executeSSHTest(
+  sshUrl: string,
+  environmentVariables: object
+): Promise<string> {
   const command = 'ssh'
-  const env = await getSSHEnvironment(command)
+  const env = await getSSHEnvironment(command, environmentVariables)
   return new Promise<string>((resolve, reject) => {
     exec(
       `${command} -Tv  -o 'StrictHostKeyChecking=yes' ${sshUrl}`,
