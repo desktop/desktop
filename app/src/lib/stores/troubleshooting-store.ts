@@ -149,7 +149,12 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState> {
       const api = new API(account.endpoint, account.token)
       const title = 'GitHub Desktop on [MACHINE NAME GOES HERE]'
       const keyContents = await readFile(publicKeyFile)
-      api.createPublicKey(title, keyContents.toString())
+      const key = await api.createPublicKey(title, keyContents.toString())
+      if (key == null) {
+        log.warn('[TroubleshootingStore] unable to create key through API')
+        // TODO: error handling for this flow?
+        return
+      }
       await this.validateSSHConnection(state.sshUrl)
     } else {
       this.setState({
@@ -163,9 +168,7 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState> {
     const isSSHAgentRunning = await findSSHAgentProcess()
 
     if (!isSSHAgentRunning) {
-      // TODO: find ssh-agent on PATH? Or somewhere else?
       const sshAgentLocation = await findSSHAgentPath()
-
       if (sshAgentLocation == null) {
         log.warn(
           `[TroubleshootingStore] unable to find an ssh-agent on the machine. what to do?`
