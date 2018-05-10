@@ -1,5 +1,5 @@
 import { spawn, ChildProcess } from 'child_process'
-import { pathExists } from '../file-system'
+import { pathExists } from 'fs-extra'
 import { assertNever } from '../fatal-error'
 import { IFoundShell } from './found-shell'
 

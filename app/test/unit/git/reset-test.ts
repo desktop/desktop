@@ -1,5 +1,3 @@
-/* eslint-disable no-sync */
-
 import * as path from 'path'
 import { expect } from 'chai'
 
@@ -9,13 +7,13 @@ import { getStatus } from '../../../src/lib/git/status'
 import { setupFixtureRepository } from '../../helpers/repositories'
 import { GitProcess } from 'dugite'
 
-import * as fs from 'fs-extra'
+import * as FSE from 'fs-extra'
 
 describe('git/reset', () => {
   let repository: Repository | null = null
 
-  beforeEach(() => {
-    const testRepoPath = setupFixtureRepository('test-repo')
+  beforeEach(async () => {
+    const testRepoPath = await setupFixtureRepository('test-repo')
     repository = new Repository(testRepoPath, -1, null, false)
   })
 
@@ -25,7 +23,7 @@ describe('git/reset', () => {
       const fileName = 'README.md'
       const filePath = path.join(repoPath, fileName)
 
-      fs.writeFileSync(filePath, 'Hi world\n')
+      await FSE.writeFile(filePath, 'Hi world\n')
 
       await reset(repository!, GitResetMode.Hard, 'HEAD')
 
@@ -41,11 +39,11 @@ describe('git/reset', () => {
       const filePath = path.join(repoPath, fileName)
 
       // modify the file
-      fs.writeFileSync(filePath, 'Hi world\n')
+      await FSE.writeFile(filePath, 'Hi world\n')
 
       // stage the file, then delete it to mimic discarding
       GitProcess.exec(['add', fileName], repoPath)
-      fs.unlinkSync(filePath)
+      await FSE.unlink(filePath)
 
       await resetPaths(repository!, GitResetMode.Mixed, 'HEAD', [filePath])
 
