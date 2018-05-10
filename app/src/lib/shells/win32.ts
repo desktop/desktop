@@ -244,16 +244,10 @@ async function findGitBash(): Promise<string | null> {
  * Check if WSL is installed. When using this function also check the executable exists on the disk.
  */
 async function isWslInstalled(): Promise<boolean> {
-  // First, determine that we are running Windows 10 or greater
-  const winVersion = OS.release()
-  const versionParts = winVersion.split('.')
+  // First, determine that we are running Windows 10
+  const winVersion = OS.release() // Of the form '10.x.x'
 
-  if (versionParts.length == 0 && /^[0-9]+$/.test(versionParts[0])) {
-    return false
-  }
-
-  const majorVersion = Number(versionParts[0])
-  if (majorVersion < 10) {
+  if (!winVersion.startsWith('10.')) {
     return false
   }
 
