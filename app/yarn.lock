@@ -6,6 +6,10 @@
   version "0.0.6"
   resolved "https://registry.yarnpkg.com/7zip/-/7zip-0.0.6.tgz#9cafb171af82329490353b4816f03347aa150a30"
 
+"@types/lokijs@1.5.2":
+  version "1.5.2"
+  resolved "https://registry.yarnpkg.com/@types/lokijs/-/lokijs-1.5.2.tgz#ed228f080033ce1fb16eff4acde65cb9ae0f1bf2"
+
 accessibility-developer-tools@^2.11.0:
   version "2.12.0"
   resolved "https://registry.yarnpkg.com/accessibility-developer-tools/-/accessibility-developer-tools-2.12.0.tgz#3da0cce9d6ec6373964b84f35db7cfc3df7ab514"
