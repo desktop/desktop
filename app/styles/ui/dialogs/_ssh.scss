@@ -1,0 +1,54 @@
+#troubleshoot-ssh {
+  .spin {
+    margin-right: var(--spacing-half);
+  }
+
+  p.output {
+    -webkit-user-select: auto;
+    user-select: auto;
+    cursor: text;
+
+    // Preserve newlines and other white space in error messages
+    // but make sure we wrap if necessary.
+    white-space: pre-wrap;
+
+    background: var(--path-segment-background);
+    border: var(--path-segment-background);
+    border-radius: var(--border-radius);
+
+    font-family: var(--font-family-monospace);
+  }
+
+  /** A React component holding the currently selected repository's changes */
+  .account-list-container {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 34px;
+
+    .account-info {
+      .avatar {
+        // 32px for the image + 2 on each side for the base border.
+        width: 34px;
+        height: 34px;
+
+        border: var(--base-border);
+
+        align-self: center;
+      }
+
+      .user-info {
+        flex-grow: 1;
+        align-self: flex-start;
+
+        .name {
+          font-weight: var(--font-weight-semibold);
+          // Tighten it up a little so that the real name and
+          // username lines up with the avatar.
+          margin-top: -2px;
+          margin-bottom: -2px;
+        }
+      }
+    }
+  }
+}

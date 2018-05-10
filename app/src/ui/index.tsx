@@ -13,6 +13,7 @@ import {
   externalEditorErrorHandler,
   openShellErrorHandler,
   lfsAttributeMismatchHandler,
+  sshAuthenticationErrorHandler,
   defaultErrorHandler,
   missingRepositoryHandler,
   backgroundTaskHandler,
@@ -30,6 +31,7 @@ import {
   TokenStore,
   AccountsStore,
   PullRequestStore,
+  TroubleshootingStore,
 } from '../lib/stores'
 import { GitHubUserDatabase } from '../lib/databases'
 import { URLActionType } from '../lib/parse-app-url'
@@ -49,6 +51,8 @@ import {
   enableSourceMaps,
   withSourceMappedStack,
 } from '../lib/source-map-support'
+
+import { enableSSHTroubleshooting } from '../lib/feature-flag'
 
 if (__DEV__) {
   installDevGlobals()
@@ -120,6 +124,8 @@ const pullRequestStore = new PullRequestStore(
   repositoriesStore
 )
 
+const troubleshootingStore = new TroubleshootingStore(accountsStore)
+
 const appStore = new AppStore(
   gitHubUserStore,
   cloningRepositoriesStore,
@@ -129,7 +135,8 @@ const appStore = new AppStore(
   signInStore,
   accountsStore,
   repositoriesStore,
-  pullRequestStore
+  pullRequestStore,
+  troubleshootingStore
 )
 
 const dispatcher = new Dispatcher(appStore)
@@ -139,6 +146,9 @@ dispatcher.registerErrorHandler(upstreamAlreadyExistsHandler)
 dispatcher.registerErrorHandler(externalEditorErrorHandler)
 dispatcher.registerErrorHandler(openShellErrorHandler)
 dispatcher.registerErrorHandler(lfsAttributeMismatchHandler)
+if (enableSSHTroubleshooting()) {
+  dispatcher.registerErrorHandler(sshAuthenticationErrorHandler)
+}
 dispatcher.registerErrorHandler(gitAuthenticationErrorHandler)
 dispatcher.registerErrorHandler(pushNeedsPullHandler)
 dispatcher.registerErrorHandler(backgroundTaskHandler)

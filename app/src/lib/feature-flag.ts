@@ -39,3 +39,8 @@ export function enableMergeTool(): boolean {
 export function enableCompareSidebar(): boolean {
   return true
 }
+
+/** Should Desktop use the new troubleshooting flow */
+export function enableSSHTroubleshooting(): boolean {
+  return enableDevelopmentFeatures()
+}

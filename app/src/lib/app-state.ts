@@ -27,6 +27,7 @@ import { BranchesTab } from '../models/branches-tab'
 import { PullRequest } from '../models/pull-request'
 import { IAuthor } from '../models/author'
 import { ComparisonCache } from './comparison-cache'
+import { TroubleshootingState } from '../models/ssh'
 
 export { ICommitMessage }
 
@@ -79,6 +80,8 @@ export interface IAppState {
    * showDotcomSignInDialog and showEnterpriseSignInDialog methods.
    */
   readonly signInState: SignInState | null
+
+  readonly troubleshootingState: TroubleshootingState | null
 
   /**
    * The current state of the window, ie maximized, minimized full-screen etc.
@@ -208,6 +211,7 @@ export enum PopupType {
   LFSAttributeMismatch,
   UpstreamAlreadyExists,
   DeletePullRequest,
+  TroubleshootSSH,
 }
 
 export type Popup =
@@ -281,6 +285,10 @@ export type Popup =
       repository: Repository
       branch: Branch
       pullRequest: PullRequest
+    }
+  | {
+      type: PopupType.TroubleshootSSH
+      repository: Repository
     }
 
 export enum FoldoutType {

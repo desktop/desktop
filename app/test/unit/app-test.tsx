@@ -16,6 +16,7 @@ import {
   RepositoriesStore,
   AccountsStore,
   PullRequestStore,
+  TroubleshootingStore,
 } from '../../src/lib/stores'
 import { InMemoryDispatcher } from '../helpers/in-memory-dispatcher'
 import {
@@ -58,6 +59,8 @@ describe('App', () => {
       repositoriesStore
     )
 
+    const troubleshootingStore = new TroubleshootingStore(accountsStore)
+
     appStore = new AppStore(
       new GitHubUserStore(db),
       new CloningRepositoriesStore(),
@@ -67,7 +70,8 @@ describe('App', () => {
       new SignInStore(),
       accountsStore,
       repositoriesStore,
-      pullRequestStore
+      pullRequestStore,
+      troubleshootingStore
     )
 
     dispatcher = new InMemoryDispatcher(appStore)

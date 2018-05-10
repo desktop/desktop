@@ -25,7 +25,7 @@ if (!ClientID || !ClientID.length || !ClientSecret || !ClientSecret.length) {
 }
 
 /** The OAuth scopes we need. */
-const Scopes = ['repo', 'user']
+const Scopes = ['repo', 'user', 'write:public_key']
 
 enum HttpStatusCode {
   NotModified = 304,
@@ -182,6 +182,7 @@ interface IAPIAccessToken {
 /** The partial server response when creating a new authorization on behalf of a user */
 interface IAPIAuthorization {
   readonly token: string
+  readonly scopes: ReadonlyArray<string>
 }
 
 /** The response we receive from fetching mentionables. */
@@ -193,6 +194,16 @@ interface IAPIMentionablesResponse {
 /** The response for search results. */
 interface ISearchResults<T> {
   readonly items: ReadonlyArray<T>
+}
+
+interface IAPIPublicKey {
+  id: number
+  key: string
+  url: string
+  title: string
+  verified: boolean
+  created_at: string
+  read_only: boolean
 }
 
 /**
@@ -229,6 +240,11 @@ function getNextPagePath(response: Response): string | null {
  */
 function toGitHubIsoDateString(date: Date) {
   return date.toISOString().replace(/\.\d{3}Z$/, 'Z')
+}
+
+type UserWithTokenScopes = {
+  user: IAPIUser
+  scopes: ReadonlyArray<string>
 }
 
 /**
@@ -279,12 +295,18 @@ export class API {
     }
   }
 
-  /** Fetch the logged in account. */
-  public async fetchAccount(): Promise<IAPIUser> {
+  /** Fetch the logged in account and the current scopes associated with the token. */
+  public async fetchAccount(): Promise<UserWithTokenScopes> {
     try {
       const response = await this.request('GET', 'user')
-      const result = await parsedResponse<IAPIUser>(response)
-      return result
+      const user = await parsedResponse<IAPIUser>(response)
+      const scopeHeader = response.headers.get('X-OAuth-Scopes')
+      const scopes =
+        scopeHeader == null
+          ? []
+          : scopeHeader.split(',').map(scope => scope.trim())
+
+      return { user, scopes }
     } catch (e) {
       log.warn(`fetchAccount: failed with endpoint ${this.endpoint}`, e)
       throw e
@@ -576,6 +598,27 @@ export class API {
       throw e
     }
   }
+
+  public async createPublicKey(
+    title: string,
+    key: string
+  ): Promise<IAPIPublicKey | null> {
+    try {
+      const response = await this.request('POST', `user/keys`, {
+        title,
+        key,
+      })
+
+      if (response.status === 404) {
+        return null
+      }
+
+      return await parsedResponse<IAPIPublicKey>(response)
+    } catch (e) {
+      log.warn(`createPublicKey: failed with endpoint ${this.endpoint}`, e)
+      throw e
+    }
+  }
 }
 
 export enum AuthorizationResponseKind {
@@ -710,7 +753,7 @@ export async function fetchUser(
 ): Promise<Account> {
   const api = new API(endpoint, token)
   try {
-    const user = await api.fetchAccount()
+    const { user, scopes } = await api.fetchAccount()
     const emails = await api.fetchEmails()
     const defaultEmail = emails[0].email || ''
     const avatarURL = getAvatarWithEnterpriseFallback(
@@ -725,7 +768,8 @@ export async function fetchUser(
       emails,
       avatarURL,
       user.id,
-      user.name || user.login
+      user.name || user.login,
+      scopes
     )
   } catch (e) {
     log.warn(`fetchUser: failed with endpoint ${endpoint}`, e)

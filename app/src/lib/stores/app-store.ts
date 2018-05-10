@@ -100,6 +100,7 @@ import {
   EmojiStore,
   GitHubUserStore,
   CloningRepositoriesStore,
+  TroubleshootingStore,
 } from '../stores'
 import { validatedRepositoryPath } from './helpers/validated-repository-path'
 import { IGitAccount } from '../git/authentication'
@@ -130,6 +131,7 @@ import { IAuthor } from '../../models/author'
 import { ComparisonCache } from '../comparison-cache'
 import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
 import { enableCompareSidebar } from '../feature-flag'
+import { IValidateHostState, INoRunningAgentState } from '../../models/ssh'
 
 /**
  * Enum used by fetch to determine if
@@ -207,6 +209,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private readonly repositoriesStore: RepositoriesStore
   private readonly statsStore: StatsStore
   private readonly pullRequestStore: PullRequestStore
+  private readonly troubleshootingStore: TroubleshootingStore
 
   /** The issues store for all repositories. */
   public get issuesStore(): IssuesStore {
@@ -267,7 +270,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     signInStore: SignInStore,
     accountsStore: AccountsStore,
     repositoriesStore: RepositoriesStore,
-    pullRequestStore: PullRequestStore
+    pullRequestStore: PullRequestStore,
+    troubleshootingStore: TroubleshootingStore
   ) {
     super()
 
@@ -280,6 +284,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.accountsStore = accountsStore
     this.repositoriesStore = repositoriesStore
     this.pullRequestStore = pullRequestStore
+    this.troubleshootingStore = troubleshootingStore
     this.showWelcomeFlow = !hasShownWelcomeFlow()
 
     const window = remote.getCurrentWindow()
@@ -348,6 +353,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.pullRequestStore.onDidUpdate(gitHubRepository =>
       this.onPullRequestStoreUpdated(gitHubRepository)
     )
+
+    this.troubleshootingStore.onDidError(error => this.emitError(error))
+    this.troubleshootingStore.onDidUpdate(() => {
+      this.onTroubleshootingStoreDidUpdate()
+    })
   }
 
   /** Load the emoji from disk. */
@@ -570,6 +580,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       appIsFocused: this.appIsFocused,
       selectedState: this.getSelectedState(),
       signInState: this.signInStore.getState(),
+      troubleshootingState: this.troubleshootingStore.getState(),
       currentPopup: this.currentPopup,
       currentFoldout: this.currentFoldout,
       errors: this.errors,
@@ -3409,6 +3420,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
+  private async onTroubleshootingStoreDidUpdate() {
+    this.emitUpdate()
+  }
+
   private findAssociatedPullRequest(
     branch: Branch,
     pullRequests: ReadonlyArray<PullRequest>,
@@ -3643,6 +3658,36 @@ export class AppStore extends TypedBaseStore<IAppState> {
    */
   public _recordCompareInitiatedMerge() {
     this.statsStore.recordCompareInitiatedMerge()
+  }
+
+  public _resetTroubleshooting() {
+    this.troubleshootingStore.reset()
+  }
+
+  public _startTroubleshooting(repository: Repository) {
+    this.troubleshootingStore.start(repository)
+  }
+
+  public _validateHost(state: IValidateHostState): Promise<void> {
+    return this.troubleshootingStore.validateHost(state)
+  }
+
+  public _launchSSHAgent(state: INoRunningAgentState): Promise<void> {
+    return this.troubleshootingStore.launchSSHAgent(state)
+  }
+
+  public _createSSHKey(
+    account: Account,
+    emailAddress: string,
+    passphrase: string,
+    outputFile: string
+  ) {
+    return this.troubleshootingStore.createSSHKey(
+      account,
+      emailAddress,
+      passphrase,
+      outputFile
+    )
   }
 }
 

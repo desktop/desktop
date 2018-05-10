@@ -23,6 +23,7 @@ export function envForAuthentication(auth: IGitAccount | null): Object {
     // for credentials - even as a fallback
     GIT_TERMINAL_PROMPT: '0',
     GIT_TRACE: localStorage.getItem('git-trace') || '0',
+    GIT_SSH_COMMAND: `ssh -o 'StrictHostKeyChecking=yes'`,
   }
 
   if (!auth) {

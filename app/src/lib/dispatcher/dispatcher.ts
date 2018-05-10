@@ -55,6 +55,7 @@ import { FetchType } from '../../lib/stores'
 import { PullRequest } from '../../models/pull-request'
 import { IAuthor } from '../../models/author'
 import { ITrailer } from '../git/interpret-trailers'
+import { IValidateHostState, INoRunningAgentState } from '../../models/ssh'
 
 /**
  * An error handler function.
@@ -1193,5 +1194,35 @@ export class Dispatcher {
    */
   public recordCompareInitiatedMerge() {
     return this.appStore._recordCompareInitiatedMerge()
+  }
+
+  public resetTroubleshooting() {
+    return this.appStore._resetTroubleshooting()
+  }
+
+  public startTroubleshooting(repository: Repository) {
+    return this.appStore._startTroubleshooting(repository)
+  }
+
+  public validateHost(state: IValidateHostState) {
+    return this.appStore._validateHost(state)
+  }
+
+  public launchSSHAgent(state: INoRunningAgentState) {
+    return this.appStore._launchSSHAgent(state)
+  }
+
+  public createSSHKey(
+    account: Account,
+    emailAddress: string,
+    passphrase: string,
+    outputFile: string
+  ) {
+    return this.appStore._createSSHKey(
+      account,
+      emailAddress,
+      passphrase,
+      outputFile
+    )
   }
 }
