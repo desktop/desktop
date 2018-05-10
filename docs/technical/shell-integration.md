@@ -40,6 +40,7 @@ export enum Shell {
   Hyper = 'Hyper',
   GitBash = 'Git Bash',
   Wsl = 'WSL',
+  WslBash = 'WSL Bash',
 }
 ```
 

@@ -14,6 +14,7 @@ export enum Shell {
   Hyper = 'Hyper',
   GitBash = 'Git Bash',
   Wsl = 'WSL',
+  WslBash = 'WSL Bash',
 }
 
 export const Default = Shell.Cmd
@@ -41,6 +42,10 @@ export function parse(label: string): Shell {
 
   if (label === Shell.Wsl) {
     return Shell.Wsl
+  }
+
+  if (label === Shell.WslBash) {
+    return Shell.WslBash
   }
 
   return Default
@@ -93,6 +98,14 @@ export async function getAvailableShells(): Promise<
     shells.push({
       shell: Shell.Wsl,
       path: wslPath,
+    })
+  }
+
+  const wslBashPath = await findWslBash()
+  if (wslBashPath != null) {
+    shells.push({
+      shell: Shell.WslBash,
+      path: wslBashPath,
     })
   }
 
@@ -227,18 +240,21 @@ async function findGitBash(): Promise<string | null> {
   return null
 }
 
-async function findWsl(): Promise<string | null> {
+/**
+ * Check if WSL is installed. When using this function also check the executable exists on the disk.
+ */
+async function isWslInstalled(): Promise<boolean> {
   // First, determine that we are running Windows 10 or greater
   const winVersion = OS.release()
   const versionParts = winVersion.split('.')
 
   if (versionParts.length == 0 && /^[0-9]+$/.test(versionParts[0])) {
-    return null
+    return false
   }
 
   const majorVersion = Number(versionParts[0])
   if (majorVersion < 10) {
-    return null
+    return false
   }
 
   // Second, check if WSL enabled?
@@ -249,15 +265,40 @@ async function findWsl(): Promise<string | null> {
 
   // TODO - does this check need to be more specific?
   if (registryPath.length === 0) {
+    return false
+  }
+
+  // Installed, but check for executable on disk as well!
+  return true
+}
+
+async function findWsl(): Promise<string | null> {
+  const isInstalled = await isWslInstalled()
+  if (!isInstalled) {
     return null
   }
 
-  // Finally, does wsl.exe exit on the disk?
   const path = Path.join('C:\\Windows\\System32', 'wsl.exe')
   if (await pathExists(path)) {
     return path
   } else {
     log.debug(`[WSL] registry entry found but does not exist at '${path}'`)
+  }
+
+  return null
+}
+
+async function findWslBash(): Promise<string | null> {
+  const isInstalled = await isWslInstalled()
+  if (!isInstalled) {
+    return null
+  }
+
+  const path = Path.join('C:\\Windows\\System32', 'bash.exe')
+  if (await pathExists(path)) {
+    return path
+  } else {
+    log.debug(`[WSL Bash] registry entry found but does not exist at '${path}'`)
   }
 
   return null
@@ -298,6 +339,8 @@ export function launch(
       })
     case Shell.Wsl:
       return spawn('START', ['wsl'], { shell: true, cwd: path })
+    case Shell.WslBash:
+      return spawn('START', ['bash'], { shell: true, cwd: path })
     case Shell.Cmd:
       return spawn('START', ['cmd'], { shell: true, cwd: path })
     default:
