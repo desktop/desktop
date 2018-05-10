@@ -76,7 +76,7 @@ export function launchSSHAgent(
 ): Promise<SSHAgentProcess> {
   return new Promise<SSHAgentProcess>((resolve, reject) => {
     let pid = 0
-    const command = `"${sshAgentLocation}" -s`
+    const command = `"${sshAgentLocation}"`
     const sshAgent = exec(command, (error, stdout, stderr) => {
       if (error != null) {
         reject(error)
@@ -96,7 +96,7 @@ export function launchSSHAgent(
         }
         resolve({ pid, env })
       } else {
-        reject('Unable to retrieve environment variables from ssh-agent -s')
+        reject('Unable to retrieve environment variables from ssh-agent')
       }
     })
     pid = sshAgent.pid
