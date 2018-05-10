@@ -11,7 +11,7 @@ import { findExecutableOnPath } from '../find-executable'
 const processExists = require('process-exists')
 
 type SSHAgentProcess = {
-  readonly id: number
+  readonly pid: number
   readonly environmentVariables: ReadonlyArray<string>
 }
 
@@ -75,7 +75,7 @@ export function launchSSHAgent(
   sshAgentLocation: string
 ): Promise<SSHAgentProcess> {
   return new Promise<SSHAgentProcess>((resolve, reject) => {
-    let id = 0
+    let pid = 0
     const command = `"${sshAgentLocation}" -s`
     const sshAgent = exec(command, (error, stdout, stderr) => {
       if (error != null) {
@@ -94,12 +94,12 @@ export function launchSSHAgent(
           `SSH_AUTH_SOCK=${sshAuthSockMatch[1]}`,
           `SSH_AGENT_PID=${sshAgentPidMatch[1]}`,
         ]
-        resolve({ id, environmentVariables })
+        resolve({ pid, environmentVariables })
       } else {
         reject('Unable to retrieve environment variables from ssh-agent -s')
       }
     })
-    id = sshAgent.pid
+    pid = sshAgent.pid
 
     // TODO: do we need to do this?
     sshAgent.unref()

@@ -2,6 +2,7 @@ import '../lib/logging/main/install'
 
 import { app, Menu, ipcMain, BrowserWindow, shell } from 'electron'
 import * as Fs from 'fs'
+import { exec } from 'child_process'
 
 import { AppWindow } from './app-window'
 import { buildDefaultMenu, MenuEvent, findMenuItemByID } from './menu'
@@ -32,6 +33,8 @@ const launchTime = now()
 
 let preventQuit = false
 let readyTime: number | null = null
+
+const spawnedProcessIds = new Array<number>()
 
 type OnDidLoadFn = (window: AppWindow) => void
 /** See the `onDidLoad` function. */
@@ -376,6 +379,19 @@ app.on('ready', () => {
       })
     }
   )
+
+  ipcMain.on(
+    'track-new-process',
+    (
+      event: Electron.IpcMessageEvent,
+      { name, pid }: { name: string; pid: number }
+    ) => {
+      log.info(
+        `Process ${name} spawned with pid ${pid} and should be killed when Desktop exits`
+      )
+      spawnedProcessIds.push(pid)
+    }
+  )
 })
 
 app.on('activate', () => {
@@ -402,6 +418,22 @@ app.on(
     })
   }
 )
+
+app.on('before-quit', () => {
+  spawnedProcessIds.forEach(pid => {
+    if (__WIN32__) {
+      exec(`taskkill /PID ${pid}`, (error, stdout, stderr) => {
+        if (error != null) {
+          log.debug(`Unable to terminate process ${pid}, giving up...`)
+          return
+        }
+        log.debug(`Able to terminate process ${pid} successfully...`)
+      })
+    } else {
+      process.kill(pid)
+    }
+  })
+})
 
 function createWindow() {
   const window = new AppWindow()

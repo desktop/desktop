@@ -1,3 +1,5 @@
+import { ipcRenderer } from 'electron'
+
 import { TypedBaseStore } from './base-store'
 import { AccountsStore } from './accounts-store'
 
@@ -98,10 +100,17 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState> {
   public async launchSSHAgent(state: INoRunningAgentState) {
     this.setState({ ...state, isLoading: true })
 
-    const { id, environmentVariables } = await launchSSHAgent(state.sshLocation)
-    // TODO: IPC to the main process to indicate it should cleanup this process
-    log.debug(`[TroubleshootingStore] launched ssh-agent process with id ${id}`)
-    // TODO: how to pass this through when invoking Git
+    const { pid, environmentVariables } = await launchSSHAgent(
+      state.sshLocation
+    )
+
+    // TODO: we should make the main process spawn this process so we can leverage
+    // the OS to cleanup the process when the main process exits. The alternative
+    // would be to rely on Electron's lifecycle events but an initial test suggests
+    // this is Problematic(TM) on Windows at least
+
+    ipcRenderer.send('track-new-process', { name: 'ssh-agent', pid })
+    // TODO: how to pass environment variables through when invoking Git
     log.debug(
       `[TroubleshootingStore] found environment variables to pass through: '${environmentVariables.join(
         ', '
