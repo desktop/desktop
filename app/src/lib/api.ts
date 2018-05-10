@@ -604,7 +604,7 @@ export class API {
     key: string
   ): Promise<IAPIPublicKey | null> {
     try {
-      const response = await this.request('POST', `users/keys`, {
+      const response = await this.request('POST', `user/keys`, {
         title,
         key,
       })
