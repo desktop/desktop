@@ -38,7 +38,7 @@ import {
   IMatchedGitHubRepository,
   repositoryMatchesRemote,
 } from '../../lib/repository-matching'
-import { API, getAccountForEndpoint, IAPIUser } from '../../lib/api'
+import { API, getAccountForEndpoint, IUserAPIResult } from '../../lib/api'
 import { caseInsensitiveCompare } from '../compare'
 import { Branch, eligibleForFastForward } from '../../models/branch'
 import { TipState } from '../../models/tip'
@@ -2451,7 +2451,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     description: string,
     private_: boolean,
     account: Account,
-    org: IAPIUser | null
+    org: IUserAPIResult | null
   ): Promise<Repository> {
     const api = API.fromAccount(account)
     const apiRepository = await api.createRepository(

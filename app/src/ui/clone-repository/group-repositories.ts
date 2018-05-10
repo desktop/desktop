@@ -1,4 +1,4 @@
-import { IAPIRepository } from '../../lib/api'
+import { IRepositoryAPIResult } from '../../lib/api'
 import { IFilterListGroup, IFilterListItem } from '../lib/filter-list'
 import { caseInsensitiveCompare } from '../../lib/compare'
 import { OcticonSymbol } from '../octicons'
@@ -23,7 +23,7 @@ export interface IClonableRepositoryListItem extends IFilterListItem {
   readonly url: string
 }
 
-function getIcon(gitHubRepo: IAPIRepository): OcticonSymbol {
+function getIcon(gitHubRepo: IRepositoryAPIResult): OcticonSymbol {
   if (gitHubRepo.private) {
     return OcticonSymbol.lock
   }
@@ -35,7 +35,7 @@ function getIcon(gitHubRepo: IAPIRepository): OcticonSymbol {
 }
 
 function convert(
-  repositories: ReadonlyArray<IAPIRepository>
+  repositories: ReadonlyArray<IRepositoryAPIResult>
 ): ReadonlyArray<IClonableRepositoryListItem> {
   const repos: ReadonlyArray<IClonableRepositoryListItem> = repositories.map(
     repo => {
@@ -55,7 +55,7 @@ function convert(
 }
 
 export function groupRepositories(
-  repositories: ReadonlyArray<IAPIRepository>,
+  repositories: ReadonlyArray<IRepositoryAPIResult>,
   login: string
 ): ReadonlyArray<IFilterListGroup<IClonableRepositoryListItem>> {
   const userRepos = repositories.filter(repo => repo.owner.type === 'User')

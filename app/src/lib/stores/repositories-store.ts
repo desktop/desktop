@@ -7,7 +7,7 @@ import { Owner } from '../../models/owner'
 import { GitHubRepository } from '../../models/github-repository'
 import { Repository } from '../../models/repository'
 import { fatalError } from '../fatal-error'
-import { IAPIRepository } from '../api'
+import { IRepositoryAPIResult } from '../api'
 import { BaseStore } from './base-store'
 
 /** The store for local repositories. */
@@ -23,7 +23,7 @@ export class RepositoriesStore extends BaseStore {
   /** Find the matching GitHub repository or add it if it doesn't exist. */
   public async upsertGitHubRepository(
     endpoint: string,
-    apiRepository: IAPIRepository
+    apiRepository: IRepositoryAPIResult
   ): Promise<GitHubRepository> {
     return this.db.transaction(
       'rw',
@@ -251,7 +251,7 @@ export class RepositoriesStore extends BaseStore {
 
   private async putGitHubRepository(
     endpoint: string,
-    gitHubRepository: IAPIRepository
+    gitHubRepository: IRepositoryAPIResult
   ): Promise<GitHubRepository> {
     let parent: GitHubRepository | null = null
     if (gitHubRepository.parent) {
@@ -296,7 +296,7 @@ export class RepositoriesStore extends BaseStore {
   public async updateGitHubRepository(
     repository: Repository,
     endpoint: string,
-    gitHubRepository: IAPIRepository
+    gitHubRepository: IRepositoryAPIResult
   ): Promise<Repository> {
     const repoID = repository.id
     if (!repoID) {

@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 
 import { lookupPreferredEmail } from '../../src/lib/email'
-import { IAPIEmail } from '../../src/lib/api'
+import { IEmailAPIResult } from '../../src/lib/api'
 
 describe('emails', () => {
   it('returns null for empty list', () => {
@@ -9,7 +9,7 @@ describe('emails', () => {
   })
 
   it('returns the primary if it has public visibility', () => {
-    const emails: IAPIEmail[] = [
+    const emails: IEmailAPIResult[] = [
       {
         email: 'shiftkey@example.com',
         primary: false,
@@ -36,7 +36,7 @@ describe('emails', () => {
   })
 
   it('returns the primary if it has null visibility', () => {
-    const emails: IAPIEmail[] = [
+    const emails: IEmailAPIResult[] = [
       {
         email: 'shiftkey@example.com',
         primary: false,
@@ -63,7 +63,7 @@ describe('emails', () => {
   })
 
   it('returns the noreply if there is no public address', () => {
-    const emails: IAPIEmail[] = [
+    const emails: IEmailAPIResult[] = [
       {
         email: 'shiftkey@example.com',
         primary: false,
@@ -90,7 +90,7 @@ describe('emails', () => {
   })
 
   it('uses first email if nothing special found', () => {
-    const emails: IAPIEmail[] = [
+    const emails: IEmailAPIResult[] = [
       {
         email: 'shiftkey@example.com',
         primary: false,
