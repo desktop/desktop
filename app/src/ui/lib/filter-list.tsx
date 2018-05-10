@@ -449,7 +449,9 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
   }
 }
 
-function getText<T extends IFilterListItem>(item: T): ReadonlyArray<string> {
+export function getText<T extends IFilterListItem>(
+  item: T
+): ReadonlyArray<string> {
   return item['text']
 }
 
