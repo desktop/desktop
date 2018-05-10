@@ -11,6 +11,7 @@ interface ICLIInstalledProps {
 
 /** Tell the user the CLI tool was successfully installed. */
 export class CLIInstalled extends React.Component<ICLIInstalledProps, {}> {
+  private onDismissed() {}
   public render() {
     return (
       <Dialog
@@ -20,7 +21,7 @@ export class CLIInstalled extends React.Component<ICLIInstalledProps, {}> {
             : 'Command line tool installed'
         }
         onDismissed={this.props.onDismissed}
-        onSubmit={this.props.onDismissed}
+        onSubmit={this.onDismissed}
       >
         <DialogContent>
           <div>
