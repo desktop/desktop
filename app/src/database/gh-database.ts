@@ -2,7 +2,7 @@ import * as Loki from 'lokijs'
 import { Collections, IRepository } from '.'
 import { assertNever } from '../lib/fatal-error'
 
-export function getGHDb() {
+export function getGHDatabase() {
   let ghDb: GHDatabase | null = null
 
   return function() {

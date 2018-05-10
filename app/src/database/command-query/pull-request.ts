@@ -1,9 +1,14 @@
-import { getGHDb, RepositoryKey, Collections, toPullRequestModel } from '..'
+import {
+  getGHDatabase,
+  RepositoryKey,
+  Collections,
+  toPullRequestModel,
+} from '..'
 import { IPullRequestAPIResult } from '../../lib/api'
 import { IPullRequestStatus } from '../../lib/databases'
 import { forceUnwrap } from '../../lib/fatal-error'
 
-const ghDb = getGHDb()
+const ghDb = getGHDatabase()
 
 async function updatePullRequests(
   key: RepositoryKey,
