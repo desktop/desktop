@@ -196,6 +196,16 @@ interface ISearchResults<T> {
   readonly items: ReadonlyArray<T>
 }
 
+interface IAPIPublicKey {
+  id: number
+  key: string
+  url: string
+  title: string
+  verified: boolean
+  created_at: string
+  read_only: boolean
+}
+
 /**
  * Parses the Link header from GitHub and returns the 'next' path
  * if one is present.
@@ -585,6 +595,27 @@ export class API {
       return await parsedResponse<IAPIUser>(response)
     } catch (e) {
       log.warn(`fetchUser: failed with endpoint ${this.endpoint}`, e)
+      throw e
+    }
+  }
+
+  public async createPublicKey(
+    title: string,
+    key: string
+  ): Promise<IAPIPublicKey | null> {
+    try {
+      const response = await this.request('POST', `users/keys`, {
+        title,
+        key,
+      })
+
+      if (response.status === 404) {
+        return null
+      }
+
+      return await parsedResponse<IAPIPublicKey>(response)
+    } catch (e) {
+      log.warn(`createPublicKey: failed with endpoint ${this.endpoint}`, e)
       throw e
     }
   }
