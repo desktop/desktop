@@ -25,7 +25,7 @@ if (!ClientID || !ClientID.length || !ClientSecret || !ClientSecret.length) {
 }
 
 /** The OAuth scopes we need. */
-const Scopes = ['repo', 'user']
+const Scopes = ['repo', 'user', 'write:public_key']
 
 enum HttpStatusCode {
   NotModified = 304,
