@@ -1,6 +1,6 @@
 import { GHDatabase } from '../../src/database'
 
-export const TestGHDatabasePath = '/Users/williamshepherd/Desktop/gh.test.db'
+export const TestGHDatabasePath = '/Users/iamwillshepherd/Desktop/gh.db.json'
 
 export function getTestGHDatabase() {
   let ghDb: GHDatabase | null = null

@@ -55,36 +55,33 @@ async function addParentGHRepository(
 }
 
 async function addGHRepository(
-  repository: IRepository,
-  endpoint: string,
-  apiResult: IRepositoryAPIResult,
+  key: RepositoryKey,
+  ghRepository: IGHRepository,
   ghDatabase: GHDatabase = ghDb()
 ): Promise<void> {
   const collection = ghDatabase.getCollection(Collections.Repository)
   const document = collection.findOne({
-    name: repository.name,
-    path: repository.path,
+    name: key.name,
+    path: key.path,
   })
 
   if (document === null) {
     return log.error(
-      `Repository with key ${repository.name}+${
-        repository.path
-      } cannot be found`
+      `Repository with key ${key.name}+${key.path} cannot be found`
     )
   }
 
   if (document.ghRepository !== null) {
     return log.info(
-      `Repository with key ${repository.name}+${
-        repository.path
+      `Repository with key ${key.name}+${
+        key.path
       } already has an associated GHRepository`
     )
   }
 
   const updated: IRepository & LokiObj = {
     ...document,
-    ghRepository: toGHRepositoryModel(apiResult, endpoint),
+    ghRepository,
   }
 
   await collection.update(updated)
