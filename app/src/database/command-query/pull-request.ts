@@ -3,6 +3,7 @@ import {
   RepositoryKey,
   Collections,
   toPullRequestModel,
+  GHDatabase,
 } from '..'
 import { IPullRequestAPIResult } from '../../lib/api'
 import { IPullRequestStatus } from '../../lib/databases'
@@ -12,9 +13,10 @@ const ghDb = getGHDatabase()
 
 async function updatePullRequests(
   key: RepositoryKey,
-  apiResults: ReadonlyArray<IPullRequestAPIResult>
+  apiResults: ReadonlyArray<IPullRequestAPIResult>,
+  ghDatabase: GHDatabase = ghDb()
 ): Promise<void> {
-  const collection = ghDb().getCollection(Collections.Repository)
+  const collection = ghDatabase.getCollection(Collections.Repository)
   await collection.findAndUpdate({ name: key.name, path: key.path }, d => {
     const ghRepo = d.ghRepository
     return {
@@ -25,13 +27,16 @@ async function updatePullRequests(
       },
     }
   })
+
+  ghDatabase.save()
 }
 
 async function updatePullRequestStatuses(
   key: RepositoryKey,
-  prStatusList: Array<IPullRequestStatus>
+  prStatusList: Array<IPullRequestStatus>,
+  ghDatabase: GHDatabase = ghDb()
 ): Promise<void> {
-  const collection = ghDb().getCollection(Collections.Repository)
+  const collection = ghDatabase.getCollection(Collections.Repository)
   const repo = collection.findOne({ name: key.name, path: key.path })
 
   if (repo === null) {
@@ -53,7 +58,7 @@ async function updatePullRequestStatuses(
   }
 
   collection.update(updated)
-  ghDb().save()
+  ghDatabase.save()
 }
 
 export const Command = {

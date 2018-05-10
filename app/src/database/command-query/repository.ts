@@ -6,21 +6,23 @@ import {
   toGHRepositoryModel,
   toRepositoryModel,
   IGHRepository,
-  getGHDb,
+  getGHDatabase,
   RepositoryKey,
-} from '...'
+  GHDatabase,
+} from '..'
 import { fatalError } from '../../lib/fatal-error'
 import { IRepositoryAPIResult } from '../../lib/api'
 
-const ghDb = getGHDb()
+const ghDb = getGHDatabase()
 
 async function addParentGHRepository(
   repository: IRepository,
   endpoint: string,
   head: IRepositoryAPIResult,
-  base: IRepositoryAPIResult
+  base: IRepositoryAPIResult,
+  ghDatabase: GHDatabase = ghDb()
 ): Promise<void> {
-  const collection = ghDb().getCollection(Collections.Repository)
+  const collection = ghDatabase.getCollection(Collections.Repository)
   const document = collection.findOne({
     name: repository.name,
     path: repository.path,
@@ -49,15 +51,16 @@ async function addParentGHRepository(
     })
   )
 
-  await ghDb().save()
+  await ghDatabase.save()
 }
 
 async function addGHRepository(
   repository: IRepository,
   endpoint: string,
-  apiResult: IRepositoryAPIResult
+  apiResult: IRepositoryAPIResult,
+  ghDatabase: GHDatabase = ghDb()
 ): Promise<void> {
-  const collection = ghDb().getCollection(Collections.Repository)
+  const collection = ghDatabase.getCollection(Collections.Repository)
   const document = collection.findOne({
     name: repository.name,
     path: repository.path,
@@ -85,18 +88,23 @@ async function addGHRepository(
   }
 
   await collection.update(updated)
-  await ghDb().save()
+  await ghDatabase.save()
 }
 
-async function getAll(): Promise<ReadonlyArray<IRepository>> {
-  const collection = ghDb().getCollection(Collections.Repository)
+async function getAll(
+  ghDatabase: GHDatabase = ghDb()
+): Promise<ReadonlyArray<IRepository>> {
+  const collection = ghDatabase.getCollection(Collections.Repository)
   const repos = await collection.find().map(r => toRepositoryModel(r))
 
   return repos
 }
 
-async function addRepository(path: string): Promise<void> {
-  const collection = ghDb().getCollection(Collections.Repository)
+async function addRepository(
+  path: string,
+  ghDatabase: GHDatabase = ghDb()
+): Promise<void> {
+  const collection = ghDatabase.getCollection(Collections.Repository)
   const repo = collection.findOne({ path })
 
   if (repo !== null) {
@@ -114,44 +122,50 @@ async function addRepository(path: string): Promise<void> {
     return log.error('Unable to add repository')
   }
 
-  await ghDb().save()
+  await ghDatabase.save()
 }
 
 async function updateMissingStatus(
   key: RepositoryKey,
-  isMissing: boolean
+  isMissing: boolean,
+  ghDatabase: GHDatabase = ghDb()
 ): Promise<void> {
-  const collection = ghDb().getCollection(Collections.Repository)
+  const collection = ghDatabase.getCollection(Collections.Repository)
   await collection.findAndUpdate({ name: key.name, path: key.path }, r => ({
     ...r,
     isMissing: isMissing,
   }))
 
-  await ghDb().save()
+  await ghDatabase.save()
 }
 
-async function updatePath(key: RepositoryKey, path: string): Promise<void> {
-  const collection = ghDb().getCollection(Collections.Repository)
+async function updatePath(
+  key: RepositoryKey,
+  path: string,
+  ghDatabase: GHDatabase = ghDb()
+): Promise<void> {
+  const collection = ghDatabase.getCollection(Collections.Repository)
   await collection.findAndUpdate({ name: key.name, path: key.path }, r => ({
     ...r,
     path,
     isMissing: false,
   }))
 
-  await ghDb().save()
+  await ghDatabase.save()
 }
 
 async function updateGHRepository(
   key: RepositoryKey,
-  ghRepository: IGHRepository
+  ghRepository: IGHRepository,
+  ghDatabase: GHDatabase = ghDb()
 ): Promise<void> {
-  const collection = ghDb().getCollection(Collections.Repository)
+  const collection = ghDatabase.getCollection(Collections.Repository)
   await collection.findAndUpdate({ name: key.name, path: key.path }, r => ({
     ...r,
     ghRepository,
   }))
 
-  ghDb().save()
+  ghDatabase.save()
 }
 
 export const Command = {
