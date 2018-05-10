@@ -7,7 +7,7 @@ about: Suggest an idea to improve GitHub Desktop
 A clear and concise description of what the problem and request are. Ex. I have an issue when [...problem...]. I'd like [...feature...] so that [...reason...]
 
 #### Background
-Any related issues or any preceding features that this would depend on. (linked from desktop repository)
+Any related issues or any preceding features that this might depend on. Links to other Desktop discussions are appreciated.
 
 ## Solution
 A clear and concise description of what you want to happen, implementation-wise. Add any considered drawbacks. If you can, explain how users will be able to use this.
@@ -20,6 +20,7 @@ This will help the core team understand how the feature would work, and assist w
 Screenshots or mockups here are a great help! Here are some example subheaders:
 
 #### Task List
+(once solution is agreed)
 - [ ] a
 - [ ] b
 - [ ] c
