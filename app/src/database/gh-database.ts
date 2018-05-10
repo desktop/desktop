@@ -2,12 +2,14 @@ import * as Loki from 'lokijs'
 import { Collections, IRepository } from '.'
 import { assertNever } from '../lib/fatal-error'
 
+const DbPath = '/Users/williamshepherd/Desktop/gh.db'
+
 export function getGHDatabase() {
   let ghDb: GHDatabase | null = null
 
   return function() {
     if (ghDb === null) {
-      ghDb = new GHDatabase('/users/williamrshepherd/Desktop/gh.db')
+      ghDb = new GHDatabase(DbPath)
     }
 
     return ghDb
