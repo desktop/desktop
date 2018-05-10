@@ -152,7 +152,10 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState> {
       api.createPublicKey(title, keyContents.toString())
       await this.validateSSHConnection(state.sshUrl)
     } else {
-      // TODO: gotta reauth the user which ohmigod is gonna be fun
+      this.setState({
+        kind: TroubleshootingStep.AuthorizeAgain,
+        account: account,
+      })
     }
   }
 

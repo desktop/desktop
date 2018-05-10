@@ -5,6 +5,7 @@ export enum TroubleshootingStep {
   ValidateHost = 'ValidateHost',
   NoRunningAgent = 'NoRunningAgent',
   CreateSSHKey = 'CreateSSHKey',
+  AuthorizeAgain = 'AuthorizeAgain',
   Unknown = 'Unknown',
 }
 
@@ -36,6 +37,12 @@ export interface ICreateSSHKeyState {
   readonly isLoading?: boolean
 }
 
+export interface IAuthorizeGitHubAgainState {
+  readonly kind: TroubleshootingStep.AuthorizeAgain
+  readonly account: Account
+  readonly isLoading?: boolean
+}
+
 export interface IUnknownResultState {
   readonly kind: TroubleshootingStep.Unknown
   readonly error: string
@@ -46,4 +53,5 @@ export type TroubleshootingState =
   | IValidateHostState
   | INoRunningAgentState
   | ICreateSSHKeyState
+  | IAuthorizeGitHubAgainState
   | IUnknownResultState

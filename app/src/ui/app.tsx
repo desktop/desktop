@@ -1219,6 +1219,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={popup.repository}
             onDismissed={this.onPopupDismissed}
             troubleshootingState={state.troubleshootingState}
+            signInState={state.signInState}
           />
         )
       case PopupType.LFSAttributeMismatch:

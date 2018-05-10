@@ -11,11 +11,14 @@ import { ValidateHost } from './validate-host'
 import { UnknownAction } from './unknown-action'
 import { SetupNewSSHKey } from './setup-new-ssh-key'
 import { StartSSHAgent } from './start-ssh-agent'
+import { AuthorizeGitHubAgain } from './authorize-github-again'
+import { SignInState } from '../../lib/stores'
 
 interface ITroubleshootSSHProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
   readonly troubleshootingState: TroubleshootingState
+  readonly signInState: SignInState | null
   readonly onDismissed: () => void
 }
 
@@ -63,6 +66,15 @@ export class TroubleshootSSH extends React.Component<
           <SetupNewSSHKey
             dispatcher={this.props.dispatcher}
             state={state}
+            onDismissed={this.props.onDismissed}
+          />
+        )
+      case TroubleshootingStep.AuthorizeAgain:
+        return (
+          <AuthorizeGitHubAgain
+            state={state}
+            dispatcher={this.props.dispatcher}
+            signInState={this.props.signInState}
             onDismissed={this.props.onDismissed}
           />
         )
