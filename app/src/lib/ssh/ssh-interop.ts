@@ -103,10 +103,11 @@ export async function createSSHKey(
   const env = await getSSHEnvironment(command)
   return new Promise<KeyGenResult>((resolve, reject) => {
     exec(args, { timeout: 15000, env }, (error, stdout, stderr) => {
-      debugger
       if (error != null) {
         reject(error)
+        return
       }
+
       const privateKeyFileRe = /Your identification has been saved in (.*)/
       const publicKeyFileRe = /Your public key has been saved in (.*)/
 
