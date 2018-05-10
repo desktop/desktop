@@ -37,9 +37,6 @@ export interface IUser {
 }
 
 export interface IPullRequestStatus {
-  /** The ID of the pull request in the database. */
-  readonly pullRequestId: number
-
   /** The status' state. */
   readonly state: CIStatus
 
