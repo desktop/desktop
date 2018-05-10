@@ -177,7 +177,7 @@ export class SetupNewSSHKey extends React.Component<
             <TextBox
               value={this.state.emailAddress}
               onValueChanged={this.onEmailAddressChanged}
-              autoFocus={true}
+              disabled={isLoading}
               label="Email address (required)"
             />
           </Row>
@@ -195,6 +195,7 @@ export class SetupNewSSHKey extends React.Component<
             <TextBox
               value={this.state.passphrase}
               onValueChanged={this.onPassPhraseChanged}
+              disabled={isLoading}
               type="password"
               label="Passphrase (optional)"
             />
@@ -203,6 +204,7 @@ export class SetupNewSSHKey extends React.Component<
             <TextBox
               value={this.state.confirmPassPhrase}
               onValueChanged={this.onConfirmPassPhraseChanged}
+              disabled={isLoading}
               type="password"
               label="Confirm passphrase"
             />
@@ -210,11 +212,14 @@ export class SetupNewSSHKey extends React.Component<
           <Row>
             <TextBox
               value={this.state.outputFile}
+              disabled={isLoading}
+              onValueChanged={this.onPathChanged}
               label={__DARWIN__ ? 'Key Path' : 'Key path'}
               placeholder="SSH key path"
-              onValueChanged={this.onPathChanged}
             />
-            <Button onClick={this.showFilePicker}>Choose…</Button>
+            <Button onClick={this.showFilePicker} disabled={isLoading}>
+              Choose…
+            </Button>
           </Row>
 
           <Row>
