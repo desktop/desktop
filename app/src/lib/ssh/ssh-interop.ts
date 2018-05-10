@@ -5,7 +5,7 @@ import { createWriteStream } from 'fs'
 import { homedir } from 'os'
 import { join } from 'path'
 
-import { mkdirIfNeeded } from '../file-system'
+import { ensureDir } from 'fs-extra'
 import { findExecutableOnPath } from '../find-executable'
 
 const processExists = require('process-exists')
@@ -19,7 +19,7 @@ export async function scanAndWriteToKnownHostsFile(
   host: string
 ): Promise<void> {
   const sshDir = join(homedir(), '.ssh')
-  await mkdirIfNeeded(sshDir)
+  await ensureDir(sshDir)
 
   const command = 'ssh-keyscan'
   const env = await getSSHEnvironment(command)

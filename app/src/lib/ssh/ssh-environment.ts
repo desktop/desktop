@@ -1,8 +1,8 @@
 import * as Path from 'path'
 import { enumerateValues, HKEY, RegistryValueType } from 'registry-js'
+import { pathExists } from 'fs-extra'
 
 import { isExecutableOnPath } from '../find-executable'
-import { pathExists } from '../file-system'
 import { getPathSegments } from '../process/win32'
 
 async function findGitForWindowsInstall(): Promise<string | null> {
