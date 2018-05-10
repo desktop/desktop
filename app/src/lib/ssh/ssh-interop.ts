@@ -127,8 +127,8 @@ export async function createSSHKey(
         return
       }
 
-      const privateKeyFileRe = /Your identification has been saved in (.*)/
-      const publicKeyFileRe = /Your public key has been saved in (.*)/
+      const privateKeyFileRe = /Your identification has been saved in (.*)\./
+      const publicKeyFileRe = /Your public key has been saved in (.*)\./
 
       const privateKeyMatch = privateKeyFileRe.exec(stdout)
       const publicKeyMatch = publicKeyFileRe.exec(stdout)

@@ -68,7 +68,7 @@ export function findExecutableOnPath(
       cp.on('close', function(code) {
         if (code === 0) {
           const stdout = Buffer.concat(stdoutChunks, totalStdoutLength)
-          resolve(stdout.toString())
+          resolve(stdout.toString().trim())
         } else {
           resolve(null)
         }
@@ -94,7 +94,7 @@ export function findExecutableOnPath(
       cp.on('close', function(code) {
         if (code === 0) {
           const stdout = Buffer.concat(stdoutChunks, totalStdoutLength)
-          resolve(stdout.toString())
+          resolve(stdout.toString().trim())
         } else {
           resolve(null)
         }
