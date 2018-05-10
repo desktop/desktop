@@ -71,7 +71,7 @@ async function addGHRepository(
     )
   }
 
-  if (document.ghRepository !== null) {
+  if (document.ghRepository != null) {
     return log.info(
       `Repository with key ${key.name}+${
         key.path

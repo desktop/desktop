@@ -110,6 +110,38 @@ describe('Repository Commands', () => {
       expect(updatedRepo!.ghRepository).to.not.be.undefined
       expect(updatedRepo!.ghRepository!.name).to.equal('original')
     })
+
+    it('adds the ghRepository', async () => {
+      // create new repo
+      const testPath = 'path'
+      const key: RepositoryKey = {
+        name: testPath,
+        path: testPath,
+      }
+
+      await RepositoryCommands.addRepository(testPath, testDb())
+
+      // get repo to add a ghRepository to it
+      let repo = await testDb()
+        .getCollection(Collections.Repository)
+        .findOne({ name: key.name, path: key.path })
+
+      expect(repo!.ghRepository).to.be.undefined
+
+      // add ghRepository
+      await RepositoryCommands.addGHRepository(
+        key,
+        createGHRepository(),
+        testDb()
+      )
+
+      // get the new repo
+      repo = await testDb()
+        .getCollection(Collections.Repository)
+        .findOne({ name: key.name, path: key.path })
+
+      expect(repo!.ghRepository).to.not.be.undefined
+    })
   })
 })
 
