@@ -2,6 +2,7 @@ import { spawn, ChildProcess } from 'child_process'
 import * as Path from 'path'
 import { enumerateValues, HKEY, RegistryValueType } from 'registry-js'
 import { pathExists } from 'fs-extra'
+import * as OS from 'os'
 
 import { assertNever } from '../fatal-error'
 import { IFoundShell } from './found-shell'
@@ -12,6 +13,7 @@ export enum Shell {
   PowerShellCore = 'PowerShell Core',
   Hyper = 'Hyper',
   GitBash = 'Git Bash',
+  Wsl = 'WSL',
 }
 
 export const Default = Shell.Cmd
@@ -35,6 +37,10 @@ export function parse(label: string): Shell {
 
   if (label === Shell.GitBash) {
     return Shell.GitBash
+  }
+
+  if (label === Shell.Wsl) {
+    return Shell.Wsl
   }
 
   return Default
@@ -79,6 +85,14 @@ export async function getAvailableShells(): Promise<
     shells.push({
       shell: Shell.GitBash,
       path: gitBashPath,
+    })
+  }
+
+  const wslPath = await findWsl()
+  if (wslPath != null) {
+    shells.push({
+      shell: Shell.Wsl,
+      path: wslPath,
     })
   }
 
@@ -213,6 +227,42 @@ async function findGitBash(): Promise<string | null> {
   return null
 }
 
+async function findWsl(): Promise<string | null> {
+  // First, determine that we are running Windows 10 or greater
+  const winVersion = OS.release()
+  const versionParts = winVersion.split('.')
+
+  if (versionParts.length == 0 && /^[0-9]+$/.test(versionParts[0])) {
+    return null
+  }
+
+  const majorVersion = Number(versionParts[0])
+  if (majorVersion < 10) {
+    return null
+  }
+
+  // Second, check if WSL enabled?
+  const registryPath = enumerateValues(
+    HKEY.HKEY_LOCAL_MACHINE,
+    'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Component Based Servicing\\Notifications\\OptionalFeatures\\Microsoft-Windows-Subsystem-Linux'
+  )
+
+  // TODO - does this check need to be more specific?
+  if (registryPath.length === 0) {
+    return null
+  }
+
+  // Finally, does wsl.exe exit on the disk?
+  const path = Path.join('C:\\Windows\\System32', 'wsl.exe')
+  if (await pathExists(path)) {
+    return path
+  } else {
+    log.debug(`[WSL] registry entry found but does not exist at '${path}'`)
+  }
+
+  return null
+}
+
 export function launch(
   foundShell: IFoundShell<Shell>,
   path: string
@@ -246,6 +296,8 @@ export function launch(
         shell: true,
         cwd: path,
       })
+    case Shell.Wsl:
+      return spawn('START', ['wsl'], { shell: true, cwd: path })
     case Shell.Cmd:
       return spawn('START', ['cmd'], { shell: true, cwd: path })
     default:
