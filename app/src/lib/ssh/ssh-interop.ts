@@ -12,7 +12,7 @@ const processExists = require('process-exists')
 
 type SSHAgentProcess = {
   readonly id: number
-  readonly stdout: string
+  readonly environmentVariables: ReadonlyArray<string>
 }
 
 export async function scanAndWriteToKnownHostsFile(
@@ -78,7 +78,26 @@ export function launchSSHAgent(
     let id = 0
     const command = `"${sshAgentLocation}" -s`
     const sshAgent = exec(command, (error, stdout, stderr) => {
-      resolve({ id, stdout })
+      if (error != null) {
+        reject(error)
+        return
+      }
+
+      const sshAuthSocketRe = /SSH_AUTH_SOCK=(.*)\; export SSH_AUTH_SOCK;/
+      const sshAgentPidRe = /SSH_AGENT_PID=(.*)\; export SSH_AGENT_PID;/
+
+      const sshAuthSockMatch = sshAuthSocketRe.exec(stdout)
+      const sshAgentPidMatch = sshAgentPidRe.exec(stdout)
+
+      if (sshAuthSockMatch != null && sshAgentPidMatch != null) {
+        const environmentVariables = [
+          `SSH_AUTH_SOCK=${sshAuthSockMatch[1]}`,
+          `SSH_AGENT_PID=${sshAgentPidMatch[1]}`,
+        ]
+        resolve({ id, environmentVariables })
+      } else {
+        reject('Unable to retrieve environment variables from ssh-agent -s')
+      }
     })
     id = sshAgent.pid
 

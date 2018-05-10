@@ -98,12 +98,14 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState> {
   public async launchSSHAgent(state: INoRunningAgentState) {
     this.setState({ ...state, isLoading: true })
 
-    const { id, stdout } = await launchSSHAgent(state.sshLocation)
+    const { id, environmentVariables } = await launchSSHAgent(state.sshLocation)
     // TODO: IPC to the main process to indicate it should cleanup this process
     log.debug(`[TroubleshootingStore] launched ssh-agent process with id ${id}`)
     // TODO: how to pass this through when invoking Git
     log.debug(
-      `[TroubleshootingStore] found environment variables to pass through: '${stdout}'`
+      `[TroubleshootingStore] found environment variables to pass through: '${environmentVariables.join(
+        ', '
+      )}'`
     )
 
     await this.validateSSHConnection(state.sshUrl)
