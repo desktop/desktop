@@ -20,7 +20,7 @@ This will help the core team understand how the feature would work, and assist w
 Screenshots or mockups here are a great help! Here are some example subheaders:
 
 #### Task List
-(once solution is agreed)
+(once solution is agreed upon)
 - [ ] a
 - [ ] b
 - [ ] c
