@@ -6,6 +6,7 @@ import { homedir } from 'os'
 import { join } from 'path'
 
 import { mkdirIfNeeded } from '../file-system'
+import { findExecutableOnPath } from '../find-executable'
 
 const processExists = require('process-exists')
 
@@ -50,8 +51,23 @@ export async function scanAndWriteToKnownHostsFile(
   })
 }
 
+export async function findSSHAgentPath(): Promise<string | null> {
+  const executable = await findExecutableOnPath('ssh-agent')
+
+  if (executable != null) {
+    return executable
+  }
+
+  // TODO: what fallback tricks can we do here?
+  debugger
+
+  return null
+}
+
 export async function findSSHAgentProcess(): Promise<boolean> {
-  const found: boolean = await processExists('ssh-agent')
+  const found: boolean = await processExists(
+    __WIN32__ ? 'ssh-agent.exe' : 'ssh-agent'
+  )
   return found
 }
 
@@ -60,7 +76,8 @@ export function launchSSHAgent(
 ): Promise<SSHAgentProcess> {
   return new Promise<SSHAgentProcess>((resolve, reject) => {
     let id = 0
-    const sshAgent = exec(sshAgentLocation, (error, stdout, stderr) => {
+    const command = `"${sshAgentLocation}" -s`
+    const sshAgent = exec(command, (error, stdout, stderr) => {
       resolve({ id, stdout })
     })
     id = sshAgent.pid

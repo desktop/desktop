@@ -16,6 +16,7 @@ import {
   isPermissionError,
   executeSSHTest,
   findSSHAgentProcess,
+  findSSHAgentPath,
   createSSHKey,
   addToSSHAgent,
 } from '../ssh'
@@ -105,7 +106,7 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState> {
       `[TroubleshootingStore] found environment variables to pass through: '${stdout}'`
     )
 
-    this.validateSSHConnection(state.sshUrl)
+    await this.validateSSHConnection(state.sshUrl)
   }
 
   public async createSSHKey(
@@ -134,9 +135,18 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState> {
 
     if (!isSSHAgentRunning) {
       // TODO: find ssh-agent on PATH? Or somewhere else?
+      const sshAgentLocation = await findSSHAgentPath()
+
+      if (sshAgentLocation == null) {
+        log.warn(
+          `[TroubleshootingStore] unable to find an ssh-agent on the machine. what to do?`
+        )
+        return
+      }
+
       this.setState({
         kind: TroubleshootingStep.NoRunningAgent,
-        sshLocation: '/usr/bin/ssh-agent',
+        sshLocation: sshAgentLocation,
         sshUrl,
       })
       return
