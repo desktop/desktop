@@ -10,43 +10,64 @@ import {
   RepositoryKey,
   GHDatabase,
 } from '..'
-import { fatalError } from '../../lib/fatal-error'
 import { IRepositoryAPIResult } from '../../lib/api'
 
 const ghDb = getGHDatabase()
 
+function repositoryNotFound(key: RepositoryKey) {
+  return `Repository with key ${key.name}+${key.path} cannot be found`
+}
+
+function repositoryAlreadyExists(key: RepositoryKey) {
+  return `Repository with key ${key.name}+${key.path} already exists`
+}
+
+function noAssociatedGHRepository(key: RepositoryKey) {
+  return `Repository with key ${key.name}+${
+    key.path
+  } has no associated GH Repositroy`
+}
+
+function associatedGHRepositry(key: RepositoryKey) {
+  return `Repository with key ${key.name}+${
+    key.path
+  } already has an associated GH Repository`
+}
+
 async function addParentGHRepository(
-  repository: IRepository,
+  key: RepositoryKey,
   endpoint: string,
-  head: IRepositoryAPIResult,
-  base: IRepositoryAPIResult,
+  head: IGHRepository,
+  base: IGHRepository,
   ghDatabase: GHDatabase = ghDb()
 ): Promise<void> {
   const collection = ghDatabase.getCollection(Collections.Repository)
   const document = collection.findOne({
-    name: repository.name,
-    path: repository.path,
+    name: key.name,
+    path: key.path,
   })
 
   if (document === null) {
-    return log.error('Repository not found')
+    return log.warn(repositoryNotFound(key))
   }
 
   if (document.ghRepository == null) {
-    return fatalError("Cannot add base repo when gh repo doesn't exist")
+    return log.warn(noAssociatedGHRepository(key))
   }
 
   await collection.findAndUpdate(
     {
-      name: repository.name,
-      path: repository.path,
+      name: key.name,
+      path: key.path,
     },
     r => ({
       kind: 'repository',
       ...r,
       ghRepository: {
-        ...toGHRepositoryModel(head, endpoint),
-        parent: toGHRepositoryModel(base, endpoint),
+        ...head,
+        parent: {
+          ...base,
+        },
       },
     })
   )
@@ -66,17 +87,11 @@ async function addGHRepository(
   })
 
   if (document === null) {
-    return log.error(
-      `Repository with key ${key.name}+${key.path} cannot be found`
-    )
+    return log.warn(repositoryNotFound(key))
   }
 
   if (document.ghRepository != null) {
-    return log.info(
-      `Repository with key ${key.name}+${
-        key.path
-      } already has an associated GHRepository`
-    )
+    return log.warn(associatedGHRepositry(key))
   }
 
   const updated: IRepository & LokiObj = {
@@ -92,7 +107,7 @@ async function getAll(
   ghDatabase: GHDatabase = ghDb()
 ): Promise<ReadonlyArray<IRepository>> {
   const collection = ghDatabase.getCollection(Collections.Repository)
-  const repos = await collection.find().map(r => toRepositoryModel(r))
+  const repos = await collection.find().map(toRepositoryModel)
 
   return repos
 }
@@ -102,10 +117,11 @@ async function addRepository(
   ghDatabase: GHDatabase = ghDb()
 ): Promise<void> {
   const collection = ghDatabase.getCollection(Collections.Repository)
-  const repo = collection.findOne({ path })
+  const key = { name: Path.basename(path), path }
+  const repo = collection.findOne({ name: key.name, path: key.path })
 
   if (repo !== null) {
-    return
+    return log.warn(repositoryAlreadyExists(key))
   }
 
   const newRepo = await collection.insertOne({
@@ -151,15 +167,17 @@ async function updatePath(
   await ghDatabase.save()
 }
 
-async function updateGHRepository(
+async function updateGHRepository<K extends keyof IRepository>(
   key: RepositoryKey,
-  ghRepository: IGHRepository,
+  ghRepository: Pick<IRepository, K>,
   ghDatabase: GHDatabase = ghDb()
 ): Promise<void> {
   const collection = ghDatabase.getCollection(Collections.Repository)
   await collection.findAndUpdate({ name: key.name, path: key.path }, r => ({
     ...r,
-    ghRepository,
+    ghRepository: {
+      ghRepository,
+    },
   }))
 
   ghDatabase.save()
