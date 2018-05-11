@@ -245,6 +245,45 @@ export async function pushNeedsPullHandler(
   return error
 }
 
+export async function sshAuthenticationErrorHandler(
+  error: Error,
+  dispatcher: Dispatcher
+): Promise<Error | null> {
+  const e = asErrorWithMetadata(error)
+  if (!e) {
+    return error
+  }
+
+  const gitError = asGitError(e.underlyingError)
+  if (!gitError) {
+    return error
+  }
+
+  const dugiteError = gitError.result.gitError
+  if (!dugiteError) {
+    return error
+  }
+
+  const repository = e.metadata.repository
+  if (!(repository instanceof Repository)) {
+    return error
+  }
+
+  if (
+    dugiteError === DugiteError.SSHAuthenticationFailed ||
+    dugiteError === DugiteError.SSHPermissionDenied ||
+    dugiteError === DugiteError.SSHRepositoryNotFound
+  ) {
+    dispatcher.showPopup({
+      type: PopupType.TroubleshootSSH,
+      repository,
+    })
+    return null
+  }
+
+  return error
+}
+
 /**
  * Handler for detecting when a merge conflict is reported to direct the user
  * to a different dialog than the generic Git error dialog.
