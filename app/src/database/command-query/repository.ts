@@ -51,7 +51,7 @@ async function addParentGHRepository(
     return log.warn(repositoryNotFound(key))
   }
 
-  if (document.ghRepository == null) {
+  if (document.ghRepository === undefined) {
     return log.warn(noAssociatedGHRepository(key))
   }
 
