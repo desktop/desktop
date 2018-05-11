@@ -8,6 +8,7 @@ import {
   IGHRepository,
   IUser,
   IRepository,
+  keyOf,
 } from '../../../src/database'
 
 const testDb = getTestGHDatabase()
@@ -80,16 +81,18 @@ describe('Repository Commands', () => {
 
   describe('addParentGHRepository', () => {
     it.only('adds gh repository to document', async () => {
-      const key: RepositoryKey = {
-        name: 'name',
-        path: 'path',
+      const repoToInsert = {
+        ...createRepository(),
+        ghRepository: {
+          ...createGHRepository(),
+        },
       }
-
-      const newRepo = await testDb()
+      const key = keyOf(repoToInsert)
+      await testDb()
         .getCollection(Collections.Repository)
-        .insertOne(createRepository())
+        .insertOne(repoToInsert)
 
-      expect(newRepo!.ghRepository).to.be.undefined
+      testDb().save()
 
       await RepositoryCommands.addParentGHRepository(
         key,
@@ -132,8 +135,8 @@ describe('Repository Queries', () => {
 function createRepository(): IRepository {
   return {
     kind: 'repository',
-    name: '',
-    path: '',
+    name: 'name',
+    path: 'path',
     isMissing: false,
   }
 }
