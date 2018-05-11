@@ -204,13 +204,14 @@ export class PullRequestList extends React.Component<
   }
 }
 
+function getSubtitle(pr: PullRequest) {
+  const timeAgo = moment(pr.created).fromNow()
+  return `#${pr.number} opened ${timeAgo} by ${pr.author}`
+}
+
 function createListItems(
   pullRequests: ReadonlyArray<PullRequest>
 ): IFilterListGroup<IPullRequestListItem> {
-  function getSubtitle(pr: PullRequest) {
-    const timeAgo = moment(pr.created).fromNow()
-    return `#${pr.number} opened ${timeAgo} by ${pr.author}`
-  }
   const items = pullRequests.map(pr => ({
     text: [pr.title, getSubtitle(pr)],
     id: pr.number.toString(),

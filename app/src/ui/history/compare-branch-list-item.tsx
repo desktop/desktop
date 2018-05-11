@@ -3,6 +3,7 @@ import * as React from 'react'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { HighlightText } from '../lib/highlight-text'
 import { Branch, IAheadBehind } from '../../models/branch'
+import { getFirstMatchesOrDefault } from '../../lib/fuzzy-find'
 
 interface ICompareBranchListItemProps {
   readonly branch: Branch
@@ -41,13 +42,14 @@ export class CompareBranchListItem extends React.Component<
       </div>
     ) : null
 
-    const hasMatches = this.props.matches.length > 0
-    const matches = hasMatches ? this.props.matches[0] : []
     return (
       <div className="branches-list-item">
         <Octicon className="icon" symbol={icon} />
         <div className="name" title={branch.name}>
-          <HighlightText text={branch.name} highlight={matches} />
+          <HighlightText
+            text={branch.name}
+            highlight={getFirstMatchesOrDefault(this.props.matches)}
+          />
         </div>
         {aheadBehindElement}
       </div>

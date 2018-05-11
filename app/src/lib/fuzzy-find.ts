@@ -19,6 +19,12 @@ export interface IMatch<T> {
   matches: ReadonlyArray<ReadonlyArray<number>>
 }
 
+export function getFirstMatchesOrDefault(
+  matches: ReadonlyArray<ReadonlyArray<number>>
+) {
+  return matches.length > 0 ? matches[0] : []
+}
+
 export type KeyFunction<T> = (item: T) => ReadonlyArray<string>
 
 export function match<T, _K extends keyof T>(
@@ -31,7 +37,7 @@ export function match<T, _K extends keyof T>(
   const result = items
     .map((item): IMatch<T> => {
       const matches: Array<ReadonlyArray<number>> = []
-      const itemTextArray = (getKey as KeyFunction<T>)(item)
+      const itemTextArray = getKey(item)
       itemTextArray.forEach(text => {
         matches.push(fuzzAldrin.match(text, query, undefined, options))
       })

@@ -10,6 +10,7 @@ import { Octicon } from '../octicons'
 import { FilterList } from '../lib/filter-list'
 import { API } from '../../lib/api'
 import { IFilterListGroup } from '../lib/filter-list'
+import { getFirstMatchesOrDefault } from '../../lib/fuzzy-find'
 import {
   IClonableRepositoryListItem,
   groupRepositories,
@@ -206,12 +207,14 @@ export class CloneGithubRepository extends React.Component<
     item: IClonableRepositoryListItem,
     matches: ReadonlyArray<ReadonlyArray<number>>
   ) => {
-    const textMatches = matches.length > 0 ? matches[0] : []
     return (
       <div className="clone-repository-list-item">
         <Octicon className="icon" symbol={item.icon} />
         <div className="name" title={item.text[0]}>
-          <HighlightText text={item.text[0]} highlight={textMatches} />
+          <HighlightText
+            text={item.text[0]}
+            highlight={getFirstMatchesOrDefault(matches)}
+          />
         </div>
       </div>
     )

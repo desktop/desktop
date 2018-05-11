@@ -5,6 +5,7 @@ import { showContextualMenu } from '../main-process-proxy'
 import { Repositoryish } from './group-repositories'
 import { IMenuItem } from '../../lib/menu-item'
 import { HighlightText } from '../lib/highlight-text'
+import { getFirstMatchesOrDefault } from '../../lib/fuzzy-find'
 
 const defaultEditorLabel = __DARWIN__
   ? 'Open in External Editor'
@@ -56,8 +57,7 @@ export class RepositoryListItem extends React.Component<
     if (this.props.needsDisambiguation && gitHubRepo) {
       prefix = `${gitHubRepo.owner.login}/`
     }
-    const hasMatches = this.props.matches.length > 0
-    const matches = hasMatches ? this.props.matches[0] : []
+
     return (
       <div
         onContextMenu={this.onContextMenu}
@@ -68,7 +68,10 @@ export class RepositoryListItem extends React.Component<
 
         <div className="name">
           {prefix ? <span className="prefix">{prefix}</span> : null}
-          <HighlightText text={repository.name} highlight={matches} />
+          <HighlightText
+            text={repository.name}
+            highlight={getFirstMatchesOrDefault(this.props.matches)}
+          />
         </div>
       </div>
     )
