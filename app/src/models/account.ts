@@ -43,3 +43,7 @@ export class Account {
     )
   }
 }
+
+export function accountHasScope(account: Account, scope: string) {
+  return account.scopes.includes(scope)
+}

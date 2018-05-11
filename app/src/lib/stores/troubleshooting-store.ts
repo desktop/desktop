@@ -10,7 +10,7 @@ import {
   IValidateHostState,
   INoRunningAgentState,
 } from '../../models/ssh'
-import { Account } from '../../models/account'
+import { Account, accountHasScope } from '../../models/account'
 import { Repository } from '../../models/repository'
 import {
   scanAndWriteToKnownHostsFile,
@@ -154,7 +154,7 @@ export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState> {
 
     await addToSSHAgent(privateKeyFile, passphrase, agentState.env)
 
-    if (account.scopes.includes('write:public_key')) {
+    if (accountHasScope(account, 'write:public_key')) {
       const api = new API(account.endpoint, account.token)
       const title = 'GitHub Desktop on [MACHINE NAME GOES HERE]'
       const keyContents = await readFile(publicKeyFile)

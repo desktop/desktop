@@ -5,6 +5,7 @@ import * as Path from 'path'
 
 import { lookupPreferredEmail } from '../../lib/email'
 import { IAvatarUser } from '../../models/avatar'
+import { Account, accountHasScope } from '../../models/account'
 
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
@@ -19,6 +20,8 @@ import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { List } from '../lib/list'
 import { Dispatcher } from '../../lib/dispatcher'
 import { ICreateSSHKeyState } from '../../models/ssh'
+import { pathExists } from 'fs-extra'
+import { OcticonSymbol, Octicon } from '../octicons'
 
 function getPathForNewSSHKey(fileName: string) {
   const homeDir = os.homedir()
@@ -37,6 +40,7 @@ interface ISetupNewSSHKeyState {
   readonly passphrase: string
   readonly confirmPassPhrase: string
   readonly outputFile: string
+  readonly outputFileExists: boolean | null
 }
 
 export class SetupNewSSHKey extends React.Component<
@@ -51,6 +55,7 @@ export class SetupNewSSHKey extends React.Component<
       passphrase: '',
       confirmPassPhrase: '',
       outputFile: getPathForNewSSHKey('github_desktop'),
+      outputFileExists: null,
     }
   }
 
@@ -69,18 +74,27 @@ export class SetupNewSSHKey extends React.Component<
     )
   }
 
+  private updateFile = async (outputFile: string) => {
+    const outputFileExists = await pathExists(outputFile)
+    this.setState({ outputFile, outputFileExists })
+  }
+
   private showFilePicker = async () => {
-    // TODO: this needs to be a file chooser
-    const directory: string[] | null = remote.dialog.showOpenDialog({
-      properties: ['createDirectory', 'openDirectory'],
-    })
+    const defaultPath = this.state.outputFile
+    const window: any = null
+    remote.dialog.showSaveDialog(
+      window,
+      {
+        defaultPath,
+      },
+      async outputFile => {
+        if (outputFile == null) {
+          return
+        }
 
-    if (directory == null) {
-      return
-    }
-
-    const outputFile = directory[0]
-    this.setState({ outputFile })
+        await this.updateFile(outputFile)
+      }
+    )
   }
 
   private onEmailAddressChanged = (emailAddress: string) => {
@@ -96,14 +110,16 @@ export class SetupNewSSHKey extends React.Component<
     // TODO: validate that the passphrase and text are the same
   }
 
-  private updateState = (selectedAccount: number) => {
+  private updateState = async (selectedAccount: number) => {
     // TODO: validate that this is an entry in the array
     const account = this.props.state.accounts[selectedAccount]
     const outputFile = getPathForNewSSHKey(`github_desktop_${account.login}`)
 
+    await this.updateFile(outputFile)
+
     const email = lookupPreferredEmail(account.emails)
     const emailAddress = email == null ? '' : email.email
-    this.setState({ selectedAccount, outputFile, emailAddress })
+    this.setState({ selectedAccount, emailAddress })
   }
 
   private onAccountSelectionChanged = (rows: ReadonlyArray<number>) => {
@@ -114,8 +130,23 @@ export class SetupNewSSHKey extends React.Component<
     this.updateState(row)
   }
 
-  private onPathChanged = (outputFile: string) => {
-    this.setState({ outputFile })
+  private onPathChanged = async (outputFile: string) => {
+    await this.updateFile(outputFile)
+  }
+
+  private renderTokenWarning(account: Account) {
+    if (accountHasScope(account, 'write:public_key')) {
+      return null
+    }
+
+    return (
+      <div
+        className="token-alert"
+        title="The token for this account needs to be upgraded to publish your SSH key"
+      >
+        <Octicon symbol={OcticonSymbol.alert} />
+      </div>
+    )
   }
 
   private renderRow = (index: number) => {
@@ -137,14 +168,51 @@ export class SetupNewSSHKey extends React.Component<
           <div className="name">{account.name}</div>
           <div className="login">@{account.login}</div>
         </div>
+        {this.renderTokenWarning(account)}
+      </Row>
+    )
+  }
+
+  private renderPasswordMismatch = () => {
+    if (this.state.passphrase === this.state.confirmPassPhrase) {
+      return null
+    }
+
+    return (
+      <Row className="warning-helper-text">
+        <Octicon symbol={OcticonSymbol.alert} />
+        <p>The passphrase and confirmed passphrase do not match.</p>
+      </Row>
+    )
+  }
+
+  private renderExistingKeyWarning = () => {
+    if (!this.state.outputFileExists) {
+      return null
+    }
+
+    return (
+      <Row className="warning-helper-text">
+        <Octicon symbol={OcticonSymbol.alert} />
+        <p>
+          A file already exists at this path. Choose a new path to ensure that
+          you don't overwrite an existing key.
+        </p>
       </Row>
     )
   }
 
   public render() {
     const isLoading = this.props.state.isLoading
-    // TODO: other validation rules here
-    const disabled = this.state.selectedAccount == null || isLoading
+
+    const passphraseMatches =
+      this.state.passphrase === this.state.confirmPassPhrase
+
+    const disabled =
+      this.state.selectedAccount == null ||
+      !passphraseMatches ||
+      this.state.outputFileExists ||
+      isLoading
 
     const selectedRows =
       this.state.selectedAccount == null ? [] : [this.state.selectedAccount]
@@ -209,6 +277,9 @@ export class SetupNewSSHKey extends React.Component<
               label="Confirm passphrase"
             />
           </Row>
+
+          {this.renderPasswordMismatch()}
+
           <Row>
             <TextBox
               value={this.state.outputFile}
@@ -221,6 +292,8 @@ export class SetupNewSSHKey extends React.Component<
               Choose…
             </Button>
           </Row>
+
+          {this.renderExistingKeyWarning()}
 
           <Row>
             This will create an <Ref>RSA</Ref> key of <Ref>4096 bits</Ref>.
