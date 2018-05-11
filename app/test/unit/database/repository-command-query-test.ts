@@ -20,7 +20,7 @@ describe('Repository Commands', () => {
   })
 
   describe('addRepository', () => {
-    it('works', async () => {
+    it('adds the repository', async () => {
       const testPath = 'test'
       await RepositoryCommands.addRepository(testPath, testDb())
 
@@ -45,72 +45,6 @@ describe('Repository Commands', () => {
   })
 
   describe('addGHRepository', () => {
-    it('performs no-op if given repo does not exist', async () => {
-      const dummyKey: RepositoryKey = {
-        name: 'no-name',
-        path: 'no-path',
-      }
-
-      await RepositoryCommands.addGHRepository(
-        dummyKey,
-        createGHRepository(),
-        testDb()
-      )
-
-      const repos = await testDb()
-        .getCollection(Collections.Repository)
-        .find()
-
-      expect(repos.length).to.equal(0)
-    })
-
-    it('performs no-op if given a repo that already has an associated GHRepository', async () => {
-      // create new repo
-      const testPath = 'path'
-      const key: RepositoryKey = {
-        name: testPath,
-        path: testPath,
-      }
-
-      await RepositoryCommands.addRepository(testPath, testDb())
-
-      // get repo to add a ghRepository to it
-      const repo = await testDb()
-        .getCollection(Collections.Repository)
-        .findOne({ name: key.name, path: key.path })
-
-      expect(repo!.ghRepository).to.be.undefined
-
-      const repoWithGHRepository: IRepository & LokiObj = {
-        ...repo!,
-        ghRepository: {
-          ...createGHRepository(),
-          name: 'original',
-        },
-      }
-
-      // update the document
-      await testDb()
-        .getCollection(Collections.Repository)
-        .update(repoWithGHRepository)
-      await testDb().save()
-
-      // try to add another ghRepository to the same document
-      await RepositoryCommands.addGHRepository(
-        key,
-        createGHRepository(),
-        testDb()
-      )
-
-      // get the new repo
-      const updatedRepo = await testDb()
-        .getCollection(Collections.Repository)
-        .findOne({ name: key.name, path: key.path })
-
-      expect(updatedRepo!.ghRepository).to.not.be.undefined
-      expect(updatedRepo!.ghRepository!.name).to.equal('original')
-    })
-
     it('adds the ghRepository', async () => {
       // create new repo
       const testPath = 'path'
@@ -143,6 +77,35 @@ describe('Repository Commands', () => {
       expect(repo!.ghRepository).to.not.be.undefined
     })
   })
+
+  describe('addParentGHRepository', () => {
+    it.only('adds gh repository to document', async () => {
+      const key: RepositoryKey = {
+        name: 'name',
+        path: 'path',
+      }
+
+      const newRepo = await testDb()
+        .getCollection(Collections.Repository)
+        .insertOne(createRepository())
+
+      expect(newRepo!.ghRepository).to.be.undefined
+
+      await RepositoryCommands.addParentGHRepository(
+        key,
+        '',
+        createGHRepository(),
+        createGHRepository(),
+        testDb()
+      )
+
+      const updatedRepo = await testDb()
+        .getCollection(Collections.Repository)
+        .findOne({ name: key.name, path: key.path })
+
+      expect(updatedRepo!.ghRepository).to.not.be.undefined
+    })
+  })
 })
 
 describe('Repository Queries', () => {
@@ -166,7 +129,16 @@ describe('Repository Queries', () => {
   })
 })
 
-function createGHRepository() {
+function createRepository(): IRepository {
+  return {
+    kind: 'repository',
+    name: '',
+    path: '',
+    isMissing: false,
+  }
+}
+
+function createGHRepository(): IGHRepository {
   const owner: IUser = {
     name: null,
     login: '',
