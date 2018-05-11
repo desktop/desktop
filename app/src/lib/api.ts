@@ -182,7 +182,6 @@ interface IAPIAccessToken {
 /** The partial server response when creating a new authorization on behalf of a user */
 interface IAPIAuthorization {
   readonly token: string
-  readonly scopes: ReadonlyArray<string>
 }
 
 /** The response we receive from fetching mentionables. */
@@ -233,7 +232,13 @@ function toGitHubIsoDateString(date: Date) {
 }
 
 type UserWithTokenScopes = {
+  /**
+   * The details associated with the current user
+   */
   user: IAPIUser
+  /**
+   * The list of scopes assigned to the current token
+   */
   scopes: ReadonlyArray<string>
 }
 
