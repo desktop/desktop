@@ -127,6 +127,7 @@
     "@types/react-dom": "^16.0.4",
     "@types/react-transition-group": "1.1.1",
     "@types/react-virtualized": "^9.7.12",
+    "@types/selenium-webdriver": "^3.0.8",
     "@types/semver": "^5.5.0",
     "@types/strip-ansi": "^3.0.0",
     "@types/temp": "^0.8.29",
@@ -139,8 +140,11 @@
     "@types/xml2js": "^0.4.0",
     "electron": "1.8.3",
     "electron-builder": "20.2.0",
+    "electron-chromedriver": "^2.0.0",
     "electron-mocha": "^6.0.1",
     "electron-packager": "^11.0.0",
-    "electron-winstaller": "2.5.2"
+    "electron-winstaller": "2.5.2",
+    "selenium-adapter": "^0.2.7",
+    "selenium-webdriver": "^4.0.0-alpha.1"
   }
 }
