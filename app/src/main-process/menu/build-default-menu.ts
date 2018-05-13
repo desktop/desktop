@@ -2,7 +2,7 @@ import { Menu, ipcMain, shell, app } from 'electron'
 import { ensureItemIds } from './ensure-item-ids'
 import { MenuEvent } from './menu-event'
 import { getLogDirectoryPath } from '../../lib/logging/get-log-path'
-import { mkdirIfNeeded } from '../../lib/file-system'
+import { ensureDir } from 'fs-extra'
 
 import { log } from '../log'
 import { openDirectorySafe } from '../shell'
@@ -132,7 +132,7 @@ export function buildDefaultMenu(
         click: emit('create-commit'),
       },
       {
-        label: __DARWIN__ ? 'Compare to Branch' : '&Compare',
+        label: __DARWIN__ ? 'Compare to Branch' : 'C&ompare',
         id: 'compare-to-branch',
         accelerator: 'CmdOrCtrl+2',
         click: emit('compare-to-branch'),
@@ -356,7 +356,7 @@ export function buildDefaultMenu(
     label: showLogsLabel,
     click() {
       const logPath = getLogDirectoryPath()
-      mkdirIfNeeded(logPath)
+      ensureDir(logPath)
         .then(() => {
           openDirectorySafe(logPath)
         })

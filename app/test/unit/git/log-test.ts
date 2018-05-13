@@ -1,5 +1,3 @@
-/* eslint-disable no-sync */
-
 import { expect } from 'chai'
 
 import { Repository } from '../../../src/models/repository'
@@ -11,8 +9,8 @@ import { GitProcess } from 'dugite'
 describe('git/log', () => {
   let repository: Repository | null = null
 
-  beforeEach(() => {
-    const testRepoPath = setupFixtureRepository('test-repo')
+  beforeEach(async () => {
+    const testRepoPath = await setupFixtureRepository('test-repo')
     repository = new Repository(testRepoPath, -1, null, false)
   })
 
@@ -48,7 +46,9 @@ describe('git/log', () => {
     })
 
     it('detects renames', async () => {
-      const testRepoPath = setupFixtureRepository('rename-history-detection')
+      const testRepoPath = await setupFixtureRepository(
+        'rename-history-detection'
+      )
       repository = new Repository(testRepoPath, -1, null, false)
 
       const first = await getChangedFiles(repository, '55bdecb')
@@ -65,7 +65,9 @@ describe('git/log', () => {
     })
 
     it('detect copies', async () => {
-      const testRepoPath = setupFixtureRepository('copies-history-detection')
+      const testRepoPath = await setupFixtureRepository(
+        'copies-history-detection'
+      )
       repository = new Repository(testRepoPath, -1, null, false)
 
       // ensure the test repository is configured to detect copies

@@ -1,6 +1,4 @@
-/* eslint-disable no-sync */
-
-import * as FS from 'fs'
+import * as FSE from 'fs-extra'
 import * as Path from 'path'
 import { GitProcess } from 'dugite'
 import { expect } from 'chai'
@@ -8,7 +6,6 @@ import { expect } from 'chai'
 import { RepositorySettingsStore } from '../../src/lib/stores'
 import { setupEmptyRepository } from '../helpers/repositories'
 import { getStatus } from '../../src/lib/git'
-import { pathExists } from '../../src/lib/file-system'
 
 describe('RepositorySettingsStore', () => {
   it('can create a gitignore file', async () => {
@@ -20,7 +17,7 @@ describe('RepositorySettingsStore', () => {
     await sut.saveGitIgnore('node_modules\n')
 
     // Make sure file exists on FS
-    const exists = await pathExists(`${path}/.gitignore`)
+    const exists = await FSE.pathExists(`${path}/.gitignore`)
 
     expect(exists).is.true
   })
@@ -30,14 +27,14 @@ describe('RepositorySettingsStore', () => {
     const path = repo.path
 
     const ignoreFile = `${path}/.gitignore`
-    FS.writeFileSync(ignoreFile, 'node_modules\n')
+    await FSE.writeFile(ignoreFile, 'node_modules\n')
 
     const sut = new RepositorySettingsStore(repo)
 
     // update gitignore file to be empty
     await sut.saveGitIgnore('')
 
-    const exists = await pathExists(ignoreFile)
+    const exists = await FSE.pathExists(ignoreFile)
     expect(exists).is.false
   })
 
@@ -54,7 +51,7 @@ describe('RepositorySettingsStore', () => {
     // Create a txt file
     const file = Path.join(repo.path, 'a.txt')
 
-    FS.writeFileSync(file, 'thrvbnmerkl;,iuw')
+    await FSE.writeFile(file, 'thrvbnmerkl;,iuw')
 
     // Check status of repo
     const status = await getStatus(repo)

@@ -1,8 +1,9 @@
+import * as Path from 'path'
+import { pathExists } from 'fs-extra'
+
 import { git } from './core'
 import { Repository } from '../../models/repository'
 import { SubmoduleEntry } from '../../models/submodule'
-import { pathExists } from '../file-system'
-import * as Path from 'path'
 
 export async function listSubmodules(
   repository: Repository

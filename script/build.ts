@@ -206,7 +206,7 @@ function copyStaticResources() {
   if (fs.existsSync(platformSpecific)) {
     fs.copySync(platformSpecific, destination)
   }
-  fs.copySync(common, destination, { clobber: false })
+  fs.copySync(common, destination, { overwrite: false })
 }
 
 function moveAnalysisFiles() {
@@ -220,7 +220,7 @@ function moveAnalysisFiles() {
     //
     // unlinkSync below ensures that the analysis file isn't bundled into
     // the app by accident
-    fs.copySync(analysisSource, destination, { clobber: true })
+    fs.copySync(analysisSource, destination, { overwrite: true })
     fs.unlinkSync(analysisSource)
   }
 }

@@ -1,6 +1,8 @@
 import * as Path from 'path'
 import * as React from 'react'
 import { remote } from 'electron'
+import { pathExists } from 'fs-extra'
+
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dispatcher } from '../../lib/dispatcher'
@@ -17,7 +19,7 @@ import { TabBar } from '../tab-bar'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { CloneGenericRepository } from './clone-generic-repository'
 import { CloneGithubRepository } from './clone-github-repository'
-import { pathExists } from '../../lib/file-system'
+
 import { assertNever } from '../../lib/fatal-error'
 import { CallToAction } from '../lib/call-to-action'
 
