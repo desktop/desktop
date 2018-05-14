@@ -89,6 +89,11 @@ export function findNextSelectableRow(
   const { direction, row } = action
   const wrap = action.wrap === undefined ? true : action.wrap
 
+  // handle specific case from switching from filter text to list
+  if (direction === 'down' && row === -1) {
+    return 0
+  }
+
   // Ensure the row value is in the range between 0 and rowCount - 1
   //
   // If the row falls outside this range, use the direction
