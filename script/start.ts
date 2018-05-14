@@ -9,6 +9,19 @@ import configs = require('../app/webpack.development')
 
 import { run } from './run'
 
+function getPortOrDefault() {
+  const port = process.env.PORT
+  if (port != null) {
+    const result = parseInt(port)
+    if (isNaN(result)) {
+      throw new Error(`Unable to parse '${port}' into valid number`)
+    }
+    return result
+  }
+
+  return 3000
+}
+
 function startApp() {
   const runningApp = run({ stdio: 'inherit' })
   if (!runningApp) {
@@ -31,7 +44,7 @@ if (process.env.NODE_ENV === 'production') {
 
   const server = express()
   const compiler = webpack(rendererConfig)
-  const port = process.env.PORT || 3000
+  const port = getPortOrDefault()
 
   const message = 'Could not find public path from configuration'
   server.use(
