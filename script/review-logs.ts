@@ -8,6 +8,9 @@ import { getExecutableName } from './dist-info'
 
 function getUserDataPath() {
   if (process.platform === 'win32') {
+    if (process.env.APPDATA == null) {
+      throw new Error(`%APPDATA% not defined, unable to find user data path.`)
+    }
     return path.join(process.env.APPDATA, getExecutableName())
   } else if (process.platform === 'darwin') {
     const home = os.homedir()
