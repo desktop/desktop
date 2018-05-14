@@ -14,6 +14,24 @@ describe('list-selection', () => {
       expect(selectedRow).to.equal(0)
     })
 
+    it('returns first selectable row when header is first', () => {
+      const selectedRow = findNextSelectableRow(
+        rowCount,
+        {
+          direction: 'down',
+          row: -1,
+        },
+        row => {
+          if (row === 0) {
+            return false
+          } else {
+            return true
+          }
+        }
+      )
+      expect(selectedRow).to.equal(1)
+    })
+
     it('returns first row when selecting down from last row', () => {
       const lastRow = rowCount - 1
       const selectedRow = findNextSelectableRow(rowCount, {

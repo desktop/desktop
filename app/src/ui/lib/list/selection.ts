@@ -89,11 +89,6 @@ export function findNextSelectableRow(
   const { direction, row } = action
   const wrap = action.wrap === undefined ? true : action.wrap
 
-  // handle specific case from switching from filter text to list
-  if (direction === 'down' && row === -1) {
-    return 0
-  }
-
   // Ensure the row value is in the range between 0 and rowCount - 1
   //
   // If the row falls outside this range, use the direction
@@ -104,6 +99,14 @@ export function findNextSelectableRow(
   //
   let currentRow =
     row < 0 || row >= rowCount ? (direction === 'up' ? rowCount - 1 : 0) : row
+
+  // handle specific case from switching from filter text to list
+  //
+  // locking currentRow to [0,rowCount) above means that the below loops
+  // will skip over the first entry
+  if (direction === 'down' && row === -1) {
+    currentRow = -1
+  }
 
   const delta = direction === 'up' ? -1 : 1
 
