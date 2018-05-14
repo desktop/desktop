@@ -51,6 +51,16 @@ const getSha = () => {
 
 const sha = getSha().substr(0, 8)
 
+const getSecret = () => {
+  if (process.env.DEPLOYMENT_SECRET != null) {
+    return process.env.DEPLOYMENT_SECRET
+  }
+
+  throw new Error(
+    `Unable to get deployment seret environment variable. Deployment aborting...`
+  )
+}
+
 console.log('Uploading…')
 
 let uploadPromise = null
@@ -69,7 +79,7 @@ uploadPromise!
       return item.name
     })
     console.log(`Uploaded artifacts: ${names}`)
-    return updateDeploy(artifacts)
+    return updateDeploy(artifacts, getSecret())
   })
   .catch(e => {
     console.error(`Publishing failed: ${e}`)
@@ -161,13 +171,13 @@ function upload(assetName: string, assetPath: string) {
   })
 }
 
-function createSignature(body: any) {
-  const hmac = Crypto.createHmac('sha1', process.env.DEPLOYMENT_SECRET)
+function createSignature(body: any, secret: string) {
+  const hmac = Crypto.createHmac('sha1', secret)
   hmac.update(JSON.stringify(body))
   return `sha1=${hmac.digest('hex')}`
 }
 
-function updateDeploy(artifacts: ReadonlyArray<IUploadResult>) {
+function updateDeploy(artifacts: ReadonlyArray<IUploadResult>, secret: string) {
   const { rendererSize, mainSize } = distInfo.getBundleSizes()
   const body = {
     context: process.platform,
@@ -179,7 +189,7 @@ function updateDeploy(artifacts: ReadonlyArray<IUploadResult>) {
       mainBundleSize: mainSize,
     },
   }
-  const signature = createSignature(body)
+  const signature = createSignature(body, secret)
   const options = {
     method: 'POST',
     url: 'https://central.github.com/api/deploy_built',
