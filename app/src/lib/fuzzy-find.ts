@@ -12,17 +12,16 @@ function score(str: string, query: string, maxScore: number) {
   return fuzzAldrin.score(str, query, undefined, options) / maxScore
 }
 
+export interface IMatches {
+  readonly title: ReadonlyArray<number>
+  readonly subtitle: ReadonlyArray<number>
+}
+
 export interface IMatch<T> {
   /** `0 <= score <= 1` */
   score: number
   item: T
-  matches: ReadonlyArray<ReadonlyArray<number>>
-}
-
-export function getFirstMatchesOrDefault(
-  matches: ReadonlyArray<ReadonlyArray<number>>
-) {
-  return matches.length > 0 ? matches[0] : []
+  matches: IMatches
 }
 
 export type KeyFunction<T> = (item: T) => ReadonlyArray<string>
@@ -45,10 +44,15 @@ export function match<T, _K extends keyof T>(
       return {
         score: score(itemTextArray.join(''), query, maxScore),
         item,
-        matches: matches,
+        matches: {
+          title: matches[0],
+          subtitle: matches.length > 1 ? matches[1] : [],
+        },
       }
     })
-    .filter(({ matches }) => matches.some(matchesRow => matchesRow.length > 0))
+    .filter(
+      ({ matches }) => matches.title.length > 0 || matches.subtitle.length > 0
+    )
     .sort(({ score: left }, { score: right }) => compareDescending(left, right))
 
   return result

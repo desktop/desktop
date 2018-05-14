@@ -12,6 +12,7 @@ import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { BranchList, IBranchListItem, renderDefaultBranch } from '../branches'
 import { revSymmetricDifference } from '../../lib/git'
+import { IMatches } from '../../lib/fuzzy-find'
 
 interface IMergeProps {
   readonly dispatcher: Dispatcher
@@ -133,10 +134,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     )
   }
 
-  private renderBranch = (
-    item: IBranchListItem,
-    matches: ReadonlyArray<ReadonlyArray<number>>
-  ) => {
+  private renderBranch = (item: IBranchListItem, matches: IMatches) => {
     return renderDefaultBranch(item, matches, this.props.currentBranch)
   }
 

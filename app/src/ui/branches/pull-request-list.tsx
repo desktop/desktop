@@ -9,6 +9,7 @@ import {
 import { PullRequestListItem } from './pull-request-list-item'
 import { PullRequest, PullRequestStatus } from '../../models/pull-request'
 import { NoPullRequests } from './no-pull-requests'
+import { IMatches } from '../../lib/fuzzy-find'
 
 interface IPullRequestListItem extends IFilterListItem {
   readonly id: string
@@ -158,7 +159,7 @@ export class PullRequestList extends React.Component<
 
   private renderPullRequest = (
     item: IPullRequestListItem,
-    matches: ReadonlyArray<ReadonlyArray<number>>
+    matches: IMatches
   ) => {
     const pr = item.pullRequest
     const refStatuses = pr.status != null ? pr.status.statuses : []

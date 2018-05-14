@@ -17,6 +17,7 @@ import { PullRequestList } from './pull-request-list'
 import { PullRequestsLoading } from './pull-requests-loading'
 import { IBranchListItem } from './group-branches'
 import { renderDefaultBranch } from './branch-renderer'
+import { IMatches } from '../../lib/fuzzy-find'
 
 const PullRequestsLoadingCrossFadeInTimeout = 300
 const PullRequestsLoadingCrossFadeOutTimeout = 200
@@ -97,10 +98,7 @@ export class BranchesContainer extends React.Component<
     )
   }
 
-  private renderBranch = (
-    item: IBranchListItem,
-    matches: ReadonlyArray<ReadonlyArray<number>>
-  ) => {
+  private renderBranch = (item: IBranchListItem, matches: IMatches) => {
     return renderDefaultBranch(item, matches, this.props.currentBranch)
   }
 

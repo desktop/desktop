@@ -4,10 +4,11 @@ import { Branch } from '../../models/branch'
 
 import { IBranchListItem } from './group-branches'
 import { BranchListItem } from './branch-list-item'
+import { IMatches } from '../../lib/fuzzy-find'
 
 export function renderDefaultBranch(
   item: IBranchListItem,
-  matches: ReadonlyArray<ReadonlyArray<number>>,
+  matches: IMatches,
   currentBranch: Branch | null
 ): JSX.Element {
   const branch = item.branch

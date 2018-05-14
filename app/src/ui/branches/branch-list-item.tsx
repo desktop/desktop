@@ -3,7 +3,7 @@ import * as moment from 'moment'
 
 import { Octicon, OcticonSymbol } from '../octicons'
 import { HighlightText } from '../lib/highlight-text'
-import { getFirstMatchesOrDefault } from '../../lib/fuzzy-find'
+import { IMatches } from '../../lib/fuzzy-find'
 
 interface IBranchListItemProps {
   /** The name of the branch */
@@ -16,7 +16,7 @@ interface IBranchListItemProps {
   readonly lastCommitDate: Date | null
 
   /** The characters in the branch name to highlight */
-  readonly matches: ReadonlyArray<ReadonlyArray<number>>
+  readonly matches: IMatches
 }
 
 /** The branch component. */
@@ -36,10 +36,7 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
       <div className="branches-list-item">
         <Octicon className="icon" symbol={icon} />
         <div className="name" title={name}>
-          <HighlightText
-            text={name}
-            highlight={getFirstMatchesOrDefault(this.props.matches)}
-          />
+          <HighlightText text={name} highlight={this.props.matches.title} />
         </div>
         <div className="description" title={infoTitle}>
           {date}

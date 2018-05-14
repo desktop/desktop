@@ -5,6 +5,7 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { CIStatus } from './ci-status'
 import { PullRequestStatus } from '../../models/pull-request'
 import { HighlightText } from '../lib/highlight-text'
+import { IMatches } from '../../lib/fuzzy-find'
 
 export interface IPullRequestListItemProps {
   /** The title. */
@@ -32,7 +33,7 @@ export interface IPullRequestListItemProps {
   readonly loading?: boolean
 
   /** The characters in the PR title to highlight */
-  readonly matches: ReadonlyArray<ReadonlyArray<number>>
+  readonly matches: IMatches
 }
 
 /** Pull requests as rendered in the Pull Requests list. */
@@ -52,10 +53,6 @@ export class PullRequestListItem extends React.Component<
     const title = this.props.loading === true ? undefined : this.props.title
     const subtitle = this.getSubtitle()
     const matches = this.props.matches
-    const hasTitleMatches = matches.length > 0
-    const titleMatches = hasTitleMatches ? matches[0] : []
-    const hasSubtitleMatches = matches.length > 1
-    const subtitleMatches = hasSubtitleMatches ? matches[1] : []
     const className = classNames('pull-request-item', {
       loading: this.props.loading === true,
     })
@@ -65,10 +62,10 @@ export class PullRequestListItem extends React.Component<
         <Octicon className="icon" symbol={OcticonSymbol.gitPullRequest} />
         <div className="info">
           <div className="title" title={title}>
-            <HighlightText text={title || ''} highlight={titleMatches} />
+            <HighlightText text={title || ''} highlight={matches.title} />
           </div>
           <div className="subtitle" title={subtitle}>
-            <HighlightText text={subtitle || ''} highlight={subtitleMatches} />
+            <HighlightText text={subtitle || ''} highlight={matches.subtitle} />
           </div>
         </div>
         {this.renderPullRequestStatus()}
