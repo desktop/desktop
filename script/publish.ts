@@ -34,14 +34,22 @@ import * as request from 'request'
 console.log('Packaging…')
 execSync('yarn package')
 
-let sha = ''
-if (process.platform === 'darwin') {
-  sha = process.env.CIRCLE_SHA1
-} else if (process.platform === 'win32') {
-  sha = process.env.APPVEYOR_REPO_COMMIT
+const getSha = () => {
+  if (process.platform === 'darwin' && process.env.CIRCLE_SHA1 != null) {
+    return process.env.CIRCLE_SHA1
+  } else if (
+    process.platform === 'win32' &&
+    process.env.APPVEYOR_REPO_COMMIT != null
+  ) {
+    return process.env.APPVEYOR_REPO_COMMIT
+  }
+
+  throw new Error(
+    `Unable to get the SHA for the current platform. Check the vendor docs for the desired environment variables.`
+  )
 }
 
-sha = sha.substr(0, 8)
+const sha = getSha().substr(0, 8)
 
 console.log('Uploading…')
 
