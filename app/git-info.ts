@@ -1,5 +1,3 @@
-///<reference types="node" />
-
 import * as Fs from 'fs'
 import * as Path from 'path'
 
