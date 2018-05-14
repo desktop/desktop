@@ -12,6 +12,11 @@ const askPassConfig = merge({}, common.askPass, config)
 const cliConfig = merge({}, common.cli, config)
 const highlighterConfig = merge({}, common.highlighter, config)
 
+// TODO:
+// if we have a PORT environment variable set and running `yarn start` we also
+// need to update this script to use the same port when building because this
+// is currently hard-coded.
+
 const rendererConfig = merge({}, common.renderer, config, {
   entry: {
     renderer: [
