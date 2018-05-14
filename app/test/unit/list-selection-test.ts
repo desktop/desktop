@@ -4,12 +4,23 @@ import { findNextSelectableRow } from '../../src/ui/lib/list/selection'
 
 describe('list-selection', () => {
   describe('findNextSelectableRow', () => {
-    it('returns first row when selecting down from outside range', () => {
-      const selectedRow = findNextSelectableRow(2, {
+    const rowCount = 5
+
+    it('returns first row when selecting down', () => {
+      const lastRow = rowCount - 1
+      const selectedRow = findNextSelectableRow(rowCount, {
         direction: 'down',
-        row: -1,
+        row: lastRow,
       })
       expect(selectedRow).to.equal(0)
+    })
+
+    it('returns last row when selecting up from top', () => {
+      const selectedRow = findNextSelectableRow(rowCount, {
+        direction: 'up',
+        row: 0,
+      })
+      expect(selectedRow).to.equal(4)
     })
   })
 })
