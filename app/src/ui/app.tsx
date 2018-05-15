@@ -395,9 +395,9 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.closeCurrentFoldout()
 
     this.props.dispatcher.changeRepositorySection(
-        state.repository,
-        RepositorySection.History
-      )
+      state.repository,
+      RepositorySection.History
+    )
 
     //Todo: focus branch selector
   }
