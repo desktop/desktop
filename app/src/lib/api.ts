@@ -231,15 +231,15 @@ function toGitHubIsoDateString(date: Date) {
   return date.toISOString().replace(/\.\d{3}Z$/, 'Z')
 }
 
-type UserWithTokenScopes = {
+interface IUserWithTokenScopes {
   /**
    * The details associated with the current user
    */
-  user: IAPIUser
+  readonly user: IAPIUser
   /**
    * The list of scopes assigned to the current token
    */
-  scopes: ReadonlyArray<string>
+  readonly scopes: ReadonlyArray<string>
 }
 
 /**
@@ -291,7 +291,7 @@ export class API {
   }
 
   /** Fetch the logged in account and the current scopes associated with the token. */
-  public async fetchAccount(): Promise<UserWithTokenScopes> {
+  public async fetchAccount(): Promise<IUserWithTokenScopes> {
     try {
       const response = await this.request('GET', 'user')
       const user = await parsedResponse<IAPIUser>(response)
