@@ -244,7 +244,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'create-commit':
         return this.createCommit()
       case 'show-history':
-        return this.compareToBranch()
+        return this.showHistory()
       case 'choose-repository':
         return this.chooseRepository()
       case 'add-local-repository':
@@ -498,7 +498,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
-  private compareToBranch() {
+  private showHistory() {
     const state = this.state.selectedState
     if (state == null || state.type !== SelectionType.Repository) {
       return
