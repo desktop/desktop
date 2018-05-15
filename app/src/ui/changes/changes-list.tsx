@@ -272,10 +272,6 @@ export class ChangesList extends React.Component<
               : `Discard ${paths.length} selected changes…`,
         action: () => this.onDiscardChanges(paths),
       },
-      {
-        label: __DARWIN__ ? 'Discard All Changes…' : 'Discard all changes…',
-        action: () => this.onDiscardAllChanges(),
-      },
       { type: 'separator' },
     ]
 
