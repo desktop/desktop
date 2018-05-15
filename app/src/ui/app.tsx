@@ -277,8 +277,10 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.showRepositorySettings()
       case 'view-repository-on-github':
         return this.viewRepositoryOnGitHub()
-      case 'compare-branch':
+      case 'compare-branch-github':
         return this.compareBranch()
+      case 'compare-branch-desktop':
+        return () => {}
       case 'open-in-shell':
         return this.openCurrentRepositoryInShell()
       case 'clone-repository':
