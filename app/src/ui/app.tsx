@@ -278,9 +278,9 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'view-repository-on-github':
         return this.viewRepositoryOnGitHub()
       case 'compare-branch-github':
-        return this.compareBranch()
+        return this.compareBranchOnDotcom()
       case 'compare-branch-desktop':
-        return () => {}
+        return this.compareBranch()
       case 'open-in-shell':
         return this.openCurrentRepositoryInShell()
       case 'clone-repository':
@@ -387,6 +387,10 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private compareBranch() {
+    //Todo: focus branch selector
+  }
+
+  private compareBranchOnDotcom() {
     const htmlURL = this.getCurrentRepositoryGitHubURL()
     if (!htmlURL) {
       return
