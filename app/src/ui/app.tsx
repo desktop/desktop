@@ -85,6 +85,7 @@ import { ShellError } from './shell'
 import { InitializeLFS, AttributeMismatch } from './lfs'
 import { UpstreamAlreadyExists } from './upstream-already-exists'
 import { DeletePullRequest } from './delete-branch/delete-pull-request-dialog'
+import { MergeConflictsWarning } from './merge-conflicts'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -1232,6 +1233,14 @@ export class App extends React.Component<IAppProps, IAppState> {
             branch={popup.branch}
             onDismissed={this.onPopupDismissed}
             pullRequest={popup.pullRequest}
+          />
+        )
+      case PopupType.MergeConflicts:
+        return (
+          <MergeConflictsWarning
+            dispatcher={this.props.dispatcher}
+            repository={popup.repository}
+            onDismissed={this.onPopupDismissed}
           />
         )
       default:

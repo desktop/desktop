@@ -1,0 +1,55 @@
+import * as React from 'react'
+import { Button } from '../lib/button'
+import { ButtonGroup } from '../lib/button-group'
+import { Dialog, DialogContent, DialogFooter } from '../dialog'
+import { Dispatcher } from '../../lib/dispatcher'
+import { RepositorySection } from '../../lib/app-state'
+import { Repository } from '../../models/repository'
+
+interface IMergeConflictsWarningProps {
+  readonly dispatcher: Dispatcher
+  readonly repository: Repository
+  readonly onDismissed: () => void
+}
+
+export class MergeConflictsWarning extends React.Component<
+  IMergeConflictsWarningProps,
+  {}
+> {
+  private onSubmit = () => {
+    this.props.dispatcher.changeRepositorySection(
+      this.props.repository,
+      RepositorySection.Changes
+    )
+    this.props.onDismissed()
+  }
+
+  public render() {
+    return (
+      <Dialog
+        id="merge-conflicts-warning"
+        title={__DARWIN__ ? 'Merge Conflicts Found' : 'Merge conflicts found'}
+        onDismissed={this.props.onDismissed}
+        onSubmit={this.onSubmit}
+      >
+        <DialogContent>
+          <p>
+            Conflicts were detected as part of the last merge. You will need to
+            view and resolve these conflicts before creating the merge commit.
+          </p>
+        </DialogContent>
+
+        <DialogFooter>
+          <ButtonGroup>
+            <Button type="submit">
+              {__DARWIN__ ? 'View Conflicts' : 'View conflicts'}
+            </Button>
+            <Button onClick={this.props.onDismissed}>
+              {__DARWIN__ ? 'Cancel' : 'Cancel'}
+            </Button>
+          </ButtonGroup>
+        </DialogFooter>
+      </Dialog>
+    )
+  }
+}
