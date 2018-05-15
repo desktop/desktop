@@ -387,7 +387,12 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private compareBranch() {
-    //Todo: focus branch selector
+    const state = this.state.selectedState
+    if (state == null || state.type !== SelectionType.Repository) {
+      return
+    }
+
+    this.props.dispatcher.closeCurrentFoldout()
   }
 
   private compareBranchOnDotcom() {
