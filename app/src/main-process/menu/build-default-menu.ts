@@ -132,7 +132,7 @@ export function buildDefaultMenu(
         click: emit('create-commit'),
       },
       {
-        label: __DARWIN__ ? 'History' : 'Hist&ory',
+        label: __DARWIN__ ? 'Show History' : 'Show &History',
         id: 'show-history',
         accelerator: 'CmdOrCtrl+2',
         click: emit('show-history'),
