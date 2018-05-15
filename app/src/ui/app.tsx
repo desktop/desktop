@@ -243,7 +243,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.pull()
       case 'create-commit':
         return this.createCommit()
-      case 'compare-to-branch':
+      case 'show-history':
         return this.compareToBranch()
       case 'choose-repository':
         return this.chooseRepository()
