@@ -442,7 +442,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
         this.canSelectRow
       )
 
-      if (row) {
+      if (row != null) {
         this.onRowClick(row)
       }
     }
