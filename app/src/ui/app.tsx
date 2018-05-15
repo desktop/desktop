@@ -280,7 +280,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'compare-branch-github':
         return this.compareBranchOnDotcom()
       case 'compare-branch-desktop':
-        return this.compareBranch()
+        return this.compareBranchOnDesktop()
       case 'open-in-shell':
         return this.openCurrentRepositoryInShell()
       case 'clone-repository':
@@ -386,7 +386,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
   }
 
-  private compareBranch() {
+  private compareBranchOnDesktop() {
     const state = this.state.selectedState
     if (state == null || state.type !== SelectionType.Repository) {
       return
