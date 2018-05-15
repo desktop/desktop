@@ -1,7 +1,8 @@
 import * as React from 'react'
-import { ButtonGroup } from '../../ui/lib/button-group'
-import { Button } from '../../ui/lib/button'
-import { Dialog, DialogContent, DialogFooter } from '../../ui/dialog'
+import { ButtonGroup } from '../lib/button-group'
+import { Button } from '../lib/button'
+import { Checkbox, CheckboxValue } from '../lib/checkbox'
+import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Repository } from '../../models/repository'
 
 interface IConfirmRemoveRepositoryProps {
@@ -15,10 +16,22 @@ interface IConfirmRemoveRepositoryProps {
   readonly onDismissed: () => void
 }
 
+interface IConfirmRemoveRepositoryState {
+  readonly includeMoveToTrash: boolean
+}
+
 export class ConfirmRemoveRepository extends React.Component<
   IConfirmRemoveRepositoryProps,
-  {}
-> {
+  IConfirmRemoveRepositoryState
+  > {
+  public constructor(props: IConfirmRemoveRepositoryProps) {
+    super(props)
+
+    this.state = {
+      includeMoveToTrash: false,
+    }
+  }
+
   private cancel = () => {
     this.props.onDismissed()
   }
@@ -29,6 +42,7 @@ export class ConfirmRemoveRepository extends React.Component<
   }
 
   public render() {
+    const trashName = __DARWIN__ ? 'Trash' : 'Recycle Bin'
     return (
       <Dialog
         id="confirm-remove-repository"
@@ -45,9 +59,25 @@ export class ConfirmRemoveRepository extends React.Component<
             }"?
           </p>
           <p className="description">
-            The repository will be removed from GitHub Desktop but will remain
-            on disk.
+            The repository will be removed from GitHub Desktop.
           </p>
+
+          <div>
+            <p>
+              <strong>
+                Do you wish to move this repository to the {trashName} as well?
+              </strong>
+            </p>
+            <Checkbox
+              label={"Yes, move this repository to " + trashName}
+              value={
+                this.state.includeMoveToTrash
+                  ? CheckboxValue.On
+                  : CheckboxValue.Off
+              }
+              onChange={this.onIncludeMoveToTrash}
+            />
+          </div>
         </DialogContent>
         <DialogFooter>
           <ButtonGroup destructive={true}>
@@ -57,5 +87,11 @@ export class ConfirmRemoveRepository extends React.Component<
         </DialogFooter>
       </Dialog>
     )
+  }
+
+  private onIncludeMoveToTrash = (event: React.FormEvent<HTMLInputElement>) => {
+    const value = event.currentTarget.checked
+
+    this.setState({ includeMoveToTrash: value })
   }
 }
