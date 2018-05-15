@@ -35,8 +35,8 @@ export class MergeConflictsWarning extends React.Component<
         <DialogContent>
           <p>Conflicts were detected as part of the last merge operation.</p>
           <p>
-            You will need to view and resolve these conflicts before finishing
-            and creating the merge commit.
+            You will need to view and resolve these conflicts via your editor or
+            shell before finishing and creating the merge commit.
           </p>
         </DialogContent>
 
