@@ -45,9 +45,7 @@ export class MergeConflictsWarning extends React.Component<
             <Button type="submit">
               {__DARWIN__ ? 'View Conflicts' : 'View conflicts'}
             </Button>
-            <Button onClick={this.props.onDismissed}>
-              {__DARWIN__ ? 'Cancel' : 'Cancel'}
-            </Button>
+            <Button onClick={this.props.onDismissed}>Close</Button>
           </ButtonGroup>
         </DialogFooter>
       </Dialog>
