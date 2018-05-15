@@ -33,9 +33,10 @@ export class MergeConflictsWarning extends React.Component<
         onSubmit={this.onSubmit}
       >
         <DialogContent>
+          <p>Conflicts were detected as part of the last merge operation.</p>
           <p>
-            Conflicts were detected as part of the last merge. You will need to
-            view and resolve these conflicts before creating the merge commit.
+            You will need to view and resolve these conflicts before finishing
+            and creating the merge commit.
           </p>
         </DialogContent>
 
