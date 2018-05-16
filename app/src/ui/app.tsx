@@ -499,7 +499,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     this.props.dispatcher.changeRepositorySection(state.repository, {
       selectedTab: RepositorySectionTab.History,
-      focusBranchSelector,
+      initialFocusStateOfBranchSelector,
     })
   }
 

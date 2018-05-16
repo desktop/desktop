@@ -325,7 +325,7 @@ export enum RepositorySectionTab {
 
 export type RepositorySection =
   | { selectedTab: RepositorySectionTab.Changes }
-  | { selectedTab: RepositorySectionTab.History; focusBranchSelector: boolean }
+  | { selectedTab: RepositorySectionTab.History; initialFocusStateOfBranchSelector: boolean }
 
 export interface IRepositoryState {
   readonly historyState: IHistoryState
