@@ -298,15 +298,15 @@ export function buildDefaultMenu(
       },
       {
         label: __DARWIN__ ? 'Compare to Branch...' : '&Compare to branch...',
-        id: 'compare-branch-desktop',
-        click: emit('compare-branch-desktop'),
+        id: 'compare-to-branch',
+        click: emit('compare-to-branch'),
       },
       separator,
       {
         label: __DARWIN__ ? 'Compare on GitHub' : '&Compare on GitHub',
-        id: 'compare-branch-github',
+        id: 'compare-on-github',
         accelerator: 'CmdOrCtrl+Shift+C',
-        click: emit('compare-branch-github'),
+        click: emit('compare-on-github'),
       },
       {
         label: pullRequestLabel,

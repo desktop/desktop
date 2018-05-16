@@ -104,8 +104,7 @@ const allMenuIds: ReadonlyArray<MenuIDs> = [
   'update-branch',
   'merge-branch',
   'view-repository-on-github',
-  'compare-branch-github',
-  'compare-branch-desktop',
+  'compare-on-github',
   'open-in-shell',
   'push',
   'pull',
@@ -228,7 +227,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     )
     menuStateBuilder.setEnabled('merge-branch', onBranch)
     menuStateBuilder.setEnabled(
-      'compare-branch-github',
+      'compare-on-github',
       isHostedOnGitHub && hasPublishedBranch
     )
 
@@ -279,7 +278,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     menuStateBuilder.disable('delete-branch')
     menuStateBuilder.disable('update-branch')
     menuStateBuilder.disable('merge-branch')
-    menuStateBuilder.disable('compare-branch-github')
+    menuStateBuilder.disable('compare-on-github')
 
     menuStateBuilder.disable('push')
     menuStateBuilder.disable('pull')

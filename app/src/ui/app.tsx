@@ -277,10 +277,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.showRepositorySettings()
       case 'view-repository-on-github':
         return this.viewRepositoryOnGitHub()
-      case 'compare-branch-github':
+      case 'compare-on-github':
         return this.compareBranchOnDotcom()
-      case 'compare-branch-desktop':
-        return this.compareBranchOnDesktop()
       case 'open-in-shell':
         return this.openCurrentRepositoryInShell()
       case 'clone-repository':
@@ -386,22 +384,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
   }
 
-  private compareBranchOnDesktop() {
-    const state = this.state.selectedState
-    if (state == null || state.type !== SelectionType.Repository) {
-      return
-    }
-
-    this.props.dispatcher.closeCurrentFoldout()
-
-    this.props.dispatcher.changeRepositorySection(
-      state.repository,
-      RepositorySection.History
-    )
-
-    //Todo: focus branch selector
-  }
-
   private compareBranchOnDotcom() {
     const htmlURL = this.getCurrentRepositoryGitHubURL()
     if (!htmlURL) {
@@ -503,6 +485,22 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.showPopup({ type: PopupType.About })
   }
 
+  private compareToBranch() {
+    const state = this.state.selectedState
+    if (state == null || state.type !== SelectionType.Repository) {
+      return
+    }
+
+    this.props.dispatcher.closeCurrentFoldout()
+
+    this.props.dispatcher.changeRepositorySection(
+      state.repository,
+      RepositorySection.History
+    )
+
+    //Todo: focus branch selector
+  }
+
   private createCommit() {
     const state = this.state.selectedState
     if (state == null || state.type !== SelectionType.Repository) {
@@ -513,19 +511,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.changeRepositorySection(
       state.repository,
       RepositorySection.Changes
-    )
-  }
-
-  private compareToBranch() {
-    const state = this.state.selectedState
-    if (state == null || state.type !== SelectionType.Repository) {
-      return
-    }
-
-    this.props.dispatcher.closeCurrentFoldout()
-    this.props.dispatcher.changeRepositorySection(
-      state.repository,
-      RepositorySection.History
     )
   }
 
