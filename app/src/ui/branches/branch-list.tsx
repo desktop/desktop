@@ -18,6 +18,7 @@ import {
   BranchGroupIdentifier,
 } from './group-branches'
 import { NoBranches } from './no-branches'
+import { Menu } from 'electron';
 
 /**
  * TS can't parse generic specialization in JSX, so we have to alias it here
@@ -168,6 +169,17 @@ export class BranchList extends React.Component<
       this.branchFilterList.selectFirstItem(focus)
     }
   }
+
+  private onBranchMenu() {
+    const items: IMenuItem[] = [
+      {
+        label: __DARWIN__ ? 'Discard All Changes…' : 'Discard all changes…',
+      },
+    ]
+    
+    showContextualMenu(items)
+  }
+
 
   public render() {
     return (
