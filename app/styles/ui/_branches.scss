@@ -219,7 +219,7 @@
     }
 
     .branches-list-item-menu {
-      display: none; 
+      display: none;
     }
 
     &:hover {
@@ -228,7 +228,20 @@
       }
 
       .branches-list-item-menu {
-        display: block;
+        display: flex;
+        flex-grow: 1;
+        justify-content: flex-end;
+      }
+
+      .branch-menu-wrapper {
+        display: flex;
+        margin: var(--spacing);
+        margin-right: 0;
+        padding: 0 var(--spacing);
+
+        &:hover {
+          background: var(--box-alt-background-color);
+        }
       }
     }
 
