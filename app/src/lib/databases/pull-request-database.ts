@@ -1,5 +1,5 @@
 import Dexie from 'dexie'
-import { APIRefState, IAPIRefStatusItem } from '../api'
+import { APIRefState, IRefStatusItemAPIResult } from '../api'
 import { BaseDatabase } from './base-database'
 
 export interface IPullRequestRef {
@@ -66,7 +66,7 @@ export interface IPullRequestStatus {
    * if the database object was created prior to status support
    * being added in #3588
    */
-  readonly statuses?: ReadonlyArray<IAPIRefStatusItem>
+  readonly statuses?: ReadonlyArray<IRefStatusItemAPIResult>
 }
 
 export class PullRequestDatabase extends BaseDatabase {

@@ -5,7 +5,7 @@ import {
 } from '../databases'
 import { GitHubRepository } from '../../models/github-repository'
 import { Account } from '../../models/account'
-import { API, IAPIPullRequest } from '../api'
+import { API, IPullRequestAPIResult } from '../api'
 import { fatalError, forceUnwrap } from '../fatal-error'
 import { RepositoriesStore } from './repositories-store'
 import {
@@ -307,7 +307,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
   }
 
   private async cachePullRequests(
-    pullRequestsFromAPI: ReadonlyArray<IAPIPullRequest>,
+    pullRequestsFromAPI: ReadonlyArray<IPullRequestAPIResult>,
     repository: GitHubRepository
   ): Promise<void> {
     const repoDbId = repository.dbID

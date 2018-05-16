@@ -24,6 +24,7 @@
     "codemirror": "^5.31.0",
     "codemirror-mode-elixir": "1.1.1",
     "deep-equal": "^1.0.1",
+    "lokijs": "^1.5.3",
     "dexie": "^2.0.0",
     "dugite": "1.61.0",
     "electron-window-state": "^4.0.2",
@@ -61,6 +62,7 @@
     "electron-devtools-installer": "^2.2.3",
     "style-loader": "^0.13.2",
     "temp": "^0.8.3",
-    "webpack-hot-middleware": "^2.10.0"
+    "webpack-hot-middleware": "^2.10.0",
+    "@types/lokijs": "1.5.2"
   }
 }

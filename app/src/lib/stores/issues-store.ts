@@ -1,5 +1,5 @@
 import { IssuesDatabase, IIssue } from '../databases/issues-database'
-import { API, IAPIIssue } from '../api'
+import { API, IIssueAPIResult } from '../api'
 import { Account } from '../../models/account'
 import { GitHubRepository } from '../../models/github-repository'
 import { fatalError } from '../fatal-error'
@@ -76,7 +76,7 @@ export class IssuesStore {
   }
 
   private async storeIssues(
-    issues: ReadonlyArray<IAPIIssue>,
+    issues: ReadonlyArray<IIssueAPIResult>,
     repository: GitHubRepository
   ): Promise<void> {
     const gitHubRepositoryID = repository.dbID

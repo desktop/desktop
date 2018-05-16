@@ -1,4 +1,4 @@
-import { IAPIEmail } from './api'
+import { IEmailAPIResult } from './api'
 
 /**
  * Lookup a suitable email address to display in the application, based on the
@@ -14,8 +14,8 @@ import { IAPIEmail } from './api'
  * @param emails array of email addresses associated with an account
  */
 export function lookupPreferredEmail(
-  emails: ReadonlyArray<IAPIEmail>
-): IAPIEmail | null {
+  emails: ReadonlyArray<IEmailAPIResult>
+): IEmailAPIResult | null {
   if (emails.length === 0) {
     return null
   }
@@ -38,7 +38,7 @@ export function lookupPreferredEmail(
 /**
  * Is the email public?
  */
-function isEmailPublic(email: IAPIEmail): boolean {
+function isEmailPublic(email: IEmailAPIResult): boolean {
   // If an email doesn't have a visibility setting it means it's coming from an
   // older Enterprise server which doesn't have the concept of visiblity.
   return email.visibility === 'public' || !email.visibility

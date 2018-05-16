@@ -2,7 +2,7 @@ import { expect } from 'chai'
 
 import { RepositoriesStore } from '../../src/lib/stores/repositories-store'
 import { TestRepositoriesDatabase } from '../helpers/databases'
-import { IAPIRepository } from '../../src/lib/api'
+import { IRepositoryAPIResult } from '../../src/lib/api'
 
 describe('RepositoriesStore', () => {
   let repositoriesStore: RepositoriesStore | null = null
@@ -35,7 +35,7 @@ describe('RepositoriesStore', () => {
   })
 
   describe('updating a GitHub repository', () => {
-    const gitHubRepo: IAPIRepository = {
+    const gitHubRepo: IRepositoryAPIResult = {
       clone_url: 'https://github.com/my-user/my-repo',
       html_url: 'https://github.com/my-user/my-repo',
       name: 'my-repo',

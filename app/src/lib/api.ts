@@ -38,29 +38,29 @@ const NoteURL = 'https://desktop.github.com/'
 /**
  * Information about a repository as returned by the GitHub API.
  */
-export interface IAPIRepository {
+export interface IRepositoryAPIResult {
   readonly clone_url: string
   readonly html_url: string
   readonly name: string
-  readonly owner: IAPIUser
+  readonly owner: IUserAPIResult
   readonly private: boolean
   readonly fork: boolean
   readonly default_branch: string
-  readonly parent: IAPIRepository | null
+  readonly parent: IRepositoryAPIResult | null
 }
 
 /**
  * Information about a commit as returned by the GitHub API.
  */
-export interface IAPICommit {
+export interface ICommitAPIResult {
   readonly sha: string
-  readonly author: IAPIUser | null
+  readonly author: IUserAPIResult | null
 }
 
 /**
  * Information about a user as returned by the GitHub API.
  */
-export interface IAPIUser {
+export interface IUserAPIResult {
   readonly id: number
   readonly url: string
   readonly login: string
@@ -81,7 +81,7 @@ export interface IAPIUser {
 }
 
 /** The users we get from the mentionables endpoint. */
-export interface IAPIMentionableUser {
+export interface IMentionableUserAPIResult {
   readonly avatar_url: string
 
   /**
@@ -105,7 +105,7 @@ export type EmailVisibility = 'public' | 'private' | null
 /**
  * Information about a user's email as returned by the GitHub API.
  */
-export interface IAPIEmail {
+export interface IEmailAPIResult {
   readonly email: string
   readonly verified: boolean
   readonly primary: boolean
@@ -113,7 +113,7 @@ export interface IAPIEmail {
 }
 
 /** Information about an issue as returned by the GitHub API. */
-export interface IAPIIssue {
+export interface IIssueAPIResult {
   readonly number: number
   readonly title: string
   readonly state: 'open' | 'closed'
@@ -127,7 +127,7 @@ export type APIRefState = 'failure' | 'pending' | 'success'
  * The API response for a combined view of a commit
  * status for a given ref
  */
-export interface IAPIRefStatusItem {
+export interface IRefStatusItemAPIResult {
   readonly state: APIRefState
   readonly target_url: string
   readonly description: string
@@ -136,13 +136,13 @@ export interface IAPIRefStatusItem {
 }
 
 /** The API response to a ref status request. */
-interface IAPIRefStatus {
+interface IRefStatusAPIResult {
   readonly state: APIRefState
   readonly total_count: number
-  readonly statuses: ReadonlyArray<IAPIRefStatusItem>
+  readonly statuses: ReadonlyArray<IRefStatusItemAPIResult>
 }
 
-interface IAPIPullRequestRef {
+interface IPullRequestRefAPIResult {
   readonly ref: string
   readonly sha: string
 
@@ -150,17 +150,17 @@ interface IAPIPullRequestRef {
    * The repository in which this ref lives. It could be null if the repository
    * has been deleted since the PR was opened.
    */
-  readonly repo: IAPIRepository | null
+  readonly repo: IRepositoryAPIResult | null
 }
 
 /** Information about a pull request as returned by the GitHub API. */
-export interface IAPIPullRequest {
+export interface IPullRequestAPIResult {
   readonly number: number
   readonly title: string
   readonly created_at: string
-  readonly user: IAPIUser
-  readonly head: IAPIPullRequestRef
-  readonly base: IAPIPullRequestRef
+  readonly user: IUserAPIResult
+  readonly head: IPullRequestRefAPIResult
+  readonly base: IPullRequestRefAPIResult
 }
 
 /** The metadata about a GitHub server. */
@@ -173,21 +173,21 @@ export interface IServerMetadata {
 }
 
 /** The server response when handling the OAuth callback (with code) to obtain an access token */
-interface IAPIAccessToken {
+interface IAccessTokenAPIResult {
   readonly access_token: string
   readonly scope: string
   readonly token_type: string
 }
 
 /** The partial server response when creating a new authorization on behalf of a user */
-interface IAPIAuthorization {
+interface IAuthorizationAPIResult {
   readonly token: string
 }
 
 /** The response we receive from fetching mentionables. */
-interface IAPIMentionablesResponse {
+interface IMentionablesResponseAPIResult {
   readonly etag: string | null
-  readonly users: ReadonlyArray<IAPIMentionableUser>
+  readonly users: ReadonlyArray<IMentionableUserAPIResult>
 }
 
 /** The response for search results. */
@@ -253,14 +253,14 @@ export class API {
   public async fetchRepository(
     owner: string,
     name: string
-  ): Promise<IAPIRepository | null> {
+  ): Promise<IRepositoryAPIResult | null> {
     try {
       const response = await this.request('GET', `repos/${owner}/${name}`)
       if (response.status === HttpStatusCode.NotFound) {
         log.warn(`fetchRepository: '${owner}/${name}' returned a 404`)
         return null
       }
-      return await parsedResponse<IAPIRepository>(response)
+      return await parsedResponse<IRepositoryAPIResult>(response)
     } catch (e) {
       log.warn(`fetchRepository: an error occurred for '${owner}/${name}'`, e)
       return null
@@ -269,10 +269,10 @@ export class API {
 
   /** Fetch all repos a user has access to. */
   public async fetchRepositories(): Promise<ReadonlyArray<
-    IAPIRepository
+    IRepositoryAPIResult
   > | null> {
     try {
-      return await this.fetchAll<IAPIRepository>('user/repos')
+      return await this.fetchAll<IRepositoryAPIResult>('user/repos')
     } catch (error) {
       log.warn(`fetchRepositories: ${error}`)
       return null
@@ -280,10 +280,10 @@ export class API {
   }
 
   /** Fetch the logged in account. */
-  public async fetchAccount(): Promise<IAPIUser> {
+  public async fetchAccount(): Promise<IUserAPIResult> {
     try {
       const response = await this.request('GET', 'user')
-      const result = await parsedResponse<IAPIUser>(response)
+      const result = await parsedResponse<IUserAPIResult>(response)
       return result
     } catch (e) {
       log.warn(`fetchAccount: failed with endpoint ${this.endpoint}`, e)
@@ -292,10 +292,10 @@ export class API {
   }
 
   /** Fetch the current user's emails. */
-  public async fetchEmails(): Promise<ReadonlyArray<IAPIEmail>> {
+  public async fetchEmails(): Promise<ReadonlyArray<IEmailAPIResult>> {
     try {
       const response = await this.request('GET', 'user/emails')
-      const result = await parsedResponse<ReadonlyArray<IAPIEmail>>(response)
+      const result = await parsedResponse<ReadonlyArray<IEmailAPIResult>>(response)
 
       return Array.isArray(result) ? result : []
     } catch (e) {
@@ -309,7 +309,7 @@ export class API {
     owner: string,
     name: string,
     sha: string
-  ): Promise<IAPICommit | null> {
+  ): Promise<ICommitAPIResult | null> {
     try {
       const path = `repos/${owner}/${name}/commits/${sha}`
       const response = await this.request('GET', path)
@@ -317,7 +317,7 @@ export class API {
         log.warn(`fetchCommit: '${path}' returned a 404`)
         return null
       }
-      return parsedResponse<IAPICommit>(response)
+      return parsedResponse<ICommitAPIResult>(response)
     } catch (e) {
       log.warn(`fetchCommit: returned an error '${owner}/${name}@${sha}'`, e)
       return null
@@ -325,12 +325,12 @@ export class API {
   }
 
   /** Search for a user with the given public email. */
-  public async searchForUserWithEmail(email: string): Promise<IAPIUser | null> {
+  public async searchForUserWithEmail(email: string): Promise<IUserAPIResult | null> {
     try {
       const params = { q: `${email} in:email type:user` }
       const url = urlWithQueryString('search/users', params)
       const response = await this.request('GET', url)
-      const result = await parsedResponse<ISearchResults<IAPIUser>>(response)
+      const result = await parsedResponse<ISearchResults<IUserAPIResult>>(response)
       const items = result.items
       if (items.length) {
         // The results are sorted by score, best to worst. So the first result
@@ -346,9 +346,9 @@ export class API {
   }
 
   /** Fetch all the orgs to which the user belongs. */
-  public async fetchOrgs(): Promise<ReadonlyArray<IAPIUser>> {
+  public async fetchOrgs(): Promise<ReadonlyArray<IUserAPIResult>> {
     try {
-      return this.fetchAll<IAPIUser>('user/orgs')
+      return this.fetchAll<IUserAPIResult>('user/orgs')
     } catch (e) {
       log.warn(`fetchOrgs: failed with endpoint ${this.endpoint}`, e)
       return []
@@ -357,11 +357,11 @@ export class API {
 
   /** Create a new GitHub repository with the given properties. */
   public async createRepository(
-    org: IAPIUser | null,
+    org: IUserAPIResult | null,
     name: string,
     description: string,
     private_: boolean
-  ): Promise<IAPIRepository> {
+  ): Promise<IRepositoryAPIResult> {
     try {
       const apiPath = org ? `orgs/${org.login}/repos` : 'user/repos'
       const response = await this.request('POST', apiPath, {
@@ -370,7 +370,7 @@ export class API {
         private: private_,
       })
 
-      return await parsedResponse<IAPIRepository>(response)
+      return await parsedResponse<IRepositoryAPIResult>(response)
     } catch (e) {
       if (e instanceof APIError) {
         throw e
@@ -392,7 +392,7 @@ export class API {
     name: string,
     state: 'open' | 'closed' | 'all',
     since: Date | null
-  ): Promise<ReadonlyArray<IAPIIssue>> {
+  ): Promise<ReadonlyArray<IIssueAPIResult>> {
     const params: { [key: string]: string } = {
       state,
     }
@@ -402,7 +402,7 @@ export class API {
 
     const url = urlWithQueryString(`repos/${owner}/${name}/issues`, params)
     try {
-      const issues = await this.fetchAll<IAPIIssue>(url)
+      const issues = await this.fetchAll<IIssueAPIResult>(url)
 
       // PRs are issues! But we only want Really Seriously Issues.
       return issues.filter((i: any) => !i.pullRequest)
@@ -417,10 +417,10 @@ export class API {
     owner: string,
     name: string,
     state: 'open' | 'closed' | 'all'
-  ): Promise<ReadonlyArray<IAPIPullRequest>> {
+  ): Promise<ReadonlyArray<IPullRequestAPIResult>> {
     const url = urlWithQueryString(`repos/${owner}/${name}/pulls`, { state })
     try {
-      const prs = await this.fetchAll<IAPIPullRequest>(url)
+      const prs = await this.fetchAll<IPullRequestAPIResult>(url)
       return prs
     } catch (e) {
       log.warn(`fetchPullRequests: failed for repository ${owner}/${name}`, e)
@@ -433,11 +433,11 @@ export class API {
     owner: string,
     name: string,
     ref: string
-  ): Promise<IAPIRefStatus> {
+  ): Promise<IRefStatusAPIResult> {
     const path = `repos/${owner}/${name}/commits/${ref}/status`
     try {
       const response = await this.request('GET', path)
-      const status = await parsedResponse<IAPIRefStatus>(response)
+      const status = await parsedResponse<IRefStatusAPIResult>(response)
       return status
     } catch (e) {
       log.warn(
@@ -522,7 +522,7 @@ export class API {
     owner: string,
     name: string,
     etag: string | null
-  ): Promise<IAPIMentionablesResponse | null> {
+  ): Promise<IMentionablesResponseAPIResult | null> {
     // NB: this custom `Accept` is required for the `mentionables` endpoint.
     const headers: any = {
       Accept: 'application/vnd.github.jerry-maguire-preview',
@@ -544,7 +544,7 @@ export class API {
       if (response.status === HttpStatusCode.NotModified) {
         return null
       }
-      const users = await parsedResponse<ReadonlyArray<IAPIMentionableUser>>(
+      const users = await parsedResponse<ReadonlyArray<IMentionableUserAPIResult>>(
         response
       )
       const etag = response.headers.get('etag')
@@ -559,7 +559,7 @@ export class API {
    * Retrieve the public profile information of a user with
    * a given username.
    */
-  public async fetchUser(login: string): Promise<IAPIUser | null> {
+  public async fetchUser(login: string): Promise<IUserAPIResult | null> {
     try {
       const response = await this.request(
         'GET',
@@ -570,7 +570,7 @@ export class API {
         return null
       }
 
-      return await parsedResponse<IAPIUser>(response)
+      return await parsedResponse<IUserAPIResult>(response)
     } catch (e) {
       log.warn(`fetchUser: failed with endpoint ${this.endpoint}`, e)
       throw e
@@ -636,7 +636,7 @@ export async function createAuthorization(
   )
 
   try {
-    const result = await parsedResponse<IAPIAuthorization>(response)
+    const result = await parsedResponse<IAuthorizationAPIResult>(response)
     if (result) {
       const token = result.token
       if (token && typeof token === 'string' && token.length) {
@@ -868,7 +868,7 @@ export async function requestOAuthToken(
         state: state,
       }
     )
-    const result = await parsedResponse<IAPIAccessToken>(response)
+    const result = await parsedResponse<IAccessTokenAPIResult>(response)
     return result.access_token
   } catch (e) {
     log.warn(`requestOAuthToken: failed with endpoint ${endpoint}`, e)

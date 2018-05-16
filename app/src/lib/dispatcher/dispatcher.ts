@@ -24,7 +24,7 @@ import { CloningRepository } from '../../models/cloning-repository'
 import { Branch } from '../../models/branch'
 import { Commit } from '../../models/commit'
 import { ExternalEditor } from '../../lib/editors'
-import { IAPIUser } from '../../lib/api'
+import { IUserAPIResult } from '../../lib/api'
 import { GitHubRepository } from '../../models/github-repository'
 import { ICommitMessage } from '../stores/git-store'
 import { executeMenuItem } from '../../ui/main-process-proxy'
@@ -325,7 +325,7 @@ export class Dispatcher {
     description: string,
     private_: boolean,
     account: Account,
-    org: IAPIUser | null
+    org: IUserAPIResult | null
   ): Promise<Repository> {
     return this.appStore._publishRepository(
       repository,
