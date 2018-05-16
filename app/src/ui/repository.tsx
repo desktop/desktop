@@ -160,7 +160,7 @@ export class RepositoryView extends React.Component<
     const selectedSection = this.props.state.selectedSection
     const focusBranchSelector =
       selectedSection.selectedTab === RepositorySectionTab.History
-        ? selectedSection.initialFocusStateOfBranchSelector
+        ? selectedSection.shouldFocusBranchList
         : false
 
     return (
@@ -176,7 +176,7 @@ export class RepositoryView extends React.Component<
         onRevertCommit={this.onRevertCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
         sidebarHasFocusWithin={this.state.sidebarHasFocusWithin}
-        focusBranchSelector={focusBranchSelector}
+        initialShowBranchList={focusBranchSelector}
       />
     )
   }
@@ -304,7 +304,7 @@ export class RepositoryView extends React.Component<
           ? { selectedTab: RepositorySectionTab.Changes }
           : {
               selectedTab: RepositorySectionTab.History,
-              initialFocusStateOfBranchSelector: false,
+              shouldFocusBranchList: false,
             }
 
       this.props.dispatcher.changeRepositorySection(
@@ -320,7 +320,7 @@ export class RepositoryView extends React.Component<
       tab === Tab.History
         ? {
             selectedTab: RepositorySectionTab.History,
-            initialFocusStateOfBranchSelector: false,
+            shouldFocusBranchList: false,
           }
         : { selectedTab: RepositorySectionTab.Changes }
 
