@@ -33,6 +33,8 @@ interface ICompareSidebarProps {
   readonly dispatcher: Dispatcher
   readonly currentBranch: Branch | null
   readonly sidebarHasFocusWithin: boolean
+  /**Determines whether or not to focus compare branch selector */
+  readonly focusBranchSelector: boolean
   readonly onRevertCommit: (commit: Commit) => void
   readonly onViewCommitOnGitHub: (sha: string) => void
 }
@@ -66,7 +68,7 @@ export class CompareSidebar extends React.Component<
     this.state = {
       focusedBranch: null,
       filterText: '',
-      showBranchList: false,
+      showBranchList: props.focusBranchSelector,
       selectedCommit: null,
     }
   }

@@ -4,7 +4,7 @@ import { CSSTransitionGroup } from 'react-transition-group'
 
 import {
   IAppState,
-  RepositorySection,
+  RepositorySectionTab,
   Popup,
   PopupType,
   FoldoutType,
@@ -493,12 +493,10 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     this.props.dispatcher.closeCurrentFoldout()
 
-    this.props.dispatcher.changeRepositorySection(
-      state.repository,
-      RepositorySection.History
-    )
-
-    //Todo: focus branch selector
+    this.props.dispatcher.changeRepositorySection(state.repository, {
+      selectedTab: RepositorySectionTab.History,
+      focusBranchSelector: true,
+    })
   }
 
   private createCommit() {
@@ -508,10 +506,9 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     this.props.dispatcher.closeCurrentFoldout()
-    this.props.dispatcher.changeRepositorySection(
-      state.repository,
-      RepositorySection.Changes
-    )
+    this.props.dispatcher.changeRepositorySection(state.repository, {
+      selectedTab: RepositorySectionTab.Changes,
+    })
   }
 
   private chooseRepository() {

@@ -11,13 +11,13 @@ import {
 } from '../../models/status'
 import { DiffSelection } from '../../models/diff'
 import {
-  RepositorySection,
   Popup,
   PopupType,
   Foldout,
   FoldoutType,
   ImageDiffType,
   CompareAction,
+  RepositorySection,
 } from '../app-state'
 import { AppStore } from '../stores/app-store'
 import { CloningRepository } from '../../models/cloning-repository'
