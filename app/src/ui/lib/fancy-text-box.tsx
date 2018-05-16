@@ -38,9 +38,17 @@ export class FancyTextBox extends React.Component<
       <div className={componentCSS}>
         <Octicon className={octiconCSS} symbol={this.props.symbol} />
         <TextBox
-          {...this.props}
+          value={this.props.value}
           onFocus={this.onFocus}
           onBlur={this.onBlur}
+          autoFocus={this.props.autoFocus}
+          disabled={this.props.disabled}
+          type={this.props.type}
+          placeholder={this.props.placeholder}
+          onKeyDown={this.props.onKeyDown}
+          onValueChanged={this.props.onValueChanged}
+          onSearchCleared={this.props.onSearchCleared}
+          tabIndex={this.props.tabIndex}
           ref={this.props.onRef}
         />
       </div>
