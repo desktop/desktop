@@ -23,7 +23,7 @@ interface IConfirmRemoveRepositoryState {
 export class ConfirmRemoveRepository extends React.Component<
   IConfirmRemoveRepositoryProps,
   IConfirmRemoveRepositoryState
-  > {
+> {
   public constructor(props: IConfirmRemoveRepositoryProps) {
     super(props)
 
@@ -69,7 +69,7 @@ export class ConfirmRemoveRepository extends React.Component<
               </strong>
             </p>
             <Checkbox
-              label={"Yes, move this repository to " + trashName}
+              label={'Yes, move this repository to ' + trashName}
               value={
                 this.state.includeMoveToTrash
                   ? CheckboxValue.On
