@@ -299,7 +299,7 @@ export function buildDefaultMenu(
       {
         label: __DARWIN__ ? 'Compare to Branch...' : '&Compare to branch...',
         id: 'compare-to-branch',
-        accelerator: 'CmdOrCtrl+Alt+C',
+        accelerator: 'CmdOrCtrl+Shift+B',
         click: emit('compare-to-branch'),
       },
       separator,
