@@ -167,7 +167,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
     })
   }
 
-  private onSearchTextCleared = (ev: Event) => {
+  private onSearchTextCleared = () => {
     if (this.props.onSearchCleared != null) {
       this.props.onSearchCleared()
     }
