@@ -218,6 +218,16 @@
       }
     }
 
+    &:hover {
+      .description {
+        display: none;
+      }
+
+      .menu {
+        display: block;
+      }
+    }
+
     .description {
       margin-right: var(--spacing-half);
       color: var(--text-secondary-color);
@@ -225,6 +235,11 @@
       flex-grow: 1;
       text-align: right;
       white-space: nowrap;
+    }
+
+    .menu {
+      background: red;
+      display: none;
     }
   }
 
