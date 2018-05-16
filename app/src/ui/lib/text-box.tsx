@@ -84,6 +84,11 @@ export interface ITextBoxProps {
    * Callback used when the component loses focus.
    */
   readonly onBlur?: () => void
+
+  /**
+   * Callback used when the user has cleared the search text.
+   */
+  readonly onSearchCleared?: () => void
 }
 
 interface ITextBoxState {
@@ -162,8 +167,22 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
     })
   }
 
+  private onSearchTextCleared = (ev: Event) => {
+    if (this.props.onSearchCleared != null) {
+      this.props.onSearchCleared()
+    }
+  }
+
   private onInputRef = (element: HTMLInputElement | null) => {
+    if (this.inputElement != null && this.props.type === 'search') {
+      this.inputElement.removeEventListener('search', this.onSearchTextCleared)
+    }
+
     this.inputElement = element
+
+    if (this.inputElement != null && this.props.type === 'search') {
+      this.inputElement.addEventListener('search', this.onSearchTextCleared)
+    }
   }
 
   private renderLabelLink() {
