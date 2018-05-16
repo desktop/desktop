@@ -239,8 +239,13 @@
         margin-right: 0;
         padding: 0 var(--spacing);
 
-        &:hover {
-          background: var(--box-alt-background-color);
+        .octicon {
+          fill: var(--text-secondary-color);
+          transition: fill 0.25s;
+        }
+
+        &:hover .octicon {
+          fill: var(--text-color);
         }
       }
     }
