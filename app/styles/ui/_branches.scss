@@ -238,14 +238,20 @@
         margin: var(--spacing);
         margin-right: 0;
         padding: 0 var(--spacing);
+        border-radius: var(--border-radius);
+        transition: background 0.15s;
 
         .octicon {
           fill: var(--text-secondary-color);
-          transition: fill 0.25s;
+          transition: fill 0.15s;
         }
 
-        &:hover .octicon {
-          fill: var(--text-color);
+        &:hover  {
+          background: var(--box-selected-background-color);
+
+          .octicon {
+            fill: var(--text-color);
+          }
         }
       }
     }
