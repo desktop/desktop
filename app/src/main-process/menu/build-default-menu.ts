@@ -296,12 +296,12 @@ export function buildDefaultMenu(
         accelerator: 'CmdOrCtrl+Shift+M',
         click: emit('merge-branch'),
       },
-      separator,
       {
-        label: __DARWIN__ ? 'Compare on Desktop' : '&Compare on Desktop',
+        label: __DARWIN__ ? 'Compare to Branch...' : '&Compare to branch...',
         id: 'compare-branch-desktop',
         click: emit('compare-branch-desktop'),
       },
+      separator,
       {
         label: __DARWIN__ ? 'Compare on GitHub' : '&Compare on GitHub',
         id: 'compare-branch-github',
