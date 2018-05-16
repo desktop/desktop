@@ -270,6 +270,9 @@ export class App extends React.Component<IAppProps, IAppState> {
         this.props.dispatcher.recordMenuInitiatedUpdate()
         return this.updateBranch()
       }
+      case 'compare-to-branch': {
+        return this.showHistory(true)
+      }
       case 'merge-branch': {
         this.props.dispatcher.recordMenuInitiatedMerge()
         return this.mergeBranch()
@@ -486,7 +489,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.showPopup({ type: PopupType.About })
   }
 
-  private compareToBranch() {
+  private showHistory(focusBranchSelector: boolean = false) {
     const state = this.state.selectedState
     if (state == null || state.type !== SelectionType.Repository) {
       return
@@ -496,7 +499,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     this.props.dispatcher.changeRepositorySection(state.repository, {
       selectedTab: RepositorySectionTab.History,
-      focusBranchSelector: true,
+      focusBranchSelector,
     })
   }
 
