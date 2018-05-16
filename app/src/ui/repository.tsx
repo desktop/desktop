@@ -160,7 +160,7 @@ export class RepositoryView extends React.Component<
     const selectedSection = this.props.state.selectedSection
     const focusBranchSelector =
       selectedSection.selectedTab === RepositorySectionTab.History
-        ? selectedSection.shouldFocusBranchList
+        ? selectedSection.shouldFocusBranchList || false
         : false
 
     return (
