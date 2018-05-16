@@ -144,11 +144,7 @@ export class CompareSidebar extends React.Component<
   }
 
   private onSearchCleared = () => {
-    if (this.textbox != null) {
-      this.textbox.blur()
-    }
-
-    this.setState({ showBranchList: false })
+    this.handleEscape()
   }
 
   private onBranchesListRef = (branchList: BranchList | null) => {
