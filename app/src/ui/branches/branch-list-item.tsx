@@ -36,8 +36,13 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
         <div className="name" title={name}>
           <HighlightText text={name} highlight={this.props.matches} />
         </div>
+
         <div className="description" title={infoTitle}>
           {date}
+        </div>
+
+        <div className="branches-list-item-menu" title={infoTitle}>
+          <Octicon symbol={OcticonSymbol.kebabHorizontal} />
         </div>
       </div>
     )

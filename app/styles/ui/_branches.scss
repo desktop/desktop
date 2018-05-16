@@ -218,12 +218,16 @@
       }
     }
 
+    .branches-list-item-menu {
+      display: none; 
+    }
+
     &:hover {
       .description {
         display: none;
       }
 
-      .menu {
+      .branches-list-item-menu {
         display: block;
       }
     }
