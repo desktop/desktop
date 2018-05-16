@@ -4,6 +4,9 @@ import * as moment from 'moment'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { HighlightText } from '../lib/highlight-text'
 
+import { IMenuItem } from '../../lib/menu-item'
+import { showContextualMenu } from '../main-process-proxy'
+
 interface IBranchListItemProps {
   /** The name of the branch */
   readonly name: string
@@ -17,9 +20,21 @@ interface IBranchListItemProps {
   /** The characters in the branch name to highlight */
   readonly matches: ReadonlyArray<number>
 }
-
 /** The branch component. */
 export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
+  private onContextMenu = (event: React.MouseEvent<any>) => {
+    event.preventDefault()
+    event.stopPropagation()
+
+    const items: IMenuItem[] = [
+      {
+        label: 'Compare to this branch',
+      },
+    ]
+
+    showContextualMenu(items)
+  }
+
   public render() {
     const lastCommitDate = this.props.lastCommitDate
     const isCurrentBranch = this.props.isCurrentBranch
@@ -42,7 +57,7 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
         </div>
 
         <div className="branches-list-item-menu" title={infoTitle}>
-          <div className="branch-menu-wrapper">
+          <div className="branch-menu-wrapper" onClick={this.onContextMenu}>
             <Octicon symbol={OcticonSymbol.kebabHorizontal} />
           </div>
         </div>
