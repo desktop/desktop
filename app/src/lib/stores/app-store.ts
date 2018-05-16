@@ -422,7 +422,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         coAuthors: [],
         showCoAuthoredBy: false,
       },
-      selectedSection: {selectedTab: RepositorySectionTab.Changes},
+      selectedSection: { selectedTab: RepositorySectionTab.Changes },
       branchesState: {
         tip: { kind: TipState.Unknown },
         defaultBranch: null,
