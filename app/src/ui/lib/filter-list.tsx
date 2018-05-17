@@ -244,7 +244,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
   }
 
   public selectFirstItem(focus: boolean = false) {
-    if (this.list == null) {
+    if (this.list === null) {
       return
     }
 
@@ -259,7 +259,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
 
     if (next !== null) {
       this.setState({ selectedRow: next }, () => {
-        if (focus && this.list != null) {
+        if (focus && this.list !== null) {
           this.list.focus()
         }
       })
