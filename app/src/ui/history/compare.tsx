@@ -84,7 +84,7 @@ export class CompareSidebar extends React.Component<
       return
     }
 
-    if (!hasFormStateChanged && newFormState.kind !== ComparisonView.None) {
+    if (newFormState.kind !== ComparisonView.None) {
       // ensure the filter text is in sync with the comparison branch
       const branch = newFormState.comparisonBranch
 
