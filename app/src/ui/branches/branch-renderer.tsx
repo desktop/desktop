@@ -15,7 +15,7 @@ export function renderDefaultBranch(
   const currentBranchName = currentBranch ? currentBranch.name : null
   return (
     <BranchListItem
-      name={branch.name}
+      branch={branch}
       isCurrentBranch={branch.name === currentBranchName}
       lastCommitDate={commit ? commit.author.date : null}
       matches={matches}
