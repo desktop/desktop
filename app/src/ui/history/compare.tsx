@@ -33,6 +33,11 @@ interface ICompareSidebarProps {
   readonly dispatcher: Dispatcher
   readonly currentBranch: Branch | null
   readonly sidebarHasFocusWithin: boolean
+
+  /**
+   * Shows the branch list when the component is loaded
+   */
+  readonly initialShowBranchList: boolean
   readonly onRevertCommit: (commit: Commit) => void
   readonly onViewCommitOnGitHub: (sha: string) => void
 }
@@ -66,7 +71,7 @@ export class CompareSidebar extends React.Component<
     this.state = {
       focusedBranch: null,
       filterText: '',
-      showBranchList: false,
+      showBranchList: props.initialShowBranchList,
       selectedCommit: null,
     }
   }
@@ -258,12 +263,12 @@ export class CompareSidebar extends React.Component<
           Merge into <strong>{this.props.currentBranch.name}</strong>
         </Button>
 
-        {this.renderMergeDetails(formState)}
+        {this.renderMergeDetails(formState, this.props.currentBranch)}
       </div>
     )
   }
 
-  private renderMergeDetails(formState: ICompareBranch) {
+  private renderMergeDetails(formState: ICompareBranch, currentBranch: Branch) {
     const branch = formState.comparisonBranch
     const count = formState.aheadBehind.behind
 
@@ -275,6 +280,8 @@ export class CompareSidebar extends React.Component<
           <strong>{` ${count} ${pluralized}`}</strong>
           {` `}from{` `}
           <strong>{branch.name}</strong>
+          {` `}into{` `}
+          <strong>{currentBranch.name}</strong>
         </div>
       )
     }

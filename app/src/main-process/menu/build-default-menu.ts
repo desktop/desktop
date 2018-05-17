@@ -132,10 +132,10 @@ export function buildDefaultMenu(
         click: emit('create-commit'),
       },
       {
-        label: __DARWIN__ ? 'Compare to Branch' : 'C&ompare',
-        id: 'compare-to-branch',
+        label: __DARWIN__ ? 'Show History' : '&History',
+        id: 'show-history',
         accelerator: 'CmdOrCtrl+2',
-        click: emit('compare-to-branch'),
+        click: emit('show-history'),
       },
       {
         label: __DARWIN__ ? 'Show Repository List' : 'Repository &list',
@@ -289,6 +289,12 @@ export function buildDefaultMenu(
         click: emit('update-branch'),
       },
       {
+        label: __DARWIN__ ? 'Compare to Branch' : '&Compare to branch',
+        id: 'compare-to-branch',
+        accelerator: 'CmdOrCtrl+Shift+B',
+        click: emit('compare-to-branch'),
+      },
+      {
         label: __DARWIN__
           ? 'Merge Into Current Branch…'
           : '&Merge into current branch…',
@@ -296,17 +302,12 @@ export function buildDefaultMenu(
         accelerator: 'CmdOrCtrl+Shift+M',
         click: emit('merge-branch'),
       },
-      {
-        label: __DARWIN__ ? 'Compare to Branch...' : '&Compare to branch...',
-        id: 'compare-branch-desktop',
-        click: emit('compare-branch-desktop'),
-      },
       separator,
       {
         label: __DARWIN__ ? 'Compare on GitHub' : 'Compare on &GitHub',
-        id: 'compare-branch-github',
+        id: 'compare-on-github',
         accelerator: 'CmdOrCtrl+Shift+C',
-        click: emit('compare-branch-github'),
+        click: emit('compare-on-github'),
       },
       {
         label: pullRequestLabel,
