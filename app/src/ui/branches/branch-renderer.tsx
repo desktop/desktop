@@ -8,7 +8,8 @@ import { BranchListItem } from './branch-list-item'
 export function renderDefaultBranch(
   item: IBranchListItem,
   matches: ReadonlyArray<number>,
-  currentBranch: Branch | null
+  currentBranch: Branch | null,
+  onCompareToBranch?: (branch: Branch) => void
 ): JSX.Element {
   const branch = item.branch
   const commit = branch.tip
@@ -19,6 +20,7 @@ export function renderDefaultBranch(
       isCurrentBranch={branch.name === currentBranchName}
       lastCommitDate={commit ? commit.author.date : null}
       matches={matches}
+      onCompareToBranch={onCompareToBranch}
     />
   )
 }
