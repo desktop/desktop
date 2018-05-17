@@ -303,7 +303,7 @@ export function buildDefaultMenu(
       },
       separator,
       {
-        label: __DARWIN__ ? 'Compare on GitHub' : '&Compare on GitHub',
+        label: __DARWIN__ ? 'Compare on GitHub' : 'Compare on &GitHub',
         id: 'compare-branch-github',
         accelerator: 'CmdOrCtrl+Shift+C',
         click: emit('compare-branch-github'),
