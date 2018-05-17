@@ -169,7 +169,6 @@ export class BranchList extends React.Component<
     }
   }
 
-
   public render() {
     return (
       <BranchesFilterList
