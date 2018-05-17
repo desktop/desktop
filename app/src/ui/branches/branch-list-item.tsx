@@ -1,13 +1,14 @@
 import * as React from 'react'
 import * as moment from 'moment'
+import * as classNames from 'classnames'
 
 import { Branch } from '../../models/branch'
 
-import { Octicon, OcticonSymbol } from '../octicons'
+import { IMenuItem } from '../../lib/menu-item'
 import { HighlightText } from '../lib/highlight-text'
 
-import { IMenuItem } from '../../lib/menu-item'
 import { showContextualMenu } from '../main-process-proxy'
+import { Octicon, OcticonSymbol } from '../octicons'
 
 interface IBranchListItemProps {
   /** The name of the branch */
@@ -73,8 +74,13 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
     const infoTitle = isCurrentBranch
       ? 'Current branch'
       : lastCommitDate ? lastCommitDate.toString() : ''
+
+    const className = classNames('branches-list-item', {
+      'kebab-effect': !isCurrentBranch && this.props.onCompareToBranch != null,
+    })
+
     return (
-      <div className="branches-list-item">
+      <div className={className}>
         <Octicon className="icon" symbol={icon} />
         <div className="name" title={name}>
           <HighlightText text={name} highlight={this.props.matches} />
