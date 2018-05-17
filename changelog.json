@@ -1,5 +1,11 @@
 {
   "releases": {
+    "1.1.2-beta6": [
+      "[Added] Add MacVim support for macOS - #4532. Thanks @johnelliott!",
+      "[Fixed] Open in Shell on Linux ensures Git is available on the user's PATH - #4619. Thanks @ziggy42!",
+      "[Fixed] Keyboard focus issues when navigating Pull Request list - #4673",
+      "[Improved] Automatically add valid repository when using command line interface - #4513. Thanks @ggajos!"
+    ],
     "1.1.2-test5": [
       "Actually upgrading fs-extra to v6 in the app"
     ],
