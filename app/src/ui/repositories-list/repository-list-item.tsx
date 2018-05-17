@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Repository } from '../../models/repository'
-import { Octicon, iconForRepository } from '../octicons'
+import { Octicon, iconForRepository, OcticonSymbol } from '../octicons'
 import { showContextualMenu } from '../main-process-proxy'
 import { Repositoryish } from './group-repositories'
 import { IMenuItem } from '../../lib/menu-item'
@@ -48,6 +48,15 @@ export class RepositoryListItem extends React.Component<
     const path = repository.path
     const gitHubRepo =
       repository instanceof Repository ? repository.gitHubRepository : null
+    let hasChanges = false
+    if (repository instanceof Repository) {
+      hasChanges = repository.changedFiles
+        ? repository.changedFiles.length > 0
+        : false
+      // if (repository.aheadBehind) {
+      //   let { ahead, behind } = repository.aheadBehind
+      // }
+    }
     const tooltip = gitHubRepo
       ? gitHubRepo.fullName + '\n' + gitHubRepo.htmlURL + '\n' + path
       : path
@@ -64,7 +73,12 @@ export class RepositoryListItem extends React.Component<
         title={tooltip}
       >
         <Octicon symbol={iconForRepository(repository)} />
-
+        {hasChanges ? (
+          <Octicon
+            className="change-indicator"
+            symbol={OcticonSymbol.primitiveDot}
+          />
+        ) : null}
         <div className="name">
           {prefix ? <span className="prefix">{prefix}</span> : null}
           <HighlightText

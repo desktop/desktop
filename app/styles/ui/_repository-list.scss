@@ -61,6 +61,13 @@
         color: currentColor;
       }
     }
+
+    .change-indicator {
+      position: absolute;
+      left: 15px;
+      bottom: 0;
+      color: var(--tab-bar-active-color);
+    }
   }
 
   .sidebar-message {
