@@ -150,6 +150,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
   let networkActionInProgress = false
   let tipStateIsUnknown = false
   let branchIsUnborn = false
+  let hasMultipleBranches = false
 
   let hasRemote = false
 
@@ -184,6 +185,8 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     hasRemote = !!selectedState.state.remote
 
     networkActionInProgress = selectedState.state.isPushPullFetchInProgress
+    hasMultipleBranches =
+      selectedState.state.branchesState.allBranches.length > 1
   }
 
   // These are IDs for menu items that are entirely _and only_
@@ -225,7 +228,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
       'update-branch',
       onNonDefaultBranch && hasDefaultBranch
     )
-    menuStateBuilder.setEnabled('merge-branch', onBranch)
+    menuStateBuilder.setEnabled('merge-branch', onBranch && hasMultipleBranches)
     menuStateBuilder.setEnabled(
       'compare-branch',
       isHostedOnGitHub && hasPublishedBranch
