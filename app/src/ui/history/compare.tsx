@@ -258,12 +258,12 @@ export class CompareSidebar extends React.Component<
           Merge into <strong>{this.props.currentBranch.name}</strong>
         </Button>
 
-        {this.renderMergeDetails(formState)}
+        {this.renderMergeDetails(formState, this.props.currentBranch)}
       </div>
     )
   }
 
-  private renderMergeDetails(formState: ICompareBranch) {
+  private renderMergeDetails(formState: ICompareBranch, currentBranch: Branch) {
     const branch = formState.comparisonBranch
     const count = formState.aheadBehind.behind
 
@@ -275,6 +275,8 @@ export class CompareSidebar extends React.Component<
           <strong>{` ${count} ${pluralized}`}</strong>
           {` `}from{` `}
           <strong>{branch.name}</strong>
+          {` `}into{` `}
+          <strong>{currentBranch.name}</strong>
         </div>
       )
     }
