@@ -247,7 +247,7 @@
         }
 
         &:hover {
-          background: var(--box-selected-background-color);
+          background: rgba($gray-500, 0.2);
 
           .octicon {
             fill: var(--text-color);
