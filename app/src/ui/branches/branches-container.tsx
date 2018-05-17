@@ -107,7 +107,7 @@ export class BranchesContainer extends React.Component<
     await this.props.dispatcher.initializeCompare(this.props.repository, {
       kind: CompareActionKind.Branch,
       branch,
-      mode: ComparisonView.Ahead,
+      mode: ComparisonView.Behind,
     })
     await this.props.dispatcher.changeRepositorySection(
       this.props.repository,
