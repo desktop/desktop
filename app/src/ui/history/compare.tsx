@@ -280,7 +280,8 @@ export class CompareSidebar extends React.Component<
         <div className="merge-message">
           This will merge
           <strong>{` ${count} ${pluralized}`}</strong>
-          {` `}from{` `}
+          <br />
+          from{` `}
           <strong>{branch.name}</strong>
           {` `}into{` `}
           <strong>{currentBranch.name}</strong>
