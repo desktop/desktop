@@ -68,6 +68,18 @@
       bottom: 0;
       color: var(--tab-bar-active-color);
     }
+
+    .ahead-behind {
+      height: 16px;
+      color: var(--button-text-color);
+      align-items: center;
+      margin-left: auto;
+      .octicon {
+        margin: 0;
+        height: 20px;
+        width: 12px;
+      }
+    }
   }
 
   .sidebar-message {

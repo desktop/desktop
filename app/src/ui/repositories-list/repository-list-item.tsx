@@ -53,9 +53,24 @@ export class RepositoryListItem extends React.Component<
       hasChanges = repository.changedFiles
         ? repository.changedFiles.length > 0
         : false
-      // if (repository.aheadBehind) {
-      //   let { ahead, behind } = repository.aheadBehind
-      // }
+    }
+    const renderAheadBehindIndicator = () => {
+      if (!(repository instanceof Repository) || !repository.aheadBehind) {
+        return null
+      }
+      const { ahead, behind } = repository.aheadBehind
+      if (ahead === 0 && behind === 0) {
+        return null
+      }
+
+      return (
+        <div className="ahead-behind">
+          {ahead > 0 ? <Octicon symbol={OcticonSymbol.arrowSmallUp} /> : null}
+          {behind > 0 ? (
+            <Octicon symbol={OcticonSymbol.arrowSmallDown} />
+          ) : null}
+        </div>
+      )
     }
     const tooltip = gitHubRepo
       ? gitHubRepo.fullName + '\n' + gitHubRepo.htmlURL + '\n' + path
@@ -86,6 +101,7 @@ export class RepositoryListItem extends React.Component<
             highlight={this.props.matches}
           />
         </div>
+        {renderAheadBehindIndicator()}
       </div>
     )
   }
