@@ -258,11 +258,11 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     )
 
     if (next !== null) {
-      this.setState({ selectedRow: next })
-    }
-
-    if (focus) {
-      this.list.focus()
+      this.setState({ selectedRow: next }, () => {
+        if (focus && this.list != null) {
+          this.list.focus()
+        }
+      })
     }
   }
 
