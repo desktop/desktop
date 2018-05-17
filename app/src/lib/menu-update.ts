@@ -150,6 +150,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
   let networkActionInProgress = false
   let tipStateIsUnknown = false
   let branchIsUnborn = false
+  let hasBranchToCompare = false
 
   let hasRemote = false
 
@@ -165,6 +166,8 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     onBranch = tip.kind === TipState.Valid
     tipStateIsUnknown = tip.kind === TipState.Unknown
     branchIsUnborn = tip.kind === TipState.Unborn
+    hasBranchToCompare =
+      selectedState.state.branchesState.allBranches.length > 1
 
     // If we are:
     //  1. on the default branch, or
@@ -199,8 +202,6 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     'create-commit',
     'show-history',
     'show-branches-list',
-    'open-external-editor',
-    'compare-to-branch',
   ]
 
   const menuStateBuilder = new MenuStateBuilder()
@@ -249,6 +250,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
       'create-branch',
       !tipStateIsUnknown && !branchIsUnborn
     )
+    menuStateBuilder.setEnabled('compare-to-branch', hasBranchToCompare)
 
     if (
       selectedState &&
@@ -283,6 +285,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
 
     menuStateBuilder.disable('push')
     menuStateBuilder.disable('pull')
+    menuStateBuilder.disable('compare-to-branch')
   }
   return menuStateBuilder
 }
