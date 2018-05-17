@@ -1369,13 +1369,23 @@ export class App extends React.Component<IAppProps, IAppState> {
     const externalEditorLabel = this.state.selectedExternalEditor
     const shellLabel = this.state.selectedShell
     const filterText = this.state.repositoryFilterText
+    const repositories = this.state.repositories.map(repo => {
+      if (repo instanceof Repository) {
+        const {
+          aheadBehind,
+          changesState,
+        } = this.props.appStore.getRepositoryState(repo)
+        repo.setRepoInfo(aheadBehind, changesState.workingDirectory.files)
+      }
+      return repo
+    })
     return (
       <RepositoriesList
         filterText={filterText}
         onFilterTextChanged={this.onRepositoryFilterTextChanged}
         selectedRepository={selectedRepository}
         onSelectionChanged={this.onSelectionChanged}
-        repositories={this.state.repositories}
+        repositories={repositories}
         onRemoveRepository={this.removeRepository}
         onOpenInShell={this.openInShell}
         onShowRepository={this.showRepository}
