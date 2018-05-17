@@ -208,6 +208,7 @@ export enum PopupType {
   LFSAttributeMismatch,
   UpstreamAlreadyExists,
   DeletePullRequest,
+  MergeConflicts,
 }
 
 export type Popup =
@@ -282,6 +283,7 @@ export type Popup =
       branch: Branch
       pullRequest: PullRequest
     }
+  | { type: PopupType.MergeConflicts; repository: Repository }
 
 export enum FoldoutType {
   Repository,

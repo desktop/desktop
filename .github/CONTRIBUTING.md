@@ -72,8 +72,8 @@ comment to the existing issue if there is extra information you can contribute.
 
 Bugs are tracked as [GitHub issues](https://guides.github.com/features/issues/).
 
-Simply create an issue on the [GitHub Desktop issue tracker](https://github.com/desktop/desktop/issues)
-and fill out the provided [issue template](ISSUE_TEMPLATE.md).
+Simply create an issue on the [GitHub Desktop issue tracker](https://github.com/desktop/desktop/issues/new?template=bug_report.md)
+and fill out the provided issue template.
 
 The information we are interested in includes:
 
@@ -107,14 +107,15 @@ information you would like to add.
 
 Enhancement suggestions are tracked as [GitHub issues](https://guides.github.com/features/issues/).
 
-Simply create an issue on the [GitHub Desktop issue tracker](https://github.com/desktop/desktop/issues)
-and provide the following information:
+Simply create an issue on the [GitHub Desktop issue tracker](https://github.com/desktop/desktop/issues/new?template=feature_request.md)
+and fill out the provided issue template.
 
-* **Use a clear and descriptive title** for the issue to identify the
-  suggestion.
-* **Provide a step-by-step description of the suggested enhancement** in as
-  much detail as possible. This additional context helps the maintainers to
-  understand the enhancement from your perspective
+Some additional advice:
+
+* **Use a clear and descriptive title** for the feature request.
+* **Provide a step-by-step description of the suggested enhancement**.
+  This additional context helps the maintainers understand the enhancement from
+  your perspective
 * **Explain why this enhancement would be useful** to GitHub Desktop users.
 * **Include screenshots and animated GIFs** if relevant to help you demonstrate
   the steps or point out the part of GitHub Desktop which the suggestion is
