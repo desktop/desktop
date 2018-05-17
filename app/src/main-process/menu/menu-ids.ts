@@ -25,3 +25,4 @@ export type MenuIDs =
   | 'clone-repository'
   | 'about'
   | 'create-pull-request'
+  | 'compare-to-branch'
