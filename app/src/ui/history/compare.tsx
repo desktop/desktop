@@ -63,9 +63,16 @@ export class CompareSidebar extends React.Component<
   public constructor(props: ICompareSidebarProps) {
     super(props)
 
+    const formState = props.compareState.formState
+
+    const filterText =
+      formState.kind === ComparisonView.None
+        ? ''
+        : formState.comparisonBranch.name
+
     this.state = {
       focusedBranch: null,
-      filterText: '',
+      filterText,
       showBranchList: false,
       selectedCommit: null,
     }
