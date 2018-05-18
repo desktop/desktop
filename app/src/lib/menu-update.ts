@@ -202,6 +202,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     'create-commit',
     'show-history',
     'show-branches-list',
+    'open-in-external-editor',
   ]
 
   const menuStateBuilder = new MenuStateBuilder()
