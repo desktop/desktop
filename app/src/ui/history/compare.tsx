@@ -68,9 +68,16 @@ export class CompareSidebar extends React.Component<
   public constructor(props: ICompareSidebarProps) {
     super(props)
 
+    const formState = props.compareState.formState
+
+    const filterText =
+      formState.kind === ComparisonView.None
+        ? ''
+        : formState.comparisonBranch.name
+
     this.state = {
       focusedBranch: null,
-      filterText: '',
+      filterText,
       showBranchList: props.initialShowBranchList,
       selectedCommit: null,
     }
@@ -89,7 +96,7 @@ export class CompareSidebar extends React.Component<
       return
     }
 
-    if (!hasFormStateChanged && newFormState.kind !== ComparisonView.None) {
+    if (newFormState.kind !== ComparisonView.None) {
       // ensure the filter text is in sync with the comparison branch
       const branch = newFormState.comparisonBranch
 
@@ -283,7 +290,8 @@ export class CompareSidebar extends React.Component<
         <div className="merge-message">
           This will merge
           <strong>{` ${count} ${pluralized}`}</strong>
-          {` `}from{` `}
+          <br />
+          from{` `}
           <strong>{branch.name}</strong>
           {` `}into{` `}
           <strong>{currentBranch.name}</strong>
