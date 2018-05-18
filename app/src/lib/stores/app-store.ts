@@ -1752,6 +1752,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this._initializeCompare(repository)
   }
 
+  public async refreshLocalRepositories() {
+    for (const repo of this.repositories) {
+      if (repo instanceof Repository) {
+        this.withAuthenticatingUser(repo, async (repo, account) => {
+          const gitStore = this.getGitStore(repo)
+          await gitStore.fetch(account, true)
+          const status = await gitStore.loadStatus()
+          if (status) {
+            repo.setRepoInfo(gitStore.aheadBehind, status.workingDirectory.files)
+          }
+        })
+      }
+    }
+    this.emitUpdate()
+  }
+
   /**
    * Refresh all the data for the Changes section.
    *
