@@ -9,6 +9,7 @@ import { HighlightText } from '../lib/highlight-text'
 
 import { showContextualMenu } from '../main-process-proxy'
 import { Octicon, OcticonSymbol } from '../octicons'
+import { enableCompareSidebar } from '../../lib/feature-flag'
 
 interface IBranchListItemProps {
   /** The name of the branch */
@@ -55,6 +56,10 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
       return null
     }
 
+    if (!enableCompareSidebar()) {
+      return null
+    }
+
     return (
       <div className="branches-list-item-menu" title={infoTitle}>
         <div className="branch-menu-wrapper" onClick={this.onContextMenu}>
@@ -75,8 +80,13 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
       ? 'Current branch'
       : lastCommitDate ? lastCommitDate.toString() : ''
 
+    const enableKebabEffect =
+      enableCompareSidebar() &&
+      !isCurrentBranch &&
+      this.props.onCompareToBranch != null
+
     const className = classNames('branches-list-item', {
-      'kebab-effect': !isCurrentBranch && this.props.onCompareToBranch != null,
+      'kebab-effect': enableKebabEffect,
     })
 
     return (
