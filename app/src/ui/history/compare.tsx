@@ -137,6 +137,7 @@ export class CompareSidebar extends React.Component<
             onRef={this.onTextBoxRef}
             onValueChanged={this.onBranchFilterTextChanged}
             onKeyDown={this.onBranchFilterKeyDown}
+            onSearchCleared={this.onSearchCleared}
           />
         </div>
 
@@ -145,6 +146,10 @@ export class CompareSidebar extends React.Component<
           : this.renderCommits()}
       </div>
     )
+  }
+
+  private onSearchCleared = () => {
+    this.handleEscape()
   }
 
   private onBranchesListRef = (branchList: BranchList | null) => {
