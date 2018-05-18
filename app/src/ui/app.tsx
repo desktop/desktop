@@ -85,6 +85,7 @@ import { ShellError } from './shell'
 import { InitializeLFS, AttributeMismatch } from './lfs'
 import { UpstreamAlreadyExists } from './upstream-already-exists'
 import { DeletePullRequest } from './delete-branch/delete-pull-request-dialog'
+import { MergeConflictsWarning } from './merge-conflicts'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -243,8 +244,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.pull()
       case 'create-commit':
         return this.createCommit()
-      case 'compare-to-branch':
-        return this.compareToBranch()
+      case 'show-history':
+        return this.showHistory()
       case 'choose-repository':
         return this.chooseRepository()
       case 'add-local-repository':
@@ -498,7 +499,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
-  private compareToBranch() {
+  private showHistory() {
     const state = this.state.selectedState
     if (state == null || state.type !== SelectionType.Repository) {
       return
@@ -1232,6 +1233,14 @@ export class App extends React.Component<IAppProps, IAppState> {
             branch={popup.branch}
             onDismissed={this.onPopupDismissed}
             pullRequest={popup.pullRequest}
+          />
+        )
+      case PopupType.MergeConflicts:
+        return (
+          <MergeConflictsWarning
+            dispatcher={this.props.dispatcher}
+            repository={popup.repository}
+            onDismissed={this.onPopupDismissed}
           />
         )
       default:

@@ -91,7 +91,7 @@ export class RepositoryView extends React.Component<
             />
           ) : null}
         </span>
-        <span>{enableCompareSidebar() ? 'Compare' : 'History'}</span>
+        <span>History</span>
       </TabBar>
     )
   }
