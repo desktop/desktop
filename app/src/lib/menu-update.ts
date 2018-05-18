@@ -202,7 +202,8 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     'create-commit',
     'show-history',
     'show-branches-list',
-    'open-in-external-editor',
+    'open-external-editor',
+    'compare-to-branch',
   ]
 
   const menuStateBuilder = new MenuStateBuilder()
@@ -251,7 +252,6 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
       'create-branch',
       !tipStateIsUnknown && !branchIsUnborn
     )
-    menuStateBuilder.setEnabled('compare-to-branch', hasBranchToCompare)
 
     if (
       selectedState &&
@@ -282,7 +282,6 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     menuStateBuilder.disable('delete-branch')
     menuStateBuilder.disable('update-branch')
     menuStateBuilder.disable('merge-branch')
-    menuStateBuilder.disable('compare-on-github')
 
     menuStateBuilder.disable('push')
     menuStateBuilder.disable('pull')
