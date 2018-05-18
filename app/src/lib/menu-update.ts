@@ -150,7 +150,6 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
   let networkActionInProgress = false
   let tipStateIsUnknown = false
   let branchIsUnborn = false
-  let hasBranchToCompare = false
 
   let hasRemote = false
 
@@ -166,8 +165,6 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     onBranch = tip.kind === TipState.Valid
     tipStateIsUnknown = tip.kind === TipState.Unknown
     branchIsUnborn = tip.kind === TipState.Unborn
-    hasBranchToCompare =
-      selectedState.state.branchesState.allBranches.length > 1
 
     // If we are:
     //  1. on the default branch, or
