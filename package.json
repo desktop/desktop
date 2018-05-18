@@ -137,7 +137,7 @@
     "@types/uuid": "^3.4.0",
     "@types/winston": "^2.2.0",
     "@types/xml2js": "^0.4.0",
-    "electron": "1.8.6",
+    "electron": "1.8.7",
     "electron-builder": "20.2.0",
     "electron-mocha": "^6.0.1",
     "electron-packager": "^11.0.0",
