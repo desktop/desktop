@@ -4,6 +4,7 @@ import { Button } from '../lib/button'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Repository } from '../../models/repository'
+import { TrashNameLabel } from '../lib/context-menu'
 
 interface IConfirmRemoveRepositoryProps {
   /** The repository to be removed */
@@ -42,7 +43,6 @@ export class ConfirmRemoveRepository extends React.Component<
   }
 
   public render() {
-    const trashName = __DARWIN__ ? 'Trash' : 'Recycle Bin'
     return (
       <Dialog
         id="confirm-remove-repository"
@@ -65,11 +65,12 @@ export class ConfirmRemoveRepository extends React.Component<
           <div>
             <p>
               <strong>
-                Do you wish to move this repository to the {trashName} as well?
+                Do you wish to move this repository to the {TrashNameLabel} as
+                well?
               </strong>
             </p>
             <Checkbox
-              label={'Yes, move this repository to ' + trashName}
+              label={'Yes, move this repository to ' + TrashNameLabel}
               value={
                 this.state.includeMoveToTrash
                   ? CheckboxValue.On
