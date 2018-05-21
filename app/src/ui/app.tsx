@@ -242,7 +242,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.push()
       case 'pull':
         return this.pull()
-      case 'create-commit':
+      case 'select-changes':
         return this.createCommit()
       case 'show-history':
         return this.showHistory()

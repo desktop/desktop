@@ -1,7 +1,7 @@
 export type MenuEvent =
   | 'push'
   | 'pull'
-  | 'create-commit'
+  | 'select-changes'
   | 'show-history'
   | 'add-local-repository'
   | 'create-branch'

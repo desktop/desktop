@@ -127,10 +127,10 @@ export function buildDefaultMenu(
     label: __DARWIN__ ? 'View' : '&View',
     submenu: [
       {
-        label: __DARWIN__ ? 'Create Commit' : '&Commit',
-        id: 'create-commit',
+        label: __DARWIN__ ? 'Show Changes' : '&Changes',
+        id: 'show-changes',
         accelerator: 'CmdOrCtrl+1',
-        click: emit('create-commit'),
+        click: emit('select-changes'),
       },
       {
         label: __DARWIN__ ? 'Show History' : '&History',
