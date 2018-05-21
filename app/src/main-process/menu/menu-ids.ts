@@ -12,7 +12,7 @@ export type MenuIDs =
   | 'branch'
   | 'repository'
   | 'create-branch'
-  | 'select-changes'
+  | 'show-changes'
   | 'show-history'
   | 'show-repository-list'
   | 'show-branches-list'

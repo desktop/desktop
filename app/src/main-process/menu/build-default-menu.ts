@@ -130,7 +130,7 @@ export function buildDefaultMenu(
         label: __DARWIN__ ? 'Show Changes' : '&Changes',
         id: 'show-changes',
         accelerator: 'CmdOrCtrl+1',
-        click: emit('select-changes'),
+        click: emit('show-changes'),
       },
       {
         label: __DARWIN__ ? 'Show History' : '&History',
