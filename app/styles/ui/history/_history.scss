@@ -147,5 +147,9 @@
     display: flex;
     height: 100%;
     flex-direction: column;
+
+    .ref-component {
+      word-break: break-word;
+    }
   }
 }
