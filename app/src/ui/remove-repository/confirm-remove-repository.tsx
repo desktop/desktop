@@ -11,14 +11,17 @@ interface IConfirmRemoveRepositoryProps {
   readonly repository: Repository
 
   /** The action to execute when the user confirms */
-  readonly onConfirmation: (repo: Repository) => void
+  readonly onConfirmation: (
+    repo: Repository,
+    deleteRepoFromDisk: boolean
+  ) => void
 
   /** The action to execute when the user cancels */
   readonly onDismissed: () => void
 }
 
 interface IConfirmRemoveRepositoryState {
-  readonly includeMoveToTrash: boolean
+  readonly deleteRepoFromDisk: boolean
 }
 
 export class ConfirmRemoveRepository extends React.Component<
@@ -29,7 +32,7 @@ export class ConfirmRemoveRepository extends React.Component<
     super(props)
 
     this.state = {
-      includeMoveToTrash: false,
+      deleteRepoFromDisk: false,
     }
   }
 
@@ -38,7 +41,11 @@ export class ConfirmRemoveRepository extends React.Component<
   }
 
   private onConfirmed = () => {
-    this.props.onConfirmation(this.props.repository)
+    this.props.onConfirmation(
+      this.props.repository,
+      this.state.deleteRepoFromDisk
+    )
+
     this.props.onDismissed()
   }
 
@@ -72,11 +79,11 @@ export class ConfirmRemoveRepository extends React.Component<
             <Checkbox
               label={'Yes, move this repository to ' + TrashNameLabel}
               value={
-                this.state.includeMoveToTrash
+                this.state.deleteRepoFromDisk
                   ? CheckboxValue.On
                   : CheckboxValue.Off
               }
-              onChange={this.onIncludeMoveToTrash}
+              onChange={this.onConfirmRepositoryDeletion}
             />
           </div>
         </DialogContent>
@@ -90,9 +97,11 @@ export class ConfirmRemoveRepository extends React.Component<
     )
   }
 
-  private onIncludeMoveToTrash = (event: React.FormEvent<HTMLInputElement>) => {
+  private onConfirmRepositoryDeletion = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
     const value = event.currentTarget.checked
 
-    this.setState({ includeMoveToTrash: value })
+    this.setState({ deleteRepoFromDisk: value })
   }
 }

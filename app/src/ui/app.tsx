@@ -750,8 +750,11 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
   }
 
-  private onConfirmRepoRemoval = (repository: Repository) => {
-    this.props.dispatcher.removeRepositories([repository], false)
+  private onConfirmRepoRemoval = (
+    repository: Repository,
+    deleteRepoFromDisk: boolean
+  ) => {
+    this.props.dispatcher.removeRepositories([repository], deleteRepoFromDisk)
   }
 
   private getRepository(): Repository | CloningRepository | null {
