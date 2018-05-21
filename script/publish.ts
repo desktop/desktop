@@ -154,6 +154,7 @@ function upload(assetName: string, assetPath: string) {
         if (error) {
           reject(error)
         } else {
+          // eslint-disable-next-line no-sync
           const stats = Fs.statSync(assetPath)
           const hash = Crypto.createHash('sha1')
           hash.setEncoding('hex')

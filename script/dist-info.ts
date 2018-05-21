@@ -88,9 +88,11 @@ export function getWindowsIdentifierName() {
 }
 
 export function getBundleSizes() {
+  // eslint-disable-next-line no-sync
   const rendererStats = Fs.statSync(
     Path.join(projectRoot, 'out', 'renderer.js')
   )
+  // eslint-disable-next-line no-sync
   const mainStats = Fs.statSync(Path.join(projectRoot, 'out', 'main.js'))
   return { rendererSize: rendererStats.size, mainSize: mainStats.size }
 }

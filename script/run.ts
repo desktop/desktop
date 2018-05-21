@@ -1,6 +1,6 @@
 import { join } from 'path'
 import { spawn, SpawnOptions } from 'child_process'
-import { statSync } from 'fs'
+import * as Fs from 'fs'
 import { getDistPath, getExecutableName } from './dist-info'
 
 const distPath = getDistPath()
@@ -26,7 +26,8 @@ if (process.platform === 'darwin') {
 
 export function run(spawnOptions: SpawnOptions) {
   try {
-    const stats = statSync(binaryPath)
+    // eslint-disable-next-line no-sync
+    const stats = Fs.statSync(binaryPath)
     if (!stats.isFile()) {
       return null
     }
