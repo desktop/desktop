@@ -2,10 +2,11 @@ import * as Path from 'path'
 import * as Fs from 'fs'
 import { gt as greaterThan } from 'semver'
 
-import { fetchPR, IAPIPR } from './api'
+import { fetchPR, IDesktopPullRequest } from './api'
+
+const listify: (values: Array<any>) => string = require('listify')
 
 const PlaceholderChangeType = '???'
-const OfficialOwner = 'desktop'
 
 interface IParsedCommit {
   readonly prID: number
@@ -53,7 +54,11 @@ export function findIssueRef(body: string): string {
   return issueRef
 }
 
-function getChangelogEntry(commit: IParsedCommit, pr: IAPIPR): string {
+function getChangelogEntry(
+  commit: IParsedCommit,
+  pr: IDesktopPullRequest,
+  externalContributors: ReadonlySet<string>
+): string {
   let type = PlaceholderChangeType
   const description = capitalized(pr.title)
 
@@ -66,15 +71,19 @@ function getChangelogEntry(commit: IParsedCommit, pr: IAPIPR): string {
   }
 
   let attribution = ''
-  if (commit.owner !== OfficialOwner) {
-    attribution = `. Thanks @${commit.owner}!`
+
+  if (externalContributors.size > 0) {
+    const mentions = [...externalContributors].map(c => `@${c}`)
+    const combinedMentions = listify(mentions)
+    attribution = `. Thanks ${combinedMentions}!`
   }
 
   return `[${type}] ${description} -${issueRef}${attribution}`
 }
 
 export async function convertToChangelogFormat(
-  lines: ReadonlyArray<string>
+  lines: ReadonlyArray<string>,
+  coreMembers: ReadonlySet<string>
 ): Promise<ReadonlyArray<string>> {
   const entries = []
   for (const line of lines) {
@@ -85,7 +94,13 @@ export async function convertToChangelogFormat(
         throw new Error(`Unable to get PR from API: ${commit.prID}`)
       }
 
-      const entry = getChangelogEntry(commit, pr)
+      const collaborators = pr.collaborators
+
+      const externalContributors = new Set(
+        [...collaborators].filter(c => !coreMembers.has(c))
+      )
+
+      const entry = getChangelogEntry(commit, pr, externalContributors)
       entries.push(entry)
     } catch (e) {
       console.warn('Unable to parse line, using the full message.', e)

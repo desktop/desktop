@@ -1,4 +1,5 @@
 import { spawn } from './spawn'
+import { getCoreTeamMembers } from './api'
 import { getLogLines } from './git'
 import { convertToChangelogFormat } from './parser'
 import { sort as semverSort } from 'semver'
@@ -47,7 +48,8 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
     )
   }
 
+  const coreMembers = await getCoreTeamMembers()
   const lines = await getLogLines(previousVersion)
-  const changelogEntries = await convertToChangelogFormat(lines)
+  const changelogEntries = await convertToChangelogFormat(lines, coreMembers)
   console.log(jsonStringify(changelogEntries))
 }
