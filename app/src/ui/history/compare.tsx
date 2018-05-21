@@ -35,9 +35,9 @@ interface ICompareSidebarProps {
   readonly sidebarHasFocusWithin: boolean
 
   /**
-   * Shows the branch list when the component is loaded
+   * A flag from the application to indicate the branches list should be expanded.
    */
-  readonly initialShowBranchList: boolean
+  readonly shouldShowBranchesList: boolean
   readonly onRevertCommit: (commit: Commit) => void
   readonly onViewCommitOnGitHub: (sha: string) => void
 }
@@ -78,7 +78,7 @@ export class CompareSidebar extends React.Component<
     this.state = {
       focusedBranch: null,
       filterText,
-      showBranchList: props.initialShowBranchList,
+      showBranchList: props.shouldShowBranchesList,
       selectedCommit: null,
     }
   }

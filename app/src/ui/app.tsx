@@ -490,7 +490,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.showPopup({ type: PopupType.About })
   }
 
-  private async showHistory(shouldFocusBranchList: boolean = false) {
+  private async showHistory(shouldShowBranchesList: boolean = false) {
     const state = this.state.selectedState
     if (state == null || state.type !== SelectionType.Repository) {
       return
@@ -504,7 +504,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     await this.props.dispatcher.changeRepositorySection(state.repository, {
       selectedTab: RepositorySectionTab.History,
-      shouldFocusBranchList,
+      shouldShowBranchesList,
     })
   }
 
