@@ -6,6 +6,7 @@ import { ensureDir } from 'fs-extra'
 
 import { log } from '../log'
 import { openDirectorySafe } from '../shell'
+import { enableCompareSidebar } from '../../lib/feature-flag'
 
 const defaultEditorLabel = __DARWIN__
   ? 'Open in External Editor'
@@ -289,6 +290,13 @@ export function buildDefaultMenu(
         click: emit('update-branch'),
       },
       {
+        label: __DARWIN__ ? 'Compare to Branch' : '&Compare to branch',
+        id: 'compare-to-branch',
+        accelerator: 'CmdOrCtrl+Shift+B',
+        click: emit('compare-to-branch'),
+        visible: enableCompareSidebar(),
+      },
+      {
         label: __DARWIN__
           ? 'Merge Into Current Branch…'
           : '&Merge into current branch…',
@@ -298,10 +306,10 @@ export function buildDefaultMenu(
       },
       separator,
       {
-        label: __DARWIN__ ? 'Compare on GitHub' : '&Compare on GitHub',
-        id: 'compare-branch',
+        label: __DARWIN__ ? 'Compare on GitHub' : 'Compare on &GitHub',
+        id: 'compare-on-github',
         accelerator: 'CmdOrCtrl+Shift+C',
-        click: emit('compare-branch'),
+        click: emit('compare-on-github'),
       },
       {
         label: pullRequestLabel,
