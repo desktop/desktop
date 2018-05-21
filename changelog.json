@@ -3,6 +3,8 @@
     "1.1.2-test6": [
       "Testing the Webpack v4 output from the project"
     ],
+    "1.1.2-beta7": [
+    ],
     "1.1.2-beta6": [
       "[Added] Add MacVim support for macOS - #4532. Thanks @johnelliott!",
       "[Fixed] Open in Shell on Linux ensures Git is available on the user's PATH - #4619. Thanks @ziggy42!",

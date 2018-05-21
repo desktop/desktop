@@ -4,7 +4,7 @@ import { CSSTransitionGroup } from 'react-transition-group'
 
 import {
   IAppState,
-  RepositorySection,
+  RepositorySectionTab,
   Popup,
   PopupType,
   FoldoutType,
@@ -270,6 +270,9 @@ export class App extends React.Component<IAppProps, IAppState> {
         this.props.dispatcher.recordMenuInitiatedUpdate()
         return this.updateBranch()
       }
+      case 'compare-to-branch': {
+        return this.showHistory(true)
+      }
       case 'merge-branch': {
         this.props.dispatcher.recordMenuInitiatedMerge()
         return this.mergeBranch()
@@ -278,8 +281,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.showRepositorySettings()
       case 'view-repository-on-github':
         return this.viewRepositoryOnGitHub()
-      case 'compare-branch':
-        return this.compareBranch()
+      case 'compare-on-github':
+        return this.compareBranchOnDotcom()
       case 'open-in-shell':
         return this.openCurrentRepositoryInShell()
       case 'clone-repository':
@@ -385,7 +388,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
   }
 
-  private compareBranch() {
+  private compareBranchOnDotcom() {
     const htmlURL = this.getCurrentRepositoryGitHubURL()
     if (!htmlURL) {
       return
@@ -486,6 +489,20 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.showPopup({ type: PopupType.About })
   }
 
+  private showHistory(shouldFocusBranchList: boolean = false) {
+    const state = this.state.selectedState
+    if (state == null || state.type !== SelectionType.Repository) {
+      return
+    }
+
+    this.props.dispatcher.closeCurrentFoldout()
+
+    this.props.dispatcher.changeRepositorySection(state.repository, {
+      selectedTab: RepositorySectionTab.History,
+      shouldFocusBranchList,
+    })
+  }
+
   private createCommit() {
     const state = this.state.selectedState
     if (state == null || state.type !== SelectionType.Repository) {
@@ -493,23 +510,9 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     this.props.dispatcher.closeCurrentFoldout()
-    this.props.dispatcher.changeRepositorySection(
-      state.repository,
-      RepositorySection.Changes
-    )
-  }
-
-  private showHistory() {
-    const state = this.state.selectedState
-    if (state == null || state.type !== SelectionType.Repository) {
-      return
-    }
-
-    this.props.dispatcher.closeCurrentFoldout()
-    this.props.dispatcher.changeRepositorySection(
-      state.repository,
-      RepositorySection.History
-    )
+    this.props.dispatcher.changeRepositorySection(state.repository, {
+      selectedTab: RepositorySectionTab.Changes,
+    })
   }
 
   private chooseRepository() {
