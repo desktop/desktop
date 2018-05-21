@@ -1,4 +1,4 @@
-import { readdirSync } from 'fs'
+import * as fs from 'fs'
 import * as Path from 'path'
 
 import { getSHA } from './git-info'
@@ -14,7 +14,8 @@ const channel = getReleaseChannel()
 export function getCLICommands() {
   return (
     // eslint-disable-next-line no-sync
-    readdirSync(Path.resolve(projectRoot, 'app', 'src', 'cli', 'commands'))
+    fs
+      .readdirSync(Path.resolve(projectRoot, 'app', 'src', 'cli', 'commands'))
       .filter(name => name.endsWith('.ts'))
       .map(name => name.replace(/\.ts$/, ''))
   )
