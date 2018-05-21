@@ -105,6 +105,15 @@ export class CompareSidebar extends React.Component<
       })
     }
 
+    if (
+      !this.props.shouldShowBranchesList &&
+      nextProps.shouldShowBranchesList
+    ) {
+      // ensure the state is only updated when this prop transitions
+      // from false -> true, and that it occurs after being mounted
+      this.setState({ showBranchList: true })
+    }
+
     if (nextProps.sidebarHasFocusWithin !== this.props.sidebarHasFocusWithin) {
       if (nextProps.sidebarHasFocusWithin === false) {
         this.setState({ showBranchList: false })
