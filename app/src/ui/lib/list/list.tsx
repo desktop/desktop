@@ -733,11 +733,9 @@ export class List extends React.Component<IListProps, IListState> {
       <FocusContainer
         className="list-focus-container"
         onKeyDown={this.onKeyDown}
-        key="focus-container"
       >
         <Grid
           aria-label={''}
-          key="grid"
           role={''}
           ref={this.onGridRef}
           autoContainerWidth={true}
@@ -785,7 +783,6 @@ export class List extends React.Component<IListProps, IListState> {
 
     return (
       <div
-        key="fake-scroll"
         className="fake-scroll"
         ref={this.onFakeScrollRef}
         style={{ height }}
