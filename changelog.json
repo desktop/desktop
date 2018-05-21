@@ -1,5 +1,37 @@
 {
   "releases": {
+    "1.2.0": [
+      "[New] History now has ability to compare to another branch and merge oustanding commits",
+      "[New] Support for selecting more than one file in the changes list - #1712. Thanks @icosamuel!",
+      "[New] Render bitmap images in diffs - #4367. Thanks @MagicMarvMan!",
+      "[Added] Add PowerShell Core support for Windows and macOS - #3791. Thanks @saschanaz!",
+      "[Added] Add MacVim support for macOS - #4532. Thanks @johnelliott!",
+      "[Added] Syntax highlighting for JavaServer Pages (JSP) - #4470. Thanks @damaneice!",
+      "[Added] Syntax highlighting for Haxe files - #4445. Thanks @Gama11!",
+      "[Added] Syntax highlighting for R files - #4455. Thanks @say25!",
+      "[Fixed] Open in Shell on Linux ensures Git is available on the user's PATH - #4619. Thanks @ziggy42!",
+      "[Fixed] Keyboard focus issues when navigating Pull Request list - #4673",
+      "[Fixed] Prevent icon from shrinking in rename dialog - #4566",
+      "[Fixed] Fetch to ensure \"Open in Desktop\" has a branch to checkout - #3006",
+      "[Fixed] Handle the click event when opening a binary file - #4446",
+      "[Fixed] Skip fast-forwarding when there are a lot of eligible local branches - #4392",
+      "[Fixed] Image diffs not working for files with upper-case file extension - #4466",
+      "[Fixed] Syntax highlighting not working for files with upper-case file extension - #4462. Thanks @say25!",
+      "[Fixed] Error when creating Git LFS progress causes clone to fail - #4307. Thanks @MagicMarvMan!",
+      "[Fixed] 'Open File in External Editor' does not use existing window - #4381",
+      "[Fixed] Always ask for confirmation when discarding all changes - #4423",
+      "[Fixed] 'Select All' shortcut now works for changes list - #3821",
+      "[Improved] Automatically add valid repository when using command line interface - #4513. Thanks @ggajos!",
+      "[Improved] Always fast-forward the default branch - #4506",
+      "[Improved] Warn when trying to rename a published branch - #4035. Thanks @agisilaos!",
+      "[Improved] Added context menu for files in commit history - #2845. Thanks @crea7or",
+      "[Improved] Discarding all changes always prompts for confirmation - #4459",
+      "[Improved] Getting list of changed files is now more efficient when dealing with thousands of files - #4443",
+      "[Improved] Checking out a Pull Request may skip unnecessary fetch - #4068. Thanks @agisilaos!",
+      "[Improved] Commit summary now has a hint to indicate why committing is disabled - #4429.",
+      "[Improved] Pull request status text now matches format on GitHub - #3521",
+      "[Improved] Add escape hatch to disable hardware acceleration when launching - #3921"
+    ],
     "1.1.2-beta7": [
     ],
     "1.1.2-beta6": [
