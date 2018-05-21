@@ -7,7 +7,13 @@ import { Branch } from '../../models/branch'
 import { BranchesTab } from '../../models/branches-tab'
 
 import { Dispatcher } from '../../lib/dispatcher'
-import { FoldoutType, PopupType } from '../../lib/app-state'
+import {
+  FoldoutType,
+  PopupType,
+  CompareActionKind,
+  ComparisonView,
+  RepositorySectionTab,
+} from '../../lib/app-state'
 import { assertNever } from '../../lib/fatal-error'
 
 import { TabBar } from '../tab-bar'
@@ -98,8 +104,25 @@ export class BranchesContainer extends React.Component<
     )
   }
 
+  private onCompareToBranch = async (branch: Branch) => {
+    await this.props.dispatcher.initializeCompare(this.props.repository, {
+      kind: CompareActionKind.Branch,
+      branch,
+      mode: ComparisonView.Behind,
+    })
+    await this.props.dispatcher.changeRepositorySection(this.props.repository, {
+      selectedTab: RepositorySectionTab.History,
+    })
+    await this.props.dispatcher.closeFoldout(FoldoutType.Branch)
+  }
+
   private renderBranch = (item: IBranchListItem, matches: IMatches) => {
-    return renderDefaultBranch(item, matches, this.props.currentBranch)
+    return renderDefaultBranch(
+      item,
+      matches,
+      this.props.currentBranch,
+      this.onCompareToBranch
+    )
   }
 
   private renderSelectedTab() {

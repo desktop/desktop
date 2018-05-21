@@ -1,5 +1,5 @@
 import * as Path from 'path'
-import { pathExists } from '../file-system'
+import { pathExists } from 'fs-extra'
 import { IFoundEditor } from './found-editor'
 import { assertNever } from '../fatal-error'
 

@@ -1,6 +1,7 @@
 import * as Path from 'path'
 import * as Os from 'os'
-import { pathExists, mkdirIfNeeded, writeFile } from '../lib/file-system'
+
+import { pathExists, ensureDir, writeFile } from 'fs-extra'
 import { spawn, getPathSegments, setPathSegments } from '../lib/process/win32'
 
 const appFolder = Path.resolve(process.execPath, '..')
@@ -46,7 +47,7 @@ async function handleUpdated(): Promise<void> {
 
 async function installCLI(): Promise<void> {
   const binPath = getBinPath()
-  await mkdirIfNeeded(binPath)
+  await ensureDir(binPath)
   await writeBatchScriptCLITrampoline(binPath)
   await writeShellScriptCLITrampoline(binPath)
   const paths = await getPathSegments()
@@ -79,7 +80,7 @@ function resolveVersionedPath(binPath: string, relativePath: string): string {
  * rewrite the trampoline to point to the new, version-specific path. Bingo
  * bango Bob's your uncle.
  */
-async function writeBatchScriptCLITrampoline(binPath: string): Promise<void> {
+function writeBatchScriptCLITrampoline(binPath: string): Promise<void> {
   const versionedPath = resolveVersionedPath(
     binPath,
     'resources/app/static/github.bat'
@@ -91,7 +92,7 @@ async function writeBatchScriptCLITrampoline(binPath: string): Promise<void> {
   return writeFile(trampolinePath, trampoline)
 }
 
-async function writeShellScriptCLITrampoline(binPath: string): Promise<void> {
+function writeShellScriptCLITrampoline(binPath: string): Promise<void> {
   const versionedPath = resolveVersionedPath(
     binPath,
     'resources/app/static/github.sh'

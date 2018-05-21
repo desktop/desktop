@@ -1,9 +1,7 @@
-/* eslint-disable no-sync */
-
 import { expect } from 'chai'
 
 import * as Path from 'path'
-import * as Fs from 'fs'
+import * as FSE from 'fs-extra'
 import { GitProcess } from 'dugite'
 
 import {
@@ -30,7 +28,7 @@ import { InMemoryStore, AsyncInMemoryStore } from '../helpers/stores'
 import { StatsStore } from '../../src/lib/stats'
 
 import {
-  RepositorySection,
+  RepositorySectionTab,
   SelectionType,
   IRepositoryState,
 } from '../../src/lib/app-state'
@@ -116,7 +114,7 @@ describe('AppStore', () => {
       const file = 'README.md'
       const filePath = Path.join(repo.path, file)
 
-      Fs.writeFileSync(filePath, 'SOME WORDS GO HERE\n')
+      await FSE.writeFile(filePath, 'SOME WORDS GO HERE\n')
 
       await GitProcess.exec(['add', file], repo.path)
       await GitProcess.exec(['commit', '-m', 'added file'], repo.path)
@@ -133,10 +131,9 @@ describe('AppStore', () => {
 
       // select the repository and show the changes view
       await appStore._selectRepository(repository)
-      await appStore._changeRepositorySection(
-        repository,
-        RepositorySection.Changes
-      )
+      await appStore._changeRepositorySection(repository, {
+        selectedTab: RepositorySectionTab.Changes,
+      })
 
       let state = getAppState(appStore)
       expect(state.localCommitSHAs.length).to.equal(1)

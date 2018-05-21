@@ -1,8 +1,8 @@
 import { spawn, ChildProcess } from 'child_process'
 import * as Path from 'path'
 import { enumerateValues, HKEY, RegistryValueType } from 'registry-js'
+import { pathExists } from 'fs-extra'
 
-import { pathExists } from '../file-system'
 import { assertNever } from '../fatal-error'
 import { IFoundShell } from './found-shell'
 

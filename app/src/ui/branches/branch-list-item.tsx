@@ -1,13 +1,20 @@
 import * as React from 'react'
 import * as moment from 'moment'
+import * as classNames from 'classnames'
 
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Branch } from '../../models/branch'
+
+import { IMenuItem } from '../../lib/menu-item'
 import { HighlightText } from '../lib/highlight-text'
 import { IMatches } from '../../lib/fuzzy-find'
 
+import { showContextualMenu } from '../main-process-proxy'
+import { Octicon, OcticonSymbol } from '../octicons'
+import { enableCompareSidebar } from '../../lib/feature-flag'
+
 interface IBranchListItemProps {
   /** The name of the branch */
-  readonly name: string
+  readonly branch: Branch
 
   /** Specifies whether this item is currently selected */
   readonly isCurrentBranch: boolean
@@ -17,14 +24,56 @@ interface IBranchListItemProps {
 
   /** The characters in the branch name to highlight */
   readonly matches: IMatches
-}
 
+  /**
+   * Callback to fire when the user wants to compare to this branch.
+   *
+   * If this is not specified, kebab element will not be rendered.
+   */
+  readonly onCompareToBranch?: (branch: Branch) => void
+}
 /** The branch component. */
 export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
+  private onContextMenu = (event: React.MouseEvent<any>) => {
+    event.preventDefault()
+    event.stopPropagation()
+
+    const items: IMenuItem[] = [
+      {
+        label: 'Compare to this branch',
+        action: () => {
+          if (this.props.onCompareToBranch) {
+            this.props.onCompareToBranch(this.props.branch)
+          }
+        },
+      },
+    ]
+
+    showContextualMenu(items)
+  }
+
+  private renderKebab = (lastCommitDate: Date | null, infoTitle: string) => {
+    if (this.props.onCompareToBranch == null) {
+      return null
+    }
+
+    if (!enableCompareSidebar()) {
+      return null
+    }
+
+    return (
+      <div className="branches-list-item-menu" title={infoTitle}>
+        <div className="branch-menu-wrapper" onClick={this.onContextMenu}>
+          <Octicon symbol={OcticonSymbol.kebabHorizontal} />
+        </div>
+      </div>
+    )
+  }
+
   public render() {
     const lastCommitDate = this.props.lastCommitDate
     const isCurrentBranch = this.props.isCurrentBranch
-    const name = this.props.name
+    const name = this.props.branch.name
 
     const date = lastCommitDate ? moment(lastCommitDate).fromNow() : ''
     const icon = isCurrentBranch ? OcticonSymbol.check : OcticonSymbol.gitBranch
@@ -32,15 +81,27 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
       ? 'Current branch'
       : lastCommitDate ? lastCommitDate.toString() : ''
 
+    const enableKebabEffect =
+      enableCompareSidebar() &&
+      !isCurrentBranch &&
+      this.props.onCompareToBranch != null
+
+    const className = classNames('branches-list-item', {
+      'kebab-effect': enableKebabEffect,
+    })
+
     return (
-      <div className="branches-list-item">
+      <div className={className}>
         <Octicon className="icon" symbol={icon} />
         <div className="name" title={name}>
           <HighlightText text={name} highlight={this.props.matches.title} />
         </div>
+
         <div className="description" title={infoTitle}>
           {date}
         </div>
+
+        {this.renderKebab(lastCommitDate, infoTitle)}
       </div>
     )
   }

@@ -2,10 +2,11 @@ import { Menu, ipcMain, shell, app } from 'electron'
 import { ensureItemIds } from './ensure-item-ids'
 import { MenuEvent } from './menu-event'
 import { getLogDirectoryPath } from '../../lib/logging/get-log-path'
-import { mkdirIfNeeded } from '../../lib/file-system'
+import { ensureDir } from 'fs-extra'
 
 import { log } from '../log'
 import { openDirectorySafe } from '../shell'
+import { enableCompareSidebar } from '../../lib/feature-flag'
 
 const defaultEditorLabel = __DARWIN__
   ? 'Open in External Editor'
@@ -132,10 +133,10 @@ export function buildDefaultMenu(
         click: emit('create-commit'),
       },
       {
-        label: __DARWIN__ ? 'Compare to Branch' : 'C&ompare',
-        id: 'compare-to-branch',
+        label: __DARWIN__ ? 'Show History' : '&History',
+        id: 'show-history',
         accelerator: 'CmdOrCtrl+2',
-        click: emit('compare-to-branch'),
+        click: emit('show-history'),
       },
       {
         label: __DARWIN__ ? 'Show Repository List' : 'Repository &list',
@@ -289,6 +290,13 @@ export function buildDefaultMenu(
         click: emit('update-branch'),
       },
       {
+        label: __DARWIN__ ? 'Compare to Branch' : '&Compare to branch',
+        id: 'compare-to-branch',
+        accelerator: 'CmdOrCtrl+Shift+B',
+        click: emit('compare-to-branch'),
+        visible: enableCompareSidebar(),
+      },
+      {
         label: __DARWIN__
           ? 'Merge Into Current Branch…'
           : '&Merge into current branch…',
@@ -298,10 +306,10 @@ export function buildDefaultMenu(
       },
       separator,
       {
-        label: __DARWIN__ ? 'Compare on GitHub' : '&Compare on GitHub',
-        id: 'compare-branch',
+        label: __DARWIN__ ? 'Compare on GitHub' : 'Compare on &GitHub',
+        id: 'compare-on-github',
         accelerator: 'CmdOrCtrl+Shift+C',
-        click: emit('compare-branch'),
+        click: emit('compare-on-github'),
       },
       {
         label: pullRequestLabel,
@@ -328,7 +336,7 @@ export function buildDefaultMenu(
   const submitIssueItem: Electron.MenuItemConstructorOptions = {
     label: __DARWIN__ ? 'Report Issue…' : 'Report issue…',
     click() {
-      shell.openExternal('https://github.com/desktop/desktop/issues/new')
+      shell.openExternal('https://github.com/desktop/desktop/issues/new/choose')
     },
   }
 
@@ -356,7 +364,7 @@ export function buildDefaultMenu(
     label: showLogsLabel,
     click() {
       const logPath = getLogDirectoryPath()
-      mkdirIfNeeded(logPath)
+      ensureDir(logPath)
         .then(() => {
           openDirectorySafe(logPath)
         })
