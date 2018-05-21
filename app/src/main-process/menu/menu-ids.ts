@@ -5,7 +5,7 @@ export type MenuIDs =
   | 'update-branch'
   | 'merge-branch'
   | 'view-repository-on-github'
-  | 'compare-branch'
+  | 'compare-on-github'
   | 'open-in-shell'
   | 'push'
   | 'pull'
@@ -25,3 +25,4 @@ export type MenuIDs =
   | 'clone-repository'
   | 'about'
   | 'create-pull-request'
+  | 'compare-to-branch'
