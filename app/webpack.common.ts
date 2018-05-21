@@ -34,9 +34,6 @@ const commonConfig: webpack.Configuration = {
             options: {
               useBabel: true,
               useCache: true,
-              compilerOptions: {
-                noEmit: false, // override from tsconfig.json
-              },
             },
           },
         ],
