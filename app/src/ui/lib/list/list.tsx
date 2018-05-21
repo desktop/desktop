@@ -690,7 +690,12 @@ export class List extends React.Component<IListProps, IListState> {
    */
   private renderContents(width: number, height: number) {
     if (__WIN32__) {
-      return [this.renderGrid(width, height), this.renderFakeScroll(height)]
+      return (
+        <>
+          {this.renderGrid(width, height)}
+          {this.renderFakeScroll(height)}
+        </>
+      )
     }
 
     return this.renderGrid(width, height)
