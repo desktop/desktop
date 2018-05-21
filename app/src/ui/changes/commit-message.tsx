@@ -229,7 +229,7 @@ export class CommitMessage extends React.Component<
   }
 
   private onSubmit = () => {
-    this.showChanges()
+    this.createCommit()
   }
 
   private getCoAuthorTrailers() {
@@ -243,7 +243,7 @@ export class CommitMessage extends React.Component<
     }))
   }
 
-  private async showChanges() {
+  private async createCommit() {
     const { summary, description } = this.state
 
     if (!this.canCommit()) {
@@ -274,7 +274,7 @@ export class CommitMessage extends React.Component<
 
     const isShortcutKey = __DARWIN__ ? event.metaKey : event.ctrlKey
     if (isShortcutKey && event.key === 'Enter' && this.canCommit()) {
-      this.showChanges()
+      this.createCommit()
       event.preventDefault()
     }
   }
