@@ -1752,7 +1752,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this._updateCurrentPullRequest(repository)
     this.updateMenuItemLabels(repository)
     this._initializeCompare(repository)
-    this.refreshAllRepositories()
+    this.repositories = await this.getRefreshedRepositories(
+      this.repositories,
+      repository
+    )
   }
 
   public async refreshAllRepositories() {
@@ -1761,18 +1764,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private async getRefreshedRepositories(
-    repositories: ReadonlyArray<Repository>
+    repositories: ReadonlyArray<Repository>,
+    targetRepo?: Repository
   ): Promise<ReadonlyArray<Repository>> {
     for (const repo of repositories) {
-      await this.withAuthenticatingUser(repo, async (repo, account) => {
-        const gitStore = this.getGitStore(repo)
-        repo.setAheadBehind(gitStore.aheadBehind)
-        await gitStore.fetch(account, true)
-        const status = await gitStore.loadStatus()
-        if (status) {
-          repo.setChangedFiles(status.workingDirectory.files)
-        }
-      })
+      if (!targetRepo || targetRepo.id === repo.id) {
+        await this.withAuthenticatingUser(repo, async (repo, account) => {
+          const gitStore = this.getGitStore(repo)
+          repo.setAheadBehind(gitStore.aheadBehind)
+          await gitStore.fetch(account, true)
+          const status = await gitStore.loadStatus()
+          if (status) {
+            repo.setChangedFiles(status.workingDirectory.files)
+          }
+        })
+      }
     }
     return repositories
   }
