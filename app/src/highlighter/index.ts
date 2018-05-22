@@ -11,13 +11,34 @@ import {
 
 import { ITokens, IHighlightRequest } from '../lib/highlighter/types'
 
+/**
+ * A mode definition object is used to map a certain file
+ * extension to a mode loader (see the documentation for
+ * the require property).
+ */
 interface IModeDefinition {
-  require: () => Promise<void>
-  extensions: {
-    [key: string]: string
+  /**
+   * A function that, when called, will attempt to asynchronously
+   * load the required modules for a particular mode. This function
+   * is idempotent and can be called multiple times with no adverse
+   * effect.
+   */
+  readonly require: () => Promise<void>
+
+  /**
+   * A map between file extensions (including the leading dot, i.e.
+   * ".jpeg") and the selected mime type to use when highlighting
+   * that extension as specified in the CodeMirror mode itself.
+   */
+  readonly extensions: {
+    readonly [key: string]: string
   }
 }
 
+/**
+ * Array describing all currently supported modes and the file extensions
+ * that they cover.
+ */
 const modes: ReadonlyArray<IModeDefinition> = [
   {
     require: () => import('codemirror/mode/javascript/javascript'),
@@ -207,7 +228,18 @@ const modes: ReadonlyArray<IModeDefinition> = [
   },
 ]
 
+/**
+ * A map between file extensions and mime types, see
+ * the 'extensions' property on the IModeDefinition interface
+ * for more information
+ */
 const extensionMIMEMap = new Map<string, string>()
+
+/**
+ * A map between mime types and mode definitions. See the
+ * documentation for the IModeDefinition interface
+ * for more information
+ */
 const mimeModeMap = new Map<string, IModeDefinition>()
 
 for (const mode of modes) {
