@@ -327,7 +327,7 @@ export type RepositorySection =
   | { selectedTab: RepositorySectionTab.Changes }
   | {
       selectedTab: RepositorySectionTab.History
-      shouldFocusBranchList?: boolean
+      shouldShowBranchesList?: boolean
     }
 
 export interface IRepositoryState {
