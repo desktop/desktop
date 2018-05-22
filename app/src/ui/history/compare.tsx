@@ -100,7 +100,7 @@ export class CompareSidebar extends React.Component<
         },
         () => {
           // ensure filter text behaviour matches the prop value
-          if (this.textbox) {
+          if (this.textbox !== null) {
             if (nextProps.shouldShowBranchesList) {
               this.textbox.focus()
             } else {
