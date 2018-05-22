@@ -146,7 +146,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         },
         { timeout: ReadyDelay }
       )
-      const interval = 1000 * 30
+      const interval = 1000 * 60 * 5
       window.setInterval(() => {
         this.props.appStore.refreshLocalRepositories()
       }, interval)

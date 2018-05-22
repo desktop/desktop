@@ -1762,19 +1762,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repositories: ReadonlyArray<Repository>
   ): Promise<ReadonlyArray<Repository>> {
     for (const repo of repositories) {
-      if (repo instanceof Repository) {
-        await this.withAuthenticatingUser(repo, async (repo, account) => {
-          const gitStore = this.getGitStore(repo)
-          await gitStore.fetch(account, true)
-          const status = await gitStore.loadStatus()
-          if (status) {
-            repo.setRepoInfo(
-              gitStore.aheadBehind,
-              status.workingDirectory.files
-            )
-          }
-        })
-      }
+      await this.withAuthenticatingUser(repo, async (repo, account) => {
+        const gitStore = this.getGitStore(repo)
+        repo.setAheadBehind(gitStore.aheadBehind)
+        await gitStore.fetch(account, true)
+        const status = await gitStore.loadStatus()
+        if (status) {
+          repo.setChangedFiles(status.workingDirectory.files)
+        }
+      })
     }
     return repositories
   }

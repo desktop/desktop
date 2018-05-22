@@ -49,11 +49,13 @@ export class Repository {
       ${this.name}`
   }
 
-  public setRepoInfo(
-    aheadBehind: IAheadBehind | null,
+  public setChangedFiles(
     changedFiles: ReadonlyArray<WorkingDirectoryFileChange>
-  ): void {
-    this.aheadBehind = aheadBehind
+  ) {
     this.changedFiles = changedFiles
+  }
+
+  public setAheadBehind(aheadBehind: IAheadBehind | null) {
+    this.aheadBehind = aheadBehind
   }
 }
