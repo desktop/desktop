@@ -11,14 +11,30 @@ function isTestTag(version: SemVer) {
   return version.prerelease.some(p => p.startsWith('test'))
 }
 
-export async function run(args: ReadonlyArray<string>): Promise<void> {
-  const repositoryRoot = Path.dirname(Path.dirname(__dirname))
-  console.log(`Root: ${repositoryRoot}`)
+const externalContributionRe = /\. Thanks ([\@a-zA-Z0-9\-, ]*)\!$/
 
-  const changelogPath = Path.join(repositoryRoot, 'changelog.json')
-  const changelogBody = Fs.readFileSync(changelogPath, { encoding: 'utf8' })
-  const { releases } = JSON.parse(changelogBody)
+function getContributors(entry: string): ReadonlyArray<string> {
+  const contributorsMatch = externalContributionRe.exec(entry)
+  if (contributorsMatch === null) {
+    return []
+  }
 
+  // strip out any commas and the 'and' suffix at the end
+  const formattedMatch = contributorsMatch[1]
+    .replace(',', '')
+    .replace(' and ', ' ')
+  return formattedMatch.split(' ')
+}
+
+function getIdentifier(entry: string): string | null {
+  const idMatch = /\#\d{1,}/.exec(entry)
+  if (idMatch === null) {
+    return null
+  }
+  return idMatch[0]
+}
+
+function enumerateStableReleases(releases: any) {
   for (const prop of Object.getOwnPropertyNames(releases)) {
     const semanticVersion = parse(prop)
 
@@ -44,16 +60,23 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
 
     const contributors: Array<string> = []
 
-    for (const entry of externalChangelogEntries) {
-      const match = externalContributionRe.exec(entry)
+    const pullRequestIds: Array<string> = []
 
-      if (match === null) {
+    for (const entry of externalChangelogEntries) {
+      const distinctContributors = getContributors(entry)
+
+      if (distinctContributors.length === 0) {
         continue
       }
 
-      // strip out any commas and the 'and' suffix at the end
-      const formattedMatch = match[1].replace(',', '').replace(' and ', ' ')
-      const distinctContributors = formattedMatch.split(' ')
+      const id = getIdentifier(entry)
+      if (id === null) {
+        continue
+      }
+
+      if (pullRequestIds.indexOf(id) === -1) {
+        pullRequestIds.push(id)
+      }
 
       for (const user of distinctContributors) {
         if (contributors.indexOf(user) === -1) {
@@ -62,10 +85,22 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
       }
     }
 
-    console.log(
-      `${prop} has ${
-        externalChangelogEntries.length
-      } external contributions from ${contributors.length} unique contributors!`
-    )
+    const idsText = pullRequestIds.join(', ')
+    const contributorsText = contributors.join(', ')
+
+    console.log(`Version: ${prop}`)
+    console.log(` - Contributions: ${pullRequestIds.length} - ${idsText}`)
+    console.log(` - Contributors: ${contributors.length} - ${contributorsText}`)
   }
+}
+
+export async function run(args: ReadonlyArray<string>): Promise<void> {
+  const repositoryRoot = Path.dirname(Path.dirname(__dirname))
+  console.log(`Root: ${repositoryRoot}`)
+
+  const changelogPath = Path.join(repositoryRoot, 'changelog.json')
+  const changelogBody = Fs.readFileSync(changelogPath, { encoding: 'utf8' })
+  const { releases } = JSON.parse(changelogBody)
+
+  enumerateStableReleases(releases)
 }
