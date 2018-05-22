@@ -10,7 +10,7 @@
       "[Added] Syntax highlighting for Haxe files - #4445. Thanks @Gama11!",
       "[Added] Syntax highlighting for R files - #4455. Thanks @say25!",
       "[Fixed] 'Open in Shell' on Linux ensures Git is on PATH - #4619. Thanks @ziggy42!",
-      "[Fixed] Keyboard navigation and focus issues in Pull Request tab - #4673",
+      "[Fixed] Pressing enter on filtered Pull Request does not select it properly - #4673",
       "[Fixed] Alert icon shrinks in rename dialog when branch name is long - #4566",
       "[Fixed] 'Open in Desktop' performs fetch to ensure branch exists before checkout - #3006",
       "[Fixed] 'Open in Default Program' on Windows changes the window title - #4446",
