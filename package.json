@@ -38,6 +38,7 @@
     "rebuild-hard:prod": "yarn clean-slate && yarn build:prod",
     "changelog": "ts-node script/changelog/index.ts",
     "draft-release": "ts-node script/draft-release/index.ts",
+    "contributors": "ts-node script/contributors/index.ts",
     "validate-changelog": "ts-node script/validate-changelog.ts"
   },
   "author": {
