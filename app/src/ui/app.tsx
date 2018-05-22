@@ -242,8 +242,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.push()
       case 'pull':
         return this.pull()
-      case 'create-commit':
-        return this.createCommit()
+      case 'show-changes':
+        return this.showChanges()
       case 'show-history':
         return this.showHistory()
       case 'choose-repository':
@@ -503,7 +503,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
   }
 
-  private createCommit() {
+  private showChanges() {
     const state = this.state.selectedState
     if (state == null || state.type !== SelectionType.Repository) {
       return
