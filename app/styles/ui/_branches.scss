@@ -190,12 +190,15 @@
 
 .branches-list {
   &-item {
+    padding: 0 var(--spacing);
+  }
+
+  &-item {
     display: flex;
     flex-direction: row;
     min-width: 0;
     flex-grow: 1;
     align-items: center;
-    padding: 0 var(--spacing);
 
     .icon {
       margin-right: var(--spacing-half);
@@ -215,44 +218,6 @@
         /* Reset browser defaults */
         background-color: inherit;
         color: currentColor;
-      }
-    }
-
-    .branches-list-item-menu {
-      display: none;
-    }
-
-    &.kebab-effect:hover {
-      .description {
-        display: none;
-      }
-
-      .branches-list-item-menu {
-        display: flex;
-        flex-grow: 1;
-        justify-content: flex-end;
-      }
-
-      .branch-menu-wrapper {
-        display: flex;
-        margin: var(--spacing);
-        margin-right: 0;
-        padding: 0 var(--spacing);
-        border-radius: var(--border-radius);
-        transition: background 0.15s;
-
-        .octicon {
-          fill: var(--text-secondary-color);
-          transition: fill 0.15s;
-        }
-
-        &:hover {
-          background: rgba($gray-500, 0.2);
-
-          .octicon {
-            fill: var(--text-color);
-          }
-        }
       }
     }
 
