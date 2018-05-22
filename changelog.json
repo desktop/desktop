@@ -688,7 +688,6 @@
       "[Fixed] \"Clone with Desktop\" wouldn't include the repository name in the path - #2704"
     ],
     "0.9.0": [
-      "[New] Allow users to create repositories with descriptions - #2719. Thanks @davidcelis!",
       "[New] Use `lfs clone` for faster cloning of LFS repositories - #2679",
       "[Improved] Prompt to override existing LFS filters - #2693",
       "[Fixed] Don't install LFS hooks when checking if a repo uses LFS - #2732",
