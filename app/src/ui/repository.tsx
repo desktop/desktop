@@ -85,7 +85,7 @@ export class RepositoryView extends React.Component<
     return (
       <TabBar selectedIndex={selectedTab} onTabClicked={this.onTabClicked}>
         <span className="with-indicator">
-          <span>{enableCompareSidebar() ? 'Commit' : 'Changes'}</span>
+          <span>Changes</span>
           {hasChanges ? (
             <Octicon
               className="indicator"
