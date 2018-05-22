@@ -1,5 +1,6 @@
 {
   "releases": {
+    "1.2.1-beta1":[],
     "1.2.0": [
       "[New] History now has ability to compare to another branch and merge oustanding commits",
       "[New] Support for selecting more than one file in the changes list - #1712. Thanks @icosamuel!",
