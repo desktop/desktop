@@ -135,7 +135,7 @@ If you are releasing from master, YOUR_BRANCH is unnecessary; write:
 
 We're using `.release` with a bang so that we don't have to wait for any current CI on the branch to finish. This might feel a little wrong, but it's OK since making the release itself will also run CI.
 
-If you're releasing a `production` update, release a `beta` update for the next version too, so that beta users are on the latest release.
+If you're releasing a `production` update, release a `beta` update for the next version too, so that beta users are on the latest release. For example, if the version just released to production is `1.2.0` then the beta release should be `1.2.1-beta0`
 
 ### 4. Check for Completed Release
 
