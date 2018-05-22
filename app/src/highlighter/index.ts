@@ -11,115 +11,211 @@ import {
 
 import { ITokens, IHighlightRequest } from '../lib/highlighter/types'
 
+interface IModeDefinition {
+  require: () => Promise<void>
+  extensions: {
+    [key: string]: string
+  }
+}
+
+const modes: ReadonlyArray<IModeDefinition> = [
+  {
+    require: () => import('codemirror/mode/javascript/javascript'),
+    extensions: {
+      '.ts': 'text/typescript',
+      '.js': 'text/javascript',
+      '.json': 'application/json',
+    },
+  },
+  {
+    require: () => import('codemirror/mode/coffeescript/coffeescript'),
+    extensions: {
+      '.coffee': 'text/x-coffeescript',
+    },
+  },
+  {
+    require: () => import('codemirror/mode/jsx/jsx'),
+    extensions: {
+      '.tsx': 'text/typescript-jsx',
+      '.jsx': 'text/jsx',
+    },
+  },
+  {
+    require: () => import('codemirror/mode/htmlmixed/htmlmixed'),
+    extensions: {
+      '.html': 'text/html',
+      '.htm': 'text/html',
+    },
+  },
+  {
+    require: () => import('codemirror/mode/htmlembedded/htmlembedded'),
+    extensions: {
+      '.jsp': 'application/x-jsp',
+    },
+  },
+  {
+    require: () => import('codemirror/mode/css/css'),
+    extensions: {
+      '.css': 'text/css',
+      '.scss': 'text/x-scss',
+      '.less': 'text/x-less',
+    },
+  },
+  {
+    require: () => import('codemirror/mode/vue/vue'),
+    extensions: {
+      '.vue': 'text/x-vue',
+    },
+  },
+  {
+    require: () => import('codemirror/mode/markdown/markdown'),
+    extensions: {
+      '.markdown': 'text/x-markdown',
+      '.md': 'text/x-markdown',
+    },
+  },
+  {
+    require: () => import('codemirror/mode/yaml/yaml'),
+    extensions: {
+      '.yaml': 'text/yaml',
+      '.yml': 'text/yaml',
+    },
+  },
+  {
+    require: () => import('codemirror/mode/xml/xml'),
+    extensions: {
+      '.xml': 'text/xml',
+      '.xaml': 'text/xml',
+      '.csproj': 'text/xml',
+      '.fsproj': 'text/xml',
+      '.vcxproj': 'text/xml',
+      '.vbproj': 'text/xml',
+      '.svg': 'text/xml',
+    },
+  },
+  {
+    require: () => import('codemirror/mode/clike/clike'),
+    extensions: {
+      '.m': 'text/x-objectivec',
+      '.scala': 'text/x-scala',
+      '.sc': 'text/x-scala',
+      '.cs': 'text/x-csharp',
+      '.java': 'text/x-java',
+      '.c': 'text/x-c',
+      '.h': 'text/x-c',
+      '.cpp': 'text/x-c++src',
+      '.hpp': 'text/x-c++src',
+      '.kt': 'text/x-kotlin',
+    },
+  },
+  {
+    require: () => import('codemirror/mode/mllike/mllike'),
+    extensions: {
+      '.ml': 'text/x-ocaml',
+      '.fs': 'text/x-fsharp',
+      '.fsx': 'text/x-fsharp',
+      '.fsi': 'text/x-fsharp',
+    },
+  },
+  {
+    require: () => import('codemirror/mode/swift/swift'),
+    extensions: {
+      '.swift': 'text/x-swift',
+    },
+  },
+  {
+    require: () => import('codemirror/mode/shell/shell'),
+    extensions: {
+      '.sh': 'text/x-sh',
+    },
+  },
+  {
+    require: () => import('codemirror/mode/sql/sql'),
+    extensions: {
+      '.sql': 'text/x-sql',
+    },
+  },
+  {
+    require: () => import('codemirror/mode/cypher/cypher'),
+    extensions: {
+      '.cql': 'application/x-cypher-query',
+    },
+  },
+  {
+    require: () => import('codemirror/mode/go/go'),
+    extensions: {
+      '.go': 'text/x-go',
+    },
+  },
+  {
+    require: () => import('codemirror/mode/perl/perl'),
+    extensions: {
+      '.pl': 'text/x-perl',
+    },
+  },
+  {
+    require: () => import('codemirror/mode/php/php'),
+    extensions: {
+      '.php': 'application/x-httpd-php',
+    },
+  },
+  {
+    require: () => import('codemirror/mode/python/python'),
+    extensions: {
+      '.py': 'text/x-python',
+    },
+  },
+  {
+    require: () => import('codemirror/mode/ruby/ruby'),
+    extensions: {
+      '.rb': 'text/x-ruby',
+    },
+  },
+  {
+    require: () => import('codemirror/mode/clojure/clojure'),
+    extensions: {
+      '.clj': 'text/x-clojure',
+      '.cljc': 'text/x-clojure',
+      '.cljs': 'text/x-clojure',
+      '.edn': 'text/x-clojure',
+    },
+  },
+  {
+    require: () => import('codemirror/mode/rust/rust'),
+    extensions: {
+      '.rs': 'text/x-rustsrc',
+    },
+  },
+  {
+    require: () => import('codemirror-mode-elixir'),
+    extensions: {
+      '.ex': 'text/x-elixir',
+      '.exs': 'text/x-elixir',
+    },
+  },
+  {
+    require: () => import('codemirror/mode/haxe/haxe'),
+    extensions: {
+      '.hx': 'text/x-haxe',
+    },
+  },
+  {
+    require: () => import('codemirror/mode/r/r'),
+    extensions: {
+      '.r': 'text/x-rsrc',
+    },
+  },
+]
+
 const extensionMIMEMap = new Map<string, string>()
+const mimeModeMap = new Map<string, IModeDefinition>()
 
-import 'codemirror/mode/javascript/javascript'
-extensionMIMEMap.set('.ts', 'text/typescript')
-extensionMIMEMap.set('.js', 'text/javascript')
-extensionMIMEMap.set('.json', 'application/json')
-
-import 'codemirror/mode/coffeescript/coffeescript'
-extensionMIMEMap.set('.coffee', 'text/x-coffeescript')
-
-import 'codemirror/mode/jsx/jsx'
-extensionMIMEMap.set('.tsx', 'text/typescript-jsx')
-extensionMIMEMap.set('.jsx', 'text/jsx')
-
-import 'codemirror/mode/htmlmixed/htmlmixed'
-extensionMIMEMap.set('.html', 'text/html')
-extensionMIMEMap.set('.htm', 'text/html')
-
-import 'codemirror/mode/htmlembedded/htmlembedded'
-extensionMIMEMap.set('.jsp', 'application/x-jsp')
-
-import 'codemirror/mode/css/css'
-extensionMIMEMap.set('.css', 'text/css')
-extensionMIMEMap.set('.scss', 'text/x-scss')
-extensionMIMEMap.set('.less', 'text/x-less')
-
-import 'codemirror/mode/vue/vue'
-extensionMIMEMap.set('.vue', 'text/x-vue')
-
-import 'codemirror/mode/markdown/markdown'
-extensionMIMEMap.set('.markdown', 'text/x-markdown')
-extensionMIMEMap.set('.md', 'text/x-markdown')
-
-import 'codemirror/mode/yaml/yaml'
-extensionMIMEMap.set('.yaml', 'text/yaml')
-extensionMIMEMap.set('.yml', 'text/yaml')
-
-import 'codemirror/mode/xml/xml'
-extensionMIMEMap.set('.xml', 'text/xml')
-extensionMIMEMap.set('.xaml', 'text/xml')
-extensionMIMEMap.set('.csproj', 'text/xml')
-extensionMIMEMap.set('.fsproj', 'text/xml')
-extensionMIMEMap.set('.vcxproj', 'text/xml')
-extensionMIMEMap.set('.vbproj', 'text/xml')
-extensionMIMEMap.set('.svg', 'text/xml')
-
-import 'codemirror/mode/clike/clike'
-extensionMIMEMap.set('.m', 'text/x-objectivec')
-extensionMIMEMap.set('.scala', 'text/x-scala')
-extensionMIMEMap.set('.sc', 'text/x-scala')
-extensionMIMEMap.set('.cs', 'text/x-csharp')
-extensionMIMEMap.set('.java', 'text/x-java')
-extensionMIMEMap.set('.c', 'text/x-c')
-extensionMIMEMap.set('.h', 'text/x-c')
-extensionMIMEMap.set('.cpp', 'text/x-c++src')
-extensionMIMEMap.set('.hpp', 'text/x-c++src')
-extensionMIMEMap.set('.kt', 'text/x-kotlin')
-
-import 'codemirror/mode/mllike/mllike'
-extensionMIMEMap.set('.ml', 'text/x-ocaml')
-extensionMIMEMap.set('.fs', 'text/x-fsharp')
-extensionMIMEMap.set('.fsx', 'text/x-fsharp')
-extensionMIMEMap.set('.fsi', 'text/x-fsharp')
-
-import 'codemirror/mode/swift/swift'
-extensionMIMEMap.set('.swift', 'text/x-swift')
-
-import 'codemirror/mode/shell/shell'
-extensionMIMEMap.set('.sh', 'text/x-sh')
-
-import 'codemirror/mode/sql/sql'
-extensionMIMEMap.set('.sql', 'text/x-sql')
-
-import 'codemirror/mode/cypher/cypher'
-extensionMIMEMap.set('.cql', 'application/x-cypher-query')
-
-import 'codemirror/mode/go/go'
-extensionMIMEMap.set('.go', 'text/x-go')
-
-import 'codemirror/mode/perl/perl'
-extensionMIMEMap.set('.pl', 'text/x-perl')
-
-import 'codemirror/mode/php/php'
-extensionMIMEMap.set('.php', 'application/x-httpd-php')
-
-import 'codemirror/mode/python/python'
-extensionMIMEMap.set('.py', 'text/x-python')
-
-import 'codemirror/mode/ruby/ruby'
-extensionMIMEMap.set('.rb', 'text/x-ruby')
-
-import 'codemirror/mode/clojure/clojure'
-extensionMIMEMap.set('.clj', 'text/x-clojure')
-extensionMIMEMap.set('.cljc', 'text/x-clojure')
-extensionMIMEMap.set('.cljs', 'text/x-clojure')
-extensionMIMEMap.set('.edn', 'text/x-clojure')
-
-import 'codemirror/mode/rust/rust'
-extensionMIMEMap.set('.rs', 'text/x-rustsrc')
-
-import 'codemirror-mode-elixir'
-extensionMIMEMap.set('.ex', 'text/x-elixir')
-extensionMIMEMap.set('.exs', 'text/x-elixir')
-
-import 'codemirror/mode/haxe/haxe'
-extensionMIMEMap.set('.hx', 'text/x-haxe')
-
-import 'codemirror/mode/r/r'
-extensionMIMEMap.set('.r', 'text/x-rsrc')
+for (const mode of modes) {
+  for (const [extension, mimeType] of Object.entries(mode.extensions)) {
+    extensionMIMEMap.set(extension, mimeType)
+    mimeModeMap.set(mimeType, mode)
+  }
+}
 
 function guessMimeType(contents: string) {
   if (contents.startsWith('<?xml')) {
@@ -153,13 +249,24 @@ function guessMimeType(contents: string) {
   return null
 }
 
-function detectMode(request: IHighlightRequest): CodeMirror.Mode<{}> | null {
+async function detectMode(
+  request: IHighlightRequest
+): Promise<CodeMirror.Mode<{}> | null> {
   const mimeType =
     extensionMIMEMap.get(request.extension.toLowerCase()) ||
     guessMimeType(request.contents)
 
   if (!mimeType) {
     return null
+  }
+
+  const modeDefinition = mimeModeMap.get(mimeType)
+
+  if (!modeDefinition) {
+    return null
+  }
+
+  await modeDefinition.require()
   }
 
   return getMode({}, mimeType) || null
@@ -223,14 +330,14 @@ function readToken(
   throw new Error(`Mode ${getModeName(mode)} failed to advance stream.`)
 }
 
-onmessage = (ev: MessageEvent) => {
+onmessage = async (ev: MessageEvent) => {
   const request = ev.data as IHighlightRequest
 
   const tabSize = request.tabSize || 4
   const contents = request.contents
   const addModeClass = request.addModeClass === true
 
-  const mode = detectMode(request)
+  const mode = await detectMode(request)
 
   if (!mode) {
     postMessage({})
