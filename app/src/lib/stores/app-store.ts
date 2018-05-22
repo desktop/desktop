@@ -1293,6 +1293,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdateNow()
 
     this.accountsStore.refresh()
+    this.refreshAllRepositories()
   }
 
   private async getSelectedExternalEditor(): Promise<ExternalEditor | null> {
@@ -1751,9 +1752,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this._updateCurrentPullRequest(repository)
     this.updateMenuItemLabels(repository)
     this._initializeCompare(repository)
+    this.refreshAllRepositories()
   }
 
-  public async refreshLocalRepositories() {
+  public async refreshAllRepositories() {
     this.repositories = await this.getRefreshedRepositories(this.repositories)
     this.emitUpdate()
   }

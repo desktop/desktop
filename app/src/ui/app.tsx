@@ -148,7 +148,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       )
       const interval = 1000 * 60 * 5
       window.setInterval(() => {
-        this.props.appStore.refreshLocalRepositories()
+        this.props.appStore.refreshAllRepositories()
       }, interval)
     })
 
