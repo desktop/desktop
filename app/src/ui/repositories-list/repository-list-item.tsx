@@ -88,12 +88,6 @@ export class RepositoryListItem extends React.Component<
         title={tooltip}
       >
         <Octicon symbol={iconForRepository(repository)} />
-        {hasChanges ? (
-          <Octicon
-            className="change-indicator"
-            symbol={OcticonSymbol.primitiveDot}
-          />
-        ) : null}
         <div className="name">
           {prefix ? <span className="prefix">{prefix}</span> : null}
           <HighlightText
@@ -101,7 +95,18 @@ export class RepositoryListItem extends React.Component<
             highlight={this.props.matches}
           />
         </div>
-        {renderAheadBehindIndicator()}
+
+        <div className="repo-status">
+          {renderAheadBehindIndicator()}
+          <div className="change-indicator-wrapper">
+            {hasChanges ? (
+              <Octicon
+                className="change-indicator"
+                symbol={OcticonSymbol.primitiveDot}
+              />
+            ) : null}
+          </div>
+        </div>
       </div>
     )
   }

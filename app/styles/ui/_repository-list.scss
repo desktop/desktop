@@ -21,7 +21,7 @@
    * and one <div class='name'> holding the repository name.
    */
   .repository-list-item {
-    padding: 0 var(--spacing);
+    padding: 0 0 0 var(--spacing);
 
     // Layout the icon and repository name horizontally
     display: flex;
@@ -63,32 +63,42 @@
     }
 
     .change-indicator {
-      position: absolute;
-      left: 15px;
       color: var(--tab-bar-active-color);
       path {stroke: var(--background-color);}
+      margin-right: 0;
+    }
+
+    .change-indicator-wrapper {
+      display: flex;
+      width: 16px;
+    }
+
+    .repo-status {
+      display: flex;
+      align-items: center;
+      margin-left: auto;
+      padding-right: var(--spacing);
     }
 
     .ahead-behind {
       height: 16px;
       background: $gray-200;
       align-items: center;
-      margin-left: auto;
 
       // Perfectly round semi circle ends with real tight
       // padding on either side. Now in two flavors!
       @include darwin {
+        height: 12px;
+        line-height: 12px;
+      }
+
+      @include win32 {
         height: 13px;
         line-height: 13px;
       }
 
-      @include win32 {
-        height: 14px;
-        line-height: 14px;
-      }
-
       .octicon {
-        fill: var(--text-secondary-color) !important;
+        color: var(--text-secondary-color) !important;
         margin: 0;
         height: 20px;
         width: 12px;
