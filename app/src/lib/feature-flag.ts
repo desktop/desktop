@@ -26,11 +26,6 @@ function enableBetaFeatures(): boolean {
   return enableDevelopmentFeatures() || __RELEASE_CHANNEL__ === 'beta'
 }
 
-/** Should the new Compare view be enabled? */
-export function enableCompareBranch(): boolean {
-  return enableBetaFeatures()
-}
-
 /** Should merge tool integration be enabled? */
 export function enableMergeTool(): boolean {
   return enableDevelopmentFeatures()
