@@ -299,7 +299,6 @@ async function detectMode(
   }
 
   await modeDefinition.require()
-  }
 
   return getMode({}, mimeType) || null
 }
