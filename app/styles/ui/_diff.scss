@@ -9,6 +9,7 @@
 .diff-code-mirror .CodeMirror {
   height: 100%;
   color: var(--diff-text-color);
+  background: var(--background-color);
   font-size: var(--font-size-sm);
   font-family: var(--font-family-monospace);
 
