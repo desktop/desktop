@@ -139,17 +139,13 @@ export class CompareSidebar extends React.Component<
             onRef={this.onTextBoxRef}
             onValueChanged={this.onBranchFilterTextChanged}
             onKeyDown={this.onBranchFilterKeyDown}
-            onSearchCleared={this.onSearchCleared}
+            onSearchCleared={this.handleEscape}
           />
         </div>
 
         {showBranchList ? this.renderFilterList() : this.renderCommits()}
       </div>
     )
-  }
-
-  private onSearchCleared = () => {
-    this.handleEscape()
   }
 
   private onBranchesListRef = (branchList: BranchList | null) => {
@@ -395,7 +391,7 @@ export class CompareSidebar extends React.Component<
     }
   }
 
-  private handleEscape() {
+  private handleEscape = () => {
     this.clearFilterState()
     if (this.textbox) {
       this.textbox.blur()
