@@ -36,7 +36,6 @@
       "[Improved] Commit summary now has a hint to indicate why committing is disabled - #4429.",
       "[Improved] Pull request status text now matches format on GitHub - #3521",
       "[Improved] Add escape hatch to disable hardware acceleration when launching - #3921"
->>>>>>> master
     ],
     "1.1.2-beta7": [
     ],
