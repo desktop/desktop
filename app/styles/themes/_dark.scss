@@ -12,19 +12,19 @@ body.theme-dark {
   --color-renamed: $blue;
   --color-conflicted: $orange;
 
-  --text-color: $gray-900;
-  --text-secondary-color: $gray-500;
-  --background-color: $white;
+  --text-color: $gray-100;
+  --text-secondary-color: $gray-300;
+  --background-color: $gray-900;
 
-  --button-background: $blue;
-  --button-hover-background: lighten($blue, 5%);
+  --button-background: black;
+  --button-hover-background: lighten(black, 5%);
   --button-text-color: $white;
   --button-focus-border-color: $blue-600;
 
-  --link-button-color: $blue;
+  --link-button-color: $blue-300;
 
-  --secondary-button-background: $gray-000;
-  --secondary-button-hover-background: $white;
+  --secondary-button-background: $gray-800;
+  --secondary-button-hover-background: var(--secondary-button-background);
   --secondary-button-text-color: var(--text-color);
   --secondary-button-focus-shadow-color: rgba($gray-200, 0.75);
   --secondary-button-focus-border-color: $gray-300;
@@ -52,8 +52,8 @@ body.theme-dark {
   // or an item in a tab control header. It's up to each implementation
   // to decide what states to support (active selection, selection, etc).
 
-  --box-alt-background-color: $gray-100;
-  --box-background-color: var(--background-color);
+  --box-background-color: $gray-800;
+  --box-alt-background-color: $gray-800;
 
   /**
    * Background color for skeleton or "loading" boxes
@@ -63,13 +63,13 @@ body.theme-dark {
   /**
    * Border color for boxes.
    */
-  --box-border-color: $gray-200;
+  --box-border-color: #141414;
   --box-border-accent-color: $blue;
 
   /**
    * Background color for selected boxes without keyboard focus
    */
-  --box-selected-background-color: #ebeef1;
+  --box-selected-background-color: $gray-700;
 
   /**
    * Text color for when a user hovers over a boxe with a
@@ -89,7 +89,7 @@ body.theme-dark {
   /**
    * Text color for selected boxes without keyboard focus
    */
-  --box-selected-text-color: $gray-900;
+  --box-selected-text-color: var(--text-color);
 
   /**
    * Border color for selected boxes without keyboard focus
@@ -116,13 +116,13 @@ body.theme-dark {
   --shadow-color: rgba(71, 83, 95, 0.19);
   --base-box-shadow: 0 2px 7px var(--shadow-color);
 
-  --toolbar-background-color: $gray-900;
-  --toolbar-text-color: $white;
-  --toolbar-text-secondary-color: $gray-300;
+  --toolbar-background-color: var(--background-color);
+  --toolbar-text-color: var(--text-color);
+  --toolbar-text-secondary-color: var(--text-secondary-color);
 
   --toolbar-button-color: var(--toolbar-text-color);
   --toolbar-button-background-color: transparent;
-  --toolbar-button-border-color: black;
+  --toolbar-button-border-color: var(--box-border-color);
   --toolbar-button-secondary-color: var(--toolbar-text-secondary-color);
 
   --toolbar-button-hover-color: $white;
@@ -133,7 +133,7 @@ body.theme-dark {
 
   --toolbar-button-active-color: var(--text-color);
   --toolbar-button-active-background-color: var(--background-color);
-  --toolbar-button-active-border-color: var(--background-color);
+  --toolbar-button-active-border-color: var(--box-border-color);
 
   --toolbar-button-progress-color: $gray-800;
   --toolbar-button-focus-progress-color: $gray-700;
@@ -219,5 +219,13 @@ body.theme-dark {
   --dialog-error-color: $red;
 
   /** Inline paths and code */
-  --path-segment-background: $blue-000;
+  --path-segment-background: $gray-700;
+
+  #desktop-app-toolbar {
+    border-bottom: var(--base-border);
+  }
+
+  .blankslate-image {
+    filter: #{'invert()'} brightness(8) saturate(0);
+  }
 }
