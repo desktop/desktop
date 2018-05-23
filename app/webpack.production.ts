@@ -2,30 +2,12 @@ import * as common from './webpack.common'
 
 import * as webpack from 'webpack'
 import * as merge from 'webpack-merge'
-import * as ExtractTextPlugin from 'extract-text-webpack-plugin'
-import * as BabelPlugin from 'babel-webpack-plugin'
+import * as MiniCssExtractPlugin from 'mini-css-extract-plugin'
 import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer'
 
 const config: webpack.Configuration = {
+  mode: 'production',
   devtool: 'source-map',
-  plugins: [
-    new BabelPlugin({
-      test: /\.js$/,
-      sourceMaps: true,
-      compact: true,
-      minified: true,
-      comments: false,
-      presets: [
-        [
-          'minify',
-          {
-            evaluate: false,
-          },
-        ],
-      ],
-    }),
-    new webpack.optimize.ModuleConcatenationPlugin(),
-  ],
 }
 
 const mainConfig = merge({}, common.main, config)
@@ -41,16 +23,13 @@ const rendererConfig = merge({}, common.renderer, config, {
       // appended to the index.html HEAD at compile time
       {
         test: /\.(scss|css)$/,
-        use: ExtractTextPlugin.extract({
-          fallback: 'style-loader',
-          use: ['css-loader', 'sass-loader'],
-        }),
+        use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader'],
       },
     ],
   },
   plugins: [
-    // Necessary to be able to use ExtractTextPlugin as a loader.
-    new ExtractTextPlugin('ui.css'),
+    // Necessary to be able to use MiniCssExtractPlugin as a loader.
+    new MiniCssExtractPlugin('renderer.css'),
     new BundleAnalyzerPlugin({
       // this generates the static HTML file to view afterwards, rather
       // than disrupting the user
@@ -72,16 +51,13 @@ const crashConfig = merge({}, common.crash, config, {
       // appended to the index.html HEAD at compile time
       {
         test: /\.(scss|css)$/,
-        use: ExtractTextPlugin.extract({
-          fallback: 'style-loader',
-          use: ['css-loader', 'sass-loader'],
-        }),
+        use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader'],
       },
     ],
   },
   plugins: [
-    // Necessary to be able to use ExtractTextPlugin as a loader.
-    new ExtractTextPlugin('crash.css'),
+    // Necessary to be able to use MiniCssExtractPlugin as a loader.
+    new MiniCssExtractPlugin('crash.css'),
   ],
 })
 

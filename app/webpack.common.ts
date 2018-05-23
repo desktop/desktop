@@ -41,9 +41,10 @@ const commonConfig: webpack.Configuration = {
       },
       {
         test: /\.node$/,
-        use: [
-          { loader: 'node-native-loader', options: { name: '[name].[ext]' } },
-        ],
+        loader: 'awesome-node-loader',
+        options: {
+          name: '[name].[ext]',
+        },
       },
     ],
   },

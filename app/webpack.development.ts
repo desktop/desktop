@@ -4,6 +4,7 @@ import * as webpack from 'webpack'
 import * as merge from 'webpack-merge'
 
 const config: webpack.Configuration = {
+  mode: 'development',
   devtool: 'source-map',
 }
 
