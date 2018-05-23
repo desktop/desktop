@@ -33,5 +33,5 @@ export function enableMergeTool(): boolean {
 
 /** Should the new Compare view be enabled? */
 export function enableCompareSidebar(): boolean {
-  return true || enableBetaFeatures()
+  return true || enableBetaFeatures() //the second condition is just to get the linter to be quiet
 }
