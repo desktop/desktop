@@ -85,6 +85,7 @@
   // or an item in a tab control header. It's up to each implementation
   // to decide what states to support (active selection, selection, etc).
 
+  --box-background-color: var(--background-color);
   --box-alt-background-color: $gray-100;
 
   /**
