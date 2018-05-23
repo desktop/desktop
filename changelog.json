@@ -4,7 +4,7 @@
 
     ],
     "1.2.0": [
-      "[New] History now has ability to compare to another branch and merge oustanding commits",
+      "[New] History now has ability to compare to another branch and merge outstanding commits",
       "[New] Support for selecting more than one file in the changes list - #1712. Thanks @icosamuel!",
       "[New] Render bitmap images in diffs - #4367. Thanks @MagicMarvMan!",
       "[Added] Add PowerShell Core support for Windows and macOS - #3791. Thanks @saschanaz!",
