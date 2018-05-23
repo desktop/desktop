@@ -3,7 +3,7 @@ import {
   IRepositoryState,
   IHistoryState,
   IAppState,
-  RepositorySection,
+  RepositorySectionTab,
   IChangesState,
   Popup,
   PopupType,
@@ -23,6 +23,7 @@ import {
   CompareActionKind,
   IDisplayHistory,
   ICompareBranch,
+  RepositorySection,
 } from '../app-state'
 import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
@@ -422,7 +423,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         coAuthors: [],
         showCoAuthoredBy: false,
       },
-      selectedSection: RepositorySection.Changes,
+      selectedSection: { selectedTab: RepositorySectionTab.Changes },
       branchesState: {
         tip: { kind: TipState.Unknown },
         defaultBranch: null,
@@ -1488,9 +1489,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.updateRepositoryState(repository, state => ({ selectedSection }))
     this.emitUpdate()
 
-    if (selectedSection === RepositorySection.History) {
+    if (selectedSection.selectedTab === RepositorySectionTab.History) {
       return this.refreshHistorySection(repository)
-    } else if (selectedSection === RepositorySection.Changes) {
+    } else if (selectedSection.selectedTab === RepositorySectionTab.Changes) {
       return this.refreshChangesSection(repository, {
         includingStatus: true,
         clearPartialState: false,
@@ -1730,9 +1731,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const section = state.selectedSection
     let refreshSectionPromise: Promise<void>
 
-    if (section === RepositorySection.History) {
+    if (section.selectedTab === RepositorySectionTab.History) {
       refreshSectionPromise = this.refreshHistorySection(repository)
-    } else if (section === RepositorySection.Changes) {
+    } else if (section.selectedTab === RepositorySectionTab.Changes) {
       refreshSectionPromise = this.refreshChangesSection(repository, {
         includingStatus: false,
         clearPartialState: false,
