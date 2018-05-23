@@ -361,7 +361,7 @@ export class CompareSidebar extends React.Component<
     const key = event.key
 
     if (key === 'Enter') {
-      if (this.state.filterText.length === 0) {
+      if (this.props.compareState.filterText.length === 0) {
         this.handleEscape()
       } else {
         if (this.state.focusedBranch == null) {
@@ -375,7 +375,9 @@ export class CompareSidebar extends React.Component<
             mode: ComparisonView.Behind,
           })
 
-          this.setState({ filterText: branch.name })
+          this.props.dispatcher.updateCompareForm(this.props.repository, {
+            filterText: branch.name,
+          })
         }
 
         if (this.textbox) {
@@ -443,7 +445,9 @@ export class CompareSidebar extends React.Component<
     )
 
     await this.viewHistoryForBranch()
-    this.setState({ filterText: '' })
+    this.props.dispatcher.updateCompareForm(this.props.repository, {
+      filterText: '',
+    })
   }
 
   private onBranchFilterTextChanged = (filterText: string) => {
@@ -458,11 +462,18 @@ export class CompareSidebar extends React.Component<
     } else {
       this.setState({ filterText })
     }
+
+    this.props.dispatcher.updateCompareForm(this.props.repository, {
+      filterText,
+    })
   }
 
   private clearFilterState = () => {
     this.setState({
       focusedBranch: null,
+    })
+
+    this.props.dispatcher.updateCompareForm(this.props.repository, {
       filterText: '',
     })
 
@@ -477,8 +488,11 @@ export class CompareSidebar extends React.Component<
     })
 
     this.setState({
-      filterText: branch.name,
       focusedBranch: null,
+    })
+
+    this.props.dispatcher.updateCompareForm(this.props.repository, {
+      filterText: branch.name,
       showBranchList: false,
     })
   }
@@ -501,7 +515,9 @@ export class CompareSidebar extends React.Component<
   }
 
   private onTextBoxFocused = () => {
-    this.setState({ showBranchList: true })
+    this.props.dispatcher.updateCompareForm(this.props.repository, {
+      showBranchList: true,
+    })
   }
 
   private onTextBoxRef = (textbox: TextBox) => {
