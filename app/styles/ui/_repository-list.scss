@@ -65,8 +65,8 @@
     .change-indicator {
       position: absolute;
       left: 15px;
-      bottom: 0;
       color: var(--tab-bar-active-color);
+      path {stroke: var(--background-color);}
     }
 
     .ahead-behind {
