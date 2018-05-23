@@ -21,7 +21,7 @@
    * and one <div class='name'> holding the repository name.
    */
   .repository-list-item {
-    padding: 0 0 0 var(--spacing);
+    padding: 0 var(--spacing);
 
     // Layout the icon and repository name horizontally
     display: flex;
@@ -64,26 +64,20 @@
 
     .change-indicator {
       color: var(--tab-bar-active-color);
-      path {stroke: var(--background-color);}
       margin-right: 0;
+      width: auto;
     }
 
     .change-indicator-wrapper {
       display: flex;
-      width: 16px;
-    }
-
-    .repo-status {
-      display: flex;
-      align-items: center;
-      margin-left: auto;
-      padding-right: var(--spacing);
+      width: 12px;
     }
 
     .ahead-behind {
       height: 16px;
       background: $gray-200;
       align-items: center;
+      margin-left: auto;
 
       // Perfectly round semi circle ends with real tight
       // padding on either side. Now in two flavors!
