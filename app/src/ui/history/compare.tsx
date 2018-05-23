@@ -123,7 +123,7 @@ export class CompareSidebar extends React.Component<
   }
 
   public render() {
-    const { allBranches } = this.props.compareState
+    const { allBranches, filterText, showBranchList } = this.props.compareState
     const placeholderText = getPlaceholderText(this.props.compareState)
 
     return (
@@ -134,7 +134,7 @@ export class CompareSidebar extends React.Component<
             type="search"
             placeholder={placeholderText}
             onFocus={this.onTextBoxFocused}
-            value={this.state.filterText}
+            value={filterText}
             disabled={allBranches.length <= 1}
             onRef={this.onTextBoxRef}
             onValueChanged={this.onBranchFilterTextChanged}
@@ -143,9 +143,7 @@ export class CompareSidebar extends React.Component<
           />
         </div>
 
-        {this.state.showBranchList
-          ? this.renderFilterList()
-          : this.renderCommits()}
+        {showBranchList ? this.renderFilterList() : this.renderCommits()}
       </div>
     )
   }
@@ -173,22 +171,24 @@ export class CompareSidebar extends React.Component<
     this.props.dispatcher.executeCompare(this.props.repository, {
       kind: CompareActionKind.History,
     })
+
+    this.props.dispatcher.updateCompareForm(this.props.repository, {
+      showBranchList: false,
+    })
   }
 
   private renderCommitList() {
-    const compareState = this.props.compareState
+    const { formState, commitSHAs } = this.props.compareState
     const selectedCommit = this.state.selectedCommit
-    const commitSHAs = compareState.commitSHAs
 
     let emptyListMessage: string | JSX.Element
-    if (compareState.formState.kind === ComparisonView.None) {
+    if (formState.kind === ComparisonView.None) {
       emptyListMessage = 'No history'
     } else {
-      const currentlyComparedBranchName =
-        compareState.formState.comparisonBranch.name
+      const currentlyComparedBranchName = formState.comparisonBranch.name
 
       emptyListMessage =
-        compareState.formState.kind === ComparisonView.Ahead ? (
+        formState.kind === ComparisonView.Ahead ? (
           <p>
             The compared branch (<Ref>{currentlyComparedBranchName}</Ref>) is up
             to date with your branch
@@ -233,15 +233,21 @@ export class CompareSidebar extends React.Component<
   }
 
   private renderFilterList() {
-    const compareState = this.props.compareState
+    const {
+      defaultBranch,
+      allBranches,
+      recentBranches,
+      filterText,
+    } = this.props.compareState
+
     return (
       <BranchList
         ref={this.onBranchesListRef}
-        defaultBranch={compareState.defaultBranch}
+        defaultBranch={defaultBranch}
         currentBranch={this.props.currentBranch}
-        allBranches={compareState.allBranches}
-        recentBranches={compareState.recentBranches}
-        filterText={this.state.filterText}
+        allBranches={allBranches}
+        recentBranches={recentBranches}
+        filterText={filterText}
         textbox={this.textbox!}
         selectedBranch={this.state.focusedBranch}
         canCreateNewBranch={false}
