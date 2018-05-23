@@ -323,18 +323,11 @@ export enum RepositorySectionTab {
   History,
 }
 
-export type RepositorySection =
-  | { selectedTab: RepositorySectionTab.Changes }
-  | {
-      selectedTab: RepositorySectionTab.History
-      shouldShowBranchesList?: boolean
-    }
-
 export interface IRepositoryState {
   readonly historyState: IHistoryState
   readonly changesState: IChangesState
   readonly compareState: ICompareState
-  readonly selectedSection: RepositorySection
+  readonly selectedSection: RepositorySectionTab
 
   /**
    * The name and email that will be used for the author info

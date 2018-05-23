@@ -422,7 +422,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         coAuthors: [],
         showCoAuthoredBy: false,
       },
-      selectedSection: { selectedTab: RepositorySectionTab.Changes },
+      selectedSection: RepositorySectionTab.Changes,
       branchesState: {
         tip: { kind: TipState.Unknown },
         defaultBranch: null,
@@ -1482,14 +1482,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _changeRepositorySection(
     repository: Repository,
-    selectedSection: RepositorySection
+    selectedSection: RepositorySectionTab
   ): Promise<void> {
     this.updateRepositoryState(repository, state => ({ selectedSection }))
     this.emitUpdate()
 
-    if (selectedSection.selectedTab === RepositorySectionTab.History) {
+    if (selectedSection === RepositorySectionTab.History) {
       return this.refreshHistorySection(repository)
-    } else if (selectedSection.selectedTab === RepositorySectionTab.Changes) {
+    } else if (selectedSection === RepositorySectionTab.Changes) {
       return this.refreshChangesSection(repository, {
         includingStatus: true,
         clearPartialState: false,
@@ -1729,9 +1729,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const section = state.selectedSection
     let refreshSectionPromise: Promise<void>
 
-    if (section.selectedTab === RepositorySectionTab.History) {
+    if (section === RepositorySectionTab.History) {
       refreshSectionPromise = this.refreshHistorySection(repository)
-    } else if (section.selectedTab === RepositorySectionTab.Changes) {
+    } else if (section === RepositorySectionTab.Changes) {
       refreshSectionPromise = this.refreshChangesSection(repository, {
         includingStatus: false,
         clearPartialState: false,

@@ -11,7 +11,7 @@ import {
 } from '../../models/status'
 import { DiffSelection } from '../../models/diff'
 import {
-  RepositorySection,
+  RepositorySectionTab,
   Popup,
   PopupType,
   Foldout,
@@ -179,7 +179,7 @@ export class Dispatcher {
   /** Change the selected section in the repository. */
   public changeRepositorySection(
     repository: Repository,
-    section: RepositorySection
+    section: RepositorySectionTab
   ): Promise<void> {
     return this.appStore._changeRepositorySection(repository, section)
   }
