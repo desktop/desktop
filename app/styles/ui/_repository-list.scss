@@ -71,10 +71,24 @@
 
     .ahead-behind {
       height: 16px;
-      color: var(--button-text-color);
+      background: $gray-200;
       align-items: center;
       margin-left: auto;
+
+      // Perfectly round semi circle ends with real tight
+      // padding on either side. Now in two flavors!
+      @include darwin {
+        height: 13px;
+        line-height: 13px;
+      }
+
+      @include win32 {
+        height: 14px;
+        line-height: 14px;
+      }
+
       .octicon {
+        fill: var(--text-secondary-color) !important;
         margin: 0;
         height: 20px;
         width: 12px;
