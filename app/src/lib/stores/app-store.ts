@@ -23,7 +23,7 @@ import {
   CompareActionKind,
   IDisplayHistory,
   ICompareBranch,
-  RepositorySection,
+  ICompareFormUpdate,
 } from '../app-state'
 import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
@@ -434,6 +434,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       },
       compareState: {
         formState: { kind: ComparisonView.None },
+        showBranchList: false,
+        filterText: '',
         commitSHAs: [],
         aheadBehindCache: new ComparisonCache(),
         allBranches: new Array<Branch>(),
@@ -859,6 +861,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     } else {
       return assertNever(action, `Unknown action: ${kind}`)
     }
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _updateCompareForm<K extends keyof ICompareFormUpdate>(
+    repository: Repository,
+    newState: Pick<ICompareFormUpdate, K>
+  ) {
+    this.updateCompareState(repository, state => {
+      return merge(state, newState)
+    })
+
+    this.emitUpdate()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */

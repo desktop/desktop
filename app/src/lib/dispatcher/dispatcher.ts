@@ -18,6 +18,7 @@ import {
   FoldoutType,
   ImageDiffType,
   CompareAction,
+  ICompareFormUpdate,
 } from '../app-state'
 import { AppStore } from '../stores/app-store'
 import { CloningRepository } from '../../models/cloning-repository'
@@ -1182,6 +1183,14 @@ export class Dispatcher {
    */
   public executeCompare(repository: Repository, action: CompareAction) {
     return this.appStore._executeCompare(repository, action)
+  }
+
+  /** Update the compare form state for the current repository */
+  public updateCompareForm<K extends keyof ICompareFormUpdate>(
+    repository: Repository,
+    newState: Pick<ICompareFormUpdate, K>
+  ) {
+    return this.appStore._updateCompareForm(repository, newState)
   }
 
   /**
