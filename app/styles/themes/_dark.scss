@@ -53,6 +53,7 @@ body.theme-dark {
   // to decide what states to support (active selection, selection, etc).
 
   --box-alt-background-color: $gray-100;
+  --box-background-color: var(--background-color);
 
   /**
    * Background color for skeleton or "loading" boxes
