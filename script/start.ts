@@ -53,7 +53,7 @@ if (process.env.NODE_ENV === 'production') {
         message,
         u(message, u(message, rendererConfig).output).publicPath
       ),
-      noInfo: true,
+      logLevel: 'error',
     })
   )
 
