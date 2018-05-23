@@ -32,12 +32,6 @@ interface ICompareSidebarProps {
   readonly localCommitSHAs: ReadonlyArray<string>
   readonly dispatcher: Dispatcher
   readonly currentBranch: Branch | null
-  readonly sidebarHasFocusWithin: boolean
-
-  /**
-   * A flag from the application to indicate the branches list should be expanded.
-   */
-  readonly shouldShowBranchesList: boolean
   readonly onRevertCommit: (commit: Commit) => void
   readonly onViewCommitOnGitHub: (sha: string) => void
 }
@@ -49,8 +43,6 @@ interface ICompareSidebarState {
    * For all other cases, use the prop
    */
   readonly focusedBranch: Branch | null
-  readonly filterText: string
-  readonly showBranchList: boolean
   readonly selectedCommit: Commit | null
 }
 

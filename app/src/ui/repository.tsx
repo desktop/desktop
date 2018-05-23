@@ -155,11 +155,6 @@ export class RepositoryView extends React.Component<
   private renderCompareSidebar(): JSX.Element {
     const tip = this.props.state.branchesState.tip
     const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
-    const selectedSection = this.props.state.selectedSection
-    const shouldShowBranchesList =
-      selectedSection.selectedTab === RepositorySectionTab.History
-        ? selectedSection.shouldShowBranchesList || false
-        : false
 
     return (
       <CompareSidebar
@@ -173,8 +168,6 @@ export class RepositoryView extends React.Component<
         dispatcher={this.props.dispatcher}
         onRevertCommit={this.onRevertCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
-        sidebarHasFocusWithin={this.state.sidebarHasFocusWithin}
-        shouldShowBranchesList={shouldShowBranchesList}
       />
     )
   }
