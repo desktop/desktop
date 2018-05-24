@@ -168,7 +168,8 @@ export const highlighter = merge({}, commonConfig, {
     },
   },
 })
-;(highlighter.module as webpack.Module).rules = [
+
+highlighter.module!.rules = [
   {
     test: /\.ts$/,
     include: path.resolve(__dirname, 'src/highlighter'),
