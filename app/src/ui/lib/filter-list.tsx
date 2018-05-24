@@ -244,19 +244,25 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
   }
 
   public selectFirstItem(focus: boolean = false) {
-    if (this.list !== null) {
-      const next = findNextSelectableRow(this.state.rows.length, {
+    if (this.list === null) {
+      return
+    }
+
+    const next = findNextSelectableRow(
+      this.state.rows.length,
+      {
         direction: 'down',
         row: -1,
+      },
+      this.canSelectRow
+    )
+
+    if (next !== null) {
+      this.setState({ selectedRow: next }, () => {
+        if (focus && this.list !== null) {
+          this.list.focus()
+        }
       })
-
-      if (next !== null) {
-        this.setState({ selectedRow: next })
-      }
-
-      if (focus) {
-        this.list.focus()
-      }
     }
   }
 
@@ -442,7 +448,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
         this.canSelectRow
       )
 
-      if (row) {
+      if (row != null) {
         this.onRowClick(row)
       }
     }

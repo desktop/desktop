@@ -16,8 +16,8 @@ A clear and concise description of what you want to happen, implementation-wise.
 A clear and concise description of any alternative solutions or features you've considered.
 
 ## Teachability, Documentation, Adoption, Migration Strategy*
-This will help the core team understand how the feature would work, and assist with future work like documentation.
-Screenshots or mockups here are a great help! Here are some example subheaders:
+If you can, explain how users will be able to use this. This will help the core team understand how the feature would
+work, and assist with future work like documentation. Here are some example subheaders:
 
 #### Task List
 (once solution is agreed upon)
