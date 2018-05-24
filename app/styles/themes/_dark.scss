@@ -116,7 +116,7 @@ body.theme-dark {
   --shadow-color: rgba(71, 83, 95, 0.19);
   --base-box-shadow: 0 2px 7px var(--shadow-color);
 
-  --toolbar-background-color: var(--background-color);
+  --toolbar-background-color: darken($gray-900, 3%);
   --toolbar-border-color: var(--box-border-color);
   --toolbar-text-color: var(--text-color);
   --toolbar-text-secondary-color: var(--text-secondary-color);
