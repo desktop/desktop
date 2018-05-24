@@ -3,6 +3,13 @@ import * as distInfo from './dist-info'
 import * as gitInfo from '../app/git-info'
 import * as packageInfo from '../app/package-info'
 
+interface IUploadResult {
+  readonly name: string
+  readonly url: string
+  readonly size: number
+  readonly sha: string
+}
+
 if (PUBLISH_CHANNELS.indexOf(distInfo.getReleaseChannel()) < 0) {
   console.log('Not a publishable build. Skipping publish.')
   process.exit(0)
@@ -117,13 +124,6 @@ function uploadWindowsAssets() {
   }
 
   return Promise.all(uploads)
-}
-
-interface IUploadResult {
-  name: string
-  url: string
-  size: number
-  sha: string
 }
 
 function upload(assetName: string, assetPath: string) {
