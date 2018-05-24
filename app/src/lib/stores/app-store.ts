@@ -780,6 +780,37 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
+  //TODO: make private; needed linter to leave me alone
+  public getCompareBranch(repository: Repository): string | null {
+    const state = this.getRepositoryState(repository)
+    const branchesState = state.branchesState
+    const tip = branchesState.tip
+    const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
+
+    if (currentBranch === null) {
+      return null
+    }
+
+    // If the current branch has a PR associated with it, use the target branch of the PR
+    const associatedPullRequest = branchesState.currentPullRequest
+    if (associatedPullRequest !== null) {
+      return associatedPullRequest.base.ref
+    }
+
+    const githubRepository = repository.gitHubRepository
+    if (githubRepository !== null) {
+      // if the repository is a fork, use the default branch on upstream
+      // otherwise use the default branch on origin
+      // if the repo is a fork, parent must exist(???)
+      return githubRepository.fork
+        ? githubRepository.parent!.defaultBranch
+        : githubRepository.defaultBranch
+    }
+
+    // fall through to the local master branch
+    return 'master'
+  }
+
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _executeCompare(
     repository: Repository,
