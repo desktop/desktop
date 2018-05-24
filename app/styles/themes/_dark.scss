@@ -117,6 +117,7 @@ body.theme-dark {
   --base-box-shadow: 0 2px 7px var(--shadow-color);
 
   --toolbar-background-color: var(--background-color);
+  --toolbar-border-color: var(--box-border-color);
   --toolbar-text-color: var(--text-color);
   --toolbar-text-secondary-color: var(--text-secondary-color);
 
@@ -139,6 +140,9 @@ body.theme-dark {
   --toolbar-button-focus-progress-color: $gray-700;
   --toolbar-button-hover-progress-color: $gray-700;
   --toolbar-dropdown-open-progress-color: $gray-200;
+
+  /** Ahead and behind count bubble in the push/pull/publish button */
+  --toolbar-ahead-behind-background-color: $gray-500;
 
   --tab-bar-active-color: $blue;
   --tab-bar-background-color: $white;
@@ -215,11 +219,6 @@ body.theme-dark {
   --syntax-tag-color: $green-400;
   --syntax-attribute-color: $purple-300;
   --syntax-link-color: $blue-300;
-
-  /**
-   * Ahead/behind view
-   */
-  --ahead-behind-background-color: $gray-500;
 
   // Colors for form errors
   --error-color: $red;
