@@ -9,6 +9,7 @@ import {
   PopupType,
   FoldoutType,
   SelectionType,
+  CompareActionKind,
 } from '../lib/app-state'
 import { Dispatcher } from '../lib/dispatcher'
 import { AppStore } from '../lib/stores'
@@ -489,17 +490,21 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.showPopup({ type: PopupType.About })
   }
 
-  private showHistory(shouldFocusBranchList: boolean = false) {
+  private async showHistory(shouldShowBranchesList: boolean = false) {
     const state = this.state.selectedState
     if (state == null || state.type !== SelectionType.Repository) {
       return
     }
 
-    this.props.dispatcher.closeCurrentFoldout()
+    await this.props.dispatcher.closeCurrentFoldout()
 
-    this.props.dispatcher.changeRepositorySection(state.repository, {
+    await this.props.dispatcher.initializeCompare(state.repository, {
+      kind: CompareActionKind.History,
+    })
+
+    await this.props.dispatcher.changeRepositorySection(state.repository, {
       selectedTab: RepositorySectionTab.History,
-      shouldFocusBranchList,
+      shouldShowBranchesList,
     })
   }
 

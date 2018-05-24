@@ -6,6 +6,7 @@ const webpack = require('webpack')
 const merge = require('webpack-merge')
 
 const config = {
+  mode: 'development',
   devtool: 'source-map',
 }
 
