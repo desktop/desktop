@@ -5,6 +5,12 @@
 // Primer colors, see https://github.com/primer/primer-css/blob/master/modules/primer-support/lib/variables/color-system.scss
 @import '~primer-support/lib/variables/color-system.scss';
 
+// Extracted as a SCSS variable so that we can define the --overlay-background-color
+// on both the :root and the ::backdrop scope. The ::backdrop pseudo-element
+// doesn't inherit :root, see
+// https://bugs.chromium.org/p/chromium/issues/detail?id=594096
+$overlay-background-color: rgba(0, 0, 0, 0.4);
+
 :root {
   --color-new: $green;
   --color-deleted: $red;
@@ -306,7 +312,7 @@
   --form-error-text-color: $red-800;
 
   /** Overlay is used as a background for both modals and foldouts */
-  --overlay-background-color: rgba(0, 0, 0, 0.4);
+  --overlay-background-color: $overlay-background-color;
 
   /** Dialog */
   --dialog-warning-color: $yellow-600;
@@ -325,4 +331,8 @@
 
   // http://easings.net/#easeOutQuint
   --easing-ease-out-quint: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+::backdrop {
+  --overlay-background-color: $overlay-background-color;
 }

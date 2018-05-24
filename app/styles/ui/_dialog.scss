@@ -82,9 +82,7 @@ dialog {
   }
 
   &::backdrop {
-    // fallback value until we can get variables to work, see
-    // https://bugs.chromium.org/p/chromium/issues/detail?id=594096
-    background: rgba(0, 0, 0, 0.4);
+    background: var(--overlay-background-color);
     opacity: 1;
   }
 
