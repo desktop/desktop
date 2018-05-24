@@ -208,6 +208,7 @@ export enum PopupType {
   LFSAttributeMismatch,
   UpstreamAlreadyExists,
   DeletePullRequest,
+  MergeConflicts,
 }
 
 export type Popup =
@@ -282,6 +283,7 @@ export type Popup =
       branch: Branch
       pullRequest: PullRequest
     }
+  | { type: PopupType.MergeConflicts; repository: Repository }
 
 export enum FoldoutType {
   Repository,
@@ -316,10 +318,17 @@ export type Foldout =
   | { type: FoldoutType.AddMenu }
   | AppMenuFoldout
 
-export enum RepositorySection {
+export enum RepositorySectionTab {
   Changes,
   History,
 }
+
+export type RepositorySection =
+  | { selectedTab: RepositorySectionTab.Changes }
+  | {
+      selectedTab: RepositorySectionTab.History
+      shouldShowBranchesList?: boolean
+    }
 
 export interface IRepositoryState {
   readonly historyState: IHistoryState
