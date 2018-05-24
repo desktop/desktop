@@ -150,7 +150,10 @@ dispatcher.registerErrorHandler(backgroundTaskHandler)
 dispatcher.registerErrorHandler(missingRepositoryHandler)
 
 document.body.classList.add(`platform-${process.platform}`)
-document.body.classList.add(`theme-dark`)
+
+if (localStorage.getItem('theme') === 'dark') {
+  document.body.classList.add(`theme-dark`)
+}
 
 dispatcher.setAppFocusState(remote.getCurrentWindow().isFocused())
 
