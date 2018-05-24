@@ -177,7 +177,7 @@
   }
 }
 
-.diff-line-selected {
+.CodeMirror pre.CodeMirror-line .diff-line-selected {
   .diff-line-number {
     background: var(--diff-selected-background-color);
     border-color: var(--diff-selected-border-color);
@@ -189,7 +189,7 @@
   }
 }
 
-.diff-line-hover {
+.CodeMirror pre.CodeMirror-line .diff-line-hover {
   .diff-line-number {
     background: var(--diff-hover-background-color);
     border-color: var(--diff-hover-border-color);
