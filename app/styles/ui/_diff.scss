@@ -126,7 +126,7 @@
 
 .CodeMirror pre.diff-context {
   background: var(--background-color);
-  color: var(--diff-context-text-color);
+  color: var(--diff-text-color);
   padding: 0;
 
   .diff-line-number {
@@ -160,7 +160,7 @@
 }
 
 .cm-diff-context {
-  color: var(--diff-context-text-color);
+  color: var(--diff-text-color);
 }
 
 .CodeMirror pre.diff-hunk {
