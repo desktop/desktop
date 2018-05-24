@@ -242,6 +242,6 @@ body.theme-dark {
   }
 
   .blankslate-image {
-    filter: #{'invert()'} brightness(8) saturate(0);
+    filter: grayscale(1) brightness(0.8);
   }
 }
