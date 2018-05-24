@@ -17,7 +17,7 @@ body.theme-dark {
   --background-color: $gray-900;
 
   --button-background: black;
-  --button-hover-background: lighten(black, 5%);
+  --button-hover-background: darken($gray-900, 5%);
   --button-text-color: $white;
   --button-focus-border-color: $blue-600;
 
