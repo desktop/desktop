@@ -18,12 +18,23 @@ const highlighterConfig = merge({}, common.highlighter, config)
 // need to update this script to use the same port when building because this
 // is currently hard-coded.
 
+const webpackHotModuleReloadUrl =
+  'webpack-hot-middleware/client?path=http://localhost:3000/__webpack_hmr'
+
+const getRendererEntryPoint = () => {
+  const entry = common.renderer.entry as webpack.Entry
+  if (entry == null) {
+    throw new Error(
+      `Unable to resolve entry point. Check webpack.common.ts and try again`
+    )
+  }
+
+  return entry.renderer as string
+}
+
 const rendererConfig = merge({}, common.renderer, config, {
   entry: {
-    renderer: [
-      'webpack-hot-middleware/client?path=http://localhost:3000/__webpack_hmr',
-      (common.renderer.entry as webpack.Entry).renderer as string,
-    ],
+    renderer: [webpackHotModuleReloadUrl, getRendererEntryPoint()],
   },
   output: {
     publicPath: 'http://localhost:3000/build/',
