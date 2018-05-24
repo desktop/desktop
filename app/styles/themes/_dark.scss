@@ -176,7 +176,7 @@ body.theme-dark {
   --diff-add-border-color: darken($green-900, 10%);
   --diff-add-gutter-color: darken($green-900, 10%);
   --diff-add-gutter-background-color: darken($green-900, 13%);
-  --diff-add-inner-background-color: $green-700;
+  --diff-add-inner-background-color: $green-900;
   --diff-add-text-color: var(--diff-text-color);
 
   --diff-delete-background-color: darken($red-900, 15%);
