@@ -196,6 +196,9 @@
   --toolbar-button-hover-progress-color: $gray-700;
   --toolbar-dropdown-open-progress-color: $gray-200;
 
+  /** Ahead and behind count bubble in the push/pull/publish button */
+  --toolbar-ahead-behind-background-color: $gray-500;
+
   --tab-bar-height: 29px;
   --tab-bar-active-color: $blue;
   --tab-bar-background-color: $white;
@@ -294,11 +297,6 @@
   // Note that this duration *must* match the `UndoCommitAnimationTimeout`
   // specified in `changes/index.tsx`.
   --undo-animation-duration: 500ms;
-
-  /**
-   * Ahead/behind view
-   */
-  --ahead-behind-background-color: $gray-500;
 
   // Colors for form errors
   --error-color: $red;
