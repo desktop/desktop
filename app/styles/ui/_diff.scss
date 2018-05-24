@@ -62,6 +62,7 @@
 .diff-line-gutter {
   display: flex;
   height: 100%;
+  background: var(--diff-gutter-background-color);
 
   &.diff-add {
     background: var(--diff-add-gutter-background-color);
