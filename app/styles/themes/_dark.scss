@@ -155,52 +155,66 @@ body.theme-dark {
    * Diff view
    */
 
-  --diff-text-color: $gray-900;
-  --diff-border-color: $gray-200;
-  --diff-gutter-color: $gray-200;
+  --diff-text-color: var(--text-color);
+  --diff-border-color: $gray-800;
+  --diff-gutter-color: $gray-800;
+  --diff-gutter-background-color: darken($gray-900, 3%);
 
-  --diff-line-number-color: $gray-700;
+  --diff-line-number-color: var(--text-secondary-color);
   --diff-line-number-column-width: 50px;
 
-  --diff-selected-background-color: $blue-400;
+  --diff-selected-background-color: $blue-700;
   --diff-selected-border-color: $blue-600;
   --diff-selected-gutter-color: $blue-600;
-  --diff-selected-text-color: var(--background-color);
+  --diff-selected-text-color: var(--text-color);
 
-  --diff-add-background-color: darken($green-000, 2%);
-  --diff-add-border-color: $green-300;
-  --diff-add-gutter-color: $green-300;
-  --diff-add-gutter-background-color: darken($green-100, 3%);
-  --diff-add-inner-background-color: #acf2bd;
+  --diff-add-background-color: $green-900;
+  --diff-add-border-color: lighten($green-900, 3%);
+  --diff-add-gutter-color: lighten($green-900, 3%);
+  --diff-add-gutter-background-color: darken($green-900, 3%);
+  --diff-add-inner-background-color: $green-700;
   --diff-add-text-color: var(--diff-text-color);
 
-  --diff-delete-background-color: $red-000;
-  --diff-delete-border-color: $red-200;
-  --diff-delete-gutter-color: $red-200;
-  --diff-delete-gutter-background-color: $red-100;
-  --diff-delete-inner-background-color: #fdb8c0;
-  --diff-delete-text-color: var(--diff-text-color);
+  --diff-delete-background-color: darken($red-900, 15%);
+  --diff-delete-border-color: darken($red-900, 10%);
+  --diff-delete-gutter-color: darken($red-900, 10%);
+  --diff-delete-gutter-background-color: darken($red-900, 20%);
+  --diff-delete-inner-background-color: $red-700;
+  --diff-delete-text-color: $red-100;
 
-  --diff-hunk-background-color: $blue-000;
-  --diff-hunk-border-color: $blue-200;
-  --diff-hunk-gutter-color: darken($blue-200, 5%);
-  --diff-hunk-gutter-background-color: $blue-100;
-  --diff-hunk-text-color: $gray;
+  --diff-hunk-background-color: darken($gray-900, 3%);
+  --diff-hunk-border-color: lighten($gray-900, 3%);
+  --diff-hunk-gutter-color: lighten($gray-900, 3%);
+  --diff-hunk-gutter-background-color: darken($gray-900, 6%);
+  --diff-hunk-text-color: var(--text-secondary-color);
 
-  --diff-hover-background-color: $blue-300;
+  --diff-hover-background-color: $blue-500;
   --diff-hover-border-color: $blue-400;
   --diff-hover-gutter-color: $blue-400;
-  --diff-hover-text-color: var(--background-color);
+  --diff-hover-text-color: var(--diff-text-color);
 
-  --diff-add-hover-background-color: $green-300;
-  --diff-add-hover-border-color: $green-400;
-  --diff-add-hover-gutter-color: $green-400;
+  --diff-add-hover-background-color: $green-800;
+  --diff-add-hover-border-color: $green-700;
+  --diff-add-hover-gutter-color: $green-700;
   --diff-add-hover-text-color: var(--text-color);
 
-  --diff-delete-hover-background-color: $red-200;
-  --diff-delete-hover-border-color: $red-300;
-  --diff-delete-hover-gutter-color: $red-300;
+  --diff-delete-hover-background-color: $red-800;
+  --diff-delete-hover-border-color: $red-700;
+  --diff-delete-hover-gutter-color: $red-700;
   --diff-delete-hover-text-color: var(--text-color);
+
+  // Syntax highlighting text colors
+  --syntax-variable-color: $purple-300;
+  --syntax-alt-variable-color: $blue-300;
+  --syntax-keyword-color: $red-300;
+  --syntax-atom-color: $blue-300;
+  --syntax-string-color: $orange-300;
+  --syntax-qualifier-color: $purple-300;
+  --syntax-type-color: $red-300;
+  --syntax-comment-color: $gray-400;
+  --syntax-tag-color: $green-400;
+  --syntax-attribute-color: $purple-300;
+  --syntax-link-color: $blue-300;
 
   /**
    * Ahead/behind view
