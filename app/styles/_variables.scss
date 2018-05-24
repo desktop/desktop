@@ -277,6 +277,19 @@
   --diff-delete-hover-gutter-color: $red-300;
   --diff-delete-hover-text-color: var(--text-color);
 
+  // Syntax highlighting text colors
+  --syntax-variable-color: #6f42c1;
+  --syntax-alt-variable-color: #24292e;
+  --syntax-keyword-color: #d73a49;
+  --syntax-atom-color: #005cc5;
+  --syntax-string-color: #032f62;
+  --syntax-qualifier-color: #6f42c1;
+  --syntax-type-color: #d73a49;
+  --syntax-comment-color: $gray-500;
+  --syntax-tag-color: #22863a;
+  --syntax-attribute-color: #22863a;
+  --syntax-link-color: #032f62;
+
   // Note that this duration *must* match the `UndoCommitAnimationTimeout`
   // specified in `changes/index.tsx`.
   --undo-animation-duration: 500ms;
