@@ -109,9 +109,7 @@ export function getReleaseChannel() {
   // Branch name format: __release-CHANNEL-DEPLOY_ID
   const pieces = getReleaseBranchName().split('-')
   if (pieces.length < 3 || pieces[0] !== '__release') {
-    /** @type {string} */
-    const NODE_ENV = process.env.NODE_ENV
-    return NODE_ENV || 'development'
+    return process.env.NODE_ENV || 'development'
   }
 
   return pieces[1]
