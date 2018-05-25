@@ -85,7 +85,7 @@ export class RepositoryView extends React.Component<
     return (
       <TabBar selectedIndex={selectedTab} onTabClicked={this.onTabClicked}>
         <span className="with-indicator">
-          <span>{enableCompareSidebar() ? 'Commit' : 'Changes'}</span>
+          <span>Changes</span>
           {hasChanges ? (
             <Octicon
               className="indicator"
@@ -158,9 +158,9 @@ export class RepositoryView extends React.Component<
     const tip = this.props.state.branchesState.tip
     const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
     const selectedSection = this.props.state.selectedSection
-    const focusBranchSelector =
+    const shouldShowBranchesList =
       selectedSection.selectedTab === RepositorySectionTab.History
-        ? selectedSection.shouldFocusBranchList || false
+        ? selectedSection.shouldShowBranchesList || false
         : false
 
     return (
@@ -176,7 +176,7 @@ export class RepositoryView extends React.Component<
         onRevertCommit={this.onRevertCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
         sidebarHasFocusWithin={this.state.sidebarHasFocusWithin}
-        initialShowBranchList={focusBranchSelector}
+        shouldShowBranchesList={shouldShowBranchesList}
       />
     )
   }
@@ -304,7 +304,7 @@ export class RepositoryView extends React.Component<
           ? { selectedTab: RepositorySectionTab.Changes }
           : {
               selectedTab: RepositorySectionTab.History,
-              shouldFocusBranchList: false,
+              shouldShowBranchesList: false,
             }
 
       this.props.dispatcher.changeRepositorySection(
@@ -320,7 +320,7 @@ export class RepositoryView extends React.Component<
       tab === Tab.History
         ? {
             selectedTab: RepositorySectionTab.History,
-            shouldFocusBranchList: false,
+            shouldShowBranchesList: false,
           }
         : { selectedTab: RepositorySectionTab.Changes }
 

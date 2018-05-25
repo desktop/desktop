@@ -36,9 +36,9 @@ interface ICompareSidebarProps {
   readonly sidebarHasFocusWithin: boolean
 
   /**
-   * Shows the branch list when the component is loaded
+   * A flag from the application to indicate the branches list should be expanded.
    */
-  readonly initialShowBranchList: boolean
+  readonly shouldShowBranchesList: boolean
   readonly onRevertCommit: (commit: Commit) => void
   readonly onViewCommitOnGitHub: (sha: string) => void
 }
@@ -69,42 +69,65 @@ export class CompareSidebar extends React.Component<
   public constructor(props: ICompareSidebarProps) {
     super(props)
 
-    const formState = props.compareState.formState
-
-    const filterText =
-      formState.kind === ComparisonView.None
-        ? ''
-        : formState.comparisonBranch.name
-
     this.state = {
       focusedBranch: null,
-      filterText,
-      showBranchList: props.initialShowBranchList,
+      filterText: '',
+      showBranchList: props.shouldShowBranchesList,
       selectedCommit: null,
     }
   }
 
   public componentWillReceiveProps(nextProps: ICompareSidebarProps) {
-    const hasFormStateChanged =
-      nextProps.compareState.formState.kind !==
-      this.props.compareState.formState.kind
-
     const newFormState = nextProps.compareState.formState
+    const oldFormState = this.props.compareState.formState
 
-    if (hasFormStateChanged && newFormState.kind === ComparisonView.None) {
-      // the comparison form should be reset to its default state
-      this.setState({ filterText: '', focusedBranch: null })
+    if (
+      newFormState.kind !== oldFormState.kind &&
+      newFormState.kind === ComparisonView.None
+    ) {
+      // reset form to it's default state
+      this.setState(
+        {
+          filterText: '',
+          focusedBranch: null,
+          showBranchList: nextProps.shouldShowBranchesList,
+        },
+        () => {
+          // ensure filter text behaviour matches the prop value
+          if (this.textbox !== null) {
+            if (nextProps.shouldShowBranchesList) {
+              this.textbox.focus()
+            } else {
+              this.textbox.blur()
+            }
+          }
+        }
+      )
       return
     }
 
-    if (newFormState.kind !== ComparisonView.None) {
-      // ensure the filter text is in sync with the comparison branch
-      const branch = newFormState.comparisonBranch
+    if (
+      newFormState.kind !== ComparisonView.None &&
+      oldFormState.kind !== ComparisonView.None
+    ) {
+      const oldBranch = oldFormState.comparisonBranch
+      const newBranch = newFormState.comparisonBranch
 
-      this.setState({
-        filterText: branch.name,
-        focusedBranch: branch,
-      })
+      if (oldBranch.name !== newBranch.name) {
+        // ensure the filter text is in sync with the comparison branch
+        this.setState({
+          filterText: newBranch.name,
+          focusedBranch: newBranch,
+        })
+      }
+    }
+
+    if (
+      this.props.shouldShowBranchesList !== nextProps.shouldShowBranchesList
+    ) {
+      if (nextProps.shouldShowBranchesList === true) {
+        this.setState({ showBranchList: true })
+      }
     }
 
     if (nextProps.sidebarHasFocusWithin !== this.props.sidebarHasFocusWithin) {
@@ -291,8 +314,7 @@ export class CompareSidebar extends React.Component<
         <div className="merge-message">
           This will merge
           <strong>{` ${count} ${pluralized}`}</strong>
-          <br />
-          from{` `}
+          {` `}from{` `}
           <strong>{branch.name}</strong>
           {` `}into{` `}
           <strong>{currentBranch.name}</strong>
