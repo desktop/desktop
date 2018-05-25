@@ -65,3 +65,26 @@
 @import 'ui/avatar-stack';
 @import 'ui/commit-attribution';
 @import 'ui/fancy-text-box';
+.notification-banner {
+  padding: var(--spacing-half);
+}
+
+.diverge-banner {
+  p {
+    margin-top: 0;
+  }
+
+  .button-group {
+    display: flex;
+  }
+
+  .button-component {
+    flex: 1;
+    margin-right: var(--spacing-half);
+
+
+    &:last-of-type {
+      margin-right: 0;
+    }
+  }
+}

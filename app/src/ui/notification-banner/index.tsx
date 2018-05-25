@@ -8,18 +8,18 @@ interface INotificationBannerProps {
 
 export class NotificationBanner extends React.Component<INotificationBannerProps, {}> {
   public render() {
-    return (<div className="notification-banner">
+    return (<div className="notification-banner diverge-banner">
       <p>
         Your branch is <strong>42 commits</strong> behind <Ref>origin/master</Ref>
       </p>
 
       <ButtonGroup>
         <Button type="submit" onClick={this.noop}>
-          Compare
+          Merge...
         </Button>
 
         <Button onClick={this.noop}>
-          Merge...
+          Compare
         </Button>
       </ButtonGroup>
     </div>)
