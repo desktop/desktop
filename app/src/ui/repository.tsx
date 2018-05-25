@@ -93,7 +93,17 @@ export class RepositoryView extends React.Component<
             />
           ) : null}
         </span>
-        <span>History</span>
+
+        <span className="with-indicator">
+          <span>History</span>
+
+          {true ? (
+            <Octicon
+              className="indicator"
+              symbol={OcticonSymbol.primitiveDot}
+            />
+          ) : null}
+        </span>
       </TabBar>
     )
   }
