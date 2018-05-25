@@ -93,6 +93,8 @@ const UpdateCheckInterval = 1000 * 60 * 60 * 4
 
 const SendStatsInterval = 1000 * 60 * 60 * 4
 
+const updateRepoInfoInterval = 1000 * 60 * 5
+
 interface IAppProps {
   readonly dispatcher: Dispatcher
   readonly appStore: AppStore
@@ -147,10 +149,10 @@ export class App extends React.Component<IAppProps, IAppState> {
         },
         { timeout: ReadyDelay }
       )
-      const interval = 1000 * 60 * 5
+
       window.setInterval(() => {
         this.props.appStore.refreshAllRepositories()
-      }, interval)
+      }, updateRepoInfoInterval)
     })
 
     this.state = props.appStore.getState()
