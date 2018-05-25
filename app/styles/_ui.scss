@@ -65,8 +65,28 @@
 @import 'ui/avatar-stack';
 @import 'ui/commit-attribution';
 @import 'ui/fancy-text-box';
+
 .notification-banner {
   padding: var(--spacing-half);
+
+  &-content {
+    display: flex;
+
+    p {
+      flex-grow: 1;
+    }
+  }
+
+  @include close-button;
+
+  .close {
+    // background: salmon;
+    flex-grow: 0;
+
+    .octicon {
+      height: 12px;
+    }
+  }
 }
 
 .diverge-banner {
