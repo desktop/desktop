@@ -1772,11 +1772,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       if (!targetRepo || targetRepo.id === repo.id) {
         await this.withAuthenticatingUser(repo, async (repo, account) => {
           const gitStore = this.getGitStore(repo)
-          repo.setAheadBehind(gitStore.aheadBehind)
+          repo.aheadBehind = gitStore.aheadBehind
           await gitStore.fetch(account, true)
           const status = await gitStore.loadStatus()
           if (status !== null) {
-            repo.setChangedFiles(status.workingDirectory.files)
+            repo.changedFiles = status.workingDirectory.files
           }
         })
       }

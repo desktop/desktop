@@ -48,14 +48,4 @@ export class Repository {
       ${this.missing}+
       ${this.name}`
   }
-
-  public setChangedFiles(
-    changedFiles: ReadonlyArray<WorkingDirectoryFileChange>
-  ) {
-    this.changedFiles = changedFiles
-  }
-
-  public setAheadBehind(aheadBehind: IAheadBehind | null) {
-    this.aheadBehind = aheadBehind
-  }
 }
