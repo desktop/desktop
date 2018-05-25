@@ -229,7 +229,11 @@ export class CommitMessage extends React.Component<
   }
 
   private onSubmit = () => {
-    window.setTimeout(function(){console.log('---------hello world---------')}, 2000)
+    setTimeout(() => {
+        console.log(this)
+        this.props.dispatcher.setDivergingBannerVisible(true)
+    }, 2000)
+
     this.createCommit()
   }
 
