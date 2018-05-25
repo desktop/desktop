@@ -51,7 +51,7 @@ interface IRepositoryViewProps {
 
   readonly onOpenInExternalEditor: (fullPath: string) => void
 
-  readonly hasChanges: boolean
+  readonly hasDiverged: boolean
 }
 
 interface IRepositoryViewState {
@@ -99,7 +99,7 @@ export class RepositoryView extends React.Component<
         <span className="with-indicator">
           <span>History</span>
 
-          {this.props.hasChanges ? (
+          {this.props.hasDiverged ? (
             <Octicon
               className="indicator"
               symbol={OcticonSymbol.primitiveDot}
