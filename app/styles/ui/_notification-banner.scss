@@ -1,0 +1,49 @@
+@import '../mixins';
+
+.notification-banner {
+  padding: var(--spacing-half);
+
+  &-content {
+    display: flex;
+
+    p {
+      flex-grow: 1;
+    }
+  }
+
+  @include close-button;
+
+  .ref-component {
+    word-break: normal;
+  }
+
+  .close {
+    flex-grow: 0;
+    margin: 0;
+    text-align: center;
+
+    .octicon {
+      height: 12px;
+    }
+  }
+}
+
+.diverge-banner {
+  p {
+    margin-top: 0;
+  }
+
+  .button-group {
+    display: flex;
+  }
+
+  .button-component {
+    flex: 1;
+    margin-right: var(--spacing-half);
+
+
+    &:last-of-type {
+      margin-right: 0;
+    }
+  }
+}
