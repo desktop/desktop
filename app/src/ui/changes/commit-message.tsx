@@ -229,6 +229,7 @@ export class CommitMessage extends React.Component<
   }
 
   private onSubmit = () => {
+    window.setTimeout(function(){console.log('---------hello world---------')}, 2000)
     this.createCommit()
   }
 
