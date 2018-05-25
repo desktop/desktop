@@ -22,6 +22,7 @@ function enableDevelopmentFeatures(): boolean {
 }
 
 /** Should the app enable beta features? */
+//@ts-ignore: this will be used again in the future
 function enableBetaFeatures(): boolean {
   return enableDevelopmentFeatures() || __RELEASE_CHANNEL__ === 'beta'
 }
@@ -33,5 +34,5 @@ export function enableMergeTool(): boolean {
 
 /** Should the new Compare view be enabled? */
 export function enableCompareSidebar(): boolean {
-  return true || enableBetaFeatures() //the second condition is just to get the linter to be quiet
+  return true
 }
