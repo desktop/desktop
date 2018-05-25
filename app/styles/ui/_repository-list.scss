@@ -70,7 +70,7 @@
 
     .change-indicator-wrapper {
       display: flex;
-      width: 12px;
+      min-width: 12px;
     }
 
     .ahead-behind {
