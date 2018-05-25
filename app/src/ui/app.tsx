@@ -1661,6 +1661,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           accounts={this.state.accounts}
           externalEditorLabel={externalEditorLabel}
           onOpenInExternalEditor={this.openFileInExternalEditor}
+          hasChanges={true}
         />
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {

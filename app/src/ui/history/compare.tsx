@@ -22,6 +22,7 @@ import { FancyTextBox } from '../lib/fancy-text-box'
 import { OcticonSymbol } from '../octicons'
 import { SelectionSource } from '../lib/filter-list'
 import { Ref } from '../lib/ref'
+import { NotificationBanner } from '../notification-banner';
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -156,6 +157,8 @@ export class CompareSidebar extends React.Component<
 
     return (
       <div id="compare-view">
+        <NotificationBanner />
+
         <div className="compare-form">
           <FancyTextBox
             symbol={OcticonSymbol.gitBranch}

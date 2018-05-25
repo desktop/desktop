@@ -50,6 +50,8 @@ interface IRepositoryViewProps {
    */
 
   readonly onOpenInExternalEditor: (fullPath: string) => void
+
+  readonly hasChanges: boolean
 }
 
 interface IRepositoryViewState {
@@ -97,7 +99,7 @@ export class RepositoryView extends React.Component<
         <span className="with-indicator">
           <span>History</span>
 
-          {true ? (
+          {this.props.hasChanges ? (
             <Octicon
               className="indicator"
               symbol={OcticonSymbol.primitiveDot}
