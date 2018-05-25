@@ -211,8 +211,10 @@ These editors are currently supported:
  - [PhpStorm](https://www.jetbrains.com/phpstorm/)
  - [RubyMine](https://www.jetbrains.com/rubymine/)
  - [TextMate](https://macromates.com)
- - [Brackets](http://brackets.io/)
-
+ - [Brackets](http://brackets.io/) 
+     - To use Brackets the Command Line shortcut must be installed.
+       - This can be done by opening Brackets, choosing File > Install Command Line Shortcut
+       
 These are defined in an enum at the top of the file:
 
 ```ts
