@@ -5,11 +5,10 @@ const { findElement, getText, click } = require('selenium-adapter')
 
 // SETUP
 // 0. yarn install
-// 1. run chromedriver's bin `$ ./node_modules/.bin/chromedriver` (if ENOENT error, do yarn add electron-chromedriver --dev)
-// 2. find your desktop binary and update variable below
-// 3. change the test's `expect` to equal the name of your first repo in the repo list dropdown
-// 4. make sure you're not running Desktop any more
-// 5. on another tab, run: `$ yarn mocha -t 30000 --require ts-node/register app/test/integration/selenium-launch.ts`
+// 1. find your desktop binary and update variable below (const DESKTOP_BINARY_LOCATION, ~L22)
+// 2. change the test's `expect` to equal the name of your first repo in the repo list dropdown (~L53)
+// 3. make sure you're not running Desktop any more
+// 4. run: `$ yarn test:selenium`
 
 // NOTE
 // * i might migrate to puppeteer for fun
