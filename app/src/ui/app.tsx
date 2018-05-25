@@ -213,6 +213,10 @@ export class App extends React.Component<IAppProps, IAppState> {
         })
       }
     )
+
+    window.setTimeout(function(){
+        console.log('timeout')
+    }, 2000)
   }
 
   private performDeferredLaunchActions() {
