@@ -339,9 +339,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.accountsStore.onDidError(error => this.emitError(error))
 
     this.repositoriesStore.onDidUpdate(async () => {
-      this.repositories = await this.repositoriesStore
-        .getAll()
-        .then(repos => this.getRefreshedRepositories(repos))
+      this.repositories = await this.getRefreshedRepositories(
+        await this.repositoriesStore.getAll()
+      )
       this.updateRepositorySelectionAfterRepositoriesChanged()
       this.emitUpdate()
     })
@@ -1775,7 +1775,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           repo.setAheadBehind(gitStore.aheadBehind)
           await gitStore.fetch(account, true)
           const status = await gitStore.loadStatus()
-          if (status) {
+          if (status !== null) {
             repo.setChangedFiles(status.workingDirectory.files)
           }
         })
