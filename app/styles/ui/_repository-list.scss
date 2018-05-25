@@ -63,18 +63,36 @@
     }
 
     .change-indicator {
-      position: absolute;
-      left: 15px;
-      bottom: 0;
       color: var(--tab-bar-active-color);
+      margin-right: 0;
+      width: auto;
+    }
+
+    .change-indicator-wrapper {
+      display: flex;
+      width: 12px;
     }
 
     .ahead-behind {
       height: 16px;
-      color: var(--button-text-color);
+      background: $gray-200;
       align-items: center;
       margin-left: auto;
+
+      // Perfectly round semi circle ends with real tight
+      // padding on either side. Now in two flavors!
+      @include darwin {
+        height: 12px;
+        line-height: 12px;
+      }
+
+      @include win32 {
+        height: 13px;
+        line-height: 13px;
+      }
+
       .octicon {
+        color: var(--text-secondary-color) !important;
         margin: 0;
         height: 20px;
         width: 12px;
