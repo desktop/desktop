@@ -247,6 +247,12 @@ function getDescriptionForError(error: DugiteError): string {
       return 'The push was rejected by the remote server because a required status check has not been satisfied.'
     case DugiteError.BranchRenameFailed:
       return 'The branch could not be renamed.'
+    case DugiteError.PathDoesNotExist:
+      return 'The path does not exist on disk.'
+    case DugiteError.InvalidObjectName:
+      return 'The object was not found in the Git repository.'
+    case DugiteError.OutsideRepository:
+      return 'This path is not a valid path inside the repository.'
     default:
       return assertNever(error, `Unknown error: ${error}`)
   }
