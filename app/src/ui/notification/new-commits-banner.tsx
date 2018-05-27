@@ -3,10 +3,11 @@ import { ButtonGroup } from '../lib/button-group'
 import { Button } from '../lib/button'
 import { Ref } from '../lib/ref'
 import { Octicon, OcticonSymbol } from '../octicons'
+import { Branch } from '../../models/branch'
 
 interface INewCommitsBannerProps {
   readonly numCommits: number
-  readonly ref: string
+  readonly branch: Branch
 }
 
 export class NewCommitsBanner extends React.Component<
@@ -19,7 +20,7 @@ export class NewCommitsBanner extends React.Component<
         <div className="notification-banner-content">
           <p>
             Your branch is <strong>{this.props.numCommits} commits</strong>{' '}
-            behind <Ref>{this.props.ref}</Ref>
+            behind <Ref>{this.props.branch.name}</Ref>
           </p>
 
           <a className="close" aria-label="Dismiss banner">
