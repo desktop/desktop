@@ -1,8 +1,9 @@
 import { TipState } from '../../../models/tip'
-import { IRepositoryState, IBranchesState } from '../../app-state'
+import { IBranchesState } from '../../app-state'
 import { GitHubRepository } from '../../../models/github-repository'
 import { ComparisonCache } from '../../comparison-cache'
 import { Branch } from '../../../models/branch'
+import { fatalError } from '../../fatal-error'
 
 //TODO: figure out if it's better to return branch name or SHA
 /**
@@ -11,38 +12,41 @@ import { Branch } from '../../../models/branch'
  * @param ghRepository
  */
 export function inferCompareToBranch(
-  state: IRepositoryState,
+  state: IBranchesState,
+  cache: ComparisonCache,
   ghRepository?: GitHubRepository
 ): string | null {
-  const { compareState, branchesState } = state
-  const tip = branchesState.tip
+  const tip = state.tip
   const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
 
   if (currentBranch === null) {
-    return null
+    return fatalError('Cannot find base branch of non-existent current branch')
   }
 
-  // If the current branch has a PR associated with it, use the target branch of the PR
-  const associatedPullRequest = branchesState.currentPullRequest
+  // If the current branch has a PR associated with it,
+  // use the target branch of the PR
+  const associatedPullRequest = state.currentPullRequest
   if (associatedPullRequest !== null) {
     return associatedPullRequest.base.ref
   }
 
   if (ghRepository !== undefined) {
     if (ghRepository.fork) {
+      // If the repository is a fork, use the default branch on upstream
       return inferCompareToBranchFromFork(
         currentBranch,
-        ghRepository,
-        branchesState,
-        compareState.aheadBehindCache
+        state,
+        cache,
+        ghRepository
       )
     } else {
+      // If the repository is hosted on GitHub, use the default branch on origin
       return ghRepository.defaultBranch
     }
   }
 
-  // fall through to the local master branch
-  const defaultBranch = branchesState.allBranches.find(b => b.name === 'master')
+  // Otherwise fall through to the local master branch
+  const defaultBranch = state.allBranches.find(b => b.name === 'master')
   return defaultBranch!.name
 }
 
@@ -50,10 +54,10 @@ export function inferCompareToBranch(
 // otherwise use the default branch on origin
 // if the repo is a fork, parent must exist(???)
 function inferCompareToBranchFromFork(
-  currentBranch: Branch,
-  ghRepository: GitHubRepository,
+  branch: Branch,
   state: IBranchesState,
-  cache: ComparisonCache
+  cache: ComparisonCache,
+  ghRepository: GitHubRepository
 ) {
   const defaultBranchName = ghRepository.defaultBranch
 
@@ -75,11 +79,10 @@ function inferCompareToBranchFromFork(
 
   const defaultBranchAheadBehind = cache.get(
     defaultBranch.tip.sha,
-    currentBranch.tip.sha
+    branch.tip.sha
   )
 
-  // If no changes exist on orgin/master
-  // then return upstream/master instead
+  // Checking the default branch on the forked repository
   if (
     defaultBranchAheadBehind !== null &&
     defaultBranchAheadBehind.behind > 0
@@ -87,5 +90,6 @@ function inferCompareToBranchFromFork(
     return defaultBranch.name
   }
 
+  // Fall through to default branch of the parent repository
   return ghRepository.parent!.defaultBranch
 }
