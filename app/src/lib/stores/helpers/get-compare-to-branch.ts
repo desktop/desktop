@@ -1,15 +1,18 @@
 import { TipState } from '../../../models/tip'
 import { IRepositoryState, IBranchesState } from '../../app-state'
-import { Repository } from '../../../models/repository'
 import { GitHubRepository } from '../../../models/github-repository'
 import { ComparisonCache } from '../../comparison-cache'
 import { Branch } from '../../../models/branch'
 
-//TODO: make private; needed linter to leave me alone
 //TODO: figure out if it's better to return branch name or SHA
-export function getCompareToBranch(
-  repository: Repository,
-  state: IRepositoryState
+/**
+ * Infers the branch to use as the compare-to branch
+ * @param state
+ * @param ghRepository
+ */
+export function inferCompareToBranch(
+  state: IRepositoryState,
+  ghRepository?: GitHubRepository
 ): string | null {
   const { compareState, branchesState } = state
   const tip = branchesState.tip
@@ -25,17 +28,16 @@ export function getCompareToBranch(
     return associatedPullRequest.base.ref
   }
 
-  const githubRepository = repository.gitHubRepository
-  if (githubRepository !== null) {
-    if (githubRepository.fork) {
+  if (ghRepository !== undefined) {
+    if (ghRepository.fork) {
       return inferCompareToBranchFromFork(
         currentBranch,
-        githubRepository,
+        ghRepository,
         branchesState,
         compareState.aheadBehindCache
       )
     } else {
-      return githubRepository.defaultBranch
+      return ghRepository.defaultBranch
     }
   }
 
