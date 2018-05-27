@@ -4,13 +4,13 @@ import { Button } from '../lib/button'
 import { Ref } from '../lib/ref'
 import { Octicon, OcticonSymbol } from '../octicons'
 
-interface NewCommitsBannerProps {
+interface INewCommitsBannerProps {
   readonly numCommits: number
   readonly ref: string
 }
 
 export class NewCommitsBanner extends React.Component<
-  NewCommitsBannerProps,
+  INewCommitsBannerProps,
   {}
 > {
   public render() {
