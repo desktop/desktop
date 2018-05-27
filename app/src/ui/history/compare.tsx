@@ -23,6 +23,7 @@ import { OcticonSymbol } from '../octicons'
 import { SelectionSource } from '../lib/filter-list'
 import { IMatches } from '../../lib/fuzzy-find'
 import { Ref } from '../lib/ref'
+import { NewCommitsBanner } from '../notification/new-commits-banner'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -157,6 +158,12 @@ export class CompareSidebar extends React.Component<
 
     return (
       <div id="compare-view">
+        {this.props.compareState.defaultBranch !== null ? (
+          <NewCommitsBanner
+            numCommits={4}
+            branch={this.props.compareState.defaultBranch}
+          />
+        ) : null}
         <div className="compare-form">
           <FancyTextBox
             symbol={OcticonSymbol.gitBranch}
