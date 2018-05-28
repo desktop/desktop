@@ -247,10 +247,6 @@ body.theme-dark {
   /** Inline paths and code */
   --path-segment-background: $gray-700;
 
-  #desktop-app-toolbar {
-    border-bottom: var(--base-border);
-  }
-
   .blankslate-image {
     filter: grayscale(1) brightness(0.8);
   }
