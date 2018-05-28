@@ -8,6 +8,7 @@ import {
   RepositoryGroupIdentifier,
 } from './group-repositories'
 import { FilterList } from '../lib/filter-list'
+import { IMatches } from '../../lib/fuzzy-find'
 import { assertNever } from '../../lib/fatal-error'
 
 /**
@@ -57,10 +58,7 @@ export class RepositoriesList extends React.Component<
   IRepositoriesListProps,
   {}
 > {
-  private renderItem = (
-    item: IRepositoryListItem,
-    matches: ReadonlyArray<number>
-  ) => {
+  private renderItem = (item: IRepositoryListItem, matches: IMatches) => {
     const repository = item.repository
     return (
       <RepositoryListItem

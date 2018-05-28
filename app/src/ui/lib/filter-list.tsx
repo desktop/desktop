@@ -9,12 +9,12 @@ import {
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 
-import { match, IMatch } from '../../lib/fuzzy-find'
+import { match, IMatch, IMatches } from '../../lib/fuzzy-find'
 
 /** An item in the filter list. */
 export interface IFilterListItem {
   /** The text which represents the item. This is used for filtering. */
-  readonly text: string
+  readonly text: ReadonlyArray<string>
 
   /** A unique identifier for the item. */
   readonly id: string
@@ -38,7 +38,7 @@ interface IFlattenedItem<T extends IFilterListItem> {
   readonly kind: 'item'
   readonly item: T
   /** Array of indexes in `item.text` that should be highlighted */
-  readonly matches: ReadonlyArray<number>
+  readonly matches: IMatches
 }
 
 /**
@@ -63,10 +63,7 @@ interface IFilterListProps<T extends IFilterListItem> {
   readonly selectedItem: T | null
 
   /** Called to render each visible item. */
-  readonly renderItem: (
-    item: T,
-    matches: ReadonlyArray<number>
-  ) => JSX.Element | null
+  readonly renderItem: (item: T, matches: IMatches) => JSX.Element | null
 
   /** Called to render header for the group with the given identifier. */
   readonly renderGroupHeader?: (identifier: string) => JSX.Element | null
@@ -455,6 +452,12 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
   }
 }
 
+export function getText<T extends IFilterListItem>(
+  item: T
+): ReadonlyArray<string> {
+  return item['text']
+}
+
 function createStateUpdate<T extends IFilterListItem>(
   props: IFilterListProps<T>
 ) {
@@ -463,8 +466,12 @@ function createStateUpdate<T extends IFilterListItem>(
 
   for (const group of props.groups) {
     const items: ReadonlyArray<IMatch<T>> = filter
-      ? match(filter, group.items, 'text')
-      : group.items.map(item => ({ score: 1, matches: [], item }))
+      ? match(filter, group.items, getText)
+      : group.items.map(item => ({
+          score: 1,
+          matches: { title: [], subtitle: [] },
+          item,
+        }))
 
     if (!items.length) {
       continue
