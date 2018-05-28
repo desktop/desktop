@@ -52,7 +52,7 @@ body.theme-dark {
   // or an item in a tab control header. It's up to each implementation
   // to decide what states to support (active selection, selection, etc).
 
-  --box-background-color: $gray-800;
+  --box-background-color: darken($gray-900, 3%);
   --box-alt-background-color: $gray-800;
 
   /**
