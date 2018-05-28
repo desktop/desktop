@@ -255,7 +255,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     | ((repository: Repository | null) => void)
     | null = null
 
-  private selectedCloneRepositoryTab: CloneRepositoryTab = CloneRepositoryTab.DotCom
+  private selectedCloneRepositoryTab = CloneRepositoryTab.DotCom
 
   private selectedBranchesTab = BranchesTab.Branches
 
