@@ -288,17 +288,36 @@
   }
 }
 
-.image-diff-two-up {
+.image-diff-container {
   display: flex;
   flex: 1;
   justify-content: center;
   align-items: center;
+  flex-direction: column;
 
-  .image-diff-previous {
-    margin-right: 7.5px;
+  .image-diff-two-up {
+    display: flex;
+    align-items: center;
+
+    .image-diff-previous {
+      margin-right: var(--spacing-half);
+      margin-bottom: var(--spacing-half);
+    }
+    .image-diff-current {
+      margin-left: var(--spacing-half);
+      margin-bottom: var(--spacing-half);
+    }
   }
-  .image-diff-current {
-    margin-left: 7.5px;
+
+  .image-diff-summary {
+    color: var(--text-secondary-color);
+    font-weight: var(--font-weight-semibold);
+    .added {
+      color: var(--color-new);
+    }
+    .removed {
+      color: var(--color-deleted);
+    }
   }
 }
 
