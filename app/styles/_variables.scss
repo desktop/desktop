@@ -204,6 +204,10 @@
   --tab-bar-active-color: $blue;
   --tab-bar-background-color: $white;
 
+  /** Count bubble colors when used inside of a tab bar item */
+  --tab-bar-count-color: var(--text-color);
+  --tab-bar-count-background-color: $gray-200;
+
   /** Win32 has custom scrol bars, see _scroll.scss */
   --win32-scroll-bar-size: 10px;
 

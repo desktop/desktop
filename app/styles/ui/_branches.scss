@@ -24,8 +24,8 @@
   .count {
     display: flex;
 
-    background: $gray-200;
-    color: var(--text-color);
+    background: var(--tab-bar-count-background-color);
+    color: var(--tab-bar-count-color);
 
     margin-left: var(--spacing-half);
 
