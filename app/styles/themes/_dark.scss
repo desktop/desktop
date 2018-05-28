@@ -145,7 +145,7 @@ body.theme-dark {
   --toolbar-ahead-behind-background-color: $gray-500;
 
   --tab-bar-active-color: $blue;
-  --tab-bar-background-color: $white;
+  --tab-bar-background-color: var(--box-background-color);
 
   /** The highlight color used for focus rings and focus box shadows */
   --focus-color: $blue;
