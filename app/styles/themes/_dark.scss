@@ -147,6 +147,10 @@ body.theme-dark {
   --tab-bar-active-color: $blue;
   --tab-bar-background-color: var(--box-background-color);
 
+  /** Count bubble colors when used inside of a tab bar item */
+  --tab-bar-count-color: var(--text-color);
+  --tab-bar-count-background-color: $gray-700;
+
   /** The highlight color used for focus rings and focus box shadows */
   --focus-color: $blue;
 
