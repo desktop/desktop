@@ -9,6 +9,7 @@
 .diff-code-mirror .CodeMirror {
   height: 100%;
   color: var(--diff-text-color);
+  background: var(--background-color);
   font-size: var(--font-size-sm);
   font-family: var(--font-family-monospace);
 
@@ -61,6 +62,7 @@
 .diff-line-gutter {
   display: flex;
   height: 100%;
+  background: var(--diff-gutter-background-color);
 
   &.diff-add {
     background: var(--diff-add-gutter-background-color);
@@ -95,7 +97,7 @@
   text-align: right;
 }
 
-.diff-add {
+.CodeMirror pre.diff-add {
   background: var(--diff-add-background-color);
   color: var(--diff-add-text-color);
   padding: 0;
@@ -109,7 +111,7 @@
   }
 }
 
-.diff-delete {
+.CodeMirror pre.diff-delete {
   background: var(--diff-delete-background-color);
   color: var(--diff-delete-text-color);
   padding: 0;
@@ -123,9 +125,9 @@
   }
 }
 
-.diff-context {
+.CodeMirror pre.diff-context {
   background: var(--background-color);
-  color: var(--diff-context-text-color);
+  color: var(--diff-text-color);
   padding: 0;
 
   .diff-line-number {
@@ -159,10 +161,10 @@
 }
 
 .cm-diff-context {
-  color: var(--diff-context-text-color);
+  color: var(--diff-text-color);
 }
 
-.diff-hunk {
+.CodeMirror pre.diff-hunk {
   background: var(--diff-hunk-background-color);
   color: var(--diff-hunk-text-color);
   padding: 0;
@@ -176,7 +178,7 @@
   }
 }
 
-.diff-line-selected {
+.CodeMirror pre.CodeMirror-line .diff-line-selected {
   .diff-line-number {
     background: var(--diff-selected-background-color);
     border-color: var(--diff-selected-border-color);
@@ -188,7 +190,7 @@
   }
 }
 
-.diff-line-hover {
+.CodeMirror pre.CodeMirror-line .diff-line-hover {
   .diff-line-number {
     background: var(--diff-hover-background-color);
     border-color: var(--diff-hover-border-color);
@@ -446,15 +448,15 @@
 // https://github.com/primer/github-syntax-light/blob/5aeffad2559647286080328436156c4904a9785b/lib/github-light.css
 .cm-s-default {
   .cm-variable {
-    color: #6f42c1;
+    color: var(--syntax-variable-color);
   }
 
   .cm-keyword {
-    color: #d73a49;
+    color: var(--syntax-keyword-color);
   }
 
   .cm-atom {
-    color: #005cc5;
+    color: var(--syntax-atom-color);
   }
   .cm-number {
     color: inherit;
@@ -466,25 +468,25 @@
 
   .cm-variable-2,
   .cm-variable-3 {
-    color: #24292e;
+    color: var(--syntax-alt-variable-color);
   }
   .cm-comment,
   .cm-meta {
-    color: $gray-500;
+    color: var(--syntax-comment-color);
   }
   .cm-string,
   .cm-string-2 {
-    color: #032f62;
+    color: var(--syntax-string-color);
 
     &.cm-property {
       color: inherit;
     }
   }
   .cm-qualifier {
-    color: #6f42c1;
+    color: var(--syntax-qualifier-color);
   }
   .cm-type {
-    color: #d73a49;
+    color: var(--syntax-type-color);
   }
   .cm-builtin {
     color: inherit;
@@ -493,17 +495,17 @@
     color: inherit;
   }
   .cm-tag {
-    color: #22863a;
+    color: var(--syntax-tag-color);
   }
   .cm-attribute {
-    color: #6f42c1;
+    color: var(--syntax-attribute-color);
   }
   .cm-hr {
     color: inherit;
   }
   .cm-link {
     text-decoration: underline;
-    color: #032f62;
+    color: var(--syntax-link-color);
   }
 
   // Intra line markings takes precedence over syntax highlighting.
@@ -517,19 +519,19 @@
 
   .cm-m-css {
     &.cm-property {
-      color: #005cc5;
+      color: var(--syntax-atom-color);
     }
   }
 
   .cm-m-shell {
     &.cm-builtin {
-      color: #005cc5;
+      color: var(--syntax-atom-color);
     }
   }
 
   .cm-m-javascript {
     &.cm-type {
-      color: #6f42c1;
+      color: var(--syntax-variable-color);
     }
   }
 }
