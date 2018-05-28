@@ -18,9 +18,10 @@ export class CloningRepositoriesStore extends BaseStore {
   public async clone(
     url: string,
     path: string,
+    friendlyName: string,
     options: CloneOptions
   ): Promise<boolean> {
-    const repository = new CloningRepository(path, url)
+    const repository = new CloningRepository(path, url, friendlyName)
     this._repositories.push(repository)
 
     const title = `Cloning into ${path}`
@@ -41,6 +42,7 @@ export class CloningRepositoriesStore extends BaseStore {
         type: RetryActionType.Clone,
         url,
         path,
+        friendlyName,
         options,
       }
       e = new ErrorWithMetadata(e, { retryAction, repository })

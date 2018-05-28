@@ -1489,7 +1489,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       return <RevertProgress progress={revertProgress} />
     }
 
-    const remoteName = state.remote ? state.remote.name : null
+    const friendlyName = state.remote ? state.remote.name : null
     const progress = state.pushPullFetchProgress
 
     const tipState = state.branchesState.tip.kind
@@ -1499,7 +1499,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         dispatcher={this.props.dispatcher}
         repository={selection.repository}
         aheadBehind={state.aheadBehind}
-        remoteName={remoteName}
+        friendlyName={friendlyName}
         lastFetched={state.lastFetched}
         networkActionInProgress={state.isPushPullFetchInProgress}
         progress={progress}

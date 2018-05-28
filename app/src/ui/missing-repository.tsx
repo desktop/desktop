@@ -77,11 +77,13 @@ export class MissingRepository extends React.Component<
     if (!cloneURL) {
       return
     }
+    const friendlyName = gitHubRepository.name
 
     try {
       await this.props.dispatcher.cloneAgain(
         cloneURL,
-        this.props.repository.path
+        this.props.repository.path,
+        friendlyName
       )
     } catch (error) {
       this.props.dispatcher.postError(error)

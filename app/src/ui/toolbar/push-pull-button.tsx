@@ -17,7 +17,7 @@ interface IPushPullButtonProps {
   readonly aheadBehind: IAheadBehind | null
 
   /** The name of the remote. */
-  readonly remoteName: string | null
+  readonly friendlyName: string | null
 
   /** Is a push/pull/update in progress? */
   readonly networkActionInProgress: boolean
@@ -67,7 +67,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
     // otherwise we consider the repository unpublished, and they should be able to
     // open the publish dialog - we'll handle publishing the current branch afterwards
     // if it exists
-    const validState = this.props.remoteName
+    const validState = this.props.friendlyName
       ? this.props.tipState === TipState.Valid
       : true
 
@@ -124,7 +124,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
   }
 
   private getTitle(): string {
-    if (!this.props.remoteName) {
+    if (!this.props.friendlyName) {
       return 'Publish repository'
     }
     if (!this.props.aheadBehind) {
@@ -142,7 +142,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
       return 'Fetch'
     })()
 
-    return `${actionName} ${this.props.remoteName}`
+    return `${actionName} ${this.props.friendlyName}`
   }
 
   private getIcon(): OcticonSymbol {
@@ -150,7 +150,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
       return OcticonSymbol.sync
     }
 
-    if (!this.props.remoteName) {
+    if (!this.props.friendlyName) {
       return OcticonSymbol.cloudUpload
     }
     if (!this.props.aheadBehind) {
@@ -171,7 +171,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
   }
 
   private getDescription(tipState: TipState): JSX.Element | string {
-    if (!this.props.remoteName) {
+    if (!this.props.friendlyName) {
       return 'Publish this repository to GitHub'
     }
 

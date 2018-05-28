@@ -11,6 +11,7 @@ import { Account } from '../../models/account'
 import {
   IRepositoryIdentifier,
   parseRepositoryIdentifier,
+  parseRemote,
 } from '../../lib/remote-parsing'
 import { findAccountForRemoteURL } from '../../lib/find-account'
 import { API } from '../../lib/api'
@@ -50,6 +51,8 @@ interface ICloneRepositoryState {
   /** The user-entered URL or `owner/name` shortcut. */
   readonly url: string
 
+  readonly friendlyName: string
+
   /** The local path to clone to. */
   readonly path: string
 
@@ -68,6 +71,11 @@ interface ICloneRepositoryState {
   readonly shouldClearFilter: boolean
 }
 
+interface ICloneData {
+  url: string
+  friendlyName: string
+}
+
 /** The component for cloning a repository. */
 export class CloneRepository extends React.Component<
   ICloneRepositoryProps,
@@ -78,6 +86,7 @@ export class CloneRepository extends React.Component<
 
     this.state = {
       url: this.props.initialURL || '',
+      friendlyName: '',
       path: getDefaultDir(),
       loading: false,
       error: null,
@@ -318,11 +327,10 @@ export class CloneRepository extends React.Component<
 
   /**
    * Lookup the account associated with the clone (if applicable) and resolve
-   * the repository alias to the clone URL.
+   * the repository data.
    */
-  private async resolveCloneURL(): Promise<string | null> {
+  private async resolveCloneData(): Promise<ICloneData | null> {
     const identifier = this.state.lastParsedIdentifier
-    let url = this.state.url
     const accounts: Array<Account> = []
     if (this.props.dotComAccount) {
       accounts.push(this.props.dotComAccount)
@@ -332,23 +340,48 @@ export class CloneRepository extends React.Component<
       accounts.push(this.props.enterpriseAccount)
     }
 
-    const account = await findAccountForRemoteURL(url, accounts)
+    const account = await findAccountForRemoteURL(this.state.url, accounts)
+
     if (identifier && account) {
       const api = API.fromAccount(account)
       const repo = await api.fetchRepository(identifier.owner, identifier.name)
       if (repo) {
-        url = repo.clone_url
+        return {
+          url: repo.clone_url,
+          friendlyName: repo.name,
+        }
+      }
+    } else {
+      const parsed = parseRemote(this.state.url)
+
+      if (parsed != null && parsed.name != null) {
+        return {
+          url: this.state.url,
+          friendlyName: parsed.name,
+        }
       }
     }
 
-    return url
+    return {
+      url: this.state.url,
+      friendlyName: this.state.friendlyName,
+    }
   }
 
   private clone = async () => {
     this.setState({ loading: true })
 
-    const url = await this.resolveCloneURL()
-    const path = this.state.path
+    const cloneData = await this.resolveCloneData()
+
+    let url = this.state.url
+    let friendlyName = this.state.friendlyName
+    let path = this.state.path
+
+    if (cloneData) {
+      url = cloneData.url
+      friendlyName = cloneData.friendlyName
+      path = this.state.path
+    }
 
     if (!url) {
       const error = new Error(
@@ -359,15 +392,15 @@ export class CloneRepository extends React.Component<
     }
 
     try {
-      this.cloneImpl(url.trim(), path)
+      this.cloneImpl(url.trim(), path, friendlyName)
     } catch (e) {
       log.error(`CloneRepostiory: clone failed to complete to ${path}`, e)
       this.setState({ loading: false, error: e })
     }
   }
 
-  private cloneImpl(url: string, path: string) {
-    this.props.dispatcher.clone(url, path)
+  private cloneImpl(url: string, path: string, friendlyName: string) {
+    this.props.dispatcher.clone(url, path, friendlyName)
     this.props.onDismissed()
 
     setDefaultDir(Path.resolve(path, '..'))

@@ -18,5 +18,6 @@ export type RetryAction =
       type: RetryActionType.Clone
       url: string
       path: string
+      friendlyName: string
       options: CloneOptions
     }

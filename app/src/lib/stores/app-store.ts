@@ -2516,13 +2516,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _clone(
     url: string,
     path: string,
+    friendlyName: string,
     options?: { branch?: string }
   ): { promise: Promise<boolean>; repository: CloningRepository } {
     const account = this.getAccountForRemoteURL(url)
-    const promise = this.cloningRepositoriesStore.clone(url, path, {
-      ...options,
-      account,
-    })
+    const promise = this.cloningRepositoriesStore.clone(
+      url,
+      path,
+      friendlyName,
+      {
+        ...options,
+        account,
+      }
+    )
     const repository = this.cloningRepositoriesStore.repositories.find(
       r => r.url === url && r.path === path
     )!
@@ -3124,8 +3130,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
-  public async _cloneAgain(url: string, path: string): Promise<void> {
-    const { promise, repository } = this._clone(url, path)
+  public async _cloneAgain(
+    url: string,
+    path: string,
+    friendlyName: string
+  ): Promise<void> {
+    const { promise, repository } = this._clone(url, path, friendlyName)
     await this._selectRepository(repository)
     const success = await promise
     if (!success) {
@@ -3557,17 +3567,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
         "This pull request's clone URL is not populated but should be",
         head.gitHubRepository.cloneURL
       )
-      const remoteName = forkPullRequestRemoteName(
+      const friendlyName = forkPullRequestfriendlyName(
         head.gitHubRepository.owner.login
       )
       const remotes = await getRemotes(repository)
       const remote =
-        remotes.find(r => r.name === remoteName) ||
-        (await addRemote(repository, remoteName, cloneURL))
+        remotes.find(r => r.name === friendlyName) ||
+        (await addRemote(repository, friendlyName, cloneURL))
 
       if (remote.url !== cloneURL) {
         const error = new Error(
-          `Expected PR remote ${remoteName} url to be ${cloneURL} got ${
+          `Expected PR remote ${friendlyName} url to be ${cloneURL} got ${
             remote.url
           }.`
         )
@@ -3589,7 +3599,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         await this._createBranch(
           repository,
           localBranchName,
-          `${remoteName}/${head.ref}`
+          `${friendlyName}/${head.ref}`
         )
       }
 
@@ -3647,8 +3657,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 }
 
-function forkPullRequestRemoteName(remoteName: string) {
-  return `${ForkedRemotePrefix}${remoteName}`
+function forkPullRequestfriendlyName(friendlyName: string) {
+  return `${ForkedRemotePrefix}${friendlyName}`
 }
 
 /**

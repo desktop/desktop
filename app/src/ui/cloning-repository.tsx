@@ -24,11 +24,19 @@ export class CloningRepositoryView extends React.Component<
       <UiView id="cloning-repository-view">
         <div className="title-container">
           <Octicon symbol={OcticonSymbol.desktopDownload} />
-          <div className="title">Cloning {this.props.repository.name}</div>
+          <div className="title">{this.renderTitle()}</div>
         </div>
         <progress value={progressValue} />
         <div className="details">{this.props.progress.description}</div>
       </UiView>
     )
+  }
+
+  private renderTitle() {
+    const title = this.props.repository.hasFriendlyName()
+      ? this.props.repository.friendlyName
+      : `into ${this.props.repository.basename}`
+
+    return <span>Cloning {title}</span>
   }
 }
