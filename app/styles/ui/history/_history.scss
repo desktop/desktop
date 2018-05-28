@@ -120,7 +120,7 @@
 
     &-item {
       box-shadow: none;
-      background: white;
+      background: var(--tab-bar-background-color);
       border: var(--base-border);
 
       &:first-of-type {
