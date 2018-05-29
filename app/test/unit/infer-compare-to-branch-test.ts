@@ -61,7 +61,7 @@ describe('inferCompareToBranch', () => {
       }
       const inferredBranch = inferCompareToBranch(state, new ComparisonCache())
 
-      expect(inferredBranch).to.equal('origin/pr')
+      expect(inferredBranch!.upstream).to.equal('origin/pr')
     })
 
     it.only('Uses the default branch on origin if it is hosted on GitHub', () => {
@@ -82,7 +82,7 @@ describe('inferCompareToBranch', () => {
         ghRepo
       )
 
-      expect(inferredBranch).to.equal('origin/master')
+      expect(inferredBranch!.upstream).to.equal('origin/master')
     })
   })
 
@@ -128,7 +128,7 @@ describe('inferCompareToBranch', () => {
 
       const inferredBranch = inferCompareToBranch(state, cache, fork)
 
-      expect(inferredBranch).to.equal('origin/fork')
+      expect(inferredBranch!.upstream).to.equal('origin/fork')
     })
 
     it.only('', () => {})
