@@ -1,5 +1,12 @@
 {
   "releases": {
+    "1.2.1-beta1": [
+      "[Added] Add Brackets support for macOS - #4608. Thanks @3raxton!",
+      "[Added] Pull request number and author are included in fuzzy-find filtering - #4653. Thanks @damaneice!",
+      "[Fixed] Decreased the max line length limit - #3740. Thanks @sagaragarwal94!",
+      "[Fixed] Display the differences file size of images - #4380. Thanks @ggajos!",
+      "[Fixed] Updated embedded Git to 2.17.1 to address upstream security issue - #4791"
+    ],
     "1.2.1-beta0": [
 
     ],
