@@ -74,7 +74,7 @@ function inferCompareToBranchFromFork(
   }
 
   const defaultBranch = state.allBranches.find(
-    b => b.name === defaultBranchName
+    b => b.upstream === defaultBranchName
   )
 
   // TODO: figure out if it's a problem that
