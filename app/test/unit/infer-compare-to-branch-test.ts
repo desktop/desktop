@@ -124,7 +124,7 @@ describe('inferCompareToBranch', () => {
       }
       // Add entry to cache to represent fork being behind by 1 commit
       const cache = new ComparisonCache()
-      cache.set('parent', 'child', { ahead: 1, behind: 0 })
+      cache.set(forkBranch.tip.sha, dummyCommit.sha, { ahead: 0, behind: 1 })
 
       const inferredBranch = inferCompareToBranch(state, cache, fork)
 
