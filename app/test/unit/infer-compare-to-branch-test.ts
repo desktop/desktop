@@ -12,7 +12,7 @@ import { Owner } from '../../src/models/owner'
 
 const committer = new CommitIdentity('tester', 'tester@test.com', new Date())
 const dummyCommit = new Commit(
-  '',
+  'shashashake',
   'Test commit',
   '',
   committer,
@@ -42,7 +42,13 @@ const defaultState: IBranchesState = {
 describe('inferCompareToBranch', () => {
   describe('Non-forked repository', () => {
     it.only('Uses the target branch of the PR if the current branch has a PR associated with it', () => {
-      // Create PR with a target branch of 'origin/pr`
+      // Create PR with a target branch of 'origin/pr`\
+      const prBaseBranch = new Branch(
+        'pr',
+        'origin/pr',
+        dummyCommit,
+        BranchType.Remote
+      )
       const pullRequest = new PullRequest(
         -1,
         new Date(),
@@ -50,12 +56,13 @@ describe('inferCompareToBranch', () => {
         'Test PR',
         1,
         new PullRequestRef('', '', null),
-        new PullRequestRef('origin/pr', '', null),
+        new PullRequestRef(prBaseBranch.name, prBaseBranch.tip.sha, null),
         ''
       )
       // Add the PR to branches state and set as the current PR
       const state = {
         ...defaultState,
+        allBranches: [prBaseBranch, ...defaultState.allBranches],
         openPullRequests: [pullRequest],
         currentPullRequest: pullRequest,
       }
@@ -103,7 +110,15 @@ describe('inferCompareToBranch', () => {
       const forkBranch = new Branch(
         'fork',
         'origin/fork',
-        dummyCommit,
+        new Commit(
+          'commit',
+          '',
+          '',
+          new CommitIdentity('', '', new Date()),
+          new CommitIdentity('', '', new Date()),
+          [],
+          []
+        ),
         BranchType.Remote
       )
       // Fork the repo
