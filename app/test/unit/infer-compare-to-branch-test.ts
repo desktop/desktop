@@ -146,6 +146,6 @@ describe('inferCompareToBranch', () => {
       expect(inferredBranch!.upstream).to.equal('origin/fork')
     })
 
-    it.only('', () => {})
+    it.only("Uses the default branch of the forked repository's parent if it is not ahead of the current branch ", () => {})
   })
 })
