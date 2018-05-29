@@ -29,7 +29,7 @@
     "lint:prettier": "ts-node script/prettier.ts",
     "lint:src": "yarn tslint && yarn eslint-check && yarn eslint",
     "lint:src:fix": "yarn tslint --fix && yarn eslint --fix",
-    "tslint": "tslint ./{script,tslint-rules}/*.ts ./app/{src,typings,test}/**/*.{ts,tsx}",
+    "tslint": "tslint -p .",
     "eslint": "ts-node script/eslint.ts",
     "eslint-check": "eslint --print-config .eslintrc.* | eslint-config-prettier-check",
     "publish": "node script/publish",
