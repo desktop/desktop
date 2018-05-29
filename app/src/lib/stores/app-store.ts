@@ -339,9 +339,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.accountsStore.onDidError(error => this.emitError(error))
 
     this.repositoriesStore.onDidUpdate(async () => {
-      this.repositories = await this.getRefreshedRepositories(
-        await this.repositoriesStore.getAll()
-      )
+      this.repositories = await this.repositoriesStore.getAll()
       this.updateRepositorySelectionAfterRepositoriesChanged()
       this.emitUpdate()
     })
@@ -1753,35 +1751,47 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this._updateCurrentPullRequest(repository)
     this.updateMenuItemLabels(repository)
     this._initializeCompare(repository)
-    this.repositories = await this.getRefreshedRepositories(
-      this.repositories,
-      repository
-    )
+    this.refreshLocalState([repository])
   }
 
   public async refreshAllRepositories() {
-    this.repositories = await this.getRefreshedRepositories(this.repositories)
-    this.emitUpdate()
+    await this.refreshLocalState(this.repositories, true)
   }
 
-  private async getRefreshedRepositories(
+  /**
+   * Refresh the local state for a number of repositories in the sidebar
+   *
+   * @param repositories A collection of repositories to check and update
+   * @param fetchRepository Whether to trigger a fetch as part of each repository update
+   */
+  private async refreshLocalState(
     repositories: ReadonlyArray<Repository>,
-    targetRepo?: Repository
-  ): Promise<ReadonlyArray<Repository>> {
-    for (const repo of repositories) {
-      if (!targetRepo || targetRepo.id === repo.id) {
-        await this.withAuthenticatingUser(repo, async (repo, account) => {
-          const gitStore = this.getGitStore(repo)
-          repo.aheadBehind = gitStore.aheadBehind
-          await gitStore.fetch(account, true)
-          const status = await gitStore.loadStatus()
-          if (status !== null) {
-            repo.changedFiles = status.workingDirectory.files
+    fetchRepository: boolean = false
+  ): Promise<void> {
+    await this.repositoriesStore.updateLocalStatus(
+      repositories,
+      async repository => {
+        return await this.withAuthenticatingUser(
+          repository,
+          async (repo, account) => {
+            const gitStore = this.getGitStore(repo)
+            if (fetchRepository) {
+              await gitStore.fetch(account, true)
+            }
+
+            const aheadBehind = gitStore.aheadBehind || null
+
+            const status = await gitStore.loadStatus()
+            let hasChanges = false
+            if (status !== null) {
+              hasChanges = status.workingDirectory.files.length > 0
+            }
+
+            return { hasChanges, aheadBehind }
           }
-        })
+        )
       }
-    }
-    return repositories
+    )
   }
 
   /**
