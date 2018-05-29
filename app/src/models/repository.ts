@@ -2,7 +2,11 @@ import * as Path from 'path'
 
 import { GitHubRepository } from './github-repository'
 import { IAheadBehind } from './branch'
-import { WorkingDirectoryFileChange } from './status'
+
+export interface IRepositoryStatus {
+  readonly hasChanges: boolean
+  readonly aheadBehind: IAheadBehind | null
+}
 
 /** A local repository. */
 export class Repository {
@@ -15,16 +19,16 @@ export class Repository {
   /** Was the repository missing on disk last we checked? */
   public readonly missing: boolean
 
-  public aheadBehind: IAheadBehind | null
-  public changedFiles: ReadonlyArray<WorkingDirectoryFileChange> | null
+  public readonly aheadBehind: IAheadBehind | null
+  public readonly hasChanges: boolean
 
   public constructor(
     path: string,
     id: number,
     gitHubRepository: GitHubRepository | null,
     missing: boolean,
-    aheadBehind?: IAheadBehind,
-    changedFiles?: ReadonlyArray<WorkingDirectoryFileChange>
+    hasChanges: boolean = false,
+    aheadBehind: IAheadBehind | null = null
   ) {
     this.path = path
     this.gitHubRepository = gitHubRepository
@@ -32,8 +36,8 @@ export class Repository {
       (gitHubRepository && gitHubRepository.name) || Path.basename(path)
     this.id = id
     this.missing = missing
+    this.hasChanges = hasChanges
     this.aheadBehind = aheadBehind || null
-    this.changedFiles = changedFiles || null
   }
 
   /**
@@ -47,5 +51,16 @@ export class Repository {
       ${this.path}+
       ${this.missing}+
       ${this.name}`
+  }
+
+  public withLocalStatus(status: IRepositoryStatus): Repository {
+    return new Repository(
+      this.path,
+      this.id,
+      this.gitHubRepository,
+      this.missing,
+      status.hasChanges,
+      status.aheadBehind
+    )
   }
 }

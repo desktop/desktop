@@ -50,9 +50,7 @@ export class RepositoryListItem extends React.Component<
       repository instanceof Repository ? repository.gitHubRepository : null
     let hasChanges = false
     if (repository instanceof Repository) {
-      hasChanges = repository.changedFiles
-        ? repository.changedFiles.length > 0
-        : false
+      hasChanges = repository.hasChanges
     }
     const renderAheadBehindIndicator = () => {
       if (!(repository instanceof Repository) || !repository.aheadBehind) {
