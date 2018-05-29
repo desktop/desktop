@@ -83,17 +83,10 @@ function inferCompareToBranchFromFork(
     return null
   }
 
-  const defaultBranchAheadBehind = cache.get(
-    defaultBranch.tip.sha,
-    branch.tip.sha
-  )
+  const aheadBehind = cache.get(defaultBranch.tip.sha, branch.tip.sha)
 
   // Checking the default branch on the forked repository
-  if (
-    defaultBranchAheadBehind !== null &&
-    defaultBranchAheadBehind.behind > 0
-  ) {
-    return defaultBranch.name
+  if (aheadBehind !== null && aheadBehind.behind > 0) {
     return defaultBranch
   }
 
