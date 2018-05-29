@@ -4,7 +4,9 @@ import { GitHubRepository } from './github-repository'
 import { IAheadBehind } from './branch'
 
 export interface IRepositoryStatus {
+  /** Whether the repository has uncommitted changes on disk */
   readonly hasChanges: boolean
+  /** The ahead/behind count for the current branch (assumes tracking branch) */
   readonly aheadBehind: IAheadBehind | null
 }
 
@@ -13,13 +15,15 @@ export class Repository {
   public readonly id: number
   /** The working directory of this repository */
   public readonly path: string
+  /** The friendly name for the repository, if a GitHub remote exists, or the directory name of the repository */
   public readonly name: string
+  /** The GitHub API repository details for the current repository, or `null` if the repository has another remote */
   public readonly gitHubRepository: GitHubRepository | null
-
   /** Was the repository missing on disk last we checked? */
   public readonly missing: boolean
-
+  /** The last known state of the ahead/behind count for the current branch (assumes tracking branch) */
   public readonly aheadBehind: IAheadBehind | null
+  /** The last known state for whether there are uncommitted changes for the repository */
   public readonly hasChanges: boolean
 
   public constructor(
