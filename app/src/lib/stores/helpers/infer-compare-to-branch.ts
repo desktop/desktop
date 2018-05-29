@@ -15,7 +15,7 @@ export function inferCompareToBranch(
   state: IBranchesState,
   cache: ComparisonCache,
   ghRepository?: GitHubRepository
-): string | null {
+): Branch | null {
   const tip = state.tip
   const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
 
@@ -27,7 +27,10 @@ export function inferCompareToBranch(
   // use the target branch of the PR
   const associatedPullRequest = state.currentPullRequest
   if (associatedPullRequest !== null) {
-    return associatedPullRequest.base.ref
+    return (
+      state.allBranches.find(b => b.name === associatedPullRequest.base.ref) ||
+      null
+    )
   }
 
   if (ghRepository !== undefined) {
@@ -41,13 +44,16 @@ export function inferCompareToBranch(
       )
     } else {
       // If the repository is hosted on GitHub, use the default branch on origin
-      return ghRepository.defaultBranch
+      return (
+        state.allBranches.find(
+          b => b.upstream === ghRepository.defaultBranch
+        ) || null
+      )
     }
   }
 
   // Otherwise fall through to the local master branch
-  const defaultBranch = state.allBranches.find(b => b.name === 'master')
-  return defaultBranch!.name
+  return state.allBranches.find(b => b.name === 'master') || null
 }
 
 // if the repository is a fork, use the default branch on upstream
