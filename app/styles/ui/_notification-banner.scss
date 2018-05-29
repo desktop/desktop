@@ -30,11 +30,12 @@
 
 .diverge-banner {
   p {
-    margin-top: 0;
+    margin: 0;
   }
 
   .button-group {
     display: flex;
+    margin-top: var(--spacing-half);
   }
 
   .button-component {
