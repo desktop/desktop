@@ -5,14 +5,16 @@ import {
 } from '../databases/repositories-database'
 import { Owner } from '../../models/owner'
 import { GitHubRepository } from '../../models/github-repository'
-import { Repository } from '../../models/repository'
+import { Repository, IRepositoryStatus } from '../../models/repository'
 import { fatalError } from '../fatal-error'
 import { IAPIRepository } from '../api'
 import { BaseStore } from './base-store'
+import { structuralEquals } from '../equality'
 
 /** The store for local repositories. */
 export class RepositoriesStore extends BaseStore {
   private db: RepositoriesDatabase
+  private readonly repositoryStatusCache = new Map<number, IRepositoryStatus>()
 
   public constructor(db: RepositoriesDatabase) {
     super()
@@ -85,8 +87,8 @@ export class RepositoriesStore extends BaseStore {
   }
 
   /** Get all the local repositories. */
-  public getAll(): Promise<ReadonlyArray<Repository>> {
-    return this.db.transaction(
+  public async getAll(): Promise<ReadonlyArray<Repository>> {
+    const databaseRepositories = await this.db.transaction(
       'r',
       this.db.repositories,
       this.db.gitHubRepositories,
@@ -115,6 +117,37 @@ export class RepositoriesStore extends BaseStore {
         return inflatedRepos
       }
     )
+
+    return databaseRepositories.map(r => {
+      const status = this.repositoryStatusCache.get(r.id)
+      if (status == null) {
+        return r
+      }
+
+      return r.withLocalStatus(status)
+    })
+  }
+
+  public async updateLocalStatus(
+    repositories: ReadonlyArray<Repository>,
+    getStatus: (repository: Repository) => Promise<IRepositoryStatus>
+  ) {
+    let updateBecauseStatusChanged = false
+
+    for (const repo of repositories) {
+      const status = await getStatus(repo)
+
+      const existingValue = this.repositoryStatusCache.get(repo.id)
+
+      if (existingValue == null || !structuralEquals(existingValue, status)) {
+        updateBecauseStatusChanged = true
+        this.repositoryStatusCache.set(repo.id, status)
+      }
+    }
+
+    if (updateBecauseStatusChanged) {
+      this.emitUpdate()
+    }
   }
 
   /**
