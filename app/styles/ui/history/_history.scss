@@ -46,6 +46,10 @@
       margin: var(--spacing-double);
       text-align: center;
       justify-content: initial;
+
+      .blankslate-image {
+        max-height: 150px;
+      }
     }
   }
 }
