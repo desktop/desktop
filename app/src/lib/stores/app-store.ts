@@ -339,9 +339,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.accountsStore.onDidError(error => this.emitError(error))
 
     this.repositoriesStore.onDidUpdate(async () => {
-      this.repositories = await this.getRefreshedRepositories(
-        await this.repositoriesStore.getAll()
-      )
+      this.repositories = await this.repositoriesStore.getAll()
       this.updateRepositorySelectionAfterRepositoriesChanged()
       this.emitUpdate()
     })
@@ -1753,15 +1751,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this._updateCurrentPullRequest(repository)
     this.updateMenuItemLabels(repository)
     this._initializeCompare(repository)
-    this.repositories = await this.getRefreshedRepositories(
-      this.repositories,
-      repository
-    )
+    this.refreshLocalState([repository])
   }
 
   public async refreshAllRepositories() {
-    this.repositories = await this.getRefreshedRepositories(this.repositories)
-    this.emitUpdate()
+    await this.refreshLocalState(this.repositories, true)
   }
 
   /**
