@@ -11,8 +11,21 @@ import { GitHubRepository } from '../../src/models/github-repository'
 import { Owner } from '../../src/models/owner'
 
 const committer = new CommitIdentity('tester', 'tester@test.com', new Date())
-const commit = new Commit('', 'Test commit', '', committer, committer, [], [])
-const branch = new Branch('master', null, commit, BranchType.Remote)
+const dummyCommit = new Commit(
+  '',
+  'Test commit',
+  '',
+  committer,
+  committer,
+  [],
+  []
+)
+const branch = new Branch(
+  'master',
+  'origin/master',
+  dummyCommit,
+  BranchType.Remote
+)
 const defaultState: IBranchesState = {
   tip: {
     kind: TipState.Valid,
@@ -29,6 +42,7 @@ const defaultState: IBranchesState = {
 describe('inferCompareToBranch', () => {
   describe('Non-forked repository', () => {
     it.only('Uses the target branch of the PR if the current branch has a PR associated with it', () => {
+      // Create PR with a target branch of 'origin/pr`
       const pullRequest = new PullRequest(
         -1,
         new Date(),
@@ -39,6 +53,7 @@ describe('inferCompareToBranch', () => {
         new PullRequestRef('origin/pr', '', null),
         ''
       )
+      // Add the PR to branches state and set as the current PR
       const state = {
         ...defaultState,
         openPullRequests: [pullRequest],
@@ -50,13 +65,14 @@ describe('inferCompareToBranch', () => {
     })
 
     it.only('Uses the default branch on origin if it is hosted on GitHub', () => {
+      // Create a GitHub repository with the default branch set to 'origin/master'
       const ghRepo = new GitHubRepository(
         '',
         new Owner('', '', null),
         null,
         false,
         '',
-        branch.name,
+        branch.upstream,
         null,
         null
       )
@@ -66,38 +82,53 @@ describe('inferCompareToBranch', () => {
         ghRepo
       )
 
-      expect(inferredBranch).to.equal(branch.name)
+      expect(inferredBranch).to.equal('origin/master')
     })
   })
 
   describe('Forked repository', () => {
     it.only('Uses the default branch on the forked repository if it is ahead of the current branch', () => {
-      const parentGhRepo = new GitHubRepository(
+      // Create a repo
+      const ghRepo = new GitHubRepository(
         'parent',
         new Owner('', '', null),
         null,
         false,
         '',
-        'parent',
+        'origin/master',
         null,
         null
       )
-      const ghRepo = new GitHubRepository(
+      // Create branch used for forked repo
+      const forkBranch = new Branch(
+        'fork',
+        'origin/fork',
+        dummyCommit,
+        BranchType.Remote
+      )
+      // Fork the repo
+      const fork = new GitHubRepository(
         'child',
         new Owner('', '', null),
         null,
         false,
         '',
-        branch.name,
+        forkBranch.upstream,
         null,
-        parentGhRepo
+        ghRepo
       )
+      //Add the forked branch to branches state
+      const state = {
+        ...defaultState,
+        allBranches: [forkBranch, ...defaultState.allBranches],
+      }
+      // Add entry to cache to represent fork being behind by 1 commit
       const cache = new ComparisonCache()
-      cache.set('from', 'to', { ahead: 1, behind: 0 })
+      cache.set('parent', 'child', { ahead: 1, behind: 0 })
 
-      const inferredBranch = inferCompareToBranch(defaultState, cache, ghRepo)
+      const inferredBranch = inferCompareToBranch(state, cache, fork)
 
-      expect(inferredBranch).to.equal(branch.name)
+      expect(inferredBranch).to.equal('origin/fork')
     })
 
     it.only('', () => {})
