@@ -91,5 +91,5 @@ function inferCompareToBranchFromFork(
   }
 
   // Fall through to default branch of the parent repository
-  return ghRepository.parent!.defaultBranch
+  return (ghRepository.parent && ghRepository.parent.defaultBranch) || null
 }
