@@ -1764,24 +1764,34 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  private async getRefreshedRepositories(
+  private async refreshLocalState(
     repositories: ReadonlyArray<Repository>,
-    targetRepo?: Repository
-  ): Promise<ReadonlyArray<Repository>> {
-    for (const repo of repositories) {
-      if (!targetRepo || targetRepo.id === repo.id) {
-        await this.withAuthenticatingUser(repo, async (repo, account) => {
-          const gitStore = this.getGitStore(repo)
-          repo.aheadBehind = gitStore.aheadBehind
-          await gitStore.fetch(account, true)
-          const status = await gitStore.loadStatus()
-          if (status !== null) {
-            repo.changedFiles = status.workingDirectory.files
+    fetchRepository: boolean = false
+  ): Promise<void> {
+    await this.repositoriesStore.updateLocalStatus(
+      repositories,
+      async repository => {
+        return await this.withAuthenticatingUser(
+          repository,
+          async (repo, account) => {
+            const gitStore = this.getGitStore(repo)
+            if (fetchRepository) {
+              await gitStore.fetch(account, true)
+            }
+
+            const aheadBehind = gitStore.aheadBehind || null
+
+            const status = await gitStore.loadStatus()
+            let hasChanges = false
+            if (status !== null) {
+              hasChanges = status.workingDirectory.files.length > 0
+            }
+
+            return { hasChanges, aheadBehind }
           }
-        })
+        )
       }
-    }
-    return repositories
+    )
   }
 
   /**
