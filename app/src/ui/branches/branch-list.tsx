@@ -9,6 +9,7 @@ import {
   IFilterListGroup,
   SelectionSource,
 } from '../lib/filter-list'
+import { IMatches } from '../../lib/fuzzy-find'
 import { Button } from '../lib/button'
 import { TextBox } from '../lib/text-box'
 
@@ -103,7 +104,7 @@ interface IBranchListProps {
    */
   readonly renderBranch: (
     item: IBranchListItem,
-    matches: ReadonlyArray<number>
+    matches: IMatches
   ) => JSX.Element
 }
 
@@ -198,10 +199,7 @@ export class BranchList extends React.Component<
     this.branchFilterList = filterList
   }
 
-  private renderItem = (
-    item: IBranchListItem,
-    matches: ReadonlyArray<number>
-  ) => {
+  private renderItem = (item: IBranchListItem, matches: IMatches) => {
     return this.props.renderBranch(item, matches)
   }
 

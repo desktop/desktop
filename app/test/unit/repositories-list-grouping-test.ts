@@ -126,13 +126,13 @@ describe('repository list grouping', () => {
     expect(grouped[0].items.length).to.equal(3)
 
     const items = grouped[0].items
-    expect(items[0].text).to.equal('cool-repo')
+    expect(items[0].text[0]).to.equal('cool-repo')
     expect(items[0].needsDisambiguation).to.equal(false)
 
-    expect(items[1].text).to.equal('repo')
+    expect(items[1].text[0]).to.equal('repo')
     expect(items[1].needsDisambiguation).to.equal(true)
 
-    expect(items[2].text).to.equal('repo')
+    expect(items[2].text[0]).to.equal('repo')
     expect(items[2].needsDisambiguation).to.equal(true)
   })
 })

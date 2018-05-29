@@ -21,6 +21,7 @@ import { CompareBranchListItem } from './compare-branch-list-item'
 import { FancyTextBox } from '../lib/fancy-text-box'
 import { OcticonSymbol } from '../octicons'
 import { SelectionSource } from '../lib/filter-list'
+import { IMatches } from '../../lib/fuzzy-find'
 import { Ref } from '../lib/ref'
 
 interface ICompareSidebarProps {
@@ -357,7 +358,7 @@ export class CompareSidebar extends React.Component<
 
   private renderCompareBranchListItem = (
     item: IBranchListItem,
-    matches: ReadonlyArray<number>
+    matches: IMatches
   ) => {
     const currentBranch = this.props.currentBranch
 
