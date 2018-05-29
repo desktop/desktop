@@ -248,6 +248,6 @@ body.theme-dark {
   --path-segment-background: $gray-700;
 
   .blankslate-image {
-    filter: grayscale(1) brightness(0.8);
+    filter: #{'invert()'} grayscale(1) brightness(8) contrast(0.6);
   }
 }
