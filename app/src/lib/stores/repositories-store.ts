@@ -128,6 +128,15 @@ export class RepositoriesStore extends BaseStore {
     })
   }
 
+  /**
+   * Update the local status of a number of repositories.
+   *
+   * This will compare the work to what's currently cached and only signal
+   * when values have changed.
+   *
+   * @param repositories A collection of repositories to inspect
+   * @param getStatus A function to compute the repository status
+   */
   public async updateLocalStatus(
     repositories: ReadonlyArray<Repository>,
     getStatus: (repository: Repository) => Promise<IRepositoryStatus>

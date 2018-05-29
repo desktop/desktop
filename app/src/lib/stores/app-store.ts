@@ -1764,6 +1764,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
+  /**
+   * Refresh the local state for a number of repositories in the sidebar
+   *
+   * @param repositories A collection of repositories to check and update
+   * @param fetchRepository Whether to trigger a fetch as part of each repository update
+   */
   private async refreshLocalState(
     repositories: ReadonlyArray<Repository>,
     fetchRepository: boolean = false
