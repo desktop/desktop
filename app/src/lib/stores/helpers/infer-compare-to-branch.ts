@@ -58,7 +58,7 @@ function inferCompareToBranchFromFork(
   state: IBranchesState,
   cache: ComparisonCache,
   ghRepository: GitHubRepository
-) {
+): Branch | null {
   const defaultBranchName = ghRepository.defaultBranch
 
   // TODO: figure out if this branch is stored in branch list
@@ -88,8 +88,16 @@ function inferCompareToBranchFromFork(
     defaultBranchAheadBehind.behind > 0
   ) {
     return defaultBranch.name
+    return defaultBranch
   }
 
   // Fall through to default branch of the parent repository
-  return (ghRepository.parent && ghRepository.parent.defaultBranch) || null
+  const parent = ghRepository.parent
+  if (parent !== null && parent.defaultBranch !== null) {
+    return (
+      state.allBranches.find(b => b.upstream === parent.defaultBranch) || null
+    )
+  }
+
+  return null
 }
