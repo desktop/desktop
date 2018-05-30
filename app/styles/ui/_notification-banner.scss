@@ -1,7 +1,8 @@
 @import '../mixins';
 
 .notification-banner {
-  padding: var(--spacing-half);
+  border-bottom: var(--base-border);
+  padding: var(--spacing);
 
   &-content {
     display: flex;
