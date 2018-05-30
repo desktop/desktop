@@ -94,9 +94,13 @@ describe('inferCompareToBranch', () => {
   })
 
   describe('Forked repository', () => {
-    it.only('Uses the default branch on the forked repository if it is ahead of the current branch', () => {
+    let ghRepo: GitHubRepository
+    let fork: GitHubRepository
+    let forkBranch: Branch
+
+    beforeEach(() => {
       // Create a repo
-      const ghRepo = new GitHubRepository(
+      ghRepo = new GitHubRepository(
         'parent',
         new Owner('', '', null),
         null,
@@ -107,7 +111,7 @@ describe('inferCompareToBranch', () => {
         null
       )
       // Create branch used for forked repo
-      const forkBranch = new Branch(
+      forkBranch = new Branch(
         'fork',
         'origin/fork',
         new Commit(
@@ -122,7 +126,7 @@ describe('inferCompareToBranch', () => {
         BranchType.Remote
       )
       // Fork the repo
-      const fork = new GitHubRepository(
+      fork = new GitHubRepository(
         'child',
         new Owner('', '', null),
         null,
@@ -132,6 +136,9 @@ describe('inferCompareToBranch', () => {
         null,
         ghRepo
       )
+    })
+
+    it.only('Uses the default branch on the forked repository if it is ahead of the current branch', () => {
       //Add the forked branch to branches state
       const state = {
         ...defaultState,
@@ -146,6 +153,20 @@ describe('inferCompareToBranch', () => {
       expect(inferredBranch!.upstream).to.equal('origin/fork')
     })
 
-    it.only("Uses the default branch of the forked repository's parent if it is not ahead of the current branch ", () => {})
+    it.only("Uses the default branch of the forked repository's parent if it is not ahead of the current branch ", () => {
+      //Add the forked branch to branches state
+      const state = {
+        ...defaultState,
+        allBranches: [forkBranch, ...defaultState.allBranches],
+      }
+      // Add entry to cache to represent fork being behind by 1 commit
+      const inferredBranch = inferCompareToBranch(
+        state,
+        new ComparisonCache(),
+        fork
+      )
+
+      expect(inferredBranch!.upstream).to.equal('origin/master')
+    })
   })
 })
