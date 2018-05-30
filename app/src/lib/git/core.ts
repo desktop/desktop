@@ -253,8 +253,6 @@ function getDescriptionForError(error: DugiteError): string {
       return 'The object was not found in the Git repository.'
     case DugiteError.OutsideRepository:
       return 'This path is not a valid path inside the repository.'
-    case DugiteError.LockFileAlreadyExists:
-      return 'A lock file already exists in the repository, which blocks this operation from completing.'
     default:
       return assertNever(error, `Unknown error: ${error}`)
   }
