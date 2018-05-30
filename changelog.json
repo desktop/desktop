@@ -1,5 +1,8 @@
 {
   "releases": {
+    "1.2.2-beta1": [
+      "[Fixed] Downgrade embedded Git to 2.17.0 due to SChannel issue - #4819"
+    ],
     "1.2.1": [
       "[Added] Brackets support for macOS - #4608. Thanks @3raxton!",
       "[Added] Pull request number and author are included in fuzzy-find filtering - #4653. Thanks @damaneice!",
