@@ -117,6 +117,18 @@ body.theme-dark {
    */
   --box-selected-active-border-color: $gray-400;
 
+  /**
+   * Gradient used to indicate that content is overflowing, intended
+   * for use when content can be expanded through other means than
+   * scrolling.
+   */
+  --box-overflow-shadow-background: linear-gradient(
+    180deg,
+    rgba($gray-900, 0) 0%,
+    rgba($gray-900, 1) 90%,
+    rgba($gray-900, 1) 100%
+  );
+
   --base-border: 1px solid var(--box-border-color);
 
   --shadow-color: rgba(black, 0.5);
