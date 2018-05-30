@@ -98,6 +98,12 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
    * Background color for skeleton or "loading" boxes
    */
   --box-skeleton-background-color: $gray-200;
+  --skeleton-background-gradient: -webkit-linear-gradient(
+    left,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.5) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
 
   /**
    * Border color for boxes.
@@ -149,6 +155,18 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
    * Border color for selected boxes with active keyboard focus
    */
   --box-selected-active-border-color: $gray-400;
+
+  /**
+   * Gradient used to indicate that content is overflowing, intended
+   * for use when content can be expanded through other means than
+   * scrolling.
+   */
+  --box-overflow-shadow-background: linear-gradient(
+    180deg,
+    rgba($white, 0) 0%,
+    rgba($white, 1) 90%,
+    rgba($white, 1) 100%
+  );
 
   /**
    * The height of the title bar area on Win32 platforms
@@ -209,6 +227,10 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --tab-bar-height: 29px;
   --tab-bar-active-color: $blue;
   --tab-bar-background-color: $white;
+
+  /** Count bubble colors when used inside of a tab bar item */
+  --tab-bar-count-color: var(--text-color);
+  --tab-bar-count-background-color: $gray-200;
 
   /** Win32 has custom scrol bars, see _scroll.scss */
   --win32-scroll-bar-size: 10px;
