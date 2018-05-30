@@ -35,6 +35,8 @@ export function inferCompareToBranch(
   return branches.find(b => b.name === ghRepository.defaultBranch) || null
 }
 
+export function inferCompareToBranchNonGithub(branches: ReadonlyArray<Branch>) {
+  return branches.find(b => b.name === 'master') || null
 }
 
 // if the repository is a fork, use the default branch on upstream
