@@ -157,6 +157,18 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --box-selected-active-border-color: $gray-400;
 
   /**
+   * Gradient used to indicate that content is overflowing, intended
+   * for use when content can be expanded through other means than
+   * scrolling.
+   */
+  --box-overflow-shadow-background: linear-gradient(
+    180deg,
+    rgba($white, 0) 0%,
+    rgba($white, 1) 90%,
+    rgba($white, 1) 100%
+  );
+
+  /**
    * The height of the title bar area on Win32 platforms
    * If changed, update titleBarHeight in 'app/src/ui/dialog/dialog.tsx'
   */
