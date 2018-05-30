@@ -97,8 +97,25 @@
   text-align: right;
 }
 
+.CodeMirror-linebackground {
+  &.diff-add {
+    background: var(--diff-add-background-color);
+  }
+
+  &.diff-delete {
+    background: var(--diff-delete-background-color);
+  }
+
+  &.diff-context {
+    background: var(--background-color);
+  }
+
+  &.diff-hunk {
+    background: var(--diff-hunk-background-color);
+  }
+}
+
 .CodeMirror pre.diff-add {
-  background: var(--diff-add-background-color);
   color: var(--diff-add-text-color);
   padding: 0;
 
@@ -112,7 +129,6 @@
 }
 
 .CodeMirror pre.diff-delete {
-  background: var(--diff-delete-background-color);
   color: var(--diff-delete-text-color);
   padding: 0;
 
@@ -126,7 +142,6 @@
 }
 
 .CodeMirror pre.diff-context {
-  background: var(--background-color);
   color: var(--diff-text-color);
   padding: 0;
 
@@ -165,7 +180,6 @@
 }
 
 .CodeMirror pre.diff-hunk {
-  background: var(--diff-hunk-background-color);
   color: var(--diff-hunk-text-color);
   padding: 0;
 
