@@ -164,6 +164,7 @@ export class CompareSidebar extends React.Component<
           <NewCommitsBanner
             numCommits={4}
             branch={this.props.compareState.defaultBranch}
+            dispatcher={this.props.dispatcher}
           />
         ) : null}
         <div className="compare-form">
