@@ -3,7 +3,7 @@ import { inferCompareToBranch } from '../../src/lib/stores/helpers/infer-compare
 import { IBranchesState } from '../../src/lib/app-state'
 import { ComparisonCache } from '../../src/lib/comparison-cache'
 import { TipState } from '../../src/models/tip'
-import { Branch, BranchType } from '../../src/models/branch'
+import { Branch, BranchType, IAheadBehind } from '../../src/models/branch'
 import { Commit } from '../../src/models/commit'
 import { CommitIdentity } from '../../src/models/commit-identity'
 import { PullRequest, PullRequestRef } from '../../src/models/pull-request'
@@ -20,24 +20,6 @@ const dummyCommit = new Commit(
   [],
   []
 )
-const branch = new Branch(
-  'master',
-  'origin/master',
-  dummyCommit,
-  BranchType.Remote
-)
-const defaultState: IBranchesState = {
-  tip: {
-    kind: TipState.Valid,
-    branch,
-  },
-  defaultBranch: branch,
-  allBranches: [branch],
-  recentBranches: [],
-  openPullRequests: [],
-  isLoadingPullRequests: false,
-  currentPullRequest: null,
-}
 
 describe('inferCompareToBranch', () => {
   describe('Non-forked repository', () => {
@@ -49,29 +31,54 @@ describe('inferCompareToBranch', () => {
         dummyCommit,
         BranchType.Remote
       )
-      const pullRequest = new PullRequest(
+      const currentPullRequest = new PullRequest(
         -1,
         new Date(),
         null,
         'Test PR',
         1,
-        new PullRequestRef('', '', null),
+        new PullRequestRef('can be anything', 'not using this', null),
         new PullRequestRef(prBaseBranch.name, prBaseBranch.tip.sha, null),
         ''
       )
       // Add the PR to branches state and set as the current PR
-      const state = {
-        ...defaultState,
-        allBranches: [prBaseBranch, ...defaultState.allBranches],
-        openPullRequests: [pullRequest],
-        currentPullRequest: pullRequest,
-      }
-      const inferredBranch = inferCompareToBranch(state, new ComparisonCache())
+      const currentBranch = new Branch(
+        'master',
+        'origin/master',
+        dummyCommit,
+        BranchType.Local
+      )
+      const branches = [prBaseBranch, currentBranch]
+      const inferredBranch = inferCompareToBranch(
+        currentBranch,
+        branches,
+        currentPullRequest,
+        new GitHubRepository(
+          'parent',
+          new Owner('', '', null),
+          null,
+          false,
+          '',
+          '',
+          null,
+          null
+        ),
+        () => null
+      )
 
       expect(inferredBranch!.upstream).to.equal('origin/pr')
     })
 
     it.only('Uses the default branch on origin if it is hosted on GitHub', () => {
+      // Add the PR to branches state and set as the current PR
+      const currentBranch = new Branch(
+        'master',
+        'origin/master',
+        dummyCommit,
+        BranchType.Local
+      )
+      const branches = [currentBranch]
+
       // Create a GitHub repository with the default branch set to 'origin/master'
       const ghRepo = new GitHubRepository(
         '',
@@ -79,14 +86,16 @@ describe('inferCompareToBranch', () => {
         null,
         false,
         '',
-        branch.upstream,
+        'master',
         null,
         null
       )
       const inferredBranch = inferCompareToBranch(
-        defaultState,
-        new ComparisonCache(),
-        ghRepo
+        currentBranch,
+        branches,
+        null,
+        ghRepo,
+        () => null
       )
 
       expect(inferredBranch!.upstream).to.equal('origin/master')
@@ -97,23 +106,38 @@ describe('inferCompareToBranch', () => {
     let ghRepo: GitHubRepository
     let fork: GitHubRepository
     let forkBranch: Branch
+    let defaultUpstreamBranch: Branch
 
     beforeEach(() => {
       // Create a repo
+      defaultUpstreamBranch = new Branch(
+        'master',
+        'origin/master',
+        new Commit(
+          'commit',
+          '',
+          '',
+          new CommitIdentity('', '', new Date()),
+          new CommitIdentity('', '', new Date()),
+          [],
+          []
+        ),
+        BranchType.Remote
+      )
       ghRepo = new GitHubRepository(
         'parent',
         new Owner('', '', null),
         null,
         false,
         '',
-        'origin/master',
+        defaultUpstreamBranch.name,
         null,
         null
       )
       // Create branch used for forked repo
       forkBranch = new Branch(
-        'fork',
-        'origin/fork',
+        'fork-master',
+        'child/fork-master',
         new Commit(
           'commit',
           '',
@@ -132,41 +156,56 @@ describe('inferCompareToBranch', () => {
         null,
         false,
         '',
-        forkBranch.upstream,
+        forkBranch.name,
         null,
         ghRepo
       )
     })
 
     it.only('Uses the default branch on the forked repository if it is ahead of the current branch', () => {
-      //Add the forked branch to branches state
-      const state = {
-        ...defaultState,
-        allBranches: [forkBranch, ...defaultState.allBranches],
+      const currentBranch = new Branch(
+        'master',
+        'origin/master',
+        dummyCommit,
+        BranchType.Local
+      )
+      const branches = [currentBranch, forkBranch]
+
+      function getAheadBehind(to: string, from: string): IAheadBehind | null {
+        return to === forkBranch.tip.sha && from === dummyCommit.sha
+          ? { ahead: 0, behind: 1 }
+          : null
       }
-      // Add entry to cache to represent fork being behind by 1 commit
-      const cache = new ComparisonCache()
-      cache.set(forkBranch.tip.sha, dummyCommit.sha, { ahead: 0, behind: 1 })
 
-      const inferredBranch = inferCompareToBranch(state, cache, fork)
+      const inferredBranch = inferCompareToBranch(
+        currentBranch,
+        branches,
+        null,
+        fork,
+        getAheadBehind
+      )
 
-      expect(inferredBranch!.upstream).to.equal('origin/fork')
+      expect(inferredBranch!.name).to.equal('fork-master')
     })
 
     it.only("Uses the default branch of the forked repository's parent if it is not ahead of the current branch ", () => {
-      //Add the forked branch to branches state
-      const state = {
-        ...defaultState,
-        allBranches: [forkBranch, ...defaultState.allBranches],
-      }
+      const currentBranch = new Branch(
+        'master',
+        'origin/master',
+        dummyCommit,
+        BranchType.Local
+      )
+      const branches = [currentBranch, forkBranch]
       // Add entry to cache to represent fork being behind by 1 commit
       const inferredBranch = inferCompareToBranch(
-        state,
-        new ComparisonCache(),
-        fork
+        currentBranch,
+        branches,
+        null,
+        fork,
+        () => null
       )
 
-      expect(inferredBranch!.upstream).to.equal('origin/master')
+      expect(inferredBranch!.name).to.equal('master')
     })
   })
 })
