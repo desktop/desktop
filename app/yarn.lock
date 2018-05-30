@@ -242,9 +242,9 @@ dom-matches@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/dom-matches/-/dom-matches-2.0.0.tgz#d2728b416a87533980eb089b848d253cf23a758c"
 
-dugite@1.65.0:
-  version "1.65.0"
-  resolved "https://registry.yarnpkg.com/dugite/-/dugite-1.65.0.tgz#43636fb9af9afe701a694f17857d38b56184679c"
+dugite@^1.66.0:
+  version "1.66.0"
+  resolved "https://registry.yarnpkg.com/dugite/-/dugite-1.66.0.tgz#5fdab6683c0b538a79bdbec499e9f3d3ea7210f9"
   dependencies:
     checksum "^0.1.1"
     mkdirp "^0.5.1"
