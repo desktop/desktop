@@ -1,5 +1,8 @@
 {
   "releases": {
+    "1.2.1-test1": [
+      "Upgraded embedded Git to 2.17.0"
+    ],
     "1.2.1-beta1": [
       "[Added] Brackets support for macOS - #4608. Thanks @3raxton!",
       "[Added] Pull request number and author are included in fuzzy-find filtering - #4653. Thanks @damaneice!",
