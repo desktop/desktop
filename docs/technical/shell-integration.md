@@ -119,7 +119,7 @@ changes here to handle a new shell.
 
 ## macOS
 
-The source for the macOS shell integration is found in [`app/src/lib/shells/darwin.ts`](https://github.com/desktop/desktop/blob/master/app/src/lib/shell/darwin.ts).
+The source for the macOS shell integration is found in [`app/src/lib/shells/darwin.ts`](https://github.com/desktop/desktop/blob/master/app/src/lib/shells/darwin.ts).
 
 These shells are currently supported:
 
