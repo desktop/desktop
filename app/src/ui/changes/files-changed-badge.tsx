@@ -16,7 +16,9 @@ function createState(props: IFilesChangedBadgeProps): IFilesChangedBadgeState {
   /** The number that can be displayed as a specific value */
   const LargeNumber = 300
   const badgeCount =
-    props.numFilesChanged > LargeNumber ? `${LargeNumber}+` : props.numFilesChanged.toString()
+    props.numFilesChanged > LargeNumber
+      ? `${LargeNumber}+`
+      : props.numFilesChanged.toString()
 
   return { badgeCount }
 }
@@ -26,7 +28,9 @@ export class FilesChangedBadge extends React.Component<
   IFilesChangedBadgeProps,
   IFilesChangedBadgeState
 > {
-  static getDerivedStateFromProps(props: IFilesChangedBadgeProps): IFilesChangedBadgeState {
+  public static getDerivedStateFromProps(
+    props: IFilesChangedBadgeProps
+  ): IFilesChangedBadgeState {
     return createState(props)
   }
 
@@ -43,8 +47,6 @@ export class FilesChangedBadge extends React.Component<
       return null
     }
 
-    return (
-      <span className="counter">{badgeCount}</span>
-    )
+    return <span className="counter">{badgeCount}</span>
   }
 }

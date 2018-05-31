@@ -74,8 +74,8 @@ export class RepositoryView extends React.Component<
   }
 
   private renderTabs(): JSX.Element {
-    const numFilesChanged =
-      this.props.state.changesState.workingDirectory.files.length
+    const numFilesChanged = this.props.state.changesState.workingDirectory.files
+      .length
     const selectedTab =
       this.props.state.selectedSection.selectedTab ===
       RepositorySectionTab.Changes
