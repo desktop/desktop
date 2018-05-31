@@ -131,9 +131,10 @@ describe('AppStore', () => {
 
       // select the repository and show the changes view
       await appStore._selectRepository(repository)
-      await appStore._changeRepositorySection(repository, {
-        selectedTab: RepositorySectionTab.Changes,
-      })
+      await appStore._changeRepositorySection(
+        repository,
+        RepositorySectionTab.Changes
+      )
 
       let state = getAppState(appStore)
       expect(state.localCommitSHAs.length).to.equal(1)
