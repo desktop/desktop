@@ -6,6 +6,7 @@ import { UiView } from './ui-view'
 import { Changes, ChangesSidebar } from './changes'
 import { NoChanges } from './changes/no-changes'
 import { MultipleSelection } from './changes/multiple-selection'
+import { FilesChangedBadge } from './changes/files-changed-badge'
 import { History, HistorySidebar, CompareSidebar } from './history'
 import { Resizable } from './resizable'
 import { TabBar } from './tab-bar'
@@ -18,7 +19,6 @@ import {
 import { Dispatcher } from '../lib/dispatcher'
 import { IssuesStore, GitHubUserStore } from '../lib/stores'
 import { assertNever } from '../lib/fatal-error'
-import { Octicon, OcticonSymbol } from './octicons'
 import { Account } from '../models/account'
 import { enableCompareSidebar } from '../lib/feature-flag'
 import { FocusContainer } from './lib/focus-container'
@@ -74,8 +74,8 @@ export class RepositoryView extends React.Component<
   }
 
   private renderTabs(): JSX.Element {
-    const hasChanges =
-      this.props.state.changesState.workingDirectory.files.length > 0
+    const numFilesChanged =
+      this.props.state.changesState.workingDirectory.files.length
     const selectedTab =
       this.props.state.selectedSection.selectedTab ===
       RepositorySectionTab.Changes
@@ -86,12 +86,7 @@ export class RepositoryView extends React.Component<
       <TabBar selectedIndex={selectedTab} onTabClicked={this.onTabClicked}>
         <span className="with-indicator">
           <span>Changes</span>
-          {hasChanges ? (
-            <Octicon
-              className="indicator"
-              symbol={OcticonSymbol.primitiveDot}
-            />
-          ) : null}
+          <FilesChangedBadge numFilesChanged={numFilesChanged} />
         </span>
         <span>History</span>
       </TabBar>
