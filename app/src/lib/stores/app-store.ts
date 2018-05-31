@@ -255,7 +255,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     | ((repository: Repository | null) => void)
     | null = null
 
-  private selectedCloneRepositoryTab: CloneRepositoryTab = CloneRepositoryTab.DotCom
+  private selectedCloneRepositoryTab = CloneRepositoryTab.DotCom
 
   private selectedBranchesTab = BranchesTab.Branches
 
@@ -2156,7 +2156,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         const refreshWeight = 0.1
 
         // Scale pull and fetch weights to be between 0 and 0.9.
-        const scale = 1 / (pushWeight + fetchWeight) * (1 - refreshWeight)
+        const scale = (1 / (pushWeight + fetchWeight)) * (1 - refreshWeight)
 
         pushWeight *= scale
         fetchWeight *= scale
@@ -2340,7 +2340,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           const refreshWeight = 0.1
 
           // Scale pull and fetch weights to be between 0 and 0.9.
-          const scale = 1 / (pullWeight + fetchWeight) * (1 - refreshWeight)
+          const scale = (1 / (pullWeight + fetchWeight)) * (1 - refreshWeight)
 
           pullWeight *= scale
           fetchWeight *= scale
