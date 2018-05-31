@@ -1,4 +1,4 @@
-import { expect } from 'chai'
+import { expect, AssertionError } from 'chai'
 
 import * as Path from 'path'
 import * as FSE from 'fs-extra'
@@ -89,15 +89,15 @@ describe('AppStore', () => {
   describe('undo first commit', () => {
     function getAppState(appStore: AppStore): IRepositoryState {
       const selectedState = appStore.getState().selectedState
-      if (!selectedState) {
-        throw new chai.AssertionError('No selected state for AppStore')
+      if (selectedState == null) {
+        throw new AssertionError('No selected state for AppStore')
       }
 
       switch (selectedState.type) {
         case SelectionType.Repository:
           return selectedState.state
         default:
-          throw new chai.AssertionError(
+          throw new AssertionError(
             `Got selected state of type ${
               selectedState.type
             } which is not supported.`
