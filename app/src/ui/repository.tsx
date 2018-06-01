@@ -76,6 +76,7 @@ export class RepositoryView extends React.Component<
   private renderTabs(): JSX.Element {
     const numFilesChanged = this.props.state.changesState.workingDirectory.files
       .length
+    const hasChanges = numFilesChanged > 0
     const selectedTab =
       this.props.state.selectedSection.selectedTab ===
       RepositorySectionTab.Changes
@@ -86,7 +87,9 @@ export class RepositoryView extends React.Component<
       <TabBar selectedIndex={selectedTab} onTabClicked={this.onTabClicked}>
         <span className="with-indicator">
           <span>Changes</span>
-          <FilesChangedBadge numFilesChanged={numFilesChanged} />
+          {hasChanges ? (
+            <FilesChangedBadge numFilesChanged={numFilesChanged} />
+          ) : null}
         </span>
         <span>History</span>
       </TabBar>
