@@ -40,7 +40,7 @@ export class NewCommitsBanner extends React.Component<
           </Button>
 
           <Button className="small-button" onClick={this.noOp}>
-            Compare
+            View commits
           </Button>
         </ButtonGroup>
       </div>
