@@ -22,7 +22,7 @@ const prLoadingItemProps: IPullRequestListItemProps = {
   created: new Date(0),
   number: 0,
   title: '',
-  matches: [],
+  matches: { title: [], subtitle: [] },
   status: {
     sha: '4b825dc642cb6eb9a060e54bf8d69288fbee4904',
     totalCount: 1,
@@ -38,7 +38,7 @@ export class PullRequestsLoading extends React.Component<{}, {}> {
     const items: Array<IFilterListItem> = []
     for (let i = 0; i < FacadeCount; i++) {
       items.push({
-        text: '',
+        text: [''],
         id: i.toString(),
       })
     }
