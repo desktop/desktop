@@ -36,10 +36,12 @@ export class NewCommitsBanner extends React.Component<
 
         <ButtonGroup>
           <Button className="small-button" type="submit" onClick={this.noOp}>
-            Compare
+            Merge...
           </Button>
 
-          <Button className="small-button" onClick={this.noOp}>Merge...</Button>
+          <Button className="small-button" onClick={this.noOp}>
+            Compare
+          </Button>
         </ButtonGroup>
       </div>
     )
