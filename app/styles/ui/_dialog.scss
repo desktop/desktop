@@ -53,7 +53,7 @@ dialog {
       transition: transform 250ms var(--easing-ease-out-back);
 
       &::backdrop {
-        opacity: 0.4;
+        opacity: 1;
         transition: opacity 100ms ease-in;
       }
     }
@@ -64,7 +64,7 @@ dialog {
       pointer-events: none;
 
       &::backdrop {
-        opacity: 0.4;
+        opacity: 1;
       }
     }
 
@@ -82,8 +82,8 @@ dialog {
   }
 
   &::backdrop {
-    background: #000;
-    opacity: 0.4;
+    background: var(--overlay-background-color);
+    opacity: 1;
   }
 
   // The dialog embeds a fieldset as the first child of the form element

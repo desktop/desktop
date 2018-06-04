@@ -46,6 +46,10 @@
       margin: var(--spacing-double);
       text-align: center;
       justify-content: initial;
+
+      .blankslate-image {
+        max-height: 150px;
+      }
     }
   }
 }
@@ -120,7 +124,7 @@
 
     &-item {
       box-shadow: none;
-      background: white;
+      background: var(--tab-bar-background-color);
       border: var(--base-border);
 
       &:first-of-type {

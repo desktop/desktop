@@ -358,7 +358,9 @@ export function buildDefaultMenu(
 
   const showLogsLabel = __DARWIN__
     ? 'Show Logs in Finder'
-    : __WIN32__ ? 'S&how logs in Explorer' : 'S&how logs in your File Manager'
+    : __WIN32__
+      ? 'S&how logs in Explorer'
+      : 'S&how logs in your File Manager'
 
   const showLogsItem: Electron.MenuItemConstructorOptions = {
     label: showLogsLabel,

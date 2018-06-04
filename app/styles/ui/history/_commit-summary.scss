@@ -79,15 +79,10 @@
 
     &:before {
       content: '';
-      background: linear-gradient(
-        180deg,
-        rgba(255, 255, 255, 0) 0px,
-        rgba(255, 255, 255, 0) 40px,
-        rgba(255, 255, 255, 0.5) 40px,
-        white 60px
-      );
+      background: var(--box-overflow-shadow-background);
       position: absolute;
-      height: 100%;
+      height: 30px;
+      bottom: 0px;
       width: 100%;
       pointer-events: none;
     }
