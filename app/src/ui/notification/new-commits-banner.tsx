@@ -8,6 +8,8 @@ import { Branch } from '../../models/branch'
 interface INewCommitsBannerProps {
   readonly numCommits: number
   readonly branch: Branch
+  readonly onCompareClicked: () => void
+  readonly onMergeClicked: () => void
 }
 
 export class NewCommitsBanner extends React.Component<
@@ -29,15 +31,13 @@ export class NewCommitsBanner extends React.Component<
         </div>
 
         <ButtonGroup>
-          <Button type="submit" onClick={this.noOp}>
+          <Button type="submit" onClick={this.props.onCompareClicked}>
             Compare
           </Button>
 
-          <Button onClick={this.noOp}>Merge...</Button>
+          <Button onClick={this.props.onMergeClicked}>Merge...</Button>
         </ButtonGroup>
       </div>
     )
   }
-
-  private noOp = () => {}
 }
