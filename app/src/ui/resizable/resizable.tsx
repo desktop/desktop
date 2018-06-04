@@ -96,8 +96,8 @@ export class Resizable extends React.Component<IResizableProps, {}> {
   public render() {
     const style: React.CSSProperties = {
       width: this.getCurrentWidth(),
-      maximumWidth: this.props.maximumWidth,
-      minimumWidth: this.props.minimumWidth,
+      maxWidth: this.props.maximumWidth,
+      minWidth: this.props.minimumWidth,
     }
 
     return (

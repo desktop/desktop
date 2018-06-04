@@ -17,9 +17,6 @@ phases:
   - script: |
       yarn test:setup && yarn test
     name: Test
-  - script: |
-       yarn package
-    name: Package
 
 - phase: Linux
   queue: Hosted Linux Preview
@@ -38,15 +35,12 @@ phases:
     name: Install
   - script: |
        yarn lint && yarn build:prod
-    name: Build 
+    name: Build
   - script: |
        export DISPLAY=':99.0'
        Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
        yarn test:setup && yarn test
     name: Test
-  - script: |
-       yarn package
-    name: Package
 
 - phase: macOS
   queue: Hosted macOS Preview
@@ -66,7 +60,3 @@ phases:
   - script: |
       yarn test:setup && yarn test
     name: Test
-  - script: |
-      yarn package
-    name: Package
-
