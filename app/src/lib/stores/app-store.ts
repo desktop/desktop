@@ -24,6 +24,7 @@ import {
   IDisplayHistory,
   ICompareBranch,
   ICompareFormUpdate,
+  IRepositoryListState,
 } from '../app-state'
 import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
@@ -526,6 +527,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
   }
 
+  private getRepositoryListState(): IRepositoryListState {
+    const allRepos = [
+      ...this.repositories,
+      ...this.cloningRepositoriesStore.repositories,
+    ]
+
+    return {
+      currentRepositories: allRepos.map(source => ({
+        source,
+      })),
+    }
+  }
+
   private getSelectedState(): PossibleSelections | null {
     const repository = this.selectedRepository
     if (!repository) {
@@ -564,10 +578,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public getState(): IAppState {
     return {
       accounts: this.accounts,
-      repositories: [
-        ...this.repositories,
-        ...this.cloningRepositoriesStore.repositories,
-      ],
+      repositoryList: this.getRepositoryListState(),
       windowState: this.windowState,
       windowZoomFactor: this.windowZoomFactor,
       appIsFocused: this.appIsFocused,

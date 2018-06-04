@@ -1,6 +1,7 @@
 import * as Path from 'path'
 
 import { GitHubRepository } from './github-repository'
+import { CloningRepository } from './cloning-repository'
 
 /** A local repository. */
 export class Repository {
@@ -39,4 +40,10 @@ export class Repository {
       ${this.missing}+
       ${this.name}`
   }
+}
+
+export type Repositoryish = Repository | CloningRepository
+
+export interface IRepositoryListItem {
+  readonly source: Repositoryish
 }

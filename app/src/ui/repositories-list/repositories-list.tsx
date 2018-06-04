@@ -1,5 +1,6 @@
 import * as React from 'react'
 
+import { IRepositoryListItem as NewIRepositoryListItem } from '../../models/repository'
 import { RepositoryListItem } from './repository-list-item'
 import {
   groupRepositories,
@@ -21,7 +22,7 @@ const RepositoryFilterList: new () => FilterList<
 
 interface IRepositoriesListProps {
   readonly selectedRepository: Repositoryish | null
-  readonly repositories: ReadonlyArray<Repositoryish>
+  readonly repositories: ReadonlyArray<NewIRepositoryListItem>
 
   /** Called when a repository has been selected. */
   readonly onSelectionChanged: (repository: Repositoryish) => void
@@ -107,7 +108,8 @@ export class RepositoriesList extends React.Component<
       return this.noRepositories()
     }
 
-    const groups = groupRepositories(this.props.repositories)
+    const repositories = this.props.repositories.map(r => r.source)
+    const groups = groupRepositories(repositories)
 
     let selectedItem: IRepositoryListItem | null = null
     const selectedRepository = this.props.selectedRepository

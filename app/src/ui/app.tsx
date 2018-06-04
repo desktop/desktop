@@ -728,7 +728,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       const path = (await validatedRepositoryPath(first)) || first
 
       const existingRepository = matchExistingRepository(
-        this.state.repositories,
+        this.state.repositoryList.currentRepositories,
         path
       )
 
@@ -1389,7 +1389,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         onFilterTextChanged={this.onRepositoryFilterTextChanged}
         selectedRepository={selectedRepository}
         onSelectionChanged={this.onSelectionChanged}
-        repositories={this.state.repositories}
+        repositories={this.state.repositoryList.currentRepositories}
         onRemoveRepository={this.removeRepository}
         onOpenInShell={this.openInShell}
         onShowRepository={this.showRepository}
@@ -1448,7 +1448,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (repository) {
       icon = iconForRepository(repository)
       title = repository.name
-    } else if (this.state.repositories.length > 0) {
+    } else if (this.state.repositoryList.currentRepositories.length > 0) {
       icon = OcticonSymbol.repo
       title = __DARWIN__ ? 'Select a Repository' : 'Select a repository'
     } else {
@@ -1631,7 +1631,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private renderRepository() {
     const state = this.state
-    if (state.repositories.length < 1) {
+    if (state.repositoryList.currentRepositories.length < 1) {
       return (
         <BlankSlateView
           onCreate={this.showCreateRepository}

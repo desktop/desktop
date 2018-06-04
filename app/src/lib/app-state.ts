@@ -1,7 +1,7 @@
 import { Account } from '../models/account'
 import { CommitIdentity } from '../models/commit-identity'
 import { IDiff } from '../models/diff'
-import { Repository } from '../models/repository'
+import { Repository, IRepositoryListItem } from '../models/repository'
 
 import { Branch, IAheadBehind } from '../models/branch'
 import { Tip } from '../models/tip'
@@ -51,6 +51,10 @@ export enum ImageDiffType {
   Difference,
 }
 
+export interface IRepositoryListState {
+  readonly currentRepositories: ReadonlyArray<IRepositoryListItem>
+}
+
 export type PossibleSelections =
   | {
       type: SelectionType.Repository
@@ -67,7 +71,8 @@ export type PossibleSelections =
 /** All of the shared app state. */
 export interface IAppState {
   readonly accounts: ReadonlyArray<Account>
-  readonly repositories: ReadonlyArray<Repository | CloningRepository>
+
+  readonly repositoryList: IRepositoryListState
 
   readonly selectedState: PossibleSelections | null
 
