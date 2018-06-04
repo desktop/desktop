@@ -6,7 +6,7 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { Branch } from '../../models/branch'
 
 interface INewCommitsBannerProps {
-  readonly numCommits: number
+  readonly commitsBehind: number
   readonly branch: Branch
   readonly onCompareClicked: () => void
   readonly onMergeClicked: () => void
@@ -21,7 +21,7 @@ export class NewCommitsBanner extends React.Component<
       <div className="notification-banner diverge-banner">
         <div className="notification-banner-content">
           <p>
-            Your branch is <strong>{this.props.numCommits} commits</strong>{' '}
+            Your branch is <strong>{this.props.commitsBehind} commits</strong>{' '}
             behind <Ref>{this.props.branch.name}</Ref>
           </p>
 
