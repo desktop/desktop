@@ -34,12 +34,6 @@ interface ICompareSidebarProps {
   readonly localCommitSHAs: ReadonlyArray<string>
   readonly dispatcher: Dispatcher
   readonly currentBranch: Branch | null
-  readonly sidebarHasFocusWithin: boolean
-
-  /**
-   * A flag from the application to indicate the branches list should be expanded.
-   */
-  readonly shouldShowBranchesList: boolean
   readonly onRevertCommit: (commit: Commit) => void
   readonly onViewCommitOnGitHub: (sha: string) => void
 
@@ -53,8 +47,6 @@ interface ICompareSidebarState {
    * For all other cases, use the prop
    */
   readonly focusedBranch: Branch | null
-  readonly filterText: string
-  readonly showBranchList: boolean
   readonly selectedCommit: Commit | null
 }
 
@@ -74,8 +66,6 @@ export class CompareSidebar extends React.Component<
 
     this.state = {
       focusedBranch: null,
-      filterText: '',
-      showBranchList: props.shouldShowBranchesList,
       selectedCommit: null,
     }
   }
@@ -84,28 +74,31 @@ export class CompareSidebar extends React.Component<
     const newFormState = nextProps.compareState.formState
     const oldFormState = this.props.compareState.formState
 
+    if (this.textbox !== null) {
+      if (
+        !this.props.compareState.showBranchList &&
+        nextProps.compareState.showBranchList
+      ) {
+        // showBranchList changes from false -> true
+        //  -> ensure the textbox has focus
+        this.textbox.focus()
+      } else if (
+        this.props.compareState.showBranchList &&
+        !nextProps.compareState.showBranchList
+      ) {
+        // showBranchList changes from true -> false
+        //  -> ensure the textbox no longer has focus
+        this.textbox.blur()
+      }
+    }
+
     if (
       newFormState.kind !== oldFormState.kind &&
       newFormState.kind === ComparisonView.None
     ) {
-      // reset form to it's default state
-      this.setState(
-        {
-          filterText: '',
-          focusedBranch: null,
-          showBranchList: nextProps.shouldShowBranchesList,
-        },
-        () => {
-          // ensure filter text behaviour matches the prop value
-          if (this.textbox !== null) {
-            if (nextProps.shouldShowBranchesList) {
-              this.textbox.focus()
-            } else {
-              this.textbox.blur()
-            }
-          }
-        }
-      )
+      this.setState({
+        focusedBranch: null,
+      })
       return
     }
 
@@ -117,25 +110,10 @@ export class CompareSidebar extends React.Component<
       const newBranch = newFormState.comparisonBranch
 
       if (oldBranch.name !== newBranch.name) {
-        // ensure the filter text is in sync with the comparison branch
+        // ensure the focused branch is in sync with the chosen branch
         this.setState({
-          filterText: newBranch.name,
           focusedBranch: newBranch,
         })
-      }
-    }
-
-    if (
-      this.props.shouldShowBranchesList !== nextProps.shouldShowBranchesList
-    ) {
-      if (nextProps.shouldShowBranchesList === true) {
-        this.setState({ showBranchList: true })
-      }
-    }
-
-    if (nextProps.sidebarHasFocusWithin !== this.props.sidebarHasFocusWithin) {
-      if (nextProps.sidebarHasFocusWithin === false) {
-        this.setState({ showBranchList: false })
       }
     }
   }
@@ -148,14 +126,8 @@ export class CompareSidebar extends React.Component<
     this.textbox = null
   }
 
-  public componentDidMount() {
-    if (this.textbox !== null && this.state.showBranchList) {
-      this.textbox.focus()
-    }
-  }
-
   public render() {
-    const { allBranches } = this.props.compareState
+    const { allBranches, filterText, showBranchList } = this.props.compareState
     const placeholderText = getPlaceholderText(this.props.compareState)
 
     return (
@@ -172,24 +144,18 @@ export class CompareSidebar extends React.Component<
             type="search"
             placeholder={placeholderText}
             onFocus={this.onTextBoxFocused}
-            value={this.state.filterText}
+            value={filterText}
             disabled={allBranches.length <= 1}
             onRef={this.onTextBoxRef}
             onValueChanged={this.onBranchFilterTextChanged}
             onKeyDown={this.onBranchFilterKeyDown}
-            onSearchCleared={this.onSearchCleared}
+            onSearchCleared={this.handleEscape}
           />
         </div>
 
-        {this.state.showBranchList
-          ? this.renderFilterList()
-          : this.renderCommits()}
+        {showBranchList ? this.renderFilterList() : this.renderCommits()}
       </div>
     )
-  }
-
-  private onSearchCleared = () => {
-    this.handleEscape()
   }
 
   private onBranchesListRef = (branchList: BranchList | null) => {
@@ -211,22 +177,24 @@ export class CompareSidebar extends React.Component<
     this.props.dispatcher.executeCompare(this.props.repository, {
       kind: CompareActionKind.History,
     })
+
+    this.props.dispatcher.updateCompareForm(this.props.repository, {
+      showBranchList: false,
+    })
   }
 
   private renderCommitList() {
-    const compareState = this.props.compareState
+    const { formState, commitSHAs } = this.props.compareState
     const selectedCommit = this.state.selectedCommit
-    const commitSHAs = compareState.commitSHAs
 
     let emptyListMessage: string | JSX.Element
-    if (compareState.formState.kind === ComparisonView.None) {
+    if (formState.kind === ComparisonView.None) {
       emptyListMessage = 'No history'
     } else {
-      const currentlyComparedBranchName =
-        compareState.formState.comparisonBranch.name
+      const currentlyComparedBranchName = formState.comparisonBranch.name
 
       emptyListMessage =
-        compareState.formState.kind === ComparisonView.Ahead ? (
+        formState.kind === ComparisonView.Ahead ? (
           <p>
             The compared branch (<Ref>{currentlyComparedBranchName}</Ref>) is up
             to date with your branch
@@ -271,15 +239,21 @@ export class CompareSidebar extends React.Component<
   }
 
   private renderFilterList() {
-    const compareState = this.props.compareState
+    const {
+      defaultBranch,
+      allBranches,
+      recentBranches,
+      filterText,
+    } = this.props.compareState
+
     return (
       <BranchList
         ref={this.onBranchesListRef}
-        defaultBranch={compareState.defaultBranch}
+        defaultBranch={defaultBranch}
         currentBranch={this.props.currentBranch}
-        allBranches={compareState.allBranches}
-        recentBranches={compareState.recentBranches}
-        filterText={this.state.filterText}
+        allBranches={allBranches}
+        recentBranches={recentBranches}
+        filterText={filterText}
         textbox={this.textbox!}
         selectedBranch={this.state.focusedBranch}
         canCreateNewBranch={false}
@@ -397,7 +371,7 @@ export class CompareSidebar extends React.Component<
     const key = event.key
 
     if (key === 'Enter') {
-      if (this.state.filterText.length === 0) {
+      if (this.props.compareState.filterText.length === 0) {
         this.handleEscape()
       } else {
         if (this.state.focusedBranch == null) {
@@ -411,7 +385,9 @@ export class CompareSidebar extends React.Component<
             mode: ComparisonView.Behind,
           })
 
-          this.setState({ filterText: branch.name })
+          this.props.dispatcher.updateCompareForm(this.props.repository, {
+            filterText: branch.name,
+          })
         }
 
         if (this.textbox) {
@@ -427,7 +403,7 @@ export class CompareSidebar extends React.Component<
     }
   }
 
-  private handleEscape() {
+  private handleEscape = () => {
     this.clearFilterState()
     if (this.textbox) {
       this.textbox.blur()
@@ -479,26 +455,27 @@ export class CompareSidebar extends React.Component<
     )
 
     await this.viewHistoryForBranch()
-    this.setState({ filterText: '' })
+    this.props.dispatcher.updateCompareForm(this.props.repository, {
+      filterText: '',
+    })
   }
 
   private onBranchFilterTextChanged = (filterText: string) => {
     if (filterText.length === 0) {
-      this.setState({ focusedBranch: null, filterText })
-      if (this.props.compareState.formState.kind !== ComparisonView.None) {
-        // ensure any previous filter branch selection is cleared
-        this.props.dispatcher.executeCompare(this.props.repository, {
-          kind: CompareActionKind.History,
-        })
-      }
-    } else {
-      this.setState({ filterText })
+      this.setState({ focusedBranch: null })
     }
+
+    this.props.dispatcher.updateCompareForm(this.props.repository, {
+      filterText,
+    })
   }
 
   private clearFilterState = () => {
     this.setState({
       focusedBranch: null,
+    })
+
+    this.props.dispatcher.updateCompareForm(this.props.repository, {
       filterText: '',
     })
 
@@ -513,8 +490,11 @@ export class CompareSidebar extends React.Component<
     })
 
     this.setState({
-      filterText: branch.name,
       focusedBranch: null,
+    })
+
+    this.props.dispatcher.updateCompareForm(this.props.repository, {
+      filterText: branch.name,
       showBranchList: false,
     })
   }
@@ -537,7 +517,9 @@ export class CompareSidebar extends React.Component<
   }
 
   private onTextBoxFocused = () => {
-    this.setState({ showBranchList: true })
+    this.props.dispatcher.updateCompareForm(this.props.repository, {
+      showBranchList: true,
+    })
   }
 
   private onTextBoxRef = (textbox: TextBox) => {

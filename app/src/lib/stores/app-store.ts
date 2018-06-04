@@ -23,7 +23,7 @@ import {
   CompareActionKind,
   IDisplayHistory,
   ICompareBranch,
-  RepositorySection,
+  ICompareFormUpdate,
 } from '../app-state'
 import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
@@ -255,7 +255,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     | ((repository: Repository | null) => void)
     | null = null
 
-  private selectedCloneRepositoryTab: CloneRepositoryTab = CloneRepositoryTab.DotCom
+  private selectedCloneRepositoryTab = CloneRepositoryTab.DotCom
 
   private selectedBranchesTab = BranchesTab.Branches
 
@@ -424,7 +424,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         coAuthors: [],
         showCoAuthoredBy: false,
       },
-      selectedSection: { selectedTab: RepositorySectionTab.Changes },
+      selectedSection: RepositorySectionTab.Changes,
       branchesState: {
         tip: { kind: TipState.Unknown },
         defaultBranch: null,
@@ -436,6 +436,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       },
       compareState: {
         formState: { kind: ComparisonView.None },
+        showBranchList: false,
+        filterText: '',
         commitSHAs: [],
         aheadBehindCache: new ComparisonCache(),
         allBranches: new Array<Branch>(),
@@ -862,6 +864,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     } else {
       return assertNever(action, `Unknown action: ${kind}`)
     }
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _updateCompareForm<K extends keyof ICompareFormUpdate>(
+    repository: Repository,
+    newState: Pick<ICompareFormUpdate, K>
+  ) {
+    this.updateCompareState(repository, state => {
+      return merge(state, newState)
+    })
+
+    this.emitUpdate()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -1485,14 +1499,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _changeRepositorySection(
     repository: Repository,
-    selectedSection: RepositorySection
+    selectedSection: RepositorySectionTab
   ): Promise<void> {
     this.updateRepositoryState(repository, state => ({ selectedSection }))
     this.emitUpdate()
 
-    if (selectedSection.selectedTab === RepositorySectionTab.History) {
+    if (selectedSection === RepositorySectionTab.History) {
       return this.refreshHistorySection(repository)
-    } else if (selectedSection.selectedTab === RepositorySectionTab.Changes) {
+    } else if (selectedSection === RepositorySectionTab.Changes) {
       return this.refreshChangesSection(repository, {
         includingStatus: true,
         clearPartialState: false,
@@ -1732,9 +1746,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const section = state.selectedSection
     let refreshSectionPromise: Promise<void>
 
-    if (section.selectedTab === RepositorySectionTab.History) {
+    if (section === RepositorySectionTab.History) {
       refreshSectionPromise = this.refreshHistorySection(repository)
-    } else if (section.selectedTab === RepositorySectionTab.Changes) {
+    } else if (section === RepositorySectionTab.Changes) {
       refreshSectionPromise = this.refreshChangesSection(repository, {
         includingStatus: false,
         clearPartialState: false,
@@ -2159,7 +2173,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         const refreshWeight = 0.1
 
         // Scale pull and fetch weights to be between 0 and 0.9.
-        const scale = 1 / (pushWeight + fetchWeight) * (1 - refreshWeight)
+        const scale = (1 / (pushWeight + fetchWeight)) * (1 - refreshWeight)
 
         pushWeight *= scale
         fetchWeight *= scale
@@ -2343,7 +2357,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           const refreshWeight = 0.1
 
           // Scale pull and fetch weights to be between 0 and 0.9.
-          const scale = 1 / (pullWeight + fetchWeight) * (1 - refreshWeight)
+          const scale = (1 / (pullWeight + fetchWeight)) * (1 - refreshWeight)
 
           pullWeight *= scale
           fetchWeight *= scale

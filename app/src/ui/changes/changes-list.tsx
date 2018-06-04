@@ -160,7 +160,9 @@ export class ChangesList extends React.Component<
     const includeAll =
       selection === DiffSelectionType.All
         ? true
-        : selection === DiffSelectionType.None ? false : null
+        : selection === DiffSelectionType.None
+          ? false
+          : null
 
     return (
       <ChangedFile
@@ -266,7 +268,9 @@ export class ChangesList extends React.Component<
       {
         label:
           paths.length === 1
-            ? __DARWIN__ ? `Discard Changes…` : `Discard changes…`
+            ? __DARWIN__
+              ? `Discard Changes…`
+              : `Discard changes…`
             : __DARWIN__
               ? `Discard ${paths.length} Selected Changes…`
               : `Discard ${paths.length} selected changes…`,
