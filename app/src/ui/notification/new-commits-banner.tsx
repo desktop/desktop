@@ -6,12 +6,23 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { Branch } from '../../models/branch'
 
 interface INewCommitsBannerProps {
+  /**
+   * The number of commits behind `branch`
+   */
   readonly commitsBehind: number
+
+  /**
+   * The base branch that is ahead
+   */
   readonly branch: Branch
   readonly onCompareClicked: () => void
   readonly onMergeClicked: () => void
 }
 
+/**
+ * Banner used to notify user that there branch is _commitsBehind_
+ * commits behind `branch`
+ */
 export class NewCommitsBanner extends React.Component<
   INewCommitsBannerProps,
   {}
