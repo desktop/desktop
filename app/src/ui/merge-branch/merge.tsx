@@ -5,6 +5,7 @@ import { Dispatcher } from '../../lib/dispatcher'
 
 import { Branch } from '../../models/branch'
 import { Repository } from '../../models/repository'
+import { IMatches } from '../../models/filter-list'
 
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
@@ -12,7 +13,6 @@ import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { BranchList, IBranchListItem, renderDefaultBranch } from '../branches'
 import { revSymmetricDifference } from '../../lib/git'
-import { IMatches } from '../../lib/fuzzy-find'
 
 interface IMergeProps {
   readonly dispatcher: Dispatcher

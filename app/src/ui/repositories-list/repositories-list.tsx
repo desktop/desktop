@@ -9,7 +9,7 @@ import {
   RepositoryGroupIdentifier,
 } from './group-repositories'
 import { FilterList } from '../lib/filter-list'
-import { IMatches } from '../../lib/fuzzy-find'
+import { IMatches } from '../../models/filter-list'
 import { assertNever } from '../../lib/fatal-error'
 
 /**

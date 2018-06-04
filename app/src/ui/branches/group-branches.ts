@@ -1,5 +1,5 @@
 import { Branch } from '../../models/branch'
-import { IFilterListGroup, IFilterListItem } from '../lib/filter-list'
+import { IFilterListGroup, IFilterListItem } from '../../models/filter-list'
 
 export type BranchGroupIdentifier = 'default' | 'recent' | 'other'
 

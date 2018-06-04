@@ -4,12 +4,9 @@ import { Branch } from '../../models/branch'
 
 import { assertNever } from '../../lib/fatal-error'
 
-import {
-  FilterList,
-  IFilterListGroup,
-  SelectionSource,
-} from '../lib/filter-list'
-import { IMatches } from '../../lib/fuzzy-find'
+import { IFilterListGroup, IMatches } from '../../models/filter-list'
+
+import { FilterList, SelectionSource } from '../lib/filter-list'
 import { Button } from '../lib/button'
 import { TextBox } from '../lib/text-box'
 

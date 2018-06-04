@@ -8,38 +8,15 @@ import {
 } from '../lib/list'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
-
-import { match, IMatch, IMatches } from '../../lib/fuzzy-find'
-
-/** An item in the filter list. */
-export interface IFilterListItem {
-  /** The text which represents the item. This is used for filtering. */
-  readonly text: ReadonlyArray<string>
-
-  /** A unique identifier for the item. */
-  readonly id: string
-}
-
-/** A group of items in the list. */
-export interface IFilterListGroup<T extends IFilterListItem> {
-  /** The identifier for this group. */
-  readonly identifier: string
-
-  /** The items in the group. */
-  readonly items: ReadonlyArray<T>
-}
-
-interface IFlattenedGroup {
-  readonly kind: 'group'
-  readonly identifier: string
-}
-
-interface IFlattenedItem<T extends IFilterListItem> {
-  readonly kind: 'item'
-  readonly item: T
-  /** Array of indexes in `item.text` that should be highlighted */
-  readonly matches: IMatches
-}
+import {
+  IFilterListItem,
+  IFlattenedGroup,
+  IFlattenedItem,
+  IFilterListGroup,
+  IMatches,
+  IMatch,
+} from '../../models/filter-list'
+import { match } from '../../lib/fuzzy-find'
 
 /**
  * A row in the list. This is used internally after the user-provided groups are

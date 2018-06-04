@@ -1,6 +1,7 @@
 import * as React from 'react'
 
 import { Account } from '../../models/account'
+import { IFilterListGroup, IMatches } from '../../models/filter-list'
 import { DialogContent } from '../dialog'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
@@ -9,8 +10,6 @@ import { Loading } from '../lib/loading'
 import { Octicon } from '../octicons'
 import { FilterList } from '../lib/filter-list'
 import { API } from '../../lib/api'
-import { IFilterListGroup } from '../lib/filter-list'
-import { IMatches } from '../../lib/fuzzy-find'
 import {
   IClonableRepositoryListItem,
   groupRepositories,

@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { IGitHubUser } from '../../lib/databases'
 import { Commit } from '../../models/commit'
+import { IMatches } from '../../models/filter-list'
 import {
   ComparisonView,
   ICompareState,
@@ -21,7 +22,7 @@ import { CompareBranchListItem } from './compare-branch-list-item'
 import { FancyTextBox } from '../lib/fancy-text-box'
 import { OcticonSymbol } from '../octicons'
 import { SelectionSource } from '../lib/filter-list'
-import { IMatches } from '../../lib/fuzzy-find'
+
 import { Ref } from '../lib/ref'
 
 interface ICompareSidebarProps {

@@ -1,15 +1,15 @@
 import * as React from 'react'
 import * as moment from 'moment'
+
 import {
-  FilterList,
+  IMatches,
   IFilterListGroup,
   IFilterListItem,
-  SelectionSource,
-} from '../lib/filter-list'
+} from '../../models/filter-list'
+import { FilterList, SelectionSource } from '../lib/filter-list'
 import { PullRequestListItem } from './pull-request-list-item'
 import { PullRequest, PullRequestStatus } from '../../models/pull-request'
 import { NoPullRequests } from './no-pull-requests'
-import { IMatches } from '../../lib/fuzzy-find'
 
 interface IPullRequestListItem extends IFilterListItem {
   readonly id: string

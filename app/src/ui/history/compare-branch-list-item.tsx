@@ -3,7 +3,7 @@ import * as React from 'react'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { HighlightText } from '../lib/highlight-text'
 import { Branch, IAheadBehind } from '../../models/branch'
-import { IMatches } from '../../lib/fuzzy-find'
+import { IMatches } from '../../models/filter-list'
 
 interface ICompareBranchListItemProps {
   readonly branch: Branch

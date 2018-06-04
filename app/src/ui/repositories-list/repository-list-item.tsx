@@ -5,7 +5,7 @@ import { showContextualMenu } from '../main-process-proxy'
 import { Repositoryish } from './group-repositories'
 import { IMenuItem } from '../../lib/menu-item'
 import { HighlightText } from '../lib/highlight-text'
-import { IMatches } from '../../lib/fuzzy-find'
+import { IMatches } from '../../models/filter-list'
 
 const defaultEditorLabel = __DARWIN__
   ? 'Open in External Editor'

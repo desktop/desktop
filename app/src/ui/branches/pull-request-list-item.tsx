@@ -5,7 +5,7 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { CIStatus } from './ci-status'
 import { PullRequestStatus } from '../../models/pull-request'
 import { HighlightText } from '../lib/highlight-text'
-import { IMatches } from '../../lib/fuzzy-find'
+import { IMatches } from '../../models/filter-list'
 
 export interface IPullRequestListItemProps {
   /** The title. */

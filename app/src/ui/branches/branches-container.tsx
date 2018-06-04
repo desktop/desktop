@@ -5,6 +5,7 @@ import { PullRequest } from '../../models/pull-request'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
 import { BranchesTab } from '../../models/branches-tab'
+import { IMatches } from '../../models/filter-list'
 
 import { Dispatcher } from '../../lib/dispatcher'
 import { FoldoutType, PopupType } from '../../lib/app-state'
@@ -17,7 +18,6 @@ import { PullRequestList } from './pull-request-list'
 import { PullRequestsLoading } from './pull-requests-loading'
 import { IBranchListItem } from './group-branches'
 import { renderDefaultBranch } from './branch-renderer'
-import { IMatches } from '../../lib/fuzzy-find'
 
 const PullRequestsLoadingCrossFadeInTimeout = 300
 const PullRequestsLoadingCrossFadeOutTimeout = 200

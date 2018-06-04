@@ -1,5 +1,6 @@
 import * as React from 'react'
-import { FilterList, IFilterListItem } from '../lib/filter-list'
+import { IFilterListItem } from '../../models/filter-list'
+import { FilterList } from '../lib/filter-list'
 import {
   PullRequestListItem,
   IPullRequestListItemProps,
