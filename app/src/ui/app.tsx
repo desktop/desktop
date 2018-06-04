@@ -87,6 +87,7 @@ import { InitializeLFS, AttributeMismatch } from './lfs'
 import { UpstreamAlreadyExists } from './upstream-already-exists'
 import { DeletePullRequest } from './delete-branch/delete-pull-request-dialog'
 import { MergeConflictsWarning } from './merge-conflicts'
+import { groupRepositories } from './repositories-list/group-repositories'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -1383,13 +1384,18 @@ export class App extends React.Component<IAppProps, IAppState> {
     const externalEditorLabel = this.state.selectedExternalEditor
     const shellLabel = this.state.selectedShell
     const filterText = this.state.repositoryFilterText
+
+    const groups = groupRepositories(
+      this.state.repositoryList.currentRepositories.map(r => r.source)
+    )
+
     return (
       <RepositoriesList
         filterText={filterText}
         onFilterTextChanged={this.onRepositoryFilterTextChanged}
         selectedRepository={selectedRepository}
         onSelectionChanged={this.onSelectionChanged}
-        repositories={this.state.repositoryList.currentRepositories}
+        groups={groups}
         onRemoveRepository={this.removeRepository}
         onOpenInShell={this.openInShell}
         onShowRepository={this.showRepository}

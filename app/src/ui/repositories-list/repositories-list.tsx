@@ -1,15 +1,13 @@
 import * as React from 'react'
 
-import { IRepositoryListItem as NewIRepositoryListItem } from '../../models/repository'
 import { RepositoryListItem } from './repository-list-item'
 import {
-  groupRepositories,
   IRepositoryListItem,
   Repositoryish,
   RepositoryGroupIdentifier,
 } from './group-repositories'
+import { IFilterListGroup, IMatches } from '../../models/filter-list'
 import { FilterList } from '../lib/filter-list'
-import { IMatches } from '../../models/filter-list'
 import { assertNever } from '../../lib/fatal-error'
 
 /**
@@ -22,7 +20,8 @@ const RepositoryFilterList: new () => FilterList<
 
 interface IRepositoriesListProps {
   readonly selectedRepository: Repositoryish | null
-  readonly repositories: ReadonlyArray<NewIRepositoryListItem>
+
+  readonly groups: ReadonlyArray<IFilterListGroup<IRepositoryListItem>>
 
   /** Called when a repository has been selected. */
   readonly onSelectionChanged: (repository: Repositoryish) => void
@@ -104,17 +103,18 @@ export class RepositoriesList extends React.Component<
   }
 
   public render() {
-    if (this.props.repositories.length < 1) {
+    const repositoryCount = this.props.groups
+      .map(g => g.items.length)
+      .reduce((prev, current) => prev + current)
+
+    if (repositoryCount < 1) {
       return this.noRepositories()
     }
-
-    const repositories = this.props.repositories.map(r => r.source)
-    const groups = groupRepositories(repositories)
 
     let selectedItem: IRepositoryListItem | null = null
     const selectedRepository = this.props.selectedRepository
     if (selectedRepository) {
-      for (const group of groups) {
+      for (const group of this.props.groups) {
         selectedItem =
           group.items.find(i => {
             const repository = i.repository
@@ -137,9 +137,9 @@ export class RepositoriesList extends React.Component<
           renderItem={this.renderItem}
           renderGroupHeader={this.renderGroupHeader}
           onItemClick={this.onItemClick}
-          groups={groups}
+          groups={this.props.groups}
           invalidationProps={{
-            repositories: this.props.repositories,
+            groups: this.props.groups,
             filterText: this.props.filterText,
           }}
         />
