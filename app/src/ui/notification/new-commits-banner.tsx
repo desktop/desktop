@@ -6,10 +6,23 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { Branch } from '../../models/branch'
 
 interface INewCommitsBannerProps {
-  readonly numCommits: number
+  /**
+   * The number of commits behind `branch`
+   */
+  readonly commitsBehind: number
+
+  /**
+   * The base branch that is ahead
+   */
   readonly branch: Branch
+  readonly onCompareClicked: () => void
+  readonly onMergeClicked: () => void
 }
 
+/**
+ * Banner used to notify user that there branch is _commitsBehind_
+ * commits behind `branch`
+ */
 export class NewCommitsBanner extends React.Component<
   INewCommitsBannerProps,
   {}
@@ -19,7 +32,7 @@ export class NewCommitsBanner extends React.Component<
       <div className="notification-banner diverge-banner">
         <div className="notification-banner-content">
           <p>
-            Your branch is <strong>{this.props.numCommits} commits</strong>{' '}
+            Your branch is <strong>{this.props.commitsBehind} commits</strong>{' '}
             behind <Ref>{this.props.branch.name}</Ref>
           </p>
 
@@ -29,15 +42,13 @@ export class NewCommitsBanner extends React.Component<
         </div>
 
         <ButtonGroup>
-          <Button className="small-button" type="submit" onClick={this.noOp}>
+          <Button type="submit" onClick={this.props.onCompareClicked}>
             Compare
           </Button>
 
-          <Button className="small-button" onClick={this.noOp}>Merge...</Button>
+          <Button onClick={this.props.onMergeClicked}>Merge...</Button>
         </ButtonGroup>
       </div>
     )
   }
-
-  private noOp = () => {}
 }
