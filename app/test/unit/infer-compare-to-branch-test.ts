@@ -5,7 +5,7 @@ import {
   _getFeatureBranchOfPullRequest,
   _getDefaultBranchOfFork,
 } from '../../src/lib/stores/helpers/infer-compare-to-branch'
-import { Branch, BranchType, IAheadBehind } from '../../src/models/branch'
+import { Branch, BranchType } from '../../src/models/branch'
 import { Commit } from '../../src/models/commit'
 import { CommitIdentity } from '../../src/models/commit-identity'
 import { GitHubRepository } from '../../src/models/github-repository'
