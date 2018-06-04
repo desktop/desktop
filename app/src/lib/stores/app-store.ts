@@ -3571,6 +3571,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
         "This pull request's clone URL is not populated but should be",
         head.gitHubRepository.cloneURL
       )
+
+      // by convention the remote that Desktop looks for here is prefixed to
+      // differentiate from existing remotes defined by the user
       const remoteName = ForkedRemotePrefix + head.gitHubRepository.owner.login
 
       const remotes = await getRemotes(repository)
