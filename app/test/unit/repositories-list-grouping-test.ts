@@ -1,6 +1,6 @@
 import { expect } from 'chai'
 
-import { groupRepositories } from '../../src/ui/repositories-list/group-repositories'
+import { groupRepositories } from '../../src/lib/group-repositories'
 import { Repository } from '../../src/models/repository'
 import { GitHubRepository } from '../../src/models/github-repository'
 import { Owner } from '../../src/models/owner'

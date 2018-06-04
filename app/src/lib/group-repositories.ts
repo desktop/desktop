@@ -1,8 +1,8 @@
-import { Repository } from '../../models/repository'
-import { CloningRepository } from '../../models/cloning-repository'
-import { getDotComAPIEndpoint } from '../../lib/api'
-import { caseInsensitiveCompare } from '../../lib/compare'
-import { IFilterListGroup, IFilterListItem } from '../../models/filter-list'
+import { Repository } from '../models/repository'
+import { CloningRepository } from '../models/cloning-repository'
+import { getDotComAPIEndpoint } from './api'
+import { caseInsensitiveCompare } from './compare'
+import { IFilterListGroup, IFilterListItem } from '../models/filter-list'
 
 export type RepositoryGroupIdentifier = 'github' | 'enterprise' | 'other'
 

@@ -1,11 +1,11 @@
 import * as React from 'react'
 
 import { RepositoryListItem } from './repository-list-item'
+import { Repositoryish } from '../../models/repository'
 import {
   IRepositoryListItem,
-  Repositoryish,
   RepositoryGroupIdentifier,
-} from './group-repositories'
+} from '../../lib/group-repositories'
 import { IFilterListGroup, IMatches } from '../../models/filter-list'
 import { FilterList } from '../lib/filter-list'
 import { assertNever } from '../../lib/fatal-error'
@@ -21,6 +21,7 @@ const RepositoryFilterList: new () => FilterList<
 interface IRepositoriesListProps {
   readonly selectedRepository: Repositoryish | null
 
+  /** The grouped repositories to display in the list */
   readonly groups: ReadonlyArray<IFilterListGroup<IRepositoryListItem>>
 
   /** Called when a repository has been selected. */
