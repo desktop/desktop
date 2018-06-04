@@ -244,6 +244,10 @@ export class CommitMessage extends React.Component<
   }
 
   private async createCommit() {
+    setTimeout(() => {
+      this.props.dispatcher.setDivergingBannerVisible(true)
+    }, 3000)
+
     const { summary, description } = this.state
 
     if (!this.canCommit()) {

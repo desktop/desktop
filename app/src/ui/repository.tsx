@@ -50,6 +50,8 @@ interface IRepositoryViewProps {
    */
 
   readonly onOpenInExternalEditor: (fullPath: string) => void
+
+  readonly isDivergingBannerVisible: boolean
 }
 
 interface IRepositoryViewState {
@@ -93,7 +95,16 @@ export class RepositoryView extends React.Component<
             />
           ) : null}
         </span>
-        <span>History</span>
+
+        <div className="with-indicator">
+          <span>History</span>
+            {this.props.isDivergingBannerVisible ? (
+            <Octicon
+              className="indicator"
+              symbol={OcticonSymbol.primitiveDot}
+            />
+          ) : null}
+        </div>
       </TabBar>
     )
   }
@@ -177,6 +188,7 @@ export class RepositoryView extends React.Component<
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
         sidebarHasFocusWithin={this.state.sidebarHasFocusWithin}
         shouldShowBranchesList={shouldShowBranchesList}
+        isDivergingBannerVisible={this.props.isDivergingBannerVisible}
       />
     )
   }

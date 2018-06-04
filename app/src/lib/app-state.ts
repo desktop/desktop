@@ -178,6 +178,9 @@ export interface IAppState {
 
   /** The currently selected tab for the Branches foldout. */
   readonly selectedBranchesTab: BranchesTab
+
+  /** Show the diverging notification banner */
+  readonly isDivergingBannerVisible: boolean
 }
 
 export enum PopupType {

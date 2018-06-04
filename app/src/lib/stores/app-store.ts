@@ -259,6 +259,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private selectedBranchesTab = BranchesTab.Branches
 
+  private isDivergingBannerVisible: boolean = false
+
   public constructor(
     gitHubUserStore: GitHubUserStore,
     cloningRepositoriesStore: CloningRepositoriesStore,
@@ -590,6 +592,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repositoryFilterText: this.repositoryFilterText,
       selectedCloneRepositoryTab: this.selectedCloneRepositoryTab,
       selectedBranchesTab: this.selectedBranchesTab,
+      isDivergingBannerVisible: this.isDivergingBannerVisible,
     }
   }
 
@@ -2913,6 +2916,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
+  public _setDivergingBannerVisible(visibility: boolean) {
+    console.log('hello from app store!!!!!!!!!!!')
+
+    this.isDivergingBannerVisible = visibility
+
+    this.emitUpdate()
+  }
+  
   public _reportStats() {
     return this.statsStore.reportStats(this.accounts, this.repositories)
   }

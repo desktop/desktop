@@ -23,6 +23,7 @@ import { OcticonSymbol } from '../octicons'
 import { SelectionSource } from '../lib/filter-list'
 import { IMatches } from '../../lib/fuzzy-find'
 import { Ref } from '../lib/ref'
+import { NewCommitsBanner } from '../notification/new-commits-banner'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -41,6 +42,8 @@ interface ICompareSidebarProps {
   readonly shouldShowBranchesList: boolean
   readonly onRevertCommit: (commit: Commit) => void
   readonly onViewCommitOnGitHub: (sha: string) => void
+
+  readonly isDivergingBannerVisible: boolean
 }
 
 interface ICompareSidebarState {
@@ -157,20 +160,30 @@ export class CompareSidebar extends React.Component<
 
     return (
       <div id="compare-view">
-        <div className="compare-form">
-          <FancyTextBox
-            symbol={OcticonSymbol.gitBranch}
-            type="search"
-            placeholder={placeholderText}
-            onFocus={this.onTextBoxFocused}
-            value={this.state.filterText}
-            disabled={allBranches.length <= 1}
-            onRef={this.onTextBoxRef}
-            onValueChanged={this.onBranchFilterTextChanged}
-            onKeyDown={this.onBranchFilterKeyDown}
-            onSearchCleared={this.onSearchCleared}
+        {this.props.compareState.defaultBranch !== null  && this.props.isDivergingBannerVisible == true ? (
+          <NewCommitsBanner
+            numCommits={4}
+            branch={this.props.compareState.defaultBranch}
+            dispatcher={this.props.dispatcher}
           />
-        </div>
+        ) : null}
+
+        {this.props.isDivergingBannerVisible == false ? (
+          <div className="compare-form">
+            <FancyTextBox
+              symbol={OcticonSymbol.gitBranch}
+              type="search"
+              placeholder={placeholderText}
+              onFocus={this.onTextBoxFocused}
+              value={this.state.filterText}
+              disabled={allBranches.length <= 1}
+              onRef={this.onTextBoxRef}
+              onValueChanged={this.onBranchFilterTextChanged}
+              onKeyDown={this.onBranchFilterKeyDown}
+              onSearchCleared={this.onSearchCleared}
+            />
+          </div>
+        ) : null }
 
         {this.state.showBranchList
           ? this.renderFilterList()

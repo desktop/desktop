@@ -462,6 +462,14 @@ export class Dispatcher {
   }
 
   /**
+   * Set the update banner's visibility
+   */
+  public setDivergingBannerVisible(isVisible: boolean) {
+    console.log('hello from dispatcher!!!!!!!')
+    return this.appStore._setDivergingBannerVisible(isVisible)
+  }
+
+  /**
    * Reset the width of the repository sidebar to its default
    * value. This affects the changes and history sidebar
    * as well as the first toolbar section which contains
