@@ -28,7 +28,7 @@ type NamingIsHard = IOfPullRequest | IOfGithub | IOfFork
  * Infers which branch to use as the comparison branch
  *
  * @param branches The list of all branches for the repository
- * @param needsAName
+ * @param needsAName The object that determines how the branch will be inferred
  */
 export async function inferComparisonBranch(
   branches: ReadonlyArray<Branch>,
