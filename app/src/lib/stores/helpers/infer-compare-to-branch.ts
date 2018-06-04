@@ -1,6 +1,6 @@
-import { Branch } from '../../../models/branch'
+import { Branch, IAheadBehind } from '../../../models/branch'
 import { PullRequest } from '../../../models/pull-request'
-import { getAheadBehind } from '../../git'
+import { getAheadBehind, revRange } from '../../git'
 import { Repository } from '../../../models/repository'
 import { GitHubRepository } from '../../../models/github-repository'
 
@@ -113,7 +113,8 @@ export async function _getDefaultBranchOfFork(
   branches: ReadonlyArray<Branch>,
   repository: Repository,
   ghRepository: GitHubRepository,
-  currentBranch: Branch
+  currentBranch: Branch,
+  mockingAheadBehind?: (range: string) => IAheadBehind
 ): Promise<Branch | null> {
   const defaultBranchName = ghRepository.defaultBranch
 
@@ -129,10 +130,12 @@ export async function _getDefaultBranchOfFork(
     return _getMasterBranch(branches)
   }
 
-  const aheadBehind = await getAheadBehind(
-    repository,
-    `${currentBranch.tip.sha}...${defaultBranch.tip.sha}`
-  )
+  const range = revRange(currentBranch.tip.sha, defaultBranch.tip.sha)
+
+  // use the mock if it's passed - for testing only
+  const aheadBehind =
+    (mockingAheadBehind && mockingAheadBehind(range)) ||
+    (await getAheadBehind(repository, range))
 
   // return default branch of fork if it has commits
   // the current branch does not have
