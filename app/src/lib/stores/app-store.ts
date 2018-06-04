@@ -3571,9 +3571,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
         "This pull request's clone URL is not populated but should be",
         head.gitHubRepository.cloneURL
       )
-      const remoteName = forkPullRequestRemoteName(
-        head.gitHubRepository.owner.login
-      )
+
+      // by convention the remote that Desktop looks for here is prefixed to
+      // differentiate from existing remotes defined by the user
+      const remoteName = ForkedRemotePrefix + head.gitHubRepository.owner.login
+
       const remotes = await getRemotes(repository)
       const remote =
         remotes.find(r => r.name === remoteName) ||
@@ -3659,10 +3661,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _recordCompareInitiatedMerge() {
     this.statsStore.recordCompareInitiatedMerge()
   }
-}
-
-function forkPullRequestRemoteName(remoteName: string) {
-  return `${ForkedRemotePrefix}${remoteName}`
 }
 
 /**
