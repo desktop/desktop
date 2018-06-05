@@ -180,7 +180,7 @@ export interface IAppState {
   readonly selectedBranchesTab: BranchesTab
 
   /** Show the diverging notification banner */
-  readonly isDivergingBannerVisible: boolean
+  readonly isDivergingBranchBannerVisible: boolean
 }
 
 export enum PopupType {
