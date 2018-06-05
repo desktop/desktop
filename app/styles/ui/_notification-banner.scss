@@ -2,9 +2,10 @@
 
 .notification-banner {
   background: var(--background-color);
-  border-bottom: var(--base-border);
+  border-top: var(--base-border);
   padding: var(--spacing);
-  margin-bottom: var(--spacing);
+  margin: var(--spacing) 0;
+  border-bottom: var(--base-border);
 
   &-content {
     display: flex;
@@ -33,6 +34,7 @@
 
 .diverge-banner {
   p {
+    font-size: var(--font-size-sm);
     margin: 0;
   }
 
