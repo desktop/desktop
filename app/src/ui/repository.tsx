@@ -18,8 +18,12 @@ import {
 import { Dispatcher } from '../lib/dispatcher'
 import { IssuesStore, GitHubUserStore } from '../lib/stores'
 import { assertNever } from '../lib/fatal-error'
+import { Octicon, OcticonSymbol } from './octicons'
 import { Account } from '../models/account'
-import { enableCompareSidebar } from '../lib/feature-flag'
+import {
+  enableCompareSidebar,
+  enableNotificationOfBranchUpdates,
+} from '../lib/feature-flag'
 import { FocusContainer } from './lib/focus-container'
 
 /** The widest the sidebar can be with the minimum window size. */
@@ -72,10 +76,23 @@ export class RepositoryView extends React.Component<
     }
   }
 
-  private renderTabs(): JSX.Element {
+  private renderChangesBadge() {
     const numFilesChanged = this.props.state.changesState.workingDirectory.files
       .length
     const hasChanges = numFilesChanged > 0
+
+    if (!hasChanges) {
+      return null
+    }
+
+    return enableNotificationOfBranchUpdates() ? (
+      <FilesChangedBadge numFilesChanged={numFilesChanged} />
+    ) : (
+      <Octicon className="indicator" symbol={OcticonSymbol.primitiveDot} />
+    )
+  }
+
+  private renderTabs(): JSX.Element {
     const selectedTab =
       this.props.state.selectedSection === RepositorySectionTab.Changes
         ? Tab.Changes
@@ -85,9 +102,7 @@ export class RepositoryView extends React.Component<
       <TabBar selectedIndex={selectedTab} onTabClicked={this.onTabClicked}>
         <span className="with-indicator">
           <span>Changes</span>
-          {hasChanges ? (
-            <FilesChangedBadge numFilesChanged={numFilesChanged} />
-          ) : null}
+          {this.renderChangesBadge()}
         </span>
         <span>History</span>
       </TabBar>
