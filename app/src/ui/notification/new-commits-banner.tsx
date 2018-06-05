@@ -12,9 +12,10 @@ interface INewCommitsBannerProps {
   readonly commitsBehind: number
 
   /**
-   * The base branch that is ahead
+   * The target branch that will accept commits
+   * from the current branch
    */
-  readonly branch: Branch
+  readonly baseBranch: Branch
   readonly onCompareClicked: () => void
   readonly onMergeClicked: () => void
 }
@@ -33,7 +34,7 @@ export class NewCommitsBanner extends React.Component<
         <div className="notification-banner-content">
           <p>
             Your branch is <strong>{this.props.commitsBehind} commits</strong>{' '}
-            behind <Ref>{this.props.branch.name}</Ref>
+            behind <Ref>{this.props.baseBranch.name}</Ref>
           </p>
 
           <a className="close" aria-label="Dismiss banner">
