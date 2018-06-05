@@ -36,7 +36,8 @@ interface ICompareSidebarProps {
   readonly currentBranch: Branch | null
   readonly onRevertCommit: (commit: Commit) => void
   readonly onViewCommitOnGitHub: (sha: string) => void
-
+  readonly onMergeFromBanner: () => void
+  readonly onCompareFromBanner: () => void
   readonly isDivergingBannerVisible: boolean
 }
 
@@ -132,10 +133,13 @@ export class CompareSidebar extends React.Component<
 
     return (
       <div id="compare-view">
-        {this.props.compareState.defaultBranch !== null  && this.props.isDivergingBannerVisible == true ? (
+        {this.props.compareState.defaultBranch !== null &&
+        this.props.isDivergingBannerVisible == true ? (
           <NewCommitsBanner
-            numCommits={4}
+            commitsBehind={4}
             branch={this.props.compareState.defaultBranch}
+            onCompareClicked={this.props.onCompareFromBanner}
+            onMergeClicked={this.props.onMergeFromBanner}
           />
         ) : null}
         <div className="compare-form">
