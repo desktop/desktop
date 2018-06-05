@@ -463,11 +463,10 @@ export class Dispatcher {
   }
 
   /**
-   * Set the update banner's visibility
+   * Set the divering branch notification banner's visibility
    */
-  public setDivergingBannerVisible(isVisible: boolean) {
-    console.log('hello from dispatcher!!!!!!!')
-    return this.appStore._setDivergingBannerVisible(isVisible)
+  public setDivergingBranchBannerVisibility(isVisible: boolean) {
+    return this.appStore._setDivergingBranchBannerVisibility(isVisible)
   }
 
   /**
