@@ -449,12 +449,7 @@ export class CompareSidebar extends React.Component<
     }
   }
 
-  private onBannerMergeClick = async (branch: Branch) => {
-    await this.props.dispatcher.mergeBranch(this.props.repository, branch.name)
-    await this.viewHistoryForBranch()
-
-    this.props.dispatcher.setDivergingBranchBannerVisibility(false)
-  }
+  private onBannerMergeClick = (branch: Branch) => {}
 
   private onCompareClick = (branch: Branch) => {}
 
