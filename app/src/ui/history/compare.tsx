@@ -24,6 +24,7 @@ import { SelectionSource } from '../lib/filter-list'
 import { IMatches } from '../../lib/fuzzy-find'
 import { Ref } from '../lib/ref'
 import { NewCommitsBanner } from '../notification/new-commits-banner'
+import { enableNotificationOfBranchUpdates } from '../../lib/feature-flag'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -131,15 +132,7 @@ export class CompareSidebar extends React.Component<
 
     return (
       <div id="compare-view">
-        {this.props.compareState.defaultBranch !== null &&
-        this.props.isDivergingBannerVisible == true ? (
-          <NewCommitsBanner
-            commitsBehind={4}
-            branch={this.props.compareState.defaultBranch}
-            onCompareClicked={this.props.onCompareFromBanner}
-            onMergeClicked={this.props.onMergeFromBanner}
-          />
-        ) : null}
+        {this.renderNotificationBanner()}
         <div className="compare-form">
           <FancyTextBox
             symbol={OcticonSymbol.gitBranch}
@@ -162,6 +155,19 @@ export class CompareSidebar extends React.Component<
 
   private onBranchesListRef = (branchList: BranchList | null) => {
     this.branchList = branchList
+  }
+
+  private renderNotificationBanner() {
+    return enableNotificationOfBranchUpdates &&
+      this.props.compareState.defaultBranch !== null &&
+      this.props.isDivergingBranchBannerVisible ? (
+      <NewCommitsBanner
+        commitsBehind={4}
+        baseBranch={this.props.compareState.defaultBranch}
+        onCompareClick={this.onCompareClick}
+        onMergeClick={this.onBannerMergeClick}
+      />
+    ) : null
   }
 
   private renderCommits() {
