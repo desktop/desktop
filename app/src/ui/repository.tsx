@@ -76,7 +76,7 @@ export class RepositoryView extends React.Component<
     }
   }
 
-  private renderChangesBadge() {
+  private renderChangesBadge(): JSX.Element | null {
     const numFilesChanged = this.props.state.changesState.workingDirectory.files
       .length
     const hasChanges = numFilesChanged > 0
