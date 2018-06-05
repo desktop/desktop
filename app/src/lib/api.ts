@@ -231,6 +231,17 @@ function toGitHubIsoDateString(date: Date) {
   return date.toISOString().replace(/\.\d{3}Z$/, 'Z')
 }
 
+interface IUserWithTokenScopes {
+  /**
+   * The details associated with the current user
+   */
+  readonly user: IAPIUser
+  /**
+   * The list of scopes assigned to the current token
+   */
+  readonly scopes: ReadonlyArray<string>
+}
+
 /**
  * An object for making authenticated requests to the GitHub API
  */
@@ -279,12 +290,18 @@ export class API {
     }
   }
 
-  /** Fetch the logged in account. */
-  public async fetchAccount(): Promise<IAPIUser> {
+  /** Fetch the logged in account and the current scopes associated with the token. */
+  public async fetchAccount(): Promise<IUserWithTokenScopes> {
     try {
       const response = await this.request('GET', 'user')
-      const result = await parsedResponse<IAPIUser>(response)
-      return result
+      const user = await parsedResponse<IAPIUser>(response)
+      const scopeHeader = response.headers.get('X-OAuth-Scopes')
+      const scopes =
+        scopeHeader == null
+          ? []
+          : scopeHeader.split(',').map(scope => scope.trim())
+
+      return { user, scopes }
     } catch (e) {
       log.warn(`fetchAccount: failed with endpoint ${this.endpoint}`, e)
       throw e
@@ -710,7 +727,7 @@ export async function fetchUser(
 ): Promise<Account> {
   const api = new API(endpoint, token)
   try {
-    const user = await api.fetchAccount()
+    const { user, scopes } = await api.fetchAccount()
     const emails = await api.fetchEmails()
     const defaultEmail = emails[0].email || ''
     const avatarURL = getAvatarWithEnterpriseFallback(
@@ -725,7 +742,8 @@ export async function fetchUser(
       emails,
       avatarURL,
       user.id,
-      user.name || user.login
+      user.name || user.login,
+      scopes
     )
   } catch (e) {
     log.warn(`fetchUser: failed with endpoint ${endpoint}`, e)
