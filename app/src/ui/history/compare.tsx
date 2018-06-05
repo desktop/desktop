@@ -168,22 +168,20 @@ export class CompareSidebar extends React.Component<
           />
         ) : null}
 
-        {this.props.isDivergingBannerVisible == false ? (
-          <div className="compare-form">
-            <FancyTextBox
-              symbol={OcticonSymbol.gitBranch}
-              type="search"
-              placeholder={placeholderText}
-              onFocus={this.onTextBoxFocused}
-              value={this.state.filterText}
-              disabled={allBranches.length <= 1}
-              onRef={this.onTextBoxRef}
-              onValueChanged={this.onBranchFilterTextChanged}
-              onKeyDown={this.onBranchFilterKeyDown}
-              onSearchCleared={this.onSearchCleared}
-            />
-          </div>
-        ) : null }
+        <div className="compare-form">
+          <FancyTextBox
+            symbol={OcticonSymbol.gitBranch}
+            type="search"
+            placeholder={placeholderText}
+            onFocus={this.onTextBoxFocused}
+            value={this.state.filterText}
+            disabled={allBranches.length <= 1}
+            onRef={this.onTextBoxRef}
+            onValueChanged={this.onBranchFilterTextChanged}
+            onKeyDown={this.onBranchFilterKeyDown}
+            onSearchCleared={this.onSearchCleared}
+          />
+        </div>
 
         {this.state.showBranchList
           ? this.renderFilterList()
