@@ -37,8 +37,6 @@ interface ICompareSidebarProps {
   readonly isDivergingBranchBannerVisible: boolean
   readonly onRevertCommit: (commit: Commit) => void
   readonly onViewCommitOnGitHub: (sha: string) => void
-  readonly onMergeFromBanner: () => void
-  readonly onCompareFromBanner: () => void
 }
 
 interface ICompareSidebarState {
@@ -281,7 +279,7 @@ export class CompareSidebar extends React.Component<
         <Button
           type="submit"
           disabled={count <= 0}
-          onClick={this.onMergeClicked}
+          onClick={this.onCompareMergeClicked}
         >
           Merge into <strong>{this.props.currentBranch.name}</strong>
         </Button>
@@ -445,7 +443,16 @@ export class CompareSidebar extends React.Component<
     }
   }
 
-  private onMergeClicked = async (event: React.MouseEvent<any>) => {
+  private onBannerMergeClick = async (branch: Branch) => {
+    await this.props.dispatcher.mergeBranch(this.props.repository, branch.name)
+    await this.viewHistoryForBranch()
+
+    this.props.dispatcher.setDivergingBranchBannerVisibility(false)
+  }
+
+  private onCompareClick = (branch: Branch) => {}
+
+  private onCompareMergeClicked = async (event: React.MouseEvent<any>) => {
     const formState = this.props.compareState.formState
 
     if (formState.kind === ComparisonView.None) {
