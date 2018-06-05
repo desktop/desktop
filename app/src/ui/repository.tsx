@@ -47,10 +47,9 @@ interface IRepositoryViewProps {
    *
    * @param fullPath The full path to the file on disk
    */
-
   readonly onOpenInExternalEditor: (fullPath: string) => void
 
-  readonly isDivergingBannerVisible: boolean
+  readonly isDivergingBranchBannerVisible: boolean
 }
 
 interface IRepositoryViewState {
@@ -96,7 +95,7 @@ export class RepositoryView extends React.Component<
 
         <div className="with-indicator">
           <span>History</span>
-          {this.props.isDivergingBannerVisible ? (
+          {this.props.isDivergingBranchBannerVisible ? (
             <Octicon
               className="indicator"
               symbol={OcticonSymbol.primitiveDot}
@@ -179,7 +178,9 @@ export class RepositoryView extends React.Component<
         dispatcher={this.props.dispatcher}
         onRevertCommit={this.onRevertCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
-        isDivergingBannerVisible={this.props.isDivergingBannerVisible}
+        isDivergingBranchBannerVisible={
+          this.props.isDivergingBranchBannerVisible
+        }
       />
     )
   }
