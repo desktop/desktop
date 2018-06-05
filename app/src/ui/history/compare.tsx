@@ -34,11 +34,11 @@ interface ICompareSidebarProps {
   readonly localCommitSHAs: ReadonlyArray<string>
   readonly dispatcher: Dispatcher
   readonly currentBranch: Branch | null
+  readonly isDivergingBranchBannerVisible: boolean
   readonly onRevertCommit: (commit: Commit) => void
   readonly onViewCommitOnGitHub: (sha: string) => void
   readonly onMergeFromBanner: () => void
   readonly onCompareFromBanner: () => void
-  readonly isDivergingBannerVisible: boolean
 }
 
 interface ICompareSidebarState {
