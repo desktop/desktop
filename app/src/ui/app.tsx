@@ -729,7 +729,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       const path = (await validatedRepositoryPath(first)) || first
 
       const existingRepository = matchExistingRepository(
-        this.state.repositoryList.currentRepositories,
+        this.state.repositoryList.repositories,
         path
       )
 
@@ -1386,7 +1386,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     const filterText = this.state.repositoryFilterText
 
     const groups = groupRepositories(
-      this.state.repositoryList.currentRepositories.map(r => r.source)
+      this.state.repositoryList.repositories.map(r => r.source)
     )
 
     return (
@@ -1454,7 +1454,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (repository) {
       icon = iconForRepository(repository)
       title = repository.name
-    } else if (this.state.repositoryList.currentRepositories.length > 0) {
+    } else if (this.state.repositoryList.repositories.length > 0) {
       icon = OcticonSymbol.repo
       title = __DARWIN__ ? 'Select a Repository' : 'Select a repository'
     } else {
@@ -1637,7 +1637,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private renderRepository() {
     const state = this.state
-    if (state.repositoryList.currentRepositories.length < 1) {
+    if (state.repositoryList.repositories.length < 1) {
       return (
         <BlankSlateView
           onCreate={this.showCreateRepository}

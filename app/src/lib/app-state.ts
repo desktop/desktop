@@ -52,7 +52,7 @@ export enum ImageDiffType {
 }
 
 export interface IRepositoryListState {
-  readonly currentRepositories: ReadonlyArray<IRepositoryListItem>
+  readonly repositories: ReadonlyArray<IRepositoryListItem>
 }
 
 export type PossibleSelections =

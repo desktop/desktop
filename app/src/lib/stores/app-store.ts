@@ -534,7 +534,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     ]
 
     return {
-      currentRepositories: allRepos.map(source => ({
+      repositories: allRepos.map(source => ({
         source,
       })),
     }

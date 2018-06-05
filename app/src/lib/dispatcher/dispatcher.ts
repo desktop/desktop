@@ -853,7 +853,7 @@ export class Dispatcher {
         const path = (await validatedRepositoryPath(action.path)) || action.path
         const state = this.appStore.getState()
         let existingRepository = matchExistingRepository(
-          state.repositoryList.currentRepositories,
+          state.repositoryList.repositories,
           path
         )
 
@@ -959,9 +959,7 @@ export class Dispatcher {
     branch: string | null
   ): Promise<Repository | null> {
     const state = this.appStore.getState()
-    const repositories = state.repositoryList.currentRepositories.map(
-      r => r.source
-    )
+    const repositories = state.repositoryList.repositories.map(r => r.source)
     const existingRepository = repositories.find(r => {
       if (r instanceof Repository) {
         const gitHubRepository = r.gitHubRepository
