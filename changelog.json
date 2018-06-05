@@ -1,5 +1,8 @@
 {
   "releases": {
+    "1.2.3-test1": [
+      "Confirming switch from uglify-es to babel-minify addresses minification issue - #4871"
+    ],
     "1.2.2": [
       "[Fixed] Make cURL/schannel default to using the Windows certificate store - #4817",
       "[Fixed] Restore text selection highlighting in diffs - #4818"
