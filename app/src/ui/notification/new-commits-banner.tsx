@@ -16,8 +16,8 @@ interface INewCommitsBannerProps {
    * from the current branch
    */
   readonly baseBranch: Branch
-  readonly onCompareClicked: () => void
-  readonly onMergeClicked: () => void
+  readonly onCompareClick: (branch: Branch) => void
+  readonly onMergeClick: (branch: Branch) => void
 }
 
 /**
@@ -43,13 +43,21 @@ export class NewCommitsBanner extends React.Component<
         </div>
 
         <ButtonGroup>
-          <Button type="submit" onClick={this.props.onCompareClicked}>
+          <Button type="submit" onClick={this.onCompareClicked}>
             Compare
           </Button>
 
-          <Button onClick={this.props.onMergeClicked}>Merge...</Button>
+          <Button onClick={this.onMergeClicked}>Merge...</Button>
         </ButtonGroup>
       </div>
     )
+  }
+
+  private onMergeClicked = (event: React.MouseEvent<any>) => {
+    this.props.onMergeClick(this.props.baseBranch)
+  }
+
+  private onCompareClicked = (event: React.MouseEvent<any>) => {
+    this.props.onCompareClick(this.props.baseBranch)
   }
 }
