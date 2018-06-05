@@ -2930,14 +2930,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  public _setDivergingBannerVisible(visibility: boolean) {
-    console.log('hello from app store!!!!!!!!!!!')
-
-    this.isDivergingBannerVisible = visibility
-
+  public _setDivergingBranchBannerVisibility(visibility: boolean) {
+    this.isDivergingBranchBannerVisible = visibility
     this.emitUpdate()
   }
-  
+
   public _reportStats() {
     return this.statsStore.reportStats(this.accounts, this.repositories)
   }
