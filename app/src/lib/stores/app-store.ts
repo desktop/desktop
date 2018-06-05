@@ -259,7 +259,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private selectedBranchesTab = BranchesTab.Branches
 
-  private isDivergingBannerVisible: boolean = false
+  private isDivergingBranchBannerVisible: boolean = false
 
   public constructor(
     gitHubUserStore: GitHubUserStore,
@@ -594,7 +594,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repositoryFilterText: this.repositoryFilterText,
       selectedCloneRepositoryTab: this.selectedCloneRepositoryTab,
       selectedBranchesTab: this.selectedBranchesTab,
-      isDivergingBannerVisible: this.isDivergingBannerVisible,
+      isDivergingBranchBannerVisible: this.isDivergingBranchBannerVisible,
     }
   }
 
