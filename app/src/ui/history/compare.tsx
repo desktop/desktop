@@ -449,14 +449,13 @@ export class CompareSidebar extends React.Component<
     }
   }
 
-  private onBannerMergeClick = async (branch: Branch) => {
-    await this.props.dispatcher.mergeBranch(this.props.repository, branch.name)
-    await this.viewHistoryForBranch()
-
-    this.props.dispatcher.setDivergingBranchBannerVisibility(false)
+  private onBannerMergeClick = (branch: Branch) => {
+    // Todo: implement merge flow - issue#4809
   }
 
-  private onCompareClick = (branch: Branch) => {}
+  private onCompareClick = (branch: Branch) => {
+    // Todo: implement compare flow - issue#4808
+  }
 
   private onCompareMergeClicked = async (event: React.MouseEvent<any>) => {
     const formState = this.props.compareState.formState
