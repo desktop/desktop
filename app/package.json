@@ -56,8 +56,6 @@
     "winston-daily-rotate-file": "^1.4.5"
   },
   "devDependencies": {
-    "devtron": "^1.4.0",
-    "electron-debug": "^1.1.0",
     "electron-devtools-installer": "^2.2.3",
     "style-loader": "^0.13.2",
     "temp": "^0.8.3",
