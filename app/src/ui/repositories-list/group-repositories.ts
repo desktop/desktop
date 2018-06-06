@@ -1,4 +1,4 @@
-import { Repository } from '../../models/repository'
+import { Repository, ILocalRepositoryState } from '../../models/repository'
 import { CloningRepository } from '../../models/cloning-repository'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { caseInsensitiveCompare } from '../../lib/compare'
@@ -19,7 +19,8 @@ export interface IRepositoryListItem extends IFilterListItem {
 }
 
 export function groupRepositories(
-  repositories: ReadonlyArray<Repositoryish>
+  repositories: ReadonlyArray<Repositoryish>,
+  localRepositoryStateLookup: Map<string, ILocalRepositoryState>
 ): ReadonlyArray<IFilterListGroup<IRepositoryListItem>> {
   const grouped = new Map<RepositoryGroupIdentifier, Repositoryish[]>()
   for (const repository of repositories) {
