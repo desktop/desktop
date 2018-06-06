@@ -199,6 +199,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     string,
     RepositorySettingsStore
   >()
+
+  private readonly localRepositoryStateLookup = new Map<
+    number,
+    ILocalRepositoryState
+  >()
   public readonly gitHubUserStore: GitHubUserStore
   private readonly cloningRepositoriesStore: CloningRepositoriesStore
   private readonly emojiStore: EmojiStore
@@ -568,7 +573,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         ...this.repositories,
         ...this.cloningRepositoriesStore.repositories,
       ],
-      localRepositoryStateLookup: new Map<number, ILocalRepositoryState>(),
+      localRepositoryStateLookup: this.localRepositoryStateLookup,
       windowState: this.windowState,
       windowZoomFactor: this.windowZoomFactor,
       appIsFocused: this.appIsFocused,
