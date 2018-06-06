@@ -5,8 +5,9 @@
 }
 
 .notification-banner {
-  background: var(--path-segment-background);
+  background: var(--notification-banner-background);
   border: var(--base-border);
+  border-color: var(--notification-banner-border-color);
   border-radius: var(--border-radius);
   padding: var(--spacing);
   margin: var(--spacing-half);
@@ -27,6 +28,7 @@
   @include close-button;
 
   .ref-component {
+    background: var(--notification-ref-background);
     word-break: normal;
   }
 
