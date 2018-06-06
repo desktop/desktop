@@ -24,26 +24,29 @@ export class NewCommitsBanner extends React.Component<
     return (
       <div className="notification-banner diverge-banner">
         <div className="notification-banner-content">
-          <p>
-            <Octicon symbol={OcticonSymbol.lightBulb} />
-            Your branch is <strong>{this.props.numCommits} commits</strong>{' '}
-            behind <Ref>{this.props.branch.name}</Ref>
-          </p>
+          <Octicon symbol={OcticonSymbol.lightBulb} className="notification-icon" />
+
+          <div>
+            <p>
+              Your branch is <strong>{this.props.numCommits} commits</strong>{' '}
+              behind <Ref>{this.props.branch.name}</Ref>
+            </p>
+
+            <ButtonGroup>
+              <Button className="small-button" type="submit" onClick={this.noOp}>
+                Merge...
+              </Button>
+
+              <Button className="small-button" onClick={this.noOp}>
+                View commits
+              </Button>
+            </ButtonGroup>
+          </div>
 
           <a className="close" onClick={this.onCloseButtonClick} aria-label="Dismiss banner">
             <Octicon symbol={OcticonSymbol.x} />
           </a>
         </div>
-
-        <ButtonGroup>
-          <Button className="small-button" type="submit" onClick={this.noOp}>
-            Merge...
-          </Button>
-
-          <Button className="small-button" onClick={this.noOp}>
-            View commits
-          </Button>
-        </ButtonGroup>
       </div>
     )
   }

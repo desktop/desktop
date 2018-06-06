@@ -9,8 +9,12 @@
   border: var(--base-border);
   border-radius: var(--border-radius);
   padding: var(--spacing);
-  margin: var(--spacing);
+  margin: var(--spacing-half);
+  position: relative;
 
+  .notification-icon {
+    margin-right: var(--spacing-half);
+  }
 
   &-content {
     display: flex;
@@ -27,8 +31,10 @@
   }
 
   .close {
-    flex-grow: 0;
+    position: absolute;
     margin: 0;
+    top: var(--spacing);
+    right: var(--spacing);
     text-align: center;
 
     .octicon {
