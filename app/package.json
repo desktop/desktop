@@ -57,6 +57,7 @@
   },
   "devDependencies": {
     "electron-devtools-installer": "^2.2.3",
+    "react-devtools": "^3.2.3",
     "style-loader": "^0.13.2",
     "temp": "^0.8.3",
     "webpack-hot-middleware": "^2.10.0"
