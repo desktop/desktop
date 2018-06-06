@@ -30,7 +30,7 @@ export class TwoUp extends React.Component<ITwoUpProps, {}> {
       maxHeight: this.props.maxSize.height - ControlsHeight,
     }
     const percentDiff = (previous: number, current: number) => {
-      const diff = Math.round(100 * (current - previous) / previous)
+      const diff = Math.round((100 * (current - previous)) / previous)
       const sign = diff > 0 ? '+' : ''
       return sign + diff + '%'
     }

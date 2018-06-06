@@ -1,5 +1,13 @@
 {
   "releases": {
+    "1.2.2": [
+      "[Fixed] Make cURL/schannel default to using the Windows certificate store - #4817",
+      "[Fixed] Restore text selection highlighting in diffs - #4818"
+    ],
+    "1.2.2-beta1": [
+      "[Fixed] Make cURL/schannel default to using the Windows certificate store - #4817",
+      "[Fixed] Text selection highlighting in diffs is back - #4818"
+    ],
     "1.2.1": [
       "[Added] Brackets support for macOS - #4608. Thanks @3raxton!",
       "[Added] Pull request number and author are included in fuzzy-find filtering - #4653. Thanks @damaneice!",
