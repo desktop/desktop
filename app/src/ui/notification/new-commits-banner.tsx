@@ -25,6 +25,7 @@ export class NewCommitsBanner extends React.Component<
       <div className="notification-banner diverge-banner">
         <div className="notification-banner-content">
           <p>
+            <Octicon symbol={OcticonSymbol.lightBulb} />
             Your branch is <strong>{this.props.numCommits} commits</strong>{' '}
             behind <Ref>{this.props.branch.name}</Ref>
           </p>
