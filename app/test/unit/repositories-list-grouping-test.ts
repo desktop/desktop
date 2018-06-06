@@ -28,7 +28,7 @@ describe('repository list grouping', () => {
     ),
   ]
 
-  const cache = new Map<string, ILocalRepositoryState>()
+  const cache = new Map<number, ILocalRepositoryState>()
 
   it('groups repositories by GitHub/Enterprise/Other', () => {
     const grouped = groupRepositories(repositories, cache)

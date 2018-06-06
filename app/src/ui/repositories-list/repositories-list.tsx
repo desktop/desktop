@@ -25,7 +25,7 @@ interface IRepositoriesListProps {
   readonly repositories: ReadonlyArray<Repositoryish>
 
   /** A cache of the latest repository state values, keyed by the repository id */
-  readonly localRepositoryStateLookup: Map<string, ILocalRepositoryState>
+  readonly localRepositoryStateLookup: Map<number, ILocalRepositoryState>
 
   /** Called when a repository has been selected. */
   readonly onSelectionChanged: (repository: Repositoryish) => void

@@ -568,7 +568,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         ...this.repositories,
         ...this.cloningRepositoriesStore.repositories,
       ],
-      localRepositoryStateLookup: new Map<string, ILocalRepositoryState>(),
+      localRepositoryStateLookup: new Map<number, ILocalRepositoryState>(),
       windowState: this.windowState,
       windowZoomFactor: this.windowZoomFactor,
       appIsFocused: this.appIsFocused,

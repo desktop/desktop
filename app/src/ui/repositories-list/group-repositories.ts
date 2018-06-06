@@ -20,7 +20,7 @@ export interface IRepositoryListItem extends IFilterListItem {
 
 export function groupRepositories(
   repositories: ReadonlyArray<Repositoryish>,
-  localRepositoryStateLookup: Map<string, ILocalRepositoryState>
+  localRepositoryStateLookup: Map<number, ILocalRepositoryState>
 ): ReadonlyArray<IFilterListGroup<IRepositoryListItem>> {
   const grouped = new Map<RepositoryGroupIdentifier, Repositoryish[]>()
   for (const repository of repositories) {
