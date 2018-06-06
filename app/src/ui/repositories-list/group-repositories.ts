@@ -3,6 +3,7 @@ import { CloningRepository } from '../../models/cloning-repository'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { caseInsensitiveCompare } from '../../lib/compare'
 import { IFilterListGroup, IFilterListItem } from '../lib/filter-list'
+import { IAheadBehind } from '../../models/branch'
 
 export type RepositoryGroupIdentifier = 'github' | 'enterprise' | 'other'
 
@@ -13,6 +14,8 @@ export interface IRepositoryListItem extends IFilterListItem {
   readonly id: string
   readonly repository: Repositoryish
   readonly needsDisambiguation: boolean
+  readonly aheadBehind: IAheadBehind | null
+  readonly changedFilesCount: number
 }
 
 export function groupRepositories(
@@ -64,6 +67,8 @@ export function groupRepositories(
         id: r.id.toString(),
         repository: r,
         needsDisambiguation: nameCount > 1,
+        aheadBehind: null,
+        changedFilesCount: 0,
       }
     })
 
