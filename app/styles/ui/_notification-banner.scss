@@ -22,6 +22,7 @@
 
     p {
       flex-grow: 1;
+      padding-right: var(--spacing-double); // Extra space for the close button
     }
   }
 
