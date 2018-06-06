@@ -1,11 +1,16 @@
 @import '../mixins';
 
-.notification-banner {
-  background: var(--background-color);
+.notification-banner + .compare-form {
   border-top: var(--base-border);
+}
+
+.notification-banner {
+  background: var(--path-segment-background);
+  border: var(--base-border);
+  border-radius: var(--border-radius);
   padding: var(--spacing);
-  margin: var(--spacing) 0;
-  border-bottom: var(--base-border);
+  margin: var(--spacing);
+
 
   &-content {
     display: flex;
