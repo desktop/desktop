@@ -1,3 +1,4 @@
+import 'react-devtools'
 import '../lib/logging/renderer/install'
 
 import * as React from 'react'
