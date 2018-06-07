@@ -12,11 +12,6 @@
   padding: var(--spacing);
   position: relative;
 
-  &-wrapper {
-    background: salmon;
-    padding: var(--spacing-half);
-  }
-
   .notification-icon {
     margin-right: var(--spacing-half);
   }
@@ -26,6 +21,8 @@
 
     p {
       flex-grow: 1;
+      font-size: var(--font-size-sm);
+      margin: 0;
       padding-right: var(--spacing-double); // Extra space for the close button
     }
   }
@@ -51,29 +48,9 @@
 }
 
 .diverge-banner {
-  p {
-    font-size: var(--font-size-sm);
-    margin: 0;
-  }
-
-  .button-group {
-    display: flex;
-    margin-top: var(--spacing-half);
-  }
-
-  .button-component {
-    flex: 1;
-    margin-right: var(--spacing-half);
-
-    &:last-of-type {
-      margin-right: 0;
-    }
-  }
-}
-
-.diverging-banner {
-  box-sizing: border-box;
+  margin: var(--spacing-half);
   overflow: hidden;
+
   &-enter {
     max-height: 0;
 
@@ -91,6 +68,24 @@
     &-active {
       max-height: 0;
       transition: max-height var(--undo-animation-duration) ease-out;
+    }
+  }
+
+  &-wrapper {
+    overflow: hidden;
+  }
+
+  .button-group {
+    display: flex;
+    margin-top: var(--spacing-half);
+  }
+
+  .button-component {
+    flex: 1;
+    margin-right: var(--spacing-half);
+
+    &:last-of-type {
+      margin-right: 0;
     }
   }
 }

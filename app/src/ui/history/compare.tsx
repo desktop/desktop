@@ -163,7 +163,7 @@ export class CompareSidebar extends React.Component<
 
     if (this.props.compareState.defaultBranch !== null  && this.props.isDivergingBannerVisible == true) {
       child = (
-        <div className="notification-banner-wrapper">
+        <div className="diverge-banner-wrapper">
           <NewCommitsBanner
             numCommits={4}
             branch={this.props.compareState.defaultBranch}
@@ -176,7 +176,7 @@ export class CompareSidebar extends React.Component<
     return (
       <div id="compare-view">
         <CSSTransitionGroup
-          transitionName="diverging-banner"
+          transitionName="diverge-banner"
           transitionAppear={true}
           transitionAppearTimeout={DivergingBannerAnimationTimeout}
           transitionEnterTimeout={DivergingBannerAnimationTimeout}
