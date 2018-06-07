@@ -30,11 +30,17 @@ export class NewCommitsBanner extends React.Component<
         <Octicon symbol={OcticonSymbol.lightBulb} className="notification-icon" />
 
         <div className="notification-banner-content">
-          <p>
-            Your branch is{' '}
-            <strong>{this.props.commitsBehindBaseBranch} commits</strong> behind{' '}
-            <Ref>{this.props.baseBranch.name}</Ref>
-          </p>
+          <div>
+            <p>
+              Your branch is{' '}
+              <strong>{this.props.commitsBehindBaseBranch} commits</strong> behind{' '}
+              <Ref>{this.props.baseBranch.name}</Ref>.
+            </p>
+
+            <p className="notification-banner-content-body">
+              You can view these commits using the form below.
+            </p>
+          </div>
         </div>
 
         <a className="close" aria-label="Dismiss banner">

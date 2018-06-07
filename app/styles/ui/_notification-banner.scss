@@ -25,6 +25,10 @@
       font-size: var(--font-size-sm);
       margin: 0;
       padding-right: var(--spacing-double); // Extra space for the close button
+
+      & + p {
+        margin-top: var(--spacing-half);
+      }
     }
   }
 
@@ -56,4 +60,8 @@
     overflow: hidden;
     border-bottom: var(--base-border);
   }
+}
+
+.notification-banner-content-body {
+  color: var(--text-secondary-color);
 }
