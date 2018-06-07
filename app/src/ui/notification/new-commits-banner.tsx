@@ -27,17 +27,19 @@ export class NewCommitsBanner extends React.Component<
   public render() {
     return (
       <div className="notification-banner diverge-banner">
+        <Octicon symbol={OcticonSymbol.lightBulb} className="notification-icon" />
+
         <div className="notification-banner-content">
           <p>
             Your branch is{' '}
             <strong>{this.props.commitsBehindBaseBranch} commits</strong> behind{' '}
             <Ref>{this.props.baseBranch.name}</Ref>
           </p>
-
-          <a className="close" aria-label="Dismiss banner">
-            <Octicon symbol={OcticonSymbol.x} />
-          </a>
         </div>
+
+        <a className="close" aria-label="Dismiss banner">
+          <Octicon symbol={OcticonSymbol.x} />
+        </a>
       </div>
     )
   }

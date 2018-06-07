@@ -1,25 +1,45 @@
 @import '../mixins';
 
+.notification-banner + .compare-form {
+  border-top: var(--base-border);
+}
+
 .notification-banner {
-  padding: var(--spacing-half);
+  background: var(--notification-banner-background);
+  border: var(--base-border);
+  border-color: var(--notification-banner-border-color);
+  border-radius: var(--border-radius);
+  display: flex;
+  padding: var(--spacing);
+  position: relative;
+
+  .notification-icon {
+    margin-right: var(--spacing-half);
+  }
 
   &-content {
     display: flex;
 
     p {
       flex-grow: 1;
+      font-size: var(--font-size-sm);
+      margin: 0;
+      padding-right: var(--spacing-double); // Extra space for the close button
     }
   }
 
   @include close-button;
 
   .ref-component {
+    background: var(--notification-ref-background);
     word-break: normal;
   }
 
   .close {
-    flex-grow: 0;
+    position: absolute;
     margin: 0;
+    top: var(--spacing);
+    right: var(--spacing);
     text-align: center;
 
     .octicon {
@@ -29,20 +49,11 @@
 }
 
 .diverge-banner {
-  p {
-    margin-top: 0;
-  }
+  margin: var(--spacing-half);
+  overflow: hidden;
 
-  .button-group {
-    display: flex;
-  }
-
-  .button-component {
-    flex: 1;
-    margin-right: var(--spacing-half);
-
-    &:last-of-type {
-      margin-right: 0;
-    }
+  &-wrapper {
+    overflow: hidden;
+    border-bottom: var(--base-border);
   }
 }
