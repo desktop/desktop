@@ -162,10 +162,8 @@ export class CompareSidebar extends React.Component<
       this.props.compareState.defaultBranch !== null &&
       this.props.isDivergingBranchBannerVisible ? (
       <NewCommitsBanner
-        commitsBehind={4}
+        commitsBehindBaseBranch={4}
         baseBranch={this.props.compareState.defaultBranch}
-        onCompareClick={this.onCompareClick}
-        onMergeClick={this.onBannerMergeClick}
       />
     ) : null
   }
@@ -447,14 +445,6 @@ export class CompareSidebar extends React.Component<
     if (commits.length - end <= CloseToBottomThreshold) {
       this.props.dispatcher.loadNextHistoryBatch(this.props.repository)
     }
-  }
-
-  private onBannerMergeClick = (branch: Branch) => {
-    // Todo: implement merge flow - issue#4809
-  }
-
-  private onCompareClick = (branch: Branch) => {
-    // Todo: implement compare flow - issue#4808
   }
 
   private onCompareMergeClicked = async (event: React.MouseEvent<any>) => {
