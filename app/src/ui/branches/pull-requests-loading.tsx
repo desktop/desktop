@@ -8,14 +8,6 @@ import { RowHeight } from './pull-request-list'
 
 const FacadeCount = 6
 
-/**
- * TS can't parse generic specialization in JSX, so we have to alias it here
- * with the generic type. See https://github.com/Microsoft/TypeScript/issues/6395.
- */
-const PullRequestsLoadingList: new () => FilterList<
-  IFilterListItem
-> = FilterList as any
-
 const prLoadingItemProps: IPullRequestListItemProps = {
   loading: true,
   author: '',
@@ -51,7 +43,7 @@ export class PullRequestsLoading extends React.Component<{}, {}> {
     ]
 
     return (
-      <PullRequestsLoadingList
+      <FilterList<IFilterListItem>
         className="pull-request-list"
         rowHeight={RowHeight}
         groups={groups}

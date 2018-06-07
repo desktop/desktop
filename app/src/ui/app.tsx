@@ -490,7 +490,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.showPopup({ type: PopupType.About })
   }
 
-  private async showHistory(shouldShowBranchesList: boolean = false) {
+  private async showHistory(showBranchList: boolean = false) {
     const state = this.state.selectedState
     if (state == null || state.type !== SelectionType.Repository) {
       return
@@ -502,9 +502,14 @@ export class App extends React.Component<IAppProps, IAppState> {
       kind: CompareActionKind.History,
     })
 
-    await this.props.dispatcher.changeRepositorySection(state.repository, {
-      selectedTab: RepositorySectionTab.History,
-      shouldShowBranchesList,
+    await this.props.dispatcher.changeRepositorySection(
+      state.repository,
+      RepositorySectionTab.History
+    )
+
+    await this.props.dispatcher.updateCompareForm(state.repository, {
+      filterText: '',
+      showBranchList,
     })
   }
 
@@ -515,9 +520,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     this.props.dispatcher.closeCurrentFoldout()
-    this.props.dispatcher.changeRepositorySection(state.repository, {
-      selectedTab: RepositorySectionTab.Changes,
-    })
+    this.props.dispatcher.changeRepositorySection(
+      state.repository,
+      RepositorySectionTab.Changes
+    )
   }
 
   private chooseRepository() {
