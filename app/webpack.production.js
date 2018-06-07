@@ -4,6 +4,7 @@ const common = require('./webpack.common')
 
 const webpack = require('webpack')
 const merge = require('webpack-merge')
+const MinifyPlugin = require('babel-minify-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 
 const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer')
@@ -11,6 +12,9 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer')
 const config = {
   mode: 'production',
   devtool: 'source-map',
+  optimization: {
+    minimizer: [new MinifyPlugin()],
+  },
 }
 
 const mainConfig = merge({}, common.main, config)
