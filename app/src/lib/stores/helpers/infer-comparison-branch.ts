@@ -4,17 +4,17 @@ import { getAheadBehind, revRange } from '../../git'
 import { Repository } from '../../../models/repository'
 import { GitHubRepository } from '../../../models/github-repository'
 
-interface IOfGithub {
+export interface IOfGithub {
   kind: 'github'
   repository: Repository
 }
 
-interface IOfPullRequest {
+export interface IOfPullRequest {
   kind: 'pr'
   pullRequest: PullRequest
 }
 
-interface IOfFork {
+export interface IOfFork {
   kind: 'fork'
   repository: Repository
   gitHubRepository: GitHubRepository
