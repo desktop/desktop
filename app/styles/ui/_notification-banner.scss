@@ -69,14 +69,14 @@
 
       .diverge-banner {
         transform: translateX(-100%);
-        transition:
-          transform 0.25s ease-in-out,
+        transition: transform 0.25s ease-in-out;
       }
     }
   }
 
   &-wrapper {
     overflow: hidden;
+    border-bottom: var(--base-border);
   }
 
   .button-group {
