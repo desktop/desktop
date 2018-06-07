@@ -66,8 +66,10 @@
     max-height: 200px;
 
     &-active {
-      max-height: 0;
-      transition: max-height var(--undo-animation-duration) ease-out;
+      // max-height: 0;
+      // transition: max-height var(--undo-animation-duration) ease-out;
+      transform: translateX(-100%);
+      transition: transform var(--undo-animation-duration) ease-out;
     }
   }
 
