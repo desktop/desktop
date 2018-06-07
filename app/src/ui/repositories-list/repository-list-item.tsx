@@ -62,9 +62,17 @@ export class RepositoryListItem extends React.Component<
       if (ahead === 0 && behind === 0) {
         return null
       }
+      const commitGrammar = (commitNum: number) =>
+        `${commitNum} commit${commitNum > 1 ? 's' : ''}` // english is hard
+      const aheadBehindTooltip =
+        'The currently checked out branch is' +
+        (behind ? ` ${commitGrammar(behind)} behind ` : '') +
+        (behind && ahead ? 'and' : '') +
+        (ahead ? ` ${commitGrammar(ahead)} ahead of ` : '') +
+        'its tracked branch.'
 
       return (
-        <div className="ahead-behind">
+        <div className="ahead-behind" title={aheadBehindTooltip}>
           {ahead > 0 ? <Octicon symbol={OcticonSymbol.arrowSmallUp} /> : null}
           {behind > 0 ? (
             <Octicon symbol={OcticonSymbol.arrowSmallDown} />
@@ -82,12 +90,13 @@ export class RepositoryListItem extends React.Component<
     }
 
     return (
-      <div
-        onContextMenu={this.onContextMenu}
-        className="repository-list-item"
-        title={tooltip}
-      >
-        <div className="change-indicator-wrapper">
+      <div onContextMenu={this.onContextMenu} className="repository-list-item">
+        <div
+          className="change-indicator-wrapper"
+          title={
+            hasChanges ? 'There are uncommitted changes in this repository' : ''
+          }
+        >
           {hasChanges ? (
             <Octicon
               className="change-indicator"
@@ -96,7 +105,7 @@ export class RepositoryListItem extends React.Component<
           ) : null}
         </div>
         <Octicon symbol={iconForRepository(repository)} />
-        <div className="name">
+        <div className="name" title={tooltip}>
           {prefix ? <span className="prefix">{prefix}</span> : null}
           <HighlightText
             text={repository.name}
