@@ -76,7 +76,7 @@ describe('inferComparisonBranch Helpers', () => {
   ]
 
   describe('_getMasterBranch', () => {
-    it.only('Returns the master branch', () => {
+    it('Returns the master branch', () => {
       const branch = _getMasterBranch(branches)
 
       expect(branch).is.not.null
@@ -85,7 +85,7 @@ describe('inferComparisonBranch Helpers', () => {
   })
 
   describe('_getDeafultBranchForGithubRepo', () => {
-    it.only('Returns the default branch of a GitHub repository', () => {
+    it('Returns the default branch of a GitHub repository', () => {
       const ghRepo: GitHubRepository = createTestGhRepo('test', 'default')
 
       const branch = _getDeafultBranchOfGithubRepo(branches, ghRepo)
@@ -96,7 +96,7 @@ describe('inferComparisonBranch Helpers', () => {
   })
 
   describe('_getFeatureBranchOfPullRequest', () => {
-    it.only('Returns the branch associated with the PR', () => {
+    it('Returns the branch associated with the PR', () => {
       const head = createTestPrRef(branches[4])
       const base = createTestPrRef(branches[5])
       const pr: PullRequest = createTestPr(head, base)
@@ -109,7 +109,7 @@ describe('inferComparisonBranch Helpers', () => {
   })
 
   describe('_getDefaultBranchOfFork', () => {
-    it.only('Returns the default branch of the fork if it is ahead of the current branch', async () => {
+    it('Returns the default branch of the fork if it is ahead of the current branch', async () => {
       const testBranch = branches[3]
       const ghRepo = createTestGhRepo('test', testBranch.name)
       const repo = createTestRepo()
@@ -129,7 +129,7 @@ describe('inferComparisonBranch Helpers', () => {
       expect(branch!.upstream).to.equal(testBranch.upstream)
     })
 
-    it.only("Returns the default branch of the fork's parent branch if the fork is not ahead of the current branch", async () => {
+    it("Returns the default branch of the fork's parent branch if the fork is not ahead of the current branch", async () => {
       const testBranch = branches[5]
       const parent = createTestGhRepo('parent', testBranch.name)
       const ghRepo = createTestGhRepo('test', testBranch.name, parent)
