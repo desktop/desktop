@@ -16,8 +16,6 @@ interface INewCommitsBannerProps {
    * from the current branch
    */
   readonly baseBranch: Branch
-  readonly onCompareClicked: () => void
-  readonly onMergeClicked: () => void
 }
 
 /**
@@ -33,22 +31,15 @@ export class NewCommitsBanner extends React.Component<
       <div className="notification-banner diverge-banner">
         <div className="notification-banner-content">
           <p>
-            Your branch is <strong>{this.props.commitsBehindBaseBranch} commits</strong>{' '}
-            behind <Ref>{this.props.baseBranch.name}</Ref>
+            Your branch is{' '}
+            <strong>{this.props.commitsBehindBaseBranch} commits</strong> behind{' '}
+            <Ref>{this.props.baseBranch.name}</Ref>
           </p>
 
           <a className="close" aria-label="Dismiss banner">
             <Octicon symbol={OcticonSymbol.x} />
           </a>
         </div>
-
-        <ButtonGroup>
-          <Button type="submit" onClick={this.props.onCompareClicked}>
-            Compare
-          </Button>
-
-          <Button onClick={this.props.onMergeClicked}>Merge...</Button>
-        </ButtonGroup>
       </div>
     )
   }
