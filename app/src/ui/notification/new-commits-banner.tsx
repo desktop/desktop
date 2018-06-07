@@ -1,6 +1,4 @@
 import * as React from 'react'
-import { ButtonGroup } from '../lib/button-group'
-import { Button } from '../lib/button'
 import { Ref } from '../lib/ref'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Branch } from '../../models/branch'
