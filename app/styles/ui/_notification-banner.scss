@@ -10,8 +10,12 @@
   border-color: var(--notification-banner-border-color);
   border-radius: var(--border-radius);
   padding: var(--spacing);
-  margin: var(--spacing-half);
   position: relative;
+
+  &-wrapper {
+    background: salmon;
+    padding: var(--spacing-half);
+  }
 
   .notification-icon {
     margin-right: var(--spacing-half);

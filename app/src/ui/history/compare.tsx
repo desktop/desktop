@@ -163,11 +163,13 @@ export class CompareSidebar extends React.Component<
 
     if (this.props.compareState.defaultBranch !== null  && this.props.isDivergingBannerVisible == true) {
       child = (
-        <NewCommitsBanner
-          numCommits={4}
-          branch={this.props.compareState.defaultBranch}
-          dispatcher={this.props.dispatcher}
-        />
+        <div className="notification-banner-wrapper">
+          <NewCommitsBanner
+            numCommits={4}
+            branch={this.props.compareState.defaultBranch}
+            dispatcher={this.props.dispatcher}
+          />
+        </div>
       )
     }
 
