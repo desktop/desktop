@@ -32,8 +32,12 @@ type NamingIsHard = IOfPullRequest | IOfGithub | IOfFork
  */
 export async function inferComparisonBranch(
   branches: ReadonlyArray<Branch>,
-  needsAName: NamingIsHard
+  needsAName?: NamingIsHard
 ): Promise<Branch | null> {
+  if (needsAName === undefined) {
+    return _getMasterBranch(branches)
+  }
+
   switch (needsAName.kind) {
     case 'pr':
       return _getFeatureBranchOfPullRequest(branches, needsAName.pullRequest)
@@ -49,8 +53,6 @@ export async function inferComparisonBranch(
         needsAName.gitHubRepository,
         needsAName.currentBranch
       )
-    default:
-      return _getMasterBranch(branches)
   }
 }
 

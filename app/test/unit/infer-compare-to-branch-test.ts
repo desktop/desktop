@@ -4,7 +4,7 @@ import {
   _getDeafultBranchOfGithubRepo,
   _getFeatureBranchOfPullRequest,
   _getDefaultBranchOfFork,
-} from '../../src/lib/stores/helpers/infer-compare-to-branch'
+} from '../../src/lib/stores/helpers/infer-comparison-branch'
 import { Branch, BranchType } from '../../src/models/branch'
 import { Commit } from '../../src/models/commit'
 import { CommitIdentity } from '../../src/models/commit-identity'
@@ -151,5 +151,3 @@ describe('inferComparisonBranch Helpers', () => {
     })
   })
 })
-
-describe('inferComparisonBranch', () => {})
