@@ -66,3 +66,27 @@
     }
   }
 }
+
+.diverging-banner {
+  box-sizing: border-box;
+  overflow: hidden;
+  &-enter {
+    max-height: 0;
+
+    &-active {
+      // It doesn't really matter what `maxHeight` we set here so long as it's
+      // greater than or equal to the height that `UndoCommit` will want.
+      max-height: 200px;
+      transition: max-height var(--undo-animation-duration) ease-in;
+    }
+  }
+
+  &-leave {
+    max-height: 200px;
+
+    &-active {
+      max-height: 0;
+      transition: max-height var(--undo-animation-duration) ease-out;
+    }
+  }
+}

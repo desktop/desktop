@@ -24,6 +24,7 @@ import { SelectionSource } from '../lib/filter-list'
 import { IMatches } from '../../lib/fuzzy-find'
 import { Ref } from '../lib/ref'
 import { NewCommitsBanner } from '../notification/new-commits-banner'
+import { CSSTransitionGroup } from 'react-transition-group';
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -157,16 +158,30 @@ export class CompareSidebar extends React.Component<
   public render() {
     const { allBranches } = this.props.compareState
     const placeholderText = getPlaceholderText(this.props.compareState)
+    const DivergingBannerAnimationTimeout = 500
+    let child: JSX.Element | null = null
+
+    if (this.props.compareState.defaultBranch !== null  && this.props.isDivergingBannerVisible == true) {
+      child = (
+        <NewCommitsBanner
+          numCommits={4}
+          branch={this.props.compareState.defaultBranch}
+          dispatcher={this.props.dispatcher}
+        />
+      )
+    }
 
     return (
       <div id="compare-view">
-        {this.props.compareState.defaultBranch !== null  && this.props.isDivergingBannerVisible == true ? (
-          <NewCommitsBanner
-            numCommits={4}
-            branch={this.props.compareState.defaultBranch}
-            dispatcher={this.props.dispatcher}
-          />
-        ) : null}
+        <CSSTransitionGroup
+          transitionName="diverging-banner"
+          transitionAppear={true}
+          transitionAppearTimeout={DivergingBannerAnimationTimeout}
+          transitionEnterTimeout={DivergingBannerAnimationTimeout}
+          transitionLeaveTimeout={DivergingBannerAnimationTimeout}
+          >
+          {child}
+        </CSSTransitionGroup>
 
         <div className="compare-form">
           <FancyTextBox
