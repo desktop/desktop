@@ -131,7 +131,7 @@ import { IAuthor } from '../../models/author'
 import { ComparisonCache } from '../comparison-cache'
 import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
 import { enableCompareSidebar } from '../feature-flag'
-import { inferComparisonBranch } from './helpers/infer-compare-to-branch'
+import { inferComparisonBranch } from './helpers/infer-comparison-branch'
 
 /**
  * Enum used by fetch to determine if
