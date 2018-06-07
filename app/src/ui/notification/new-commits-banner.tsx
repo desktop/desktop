@@ -9,7 +9,7 @@ interface INewCommitsBannerProps {
   /**
    * The number of commits behind `branch`
    */
-  readonly commitsBehind: number
+  readonly commitsBehindBaseBranch: number
 
   /**
    * The target branch that will accept commits
@@ -33,7 +33,7 @@ export class NewCommitsBanner extends React.Component<
       <div className="notification-banner diverge-banner">
         <div className="notification-banner-content">
           <p>
-            Your branch is <strong>{this.props.commitsBehind} commits</strong>{' '}
+            Your branch is <strong>{this.props.commitsBehindBaseBranch} commits</strong>{' '}
             behind <Ref>{this.props.baseBranch.name}</Ref>
           </p>
 
