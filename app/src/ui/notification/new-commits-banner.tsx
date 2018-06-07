@@ -7,7 +7,7 @@ import { Branch } from '../../models/branch'
 
 interface INewCommitsBannerProps {
   /**
-   * The number of commits behind `branch`
+   * The number of commits behind `baseBranch`
    */
   readonly commitsBehindBaseBranch: number
 
