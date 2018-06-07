@@ -52,6 +52,12 @@ const electronMochaArgs = [
   'app/test/unit/**/*.{ts,tsx}',
 ]
 
+const shouldDebug = process.argv.indexOf('--debug') > -1
+
+if (shouldDebug) {
+  electronMochaArgs.push('--debug')
+}
+
 let exitCode = -1
 
 if (process.platform === 'linux') {
