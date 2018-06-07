@@ -77,16 +77,15 @@ export class RepositoryView extends React.Component<
   }
 
   private renderChangesBadge(): JSX.Element | null {
-    const numFilesChanged = this.props.state.changesState.workingDirectory.files
-      .length
-    const hasChanges = numFilesChanged > 0
+    const filesChangedCount = this.props.state.changesState.workingDirectory
+      .files.length
 
-    if (!hasChanges) {
+    if (filesChangedCount <= 0) {
       return null
     }
 
     return enableNotificationOfBranchUpdates() ? (
-      <FilesChangedBadge numFilesChanged={numFilesChanged} />
+      <FilesChangedBadge filesChangedCount={filesChangedCount} />
     ) : (
       <Octicon className="indicator" symbol={OcticonSymbol.primitiveDot} />
     )
