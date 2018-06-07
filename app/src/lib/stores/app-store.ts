@@ -131,7 +131,11 @@ import { IAuthor } from '../../models/author'
 import { ComparisonCache } from '../comparison-cache'
 import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
 import { enableCompareSidebar } from '../feature-flag'
-import { inferComparisonBranch } from './helpers/infer-comparison-branch'
+import {
+  inferComparisonBranch,
+  IOfGithub,
+  IOfFork,
+} from './helpers/infer-comparison-branch'
 
 /**
  * Enum used by fetch to determine if
@@ -747,26 +751,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
         pullRequest: currentPullRequest,
       })
     } else if (ghRepo !== null) {
-      if (ghRepo.fork) {
-        const branch = tip.kind === TipState.Valid ? tip.branch : null
+      const arg: IOfGithub | IOfFork =
+        ghRepo.fork && tip.kind === TipState.Valid
+          ? {
+              kind: 'fork',
+              repository,
+              gitHubRepository: ghRepo,
+              currentBranch: tip.branch,
+            }
+          : {
+              kind: 'github',
+              repository,
+            }
 
-        if (branch === null) {
-          // todo: come up with better error
-          return log.error('branch cannot be null...')
-        }
-
-        inferredBranch = await inferComparisonBranch(allBranches, {
-          kind: 'fork',
-          repository,
-          gitHubRepository: ghRepo,
-          currentBranch: branch,
-        })
-      } else {
-        inferredBranch = await inferComparisonBranch(allBranches, {
-          kind: 'github',
-          repository,
-        })
-      }
+      inferredBranch = await inferComparisonBranch(allBranches, arg)
     } else {
       inferredBranch = await inferComparisonBranch(allBranches)
     }
