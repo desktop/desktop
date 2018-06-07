@@ -41,12 +41,4 @@ export class NewCommitsBanner extends React.Component<
       </div>
     )
   }
-
-  private onMergeClicked = (event: React.MouseEvent<any>) => {
-    this.props.onMergeClick(this.props.baseBranch)
-  }
-
-  private onCompareClicked = (event: React.MouseEvent<any>) => {
-    this.props.onCompareClick(this.props.baseBranch)
-  }
 }
