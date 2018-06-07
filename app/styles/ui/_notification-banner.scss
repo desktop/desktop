@@ -55,8 +55,6 @@
     max-height: 0;
 
     &-active {
-      // It doesn't really matter what `maxHeight` we set here so long as it's
-      // greater than or equal to the height that `UndoCommit` will want.
       max-height: 200px;
       transition: max-height var(--undo-animation-duration) ease-in;
     }
@@ -66,10 +64,14 @@
     max-height: 200px;
 
     &-active {
-      // max-height: 0;
-      // transition: max-height var(--undo-animation-duration) ease-out;
-      transform: translateX(-100%);
-      transition: transform var(--undo-animation-duration) ease-out;
+      max-height: 0;
+      transition: max-height 0.5s ease-out;
+
+      .diverge-banner {
+        transform: translateX(-100%);
+        transition:
+          transform 0.25s ease-in-out,
+      }
     }
   }
 
