@@ -131,11 +131,7 @@ import { IAuthor } from '../../models/author'
 import { ComparisonCache } from '../comparison-cache'
 import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
 import { enableCompareSidebar } from '../feature-flag'
-import {
-  inferComparisonBranch,
-  IOfGithub,
-  IOfFork,
-} from './helpers/infer-comparison-branch'
+import { inferComparisonBranch } from './helpers/infer-comparison-branch';
 
 /**
  * Enum used by fetch to determine if
@@ -448,6 +444,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         allBranches: new Array<Branch>(),
         recentBranches: new Array<Branch>(),
         defaultBranch: null,
+        inferredComparisonBranch: null
       },
       commitAuthor: null,
       gitHubUsers: new Map<string, IGitHubUser>(),
@@ -739,42 +736,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
-  public async inferBranch(repository: Repository) {
-    const state = this.getRepositoryState(repository)
-    const ghRepo = repository.gitHubRepository
-    const { allBranches, currentPullRequest, tip } = state.branchesState
-
-    let inferredBranch: Branch | null = null
-    if (currentPullRequest !== null) {
-      inferredBranch = await inferComparisonBranch(allBranches, {
-        kind: 'pr',
-        pullRequest: currentPullRequest,
-      })
-    } else if (ghRepo !== null) {
-      const arg: IOfGithub | IOfFork =
-        ghRepo.fork && tip.kind === TipState.Valid
-          ? {
-              kind: 'fork',
-              repository,
-              gitHubRepository: ghRepo,
-              currentBranch: tip.branch,
-            }
-          : {
-              kind: 'github',
-              repository,
-            }
-
-      inferredBranch = await inferComparisonBranch(allBranches, arg)
-    } else {
-      inferredBranch = await inferComparisonBranch(allBranches)
-    }
-
-    // todo: determine what to do if inferred branch is null
-    if (inferredBranch === null) {
-      return log.error('branch cannot be null...')
-    }
-  }
-
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _initializeCompare(
     repository: Repository,
@@ -785,7 +746,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const state = this.getRepositoryState(repository)
 
     const branchesState = state.branchesState
-    const tip = branchesState.tip
+    const { tip, currentPullRequest } = branchesState
     const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
 
     const allBranches =
@@ -807,10 +768,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
         ? cachedDefaultBranch
         : null
 
+    const inferredBranch = await inferComparisonBranch(allBranches, repository, currentPullRequest, currentBranch)
+
+
     this.updateCompareState(repository, state => ({
       allBranches,
       recentBranches,
       defaultBranch,
+      inferredComparisonBranch: inferredBranch
     }))
 
     const compareState = state.compareState
