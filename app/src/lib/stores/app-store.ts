@@ -131,7 +131,7 @@ import { IAuthor } from '../../models/author'
 import { ComparisonCache } from '../comparison-cache'
 import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
 import { enableCompareSidebar } from '../feature-flag'
-import { inferComparisonBranch } from './helpers/infer-comparison-branch';
+import { inferComparisonBranch } from './helpers/infer-comparison-branch'
 
 /**
  * Enum used by fetch to determine if
@@ -444,7 +444,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         allBranches: new Array<Branch>(),
         recentBranches: new Array<Branch>(),
         defaultBranch: null,
-        inferredComparisonBranch: null
+        inferredComparisonBranch: null,
       },
       commitAuthor: null,
       gitHubUsers: new Map<string, IGitHubUser>(),
@@ -768,14 +768,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
         ? cachedDefaultBranch
         : null
 
-    const inferredBranch = await inferComparisonBranch(allBranches, repository, currentPullRequest, currentBranch)
-
+    const inferredBranch = await inferComparisonBranch(
+      allBranches,
+      repository,
+      currentPullRequest,
+      currentBranch
+    )
 
     this.updateCompareState(repository, state => ({
       allBranches,
       recentBranches,
       defaultBranch,
-      inferredComparisonBranch: inferredBranch
+      inferredComparisonBranch: inferredBranch,
     }))
 
     const compareState = state.compareState
