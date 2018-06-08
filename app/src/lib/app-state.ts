@@ -662,6 +662,11 @@ export interface ICompareState {
    * A local cache of ahead/behind computations to compare other refs to the current branch
    */
   readonly aheadBehindCache: ComparisonCache
+
+  /**
+   * The best-candidate branch to compare the current branch to
+   */
+  readonly inferredComparisonBranch: Branch | null
 }
 
 export interface ICompareFormUpdate {
