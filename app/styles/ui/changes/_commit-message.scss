@@ -45,18 +45,18 @@
   }
 
   .co-authors-toggle {
-    color: $gray-500;
+    color: var(--text-secondary-color);
 
     &:hover {
-      color: $gray-900;
+      color: var(--text-color);
     }
   }
 
   &.with-co-authors .co-authors-toggle {
-    color: $blue-400;
+    color: var(--link-button-color);
 
     &:hover {
-      color: $blue-600;
+      color: var(--link-button-hover-color);
     }
   }
 
