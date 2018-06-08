@@ -104,7 +104,11 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
   ): Promise<void> {
     const prs = await this.fetchPullRequestsFromCache(repository)
 
-    await this.fetchAndCachePullRequestStatus(prs, repository, account)
+    try {
+      await this.fetchAndCachePullRequestStatus(prs, repository, account)
+    } catch (e) {
+      log.warn('Error updating pull request statuses', e)
+    }
   }
 
   /** Gets the pull requests against the given repository. */
