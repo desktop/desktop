@@ -17,9 +17,10 @@ export class MergeConflictsWarning extends React.Component<
   {}
 > {
   private onSubmit = () => {
-    this.props.dispatcher.changeRepositorySection(this.props.repository, {
-      selectedTab: RepositorySectionTab.Changes,
-    })
+    this.props.dispatcher.changeRepositorySection(
+      this.props.repository,
+      RepositorySectionTab.Changes
+    )
     this.props.onDismissed()
   }
 

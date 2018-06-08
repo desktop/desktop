@@ -5,7 +5,9 @@ export const DefaultEditorLabel = __DARWIN__
 
 export const RevealInFileManagerLabel = __DARWIN__
   ? 'Reveal in Finder'
-  : __WIN32__ ? 'Show in Explorer' : 'Show in your File Manager'
+  : __WIN32__
+    ? 'Show in Explorer'
+    : 'Show in your File Manager'
 
 export const OpenWithDefaultProgramLabel = __DARWIN__
   ? 'Open with Default Program'

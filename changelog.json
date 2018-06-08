@@ -1,5 +1,41 @@
 {
   "releases": {
+    "1.2.3": [
+      "[Fixed] No autocomplete when searching for co-authors - #4847",
+      "[Fixed] Error when checking out a PR from a fork - #4842"
+    ],
+    "1.2.3-beta1": [
+      "[Fixed] No autocomplete when searching for co-authors - #4847",
+      "[Fixed] Error when checking out a PR from a fork - #4842"
+    ],
+    "1.2.3-test1": [
+      "Confirming switch from uglify-es to babel-minify addresses minification issue - #4871"
+    ],
+    "1.2.2": [
+      "[Fixed] Make cURL/schannel default to using the Windows certificate store - #4817",
+      "[Fixed] Restore text selection highlighting in diffs - #4818"
+    ],
+    "1.2.2-beta1": [
+      "[Fixed] Make cURL/schannel default to using the Windows certificate store - #4817",
+      "[Fixed] Text selection highlighting in diffs is back - #4818"
+    ],
+    "1.2.1": [
+      "[Added] Brackets support for macOS - #4608. Thanks @3raxton!",
+      "[Added] Pull request number and author are included in fuzzy-find filtering - #4653. Thanks @damaneice!",
+      "[Fixed] Decreased the max line length limit - #3740. Thanks @sagaragarwal94!",
+      "[Fixed] Updated embedded Git to 2.17.1 to address upstream security issue - #4791",
+      "[Improved] Display the difference in file size of an image in the diff view - #4380. Thanks @ggajos!"
+    ],
+    "1.2.1-test1": [
+      "Upgraded embedded Git to 2.17.0"
+    ],
+    "1.2.1-beta1": [
+      "[Added] Brackets support for macOS - #4608. Thanks @3raxton!",
+      "[Added] Pull request number and author are included in fuzzy-find filtering - #4653. Thanks @damaneice!",
+      "[Fixed] Decreased the max line length limit - #3740. Thanks @sagaragarwal94!",
+      "[Fixed] Updated embedded Git to 2.17.1 to address upstream security issue - #4791",
+      "[Improved] Display the difference in file size of an image in the diff view - #4380. Thanks @ggajos!"
+    ],
     "1.2.1-beta0": [
 
     ],

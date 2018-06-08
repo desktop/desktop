@@ -166,18 +166,8 @@ problems.
 ## Running tests
 
 - `yarn test` - Runs all unit and integration tests
-- `yarn test:unit` - Runs all unit tests
+- `yarn test:unit` - Runs all unit tests (add `--debug` to open Chrome Dev Tools while running tests)
 - `yarn test:integration` - Runs all integration tests
-
-**Pro Tip:** If you're only interested in the results of a single test and don't
-wish to run the entire test suite to see it you can pass along a search string
-in order to only run the tests that match that string.
-
-```shellsession
-$ yarn test:unit -- --grep CloneProgressParser
-```
-
-This example will run all test names containing `CloneProgressParser`.
 
 ## Debugging
 

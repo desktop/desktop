@@ -174,17 +174,6 @@ function scanUntil(
   return scanWhile(doc, start, (doc, pos) => !predicate(doc, pos), iter)
 }
 
-/**
- * Given a cursor position, expand it into a range covering as
- * long of an autocompletable string as possible.
- */
-function getHintRangeFromCursor(doc: Doc, cursor: Position) {
-  return {
-    from: scanUntil(doc, cursor, isMarkOrWhitespace, prevPosition),
-    to: scanUntil(doc, cursor, isMarkOrWhitespace, nextPosition),
-  }
-}
-
 function appendTextMarker(
   cm: Editor,
   text: string,
@@ -635,7 +624,10 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
     const doc = cm.getDoc()
     const cursor = doc.getCursor() as Readonly<Position>
 
-    const { from, to } = getHintRangeFromCursor(doc, cursor)
+    // expand the current cursor position into a range covering as
+    // long of an autocompletable string as possible.
+    const from = scanUntil(doc, cursor, isMarkOrWhitespace, prevPosition)
+    const to = scanUntil(doc, cursor, isMarkOrWhitespace, nextPosition)
 
     const word = doc.getRange(from, to)
 
