@@ -250,9 +250,9 @@ body.theme-dark {
 
   // Colors for form errors
   --error-color: $red;
-  --form-error-background: $red-100;
-  --form-error-border-color: $red-200;
-  --form-error-text-color: $red-800;
+  --form-error-background: darken($red-900, 3%);
+  --form-error-border-color: $red-900;
+  --form-error-text-color: var(--text-color);
 
   /** Overlay is used as a background for both modals and foldouts */
   --overlay-background-color: rgba(0, 0, 0, 0.5);
