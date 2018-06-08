@@ -294,7 +294,7 @@ async function detectMode(
 
   const modeDefinition = mimeModeMap.get(mimeType)
 
-  if (!modeDefinition) {
+  if (modeDefinition === undefined) {
     return null
   }
 
