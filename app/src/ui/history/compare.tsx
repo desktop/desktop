@@ -576,6 +576,10 @@ export class CompareSidebar extends React.Component<
   private onTextBoxRef = (textbox: TextBox) => {
     this.textbox = textbox
   }
+
+  private onNotificationBannerDismissed = () => {
+    this.setState({ isDivergingBranchBannerVisible: false })
+  }
 }
 
 function getPlaceholderText(state: ICompareState) {
