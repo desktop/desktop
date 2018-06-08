@@ -35,7 +35,6 @@ interface ICompareSidebarProps {
   readonly localCommitSHAs: ReadonlyArray<string>
   readonly dispatcher: Dispatcher
   readonly currentBranch: Branch | null
-  readonly isDivergingBranchBannerVisible: boolean
   readonly onRevertCommit: (commit: Commit) => void
   readonly onViewCommitOnGitHub: (sha: string) => void
 }
@@ -48,6 +47,7 @@ interface ICompareSidebarState {
    */
   readonly focusedBranch: Branch | null
   readonly selectedCommit: Commit | null
+  readonly isDivergingBranchBannerVisible: boolean
 }
 
 /** If we're within this many rows from the bottom, load the next history batch. */
@@ -67,7 +67,12 @@ export class CompareSidebar extends React.Component<
     this.state = {
       focusedBranch: null,
       selectedCommit: null,
+      isDivergingBranchBannerVisible: this.foo(),
     }
+  }
+
+  private foo(): boolean {
+    return true
   }
 
   public componentWillReceiveProps(nextProps: ICompareSidebarProps) {
@@ -158,12 +163,28 @@ export class CompareSidebar extends React.Component<
   }
 
   private renderNotificationBanner() {
-    return enableNotificationOfBranchUpdates &&
-      this.props.compareState.defaultBranch !== null &&
-      this.props.isDivergingBranchBannerVisible ? (
+    if (!enableNotificationOfBranchUpdates) {
+      return null
+    }
+
+    const { compareState, currentBranch } = this.props
+    if (
+      !this.state.isDivergingBranchBannerVisible ||
+      currentBranch === null ||
+      compareState.inferredComparisonBranch === null
+    ) {
+      return null
+    }
+
+    const commitsBehindBaseBranch = compareState.aheadBehindCache.get(
+      currentBranch.tip.sha,
+      compareState.inferredComparisonBranch.tip.sha
+    )
+
+    return commitsBehindBaseBranch !== null ? (
       <NewCommitsBanner
-        commitsBehindBaseBranch={4}
-        baseBranch={this.props.compareState.defaultBranch}
+        commitsBehindBaseBranch={commitsBehindBaseBranch.behind}
+        baseBranch={compareState.inferredComparisonBranch}
       />
     ) : null
   }
