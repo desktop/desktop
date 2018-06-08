@@ -14,7 +14,7 @@ import { ITokens, IHighlightRequest } from '../lib/highlighter/types'
 /**
  * A mode definition object is used to map a certain file
  * extension to a mode loader (see the documentation for
- * the require property).
+ * the install property).
  */
 interface IModeDefinition {
   /**
@@ -23,7 +23,7 @@ interface IModeDefinition {
    * is idempotent and can be called multiple times with no adverse
    * effect.
    */
-  readonly require: () => Promise<void>
+  readonly install: () => Promise<void>
 
   /**
    * A map between file extensions (including the leading dot, i.e.
@@ -41,7 +41,7 @@ interface IModeDefinition {
  */
 const modes: ReadonlyArray<IModeDefinition> = [
   {
-    require: () => import('codemirror/mode/javascript/javascript'),
+    install: () => import('codemirror/mode/javascript/javascript'),
     extensions: {
       '.ts': 'text/typescript',
       '.js': 'text/javascript',
@@ -49,33 +49,33 @@ const modes: ReadonlyArray<IModeDefinition> = [
     },
   },
   {
-    require: () => import('codemirror/mode/coffeescript/coffeescript'),
+    install: () => import('codemirror/mode/coffeescript/coffeescript'),
     extensions: {
       '.coffee': 'text/x-coffeescript',
     },
   },
   {
-    require: () => import('codemirror/mode/jsx/jsx'),
+    install: () => import('codemirror/mode/jsx/jsx'),
     extensions: {
       '.tsx': 'text/typescript-jsx',
       '.jsx': 'text/jsx',
     },
   },
   {
-    require: () => import('codemirror/mode/htmlmixed/htmlmixed'),
+    install: () => import('codemirror/mode/htmlmixed/htmlmixed'),
     extensions: {
       '.html': 'text/html',
       '.htm': 'text/html',
     },
   },
   {
-    require: () => import('codemirror/mode/htmlembedded/htmlembedded'),
+    install: () => import('codemirror/mode/htmlembedded/htmlembedded'),
     extensions: {
       '.jsp': 'application/x-jsp',
     },
   },
   {
-    require: () => import('codemirror/mode/css/css'),
+    install: () => import('codemirror/mode/css/css'),
     extensions: {
       '.css': 'text/css',
       '.scss': 'text/x-scss',
@@ -83,27 +83,27 @@ const modes: ReadonlyArray<IModeDefinition> = [
     },
   },
   {
-    require: () => import('codemirror/mode/vue/vue'),
+    install: () => import('codemirror/mode/vue/vue'),
     extensions: {
       '.vue': 'text/x-vue',
     },
   },
   {
-    require: () => import('codemirror/mode/markdown/markdown'),
+    install: () => import('codemirror/mode/markdown/markdown'),
     extensions: {
       '.markdown': 'text/x-markdown',
       '.md': 'text/x-markdown',
     },
   },
   {
-    require: () => import('codemirror/mode/yaml/yaml'),
+    install: () => import('codemirror/mode/yaml/yaml'),
     extensions: {
       '.yaml': 'text/yaml',
       '.yml': 'text/yaml',
     },
   },
   {
-    require: () => import('codemirror/mode/xml/xml'),
+    install: () => import('codemirror/mode/xml/xml'),
     extensions: {
       '.xml': 'text/xml',
       '.xaml': 'text/xml',
@@ -115,7 +115,7 @@ const modes: ReadonlyArray<IModeDefinition> = [
     },
   },
   {
-    require: () => import('codemirror/mode/clike/clike'),
+    install: () => import('codemirror/mode/clike/clike'),
     extensions: {
       '.m': 'text/x-objectivec',
       '.scala': 'text/x-scala',
@@ -130,7 +130,7 @@ const modes: ReadonlyArray<IModeDefinition> = [
     },
   },
   {
-    require: () => import('codemirror/mode/mllike/mllike'),
+    install: () => import('codemirror/mode/mllike/mllike'),
     extensions: {
       '.ml': 'text/x-ocaml',
       '.fs': 'text/x-fsharp',
@@ -139,61 +139,61 @@ const modes: ReadonlyArray<IModeDefinition> = [
     },
   },
   {
-    require: () => import('codemirror/mode/swift/swift'),
+    install: () => import('codemirror/mode/swift/swift'),
     extensions: {
       '.swift': 'text/x-swift',
     },
   },
   {
-    require: () => import('codemirror/mode/shell/shell'),
+    install: () => import('codemirror/mode/shell/shell'),
     extensions: {
       '.sh': 'text/x-sh',
     },
   },
   {
-    require: () => import('codemirror/mode/sql/sql'),
+    install: () => import('codemirror/mode/sql/sql'),
     extensions: {
       '.sql': 'text/x-sql',
     },
   },
   {
-    require: () => import('codemirror/mode/cypher/cypher'),
+    install: () => import('codemirror/mode/cypher/cypher'),
     extensions: {
       '.cql': 'application/x-cypher-query',
     },
   },
   {
-    require: () => import('codemirror/mode/go/go'),
+    install: () => import('codemirror/mode/go/go'),
     extensions: {
       '.go': 'text/x-go',
     },
   },
   {
-    require: () => import('codemirror/mode/perl/perl'),
+    install: () => import('codemirror/mode/perl/perl'),
     extensions: {
       '.pl': 'text/x-perl',
     },
   },
   {
-    require: () => import('codemirror/mode/php/php'),
+    install: () => import('codemirror/mode/php/php'),
     extensions: {
       '.php': 'application/x-httpd-php',
     },
   },
   {
-    require: () => import('codemirror/mode/python/python'),
+    install: () => import('codemirror/mode/python/python'),
     extensions: {
       '.py': 'text/x-python',
     },
   },
   {
-    require: () => import('codemirror/mode/ruby/ruby'),
+    install: () => import('codemirror/mode/ruby/ruby'),
     extensions: {
       '.rb': 'text/x-ruby',
     },
   },
   {
-    require: () => import('codemirror/mode/clojure/clojure'),
+    install: () => import('codemirror/mode/clojure/clojure'),
     extensions: {
       '.clj': 'text/x-clojure',
       '.cljc': 'text/x-clojure',
@@ -202,26 +202,26 @@ const modes: ReadonlyArray<IModeDefinition> = [
     },
   },
   {
-    require: () => import('codemirror/mode/rust/rust'),
+    install: () => import('codemirror/mode/rust/rust'),
     extensions: {
       '.rs': 'text/x-rustsrc',
     },
   },
   {
-    require: () => import('codemirror-mode-elixir'),
+    install: () => import('codemirror-mode-elixir'),
     extensions: {
       '.ex': 'text/x-elixir',
       '.exs': 'text/x-elixir',
     },
   },
   {
-    require: () => import('codemirror/mode/haxe/haxe'),
+    install: () => import('codemirror/mode/haxe/haxe'),
     extensions: {
       '.hx': 'text/x-haxe',
     },
   },
   {
-    require: () => import('codemirror/mode/r/r'),
+    install: () => import('codemirror/mode/r/r'),
     extensions: {
       '.r': 'text/x-rsrc',
     },
@@ -298,7 +298,7 @@ async function detectMode(
     return null
   }
 
-  await modeDefinition.require()
+  await modeDefinition.install()
 
   return getMode({}, mimeType) || null
 }
