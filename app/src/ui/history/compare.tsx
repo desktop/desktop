@@ -196,26 +196,21 @@ export class CompareSidebar extends React.Component<
       </CSSTransitionGroup>
     ) : null
   }
+
+  private getAheadBehindOfInferredBranch() {
     const { compareState, currentBranch } = this.props
+
     if (
-      !this.state.isDivergingBranchBannerVisible ||
       currentBranch === null ||
       compareState.inferredComparisonBranch === null
     ) {
       return null
     }
 
-    const commitsBehindBaseBranch = compareState.aheadBehindCache.get(
+    return compareState.aheadBehindCache.get(
       currentBranch.tip.sha,
       compareState.inferredComparisonBranch.tip.sha
     )
-
-    return commitsBehindBaseBranch !== null ? (
-      <NewCommitsBanner
-        commitsBehindBaseBranch={commitsBehindBaseBranch.behind}
-        baseBranch={compareState.inferredComparisonBranch}
-      />
-    ) : null
   }
 
   private renderCommits() {
