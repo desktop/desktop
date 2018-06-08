@@ -21,7 +21,8 @@ body.theme-dark {
   --button-text-color: $white;
   --button-focus-border-color: $blue-600;
 
-  --link-button-color: $blue-300;
+  --link-button-color: lighten($blue-400, 3%);
+  --link-button-hover-color: $blue-400;
 
   --secondary-button-background: $gray-800;
   --secondary-button-hover-background: var(--secondary-button-background);
