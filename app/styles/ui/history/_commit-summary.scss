@@ -41,6 +41,21 @@
     .commit-summary-description {
       padding-right: 100px;
     }
+
+    // When the description area can be, but isn't yet, expanded
+    // we'll add a small shadow towards the bottom to hint that
+    // there's more content available.
+    &:not(.expanded) {
+      .commit-summary-description:before {
+        content: '';
+        background: var(--box-overflow-shadow-background);
+        position: absolute;
+        height: 30px;
+        bottom: 0px;
+        width: 100%;
+        pointer-events: none;
+      }
+    }
   }
 }
 
@@ -76,16 +91,6 @@
     // The extra pixel makes the space align up with the commit list.
     max-height: 61px;
     flex: 1;
-
-    &:before {
-      content: '';
-      background: var(--box-overflow-shadow-background);
-      position: absolute;
-      height: 30px;
-      bottom: 0px;
-      width: 100%;
-      pointer-events: none;
-    }
   }
 
   // Enable text selection inside the title and description elements.
