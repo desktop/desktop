@@ -4,26 +4,6 @@ import { getAheadBehind, revRange } from '../../git'
 import { Repository } from '../../../models/repository'
 import { GitHubRepository } from '../../../models/github-repository'
 
-export interface IOfGithub {
-  kind: 'github'
-  repository: Repository
-}
-
-export interface IOfPullRequest {
-  kind: 'pr'
-  pullRequest: PullRequest
-}
-
-export interface IOfFork {
-  kind: 'fork'
-  repository: Repository
-  gitHubRepository: GitHubRepository
-  currentBranch: Branch
-}
-
-// I am struggling to come up with a decent name for this type
-type NamingIsHard = IOfPullRequest | IOfGithub | IOfFork
-
 /**
  * Infers which branch to use as the comparison branch
  *
@@ -32,28 +12,22 @@ type NamingIsHard = IOfPullRequest | IOfGithub | IOfFork
  */
 export async function inferComparisonBranch(
   branches: ReadonlyArray<Branch>,
-  needsAName?: NamingIsHard
+  repository: Repository,
+  currentPullRequest: PullRequest | null,
+  currentBranch: Branch | null
 ): Promise<Branch | null> {
-  if (needsAName === undefined) {
-    return _getMasterBranch(branches)
+  if (currentPullRequest !== null) {
+    return _getFeatureBranchOfPullRequest(branches, currentPullRequest)
   }
 
-  switch (needsAName.kind) {
-    case 'pr':
-      return _getFeatureBranchOfPullRequest(branches, needsAName.pullRequest)
-    case 'github':
-      return _getDeafultBranchOfGithubRepo(
-        branches,
-        needsAName.repository.gitHubRepository!
-      )
-    case 'fork':
-      return _getDefaultBranchOfFork(
-        branches,
-        needsAName.repository,
-        needsAName.gitHubRepository,
-        needsAName.currentBranch
-      )
+  const ghRepo = repository.gitHubRepository
+  if (ghRepo !== null) {
+    return ghRepo.fork && currentBranch !== null
+      ? _getDefaultBranchOfFork(branches, repository, ghRepo, currentBranch)
+      : _getDeafultBranchOfGithubRepo(branches, ghRepo)
   }
+
+  return _getMasterBranch(branches)
 }
 
 /**
