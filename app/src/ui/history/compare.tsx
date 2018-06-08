@@ -25,6 +25,7 @@ import { IMatches } from '../../lib/fuzzy-find'
 import { Ref } from '../lib/ref'
 import { NewCommitsBanner } from '../notification/new-commits-banner'
 import { enableNotificationOfBranchUpdates } from '../../lib/feature-flag'
+import { CSSTransitionGroup } from 'react-transition-group'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -134,10 +135,19 @@ export class CompareSidebar extends React.Component<
   public render() {
     const { allBranches, filterText, showBranchList } = this.props.compareState
     const placeholderText = getPlaceholderText(this.props.compareState)
+    const DivergingBannerAnimationTimeout = 500
 
     return (
       <div id="compare-view">
-        {this.renderNotificationBanner()}
+        <CSSTransitionGroup
+          transitionName="diverge-banner"
+          transitionAppear={true}
+          transitionAppearTimeout={DivergingBannerAnimationTimeout}
+          transitionEnterTimeout={DivergingBannerAnimationTimeout}
+          transitionLeaveTimeout={DivergingBannerAnimationTimeout}
+        >
+          {this.renderNotificationBanner()}
+        </CSSTransitionGroup>
         <div className="compare-form">
           <FancyTextBox
             symbol={OcticonSymbol.gitBranch}
