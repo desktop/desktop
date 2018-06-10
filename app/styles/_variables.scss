@@ -222,8 +222,14 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --toolbar-button-hover-progress-color: $gray-700;
   --toolbar-dropdown-open-progress-color: $gray-200;
 
-  /** Ahead and behind count bubble in the push/pull/publish button */
-  --toolbar-ahead-behind-background-color: $gray-500;
+  /**
+    * Background color for badges inside of toolbar buttons.
+    * Examples of badges are the ahead/behind bubble in the
+    * push/pull button and the PR badge in the branch drop
+    * down button.
+    */
+  --toolbar-badge-background-color: $gray-600;
+  --toolbar-badge-active-background-color: $gray-200;
 
   --tab-bar-height: 29px;
   --tab-bar-active-color: $blue;
