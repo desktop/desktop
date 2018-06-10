@@ -406,19 +406,6 @@ app.on(
 function createWindow() {
   const window = new AppWindow()
 
-  if (__DEV__) {
-    const installer = require('electron-devtools-installer')
-    require('electron-debug')({ showDevTools: true })
-
-    const extensions = ['REACT_DEVELOPER_TOOLS', 'REACT_PERF']
-
-    for (const name of extensions) {
-      try {
-        installer.default(installer[name])
-      } catch (e) {}
-    }
-  }
-
   window.onClose(() => {
     mainWindow = null
     if (!__DARWIN__ && !preventQuit) {
