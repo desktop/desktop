@@ -6,7 +6,7 @@ a repository, and has evolved over time to support different workflows.
 ## Implementation
 
 As the implementation details of this may change over time, this section will
-instead describe the high-level flow the implementation.
+instead describe the high-level flow of the implementation.
 
 You can view a reference of this function [here](https://github.com/desktop/desktop/blob/2b111155914cb44824b39ee197deed23bb825a1a/app/src/lib/stores/git-store.ts#L1066).
 
@@ -14,7 +14,7 @@ The `Discard Changes` flow is composed of multiple steps.
 
 ### Moving Files to Trash
 
-Electron provides a [`shell.moveItemToTrash(fullPath)`](https://electronjs.org/docs/api/shell#shellmoveitemtotrashfullpath)
+Electron provides an [`shell.moveItemToTrash(fullPath)`](https://electronjs.org/docs/api/shell#shellmoveitemtotrashfullpath)
 API to manage moving files into the OS-specific trash.
 
 Desktop uses this API to move _all new or modified files_ out from the
@@ -27,10 +27,10 @@ with `.`.
 
 The next step is identifying any files that have been listed for discard that
 are also staged in the index. While Desktop doesn't stage files itself, a user
-might have use other tools alongside, so this is a sanity check before
-proceeding.
+might be using other tools alongside Desktop, so this is a sanity check before
+proceeding to the next stage.
 
-This is equivalent to `git reset HEAD -- [path]` in Git.
+**Git CLI equivalent**: `git reset HEAD -- [path]`
 
 ### Checkout Paths
 
@@ -38,4 +38,4 @@ The last step is to replace the modified files in the working directory with
 whatever is currently in the index - this ensures that Desktop only replaces
 files that the user has chosen to discard.
 
-This is equivalent to `git checkout-index -f -u -- [path]`
+**Git CLI equivalent**: `git checkout-index -f -u -- [path]`
