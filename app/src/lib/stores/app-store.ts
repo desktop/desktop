@@ -24,7 +24,6 @@ import {
   IDisplayHistory,
   ICompareBranch,
   ICompareFormUpdate,
-  ApplicationTheme,
 } from '../app-state'
 import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
@@ -132,6 +131,7 @@ import { IAuthor } from '../../models/author'
 import { ComparisonCache } from '../comparison-cache'
 import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
 import { enableCompareSidebar } from '../feature-flag'
+import { ApplicationTheme, getThemeName } from '../../ui/lib/application-theme'
 
 /**
  * Enum used by fetch to determine if

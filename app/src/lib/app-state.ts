@@ -27,6 +27,7 @@ import { BranchesTab } from '../models/branches-tab'
 import { PullRequest } from '../models/pull-request'
 import { IAuthor } from '../models/author'
 import { ComparisonCache } from './comparison-cache'
+import { ApplicationTheme } from '../ui/lib/application-theme'
 
 export { ICommitMessage }
 
@@ -689,11 +690,3 @@ export type CompareAction =
       readonly branch: Branch
       readonly mode: ComparisonView.Ahead | ComparisonView.Behind
     }
-
-/**
- * A set of the user-selectable appearances (aka themes)
- */
-export enum ApplicationTheme {
-  Light,
-  Dark,
-}
