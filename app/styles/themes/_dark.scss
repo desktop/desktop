@@ -84,7 +84,7 @@ body.theme-dark {
    * implement a hover state since this will conflict with
    * selection and active selection
    */
-  --box-hover-text-color: $gray-900;
+  --box-hover-text-color: var(--text-color);
 
   /**
    * Background color for when a user hovers over a boxe with a
