@@ -24,6 +24,7 @@ import {
   IDisplayHistory,
   ICompareBranch,
   ICompareFormUpdate,
+  ApplicationTheme,
 } from '../app-state'
 import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
@@ -258,6 +259,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private selectedCloneRepositoryTab = CloneRepositoryTab.DotCom
 
   private selectedBranchesTab = BranchesTab.Branches
+  private selectedTheme = ApplicationTheme.Light
 
   public constructor(
     gitHubUserStore: GitHubUserStore,
@@ -592,6 +594,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repositoryFilterText: this.repositoryFilterText,
       selectedCloneRepositoryTab: this.selectedCloneRepositoryTab,
       selectedBranchesTab: this.selectedBranchesTab,
+      selectedTheme: this.selectedTheme,
     }
   }
 
@@ -1303,6 +1306,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       imageDiffTypeValue === null
         ? imageDiffTypeDefault
         : parseInt(imageDiffTypeValue)
+
+    this.selectedTheme =
+      localStorage.getItem('theme') === 'dark'
+        ? ApplicationTheme.Dark
+        : ApplicationTheme.Light
 
     this.emitUpdateNow()
 

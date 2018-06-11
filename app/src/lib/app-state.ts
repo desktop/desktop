@@ -178,6 +178,9 @@ export interface IAppState {
 
   /** The currently selected tab for the Branches foldout. */
   readonly selectedBranchesTab: BranchesTab
+
+  /** The currently selected appearance (aka theme) */
+  readonly selectedTheme: ApplicationTheme
 }
 
 export enum PopupType {
@@ -686,3 +689,11 @@ export type CompareAction =
       readonly branch: Branch
       readonly mode: ComparisonView.Ahead | ComparisonView.Behind
     }
+
+/**
+ * A set of the user-selectable appearances (aka themes)
+ */
+export enum ApplicationTheme {
+  Light,
+  Dark,
+}
