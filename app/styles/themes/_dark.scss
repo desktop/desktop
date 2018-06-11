@@ -176,6 +176,14 @@ body.theme-dark {
   --tab-bar-count-color: var(--text-color);
   --tab-bar-count-background-color: $gray-700;
 
+  /**
+   * Toast notifications are shown temporarily for things like the zoom
+   * percentage changing or the app toggling between full screen and normal
+   * window mode.
+   */
+  --toast-notification-color: var(--text-color);
+  --toast-notification-background-color: rgba(black, 0.8);
+
   /** The highlight color used for focus rings and focus box shadows */
   --focus-color: $blue;
 
