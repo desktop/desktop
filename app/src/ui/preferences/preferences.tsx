@@ -134,6 +134,7 @@ export class Preferences extends React.Component<
         >
           <span>Accounts</span>
           <span>Git</span>
+          <span>Appearance</span>
           <span>Advanced</span>
         </TabBar>
 
@@ -203,6 +204,8 @@ export class Preferences extends React.Component<
           />
         )
       }
+      case PreferencesTab.Appearance:
+        return null
       case PreferencesTab.Advanced: {
         return (
           <Advanced
@@ -275,6 +278,7 @@ export class Preferences extends React.Component<
     const index = this.state.selectedIndex
     switch (index) {
       case PreferencesTab.Accounts:
+      case PreferencesTab.Appearance:
         return null
       case PreferencesTab.Advanced:
       case PreferencesTab.Git: {
