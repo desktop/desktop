@@ -22,6 +22,7 @@ import { Shell, getAvailableShells } from '../../lib/shells'
 import { getAvailableEditors } from '../../lib/editors/lookup'
 import { disallowedCharacters } from './identifier-rules'
 import { Appearance } from './appearance'
+import { ApplicationTheme } from '../lib/application-theme'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
@@ -34,6 +35,7 @@ interface IPreferencesProps {
   readonly confirmDiscardChanges: boolean
   readonly selectedExternalEditor?: ExternalEditor
   readonly selectedShell: Shell
+  readonly selectedTheme: ApplicationTheme
 }
 
 interface IPreferencesState {
@@ -206,7 +208,12 @@ export class Preferences extends React.Component<
         )
       }
       case PreferencesTab.Appearance:
-        return <Appearance />
+        return (
+          <Appearance
+            selectedTheme={this.props.selectedTheme}
+            onSelectedThemeChanged={this.onSelectedThemeChanged}
+          />
+        )
       case PreferencesTab.Advanced: {
         return (
           <Advanced
@@ -271,6 +278,10 @@ export class Preferences extends React.Component<
 
   private onSelectedShellChanged = (shell: Shell) => {
     this.setState({ selectedShell: shell })
+  }
+
+  private onSelectedThemeChanged = (theme: ApplicationTheme) => {
+    this.props.dispatcher.setSelectedTheme(theme)
   }
 
   private renderFooter() {
