@@ -254,6 +254,14 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --popup-overlay-z-index: calc(var(--popup-z-index) - 1);
   --foldout-z-index: calc(var(--popup-z-index) - 2);
 
+  /**
+   * Toast notifications are shown temporarily for things like the zoom
+   * percentage changing or the app toggling between full screen and normal
+   * window mode.
+   */
+  --toast-notification-color: $gray-000;
+  --toast-notification-background-color: rgba($gray-900, 0.6);
+
   /** The highlight color used for focus rings and focus box shadows */
   --focus-color: $blue;
 
