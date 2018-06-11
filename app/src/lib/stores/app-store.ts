@@ -169,6 +169,8 @@ const imageDiffTypeKey = 'image-diff-type'
 
 const shellKey = 'shell'
 
+const applicationThemeKey = 'theme'
+
 // background fetching should not occur more than once every two minutes
 const BackgroundFetchMinimumInterval = 2 * 60 * 1000
 
@@ -1308,7 +1310,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         : parseInt(imageDiffTypeValue)
 
     this.selectedTheme =
-      localStorage.getItem('theme') === 'dark'
+      localStorage.getItem(applicationThemeKey) === 'dark'
         ? ApplicationTheme.Dark
         : ApplicationTheme.Light
 
@@ -3666,6 +3668,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
    */
   public _recordCompareInitiatedMerge() {
     this.statsStore.recordCompareInitiatedMerge()
+  }
+
+  /**
+   * Set the application-wide theme
+   */
+  public _setSelectedTheme(theme: ApplicationTheme) {
+    localStorage.setItem(applicationThemeKey, getThemeName(theme))
+    this.selectedTheme = theme
+    this.emitUpdate()
+
+    return Promise.resolve()
   }
 }
 
