@@ -21,6 +21,7 @@ import { lookupPreferredEmail } from '../../lib/email'
 import { Shell, getAvailableShells } from '../../lib/shells'
 import { getAvailableEditors } from '../../lib/editors/lookup'
 import { disallowedCharacters } from './identifier-rules'
+import { Appearance } from './appearance'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
@@ -205,7 +206,7 @@ export class Preferences extends React.Component<
         )
       }
       case PreferencesTab.Appearance:
-        return null
+        return <Appearance />
       case PreferencesTab.Advanced: {
         return (
           <Advanced
