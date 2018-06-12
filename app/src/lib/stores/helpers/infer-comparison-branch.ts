@@ -28,7 +28,7 @@ export async function inferComparisonBranch(
 }
 
 /**
- * Do **not** call this method; use `inferComparisonBranch` instead
+ * For `inferComparisonBranch` case where inferring for local branches
  *
  * Returns `master`, the default branch of a Git repository
  *
@@ -41,7 +41,8 @@ export function _getMasterBranch(
 }
 
 /**
- * Do **not** call this method; use `inferComparisonBranch` instead
+ * For `inferComparisonBranch` case where inferring for a repository
+ * hosted on GitHub, but with no forks
  *
  * Returns the default branch of the GitHub repository
  *
@@ -56,7 +57,7 @@ export function _getDefaultBranchOfGithubRepo(
 }
 
 /**
- * Do **not** call this method; use `inferComparisonBranch` instead
+ * For `inferComparisonBranch` case where inferring  for a pull request
  *
  * Returns the base branch of the given pull request.
  *
@@ -71,7 +72,7 @@ export function _getTargetBranchOfPullRequest(
 }
 
 /**
- * Do **not** call this method; use `inferComparisonBranch` instead
+ * For `inferComparisonBranch` case where inferring for a forked repository
  *
  * Returns the default branch of the fork if it's ahead of `currentBranch`.
  * Otherwise, the default branch of the parent is returned.
