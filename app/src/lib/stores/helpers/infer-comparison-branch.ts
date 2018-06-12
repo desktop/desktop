@@ -1,8 +1,8 @@
 import { Branch, IAheadBehind } from '../../../models/branch'
 import { PullRequest } from '../../../models/pull-request'
-import { getAheadBehind, revRange } from '../../git'
 import { Repository } from '../../../models/repository'
 import { GitHubRepository } from '../../../models/github-repository'
+import { revRange } from '../../git'
 
 /**
  * Infers which branch to use as the comparison branch
@@ -11,7 +11,11 @@ export async function inferComparisonBranch(
   branches: ReadonlyArray<Branch>,
   repository: Repository,
   currentPullRequest: PullRequest | null,
-  currentBranch: Branch | null
+  currentBranch: Branch | null,
+  getAheadBehind: (
+    repository: Repository,
+    range: string
+  ) => Promise<IAheadBehind | null>
 ): Promise<Branch | null> {
   if (currentPullRequest !== null) {
     return _getTargetBranchOfPullRequest(branches, currentPullRequest)
@@ -20,7 +24,13 @@ export async function inferComparisonBranch(
   const ghRepo = repository.gitHubRepository
   if (ghRepo !== null) {
     return ghRepo.fork === true && currentBranch !== null
-      ? _getDefaultBranchOfFork(branches, repository, ghRepo, currentBranch)
+      ? _getDefaultBranchOfFork(
+          branches,
+          repository,
+          ghRepo,
+          currentBranch,
+          getAheadBehind
+        )
       : _getDefaultBranchOfGithubRepo(branches, ghRepo)
   }
 
@@ -34,9 +44,7 @@ export async function inferComparisonBranch(
  *
  * @param branches The list of all branches for the repository
  */
-export function _getMasterBranch(
-  branches: ReadonlyArray<Branch>
-): Branch | null {
+function _getMasterBranch(branches: ReadonlyArray<Branch>): Branch | null {
   return branches.find(b => b.name === 'master') || null
 }
 
@@ -49,7 +57,7 @@ export function _getMasterBranch(
  * @param branches The list of all branches for the repository
  * @param ghRepository The repository the branch belongs to
  */
-export function _getDefaultBranchOfGithubRepo(
+function _getDefaultBranchOfGithubRepo(
   branches: ReadonlyArray<Branch>,
   ghRepository: GitHubRepository
 ): Branch | null {
@@ -64,7 +72,7 @@ export function _getDefaultBranchOfGithubRepo(
  * @param branches The list of all branches for the repository
  * @param pr The pull request to use for finding the branch
  */
-export function _getTargetBranchOfPullRequest(
+function _getTargetBranchOfPullRequest(
   branches: ReadonlyArray<Branch>,
   pr: PullRequest
 ): Branch | null {
@@ -82,12 +90,15 @@ export function _getTargetBranchOfPullRequest(
  * @param ghRepository
  * @param currentBranch The branch we want the parent of
  */
-export async function _getDefaultBranchOfFork(
+async function _getDefaultBranchOfFork(
   branches: ReadonlyArray<Branch>,
   repository: Repository,
   ghRepository: GitHubRepository,
   currentBranch: Branch,
-  mockingAheadBehind?: (range: string) => IAheadBehind
+  getAheadBehind: (
+    repository: Repository,
+    range: string
+  ) => Promise<IAheadBehind | null>
 ): Promise<Branch | null> {
   const defaultBranchName = ghRepository.defaultBranch
 
@@ -104,9 +115,7 @@ export async function _getDefaultBranchOfFork(
   const range = revRange(currentBranch.tip.sha, defaultBranch.tip.sha)
 
   // use the mock if it's passed - for testing only
-  const aheadBehind =
-    (mockingAheadBehind && mockingAheadBehind(range)) ||
-    (await getAheadBehind(repository, range))
+  const aheadBehind = await getAheadBehind(repository, range)
 
   // return default branch of fork if it has commits
   // the current branch does not have
