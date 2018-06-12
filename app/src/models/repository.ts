@@ -2,7 +2,6 @@ import * as Path from 'path'
 
 import { GitHubRepository } from './github-repository'
 import { IAheadBehind } from './branch'
-import { WorkingDirectoryFileChange } from './status'
 
 /** A local repository. */
 export class Repository {
@@ -15,16 +14,11 @@ export class Repository {
   /** Was the repository missing on disk last we checked? */
   public readonly missing: boolean
 
-  public aheadBehind: IAheadBehind | null
-  public changedFiles: ReadonlyArray<WorkingDirectoryFileChange> | null
-
   public constructor(
     path: string,
     id: number,
     gitHubRepository: GitHubRepository | null,
-    missing: boolean,
-    aheadBehind?: IAheadBehind,
-    changedFiles?: ReadonlyArray<WorkingDirectoryFileChange>
+    missing: boolean
   ) {
     this.path = path
     this.gitHubRepository = gitHubRepository
@@ -32,8 +26,6 @@ export class Repository {
       (gitHubRepository && gitHubRepository.name) || Path.basename(path)
     this.id = id
     this.missing = missing
-    this.aheadBehind = aheadBehind || null
-    this.changedFiles = changedFiles || null
   }
 
   /**
@@ -48,4 +40,19 @@ export class Repository {
       ${this.missing}+
       ${this.name}`
   }
+}
+
+/**
+ * A snapshot for the local state for a given repository
+ */
+export interface ILocalRepositoryState {
+  /**
+   * The ahead/behind count for the current branch, or `null` if no tracking
+   * branch found.
+   */
+  readonly aheadBehind: IAheadBehind | null
+  /**
+   * The number of uncommitted changes currently in the repository.
+   */
+  readonly changedFilesCount: number
 }
