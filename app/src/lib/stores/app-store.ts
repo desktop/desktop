@@ -85,6 +85,7 @@ import {
   getRemotes,
   ITrailer,
   isCoAuthoredByTrailer,
+  getAheadBehind,
 } from '../git'
 
 import { launchExternalEditor } from '../editors'
@@ -778,7 +779,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       allBranches,
       repository,
       currentPullRequest,
-      currentBranch
+      currentBranch,
+      getAheadBehind
     )
 
     this.updateCompareState(repository, state => ({
