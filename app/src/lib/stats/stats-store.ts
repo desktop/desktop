@@ -7,6 +7,7 @@ import { getOS } from '../get-os'
 import { getGUID } from './get-guid'
 import { Repository } from '../../models/repository'
 import { merge } from '../../lib/merge'
+import { getThemeName, getPersistedTheme } from '../../ui/lib/application-theme'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
@@ -61,6 +62,12 @@ interface ICalculatedStats {
 
   /** Is the user logged in with an Enterprise account? */
   readonly enterpriseAccount: boolean
+
+  /**
+   * The name of the currently selected theme/application
+   * appearance as set at time of stats submission.
+   */
+  readonly theme: string
 
   readonly eventType: 'usage'
 }
@@ -177,6 +184,7 @@ export class StatsStore {
       version: getVersion(),
       osVersion: getOS(),
       platform: process.platform,
+      theme: getThemeName(getPersistedTheme()),
       ...launchStats,
       ...dailyMeasures,
       ...userType,
