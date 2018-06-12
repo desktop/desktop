@@ -22,6 +22,9 @@ import { OcticonSymbol } from '../octicons'
 import { SelectionSource } from '../lib/filter-list'
 import { IMatches } from '../../lib/fuzzy-find'
 import { Ref } from '../lib/ref'
+import { NewCommitsBanner } from '../notification/new-commits-banner'
+import { enableNotificationOfBranchUpdates } from '../../lib/feature-flag'
+import { CSSTransitionGroup } from 'react-transition-group'
 
 import { MergeCallToAction } from './merge-call-to-action'
 
@@ -46,6 +49,7 @@ interface ICompareSidebarState {
    */
   readonly focusedBranch: Branch | null
   readonly selectedCommit: Commit | null
+  readonly isDivergingBranchBannerVisible: boolean
 }
 
 /** If we're within this many rows from the bottom, load the next history batch. */
@@ -62,10 +66,7 @@ export class CompareSidebar extends React.Component<
   public constructor(props: ICompareSidebarProps) {
     super(props)
 
-    this.state = {
-      focusedBranch: null,
-      selectedCommit: null,
-    }
+    this.state = this.initialState()
   }
 
   public componentWillReceiveProps(nextProps: ICompareSidebarProps) {
@@ -127,9 +128,20 @@ export class CompareSidebar extends React.Component<
   public render() {
     const { allBranches, filterText, showBranchList } = this.props.compareState
     const placeholderText = getPlaceholderText(this.props.compareState)
+    const DivergingBannerAnimationTimeout = 500
 
     return (
       <div id="compare-view">
+        <CSSTransitionGroup
+          transitionName="diverge-banner"
+          transitionAppear={true}
+          transitionAppearTimeout={DivergingBannerAnimationTimeout}
+          transitionEnterTimeout={DivergingBannerAnimationTimeout}
+          transitionLeaveTimeout={DivergingBannerAnimationTimeout}
+        >
+          {this.renderNotificationBanner()}
+        </CSSTransitionGroup>
+
         <div className="compare-form">
           <FancyTextBox
             symbol={OcticonSymbol.gitBranch}
@@ -150,8 +162,59 @@ export class CompareSidebar extends React.Component<
     )
   }
 
+  private initialState() {
+    const aheadBehind = this.getAheadBehindOfInferredBranch()
+    const isDivergingBranchBannerVisible =
+      aheadBehind === null ? false : aheadBehind.behind === 0 ? false : true
+
+    return {
+      focusedBranch: null,
+      selectedCommit: null,
+      isDivergingBranchBannerVisible,
+    }
+  }
+
   private onBranchesListRef = (branchList: BranchList | null) => {
     this.branchList = branchList
+  }
+
+  private renderNotificationBanner() {
+    if (!enableNotificationOfBranchUpdates) {
+      return null
+    }
+
+    if (!this.state.isDivergingBranchBannerVisible) {
+      return null
+    }
+
+    const { compareState } = this.props
+    const commitsBehindBaseBranch = this.getAheadBehindOfInferredBranch()
+
+    return commitsBehindBaseBranch !== null ? (
+      <div className="diverge-banner-wrapper">
+        <NewCommitsBanner
+          commitsBehindBaseBranch={commitsBehindBaseBranch.behind}
+          baseBranch={compareState.inferredComparisonBranch!}
+          onDismiss={this.onNotificationBannerDismissed}
+        />
+      </div>
+    ) : null
+  }
+
+  private getAheadBehindOfInferredBranch() {
+    const { compareState, currentBranch } = this.props
+
+    if (
+      currentBranch === null ||
+      compareState.inferredComparisonBranch === null
+    ) {
+      return null
+    }
+
+    return compareState.aheadBehindCache.get(
+      currentBranch.tip.sha,
+      compareState.inferredComparisonBranch.tip.sha
+    )
   }
 
   private renderCommits() {
@@ -469,6 +532,10 @@ export class CompareSidebar extends React.Component<
 
   private onTextBoxRef = (textbox: TextBox) => {
     this.textbox = textbox
+  }
+
+  private onNotificationBannerDismissed = () => {
+    this.setState({ isDivergingBranchBannerVisible: false })
   }
 }
 

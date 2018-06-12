@@ -1668,6 +1668,9 @@ export class App extends React.Component<IAppProps, IAppState> {
           accounts={this.state.accounts}
           externalEditorLabel={externalEditorLabel}
           onOpenInExternalEditor={this.openFileInExternalEditor}
+          isDivergingBranchBannerVisible={
+            this.state.isDivergingBranchBannerVisible
+          }
         />
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {

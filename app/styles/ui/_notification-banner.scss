@@ -56,6 +56,29 @@
   margin: var(--spacing-half);
   overflow: hidden;
 
+  &-enter {
+    max-height: 0;
+
+    &-active {
+      max-height: 200px;
+      transition: max-height var(--undo-animation-duration) ease-in;
+    }
+  }
+
+  &-leave {
+    max-height: 200px;
+
+    &-active {
+      max-height: 0;
+      transition: max-height 0.5s ease-out;
+
+      .diverge-banner {
+        transform: translateX(-100%);
+        transition: transform 0.25s ease-in-out;
+      }
+    }
+  }
+
   &-wrapper {
     overflow: hidden;
     border-bottom: var(--base-border);

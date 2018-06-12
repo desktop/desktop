@@ -131,6 +131,7 @@ import { IAuthor } from '../../models/author'
 import { ComparisonCache } from '../comparison-cache'
 import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
 import { enableCompareSidebar } from '../feature-flag'
+import { inferComparisonBranch } from './helpers/infer-comparison-branch'
 
 /**
  * Enum used by fetch to determine if
@@ -263,6 +264,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private selectedCloneRepositoryTab = CloneRepositoryTab.DotCom
 
   private selectedBranchesTab = BranchesTab.Branches
+
+  private isDivergingBranchBannerVisible: boolean = false
 
   public constructor(
     gitHubUserStore: GitHubUserStore,
@@ -446,6 +449,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         allBranches: new Array<Branch>(),
         recentBranches: new Array<Branch>(),
         defaultBranch: null,
+        inferredComparisonBranch: null,
       },
       commitAuthor: null,
       gitHubUsers: new Map<string, IGitHubUser>(),
@@ -598,6 +602,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repositoryFilterText: this.repositoryFilterText,
       selectedCloneRepositoryTab: this.selectedCloneRepositoryTab,
       selectedBranchesTab: this.selectedBranchesTab,
+      isDivergingBranchBannerVisible: this.isDivergingBranchBannerVisible,
     }
   }
 
@@ -747,7 +752,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const state = this.getRepositoryState(repository)
 
     const branchesState = state.branchesState
-    const tip = branchesState.tip
+    const { tip, currentPullRequest } = branchesState
     const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
 
     const allBranches =
@@ -769,10 +774,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
         ? cachedDefaultBranch
         : null
 
+    const inferredBranch = await inferComparisonBranch(
+      allBranches,
+      repository,
+      currentPullRequest,
+      currentBranch
+    )
+
     this.updateCompareState(repository, state => ({
       allBranches,
       recentBranches,
       defaultBranch,
+      inferredComparisonBranch: inferredBranch,
     }))
 
     const compareState = state.compareState
@@ -2930,6 +2943,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _setUpdateBannerVisibility(visibility: boolean) {
     this.isUpdateAvailableBannerVisible = visibility
 
+    this.emitUpdate()
+  }
+
+  public _setDivergingBranchBannerVisibility(visibility: boolean) {
+    this.isDivergingBranchBannerVisible = visibility
     this.emitUpdate()
   }
 

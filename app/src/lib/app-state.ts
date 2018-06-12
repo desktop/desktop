@@ -186,6 +186,9 @@ export interface IAppState {
 
   /** The currently selected tab for the Branches foldout. */
   readonly selectedBranchesTab: BranchesTab
+
+  /** Show the diverging notification banner */
+  readonly isDivergingBranchBannerVisible: boolean
 }
 
 export enum PopupType {
@@ -667,6 +670,11 @@ export interface ICompareState {
    * A local cache of ahead/behind computations to compare other refs to the current branch
    */
   readonly aheadBehindCache: ComparisonCache
+
+  /**
+   * The best-candidate branch to compare the current branch to
+   */
+  readonly inferredComparisonBranch: Branch | null
 }
 
 export interface ICompareFormUpdate {
