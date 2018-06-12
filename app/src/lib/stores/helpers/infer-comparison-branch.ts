@@ -113,8 +113,6 @@ async function _getDefaultBranchOfFork(
   }
 
   const range = revRange(currentBranch.tip.sha, defaultBranch.tip.sha)
-
-  // use the mock if it's passed - for testing only
   const aheadBehind = await getAheadBehind(repository, range)
 
   // return default branch of fork if it has commits
