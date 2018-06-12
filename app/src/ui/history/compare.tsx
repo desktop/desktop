@@ -128,10 +128,20 @@ export class CompareSidebar extends React.Component<
   public render() {
     const { allBranches, filterText, showBranchList } = this.props.compareState
     const placeholderText = getPlaceholderText(this.props.compareState)
+    const DivergingBannerAnimationTimeout = 500
 
     return (
       <div id="compare-view">
-        {this.renderNotificationBanner()}
+        <CSSTransitionGroup
+          transitionName="diverge-banner"
+          transitionAppear={true}
+          transitionAppearTimeout={DivergingBannerAnimationTimeout}
+          transitionEnterTimeout={DivergingBannerAnimationTimeout}
+          transitionLeaveTimeout={DivergingBannerAnimationTimeout}
+        >
+          {this.renderNotificationBanner()}
+        </CSSTransitionGroup>
+
         <div className="compare-form">
           <FancyTextBox
             symbol={OcticonSymbol.gitBranch}
@@ -179,22 +189,13 @@ export class CompareSidebar extends React.Component<
 
     const { compareState } = this.props
     const commitsBehindBaseBranch = this.getAheadBehindOfInferredBranch()
-    const DivergingBannerAnimationTimeout = 500
 
     return commitsBehindBaseBranch !== null ? (
-      <CSSTransitionGroup
-        transitionName="diverge-banner"
-        transitionAppear={true}
-        transitionAppearTimeout={DivergingBannerAnimationTimeout}
-        transitionEnterTimeout={DivergingBannerAnimationTimeout}
-        transitionLeaveTimeout={DivergingBannerAnimationTimeout}
-      >
         <NewCommitsBanner
           commitsBehindBaseBranch={commitsBehindBaseBranch.behind}
           baseBranch={compareState.inferredComparisonBranch!}
           onDismiss={this.onNotificationBannerDismissed}
         />
-      </CSSTransitionGroup>
     ) : null
   }
 
