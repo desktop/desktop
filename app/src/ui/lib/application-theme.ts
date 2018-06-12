@@ -23,3 +23,17 @@ export function getThemeName(theme: ApplicationTheme): string {
       return assertNever(theme, `Unknown theme ${theme}`)
   }
 }
+
+// The key under which the currently selected theme is persisted
+// in localStorage.
+const applicationThemeKey = 'theme'
+
+export function getPersistedTheme(): ApplicationTheme {
+  return localStorage.getItem(applicationThemeKey) === 'dark'
+    ? ApplicationTheme.Dark
+    : ApplicationTheme.Light
+}
+
+export function setPersistedTheme(theme: ApplicationTheme) {
+  localStorage.setItem(applicationThemeKey, getThemeName(theme))
+}
