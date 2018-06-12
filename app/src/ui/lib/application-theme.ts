@@ -28,12 +28,20 @@ export function getThemeName(theme: ApplicationTheme): string {
 // in localStorage.
 const applicationThemeKey = 'theme'
 
+/**
+ * Load the currently selected theme from the persistent
+ * store (localStorage). If no theme is selected the default
+ * theme will be returned.
+ */
 export function getPersistedTheme(): ApplicationTheme {
   return localStorage.getItem(applicationThemeKey) === 'dark'
     ? ApplicationTheme.Dark
     : ApplicationTheme.Light
 }
 
+/**
+ * Store the given theme in the persistent store (localStorage).
+ */
 export function setPersistedTheme(theme: ApplicationTheme) {
   localStorage.setItem(applicationThemeKey, getThemeName(theme))
 }
