@@ -68,6 +68,8 @@ export class RepositoriesList extends React.Component<
         externalEditorLabel={this.props.externalEditorLabel}
         shellLabel={this.props.shellLabel}
         matches={matches}
+        aheadBehind={item.aheadBehind}
+        changedFilesCount={item.changedFilesCount}
       />
     )
   }

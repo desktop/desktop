@@ -6,6 +6,7 @@ import { Repositoryish } from './group-repositories'
 import { IMenuItem } from '../../lib/menu-item'
 import { HighlightText } from '../lib/highlight-text'
 import { IMatches } from '../../lib/fuzzy-find'
+import { IAheadBehind } from '../../models/branch'
 
 const defaultEditorLabel = __DARWIN__
   ? 'Open in External Editor'
@@ -37,6 +38,12 @@ interface IRepositoryListItemProps {
 
   /** The characters in the repository name to highlight */
   readonly matches: IMatches
+
+  /** Number of commits this local repo branch is behind or ahead of its remote brance */
+  readonly aheadBehind: IAheadBehind | null
+
+  /** Number of uncommitted changes */
+  readonly changedFilesCount: number
 }
 
 /** A repository item. */
@@ -49,17 +56,12 @@ export class RepositoryListItem extends React.Component<
     const path = repository.path
     const gitHubRepo =
       repository instanceof Repository ? repository.gitHubRepository : null
-    let hasChanges = false
-    if (repository instanceof Repository) {
-      hasChanges = repository.changedFiles
-        ? repository.changedFiles.length > 0
-        : false
-    }
+    let hasChanges = this.props.changedFilesCount > 0
     const renderAheadBehindIndicator = () => {
-      if (!(repository instanceof Repository) || !repository.aheadBehind) {
+      if (!(repository instanceof Repository) || !this.props.aheadBehind) {
         return null
       }
-      const { ahead, behind } = repository.aheadBehind
+      const { ahead, behind } = this.props.aheadBehind
       if (ahead === 0 && behind === 0) {
         return null
       }
