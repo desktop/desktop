@@ -6,6 +6,7 @@ import { UiView } from './ui-view'
 import { Changes, ChangesSidebar } from './changes'
 import { NoChanges } from './changes/no-changes'
 import { MultipleSelection } from './changes/multiple-selection'
+import { FilesChangedBadge } from './changes/files-changed-badge'
 import { History, HistorySidebar, CompareSidebar } from './history'
 import { Resizable } from './resizable'
 import { TabBar } from './tab-bar'
@@ -19,7 +20,10 @@ import { IssuesStore, GitHubUserStore } from '../lib/stores'
 import { assertNever } from '../lib/fatal-error'
 import { Octicon, OcticonSymbol } from './octicons'
 import { Account } from '../models/account'
-import { enableCompareSidebar } from '../lib/feature-flag'
+import {
+  enableCompareSidebar,
+  enableNotificationOfBranchUpdates,
+} from '../lib/feature-flag'
 import { FocusContainer } from './lib/focus-container'
 
 /** The widest the sidebar can be with the minimum window size. */
@@ -73,9 +77,22 @@ export class RepositoryView extends React.Component<
     }
   }
 
+  private renderChangesBadge(): JSX.Element | null {
+    const filesChangedCount = this.props.state.changesState.workingDirectory
+      .files.length
+
+    if (filesChangedCount <= 0) {
+      return null
+    }
+
+    return enableNotificationOfBranchUpdates() ? (
+      <FilesChangedBadge filesChangedCount={filesChangedCount} />
+    ) : (
+      <Octicon className="indicator" symbol={OcticonSymbol.primitiveDot} />
+    )
+  }
+
   private renderTabs(): JSX.Element {
-    const hasChanges =
-      this.props.state.changesState.workingDirectory.files.length > 0
     const selectedTab =
       this.props.state.selectedSection === RepositorySectionTab.Changes
         ? Tab.Changes
@@ -85,12 +102,7 @@ export class RepositoryView extends React.Component<
       <TabBar selectedIndex={selectedTab} onTabClicked={this.onTabClicked}>
         <span className="with-indicator">
           <span>Changes</span>
-          {hasChanges ? (
-            <Octicon
-              className="indicator"
-              symbol={OcticonSymbol.primitiveDot}
-            />
-          ) : null}
+          {this.renderChangesBadge()}
         </span>
 
         <div className="with-indicator">
