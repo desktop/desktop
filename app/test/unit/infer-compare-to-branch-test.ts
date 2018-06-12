@@ -1,8 +1,8 @@
 import { expect } from 'chai'
 import {
   _getMasterBranch,
-  _getDeafultBranchOfGithubRepo,
-  _getFeatureBranchOfPullRequest,
+  _getDefaultBranchOfGithubRepo,
+  _getTargetBranchOfPullRequest,
   _getDefaultBranchOfFork,
 } from '../../src/lib/stores/helpers/infer-comparison-branch'
 import { Branch, BranchType } from '../../src/models/branch'
@@ -88,7 +88,7 @@ describe('inferComparisonBranch Helpers', () => {
     it('Returns the default branch of a GitHub repository', () => {
       const ghRepo: GitHubRepository = createTestGhRepo('test', 'default')
 
-      const branch = _getDeafultBranchOfGithubRepo(branches, ghRepo)
+      const branch = _getDefaultBranchOfGithubRepo(branches, ghRepo)
 
       expect(branch).is.not.null
       expect(branch!.name).to.equal('default')
@@ -101,7 +101,7 @@ describe('inferComparisonBranch Helpers', () => {
       const base = createTestPrRef(branches[5])
       const pr: PullRequest = createTestPr(head, base)
 
-      const branch = _getFeatureBranchOfPullRequest(branches, pr)
+      const branch = _getTargetBranchOfPullRequest(branches, pr)
 
       expect(branch).is.not.null
       expect(branch!.upstream).to.equal(branches[5].upstream)
