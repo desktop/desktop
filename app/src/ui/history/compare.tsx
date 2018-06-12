@@ -12,7 +12,6 @@ import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
 import { Dispatcher } from '../../lib/dispatcher'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
-import { Button } from '../lib/button'
 import { BranchList } from '../branches'
 import { TextBox } from '../lib/text-box'
 import { IBranchListItem } from '../branches/group-branches'
@@ -26,6 +25,8 @@ import { Ref } from '../lib/ref'
 import { NewCommitsBanner } from '../notification/new-commits-banner'
 import { enableNotificationOfBranchUpdates } from '../../lib/feature-flag'
 import { CSSTransitionGroup } from 'react-transition-group'
+
+import { MergeCallToAction } from './merge-call-to-action'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -321,42 +322,14 @@ export class CompareSidebar extends React.Component<
       return null
     }
 
-    const count = formState.aheadBehind.behind
-
     return (
-      <div className="merge-cta">
-        <Button
-          type="submit"
-          disabled={count <= 0}
-          onClick={this.onCompareMergeClicked}
-        >
-          Merge into <strong>{this.props.currentBranch.name}</strong>
-        </Button>
-
-        {this.renderMergeDetails(formState, this.props.currentBranch)}
-      </div>
+      <MergeCallToAction
+        repository={this.props.repository}
+        dispatcher={this.props.dispatcher}
+        currentBranch={this.props.currentBranch}
+        formState={formState}
+      />
     )
-  }
-
-  private renderMergeDetails(formState: ICompareBranch, currentBranch: Branch) {
-    const branch = formState.comparisonBranch
-    const count = formState.aheadBehind.behind
-
-    if (count > 0) {
-      const pluralized = count === 1 ? 'commit' : 'commits'
-      return (
-        <div className="merge-message">
-          This will merge
-          <strong>{` ${count} ${pluralized}`}</strong>
-          {` `}from{` `}
-          <strong>{branch.name}</strong>
-          {` `}into{` `}
-          <strong>{currentBranch.name}</strong>
-        </div>
-      )
-    }
-
-    return null
   }
 
   private onTabClicked = (index: number) => {
@@ -490,25 +463,6 @@ export class CompareSidebar extends React.Component<
     if (commits.length - end <= CloseToBottomThreshold) {
       this.props.dispatcher.loadNextHistoryBatch(this.props.repository)
     }
-  }
-
-  private onCompareMergeClicked = async (event: React.MouseEvent<any>) => {
-    const formState = this.props.compareState.formState
-
-    if (formState.kind === ComparisonView.None) {
-      return
-    }
-
-    this.props.dispatcher.recordCompareInitiatedMerge()
-    await this.props.dispatcher.mergeBranch(
-      this.props.repository,
-      formState.comparisonBranch.name
-    )
-
-    await this.viewHistoryForBranch()
-    this.props.dispatcher.updateCompareForm(this.props.repository, {
-      filterText: '',
-    })
   }
 
   private onBranchFilterTextChanged = (filterText: string) => {

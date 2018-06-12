@@ -5,7 +5,7 @@ import { Branch } from '../../models/branch'
 
 interface INewCommitsBannerProps {
   /**
-   * The number of commits behind `baseBranch`
+   * The number of commits behind base branch
    */
   readonly commitsBehindBaseBranch: number
 
@@ -19,8 +19,7 @@ interface INewCommitsBannerProps {
 }
 
 /**
- * Banner used to notify user that there branch is _commitsBehind_
- * commits behind `branch`
+ * Banner used to notify user that their branch is a number of commits behind the base branch
  */
 export class NewCommitsBanner extends React.Component<
   INewCommitsBannerProps,

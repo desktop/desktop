@@ -31,6 +31,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --button-focus-border-color: $blue-600;
 
   --link-button-color: $blue;
+  --link-button-hover-color: $blue-600;
 
   --secondary-button-background: $gray-000;
   --secondary-button-hover-background: $white;
@@ -221,8 +222,14 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --toolbar-button-hover-progress-color: $gray-700;
   --toolbar-dropdown-open-progress-color: $gray-200;
 
-  /** Ahead and behind count bubble in the push/pull/publish button */
-  --toolbar-ahead-behind-background-color: $gray-500;
+  /**
+    * Background color for badges inside of toolbar buttons.
+    * Examples of badges are the ahead/behind bubble in the
+    * push/pull button and the PR badge in the branch drop
+    * down button.
+    */
+  --toolbar-badge-background-color: $gray-600;
+  --toolbar-badge-active-background-color: $gray-200;
 
   --tab-bar-height: 29px;
   --tab-bar-active-color: $blue;
@@ -246,6 +253,14 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --popup-z-index: 10;
   --popup-overlay-z-index: calc(var(--popup-z-index) - 1);
   --foldout-z-index: calc(var(--popup-z-index) - 2);
+
+  /**
+   * Toast notifications are shown temporarily for things like the zoom
+   * percentage changing or the app toggling between full screen and normal
+   * window mode.
+   */
+  --toast-notification-color: $gray-000;
+  --toast-notification-background-color: rgba($gray-900, 0.6);
 
   /** The highlight color used for focus rings and focus box shadows */
   --focus-color: $blue;

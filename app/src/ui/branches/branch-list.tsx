@@ -20,14 +20,6 @@ import {
 } from './group-branches'
 import { NoBranches } from './no-branches'
 
-/**
- * TS can't parse generic specialization in JSX, so we have to alias it here
- * with the generic type. See https://github.com/Microsoft/TypeScript/issues/6395.
- */
-const BranchesFilterList: new () => FilterList<
-  IBranchListItem
-> = FilterList as any
-
 const RowHeight = 30
 
 interface IBranchListProps {
@@ -172,7 +164,7 @@ export class BranchList extends React.Component<
 
   public render() {
     return (
-      <BranchesFilterList
+      <FilterList<IBranchListItem>
         ref={this.onBranchesFilterListRef}
         className="branches-list"
         rowHeight={RowHeight}
