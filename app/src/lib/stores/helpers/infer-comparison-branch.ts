@@ -92,14 +92,12 @@ export async function _getDefaultBranchOfFork(
   const defaultBranchName = ghRepository.defaultBranch
 
   if (defaultBranchName === null) {
-    // Fall back to master
     return _getMasterBranch(branches)
   }
 
   const defaultBranch = _getDefaultBranchOfGithubRepo(branches, ghRepository)
 
   if (defaultBranch === null) {
-    // Fall back to master
     return _getMasterBranch(branches)
   }
 
