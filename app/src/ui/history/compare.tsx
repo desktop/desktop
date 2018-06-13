@@ -128,7 +128,7 @@ export class CompareSidebar extends React.Component<
   public render() {
     const { allBranches, filterText, showBranchList } = this.props.compareState
     const placeholderText = getPlaceholderText(this.props.compareState)
-    const DivergingBannerAnimationTimeout = 500
+    const DivergingBannerAnimationTimeout = 300
 
     return (
       <div id="compare-view">
