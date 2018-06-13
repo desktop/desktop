@@ -85,6 +85,7 @@ import {
   getRemotes,
   ITrailer,
   isCoAuthoredByTrailer,
+  getAheadBehind,
 } from '../git'
 
 import { launchExternalEditor } from '../editors'
@@ -449,7 +450,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         allBranches: new Array<Branch>(),
         recentBranches: new Array<Branch>(),
         defaultBranch: null,
-        inferredComparisonBranch: null,
+        inferredComparisonBranch: {branch: null, aheadBehind: null},
       },
       commitAuthor: null,
       gitHubUsers: new Map<string, IGitHubUser>(),
@@ -778,15 +779,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
       allBranches,
       repository,
       currentPullRequest,
-      currentBranch
+      currentBranch,
+      getAheadBehind
     )
+    const aheadBehindOfInferredBranch = this.getAheadBehindOfInferredBranch(repository)
+
 
     this.updateCompareState(repository, state => ({
       allBranches,
       recentBranches,
       defaultBranch,
-      inferredComparisonBranch: inferredBranch,
+      inferredComparisonBranch: { branch: inferredBranch, aheadBehind: aheadBehindOfInferredBranch },
     }))
+
+    if (aheadBehindOfInferredBranch !== null && aheadBehindOfInferredBranch.behind > 0) {
+      this._setDivergingBranchBannerVisibility(true)
+    }
 
     const compareState = state.compareState
 
@@ -799,6 +807,24 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (currentBranch != null && this.currentAheadBehindUpdater != null) {
       this.currentAheadBehindUpdater.schedule(currentBranch, allBranches)
     }
+  }
+
+  private getAheadBehindOfInferredBranch(repository: Repository) {
+    const { branchesState, compareState} = this.getRepositoryState(repository)
+    const tip = branchesState.tip
+    const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
+
+    if (
+      currentBranch === null ||
+      compareState.inferredComparisonBranch.branch === null
+    ) {
+      return null
+    }
+
+    return compareState.aheadBehindCache.get(
+      currentBranch.tip.sha,
+      compareState.inferredComparisonBranch.branch.tip.sha
+    )
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */

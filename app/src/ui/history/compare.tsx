@@ -24,8 +24,6 @@ import { IMatches } from '../../lib/fuzzy-find'
 import { Ref } from '../lib/ref'
 import { NewCommitsBanner } from '../notification/new-commits-banner'
 import { enableNotificationOfBranchUpdates } from '../../lib/feature-flag'
-import { CSSTransitionGroup } from 'react-transition-group'
-
 import { MergeCallToAction } from './merge-call-to-action'
 
 interface ICompareSidebarProps {
@@ -37,6 +35,7 @@ interface ICompareSidebarProps {
   readonly localCommitSHAs: ReadonlyArray<string>
   readonly dispatcher: Dispatcher
   readonly currentBranch: Branch | null
+  readonly isDivergingBranchBannerVisible: boolean
   readonly onRevertCommit: (commit: Commit) => void
   readonly onViewCommitOnGitHub: (sha: string) => void
 }
@@ -49,7 +48,6 @@ interface ICompareSidebarState {
    */
   readonly focusedBranch: Branch | null
   readonly selectedCommit: Commit | null
-  readonly isDivergingBranchBannerVisible: boolean
 }
 
 /** If we're within this many rows from the bottom, load the next history batch. */
@@ -66,7 +64,10 @@ export class CompareSidebar extends React.Component<
   public constructor(props: ICompareSidebarProps) {
     super(props)
 
-    this.state = this.initialState()
+    this.state = {
+      focusedBranch: null,
+      selectedCommit: null,
+    }
   }
 
   public componentWillReceiveProps(nextProps: ICompareSidebarProps) {
@@ -162,18 +163,6 @@ export class CompareSidebar extends React.Component<
     )
   }
 
-  private initialState() {
-    const aheadBehind = this.getAheadBehindOfInferredBranch()
-    const isDivergingBranchBannerVisible =
-      aheadBehind === null ? false : aheadBehind.behind === 0 ? false : true
-
-    return {
-      focusedBranch: null,
-      selectedCommit: null,
-      isDivergingBranchBannerVisible,
-    }
-  }
-
   private onBranchesListRef = (branchList: BranchList | null) => {
     this.branchList = branchList
   }
@@ -205,16 +194,22 @@ export class CompareSidebar extends React.Component<
     const { compareState, currentBranch } = this.props
 
     if (
-      currentBranch === null ||
-      compareState.inferredComparisonBranch === null
+      !enableNotificationOfBranchUpdates ||
+      !this.props.isDivergingBranchBannerVisible
     ) {
       return null
     }
 
-    return compareState.aheadBehindCache.get(
-      currentBranch.tip.sha,
-      compareState.inferredComparisonBranch.tip.sha
-    )
+    const { inferredComparisonBranch } = this.props.compareState
+
+    return inferredComparisonBranch.branch !== null &&
+      inferredComparisonBranch.aheadBehind !== null ? (
+      <NewCommitsBanner
+        commitsBehindBaseBranch={inferredComparisonBranch.aheadBehind.behind}
+        baseBranch={inferredComparisonBranch.branch}
+        onDismiss={this.onNotificationBannerDismissed}
+      />
+    ) : null
   }
 
   private renderCommits() {
@@ -535,7 +530,7 @@ export class CompareSidebar extends React.Component<
   }
 
   private onNotificationBannerDismissed = () => {
-    this.setState({ isDivergingBranchBannerVisible: false })
+    this.props.dispatcher.setDivergingBranchBannerVisibility(false)
   }
 }
 
