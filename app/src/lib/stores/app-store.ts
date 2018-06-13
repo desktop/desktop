@@ -450,7 +450,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         allBranches: new Array<Branch>(),
         recentBranches: new Array<Branch>(),
         defaultBranch: null,
-        inferredComparisonBranch: null,
+        inferredComparisonBranch: {branch: null, aheadBehind: null},
       },
       commitAuthor: null,
       gitHubUsers: new Map<string, IGitHubUser>(),
@@ -782,12 +782,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
       currentBranch,
       getAheadBehind
     )
+    const aheadBehindOfInferredBranch = this.getAheadBehindOfInferredBranch(repository)
+
 
     this.updateCompareState(repository, state => ({
       allBranches,
       recentBranches,
       defaultBranch,
-      inferredComparisonBranch: inferredBranch,
+      inferredComparisonBranch: { branch: inferredBranch, aheadBehind: aheadBehindOfInferredBranch },
     }))
 
     const compareState = state.compareState
