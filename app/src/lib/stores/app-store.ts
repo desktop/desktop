@@ -131,7 +131,12 @@ import { IAuthor } from '../../models/author'
 import { ComparisonCache } from '../comparison-cache'
 import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
 import { enableCompareSidebar } from '../feature-flag'
-import { ApplicationTheme, getThemeName, getPersistedTheme, setPersistedTheme } from '../../ui/lib/application-theme'
+import {
+  ApplicationTheme,
+  getThemeName,
+  getPersistedTheme,
+  setPersistedTheme,
+} from '../../ui/lib/application-theme'
 
 /**
  * Enum used by fetch to determine if
