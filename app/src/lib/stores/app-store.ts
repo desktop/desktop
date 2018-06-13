@@ -805,6 +805,24 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
+  private getAheadBehindOfInferredBranch(repository: Repository) {
+    const { branchesState, compareState} = this.getRepositoryState(repository)
+    const tip = branchesState.tip
+    const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
+
+    if (
+      currentBranch === null ||
+      compareState.inferredComparisonBranch.branch === null
+    ) {
+      return null
+    }
+
+    return compareState.aheadBehindCache.get(
+      currentBranch.tip.sha,
+      compareState.inferredComparisonBranch.branch.tip.sha
+    )
+  }
+
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _executeCompare(
     repository: Repository,
