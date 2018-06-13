@@ -10,10 +10,14 @@ import {
 import { FilterList } from '../lib/filter-list'
 import { IMatches } from '../../lib/fuzzy-find'
 import { assertNever } from '../../lib/fatal-error'
+import { ILocalRepositoryState } from '../../models/repository'
 
 interface IRepositoriesListProps {
   readonly selectedRepository: Repositoryish | null
   readonly repositories: ReadonlyArray<Repositoryish>
+
+  /** A cache of the latest repository state values, keyed by the repository id */
+  readonly localRepositoryStateLookup: Map<number, ILocalRepositoryState>
 
   /** Called when a repository has been selected. */
   readonly onSelectionChanged: (repository: Repositoryish) => void
@@ -99,7 +103,10 @@ export class RepositoriesList extends React.Component<
       return this.noRepositories()
     }
 
-    const groups = groupRepositories(this.props.repositories)
+    const groups = groupRepositories(
+      this.props.repositories,
+      this.props.localRepositoryStateLookup
+    )
 
     let selectedItem: IRepositoryListItem | null = null
     const selectedRepository = this.props.selectedRepository
