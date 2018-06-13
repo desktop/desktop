@@ -151,6 +151,10 @@ dispatcher.registerErrorHandler(missingRepositoryHandler)
 
 document.body.classList.add(`platform-${process.platform}`)
 
+if (localStorage.getItem('theme') === 'dark') {
+  document.body.classList.add(`theme-dark`)
+}
+
 dispatcher.setAppFocusState(remote.getCurrentWindow().isFocused())
 
 ipcRenderer.on('focus', () => {
