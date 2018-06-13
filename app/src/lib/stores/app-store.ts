@@ -133,7 +133,6 @@ import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
 import { enableCompareSidebar } from '../feature-flag'
 import {
   ApplicationTheme,
-  getThemeName,
   getPersistedTheme,
   setPersistedTheme,
 } from '../../ui/lib/application-theme'
