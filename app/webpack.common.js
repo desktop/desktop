@@ -148,7 +148,34 @@ const cliConfig = merge({}, commonConfig, {
 
 const highlighterConfig = merge({}, commonConfig, {
   entry: { highlighter: path.resolve(__dirname, 'src/highlighter/index') },
-  output: { libraryTarget: 'var' },
+  output: {
+    libraryTarget: 'var',
+    chunkFilename: 'highlighter/[name].js',
+  },
+  optimization: {
+    splitChunks: {
+      cacheGroups: {
+        modes: {
+          enforce: true,
+          name: (mod, chunks) => {
+            const builtInMode = /node_modules\/codemirror\/mode\/(\w+)\//.exec(
+              mod.resource
+            )
+            if (builtInMode) {
+              return `mode/${builtInMode[1]}`
+            }
+            const external = /node_modules\/codemirror-mode-(\w+)\//.exec(
+              mod.resource
+            )
+            if (external) {
+              return `ext/${external[1]}`
+            }
+            return 'common'
+          },
+        },
+      },
+    },
+  },
   target: 'webworker',
   plugins: [
     new webpack.DefinePlugin(
