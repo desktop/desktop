@@ -66,7 +66,10 @@ export class CompareSidebar extends React.Component<
   public constructor(props: ICompareSidebarProps) {
     super(props)
 
-    this.state = this.initialState()
+    this.state = {
+      focusedBranch: null,
+      selectedCommit: null,
+    }
   }
 
   public componentWillReceiveProps(nextProps: ICompareSidebarProps) {
@@ -150,18 +153,6 @@ export class CompareSidebar extends React.Component<
         {showBranchList ? this.renderFilterList() : this.renderCommits()}
       </div>
     )
-  }
-
-  private initialState() {
-    const aheadBehind = this.getAheadBehindOfInferredBranch()
-    const isDivergingBranchBannerVisible =
-      aheadBehind === null ? false : aheadBehind.behind === 0 ? false : true
-
-    return {
-      focusedBranch: null,
-      selectedCommit: null,
-      isDivergingBranchBannerVisible,
-    }
   }
 
   private onBranchesListRef = (branchList: BranchList | null) => {
