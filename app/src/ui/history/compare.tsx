@@ -24,8 +24,6 @@ import { IMatches } from '../../lib/fuzzy-find'
 import { Ref } from '../lib/ref'
 import { NewCommitsBanner } from '../notification/new-commits-banner'
 import { enableNotificationOfBranchUpdates } from '../../lib/feature-flag'
-import { CSSTransitionGroup } from 'react-transition-group'
-
 import { MergeCallToAction } from './merge-call-to-action'
 
 interface ICompareSidebarProps {
