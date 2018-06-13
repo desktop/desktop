@@ -6,6 +6,18 @@ import { revRange } from '../../git'
 
 /**
  * Infers which branch to use as the comparison branch
+ *
+ * The branch returned is determined by the following conditions:
+ * 1. Given a pull request -> target branch of PR
+ * 2. Given a forked repository -> default branch on `upstream`
+ * 3. Given a hosted repository -> default branch on `origin`
+ * 4. Fallback -> `master` branch
+ *
+ * @param branches The list of all branches for the repository
+ * @param repository The repository the branch belongs to
+ * @param currentPullRequest The pull request to use for finding the branch
+ * @param currentBranch The branch we want the parent of
+ * @param getAheadBehind function used to calculate ahead/behind
  */
 export async function inferComparisonBranch(
   branches: ReadonlyArray<Branch>,
@@ -87,7 +99,7 @@ function _getTargetBranchOfPullRequest(
  *
  * @param branches The list of all branches for the repository
  * @param repository The repository the branch belongs to
- * @param ghRepository
+ * @param ghRepository The github specific information for the repository
  * @param currentBranch The branch we want the parent of
  */
 async function _getDefaultBranchOfFork(
