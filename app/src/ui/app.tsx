@@ -1650,7 +1650,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (selectedState.type === SelectionType.Repository) {
       const externalEditorLabel = state.selectedExternalEditor
 
-
       return (
         <RepositoryView
           repository={selectedState.repository}
@@ -1669,9 +1668,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           accounts={state.accounts}
           externalEditorLabel={externalEditorLabel}
           onOpenInExternalEditor={this.openFileInExternalEditor}
-          isDivergingBranchBannerVisible={
-            state.isDivergingBranchBannerVisible
-          }
+          isDivergingBranchBannerVisible={state.isDivergingBranchBannerVisible}
         />
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {
