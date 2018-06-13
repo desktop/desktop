@@ -204,6 +204,8 @@ export class CompareSidebar extends React.Component<
     if (
       currentBranch === null ||
       compareState.inferredComparisonBranch === null
+      !enableNotificationOfBranchUpdates ||
+      !this.props.isDivergingBranchBannerVisible
     ) {
       return null
     }
