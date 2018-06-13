@@ -83,7 +83,7 @@
 
   &-wrapper {
     overflow: hidden;
-    border-bottom: var(--base-border);
+    box-shadow: inset 0 -1px var(--box-border-color);
   }
 }
 
