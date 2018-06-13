@@ -58,10 +58,12 @@
 
   &-enter {
     max-height: 0;
+    opacity: 0;
 
     &-active {
       max-height: 200px;
-      transition: max-height var(--undo-animation-duration) ease-in;
+      opacity: 1;
+      transition: all var(--undo-animation-duration) cubic-bezier(0.0, 0.0, 0.2, 1);
     }
   }
 
