@@ -792,6 +792,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       inferredComparisonBranch: { branch: inferredBranch, aheadBehind: aheadBehindOfInferredBranch },
     }))
 
+    if (aheadBehindOfInferredBranch !== null && aheadBehindOfInferredBranch.behind > 0) {
+      this._setDivergingBranchBannerVisibility(true)
+    }
+
     const compareState = state.compareState
 
     const cachedState = compareState.formState
