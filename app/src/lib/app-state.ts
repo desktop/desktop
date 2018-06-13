@@ -674,7 +674,10 @@ export interface ICompareState {
   /**
    * The best-candidate branch to compare the current branch to
    */
-  readonly inferredComparisonBranch: Branch | null
+  readonly inferredComparisonBranch: {
+    branch: Branch | null
+    aheadBehind: IAheadBehind | null
+  }
 }
 
 export interface ICompareFormUpdate {
