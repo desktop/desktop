@@ -7,7 +7,7 @@ import { revRange } from '../../git'
 /**
  * Infers which branch to use as the comparison branch
  *
- * The branch is returned is determined by the following conditions:
+ * The branch returned is determined by the following conditions:
  * 1. Given a pull request -> target branch of PR
  * 2. Given a forked repository -> default branch on `upstream`
  * 3. Given a hosted repository -> default branch on `origin`
