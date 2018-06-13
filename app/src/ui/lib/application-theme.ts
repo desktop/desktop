@@ -40,6 +40,15 @@ export function getPersistedTheme(): ApplicationTheme {
 }
 
 /**
+ * Load the name of the currently selected theme from the persistent
+ * store (localStorage). If no theme is selected the default
+ * theme name will be returned.
+ */
+export function getPersistedThemeName(): string {
+  return getThemeName(getPersistedTheme())
+}
+
+/**
  * Store the given theme in the persistent store (localStorage).
  */
 export function setPersistedTheme(theme: ApplicationTheme) {

@@ -7,7 +7,7 @@ import { getOS } from '../get-os'
 import { getGUID } from './get-guid'
 import { Repository } from '../../models/repository'
 import { merge } from '../../lib/merge'
-import { getThemeName, getPersistedTheme } from '../../ui/lib/application-theme'
+import { getPersistedThemeName } from '../../ui/lib/application-theme'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
@@ -184,7 +184,7 @@ export class StatsStore {
       version: getVersion(),
       osVersion: getOS(),
       platform: process.platform,
-      theme: getThemeName(getPersistedTheme()),
+      theme: getPersistedThemeName(),
       ...launchStats,
       ...dailyMeasures,
       ...userType,
