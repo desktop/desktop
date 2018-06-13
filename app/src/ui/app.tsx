@@ -1457,6 +1457,8 @@ export class App extends React.Component<IAppProps, IAppState> {
       title = __DARWIN__ ? 'No Repositories' : 'No repositories'
     }
 
+    const tooltip = repository ? repository.path : undefined
+
     const isOpen =
       this.state.currentFoldout &&
       this.state.currentFoldout.type === FoldoutType.Repository
@@ -1476,6 +1478,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         icon={icon}
         title={title}
         description={__DARWIN__ ? 'Current Repository' : 'Current repository'}
+        tooltip={tooltip}
         foldoutStyle={foldoutStyle}
         onDropdownStateChanged={this.onRepositoryDropdownStateChanged}
         dropdownContentRenderer={this.renderRepositoryList}
