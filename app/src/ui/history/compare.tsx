@@ -169,51 +169,23 @@ export class CompareSidebar extends React.Component<
   }
 
   private renderNotificationBanner() {
-    if (!enableNotificationOfBranchUpdates) {
-      return null
-    }
-
-    if (!this.state.isDivergingBranchBannerVisible) {
-      return null
-    }
-
-    const { compareState } = this.props
-    const commitsBehindBaseBranch = this.getAheadBehindOfInferredBranch()
-    const DivergingBannerAnimationTimeout = 500
-
-    return commitsBehindBaseBranch !== null ? (
-      <CSSTransitionGroup
-        transitionName="diverge-banner"
-        transitionAppear={true}
-        transitionAppearTimeout={DivergingBannerAnimationTimeout}
-        transitionEnterTimeout={DivergingBannerAnimationTimeout}
-        transitionLeaveTimeout={DivergingBannerAnimationTimeout}
-      >
-        <NewCommitsBanner
-          commitsBehindBaseBranch={commitsBehindBaseBranch.behind}
-          baseBranch={compareState.inferredComparisonBranch!}
-          onDismiss={this.onNotificationBannerDismissed}
-        />
-      </CSSTransitionGroup>
-    ) : null
-  }
-
-  private getAheadBehindOfInferredBranch() {
-    const { compareState, currentBranch } = this.props
-
     if (
-      currentBranch === null ||
-      compareState.inferredComparisonBranch === null
       !enableNotificationOfBranchUpdates ||
       !this.props.isDivergingBranchBannerVisible
     ) {
       return null
     }
 
-    return compareState.aheadBehindCache.get(
-      currentBranch.tip.sha,
-      compareState.inferredComparisonBranch.tip.sha
-    )
+    const { inferredComparisonBranch } = this.props.compareState
+
+    return inferredComparisonBranch.branch !== null &&
+      inferredComparisonBranch.aheadBehind !== null ? (
+      <NewCommitsBanner
+        commitsBehindBaseBranch={inferredComparisonBranch.aheadBehind.behind}
+        baseBranch={inferredComparisonBranch.branch}
+        onDismiss={this.onNotificationBannerDismissed}
+      />
+    ) : null
   }
 
   private renderCommits() {
