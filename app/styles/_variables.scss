@@ -239,6 +239,8 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --app-menu-pane-background-color: var(
     --toolbar-button-active-background-color
   );
+  --app-menu-divider-color: var(--box-border-color);
+
   /**
     * Background color for badges inside of toolbar buttons.
     * Examples of badges are the ahead/behind bubble in the
