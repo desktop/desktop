@@ -161,6 +161,19 @@ body.theme-dark {
   --toolbar-dropdown-open-progress-color: $gray-200;
 
   /**
+    * App menu bar colors (Windows/Linux only)
+    */
+    --app-menu-button-color: var(--toolbar-text-color);
+    --app-menu-button-hover-color: var(--toolbar-button-hover-color);
+    --app-menu-button-hover-background-color: var(
+      --toolbar-button-hover-background-color
+    );
+    --app-menu-button-active-color: var(--text-color);
+    --app-menu-button-active-background-color: $gray-800;
+    --app-menu-pane-color: var(--text-color);
+    --app-menu-pane-secondary-color: var(--text-secondary-color);
+    --app-menu-pane-background-color: $gray-800;
+  /**
    * Background color for badges inside of toolbar buttons.
    * Examples of badges are the ahead/behind bubble in the
    * push/pull button and the PR badge in the branch drop
