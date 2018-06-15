@@ -1,5 +1,4 @@
 import * as React from 'react'
-//import { Row } from '../lib/row'
 import { DialogContent } from '../dialog'
 import {
   VerticalSegmentedControl,
