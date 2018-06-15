@@ -14,7 +14,7 @@ interface IAppThemeProps {
  * render when its props changes (shallow comparison).
  *
  * This component does not render anything into the DOM, it's
- * purely (a)busing the component lifecycle to manipulat the
+ * purely (a)busing the component lifecycle to manipulate the
  * body class list.
  */
 export class AppTheme extends React.PureComponent<IAppThemeProps> {
@@ -31,16 +31,16 @@ export class AppTheme extends React.PureComponent<IAppThemeProps> {
   }
 
   private ensureTheme() {
-    const newThemClassName = `theme-${getThemeName(this.props.theme)}`
+    const newThemeClassName = `theme-${getThemeName(this.props.theme)}`
     const body = document.body
 
-    if (body.classList.contains(newThemClassName)) {
+    if (body.classList.contains(newThemeClassName)) {
       return
     }
 
     this.clearThemes()
 
-    body.classList.add(newThemClassName)
+    body.classList.add(newThemeClassName)
   }
 
   private clearThemes() {
