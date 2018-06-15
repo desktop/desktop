@@ -43,7 +43,7 @@ export async function inferComparisonBranch(
           currentBranch,
           getAheadBehind
         )
-      : _getDefaultBranchOfGithubRepo(branches, ghRepo)
+      : _getDefaultBranchOfGitHubRepo(branches, ghRepo)
   }
 
   return _getMasterBranch(branches)
@@ -69,7 +69,7 @@ function _getMasterBranch(branches: ReadonlyArray<Branch>): Branch | null {
  * @param branches The list of all branches for the repository
  * @param ghRepository The repository the branch belongs to
  */
-function _getDefaultBranchOfGithubRepo(
+function _getDefaultBranchOfGitHubRepo(
   branches: ReadonlyArray<Branch>,
   ghRepository: GitHubRepository
 ): Branch | null {
@@ -77,7 +77,7 @@ function _getDefaultBranchOfGithubRepo(
 }
 
 /**
- * For `inferComparisonBranch` case where inferring  for a pull request
+ * For `inferComparisonBranch` case where inferring for a pull request
  *
  * Returns the base branch of the given pull request.
  *
@@ -101,6 +101,7 @@ function _getTargetBranchOfPullRequest(
  * @param repository The repository the branch belongs to
  * @param ghRepository The github specific information for the repository
  * @param currentBranch The branch we want the parent of
+ * @param getAheadBehind function used to calculate ahead/behind
  */
 async function _getDefaultBranchOfFork(
   branches: ReadonlyArray<Branch>,
@@ -118,7 +119,7 @@ async function _getDefaultBranchOfFork(
     return _getMasterBranch(branches)
   }
 
-  const defaultBranch = _getDefaultBranchOfGithubRepo(branches, ghRepository)
+  const defaultBranch = _getDefaultBranchOfGitHubRepo(branches, ghRepository)
 
   if (defaultBranch === null) {
     return _getMasterBranch(branches)
@@ -136,7 +137,7 @@ async function _getDefaultBranchOfFork(
   // return the default branch of the parent repo
   const parent = ghRepository.parent
   if (parent !== null && parent.defaultBranch !== null) {
-    return _getDefaultBranchOfGithubRepo(branches, parent)
+    return _getDefaultBranchOfGitHubRepo(branches, parent)
   }
 
   return null
