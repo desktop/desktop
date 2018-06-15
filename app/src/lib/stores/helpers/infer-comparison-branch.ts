@@ -84,14 +84,12 @@ async function getDefaultBranchOfFork(
   ) => Promise<IAheadBehind | null>
 ): Promise<Branch | null> {
   const defaultBranch = getDefaultBranchOfGitHubRepo(branches, ghRepository)
-
   if (defaultBranch === null) {
     return getMasterBranch(branches)
   }
 
   const range = revRange(currentBranch.tip.sha, defaultBranch.tip.sha)
   const aheadBehind = await getAheadBehind(repository, range)
-
   if (aheadBehind !== null && aheadBehind.ahead > 0) {
     return defaultBranch
   }
