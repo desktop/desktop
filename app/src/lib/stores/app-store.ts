@@ -783,7 +783,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       getAheadBehind
     )
     const aheadBehindOfInferredBranch = this.getAheadBehindOfInferredBranch(repository)
-
+    const prevInferredBranchState = state.compareState.inferredComparisonBranch
 
     this.updateCompareState(repository, state => ({
       allBranches,
@@ -793,6 +793,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }))
 
     if (aheadBehindOfInferredBranch !== null && aheadBehindOfInferredBranch.behind > 0) {
+      if (prevInferredBranchState.aheadBehind === null || prevInferredBranchState.aheadBehind.behind !== aheadBehindOfInferredBranch.behind)
       this._setDivergingBranchBannerVisibility(true)
     }
 
