@@ -113,12 +113,6 @@ async function _getDefaultBranchOfFork(
     range: string
   ) => Promise<IAheadBehind | null>
 ): Promise<Branch | null> {
-  const defaultBranchName = ghRepository.defaultBranch
-
-  if (defaultBranchName === null) {
-    return _getMasterBranch(branches)
-  }
-
   const defaultBranch = _getDefaultBranchOfGitHubRepo(branches, ghRepository)
 
   if (defaultBranch === null) {
