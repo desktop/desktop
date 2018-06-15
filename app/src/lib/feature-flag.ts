@@ -41,3 +41,8 @@ export function enableCompareSidebar(): boolean {
 export function enableNotificationOfBranchUpdates(): boolean {
   return enableDevelopmentFeatures()
 }
+
+/** Should the repository list display info indicators? */
+export function enableRepoInfoIndicators(): Boolean {
+  return enableDevelopmentFeatures()
+}

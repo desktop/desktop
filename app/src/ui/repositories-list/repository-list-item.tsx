@@ -56,7 +56,7 @@ export class RepositoryListItem extends React.Component<
     const path = repository.path
     const gitHubRepo =
       repository instanceof Repository ? repository.gitHubRepository : null
-    let hasChanges = this.props.changedFilesCount > 0
+    const hasChanges = this.props.changedFilesCount > 0
     const renderAheadBehindIndicator = () => {
       if (!(repository instanceof Repository) || !this.props.aheadBehind) {
         return null
@@ -83,7 +83,7 @@ export class RepositoryListItem extends React.Component<
         </div>
       )
     }
-    const tooltip = gitHubRepo
+    const repoTooltip = gitHubRepo
       ? gitHubRepo.fullName + '\n' + gitHubRepo.htmlURL + '\n' + path
       : path
 
@@ -108,7 +108,7 @@ export class RepositoryListItem extends React.Component<
           ) : null}
         </div>
         <Octicon symbol={iconForRepository(repository)} />
-        <div className="name" title={tooltip}>
+        <div className="name" title={repoTooltip}>
           {prefix ? <span className="prefix">{prefix}</span> : null}
           <HighlightText
             text={repository.name}

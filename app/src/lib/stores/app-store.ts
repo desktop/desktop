@@ -130,7 +130,7 @@ import { IRemote, ForkedRemotePrefix } from '../../models/remote'
 import { IAuthor } from '../../models/author'
 import { ComparisonCache } from '../comparison-cache'
 import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
-import { enableCompareSidebar } from '../feature-flag'
+import { enableCompareSidebar, enableRepoInfoIndicators } from '../feature-flag'
 
 /**
  * Enum used by fetch to determine if
@@ -1788,20 +1788,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repositories: ReadonlyArray<Repository>,
     targetRepo?: Repository
   ): Promise<ReadonlyArray<Repository>> {
-    for (const repo of repositories) {
-      if (!targetRepo || targetRepo.id === repo.id) {
-        await this.withAuthenticatingUser(repo, async (repo, account) => {
-          const gitStore = this.getGitStore(repo)
-          const lookup = this.localRepositoryStateLookup
-          await gitStore.fetch(account, true)
-          const status = await gitStore.loadStatus()
-          if (status !== null) {
-            lookup.set(repo.id, {
-              aheadBehind: gitStore.aheadBehind,
-              changedFilesCount: status.workingDirectory.files.length,
-            })
-          }
-        })
+    if (enableRepoInfoIndicators()) {
+      for (const repo of repositories) {
+        if (!targetRepo || targetRepo.id === repo.id) {
+          await this.withAuthenticatingUser(repo, async (repo, account) => {
+            const gitStore = this.getGitStore(repo)
+            const lookup = this.localRepositoryStateLookup
+            await gitStore.fetch(account, true)
+            const status = await gitStore.loadStatus()
+            if (status !== null) {
+              lookup.set(repo.id, {
+                aheadBehind: gitStore.aheadBehind,
+                changedFilesCount: status.workingDirectory.files.length,
+              })
+            }
+          })
+        }
       }
     }
     return repositories
