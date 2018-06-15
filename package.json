@@ -98,7 +98,7 @@
     "tslint-microsoft-contrib": "^5.0.3",
     "tslint-react": "^3.5.1",
     "typescript": "^2.9.1",
-    "typescript-eslint-parser": "^15.0.0",
+    "typescript-eslint-parser": "^16.0.0",
     "webpack": "^4.8.3",
     "webpack-bundle-analyzer": "^2.13.0",
     "webpack-dev-middleware": "^3.1.3",
