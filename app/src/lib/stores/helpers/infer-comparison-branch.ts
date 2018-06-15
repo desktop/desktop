@@ -17,7 +17,7 @@ import { revRange } from '../../git'
  * @param repository The repository the branch belongs to
  * @param currentPullRequest The pull request to use for finding the branch
  * @param currentBranch The branch we want the parent of
- * @param getAheadBehind function used to calculate ahead/behind
+ * @param getAheadBehind function used to calculate the number of commits ahead/behind the current branch is from another branch
  */
 export async function inferComparisonBranch(
   branches: ReadonlyArray<Branch>,
@@ -30,61 +30,37 @@ export async function inferComparisonBranch(
   ) => Promise<IAheadBehind | null>
 ): Promise<Branch | null> {
   if (currentPullRequest !== null) {
-    return _getTargetBranchOfPullRequest(branches, currentPullRequest)
+    return getTargetBranchOfPullRequest(branches, currentPullRequest)
   }
 
   const ghRepo = repository.gitHubRepository
   if (ghRepo !== null) {
     return ghRepo.fork === true && currentBranch !== null
-      ? _getDefaultBranchOfFork(
+      ? getDefaultBranchOfFork(
           branches,
           repository,
           ghRepo,
           currentBranch,
           getAheadBehind
         )
-      : _getDefaultBranchOfGitHubRepo(branches, ghRepo)
+      : getDefaultBranchOfGitHubRepo(branches, ghRepo)
   }
 
-  return _getMasterBranch(branches)
+  return getMasterBranch(branches)
 }
 
-/**
- * For `inferComparisonBranch` case where inferring for local branches
- *
- * Returns `master`, the default branch of a Git repository
- *
- * @param branches The list of all branches for the repository
- */
-function _getMasterBranch(branches: ReadonlyArray<Branch>): Branch | null {
+function getMasterBranch(branches: ReadonlyArray<Branch>): Branch | null {
   return branches.find(b => b.name === 'master') || null
 }
 
-/**
- * For `inferComparisonBranch` case where inferring for a repository
- * hosted on GitHub, but with no forks
- *
- * Returns the default branch of the GitHub repository
- *
- * @param branches The list of all branches for the repository
- * @param ghRepository The repository the branch belongs to
- */
-function _getDefaultBranchOfGitHubRepo(
+function getDefaultBranchOfGitHubRepo(
   branches: ReadonlyArray<Branch>,
   ghRepository: GitHubRepository
 ): Branch | null {
   return branches.find(b => b.name === ghRepository.defaultBranch) || null
 }
 
-/**
- * For `inferComparisonBranch` case where inferring for a pull request
- *
- * Returns the base branch of the given pull request.
- *
- * @param branches The list of all branches for the repository
- * @param pr The pull request to use for finding the branch
- */
-function _getTargetBranchOfPullRequest(
+function getTargetBranchOfPullRequest(
   branches: ReadonlyArray<Branch>,
   pr: PullRequest
 ): Branch | null {
@@ -96,14 +72,8 @@ function _getTargetBranchOfPullRequest(
  *
  * Returns the default branch of the fork if it's ahead of `currentBranch`.
  * Otherwise, the default branch of the parent is returned.
- *
- * @param branches The list of all branches for the repository
- * @param repository The repository the branch belongs to
- * @param ghRepository The github specific information for the repository
- * @param currentBranch The branch we want the parent of
- * @param getAheadBehind function used to calculate ahead/behind
  */
-async function _getDefaultBranchOfFork(
+async function getDefaultBranchOfFork(
   branches: ReadonlyArray<Branch>,
   repository: Repository,
   ghRepository: GitHubRepository,
@@ -113,25 +83,22 @@ async function _getDefaultBranchOfFork(
     range: string
   ) => Promise<IAheadBehind | null>
 ): Promise<Branch | null> {
-  const defaultBranch = _getDefaultBranchOfGitHubRepo(branches, ghRepository)
+  const defaultBranch = getDefaultBranchOfGitHubRepo(branches, ghRepository)
 
   if (defaultBranch === null) {
-    return _getMasterBranch(branches)
+    return getMasterBranch(branches)
   }
 
   const range = revRange(currentBranch.tip.sha, defaultBranch.tip.sha)
   const aheadBehind = await getAheadBehind(repository, range)
 
-  // return default branch of fork if it has commits
-  // the current branch does not have
   if (aheadBehind !== null && aheadBehind.ahead > 0) {
     return defaultBranch
   }
 
-  // return the default branch of the parent repo
   const parent = ghRepository.parent
   if (parent !== null && parent.defaultBranch !== null) {
-    return _getDefaultBranchOfGitHubRepo(branches, parent)
+    return getDefaultBranchOfGitHubRepo(branches, parent)
   }
 
   return null
