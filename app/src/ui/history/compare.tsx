@@ -137,7 +137,7 @@ export class CompareSidebar extends React.Component<
             placeholder={placeholderText}
             onFocus={this.onTextBoxFocused}
             value={filterText}
-            disabled={allBranches.length <= 1}
+            disabled={allBranches.length === 0}
             onRef={this.onTextBoxRef}
             onValueChanged={this.onBranchFilterTextChanged}
             onKeyDown={this.onBranchFilterKeyDown}
@@ -475,7 +475,7 @@ export class CompareSidebar extends React.Component<
 function getPlaceholderText(state: ICompareState) {
   const { allBranches, formState } = state
 
-  if (allBranches.length <= 1) {
+  if (allBranches.length === 0) {
     return __DARWIN__ ? 'No Branches to Compare' : 'No branches to compare'
   } else if (formState.kind === ComparisonView.None) {
     return __DARWIN__
