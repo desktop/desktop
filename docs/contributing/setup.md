@@ -106,7 +106,7 @@ export TARGET_ARCH=arm64
 After doing this setup, you also need to install `yarn` as Desktop uses
 this for managing packages instead of NPM. **Do not install `yarn` through
 NPM**. Refer to the [install instructions](https://yarnpkg.com/en/docs/install)
-for you OS.
+for your OS.
 
 This is important because `yarn` uses lock files to pin dependencies. If you
 find yourself changing packages, this will prevent mismatches in versions
@@ -166,18 +166,8 @@ problems.
 ## Running tests
 
 - `yarn test` - Runs all unit and integration tests
-- `yarn test:unit` - Runs all unit tests
+- `yarn test:unit` - Runs all unit tests (add `--debug` to open Chrome Dev Tools while running tests)
 - `yarn test:integration` - Runs all integration tests
-
-**Pro Tip:** If you're only interested in the results of a single test and don't
-wish to run the entire test suite to see it you can pass along a search string
-in order to only run the tests that match that string.
-
-```shellsession
-$ yarn test:unit -- --grep CloneProgressParser
-```
-
-This example will run all test names containing `CloneProgressParser`.
 
 ## Debugging
 
