@@ -20,11 +20,12 @@ type AheadBehindGetter = (
  * 3. Given a hosted repository -> default branch on `origin`
  * 4. Fallback -> `master` branch
  *
- * @param branches The list of all branches for the repository
  * @param repository The repository the branch belongs to
+ * @param branches The list of all branches for the repository
  * @param currentPullRequest The pull request to use for finding the branch
  * @param currentBranch The branch we want the parent of
- * @param getAheadBehind function used to calculate the number of commits ahead/behind the current branch is from another branch
+ * @param getRemotes callback used to get all remotes for the current repository
+ * @param getAheadBehind callback used to calculate the number of commits ahead/behind the current branch is from another branch
  */
 export async function inferComparisonBranch(
   repository: Repository,
