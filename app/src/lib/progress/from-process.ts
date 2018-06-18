@@ -63,11 +63,17 @@ function createProgressProcessCallback(
 
       process.on('close', () => {
         disposable.dispose()
-        const directory = Path.dirname(lfsProgressPath)
-        // this callbacks are empty because the Node runtime might report
-        // an error with unlinking - this is in the TEMP directory and there's
-        // not much the application can do at this point, so we'll just move on
-        Fs.unlink(directory, () => {})
+        // the order of these callbacks is important because
+        //  - unlink can only be done on files
+        //  - rmdir can only be done when the directory is empty
+        //  - we don't want to surface errors to the user if something goes
+        //    wrong (these files can stay in TEMP and be cleaned up eventually)
+        Fs.unlink(lfsProgressPath, err => {
+          if (err == null) {
+            const directory = Path.dirname(lfsProgressPath)
+            Fs.rmdir(directory, () => {})
+          }
+        })
       })
     }
 
