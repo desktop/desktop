@@ -1,5 +1,6 @@
 import { ChildProcess } from 'child_process'
 import * as Fs from 'fs'
+import * as Path from 'path'
 import * as byline from 'byline'
 
 import { GitProgressParser, IGitProgress, IGitOutput } from './git'
@@ -62,9 +63,11 @@ function createProgressProcessCallback(
 
       process.on('close', () => {
         disposable.dispose()
-        // NB: We don't really care about errors deleting the file, but Node
-        // gets kinda bothered if we don't provide a callback.
-        Fs.unlink(lfsProgressPath, () => {})
+        const directory = Path.dirname(lfsProgressPath)
+        // this callbacks are empty because the Node runtime might report
+        // an error with unlinking - this is in the TEMP directory and there's
+        // not much the application can do at this point, so we'll just move on
+        Fs.unlink(directory, () => {})
       })
     }
 
