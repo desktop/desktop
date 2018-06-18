@@ -450,7 +450,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         allBranches: new Array<Branch>(),
         recentBranches: new Array<Branch>(),
         defaultBranch: null,
-        inferredComparisonBranch: {branch: null, aheadBehind: null},
+        inferredComparisonBranch: { branch: null, aheadBehind: null },
       },
       commitAuthor: null,
       gitHubUsers: new Map<string, IGitHubUser>(),
@@ -776,25 +776,39 @@ export class AppStore extends TypedBaseStore<IAppState> {
         : null
 
     const inferredBranch = await inferComparisonBranch(
-      allBranches,
       repository,
+      allBranches,
       currentPullRequest,
       currentBranch,
+      getRemotes,
       getAheadBehind
     )
-    const aheadBehindOfInferredBranch = this.getAheadBehindOfInferredBranch(repository)
+    const aheadBehindOfInferredBranch = this.getAheadBehindOfInferredBranch(
+      repository
+    )
     const prevInferredBranchState = state.compareState.inferredComparisonBranch
 
     this.updateCompareState(repository, state => ({
       allBranches,
       recentBranches,
       defaultBranch,
-      inferredComparisonBranch: { branch: inferredBranch, aheadBehind: aheadBehindOfInferredBranch },
+      inferredComparisonBranch: {
+        branch: inferredBranch,
+        aheadBehind: aheadBehindOfInferredBranch,
+      },
     }))
 
-    if (aheadBehindOfInferredBranch !== null && aheadBehindOfInferredBranch.behind > 0) {
-      if (prevInferredBranchState.aheadBehind === null || prevInferredBranchState.aheadBehind.behind !== aheadBehindOfInferredBranch.behind)
-      this._setDivergingBranchBannerVisibility(true)
+    if (
+      aheadBehindOfInferredBranch !== null &&
+      aheadBehindOfInferredBranch.behind > 0
+    ) {
+      if (
+        prevInferredBranchState.aheadBehind === null ||
+        prevInferredBranchState.aheadBehind.behind !==
+          aheadBehindOfInferredBranch.behind
+      ) {
+        this._setDivergingBranchBannerVisibility(true)
+      }
     }
 
     const compareState = state.compareState
@@ -811,7 +825,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private getAheadBehindOfInferredBranch(repository: Repository) {
-    const { branchesState, compareState} = this.getRepositoryState(repository)
+    const { branchesState, compareState } = this.getRepositoryState(repository)
     const tip = branchesState.tip
     const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
 
