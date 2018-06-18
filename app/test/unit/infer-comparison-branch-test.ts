@@ -160,7 +160,7 @@ describe('inferComparisonBranch', () => {
     expect(branch!.upstream).to.equal(testBranch.upstream)
   })
 
-  it.only("Returns the default branch of the fork's parent branch if the fork is not ahead of the current branch", async () => {
+  it("Returns the default branch of the fork's parent branch if the fork is not ahead of the current branch", async () => {
     const testBranch = branches[5]
     const parent = createTestGhRepo('parent', testBranch.nameWithoutRemote)
     const ghRepo = createTestGhRepo('test', branches[4].name, parent)
