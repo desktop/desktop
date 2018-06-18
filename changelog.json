@@ -3,10 +3,9 @@
     "1.2.4-beta1": [
       "[New] Dark Theme preview - #4849",
       "[Added] Syntax highlighting for Cake files - #4935. Thanks @say25!",
-      "[Fixed] Unhandled network error when refreshing pull requests fails - #4844",
-      "[Fixed] Compare tab is enabled when only two branches exists - #4947 #4730",
-      "[Fixed] Discard Changes context menu entry should contain ellipses when user needs to confirm - #4846. Thanks @yongdamsh!",
-      "[Fixed] Skip displaying an error when pull request API error - #4866",
+      "[Fixed] Unable to compare when two branches exist - #4947 #4730",
+      "[Fixed] Unhandled errors when refreshing pull requests fails - #4844 #4866",
+      "[Improved] Discard Changes context menu entry should contain ellipses when user needs to confirm - #4846. Thanks @yongdamsh!",
       "[Improved] Initializing syntax highlighting components - #4764",
       "[Improved] Only show overflow shadow when description overflows - #4898",
       "[Improved] Changes tab displays number of changed files instead of dot - #4772. Thanks @yongdamsh!"
