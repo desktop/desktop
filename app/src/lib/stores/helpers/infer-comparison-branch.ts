@@ -89,6 +89,8 @@ async function getDefaultBranchOfFork(
   getRemotes: RemotesGetter,
   getAheadBehind: AheadBehindGetter
 ): Promise<Branch | null> {
+  // this is guaranteed to exist since this function
+  // is only called if the ghRepo is not null
   const ghRepo = repository.gitHubRepository!
   const defaultBranch = getDefaultBranchOfGitHubRepo(branches, ghRepo)
   if (defaultBranch === null) {
@@ -113,6 +115,8 @@ async function getDefaultBranchOfForkedGitHubRepo(
   branches: ReadonlyArray<Branch>,
   getRemotes: RemotesGetter
 ): Promise<Branch | null> {
+  // this is guaranteed to exist since this function
+  // is only ever called if the ghRepo's parent is not null
   const parentRepo = repository.gitHubRepository!.parent!
   const remotes = await getRemotes(repository)
   const remote = remotes.find(r => r.url === parentRepo.cloneURL)
