@@ -55,21 +55,25 @@ export async function inferComparisonBranch(
 }
 
 function getMasterBranch(branches: ReadonlyArray<Branch>): Branch | null {
-  return branches.find(b => b.name === 'master') || null
+  return findBranch(branches, 'master')
 }
 
 function getDefaultBranchOfGitHubRepo(
   branches: ReadonlyArray<Branch>,
   ghRepository: GitHubRepository
 ): Branch | null {
-  return branches.find(b => b.name === ghRepository.defaultBranch) || null
+  if (ghRepository.defaultBranch === null) {
+    return null
+  }
+
+  return findBranch(branches, ghRepository.defaultBranch)
 }
 
 function getTargetBranchOfPullRequest(
   branches: ReadonlyArray<Branch>,
   pr: PullRequest
 ): Branch | null {
-  return branches.find(b => b.name === pr.base.ref) || null
+  return findBranch(branches, pr.base.ref)
 }
 
 /**
@@ -118,10 +122,14 @@ async function getDefaultBranchOfForkedGitHubRepo(
     return null
   }
 
-  const branch =
-    branches.find(
-      b => b.name === `${remote.name}/${parentRepo.defaultBranch}`
-    ) || null
+  const branchToFind = `${remote.name}/${parentRepo.defaultBranch}`
 
-  return branch
+  return findBranch(branches, branchToFind)
+}
+
+function findBranch(
+  branches: ReadonlyArray<Branch>,
+  name: string
+): Branch | null {
+  return branches.find(b => b.name === name) || null
 }
