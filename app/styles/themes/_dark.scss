@@ -60,12 +60,7 @@ body.theme-dark {
    * Background color for skeleton or "loading" boxes
    */
   --box-skeleton-background-color: $gray-700;
-  --skeleton-background-gradient: -webkit-linear-gradient(
-    left,
-    rgba(36, 41, 46, 0) 0%,
-    rgba(36, 41, 46, 0.5) 50%,
-    rgba(36, 41, 46, 0) 100%
-  );
+  --skeleton-background-gradient: -webkit-linear-gradient(left, rgba(36, 41, 46, 0) 0%, rgba(36, 41, 46, 0.5) 50%, rgba(36, 41, 46, 0) 100%);
 
   /**
    * Border color for boxes.
@@ -123,12 +118,7 @@ body.theme-dark {
    * for use when content can be expanded through other means than
    * scrolling.
    */
-  --box-overflow-shadow-background: linear-gradient(
-    180deg,
-    rgba($gray-900, 0) 0%,
-    rgba($gray-900, 1) 90%,
-    rgba($gray-900, 1) 100%
-  );
+  --box-overflow-shadow-background: linear-gradient(180deg, rgba($gray-900, 0) 0%, rgba($gray-900, 1) 90%, rgba($gray-900, 1) 100%);
 
   --base-border: 1px solid var(--box-border-color);
 
@@ -165,9 +155,7 @@ body.theme-dark {
     */
   --app-menu-button-color: var(--toolbar-text-color);
   --app-menu-button-hover-color: var(--toolbar-button-hover-color);
-  --app-menu-button-hover-background-color: var(
-    --toolbar-button-hover-background-color
-  );
+  --app-menu-button-hover-background-color: var(--toolbar-button-hover-background-color);
   --app-menu-button-active-color: var(--text-color);
   --app-menu-button-active-background-color: $gray-800;
   --app-menu-pane-color: var(--text-color);
