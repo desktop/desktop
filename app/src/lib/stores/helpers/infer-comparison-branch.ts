@@ -2,7 +2,7 @@ import { Branch, IAheadBehind } from '../../../models/branch'
 import { PullRequest } from '../../../models/pull-request'
 import { Repository } from '../../../models/repository'
 import { GitHubRepository } from '../../../models/github-repository'
-import { revRange } from '../../git'
+import { revRange, getRemotes } from '../../git'
 
 /**
  * Infers which branch to use as the comparison branch
@@ -96,8 +96,29 @@ async function getDefaultBranchOfFork(
 
   const parent = ghRepository.parent
   if (parent !== null && parent.defaultBranch !== null) {
-    return getDefaultBranchOfGitHubRepo(branches, parent)
+    return getDefaultBranchOfForkedGitHubRepo(branches, repository)
   }
 
   return null
+}
+
+async function getDefaultBranchOfForkedGitHubRepo(
+  branches: ReadonlyArray<Branch>,
+  repository: Repository
+): Promise<Branch | null> {
+  const parentRepo = repository.gitHubRepository!.parent!
+  const remotes = await getRemotes(repository)
+  const remote = remotes.find(r => r.url === parentRepo.cloneURL)
+
+  if (remote === undefined) {
+    log.warn(`Could not find remote with URL ${parentRepo.cloneURL}.`)
+    return null
+  }
+
+  const branch =
+    branches.find(
+      b => b.name === `${remote.name}/${parentRepo.defaultBranch}`
+    ) || null
+
+  return branch
 }
