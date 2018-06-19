@@ -58,6 +58,7 @@ export class CompareSidebar extends React.Component<
   private textbox: TextBox | null = null
   private readonly loadChangedFilesScheduler = new ThrottledScheduler(200)
   private branchList: BranchList | null = null
+  private loadingMoreCommitsPromise: Promise<void> | null = null
 
   public constructor(props: ICompareSidebarProps) {
     super(props)
@@ -401,7 +402,22 @@ export class CompareSidebar extends React.Component<
 
     const commits = compareState.commitSHAs
     if (commits.length - end <= CloseToBottomThreshold) {
-      this.props.dispatcher.loadNextHistoryBatch(this.props.repository)
+      if (this.loadingMoreCommitsPromise != null) {
+        // as this callback fires for any scroll event we need to guard
+        // against re-entrant calls to loadNextHistoryBatch
+        return
+      }
+
+      this.loadingMoreCommitsPromise = this.props.dispatcher
+        .loadNextHistoryBatch(this.props.repository)
+        .then(() => {
+          // deferring unsetting this flag to some time _after_ the commits
+          // have been appended to prevent eagerly adding more commits due
+          // to scroll events (which fire indiscriminately)
+          window.setTimeout(() => {
+            this.loadingMoreCommitsPromise = null
+          }, 500)
+        })
     }
   }
 
