@@ -116,6 +116,6 @@
     width: 100%;
     border: none;
     height: 1px;
-    border-bottom: var(--base-border);
+    border-bottom: 1px solid var(--app-menu-divider-color);
   }
 }

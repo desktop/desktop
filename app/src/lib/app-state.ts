@@ -1,7 +1,7 @@
 import { Account } from '../models/account'
 import { CommitIdentity } from '../models/commit-identity'
 import { IDiff } from '../models/diff'
-import { Repository } from '../models/repository'
+import { Repository, ILocalRepositoryState } from '../models/repository'
 
 import { Branch, IAheadBehind } from '../models/branch'
 import { Tip } from '../models/tip'
@@ -27,6 +27,7 @@ import { BranchesTab } from '../models/branches-tab'
 import { PullRequest } from '../models/pull-request'
 import { IAuthor } from '../models/author'
 import { ComparisonCache } from './comparison-cache'
+import { ApplicationTheme } from '../ui/lib/application-theme'
 
 export { ICommitMessage }
 
@@ -67,7 +68,15 @@ export type PossibleSelections =
 /** All of the shared app state. */
 export interface IAppState {
   readonly accounts: ReadonlyArray<Account>
+  /**
+   * The current list of repositories tracked in the application
+   */
   readonly repositories: ReadonlyArray<Repository | CloningRepository>
+
+  /**
+   * A cache of the latest repository state values, keyed by the repository id
+   */
+  readonly localRepositoryStateLookup: Map<number, ILocalRepositoryState>
 
   readonly selectedState: PossibleSelections | null
 
@@ -178,6 +187,9 @@ export interface IAppState {
 
   /** The currently selected tab for the Branches foldout. */
   readonly selectedBranchesTab: BranchesTab
+
+  /** The currently selected appearance (aka theme) */
+  readonly selectedTheme: ApplicationTheme
 }
 
 export enum PopupType {
