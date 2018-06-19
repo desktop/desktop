@@ -2,6 +2,7 @@ import * as React from 'react'
 import { Ref } from '../lib/ref'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Branch } from '../../models/branch'
+import { LinkButton } from '../lib/link-button';
 
 interface INewCommitsBannerProps {
   /**
@@ -41,8 +42,9 @@ export class NewCommitsBanner extends React.Component<
               behind <Ref>{this.props.baseBranch.name}</Ref>.
             </p>
 
-            <p className="notification-banner-content-body">
-              You can view these commits using the form below.
+            {/* TODO: chat with Will about this LinkButton */}
+            <p>
+              <LinkButton>View these commits</LinkButton>
             </p>
           </div>
         </div>
