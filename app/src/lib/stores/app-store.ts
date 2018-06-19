@@ -803,6 +803,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       },
     }))
 
+    // we only want to show the banner when the the number
+    // commits behind has changed since the last it was visible
     if (
       aheadBehindOfInferredBranch !== null &&
       aheadBehindOfInferredBranch.behind > 0

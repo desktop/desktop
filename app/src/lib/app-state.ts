@@ -675,7 +675,9 @@ export interface ICompareState {
   readonly aheadBehindCache: ComparisonCache
 
   /**
-   * The best-candidate branch to compare the current branch to
+   * The best candidate branch to compare the current branch to.
+   * Also includes the ahead/behind info for the inferred branch
+   * relative to the current branch.
    */
   readonly inferredComparisonBranch: {
     branch: Branch | null
