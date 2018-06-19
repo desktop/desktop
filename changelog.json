@@ -1,5 +1,8 @@
 {
   "releases": {
+    "1.2.4-beta2": [
+
+    ],
     "1.2.4-beta1": [
       "[New] Dark Theme preview - #4849",
       "[Added] Syntax highlighting for Cake files - #4935. Thanks @say25!",
