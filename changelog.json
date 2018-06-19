@@ -1,5 +1,15 @@
 {
   "releases": {
+    "1.2.4-beta1": [
+      "[New] Dark Theme preview - #4849",
+      "[Added] Syntax highlighting for Cake files - #4935. Thanks @say25!",
+      "[Fixed] Unable to compare when two branches exist - #4947 #4730",
+      "[Fixed] Unhandled errors when refreshing pull requests fails - #4844 #4866",
+      "[Improved] Discard Changes context menu entry should contain ellipses when user needs to confirm - #4846. Thanks @yongdamsh!",
+      "[Improved] Initializing syntax highlighting components - #4764",
+      "[Improved] Only show overflow shadow when description overflows - #4898",
+      "[Improved] Changes tab displays number of changed files instead of dot - #4772. Thanks @yongdamsh!"
+    ],
     "1.2.3": [
       "[Fixed] No autocomplete when searching for co-authors - #4847",
       "[Fixed] Error when checking out a PR from a fork - #4842"
