@@ -269,8 +269,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private selectedBranchesTab = BranchesTab.Branches
   private selectedTheme = ApplicationTheme.Light
-
-  private isDivergingBranchBannerVisible: boolean = false
+  private isDivergingBranchBannerVisible = false
 
   public constructor(
     gitHubUserStore: GitHubUserStore,
@@ -803,6 +802,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       },
     }))
 
+    this._setDivergingBranchBannerVisibility(false)
     // we only want to show the banner when the the number
     // commits behind has changed since the last it was visible
     if (

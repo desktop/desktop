@@ -53,6 +53,10 @@ interface IRepositoryViewProps {
    */
   readonly onOpenInExternalEditor: (fullPath: string) => void
 
+  /**
+   * Determines if the notification banner and associated dot
+   * on this history tab will be rendered
+   */
   readonly isDivergingBranchBannerVisible: boolean
 }
 
