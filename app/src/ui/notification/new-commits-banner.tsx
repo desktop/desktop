@@ -2,7 +2,6 @@ import * as React from 'react'
 import { Ref } from '../lib/ref'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Branch } from '../../models/branch'
-import { LinkButton } from '../lib/link-button';
 
 interface INewCommitsBannerProps {
   /**
@@ -37,14 +36,9 @@ export class NewCommitsBanner extends React.Component<
         <div className="notification-banner-content">
           <div>
             <p>
-              Your branch is{' '}
+              We have noticed that your branch is{' '}
               <strong>{this.props.commitsBehindBaseBranch} commits</strong>{' '}
               behind <Ref>{this.props.baseBranch.name}</Ref>.
-            </p>
-
-            {/* TODO: chat with Will about this LinkButton */}
-            <p>
-              <LinkButton>View these commits</LinkButton>
             </p>
           </div>
         </div>
