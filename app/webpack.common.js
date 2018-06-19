@@ -153,6 +153,7 @@ const highlighterConfig = merge({}, commonConfig, {
     chunkFilename: 'highlighter/[name].js',
   },
   optimization: {
+    namedChunks: true,
     splitChunks: {
       cacheGroups: {
         modes: {
