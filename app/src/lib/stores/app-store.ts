@@ -41,7 +41,11 @@ import {
 } from '../../lib/repository-matching'
 import { API, getAccountForEndpoint, IAPIUser } from '../../lib/api'
 import { caseInsensitiveCompare } from '../compare'
-import { Branch, eligibleForFastForward } from '../../models/branch'
+import {
+  Branch,
+  eligibleForFastForward,
+  IAheadBehind,
+} from '../../models/branch'
 import { TipState } from '../../models/tip'
 import { CloningRepository } from '../../models/cloning-repository'
 import { Commit } from '../../models/commit'
@@ -85,7 +89,6 @@ import {
   getRemotes,
   ITrailer,
   isCoAuthoredByTrailer,
-  getAheadBehind,
 } from '../git'
 
 import { launchExternalEditor } from '../editors'
@@ -758,7 +761,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const state = this.getRepositoryState(repository)
 
-    const { branchesState, compareState }= state
+    const { branchesState, compareState } = state
     const { tip, currentPullRequest } = branchesState
     const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
 
@@ -781,22 +784,25 @@ export class AppStore extends TypedBaseStore<IAppState> {
         ? cachedDefaultBranch
         : null
 
-    const inferredBranch = await inferComparisonBranch(
-      repository,
-      allBranches,
-      currentPullRequest,
-      currentBranch,
-      getRemotes,
-      getAheadBehind
-    )
-
-    const aheadBehindOfInferredBranch =
-      inferredBranch !== null &&
-      tip.kind === TipState.Valid
-        ? compareState.aheadBehindCache.get(tip.branch.tip.sha, inferredBranch.tip.sha)
-        : null
-
-    const prevInferredBranchState = state.compareState.inferredComparisonBranch
+    let inferredBranch: Branch | null = null
+    let aheadBehindOfInferredBranch: IAheadBehind | null = null
+    if (tip.kind === TipState.Valid) {
+      inferredBranch = await inferComparisonBranch(
+        repository,
+        allBranches,
+        currentPullRequest,
+        tip.branch,
+        getRemotes,
+        compareState.aheadBehindCache
+      )
+      aheadBehindOfInferredBranch =
+        inferredBranch !== null
+          ? compareState.aheadBehindCache.get(
+              tip.branch.tip.sha,
+              inferredBranch.tip.sha
+            )
+          : null
+    }
 
     this.updateCompareState(repository, state => ({
       allBranches,
@@ -811,10 +817,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // we only want to show the banner when the the number
     // commits behind has changed since the last it was visible
     if (
-      inferComparisonBranch !== null &&
+      inferredBranch !== null &&
       aheadBehindOfInferredBranch !== null &&
       aheadBehindOfInferredBranch.behind > 0
     ) {
+      const prevInferredBranchState =
+        state.compareState.inferredComparisonBranch
       if (
         prevInferredBranchState.aheadBehind === null ||
         prevInferredBranchState.aheadBehind.behind !==
@@ -822,7 +830,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       ) {
         this._setDivergingBranchBannerVisibility(true)
       }
-    } else if (inferComparisonBranch !== null || aheadBehindOfInferredBranch === null) {
+    } else if (
+      inferComparisonBranch !== null ||
+      aheadBehindOfInferredBranch === null
+    ) {
       this._setDivergingBranchBannerVisibility(false)
     }
 
