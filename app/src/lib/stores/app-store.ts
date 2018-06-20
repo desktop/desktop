@@ -1780,6 +1780,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     targetRepo?: Repository
   ): Promise<void> {
     if (enableRepoInfoIndicators()) {
+      console.time('refreshing all repositories')
       for (const repo of this.repositories) {
         if (!targetRepo || targetRepo.id === repo.id) {
           await this.withAuthenticatingUser(repo, async (repo, account) => {
@@ -1795,9 +1796,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
             }
           })
         }
-        this.emitUpdate()
-
       }
+      this.emitUpdate()
+      console.timeEnd('refreshing all repositories')
     }
   }
 
