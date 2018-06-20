@@ -131,7 +131,11 @@ import { IAuthor } from '../../models/author'
 import { ComparisonCache } from '../comparison-cache'
 import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
 import { enableCompareSidebar } from '../feature-flag'
-import { ApplicationTheme, getThemeName } from '../../ui/lib/application-theme'
+import {
+  ApplicationTheme,
+  getPersistedTheme,
+  setPersistedTheme,
+} from '../../ui/lib/application-theme'
 
 /**
  * Enum used by fetch to determine if
@@ -168,8 +172,6 @@ const imageDiffTypeDefault = ImageDiffType.TwoUp
 const imageDiffTypeKey = 'image-diff-type'
 
 const shellKey = 'shell'
-
-const applicationThemeKey = 'theme'
 
 // background fetching should not occur more than once every two minutes
 const BackgroundFetchMinimumInterval = 2 * 60 * 1000
@@ -1315,10 +1317,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         ? imageDiffTypeDefault
         : parseInt(imageDiffTypeValue)
 
-    this.selectedTheme =
-      localStorage.getItem(applicationThemeKey) === 'dark'
-        ? ApplicationTheme.Dark
-        : ApplicationTheme.Light
+    this.selectedTheme = getPersistedTheme()
 
     this.emitUpdateNow()
 
@@ -3680,7 +3679,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * Set the application-wide theme
    */
   public _setSelectedTheme(theme: ApplicationTheme) {
-    localStorage.setItem(applicationThemeKey, getThemeName(theme))
+    setPersistedTheme(theme)
     this.selectedTheme = theme
     this.emitUpdate()
 
