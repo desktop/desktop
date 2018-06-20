@@ -344,9 +344,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.accountsStore.onDidError(error => this.emitError(error))
 
     this.repositoriesStore.onDidUpdate(async () => {
-      this.repositories = await this.getRefreshedRepositories(
-        await this.repositoriesStore.getAll()
-      )
+      this.repositories = await this.repositoriesStore.getAll()
       this.updateRepositorySelectionAfterRepositoriesChanged()
       this.emitUpdate()
     })
@@ -1773,23 +1771,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this._updateCurrentPullRequest(repository)
     this.updateMenuItemLabels(repository)
     this._initializeCompare(repository)
-    this.repositories = await this.getRefreshedRepositories(
-      this.repositories,
+    await this.refreshAllRepositories(
       repository
     )
   }
 
-  public async refreshAllRepositories() {
-    this.repositories = await this.getRefreshedRepositories(this.repositories)
-    this.emitUpdate()
-  }
-
-  private async getRefreshedRepositories(
-    repositories: ReadonlyArray<Repository>,
+  public async refreshAllRepositories(
     targetRepo?: Repository
-  ): Promise<ReadonlyArray<Repository>> {
+  ): Promise<void> {
     if (enableRepoInfoIndicators()) {
-      for (const repo of repositories) {
+      for (const repo of this.repositories) {
         if (!targetRepo || targetRepo.id === repo.id) {
           await this.withAuthenticatingUser(repo, async (repo, account) => {
             const gitStore = this.getGitStore(repo)
@@ -1804,9 +1795,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
             }
           })
         }
+        this.emitUpdate()
+
       }
     }
-    return repositories
   }
 
   /**
