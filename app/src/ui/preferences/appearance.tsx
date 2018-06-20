@@ -1,5 +1,4 @@
 import * as React from 'react'
-//import { Row } from '../lib/row'
 import { DialogContent } from '../dialog'
 import {
   VerticalSegmentedControl,
@@ -18,7 +17,7 @@ const themes: ReadonlyArray<ISegmentedItem> = [
   {
     title: 'Dark (beta)',
     description:
-      'A beta version of our coming dark theme. Still under development. Please report any issues you may find to our issue tracker.',
+      'A beta version of our dark theme. Still under development. Please report any issues you may find to our issue tracker.',
   },
 ]
 
