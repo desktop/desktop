@@ -279,4 +279,9 @@ body.theme-dark {
   .blankslate-image {
     filter: #{'invert()'} grayscale(1) brightness(8) contrast(0.6);
   }
+
+  /** Diverging notification banner colors */
+  --notification-banner-background: $gray-800;
+  --notification-banner-border-color: $gray-700;
+  --notification-ref-background: $gray-700;
 }
