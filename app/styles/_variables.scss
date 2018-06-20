@@ -359,6 +359,10 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --path-segment-background: $blue-000;
   --path-segment-padding: var(--spacing-third);
 
+  /** Co-author colors **/
+  --handle-background: $blue-000;
+  --handle-border-color: $blue-200;
+
   /** Diverging notification banner colors */
   --notification-banner-background: $blue-000;
   --notification-banner-border-color: $blue-200;

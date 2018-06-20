@@ -276,6 +276,10 @@ body.theme-dark {
   /** Inline paths and code */
   --path-segment-background: $gray-700;
 
+  /** Co-author colors **/
+  --handle-background: rgba($blue-700, .75);
+  --handle-border-color: rgba($blue-600, .75);
+
   .blankslate-image {
     filter: #{'invert()'} grayscale(1) brightness(8) contrast(0.6);
   }
