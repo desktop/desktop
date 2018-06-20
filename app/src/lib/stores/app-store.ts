@@ -758,7 +758,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const state = this.getRepositoryState(repository)
 
-    const { branchesState, compareState }= state
+    const { branchesState, compareState } = state
     const { tip, currentPullRequest } = branchesState
     const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
 
@@ -791,9 +791,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
 
     const aheadBehindOfInferredBranch =
-      inferredBranch !== null &&
-      tip.kind === TipState.Valid
-        ? compareState.aheadBehindCache.get(tip.branch.tip.sha, inferredBranch.tip.sha)
+      inferredBranch !== null && tip.kind === TipState.Valid
+        ? compareState.aheadBehindCache.get(
+            tip.branch.tip.sha,
+            inferredBranch.tip.sha
+          )
         : null
 
     const prevInferredBranchState = state.compareState.inferredComparisonBranch
@@ -822,7 +824,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       ) {
         this._setDivergingBranchBannerVisibility(true)
       }
-    } else if (inferComparisonBranch !== null || aheadBehindOfInferredBranch === null) {
+    } else if (
+      inferComparisonBranch !== null ||
+      aheadBehindOfInferredBranch === null
+    ) {
       this._setDivergingBranchBannerVisibility(false)
     }
 
