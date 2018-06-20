@@ -1780,33 +1780,40 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this._updateCurrentPullRequest(repository)
     this.updateMenuItemLabels(repository)
     this._initializeCompare(repository)
-    this.refreshAllRepositories(repository)
+    this.refreshRepositoryState([repository])
   }
 
-  public async refreshAllRepositories(
-    targetRepo?: Repository
+  public refreshAllRepositories() {
+    return this.refreshRepositoryState(this.repositories)
+  }
+
+  private async refreshRepositoryState(
+    repositories: ReadonlyArray<Repository>
   ): Promise<void> {
-    if (enableRepoInfoIndicators()) {
-      console.time('refreshing all repositories')
-      for (const repo of this.repositories) {
-        if (!targetRepo || targetRepo.id === repo.id) {
-          await this.withAuthenticatingUser(repo, async (repo, account) => {
-            const gitStore = this.getGitStore(repo)
-            const lookup = this.localRepositoryStateLookup
-            await gitStore.fetch(account, true)
-            const status = await gitStore.loadStatus()
-            if (status !== null) {
-              lookup.set(repo.id, {
-                aheadBehind: gitStore.aheadBehind,
-                changedFilesCount: status.workingDirectory.files.length,
-              })
-            }
+    if (!enableRepoInfoIndicators()) {
+      return
+    }
+
+    const key = `refreshing ${repositories.length} repositories`
+
+    console.time(key)
+    for (const repo of repositories) {
+      await this.withAuthenticatingUser(repo, async (repo, account) => {
+        const gitStore = this.getGitStore(repo)
+        const lookup = this.localRepositoryStateLookup
+        await gitStore.fetch(account, true)
+        const status = await gitStore.loadStatus()
+        if (status !== null) {
+          lookup.set(repo.id, {
+            aheadBehind: gitStore.aheadBehind,
+            changedFilesCount: status.workingDirectory.files.length,
           })
         }
-      }
-      this.emitUpdate()
-      console.timeEnd('refreshing all repositories')
+      })
     }
+
+    this.emitUpdate()
+    console.timeEnd(key)
   }
 
   /**
