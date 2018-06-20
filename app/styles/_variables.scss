@@ -42,11 +42,8 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   // Typography
   //
   // Font, line-height, and color for body text, headings, and more.
-  --font-family-sans-serif: -apple-system, BlinkMacSystemFont, 'Segoe UI',
-    'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans',
-    'Helvetica Neue', Arial, sans-serif;
-  --font-family-monospace: Menlo, Monaco, Consolas, 'Liberation Mono',
-    'Courier New', monospace;
+  --font-family-sans-serif: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', Arial, sans-serif;
+  --font-family-monospace: Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
 
   /**
    * Font weight to use for semibold text
@@ -99,12 +96,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
    * Background color for skeleton or "loading" boxes
    */
   --box-skeleton-background-color: $gray-200;
-  --skeleton-background-gradient: -webkit-linear-gradient(
-    left,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.5) 50%,
-    rgba(255, 255, 255, 0) 100%
-  );
+  --skeleton-background-gradient: -webkit-linear-gradient(left, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.5) 50%, rgba(255, 255, 255, 0) 100%);
 
   /**
    * Border color for boxes.
@@ -162,12 +154,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
    * for use when content can be expanded through other means than
    * scrolling.
    */
-  --box-overflow-shadow-background: linear-gradient(
-    180deg,
-    rgba($white, 0) 0%,
-    rgba($white, 1) 90%,
-    rgba($white, 1) 100%
-  );
+  --box-overflow-shadow-background: linear-gradient(180deg, rgba($white, 0) 0%, rgba($white, 1) 90%, rgba($white, 1) 100%);
 
   /**
    * The height of the title bar area on Win32 platforms
@@ -221,6 +208,19 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --toolbar-button-focus-progress-color: $gray-700;
   --toolbar-button-hover-progress-color: $gray-700;
   --toolbar-dropdown-open-progress-color: $gray-200;
+
+  /**
+   * App menu bar colors (Windows/Linux only)
+   */
+  --app-menu-button-color: var(--toolbar-text-color);
+  --app-menu-button-hover-color: var(--toolbar-button-hover-color);
+  --app-menu-button-hover-background-color: var(--toolbar-button-hover-background-color);
+  --app-menu-button-active-color: var(--toolbar-button-active-color);
+  --app-menu-button-active-background-color: var(--toolbar-button-active-background-color);
+  --app-menu-pane-color: var(--text-color);
+  --app-menu-pane-secondary-color: var(--text-secondary-color);
+  --app-menu-pane-background-color: var(--toolbar-button-active-background-color);
+  --app-menu-divider-color: var(--box-border-color);
 
   /**
     * Background color for badges inside of toolbar buttons.
@@ -353,7 +353,6 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
 
   /** Dialog */
   --dialog-warning-color: $yellow-600;
-  --dialog-warning-text-color: $yellow-800;
   --dialog-error-color: $red;
 
   /** Inline paths and code */
