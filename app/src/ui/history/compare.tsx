@@ -1,4 +1,6 @@
 import * as React from 'react'
+import { CSSTransitionGroup } from 'react-transition-group'
+
 import { IGitHubUser } from '../../lib/databases'
 import { Commit } from '../../models/commit'
 import {
@@ -150,7 +152,7 @@ export class CompareSidebar extends React.Component<
             placeholder={placeholderText}
             onFocus={this.onTextBoxFocused}
             value={filterText}
-            disabled={allBranches.length <= 1}
+            disabled={allBranches.length === 0}
             onRef={this.onTextBoxRef}
             onValueChanged={this.onBranchFilterTextChanged}
             onKeyDown={this.onBranchFilterKeyDown}
@@ -168,31 +170,6 @@ export class CompareSidebar extends React.Component<
   }
 
   private renderNotificationBanner() {
-    if (!enableNotificationOfBranchUpdates) {
-      return null
-    }
-
-    if (!this.state.isDivergingBranchBannerVisible) {
-      return null
-    }
-
-    const { compareState } = this.props
-    const commitsBehindBaseBranch = this.getAheadBehindOfInferredBranch()
-
-    return commitsBehindBaseBranch !== null ? (
-      <div className="diverge-banner-wrapper">
-        <NewCommitsBanner
-          commitsBehindBaseBranch={commitsBehindBaseBranch.behind}
-          baseBranch={compareState.inferredComparisonBranch!}
-          onDismiss={this.onNotificationBannerDismissed}
-        />
-      </div>
-    ) : null
-  }
-
-  private getAheadBehindOfInferredBranch() {
-    const { compareState, currentBranch } = this.props
-
     if (
       !enableNotificationOfBranchUpdates ||
       !this.props.isDivergingBranchBannerVisible
@@ -204,11 +181,13 @@ export class CompareSidebar extends React.Component<
 
     return inferredComparisonBranch.branch !== null &&
       inferredComparisonBranch.aheadBehind !== null ? (
-      <NewCommitsBanner
-        commitsBehindBaseBranch={inferredComparisonBranch.aheadBehind.behind}
-        baseBranch={inferredComparisonBranch.branch}
-        onDismiss={this.onNotificationBannerDismissed}
-      />
+      <div className="diverge-banner-wrapper">
+        <NewCommitsBanner
+          commitsBehindBaseBranch={inferredComparisonBranch.aheadBehind.behind}
+          baseBranch={inferredComparisonBranch.branch}
+          onDismiss={this.onNotificationBannerDismissed}
+        />
+      </div>
     ) : null
   }
 
@@ -537,7 +516,7 @@ export class CompareSidebar extends React.Component<
 function getPlaceholderText(state: ICompareState) {
   const { allBranches, formState } = state
 
-  if (allBranches.length <= 1) {
+  if (allBranches.length === 0) {
     return __DARWIN__ ? 'No Branches to Compare' : 'No branches to compare'
   } else if (formState.kind === ComparisonView.None) {
     return __DARWIN__

@@ -67,7 +67,6 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       this.emitUpdate(githubRepo)
     } catch (error) {
       log.warn(`Error refreshing pull requests for '${repository.name}'`, error)
-      this.emitError(error)
     } finally {
       this.updateActiveFetchCount(githubRepo, Decrement)
     }

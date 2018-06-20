@@ -63,7 +63,7 @@
     &-active {
       max-height: 200px;
       opacity: 1;
-      transition: all var(--undo-animation-duration) cubic-bezier(0.0, 0.0, 0.2, 1);
+      transition: all var(--undo-animation-duration) cubic-bezier(0, 0, 0.2, 1);
     }
   }
 
@@ -73,12 +73,12 @@
     &-active {
       max-height: 0;
       opacity: 1;
-      transition: max-height 300ms cubic-bezier(0.4, 0.0, 0.2, 1);
+      transition: max-height 300ms cubic-bezier(0.4, 0, 0.2, 1);
 
       .diverge-banner {
         transform: translateX(-102%);
         opacity: 0;
-        transition: all 180ms cubic-bezier(0.4, 0.0, 1, 1);
+        transition: all 180ms cubic-bezier(0.4, 0, 1, 1);
       }
     }
   }

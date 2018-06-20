@@ -133,6 +133,7 @@ import { ComparisonCache } from '../comparison-cache'
 import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
 import { enableCompareSidebar } from '../feature-flag'
 import { inferComparisonBranch } from './helpers/infer-comparison-branch'
+import { ApplicationTheme, getThemeName } from '../../ui/lib/application-theme'
 
 /**
  * Enum used by fetch to determine if
@@ -169,6 +170,8 @@ const imageDiffTypeDefault = ImageDiffType.TwoUp
 const imageDiffTypeKey = 'image-diff-type'
 
 const shellKey = 'shell'
+
+const applicationThemeKey = 'theme'
 
 // background fetching should not occur more than once every two minutes
 const BackgroundFetchMinimumInterval = 2 * 60 * 1000
@@ -265,8 +268,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private selectedCloneRepositoryTab = CloneRepositoryTab.DotCom
 
   private selectedBranchesTab = BranchesTab.Branches
-
-  private isDivergingBranchBannerVisible: boolean = false
+  private selectedTheme = ApplicationTheme.Light
+  private isDivergingBranchBannerVisible = false
 
   public constructor(
     gitHubUserStore: GitHubUserStore,
@@ -604,6 +607,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       selectedCloneRepositoryTab: this.selectedCloneRepositoryTab,
       selectedBranchesTab: this.selectedBranchesTab,
       isDivergingBranchBannerVisible: this.isDivergingBranchBannerVisible,
+      selectedTheme: this.selectedTheme,
     }
   }
 
@@ -752,7 +756,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const state = this.getRepositoryState(repository)
 
-    const branchesState = state.branchesState
+    const { branchesState, compareState } = state
     const { tip, currentPullRequest } = branchesState
     const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
 
@@ -776,15 +780,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
         : null
 
     const inferredBranch = await inferComparisonBranch(
-      allBranches,
       repository,
+      allBranches,
       currentPullRequest,
       currentBranch,
+      getRemotes,
       getAheadBehind
     )
-    const aheadBehindOfInferredBranch = this.getAheadBehindOfInferredBranch(
-      repository
-    )
+
+    const aheadBehindOfInferredBranch =
+      inferredBranch !== null && tip.kind === TipState.Valid
+        ? compareState.aheadBehindCache.get(
+            tip.branch.tip.sha,
+            inferredBranch.tip.sha
+          )
+        : null
+
+    const prevInferredBranchState = state.compareState.inferredComparisonBranch
 
     this.updateCompareState(repository, state => ({
       allBranches,
@@ -796,17 +808,28 @@ export class AppStore extends TypedBaseStore<IAppState> {
       },
     }))
 
+    // we only want to show the banner when the the number
+    // commits behind has changed since the last it was visible
     if (
+      inferComparisonBranch !== null &&
       aheadBehindOfInferredBranch !== null &&
       aheadBehindOfInferredBranch.behind > 0
     ) {
-      this._setDivergingBranchBannerVisibility(true)
+      if (
+        prevInferredBranchState.aheadBehind === null ||
+        prevInferredBranchState.aheadBehind.behind !==
+          aheadBehindOfInferredBranch.behind
+      ) {
+        this._setDivergingBranchBannerVisibility(true)
+      }
+    } else if (
+      inferComparisonBranch !== null ||
+      aheadBehindOfInferredBranch === null
+    ) {
+      this._setDivergingBranchBannerVisibility(false)
     }
 
-    const compareState = state.compareState
-
     const cachedState = compareState.formState
-
     const action =
       initialAction != null ? initialAction : getInitialAction(cachedState)
     this._executeCompare(repository, action)
@@ -814,24 +837,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (currentBranch != null && this.currentAheadBehindUpdater != null) {
       this.currentAheadBehindUpdater.schedule(currentBranch, allBranches)
     }
-  }
-
-  private getAheadBehindOfInferredBranch(repository: Repository) {
-    const { branchesState, compareState } = this.getRepositoryState(repository)
-    const tip = branchesState.tip
-    const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
-
-    if (
-      currentBranch === null ||
-      compareState.inferredComparisonBranch.branch === null
-    ) {
-      return null
-    }
-
-    return compareState.aheadBehindCache.get(
-      currentBranch.tip.sha,
-      compareState.inferredComparisonBranch.branch.tip.sha
-    )
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -1355,6 +1360,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       imageDiffTypeValue === null
         ? imageDiffTypeDefault
         : parseInt(imageDiffTypeValue)
+
+    this.selectedTheme =
+      localStorage.getItem(applicationThemeKey) === 'dark'
+        ? ApplicationTheme.Dark
+        : ApplicationTheme.Light
 
     this.emitUpdateNow()
 
@@ -3715,6 +3725,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
    */
   public _recordCompareInitiatedMerge() {
     this.statsStore.recordCompareInitiatedMerge()
+  }
+
+  /**
+   * Set the application-wide theme
+   */
+  public _setSelectedTheme(theme: ApplicationTheme) {
+    localStorage.setItem(applicationThemeKey, getThemeName(theme))
+    this.selectedTheme = theme
+    this.emitUpdate()
+
+    return Promise.resolve()
   }
 }
 

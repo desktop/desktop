@@ -27,6 +27,7 @@ import { BranchesTab } from '../models/branches-tab'
 import { PullRequest } from '../models/pull-request'
 import { IAuthor } from '../models/author'
 import { ComparisonCache } from './comparison-cache'
+import { ApplicationTheme } from '../ui/lib/application-theme'
 
 export { ICommitMessage }
 
@@ -189,6 +190,8 @@ export interface IAppState {
 
   /** Show the diverging notification banner */
   readonly isDivergingBranchBannerVisible: boolean
+  /** The currently selected appearance (aka theme) */
+  readonly selectedTheme: ApplicationTheme
 }
 
 export enum PopupType {
@@ -672,7 +675,9 @@ export interface ICompareState {
   readonly aheadBehindCache: ComparisonCache
 
   /**
-   * The best-candidate branch to compare the current branch to
+   * The best candidate branch to compare the current branch to.
+   * Also includes the ahead/behind info for the inferred branch
+   * relative to the current branch.
    */
   readonly inferredComparisonBranch: {
     branch: Branch | null
