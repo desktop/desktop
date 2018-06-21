@@ -26,7 +26,7 @@ interface ISelectedCommitProps {
   readonly currentDiff: IDiff | null
   readonly commitSummaryWidth: number
   readonly gitHubUsers: Map<string, IGitHubUser>
-  readonly imageDiffType: ImageDiffType
+  readonly selectedDiffType: ImageDiffType
   /** The name of the currently selected external editor */
   readonly externalEditorLabel?: string
 
@@ -102,7 +102,7 @@ export class SelectedCommit extends React.Component<
     return (
       <Diff
         repository={this.props.repository}
-        imageDiffType={this.props.imageDiffType}
+        imageDiffType={this.props.selectedDiffType}
         file={file}
         diff={diff}
         readOnly={true}

@@ -284,7 +284,7 @@ export class RepositoryView extends React.Component<
           emoji={this.props.emoji}
           commitSummaryWidth={this.props.commitSummaryWidth}
           gitHubUsers={this.props.state.gitHubUsers}
-          imageDiffType={this.props.imageDiffType}
+          selectedDiffType={this.props.imageDiffType}
           externalEditorLabel={this.props.externalEditorLabel}
           onOpenInExternalEditor={this.props.onOpenInExternalEditor}
         />
