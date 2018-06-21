@@ -36,6 +36,10 @@ const DefaultDailyMeasures: IDailyMeasures = {
   updateFromDefaultBranchMenuCount: 0,
   mergeIntoCurrentBranchMenuCount: 0,
   prBranchCheckouts: 0,
+  divergingBranchBannerDismissal: 0,
+  divergingBranchBannerInitatedMerge: 0,
+  divergingBranchBannerInitiatedCompare: 0,
+  divergingBranchBannerInfluencedCompare: 0,
 }
 
 interface ICalculatedStats {
@@ -366,6 +370,40 @@ export class StatsStore {
   /** Has the user opted out of stats reporting? */
   public getOptOut(): boolean {
     return this.optOut
+  }
+
+  /** Record that user dismissed diverging branch notification */
+  public async recordDivergingBranchBannerDismissal(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      divergingBranchBannerDismissal: m.divergingBranchBannerDismissal + 1,
+    }))
+  }
+
+  /** Record that user initiated a merge from within the notification banner */
+  public async recordDivergingBranchBannerInitatedMerge(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      divergingBranchBannerInitatedMerge:
+        m.divergingBranchBannerInitatedMerge + 1,
+    }))
+  }
+
+  /** Record that user initiated a compare from within the notification banner */
+  public async recordDivergingBranchBannerInitiatedCompare(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      divergingBranchBannerInitiatedCompare:
+        m.divergingBranchBannerInitiatedCompare + 1,
+    }))
+  }
+
+  /**
+   * Record that user initiated a merge after getting to compare view
+   * from within notificatio banner
+   */
+  public async recordDivergingBranchBannerInfluencedCompare(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      divergingBranchBannerInfluencedCompare:
+        m.divergingBranchBannerInfluencedCompare + 1,
+    }))
   }
 
   /** Post some data to our stats endpoint. */
