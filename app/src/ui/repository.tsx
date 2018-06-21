@@ -270,17 +270,17 @@ export class RepositoryView extends React.Component<
 
       const sha = historyState.selection.sha
 
-      const commit =
+      const selectedCommit =
         sha != null ? this.props.state.commitLookup.get(sha) || null : null
 
       return (
         <SelectedCommit
           repository={this.props.repository}
           dispatcher={this.props.dispatcher}
-          history={historyState}
-          commit={commit}
+          selectedCommit={selectedCommit}
           changedFiles={historyState.changedFiles}
           selectedFile={historyState.selection.file}
+          currentDiff={historyState.diff}
           emoji={this.props.emoji}
           commitSummaryWidth={this.props.commitSummaryWidth}
           gitHubUsers={this.props.state.gitHubUsers}

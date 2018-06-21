@@ -8,24 +8,22 @@ import { Repository } from '../../models/repository'
 import { CommittedFileChange, FileChange } from '../../models/status'
 import { Commit } from '../../models/commit'
 import { Dispatcher } from '../../lib/dispatcher'
-import {
-  IHistoryState as IAppHistoryState,
-  ImageDiffType,
-} from '../../lib/app-state'
+import { ImageDiffType } from '../../lib/app-state'
 import { encodePathAsUrl } from '../../lib/path'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
 import { IGitHubUser } from '../../lib/databases'
 import { Resizable } from '../resizable'
 import { openFile } from '../../lib/open-file'
+import { IDiff } from '../../models/diff'
 
 interface ISelectedCommitProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
-  readonly history: IAppHistoryState
   readonly emoji: Map<string, string>
-  readonly commit: Commit | null
+  readonly selectedCommit: Commit | null
   readonly changedFiles: ReadonlyArray<CommittedFileChange>
   readonly selectedFile: CommittedFileChange | null
+  readonly currentDiff: IDiff | null
   readonly commitSummaryWidth: number
   readonly gitHubUsers: Map<string, IGitHubUser>
   readonly imageDiffType: ImageDiffType
@@ -67,8 +65,12 @@ export class SelectedCommit extends React.Component<
 
   public componentWillUpdate(nextProps: ISelectedCommitProps) {
     // reset isExpanded if we're switching commits.
-    const currentValue = this.props.commit ? this.props.commit.sha : undefined
-    const nextValue = nextProps.commit ? nextProps.commit.sha : undefined
+    const currentValue = this.props.selectedCommit
+      ? this.props.selectedCommit.sha
+      : undefined
+    const nextValue = nextProps.selectedCommit
+      ? nextProps.selectedCommit.sha
+      : undefined
 
     if ((currentValue || nextValue) && currentValue !== nextValue) {
       if (this.state.isExpanded) {
@@ -83,7 +85,7 @@ export class SelectedCommit extends React.Component<
 
   private renderDiff() {
     const file = this.props.selectedFile
-    const diff = this.props.history.diff
+    const diff = this.props.currentDiff
 
     if (file == null || diff == null) {
       // don't show both 'empty' messages
@@ -168,7 +170,7 @@ export class SelectedCommit extends React.Component<
   }
 
   public render() {
-    const commit = this.props.commit
+    const commit = this.props.selectedCommit
 
     if (commit == null) {
       return <NoCommitSelected />
