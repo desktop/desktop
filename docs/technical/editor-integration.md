@@ -1,7 +1,7 @@
 # "Open External Editor" integration
 
 GitHub Desktop supports the user choosing an external program to open their
-local repositories, and this is available from the top-level **Repository** menu 
+local repositories, and this is available from the top-level **Repository** menu
 or when right-clicking on a repository in the sidebar.
 
 ### My favourite editor XYZ isn't supported!
@@ -212,10 +212,11 @@ These editors are currently supported:
  - [PhpStorm](https://www.jetbrains.com/phpstorm/)
  - [RubyMine](https://www.jetbrains.com/rubymine/)
  - [TextMate](https://macromates.com)
- - [Brackets](http://brackets.io/) 
+ - [Brackets](http://brackets.io/)
      - To use Brackets the Command Line shortcut must be installed.
        - This can be done by opening Brackets, choosing File > Install Command Line Shortcut
-       
+ - [WebStorm](https://www.jetbrains.com/webstorm/)
+
 These are defined in an enum at the top of the file:
 
 ```ts
@@ -231,6 +232,7 @@ export enum ExternalEditor {
   RubyMine = 'RubyMine',
   TextMate = 'TextMate',
   Brackets = 'Brackets',
+  WebStorm = 'WebStorm',
 }
 ```
 

@@ -149,6 +149,7 @@ export const highlighter = merge({}, commonConfig, {
     chunkFilename: 'highlighter/[name].js',
   },
   optimization: {
+    namedChunks: true,
     splitChunks: {
       cacheGroups: {
         modes: {
