@@ -1,5 +1,9 @@
 {
   "releases": {
+    "1.2.4-beta3": [
+      "[Added] WebStorm support for macOS - #4841. Thanks @mrsimonfletcher!",
+      "[Improved] Update banner message clarifies that only Desktop needs to be restarted - #4891. Thanks @KennethSweezy!"
+    ],
     "1.2.4-beta2": [
 
     ],
