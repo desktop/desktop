@@ -80,10 +80,10 @@ describe('inferComparisonBranch', () => {
     createTestBranch('upstream/base', '5', 'upstream'),
     createTestBranch('fork', '6', 'origin'),
   ]
+  const comparisonCache = new ComparisonCache()
 
-  let comparisonCache: ComparisonCache
   beforeEach(() => {
-    comparisonCache = new ComparisonCache()
+    comparisonCache.clear()
   })
 
   it('Returns the master branch when given unhosted repo', async () => {
