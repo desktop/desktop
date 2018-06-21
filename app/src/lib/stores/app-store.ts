@@ -3721,7 +3721,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /**
-   * Increments either the `repoWithIndicatorClicked` or `repoWithoutIndicatorClicked` metric
+   * Increments either the `repoWithIndicatorClicked` or
+   * the `repoWithoutIndicatorClicked` metric
    */
   public _recordRepoClicked(repoHasIndicator: boolean) {
     this.statsStore.recordRepoClicked(repoHasIndicator)

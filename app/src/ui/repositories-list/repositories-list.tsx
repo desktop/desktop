@@ -107,6 +107,7 @@ export class RepositoriesList extends React.Component<
           (item.aheadBehind !== null
             ? !!item.aheadBehind.ahead || !!item.aheadBehind.behind
             : false)
+        // true if the clicked-on repo has at least one indicator
       )
     }
     this.props.onSelectionChanged(item.repository)

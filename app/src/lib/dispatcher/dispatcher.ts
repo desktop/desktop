@@ -1222,6 +1222,10 @@ export class Dispatcher {
     return this.appStore._setSelectedTheme(theme)
   }
 
+  /**
+   * Increments either the `repoWithIndicatorClicked` or
+   * the `repoWithoutIndicatorClicked` metric
+   */
   public recordRepoClicked(repoHasIndicator: boolean) {
     return this.appStore._recordRepoClicked(repoHasIndicator)
   }

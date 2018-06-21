@@ -278,8 +278,6 @@ export class StatsStore {
       }
       const newMeasures = merge(measuresWithDefaults, fn(measuresWithDefaults))
 
-      console.log(`updating: `, newMeasures)
-
       return this.db.dailyMeasures.put(newMeasures)
     })
   }
