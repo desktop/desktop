@@ -3742,6 +3742,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     return Promise.resolve()
   }
+
+  /**
+   * The number of times the user dismisses the diverged branch notification
+   */
+  public _recordDivergingBranchBannerDismissal() {
+    this.statsStore.recordDivergingBranchBannerDismissal()
+  }
 }
 
 function forkPullRequestRemoteName(remoteName: string) {
