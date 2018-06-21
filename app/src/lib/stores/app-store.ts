@@ -786,7 +786,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     let inferredBranch: Branch | null = null
     let aheadBehindOfInferredBranch: IAheadBehind | null = null
-    if (tip.kind === TipState.Valid) {
+    if (tip.kind === TipState.Valid && compareState.aheadBehindCache !== null) {
       inferredBranch = await inferComparisonBranch(
         repository,
         allBranches,
@@ -795,13 +795,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
         getRemotes,
         compareState.aheadBehindCache
       )
-      aheadBehindOfInferredBranch =
-        inferredBranch !== null
-          ? compareState.aheadBehindCache.get(
-              tip.branch.tip.sha,
-              inferredBranch.tip.sha
-            )
-          : null
+
+      if (inferredBranch !== null) {
+        aheadBehindOfInferredBranch = compareState.aheadBehindCache.get(
+          tip.branch.tip.sha,
+          inferredBranch.tip.sha
+        )
+      }
     }
 
     this.updateCompareState(repository, state => ({
@@ -2994,9 +2994,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  public _setDivergingBranchBannerVisibility(visibility: boolean) {
-    this.isDivergingBranchBannerVisible = visibility
-    this.emitUpdate()
+  public _setDivergingBranchBannerVisibility(visible: boolean) {
+    if (this.isDivergingBranchBannerVisible !== visible) {
+      this.isDivergingBranchBannerVisible = visible
+      this.emitUpdate()
+    }
   }
 
   public _reportStats() {

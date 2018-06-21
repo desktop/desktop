@@ -18,13 +18,10 @@ import {
 import { Dispatcher } from '../lib/dispatcher'
 import { IssuesStore, GitHubUserStore } from '../lib/stores'
 import { assertNever } from '../lib/fatal-error'
-import { Octicon, OcticonSymbol } from './octicons'
 import { Account } from '../models/account'
-import {
-  enableCompareSidebar,
-  enableNotificationOfBranchUpdates,
-} from '../lib/feature-flag'
+import { enableCompareSidebar } from '../lib/feature-flag'
 import { FocusContainer } from './lib/focus-container'
+import { OcticonSymbol, Octicon } from './octicons'
 
 /** The widest the sidebar can be with the minimum window size. */
 const MaxSidebarWidth = 495
@@ -89,11 +86,7 @@ export class RepositoryView extends React.Component<
       return null
     }
 
-    return enableNotificationOfBranchUpdates() ? (
-      <FilesChangedBadge filesChangedCount={filesChangedCount} />
-    ) : (
-      <Octicon className="indicator" symbol={OcticonSymbol.primitiveDot} />
-    )
+    return <FilesChangedBadge filesChangedCount={filesChangedCount} />
   }
 
   private renderTabs(): JSX.Element {
