@@ -188,6 +188,8 @@ export interface IAppState {
   /** The currently selected tab for the Branches foldout. */
   readonly selectedBranchesTab: BranchesTab
 
+  /** Show the diverging notification banner */
+  readonly isDivergingBranchBannerVisible: boolean
   /** The currently selected appearance (aka theme) */
   readonly selectedTheme: ApplicationTheme
 }
@@ -671,6 +673,16 @@ export interface ICompareState {
    * A local cache of ahead/behind computations to compare other refs to the current branch
    */
   readonly aheadBehindCache: ComparisonCache
+
+  /**
+   * The best candidate branch to compare the current branch to.
+   * Also includes the ahead/behind info for the inferred branch
+   * relative to the current branch.
+   */
+  readonly inferredComparisonBranch: {
+    branch: Branch | null
+    aheadBehind: IAheadBehind | null
+  }
 }
 
 export interface ICompareFormUpdate {

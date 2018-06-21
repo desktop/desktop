@@ -41,7 +41,11 @@ import {
 } from '../../lib/repository-matching'
 import { API, getAccountForEndpoint, IAPIUser } from '../../lib/api'
 import { caseInsensitiveCompare } from '../compare'
-import { Branch, eligibleForFastForward } from '../../models/branch'
+import {
+  Branch,
+  eligibleForFastForward,
+  IAheadBehind,
+} from '../../models/branch'
 import { TipState } from '../../models/tip'
 import { CloningRepository } from '../../models/cloning-repository'
 import { Commit } from '../../models/commit'
@@ -131,6 +135,7 @@ import { IAuthor } from '../../models/author'
 import { ComparisonCache } from '../comparison-cache'
 import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
 import { enableCompareSidebar } from '../feature-flag'
+import { inferComparisonBranch } from './helpers/infer-comparison-branch'
 import {
   ApplicationTheme,
   getPersistedTheme,
@@ -269,6 +274,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private selectedBranchesTab = BranchesTab.Branches
   private selectedTheme = ApplicationTheme.Light
+  private isDivergingBranchBannerVisible = false
 
   public constructor(
     gitHubUserStore: GitHubUserStore,
@@ -452,6 +458,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         allBranches: new Array<Branch>(),
         recentBranches: new Array<Branch>(),
         defaultBranch: null,
+        inferredComparisonBranch: { branch: null, aheadBehind: null },
       },
       commitAuthor: null,
       gitHubUsers: new Map<string, IGitHubUser>(),
@@ -604,6 +611,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repositoryFilterText: this.repositoryFilterText,
       selectedCloneRepositoryTab: this.selectedCloneRepositoryTab,
       selectedBranchesTab: this.selectedBranchesTab,
+      isDivergingBranchBannerVisible: this.isDivergingBranchBannerVisible,
       selectedTheme: this.selectedTheme,
     }
   }
@@ -753,8 +761,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const state = this.getRepositoryState(repository)
 
-    const branchesState = state.branchesState
-    const tip = branchesState.tip
+    const { branchesState, compareState } = state
+    const { tip, currentPullRequest } = branchesState
     const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
 
     const allBranches =
@@ -776,16 +784,60 @@ export class AppStore extends TypedBaseStore<IAppState> {
         ? cachedDefaultBranch
         : null
 
+    let inferredBranch: Branch | null = null
+    let aheadBehindOfInferredBranch: IAheadBehind | null = null
+    if (tip.kind === TipState.Valid) {
+      inferredBranch = await inferComparisonBranch(
+        repository,
+        allBranches,
+        currentPullRequest,
+        tip.branch,
+        getRemotes,
+        compareState.aheadBehindCache
+      )
+      aheadBehindOfInferredBranch =
+        inferredBranch !== null
+          ? compareState.aheadBehindCache.get(
+              tip.branch.tip.sha,
+              inferredBranch.tip.sha
+            )
+          : null
+    }
+
     this.updateCompareState(repository, state => ({
       allBranches,
       recentBranches,
       defaultBranch,
+      inferredComparisonBranch: {
+        branch: inferredBranch,
+        aheadBehind: aheadBehindOfInferredBranch,
+      },
     }))
 
-    const compareState = state.compareState
+    // we only want to show the banner when the the number
+    // commits behind has changed since the last it was visible
+    if (
+      inferredBranch !== null &&
+      aheadBehindOfInferredBranch !== null &&
+      aheadBehindOfInferredBranch.behind > 0
+    ) {
+      const prevInferredBranchState =
+        state.compareState.inferredComparisonBranch
+      if (
+        prevInferredBranchState.aheadBehind === null ||
+        prevInferredBranchState.aheadBehind.behind !==
+          aheadBehindOfInferredBranch.behind
+      ) {
+        this._setDivergingBranchBannerVisibility(true)
+      }
+    } else if (
+      inferComparisonBranch !== null ||
+      aheadBehindOfInferredBranch === null
+    ) {
+      this._setDivergingBranchBannerVisibility(false)
+    }
 
     const cachedState = compareState.formState
-
     const action =
       initialAction != null ? initialAction : getInitialAction(cachedState)
     this._executeCompare(repository, action)
@@ -2939,6 +2991,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _setUpdateBannerVisibility(visibility: boolean) {
     this.isUpdateAvailableBannerVisible = visibility
 
+    this.emitUpdate()
+  }
+
+  public _setDivergingBranchBannerVisibility(visibility: boolean) {
+    this.isDivergingBranchBannerVisible = visibility
     this.emitUpdate()
   }
 
