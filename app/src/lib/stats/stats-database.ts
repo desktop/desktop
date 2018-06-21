@@ -62,6 +62,20 @@ export interface IDailyMeasures {
   /** The numbers of times a repo (with vs without indicators) is clicked on repo list view */
   readonly repoWithIndicatorClicked: number
   readonly repoWithoutIndicatorClicked: number
+  /** The number of times the user dismisses the diverged branch notification */
+  readonly divergingBranchBannerDismissal: number
+
+  /** The number of times the user merges from the diverged branch notification merge CTA button */
+  readonly divergingBranchBannerInitatedMerge: number
+
+  /** The number of times the user compares from the diverged branch notification compare CTA button */
+  readonly divergingBranchBannerInitiatedCompare: number
+
+  /**
+   * The number of times the user merges from the compare view after getting to that state
+   * from the diverged branch notification compare CTA button
+   */
+  readonly divergingBranchBannerInfluencedCompare: number
 }
 
 export class StatsDatabase extends Dexie {
