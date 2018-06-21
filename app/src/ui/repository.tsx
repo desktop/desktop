@@ -7,7 +7,7 @@ import { Changes, ChangesSidebar } from './changes'
 import { NoChanges } from './changes/no-changes'
 import { MultipleSelection } from './changes/multiple-selection'
 import { FilesChangedBadge } from './changes/files-changed-badge'
-import { History, CompareSidebar } from './history'
+import { SelectedCommit, CompareSidebar } from './history'
 import { Resizable } from './resizable'
 import { TabBar } from './tab-bar'
 import {
@@ -267,7 +267,7 @@ export class RepositoryView extends React.Component<
       }
     } else if (selectedSection === RepositorySectionTab.History) {
       return (
-        <History
+        <SelectedCommit
           repository={this.props.repository}
           dispatcher={this.props.dispatcher}
           history={this.props.state.historyState}

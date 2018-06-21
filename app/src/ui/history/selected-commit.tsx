@@ -18,7 +18,7 @@ import { IGitHubUser } from '../../lib/databases'
 import { Resizable } from '../resizable'
 import { openFile } from '../../lib/open-file'
 
-interface IHistoryProps {
+interface ISelectedCommitProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
   readonly history: IAppHistoryState
@@ -37,15 +37,18 @@ interface IHistoryProps {
   readonly onOpenInExternalEditor: (path: string) => void
 }
 
-interface IHistoryState {
+interface ISelectedCommitState {
   readonly isExpanded: boolean
 }
 
 /** The History component. Contains the commit list, commit summary, and diff. */
-export class History extends React.Component<IHistoryProps, IHistoryState> {
+export class SelectedCommit extends React.Component<
+  ISelectedCommitProps,
+  ISelectedCommitState
+> {
   private readonly loadChangedFilesScheduler = new ThrottledScheduler(200)
 
-  public constructor(props: IHistoryProps) {
+  public constructor(props: ISelectedCommitProps) {
     super(props)
 
     this.state = {
@@ -60,7 +63,7 @@ export class History extends React.Component<IHistoryProps, IHistoryState> {
     )
   }
 
-  public componentWillUpdate(nextProps: IHistoryProps) {
+  public componentWillUpdate(nextProps: ISelectedCommitProps) {
     // Reset isExpanded if we're switching commits.
     if (nextProps.history.selection.sha !== this.props.history.selection.sha) {
       if (this.state.isExpanded) {
