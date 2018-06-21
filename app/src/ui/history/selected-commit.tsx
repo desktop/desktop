@@ -24,6 +24,8 @@ interface ISelectedCommitProps {
   readonly history: IAppHistoryState
   readonly emoji: Map<string, string>
   readonly commit: Commit | null
+  readonly changedFiles: ReadonlyArray<CommittedFileChange>
+  readonly selectedFile: CommittedFileChange | null
   readonly commitSummaryWidth: number
   readonly gitHubUsers: Map<string, IGitHubUser>
   readonly imageDiffType: ImageDiffType
@@ -80,13 +82,13 @@ export class SelectedCommit extends React.Component<
   }
 
   private renderDiff() {
-    const files = this.props.history.changedFiles
-    const file = this.props.history.selection.file
+    const file = this.props.selectedFile
     const diff = this.props.history.diff
 
-    if (!diff || !file) {
+    if (file == null || diff == null) {
       // don't show both 'empty' messages
-      const message = files.length === 0 ? '' : 'No file selected'
+      const message =
+        this.props.changedFiles.length === 0 ? '' : 'No file selected'
 
       return (
         <div className="panel blankslate" id="diff">
@@ -111,7 +113,7 @@ export class SelectedCommit extends React.Component<
     return (
       <CommitSummary
         commit={commit}
-        files={this.props.history.changedFiles}
+        files={this.props.changedFiles}
         emoji={this.props.emoji}
         repository={this.props.repository}
         gitHubUsers={this.props.gitHubUsers}
@@ -134,7 +136,7 @@ export class SelectedCommit extends React.Component<
   }
 
   private renderFileList() {
-    const files = this.props.history.changedFiles
+    const files = this.props.changedFiles
     if (files.length === 0) {
       return <div className="fill-window">No files in commit</div>
     }
@@ -146,7 +148,7 @@ export class SelectedCommit extends React.Component<
       <FileList
         files={files}
         onSelectedFileChanged={this.onFileSelected}
-        selectedFile={this.props.history.selection.file}
+        selectedFile={this.props.selectedFile}
         availableWidth={availableWidth}
         onOpenItem={this.onOpenItem}
         externalEditorLabel={this.props.externalEditorLabel}
