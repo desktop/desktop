@@ -58,6 +58,10 @@ export interface IDailyMeasures {
 
   /** The number of times the user checks out a branch using the PR menu */
   readonly prBranchCheckouts: number
+
+  /** The numbers of times a repo (with vs without indicators) is clicked on repo list view */
+  readonly repoWithIndicatorClicked: number
+  readonly repoWithoutIndicatorClicked: number
 }
 
 export class StatsDatabase extends Dexie {

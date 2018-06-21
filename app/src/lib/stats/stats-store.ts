@@ -36,6 +36,8 @@ const DefaultDailyMeasures: IDailyMeasures = {
   updateFromDefaultBranchMenuCount: 0,
   mergeIntoCurrentBranchMenuCount: 0,
   prBranchCheckouts: 0,
+  repoWithIndicatorClicked: 0,
+  repoWithoutIndicatorClicked: 0,
 }
 
 interface ICalculatedStats {
@@ -276,6 +278,8 @@ export class StatsStore {
       }
       const newMeasures = merge(measuresWithDefaults, fn(measuresWithDefaults))
 
+      console.log(`updating: `, newMeasures)
+
       return this.db.dailyMeasures.put(newMeasures)
     })
   }
@@ -348,6 +352,18 @@ export class StatsStore {
     return this.updateDailyMeasures(m => ({
       prBranchCheckouts: m.prBranchCheckouts + 1,
     }))
+  }
+
+  public recordRepoClicked(repoHasIndicator: boolean): Promise<void> {
+    if (repoHasIndicator) {
+      return this.updateDailyMeasures(m => ({
+        repoWithIndicatorClicked: m.repoWithIndicatorClicked + 1,
+      }))
+    } else {
+      return this.updateDailyMeasures(m => ({
+        repoWithoutIndicatorClicked: m.repoWithoutIndicatorClicked + 1,
+      }))
+    }
   }
 
   /** Set whether the user has opted out of stats reporting. */

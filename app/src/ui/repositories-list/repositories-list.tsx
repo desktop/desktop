@@ -11,6 +11,8 @@ import { FilterList } from '../lib/filter-list'
 import { IMatches } from '../../lib/fuzzy-find'
 import { assertNever } from '../../lib/fatal-error'
 import { ILocalRepositoryState } from '../../models/repository'
+import { enableRepoInfoIndicators } from '../../lib/feature-flag'
+import { Dispatcher } from '../../lib/dispatcher'
 
 interface IRepositoriesListProps {
   readonly selectedRepository: Repositoryish | null
@@ -45,6 +47,8 @@ interface IRepositoriesListProps {
 
   /** The text entered by the user to filter their repository list */
   readonly filterText: string
+
+  readonly dispatcher: Dispatcher
 }
 
 const RowHeight = 29
@@ -97,6 +101,14 @@ export class RepositoriesList extends React.Component<
   }
 
   private onItemClick = (item: IRepositoryListItem) => {
+    if (enableRepoInfoIndicators) {
+      this.props.dispatcher.recordRepoClicked(
+        !!item.changedFilesCount ||
+          (item.aheadBehind !== null
+            ? !!item.aheadBehind.ahead || !!item.aheadBehind.behind
+            : false)
+      )
+    }
     this.props.onSelectionChanged(item.repository)
   }
 

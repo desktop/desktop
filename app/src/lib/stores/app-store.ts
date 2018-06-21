@@ -3719,6 +3719,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     return Promise.resolve()
   }
+
+  /**
+   * Increments either the `repoWithIndicatorClicked` or `repoWithoutIndicatorClicked` metric
+   */
+  public _recordRepoClicked(repoHasIndicator: boolean) {
+    this.statsStore.recordRepoClicked(repoHasIndicator)
+  }
 }
 
 function forkPullRequestRemoteName(remoteName: string) {
