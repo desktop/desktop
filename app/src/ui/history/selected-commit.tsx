@@ -76,7 +76,7 @@ export class SelectedCommit extends React.Component<
     this.loadChangedFilesScheduler.clear()
   }
 
-  private renderDiff(commit: Commit | null) {
+  private renderDiff() {
     const files = this.props.history.changedFiles
     const file = this.props.history.selection.file
     const diff = this.props.history.diff
@@ -183,7 +183,7 @@ export class SelectedCommit extends React.Component<
           >
             {this.renderFileList()}
           </Resizable>
-          {this.renderDiff(commit)}
+          {this.renderDiff()}
         </div>
       </div>
     )
