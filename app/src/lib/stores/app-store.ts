@@ -131,6 +131,11 @@ import { IAuthor } from '../../models/author'
 import { ComparisonCache } from '../comparison-cache'
 import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
 import { enableCompareSidebar } from '../feature-flag'
+import {
+  ApplicationTheme,
+  getPersistedTheme,
+  setPersistedTheme,
+} from '../../ui/lib/application-theme'
 
 /**
  * Enum used by fetch to determine if
@@ -263,6 +268,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private selectedCloneRepositoryTab = CloneRepositoryTab.DotCom
 
   private selectedBranchesTab = BranchesTab.Branches
+  private selectedTheme = ApplicationTheme.Light
 
   public constructor(
     gitHubUserStore: GitHubUserStore,
@@ -598,6 +604,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repositoryFilterText: this.repositoryFilterText,
       selectedCloneRepositoryTab: this.selectedCloneRepositoryTab,
       selectedBranchesTab: this.selectedBranchesTab,
+      selectedTheme: this.selectedTheme,
     }
   }
 
@@ -1309,6 +1316,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       imageDiffTypeValue === null
         ? imageDiffTypeDefault
         : parseInt(imageDiffTypeValue)
+
+    this.selectedTheme = getPersistedTheme()
 
     this.emitUpdateNow()
 
@@ -3664,6 +3673,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
    */
   public _recordCompareInitiatedMerge() {
     this.statsStore.recordCompareInitiatedMerge()
+  }
+
+  /**
+   * Set the application-wide theme
+   */
+  public _setSelectedTheme(theme: ApplicationTheme) {
+    setPersistedTheme(theme)
+    this.selectedTheme = theme
+    this.emitUpdate()
+
+    return Promise.resolve()
   }
 }
 
