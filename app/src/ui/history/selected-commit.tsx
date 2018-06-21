@@ -23,7 +23,7 @@ interface ISelectedCommitProps {
   readonly dispatcher: Dispatcher
   readonly history: IAppHistoryState
   readonly emoji: Map<string, string>
-  readonly commits: Map<string, Commit>
+  readonly commit: Commit | null
   readonly commitSummaryWidth: number
   readonly gitHubUsers: Map<string, IGitHubUser>
   readonly imageDiffType: ImageDiffType
@@ -64,8 +64,11 @@ export class SelectedCommit extends React.Component<
   }
 
   public componentWillUpdate(nextProps: ISelectedCommitProps) {
-    // Reset isExpanded if we're switching commits.
-    if (nextProps.history.selection.sha !== this.props.history.selection.sha) {
+    // reset isExpanded if we're switching commits.
+    const currentValue = this.props.commit ? this.props.commit.sha : undefined
+    const nextValue = nextProps.commit ? nextProps.commit.sha : undefined
+
+    if ((currentValue || nextValue) && currentValue !== nextValue) {
       if (this.state.isExpanded) {
         this.setState({ isExpanded: false })
       }
@@ -163,10 +166,9 @@ export class SelectedCommit extends React.Component<
   }
 
   public render() {
-    const sha = this.props.history.selection.sha
-    const commit = sha ? this.props.commits.get(sha) || null : null
+    const commit = this.props.commit
 
-    if (!sha || !commit) {
+    if (commit == null) {
       return <NoCommitSelected />
     }
 

@@ -266,13 +266,18 @@ export class RepositoryView extends React.Component<
         )
       }
     } else if (selectedSection === RepositorySectionTab.History) {
+      const sha = this.props.state.historyState.selection.sha
+
+      const commit =
+        sha != null ? this.props.state.commitLookup.get(sha) || null : null
+
       return (
         <SelectedCommit
           repository={this.props.repository}
           dispatcher={this.props.dispatcher}
           history={this.props.state.historyState}
+          commit={commit}
           emoji={this.props.emoji}
-          commits={this.props.state.commitLookup}
           commitSummaryWidth={this.props.commitSummaryWidth}
           gitHubUsers={this.props.state.gitHubUsers}
           imageDiffType={this.props.imageDiffType}
