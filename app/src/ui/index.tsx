@@ -50,7 +50,6 @@ import {
   enableSourceMaps,
   withSourceMappedStack,
 } from '../lib/source-map-support'
-import { enableCompareSidebar } from '../lib/feature-flag'
 
 if (__DEV__) {
   installDevGlobals()
@@ -140,9 +139,7 @@ dispatcher.registerErrorHandler(defaultErrorHandler)
 dispatcher.registerErrorHandler(upstreamAlreadyExistsHandler)
 dispatcher.registerErrorHandler(externalEditorErrorHandler)
 dispatcher.registerErrorHandler(openShellErrorHandler)
-if (enableCompareSidebar()) {
-  dispatcher.registerErrorHandler(mergeConflictHandler)
-}
+dispatcher.registerErrorHandler(mergeConflictHandler)
 dispatcher.registerErrorHandler(lfsAttributeMismatchHandler)
 dispatcher.registerErrorHandler(gitAuthenticationErrorHandler)
 dispatcher.registerErrorHandler(pushNeedsPullHandler)
