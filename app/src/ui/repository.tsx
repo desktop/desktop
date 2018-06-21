@@ -21,6 +21,7 @@ import { assertNever } from '../lib/fatal-error'
 import { Account } from '../models/account'
 import { enableCompareSidebar } from '../lib/feature-flag'
 import { FocusContainer } from './lib/focus-container'
+import { OcticonSymbol, Octicon } from './octicons'
 
 /** The widest the sidebar can be with the minimum window size. */
 const MaxSidebarWidth = 495
