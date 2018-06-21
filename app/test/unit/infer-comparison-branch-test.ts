@@ -81,9 +81,9 @@ describe('inferComparisonBranch', () => {
     createTestBranch('fork', '6', 'origin'),
   ]
 
-  let mockComparisonCache: ComparisonCache
+  let comparisonCache: ComparisonCache
   beforeEach(() => {
-    mockComparisonCache = new ComparisonCache()
+    comparisonCache = new ComparisonCache()
   })
 
   it('Returns the master branch when given unhosted repo', async () => {
@@ -94,7 +94,7 @@ describe('inferComparisonBranch', () => {
       null,
       null,
       mockGetRemotes,
-      mockComparisonCache
+      comparisonCache
     )
 
     expect(branch).is.not.null
@@ -111,7 +111,7 @@ describe('inferComparisonBranch', () => {
       null,
       null,
       mockGetRemotes,
-      mockComparisonCache
+      comparisonCache
     )
 
     expect(branch).is.not.null
@@ -131,7 +131,7 @@ describe('inferComparisonBranch', () => {
       pr,
       null,
       mockGetRemotes,
-      mockComparisonCache
+      comparisonCache
     )
 
     expect(branch).is.not.null
@@ -145,7 +145,7 @@ describe('inferComparisonBranch', () => {
     const fork = createTestGhRepo('fork', 'fork', parent)
     const repo = createTestRepo(fork)
 
-    mockComparisonCache.set(currentBranch.tip.sha, defaultBranch.tip.sha, {
+    comparisonCache.set(currentBranch.tip.sha, defaultBranch.tip.sha, {
       ahead: 1,
       behind: 0,
     })
@@ -156,7 +156,7 @@ describe('inferComparisonBranch', () => {
       null,
       currentBranch,
       mockGetRemotes,
-      mockComparisonCache
+      comparisonCache
     )
 
     expect(branch).is.not.null
@@ -181,7 +181,7 @@ describe('inferComparisonBranch', () => {
       return Promise.resolve(remotes)
     }
 
-    mockComparisonCache.set(
+    comparisonCache.set(
       defaultBranchOfParent.tip.sha,
       defaultBranchOfFork.tip.sha,
       {
@@ -196,7 +196,7 @@ describe('inferComparisonBranch', () => {
       null,
       defaultBranchOfParent,
       mockGetRemotes,
-      mockComparisonCache
+      comparisonCache
     )
 
     expect(branch).is.not.null

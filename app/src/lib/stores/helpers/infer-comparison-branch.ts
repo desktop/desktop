@@ -94,27 +94,24 @@ async function getDefaultBranchOfFork(
     return getMasterBranch(branches)
   }
 
-  // I need to keep track of ahead/behind of two branches and return based on which one has ahead > 0
   const aheadBehind = comparisonCache.get(
     currentBranch.tip.sha,
     defaultBranch.tip.sha
   )
-  if (
-    aheadBehind !== null &&
-    aheadBehind.ahead > 0 &&
-    ghRepo.parent !== null &&
-    ghRepo.parent.defaultBranch !== null
-  ) {
+
+  // we want to return the default branch of the fork if it's ahead
+  // of the current branch; see https://github.com/desktop/desktop/issues/4766#issue-325764371
+  if (aheadBehind !== null && aheadBehind.ahead > 0) {
     return defaultBranch
   }
 
-  const potentialdefaultBranchOfParent = await getDefaultBranchOfForkedGitHubRepo(
+  const potentialDefault = await getDefaultBranchOfForkedGitHubRepo(
     repository,
     branches,
     getRemotes
   )
 
-  return potentialdefaultBranchOfParent
+  return potentialDefault
 }
 
 async function getDefaultBranchOfForkedGitHubRepo(
@@ -122,9 +119,15 @@ async function getDefaultBranchOfForkedGitHubRepo(
   branches: ReadonlyArray<Branch>,
   getRemotes: RemotesGetter
 ): Promise<Branch | null> {
-  // this is guaranteed to exist since this function
-  // is only ever called if the ghRepo's parent is not null
-  const parentRepo = repository.gitHubRepository!.parent!
+  const parentRepo =
+    repository.gitHubRepository !== null
+      ? repository.gitHubRepository.parent
+      : null
+
+  if (parentRepo === null) {
+    return null
+  }
+
   const remotes = await getRemotes(repository)
   const remote = remotes.find(r => r.url === parentRepo.cloneURL)
 
