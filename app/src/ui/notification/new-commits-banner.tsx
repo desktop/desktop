@@ -14,6 +14,10 @@ interface INewCommitsBannerProps {
    * from the current branch
    */
   readonly baseBranch: Branch
+
+  /**
+   * Callback used to dismiss the banner
+   */
   readonly onDismiss: () => void
 }
 
