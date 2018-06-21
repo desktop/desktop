@@ -43,6 +43,6 @@ export function enableNotificationOfBranchUpdates(): boolean {
 }
 
 /** Should the repository list display info indicators? */
-export function enableRepoInfoIndicators(): Boolean {
+export function enableRepoInfoIndicators(): boolean {
   return enableDevelopmentFeatures()
 }
