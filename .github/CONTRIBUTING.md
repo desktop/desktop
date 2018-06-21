@@ -149,15 +149,15 @@ pull requests.
 
 | Label name | :mag_right: | Description |
 | --- | --- | --- |
-| `enhancement` | [search](https://github.com/desktop/desktop/labels/enhancement) | Feature requests. |
-| `bug` | [search](https://github.com/desktop/desktop/labels/bug)  | Confirmed bugs or reports that are very likely to be bugs. |
-| `more-information-needed` | [search](https://github.com/desktop/desktop/labels/more-information-needed) | More information needs to be collected about these problems or feature requests (e.g. steps to reproduce). |
-| `reviewer-needs-to-reproduce` | [search](https://github.com/desktop/desktop/labels/reviewer-needs-to-reproduce)  | Likely bugs, but haven't been reliably reproduced by a reviewer. |
-| `stale` | [search](https://github.com/desktop/desktop/labels/stale) | Issues that are inactive and marked to be closed. |
-| `macOS` | [search](https://github.com/desktop/desktop/labels/macOS)  | Issues specific to macOS users. |
-| `Windows` | [search](https://github.com/desktop/desktop/labels/Windows)  | Issues specific to Windows users. |
-| `codemirror` | [search](https://github.com/desktop/desktop/labels/codemirror)  | Issues related to our use of [CodeMirror](https://codemirror.net/) that may require upstream fixes. |
-| `electron` | [search](https://github.com/desktop/desktop/labels/electron) | Issues related to our use of [Electron](https://electron.atom.io) that may require upstream fixes. |
+| `enhancement` | [search](https://github.com/desktop/desktop/labels/enhancement) | Feature requests |
+| `bug` | [search](https://github.com/desktop/desktop/labels/bug)  | Confirmed bugs or reports that are very likely to be bugs |
+| `more-information-needed` | [search](https://github.com/desktop/desktop/labels/more-information-needed) | More information needs to be collected about these problems or feature requests (e.g. steps to reproduce) |
+| `reviewer-needs-to-reproduce` | [search](https://github.com/desktop/desktop/labels/reviewer-needs-to-reproduce)  | Potential bugs that still need to be reliably reproduced by a reviewer |
+| `stale` | [search](https://github.com/desktop/desktop/labels/stale) | Issues that are inactive and marked to be closed |
+| `macOS` | [search](https://github.com/desktop/desktop/labels/macOS)  | Issues specific to macOS users |
+| `Windows` | [search](https://github.com/desktop/desktop/labels/Windows)  | Issues specific to Windows users |
+| `codemirror` | [search](https://github.com/desktop/desktop/labels/codemirror)  | Issues related to our use of [CodeMirror](https://codemirror.net/) that may require upstream fixes |
+| `electron` | [search](https://github.com/desktop/desktop/labels/electron) | Issues related to our use of [Electron](https://electron.atom.io) that may require upstream fixes |
 
 #### Topics
 
