@@ -59,7 +59,8 @@ export async function getStatus(
   const result = await git(
     ['status', '--untracked-files=all', '--branch', '--porcelain=2', '-z'],
     repository.path,
-    'getStatus'
+    'getStatus',
+    { maxBuffer: 20 * 1024 * 1024 }
   )
 
   // Map of files keyed on their paths.
