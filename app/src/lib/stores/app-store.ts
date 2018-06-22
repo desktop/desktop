@@ -829,6 +829,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           aheadBehindOfInferredBranch.behind
       ) {
         this._setDivergingBranchBannerVisibility(true)
+        this._recordDivergingBranchBannerDisplayed()
       }
     } else if (
       inferComparisonBranch !== null ||
@@ -3750,6 +3751,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
    */
   public _recordDivergingBranchBannerDismissal() {
     this.statsStore.recordDivergingBranchBannerDismissal()
+  }
+
+   /**
+    * The number of times the user showne the diverged branch notification
+    */
+  public _recordDivergingBranchBannerDisplayed() {
+    this.statsStore.recordDivergingBranchBannerDisplayed()
   }
 }
 
