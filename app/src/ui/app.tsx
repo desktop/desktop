@@ -1394,6 +1394,9 @@ export class App extends React.Component<IAppProps, IAppState> {
         onSelectionChanged={this.onSelectionChanged}
         repositories={this.state.repositories}
         localRepositoryStateLookup={this.state.localRepositoryStateLookup}
+        askForConfirmationOnRemoveRepository={
+          this.state.askForConfirmationOnRepositoryRemoval
+        }
         onRemoveRepository={this.removeRepository}
         onOpenInShell={this.openInShell}
         onShowRepository={this.showRepository}
