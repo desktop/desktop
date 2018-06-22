@@ -1,5 +1,11 @@
 {
   "releases": {
+    "1.2.4-beta4": [
+      "[Fixed] Compare tab appends older commits when scrolling to bottom of list - #4964",
+      "[Fixed] Remove temporary directory after Git LFS operation completes - #4414",
+      "[Improved] Remove context menu needs to hint if a dialog will be shown - #4975",
+      "[Improved] Upgrade embedded Git LFS - #4602 #4745"
+    ],
     "1.2.4-test1": [
       "Confirming latest Git LFS version addresses reported issues"
     ],
