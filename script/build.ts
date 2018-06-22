@@ -123,10 +123,18 @@ function packageApp(
     )
   }
 
+  const toPackageArch = (targetArch: string | undefined): packager.arch => {
+    if (targetArch === 'arm64' || targetArch === 'x64') {
+      return targetArch
+    }
+
+    return 'x64'
+  }
+
   const options: packager.Options & IPackageAdditionalOptions = {
     name: getExecutableName(),
     platform: toPackagePlatform(process.platform),
-    arch: process.env.TARGET_ARCH || 'x64',
+    arch: toPackageArch(process.env.TARGET_ARCH),
     asar: false, // TODO: Probably wanna enable this down the road.
     out: getDistRoot(),
     icon: path.join(projectRoot, 'app', 'static', 'logos', 'icon-logo'),
