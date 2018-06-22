@@ -162,7 +162,7 @@
 
 ### View top-level menu
   - [ ] Show Changes (Mac: `⌘1`; Windows: `Ctrl+1`)
-  - [ ] Show Compare (Mac: `⌘2`; Windows: `Ctrl+2`)
+  - [ ] Show History (Mac: `⌘2`; Windows: `Ctrl+2`)
   - [ ] Show Repositories List (Mac: `⌘T`; Windows: `Ctrl+T`)
   - [ ] Show Branches List (Mac: `⌘B`; Windows: `Ctrl+B`)
   - [ ] Enter Full Zoom (Mac: `^⌘F`; Windows: `F11`)
@@ -215,6 +215,8 @@
     - [ ] `Cancel` button closes modal
     - [ ] Protected branches cannot be deleted
   - [ ] Update from Default Branch (cannot be master; Mac: `⇧⌘U`; Windows: `Ctrl+Shift+U`)
+  - [ ] Compare to Branch (Mac: `⇧⌘B`; Windows: `Ctrl+Shift+B`)
+    - [ ] Takes you to the history tab with the input selected so you can directly choose a branch
   - [ ] Merge into Current Branch (Mac: `⇧⌘M`; Windows: `Ctrl+Shift+M`)
     - [ ] Use can filter existing branches
     - [ ] User can select branch, other than current
@@ -247,7 +249,7 @@
       - [ ] User must have paid account for private repos
       - [ ] Repo icon is updated if admin changes status (public vs private)
   - [ ] Repositories cloned from non-github servers should always be in the Other group, and have the 'computer' icon.
-  - [ ] Selecting a repo updates Changes/Compare/Diff areas
+  - [ ] Selecting a repo updates Changes/History/Diff areas
     - [ ] If no Changes, Diff area shows `Open this repository` link to Finder/Explorer on local
   - [ ] `Right-click` on any repo shows `Open in Terminal`, `Open in Finder/Explorer`, `Open in External Editor`, and `Remove` options
   - [ ] Repos which have been removed locally (and trash emptied) have 'cannot find repository' warning
@@ -272,8 +274,8 @@
   - [ ] Panes can be resized horizontally, and contents resize to take the full width
     - [ ] Quitting Desktop and relaunching remembers sizes
 
-### Compare tab
-  - [ ] Compare (was History) tab shows commits on your current branch by default
+### History tab
+  - [ ] History tab shows commits on your current branch by default
     - [ ] All commits listed in chronological order, with avatar, date and name; list is scrollable with arrow keys enabled
       - [ ] Right clicking any commit shows options: Revert, Copy SHA, View on GitHub
       - [ ] Hover shows file name in tooltip
@@ -340,7 +342,7 @@
         - [ ] Found names are tagged; all others are turned red
         - [ ] Navigating away from the Changes tab will clear red tags 
      - [ ] Toggling the co-author icon clears the field
-  - [ ] All co-authors show up in Compare and diff view
+  - [ ] All co-authors show up in History and diff view
     - [ ] Commits with `Co-Authored-By: Name <username@github.com>`in the decription field reveal avatar of user    
     - [ ] Hovering over an avatar reveals all tagged users
     - [ ] Hovering over the "people" text reveals all names/emails of tagged users

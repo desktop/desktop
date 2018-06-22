@@ -3,6 +3,7 @@
 /** A React component holding the main application toolbar component. */
 #desktop-app-toolbar {
   height: var(--toolbar-height);
+  border-bottom: 1px solid var(--toolbar-border-color);
 
   display: flex;
   flex-direction: row;
@@ -63,7 +64,7 @@
 .ahead-behind {
   display: flex;
 
-  background: var(--ahead-behind-background-color);
+  background: var(--toolbar-badge-background-color);
 
   // Perfectly round semi circle ends with real tight
   // padding on either side. Now in two flavors!

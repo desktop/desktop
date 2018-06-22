@@ -3,7 +3,7 @@ import {
   IRepositoryState,
   IHistoryState,
   IAppState,
-  RepositorySection,
+  RepositorySectionTab,
   IChangesState,
   Popup,
   PopupType,
@@ -23,9 +23,10 @@ import {
   CompareActionKind,
   IDisplayHistory,
   ICompareBranch,
+  ICompareFormUpdate,
 } from '../app-state'
 import { Account } from '../../models/account'
-import { Repository } from '../../models/repository'
+import { Repository, ILocalRepositoryState } from '../../models/repository'
 import { GitHubRepository } from '../../models/github-repository'
 import {
   CommittedFileChange,
@@ -130,6 +131,7 @@ import { IAuthor } from '../../models/author'
 import { ComparisonCache } from '../comparison-cache'
 import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
 import { enableCompareSidebar } from '../feature-flag'
+import { ApplicationTheme, getThemeName } from '../../ui/lib/application-theme'
 
 /**
  * Enum used by fetch to determine if
@@ -167,6 +169,8 @@ const imageDiffTypeKey = 'image-diff-type'
 
 const shellKey = 'shell'
 
+const applicationThemeKey = 'theme'
+
 // background fetching should not occur more than once every two minutes
 const BackgroundFetchMinimumInterval = 2 * 60 * 1000
 
@@ -197,6 +201,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private readonly repositorySettingsStores = new Map<
     string,
     RepositorySettingsStore
+  >()
+
+  private readonly localRepositoryStateLookup = new Map<
+    number,
+    ILocalRepositoryState
   >()
   public readonly gitHubUserStore: GitHubUserStore
   private readonly cloningRepositoriesStore: CloningRepositoriesStore
@@ -254,9 +263,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     | ((repository: Repository | null) => void)
     | null = null
 
-  private selectedCloneRepositoryTab: CloneRepositoryTab = CloneRepositoryTab.DotCom
+  private selectedCloneRepositoryTab = CloneRepositoryTab.DotCom
 
   private selectedBranchesTab = BranchesTab.Branches
+  private selectedTheme = ApplicationTheme.Light
 
   public constructor(
     gitHubUserStore: GitHubUserStore,
@@ -421,7 +431,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         coAuthors: [],
         showCoAuthoredBy: false,
       },
-      selectedSection: RepositorySection.Changes,
+      selectedSection: RepositorySectionTab.Changes,
       branchesState: {
         tip: { kind: TipState.Unknown },
         defaultBranch: null,
@@ -433,6 +443,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       },
       compareState: {
         formState: { kind: ComparisonView.None },
+        showBranchList: false,
+        filterText: '',
         commitSHAs: [],
         aheadBehindCache: new ComparisonCache(),
         allBranches: new Array<Branch>(),
@@ -565,6 +577,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         ...this.repositories,
         ...this.cloningRepositoriesStore.repositories,
       ],
+      localRepositoryStateLookup: this.localRepositoryStateLookup,
       windowState: this.windowState,
       windowZoomFactor: this.windowZoomFactor,
       appIsFocused: this.appIsFocused,
@@ -589,6 +602,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repositoryFilterText: this.repositoryFilterText,
       selectedCloneRepositoryTab: this.selectedCloneRepositoryTab,
       selectedBranchesTab: this.selectedBranchesTab,
+      selectedTheme: this.selectedTheme,
     }
   }
 
@@ -858,6 +872,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     } else {
       return assertNever(action, `Unknown action: ${kind}`)
     }
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _updateCompareForm<K extends keyof ICompareFormUpdate>(
+    repository: Repository,
+    newState: Pick<ICompareFormUpdate, K>
+  ) {
+    this.updateCompareState(repository, state => {
+      return merge(state, newState)
+    })
+
+    this.emitUpdate()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -1289,6 +1315,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
         ? imageDiffTypeDefault
         : parseInt(imageDiffTypeValue)
 
+    this.selectedTheme =
+      localStorage.getItem(applicationThemeKey) === 'dark'
+        ? ApplicationTheme.Dark
+        : ApplicationTheme.Light
+
     this.emitUpdateNow()
 
     this.accountsStore.refresh()
@@ -1481,14 +1512,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _changeRepositorySection(
     repository: Repository,
-    selectedSection: RepositorySection
+    selectedSection: RepositorySectionTab
   ): Promise<void> {
     this.updateRepositoryState(repository, state => ({ selectedSection }))
     this.emitUpdate()
 
-    if (selectedSection === RepositorySection.History) {
+    if (selectedSection === RepositorySectionTab.History) {
       return this.refreshHistorySection(repository)
-    } else if (selectedSection === RepositorySection.Changes) {
+    } else if (selectedSection === RepositorySectionTab.Changes) {
       return this.refreshChangesSection(repository, {
         includingStatus: true,
         clearPartialState: false,
@@ -1728,9 +1759,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const section = state.selectedSection
     let refreshSectionPromise: Promise<void>
 
-    if (section === RepositorySection.History) {
+    if (section === RepositorySectionTab.History) {
       refreshSectionPromise = this.refreshHistorySection(repository)
-    } else if (section === RepositorySection.Changes) {
+    } else if (section === RepositorySectionTab.Changes) {
       refreshSectionPromise = this.refreshChangesSection(repository, {
         includingStatus: false,
         clearPartialState: false,
@@ -2155,7 +2186,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         const refreshWeight = 0.1
 
         // Scale pull and fetch weights to be between 0 and 0.9.
-        const scale = 1 / (pushWeight + fetchWeight) * (1 - refreshWeight)
+        const scale = (1 / (pushWeight + fetchWeight)) * (1 - refreshWeight)
 
         pushWeight *= scale
         fetchWeight *= scale
@@ -2339,7 +2370,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           const refreshWeight = 0.1
 
           // Scale pull and fetch weights to be between 0 and 0.9.
-          const scale = 1 / (pullWeight + fetchWeight) * (1 - refreshWeight)
+          const scale = (1 / (pullWeight + fetchWeight)) * (1 - refreshWeight)
 
           pullWeight *= scale
           fetchWeight *= scale
@@ -3643,6 +3674,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
    */
   public _recordCompareInitiatedMerge() {
     this.statsStore.recordCompareInitiatedMerge()
+  }
+
+  /**
+   * Set the application-wide theme
+   */
+  public _setSelectedTheme(theme: ApplicationTheme) {
+    localStorage.setItem(applicationThemeKey, getThemeName(theme))
+    this.selectedTheme = theme
+    this.emitUpdate()
+
+    return Promise.resolve()
   }
 }
 

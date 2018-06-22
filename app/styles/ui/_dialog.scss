@@ -53,7 +53,7 @@ dialog {
       transition: transform 250ms var(--easing-ease-out-back);
 
       &::backdrop {
-        opacity: 0.4;
+        opacity: 1;
         transition: opacity 100ms ease-in;
       }
     }
@@ -64,15 +64,14 @@ dialog {
       pointer-events: none;
 
       &::backdrop {
-        opacity: 0.4;
+        opacity: 1;
       }
     }
 
     &-leave-active {
       opacity: 0.01;
       transform: scale(0.25);
-      transition: opacity 100ms ease-in,
-        transform 100ms var(--easing-ease-in-back);
+      transition: opacity 100ms ease-in, transform 100ms var(--easing-ease-in-back);
 
       &::backdrop {
         opacity: 0.01;
@@ -82,8 +81,8 @@ dialog {
   }
 
   &::backdrop {
-    background: #000;
-    opacity: 0.4;
+    background: var(--overlay-background-color);
+    opacity: 1;
   }
 
   // The dialog embeds a fieldset as the first child of the form element
@@ -120,39 +119,7 @@ dialog {
       @include ellipsis;
     }
 
-    .close {
-      flex-shrink: 0;
-
-      border: 0;
-      height: 16px;
-      width: 16px;
-
-      // Set the left margin to auto so that flexbox positions the button
-      // on the right hand side of the dialog and add a -10px right hand
-      // side margin to put the button where it should be (we use a double
-      // margin for the header itself).
-      margin: 0 calc(var(--spacing) * -1) 0 auto;
-      padding: 0;
-      background: transparent;
-
-      color: var(--text-secondary-color);
-      cursor: pointer;
-
-      // Let the button deal with all mouse events.
-      // Without this the octicon resets the cursor when
-      // hovering over the <path>.
-      .octicon {
-        pointer-events: none;
-      }
-
-      &:hover {
-        color: var(--text-color);
-      }
-
-      &:focus {
-        outline: 0;
-      }
-    }
+    @include close-button;
   }
 
   &.warning,
@@ -168,10 +135,7 @@ dialog {
       // Ensure that the dialog contents always have room for the icon,
       // account for two double spacers at top and bottom plus the 5px
       // icon offset (margin-top) and the size of the icon itself.
-      min-height: calc(
-        var(--spacing-double) * 2 + var(--spacing-half) +
-          var(--dialog-icon-size)
-      );
+      min-height: calc(var(--spacing-double) * 2 + var(--spacing-half) + var(--dialog-icon-size));
 
       // We're creating an opaque 24 by 24px div with the background color
       // that we want the icon to appear in and then apply the icon path
