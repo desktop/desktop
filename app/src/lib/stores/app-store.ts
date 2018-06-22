@@ -3017,6 +3017,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _setDivergingBranchBannerVisibility(visible: boolean) {
     if (this.isDivergingBranchBannerVisible !== visible) {
       this.isDivergingBranchBannerVisible = visible
+
+      if (visible) {
+        this._recordDivergingBranchBannerDisplayed()
+      }
+
       this.emitUpdate()
     }
   }
@@ -3763,6 +3768,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
 
     return Promise.resolve()
+  }
+
+  /**
+   * The number of times the user dismisses the diverged branch notification
+   */
+  public _recordDivergingBranchBannerDismissal() {
+    this.statsStore.recordDivergingBranchBannerDismissal()
+  }
+
+  /**
+   * The number of times the user showne the diverged branch notification
+   */
+  public _recordDivergingBranchBannerDisplayed() {
+    this.statsStore.recordDivergingBranchBannerDisplayed()
   }
 }
 
