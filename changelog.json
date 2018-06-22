@@ -1,11 +1,13 @@
 {
   "releases": {
+    "1.2.4-test1": [
+      "Confirming latest Git LFS version addresses reported issues"
+    ],
     "1.2.4-beta3": [
       "[Added] WebStorm support for macOS - #4841. Thanks @mrsimonfletcher!",
       "[Improved] Update banner message clarifies that only Desktop needs to be restarted - #4891. Thanks @KennethSweezy!"
     ],
     "1.2.4-beta2": [
-
     ],
     "1.2.4-beta1": [
       "[New] Dark Theme preview - #4849",
