@@ -12,7 +12,7 @@
     "test": "yarn test:unit && yarn test:script && yarn test:integration",
     "test:setup": "ts-node script/test-setup.ts",
     "test:review": "ts-node script/test-review.ts",
-    "postinstall": "cd app && yarn install --force && cd .. && git submodule update --recursive --init && yarn compile:tslint",
+    "postinstall": "cd app && yarn install --force && cd .. && git submodule update --recursive --init && yarn compile:tslint && yarn compile:script",
     "start": "cross-env NODE_ENV=development node script/start",
     "start:prod": "cross-env NODE_ENV=production node script/start",
     "compile:dev": "cross-env NODE_ENV=development parallel-webpack --config app/webpack.development.js",
