@@ -73,6 +73,9 @@ export interface IDailyMeasures {
    * from the diverged branch notification compare CTA button
    */
   readonly divergingBranchBannerInfluencedCompare: number
+
+  /** The number of times the diverged branch notification is displayed */
+  readonly divergingBranchBannerDisplayed: number
 }
 
 export class StatsDatabase extends Dexie {
