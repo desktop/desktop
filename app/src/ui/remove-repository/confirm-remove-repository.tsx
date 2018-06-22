@@ -70,14 +70,8 @@ export class ConfirmRemoveRepository extends React.Component<
           </p>
 
           <div>
-            <p>
-              <strong>
-                Do you wish to move this repository to the {TrashNameLabel} as
-                well?
-              </strong>
-            </p>
             <Checkbox
-              label={'Yes, move this repository to ' + TrashNameLabel}
+              label={'Also move this repository to ' + TrashNameLabel}
               value={
                 this.state.deleteRepoFromDisk
                   ? CheckboxValue.On
