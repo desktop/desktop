@@ -1,5 +1,8 @@
 {
   "releases": {
+    "1.2.4-beta5": [
+
+    ],
     "1.2.4-beta4": [
       "[Fixed] Compare tab appends older commits when scrolling to bottom of list - #4964",
       "[Fixed] Remove temporary directory after Git LFS operation completes - #4414",
