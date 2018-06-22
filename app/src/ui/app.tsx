@@ -1457,13 +1457,13 @@ export class App extends React.Component<IAppProps, IAppState> {
       title = __DARWIN__ ? 'No Repositories' : 'No repositories'
     }
 
-    const tooltip = repository ? repository.path : undefined
-
     const isOpen =
       this.state.currentFoldout &&
       this.state.currentFoldout.type === FoldoutType.Repository
 
     const currentState: DropdownState = isOpen ? 'open' : 'closed'
+
+    const tooltip = repository && !isOpen ? repository.path : undefined
 
     const foldoutStyle: React.CSSProperties = {
       position: 'absolute',
