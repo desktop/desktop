@@ -829,7 +829,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
           aheadBehindOfInferredBranch.behind
       ) {
         this._setDivergingBranchBannerVisibility(true)
-        this._recordDivergingBranchBannerDisplayed()
       }
     } else if (
       inferComparisonBranch !== null ||
@@ -2998,6 +2997,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _setDivergingBranchBannerVisibility(visible: boolean) {
     if (this.isDivergingBranchBannerVisible !== visible) {
       this.isDivergingBranchBannerVisible = visible
+
+      if (visible) {
+        this._recordDivergingBranchBannerDisplayed()
+      }
+
       this.emitUpdate()
     }
   }
@@ -3753,9 +3757,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.statsStore.recordDivergingBranchBannerDismissal()
   }
 
-   /**
-    * The number of times the user showne the diverged branch notification
-    */
+  /**
+   * The number of times the user showne the diverged branch notification
+   */
   public _recordDivergingBranchBannerDisplayed() {
     this.statsStore.recordDivergingBranchBannerDisplayed()
   }
