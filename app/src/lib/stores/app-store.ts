@@ -1801,7 +1801,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       await this.withAuthenticatingUser(repo, async (repo, account) => {
         const gitStore = this.getGitStore(repo)
         const lookup = this.localRepositoryStateLookup
-        await gitStore.fetch(account, true)
+        if (this.shouldBackgroundFetch(repo)) {
+          await gitStore.fetch(account, true)
+        }
         const status = await gitStore.loadStatus()
         if (status !== null) {
           lookup.set(repo.id, {
