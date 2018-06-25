@@ -121,6 +121,7 @@ const modes: ReadonlyArray<IModeDefinition> = [
       '.scala': 'text/x-scala',
       '.sc': 'text/x-scala',
       '.cs': 'text/x-csharp',
+      '.cake': 'text/x-csharp',
       '.java': 'text/x-java',
       '.c': 'text/x-c',
       '.h': 'text/x-c',

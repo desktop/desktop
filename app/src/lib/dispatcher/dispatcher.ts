@@ -57,6 +57,7 @@ import { PullRequest } from '../../models/pull-request'
 import { IAuthor } from '../../models/author'
 import { ITrailer } from '../git/interpret-trailers'
 import { isGitRepository } from '../git'
+import { ApplicationTheme } from '../../ui/lib/application-theme'
 
 /**
  * An error handler function.
@@ -460,6 +461,13 @@ export class Dispatcher {
    */
   public setUpdateBannerVisibility(isVisible: boolean) {
     return this.appStore._setUpdateBannerVisibility(isVisible)
+  }
+
+  /**
+   * Set the divering branch notification banner's visibility
+   */
+  public setDivergingBranchBannerVisibility(isVisible: boolean) {
+    return this.appStore._setDivergingBranchBannerVisibility(isVisible)
   }
 
   /**
@@ -1212,5 +1220,19 @@ export class Dispatcher {
    */
   public recordCompareInitiatedMerge() {
     return this.appStore._recordCompareInitiatedMerge()
+  }
+
+  /**
+   * Set the application-wide theme
+   */
+  public setSelectedTheme(theme: ApplicationTheme) {
+    return this.appStore._setSelectedTheme(theme)
+  }
+
+  /**
+   * The number of times the user dismisses the diverged branch notification
+   */
+  public recordDivergingBranchBannerDismissal() {
+    return this.appStore._recordDivergingBranchBannerDismissal()
   }
 }

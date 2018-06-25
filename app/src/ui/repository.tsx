@@ -18,13 +18,10 @@ import {
 import { Dispatcher } from '../lib/dispatcher'
 import { IssuesStore, GitHubUserStore } from '../lib/stores'
 import { assertNever } from '../lib/fatal-error'
-import { Octicon, OcticonSymbol } from './octicons'
 import { Account } from '../models/account'
-import {
-  enableCompareSidebar,
-  enableNotificationOfBranchUpdates,
-} from '../lib/feature-flag'
+import { enableCompareSidebar } from '../lib/feature-flag'
 import { FocusContainer } from './lib/focus-container'
+import { OcticonSymbol, Octicon } from './octicons'
 
 /** The widest the sidebar can be with the minimum window size. */
 const MaxSidebarWidth = 495
@@ -51,8 +48,13 @@ interface IRepositoryViewProps {
    *
    * @param fullPath The full path to the file on disk
    */
-
   readonly onOpenInExternalEditor: (fullPath: string) => void
+
+  /**
+   * Determines if the notification banner and associated dot
+   * on this history tab will be rendered
+   */
+  readonly isDivergingBranchBannerVisible: boolean
 }
 
 interface IRepositoryViewState {
@@ -84,11 +86,7 @@ export class RepositoryView extends React.Component<
       return null
     }
 
-    return enableNotificationOfBranchUpdates() ? (
-      <FilesChangedBadge filesChangedCount={filesChangedCount} />
-    ) : (
-      <Octicon className="indicator" symbol={OcticonSymbol.primitiveDot} />
-    )
+    return <FilesChangedBadge filesChangedCount={filesChangedCount} />
   }
 
   private renderTabs(): JSX.Element {
@@ -103,7 +101,16 @@ export class RepositoryView extends React.Component<
           <span>Changes</span>
           {this.renderChangesBadge()}
         </span>
-        <span>History</span>
+
+        <div className="with-indicator">
+          <span>History</span>
+          {this.props.isDivergingBranchBannerVisible ? (
+            <Octicon
+              className="indicator"
+              symbol={OcticonSymbol.primitiveDot}
+            />
+          ) : null}
+        </div>
       </TabBar>
     )
   }
@@ -180,6 +187,9 @@ export class RepositoryView extends React.Component<
         dispatcher={this.props.dispatcher}
         onRevertCommit={this.onRevertCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
+        isDivergingBranchBannerVisible={
+          this.props.isDivergingBranchBannerVisible
+        }
       />
     )
   }
