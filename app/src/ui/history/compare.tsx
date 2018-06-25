@@ -172,7 +172,7 @@ export class CompareSidebar extends React.Component<
 
   private renderNotificationBanner() {
     if (
-      !enableNotificationOfBranchUpdates ||
+      !enableNotificationOfBranchUpdates &&
       !this.props.isDivergingBranchBannerVisible
     ) {
       return null
