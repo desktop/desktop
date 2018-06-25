@@ -1,4 +1,8 @@
+type Protocol = 'ssh' | 'https'
+
 interface IGitRemoteURL {
+  readonly protocol: Protocol
+
   /** The hostname of the remote. */
   readonly hostname: string
 
@@ -15,21 +19,33 @@ interface IGitRemoteURL {
   readonly name: string | null
 }
 
+// Examples:
+// https://github.com/octocat/Hello-World.git
+// https://github.com/octocat/Hello-World.git/
+// git@github.com:octocat/Hello-World.git
+// git:github.com/octocat/Hello-World.git
+const remoteRegexes: ReadonlyArray<{ protocol: Protocol; regex: RegExp }> = [
+  {
+    protocol: 'https',
+    regex: new RegExp('^https?://(?:.+@)?(.+)/(.+)/(.+?)(?:/|.git/?)?$'),
+  },
+  {
+    protocol: 'ssh',
+    regex: new RegExp('^git@(.+):(.+)/(.+?)(?:/|.git)?$'),
+  },
+  {
+    protocol: 'ssh',
+    regex: new RegExp('^git:(.+)/(.+)/(.+?)(?:/|.git)?$'),
+  },
+  {
+    protocol: 'ssh',
+    regex: new RegExp('^ssh://git@(.+)/(.+)/(.+?)(?:/|.git)?$'),
+  },
+]
+
 /** Parse the remote information from URL. */
 export function parseRemote(url: string): IGitRemoteURL | null {
-  // Examples:
-  // https://github.com/octocat/Hello-World.git
-  // https://github.com/octocat/Hello-World.git/
-  // git@github.com:octocat/Hello-World.git
-  // git:github.com/octocat/Hello-World.git
-  const regexes = [
-    new RegExp('^https?://(?:.+@)?(.+)/(.+)/(.+?)(?:/|.git/?)?$'),
-    new RegExp('^git@(.+):(.+)/(.+?)(?:/|.git)?$'),
-    new RegExp('^git:(.+)/(.+)/(.+?)(?:/|.git)?$'),
-    new RegExp('^ssh://git@(.+)/(.+)/(.+?)(?:/|.git)?$'),
-  ]
-
-  for (const regex of regexes) {
+  for (const { protocol, regex } of remoteRegexes) {
     const result = url.match(regex)
     if (!result) {
       continue
@@ -39,7 +55,7 @@ export function parseRemote(url: string): IGitRemoteURL | null {
     const owner = result[2]
     const name = result[3]
     if (hostname) {
-      return { hostname, owner, name }
+      return { protocol, hostname, owner, name }
     }
   }
 

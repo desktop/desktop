@@ -173,6 +173,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     this.props.dispatcher.showPopup({
       type: PopupType.ConfirmDiscardChanges,
       repository: this.props.repository,
+      showDiscardChangesSetting: false,
       files,
     })
   }
@@ -294,6 +295,9 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           onIncludeChanged={this.onIncludeChanged}
           onSelectAll={this.onSelectAll}
           onDiscardChanges={this.onDiscardChanges}
+          askForConfirmationOnDiscardChanges={
+            this.props.askForConfirmationOnDiscardChanges
+          }
           onDiscardAllChanges={this.onDiscardAllChanges}
           onOpenItem={this.onOpenItem}
           onRowClick={this.onChangedItemClick}

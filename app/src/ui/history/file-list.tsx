@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Path from 'path'
-import { pathExists } from '../../lib/file-system'
+import { pathExists } from 'fs-extra'
 import { revealInFileManager } from '../../lib/app-shell'
 
 import { FileChange, mapStatus, iconForStatus } from '../../models/status'

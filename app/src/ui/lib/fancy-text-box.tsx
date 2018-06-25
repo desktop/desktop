@@ -29,6 +29,7 @@ export class FancyTextBox extends React.Component<
     const componentCSS = classNames(
       'fancy-text-box-component',
       this.props.className,
+      { disabled: this.props.disabled },
       { focused: this.state.isFocused }
     )
     const octiconCSS = classNames('fancy-octicon')
@@ -46,6 +47,7 @@ export class FancyTextBox extends React.Component<
           placeholder={this.props.placeholder}
           onKeyDown={this.props.onKeyDown}
           onValueChanged={this.props.onValueChanged}
+          onSearchCleared={this.props.onSearchCleared}
           tabIndex={this.props.tabIndex}
           ref={this.props.onRef}
         />

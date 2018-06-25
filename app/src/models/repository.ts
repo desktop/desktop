@@ -1,6 +1,7 @@
 import * as Path from 'path'
 
 import { GitHubRepository } from './github-repository'
+import { IAheadBehind } from './branch'
 
 /** A local repository. */
 export class Repository {
@@ -39,4 +40,19 @@ export class Repository {
       ${this.missing}+
       ${this.name}`
   }
+}
+
+/**
+ * A snapshot for the local state for a given repository
+ */
+export interface ILocalRepositoryState {
+  /**
+   * The ahead/behind count for the current branch, or `null` if no tracking
+   * branch found.
+   */
+  readonly aheadBehind: IAheadBehind | null
+  /**
+   * The number of uncommitted changes currently in the repository.
+   */
+  readonly changedFilesCount: number
 }

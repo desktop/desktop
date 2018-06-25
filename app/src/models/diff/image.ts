@@ -12,8 +12,14 @@ export class Image {
    */
   public readonly mediaType: string
 
-  public constructor(contents: string, mediaType: string) {
+  /**
+   * Size of the file in bytes
+   */
+  public readonly bytes: number
+
+  public constructor(contents: string, mediaType: string, bytes: number) {
     this.contents = contents
     this.mediaType = mediaType
+    this.bytes = bytes
   }
 }

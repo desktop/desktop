@@ -308,28 +308,28 @@ export class StatsStore {
   }
 
   /** Record that a branch comparison has been made to the `master` branch */
-  public recordBranchComparisonToMaster(): Promise<void> {
+  public recordDefaultBranchComparison(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       defaultBranchComparisons: m.defaultBranchComparisons + 1,
     }))
   }
 
-  /** Record that a merge has been initated from the `compare` sidebar */
-  public recordCompareInitatedMerge(): Promise<void> {
+  /** Record that a merge has been initiated from the `compare` sidebar */
+  public recordCompareInitiatedMerge(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       mergesInitiatedFromComparison: m.mergesInitiatedFromComparison + 1,
     }))
   }
 
-  /** Record that a merge has been initated from the `Branch -> Update From Default Branch` menu item */
-  public recordMenuInitatedUpdate(): Promise<void> {
+  /** Record that a merge has been initiated from the `Branch -> Update From Default Branch` menu item */
+  public recordMenuInitiatedUpdate(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       updateFromDefaultBranchMenuCount: m.updateFromDefaultBranchMenuCount + 1,
     }))
   }
 
-  /** Record that a merge has been initated from the `Branch -> Merge Into Current Branch` menu item */
-  public recordMenuInitatedMerge(): Promise<void> {
+  /** Record that a merge has been initiated from the `Branch -> Merge Into Current Branch` menu item */
+  public recordMenuInitiatedMerge(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       mergeIntoCurrentBranchMenuCount: m.mergeIntoCurrentBranchMenuCount + 1,
     }))

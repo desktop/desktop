@@ -1,7 +1,7 @@
 import { Account } from '../models/account'
 import { CommitIdentity } from '../models/commit-identity'
 import { IDiff } from '../models/diff'
-import { Repository } from '../models/repository'
+import { Repository, ILocalRepositoryState } from '../models/repository'
 
 import { Branch, IAheadBehind } from '../models/branch'
 import { Tip } from '../models/tip'
@@ -27,6 +27,7 @@ import { BranchesTab } from '../models/branches-tab'
 import { PullRequest } from '../models/pull-request'
 import { IAuthor } from '../models/author'
 import { ComparisonCache } from './comparison-cache'
+import { ApplicationTheme } from '../ui/lib/application-theme'
 
 export { ICommitMessage }
 
@@ -67,7 +68,15 @@ export type PossibleSelections =
 /** All of the shared app state. */
 export interface IAppState {
   readonly accounts: ReadonlyArray<Account>
+  /**
+   * The current list of repositories tracked in the application
+   */
   readonly repositories: ReadonlyArray<Repository | CloningRepository>
+
+  /**
+   * A cache of the latest repository state values, keyed by the repository id
+   */
+  readonly localRepositoryStateLookup: Map<number, ILocalRepositoryState>
 
   readonly selectedState: PossibleSelections | null
 
@@ -178,6 +187,9 @@ export interface IAppState {
 
   /** The currently selected tab for the Branches foldout. */
   readonly selectedBranchesTab: BranchesTab
+
+  /** The currently selected appearance (aka theme) */
+  readonly selectedTheme: ApplicationTheme
 }
 
 export enum PopupType {
@@ -208,6 +220,7 @@ export enum PopupType {
   LFSAttributeMismatch,
   UpstreamAlreadyExists,
   DeletePullRequest,
+  MergeConflicts,
 }
 
 export type Popup =
@@ -222,6 +235,7 @@ export type Popup =
       type: PopupType.ConfirmDiscardChanges
       repository: Repository
       files: ReadonlyArray<WorkingDirectoryFileChange>
+      showDiscardChangesSetting?: boolean
     }
   | { type: PopupType.Preferences; initialSelectedTab?: PreferencesTab }
   | { type: PopupType.MergeBranch; repository: Repository }
@@ -281,6 +295,7 @@ export type Popup =
       branch: Branch
       pullRequest: PullRequest
     }
+  | { type: PopupType.MergeConflicts; repository: Repository }
 
 export enum FoldoutType {
   Repository,
@@ -315,7 +330,7 @@ export type Foldout =
   | { type: FoldoutType.AddMenu }
   | AppMenuFoldout
 
-export enum RepositorySection {
+export enum RepositorySectionTab {
   Changes,
   History,
 }
@@ -324,7 +339,7 @@ export interface IRepositoryState {
   readonly historyState: IHistoryState
   readonly changesState: IChangesState
   readonly compareState: ICompareState
-  readonly selectedSection: RepositorySection
+  readonly selectedSection: RepositorySectionTab
 
   /**
    * The name and email that will be used for the author info
@@ -625,6 +640,12 @@ export interface ICompareState {
   /** The current state of the compare form, based on user input */
   readonly formState: IDisplayHistory | ICompareBranch
 
+  /** Whether the branch list should be expanded or hidden */
+  readonly showBranchList: boolean
+
+  /** The text entered into the compare branch filter text box */
+  readonly filterText: string
+
   /** The SHAs of commits to render in the compare list */
   readonly commitSHAs: ReadonlyArray<string>
 
@@ -650,6 +671,14 @@ export interface ICompareState {
    * A local cache of ahead/behind computations to compare other refs to the current branch
    */
   readonly aheadBehindCache: ComparisonCache
+}
+
+export interface ICompareFormUpdate {
+  /** The updated filter text to set */
+  readonly filterText: string
+
+  /** Thew new state of the branches list */
+  readonly showBranchList: boolean
 }
 
 export enum CompareActionKind {

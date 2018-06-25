@@ -215,6 +215,8 @@
     - [ ] `Cancel` button closes modal
     - [ ] Protected branches cannot be deleted
   - [ ] Update from Default Branch (cannot be master; Mac: `⇧⌘U`; Windows: `Ctrl+Shift+U`)
+  - [ ] Compare to Branch (Mac: `⇧⌘B`; Windows: `Ctrl+Shift+B`)
+    - [ ] Takes you to the history tab with the input selected so you can directly choose a branch
   - [ ] Merge into Current Branch (Mac: `⇧⌘M`; Windows: `Ctrl+Shift+M`)
     - [ ] Use can filter existing branches
     - [ ] User can select branch, other than current
@@ -272,8 +274,8 @@
   - [ ] Panes can be resized horizontally, and contents resize to take the full width
     - [ ] Quitting Desktop and relaunching remembers sizes
 
-### Compare tab
-  - [ ] Compare (was History) tab shows commits on your current branch by default
+### History tab
+  - [ ] History tab shows commits on your current branch by default
     - [ ] All commits listed in chronological order, with avatar, date and name; list is scrollable with arrow keys enabled
       - [ ] Right clicking any commit shows options: Revert, Copy SHA, View on GitHub
       - [ ] Hover shows file name in tooltip
@@ -285,6 +287,20 @@
         - [ ] After successful merge, tab counts update and merge button is disabled
         - [ ] Merge conflict results in dialog shown directing user to commit view
 	
+### Relationship between branches
+  - [ ] Clicking in field with placeholder text `Select Branch to Compare…` shows a list of all branches and their number of commits ahead and behind the currently checked out branch
+  - [ ] Pressing `esc` key clears the current filter
+  - [ ] Filtering for branch name that doesn't exist shows "Sorry, I can't find that branch"
+  - [ ] Selecting a branch from the list populates the tab with that branch comparison data
+    - [ ] Behind tab is shown by default
+      - [ ] See number of commits behind in tab header
+      - [ ] If more than 0 commits behind, a list of commits are shown in reverse chronological order
+      - [ ] See button to merge into current branch (button disabled if 0 commits behind)
+      - [ ] Clicking the merge button shows merge conflicts if any, or successfully merges the commit(s)
+      - [ ] After merging, the comparison branch is 0 commits behind
+    - [ ] Ahead tab is on the right-hand side
+      - [ ] If more than 0 commits ahead, a list of commits are shown in reverse chronological order
+
 ### Diffs tab		
   - [ ] All commits have avatar, selectable SHA, # of files changed, commit message, commit description (optional)
     - [ ] Long commit descriptions can be toggled with expand/collapse icon
@@ -310,7 +326,8 @@
     - [ ] `Push` with number of commits badge is decremented or reverts to `Fetch origin`
   - [ ] `Undo` button disabled if user is pushing commit
   - [ ] User can publish a new repo with no commits (aka unborn repo/branch)
-  - [ ] User can make new branch the default branch, by making the intial commit on the new branch. 
+  - [ ] User can make new branch the default branch, by making the intial commit on the new branch.
+  - [ ] User can select individual files to commit at a time
   
 ### Co-authoring
   - [ ] clicking co-author icon toggles co-author field; or right-click within commit area
@@ -373,7 +390,7 @@
 ### Github.com
   - [ ] If Desktop linked to .com (/settings/applications), the Desktop icon should show on File Revisions tab for all Pull Requests.
     - [ ] Clicking the "computer icon" opens from a Pull Request page opens the branch on Desktop
-  - [ ] `Open is Desktop` button under a repo's `Clone and Download` button should open repo in Desktop
+  - [ ] `Open in Desktop` button under a repo's `Clone and Download` button should open repo in Desktop
   - [ ] If private email is enabled (http://github.com/settings/emails), user is blocked from pushing to all associated repositories on Desktop?
   - [ ] If user updates name in Settings, change should reflect in Preferences
 
@@ -393,17 +410,9 @@
 ### Security
  - [ ] `Untrusted server` warning surfaced if GitHub cannot verify the identity of `api.github.com`; user can `Cancel` or `Continue`
 
+
 ### TBD placeholder (WIP)
-- Merge tool for conflicted files
-- Conflicted files vs changed files
-- Relationship between branches
-  - Commit/Compare tabs now occupy left pane
-    - Compare tab shows branch dropdown
-      - Choose a branch from the list (same order as branch list? current branch present?) or user filter; `ESC` clears filter
-       - Once branch selected, quantity of commits behind surfaced; matches commits shown
-         - `Merge X commits` button is activated
-           - Merge conflict count surfaced below button if relevant
-           - Clicking `Merge` button merges all shown commits 
-    - Commit history present, chronological order, descending
-- Show Git LFS (Cloning, Committing, Checking out, Reverting, Switching branches)
-- Report Git LFS (Cloning, Pushing, Pulling, Switching branches, Reverting)
+  - Merge tool for conflicted files
+  - Conflicted files vs changed files
+  - Show Git LFS (Cloning, Committing, Checking out, Reverting, Switching branches)
+  - Report Git LFS (Cloning, Pushing, Pulling, Switching branches, Reverting)

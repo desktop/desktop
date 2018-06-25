@@ -10,8 +10,8 @@ import { BranchType } from '../../../src/models/branch'
 describe('git/for-each-ref', () => {
   let repository: Repository | null = null
 
-  beforeEach(() => {
-    const testRepoPath = setupFixtureRepository('repo-with-many-refs')
+  beforeEach(async () => {
+    const testRepoPath = await setupFixtureRepository('repo-with-many-refs')
     repository = new Repository(testRepoPath, -1, null, false)
   })
 

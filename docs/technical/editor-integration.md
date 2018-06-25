@@ -205,19 +205,24 @@ The source for the editor integration on macOS is found in
 These editors are currently supported:
 
  - [Atom](https://atom.io/)
+ - [MacVim](https://macvim-dev.github.io/macvim/)
  - [Visual Studio Code](https://code.visualstudio.com/) - both stable and Insiders channel
  - [Sublime Text](https://www.sublimetext.com/)
  - [BBEdit](http://www.barebones.com/products/bbedit/)
  - [PhpStorm](https://www.jetbrains.com/phpstorm/)
  - [RubyMine](https://www.jetbrains.com/rubymine/)
  - [TextMate](https://macromates.com)
-
+ - [Brackets](http://brackets.io/) 
+     - To use Brackets the Command Line shortcut must be installed.
+       - This can be done by opening Brackets, choosing File > Install Command Line Shortcut
+       
 These are defined in an enum at the top of the file:
 
 ```ts
 
 export enum ExternalEditor {
   Atom = 'Atom',
+  MacVim = 'MacVim',
   VisualStudioCode = 'Visual Studio Code',
   VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
   SublimeText = 'Sublime Text',
@@ -225,6 +230,7 @@ export enum ExternalEditor {
   PhpStorm = 'PhpStorm',
   RubyMine = 'RubyMine',
   TextMate = 'TextMate',
+  Brackets = 'Brackets',
 }
 ```
 

@@ -690,7 +690,12 @@ export class List extends React.Component<IListProps, IListState> {
    */
   private renderContents(width: number, height: number) {
     if (__WIN32__) {
-      return [this.renderGrid(width, height), this.renderFakeScroll(height)]
+      return (
+        <>
+          {this.renderGrid(width, height)}
+          {this.renderFakeScroll(height)}
+        </>
+      )
     }
 
     return this.renderGrid(width, height)
@@ -731,7 +736,6 @@ export class List extends React.Component<IListProps, IListState> {
       >
         <Grid
           aria-label={''}
-          key="grid"
           role={''}
           ref={this.onGridRef}
           autoContainerWidth={true}
@@ -779,7 +783,6 @@ export class List extends React.Component<IListProps, IListState> {
 
     return (
       <div
-        key="fake-scroll"
         className="fake-scroll"
         ref={this.onFakeScrollRef}
         style={{ height }}
@@ -807,7 +810,7 @@ export class List extends React.Component<IListProps, IListState> {
 
     if (this.grid) {
       const element = ReactDOM.findDOMNode(this.grid)
-      if (element) {
+      if (element instanceof Element) {
         element.scrollTop = e.currentTarget.scrollTop
       }
     }

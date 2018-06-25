@@ -1,0 +1,67 @@
+@import '../mixins';
+
+.notification-banner + .compare-form {
+  border-top: var(--base-border);
+}
+
+.notification-banner {
+  background: var(--notification-banner-background);
+  border: var(--base-border);
+  border-color: var(--notification-banner-border-color);
+  border-radius: var(--border-radius);
+  display: flex;
+  padding: var(--spacing);
+  position: relative;
+
+  .notification-icon {
+    margin-right: var(--spacing-half);
+  }
+
+  &-content {
+    display: flex;
+
+    p {
+      flex-grow: 1;
+      font-size: var(--font-size-sm);
+      margin: 0;
+      padding-right: var(--spacing-double); // Extra space for the close button
+
+      & + p {
+        margin-top: var(--spacing-half);
+      }
+    }
+  }
+
+  @include close-button;
+
+  .ref-component {
+    background: var(--notification-ref-background);
+    word-break: normal;
+  }
+
+  .close {
+    position: absolute;
+    margin: 0;
+    top: var(--spacing);
+    right: var(--spacing);
+    text-align: center;
+
+    .octicon {
+      height: 12px;
+    }
+  }
+}
+
+.diverge-banner {
+  margin: var(--spacing-half);
+  overflow: hidden;
+
+  &-wrapper {
+    overflow: hidden;
+    border-bottom: var(--base-border);
+  }
+}
+
+.notification-banner-content-body {
+  color: var(--text-secondary-color);
+}

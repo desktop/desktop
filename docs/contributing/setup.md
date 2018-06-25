@@ -95,13 +95,18 @@ In order to build for arm64, you will need the following:
 on setup there.
 * Instead of running `yarn` to get all required dependencies on your machine, you will
 instead need to run `script/install-arm64-deps.sh`.
+* Before building with `yarn build:dev` or `yarn build:prod`, you will need to
+set the environment variable `TARGET_ARCH` to `arm64` eg:
+```shellsession
+export TARGET_ARCH=arm64
+```
 
 ## Install Yarn
 
 After doing this setup, you also need to install `yarn` as Desktop uses
 this for managing packages instead of NPM. **Do not install `yarn` through
 NPM**. Refer to the [install instructions](https://yarnpkg.com/en/docs/install)
-for you OS.
+for your OS.
 
 This is important because `yarn` uses lock files to pin dependencies. If you
 find yourself changing packages, this will prevent mismatches in versions
@@ -161,25 +166,15 @@ problems.
 ## Running tests
 
 - `yarn test` - Runs all unit and integration tests
-- `yarn test:unit` - Runs all unit tests
+- `yarn test:unit` - Runs all unit tests (add `--debug` to open Chrome Dev Tools while running tests)
 - `yarn test:integration` - Runs all integration tests
-
-**Pro Tip:** If you're only interested in the results of a single test and don't
-wish to run the entire test suite to see it you can pass along a search string
-in order to only run the tests that match that string.
-
-```shellsession
-$ yarn test:unit -- --grep CloneProgressParser
-```
-
-This example will run all test names containing `CloneProgressParser`.
 
 ## Debugging
 
 Electron ships with Chrome Dev Tools to assist with debugging, profiling and
 other measurement tools.
 
-1. Run the command `npm start` to launch the app
+1. Run the command `yarn start` to launch the app
 2. Under the **View** menu, select **Toggle Developer Tools**
 
 When running the app in development mode,
@@ -198,7 +193,7 @@ require('devtron').install()
 
 You're almost there! Here's a couple of things we recommend you read next:
 
- - [Help Wanted](../../.github/CONTRIBUTING.md#help-wanted) - we've marked some tasks in
-   the backlog that are ideal for external contributors
- - [Code Reviews](../process/reviews.md) - some notes on how the team does
-   code reviews
+ - [Help Wanted](../../.github/CONTRIBUTING.md#help-wanted) - we've marked some
+   tasks in the backlog that are ideal for external contributors
+ - [Notes for Contributors](../process/notes-for-contributors.md) - some notes
+   for new contributors getting started

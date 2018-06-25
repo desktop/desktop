@@ -1,8 +1,8 @@
 import { spawn, ChildProcess } from 'child_process'
 import * as Path from 'path'
 import { enumerateValues, HKEY, RegistryValueType } from 'registry-js'
+import { pathExists } from 'fs-extra'
 
-import { pathExists } from '../file-system'
 import { assertNever } from '../fatal-error'
 import { IFoundShell } from './found-shell'
 
@@ -171,7 +171,9 @@ async function findHyper(): Promise<string | null> {
 
     const path = commandPieces
       ? commandPieces[2]
-      : localAppData != null ? localAppData.concat('\\hyper\\Hyper.exe') : null // fall back to the launcher in install root
+      : localAppData != null
+        ? localAppData.concat('\\hyper\\Hyper.exe')
+        : null // fall back to the launcher in install root
 
     if (path == null) {
       log.debug(
