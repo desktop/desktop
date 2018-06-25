@@ -1,5 +1,8 @@
 {
   "releases": {
+    "1.2.6-beta0": [
+      "[Fixed] Feature flag for upcoming feature not applied correctly - #5024"
+    ],
     "1.2.5": [
       "[Fixed] Feature flag for upcoming feature not applied correctly - #5024"
     ],
