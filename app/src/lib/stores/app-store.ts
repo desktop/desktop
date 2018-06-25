@@ -691,8 +691,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return store
   }
 
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _loadHistory(repository: Repository): Promise<void> {
+  /**
+   * TODO:
+   * This is some legacy code that no longer works with the new Compare tab.
+   * Need to investigate porting this to "refresh" the Compare tab state.
+   */
+  private async _loadHistory(repository: Repository): Promise<void> {
     const gitStore = this.getGitStore(repository)
     await gitStore.loadHistory()
 
