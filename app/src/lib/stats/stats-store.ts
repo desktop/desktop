@@ -362,11 +362,10 @@ export class StatsStore {
       return this.updateDailyMeasures(m => ({
         repoWithIndicatorClicked: m.repoWithIndicatorClicked + 1,
       }))
-    } else {
-      return this.updateDailyMeasures(m => ({
-        repoWithoutIndicatorClicked: m.repoWithoutIndicatorClicked + 1,
-      }))
     }
+    return this.updateDailyMeasures(m => ({
+      repoWithoutIndicatorClicked: m.repoWithoutIndicatorClicked + 1,
+    }))
   }
 
   /** Set whether the user has opted out of stats reporting. */

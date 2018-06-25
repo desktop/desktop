@@ -107,14 +107,13 @@ export class RepositoriesList extends React.Component<
   }
 
   private onItemClick = (item: IRepositoryListItem) => {
-    if (enableRepoInfoIndicators) {
-      this.props.dispatcher.recordRepoClicked(
-        !!item.changedFilesCount ||
-          (item.aheadBehind !== null
-            ? !!item.aheadBehind.ahead || !!item.aheadBehind.behind
-            : false)
-        // true if the clicked-on repo has at least one indicator
-      )
+    if (enableRepoInfoIndicators()) {
+      const hasIndicator =
+        item.changedFilesCount > 0 ||
+        (item.aheadBehind !== null
+          ? item.aheadBehind.ahead > 0 || item.aheadBehind.behind > 0
+          : false)
+      this.props.dispatcher.recordRepoClicked(hasIndicator)
     }
     this.props.onSelectionChanged(item.repository)
   }
