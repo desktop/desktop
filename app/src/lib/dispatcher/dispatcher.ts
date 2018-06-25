@@ -1228,4 +1228,11 @@ export class Dispatcher {
   public setSelectedTheme(theme: ApplicationTheme) {
     return this.appStore._setSelectedTheme(theme)
   }
+
+  /**
+   * The number of times the user dismisses the diverged branch notification
+   */
+  public recordDivergingBranchBannerDismissal() {
+    return this.appStore._recordDivergingBranchBannerDismissal()
+  }
 }

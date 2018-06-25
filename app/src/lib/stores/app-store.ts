@@ -941,9 +941,29 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _loadNextHistoryBatch(repository: Repository): Promise<void> {
+  public async _loadNextHistoryBatch(repository: Repository): Promise<void> {
     const gitStore = this.getGitStore(repository)
-    return gitStore.loadNextHistoryBatch()
+
+    if (enableCompareSidebar()) {
+      const state = this.getRepositoryState(repository)
+      const { formState } = state.compareState
+      if (formState.kind === ComparisonView.None) {
+        const commits = state.compareState.commitSHAs
+        const lastCommitSha = commits[commits.length - 1]
+
+        const newCommits = await gitStore.loadCommitBatch(lastCommitSha)
+        if (newCommits == null) {
+          return
+        }
+
+        this.updateCompareState(repository, state => ({
+          commitSHAs: commits.concat(newCommits),
+        }))
+        this.emitUpdate()
+      }
+    } else {
+      return gitStore.loadNextHistoryBatch()
+    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -2997,6 +3017,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _setDivergingBranchBannerVisibility(visible: boolean) {
     if (this.isDivergingBranchBannerVisible !== visible) {
       this.isDivergingBranchBannerVisible = visible
+
+      if (visible) {
+        this._recordDivergingBranchBannerDisplayed()
+      }
+
       this.emitUpdate()
     }
   }
@@ -3743,6 +3768,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
 
     return Promise.resolve()
+  }
+
+  /**
+   * The number of times the user dismisses the diverged branch notification
+   */
+  public _recordDivergingBranchBannerDismissal() {
+    this.statsStore.recordDivergingBranchBannerDismissal()
+  }
+
+  /**
+   * The number of times the user showne the diverged branch notification
+   */
+  public _recordDivergingBranchBannerDisplayed() {
+    this.statsStore.recordDivergingBranchBannerDisplayed()
   }
 }
 
