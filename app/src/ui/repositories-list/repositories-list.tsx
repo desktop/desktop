@@ -22,6 +22,9 @@ interface IRepositoriesListProps {
   /** Called when a repository has been selected. */
   readonly onSelectionChanged: (repository: Repositoryish) => void
 
+  /** Whether the user has enabled the setting to confirm removing a repository from the app */
+  readonly askForConfirmationOnRemoveRepository: boolean
+
   /** Called when the repository should be removed. */
   readonly onRemoveRepository: (repository: Repositoryish) => void
 
@@ -61,6 +64,9 @@ export class RepositoriesList extends React.Component<
         key={repository.id}
         repository={repository}
         needsDisambiguation={item.needsDisambiguation}
+        askForConfirmationOnRemoveRepository={
+          this.props.askForConfirmationOnRemoveRepository
+        }
         onRemoveRepository={this.props.onRemoveRepository}
         onShowRepository={this.props.onShowRepository}
         onOpenInShell={this.props.onOpenInShell}

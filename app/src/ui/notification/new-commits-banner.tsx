@@ -14,6 +14,11 @@ interface INewCommitsBannerProps {
    * from the current branch
    */
   readonly baseBranch: Branch
+
+  /**
+   * Callback used to dismiss the banner
+   */
+  readonly onDismiss: () => void
 }
 
 /**
@@ -45,7 +50,11 @@ export class NewCommitsBanner extends React.Component<
           </div>
         </div>
 
-        <a className="close" aria-label="Dismiss banner">
+        <a
+          className="close"
+          aria-label="Dismiss banner"
+          onClick={this.props.onDismiss}
+        >
           <Octicon symbol={OcticonSymbol.x} />
         </a>
       </div>

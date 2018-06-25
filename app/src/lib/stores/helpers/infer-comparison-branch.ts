@@ -1,15 +1,11 @@
-import { Branch, IAheadBehind } from '../../../models/branch'
+import { Branch } from '../../../models/branch'
 import { PullRequest } from '../../../models/pull-request'
 import { GitHubRepository } from '../../../models/github-repository'
-import { revRange } from '../../git'
 import { IRemote } from '../../../models/remote'
 import { Repository } from '../../../models/repository'
+import { ComparisonCache } from '../../comparison-cache'
 
 type RemotesGetter = (repository: Repository) => Promise<ReadonlyArray<IRemote>>
-type AheadBehindGetter = (
-  repository: Repository,
-  range: string
-) => Promise<IAheadBehind | null>
 
 /**
  * Infers which branch to use as the comparison branch
@@ -25,7 +21,7 @@ type AheadBehindGetter = (
  * @param currentPullRequest The pull request to use for finding the branch
  * @param currentBranch The branch we want the parent of
  * @param getRemotes callback used to get all remotes for the current repository
- * @param getAheadBehind callback used to calculate the number of commits ahead/behind the current branch is from another branch
+ * @param comparisonCache cache used to get the number of commits ahead/behind the current branch is from another branch
  */
 export async function inferComparisonBranch(
   repository: Repository,
@@ -33,7 +29,7 @@ export async function inferComparisonBranch(
   currentPullRequest: PullRequest | null,
   currentBranch: Branch | null,
   getRemotes: RemotesGetter,
-  getAheadBehind: AheadBehindGetter
+  comparisonCache: ComparisonCache
 ): Promise<Branch | null> {
   if (currentPullRequest !== null) {
     return getTargetBranchOfPullRequest(branches, currentPullRequest)
@@ -47,7 +43,7 @@ export async function inferComparisonBranch(
           branches,
           currentBranch,
           getRemotes,
-          getAheadBehind
+          comparisonCache
         )
       : getDefaultBranchOfGitHubRepo(branches, ghRepo)
   }
@@ -88,7 +84,7 @@ async function getDefaultBranchOfFork(
   branches: ReadonlyArray<Branch>,
   currentBranch: Branch,
   getRemotes: RemotesGetter,
-  getAheadBehind: AheadBehindGetter
+  comparisonCache: ComparisonCache
 ): Promise<Branch | null> {
   // this is guaranteed to exist since this function
   // is only called if the ghRepo is not null
@@ -98,17 +94,24 @@ async function getDefaultBranchOfFork(
     return getMasterBranch(branches)
   }
 
-  const range = revRange(currentBranch.tip.sha, defaultBranch.tip.sha)
-  const aheadBehind = await getAheadBehind(repository, range)
+  const aheadBehind = comparisonCache.get(
+    currentBranch.tip.sha,
+    defaultBranch.tip.sha
+  )
+
+  // we want to return the default branch of the fork if it's ahead
+  // of the current branch; see https://github.com/desktop/desktop/issues/4766#issue-325764371
   if (aheadBehind !== null && aheadBehind.ahead > 0) {
     return defaultBranch
   }
 
-  if (ghRepo.parent !== null && ghRepo.parent.defaultBranch !== null) {
-    return getDefaultBranchOfForkedGitHubRepo(repository, branches, getRemotes)
-  }
+  const potentialDefault = await getDefaultBranchOfForkedGitHubRepo(
+    repository,
+    branches,
+    getRemotes
+  )
 
-  return null
+  return potentialDefault
 }
 
 async function getDefaultBranchOfForkedGitHubRepo(
@@ -116,9 +119,15 @@ async function getDefaultBranchOfForkedGitHubRepo(
   branches: ReadonlyArray<Branch>,
   getRemotes: RemotesGetter
 ): Promise<Branch | null> {
-  // this is guaranteed to exist since this function
-  // is only ever called if the ghRepo's parent is not null
-  const parentRepo = repository.gitHubRepository!.parent!
+  const parentRepo =
+    repository.gitHubRepository !== null
+      ? repository.gitHubRepository.parent
+      : null
+
+  if (parentRepo === null) {
+    return null
+  }
+
   const remotes = await getRemotes(repository)
   const remote = remotes.find(r => r.url === parentRepo.cloneURL)
 
