@@ -1866,9 +1866,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const key = `refreshing ${repositories.length} repositories`
-
-    console.time(key)
     for (const repo of repositories) {
       await this.withAuthenticatingUser(repo, async (repo, account) => {
         const gitStore = this.getGitStore(repo)
@@ -1887,7 +1884,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     this.emitUpdate()
-    console.timeEnd(key)
   }
 
   /**
