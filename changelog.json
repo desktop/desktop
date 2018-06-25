@@ -1,7 +1,7 @@
 {
   "releases": {
     "1.2.6": [
-      "[Fixed] Visual indicator for upcoming feature should not be shown - #XXX"
+      "[Fixed] Visual indicator for upcoming feature should not be shown - #5026"
     ],
     "1.2.6-beta0": [
       "[Fixed] Feature flag for upcoming feature not applied correctly - #5024"
