@@ -158,6 +158,7 @@ pull requests.
 | `Windows` | [search](https://github.com/desktop/desktop/labels/Windows)  | Issues specific to Windows users |
 | `codemirror` | [search](https://github.com/desktop/desktop/labels/codemirror)  | Issues related to our use of [CodeMirror](https://codemirror.net/) that may require upstream fixes |
 | `electron` | [search](https://github.com/desktop/desktop/labels/electron) | Issues related to our use of [Electron](https://electron.atom.io) that may require upstream fixes |
+| `themes` | [search](https://github.com/desktop/desktop/labels/themes) | Issues related the light or dark themes that ship in Desktop |
 
 #### Topics
 
