@@ -42,6 +42,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   divergingBranchBannerInitatedMerge: 0,
   divergingBranchBannerInitiatedCompare: 0,
   divergingBranchBannerInfluencedCompare: 0,
+  divergingBranchBannerDisplayed: 0,
 }
 
 interface ICalculatedStats {
@@ -417,6 +418,13 @@ export class StatsStore {
     return this.updateDailyMeasures(m => ({
       divergingBranchBannerInfluencedCompare:
         m.divergingBranchBannerInfluencedCompare + 1,
+    }))
+  }
+
+  /** Record that the user was shown the notification banner */
+  public async recordDivergingBranchBannerDisplayed(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      divergingBranchBannerDisplayed: m.divergingBranchBannerDisplayed + 1,
     }))
   }
 

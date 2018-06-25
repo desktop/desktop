@@ -15,6 +15,9 @@ const defaultEditorLabel = __DARWIN__
 interface IRepositoryListItemProps {
   readonly repository: Repositoryish
 
+  /** Whether the user has enabled the setting to confirm removing a repository from the app */
+  readonly askForConfirmationOnRemoveRepository: boolean
+
   /** Called when the repository should be removed. */
   readonly onRemoveRepository: (repository: Repositoryish) => void
 
@@ -168,7 +171,9 @@ export class RepositoryListItem extends React.Component<
       },
       { type: 'separator' },
       {
-        label: 'Remove',
+        label: this.props.askForConfirmationOnRemoveRepository
+          ? 'Remove…'
+          : 'Remove',
         action: this.removeRepository,
       },
     ]

@@ -464,6 +464,13 @@ export class Dispatcher {
   }
 
   /**
+   * Set the divering branch notification banner's visibility
+   */
+  public setDivergingBranchBannerVisibility(isVisible: boolean) {
+    return this.appStore._setDivergingBranchBannerVisibility(isVisible)
+  }
+
+  /**
    * Reset the width of the repository sidebar to its default
    * value. This affects the changes and history sidebar
    * as well as the first toolbar section which contains
@@ -1228,5 +1235,11 @@ export class Dispatcher {
    */
   public recordRepoClicked(repoHasIndicator: boolean) {
     return this.appStore._recordRepoClicked(repoHasIndicator)
+  }
+
+  /** The number of times the user dismisses the diverged branch notification
+   */
+  public recordDivergingBranchBannerDismissal() {
+    return this.appStore._recordDivergingBranchBannerDismissal()
   }
 }
