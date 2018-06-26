@@ -50,6 +50,7 @@ interface ICompareSidebarState {
    */
   readonly focusedBranch: Branch | null
   readonly selectedCommit: Commit | null
+  readonly hasConsumedNotification: boolean
 }
 
 /** If we're within this many rows from the bottom, load the next history batch. */
@@ -70,6 +71,7 @@ export class CompareSidebar extends React.Component<
     this.state = {
       focusedBranch: null,
       selectedCommit: null,
+      hasConsumedNotification: false,
     }
   }
 
