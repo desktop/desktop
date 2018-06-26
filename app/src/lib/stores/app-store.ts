@@ -3778,6 +3778,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /**
+   * The number of times the user initiates a compare from the notification CTA
+   */
+  public _recordDivergingBranchBannerInitiatedCompare() {
+    this.statsStore.recordDivergingBranchBannerInitiatedCompare()
+  }
+
+  /**
    * The number of times the user showne the diverged branch notification
    */
   public _recordDivergingBranchBannerDisplayed() {

@@ -69,12 +69,13 @@ export class NewCommitsBanner extends React.Component<
   }
 
   private onComparedClicked = () => {
-    const repo = this.props.repository
+    const { repository, dispatcher } = this.props
 
-    this.props.dispatcher.executeCompare(repo, {
+    dispatcher.executeCompare(repository, {
       kind: CompareActionKind.Branch,
       branch: this.props.baseBranch,
       mode: ComparisonView.Behind,
     })
+    dispatcher.recordDivergingBranchBannerInitiatedCompare()
   }
 }
