@@ -47,13 +47,9 @@ export class NewCommitsBanner extends React.Component<
         <div className="notification-banner-content">
           <div>
             <p>
-              Your branch is{' '}
+              We have noticed that your branch is{' '}
               <strong>{this.props.commitsBehindBaseBranch} commits</strong>{' '}
               behind <Ref>{this.props.baseBranch.name}</Ref>.
-            </p>
-
-            <p className="notification-banner-content-body">
-              You can view these commits using the form below.
             </p>
           </div>
         </div>
