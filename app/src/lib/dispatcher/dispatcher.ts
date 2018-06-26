@@ -1230,14 +1230,14 @@ export class Dispatcher {
   }
 
   /**
-   * The number of times the user dismisses the diverged branch notification
+   * Records when the user dismisses the diverged branch notification
    */
   public recordDivergingBranchBannerDismissal() {
     return this.appStore._recordDivergingBranchBannerDismissal()
   }
 
   /**
-   * The number of times the user initiates a compare from the notification CTA
+   * Records when a user initiates a compare from the notification CTA
    */
   public recordDivergingBranchBannerInitiatedCompare() {
     return this.appStore._recordDivergingBranchBannerInitiatedCompare()
