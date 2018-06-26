@@ -39,5 +39,5 @@ export function enableCompareSidebar(): boolean {
 
 /** Should the Notification of Diverging From Default Branch (NDDB) feature be enabled? */
 export function enableNotificationOfBranchUpdates(): boolean {
-  return enableDevelopmentFeatures()
+  return enableBetaFeatures()
 }
