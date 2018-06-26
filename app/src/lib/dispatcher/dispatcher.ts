@@ -1242,4 +1242,11 @@ export class Dispatcher {
   public recordDivergingBranchBannerInitiatedCompare() {
     return this.appStore._recordDivergingBranchBannerInitiatedCompare()
   }
+
+  /**
+   * Records when a user initiates a merge after getting to it from the notification CTA
+   */
+  public recordDivergingBranchBannerInfluencedMerge() {
+    return this.appStore._recordDivergingBranchBannerInfluencedMerge()
+  }
 }
