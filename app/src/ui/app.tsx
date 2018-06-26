@@ -1469,6 +1469,8 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const currentState: DropdownState = isOpen ? 'open' : 'closed'
 
+    const tooltip = repository && !isOpen ? repository.path : undefined
+
     const foldoutStyle: React.CSSProperties = {
       position: 'absolute',
       marginLeft: 0,
@@ -1482,6 +1484,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         icon={icon}
         title={title}
         description={__DARWIN__ ? 'Current Repository' : 'Current repository'}
+        tooltip={tooltip}
         foldoutStyle={foldoutStyle}
         onDropdownStateChanged={this.onRepositoryDropdownStateChanged}
         dropdownContentRenderer={this.renderRepositoryList}
