@@ -53,7 +53,7 @@ export class NewCommitsBanner extends React.Component<
             </p>
           </div>
           <div className="notification-banner-cta">
-            <Button onClick={this.onComparedClicked}>Compare</Button>
+            <Button onClick={this.onComparedClicked}>View commits</Button>
           </div>
         </div>
 
