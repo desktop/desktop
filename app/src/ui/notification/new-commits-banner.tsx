@@ -2,8 +2,16 @@ import * as React from 'react'
 import { Ref } from '../lib/ref'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Branch } from '../../models/branch'
+import { Button } from '../lib/button';
+import { Dispatcher } from '../../lib/dispatcher';
+import { Repository } from '../../models/repository';
+import { CompareActionKind, ComparisonView } from '../../lib/app-state';
 
 interface INewCommitsBannerProps {
+  readonly dispatcher: Dispatcher
+
+  readonly repository: Repository
+
   /**
    * The number of commits behind base branch
    */
@@ -57,7 +65,20 @@ export class NewCommitsBanner extends React.Component<
         >
           <Octicon symbol={OcticonSymbol.x} />
         </a>
+        <div className="notification-banner-cta">
+          <Button onClick={this.onComparedClicked}>Compare</Button>
+        </div>
       </div>
     )
+  }
+
+  private onComparedClicked = () => {
+    const repo = this.props.repository
+
+    this.props.dispatcher.executeCompare(repo, {
+      kind: CompareActionKind.Branch,
+      branch: this.props.baseBranch,
+      mode: ComparisonView.Behind
+    })
   }
 }
