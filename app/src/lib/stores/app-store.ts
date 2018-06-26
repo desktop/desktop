@@ -1866,13 +1866,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    const promises = []
+
     for (const repo of repositories) {
-      await this.withAuthenticatingUser(repo, async (repo, account) => {
+      promises.push(this.withAuthenticatingUser(repo, async (repo, account) => {
         const gitStore = this.getGitStore(repo)
         const lookup = this.localRepositoryStateLookup
         if (this.shouldBackgroundFetch(repo)) {
           await gitStore.fetch(account, true)
         }
+
         const status = await gitStore.loadStatus()
         if (status !== null) {
           lookup.set(repo.id, {
@@ -1880,8 +1883,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
             changedFilesCount: status.workingDirectory.files.length,
           })
         }
-      })
+      }))
     }
+
+    await Promise.all(promises)
 
     this.emitUpdate()
   }
