@@ -26,7 +26,7 @@ interface INewCommitsBannerProps {
   /**
    * Callback used to dismiss the banner
    */
-  readonly onDismiss: () => void
+  readonly onDismiss: (reason?: string) => void
 }
 
 /**
@@ -57,7 +57,7 @@ export class NewCommitsBanner extends React.Component<
         <a
           className="close"
           aria-label="Dismiss banner"
-          onClick={this.props.onDismiss}
+          onClick={this.onDismissed}
         >
           <Octicon symbol={OcticonSymbol.x} />
         </a>
@@ -66,6 +66,10 @@ export class NewCommitsBanner extends React.Component<
         </div>
       </div>
     )
+  }
+
+  private onDismissed = () => {
+    this.props.onDismiss()
   }
 
   private onComparedClicked = () => {
@@ -77,5 +81,6 @@ export class NewCommitsBanner extends React.Component<
       mode: ComparisonView.Behind,
     })
     dispatcher.recordDivergingBranchBannerInitiatedCompare()
+    this.props.onDismiss("compare")
   }
 }

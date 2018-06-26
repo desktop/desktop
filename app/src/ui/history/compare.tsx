@@ -530,9 +530,24 @@ export class CompareSidebar extends React.Component<
     this.textbox = textbox
   }
 
-  private onNotificationBannerDismissed = () => {
+  private onNotificationBannerDismissed = (reason?: string) => {
     this.props.dispatcher.setDivergingBranchBannerVisibility(false)
     this.props.dispatcher.recordDivergingBranchBannerDismissal()
+
+    if (reason === undefined) {
+      this.setState({ hasConsumedNotification: false })
+      return
+    }
+
+    if (reason === 'compare') {
+      this.setState({ hasConsumedNotification: true })
+    }
+  }
+
+  private onMerge = () => {
+    if (this.state.hasConsumedNotification) {
+      this.props.dispatcher.recordDivergingBranchBannerInfluencedMerge()
+    }
   }
 }
 
