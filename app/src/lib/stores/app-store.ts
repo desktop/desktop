@@ -1869,21 +1869,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const promises = []
 
     for (const repo of repositories) {
-      promises.push(this.withAuthenticatingUser(repo, async (repo, account) => {
-        const gitStore = this.getGitStore(repo)
-        const lookup = this.localRepositoryStateLookup
-        if (this.shouldBackgroundFetch(repo)) {
-          await gitStore.fetch(account, true)
-        }
+      promises.push(
+        this.withAuthenticatingUser(repo, async (repo, account) => {
+          const gitStore = this.getGitStore(repo)
+          const lookup = this.localRepositoryStateLookup
+          if (this.shouldBackgroundFetch(repo)) {
+            await gitStore.fetch(account, true)
+          }
 
-        const status = await gitStore.loadStatus()
-        if (status !== null) {
-          lookup.set(repo.id, {
-            aheadBehind: gitStore.aheadBehind,
-            changedFilesCount: status.workingDirectory.files.length,
-          })
-        }
-      }))
+          const status = await gitStore.loadStatus()
+          if (status !== null) {
+            lookup.set(repo.id, {
+              aheadBehind: gitStore.aheadBehind,
+              changedFilesCount: status.workingDirectory.files.length,
+            })
+          }
+        })
+      )
     }
 
     await Promise.all(promises)
