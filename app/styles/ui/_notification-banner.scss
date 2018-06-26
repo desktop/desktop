@@ -19,6 +19,7 @@
 
   &-content {
     display: flex;
+    flex-wrap: wrap;
 
     p {
       flex-grow: 1;
@@ -91,4 +92,8 @@
 
 .notification-banner-content-body {
   color: var(--text-secondary-color);
+}
+
+.notification-banner-cta {
+  padding-top: 5px;
 }
