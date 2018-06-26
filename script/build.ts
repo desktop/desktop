@@ -124,11 +124,17 @@ function packageApp(
   }
 
   const toPackageArch = (targetArch: string | undefined): packager.arch => {
+    if (targetArch === undefined) {
+      return 'x64'
+    }
+
     if (targetArch === 'arm64' || targetArch === 'x64') {
       return targetArch
     }
 
-    return 'x64'
+    throw new Error(
+      `Building Desktop for architecture '${targetArch}'  is not supported`
+    )
   }
 
   const options: packager.Options & IPackageAdditionalOptions = {
