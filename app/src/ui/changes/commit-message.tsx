@@ -69,6 +69,9 @@ interface ICommitMessageProps {
 interface ICommitMessageState {
   readonly summary: string
   readonly description: string | null
+  readonly jira: string
+  readonly skipci: boolean
+  readonly addtoJira: boolean
 
   /** The last contextual commit message we've received. */
   readonly lastContextualCommitMessage: ICommitMessage | null
@@ -110,6 +113,9 @@ export class CommitMessage extends React.Component<
     this.state = {
       summary: '',
       description: '',
+      jira: '',
+      skipci: false,
+      addtoJira: true,
       lastContextualCommitMessage: null,
       userAutocompletionProvider: findUserAutoCompleteProvider(
         props.autocompletionProviders
@@ -220,6 +226,18 @@ export class CommitMessage extends React.Component<
     this.setState({ summary: '', description: null })
   }
 
+  private onJiraIdChanged = (jira: any) => {
+    this.setState({ jira: jira.target.value })
+  }
+
+  private onSkipCiChanged = (val: any) => {
+    this.setState({ skipci: val.target.checked })
+  }
+
+  private onAddCommentToJiraChanged = (val: any) => {
+    this.setState({ addtoJira: val.target.checked })
+  }
+
   private onSummaryChanged = (summary: string) => {
     this.setState({ summary })
   }
@@ -244,7 +262,15 @@ export class CommitMessage extends React.Component<
   }
 
   private async createCommit() {
-    const { summary, description } = this.state
+    const description = this.state.description
+    let summary = this.state.summary
+    if (this.state.addtoJira) {
+      summary = "#comment " + summary
+    }
+    if (this.state.skipci) {
+      summary += " [skip ci]"
+    }
+    //const { summary, description } = this.state
 
     if (!this.canCommit()) {
       return
@@ -491,6 +517,17 @@ export class CommitMessage extends React.Component<
         onContextMenu={this.onContextMenu}
         onKeyDown={this.onKeyDown}
       >
+        <div className="jira">
+          <input 
+            type="text"
+            className="jira-id" 
+            placeholder="JIRA ID" 
+            value={this.state.jira} 
+            onChange={this.onJiraIdChanged.bind(this)}
+            required={true}/>
+            <input type="checkbox" onChange={this.onSkipCiChanged.bind(this)} defaultChecked={this.state.skipci}/>SkipCI
+            <input type="checkbox" onChange={this.onAddCommentToJiraChanged.bind(this)} defaultChecked={this.state.addtoJira}/>Add comment to JIRA
+        </div>
         <div className="summary">
           {this.renderAvatar()}
 
