@@ -2,10 +2,10 @@ import * as React from 'react'
 import { Ref } from '../lib/ref'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Branch } from '../../models/branch'
-import { Button } from '../lib/button';
-import { Dispatcher } from '../../lib/dispatcher';
-import { Repository } from '../../models/repository';
-import { CompareActionKind, ComparisonView } from '../../lib/app-state';
+import { Button } from '../lib/button'
+import { Dispatcher } from '../../lib/dispatcher'
+import { Repository } from '../../models/repository'
+import { CompareActionKind, ComparisonView } from '../../lib/app-state'
 
 interface INewCommitsBannerProps {
   readonly dispatcher: Dispatcher
@@ -78,7 +78,7 @@ export class NewCommitsBanner extends React.Component<
     this.props.dispatcher.executeCompare(repo, {
       kind: CompareActionKind.Branch,
       branch: this.props.baseBranch,
-      mode: ComparisonView.Behind
+      mode: ComparisonView.Behind,
     })
   }
 }
