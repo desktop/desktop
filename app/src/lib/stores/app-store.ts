@@ -3790,6 +3790,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _recordDivergingBranchBannerDisplayed() {
     this.statsStore.recordDivergingBranchBannerDisplayed()
   }
+
+  /**
+   * Records when a user initiates a merge after getting to it from the notification CTA
+   */
+  public _recordDivergingBranchBannerInfluencedMerge() {
+    this.statsStore.recordDivergingBranchBannerInfluencedMerge()
+  }
 }
 
 function forkPullRequestRemoteName(remoteName: string) {
