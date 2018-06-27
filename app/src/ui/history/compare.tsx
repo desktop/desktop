@@ -24,7 +24,10 @@ import { OcticonSymbol } from '../octicons'
 import { SelectionSource } from '../lib/filter-list'
 import { IMatches } from '../../lib/fuzzy-find'
 import { Ref } from '../lib/ref'
-import { NewCommitsBanner } from '../notification/new-commits-banner'
+import {
+  NewCommitsBanner,
+  DismissalReason,
+} from '../notification/new-commits-banner'
 import { enableNotificationOfBranchUpdates } from '../../lib/feature-flag'
 import { MergeCallToAction } from './merge-call-to-action'
 
@@ -530,7 +533,7 @@ export class CompareSidebar extends React.Component<
     this.textbox = textbox
   }
 
-  private onNotificationBannerDismissed = (reason?: string) => {
+  private onNotificationBannerDismissed = (reason: DismissalReason) => {
     this.props.dispatcher.setDivergingBranchBannerVisibility(false)
     this.props.dispatcher.recordDivergingBranchBannerDismissal()
 
