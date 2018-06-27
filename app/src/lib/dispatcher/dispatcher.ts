@@ -1225,7 +1225,7 @@ export class Dispatcher {
   }
 
   /**
-   * The number of times the user dismisses the diverged branch notification
+   * Increments the `divergingBranchBannerDismissal` metric
    */
   public recordDivergingBranchBannerDismissal() {
     return this.appStore._recordDivergingBranchBannerDismissal()
