@@ -3779,6 +3779,27 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _recordDivergingBranchBannerDisplayed() {
     this.statsStore.recordDivergingBranchBannerDisplayed()
   }
+
+  /**
+   * Increments the `dotcomPushCount` metric
+   */
+  public _recordPushToGitHub() {
+    this.statsStore.recordPushToGitHub()
+  }
+
+  /**
+   * Increments the `enterprisePushCount` metric
+   */
+  public _recordPushToGitHubEnterprise() {
+    this.statsStore.recordPushToGitHubEnterprise()
+  }
+
+  /**
+   * Increments the `externalPushCount` metric
+   */
+  public _recordPushToGenericRemote() {
+    this.statsStore.recordPushToGenericRemote()
+  }
 }
 
 function forkPullRequestRemoteName(remoteName: string) {
