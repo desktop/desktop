@@ -77,8 +77,13 @@ export interface IDailyMeasures {
   /** The number of times the diverged branch notification is displayed */
   readonly divergingBranchBannerDisplayed: number
 
+  /** The number of times the user pushes to GitHub.com */
   readonly dotcomPushCount: number
+
+  /** The number of times the user pushed to a GitHub enterprise instance */
   readonly enterprisePushCount: number
+
+  /** The number of times the users pushes to a generic remote */
   readonly externalPushCount: number
 }
 
