@@ -126,6 +126,11 @@ interface IFilterListProps<T extends IFilterListItem> {
    * make this more composable which should make this unnecessary.
    */
   readonly filterTextBox?: TextBox
+
+  /**
+   * Called when the items in filtered list are updated
+   */
+  readonly onFilterListResultsChanged?: (resultCount: number) => void
 }
 
 interface IFilterListState<T extends IFilterListItem> {
