@@ -7,6 +7,7 @@ import { getOS } from '../get-os'
 import { getGUID } from './get-guid'
 import { Repository } from '../../models/repository'
 import { merge } from '../../lib/merge'
+import { getPersistedThemeName } from '../../ui/lib/application-theme'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
@@ -35,6 +36,11 @@ const DefaultDailyMeasures: IDailyMeasures = {
   updateFromDefaultBranchMenuCount: 0,
   mergeIntoCurrentBranchMenuCount: 0,
   prBranchCheckouts: 0,
+  divergingBranchBannerDismissal: 0,
+  divergingBranchBannerInitatedMerge: 0,
+  divergingBranchBannerInitiatedCompare: 0,
+  divergingBranchBannerInfluencedCompare: 0,
+  divergingBranchBannerDisplayed: 0,
 }
 
 interface ICalculatedStats {
@@ -61,6 +67,12 @@ interface ICalculatedStats {
 
   /** Is the user logged in with an Enterprise account? */
   readonly enterpriseAccount: boolean
+
+  /**
+   * The name of the currently selected theme/application
+   * appearance as set at time of stats submission.
+   */
+  readonly theme: string
 
   readonly eventType: 'usage'
 }
@@ -177,6 +189,7 @@ export class StatsStore {
       version: getVersion(),
       osVersion: getOS(),
       platform: process.platform,
+      theme: getPersistedThemeName(),
       ...launchStats,
       ...dailyMeasures,
       ...userType,
@@ -358,6 +371,47 @@ export class StatsStore {
   /** Has the user opted out of stats reporting? */
   public getOptOut(): boolean {
     return this.optOut
+  }
+
+  /** Record that user dismissed diverging branch notification */
+  public async recordDivergingBranchBannerDismissal(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      divergingBranchBannerDismissal: m.divergingBranchBannerDismissal + 1,
+    }))
+  }
+
+  /** Record that user initiated a merge from within the notification banner */
+  public async recordDivergingBranchBannerInitatedMerge(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      divergingBranchBannerInitatedMerge:
+        m.divergingBranchBannerInitatedMerge + 1,
+    }))
+  }
+
+  /** Record that user initiated a compare from within the notification banner */
+  public async recordDivergingBranchBannerInitiatedCompare(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      divergingBranchBannerInitiatedCompare:
+        m.divergingBranchBannerInitiatedCompare + 1,
+    }))
+  }
+
+  /**
+   * Record that user initiated a merge after getting to compare view
+   * from within notificatio banner
+   */
+  public async recordDivergingBranchBannerInfluencedCompare(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      divergingBranchBannerInfluencedCompare:
+        m.divergingBranchBannerInfluencedCompare + 1,
+    }))
+  }
+
+  /** Record that the user was shown the notification banner */
+  public async recordDivergingBranchBannerDisplayed(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      divergingBranchBannerDisplayed: m.divergingBranchBannerDisplayed + 1,
+    }))
   }
 
   /** Post some data to our stats endpoint. */

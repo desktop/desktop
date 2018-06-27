@@ -23,10 +23,10 @@ import {
   CompareActionKind,
   IDisplayHistory,
   ICompareBranch,
-  RepositorySection,
+  ICompareFormUpdate,
 } from '../app-state'
 import { Account } from '../../models/account'
-import { Repository } from '../../models/repository'
+import { Repository, ILocalRepositoryState } from '../../models/repository'
 import { GitHubRepository } from '../../models/github-repository'
 import {
   CommittedFileChange,
@@ -41,7 +41,11 @@ import {
 } from '../../lib/repository-matching'
 import { API, getAccountForEndpoint, IAPIUser } from '../../lib/api'
 import { caseInsensitiveCompare } from '../compare'
-import { Branch, eligibleForFastForward } from '../../models/branch'
+import {
+  Branch,
+  eligibleForFastForward,
+  IAheadBehind,
+} from '../../models/branch'
 import { TipState } from '../../models/tip'
 import { CloningRepository } from '../../models/cloning-repository'
 import { Commit } from '../../models/commit'
@@ -130,7 +134,12 @@ import { IRemote, ForkedRemotePrefix } from '../../models/remote'
 import { IAuthor } from '../../models/author'
 import { ComparisonCache } from '../comparison-cache'
 import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
-import { enableCompareSidebar } from '../feature-flag'
+import { inferComparisonBranch } from './helpers/infer-comparison-branch'
+import {
+  ApplicationTheme,
+  getPersistedTheme,
+  setPersistedTheme,
+} from '../../ui/lib/application-theme'
 
 /**
  * Enum used by fetch to determine if
@@ -199,6 +208,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     string,
     RepositorySettingsStore
   >()
+
+  private readonly localRepositoryStateLookup = new Map<
+    number,
+    ILocalRepositoryState
+  >()
   public readonly gitHubUserStore: GitHubUserStore
   private readonly cloningRepositoriesStore: CloningRepositoriesStore
   private readonly emojiStore: EmojiStore
@@ -255,9 +269,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     | ((repository: Repository | null) => void)
     | null = null
 
-  private selectedCloneRepositoryTab: CloneRepositoryTab = CloneRepositoryTab.DotCom
+  private selectedCloneRepositoryTab = CloneRepositoryTab.DotCom
 
   private selectedBranchesTab = BranchesTab.Branches
+  private selectedTheme = ApplicationTheme.Light
+  private isDivergingBranchBannerVisible = false
 
   public constructor(
     gitHubUserStore: GitHubUserStore,
@@ -422,7 +438,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         coAuthors: [],
         showCoAuthoredBy: false,
       },
-      selectedSection: { selectedTab: RepositorySectionTab.Changes },
+      selectedSection: RepositorySectionTab.Changes,
       branchesState: {
         tip: { kind: TipState.Unknown },
         defaultBranch: null,
@@ -434,11 +450,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
       },
       compareState: {
         formState: { kind: ComparisonView.None },
+        showBranchList: false,
+        filterText: '',
         commitSHAs: [],
         aheadBehindCache: new ComparisonCache(),
         allBranches: new Array<Branch>(),
         recentBranches: new Array<Branch>(),
         defaultBranch: null,
+        inferredComparisonBranch: { branch: null, aheadBehind: null },
       },
       commitAuthor: null,
       gitHubUsers: new Map<string, IGitHubUser>(),
@@ -566,6 +585,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         ...this.repositories,
         ...this.cloningRepositoriesStore.repositories,
       ],
+      localRepositoryStateLookup: this.localRepositoryStateLookup,
       windowState: this.windowState,
       windowZoomFactor: this.windowZoomFactor,
       appIsFocused: this.appIsFocused,
@@ -590,6 +610,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repositoryFilterText: this.repositoryFilterText,
       selectedCloneRepositoryTab: this.selectedCloneRepositoryTab,
       selectedBranchesTab: this.selectedBranchesTab,
+      isDivergingBranchBannerVisible: this.isDivergingBranchBannerVisible,
+      selectedTheme: this.selectedTheme,
     }
   }
 
@@ -669,8 +691,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return store
   }
 
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _loadHistory(repository: Repository): Promise<void> {
+  /**
+   * TODO:
+   * This is some legacy code that no longer works with the new Compare tab.
+   * Need to investigate porting this to "refresh" the Compare tab state.
+   */
+  private async _loadHistory(repository: Repository): Promise<void> {
     const gitStore = this.getGitStore(repository)
     await gitStore.loadHistory()
 
@@ -738,8 +764,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const state = this.getRepositoryState(repository)
 
-    const branchesState = state.branchesState
-    const tip = branchesState.tip
+    const { branchesState, compareState } = state
+    const { tip, currentPullRequest } = branchesState
     const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
 
     const allBranches =
@@ -761,16 +787,60 @@ export class AppStore extends TypedBaseStore<IAppState> {
         ? cachedDefaultBranch
         : null
 
+    let inferredBranch: Branch | null = null
+    let aheadBehindOfInferredBranch: IAheadBehind | null = null
+    if (tip.kind === TipState.Valid && compareState.aheadBehindCache !== null) {
+      inferredBranch = await inferComparisonBranch(
+        repository,
+        allBranches,
+        currentPullRequest,
+        tip.branch,
+        getRemotes,
+        compareState.aheadBehindCache
+      )
+
+      if (inferredBranch !== null) {
+        aheadBehindOfInferredBranch = compareState.aheadBehindCache.get(
+          tip.branch.tip.sha,
+          inferredBranch.tip.sha
+        )
+      }
+    }
+
     this.updateCompareState(repository, state => ({
       allBranches,
       recentBranches,
       defaultBranch,
+      inferredComparisonBranch: {
+        branch: inferredBranch,
+        aheadBehind: aheadBehindOfInferredBranch,
+      },
     }))
 
-    const compareState = state.compareState
+    // we only want to show the banner when the the number
+    // commits behind has changed since the last it was visible
+    if (
+      inferredBranch !== null &&
+      aheadBehindOfInferredBranch !== null &&
+      aheadBehindOfInferredBranch.behind > 0
+    ) {
+      const prevInferredBranchState =
+        state.compareState.inferredComparisonBranch
+      if (
+        prevInferredBranchState.aheadBehind === null ||
+        prevInferredBranchState.aheadBehind.behind !==
+          aheadBehindOfInferredBranch.behind
+      ) {
+        this._setDivergingBranchBannerVisibility(true)
+      }
+    } else if (
+      inferComparisonBranch !== null ||
+      aheadBehindOfInferredBranch === null
+    ) {
+      this._setDivergingBranchBannerVisibility(false)
+    }
 
     const cachedState = compareState.formState
-
     const action =
       initialAction != null ? initialAction : getInitialAction(cachedState)
     this._executeCompare(repository, action)
@@ -862,9 +932,37 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _loadNextHistoryBatch(repository: Repository): Promise<void> {
+  public _updateCompareForm<K extends keyof ICompareFormUpdate>(
+    repository: Repository,
+    newState: Pick<ICompareFormUpdate, K>
+  ) {
+    this.updateCompareState(repository, state => {
+      return merge(state, newState)
+    })
+
+    this.emitUpdate()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _loadNextHistoryBatch(repository: Repository): Promise<void> {
     const gitStore = this.getGitStore(repository)
-    return gitStore.loadNextHistoryBatch()
+
+    const state = this.getRepositoryState(repository)
+    const { formState } = state.compareState
+    if (formState.kind === ComparisonView.None) {
+      const commits = state.compareState.commitSHAs
+      const lastCommitSha = commits[commits.length - 1]
+
+      const newCommits = await gitStore.loadCommitBatch(lastCommitSha)
+      if (newCommits == null) {
+        return
+      }
+
+      this.updateCompareState(repository, state => ({
+        commitSHAs: commits.concat(newCommits),
+      }))
+      this.emitUpdate()
+    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -1069,10 +1167,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.startBackgroundFetching(repository, !previouslySelectedRepository)
     this.startPullRequestUpdater(repository)
 
-    if (enableCompareSidebar()) {
-      this.startAheadBehindUpdater(repository)
-    }
-
+    this.startAheadBehindUpdater(repository)
     this.refreshMentionables(repository)
 
     this.addUpstreamRemoteIfNeeded(repository)
@@ -1290,6 +1385,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
         ? imageDiffTypeDefault
         : parseInt(imageDiffTypeValue)
 
+    this.selectedTheme = getPersistedTheme()
+
     this.emitUpdateNow()
 
     this.accountsStore.refresh()
@@ -1482,14 +1579,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _changeRepositorySection(
     repository: Repository,
-    selectedSection: RepositorySection
+    selectedSection: RepositorySectionTab
   ): Promise<void> {
     this.updateRepositoryState(repository, state => ({ selectedSection }))
     this.emitUpdate()
 
-    if (selectedSection.selectedTab === RepositorySectionTab.History) {
+    if (selectedSection === RepositorySectionTab.History) {
       return this.refreshHistorySection(repository)
-    } else if (selectedSection.selectedTab === RepositorySectionTab.Changes) {
+    } else if (selectedSection === RepositorySectionTab.Changes) {
       return this.refreshChangesSection(repository, {
         includingStatus: true,
         clearPartialState: false,
@@ -1729,9 +1826,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const section = state.selectedSection
     let refreshSectionPromise: Promise<void>
 
-    if (section.selectedTab === RepositorySectionTab.History) {
+    if (section === RepositorySectionTab.History) {
       refreshSectionPromise = this.refreshHistorySection(repository)
-    } else if (section.selectedTab === RepositorySectionTab.Changes) {
+    } else if (section === RepositorySectionTab.Changes) {
       refreshSectionPromise = this.refreshChangesSection(repository, {
         includingStatus: false,
         clearPartialState: false,
@@ -2156,7 +2253,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         const refreshWeight = 0.1
 
         // Scale pull and fetch weights to be between 0 and 0.9.
-        const scale = 1 / (pushWeight + fetchWeight) * (1 - refreshWeight)
+        const scale = (1 / (pushWeight + fetchWeight)) * (1 - refreshWeight)
 
         pushWeight *= scale
         fetchWeight *= scale
@@ -2340,7 +2437,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           const refreshWeight = 0.1
 
           // Scale pull and fetch weights to be between 0 and 0.9.
-          const scale = 1 / (pullWeight + fetchWeight) * (1 - refreshWeight)
+          const scale = (1 / (pullWeight + fetchWeight)) * (1 - refreshWeight)
 
           pullWeight *= scale
           fetchWeight *= scale
@@ -2911,6 +3008,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.isUpdateAvailableBannerVisible = visibility
 
     this.emitUpdate()
+  }
+
+  public _setDivergingBranchBannerVisibility(visible: boolean) {
+    if (this.isDivergingBranchBannerVisible !== visible) {
+      this.isDivergingBranchBannerVisible = visible
+
+      if (visible) {
+        this._recordDivergingBranchBannerDisplayed()
+      }
+
+      this.emitUpdate()
+    }
   }
 
   public _reportStats() {
@@ -3644,6 +3753,31 @@ export class AppStore extends TypedBaseStore<IAppState> {
    */
   public _recordCompareInitiatedMerge() {
     this.statsStore.recordCompareInitiatedMerge()
+  }
+
+  /**
+   * Set the application-wide theme
+   */
+  public _setSelectedTheme(theme: ApplicationTheme) {
+    setPersistedTheme(theme)
+    this.selectedTheme = theme
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  /**
+   * Increments the `divergingBranchBannerDismissal` metric
+   */
+  public _recordDivergingBranchBannerDismissal() {
+    this.statsStore.recordDivergingBranchBannerDismissal()
+  }
+
+  /**
+   * Increments the `divergingBranchBannerDisplayed` metric
+   */
+  public _recordDivergingBranchBannerDisplayed() {
+    this.statsStore.recordDivergingBranchBannerDisplayed()
   }
 }
 

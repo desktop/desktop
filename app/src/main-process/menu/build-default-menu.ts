@@ -6,7 +6,6 @@ import { ensureDir } from 'fs-extra'
 
 import { log } from '../log'
 import { openDirectorySafe } from '../shell'
-import { enableCompareSidebar } from '../../lib/feature-flag'
 
 const defaultEditorLabel = __DARWIN__
   ? 'Open in External Editor'
@@ -294,7 +293,6 @@ export function buildDefaultMenu(
         id: 'compare-to-branch',
         accelerator: 'CmdOrCtrl+Shift+B',
         click: emit('compare-to-branch'),
-        visible: enableCompareSidebar(),
       },
       {
         label: __DARWIN__
@@ -358,7 +356,9 @@ export function buildDefaultMenu(
 
   const showLogsLabel = __DARWIN__
     ? 'Show Logs in Finder'
-    : __WIN32__ ? 'S&how logs in Explorer' : 'S&how logs in your File Manager'
+    : __WIN32__
+      ? 'S&how logs in Explorer'
+      : 'S&how logs in your File Manager'
 
   const showLogsItem: Electron.MenuItemConstructorOptions = {
     label: showLogsLabel,

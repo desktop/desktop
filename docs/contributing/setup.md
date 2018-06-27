@@ -6,13 +6,13 @@ You will need to install these tools on your machine:
 
 ### macOS
 
- - [Node.js v8.9.0](https://nodejs.org/dist/v8.9.0/)
+ - [Node.js v8.11.2](https://nodejs.org/dist/v8.11.2/)
  - [Python 2.7](https://www.python.org/downloads/mac-osx/)
  - Xcode and Xcode Command Line Tools (Xcode -> Preferences -> Downloads)
 
 ### Windows
 
- - [Node.js v8.9.0](https://nodejs.org/dist/v8.9.0/)
+ - [Node.js v8.11.2](https://nodejs.org/dist/v8.11.2/)
     - *Make sure you allow the Node.js installer to add node to the PATH.*
  - [Python 2.7](https://www.python.org/downloads/windows/)
     - *Let Python install into the default suggested path (`c:\Python27`), otherwise you'll have
@@ -32,7 +32,7 @@ You will need to install these tools on your machine:
 
 ### Fedora 26
 
-First, add the NodeJS package repository.
+First, add the NodeJS package repository for 8.x.
 
 ```shellsession
 $ curl --silent --location https://rpm.nodesource.com/setup_8.x | sudo bash -
@@ -67,7 +67,7 @@ First, install curl:
 $ sudo apt install curl
 ```
 
-Then add the NodeJS package repository:
+Then add the NodeJS package repository for 8.x:
 
 ```shellsession
 $ curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
@@ -106,7 +106,7 @@ export TARGET_ARCH=arm64
 After doing this setup, you also need to install `yarn` as Desktop uses
 this for managing packages instead of NPM. **Do not install `yarn` through
 NPM**. Refer to the [install instructions](https://yarnpkg.com/en/docs/install)
-for you OS.
+for your OS.
 
 This is important because `yarn` uses lock files to pin dependencies. If you
 find yourself changing packages, this will prevent mismatches in versions
@@ -123,7 +123,7 @@ versions look similar to the below output:
 
 ```shellsession
 $ node -v
-v8.10.0
+v8.11.2
 
 $ yarn -v
 1.5.1
@@ -166,18 +166,8 @@ problems.
 ## Running tests
 
 - `yarn test` - Runs all unit and integration tests
-- `yarn test:unit` - Runs all unit tests
+- `yarn test:unit` - Runs all unit tests (add `--debug` to open Chrome Dev Tools while running tests)
 - `yarn test:integration` - Runs all integration tests
-
-**Pro Tip:** If you're only interested in the results of a single test and don't
-wish to run the entire test suite to see it you can pass along a search string
-in order to only run the tests that match that string.
-
-```shellsession
-$ yarn test:unit -- --grep CloneProgressParser
-```
-
-This example will run all test names containing `CloneProgressParser`.
 
 ## Debugging
 

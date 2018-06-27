@@ -22,13 +22,9 @@ function enableDevelopmentFeatures(): boolean {
 }
 
 /** Should the app enable beta features? */
+//@ts-ignore: this will be used again in the future
 function enableBetaFeatures(): boolean {
   return enableDevelopmentFeatures() || __RELEASE_CHANNEL__ === 'beta'
-}
-
-/** Should the new Compare view be enabled? */
-export function enableCompareBranch(): boolean {
-  return enableBetaFeatures()
 }
 
 /** Should merge tool integration be enabled? */
@@ -36,11 +32,7 @@ export function enableMergeTool(): boolean {
   return enableDevelopmentFeatures()
 }
 
-export function enableCompareSidebar(): boolean {
-  return true
-}
-
 /** Should the Notification of Diverging From Default Branch (NDDB) feature be enabled? */
 export function enableNotificationOfBranchUpdates(): boolean {
-  return enableDevelopmentFeatures()
+  return enableBetaFeatures()
 }

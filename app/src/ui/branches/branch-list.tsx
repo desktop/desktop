@@ -9,6 +9,7 @@ import {
   IFilterListGroup,
   SelectionSource,
 } from '../lib/filter-list'
+import { IMatches } from '../../lib/fuzzy-find'
 import { Button } from '../lib/button'
 import { TextBox } from '../lib/text-box'
 
@@ -18,14 +19,6 @@ import {
   BranchGroupIdentifier,
 } from './group-branches'
 import { NoBranches } from './no-branches'
-
-/**
- * TS can't parse generic specialization in JSX, so we have to alias it here
- * with the generic type. See https://github.com/Microsoft/TypeScript/issues/6395.
- */
-const BranchesFilterList: new () => FilterList<
-  IBranchListItem
-> = FilterList as any
 
 const RowHeight = 30
 
@@ -103,7 +96,7 @@ interface IBranchListProps {
    */
   readonly renderBranch: (
     item: IBranchListItem,
-    matches: ReadonlyArray<number>
+    matches: IMatches
   ) => JSX.Element
 }
 
@@ -171,7 +164,7 @@ export class BranchList extends React.Component<
 
   public render() {
     return (
-      <BranchesFilterList
+      <FilterList<IBranchListItem>
         ref={this.onBranchesFilterListRef}
         className="branches-list"
         rowHeight={RowHeight}
@@ -198,10 +191,7 @@ export class BranchList extends React.Component<
     this.branchFilterList = filterList
   }
 
-  private renderItem = (
-    item: IBranchListItem,
-    matches: ReadonlyArray<number>
-  ) => {
+  private renderItem = (item: IBranchListItem, matches: IMatches) => {
     return this.props.renderBranch(item, matches)
   }
 

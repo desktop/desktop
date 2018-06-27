@@ -810,7 +810,7 @@ export class List extends React.Component<IListProps, IListState> {
 
     if (this.grid) {
       const element = ReactDOM.findDOMNode(this.grid)
-      if (element) {
+      if (element instanceof Element) {
         element.scrollTop = e.currentTarget.scrollTop
       }
     }

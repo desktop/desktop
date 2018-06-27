@@ -223,7 +223,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
   private renderLargeTextDiff() {
     return (
       <div className="panel empty large-diff">
-        <img src={NoDiffImage} />
+        <img src={NoDiffImage} className="blankslate-image" />
         <p>
           The diff is too large to be displayed by default.
           <br />

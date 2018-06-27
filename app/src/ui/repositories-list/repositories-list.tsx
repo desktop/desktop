@@ -8,22 +8,22 @@ import {
   RepositoryGroupIdentifier,
 } from './group-repositories'
 import { FilterList } from '../lib/filter-list'
+import { IMatches } from '../../lib/fuzzy-find'
 import { assertNever } from '../../lib/fatal-error'
-
-/**
- * TS can't parse generic specialization in JSX, so we have to alias it here
- * with the generic type. See https://github.com/Microsoft/TypeScript/issues/6395.
- */
-const RepositoryFilterList: new () => FilterList<
-  IRepositoryListItem
-> = FilterList as any
+import { ILocalRepositoryState } from '../../models/repository'
 
 interface IRepositoriesListProps {
   readonly selectedRepository: Repositoryish | null
   readonly repositories: ReadonlyArray<Repositoryish>
 
+  /** A cache of the latest repository state values, keyed by the repository id */
+  readonly localRepositoryStateLookup: Map<number, ILocalRepositoryState>
+
   /** Called when a repository has been selected. */
   readonly onSelectionChanged: (repository: Repositoryish) => void
+
+  /** Whether the user has enabled the setting to confirm removing a repository from the app */
+  readonly askForConfirmationOnRemoveRepository: boolean
 
   /** Called when the repository should be removed. */
   readonly onRemoveRepository: (repository: Repositoryish) => void
@@ -57,16 +57,16 @@ export class RepositoriesList extends React.Component<
   IRepositoriesListProps,
   {}
 > {
-  private renderItem = (
-    item: IRepositoryListItem,
-    matches: ReadonlyArray<number>
-  ) => {
+  private renderItem = (item: IRepositoryListItem, matches: IMatches) => {
     const repository = item.repository
     return (
       <RepositoryListItem
         key={repository.id}
         repository={repository}
         needsDisambiguation={item.needsDisambiguation}
+        askForConfirmationOnRemoveRepository={
+          this.props.askForConfirmationOnRemoveRepository
+        }
         onRemoveRepository={this.props.onRemoveRepository}
         onShowRepository={this.props.onShowRepository}
         onOpenInShell={this.props.onOpenInShell}
@@ -109,7 +109,10 @@ export class RepositoriesList extends React.Component<
       return this.noRepositories()
     }
 
-    const groups = groupRepositories(this.props.repositories)
+    const groups = groupRepositories(
+      this.props.repositories,
+      this.props.localRepositoryStateLookup
+    )
 
     let selectedItem: IRepositoryListItem | null = null
     const selectedRepository = this.props.selectedRepository
@@ -129,7 +132,7 @@ export class RepositoriesList extends React.Component<
 
     return (
       <div className="repository-list">
-        <RepositoryFilterList
+        <FilterList<IRepositoryListItem>
           rowHeight={RowHeight}
           selectedItem={selectedItem}
           filterText={this.props.filterText}

@@ -5,6 +5,7 @@ import { showContextualMenu } from '../main-process-proxy'
 import { Repositoryish } from './group-repositories'
 import { IMenuItem } from '../../lib/menu-item'
 import { HighlightText } from '../lib/highlight-text'
+import { IMatches } from '../../lib/fuzzy-find'
 
 const defaultEditorLabel = __DARWIN__
   ? 'Open in External Editor'
@@ -12,6 +13,9 @@ const defaultEditorLabel = __DARWIN__
 
 interface IRepositoryListItemProps {
   readonly repository: Repositoryish
+
+  /** Whether the user has enabled the setting to confirm removing a repository from the app */
+  readonly askForConfirmationOnRemoveRepository: boolean
 
   /** Called when the repository should be removed. */
   readonly onRemoveRepository: (repository: Repositoryish) => void
@@ -35,7 +39,7 @@ interface IRepositoryListItemProps {
   readonly shellLabel: string
 
   /** The characters in the repository name to highlight */
-  readonly matches: ReadonlyArray<number>
+  readonly matches: IMatches
 }
 
 /** A repository item. */
@@ -69,7 +73,7 @@ export class RepositoryListItem extends React.Component<
           {prefix ? <span className="prefix">{prefix}</span> : null}
           <HighlightText
             text={repository.name}
-            highlight={this.props.matches}
+            highlight={this.props.matches.title}
           />
         </div>
       </div>
@@ -101,7 +105,9 @@ export class RepositoryListItem extends React.Component<
 
     const showRepositoryLabel = __DARWIN__
       ? 'Show in Finder'
-      : __WIN32__ ? 'Show in Explorer' : 'Show in your File Manager'
+      : __WIN32__
+        ? 'Show in Explorer'
+        : 'Show in your File Manager'
 
     const items: ReadonlyArray<IMenuItem> = [
       {
@@ -121,7 +127,9 @@ export class RepositoryListItem extends React.Component<
       },
       { type: 'separator' },
       {
-        label: 'Remove',
+        label: this.props.askForConfirmationOnRemoveRepository
+          ? 'Remove…'
+          : 'Remove',
         action: this.removeRepository,
       },
     ]

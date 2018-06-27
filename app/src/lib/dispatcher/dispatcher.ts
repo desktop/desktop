@@ -11,13 +11,14 @@ import {
 } from '../../models/status'
 import { DiffSelection } from '../../models/diff'
 import {
-  RepositorySection,
+  RepositorySectionTab,
   Popup,
   PopupType,
   Foldout,
   FoldoutType,
   ImageDiffType,
   CompareAction,
+  ICompareFormUpdate,
 } from '../app-state'
 import { AppStore } from '../stores/app-store'
 import { CloningRepository } from '../../models/cloning-repository'
@@ -56,6 +57,7 @@ import { PullRequest } from '../../models/pull-request'
 import { IAuthor } from '../../models/author'
 import { ITrailer } from '../git/interpret-trailers'
 import { isGitRepository } from '../git'
+import { ApplicationTheme } from '../../ui/lib/application-theme'
 
 /**
  * An error handler function.
@@ -109,11 +111,6 @@ export class Dispatcher {
     missing: boolean
   ): Promise<Repository> {
     return this.appStore._updateRepositoryMissing(repository, missing)
-  }
-
-  /** Load the history for the repository. */
-  public loadHistory(repository: Repository): Promise<void> {
-    return this.appStore._loadHistory(repository)
   }
 
   /** Load the next batch of history for the repository. */
@@ -179,7 +176,7 @@ export class Dispatcher {
   /** Change the selected section in the repository. */
   public changeRepositorySection(
     repository: Repository,
-    section: RepositorySection
+    section: RepositorySectionTab
   ): Promise<void> {
     return this.appStore._changeRepositorySection(repository, section)
   }
@@ -459,6 +456,13 @@ export class Dispatcher {
    */
   public setUpdateBannerVisibility(isVisible: boolean) {
     return this.appStore._setUpdateBannerVisibility(isVisible)
+  }
+
+  /**
+   * Set the divering branch notification banner's visibility
+   */
+  public setDivergingBranchBannerVisibility(isVisible: boolean) {
+    return this.appStore._setDivergingBranchBannerVisibility(isVisible)
   }
 
   /**
@@ -1184,6 +1188,14 @@ export class Dispatcher {
     return this.appStore._executeCompare(repository, action)
   }
 
+  /** Update the compare form state for the current repository */
+  public updateCompareForm<K extends keyof ICompareFormUpdate>(
+    repository: Repository,
+    newState: Pick<ICompareFormUpdate, K>
+  ) {
+    return this.appStore._updateCompareForm(repository, newState)
+  }
+
   /**
    * Increments the `mergeIntoCurrentBranchMenuCount` metric
    */
@@ -1203,5 +1215,19 @@ export class Dispatcher {
    */
   public recordCompareInitiatedMerge() {
     return this.appStore._recordCompareInitiatedMerge()
+  }
+
+  /**
+   * Set the application-wide theme
+   */
+  public setSelectedTheme(theme: ApplicationTheme) {
+    return this.appStore._setSelectedTheme(theme)
+  }
+
+  /**
+   * Increments the `divergingBranchBannerDismissal` metric
+   */
+  public recordDivergingBranchBannerDismissal() {
+    return this.appStore._recordDivergingBranchBannerDismissal()
   }
 }

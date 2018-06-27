@@ -87,6 +87,8 @@ import { InitializeLFS, AttributeMismatch } from './lfs'
 import { UpstreamAlreadyExists } from './upstream-already-exists'
 import { DeletePullRequest } from './delete-branch/delete-pull-request-dialog'
 import { MergeConflictsWarning } from './merge-conflicts'
+import { AppTheme } from './app-theme'
+import { ApplicationTheme } from './lib/application-theme'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -490,7 +492,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.showPopup({ type: PopupType.About })
   }
 
-  private async showHistory(shouldShowBranchesList: boolean = false) {
+  private async showHistory(showBranchList: boolean = false) {
     const state = this.state.selectedState
     if (state == null || state.type !== SelectionType.Repository) {
       return
@@ -502,9 +504,14 @@ export class App extends React.Component<IAppProps, IAppState> {
       kind: CompareActionKind.History,
     })
 
-    await this.props.dispatcher.changeRepositorySection(state.repository, {
-      selectedTab: RepositorySectionTab.History,
-      shouldShowBranchesList,
+    await this.props.dispatcher.changeRepositorySection(
+      state.repository,
+      RepositorySectionTab.History
+    )
+
+    await this.props.dispatcher.updateCompareForm(state.repository, {
+      filterText: '',
+      showBranchList,
     })
   }
 
@@ -515,9 +522,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     this.props.dispatcher.closeCurrentFoldout()
-    this.props.dispatcher.changeRepositorySection(state.repository, {
-      selectedTab: RepositorySectionTab.Changes,
-    })
+    this.props.dispatcher.changeRepositorySection(
+      state.repository,
+      RepositorySectionTab.Changes
+    )
   }
 
   private chooseRepository() {
@@ -1004,6 +1012,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             enterpriseAccount={this.getEnterpriseAccount()}
             onDismissed={this.onPopupDismissed}
             selectedShell={this.state.selectedShell}
+            selectedTheme={this.state.selectedTheme}
           />
         )
       case PopupType.MergeBranch: {
@@ -1384,6 +1393,10 @@ export class App extends React.Component<IAppProps, IAppState> {
         selectedRepository={selectedRepository}
         onSelectionChanged={this.onSelectionChanged}
         repositories={this.state.repositories}
+        localRepositoryStateLookup={this.state.localRepositoryStateLookup}
+        askForConfirmationOnRemoveRepository={
+          this.state.askForConfirmationOnRepositoryRemoval
+        }
         onRemoveRepository={this.removeRepository}
         onOpenInShell={this.openInShell}
         onShowRepository={this.showRepository}
@@ -1456,6 +1469,8 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const currentState: DropdownState = isOpen ? 'open' : 'closed'
 
+    const tooltip = repository && !isOpen ? repository.path : undefined
+
     const foldoutStyle: React.CSSProperties = {
       position: 'absolute',
       marginLeft: 0,
@@ -1469,6 +1484,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         icon={icon}
         title={title}
         description={__DARWIN__ ? 'Current Repository' : 'Current repository'}
+        tooltip={tooltip}
         foldoutStyle={foldoutStyle}
         onDropdownStateChanged={this.onRepositoryDropdownStateChanged}
         dropdownContentRenderer={this.renderRepositoryList}
@@ -1641,26 +1657,27 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     if (selectedState.type === SelectionType.Repository) {
-      const externalEditorLabel = this.state.selectedExternalEditor
+      const externalEditorLabel = state.selectedExternalEditor
 
       return (
         <RepositoryView
           repository={selectedState.repository}
           state={selectedState.state}
           dispatcher={this.props.dispatcher}
-          emoji={this.state.emoji}
-          sidebarWidth={this.state.sidebarWidth}
-          commitSummaryWidth={this.state.commitSummaryWidth}
+          emoji={state.emoji}
+          sidebarWidth={state.sidebarWidth}
+          commitSummaryWidth={state.commitSummaryWidth}
           issuesStore={this.props.appStore.issuesStore}
           gitHubUserStore={this.props.appStore.gitHubUserStore}
           onViewCommitOnGitHub={this.onViewCommitOnGitHub}
-          imageDiffType={this.state.imageDiffType}
+          imageDiffType={state.imageDiffType}
           askForConfirmationOnDiscardChanges={
-            this.state.askForConfirmationOnDiscardChanges
+            state.askForConfirmationOnDiscardChanges
           }
-          accounts={this.state.accounts}
+          accounts={state.accounts}
           externalEditorLabel={externalEditorLabel}
           onOpenInExternalEditor={this.openFileInExternalEditor}
+          isDivergingBranchBannerVisible={state.isDivergingBranchBannerVisible}
         />
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {
@@ -1699,8 +1716,13 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const className = this.state.appIsFocused ? 'focused' : 'blurred'
 
+    const currentTheme = this.state.showWelcomeFlow
+      ? ApplicationTheme.Light
+      : this.state.selectedTheme
+
     return (
       <div id="desktop-app-chrome" className={className}>
+        <AppTheme theme={currentTheme} />
         {this.renderTitlebar()}
         {this.state.showWelcomeFlow
           ? this.renderWelcomeFlow()
