@@ -3767,14 +3767,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /**
-   * The number of times the user dismisses the diverged branch notification
+   * Increments the `divergingBranchBannerDismissal` metric
    */
   public _recordDivergingBranchBannerDismissal() {
     this.statsStore.recordDivergingBranchBannerDismissal()
   }
 
   /**
-   * The number of times the user showne the diverged branch notification
+   * Increments the `divergingBranchBannerDisplayed` metric
    */
   public _recordDivergingBranchBannerDisplayed() {
     this.statsStore.recordDivergingBranchBannerDisplayed()
