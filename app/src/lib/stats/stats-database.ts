@@ -76,6 +76,10 @@ export interface IDailyMeasures {
 
   /** The number of times the diverged branch notification is displayed */
   readonly divergingBranchBannerDisplayed: number
+
+  readonly dotcomPushCount: number
+  readonly enterprisePushCount: number
+  readonly externalPushCount: number
 }
 
 export class StatsDatabase extends Dexie {
