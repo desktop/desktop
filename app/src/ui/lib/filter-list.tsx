@@ -206,6 +206,13 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
         }
       }
     }
+
+    if (this.props.onFilterListResultsChanged) {
+      const itemCount = this.state.rows.filter(row => row.kind === 'item')
+        .length
+
+      this.props.onFilterListResultsChanged(itemCount)
+    }
   }
 
   public componentDidMount() {
