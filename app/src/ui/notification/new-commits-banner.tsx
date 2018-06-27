@@ -52,6 +52,9 @@ export class NewCommitsBanner extends React.Component<
               behind <Ref>{this.props.baseBranch.name}</Ref>.
             </p>
           </div>
+          <div className="notification-banner-cta">
+            <Button onClick={this.onComparedClicked}>View commits</Button>
+          </div>
         </div>
 
         <a
@@ -61,9 +64,6 @@ export class NewCommitsBanner extends React.Component<
         >
           <Octicon symbol={OcticonSymbol.x} />
         </a>
-        <div className="notification-banner-cta">
-          <Button onClick={this.onComparedClicked}>Compare</Button>
-        </div>
       </div>
     )
   }
