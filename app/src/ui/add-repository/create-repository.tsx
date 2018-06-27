@@ -275,6 +275,14 @@ export class CreateRepository extends React.Component<
 
     try {
       const status = await getStatus(repository)
+      if (status == null) {
+        log.error(
+          `createRepository: unable to get status for repository at ${fullPath}`
+        )
+        // TODO: this feels hacky too
+        return
+      }
+
       const wd = status.workingDirectory
       const files = wd.files
       if (files.length > 0) {

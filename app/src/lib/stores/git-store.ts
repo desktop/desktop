@@ -496,6 +496,10 @@ export class GitStore extends BaseStore {
     // isn't suitable because we should preserve the other working directory
     // changes.
     const status = await getStatus(repository)
+    if (status == null) {
+      return
+    }
+
     const paths = status.workingDirectory.files
 
     const deletedFiles = paths.filter(p => p.status === AppFileStatus.Deleted)
