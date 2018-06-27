@@ -525,8 +525,8 @@ export class CommitMessage extends React.Component<
             value={this.state.jira} 
             onChange={this.onJiraIdChanged.bind(this)}
             required={true}/>
-            <input className="jira-id" type="checkbox" onChange={this.onSkipCiChanged.bind(this)} defaultChecked={this.state.skipci}/>SkipCI
-            <input className="jira-id" type="checkbox" onChange={this.onAddCommentToJiraChanged.bind(this)} defaultChecked={this.state.addtoJira}/>Add comment to JIRA
+            <input type="checkbox" onChange={this.onSkipCiChanged.bind(this)} defaultChecked={this.state.skipci}/>SkipCI
+            <input type="checkbox" onChange={this.onAddCommentToJiraChanged.bind(this)} defaultChecked={this.state.addtoJira}/>Add comment to JIRA
         </div>
         <div className="summary">
           {this.renderAvatar()}

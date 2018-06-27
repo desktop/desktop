@@ -16,6 +16,8 @@
     flex-direction: row;
     .jira-id {
       flex: 1;
+    }
+    input {
       margin-bottom: var(--spacing);
     }
   }
