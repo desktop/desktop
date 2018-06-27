@@ -4,7 +4,8 @@ import * as FSE from 'fs-extra'
 import { GitProcess } from 'dugite'
 
 import { Repository } from '../../../src/models/repository'
-import { getStatus } from '../../../src/lib/git/status'
+
+import { getStatusOrThrow } from '../../helpers/status'
 import {
   setupFixtureRepository,
   setupEmptyRepository,
@@ -26,7 +27,7 @@ describe('git/status', () => {
         'Hi world\n'
       )
 
-      const status = await getStatus(repository!)
+      const status = await getStatusOrThrow(repository!)
       const files = status.workingDirectory.files
       expect(files.length).to.equal(1)
 
@@ -36,7 +37,7 @@ describe('git/status', () => {
     })
 
     it('returns an empty array when there are no changes', async () => {
-      const status = await getStatus(repository!)
+      const status = await getStatusOrThrow(repository!)
       const files = status.workingDirectory.files
       expect(files.length).to.equal(0)
     })
@@ -50,7 +51,7 @@ describe('git/status', () => {
       await GitProcess.exec(['commit', '-m', 'Initial commit'], repo.path)
       await GitProcess.exec(['mv', 'foo', 'bar'], repo.path)
 
-      const status = await getStatus(repo)
+      const status = await getStatusOrThrow(repo)
       const files = status.workingDirectory.files
 
       expect(files.length).to.equal(1)
@@ -65,7 +66,7 @@ describe('git/status', () => {
 
       await GitProcess.exec(['add', '.'], repository.path)
 
-      const status = await getStatus(repository)
+      const status = await getStatusOrThrow(repository)
       const files = status.workingDirectory.files
 
       expect(files.length).to.equal(2)
