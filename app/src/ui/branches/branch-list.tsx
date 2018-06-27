@@ -98,6 +98,8 @@ interface IBranchListProps {
     item: IBranchListItem,
     matches: IMatches
   ) => JSX.Element
+
+  readonly onFilterListResultsChanged?: (resultCount: number) => void
 }
 
 interface IBranchListState {
@@ -181,6 +183,7 @@ export class BranchList extends React.Component<
         renderPostFilter={this.onRenderNewButton}
         renderNoItems={this.onRenderNoItems}
         filterTextBox={this.props.textbox}
+        onFilterListResultsChanged={this.props.onFilterListResultsChanged}
       />
     )
   }

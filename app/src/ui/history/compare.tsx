@@ -204,6 +204,9 @@ export class CompareSidebar extends React.Component<
     )
   }
 
+  private filterListResultsChanged = (resultCount: number) => {
+  }
+
   private viewHistoryForBranch = () => {
     this.props.dispatcher.executeCompare(this.props.repository, {
       kind: CompareActionKind.History,
@@ -292,6 +295,7 @@ export class CompareSidebar extends React.Component<
         onItemClick={this.onBranchItemClicked}
         onFilterTextChanged={this.onBranchFilterTextChanged}
         renderBranch={this.renderCompareBranchListItem}
+        onFilterListResultsChanged={this.filterListResultsChanged}
       />
     )
   }
