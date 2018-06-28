@@ -694,10 +694,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     commitSHAs: ReadonlyArray<string>
   ) {
     const state = this.getRepositoryState(repository)
-    const commits = state.compareState.commitSHAs
     let selectedSHA = state.selection.sha
     if (selectedSHA != null) {
-      const index = commits.findIndex(sha => sha === selectedSHA)
+      const index = commitSHAs.findIndex(sha => sha === selectedSHA)
       // Our selected SHA is not in this list, so clear the selection in the app state
       if (index < 0) {
         selectedSHA = null
@@ -712,8 +711,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     }
 
-    if (selectedSHA == null && commits.length > 0) {
-      this._changeCommitSelection(repository, commits[0])
+    if (selectedSHA == null && commitSHAs.length > 0) {
+      this._changeCommitSelection(repository, commitSHAs[0])
       this._loadChangedFilesForCurrentSelection(repository)
     }
   }
