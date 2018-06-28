@@ -679,14 +679,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return store
   }
 
-  /**
-   * TODO:
-   * This is some legacy code that no longer works with the new Compare tab.
-   * Need to investigate porting this to "refresh" the Compare tab state.
-   */
   private async _loadHistory(repository: Repository): Promise<void> {
-    const gitStore = this.getGitStore(repository)
-    await gitStore.loadHistory()
+    // TODO: if we're no longer loading history here what are we doing?
 
     const state = this.getRepositoryState(repository)
     let newSelection = state.selection
@@ -849,10 +843,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const kind = action.kind
 
     if (action.kind === CompareActionKind.History) {
-      await gitStore.loadHistory()
+      const commits = await gitStore.loadCommitBatch('HEAD')
 
-      const repoState = this.getRepositoryState(repository)
-      const commits = repoState.compareState.commitSHAs
+      if (commits == null) {
+        log.warn('unable to get any commits, wtf?!?!?!')
+        return
+      }
 
       this.updateCompareState(repository, state => ({
         formState: {
@@ -3386,7 +3382,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       this.updateRevertProgress(repo, null)
 
-      return gitStore.loadHistory()
+      // TODO: what's the equivalent for the compare tab?
+      // This might be re-computed when we switch back, in which case we can :fire:
+      // it to the ground.
+      //return gitStore.loadHistory()
     })
   }
 
