@@ -164,6 +164,7 @@ export class RepositoryView extends React.Component<
       <CompareSidebar
         repository={this.props.repository}
         compareState={this.props.state.compareState}
+        selectedCommitSha={this.props.state.selection.sha}
         currentBranch={currentBranch}
         gitHubUsers={this.props.state.gitHubUsers}
         emoji={this.props.emoji}
