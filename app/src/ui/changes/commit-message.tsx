@@ -263,14 +263,13 @@ export class CommitMessage extends React.Component<
 
   private async createCommit() {
     const description = this.state.description
-    let summary = this.state.jira + " " + this.state.summary
+    let summary = this.state.jira + " " + this.state.summary + " " + description
     if (this.state.addtoJira) {
-      summary = "#comment " + summary
+      summary = this.state.jira + " " + "#comment " + this.state.summary + " " + description
     }
     if (this.state.skipci) {
       summary += " [skip ci]"
     }
-    //const { summary, description } = this.state
 
     if (!this.canCommit()) {
       return
@@ -525,8 +524,7 @@ export class CommitMessage extends React.Component<
             value={this.state.jira} 
             onChange={this.onJiraIdChanged.bind(this)}
             required={true}/>
-            <div className="jira">
-            <input type="checkbox" onChange={this.onSkipCiChanged.bind(this)} defaultChecked={this.state.skipci}/>SkipCI</div>
+            <div className="jira"><input type="checkbox" onChange={this.onSkipCiChanged.bind(this)} defaultChecked={this.state.skipci}/>SkipCI</div>
             <div className="jira"><input type="checkbox" onChange={this.onAddCommentToJiraChanged.bind(this)} defaultChecked={this.state.addtoJira}/>Add comment to JIRA</div>
         </div>
         <div className="summary">
