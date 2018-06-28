@@ -1,7 +1,6 @@
 import { ipcRenderer, remote } from 'electron'
 import {
   IRepositoryState,
-  IHistoryState,
   IAppState,
   RepositorySectionTab,
   IChangesState,
@@ -425,13 +424,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private getInitialRepositoryState(): IRepositoryState {
     return {
-      historyState: {
-        selection: {
-          sha: null,
-          file: null,
-        },
+      selection: {
+        sha: null,
+        file: null,
         changedFiles: new Array<CommittedFileChange>(),
-        history: new Array<string>(),
         diff: null,
       },
       changesState: {
@@ -503,17 +499,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const currentState = this.getRepositoryState(repository)
     const newValues = fn(currentState)
     this.repositoryState.set(repository.hash, merge(currentState, newValues))
-  }
-
-  private updateHistoryState<K extends keyof IHistoryState>(
-    repository: Repository,
-    fn: (historyState: IHistoryState) => Pick<IHistoryState, K>
-  ) {
-    this.updateRepositoryState(repository, state => {
-      const historyState = state.historyState
-      const newValues = fn(historyState)
-      return { historyState: merge(historyState, newValues) }
-    })
   }
 
   private updateCompareState<K extends keyof ICompareState>(
@@ -623,10 +608,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private onGitStoreUpdated(repository: Repository, gitStore: GitStore) {
-    this.updateHistoryState(repository, state => ({
-      history: gitStore.history,
-    }))
-
     this.updateBranchesState(repository, state => ({
       tip: gitStore.tip,
       defaultBranch: gitStore.defaultBranch,
@@ -707,23 +688,25 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const gitStore = this.getGitStore(repository)
     await gitStore.loadHistory()
 
-    const state = this.getRepositoryState(repository).historyState
+    const state = this.getRepositoryState(repository)
     let newSelection = state.selection
-    const history = state.history
+    const commits = state.compareState.commitSHAs
     const selectedSHA = state.selection.sha
     if (selectedSHA) {
-      const index = history.findIndex(sha => sha === selectedSHA)
+      const index = commits.findIndex(sha => sha === selectedSHA)
       // Our selected SHA disappeared, so clear the selection.
       if (index < 0) {
         newSelection = {
           sha: null,
           file: null,
+          changedFiles: [],
+          diff: null,
         }
       }
     }
 
-    if (!newSelection.sha && history.length > 0) {
-      this._changeHistoryCommitSelection(repository, history[0])
+    if (newSelection.sha == null && commits.length > 0) {
+      this._changeHistoryCommitSelection(repository, commits[0])
       this._loadChangedFilesForCurrentSelection(repository)
     }
 
@@ -868,8 +851,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (action.kind === CompareActionKind.History) {
       await gitStore.loadHistory()
 
-      const repoState = this.getRepositoryState(repository).historyState
-      const commits = repoState.history
+      const repoState = this.getRepositoryState(repository)
+      const commits = repoState.compareState.commitSHAs
 
       this.updateCompareState(repository, state => ({
         formState: {
@@ -978,7 +961,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository
   ): Promise<void> {
     const state = this.getRepositoryState(repository)
-    const selection = state.historyState.selection
+    const { selection } = state
     const currentSHA = selection.sha
     if (!currentSHA) {
       return
@@ -995,7 +978,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // The selection could have changed between when we started loading the
     // changed files and we finished. We might wanna store the changed files per
     // SHA/path.
-    if (currentSHA !== state.historyState.selection.sha) {
+    if (currentSHA !== state.selection.sha) {
       return
     }
 
@@ -1010,9 +993,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const selectionOrFirstFile = {
       file: firstFileOrDefault,
       sha: selection.sha,
+      changedFiles,
+      diff: null,
     }
 
-    this.updateHistoryState(repository, state => ({ changedFiles }))
+    this.updateRepositoryState(repository, state => ({
+      selection: selectionOrFirstFile,
+    }))
 
     this.emitUpdate()
 
@@ -1026,16 +1013,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     sha: string
   ): Promise<void> {
-    this.updateHistoryState(repository, state => {
+    this.updateRepositoryState(repository, state => {
       const commitChanged = state.selection.sha !== sha
       const changedFiles = commitChanged
         ? new Array<CommittedFileChange>()
-        : state.changedFiles
+        : state.selection.changedFiles
       const file = commitChanged ? null : state.selection.file
-      const selection = { sha, file }
-      const diff = null
-
-      return { selection, changedFiles, diff }
+      const selection = { sha, file, diff: null, changedFiles }
+      return { selection }
     })
     this.emitUpdate()
   }
@@ -1051,15 +1036,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     file: CommittedFileChange
   ): Promise<void> {
-    this.updateHistoryState(repository, state => {
-      const selection = { sha: state.selection.sha, file }
-      const diff = null
-      return { selection, diff }
+    this.updateRepositoryState(repository, state => {
+      const selection = {
+        sha: state.selection.sha,
+        changedFiles: state.selection.changedFiles,
+        file,
+        diff: null,
+      }
+      return { selection }
     })
     this.emitUpdate()
 
     const stateBeforeLoad = this.getRepositoryState(repository)
-    const sha = stateBeforeLoad.historyState.selection.sha
+    const sha = stateBeforeLoad.selection.sha
 
     if (!sha) {
       if (__DEV__) {
@@ -1076,22 +1065,24 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const stateAfterLoad = this.getRepositoryState(repository)
 
     // A whole bunch of things could have happened since we initiated the diff load
-    if (
-      stateAfterLoad.historyState.selection.sha !==
-      stateBeforeLoad.historyState.selection.sha
-    ) {
+    if (stateAfterLoad.selection.sha !== stateBeforeLoad.selection.sha) {
       return
     }
-    if (!stateAfterLoad.historyState.selection.file) {
+    if (!stateAfterLoad.selection.file) {
       return
     }
-    if (stateAfterLoad.historyState.selection.file.id !== file.id) {
+    if (stateAfterLoad.selection.file.id !== file.id) {
       return
     }
 
-    this.updateHistoryState(repository, state => {
-      const selection = { sha: state.selection.sha, file }
-      return { selection, diff }
+    this.updateRepositoryState(repository, state => {
+      const selection = {
+        sha: state.selection.sha,
+        changedFiles: state.selection.changedFiles,
+        file,
+        diff,
+      }
+      return { selection }
     })
 
     this.emitUpdate()
@@ -2714,12 +2705,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await gitStore.undoCommit(commit)
 
     const state = this.getRepositoryState(repository)
-    const selectedCommit = state.historyState.selection.sha
+    const selectedCommit = state.selection.sha
 
     if (selectedCommit === commit.sha) {
       // clear the selection of this commit in the history view
-      this.updateHistoryState(repository, state => {
-        const selection = { sha: null, file: null }
+      this.updateRepositoryState(repository, state => {
+        const selection = {
+          sha: null,
+          file: null,
+          changedFiles: [],
+          diff: null,
+        }
         return { selection }
       })
     }
