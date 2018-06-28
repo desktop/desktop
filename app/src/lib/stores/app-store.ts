@@ -679,23 +679,35 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return store
   }
 
-  private async _loadHistory(repository: Repository): Promise<void> {
-    // TODO: if we're no longer loading history here what are we doing?
+  private async _updateSelectedCommit(repository: Repository): Promise<void> {
+    const state = this.getRepositoryState(repository)
+    const commits = state.compareState.commitSHAs
 
+    this.updateSelectedCommit(repository, commits)
+
+    this.emitUpdate()
+  }
+
+  private updateSelectedCommit(
+    repository: Repository,
+    commitSHAs: ReadonlyArray<string>
+  ) {
     const state = this.getRepositoryState(repository)
     let newSelection = state.selection
     const commits = state.compareState.commitSHAs
-    const selectedSHA = state.selection.sha
-    if (selectedSHA) {
+    const selectedSHA = newSelection.sha
+    if (newSelection.sha != null) {
       const index = commits.findIndex(sha => sha === selectedSHA)
-      // Our selected SHA disappeared, so clear the selection.
+      // Our selected SHA is not in this list, so clear the selection in the app state
       if (index < 0) {
-        newSelection = {
-          sha: null,
-          file: null,
-          changedFiles: [],
-          diff: null,
-        }
+        this.updateRepositoryState(repository, () => ({
+          selection: {
+            sha: null,
+            file: null,
+            changedFiles: [],
+            diff: null,
+          },
+        }))
       }
     }
 
@@ -703,8 +715,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this._changeCommitSelection(repository, commits[0])
       this._loadChangedFilesForCurrentSelection(repository)
     }
-
-    this.emitUpdate()
   }
 
   private startAheadBehindUpdater(repository: Repository) {
@@ -1923,7 +1933,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       await gitStore.loadLocalCommits(tip.branch)
     }
 
-    return this._loadHistory(repository)
+    // TODO: is this necessary to do still?
+
+    return this._updateSelectedCommit(repository)
   }
 
   private async refreshAuthor(repository: Repository): Promise<void> {
