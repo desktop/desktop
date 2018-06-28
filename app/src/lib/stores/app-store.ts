@@ -850,7 +850,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         return
       }
 
-      this.updateCompareState(repository, state => ({
+      this.updateCompareState(repository, () => ({
         formState: {
           kind: ComparisonView.None,
         },
@@ -2706,13 +2706,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (selectedCommit === commit.sha) {
       // clear the selection of this commit in the history view
       this.updateRepositoryState(repository, state => {
-        const selection = {
-          sha: null,
-          file: null,
-          changedFiles: [],
-          diff: null,
+        return {
+          selection: {
+            sha: null,
+            file: null,
+            changedFiles: [],
+            diff: null,
+          },
         }
-        return { selection }
       })
     }
 
