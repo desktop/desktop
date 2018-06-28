@@ -23,6 +23,7 @@ import {
   IDisplayHistory,
   ICompareBranch,
   ICompareFormUpdate,
+  ICompareToBranch,
 } from '../app-state'
 import { Account } from '../../models/account'
 import { Repository, ILocalRepositoryState } from '../../models/repository'
@@ -868,64 +869,75 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }))
       return this.emitUpdate()
     } else if (action.kind === CompareActionKind.Branch) {
-      const comparisonBranch = action.branch
-      const compare = await gitStore.getCompareCommits(
-        comparisonBranch,
-        action.mode
-      )
-
-      this.statsStore.recordBranchComparison()
-      const { branchesState } = this.getRepositoryState(repository)
-
-      if (
-        branchesState.defaultBranch !== null &&
-        comparisonBranch.name === branchesState.defaultBranch.name
-      ) {
-        this.statsStore.recordDefaultBranchComparison()
-      }
-
-      if (compare !== null) {
-        const { ahead, behind } = compare
-        const aheadBehind = { ahead, behind }
-
-        this.updateCompareState(repository, s => ({
-          formState: {
-            comparisonBranch,
-            kind: action.mode,
-            aheadBehind,
-          },
-          commitSHAs: compare.commits.map(commit => commit.sha),
-          filterText: comparisonBranch.name,
-        }))
-
-        const tip = gitStore.tip
-
-        let currentSha: string | null = null
-
-        if (tip.kind === TipState.Valid) {
-          currentSha = tip.branch.tip.sha
-        } else if (tip.kind === TipState.Detached) {
-          currentSha = tip.currentSha
-        }
-
-        if (this.currentAheadBehindUpdater != null && currentSha != null) {
-          const from =
-            action.mode === ComparisonView.Ahead
-              ? comparisonBranch.tip.sha
-              : currentSha
-          const to =
-            action.mode === ComparisonView.Ahead
-              ? currentSha
-              : comparisonBranch.tip.sha
-
-          this.currentAheadBehindUpdater.insert(from, to, aheadBehind)
-        }
-
-        return this.emitUpdate()
-      }
+      return this.updateCompareToBranch(repository, action)
     } else {
       return assertNever(action, `Unknown action: ${kind}`)
     }
+  }
+
+  private async updateCompareToBranch(
+    repository: Repository,
+    action: ICompareToBranch
+  ) {
+    const gitStore = this.getGitStore(repository)
+
+    const comparisonBranch = action.branch
+    const compare = await gitStore.getCompareCommits(
+      comparisonBranch,
+      action.mode
+    )
+
+    this.statsStore.recordBranchComparison()
+    const { branchesState } = this.getRepositoryState(repository)
+
+    if (
+      branchesState.defaultBranch !== null &&
+      comparisonBranch.name === branchesState.defaultBranch.name
+    ) {
+      this.statsStore.recordDefaultBranchComparison()
+    }
+
+    if (compare == null) {
+      return
+    }
+
+    const { ahead, behind } = compare
+    const aheadBehind = { ahead, behind }
+
+    this.updateCompareState(repository, s => ({
+      formState: {
+        comparisonBranch,
+        kind: action.mode,
+        aheadBehind,
+      },
+      commitSHAs: compare.commits.map(commit => commit.sha),
+      filterText: comparisonBranch.name,
+    }))
+
+    const tip = gitStore.tip
+
+    let currentSha: string | null = null
+
+    if (tip.kind === TipState.Valid) {
+      currentSha = tip.branch.tip.sha
+    } else if (tip.kind === TipState.Detached) {
+      currentSha = tip.currentSha
+    }
+
+    if (this.currentAheadBehindUpdater != null && currentSha != null) {
+      const from =
+        action.mode === ComparisonView.Ahead
+          ? comparisonBranch.tip.sha
+          : currentSha
+      const to =
+        action.mode === ComparisonView.Ahead
+          ? currentSha
+          : comparisonBranch.tip.sha
+
+      this.currentAheadBehindUpdater.insert(from, to, aheadBehind)
+    }
+
+    return this.emitUpdate()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
