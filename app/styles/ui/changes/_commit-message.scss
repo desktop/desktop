@@ -12,11 +12,7 @@
   padding: var(--spacing);
 
   .jira {
-    display: flex;
-    flex-direction: row;
-    .jira-id {
-      flex: 1;
-    }
+    display: inline-block;
     input {
       margin-bottom: var(--spacing);
     }
