@@ -3789,7 +3789,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /**
-   * Records when a user initiates a merge after getting to it from the notification CTA
+   * Increments the `divergingBranchBannerInfluencedMerge` metric
    */
   public _recordDivergingBranchBannerInfluencedMerge() {
     this.statsStore.recordDivergingBranchBannerInfluencedMerge()

@@ -1239,8 +1239,7 @@ export class Dispatcher {
   }
 
   /**
-   * Records when a user initiates a merge from the compare state
-   * after getting to it from the notification CTA
+   * Increments the `divergingBranchBannerInfluencedMerge` metric
    */
   public recordDivergingBranchBannerInfluencedMerge() {
     return this.appStore._recordDivergingBranchBannerInfluencedMerge()
