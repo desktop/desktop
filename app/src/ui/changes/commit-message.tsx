@@ -69,7 +69,6 @@ interface ICommitMessageProps {
 interface ICommitMessageState {
   readonly summary: string
   readonly description: string | null
-  readonly jira: string
   readonly skipci: boolean
   readonly addtoJira: boolean
 
@@ -113,7 +112,6 @@ export class CommitMessage extends React.Component<
     this.state = {
       summary: '',
       description: '',
-      jira: '',
       skipci: false,
       addtoJira: true,
       lastContextualCommitMessage: null,
@@ -226,10 +224,6 @@ export class CommitMessage extends React.Component<
     this.setState({ summary: '', description: null })
   }
 
-  private onJiraIdChanged = (jira: any) => {
-    this.setState({ jira: jira.target.value })
-  }
-
   private onSkipCiChanged = (val: any) => {
     this.setState({ skipci: val.target.checked })
   }
@@ -262,14 +256,14 @@ export class CommitMessage extends React.Component<
   }
 
   private async createCommit() {
-    const description = this.state.description
+    const description = this.state.description ? this.state.description : ''
     const branchName = this.props.branch ? this.props.branch : 'master'
-    let summary = branchName + " " + this.state.summary + " " + description
+    let summary = branchName + ' ' + this.state.summary + ' ' + description
     if (this.state.addtoJira) {
-      summary = branchName + " " + "#comment " + this.state.summary + " " + description
+      summary = branchName + ' ' + '#comment ' + this.state.summary + ' ' + description
     }
     if (this.state.skipci) {
-      summary += " [skip ci]"
+      summary += ' [skip ci]'
     }
 
     if (!this.canCommit()) {
