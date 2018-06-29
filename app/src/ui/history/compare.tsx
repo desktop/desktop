@@ -314,7 +314,7 @@ export class CompareSidebar extends React.Component<
         dispatcher={this.props.dispatcher}
         currentBranch={this.props.currentBranch}
         formState={formState}
-        onMerge={this.onMerge}
+        onMerged={this.onMerge}
       />
     )
   }
