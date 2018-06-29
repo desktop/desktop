@@ -134,10 +134,7 @@ import { IRemote, ForkedRemotePrefix } from '../../models/remote'
 import { IAuthor } from '../../models/author'
 import { ComparisonCache } from '../comparison-cache'
 import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
-<<<<<<< HEAD
-import { enableCompareSidebar, enableRepoInfoIndicators } from '../feature-flag'
-=======
->>>>>>> master
+import { enableRepoInfoIndicators } from '../feature-flag'
 import { inferComparisonBranch } from './helpers/infer-comparison-branch'
 import {
   ApplicationTheme,
