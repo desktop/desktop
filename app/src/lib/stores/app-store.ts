@@ -3780,6 +3780,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _recordDivergingBranchBannerDisplayed() {
     this.statsStore.recordDivergingBranchBannerDisplayed()
   }
+
+  /**
+   * Increments the `divergingBranchBannerInitiatedCompare` metric
+   */
+  public _recordDivergingBranchBannerInitiatedCompare() {
+    this.statsStore.recordDivergingBranchBannerInitiatedCompare()
+  }
 }
 
 function forkPullRequestRemoteName(remoteName: string) {

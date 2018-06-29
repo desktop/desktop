@@ -1232,7 +1232,7 @@ export class Dispatcher {
   }
 
   /**
-   * The number of times the user initiates a compare from the notification CTA
+   * Increments the `divergingBranchBannerInitiatedCompare` metric
    */
   public recordDivergingBranchBannerInitiatedCompare() {
     return this.appStore._recordDivergingBranchBannerInitiatedCompare()
