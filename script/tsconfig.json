@@ -3,14 +3,12 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "target": "es6",
-    "noImplicitAny": true,
     "noImplicitReturns": true,
-    "noImplicitThis": true,
     "noFallthroughCasesInSwitch": true,
     "noUnusedLocals": true,
-    "strictNullChecks": true,
     "sourceMap": false,
-    "noEmit": true
+    "noEmit": true,
+    "strict": true,
   },
   "compileOnSave": false
 }
