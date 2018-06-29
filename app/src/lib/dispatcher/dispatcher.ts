@@ -113,11 +113,6 @@ export class Dispatcher {
     return this.appStore._updateRepositoryMissing(repository, missing)
   }
 
-  /** Load the history for the repository. */
-  public loadHistory(repository: Repository): Promise<void> {
-    return this.appStore._loadHistory(repository)
-  }
-
   /** Load the next batch of history for the repository. */
   public loadNextHistoryBatch(repository: Repository): Promise<void> {
     return this.appStore._loadNextHistoryBatch(repository)
