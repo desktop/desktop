@@ -113,11 +113,6 @@ export class Dispatcher {
     return this.appStore._updateRepositoryMissing(repository, missing)
   }
 
-  /** Load the history for the repository. */
-  public loadHistory(repository: Repository): Promise<void> {
-    return this.appStore._loadHistory(repository)
-  }
-
   /** Load the next batch of history for the repository. */
   public loadNextHistoryBatch(repository: Repository): Promise<void> {
     return this.appStore._loadNextHistoryBatch(repository)
@@ -1230,14 +1225,14 @@ export class Dispatcher {
   }
 
   /**
-   * Records when the user dismisses the diverged branch notification
+   * Increments the `divergingBranchBannerDismissal` metric
    */
   public recordDivergingBranchBannerDismissal() {
     return this.appStore._recordDivergingBranchBannerDismissal()
   }
 
   /**
-   * Records when a user initiates a compare from the notification CTA
+   * Increments the `divergingBranchBannerInitiatedCompare` metric
    */
   public recordDivergingBranchBannerInitiatedCompare() {
     return this.appStore._recordDivergingBranchBannerInitiatedCompare()

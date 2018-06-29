@@ -134,7 +134,6 @@ import { IRemote, ForkedRemotePrefix } from '../../models/remote'
 import { IAuthor } from '../../models/author'
 import { ComparisonCache } from '../comparison-cache'
 import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
-import { enableCompareSidebar } from '../feature-flag'
 import { inferComparisonBranch } from './helpers/infer-comparison-branch'
 import {
   ApplicationTheme,
@@ -692,8 +691,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return store
   }
 
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _loadHistory(repository: Repository): Promise<void> {
+  /**
+   * TODO:
+   * This is some legacy code that no longer works with the new Compare tab.
+   * Need to investigate porting this to "refresh" the Compare tab state.
+   */
+  private async _loadHistory(repository: Repository): Promise<void> {
     const gitStore = this.getGitStore(repository)
     await gitStore.loadHistory()
 
@@ -896,6 +899,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
             aheadBehind,
           },
           commitSHAs: compare.commits.map(commit => commit.sha),
+          filterText: comparisonBranch.name,
         }))
 
         const tip = gitStore.tip
@@ -944,25 +948,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _loadNextHistoryBatch(repository: Repository): Promise<void> {
     const gitStore = this.getGitStore(repository)
 
-    if (enableCompareSidebar()) {
-      const state = this.getRepositoryState(repository)
-      const { formState } = state.compareState
-      if (formState.kind === ComparisonView.None) {
-        const commits = state.compareState.commitSHAs
-        const lastCommitSha = commits[commits.length - 1]
+    const state = this.getRepositoryState(repository)
+    const { formState } = state.compareState
+    if (formState.kind === ComparisonView.None) {
+      const commits = state.compareState.commitSHAs
+      const lastCommitSha = commits[commits.length - 1]
 
-        const newCommits = await gitStore.loadCommitBatch(lastCommitSha)
-        if (newCommits == null) {
-          return
-        }
-
-        this.updateCompareState(repository, state => ({
-          commitSHAs: commits.concat(newCommits),
-        }))
-        this.emitUpdate()
+      const newCommits = await gitStore.loadCommitBatch(lastCommitSha)
+      if (newCommits == null) {
+        return
       }
-    } else {
-      return gitStore.loadNextHistoryBatch()
+
+      this.updateCompareState(repository, state => ({
+        commitSHAs: commits.concat(newCommits),
+      }))
+      this.emitUpdate()
     }
   }
 
@@ -1168,10 +1168,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.startBackgroundFetching(repository, !previouslySelectedRepository)
     this.startPullRequestUpdater(repository)
 
-    if (enableCompareSidebar()) {
-      this.startAheadBehindUpdater(repository)
-    }
-
+    this.startAheadBehindUpdater(repository)
     this.refreshMentionables(repository)
 
     this.addUpstreamRemoteIfNeeded(repository)
@@ -3771,24 +3768,24 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /**
-   * Records when the user dismisses the diverged branch notification
+   * Increments the `divergingBranchBannerDismissal` metric
    */
   public _recordDivergingBranchBannerDismissal() {
     this.statsStore.recordDivergingBranchBannerDismissal()
   }
 
   /**
-   * Records when a user initiates a compare from the notification CTA
-   */
-  public _recordDivergingBranchBannerInitiatedCompare() {
-    this.statsStore.recordDivergingBranchBannerInitiatedCompare()
-  }
-
-  /**
-   * Records when the user is shown the diverged branch notification
+   * Increments the `divergingBranchBannerDisplayed` metric
    */
   public _recordDivergingBranchBannerDisplayed() {
     this.statsStore.recordDivergingBranchBannerDisplayed()
+  }
+
+  /**
+   * Increments the `divergingBranchBannerInitiatedCompare` metric
+   */
+  public _recordDivergingBranchBannerInitiatedCompare() {
+    this.statsStore.recordDivergingBranchBannerInitiatedCompare()
   }
 
   /**

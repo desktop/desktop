@@ -39,6 +39,8 @@ export class NewCommitsBanner extends React.Component<
   {}
 > {
   public render() {
+    const pluralize = this.props.commitsBehindBaseBranch > 1
+
     return (
       <div className="notification-banner diverge-banner">
         <Octicon
@@ -50,9 +52,16 @@ export class NewCommitsBanner extends React.Component<
           <div>
             <p>
               We have noticed that your branch is{' '}
-              <strong>{this.props.commitsBehindBaseBranch} commits</strong>{' '}
+              <strong>
+                {this.props.commitsBehindBaseBranch} commit{pluralize
+                  ? 's'
+                  : ''}
+              </strong>{' '}
               behind <Ref>{this.props.baseBranch.name}</Ref>.
             </p>
+          </div>
+          <div className="notification-banner-cta">
+            <Button onClick={this.onComparedClicked}>View commits</Button>
           </div>
         </div>
 
@@ -63,9 +72,6 @@ export class NewCommitsBanner extends React.Component<
         >
           <Octicon symbol={OcticonSymbol.x} />
         </a>
-        <div className="notification-banner-cta">
-          <Button onClick={this.onComparedClicked}>Compare</Button>
-        </div>
       </div>
     )
   }
