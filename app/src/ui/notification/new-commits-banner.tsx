@@ -77,5 +77,6 @@ export class NewCommitsBanner extends React.Component<
       mode: ComparisonView.Behind,
     })
     dispatcher.recordDivergingBranchBannerInitiatedCompare()
+    this.props.onDismiss()
   }
 }
