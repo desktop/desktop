@@ -7,6 +7,8 @@ import { Dispatcher } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
 import { CompareActionKind, ComparisonView } from '../../lib/app-state'
 
+export type DismissalReason = 'close' | 'compare' | 'merge'
+
 interface INewCommitsBannerProps {
   readonly dispatcher: Dispatcher
 
@@ -26,7 +28,7 @@ interface INewCommitsBannerProps {
   /**
    * Callback used to dismiss the banner
    */
-  readonly onDismiss: () => void
+  readonly onDismiss: (reason: DismissalReason) => void
 }
 
 /**
@@ -66,12 +68,16 @@ export class NewCommitsBanner extends React.Component<
         <a
           className="close"
           aria-label="Dismiss banner"
-          onClick={this.props.onDismiss}
+          onClick={this.onDismissed}
         >
           <Octicon symbol={OcticonSymbol.x} />
         </a>
       </div>
     )
+  }
+
+  private onDismissed = () => {
+    this.props.onDismiss('close')
   }
 
   private onComparedClicked = () => {
@@ -83,6 +89,6 @@ export class NewCommitsBanner extends React.Component<
       mode: ComparisonView.Behind,
     })
     dispatcher.recordDivergingBranchBannerInitiatedCompare()
-    this.props.onDismiss()
+    this.props.onDismiss('compare')
   }
 }

@@ -11,6 +11,7 @@ interface IMergeCallToActionProps {
   readonly dispatcher: Dispatcher
   readonly currentBranch: Branch
   readonly formState: ICompareBranch
+  readonly onMerged: () => void
 }
 
 export class MergeCallToAction extends React.Component<
@@ -77,5 +78,6 @@ export class MergeCallToAction extends React.Component<
       showBranchList: false,
       filterText: '',
     })
+    this.props.onMerged()
   }
 }
