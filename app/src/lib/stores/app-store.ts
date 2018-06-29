@@ -896,6 +896,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
             aheadBehind,
           },
           commitSHAs: compare.commits.map(commit => commit.sha),
+          filterText: comparisonBranch.name
         }))
 
         const tip = gitStore.tip
