@@ -54,6 +54,7 @@ import {
   getAheadBehind,
   revRange,
   revSymmetricDifference,
+  getSymbolicRef,
 } from '../git'
 import { IGitAccount } from '../git/authentication'
 import { RetryAction, RetryActionType } from '../retry-actions'
@@ -358,11 +359,33 @@ export class GitStore extends BaseStore {
     return allBranchesWithUpstream
   }
 
-  private refreshDefaultBranch() {
-    let defaultBranchName: string | null = 'master'
-    const gitHubRepository = this.repository.gitHubRepository
+  private async refreshDefaultBranch() {
+    let defaultBranchName: string | null = null
+
+    const { gitHubRepository } = this.repository
     if (gitHubRepository && gitHubRepository.defaultBranch) {
       defaultBranchName = gitHubRepository.defaultBranch
+    } else if (this.remote != null) {
+      // the Git server should use [remote]/HEAD to advertise
+      // it's default branch, so see if it exists and matches
+      // a valid branch on the remote and attempt to use that
+      const remoteNamespace = `refs/remotes/${this.remote.name}/`
+
+      const match = await getSymbolicRef(
+        this.repository,
+        `${remoteNamespace}HEAD`
+      )
+
+      if (match != null && match.startsWith(remoteNamespace)) {
+        // strip out everything related to the remote because this
+        // is likely to be a tracked branch locally
+        // e.g. `master`, `develop`, etc
+        defaultBranchName = match.substr(remoteNamespace.length)
+      }
+    }
+
+    if (defaultBranchName == null) {
+      defaultBranchName = 'master'
     }
 
     if (defaultBranchName) {
