@@ -2298,23 +2298,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
               }
             )
 
-            const { accounts } = this.getState()
-            const githubAccount = await findAccountForRemoteURL(
-              remote.url,
-              accounts
-            )
-
-            if (githubAccount === null) {
-              this._recordPushToGenericRemote()
-            } else if (githubAccount.endpoint === getDotComAPIEndpoint()) {
-              this._recordPushToGitHub()
-            } else if (
-              githubAccount.endpoint ===
-              getEnterpriseAPIURL(githubAccount.endpoint)
-            ) {
-              this._recordPushToGitHubEnterprise()
-            }
-
             const refreshTitle = __DARWIN__
               ? 'Refreshing Repository'
               : 'Refreshing repository'
@@ -2351,6 +2334,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
           if (currentPR && gitHubRepository) {
             prUpdater.didPushPullRequest(currentPR)
           }
+        }
+
+        const { accounts } = this.getState()
+        const githubAccount = await findAccountForRemoteURL(
+          remote.url,
+          accounts
+        )
+
+        if (githubAccount === null) {
+          this._recordPushToGenericRemote()
+        } else if (githubAccount.endpoint === getDotComAPIEndpoint()) {
+          this._recordPushToGitHub()
+        } else if (
+          githubAccount.endpoint ===
+          getEnterpriseAPIURL(githubAccount.endpoint)
+        ) {
+          this._recordPushToGitHubEnterprise()
         }
       }
     })
