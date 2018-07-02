@@ -66,8 +66,8 @@ export class NewCommitsBanner extends React.Component<
             </p>
           </div>
           <ButtonGroup>
-            <Button onClick={this.onComparedClicked}>View commits</Button>
             <Button type="submit" onClick={this.onMergeClicked}>Merge...</Button>
+            <Button onClick={this.onComparedClicked}>View commits</Button>
           </ButtonGroup>
         </div>
 
