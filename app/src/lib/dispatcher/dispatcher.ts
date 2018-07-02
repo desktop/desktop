@@ -1225,6 +1225,14 @@ export class Dispatcher {
   }
 
   /**
+   * Increments either the `repoWithIndicatorClicked` or
+   * the `repoWithoutIndicatorClicked` metric
+   */
+  public recordRepoClicked(repoHasIndicator: boolean) {
+    return this.appStore._recordRepoClicked(repoHasIndicator)
+  }
+
+  /** The number of times the user dismisses the diverged branch notification
    * Increments the `divergingBranchBannerDismissal` metric
    */
   public recordDivergingBranchBannerDismissal() {

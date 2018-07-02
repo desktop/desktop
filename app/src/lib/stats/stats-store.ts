@@ -36,6 +36,8 @@ const DefaultDailyMeasures: IDailyMeasures = {
   updateFromDefaultBranchMenuCount: 0,
   mergeIntoCurrentBranchMenuCount: 0,
   prBranchCheckouts: 0,
+  repoWithIndicatorClicked: 0,
+  repoWithoutIndicatorClicked: 0,
   divergingBranchBannerDismissal: 0,
   divergingBranchBannerInitatedMerge: 0,
   divergingBranchBannerInitiatedCompare: 0,
@@ -352,6 +354,17 @@ export class StatsStore {
   public recordPRBranchCheckout(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       prBranchCheckouts: m.prBranchCheckouts + 1,
+    }))
+  }
+
+  public recordRepoClicked(repoHasIndicator: boolean): Promise<void> {
+    if (repoHasIndicator) {
+      return this.updateDailyMeasures(m => ({
+        repoWithIndicatorClicked: m.repoWithIndicatorClicked + 1,
+      }))
+    }
+    return this.updateDailyMeasures(m => ({
+      repoWithoutIndicatorClicked: m.repoWithoutIndicatorClicked + 1,
     }))
   }
 
