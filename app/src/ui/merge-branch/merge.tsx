@@ -38,6 +38,8 @@ interface IMergeProps {
    */
   readonly recentBranches: ReadonlyArray<Branch>
 
+  readonly preselectedBranch?: Branch
+
   /**
    * A function that's called when the dialog is dismissed by the user in the
    * ways described in the Dialog component's dismissable prop.
