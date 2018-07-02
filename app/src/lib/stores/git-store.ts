@@ -362,17 +362,13 @@ export class GitStore extends BaseStore {
   private async refreshDefaultBranch() {
     const defaultBranchName = await this.resolveDefaultBranch()
 
-    if (defaultBranchName) {
-      // Find the default branch among all of our branches, giving
-      // priority to local branches by sorting them before remotes
-      this._defaultBranch =
-        this._allBranches
-          .filter(b => b.name === defaultBranchName)
-          .sort((x, y) => compare(x.type, y.type))
-          .shift() || null
-    } else {
-      this._defaultBranch = null
-    }
+    // Find the default branch among all of our branches, giving
+    // priority to local branches by sorting them before remotes
+    this._defaultBranch =
+      this._allBranches
+        .filter(b => b.name === defaultBranchName)
+        .sort((x, y) => compare(x.type, y.type))
+        .shift() || null
   }
 
   /**
