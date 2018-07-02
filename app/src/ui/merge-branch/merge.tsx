@@ -69,10 +69,16 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
 
     const currentBranch = props.currentBranch
     const defaultBranch = props.defaultBranch
+    // use the preselected branch otherwise use the default branch if it's not currently checked out
+    const selectedBranch =
+      props.preselectedBranch !== undefined
+        ? props.preselectedBranch
+        : currentBranch === defaultBranch
+          ? null
+          : defaultBranch
 
     this.state = {
-      // Select the default branch unless that's currently checked out
-      selectedBranch: currentBranch === defaultBranch ? null : defaultBranch,
+      selectedBranch,
       commitCount: undefined,
       filterText: '',
     }
