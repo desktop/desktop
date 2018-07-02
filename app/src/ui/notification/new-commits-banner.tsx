@@ -5,7 +5,11 @@ import { Branch } from '../../models/branch'
 import { Button } from '../lib/button'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
-import { CompareActionKind, ComparisonView } from '../../lib/app-state'
+import {
+  CompareActionKind,
+  ComparisonView,
+  PopupType,
+} from '../../lib/app-state'
 
 export type DismissalReason = 'close' | 'compare' | 'merge'
 
@@ -62,6 +66,7 @@ export class NewCommitsBanner extends React.Component<
           </div>
           <div className="notification-banner-cta">
             <Button onClick={this.onComparedClicked}>View commits</Button>
+            <Button onClick={this.onMergeClicked}>Merge...</Button>
           </div>
         </div>
 
@@ -90,5 +95,15 @@ export class NewCommitsBanner extends React.Component<
     })
     dispatcher.recordDivergingBranchBannerInitiatedCompare()
     this.props.onDismiss('compare')
+  }
+
+  private onMergeClicked = () => {
+    const { repository, dispatcher } = this.props
+
+    dispatcher.showPopup({
+      type: PopupType.MergeBranch,
+      branch: this.props.baseBranch,
+      repository,
+    })
   }
 }
