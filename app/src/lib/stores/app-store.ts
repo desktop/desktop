@@ -39,7 +39,13 @@ import {
   IMatchedGitHubRepository,
   repositoryMatchesRemote,
 } from '../../lib/repository-matching'
-import { API, getAccountForEndpoint, IAPIUser } from '../../lib/api'
+import {
+  API,
+  getAccountForEndpoint,
+  IAPIUser,
+  getDotComAPIEndpoint,
+  getEnterpriseAPIURL,
+} from '../../lib/api'
 import { caseInsensitiveCompare } from '../compare'
 import {
   Branch,
@@ -140,6 +146,7 @@ import {
   getPersistedTheme,
   setPersistedTheme,
 } from '../../ui/lib/application-theme'
+import { findAccountForRemoteURL } from '../find-account'
 
 /**
  * Enum used by fetch to determine if
@@ -2290,6 +2297,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
                 })
               }
             )
+
+            const { accounts } = this.getState()
+            const githubAccount = await findAccountForRemoteURL(
+              remote.url,
+              accounts
+            )
+
+            if (githubAccount === null) {
+              this._recordPushToGenericRemote()
+            } else if (githubAccount.endpoint === getDotComAPIEndpoint()) {
+              this._recordPushToGitHub()
+            } else if (
+              githubAccount.endpoint ===
+              getEnterpriseAPIURL(githubAccount.endpoint)
+            ) {
+              this._recordPushToGitHubEnterprise()
+            }
 
             const refreshTitle = __DARWIN__
               ? 'Refreshing Repository'
