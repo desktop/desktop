@@ -240,7 +240,11 @@ export type Popup =
       showDiscardChangesSetting?: boolean
     }
   | { type: PopupType.Preferences; initialSelectedTab?: PreferencesTab }
-  | { type: PopupType.MergeBranch; repository: Repository }
+  | {
+      type: PopupType.MergeBranch
+      repository: Repository
+      branch?: Branch
+    }
   | { type: PopupType.RepositorySettings; repository: Repository }
   | { type: PopupType.AddRepository; path?: string }
   | { type: PopupType.CreateRepository; path?: string }
