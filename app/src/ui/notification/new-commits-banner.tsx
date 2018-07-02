@@ -3,6 +3,7 @@ import { Ref } from '../lib/ref'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Branch } from '../../models/branch'
 import { Button } from '../lib/button'
+import { ButtonGroup } from '../lib/button-group'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
 import {
@@ -53,7 +54,7 @@ export class NewCommitsBanner extends React.Component<
         />
 
         <div className="notification-banner-content">
-          <div>
+          <div className="notification-banner-content-body">
             <p>
               We have noticed that your branch is{' '}
               <strong>
@@ -64,10 +65,10 @@ export class NewCommitsBanner extends React.Component<
               behind <Ref>{this.props.baseBranch.name}</Ref>.
             </p>
           </div>
-          <div className="notification-banner-cta">
+          <ButtonGroup>
             <Button onClick={this.onComparedClicked}>View commits</Button>
-            <Button onClick={this.onMergeClicked}>Merge...</Button>
-          </div>
+            <Button type="submit" onClick={this.onMergeClicked}>Merge...</Button>
+          </ButtonGroup>
         </div>
 
         <a
