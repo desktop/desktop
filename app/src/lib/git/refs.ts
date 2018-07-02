@@ -23,6 +23,19 @@ export function formatAsLocalRef(name: string): string {
   }
 }
 
+/**
+ * Read a symbolic ref from the repository.
+ *
+ * Symbolic refs are used to point to other refs, similar to how symlinks work
+ * for files. Because refs can be removed easily from a Git repository,
+ * symbolic refs should only be used when absolutely necessary.
+ *
+ * @param repository The repository to lookup
+ * @param ref The symbolic ref to resolve
+ *
+ * @returns the resolved ref, if found, or `null` if `ref` cannot be found or
+ *          is not a symbolic ref
+ */
 export async function getSymbolicRef(
   repository: Repository,
   ref: string
