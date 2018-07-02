@@ -105,6 +105,7 @@ export class NewCommitsBanner extends React.Component<
       branch: this.props.baseBranch,
       repository,
     })
+    dispatcher.recordDivergingBranchBannerInitatedMerge()
     this.props.onDismiss('merge')
   }
 }
