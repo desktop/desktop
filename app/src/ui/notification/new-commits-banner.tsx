@@ -3,7 +3,6 @@ import { Ref } from '../lib/ref'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Branch } from '../../models/branch'
 import { Button } from '../lib/button'
-import { ButtonGroup } from '../lib/button-group'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
 import {
@@ -65,7 +64,7 @@ export class NewCommitsBanner extends React.Component<
               behind <Ref>{this.props.baseBranch.name}</Ref>.
             </p>
           </div>
-          <ButtonGroup>
+          <div>
             <Button
               className="small-button"
               type="submit"
@@ -76,7 +75,7 @@ export class NewCommitsBanner extends React.Component<
             <Button className="small-button" onClick={this.onComparedClicked}>
               View commits
             </Button>
-          </ButtonGroup>
+          </div>
         </div>
 
         <a
