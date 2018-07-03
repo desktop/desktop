@@ -13,7 +13,7 @@ interface IMergeCallToActionProps {
   readonly formState: ICompareBranch
 
   /**
-   * Function to execute after a merge has been performed
+   * Callback to execute after a merge has been performed
    */
   readonly onMerged: () => void
 }

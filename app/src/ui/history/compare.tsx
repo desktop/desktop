@@ -55,8 +55,8 @@ interface ICompareSidebarState {
   readonly selectedCommit: Commit | null
 
   /**
-   * Flag that keeps track of whether the user has
-   * used one of the notification's CTA buttons.
+   * Flag that tracks whether the user interacted with one of the notification's
+   * "call to action" buttons
    */
   readonly hasConsumedNotification: boolean
 }
