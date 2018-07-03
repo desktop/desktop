@@ -899,6 +899,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
             aheadBehind,
           },
           commitSHAs: compare.commits.map(commit => commit.sha),
+          filterText: comparisonBranch.name,
         }))
 
         const tip = gitStore.tip
@@ -3826,6 +3827,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
    */
   public _recordDivergingBranchBannerDisplayed() {
     this.statsStore.recordDivergingBranchBannerDisplayed()
+  }
+
+  /**
+   * Increments the `divergingBranchBannerInitiatedCompare` metric
+   */
+  public _recordDivergingBranchBannerInitiatedCompare() {
+    this.statsStore.recordDivergingBranchBannerInitiatedCompare()
+  }
+
+  /**
+   * Increments the `divergingBranchBannerInfluencedMerge` metric
+   */
+  public _recordDivergingBranchBannerInfluencedMerge() {
+    this.statsStore.recordDivergingBranchBannerInfluencedMerge()
   }
 }
 
