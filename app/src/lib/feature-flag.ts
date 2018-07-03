@@ -36,3 +36,8 @@ export function enableMergeTool(): boolean {
 export function enableNotificationOfBranchUpdates(): boolean {
   return enableBetaFeatures()
 }
+
+/** Should the repository list display info indicators? */
+export function enableRepoInfoIndicators(): boolean {
+  return enableDevelopmentFeatures()
+}
