@@ -53,6 +53,11 @@ interface ICompareSidebarState {
    */
   readonly focusedBranch: Branch | null
   readonly selectedCommit: Commit | null
+
+  /**
+   * Flag that keeps track of whether the user has
+   * used one of the notification's CTA buttons.
+   */
   readonly hasConsumedNotification: boolean
 }
 

@@ -11,6 +11,10 @@ interface IMergeCallToActionProps {
   readonly dispatcher: Dispatcher
   readonly currentBranch: Branch
   readonly formState: ICompareBranch
+
+  /**
+   * Function to execute after a merge has been performed
+   */
   readonly onMerged: () => void
 }
 
