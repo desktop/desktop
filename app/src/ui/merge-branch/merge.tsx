@@ -38,6 +38,9 @@ interface IMergeProps {
    */
   readonly recentBranches: ReadonlyArray<Branch>
 
+  /**
+   * The branch to select when the merge dialog is opened
+   */
   readonly preselectedBranch?: Branch
 
   /**
