@@ -118,7 +118,7 @@ export class Commit {
 
     if (this.committer.name === 'GitHub Enterprise') {
       const host = new URL(endpoint).host.toLowerCase()
-      return email === `noreply@${host}`
+      return email.endsWith(`@${host}`)
     }
 
     return false
