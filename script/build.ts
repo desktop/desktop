@@ -126,19 +126,24 @@ function packageApp(
     )
   }
 
-  const toArchitecture = (arch: string) => {
-    if (arch === 'x64' || arch === 'arm64') {
-      return arch
+  const toPackageArch = (targetArch: string | undefined): packager.arch => {
+    if (targetArch === undefined) {
+      return 'x64'
     }
+
+    if (targetArch === 'arm64' || targetArch === 'x64') {
+      return targetArch
+    }
+
     throw new Error(
-      `Unable to convert to architecture for electron-packager: '${arch}`
+      `Building Desktop for architecture '${targetArch}'  is not supported`
     )
   }
 
   const options: packager.Options & IPackageAdditionalOptions = {
     name: getExecutableName(),
     platform: toPackagePlatform(process.platform),
-    arch: toArchitecture(process.env.TARGET_ARCH || 'x64'),
+    arch: toPackageArch(process.env.TARGET_ARCH),
     asar: false, // TODO: Probably wanna enable this down the road.
     out: getDistRoot(),
     icon: path.join(projectRoot, 'app', 'static', 'logos', 'icon-logo'),

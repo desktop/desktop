@@ -11,7 +11,7 @@
     "test:script": "mocha -t 10000 --require ts-node/register script/changelog/test/*.ts",
     "test": "yarn test:unit && yarn test:script && yarn test:integration",
     "test:setup": "ts-node -P script/tsconfig.json script/test-setup.ts",
-    "test:review": "ts-node -P script/tsconfig.json script/test-review.ts",
+    "test:review": "ts-node  -P script/tsconfig.json script/test-review.ts",
     "postinstall": "cd app && yarn install --force && cd .. && git submodule update --recursive --init && yarn compile:tslint && yarn compile:script",
     "start": "cross-env NODE_ENV=development ts-node -P script/tsconfig.json script/start.ts",
     "start:prod": "cross-env NODE_ENV=production ts-node -P script/tsconfig.json script/start.ts",
@@ -47,7 +47,7 @@
   },
   "license": "MIT",
   "engines": {
-    "node": ">= 8",
+    "node": ">= 8.10",
     "yarn": ">= 1.5.0"
   },
   "dependencies": {
@@ -98,7 +98,7 @@
     "tslint-microsoft-contrib": "^5.0.3",
     "tslint-react": "^3.5.1",
     "typescript": "^2.9.1",
-    "typescript-eslint-parser": "^15.0.0",
+    "typescript-eslint-parser": "^16.0.0",
     "webpack": "^4.8.3",
     "webpack-bundle-analyzer": "^2.13.0",
     "webpack-dev-middleware": "^3.1.3",

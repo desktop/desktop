@@ -1,4 +1,6 @@
 import * as React from 'react'
+import { CSSTransitionGroup } from 'react-transition-group'
+
 import { IGitHubUser } from '../../lib/databases'
 import { Commit } from '../../models/commit'
 import {
@@ -22,7 +24,8 @@ import { OcticonSymbol } from '../octicons'
 import { SelectionSource } from '../lib/filter-list'
 import { IMatches } from '../../lib/fuzzy-find'
 import { Ref } from '../lib/ref'
-
+import { NewCommitsBanner } from '../notification/new-commits-banner'
+import { enableNotificationOfBranchUpdates } from '../../lib/feature-flag'
 import { MergeCallToAction } from './merge-call-to-action'
 
 interface ICompareSidebarProps {
@@ -34,6 +37,7 @@ interface ICompareSidebarProps {
   readonly localCommitSHAs: ReadonlyArray<string>
   readonly dispatcher: Dispatcher
   readonly currentBranch: Branch | null
+  readonly isDivergingBranchBannerVisible: boolean
   readonly onRevertCommit: (commit: Commit) => void
   readonly onViewCommitOnGitHub: (sha: string) => void
 }
@@ -58,6 +62,7 @@ export class CompareSidebar extends React.Component<
   private textbox: TextBox | null = null
   private readonly loadChangedFilesScheduler = new ThrottledScheduler(200)
   private branchList: BranchList | null = null
+  private loadingMoreCommitsPromise: Promise<void> | null = null
 
   public constructor(props: ICompareSidebarProps) {
     super(props)
@@ -127,9 +132,20 @@ export class CompareSidebar extends React.Component<
   public render() {
     const { allBranches, filterText, showBranchList } = this.props.compareState
     const placeholderText = getPlaceholderText(this.props.compareState)
+    const DivergingBannerAnimationTimeout = 300
 
     return (
       <div id="compare-view">
+        <CSSTransitionGroup
+          transitionName="diverge-banner"
+          transitionAppear={true}
+          transitionAppearTimeout={DivergingBannerAnimationTimeout}
+          transitionEnterTimeout={DivergingBannerAnimationTimeout}
+          transitionLeaveTimeout={DivergingBannerAnimationTimeout}
+        >
+          {this.renderNotificationBanner()}
+        </CSSTransitionGroup>
+
         <div className="compare-form">
           <FancyTextBox
             symbol={OcticonSymbol.gitBranch}
@@ -152,6 +168,30 @@ export class CompareSidebar extends React.Component<
 
   private onBranchesListRef = (branchList: BranchList | null) => {
     this.branchList = branchList
+  }
+
+  private renderNotificationBanner() {
+    if (!enableNotificationOfBranchUpdates()) {
+      return null
+    }
+
+    if (!this.props.isDivergingBranchBannerVisible) {
+      return null
+    }
+
+    const { inferredComparisonBranch } = this.props.compareState
+
+    return inferredComparisonBranch.branch !== null &&
+      inferredComparisonBranch.aheadBehind !== null &&
+      inferredComparisonBranch.aheadBehind.behind > 0 ? (
+      <div className="diverge-banner-wrapper">
+        <NewCommitsBanner
+          commitsBehindBaseBranch={inferredComparisonBranch.aheadBehind.behind}
+          baseBranch={inferredComparisonBranch.branch}
+          onDismiss={this.onNotificationBannerDismissed}
+        />
+      </div>
+    ) : null
   }
 
   private renderCommits() {
@@ -401,7 +441,22 @@ export class CompareSidebar extends React.Component<
 
     const commits = compareState.commitSHAs
     if (commits.length - end <= CloseToBottomThreshold) {
-      this.props.dispatcher.loadNextHistoryBatch(this.props.repository)
+      if (this.loadingMoreCommitsPromise != null) {
+        // as this callback fires for any scroll event we need to guard
+        // against re-entrant calls to loadNextHistoryBatch
+        return
+      }
+
+      this.loadingMoreCommitsPromise = this.props.dispatcher
+        .loadNextHistoryBatch(this.props.repository)
+        .then(() => {
+          // deferring unsetting this flag to some time _after_ the commits
+          // have been appended to prevent eagerly adding more commits due
+          // to scroll events (which fire indiscriminately)
+          window.setTimeout(() => {
+            this.loadingMoreCommitsPromise = null
+          }, 500)
+        })
     }
   }
 
@@ -469,6 +524,11 @@ export class CompareSidebar extends React.Component<
 
   private onTextBoxRef = (textbox: TextBox) => {
     this.textbox = textbox
+  }
+
+  private onNotificationBannerDismissed = () => {
+    this.props.dispatcher.setDivergingBranchBannerVisibility(false)
+    this.props.dispatcher.recordDivergingBranchBannerDismissal()
   }
 }
 
