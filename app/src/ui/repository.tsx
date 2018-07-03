@@ -7,7 +7,7 @@ import { Changes, ChangesSidebar } from './changes'
 import { NoChanges } from './changes/no-changes'
 import { MultipleSelection } from './changes/multiple-selection'
 import { FilesChangedBadge } from './changes/files-changed-badge'
-import { History, CompareSidebar } from './history'
+import { SelectedCommit, CompareSidebar } from './history'
 import { Resizable } from './resizable'
 import { TabBar } from './tab-bar'
 import {
@@ -266,16 +266,25 @@ export class RepositoryView extends React.Component<
         )
       }
     } else if (selectedSection === RepositorySectionTab.History) {
+      const { historyState } = this.props.state
+
+      const sha = historyState.selection.sha
+
+      const selectedCommit =
+        sha != null ? this.props.state.commitLookup.get(sha) || null : null
+
       return (
-        <History
+        <SelectedCommit
           repository={this.props.repository}
           dispatcher={this.props.dispatcher}
-          history={this.props.state.historyState}
+          selectedCommit={selectedCommit}
+          changedFiles={historyState.changedFiles}
+          selectedFile={historyState.selection.file}
+          currentDiff={historyState.diff}
           emoji={this.props.emoji}
-          commits={this.props.state.commitLookup}
           commitSummaryWidth={this.props.commitSummaryWidth}
           gitHubUsers={this.props.state.gitHubUsers}
-          imageDiffType={this.props.imageDiffType}
+          selectedDiffType={this.props.imageDiffType}
           externalEditorLabel={this.props.externalEditorLabel}
           onOpenInExternalEditor={this.props.onOpenInExternalEditor}
         />

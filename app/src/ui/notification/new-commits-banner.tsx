@@ -2,8 +2,18 @@ import * as React from 'react'
 import { Ref } from '../lib/ref'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Branch } from '../../models/branch'
+import { Button } from '../lib/button'
+import { Dispatcher } from '../../lib/dispatcher'
+import { Repository } from '../../models/repository'
+import { CompareActionKind, ComparisonView } from '../../lib/app-state'
+
+export type DismissalReason = 'close' | 'compare' | 'merge'
 
 interface INewCommitsBannerProps {
+  readonly dispatcher: Dispatcher
+
+  readonly repository: Repository
+
   /**
    * The number of commits behind base branch
    */
@@ -18,7 +28,7 @@ interface INewCommitsBannerProps {
   /**
    * Callback used to dismiss the banner
    */
-  readonly onDismiss: () => void
+  readonly onDismiss: (reason: DismissalReason) => void
 }
 
 /**
@@ -50,16 +60,35 @@ export class NewCommitsBanner extends React.Component<
               behind <Ref>{this.props.baseBranch.name}</Ref>.
             </p>
           </div>
+          <div className="notification-banner-cta">
+            <Button onClick={this.onComparedClicked}>View commits</Button>
+          </div>
         </div>
 
         <a
           className="close"
           aria-label="Dismiss banner"
-          onClick={this.props.onDismiss}
+          onClick={this.onDismissed}
         >
           <Octicon symbol={OcticonSymbol.x} />
         </a>
       </div>
     )
+  }
+
+  private onDismissed = () => {
+    this.props.onDismiss('close')
+  }
+
+  private onComparedClicked = () => {
+    const { repository, dispatcher } = this.props
+
+    dispatcher.executeCompare(repository, {
+      kind: CompareActionKind.Branch,
+      branch: this.props.baseBranch,
+      mode: ComparisonView.Behind,
+    })
+    dispatcher.recordDivergingBranchBannerInitiatedCompare()
+    this.props.onDismiss('compare')
   }
 }
