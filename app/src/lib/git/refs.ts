@@ -33,7 +33,7 @@ export function formatAsLocalRef(name: string): string {
  * @param repository The repository to lookup
  * @param ref The symbolic ref to resolve
  *
- * @returns the resolved ref, if found, or `null` if `ref` cannot be found or
+ * @returns the canonical ref, if found, or `null` if `ref` cannot be found or
  *          is not a symbolic ref
  */
 export async function getSymbolicRef(
