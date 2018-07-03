@@ -53,6 +53,11 @@ interface ICompareSidebarState {
    */
   readonly focusedBranch: Branch | null
   readonly selectedCommit: Commit | null
+
+  /**
+   * Flag that tracks whether the user interacted with one of the notification's
+   * "call to action" buttons
+   */
   readonly hasConsumedNotification: boolean
 }
 
