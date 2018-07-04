@@ -75,7 +75,8 @@
 
     .ahead-behind {
       height: 16px;
-      background: $gray-200;
+      background: var(--list-item-badge-background-color);
+      color: var(--list-item-badge-color);
       align-items: center;
       margin-left: auto;
 
@@ -92,7 +93,6 @@
       }
 
       .octicon {
-        color: var(--text-secondary-color) !important;
         margin: 0;
         height: 20px;
         width: 12px;

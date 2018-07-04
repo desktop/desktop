@@ -245,6 +245,13 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --tab-bar-count-color: var(--text-color);
   --tab-bar-count-background-color: $gray-200;
 
+  /**
+    * Badge colors when used inside of list items.
+    * Example of this is the change indicators inside
+    * of the repository list.
+    */
+  --list-item-badge-color: $gray-800;
+  --list-item-badge-background-color: $gray-200;
   /** Win32 has custom scrol bars, see _scroll.scss */
   --win32-scroll-bar-size: 10px;
 
