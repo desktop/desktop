@@ -120,4 +120,15 @@
     }
   }
 
+  &.focus-within {
+    /** Ahead/behind badge colors when list item is selected and focused */
+    .list-item.selected {
+      .repository-list-item {
+        .ahead-behind {
+          background: var(--list-item-selected-active-badge-background-color);
+          color: var(--list-item-selected-active-badge-color);
+        }
+      }
+    }
+  }
 }
