@@ -108,3 +108,16 @@
     text-align: center;
   }
 }
+
+.list-focus-container {
+  /** Ahead/behind badge colors when list item is selected but not focused */
+  .list-item.selected {
+    .repository-list-item {
+      .ahead-behind {
+        background: var(--list-item-selected-badge-background-color);
+        color: var(--list-item-selected-badge-color);
+      }
+    }
+  }
+
+}
