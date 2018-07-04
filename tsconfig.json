@@ -15,8 +15,7 @@
   "include": [
     "app/**/*.ts",
     "app/**/*.tsx",
-    "app/**/*.d.tsx",
-    "app/webpack.*.ts"
+    "app/**/*.d.tsx"
   ],
   "exclude": [
     "node_modules",

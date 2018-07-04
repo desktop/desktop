@@ -9,16 +9,13 @@ if (PUBLISH_CHANNELS.indexOf(distInfo.getReleaseChannel()) < 0) {
 }
 
 const releaseSHA = distInfo.getReleaseSHA()
-if (!releaseSHA) {
+if (releaseSHA == null) {
   console.log(`No release SHA found for build. Skipping publish.`)
   process.exit(0)
 }
 
 const currentTipSHA = gitInfo.getSHA()
-if (
-  !currentTipSHA ||
-  !currentTipSHA.toUpperCase().startsWith(releaseSHA!.toUpperCase())
-) {
+if (!currentTipSHA.toUpperCase().startsWith(releaseSHA!.toUpperCase())) {
   console.log(
     `Current tip '${currentTipSHA}' does not match release SHA '${releaseSHA}'. Skipping publish.`
   )
@@ -34,7 +31,7 @@ import * as request from 'request'
 console.log('Packaging…')
 execSync('yarn package')
 
-const getSha = () => {
+function getSha() {
   if (process.platform === 'darwin' && process.env.CIRCLE_SHA1 != null) {
     return process.env.CIRCLE_SHA1
   } else if (
@@ -51,7 +48,7 @@ const getSha = () => {
 
 const sha = getSha().substr(0, 8)
 
-const getSecret = () => {
+function getSecret() {
   if (process.env.DEPLOYMENT_SECRET != null) {
     return process.env.DEPLOYMENT_SECRET
   }
@@ -151,7 +148,7 @@ function upload(assetName: string, assetPath: string) {
     s3.upload(
       uploadParams,
       (error: Error, data: AWS.S3.ManagedUpload.SendData) => {
-        if (error) {
+        if (error != null) {
           reject(error)
         } else {
           // eslint-disable-next-line no-sync
