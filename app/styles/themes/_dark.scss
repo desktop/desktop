@@ -186,6 +186,18 @@ body.theme-dark {
   --tab-bar-count-background-color: $gray-700;
 
   /**
+    * Badge colors when used inside of list items.
+    * Example of this is the ahead/behind indicators inside
+    * of the repository list.
+    */
+  --list-item-badge-color: var(--text-color);
+  --list-item-badge-background-color: $gray-600;
+  --list-item-selected-badge-color: $white;
+  --list-item-selected-badge-background-color: $gray-500;
+  --list-item-selected-active-badge-color: $gray-900;
+  --list-item-selected-active-badge-background-color: $white;
+
+  /**
    * Toast notifications are shown temporarily for things like the zoom
    * percentage changing or the app toggling between full screen and normal
    * window mode.
