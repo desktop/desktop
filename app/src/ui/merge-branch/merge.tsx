@@ -218,7 +218,6 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
   private resolveSelectedBranch() {
     const { currentBranch, defaultBranch, initialBranch } = this.props
 
-    // use the initial branch otherwise use the default branch if it's not currently checked out
     if (initialBranch !== undefined) {
       return initialBranch
     }
