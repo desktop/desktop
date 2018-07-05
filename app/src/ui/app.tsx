@@ -1037,7 +1037,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             defaultBranch={state.branchesState.defaultBranch}
             recentBranches={state.branchesState.recentBranches}
             currentBranch={currentBranch}
-            preselectedBranch={branch}
+            initialBranch={branch}
             onDismissed={this.onPopupDismissed}
           />
         )
