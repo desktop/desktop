@@ -70,7 +70,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
   public constructor(props: IMergeProps) {
     super(props)
 
-    const selectedBranch = this.initialBranch()
+    const selectedBranch = this.resolveSelectedBranch()
 
     this.state = {
       selectedBranch,
@@ -208,7 +208,14 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     this.props.dispatcher.closePopup()
   }
 
-  private initialBranch() {
+  /**
+   * Returns the branch to use as the selected branch
+   *
+   * The initial branch is used if passed
+   * otherwise, the default branch will be used iff it's
+   * not the currently checked out branch
+   */
+  private resolveSelectedBranch() {
     const { currentBranch, defaultBranch, initialBranch } = this.props
 
     // use the initial branch otherwise use the default branch if it's not currently checked out
