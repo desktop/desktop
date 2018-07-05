@@ -5,7 +5,11 @@ import { Branch } from '../../models/branch'
 import { Button } from '../lib/button'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
-import { CompareActionKind, ComparisonView } from '../../lib/app-state'
+import {
+  CompareActionKind,
+  ComparisonView,
+  PopupType,
+} from '../../lib/app-state'
 
 export type DismissalReason = 'close' | 'compare' | 'merge'
 
@@ -49,7 +53,7 @@ export class NewCommitsBanner extends React.Component<
         />
 
         <div className="notification-banner-content">
-          <div>
+          <div className="notification-banner-content-body">
             <p>
               We have noticed that your branch is{' '}
               <strong>
@@ -60,8 +64,17 @@ export class NewCommitsBanner extends React.Component<
               behind <Ref>{this.props.baseBranch.name}</Ref>.
             </p>
           </div>
-          <div className="notification-banner-cta">
-            <Button onClick={this.onComparedClicked}>View commits</Button>
+          <div>
+            <Button className="small-button" onClick={this.onComparedClicked}>
+              View commits
+            </Button>
+            <Button
+              className="small-button"
+              type="submit"
+              onClick={this.onMergeClicked}
+            >
+              Merge...
+            </Button>
           </div>
         </div>
 
@@ -90,5 +103,17 @@ export class NewCommitsBanner extends React.Component<
     })
     dispatcher.recordDivergingBranchBannerInitiatedCompare()
     this.props.onDismiss('compare')
+  }
+
+  private onMergeClicked = () => {
+    const { repository, dispatcher } = this.props
+
+    dispatcher.showPopup({
+      type: PopupType.MergeBranch,
+      branch: this.props.baseBranch,
+      repository,
+    })
+    dispatcher.recordDivergingBranchBannerInitatedMerge()
+    this.props.onDismiss('merge')
   }
 }

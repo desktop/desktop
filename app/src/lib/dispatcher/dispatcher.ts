@@ -1252,4 +1252,11 @@ export class Dispatcher {
   public recordDivergingBranchBannerInfluencedMerge() {
     return this.appStore._recordDivergingBranchBannerInfluencedMerge()
   }
+
+  /**
+   * Increments the `divergingBranchBannerInitatedMerge` metric
+   */
+  public recordDivergingBranchBannerInitatedMerge() {
+    return this.appStore._recordDivergingBranchBannerInitatedMerge()
+  }
 }
