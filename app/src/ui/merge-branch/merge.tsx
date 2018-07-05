@@ -41,7 +41,7 @@ interface IMergeProps {
   /**
    * The branch to select when the merge dialog is opened
    */
-  readonly preselectedBranch?: Branch
+  readonly initialBranch?: Branch
 
   /**
    * A function that's called when the dialog is dismissed by the user in the
@@ -70,15 +70,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
   public constructor(props: IMergeProps) {
     super(props)
 
-    const currentBranch = props.currentBranch
-    const defaultBranch = props.defaultBranch
-    // use the preselected branch otherwise use the default branch if it's not currently checked out
-    const selectedBranch =
-      props.preselectedBranch !== undefined
-        ? props.preselectedBranch
-        : currentBranch === defaultBranch
-          ? null
-          : defaultBranch
+    const selectedBranch = this.initialBranch()
 
     this.state = {
       selectedBranch,
@@ -214,5 +206,16 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
 
     this.props.dispatcher.mergeBranch(this.props.repository, branch.name)
     this.props.dispatcher.closePopup()
+  }
+
+  private initialBranch() {
+    const { currentBranch, defaultBranch, initialBranch } = this.props
+
+    // use the initial branch otherwise use the default branch if it's not currently checked out
+    if (initialBranch !== undefined) {
+      return initialBranch
+    }
+
+    return currentBranch === defaultBranch ? null : defaultBranch
   }
 }
