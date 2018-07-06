@@ -343,8 +343,12 @@ export class CommitMessage extends React.Component<
 
   private get toggleCoAuthorsText(): string {
     return this.props.showCoAuthoredBy
-      ? __DARWIN__ ? 'Remove Co-Authors' : 'Remove co-authors'
-      : __DARWIN__ ? 'Add Co-Authors' : 'Add co-authors'
+      ? __DARWIN__
+        ? 'Remove Co-Authors'
+        : 'Remove co-authors'
+      : __DARWIN__
+        ? 'Add Co-Authors'
+        : 'Add co-authors'
   }
 
   private getAddRemoveCoAuthorsMenuItem(): IMenuItem {
@@ -491,8 +495,9 @@ export class CommitMessage extends React.Component<
           {this.renderAvatar()}
 
           <AutocompletingInput
+            isRequired={true}
             className="summary-field"
-            placeholder="Summary"
+            placeholder="Summary (required)"
             value={this.state.summary}
             onValueChanged={this.onSummaryChanged}
             autocompletionProviders={this.props.autocompletionProviders}

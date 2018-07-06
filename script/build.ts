@@ -1,4 +1,3 @@
-/* tslint:disable:no-sync-functions */
 /* eslint-disable no-sync */
 /// <reference path="./globals.d.ts" />
 
@@ -7,7 +6,34 @@ import * as cp from 'child_process'
 import * as fs from 'fs-extra'
 import * as packager from 'electron-packager'
 
-const legalEagle: LegalEagle = require('legal-eagle')
+import { licenseOverrides } from './license-overrides'
+
+import { externals } from '../app/webpack.common'
+
+import * as legalEagle from 'legal-eagle'
+
+interface IFrontMatterResult<T> {
+  readonly attributes: T
+  readonly body: string
+}
+
+interface IChooseALicense {
+  readonly title: string
+  readonly nickname?: string
+  readonly featured?: boolean
+  readonly hidden?: boolean
+}
+
+export interface ILicense {
+  readonly name: string
+  readonly featured: boolean
+  readonly body: string
+  readonly hidden: boolean
+}
+
+const frontMatter: <T>(
+  path: string
+) => IFrontMatterResult<T> = require('front-matter')
 
 import {
   getBundleID,
@@ -36,6 +62,11 @@ copyEmoji()
 
 console.log('Copying static resources…')
 copyStaticResources()
+
+console.log('Parsing license metadata…')
+generateLicenseMetadata(outRoot)
+
+moveAnalysisFiles()
 
 const isFork = process.env.CIRCLE_PR_USERNAME
 if (process.platform === 'darwin' && process.env.CIRCLECI && !isFork) {
@@ -95,10 +126,24 @@ function packageApp(
     )
   }
 
+  const toPackageArch = (targetArch: string | undefined): packager.arch => {
+    if (targetArch === undefined) {
+      return 'x64'
+    }
+
+    if (targetArch === 'arm64' || targetArch === 'x64') {
+      return targetArch
+    }
+
+    throw new Error(
+      `Building Desktop for architecture '${targetArch}'  is not supported`
+    )
+  }
+
   const options: packager.Options & IPackageAdditionalOptions = {
     name: getExecutableName(),
     platform: toPackagePlatform(process.platform),
-    arch: process.env.TARGET_ARCH || 'x64',
+    arch: toPackageArch(process.env.TARGET_ARCH),
     asar: false, // TODO: Probably wanna enable this down the road.
     out: getDistRoot(),
     icon: path.join(projectRoot, 'app', 'static', 'logos', 'icon-logo'),
@@ -175,7 +220,23 @@ function copyStaticResources() {
   if (fs.existsSync(platformSpecific)) {
     fs.copySync(platformSpecific, destination)
   }
-  fs.copySync(common, destination, { clobber: false })
+  fs.copySync(common, destination, { overwrite: false })
+}
+
+function moveAnalysisFiles() {
+  const rendererReport = 'renderer.report.html'
+  const analysisSource = path.join(outRoot, rendererReport)
+  if (fs.existsSync(analysisSource)) {
+    const distRoot = getDistRoot()
+    const destination = path.join(distRoot, rendererReport)
+    fs.mkdirpSync(distRoot)
+    // there's no moveSync API here, so let's do it the old fashioned way
+    //
+    // unlinkSync below ensures that the analysis file isn't bundled into
+    // the app by accident
+    fs.copySync(analysisSource, destination, { overwrite: true })
+    fs.unlinkSync(analysisSource)
+  }
 }
 
 function copyDependencies() {
@@ -186,9 +247,6 @@ function copyDependencies() {
     'package.json'
   ))
 
-  // eslint-disable-next-line import/no-dynamic-require
-  const commonConfig = require(path.resolve(__dirname, '../app/webpack.common'))
-  const externals = commonConfig.externals
   const oldDependencies = originalPackage.dependencies
   const newDependencies: PackageLookup = {}
 
@@ -296,7 +354,6 @@ function copyDependencies() {
 function updateLicenseDump(callback: (err: Error | null) => void) {
   const appRoot = path.join(projectRoot, 'app')
   const outPath = path.join(outRoot, 'static', 'licenses.json')
-  const licenseOverrides: LicenseLookup = require('./license-overrides')
 
   legalEagle(
     { path: appRoot, overrides: licenseOverrides, omitPermissive: true },
@@ -352,4 +409,55 @@ function updateLicenseDump(callback: (err: Error | null) => void) {
       }
     }
   )
+}
+
+function generateLicenseMetadata(outRoot: string) {
+  const chooseALicense = path.join(outRoot, 'static', 'choosealicense.com')
+  const licensesDir = path.join(chooseALicense, '_licenses')
+
+  const files = fs.readdirSync(licensesDir)
+
+  const licenses = new Array<ILicense>()
+  for (const file of files) {
+    const fullPath = path.join(licensesDir, file)
+    const contents = fs.readFileSync(fullPath, 'utf8')
+    const result = frontMatter<IChooseALicense>(contents)
+    const license: ILicense = {
+      name: result.attributes.nickname || result.attributes.title,
+      featured: result.attributes.featured || false,
+      hidden:
+        result.attributes.hidden === undefined || result.attributes.hidden,
+      body: result.body.trim(),
+    }
+
+    if (!license.hidden) {
+      licenses.push(license)
+    }
+  }
+
+  const licensePayload = path.join(outRoot, 'static', 'available-licenses.json')
+  const text = JSON.stringify(licenses)
+  fs.writeFileSync(licensePayload, text, 'utf8')
+
+  // embed the license alongside the generated license payload
+  const chooseALicenseLicense = path.join(chooseALicense, 'LICENSE.md')
+  const licenseDestination = path.join(
+    outRoot,
+    'static',
+    'LICENSE.choosealicense.md'
+  )
+
+  const licenseText = fs.readFileSync(chooseALicenseLicense, 'utf8')
+  const licenseWithHeader = `GitHub Desktop uses licensing information provided by choosealicense.com.
+
+The bundle in available-licenses.json has been generated from a source list provided at https://github.com/github/choosealicense.com, which is made available under the below license:
+
+------------
+
+${licenseText}`
+
+  fs.writeFileSync(licenseDestination, licenseWithHeader, 'utf8')
+
+  // sweep up the choosealicense directory as the important bits have been bundled in the app
+  fs.removeSync(chooseALicense)
 }

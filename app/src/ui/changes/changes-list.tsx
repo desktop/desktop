@@ -1,39 +1,44 @@
 import * as React from 'react'
 import * as Path from 'path'
 
-import { CommitMessage } from './commit-message'
-import { ChangedFile } from './changed-file'
-import { List, ClickSource } from '../lib/list'
-import {
-  WorkingDirectoryStatus,
-  WorkingDirectoryFileChange,
-  AppFileStatus,
-} from '../../models/status'
-import { DiffSelectionType } from '../../models/diff'
-import { CommitIdentity } from '../../models/commit-identity'
-import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { ICommitMessage } from '../../lib/app-state'
 import { IGitHubUser } from '../../lib/databases'
 import { Dispatcher } from '../../lib/dispatcher'
-import { IAutocompletionProvider } from '../autocompletion'
-import { Repository } from '../../models/repository'
-import { showContextualMenu } from '../main-process-proxy'
-import { IAuthor } from '../../models/author'
 import { ITrailer } from '../../lib/git/interpret-trailers'
 import { IMenuItem } from '../../lib/menu-item'
+import { revealInFileManager } from '../../lib/app-shell'
+import {
+  AppFileStatus,
+  WorkingDirectoryStatus,
+  WorkingDirectoryFileChange,
+} from '../../models/status'
+import { DiffSelectionType } from '../../models/diff'
+import { CommitIdentity } from '../../models/commit-identity'
+import { Repository } from '../../models/repository'
+import { IAuthor } from '../../models/author'
+import { List, ClickSource } from '../lib/list'
+import { Checkbox, CheckboxValue } from '../lib/checkbox'
+import {
+  isSafeFileExtension,
+  DefaultEditorLabel,
+  RevealInFileManagerLabel,
+  OpenWithDefaultProgramLabel,
+} from '../lib/context-menu'
+import { CommitMessage } from './commit-message'
+import { ChangedFile } from './changed-file'
+import { IAutocompletionProvider } from '../autocompletion'
+import { showContextualMenu } from '../main-process-proxy'
+import { arrayEquals } from '../../lib/equality'
 
 const RowHeight = 29
-const RestrictedFileExtensions = ['.cmd', '.exe', '.bat', '.sh']
-const defaultEditorLabel = __DARWIN__
-  ? 'Open in External Editor'
-  : 'Open in external editor'
+
 const GitIgnoreFileName = '.gitignore'
 
 interface IChangesListProps {
   readonly repository: Repository
   readonly workingDirectory: WorkingDirectoryStatus
-  readonly selectedFileID: string | null
-  readonly onFileSelectionChanged: (row: number) => void
+  readonly selectedFileIDs: string[]
+  readonly onFileSelectionChanged: (rows: ReadonlyArray<number>) => void
   readonly onIncludeChanged: (path: string, include: boolean) => void
   readonly onSelectAll: (selectAll: boolean) => void
   readonly onCreateCommit: (
@@ -42,15 +47,10 @@ interface IChangesListProps {
     trailers?: ReadonlyArray<ITrailer>
   ) => Promise<boolean>
   readonly onDiscardChanges: (file: WorkingDirectoryFileChange) => void
+  readonly askForConfirmationOnDiscardChanges: boolean
   readonly onDiscardAllChanges: (
     files: ReadonlyArray<WorkingDirectoryFileChange>
   ) => void
-
-  /**
-   * Called to reveal a file in the native file manager.
-   * @param path The path of the file relative to the root of the repository
-   */
-  readonly onRevealInFileManager: (path: string) => void
 
   /**
    * Called to open a file it its default application
@@ -69,7 +69,6 @@ interface IChangesListProps {
    * List Props for documentation.
    */
   readonly onRowClick?: (row: number, source: ClickSource) => void
-
   readonly commitMessage: ICommitMessage | null
   readonly contextualCommitMessage: ICommitMessage | null
 
@@ -77,7 +76,7 @@ interface IChangesListProps {
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
 
   /** Called when the given pattern should be ignored. */
-  readonly onIgnore: (pattern: string) => void
+  readonly onIgnore: (pattern: string | string[]) => void
 
   /**
    * Whether or not to show a field for adding co-authors to
@@ -98,13 +97,58 @@ interface IChangesListProps {
   readonly externalEditorLabel?: string
 
   /**
-   * Called to open a file using the user's configured applications
-   * @param path The path of the file relative to the root of the repository
+   * Callback to open a selected file using the configured external editor
+   *
+   * @param fullPath The full path to the file on disk
    */
-  readonly onOpenInExternalEditor: (path: string) => void
+  readonly onOpenInExternalEditor: (fullPath: string) => void
 }
 
-export class ChangesList extends React.Component<IChangesListProps, {}> {
+interface IChangesState {
+  readonly selectedRows: ReadonlyArray<number>
+}
+
+function getSelectedRowsFromProps(
+  props: IChangesListProps
+): ReadonlyArray<number> {
+  const selectedFileIDs = props.selectedFileIDs
+  const selectedRows = []
+
+  for (const id of selectedFileIDs) {
+    const ix = props.workingDirectory.findFileIndexByID(id)
+    if (ix !== -1) {
+      selectedRows.push(ix)
+    }
+  }
+
+  return selectedRows
+}
+
+export class ChangesList extends React.Component<
+  IChangesListProps,
+  IChangesState
+> {
+  public constructor(props: IChangesListProps) {
+    super(props)
+    this.state = {
+      selectedRows: getSelectedRowsFromProps(props),
+    }
+  }
+
+  public componentWillReceiveProps(nextProps: IChangesListProps) {
+    // No need to update state unless we haven't done it yet or the
+    // selected file id list has changed.
+    if (
+      !arrayEquals(nextProps.selectedFileIDs, this.props.selectedFileIDs) ||
+      !arrayEquals(
+        nextProps.workingDirectory.files,
+        this.props.workingDirectory.files
+      )
+    ) {
+      this.setState({ selectedRows: getSelectedRowsFromProps(nextProps) })
+    }
+  }
+
   private onIncludeAllChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const include = event.currentTarget.checked
     this.props.onSelectAll(include)
@@ -117,7 +161,9 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
     const includeAll =
       selection === DiffSelectionType.All
         ? true
-        : selection === DiffSelectionType.None ? false : null
+        : selection === DiffSelectionType.None
+          ? false
+          : null
 
     return (
       <ChangedFile
@@ -126,9 +172,9 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
         oldPath={file.oldPath}
         include={includeAll}
         key={file.id}
+        onContextMenu={this.onItemContextMenu}
         onIncludeChanged={this.props.onIncludeChanged}
         availableWidth={this.props.availableWidth}
-        onContextMenu={this.onItemContextMenu}
       />
     )
   }
@@ -148,14 +194,43 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
     this.props.onDiscardAllChanges(this.props.workingDirectory.files)
   }
 
-  private onDiscardChanges = (path: string) => {
+  private onDiscardChanges = (files: ReadonlyArray<string>) => {
     const workingDirectory = this.props.workingDirectory
-    const file = workingDirectory.files.find(f => f.path === path)
-    if (!file) {
-      return
-    }
 
-    this.props.onDiscardChanges(file)
+    if (files.length === 1) {
+      const modifiedFile = workingDirectory.files.find(f => f.path === files[0])
+
+      if (modifiedFile != null) {
+        this.props.onDiscardChanges(modifiedFile)
+      }
+    } else {
+      const modifiedFiles = new Array<WorkingDirectoryFileChange>()
+
+      files.forEach(file => {
+        const modifiedFile = workingDirectory.files.find(f => f.path === file)
+
+        if (modifiedFile != null) {
+          modifiedFiles.push(modifiedFile)
+        }
+      })
+
+      if (modifiedFiles.length > 0) {
+        this.props.onDiscardAllChanges(modifiedFiles)
+      }
+    }
+  }
+
+  private getDiscardChangesMenuItemLabel = (files: ReadonlyArray<string>) => {
+    const label =
+      files.length === 1
+        ? __DARWIN__
+          ? `Discard Changes`
+          : `Discard changes`
+        : __DARWIN__
+          ? `Discard ${files.length} Selected Changes`
+          : `Discard ${files.length} selected changes`
+
+    return this.props.askForConfirmationOnDiscardChanges ? `${label}…` : label
   }
 
   private onContextMenu = (event: React.MouseEvent<any>) => {
@@ -175,64 +250,97 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
   private onItemContextMenu = (
     path: string,
     status: AppFileStatus,
-    event: React.MouseEvent<any>
+    event: React.MouseEvent<HTMLDivElement>
   ) => {
     event.preventDefault()
 
     const extension = Path.extname(path)
-    const fileName = Path.basename(path)
-    const isSafeExtension = __WIN32__
-      ? RestrictedFileExtensions.indexOf(extension.toLowerCase()) === -1
-      : true
-    const revealInFileManagerLabel = __DARWIN__
-      ? 'Reveal in Finder'
-      : __WIN32__ ? 'Show in Explorer' : 'Show in your File Manager'
+    const isSafeExtension = isSafeFileExtension(extension)
     const openInExternalEditor = this.props.externalEditorLabel
       ? `Open in ${this.props.externalEditorLabel}`
-      : defaultEditorLabel
+      : DefaultEditorLabel
+
+    const wd = this.props.workingDirectory
+    const selectedFiles = new Array<WorkingDirectoryFileChange>()
+    const paths = new Array<string>()
+    const extensions = new Set<string>()
+
+    this.props.selectedFileIDs.forEach(fileID => {
+      const newFile = wd.findFileWithID(fileID)
+      if (newFile) {
+        selectedFiles.push(newFile)
+        paths.push(newFile.path)
+
+        const extension = Path.extname(newFile.path)
+        if (extension.length) {
+          extensions.add(extension)
+        }
+      }
+    })
+
     const items: IMenuItem[] = [
       {
-        label: __DARWIN__ ? 'Discard Changes…' : 'Discard changes…',
-        action: () => this.onDiscardChanges(path),
+        label: this.getDiscardChangesMenuItemLabel(paths),
+        action: () => this.onDiscardChanges(paths),
       },
       {
         label: __DARWIN__ ? 'Discard All Changes…' : 'Discard all changes…',
         action: () => this.onDiscardAllChanges(),
       },
       { type: 'separator' },
-      {
-        label: 'Ignore',
-        action: () => this.props.onIgnore(path),
-        enabled: fileName !== GitIgnoreFileName,
-      },
     ]
 
-    if (extension.length) {
+    if (paths.length === 1) {
       items.push({
-        label: __DARWIN__
-          ? `Ignore All ${extension} Files`
-          : `Ignore all ${extension} files`,
-        action: () => this.props.onIgnore(`*${extension}`),
-        enabled: fileName !== GitIgnoreFileName,
+        label: __DARWIN__ ? 'Ignore File' : 'Ignore file',
+        action: () => this.props.onIgnore(path),
+        enabled: Path.basename(path) !== GitIgnoreFileName,
+      })
+    } else if (paths.length > 1) {
+      items.push({
+        label: `Ignore ${paths.length} selected files`,
+        action: () => {
+          // Filter out any .gitignores that happens to be selected, ignoring
+          // those doesn't make sense.
+          this.props.onIgnore(
+            paths.filter(path => Path.basename(path) !== GitIgnoreFileName)
+          )
+        },
+        // Enable this action as long as there's something selected which isn't
+        // a .gitignore file.
+        enabled: paths.some(path => Path.basename(path) !== GitIgnoreFileName),
       })
     }
+
+    // Five menu items should be enough for everyone
+    Array.from(extensions)
+      .slice(0, 5)
+      .forEach(extension => {
+        items.push({
+          label: __DARWIN__
+            ? `Ignore All ${extension} Files`
+            : `Ignore all ${extension} files`,
+          action: () => this.props.onIgnore(`*${extension}`),
+        })
+      })
 
     items.push(
       { type: 'separator' },
       {
-        label: revealInFileManagerLabel,
-        action: () => this.props.onRevealInFileManager(path),
+        label: RevealInFileManagerLabel,
+        action: () => revealInFileManager(this.props.repository, path),
         enabled: status !== AppFileStatus.Deleted,
       },
       {
         label: openInExternalEditor,
-        action: () => this.props.onOpenInExternalEditor(path),
+        action: () => {
+          const fullPath = Path.join(this.props.repository.path, path)
+          this.props.onOpenInExternalEditor(fullPath)
+        },
         enabled: isSafeExtension && status !== AppFileStatus.Deleted,
       },
       {
-        label: __DARWIN__
-          ? 'Open with Default Program'
-          : 'Open with default program',
+        label: OpenWithDefaultProgramLabel,
         action: () => this.props.onOpenItem(path),
         enabled: isSafeExtension && status !== AppFileStatus.Deleted,
       }
@@ -243,9 +351,6 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
 
   public render() {
     const fileList = this.props.workingDirectory.files
-    const selectedRow = fileList.findIndex(
-      file => file.id === this.props.selectedFileID
-    )
     const fileCount = fileList.length
     const filesPlural = fileCount === 1 ? 'file' : 'files'
     const filesDescription = `${fileCount} changed ${filesPlural}`
@@ -268,7 +373,8 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
           rowCount={this.props.workingDirectory.files.length}
           rowHeight={RowHeight}
           rowRenderer={this.renderRow}
-          selectedRow={selectedRow}
+          selectedRows={this.state.selectedRows}
+          selectionMode="multi"
           onSelectionChanged={this.props.onFileSelectionChanged}
           invalidationProps={this.props.workingDirectory}
           onRowClick={this.props.onRowClick}

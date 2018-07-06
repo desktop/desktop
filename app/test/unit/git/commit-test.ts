@@ -1,6 +1,6 @@
-/* eslint-disable no-sync */
-
 import * as path from 'path'
+import * as FSE from 'fs-extra'
+
 import { expect } from 'chai'
 
 import { Repository } from '../../../src/models/repository'
@@ -31,8 +31,6 @@ import {
   DiffType,
 } from '../../../src/models/diff'
 
-import * as fs from 'fs-extra'
-
 async function getTextDiff(
   repo: Repository,
   file: WorkingDirectoryFileChange
@@ -46,13 +44,16 @@ describe('git/commit', () => {
   let repository: Repository | null = null
 
   beforeEach(async () => {
-    const testRepoPath = setupFixtureRepository('test-repo')
+    const testRepoPath = await setupFixtureRepository('test-repo')
     repository = new Repository(testRepoPath, -1, null, false)
   })
 
   describe('createCommit normal', () => {
     it('commits the given files', async () => {
-      fs.writeFileSync(path.join(repository!.path, 'README.md'), 'Hi world\n')
+      await FSE.writeFile(
+        path.join(repository!.path, 'README.md'),
+        'Hi world\n'
+      )
 
       let status = await getStatus(repository!)
       let files = status.workingDirectory.files
@@ -70,7 +71,10 @@ describe('git/commit', () => {
     })
 
     it('commit does not strip commentary by default', async () => {
-      fs.writeFileSync(path.join(repository!.path, 'README.md'), 'Hi world\n')
+      await FSE.writeFile(
+        path.join(repository!.path, 'README.md'),
+        'Hi world\n'
+      )
 
       const status = await getStatus(repository!)
       const files = status.workingDirectory.files
@@ -91,8 +95,8 @@ describe('git/commit', () => {
     it('can commit for empty repository', async () => {
       const repo = await setupEmptyRepository()
 
-      fs.writeFileSync(path.join(repo.path, 'foo'), 'foo\n')
-      fs.writeFileSync(path.join(repo.path, 'bar'), 'bar\n')
+      await FSE.writeFile(path.join(repo.path, 'foo'), 'foo\n')
+      await FSE.writeFile(path.join(repo.path, 'bar'), 'bar\n')
 
       const status = await getStatus(repo)
       const files = status.workingDirectory.files
@@ -124,7 +128,7 @@ describe('git/commit', () => {
     it('can commit renames', async () => {
       const repo = await setupEmptyRepository()
 
-      fs.writeFileSync(path.join(repo.path, 'foo'), 'foo\n')
+      await FSE.writeFile(path.join(repo.path, 'foo'), 'foo\n')
 
       await GitProcess.exec(['add', 'foo'], repo.path)
       await GitProcess.exec(['commit', '-m', 'Initial commit'], repo.path)
@@ -147,7 +151,7 @@ describe('git/commit', () => {
 
   describe('createCommit partials', () => {
     beforeEach(async () => {
-      const testRepoPath = setupFixtureRepository('repo-with-changes')
+      const testRepoPath = await setupFixtureRepository('repo-with-changes')
       repository = new Repository(testRepoPath, -1, null, false)
     })
 
@@ -383,13 +387,13 @@ describe('git/commit', () => {
     it('can commit renames with modifications', async () => {
       const repo = await setupEmptyRepository()
 
-      fs.writeFileSync(path.join(repo.path, 'foo'), 'foo\n')
+      await FSE.writeFile(path.join(repo.path, 'foo'), 'foo\n')
 
       await GitProcess.exec(['add', 'foo'], repo.path)
       await GitProcess.exec(['commit', '-m', 'Initial commit'], repo.path)
       await GitProcess.exec(['mv', 'foo', 'bar'], repo.path)
 
-      fs.writeFileSync(path.join(repo.path, 'bar'), 'bar\n')
+      await FSE.writeFile(path.join(repo.path, 'bar'), 'bar\n')
 
       const status = await getStatus(repo)
       const files = status.workingDirectory.files
@@ -411,13 +415,13 @@ describe('git/commit', () => {
     it('can commit renames with partially selected modifications', async () => {
       const repo = await setupEmptyRepository()
 
-      fs.writeFileSync(path.join(repo.path, 'foo'), 'line1\n')
+      await FSE.writeFile(path.join(repo.path, 'foo'), 'line1\n')
 
       await GitProcess.exec(['add', 'foo'], repo.path)
       await GitProcess.exec(['commit', '-m', 'Initial commit'], repo.path)
       await GitProcess.exec(['mv', 'foo', 'bar'], repo.path)
 
-      fs.writeFileSync(path.join(repo.path, 'bar'), 'line1\nline2\nline3\n')
+      await FSE.writeFile(path.join(repo.path, 'bar'), 'line1\nline2\nline3\n')
 
       const status = await getStatus(repo)
       const files = status.workingDirectory.files
@@ -454,10 +458,12 @@ describe('git/commit', () => {
       const repo = await setupConflictedRepo()
       const filePath = path.join(repo.path, 'foo')
 
-      const inMerge = fs.existsSync(path.join(repo.path, '.git', 'MERGE_HEAD'))
+      const inMerge = await FSE.pathExists(
+        path.join(repo.path, '.git', 'MERGE_HEAD')
+      )
       expect(inMerge).to.equal(true)
 
-      fs.writeFileSync(filePath, 'b1b2')
+      await FSE.writeFile(filePath, 'b1b2')
 
       const status = await getStatus(repo)
       const files = status.workingDirectory.files
@@ -485,12 +491,12 @@ describe('git/commit', () => {
       const firstPath = path.join(repo.path, 'first')
       const secondPath = path.join(repo.path, 'second')
 
-      fs.writeFileSync(firstPath, 'line1\n')
-      fs.writeFileSync(secondPath, 'line2\n')
+      await FSE.writeFile(firstPath, 'line1\n')
+      await FSE.writeFile(secondPath, 'line2\n')
 
       await GitProcess.exec(['add', '.'], repo.path)
 
-      fs.unlinkSync(firstPath)
+      await FSE.unlink(firstPath)
 
       status = await getStatus(repo)
       files = status.workingDirectory.files
@@ -519,14 +525,14 @@ describe('git/commit', () => {
       const repo = await setupEmptyRepository()
 
       const firstPath = path.join(repo.path, 'first')
-      fs.writeFileSync(firstPath, 'line1\n')
+      await FSE.writeFile(firstPath, 'line1\n')
 
       await GitProcess.exec(['add', 'first'], repo.path)
       await GitProcess.exec(['commit', '-am', 'commit first file'], repo.path)
       await GitProcess.exec(['rm', '--cached', 'first'], repo.path)
 
       // if the text is now different, everything is fine
-      fs.writeFileSync(firstPath, 'line2\n')
+      await FSE.writeFile(firstPath, 'line2\n')
 
       status = await getStatus(repo)
       files = status.workingDirectory.files

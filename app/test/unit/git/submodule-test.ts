@@ -12,7 +12,7 @@ import { setupFixtureRepository } from '../../helpers/repositories'
 describe('git/submodule', () => {
   describe('listSubmodules', () => {
     it('returns the submodule entry', async () => {
-      const testRepoPath = setupFixtureRepository('submodule-basic-setup')
+      const testRepoPath = await setupFixtureRepository('submodule-basic-setup')
       const repository = new Repository(testRepoPath, -1, null, false)
       const result = await listSubmodules(repository)
       expect(result.length).to.equal(1)
@@ -22,7 +22,7 @@ describe('git/submodule', () => {
     })
 
     it('returns the expected tag', async () => {
-      const testRepoPath = setupFixtureRepository('submodule-basic-setup')
+      const testRepoPath = await setupFixtureRepository('submodule-basic-setup')
       const repository = new Repository(testRepoPath, -1, null, false)
 
       const submodulePath = path.join(testRepoPath, 'foo', 'submodule')
@@ -49,7 +49,7 @@ describe('git/submodule', () => {
 
   describe('resetSubmodulePaths', () => {
     it('update submodule to original commit', async () => {
-      const testRepoPath = setupFixtureRepository('submodule-basic-setup')
+      const testRepoPath = await setupFixtureRepository('submodule-basic-setup')
       const repository = new Repository(testRepoPath, -1, null, false)
 
       const submodulePath = path.join(testRepoPath, 'foo', 'submodule')

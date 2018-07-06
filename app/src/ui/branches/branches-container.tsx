@@ -1,16 +1,23 @@
 import * as React from 'react'
-import { Dispatcher } from '../../lib/dispatcher'
-import { FoldoutType, PopupType } from '../../lib/app-state'
+import { CSSTransitionGroup } from 'react-transition-group'
+
+import { PullRequest } from '../../models/pull-request'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
-import { BranchList } from './branch-list'
-import { TabBar } from '../tab-bar'
 import { BranchesTab } from '../../models/branches-tab'
+
+import { Dispatcher } from '../../lib/dispatcher'
+import { FoldoutType, PopupType } from '../../lib/app-state'
 import { assertNever } from '../../lib/fatal-error'
+
+import { TabBar } from '../tab-bar'
+
+import { BranchList } from './branch-list'
 import { PullRequestList } from './pull-request-list'
 import { PullRequestsLoading } from './pull-requests-loading'
-import { PullRequest } from '../../models/pull-request'
-import { CSSTransitionGroup } from 'react-transition-group'
+import { IBranchListItem } from './group-branches'
+import { renderDefaultBranch } from './branch-renderer'
+import { IMatches } from '../../lib/fuzzy-find'
 
 const PullRequestsLoadingCrossFadeInTimeout = 300
 const PullRequestsLoadingCrossFadeOutTimeout = 200
@@ -91,6 +98,10 @@ export class BranchesContainer extends React.Component<
     )
   }
 
+  private renderBranch = (item: IBranchListItem, matches: IMatches) => {
+    return renderDefaultBranch(item, matches, this.props.currentBranch)
+  }
+
   private renderSelectedTab() {
     let tab = this.props.selectedTab
     if (!this.props.repository.gitHubRepository) {
@@ -112,6 +123,7 @@ export class BranchesContainer extends React.Component<
             onSelectionChanged={this.onBranchSelectionChanged}
             canCreateNewBranch={true}
             onCreateNewBranch={this.onCreateBranchWithName}
+            renderBranch={this.renderBranch}
           />
         )
 

@@ -11,12 +11,14 @@ import {
 } from '../../models/status'
 import { DiffSelection } from '../../models/diff'
 import {
-  RepositorySection,
+  RepositorySectionTab,
   Popup,
   PopupType,
   Foldout,
   FoldoutType,
   ImageDiffType,
+  CompareAction,
+  ICompareFormUpdate,
 } from '../app-state'
 import { AppStore } from '../stores/app-store'
 import { CloningRepository } from '../../models/cloning-repository'
@@ -54,6 +56,8 @@ import { FetchType } from '../../lib/stores'
 import { PullRequest } from '../../models/pull-request'
 import { IAuthor } from '../../models/author'
 import { ITrailer } from '../git/interpret-trailers'
+import { isGitRepository } from '../git'
+import { ApplicationTheme } from '../../ui/lib/application-theme'
 
 /**
  * An error handler function.
@@ -107,11 +111,6 @@ export class Dispatcher {
     missing: boolean
   ): Promise<Repository> {
     return this.appStore._updateRepositoryMissing(repository, missing)
-  }
-
-  /** Load the history for the repository. */
-  public loadHistory(repository: Repository): Promise<void> {
-    return this.appStore._loadHistory(repository)
   }
 
   /** Load the next batch of history for the repository. */
@@ -177,7 +176,7 @@ export class Dispatcher {
   /** Change the selected section in the repository. */
   public changeRepositorySection(
     repository: Repository,
-    section: RepositorySection
+    section: RepositorySectionTab
   ): Promise<void> {
     return this.appStore._changeRepositorySection(repository, section)
   }
@@ -185,9 +184,9 @@ export class Dispatcher {
   /** Change the currently selected file in Changes. */
   public changeChangesSelection(
     repository: Repository,
-    selectedFile: WorkingDirectoryFileChange
+    selectedFiles: WorkingDirectoryFileChange[]
   ): Promise<void> {
-    return this.appStore._changeChangesSelection(repository, selectedFile)
+    return this.appStore._changeChangesSelection(repository, selectedFiles)
   }
 
   /**
@@ -460,6 +459,13 @@ export class Dispatcher {
   }
 
   /**
+   * Set the divering branch notification banner's visibility
+   */
+  public setDivergingBranchBannerVisibility(isVisible: boolean) {
+    return this.appStore._setDivergingBranchBannerVisibility(isVisible)
+  }
+
+  /**
    * Reset the width of the repository sidebar to its default
    * value. This affects the changes and history sidebar
    * as well as the first toolbar section which contains
@@ -585,7 +591,10 @@ export class Dispatcher {
   }
 
   /** Add the pattern to the repository's gitignore. */
-  public ignore(repository: Repository, pattern: string): Promise<void> {
+  public ignore(
+    repository: Repository,
+    pattern: string | string[]
+  ): Promise<void> {
     return this.appStore._ignore(repository, pattern)
   }
 
@@ -602,9 +611,11 @@ export class Dispatcher {
     }
   }
 
-  /** Opens a Git repository in the user provided program */
-  public async openInExternalEditor(path: string): Promise<void> {
-    return this.appStore._openInExternalEditor(path)
+  /**
+   * Opens a path in the external editor selected by the user.
+   */
+  public async openInExternalEditor(fullPath: string): Promise<void> {
+    return this.appStore._openInExternalEditor(fullPath)
   }
 
   /**
@@ -843,12 +854,21 @@ export class Dispatcher {
         // this ensures we use the repository root, if it is actually a repository
         // otherwise we consider it an untracked repository
         const path = (await validatedRepositoryPath(action.path)) || action.path
-
         const state = this.appStore.getState()
-        const existingRepository = matchExistingRepository(
+        let existingRepository = matchExistingRepository(
           state.repositories,
           path
         )
+
+        // in case this is valid git repository, there is no need to ask
+        // user for confirmation and it can be added automatically
+        if (existingRepository == null) {
+          const isRepository = await isGitRepository(path)
+          if (isRepository) {
+            const addedRepositories = await this.addRepositories([path])
+            existingRepository = addedRepositories[0]
+          }
+        }
 
         if (existingRepository) {
           await this.selectRepository(existingRepository)
@@ -879,10 +899,6 @@ export class Dispatcher {
 
   /**
    * Sets the user's preference so that confirmation to discard changes is not asked
-   *
-   * @param {boolean} value
-   * @returns {Promise<void>}
-   * @memberof Dispatcher
    */
   public setConfirmDiscardChangesSetting(value: boolean): Promise<void> {
     return this.appStore._setConfirmDiscardChangesSetting(value)
@@ -902,32 +918,38 @@ export class Dispatcher {
     return this.appStore._setShell(shell)
   }
 
-  /**
-   * Reveals a file from a repository in the native file manager.
-   * @param repository The currently active repository instance
-   * @param path The path of the file relative to the root of the repository
-   */
-  public revealInFileManager(repository: Repository, path: string) {
-    const normalized = Path.join(repository.path, path)
-    return shell.showItemInFolder(normalized)
-  }
-
   private async handleCloneInDesktopOptions(
     repository: Repository,
     action: IOpenRepositoryFromURLAction
   ): Promise<void> {
     const { filepath, pr, branch } = action
 
-    if (pr && branch) {
+    if (pr != null && branch != null) {
       // we need to refetch for a forked PR and check that out
       await this.fetchRefspec(repository, `pull/${pr}/head:${branch}`)
     }
 
-    if (branch) {
+    if (pr == null && branch != null) {
+      const state = this.appStore.getRepositoryState(repository)
+      const branches = state.branchesState.allBranches
+
+      // I don't want to invoke Git functionality from the dispatcher, which
+      // would help by using getDefaultRemote here to get the definitive ref,
+      // so this falls back to finding any remote branch matching the name
+      // received from the "Clone in Desktop" action
+      const localBranch =
+        branches.find(b => b.upstreamWithoutRemote === branch) || null
+
+      if (localBranch == null) {
+        await this.fetch(repository, FetchType.BackgroundTask)
+      }
+    }
+
+    if (branch != null) {
       await this.checkoutBranch(repository, branch)
     }
 
-    if (filepath) {
+    if (filepath != null) {
       const fullPath = Path.join(repository.path, filepath)
       // because Windows uses different path separators here
       const normalized = Path.normalize(fullPath)
@@ -1147,5 +1169,94 @@ export class Dispatcher {
     coAuthors: ReadonlyArray<IAuthor>
   ) {
     return this.appStore._setCoAuthors(repository, coAuthors)
+  }
+
+  /**
+   * Initialze the compare state for the current repository.
+   */
+  public initializeCompare(
+    repository: Repository,
+    initialAction?: CompareAction
+  ) {
+    return this.appStore._initializeCompare(repository, initialAction)
+  }
+
+  /**
+   * Update the compare state for the current repository
+   */
+  public executeCompare(repository: Repository, action: CompareAction) {
+    return this.appStore._executeCompare(repository, action)
+  }
+
+  /** Update the compare form state for the current repository */
+  public updateCompareForm<K extends keyof ICompareFormUpdate>(
+    repository: Repository,
+    newState: Pick<ICompareFormUpdate, K>
+  ) {
+    return this.appStore._updateCompareForm(repository, newState)
+  }
+
+  /**
+   * Increments the `mergeIntoCurrentBranchMenuCount` metric
+   */
+  public recordMenuInitiatedMerge() {
+    return this.appStore._recordMenuInitiatedMerge()
+  }
+
+  /**
+   * Increments the `updateFromDefaultBranchMenuCount` metric
+   */
+  public recordMenuInitiatedUpdate() {
+    return this.appStore._recordMenuInitiatedUpdate()
+  }
+
+  /**
+   * Increments the `mergesInitiatedFromComparison` metric
+   */
+  public recordCompareInitiatedMerge() {
+    return this.appStore._recordCompareInitiatedMerge()
+  }
+
+  /**
+   * Set the application-wide theme
+   */
+  public setSelectedTheme(theme: ApplicationTheme) {
+    return this.appStore._setSelectedTheme(theme)
+  }
+
+  /**
+   * Increments either the `repoWithIndicatorClicked` or
+   * the `repoWithoutIndicatorClicked` metric
+   */
+  public recordRepoClicked(repoHasIndicator: boolean) {
+    return this.appStore._recordRepoClicked(repoHasIndicator)
+  }
+
+  /** The number of times the user dismisses the diverged branch notification
+   * Increments the `divergingBranchBannerDismissal` metric
+   */
+  public recordDivergingBranchBannerDismissal() {
+    return this.appStore._recordDivergingBranchBannerDismissal()
+  }
+
+  /**
+   * Increments the `divergingBranchBannerInitiatedCompare` metric
+   */
+  public recordDivergingBranchBannerInitiatedCompare() {
+    return this.appStore._recordDivergingBranchBannerInitiatedCompare()
+  }
+
+  /**
+   * Increments the `divergingBranchBannerInfluencedMerge` metric
+   */
+  public recordDivergingBranchBannerInfluencedMerge() {
+    return this.appStore._recordDivergingBranchBannerInfluencedMerge()
+  }
+
+  /**
+   * Increments the `divergingBranchBannerInitatedMerge` metric
+   */
+  public recordDivergingBranchBannerInitatedMerge() {
+    return this.appStore._recordDivergingBranchBannerInitatedMerge()
   }
 }

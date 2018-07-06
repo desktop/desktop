@@ -6,6 +6,10 @@
   flex-direction: row;
   flex: 1;
 
+  > .focus-container {
+    display: flex;
+  }
+
   &-sidebar {
     display: flex;
     flex-direction: column;

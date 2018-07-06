@@ -67,7 +67,6 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       this.emitUpdate(githubRepo)
     } catch (error) {
       log.warn(`Error refreshing pull requests for '${repository.name}'`, error)
-      this.emitError(error)
     } finally {
       this.updateActiveFetchCount(githubRepo, Decrement)
     }
@@ -104,7 +103,11 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
   ): Promise<void> {
     const prs = await this.fetchPullRequestsFromCache(repository)
 
-    await this.fetchAndCachePullRequestStatus(prs, repository, account)
+    try {
+      await this.fetchAndCachePullRequestStatus(prs, repository, account)
+    } catch (e) {
+      log.warn('Error updating pull request statuses', e)
+    }
   }
 
   /** Gets the pull requests against the given repository. */
@@ -293,6 +296,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       return {
         id: x.id,
         state: x.state,
+        description: x.description,
       }
     })
 

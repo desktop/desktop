@@ -44,7 +44,7 @@ const MaxReasonableDiffSize = MaxDiffBufferSize / 16 // ~4.375MB in decimal
  * The longest line length we should try to display. If a diff has a line longer
  * than this, we probably shouldn't attempt it
  */
-const MaxLineLength = 500000
+const MaxCharactersPerLine = 5000
 
 /**
  * Utility function to check whether parsing this buffer is going to cause
@@ -65,7 +65,7 @@ function isBufferTooLarge(buffer: Buffer) {
 function isDiffTooLarge(diff: IRawDiff) {
   for (const hunk of diff.hunks) {
     for (const line of hunk.lines) {
-      if (line.text.length > MaxLineLength) {
+      if (line.text.length > MaxCharactersPerLine) {
         return true
       }
     }
@@ -84,6 +84,7 @@ const imageFileExtensions = new Set([
   '.gif',
   '.ico',
   '.webp',
+  '.bmp',
 ])
 
 /**
@@ -267,9 +268,9 @@ export async function convertDiff(
   commitish: string,
   lineEndingsChange?: LineEndingsChange
 ): Promise<IDiff> {
-  if (diff.isBinary) {
-    const extension = Path.extname(file.path)
+  const extension = Path.extname(file.path).toLowerCase()
 
+  if (diff.isBinary) {
     // some extension we don't know how to parse, never mind
     if (!imageFileExtensions.has(extension)) {
       return {
@@ -306,6 +307,9 @@ function getMediaType(extension: string) {
   }
   if (extension === '.webp') {
     return 'image/webp'
+  }
+  if (extension === '.bmp') {
+    return 'image/bmp'
   }
 
   // fallback value as per the spec
@@ -405,7 +409,11 @@ export async function getBlobImage(
 ): Promise<Image> {
   const extension = Path.extname(path)
   const contents = await getBlobContents(repository, commitish, path)
-  return new Image(contents.toString('base64'), getMediaType(extension))
+  return new Image(
+    contents.toString('base64'),
+    getMediaType(extension),
+    contents.length
+  )
 }
 /**
  * Retrieve the binary contents of a blob from the working directory
@@ -425,6 +433,7 @@ export async function getWorkingDirectoryImage(
   )
   return new Image(
     contents.toString('base64'),
-    getMediaType(Path.extname(file.path))
+    getMediaType(Path.extname(file.path)),
+    contents.length
   )
 }

@@ -1,5 +1,6 @@
 import { ChildProcess } from 'child_process'
 import * as Fs from 'fs'
+import * as Path from 'path'
 import * as byline from 'byline'
 
 import { GitProgressParser, IGitProgress, IGitOutput } from './git'
@@ -23,8 +24,13 @@ export async function executionOptionsWithProgress(
   let lfsProgressPath = null
   let env = {}
   if (options.trackLFSProgress) {
-    lfsProgressPath = await createLFSProgressFile()
-    env = { GIT_LFS_PROGRESS: lfsProgressPath }
+    try {
+      lfsProgressPath = await createLFSProgressFile()
+      env = { GIT_LFS_PROGRESS: lfsProgressPath }
+    } catch (e) {
+      log.error('Error writing LFS progress file', e)
+      env = { GIT_LFS_PROGRESS: null }
+    }
   }
 
   return merge(options, {
@@ -57,9 +63,17 @@ function createProgressProcessCallback(
 
       process.on('close', () => {
         disposable.dispose()
-        // NB: We don't really care about errors deleting the file, but Node
-        // gets kinda bothered if we don't provide a callback.
-        Fs.unlink(lfsProgressPath, () => {})
+        // the order of these callbacks is important because
+        //  - unlink can only be done on files
+        //  - rmdir can only be done when the directory is empty
+        //  - we don't want to surface errors to the user if something goes
+        //    wrong (these files can stay in TEMP and be cleaned up eventually)
+        Fs.unlink(lfsProgressPath, err => {
+          if (err == null) {
+            const directory = Path.dirname(lfsProgressPath)
+            Fs.rmdir(directory, () => {})
+          }
+        })
       })
     }
 

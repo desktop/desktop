@@ -1,16 +1,20 @@
 import * as React from 'react'
 import * as classnames from 'classnames'
 
-import { List, SelectionSource as ListSelectionSource } from '../lib/list'
+import {
+  List,
+  SelectionSource as ListSelectionSource,
+  findNextSelectableRow,
+} from '../lib/list'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 
-import { match, IMatch } from '../../lib/fuzzy-find'
+import { match, IMatch, IMatches } from '../../lib/fuzzy-find'
 
 /** An item in the filter list. */
 export interface IFilterListItem {
   /** The text which represents the item. This is used for filtering. */
-  readonly text: string
+  readonly text: ReadonlyArray<string>
 
   /** A unique identifier for the item. */
   readonly id: string
@@ -34,7 +38,7 @@ interface IFlattenedItem<T extends IFilterListItem> {
   readonly kind: 'item'
   readonly item: T
   /** Array of indexes in `item.text` that should be highlighted */
-  readonly matches: ReadonlyArray<number>
+  readonly matches: IMatches
 }
 
 /**
@@ -59,10 +63,7 @@ interface IFilterListProps<T extends IFilterListItem> {
   readonly selectedItem: T | null
 
   /** Called to render each visible item. */
-  readonly renderItem: (
-    item: T,
-    matches: ReadonlyArray<number>
-  ) => JSX.Element | null
+  readonly renderItem: (item: T, matches: IMatches) => JSX.Element | null
 
   /** Called to render header for the group with the given identifier. */
   readonly renderGroupHeader?: (identifier: string) => JSX.Element | null
@@ -117,6 +118,14 @@ interface IFilterListProps<T extends IFilterListItem> {
 
   /** Called when there are no items to render.  */
   readonly renderNoItems?: () => JSX.Element | null
+
+  /**
+   * A reference to a TextBox that will be used to control this component.
+   *
+   * See https://github.com/desktop/desktop/issues/4317 for refactoring work to
+   * make this more composable which should make this unnecessary.
+   */
+  readonly filterTextBox?: TextBox
 }
 
 interface IFilterListState<T extends IFilterListItem> {
@@ -149,6 +158,12 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     super(props)
 
     this.state = createStateUpdate(props)
+  }
+
+  public componentWillMount() {
+    if (this.props.filterTextBox !== undefined) {
+      this.filterTextBox = this.props.filterTextBox
+    }
   }
 
   public componentWillReceiveProps(nextProps: IFilterListProps<T>) {
@@ -189,9 +204,25 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
   }
 
   public componentDidMount() {
-    if (this.filterTextBox != null) {
+    if (this.filterTextBox !== null) {
       this.filterTextBox.selectAll()
     }
+  }
+
+  public renderTextBox() {
+    return (
+      <TextBox
+        ref={this.onTextBoxRef}
+        type="search"
+        autoFocus={true}
+        placeholder="Filter"
+        className="filter-list-filter-field"
+        onValueChanged={this.onFilterValueChanged}
+        onKeyDown={this.onKeyDown}
+        value={this.props.filterText}
+        disabled={this.props.disabled}
+      />
+    )
   }
 
   public render() {
@@ -200,24 +231,36 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
         {this.props.renderPreList ? this.props.renderPreList() : null}
 
         <Row className="filter-field-row">
-          <TextBox
-            ref={this.onTextBoxRef}
-            type="search"
-            autoFocus={true}
-            placeholder="Filter"
-            className="filter-list-filter-field"
-            onValueChanged={this.onFilterValueChanged}
-            onKeyDown={this.onKeyDown}
-            value={this.props.filterText}
-            disabled={this.props.disabled}
-          />
-
+          {this.props.filterTextBox === undefined ? this.renderTextBox() : null}
           {this.props.renderPostFilter ? this.props.renderPostFilter() : null}
         </Row>
 
         <div className="filter-list-container">{this.renderContent()}</div>
       </div>
     )
+  }
+
+  public selectFirstItem(focus: boolean = false) {
+    if (this.list === null) {
+      return
+    }
+
+    const next = findNextSelectableRow(
+      this.state.rows.length,
+      {
+        direction: 'down',
+        row: -1,
+      },
+      this.canSelectRow
+    )
+
+    if (next !== null) {
+      this.setState({ selectedRow: next }, () => {
+        if (focus && this.list !== null) {
+          this.list.focus()
+        }
+      })
+    }
   }
 
   private renderContent() {
@@ -230,8 +273,8 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
           rowCount={this.state.rows.length}
           rowRenderer={this.renderRow}
           rowHeight={this.props.rowHeight}
-          selectedRow={this.state.selectedRow}
-          onSelectionChanged={this.onSelectionChanged}
+          selectedRows={[this.state.selectedRow]}
+          onSelectedRowChanged={this.onSelectedRowChanged}
           onRowClick={this.onRowClick}
           onRowKeyDown={this.onRowKeyDown}
           canSelectRow={this.canSelectRow}
@@ -269,7 +312,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     }
   }
 
-  private onSelectionChanged = (index: number, source: SelectionSource) => {
+  private onSelectedRowChanged = (index: number, source: SelectionSource) => {
     this.setState({ selectedRow: index })
 
     if (this.props.onSelectionChanged) {
@@ -305,8 +348,19 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
       return
     }
 
-    const firstSelectableRow = list.nextSelectableRow('down', -1)
-    const lastSelectableRow = list.nextSelectableRow('up', 0)
+    const rowCount = this.state.rows.length
+
+    const firstSelectableRow = findNextSelectableRow(
+      rowCount,
+      { direction: 'down', row: -1 },
+      this.canSelectRow
+    )
+    const lastSelectableRow = findNextSelectableRow(
+      rowCount,
+      { direction: 'up', row: 0 },
+      this.canSelectRow
+    )
+
     let shouldFocus = false
 
     if (event.key === 'ArrowUp' && row === firstSelectableRow) {
@@ -341,9 +395,15 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
       return
     }
 
+    const rowCount = this.state.rows.length
+
     if (key === 'ArrowDown') {
-      if (this.state.rows.length > 0) {
-        const selectedRow = list.nextSelectableRow('down', -1)
+      if (rowCount > 0) {
+        const selectedRow = findNextSelectableRow(
+          rowCount,
+          { direction: 'down', row: -1 },
+          this.canSelectRow
+        )
         if (selectedRow != null) {
           this.setState({ selectedRow }, () => {
             list.focus()
@@ -353,8 +413,12 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
 
       event.preventDefault()
     } else if (key === 'ArrowUp') {
-      if (this.state.rows.length > 0) {
-        const selectedRow = list.nextSelectableRow('up', 0)
+      if (rowCount > 0) {
+        const selectedRow = findNextSelectableRow(
+          rowCount,
+          { direction: 'up', row: 0 },
+          this.canSelectRow
+        )
         if (selectedRow != null) {
           this.setState({ selectedRow }, () => {
             list.focus()
@@ -365,7 +429,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
       event.preventDefault()
     } else if (key === 'Enter') {
       // no repositories currently displayed, bail out
-      if (!this.state.rows.length) {
+      if (rowCount === 0) {
         return event.preventDefault()
       }
 
@@ -375,13 +439,23 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
         return event.preventDefault()
       }
 
-      const row = list.nextSelectableRow('down', -1)
+      const row = findNextSelectableRow(
+        rowCount,
+        { direction: 'down', row: -1 },
+        this.canSelectRow
+      )
 
-      if (row) {
+      if (row != null) {
         this.onRowClick(row)
       }
     }
   }
+}
+
+export function getText<T extends IFilterListItem>(
+  item: T
+): ReadonlyArray<string> {
+  return item['text']
 }
 
 function createStateUpdate<T extends IFilterListItem>(
@@ -392,8 +466,12 @@ function createStateUpdate<T extends IFilterListItem>(
 
   for (const group of props.groups) {
     const items: ReadonlyArray<IMatch<T>> = filter
-      ? match(filter, group.items, 'text')
-      : group.items.map(item => ({ score: 1, matches: [], item }))
+      ? match(filter, group.items, getText)
+      : group.items.map(item => ({
+          score: 1,
+          matches: { title: [], subtitle: [] },
+          item,
+        }))
 
     if (!items.length) {
       continue

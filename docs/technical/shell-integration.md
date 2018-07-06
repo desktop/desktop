@@ -25,6 +25,7 @@ These shells are currently supported:
 
  - Command Prompt (cmd)
  - PowerShell
+ - [PowerShell Core](https://github.com/powershell/powershell/)
  - [Hyper](https://hyper.sh/)
  - Git Bash (from [Git for Windows](https://git-for-windows.github.io/))
 
@@ -34,6 +35,7 @@ These are defined in an enum at the top of the file:
 export enum Shell {
   Cmd = 'Command Prompt',
   PowerShell = 'PowerShell',
+  PowerShellCore = 'PowerShell Core',
   Hyper = 'Hyper',
   GitBash = 'Git Bash',
 }
@@ -117,13 +119,14 @@ changes here to handle a new shell.
 
 ## macOS
 
-The source for the macOS shell integration is found in [`app/src/lib/shells/darwin.ts`](https://github.com/desktop/desktop/blob/master/app/src/lib/shell/darwin.ts).
+The source for the macOS shell integration is found in [`app/src/lib/shells/darwin.ts`](https://github.com/desktop/desktop/blob/master/app/src/lib/shells/darwin.ts).
 
 These shells are currently supported:
 
  - Terminal
  - [Hyper](https://hyper.sh/)
  - [iTerm2](https://www.iterm2.com/)
+ - [PowerShell Core](https://github.com/powershell/powershell/)
 
 These are defined in an enum at the top of the file:
 
@@ -132,6 +135,7 @@ export enum Shell {
   Terminal = 'Terminal',
   Hyper = 'Hyper',
   iTerm2 = 'iTerm2',
+  PowerShellCore = 'PowerShell Core',
 }
 ```
 
@@ -159,10 +163,16 @@ new entry to lookup the install path for your shell.
 export async function getAvailableShells(): Promise<
   ReadonlyArray<IFoundShell<Shell>>
 > {
-  const [terminalPath, hyperPath, iTermPath] = await Promise.all([
+  const [
+    terminalPath,
+    hyperPath,
+    iTermPath,
+    powerShellCorePath,
+  ] = await Promise.all([
     getShellPath(Shell.Terminal),
     getShellPath(Shell.Hyper),
     getShellPath(Shell.iTerm2),
+    getShellPath(Shell.PowerShellCore),
   ])
 
   // other code
@@ -194,7 +204,7 @@ export function launch(
 
 ## Linux
 
-The source for the Linux shell integration is found in [`app/src/lib/shells/linux.ts`](https://github.com/desktop/desktop/blob/master/app/src/lib/shell/linux.ts).
+The source for the Linux shell integration is found in [`app/src/lib/shells/linux.ts`](https://github.com/desktop/desktop/blob/master/app/src/lib/shells/linux.ts).
 
 These shells are currently supported:
 
@@ -238,7 +248,13 @@ new entry to lookup the install path for your shell.
 export async function getAvailableShells(): Promise<
   ReadonlyArray<IFoundShell<Shell>>
 > {
-  const [gnomeTerminalPath, tilixPath] = await Promise.all([
+  const [
+    gnomeTerminalPath,
+    tilixPath,
+    urxvtPath,
+    konsolePath,
+    xtermPath,
+  ] = await Promise.all([
     getShellPath(Shell.Gnome),
     getShellPath(Shell.Tilix),
     getShellPath(Shell.Urxvt),

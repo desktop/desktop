@@ -1,14 +1,15 @@
 import { spawn, ChildProcess } from 'child_process'
 import * as Path from 'path'
 import { enumerateValues, HKEY, RegistryValueType } from 'registry-js'
+import { pathExists } from 'fs-extra'
 
-import { pathExists } from '../file-system'
 import { assertNever } from '../fatal-error'
 import { IFoundShell } from './found-shell'
 
 export enum Shell {
   Cmd = 'Command Prompt',
   PowerShell = 'PowerShell',
+  PowerShellCore = 'PowerShell Core',
   Hyper = 'Hyper',
   GitBash = 'Git Bash',
 }
@@ -22,6 +23,10 @@ export function parse(label: string): Shell {
 
   if (label === Shell.PowerShell) {
     return Shell.PowerShell
+  }
+
+  if (label === Shell.PowerShellCore) {
+    return Shell.PowerShellCore
   }
 
   if (label === Shell.Hyper) {
@@ -50,6 +55,14 @@ export async function getAvailableShells(): Promise<
     shells.push({
       shell: Shell.PowerShell,
       path: powerShellPath,
+    })
+  }
+
+  const powerShellCorePath = await findPowerShellCore()
+  if (powerShellCorePath != null) {
+    shells.push({
+      shell: Shell.PowerShellCore,
+      path: powerShellCorePath,
     })
   }
 
@@ -111,6 +124,32 @@ async function findPowerShell(): Promise<string | null> {
   return null
 }
 
+async function findPowerShellCore(): Promise<string | null> {
+  const powerShellCore = enumerateValues(
+    HKEY.HKEY_LOCAL_MACHINE,
+    'Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\pwsh.exe'
+  )
+
+  if (powerShellCore.length === 0) {
+    return null
+  }
+
+  const first = powerShellCore[0]
+  if (first.type === RegistryValueType.REG_SZ) {
+    const path = first.data
+
+    if (await pathExists(path)) {
+      return path
+    } else {
+      log.debug(
+        `[PowerShellCore] registry entry found but does not exist at '${path}'`
+      )
+    }
+  }
+
+  return null
+}
+
 async function findHyper(): Promise<string | null> {
   const hyper = enumerateValues(
     HKEY.HKEY_CURRENT_USER,
@@ -128,11 +167,19 @@ async function findHyper(): Promise<string | null> {
     // This regex is designed to get the path to the version-specific Hyper.
     // commandPieces = ['"{installationPath}\app-x.x.x\Hyper.exe"', '"', '{installationPath}\app-x.x.x\Hyper.exe', ...]
     const commandPieces = first.data.match(/(["'])(.*?)\1/)
+    const localAppData = process.env.LocalAppData
+
     const path = commandPieces
       ? commandPieces[2]
-      : process.env.LocalAppData.concat('\\hyper\\Hyper.exe') // fall back to the launcher in install root
+      : localAppData != null
+        ? localAppData.concat('\\hyper\\Hyper.exe')
+        : null // fall back to the launcher in install root
 
-    if (await pathExists(path)) {
+    if (path == null) {
+      log.debug(
+        `[Hyper] LOCALAPPDATA environment variable is unset, aborting fallback behavior`
+      )
+    } else if (await pathExists(path)) {
       return path
     } else {
       log.debug(`[Hyper] registry entry found but does not exist at '${path}'`)
@@ -178,6 +225,12 @@ export function launch(
     case Shell.PowerShell:
       const psCommand = `"Set-Location -LiteralPath '${path}'"`
       return spawn('START', ['powershell', '-NoExit', '-Command', psCommand], {
+        shell: true,
+        cwd: path,
+      })
+    case Shell.PowerShellCore:
+      const psCoreCommand = `"Set-Location -LiteralPath '${path}'"`
+      return spawn('START', ['pwsh', '-NoExit', '-Command', psCoreCommand], {
         shell: true,
         cwd: path,
       })

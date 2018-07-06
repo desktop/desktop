@@ -1,9 +1,9 @@
 import { Account } from '../models/account'
 import { CommitIdentity } from '../models/commit-identity'
 import { IDiff } from '../models/diff'
-import { Repository } from '../models/repository'
-import { IAheadBehind } from './git'
-import { Branch } from '../models/branch'
+import { Repository, ILocalRepositoryState } from '../models/repository'
+
+import { Branch, IAheadBehind } from '../models/branch'
 import { Tip } from '../models/tip'
 import { Commit } from '../models/commit'
 import {
@@ -26,9 +26,10 @@ import { CloneRepositoryTab } from '../models/clone-repository-tab'
 import { BranchesTab } from '../models/branches-tab'
 import { PullRequest } from '../models/pull-request'
 import { IAuthor } from '../models/author'
+import { ComparisonCache } from './comparison-cache'
+import { ApplicationTheme } from '../ui/lib/application-theme'
 
 export { ICommitMessage }
-export { IAheadBehind }
 
 export enum SelectionType {
   Repository,
@@ -67,7 +68,15 @@ export type PossibleSelections =
 /** All of the shared app state. */
 export interface IAppState {
   readonly accounts: ReadonlyArray<Account>
+  /**
+   * The current list of repositories tracked in the application
+   */
   readonly repositories: ReadonlyArray<Repository | CloningRepository>
+
+  /**
+   * A cache of the latest repository state values, keyed by the repository id
+   */
+  readonly localRepositoryStateLookup: Map<number, ILocalRepositoryState>
 
   readonly selectedState: PossibleSelections | null
 
@@ -178,6 +187,11 @@ export interface IAppState {
 
   /** The currently selected tab for the Branches foldout. */
   readonly selectedBranchesTab: BranchesTab
+
+  /** Show the diverging notification banner */
+  readonly isDivergingBranchBannerVisible: boolean
+  /** The currently selected appearance (aka theme) */
+  readonly selectedTheme: ApplicationTheme
 }
 
 export enum PopupType {
@@ -208,6 +222,7 @@ export enum PopupType {
   LFSAttributeMismatch,
   UpstreamAlreadyExists,
   DeletePullRequest,
+  MergeConflicts,
 }
 
 export type Popup =
@@ -222,9 +237,14 @@ export type Popup =
       type: PopupType.ConfirmDiscardChanges
       repository: Repository
       files: ReadonlyArray<WorkingDirectoryFileChange>
+      showDiscardChangesSetting?: boolean
     }
   | { type: PopupType.Preferences; initialSelectedTab?: PreferencesTab }
-  | { type: PopupType.MergeBranch; repository: Repository }
+  | {
+      type: PopupType.MergeBranch
+      repository: Repository
+      branch?: Branch
+    }
   | { type: PopupType.RepositorySettings; repository: Repository }
   | { type: PopupType.AddRepository; path?: string }
   | { type: PopupType.CreateRepository; path?: string }
@@ -281,6 +301,7 @@ export type Popup =
       branch: Branch
       pullRequest: PullRequest
     }
+  | { type: PopupType.MergeConflicts; repository: Repository }
 
 export enum FoldoutType {
   Repository,
@@ -315,7 +336,7 @@ export type Foldout =
   | { type: FoldoutType.AddMenu }
   | AppMenuFoldout
 
-export enum RepositorySection {
+export enum RepositorySectionTab {
   Changes,
   History,
 }
@@ -323,7 +344,8 @@ export enum RepositorySection {
 export interface IRepositoryState {
   readonly historyState: IHistoryState
   readonly changesState: IChangesState
-  readonly selectedSection: RepositorySection
+  readonly compareState: ICompareState
+  readonly selectedSection: RepositorySectionTab
 
   /**
    * The name and email that will be used for the author info
@@ -559,10 +581,10 @@ export interface IChangesState {
   readonly workingDirectory: WorkingDirectoryStatus
 
   /**
-   * The ID of the selected file. The file itself can be looked up in
+   * The ID of the selected files. The files themselves can be looked up in
    * `workingDirectory`.
    */
-  readonly selectedFileID: string | null
+  readonly selectedFileIDs: string[]
 
   readonly diff: IDiff | null
 
@@ -590,3 +612,105 @@ export interface IChangesState {
    */
   readonly coAuthors: ReadonlyArray<IAuthor>
 }
+
+export enum ComparisonView {
+  None = 'none',
+  Ahead = 'ahead',
+  Behind = 'behind',
+}
+
+/**
+ * The default comparison state is to display the history for the current
+ * branch.
+ */
+export interface IDisplayHistory {
+  readonly kind: ComparisonView.None
+}
+
+/**
+ * When the user has chosen another branch to compare, using their current
+ * branch as the base branch.
+ */
+export interface ICompareBranch {
+  /** The chosen comparison mode determines which commits to show */
+  readonly kind: ComparisonView.Ahead | ComparisonView.Behind
+
+  /** The branch to compare against the base branch */
+  readonly comparisonBranch: Branch
+
+  /** The number of commits the selected branch is ahead/behind the current branch */
+  readonly aheadBehind: IAheadBehind
+}
+
+export interface ICompareState {
+  /** The current state of the compare form, based on user input */
+  readonly formState: IDisplayHistory | ICompareBranch
+
+  /** Whether the branch list should be expanded or hidden */
+  readonly showBranchList: boolean
+
+  /** The text entered into the compare branch filter text box */
+  readonly filterText: string
+
+  /** The SHAs of commits to render in the compare list */
+  readonly commitSHAs: ReadonlyArray<string>
+
+  /** A list of all branches (remote and local) currently in the repository. */
+  readonly allBranches: ReadonlyArray<Branch>
+
+  /**
+   * A list of zero to a few (at time of writing 5 but check loadRecentBranches
+   * in git-store for definitive answer) branches that have been checked out
+   * recently. This list is compiled by reading the reflog and tracking branch
+   * switches over the last couple of thousand reflog entries.
+   */
+  readonly recentBranches: ReadonlyArray<Branch>
+
+  /**
+   * The default branch for a given repository. Most commonly this
+   * will be the 'master' branch but GitHub users are able to change
+   * their default branch in the web UI.
+   */
+  readonly defaultBranch: Branch | null
+
+  /**
+   * A local cache of ahead/behind computations to compare other refs to the current branch
+   */
+  readonly aheadBehindCache: ComparisonCache
+
+  /**
+   * The best candidate branch to compare the current branch to.
+   * Also includes the ahead/behind info for the inferred branch
+   * relative to the current branch.
+   */
+  readonly inferredComparisonBranch: {
+    branch: Branch | null
+    aheadBehind: IAheadBehind | null
+  }
+}
+
+export interface ICompareFormUpdate {
+  /** The updated filter text to set */
+  readonly filterText: string
+
+  /** Thew new state of the branches list */
+  readonly showBranchList: boolean
+}
+
+export enum CompareActionKind {
+  History = 'History',
+  Branch = 'Branch',
+}
+
+/**
+ * An action to send to the application store to update the compare state
+ */
+export type CompareAction =
+  | {
+      readonly kind: CompareActionKind.History
+    }
+  | {
+      readonly kind: CompareActionKind.Branch
+      readonly branch: Branch
+      readonly mode: ComparisonView.Ahead | ComparisonView.Behind
+    }
