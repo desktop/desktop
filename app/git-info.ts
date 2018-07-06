@@ -1,7 +1,5 @@
-'use strict'
-
-const fs = require('fs')
-const path = require('path')
+import * as Fs from 'fs'
+import * as Path from 'path'
 
 /**
  * Attempt to find a ref in the .git/packed-refs file, which is often
@@ -10,22 +8,22 @@ const path = require('path')
  * Will return null if the packed-refs file is missing.
  * Will throw an error if the entry is not found in the packed-refs file
  *
- * @param {string} gitDir The path to the Git repository's .git directory
- * @param {string} ref    A qualified git ref such as 'refs/heads/master'
+ * @param gitDir The path to the Git repository's .git directory
+ * @param ref    A qualified git ref such as 'refs/heads/master'
  */
-function readPackedRefsFile(gitDir, ref) {
-  const packedRefsPath = path.join(gitDir, 'packed-refs')
+function readPackedRefsFile(gitDir: string, ref: string) {
+  const packedRefsPath = Path.join(gitDir, 'packed-refs')
 
   try {
     // eslint-disable-next-line no-sync
-    fs.statSync(packedRefsPath)
+    Fs.statSync(packedRefsPath)
   } catch (err) {
     // fail quietly if packed-refs not found
     return null
   }
 
   // eslint-disable-next-line no-sync
-  const packedRefsContents = fs.readFileSync(packedRefsPath)
+  const packedRefsContents = Fs.readFileSync(packedRefsPath, 'utf8')
 
   // we need to build up the regex on the fly using the ref
   const refRe = new RegExp('([a-f0-9]{40}) ' + ref)
@@ -44,15 +42,16 @@ function readPackedRefsFile(gitDir, ref) {
  *
  * Will throw an error for unborn HEAD.
  *
- * @param {string} gitDir The path to the Git repository's .git directory
- * @param {string} ref    A qualified git ref such as 'HEAD' or 'refs/heads/master'
+ * @param   gitDir The path to the Git repository's .git directory
+ * @param   ref    A qualified git ref such as 'HEAD' or 'refs/heads/master'
+ * @returns        The ref SHA
  */
-function revParse(gitDir, ref) {
-  const refPath = path.join(gitDir, ref)
+function revParse(gitDir: string, ref: string): string {
+  const refPath = Path.join(gitDir, ref)
 
   try {
     // eslint-disable-next-line no-sync
-    fs.statSync(refPath)
+    Fs.statSync(refPath)
   } catch (err) {
     const packedRefMatch = readPackedRefsFile(gitDir, ref)
     if (packedRefMatch) {
@@ -64,7 +63,7 @@ function revParse(gitDir, ref) {
     )
   }
   // eslint-disable-next-line no-sync
-  const refContents = fs.readFileSync(refPath)
+  const refContents = Fs.readFileSync(refPath, 'utf8')
   const refRe = /^([a-f0-9]{40})|(?:ref: (refs\/.*))$/m
   const refMatch = refRe.exec(refContents)
 
@@ -77,17 +76,13 @@ function revParse(gitDir, ref) {
   return refMatch[1] || revParse(gitDir, refMatch[2])
 }
 
-function getSHA() {
+export function getSHA() {
   // CircleCI does some funny stuff where HEAD points to an packed ref, but
   // luckily it gives us the SHA we want in the environment.
   const circleSHA = process.env.CIRCLE_SHA1
-  if (circleSHA) {
+  if (circleSHA != null) {
     return circleSHA
   }
 
-  return revParse(path.resolve(__dirname, '../.git'), 'HEAD')
-}
-
-module.exports = {
-  getSHA,
+  return revParse(Path.resolve(__dirname, '../.git'), 'HEAD')
 }

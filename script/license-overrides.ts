@@ -1,4 +1,6 @@
-module.exports = {
+import { LicenseLookup } from 'legal-eagle'
+
+export const licenseOverrides: LicenseLookup = {
   'cycle@1.0.3': {
     repository: 'git+ssh://git@github.com/dscape/cycle',
     license: 'Public Domain',
