@@ -1,5 +1,8 @@
 {
   "releases": {
+    "1.2.7-test1": [
+      "Sanity check deployment for refactored scripts"
+    ],
     "1.2.7-beta0": [
       "[Fixed] Visual indicator for upcoming feature should not be shown - #5026"
     ],
