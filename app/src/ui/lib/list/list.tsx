@@ -823,7 +823,7 @@ export class List extends React.Component<IListProps, IListState> {
       }
 
       // macOS allow emulating a right click by holding down the ctrl key while
-      // perorming a "normal" click.
+      // performing a "normal" click.
       const isRightClick =
         event.button === 2 ||
         (__DARWIN__ && event.button === 0 && event.ctrlKey)
