@@ -3842,6 +3842,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _recordDivergingBranchBannerInfluencedMerge() {
     this.statsStore.recordDivergingBranchBannerInfluencedMerge()
   }
+
+  /**
+   * Increments the `divergingBranchBannerInitatedMerge` metric
+   */
+  public _recordDivergingBranchBannerInitatedMerge() {
+    this.statsStore.recordDivergingBranchBannerInitatedMerge()
+  }
 }
 
 function forkPullRequestRemoteName(remoteName: string) {

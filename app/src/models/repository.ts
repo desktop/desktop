@@ -3,6 +3,18 @@ import * as Path from 'path'
 import { GitHubRepository } from './github-repository'
 import { IAheadBehind } from './branch'
 
+function getBaseName(path: string): string {
+  const baseName = Path.basename(path)
+
+  if (baseName.length === 0) {
+    // the repository is at the root of the drive
+    // -> show the full path here to show _something_
+    return path
+  }
+
+  return baseName
+}
+
 /** A local repository. */
 export class Repository {
   public readonly id: number
@@ -22,8 +34,7 @@ export class Repository {
   ) {
     this.path = path
     this.gitHubRepository = gitHubRepository
-    this.name =
-      (gitHubRepository && gitHubRepository.name) || Path.basename(path)
+    this.name = (gitHubRepository && gitHubRepository.name) || getBaseName(path)
     this.id = id
     this.missing = missing
   }
