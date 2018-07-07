@@ -77,7 +77,7 @@ export interface IDailyMeasures {
    * The number of times the user merges from the compare view after getting to that state
    * from the diverged branch notification compare CTA button
    */
-  readonly divergingBranchBannerInfluencedCompare: number
+  readonly divergingBranchBannerInfluencedMerge: number
 
   /** The number of times the diverged branch notification is displayed */
   readonly divergingBranchBannerDisplayed: number

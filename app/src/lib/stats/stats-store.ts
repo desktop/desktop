@@ -41,7 +41,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   divergingBranchBannerDismissal: 0,
   divergingBranchBannerInitatedMerge: 0,
   divergingBranchBannerInitiatedCompare: 0,
-  divergingBranchBannerInfluencedCompare: 0,
+  divergingBranchBannerInfluencedMerge: 0,
   divergingBranchBannerDisplayed: 0,
 }
 
@@ -413,10 +413,10 @@ export class StatsStore {
    * Record that user initiated a merge after getting to compare view
    * from within notificatio banner
    */
-  public async recordDivergingBranchBannerInfluencedCompare(): Promise<void> {
+  public async recordDivergingBranchBannerInfluencedMerge(): Promise<void> {
     return this.updateDailyMeasures(m => ({
-      divergingBranchBannerInfluencedCompare:
-        m.divergingBranchBannerInfluencedCompare + 1,
+      divergingBranchBannerInfluencedMerge:
+        m.divergingBranchBannerInfluencedMerge + 1,
     }))
   }
 

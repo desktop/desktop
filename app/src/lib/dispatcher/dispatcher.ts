@@ -1238,4 +1238,25 @@ export class Dispatcher {
   public recordDivergingBranchBannerDismissal() {
     return this.appStore._recordDivergingBranchBannerDismissal()
   }
+
+  /**
+   * Increments the `divergingBranchBannerInitiatedCompare` metric
+   */
+  public recordDivergingBranchBannerInitiatedCompare() {
+    return this.appStore._recordDivergingBranchBannerInitiatedCompare()
+  }
+
+  /**
+   * Increments the `divergingBranchBannerInfluencedMerge` metric
+   */
+  public recordDivergingBranchBannerInfluencedMerge() {
+    return this.appStore._recordDivergingBranchBannerInfluencedMerge()
+  }
+
+  /**
+   * Increments the `divergingBranchBannerInitatedMerge` metric
+   */
+  public recordDivergingBranchBannerInitatedMerge() {
+    return this.appStore._recordDivergingBranchBannerInitatedMerge()
+  }
 }

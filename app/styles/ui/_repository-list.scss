@@ -75,7 +75,8 @@
 
     .ahead-behind {
       height: 16px;
-      background: $gray-200;
+      background: var(--list-item-badge-background-color);
+      color: var(--list-item-badge-color);
       align-items: center;
       margin-left: auto;
 
@@ -92,7 +93,6 @@
       }
 
       .octicon {
-        color: var(--text-secondary-color) !important;
         margin: 0;
         height: 20px;
         width: 12px;
@@ -106,5 +106,33 @@
     align-items: center;
     justify-content: center;
     text-align: center;
+  }
+}
+
+.list-focus-container {
+  /** Ahead/behind badge colors when list item is selected but not focused */
+  .list-item.selected {
+    .repository-list-item {
+      .ahead-behind {
+        background: var(--list-item-selected-badge-background-color);
+        color: var(--list-item-selected-badge-color);
+      }
+    }
+  }
+
+  &.focus-within {
+    /** Ahead/behind badge colors when list item is selected and focused */
+    .list-item.selected {
+      .repository-list-item {
+        .ahead-behind {
+          background: var(--list-item-selected-active-badge-background-color);
+          color: var(--list-item-selected-active-badge-color);
+        }
+      }
+    }
+
+    .change-indicator {
+      color: var(--text-color);
+    }
   }
 }

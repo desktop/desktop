@@ -54,6 +54,7 @@ import {
   getAheadBehind,
   revRange,
   revSymmetricDifference,
+  getSymbolicRef,
 } from '../git'
 import { IGitAccount } from '../git/authentication'
 import { RetryAction, RetryActionType } from '../retry-actions'
@@ -358,24 +359,51 @@ export class GitStore extends BaseStore {
     return allBranchesWithUpstream
   }
 
-  private refreshDefaultBranch() {
-    let defaultBranchName: string | null = 'master'
-    const gitHubRepository = this.repository.gitHubRepository
-    if (gitHubRepository && gitHubRepository.defaultBranch) {
-      defaultBranchName = gitHubRepository.defaultBranch
+  private async refreshDefaultBranch() {
+    const defaultBranchName = await this.resolveDefaultBranch()
+
+    // Find the default branch among all of our branches, giving
+    // priority to local branches by sorting them before remotes
+    this._defaultBranch =
+      this._allBranches
+        .filter(b => b.name === defaultBranchName)
+        .sort((x, y) => compare(x.type, y.type))
+        .shift() || null
+  }
+
+  /**
+   * Resolve the default branch name for the current repository,
+   * using the available API data, remote information or branch
+   * name conventionns.
+   */
+  private async resolveDefaultBranch(): Promise<string> {
+    const { gitHubRepository } = this.repository
+    if (gitHubRepository && gitHubRepository.defaultBranch != null) {
+      return gitHubRepository.defaultBranch
     }
 
-    if (defaultBranchName) {
-      // Find the default branch among all of our branches, giving
-      // priority to local branches by sorting them before remotes
-      this._defaultBranch =
-        this._allBranches
-          .filter(b => b.name === defaultBranchName)
-          .sort((x, y) => compare(x.type, y.type))
-          .shift() || null
-    } else {
-      this._defaultBranch = null
+    if (this.remote != null) {
+      // the Git server should use [remote]/HEAD to advertise
+      // it's default branch, so see if it exists and matches
+      // a valid branch on the remote and attempt to use that
+      const remoteNamespace = `refs/remotes/${this.remote.name}/`
+      const match = await getSymbolicRef(
+        this.repository,
+        `${remoteNamespace}HEAD`
+      )
+      if (
+        match != null &&
+        match.length > remoteNamespace.length &&
+        match.startsWith(remoteNamespace)
+      ) {
+        // strip out everything related to the remote because this
+        // is likely to be a tracked branch locally
+        // e.g. `master`, `develop`, etc
+        return match.substr(remoteNamespace.length)
+      }
     }
+
+    return 'master'
   }
 
   private refreshRecentBranches(
