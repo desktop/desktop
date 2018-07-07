@@ -822,8 +822,14 @@ export class List extends React.Component<IListProps, IListState> {
         this.props.onRowMouseDown(row, event)
       }
 
+      // macOS allow emulating a right click by holding down the ctrl key while
+      // performing a "normal" click.
+      const isRightClick =
+        event.button === 2 ||
+        (__DARWIN__ && event.button === 0 && event.ctrlKey)
+
       // prevent the right-click event from changing the selection if not necessary
-      if (event.button === 2 && this.props.selectedRows.includes(row)) {
+      if (isRightClick && this.props.selectedRows.includes(row)) {
         return
       }
 

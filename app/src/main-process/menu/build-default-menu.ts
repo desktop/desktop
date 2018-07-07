@@ -6,7 +6,6 @@ import { ensureDir } from 'fs-extra'
 
 import { log } from '../log'
 import { openDirectorySafe } from '../shell'
-import { enableCompareSidebar } from '../../lib/feature-flag'
 
 const defaultEditorLabel = __DARWIN__
   ? 'Open in External Editor'
@@ -294,7 +293,6 @@ export function buildDefaultMenu(
         id: 'compare-to-branch',
         accelerator: 'CmdOrCtrl+Shift+B',
         click: emit('compare-to-branch'),
-        visible: enableCompareSidebar(),
       },
       {
         label: __DARWIN__

@@ -157,6 +157,12 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --box-overflow-shadow-background: linear-gradient(180deg, rgba($white, 0) 0%, rgba($white, 1) 90%, rgba($white, 1) 100%);
 
   /**
+   * Author input (co-authors)
+   */
+  --co-author-tag-background-color: $blue-000;
+  --co-author-tag-border-color: $blue-200;
+
+  /**
    * The height of the title bar area on Win32 platforms
    * If changed, update titleBarHeight in 'app/src/ui/dialog/dialog.tsx'
   */
@@ -238,6 +244,18 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   /** Count bubble colors when used inside of a tab bar item */
   --tab-bar-count-color: var(--text-color);
   --tab-bar-count-background-color: $gray-200;
+
+  /**
+    * Badge colors when used inside of list items.
+    * Example of this is the change indicators inside
+    * of the repository list.
+    */
+  --list-item-badge-color: $gray-800;
+  --list-item-badge-background-color: $gray-200;
+  --list-item-selected-badge-color: $gray-900;
+  --list-item-selected-badge-background-color: $gray-300;
+  --list-item-selected-active-badge-color: $gray-900;
+  --list-item-selected-active-badge-background-color: $white;
 
   /** Win32 has custom scrol bars, see _scroll.scss */
   --win32-scroll-bar-size: 10px;

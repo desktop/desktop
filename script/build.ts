@@ -1,4 +1,3 @@
-/* tslint:disable:no-sync-functions */
 /* eslint-disable no-sync */
 /// <reference path="./globals.d.ts" />
 
@@ -7,7 +6,11 @@ import * as cp from 'child_process'
 import * as fs from 'fs-extra'
 import * as packager from 'electron-packager'
 
-const legalEagle: LegalEagle = require('legal-eagle')
+import { licenseOverrides } from './license-overrides'
+
+import { externals } from '../app/webpack.common'
+
+import * as legalEagle from 'legal-eagle'
 
 interface IFrontMatterResult<T> {
   readonly attributes: T
@@ -123,10 +126,24 @@ function packageApp(
     )
   }
 
+  const toPackageArch = (targetArch: string | undefined): packager.arch => {
+    if (targetArch === undefined) {
+      return 'x64'
+    }
+
+    if (targetArch === 'arm64' || targetArch === 'x64') {
+      return targetArch
+    }
+
+    throw new Error(
+      `Building Desktop for architecture '${targetArch}'  is not supported`
+    )
+  }
+
   const options: packager.Options & IPackageAdditionalOptions = {
     name: getExecutableName(),
     platform: toPackagePlatform(process.platform),
-    arch: process.env.TARGET_ARCH || 'x64',
+    arch: toPackageArch(process.env.TARGET_ARCH),
     asar: false, // TODO: Probably wanna enable this down the road.
     out: getDistRoot(),
     icon: path.join(projectRoot, 'app', 'static', 'logos', 'icon-logo'),
@@ -230,9 +247,6 @@ function copyDependencies() {
     'package.json'
   ))
 
-  // eslint-disable-next-line import/no-dynamic-require
-  const commonConfig = require(path.resolve(__dirname, '../app/webpack.common'))
-  const externals = commonConfig.externals
   const oldDependencies = originalPackage.dependencies
   const newDependencies: PackageLookup = {}
 
@@ -340,7 +354,6 @@ function copyDependencies() {
 function updateLicenseDump(callback: (err: Error | null) => void) {
   const appRoot = path.join(projectRoot, 'app')
   const outPath = path.join(outRoot, 'static', 'licenses.json')
-  const licenseOverrides: LicenseLookup = require('./license-overrides')
 
   legalEagle(
     { path: appRoot, overrides: licenseOverrides, omitPermissive: true },
