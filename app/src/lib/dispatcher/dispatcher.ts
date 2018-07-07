@@ -113,11 +113,6 @@ export class Dispatcher {
     return this.appStore._updateRepositoryMissing(repository, missing)
   }
 
-  /** Load the history for the repository. */
-  public loadHistory(repository: Repository): Promise<void> {
-    return this.appStore._loadHistory(repository)
-  }
-
   /** Load the next batch of history for the repository. */
   public loadNextHistoryBatch(repository: Repository): Promise<void> {
     return this.appStore._loadNextHistoryBatch(repository)
@@ -461,6 +456,13 @@ export class Dispatcher {
    */
   public setUpdateBannerVisibility(isVisible: boolean) {
     return this.appStore._setUpdateBannerVisibility(isVisible)
+  }
+
+  /**
+   * Set the divering branch notification banner's visibility
+   */
+  public setDivergingBranchBannerVisibility(isVisible: boolean) {
+    return this.appStore._setDivergingBranchBannerVisibility(isVisible)
   }
 
   /**
@@ -1220,5 +1222,20 @@ export class Dispatcher {
    */
   public setSelectedTheme(theme: ApplicationTheme) {
     return this.appStore._setSelectedTheme(theme)
+  }
+
+  /**
+   * Increments either the `repoWithIndicatorClicked` or
+   * the `repoWithoutIndicatorClicked` metric
+   */
+  public recordRepoClicked(repoHasIndicator: boolean) {
+    return this.appStore._recordRepoClicked(repoHasIndicator)
+  }
+
+  /** The number of times the user dismisses the diverged branch notification
+   * Increments the `divergingBranchBannerDismissal` metric
+   */
+  public recordDivergingBranchBannerDismissal() {
+    return this.appStore._recordDivergingBranchBannerDismissal()
   }
 }

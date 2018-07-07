@@ -32,12 +32,12 @@ export function enableMergeTool(): boolean {
   return enableDevelopmentFeatures()
 }
 
-/** Should the new Compare view be enabled? */
-export function enableCompareSidebar(): boolean {
-  return true
-}
-
 /** Should the Notification of Diverging From Default Branch (NDDB) feature be enabled? */
 export function enableNotificationOfBranchUpdates(): boolean {
+  return enableBetaFeatures()
+}
+
+/** Should the repository list display info indicators? */
+export function enableRepoInfoIndicators(): boolean {
   return enableDevelopmentFeatures()
 }

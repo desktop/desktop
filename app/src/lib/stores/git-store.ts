@@ -256,6 +256,32 @@ export class GitStore extends BaseStore {
     this.emitUpdate()
   }
 
+  /** Load a batch of commits from the repository, using the last known commit in the list. */
+  public async loadCommitBatch(lastSHA: string) {
+    if (this.requestsInFight.has(LoadingHistoryRequestKey)) {
+      return null
+    }
+
+    const requestKey = `history/compare/${lastSHA}`
+    if (this.requestsInFight.has(requestKey)) {
+      return null
+    }
+
+    this.requestsInFight.add(requestKey)
+
+    const commits = await this.performFailableOperation(() =>
+      getCommits(this.repository, `${lastSHA}^`, CommitBatchSize)
+    )
+
+    this.requestsInFight.delete(requestKey)
+    if (!commits) {
+      return null
+    }
+
+    this.storeCommits(commits, false)
+    return commits.map(c => c.sha)
+  }
+
   /** The list of ordered SHAs. */
   public get history(): ReadonlyArray<string> {
     return this._history

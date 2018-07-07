@@ -95,6 +95,8 @@ const UpdateCheckInterval = 1000 * 60 * 60 * 4
 
 const SendStatsInterval = 1000 * 60 * 60 * 4
 
+const updateRepoInfoInterval = 1000 * 60 * 5
+
 interface IAppProps {
   readonly dispatcher: Dispatcher
   readonly appStore: AppStore
@@ -149,6 +151,10 @@ export class App extends React.Component<IAppProps, IAppState> {
         },
         { timeout: ReadyDelay }
       )
+
+      window.setInterval(() => {
+        this.props.appStore.refreshAllRepositories()
+      }, updateRepoInfoInterval)
     })
 
     this.state = props.appStore.getState()
@@ -1394,12 +1400,16 @@ export class App extends React.Component<IAppProps, IAppState> {
         onSelectionChanged={this.onSelectionChanged}
         repositories={this.state.repositories}
         localRepositoryStateLookup={this.state.localRepositoryStateLookup}
+        askForConfirmationOnRemoveRepository={
+          this.state.askForConfirmationOnRepositoryRemoval
+        }
         onRemoveRepository={this.removeRepository}
         onOpenInShell={this.openInShell}
         onShowRepository={this.showRepository}
         onOpenInExternalEditor={this.openInExternalEditor}
         externalEditorLabel={externalEditorLabel}
         shellLabel={shellLabel}
+        dispatcher={this.props.dispatcher}
       />
     )
   }
@@ -1466,6 +1476,8 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const currentState: DropdownState = isOpen ? 'open' : 'closed'
 
+    const tooltip = repository && !isOpen ? repository.path : undefined
+
     const foldoutStyle: React.CSSProperties = {
       position: 'absolute',
       marginLeft: 0,
@@ -1479,6 +1491,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         icon={icon}
         title={title}
         description={__DARWIN__ ? 'Current Repository' : 'Current repository'}
+        tooltip={tooltip}
         foldoutStyle={foldoutStyle}
         onDropdownStateChanged={this.onRepositoryDropdownStateChanged}
         dropdownContentRenderer={this.renderRepositoryList}
@@ -1651,26 +1664,27 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     if (selectedState.type === SelectionType.Repository) {
-      const externalEditorLabel = this.state.selectedExternalEditor
+      const externalEditorLabel = state.selectedExternalEditor
 
       return (
         <RepositoryView
           repository={selectedState.repository}
           state={selectedState.state}
           dispatcher={this.props.dispatcher}
-          emoji={this.state.emoji}
-          sidebarWidth={this.state.sidebarWidth}
-          commitSummaryWidth={this.state.commitSummaryWidth}
+          emoji={state.emoji}
+          sidebarWidth={state.sidebarWidth}
+          commitSummaryWidth={state.commitSummaryWidth}
           issuesStore={this.props.appStore.issuesStore}
           gitHubUserStore={this.props.appStore.gitHubUserStore}
           onViewCommitOnGitHub={this.onViewCommitOnGitHub}
-          imageDiffType={this.state.imageDiffType}
+          imageDiffType={state.imageDiffType}
           askForConfirmationOnDiscardChanges={
-            this.state.askForConfirmationOnDiscardChanges
+            state.askForConfirmationOnDiscardChanges
           }
-          accounts={this.state.accounts}
+          accounts={state.accounts}
           externalEditorLabel={externalEditorLabel}
           onOpenInExternalEditor={this.openFileInExternalEditor}
+          isDivergingBranchBannerVisible={state.isDivergingBranchBannerVisible}
         />
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {

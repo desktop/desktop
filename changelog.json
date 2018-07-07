@@ -1,5 +1,51 @@
 {
   "releases": {
+    "1.2.7-beta0": [
+      "[Fixed] Visual indicator for upcoming feature should not be shown - #5026"
+    ],
+    "1.2.6": [
+      "[Fixed] Visual indicator for upcoming feature should not be shown - #5026"
+    ],
+    "1.2.6-beta0": [
+      "[Fixed] Feature flag for upcoming feature not applied correctly - #5024"
+    ],
+    "1.2.5": [
+      "[Fixed] Feature flag for upcoming feature not applied correctly - #5024"
+    ],
+    "1.2.4": [
+      "[New] Dark Theme preview - #4849",
+      "[Added] Syntax highlighting for Cake files - #4935. Thanks @say25!",
+      "[Added] WebStorm support for macOS - #4841. Thanks @mrsimonfletcher!",
+      "[Fixed] Compare tab appends older commits when scrolling to bottom of list - #4964",
+      "[Fixed] Remove temporary directory after Git LFS operation completes - #4414",
+      "[Fixed] Unable to compare when two branches exist - #4947 #4730",
+      "[Fixed] Unhandled errors when refreshing pull requests fails - #4844 #4866",
+      "[Improved] Remove context menu needs to hint if a dialog will be shown - #4975",
+      "[Improved] Upgrade embedded Git LFS - #4602 #4745",
+      "[Improved] Update banner message clarifies that only Desktop needs to be restarted - #4891. Thanks @KennethSweezy!",
+      "[Improved] Discard Changes context menu entry should contain ellipses when user needs to confirm - #4846. Thanks @yongdamsh!",
+      "[Improved] Initializing syntax highlighting components - #4764",
+      "[Improved] Only show overflow shadow when description overflows - #4898",
+      "[Improved] Changes tab displays number of changed files instead of dot - #4772. Thanks @yongdamsh!"
+    ],
+    "1.2.4-beta5": [
+
+    ],
+    "1.2.4-beta4": [
+      "[Fixed] Compare tab appends older commits when scrolling to bottom of list - #4964",
+      "[Fixed] Remove temporary directory after Git LFS operation completes - #4414",
+      "[Improved] Remove context menu needs to hint if a dialog will be shown - #4975",
+      "[Improved] Upgrade embedded Git LFS - #4602 #4745"
+    ],
+    "1.2.4-test1": [
+      "Confirming latest Git LFS version addresses reported issues"
+    ],
+    "1.2.4-beta3": [
+      "[Added] WebStorm support for macOS - #4841. Thanks @mrsimonfletcher!",
+      "[Improved] Update banner message clarifies that only Desktop needs to be restarted - #4891. Thanks @KennethSweezy!"
+    ],
+    "1.2.4-beta2": [
+    ],
     "1.2.4-beta1": [
       "[New] Dark Theme preview - #4849",
       "[Added] Syntax highlighting for Cake files - #4935. Thanks @say25!",
