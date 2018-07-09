@@ -218,10 +218,10 @@ body.theme-dark {
   --diff-selected-gutter-color: $blue-600;
   --diff-selected-text-color: var(--text-color);
 
-  --diff-add-background-color: darken($green-900, 5%);
+  --diff-add-background-color: darken($green-900, 3%);
   --diff-add-border-color: darken($green-900, 2%);
   --diff-add-gutter-color: darken($green-900, 2%);
-  --diff-add-gutter-background-color: darken($green-900, 10%);
+  --diff-add-gutter-background-color: darken($green-900, 8%);
   --diff-add-inner-background-color: $green-700;
   --diff-add-text-color: var(--diff-text-color);
 
