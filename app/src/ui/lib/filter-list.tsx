@@ -207,7 +207,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
       }
     }
 
-    if (this.props.onFilterListResultsChanged) {
+    if (this.props.onFilterListResultsChanged !== undefined) {
       const itemCount = this.state.rows.filter(row => row.kind === 'item')
         .length
 
