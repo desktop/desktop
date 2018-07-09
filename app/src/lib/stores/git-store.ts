@@ -495,7 +495,11 @@ export class GitStore extends BaseStore {
     // directory for the next stage. Doing doing a `git checkout -- .` here
     // isn't suitable because we should preserve the other working directory
     // changes.
-    const status = await getStatus(repository)
+
+    const status = await this.performFailableOperation(() =>
+      getStatus(this.repository)
+    )
+
     if (status == null) {
       return
     }
