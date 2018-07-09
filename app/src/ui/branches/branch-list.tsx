@@ -99,6 +99,9 @@ interface IBranchListProps {
     matches: IMatches
   ) => JSX.Element
 
+  /**
+   * Callback to fire when the items in the filter list are updated
+   */
   readonly onFilterListResultsChanged?: (resultCount: number) => void
 }
 

@@ -128,7 +128,7 @@ interface IFilterListProps<T extends IFilterListItem> {
   readonly filterTextBox?: TextBox
 
   /**
-   * Called when the items in filtered list are updated
+   * Callback to fire when the items in the filter list are updated
    */
   readonly onFilterListResultsChanged?: (resultCount: number) => void
 }
