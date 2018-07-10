@@ -241,6 +241,8 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private onMenuEvent(name: MenuEvent): any {
+    this.props.dispatcher.recordActivity()
+
     // Don't react to menu events when an error dialog is shown.
     if (this.state.errors.length) {
       return
