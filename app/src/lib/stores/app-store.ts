@@ -3849,6 +3849,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _recordDivergingBranchBannerInitatedMerge() {
     this.statsStore.recordDivergingBranchBannerInitatedMerge()
   }
+
+  public _recordActivity() {
+    this.statsStore.recordActivity()
+  }
 }
 
 function forkPullRequestRemoteName(remoteName: string) {

@@ -1259,4 +1259,8 @@ export class Dispatcher {
   public recordDivergingBranchBannerInitatedMerge() {
     return this.appStore._recordDivergingBranchBannerInitatedMerge()
   }
+
+  public recordActivity() {
+    return this.appStore._recordActivity()
+  }
 }
