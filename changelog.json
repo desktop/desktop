@@ -1,5 +1,8 @@
 {
   "releases": {
+    "1.2.7-test2": [
+      "Test deployment for electron version bump."
+    ],
     "1.2.7-test1": [
       "Sanity check deployment for refactored scripts"
     ],
