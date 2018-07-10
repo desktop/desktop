@@ -287,7 +287,7 @@ app.on('ready', () => {
       )
 
       const window = BrowserWindow.fromWebContents(event.sender)
-      menu.popup({window})
+      menu.popup({ window })
     }
   )
 
