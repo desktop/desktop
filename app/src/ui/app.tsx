@@ -611,6 +611,12 @@ export class App extends React.Component<IAppProps, IAppState> {
       window.addEventListener('keydown', this.onWindowKeyDown)
       window.addEventListener('keyup', this.onWindowKeyUp)
     }
+    document.addEventListener('mousedown', (e) => {
+      this.props.dispatcher.recordActivity()
+    })
+    document.addEventListener('keydown', () =>
+      this.props.dispatcher.recordActivity()
+    )
   }
 
   /**
