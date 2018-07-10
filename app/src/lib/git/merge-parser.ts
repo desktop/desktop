@@ -1,4 +1,4 @@
-enum MergeResultKind {
+export enum MergeResultKind {
   Success = 'Success',
   Failure = 'Failure',
 }

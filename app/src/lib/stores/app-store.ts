@@ -878,6 +878,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
         action.mode
       )
 
+      await gitStore.detectMergeConflicts(comparisonBranch)
+
       this.statsStore.recordBranchComparison()
       const { branchesState } = this.getRepositoryState(repository)
 

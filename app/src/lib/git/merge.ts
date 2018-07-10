@@ -1,5 +1,6 @@
 import { git } from './core'
 import { Repository } from '../../models/repository'
+import { Branch } from '../../models/branch'
 
 /** Merge the named branch into the current branch. */
 export async function merge(
@@ -20,4 +21,20 @@ export async function getMergeBase(
     'merge-base'
   )
   return process.stdout.trim()
+}
+
+export async function mergeTree(
+  repository: Repository,
+  ours: Branch,
+  theirs: Branch
+): Promise<string | null> {
+  const mergeBase = await getMergeBase(repository, ours.tip.sha, theirs.tip.sha)
+
+  const result = await git(
+    ['merge-tree', mergeBase, ours.tip.sha, theirs.tip.sha],
+    repository.path,
+    'mergeTree'
+  )
+
+  return result.stdout.trim()
 }

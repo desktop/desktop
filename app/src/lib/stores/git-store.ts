@@ -55,6 +55,7 @@ import {
   revRange,
   revSymmetricDifference,
   getSymbolicRef,
+  mergeTree,
 } from '../git'
 import { IGitAccount } from '../git/authentication'
 import { RetryAction, RetryActionType } from '../retry-actions'
@@ -69,6 +70,7 @@ import { IAuthor } from '../../models/author'
 import { formatCommitMessage } from '../format-commit-message'
 import { GitAuthor } from '../../models/git-author'
 import { BaseStore } from './base-store'
+import { parseMergeResult, MergeResultKind } from '../git/merge-parser'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -1343,6 +1345,25 @@ export class GitStore extends BaseStore {
       commits,
       ahead: aheadBehind.ahead,
       behind: aheadBehind.behind,
+    }
+  }
+
+  public async detectMergeConflicts(compareBranch: Branch): Promise<void> {
+    if (this.tip.kind !== TipState.Valid) {
+      return Promise.reject('tip is in unknown state')
+    }
+
+    const mergeTreeInfo = await mergeTree(
+      this.repository,
+      this.tip.branch,
+      compareBranch
+    )
+
+    if (mergeTreeInfo != null) {
+      const result = parseMergeResult(mergeTreeInfo)
+
+      if (result.kind !== MergeResultKind.Success) {
+      }
     }
   }
 }
