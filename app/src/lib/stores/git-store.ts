@@ -70,7 +70,7 @@ import { IAuthor } from '../../models/author'
 import { formatCommitMessage } from '../format-commit-message'
 import { GitAuthor } from '../../models/git-author'
 import { BaseStore } from './base-store'
-import { parseMergeResult, MergeResultKind } from '../git/merge-parser'
+import { MergeResultKind } from '../git/merge-parser'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -1353,15 +1353,17 @@ export class GitStore extends BaseStore {
       return Promise.reject('tip is in unknown state')
     }
 
-    const mergeTreeInfo = await mergeTree(
+    console.time('merge tree')
+
+    const result = await mergeTree(
       this.repository,
       this.tip.branch,
       compareBranch
     )
 
-    if (mergeTreeInfo != null) {
-      const result = parseMergeResult(mergeTreeInfo)
+    console.timeEnd('merge tree')
 
+    if (result != null) {
       if (result.kind !== MergeResultKind.Success) {
       } else {
       }

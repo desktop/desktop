@@ -82,7 +82,7 @@ function updateCurrentMergeEntry(
   }
 }
 
-type MergeResult = IMergeSuccess | IMergeError
+export type MergeResult = IMergeSuccess | IMergeError
 
 const contextHeaderRe = /^(merged|added in remote|changed in both)$/
 
