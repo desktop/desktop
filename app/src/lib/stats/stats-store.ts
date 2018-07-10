@@ -89,6 +89,8 @@ export class StatsStore {
   /** Has the user opted out of stats reporting? */
   private optOut: boolean
 
+  private activityRecorded: boolean = false
+
   public constructor(db: StatsDatabase) {
     this.db = db
 
@@ -175,6 +177,8 @@ export class StatsStore {
   private async clearDailyStats() {
     await this.db.launches.clear()
     await this.db.dailyMeasures.clear()
+
+    this.activityRecorded = false
   }
 
   /** Get the daily stats. */
@@ -429,6 +433,10 @@ export class StatsStore {
   }
 
   public async recordActivity(): Promise<void> {
+    if (this.activityRecorded) {
+      return
+    }
+
     return this.updateDailyMeasures(m => ({
       active: true,
     }))
