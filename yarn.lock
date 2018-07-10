@@ -604,10 +604,6 @@ ansi-styles@^3.2.1:
   dependencies:
     color-convert "^1.9.0"
 
-any-promise@^1.0.0:
-  version "1.3.0"
-  resolved "https://registry.yarnpkg.com/any-promise/-/any-promise-1.3.0.tgz#abc6afeedcea52e809cdc0376aed3ce39635d17f"
-
 anymatch@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/anymatch/-/anymatch-2.0.0.tgz#bcb24b4f37934d9aa7ac17b4adaf89e7c76ef2eb"
@@ -2763,9 +2759,9 @@ electron-osx-sign@^0.4.1:
     minimist "^1.2.0"
     plist "^2.1.0"
 
-electron-packager@^11.0.0:
-  version "11.2.0"
-  resolved "https://registry.yarnpkg.com/electron-packager/-/electron-packager-11.2.0.tgz#facc17d2b92c10da1bfa1d7c5f58f13774571839"
+electron-packager@^12.0.0:
+  version "12.1.0"
+  resolved "https://registry.yarnpkg.com/electron-packager/-/electron-packager-12.1.0.tgz#048dd4ff3848be19c5873c315b5b312df6215328"
   dependencies:
     asar "^0.14.0"
     debug "^3.0.0"
@@ -2773,18 +2769,17 @@ electron-packager@^11.0.0:
     electron-osx-sign "^0.4.1"
     extract-zip "^1.0.3"
     fs-extra "^5.0.0"
+    galactus "^0.2.1"
     get-package-info "^1.0.0"
-    mz "^2.6.0"
     nodeify "^1.0.1"
     parse-author "^2.0.0"
     pify "^3.0.0"
     plist "^2.0.0"
-    pruner "^0.0.7"
     rcedit "^1.0.0"
     resolve "^1.1.6"
     sanitize-filename "^1.6.0"
     semver "^5.3.0"
-    yargs-parser "^9.0.2"
+    yargs-parser "^10.0.0"
 
 electron-publish@20.2.0:
   version "20.2.0"
@@ -2819,7 +2814,7 @@ electron-winstaller@2.5.2:
     lodash.template "^4.2.2"
     temp "^0.8.3"
 
-electron@^2.0.4:
+electron@2.0.4:
   version "2.0.4"
   resolved "https://registry.yarnpkg.com/electron/-/electron-2.0.4.tgz#87b86b8d9c13748032868c1be97e2b7021a51808"
   dependencies:
@@ -3359,6 +3354,13 @@ flatten@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/flatten/-/flatten-1.0.2.tgz#dae46a9d78fbe25292258cc1e780a41d95c03782"
 
+flora-colossus@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/flora-colossus/-/flora-colossus-1.0.0.tgz#54729c361edecee014dd441679e1a37c1d773a45"
+  dependencies:
+    debug "^3.1.0"
+    fs-extra "^4.0.0"
+
 flush-write-stream@^1.0.0:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/flush-write-stream/-/flush-write-stream-1.0.3.tgz#c5d586ef38af6097650b49bc41b55fabb19f35bd"
@@ -3546,6 +3548,14 @@ function-bind@^1.0.2, function-bind@^1.1.1:
 functional-red-black-tree@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/functional-red-black-tree/-/functional-red-black-tree-1.0.1.tgz#1b0ab3bd553b2a0d6399d29c0e3ea0b252078327"
+
+galactus@^0.2.1:
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/galactus/-/galactus-0.2.1.tgz#cbed2d20a40c1f5679a35908e2b9415733e78db9"
+  dependencies:
+    debug "^3.1.0"
+    flora-colossus "^1.0.0"
+    fs-extra "^4.0.0"
 
 gauge@~2.7.3:
   version "2.7.4"
@@ -5093,14 +5103,6 @@ mute-stream@0.0.7:
   version "0.0.7"
   resolved "https://registry.yarnpkg.com/mute-stream/-/mute-stream-0.0.7.tgz#3075ce93bc21b8fab43e1bc4da7e8115ed1e7bab"
 
-mz@^2.6.0:
-  version "2.7.0"
-  resolved "https://registry.yarnpkg.com/mz/-/mz-2.7.0.tgz#95008057a56cafadc2bc63dde7f9ff6955948e32"
-  dependencies:
-    any-promise "^1.0.0"
-    object-assign "^4.0.1"
-    thenify-all "^1.0.0"
-
 nan@^2.3.2:
   version "2.7.0"
   resolved "https://registry.yarnpkg.com/nan/-/nan-2.7.0.tgz#d95bf721ec877e08db276ed3fc6eb78f9083ad46"
@@ -6062,12 +6064,6 @@ prr@~0.0.0:
 prr@~1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/prr/-/prr-1.0.1.tgz#d3fc114ba06995a45ec6893f484ceb1d78f5f476"
-
-pruner@^0.0.7:
-  version "0.0.7"
-  resolved "https://registry.yarnpkg.com/pruner/-/pruner-0.0.7.tgz#345fbcb3e80701163a1d7adf56bac229a5a1e4c1"
-  dependencies:
-    fs-extra "^4.0.0"
 
 pseudomap@^1.0.2:
   version "1.0.2"
@@ -7272,18 +7268,6 @@ text-table@~0.2.0:
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/text-table/-/text-table-0.2.0.tgz#7f5ee823ae805207c00af2df4a84ec3fcfa570b4"
 
-thenify-all@^1.0.0:
-  version "1.6.0"
-  resolved "https://registry.yarnpkg.com/thenify-all/-/thenify-all-1.6.0.tgz#1a1918d402d8fc3f98fbf234db0bcc8cc10e9726"
-  dependencies:
-    thenify ">= 3.1.0 < 4"
-
-"thenify@>= 3.1.0 < 4":
-  version "3.3.0"
-  resolved "https://registry.yarnpkg.com/thenify/-/thenify-3.3.0.tgz#e69e38a1babe969b0108207978b9f62b88604839"
-  dependencies:
-    any-promise "^1.0.0"
-
 throttleit@0.0.2:
   version "0.0.2"
   resolved "https://registry.yarnpkg.com/throttleit/-/throttleit-0.0.2.tgz#cfedf88e60c00dd9697b61fdd2a8343a9b680eaf"
@@ -8102,6 +8086,12 @@ yallist@^2.1.2:
 yallist@^3.0.0, yallist@^3.0.2:
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/yallist/-/yallist-3.0.2.tgz#8452b4bb7e83c7c188d8041c1a837c773d6d8bb9"
+
+yargs-parser@^10.0.0:
+  version "10.1.0"
+  resolved "https://registry.yarnpkg.com/yargs-parser/-/yargs-parser-10.1.0.tgz#7202265b89f7e9e9f2e5765e0fe735a905edbaa8"
+  dependencies:
+    camelcase "^4.1.0"
 
 yargs-parser@^5.0.0:
   version "5.0.0"
