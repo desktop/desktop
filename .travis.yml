@@ -38,7 +38,7 @@ branches:
 
 language: node_js
 node_js:
-  - "8.9.0"
+  - "8.11.0"
 
 cache:
   yarn: true
@@ -50,17 +50,14 @@ cache:
     - $HOME/.cache/electron-builder
 
 before_install:
-  - curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.3.2
+  - curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.5.1
   - export PATH=$HOME/.yarn/bin:$PATH
 
 install:
   - yarn install --force
 
 script:
-  - yarn lint
-  - yarn build:prod
-  - yarn test:setup
-  - yarn test
+  - yarn lint && yarn validate-changelog && yarn build:prod && yarn test:setup && yarn test
 
 after_failure:
   - yarn test:review

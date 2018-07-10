@@ -1,5 +1,4 @@
 .toolbar-button {
-
   // Make sure the contents shrink beyond their intrinsic width
   // See https://css-tricks.com/flexbox-truncated-text/
   min-width: 0;
@@ -17,7 +16,7 @@
   // explicitly use > here to only target the direct descendant button since
   // there might be buttons in foldouts which would otherwise be affected
   // as well.
-  &>button {
+  & > button {
     // Reset styles from global buttons
     -webkit-appearance: none;
     border: none;
@@ -28,7 +27,9 @@
     margin: 0;
     padding: 0;
 
-    &:active { box-shadow: none; }
+    &:active {
+      box-shadow: none;
+    }
 
     &:focus {
       background-color: var(--toolbar-button-focus-background-color);
@@ -74,8 +75,7 @@
     width: 100%;
   }
 
-  &>button {
-
+  & > button {
     position: relative;
 
     display: flex;
@@ -124,7 +124,10 @@
       position: relative;
     }
 
-    .title, .description { @include ellipsis }
+    .title,
+    .description {
+      @include ellipsis;
+    }
 
     .progress {
       position: absolute;
@@ -135,7 +138,7 @@
       background: var(--toolbar-button-progress-color);
       transform-origin: left;
       pointer-events: none;
-      transition: transform .3s var(--easing-ease-out-quint);
+      transition: transform 0.3s var(--easing-ease-out-quint);
     }
   }
 
@@ -144,6 +147,8 @@
     // progress we want the text to be slightly legible so we'll make it
     // opaque. Since a toolbar button with progress also shows a spinner
     // there's plenty of indication that it can't be used.
-    &:disabled { opacity: 1; }
+    &:disabled {
+      opacity: 1;
+    }
   }
 }

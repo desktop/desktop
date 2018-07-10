@@ -1,11 +1,14 @@
-@import "../mixins";
+@import '../mixins';
 
 /** A React component holding the currently selected repository */
 #repository {
-
   display: flex;
   flex-direction: row;
   flex: 1;
+
+  > .focus-container {
+    display: flex;
+  }
 
   &-sidebar {
     display: flex;

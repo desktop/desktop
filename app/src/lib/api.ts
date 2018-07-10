@@ -65,7 +65,18 @@ export interface IAPIUser {
   readonly url: string
   readonly login: string
   readonly avatar_url: string
-  readonly name: string
+
+  /**
+   * The user's real name or null if the user hasn't provided
+   * a real name for their public profile.
+   */
+  readonly name: string | null
+
+  /**
+   * The email address for this user or null if the user has not
+   * specified a public email address in their profile.
+   */
+  readonly email: string | null
   readonly type: 'User' | 'Organization'
 }
 
@@ -543,6 +554,28 @@ export class API {
       return null
     }
   }
+
+  /**
+   * Retrieve the public profile information of a user with
+   * a given username.
+   */
+  public async fetchUser(login: string): Promise<IAPIUser | null> {
+    try {
+      const response = await this.request(
+        'GET',
+        `users/${encodeURIComponent(login)}`
+      )
+
+      if (response.status === 404) {
+        return null
+      }
+
+      return await parsedResponse<IAPIUser>(response)
+    } catch (e) {
+      log.warn(`fetchUser: failed with endpoint ${this.endpoint}`, e)
+      throw e
+    }
+  }
 }
 
 export enum AuthorizationResponseKind {
@@ -692,7 +725,7 @@ export async function fetchUser(
       emails,
       avatarURL,
       user.id,
-      user.name
+      user.name || user.login
     )
   } catch (e) {
     log.warn(`fetchUser: failed with endpoint ${endpoint}`, e)

@@ -1,7 +1,5 @@
-/* eslint-disable no-sync */
-
 import * as path from 'path'
-import * as Fs from 'fs'
+import * as FSE from 'fs-extra'
 import * as os from 'os'
 import { expect } from 'chai'
 
@@ -16,8 +14,8 @@ import { setupFixtureRepository, mkdirSync } from '../../helpers/repositories'
 describe('git/rev-parse', () => {
   let repository: Repository | null = null
 
-  beforeEach(() => {
-    const testRepoPath = setupFixtureRepository('test-repo')
+  beforeEach(async () => {
+    const testRepoPath = await setupFixtureRepository('test-repo')
     repository = new Repository(testRepoPath, -1, null, false)
   })
 
@@ -39,10 +37,7 @@ describe('git/rev-parse', () => {
       expect(result).to.equal(repository!.path)
 
       const subdirPath = path.join(repository!.path, 'subdir')
-
-      await new Promise<void>((resolve, reject) => {
-        Fs.mkdir(subdirPath, e => (e ? reject(e) : resolve()))
-      })
+      await FSE.mkdir(subdirPath)
 
       const subDirResult = await getTopLevelWorkingDirectory(repository!.path)
       expect(subDirResult).to.equal(repository!.path)

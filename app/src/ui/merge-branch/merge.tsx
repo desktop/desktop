@@ -1,12 +1,18 @@
 import * as React from 'react'
-import { Button } from '../lib/button'
+
+import { getAheadBehind } from '../../lib/git'
 import { Dispatcher } from '../../lib/dispatcher'
+
 import { Branch } from '../../models/branch'
 import { Repository } from '../../models/repository'
-import { getAheadBehind } from '../../lib/git'
+
+import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
+
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
-import { BranchList } from '../branches'
+import { BranchList, IBranchListItem, renderDefaultBranch } from '../branches'
+import { revSymmetricDifference } from '../../lib/git'
+import { IMatches } from '../../lib/fuzzy-find'
 
 interface IMergeProps {
   readonly dispatcher: Dispatcher
@@ -31,6 +37,11 @@ interface IMergeProps {
    * See IBranchesState.recentBranches
    */
   readonly recentBranches: ReadonlyArray<Branch>
+
+  /**
+   * The branch to select when the merge dialog is opened
+   */
+  readonly initialBranch?: Branch
 
   /**
    * A function that's called when the dialog is dismissed by the user in the
@@ -59,12 +70,10 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
   public constructor(props: IMergeProps) {
     super(props)
 
-    const currentBranch = props.currentBranch
-    const defaultBranch = props.defaultBranch
+    const selectedBranch = this.resolveSelectedBranch()
 
     this.state = {
-      // Select the default branch unless that's currently checked out
-      selectedBranch: currentBranch === defaultBranch ? null : defaultBranch,
+      selectedBranch,
       commitCount: undefined,
       filterText: '',
     }
@@ -81,15 +90,6 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
 
   private onFilterTextChanged = (filterText: string) => {
     this.setState({ filterText })
-  }
-
-  private onFilterKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Escape') {
-      if (this.state.filterText.length === 0) {
-        this.props.onDismissed()
-        event.preventDefault()
-      }
-    }
   }
 
   private onSelectionChanged = async (selectedBranch: Branch | null) => {
@@ -137,6 +137,10 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     )
   }
 
+  private renderBranch = (item: IBranchListItem, matches: IMatches) => {
+    return renderDefaultBranch(item, matches, this.props.currentBranch)
+  }
+
   public render() {
     const selectedBranch = this.state.selectedBranch
     const currentBranch = this.props.currentBranch
@@ -161,11 +165,11 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
             defaultBranch={this.props.defaultBranch}
             recentBranches={this.props.recentBranches}
             filterText={this.state.filterText}
-            onFilterKeyDown={this.onFilterKeyDown}
             onFilterTextChanged={this.onFilterTextChanged}
             selectedBranch={selectedBranch}
             onSelectionChanged={this.onSelectionChanged}
             canCreateNewBranch={false}
+            renderBranch={this.renderBranch}
           />
         </DialogContent>
         <DialogFooter>
@@ -182,7 +186,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
   }
 
   private async updateCommitCount(branch: Branch) {
-    const range = `...${branch.name}`
+    const range = revSymmetricDifference('', branch.name)
     const aheadBehind = await getAheadBehind(this.props.repository, range)
     const commitCount = aheadBehind ? aheadBehind.behind : 0
 
@@ -202,5 +206,22 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
 
     this.props.dispatcher.mergeBranch(this.props.repository, branch.name)
     this.props.dispatcher.closePopup()
+  }
+
+  /**
+   * Returns the branch to use as the selected branch
+   *
+   * The initial branch is used if passed
+   * otherwise, the default branch will be used iff it's
+   * not the currently checked out branch
+   */
+  private resolveSelectedBranch() {
+    const { currentBranch, defaultBranch, initialBranch } = this.props
+
+    if (initialBranch !== undefined) {
+      return initialBranch
+    }
+
+    return currentBranch === defaultBranch ? null : defaultBranch
   }
 }

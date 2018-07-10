@@ -1,8 +1,8 @@
-# Editor Integration
+# "Open External Editor" integration
 
 GitHub Desktop supports the user choosing an external program to open their
-local repositories, and this is available from the main menu and right-clicking
-on a repository in the sidebar.
+local repositories, and this is available from the top-level **Repository** menu
+or when right-clicking on a repository in the sidebar.
 
 ### My favourite editor XYZ isn't supported!
 
@@ -25,8 +25,9 @@ The source for the editor integration on Windows is found in
 These editors are currently supported:
 
  - [Atom](https://atom.io/)
- - [Visual Studio Code](https://code.visualstudio.com/)
+ - [Visual Studio Code](https://code.visualstudio.com/) - both stable and Insiders channel
  - [Sublime Text](https://www.sublimetext.com/)
+ - [ColdFusion Builder](https://www.adobe.com/products/coldfusion-builder.html)
 
 These are defined in an enum at the top of the file:
 
@@ -34,7 +35,9 @@ These are defined in an enum at the top of the file:
 export enum ExternalEditor {
   Atom = 'Atom',
   VisualStudioCode = 'Visual Studio Code',
+  VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
   SublimeText = 'Sublime Text',
+  CFBuilder = 'ColdFusion Builder',
 }
 ```
 
@@ -202,18 +205,34 @@ The source for the editor integration on macOS is found in
 These editors are currently supported:
 
  - [Atom](https://atom.io/)
- - [Visual Studio Code](https://code.visualstudio.com/)
+ - [MacVim](https://macvim-dev.github.io/macvim/)
+ - [Visual Studio Code](https://code.visualstudio.com/) - both stable and Insiders channel
  - [Sublime Text](https://www.sublimetext.com/)
  - [BBEdit](http://www.barebones.com/products/bbedit/)
  - [PhpStorm](https://www.jetbrains.com/phpstorm/)
+ - [RubyMine](https://www.jetbrains.com/rubymine/)
+ - [TextMate](https://macromates.com)
+ - [Brackets](http://brackets.io/)
+     - To use Brackets the Command Line shortcut must be installed.
+       - This can be done by opening Brackets, choosing File > Install Command Line Shortcut
+ - [WebStorm](https://www.jetbrains.com/webstorm/)
 
 These are defined in an enum at the top of the file:
 
 ```ts
+
 export enum ExternalEditor {
   Atom = 'Atom',
+  MacVim = 'MacVim',
   VisualStudioCode = 'Visual Studio Code',
+  VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
   SublimeText = 'Sublime Text',
+  BBEdit = 'BBEdit',
+  PhpStorm = 'PhpStorm',
+  RubyMine = 'RubyMine',
+  TextMate = 'TextMate',
+  Brackets = 'Brackets',
+  WebStorm = 'WebStorm',
 }
 ```
 
@@ -295,7 +314,7 @@ The source for the editor integration on Linux is found in
 These editors are currently supported:
 
  - [Atom](https://atom.io/)
- - [Visual Studio Code](https://code.visualstudio.com/)
+ - [Visual Studio Code](https://code.visualstudio.com/) - both stable and Insiders channel
  - [Sublime Text](https://www.sublimetext.com/)
 
 These are defined in an enum at the top of the file:
@@ -304,6 +323,7 @@ These are defined in an enum at the top of the file:
 export enum ExternalEditor {
   Atom = 'Atom',
   VisualStudioCode = 'Visual Studio Code',
+  VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
   SublimeText = 'Sublime Text',
 }
 ```

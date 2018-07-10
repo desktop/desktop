@@ -1,8 +1,9 @@
-@import "../../mixins";
+@import '../../mixins';
 
 /** A React component holding the main application toolbar component. */
 #desktop-app-toolbar {
   height: var(--toolbar-height);
+  border-bottom: 1px solid var(--toolbar-border-color);
 
   display: flex;
   flex-direction: row;
@@ -25,17 +26,21 @@
     flex-direction: row;
     flex-shrink: 0;
 
-    &>:last-child {
+    & > :last-child {
       flex-grow: 1;
     }
   }
 
   .toolbar-button {
-    &.push-pull-button { width: 230px; }
+    &.push-pull-button {
+      width: 230px;
+    }
   }
 
   .toolbar-dropdown {
-    &.branch-button { width: 230px; }
+    &.branch-button {
+      width: 230px;
+    }
   }
 
   .toolbar-button {
@@ -45,16 +50,21 @@
   }
 }
 
-@keyframes spin { 100% { -webkit-transform: rotate(360deg); transform:rotate(360deg); } }
+@keyframes spin {
+  100% {
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
 
 .spin {
-  animation:spin 1s linear infinite;
+  animation: spin 1s linear infinite;
 }
 
 .ahead-behind {
   display: flex;
 
-  background: var(--ahead-behind-background-color);
+  background: var(--toolbar-badge-background-color);
 
   // Perfectly round semi circle ends with real tight
   // padding on either side. Now in two flavors!
@@ -78,7 +88,9 @@
 
     // Only add left margin if both ahead and behind are
     // showing at the same time.
-    &:nth-child(2) { margin-left: var(--spacing-half); }
+    &:nth-child(2) {
+      margin-left: var(--spacing-half);
+    }
 
     // We're using arrowSmallUp and arrowSmallDown which are
     // both exactly 6px wide. Let's use that so that spacing

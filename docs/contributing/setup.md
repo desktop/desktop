@@ -6,13 +6,13 @@ You will need to install these tools on your machine:
 
 ### macOS
 
- - [Node.js v8.9.0](https://nodejs.org/dist/v8.9.0/)
+ - [Node.js v8.11.2](https://nodejs.org/dist/v8.11.2/)
  - [Python 2.7](https://www.python.org/downloads/mac-osx/)
  - Xcode and Xcode Command Line Tools (Xcode -> Preferences -> Downloads)
 
 ### Windows
 
- - [Node.js v8.9.0](https://nodejs.org/dist/v8.9.0/)
+ - [Node.js v8.11.2](https://nodejs.org/dist/v8.11.2/)
     - *Make sure you allow the Node.js installer to add node to the PATH.*
  - [Python 2.7](https://www.python.org/downloads/windows/)
     - *Let Python install into the default suggested path (`c:\Python27`), otherwise you'll have
@@ -21,7 +21,7 @@ You will need to install these tools on your machine:
  - One of Visual Studio 2015, Visual C++ Build Tools or Visual Studio 2017
    - [Visual C++ Build Tools](http://go.microsoft.com/fwlink/?LinkId=691126)
      - *Run `npm config set msvs_version 2015` to tell node to use this toolchain.*
-   - Visual Studio 2015 
+   - Visual Studio 2015
      - *Ensure you select the **Common Tools for Visual C++ 2015** feature as that is required by Node.js
         for installing native modules.*
      - *Run `npm config set msvs_version 2015` to tell node to use this toolchain.*
@@ -32,7 +32,7 @@ You will need to install these tools on your machine:
 
 ### Fedora 26
 
-First, add the NodeJS package repository.
+First, add the NodeJS package repository for 8.x.
 
 ```shellsession
 $ curl --silent --location https://rpm.nodesource.com/setup_8.x | sudo bash -
@@ -67,7 +67,7 @@ First, install curl:
 $ sudo apt install curl
 ```
 
-Then add the NodeJS package repository:
+Then add the NodeJS package repository for 8.x:
 
 ```shellsession
 $ curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
@@ -85,34 +85,55 @@ If you want to package Desktop for distribution, install these packages:
 $ sudo apt install -y fakeroot dpkg rpm xz-utils xorriso zsync
 ```
 
-## Verification
+### arm64 builds
 
-With these things installed, open a shell and install `yarn` (you might need
-to `sudo` here depending on how Node was installed):
+Desktop can be built and run on arm64 (aarch64) hardware such as a Raspberry Pi 3.
+In order to build for arm64, you will need the following:
 
+* A computer with a 64-bit ARMv8 processor.
+* A 64-bit OS.  You can use [Ubuntu 16.04](#ubuntu-1604) and then follow the instructions
+on setup there.
+* Instead of running `yarn` to get all required dependencies on your machine, you will
+instead need to run `script/install-arm64-deps.sh`.
+* Before building with `yarn build:dev` or `yarn build:prod`, you will need to
+set the environment variable `TARGET_ARCH` to `arm64` eg:
 ```shellsession
-$ npm install -g yarn@1.3.2
+export TARGET_ARCH=arm64
 ```
 
-This is important because yarn uses lock files to pin dependencies. If you find
-yourself changing packages, this will prevent mismatches in versions between machines.
+## Install Yarn
 
-Then validate you have these commands available and that the versions look similar:
+After doing this setup, you also need to install `yarn` as Desktop uses
+this for managing packages instead of NPM. **Do not install `yarn` through
+NPM**. Refer to the [install instructions](https://yarnpkg.com/en/docs/install)
+for your OS.
+
+This is important because `yarn` uses lock files to pin dependencies. If you
+find yourself changing packages, this will prevent mismatches in versions
+between machines.
+
+If you're not familiar with `yarn`, please read [this document](./working-with-packages.md)
+to help familiarize yourself with how to do the common package tasks that are
+relevant to Desktop.
+
+## Verification
+
+Then verify you have these commands available in your shell and that the found
+versions look similar to the below output:
 
 ```shellsession
 $ node -v
-v7.8.0
+v8.11.2
 
 $ yarn -v
-1.2.0
+1.5.1
 
 $ python --version
 Python 2.7.13
 ```
 
-There are also [additional resources](tooling.md) to
-configure your favorite editor to work nicely with the GitHub Desktop
-repository.
+There are also [additional resources](tooling.md) to configure your favorite
+editor to work nicely with the GitHub Desktop repository.
 
 ## Building Desktop
 
@@ -122,8 +143,8 @@ is as follows:
 * Run `yarn` to get all required dependencies on your machine.
 * Run `yarn build:dev` to create a development build of the app.
 * Run `yarn start` to launch the application. Changes will be compiled in the
-  background. The app can then be reloaded to see the changes (Ctrl/Command+R).
-  
+  background. The app can then be reloaded to see the changes (<kbd>Ctrl/Command+Alt+R</kbd>).
+
 **Optional Tip**: On macOS and Linux, you can use `screen` to avoid filling your terminal with logging output:
 
 ```shellsession
@@ -145,25 +166,15 @@ problems.
 ## Running tests
 
 - `yarn test` - Runs all unit and integration tests
-- `yarn test:unit` - Runs all unit tests
+- `yarn test:unit` - Runs all unit tests (add `--debug` to open Chrome Dev Tools while running tests)
 - `yarn test:integration` - Runs all integration tests
-
-**Pro Tip:** If you're only interested in the results of a single test and don't
-wish to run the entire test suite to see it you can pass along a search string
-in order to only run the tests that match that string.
-
-```shellsession
-$ yarn test:unit -- --grep CloneProgressParser
-```
-
-This example will run all test names containing `CloneProgressParser`.
 
 ## Debugging
 
 Electron ships with Chrome Dev Tools to assist with debugging, profiling and
 other measurement tools.
 
-1. Run the command `npm start` to launch the app
+1. Run the command `yarn start` to launch the app
 2. Under the **View** menu, select **Toggle Developer Tools**
 
 When running the app in development mode,
@@ -182,7 +193,7 @@ require('devtron').install()
 
 You're almost there! Here's a couple of things we recommend you read next:
 
- - [Help Wanted](../../CONTRIBUTING.md#help-wanted) - we've marked some tasks in
-   the backlog that are ideal for external contributors
- - [Code Reviews](../process/reviews.md) - some notes on how the team does
-   code reviews
+ - [Help Wanted](../../.github/CONTRIBUTING.md#help-wanted) - we've marked some
+   tasks in the backlog that are ideal for external contributors
+ - [Notes for Contributors](../process/notes-for-contributors.md) - some notes
+   for new contributors getting started

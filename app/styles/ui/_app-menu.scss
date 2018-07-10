@@ -1,4 +1,4 @@
-@import "../mixins";
+@import '../mixins';
 
 #app-menu-foldout {
   height: 100%;
@@ -37,7 +37,6 @@
   }
 
   &:not(:last-child) {
-
     // We want list items in previous menus to behave as if they have focus
     // even though they don't, ie we want the selected+focus state
     // to be in effect for all parent selected menu items as well as
@@ -68,7 +67,9 @@
     width: 100%;
     min-width: 0;
 
-    &.disabled { opacity: 0.3; }
+    &.disabled {
+      opacity: 0.3;
+    }
 
     .label {
       flex-grow: 1;
@@ -115,6 +116,6 @@
     width: 100%;
     border: none;
     height: 1px;
-    border-bottom: var(--base-border);
+    border-bottom: 1px solid var(--app-menu-divider-color);
   }
 }

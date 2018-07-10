@@ -1,6 +1,6 @@
 import '../lib/logging/main/install'
 
-import { app, Menu, MenuItem, ipcMain, BrowserWindow, shell } from 'electron'
+import { app, Menu, ipcMain, BrowserWindow, shell } from 'electron'
 import * as Fs from 'fs'
 
 import { AppWindow } from './app-window'
@@ -21,6 +21,8 @@ import {
 } from '../lib/source-map-support'
 import { now } from './now'
 import { showUncaughtException } from './show-uncaught-exception'
+import { IMenuItem } from '../lib/menu-item'
+import { buildContextMenu } from './menu/build-context-menu'
 
 enableSourceMaps()
 
@@ -168,6 +170,13 @@ function setAsDefaultProtocolClient(protocol: string) {
   }
 }
 
+if (process.env.GITHUB_DESKTOP_DISABLE_HARDWARE_ACCELERATION) {
+  log.info(
+    `GITHUB_DESKTOP_DISABLE_HARDWARE_ACCELERATION environment variable set, disabling hardware acceleration`
+  )
+  app.disableHardwareAcceleration()
+}
+
 app.on('ready', () => {
   if (isDuplicateInstance || handlingSquirrelEvent) {
     return
@@ -272,20 +281,10 @@ app.on('ready', () => {
 
   ipcMain.on(
     'show-contextual-menu',
-    (event: Electron.IpcMessageEvent, items: ReadonlyArray<any>) => {
-      const menu = new Menu()
-      const menuItems = items.map((item, i) => {
-        return new MenuItem({
-          label: item.label,
-          click: () => event.sender.send('contextual-menu-action', i),
-          type: item.type,
-          enabled: item.enabled,
-        })
-      })
-
-      for (const item of menuItems) {
-        menu.append(item)
-      }
+    (event: Electron.IpcMessageEvent, items: ReadonlyArray<IMenuItem>) => {
+      const menu = buildContextMenu(items, ix =>
+        event.sender.send('contextual-menu-action', ix)
+      )
 
       const window = BrowserWindow.fromWebContents(event.sender)
       menu.popup(window, { async: true })
@@ -408,14 +407,24 @@ function createWindow() {
   const window = new AppWindow()
 
   if (__DEV__) {
-    const installer = require('electron-devtools-installer')
+    const {
+      default: installExtension,
+      REACT_DEVELOPER_TOOLS,
+      REACT_PERF,
+    } = require('electron-devtools-installer')
+
     require('electron-debug')({ showDevTools: true })
 
-    const extensions = ['REACT_DEVELOPER_TOOLS', 'REACT_PERF']
+    const ChromeLens = {
+      id: 'idikgljglpfilbhaboonnpnnincjhjkd',
+      electron: '>=1.2.1',
+    }
 
-    for (const name of extensions) {
+    const extensions = [REACT_DEVELOPER_TOOLS, REACT_PERF, ChromeLens]
+
+    for (const extension of extensions) {
       try {
-        installer.default(installer[name])
+        installExtension(extension)
       } catch (e) {}
     }
   }

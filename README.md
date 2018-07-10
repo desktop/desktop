@@ -3,6 +3,7 @@
 [![Travis](https://img.shields.io/travis/desktop/desktop.svg?style=flat-square&label=Travis+CI)](https://travis-ci.org/desktop/desktop)
 [![CircleCI](https://img.shields.io/circleci/project/github/desktop/desktop.svg?style=flat-square&label=CircleCI)](https://circleci.com/gh/desktop/desktop)
 [![AppVeyor Build Status](https://img.shields.io/appveyor/ci/github-windows/desktop/master.svg?style=flat-square&label=AppVeyor&logo=appveyor)](https://ci.appveyor.com/project/github-windows/desktop/branch/master)
+[![VSTS Build Status](https://github.visualstudio.com/_apis/public/build/definitions/845028c2-21f3-4eb1-80b9-215d3e9b1d08/3/badge)](https://github.visualstudio.com/Desktop/_build/index?definitionId=3)
 [![license](https://img.shields.io/github/license/desktop/desktop.svg?style=flat-square)](https://github.com/desktop/desktop/blob/master/LICENSE)
 ![90+% TypeScript](https://img.shields.io/github/languages/top/desktop/desktop.svg?style=flat-square&colorB=green)
 
@@ -48,13 +49,16 @@ First, please search the [open issues](https://github.com/desktop/desktop/issues
 and [closed issues](https://github.com/desktop/desktop/issues?q=is%3Aclosed)
 to see if your issue hasn't already been reported (it may also be fixed).
 
-If you can't find an issue that matches what you're seeing, open a [new issue](https://github.com/desktop/desktop/issues/new)
-and fill out the template to provide us with enough information to investigate
+There is also a list of [known issues](https://github.com/desktop/desktop/blob/master/docs/known-issues.md)
+that are being tracked against Desktop, and some of these issues have workarounds.
+
+If you can't find an issue that matches what you're seeing, open a [new issue](https://github.com/desktop/desktop/issues/new/choose),
+choose the right template and provide us with enough information to investigate
 further.
 
 ## How can I contribute to GitHub Desktop?
 
-The [CONTRIBUTING.md](./CONTRIBUTING.md) document will help you get setup and
+The [CONTRIBUTING.md](./.github/CONTRIBUTING.md) document will help you get setup and
 familiar with the source. The [documentation](docs/) folder also contains more
 resources relevant to the project.
 

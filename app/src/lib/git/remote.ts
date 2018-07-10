@@ -1,6 +1,7 @@
 import { git } from './core'
 import { Repository } from '../../models/repository'
 import { IRemote } from '../../models/remote'
+import { findDefaultRemote } from '../stores/helpers/find-default-remote'
 
 /** Get the remote names. */
 export async function getRemotes(
@@ -21,18 +22,7 @@ export async function getRemotes(
 export async function getDefaultRemote(
   repository: Repository
 ): Promise<IRemote | null> {
-  const remotes = await getRemotes(repository)
-  if (remotes.length === 0) {
-    return null
-  }
-
-  const remote = remotes.find(x => x.name === 'origin')
-
-  if (remote) {
-    return remote
-  }
-
-  return remotes[0]
+  return findDefaultRemote(await getRemotes(repository))
 }
 
 /** Add a new remote with the given URL. */
@@ -40,8 +30,10 @@ export async function addRemote(
   repository: Repository,
   name: string,
   url: string
-): Promise<void> {
+): Promise<IRemote> {
   await git(['remote', 'add', name, url], repository.path, 'addRemote')
+
+  return { url, name }
 }
 
 /** Removes an existing remote, or silently errors if it doesn't exist */

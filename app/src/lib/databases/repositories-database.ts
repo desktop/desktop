@@ -1,4 +1,5 @@
 import Dexie from 'dexie'
+import { BaseDatabase } from './base-database'
 
 export interface IDatabaseOwner {
   readonly id?: number | null
@@ -27,15 +28,15 @@ export interface IDatabaseRepository {
 }
 
 /** The repositories database. */
-export class RepositoriesDatabase extends Dexie {
+export class RepositoriesDatabase extends BaseDatabase {
   /** The local repositories table. */
-  public repositories: Dexie.Table<IDatabaseRepository, number>
+  public repositories!: Dexie.Table<IDatabaseRepository, number>
 
   /** The GitHub repositories table. */
-  public gitHubRepositories: Dexie.Table<IDatabaseGitHubRepository, number>
+  public gitHubRepositories!: Dexie.Table<IDatabaseGitHubRepository, number>
 
   /** The GitHub repository owners table. */
-  public owners: Dexie.Table<IDatabaseOwner, number>
+  public owners!: Dexie.Table<IDatabaseOwner, number>
 
   /**
    * Initialize a new repository database.
@@ -45,15 +46,15 @@ export class RepositoriesDatabase extends Dexie {
    *                 database will be created with the latest version.
    */
   public constructor(name: string, schemaVersion?: number) {
-    super(name)
+    super(name, schemaVersion)
 
-    this.conditionalVersion(schemaVersion, 1, {
+    this.conditionalVersion(1, {
       repositories: '++id, &path',
       gitHubRepositories: '++id, name',
       owners: '++id, login',
     })
 
-    this.conditionalVersion(schemaVersion, 2, {
+    this.conditionalVersion(2, {
       owners: '++id, &[endpoint+login]',
     })
 
@@ -61,47 +62,15 @@ export class RepositoriesDatabase extends Dexie {
     // version and its upgrade callback only happens *after* the schema's been
     // changed. So we need to prepare for it by removing any old data now
     // which will violate it.
-    this.conditionalVersion(
-      schemaVersion,
-      3,
-      {},
-      removeDuplicateGitHubRepositories
-    )
+    this.conditionalVersion(3, {}, removeDuplicateGitHubRepositories)
 
-    this.conditionalVersion(schemaVersion, 4, {
+    this.conditionalVersion(4, {
       gitHubRepositories: '++id, name, &[ownerID+name]',
     })
 
-    this.conditionalVersion(schemaVersion, 5, {
+    this.conditionalVersion(5, {
       gitHubRepositories: '++id, name, &[ownerID+name], cloneURL',
     })
-  }
-
-  /**
-   * Register the version of the schema only if `targetVersion` is less than
-   * `version` or is `undefined`.
-   *
-   * targetVersion - The version of the schema that is being targetted. If not
-   *                 provided, the given version will be registered.
-   * version       - The version being registered.
-   * schema        - The schema to register.
-   * upgrade       - An upgrade function to call after upgrading to the given
-   *                 version.
-   */
-  private conditionalVersion(
-    targetVersion: number | undefined,
-    version: number,
-    schema: { [key: string]: string | null },
-    upgrade?: (t: Dexie.Transaction) => void
-  ) {
-    if (targetVersion && targetVersion < version) {
-      return
-    }
-
-    const dexieVersion = this.version(version).stores(schema)
-    if (upgrade) {
-      dexieVersion.upgrade(upgrade)
-    }
   }
 }
 
@@ -120,6 +89,7 @@ function removeDuplicateGitHubRepositories(transaction: Dexie.Transaction) {
       // We can be sure `id` isn't null since we just got it from the
       // database.
       const id = repo.id!
+
       table.delete(id)
     } else {
       seenKeys.add(key)

@@ -8,7 +8,7 @@ import { getDotComAPIEndpoint } from './api'
  * @param email The email address associated with a user
  * @param size The size (in pixels) of the avatar to render
  */
-export function generateGravatarUrl(email: string, size: number = 200): string {
+export function generateGravatarUrl(email: string, size: number = 60): string {
   const input = email.trim().toLowerCase()
   const hash = crypto
     .createHash('md5')
@@ -32,10 +32,10 @@ export function generateGravatarUrl(email: string, size: number = 200): string {
  */
 export function getAvatarWithEnterpriseFallback(
   avatar_url: string,
-  email: string,
+  email: string | null,
   endpoint: string
 ): string {
-  if (endpoint === getDotComAPIEndpoint()) {
+  if (endpoint === getDotComAPIEndpoint() || email === null) {
     return avatar_url
   }
 

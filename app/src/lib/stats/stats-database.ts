@@ -37,11 +37,55 @@ export interface IDailyMeasures {
 
   /** The number of partial commits. */
   readonly partialCommits: number
+
+  /** The number of commits created with one or more co-authors. */
+  readonly coAuthoredCommits: number
+
+  /** The number of times a branch is compared to an arbitrary branch */
+  readonly branchComparisons: number
+
+  /** The number of times a branch is compared to `master` */
+  readonly defaultBranchComparisons: number
+
+  /** The number of times a merge is initiated in the `compare` sidebar */
+  readonly mergesInitiatedFromComparison: number
+
+  /** The number of times the `Branch -> Update From Default Branch` menu item is used */
+  readonly updateFromDefaultBranchMenuCount: number
+
+  /** The number of times the `Branch -> Merge Into Current Branch` menu item is used */
+  readonly mergeIntoCurrentBranchMenuCount: number
+
+  /** The number of times the user checks out a branch using the PR menu */
+  readonly prBranchCheckouts: number
+
+  /** The numbers of times a repo with indicators is clicked on repo list view */
+  readonly repoWithIndicatorClicked: number
+  /** The numbers of times a repo without indicators is clicked on repo list view */
+  readonly repoWithoutIndicatorClicked: number
+
+  /** The number of times the user dismisses the diverged branch notification */
+  readonly divergingBranchBannerDismissal: number
+
+  /** The number of times the user merges from the diverged branch notification merge CTA button */
+  readonly divergingBranchBannerInitatedMerge: number
+
+  /** The number of times the user compares from the diverged branch notification compare CTA button */
+  readonly divergingBranchBannerInitiatedCompare: number
+
+  /**
+   * The number of times the user merges from the compare view after getting to that state
+   * from the diverged branch notification compare CTA button
+   */
+  readonly divergingBranchBannerInfluencedMerge: number
+
+  /** The number of times the diverged branch notification is displayed */
+  readonly divergingBranchBannerDisplayed: number
 }
 
 export class StatsDatabase extends Dexie {
-  public launches: Dexie.Table<ILaunchStats, number>
-  public dailyMeasures: Dexie.Table<IDailyMeasures, number>
+  public launches!: Dexie.Table<ILaunchStats, number>
+  public dailyMeasures!: Dexie.Table<IDailyMeasures, number>
 
   public constructor(name: string) {
     super(name)

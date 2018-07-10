@@ -1,9 +1,11 @@
-@import "vendor";
+@import 'vendor';
 
-@import "variables";
-@import "mixins";
+@import 'variables';
+@import 'themes/dark';
 
-@import "globals";
-@import "type";
+@import 'mixins';
 
-@import "ui"
+@import 'globals';
+@import 'type';
+
+@import 'ui';
