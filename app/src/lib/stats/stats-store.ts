@@ -43,6 +43,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   divergingBranchBannerInitiatedCompare: 0,
   divergingBranchBannerInfluencedMerge: 0,
   divergingBranchBannerDisplayed: 0,
+  active: false,
 }
 
 interface ICalculatedStats {
@@ -424,6 +425,12 @@ export class StatsStore {
   public async recordDivergingBranchBannerDisplayed(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       divergingBranchBannerDisplayed: m.divergingBranchBannerDisplayed + 1,
+    }))
+  }
+
+  public async recordActivity(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      active: true,
     }))
   }
 
