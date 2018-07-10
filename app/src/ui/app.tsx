@@ -611,9 +611,46 @@ export class App extends React.Component<IAppProps, IAppState> {
       window.addEventListener('keydown', this.onWindowKeyDown)
       window.addEventListener('keyup', this.onWindowKeyUp)
     }
+
+    const interactionTargets = new Set([ 'button', 'a', 'input', 'textarea' ].map(x => x.toUpperCase()))
+    const interactionRoles = new Set([ 'button', 'option', 'menuitem', 'tab', 'radio' ])
+
+    function isInteractionTarget(target: HTMLElement | null) {
+
+      while(target !== null) {
+
+        if (interactionTargets.has(target.nodeName)) {
+          return true
+        }
+
+        const role = target.getAttribute('role')
+
+        if (role !== null && interactionRoles.has(role)) {
+          return true
+        }
+
+        target = target instanceof HTMLElement
+          ? target.parentElement
+          : null
+      }
+
+      return false
+    }
+
     document.addEventListener('mousedown', (e) => {
+
+      if (e.target === null || !(e.target instanceof HTMLElement)) {
+        return
+      }
+
+      if (!isInteractionTarget(e.target)) {
+        return
+      }
+
+      console.log('activity', e.target)
       this.props.dispatcher.recordActivity()
     })
+
     document.addEventListener('keydown', () =>
       this.props.dispatcher.recordActivity()
     )
