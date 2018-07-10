@@ -1363,6 +1363,7 @@ export class GitStore extends BaseStore {
       const result = parseMergeResult(mergeTreeInfo)
 
       if (result.kind !== MergeResultKind.Success) {
+      } else {
       }
     }
   }

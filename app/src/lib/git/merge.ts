@@ -30,6 +30,14 @@ export async function mergeTree(
 ): Promise<string | null> {
   const mergeBase = await getMergeBase(repository, ours.tip.sha, theirs.tip.sha)
 
+  if (mergeBase === ours.tip.sha || mergeBase === theirs.tip.sha) {
+    log.warn(
+      `The merge base is already known, and there is no need to do further work?!?!?`
+    )
+    debugger
+    return null
+  }
+
   const result = await git(
     ['merge-tree', mergeBase, ours.tip.sha, theirs.tip.sha],
     repository.path,
