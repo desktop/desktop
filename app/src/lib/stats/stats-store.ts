@@ -8,6 +8,8 @@ import { getGUID } from './get-guid'
 import { Repository } from '../../models/repository'
 import { merge } from '../../lib/merge'
 import { getPersistedThemeName } from '../../ui/lib/application-theme'
+import { IUiActivityMonitor } from '../../ui/lib/ui-activity-monitor'
+import { Disposable } from 'event-kit'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
@@ -85,14 +87,18 @@ type DailyStats = ICalculatedStats & ILaunchStats & IDailyMeasures
 /** The store for the app's stats. */
 export class StatsStore {
   private readonly db: StatsDatabase
+  private readonly uiActivityMonitor?: IUiActivityMonitor
+  private uiActivityMonitorSubscription: Disposable | null = null
 
   /** Has the user opted out of stats reporting? */
   private optOut: boolean
 
-  private activityRecorded: boolean = false
-
-  public constructor(db: StatsDatabase) {
+  public constructor(
+    db: StatsDatabase,
+    uiActivityMonitor?: IUiActivityMonitor
+  ) {
     this.db = db
+    this.uiActivityMonitor = uiActivityMonitor
 
     const optOutValue = localStorage.getItem(StatsOptOutKey)
     if (optOutValue) {
@@ -106,6 +112,8 @@ export class StatsStore {
     } else {
       this.optOut = false
     }
+
+    this.enableUiActivityMonitoring()
   }
 
   /** Should the app report its daily stats? */
@@ -178,7 +186,30 @@ export class StatsStore {
     await this.db.launches.clear()
     await this.db.dailyMeasures.clear()
 
-    this.activityRecorded = false
+    this.enableUiActivityMonitoring()
+  }
+
+  private enableUiActivityMonitoring() {
+    if (this.uiActivityMonitor === undefined) {
+      return
+    }
+
+    if (this.uiActivityMonitorSubscription !== null) {
+      return
+    }
+
+    this.uiActivityMonitorSubscription = this.uiActivityMonitor.onActivity(
+      this.onUiActivity
+    )
+  }
+
+  private disableUiActivityMonitoring() {
+    if (this.uiActivityMonitorSubscription === null) {
+      return
+    }
+
+    this.uiActivityMonitorSubscription.dispose()
+    this.uiActivityMonitorSubscription = null
   }
 
   /** Get the daily stats. */
@@ -432,10 +463,8 @@ export class StatsStore {
     }))
   }
 
-  public async recordActivity(): Promise<void> {
-    if (this.activityRecorded) {
-      return
-    }
+  private onUiActivity = async () => {
+    this.disableUiActivityMonitoring()
 
     return this.updateDailyMeasures(m => ({
       active: true,
