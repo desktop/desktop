@@ -31,6 +31,7 @@ function desktopIssueUrl(numberWithHash: string): string {
 function accountUrl(name: string): string {
   return `https://github.com/${name.substr(1)}`
 }
+
 function renderLineItem(note: string): (JSX.Element | string)[] | string {
   const externalContribution = externalContributionRe.exec(note)
   if (externalContribution) {
@@ -67,6 +68,29 @@ function renderLineItem(note: string): (JSX.Element | string)[] | string {
   }
 
   return note
+}
+
+/**
+ * This is only used for testing
+ *
+ * TODO: Delete this
+ */
+const releaseSummaryStub: ReleaseSummary = {
+  latestVersion: 'Test',
+  datePublished: 'July 11, 2018',
+  enhancements: [
+    {
+      kind: 'improved',
+      message: 'Improvement 1',
+    },
+  ],
+  bugfixes: [
+    {
+      kind: 'fixed',
+      message: 'Fixed 1',
+    },
+  ],
+  other: [],
 }
 
 interface IReleaseNotesProps {
@@ -146,7 +170,7 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
   }
 
   public render() {
-    const release = this.props.newRelease
+    const release = releaseSummaryStub || this.props.newRelease
 
     const contents =
       release.enhancements.length > 0 && release.bugfixes.length > 0
