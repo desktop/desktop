@@ -77,6 +77,15 @@ const interactionRoles = new Set([
   'radio',
 ])
 
+/**
+ * Determine if the target of a pointer event is contained within,
+ * or is itself, an "interaction target".
+ *
+ * We define an interaction target to be things like buttons, text
+ * inputs, links, etc. We don't consider divs, spans, etc to be
+ * interaction targets at the moment although they arguable would fit
+ * the description when a user selects text within a span.
+ */
 function isInteractionTarget(target: HTMLElement | null) {
   while (target !== null) {
     if (interactionTargets.has(target.nodeName)) {
