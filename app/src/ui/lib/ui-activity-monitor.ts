@@ -1,8 +1,25 @@
 import { Emitter, Disposable } from 'event-kit'
 import { ipcRenderer } from 'electron'
 
+/**
+ * Describes the interface of a UI activity monitor.
+ *
+ * We define a UI activity monitor as an object which can
+ * be used to be notified whenever the user interacts with the
+ * application.
+ */
 export interface IUiActivityMonitor {
-  onActivity(handler: () => void): Disposable
+  /**
+   * Subscribe to get notified when the user interacts
+   * with the application. The first, and only argument
+   * to the event handler will be a value indicating the
+   * kind of action detected (mouse/pointer, keyboard etc).
+   *
+   * @return A disposable object which, when disposed will
+   *         terminate the subscription and prevent any
+   *         further calls to the handler.
+   */
+  onActivity(handler: (kind: UiActivityKind) => void): Disposable
 }
 
 export type UiActivityKind = 'pointer' | 'keyboard' | 'menu'
