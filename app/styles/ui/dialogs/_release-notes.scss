@@ -11,6 +11,11 @@
   .dialog-header {
     height: 100px;
 
+    .release-notes-header {
+      display: flex;
+      flex: 1;
+    }
+
     .release-note-graphic-left {
       margin-right: 20px;
     }

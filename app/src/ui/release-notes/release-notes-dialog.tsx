@@ -214,10 +214,10 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
     return (
       <Dialog id="release-notes" onDismissed={this.props.onDismissed}>
         <DialogHeader
-          title={`Version ${release.latestVersion}`}
+          title={` `}
           dismissable={false}
         >
-          <div>
+          <div className="release-notes-header">
             <img
               className="release-note-graphic-left"
               src={ReleaseNoteHeaderLeftUri}
