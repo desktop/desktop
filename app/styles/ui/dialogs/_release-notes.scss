@@ -52,9 +52,9 @@
     padding-left: var(--spacing-double);
     padding-right: var(--spacing-double);
     margin-top: var(--spacing-double);
+    overflow: scroll;
 
     .column {
-      overflow: scroll;
       width: 250px;
 
       .section {
