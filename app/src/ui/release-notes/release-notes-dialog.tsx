@@ -113,7 +113,9 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
 
     return (
       <div className="section">
-        <p className="header">{header}</p>
+        <p className="header">
+          <strong>{header}</strong>
+        </p>
         <ul className="entries">{options}</ul>
       </div>
     )
