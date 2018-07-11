@@ -40,23 +40,20 @@ export function parseReleaseEntries(
   for (const note of notes) {
     const text = note.trim()
     const match = itemEntryRe.exec(text)
-    if (match !== null) {
-      const kind = match[1].toLowerCase()
-      const message = match[2]
+    if (match === null) {
+      continue
+    }
+    const kind = match[1].toLowerCase()
+    const message = match[2]
 
-      if (kind === 'new') {
+    switch (kind) {
+      case 'new':
+      case 'fixed':
+      case 'improved':
+      case 'removed':
+      case 'added':
+      case 'pretext':
         entries.push({ kind, message })
-      } else if (kind === 'fixed') {
-        entries.push({ kind, message })
-      } else if (kind === 'improved') {
-        entries.push({ kind, message })
-      } else if (kind === 'removed') {
-        entries.push({ kind, message })
-      } else if (kind === 'added') {
-        entries.push({ kind, message })
-      } else if (kind === 'pretext') {
-        entries.push({ kind, message })
-      }
     }
   }
 
