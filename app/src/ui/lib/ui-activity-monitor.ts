@@ -24,10 +24,23 @@ export interface IUiActivityMonitor {
 
 export type UiActivityKind = 'pointer' | 'keyboard' | 'menu'
 
+/**
+ * UI Activity monitor for user interactions within GitHub Desktop.
+ */
 export class UiActivityMonitor implements IUiActivityMonitor {
   private readonly emitter = new Emitter()
   private subscriberCount = 0
 
+  /**
+   * Subscribe to get notified when the user interacts
+   * with the application. The first, and only argument
+   * to the event handler will be a value indicating the
+   * kind of action detected (mouse/pointer, keyboard etc).
+   *
+   * @return A disposable object which, when disposed will
+   *         terminate the subscription and prevent any
+   *         further calls to the handler.
+   */
   public onActivity(handler: (kind: UiActivityKind) => void): Disposable {
     const emitterDisposable = this.emitter.on('activity', handler)
 
