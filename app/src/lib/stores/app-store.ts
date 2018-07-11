@@ -2388,8 +2388,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         } else if (githubAccount.endpoint === getDotComAPIEndpoint()) {
           this._recordPushToGitHub()
         } else if (
-          githubAccount.endpoint ===
-          getEnterpriseAPIURL(githubAccount.endpoint)
+          githubAccount.endpoint === getEnterpriseAPIURL(githubAccount.endpoint)
         ) {
           this._recordPushToGitHubEnterprise()
         }
