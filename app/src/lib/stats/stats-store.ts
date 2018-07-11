@@ -36,10 +36,12 @@ const DefaultDailyMeasures: IDailyMeasures = {
   updateFromDefaultBranchMenuCount: 0,
   mergeIntoCurrentBranchMenuCount: 0,
   prBranchCheckouts: 0,
+  repoWithIndicatorClicked: 0,
+  repoWithoutIndicatorClicked: 0,
   divergingBranchBannerDismissal: 0,
   divergingBranchBannerInitatedMerge: 0,
   divergingBranchBannerInitiatedCompare: 0,
-  divergingBranchBannerInfluencedCompare: 0,
+  divergingBranchBannerInfluencedMerge: 0,
   divergingBranchBannerDisplayed: 0,
   dotcomPushCount: 0,
   enterprisePushCount: 0,
@@ -358,6 +360,17 @@ export class StatsStore {
     }))
   }
 
+  public recordRepoClicked(repoHasIndicator: boolean): Promise<void> {
+    if (repoHasIndicator) {
+      return this.updateDailyMeasures(m => ({
+        repoWithIndicatorClicked: m.repoWithIndicatorClicked + 1,
+      }))
+    }
+    return this.updateDailyMeasures(m => ({
+      repoWithoutIndicatorClicked: m.repoWithoutIndicatorClicked + 1,
+    }))
+  }
+
   /** Set whether the user has opted out of stats reporting. */
   public async setOptOut(optOut: boolean): Promise<void> {
     const changed = this.optOut !== optOut
@@ -403,10 +416,10 @@ export class StatsStore {
    * Record that user initiated a merge after getting to compare view
    * from within notificatio banner
    */
-  public async recordDivergingBranchBannerInfluencedCompare(): Promise<void> {
+  public async recordDivergingBranchBannerInfluencedMerge(): Promise<void> {
     return this.updateDailyMeasures(m => ({
-      divergingBranchBannerInfluencedCompare:
-        m.divergingBranchBannerInfluencedCompare + 1,
+      divergingBranchBannerInfluencedMerge:
+        m.divergingBranchBannerInfluencedMerge + 1,
     }))
   }
 

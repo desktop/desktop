@@ -24,7 +24,10 @@ import { OcticonSymbol } from '../octicons'
 import { SelectionSource } from '../lib/filter-list'
 import { IMatches } from '../../lib/fuzzy-find'
 import { Ref } from '../lib/ref'
-import { NewCommitsBanner } from '../notification/new-commits-banner'
+import {
+  NewCommitsBanner,
+  DismissalReason,
+} from '../notification/new-commits-banner'
 import { enableNotificationOfBranchUpdates } from '../../lib/feature-flag'
 import { MergeCallToAction } from './merge-call-to-action'
 
@@ -50,6 +53,12 @@ interface ICompareSidebarState {
    */
   readonly focusedBranch: Branch | null
   readonly selectedCommit: Commit | null
+
+  /**
+   * Flag that tracks whether the user interacted with one of the notification's
+   * "call to action" buttons
+   */
+  readonly hasConsumedNotification: boolean
 }
 
 /** If we're within this many rows from the bottom, load the next history batch. */
@@ -70,6 +79,7 @@ export class CompareSidebar extends React.Component<
     this.state = {
       focusedBranch: null,
       selectedCommit: null,
+      hasConsumedNotification: false,
     }
   }
 
@@ -182,9 +192,12 @@ export class CompareSidebar extends React.Component<
     const { inferredComparisonBranch } = this.props.compareState
 
     return inferredComparisonBranch.branch !== null &&
-      inferredComparisonBranch.aheadBehind !== null ? (
+      inferredComparisonBranch.aheadBehind !== null &&
+      inferredComparisonBranch.aheadBehind.behind > 0 ? (
       <div className="diverge-banner-wrapper">
         <NewCommitsBanner
+          dispatcher={this.props.dispatcher}
+          repository={this.props.repository}
           commitsBehindBaseBranch={inferredComparisonBranch.aheadBehind.behind}
           baseBranch={inferredComparisonBranch.branch}
           onDismiss={this.onNotificationBannerDismissed}
@@ -307,6 +320,7 @@ export class CompareSidebar extends React.Component<
         dispatcher={this.props.dispatcher}
         currentBranch={this.props.currentBranch}
         formState={formState}
+        onMerged={this.onMerge}
       />
     )
   }
@@ -525,9 +539,25 @@ export class CompareSidebar extends React.Component<
     this.textbox = textbox
   }
 
-  private onNotificationBannerDismissed = () => {
+  private onNotificationBannerDismissed = (reason: DismissalReason) => {
     this.props.dispatcher.setDivergingBranchBannerVisibility(false)
     this.props.dispatcher.recordDivergingBranchBannerDismissal()
+
+    switch (reason) {
+      case 'close':
+        this.setState({ hasConsumedNotification: false })
+        break
+      case 'compare':
+      case 'merge':
+        this.setState({ hasConsumedNotification: true })
+        break
+    }
+  }
+
+  private onMerge = () => {
+    if (this.state.hasConsumedNotification) {
+      this.props.dispatcher.recordDivergingBranchBannerInfluencedMerge()
+    }
   }
 }
 

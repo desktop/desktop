@@ -140,6 +140,7 @@ import { IRemote, ForkedRemotePrefix } from '../../models/remote'
 import { IAuthor } from '../../models/author'
 import { ComparisonCache } from '../comparison-cache'
 import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
+import { enableRepoInfoIndicators } from '../feature-flag'
 import { inferComparisonBranch } from './helpers/infer-comparison-branch'
 import {
   ApplicationTheme,
@@ -362,8 +363,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.accountsStore.onDidError(error => this.emitError(error))
 
     this.repositoriesStore.onDidUpdate(async () => {
-      const repositories = await this.repositoriesStore.getAll()
-      this.repositories = repositories
+      this.repositories = await this.repositoriesStore.getAll()
       this.updateRepositorySelectionAfterRepositoriesChanged()
       this.emitUpdate()
     })
@@ -906,6 +906,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
             aheadBehind,
           },
           commitSHAs: compare.commits.map(commit => commit.sha),
+          filterText: comparisonBranch.name,
         }))
 
         const tip = gitStore.tip
@@ -1397,6 +1398,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdateNow()
 
     this.accountsStore.refresh()
+    this.refreshAllRepositories()
   }
 
   private async getSelectedExternalEditor(): Promise<ExternalEditor | null> {
@@ -1855,6 +1857,45 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this._updateCurrentPullRequest(repository)
     this.updateMenuItemLabels(repository)
     this._initializeCompare(repository)
+    this.refreshRepositoryState([repository])
+  }
+
+  public refreshAllRepositories() {
+    return this.refreshRepositoryState(this.repositories)
+  }
+
+  private async refreshRepositoryState(
+    repositories: ReadonlyArray<Repository>
+  ): Promise<void> {
+    if (!enableRepoInfoIndicators()) {
+      return
+    }
+
+    const promises = []
+
+    for (const repo of repositories) {
+      promises.push(
+        this.withAuthenticatingUser(repo, async (repo, account) => {
+          const gitStore = this.getGitStore(repo)
+          const lookup = this.localRepositoryStateLookup
+          if (this.shouldBackgroundFetch(repo)) {
+            await gitStore.fetch(account, true)
+          }
+
+          const status = await gitStore.loadStatus()
+          if (status !== null) {
+            lookup.set(repo.id, {
+              aheadBehind: gitStore.aheadBehind,
+              changedFilesCount: status.workingDirectory.files.length,
+            })
+          }
+        })
+      )
+    }
+
+    await Promise.all(promises)
+
+    this.emitUpdate()
   }
 
   /**
@@ -3791,14 +3832,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /**
-   * The number of times the user dismisses the diverged branch notification
+   * Increments either the `repoWithIndicatorClicked` or
+   * the `repoWithoutIndicatorClicked` metric
+   */
+  public _recordRepoClicked(repoHasIndicator: boolean) {
+    this.statsStore.recordRepoClicked(repoHasIndicator)
+  }
+
+  /** The number of times the user dismisses the diverged branch notification
+   * Increments the `divergingBranchBannerDismissal` metric
    */
   public _recordDivergingBranchBannerDismissal() {
     this.statsStore.recordDivergingBranchBannerDismissal()
   }
 
   /**
-   * The number of times the user showne the diverged branch notification
+   * Increments the `divergingBranchBannerDisplayed` metric
    */
   public _recordDivergingBranchBannerDisplayed() {
     this.statsStore.recordDivergingBranchBannerDisplayed()
@@ -3823,6 +3872,27 @@ export class AppStore extends TypedBaseStore<IAppState> {
    */
   public _recordPushToGenericRemote() {
     this.statsStore.recordPushToGenericRemote()
+  }
+
+  /**
+   * Increments the `divergingBranchBannerInitiatedCompare` metric
+   */
+  public _recordDivergingBranchBannerInitiatedCompare() {
+    this.statsStore.recordDivergingBranchBannerInitiatedCompare()
+  }
+
+  /**
+   * Increments the `divergingBranchBannerInfluencedMerge` metric
+   */
+  public _recordDivergingBranchBannerInfluencedMerge() {
+    this.statsStore.recordDivergingBranchBannerInfluencedMerge()
+  }
+
+  /**
+   * Increments the `divergingBranchBannerInitatedMerge` metric
+   */
+  public _recordDivergingBranchBannerInitatedMerge() {
+    this.statsStore.recordDivergingBranchBannerInitatedMerge()
   }
 }
 

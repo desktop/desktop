@@ -19,6 +19,7 @@
 
   &-content {
     display: flex;
+    flex-wrap: wrap;
 
     p {
       flex-grow: 1;
@@ -90,5 +91,12 @@
 }
 
 .notification-banner-content-body {
-  color: var(--text-secondary-color);
+  margin-bottom: var(--spacing-half);
+}
+
+.notification-banner-content {
+  .button-component {
+    margin-top: var(--spacing-half);
+    margin-right: var(--spacing-half);
+  }
 }
