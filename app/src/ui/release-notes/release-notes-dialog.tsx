@@ -83,11 +83,43 @@ const releaseSummaryStub: ReleaseSummary = {
       kind: 'improved',
       message: 'Improvement 1',
     },
+    {
+      kind: 'improved',
+      message: 'Improvement 2',
+    },
+    {
+      kind: 'improved',
+      message: 'Improvement 3',
+    },
+    {
+      kind: 'improved',
+      message: 'Improvement 4',
+    },
+    {
+      kind: 'improved',
+      message: 'Improvement 5',
+    },
+    {
+      kind: 'improved',
+      message: 'Improvement 6',
+    },
+    {
+      kind: 'improved',
+      message: 'Improvement 7',
+    },
   ],
   bugfixes: [
     {
       kind: 'fixed',
-      message: 'Fixed 1',
+      message: 'Fix 1',
+    },
+    {
+      kind: 'fixed',
+      message: 'Fix 2',
+    },
+    {
+      kind: 'fixed',
+      message: 'Fix 3',
     },
   ],
   other: [],
