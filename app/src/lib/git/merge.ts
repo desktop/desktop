@@ -1,7 +1,7 @@
 import { git } from './core'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
-import { parseMergeResult, MergeResult } from './merge-parser'
+import { parseMergeResult, MergeResult, MergeResultKind } from './merge-parser'
 
 /** Merge the named branch into the current branch. */
 export async function merge(
@@ -31,12 +31,14 @@ export async function mergeTree(
 ): Promise<MergeResult | null> {
   const mergeBase = await getMergeBase(repository, ours.tip.sha, theirs.tip.sha)
 
-  if (mergeBase === ours.tip.sha || mergeBase === theirs.tip.sha) {
-    log.warn(
-      `The merge base is already known, and there is no need to do further work?!?!?`
-    )
-    debugger
-    return null
+  if (mergeBase === ours.tip.sha) {
+    log.warn('[fast-forward merge] ours is behind theirs ')
+    return { kind: MergeResultKind.Success, entries: [] }
+  }
+
+  if (mergeBase === theirs.tip.sha) {
+    log.warn('[fast-forward merge] theirs is behind ours ')
+    return { kind: MergeResultKind.Success, entries: [] }
   }
 
   const result = await git(
