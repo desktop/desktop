@@ -97,7 +97,7 @@ export class UiActivityMonitor implements IUiActivityMonitor {
 }
 
 const interactionTargets = new Set(
-  ['button', 'a', 'input', 'textarea'].map(x => x.toUpperCase())
+  ['button', 'a', 'input', 'textarea', 'label'].map(x => x.toUpperCase())
 )
 const interactionRoles = new Set([
   'button',
