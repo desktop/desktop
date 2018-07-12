@@ -181,8 +181,13 @@ export class StatsStore {
     await this.db.launches.add(stats)
   }
 
-  /** Clear the stored daily stats. */
-  private async clearDailyStats() {
+  /**
+   * Clear the stored daily stats. Not meant to be called
+   * directly. Marked as public in order to enable testing
+   * of a specific scenario, see stats-store-tests for more
+   * detail.
+   */
+  public async clearDailyStats() {
     await this.db.launches.clear()
     await this.db.dailyMeasures.clear()
 

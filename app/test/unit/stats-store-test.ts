@@ -69,4 +69,25 @@ describe('StatsStore', () => {
       expect(statsEntry!.active).to.be.true
     })
   })
+
+  it('resubscribes to the activity monitor after submitting', async () => {
+    const statsDb = await createStatsDb()
+    const activityMonitor = new FakeActivityMonitor()
+
+    const store = new StatsStore(statsDb, activityMonitor)
+
+    expect(activityMonitor.subscriptionCount).to.equal(1)
+
+    activityMonitor.fakeMouseActivity()
+
+    expect(activityMonitor.subscriptionCount).to.equal(0)
+
+    // HACK: The stats store is hard coded to bail out of the
+    // reporting method if running in a test-environment so
+    // we'll have to pull an ugly workaround here and call
+    // the instance member that we know for sure gets called
+    // after stats submission
+    await store.clearDailyStats()
+    expect(activityMonitor.subscriptionCount).to.equal(1)
+  })
 })
