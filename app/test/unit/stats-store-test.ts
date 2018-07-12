@@ -3,43 +3,7 @@ import { expect } from 'chai'
 import { TestStatsDatabase } from '../helpers/databases'
 
 import { StatsStore } from '../../src/lib/stats'
-import {
-  UiActivityKind,
-  IUiActivityMonitor,
-} from '../../src/ui/lib/ui-activity-monitor'
-import { Emitter, Disposable } from 'event-kit'
-
-class FakeActivityMonitor implements IUiActivityMonitor {
-  private readonly emitter = new Emitter()
-  public subscriptionCount = 0
-
-  public onActivity(handler: (kind: UiActivityKind) => void) {
-    this.subscriptionCount++
-
-    const disp = this.emitter.on('activity', handler)
-
-    return new Disposable(() => {
-      disp.dispose()
-      this.subscriptionCount--
-    })
-  }
-
-  private emit(kind: UiActivityKind) {
-    this.emitter.emit('activity', kind)
-  }
-
-  public fakeMouseActivity() {
-    this.emit('pointer')
-  }
-
-  public fakeKeyboardActivity() {
-    this.emit('keyboard')
-  }
-
-  public fakeMenuActivity() {
-    this.emit('menu')
-  }
-}
+import { TestActivityMonitor } from '../helpers/test-activity-monitor'
 
 describe('StatsStore', () => {
   async function createStatsDb() {
@@ -50,7 +14,7 @@ describe('StatsStore', () => {
 
   it("unsubscribes from the activity monitor when it's no longer needed", async () => {
     const statsDb = await createStatsDb()
-    const activityMonitor = new FakeActivityMonitor()
+    const activityMonitor = new TestActivityMonitor()
 
     new StatsStore(statsDb, activityMonitor)
 
