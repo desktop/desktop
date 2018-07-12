@@ -31,7 +31,7 @@ describe('findAccountForRemoteURL', () => {
       'https://gitlab.com/inkscape/inkscape.git',
       accounts
     )
-    expect(account).equal(null)
+    expect(account).to.equal(null)
   })
 
   it('gives no account for non-existent GitHub owner/name repository', async () => {
