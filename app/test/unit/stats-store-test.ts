@@ -36,7 +36,7 @@ describe('StatsStore', () => {
 
   it('resubscribes to the activity monitor after submitting', async () => {
     const statsDb = await createStatsDb()
-    const activityMonitor = new FakeActivityMonitor()
+    const activityMonitor = new TestActivityMonitor()
 
     const store = new StatsStore(statsDb, activityMonitor)
 
