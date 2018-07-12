@@ -22,6 +22,9 @@ export interface IUiActivityMonitor {
   onActivity(handler: (kind: UiActivityKind) => void): Disposable
 }
 
+/**
+ * A value indicating a user activity type (mouse/pointer, keyboard etc).
+ */
 export type UiActivityKind = 'pointer' | 'keyboard' | 'menu'
 
 /**
