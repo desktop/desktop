@@ -84,7 +84,7 @@ describe('git/status', () => {
       expect(files[1].path).to.equal('docs/OVERVIEW.md')
     })
 
-    it.only('returns null when result size is greater than max buffer size', async () => {
+    it('Does not fail when a large number of changes have been made', async () => {
       const numFiles = 10000
       const basePath = repository!.path
 
