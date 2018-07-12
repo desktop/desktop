@@ -29,7 +29,11 @@ export async function mergeTree(
   ours: Branch,
   theirs: Branch
 ): Promise<MergeResult | null> {
+  console.time('getMergeBase')
+
   const mergeBase = await getMergeBase(repository, ours.tip.sha, theirs.tip.sha)
+
+  console.timeEnd('getMergeBase')
 
   if (mergeBase === ours.tip.sha) {
     log.warn('[fast-forward merge] ours is behind theirs ')
@@ -41,11 +45,17 @@ export async function mergeTree(
     return { kind: MergeResultKind.Success, entries: [] }
   }
 
+  console.time('mergeTree')
   const result = await git(
     ['merge-tree', mergeBase, ours.tip.sha, theirs.tip.sha],
     repository.path,
     'mergeTree'
   )
+  console.timeEnd('mergeTree')
+
   const output = result.stdout
-  return parseMergeResult(output)
+  console.time('parseMergeResult')
+  const mergeResult = parseMergeResult(output)
+  console.timeEnd('parseMergeResult')
+  return mergeResult
 }

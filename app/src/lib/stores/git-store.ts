@@ -1353,19 +1353,15 @@ export class GitStore extends BaseStore {
       return Promise.reject('tip is in unknown state')
     }
 
-    console.time('merge tree')
-
     const result = await mergeTree(
       this.repository,
       this.tip.branch,
       compareBranch
     )
 
-    console.timeEnd('merge tree')
-
     if (result != null) {
-      if (result.kind !== MergeResultKind.Success) {
-      } else {
+      if (result.kind == MergeResultKind.Conflicts) {
+        log.info('we have conflicts when merging these two together?!?!?!?')
       }
     }
   }
