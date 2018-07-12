@@ -87,16 +87,13 @@ type DailyStats = ICalculatedStats & ILaunchStats & IDailyMeasures
 /** The store for the app's stats. */
 export class StatsStore {
   private readonly db: StatsDatabase
-  private readonly uiActivityMonitor?: IUiActivityMonitor
+  private readonly uiActivityMonitor: IUiActivityMonitor
   private uiActivityMonitorSubscription: Disposable | null = null
 
   /** Has the user opted out of stats reporting? */
   private optOut: boolean
 
-  public constructor(
-    db: StatsDatabase,
-    uiActivityMonitor?: IUiActivityMonitor
-  ) {
+  public constructor(db: StatsDatabase, uiActivityMonitor: IUiActivityMonitor) {
     this.db = db
     this.uiActivityMonitor = uiActivityMonitor
 
@@ -195,10 +192,6 @@ export class StatsStore {
   }
 
   private enableUiActivityMonitoring() {
-    if (this.uiActivityMonitor === undefined) {
-      return
-    }
-
     if (this.uiActivityMonitorSubscription !== null) {
       return
     }
