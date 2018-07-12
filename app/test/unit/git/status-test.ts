@@ -84,8 +84,8 @@ describe('git/status', () => {
       expect(files[1].path).to.equal('docs/OVERVIEW.md')
     })
 
-    it('Does not fail when a large number of changes have been made', async () => {
-      const numFiles = 10000
+    it.only('Handles at least 25k untracked files without failing', async () => {
+      const numFiles = 25000
       const basePath = repository!.path
 
       await mkdir(basePath)
