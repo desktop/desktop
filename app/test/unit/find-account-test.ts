@@ -26,6 +26,7 @@ describe('findAccountForRemoteURL', () => {
     ),
   ]
 
+  // this test currently fails due to the details outlined in https://github.com/desktop/desktop/issues/4154
   it.skip('gives no account for non-GitHub endpoint', async () => {
     const account = await findAccountForRemoteURL(
       'https://gitlab.com/inkscape/inkscape.git',
