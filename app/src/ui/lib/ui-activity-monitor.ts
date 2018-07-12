@@ -47,12 +47,16 @@ export class UiActivityMonitor implements IUiActivityMonitor {
   public onActivity(handler: (kind: UiActivityKind) => void): Disposable {
     const emitterDisposable = this.emitter.on('activity', handler)
 
-    if (this.subscriberCount++ === 0) {
+    if (this.subscriberCount === 0) {
       this.startTracking()
     }
 
+    this.subscriberCount++
+
     return new Disposable(() => {
-      if (--this.subscriberCount === 0) {
+      this.subscriberCount--
+
+      if (this.subscriberCount === 0) {
         this.stopTracking()
       }
 
