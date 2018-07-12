@@ -82,6 +82,7 @@ export interface IDailyMeasures {
   /** The number of times the diverged branch notification is displayed */
   readonly divergingBranchBannerDisplayed: number
 
+  /** Whether or not the app has been interacted with during the current reporting window */
   readonly active: boolean
 }
 
