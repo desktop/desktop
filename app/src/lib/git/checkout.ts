@@ -69,8 +69,8 @@ export async function checkoutBranch(
 
   const args =
     branch.type === BranchType.Remote
-      ? baseArgs.concat(branch.name, '-b', branch.nameWithoutRemote, '--')
-      : baseArgs.concat(branch.name, '--')
+      ? baseArgs.concat(branch.name, '-b', branch.nameWithoutRemote, '--recurse-submodules', '--')
+      : baseArgs.concat(branch.name, '--recurse-submodules', '--')
 
   await git(args, repository.path, 'checkoutBranch', opts)
 }
