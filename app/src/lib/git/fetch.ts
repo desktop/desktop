@@ -61,8 +61,21 @@ export async function fetch(
   }
 
   const args = progressCallback
-    ? [...gitNetworkArguments, 'fetch', '--progress', '--prune', '--recurse-submodules=on-demand', remote]
-    : [...gitNetworkArguments, 'fetch', '--prune', '--recurse-submodules=on-demand', remote]
+    ? [
+        ...gitNetworkArguments,
+        'fetch',
+        '--progress',
+        '--prune',
+        '--recurse-submodules=on-demand',
+        remote,
+      ]
+    : [
+        ...gitNetworkArguments,
+        'fetch',
+        '--prune',
+        '--recurse-submodules=on-demand',
+        remote,
+      ]
 
   await git(args, repository.path, 'fetch', opts)
 }

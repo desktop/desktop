@@ -69,8 +69,21 @@ export async function pull(
   }
 
   const args = progressCallback
-    ? [...gitNetworkArguments, 'pull', '--no-rebase', '--recurse-submodules', '--progress', remote]
-    : [...gitNetworkArguments, 'pull', '--no-rebase', '--recurse-submodules', remote]
+    ? [
+        ...gitNetworkArguments,
+        'pull',
+        '--no-rebase',
+        '--recurse-submodules',
+        '--progress',
+        remote,
+      ]
+    : [
+        ...gitNetworkArguments,
+        'pull',
+        '--no-rebase',
+        '--recurse-submodules',
+        remote,
+      ]
 
   const result = await git(args, repository.path, 'pull', opts)
 
