@@ -26,6 +26,9 @@ export interface IPublishRepositorySettings {
   /** The repository's description. */
   readonly description: string
 
+  /** Whether the current user (or organization if chosen by user) is on a non-paid plan */
+  readonly isFreePlan: boolean
+
   /** Should the repository be private? */
   readonly private: boolean
 
@@ -90,14 +93,44 @@ export class PublishRepository extends React.Component<
     this.updateSettings({ private: event.currentTarget.checked })
   }
 
-  private onOrgChange = (event: React.FormEvent<HTMLSelectElement>) => {
+  private onOrgChange = async (event: React.FormEvent<HTMLSelectElement>) => {
     const value = event.currentTarget.value
     const index = parseInt(value, 10)
     if (index < 0 || isNaN(index)) {
-      this.updateSettings({ org: null })
+      // publishing to current user's account
+      let isFreePlan = true
+
+      if (this.props.account.plan != null) {
+        if (this.props.account.plan.name !== 'free') {
+          isFreePlan = false
+        }
+      }
+
+      // clear the private state if the user is on a free plan
+      const newPrivateValue = isFreePlan ? false : this.props.settings.private
+
+      this.updateSettings({ org: null, isFreePlan, private: newPrivateValue })
     } else {
       const org = this.state.orgs[index]
-      this.updateSettings({ org })
+
+      // fetch the org details which are not available from `GET /user/orgs`
+      const api = API.fromAccount(this.props.account)
+      const fullOrgDetails = await api.fetchOrg(org.login)
+
+      let isFreePlan = true
+      if (fullOrgDetails != null) {
+        if (
+          fullOrgDetails.plan.name !== 'free'
+          // && fullOrgDetails.members_can_create_repositories === true
+        ) {
+          isFreePlan = false
+        }
+      }
+
+      // clear the private state if the org is on a free plan
+      const newPrivateValue = isFreePlan ? false : this.props.settings.private
+
+      this.updateSettings({ org, isFreePlan, private: newPrivateValue })
     }
   }
 
@@ -139,6 +172,8 @@ export class PublishRepository extends React.Component<
   }
 
   public render() {
+    const disabled = this.props.settings.isFreePlan
+
     return (
       <DialogContent>
         <Row>
@@ -163,6 +198,7 @@ export class PublishRepository extends React.Component<
             <input
               type="checkbox"
               checked={this.props.settings.private}
+              disabled={disabled}
               onChange={this.onPrivateChange}
             />
             Keep this code private
