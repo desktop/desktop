@@ -58,7 +58,7 @@ export interface IAPICommit {
 }
 
 // TODO: find the canonical list of these options
-type Plan = 'developer' | 'free' | '???'
+export type Plan = 'developer' | 'free' | '???'
 
 interface IAccountWithPlan {
   readonly plan: {
@@ -752,7 +752,8 @@ export async function fetchUser(
       emails,
       avatarURL,
       user.id,
-      user.name || user.login
+      user.name || user.login,
+      user.plan
     )
   } catch (e) {
     log.warn(`fetchUser: failed with endpoint ${endpoint}`, e)

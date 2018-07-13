@@ -1,4 +1,4 @@
-import { getDotComAPIEndpoint, IAPIEmail } from '../lib/api'
+import { getDotComAPIEndpoint, IAPIEmail, Plan } from '../lib/api'
 
 /**
  * A GitHub account, representing the user found on GitHub The Website or GitHub Enterprise.
@@ -25,7 +25,10 @@ export class Account {
     /** The database id for this account */
     public readonly id: number,
     /** The friendly name associated with this account */
-    public readonly name: string
+    public readonly name: string,
+    public readonly plan?: {
+      readonly name: Plan
+    }
   ) {}
 
   public withToken(token: string): Account {
