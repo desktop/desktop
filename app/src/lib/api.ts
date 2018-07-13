@@ -57,6 +57,15 @@ export interface IAPICommit {
   readonly author: IAPIUser | null
 }
 
+// TODO: find the canonical list of these options
+type Plan = 'developer' | 'free' | '???'
+
+interface IAccountWithPlan {
+  readonly plan: {
+    readonly name: Plan
+  }
+}
+
 /**
  * Information about a user as returned by the GitHub API.
  */
@@ -79,6 +88,12 @@ export interface IAPIUser {
   readonly email: string | null
   readonly type: 'User' | 'Organization'
 }
+
+/**
+ * This interface should only be used on known API endpoints that
+ * return the plan information
+ */
+type IAPIUserWithPlan = IAPIUser & IAccountWithPlan
 
 /** The users we get from the mentionables endpoint. */
 export interface IAPIMentionableUser {
@@ -280,10 +295,10 @@ export class API {
   }
 
   /** Fetch the logged in account. */
-  public async fetchAccount(): Promise<IAPIUser> {
+  public async fetchAccount(): Promise<IAPIUserWithPlan> {
     try {
       const response = await this.request('GET', 'user')
-      const result = await parsedResponse<IAPIUser>(response)
+      const result = await parsedResponse<IAPIUserWithPlan>(response)
       return result
     } catch (e) {
       log.warn(`fetchAccount: failed with endpoint ${this.endpoint}`, e)
@@ -352,6 +367,18 @@ export class API {
     } catch (e) {
       log.warn(`fetchOrgs: failed with endpoint ${this.endpoint}`, e)
       return []
+    }
+  }
+
+  /** Fetch all the orgs to which the user belongs. */
+  public async fetchOrg(name: string): Promise<IAPIUserWithPlan | null> {
+    const url = `/orgs/${name}`
+    try {
+      const response = await this.request('GET', url)
+      return await parsedResponse<IAPIUserWithPlan>(response)
+    } catch (e) {
+      log.warn(`fetchOrg: failed with endpoint ${url}`, e)
+      return null
     }
   }
 
