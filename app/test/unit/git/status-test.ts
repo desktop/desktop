@@ -11,6 +11,10 @@ import {
   setupEmptyRepository,
 } from '../../helpers/repositories'
 import { AppFileStatus } from '../../../src/models/status'
+import * as temp from 'temp'
+
+const _temp = temp.track()
+const mkdir = _temp.mkdir
 
 describe('git/status', () => {
   let repository: Repository | null = null
@@ -78,6 +82,26 @@ describe('git/status', () => {
       expect(files[1].status).to.equal(AppFileStatus.Copied)
       expect(files[1].oldPath).to.equal('CONTRIBUTING.md')
       expect(files[1].path).to.equal('docs/OVERVIEW.md')
+    })
+
+    it('Handles at least 10k untracked files without failing', async () => {
+      const numFiles = 10000
+      const basePath = repository!.path
+
+      await mkdir(basePath)
+
+      // create a lot of files
+      const promises = []
+      for (let i = 0; i < numFiles; i++) {
+        promises.push(
+          FSE.writeFile(path.join(basePath, `test-file-${i}`), 'Hey there\n')
+        )
+      }
+      await Promise.all(promises)
+
+      const status = await getStatusOrThrow(repository!)
+      const files = status.workingDirectory.files
+      expect(files.length).to.equal(numFiles)
     })
   })
 })

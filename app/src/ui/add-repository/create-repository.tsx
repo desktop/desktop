@@ -273,16 +273,18 @@ export class CreateRepository extends React.Component<
       this.props.dispatcher.postError(e)
     }
 
-    try {
-      const status = await getStatus(repository)
-      if (status == null) {
-        log.error(
+    const status = await getStatus(repository)
+    if (status === null) {
+      this.props.dispatcher.postError(
+        new Error(
           `createRepository: unable to get status for repository at ${fullPath}`
         )
-        // TODO: this feels hacky too
-        return
-      }
+      )
 
+      return
+    }
+
+    try {
       const wd = status.workingDirectory
       const files = wd.files
       if (files.length > 0) {
