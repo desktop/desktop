@@ -47,6 +47,9 @@ describe('RepositoriesStore', () => {
         email: 'my-user@users.noreply.github.com',
         name: 'My User',
         type: 'User',
+        plan: {
+          name: 'free',
+        },
       },
       private: true,
       fork: false,
