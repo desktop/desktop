@@ -279,7 +279,7 @@ export class DiffLineGutter extends React.Component<
   }
 
   public render() {
-    let role =
+    const role =
       !this.props.readOnly && this.props.line.isIncludeableLine()
         ? 'button'
         : undefined
