@@ -13,7 +13,6 @@ export interface IRepositoryListItem extends IFilterListItem {
   readonly text: ReadonlyArray<string>
   readonly id: string
   readonly repository: Repositoryish
-  readonly needsDisambiguation: boolean
   readonly aheadBehind: IAheadBehind | null
   readonly changedFilesCount: number
 }
@@ -73,7 +72,6 @@ export function groupRepositories(
         text: [r.name],
         id: r.id.toString(),
         repository: r,
-        needsDisambiguation: true,
         aheadBehind,
         changedFilesCount,
       }

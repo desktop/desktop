@@ -33,9 +33,6 @@ interface IRepositoryListItemProps {
   /** The current external editor selected by the user */
   readonly externalEditorLabel?: string
 
-  /** Does the repository need to be disambiguated in the list? */
-  readonly needsDisambiguation: boolean
-
   /** The label for the user's preferred shell. */
   readonly shellLabel: string
 
@@ -94,7 +91,7 @@ export class RepositoryListItem extends React.Component<
       : path
 
     let prefix: string | null = null
-    if (this.props.needsDisambiguation && gitHubRepo) {
+    if (gitHubRepo) {
       prefix = `${gitHubRepo.owner.login}/`
     }
 
