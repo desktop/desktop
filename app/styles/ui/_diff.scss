@@ -84,6 +84,19 @@
     border-right: 4px solid var(--diff-border-color);
   }
 
+  .diff-line-number {
+    cursor: default;
+  }
+
+  &.diff-add,
+  &.diff-delete {
+    &:not(.read-only) {
+      .diff-line-number {
+        cursor: pointer;
+      }
+    }
+  }
+
   &.read-only .after {
     border-right-width: 1px;
   }
