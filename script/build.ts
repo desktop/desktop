@@ -187,13 +187,13 @@ function packageApp(
     },
   }
 
-  packager(options, (err: Error, appPaths: string | string[]) => {
-    if (err) {
-      callback(err, appPaths)
-    } else {
+  packager(options)
+    .then((appPaths: string | string[]) => {
       callback(null, appPaths)
-    }
-  })
+    })
+    .catch((err: Error) => {
+      callback(err, [])
+    })
 }
 
 function removeAndCopy(source: string, destination: string) {
