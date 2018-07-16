@@ -2,7 +2,7 @@
   "releases": {
     "1.3.0-beta2": [
       "[Added] Option to move repository to trash when removing from app - #2108. Thanks @say25!",
-      "[Fixed] Fix contrast of Markdown headers in dark mode - #5133. Thanks @agisilaos!",
+      "[Fixed] Markdown header elements hard to read in dark mode - #5133. Thanks @agisilaos!",
       "[Improved] Diff gutter elements should be considered button elements when interacting - #5158"
     ],
     "1.2.7-test3": [
