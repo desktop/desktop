@@ -1,8 +1,7 @@
-@import "../../mixins";
+@import '../../mixins';
 
 /** A React component holding the commit message entry */
 #commit-message {
-
   border-top: 1px solid var(--box-border-color);
   flex-direction: column;
   flex-shrink: 0;
@@ -20,15 +19,160 @@
       flex: 1;
       margin-bottom: var(--spacing);
 
-      input { width: 100%; }
+      input {
+        width: 100%;
+      }
     }
 
     .avatar {
       flex-shrink: 0;
       width: var(--text-field-height);
-      height:var(--text-field-height);
+      height: var(--text-field-height);
       border: var(--base-border);
       margin-right: var(--spacing-half);
+    }
+  }
+
+  &.with-co-authors .description-focus-container {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+
+    // Hack for when co-authors field is merged
+    // with description text area.
+    &.focus-within {
+      z-index: 1;
+    }
+  }
+
+  .co-authors-toggle {
+    color: var(--text-secondary-color);
+
+    &:hover {
+      color: var(--text-color);
+    }
+  }
+
+  &.with-co-authors .co-authors-toggle {
+    color: var(--link-button-color);
+
+    &:hover {
+      color: var(--link-button-hover-color);
+    }
+  }
+
+  // When we have an action bar we steal most of that
+  // space from the description field and a little from the
+  // changes list
+  &.with-action-bar {
+    .description-field textarea {
+      min-height: 80px;
+    }
+  }
+
+  .description-focus-container {
+    border: 1px solid var(--box-border-color);
+    border-radius: var(--border-radius);
+    background: var(--background-color);
+    // Fake that we're a text-box
+    cursor: text;
+
+    &.focus-within {
+      outline: none;
+      border-color: var(--focus-color);
+      box-shadow: 0 0 0 1px var(--text-field-focus-shadow-color);
+    }
+
+    .description-field.with-overflow {
+      position: relative;
+
+      &:after {
+        content: '';
+        position: absolute;
+        width: 100%;
+        bottom: 0px;
+        height: 5px;
+        background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.1) 100%);
+        border-bottom: var(--base-border);
+      }
+    }
+
+    textarea {
+      border: none;
+      border-radius: 0;
+      color: currentColor;
+      font-size: var(--font-size);
+      font-family: var(--font-family-sans-serif);
+      padding: var(--spacing-half);
+      resize: none;
+      min-height: 100px;
+
+      &:focus {
+        outline: 0;
+        border: none;
+        box-shadow: none;
+      }
+    }
+
+    .action-bar {
+      padding: var(--spacing-half);
+      background: var(--box-background-color);
+
+      // We're not faking being a textbox any more
+      cursor: default;
+
+      // This gets rid of the padding for the action bar
+      // when there's no buttons showing.
+      &:empty {
+        display: none;
+      }
+
+      &.disabled {
+        background: var(--box-alt-background-color);
+      }
+    }
+
+    .co-authors-toggle {
+      // button reset styles
+      border: none;
+      -webkit-appearance: none;
+      background: transparent;
+      padding: 0;
+      margin: 0;
+      text-align: left;
+      align-items: center;
+      display: block;
+
+      height: 16px;
+      width: 16px;
+      cursor: pointer;
+
+      &:after {
+        content: attr(aria-label);
+        position: absolute;
+        margin-left: 3px;
+        margin-top: 1px;
+        font-size: var(--font-size-sm);
+        color: var(--text-secondary-color);
+        opacity: 0;
+        transition: 150ms all ease-in-out;
+        pointer-events: none;
+      }
+
+      &:disabled {
+        pointer-events: none;
+      }
+
+      &:hover {
+        &:after {
+          opacity: 1;
+        }
+      }
+
+      svg {
+        height: 7px;
+        width: 12px;
+        pointer-events: none;
+      }
     }
   }
 
@@ -52,6 +196,8 @@
      * the contents of the button in a block element and put
      * ellipsis on that instead. See commit 67fad24ed
      */
-    > span { @include ellipsis }
+    > span {
+      @include ellipsis;
+    }
   }
 }

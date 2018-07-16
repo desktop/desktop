@@ -1,12 +1,12 @@
 /** A utility class which allows for throttling arbitrary functions */
 export class ThrottledScheduler {
   private delay: number
-  private timeoutId: number
+  private timeoutId: number | null = null
 
   /**
    * Initialize a new instance of the ThrottledScheduler class
    *
-   * @param {delay} - The minimum interval between invocations
+   * @param delay The minimum interval between invocations
    *                  of callbacks.
    */
   public constructor(delay: number) {
@@ -19,12 +19,14 @@ export class ThrottledScheduler {
    * as no other functions are queued.
    */
   public queue(func: Function) {
-    window.clearTimeout(this.timeoutId)
+    this.clear()
     this.timeoutId = window.setTimeout(func, this.delay)
   }
 
   /** Resets the scheduler and unschedules queued callback (if any) */
   public clear() {
-    window.clearTimeout(this.timeoutId)
+    if (this.timeoutId != null) {
+      window.clearTimeout(this.timeoutId)
+    }
   }
 }

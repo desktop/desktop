@@ -14,8 +14,8 @@
   .toast-notification {
     padding: var(--spacing) var(--spacing-double);
     min-width: 100px;
-    background: rgba($gray-900, 0.6);
-    color: $gray-000;
+    background: var(--toast-notification-background-color);
+    color: var(--toast-notification-color);
     text-align: center;
     border-radius: 100px;
     font-size: var(--font-size-md);
@@ -37,12 +37,18 @@
 }
 
 .toast-animation {
-  &-appear { transform: scale(0.25); opacity: 0.1; }
+  &-appear {
+    transform: scale(0.25);
+    opacity: 0.1;
+  }
   &-appear-active {
     transform: scale(1);
     opacity: 1;
     transition: all 100ms ease-out;
   }
 
-  &-leave-active { opacity: 0; transition: all 250ms ease-out; }
+  &-leave-active {
+    opacity: 0;
+    transition: all 250ms ease-out;
+  }
 }

@@ -1,3 +1,6 @@
+import * as Path from 'path'
+import { pathExists } from 'fs-extra'
+
 import { git } from './core'
 import { Repository } from '../../models/repository'
 import { SubmoduleEntry } from '../../models/submodule'
@@ -5,14 +8,32 @@ import { SubmoduleEntry } from '../../models/submodule'
 export async function listSubmodules(
   repository: Repository
 ): Promise<ReadonlyArray<SubmoduleEntry>> {
+  const [submodulesFile, submodulesDir] = await Promise.all([
+    pathExists(Path.join(repository.path, '.gitmodules')),
+    pathExists(Path.join(repository.path, '.git', 'modules')),
+  ])
+
+  if (!submodulesFile && !submodulesDir) {
+    log.info('No submodules found. Skipping "git submodule status"')
+    return []
+  }
+
   // We don't recurse when listing submodules here because we don't have a good
   // story about managing these currently. So for now we're only listing
   // changes to the top-level submodules to be consistent with `git status`
   const result = await git(
     ['submodule', 'status', '--'],
     repository.path,
-    'listSubmodules'
+    'listSubmodules',
+    {
+      successExitCodes: new Set([0, 128]),
+    }
   )
+
+  if (result.exitCode === 128) {
+    // unable to parse submodules in repository, giving up
+    return []
+  }
 
   const submodules = new Array<SubmoduleEntry>()
 
@@ -44,8 +65,12 @@ export async function listSubmodules(
 
     const [path, describeOutput] = entry.substr(42).split(/\s+/)
 
-    const describe = describeOutput.substr(1, describeOutput.length - 2)
-    submodules.push(new SubmoduleEntry(sha, path, describe))
+    // if the submodule has not been initialized, no describe output is set
+    // this means we don't have a submodule to work with
+    if (describeOutput != null) {
+      const describe = describeOutput.substr(1, describeOutput.length - 2)
+      submodules.push(new SubmoduleEntry(sha, path, describe))
+    }
   }
 
   return submodules

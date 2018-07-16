@@ -2,7 +2,7 @@ import { Menu, ipcMain, shell, app } from 'electron'
 import { ensureItemIds } from './ensure-item-ids'
 import { MenuEvent } from './menu-event'
 import { getLogDirectoryPath } from '../../lib/logging/get-log-path'
-import { mkdirIfNeeded } from '../../lib/file-system'
+import { ensureDir } from 'fs-extra'
 
 import { log } from '../log'
 import { openDirectorySafe } from '../shell'
@@ -114,7 +114,11 @@ export function buildDefaultMenu(
       { role: 'cut', label: __DARWIN__ ? 'Cut' : 'Cu&t' },
       { role: 'copy', label: __DARWIN__ ? 'Copy' : '&Copy' },
       { role: 'paste', label: __DARWIN__ ? 'Paste' : '&Paste' },
-      { role: 'selectall', label: __DARWIN__ ? 'Select All' : 'Select &all' },
+      {
+        label: __DARWIN__ ? 'Select All' : 'Select &all',
+        accelerator: 'CmdOrCtrl+A',
+        click: emit('select-all'),
+      },
     ],
   })
 
@@ -125,13 +129,13 @@ export function buildDefaultMenu(
         label: __DARWIN__ ? 'Show Changes' : '&Changes',
         id: 'show-changes',
         accelerator: 'CmdOrCtrl+1',
-        click: emit('select-changes'),
+        click: emit('show-changes'),
       },
       {
         label: __DARWIN__ ? 'Show History' : '&History',
         id: 'show-history',
         accelerator: 'CmdOrCtrl+2',
-        click: emit('select-history'),
+        click: emit('show-history'),
       },
       {
         label: __DARWIN__ ? 'Show Repository List' : 'Repository &list',
@@ -285,6 +289,12 @@ export function buildDefaultMenu(
         click: emit('update-branch'),
       },
       {
+        label: __DARWIN__ ? 'Compare to Branch' : '&Compare to branch',
+        id: 'compare-to-branch',
+        accelerator: 'CmdOrCtrl+Shift+B',
+        click: emit('compare-to-branch'),
+      },
+      {
         label: __DARWIN__
           ? 'Merge Into Current Branch…'
           : '&Merge into current branch…',
@@ -294,10 +304,10 @@ export function buildDefaultMenu(
       },
       separator,
       {
-        label: __DARWIN__ ? 'Compare on GitHub' : '&Compare on GitHub',
-        id: 'compare-branch',
+        label: __DARWIN__ ? 'Compare on GitHub' : 'Compare on &GitHub',
+        id: 'compare-on-github',
         accelerator: 'CmdOrCtrl+Shift+C',
-        click: emit('compare-branch'),
+        click: emit('compare-on-github'),
       },
       {
         label: pullRequestLabel,
@@ -324,7 +334,7 @@ export function buildDefaultMenu(
   const submitIssueItem: Electron.MenuItemConstructorOptions = {
     label: __DARWIN__ ? 'Report Issue…' : 'Report issue…',
     click() {
-      shell.openExternal('https://github.com/desktop/desktop/issues/new')
+      shell.openExternal('https://github.com/desktop/desktop/issues/new/choose')
     },
   }
 
@@ -346,13 +356,15 @@ export function buildDefaultMenu(
 
   const showLogsLabel = __DARWIN__
     ? 'Show Logs in Finder'
-    : __WIN32__ ? 'S&how logs in Explorer' : 'S&how logs in your File Manager'
+    : __WIN32__
+      ? 'S&how logs in Explorer'
+      : 'S&how logs in your File Manager'
 
   const showLogsItem: Electron.MenuItemConstructorOptions = {
     label: showLogsLabel,
     click() {
       const logPath = getLogDirectoryPath()
-      mkdirIfNeeded(logPath)
+      ensureDir(logPath)
         .then(() => {
           openDirectorySafe(logPath)
         })

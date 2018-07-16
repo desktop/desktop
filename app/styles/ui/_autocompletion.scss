@@ -1,4 +1,4 @@
-@import "../mixins";
+@import '../mixins';
 
 .autocompletion-container {
   position: relative;
@@ -6,32 +6,70 @@
   flex-direction: column;
 }
 
+.CodeMirror-hints {
+  list-style: none;
+  flex-direction: column;
+  padding: 0;
+  max-height: 100px;
+
+  // hack to position the dialog a little better than the
+  // default codemirror position.
+  transform: translate(0, -15px);
+  overflow-y: auto;
+
+  li {
+    height: 29px;
+    padding: 0 var(--spacing);
+  }
+
+  // We can't replicate the nice scrollbars that we have in
+  // the regular autocomplete popup since that's based on List
+  // and this CodeMirror stuff is just an unordered list.
+  // The autocomplete popup is not intended to be used with
+  // a pointer-device anyway so not being able to mouse-wheel
+  // through it shouldn't be a big deal
+  @include win32 {
+    overflow-y: hidden;
+  }
+}
+
 .autocompletion-popup {
+  overflow: hidden; // To get those sweet rounded corners
+}
+
+.autocompletion-popup,
+.CodeMirror-hints {
   display: flex;
   position: absolute;
   z-index: var(--popup-z-index);
   width: 250px;
 
   border-radius: var(--border-radius);
-  overflow: hidden; // To get those sweet rounded corners
 
-  &.emoji { width: 200px; }
-  &.user { width: 220px; }
-  &.issue { width: 300px; }
+  &.emoji {
+    width: 200px;
+  }
+  &.user {
+    width: 220px;
+  }
+  &.issue {
+    width: 300px;
+  }
 
   background-color: var(--background-color);
 
   box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.3);
 
-  .list-item
-  {
+  .list-item,
+  li {
     border-bottom: none;
 
     &:not(:first-child) {
       border-top: var(--base-border);
     }
 
-    &.selected {
+    &.selected,
+    &.CodeMirror-hint-active {
       --text-color: var(--box-selected-active-text-color);
       --text-secondary-color: var(--box-selected-active-text-color);
 
@@ -39,15 +77,15 @@
       background-color: var(--box-selected-active-background-color);
       border-top-color: var(--box-selected-active-background-color);
 
-      & + .list-item {
-        border-top-color: var(--box-selected-active-background-color);      
+      & + .list-item,
+      & + .CodeMirror-hint-active {
+        border-top-color: var(--box-selected-active-background-color);
       }
     }
   }
 }
 
 .autocompletion-item {
-
   flex-grow: 1;
   height: 100%;
   min-width: 0;
@@ -61,7 +99,6 @@
   }
 
   .emoji {
-
     display: flex;
     flex-grow: 1;
 
@@ -108,14 +145,27 @@
     height: 100%;
     width: 100%;
 
+    &.unknown {
+      .username {
+        font-style: italic;
+      }
+
+      .description {
+        @include ellipsis;
+        color: var(--text-secondary-color);
+        font-style: italic;
+        font-size: var(--font-size-sm);
+      }
+    }
+
     .username {
+      @include ellipsis;
       font-weight: var(--font-weight-semibold);
       margin-right: var(--spacing-half);
     }
 
     .name {
       @include ellipsis;
-
       color: var(--text-secondary-color);
     }
   }

@@ -16,8 +16,9 @@ const eslint = new CLIEngine({
 const report = eslint.executeOnFiles([
   './{script,eslint-rules}/**/*.{j,t}s?(x)',
   './tslint-rules/**/*.ts',
-  './app/*.js',
+  './app/*.ts',
   './app/{src,typings,test}/**/*.{j,t}s?(x)',
+  './changelog.json',
 ])
 
 if (shouldFix) {
@@ -29,6 +30,6 @@ console.log(eslint.getFormatter()(report.results))
 if (report.errorCount > 0) {
   process.exitCode = 1
   console.error(
-    chalk`{bold.green → To fix some of these errors, run {underline yarn eslint:fix}}`
+    chalk`{bold.green → To fix some of these errors, run {underline yarn eslint --fix}}`
   )
 }

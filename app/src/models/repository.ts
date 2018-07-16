@@ -1,6 +1,19 @@
 import * as Path from 'path'
 
 import { GitHubRepository } from './github-repository'
+import { IAheadBehind } from './branch'
+
+function getBaseName(path: string): string {
+  const baseName = Path.basename(path)
+
+  if (baseName.length === 0) {
+    // the repository is at the root of the drive
+    // -> show the full path here to show _something_
+    return path
+  }
+
+  return baseName
+}
 
 /** A local repository. */
 export class Repository {
@@ -21,8 +34,7 @@ export class Repository {
   ) {
     this.path = path
     this.gitHubRepository = gitHubRepository
-    this.name =
-      (gitHubRepository && gitHubRepository.name) || Path.basename(path)
+    this.name = (gitHubRepository && gitHubRepository.name) || getBaseName(path)
     this.id = id
     this.missing = missing
   }
@@ -39,4 +51,19 @@ export class Repository {
       ${this.missing}+
       ${this.name}`
   }
+}
+
+/**
+ * A snapshot for the local state for a given repository
+ */
+export interface ILocalRepositoryState {
+  /**
+   * The ahead/behind count for the current branch, or `null` if no tracking
+   * branch found.
+   */
+  readonly aheadBehind: IAheadBehind | null
+  /**
+   * The number of uncommitted changes currently in the repository.
+   */
+  readonly changedFilesCount: number
 }

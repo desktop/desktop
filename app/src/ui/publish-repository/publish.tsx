@@ -13,7 +13,7 @@ import { TabBar } from '../tab-bar'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { assertNever, fatalError } from '../../lib/fatal-error'
 import { CallToAction } from '../lib/call-to-action'
-import { getGitDescription } from '../../lib/git/description'
+import { getGitDescription } from '../../lib/git'
 
 enum PublishTab {
   DotCom = 0,

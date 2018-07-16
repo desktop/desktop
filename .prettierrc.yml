@@ -1,0 +1,9 @@
+singleQuote: true
+trailingComma: es5
+semi: false
+proseWrap: always
+
+overrides:
+- files: "*.scss"
+  options:
+    printWidth: 200

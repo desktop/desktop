@@ -1,9 +1,7 @@
-/* eslint-disable no-sync */
-
-import { expect } from 'chai'
+import { expect, AssertionError } from 'chai'
 
 import * as Path from 'path'
-import * as Fs from 'fs'
+import * as FSE from 'fs-extra'
 import { GitProcess } from 'dugite'
 
 import {
@@ -30,13 +28,14 @@ import { InMemoryStore, AsyncInMemoryStore } from '../helpers/stores'
 import { StatsStore } from '../../src/lib/stats'
 
 import {
-  RepositorySection,
+  RepositorySectionTab,
   SelectionType,
   IRepositoryState,
 } from '../../src/lib/app-state'
 import { Repository } from '../../src/models/repository'
 import { Commit } from '../../src/models/commit'
 import { getCommit } from '../../src/lib/git'
+import { TestActivityMonitor } from '../helpers/test-activity-monitor'
 
 describe('AppStore', () => {
   async function createAppStore(): Promise<AppStore> {
@@ -68,7 +67,7 @@ describe('AppStore', () => {
       new CloningRepositoriesStore(),
       new EmojiStore(),
       new IssuesStore(issuesDb),
-      new StatsStore(statsDb),
+      new StatsStore(statsDb, new TestActivityMonitor()),
       new SignInStore(),
       accountsStore,
       repositoriesStore,
@@ -91,15 +90,15 @@ describe('AppStore', () => {
   describe('undo first commit', () => {
     function getAppState(appStore: AppStore): IRepositoryState {
       const selectedState = appStore.getState().selectedState
-      if (!selectedState) {
-        throw new chai.AssertionError('No selected state for AppStore')
+      if (selectedState == null) {
+        throw new AssertionError('No selected state for AppStore')
       }
 
       switch (selectedState.type) {
         case SelectionType.Repository:
           return selectedState.state
         default:
-          throw new chai.AssertionError(
+          throw new AssertionError(
             `Got selected state of type ${
               selectedState.type
             } which is not supported.`
@@ -116,7 +115,7 @@ describe('AppStore', () => {
       const file = 'README.md'
       const filePath = Path.join(repo.path, file)
 
-      Fs.writeFileSync(filePath, 'SOME WORDS GO HERE\n')
+      await FSE.writeFile(filePath, 'SOME WORDS GO HERE\n')
 
       await GitProcess.exec(['add', file], repo.path)
       await GitProcess.exec(['commit', '-m', 'added file'], repo.path)
@@ -135,7 +134,7 @@ describe('AppStore', () => {
       await appStore._selectRepository(repository)
       await appStore._changeRepositorySection(
         repository,
-        RepositorySection.Changes
+        RepositorySectionTab.Changes
       )
 
       let state = getAppState(appStore)

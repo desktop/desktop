@@ -56,3 +56,28 @@ export function shallowEquals(x: any, y: any) {
 
   return true
 }
+
+/**
+ * Compares two arrays for element reference equality.
+ *
+ * Two arrays are considered equal if they either contain the
+ * exact same elements in the same order (reference equality)
+ * if they're both empty, or if they are the exact same object
+ */
+export function arrayEquals<T>(x: ReadonlyArray<T>, y: ReadonlyArray<T>) {
+  if (x === y) {
+    return true
+  }
+
+  if (x.length !== y.length) {
+    return false
+  }
+
+  for (let i = 0; i < x.length; i++) {
+    if (x[i] !== y[i]) {
+      return false
+    }
+  }
+
+  return true
+}

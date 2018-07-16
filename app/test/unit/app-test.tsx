@@ -2,7 +2,7 @@ import { expect } from 'chai'
 
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import * as TestUtils from 'react-addons-test-utils'
+import * as TestUtils from 'react-dom/test-utils'
 
 import { App } from '../../src/ui/app'
 import { Dispatcher } from '../../src/lib/dispatcher'
@@ -27,6 +27,7 @@ import {
 } from '../helpers/databases'
 import { StatsStore } from '../../src/lib/stats'
 import { InMemoryStore, AsyncInMemoryStore } from '../helpers/stores'
+import { TestActivityMonitor } from '../helpers/test-activity-monitor'
 
 describe('App', () => {
   let appStore: AppStore | null = null
@@ -42,7 +43,7 @@ describe('App', () => {
 
     const statsDb = new TestStatsDatabase()
     await statsDb.reset()
-    statsStore = new StatsStore(statsDb)
+    statsStore = new StatsStore(statsDb, new TestActivityMonitor())
 
     const repositoriesDb = new TestRepositoriesDatabase()
     await repositoriesDb.reset()

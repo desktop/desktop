@@ -144,15 +144,14 @@ export class FileChange {
   /** the status of the change to the file */
   public readonly status: AppFileStatus
 
+  /** An ID for the file change. */
+  public readonly id: string
+
   public constructor(path: string, status: AppFileStatus, oldPath?: string) {
     this.path = path
     this.status = status
     this.oldPath = oldPath
-  }
-
-  /** An ID for the file change. */
-  public get id(): string {
-    return `${this.status}+${this.path}`
+    this.id = `${this.status}+${this.path}`
   }
 }
 
@@ -222,9 +221,9 @@ export class WorkingDirectoryStatus {
   /**
    * The list of changes in the repository's working directory
    */
-  public readonly files: ReadonlyArray<WorkingDirectoryFileChange> = new Array<
-    WorkingDirectoryFileChange
-  >()
+  public readonly files: ReadonlyArray<WorkingDirectoryFileChange> = []
+
+  private readonly fileIxById = new Map<string, number>()
 
   /**
    * Update the include checkbox state of the form
@@ -245,6 +244,8 @@ export class WorkingDirectoryStatus {
     includeAll: boolean | null
   ) {
     this.files = files
+    files.forEach((f, ix) => this.fileIxById.set(f.id, ix))
+
     this.includeAll = includeAll
   }
 
@@ -258,7 +259,14 @@ export class WorkingDirectoryStatus {
 
   /** Find the file with the given ID. */
   public findFileWithID(id: string): WorkingDirectoryFileChange | null {
-    return this.files.find(f => f.id === id) || null
+    const ix = this.fileIxById.get(id)
+    return ix !== undefined ? this.files[ix] || null : null
+  }
+
+  /** Find the index of the file with the given ID. Returns -1 if not found */
+  public findFileIndexByID(id: string): number {
+    const ix = this.fileIxById.get(id)
+    return ix !== undefined ? ix : -1
   }
 }
 

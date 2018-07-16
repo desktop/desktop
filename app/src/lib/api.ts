@@ -65,7 +65,18 @@ export interface IAPIUser {
   readonly url: string
   readonly login: string
   readonly avatar_url: string
-  readonly name: string
+
+  /**
+   * The user's real name or null if the user hasn't provided
+   * a real name for their public profile.
+   */
+  readonly name: string | null
+
+  /**
+   * The email address for this user or null if the user has not
+   * specified a public email address in their profile.
+   */
+  readonly email: string | null
   readonly type: 'User' | 'Organization'
 }
 
@@ -543,6 +554,28 @@ export class API {
       return null
     }
   }
+
+  /**
+   * Retrieve the public profile information of a user with
+   * a given username.
+   */
+  public async fetchUser(login: string): Promise<IAPIUser | null> {
+    try {
+      const response = await this.request(
+        'GET',
+        `users/${encodeURIComponent(login)}`
+      )
+
+      if (response.status === 404) {
+        return null
+      }
+
+      return await parsedResponse<IAPIUser>(response)
+    } catch (e) {
+      log.warn(`fetchUser: failed with endpoint ${this.endpoint}`, e)
+      throw e
+    }
+  }
 }
 
 export enum AuthorizationResponseKind {
@@ -692,7 +725,7 @@ export async function fetchUser(
       emails,
       avatarURL,
       user.id,
-      user.name
+      user.name || user.login
     )
   } catch (e) {
     log.warn(`fetchUser: failed with endpoint ${endpoint}`, e)
@@ -791,7 +824,12 @@ export function getEnterpriseAPIURL(endpoint: string): string {
 
 /** Get github.com's API endpoint. */
 export function getDotComAPIEndpoint(): string {
-  const envEndpoint = process.env['API_ENDPOINT']
+  // NOTE:
+  // `DESKTOP_GITHUB_DOTCOM_API_ENDPOINT` only needs to be set if you are
+  // developing against a local version of GitHub the Website, and need to debug
+  // the server-side interaction. For all other cases you should leave this
+  // unset.
+  const envEndpoint = process.env['DESKTOP_GITHUB_DOTCOM_API_ENDPOINT']
   if (envEndpoint && envEndpoint.length > 0) {
     return envEndpoint
   }

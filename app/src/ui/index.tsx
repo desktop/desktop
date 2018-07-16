@@ -12,6 +12,7 @@ import {
   gitAuthenticationErrorHandler,
   externalEditorErrorHandler,
   openShellErrorHandler,
+  mergeConflictHandler,
   lfsAttributeMismatchHandler,
   defaultErrorHandler,
   missingRepositoryHandler,
@@ -49,6 +50,7 @@ import {
   enableSourceMaps,
   withSourceMappedStack,
 } from '../lib/source-map-support'
+import { UiActivityMonitor } from './lib/ui-activity-monitor'
 
 if (__DEV__) {
   installDevGlobals()
@@ -107,7 +109,10 @@ const gitHubUserStore = new GitHubUserStore(
 const cloningRepositoriesStore = new CloningRepositoriesStore()
 const emojiStore = new EmojiStore()
 const issuesStore = new IssuesStore(new IssuesDatabase('IssuesDatabase'))
-const statsStore = new StatsStore(new StatsDatabase('StatsDatabase'))
+const statsStore = new StatsStore(
+  new StatsDatabase('StatsDatabase'),
+  new UiActivityMonitor()
+)
 const signInStore = new SignInStore()
 
 const accountsStore = new AccountsStore(localStorage, TokenStore)
@@ -138,6 +143,7 @@ dispatcher.registerErrorHandler(defaultErrorHandler)
 dispatcher.registerErrorHandler(upstreamAlreadyExistsHandler)
 dispatcher.registerErrorHandler(externalEditorErrorHandler)
 dispatcher.registerErrorHandler(openShellErrorHandler)
+dispatcher.registerErrorHandler(mergeConflictHandler)
 dispatcher.registerErrorHandler(lfsAttributeMismatchHandler)
 dispatcher.registerErrorHandler(gitAuthenticationErrorHandler)
 dispatcher.registerErrorHandler(pushNeedsPullHandler)
@@ -149,13 +155,15 @@ document.body.classList.add(`platform-${process.platform}`)
 dispatcher.setAppFocusState(remote.getCurrentWindow().isFocused())
 
 ipcRenderer.on('focus', () => {
-  const state = appStore.getState().selectedState
-  if (!state || state.type !== SelectionType.Repository) {
-    return
+  const { selectedState } = appStore.getState()
+
+  // Refresh the currently selected repository on focus (if
+  // we have a selected repository).
+  if (selectedState && selectedState.type === SelectionType.Repository) {
+    dispatcher.refreshRepository(selectedState.repository)
   }
 
   dispatcher.setAppFocusState(true)
-  dispatcher.refreshRepository(state.repository)
 })
 
 ipcRenderer.on('blur', () => {

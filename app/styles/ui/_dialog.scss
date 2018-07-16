@@ -54,7 +54,7 @@ dialog {
       transition: transform 250ms var(--easing-ease-out-back);
 
       &::backdrop {
-        opacity: 0.4;
+        opacity: 1;
         transition: opacity 100ms ease-in;
       }
     }
@@ -65,15 +65,14 @@ dialog {
       pointer-events: none;
 
       &::backdrop {
-        opacity: 0.4;
+        opacity: 1;
       }
     }
 
     &-leave-active {
       opacity: 0.01;
       transform: scale(0.25);
-      transition: opacity 100ms ease-in,
-        transform 100ms var(--easing-ease-in-back);
+      transition: opacity 100ms ease-in, transform 100ms var(--easing-ease-in-back);
 
       &::backdrop {
         opacity: 0.01;
@@ -83,8 +82,8 @@ dialog {
   }
 
   &::backdrop {
-    background: #000;
-    opacity: 0.4;
+    background: var(--overlay-background-color);
+    opacity: 1;
   }
 
   // The dialog embeds a fieldset as the first child of the form element
@@ -154,6 +153,7 @@ dialog {
         outline: 0;
       }
     }
+    @include close-button;
   }
 
   &.warning,
@@ -371,6 +371,10 @@ dialog {
     .what-is-this-row {
       font-size: var(--font-size-sm);
       justify-content: flex-end;
+    }
+
+    .forgot-password-link-sign-in {
+      margin-left: auto;
     }
   }
 

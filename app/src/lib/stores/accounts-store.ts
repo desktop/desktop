@@ -1,9 +1,9 @@
-import { Emitter, Disposable } from 'event-kit'
 import { IDataStore, ISecureStore } from './stores'
 import { getKeyForAccount } from '../auth'
 import { Account } from '../../models/account'
 import { fetchUser, EmailVisibility } from '../api'
 import { fatalError } from '../fatal-error'
+import { BaseStore } from './base-store'
 
 /** The data-only interface for storage. */
 interface IEmail {
@@ -24,6 +24,16 @@ interface IEmail {
   readonly visibility: EmailVisibility
 }
 
+function isKeyChainError(e: any) {
+  const error = e as Error
+  return (
+    error.message &&
+    error.message.startsWith(
+      'The user name or passphrase you entered is not correct'
+    )
+  )
+}
+
 /** The data-only interface for storage. */
 interface IAccount {
   readonly token: string
@@ -36,7 +46,7 @@ interface IAccount {
 }
 
 /** The store for logged in accounts. */
-export class AccountsStore {
+export class AccountsStore extends BaseStore {
   private dataStore: IDataStore
   private secureStore: ISecureStore
 
@@ -45,30 +55,12 @@ export class AccountsStore {
   /** A promise that will resolve when the accounts have been loaded. */
   private loadingPromise: Promise<void>
 
-  private readonly emitter = new Emitter()
-
   public constructor(dataStore: IDataStore, secureStore: ISecureStore) {
+    super()
+
     this.dataStore = dataStore
     this.secureStore = secureStore
     this.loadingPromise = this.loadFromStore()
-  }
-
-  private emitUpdate() {
-    this.emitter.emit('did-update', {})
-  }
-
-  private emitError(error: Error) {
-    this.emitter.emit('did-error', error)
-  }
-
-  /** Register a function to be called when the store updates. */
-  public onDidUpdate(fn: () => void): Disposable {
-    return this.emitter.on('did-update', fn)
-  }
-
-  /** Register a function to be called when an error occurs. */
-  public onDidError(fn: (error: Error) => void): Disposable {
-    return this.emitter.on('did-error', fn)
   }
 
   /**
@@ -101,7 +93,16 @@ export class AccountsStore {
       )
     } catch (e) {
       log.error(`Error adding account '${account.login}'`, e)
-      this.emitError(e)
+
+      if (__DARWIN__ && isKeyChainError(e)) {
+        this.emitError(
+          new Error(
+            `GitHub Desktop was unable to store the account token in the keychain. Please check you have unlocked access to the 'login' keychain.`
+          )
+        )
+      } else {
+        this.emitError(e)
+      }
       return
     }
 
@@ -212,7 +213,7 @@ export class AccountsStore {
 async function updatedAccount(account: Account): Promise<Account> {
   if (!account.token) {
     return fatalError(
-      `Cannot update an account which doesn't have a token: ${account}`
+      `Cannot update an account which doesn't have a token: ${account.login}`
     )
   }
 
