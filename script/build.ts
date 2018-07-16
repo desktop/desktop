@@ -75,7 +75,7 @@ if (process.platform === 'darwin' && process.env.CIRCLECI && !isFork) {
 }
 
 console.log('Updating our licenses dump…')
-updateLicenseDump(err => {
+updateLicenseDump(async err => {
   if (err) {
     console.error(
       'Error updating the license dump. This is fatal for a published build.'
@@ -88,14 +88,13 @@ updateLicenseDump(err => {
   }
 
   console.log('Packaging…')
-  packageApp((err, appPaths) => {
-    if (err) {
-      console.error(err)
-      process.exit(1)
-    } else {
-      console.log(`Built to ${appPaths}`)
-    }
-  })
+  try {
+    const appPaths = await packageApp()
+    console.log(`Built to ${appPaths}`)
+  } catch (err) {
+    console.error(err)
+    process.exit(1)
+  }
 })
 
 /**
@@ -110,9 +109,7 @@ interface IPackageAdditionalOptions {
   }>
 }
 
-function packageApp(
-  callback: (error: Error | null, appPaths: string | string[]) => void
-) {
+function packageApp() {
   // not sure if this is needed anywhere, so I'm just going to inline it here
   // for now and see what the future brings...
   const toPackagePlatform = (platform: NodeJS.Platform) => {
@@ -187,13 +184,7 @@ function packageApp(
     },
   }
 
-  packager(options)
-    .then((appPaths: string | string[]) => {
-      callback(null, appPaths)
-    })
-    .catch((err: Error) => {
-      callback(err, [])
-    })
+  return packager(options)
 }
 
 function removeAndCopy(source: string, destination: string) {
