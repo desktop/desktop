@@ -182,9 +182,12 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
   private drawSingleColumnLayout(release: ReleaseSummary): JSX.Element {
     return (
       <div className="container">
-        {this.renderList(release.bugfixes, 'Bugfixes')}
-        {this.renderList(release.enhancements, 'Enhancements')}
-        {this.renderList(release.other, 'Other')}
+        <div className="row">{this.renderPretext()}</div>
+        <div className="row">
+          {this.renderList(release.bugfixes, 'Bugfixes')}
+          {this.renderList(release.enhancements, 'Enhancements')}
+          {this.renderList(release.other, 'Other')}
+        </div>
       </div>
     )
   }
@@ -192,20 +195,38 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
   private drawTwoColumnLayout(release: ReleaseSummary): JSX.Element {
     return (
       <div className="container">
-        <div className="column">
-          {this.renderList(release.enhancements, 'Enhancements')}
-          {this.renderList(release.other, 'Other')}
-        </div>
-        <div className="column">
-          {this.renderList(release.bugfixes, 'Bugfixes')}
+        <div className="row">{this.renderPretext()}</div>
+        <div className="row">
+          <div className="column">
+            {this.renderList(release.enhancements, 'Enhancements')}
+            {this.renderList(release.other, 'Other')}
+          </div>
+          <div className="column">
+            {this.renderList(release.bugfixes, 'Bugfixes')}
+          </div>
         </div>
       </div>
     )
   }
 
-  public render() {
-    const release = releaseSummaryStub || this.props.newRelease
+  private renderPretext(): JSX.Element | null {
+    //Todo: Remove stub
+    const { pretext } = releaseSummaryStub || this.props.newRelease
 
+    if (pretext === undefined) {
+      return null
+    }
+
+    return (
+      <div>
+        <p>{pretext}</p>
+      </div>
+    )
+  }
+
+  public render() {
+    //Todo: Remove stub
+    const release = releaseSummaryStub || this.props.newRelease
     const contents =
       release.enhancements.length > 0 && release.bugfixes.length > 0
         ? this.drawTwoColumnLayout(release)
@@ -213,10 +234,7 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
 
     return (
       <Dialog id="release-notes" onDismissed={this.props.onDismissed}>
-        <DialogHeader
-          title={` `}
-          dismissable={false}
-        >
+        <DialogHeader title={` `} dismissable={false}>
           <div className="release-notes-header">
             <img
               className="release-note-graphic-left"
