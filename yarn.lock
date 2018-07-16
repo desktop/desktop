@@ -57,9 +57,9 @@
   dependencies:
     "@types/node" "*"
 
-"@types/electron-packager@^10.1.0":
-  version "10.1.0"
-  resolved "https://registry.yarnpkg.com/@types/electron-packager/-/electron-packager-10.1.0.tgz#8d61ef76a2676936c59d14392a9c0c1853405953"
+"@types/electron-packager@^12.0.0":
+  version "12.0.0"
+  resolved "https://registry.yarnpkg.com/@types/electron-packager/-/electron-packager-12.0.0.tgz#acbcf3c5895c1eeda3d2a325c2feeded6a639b1f"
   dependencies:
     "@types/node" "*"
 
