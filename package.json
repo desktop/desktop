@@ -149,7 +149,7 @@
     "@types/webpack-merge": "^4.1.3",
     "@types/winston": "^2.2.0",
     "@types/xml2js": "^0.4.0",
-    "electron": "2.0.4",
+    "electron": "2.0.5",
     "electron-builder": "20.19.2",
     "electron-mocha": "^6.0.1",
     "electron-packager": "^12.0.0",
