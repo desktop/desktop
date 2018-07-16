@@ -484,7 +484,7 @@ export class StatsStore {
       externalPushCount: m.externalPushCount + 1,
     }))
   }
-  
+
   private onUiActivity = async () => {
     this.disableUiActivityMonitoring()
 
