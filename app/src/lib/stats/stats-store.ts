@@ -45,6 +45,9 @@ const DefaultDailyMeasures: IDailyMeasures = {
   divergingBranchBannerInitiatedCompare: 0,
   divergingBranchBannerInfluencedMerge: 0,
   divergingBranchBannerDisplayed: 0,
+  dotcomPushCount: 0,
+  enterprisePushCount: 0,
+  externalPushCount: 0,
   active: false,
 }
 
@@ -458,6 +461,27 @@ export class StatsStore {
   public async recordDivergingBranchBannerDisplayed(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       divergingBranchBannerDisplayed: m.divergingBranchBannerDisplayed + 1,
+    }))
+  }
+
+  /** Record that the user pushed to GitHub.com */
+  public async recordPushToGitHub(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      dotcomPushCount: m.dotcomPushCount + 1,
+    }))
+  }
+
+  /** Record that the user pushed to a GitHub Enterprise instance */
+  public async recordPushToGitHubEnterprise(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      enterprisePushCount: m.enterprisePushCount + 1,
+    }))
+  }
+
+  /** Record that the user pushed to a generic remote */
+  public async recordPushToGenericRemote(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      externalPushCount: m.externalPushCount + 1,
     }))
   }
 
