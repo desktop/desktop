@@ -84,6 +84,19 @@
     border-right: 4px solid var(--diff-border-color);
   }
 
+  .diff-line-number {
+    cursor: default;
+  }
+
+  &.diff-add,
+  &.diff-delete {
+    &:not(.read-only) {
+      .diff-line-number {
+        cursor: pointer;
+      }
+    }
+  }
+
   &.read-only .after {
     border-right-width: 1px;
   }
@@ -520,6 +533,9 @@
   .cm-link {
     text-decoration: underline;
     color: var(--syntax-link-color);
+  }
+  .cm-header {
+    color: var(--syntax-header-color);
   }
 
   // Intra line markings takes precedence over syntax highlighting.

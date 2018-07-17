@@ -35,6 +35,7 @@ import {
 import { Repository } from '../../src/models/repository'
 import { Commit } from '../../src/models/commit'
 import { getCommit } from '../../src/lib/git'
+import { TestActivityMonitor } from '../helpers/test-activity-monitor'
 
 describe('AppStore', () => {
   async function createAppStore(): Promise<AppStore> {
@@ -66,7 +67,7 @@ describe('AppStore', () => {
       new CloningRepositoriesStore(),
       new EmojiStore(),
       new IssuesStore(issuesDb),
-      new StatsStore(statsDb),
+      new StatsStore(statsDb, new TestActivityMonitor()),
       new SignInStore(),
       accountsStore,
       repositoriesStore,

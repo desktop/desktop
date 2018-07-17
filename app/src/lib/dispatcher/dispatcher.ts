@@ -100,8 +100,15 @@ export class Dispatcher {
 
   /** Remove the repositories represented by the given IDs from local storage. */
   public removeRepositories(
-    repositories: ReadonlyArray<Repository | CloningRepository>
+    repositories: ReadonlyArray<Repository | CloningRepository>,
+    moveToTrash: boolean
   ): Promise<void> {
+    if (moveToTrash) {
+      repositories.forEach(repository => {
+        shell.moveItemToTrash(repository.path)
+      })
+    }
+
     return this.appStore._removeRepositories(repositories)
   }
 
@@ -1237,6 +1244,27 @@ export class Dispatcher {
    */
   public recordDivergingBranchBannerDismissal() {
     return this.appStore._recordDivergingBranchBannerDismissal()
+  }
+
+  /**
+   * Increments the `dotcomPushCount` metric
+   */
+  public recordPushToGitHub() {
+    return this.appStore._recordPushToGitHub()
+  }
+
+  /**
+   * Increments the `enterprisePushCount` metric
+   */
+  public recordPushToGitHubEnterprise() {
+    return this.appStore._recordPushToGitHubEnterprise()
+  }
+
+  /**
+   * Increments the `externalPushCount` metric
+   */
+  public recordPushToGenericRemote() {
+    return this.appStore._recordPushToGenericRemote()
   }
 
   /**
