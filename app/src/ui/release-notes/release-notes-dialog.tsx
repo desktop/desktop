@@ -71,62 +71,6 @@ function renderLineItem(note: string): (JSX.Element | string)[] | string {
   return note
 }
 
-/**
- * This is only used for testing
- *
- * TODO: Delete this
- */
-const releaseSummaryStub: ReleaseSummary = {
-  latestVersion: 'Test',
-  datePublished: 'July 11, 2018',
-  pretext: 'All kindz of pretext',
-  enhancements: [
-    {
-      kind: 'improved',
-      message: 'Improvement 1',
-    },
-    {
-      kind: 'improved',
-      message: 'Improvement 2',
-    },
-    {
-      kind: 'improved',
-      message: 'Improvement 3',
-    },
-    {
-      kind: 'improved',
-      message: 'Improvement 4',
-    },
-    {
-      kind: 'improved',
-      message: 'Improvement 5',
-    },
-    {
-      kind: 'improved',
-      message: 'Improvement 6',
-    },
-    {
-      kind: 'improved',
-      message: 'Improvement 7',
-    },
-  ],
-  bugfixes: [
-    {
-      kind: 'fixed',
-      message: 'Fix 1',
-    },
-    {
-      kind: 'fixed',
-      message: 'Fix 2',
-    },
-    {
-      kind: 'fixed',
-      message: 'Fix 3',
-    },
-  ],
-  other: [],
-}
-
 interface IReleaseNotesProps {
   readonly onDismissed: () => void
   readonly newRelease: ReleaseSummary
@@ -204,7 +148,7 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
   }
 
   public render() {
-    const release = releaseSummaryStub || this.props.newRelease
+    const release = this.props.newRelease
 
     const contents =
       release.enhancements.length > 0 && release.bugfixes.length > 0
@@ -213,10 +157,7 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
 
     return (
       <Dialog id="release-notes" onDismissed={this.props.onDismissed}>
-        <DialogHeader
-          title={` `}
-          dismissable={false}
-        >
+        <DialogHeader title={` `} dismissable={false}>
           <div className="release-notes-header">
             <img
               className="release-note-graphic-left"
