@@ -267,7 +267,7 @@ export class ChangesList extends React.Component<
     const paths = new Array<string>()
     const extensions = new Set<string>()
 
-    this.props.selectedFileIDs.forEach(fileID => {
+    const addItemToArray = (fileID: string) => {
       const newFile = wd.findFileWithID(fileID)
       if (newFile) {
         selectedFiles.push(newFile)
@@ -278,7 +278,17 @@ export class ChangesList extends React.Component<
           extensions.add(extension)
         }
       }
-    })
+    }
+
+    if (this.props.selectedFileIDs.includes(id)) {
+      // user has selected a file inside an existing selection
+      // -> they may want to discard multiple changes
+      this.props.selectedFileIDs.forEach(addItemToArray)
+    } else {
+      // this is outside their previous selection
+      // -> they just want to discard the selected file
+      addItemToArray(id)
+    }
 
     const items: IMenuItem[] = [
       {
