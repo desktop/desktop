@@ -742,7 +742,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const updater = new AheadBehindUpdater(repository, aheadBehindCache => {
-      this.updateCompareState(repository, state => ({
+      this.updateCompareState(repository, () => ({
         aheadBehindCache,
       }))
       this.emitUpdate()
