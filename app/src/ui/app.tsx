@@ -1635,11 +1635,13 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (!this.state.isUpdateAvailableBannerVisible) {
       return null
     }
+    const releaseNotesUri = 'https://desktop.github.com/release-notes/'
 
     return (
       <UpdateAvailable
         dispatcher={this.props.dispatcher}
         newRelease={updateStore.state.newRelease}
+        releaseNotesLink={releaseNotesUri}
         onDismissed={this.onUpdateAvailableDismissed}
       />
     )
