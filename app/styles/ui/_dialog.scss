@@ -169,10 +169,7 @@ dialog {
       // Ensure that the dialog contents always have room for the icon,
       // account for two double spacers at top and bottom plus the 5px
       // icon offset (margin-top) and the size of the icon itself.
-      min-height: calc(
-        var(--spacing-double) * 2 + var(--spacing-half) +
-          var(--dialog-icon-size)
-      );
+      min-height: calc(var(--spacing-double) * 2 + var(--spacing-half) + var(--dialog-icon-size));
 
       // We're creating an opaque 24 by 24px div with the background color
       // that we want the icon to appear in and then apply the icon path

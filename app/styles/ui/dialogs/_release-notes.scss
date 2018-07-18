@@ -11,6 +11,11 @@
   .dialog-header {
     height: 100px;
 
+    .release-notes-header {
+      display: flex;
+      flex: 1;
+    }
+
     .release-note-graphic-left {
       margin-right: 20px;
     }
@@ -51,10 +56,11 @@
     flex-direction: row;
     padding-left: var(--spacing-double);
     padding-right: var(--spacing-double);
+    margin-top: var(--spacing-double);
+    overflow: scroll;
 
     .column {
-      overflow: scroll;
-      max-width: 200px;
+      width: 250px;
 
       .section {
         margin-top: var(--spacing);

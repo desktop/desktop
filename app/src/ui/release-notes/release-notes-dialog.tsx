@@ -11,6 +11,7 @@ import { Button } from '../lib/button'
 import { LinkButton } from '../lib/link-button'
 
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
+import { DialogHeader } from '../dialog/header'
 
 const ReleaseNoteHeaderLeftUri = encodePathAsUrl(
   __dirname,
@@ -31,6 +32,7 @@ function desktopIssueUrl(numberWithHash: string): string {
 function accountUrl(name: string): string {
   return `https://github.com/${name.substr(1)}`
 }
+
 function renderLineItem(note: string): (JSX.Element | string)[] | string {
   const externalContribution = externalContributionRe.exec(note)
   if (externalContribution) {
@@ -113,7 +115,9 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
 
     return (
       <div className="section">
-        <p className="header">{header}</p>
+        <p className="header">
+          <strong>{header}</strong>
+        </p>
         <ul className="entries">{options}</ul>
       </div>
     )
@@ -153,8 +157,8 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
 
     return (
       <Dialog id="release-notes" onDismissed={this.props.onDismissed}>
-        <DialogContent>
-          <header className="dialog-header">
+        <DialogHeader title={` `} dismissable={false}>
+          <div className="release-notes-header">
             <img
               className="release-note-graphic-left"
               src={ReleaseNoteHeaderLeftUri}
@@ -168,9 +172,10 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
               src={ReleaseNoteHeaderRightUri}
             />
             {this.renderCloseButton()}
-          </header>
-          {contents}
-        </DialogContent>
+          </div>
+        </DialogHeader>
+
+        <DialogContent>{contents}</DialogContent>
         <DialogFooter>
           <ButtonGroup destructive={true}>
             <Button type="submit">Close</Button>

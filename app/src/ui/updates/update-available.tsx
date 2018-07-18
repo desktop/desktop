@@ -30,8 +30,7 @@ export class UpdateAvailable extends React.Component<
         <span>
           An updated version of GitHub Desktop is available and will be
           installed at the next launch. See{' '}
-          <LinkButton onClick={this.showReleaseNotes}>what's new</LinkButton>{' '}
-          or{' '}
+          <LinkButton onClick={this.showReleaseNotes}>what's new</LinkButton> or{' '}
           <LinkButton onClick={this.updateNow}>
             restart GitHub Desktop
           </LinkButton>.
