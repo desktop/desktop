@@ -95,6 +95,8 @@ const UpdateCheckInterval = 1000 * 60 * 60 * 4
 
 const SendStatsInterval = 1000 * 60 * 60 * 4
 
+const updateRepoInfoInterval = 1000 * 60 * 5
+
 interface IAppProps {
   readonly dispatcher: Dispatcher
   readonly appStore: AppStore
@@ -149,6 +151,10 @@ export class App extends React.Component<IAppProps, IAppState> {
         },
         { timeout: ReadyDelay }
       )
+
+      window.setInterval(() => {
+        this.props.appStore.refreshAllRepositories()
+      }, updateRepoInfoInterval)
     })
 
     this.state = props.appStore.getState()
@@ -753,7 +759,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     if (repository instanceof CloningRepository || repository.missing) {
-      this.props.dispatcher.removeRepositories([repository])
+      this.props.dispatcher.removeRepositories([repository], false)
       return
     }
 
@@ -763,12 +769,15 @@ export class App extends React.Component<IAppProps, IAppState> {
         repository,
       })
     } else {
-      this.props.dispatcher.removeRepositories([repository])
+      this.props.dispatcher.removeRepositories([repository], false)
     }
   }
 
-  private onConfirmRepoRemoval = (repository: Repository) => {
-    this.props.dispatcher.removeRepositories([repository])
+  private onConfirmRepoRemoval = (
+    repository: Repository,
+    deleteRepoFromDisk: boolean
+  ) => {
+    this.props.dispatcher.removeRepositories([repository], deleteRepoFromDisk)
   }
 
   private getRepository(): Repository | CloningRepository | null {
@@ -1016,7 +1025,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       case PopupType.MergeBranch: {
-        const repository = popup.repository
+        const { repository, branch } = popup
         const state = this.props.appStore.getRepositoryState(repository)
 
         const tip = state.branchesState.tip
@@ -1031,6 +1040,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             defaultBranch={state.branchesState.defaultBranch}
             recentBranches={state.branchesState.recentBranches}
             currentBranch={currentBranch}
+            initialBranch={branch}
             onDismissed={this.onPopupDismissed}
           />
         )
@@ -1403,6 +1413,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         onOpenInExternalEditor={this.openInExternalEditor}
         externalEditorLabel={externalEditorLabel}
         shellLabel={shellLabel}
+        dispatcher={this.props.dispatcher}
       />
     )
   }

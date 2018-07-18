@@ -101,6 +101,7 @@ export function getChangelogEntriesSince(previousVersion: string): string[] {
   const root = Path.dirname(Path.dirname(__dirname))
   const changelogPath = Path.join(root, 'changelog.json')
 
+  // eslint-disable-next-line no-sync
   const buffer = Fs.readFileSync(changelogPath)
   const changelogText = buffer.toString()
 

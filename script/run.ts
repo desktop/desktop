@@ -1,16 +1,14 @@
-'use strict'
+import { join } from 'path'
+import { spawn, SpawnOptions } from 'child_process'
+import * as Fs from 'fs'
+import { getDistPath, getExecutableName } from './dist-info'
 
-const path = require('path')
-const cp = require('child_process')
-const fs = require('fs')
-const distInfo = require('./dist-info')
-
-const distPath = distInfo.getDistPath()
-const productName = distInfo.getExecutableName()
+const distPath = getDistPath()
+const productName = getExecutableName()
 
 let binaryPath = ''
 if (process.platform === 'darwin') {
-  binaryPath = path.join(
+  binaryPath = join(
     distPath,
     `${productName}.app`,
     'Contents',
@@ -18,17 +16,18 @@ if (process.platform === 'darwin') {
     `${productName}`
   )
 } else if (process.platform === 'win32') {
-  binaryPath = path.join(distPath, `${productName}.exe`)
+  binaryPath = join(distPath, `${productName}.exe`)
 } else if (process.platform === 'linux') {
-  binaryPath = path.join(distPath, productName)
+  binaryPath = join(distPath, productName)
 } else {
   console.error(`I dunno how to run on ${process.platform} ${process.arch} :(`)
   process.exit(1)
 }
 
-module.exports = function(spawnOptions) {
+export function run(spawnOptions: SpawnOptions) {
   try {
-    const stats = fs.statSync(binaryPath)
+    // eslint-disable-next-line no-sync
+    const stats = Fs.statSync(binaryPath)
     if (!stats.isFile()) {
       return null
     }
@@ -42,5 +41,5 @@ module.exports = function(spawnOptions) {
     NODE_ENV: 'development',
   })
 
-  return cp.spawn(binaryPath, [], opts)
+  return spawn(binaryPath, [], opts)
 }

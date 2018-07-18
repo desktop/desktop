@@ -1,12 +1,7 @@
-#!/usr/bin/env node
-
-'use strict'
-
-const TEST_PUBLISH = false
 const PUBLISH_CHANNELS = ['production', 'test', 'beta']
-const distInfo = require('./dist-info')
-const gitInfo = require('../app/git-info')
-const packageInfo = require('../app/package-info')
+import * as distInfo from './dist-info'
+import * as gitInfo from '../app/git-info'
+import * as packageInfo from '../app/package-info'
 
 if (PUBLISH_CHANNELS.indexOf(distInfo.getReleaseChannel()) < 0) {
   console.log('Not a publishable build. Skipping publish.')
@@ -14,39 +9,54 @@ if (PUBLISH_CHANNELS.indexOf(distInfo.getReleaseChannel()) < 0) {
 }
 
 const releaseSHA = distInfo.getReleaseSHA()
-if (!releaseSHA) {
+if (releaseSHA == null) {
   console.log(`No release SHA found for build. Skipping publish.`)
   process.exit(0)
 }
 
 const currentTipSHA = gitInfo.getSHA()
-if (
-  !currentTipSHA ||
-  !currentTipSHA.toUpperCase().startsWith(releaseSHA.toUpperCase())
-) {
+if (!currentTipSHA.toUpperCase().startsWith(releaseSHA!.toUpperCase())) {
   console.log(
     `Current tip '${currentTipSHA}' does not match release SHA '${releaseSHA}'. Skipping publish.`
   )
   process.exit(0)
 }
 
-const fs = require('fs')
-const cp = require('child_process')
-const AWS = require('aws-sdk')
-const crypto = require('crypto')
-const request = require('request')
+import * as Fs from 'fs'
+import { execSync } from 'child_process'
+import * as AWS from 'aws-sdk'
+import * as Crypto from 'crypto'
+import * as request from 'request'
 
 console.log('Packaging…')
-cp.execSync('yarn package')
+execSync('yarn package')
 
-let sha = ''
-if (process.platform === 'darwin') {
-  sha = process.env.CIRCLE_SHA1
-} else if (process.platform === 'win32') {
-  sha = process.env.APPVEYOR_REPO_COMMIT
+function getSha() {
+  if (process.platform === 'darwin' && process.env.CIRCLE_SHA1 != null) {
+    return process.env.CIRCLE_SHA1
+  } else if (
+    process.platform === 'win32' &&
+    process.env.APPVEYOR_REPO_COMMIT != null
+  ) {
+    return process.env.APPVEYOR_REPO_COMMIT
+  }
+
+  throw new Error(
+    `Unable to get the SHA for the current platform. Check the vendor docs for the desired environment variables.`
+  )
 }
 
-sha = sha.substr(0, 8)
+const sha = getSha().substr(0, 8)
+
+function getSecret() {
+  if (process.env.DEPLOYMENT_SECRET != null) {
+    return process.env.DEPLOYMENT_SECRET
+  }
+
+  throw new Error(
+    `Unable to get deployment seret environment variable. Deployment aborting...`
+  )
+}
 
 console.log('Uploading…')
 
@@ -60,13 +70,13 @@ if (process.platform === 'darwin') {
   process.exit(1)
 }
 
-uploadPromise
+uploadPromise!
   .then(artifacts => {
     const names = artifacts.map(function(item, index) {
       return item.name
     })
     console.log(`Uploaded artifacts: ${names}`)
-    return updateDeploy(artifacts)
+    return updateDeploy(artifacts, getSecret())
   })
   .catch(e => {
     console.error(`Publishing failed: ${e}`)
@@ -106,14 +116,21 @@ function uploadWindowsAssets() {
   return Promise.all(uploads)
 }
 
-function upload(assetName, assetPath) {
+interface IUploadResult {
+  name: string
+  url: string
+  size: number
+  sha: string
+}
+
+function upload(assetName: string, assetPath: string) {
   const s3Info = {
     accessKeyId: process.env.S3_KEY,
     secretAccessKey: process.env.S3_SECRET,
   }
   const s3 = new AWS.S3(s3Info)
 
-  const bucket = process.env.S3_BUCKET
+  const bucket = process.env.S3_BUCKET || ''
   const key = `releases/${packageInfo.getVersion()}-${sha}/${assetName.replace(
     / /g,
     ''
@@ -124,36 +141,41 @@ function upload(assetName, assetPath) {
     Bucket: bucket,
     ACL: 'public-read',
     Key: key,
-    Body: fs.createReadStream(assetPath),
+    Body: Fs.createReadStream(assetPath),
   }
 
-  return new Promise((resolve, reject) => {
-    s3.upload(uploadParams, (error, data) => {
-      if (error) {
-        reject(error)
-      } else {
-        const stats = fs.statSync(assetPath)
-        const hash = crypto.createHash('sha1')
-        const input = fs.createReadStream(assetPath)
+  return new Promise<IUploadResult>((resolve, reject) => {
+    s3.upload(
+      uploadParams,
+      (error: Error, data: AWS.S3.ManagedUpload.SendData) => {
+        if (error != null) {
+          reject(error)
+        } else {
+          // eslint-disable-next-line no-sync
+          const stats = Fs.statSync(assetPath)
+          const hash = Crypto.createHash('sha1')
+          hash.setEncoding('hex')
+          const input = Fs.createReadStream(assetPath)
 
-        hash.on('finish', () => {
-          const sha = hash.read().toString('hex')
-          resolve({ name: assetName, url, size: stats['size'], sha })
-        })
+          hash.on('finish', () => {
+            const sha = hash.read() as string
+            resolve({ name: assetName, url, size: stats['size'], sha })
+          })
 
-        input.pipe(hash)
+          input.pipe(hash)
+        }
       }
-    })
+    )
   })
 }
 
-function createSignature(body) {
-  const hmac = crypto.createHmac('sha1', process.env.DEPLOYMENT_SECRET)
+function createSignature(body: any, secret: string) {
+  const hmac = Crypto.createHmac('sha1', secret)
   hmac.update(JSON.stringify(body))
   return `sha1=${hmac.digest('hex')}`
 }
 
-function updateDeploy(artifacts) {
+function updateDeploy(artifacts: ReadonlyArray<IUploadResult>, secret: string) {
   const { rendererSize, mainSize } = distInfo.getBundleSizes()
   const body = {
     context: process.platform,
@@ -165,7 +187,7 @@ function updateDeploy(artifacts) {
       mainBundleSize: mainSize,
     },
   }
-  const signature = createSignature(body)
+  const signature = createSignature(body, secret)
   const options = {
     method: 'POST',
     url: 'https://central.github.com/api/deploy_built',
@@ -186,9 +208,9 @@ function updateDeploy(artifacts) {
       if (response.statusCode !== 200) {
         reject(
           new Error(
-            `Received a non-200 response (${response.statusCode}): ${JSON.stringify(
-              body
-            )}`
+            `Received a non-200 response (${
+              response.statusCode
+            }): ${JSON.stringify(body)}`
           )
         )
         return

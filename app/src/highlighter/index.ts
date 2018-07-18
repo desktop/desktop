@@ -227,6 +227,12 @@ const modes: ReadonlyArray<IModeDefinition> = [
       '.r': 'text/x-rsrc',
     },
   },
+  {
+    install: () => import('codemirror/mode/powershell/powershell'),
+    extensions: {
+      '.ps1': 'application/x-powershell',
+    },
+  },
 ]
 
 /**

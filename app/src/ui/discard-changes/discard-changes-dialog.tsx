@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { PathText } from '../lib/path-text'
 import { Monospaced } from '../lib/monospaced'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
+import { TrashNameLabel } from '../lib/context-menu'
 
 interface IDiscardChangesProps {
   readonly repository: Repository
@@ -56,7 +57,6 @@ export class DiscardChanges extends React.Component<
   }
 
   public render() {
-    const trashName = __DARWIN__ ? 'Trash' : 'Recycle Bin'
     return (
       <Dialog
         id="discard-changes"
@@ -69,7 +69,7 @@ export class DiscardChanges extends React.Component<
         <DialogContent>
           {this.renderFileList()}
           <p>
-            Changes can be restored by retrieving them from the {trashName}.
+            Changes can be restored by retrieving them from the {TrashNameLabel}.
           </p>
           {this.renderConfirmDiscardChanges()}
         </DialogContent>
