@@ -13,7 +13,7 @@ phases:
           yarn install --force
         name: Install
       - script: |
-          PowerShell -Command "& {Format-Hex script\.eslintrc.yml}" && yarn lint:prettier --fix && PowerShell -Command "& {Format-Hex script\.eslintrc.yml}"
+          yarn lint:prettier --fix && git diff --color --word-diff=color
         name: Build
       - script: |
           yarn test:setup && yarn test
