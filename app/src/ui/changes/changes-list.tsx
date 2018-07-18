@@ -249,6 +249,7 @@ export class ChangesList extends React.Component<
   }
 
   private onItemContextMenu = (
+    id: string,
     path: string,
     status: AppFileStatus,
     event: React.MouseEvent<HTMLDivElement>
