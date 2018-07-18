@@ -84,7 +84,7 @@
     "node-sass": "^4.7.2",
     "octicons": "^7.0.1",
     "parallel-webpack": "^2.3.0",
-    "prettier": "1.13.0",
+    "prettier": "prettier/prettier#1a2c4e6",
     "request": "^2.72.0",
     "rimraf": "^2.5.2",
     "sass-loader": "^7.0.1",
