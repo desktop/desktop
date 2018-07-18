@@ -110,14 +110,25 @@ export class AheadBehindUpdater {
    * @param currentBranch The current branch of the repository
    * @param branches All known branches in the repository
    */
-  public schedule(currentBranch: Branch, branches: ReadonlyArray<Branch>) {
+  public schedule(
+    currentBranch: Branch,
+    recentBranches: ReadonlyArray<Branch>,
+    allBranches: ReadonlyArray<Branch>
+  ) {
     this.clear()
 
     const from = currentBranch.tip.sha
 
-    const branchesNotInCache = branches
-      .map(b => b.tip.sha)
-      .filter(to => !this.comparisonCache.has(from, to))
+    const filterBranchesNotInCache = (branches: ReadonlyArray<Branch>) => {
+      return branches
+        .map(b => b.tip.sha)
+        .filter(to => !this.comparisonCache.has(from, to))
+    }
+
+    const branchesNotInCache = [
+      ...filterBranchesNotInCache(recentBranches),
+      ...filterBranchesNotInCache(allBranches),
+    ]
 
     const newRefsToCompare = new Set<string>(branchesNotInCache)
 
