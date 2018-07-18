@@ -112,6 +112,7 @@ export class AheadBehindUpdater {
    */
   public schedule(
     currentBranch: Branch,
+    defaultBranch: Branch | null,
     recentBranches: ReadonlyArray<Branch>,
     allBranches: ReadonlyArray<Branch>
   ) {
@@ -125,12 +126,13 @@ export class AheadBehindUpdater {
         .filter(to => !this.comparisonCache.has(from, to))
     }
 
-    const branchesNotInCache = [
-      ...filterBranchesNotInCache(recentBranches),
-      ...filterBranchesNotInCache(allBranches),
-    ]
+    const otherBranches = [...recentBranches, ...allBranches]
 
-    const newRefsToCompare = new Set<string>(branchesNotInCache)
+    const branches = defaultBranch
+      ? [defaultBranch, ...otherBranches]
+      : otherBranches
+
+    const newRefsToCompare = new Set<string>(filterBranchesNotInCache(branches))
 
     log.debug(
       `[AheadBehindUpdater] - found ${

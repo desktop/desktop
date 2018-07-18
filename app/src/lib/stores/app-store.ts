@@ -964,6 +964,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (compareState.showBranchList) {
       this.currentAheadBehindUpdater.schedule(
         currentBranch,
+        compareState.defaultBranch,
         compareState.recentBranches,
         compareState.allBranches
       )
