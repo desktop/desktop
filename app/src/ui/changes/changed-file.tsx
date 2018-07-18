@@ -6,6 +6,7 @@ import { Octicon } from '../octicons'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 
 interface IChangedFileProps {
+  readonly id: string
   readonly path: string
   readonly status: AppFileStatus
   readonly oldPath?: string
