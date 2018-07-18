@@ -13,7 +13,7 @@ phases:
           yarn install --force
         name: Install
       - script: |
-          yarn lint:prettier --fix && git diff --color --word-diff=color
+          yarn lint:prettier --fix && git diff --word-diff
         name: Build
       - script: |
           yarn test:setup && yarn test
