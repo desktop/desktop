@@ -50,6 +50,7 @@ import {
   enableSourceMaps,
   withSourceMappedStack,
 } from '../lib/source-map-support'
+import { UiActivityMonitor } from './lib/ui-activity-monitor'
 
 if (__DEV__) {
   installDevGlobals()
@@ -108,7 +109,10 @@ const gitHubUserStore = new GitHubUserStore(
 const cloningRepositoriesStore = new CloningRepositoriesStore()
 const emojiStore = new EmojiStore()
 const issuesStore = new IssuesStore(new IssuesDatabase('IssuesDatabase'))
-const statsStore = new StatsStore(new StatsDatabase('StatsDatabase'))
+const statsStore = new StatsStore(
+  new StatsDatabase('StatsDatabase'),
+  new UiActivityMonitor()
+)
 const signInStore = new SignInStore()
 
 const accountsStore = new AccountsStore(localStorage, TokenStore)

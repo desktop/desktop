@@ -16,8 +16,8 @@ body.theme-dark {
   --text-secondary-color: $gray-400;
   --background-color: $gray-900;
 
-  --button-background: black;
-  --button-hover-background: darken($gray-900, 5%);
+  --button-background: $blue;
+  --button-hover-background: lighten($blue, 5%);
   --button-text-color: $white;
   --button-focus-border-color: $blue-600;
 
@@ -186,6 +186,18 @@ body.theme-dark {
   --tab-bar-count-background-color: $gray-700;
 
   /**
+    * Badge colors when used inside of list items.
+    * Example of this is the ahead/behind indicators inside
+    * of the repository list.
+    */
+  --list-item-badge-color: var(--text-color);
+  --list-item-badge-background-color: $gray-600;
+  --list-item-selected-badge-color: $white;
+  --list-item-selected-badge-background-color: $gray-500;
+  --list-item-selected-active-badge-color: $gray-900;
+  --list-item-selected-active-badge-background-color: $white;
+
+  /**
    * Toast notifications are shown temporarily for things like the zoom
    * percentage changing or the app toggling between full screen and normal
    * window mode.
@@ -218,11 +230,11 @@ body.theme-dark {
   --diff-selected-gutter-color: $blue-600;
   --diff-selected-text-color: var(--text-color);
 
-  --diff-add-background-color: darken($green-900, 10%);
-  --diff-add-border-color: darken($green-900, 10%);
-  --diff-add-gutter-color: darken($green-900, 10%);
-  --diff-add-gutter-background-color: darken($green-900, 13%);
-  --diff-add-inner-background-color: $green-900;
+  --diff-add-background-color: darken($green-900, 3%);
+  --diff-add-border-color: darken($green-900, 2%);
+  --diff-add-gutter-color: darken($green-900, 2%);
+  --diff-add-gutter-background-color: darken($green-900, 8%);
+  --diff-add-inner-background-color: $green-600;
   --diff-add-text-color: var(--diff-text-color);
 
   --diff-delete-background-color: darken($red-900, 15%);
@@ -265,6 +277,7 @@ body.theme-dark {
   --syntax-tag-color: $green-400;
   --syntax-attribute-color: $purple-300;
   --syntax-link-color: $blue-300;
+  --syntax-header-color: $red-300;
 
   // Colors for form errors
   --error-color: $red;

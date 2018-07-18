@@ -1,15 +1,12 @@
-'use strict'
+import * as common from './webpack.common'
 
-const common = require('./webpack.common')
-
-const webpack = require('webpack')
-const merge = require('webpack-merge')
+import * as webpack from 'webpack'
+import * as merge from 'webpack-merge'
+import * as MiniCssExtractPlugin from 'mini-css-extract-plugin'
+import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer'
 const MinifyPlugin = require('babel-minify-webpack-plugin')
-const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 
-const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer')
-
-const config = {
+const config: webpack.Configuration = {
   mode: 'production',
   devtool: 'source-map',
   optimization: {
@@ -36,7 +33,7 @@ const rendererConfig = merge({}, common.renderer, config, {
   },
   plugins: [
     // Necessary to be able to use MiniCssExtractPlugin as a loader.
-    new MiniCssExtractPlugin('renderer.css'),
+    new MiniCssExtractPlugin({ filename: 'renderer.css' }),
     new BundleAnalyzerPlugin({
       // this generates the static HTML file to view afterwards, rather
       // than disrupting the user
@@ -64,11 +61,11 @@ const crashConfig = merge({}, common.crash, config, {
   },
   plugins: [
     // Necessary to be able to use MiniCssExtractPlugin as a loader.
-    new MiniCssExtractPlugin('crash.css'),
+    new MiniCssExtractPlugin({ filename: 'crash.css' }),
   ],
 })
 
-module.exports = [
+export = [
   mainConfig,
   rendererConfig,
   askPassConfig,

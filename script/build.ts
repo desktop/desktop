@@ -1,4 +1,3 @@
-/* tslint:disable:no-sync-functions */
 /* eslint-disable no-sync */
 /// <reference path="./globals.d.ts" />
 
@@ -7,7 +6,11 @@ import * as cp from 'child_process'
 import * as fs from 'fs-extra'
 import * as packager from 'electron-packager'
 
-const legalEagle: LegalEagle = require('legal-eagle')
+import { licenseOverrides } from './license-overrides'
+
+import { externals } from '../app/webpack.common'
+
+import * as legalEagle from 'legal-eagle'
 
 interface IFrontMatterResult<T> {
   readonly attributes: T
@@ -72,7 +75,7 @@ if (process.platform === 'darwin' && process.env.CIRCLECI && !isFork) {
 }
 
 console.log('Updating our licenses dump…')
-updateLicenseDump(err => {
+updateLicenseDump(async err => {
   if (err) {
     console.error(
       'Error updating the license dump. This is fatal for a published build.'
@@ -85,14 +88,13 @@ updateLicenseDump(err => {
   }
 
   console.log('Packaging…')
-  packageApp((err, appPaths) => {
-    if (err) {
-      console.error(err)
-      process.exit(1)
-    } else {
-      console.log(`Built to ${appPaths}`)
-    }
-  })
+  try {
+    const appPaths = await packageApp()
+    console.log(`Built to ${appPaths}`)
+  } catch (err) {
+    console.error(err)
+    process.exit(1)
+  }
 })
 
 /**
@@ -107,9 +109,7 @@ interface IPackageAdditionalOptions {
   }>
 }
 
-function packageApp(
-  callback: (error: Error | null, appPaths: string | string[]) => void
-) {
+function packageApp() {
   // not sure if this is needed anywhere, so I'm just going to inline it here
   // for now and see what the future brings...
   const toPackagePlatform = (platform: NodeJS.Platform) => {
@@ -123,10 +123,24 @@ function packageApp(
     )
   }
 
+  const toPackageArch = (targetArch: string | undefined): packager.arch => {
+    if (targetArch === undefined) {
+      return 'x64'
+    }
+
+    if (targetArch === 'arm64' || targetArch === 'x64') {
+      return targetArch
+    }
+
+    throw new Error(
+      `Building Desktop for architecture '${targetArch}'  is not supported`
+    )
+  }
+
   const options: packager.Options & IPackageAdditionalOptions = {
     name: getExecutableName(),
     platform: toPackagePlatform(process.platform),
-    arch: process.env.TARGET_ARCH || 'x64',
+    arch: toPackageArch(process.env.TARGET_ARCH),
     asar: false, // TODO: Probably wanna enable this down the road.
     out: getDistRoot(),
     icon: path.join(projectRoot, 'app', 'static', 'logos', 'icon-logo'),
@@ -170,13 +184,7 @@ function packageApp(
     },
   }
 
-  packager(options, (err: Error, appPaths: string | string[]) => {
-    if (err) {
-      callback(err, appPaths)
-    } else {
-      callback(null, appPaths)
-    }
-  })
+  return packager(options)
 }
 
 function removeAndCopy(source: string, destination: string) {
@@ -230,9 +238,6 @@ function copyDependencies() {
     'package.json'
   ))
 
-  // eslint-disable-next-line import/no-dynamic-require
-  const commonConfig = require(path.resolve(__dirname, '../app/webpack.common'))
-  const externals = commonConfig.externals
   const oldDependencies = originalPackage.dependencies
   const newDependencies: PackageLookup = {}
 
@@ -340,7 +345,6 @@ function copyDependencies() {
 function updateLicenseDump(callback: (err: Error | null) => void) {
   const appRoot = path.join(projectRoot, 'app')
   const outPath = path.join(outRoot, 'static', 'licenses.json')
-  const licenseOverrides: LicenseLookup = require('./license-overrides')
 
   legalEagle(
     { path: appRoot, overrides: licenseOverrides, omitPermissive: true },
