@@ -851,10 +851,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const action =
       initialAction != null ? initialAction : getInitialAction(cachedState)
     this._executeCompare(repository, action)
-
-    if (currentBranch != null && this.currentAheadBehindUpdater != null) {
-      this.currentAheadBehindUpdater.schedule(currentBranch, allBranches)
-    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -949,6 +945,30 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
 
     this.emitUpdate()
+
+    const { branchesState, compareState } = this.getRepositoryState(repository)
+
+    if (branchesState.tip.kind !== TipState.Valid) {
+      return
+    }
+
+    const currentBranch = branchesState.tip.branch
+    if (currentBranch == null) {
+      return
+    }
+
+    if (this.currentAheadBehindUpdater == null) {
+      return
+    }
+
+    if (compareState.showBranchList) {
+      this.currentAheadBehindUpdater.schedule(
+        currentBranch,
+        compareState.allBranches
+      )
+    } else {
+      this.currentAheadBehindUpdater.clear()
+    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
