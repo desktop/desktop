@@ -137,6 +137,12 @@ export class CompareSidebar extends React.Component<
 
   public componentWillUnmount() {
     this.textbox = null
+
+    // by hiding the branch list here when the component is torn down
+    // we ensure any ahead/behind computation work is discarded
+    this.props.dispatcher.updateCompareForm(this.props.repository, {
+      showBranchList: false,
+    })
   }
 
   public render() {
