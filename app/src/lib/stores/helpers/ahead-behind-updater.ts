@@ -96,9 +96,22 @@ export class AheadBehindUpdater {
     this.comparisonCache.set(from, to, value)
   }
 
-  public schedule(currentBranch: Branch, branches: ReadonlyArray<Branch>) {
-    // remove any queued work to prioritize this new set of tasks
+  /**
+   * Stop processing any ahead/behind computations for the current repository
+   */
+  public clear() {
     this.aheadBehindQueue.end()
+  }
+
+  /**
+   * Schedule ahead/behind computations for all available branches in
+   * the current repository, where they haven't been already computed
+   *
+   * @param currentBranch The current branch of the repository
+   * @param branches All known branches in the repository
+   */
+  public schedule(currentBranch: Branch, branches: ReadonlyArray<Branch>) {
+    this.clear()
 
     const from = currentBranch.tip.sha
 
