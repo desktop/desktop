@@ -529,7 +529,7 @@ export class GitStore extends BaseStore {
     )
 
     if (status == null) {
-      throw new Error("Unable to undo first commit because status)failed.")
+      throw new Error('Unable to undo first commit because status failed.')
     }
 
     const paths = status.workingDirectory.files
