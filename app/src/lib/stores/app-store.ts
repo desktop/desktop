@@ -147,7 +147,7 @@ import {
   getPersistedTheme,
   setPersistedTheme,
 } from '../../ui/lib/application-theme'
-import { findAccountForRemoteURL } from '../find-account'
+import { findAccountForRemoteURL, canAccessRepositoryUsingAPI } from '../find-account'
 
 /**
  * Enum used by fetch to determine if
@@ -2380,7 +2380,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
         const { accounts } = this.getState()
         const githubAccount = await findAccountForRemoteURL(
           remote.url,
-          accounts
+          accounts,
+          canAccessRepositoryUsingAPI
         )
 
         if (githubAccount === null) {

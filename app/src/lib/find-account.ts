@@ -3,11 +3,17 @@ import { getHTMLURL, API, getDotComAPIEndpoint } from './api'
 import { parseRemote, parseRepositoryIdentifier } from './remote-parsing'
 import { Account } from '../models/account'
 
+type RepositoryLookupFunc = (
+  account: Account,
+  owner: string,
+  name: string
+) => Promise<boolean>
+
 /**
  * Check if the repository designated by the owner and name exists and can be
  * accessed by the given account.
  */
-async function canAccessRepository(
+export async function canAccessRepositoryUsingAPI(
   account: Account,
   owner: string,
   name: string
@@ -26,6 +32,7 @@ async function canAccessRepository(
  * name. This will prefer dot com over other endpoints.
  */
 async function findRepositoryAccount(
+  canAccessRepository: RepositoryLookupFunc,
   accounts: ReadonlyArray<Account>,
   owner: string,
   name: string
@@ -62,7 +69,8 @@ async function findRepositoryAccount(
  */
 export async function findAccountForRemoteURL(
   urlOrRepositoryAlias: string,
-  accounts: ReadonlyArray<Account>
+  accounts: ReadonlyArray<Account>,
+  canAccessRepository: RepositoryLookupFunc
 ): Promise<Account | null> {
   const allAccounts = [...accounts, Account.anonymous()]
 
@@ -95,7 +103,12 @@ export async function findAccountForRemoteURL(
   const repositoryIdentifier = parseRepositoryIdentifier(urlOrRepositoryAlias)
   if (repositoryIdentifier) {
     const { owner, name } = repositoryIdentifier
-    const account = await findRepositoryAccount(allAccounts, owner, name)
+    const account = await findRepositoryAccount(
+      canAccessRepository,
+      allAccounts,
+      owner,
+      name
+    )
     if (account) {
       return account
     }

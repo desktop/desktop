@@ -4,10 +4,15 @@ import { Account } from '../../src/models/account'
 import { findAccountForRemoteURL } from '../../src/lib/find-account'
 import { getDotComAPIEndpoint, getEnterpriseAPIURL } from '../../src/lib/api'
 
-// these tests are running against the real GitHub API and are rate-limited
-// to 60 requests per hour on an IP address - disabling these for now until
-// we can get proper unit tests in place
-describe.skip('findAccountForRemoteURL', () => {
+describe('findAccountForRemoteURL', () => {
+  const mockCanAccessRepository = (
+    account: Account,
+    owner: string,
+    name: string
+  ) => {
+    return Promise.resolve(false)
+  }
+
   const accounts: ReadonlyArray<Account> = [
     new Account(
       'joan',
@@ -33,7 +38,8 @@ describe.skip('findAccountForRemoteURL', () => {
   it.skip('gives no account for non-GitHub endpoint', async () => {
     const account = await findAccountForRemoteURL(
       'https://gitlab.com/inkscape/inkscape.git',
-      accounts
+      accounts,
+      mockCanAccessRepository
     )
     expect(account).to.equal(null)
   })
@@ -41,13 +47,18 @@ describe.skip('findAccountForRemoteURL', () => {
   it('gives no account for non-existent GitHub owner/name repository', async () => {
     const account = await findAccountForRemoteURL(
       'desktop/nonexistent-repo-fixture',
-      accounts
+      accounts,
+      mockCanAccessRepository
     )
     expect(account).to.equal(null)
   })
 
   it('finds the anonymous account for public GitHub owner/name repository', async () => {
-    const account = await findAccountForRemoteURL('inkscape/inkscape', [])
+    const account = await findAccountForRemoteURL(
+      'inkscape/inkscape',
+      [],
+      mockCanAccessRepository
+    )
     expect(account).not.to.equal(null)
     expect(account!).to.eql(Account.anonymous())
   })
@@ -55,14 +66,19 @@ describe.skip('findAccountForRemoteURL', () => {
   it('finds the anonymous account for public repository on GitHub endpoint', async () => {
     const account = await findAccountForRemoteURL(
       'https://github.com/inkscape/inkscape',
-      []
+      [],
+      mockCanAccessRepository
     )
     expect(account).not.to.equal(null)
     expect(account!).to.eql(Account.anonymous())
   })
 
   it('finds the account for GitHub owner/name repository', async () => {
-    const account = await findAccountForRemoteURL('inkscape/inkscape', accounts)
+    const account = await findAccountForRemoteURL(
+      'inkscape/inkscape',
+      accounts,
+      mockCanAccessRepository
+    )
     expect(account).not.to.equal(null)
     expect(account!.login).to.equal('joan')
   })
@@ -70,7 +86,8 @@ describe.skip('findAccountForRemoteURL', () => {
   it('finds the account for GitHub endpoint', async () => {
     const account = await findAccountForRemoteURL(
       'https://github.com/inkscape/inkscape.git',
-      accounts
+      accounts,
+      mockCanAccessRepository
     )
     expect(account).not.to.equal(null)
     expect(account!.login).to.equal('joan')
@@ -79,7 +96,8 @@ describe.skip('findAccountForRemoteURL', () => {
   it('finds the account for GitHub Enterprise endpoint', async () => {
     const account = await findAccountForRemoteURL(
       'https://github.mycompany.com/inkscape/inkscape.git',
-      accounts
+      accounts,
+      mockCanAccessRepository
     )
     expect(account).not.to.equal(null)
     expect(account!.login).to.equal('joel')
