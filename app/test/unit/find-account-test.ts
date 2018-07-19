@@ -10,6 +10,15 @@ describe('findAccountForRemoteURL', () => {
     owner: string,
     name: string
   ) => {
+    // public repository is accessible to everyone
+    if (
+      account.endpoint === getDotComAPIEndpoint() &&
+      owner === 'inkscape' &&
+      name === 'inkscape'
+    ) {
+      return Promise.resolve(true)
+    }
+
     return Promise.resolve(false)
   }
 
