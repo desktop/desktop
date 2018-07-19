@@ -6243,7 +6243,7 @@ prepend-http@^1.0.0, prepend-http@^1.0.1:
 
 prettier@prettier/prettier#1a2c4e6:
   version "1.14.0-dev"
-  resolved "https://codeload.github.com/prettier/prettier/tar.gz/1a2c4e663e7665e623de88bc57063920f20a02f8"
+  resolved "https://codeload.github.com/prettier/prettier/tar.gz/1fe0b01bd4d547793a112718c6264bce78bb4c60"
   dependencies:
     "@babel/code-frame" "7.0.0-beta.46"
     "@babel/parser" "7.0.0-beta.49"
