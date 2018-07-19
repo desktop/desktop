@@ -57,9 +57,9 @@
   dependencies:
     "@types/node" "*"
 
-"@types/electron-packager@^10.1.0":
-  version "10.1.0"
-  resolved "https://registry.yarnpkg.com/@types/electron-packager/-/electron-packager-10.1.0.tgz#8d61ef76a2676936c59d14392a9c0c1853405953"
+"@types/electron-packager@^12.0.0":
+  version "12.0.0"
+  resolved "https://registry.yarnpkg.com/@types/electron-packager/-/electron-packager-12.0.0.tgz#acbcf3c5895c1eeda3d2a325c2feeded6a639b1f"
   dependencies:
     "@types/node" "*"
 
@@ -2688,9 +2688,9 @@ electron-winstaller@2.5.2:
     lodash.template "^4.2.2"
     temp "^0.8.3"
 
-electron@2.0.4:
-  version "2.0.4"
-  resolved "https://registry.yarnpkg.com/electron/-/electron-2.0.4.tgz#87b86b8d9c13748032868c1be97e2b7021a51808"
+electron@2.0.5:
+  version "2.0.5"
+  resolved "https://registry.yarnpkg.com/electron/-/electron-2.0.5.tgz#6045db011e2547062a36e8c5da84d4982f434fc0"
   dependencies:
     "@types/node" "^8.0.24"
     electron-download "^3.0.1"
