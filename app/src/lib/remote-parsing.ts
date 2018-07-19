@@ -1,3 +1,5 @@
+import { getDotComHostname } from './api'
+
 type Protocol = 'ssh' | 'https'
 
 interface IGitRemoteURL {
@@ -63,6 +65,7 @@ export function parseRemote(url: string): IGitRemoteURL | null {
 }
 
 export interface IRepositoryIdentifier {
+  readonly hostname: string
   readonly owner: string
   readonly name: string
 }
@@ -76,18 +79,21 @@ export function parseRepositoryIdentifier(
   // URL. If not, we'll try treating it as a GitHub repository owner/name
   // shortcut.
   if (parsed) {
+    const hostname = parsed.hostname
     const owner = parsed.owner
     const name = parsed.name
-    if (owner && name) {
-      return { owner, name }
+    if (hostname && owner && name) {
+      return { hostname, owner, name }
     }
   }
 
+  // Attempt to treat url as if it is a GitHub repository owner/name
   const pieces = url.split('/')
   if (pieces.length === 2 && pieces[0].length > 0 && pieces[1].length > 0) {
+    const hostname = getDotComHostname()
     const owner = pieces[0]
     const name = pieces[1]
-    return { owner, name }
+    return { hostname, owner, name }
   }
 
   return null

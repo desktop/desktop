@@ -1,6 +1,10 @@
 import * as URL from 'url'
-import { getHTMLURL, API, getDotComAPIEndpoint } from './api'
-import { parseRemote, parseRepositoryIdentifier } from './remote-parsing'
+import { getHTMLURL, API, getDotComAPIEndpoint, getDotComHostname } from './api'
+import {
+  parseRemote,
+  parseRepositoryIdentifier,
+  IRepositoryIdentifier,
+} from './remote-parsing'
 import { Account } from '../models/account'
 
 /**
@@ -27,12 +31,19 @@ async function canAccessRepository(
  */
 async function findRepositoryAccount(
   accounts: ReadonlyArray<Account>,
-  owner: string,
-  name: string
+  repositoryIdentifier: IRepositoryIdentifier
 ): Promise<Account | null> {
+  const { hostname, owner, name } = repositoryIdentifier
+
+  // If hostname is not dotcom hostname then filter out accounts using the dotcom endpoint
+  const filteredAccounts =
+    hostname.toLowerCase() !== getDotComHostname()
+      ? Array.from(accounts).filter(a => a.endpoint !== getDotComAPIEndpoint())
+      : accounts
+
   // Prefer an authenticated dot com account, then Enterprise accounts, and
   // finally the unauthenticated dot com account.
-  const sortedAccounts = Array.from(accounts).sort((a1, a2) => {
+  const sortedAccounts = Array.from(filteredAccounts).sort((a1, a2) => {
     if (a1.endpoint === getDotComAPIEndpoint()) {
       return a1.token.length ? -1 : 1
     } else if (a2.endpoint === getDotComAPIEndpoint()) {
@@ -78,6 +89,7 @@ export async function findAccountForRemoteURL(
   //     truly don't care.
   const parsedURL = parseRemote(urlOrRepositoryAlias)
   if (parsedURL) {
+    console.log(`[test] we parsed a URL: ${JSON.stringify(parsedURL)}`)
     const account =
       allAccounts.find(a => {
         const htmlURL = getHTMLURL(a.endpoint)
@@ -88,15 +100,22 @@ export async function findAccountForRemoteURL(
     // If we find an account whose hostname matches the URL to be cloned, it's
     // always gonna be our best bet for success. We're not gonna do better.
     if (account) {
+      console.log(`[test] returning an account: ${JSON.stringify(account)}`)
       return account
     }
   }
 
   const repositoryIdentifier = parseRepositoryIdentifier(urlOrRepositoryAlias)
   if (repositoryIdentifier) {
-    const { owner, name } = repositoryIdentifier
-    const account = await findRepositoryAccount(allAccounts, owner, name)
+    console.log(
+      `[test] we got an identifier: ${JSON.stringify(repositoryIdentifier)}`
+    )
+    const account = await findRepositoryAccount(
+      allAccounts,
+      repositoryIdentifier
+    )
     if (account) {
+      console.log(`[test] returning an account: ${JSON.stringify(account)}`)
       return account
     }
   }

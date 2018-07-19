@@ -812,6 +812,11 @@ export function getHTMLURL(endpoint: string): string {
   }
 }
 
+/** Get github.com's hostname. */
+export function getDotComHostname(): string {
+  return 'github.com'
+}
+
 /**
  * Get the API URL for an HTML URL. For example:
  *

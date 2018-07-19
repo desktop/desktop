@@ -333,7 +333,7 @@ export class CloneRepository extends React.Component<
     }
 
     const account = await findAccountForRemoteURL(url, accounts)
-    if (identifier && account) {
+    if (identifier !== null && account !== null) {
       const api = API.fromAccount(account)
       const repo = await api.fetchRepository(identifier.owner, identifier.name)
       if (repo) {
