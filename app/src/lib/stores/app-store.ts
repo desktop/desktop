@@ -680,11 +680,31 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return store
   }
 
-  private async _updateSelectedCommit(repository: Repository): Promise<void> {
-    const state = this.getRepositoryState(repository)
-    const commits = state.compareState.commitSHAs
+  private clearSelectedCommit(repository: Repository) {
+    this.updateRepositoryState(repository, () => ({
+      selection: {
+        sha: null,
+        file: null,
+        changedFiles: [],
+        diff: null,
+      },
+    }))
+  }
 
-    this.updateSelectedCommit(repository, commits)
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _changeCommitSelection(
+    repository: Repository,
+    sha: string
+  ): Promise<void> {
+    this.updateRepositoryState(repository, state => {
+      const commitChanged = state.selection.sha !== sha
+      const changedFiles = commitChanged
+        ? new Array<CommittedFileChange>()
+        : state.selection.changedFiles
+      const file = commitChanged ? null : state.selection.file
+      const selection = { sha, file, diff: null, changedFiles }
+      return { selection }
+    })
 
     this.emitUpdate()
   }
@@ -697,17 +717,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     let selectedSHA = state.selection.sha
     if (selectedSHA != null) {
       const index = commitSHAs.findIndex(sha => sha === selectedSHA)
-      // Our selected SHA is not in this list, so clear the selection in the app state
       if (index < 0) {
+        // selected SHA is not in this list
+        // -> clear the selection in the app state
         selectedSHA = null
-        this.updateRepositoryState(repository, () => ({
-          selection: {
-            sha: selectedSHA,
-            file: null,
-            changedFiles: [],
-            diff: null,
-          },
-        }))
+        this.clearSelectedCommit(repository)
       }
     }
 
@@ -982,7 +996,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const state = this.getRepositoryState(repository)
     const { selection } = state
     const currentSHA = selection.sha
-    if (!currentSHA) {
+    if (currentSHA == null) {
       return
     }
 
@@ -1025,23 +1039,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (selectionOrFirstFile.file) {
       this._changeFileSelection(repository, selectionOrFirstFile.file)
     }
-  }
-
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _changeCommitSelection(
-    repository: Repository,
-    sha: string
-  ): Promise<void> {
-    this.updateRepositoryState(repository, state => {
-      const commitChanged = state.selection.sha !== sha
-      const changedFiles = commitChanged
-        ? new Array<CommittedFileChange>()
-        : state.selection.changedFiles
-      const file = commitChanged ? null : state.selection.file
-      const selection = { sha, file, diff: null, changedFiles }
-      return { selection }
-    })
-    this.emitUpdate()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -1948,7 +1945,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     // TODO: is this necessary to do still?
 
-    return this._updateSelectedCommit(repository)
+    return this.updateSelectedCommit(repository, state.compareState.commitSHAs)
   }
 
   private async refreshAuthor(repository: Repository): Promise<void> {
@@ -2725,21 +2722,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     await gitStore.undoCommit(commit)
 
-    const state = this.getRepositoryState(repository)
-    const selectedCommit = state.selection.sha
+    const { selection } = this.getRepositoryState(repository)
 
-    if (selectedCommit === commit.sha) {
-      // clear the selection of this commit in the history view
-      this.updateRepositoryState(repository, state => {
-        return {
-          selection: {
-            sha: null,
-            file: null,
-            changedFiles: [],
-            diff: null,
-          },
-        }
-      })
+    if (selection.sha === commit.sha) {
+      this.clearSelectedCommit(repository)
     }
 
     return this._refreshRepository(repository)
