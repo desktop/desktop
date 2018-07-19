@@ -282,11 +282,11 @@ export class ChangesList extends React.Component<
 
     if (this.props.selectedFileIDs.includes(id)) {
       // user has selected a file inside an existing selection
-      // -> they may want to discard multiple changes
+      // -> context menu entries should be applied to all selected files
       this.props.selectedFileIDs.forEach(addItemToArray)
     } else {
       // this is outside their previous selection
-      // -> they just want to discard the selected file
+      // -> context menu entries should be applied to just this file
       addItemToArray(id)
     }
 
