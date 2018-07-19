@@ -74,7 +74,7 @@ export async function findAccountForRemoteURL(
 
     // Prefer an authenticated dot com account, then Enterprise accounts, and
     // finally the unauthenticated dot com account.
-    const sortedAccounts = Array.from(accounts).sort((a1, a2) => {
+    const sortedAccounts = Array.from(allAccounts).sort((a1, a2) => {
       if (a1.endpoint === getDotComAPIEndpoint()) {
         return a1.token.length ? -1 : 1
       } else if (a2.endpoint === getDotComAPIEndpoint()) {
