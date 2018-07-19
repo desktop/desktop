@@ -814,7 +814,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     }
 
-    this.updateCompareState(repository, state => ({
+    this.updateCompareState(repository, () => ({
       allBranches,
       recentBranches,
       defaultBranch,
@@ -867,7 +867,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const repoState = this.getRepositoryState(repository).historyState
       const commits = repoState.history
 
-      this.updateCompareState(repository, state => ({
+      this.updateCompareState(repository, () => ({
         formState: {
           kind: ComparisonView.None,
         },
@@ -895,7 +895,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         const { ahead, behind } = compare
         const aheadBehind = { ahead, behind }
 
-        this.updateCompareState(repository, s => ({
+        this.updateCompareState(repository, () => ({
           formState: {
             comparisonBranch,
             kind: action.mode,
@@ -988,7 +988,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         return
       }
 
-      this.updateCompareState(repository, state => ({
+      this.updateCompareState(repository, () => ({
         commitSHAs: commits.concat(newCommits),
       }))
       this.emitUpdate()
