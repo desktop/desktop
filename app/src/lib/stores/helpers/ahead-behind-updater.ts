@@ -108,7 +108,9 @@ export class AheadBehindUpdater {
    * the current repository, where they haven't been already computed
    *
    * @param currentBranch The current branch of the repository
-   * @param branches All known branches in the repository
+   * @param defaultBranch The default branch (if defined)
+   * @param recentBranches Recent branches in the repository
+   * @param allBranches All known branches in the repository
    */
   public schedule(
     currentBranch: Branch,
