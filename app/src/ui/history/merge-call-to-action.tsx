@@ -11,6 +11,11 @@ interface IMergeCallToActionProps {
   readonly dispatcher: Dispatcher
   readonly currentBranch: Branch
   readonly formState: ICompareBranch
+
+  /**
+   * Callback to execute after a merge has been performed
+   */
+  readonly onMerged: () => void
 }
 
 export class MergeCallToAction extends React.Component<
@@ -77,5 +82,6 @@ export class MergeCallToAction extends React.Component<
       showBranchList: false,
       filterText: '',
     })
+    this.props.onMerged()
   }
 }

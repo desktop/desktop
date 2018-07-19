@@ -1,26 +1,22 @@
-'use strict'
+import * as path from 'path'
+import * as HtmlWebpackPlugin from 'html-webpack-plugin'
+import * as CleanWebpackPlugin from 'clean-webpack-plugin'
+import * as webpack from 'webpack'
+import * as merge from 'webpack-merge'
+import { getReleaseChannel } from '../script/dist-info'
+import { getReplacements } from './app-info'
 
-const path = require('path')
-const Fs = require('fs')
-const HtmlWebpackPlugin = require('html-webpack-plugin')
-const CleanWebpackPlugin = require('clean-webpack-plugin')
-const webpack = require('webpack')
-const merge = require('webpack-merge')
-const appInfo = require('./app-info')
-const packageInfo = require('./package-info')
-const distInfo = require('../script/dist-info')
+const channel = getReleaseChannel()
 
-const channel = distInfo.getReleaseChannel()
-
-const externals = ['7zip']
+export const externals = ['7zip']
 if (channel === 'development') {
   externals.push('devtron')
 }
 
 const outputDir = 'out'
-const replacements = appInfo.getReplacements()
+export const replacements = getReplacements()
 
-const commonConfig = {
+const commonConfig: webpack.Configuration = {
   externals: externals,
   output: {
     filename: '[name].js',
@@ -69,7 +65,7 @@ const commonConfig = {
   },
 }
 
-const mainConfig = merge({}, commonConfig, {
+export const main = merge({}, commonConfig, {
   entry: { main: path.resolve(__dirname, 'src/main-process/main') },
   target: 'electron-main',
   plugins: [
@@ -81,7 +77,7 @@ const mainConfig = merge({}, commonConfig, {
   ],
 })
 
-const rendererConfig = merge({}, commonConfig, {
+export const renderer = merge({}, commonConfig, {
   entry: { renderer: path.resolve(__dirname, 'src/ui/index') },
   target: 'electron-renderer',
   module: {
@@ -105,7 +101,7 @@ const rendererConfig = merge({}, commonConfig, {
   ],
 })
 
-const askPassConfig = merge({}, commonConfig, {
+export const askPass = merge({}, commonConfig, {
   entry: { 'ask-pass': path.resolve(__dirname, 'src/ask-pass/main') },
   target: 'node',
   plugins: [
@@ -117,7 +113,7 @@ const askPassConfig = merge({}, commonConfig, {
   ],
 })
 
-const crashConfig = merge({}, commonConfig, {
+export const crash = merge({}, commonConfig, {
   entry: { crash: path.resolve(__dirname, 'src/crash/index') },
   target: 'electron-renderer',
   plugins: [
@@ -134,7 +130,7 @@ const crashConfig = merge({}, commonConfig, {
   ],
 })
 
-const cliConfig = merge({}, commonConfig, {
+export const cli = merge({}, commonConfig, {
   entry: { cli: path.resolve(__dirname, 'src/cli/main') },
   target: 'node',
   plugins: [
@@ -146,7 +142,7 @@ const cliConfig = merge({}, commonConfig, {
   ],
 })
 
-const highlighterConfig = merge({}, commonConfig, {
+export const highlighter = merge({}, commonConfig, {
   entry: { highlighter: path.resolve(__dirname, 'src/highlighter/index') },
   output: {
     libraryTarget: 'var',
@@ -201,7 +197,7 @@ const highlighterConfig = merge({}, commonConfig, {
   },
 })
 
-highlighterConfig.module.rules = [
+highlighter.module!.rules = [
   {
     test: /\.ts$/,
     include: path.resolve(__dirname, 'src/highlighter'),
@@ -221,14 +217,3 @@ highlighterConfig.module.rules = [
     exclude: /node_modules/,
   },
 ]
-
-module.exports = {
-  main: mainConfig,
-  renderer: rendererConfig,
-  askPass: askPassConfig,
-  crash: crashConfig,
-  cli: cliConfig,
-  highlighter: highlighterConfig,
-  replacements: replacements,
-  externals: commonConfig.externals,
-}

@@ -245,6 +245,18 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --tab-bar-count-color: var(--text-color);
   --tab-bar-count-background-color: $gray-200;
 
+  /**
+    * Badge colors when used inside of list items.
+    * Example of this is the change indicators inside
+    * of the repository list.
+    */
+  --list-item-badge-color: $gray-800;
+  --list-item-badge-background-color: $gray-200;
+  --list-item-selected-badge-color: $gray-900;
+  --list-item-selected-badge-background-color: $gray-300;
+  --list-item-selected-active-badge-color: $gray-900;
+  --list-item-selected-active-badge-background-color: $white;
+
   /** Win32 has custom scrol bars, see _scroll.scss */
   --win32-scroll-bar-size: 10px;
 
@@ -343,6 +355,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --syntax-tag-color: #22863a;
   --syntax-attribute-color: #6f42c1;
   --syntax-link-color: #032f62;
+  --syntax-header-color: #0000ff;
 
   // Note that this duration *must* match the `UndoCommitAnimationTimeout`
   // specified in `changes/index.tsx`.
