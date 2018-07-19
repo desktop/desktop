@@ -13,7 +13,7 @@ type RepositoryLookupFunc = (
  * Check if the repository designated by the owner and name exists and can be
  * accessed by the given account.
  */
-export async function canAccessRepositoryUsingAPI(
+async function canAccessRepositoryUsingAPI(
   account: Account,
   owner: string,
   name: string
@@ -38,7 +38,7 @@ export async function canAccessRepositoryUsingAPI(
 export async function findAccountForRemoteURL(
   urlOrRepositoryAlias: string,
   accounts: ReadonlyArray<Account>,
-  canAccessRepository: RepositoryLookupFunc
+  canAccessRepository: RepositoryLookupFunc = canAccessRepositoryUsingAPI
 ): Promise<Account | null> {
   const allAccounts = [...accounts, Account.anonymous()]
 

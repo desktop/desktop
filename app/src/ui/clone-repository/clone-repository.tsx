@@ -12,10 +12,7 @@ import {
   IRepositoryIdentifier,
   parseRepositoryIdentifier,
 } from '../../lib/remote-parsing'
-import {
-  findAccountForRemoteURL,
-  canAccessRepositoryUsingAPI,
-} from '../../lib/find-account'
+import { findAccountForRemoteURL } from '../../lib/find-account'
 import { API } from '../../lib/api'
 import { Dialog, DialogError, DialogFooter, DialogContent } from '../dialog'
 import { TabBar } from '../tab-bar'
@@ -335,11 +332,7 @@ export class CloneRepository extends React.Component<
       accounts.push(this.props.enterpriseAccount)
     }
 
-    const account = await findAccountForRemoteURL(
-      url,
-      accounts,
-      canAccessRepositoryUsingAPI
-    )
+    const account = await findAccountForRemoteURL(url, accounts)
     if (identifier && account) {
       const api = API.fromAccount(account)
       const repo = await api.fetchRepository(identifier.owner, identifier.name)
