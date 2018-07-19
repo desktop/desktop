@@ -709,7 +709,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  private updateSelectedCommit(
+  private updateOrSelectFirstCommit(
     repository: Repository,
     commitSHAs: ReadonlyArray<string>
   ) {
@@ -877,6 +877,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
           },
           commitSHAs: commits,
         }))
+
+        this.updateOrSelectFirstCommit(repository, commits)
+
         return this.emitUpdate()
       }
     } else if (action.kind === CompareActionKind.Branch) {
@@ -950,7 +953,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.currentAheadBehindUpdater.insert(from, to, aheadBehind)
     }
 
-    this.updateSelectedCommit(repository, commitSHAs)
+    this.updateOrSelectFirstCommit(repository, commitSHAs)
 
     return this.emitUpdate()
   }
@@ -1945,7 +1948,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     // TODO: is this necessary to do still?
 
-    return this.updateSelectedCommit(repository, state.compareState.commitSHAs)
+    return this.updateOrSelectFirstCommit(
+      repository,
+      state.compareState.commitSHAs
+    )
   }
 
   private async refreshAuthor(repository: Repository): Promise<void> {
