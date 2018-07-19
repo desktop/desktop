@@ -85,6 +85,14 @@ export async function findAccountForRemoteURL(
     })
 
     for (const account of sortedAccounts) {
+      if (hostname != null) {
+        const htmlURL = URL.parse(getHTMLURL(account.endpoint))
+        const accountHost = htmlURL.hostname
+        if (accountHost !== hostname) {
+          continue
+        }
+      }
+
       const canAccess = await canAccessRepository(account, owner, name)
       if (canAccess) {
         return account
