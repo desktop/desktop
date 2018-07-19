@@ -70,7 +70,7 @@ export async function findAccountForRemoteURL(
 
   const repositoryIdentifier = parseRepositoryIdentifier(urlOrRepositoryAlias)
   if (repositoryIdentifier) {
-    const { owner, name } = repositoryIdentifier
+    const { owner, name, hostname } = repositoryIdentifier
 
     // Prefer an authenticated dot com account, then Enterprise accounts, and
     // finally the unauthenticated dot com account.
