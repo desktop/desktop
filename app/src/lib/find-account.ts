@@ -28,38 +28,6 @@ export async function canAccessRepositoryUsingAPI(
 }
 
 /**
- * Find the account whose endpoint has a repository with the given owner and
- * name. This will prefer dot com over other endpoints.
- */
-async function findRepositoryAccount(
-  canAccessRepository: RepositoryLookupFunc,
-  accounts: ReadonlyArray<Account>,
-  owner: string,
-  name: string
-): Promise<Account | null> {
-  // Prefer an authenticated dot com account, then Enterprise accounts, and
-  // finally the unauthenticated dot com account.
-  const sortedAccounts = Array.from(accounts).sort((a1, a2) => {
-    if (a1.endpoint === getDotComAPIEndpoint()) {
-      return a1.token.length ? -1 : 1
-    } else if (a2.endpoint === getDotComAPIEndpoint()) {
-      return a2.token.length ? 1 : -1
-    } else {
-      return 0
-    }
-  })
-
-  for (const account of sortedAccounts) {
-    const canAccess = await canAccessRepository(account, owner, name)
-    if (canAccess) {
-      return account
-    }
-  }
-
-  return null
-}
-
-/**
  * Find the GitHub account associated with a given remote URL.
  *
  * @param urlOrRepositoryAlias - the URL or repository alias whose account
@@ -103,14 +71,24 @@ export async function findAccountForRemoteURL(
   const repositoryIdentifier = parseRepositoryIdentifier(urlOrRepositoryAlias)
   if (repositoryIdentifier) {
     const { owner, name } = repositoryIdentifier
-    const account = await findRepositoryAccount(
-      canAccessRepository,
-      allAccounts,
-      owner,
-      name
-    )
-    if (account) {
-      return account
+
+    // Prefer an authenticated dot com account, then Enterprise accounts, and
+    // finally the unauthenticated dot com account.
+    const sortedAccounts = Array.from(accounts).sort((a1, a2) => {
+      if (a1.endpoint === getDotComAPIEndpoint()) {
+        return a1.token.length ? -1 : 1
+      } else if (a2.endpoint === getDotComAPIEndpoint()) {
+        return a2.token.length ? 1 : -1
+      } else {
+        return 0
+      }
+    })
+
+    for (const account of sortedAccounts) {
+      const canAccess = await canAccessRepository(account, owner, name)
+      if (canAccess) {
+        return account
+      }
     }
   }
 
