@@ -501,6 +501,7 @@ export class GitStore extends BaseStore {
     )
 
     if (status == null) {
+      log.warn("Unable to undo first commit because status failed.")
       return
     }
 
