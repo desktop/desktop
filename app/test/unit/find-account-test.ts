@@ -10,6 +10,16 @@ describe('findAccountForRemoteURL', () => {
     owner: string,
     name: string
   ) => {
+    // private repository, only this person can access it
+    if (
+      account.endpoint === getDotComAPIEndpoint() &&
+      account.login === 'joan' &&
+      owner === 'desktop' &&
+      name === 'repo-fixture'
+    ) {
+      return Promise.resolve(true)
+    }
+
     // public repository is accessible to everyone
     if (
       account.endpoint === getDotComAPIEndpoint() &&
@@ -109,5 +119,24 @@ describe('findAccountForRemoteURL', () => {
     )
     expect(account).not.to.equal(null)
     expect(account!.login).to.equal('joel')
+  })
+
+  it('finds the account for private GitHub owner/name repository', async () => {
+    const account = await findAccountForRemoteURL(
+      'desktop/repo-fixture',
+      accounts,
+      mockCanAccessRepository
+    )
+    expect(account).not.to.equal(null)
+    expect(account!.login).to.equal('joan')
+  })
+
+  it('cannot see the private GitHub owner/name repository', async () => {
+    const account = await findAccountForRemoteURL(
+      'desktop/repo-fixture',
+      [],
+      mockCanAccessRepository
+    )
+    expect(account).to.equal(null)
   })
 })
