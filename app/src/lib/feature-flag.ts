@@ -41,3 +41,7 @@ export function enableNotificationOfBranchUpdates(): boolean {
 export function enableRepoInfoIndicators(): boolean {
   return enableBetaFeatures()
 }
+
+export function enableInAppReleaseNotes(): boolean {
+  return enableBetaFeatures()
+}
