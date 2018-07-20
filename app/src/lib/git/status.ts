@@ -1,4 +1,4 @@
-import { git } from './core'
+import { spawnAndComplete } from './spawn'
 import {
   WorkingDirectoryStatus,
   WorkingDirectoryFileChange,
@@ -11,6 +11,14 @@ import { DiffSelectionType, DiffSelection } from '../../models/diff'
 import { Repository } from '../../models/repository'
 import { IAheadBehind } from '../../models/branch'
 import { fatalError } from '../../lib/fatal-error'
+
+/**
+ * V8 has a limit on the size of string it can create (~256MB), and unless we want to
+ * trigger an unhandled exception we need to do the encoding conversion by hand.
+ *
+ * As we may be executing status often, we should keep this to a reasonable threshold.
+ */
+const MaxStatusBufferSize = 20e6 // 20MB in decimal
 
 /** The encapsulation of the result from 'git status' */
 export interface IStatusResult {
@@ -55,12 +63,23 @@ function convertToAppStatus(status: FileEntry): AppFileStatus {
  */
 export async function getStatus(
   repository: Repository
-): Promise<IStatusResult> {
-  const result = await git(
+): Promise<IStatusResult | null> {
+  const result = await spawnAndComplete(
     ['status', '--untracked-files=all', '--branch', '--porcelain=2', '-z'],
     repository.path,
     'getStatus'
   )
+
+  if (result.output.length > MaxStatusBufferSize) {
+    log.error(
+      `'git status' emitted ${
+        result.output.length
+      } bytes, which is beyond the supported threshold of ${MaxStatusBufferSize} bytes`
+    )
+    return null
+  }
+
+  const stdout = result.output.toString('utf8')
 
   // Map of files keyed on their paths.
   // Note, map maintains insertion order
@@ -71,7 +90,7 @@ export async function getStatus(
   let currentTip: string | undefined = undefined
   let branchAheadBehind: IAheadBehind | undefined = undefined
 
-  for (const entry of parsePorcelainStatus(result.stdout)) {
+  for (const entry of parsePorcelainStatus(stdout)) {
     if (entry.kind === 'entry') {
       const status = mapStatus(entry.statusCode)
 
