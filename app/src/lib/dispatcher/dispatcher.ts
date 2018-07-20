@@ -1247,6 +1247,27 @@ export class Dispatcher {
   }
 
   /**
+   * Increments the `dotcomPushCount` metric
+   */
+  public recordPushToGitHub() {
+    return this.appStore._recordPushToGitHub()
+  }
+
+  /**
+   * Increments the `enterprisePushCount` metric
+   */
+  public recordPushToGitHubEnterprise() {
+    return this.appStore._recordPushToGitHubEnterprise()
+  }
+
+  /**
+   * Increments the `externalPushCount` metric
+   */
+  public recordPushToGenericRemote() {
+    return this.appStore._recordPushToGenericRemote()
+  }
+
+  /**
    * Increments the `divergingBranchBannerInitiatedCompare` metric
    */
   public recordDivergingBranchBannerInitiatedCompare() {

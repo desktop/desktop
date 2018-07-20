@@ -39,7 +39,13 @@ import {
   IMatchedGitHubRepository,
   repositoryMatchesRemote,
 } from '../../lib/repository-matching'
-import { API, getAccountForEndpoint, IAPIUser } from '../../lib/api'
+import {
+  API,
+  getAccountForEndpoint,
+  IAPIUser,
+  getDotComAPIEndpoint,
+  getEnterpriseAPIURL,
+} from '../../lib/api'
 import { caseInsensitiveCompare } from '../compare'
 import {
   Branch,
@@ -141,6 +147,7 @@ import {
   getPersistedTheme,
   setPersistedTheme,
 } from '../../ui/lib/application-theme'
+import { findAccountForRemoteURL } from '../find-account'
 
 /**
  * Enum used by fetch to determine if
@@ -2369,6 +2376,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
             prUpdater.didPushPullRequest(currentPR)
           }
         }
+
+        const { accounts } = this.getState()
+        const githubAccount = await findAccountForRemoteURL(
+          remote.url,
+          accounts
+        )
+
+        if (githubAccount === null) {
+          this._recordPushToGenericRemote()
+        } else if (githubAccount.endpoint === getDotComAPIEndpoint()) {
+          this._recordPushToGitHub()
+        } else if (
+          githubAccount.endpoint === getEnterpriseAPIURL(githubAccount.endpoint)
+        ) {
+          this._recordPushToGitHubEnterprise()
+        }
       }
     })
   }
@@ -3827,6 +3850,27 @@ export class AppStore extends TypedBaseStore<IAppState> {
    */
   public _recordDivergingBranchBannerDisplayed() {
     this.statsStore.recordDivergingBranchBannerDisplayed()
+  }
+
+  /**
+   * Increments the `dotcomPushCount` metric
+   */
+  public _recordPushToGitHub() {
+    this.statsStore.recordPushToGitHub()
+  }
+
+  /**
+   * Increments the `enterprisePushCount` metric
+   */
+  public _recordPushToGitHubEnterprise() {
+    this.statsStore.recordPushToGitHubEnterprise()
+  }
+
+  /**
+   * Increments the `externalPushCount` metric
+   */
+  public _recordPushToGenericRemote() {
+    this.statsStore.recordPushToGenericRemote()
   }
 
   /**
