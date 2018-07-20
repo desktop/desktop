@@ -45,7 +45,7 @@ interface IChangesListProps {
     summary: string,
     description: string | null,
     trailers?: ReadonlyArray<ITrailer>
-  ) => Promise<boolean>
+  ) => Promise<void>
   readonly onDiscardChanges: (file: WorkingDirectoryFileChange) => void
   readonly askForConfirmationOnDiscardChanges: boolean
   readonly onDiscardAllChanges: (
