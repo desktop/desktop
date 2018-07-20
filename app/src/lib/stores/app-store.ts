@@ -2518,7 +2518,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
                   value: progress.value * pullWeight,
                 })
               }),
-            { retryAction }
+            { command: 'pull', retryAction }
           )
 
           const refreshStartProgress = pullWeight + fetchWeight

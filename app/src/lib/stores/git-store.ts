@@ -1104,7 +1104,9 @@ export class GitStore extends BaseStore {
 
   /** Merge the named branch into the current branch. */
   public merge(branch: string): Promise<void> {
-    return this.performFailableOperation(() => merge(this.repository, branch))
+    return this.performFailableOperation(() => merge(this.repository, branch), {
+      command: 'merge',
+    })
   }
 
   /** Changes the URL for the remote that matches the given name  */
