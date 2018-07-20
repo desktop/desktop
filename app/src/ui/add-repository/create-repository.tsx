@@ -277,7 +277,7 @@ export class CreateRepository extends React.Component<
     if (status === null) {
       this.props.dispatcher.postError(
         new Error(
-          `createRepository: unable to get status for repository at ${fullPath}`
+          `Unable to create the new repository because there are too many new files in this directory`
         )
       )
 
