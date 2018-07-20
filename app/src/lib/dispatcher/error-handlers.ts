@@ -281,7 +281,13 @@ export async function mergeConflictHandler(
     return error
   }
 
-  dispatcher.recordMergeConflictDetected()
+  if (e.metadata.command) {
+    if (e.metadata.command === 'pull') {
+      dispatcher.recordMergeConflictFromPull()
+    } else if (e.metadata.command === 'merge') {
+      dispatcher.recordMergeConflictFromExplicitMerge()
+    }
+  }
 
   dispatcher.showPopup({
     type: PopupType.MergeConflicts,
