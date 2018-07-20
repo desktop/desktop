@@ -72,6 +72,7 @@ export class CompareSidebar extends React.Component<
   private readonly loadChangedFilesScheduler = new ThrottledScheduler(200)
   private branchList: BranchList | null = null
   private loadingMoreCommitsPromise: Promise<void> | null = null
+  private resultCount = 0
 
   public constructor(props: ICompareSidebarProps) {
     super(props)
@@ -217,6 +218,10 @@ export class CompareSidebar extends React.Component<
     )
   }
 
+  private filterListResultsChanged = (resultCount: number) => {
+    this.resultCount = resultCount
+  }
+
   private viewHistoryForBranch = () => {
     this.props.dispatcher.executeCompare(this.props.repository, {
       kind: CompareActionKind.History,
@@ -305,6 +310,7 @@ export class CompareSidebar extends React.Component<
         onItemClick={this.onBranchItemClicked}
         onFilterTextChanged={this.onBranchFilterTextChanged}
         renderBranch={this.renderCompareBranchListItem}
+        onFilterListResultsChanged={this.filterListResultsChanged}
       />
     )
   }
@@ -388,6 +394,11 @@ export class CompareSidebar extends React.Component<
     const key = event.key
 
     if (key === 'Enter') {
+      if (this.resultCount === 0) {
+        event.preventDefault()
+        return
+      }
+
       if (this.props.compareState.filterText.length === 0) {
         this.handleEscape()
       } else {

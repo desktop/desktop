@@ -23,7 +23,7 @@ phases:
   steps:
   - script: |
       apt-get update
-      apt-get install -y --no-install-recommends libsecret-1-dev xvfb fakeroot dpkg rpm xz-utils xorriso zsync libxss1 libgconf2-4
+      apt-get install -y --no-install-recommends libsecret-1-dev xvfb fakeroot dpkg rpm xz-utils xorriso zsync libxss1 libgconf2-4 libgtk-3-0
   - task: NodeTool@0
     inputs:
       versionSpec: "8.11.1"
