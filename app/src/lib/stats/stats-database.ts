@@ -93,6 +93,9 @@ export interface IDailyMeasures {
 
   /** Whether or not the app has been interacted with during the current reporting window */
   readonly active: boolean
+
+  /** The number of times a merge in Desktop has resulted in conflicts that the user needs to resolve */
+  readonly mergeConflictDetected: number
 }
 
 export class StatsDatabase extends Dexie {

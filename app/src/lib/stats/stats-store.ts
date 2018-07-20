@@ -49,6 +49,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   enterprisePushCount: 0,
   externalPushCount: 0,
   active: false,
+  mergeConflictDetected: 0,
 }
 
 interface ICalculatedStats {
