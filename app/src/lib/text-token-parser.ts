@@ -134,7 +134,8 @@ export class Tokenizer {
     let nextIndex = this.scanForEndOfWord(text, index)
     let maybeIssue = text.slice(index, nextIndex)
 
-    // scanForEndOfWord doesn't detect ')'
+    // handle situation where issue reference is wrapped in parentheses
+    // like the generated "squash and merge" commits on GitHub
     if (maybeIssue.endsWith(')')) {
       nextIndex -= 1
       maybeIssue = text.slice(index, nextIndex)
