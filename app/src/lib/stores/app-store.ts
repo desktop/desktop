@@ -3799,10 +3799,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /**
-   * Increments the `mergeConflictDetectedCount` metric
+   * Increments the `mergeConflictFromPullCount` metric
    */
-  public _recordMergeConflictDetected() {
-    this.statsStore.recordMergeConflictDetected()
+  public _recordMergeConflictFromPull() {
+    this.statsStore.recordMergeConflictFromPull()
+  }
+
+  /**
+   * Increments the `mergeConflictFromExplicitMergeCount` metric
+   */
+  public _recordMergeConflictFromExplicitMerge() {
+    this.statsStore.recordMergeConflictFromExplicitMerge()
   }
 
   /**

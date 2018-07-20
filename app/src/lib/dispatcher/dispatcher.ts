@@ -1204,10 +1204,17 @@ export class Dispatcher {
   }
 
   /**
-   * Increments the `mergeConflictDetectedCount` metric
+   * Increments the `mergeConflictFromPullCount` metric
    */
-  public recordMergeConflictDetected() {
-    return this.appStore._recordMergeConflictDetected()
+  public recordMergeConflictFromPull() {
+    return this.appStore._recordMergeConflictFromPull()
+  }
+
+  /**
+   * Increments the `mergeConflictFromExplicitMergeCount` metric
+   */
+  public recordMergeConflictFromExplicitMerge() {
+    return this.appStore._recordMergeConflictFromExplicitMerge()
   }
 
   /**
