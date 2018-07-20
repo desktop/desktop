@@ -381,6 +381,13 @@ export class StatsStore {
     }))
   }
 
+  /** Record that conflicts were detected by a merge initiated by Desktop */
+  public recordMergeConflictDetected(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      mergeConflictDetected: m.mergeConflictDetected + 1,
+    }))
+  }
+
   /** Record that a merge has been initiated from the `Branch -> Merge Into Current Branch` menu item */
   public recordMenuInitiatedMerge(): Promise<void> {
     return this.updateDailyMeasures(m => ({

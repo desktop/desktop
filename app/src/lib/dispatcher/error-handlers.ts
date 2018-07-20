@@ -281,6 +281,8 @@ export async function mergeConflictHandler(
     return error
   }
 
+  dispatcher.recordMergeConflictDetected()
+
   dispatcher.showPopup({
     type: PopupType.MergeConflicts,
     repository,

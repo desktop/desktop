@@ -3799,6 +3799,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /**
+   * Increments the `mergeConflictDetectedCount` metric
+   */
+  public _recordMergeConflictDetected() {
+    this.statsStore.recordMergeConflictDetected()
+  }
+
+  /**
    * Increments the `mergeIntoCurrentBranchMenuCount` metric
    */
   public _recordMenuInitiatedMerge() {
