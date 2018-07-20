@@ -117,12 +117,16 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     description: string | null,
     trailers?: ReadonlyArray<ITrailer>
   ): Promise<void> => {
-    await this.props.dispatcher.commitIncludedChanges(
+    const commitCreated = await this.props.dispatcher.commitIncludedChanges(
       this.props.repository,
       summary,
       description,
       trailers
     )
+
+    if (commitCreated) {
+      this.props.dispatcher.setCommitMessage(this.props.repository, null)
+    }
   }
 
   private onFileSelectionChanged = (rows: ReadonlyArray<number>) => {
