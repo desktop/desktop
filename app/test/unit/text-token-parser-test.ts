@@ -189,6 +189,28 @@ describe('Tokenizer', () => {
       )
     })
 
+    it('renders link when sqaush and merge', () => {
+      const id = 5203
+      const expectedUri = `${htmlURL}/issues/${id}`
+      const text = `Update README.md (#5203)`
+
+      const tokenizer = new Tokenizer(emoji, repository)
+      const results = tokenizer.tokenize(text)
+      expect(results.length).to.equal(3)
+
+      expect(results[0].kind).to.equal(TokenType.Text)
+      expect(results[0].text).to.equal('Update README.md (')
+
+      expect(results[1].kind).to.equal(TokenType.Link)
+      const mention = results[1] as HyperlinkMatch
+
+      expect(mention.text).to.equal('#5203')
+      expect(mention.url).to.equal(expectedUri)
+
+      expect(results[2].kind).to.equal(TokenType.Text)
+      expect(results[2].text).to.equal(')')
+    })
+
     it('converts full URL to issue shorthand', () => {
       const text = `Note: we keep a "black list" of authentication methods for which we do
 not want to enable http.emptyAuth automatically. A white list would be

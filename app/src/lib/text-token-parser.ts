@@ -131,8 +131,15 @@ export class Tokenizer {
     index: number,
     repository: GitHubRepository
   ): LookupResult | null {
-    const nextIndex = this.scanForEndOfWord(text, index)
-    const maybeIssue = text.slice(index, nextIndex)
+    let nextIndex = this.scanForEndOfWord(text, index)
+    let maybeIssue = text.slice(index, nextIndex)
+
+    // scanForEndOfWord doesn't detect ')'
+    if (maybeIssue.endsWith(')')) {
+      nextIndex -= 1
+      maybeIssue = text.slice(index, nextIndex)
+    }
+
     if (!/^#\d+$/.test(maybeIssue)) {
       return null
     }
