@@ -2,14 +2,8 @@ import * as fuzzAldrin from 'fuzzaldrin-plus'
 
 import { compareDescending } from './compare'
 
-const options: fuzzAldrin.IFilterOptions = {
-  allowErrors: true,
-  isPath: true,
-  pathSeparator: '-',
-}
-
 function score(str: string, query: string, maxScore: number) {
-  return fuzzAldrin.score(str, query, undefined, options) / maxScore
+  return fuzzAldrin.score(str, query) / maxScore
 }
 
 export interface IMatches {
@@ -38,7 +32,7 @@ export function match<T, _K extends keyof T>(
       const matches: Array<ReadonlyArray<number>> = []
       const itemTextArray = getKey(item)
       itemTextArray.forEach(text => {
-        matches.push(fuzzAldrin.match(text, query, undefined, options))
+        matches.push(fuzzAldrin.match(text, query))
       })
 
       return {
