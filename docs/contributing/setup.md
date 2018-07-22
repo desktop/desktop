@@ -64,7 +64,7 @@ $ sudo ln -s `find /usr/lib64/ -type f -name "libreadline.so.7.0"` /usr/lib64/li
 First, install curl:
 
 ```shellsession
-$ sudo apt install curl
+$ sudo apt install curl gnupg
 ```
 
 Then add the NodeJS package repository for 8.x:
