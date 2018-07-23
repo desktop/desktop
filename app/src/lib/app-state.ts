@@ -562,21 +562,16 @@ export interface IBranchesState {
 }
 
 export interface ICommitSelection {
-  /**
-   * The commit currently selected in the app
-   */
+  /** The commit currently selected in the app */
   readonly sha: string | null
-  /**
-   * The list of files associated with the current commit
-   */
+
+  /** The list of files associated with the current commit */
   readonly changedFiles: ReadonlyArray<CommittedFileChange>
-  /**
-   * The selected file inside the selected commit
-   */
+
+  /** The selected file inside the selected commit */
   readonly file: CommittedFileChange | null
-  /**
-   * The diff of the currently-sel
-   */
+
+  /** The diff of the currently-selected file */
   readonly diff: IDiff | null
 }
 
