@@ -425,7 +425,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private getInitialRepositoryState(): IRepositoryState {
     return {
-      selection: {
+      commitSelection: {
         sha: null,
         file: null,
         changedFiles: new Array<CommittedFileChange>(),
@@ -682,7 +682,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private clearSelectedCommit(repository: Repository) {
     this.updateRepositoryState(repository, () => ({
-      selection: {
+      commitSelection: {
         sha: null,
         file: null,
         changedFiles: [],
@@ -697,13 +697,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     sha: string
   ): Promise<void> {
     this.updateRepositoryState(repository, state => {
-      const commitChanged = state.selection.sha !== sha
+      const commitChanged = state.commitSelection.sha !== sha
       const changedFiles = commitChanged
         ? new Array<CommittedFileChange>()
-        : state.selection.changedFiles
-      const file = commitChanged ? null : state.selection.file
-      const selection = { sha, file, diff: null, changedFiles }
-      return { selection }
+        : state.commitSelection.changedFiles
+      const file = commitChanged ? null : state.commitSelection.file
+      const commitSelection = { sha, file, diff: null, changedFiles }
+      return { commitSelection }
     })
 
     this.emitUpdate()
@@ -714,7 +714,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     commitSHAs: ReadonlyArray<string>
   ) {
     const state = this.getRepositoryState(repository)
-    let selectedSHA = state.selection.sha
+    let selectedSHA = state.commitSelection.sha
     if (selectedSHA != null) {
       const index = commitSHAs.findIndex(sha => sha === selectedSHA)
       if (index < 0) {
@@ -997,8 +997,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository
   ): Promise<void> {
     const state = this.getRepositoryState(repository)
-    const { selection } = state
-    const currentSHA = selection.sha
+    const { commitSelection } = state
+    const currentSHA = commitSelection.sha
     if (currentSHA == null) {
       return
     }
@@ -1014,27 +1014,29 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // The selection could have changed between when we started loading the
     // changed files and we finished. We might wanna store the changed files per
     // SHA/path.
-    if (currentSHA !== state.selection.sha) {
+    if (currentSHA !== state.commitSelection.sha) {
       return
     }
 
     // if we're selecting a commit for the first time, we should select the
     // first file in the commit and render the diff immediately
 
-    const noFileSelected = selection.file === null
+    const noFileSelected = commitSelection.file === null
 
     const firstFileOrDefault =
-      noFileSelected && changedFiles.length ? changedFiles[0] : selection.file
+      noFileSelected && changedFiles.length
+        ? changedFiles[0]
+        : commitSelection.file
 
     const selectionOrFirstFile = {
       file: firstFileOrDefault,
-      sha: selection.sha,
+      sha: commitSelection.sha,
       changedFiles,
       diff: null,
     }
 
     this.updateRepositoryState(repository, state => ({
-      selection: selectionOrFirstFile,
+      commitSelection: selectionOrFirstFile,
     }))
 
     this.emitUpdate()
@@ -1056,18 +1058,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
     file: CommittedFileChange
   ): Promise<void> {
     this.updateRepositoryState(repository, state => {
-      const selection = {
-        sha: state.selection.sha,
-        changedFiles: state.selection.changedFiles,
+      const { sha, changedFiles } = state.commitSelection
+      const commitSelection = {
+        sha,
+        changedFiles,
         file,
         diff: null,
       }
-      return { selection }
+      return { commitSelection }
     })
     this.emitUpdate()
 
     const stateBeforeLoad = this.getRepositoryState(repository)
-    const sha = stateBeforeLoad.selection.sha
+    const sha = stateBeforeLoad.commitSelection.sha
 
     if (!sha) {
       if (__DEV__) {
@@ -1084,24 +1087,27 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const stateAfterLoad = this.getRepositoryState(repository)
 
     // A whole bunch of things could have happened since we initiated the diff load
-    if (stateAfterLoad.selection.sha !== stateBeforeLoad.selection.sha) {
+    if (
+      stateAfterLoad.commitSelection.sha !== stateBeforeLoad.commitSelection.sha
+    ) {
       return
     }
-    if (!stateAfterLoad.selection.file) {
+    if (!stateAfterLoad.commitSelection.file) {
       return
     }
-    if (stateAfterLoad.selection.file.id !== file.id) {
+    if (stateAfterLoad.commitSelection.file.id !== file.id) {
       return
     }
 
     this.updateRepositoryState(repository, state => {
-      const selection = {
-        sha: state.selection.sha,
-        changedFiles: state.selection.changedFiles,
+      const { sha, changedFiles } = state.commitSelection
+      const commitSelection = {
+        sha,
+        changedFiles,
         file,
         diff,
       }
-      return { selection }
+      return { commitSelection }
     })
 
     this.emitUpdate()
@@ -2728,9 +2734,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     await gitStore.undoCommit(commit)
 
-    const { selection } = this.getRepositoryState(repository)
+    const { commitSelection } = this.getRepositoryState(repository)
 
-    if (selection.sha === commit.sha) {
+    if (commitSelection.sha === commit.sha) {
       this.clearSelectedCommit(repository)
     }
 

@@ -342,7 +342,7 @@ export enum RepositorySectionTab {
 }
 
 export interface IRepositoryState {
-  readonly selection: ICommitSelection
+  readonly commitSelection: ICommitSelection
   readonly changesState: IChangesState
   readonly compareState: ICompareState
   readonly selectedSection: RepositorySectionTab
