@@ -9,6 +9,7 @@ export enum Shell {
   Hyper = 'Hyper',
   iTerm2 = 'iTerm2',
   PowerShellCore = 'PowerShell Core',
+  Kitty = 'Kitty',
 }
 
 export const Default = Shell.Terminal
@@ -30,6 +31,10 @@ export function parse(label: string): Shell {
     return Shell.PowerShellCore
   }
 
+  if (label === Shell.Kitty) {
+    return Shell.Kitty
+  }
+
   return Default
 }
 
@@ -43,6 +48,8 @@ function getBundleID(shell: Shell): string {
       return 'co.zeit.hyper'
     case Shell.PowerShellCore:
       return 'com.microsoft.powershell'
+    case Shell.Kitty:
+      return 'net.kovidgoyal.kitty'
     default:
       return assertNever(shell, `Unknown shell: ${shell}`)
   }
@@ -66,11 +73,13 @@ export async function getAvailableShells(): Promise<
     hyperPath,
     iTermPath,
     powerShellCorePath,
+    kittyPath,
   ] = await Promise.all([
     getShellPath(Shell.Terminal),
     getShellPath(Shell.Hyper),
     getShellPath(Shell.iTerm2),
     getShellPath(Shell.PowerShellCore),
+    getShellPath(Shell.Kitty),
   ])
 
   const shells: Array<IFoundShell<Shell>> = []
@@ -90,6 +99,10 @@ export async function getAvailableShells(): Promise<
     shells.push({ shell: Shell.PowerShellCore, path: powerShellCorePath })
   }
 
+  if (kittyPath) {
+    shells.push({ shell: Shell.Kitty, path: kittyPath })
+  }
+
   return shells
 }
 
@@ -98,6 +111,12 @@ export function launch(
   path: string
 ): ChildProcess {
   const bundleID = getBundleID(foundShell.shell)
-  const commandArgs = ['-b', bundleID, path]
-  return spawn('open', commandArgs)
+  const baseArgs = ['-b', bundleID]
+
+  // kitty shell does not handle the path explicitly
+  // need to pass in the additional flag
+  const commandArgs =
+    foundShell.shell === Shell.Kitty ? ['--args', '-d', path] : [path]
+
+  return spawn('open', baseArgs.concat(commandArgs))
 }
