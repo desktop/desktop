@@ -952,16 +952,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const currentBranch = branchesState.tip.branch
-    if (currentBranch == null) {
-      return
-    }
-
-    if (this.currentAheadBehindUpdater == null) {
+    if (this.currentAheadBehindUpdater ==== null) {
       return
     }
 
     if (compareState.showBranchList) {
+      const currentBranch = branchesState.tip.branch
+
       this.currentAheadBehindUpdater.schedule(
         currentBranch,
         compareState.defaultBranch,

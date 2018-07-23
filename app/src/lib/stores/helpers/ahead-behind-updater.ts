@@ -130,9 +130,8 @@ export class AheadBehindUpdater {
 
     const otherBranches = [...recentBranches, ...allBranches]
 
-    const branches = defaultBranch
-      ? [defaultBranch, ...otherBranches]
-      : otherBranches
+    const branches =
+      defaultBranch !== null ? [defaultBranch, ...otherBranches] : otherBranches
 
     const newRefsToCompare = new Set<string>(filterBranchesNotInCache(branches))
 
