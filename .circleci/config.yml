@@ -20,7 +20,7 @@ jobs:
     # The `macos` block requests that builds will run on a machine running
     # macOS with the specified version of Xcode installed
     macos:
-      xcode: '7.3'
+      xcode: '9.0'
     steps:
     # Machine Setup
     #   If you break your build into multiple jobs with workflows, you will probably want to do the parts of this that are relevant in each
