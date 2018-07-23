@@ -952,7 +952,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    if (this.currentAheadBehindUpdater ==== null) {
+    if (this.currentAheadBehindUpdater === null) {
       return
     }
 
