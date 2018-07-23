@@ -54,6 +54,7 @@ import {
   getAheadBehind,
   revRange,
   revSymmetricDifference,
+  getSymbolicRef,
 } from '../git'
 import { IGitAccount } from '../git/authentication'
 import { RetryAction, RetryActionType } from '../retry-actions'
@@ -256,6 +257,32 @@ export class GitStore extends BaseStore {
     this.emitUpdate()
   }
 
+  /** Load a batch of commits from the repository, using the last known commit in the list. */
+  public async loadCommitBatch(lastSHA: string) {
+    if (this.requestsInFight.has(LoadingHistoryRequestKey)) {
+      return null
+    }
+
+    const requestKey = `history/compare/${lastSHA}`
+    if (this.requestsInFight.has(requestKey)) {
+      return null
+    }
+
+    this.requestsInFight.add(requestKey)
+
+    const commits = await this.performFailableOperation(() =>
+      getCommits(this.repository, `${lastSHA}^`, CommitBatchSize)
+    )
+
+    this.requestsInFight.delete(requestKey)
+    if (!commits) {
+      return null
+    }
+
+    this.storeCommits(commits, false)
+    return commits.map(c => c.sha)
+  }
+
   /** The list of ordered SHAs. */
   public get history(): ReadonlyArray<string> {
     return this._history
@@ -332,24 +359,51 @@ export class GitStore extends BaseStore {
     return allBranchesWithUpstream
   }
 
-  private refreshDefaultBranch() {
-    let defaultBranchName: string | null = 'master'
-    const gitHubRepository = this.repository.gitHubRepository
-    if (gitHubRepository && gitHubRepository.defaultBranch) {
-      defaultBranchName = gitHubRepository.defaultBranch
+  private async refreshDefaultBranch() {
+    const defaultBranchName = await this.resolveDefaultBranch()
+
+    // Find the default branch among all of our branches, giving
+    // priority to local branches by sorting them before remotes
+    this._defaultBranch =
+      this._allBranches
+        .filter(b => b.name === defaultBranchName)
+        .sort((x, y) => compare(x.type, y.type))
+        .shift() || null
+  }
+
+  /**
+   * Resolve the default branch name for the current repository,
+   * using the available API data, remote information or branch
+   * name conventionns.
+   */
+  private async resolveDefaultBranch(): Promise<string> {
+    const { gitHubRepository } = this.repository
+    if (gitHubRepository && gitHubRepository.defaultBranch != null) {
+      return gitHubRepository.defaultBranch
     }
 
-    if (defaultBranchName) {
-      // Find the default branch among all of our branches, giving
-      // priority to local branches by sorting them before remotes
-      this._defaultBranch =
-        this._allBranches
-          .filter(b => b.name === defaultBranchName)
-          .sort((x, y) => compare(x.type, y.type))
-          .shift() || null
-    } else {
-      this._defaultBranch = null
+    if (this.remote != null) {
+      // the Git server should use [remote]/HEAD to advertise
+      // it's default branch, so see if it exists and matches
+      // a valid branch on the remote and attempt to use that
+      const remoteNamespace = `refs/remotes/${this.remote.name}/`
+      const match = await getSymbolicRef(
+        this.repository,
+        `${remoteNamespace}HEAD`
+      )
+      if (
+        match != null &&
+        match.length > remoteNamespace.length &&
+        match.startsWith(remoteNamespace)
+      ) {
+        // strip out everything related to the remote because this
+        // is likely to be a tracked branch locally
+        // e.g. `master`, `develop`, etc
+        return match.substr(remoteNamespace.length)
+      }
     }
+
+    return 'master'
   }
 
   private refreshRecentBranches(
@@ -469,7 +523,17 @@ export class GitStore extends BaseStore {
     // directory for the next stage. Doing doing a `git checkout -- .` here
     // isn't suitable because we should preserve the other working directory
     // changes.
-    const status = await getStatus(repository)
+
+    const status = await this.performFailableOperation(() =>
+      getStatus(this.repository)
+    )
+
+    if (status == null) {
+      throw new Error(
+        `Unable to undo commit because there are too many files in your repository's working directory.`
+      )
+    }
+
     const paths = status.workingDirectory.files
 
     const deletedFiles = paths.filter(p => p.status === AppFileStatus.Deleted)

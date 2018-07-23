@@ -100,8 +100,15 @@ export class Dispatcher {
 
   /** Remove the repositories represented by the given IDs from local storage. */
   public removeRepositories(
-    repositories: ReadonlyArray<Repository | CloningRepository>
+    repositories: ReadonlyArray<Repository | CloningRepository>,
+    moveToTrash: boolean
   ): Promise<void> {
+    if (moveToTrash) {
+      repositories.forEach(repository => {
+        shell.moveItemToTrash(repository.path)
+      })
+    }
+
     return this.appStore._removeRepositories(repositories)
   }
 
@@ -111,11 +118,6 @@ export class Dispatcher {
     missing: boolean
   ): Promise<Repository> {
     return this.appStore._updateRepositoryMissing(repository, missing)
-  }
-
-  /** Load the history for the repository. */
-  public loadHistory(repository: Repository): Promise<void> {
-    return this.appStore._loadHistory(repository)
   }
 
   /** Load the next batch of history for the repository. */
@@ -461,6 +463,13 @@ export class Dispatcher {
    */
   public setUpdateBannerVisibility(isVisible: boolean) {
     return this.appStore._setUpdateBannerVisibility(isVisible)
+  }
+
+  /**
+   * Set the divering branch notification banner's visibility
+   */
+  public setDivergingBranchBannerVisibility(isVisible: boolean) {
+    return this.appStore._setDivergingBranchBannerVisibility(isVisible)
   }
 
   /**
@@ -1220,5 +1229,62 @@ export class Dispatcher {
    */
   public setSelectedTheme(theme: ApplicationTheme) {
     return this.appStore._setSelectedTheme(theme)
+  }
+
+  /**
+   * Increments either the `repoWithIndicatorClicked` or
+   * the `repoWithoutIndicatorClicked` metric
+   */
+  public recordRepoClicked(repoHasIndicator: boolean) {
+    return this.appStore._recordRepoClicked(repoHasIndicator)
+  }
+
+  /** The number of times the user dismisses the diverged branch notification
+   * Increments the `divergingBranchBannerDismissal` metric
+   */
+  public recordDivergingBranchBannerDismissal() {
+    return this.appStore._recordDivergingBranchBannerDismissal()
+  }
+
+  /**
+   * Increments the `dotcomPushCount` metric
+   */
+  public recordPushToGitHub() {
+    return this.appStore._recordPushToGitHub()
+  }
+
+  /**
+   * Increments the `enterprisePushCount` metric
+   */
+  public recordPushToGitHubEnterprise() {
+    return this.appStore._recordPushToGitHubEnterprise()
+  }
+
+  /**
+   * Increments the `externalPushCount` metric
+   */
+  public recordPushToGenericRemote() {
+    return this.appStore._recordPushToGenericRemote()
+  }
+
+  /**
+   * Increments the `divergingBranchBannerInitiatedCompare` metric
+   */
+  public recordDivergingBranchBannerInitiatedCompare() {
+    return this.appStore._recordDivergingBranchBannerInitiatedCompare()
+  }
+
+  /**
+   * Increments the `divergingBranchBannerInfluencedMerge` metric
+   */
+  public recordDivergingBranchBannerInfluencedMerge() {
+    return this.appStore._recordDivergingBranchBannerInfluencedMerge()
+  }
+
+  /**
+   * Increments the `divergingBranchBannerInitatedMerge` metric
+   */
+  public recordDivergingBranchBannerInitatedMerge() {
+    return this.appStore._recordDivergingBranchBannerInitatedMerge()
   }
 }

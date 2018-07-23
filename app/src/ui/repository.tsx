@@ -7,7 +7,7 @@ import { Changes, ChangesSidebar } from './changes'
 import { NoChanges } from './changes/no-changes'
 import { MultipleSelection } from './changes/multiple-selection'
 import { FilesChangedBadge } from './changes/files-changed-badge'
-import { History, HistorySidebar, CompareSidebar } from './history'
+import { SelectedCommit, CompareSidebar } from './history'
 import { Resizable } from './resizable'
 import { TabBar } from './tab-bar'
 import {
@@ -19,8 +19,9 @@ import { Dispatcher } from '../lib/dispatcher'
 import { IssuesStore, GitHubUserStore } from '../lib/stores'
 import { assertNever } from '../lib/fatal-error'
 import { Account } from '../models/account'
-import { enableCompareSidebar } from '../lib/feature-flag'
+import { enableNotificationOfBranchUpdates } from '../lib/feature-flag'
 import { FocusContainer } from './lib/focus-container'
+import { OcticonSymbol, Octicon } from './octicons'
 
 /** The widest the sidebar can be with the minimum window size. */
 const MaxSidebarWidth = 495
@@ -47,8 +48,13 @@ interface IRepositoryViewProps {
    *
    * @param fullPath The full path to the file on disk
    */
-
   readonly onOpenInExternalEditor: (fullPath: string) => void
+
+  /**
+   * Determines if the notification banner and associated dot
+   * on this history tab will be rendered
+   */
+  readonly isDivergingBranchBannerVisible: boolean
 }
 
 interface IRepositoryViewState {
@@ -95,7 +101,17 @@ export class RepositoryView extends React.Component<
           <span>Changes</span>
           {this.renderChangesBadge()}
         </span>
-        <span>History</span>
+
+        <div className="with-indicator">
+          <span>History</span>
+          {enableNotificationOfBranchUpdates() &&
+          this.props.isDivergingBranchBannerVisible ? (
+            <Octicon
+              className="indicator"
+              symbol={OcticonSymbol.primitiveDot}
+            />
+          ) : null}
+        </div>
       </TabBar>
     )
   }
@@ -140,22 +156,6 @@ export class RepositoryView extends React.Component<
     )
   }
 
-  private renderHistorySidebar(): JSX.Element {
-    return (
-      <HistorySidebar
-        repository={this.props.repository}
-        dispatcher={this.props.dispatcher}
-        history={this.props.state.historyState}
-        gitHubUsers={this.props.state.gitHubUsers}
-        emoji={this.props.emoji}
-        commitLookup={this.props.state.commitLookup}
-        localCommitSHAs={this.props.state.localCommitSHAs}
-        onRevertCommit={this.onRevertCommit}
-        onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
-      />
-    )
-  }
-
   private renderCompareSidebar(): JSX.Element {
     const tip = this.props.state.branchesState.tip
     const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
@@ -172,6 +172,9 @@ export class RepositoryView extends React.Component<
         dispatcher={this.props.dispatcher}
         onRevertCommit={this.onRevertCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
+        isDivergingBranchBannerVisible={
+          this.props.isDivergingBranchBannerVisible
+        }
       />
     )
   }
@@ -182,9 +185,7 @@ export class RepositoryView extends React.Component<
     if (selectedSection === RepositorySectionTab.Changes) {
       return this.renderChangesSidebar()
     } else if (selectedSection === RepositorySectionTab.History) {
-      return enableCompareSidebar()
-        ? this.renderCompareSidebar()
-        : this.renderHistorySidebar()
+      return this.renderCompareSidebar()
     } else {
       return assertNever(selectedSection, 'Unknown repository section')
     }
@@ -265,16 +266,25 @@ export class RepositoryView extends React.Component<
         )
       }
     } else if (selectedSection === RepositorySectionTab.History) {
+      const { historyState } = this.props.state
+
+      const sha = historyState.selection.sha
+
+      const selectedCommit =
+        sha != null ? this.props.state.commitLookup.get(sha) || null : null
+
       return (
-        <History
+        <SelectedCommit
           repository={this.props.repository}
           dispatcher={this.props.dispatcher}
-          history={this.props.state.historyState}
+          selectedCommit={selectedCommit}
+          changedFiles={historyState.changedFiles}
+          selectedFile={historyState.selection.file}
+          currentDiff={historyState.diff}
           emoji={this.props.emoji}
-          commits={this.props.state.commitLookup}
           commitSummaryWidth={this.props.commitSummaryWidth}
           gitHubUsers={this.props.state.gitHubUsers}
-          imageDiffType={this.props.imageDiffType}
+          selectedDiffType={this.props.imageDiffType}
           externalEditorLabel={this.props.externalEditorLabel}
           onOpenInExternalEditor={this.props.onOpenInExternalEditor}
         />

@@ -279,8 +279,17 @@ export class DiffLineGutter extends React.Component<
   }
 
   public render() {
+    const role =
+      !this.props.readOnly && this.props.line.isIncludeableLine()
+        ? 'button'
+        : undefined
+
     return (
-      <span className={this.getLineClass()} ref={this.applyEventHandlers}>
+      <span
+        className={this.getLineClass()}
+        ref={this.applyEventHandlers}
+        role={role}
+      >
         <span className="diff-line-number before">
           {this.props.line.oldLineNumber || ' '}
         </span>
