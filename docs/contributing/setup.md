@@ -61,10 +61,10 @@ $ sudo ln -s `find /usr/lib64/ -type f -name "libreadline.so.7.0"` /usr/lib64/li
 
 ### Ubuntu 16.04
 
-First, install curl:
+First, install curl and a GPG program:
 
 ```shellsession
-$ sudo apt install curl
+$ sudo apt install curl gnupg
 ```
 
 Then add the NodeJS package repository for 8.x:
