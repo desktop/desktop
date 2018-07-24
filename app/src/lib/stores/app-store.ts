@@ -2518,7 +2518,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
                   value: progress.value * pullWeight,
                 })
               }),
-            { retryAction }
+            { command: 'pull', retryAction }
           )
 
           const refreshStartProgress = pullWeight + fetchWeight
@@ -3796,6 +3796,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ) {
     this.getGitStore(repository).setCoAuthors(coAuthors)
     return Promise.resolve()
+  }
+
+  /**
+   * Increments the `mergeConflictFromPullCount` metric
+   */
+  public _recordMergeConflictFromPull() {
+    this.statsStore.recordMergeConflictFromPull()
+  }
+
+  /**
+   * Increments the `mergeConflictFromExplicitMergeCount` metric
+   */
+  public _recordMergeConflictFromExplicitMerge() {
+    this.statsStore.recordMergeConflictFromExplicitMerge()
   }
 
   /**
