@@ -1,5 +1,11 @@
 {
   "releases": {
+    "1.3.0-beta4": [
+      "[Fixed] Only perform ahead/behind comparisons when branch selector is open - #5142",
+      "[Fixed] Render clickable link in \"squash and merge\" commit message - #5203. Thanks @1pete!",
+      "[Fixed] Selected commit not remembered when switching between History and Changes tabs - #4985",
+      "[Fixed] Selected commit when comparing is reset to latest when Desktop regains focus - #5069"
+    ],
     "1.3.0-beta3": [
       "[Fixed] \"Discard Changes\" context menu discards correct file when entry is not part of selected group - #4788",
       "[Fixed] Return key disabled when no matches found in Compare branch list - #4458",
