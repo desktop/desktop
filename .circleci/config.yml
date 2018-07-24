@@ -1,6 +1,6 @@
 version: 2
 jobs:
-  build_and_test:
+  build:
     working_directory: ~/desktop/desktop
     parallelism: 1
     shell: /bin/bash --login
