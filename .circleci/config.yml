@@ -20,25 +20,15 @@ jobs:
         - v1-dep-master-
         # Any branch if there are none on the default branch - this should be unnecessary if you have your default branch configured correctly
         - v1-dep-
-    - run: yarn install
+    - run: yarn install --force
     - save_cache:
         key: v1-dep-{{ .Branch }}-{{ epoch }}
         paths:
-        # This is a broad list of cache paths to include many possible development environments
-        # You can probably delete some of these entries
         - vendor/bundle
-        - ~/virtualenvs
-        - ~/.m2
-        - ~/.ivy2
-        - ~/.bundle
-        - ~/.go_workspace
-        - ~/.gradle
-        - ~/.cache/bower
-        # These cache paths were specified in the 1.0 config
         - .eslintcache
-        - node_modules
         - ~/.electron
         - ~/Library/Caches/Yarn/v1
+        - node_modules
         - ./node_modules
     - run: yarn lint
     - run: yarn validate-changelog
