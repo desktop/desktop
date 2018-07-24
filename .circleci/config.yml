@@ -1,6 +1,6 @@
 version: 2
 jobs:
-  build:
+  setup:
     working_directory: ~/desktop/desktop
     parallelism: 1
     shell: /bin/bash --login
@@ -10,17 +10,8 @@ jobs:
     macos:
       xcode: '9.3.0'
     steps:
-    # Machine Setup
-    #   If you break your build into multiple jobs with workflows, you will probably want to do the parts of this that are relevant in each
-    # The following `checkout` command checks out your code to your working directory. In 1.0 we did this implicitly. In 2.0 you can choose where in the course of a job your code should be checked out.
     - checkout
-    # Prepare for artifact and test results  collection equivalent to how it was done on 1.0.
-    # In many cases you can simplify this from what is generated here.
-    # 'See docs on artifact collection here https://circleci.com/docs/2.0/artifacts/'
     - run: mkdir -p $CIRCLE_ARTIFACTS $CIRCLE_TEST_REPORTS
-    # Dependencies
-    #   This would typically go in either a build or a build-and-test job when using workflows
-    # Restore the dependency cache
     - restore_cache:
         keys:
         # This branch if available
@@ -29,10 +20,7 @@ jobs:
         - v1-dep-master-
         # Any branch if there are none on the default branch - this should be unnecessary if you have your default branch configured correctly
         - v1-dep-
-    # This is based on your 1.0 configuration file or project settings
-    - run: brew update
-    - run: yarn install --force
-    # Save dependency cache
+    - run: yarn install
     - save_cache:
         key: v1-dep-{{ .Branch }}-{{ epoch }}
         paths:
@@ -52,11 +40,17 @@ jobs:
         - ~/.electron
         - ~/Library/Caches/Yarn/v1
         - ./node_modules
+  build:
+    steps:
     - run: yarn lint
     - run: yarn validate-changelog
     - run: yarn build:prod
+  test:
+    steps:
     - run: yarn test:setup
     - run: yarn test
+  teardown:
+    steps:
     # Teardown
     #   If you break your build into multiple jobs with workflows, you will probably want to do the parts of this that are relevant in each
     # The following line was run implicitly in your 1.0 builds based on what CircleCI inferred about the structure of your project. In 2.0 you need to be explicit about which commands should be run. In some cases you can discard inferred commands if they are not relevant to your project.
@@ -69,3 +63,10 @@ jobs:
         path: /tmp/circleci-artifacts
     - store_artifacts:
         path: /tmp/circleci-test-results
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - setup
+      - build
+      - test
