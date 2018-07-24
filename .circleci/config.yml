@@ -20,7 +20,7 @@ jobs:
     # The `macos` block requests that builds will run on a machine running
     # macOS with the specified version of Xcode installed
     macos:
-      xcode: '9.0'
+      xcode: '9.3.0'
     steps:
     # Machine Setup
     #   If you break your build into multiple jobs with workflows, you will probably want to do the parts of this that are relevant in each
@@ -43,7 +43,6 @@ jobs:
         - v1-dep-
     # This is based on your 1.0 configuration file or project settings
     - run: brew update
-    - run: brew upgrade yarn
     - run: node -v
     - run: yarn -v
     - run: yarn install --force
