@@ -504,35 +504,61 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private updateCompareState<K extends keyof ICompareState>(
     repository: Repository,
+    newValues: Pick<ICompareState, K>
+  ) {
+    this.updateRepositoryState(repository, state => {
+      return { compareState: merge(state.compareState, newValues) }
+    })
+  }
+
+  private updateCompareStateFunc<K extends keyof ICompareState>(
+    repository: Repository,
     fn: (state: ICompareState) => Pick<ICompareState, K>
   ) {
     this.updateRepositoryState(repository, state => {
-      const compareState = state.compareState
-      const newValues = fn(compareState)
+      const currentState = state.compareState
+      const compareState = merge(currentState, fn(currentState))
+      return { compareState }
+    })
+  }
 
-      return { compareState: merge(compareState, newValues) }
+  private updateChangesStateFunc<K extends keyof IChangesState>(
+    repository: Repository,
+    fn: (changesState: IChangesState) => Pick<IChangesState, K>
+  ) {
+    this.updateRepositoryState(repository, state => {
+      const currentState = state.changesState
+      const changesState = merge(currentState, fn(currentState))
+      return { changesState }
     })
   }
 
   private updateChangesState<K extends keyof IChangesState>(
     repository: Repository,
-    fn: (changesState: IChangesState) => Pick<IChangesState, K>
+    newValues: Pick<IChangesState, K>
   ) {
     this.updateRepositoryState(repository, state => {
-      const changesState = state.changesState
-      const newState = merge(changesState, fn(changesState))
-      return { changesState: newState }
+      return { changesState: merge(state.changesState, newValues) }
+    })
+  }
+
+  private updateBranchesStateFunc<K extends keyof IBranchesState>(
+    repository: Repository,
+    fn: (branchesState: IBranchesState) => Pick<IBranchesState, K>
+  ) {
+    this.updateRepositoryState(repository, state => {
+      const currentState = state.branchesState
+      const branchesState = merge(currentState, fn(currentState))
+      return { branchesState }
     })
   }
 
   private updateBranchesState<K extends keyof IBranchesState>(
     repository: Repository,
-    fn: (branchesState: IBranchesState) => Pick<IBranchesState, K>
+    newValues: Pick<IBranchesState, K>
   ) {
     this.updateRepositoryState(repository, state => {
-      const changesState = state.branchesState
-      const newState = merge(changesState, fn(changesState))
-      return { branchesState: newState }
+      return { branchesState: merge(state.branchesState, newValues) }
     })
   }
 
