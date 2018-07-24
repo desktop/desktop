@@ -493,7 +493,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return state
   }
 
-  private updateRepositoryState<K extends keyof IRepositoryState>(
+  private updateRepositoryStateFunc<K extends keyof IRepositoryState>(
     repository: Repository,
     fn: (state: IRepositoryState) => Pick<IRepositoryState, K>
   ) {
@@ -502,11 +502,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.repositoryState.set(repository.hash, merge(currentState, newValues))
   }
 
+  private updateRepositoryState<K extends keyof IRepositoryState>(
+    repository: Repository,
+    newValues: Pick<IRepositoryState, K>
+  ) {
+    const currentState = this.getRepositoryState(repository)
+    this.repositoryState.set(repository.hash, merge(currentState, newValues))
+  }
+
   private updateCompareState<K extends keyof ICompareState>(
     repository: Repository,
     newValues: Pick<ICompareState, K>
   ) {
-    this.updateRepositoryState(repository, state => {
+    this.updateRepositoryStateFunc(repository, state => {
       return { compareState: merge(state.compareState, newValues) }
     })
   }
@@ -515,7 +523,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     fn: (state: ICompareState) => Pick<ICompareState, K>
   ) {
-    this.updateRepositoryState(repository, state => {
+    this.updateRepositoryStateFunc(repository, state => {
       const currentState = state.compareState
       const compareState = merge(currentState, fn(currentState))
       return { compareState }
@@ -526,7 +534,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     fn: (changesState: IChangesState) => Pick<IChangesState, K>
   ) {
-    this.updateRepositoryState(repository, state => {
+    this.updateRepositoryStateFunc(repository, state => {
       const currentState = state.changesState
       const changesState = merge(currentState, fn(currentState))
       return { changesState }
@@ -537,7 +545,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     newValues: Pick<IChangesState, K>
   ) {
-    this.updateRepositoryState(repository, state => {
+    this.updateRepositoryStateFunc(repository, state => {
       return { changesState: merge(state.changesState, newValues) }
     })
   }
@@ -546,7 +554,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     fn: (branchesState: IBranchesState) => Pick<IBranchesState, K>
   ) {
-    this.updateRepositoryState(repository, state => {
+    this.updateRepositoryStateFunc(repository, state => {
       const currentState = state.branchesState
       const branchesState = merge(currentState, fn(currentState))
       return { branchesState }
@@ -557,7 +565,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     newValues: Pick<IBranchesState, K>
   ) {
-    this.updateRepositoryState(repository, state => {
+    this.updateRepositoryStateFunc(repository, state => {
       return { branchesState: merge(state.branchesState, newValues) }
     })
   }
