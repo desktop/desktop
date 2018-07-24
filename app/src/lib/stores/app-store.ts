@@ -1977,8 +1977,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       await gitStore.loadLocalCommits(tip.branch)
     }
 
-    // TODO: is this necessary to do still?
-
     return this.updateOrSelectFirstCommit(
       repository,
       state.compareState.commitSHAs
