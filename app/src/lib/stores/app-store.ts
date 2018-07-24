@@ -742,7 +742,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const updater = new AheadBehindUpdater(repository, aheadBehindCache => {
-      this.updateCompareState(repository, state => ({
+      this.updateCompareState(repository, () => ({
         aheadBehindCache,
       }))
       this.emitUpdate()
@@ -814,7 +814,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     }
 
-    this.updateCompareState(repository, state => ({
+    this.updateCompareState(repository, () => ({
       allBranches,
       recentBranches,
       defaultBranch,
@@ -851,10 +851,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const action =
       initialAction != null ? initialAction : getInitialAction(cachedState)
     this._executeCompare(repository, action)
-
-    if (currentBranch != null && this.currentAheadBehindUpdater != null) {
-      this.currentAheadBehindUpdater.schedule(currentBranch, allBranches)
-    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -871,7 +867,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const repoState = this.getRepositoryState(repository).historyState
       const commits = repoState.history
 
-      this.updateCompareState(repository, state => ({
+      this.updateCompareState(repository, () => ({
         formState: {
           kind: ComparisonView.None,
         },
@@ -899,7 +895,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         const { ahead, behind } = compare
         const aheadBehind = { ahead, behind }
 
-        this.updateCompareState(repository, s => ({
+        this.updateCompareState(repository, () => ({
           formState: {
             comparisonBranch,
             kind: action.mode,
@@ -949,6 +945,29 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
 
     this.emitUpdate()
+
+    const { branchesState, compareState } = this.getRepositoryState(repository)
+
+    if (branchesState.tip.kind !== TipState.Valid) {
+      return
+    }
+
+    if (this.currentAheadBehindUpdater === null) {
+      return
+    }
+
+    if (compareState.showBranchList) {
+      const currentBranch = branchesState.tip.branch
+
+      this.currentAheadBehindUpdater.schedule(
+        currentBranch,
+        compareState.defaultBranch,
+        compareState.recentBranches,
+        compareState.allBranches
+      )
+    } else {
+      this.currentAheadBehindUpdater.clear()
+    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -966,7 +985,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         return
       }
 
-      this.updateCompareState(repository, state => ({
+      this.updateCompareState(repository, () => ({
         commitSHAs: commits.concat(newCommits),
       }))
       this.emitUpdate()
