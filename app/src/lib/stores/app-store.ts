@@ -1439,7 +1439,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdateNow()
 
     this.accountsStore.refresh()
-    this.refreshAllRepositories()
+    this.refreshAllIndicators()
   }
 
   private async getSelectedExternalEditor(): Promise<ExternalEditor | null> {
@@ -1917,7 +1917,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.refreshIndicatorsForRepositories([repository])
   }
 
-  public refreshAllRepositories() {
+  public refreshAllIndicators() {
     return this.refreshIndicatorsForRepositories(this.repositories)
   }
 
