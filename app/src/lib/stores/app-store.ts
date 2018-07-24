@@ -743,7 +743,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const updater = new AheadBehindUpdater(repository, aheadBehindCache => {
-      this.updateCompareState(repository, state => ({
+      this.updateCompareState(repository, () => ({
         aheadBehindCache,
       }))
       this.emitUpdate()
@@ -815,7 +815,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     }
 
-    this.updateCompareState(repository, state => ({
+    this.updateCompareState(repository, () => ({
       allBranches,
       recentBranches,
       defaultBranch,
@@ -852,10 +852,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const action =
       initialAction != null ? initialAction : getInitialAction(cachedState)
     this._executeCompare(repository, action)
-
-    if (currentBranch != null && this.currentAheadBehindUpdater != null) {
-      this.currentAheadBehindUpdater.schedule(currentBranch, allBranches)
-    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -880,6 +876,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
         this.updateOrSelectFirstCommit(repository, commits)
 
+        this.updateCompareState(repository, () => ({
+          formState: {
+            kind: ComparisonView.None,
+          },
+          commitSHAs: commits,
+        }))
         return this.emitUpdate()
       }
     } else if (action.kind === CompareActionKind.Branch) {
@@ -914,6 +916,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (compare == null) {
       return
     }
+
+    this.updateCompareState(repository, () => ({
+      formState: {
+        comparisonBranch,
+        kind: action.mode,
+        aheadBehind,
+      },
+      commitSHAs: compare.commits.map(commit => commit.sha),
+      filterText: comparisonBranch.name,
+    }))
 
     const { ahead, behind } = compare
     const aheadBehind = { ahead, behind }
@@ -968,6 +980,29 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
 
     this.emitUpdate()
+
+    const { branchesState, compareState } = this.getRepositoryState(repository)
+
+    if (branchesState.tip.kind !== TipState.Valid) {
+      return
+    }
+
+    if (this.currentAheadBehindUpdater === null) {
+      return
+    }
+
+    if (compareState.showBranchList) {
+      const currentBranch = branchesState.tip.branch
+
+      this.currentAheadBehindUpdater.schedule(
+        currentBranch,
+        compareState.defaultBranch,
+        compareState.recentBranches,
+        compareState.allBranches
+      )
+    } else {
+      this.currentAheadBehindUpdater.clear()
+    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -985,7 +1020,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         return
       }
 
-      this.updateCompareState(repository, state => ({
+      this.updateCompareState(repository, () => ({
         commitSHAs: commits.concat(newCommits),
       }))
       this.emitUpdate()
@@ -2539,7 +2574,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
                   value: progress.value * pullWeight,
                 })
               }),
-            { retryAction }
+            { command: 'pull', retryAction }
           )
 
           const refreshStartProgress = pullWeight + fetchWeight
@@ -3815,6 +3850,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ) {
     this.getGitStore(repository).setCoAuthors(coAuthors)
     return Promise.resolve()
+  }
+
+  /**
+   * Increments the `mergeConflictFromPullCount` metric
+   */
+  public _recordMergeConflictFromPull() {
+    this.statsStore.recordMergeConflictFromPull()
+  }
+
+  /**
+   * Increments the `mergeConflictFromExplicitMergeCount` metric
+   */
+  public _recordMergeConflictFromExplicitMerge() {
+    this.statsStore.recordMergeConflictFromExplicitMerge()
   }
 
   /**
