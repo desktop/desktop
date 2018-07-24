@@ -1,24 +1,12 @@
-# This configuration was automatically generated from a CircleCI 1.0 config.
-# It should include any build commands you had along with commands that CircleCI
-# inferred from your project structure. We strongly recommend you read all the
-# comments in this file to understand the structure of CircleCI 2.0, as the idiom
-# for configuration has changed substantially in 2.0 to allow arbitrary jobs rather
-# than the prescribed lifecycle of 1.0. In general, we recommend using this generated
-# configuration as a reference rather than using it in production, though in most
-# cases it should duplicate the execution of your original 1.0 config.
 version: 2
 jobs:
   build:
     working_directory: ~/desktop/desktop
     parallelism: 1
     shell: /bin/bash --login
-    # CircleCI 2.0 does not support environment variables that refer to each other the same way as 1.0 did.
-    # If any of these refer to each other, rewrite them so that they don't or see https://circleci.com/docs/2.0/env-vars/#interpolating-environment-variables-to-set-other-environment-variables .
     environment:
       CIRCLE_ARTIFACTS: /tmp/circleci-artifacts
       CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
-    # The `macos` block requests that builds will run on a machine running
-    # macOS with the specified version of Xcode installed
     macos:
       xcode: '9.3.0'
     steps:
@@ -43,8 +31,6 @@ jobs:
         - v1-dep-
     # This is based on your 1.0 configuration file or project settings
     - run: brew update
-    - run: node -v
-    - run: yarn -v
     - run: yarn install --force
     # Save dependency cache
     - save_cache:
@@ -66,22 +52,11 @@ jobs:
         - ~/.electron
         - ~/Library/Caches/Yarn/v1
         - ./node_modules
-    # Compile
-    #   This would typically go in either a build or a build-and-test job when using workflows
-    # This is based on your 1.0 configuration file or project settings
     - run: yarn lint
     - run: yarn validate-changelog
     - run: yarn build:prod
-    # Test
-    #   This would typically be a build job when using workflows, possibly combined with build
-    # This is based on your 1.0 configuration file or project settings
     - run: yarn test:setup
     - run: yarn test
-    # Deployment
-    # Your existing circle.yml file contains deployment steps.
-    # The config translation tool does not support translating deployment steps
-    # since deployment in CircleCI 2.0 are better handled through workflows.
-    # See the documentation for more information https://circleci.com/docs/2.0/workflows/
     # Teardown
     #   If you break your build into multiple jobs with workflows, you will probably want to do the parts of this that are relevant in each
     # The following line was run implicitly in your 1.0 builds based on what CircleCI inferred about the structure of your project. In 2.0 you need to be explicit about which commands should be run. In some cases you can discard inferred commands if they are not relevant to your project.
