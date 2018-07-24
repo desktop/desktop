@@ -917,16 +917,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    this.updateCompareState(repository, () => ({
-      formState: {
-        comparisonBranch,
-        kind: action.mode,
-        aheadBehind,
-      },
-      commitSHAs: compare.commits.map(commit => commit.sha),
-      filterText: comparisonBranch.name,
-    }))
-
     const { ahead, behind } = compare
     const aheadBehind = { ahead, behind }
 
