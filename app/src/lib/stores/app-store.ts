@@ -657,13 +657,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
       coAuthors: gitStore.coAuthors,
     })
 
-    this.updateRepositoryState(repository, () => ({
+    this.updateRepositoryState(repository, {
       commitLookup: gitStore.commitLookup,
       localCommitSHAs: gitStore.localCommitSHAs,
       aheadBehind: gitStore.aheadBehind,
       remote: gitStore.remote,
       lastFetched: gitStore.lastFetched,
-    }))
+    })
 
     this.emitUpdate()
   }
@@ -715,14 +715,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private clearSelectedCommit(repository: Repository) {
-    this.updateRepositoryState(repository, () => ({
+    this.updateRepositoryState(repository, {
       commitSelection: {
         sha: null,
         file: null,
         changedFiles: [],
         diff: null,
       },
-    }))
+    })
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -730,7 +730,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     sha: string
   ): Promise<void> {
-    this.updateRepositoryState(repository, state => {
+    this.updateRepositoryStateFunc(repository, state => {
       const commitChanged = state.commitSelection.sha !== sha
       const changedFiles = commitChanged
         ? new Array<CommittedFileChange>()
@@ -1094,9 +1094,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       diff: null,
     }
 
-    this.updateRepositoryState(repository, state => ({
+    this.updateRepositoryState(repository, {
       commitSelection: selectionOrFirstFile,
-    }))
+    })
 
     this.emitUpdate()
 
@@ -1116,7 +1116,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     file: CommittedFileChange
   ): Promise<void> {
-    this.updateRepositoryState(repository, state => {
+    this.updateRepositoryStateFunc(repository, state => {
       const { sha, changedFiles } = state.commitSelection
       const commitSelection = {
         sha,
@@ -1158,7 +1158,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    this.updateRepositoryState(repository, state => {
+    this.updateRepositoryStateFunc(repository, state => {
       const { sha, changedFiles } = state.commitSelection
       const commitSelection = {
         sha,
@@ -1663,7 +1663,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     selectedSection: RepositorySectionTab
   ): Promise<void> {
-    this.updateRepositoryState(repository, state => ({ selectedSection }))
+    this.updateRepositoryState(repository, { selectedSection })
     this.emitUpdate()
 
     if (selectedSection === RepositorySectionTab.History) {
@@ -2022,7 +2022,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         getAuthorIdentity(repository)
       )) || null
 
-    this.updateRepositoryState(repository, state => ({ commitAuthor }))
+    this.updateRepositoryState(repository, { commitAuthor })
     this.emitUpdate()
   }
 
@@ -2107,7 +2107,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     checkoutProgress: ICheckoutProgress | null
   ) {
-    this.updateRepositoryState(repository, state => ({ checkoutProgress }))
+    this.updateRepositoryState(repository, { checkoutProgress })
 
     if (this.selectedRepository === repository) {
       this.emitUpdate()
@@ -2319,7 +2319,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     pushPullFetchProgress: Progress | null
   ) {
-    this.updateRepositoryState(repository, state => ({ pushPullFetchProgress }))
+    this.updateRepositoryState(repository, { pushPullFetchProgress })
 
     if (this.selectedRepository === repository) {
       this.emitUpdate()
@@ -2482,13 +2482,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    this.updateRepositoryState(repository, state => ({ isCommitting: true }))
+    this.updateRepositoryState(repository, { isCommitting: true })
     this.emitUpdate()
 
     try {
       return await fn()
     } finally {
-      this.updateRepositoryState(repository, state => ({ isCommitting: false }))
+      this.updateRepositoryState(repository, { isCommitting: false })
       this.emitUpdate()
     }
   }
@@ -2503,17 +2503,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    this.updateRepositoryState(repository, state => ({
+    this.updateRepositoryState(repository, {
       isPushPullFetchInProgress: true,
-    }))
+    })
     this.emitUpdate()
 
     try {
       await fn()
     } finally {
-      this.updateRepositoryState(repository, state => ({
+      this.updateRepositoryState(repository, {
         isPushPullFetchInProgress: false,
-      }))
+      })
       this.emitUpdate()
     }
   }
@@ -3438,9 +3438,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     progress: IRevertProgress | null
   ) {
-    this.updateRepositoryState(repository, state => ({
+    this.updateRepositoryState(repository, {
       revertProgress: progress,
-    }))
+    })
 
     if (this.selectedRepository === repository) {
       this.emitUpdate()
