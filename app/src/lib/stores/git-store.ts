@@ -188,44 +188,6 @@ export class GitStore extends BaseStore {
     this.emitUpdate()
   }
 
-  /** Load history from HEAD. */
-  public async loadHistory() {
-    if (this.requestsInFight.has(LoadingHistoryRequestKey)) {
-      return
-    }
-
-    this.requestsInFight.add(LoadingHistoryRequestKey)
-
-    let commits = await this.performFailableOperation(() =>
-      getCommits(this.repository, 'HEAD', CommitBatchSize)
-    )
-    if (!commits) {
-      return
-    }
-
-    let existingHistory = this._history
-    if (existingHistory.length > 0) {
-      const mostRecent = existingHistory[0]
-      const index = commits.findIndex(c => c.sha === mostRecent)
-      // If we found the old HEAD, then we can just splice the new commits into
-      // the history we already loaded.
-      //
-      // But if we didn't, it means the history we had and the history we just
-      // loaded have diverged significantly or in some non-trivial way
-      // (e.g., HEAD reset). So just throw it out and we'll start over fresh.
-      if (index > -1) {
-        commits = commits.slice(0, index)
-      } else {
-        existingHistory = []
-      }
-    }
-
-    this._history = [...commits.map(c => c.sha), ...existingHistory]
-    this.storeCommits(commits, true)
-    this.requestsInFight.delete(LoadingHistoryRequestKey)
-    this.emitUpdate()
-  }
-
   /** Load the next batch of history, starting from the last loaded commit. */
   public async loadNextHistoryBatch() {
     if (this.requestsInFight.has(LoadingHistoryRequestKey)) {
