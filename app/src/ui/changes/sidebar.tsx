@@ -112,17 +112,21 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     }
   }
 
-  private onCreateCommit = (
+  private onCreateCommit = async (
     summary: string,
     description: string | null,
     trailers?: ReadonlyArray<ITrailer>
-  ): Promise<boolean> => {
-    return this.props.dispatcher.commitIncludedChanges(
+  ): Promise<void> => {
+    const commitCreated = await this.props.dispatcher.commitIncludedChanges(
       this.props.repository,
       summary,
       description,
       trailers
     )
+
+    if (commitCreated) {
+      this.props.dispatcher.setCommitMessage(this.props.repository, null)
+    }
   }
 
   private onFileSelectionChanged = (rows: ReadonlyArray<number>) => {
