@@ -219,13 +219,13 @@ export class GitStore extends BaseStore {
     this.emitUpdate()
   }
 
-  /** Load a batch of commits from the repository, using the last known commit in the list. */
-  public async loadCommitBatch(lastSHA: string) {
+  /** Load a batch of commits from the repository, using a given commitish object as the starting point */
+  public async loadCommitBatch(commitish: string) {
     if (this.requestsInFight.has(LoadingHistoryRequestKey)) {
       return null
     }
 
-    const requestKey = `history/compare/${lastSHA}`
+    const requestKey = `history/compare/${commitish}`
     if (this.requestsInFight.has(requestKey)) {
       return null
     }
@@ -233,7 +233,7 @@ export class GitStore extends BaseStore {
     this.requestsInFight.add(requestKey)
 
     const commits = await this.performFailableOperation(() =>
-      getCommits(this.repository, `${lastSHA}^`, CommitBatchSize)
+      getCommits(this.repository, commitish, CommitBatchSize)
     )
 
     this.requestsInFight.delete(requestKey)
