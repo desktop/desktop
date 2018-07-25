@@ -42,9 +42,10 @@ export async function requestAuthenticatedUser(
   code: string
 ): Promise<Account | null> {
   if (!oauthState) {
-    return fatalError(
-      '`askUserToOAuth` must be called before requesting an authenticated user.'
+    log.warn(
+      'requestAuthenticatedUser was not called with valid OAuth state. This is likely due to a browser reloading the callback URL. Contact GitHub Support if you believe this is an error'
     )
+    return null
   }
 
   const token = await requestOAuthToken(
