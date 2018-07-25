@@ -1005,7 +1005,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const commits = state.compareState.commitSHAs
       const lastCommitSha = commits[commits.length - 1]
 
-      const newCommits = await gitStore.loadCommitBatch(lastCommitSha)
+      const newCommits = await gitStore.loadCommitBatch(`${lastCommitSha}^`)
       if (newCommits == null) {
         return
       }

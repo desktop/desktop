@@ -18,6 +18,20 @@ import { getCommit } from '../../src/lib/git'
 import { getStatusOrThrow } from '../helpers/status'
 
 describe('GitStore', () => {
+  describe('loadCommitBatch', () => {
+    it('includes HEAD when loading commits', async () => {
+      const path = await setupFixtureRepository('repository-with-105-commits')
+      const repo = new Repository(path, -1, null, false)
+      const gitStore = new GitStore(repo, shell)
+
+      const commits = await gitStore.loadCommitBatch('HEAD')
+
+      expect(commits).is.not.null
+      expect(commits!.length).equals(100)
+      expect(commits![0]).equals('708a46eac512c7b2486da2247f116d11a100b611')
+    })
+  })
+
   it('can discard changes from a repository', async () => {
     const repo = await setupEmptyRepository()
     const gitStore = new GitStore(repo, shell)
