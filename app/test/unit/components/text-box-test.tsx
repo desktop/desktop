@@ -17,6 +17,18 @@ describe.only('<TextBox />', () => {
     expect(input.value).equals('words are here')
   })
 
+  it('updates the value when re-rendered', () => {
+    const { rerender, container } = render(<TextBox value="first" />)
+
+    let inputs = container.getElementsByTagName('input')
+    expect(inputs[0].value).equals('first')
+
+    rerender(<TextBox value="second" />)
+
+    inputs = container.getElementsByTagName('input')
+    expect(inputs[0].value).equals('second')
+  })
+
   it('does not render a label by default', () => {
     const { container } = render(<TextBox value="words are here" />)
 
