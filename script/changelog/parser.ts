@@ -119,7 +119,7 @@ export function getChangelogEntriesSince(previousVersion: string): string[] {
       continue
     }
 
-    if (prop.endsWith('-beta1')) {
+    if (prop.endsWith('-beta0')) {
       // by convention we push the production updates out to beta
       // to ensure both channels are up to date
       continue
