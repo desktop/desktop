@@ -5,7 +5,7 @@ import { render, cleanup } from 'react-testing-library'
 
 import { TextBox } from '../../../src/ui/lib/text-box'
 
-describe.only('<TextBox />', () => {
+describe('<TextBox />', () => {
   afterEach(cleanup)
 
   it('assigns the value to an input', () => {
