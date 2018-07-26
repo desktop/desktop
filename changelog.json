@@ -1,5 +1,9 @@
 {
   "releases": {
+    "1.3.0-beta5": [
+      "[Fixed] Ensure commit message is cleared after successful commit - #4046",
+      "[Fixed] History omits latest commit from list - #5243"
+    ],
     "1.3.0-beta4": [
       "[Fixed] Only perform ahead/behind comparisons when branch selector is open - #5142",
       "[Fixed] Render clickable link in \"squash and merge\" commit message - #5203. Thanks @1pete!",
