@@ -109,11 +109,13 @@ interface ITextBoxState {
 export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
   private inputElement: HTMLInputElement | null = null
 
-  public componentWillMount() {
-    const friendlyName = this.props.label || this.props.placeholder
+  public constructor(props: ITextBoxProps) {
+    super(props)
+
+    const friendlyName = props.label || props.placeholder
     const inputId = createUniqueId(`TextBox_${friendlyName}`)
 
-    this.setState({ inputId, value: this.props.value })
+    this.state = { inputId, value: this.props.value }
   }
 
   public componentWillUnmount() {
