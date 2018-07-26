@@ -866,29 +866,28 @@ export class AppStore extends TypedBaseStore<IAppState> {
       // load initial group of commits for current branch
       const commits = await gitStore.loadCommitBatch('HEAD')
 
-      if (commits != null) {
-        this.updateCompareState(repository, () => ({
-          formState: {
-            kind: ComparisonView.None,
-          },
-          commitSHAs: commits,
-        }))
-
-        this.updateOrSelectFirstCommit(repository, commits)
-
-        this.updateCompareState(repository, () => ({
-          formState: {
-            kind: ComparisonView.None,
-          },
-          commitSHAs: commits,
-        }))
-        return this.emitUpdate()
+      if (commits === null) {
+        return
       }
-    } else if (action.kind === CompareActionKind.Branch) {
-      return this.updateCompareToBranch(repository, action)
-    } else {
-      return assertNever(action, `Unknown action: ${kind}`)
+
+      this.updateCompareState(repository, () => ({
+        formState: {
+          kind: ComparisonView.None,
+        },
+        commitSHAs: commits,
+        filterText: '',
+        showBranchList: false,
+      }))
+      this.updateOrSelectFirstCommit(repository, commits)
+
+      return this.emitUpdate()
     }
+
+    if (action.kind === CompareActionKind.Branch) {
+      return this.updateCompareToBranch(repository, action)
+    }
+
+    return assertNever(action, `Unknown action: ${kind}`)
   }
 
   private async updateCompareToBranch(
