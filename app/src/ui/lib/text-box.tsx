@@ -109,6 +109,17 @@ interface ITextBoxState {
 export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
   private inputElement: HTMLInputElement | null = null
 
+  static getDerivedStateFromProps(
+    nextProps: ITextBoxProps,
+    prevState: ITextBoxState
+  ): Partial<ITextBoxState> | null {
+    if (prevState.value !== nextProps.value) {
+      return { value: nextProps.value }
+    }
+
+    return null
+  }
+
   public constructor(props: ITextBoxProps) {
     super(props)
 
@@ -121,12 +132,6 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
   public componentWillUnmount() {
     if (this.state.inputId) {
       releaseUniqueId(this.state.inputId)
-    }
-  }
-
-  public componentWillReceiveProps(nextProps: ITextBoxProps) {
-    if (this.state.value !== nextProps.value) {
-      this.setState({ value: nextProps.value })
     }
   }
 
