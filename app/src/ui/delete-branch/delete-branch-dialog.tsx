@@ -95,15 +95,17 @@ export class DeleteBranch extends React.Component<
     this.setState({ includeRemoteBranch: value })
   }
 
-  private deleteBranch = () => {
-    this.props.dispatcher.deleteBranch(
-      this.props.repository,
-      this.props.branch,
-      this.state.includeRemoteBranch
-    )
-    this.props.dispatcher.executeCompare(this.props.repository, {
-      kind: CompareActionKind.History,
-    })
+  private deleteBranch = async () => {
+    await Promise.all([
+      this.props.dispatcher.deleteBranch(
+        this.props.repository,
+        this.props.branch,
+        this.state.includeRemoteBranch
+      ),
+      this.props.dispatcher.executeCompare(this.props.repository, {
+        kind: CompareActionKind.History,
+      }),
+    ])
 
     return this.props.dispatcher.closePopup()
   }
