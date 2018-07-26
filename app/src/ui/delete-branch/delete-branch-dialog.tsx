@@ -8,6 +8,7 @@ import { ButtonGroup } from '../lib/button-group'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Ref } from '../lib/ref'
+import { CompareActionKind } from '../../lib/app-state'
 
 interface IDeleteBranchProps {
   readonly dispatcher: Dispatcher
@@ -100,6 +101,9 @@ export class DeleteBranch extends React.Component<
       this.props.branch,
       this.state.includeRemoteBranch
     )
+    this.props.dispatcher.executeCompare(this.props.repository, {
+      kind: CompareActionKind.History,
+    })
 
     return this.props.dispatcher.closePopup()
   }
