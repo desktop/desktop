@@ -224,8 +224,16 @@ export class CommitMessage extends React.Component<
     this.setState({ description })
   }
 
-  private onSubmit = () => {
-    this.createCommit()
+  private clearCommitMessage() {
+    this.setState({ summary: '', description: null })
+  }
+
+  private onSubmit = async () => {
+    const commitCreated = await this.createCommit()
+
+    if (commitCreated) {
+      this.clearCommitMessage()
+    }
   }
 
   private getCoAuthorTrailers() {
