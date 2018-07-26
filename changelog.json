@@ -1,5 +1,8 @@
 {
   "releases": {
+    "1.3.0-beta6": [
+
+    ],
     "1.3.0-beta5": [
       "[Fixed] Ensure commit message is cleared after successful commit - #4046",
       "[Fixed] History omits latest commit from list - #5243"
