@@ -449,7 +449,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private deleteBranch() {
     const state = this.state.selectedState
-    if (state == null || state.type !== SelectionType.Repository) {
+    if (state === null || state.type !== SelectionType.Repository) {
       return
     }
 
@@ -457,7 +457,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     if (tip.kind === TipState.Valid) {
       const currentPullRequest = state.state.branchesState.currentPullRequest
-      if (currentPullRequest) {
+      if (currentPullRequest !== null) {
         this.props.dispatcher.showPopup({
           type: PopupType.DeletePullRequest,
           repository: state.repository,
