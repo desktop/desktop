@@ -8,7 +8,6 @@
       "[Fixed] \"Discard Changes\" context menu discards correct file when entry is not part of selected group - #4788",
       "[Fixed] Display local path of selected repository as tooltip - #4922. Thanks @yongdamsh!",
       "[Fixed] Display something when repository is located at drive root - #4924",
-      "[Fixed] Ensure commit message is cleared after successful commit - #4046",
       "[Fixed] Handle legacy macOS right click gesture - #4942",
       "[Fixed] History omits latest commit from list - #5243",
       "[Fixed] Markdown header elements hard to read in dark mode - #5133. Thanks @agisilaos!",
