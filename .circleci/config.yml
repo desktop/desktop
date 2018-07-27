@@ -18,7 +18,9 @@ jobs:
         - yarn-packages-v1-{{ .Branch }}-{{ checksum "yarn.lock" }}
         - yarn-packages-v1-{{ .Branch }}-
         - yarn-packages-v1-
-    - run: yarn install --force
+    - run:
+        name: Install dependencies
+        command: yarn install --force
     - save_cache:
         key: yarn-packages-v1-{{ .Branch }}-{{ checksum "yarn.lock" }}
         paths:
@@ -28,12 +30,22 @@ jobs:
         - ~/.electron
         - ~/Library/Caches/Yarn/v1
         - ./node_modules
-    - run: yarn lint
-    - run: yarn validate-changelog
-    - run: yarn build:prod
-    - run: yarn test:setup
-    - run: yarn test
-    - run: find $HOME/Library/Developer/Xcode/DerivedData -name '*.xcactivitylog' -exec cp {} $CIRCLE_ARTIFACTS/xcactivitylog \; || true
+    - run:
+        name: Lint and validate changelog
+        command: |
+                yarn lint
+                yarn validate-changelog
+    - run:
+        name: Build
+        command: yarn build:prod
+    - run:
+        name: Test
+        command: |
+                yarn test:setup
+                yarn test
+    - run:
+        name: Teardown
+        command: find $HOME/Library/Developer/Xcode/DerivedData -name '*.xcactivitylog' -exec cp {} $CIRCLE_ARTIFACTS/xcactivitylog \; || true
     # Save test results
     - store_test_results:
         path: /tmp/circleci-test-results
