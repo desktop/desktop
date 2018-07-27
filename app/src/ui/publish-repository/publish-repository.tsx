@@ -47,7 +47,7 @@ interface IPublishRepositoryState {
 export class PublishRepository extends React.Component<
   IPublishRepositoryProps,
   IPublishRepositoryState
-  > {
+> {
   public constructor(props: IPublishRepositoryProps) {
     super(props)
 
@@ -56,7 +56,11 @@ export class PublishRepository extends React.Component<
 
   public async componentWillMount() {
     this.fetchOrgs(this.props.account)
-    this.updateSettings({ org: null, canCreatePrivateRepo: this.isUserOnFreePlan(), private: !this.isUserOnFreePlan() })
+    this.updateSettings({
+      org: null,
+      canCreatePrivateRepo: this.isUserOnFreePlan(),
+      private: !this.isUserOnFreePlan(),
+    })
   }
 
   public componentWillReceiveProps(nextProps: IPublishRepositoryProps) {
@@ -88,15 +92,11 @@ export class PublishRepository extends React.Component<
   }
 
   private canCreatePrivateRepoOnOrg(fullOrgDetails: IAPIUserWithPlan | null) {
-    let isFreePlan = true
-    if (fullOrgDetails != null) {
-      if (
-        fullOrgDetails.plan.name !== 'free' && fullOrgDetails.members_can_create_repositories === true
-      ) {
-        isFreePlan = false
-      }
-    }
-    return isFreePlan
+    return (
+      fullOrgDetails !== null &&
+      fullOrgDetails.plan.name !== 'free' &&
+      fullOrgDetails.members_can_create_repositories === true
+    )
   }
 
   private onNameChange = (name: string) => {
@@ -115,14 +115,23 @@ export class PublishRepository extends React.Component<
     const value = event.currentTarget.value
     const index = parseInt(value, 10)
     if (index < 0 || isNaN(index)) {
-
-      this.updateSettings({ org: null, canCreatePrivateRepo: this.isUserOnFreePlan(), private: !this.isUserOnFreePlan() })
+      this.updateSettings({
+        org: null,
+        canCreatePrivateRepo: this.isUserOnFreePlan(),
+        private: !this.isUserOnFreePlan(),
+      })
     } else {
       const org = this.state.orgs[index]
       const api = API.fromAccount(this.props.account)
       const fullOrgDetails = await api.fetchOrg(org.login)
-      const canCreatePrivateRepo = this.canCreatePrivateRepoOnOrg(fullOrgDetails)
-      this.updateSettings({ org, canCreatePrivateRepo: canCreatePrivateRepo, private: !canCreatePrivateRepo })
+      const canCreatePrivateRepo = this.canCreatePrivateRepoOnOrg(
+        fullOrgDetails
+      )
+      this.updateSettings({
+        org,
+        canCreatePrivateRepo: canCreatePrivateRepo,
+        private: !canCreatePrivateRepo,
+      })
     }
   }
 
