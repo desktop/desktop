@@ -23,6 +23,7 @@
       "[Improved] Diff gutter elements should be considered button elements when interacting - #5158",
       "[Improved] Repository list badge style tweaks and tweaks for dark theme - #5095",
       "[Improved] Status parsing significantly more performant when handling thousands of changed files - #2449 #5186"
+    ],
     "1.3.0-beta6": [
 
     ],
