@@ -216,6 +216,10 @@ export class CommitMessage extends React.Component<
     }
   }
 
+  private clearCommitMessage() {
+    this.setState({ summary: '', description: null })
+  }
+
   private onSummaryChanged = (summary: string) => {
     this.setState({ summary })
   }
@@ -224,16 +228,8 @@ export class CommitMessage extends React.Component<
     this.setState({ description })
   }
 
-  private clearCommitMessage() {
-    this.setState({ summary: '', description: null })
-  }
-
-  private onSubmit = async () => {
-    const commitCreated = await this.createCommit()
-
-    if (commitCreated) {
-      this.clearCommitMessage()
-    }
+  private onSubmit = () => {
+    this.createCommit()
   }
 
   private getCoAuthorTrailers() {
@@ -247,16 +243,24 @@ export class CommitMessage extends React.Component<
     }))
   }
 
-  private async createCommit(): Promise<boolean> {
+  private async createCommit() {
     const { summary, description } = this.state
 
     if (!this.canCommit()) {
-      return false
+      return
     }
 
     const trailers = this.getCoAuthorTrailers()
 
-    return await this.props.onCreateCommit(summary, description, trailers)
+    const commitCreated = await this.props.onCreateCommit(
+      summary,
+      description,
+      trailers
+    )
+
+    if (commitCreated) {
+      this.clearCommitMessage()
+    }
   }
 
   private canCommit(): boolean {
