@@ -42,7 +42,7 @@ export interface IAPIRepository {
   readonly clone_url: string
   readonly html_url: string
   readonly name: string
-  readonly owner: IAPIUser
+  readonly owner: IAPIUserWithPlan
   readonly private: boolean
   readonly fork: boolean
   readonly default_branch: string
@@ -87,13 +87,14 @@ export interface IAPIUser {
    */
   readonly email: string | null
   readonly type: 'User' | 'Organization'
+  readonly members_can_create_repositories?: boolean
 }
 
 /**
  * This interface should only be used on known API endpoints that
  * return the plan information
  */
-type IAPIUserWithPlan = IAPIUser & IAccountWithPlan
+export type IAPIUserWithPlan = IAPIUser & IAccountWithPlan
 
 /** The users we get from the mentionables endpoint. */
 export interface IAPIMentionableUser {

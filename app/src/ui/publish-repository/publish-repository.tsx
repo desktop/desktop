@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Account } from '../../models/account'
-import { API, IAPIUser } from '../../lib/api'
+import { API, IAPIUser, IAPIUserWithPlan } from '../../lib/api'
 import { TextBox } from '../lib/text-box'
 import { Select } from '../lib/select'
 import { DialogContent } from '../dialog'
@@ -27,7 +27,7 @@ export interface IPublishRepositorySettings {
   readonly description: string
 
   /** Whether the current user (or organization if chosen by user) is on a non-paid plan */
-  readonly isFreePlan: boolean
+  readonly canCreatePrivateRepo: boolean
 
   /** Should the repository be private? */
   readonly private: boolean
@@ -47,7 +47,7 @@ interface IPublishRepositoryState {
 export class PublishRepository extends React.Component<
   IPublishRepositoryProps,
   IPublishRepositoryState
-> {
+  > {
   public constructor(props: IPublishRepositoryProps) {
     super(props)
 
@@ -56,6 +56,7 @@ export class PublishRepository extends React.Component<
 
   public async componentWillMount() {
     this.fetchOrgs(this.props.account)
+    this.updateSettings({ org: null, canCreatePrivateRepo: this.isUserOnFreePlan(), private: !this.isUserOnFreePlan() })
   }
 
   public componentWillReceiveProps(nextProps: IPublishRepositoryProps) {
@@ -81,6 +82,23 @@ export class PublishRepository extends React.Component<
     this.props.onSettingsChanged(newSettings)
   }
 
+  private isUserOnFreePlan() {
+    const plan = this.props.account.plan
+    return !(plan && plan.name !== 'free')
+  }
+
+  private canCreatePrivateRepoOnOrg(fullOrgDetails: IAPIUserWithPlan | null) {
+    let isFreePlan = true
+    if (fullOrgDetails != null) {
+      if (
+        fullOrgDetails.plan.name !== 'free' && fullOrgDetails.members_can_create_repositories === true
+      ) {
+        isFreePlan = false
+      }
+    }
+    return isFreePlan
+  }
+
   private onNameChange = (name: string) => {
     this.updateSettings({ name })
   }
@@ -97,40 +115,14 @@ export class PublishRepository extends React.Component<
     const value = event.currentTarget.value
     const index = parseInt(value, 10)
     if (index < 0 || isNaN(index)) {
-      // publishing to current user's account
-      let isFreePlan = true
 
-      if (this.props.account.plan != null) {
-        if (this.props.account.plan.name !== 'free') {
-          isFreePlan = false
-        }
-      }
-
-      // clear the private state if the user is on a free plan
-      const newPrivateValue = isFreePlan ? false : this.props.settings.private
-
-      this.updateSettings({ org: null, isFreePlan, private: newPrivateValue })
+      this.updateSettings({ org: null, canCreatePrivateRepo: this.isUserOnFreePlan(), private: !this.isUserOnFreePlan() })
     } else {
       const org = this.state.orgs[index]
-
-      // fetch the org details which are not available from `GET /user/orgs`
       const api = API.fromAccount(this.props.account)
       const fullOrgDetails = await api.fetchOrg(org.login)
-
-      let isFreePlan = true
-      if (fullOrgDetails != null) {
-        if (
-          fullOrgDetails.plan.name !== 'free'
-          // && fullOrgDetails.members_can_create_repositories === true
-        ) {
-          isFreePlan = false
-        }
-      }
-
-      // clear the private state if the org is on a free plan
-      const newPrivateValue = isFreePlan ? false : this.props.settings.private
-
-      this.updateSettings({ org, isFreePlan, private: newPrivateValue })
+      const canCreatePrivateRepo = this.canCreatePrivateRepoOnOrg(fullOrgDetails)
+      this.updateSettings({ org, canCreatePrivateRepo: canCreatePrivateRepo, private: !canCreatePrivateRepo })
     }
   }
 
@@ -172,8 +164,7 @@ export class PublishRepository extends React.Component<
   }
 
   public render() {
-    const disabled = this.props.settings.isFreePlan
-
+    const disabled = this.props.settings.canCreatePrivateRepo
     return (
       <DialogContent>
         <Row>

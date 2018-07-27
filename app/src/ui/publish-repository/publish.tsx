@@ -70,7 +70,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
       description: '',
       private: true,
       org: null,
-      isFreePlan: true,
+      canCreatePrivateRepo: true,
     }
 
     this.state = {
