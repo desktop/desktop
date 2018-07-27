@@ -13,4 +13,4 @@ security set-keychain-settings -t 3600 -u $KEY_CHAIN
 security default-keychain -s $KEY_CHAIN
 
 echo "Settting key partition list"
-security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k $KEY_PASSWORD $KEY_CHAIN
+security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k travis $KEY_CHAIN
