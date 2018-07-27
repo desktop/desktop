@@ -981,6 +981,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             branch={popup.branch}
             existsOnRemote={popup.existsOnRemote}
             onDismissed={this.onPopupDismissed}
+            onDeleted={this.onBranchDeleted}
           />
         )
       case PopupType.ConfirmDiscardChanges:
@@ -1769,6 +1770,16 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (baseURL) {
       this.props.dispatcher.openInBrowser(`${baseURL}/commit/${SHA}`)
     }
+  }
+
+  private onBranchDeleted = (repository: Repository) => {
+    // In the event a user is in the middle of a compare
+    // we need to exit out of the compare state after the
+    // branch has been deleted. Calling executeCompare allows
+    // us to do just that.
+    this.props.dispatcher.executeCompare(repository, {
+      kind: CompareActionKind.History,
+    })
   }
 }
 

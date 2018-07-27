@@ -8,7 +8,6 @@ import { ButtonGroup } from '../lib/button-group'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Ref } from '../lib/ref'
-import { CompareActionKind } from '../../lib/app-state'
 
 interface IDeleteBranchProps {
   readonly dispatcher: Dispatcher
@@ -16,6 +15,7 @@ interface IDeleteBranchProps {
   readonly branch: Branch
   readonly existsOnRemote: boolean
   readonly onDismissed: () => void
+  readonly onDeleted: (repository: Repository) => void
 }
 
 interface IDeleteBranchState {
@@ -96,21 +96,14 @@ export class DeleteBranch extends React.Component<
   }
 
   private deleteBranch = async () => {
-    // In the event a user is in the middle of a compare
-    // we need to exit out of the compare state after the
-    // branch has been deleted. Calling executeCompare allows
-    // us to do just that.
-    await Promise.all([
-      this.props.dispatcher.deleteBranch(
-        this.props.repository,
-        this.props.branch,
-        this.state.includeRemoteBranch
-      ),
-      this.props.dispatcher.executeCompare(this.props.repository, {
-        kind: CompareActionKind.History,
-      }),
-    ])
+    const { dispatcher, repository, branch, onDeleted } = this.props
+    await dispatcher.deleteBranch(
+      repository,
+      branch,
+      this.state.includeRemoteBranch
+    )
+    onDeleted(repository)
 
-    return this.props.dispatcher.closePopup()
+    return dispatcher.closePopup()
   }
 }
