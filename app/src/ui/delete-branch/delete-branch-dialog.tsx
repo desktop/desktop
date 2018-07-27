@@ -96,6 +96,10 @@ export class DeleteBranch extends React.Component<
   }
 
   private deleteBranch = async () => {
+    // In the event a user is in the middle of a compare
+    // we need to exit out of the compare state after the
+    // branch has been deleted. Calling executeCompare allows
+    // us to do just that.
     await Promise.all([
       this.props.dispatcher.deleteBranch(
         this.props.repository,
