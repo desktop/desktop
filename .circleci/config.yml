@@ -14,23 +14,19 @@ jobs:
     - run: mkdir -p $CIRCLE_ARTIFACTS $CIRCLE_TEST_REPORTS
     - restore_cache:
         keys:
-        # This branch if available
-        - v1-dep-{{ .Branch }}-
-        # Default branch if not
-        - v1-dep-master-
-        # Any branch if there are none on the default branch - this should be unnecessary if you have your default branch configured correctly
-        - v1-dep-
-    - run: node -v
-    - run: yarn -v
+        # when lock file changes, use increasingly general patterns to restore cache
+        - yarn-packages-v1-{{ .Branch }}-{{ checksum "yarn.lock" }}
+        - yarn-packages-v1-{{ .Branch }}-
+        - yarn-packages-v1-
     - run: yarn install --force
     - save_cache:
-        key: v1-dep-{{ .Branch }}-{{ epoch }}
+        key: yarn-packages-v1-{{ .Branch }}-{{ checksum "yarn.lock" }}
         paths:
+        - ~/.cache/yarn
         - vendor/bundle
         - .eslintcache
         - ~/.electron
         - ~/Library/Caches/Yarn/v1
-        - node_modules
         - ./node_modules
     - run: yarn lint
     - run: yarn validate-changelog
