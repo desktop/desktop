@@ -54,6 +54,7 @@ jobs:
         path: /tmp/circleci-artifacts
     - store_artifacts:
         path: /tmp/circleci-test-results
+
   deploy:
     macos:
       xcode: '9.3.0'
