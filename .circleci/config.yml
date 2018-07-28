@@ -57,10 +57,17 @@ jobs:
   deploy:
     macos:
       xcode: '9.3.0'
-    requires:
-      - build
-    filters:
-      branches:
-        only: /^__release-.*/
     steps:
       - run: yarn run publish
+
+workflows:
+  version: 2
+  build-and-deploy:
+    jobs:
+      - build
+      - deploy:
+          requires:
+            - build
+          filters:
+            branches:
+              only: /^__release-.*/
