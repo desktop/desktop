@@ -38,7 +38,7 @@ interface ICommitMessageProps {
     summary: string,
     description: string | null,
     trailers?: ReadonlyArray<ITrailer>
-  ) => Promise<void>
+  ) => Promise<boolean>
   readonly branch: string | null
   readonly commitAuthor: CommitIdentity | null
   readonly gitHubUser: IGitHubUser | null
@@ -216,6 +216,10 @@ export class CommitMessage extends React.Component<
     }
   }
 
+  private clearCommitMessage() {
+    this.setState({ summary: '', description: null })
+  }
+
   private onSummaryChanged = (summary: string) => {
     this.setState({ summary })
   }
@@ -248,7 +252,15 @@ export class CommitMessage extends React.Component<
 
     const trailers = this.getCoAuthorTrailers()
 
-    await this.props.onCreateCommit(summary, description, trailers)
+    const commitCreated = await this.props.onCreateCommit(
+      summary,
+      description,
+      trailers
+    )
+
+    if (commitCreated) {
+      this.clearCommitMessage()
+    }
   }
 
   private canCommit(): boolean {
