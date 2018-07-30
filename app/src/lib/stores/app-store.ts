@@ -1914,12 +1914,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const promises = []
 
-    for (const repo of repositories) {
+    const eligibleRepositories = repositories.filter(repo => !repo.missing)
 
-      if (repo.missing) {
-        continue
-      }
-
+    for (const repo of eligibleRepositories) {
       promises.push(
         this.withAuthenticatingUser(repo, async (repo, account) => {
           const gitStore = this.getGitStore(repo)
@@ -1930,6 +1927,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
             })
           }
 
+          // confirm the repository is still present after that last operation
           if (repo.missing) {
             return
           }
