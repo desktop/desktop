@@ -13,7 +13,10 @@ phases:
           yarn install --force
         name: Install
       - script: |
-          yarn lint && yarn build:prod
+          yarn lint
+        name: Lint
+      - script: |
+          yarn build:prod
         name: Build
       - script: |
           yarn test:setup && yarn test
@@ -36,7 +39,10 @@ phases:
           yarn install --force
         name: Install
       - script: |
-          yarn lint && yarn build:prod
+          yarn lint
+        name: Lint
+      - script: |
+          yarn build:prod
         name: Build
       - script: |
           export DISPLAY=':99.0'
@@ -58,7 +64,10 @@ phases:
           yarn install --force
         name: Install
       - script: |
-          yarn lint && yarn build:prod
+          yarn lint
+        name: Lint
+      - script: |
+          yarn build:prod
         name: Build
       - script: |
           yarn test:setup && yarn test
