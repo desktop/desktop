@@ -722,7 +722,7 @@ export class GitStore extends BaseStore {
   }
 
   /**
-   * The commit message to use based on the contex of the repository, e.g., the
+   * The commit message to use based on the context of the repository, e.g., the
    * message from a recently undone commit.
    */
   public get contextualCommitMessage(): ICommitMessage | null {
