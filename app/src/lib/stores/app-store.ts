@@ -1933,11 +1933,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
             })
           }
 
-          // confirm the repository is still present after that last operation
-          if (repo.missing) {
-            return
-          }
-
           const status = await gitStore.performFailableOperation(() => {
             return gitStore.loadStatus()
           })
