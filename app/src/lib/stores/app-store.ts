@@ -1933,11 +1933,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
             })
           }
 
-          const status = await gitStore.performFailableOperation(() => {
-            return gitStore.loadStatus()
-          })
-
-          if (status != null) {
+          const status = await gitStore.loadStatus()
+          if (status !== null) {
             lookup.set(repo.id, {
               aheadBehind: gitStore.aheadBehind,
               changedFilesCount: status.workingDirectory.files.length,
