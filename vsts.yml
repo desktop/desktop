@@ -13,7 +13,7 @@ phases:
           yarn install --force
         name: Install
       - script: |
-          yarn lint:prettier --fix && git diff
+          yarn lint && yarn build:prod
         name: Build
       - script: |
           yarn test:setup && yarn test
