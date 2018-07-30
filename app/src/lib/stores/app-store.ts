@@ -1,4 +1,5 @@
 import { ipcRenderer, remote } from 'electron'
+import { pathExists } from 'fs-extra'
 import {
   IRepositoryState,
   IAppState,
@@ -1919,6 +1920,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     for (const repo of eligibleRepositories) {
       promises.push(
         this.withAuthenticatingUser(repo, async (repo, account) => {
+          const exists = await pathExists(repo.path)
+          if (!exists) {
+            return
+          }
+
           const gitStore = this.getGitStore(repo)
           const lookup = this.localRepositoryStateLookup
           if (this.shouldBackgroundFetch(repo)) {
