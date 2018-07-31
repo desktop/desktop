@@ -204,7 +204,9 @@ export class CompareSidebar extends React.Component<
         <NewCommitsBanner
           dispatcher={this.props.dispatcher}
           repository={this.props.repository}
-          commitsBehindBaseBranch={inferredComparisonBranchState.aheadBehind.behind}
+          commitsBehindBaseBranch={
+            inferredComparisonBranchState.aheadBehind.behind
+          }
           baseBranch={inferredComparisonBranchState.branch}
           onDismiss={this.onNotificationBannerDismissed}
         />

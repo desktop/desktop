@@ -825,7 +825,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       allBranches,
       recentBranches,
       defaultBranch,
-      inferredComparisonBranchState
+      inferredComparisonBranchState,
     }))
 
     const shouldShowBanner = await this.shouldShowBanner(
@@ -836,9 +836,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this._setDivergingBranchBannerVisibility(shouldShowBanner)
 
     const cachedState = compareState.formState
-    const action = initialAction !== undefined
-      ? initialAction
-      : getInitialAction(cachedState)
+    const action =
+      initialAction !== undefined
+        ? initialAction
+        : getInitialAction(cachedState)
     this._executeCompare(repository, action)
   }
 
@@ -848,12 +849,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     inferredBranchState: IInferredComparisonBranchState
   ): Promise<boolean> {
     const { branch, aheadBehind } = inferredBranchState
+
     if (branch === null || tip.kind !== TipState.Valid) {
       return false
     }
 
     const state = this.getRepositoryState(repository)
     const { inferredComparisonBranchState } = state.compareState
+    const prevAheadBehind = state.compareState.aheadBehindCache.get(tip.branch.tip.sha, branch.tip.sha)
+
 
     // we only want to show the banner when the the number
     // commits behind has changed since the last it was visible
@@ -861,7 +865,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       aheadBehind !== null &&
       aheadBehind.behind > 0 &&
       inferredComparisonBranchState.aheadBehind !== null &&
-      inferredComparisonBranchState.aheadBehind.behind !== aheadBehind.behind
+      prevAheadBehind !== null &&
+      inferredComparisonBranchState.aheadBehind.behind !== prevAheadBehind.behind
     ) {
       return true
     }
