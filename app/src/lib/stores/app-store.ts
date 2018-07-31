@@ -1949,6 +1949,37 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
+  private async refreshIndicatorForRepository(repository: Repository) {
+    const lookup = this.localRepositoryStateLookup
+
+    const exists = await pathExists(repository.path)
+    if (!exists) {
+      lookup.delete(repository.id)
+      return
+    }
+
+    const gitStore = this.getGitStore(repository)
+
+    const status = await gitStore.loadStatus()
+    if (status === null) {
+      lookup.delete(repository.id)
+      return
+    }
+
+    this.withAuthenticatingUser(repository, async (repo, account) => {
+      if (this.shouldBackgroundFetch(repo)) {
+        await gitStore.performFailableOperation(() => {
+          return gitStore.fetch(account, true)
+        })
+      }
+    })
+
+    lookup.set(repository.id, {
+      aheadBehind: gitStore.aheadBehind,
+      changedFilesCount: status.workingDirectory.files.length,
+    })
+  }
+
   /**
    * Refresh all the data for the Changes section.
    *
