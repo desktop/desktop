@@ -71,6 +71,15 @@ export async function getStatus(
     new Set<number>([0, 128])
   )
 
+  if (result.exitCode === 128) {
+    log.debug(
+      `'git status' returned 128 for '${
+        repository.path
+      }' and is likely missing it's .git directory`
+    )
+    return null
+  }
+
   if (result.output.length > MaxStatusBufferSize) {
     log.error(
       `'git status' emitted ${
