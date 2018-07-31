@@ -687,6 +687,7 @@ export interface ICompareState {
 export interface IInferredComparisonBranchState {
   readonly branch: Branch | null
   readonly aheadBehind: IAheadBehind | null
+  readonly lastAheadBehind: IAheadBehind | null
 }
 
 export interface ICompareFormUpdate {
