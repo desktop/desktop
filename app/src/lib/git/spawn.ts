@@ -4,6 +4,7 @@ import * as GitPerf from '../../ui/lib/git-perf'
 type ProcessOutput = {
   output: Buffer
   error: Buffer
+  exitCode: number
 }
 
 /**
@@ -81,6 +82,7 @@ export function spawnAndComplete(
             resolve({
               output: stdout,
               error: stderr,
+              exitCode: code,
             })
             return
           } else {
