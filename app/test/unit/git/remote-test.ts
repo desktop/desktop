@@ -10,7 +10,7 @@ import {
 import {
   setupFixtureRepository,
   setupEmptyRepository,
-  mkdirSync,
+  setupEmptyDirectory,
 } from '../../helpers/repositories'
 
 describe('git/remote', () => {
@@ -35,8 +35,7 @@ describe('git/remote', () => {
     })
 
     it('returns empty array for directory without a .git directory', async () => {
-      const emptyDir = mkdirSync('no-repo-here')
-      const repository = new Repository(emptyDir, -1, null, false)
+      const repository = setupEmptyDirectory()
 
       const status = await getRemotes(repository)
       expect(status).eql([])
