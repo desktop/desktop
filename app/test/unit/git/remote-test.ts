@@ -10,6 +10,7 @@ import {
 import {
   setupFixtureRepository,
   setupEmptyRepository,
+  setupEmptyDirectory,
 } from '../../helpers/repositories'
 
 describe('git/remote', () => {
@@ -31,6 +32,13 @@ describe('git/remote', () => {
 
       expect(result[1].name).to.equal('origin')
       expect(result[1].url.endsWith(nwo)).to.equal(true)
+    })
+
+    it('returns empty array for directory without a .git directory', async () => {
+      const repository = setupEmptyDirectory()
+
+      const status = await getRemotes(repository)
+      expect(status).eql([])
     })
   })
 
