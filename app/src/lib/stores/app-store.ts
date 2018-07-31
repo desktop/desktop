@@ -1879,10 +1879,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const state = this.getRepositoryState(repository)
     const gitStore = this.getGitStore(repository)
 
-    // When refreshing we *always* check the status so that we can update the
-    // changes indicator in the tab bar. But we only load History if it's
-    // selected.
-    await Promise.all([this._loadStatus(repository), gitStore.loadBranches()])
+    // if we cannot get a valid status it's a good indicator that the repository
+    // is in a bad state - let's mark it as missing here and give up on the
+    // further work
+    const status = await this._loadStatus(repository)
+    if (!status) {
+      await this._updateRepositoryMissing(repository, true)
+      return
+    }
+
+    await gitStore.loadBranches()
 
     const section = state.selectedSection
     let refreshSectionPromise: Promise<void>
