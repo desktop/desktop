@@ -2,8 +2,11 @@ import { GitProcess } from 'dugite'
 import * as GitPerf from '../../ui/lib/git-perf'
 
 type ProcessOutput = {
+  /** The contents of stdout received from the spawned process */
   output: Buffer
+  /** The contents of stderr received from the spawned process */
   error: Buffer
+  /** The exit code returned by the spawned process */
   exitCode: number
 }
 
