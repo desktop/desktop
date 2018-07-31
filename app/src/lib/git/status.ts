@@ -75,7 +75,7 @@ export async function getStatus(
     log.debug(
       `'git status' returned 128 for '${
         repository.path
-      }' and is likely missing it's .git directory`
+      }' and is likely missing its .git directory`
     )
     return null
   }
