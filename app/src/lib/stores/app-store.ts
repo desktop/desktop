@@ -1553,12 +1553,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _loadStatus(
     repository: Repository,
     clearPartialState: boolean = false
-  ): Promise<void> {
+  ): Promise<boolean> {
     const gitStore = this.getGitStore(repository)
     const status = await gitStore.loadStatus()
 
     if (!status) {
-      return
+      return false
     }
 
     this.updateChangesState(repository, state => {
@@ -1625,6 +1625,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
 
     this.updateChangesDiffForCurrentSelection(repository)
+
+    return true
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
