@@ -681,10 +681,12 @@ export interface ICompareState {
    * Also includes the ahead/behind info for the inferred branch
    * relative to the current branch.
    */
-  readonly inferredComparisonBranch: {
-    branch: Branch | null
-    aheadBehind: IAheadBehind | null
-  }
+  readonly inferredComparisonBranchState: IInferredComparisonBranchState
+}
+
+export interface IInferredComparisonBranchState {
+  readonly branch: Branch | null
+  readonly aheadBehind: IAheadBehind | null
 }
 
 export interface ICompareFormUpdate {

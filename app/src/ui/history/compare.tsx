@@ -195,17 +195,17 @@ export class CompareSidebar extends React.Component<
       return null
     }
 
-    const { inferredComparisonBranch } = this.props.compareState
+    const { inferredComparisonBranchState } = this.props.compareState
 
-    return inferredComparisonBranch.branch !== null &&
-      inferredComparisonBranch.aheadBehind !== null &&
-      inferredComparisonBranch.aheadBehind.behind > 0 ? (
+    return inferredComparisonBranchState.branch !== null &&
+      inferredComparisonBranchState.aheadBehind !== null &&
+      inferredComparisonBranchState.aheadBehind.behind > 0 ? (
       <div className="diverge-banner-wrapper">
         <NewCommitsBanner
           dispatcher={this.props.dispatcher}
           repository={this.props.repository}
-          commitsBehindBaseBranch={inferredComparisonBranch.aheadBehind.behind}
-          baseBranch={inferredComparisonBranch.branch}
+          commitsBehindBaseBranch={inferredComparisonBranchState.aheadBehind.behind}
+          baseBranch={inferredComparisonBranchState.branch}
           onDismiss={this.onNotificationBannerDismissed}
         />
       </div>

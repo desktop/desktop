@@ -25,6 +25,7 @@ import {
   ICompareBranch,
   ICompareFormUpdate,
   ICompareToBranch,
+  IInferredComparisonBranchState,
 } from '../app-state'
 import { Account } from '../../models/account'
 import { Repository, ILocalRepositoryState } from '../../models/repository'
@@ -462,7 +463,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         allBranches: new Array<Branch>(),
         recentBranches: new Array<Branch>(),
         defaultBranch: null,
-        inferredComparisonBranch: { branch: null, aheadBehind: null },
+        inferredComparisonBranchState: { branch: null, aheadBehind: null },
       },
       commitAuthor: null,
       gitHubUsers: new Map<string, IGitHubUser>(),
@@ -816,54 +817,51 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     }
 
+    const inferredComparisonBranchState = {
+      branch: inferredBranch,
+      aheadBehind: aheadBehindOfInferredBranch,
+    }
     this.updateCompareState(repository, () => ({
       allBranches,
       recentBranches,
       defaultBranch,
-      inferredComparisonBranch: {
-        branch: inferredBranch,
-        aheadBehind: aheadBehindOfInferredBranch,
-      },
+      inferredComparisonBranchState
     }))
 
     const shouldShowBanner = await this.shouldShowBanner(
       repository,
       tip,
-      inferredBranch,
-      aheadBehindOfInferredBranch
+      inferredComparisonBranchState
     )
     this._setDivergingBranchBannerVisibility(shouldShowBanner)
 
     const cachedState = compareState.formState
-    const action =
-      initialAction != null ? initialAction : getInitialAction(cachedState)
+    const action = initialAction !== undefined
+      ? initialAction
+      : getInitialAction(cachedState)
     this._executeCompare(repository, action)
   }
 
   private async shouldShowBanner(
     repository: Repository,
     tip: Tip,
-    inferredBranch: Branch | null,
-    aheadBehind: IAheadBehind | null
+    inferredBranchState: IInferredComparisonBranchState
   ): Promise<boolean> {
-    if (inferredBranch === null || tip.kind !== TipState.Valid) {
+    const { branch, aheadBehind } = inferredBranchState
+    if (branch === null || tip.kind !== TipState.Valid) {
       return false
     }
 
-    if (aheadBehind === null) {
-
-    }
-
     const state = this.getRepositoryState(repository)
-    const { inferredComparisonBranch } = state.compareState
+    const { inferredComparisonBranchState } = state.compareState
 
     // we only want to show the banner when the the number
     // commits behind has changed since the last it was visible
     if (
       aheadBehind !== null &&
       aheadBehind.behind > 0 &&
-      inferredComparisonBranch.aheadBehind !== null &&
-      inferredComparisonBranch.aheadBehind.behind < aheadBehind.behind
+      inferredComparisonBranchState.aheadBehind !== null &&
+      inferredComparisonBranchState.aheadBehind.behind !== aheadBehind.behind
     ) {
       return true
     }
