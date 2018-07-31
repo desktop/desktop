@@ -67,7 +67,8 @@ export async function getStatus(
   const result = await spawnAndComplete(
     ['status', '--untracked-files=all', '--branch', '--porcelain=2', '-z'],
     repository.path,
-    'getStatus'
+    'getStatus',
+    new Set<number>([0, 128])
   )
 
   if (result.output.length > MaxStatusBufferSize) {
