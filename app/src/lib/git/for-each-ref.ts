@@ -41,8 +41,14 @@ export async function getBranches(
   const result = await git(
     ['for-each-ref', `--format=${format}`, ...prefixes],
     repository.path,
-    'getBranches'
+    'getBranches',
+    { successExitCodes: new Set([0, 128]) }
   )
+
+  if (result.exitCode === 128) {
+    return []
+  }
+
   const names = result.stdout
   const lines = names.split(delimiterString)
 
