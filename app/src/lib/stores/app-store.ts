@@ -867,29 +867,28 @@ export class AppStore extends TypedBaseStore<IAppState> {
       // load initial group of commits for current branch
       const commits = await gitStore.loadCommitBatch('HEAD')
 
-      if (commits != null) {
-        this.updateCompareState(repository, () => ({
-          formState: {
-            kind: ComparisonView.None,
-          },
-          commitSHAs: commits,
-        }))
-
-        this.updateOrSelectFirstCommit(repository, commits)
-
-        this.updateCompareState(repository, () => ({
-          formState: {
-            kind: ComparisonView.None,
-          },
-          commitSHAs: commits,
-        }))
-        return this.emitUpdate()
+      if (commits === null) {
+        return
       }
-    } else if (action.kind === CompareActionKind.Branch) {
-      return this.updateCompareToBranch(repository, action)
-    } else {
-      return assertNever(action, `Unknown action: ${kind}`)
+
+      this.updateCompareState(repository, () => ({
+        formState: {
+          kind: ComparisonView.None,
+        },
+        commitSHAs: commits,
+        filterText: '',
+        showBranchList: false,
+      }))
+      this.updateOrSelectFirstCommit(repository, commits)
+
+      return this.emitUpdate()
     }
+
+    if (action.kind === CompareActionKind.Branch) {
+      return this.updateCompareToBranch(repository, action)
+    }
+
+    return assertNever(action, `Unknown action: ${kind}`)
   }
 
   private async updateCompareToBranch(
@@ -1915,14 +1914,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this._updateCurrentPullRequest(repository)
     this.updateMenuItemLabels(repository)
     this._initializeCompare(repository)
-    this.refreshRepositoryState([repository])
+    this.refreshIndicatorsForRepositories([repository])
   }
 
   public refreshAllRepositories() {
-    return this.refreshRepositoryState(this.repositories)
+    return this.refreshIndicatorsForRepositories(this.repositories)
   }
 
-  private async refreshRepositoryState(
+  private async refreshIndicatorsForRepositories(
     repositories: ReadonlyArray<Repository>
   ): Promise<void> {
     if (!enableRepoInfoIndicators()) {
@@ -1934,35 +1933,43 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const eligibleRepositories = repositories.filter(repo => !repo.missing)
 
     for (const repo of eligibleRepositories) {
-      promises.push(
-        this.withAuthenticatingUser(repo, async (repo, account) => {
-          const exists = await pathExists(repo.path)
-          if (!exists) {
-            return
-          }
-
-          const gitStore = this.getGitStore(repo)
-          const lookup = this.localRepositoryStateLookup
-          if (this.shouldBackgroundFetch(repo)) {
-            await gitStore.performFailableOperation(() => {
-              return gitStore.fetch(account, true)
-            })
-          }
-
-          const status = await gitStore.loadStatus()
-          if (status !== null) {
-            lookup.set(repo.id, {
-              aheadBehind: gitStore.aheadBehind,
-              changedFilesCount: status.workingDirectory.files.length,
-            })
-          }
-        })
-      )
+      promises.push(this.refreshIndicatorForRepository(repo))
     }
 
     await Promise.all(promises)
 
     this.emitUpdate()
+  }
+
+  private async refreshIndicatorForRepository(repository: Repository) {
+    const lookup = this.localRepositoryStateLookup
+
+    const exists = await pathExists(repository.path)
+    if (!exists) {
+      lookup.delete(repository.id)
+      return
+    }
+
+    const gitStore = this.getGitStore(repository)
+
+    const status = await gitStore.loadStatus()
+    if (status === null) {
+      lookup.delete(repository.id)
+      return
+    }
+
+    this.withAuthenticatingUser(repository, async (repo, account) => {
+      if (this.shouldBackgroundFetch(repo)) {
+        await gitStore.performFailableOperation(() => {
+          return gitStore.fetch(account, true)
+        })
+      }
+    })
+
+    lookup.set(repository.id, {
+      aheadBehind: gitStore.aheadBehind,
+      changedFilesCount: status.workingDirectory.files.length,
+    })
   }
 
   /**

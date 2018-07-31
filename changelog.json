@@ -8,7 +8,7 @@
     ],
     "1.3.1-beta0": [
       "[New] Notification displayed in History tab when the base branch moves ahead of the current branch - #4768",
-      "[New] Repository list displays uncommitted changes count and ahead/behind information - #2259 #5095",
+      "[New] Repository list displays uncommitted changes indicator and ahead/behind information - #2259 #5095",
       "[Added] Option to move repository to trash when removing from app - #2108. Thanks @say25!",
       "[Added] Syntax highlighting for PowerShell files - #5081. Thanks @say25!",
       "[Fixed] \"Discard Changes\" context menu discards correct file when entry is not part of selected group - #4788",
@@ -30,7 +30,7 @@
     ],
     "1.3.0": [
       "[New] Notification displayed in History tab when the base branch moves ahead of the current branch - #4768",
-      "[New] Repository list displays uncommitted changes count and ahead/behind information - #2259 #5095",
+      "[New] Repository list displays uncommitted changes indicator and ahead/behind information - #2259 #5095",
       "[Added] Option to move repository to trash when removing from app - #2108. Thanks @say25!",
       "[Added] Syntax highlighting for PowerShell files - #5081. Thanks @say25!",
       "[Fixed] \"Discard Changes\" context menu discards correct file when entry is not part of selected group - #4788",
