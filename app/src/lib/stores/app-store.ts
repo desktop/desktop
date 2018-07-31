@@ -1866,6 +1866,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    // if the repository path doesn't exist on disk,
+    // set the flag and don't try anything Git-related
+    const exists = await pathExists(repository.path)
+    if (!exists) {
+      this._updateRepositoryMissing(repository, true)
+      return
+    }
+
     const state = this.getRepositoryState(repository)
     const gitStore = this.getGitStore(repository)
 
