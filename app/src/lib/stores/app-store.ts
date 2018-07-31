@@ -53,7 +53,7 @@ import {
   eligibleForFastForward,
   IAheadBehind,
 } from '../../models/branch'
-import { TipState } from '../../models/tip'
+import { TipState, Tip } from '../../models/tip'
 import { CloningRepository } from '../../models/cloning-repository'
 import { Commit } from '../../models/commit'
 import { ExternalEditor, getAvailableEditors, parse } from '../editors'
@@ -826,33 +826,49 @@ export class AppStore extends TypedBaseStore<IAppState> {
       },
     }))
 
-    // we only want to show the banner when the the number
-    // commits behind has changed since the last it was visible
-    if (
-      inferredBranch !== null &&
-      aheadBehindOfInferredBranch !== null &&
-      aheadBehindOfInferredBranch.behind > 0
-    ) {
-      const prevInferredBranchState =
-        state.compareState.inferredComparisonBranch
-      if (
-        prevInferredBranchState.aheadBehind === null ||
-        prevInferredBranchState.aheadBehind.behind !==
-          aheadBehindOfInferredBranch.behind
-      ) {
-        this._setDivergingBranchBannerVisibility(true)
-      }
-    } else if (
-      inferComparisonBranch !== null ||
-      aheadBehindOfInferredBranch === null
-    ) {
-      this._setDivergingBranchBannerVisibility(false)
-    }
+    const shouldShowBanner = await this.shouldShowBanner(
+      repository,
+      tip,
+      inferredBranch,
+      aheadBehindOfInferredBranch
+    )
+    this._setDivergingBranchBannerVisibility(shouldShowBanner)
 
     const cachedState = compareState.formState
     const action =
       initialAction != null ? initialAction : getInitialAction(cachedState)
     this._executeCompare(repository, action)
+  }
+
+  private async shouldShowBanner(
+    repository: Repository,
+    tip: Tip,
+    inferredBranch: Branch | null,
+    aheadBehind: IAheadBehind | null
+  ): Promise<boolean> {
+    if (inferredBranch === null || tip.kind !== TipState.Valid) {
+      return false
+    }
+
+    if (aheadBehind === null) {
+
+    }
+
+    const state = this.getRepositoryState(repository)
+    const { inferredComparisonBranch } = state.compareState
+
+    // we only want to show the banner when the the number
+    // commits behind has changed since the last it was visible
+    if (
+      aheadBehind !== null &&
+      aheadBehind.behind > 0 &&
+      inferredComparisonBranch.aheadBehind !== null &&
+      inferredComparisonBranch.aheadBehind.behind < aheadBehind.behind
+    ) {
+      return true
+    }
+
+    return false
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
