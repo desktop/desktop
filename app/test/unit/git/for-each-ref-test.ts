@@ -3,7 +3,7 @@ import { Repository } from '../../../src/models/repository'
 import {
   setupFixtureRepository,
   setupEmptyRepository,
-  mkdirSync,
+  setupEmptyDirectory,
 } from '../../helpers/repositories'
 import { getBranches } from '../../../src/lib/git/for-each-ref'
 import { BranchType } from '../../../src/models/branch'
@@ -61,9 +61,7 @@ describe('git/for-each-ref', () => {
     })
 
     it('should return empty list for directory without a .git directory', async () => {
-      const emptyDir = mkdirSync('no-repo-here')
-      const repo = new Repository(emptyDir, -1, null, false)
-
+      const repo = setupEmptyDirectory()
       const status = await getBranches(repo)
       expect(status).eql([])
     })
