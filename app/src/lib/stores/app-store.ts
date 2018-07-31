@@ -1899,14 +1899,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this._updateCurrentPullRequest(repository)
     this.updateMenuItemLabels(repository)
     this._initializeCompare(repository)
-    this.refreshRepositoryState([repository])
+    this.refreshIndicatorsForRepositories([repository])
   }
 
   public refreshAllRepositories() {
-    return this.refreshRepositoryState(this.repositories)
+    return this.refreshIndicatorsForRepositories(this.repositories)
   }
 
-  private async refreshRepositoryState(
+  private async refreshIndicatorsForRepositories(
     repositories: ReadonlyArray<Repository>
   ): Promise<void> {
     if (!enableRepoInfoIndicators()) {
@@ -1918,30 +1918,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const eligibleRepositories = repositories.filter(repo => !repo.missing)
 
     for (const repo of eligibleRepositories) {
-      promises.push(
-        this.withAuthenticatingUser(repo, async (repo, account) => {
-          const exists = await pathExists(repo.path)
-          if (!exists) {
-            return
-          }
-
-          const gitStore = this.getGitStore(repo)
-          const lookup = this.localRepositoryStateLookup
-          if (this.shouldBackgroundFetch(repo)) {
-            await gitStore.performFailableOperation(() => {
-              return gitStore.fetch(account, true)
-            })
-          }
-
-          const status = await gitStore.loadStatus()
-          if (status !== null) {
-            lookup.set(repo.id, {
-              aheadBehind: gitStore.aheadBehind,
-              changedFilesCount: status.workingDirectory.files.length,
-            })
-          }
-        })
-      )
+      promises.push(this.refreshIndicatorForRepository(repo))
     }
 
     await Promise.all(promises)
