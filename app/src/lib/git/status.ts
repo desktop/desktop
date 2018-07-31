@@ -68,7 +68,7 @@ export async function getStatus(
     ['status', '--untracked-files=all', '--branch', '--porcelain=2', '-z'],
     repository.path,
     'getStatus',
-    new Set<number>([0, 128])
+    new Set([0, 128])
   )
 
   if (result.exitCode === 128) {
