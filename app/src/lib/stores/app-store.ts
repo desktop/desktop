@@ -1928,8 +1928,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const promises = []
-
     if (repositories.length > 15) {
       log.info(
         `repository indicators have been disabled while we investigate reducing the overhead of the computation work as you have ${
@@ -1940,10 +1938,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     for (const repo of repositories) {
-      promises.push(this.refreshIndicatorForRepository(repo))
+      await this.refreshIndicatorForRepository(repo)
     }
-
-    await Promise.all(promises)
 
     this.emitUpdate()
   }
