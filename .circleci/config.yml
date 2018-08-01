@@ -24,7 +24,7 @@ jobs:
         - yarn-packages-v1-
     - run:
         name: Install dependencies
-        command: yarn install --force
+        command: yarn install --offline
     - save_cache:
         key: yarn-packages-v1-{{ .Branch }}-{{ checksum "yarn.lock" }}
         paths:
