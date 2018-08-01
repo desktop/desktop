@@ -1953,6 +1953,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private async refreshIndicatorForRepository(repository: Repository) {
     const lookup = this.localRepositoryStateLookup
 
+    if (repository.missing) {
+      lookup.delete(repository.id)
+      return
+    }
+
     const exists = await pathExists(repository.path)
     if (!exists) {
       lookup.delete(repository.id)
