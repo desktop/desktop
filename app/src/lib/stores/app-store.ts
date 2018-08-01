@@ -1936,7 +1936,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       log.info(
         `repository indicators have been disabled as you have ${
           eligibleRepositories.length
-        } while we reduce the overhead of the computation work`
+        } tracked repositories while we investigate reducing the overhead of the computation work`
       )
       return
     }
