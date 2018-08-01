@@ -44,7 +44,6 @@ cache:
   yarn: true
   timeout: 600
   directories:
-    - node_modules
     - $HOME/.electron
     - .eslintcache
     - $HOME/.cache/electron-builder

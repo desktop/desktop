@@ -35,8 +35,6 @@ jobs:
         - vendor/bundle
         - .eslintcache
         - ~/.electron
-        - ~/Library/Caches/Yarn/v1
-        - ./node_modules
     - run:
         name: Lint and validate changelog
         command: |
