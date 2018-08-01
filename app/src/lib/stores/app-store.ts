@@ -1928,8 +1928,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const promises = []
-
     const eligibleRepositories = repositories.filter(repo => !repo.missing)
 
     if (eligibleRepositories.length > 15) {
@@ -1942,10 +1940,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     for (const repo of eligibleRepositories) {
-      promises.push(this.refreshIndicatorForRepository(repo))
+      await this.refreshIndicatorForRepository(repo)
     }
-
-    await Promise.all(promises)
 
     this.emitUpdate()
   }
