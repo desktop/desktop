@@ -176,7 +176,7 @@ export class Dispatcher {
   }
 
   /** Load the working directory status. */
-  public loadStatus(repository: Repository): Promise<void> {
+  public loadStatus(repository: Repository): Promise<boolean> {
     return this.appStore._loadStatus(repository)
   }
 
