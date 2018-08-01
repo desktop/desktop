@@ -1,6 +1,7 @@
 ---
-name: 🎉 Feature request
+name: "\U0001F389 Feature request"
 about: Suggest an idea to improve GitHub Desktop
+
 ---
 
 **Is your feature request related to a problem? Please describe.**
