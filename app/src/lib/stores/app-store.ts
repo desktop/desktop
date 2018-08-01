@@ -1930,18 +1930,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const promises = []
 
-    const eligibleRepositories = repositories.filter(repo => !repo.missing)
-
-    if (eligibleRepositories.length > 15) {
+    if (repositories.length > 15) {
       log.info(
         `repository indicators have been disabled as you have ${
-          eligibleRepositories.length
+          repositories.length
         } while we reduce the overhead of the computation work`
       )
       return
     }
 
-    for (const repo of eligibleRepositories) {
+    for (const repo of repositories) {
       promises.push(this.refreshIndicatorForRepository(repo))
     }
 
