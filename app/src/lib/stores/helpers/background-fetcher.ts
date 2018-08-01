@@ -96,7 +96,10 @@ export class BackgroundFetcher {
       try {
         await this.fetch(this.repository)
       } catch (e) {
-        log.error('Error performing periodic fetch', e)
+        log.error(
+          `Error performing periodic fetch for '${this.repository.name}'`,
+          e
+        )
       }
     }
 
