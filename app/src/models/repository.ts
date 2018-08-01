@@ -67,3 +67,14 @@ export interface ILocalRepositoryState {
    */
   readonly changedFilesCount: number
 }
+
+/**
+ * Generate a distinct name for the repository.
+ */
+export function formatRepositoryName(repository: Repository) {
+  if (repository.gitHubRepository !== null) {
+    return repository.gitHubRepository.fullName
+  }
+
+  return repository.name
+}

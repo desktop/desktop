@@ -1,4 +1,4 @@
-import { Repository } from '../../../models/repository'
+import { Repository, formatRepositoryName } from '../../../models/repository'
 import { Account } from '../../../models/account'
 import { GitHubRepository } from '../../../models/github-repository'
 import { API } from '../../api'
@@ -96,7 +96,12 @@ export class BackgroundFetcher {
       try {
         await this.fetch(this.repository)
       } catch (e) {
-        log.error('Error performing periodic fetch', e)
+        log.error(
+          `Error performing periodic fetch for repository '${formatRepositoryName(
+            this.repository
+          )}'`,
+          e
+        )
       }
     }
 
