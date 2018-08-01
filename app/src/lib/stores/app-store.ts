@@ -186,8 +186,10 @@ const imageDiffTypeKey = 'image-diff-type'
 
 const shellKey = 'shell'
 
-// background fetching should not occur more than once every two minutes
-const BackgroundFetchMinimumInterval = 2 * 60 * 1000
+// background fetching should occur hourly when Desktop is active, but this
+// lower interval ensures user interactions like switching repositories and
+// switching between apps does not result in excessive fetching in the app
+const BackgroundFetchMinimumInterval = 30 * 60 * 1000
 
 export class AppStore extends TypedBaseStore<IAppState> {
   private accounts: ReadonlyArray<Account> = new Array<Account>()
@@ -1439,7 +1441,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdateNow()
 
     this.accountsStore.refresh()
-    this.refreshAllRepositories()
+    this.refreshAllIndicators()
   }
 
   private async getSelectedExternalEditor(): Promise<ExternalEditor | null> {
@@ -1917,7 +1919,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.refreshIndicatorsForRepositories([repository])
   }
 
-  public refreshAllRepositories() {
+  public refreshAllIndicators() {
     return this.refreshIndicatorsForRepositories(this.repositories)
   }
 
