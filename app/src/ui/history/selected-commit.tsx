@@ -57,7 +57,7 @@ export class SelectedCommit extends React.Component<
   }
 
   private onFileSelected = (file: FileChange) => {
-    this.props.dispatcher.changeHistoryFileSelection(
+    this.props.dispatcher.changeFileSelection(
       this.props.repository,
       file as CommittedFileChange
     )

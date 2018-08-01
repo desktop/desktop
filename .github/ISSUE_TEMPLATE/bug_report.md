@@ -1,5 +1,5 @@
 ---
-name: 🐛 Bug report
+name: "\U0001F41B Bug report"
 about: Report a problem encountered while using GitHub Desktop
 
 ---

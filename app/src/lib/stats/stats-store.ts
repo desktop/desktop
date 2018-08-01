@@ -49,6 +49,8 @@ const DefaultDailyMeasures: IDailyMeasures = {
   enterprisePushCount: 0,
   externalPushCount: 0,
   active: false,
+  mergeConflictFromPullCount: 0,
+  mergeConflictFromExplicitMergeCount: 0,
 }
 
 interface ICalculatedStats {
@@ -377,6 +379,21 @@ export class StatsStore {
   public recordMenuInitiatedUpdate(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       updateFromDefaultBranchMenuCount: m.updateFromDefaultBranchMenuCount + 1,
+    }))
+  }
+
+  /** Record that conflicts were detected by a merge initiated by Desktop */
+  public recordMergeConflictFromPull(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      mergeConflictFromPullCount: m.mergeConflictFromPullCount + 1,
+    }))
+  }
+
+  /** Record that conflicts were detected by a merge initiated by Desktop */
+  public recordMergeConflictFromExplicitMerge(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      mergeConflictFromExplicitMergeCount:
+        m.mergeConflictFromExplicitMergeCount + 1,
     }))
   }
 
