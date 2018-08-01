@@ -1928,24 +1928,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const promises = []
-
-    const eligibleRepositories = repositories.filter(repo => !repo.missing)
-
-    if (eligibleRepositories.length > 15) {
+    if (repositories.length > 15) {
       log.info(
         `repository indicators have been disabled as you have ${
-          eligibleRepositories.length
+          repositories.length
         } while we reduce the overhead of the computation work`
       )
       return
     }
 
-    for (const repo of eligibleRepositories) {
-      promises.push(this.refreshIndicatorForRepository(repo))
+    for (const repo of repositories) {
+      const name = repo.gitHubRepository ? repo.gitHubRepository.fullName : repo.name
+      log.warn(`refreshing for repository ${name}`)
+      await this.refreshIndicatorForRepository(repo)
     }
 
-    await Promise.all(promises)
+    // TODO: update last fetched in local storage to current time
 
     this.emitUpdate()
   }
@@ -1959,6 +1957,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    // things that we can check instead of doing git operations
+    // filesystem mtime checks - which once?
+
     const gitStore = this.getGitStore(repository)
 
     const status = await gitStore.loadStatus()
@@ -1967,7 +1968,42 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    const account = getAccountForRepository(this.accounts, repository)
+    if (account && repository.gitHubRepository) {
+      const api = API.fromAccount(account)
+
+        // NOTE: that won't run for non-GitHub repositories
+        // NOTE: does this look at if your current branch is tracking a different remote
+        const {owner, name } = repository.gitHubRepository
+        const repo = await api.fetchRepository(owner.login, name)
+
+        if (repo != null) {
+          // TODO: return this from the API and don't worry about persisting in DB
+          const pushedAt: Date = repo.pushed_at
+
+          // TODO: what if this isn't set? we should just run it maybe?
+          const lastBackgroundFetch = localStorage.get('last-background-fetch') as Date
+
+          if(pushedAt < lastBackgroundFetch)
+          {
+                // if the repository hasn't been pushed to since the last background
+                // fetch, nothing has changed in this repository ?
+                return
+          }
+
+        }
+
+
+    }
+
+
+
+
     this.withAuthenticatingUser(repository, async (repo, account) => {
+
+
+
+
       if (this.shouldBackgroundFetch(repo)) {
         await gitStore.performFailableOperation(() => {
           return gitStore.fetch(account, true)
