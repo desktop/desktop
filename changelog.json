@@ -1,5 +1,8 @@
 {
   "releases": {
+    "1.3.3-test1": [
+      "Testing the new CircleCI config changes"
+    ],
     "1.3.2": [
       "[Fixed] Bugfix for background checks not being aware of missing repositories - #5282",
       "[Fixed] Check the local state of a repository before performing Git operations - #5289",
