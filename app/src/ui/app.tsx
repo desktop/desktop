@@ -95,7 +95,7 @@ const UpdateCheckInterval = 1000 * 60 * 60 * 4
 
 const SendStatsInterval = 1000 * 60 * 60 * 4
 
-const updateRepoInfoInterval = 1000 * 60 * 5
+const updateRepoInfoInterval = 1000 * 60 * 15
 
 interface IAppProps {
   readonly dispatcher: Dispatcher
