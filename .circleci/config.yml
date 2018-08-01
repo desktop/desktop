@@ -56,6 +56,7 @@ jobs:
         path: /tmp/circleci-test-results
 
   deploy:
+    working_directory: ~/desktop/desktop
     macos:
       xcode: '9.3.0'
     steps:
