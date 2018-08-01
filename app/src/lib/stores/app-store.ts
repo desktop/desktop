@@ -1934,9 +1934,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     if (eligibleRepositories.length > 15) {
       log.info(
-        `repository indicators have been disabled as you have ${
+        `repository indicators have been disabled while we investigate reducing the overhead of the computation work as you have ${
           eligibleRepositories.length
-        } while we reduce the overhead of the computation work`
+        } tracked repositories`
       )
       return
     }
