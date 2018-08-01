@@ -1928,18 +1928,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const eligibleRepositories = repositories.filter(repo => !repo.missing)
-
-    if (eligibleRepositories.length > 15) {
+    if (repositories.length > 15) {
       log.info(
         `repository indicators have been disabled while we investigate reducing the overhead of the computation work as you have ${
-          eligibleRepositories.length
+          repositories.length
         } tracked repositories`
       )
       return
     }
 
-    for (const repo of eligibleRepositories) {
+    for (const repo of repositories) {
       await this.refreshIndicatorForRepository(repo)
     }
 
@@ -1948,6 +1946,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private async refreshIndicatorForRepository(repository: Repository) {
     const lookup = this.localRepositoryStateLookup
+
+    if (repository.missing) {
+      lookup.delete(repository.id)
+      return
+    }
 
     const exists = await pathExists(repository.path)
     if (!exists) {
