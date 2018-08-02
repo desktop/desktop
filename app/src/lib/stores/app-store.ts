@@ -1976,20 +1976,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    let lastPush: Date | null = null
-    const account = getAccountForRepository(this.accounts, repository)
-    if (account !== null && repository.gitHubRepository) {
-      // NOTE: does this look at if your current branch is tracking a different remote
-      const api = API.fromAccount(account)
-      const { owner, name } = repository.gitHubRepository
-      const repo = await api.fetchRepository(owner.login, name)
-
-      if (repo !== null) {
-        lastPush = new Date(repo.pushed_at)
-      }
-    }
-
     this.withAuthenticatingUser(repository, async (repo, account) => {
+      const lastPush = await this.inferLastPushForRepository(
+        this.accounts,
+        gitStore,
+        repository
+      )
       if (this.shouldBackgroundFetch(repo, lastPush)) {
         await gitStore.performFailableOperation(() => {
           return gitStore.fetch(account, true)
@@ -4012,6 +4004,58 @@ export class AppStore extends TypedBaseStore<IAppState> {
    */
   public _recordDivergingBranchBannerInitatedMerge() {
     this.statsStore.recordDivergingBranchBannerInitatedMerge()
+  }
+
+  /**
+   * Use the GitHub API to find the last push date for a repository, favouring
+   * the current remote (if defined) or falling back to the detected GitHub remote
+   * if no tracking information set for the current branch.
+   *
+   * Returns null if no date can be detected.
+   *
+   * @param accounts available accounts in the app
+   * @param gitStore Git information about the repository
+   * @param repository the local repository tracked by Desktop
+   */
+  private async inferLastPushForRepository(
+    accounts: ReadonlyArray<Account>,
+    gitStore: GitStore,
+    repository: Repository
+  ): Promise<Date | null> {
+    const account = getAccountForRepository(accounts, repository)
+    if (account == null) {
+      return null
+    }
+
+    const api = API.fromAccount(account)
+
+    if (gitStore.remote !== null) {
+      const matchedRepository = matchGitHubRepository(
+        accounts,
+        gitStore.remote.url
+      )
+
+      if (matchedRepository !== null) {
+        const { owner, name } = matchedRepository
+        const repo = await api.fetchRepository(owner, name)
+
+        if (repo !== null) {
+          return new Date(repo.pushed_at)
+        }
+      }
+    }
+
+    if (repository.gitHubRepository !== null) {
+      const api = API.fromAccount(account)
+      const { owner, name } = repository.gitHubRepository
+      const repo = await api.fetchRepository(owner.login, name)
+
+      if (repo !== null) {
+        return new Date(repo.pushed_at)
+      }
+    }
+
+    return null
   }
 }
 
