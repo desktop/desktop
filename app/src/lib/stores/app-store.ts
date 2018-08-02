@@ -1301,7 +1301,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
-  private shouldBackgroundFetch(repository: Repository, lastPush?: Date): boolean {
+  private shouldBackgroundFetch(
+    repository: Repository,
+    lastPush?: Date
+  ): boolean {
     const gitStore = this.getGitStore(repository)
     const lastFetched = gitStore.lastFetched
 
