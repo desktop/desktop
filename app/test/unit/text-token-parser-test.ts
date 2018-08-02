@@ -63,6 +63,7 @@ describe('Tokenizer', () => {
       defaultBranch: 'master',
       hash: '',
       parent: null,
+      lastBackgroundFetch: null,
     }
 
     const repository = new Repository(

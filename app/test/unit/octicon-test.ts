@@ -29,6 +29,7 @@ function getTestRepository(
     defaultBranch: 'master',
     hash: '',
     parent: null,
+    lastBackgroundFetch: null,
   }
 
   return gitHubRepository!
