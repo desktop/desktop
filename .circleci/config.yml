@@ -7,6 +7,7 @@ defaults: &defaults
 
 jobs:
   build:
+    <<: *defaults
     parallelism: 1
     shell: /bin/bash --login
     environment:
@@ -62,6 +63,7 @@ jobs:
         paths: .
 
   deploy:
+    <<: *defaults
     steps:
       - attach_workspace:
           at: ~/desktop/desktop
