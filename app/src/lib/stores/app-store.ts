@@ -1314,7 +1314,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const now = new Date()
     const timeSinceFetch = now.getTime() - lastFetched.getTime()
-    const repoName = repository.gitHubRepository !== null ? repository.gitHubRepository.fullName : repository.name
+    const repoName =
+      repository.gitHubRepository !== null
+        ? repository.gitHubRepository.fullName
+        : repository.name
     if (timeSinceFetch < BackgroundFetchMinimumInterval) {
       const timeInSeconds = Math.floor(timeSinceFetch / 1000)
 
@@ -1331,7 +1334,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // we should fetch if the last push happened after the last fetch
     const shouldFetch = lastFetched < lastPush
     if (shouldFetch === false) {
-      log.debug(`Skipping background fetch since nothing has been pushed to '${repoName}' since the last fetch at ${new Date(lastFetched)}`)
+      log.debug(
+        `Skipping background fetch since nothing has been pushed to '${repoName}' since the last fetch at ${new Date(
+          lastFetched
+        )}`
+      )
     }
     return shouldFetch
   }
