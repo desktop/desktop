@@ -46,6 +46,20 @@ export class RepositoriesStore extends BaseStore {
     )
   }
 
+  public async updateRepositoryLastBackgrounFetch(ghRepo: GitHubRepository) {
+    const { dbID } = ghRepo
+
+    if (dbID === null) {
+      return fatalError(
+        '`upsertGitHubRepository` can only update a repository that exists in the database.'
+      )
+    }
+
+    return this.db.gitHubRepositories.update(dbID, {
+      lastBackgroundFetch: Date.now(),
+    })
+  }
+
   private async buildGitHubRepository(
     dbRepo: IDatabaseGitHubRepository
   ): Promise<GitHubRepository> {
@@ -68,7 +82,8 @@ export class RepositoriesStore extends BaseStore {
       dbRepo.htmlURL,
       dbRepo.defaultBranch,
       dbRepo.cloneURL,
-      parent
+      parent,
+      dbRepo.lastBackgroundFetch
     )
   }
 
@@ -274,6 +289,7 @@ export class RepositoriesStore extends BaseStore {
       defaultBranch: gitHubRepository.default_branch,
       cloneURL: gitHubRepository.clone_url,
       parentID: parent ? parent.dbID : null,
+      lastBackgroundFetch: null,
     }
     if (existingRepo) {
       updatedGitHubRepo = { ...updatedGitHubRepo, id: existingRepo.id }
