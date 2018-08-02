@@ -1962,9 +1962,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    // things that we can check instead of doing git operations
-    // filesystem mtime checks - which once?
-
     const gitStore = this.getGitStore(repository)
     const status = await gitStore.loadStatus()
     if (status === null) {
@@ -1975,13 +1972,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     let lastPush: Date | undefined
     const account = getAccountForRepository(this.accounts, repository)
     if (account !== null && repository.gitHubRepository) {
-      // NOTE: that won't run for non-GitHub repositories
       // NOTE: does this look at if your current branch is tracking a different remote
       const api = API.fromAccount(account)
       const { owner, name } = repository.gitHubRepository
       const repo = await api.fetchRepository(owner.login, name)
 
-      if (repo != null) {
+      if (repo !== null) {
         lastPush = new Date(repo.pushed_at)
       }
     }
