@@ -153,7 +153,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       )
 
       window.setInterval(() => {
-        this.props.appStore.refreshAllRepositories()
+        this.props.appStore.refreshAllIndicators()
       }, updateRepoInfoInterval)
     })
 
