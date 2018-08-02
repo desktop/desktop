@@ -18,6 +18,7 @@ export interface IDatabaseGitHubRepository {
 
   /** The database ID of the parent repository if the repository is a fork. */
   readonly parentID: number | null
+  readonly lastBackgroundFetch: Date | null
 }
 
 export interface IDatabaseRepository {
