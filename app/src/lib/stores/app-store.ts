@@ -1301,11 +1301,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
-  private shouldBackgroundFetch(repository: Repository): boolean {
+  private shouldBackgroundFetch(repository: Repository, lastPush?: Date): boolean {
     const gitStore = this.getGitStore(repository)
     const lastFetched = gitStore.lastFetched
 
-    if (!lastFetched) {
+    if (lastFetched === null) {
       return true
     }
 
@@ -1321,7 +1321,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return false
     }
 
-    return true
+    // we should fetch if the last push happened after the last fetch
+    const shouldFetch = lastPush !== undefined ? lastFetched < lastPush : true
+    return shouldFetch
   }
 
   private startBackgroundFetching(
@@ -1970,6 +1972,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    let lastPush: Date | undefined
     const account = getAccountForRepository(this.accounts, repository)
     if (account !== null && repository.gitHubRepository) {
       // NOTE: that won't run for non-GitHub repositories
@@ -1984,7 +1987,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     this.withAuthenticatingUser(repository, async (repo, account) => {
-      if (this.shouldBackgroundFetch(repo)) {
+      if (this.shouldBackgroundFetch(repo, lastPush)) {
         await gitStore.performFailableOperation(() => {
           return gitStore.fetch(account, true)
         })
