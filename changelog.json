@@ -1,5 +1,8 @@
 {
   "releases": {
+    "1.3.3-test5": [
+      "Testing the new CircleCI config changes"
+    ],
     "1.3.3-test4": [
       "Testing the new CircleCI config changes"
     ],
