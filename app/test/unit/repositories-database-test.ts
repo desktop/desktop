@@ -20,7 +20,6 @@ describe('RepositoriesDatabase', () => {
       defaultBranch: 'master',
       cloneURL: 'http://github.com/desktop/desktop.git',
       parentID: null,
-      lastBackgroundFetch: null,
     }
     const originalId = await db.gitHubRepositories.add({ ...gitHubRepo })
     const duplicateId = await db.gitHubRepositories.add({ ...gitHubRepo })

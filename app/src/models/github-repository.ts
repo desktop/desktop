@@ -17,7 +17,6 @@ export class GitHubRepository {
   public readonly defaultBranch: string | null
   public readonly cloneURL: string | null
   public readonly parent: GitHubRepository | null
-  public readonly lastBackgroundFetch: Date | null
 
   public constructor(
     name: string,
@@ -27,8 +26,7 @@ export class GitHubRepository {
     htmlURL: string | null = null,
     defaultBranch: string | null = 'master',
     cloneURL: string | null = null,
-    parent: GitHubRepository | null = null,
-    lastBackgroundFetch: Date | null = null
+    parent: GitHubRepository | null = null
   ) {
     this.name = name
     this.owner = owner
@@ -38,7 +36,6 @@ export class GitHubRepository {
     this.defaultBranch = defaultBranch
     this.cloneURL = cloneURL
     this.parent = parent
-    this.lastBackgroundFetch = lastBackgroundFetch
   }
 
   public get endpoint(): string {
@@ -68,7 +65,6 @@ export class GitHubRepository {
       ${this.name}+
       ${this.htmlURL}+
       ${this.owner.hash}+
-      ${this.parent && this.parent.hash}+
-      ${this.lastBackgroundFetch}`
+      ${this.parent && this.parent.hash}`
   }
 }

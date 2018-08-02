@@ -1972,34 +1972,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const account = getAccountForRepository(this.accounts, repository)
     if (account !== null && repository.gitHubRepository) {
-      const api = API.fromAccount(account)
-      const ghRepoFromDb = await this.repositoriesStore.findGitHubRepositoryByID(
-        repository.gitHubRepository.dbID!
-      )
-
       // NOTE: that won't run for non-GitHub repositories
       // NOTE: does this look at if your current branch is tracking a different remote
+      const api = API.fromAccount(account)
       const { owner, name } = repository.gitHubRepository
       const repo = await api.fetchRepository(owner.login, name)
 
       if (repo != null) {
-        // TODO: return this from the API and don't worry about persisting in DB
-        const pushedAt: Date = new Date(repo.pushed_at)
-
-        // TODO: what if this isn't set? we should just run it maybe?
-        const minDate = new Date(1, 1, 1)
-        const lastBackgroundFetch =
-          ghRepoFromDb !== null
-            ? ghRepoFromDb.lastBackgroundFetch !== null
-              ? new Date(ghRepoFromDb.lastBackgroundFetch)
-              : minDate
-            : minDate
-
-        if (pushedAt < lastBackgroundFetch) {
-          // if the repository hasn't been pushed to since the last background
-          // fetch, nothing has changed in this repository ?
-          return
-        }
+        lastPush = new Date(repo.pushed_at)
       }
     }
 
@@ -2008,12 +1988,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
         await gitStore.performFailableOperation(() => {
           return gitStore.fetch(account, true)
         })
-
-        if (repository.gitHubRepository) {
-          await this.repositoriesStore.updateRepositoryLastBackgrounFetch(
-            repository.gitHubRepository
-          )
-        }
       }
     })
 
