@@ -27,7 +27,7 @@ import {
   ICompareToBranch,
 } from '../app-state'
 import { Account } from '../../models/account'
-import { Repository, ILocalRepositoryState } from '../../models/repository'
+import { Repository, ILocalRepositoryState, nameOf } from '../../models/repository'
 import { GitHubRepository } from '../../models/github-repository'
 import {
   CommittedFileChange,
@@ -1265,7 +1265,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (this.currentPullRequestUpdater) {
       fatalError(
         `A pull request updater is already active and cannot start updating on ${
-          repository.name
+          nameOf(repository)
         }`
       )
 

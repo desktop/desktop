@@ -67,3 +67,9 @@ export interface ILocalRepositoryState {
    */
   readonly changedFilesCount: number
 }
+
+export function nameOf(repository: Repository) {
+  const { gitHubRepository } = repository
+
+  return gitHubRepository !== null ? gitHubRepository.fullName : repository.name
+}
