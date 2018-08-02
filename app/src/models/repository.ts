@@ -68,6 +68,10 @@ export interface ILocalRepositoryState {
   readonly changedFilesCount: number
 }
 
+/**
+ * Returns the full name `org/repo_name` if possible otherwise the
+ * folder name that contains the repository
+ */
 export function nameOf(repository: Repository) {
   const { gitHubRepository } = repository
 
