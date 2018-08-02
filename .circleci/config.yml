@@ -1,14 +1,17 @@
 version: 2
+
+defaults: &defaults
+  working_directory: ~/desktop/desktop
+  macos:
+    xcode: '9.3.0'
+
 jobs:
   build:
-    working_directory: ~/desktop/desktop
     parallelism: 1
     shell: /bin/bash --login
     environment:
       CIRCLE_ARTIFACTS: /tmp/circleci-artifacts
       CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
-    macos:
-      xcode: '9.3.0'
     steps:
     - checkout
     - run: mkdir -p $CIRCLE_ARTIFACTS $CIRCLE_TEST_REPORTS
@@ -59,8 +62,6 @@ jobs:
         paths: .
 
   deploy:
-    macos:
-      xcode: '9.3.0'
     steps:
       - attach_workspace:
           at: ~/desktop/desktop
