@@ -2008,15 +2008,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
         await gitStore.performFailableOperation(() => {
           return gitStore.fetch(account, true)
         })
+
+        if (repository.gitHubRepository) {
+          await this.repositoriesStore.updateRepositoryLastBackgrounFetch(
+            repository.gitHubRepository
+          )
+        }
       }
     })
-
-    if (repository.gitHubRepository) {
-      const t = await this.repositoriesStore.updateRepositoryLastBackgrounFetch(
-        repository.gitHubRepository
-      )
-      console.log(t)
-    }
 
     lookup.set(repository.id, {
       aheadBehind: gitStore.aheadBehind,
