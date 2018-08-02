@@ -891,15 +891,18 @@ export class GitStore extends BaseStore {
 
     if (currentBranch || currentTip) {
       if (currentTip && currentBranch) {
-        const cachedCommit = this.commitLookup.get(currentTip)
-        const branchTipCommit =
-          cachedCommit ||
-          (await this.performFailableOperation(() =>
-            getCommit(this.repository, currentTip)
-          ))
+        let branchTipCommit = this.commitLookup.get(currentTip) || null
+        if (branchTipCommit == null) {
+          branchTipCommit =
+            (await this.performFailableOperation(() =>
+              getCommit(this.repository, currentTip)
+            )) || null
 
-        if (!branchTipCommit) {
-          throw new Error(`Could not load commit ${currentTip}`)
+          if (branchTipCommit != null) {
+            this.commitLookup.set(currentTip, branchTipCommit)
+          } else {
+            throw new Error(`Could not load commit ${currentTip}`)
+          }
         }
 
         const branch = new Branch(
