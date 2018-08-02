@@ -1303,7 +1303,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private shouldBackgroundFetch(
     repository: Repository,
-    lastPush?: Date
+    lastPush: Date | null
   ): boolean {
     const gitStore = this.getGitStore(repository)
     const lastFetched = gitStore.lastFetched
@@ -1324,8 +1324,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return false
     }
 
+    if (lastPush === null) {
+      return true
+    }
+
     // we should fetch if the last push happened after the last fetch
-    const shouldFetch = lastPush !== undefined ? lastFetched < lastPush : true
+    const shouldFetch = lastFetched < lastPush
     return shouldFetch
   }
 
@@ -1355,7 +1359,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repository,
       account,
       r => this.performFetch(r, account, FetchType.BackgroundTask),
-      r => this.shouldBackgroundFetch(r)
+      r => this.shouldBackgroundFetch(r, null)
     )
     fetcher.start(withInitialSkew)
     this.currentBackgroundFetcher = fetcher
@@ -1972,7 +1976,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    let lastPush: Date | undefined
+    let lastPush: Date | null = null
     const account = getAccountForRepository(this.accounts, repository)
     if (account !== null && repository.gitHubRepository) {
       // NOTE: does this look at if your current branch is tracking a different remote
