@@ -342,7 +342,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
         continue
       }
 
-      const githubRepo = await this.repositoryStore.upsertGitHubRepositoryFromAPI(
+      const githubRepo = await this.repositoryStore.upsertGitHubRepository(
         repository.endpoint,
         pr.head.repo
       )
@@ -358,7 +358,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
         'PR cannot have a null base repo',
         pr.base.repo
       )
-      const parentGitHubRepo = await this.repositoryStore.upsertGitHubRepositoryFromAPI(
+      const parentGitHubRepo = await this.repositoryStore.upsertGitHubRepository(
         repository.endpoint,
         parentRepo
       )

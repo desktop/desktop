@@ -21,7 +21,8 @@ export class RepositoriesStore extends BaseStore {
   }
 
   /** Find the matching GitHub repository or add it if it doesn't exist. */
-  public async upsertGitHubRepositoryFromAPI(
+
+  public async upsertGitHubRepository(
     endpoint: string,
     apiRepository: IAPIRepository
   ): Promise<GitHubRepository> {
