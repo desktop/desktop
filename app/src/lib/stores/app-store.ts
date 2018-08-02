@@ -186,8 +186,10 @@ const imageDiffTypeKey = 'image-diff-type'
 
 const shellKey = 'shell'
 
-// background fetching should not occur more than once every two minutes
-const BackgroundFetchMinimumInterval = 2 * 60 * 1000
+// background fetching should occur hourly when Desktop is active, but this
+// lower interval ensures user interactions like switching repositories and
+// switching between apps does not result in excessive fetching in the app
+const BackgroundFetchMinimumInterval = 30 * 60 * 1000
 
 export class AppStore extends TypedBaseStore<IAppState> {
   private accounts: ReadonlyArray<Account> = new Array<Account>()
@@ -1439,7 +1441,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdateNow()
 
     this.accountsStore.refresh()
-    this.refreshAllRepositories()
+    this.refreshAllIndicators()
   }
 
   private async getSelectedExternalEditor(): Promise<ExternalEditor | null> {
@@ -1917,7 +1919,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.refreshIndicatorsForRepositories([repository])
   }
 
-  public refreshAllRepositories() {
+  public refreshAllIndicators() {
     return this.refreshIndicatorsForRepositories(this.repositories)
   }
 
@@ -1930,26 +1932,27 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     if (repositories.length > 15) {
       log.info(
-        `repository indicators have been disabled as you have ${
+        `repository indicators have been disabled while we investigate reducing the overhead of the computation work as you have ${
           repositories.length
-        } while we reduce the overhead of the computation work`
+        } tracked repositories`
       )
       return
     }
 
     for (const repo of repositories) {
-      const name = repo.gitHubRepository ? repo.gitHubRepository.fullName : repo.name
-      log.warn(`refreshing for repository ${name}`)
       await this.refreshIndicatorForRepository(repo)
     }
-
-    // TODO: update last fetched in local storage to current time
 
     this.emitUpdate()
   }
 
   private async refreshIndicatorForRepository(repository: Repository) {
     const lookup = this.localRepositoryStateLookup
+
+    if (repository.missing) {
+      lookup.delete(repository.id)
+      return
+    }
 
     const exists = await pathExists(repository.path)
     if (!exists) {
