@@ -7,11 +7,11 @@ dist: trusty
 
 sudo: false
 
-matrix:
-  include:
-    - os: linux
-      env: CC=clang CXX=clang++ npm_config_clang=1
-      compiler: clang
+os: linux
+compiler: clang
+
+env:
+  - CC=clang CXX=clang++ npm_config_clang=1
 
 addons:
   apt:
