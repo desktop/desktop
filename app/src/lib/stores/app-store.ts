@@ -39,14 +39,14 @@ import {
   matchGitHubRepository,
   IMatchedGitHubRepository,
   repositoryMatchesRemote,
-} from '../../lib/repository-matching'
+} from '../repository-matching'
 import {
   API,
   getAccountForEndpoint,
   IAPIUser,
   getDotComAPIEndpoint,
   getEnterpriseAPIURL,
-} from '../../lib/api'
+} from '../api'
 import { caseInsensitiveCompare } from '../compare'
 import {
   Branch,
@@ -112,7 +112,7 @@ import {
   EmojiStore,
   GitHubUserStore,
   CloningRepositoriesStore,
-} from '../stores'
+} from '.'
 import { validatedRepositoryPath } from './helpers/validated-repository-path'
 import { IGitAccount } from '../git/authentication'
 import { getGenericHostname, getGenericUsername } from '../generic-git-auth'
@@ -149,6 +149,7 @@ import {
   setPersistedTheme,
 } from '../../ui/lib/application-theme'
 import { findAccountForRemoteURL } from '../find-account'
+import { inferLastPushForRepository } from '../infer-last-push-for-repository'
 
 /**
  * Enum used by fetch to determine if
@@ -1332,15 +1333,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     // we should fetch if the last push happened after the last fetch
-    const shouldFetch = lastFetched < lastPush
-    if (shouldFetch === false) {
-      log.debug(
-        `Skipping background fetch since nothing has been pushed to '${repoName}' since the last fetch at ${new Date(
-          lastFetched
-        )}`
-      )
+    if (lastFetched < lastPush) {
+      return true
     }
-    return shouldFetch
+
+    log.debug(
+      `Skipping background fetch since nothing has been pushed to '${repoName}' since the last fetch at ${new Date(
+        lastFetched
+      )}`
+    )
+
+    return false
   }
 
   private startBackgroundFetching(
@@ -1987,7 +1990,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     this.withAuthenticatingUser(repository, async (repo, account) => {
-      const lastPush = await this.inferLastPushForRepository(
+      const lastPush = await inferLastPushForRepository(
         this.accounts,
         gitStore,
         repository
@@ -4014,58 +4017,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
    */
   public _recordDivergingBranchBannerInitatedMerge() {
     this.statsStore.recordDivergingBranchBannerInitatedMerge()
-  }
-
-  /**
-   * Use the GitHub API to find the last push date for a repository, favouring
-   * the current remote (if defined) or falling back to the detected GitHub remote
-   * if no tracking information set for the current branch.
-   *
-   * Returns null if no date can be detected.
-   *
-   * @param accounts available accounts in the app
-   * @param gitStore Git information about the repository
-   * @param repository the local repository tracked by Desktop
-   */
-  private async inferLastPushForRepository(
-    accounts: ReadonlyArray<Account>,
-    gitStore: GitStore,
-    repository: Repository
-  ): Promise<Date | null> {
-    const account = getAccountForRepository(accounts, repository)
-    if (account == null) {
-      return null
-    }
-
-    const api = API.fromAccount(account)
-
-    if (gitStore.remote !== null) {
-      const matchedRepository = matchGitHubRepository(
-        accounts,
-        gitStore.remote.url
-      )
-
-      if (matchedRepository !== null) {
-        const { owner, name } = matchedRepository
-        const repo = await api.fetchRepository(owner, name)
-
-        if (repo !== null) {
-          return new Date(repo.pushed_at)
-        }
-      }
-    }
-
-    if (repository.gitHubRepository !== null) {
-      const api = API.fromAccount(account)
-      const { owner, name } = repository.gitHubRepository
-      const repo = await api.fetchRepository(owner.login, name)
-
-      if (repo !== null) {
-        return new Date(repo.pushed_at)
-      }
-    }
-
-    return null
   }
 }
 
