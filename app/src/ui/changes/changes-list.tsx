@@ -176,6 +176,7 @@ export class ChangesList extends React.Component<
         onContextMenu={this.onItemContextMenu}
         onIncludeChanged={this.props.onIncludeChanged}
         availableWidth={this.props.availableWidth}
+        disabled={this.props.isCommitting}
       />
     )
   }
@@ -376,7 +377,7 @@ export class ChangesList extends React.Component<
             label={filesDescription}
             value={this.includeAllValue}
             onChange={this.onIncludeAllChanged}
-            disabled={fileCount === 0}
+            disabled={fileCount === 0 || this.props.isCommitting}
           />
         </div>
 
