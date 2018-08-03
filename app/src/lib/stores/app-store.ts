@@ -1949,7 +1949,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const delta = performance.now() - startTime
       const timeInSeconds = (delta / 1000).toFixed(3)
       log.info(
-        `Background fetch for ${repositories.length} repositories took ${timeInSeconds}sec`
+        `Background fetch for ${
+          repositories.length
+        } repositories took ${timeInSeconds}sec`
       )
     }
 
