@@ -138,6 +138,10 @@ in the repository. If you are interested in contributing to the project, please
 comment on the issue to let the core team (and the community) know you are
 interested in the issue.
 
+### Set Up Your Machine
+
+Start [here](https://github.com/desktop/desktop/blob/master/docs/contributing/setup.md).
+
 ## Additional Notes
 
 ### Issue and Pull Request Labels
