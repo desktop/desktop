@@ -48,7 +48,7 @@
   "license": "MIT",
   "engines": {
     "node": ">= 8.10",
-    "yarn": ">= 1.5.0"
+    "yarn": ">= 1.9"
   },
   "dependencies": {
     "ajv": "^6.4.0",
