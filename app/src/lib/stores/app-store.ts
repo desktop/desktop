@@ -1989,18 +1989,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    this.withAuthenticatingUser(repository, async (repo, account) => {
-      const lastPush = await inferLastPushForRepository(
-        this.accounts,
-        gitStore,
-        repository
-      )
-      if (this.shouldBackgroundFetch(repo, lastPush)) {
-        await gitStore.performFailableOperation(() => {
+    const lastPush = await inferLastPushForRepository(
+      this.accounts,
+      gitStore,
+      repository
+    )
+
+    await gitStore.updateLastFetched()
+
+    if (this.shouldBackgroundFetch(repository, lastPush)) {
+      await gitStore.loadRemotes()
+      await this.withAuthenticatingUser(repository, (repo, account) => {
+        return gitStore.performFailableOperation(() => {
           return gitStore.fetch(account, true)
         })
-      }
-    })
+      })
+    }
 
     lookup.set(repository.id, {
       aheadBehind: gitStore.aheadBehind,
