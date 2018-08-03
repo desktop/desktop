@@ -13,16 +13,18 @@ const options: SpawnSyncOptions = {
 }
 
 function findYarnVersion(callback: (path: string) => void) {
-  glob('vendor/yarn-*.js', options, (error, files) => {
+  glob('vendor/yarn-*.js', (error, files) => {
     if (error != null) {
       throw error
     }
 
+    // this ensures the paths returned by glob are sorted alphabetically
     files.sort()
 
-    const foundVersion = files[files.length - 1]
+    // use the latest version here if multiple are found
+    const latestVersion = files[files.length - 1]
 
-    callback(foundVersion)
+    callback(latestVersion)
   })
 }
 
