@@ -788,6 +788,20 @@ export class GitStore extends BaseStore {
         progressCallback
       )
     }
+
+    // check the upstream ref against the current branch to see if there are
+    // any new commits available
+    if (this.tip.kind === TipState.Valid) {
+      const currentBranch = this.tip.branch
+      if (currentBranch.remote && currentBranch.upstream) {
+        const range = revSymmetricDifference(
+          currentBranch.name,
+          currentBranch.upstream
+        )
+        this._aheadBehind = await getAheadBehind(this.repository, range)
+        this.emitUpdate()
+      }
+    }
   }
 
   /**
