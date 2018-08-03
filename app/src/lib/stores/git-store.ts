@@ -891,19 +891,7 @@ export class GitStore extends BaseStore {
 
     if (currentBranch || currentTip) {
       if (currentTip && currentBranch) {
-        let branchTipCommit = this.commitLookup.get(currentTip) || null
-        if (branchTipCommit == null) {
-          branchTipCommit =
-            (await this.performFailableOperation(() =>
-              getCommit(this.repository, currentTip)
-            )) || null
-
-          if (branchTipCommit != null) {
-            this.commitLookup.set(currentTip, branchTipCommit)
-          } else {
-            throw new Error(`Could not load commit ${currentTip}`)
-          }
-        }
+        const branchTipCommit = await this.lookupCommit(currentTip)
 
         const branch = new Branch(
           currentBranch,
@@ -924,6 +912,30 @@ export class GitStore extends BaseStore {
     this.emitUpdate()
 
     return status
+  }
+
+  /**
+   * Find a commit in the local cache, or load in the commit from the underlying
+   * repository.
+   *
+   * This will error if the commit ID cannot be resolved.
+   */
+  private async lookupCommit(sha: string): Promise<Commit> {
+    const cachedCommit = this.commitLookup.get(sha)
+    if (cachedCommit != null) {
+      return Promise.resolve(cachedCommit)
+    }
+
+    const foundCommit = await this.performFailableOperation(() =>
+      getCommit(this.repository, sha)
+    )
+
+    if (foundCommit != null) {
+      this.commitLookup.set(sha, foundCommit)
+      return foundCommit
+    }
+
+    throw new Error(`Could not load commit: '${sha}'`)
   }
 
   public async loadRemotes(): Promise<void> {
