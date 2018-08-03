@@ -12,7 +12,7 @@ interface IChangedFileProps {
   readonly oldPath?: string
   readonly include: boolean | null
   readonly availableWidth: number
-  readonly disabled: boolean
+  readonly disableSelection: boolean
   readonly onIncludeChanged: (path: string, include: boolean) => void
 
   /** Callback called when user right-clicks on an item */
@@ -66,7 +66,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
           tabIndex={-1}
           value={this.checkboxValue}
           onChange={this.handleCheckboxChange}
-          disabled={this.props.disabled}
+          disabled={this.props.disableSelection}
         />
 
         <PathLabel

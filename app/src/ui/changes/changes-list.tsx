@@ -176,7 +176,7 @@ export class ChangesList extends React.Component<
         onContextMenu={this.onItemContextMenu}
         onIncludeChanged={this.props.onIncludeChanged}
         availableWidth={this.props.availableWidth}
-        disabled={this.props.isCommitting}
+        disableSelection={this.props.isCommitting}
       />
     )
   }
