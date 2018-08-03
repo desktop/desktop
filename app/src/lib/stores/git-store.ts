@@ -793,7 +793,7 @@ export class GitStore extends BaseStore {
     // any new commits available
     if (this.tip.kind === TipState.Valid) {
       const currentBranch = this.tip.branch
-      if (currentBranch.remote && currentBranch.upstream) {
+      if (currentBranch.remote !== null && currentBranch.upstream !== null) {
         const range = revSymmetricDifference(
           currentBranch.name,
           currentBranch.upstream
