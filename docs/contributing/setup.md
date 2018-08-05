@@ -135,6 +135,22 @@ Python 2.7.13
 There are also [additional resources](tooling.md) to configure your favorite
 editor to work nicely with the GitHub Desktop repository.
 
+## Node Version
+In order to build the application your node version should be `>=8.10`.
+
+First install [Homebrew](https://brew.sh/) using the following script:
+* `/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"`
+
+ Then install nvm (node version manager) by running:
+ * `brew install nvm`
+ * `mkdir ~/.nvm`
+
+ To install and use the latest version of node run:
+ * `nvm install node`
+
+ If you already have node installed, but need the specified version, run:
+ * `nvm install [version]` -> `nvm install 8.11.2`
+
 ## Building Desktop
 
 After cloning the repository, the typical workflow to get up running
