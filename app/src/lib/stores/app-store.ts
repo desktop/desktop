@@ -1939,8 +1939,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    const startTime = performance && performance.now ? performance.now() : null
+
     for (const repo of repositories) {
       await this.refreshIndicatorForRepository(repo)
+    }
+
+    if (startTime && repositories.length > 1) {
+      const delta = performance.now() - startTime
+      const timeInSeconds = (delta / 1000).toFixed(3)
+      log.info(
+        `Background fetch for ${
+          repositories.length
+        } repositories took ${timeInSeconds}sec`
+      )
     }
 
     this.emitUpdate()
