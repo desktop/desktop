@@ -40,12 +40,12 @@ export function askUserToOAuth(endpoint: string) {
  */
 export async function requestAuthenticatedUser(
   code: string
-): Promise<Account | null> {
+): Promise<Account | null | undefined> {
   if (!oauthState) {
     log.warn(
       'requestAuthenticatedUser was not called with valid OAuth state. This is likely due to a browser reloading the callback URL. Contact GitHub Support if you believe this is an error'
     )
-    return null
+    return undefined
   }
 
   const token = await requestOAuthToken(
