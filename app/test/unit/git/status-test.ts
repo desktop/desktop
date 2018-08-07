@@ -9,9 +9,11 @@ import { getStatusOrThrow } from '../../helpers/status'
 import {
   setupFixtureRepository,
   setupEmptyRepository,
+  setupEmptyDirectory,
 } from '../../helpers/repositories'
 import { AppFileStatus } from '../../../src/models/status'
 import * as temp from 'temp'
+import { getStatus } from '../../../src/lib/git'
 
 const _temp = temp.track()
 const mkdir = _temp.mkdir
@@ -102,6 +104,12 @@ describe('git/status', () => {
       const status = await getStatusOrThrow(repository!)
       const files = status.workingDirectory.files
       expect(files.length).to.equal(numFiles)
+    })
+
+    it('returns null for directory without a .git directory', async () => {
+      repository = setupEmptyDirectory()
+      const status = await getStatus(repository)
+      expect(status).is.null
     })
   })
 })

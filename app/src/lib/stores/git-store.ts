@@ -219,13 +219,13 @@ export class GitStore extends BaseStore {
     this.emitUpdate()
   }
 
-  /** Load a batch of commits from the repository, using the last known commit in the list. */
-  public async loadCommitBatch(lastSHA: string) {
+  /** Load a batch of commits from the repository, using a given commitish object as the starting point */
+  public async loadCommitBatch(commitish: string) {
     if (this.requestsInFight.has(LoadingHistoryRequestKey)) {
       return null
     }
 
-    const requestKey = `history/compare/${lastSHA}`
+    const requestKey = `history/compare/${commitish}`
     if (this.requestsInFight.has(requestKey)) {
       return null
     }
@@ -233,7 +233,7 @@ export class GitStore extends BaseStore {
     this.requestsInFight.add(requestKey)
 
     const commits = await this.performFailableOperation(() =>
-      getCommits(this.repository, `${lastSHA}^`, CommitBatchSize)
+      getCommits(this.repository, commitish, CommitBatchSize)
     )
 
     this.requestsInFight.delete(requestKey)
@@ -722,7 +722,7 @@ export class GitStore extends BaseStore {
   }
 
   /**
-   * The commit message to use based on the contex of the repository, e.g., the
+   * The commit message to use based on the context of the repository, e.g., the
    * message from a recently undone commit.
    */
   public get contextualCommitMessage(): ICommitMessage | null {
@@ -787,6 +787,20 @@ export class GitStore extends BaseStore {
         backgroundTask,
         progressCallback
       )
+    }
+
+    // check the upstream ref against the current branch to see if there are
+    // any new commits available
+    if (this.tip.kind === TipState.Valid) {
+      const currentBranch = this.tip.branch
+      if (currentBranch.remote !== null && currentBranch.upstream !== null) {
+        const range = revSymmetricDifference(
+          currentBranch.name,
+          currentBranch.upstream
+        )
+        this._aheadBehind = await getAheadBehind(this.repository, range)
+        this.emitUpdate()
+      }
     }
   }
 

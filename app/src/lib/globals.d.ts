@@ -215,31 +215,6 @@ declare namespace Electron {
       type: 'string'
     ): AppleActionOnDoubleClickPref
   }
-
-  interface WebviewTag extends HTMLElement {
-    // Copied from https://github.com/electron/electron-typescript-definitions/pull/81
-    // until we can upgrade to a version of Electron which includes the fix.
-    addEventListener<K extends keyof HTMLElementEventMap>(
-      type: K,
-      listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any,
-      useCapture?: boolean
-    ): void
-    addEventListener(
-      type: string,
-      listener: EventListenerOrEventListenerObject,
-      useCapture?: boolean
-    ): void
-    removeEventListener<K extends keyof HTMLElementEventMap>(
-      type: K,
-      listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any,
-      useCapture?: boolean
-    ): void
-    removeEventListener(
-      type: string,
-      listener: EventListenerOrEventListenerObject,
-      useCapture?: boolean
-    ): void
-  }
 }
 
 // https://wicg.github.io/ResizeObserver/#resizeobserverentry

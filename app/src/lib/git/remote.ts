@@ -7,7 +7,17 @@ import { findDefaultRemote } from '../stores/helpers/find-default-remote'
 export async function getRemotes(
   repository: Repository
 ): Promise<ReadonlyArray<IRemote>> {
-  const result = await git(['remote', '-v'], repository.path, 'getRemotes')
+  // TODO: use expectedErrors here to handle a specific error
+  // see https://github.com/desktop/desktop/pull/5299#discussion_r206603442 for
+  // discussion about what needs to change
+  const result = await git(['remote', '-v'], repository.path, 'getRemotes', {
+    successExitCodes: new Set([0, 128]),
+  })
+
+  if (result.exitCode === 128) {
+    return []
+  }
+
   const output = result.stdout
   const lines = output.split('\n')
   const remotes = lines
