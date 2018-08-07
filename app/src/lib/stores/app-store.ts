@@ -1,4 +1,5 @@
 import { ipcRenderer, remote } from 'electron'
+import { pathExists } from 'fs-extra'
 import {
   IRepositoryState,
   IAppState,
@@ -185,8 +186,10 @@ const imageDiffTypeKey = 'image-diff-type'
 
 const shellKey = 'shell'
 
-// background fetching should not occur more than once every two minutes
-const BackgroundFetchMinimumInterval = 2 * 60 * 1000
+// background fetching should occur hourly when Desktop is active, but this
+// lower interval ensures user interactions like switching repositories and
+// switching between apps does not result in excessive fetching in the app
+const BackgroundFetchMinimumInterval = 30 * 60 * 1000
 
 export class AppStore extends TypedBaseStore<IAppState> {
   private accounts: ReadonlyArray<Account> = new Array<Account>()
@@ -866,29 +869,28 @@ export class AppStore extends TypedBaseStore<IAppState> {
       // load initial group of commits for current branch
       const commits = await gitStore.loadCommitBatch('HEAD')
 
-      if (commits != null) {
-        this.updateCompareState(repository, () => ({
-          formState: {
-            kind: ComparisonView.None,
-          },
-          commitSHAs: commits,
-        }))
-
-        this.updateOrSelectFirstCommit(repository, commits)
-
-        this.updateCompareState(repository, () => ({
-          formState: {
-            kind: ComparisonView.None,
-          },
-          commitSHAs: commits,
-        }))
-        return this.emitUpdate()
+      if (commits === null) {
+        return
       }
-    } else if (action.kind === CompareActionKind.Branch) {
-      return this.updateCompareToBranch(repository, action)
-    } else {
-      return assertNever(action, `Unknown action: ${kind}`)
+
+      this.updateCompareState(repository, () => ({
+        formState: {
+          kind: ComparisonView.None,
+        },
+        commitSHAs: commits,
+        filterText: '',
+        showBranchList: false,
+      }))
+      this.updateOrSelectFirstCommit(repository, commits)
+
+      return this.emitUpdate()
     }
+
+    if (action.kind === CompareActionKind.Branch) {
+      return this.updateCompareToBranch(repository, action)
+    }
+
+    return assertNever(action, `Unknown action: ${kind}`)
   }
 
   private async updateCompareToBranch(
@@ -1005,7 +1007,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const commits = state.compareState.commitSHAs
       const lastCommitSha = commits[commits.length - 1]
 
-      const newCommits = await gitStore.loadCommitBatch(lastCommitSha)
+      const newCommits = await gitStore.loadCommitBatch(`${lastCommitSha}^`)
       if (newCommits == null) {
         return
       }
@@ -1439,7 +1441,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdateNow()
 
     this.accountsStore.refresh()
-    this.refreshAllRepositories()
+    this.refreshAllIndicators()
   }
 
   private async getSelectedExternalEditor(): Promise<ExternalEditor | null> {
@@ -1552,12 +1554,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _loadStatus(
     repository: Repository,
     clearPartialState: boolean = false
-  ): Promise<void> {
+  ): Promise<boolean> {
     const gitStore = this.getGitStore(repository)
     const status = await gitStore.loadStatus()
 
     if (!status) {
-      return
+      return false
     }
 
     this.updateChangesState(repository, state => {
@@ -1624,6 +1626,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
 
     this.updateChangesDiffForCurrentSelection(repository)
+
+    return true
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -1865,13 +1869,27 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    // if the repository path doesn't exist on disk,
+    // set the flag and don't try anything Git-related
+    const exists = await pathExists(repository.path)
+    if (!exists) {
+      this._updateRepositoryMissing(repository, true)
+      return
+    }
+
     const state = this.getRepositoryState(repository)
     const gitStore = this.getGitStore(repository)
 
-    // When refreshing we *always* check the status so that we can update the
-    // changes indicator in the tab bar. But we only load History if it's
-    // selected.
-    await Promise.all([this._loadStatus(repository), gitStore.loadBranches()])
+    // if we cannot get a valid status it's a good indicator that the repository
+    // is in a bad state - let's mark it as missing here and give up on the
+    // further work
+    const status = await this._loadStatus(repository)
+    if (!status) {
+      await this._updateRepositoryMissing(repository, true)
+      return
+    }
+
+    await gitStore.loadBranches()
 
     const section = state.selectedSection
     let refreshSectionPromise: Promise<void>
@@ -1898,45 +1916,82 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this._updateCurrentPullRequest(repository)
     this.updateMenuItemLabels(repository)
     this._initializeCompare(repository)
-    this.refreshRepositoryState([repository])
+    this.refreshIndicatorsForRepositories([repository])
   }
 
-  public refreshAllRepositories() {
-    return this.refreshRepositoryState(this.repositories)
+  public refreshAllIndicators() {
+    return this.refreshIndicatorsForRepositories(this.repositories)
   }
 
-  private async refreshRepositoryState(
+  private async refreshIndicatorsForRepositories(
     repositories: ReadonlyArray<Repository>
   ): Promise<void> {
     if (!enableRepoInfoIndicators()) {
       return
     }
 
-    const promises = []
+    if (repositories.length > 15) {
+      log.info(
+        `repository indicators have been disabled while we investigate reducing the overhead of the computation work as you have ${
+          repositories.length
+        } tracked repositories`
+      )
+      return
+    }
+
+    const startTime = performance && performance.now ? performance.now() : null
 
     for (const repo of repositories) {
-      promises.push(
-        this.withAuthenticatingUser(repo, async (repo, account) => {
-          const gitStore = this.getGitStore(repo)
-          const lookup = this.localRepositoryStateLookup
-          if (this.shouldBackgroundFetch(repo)) {
-            await gitStore.fetch(account, true)
-          }
+      await this.refreshIndicatorForRepository(repo)
+    }
 
-          const status = await gitStore.loadStatus()
-          if (status !== null) {
-            lookup.set(repo.id, {
-              aheadBehind: gitStore.aheadBehind,
-              changedFilesCount: status.workingDirectory.files.length,
-            })
-          }
-        })
+    if (startTime && repositories.length > 1) {
+      const delta = performance.now() - startTime
+      const timeInSeconds = (delta / 1000).toFixed(3)
+      log.info(
+        `Background fetch for ${
+          repositories.length
+        } repositories took ${timeInSeconds}sec`
       )
     }
 
-    await Promise.all(promises)
-
     this.emitUpdate()
+  }
+
+  private async refreshIndicatorForRepository(repository: Repository) {
+    const lookup = this.localRepositoryStateLookup
+
+    if (repository.missing) {
+      lookup.delete(repository.id)
+      return
+    }
+
+    const exists = await pathExists(repository.path)
+    if (!exists) {
+      lookup.delete(repository.id)
+      return
+    }
+
+    const gitStore = this.getGitStore(repository)
+
+    const status = await gitStore.loadStatus()
+    if (status === null) {
+      lookup.delete(repository.id)
+      return
+    }
+
+    this.withAuthenticatingUser(repository, async (repo, account) => {
+      if (this.shouldBackgroundFetch(repo)) {
+        await gitStore.performFailableOperation(() => {
+          return gitStore.fetch(account, true)
+        })
+      }
+    })
+
+    lookup.set(repository.id, {
+      aheadBehind: gitStore.aheadBehind,
+      changedFilesCount: status.workingDirectory.files.length,
+    })
   }
 
   /**

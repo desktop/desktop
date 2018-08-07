@@ -73,6 +73,16 @@ export async function setupEmptyRepository(): Promise<Repository> {
 }
 
 /**
+ * Initialize a new, empty folder that is incorrectly associated with a Git
+ * repository. This should only be used to test error handling of the Git
+ * interactions.
+ */
+export function setupEmptyDirectory(): Repository {
+  const repoPath = _temp.mkdirSync('no-repository-here')
+  return new Repository(repoPath, -1, null, false)
+}
+
+/**
  * Setup a repository and create a merge conflict
  *
  * @returns the new local repository

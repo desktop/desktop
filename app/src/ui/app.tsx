@@ -95,7 +95,7 @@ const UpdateCheckInterval = 1000 * 60 * 60 * 4
 
 const SendStatsInterval = 1000 * 60 * 60 * 4
 
-const updateRepoInfoInterval = 1000 * 60 * 5
+const updateRepoInfoInterval = 1000 * 60 * 15
 
 interface IAppProps {
   readonly dispatcher: Dispatcher
@@ -153,7 +153,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       )
 
       window.setInterval(() => {
-        this.props.appStore.refreshAllRepositories()
+        this.props.appStore.refreshAllIndicators()
       }, updateRepoInfoInterval)
     })
 
@@ -449,7 +449,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private deleteBranch() {
     const state = this.state.selectedState
-    if (state == null || state.type !== SelectionType.Repository) {
+    if (state === null || state.type !== SelectionType.Repository) {
       return
     }
 
@@ -457,7 +457,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     if (tip.kind === TipState.Valid) {
       const currentPullRequest = state.state.branchesState.currentPullRequest
-      if (currentPullRequest) {
+      if (currentPullRequest !== null) {
         this.props.dispatcher.showPopup({
           type: PopupType.DeletePullRequest,
           repository: state.repository,
@@ -981,6 +981,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             branch={popup.branch}
             existsOnRemote={popup.existsOnRemote}
             onDismissed={this.onPopupDismissed}
+            onDeleted={this.onBranchDeleted}
           />
         )
       case PopupType.ConfirmDiscardChanges:
@@ -1769,6 +1770,16 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (baseURL) {
       this.props.dispatcher.openInBrowser(`${baseURL}/commit/${SHA}`)
     }
+  }
+
+  private onBranchDeleted = (repository: Repository) => {
+    // In the event a user is in the middle of a compare
+    // we need to exit out of the compare state after the
+    // branch has been deleted. Calling executeCompare allows
+    // us to do just that.
+    this.props.dispatcher.executeCompare(repository, {
+      kind: CompareActionKind.History,
+    })
   }
 }
 
