@@ -109,7 +109,7 @@ interface ITextBoxState {
 export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
   private inputElement: HTMLInputElement | null = null
 
-  static getDerivedStateFromProps(
+  public static getDerivedStateFromProps(
     nextProps: ITextBoxProps,
     prevState: ITextBoxState
   ): Partial<ITextBoxState> | null {
