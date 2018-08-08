@@ -5,7 +5,7 @@ import {
   IDatabaseGitHubRepository,
 } from '../../src/lib/databases'
 
-describe('RepositoriesDatabase', () => {
+describe.skip('RepositoriesDatabase', () => {
   it('migrates from version 2 to 4 by deleting duplicate GitHub repositories', async () => {
     const dbName = 'TestRepositoriesDatabase'
     let db = new RepositoriesDatabase(dbName, 2)

@@ -4,7 +4,7 @@ import { RepositoriesStore } from '../../src/lib/stores/repositories-store'
 import { TestRepositoriesDatabase } from '../helpers/databases'
 import { IAPIRepository } from '../../src/lib/api'
 
-describe('RepositoriesStore', () => {
+describe.skip('RepositoriesStore', () => {
   let repositoriesStore: RepositoriesStore | null = null
 
   beforeEach(async () => {

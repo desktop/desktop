@@ -5,7 +5,7 @@ import {
   IPullRequestStatus,
 } from '../../src/lib/databases'
 
-describe('PullRequestDatabase', () => {
+describe.skip('PullRequestDatabase', () => {
   it("adds statuses key to records that don't have one on upgrade", async () => {
     const databaseName = 'TestPullRequestDatabase'
 
