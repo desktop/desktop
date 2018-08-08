@@ -1319,10 +1319,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const now = new Date()
     const timeSinceFetch = now.getTime() - lastFetched.getTime()
-    const repoName =
-      repository.gitHubRepository !== null
-        ? repository.gitHubRepository.fullName
-        : repository.name
+    const repoName = nameOf(repository)
     if (timeSinceFetch < BackgroundFetchMinimumInterval) {
       const timeInSeconds = Math.floor(timeSinceFetch / 1000)
 
