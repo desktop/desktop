@@ -1995,10 +1995,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repository
     )
 
-    await gitStore.updateLastFetched()
-
     if (this.shouldBackgroundFetch(repository, lastPush)) {
-      await gitStore.loadRemotes()
       await this.withAuthenticatingUser(repository, (repo, account) => {
         return gitStore.performFailableOperation(() => {
           return gitStore.fetch(account, true)
