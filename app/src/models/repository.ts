@@ -69,8 +69,8 @@ export interface ILocalRepositoryState {
 }
 
 /**
- * Returns the full name `org/repo_name` if possible otherwise the
- * folder name that contains the repository
+ * Returns the owner/name alias if associated with a GitHub repository,
+ * otherwise the folder name that contains the repository
  */
 export function nameOf(repository: Repository) {
   const { gitHubRepository } = repository
