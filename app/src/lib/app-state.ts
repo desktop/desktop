@@ -342,7 +342,7 @@ export enum RepositorySectionTab {
 }
 
 export interface IRepositoryState {
-  readonly historyState: IHistoryState
+  readonly commitSelection: ICommitSelection
   readonly changesState: IChangesState
   readonly compareState: ICompareState
   readonly selectedSection: RepositorySectionTab
@@ -561,19 +561,17 @@ export interface IBranchesState {
   readonly currentPullRequest: PullRequest | null
 }
 
-export interface IHistorySelection {
+export interface ICommitSelection {
+  /** The commit currently selected in the app */
   readonly sha: string | null
-  readonly file: CommittedFileChange | null
-}
 
-export interface IHistoryState {
-  readonly selection: IHistorySelection
-
-  /** The ordered SHAs. */
-  readonly history: ReadonlyArray<string>
-
+  /** The list of files associated with the current commit */
   readonly changedFiles: ReadonlyArray<CommittedFileChange>
 
+  /** The selected file inside the selected commit */
+  readonly file: CommittedFileChange | null
+
+  /** The diff of the currently-selected file */
   readonly diff: IDiff | null
 }
 
@@ -702,6 +700,12 @@ export enum CompareActionKind {
   Branch = 'Branch',
 }
 
+export interface ICompareToBranch {
+  readonly kind: CompareActionKind.Branch
+  readonly branch: Branch
+  readonly mode: ComparisonView.Ahead | ComparisonView.Behind
+}
+
 /**
  * An action to send to the application store to update the compare state
  */
@@ -709,8 +713,4 @@ export type CompareAction =
   | {
       readonly kind: CompareActionKind.History
     }
-  | {
-      readonly kind: CompareActionKind.Branch
-      readonly branch: Branch
-      readonly mode: ComparisonView.Ahead | ComparisonView.Behind
-    }
+  | ICompareToBranch

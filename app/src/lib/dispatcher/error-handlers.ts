@@ -281,6 +281,19 @@ export async function mergeConflictHandler(
     return error
   }
 
+  const command = e.metadata.command
+
+  if (command != null) {
+    switch (command) {
+      case 'pull':
+        dispatcher.recordMergeConflictFromPull()
+        break
+      case 'merge':
+        dispatcher.recordMergeConflictFromExplicitMerge()
+        break
+    }
+  }
+
   dispatcher.showPopup({
     type: PopupType.MergeConflicts,
     repository,
