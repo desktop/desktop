@@ -7,6 +7,8 @@ import { fetchPR, IAPIPR } from './api'
 const PlaceholderChangeType = '???'
 const OfficialOwner = 'desktop'
 
+const ChangelogEntryRegex = /^\[(new|fixed|improved|removed|added)\]\s(.*)/i
+
 interface IParsedCommit {
   readonly prID: number
   readonly owner: string
@@ -117,7 +119,7 @@ export function getChangelogEntriesSince(previousVersion: string): string[] {
       continue
     }
 
-    if (prop.endsWith('-beta1')) {
+    if (prop.endsWith('-beta0')) {
       // by convention we push the production updates out to beta
       // to ensure both channels are up to date
       continue
@@ -125,7 +127,11 @@ export function getChangelogEntriesSince(previousVersion: string): string[] {
 
     const entries: string[] = releases[prop]
     if (entries != null) {
-      existingChangelog.push(...entries)
+      const validEntries = entries.filter(e => {
+        const match = ChangelogEntryRegex.exec(e)
+        return match != null
+      })
+      existingChangelog.push(...validEntries)
     }
   }
   return existingChangelog
