@@ -16,7 +16,8 @@
     "**/out": true,
     "tslint-rules/**/*.js": true,
     ".awcache": true,
-    ".eslintcache": true
+    ".eslintcache": true,
+    "**/vendor/cache": true
   },
   "editor.tabSize": 2,
   "prettier.semi": false,
