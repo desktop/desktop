@@ -37,6 +37,9 @@ export function askUserToOAuth(endpoint: string) {
 /**
  * Request the authenticated using, using the code given to us by the OAuth
  * callback.
+ *
+ * @returns `undefined` if there is no valid OAuth state to use, or `null` if
+ * the code cannot be used to retrieve a valid GitHub user.
  */
 export async function requestAuthenticatedUser(
   code: string
