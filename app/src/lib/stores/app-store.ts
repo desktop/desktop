@@ -1338,9 +1338,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     log.debug(
-      `Skipping background fetch since nothing has been pushed to '${repoName}' since the last fetch at ${new Date(
-        lastFetched
-      )}`
+      `Skipping background fetch since nothing has been pushed to '${repoName}' since the last fetch at ${lastFetched}`
     )
 
     return false
