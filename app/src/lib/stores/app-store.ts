@@ -27,7 +27,11 @@ import {
   ICompareToBranch,
 } from '../app-state'
 import { Account } from '../../models/account'
-import { Repository, ILocalRepositoryState } from '../../models/repository'
+import {
+  Repository,
+  ILocalRepositoryState,
+  nameOf,
+} from '../../models/repository'
 import { GitHubRepository } from '../../models/github-repository'
 import {
   CommittedFileChange,
@@ -1265,9 +1269,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private startPullRequestUpdater(repository: Repository) {
     if (this.currentPullRequestUpdater) {
       fatalError(
-        `A pull request updater is already active and cannot start updating on ${
-          repository.name
-        }`
+        `A pull request updater is already active and cannot start updating on ${nameOf(
+          repository
+        )}`
       )
 
       return
@@ -1961,8 +1965,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    const startTime = performance && performance.now ? performance.now() : null
+
     for (const repo of repositories) {
       await this.refreshIndicatorForRepository(repo)
+    }
+
+    if (startTime && repositories.length > 1) {
+      const delta = performance.now() - startTime
+      const timeInSeconds = (delta / 1000).toFixed(3)
+      log.info(
+        `Background fetch for ${
+          repositories.length
+        } repositories took ${timeInSeconds}sec`
+      )
     }
 
     this.emitUpdate()

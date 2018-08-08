@@ -123,7 +123,7 @@ versions look similar to the below output:
 
 ```shellsession
 $ node -v
-v8.11.2
+v8.11.3
 
 $ yarn -v
 1.5.1
