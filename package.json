@@ -81,7 +81,7 @@
     "legal-eagle": "0.16.0",
     "mini-css-extract-plugin": "^0.4.0",
     "mocha": "^5.0.4",
-    "node-sass": "^4.7.2",
+    "node-sass": "^4.9.2",
     "octicons": "^7.0.1",
     "parallel-webpack": "^2.3.0",
     "prettier": "1.13.0",
