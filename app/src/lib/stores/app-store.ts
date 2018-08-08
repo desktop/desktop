@@ -1366,6 +1366,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    // Todo: add logic to background checker to check the API before fetching
+    // similar to what's being done in `refreshAllIndicators`
     const fetcher = new BackgroundFetcher(
       repository,
       account,
