@@ -92,7 +92,7 @@
     "spectron": "^3.8.0",
     "style-loader": "^0.21.0",
     "to-camel-case": "^1.0.0",
-    "ts-node": "^5.0.1",
+    "ts-node": "^7.0.0",
     "tslint": "^5.11.0",
     "tslint-config-prettier": "^1.14.0",
     "tslint-microsoft-contrib": "^5.1.0",
