@@ -19,7 +19,7 @@ These are general metrics about users that are aggregated to understand general 
 | `dotComAccount` | Lets us know if a user logged in with a GitHub.com account. | To understand what percentage of people who use Desktop use it with github.com, so we can more accurately prioritize GitHub workflows in Desktop. |
 | `enterpriseAccount` | Lets us know if a user logged in with an Enterprise account. | To understand what percentage of people who use Desktop use it with an Enterprise instance of GitHub, so we can more accurately prioritize Enterprise-related bugs. |
 | `theme` | The name of the currently selected theme/application appearance as set at time of stats submission. | To understand usage patterns of the Dark Theme feature, so we can more accurately prioritize theme-related bugs. |
-| `usage` | Constant used to filter in DW. | Specifies that this data is related to GitHub Desktop usage, so we can filter it correctly in our analytics. |
+| `usage` | Constant used to group/filterin data warehouse | Specifies that this data is related to GitHub Desktop usage, so we can filter it correctly in our analytics. |
 
 ## Measures
 These are general metrics about general feature usage and specific feature behaviors. These help us understand our users' mental map of the application, hypothesize pain points within the application, and aid us in feature and bug fix planning so that we can improve workflows that might actually be used.
