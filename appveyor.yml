@@ -4,7 +4,7 @@ platform:
   - x64
 
 environment:
-  nodejs_version: "8.11"
+  nodejs_version: '8.11'
 
 cache:
   - .eslintcache
@@ -17,7 +17,7 @@ branches:
 
 skip_tags: true
 
-version: "{build}"
+version: '{build}'
 
 install:
   - cmd: regedit /s script\default-to-tls12-on-appveyor.reg

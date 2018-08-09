@@ -7,7 +7,7 @@ import { Owner } from '../../src/models/owner'
 const repoPath = '/some/cool/path'
 
 describe('nameOf', () => {
-  it.only('Returns the repo base path if there is no associated github metadata', () => {
+  it('Returns the repo base path if there is no associated github metadata', () => {
     const repo = new Repository(repoPath, -1, null, false)
 
     const name = nameOf(repo)
@@ -15,7 +15,7 @@ describe('nameOf', () => {
     expect(name).to.equal('path')
   })
 
-  it.only('Returns the name of the repo', () => {
+  it('Returns the name of the repo', () => {
     const ghRepo = new GitHubRepository(
       'name',
       new Owner('desktop', '', null),

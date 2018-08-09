@@ -38,7 +38,7 @@ branches:
 
 language: node_js
 node_js:
-  - "8.11.0"
+  - '8.11.0'
 
 cache:
   yarn: true
@@ -56,7 +56,8 @@ install:
   - yarn install --offline
 
 script:
-  - yarn lint && yarn validate-changelog && yarn build:prod && yarn test:setup && yarn test
+  - yarn lint && yarn validate-changelog && yarn build:prod && yarn test:setup
+    && yarn test
 
 after_failure:
   - yarn test:review
