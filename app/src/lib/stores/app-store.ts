@@ -100,6 +100,8 @@ import {
   getRemotes,
   ITrailer,
   isCoAuthoredByTrailer,
+  revSymmetricDifference,
+  getAheadBehind,
 } from '../git'
 
 import { launchExternalEditor } from '../editors'
@@ -153,6 +155,7 @@ import {
   setPersistedTheme,
 } from '../../ui/lib/application-theme'
 import { findAccountForRemoteURL } from '../find-account'
+import { DivergingBranchNotifier } from './helpers/diverging-branch-notifier'
 
 /**
  * Enum used by fetch to determine if
@@ -468,7 +471,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
         allBranches: new Array<Branch>(),
         recentBranches: new Array<Branch>(),
         defaultBranch: null,
-        inferredComparisonBranch: { branch: null, aheadBehind: null },
+        inferredComparisonBranchState: {
+          branch: null,
+          aheadBehind: null,
+          lastAheadBehind: null,
+        },
       },
       commitAuthor: null,
       gitHubUsers: new Map<string, IGitHubUser>(),
@@ -819,45 +826,42 @@ export class AppStore extends TypedBaseStore<IAppState> {
           tip.branch.tip.sha,
           inferredBranch.tip.sha
         )
+
+        if (aheadBehindOfInferredBranch === null) {
+          const range = revSymmetricDifference(
+            tip.branch.tip.sha,
+            inferredBranch.tip.sha
+          )
+          aheadBehindOfInferredBranch = await getAheadBehind(repository, range)
+        }
       }
     }
 
+    const inferredComparisonBranchState = {
+      branch: inferredBranch,
+      aheadBehind: aheadBehindOfInferredBranch,
+      lastAheadBehind: compareState.inferredComparisonBranchState.aheadBehind,
+    }
     this.updateCompareState(repository, () => ({
       allBranches,
       recentBranches,
       defaultBranch,
-      inferredComparisonBranch: {
-        branch: inferredBranch,
-        aheadBehind: aheadBehindOfInferredBranch,
-      },
+      inferredComparisonBranchState,
     }))
 
-    // we only want to show the banner when the the number
-    // commits behind has changed since the last it was visible
-    if (
-      inferredBranch !== null &&
-      aheadBehindOfInferredBranch !== null &&
-      aheadBehindOfInferredBranch.behind > 0
-    ) {
-      const prevInferredBranchState =
-        state.compareState.inferredComparisonBranch
-      if (
-        prevInferredBranchState.aheadBehind === null ||
-        prevInferredBranchState.aheadBehind.behind !==
-          aheadBehindOfInferredBranch.behind
-      ) {
-        this._setDivergingBranchBannerVisibility(true)
-      }
-    } else if (
-      inferComparisonBranch !== null ||
-      aheadBehindOfInferredBranch === null
-    ) {
-      this._setDivergingBranchBannerVisibility(false)
-    }
+    // Todo: move and hook into autoupdater
+    const notifier = new DivergingBranchNotifier(state)
+    const shouldShowBanner = notifier.shouldShowBanner(
+      inferredComparisonBranchState
+    )
+    this._setDivergingBranchBannerVisibility(shouldShowBanner)
 
     const cachedState = compareState.formState
+
     const action =
-      initialAction != null ? initialAction : getInitialAction(cachedState)
+      initialAction !== undefined
+        ? initialAction
+        : getInitialAction(cachedState)
     this._executeCompare(repository, action)
   }
 
