@@ -48,9 +48,6 @@ phases:
       - task: NodeTool@0
         inputs:
           versionSpec: '8.11.1'
-      - task: geeklearningio.gl-vsts-tasks-yarn.yarn-installer-task.YarnInstaller@2
-        inputs:
-          versionSpec: '1.9.2'
       - script: |
           yarn install --offline
         name: Install
