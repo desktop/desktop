@@ -126,7 +126,7 @@ export class App extends React.Component<IAppProps, IAppState> {
    */
   private lastKeyPressed: string | null = null
 
-  private updateIntervalHandle: number
+  private updateIntervalHandle?: number
 
   /**
    * Gets a value indicating whether or not we're currently showing a
