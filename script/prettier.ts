@@ -12,7 +12,7 @@ const prettier = process.platform === 'win32' ? 'prettier.cmd' : 'prettier'
 const prettierPath = Path.join(root, 'node_modules', '.bin', prettier)
 
 const args = [
-  '**/*.scss',
+  '**/*.{scss,y{,a}ml}',
   'app/**/*.{ts,tsx}',
   'script/**/*.ts',
   '--list-different',
