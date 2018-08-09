@@ -126,6 +126,8 @@ export class App extends React.Component<IAppProps, IAppState> {
    */
   private lastKeyPressed: string | null = null
 
+  private updateIntervalHandle: number
+
   /**
    * Gets a value indicating whether or not we're currently showing a
    * modal dialog such as the preferences, or an error dialog.
@@ -160,7 +162,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
         await this.props.appStore.refreshAllIndicators()
 
-        window.setInterval(() => {
+        this.updateIntervalHandle = window.setInterval(() => {
           this.props.appStore.refreshAllIndicators()
         }, UpdateRepositoryIndicatorInterval)
       }, InitialRepositoryIndicatorTimeout)
@@ -230,6 +232,10 @@ export class App extends React.Component<IAppProps, IAppState> {
         })
       }
     )
+  }
+
+  public componentWillUnmount() {
+    window.clearInterval(this.updateIntervalHandle)
   }
 
   private performDeferredLaunchActions() {
