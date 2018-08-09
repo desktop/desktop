@@ -90,12 +90,15 @@ import { MergeConflictsWarning } from './merge-conflicts'
 import { AppTheme } from './app-theme'
 import { ApplicationTheme } from './lib/application-theme'
 
+const minuteInMilliseconds = 1000 * 60
+
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
 
 const SendStatsInterval = 1000 * 60 * 60 * 4
 
-const updateRepoInfoInterval = 1000 * 60 * 15
+const initialTimeoutForRepositoryIndicators = 2 * minuteInMilliseconds
+const updateRepoInfoInterval = 15 * minuteInMilliseconds
 
 interface IAppProps {
   readonly dispatcher: Dispatcher
@@ -152,9 +155,15 @@ export class App extends React.Component<IAppProps, IAppState> {
         { timeout: ReadyDelay }
       )
 
-      window.setInterval(() => {
-        this.props.appStore.refreshAllIndicators()
-      }, updateRepoInfoInterval)
+      const initialTimeout = window.setTimeout(async () => {
+        window.clearTimeout(initialTimeout)
+
+        await this.props.appStore.refreshAllIndicators()
+
+        window.setInterval(() => {
+          this.props.appStore.refreshAllIndicators()
+        }, updateRepoInfoInterval)
+      }, initialTimeoutForRepositoryIndicators)
     })
 
     this.state = props.appStore.getState()
