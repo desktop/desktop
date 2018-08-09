@@ -1952,15 +1952,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    if (repositories.length > 15) {
-      log.info(
-        `repository indicators have been disabled while we investigate reducing the overhead of the computation work as you have ${
-          repositories.length
-        } tracked repositories`
-      )
-      return
-    }
-
     const startTime = performance && performance.now ? performance.now() : null
 
     for (const repo of repositories) {
