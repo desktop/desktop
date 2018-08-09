@@ -57,9 +57,8 @@ export class NewCommitsBanner extends React.Component<
             <p>
               We have noticed that your branch is{' '}
               <strong>
-                {this.props.commitsBehindBaseBranch} commit{pluralize
-                  ? 's'
-                  : ''}
+                {this.props.commitsBehindBaseBranch} commit
+                {pluralize ? 's' : ''}
               </strong>{' '}
               behind <Ref>{this.props.baseBranch.name}</Ref>.
             </p>

@@ -4,4 +4,4 @@ lockLabel: locked-due-to-inactivity
 lockComment: false
 setLockReason: true
 # Proposals need to be handled separately to normal issues
-exemptLabels: ['future-proposal'] 
+exemptLabels: ['future-proposal']
