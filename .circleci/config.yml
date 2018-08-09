@@ -23,11 +23,6 @@ jobs:
             - yarn-packages-v1-{{ .Branch }}-
             - yarn-packages-v1-
       - run:
-          name: Install Latest Yarn
-          command:
-            curl -o- -L https://yarnpkg.com/install.sh | TERM=xterm bash -s --
-            --version 1.9.2
-      - run:
           name: Install dependencies
           command: yarn install --offline
       - save_cache:
