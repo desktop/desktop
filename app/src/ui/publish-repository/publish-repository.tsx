@@ -114,7 +114,10 @@ export class PublishRepository extends React.Component<
       const fullOrgDetails = await api.fetchOrg(org.login)
       this.updateSettings({
         org,
-        canCreatePrivateRepo: canCreatePrivateRepo(this.props.account, fullOrgDetails),
+        canCreatePrivateRepo: canCreatePrivateRepo(
+          this.props.account,
+          fullOrgDetails
+        ),
         private: canCreatePrivateRepo(this.props.account, fullOrgDetails),
       })
     }
