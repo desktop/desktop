@@ -1,5 +1,8 @@
 {
   "releases": {
+    "1.3.3-test7": [
+      "Testing command line integration changes to support WSL"
+    ],
     "1.3.3-test6": [
       "Testing infrastructure changes"
     ],
