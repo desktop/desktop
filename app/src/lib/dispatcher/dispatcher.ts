@@ -936,8 +936,9 @@ export class Dispatcher {
       await this.fetchRefspec(repository, `pull/${pr}/head:${branch}`)
     }
 
+    const state = this.appStore.getRepositoryState(repository)
+
     if (pr == null && branch != null) {
-      const state = this.appStore.getRepositoryState(repository)
       const branches = state.branchesState.allBranches
 
       // I don't want to invoke Git functionality from the dispatcher, which
