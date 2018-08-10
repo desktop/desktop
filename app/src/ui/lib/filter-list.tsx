@@ -360,6 +360,14 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
       return
     }
 
+    if (event.key === 'Enter' && this.canSelectRow(row)) {
+      // this event is handled in List.onKeyDown (which fires List.toggleSelection)
+      // so we can ignore this event here to prevent the double "onRowClick"
+      // event from firing
+      event.preventDefault()
+      return
+    }
+
     const rowCount = this.state.rows.length
 
     const firstSelectableRow = findNextSelectableRow(
