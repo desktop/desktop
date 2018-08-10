@@ -995,21 +995,16 @@ export class Dispatcher {
     })
 
     if (existingRepository) {
-      const repo = await this.selectRepository(existingRepository)
-      if (!repo || !branch) {
-        return repo
-      }
-
-      return this.checkoutBranch(repo, branch)
-    } else {
-      return this.appStore._startOpenInDesktop(() => {
-        this.changeCloneRepositoriesTab(CloneRepositoryTab.Generic)
-        this.showPopup({
-          type: PopupType.CloneRepository,
-          initialURL: url,
-        })
-      })
+      return await this.selectRepository(existingRepository)
     }
+
+    return this.appStore._startOpenInDesktop(() => {
+      this.changeCloneRepositoriesTab(CloneRepositoryTab.Generic)
+      this.showPopup({
+        type: PopupType.CloneRepository,
+        initialURL: url,
+      })
+    })
   }
 
   /**
