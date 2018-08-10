@@ -20,6 +20,7 @@ interface IDeleteBranchProps {
 
 interface IDeleteBranchState {
   readonly includeRemoteBranch: boolean
+  readonly isDeleting: boolean
 }
 
 export class DeleteBranch extends React.Component<
@@ -31,6 +32,7 @@ export class DeleteBranch extends React.Component<
 
     this.state = {
       includeRemoteBranch: false,
+      isDeleting: false,
     }
   }
 
@@ -53,7 +55,12 @@ export class DeleteBranch extends React.Component<
         <DialogFooter>
           <ButtonGroup destructive={true}>
             <Button type="submit">Cancel</Button>
-            <Button onClick={this.deleteBranch}>Delete</Button>
+            <Button
+              onClick={this.deleteBranch}
+              disabled={this.state.isDeleting}
+            >
+              Delete
+            </Button>
           </ButtonGroup>
         </DialogFooter>
       </Dialog>
@@ -96,6 +103,8 @@ export class DeleteBranch extends React.Component<
 
   private deleteBranch = async () => {
     const { dispatcher, repository, branch, onDeleted } = this.props
+
+    this.setState({ isDeleting: true })
     await dispatcher.deleteBranch(
       repository,
       branch,
