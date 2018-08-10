@@ -840,12 +840,8 @@ export class Dispatcher {
         break
 
       case 'open-repository-from-url':
-        const { pr, url, branch } = action
-        // a forked PR will provide both these values, despite the branch not existing
-        // in the repository - drop the branch argument in this case so a clone will
-        // checkout the default branch when it clones
-        const branchToClone = pr && branch ? null : branch || null
-        const repository = await this.openRepository(url, branchToClone)
+        const { url } = action
+        const repository = await this.openRepository(url)
         if (repository) {
           this.handleCloneInDesktopOptions(repository, action)
         } else {
@@ -976,10 +972,7 @@ export class Dispatcher {
     }
   }
 
-  private async openRepository(
-    url: string,
-    branch: string | null
-  ): Promise<Repository | null> {
+  private async openRepository(url: string): Promise<Repository | null> {
     const state = this.appStore.getState()
     const repositories = state.repositories
     const existingRepository = repositories.find(r => {
