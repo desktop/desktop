@@ -1464,7 +1464,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdateNow()
 
     this.accountsStore.refresh()
-    this.refreshAllIndicators()
   }
 
   private async getSelectedExternalEditor(): Promise<ExternalEditor | null> {
@@ -1950,15 +1949,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repositories: ReadonlyArray<Repository>
   ): Promise<void> {
     if (!enableRepoInfoIndicators()) {
-      return
-    }
-
-    if (repositories.length > 15) {
-      log.info(
-        `repository indicators have been disabled while we investigate reducing the overhead of the computation work as you have ${
-          repositories.length
-        } tracked repositories`
-      )
       return
     }
 
