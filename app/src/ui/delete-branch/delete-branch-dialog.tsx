@@ -8,6 +8,7 @@ import { ButtonGroup } from '../lib/button-group'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Ref } from '../lib/ref'
+import { Loading } from '../lib/loading'
 
 interface IDeleteBranchProps {
   readonly dispatcher: Dispatcher
@@ -37,6 +38,7 @@ export class DeleteBranch extends React.Component<
   }
 
   public render() {
+    const loading = this.state.isDeleting ? <Loading /> : undefined
     return (
       <Dialog
         id="delete-branch"
@@ -59,7 +61,8 @@ export class DeleteBranch extends React.Component<
               onClick={this.deleteBranch}
               disabled={this.state.isDeleting}
             >
-              Delete
+              {loading}
+              {loading ? 'Deleting' : 'Delete'}
             </Button>
           </ButtonGroup>
         </DialogFooter>
