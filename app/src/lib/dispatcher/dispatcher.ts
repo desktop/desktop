@@ -58,6 +58,7 @@ import { IAuthor } from '../../models/author'
 import { ITrailer } from '../git/interpret-trailers'
 import { isGitRepository } from '../git'
 import { ApplicationTheme } from '../../ui/lib/application-theme'
+import { TipState } from '../../models/tip'
 
 /**
  * An error handler function.
@@ -954,7 +955,17 @@ export class Dispatcher {
     }
 
     if (branch != null) {
-      await this.checkoutBranch(repository, branch)
+      let shouldCheckoutBranch = true
+
+      const { tip } = state.branchesState
+
+      if (tip.kind === TipState.Valid) {
+        shouldCheckoutBranch = tip.branch.nameWithoutRemote !== branch
+      }
+
+      if (shouldCheckoutBranch) {
+        await this.checkoutBranch(repository, branch)
+      }
     }
 
     if (filepath != null) {
