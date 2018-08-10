@@ -57,8 +57,7 @@ export interface IAPICommit {
   readonly author: IAPIUser | null
 }
 
-// TODO: find the canonical list of these options
-export type Plan = 'developer' | 'free' | '???'
+export type Plan = 'developer' | 'free' | 'team' | 'business'
 
 interface IAccountWithPlan {
   readonly plan: {

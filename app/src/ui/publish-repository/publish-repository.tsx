@@ -1,12 +1,13 @@
 import * as React from 'react'
 import { Account } from '../../models/account'
-import { API, IAPIUser, IAPIUserWithPlan } from '../../lib/api'
+import { API, IAPIUser } from '../../lib/api'
 import { TextBox } from '../lib/text-box'
 import { Select } from '../lib/select'
 import { DialogContent } from '../dialog'
 import { Row } from '../lib/row'
 import { merge } from '../../lib/merge'
 import { caseInsensitiveCompare } from '../../lib/compare'
+import { canCreatePrivateRepo } from './publish-private-repository-checker'
 
 interface IPublishRepositoryProps {
   /** The user to use for publishing. */
@@ -58,8 +59,8 @@ export class PublishRepository extends React.Component<
     this.fetchOrgs(this.props.account)
     this.updateSettings({
       org: null,
-      canCreatePrivateRepo: this.isUserOnFreePlan(),
-      private: !this.isUserOnFreePlan(),
+      canCreatePrivateRepo: canCreatePrivateRepo(this.props.account),
+      private: canCreatePrivateRepo(this.props.account),
     })
   }
 
@@ -86,19 +87,6 @@ export class PublishRepository extends React.Component<
     this.props.onSettingsChanged(newSettings)
   }
 
-  private isUserOnFreePlan() {
-    const plan = this.props.account.plan
-    return !(plan && plan.name !== 'free')
-  }
-
-  private canCreatePrivateRepoOnOrg(fullOrgDetails: IAPIUserWithPlan | null) {
-    return (
-      fullOrgDetails !== null &&
-      fullOrgDetails.plan.name !== 'free' &&
-      fullOrgDetails.members_can_create_repositories === true
-    )
-  }
-
   private onNameChange = (name: string) => {
     this.updateSettings({ name })
   }
@@ -117,20 +105,17 @@ export class PublishRepository extends React.Component<
     if (index < 0 || isNaN(index)) {
       this.updateSettings({
         org: null,
-        canCreatePrivateRepo: this.isUserOnFreePlan(),
-        private: !this.isUserOnFreePlan(),
+        canCreatePrivateRepo: canCreatePrivateRepo(this.props.account),
+        private: canCreatePrivateRepo(this.props.account),
       })
     } else {
       const org = this.state.orgs[index]
       const api = API.fromAccount(this.props.account)
       const fullOrgDetails = await api.fetchOrg(org.login)
-      const canCreatePrivateRepo = this.canCreatePrivateRepoOnOrg(
-        fullOrgDetails
-      )
       this.updateSettings({
         org,
-        canCreatePrivateRepo: canCreatePrivateRepo,
-        private: !canCreatePrivateRepo,
+        canCreatePrivateRepo: canCreatePrivateRepo(this.props.account, fullOrgDetails),
+        private: canCreatePrivateRepo(this.props.account, fullOrgDetails),
       })
     }
   }
@@ -173,7 +158,7 @@ export class PublishRepository extends React.Component<
   }
 
   public render() {
-    const disabled = this.props.settings.canCreatePrivateRepo
+    const disabled = !this.props.settings.canCreatePrivateRepo
     return (
       <DialogContent>
         <Row>
