@@ -843,7 +843,7 @@ export class Dispatcher {
         const { url } = action
         const repository = await this.openRepository(url)
         if (repository) {
-          this.handleCloneInDesktopOptions(repository, action)
+          await this.handleCloneInDesktopOptions(repository, action)
         } else {
           log.warn(
             `Open Repository from URL failed, did not find repository: ${url} - payload: ${JSON.stringify(
