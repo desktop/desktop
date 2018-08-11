@@ -324,6 +324,9 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.openCurrentRepositoryInExternalEditor()
       case 'select-all':
         return this.selectAll()
+      case 'quit':
+        remote.app.quit()
+        return
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
