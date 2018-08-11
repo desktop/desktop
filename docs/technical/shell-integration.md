@@ -28,6 +28,7 @@ These shells are currently supported:
  - [PowerShell Core](https://github.com/powershell/powershell/)
  - [Hyper](https://hyper.sh/)
  - Git Bash (from [Git for Windows](https://git-for-windows.github.io/))
+ - Windows Subsystem for Linux  (from [Windows 10 Installation Guide](https://docs.microsoft.com/en-us/windows/wsl/install-win10))
 
 These are defined in an enum at the top of the file:
 
@@ -38,6 +39,12 @@ export enum Shell {
   PowerShellCore = 'PowerShell Core',
   Hyper = 'Hyper',
   GitBash = 'Git Bash',
+  WslBash = 'WSL Bash (Default)',
+  WslUbuntu = 'WSL (Ubuntu)',
+  WslOpenSuse42 = 'WSL (openSUSE-42)',
+  WslDebian = 'WSL (Debian)',
+  WslKali = 'WSL (kali-linux)',
+  WslSLES = 'WSL (SLES-12)',
 }
 ```
 
