@@ -269,7 +269,7 @@ async function findWslBashShellsCommandLine(): Promise<ReadonlyArray<
         if (wslShellsNames.length > 0) {
           //ignore first line
           for (let i = 1; i < wslShellsNames.length; i++) {
-            let wslShellNames = wslShellsNames[i].trim()
+            const wslShellNames = wslShellsNames[i].trim()
 
             //default path for distro exe's
             const wslShellPathWindows =
