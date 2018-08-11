@@ -244,7 +244,7 @@ async function findWslBashShellsCommandLine(): Promise<ReadonlyArray<
     const windowsSystem32 = windowsRoot + '\\System32\\'
     const defaultWslExe = windowsSystem32 + 'wsl.exe'
 
-    let shells = [
+    const shells = [
       {
         shell: Shell.WslBash,
         path: defaultWslExe,
@@ -264,18 +264,18 @@ async function findWslBashShellsCommandLine(): Promise<ReadonlyArray<
         )
 
       //user might have installed WLS but have no valid distro's installed
-      if (trimmedData.search('no installed') == -1) {
+      if (trimmedData.search('no installed') === -1) {
         const wslShellsNames = trimmedData.split(':')
         if (wslShellsNames.length > 0) {
           //ignore first line
-          for (var i = 1; i < wslShellsNames.length; i++) {
-            var wslShellNames = wslShellsNames[i].trim()
+          for (let i = 1; i < wslShellsNames.length; i++) {
+            let wslShellNames = wslShellsNames[i].trim()
 
             //default path for distro exe's
             const wslShellPathWindows =
               process.env.HOME + '\\AppData\\Local\\Microsoft\\WindowsApps\\'
 
-            if (wslShellNames.search('Debian') != -1) {
+            if (wslShellNames.search('Debian') !== -1) {
               shells.push({
                 shell: Shell.WslDebian,
                 name: 'debian',
@@ -283,7 +283,7 @@ async function findWslBashShellsCommandLine(): Promise<ReadonlyArray<
               })
             }
 
-            if (wslShellNames.search('kali-linux') != -1) {
+            if (wslShellNames.search('kali-linux') !== -1) {
               shells.push({
                 shell: Shell.WslKali,
                 name: 'kali',
@@ -291,7 +291,7 @@ async function findWslBashShellsCommandLine(): Promise<ReadonlyArray<
               })
             }
 
-            if (wslShellNames.search('openSUSE-42') != -1) {
+            if (wslShellNames.search('openSUSE-42') !== -1) {
               shells.push({
                 shell: Shell.WslOpenSuse42,
                 name: 'openSUSE-42',
@@ -299,7 +299,7 @@ async function findWslBashShellsCommandLine(): Promise<ReadonlyArray<
               })
             }
 
-            if (wslShellNames.search('SLES-12') != -1) {
+            if (wslShellNames.search('SLES-12') !== -1) {
               shells.push({
                 shell: Shell.WslSLES,
                 name: 'SLES-12',
@@ -307,7 +307,7 @@ async function findWslBashShellsCommandLine(): Promise<ReadonlyArray<
               })
             }
 
-            if (wslShellNames.search('Ubuntu') != -1) {
+            if (wslShellNames.search('Ubuntu') !== -1) {
               shells.push({
                 shell: Shell.WslUbuntu,
                 name: 'ubuntu',
@@ -351,10 +351,10 @@ async function findWslBashShells(): Promise<ReadonlyArray<
     //breaking this check
     if (
       majorVersion &&
-      majorVersion.type == RegistryValueType.REG_DWORD &&
-      majorVersion.data != windowsMajorVersion &&
+      majorVersion.type === RegistryValueType.REG_DWORD &&
+      majorVersion.data !== windowsMajorVersion &&
       releaseId &&
-      releaseId.type == RegistryValueType.REG_SZ &&
+      releaseId.type === RegistryValueType.REG_SZ &&
       parseInt(releaseId.data, 10) > minReleaseId
     ) {
       return null
