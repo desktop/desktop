@@ -12,32 +12,42 @@ export enum Shell {
   PowerShellCore = 'PowerShell Core',
   Hyper = 'Hyper',
   GitBash = 'Git Bash',
+  WslBash = 'WSL Bash (Default)',
+  WslUbuntu = 'WSL (Ubuntu)',
+  WslOpenSuse42 = 'WSL (openSUSE-42)',
+  WslDebian = 'WSL (Debian)',
+  WslKali = 'WSL (kali-linux)',
+  WslSLES = 'WSL (SLES-12)',
 }
 
 export const Default = Shell.Cmd
 
-export function parse(label: string): Shell {
-  if (label === Shell.Cmd) {
-    return Shell.Cmd
+export function parse(label: String): Shell {
+  switch (label) {
+    case Shell.PowerShell:
+      return Shell.PowerShell
+    case Shell.PowerShellCore:
+      return Shell.PowerShellCore
+    case Shell.Hyper:
+      return Shell.Hyper
+    case Shell.GitBash:
+      return Shell.GitBash
+    case Shell.WslBash:
+      return Shell.WslBash
+    case Shell.WslDebian:
+      return Shell.WslDebian
+    case Shell.WslKali:
+      return Shell.WslKali
+    case Shell.WslOpenSuse42:
+      return Shell.WslOpenSuse42
+    case Shell.WslSLES:
+      return Shell.WslSLES
+    case Shell.WslUbuntu:
+      return Shell.WslUbuntu
+    case Shell.Cmd:
+    default:
+      return Default
   }
-
-  if (label === Shell.PowerShell) {
-    return Shell.PowerShell
-  }
-
-  if (label === Shell.PowerShellCore) {
-    return Shell.PowerShellCore
-  }
-
-  if (label === Shell.Hyper) {
-    return Shell.Hyper
-  }
-
-  if (label === Shell.GitBash) {
-    return Shell.GitBash
-  }
-
-  return Default
 }
 
 export async function getAvailableShells(): Promise<
@@ -79,6 +89,16 @@ export async function getAvailableShells(): Promise<
     shells.push({
       shell: Shell.GitBash,
       path: gitBashPath,
+    })
+  }
+
+  const wslBashPaths = await findWslBashShells()
+  if (wslBashPaths != null) {
+    wslBashPaths.forEach(function(shell) {
+      shells.push({
+        shell: shell.shell,
+        path: shell.path,
+      })
     })
   }
 
@@ -215,6 +235,146 @@ async function findGitBash(): Promise<string | null> {
   return null
 }
 
+async function findWslBashShellsCommandLine(): Promise<ReadonlyArray<
+  IFoundShell<Shell>
+> | null> {
+  const promise = new Promise<IFoundShell<Shell>[] | null>(resolve => {
+    //check we have a valid distro installed (ubuntu, opensuse, sles, kali, debian)
+    const windowsRoot = process.env.SystemRoot || 'C:\\Windows'
+    const windowsSystem32 = windowsRoot + '\\System32\\'
+    const defaultWslExe = windowsSystem32 + 'wsl.exe'
+
+    let shells = [
+      {
+        shell: Shell.WslBash,
+        path: defaultWslExe,
+        name: 'WSL Bash (Default)',
+      },
+    ]
+    const wslConfigExe = windowsSystem32 + 'wslconfig.exe'
+
+    const ls = spawn(wslConfigExe, ['/list'])
+    ls.stdout.on('data', data => {
+      //wslconfig.exe /list returns a unicode array - santise to human readable format
+      const trimmedData = data
+        .toString()
+        .replace(
+          /[^A-Za-z 0-9\.,\?""!@#\$%\^&\*\(\)-_=\+;:<>\/\\\|\}\{\[\]`~]*/g,
+          ''
+        )
+
+      //user might have installed WLS but have no valid distro's installed
+      if (trimmedData.search('no installed') == -1) {
+        const wslShellsNames = trimmedData.split(':')
+        if (wslShellsNames.length > 0) {
+          //ignore first line
+          for (var i = 1; i < wslShellsNames.length; i++) {
+            var wslShellNames = wslShellsNames[i].trim()
+
+            //default path for distro exe's
+            const wslShellPathWindows =
+              process.env.HOME + '\\AppData\\Local\\Microsoft\\WindowsApps\\'
+
+            if (wslShellNames.search('Debian') != -1) {
+              shells.push({
+                shell: Shell.WslDebian,
+                name: 'debian',
+                path: wslShellPathWindows + 'debian.exe',
+              })
+            }
+
+            if (wslShellNames.search('kali-linux') != -1) {
+              shells.push({
+                shell: Shell.WslKali,
+                name: 'kali',
+                path: wslShellPathWindows + 'kali.exe',
+              })
+            }
+
+            if (wslShellNames.search('openSUSE-42') != -1) {
+              shells.push({
+                shell: Shell.WslOpenSuse42,
+                name: 'openSUSE-42',
+                path: wslShellPathWindows + 'openSUSE-42.exe',
+              })
+            }
+
+            if (wslShellNames.search('SLES-12') != -1) {
+              shells.push({
+                shell: Shell.WslSLES,
+                name: 'SLES-12',
+                path: wslShellPathWindows + 'SLES-12.exe',
+              })
+            }
+
+            if (wslShellNames.search('Ubuntu') != -1) {
+              shells.push({
+                shell: Shell.WslUbuntu,
+                name: 'ubuntu',
+                path: wslShellPathWindows + 'ubuntu.exe',
+              })
+            }
+          }
+        }
+      }
+
+      resolve(shells)
+    })
+  })
+
+  return await promise
+}
+
+async function findWslBashShells(): Promise<ReadonlyArray<
+  IFoundShell<Shell>
+> | null> {
+  //check windows version numbers
+  const windowsVersion = enumerateValues(
+    HKEY.HKEY_LOCAL_MACHINE,
+    'SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion'
+  )
+
+  if (windowsVersion.length === 0) {
+    log.debug(`Wsl Bash registry entry for windows version does not exist`)
+    return null
+  } else {
+    //https://msdn.microsoft.com/en-us/library/windows/desktop/ms724832%28v=vs.85%29.aspx?f=255&MSPPError=-2147217396
+    const majorVersion = windowsVersion.find(
+      e => e.name === 'CurrentMajorVersionNumber'
+    )
+    //https://en.wikipedia.org/wiki/Windows_10_version_history
+    const releaseId = windowsVersion.find(e => e.name === 'ReleaseId')
+
+    const minReleaseId = 1507
+    const windowsMajorVersion = 10
+    //can check range of release id values to determine exact windows 10 version maxReleaseId will likely increase
+    //breaking this check
+    if (
+      majorVersion &&
+      majorVersion.type == RegistryValueType.REG_DWORD &&
+      majorVersion.data != windowsMajorVersion &&
+      releaseId &&
+      releaseId.type == RegistryValueType.REG_SZ &&
+      parseInt(releaseId.data, 10) > minReleaseId
+    ) {
+      return null
+    }
+  }
+
+  //check the registry key exists (i.e. its installed)
+  const registryPath = enumerateValues(
+    HKEY.HKEY_LOCAL_MACHINE,
+    'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Component Based Servicing\\Notifications\\OptionalFeatures\\Microsoft-Windows-Subsystem-Linux'
+  )
+
+  if (registryPath.length === 0) {
+    log.debug(`Wsl Bash registry entry does not exist`)
+    return null
+  }
+
+  return await findWslBashShellsCommandLine()
+}
+
 export function launch(
   foundShell: IFoundShell<Shell>,
   path: string
@@ -250,6 +410,43 @@ export function launch(
       })
     case Shell.Cmd:
       return spawn('START', ['cmd'], { shell: true, cwd: path })
+    case Shell.WslBash:
+      log.info(`launching ${foundShell}`)
+      return spawn('START', ['wsl'], {
+        shell: true,
+        cwd: path,
+      })
+    case Shell.WslUbuntu:
+      log.info(`launching ${foundShell} at path: ${foundShell.path}`)
+      return spawn('START', ['ubuntu'], {
+        shell: true,
+        cwd: path,
+      })
+    case Shell.WslSLES:
+      log.info(`launching ${foundShell} at path: ${foundShell.path}`)
+      return spawn('START', ['sles-12'], {
+        shell: true,
+        cwd: path,
+      })
+    case Shell.WslDebian:
+      log.info(`launching ${foundShell} at path: ${foundShell.path}`)
+      return spawn('START', ['debian'], {
+        shell: true,
+        cwd: path,
+      })
+    case Shell.WslKali:
+      log.info(`launching ${foundShell} at path: ${foundShell.path}`)
+      return spawn('START', ['kali'], {
+        shell: true,
+        cwd: path,
+      })
+    case Shell.WslOpenSuse42:
+      log.info(`launching ${foundShell} at path: ${foundShell.path}`)
+      return spawn('START', ['opensuse-42'], {
+        shell: true,
+        cwd: path,
+      })
+
     default:
       return assertNever(shell, `Unknown shell: ${shell}`)
   }
