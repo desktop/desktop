@@ -27,3 +27,4 @@ export type MenuEvent =
   | 'install-cli'
   | 'open-external-editor'
   | 'select-all'
+  | 'quit'

@@ -99,7 +99,12 @@ export function buildDefaultMenu(
         click: emit('show-preferences'),
       },
       separator,
-      { role: 'quit' }
+      {
+        label: 'E&xit',
+        id: 'exit',
+        accelerator: 'Alt+F4',
+        click: emit('quit'),
+      }
     )
   }
 
