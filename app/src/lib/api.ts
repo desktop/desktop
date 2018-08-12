@@ -374,6 +374,12 @@ export class API {
       return await parsedResponse<IAPIRepository>(response)
     } catch (e) {
       if (e instanceof APIError) {
+        const orgsList: ReadonlyArray<IAPIUser> | null = await this.fetchOrgs()
+        if (orgsList && org) {
+          if (orgsList.indexOf(org) === -1) {
+            throw new Error(`Organization "${org.login}" Not Found`)
+          }
+        }
         throw e
       }
 
