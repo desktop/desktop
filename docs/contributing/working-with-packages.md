@@ -35,14 +35,17 @@ To see which packages have newer versions available:
 > yarn outdated
 ```
 
-To upgrade a package:
+To upgrade a package to it's latest version:
+
+```sh
+> yarn upgrade --latest [package-name]
+```
+
+To upgrade a package to a speific version (or [version range](https://docs.npmjs.com/misc/semver#x-ranges-12x-1x-12-)):
 
 ```sh
 > yarn upgrade [package-name]@[version]
 ```
-
-You don't _need_ to specify the version here, but this ensures the change is
-reflected in the `package.json` file.
 
 ### Removing packages
 

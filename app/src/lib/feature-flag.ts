@@ -34,10 +34,10 @@ export function enableMergeTool(): boolean {
 
 /** Should the Notification of Diverging From Default Branch (NDDB) feature be enabled? */
 export function enableNotificationOfBranchUpdates(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 /** Should the repository list display info indicators? */
 export function enableRepoInfoIndicators(): boolean {
-  return enableBetaFeatures()
+  return true
 }
