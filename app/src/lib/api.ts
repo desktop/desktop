@@ -375,7 +375,11 @@ export class API {
     } catch (e) {
       if (e instanceof APIError) {
         if (org !== null) {
-          throw new Error(`Organization "${org.login}" Not Found`)
+          throw new Error(
+            `Unable to create repository for organization '${
+              org.login
+            }'. Verify it exists and that you have permission to create a repository there.`
+          )
         }
         throw e
       }
