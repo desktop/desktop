@@ -818,7 +818,7 @@ export class Dispatcher {
           const user = await requestAuthenticatedUser(action.code)
           if (user) {
             resolveOAuthRequest(user)
-          } else {
+          } else if (user === null) {
             rejectOAuthRequest(new Error('Unable to fetch authenticated user.'))
           }
         } catch (e) {

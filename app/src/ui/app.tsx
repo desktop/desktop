@@ -90,12 +90,15 @@ import { MergeConflictsWarning } from './merge-conflicts'
 import { AppTheme } from './app-theme'
 import { ApplicationTheme } from './lib/application-theme'
 
+const MinuteInMilliseconds = 1000 * 60
+
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
 
 const SendStatsInterval = 1000 * 60 * 60 * 4
 
-const updateRepoInfoInterval = 1000 * 60 * 15
+const InitialRepositoryIndicatorTimeout = 2 * MinuteInMilliseconds
+const UpdateRepositoryIndicatorInterval = 15 * MinuteInMilliseconds
 
 interface IAppProps {
   readonly dispatcher: Dispatcher
@@ -122,6 +125,8 @@ export class App extends React.Component<IAppProps, IAppState> {
    * keyup and keydown.
    */
   private lastKeyPressed: string | null = null
+
+  private updateIntervalHandle?: number
 
   /**
    * Gets a value indicating whether or not we're currently showing a
@@ -152,9 +157,15 @@ export class App extends React.Component<IAppProps, IAppState> {
         { timeout: ReadyDelay }
       )
 
-      window.setInterval(() => {
-        this.props.appStore.refreshAllIndicators()
-      }, updateRepoInfoInterval)
+      const initialTimeout = window.setTimeout(async () => {
+        window.clearTimeout(initialTimeout)
+
+        await this.props.appStore.refreshAllIndicators()
+
+        this.updateIntervalHandle = window.setInterval(() => {
+          this.props.appStore.refreshAllIndicators()
+        }, UpdateRepositoryIndicatorInterval)
+      }, InitialRepositoryIndicatorTimeout)
     })
 
     this.state = props.appStore.getState()
@@ -221,6 +232,10 @@ export class App extends React.Component<IAppProps, IAppState> {
         })
       }
     )
+  }
+
+  public componentWillUnmount() {
+    window.clearInterval(this.updateIntervalHandle)
   }
 
   private performDeferredLaunchActions() {
