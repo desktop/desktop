@@ -50,6 +50,7 @@ interface ICommitMessageProps {
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
   readonly isCommitting: boolean
   readonly fileName: string
+  readonly oneFileCommit: boolean
 
   /**
    * Whether or not to show a field for adding co-authors to
@@ -265,7 +266,7 @@ export class CommitMessage extends React.Component<
   }
 
   private canCommit(): boolean {
-    return this.props.anyFilesSelected && this.state.summary.length > 0
+    return (this.props.anyFilesSelected && this.state.summary.length > 0) || this.props.oneFileCommit
   }
 
   private onKeyDown = (event: React.KeyboardEvent<Element>) => {
