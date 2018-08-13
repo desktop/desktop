@@ -43,6 +43,8 @@ export class DeleteBranch extends React.Component<
         title={__DARWIN__ ? 'Delete Branch' : 'Delete branch'}
         type="warning"
         onDismissed={this.props.onDismissed}
+        disabled={this.state.isDeleting}
+        loading={this.state.isDeleting}
       >
         <DialogContent>
           <p>
@@ -55,12 +57,7 @@ export class DeleteBranch extends React.Component<
         <DialogFooter>
           <ButtonGroup destructive={true}>
             <Button type="submit">Cancel</Button>
-            <Button
-              onClick={this.deleteBranch}
-              disabled={this.state.isDeleting}
-            >
-              Delete
-            </Button>
+            <Button onClick={this.deleteBranch}>Delete</Button>
           </ButtonGroup>
         </DialogFooter>
       </Dialog>
