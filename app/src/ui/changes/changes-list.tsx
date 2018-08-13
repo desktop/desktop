@@ -127,7 +127,7 @@ function getSelectedRowsFromProps(
 export class ChangesList extends React.Component<
   IChangesListProps,
   IChangesState
-  > {
+> {
   public constructor(props: IChangesListProps) {
     super(props)
     this.state = {
@@ -410,7 +410,11 @@ export class ChangesList extends React.Component<
           isCommitting={this.props.isCommitting}
           showCoAuthoredBy={this.props.showCoAuthoredBy}
           coAuthors={this.props.coAuthors}
-          fileName={singleFileCommit ? `Update ${filesSelected[0].path}` : "Summary (required)"}
+          fileName={
+            singleFileCommit
+              ? `Update ${filesSelected[0].path}`
+              : 'Summary (required)'
+          }
           singleFileCommit={singleFileCommit}
         />
       </div>
