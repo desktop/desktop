@@ -94,7 +94,6 @@ import {
   getBranchAheadBehind,
   createCommit,
   checkoutBranch,
-  getDefaultRemote,
   formatAsLocalRef,
   getMergeBase,
   getRemotes,
@@ -2294,7 +2293,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private async matchGitHubRepository(
     repository: Repository
   ): Promise<IMatchedGitHubRepository | null> {
-    const remote = await getDefaultRemote(repository)
+    const gitStore = this.getGitStore(repository)
+    const remote = gitStore.defaultRemote
     return remote ? matchGitHubRepository(this.accounts, remote.url) : null
   }
 
@@ -3819,13 +3819,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
       head.gitHubRepository.cloneURL === gitHubRepository.cloneURL
 
     if (isRefInThisRepo) {
-      const defaultRemote = await getDefaultRemote(repository)
+      const gitStore = this.getGitStore(repository)
+      const defaultRemote = gitStore.defaultRemote
       // if we don't have a default remote here, it's probably going
       // to just crash and burn on checkout, but that's okay
       if (defaultRemote != null) {
         // the remote ref will be something like `origin/my-cool-branch`
         const remoteRef = `${defaultRemote.name}/${head.ref}`
-        const gitStore = this.getGitStore(repository)
 
         const remoteRefExists =
           gitStore.allBranches.find(branch => branch.name === remoteRef) != null
