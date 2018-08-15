@@ -7,7 +7,7 @@
   "scripts": {
     "cli": "ts-node --require ./app/test/globals.ts --require ./app/src/cli/dev-commands-global.ts app/src/cli/main.ts",
     "test:integration": "cross-env TEST_ENV=1 ELECTRON_NO_ATTACH_CONSOLE=1 xvfb-maybe --auto-servernum -- mocha -t 30000 --require ts-node/register app/test/integration/*.ts",
-    "test:unit": "yarn cross-env TEST_ENV=1 NODE_ENV=test mocha -t 1000 --require ts-node/register --require app/test/globals.ts 'app/test/unit/**/*.ts{,x}'",
+    "test:unit": "yarn cross-env TEST_ENV=1 mocha -t 1000 --require ts-node/register --require app/test/globals.ts --require app/test/helpers/mocking.ts 'app/test/unit/**/*.ts{,x}'",
     "test:script": "mocha -t 10000 --require ts-node/register script/changelog/test/*.ts",
     "test": "yarn test:unit && yarn test:script && yarn test:integration",
     "test:setup": "ts-node -P script/tsconfig.json script/test-setup.ts",
@@ -136,6 +136,7 @@
     "@types/react-virtualized": "^9.7.12",
     "@types/request": "^2.0.9",
     "@types/semver": "^5.5.0",
+    "@types/sinon": "^5.0.1",
     "@types/strip-ansi": "^3.0.0",
     "@types/temp": "^0.8.29",
     "@types/textarea-caret": "^3.0.0",
@@ -154,6 +155,10 @@
     "electron-builder": "20.19.2",
     "electron-mocha": "^6.0.1",
     "electron-packager": "^12.0.0",
-    "electron-winstaller": "2.5.2"
+    "electron-winstaller": "2.5.2",
+    "jsdom": "^11.12.0",
+    "jsdom-global": "^3.0.2",
+    "rewiremock": "^3.7.7",
+    "sinon": "^6.1.5"
   }
 }
