@@ -18,6 +18,7 @@ export enum ExternalEditor {
   VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
   SublimeText = 'Sublime Text',
   CFBuilder = 'ColdFusion Builder',
+  EmEditor = 'EmEditor'
 }
 
 export function parse(label: string): ExternalEditor | null {
@@ -35,6 +36,9 @@ export function parse(label: string): ExternalEditor | null {
   }
   if (label === ExternalEditor.CFBuilder) {
     return ExternalEditor.CFBuilder
+  }
+  if (label === ExternalEditor.EmEditor) {
+    return ExternalEditor.EmEditor
   }
 
   return null
@@ -113,7 +117,21 @@ function getRegistryKeys(
             'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Adobe ColdFusion Builder 2016',
         },
       ]
-
+    case ExternalEditor.EmEditor:
+      return [
+        // 64-bit version of EmEditor
+        {
+          key: HKEY.HKEY_LOCAL_MACHINE,
+          subKey:
+            'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{D03753CD-7F12-4281-9709-DDE30EFF8D6D}',
+        },
+        // 32-bit version of EmEditor - TODO: Find registry
+        {
+          key: HKEY.HKEY_LOCAL_MACHINE,
+          subKey:
+            'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{FFA9716C-7FBB-4B4F-8130-58658D3D15FE}',
+        },
+      ]
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -140,6 +158,8 @@ function getExecutableShim(
       return Path.join(installLocation, 'subl.exe')
     case ExternalEditor.CFBuilder:
       return Path.join(installLocation, 'CFBuilder.exe')
+    case ExternalEditor.EmEditor:
+      return Path.join(installLocation, 'EmEditor.exe')
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -180,6 +200,10 @@ function isExpectedInstallation(
           displayName === 'Adobe ColdFusion Builder 2016') &&
         publisher === 'Adobe Systems Incorporated'
       )
+    case ExternalEditor.EmEditor:
+      return (
+        (displayName === 'EmEditor (32-bit)' || displayName === 'EmEditor (64-bit)') && publisher === 'Emurasoft, Inc.'
+      )
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -212,7 +236,8 @@ function extractApplicationInformation(
 
   if (
     editor === ExternalEditor.VisualStudioCode ||
-    editor === ExternalEditor.VisualStudioCodeInsiders
+    editor === ExternalEditor.VisualStudioCodeInsiders ||
+    editor === ExternalEditor.EmEditor
   ) {
     const displayName = getKeyOrEmpty(keys, 'DisplayName')
     const publisher = getKeyOrEmpty(keys, 'Publisher')
@@ -314,12 +339,14 @@ export async function getAvailableEditors(): Promise<
     codeInsidersPath,
     sublimePath,
     cfBuilderPath,
+    emEditorPath,
   ] = await Promise.all([
     findApplication(ExternalEditor.Atom),
     findApplication(ExternalEditor.VisualStudioCode),
     findApplication(ExternalEditor.VisualStudioCodeInsiders),
     findApplication(ExternalEditor.SublimeText),
     findApplication(ExternalEditor.CFBuilder),
+    findApplication(ExternalEditor.EmEditor),
   ])
 
   if (atomPath) {
@@ -354,6 +381,13 @@ export async function getAvailableEditors(): Promise<
     results.push({
       editor: ExternalEditor.CFBuilder,
       path: cfBuilderPath,
+    })
+  }
+
+  if (emEditorPath) {
+    results.push({
+      editor: ExternalEditor.EmEditor,
+      path: emEditorPath,
     })
   }
 
