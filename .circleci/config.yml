@@ -34,9 +34,7 @@ jobs:
             - ~/.electron
       - run:
           name: Lint and validate changelog
-          command: |
-            yarn lint
-            yarn validate-changelog
+          command: yarn lint && yarn validate-changelog
       - run:
           name: Build
           command: yarn build:prod
