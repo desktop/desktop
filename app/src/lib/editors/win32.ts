@@ -64,13 +64,13 @@ function getRegistryKeys(
       return [
         // 64-bit version of VSCode (user) - provided by default in 64-bit Windows
         {
-          key: HKEY.HKEY_LOCAL_MACHINE,
+          key: HKEY.HKEY_CURRENT_USER,
           subKey:
             'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{771FD6B0-FA20-440A-A002-3B3BAC16DC50}_is1',
         },
         // 32-bit version of VSCode (user)
         {
-          key: HKEY.HKEY_LOCAL_MACHINE,
+          key: HKEY.HKEY_CURRENT_USER,
           subKey:
             'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{D628A17A-9713-46BF-8D57-E671B46A741E}_is1',
         },
@@ -91,13 +91,13 @@ function getRegistryKeys(
       return [
         // 64-bit version of VSCode (user) - provided by default in 64-bit Windows
         {
-          key: HKEY.HKEY_LOCAL_MACHINE,
+          key: HKEY.HKEY_CURRENT_USER,
           subKey:
             'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{217B4C08-948D-4276-BFBB-BEE930AE5A2C}_is1',
         },
         // 32-bit version of VSCode (user)
         {
-          key: HKEY.HKEY_LOCAL_MACHINE,
+          key: HKEY.HKEY_CURRENT_USER,
           subKey:
             'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{26F4A15E-E392-4887-8C09-7BC55712FD5B}_is1',
         },
