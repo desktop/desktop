@@ -160,7 +160,7 @@ If you don't have the app for `beta`, for example, you can always download the p
 
 ### 6. Check Error Reporting
 
-If an error occurs during the release process, a needle will be reported to Central's [Haystack](https://haystack.githubapp.com/central).
+If an error occurs during the release process, a needle will be reported to Central's [Haystack](https://haystack.githubapp.com/desktop).
 
 It is normal to monitor Haystack closely for 15 minutes just to make sure.
 
