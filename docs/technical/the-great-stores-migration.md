@@ -1,9 +1,27 @@
 # Organizing Desktop's Store Interactions For Great Good
 
-I've been pondering on what to do with our `AppStore` and other stores given
-their importance to Desktop and has grown in size significantly over time.
+I've been pondering on what to do with our representations of stores in the
+codebase, given these components are important to how data flow through the app.
 
-Concerns:
+## Scope
+
+This document is focused on:
+
+ - `AppStore` - the core component for managing state and dispatching actions
+ - `GitStore` - a per-repository cache that also performs Git operations
+ - `AccountsStore` - a backing store for managing and persisting accounts tracked in the app
+ - `RepositoriesStore` - a backing store for managing and persisting repositories tracked in the app
+ - `IssuesStore` - backing store for refreshing and caching open GitHub issues for each repository
+ - `PullRequestsStore` - backing store for refreshing and caching open GitHub pull requests for each repository
+ - `CloningRepositoriesStore` - component for tracking repository clones in the app
+ - `EmojiStore` - contains emoji lookup for use in UI components
+ - `GitHubUserStore` - backing store for refreshing and caching GitHub collaborators for each repository
+ - `SignInStore` - component for tracking user sign-in state in the UI
+ - `RepositorySettingsStore` -
+ - `TokenStore` - used by `AccountStore` to tidy up credentials, but mostly used
+   for authenticating Git operations
+
+## Concerns
 
  - we've used `Store` as a general term for components that don't manage
    application state
@@ -42,6 +60,9 @@ I've identified:
     dispatcher events
     - `StatsStore` -> `StatsReporter` - this component does not touch
     application state, and it's actions can be considered side effects.
+    - replace `RepositorySettingsStore` with a module containing it's
+    functionality, as the component does not raise state changes. These
+    functions can be moved closer to the components that need it for now.
 
 ### Stage 2 - Review and organize `IAppState` shape
 
