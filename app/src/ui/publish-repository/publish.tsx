@@ -243,5 +243,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
     // set of orgs.
     const settings = { ...this.state.publishSettings, org: null }
     this.setState({ currentTab: index, publishSettings: settings })
+    // Clear any errors now that the context has been changed.
+    this.setState({ error: null })
   }
 }
