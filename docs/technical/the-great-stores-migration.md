@@ -45,8 +45,11 @@ I've identified:
 
 ### Stage 2 - Review and organize `IAppState` shape
 
-The current shape of `IAppState` is relatively flat, and it'd be interesting to see if we can organize some of the existing fields into
-more meaningful objects that reflect the structure of the application. This should help us identify actions and reducers that perform similar things if we continue down the `redux` path.
+The current shape of `IAppState` is relatively flat, and it'd be interesting to
+see if we can organize some of the existing fields into more meaningful objects
+that reflect the structure of the application. This should help us identify
+actions and reducers that perform similar things if we continue down the `redux`
+path.
 
 Some ideas:
 
@@ -99,6 +102,10 @@ This has a few benefits:
  have to setup the `AppStore` into the right state
  - **readability** - by extracting code into functions with meaningful names,
  the flow of data in `AppStore` becomes easier to reason about
+
+At this point we're still not into shaping our code to fit the `redux` pattern,
+but decomposing `AppStore` to extract functions might help us uncover candidates
+for the next stage.
 
 ### Stage 4 - Introduce `redux` to handle some dispatcher work
 
