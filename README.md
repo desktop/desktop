@@ -45,7 +45,7 @@ beta channel to get access to early builds of Desktop:
 
 ## I have a problem with GitHub Desktop
 
-Please read and observe the [GitHub Desktop Code of Conduct](https://github.com/desktop/desktop/blob/master/CODE_OF_CONDUCT.md) in all interactions.
+Note: The [GitHub Desktop Code of Conduct](https://github.com/desktop/desktop/blob/master/CODE_OF_CONDUCT.md) applies in all interactions relating to the GitHub Desktop project.
 
 First, please search the [open issues](https://github.com/desktop/desktop/issues?q=is%3Aopen)
 and [closed issues](https://github.com/desktop/desktop/issues?q=is%3Aclosed)
