@@ -17,7 +17,7 @@ This document is focused on:
  - `EmojiStore` - contains emoji lookup for use in UI components
  - `GitHubUserStore` - backing store for refreshing and caching GitHub collaborators for each repository
  - `SignInStore` - component for tracking user sign-in state in the UI
- - `RepositorySettingsStore` -
+ - `RepositorySettingsStore` - backing store for repository-specific settings
  - `TokenStore` - used by `AccountStore` to tidy up credentials, but mostly used
    for authenticating Git operations
 
