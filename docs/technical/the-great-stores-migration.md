@@ -35,8 +35,14 @@ We've talked about migrating over to use Redux or a similar library for managing
 state, rather than our hand-rolled solution, but there's a few questions I have
 that I'm actively thinking about:
 
- - decomposing a large application into many actions and reducers feels like
-   moving too far in the abstraction
+ - decomposing a large application into many actions and reducers might end up
+   with an excess of abstraction that is difficult to navigate in it's own way
+ - can we settle on a pattern that feels natural for how Desktop is structured,
+   rather than fighting with a pattern that doesn't fit?
+ - can we use this transition to make it easier for others to roll out features
+   that use application state in a reliable and consistent fashion?
+ - can we ensure this process doesn't result in a slower app when it comes to
+   interaction in the app?
 
 ## Roadmap
 
