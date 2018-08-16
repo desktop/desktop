@@ -1,5 +1,7 @@
 {
   "releases": {
+    "1.3.4-beta0": [
+    ],
     "1.3.3": [
       "[Fixed] Maximize and restore app on Windows does not fill available space - #5033",
       "[Fixed] 'Clone repository' menu item label is obscured on Windows - #5348. Thanks @Daniel-McCarthy!",
