@@ -66,7 +66,11 @@ function getBinPath(): string {
 
 function resolveVersionedPath(binPath: string, relativePath: string): string {
   const appFolder = Path.resolve(process.execPath, '..')
-  return Path.relative(binPath, Path.join(appFolder, relativePath))
+  const computedPath = Path.relative(
+    binPath,
+    Path.join(appFolder, relativePath)
+  )
+  return Path.normalize(computedPath)
 }
 
 /**
