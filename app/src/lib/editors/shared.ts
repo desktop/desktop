@@ -2,7 +2,10 @@ import * as Darwin from './darwin'
 import * as Win32 from './win32'
 import * as Linux from './linux'
 
-export type ExternalEditor = Darwin.ExternalEditor | Win32.ExternalEditor
+export type ExternalEditor =
+  | Darwin.ExternalEditor
+  | Win32.ExternalEditor
+  | Linux.ExternalEditor
 
 /** Parse the label into the specified shell type. */
 export function parse(label: string): ExternalEditor | null {
