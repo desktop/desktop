@@ -69,6 +69,8 @@ I've identified:
     dispatcher events
     - `StatsStore` -> `StatsReporter` - this component does not touch
     application state, and it's actions can be considered side effects.
+    - `IssuesStore` -> `IssuesCache` - this component does not touch
+    application state or emit updates
     - replace `RepositorySettingsStore` with a module containing it's
     functionality, as the component does not raise state changes. These
     functions can be moved closer to the components that need it for now.
@@ -86,7 +88,7 @@ path.
 
 Some ideas:
 
- - a `preferences` hash containing settings that the user controls
+ - a `preferences` hash containing settings that the user manages
 
 ```ts
 {
