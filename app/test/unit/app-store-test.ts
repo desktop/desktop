@@ -37,7 +37,7 @@ import { Commit } from '../../src/models/commit'
 import { getCommit } from '../../src/lib/git'
 import { TestActivityMonitor } from '../helpers/test-activity-monitor'
 
-describe.skip('AppStore', () => {
+describe('AppStore', () => {
   async function createAppStore(): Promise<AppStore> {
     const db = new TestGitHubUserDatabase()
     await db.reset()

@@ -5,7 +5,7 @@ import { TestStatsDatabase } from '../helpers/databases'
 import { StatsStore } from '../../src/lib/stats'
 import { TestActivityMonitor } from '../helpers/test-activity-monitor'
 
-describe.skip('StatsStore', () => {
+describe('StatsStore', () => {
   async function createStatsDb() {
     const statsDb = new TestStatsDatabase()
     await statsDb.reset()

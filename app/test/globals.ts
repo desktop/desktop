@@ -1,6 +1,10 @@
 import { use } from 'chai'
 use(require('chai-datetime'))
 
+const Dexie = require('dexie')
+Dexie.dependencies.indexedDB = require('fake-indexeddb')
+Dexie.dependencies.IDBKeyRange = require('fake-indexeddb/lib/FDBKeyRange')
+
 // These constants are defined by Webpack at build time, but since tests aren't
 // built with Webpack we need to make sure these exist at runtime.
 const g: any = global
