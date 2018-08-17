@@ -30,6 +30,9 @@ This document is focused on:
  - some `AppStore` methods have organically grown over time to be complex and
    hard to understand
  - some `AppStore` methods update repository state, others update the root state
+ - `AppStore` does a mixture of explicit git operations and calling methods
+   on `GitStore` - we should clarify which approach is preferred here and try
+   to adhere to it
 
 We've talked about migrating over to use Redux or a similar library for managing
 state, rather than our hand-rolled solution, but there's a few questions I have
@@ -46,10 +49,10 @@ that I'm actively thinking about:
 
 ## Roadmap
 
-I'm going to break this up into a number of stages, where the most obvious tasks
-is early on, and the latter tasks are less clear currently. We're also breaking
-this up into numerous stages and tasks so we can ship improvements
-incrementally, rather than a massive PR that changes the world.
+This is broken up into numerous stages, where the most obvious tasks are early
+on, and the latter tasks are less clear currently. We're also breaking this up
+into numerous stages and tasks so we can ship improvements incrementally,
+rather than a massive PR that changes the world.
 
 ### Stage 1 - Tidy Up
 
@@ -69,6 +72,9 @@ I've identified:
     - replace `RepositorySettingsStore` with a module containing it's
     functionality, as the component does not raise state changes. These
     functions can be moved closer to the components that need it for now.
+ - decompose `app-state.ts` into separate code files - the source is over 700
+   lines of interfaces, and breaking this up into separate files around what
+   they represent.
 
 ### Stage 2 - Review and organize `IAppState` shape
 
