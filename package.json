@@ -34,7 +34,7 @@
     "eslint": "ts-node -P script/tsconfig.json script/eslint.ts",
     "eslint-check": "eslint --print-config .eslintrc.* | eslint-config-prettier-check",
     "publish": "ts-node -P script/tsconfig.json script/publish.ts",
-    "clean-slate": "rimraf out node_modules app/node_modules && yarn",
+    "clean-slate": "rimraf out node_modules app/node_modules coverage && yarn",
     "rebuild-hard:dev": "yarn clean-slate && yarn build:dev",
     "rebuild-hard:prod": "yarn clean-slate && yarn build:prod",
     "changelog": "ts-node script/changelog/index.ts",
