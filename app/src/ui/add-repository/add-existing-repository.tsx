@@ -3,6 +3,7 @@ import * as React from 'react'
 
 import { Dispatcher } from '../../lib/dispatcher'
 import { isGitRepository } from '../../lib/git'
+import { checkIfRepositoryIsBare } from '../../lib/git'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { TextBox } from '../lib/text-box'
@@ -48,6 +49,7 @@ interface IAddExistingRepositoryState {
    * flickering for our users as they type in a path.
    */
   readonly showNonGitRepositoryWarning: boolean
+  readonly isBareRepository: boolean
 }
 
 /** The component for adding an existing local repository. */
@@ -64,6 +66,7 @@ export class AddExistingRepository extends React.Component<
       path,
       isRepository: false,
       showNonGitRepositoryWarning: false,
+      isBareRepository: false,
     }
   }
 
@@ -82,12 +85,31 @@ export class AddExistingRepository extends React.Component<
       return
     }
 
+    const isBare = await checkIfRepositoryIsBare(this.state.path)
+    if (isBare !== null && isBare === true) {
+      this.setState({ isBareRepository: true })
+      return
+    }
+
     this.setState({ isRepository, showNonGitRepositoryWarning: !isRepository })
+    this.setState({ isBareRepository: false })
   }
 
   private renderWarning() {
     if (!this.state.path.length || !this.state.showNonGitRepositoryWarning) {
       return null
+    }
+
+    if (this.state.isBareRepository) {
+      return (
+        <Row className="warning-helper-text">
+          <Octicon symbol={OcticonSymbol.alert} />
+          <p>
+            This directory appears to be a bare repository. Bare repositories
+            are not currently supported.
+          </p>
+        </Row>
+      )
     }
 
     return (
@@ -107,7 +129,10 @@ export class AddExistingRepository extends React.Component<
   }
 
   public render() {
-    const disabled = this.state.path.length === 0 || !this.state.isRepository
+    const disabled =
+      this.state.path.length === 0 ||
+      !this.state.isRepository ||
+      this.state.isBareRepository
 
     return (
       <Dialog
@@ -158,11 +183,18 @@ export class AddExistingRepository extends React.Component<
 
     const path = directory[0]
     const isRepository = await isGitRepository(path)
+    const isBareRepositoryResult = await checkIfRepositoryIsBare(path)
+    let isBareRepository: boolean = false
+
+    if (isBareRepositoryResult !== null) {
+      isBareRepository = isBareRepositoryResult
+    }
 
     this.setState({
       path,
       isRepository,
-      showNonGitRepositoryWarning: !isRepository,
+      showNonGitRepositoryWarning: !isRepository || isBareRepository,
+      isBareRepository,
     })
   }
 
