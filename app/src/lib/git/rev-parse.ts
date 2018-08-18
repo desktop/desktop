@@ -52,6 +52,32 @@ export async function getTopLevelWorkingDirectory(
   return Path.resolve(path, relativePath)
 }
 
+export async function checkIfRepositoryIsBare(
+  path: string
+): Promise<boolean | null> {
+  let result
+
+  try {
+    result = await git(
+      ['rev-parse', '--is-bare-repository'],
+      path,
+      'checkIfRepositoryIsBare'
+    )
+  } catch (e) {
+    if (e.message.includes('not a git repository')) {
+      return null
+    }
+
+    throw e
+  }
+
+  if (result === null) {
+    return null
+  } else {
+    return result.stdout === 'true\n'
+  }
+}
+
 /** Is the path a git repository? */
 export async function isGitRepository(path: string): Promise<boolean> {
   return (await getTopLevelWorkingDirectory(path)) !== null
