@@ -33,6 +33,10 @@ This document is focused on:
  - `AppStore` does a mixture of explicit git operations and calling methods
    on `GitStore` - we should clarify which approach is preferred here and try
    to adhere to it
+ - the `Dispatcher` and stores live under `app/src/lib` which suggests they can
+   be used anywhere, but there are some indirect dependencies that only the renderer
+   process offers (IndexedDB access, Electron APIs), and also overlooks that these
+   are coupled to the application infrastructure.
 
 We've talked about migrating over to use Redux or a similar library for managing
 state, rather than our hand-rolled solution, but there's a few questions I have
