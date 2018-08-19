@@ -9,6 +9,7 @@ module.exports = {
     '<rootDir>/app/test/globals.ts',
     '<rootDir>/app/test/unit-test-env.ts',
   ],
+  setupTestFrameworkScriptFile: '<rootDir>/app/test/setup-test-framework.ts',
   collectCoverageFrom: [
     '**/*.{js,jsx,ts,tsx}',
     '!**/node_modules/**',
