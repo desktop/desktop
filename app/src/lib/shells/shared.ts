@@ -23,9 +23,9 @@ export const Default = (function() {
 
 let shellCache: ReadonlyArray<FoundShell> | null = null
 
-export function preProcessShellData() {
+export async function preProcessShellData() {
   if (__WIN32__) {
-    return Win32.preProcessShellData()
+    return await Win32.preProcessShellData()
   }
 }
 

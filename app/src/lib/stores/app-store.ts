@@ -1449,7 +1449,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const shellValue = localStorage.getItem(shellKey)
-    preProcessShellData()
+    await preProcessShellData()
     this.selectedShell = shellValue
       ? await parseShell(shellValue)
       : DefaultShell

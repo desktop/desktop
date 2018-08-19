@@ -1,4 +1,4 @@
-import { spawn, ChildProcess } from 'child_process'
+import { spawn, ChildProcess, execSync } from 'child_process'
 import * as Path from 'path'
 import { enumerateValues, HKEY, RegistryValueType } from 'registry-js'
 import { pathExists } from 'fs-extra'
@@ -19,8 +19,8 @@ const WslShells: Array<IFoundShell<Shell>> = []
 
 export const Default: string = Shell.Cmd
 
-export function preProcessShellData() {
-  // enumerateWslShellNames()
+export async function preProcessShellData() {
+  await enumerateWslShellNames()
 }
 
 export function parse(label: string): string {
@@ -250,74 +250,78 @@ async function findGitBash(): Promise<string | null> {
   return null
 }
 
-// function enumerateWslShellNames() {
-//   const hkeyCurrentUser = 'HKEY_CURRENT_USER'
-//   const keyPath = `${hkeyCurrentUser}\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Lxss`
-//   // forced to used reg.exe to enumerate folder names as registry-js doesnt support folders
-//   const buffer = execSync(`reg query ${keyPath}`)
+async function processKeys(keys: string[]): Promise<void> {
+  keys.forEach(async function(key) {
+    const path = enumerateValues(HKEY.HKEY_CURRENT_USER, key)
 
-//   if (buffer) {
-//     const wslKeys: string[] = []
-//     const strData = buffer.toString()
-//     const splitData = strData.split('\n')
-//     if (splitData) {
-//       for (let i = 0; i < splitData.length; i++) {
-//         const str = splitData[i]
+    if (path) {
+      const distributionName = path.find(e => e.name === 'DistributionName')
+      const basePath = path.find(e => e.name === 'BasePath')
 
-//         if (str.search('DefaultDistribution') !== -1) {
-//           continue
-//         }
+      if (
+        basePath &&
+        basePath.type === RegistryValueType.REG_SZ &&
+        distributionName &&
+        distributionName.type === RegistryValueType.REG_SZ
+      ) {
+        const path = Path.join(
+          `${basePath.data}`,
+          `${distributionName.data}${'.exe'}`
+        )
 
-//         if (str.search('{') !== -1 && str.search('}') !== -1) {
-//           let key = str.replace(`${hkeyCurrentUser}\\`, '')
-//           key = key.replace('\r', '')
-//           wslKeys.push(key)
-//         }
-//       }
-//     }
+        if (await pathExists(path)) {
+          WslShells.push({
+            shell: Shell.WslBash,
+            name: `WSL Bash (${distributionName.data})`,
+            path: path,
+          })
+        } else {
+          const defaultInstallPath = Path.join(
+            process.env.HOME + '\\AppData\\Local\\Microsoft\\WindowsApps\\',
+            distributionName.data + '.exe'
+          )
+          if (await pathExists(defaultInstallPath)) {
+            WslShells.push({
+              shell: Shell.WslBash,
+              name: `WSL Bash (${distributionName.data})`,
+              path: defaultInstallPath,
+            })
+          }
+        }
+      }
+    }
+  })
+}
 
-//     wslKeys.forEach(function(key) {
-//       const path = enumerateValues(HKEY.HKEY_CURRENT_USER, key)
+async function enumerateWslShellNames() {
+  const hkeyCurrentUser = 'HKEY_CURRENT_USER'
+  const keyPath = `${hkeyCurrentUser}\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Lxss`
+  // forced to used reg.exe to enumerate folder names as registry-js doesnt support folders
+  const buffer = execSync(`reg query ${keyPath}`)
 
-//       if (path) {
-//         const distributionName = path.find(e => e.name === 'DistributionName')
-//         const basePath = path.find(e => e.name === 'BasePath')
+  if (buffer) {
+    const wslKeys: string[] = []
+    const strData = buffer.toString()
+    const splitData = strData.split('\n')
+    if (splitData) {
+      for (let i = 0; i < splitData.length; i++) {
+        const str = splitData[i]
 
-//         if (
-//           basePath &&
-//           basePath.type === RegistryValueType.REG_SZ &&
-//           distributionName &&
-//           distributionName.type === RegistryValueType.REG_SZ
-//         ) {
-//           const path = Path.join(
-//             `${basePath.data}`,
-//             `${distributionName.data}${'.exe'}`
-//           )
+        if (str.search('DefaultDistribution') !== -1) {
+          continue
+        }
 
-//           if (pathExistsSync(path)) {
-//             WslShells.push({
-//               shell: Shell.WslBash,
-//               name: `WSL Bash (${distributionName.data})`,
-//               path: path,
-//             })
-//           } else {
-//             const defaultInstallPath = Path.join(
-//               process.env.HOME + '\\AppData\\Local\\Microsoft\\WindowsApps\\',
-//               distributionName.data + '.exe'
-//             )
-//             if (pathExistsSync(defaultInstallPath)) {
-//               WslShells.push({
-//                 shell: Shell.WslBash,
-//                 name: `WSL Bash (${distributionName.data})`,
-//                 path: defaultInstallPath,
-//               })
-//             }
-//           }
-//         }
-//       }
-//     })
-//   }
-// }
+        if (str.search('{') !== -1 && str.search('}') !== -1) {
+          let key = str.replace(`${hkeyCurrentUser}\\`, '')
+          key = key.replace('\r', '')
+          wslKeys.push(key)
+        }
+      }
+    }
+
+    await processKeys(wslKeys)
+  }
+}
 
 async function findWslBashShellsCommandLine(): Promise<ReadonlyArray<
   IFoundShell<Shell>
