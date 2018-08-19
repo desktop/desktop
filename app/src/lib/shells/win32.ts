@@ -238,14 +238,16 @@ function enumerateWslShellNames() {
   const buffer = execSync(`reg query ${keyPath}`)
 
   if (buffer) {
-    let wslKeys: string[] = []
+    const wslKeys: string[] = []
     const strData = buffer.toString()
     const splitData = strData.split('\n')
     if (splitData) {
       for (let i = 0; i < splitData.length; i++) {
         const str = splitData[i]
 
-        if (str.search('DefaultDistribution') !== -1) continue
+        if (str.search('DefaultDistribution') !== -1) {
+          continue
+        }
 
         if (str.search('{') !== -1 && str.search('}') !== -1) {
           let key = str.replace(`${hkeyCurrentUser}\\`, '')
@@ -305,7 +307,7 @@ async function findWslBashShellsCommandLine(): Promise<ReadonlyArray<
     const windowsRoot = process.env.SystemRoot || 'C:\\Windows'
     const windowsSystem32 = windowsRoot + '\\System32\\'
     const defaultWslExe = windowsSystem32 + 'wsl.exe'
-    let shells = [
+    const shells = [
       {
         shell: Shell.WslBash,
         path: defaultWslExe,
@@ -323,7 +325,7 @@ async function findWslBashShellsCommandLine(): Promise<ReadonlyArray<
 
       if (trimmedData) {
         //user might have installed WLS but have no valid distro's installed
-        if (trimmedData.search('no installed') == -1) {
+        if (trimmedData.search('no installed') === -1) {
           const wslShellsNames = trimmedData.split('\n')
           if (wslShellsNames.length > 0) {
             //ignore first line
@@ -334,7 +336,7 @@ async function findWslBashShellsCommandLine(): Promise<ReadonlyArray<
                 .replace('(Default)', '')
                 .trim()
               const wslShell = Shells.find(
-                e => e.name == `WSL Bash (${wslShellName})`
+                e => e.name === `WSL Bash (${wslShellName})`
               )
 
               if (wslShell) {

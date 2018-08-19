@@ -127,7 +127,7 @@ import {
   Default as DefaultShell,
   findShellOrDefault,
   launchShell,
-  preloadShellInfo
+  preloadShellInfo,
 } from '../shells'
 import {
   installGlobalLFSFilters,
@@ -1450,7 +1450,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const shellValue = localStorage.getItem(shellKey)
     preloadShellInfo()
-    this.selectedShell = shellValue ? await parseShell(shellValue) : DefaultShell.name
+    this.selectedShell = shellValue
+      ? await parseShell(shellValue)
+      : DefaultShell.name
 
     this.updateMenuItemLabels()
 
@@ -3172,7 +3174,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     return Promise.resolve()
   }
-
 
   public _changeImageDiffType(type: ImageDiffType): Promise<void> {
     this.imageDiffType = type
