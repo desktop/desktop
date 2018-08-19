@@ -14,53 +14,54 @@ jobs:
       CIRCLE_ARTIFACTS: /tmp/circleci-artifacts
       CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
     steps:
-    - checkout
-    - run: mkdir -p $CIRCLE_ARTIFACTS $CIRCLE_TEST_REPORTS
-    - restore_cache:
-        keys:
-        # when lock file changes, use increasingly general patterns to restore cache
-        - yarn-packages-v1-{{ .Branch }}-{{ checksum "yarn.lock" }}
-        - yarn-packages-v1-{{ .Branch }}-
-        - yarn-packages-v1-
-    - run:
-        name: Install dependencies
-        command: yarn install --force
-    - save_cache:
-        key: yarn-packages-v1-{{ .Branch }}-{{ checksum "yarn.lock" }}
-        paths:
-        - ~/.cache/yarn
-        - vendor/bundle
-        - .eslintcache
-        - ~/.electron
-        - ~/Library/Caches/Yarn/v1
-        - ./node_modules
-    - run:
-        name: Lint and validate changelog
-        command: |
-                yarn lint
-                yarn validate-changelog
-    - run:
-        name: Build
-        command: yarn build:prod
-    - run:
-        name: Test
-        command: |
-                yarn test:setup
-                yarn test
-    - run:
-        name: Teardown
-        command: find $HOME/Library/Developer/Xcode/DerivedData -name '*.xcactivitylog' -exec cp {} $CIRCLE_ARTIFACTS/xcactivitylog \; || true
-    # Save test results
-    - store_test_results:
-        path: /tmp/circleci-test-results
-    # Save artifacts
-    - store_artifacts:
-        path: /tmp/circleci-artifacts
-    - store_artifacts:
-        path: /tmp/circleci-test-results
-    - persist_to_workspace:
-        root: ~/desktop/desktop
-        paths: .
+      - checkout
+      - run: mkdir -p $CIRCLE_ARTIFACTS $CIRCLE_TEST_REPORTS
+      - restore_cache:
+          keys:
+            # when lock file changes, use increasingly general patterns to restore cache
+            - yarn-packages-v1-{{ .Branch }}-{{ checksum "yarn.lock" }}
+            - yarn-packages-v1-{{ .Branch }}-
+            - yarn-packages-v1-
+      - run:
+          name: Install dependencies
+          command: yarn install --force
+      - save_cache:
+          key: yarn-packages-v1-{{ .Branch }}-{{ checksum "yarn.lock" }}
+          paths:
+            - ~/.cache/yarn
+            - vendor/bundle
+            - .eslintcache
+            - ~/.electron
+            - ~/Library/Caches/Yarn/v1
+            - ./node_modules
+      - run:
+          name: Lint and validate changelog
+          command: yarn lint && yarn validate-changelog
+      - run:
+          name: Build
+          command: yarn build:prod
+      - run:
+          name: Test
+          command: |
+            yarn test:setup
+            yarn test
+      - run:
+          name: Teardown
+          command:
+            find $HOME/Library/Developer/Xcode/DerivedData -name
+            '*.xcactivitylog' -exec cp {} $CIRCLE_ARTIFACTS/xcactivitylog \; ||
+            true
+      # Save test results
+      - store_test_results:
+          path: /tmp/circleci-test-results
+      # Save artifacts
+      - store_artifacts:
+          path: /tmp/circleci-artifacts
+      - store_artifacts:
+          path: /tmp/circleci-test-results
+      - persist_to_workspace:
+          root: ~/desktop/desktop
+          paths: .
 
   deploy:
     <<: *defaults

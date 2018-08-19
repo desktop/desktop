@@ -12,7 +12,7 @@
     "test": "yarn test:unit && yarn test:script && yarn test:integration",
     "test:setup": "ts-node -P script/tsconfig.json script/test-setup.ts",
     "test:review": "ts-node  -P script/tsconfig.json script/test-review.ts",
-    "postinstall": "cd app && yarn install --force && cd .. && git submodule update --recursive --init && yarn compile:tslint && yarn compile:script",
+    "postinstall": "ts-node -P script/tsconfig.json script/post-install.ts",
     "start": "cross-env NODE_ENV=development ts-node -P script/tsconfig.json script/start.ts",
     "start:prod": "cross-env NODE_ENV=production ts-node -P script/tsconfig.json script/start.ts",
     "compile:dev": "cross-env NODE_ENV=development parallel-webpack --config app/webpack.development.ts",
@@ -48,7 +48,7 @@
   "license": "MIT",
   "engines": {
     "node": ">= 8.10",
-    "yarn": ">= 1.5.0"
+    "yarn": ">= 1.9"
   },
   "dependencies": {
     "ajv": "^6.4.0",
@@ -75,6 +75,7 @@
     "express": "^4.15.0",
     "front-matter": "^2.3.0",
     "fs-extra": "^6.0.0",
+    "glob": "^7.1.2",
     "html-webpack-plugin": "^3.2.0",
     "json-pretty": "^0.0.1",
     "klaw-sync": "^3.0.0",
@@ -84,7 +85,7 @@
     "node-sass": "^4.7.2",
     "octicons": "^7.0.1",
     "parallel-webpack": "^2.3.0",
-    "prettier": "1.13.0",
+    "prettier": "^1.14.2",
     "request": "^2.72.0",
     "rimraf": "^2.5.2",
     "sass-loader": "^7.0.1",
@@ -92,7 +93,7 @@
     "spectron": "^3.8.0",
     "style-loader": "^0.21.0",
     "to-camel-case": "^1.0.0",
-    "ts-node": "^5.0.1",
+    "ts-node": "^7.0.0",
     "tslint": "^5.11.0",
     "tslint-config-prettier": "^1.14.0",
     "tslint-microsoft-contrib": "^5.1.0",
@@ -123,6 +124,7 @@
     "@types/file-url": "^2.0.0",
     "@types/fs-extra": "^5.0.2",
     "@types/fuzzaldrin-plus": "^0.0.1",
+    "@types/glob": "^5.0.35",
     "@types/html-webpack-plugin": "^2.30.3",
     "@types/keytar": "^4.0.0",
     "@types/legal-eagle": "^0.15.0",
@@ -151,7 +153,7 @@
     "@types/winston": "^2.2.0",
     "@types/xml2js": "^0.4.0",
     "electron": "2.0.5",
-    "electron-builder": "20.19.2",
+    "electron-builder": "20.27.1",
     "electron-mocha": "^6.0.1",
     "electron-packager": "^12.0.0",
     "electron-winstaller": "2.5.2"

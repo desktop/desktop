@@ -53,9 +53,13 @@ export class MergeCallToAction extends React.Component<
         <div className="merge-message">
           This will merge
           <strong>{` ${count} ${pluralized}`}</strong>
-          {` `}from{` `}
+          {` `}
+          from
+          {` `}
           <strong>{branch.name}</strong>
-          {` `}into{` `}
+          {` `}
+          into
+          {` `}
           <strong>{currentBranch.name}</strong>
         </div>
       )

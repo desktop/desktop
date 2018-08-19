@@ -45,6 +45,7 @@ describe('clone repository grouping', () => {
         fork: true,
         default_branch: '',
         parent: null,
+        pushed_at: '1995-12-17T03:24:00',
       },
       {
         clone_url: '',
@@ -55,6 +56,7 @@ describe('clone repository grouping', () => {
         fork: false,
         default_branch: '',
         parent: null,
+        pushed_at: '1995-12-17T03:24:00',
       },
       {
         clone_url: '',
@@ -65,6 +67,7 @@ describe('clone repository grouping', () => {
         fork: false,
         default_branch: '',
         parent: null,
+        pushed_at: '1995-12-17T03:24:00',
       },
     ]
 
