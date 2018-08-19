@@ -126,6 +126,12 @@ module.exports = require("util");
 
 /***/ }),
 /* 3 */
+/***/ (function(module, exports) {
+
+module.exports = require("fs");
+
+/***/ }),
+/* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -166,12 +172,6 @@ class ResponseError extends Error {
 
 }
 exports.ResponseError = ResponseError;
-
-/***/ }),
-/* 4 */
-/***/ (function(module, exports) {
-
-module.exports = require("fs");
 
 /***/ }),
 /* 5 */
@@ -268,10 +268,10 @@ let buildActionsForCopy = (() => {
             return;
           }
 
-          if (bothFiles && srcStat.size === destStat.size && (_fs || _load_fs()).default.readFileSync(src).equals((_fs || _load_fs()).default.readFileSync(dest))) {
+          if (bothFiles && srcStat.size === destStat.size && (0, (_fsNormalized || _load_fsNormalized()).fileDatesEqual)(srcStat.mtime, destStat.mtime)) {
             // we can safely assume this is the same file
             onDone();
-            reporter.verbose(reporter.lang('verboseFileSkip', src, dest, srcStat.size));
+            reporter.verbose(reporter.lang('verboseFileSkip', src, dest, srcStat.size, +srcStat.mtime));
             return;
           }
 
@@ -1233,7 +1233,7 @@ exports.normalizeOS = normalizeOS;
 var _fs;
 
 function _load_fs() {
-  return _fs = _interopRequireDefault(__webpack_require__(4));
+  return _fs = _interopRequireDefault(__webpack_require__(3));
 }
 
 var _glob;
@@ -1394,7 +1394,7 @@ const YARN_INSTALLER_MSI = exports.YARN_INSTALLER_MSI = 'https://yarnpkg.com/lat
 const SELF_UPDATE_VERSION_URL = exports.SELF_UPDATE_VERSION_URL = 'https://yarnpkg.com/latest-version';
 
 // cache version, bump whenever we make backwards incompatible changes
-const CACHE_VERSION = exports.CACHE_VERSION = 1;
+const CACHE_VERSION = exports.CACHE_VERSION = 2;
 
 // lockfile version, bump whenever we make backwards incompatible changes
 const LOCKFILE_VERSION = exports.LOCKFILE_VERSION = 1;
@@ -21932,7 +21932,7 @@ function _load_index() {
 var _errors;
 
 function _load_errors() {
-  return _errors = __webpack_require__(3);
+  return _errors = __webpack_require__(4);
 }
 
 var _integrityChecker;
@@ -29836,7 +29836,7 @@ function _load_blockingQueue() {
 var _errors;
 
 function _load_errors() {
-  return _errors = __webpack_require__(3);
+  return _errors = __webpack_require__(4);
 }
 
 var _promise;
@@ -30083,7 +30083,7 @@ exports.default = function (rootCommandName, subCommands, usage = []) {
 var _errors;
 
 function _load_errors() {
-  return _errors = __webpack_require__(3);
+  return _errors = __webpack_require__(4);
 }
 
 var _misc;
@@ -36416,7 +36416,7 @@ module.exports = function(it){
 
 module.exports = glob
 
-var fs = __webpack_require__(4)
+var fs = __webpack_require__(3)
 var rp = __webpack_require__(108)
 var minimatch = __webpack_require__(58)
 var Minimatch = minimatch.Minimatch
@@ -37487,7 +37487,7 @@ function _load_constants() {
 var _errors;
 
 function _load_errors() {
-  return _errors = __webpack_require__(3);
+  return _errors = __webpack_require__(4);
 }
 
 var _map;
@@ -38227,7 +38227,7 @@ exports.explodeHostedGitFragment = explodeHostedGitFragment;
 var _errors;
 
 function _load_errors() {
-  return _errors = __webpack_require__(3);
+  return _errors = __webpack_require__(4);
 }
 
 var _index;
@@ -39667,7 +39667,7 @@ function _load_fs() {
 var _fs2;
 
 function _load_fs2() {
-  return _fs2 = _interopRequireDefault(__webpack_require__(4));
+  return _fs2 = _interopRequireDefault(__webpack_require__(3));
 }
 
 var _path;
@@ -39715,7 +39715,9 @@ let updateCwd = (() => {
       binLinks: true,
       globalFolder: config.globalFolder,
       cacheFolder: config._cacheRootFolder,
-      linkFolder: config.linkFolder
+      linkFolder: config.linkFolder,
+      enableDefaultRc: config.enableDefaultRc,
+      extraneousYarnrcFiles: config.extraneousYarnrcFiles
     });
   });
 
@@ -39971,7 +39973,7 @@ exports.setFlags = setFlags;
 var _errors;
 
 function _load_errors() {
-  return _errors = __webpack_require__(3);
+  return _errors = __webpack_require__(4);
 }
 
 var _index;
@@ -40361,7 +40363,7 @@ exports.setFlags = setFlags;
 var _errors;
 
 function _load_errors() {
-  return _errors = __webpack_require__(3);
+  return _errors = __webpack_require__(4);
 }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -40436,7 +40438,7 @@ function _load_index() {
 var _errors;
 
 function _load_errors() {
-  return _errors = __webpack_require__(3);
+  return _errors = __webpack_require__(4);
 }
 
 var _constants;
@@ -41411,7 +41413,10 @@ let makeEnv = exports.makeEnv = (() => {
 
     // Include the directory that contains node so that we can guarantee that the scripts
     // will always run with the exact same Node release than the one use to run Yarn
-    pathParts.unshift(path.dirname(process.execPath));
+    const execBin = path.dirname(process.execPath);
+    if (pathParts.indexOf(execBin) === -1) {
+      pathParts.unshift(execBin);
+    }
 
     // Include node-gyp version that was bundled with the current Node.js version,
     // if available.
@@ -41583,7 +41588,7 @@ let execCommand = exports.execCommand = (() => {
 var _errors;
 
 function _load_errors() {
-  return _errors = __webpack_require__(3);
+  return _errors = __webpack_require__(4);
 }
 
 var _constants;
@@ -41745,7 +41750,7 @@ exports.cleanDependencies = cleanDependencies;
 var _errors;
 
 function _load_errors() {
-  return _errors = __webpack_require__(3);
+  return _errors = __webpack_require__(4);
 }
 
 var _util;
@@ -43081,7 +43086,7 @@ realpath.realpathSync = realpathSync
 realpath.monkeypatch = monkeypatch
 realpath.unmonkeypatch = unmonkeypatch
 
-var fs = __webpack_require__(4)
+var fs = __webpack_require__(3)
 var origRealpath = fs.realpath
 var origRealpathSync = fs.realpathSync
 
@@ -43393,7 +43398,7 @@ function childrenIgnored (self, path) {
 /***/ (function(module, exports, __webpack_require__) {
 
 var path = __webpack_require__(0);
-var fs = __webpack_require__(4);
+var fs = __webpack_require__(3);
 var _0777 = parseInt('0777', 8);
 
 module.exports = mkdirP.mkdirp = mkdirP.mkdirP = mkdirP;
@@ -45185,7 +45190,7 @@ function _load_index() {
 var _errors;
 
 function _load_errors() {
-  return _errors = __webpack_require__(3);
+  return _errors = __webpack_require__(4);
 }
 
 var _fs;
@@ -45556,7 +45561,7 @@ class Config {
 
     this.commandName = opts.commandName || '';
 
-    this.enableDefaultRc = !!opts.enableDefaultRc;
+    this.enableDefaultRc = opts.enableDefaultRc !== false;
     this.extraneousYarnrcFiles = opts.extraneousYarnrcFiles || [];
 
     this.preferOffline = !!opts.preferOffline;
@@ -46249,7 +46254,7 @@ function _load_install() {
 var _errors;
 
 function _load_errors() {
-  return _errors = __webpack_require__(3);
+  return _errors = __webpack_require__(4);
 }
 
 var _constants;
@@ -46813,7 +46818,7 @@ function _load_filter() {
 var _errors;
 
 function _load_errors() {
-  return _errors = __webpack_require__(3);
+  return _errors = __webpack_require__(4);
 }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
@@ -46823,7 +46828,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 const zlib = __webpack_require__(236);
 const path = __webpack_require__(0);
 const tar = __webpack_require__(139);
-const fs2 = __webpack_require__(4);
+const fs2 = __webpack_require__(3);
 
 const FOLDERS_IGNORE = [
 // never allow version control folders
@@ -48155,7 +48160,7 @@ var chownr = __webpack_require__(432)
 var tar = __webpack_require__(324)
 var pump = __webpack_require__(300)
 var mkdirp = __webpack_require__(110)
-var fs = __webpack_require__(4)
+var fs = __webpack_require__(3)
 var path = __webpack_require__(0)
 var os = __webpack_require__(35)
 
@@ -48489,7 +48494,7 @@ function mkdirfix (name, opts, cb) {
 module.exports = {
 	"name": "yarn",
 	"installationMethod": "unknown",
-	"version": "1.9.2",
+	"version": "1.9.4",
 	"license": "BSD-2-Clause",
 	"preferGlobal": true,
 	"description": "📦🐈 Fast, reliable, and secure dependency management.",
@@ -49948,7 +49953,7 @@ exports.fetch = fetch;
 var _errors;
 
 function _load_errors() {
-  return _errors = __webpack_require__(3);
+  return _errors = __webpack_require__(4);
 }
 
 var _index;
@@ -51578,7 +51583,7 @@ function _load_uuid() {
 var _errors;
 
 function _load_errors() {
-  return _errors = __webpack_require__(3);
+  return _errors = __webpack_require__(4);
 }
 
 var _exoticResolver;
@@ -51692,7 +51697,7 @@ exports.explodeGistFragment = explodeGistFragment;
 var _errors;
 
 function _load_errors() {
-  return _errors = __webpack_require__(3);
+  return _errors = __webpack_require__(4);
 }
 
 var _gitResolver;
@@ -51773,7 +51778,7 @@ function _load_asyncToGenerator() {
 var _errors;
 
 function _load_errors() {
-  return _errors = __webpack_require__(3);
+  return _errors = __webpack_require__(4);
 }
 
 var _registryResolver;
@@ -52158,7 +52163,7 @@ let fixTimes = (() => {
 var _fs;
 
 function _load_fs() {
-  return _fs = _interopRequireDefault(__webpack_require__(4));
+  return _fs = _interopRequireDefault(__webpack_require__(3));
 }
 
 var _promise;
@@ -52323,13 +52328,13 @@ function _load_url() {
 var _fs;
 
 function _load_fs() {
-  return _fs = __webpack_require__(4);
+  return _fs = __webpack_require__(3);
 }
 
 var _errors;
 
 function _load_errors() {
-  return _errors = __webpack_require__(3);
+  return _errors = __webpack_require__(4);
 }
 
 var _gitSpawn;
@@ -55458,7 +55463,7 @@ module.exports = Object.assign(fn, figures);
 
 var pathModule = __webpack_require__(0);
 var isWindows = process.platform === 'win32';
-var fs = __webpack_require__(4);
+var fs = __webpack_require__(3);
 
 // JavaScript implementation of realpath, ported from node pre-v6
 
@@ -55747,7 +55752,7 @@ exports.realpath = function realpath(p, cache, cb) {
 module.exports = globSync
 globSync.GlobSync = GlobSync
 
-var fs = __webpack_require__(4)
+var fs = __webpack_require__(3)
 var rp = __webpack_require__(108)
 var minimatch = __webpack_require__(58)
 var Minimatch = minimatch.Minimatch
@@ -57267,7 +57272,7 @@ rimraf.sync = rimrafSync
 
 var assert = __webpack_require__(22)
 var path = __webpack_require__(0)
-var fs = __webpack_require__(4)
+var fs = __webpack_require__(3)
 var glob = __webpack_require__(70)
 var _0666 = parseInt('666', 8)
 
@@ -59280,7 +59285,7 @@ var readlink = __webpack_require__(478).readlinkSync;
 var path = __webpack_require__(0);
 var dirname = path.dirname;
 var basename = path.basename;
-var fs = __webpack_require__(4);
+var fs = __webpack_require__(3);
 
 /**
  * Expose the root command.
@@ -61696,7 +61701,7 @@ exports.setFlags = setFlags;
 var _errors;
 
 function _load_errors() {
-  return _errors = __webpack_require__(3);
+  return _errors = __webpack_require__(4);
 }
 
 var _integrityChecker;
@@ -61879,7 +61884,7 @@ exports.setFlags = setFlags;
 var _errors;
 
 function _load_errors() {
-  return _errors = __webpack_require__(3);
+  return _errors = __webpack_require__(4);
 }
 
 var _fs;
@@ -62441,7 +62446,7 @@ function _load_install() {
 var _errors;
 
 function _load_errors() {
-  return _errors = __webpack_require__(3);
+  return _errors = __webpack_require__(4);
 }
 
 var _index2;
@@ -62610,7 +62615,7 @@ function _load_npmRegistry() {
 var _errors;
 
 function _load_errors() {
-  return _errors = __webpack_require__(3);
+  return _errors = __webpack_require__(4);
 }
 
 var _normalizePattern2;
@@ -63218,7 +63223,7 @@ function _load_executeLifecycleScript() {
 var _errors;
 
 function _load_errors() {
-  return _errors = __webpack_require__(3);
+  return _errors = __webpack_require__(4);
 }
 
 var _gitSpawn;
@@ -63294,7 +63299,7 @@ function _load_http() {
 var _errors;
 
 function _load_errors() {
-  return _errors = __webpack_require__(3);
+  return _errors = __webpack_require__(4);
 }
 
 var _constants;
@@ -63335,7 +63340,7 @@ const path = __webpack_require__(0);
 
 const tarFs = __webpack_require__(139);
 const url = __webpack_require__(16);
-const fs = __webpack_require__(4);
+const fs = __webpack_require__(3);
 const stream = __webpack_require__(30);
 const gunzip = __webpack_require__(479);
 const invariant = __webpack_require__(7);
@@ -63395,13 +63400,50 @@ class TarballFetcher extends (_baseFetcher || _load_baseFetcher()).default {
   createExtractor(resolve, reject, tarballPath) {
     var _this2 = this;
 
+    const now = new Date();
+
+    const fs = __webpack_require__(3);
+    const patchedFs = Object.assign({}, fs, {
+      utimes: (path, atime, mtime, cb) => {
+        fs.stat(path, (err, stat) => {
+          if (err) {
+            cb(err);
+            return;
+          }
+          if (stat.isDirectory()) {
+            fs.utimes(path, atime, mtime, cb);
+            return;
+          }
+          fs.open(path, 'a', (err, fd) => {
+            if (err) {
+              cb(err);
+              return;
+            }
+            fs.futimes(fd, atime, mtime, err => {
+              if (err) {
+                fs.close(fd, () => cb(err));
+              } else {
+                fs.close(fd, err => cb(err));
+              }
+            });
+          });
+        });
+      }
+    });
+
     const validateStream = new (_crypto || _load_crypto()).HashStream();
     const extractorStream = gunzip();
+
     const untarStream = tarFs.extract(this.dest, {
       strip: 1,
       dmode: 0o755, // all dirs should be readable
       fmode: 0o644, // all files should be readable
-      chown: false // don't chown. just leave as it is
+      chown: false, // don't chown. just leave as it is
+      map: header => {
+        header.mtime = now;
+        return header;
+      },
+      fs: patchedFs
     });
 
     untarStream.on('error', err => {
@@ -63583,7 +63625,7 @@ exports.check = check;
 var _errors;
 
 function _load_errors() {
-  return _errors = __webpack_require__(3);
+  return _errors = __webpack_require__(4);
 }
 
 var _map;
@@ -65546,7 +65588,7 @@ Object.defineProperty(exports, "__esModule", {
 var _fs;
 
 function _load_fs() {
-  return _fs = _interopRequireDefault(__webpack_require__(4));
+  return _fs = _interopRequireDefault(__webpack_require__(3));
 }
 
 var _url;
@@ -65576,7 +65618,7 @@ function _load_requestCaptureHar() {
 var _errors;
 
 function _load_errors() {
-  return _errors = __webpack_require__(3);
+  return _errors = __webpack_require__(4);
 }
 
 var _blockingQueue;
@@ -68588,7 +68630,7 @@ module.exports = function (data, opts) {
 "use strict";
 
 
-var fs = __webpack_require__(4)
+var fs = __webpack_require__(3)
 
 module.exports = clone(fs)
 
@@ -68613,7 +68655,7 @@ function clone (obj) {
 /* 286 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var fs = __webpack_require__(4)
+var fs = __webpack_require__(3)
 var polyfills = __webpack_require__(477)
 var legacy = __webpack_require__(476)
 var queue = []
@@ -70427,7 +70469,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
 var once = __webpack_require__(71)
 var eos = __webpack_require__(282)
-var fs = __webpack_require__(4) // we only need fs to get the ReadStream and WriteStream prototypes
+var fs = __webpack_require__(3) // we only need fs to get the ReadStream and WriteStream prototypes
 
 var noop = function () {}
 
@@ -76499,7 +76541,7 @@ exports.getRcArgs = getRcArgs;
 var _fs;
 
 function _load_fs() {
-  return _fs = __webpack_require__(4);
+  return _fs = __webpack_require__(3);
 }
 
 var _path;
@@ -79341,7 +79383,7 @@ exports.default = function (message) {
 var _errors;
 
 function _load_errors() {
-  return _errors = __webpack_require__(3);
+  return _errors = __webpack_require__(4);
 }
 
 /***/ }),
@@ -79410,7 +79452,7 @@ function _load_yarnResolver() {
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const fs = __webpack_require__(4);
+const fs = __webpack_require__(3);
 
 const path = __webpack_require__(0);
 
@@ -79815,7 +79857,7 @@ exports.hasWrapper = hasWrapper;
 var _errors;
 
 function _load_errors() {
-  return _errors = __webpack_require__(3);
+  return _errors = __webpack_require__(4);
 }
 
 var _child;
@@ -79887,7 +79929,7 @@ exports.hasWrapper = hasWrapper;
 var _errors;
 
 function _load_errors() {
-  return _errors = __webpack_require__(3);
+  return _errors = __webpack_require__(4);
 }
 
 var _child;
@@ -79970,7 +80012,7 @@ exports.setFlags = setFlags;
 var _errors;
 
 function _load_errors() {
-  return _errors = __webpack_require__(3);
+  return _errors = __webpack_require__(4);
 }
 
 var _lockfile;
@@ -80148,7 +80190,7 @@ function _load_check() {
 var _errors;
 
 function _load_errors() {
-  return _errors = __webpack_require__(3);
+  return _errors = __webpack_require__(4);
 }
 
 var _index;
@@ -81865,7 +81907,7 @@ exports.setFlags = setFlags;
 var _errors;
 
 function _load_errors() {
-  return _errors = __webpack_require__(3);
+  return _errors = __webpack_require__(4);
 }
 
 var _buildSubCommands2;
@@ -82168,7 +82210,7 @@ function _load_npmRegistry() {
 var _errors;
 
 function _load_errors() {
-  return _errors = __webpack_require__(3);
+  return _errors = __webpack_require__(4);
 }
 
 var _version;
@@ -82209,7 +82251,7 @@ const invariant = __webpack_require__(7);
 
 const crypto = __webpack_require__(9);
 const url = __webpack_require__(16);
-const fs2 = __webpack_require__(4);
+const fs2 = __webpack_require__(3);
 
 function setFlags(commander) {
   (0, (_version || _load_version()).setFlags)(commander);
@@ -82439,7 +82481,7 @@ function _load_executeLifecycleScript() {
 var _errors;
 
 function _load_errors() {
-  return _errors = __webpack_require__(3);
+  return _errors = __webpack_require__(4);
 }
 
 var _index;
@@ -82812,7 +82854,7 @@ exports.hasWrapper = hasWrapper;
 var _errors;
 
 function _load_errors() {
-  return _errors = __webpack_require__(3);
+  return _errors = __webpack_require__(4);
 }
 
 var _fs;
@@ -83206,7 +83248,7 @@ function _load_lockfile() {
 var _errors;
 
 function _load_errors() {
-  return _errors = __webpack_require__(3);
+  return _errors = __webpack_require__(4);
 }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
@@ -83408,7 +83450,7 @@ exports.hasWrapper = hasWrapper;
 var _errors;
 
 function _load_errors() {
-  return _errors = __webpack_require__(3);
+  return _errors = __webpack_require__(4);
 }
 
 var _child;
@@ -83552,7 +83594,7 @@ exports.hasWrapper = hasWrapper;
 var _errors;
 
 function _load_errors() {
-  return _errors = __webpack_require__(3);
+  return _errors = __webpack_require__(4);
 }
 
 var _buildSubCommands2;
@@ -84232,7 +84274,7 @@ function _load_commander() {
 var _fs;
 
 function _load_fs() {
-  return _fs = _interopRequireDefault(__webpack_require__(4));
+  return _fs = _interopRequireDefault(__webpack_require__(3));
 }
 
 var _invariant;
@@ -84298,7 +84340,7 @@ function _load_network() {
 var _errors;
 
 function _load_errors() {
-  return _errors = __webpack_require__(3);
+  return _errors = __webpack_require__(4);
 }
 
 var _config;
@@ -84437,7 +84479,7 @@ function _load_asyncToGenerator() {
 var _errors;
 
 function _load_errors() {
-  return _errors = __webpack_require__(3);
+  return _errors = __webpack_require__(4);
 }
 
 var _baseFetcher;
@@ -84501,7 +84543,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 const tarFs = __webpack_require__(139);
 const url = __webpack_require__(16);
 const path = __webpack_require__(0);
-const fs = __webpack_require__(4);
+const fs = __webpack_require__(3);
 
 const invariant = __webpack_require__(7);
 
@@ -86114,7 +86156,7 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const fs = __webpack_require__(4);
+const fs = __webpack_require__(3);
 
 const invariant = __webpack_require__(7);
 const path = __webpack_require__(0);
@@ -87960,7 +88002,7 @@ const messages = {
   verboseFileCopy: 'Copying $0 to $1.',
   verboseFileLink: 'Creating hardlink at $0 to $1.',
   verboseFileSymlink: 'Creating symlink at $0 to $1.',
-  verboseFileSkip: 'Skipping copying of file $0 as the file at $1 is the same size ($2) and has the same content.',
+  verboseFileSkip: 'Skipping copying of file $0 as the file at $1 is the same size ($2) and mtime ($3).',
   verboseFileSkipSymlink: 'Skipping copying of $0 as the file at $1 is the same symlink ($2).',
   verboseFileSkipHardlink: 'Skipping copying of $0 as the file at $1 is the same hardlink ($2).',
   verboseFileRemoveExtraneous: 'Removing extraneous file $0.',
@@ -88631,7 +88673,7 @@ Object.defineProperty(exports, "__esModule", {
 var _errors;
 
 function _load_errors() {
-  return _errors = __webpack_require__(3);
+  return _errors = __webpack_require__(4);
 }
 
 var _exoticResolver;
@@ -90007,7 +90049,7 @@ exports.findRc = findRc;
 var _fs;
 
 function _load_fs() {
-  return _fs = __webpack_require__(4);
+  return _fs = __webpack_require__(3);
 }
 
 var _path;
@@ -90967,7 +91009,7 @@ module.exports = (chalk, tmp) => {
 module.exports = chownr
 chownr.sync = chownrSync
 
-var fs = __webpack_require__(4)
+var fs = __webpack_require__(3)
 , path = __webpack_require__(0)
 
 function chownr (p, uid, gid, cb) {
@@ -93653,7 +93695,7 @@ module.exports = function isObject(val) {
   var CreateFileError, ExternalEditor, FS, LaunchEditorError, ReadFileError, RemoveFileError, Spawn, SpawnSync, Temp,
     bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
-  FS = __webpack_require__(4);
+  FS = __webpack_require__(3);
 
   Temp = __webpack_require__(671);
 
@@ -94255,7 +94297,7 @@ var path = __webpack_require__(0);
 var http = __webpack_require__(60);
 var https = __webpack_require__(142);
 var parseUrl = __webpack_require__(16).parse;
-var fs = __webpack_require__(4);
+var fs = __webpack_require__(3);
 var mime = __webpack_require__(584);
 var asynckit = __webpack_require__(355);
 var populate = __webpack_require__(472);
@@ -94728,7 +94770,7 @@ module.exports = function(dst, src) {
 /* 473 */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(4).constants || __webpack_require__(334)
+module.exports = __webpack_require__(3).constants || __webpack_require__(334)
 
 
 /***/ }),
@@ -95270,7 +95312,7 @@ function chownErOk (er) {
 /* 478 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var fs = __webpack_require__(4)
+var fs = __webpack_require__(3)
   , lstat = fs.lstatSync;
 
 exports.readlinkSync = function (p) {
@@ -116992,7 +117034,7 @@ var fs
 try {
   fs = __webpack_require__(286)
 } catch(err) {
-  fs = __webpack_require__(4)
+  fs = __webpack_require__(3)
 }
 
 var api = [
@@ -121804,7 +121846,7 @@ module.exports = {
 /* 621 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var fs = __webpack_require__(4);
+var fs = __webpack_require__(3);
 var pkg = __webpack_require__(620);
 
 function buildHarHeaders (headers) {
@@ -122377,7 +122419,7 @@ module.exports = getProxyFromURI
 "use strict";
 
 
-var fs = __webpack_require__(4)
+var fs = __webpack_require__(3)
 var qs = __webpack_require__(143)
 var validate = __webpack_require__(500)
 var extend = __webpack_require__(208)
@@ -142843,7 +142885,7 @@ function through (write, end, opts) {
  * Module dependencies.
  */
 var
-  fs     = __webpack_require__(4),
+  fs     = __webpack_require__(3),
   path   = __webpack_require__(0),
   crypto = __webpack_require__(9),
   tmpDir = __webpack_require__(597),

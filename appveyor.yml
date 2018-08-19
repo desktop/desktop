@@ -33,7 +33,6 @@ build_script:
   - yarn build:prod
 
 test_script:
-  - node --version
   - yarn test:setup
   - ./script/test-appveyor.bat
 
