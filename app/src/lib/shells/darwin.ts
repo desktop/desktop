@@ -11,7 +11,7 @@ export enum Shell {
   PowerShellCore,
 }
 
-export const Shells: Array<IFoundShell<Shell>> = [
+const Shells: Array<IFoundShell<Shell>> = [
   { shell: Shell.Terminal, name: 'Terminal', path: '' },
   { shell: Shell.Hyper, name: 'Hyper', path: '' },
   { shell: Shell.iTerm2, name: 'iTerm2', path: '' },

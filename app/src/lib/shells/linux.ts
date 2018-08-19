@@ -11,7 +11,7 @@ export enum Shell {
   Xterm,
 }
 
-export const Shells: Array<IFoundShell<Shell>> = [
+const Shells: Array<IFoundShell<Shell>> = [
   { shell: Shell.Gnome, name: 'GNOME Terminal', path: '' },
   { shell: Shell.Tilix, name: 'Tilix', path: '' },
   { shell: Shell.Urxvt, name: 'Urxvt', path: '' },
