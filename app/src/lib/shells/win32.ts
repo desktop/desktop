@@ -6,40 +6,55 @@ import { assertNever } from '../fatal-error'
 import { IFoundShell } from './found-shell'
 
 export enum Shell {
-  Cmd,
-  PowerShell,
-  PowerShellCore,
-  Hyper,
-  GitBash,
-  WslBash,
-  WslBashDefault,
+  Cmd = 'Command Prompt',
+  PowerShell = 'PowerShell',
+  PowerShellCore = 'PowerShell Core',
+  Hyper = 'Hyper',
+  GitBash = 'Git Bash',
+  WslBash = 'WSL Bash (distro)',
+  WslBashDefault = 'WSL Bash (Default)',
 }
 
-interface IShell<T> {
-  readonly shell: T
-  readonly path?: string
-  readonly name: string
-}
+const WslShells: Array<IFoundShell<Shell>> = []
 
-const Shells: Array<IShell<Shell>> = [
-  { shell: Shell.Cmd, name: 'Command Prompt' },
-  { shell: Shell.PowerShell, name: 'PowerShell' },
-  { shell: Shell.PowerShellCore, name: 'PowerShell Core' },
-  { shell: Shell.Hyper, name: 'Hyper' },
-  { shell: Shell.GitBash, name: 'Git Bash' },
-  { shell: Shell.WslBashDefault, name: 'WSL Bash (Default)' },
-]
-
-export const Default = Shells[0]
+export const Default: string = Shell.Cmd
 
 export function preProcessShellData() {
   enumerateWslShellNames()
 }
 
 export function parse(label: string): string {
-  const foundShell: IShell<Shell> | Shell =
-    Shells.find(shell => shell.name === label) || Default
-  return foundShell ? foundShell.name : Default.name
+  if (label === Shell.Cmd) {
+    return Shell.Cmd
+  }
+
+  if (label === Shell.PowerShell) {
+    return Shell.PowerShell
+  }
+
+  if (label === Shell.PowerShellCore) {
+    return Shell.PowerShellCore
+  }
+
+  if (label === Shell.Hyper) {
+    return Shell.Hyper
+  }
+
+  if (label === Shell.GitBash) {
+    return Shell.GitBash
+  }
+
+  if (label === Shell.WslBashDefault) {
+    return Shell.WslBashDefault
+  }
+
+  if (label.search('WSL Bash') === 0) {
+    const foundShell: IFoundShell<Shell> | string =
+      WslShells.find(shell => shell.name === label) || Default
+    return foundShell ? (<IFoundShell<Shell>>foundShell).name : Default
+  }
+
+  return Default
 }
 
 export async function getAvailableShells(): Promise<Array<IFoundShell<Shell>>> {
@@ -276,7 +291,7 @@ function enumerateWslShellNames() {
           )
 
           if (await pathExists(path)) {
-            Shells.push({
+            WslShells.push({
               shell: Shell.WslBash,
               name: `WSL Bash (${distributionName.data})`,
               path: path,
@@ -287,7 +302,7 @@ function enumerateWslShellNames() {
               distributionName.data + '.exe'
             )
             if (await pathExists(defaultInstallPath)) {
-              Shells.push({
+              WslShells.push({
                 shell: Shell.WslBash,
                 name: `WSL Bash (${distributionName.data})`,
                 path: defaultInstallPath,
@@ -335,7 +350,7 @@ async function findWslBashShellsCommandLine(): Promise<ReadonlyArray<
                 .replace(/[^A-Za-z 0-9()]*/g, '')
                 .replace('(Default)', '')
                 .trim()
-              const wslShell = Shells.find(
+              const wslShell = WslShells.find(
                 e => e.name === `WSL Bash (${wslShellName})`
               )
 

@@ -4,28 +4,39 @@ import { assertNever } from '../fatal-error'
 import { IFoundShell } from './found-shell'
 
 export enum Shell {
-  Gnome,
-  Tilix,
-  Urxvt,
-  Konsole,
-  Xterm,
+  Gnome = 'GNOME Terminal',
+  Tilix = 'Tilix',
+  Urxvt = 'URxvt',
+  Konsole = 'Konsole',
+  Xterm = 'XTerm',
 }
 
-const Shells: Array<IFoundShell<Shell>> = [
-  { shell: Shell.Gnome, name: 'GNOME Terminal', path: '' },
-  { shell: Shell.Tilix, name: 'Tilix', path: '' },
-  { shell: Shell.Urxvt, name: 'Urxvt', path: '' },
-  { shell: Shell.Konsole, name: 'Konsole', path: '' },
-  { shell: Shell.Xterm, name: 'Xterm', path: '' },
-]
-
-export const Default = Shells[0]
+export const Default: string = Shell.Gnome
 
 export function parse(label: string): string {
-  const foundShell: IFoundShell<Shell> | Shell =
-    Shells.find(shell => shell.name === label) || Default
-  return foundShell ? foundShell.name : Default.name
+  if (label === Shell.Gnome) {
+    return Shell.Gnome
+  }
+
+  if (label === Shell.Tilix) {
+    return Shell.Tilix
+  }
+
+  if (label === Shell.Urxvt) {
+    return Shell.Urxvt
+  }
+
+  if (label === Shell.Konsole) {
+    return Shell.Konsole
+  }
+
+  if (label === Shell.Xterm) {
+    return Shell.Xterm
+  }
+
+  return Default
 }
+
 async function getPathIfAvailable(path: string): Promise<string | null> {
   return (await pathExists(path)) ? path : null
 }

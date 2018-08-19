@@ -73,7 +73,7 @@ export async function findShellOrDefault(shell: string): Promise<FoundShell> {
   if (found) {
     return found
   } else {
-    return available.find(s => s.name === Default.name)!
+    return available.find(s => s.name === Default)!
   }
 }
 

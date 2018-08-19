@@ -275,7 +275,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private selectedExternalEditor?: ExternalEditor
 
   /** The user's preferred shell. */
-  private selectedShell = DefaultShell.name
+  private selectedShell = DefaultShell
 
   /** The current repository filter text */
   private repositoryFilterText: string = ''
@@ -1452,7 +1452,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     preloadShellInfo()
     this.selectedShell = shellValue
       ? await parseShell(shellValue)
-      : DefaultShell.name
+      : DefaultShell
 
     this.updateMenuItemLabels()
 

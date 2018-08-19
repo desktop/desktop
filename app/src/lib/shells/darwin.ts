@@ -5,25 +5,32 @@ import { IFoundShell } from './found-shell'
 const appPath: (bundleId: string) => Promise<string> = require('app-path')
 
 export enum Shell {
-  Terminal,
-  Hyper,
-  iTerm2,
-  PowerShellCore,
+  Terminal = 'Terminal',
+  Hyper = 'Hyper',
+  iTerm2 = 'iTerm2',
+  PowerShellCore = 'PowerShell Core',
 }
 
-const Shells: Array<IFoundShell<Shell>> = [
-  { shell: Shell.Terminal, name: 'Terminal', path: '' },
-  { shell: Shell.Hyper, name: 'Hyper', path: '' },
-  { shell: Shell.iTerm2, name: 'iTerm2', path: '' },
-  { shell: Shell.Terminal, name: 'PowerShell Core', path: '' },
-]
-
-export const Default = Shells[0]
+export const Default: string = Shell.Terminal
 
 export function parse(label: string): string {
-  const foundShell: IFoundShell<Shell> | Shell =
-    Shells.find(shell => shell.name === label) || Default
-  return foundShell ? foundShell.name : Default.name
+  if (label === Shell.Terminal) {
+    return Shell.Terminal
+  }
+
+  if (label === Shell.Hyper) {
+    return Shell.Hyper
+  }
+
+  if (label === Shell.iTerm2) {
+    return Shell.iTerm2
+  }
+
+  if (label === Shell.PowerShellCore) {
+    return Shell.PowerShellCore
+  }
+
+  return Default
 }
 
 function getBundleID(shell: Shell): string {
