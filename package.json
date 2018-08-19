@@ -139,7 +139,6 @@
     "@types/react-virtualized": "^9.7.12",
     "@types/request": "^2.0.9",
     "@types/semver": "^5.5.0",
-    "@types/sinon": "^5.0.1",
     "@types/strip-ansi": "^3.0.0",
     "@types/temp": "^0.8.29",
     "@types/textarea-caret": "^3.0.0",
@@ -154,7 +153,6 @@
     "@types/webpack-merge": "^4.1.3",
     "@types/winston": "^2.2.0",
     "@types/xml2js": "^0.4.0",
-    "core-js": "^2.5.7",
     "electron": "2.0.5",
     "electron-builder": "20.27.1",
     "electron-mocha": "^6.0.1",
@@ -162,7 +160,6 @@
     "electron-winstaller": "2.5.2",
     "jest": "^23.5.0",
     "mocha": "^5.2.0",
-    "node-fetch": "^2.2.0",
     "ts-jest": "^23.1.3"
   }
 }
