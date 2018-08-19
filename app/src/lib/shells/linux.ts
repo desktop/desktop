@@ -4,39 +4,28 @@ import { assertNever } from '../fatal-error'
 import { IFoundShell } from './found-shell'
 
 export enum Shell {
-  Gnome = 'GNOME Terminal',
-  Tilix = 'Tilix',
-  Urxvt = 'URxvt',
-  Konsole = 'Konsole',
-  Xterm = 'XTerm',
+  Gnome,
+  Tilix,
+  Urxvt,
+  Konsole,
+  Xterm,
 }
 
-export const Default = Shell.Gnome
+export const Shells: Array<IFoundShell<Shell>> = [
+  { shell: Shell.Gnome, name: 'GNOME Terminal', path: '' },
+  { shell: Shell.Tilix, name: 'Tilix', path: '' },
+  { shell: Shell.Urxvt, name: 'Urxvt', path: '' },
+  { shell: Shell.Konsole, name: 'Konsole', path: '' },
+  { shell: Shell.Xterm, name: 'Xterm', path: '' },
+]
 
-export function parse(label: string): Shell {
-  if (label === Shell.Gnome) {
-    return Shell.Gnome
-  }
+export const Default = Shells[0]
 
-  if (label === Shell.Tilix) {
-    return Shell.Tilix
-  }
-
-  if (label === Shell.Urxvt) {
-    return Shell.Urxvt
-  }
-
-  if (label === Shell.Konsole) {
-    return Shell.Konsole
-  }
-
-  if (label === Shell.Xterm) {
-    return Shell.Xterm
-  }
-
-  return Default
+export function parse(label: string): string {
+  const foundShell: IFoundShell<Shell> | Shell =
+    Shells.find(shell => shell.name === label) || Default
+  return foundShell ? foundShell.name : Default.name
 }
-
 async function getPathIfAvailable(path: string): Promise<string | null> {
   return (await pathExists(path)) ? path : null
 }
@@ -77,23 +66,27 @@ export async function getAvailableShells(): Promise<
 
   const shells: Array<IFoundShell<Shell>> = []
   if (gnomeTerminalPath) {
-    shells.push({ shell: Shell.Gnome, path: gnomeTerminalPath })
+    shells.push({
+      shell: Shell.Gnome,
+      path: gnomeTerminalPath,
+      name: 'GNOME Terminal',
+    })
   }
 
   if (tilixPath) {
-    shells.push({ shell: Shell.Tilix, path: tilixPath })
+    shells.push({ shell: Shell.Tilix, path: tilixPath, name: 'Tilix' })
   }
 
   if (urxvtPath) {
-    shells.push({ shell: Shell.Urxvt, path: urxvtPath })
+    shells.push({ shell: Shell.Urxvt, path: urxvtPath, name: 'Urxvt' })
   }
 
   if (konsolePath) {
-    shells.push({ shell: Shell.Konsole, path: konsolePath })
+    shells.push({ shell: Shell.Konsole, path: konsolePath, name: 'Konsole' })
   }
 
   if (xtermPath) {
-    shells.push({ shell: Shell.Xterm, path: xtermPath })
+    shells.push({ shell: Shell.Xterm, path: xtermPath, name: 'Xterm' })
   }
 
   return shells

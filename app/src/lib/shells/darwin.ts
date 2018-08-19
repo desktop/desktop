@@ -5,32 +5,25 @@ import { IFoundShell } from './found-shell'
 const appPath: (bundleId: string) => Promise<string> = require('app-path')
 
 export enum Shell {
-  Terminal = 'Terminal',
-  Hyper = 'Hyper',
-  iTerm2 = 'iTerm2',
-  PowerShellCore = 'PowerShell Core',
+  Terminal,
+  Hyper,
+  iTerm2,
+  PowerShellCore,
 }
 
-export const Default = Shell.Terminal
+export const Shells: Array<IFoundShell<Shell>> = [
+  { shell: Shell.Terminal, name: 'Terminal', path: '' },
+  { shell: Shell.Hyper, name: 'Hyper', path: '' },
+  { shell: Shell.iTerm2, name: 'iTerm2', path: '' },
+  { shell: Shell.Terminal, name: 'PowerShell Core', path: '' },
+]
 
-export function parse(label: string): Shell {
-  if (label === Shell.Terminal) {
-    return Shell.Terminal
-  }
+export const Default = Shells[0]
 
-  if (label === Shell.Hyper) {
-    return Shell.Hyper
-  }
-
-  if (label === Shell.iTerm2) {
-    return Shell.iTerm2
-  }
-
-  if (label === Shell.PowerShellCore) {
-    return Shell.PowerShellCore
-  }
-
-  return Default
+export function parse(label: string): string {
+  const foundShell: IFoundShell<Shell> | Shell =
+    Shells.find(shell => shell.name === label) || Default
+  return foundShell ? foundShell.name : Default.name
 }
 
 function getBundleID(shell: Shell): string {
@@ -75,19 +68,23 @@ export async function getAvailableShells(): Promise<
 
   const shells: Array<IFoundShell<Shell>> = []
   if (terminalPath) {
-    shells.push({ shell: Shell.Terminal, path: terminalPath })
+    shells.push({ shell: Shell.Terminal, path: terminalPath, name: 'Terminal' })
   }
 
   if (hyperPath) {
-    shells.push({ shell: Shell.Hyper, path: hyperPath })
+    shells.push({ shell: Shell.Hyper, path: hyperPath, name: 'Hyper' })
   }
 
   if (iTermPath) {
-    shells.push({ shell: Shell.iTerm2, path: iTermPath })
+    shells.push({ shell: Shell.iTerm2, path: iTermPath, name: 'iTerm2' })
   }
 
   if (powerShellCorePath) {
-    shells.push({ shell: Shell.PowerShellCore, path: powerShellCorePath })
+    shells.push({
+      shell: Shell.PowerShellCore,
+      path: powerShellCorePath,
+      name: 'PowerShell Core',
+    })
   }
 
   return shells

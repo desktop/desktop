@@ -21,7 +21,6 @@ import { WindowState } from './window-state'
 import { RetryAction } from './retry-actions'
 import { ExternalEditor } from '../lib/editors'
 import { PreferencesTab } from '../models/preferences'
-import { Shell } from './shells'
 import { CloneRepositoryTab } from '../models/clone-repository-tab'
 import { BranchesTab } from '../models/branches-tab'
 import { PullRequest } from '../models/pull-request'
@@ -177,7 +176,7 @@ export interface IAppState {
   readonly imageDiffType: ImageDiffType
 
   /** The user's preferred shell. */
-  readonly selectedShell: Shell
+  readonly selectedShell: string
 
   /** The current repository filter text. */
   readonly repositoryFilterText: string

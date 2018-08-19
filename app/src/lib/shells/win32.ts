@@ -1,62 +1,53 @@
-import { spawn, ChildProcess } from 'child_process'
+import { spawn, ChildProcess, execSync } from 'child_process'
 import * as Path from 'path'
 import { enumerateValues, HKEY, RegistryValueType } from 'registry-js'
 import { pathExists } from 'fs-extra'
-
 import { assertNever } from '../fatal-error'
 import { IFoundShell } from './found-shell'
 
 export enum Shell {
-  Cmd = 'Command Prompt',
-  PowerShell = 'PowerShell',
-  PowerShellCore = 'PowerShell Core',
-  Hyper = 'Hyper',
-  GitBash = 'Git Bash',
-  WslBash = 'WSL Bash (Default)',
-  WslUbuntu = 'WSL (Ubuntu)',
-  WslOpenSuse42 = 'WSL (openSUSE-42)',
-  WslDebian = 'WSL (Debian)',
-  WslKali = 'WSL (kali-linux)',
-  WslSLES = 'WSL (SLES-12)',
+  Cmd,
+  PowerShell,
+  PowerShellCore,
+  Hyper,
+  GitBash,
+  WslBash,
+  WslBashDefault,
 }
 
-export const Default = Shell.Cmd
-
-export function parse(label: String): Shell {
-  switch (label) {
-    case Shell.PowerShell:
-      return Shell.PowerShell
-    case Shell.PowerShellCore:
-      return Shell.PowerShellCore
-    case Shell.Hyper:
-      return Shell.Hyper
-    case Shell.GitBash:
-      return Shell.GitBash
-    case Shell.WslBash:
-      return Shell.WslBash
-    case Shell.WslDebian:
-      return Shell.WslDebian
-    case Shell.WslKali:
-      return Shell.WslKali
-    case Shell.WslOpenSuse42:
-      return Shell.WslOpenSuse42
-    case Shell.WslSLES:
-      return Shell.WslSLES
-    case Shell.WslUbuntu:
-      return Shell.WslUbuntu
-    case Shell.Cmd:
-    default:
-      return Default
-  }
+interface IShell<T> {
+  readonly shell: T
+  readonly path?: string
+  readonly name: string
 }
 
-export async function getAvailableShells(): Promise<
-  ReadonlyArray<IFoundShell<Shell>>
-> {
-  const shells = [
+const Shells: Array<IShell<Shell>> = [
+  { shell: Shell.Cmd, name: 'Command Prompt' },
+  { shell: Shell.PowerShell, name: 'PowerShell' },
+  { shell: Shell.PowerShellCore, name: 'PowerShell Core' },
+  { shell: Shell.Hyper, name: 'Hyper' },
+  { shell: Shell.GitBash, name: 'Git Bash' },
+  { shell: Shell.WslBashDefault, name: 'WSL Bash (Default)' },
+]
+
+export const Default = Shells[0]
+
+export function preProcessShellData() {
+  enumerateWslShellNames()
+}
+
+export function parse(label: string): string {
+  const foundShell: IShell<Shell> | Shell =
+    Shells.find(shell => shell.name === label) || Default
+  return foundShell ? foundShell.name : Default.name
+}
+
+export async function getAvailableShells(): Promise<Array<IFoundShell<Shell>>> {
+  const shells: Array<IFoundShell<Shell>> = [
     {
       shell: Shell.Cmd,
       path: process.env.comspec || 'C:\\Windows\\System32\\cmd.exe',
+      name: 'Command Prompt',
     },
   ]
 
@@ -65,6 +56,7 @@ export async function getAvailableShells(): Promise<
     shells.push({
       shell: Shell.PowerShell,
       path: powerShellPath,
+      name: 'PowerShell',
     })
   }
 
@@ -73,6 +65,7 @@ export async function getAvailableShells(): Promise<
     shells.push({
       shell: Shell.PowerShellCore,
       path: powerShellCorePath,
+      name: 'PowerShell Core',
     })
   }
 
@@ -81,6 +74,7 @@ export async function getAvailableShells(): Promise<
     shells.push({
       shell: Shell.Hyper,
       path: hyperPath,
+      name: 'Hyper',
     })
   }
 
@@ -89,6 +83,7 @@ export async function getAvailableShells(): Promise<
     shells.push({
       shell: Shell.GitBash,
       path: gitBashPath,
+      name: 'Git Bash',
     })
   }
 
@@ -98,6 +93,7 @@ export async function getAvailableShells(): Promise<
       shells.push({
         shell: shell.shell,
         path: shell.path,
+        name: shell.name,
       })
     })
   }
@@ -235,16 +231,81 @@ async function findGitBash(): Promise<string | null> {
   return null
 }
 
+function enumerateWslShellNames() {
+  const hkeyCurrentUser = 'HKEY_CURRENT_USER'
+  const keyPath = `${hkeyCurrentUser}\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Lxss`
+  // forced to used reg.exe to enumerate folder names as registry-js doesnt support folders
+  const buffer = execSync(`reg query ${keyPath}`)
+
+  if (buffer) {
+    let wslKeys: string[] = []
+    const strData = buffer.toString()
+    const splitData = strData.split('\n')
+    if (splitData) {
+      for (let i = 0; i < splitData.length; i++) {
+        const str = splitData[i]
+
+        if (str.search('DefaultDistribution') !== -1) continue
+
+        if (str.search('{') !== -1 && str.search('}') !== -1) {
+          let key = str.replace(`${hkeyCurrentUser}\\`, '')
+          key = key.replace('\r', '')
+          wslKeys.push(key)
+        }
+      }
+    }
+
+    wslKeys.forEach(async function(key) {
+      const path = enumerateValues(HKEY.HKEY_CURRENT_USER, key)
+
+      if (path) {
+        const distributionName = path.find(e => e.name === 'DistributionName')
+        const basePath = path.find(e => e.name === 'BasePath')
+
+        if (
+          basePath &&
+          basePath.type === RegistryValueType.REG_SZ &&
+          distributionName &&
+          distributionName.type === RegistryValueType.REG_SZ
+        ) {
+          const path = Path.join(
+            `${basePath.data}`,
+            `${distributionName.data}${'.exe'}`
+          )
+
+          if (await pathExists(path)) {
+            Shells.push({
+              shell: Shell.WslBash,
+              name: `WSL Bash (${distributionName.data})`,
+              path: path,
+            })
+          } else {
+            const defaultInstallPath = Path.join(
+              process.env.HOME + '\\AppData\\Local\\Microsoft\\WindowsApps\\',
+              distributionName.data + '.exe'
+            )
+            if (await pathExists(defaultInstallPath)) {
+              Shells.push({
+                shell: Shell.WslBash,
+                name: `WSL Bash (${distributionName.data})`,
+                path: defaultInstallPath,
+              })
+            }
+          }
+        }
+      }
+    })
+  }
+}
+
 async function findWslBashShellsCommandLine(): Promise<ReadonlyArray<
   IFoundShell<Shell>
 > | null> {
   const promise = new Promise<IFoundShell<Shell>[] | null>(resolve => {
-    //check we have a valid distro installed (ubuntu, opensuse, sles, kali, debian)
     const windowsRoot = process.env.SystemRoot || 'C:\\Windows'
     const windowsSystem32 = windowsRoot + '\\System32\\'
     const defaultWslExe = windowsSystem32 + 'wsl.exe'
-
-    const shells = [
+    let shells = [
       {
         shell: Shell.WslBash,
         path: defaultWslExe,
@@ -252,76 +313,44 @@ async function findWslBashShellsCommandLine(): Promise<ReadonlyArray<
       },
     ]
     const wslConfigExe = windowsSystem32 + 'wslconfig.exe'
-
     const ls = spawn(wslConfigExe, ['/list'])
     ls.stdout.on('data', data => {
       //wslconfig.exe /list returns a unicode array - santise to human readable format
       const trimmedData = data
         .toString()
-        .replace(
-          /[^A-Za-z 0-9\.,\?""!@#\$%\^&\*\(\)-_=\+;:<>\/\\\|\}\{\[\]`~]*/g,
-          ''
-        )
+        .replace(' ', '')
+        .trim() // .match('/[A-Za-z0-9]')
 
-      //user might have installed WLS but have no valid distro's installed
-      if (trimmedData.search('no installed') === -1) {
-        const wslShellsNames = trimmedData.split(':')
-        if (wslShellsNames.length > 0) {
-          //ignore first line
-          for (let i = 1; i < wslShellsNames.length; i++) {
-            const wslShellNames = wslShellsNames[i].trim()
+      if (trimmedData) {
+        //user might have installed WLS but have no valid distro's installed
+        if (trimmedData.search('no installed') == -1) {
+          const wslShellsNames = trimmedData.split('\n')
+          if (wslShellsNames.length > 0) {
+            //ignore first line
+            for (let i = 1; i < wslShellsNames.length; i++) {
+              let wslShellName = wslShellsNames[i]
+              wslShellName = wslShellName
+                .replace(/[^A-Za-z 0-9()]*/g, '')
+                .replace('(Default)', '')
+                .trim()
+              const wslShell = Shells.find(
+                e => e.name == `WSL Bash (${wslShellName})`
+              )
 
-            //default path for distro exe's
-            const wslShellPathWindows =
-              process.env.HOME + '\\AppData\\Local\\Microsoft\\WindowsApps\\'
-
-            if (wslShellNames.search('Debian') !== -1) {
-              shells.push({
-                shell: Shell.WslDebian,
-                name: 'debian',
-                path: wslShellPathWindows + 'debian.exe',
-              })
-            }
-
-            if (wslShellNames.search('kali-linux') !== -1) {
-              shells.push({
-                shell: Shell.WslKali,
-                name: 'kali',
-                path: wslShellPathWindows + 'kali.exe',
-              })
-            }
-
-            if (wslShellNames.search('openSUSE-42') !== -1) {
-              shells.push({
-                shell: Shell.WslOpenSuse42,
-                name: 'openSUSE-42',
-                path: wslShellPathWindows + 'openSUSE-42.exe',
-              })
-            }
-
-            if (wslShellNames.search('SLES-12') !== -1) {
-              shells.push({
-                shell: Shell.WslSLES,
-                name: 'SLES-12',
-                path: wslShellPathWindows + 'SLES-12.exe',
-              })
-            }
-
-            if (wslShellNames.search('Ubuntu') !== -1) {
-              shells.push({
-                shell: Shell.WslUbuntu,
-                name: 'ubuntu',
-                path: wslShellPathWindows + 'ubuntu.exe',
-              })
+              if (wslShell) {
+                shells.push({
+                  shell: Shell.WslBash,
+                  name: wslShell.name,
+                  path: wslShell.path ? wslShell.path : '',
+                })
+              }
             }
           }
         }
       }
-
       resolve(shells)
     })
   })
-
   return await promise
 }
 
@@ -396,53 +425,29 @@ export function launch(
       })
     case Shell.Hyper:
       const hyperPath = `"${foundShell.path}"`
-      log.info(`launching ${shell} at path: ${hyperPath}`)
+      log.info(`launching ${foundShell.name} at path: ${hyperPath}`)
       return spawn(hyperPath, [`"${path}"`], {
         shell: true,
         cwd: path,
       })
     case Shell.GitBash:
       const gitBashPath = `"${foundShell.path}"`
-      log.info(`launching ${shell} at path: ${gitBashPath}`)
+      log.info(`launching ${foundShell.name} at path: ${gitBashPath}`)
       return spawn(gitBashPath, [`--cd="${path}"`], {
         shell: true,
         cwd: path,
       })
     case Shell.Cmd:
       return spawn('START', ['cmd'], { shell: true, cwd: path })
-    case Shell.WslBash:
-      log.info(`launching ${foundShell}`)
+    case Shell.WslBashDefault:
+      log.info(`launching ${foundShell.name}`)
       return spawn('START', ['wsl'], {
         shell: true,
         cwd: path,
       })
-    case Shell.WslUbuntu:
-      log.info(`launching ${foundShell} at path: ${foundShell.path}`)
-      return spawn('START', ['ubuntu'], {
-        shell: true,
-        cwd: path,
-      })
-    case Shell.WslSLES:
-      log.info(`launching ${foundShell} at path: ${foundShell.path}`)
-      return spawn('START', ['sles-12'], {
-        shell: true,
-        cwd: path,
-      })
-    case Shell.WslDebian:
-      log.info(`launching ${foundShell} at path: ${foundShell.path}`)
-      return spawn('START', ['debian'], {
-        shell: true,
-        cwd: path,
-      })
-    case Shell.WslKali:
-      log.info(`launching ${foundShell} at path: ${foundShell.path}`)
-      return spawn('START', ['kali'], {
-        shell: true,
-        cwd: path,
-      })
-    case Shell.WslOpenSuse42:
-      log.info(`launching ${foundShell} at path: ${foundShell.path}`)
-      return spawn('START', ['opensuse-42'], {
+    case Shell.WslBash:
+      log.info(`launching ${foundShell.name} at path: ${foundShell.path}`)
+      return spawn('START', [`"${foundShell.path}"`], {
         shell: true,
         cwd: path,
       })

@@ -6,7 +6,7 @@ import { Row } from '../../ui/lib/row'
 import { SamplesURL } from '../../lib/stats'
 import { Select } from '../lib/select'
 import { ExternalEditor, parse as parseEditor } from '../../lib/editors'
-import { Shell, parse as parseShell } from '../../lib/shells'
+import { parse as parseShell } from '../../lib/shells'
 import { TextBox } from '../lib/text-box'
 import { enableMergeTool } from '../../lib/feature-flag'
 import { IMergeTool } from '../../lib/git/config'
@@ -17,13 +17,13 @@ interface IAdvancedPreferencesProps {
   readonly confirmDiscardChanges: boolean
   readonly availableEditors: ReadonlyArray<ExternalEditor>
   readonly selectedExternalEditor?: ExternalEditor
-  readonly availableShells: ReadonlyArray<Shell>
-  readonly selectedShell: Shell
+  readonly availableShells: ReadonlyArray<string>
+  readonly selectedShell: string
   readonly onOptOutofReportingchanged: (checked: boolean) => void
   readonly onConfirmDiscardChangesChanged: (checked: boolean) => void
   readonly onConfirmRepositoryRemovalChanged: (checked: boolean) => void
   readonly onSelectedEditorChanged: (editor: ExternalEditor) => void
-  readonly onSelectedShellChanged: (shell: Shell) => void
+  readonly onSelectedShellChanged: (shell: string) => void
 
   readonly mergeTool: IMergeTool | null
   readonly onMergeToolNameChanged: (name: string) => void
@@ -33,7 +33,7 @@ interface IAdvancedPreferencesProps {
 interface IAdvancedPreferencesState {
   readonly optOutOfUsageTracking: boolean
   readonly selectedExternalEditor?: ExternalEditor
-  readonly selectedShell: Shell
+  readonly selectedShell: string
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
 }

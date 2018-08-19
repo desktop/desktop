@@ -48,7 +48,6 @@ import {
 import { installCLI } from '../../ui/lib/install-cli'
 import { setGenericUsername, setGenericPassword } from '../generic-git-auth'
 import { RetryAction, RetryActionType } from '../retry-actions'
-import { Shell } from '../shells'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { validatedRepositoryPath } from '../../lib/stores/helpers/validated-repository-path'
 import { BranchesTab } from '../../models/branches-tab'
@@ -921,7 +920,7 @@ export class Dispatcher {
   /**
    * Sets the user's preferred shell.
    */
-  public setShell(shell: Shell): Promise<void> {
+  public setShell(shell: string): Promise<void> {
     return this.appStore._setShell(shell)
   }
 

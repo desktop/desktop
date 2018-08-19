@@ -123,11 +123,11 @@ import { getGenericHostname, getGenericUsername } from '../generic-git-auth'
 import { RetryActionType, RetryAction } from '../retry-actions'
 import { findEditorOrDefault } from '../editors'
 import {
-  Shell,
   parse as parseShell,
   Default as DefaultShell,
   findShellOrDefault,
   launchShell,
+  preloadShellInfo
 } from '../shells'
 import {
   installGlobalLFSFilters,
@@ -275,7 +275,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private selectedExternalEditor?: ExternalEditor
 
   /** The user's preferred shell. */
-  private selectedShell = DefaultShell
+  private selectedShell = DefaultShell.name
 
   /** The current repository filter text */
   private repositoryFilterText: string = ''
@@ -1449,7 +1449,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const shellValue = localStorage.getItem(shellKey)
-    this.selectedShell = shellValue ? parseShell(shellValue) : DefaultShell
+    preloadShellInfo()
+    this.selectedShell = shellValue ? await parseShell(shellValue) : DefaultShell.name
 
     this.updateMenuItemLabels()
 
@@ -3162,7 +3163,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return Promise.resolve()
   }
 
-  public _setShell(shell: Shell): Promise<void> {
+  public _setShell(shell: string): Promise<void> {
     this.selectedShell = shell
     localStorage.setItem(shellKey, shell)
     this.emitUpdate()
@@ -3171,6 +3172,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     return Promise.resolve()
   }
+
 
   public _changeImageDiffType(type: ImageDiffType): Promise<void> {
     this.imageDiffType = type

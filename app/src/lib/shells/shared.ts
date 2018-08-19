@@ -1,6 +1,5 @@
 import { ChildProcess } from 'child_process'
 import { pathExists } from 'fs-extra'
-
 import * as Darwin from './darwin'
 import * as Win32 from './win32'
 import * as Linux from './linux'
@@ -24,8 +23,14 @@ export const Default = (function() {
 
 let shellCache: ReadonlyArray<FoundShell> | null = null
 
+export function preloadShellInfo() {
+  if (__WIN32__) {
+    return Win32.preProcessShellData()
+  }
+}
+
 /** Parse the label into the specified shell type. */
-export function parse(label: string): Shell {
+export function parse(label: string): string {
   if (__DARWIN__) {
     return Darwin.parse(label)
   } else if (__WIN32__) {
@@ -62,13 +67,13 @@ export async function getAvailableShells(): Promise<ReadonlyArray<FoundShell>> {
 }
 
 /** Find the given shell or the default if the given shell can't be found. */
-export async function findShellOrDefault(shell: Shell): Promise<FoundShell> {
+export async function findShellOrDefault(shell: string): Promise<FoundShell> {
   const available = await getAvailableShells()
-  const found = available.find(s => s.shell === shell)
+  const found = available.find(s => s.name === shell)
   if (found) {
     return found
   } else {
-    return available.find(s => s.shell === Default)!
+    return available.find(s => s.name === Default.name)!
   }
 }
 

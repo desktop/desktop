@@ -18,7 +18,7 @@ import {
   IMergeTool,
 } from '../../lib/git/config'
 import { lookupPreferredEmail } from '../../lib/email'
-import { Shell, getAvailableShells } from '../../lib/shells'
+import { getAvailableShells } from '../../lib/shells'
 import { getAvailableEditors } from '../../lib/editors/lookup'
 import { disallowedCharacters } from './identifier-rules'
 import { Appearance } from './appearance'
@@ -34,7 +34,7 @@ interface IPreferencesProps {
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
   readonly selectedExternalEditor?: ExternalEditor
-  readonly selectedShell: Shell
+  readonly selectedShell: string
   readonly selectedTheme: ApplicationTheme
 }
 
@@ -48,8 +48,8 @@ interface IPreferencesState {
   readonly confirmDiscardChanges: boolean
   readonly availableEditors: ReadonlyArray<ExternalEditor>
   readonly selectedExternalEditor?: ExternalEditor
-  readonly availableShells: ReadonlyArray<Shell>
-  readonly selectedShell: Shell
+  readonly availableShells: ReadonlyArray<string>
+  readonly selectedShell: string
   readonly mergeTool: IMergeTool | null
 }
 
@@ -108,7 +108,7 @@ export class Preferences extends React.Component<
     ])
 
     const availableEditors = editors.map(e => e.editor)
-    const availableShells = shells.map(e => e.shell)
+    const availableShells = shells.map(e => e.name)
 
     this.setState({
       committerName,
@@ -276,7 +276,7 @@ export class Preferences extends React.Component<
     this.setState({ selectedExternalEditor: editor })
   }
 
-  private onSelectedShellChanged = (shell: Shell) => {
+  private onSelectedShellChanged = (shell: string) => {
     this.setState({ selectedShell: shell })
   }
 
