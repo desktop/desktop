@@ -10,7 +10,7 @@
     "test:unit": "cross-env ELECTRON_RUN_AS_NODE=1 node_modules/.bin/electron ./node_modules/jest/bin/jest --config ./jest.config.js",
     "test:unit:cov": "yarn test:unit --coverage",
     "test:script": "mocha -P ./tsonfig.json -t 10000 --require ts-node/register script/changelog/test/*.ts",
-    "test": "yarn test:unit && yarn test:script && yarn test:integration",
+    "test": "yarn test:unit --runInBand && yarn test:script && yarn test:integration",
     "test:setup": "ts-node -P script/tsconfig.json script/test-setup.ts",
     "test:review": "ts-node  -P script/tsconfig.json script/test-review.ts",
     "postinstall": "ts-node -P script/tsconfig.json script/post-install.ts",
