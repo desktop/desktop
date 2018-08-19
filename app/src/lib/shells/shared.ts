@@ -23,7 +23,7 @@ export const Default = (function() {
 
 let shellCache: ReadonlyArray<FoundShell> | null = null
 
-export function preloadShellInfo() {
+export function preProcessShellData() {
   if (__WIN32__) {
     return Win32.preProcessShellData()
   }

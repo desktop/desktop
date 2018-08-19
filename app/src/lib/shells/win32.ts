@@ -276,7 +276,7 @@ function enumerateWslShellNames() {
       }
     }
 
-    wslKeys.forEach(async function(key) {
+    wslKeys.forEach(function(key) {
       const path = enumerateValues(HKEY.HKEY_CURRENT_USER, key)
 
       if (path) {
@@ -294,7 +294,7 @@ function enumerateWslShellNames() {
             `${distributionName.data}${'.exe'}`
           )
 
-          if (await pathExists(path)) {
+          if (pathExistsSync(path)) {
             WslShells.push({
               shell: Shell.WslBash,
               name: `WSL Bash (${distributionName.data})`,
@@ -305,7 +305,7 @@ function enumerateWslShellNames() {
               process.env.HOME + '\\AppData\\Local\\Microsoft\\WindowsApps\\',
               distributionName.data + '.exe'
             )
-            if (await pathExists(defaultInstallPath)) {
+            if (pathExistsSync(defaultInstallPath)) {
               WslShells.push({
                 shell: Shell.WslBash,
                 name: `WSL Bash (${distributionName.data})`,

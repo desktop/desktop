@@ -127,7 +127,7 @@ import {
   Default as DefaultShell,
   findShellOrDefault,
   launchShell,
-  preloadShellInfo,
+  preProcessShellData,
 } from '../shells'
 import {
   installGlobalLFSFilters,
@@ -1449,7 +1449,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const shellValue = localStorage.getItem(shellKey)
-    preloadShellInfo()
+    preProcessShellData()
     this.selectedShell = shellValue
       ? await parseShell(shellValue)
       : DefaultShell
