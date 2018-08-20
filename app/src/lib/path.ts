@@ -12,13 +12,13 @@ export function encodePathAsUrl(...pathSegments: string[]): string {
 }
 
 function _resolveWithin(
+  rootPath: string,
+  pathSegments: string[],
   options: {
     join: (...pathSegments: string[]) => string
     normalize: (p: string) => string
     resolve: (...pathSegments: string[]) => string
-  },
-  rootPath: string,
-  pathSegments: string[]
+  } = Path
 ) {
   // An empty root path would let all relative
   // paths through.
@@ -51,21 +51,21 @@ export function resolveWithin(
   rootPath: string,
   ...pathSegments: string[]
 ): string | null {
-  return _resolveWithin(Path, rootPath, pathSegments)
+  return _resolveWithin(rootPath, pathSegments)
 }
 
 export function resolveWithinPosix(
   rootPath: string,
   ...pathSegments: string[]
 ): string | null {
-  return _resolveWithin(Path.posix, rootPath, pathSegments)
+  return _resolveWithin(rootPath, pathSegments, Path.posix)
 }
 
 export function resolveWithinWin32(
   rootPath: string,
   ...pathSegments: string[]
 ): string | null {
-  return _resolveWithin(Path.win32, rootPath, pathSegments)
+  return _resolveWithin(rootPath, pathSegments, Path.win32)
 }
 
 export const win32 = {
