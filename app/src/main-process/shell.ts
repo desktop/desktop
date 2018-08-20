@@ -15,7 +15,7 @@ import { shell } from 'electron'
  *
  * @param path directory to open
  */
-export function openDirectorySafe(path: string) {
+export function UNSAFE_openDirectory(path: string) {
   if (__DARWIN__) {
     const directoryURL = Url.format({
       pathname: path,

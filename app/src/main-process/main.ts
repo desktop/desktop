@@ -16,7 +16,7 @@ import { fatalError } from '../lib/fatal-error'
 import { IMenuItemState } from '../lib/menu-update'
 import { LogLevel } from '../lib/logging/log-level'
 import { log as writeLog } from './log'
-import { openDirectorySafe } from './shell'
+import { UNSAFE_openDirectory } from './shell'
 import { reportError } from './exception-reporting'
 import {
   enableSourceMaps,
@@ -563,7 +563,7 @@ app.on('ready', () => {
           return
         }
 
-        openDirectorySafe(path)
+        UNSAFE_openDirectory(path)
       })
     }
   )
