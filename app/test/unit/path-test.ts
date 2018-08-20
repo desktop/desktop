@@ -1,4 +1,4 @@
-import { encodePathAsUrl, resolveWithin } from '../../src/lib/path'
+import { encodePathAsUrl, win32, posix } from '../../src/lib/path'
 
 describe('path', () => {
   describe('encodePathAsUrl', () => {
@@ -30,20 +30,32 @@ describe('path', () => {
 
   describe('resolveWithin', () => {
     it('fails for paths outside of the root', () => {
-      expect(resolveWithin('/foo/bar', '../')).toBeNull()
-      expect(resolveWithin('/foo/bar', 'baz/../../bla')).toBeNull()
+      expect(posix.resolveWithin('/foo/bar', '../')).toBeNull()
+      expect(win32.resolveWithin('c:\\foo\\bar', '..\\')).toBeNull()
+
+      expect(posix.resolveWithin('/foo/bar', 'baz/../../bla')).toBeNull()
+      expect(win32.resolveWithin('c:\\foo\\bar', 'baz\\..\\..\\bla')).toBeNull()
     })
 
     it('succeeds for paths that traverse out, and then back into, the root', () => {
-      expect(resolveWithin('/foo/bar', '../bar')).toEqual('/foo/bar')
+      expect(posix.resolveWithin('/foo/bar', '../bar')).toEqual('/foo/bar')
+      expect(win32.resolveWithin('c:\\foo\\bar', '..\\bar')).toEqual(
+        'c:\\foo\\bar'
+      )
     })
 
     it('fails for paths containing null bytes', () => {
-      expect(resolveWithin('/foo/bar', 'foo\0bar')).toBeNull()
+      expect(posix.resolveWithin('/foo/bar', 'foo\0bar')).toBeNull()
+      expect(win32.resolveWithin('c:\\foo\\bar', 'foo\0bar')).toBeNull()
     })
 
     it('succeeds for absolute relative paths as long as they stay within the root', () => {
-      expect(resolveWithin('/foo/bar', '/foo/bar/baz')).toEqual('/foo/bar/baz')
+      expect(posix.resolveWithin('/foo/bar', '/foo/bar/baz')).toEqual(
+        '/foo/bar/baz'
+      )
+      expect(win32.resolveWithin('c:\\foo\\bar', '\\foo\\bar\\baz')).toEqual(
+        'c:\\foo\\bar\\baz'
+      )
     })
   })
 })

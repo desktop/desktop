@@ -11,22 +11,29 @@ export function encodePathAsUrl(...pathSegments: string[]): string {
   return fileUrl(path)
 }
 
-export function resolveWithin(
+function _resolveWithin(
+  options: {
+    join: (...pathSegments: string[]) => string
+    normalize: (p: string) => string
+    resolve: (...pathSegments: string[]) => string
+  },
   rootPath: string,
-  ...pathSegments: string[]
-): string | null {
+  pathSegments: string[]
+) {
   // An empty root path would let all relative
   // paths through.
   if (rootPath.length === 0) {
     return null
   }
 
-  const normalizedRoot = Path.normalize(rootPath)
-  const normalizedRelative = Path.normalize(Path.join(...pathSegments))
+  const { join, normalize, resolve } = options
+
+  const normalizedRoot = normalize(rootPath)
+  const normalizedRelative = normalize(join(...pathSegments))
 
   // Resolve to an absolute path. Note that this will not contain
   // any directory traversal segments.
-  const resolved = Path.resolve(normalizedRoot, normalizedRelative)
+  const resolved = resolve(normalizedRoot, normalizedRelative)
 
   if (!resolved.startsWith(normalizedRoot)) {
     return null
@@ -38,4 +45,33 @@ export function resolveWithin(
   }
 
   return resolved
+}
+
+export function resolveWithin(
+  rootPath: string,
+  ...pathSegments: string[]
+): string | null {
+  return _resolveWithin(Path, rootPath, pathSegments)
+}
+
+export function resolveWithinPosix(
+  rootPath: string,
+  ...pathSegments: string[]
+): string | null {
+  return _resolveWithin(Path.posix, rootPath, pathSegments)
+}
+
+export function resolveWithinWin32(
+  rootPath: string,
+  ...pathSegments: string[]
+): string | null {
+  return _resolveWithin(Path.win32, rootPath, pathSegments)
+}
+
+export const win32 = {
+  resolveWithin: resolveWithinWin32,
+}
+
+export const posix = {
+  resolveWithin: resolveWithinPosix,
 }
