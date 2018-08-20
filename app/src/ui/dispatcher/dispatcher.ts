@@ -1789,6 +1789,10 @@ export class Dispatcher {
 
       if (resolved !== null) {
         shell.showItemInFolder(resolved)
+      } else {
+        log.error(
+          `Prevented attempt to open path outside of the repository root: ${filepath}`
+        )
       }
     }
   }
