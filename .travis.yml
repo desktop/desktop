@@ -18,9 +18,6 @@ addons:
     packages:
       # this is required to compile keytar
       - libsecret-1-dev
-      # this package is essential for testing Electron in a headless fashion
-      # https://github.com/electron/electron/blob/master/docs/tutorial/testing-on-headless-ci.md
-      - xvfb
       # packages required for electron-installer-debian
       - fakeroot
       - dpkg
