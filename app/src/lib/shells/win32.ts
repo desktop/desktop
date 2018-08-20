@@ -1,4 +1,4 @@
-import { spawn, ChildProcess, execSync } from 'child_process'
+import { spawn, ChildProcess } from 'child_process'
 import * as Path from 'path'
 import { enumerateValues, HKEY, RegistryValueType } from 'registry-js'
 import { pathExists } from 'fs-extra'
@@ -293,34 +293,43 @@ async function processKeys(keys: string[]): Promise<void> {
   })
 }
 
-async function enumerateWslShellNames() {
-  const hkeyCurrentUser = 'HKEY_CURRENT_USER'
-  const keyPath = `${hkeyCurrentUser}\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Lxss`
-  // forced to used reg.exe to enumerate folder names as registry-js doesnt support folders
-  const buffer = execSync(`reg query ${keyPath}`)
+async function enumerateWslShellNames(): Promise<void> {
+  const promise = new Promise<void>(resolve => {
+    const hkeyCurrentUser = 'HKEY_CURRENT_USER'
+    const keyPath = `${hkeyCurrentUser}\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Lxss`
+    // forced to used reg.exe to enumerate folder names as registry-js doesnt support folders
+    const windowsRoot = process.env.SystemRoot || 'C:\\Windows'
+    const windowsSystem32 = windowsRoot + '\\System32\\'
+    const defaultRegExe = windowsSystem32 + 'reg.exe'
+    const ls = spawn(defaultRegExe, ['query', `${keyPath}`])
 
-  if (buffer) {
     const wslKeys: string[] = []
-    const strData = buffer.toString()
-    const splitData = strData.split('\n')
-    if (splitData) {
-      for (let i = 0; i < splitData.length; i++) {
-        const str = splitData[i]
 
-        if (str.search('DefaultDistribution') !== -1) {
-          continue
-        }
+    ls.stdout.on('data', async data => {
+      const strData = data.toString()
+      console.log(strData)
+      const splitData = strData.split('\n')
+      if (splitData) {
+        for (let i = 0; i < splitData.length; i++) {
+          const str = splitData[i]
 
-        if (str.search('{') !== -1 && str.search('}') !== -1) {
-          let key = str.replace(`${hkeyCurrentUser}\\`, '')
-          key = key.replace('\r', '')
-          wslKeys.push(key)
+          if (str.search('DefaultDistribution') !== -1) {
+            continue
+          }
+
+          if (str.search('{') !== -1 && str.search('}') !== -1) {
+            let key = str.replace(`${hkeyCurrentUser}\\`, '')
+            key = key.replace('\r', '')
+            wslKeys.push(key)
+          }
         }
+        await processKeys(wslKeys)
       }
-    }
+    })
+    resolve()
+  })
 
-    await processKeys(wslKeys)
-  }
+  return await promise
 }
 
 async function findWslBashShellsCommandLine(): Promise<ReadonlyArray<
@@ -344,7 +353,7 @@ async function findWslBashShellsCommandLine(): Promise<ReadonlyArray<
       const trimmedData = data
         .toString()
         .replace(' ', '')
-        .trim() // .match('/[A-Za-z0-9]')
+        .trim()
 
       if (trimmedData) {
         //user might have installed WLS but have no valid distro's installed
