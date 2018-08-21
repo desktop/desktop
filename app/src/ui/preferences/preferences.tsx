@@ -108,7 +108,13 @@ export class Preferences extends React.Component<
     ])
 
     const availableEditors = editors.map(e => e.editor)
-    const availableShells = shells.map(e => e.name)
+    const availableShells = shells.map(e => {
+      if (e.name) {
+        return e.name
+      } else {
+        return 'Unknown shell'
+      }
+    })
 
     this.setState({
       committerName,
