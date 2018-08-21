@@ -250,7 +250,7 @@ async function findGitBash(): Promise<string | null> {
   return null
 }
 
-async function processKeys(keys: string[]): Promise<void> {
+async function processWslRegistryKeys(keys: string[]): Promise<void> {
   keys.forEach(async function(key) {
     const path = enumerateValues(HKEY.HKEY_CURRENT_USER, key)
 
@@ -294,38 +294,37 @@ async function processKeys(keys: string[]): Promise<void> {
 }
 
 async function enumerateWslShellNames(): Promise<void> {
-  const promise = new Promise<void>(resolve => {
+  const promise = new Promise<void>(async resolve => {
     const hkeyCurrentUser = 'HKEY_CURRENT_USER'
     const keyPath = `${hkeyCurrentUser}\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Lxss`
+
     // forced to used reg.exe to enumerate folder names as registry-js doesnt support folders
     const windowsRoot = process.env.SystemRoot || 'C:\\Windows'
-    const windowsSystem32 = windowsRoot + '\\System32\\'
-    const defaultRegExe = windowsSystem32 + 'reg.exe'
-    const ls = spawn(defaultRegExe, ['query', `${keyPath}`])
+    const windowsSystem32 = Path.join(windowsRoot, 'System32')
+    const defaultRegExe = Path.join(windowsSystem32, 'reg.exe')
 
-    const wslKeys: string[] = []
+    const ls = await spawn(defaultRegExe, ['query', `${keyPath}`])
+
+    const wslGuids: string[] = []
 
     ls.stdout.on('data', async data => {
       const strData = data.toString()
-      console.log(strData)
       const splitData = strData.split('\n')
       if (splitData) {
-        for (let i = 0; i < splitData.length; i++) {
-          const str = splitData[i]
-
-          if (str.search('DefaultDistribution') !== -1) {
-            continue
+        splitData.forEach(async function(str) {
+          if (!(str.search('DefaultDistribution') !== -1)) {
+            if (str.search('{') !== -1 && str.search('}') !== -1) {
+              let key = str.replace(`${hkeyCurrentUser}\\`, '')
+              key = key.replace('\r', '')
+              wslGuids.push(key)
+            }
           }
+        })
 
-          if (str.search('{') !== -1 && str.search('}') !== -1) {
-            let key = str.replace(`${hkeyCurrentUser}\\`, '')
-            key = key.replace('\r', '')
-            wslKeys.push(key)
-          }
-        }
-        await processKeys(wslKeys)
+        await processWslRegistryKeys(wslGuids)
       }
     })
+
     resolve()
   })
 
@@ -337,8 +336,8 @@ async function findWslBashShellsCommandLine(): Promise<ReadonlyArray<
 > | null> {
   const promise = new Promise<IFoundShell<Shell>[] | null>(resolve => {
     const windowsRoot = process.env.SystemRoot || 'C:\\Windows'
-    const windowsSystem32 = windowsRoot + '\\System32\\'
-    const defaultWslExe = windowsSystem32 + 'wsl.exe'
+    const windowsSystem32 = Path.join(windowsRoot, 'System32')
+    const defaultWslExe = Path.join(windowsSystem32, 'wsl.exe')
     const shells = [
       {
         shell: Shell.WslBash,
@@ -346,7 +345,7 @@ async function findWslBashShellsCommandLine(): Promise<ReadonlyArray<
         name: 'WSL Bash (Default)',
       },
     ]
-    const wslConfigExe = windowsSystem32 + 'wslconfig.exe'
+    const wslConfigExe = Path.join(windowsSystem32, 'wslconfig.exe')
     const ls = spawn(wslConfigExe, ['/list'])
     ls.stdout.on('data', data => {
       //wslconfig.exe /list returns a unicode array - santise to human readable format
