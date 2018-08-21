@@ -75,22 +75,21 @@ export async function getAvailableShells(): Promise<
 
   const shells: Array<IFoundShell<Shell>> = []
   if (terminalPath) {
-    shells.push({ shell: Shell.Terminal, path: terminalPath, name: 'Terminal' })
+    shells.push({ shell: Shell.Terminal, path: terminalPath })
   }
 
   if (hyperPath) {
-    shells.push({ shell: Shell.Hyper, path: hyperPath, name: 'Hyper' })
+    shells.push({ shell: Shell.Hyper, path: hyperPath })
   }
 
   if (iTermPath) {
-    shells.push({ shell: Shell.iTerm2, path: iTermPath, name: 'iTerm2' })
+    shells.push({ shell: Shell.iTerm2, path: iTermPath })
   }
 
   if (powerShellCorePath) {
     shells.push({
       shell: Shell.PowerShellCore,
       path: powerShellCorePath,
-      name: 'PowerShell Core',
     })
   }
 

@@ -53,7 +53,7 @@ export function parse(label: string): string {
       shell => shell.name === label
     )
 
-    if (foundShell) {
+    if (foundShell && foundShell.name) {
       return foundShell.name
     }
   }
@@ -62,7 +62,7 @@ export function parse(label: string): string {
 }
 
 export async function getAvailableShells(): Promise<Array<IFoundShell<Shell>>> {
-  const shells = [
+  const shells: IFoundShell<Shell>[] = [
     {
       shell: Shell.Cmd,
       path: process.env.comspec || 'C:\\Windows\\System32\\cmd.exe',
@@ -338,7 +338,7 @@ async function findWslBashShellsCommandLine(): Promise<ReadonlyArray<
     const windowsRoot = process.env.SystemRoot || 'C:\\Windows'
     const windowsSystem32 = Path.join(windowsRoot, 'System32')
     const defaultWslExe = Path.join(windowsSystem32, 'wsl.exe')
-    const shells = [
+    const shells: IFoundShell<Shell>[] = [
       {
         shell: Shell.WslBash,
         path: defaultWslExe,

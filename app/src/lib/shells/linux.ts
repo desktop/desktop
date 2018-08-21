@@ -80,24 +80,23 @@ export async function getAvailableShells(): Promise<
     shells.push({
       shell: Shell.Gnome,
       path: gnomeTerminalPath,
-      name: 'GNOME Terminal',
     })
   }
 
   if (tilixPath) {
-    shells.push({ shell: Shell.Tilix, path: tilixPath, name: 'Tilix' })
+    shells.push({ shell: Shell.Tilix, path: tilixPath })
   }
 
   if (urxvtPath) {
-    shells.push({ shell: Shell.Urxvt, path: urxvtPath, name: 'Urxvt' })
+    shells.push({ shell: Shell.Urxvt, path: urxvtPath })
   }
 
   if (konsolePath) {
-    shells.push({ shell: Shell.Konsole, path: konsolePath, name: 'Konsole' })
+    shells.push({ shell: Shell.Konsole, path: konsolePath })
   }
 
   if (xtermPath) {
-    shells.push({ shell: Shell.Xterm, path: xtermPath, name: 'Xterm' })
+    shells.push({ shell: Shell.Xterm, path: xtermPath })
   }
 
   return shells
