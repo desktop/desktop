@@ -66,7 +66,6 @@ export async function getAvailableShells(): Promise<Array<IFoundShell<Shell>>> {
     {
       shell: Shell.Cmd,
       path: process.env.comspec || 'C:\\Windows\\System32\\cmd.exe',
-      name: 'Command Prompt',
     },
   ]
 
@@ -75,7 +74,6 @@ export async function getAvailableShells(): Promise<Array<IFoundShell<Shell>>> {
     shells.push({
       shell: Shell.PowerShell,
       path: powerShellPath,
-      name: 'PowerShell',
     })
   }
 
@@ -84,7 +82,6 @@ export async function getAvailableShells(): Promise<Array<IFoundShell<Shell>>> {
     shells.push({
       shell: Shell.PowerShellCore,
       path: powerShellCorePath,
-      name: 'PowerShell Core',
     })
   }
 
@@ -93,7 +90,6 @@ export async function getAvailableShells(): Promise<Array<IFoundShell<Shell>>> {
     shells.push({
       shell: Shell.Hyper,
       path: hyperPath,
-      name: 'Hyper',
     })
   }
 
@@ -102,7 +98,6 @@ export async function getAvailableShells(): Promise<Array<IFoundShell<Shell>>> {
     shells.push({
       shell: Shell.GitBash,
       path: gitBashPath,
-      name: 'Git Bash',
     })
   }
 
@@ -374,7 +369,7 @@ async function findWslBashShellsCommandLine(): Promise<ReadonlyArray<
                 shells.push({
                   shell: Shell.WslBash,
                   name: wslShell.name,
-                  path: wslShell.path ? wslShell.path : '',
+                  path: wslShell.path,
                 })
               }
             }
