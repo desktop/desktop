@@ -83,6 +83,7 @@
     "klaw-sync": "^3.0.0",
     "legal-eagle": "0.16.0",
     "mini-css-extract-plugin": "^0.4.0",
+    "mocha": "^5.2.0",
     "node-sass": "^4.7.2",
     "octicons": "^7.0.1",
     "parallel-webpack": "^2.3.0",
@@ -159,7 +160,6 @@
     "electron-packager": "^12.0.0",
     "electron-winstaller": "2.5.2",
     "jest": "^23.5.0",
-    "mocha": "^5.2.0",
     "ts-jest": "^23.1.3"
   }
 }
