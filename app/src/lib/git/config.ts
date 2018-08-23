@@ -10,8 +10,13 @@ export function getConfigValue(
 }
 
 /** Look up a global config value by name. */
-export function getGlobalConfigValue(name: string): Promise<string | null> {
-  return getConfigValueInPath(name, null)
+export function getGlobalConfigValue(
+  name: string,
+  env?: {
+    HOME: string
+  }
+): Promise<string | null> {
+  return getConfigValueInPath(name, null, env)
 }
 
 /** Set the local config value by name. */
@@ -34,7 +39,10 @@ export async function setGlobalConfigValue(
 
 async function getConfigValueInPath(
   name: string,
-  path: string | null
+  path: string | null,
+  env?: {
+    HOME: string
+  }
 ): Promise<string | null> {
   const flags = ['config', '-z']
   if (!path) {
@@ -45,7 +53,9 @@ async function getConfigValueInPath(
 
   const result = await git(flags, path || __dirname, 'getConfigValueInPath', {
     successExitCodes: new Set([0, 1]),
+    env,
   })
+
   // Git exits with 1 if the value isn't found. That's OK.
   if (result.exitCode === 1) {
     return null
