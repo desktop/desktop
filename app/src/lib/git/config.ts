@@ -1,5 +1,6 @@
 import { git } from './core'
 import { Repository } from '../../models/repository'
+import { normalize } from 'path'
 
 /** Look up a config value by name in the repository. */
 export function getConfigValue(
@@ -92,7 +93,7 @@ export async function getGlobalConfigPath(env?: {
     return null
   }
 
-  return path[1]
+  return normalize(path[1])
 }
 
 export interface IMergeTool {
