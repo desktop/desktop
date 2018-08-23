@@ -48,10 +48,8 @@ export function parse(label: string): string {
     return Shell.WslBashDefault
   }
 
-  if (label.search('WSL Bash') === 0) {
-    const foundShell: IFoundShell<Shell> | undefined = WslShells.find(
-      shell => shell.name === label
-    )
+  if (label.indexOf('WSL Bash') === 0) {
+    const foundShell = WslShells.find(shell => shell.name === label)
 
     if (foundShell && foundShell.name) {
       return foundShell.name

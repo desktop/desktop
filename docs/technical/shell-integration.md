@@ -39,12 +39,8 @@ export enum Shell {
   PowerShellCore = 'PowerShell Core',
   Hyper = 'Hyper',
   GitBash = 'Git Bash',
-  WslBash = 'WSL Bash (Default)',
-  WslUbuntu = 'WSL (Ubuntu)',
-  WslOpenSuse42 = 'WSL (openSUSE-42)',
-  WslDebian = 'WSL (Debian)',
-  WslKali = 'WSL (kali-linux)',
-  WslSLES = 'WSL (SLES-12)',
+  WslBash = 'WSL Bash (<distro-name>)',
+  WslBashDefault = 'WSL (Default)',
 }
 ```
 
