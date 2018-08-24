@@ -13,7 +13,6 @@ export interface IRepositoryListItem extends IFilterListItem {
   readonly text: ReadonlyArray<string>
   readonly id: string
   readonly repository: Repositoryish
-  readonly needsDisambiguation: boolean
   readonly aheadBehind: IAheadBehind | null
   readonly changedFilesCount: number
 }
@@ -67,14 +66,12 @@ export function groupRepositories(
 
     repositories.sort((x, y) => caseInsensitiveCompare(x.name, y.name))
     const items: ReadonlyArray<IRepositoryListItem> = repositories.map(r => {
-      const nameCount = names.get(r.name) || 0
       const { aheadBehind, changedFilesCount } =
         localRepositoryStateLookup.get(r.id) || fallbackValue
       return {
         text: [r.name],
         id: r.id.toString(),
         repository: r,
-        needsDisambiguation: nameCount > 1,
         aheadBehind,
         changedFilesCount,
       }

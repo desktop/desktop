@@ -1482,6 +1482,9 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (repository) {
       icon = iconForRepository(repository)
       title = repository.name
+      if (repository instanceof Repository && repository.gitHubRepository) {
+        title = repository.gitHubRepository.owner.login + '/' + title
+      }
     } else if (this.state.repositories.length > 0) {
       icon = OcticonSymbol.repo
       title = __DARWIN__ ? 'Select a Repository' : 'Select a repository'
