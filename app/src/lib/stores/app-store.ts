@@ -2337,10 +2337,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     includeRemote: boolean
   ): Promise<void> {
     return this.withAuthenticatingUser(repository, async (r, account) => {
-      const defaultBranch = this.getRepositoryState(r).branchesState
-        .defaultBranch
-      if (!defaultBranch) {
-        throw new Error(`No default branch!`)
+      const { defaultBranch } = this.getRepositoryState(r).branchesState
+
+      if (defaultBranch == null) {
+        throw new Error(
+          `A default branch cannot be found for this repository, so the app is unable to identify which branch to switch to before removing the current branch.`
+        )
       }
 
       const gitStore = this.getGitStore(r)
