@@ -127,7 +127,7 @@ function getSelectedRowsFromProps(
 export class ChangesList extends React.Component<
   IChangesListProps,
   IChangesState
-  > {
+> {
   public constructor(props: IChangesListProps) {
     super(props)
     this.state = {
