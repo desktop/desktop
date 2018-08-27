@@ -15,6 +15,7 @@ interface IDeleteBranchProps {
   readonly branch: Branch
   readonly existsOnRemote: boolean
   readonly onDismissed: () => void
+  readonly onDeleted: (repository: Repository) => void
 }
 
 interface IDeleteBranchState {
@@ -43,8 +44,7 @@ export class DeleteBranch extends React.Component<
       >
         <DialogContent>
           <p>
-            Delete branch <Ref>{this.props.branch.name}</Ref>?
-            <br />
+            Delete branch <Ref>{this.props.branch.name}</Ref>?<br />
             This action cannot be undone.
           </p>
 
@@ -94,13 +94,15 @@ export class DeleteBranch extends React.Component<
     this.setState({ includeRemoteBranch: value })
   }
 
-  private deleteBranch = () => {
-    this.props.dispatcher.deleteBranch(
-      this.props.repository,
-      this.props.branch,
+  private deleteBranch = async () => {
+    const { dispatcher, repository, branch, onDeleted } = this.props
+    await dispatcher.deleteBranch(
+      repository,
+      branch,
       this.state.includeRemoteBranch
     )
+    onDeleted(repository)
 
-    return this.props.dispatcher.closePopup()
+    return dispatcher.closePopup()
   }
 }

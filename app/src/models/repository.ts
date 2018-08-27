@@ -67,3 +67,13 @@ export interface ILocalRepositoryState {
    */
   readonly changedFilesCount: number
 }
+
+/**
+ * Returns the owner/name alias if associated with a GitHub repository,
+ * otherwise the folder name that contains the repository
+ */
+export function nameOf(repository: Repository) {
+  const { gitHubRepository } = repository
+
+  return gitHubRepository !== null ? gitHubRepository.fullName : repository.name
+}

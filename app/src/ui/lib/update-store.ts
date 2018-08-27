@@ -59,24 +59,19 @@ class UpdateStore {
     autoUpdater.on('update-not-available', this.onUpdateNotAvailable)
     autoUpdater.on('update-downloaded', this.onUpdateDownloaded)
 
-    // This seems to prevent tests from cleanly exiting on Appveyor (see
-    // https://ci.appveyor.com/project/github-windows/desktop/build/1466). So
-    // let's just avoid it.
-    if (!process.env.TEST_ENV) {
-      window.addEventListener('beforeunload', () => {
-        autoUpdater.removeListener('error', this.onAutoUpdaterError)
-        autoUpdater.removeListener(
-          'checking-for-update',
-          this.onCheckingForUpdate
-        )
-        autoUpdater.removeListener('update-available', this.onUpdateAvailable)
-        autoUpdater.removeListener(
-          'update-not-available',
-          this.onUpdateNotAvailable
-        )
-        autoUpdater.removeListener('update-downloaded', this.onUpdateDownloaded)
-      })
-    }
+    window.addEventListener('beforeunload', () => {
+      autoUpdater.removeListener('error', this.onAutoUpdaterError)
+      autoUpdater.removeListener(
+        'checking-for-update',
+        this.onCheckingForUpdate
+      )
+      autoUpdater.removeListener('update-available', this.onUpdateAvailable)
+      autoUpdater.removeListener(
+        'update-not-available',
+        this.onUpdateNotAvailable
+      )
+      autoUpdater.removeListener('update-downloaded', this.onUpdateDownloaded)
+    })
   }
 
   private touchLastChecked() {
@@ -166,7 +161,7 @@ class UpdateStore {
     this.userInitiatedUpdate = !inBackground
 
     try {
-      autoUpdater.setFeedURL(__UPDATES_URL__)
+      autoUpdater.setFeedURL({ url: __UPDATES_URL__ })
       autoUpdater.checkForUpdates()
     } catch (e) {
       this.emitError(e)

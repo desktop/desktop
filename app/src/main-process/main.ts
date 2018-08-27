@@ -287,7 +287,7 @@ app.on('ready', () => {
       )
 
       const window = BrowserWindow.fromWebContents(event.sender)
-      menu.popup(window, { async: true })
+      menu.popup({ window })
     }
   )
 
@@ -368,7 +368,7 @@ app.on('ready', () => {
           return
         }
 
-        if (stats.isDirectory()) {
+        if (!__DARWIN__ && stats.isDirectory()) {
           openDirectorySafe(path)
         } else {
           shell.showItemInFolder(path)
