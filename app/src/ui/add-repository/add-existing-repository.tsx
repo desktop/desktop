@@ -3,7 +3,7 @@ import * as React from 'react'
 
 import { Dispatcher } from '../../lib/dispatcher'
 import { isGitRepository } from '../../lib/git'
-import { checkIfRepositoryIsBare } from '../../lib/git'
+import { isBareRepository } from '../../lib/git'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { TextBox } from '../lib/text-box'
@@ -49,7 +49,7 @@ interface IAddExistingRepositoryState {
    * flickering for our users as they type in a path.
    */
   readonly showNonGitRepositoryWarning: boolean
-  readonly isBareRepository: boolean
+  readonly isRepositoryBare: boolean
 }
 
 /** The component for adding an existing local repository. */
@@ -66,7 +66,7 @@ export class AddExistingRepository extends React.Component<
       path,
       isRepository: false,
       showNonGitRepositoryWarning: false,
-      isBareRepository: false,
+      isRepositoryBare: false,
     }
   }
 
@@ -85,14 +85,14 @@ export class AddExistingRepository extends React.Component<
       return
     }
 
-    const isBare = await checkIfRepositoryIsBare(this.state.path)
+    const isBare = await isBareRepository(this.state.path)
     if (isBare !== null && isBare === true) {
-      this.setState({ isBareRepository: true })
+      this.setState({ isRepositoryBare: true })
       return
     }
 
     this.setState({ isRepository, showNonGitRepositoryWarning: !isRepository })
-    this.setState({ isBareRepository: false })
+    this.setState({ isRepositoryBare: false })
   }
 
   private renderWarning() {
@@ -100,7 +100,7 @@ export class AddExistingRepository extends React.Component<
       return null
     }
 
-    if (this.state.isBareRepository) {
+    if (this.state.isRepositoryBare) {
       return (
         <Row className="warning-helper-text">
           <Octicon symbol={OcticonSymbol.alert} />
@@ -132,7 +132,7 @@ export class AddExistingRepository extends React.Component<
     const disabled =
       this.state.path.length === 0 ||
       !this.state.isRepository ||
-      this.state.isBareRepository
+      this.state.isRepositoryBare
 
     return (
       <Dialog
@@ -183,7 +183,7 @@ export class AddExistingRepository extends React.Component<
 
     const path = directory[0]
     const isRepository = await isGitRepository(path)
-    const isBareRepositoryResult = await checkIfRepositoryIsBare(path)
+    const isBareRepositoryResult = await isBareRepository(path)
     let isBareRepository: boolean = false
 
     if (isBareRepositoryResult !== null) {
@@ -193,8 +193,8 @@ export class AddExistingRepository extends React.Component<
     this.setState({
       path,
       isRepository,
-      showNonGitRepositoryWarning: !isRepository || isBareRepository,
-      isBareRepository,
+      showNonGitRepositoryWarning: !isRepository || isRepositoryBare,
+      isRepositoryBare,
     })
   }
 
