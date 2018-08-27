@@ -55,26 +55,19 @@ export async function getTopLevelWorkingDirectory(
 export async function checkIfRepositoryIsBare(
   path: string
 ): Promise<boolean | null> {
-  let result
-
   try {
-    result = await git(
+    const result = await git(
       ['rev-parse', '--is-bare-repository'],
       path,
       'checkIfRepositoryIsBare'
     )
+    return result.stdout.trim() === 'true'
   } catch (e) {
     if (e.message.includes('not a git repository')) {
       return null
     }
 
     throw e
-  }
-
-  if (result === null) {
-    return null
-  } else {
-    return result.stdout === 'true\n'
   }
 }
 
