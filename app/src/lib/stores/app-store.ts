@@ -2336,23 +2336,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
     branch: Branch,
     includeRemote: boolean
   ): Promise<void> {
-    return this.withAuthenticatingUser(repository, async (repo, account) => {
-      const defaultBranch = this.getRepositoryState(repository).branchesState
+    return this.withAuthenticatingUser(repository, async (r, account) => {
+      const defaultBranch = this.getRepositoryState(r).branchesState
         .defaultBranch
       if (!defaultBranch) {
         throw new Error(`No default branch!`)
       }
 
-      const gitStore = this.getGitStore(repository)
+      const gitStore = this.getGitStore(r)
 
       await gitStore.performFailableOperation(() =>
-        checkoutBranch(repository, account, defaultBranch)
+        checkoutBranch(r, account, defaultBranch)
       )
       await gitStore.performFailableOperation(() =>
-        deleteBranch(repository, branch, account, includeRemote)
+        deleteBranch(r, branch, account, includeRemote)
       )
 
-      return this._refreshRepository(repository)
+      return this._refreshRepository(r)
     })
   }
 
