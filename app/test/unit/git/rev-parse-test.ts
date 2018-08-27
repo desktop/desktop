@@ -7,7 +7,7 @@ import { Repository } from '../../../src/models/repository'
 import {
   isGitRepository,
   getTopLevelWorkingDirectory,
-  checkIfRepositoryIsBare,
+  isBareRepository,
 } from '../../../src/lib/git/rev-parse'
 import { git } from '../../../src/lib/git/core'
 import {
@@ -40,20 +40,20 @@ describe('git/rev-parse', () => {
   describe('isBareRepository', () => {
     it('returns false for default initialized repository', async () => {
       const repository = await setupEmptyRepository()
-      const result = await checkIfRepositoryIsBare(repository.path)
+      const result = await isBareRepository(repository.path)
       expect(result).is.false
     })
 
     it('returns true for initialized bare repository', async () => {
       const path = await mkdirSync('no-repository-here')
       await GitProcess.exec(['init', '--bare'], path)
-      const result = await checkIfRepositoryIsBare(path)
+      const result = await isBareRepository(path)
       expect(result).is.true
     })
 
     it('returns null for empty directory', async () => {
       const path = await mkdirSync('no-actual-repository-here')
-      const result = await checkIfRepositoryIsBare(path)
+      const result = await isBareRepository(path)
       expect(result).is.null
     })
 
@@ -62,7 +62,7 @@ describe('git/rev-parse', () => {
       const missingPath = path.join(rootPath, 'missing-folder')
       let errorThrown = false
       try {
-        await checkIfRepositoryIsBare(missingPath)
+        await isBareRepository(missingPath)
       } catch {
         errorThrown = true
       }
