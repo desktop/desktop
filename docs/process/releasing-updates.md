@@ -160,9 +160,9 @@ _Make sure you move your application out of the Downloads folder and into the Ap
 
 ### 6. Check Error Reporting
 
-If an error occurs during the release process, a needle will be reported to Central's [Haystack](https://haystack.githubapp.com/desktop).
+If an error occurs during the release process, a needle will be reported to Central's [Haystack](https://haystack.githubapp.com/central).
 
-It is normal to monitor Haystack closely for 15 minutes just to make sure.
+After the release is deployed, you should monitor Desktop's [Haystack](https://haystack.githubapp.com/desktop) closely for 15 minutes to ensure no unexpected needles appear.
 
 ### 6. Celebrate
 
