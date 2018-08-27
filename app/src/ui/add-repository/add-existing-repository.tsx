@@ -183,12 +183,7 @@ export class AddExistingRepository extends React.Component<
 
     const path = directory[0]
     const isRepository = await isGitRepository(path)
-    const isBareRepositoryResult = await isBareRepository(path)
-    let isBareRepository: boolean = false
-
-    if (isBareRepositoryResult !== null) {
-      isBareRepository = isBareRepositoryResult
-    }
+    const isRepositoryBare = (await isBareRepository(path)) || false
 
     this.setState({
       path,
