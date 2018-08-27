@@ -52,6 +52,13 @@ export async function getTopLevelWorkingDirectory(
   return Path.resolve(path, relativePath)
 }
 
+/**
+ * Checks if the repository at a path is bare.
+ *
+ * @param path The path to the Git repository to check.
+ *
+ * @returns null if the path provided does not contain a Git repository.
+ */
 export async function isBareRepository(path: string): Promise<boolean | null> {
   try {
     const result = await git(
