@@ -99,16 +99,17 @@ export class DeleteBranch extends React.Component<
   }
 
   private deleteBranch = async () => {
-    const { dispatcher, repository, branch, onDeleted } = this.props
+    const { dispatcher, repository, branch } = this.props
 
     this.setState({ isDeleting: true })
+
     await dispatcher.deleteBranch(
       repository,
       branch,
       this.state.includeRemoteBranch
     )
-    onDeleted(repository)
+    this.props.onDeleted(repository)
 
-    return dispatcher.closePopup()
+    await dispatcher.closePopup()
   }
 }
