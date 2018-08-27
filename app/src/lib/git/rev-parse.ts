@@ -52,14 +52,12 @@ export async function getTopLevelWorkingDirectory(
   return Path.resolve(path, relativePath)
 }
 
-export async function checkIfRepositoryIsBare(
-  path: string
-): Promise<boolean | null> {
+export async function isBareRepository(path: string): Promise<boolean | null> {
   try {
     const result = await git(
       ['rev-parse', '--is-bare-repository'],
       path,
-      'checkIfRepositoryIsBare'
+      'isBareRepository'
     )
     return result.stdout.trim() === 'true'
   } catch (e) {
