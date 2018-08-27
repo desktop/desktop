@@ -3,7 +3,7 @@ These teams are not set in stone and will likely evolve as we continue to iterat
 | Team | Purpose |
 |:--|:--|
 | desktop/analytics | Analyzing the data we use for gaining insight into Desktop and its users |
-| desktop/core | Internal GitHub team that maintains Desktop |
+| desktop/maintainers | The maintainers of GitHub Desktop |
 | desktop/comrades | Avenue for community members to get more involved in the Desktop project |
 | desktop/docs | Responsible for creating documentation Desktop users can consult when needed |
 | desktop/engineering | Responsible for implementing Desktop's new features, fixing bugs, and all other developement tasks |
