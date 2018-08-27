@@ -16,4 +16,9 @@ module.exports = {
     '!**/vendor/**',
     '!**/*.d.*',
   ],
+  globals: {
+    'ts-jest': {
+      useBabelrc: true,
+    },
+  },
 }

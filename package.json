@@ -57,6 +57,7 @@
     "awesome-typescript-loader": "^5.0.0",
     "aws-sdk": "^2.23.0",
     "babel-core": "^6.26.3",
+    "babel-jest": "^23.4.2",
     "babel-minify-webpack-plugin": "^0.3.1",
     "babel-plugin-syntax-dynamic-import": "^6.18.0",
     "chai": "^4.1.1",
@@ -79,6 +80,7 @@
     "fs-extra": "^6.0.0",
     "glob": "^7.1.2",
     "html-webpack-plugin": "^3.2.0",
+    "jest": "^23.5.0",
     "json-pretty": "^0.0.1",
     "klaw-sync": "^3.0.0",
     "legal-eagle": "0.16.0",
@@ -95,6 +97,7 @@
     "spectron": "^3.8.0",
     "style-loader": "^0.21.0",
     "to-camel-case": "^1.0.0",
+    "ts-jest": "^23.1.4",
     "ts-node": "^7.0.0",
     "tslint": "^5.11.0",
     "tslint-config-prettier": "^1.14.0",
@@ -156,10 +159,7 @@
     "@types/xml2js": "^0.4.0",
     "electron": "2.0.5",
     "electron-builder": "20.27.1",
-    "electron-mocha": "^6.0.1",
     "electron-packager": "^12.0.0",
-    "electron-winstaller": "2.5.2",
-    "jest": "^23.5.0",
-    "ts-jest": "^23.1.3"
+    "electron-winstaller": "2.5.2"
   }
 }
