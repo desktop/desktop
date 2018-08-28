@@ -91,12 +91,15 @@ import { MergeConflictsWarning } from './merge-conflicts'
 import { AppTheme } from './app-theme'
 import { ApplicationTheme } from './lib/application-theme'
 
+const MinuteInMilliseconds = 1000 * 60
+
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
 
 const SendStatsInterval = 1000 * 60 * 60 * 4
 
-const updateRepoInfoInterval = 1000 * 60 * 5
+const InitialRepositoryIndicatorTimeout = 2 * MinuteInMilliseconds
+const UpdateRepositoryIndicatorInterval = 15 * MinuteInMilliseconds
 
 interface IAppProps {
   readonly dispatcher: Dispatcher
@@ -123,6 +126,8 @@ export class App extends React.Component<IAppProps, IAppState> {
    * keyup and keydown.
    */
   private lastKeyPressed: string | null = null
+
+  private updateIntervalHandle?: number
 
   /**
    * Gets a value indicating whether or not we're currently showing a
@@ -156,9 +161,15 @@ export class App extends React.Component<IAppProps, IAppState> {
         { timeout: ReadyDelay }
       )
 
-      window.setInterval(() => {
-        this.props.appStore.refreshAllRepositories()
-      }, updateRepoInfoInterval)
+      const initialTimeout = window.setTimeout(async () => {
+        window.clearTimeout(initialTimeout)
+
+        await this.props.appStore.refreshAllIndicators()
+
+        this.updateIntervalHandle = window.setInterval(() => {
+          this.props.appStore.refreshAllIndicators()
+        }, UpdateRepositoryIndicatorInterval)
+      }, InitialRepositoryIndicatorTimeout)
     })
 
     this.state = props.appStore.getState()
@@ -226,6 +237,10 @@ export class App extends React.Component<IAppProps, IAppState> {
         })
       }
     )
+  }
+
+  public componentWillUnmount() {
+    window.clearInterval(this.updateIntervalHandle)
   }
 
   private performDeferredLaunchActions() {
@@ -454,7 +469,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private deleteBranch() {
     const state = this.state.selectedState
-    if (state == null || state.type !== SelectionType.Repository) {
+    if (state === null || state.type !== SelectionType.Repository) {
       return
     }
 
@@ -462,7 +477,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     if (tip.kind === TipState.Valid) {
       const currentPullRequest = state.state.branchesState.currentPullRequest
-      if (currentPullRequest) {
+      if (currentPullRequest !== null) {
         this.props.dispatcher.showPopup({
           type: PopupType.DeletePullRequest,
           repository: state.repository,
@@ -986,6 +1001,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             branch={popup.branch}
             existsOnRemote={popup.existsOnRemote}
             onDismissed={this.onPopupDismissed}
+            onDeleted={this.onBranchDeleted}
           />
         )
       case PopupType.ConfirmDiscardChanges:
@@ -1781,6 +1797,16 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (baseURL) {
       this.props.dispatcher.openInBrowser(`${baseURL}/commit/${SHA}`)
     }
+  }
+
+  private onBranchDeleted = (repository: Repository) => {
+    // In the event a user is in the middle of a compare
+    // we need to exit out of the compare state after the
+    // branch has been deleted. Calling executeCompare allows
+    // us to do just that.
+    this.props.dispatcher.executeCompare(repository, {
+      kind: CompareActionKind.History,
+    })
   }
 }
 
