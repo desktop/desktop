@@ -12,6 +12,7 @@ import { LinkButton } from '../lib/link-button'
 
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { DialogHeader } from '../dialog/header'
+import { join } from '../lib/join'
 
 const ReleaseNoteHeaderLeftUri = encodePathAsUrl(
   __dirname,
@@ -77,7 +78,11 @@ function renderLineItem(note: string): (JSX.Element | string)[] | string {
 
     return [
       otherContribution[1],
-      <React.Fragment key={2}>{linkifiedIssues}</React.Fragment>,
+      <React.Fragment key={2}>
+        {linkifiedIssues !== null && linkifiedIssues.length > 1
+          ? join(linkifiedIssues, '')
+          : null}
+      </React.Fragment>,
     ]
   }
 
