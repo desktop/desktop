@@ -68,7 +68,7 @@ function renderLineItem(note: string): (JSX.Element | string)[] | string {
 
     return [
       otherContribution[1],
-      <React.Fragment>{linkifiedIssues}</React.Fragment>,
+      <React.Fragment key={2}>{linkifiedIssues}</React.Fragment>,
     ]
   }
 
