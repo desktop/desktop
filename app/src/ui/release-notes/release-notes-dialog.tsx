@@ -23,7 +23,7 @@ const ReleaseNoteHeaderRightUri = encodePathAsUrl(
 )
 
 const externalContributionRe = /^(.*)(#\d+)(.*)(@[a-zA-Z0-9\-]+)!(.*)$/
-const otherContributionRe = /^(.*)(#\d+)(.*)$/
+const otherContributionRe = /^(.*?)((\s?\#\d+\s?)+)(.*)$/
 
 function desktopIssueUrl(numberWithHash: string): string {
   return `https://github.com/desktop/desktop/issues/${numberWithHash.substr(1)}`
