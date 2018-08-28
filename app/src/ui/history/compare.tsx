@@ -346,7 +346,7 @@ export class CompareSidebar extends React.Component<
         mergeStatus={this.props.compareState.mergeStatus}
         currentBranch={this.props.currentBranch}
         comparisonBranch={formState.comparisonBranch}
-        formState={formState}
+        commitsBehind={formState.aheadBehind.behind}
         onMerged={this.onMerge}
       />
     )
