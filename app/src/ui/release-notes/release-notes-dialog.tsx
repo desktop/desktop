@@ -58,19 +58,19 @@ function linkifyIssues(
 function renderLineItem(note: string): (JSX.Element | string)[] | string {
   const externalContribution = externalContributionRe.exec(note)
   if (externalContribution) {
-    const issueNumbersLine = externalContribution[2].trim()
-    const linkifiedIssues = linkifyIssues(issueNumbersLine)
-    const mention = externalContribution[4]
-    const mentionUrl = accountUrl(issueNumbersLine)
+    const changeLogMessage = `${externalContribution[1]} `
+    const issues = externalContribution[2].trim()
+    const linkifiedIssues = linkifyIssues(issues)
+    const thanks = externalContribution[4]
+    const mention = externalContribution[5]
+    const mentionUrl = accountUrl(mention)
+
+    console.log(`linkifiedIssues: ${linkifiedIssues}`)
 
     return [
-      externalContribution[1],
-      <React.Fragment key={2}>
-        {linkifiedIssues !== null && linkifiedIssues.length > 1
-          ? join(linkifiedIssues, '')
-          : null}
-      </React.Fragment>,
-      externalContribution[3],
+      changeLogMessage,
+      <React.Fragment key={2}>{linkifiedIssues}</React.Fragment>,
+      thanks,
       <LinkButton key={4} uri={mentionUrl}>
         {mention}
       </LinkButton>,
