@@ -700,7 +700,7 @@ export interface ICompareFormUpdate {
 
 export type MergeResultStatus =
   | {
-      kind: 'in-progress'
+      kind: 'loading'
     }
   | {
       kind: 'conflicts'

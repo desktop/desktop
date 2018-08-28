@@ -972,7 +972,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return this.emitUpdate()
     } else {
       this.updateCompareState(repository, () => ({
-        mergeStatus: { kind: 'in-progress' },
+        mergeStatus: { kind: 'loading' },
       }))
 
       this.emitUpdate()
