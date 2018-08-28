@@ -12,7 +12,6 @@ These are good teams to start with for general communication and questions. (Mem
 |:--|:--|
 | `@desktop/maintainers` | The people designing, developing, and driving GitHub Desktop |
 | `@desktop/comrades` | Community members with a track record of activity in the Desktop project |
-| `@desktop/contributors` | Community members active in the Desktop project |
 
 ## Skills-based Teams
 
