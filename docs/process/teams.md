@@ -5,6 +5,7 @@ These teams are not set in stone and will likely evolve as we continue to iterat
 | `@desktop/analytics` | Analyzing the data we use for gaining insight into Desktop and its users |
 | `@desktop/maintainers` | The maintainers of GitHub Desktop |
 | `@desktop/comrades` | Avenue for community members to get more involved in the Desktop project |
+| `@desktop/contributors` | Helping improve GitHub Desktop (with code, design, and more) |
 | `@desktop/docs` | Responsible for creating documentation Desktop users can consult when needed |
 | `@desktop/engineering` | Responsible for implementing Desktop's new features, fixing bugs, and all other developement tasks |
 | `@desktop/product` | Ensures Desktop addresses the needs of its users by prioritizing what to build |
