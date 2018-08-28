@@ -138,7 +138,8 @@ export class TermsAndConditions extends React.Component<
             GitHub will process that information in accordance with the
             <LinkButton uri={privacyStatement}>
               GitHub Privacy Statement
-            </LinkButton>.
+            </LinkButton>
+            .
           </p>
 
           <h2>Additional Services</h2>
@@ -243,13 +244,15 @@ export class TermsAndConditions extends React.Component<
               under the{' '}
               <LinkButton uri={license}>
                 Creative Commons Attribution license
-              </LinkButton>. You may use it freely under the terms of the
-              Creative Commons license.
+              </LinkButton>
+              . You may use it freely under the terms of the Creative Commons
+              license.
             </li>
 
             <li>
               Contact Us. Please send any questions about these Application
-              Terms to <LinkButton uri={contact}>support@github.com</LinkButton>.
+              Terms to <LinkButton uri={contact}>support@github.com</LinkButton>
+              .
             </li>
           </ol>
         </DialogContent>

@@ -121,8 +121,8 @@ export class Dispatcher {
   }
 
   /** Load the next batch of history for the repository. */
-  public loadNextHistoryBatch(repository: Repository): Promise<void> {
-    return this.appStore._loadNextHistoryBatch(repository)
+  public loadNextCommitBatch(repository: Repository): Promise<void> {
+    return this.appStore._loadNextCommitBatch(repository)
   }
 
   /** Load the changed files for the current history selection. */
@@ -141,11 +141,11 @@ export class Dispatcher {
    *            the history list, represented as a SHA-1 hash
    *            digest. This should match exactly that of Commit.Sha
    */
-  public changeHistoryCommitSelection(
+  public changeCommitSelection(
     repository: Repository,
     sha: string
   ): Promise<void> {
-    return this.appStore._changeHistoryCommitSelection(repository, sha)
+    return this.appStore._changeCommitSelection(repository, sha)
   }
 
   /**
@@ -156,11 +156,11 @@ export class Dispatcher {
    * @param file A FileChange instance among those available in
    *            IHistoryState.changedFiles
    */
-  public changeHistoryFileSelection(
+  public changeFileSelection(
     repository: Repository,
     file: CommittedFileChange
   ): Promise<void> {
-    return this.appStore._changeHistoryFileSelection(repository, file)
+    return this.appStore._changeFileSelection(repository, file)
   }
 
   /** Set the repository filter text. */
@@ -176,7 +176,7 @@ export class Dispatcher {
   }
 
   /** Load the working directory status. */
-  public loadStatus(repository: Repository): Promise<void> {
+  public loadStatus(repository: Repository): Promise<boolean> {
     return this.appStore._loadStatus(repository)
   }
 
@@ -818,7 +818,7 @@ export class Dispatcher {
           const user = await requestAuthenticatedUser(action.code)
           if (user) {
             resolveOAuthRequest(user)
-          } else {
+          } else if (user === null) {
             rejectOAuthRequest(new Error('Unable to fetch authenticated user.'))
           }
         } catch (e) {
@@ -1201,6 +1201,20 @@ export class Dispatcher {
     newState: Pick<ICompareFormUpdate, K>
   ) {
     return this.appStore._updateCompareForm(repository, newState)
+  }
+
+  /**
+   * Increments the `mergeConflictFromPullCount` metric
+   */
+  public recordMergeConflictFromPull() {
+    return this.appStore._recordMergeConflictFromPull()
+  }
+
+  /**
+   * Increments the `mergeConflictFromExplicitMergeCount` metric
+   */
+  public recordMergeConflictFromExplicitMerge() {
+    return this.appStore._recordMergeConflictFromExplicitMerge()
   }
 
   /**

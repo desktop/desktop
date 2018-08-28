@@ -42,7 +42,8 @@ export class UpdateAvailable extends React.Component<
           or{' '}
           <LinkButton onClick={this.updateNow}>
             restart GitHub Desktop
-          </LinkButton>.
+          </LinkButton>
+          .
         </span>
 
         <a className="close" onClick={this.dismiss}>

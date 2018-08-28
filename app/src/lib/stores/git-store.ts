@@ -188,44 +188,6 @@ export class GitStore extends BaseStore {
     this.emitUpdate()
   }
 
-  /** Load history from HEAD. */
-  public async loadHistory() {
-    if (this.requestsInFight.has(LoadingHistoryRequestKey)) {
-      return
-    }
-
-    this.requestsInFight.add(LoadingHistoryRequestKey)
-
-    let commits = await this.performFailableOperation(() =>
-      getCommits(this.repository, 'HEAD', CommitBatchSize)
-    )
-    if (!commits) {
-      return
-    }
-
-    let existingHistory = this._history
-    if (existingHistory.length > 0) {
-      const mostRecent = existingHistory[0]
-      const index = commits.findIndex(c => c.sha === mostRecent)
-      // If we found the old HEAD, then we can just splice the new commits into
-      // the history we already loaded.
-      //
-      // But if we didn't, it means the history we had and the history we just
-      // loaded have diverged significantly or in some non-trivial way
-      // (e.g., HEAD reset). So just throw it out and we'll start over fresh.
-      if (index > -1) {
-        commits = commits.slice(0, index)
-      } else {
-        existingHistory = []
-      }
-    }
-
-    this._history = [...commits.map(c => c.sha), ...existingHistory]
-    this.storeCommits(commits, true)
-    this.requestsInFight.delete(LoadingHistoryRequestKey)
-    this.emitUpdate()
-  }
-
   /** Load the next batch of history, starting from the last loaded commit. */
   public async loadNextHistoryBatch() {
     if (this.requestsInFight.has(LoadingHistoryRequestKey)) {
@@ -257,13 +219,13 @@ export class GitStore extends BaseStore {
     this.emitUpdate()
   }
 
-  /** Load a batch of commits from the repository, using the last known commit in the list. */
-  public async loadCommitBatch(lastSHA: string) {
+  /** Load a batch of commits from the repository, using a given commitish object as the starting point */
+  public async loadCommitBatch(commitish: string) {
     if (this.requestsInFight.has(LoadingHistoryRequestKey)) {
       return null
     }
 
-    const requestKey = `history/compare/${lastSHA}`
+    const requestKey = `history/compare/${commitish}`
     if (this.requestsInFight.has(requestKey)) {
       return null
     }
@@ -271,7 +233,7 @@ export class GitStore extends BaseStore {
     this.requestsInFight.add(requestKey)
 
     const commits = await this.performFailableOperation(() =>
-      getCommits(this.repository, `${lastSHA}^`, CommitBatchSize)
+      getCommits(this.repository, commitish, CommitBatchSize)
     )
 
     this.requestsInFight.delete(requestKey)
@@ -523,7 +485,17 @@ export class GitStore extends BaseStore {
     // directory for the next stage. Doing doing a `git checkout -- .` here
     // isn't suitable because we should preserve the other working directory
     // changes.
-    const status = await getStatus(repository)
+
+    const status = await this.performFailableOperation(() =>
+      getStatus(this.repository)
+    )
+
+    if (status == null) {
+      throw new Error(
+        `Unable to undo commit because there are too many files in your repository's working directory.`
+      )
+    }
+
     const paths = status.workingDirectory.files
 
     const deletedFiles = paths.filter(p => p.status === AppFileStatus.Deleted)
@@ -750,7 +722,7 @@ export class GitStore extends BaseStore {
   }
 
   /**
-   * The commit message to use based on the contex of the repository, e.g., the
+   * The commit message to use based on the context of the repository, e.g., the
    * message from a recently undone commit.
    */
   public get contextualCommitMessage(): ICommitMessage | null {
@@ -815,6 +787,20 @@ export class GitStore extends BaseStore {
         backgroundTask,
         progressCallback
       )
+    }
+
+    // check the upstream ref against the current branch to see if there are
+    // any new commits available
+    if (this.tip.kind === TipState.Valid) {
+      const currentBranch = this.tip.branch
+      if (currentBranch.remote !== null && currentBranch.upstream !== null) {
+        const range = revSymmetricDifference(
+          currentBranch.name,
+          currentBranch.upstream
+        )
+        this._aheadBehind = await getAheadBehind(this.repository, range)
+        this.emitUpdate()
+      }
     }
   }
 
@@ -919,16 +905,7 @@ export class GitStore extends BaseStore {
 
     if (currentBranch || currentTip) {
       if (currentTip && currentBranch) {
-        const cachedCommit = this.commitLookup.get(currentTip)
-        const branchTipCommit =
-          cachedCommit ||
-          (await this.performFailableOperation(() =>
-            getCommit(this.repository, currentTip)
-          ))
-
-        if (!branchTipCommit) {
-          throw new Error(`Could not load commit ${currentTip}`)
-        }
+        const branchTipCommit = await this.lookupCommit(currentTip)
 
         const branch = new Branch(
           currentBranch,
@@ -949,6 +926,30 @@ export class GitStore extends BaseStore {
     this.emitUpdate()
 
     return status
+  }
+
+  /**
+   * Find a commit in the local cache, or load in the commit from the underlying
+   * repository.
+   *
+   * This will error if the commit ID cannot be resolved.
+   */
+  private async lookupCommit(sha: string): Promise<Commit> {
+    const cachedCommit = this.commitLookup.get(sha)
+    if (cachedCommit != null) {
+      return Promise.resolve(cachedCommit)
+    }
+
+    const foundCommit = await this.performFailableOperation(() =>
+      getCommit(this.repository, sha)
+    )
+
+    if (foundCommit != null) {
+      this.commitLookup.set(sha, foundCommit)
+      return foundCommit
+    }
+
+    throw new Error(`Could not load commit: '${sha}'`)
   }
 
   public async loadRemotes(): Promise<void> {
@@ -1104,7 +1105,9 @@ export class GitStore extends BaseStore {
 
   /** Merge the named branch into the current branch. */
   public merge(branch: string): Promise<void> {
-    return this.performFailableOperation(() => merge(this.repository, branch))
+    return this.performFailableOperation(() => merge(this.repository, branch), {
+      command: 'merge',
+    })
   }
 
   /** Changes the URL for the remote that matches the given name  */
