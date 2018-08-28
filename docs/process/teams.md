@@ -22,7 +22,7 @@ These teams are used for asking questions or pinging people for specific experti
 |:--|:--|
 | `@desktop/analytics` | Analyzing the data we use for gaining insight into Desktop and its users |
 | `@desktop/docs` | Creating documentation Desktop users can consult when needed |
-| `@desktop/engineering` | Implementing Desktop's new features, fixing bugs, and all other developement tasks |
+| `@desktop/engineering` | Implementing Desktop's features, reviewing PRs, and all other developement tasks |
 | `@desktop/product` | Prioritizing and defining the work on Desktop |
 | `@desktop/design` | Crafting the user experience and interfaces of Desktop |
 | `@desktop/quality-assurance` | Ensuring and verifying quality of Desktop for our users |
