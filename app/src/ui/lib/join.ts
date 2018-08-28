@@ -1,8 +1,8 @@
 /**
  * Insert a separator element between each entry of an array of elements
  *
- * @param elements
- * @param separator
+ * @param elements - A list of components
+ * @param separator - A string or component that will be placed between every element
  */
 export function join(
   elements: JSX.Element[],
