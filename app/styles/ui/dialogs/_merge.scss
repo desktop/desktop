@@ -49,7 +49,6 @@ dialog#merge {
       margin-top: var(--spacing-half);
       text-align: center;
       color: var(--text-secondary-color);
-      @include ellipsis;
 
       strong {
         font-weight: normal;
