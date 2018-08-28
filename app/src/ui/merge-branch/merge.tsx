@@ -16,6 +16,7 @@ import { IMatches } from '../../lib/fuzzy-find'
 import { enableMergeConflictDetection } from '../../lib/feature-flag'
 import { MergeResultStatus } from '../../lib/app-state'
 import { MergeResultKind } from '../../models/merge'
+import { MergeStatusHeader } from '../history/merge-status-header'
 
 interface IMergeProps {
   readonly dispatcher: Dispatcher
@@ -124,7 +125,6 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
         </p>
       )
     }
-    const branch = selectedBranch
 
     if (mergeStatus.kind === MergeResultKind.Clean) {
       if (commitCount != null && commitCount > 0) {
@@ -157,7 +157,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
         {` `}
         when merging
         {` `}
-        <strong>{branch.name}</strong>
+        <strong>{selectedBranch.name}</strong>
         {` `}
         into
         {` `}
@@ -244,6 +244,9 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
               <strong>{currentBranch ? currentBranch.name : ''}</strong>
             </Button>
           </ButtonGroup>
+          {enableMergeConflictDetection() ? (
+            <MergeStatusHeader status={this.state.mergeStatus} />
+          ) : null}
           {enableMergeConflictDetection()
             ? this.renderNewMergeInfo()
             : this.renderMergeInfo()}

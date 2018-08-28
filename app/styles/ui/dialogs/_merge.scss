@@ -55,5 +55,16 @@ dialog#merge {
         color: var(--text-color);
       }
     }
+
+    .merge-status-loading {
+      color: $yellow-700;
+    }
+
+    .merge-status-conflicts {
+      color: $red-500;
+    }
+    .merge-status-clean {
+      color: $green-500;
+    }
   }
 }
