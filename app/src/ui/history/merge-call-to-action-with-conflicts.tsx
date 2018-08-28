@@ -6,6 +6,7 @@ import { Branch } from '../../models/branch'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Button } from '../lib/button'
 import { MergeStatusHeader } from './merge-status-header'
+import { MergeResultKind } from '../../models/merge'
 
 interface IMergeCallToActionWithConflictsProps {
   readonly repository: Repository
@@ -56,7 +57,7 @@ export class MergeCallToActionWithConflicts extends React.Component<
     mergeStatus: MergeResultStatus | null,
     behindCount: number
   ) {
-    if (mergeStatus === null || mergeStatus.kind === 'loading') {
+    if (mergeStatus === null || mergeStatus.kind === MergeResultKind.Loading) {
       return (
         <div className="merge-message">
           Checking for ability to merge automatically...
@@ -65,7 +66,7 @@ export class MergeCallToActionWithConflicts extends React.Component<
     }
     const branch = comparisonBranch
 
-    if (mergeStatus.kind === 'clean') {
+    if (mergeStatus.kind === MergeResultKind.Clean) {
       const count = behindCount
 
       if (count > 0) {
@@ -89,7 +90,7 @@ export class MergeCallToActionWithConflicts extends React.Component<
       }
     }
 
-    const count = mergeStatus.conflicts
+    const count = mergeStatus.conflictedFiles
     const pluralized = count === 1 ? 'file' : 'files'
     return (
       <div className="merge-message">

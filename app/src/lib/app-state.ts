@@ -28,6 +28,7 @@ import { PullRequest } from '../models/pull-request'
 import { IAuthor } from '../models/author'
 import { ComparisonCache } from './comparison-cache'
 import { ApplicationTheme } from '../ui/lib/application-theme'
+import { MergeResultKind } from '../models/merge'
 
 export { ICommitMessage }
 
@@ -700,13 +701,13 @@ export interface ICompareFormUpdate {
 
 export type MergeResultStatus =
   | {
-      kind: 'loading'
+      kind: MergeResultKind.Loading
     }
   | {
-      kind: 'conflicts'
-      conflicts: number
+      kind: MergeResultKind.Conflicts
+      conflictedFiles: number
     }
-  | { kind: 'clean' }
+  | { kind: MergeResultKind.Clean }
 
 export enum CompareActionKind {
   History = 'History',

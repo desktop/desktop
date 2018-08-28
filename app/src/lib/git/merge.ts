@@ -63,7 +63,7 @@ export async function mergeTree(
   }
 
   if (mergeBase === ours.tip.sha || mergeBase === theirs.tip.sha) {
-    return { kind: MergeResultKind.Success, entries: [] }
+    return { kind: MergeResultKind.Clean, entries: [] }
   }
 
   console.time('mergeTree')

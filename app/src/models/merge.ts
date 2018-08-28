@@ -1,6 +1,7 @@
 export enum MergeResultKind {
-  Success = 'Success',
-  Conflicts = 'Conflicts',
+  Loading = 'loading',
+  Clean = 'clean',
+  Conflicts = 'conflicts',
 }
 
 interface IBlobResult {
@@ -19,7 +20,7 @@ export interface IMergeEntry {
 }
 
 export interface IMergeSuccess {
-  readonly kind: MergeResultKind.Success
+  readonly kind: MergeResultKind.Clean
   readonly entries: ReadonlyArray<IMergeEntry>
 }
 

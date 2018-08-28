@@ -972,7 +972,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return this.emitUpdate()
     } else {
       this.updateCompareState(repository, () => ({
-        mergeStatus: { kind: 'loading' },
+        mergeStatus: { kind: MergeResultKind.Loading },
       }))
 
       this.emitUpdate()
@@ -990,14 +990,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
         if (result.kind === MergeResultKind.Conflicts) {
           this.updateCompareState(repository, () => ({
             mergeStatus: {
-              kind: 'conflicts',
-              conflicts: result.conflictedFiles,
+              kind: MergeResultKind.Conflicts,
+              conflictedFiles: result.conflictedFiles,
             },
           }))
         } else {
           this.updateCompareState(repository, () => ({
             mergeStatus: {
-              kind: 'clean',
+              kind: MergeResultKind.Clean,
             },
           }))
         }
