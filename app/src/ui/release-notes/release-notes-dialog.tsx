@@ -84,12 +84,8 @@ function renderLineItem(note: string): (JSX.Element | string)[] | string {
     const linkifiedIssues = linkifyIssues(issueNumbersLine)
 
     return [
-      <React.Fragment key={2}>
-        {linkifiedIssues !== null && linkifiedIssues.length > 1
-          ? join(linkifiedIssues, '')
-          : null}
-      </React.Fragment>,
       changeLogMessage,
+      <React.Fragment key={2}>{linkifiedIssues}</React.Fragment>,
     ]
   }
 
