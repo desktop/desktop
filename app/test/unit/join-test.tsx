@@ -1,3 +1,5 @@
+/* eslint-disable react/jsx-key */
+
 import { expect } from 'chai'
 import * as React from 'react'
 
