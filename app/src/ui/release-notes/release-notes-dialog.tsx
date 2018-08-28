@@ -33,6 +33,22 @@ function accountUrl(name: string): string {
   return `https://github.com/${name.substr(1)}`
 }
 
+function linkifyIssues(str: string): Array<JSX.Element> | null {
+  const trimmed = str.trim()
+  const issueNumbers = trimmed.split(' ')
+
+  if (issueNumbers.length === 0) {
+    return null
+  }
+
+  return issueNumbers.map((issueNumber, index) => {
+    return (
+      <LinkButton key={index} uri={desktopIssueUrl(issueNumber)}>
+        {issueNumber}
+      </LinkButton>
+    )
+  })
+}
 function renderLineItem(note: string): (JSX.Element | string)[] | string {
   const externalContribution = externalContributionRe.exec(note)
   if (externalContribution) {
@@ -57,14 +73,7 @@ function renderLineItem(note: string): (JSX.Element | string)[] | string {
   const otherContribution = otherContributionRe.exec(note)
   if (otherContribution) {
     const issueNumbersLine = otherContribution[2].trim()
-    const issueNumbers = issueNumbersLine.split(' ')
-    const linkifiedIssues = issueNumbers.map((issueNumber, index) => {
-      return (
-        <LinkButton key={index} uri={desktopIssueUrl(issueNumber)}>
-          {issueNumber}
-        </LinkButton>
-      )
-    })
+    const linkifiedIssues = linkifyIssues(issueNumbersLine)
 
     return [
       otherContribution[1],
