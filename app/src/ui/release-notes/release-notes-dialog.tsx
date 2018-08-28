@@ -3,7 +3,12 @@ import * as React from 'react'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { encodePathAsUrl } from '../../lib/path'
 
-import { ReleaseNote, ReleaseSummary } from '../../models/release-notes'
+import {
+  ReleaseNote,
+  ReleaseSummary,
+  externalContributionRe,
+  otherContributionRe,
+} from '../../models/release-notes'
 
 import { updateStore } from '../lib/update-store'
 import { ButtonGroup } from '../lib/button-group'
@@ -12,6 +17,7 @@ import { LinkButton } from '../lib/link-button'
 
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { DialogHeader } from '../dialog/header'
+import { join } from '../lib/join'
 
 const ReleaseNoteHeaderLeftUri = encodePathAsUrl(
   __dirname,
@@ -22,9 +28,6 @@ const ReleaseNoteHeaderRightUri = encodePathAsUrl(
   'static/release-note-header-right.svg'
 )
 
-const externalContributionRe = /^(.*)(#\d+)(.*)(@[a-zA-Z0-9\-]+)!(.*)$/
-const otherContributionRe = /^(.*)(#\d+)(.*)$/
-
 function desktopIssueUrl(numberWithHash: string): string {
   return `https://github.com/desktop/desktop/issues/${numberWithHash.substr(1)}`
 }
@@ -33,38 +36,58 @@ function accountUrl(name: string): string {
   return `https://github.com/${name.substr(1)}`
 }
 
+function linkifyIssues(
+  issueNumberLine: string
+): ReadonlyArray<JSX.Element | string> | null {
+  const trimmed = issueNumberLine.trim()
+  const issueNumbers = trimmed.split(' ')
+
+  if (issueNumbers.length === 0) {
+    return null
+  }
+
+  const linkifiedIssueNumbers = issueNumbers.map((issueNumber, index) => {
+    return (
+      <LinkButton key={index} uri={desktopIssueUrl(issueNumber)}>
+        {issueNumber}
+      </LinkButton>
+    )
+  })
+
+  return join(linkifiedIssueNumbers, ' ')
+}
+
 function renderLineItem(note: string): (JSX.Element | string)[] | string {
   const externalContribution = externalContributionRe.exec(note)
   if (externalContribution) {
-    const issueNumber = externalContribution[2]
-    const issueUrl = desktopIssueUrl(issueNumber)
-    const mention = externalContribution[4]
-    const mentionUrl = accountUrl(issueNumber)
+    const changeLogMessage = `${externalContribution[1]} `
+    const issues = externalContribution[2].trim()
+    const linkifiedIssues = linkifyIssues(issues)
+    const thanks = externalContribution[4]
+    const mention = externalContribution[5]
+    const mentionUrl = accountUrl(mention)
+
+    console.log(`linkifiedIssues: ${linkifiedIssues}`)
 
     return [
-      externalContribution[1],
-      <LinkButton key={2} uri={issueUrl}>
-        {issueNumber}
-      </LinkButton>,
-      externalContribution[3],
+      changeLogMessage,
+      <React.Fragment key={2}>{linkifiedIssues}</React.Fragment>,
+      thanks,
       <LinkButton key={4} uri={mentionUrl}>
         {mention}
       </LinkButton>,
-      externalContribution[5],
     ]
   }
 
   const otherContribution = otherContributionRe.exec(note)
   if (otherContribution) {
-    const issueNumber = otherContribution[2]
-    const issueUrl = desktopIssueUrl(issueNumber)
+    const changeLogMessage = `${otherContribution[1]} `
+    const issueNumbersLine = otherContribution[2].trim()
+    const linkifiedIssues = linkifyIssues(issueNumbersLine)
 
     return [
-      otherContribution[1],
-      <LinkButton key={2} uri={issueUrl}>
-        {issueNumber}
-      </LinkButton>,
-      otherContribution[3],
+      changeLogMessage,
+      <React.Fragment key={2}>{linkifiedIssues}</React.Fragment>,
     ]
   }
 
