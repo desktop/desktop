@@ -1,0 +1,48 @@
+changed in both
+  base   100644 e36247cd551a39899efcd6f2835d023c39f17a20 app/styles/_variables.scss
+  our    100644 6c89a529c5a8dbfefb127f171468af9ae5651141 app/styles/_variables.scss
+  their  100644 d6df99e979ae35224a6767759f74dee365b15eba app/styles/_variables.scss
+@@ -378,6 +378,10 @@
+   --path-segment-background: $blue-000;
+   --path-segment-padding: var(--spacing-third);
+ 
++  /** Co-author colors **/
++  --handle-background: $blue-000;
++  --handle-border-color: $blue-200;
++
+   /** Diverging notification banner colors */
+   --notification-banner-background: $blue-000;
+   --notification-banner-border-color: $blue-200;
+changed in both
+  base   100644 43d39d75f19c242c1630b9ab243f18fcc733c7e5 app/styles/themes/_dark.scss
+  our    100644 663d5cb65e7a6b69154193384801a8c63234744f app/styles/themes/_dark.scss
+  their  100644 50283ed7d75649e199b4921fda025a2981d9944d app/styles/themes/_dark.scss
+@@ -295,6 +295,10 @@
+   /** Inline paths and code */
+   --path-segment-background: $gray-700;
+ 
++  /** Co-author colors **/
++  --handle-background: rgba($blue-700, .75);
++  --handle-border-color: rgba($blue-600, .75);
++
+   .blankslate-image {
+     filter: #{'invert()'} grayscale(1) brightness(8) contrast(0.6);
+   }
+changed in both
+  base   100644 7f410ba422cc224a1bf1a644770a555b04eacd29 app/styles/ui/_author-input.scss
+  our    100644 c1acae40fa98cefd4b9acd874bc3f9564610a6b3 app/styles/ui/_author-input.scss
+  their  100644 a41ccafd5ecde9921e8a7e223fdf21cc5aa0aadd app/styles/ui/_author-input.scss
+@@ -24,8 +24,13 @@
+ 
+     .handle {
+       border-radius: 3px;
++<<<<<<< .our
+       border: 1px solid var(--co-author-tag-border-color);
+       background: var(--co-author-tag-background-color);
++=======
++      border: 1px solid var(--handle-border-color);
++      background: var(--handle-background);
++>>>>>>> .their
+       padding: 1px 1px;
+       margin: 0px 2px;
+ 

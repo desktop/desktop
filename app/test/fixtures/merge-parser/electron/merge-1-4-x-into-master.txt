@@ -1,0 +1,208 @@
+changed in both
+  base   100644 f69fbc5c40409a1db7a3f8353bfffe46a21d6054 atom/browser/resources/mac/Info.plist
+  our    100644 9094f0f7335edf833d51f688851e6a105de60433 atom/browser/resources/mac/Info.plist
+  their  100644 2dd8bc646cff3869557549a39477e30022e6cfdd atom/browser/resources/mac/Info.plist
+@@ -17,9 +17,15 @@
+   <key>CFBundleIconFile</key>
+   <string>electron.icns</string>
+   <key>CFBundleVersion</key>
++<<<<<<< .our
+   <string>4.0.0</string>
+   <key>CFBundleShortVersionString</key>
+   <string>4.0.0</string>
++=======
++  <string>1.4.16</string>
++  <key>CFBundleShortVersionString</key>
++  <string>1.4.16</string>
++>>>>>>> .their
+   <key>LSApplicationCategoryType</key>
+   <string>public.app-category.developer-tools</string>
+   <key>LSMinimumSystemVersion</key>
+changed in both
+  base   100644 c7a067984484d859db564046a9aba048b6979929 atom/browser/resources/win/atom.rc
+  our    100644 c0bd831e8bddf10180f75cd40694831e2e98622d atom/browser/resources/win/atom.rc
+  their  100644 f799ec4fe0defad29259d64ffdbe503bf768ef39 atom/browser/resources/win/atom.rc
+@@ -56,8 +56,13 @@
+ //
+ 
+ VS_VERSION_INFO VERSIONINFO
++<<<<<<< .our
+  FILEVERSION 4,0,0,20180821
+  PRODUCTVERSION 4,0,0,20180821
++=======
++ FILEVERSION 1,4,16,0
++ PRODUCTVERSION 1,4,16,0
++>>>>>>> .their
+  FILEFLAGSMASK 0x3fL
+ #ifdef _DEBUG
+  FILEFLAGS 0x1L
+@@ -74,12 +79,20 @@
+         BEGIN
+             VALUE "CompanyName", "GitHub, Inc."
+             VALUE "FileDescription", "Electron"
++<<<<<<< .our
+             VALUE "FileVersion", "4.0.0"
++=======
++            VALUE "FileVersion", "1.4.16"
++>>>>>>> .their
+             VALUE "InternalName", "electron.exe"
+             VALUE "LegalCopyright", "Copyright (C) 2015 GitHub, Inc. All rights reserved."
+             VALUE "OriginalFilename", "electron.exe"
+             VALUE "ProductName", "Electron"
++<<<<<<< .our
+             VALUE "ProductVersion", "4.0.0"
++=======
++            VALUE "ProductVersion", "1.4.16"
++>>>>>>> .their
+             VALUE "SquirrelAwareVersion", "1"
+         END
+     END
+changed in both
+  base   100644 f073afb5621ce56baa578a4f1737ebac7cc5389a atom/common/atom_version.h
+  our    100644 65e7d19911559a40b1b258319df5fe0fa180354f atom/common/atom_version.h
+  their  100644 c8e49bdb3cc7d395b80c8af73e901c4644645f0e atom/common/atom_version.h
+@@ -5,10 +5,22 @@
+ #ifndef ATOM_COMMON_ATOM_VERSION_H_
+ #define ATOM_COMMON_ATOM_VERSION_H_
+ 
++<<<<<<< .our
+ #define ATOM_MAJOR_VERSION 4
+ #define ATOM_MINOR_VERSION 0
+ #define ATOM_PATCH_VERSION 0
+ #define ATOM_PRE_RELEASE_VERSION -nightly.20180821
++=======
++#define ATOM_MAJOR_VERSION 1
++#define ATOM_MINOR_VERSION 4
++#define ATOM_PATCH_VERSION 16
++
++#define ATOM_VERSION_IS_RELEASE 1
++
++#ifndef ATOM_TAG
++# define ATOM_TAG ""
++#endif
++>>>>>>> .their
+ 
+ #ifndef ATOM_STRINGIFY
+ #define ATOM_STRINGIFY(n) ATOM_STRINGIFY_HELPER(n)
+changed in both
+  base   100644 87971055e68f42b5d9dcc8fe035205531ba201ef chromium_src/chrome/browser/printing/print_job.cc
+  our    100644 80d9cc3c21a12b8256618405050f80bb6c2f08e4 chromium_src/chrome/browser/printing/print_job.cc
+  their  100644 15a618df428142b11c7127cece08b48da1465642 chromium_src/chrome/browser/printing/print_job.cc
+@@ -282,6 +282,7 @@
+       base::Bind(&PrintJob::OnPdfPageConverted, this));
+ }
+ 
++<<<<<<< .our
+ void PrintJob::OnPdfPageConverted(int page_number,
+                                   float scale_factor,
+                                   std::unique_ptr<MetafilePlayer> metafile) {
+@@ -289,11 +290,21 @@
+   if (!document_.get() || !metafile || page_number < 0 ||
+       static_cast<size_t>(page_number) >= pdf_page_mapping_.size()) {
+     pdf_conversion_state_.reset();
++=======
++void PrintJob::OnPdfToEmfPageConverted(int page_number,
++                                       float scale_factor,
++                                       std::unique_ptr<MetafilePlayer> emf) {
++  DCHECK(ptd_to_emf_state_);
++  if (!document_.get() || !emf || page_number < 0 ||
++      static_cast<size_t>(page_number) >= pdf_page_mapping_.size()) {
++    ptd_to_emf_state_.reset();
++>>>>>>> .their
+     Cancel();
+     return;
+   }
+ 
+   // Update the rendered document. It will send notifications to the listener.
++<<<<<<< .our
+   document_->SetPage(pdf_page_mapping_[page_number], std::move(metafile),
+                      scale_factor, pdf_conversion_state_->page_size(),
+                      pdf_conversion_state_->content_area());
+@@ -317,6 +328,16 @@
+                 : PdfRenderSettings::Mode::POSTSCRIPT_LEVEL3);
+   pdf_conversion_state_->Start(
+       bytes, settings, base::Bind(&PrintJob::OnPdfConversionStarted, this));
++=======
++  document_->SetPage(pdf_page_mapping_[page_number],
++                     std::move(emf),
++                     scale_factor,
++                     ptd_to_emf_state_->page_size(),
++                     ptd_to_emf_state_->content_area());
++
++  ptd_to_emf_state_->GetMorePages(
++      base::Bind(&PrintJob::OnPdfToEmfPageConverted, this));
++>>>>>>> .their
+ }
+ 
+ #endif  // defined(OS_WIN)
+changed in both
+  base   100644 420622a7e96861345b1cbffb54188bd8488e8ac6 chromium_src/chrome/browser/printing/print_job.h
+  our    100644 e5e5f44d6c50c6c7fd00591caec9cb4f8e1387dd chromium_src/chrome/browser/printing/print_job.h
+  their  100644 d4445e1bb1b87d965b64e411eb98702326fb9c86 chromium_src/chrome/browser/printing/print_job.h
+@@ -96,7 +96,11 @@
+ #if defined(OS_WIN)
+   // Let the PrintJob know the 0-based |page_number| of a given printed page.
+   void AppendPrintedPage(int page_number);
++<<<<<<< .our
+ 
++=======
++  
++>>>>>>> .their
+   void StartPdfToEmfConversion(
+       const scoped_refptr<base::RefCountedMemory>& bytes,
+       const gfx::Size& page_size,
+@@ -161,10 +165,17 @@
+   bool is_canceling_;
+ 
+ #if defined(OS_WIN)
++<<<<<<< .our
+   class PdfConversionState;
+   std::unique_ptr<PdfConversionState> pdf_conversion_state_;
+   std::vector<int> pdf_page_mapping_;
+ #endif  // defined(OS_WIN)
++=======
++  class PdfToEmfState;
++  std::unique_ptr<PdfToEmfState> ptd_to_emf_state_;
++  std::vector<int> pdf_page_mapping_;
++#endif  // OS_WIN
++>>>>>>> .their
+ 
+   // Used at shutdown so that we can quit a nested message loop.
+   base::WeakPtrFactory<PrintJob> quit_factory_;
+changed in both
+  base   100644 0638bd5c4d445e21c9678d47a949f1fa1b0480fe chromium_src/chrome/browser/printing/print_view_manager_base.cc
+  our    100644 3c7055a6f4c0f411049aebcf66ff9fba196d8b9f chromium_src/chrome/browser/printing/print_view_manager_base.cc
+  their  100644 df52e206e1ee7ba05552e054e26871ecc0da8b38 chromium_src/chrome/browser/printing/print_view_manager_base.cc
+changed in both
+  base   100644 f9a3bf75766c25ee01e831dec59586913ada9ce6 electron.gyp
+  our    100644 944ddab2a3fd879044e31677e4bac2843fffbdee electron.gyp
+  their  100644 a26fa80cd496b553a045c557d669a77f2702dda7 electron.gyp
+@@ -4,7 +4,11 @@
+     'product_name%': 'Electron',
+     'company_name%': 'GitHub, Inc',
+     'company_abbr%': 'github',
++<<<<<<< .our
+     'version%': '4.0.0-nightly.20180821',
++=======
++    'version%': '1.4.16',
++>>>>>>> .their
+     'js2c_input_dir': '<(SHARED_INTERMEDIATE_DIR)/js2c',
+   },
+   'includes': [
+changed in both
+  base   100644 e090c24befb0bc19711d7a37719de7102f1d5033 package.json
+  our    100644 c081cd89450cd50efba1ec280ff1349a96ea3ce0 package.json
+  their  100644 b1ce03d92ee6b4a0dd88b8b4ebad41dcc4e68938 package.json
+@@ -1,8 +1,12 @@
+ {
+   "name": "electron",
++<<<<<<< .our
+   "version": "4.0.0-nightly.20180821",
+   "repository": "https://github.com/electron/electron",
+   "description": "Build cross platform desktop apps with JavaScript, HTML, and CSS",
++=======
++  "version": "1.4.16",
++>>>>>>> .their
+   "devDependencies": {
+     "asar": "^0.11.0",
+     "browserify": "^13.1.0",
