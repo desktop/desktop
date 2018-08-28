@@ -20,4 +20,4 @@ export type ReleaseSummary = {
 }
 
 export const externalContributionRe = /^(.*?)((\s?\#\d+\s?)+)(.*)(@[a-zA-Z0-9\-]+)!(.*)$/
-export const otherContributionRe = /^(.*?)((\s?\#\d+\s?)+)(.*)$/
+export const otherContributionRe = /^(.*?)((\s?\#\d+\s?)*)(.*)$/
