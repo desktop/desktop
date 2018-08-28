@@ -1,5 +1,3 @@
-'use strict'
-
 const environmentVariables = {
   // setting commit information so that tests don't need to rely on global config
   GIT_AUTHOR_NAME: 'Joe Bloggs',
