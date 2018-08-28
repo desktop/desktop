@@ -644,6 +644,9 @@ export interface ICompareState {
   /** The current state of the compare form, based on user input */
   readonly formState: IDisplayHistory | ICompareBranch
 
+  /** The result of merging the compare branch into the current branch, if a branch selected */
+  readonly mergeStatus: MergeResultStatus | null
+
   /** Whether the branch list should be expanded or hidden */
   readonly showBranchList: boolean
 
@@ -694,6 +697,16 @@ export interface ICompareFormUpdate {
   /** Thew new state of the branches list */
   readonly showBranchList: boolean
 }
+
+export type MergeResultStatus =
+  | {
+      kind: 'in-progress'
+    }
+  | {
+      kind: 'conflicts'
+      conflicts: number
+    }
+  | { kind: 'clean' }
 
 export enum CompareActionKind {
   History = 'History',

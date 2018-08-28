@@ -462,6 +462,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       },
       compareState: {
         formState: { kind: ComparisonView.None },
+        mergeStatus: null,
         showBranchList: false,
         filterText: '',
         commitSHAs: [],
