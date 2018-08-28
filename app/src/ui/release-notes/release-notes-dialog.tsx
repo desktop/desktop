@@ -50,19 +50,22 @@ function linkifyIssues(str: string): Array<JSX.Element> | null {
     )
   })
 }
+
 function renderLineItem(note: string): (JSX.Element | string)[] | string {
   const externalContribution = externalContributionRe.exec(note)
   if (externalContribution) {
-    const issueNumber = externalContribution[2]
-    const issueUrl = desktopIssueUrl(issueNumber)
+    const issueNumbersLine = externalContribution[2].trim()
+    const linkifiedIssues = linkifyIssues(issueNumbersLine)
     const mention = externalContribution[4]
-    const mentionUrl = accountUrl(issueNumber)
+    const mentionUrl = accountUrl(issueNumbersLine)
 
     return [
       externalContribution[1],
-      <LinkButton key={2} uri={issueUrl}>
-        {issueNumber}
-      </LinkButton>,
+      <React.Fragment key={2}>
+        {linkifiedIssues !== null && linkifiedIssues.length > 1
+          ? join(linkifiedIssues, '')
+          : null}
+      </React.Fragment>,
       externalContribution[3],
       <LinkButton key={4} uri={mentionUrl}>
         {mention}
