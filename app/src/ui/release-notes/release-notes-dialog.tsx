@@ -74,7 +74,6 @@ function renderLineItem(note: string): (JSX.Element | string)[] | string {
       <LinkButton key={4} uri={mentionUrl}>
         {mention}
       </LinkButton>,
-      externalContribution[5],
     ]
   }
 
