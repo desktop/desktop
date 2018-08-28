@@ -22,7 +22,7 @@ const ReleaseNoteHeaderRightUri = encodePathAsUrl(
   'static/release-note-header-right.svg'
 )
 
-const externalContributionRe = /^(.*)(#\d+)(.*)(@[a-zA-Z0-9\-]+)!(.*)$/
+const externalContributionRe = /^(.*?)((\s?\#\d+\s?)+)(.*)(@[a-zA-Z0-9\-]+)!(.*)$/
 const otherContributionRe = /^(.*?)((\s?\#\d+\s?)+)(.*)$/
 
 function desktopIssueUrl(numberWithHash: string): string {
