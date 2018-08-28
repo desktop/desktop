@@ -175,9 +175,13 @@ export function parseMergeResult(text: string): MergeResult {
     currentMergeEntry = undefined
   }
 
-  const entriesWithConflicts = entries.filter(
-    e => e.diff.indexOf('<<<<<<<') > 0
-  )
+  const entriesWithConflicts = entries.filter(e => {
+    const ourDiffMarker = e.diff.indexOf('+<<<<<<<')
+    const boundaryMarker = e.diff.indexOf('+=======')
+    const theirDiffMarker = e.diff.indexOf('+>>>>>>>')
+
+    return ourDiffMarker > 0 && boundaryMarker > 0 && theirDiffMarker > 0
+  })
 
   if (entriesWithConflicts.length > 0) {
     return {
