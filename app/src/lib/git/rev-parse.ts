@@ -59,7 +59,7 @@ export async function getTopLevelWorkingDirectory(
  *
  * @returns null if the path provided does not contain a Git repository.
  */
-export async function isBareRepository(path: string): Promise<boolean | null> {
+export async function isBareRepository(path: string): Promise<boolean> {
   try {
     const result = await git(
       ['rev-parse', '--is-bare-repository'],
@@ -69,7 +69,7 @@ export async function isBareRepository(path: string): Promise<boolean | null> {
     return result.stdout.trim() === 'true'
   } catch (e) {
     if (e.message.includes('not a git repository')) {
-      return null
+      return false
     }
 
     throw e

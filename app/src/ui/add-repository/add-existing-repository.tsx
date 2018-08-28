@@ -86,7 +86,7 @@ export class AddExistingRepository extends React.Component<
     }
 
     const isBare = await isBareRepository(this.state.path)
-    if (isBare !== null && isBare === true) {
+    if (isBare === true) {
       this.setState({ isRepositoryBare: true })
       return
     }
@@ -183,7 +183,7 @@ export class AddExistingRepository extends React.Component<
 
     const path = directory[0]
     const isRepository = await isGitRepository(path)
-    const isRepositoryBare = (await isBareRepository(path)) || false
+    const isRepositoryBare = await isBareRepository(path)
 
     this.setState({
       path,

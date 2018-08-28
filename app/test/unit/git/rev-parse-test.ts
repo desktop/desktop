@@ -51,10 +51,10 @@ describe('git/rev-parse', () => {
       expect(result).is.true
     })
 
-    it('returns null for empty directory', async () => {
+    it('returns false for empty directory', async () => {
       const path = await mkdirSync('no-actual-repository-here')
       const result = await isBareRepository(path)
-      expect(result).is.null
+      expect(result).is.false
     })
 
     it('throws error for missing directory', async () => {
