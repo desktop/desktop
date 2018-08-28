@@ -3,7 +3,12 @@ import * as React from 'react'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { encodePathAsUrl } from '../../lib/path'
 
-import { ReleaseNote, ReleaseSummary } from '../../models/release-notes'
+import {
+  ReleaseNote,
+  ReleaseSummary,
+  externalContributionRe,
+  otherContributionRe,
+} from '../../models/release-notes'
 
 import { updateStore } from '../lib/update-store'
 import { ButtonGroup } from '../lib/button-group'
@@ -22,9 +27,6 @@ const ReleaseNoteHeaderRightUri = encodePathAsUrl(
   __dirname,
   'static/release-note-header-right.svg'
 )
-
-const externalContributionRe = /^(.*?)((\s?\#\d+\s?)+)(.*)(@[a-zA-Z0-9\-]+)!(.*)$/
-const otherContributionRe = /^(.*?)((\s?\#\d+\s?)+)(.*)$/
 
 function desktopIssueUrl(numberWithHash: string): string {
   return `https://github.com/desktop/desktop/issues/${numberWithHash.substr(1)}`

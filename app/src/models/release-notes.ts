@@ -18,3 +18,6 @@ export type ReleaseSummary = {
   readonly bugfixes: ReadonlyArray<ReleaseNote>
   readonly other: ReadonlyArray<ReleaseNote>
 }
+
+export const externalContributionRe = /^(.*?)((\s?\#\d+\s?)+)(.*)(@[a-zA-Z0-9\-]+)!(.*)$/
+export const otherContributionRe = /^(.*?)((\s?\#\d+\s?)+)(.*)$/
