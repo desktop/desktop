@@ -34,21 +34,25 @@ function accountUrl(name: string): string {
   return `https://github.com/${name.substr(1)}`
 }
 
-function linkifyIssues(str: string): Array<JSX.Element> | null {
-  const trimmed = str.trim()
+function linkifyIssues(
+  issueNumberLine: string
+): ReadonlyArray<JSX.Element | string> | null {
+  const trimmed = issueNumberLine.trim()
   const issueNumbers = trimmed.split(' ')
 
   if (issueNumbers.length === 0) {
     return null
   }
 
-  return issueNumbers.map((issueNumber, index) => {
+  const linkifiedIssueNumbers = issueNumbers.map((issueNumber, index) => {
     return (
       <LinkButton key={index} uri={desktopIssueUrl(issueNumber)}>
         {issueNumber}
       </LinkButton>
     )
   })
+
+  return join(linkifiedIssueNumbers, ' ')
 }
 
 function renderLineItem(note: string): (JSX.Element | string)[] | string {
