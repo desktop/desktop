@@ -145,7 +145,10 @@ import { IRemote, ForkedRemotePrefix } from '../../models/remote'
 import { IAuthor } from '../../models/author'
 import { ComparisonCache } from '../comparison-cache'
 import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
-import { enableRepoInfoIndicators } from '../feature-flag'
+import {
+  enableRepoInfoIndicators,
+  enableMergeConflictDetection,
+} from '../feature-flag'
 import { inferComparisonBranch } from './helpers/infer-comparison-branch'
 import {
   ApplicationTheme,
@@ -154,6 +157,7 @@ import {
 } from '../../ui/lib/application-theme'
 import { findAccountForRemoteURL } from '../find-account'
 import { inferLastPushForRepository } from '../infer-last-push-for-repository'
+import { MergeResultKind } from '../../models/merge'
 
 /**
  * Enum used by fetch to determine if
@@ -963,9 +967,44 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.currentAheadBehindUpdater.insert(from, to, aheadBehind)
     }
 
-    this.updateOrSelectFirstCommit(repository, commitSHAs)
+    if (!enableMergeConflictDetection()) {
+      this.updateOrSelectFirstCommit(repository, commitSHAs)
+      return this.emitUpdate()
+    } else {
+      this.updateCompareState(repository, () => ({
+        mergeStatus: { kind: 'in-progress' },
+      }))
 
-    return this.emitUpdate()
+      this.emitUpdate()
+
+      this.updateOrSelectFirstCommit(repository, commitSHAs)
+
+      gitStore.detectMergeConflicts(action.branch).then(result => {
+        if (result == null) {
+          this.updateCompareState(repository, () => ({
+            mergeStatus: null,
+          }))
+          return
+        }
+
+        if (result.kind === MergeResultKind.Conflicts) {
+          this.updateCompareState(repository, () => ({
+            mergeStatus: {
+              kind: 'conflicts',
+              conflicts: result.conflictedFiles,
+            },
+          }))
+        } else {
+          this.updateCompareState(repository, () => ({
+            mergeStatus: {
+              kind: 'clean',
+            },
+          }))
+        }
+
+        this.emitUpdate()
+      })
+    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
