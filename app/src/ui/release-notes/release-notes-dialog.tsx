@@ -79,16 +79,17 @@ function renderLineItem(note: string): (JSX.Element | string)[] | string {
 
   const otherContribution = otherContributionRe.exec(note)
   if (otherContribution) {
+    const changeLogMessage = `${otherContribution[1]} `
     const issueNumbersLine = otherContribution[2].trim()
     const linkifiedIssues = linkifyIssues(issueNumbersLine)
 
     return [
-      otherContribution[1],
       <React.Fragment key={2}>
         {linkifiedIssues !== null && linkifiedIssues.length > 1
           ? join(linkifiedIssues, '')
           : null}
       </React.Fragment>,
+      changeLogMessage,
     ]
   }
 
