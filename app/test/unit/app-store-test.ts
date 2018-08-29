@@ -37,6 +37,9 @@ import { Commit } from '../../src/models/commit'
 import { getCommit } from '../../src/lib/git'
 import { TestActivityMonitor } from '../helpers/test-activity-monitor'
 
+// enable mocked version
+jest.mock('../../src/lib/window-state')
+
 describe('AppStore', () => {
   async function createAppStore(): Promise<AppStore> {
     const db = new TestGitHubUserDatabase()
