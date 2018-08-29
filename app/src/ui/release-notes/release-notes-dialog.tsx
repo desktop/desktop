@@ -14,6 +14,7 @@ import { DialogHeader } from '../dialog/header'
 
 import { RichText } from '../lib/rich-text'
 import { Repository } from '../../models/repository'
+import { getDotComAPIEndpoint } from '../../lib/api'
 
 const repository = new Repository(
   '',
@@ -24,7 +25,7 @@ const repository = new Repository(
     owner: {
       id: null,
       login: 'desktop',
-      endpoint: 'https://api.github.com/',
+      endpoint: getDotComAPIEndpoint(),
       hash: '',
     },
     private: false,
@@ -32,7 +33,7 @@ const repository = new Repository(
     htmlURL: 'https://github.com/desktop/desktop',
     defaultBranch: 'master',
     cloneURL: 'https://github.com/desktop/desktop',
-    endpoint: 'https://api.github.com/',
+    endpoint: getDotComAPIEndpoint(),
     fullName: 'desktop/desktop',
     fork: false,
     hash: '',
