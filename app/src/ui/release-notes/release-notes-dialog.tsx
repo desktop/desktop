@@ -8,10 +8,37 @@ import { ReleaseNote, ReleaseSummary } from '../../models/release-notes'
 import { updateStore } from '../lib/update-store'
 import { ButtonGroup } from '../lib/button-group'
 import { Button } from '../lib/button'
-import { LinkButton } from '../lib/link-button'
 
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { DialogHeader } from '../dialog/header'
+
+import { RichText } from '../lib/rich-text'
+import { Repository } from '../../models/repository'
+
+const repository = new Repository(
+  '',
+  -1,
+  {
+    dbID: null,
+    name: 'desktop',
+    owner: {
+      id: null,
+      login: 'desktop',
+      endpoint: 'https://api.github.com/',
+      hash: '',
+    },
+    private: false,
+    parent: null,
+    htmlURL: 'https://github.com/desktop/desktop',
+    defaultBranch: 'master',
+    cloneURL: 'https://github.com/desktop/desktop',
+    endpoint: 'https://api.github.com/',
+    fullName: 'desktop/desktop',
+    fork: false,
+    hash: '',
+  },
+  true
+)
 
 const ReleaseNoteHeaderLeftUri = encodePathAsUrl(
   __dirname,
@@ -22,57 +49,9 @@ const ReleaseNoteHeaderRightUri = encodePathAsUrl(
   'static/release-note-header-right.svg'
 )
 
-const externalContributionRe = /^(.*)(#\d+)(.*)(@[a-zA-Z0-9\-]+)!(.*)$/
-const otherContributionRe = /^(.*)(#\d+)(.*)$/
-
-function desktopIssueUrl(numberWithHash: string): string {
-  return `https://github.com/desktop/desktop/issues/${numberWithHash.substr(1)}`
-}
-
-function accountUrl(name: string): string {
-  return `https://github.com/${name.substr(1)}`
-}
-
-function renderLineItem(note: string): (JSX.Element | string)[] | string {
-  const externalContribution = externalContributionRe.exec(note)
-  if (externalContribution) {
-    const issueNumber = externalContribution[2]
-    const issueUrl = desktopIssueUrl(issueNumber)
-    const mention = externalContribution[4]
-    const mentionUrl = accountUrl(issueNumber)
-
-    return [
-      externalContribution[1],
-      <LinkButton key={2} uri={issueUrl}>
-        {issueNumber}
-      </LinkButton>,
-      externalContribution[3],
-      <LinkButton key={4} uri={mentionUrl}>
-        {mention}
-      </LinkButton>,
-      externalContribution[5],
-    ]
-  }
-
-  const otherContribution = otherContributionRe.exec(note)
-  if (otherContribution) {
-    const issueNumber = otherContribution[2]
-    const issueUrl = desktopIssueUrl(issueNumber)
-
-    return [
-      otherContribution[1],
-      <LinkButton key={2} uri={issueUrl}>
-        {issueNumber}
-      </LinkButton>,
-      otherContribution[3],
-    ]
-  }
-
-  return note
-}
-
 interface IReleaseNotesProps {
   readonly onDismissed: () => void
+  readonly emoji: Map<string, string>
   readonly newRelease: ReleaseSummary
 }
 
@@ -110,7 +89,16 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
     const options = new Array<JSX.Element>()
 
     for (const [i, entry] of releaseEntries.entries()) {
-      options.push(<li key={i}>{renderLineItem(entry.message)}</li>)
+      options.push(
+        <li key={i}>
+          <RichText
+            text={entry.message}
+            emoji={this.props.emoji}
+            renderUrlsAsLinks={true}
+            repository={repository}
+          />
+        </li>
+      )
     }
 
     return (
