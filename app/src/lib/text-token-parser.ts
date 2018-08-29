@@ -177,7 +177,7 @@ export class Tokenizer {
     let nextIndex = this.scanForEndOfWord(text, index)
     let maybeMention = text.slice(index, nextIndex)
 
-    // release notes add a ! to the very last user
+    // release notes add a ! to the very last user, or use , to separate users
     if (maybeMention.endsWith('!') || maybeMention.endsWith(',')) {
       nextIndex -= 1
       maybeMention = text.slice(index, nextIndex)
