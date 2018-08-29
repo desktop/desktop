@@ -23,10 +23,6 @@
   }
 
   &.expanded {
-    .commit-summary-description-container {
-      border-bottom: none;
-    }
-
     .commit-summary-description-scroll-view {
       max-height: none;
       overflow: auto;
