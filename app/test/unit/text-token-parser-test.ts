@@ -189,7 +189,7 @@ describe('Tokenizer', () => {
       )
     })
 
-    it('renders link when sqaush and merge', () => {
+    it('renders link when squash and merge', () => {
       const id = 5203
       const expectedUri = `${htmlURL}/issues/${id}`
       const text = `Update README.md (#5203)`
