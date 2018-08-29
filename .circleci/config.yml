@@ -15,7 +15,7 @@ jobs:
       CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
     steps:
       - checkout
-      - run
+      - run:
           name: Setup Code Climate test-reporter
           command: |
             curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-darwin-amd64 > ./cc-test-reporter
