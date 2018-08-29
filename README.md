@@ -45,6 +45,8 @@ beta channel to get access to early builds of Desktop:
 
 ## I have a problem with GitHub Desktop
 
+Note: The [GitHub Desktop Code of Conduct](https://github.com/desktop/desktop/blob/master/CODE_OF_CONDUCT.md) applies in all interactions relating to the GitHub Desktop project.
+
 First, please search the [open issues](https://github.com/desktop/desktop/issues?q=is%3Aopen)
 and [closed issues](https://github.com/desktop/desktop/issues?q=is%3Aclosed)
 to see if your issue hasn't already been reported (it may also be fixed).
@@ -55,6 +57,10 @@ that are being tracked against Desktop, and some of these issues have workaround
 If you can't find an issue that matches what you're seeing, open a [new issue](https://github.com/desktop/desktop/issues/new/choose),
 choose the right template and provide us with enough information to investigate
 further.
+
+## The issue I reported isn't fixed yet. What can I do?
+
+If nobody has responded to your issue in a few days, you're welcome to respond to it with a friendly ping in the issue. Please do not respond more than a second time if nobody has responded. The GitHub Desktop maintainers are constrained in time and resources, and diagnosing individual configurations can be difficult and time consuming. While we'll try to at least get you pointed in the right direction, we can't guarantee we'll be able to dig too deeply into any one person's issue.
 
 ## How can I contribute to GitHub Desktop?
 
