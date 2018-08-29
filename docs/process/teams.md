@@ -13,7 +13,7 @@ These are good teams to start with for general communication and questions. (Mem
 | `@desktop/maintainers` | The people designing, developing, and driving GitHub Desktop. Includes all groups below. |
 | `@desktop/comrades` | Community members with a track record of activity in the Desktop project |
 
-## Skills-based Teams
+## Special-purpose Teams
 
 These teams are used for asking questions or pinging people for specific expertise.
 
