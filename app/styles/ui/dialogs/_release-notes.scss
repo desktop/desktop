@@ -51,16 +51,21 @@
   }
 
   .container {
+    width: 600px;
     max-height: 200px;
     display: flex;
     flex-direction: row;
     padding-left: var(--spacing-double);
     padding-right: var(--spacing-double);
-    margin-top: var(--spacing-double);
+    margin-top: var(--spacing);
     overflow: scroll;
 
     .column {
-      width: 250px;
+      width: 275px;
+
+      &:first-of-type {
+        margin-right: var(--spacing);
+      }
 
       .section {
         margin-top: var(--spacing);
