@@ -1275,6 +1275,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.ReleaseNotes:
         return (
           <ReleaseNotes
+            emoji={this.state.emoji}
             newRelease={popup.newRelease}
             onDismissed={this.onPopupDismissed}
           />
