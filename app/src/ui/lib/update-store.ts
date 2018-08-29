@@ -123,15 +123,6 @@ class UpdateStore {
     this.emitDidChange()
   }
 
-  // HACK: remove this before merging, plz
-  public async _fakeUpdateReady() {
-    this.newRelease = await generateReleaseSummary()
-
-    this.status = UpdateStatus.UpdateReady
-
-    this.emitDidChange()
-  }
-
   /** Register a function to call when the auto updater state changes. */
   public onDidChange(fn: (state: IUpdateState) => void): Disposable {
     return this.emitter.on('did-change', fn)

@@ -153,9 +153,6 @@ export class App extends React.Component<IAppProps, IAppState> {
 
           requestIdleCallback(() => {
             this.performDeferredLaunchActions()
-
-            // HACK: remove this before merging, plz
-            updateStore._fakeUpdateReady()
           })
         },
         { timeout: ReadyDelay }
