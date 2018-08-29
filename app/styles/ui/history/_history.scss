@@ -9,12 +9,6 @@
   // Necessary so that the diff doesn't expand
   // beyond the width of the history
   min-width: 0;
-
-  &.expanded {
-    #commit-details {
-      display: none;
-    }
-  }
 }
 
 #commit-summary-container {
