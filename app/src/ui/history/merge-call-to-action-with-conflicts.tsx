@@ -39,7 +39,7 @@ export class MergeCallToActionWithConflicts extends React.Component<
           Merge into <strong>{this.props.currentBranch.name}</strong>
         </Button>
 
-        <div className="merge-status-wrapper">
+        <div>
           <MergeStatusHeader status={this.props.mergeStatus} />
 
           {this.renderMergeDetails(
@@ -61,7 +61,7 @@ export class MergeCallToActionWithConflicts extends React.Component<
   ) {
     if (mergeStatus === null || mergeStatus.kind === MergeResultKind.Loading) {
       return (
-        <div className="merge-message">
+        <div className="merge-message merge-message-loading">
           Checking for ability to merge automatically...
         </div>
       )

@@ -75,6 +75,15 @@
     z-index: 1;
   }
 
+  .merge-message {
+    max-height: 500px;
+    transition: max-height 750ms ease;
+
+    &-loading {
+      max-height: 40px;
+    }
+  }
+
   .merge-cta {
     border-top: var(--base-border);
     display: flex;
@@ -111,10 +120,6 @@
       width: 100%;
       top: var(--spacing);
     }
-  }
-
-  .merge-status-container {
-    margin: var(--spacing) 0;
   }
 
   .no-branches {
