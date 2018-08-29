@@ -33,6 +33,12 @@
     }
   }
 
+  &.hide-description-border {
+    .commit-summary-description-container {
+      border-bottom: none;
+    }
+  }
+
   &.has-expander {
     .commit-summary-description {
       padding-right: 100px;
