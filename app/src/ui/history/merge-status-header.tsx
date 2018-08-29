@@ -27,14 +27,16 @@ export class MergeStatusHeader extends React.Component<
     // someone with those mad skills can jump in here to help out
 
     return (
-      <Octicon
-        className={classNames(
-          'merge-status',
-          `merge-status-${state}`,
-          this.props.className
-        )}
-        symbol={getSymbolForState(state)}
-      />
+      <div className="merge-status-icon-container">
+        <Octicon
+          className={classNames(
+            'merge-status',
+            `merge-status-${state}`,
+            this.props.className
+          )}
+          symbol={getSymbolForState(state)}
+        />
+      </div>
     )
   }
 }

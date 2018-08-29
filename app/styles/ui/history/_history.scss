@@ -66,6 +66,15 @@
     flex-direction: column;
   }
 
+  .merge-status {
+    background: var(--background-color);
+    border-width: 0 var(--spacing-half);
+    border: solid transparent;
+    box-sizing: content-box;
+    position: relative;
+    z-index: 1;
+  }
+
   .merge-cta {
     border-top: var(--base-border);
     display: flex;
@@ -87,8 +96,25 @@
     }
   }
 
-  .merge-message {
-    margin-top: var(--spacing);
+  .merge-status-icon-container {
+    height: 20px;
+    margin-top: var(--spacing-third);
+    position: relative;
+
+    &:after {
+      display: block;
+      border-bottom: var(--base-border);
+      content: "";
+      position: absolute;
+      z-index: 0;
+      display: block;
+      width: 100%;
+      top: var(--spacing);
+    }
+  }
+
+  .merge-status-container {
+    margin: var(--spacing) 0;
   }
 
   .no-branches {
