@@ -16,6 +16,11 @@ import { RichText } from '../lib/rich-text'
 import { Repository } from '../../models/repository'
 import { getDotComAPIEndpoint } from '../../lib/api'
 
+// HACK: This is needed because the `Rich`Text` component
+// needs to know what repo to link issues against.
+// Since release notes are Desktop specific, we can't
+// reley on the repo info we keep in state, so we've
+// stubbed out this repo
 const repository = new Repository(
   '',
   -1,
