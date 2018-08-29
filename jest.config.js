@@ -15,6 +15,17 @@ module.exports = {
     '!**/node_modules/**',
     '!**/vendor/**',
     '!**/*.d.*',
+    // skip coverage of test scripts
+    '!app/test/**/*',
+    // ignore scripts
+    '!script/**/*',
+    // not focused on testing these areas currently
+    '!app/src/ask-pass/**/*',
+    '!app/src/cli/**/*',
+    '!app/src/crash/**/*',
+    '!app/src/highlighter/**/*',
+    // ignore index files
+    '!**/index.ts',
   ],
   globals: {
     'ts-jest': {
