@@ -28,6 +28,10 @@ interface ICommitSummaryProps {
   readonly isExpanded: boolean
 
   readonly onExpandChanged: (isExpanded: boolean) => void
+
+  readonly onDescriptionBottomChanged: (descriptionBottom: Number) => void
+
+  readonly hideDescriptionBorder: boolean
 }
 
 interface ICommitSummaryState {
@@ -116,10 +120,11 @@ function messageEquals(x: Commit, y: Commit) {
 export class CommitSummary extends React.Component<
   ICommitSummaryProps,
   ICommitSummaryState
-> {
+  > {
   private descriptionScrollViewRef: HTMLDivElement | null = null
   private readonly resizeObserver: ResizeObserver | null = null
   private updateOverflowTimeoutId: number | null = null
+  private descriptionRef: HTMLDivElement | null = null
 
   public constructor(props: ICommitSummaryProps) {
     super(props)
@@ -148,6 +153,11 @@ export class CommitSummary extends React.Component<
   }
 
   private onResized = () => {
+    if (this.descriptionRef) {
+      const descriptionBottom = this.descriptionRef.getBoundingClientRect().bottom
+      this.props.onDescriptionBottomChanged(descriptionBottom)
+    }
+
     if (this.props.isExpanded) {
       return
     }
@@ -167,6 +177,10 @@ export class CommitSummary extends React.Component<
         this.setState({ isOverflowed: false })
       }
     }
+  }
+
+  private onDescriptionRef = (ref: HTMLDivElement | null) => {
+    this.descriptionRef = ref
   }
 
   private renderExpander() {
@@ -252,7 +266,10 @@ export class CommitSummary extends React.Component<
     }
 
     return (
-      <div className="commit-summary-description-container">
+      <div
+        className="commit-summary-description-container"
+        ref={this.onDescriptionRef}
+      >
         <div
           className="commit-summary-description-scroll-view"
           ref={this.onDescriptionScrollViewRef}
@@ -280,6 +297,7 @@ export class CommitSummary extends React.Component<
       expanded: this.props.isExpanded,
       collapsed: !this.props.isExpanded,
       'has-expander': this.props.isExpanded || this.state.isOverflowed,
+      'hide-description-border': this.props.hideDescriptionBorder
     })
 
     return (
