@@ -120,7 +120,7 @@ function messageEquals(x: Commit, y: Commit) {
 export class CommitSummary extends React.Component<
   ICommitSummaryProps,
   ICommitSummaryState
-  > {
+> {
   private descriptionScrollViewRef: HTMLDivElement | null = null
   private readonly resizeObserver: ResizeObserver | null = null
   private updateOverflowTimeoutId: number | null = null
@@ -154,7 +154,8 @@ export class CommitSummary extends React.Component<
 
   private onResized = () => {
     if (this.descriptionRef) {
-      const descriptionBottom = this.descriptionRef.getBoundingClientRect().bottom
+      const descriptionBottom = this.descriptionRef.getBoundingClientRect()
+        .bottom
       this.props.onDescriptionBottomChanged(descriptionBottom)
     }
 
@@ -297,7 +298,7 @@ export class CommitSummary extends React.Component<
       expanded: this.props.isExpanded,
       collapsed: !this.props.isExpanded,
       'has-expander': this.props.isExpanded || this.state.isOverflowed,
-      'hide-description-border': this.props.hideDescriptionBorder
+      'hide-description-border': this.props.hideDescriptionBorder,
     })
 
     return (

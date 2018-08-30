@@ -46,7 +46,7 @@ interface ISelectedCommitState {
 export class SelectedCommit extends React.Component<
   ISelectedCommitProps,
   ISelectedCommitState
-  > {
+> {
   private readonly loadChangedFilesScheduler = new ThrottledScheduler(200)
   private historyRef: HTMLDivElement | null = null
 
@@ -55,7 +55,7 @@ export class SelectedCommit extends React.Component<
 
     this.state = {
       isExpanded: false,
-      hideDescriptionBorder: false
+      hideDescriptionBorder: false,
     }
   }
 
@@ -141,7 +141,9 @@ export class SelectedCommit extends React.Component<
   private onDescriptionBottomChanged = (descriptionBottom: Number) => {
     if (this.historyRef) {
       const historyBottom = this.historyRef.getBoundingClientRect().bottom
-      this.setState({ hideDescriptionBorder: descriptionBottom >= historyBottom })
+      this.setState({
+        hideDescriptionBorder: descriptionBottom >= historyBottom,
+      })
     }
   }
 
@@ -195,11 +197,7 @@ export class SelectedCommit extends React.Component<
     const className = this.state.isExpanded ? 'expanded' : 'collapsed'
 
     return (
-      <div
-        id="history"
-        ref={this.onHistoryRef}
-        className={className}
-      >
+      <div id="history" ref={this.onHistoryRef} className={className}>
         {this.renderCommitSummary(commit)}
         <div id="commit-details">
           <Resizable
