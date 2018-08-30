@@ -58,8 +58,7 @@ export async function mergeTree(
   console.timeEnd('getMergeBase')
 
   if (mergeBase === null) {
-    // TODO: return a better result to indicate something is wrong
-    return null
+    return { kind: MergeResultKind.Invalid }
   }
 
   if (mergeBase === ours.tip.sha || mergeBase === theirs.tip.sha) {

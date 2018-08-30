@@ -151,6 +151,20 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
       }
     }
 
+    if (mergeStatus.kind === MergeResultKind.Invalid) {
+      return (
+        <p className="merge-info">
+          Cannot test merging
+          <strong>{selectedBranch.name}</strong>
+          {` `}
+          into
+          {` `}
+          <strong>{currentBranch.name}</strong>
+          as these are separate histories
+        </p>
+      )
+    }
+
     const count = mergeStatus.conflictedFiles
     const pluralized = count === 1 ? 'file' : 'files'
     return (

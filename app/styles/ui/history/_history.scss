@@ -78,7 +78,8 @@
       color: $yellow-700;
     }
 
-    .merge-status-conflicts {
+    .merge-status-conflicts,
+    .merge-status-invalid {
       color: $red-500;
     }
     .merge-status-clean {

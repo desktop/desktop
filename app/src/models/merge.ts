@@ -1,5 +1,6 @@
 export enum MergeResultKind {
   Loading = 'loading',
+  Invalid = 'invalid',
   Clean = 'clean',
   Conflicts = 'conflicts',
 }
@@ -29,4 +30,8 @@ export interface IMergeError {
   readonly conflictedFiles: number
 }
 
-export type MergeResult = IMergeSuccess | IMergeError
+export interface IMergeUnsupported {
+  readonly kind: MergeResultKind.Invalid
+}
+
+export type MergeResult = IMergeSuccess | IMergeError | IMergeUnsupported

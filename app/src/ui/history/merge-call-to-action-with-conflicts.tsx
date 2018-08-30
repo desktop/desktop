@@ -90,6 +90,22 @@ export class MergeCallToActionWithConflicts extends React.Component<
       }
     }
 
+    if (mergeStatus.kind === MergeResultKind.Invalid) {
+      return (
+        <p className="merge-info">
+          Cannot test merging
+          {` `}
+          <strong>{branch.name}</strong>
+          {` `}
+          into
+          {` `}
+          <strong>{currentBranch.name}</strong>
+          {` `}
+          as these are separate histories
+        </p>
+      )
+    }
+
     const count = mergeStatus.conflictedFiles
     const pluralized = count === 1 ? 'file' : 'files'
     return (

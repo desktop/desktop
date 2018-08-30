@@ -3,6 +3,7 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { assertNever } from '../../lib/fatal-error'
 import * as classNames from 'classnames'
 import { MergeResultStatus } from '../../lib/app-state'
+import { MergeResultKind } from '../../models/merge'
 
 interface IMergeStatusIconProps {
   /** The classname for the underlying element. */
@@ -19,7 +20,7 @@ export class MergeStatusHeader extends React.Component<
 > {
   public render() {
     const { status } = this.props
-    const state = status === null ? 'loading' : status.kind
+    const state = status === null ? MergeResultKind.Loading : status.kind
 
     // TODO: mocks have a horizontal line wrapping this icon. I have no idea
     // how to quickly insert this, or align it correctly, so this is me hoping
@@ -38,15 +39,14 @@ export class MergeStatusHeader extends React.Component<
   }
 }
 
-function getSymbolForState(
-  status: 'loading' | 'conflicts' | 'clean'
-): OcticonSymbol {
+function getSymbolForState(status: MergeResultKind): OcticonSymbol {
   switch (status) {
-    case 'loading':
+    case MergeResultKind.Loading:
       return OcticonSymbol.primitiveDot
-    case 'conflicts':
+    case MergeResultKind.Conflicts:
+    case MergeResultKind.Invalid:
       return OcticonSymbol.alert
-    case 'clean':
+    case MergeResultKind.Clean:
       return OcticonSymbol.check
   }
 

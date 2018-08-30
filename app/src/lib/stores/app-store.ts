@@ -979,28 +979,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       this.updateOrSelectFirstCommit(repository, commitSHAs)
 
-      gitStore.detectMergeConflicts(action.branch).then(result => {
-        if (result == null) {
-          this.updateCompareState(repository, () => ({
-            mergeStatus: null,
-          }))
-          return
-        }
-
-        if (result.kind === MergeResultKind.Conflicts) {
-          this.updateCompareState(repository, () => ({
-            mergeStatus: {
-              kind: MergeResultKind.Conflicts,
-              conflictedFiles: result.conflictedFiles,
-            },
-          }))
-        } else {
-          this.updateCompareState(repository, () => ({
-            mergeStatus: {
-              kind: MergeResultKind.Clean,
-            },
-          }))
-        }
+      gitStore.detectMergeConflicts(action.branch).then(mergeStatus => {
+        this.updateCompareState(repository, () => ({
+          mergeStatus,
+        }))
 
         this.emitUpdate()
       })

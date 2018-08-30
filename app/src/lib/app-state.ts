@@ -708,6 +708,7 @@ export type MergeResultStatus =
       conflictedFiles: number
     }
   | { kind: MergeResultKind.Clean }
+  | { kind: MergeResultKind.Invalid }
 
 export enum CompareActionKind {
   History = 'History',
