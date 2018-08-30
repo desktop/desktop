@@ -56,6 +56,11 @@ export async function mergeTree(
   const mergeBase = await getMergeBase(repository, ours.tip.sha, theirs.tip.sha)
   console.timeEnd('getMergeBase')
 
+  if (mergeBase === null) {
+    // TODO: return a better result to indicate something is wrong
+    return null
+  }
+
   if (mergeBase === ours.tip.sha) {
     return { kind: MergeResultKind.Success, entries: [] }
   }
