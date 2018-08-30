@@ -114,11 +114,14 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     const { currentBranch } = this.props
 
     if (
-      mergeStatus === null ||
-      mergeStatus.kind === MergeResultKind.Loading ||
-      currentBranch == null ||
-      selectedBranch == null
+      selectedBranch === null ||
+      currentBranch === null ||
+      currentBranch.name === selectedBranch.name
     ) {
+      return null
+    }
+
+    if (mergeStatus === null || mergeStatus.kind === MergeResultKind.Loading) {
       return (
         <p className="merge-info">
           Checking for ability to merge automatically...
@@ -244,7 +247,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
               <strong>{currentBranch ? currentBranch.name : ''}</strong>
             </Button>
           </ButtonGroup>
-          {enableMergeConflictDetection() ? (
+          {enableMergeConflictDetection() && !disabled ? (
             <MergeStatusHeader status={this.state.mergeStatus} />
           ) : null}
           {enableMergeConflictDetection()
