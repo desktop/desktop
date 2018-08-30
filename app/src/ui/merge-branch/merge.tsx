@@ -17,6 +17,7 @@ import { enableMergeConflictDetection } from '../../lib/feature-flag'
 import { MergeResultStatus } from '../../lib/app-state'
 import { MergeResultKind } from '../../models/merge'
 import { MergeStatusHeader } from '../history/merge-status-header'
+import { promiseWithMinimumTimeout } from '../../lib/promise'
 
 interface IMergeProps {
   readonly dispatcher: Dispatcher
@@ -275,11 +276,12 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
   private async updateMergeStatus(branch: Branch) {
     this.setState({ mergeStatus: { kind: MergeResultKind.Loading } })
 
-    if (enableMergeConflictDetection() && this.props.currentBranch != null) {
-      const mergeStatus = await mergeTree(
-        this.props.repository,
-        this.props.currentBranch,
-        branch
+    const { currentBranch } = this.props
+
+    if (enableMergeConflictDetection() && currentBranch != null) {
+      const mergeStatus = await promiseWithMinimumTimeout(
+        () => mergeTree(this.props.repository, currentBranch, branch),
+        500
       )
 
       this.setState({ mergeStatus })
