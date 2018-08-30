@@ -7,7 +7,7 @@
  *
  *
  * @param action the promise work to track
- * @param timeout the minimum time to wait before resolving the promise (milliseconds)
+ * @param timeout the minimum time to wait before resolving the promise (in milliseconds)
  */
 export function promiseWithMinimumTimeout<T>(
   action: () => Promise<T>,
