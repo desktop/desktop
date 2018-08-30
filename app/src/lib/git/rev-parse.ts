@@ -55,9 +55,9 @@ export async function getTopLevelWorkingDirectory(
 /**
  * Checks if the repository at a path is bare.
  *
- * @param path The path to the Git repository to check.
+ * @param path The path to the repository to check. An error will be thrown if the path does not exist on disk.
  *
- * @returns null if the path provided does not contain a Git repository.
+ * @returns true if the path contains a bare Git repository. Returns false if it is not bare or is not a Git repository.
  */
 export async function isBareRepository(path: string): Promise<boolean> {
   try {
