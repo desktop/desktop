@@ -97,6 +97,8 @@ export class CloneRepository extends React.Component<
     if (initialURL) {
       this.updateUrl(initialURL)
     }
+
+    window.addEventListener('focus', this.onFocus)
   }
 
   public render() {
@@ -371,5 +373,12 @@ export class CloneRepository extends React.Component<
     this.props.onDismissed()
 
     setDefaultDir(Path.resolve(path, '..'))
+  }
+
+  private onFocus = () => {
+    // Verify the path after focus has been regained in case changes have been made.
+    if (this.state.url !== ``) {
+      this.updateAndValidatePath(this.state.path)
+    }
   }
 }
