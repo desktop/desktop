@@ -17,21 +17,22 @@ export function promiseWithMinimumTimeout<T>(
     let timeoutExpired = false
     let result: T | null = null
 
-    const resolveIfTimeout = () => {
+    const resolveIfBothDone = () => {
       if (result != null && timeoutExpired) {
         resolve(result)
+        result = null
       }
     }
 
     window.setTimeout(() => {
       timeoutExpired = true
-      resolveIfTimeout()
+      resolveIfBothDone()
     }, timeout)
 
     action()
       .then(r => {
         result = r
-        resolveIfTimeout()
+        resolveIfBothDone()
       })
       .catch(reject)
   })
