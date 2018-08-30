@@ -13,16 +13,30 @@ export async function merge(
   await git(['merge', branch], repository.path, 'merge')
 }
 
+/**
+ * Find the base commit between two refs
+ *
+ * @returns the commit id of the merge base, or null if the two refs do not
+ *          have a common base
+ */
 export async function getMergeBase(
   repository: Repository,
   firstRef: string,
   secondRef: string
-): Promise<string> {
+): Promise<string | null> {
   const process = await git(
     ['merge-base', firstRef, secondRef],
     repository.path,
-    'merge-base'
+    'merge-base',
+    {
+      successExitCodes: new Set([0, 1]),
+    }
   )
+
+  if (process.exitCode === 1) {
+    return null
+  }
+
   return process.stdout.trim()
 }
 
