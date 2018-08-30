@@ -124,9 +124,12 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
 
     if (mergeStatus === null || mergeStatus.kind === MergeResultKind.Loading) {
       return (
-        <p className="merge-info">
-          Checking for ability to merge automatically...
-        </p>
+        <div className="merge-status-wrapper">
+          <MergeStatusHeader status={this.state.mergeStatus} />
+          <p className="merge-info">
+            Checking for ability to merge automatically...
+          </p>
+        </div>
       )
     }
 
@@ -134,18 +137,21 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
       if (commitCount != null && commitCount > 0) {
         const pluralized = commitCount === 1 ? 'commit' : 'commits'
         return (
-          <p className="merge-info">
-            This will merge
-            <strong>{` ${commitCount} ${pluralized}`}</strong>
-            {` `}
-            from
-            {` `}
-            <strong>{selectedBranch.name}</strong>
-            {` `}
-            into
-            {` `}
-            <strong>{currentBranch.name}</strong>
-          </p>
+          <div className="merge-status-wrapper">
+            <MergeStatusHeader status={this.state.mergeStatus} />
+            <p className="merge-info">
+              This will merge
+              <strong>{` ${commitCount} ${pluralized}`}</strong>
+              {` `}
+              from
+              {` `}
+              <strong>{selectedBranch.name}</strong>
+              {` `}
+              into
+              {` `}
+              <strong>{currentBranch.name}</strong>
+            </p>
+          </div>
         )
       } else {
         return null
@@ -169,18 +175,21 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     const count = mergeStatus.conflictedFiles
     const pluralized = count === 1 ? 'file' : 'files'
     return (
-      <p className="merge-info">
-        There will be
-        <strong>{` ${count} conflicted ${pluralized}`}</strong>
-        {` `}
-        when merging
-        {` `}
-        <strong>{selectedBranch.name}</strong>
-        {` `}
-        into
-        {` `}
-        <strong>{currentBranch.name}</strong>
-      </p>
+      <div className="merge-status-wrapper">
+        <MergeStatusHeader status={this.state.mergeStatus} />
+        <p className="merge-info">
+          There will be
+          <strong>{` ${count} conflicted ${pluralized}`}</strong>
+          {` `}
+          when merging
+          {` `}
+          <strong>{selectedBranch.name}</strong>
+          {` `}
+          into
+          {` `}
+          <strong>{currentBranch.name}</strong>
+        </p>
+      </div>
     )
   }
 
