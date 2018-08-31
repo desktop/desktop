@@ -111,51 +111,64 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
   }
 
   private renderNewMergeInfo() {
-    const { commitCount, selectedBranch, mergeStatus } = this.state
     const { currentBranch } = this.props
+    const { selectedBranch, mergeStatus, commitCount } = this.state
 
     if (
-      selectedBranch === null ||
-      currentBranch === null ||
-      currentBranch.name === selectedBranch.name
+      mergeStatus == null ||
+      currentBranch == null ||
+      selectedBranch == null ||
+      commitCount === undefined ||
+      commitCount === 0
     ) {
       return null
     }
 
-    if (mergeStatus === null || mergeStatus.kind === MergeResultKind.Loading) {
+    return (
+      <div className="merge-status-wrapper">
+        <MergeStatusHeader status={this.state.mergeStatus} />
+        <p className="merge-info">
+          {this.renderMergeStatusMessage(
+            mergeStatus,
+            currentBranch,
+            selectedBranch,
+            commitCount
+          )}
+        </p>
+      </div>
+    )
+  }
+
+  private renderMergeStatusMessage(
+    mergeStatus: MergeResultStatus,
+    selectedBranch: Branch,
+    currentBranch: Branch,
+    commitCount: number
+  ): JSX.Element {
+    if (mergeStatus.kind === MergeResultKind.Loading) {
       return (
-        <div className="merge-status-wrapper">
-          <MergeStatusHeader status={this.state.mergeStatus} />
-          <p className="merge-info">
-            Checking for ability to merge automatically...
-          </p>
-        </div>
+        <React.Fragment>
+          Checking for ability to merge automatically...
+        </React.Fragment>
       )
     }
 
     if (mergeStatus.kind === MergeResultKind.Clean) {
-      if (commitCount != null && commitCount > 0) {
-        const pluralized = commitCount === 1 ? 'commit' : 'commits'
-        return (
-          <div className="merge-status-wrapper">
-            <MergeStatusHeader status={this.state.mergeStatus} />
-            <p className="merge-info">
-              This will merge
-              <strong>{` ${commitCount} ${pluralized}`}</strong>
-              {` `}
-              from
-              {` `}
-              <strong>{selectedBranch.name}</strong>
-              {` `}
-              into
-              {` `}
-              <strong>{currentBranch.name}</strong>
-            </p>
-          </div>
-        )
-      } else {
-        return null
-      }
+      const pluralized = commitCount === 1 ? 'commit' : 'commits'
+      return (
+        <React.Fragment>
+          This will merge
+          <strong>{` ${commitCount} ${pluralized}`}</strong>
+          {` `}
+          from
+          {` `}
+          <strong>{selectedBranch.name}</strong>
+          {` `}
+          into
+          {` `}
+          <strong>{currentBranch.name}</strong>
+        </React.Fragment>
+      )
     }
 
     if (mergeStatus.kind === MergeResultKind.Invalid) {
@@ -175,21 +188,18 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     const count = mergeStatus.conflictedFiles
     const pluralized = count === 1 ? 'file' : 'files'
     return (
-      <div className="merge-status-wrapper">
-        <MergeStatusHeader status={this.state.mergeStatus} />
-        <p className="merge-info">
-          There will be
-          <strong>{` ${count} conflicted ${pluralized}`}</strong>
-          {` `}
-          when merging
-          {` `}
-          <strong>{selectedBranch.name}</strong>
-          {` `}
-          into
-          {` `}
-          <strong>{currentBranch.name}</strong>
-        </p>
-      </div>
+      <React.Fragment>
+        There will be
+        <strong>{` ${count} conflicted ${pluralized}`}</strong>
+        {` `}
+        when merging
+        {` `}
+        <strong>{selectedBranch.name}</strong>
+        {` `}
+        into
+        {` `}
+        <strong>{currentBranch.name}</strong>
+      </React.Fragment>
     )
   }
 
