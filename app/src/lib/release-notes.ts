@@ -1,5 +1,3 @@
-const ordinal: (i: number) => string = require('ordinal')
-
 import {
   ReleaseMetadata,
   ReleaseNote,
@@ -8,28 +6,9 @@ import {
 
 const itemEntryRe = /^\[(new|fixed|improved|removed|added|pretext)\]\s(.*)/i
 
-const monthNames = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
-]
-
 function formatDate(date: Date) {
-  const day = date.getDate()
-  const dayWithSuffix = ordinal(day)
-  const monthIndex = date.getMonth()
-  const year = date.getFullYear()
-
-  return `${monthNames[monthIndex]} ${dayWithSuffix} ${year}`
+  const options = { year: 'numeric', month: 'long', day: 'numeric' }
+  return date.toLocaleDateString('en-US', options)
 }
 
 export function parseReleaseEntries(

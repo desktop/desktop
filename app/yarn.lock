@@ -660,10 +660,6 @@ optimist@~0.3.5:
   dependencies:
     wordwrap "~0.0.2"
 
-ordinal@^1.0.2:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/ordinal/-/ordinal-1.0.2.tgz#a1f4bc4ba56bf91bf9e31335b9e9ca456ed9ca78"
-
 os-tmpdir@^1.0.0:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/os-tmpdir/-/os-tmpdir-1.0.2.tgz#bbe67406c79aa85c5cfec766fe5734555dfa1274"
