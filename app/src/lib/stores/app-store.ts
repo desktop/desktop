@@ -774,21 +774,32 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private async refreshDefaultBranchUpdatedPrompt(repository: Repository) {
     const { branchesState, compareState } = this.getRepositoryState(repository)
     const { tip, currentPullRequest, allBranches } = branchesState
+    const { aheadBehindCache } = compareState
+
+    if (tip.kind !== TipState.Valid) {
+      this.updateCompareState(repository, () => ({
+        inferredComparisonBranch: {
+          branch: null,
+          commitsBehind: null,
+        },
+      }))
+      return
+    }
 
     let inferredBranch: Branch | null = null
     let aheadBehindOfInferredBranch: IAheadBehind | null = null
-    if (tip.kind === TipState.Valid && compareState.aheadBehindCache !== null) {
+    if (aheadBehindCache !== null) {
       inferredBranch = await inferComparisonBranch(
         repository,
         allBranches,
         currentPullRequest,
         tip.branch,
         getRemotes,
-        compareState.aheadBehindCache
+        aheadBehindCache
       )
 
       if (inferredBranch !== null) {
-        aheadBehindOfInferredBranch = compareState.aheadBehindCache.get(
+        aheadBehindOfInferredBranch = aheadBehindCache.get(
           tip.branch.tip.sha,
           inferredBranch.tip.sha
         )
