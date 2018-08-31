@@ -20,6 +20,8 @@ deb:
     - libnss3
     # dugite-native dependencies
     - libcurl3
+    # keytar dependencies
+    - libsecret-1-0
 rpm:
   depends:
     # default Electron dependencies
@@ -28,3 +30,5 @@ rpm:
     - libnotify
     # dugite-native dependencies
     - libcurl
+    # keytar dependencies
+    - libsecret
