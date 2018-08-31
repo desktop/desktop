@@ -469,7 +469,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         allBranches: new Array<Branch>(),
         recentBranches: new Array<Branch>(),
         defaultBranch: null,
-        inferredComparisonBranch: { branch: null, aheadBehind: null },
+        inferredComparisonBranch: { branch: null, commitsBehind: null },
       },
       commitAuthor: null,
       gitHubUsers: new Map<string, IGitHubUser>(),
@@ -795,10 +795,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     }
 
+    const commitsBehind = aheadBehindOfInferredBranch
+      ? aheadBehindOfInferredBranch.behind
+      : null
+
     this.updateCompareState(repository, () => ({
       inferredComparisonBranch: {
         branch: inferredBranch,
-        aheadBehind: aheadBehindOfInferredBranch,
+        commitsBehind,
       },
     }))
 
@@ -806,14 +810,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // commits behind has changed since the last it was visible
     if (
       inferredBranch !== null &&
-      aheadBehindOfInferredBranch !== null &&
-      aheadBehindOfInferredBranch.behind > 0
+      commitsBehind !== null &&
+      commitsBehind > 0
     ) {
       const prevInferredBranchState = compareState.inferredComparisonBranch
+      const previousCommitsBehind = prevInferredBranchState.commitsBehind
       if (
-        prevInferredBranchState.aheadBehind === null ||
-        prevInferredBranchState.aheadBehind.behind !==
-          aheadBehindOfInferredBranch.behind
+        previousCommitsBehind === null ||
+        previousCommitsBehind !== commitsBehind
       ) {
         this._setDivergingBranchBannerVisibility(true)
       }

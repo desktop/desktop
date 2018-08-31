@@ -683,7 +683,7 @@ export interface ICompareState {
    */
   readonly inferredComparisonBranch: {
     branch: Branch | null
-    aheadBehind: IAheadBehind | null
+    commitsBehind: number | null
   }
 }
 
