@@ -31,7 +31,7 @@
   }
 
   .merge-status-conflicts {
-    color: $red-500;
+    color: var(--color-conflicted);
   }
   .merge-status-clean {
     color: $green-500;
