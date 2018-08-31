@@ -135,10 +135,10 @@ An example of this error:
 
 This is occuring because some users have an existing Git for Windows installation that created a special config at `C:\ProgramData\Git\config`, and this config may contain a `http.sslCAInfo` entry, which is inherited by Desktop.
 
-There's two problems with this:
+There's two problems with this current state:
 
- - Desktop doesn't need custom certificates for it's Git operations - SChannel uses the Windows Certificate Store to verify server certificates
- - this config value may point to a location that doesn't exist in Desktop's Git installation
+ - Desktop doesn't need custom certificates for it's Git operations - it uses SChannel by default, which uses the Windows Certificate Store to verify server certificates
+ - this `http.sslCAInfo` config value may resolve to a location or file that doesn't exist in Desktop's Git installation
 
 **Workaround:**
 
