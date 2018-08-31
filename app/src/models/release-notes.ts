@@ -5,8 +5,16 @@ export type ReleaseMetadata = {
   readonly version: string
 }
 
+type ItemEntryKind =
+  | 'new'
+  | 'fixed'
+  | 'improved'
+  | 'removed'
+  | 'added'
+  | 'pretext'
+
 export type ReleaseNote = {
-  readonly kind: 'new' | 'added' | 'removed' | 'fixed' | 'improved' | 'pretext'
+  readonly kind: ItemEntryKind
   readonly message: string
 }
 

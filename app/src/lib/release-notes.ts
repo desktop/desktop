@@ -11,32 +11,45 @@ function formatDate(date: Date) {
   return date.toLocaleDateString('en-US', options)
 }
 
+function parseEntry(note: string): ReleaseNote | null {
+  const text = note.trim()
+  const match = itemEntryRe.exec(text)
+  if (match === null) {
+    log.debug(`[ReleaseNotes] unable to convert text into entry: ${note}`)
+    return null
+  }
+
+  const kind = match[1].toLowerCase()
+  const message = match[2]
+  if (
+    kind === 'new' ||
+    kind === 'fixed' ||
+    kind === 'improved' ||
+    kind === 'added' ||
+    kind === 'pretext'
+  ) {
+    return { kind, message }
+  }
+
+  log.debug(`[ReleaseNotes] kind ${kind} was found but is not a valid entry`)
+
+  return null
+}
+
+/**
+ * A filter function with type predicate to return non-null and non-undefined
+ * entries while also satisfying the TS compiler
+ *
+ * Source: https://stackoverflow.com/a/46700791/1363815
+ */
+function notEmpty<TValue>(value: TValue | null | undefined): value is TValue {
+  return value !== null && value !== undefined
+}
+
 export function parseReleaseEntries(
   notes: ReadonlyArray<string>
 ): ReadonlyArray<ReleaseNote> {
-  const entries = new Array<ReleaseNote>()
-
-  for (const note of notes) {
-    const text = note.trim()
-    const match = itemEntryRe.exec(text)
-    if (match === null) {
-      continue
-    }
-    const kind = match[1].toLowerCase()
-    const message = match[2]
-
-    switch (kind) {
-      case 'new':
-      case 'fixed':
-      case 'improved':
-      case 'removed':
-      case 'added':
-      case 'pretext':
-        entries.push({ kind, message })
-    }
-  }
-
-  return entries
+  return notes.map(n => parseEntry(n)).filter(notEmpty)
 }
 
 export function getReleaseSummary(
