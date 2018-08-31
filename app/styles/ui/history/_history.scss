@@ -91,35 +91,6 @@
     font-size: var(--font-size-sm);
     text-align: center;
     padding: var(--spacing);
-
-    .merge-status-loading {
-      color: $yellow-700;
-    }
-
-    .merge-status-conflicts,
-    .merge-status-invalid {
-      color: $red-500;
-    }
-    .merge-status-clean {
-      color: $green-500;
-    }
-  }
-
-  .merge-status-icon-container {
-    height: 20px;
-    margin-top: var(--spacing-third);
-    position: relative;
-
-    &:after {
-      display: block;
-      border-bottom: var(--base-border);
-      content: '';
-      position: absolute;
-      z-index: 0;
-      display: block;
-      width: 100%;
-      top: var(--spacing);
-    }
   }
 
   .no-branches {
