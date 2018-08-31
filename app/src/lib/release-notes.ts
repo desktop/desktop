@@ -1,3 +1,5 @@
+import * as moment from 'moment'
+
 import {
   ReleaseMetadata,
   ReleaseNote,
@@ -8,11 +10,6 @@ import {
 // example:
 //    [New] Fallback to Gravatar for loading avatars - #821
 const itemEntryRe = /^\[([a-z]{1,})\]\s(.*)/i
-
-function formatDate(date: Date) {
-  const options = { year: 'numeric', month: 'long', day: 'numeric' }
-  return date.toLocaleDateString('en-US', options)
-}
 
 function parseEntry(note: string): ReleaseNote | null {
   const text = note.trim()
@@ -70,11 +67,11 @@ export function getReleaseSummary(
   const bugfixes = entries.filter(e => e.kind === 'fixed')
   const other = entries.filter(e => e.kind === 'removed' || e.kind === 'other')
 
-  const publishedDate = new Date(latestRelease.pub_date)
+  const datePublished = moment(latestRelease.pub_date).format('MMMM Do YYYY')
 
   return {
     latestVersion: latestRelease.version,
-    datePublished: formatDate(publishedDate),
+    datePublished,
     // TODO: find pretext entry
     pretext: undefined,
     enhancements,
