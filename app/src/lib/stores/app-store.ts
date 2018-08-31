@@ -100,6 +100,7 @@ import {
   getRemotes,
   ITrailer,
   isCoAuthoredByTrailer,
+  mergeTree,
 } from '../git'
 
 import { launchExternalEditor } from '../editors'
@@ -979,13 +980,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       this.updateOrSelectFirstCommit(repository, commitSHAs)
 
-      gitStore.detectMergeConflicts(action.branch).then(mergeStatus => {
+      if (tip.kind === TipState.Valid) {
+        mergeTree(repository, tip.branch, action.branch).then(mergeStatus => {
+          this.updateCompareState(repository, () => ({
+            mergeStatus,
+          }))
+
+          this.emitUpdate()
+        })
+      } else {
         this.updateCompareState(repository, () => ({
-          mergeStatus,
+          mergeStatus: null,
         }))
 
         this.emitUpdate()
-      })
+      }
     }
   }
 

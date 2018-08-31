@@ -55,7 +55,6 @@ import {
   revRange,
   revSymmetricDifference,
   getSymbolicRef,
-  mergeTree,
 } from '../git'
 import { IGitAccount } from '../git/authentication'
 import { RetryAction, RetryActionType } from '../retry-actions'
@@ -69,7 +68,6 @@ import { findDefaultRemote } from './helpers/find-default-remote'
 import { IAuthor } from '../../models/author'
 import { formatCommitMessage } from '../format-commit-message'
 import { GitAuthor } from '../../models/git-author'
-import { MergeResult } from '../../models/merge'
 import { BaseStore } from './base-store'
 
 /** The number of commits to load from history per batch. */
@@ -1349,15 +1347,5 @@ export class GitStore extends BaseStore {
       ahead: aheadBehind.ahead,
       behind: aheadBehind.behind,
     }
-  }
-
-  public detectMergeConflicts(
-    compareBranch: Branch
-  ): Promise<MergeResult | null> {
-    if (this.tip.kind !== TipState.Valid) {
-      return Promise.resolve(null)
-    }
-
-    return mergeTree(this.repository, this.tip.branch, compareBranch)
   }
 }
