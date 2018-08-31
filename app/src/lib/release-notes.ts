@@ -4,7 +4,10 @@ import {
   ReleaseSummary,
 } from '../models/release-notes'
 
-const itemEntryRe = /^\[(new|fixed|improved|removed|added|pretext)\]\s(.*)/i
+// expects a release note entry to contain a header and then some text
+// example:
+//    [New] Fallback to Gravatar for loading avatars - #821
+const itemEntryRe = /^\[([a-z]{1,})\]\s(.*)/i
 
 function formatDate(date: Date) {
   const options = { year: 'numeric', month: 'long', day: 'numeric' }
@@ -26,14 +29,18 @@ function parseEntry(note: string): ReleaseNote | null {
     kind === 'fixed' ||
     kind === 'improved' ||
     kind === 'added' ||
-    kind === 'pretext'
+    kind === 'pretext' ||
+    kind === 'removed'
   ) {
     return { kind, message }
   }
 
   log.debug(`[ReleaseNotes] kind ${kind} was found but is not a valid entry`)
 
-  return null
+  return {
+    kind: 'other',
+    message,
+  }
 }
 
 /**
@@ -61,7 +68,7 @@ export function getReleaseSummary(
     e => e.kind === 'new' || e.kind === 'added' || e.kind === 'improved'
   )
   const bugfixes = entries.filter(e => e.kind === 'fixed')
-  const other = entries.filter(e => e.kind === 'removed')
+  const other = entries.filter(e => e.kind === 'removed' || e.kind === 'other')
 
   const publishedDate = new Date(latestRelease.pub_date)
 

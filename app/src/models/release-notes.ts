@@ -12,6 +12,7 @@ type ItemEntryKind =
   | 'removed'
   | 'added'
   | 'pretext'
+  | 'other'
 
 export type ReleaseNote = {
   readonly kind: ItemEntryKind

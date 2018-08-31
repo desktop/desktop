@@ -25,6 +25,15 @@ describe('release-notes', () => {
       expect(result[0].kind).to.equal('fixed')
       expect(result[0].message).to.equal('and another thing')
     })
+    it('uses [Other] for unrecognized category', () => {
+      const values = ['[Foo] we did a thing!']
+
+      const result = parseReleaseEntries(values)
+
+      expect(result.length).to.equal(1)
+      expect(result[0].kind).to.equal('other')
+      expect(result[0].message).to.equal('we did a thing!')
+    })
   })
 
   describe('getReleaseSummary', () => {
