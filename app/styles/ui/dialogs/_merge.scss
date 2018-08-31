@@ -56,6 +56,33 @@ dialog#merge {
       }
     }
 
+    .merge-status-icon-container {
+      height: 20px;
+      margin-top: var(--spacing-third);
+      position: relative;
+      text-align: center;
+
+      .merge-status {
+        background: var(--background-color);
+        border-width: 0 var(--spacing-half);
+        border: solid transparent;
+        box-sizing: content-box;
+        position: relative;
+        z-index: 1;
+      }
+
+      &:after {
+        display: block;
+        border-bottom: var(--base-border);
+        content: '';
+        position: absolute;
+        z-index: 0;
+        display: block;
+        width: 100%;
+        top: var(--spacing);
+      }
+    }
+
     .merge-status-loading {
       color: $yellow-700;
     }
