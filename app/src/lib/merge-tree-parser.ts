@@ -1,14 +1,16 @@
 import { IMergeEntry, MergeResult, MergeResultKind } from '../models/merge'
 
+interface IBlobSource {
+  readonly type: string
+  readonly path: string
+  readonly sha: string
+  readonly mode: string
+}
+
 function updateCurrentMergeEntry(
   entry: IMergeEntry | undefined,
   context: string,
-  blobSource: {
-    readonly type: string
-    readonly path: string
-    readonly sha: string
-    readonly mode: string
-  }
+  blobSource: IBlobSource
 ): IMergeEntry {
   const currentMergeEntry = entry || {
     context,

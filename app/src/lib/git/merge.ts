@@ -14,18 +14,18 @@ export async function merge(
 }
 
 /**
- * Find the base commit between two refs
+ * Find the base commit between two commit-ish identifiers
  *
- * @returns the commit id of the merge base, or null if the two refs do not
- *          have a common base
+ * @returns the commit id of the merge base, or null if the two commit-ish
+ *          identifiers do not have a common base
  */
 export async function getMergeBase(
   repository: Repository,
-  firstRef: string,
-  secondRef: string
+  firstCommitish: string,
+  secondCommitish: string
 ): Promise<string | null> {
   const process = await git(
-    ['merge-base', firstRef, secondRef],
+    ['merge-base', firstCommitish, secondCommitish],
     repository.path,
     'merge-base',
     {
@@ -61,11 +61,7 @@ export async function mergeTree(
     return null
   }
 
-  if (mergeBase === ours.tip.sha) {
-    return { kind: MergeResultKind.Success, entries: [] }
-  }
-
-  if (mergeBase === theirs.tip.sha) {
+  if (mergeBase === ours.tip.sha || mergeBase === theirs.tip.sha) {
     return { kind: MergeResultKind.Success, entries: [] }
   }
 
