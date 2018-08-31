@@ -154,7 +154,7 @@ You should have an entry that looks like this:
 file:"C:\ProgramData/Git/config" http.sslcainfo=[some value here]
 ```
 
-2. Open `C:\ProgramData\Git\config` and remove the corresponding lines that look like this:
+2. Open `C:\ProgramData\Git\config` (requires elevated privileges) and remove the corresponding lines that look like this:
 
 ```
 [http]
