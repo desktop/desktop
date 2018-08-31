@@ -1,7 +1,8 @@
 .merge-status-component {
+  margin-top: var(--spacing-third);
+
   .merge-status-icon-container {
     height: 20px;
-    margin-top: var(--spacing-third);
     position: relative;
     text-align: center;
 
@@ -35,5 +36,10 @@
   }
   .merge-status-clean {
     color: $green-500;
+  }
+}
+dialog#merge {
+  .merge-status-component {
+    margin-top: var(--spacing);
   }
 }
