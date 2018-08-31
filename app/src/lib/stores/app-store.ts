@@ -771,37 +771,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _initializeCompare(
-    repository: Repository,
-    initialAction?: CompareAction
-  ) {
-    log.debug('[AppStore] initializing compare state')
-
-    const state = this.getRepositoryState(repository)
-
-    const { branchesState, compareState } = state
-    const { tip, currentPullRequest } = branchesState
-    const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
-
-    const allBranches =
-      currentBranch != null
-        ? branchesState.allBranches.filter(b => b.name !== currentBranch.name)
-        : branchesState.allBranches
-    const recentBranches = currentBranch
-      ? branchesState.recentBranches.filter(b => b.name !== currentBranch.name)
-      : branchesState.recentBranches
-
-    const cachedDefaultBranch = branchesState.defaultBranch
-
-    // only include the default branch when comparing if the user is not on the default branch
-    // and it also exists in the repository
-    const defaultBranch =
-      currentBranch != null &&
-      cachedDefaultBranch != null &&
-      currentBranch.name !== cachedDefaultBranch.name
-        ? cachedDefaultBranch
-        : null
+  private async refreshDefaultBranchUpdatedPrompt(repository: Repository) {
+    const { branchesState, compareState } = this.getRepositoryState(repository)
+    const { tip, currentPullRequest, allBranches } = branchesState
 
     let inferredBranch: Branch | null = null
     let aheadBehindOfInferredBranch: IAheadBehind | null = null
@@ -824,9 +796,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     this.updateCompareState(repository, () => ({
-      allBranches,
-      recentBranches,
-      defaultBranch,
       inferredComparisonBranch: {
         branch: inferredBranch,
         aheadBehind: aheadBehindOfInferredBranch,
@@ -840,8 +809,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       aheadBehindOfInferredBranch !== null &&
       aheadBehindOfInferredBranch.behind > 0
     ) {
-      const prevInferredBranchState =
-        state.compareState.inferredComparisonBranch
+      const prevInferredBranchState = compareState.inferredComparisonBranch
       if (
         prevInferredBranchState.aheadBehind === null ||
         prevInferredBranchState.aheadBehind.behind !==
@@ -855,6 +823,45 @@ export class AppStore extends TypedBaseStore<IAppState> {
     ) {
       this._setDivergingBranchBannerVisibility(false)
     }
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _initializeCompare(
+    repository: Repository,
+    initialAction?: CompareAction
+  ) {
+    const state = this.getRepositoryState(repository)
+
+    const { branchesState, compareState } = state
+    const { tip } = branchesState
+    const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
+
+    const allBranches =
+      currentBranch != null
+        ? branchesState.allBranches.filter(b => b.name !== currentBranch.name)
+        : branchesState.allBranches
+    const recentBranches = currentBranch
+      ? branchesState.recentBranches.filter(b => b.name !== currentBranch.name)
+      : branchesState.recentBranches
+
+    const cachedDefaultBranch = branchesState.defaultBranch
+
+    // only include the default branch when comparing if the user is not on the default branch
+    // and it also exists in the repository
+    const defaultBranch =
+      currentBranch != null &&
+      cachedDefaultBranch != null &&
+      currentBranch.name !== cachedDefaultBranch.name
+        ? cachedDefaultBranch
+        : null
+
+    this.updateCompareState(repository, () => ({
+      allBranches,
+      recentBranches,
+      defaultBranch,
+    }))
+
+    await this.refreshDefaultBranchUpdatedPrompt(repository)
 
     const cachedState = compareState.formState
     const action =
@@ -1936,8 +1943,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     ])
 
     this._updateCurrentPullRequest(repository)
+    this.refreshDefaultBranchUpdatedPrompt(repository)
     this.updateMenuItemLabels(repository)
-    this._initializeCompare(repository)
     this.refreshIndicatorsForRepositories([repository])
   }
 
