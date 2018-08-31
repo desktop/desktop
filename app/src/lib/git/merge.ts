@@ -29,6 +29,7 @@ export async function getMergeBase(
     repository.path,
     'merge-base',
     {
+      // 1 is returned if a common ancestor cannot be resolved
       successExitCodes: new Set([0, 1]),
     }
   )
