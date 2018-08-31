@@ -125,7 +125,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     }
 
     return (
-      <div className="merge-status-wrapper">
+      <div className="merge-status-component">
         <MergeStatusHeader status={this.state.mergeStatus} />
         <p className="merge-info">
           {this.renderMergeStatusMessage(

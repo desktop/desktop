@@ -39,7 +39,7 @@ export class MergeCallToActionWithConflicts extends React.Component<
           Merge into <strong>{this.props.currentBranch.name}</strong>
         </Button>
 
-        <div>
+        <div className="merge-status-component">
           <MergeStatusHeader status={this.props.mergeStatus} />
 
           {this.renderMergeDetails(
