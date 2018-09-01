@@ -36,6 +36,7 @@ function formatErrors(errors: Ajv.ErrorObject[]): string {
 const repositoryRoot = Path.dirname(__dirname)
 const changelogPath = Path.join(repositoryRoot, 'changelog.json')
 
+// eslint-disable-next-line no-sync
 const changelog = Fs.readFileSync(changelogPath, 'utf8')
 
 let changelogObj = null

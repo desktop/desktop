@@ -100,8 +100,15 @@ export class Dispatcher {
 
   /** Remove the repositories represented by the given IDs from local storage. */
   public removeRepositories(
-    repositories: ReadonlyArray<Repository | CloningRepository>
+    repositories: ReadonlyArray<Repository | CloningRepository>,
+    moveToTrash: boolean
   ): Promise<void> {
+    if (moveToTrash) {
+      repositories.forEach(repository => {
+        shell.moveItemToTrash(repository.path)
+      })
+    }
+
     return this.appStore._removeRepositories(repositories)
   }
 
@@ -113,14 +120,9 @@ export class Dispatcher {
     return this.appStore._updateRepositoryMissing(repository, missing)
   }
 
-  /** Load the history for the repository. */
-  public loadHistory(repository: Repository): Promise<void> {
-    return this.appStore._loadHistory(repository)
-  }
-
   /** Load the next batch of history for the repository. */
-  public loadNextHistoryBatch(repository: Repository): Promise<void> {
-    return this.appStore._loadNextHistoryBatch(repository)
+  public loadNextCommitBatch(repository: Repository): Promise<void> {
+    return this.appStore._loadNextCommitBatch(repository)
   }
 
   /** Load the changed files for the current history selection. */
@@ -139,11 +141,11 @@ export class Dispatcher {
    *            the history list, represented as a SHA-1 hash
    *            digest. This should match exactly that of Commit.Sha
    */
-  public changeHistoryCommitSelection(
+  public changeCommitSelection(
     repository: Repository,
     sha: string
   ): Promise<void> {
-    return this.appStore._changeHistoryCommitSelection(repository, sha)
+    return this.appStore._changeCommitSelection(repository, sha)
   }
 
   /**
@@ -154,11 +156,11 @@ export class Dispatcher {
    * @param file A FileChange instance among those available in
    *            IHistoryState.changedFiles
    */
-  public changeHistoryFileSelection(
+  public changeFileSelection(
     repository: Repository,
     file: CommittedFileChange
   ): Promise<void> {
-    return this.appStore._changeHistoryFileSelection(repository, file)
+    return this.appStore._changeFileSelection(repository, file)
   }
 
   /** Set the repository filter text. */
@@ -174,7 +176,7 @@ export class Dispatcher {
   }
 
   /** Load the working directory status. */
-  public loadStatus(repository: Repository): Promise<void> {
+  public loadStatus(repository: Repository): Promise<boolean> {
     return this.appStore._loadStatus(repository)
   }
 
@@ -816,7 +818,7 @@ export class Dispatcher {
           const user = await requestAuthenticatedUser(action.code)
           if (user) {
             resolveOAuthRequest(user)
-          } else {
+          } else if (user === null) {
             rejectOAuthRequest(new Error('Unable to fetch authenticated user.'))
           }
         } catch (e) {
@@ -1202,6 +1204,20 @@ export class Dispatcher {
   }
 
   /**
+   * Increments the `mergeConflictFromPullCount` metric
+   */
+  public recordMergeConflictFromPull() {
+    return this.appStore._recordMergeConflictFromPull()
+  }
+
+  /**
+   * Increments the `mergeConflictFromExplicitMergeCount` metric
+   */
+  public recordMergeConflictFromExplicitMerge() {
+    return this.appStore._recordMergeConflictFromExplicitMerge()
+  }
+
+  /**
    * Increments the `mergeIntoCurrentBranchMenuCount` metric
    */
   public recordMenuInitiatedMerge() {
@@ -1230,9 +1246,59 @@ export class Dispatcher {
   }
 
   /**
-   * The number of times the user dismisses the diverged branch notification
+   * Increments either the `repoWithIndicatorClicked` or
+   * the `repoWithoutIndicatorClicked` metric
+   */
+  public recordRepoClicked(repoHasIndicator: boolean) {
+    return this.appStore._recordRepoClicked(repoHasIndicator)
+  }
+
+  /** The number of times the user dismisses the diverged branch notification
+   * Increments the `divergingBranchBannerDismissal` metric
    */
   public recordDivergingBranchBannerDismissal() {
     return this.appStore._recordDivergingBranchBannerDismissal()
+  }
+
+  /**
+   * Increments the `dotcomPushCount` metric
+   */
+  public recordPushToGitHub() {
+    return this.appStore._recordPushToGitHub()
+  }
+
+  /**
+   * Increments the `enterprisePushCount` metric
+   */
+  public recordPushToGitHubEnterprise() {
+    return this.appStore._recordPushToGitHubEnterprise()
+  }
+
+  /**
+   * Increments the `externalPushCount` metric
+   */
+  public recordPushToGenericRemote() {
+    return this.appStore._recordPushToGenericRemote()
+  }
+
+  /**
+   * Increments the `divergingBranchBannerInitiatedCompare` metric
+   */
+  public recordDivergingBranchBannerInitiatedCompare() {
+    return this.appStore._recordDivergingBranchBannerInitiatedCompare()
+  }
+
+  /**
+   * Increments the `divergingBranchBannerInfluencedMerge` metric
+   */
+  public recordDivergingBranchBannerInfluencedMerge() {
+    return this.appStore._recordDivergingBranchBannerInfluencedMerge()
+  }
+
+  /**
+   * Increments the `divergingBranchBannerInitatedMerge` metric
+   */
+  public recordDivergingBranchBannerInitatedMerge() {
+    return this.appStore._recordDivergingBranchBannerInitatedMerge()
   }
 }

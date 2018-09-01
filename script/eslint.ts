@@ -16,7 +16,7 @@ const eslint = new CLIEngine({
 const report = eslint.executeOnFiles([
   './{script,eslint-rules}/**/*.{j,t}s?(x)',
   './tslint-rules/**/*.ts',
-  './app/*.js',
+  './app/*.ts',
   './app/{src,typings,test}/**/*.{j,t}s?(x)',
   './changelog.json',
 ])

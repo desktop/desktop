@@ -8,6 +8,8 @@ import { getGUID } from './get-guid'
 import { Repository } from '../../models/repository'
 import { merge } from '../../lib/merge'
 import { getPersistedThemeName } from '../../ui/lib/application-theme'
+import { IUiActivityMonitor } from '../../ui/lib/ui-activity-monitor'
+import { Disposable } from 'event-kit'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
@@ -36,11 +38,19 @@ const DefaultDailyMeasures: IDailyMeasures = {
   updateFromDefaultBranchMenuCount: 0,
   mergeIntoCurrentBranchMenuCount: 0,
   prBranchCheckouts: 0,
+  repoWithIndicatorClicked: 0,
+  repoWithoutIndicatorClicked: 0,
   divergingBranchBannerDismissal: 0,
   divergingBranchBannerInitatedMerge: 0,
   divergingBranchBannerInitiatedCompare: 0,
-  divergingBranchBannerInfluencedCompare: 0,
+  divergingBranchBannerInfluencedMerge: 0,
   divergingBranchBannerDisplayed: 0,
+  dotcomPushCount: 0,
+  enterprisePushCount: 0,
+  externalPushCount: 0,
+  active: false,
+  mergeConflictFromPullCount: 0,
+  mergeConflictFromExplicitMergeCount: 0,
 }
 
 interface ICalculatedStats {
@@ -82,12 +92,15 @@ type DailyStats = ICalculatedStats & ILaunchStats & IDailyMeasures
 /** The store for the app's stats. */
 export class StatsStore {
   private readonly db: StatsDatabase
+  private readonly uiActivityMonitor: IUiActivityMonitor
+  private uiActivityMonitorSubscription: Disposable | null = null
 
   /** Has the user opted out of stats reporting? */
   private optOut: boolean
 
-  public constructor(db: StatsDatabase) {
+  public constructor(db: StatsDatabase, uiActivityMonitor: IUiActivityMonitor) {
     this.db = db
+    this.uiActivityMonitor = uiActivityMonitor
 
     const optOutValue = localStorage.getItem(StatsOptOutKey)
     if (optOutValue) {
@@ -101,6 +114,8 @@ export class StatsStore {
     } else {
       this.optOut = false
     }
+
+    this.enableUiActivityMonitoring()
   }
 
   /** Should the app report its daily stats? */
@@ -168,10 +183,36 @@ export class StatsStore {
     await this.db.launches.add(stats)
   }
 
-  /** Clear the stored daily stats. */
-  private async clearDailyStats() {
+  /**
+   * Clear the stored daily stats. Not meant to be called
+   * directly. Marked as public in order to enable testing
+   * of a specific scenario, see stats-store-tests for more
+   * detail.
+   */
+  public async clearDailyStats() {
     await this.db.launches.clear()
     await this.db.dailyMeasures.clear()
+
+    this.enableUiActivityMonitoring()
+  }
+
+  private enableUiActivityMonitoring() {
+    if (this.uiActivityMonitorSubscription !== null) {
+      return
+    }
+
+    this.uiActivityMonitorSubscription = this.uiActivityMonitor.onActivity(
+      this.onUiActivity
+    )
+  }
+
+  private disableUiActivityMonitoring() {
+    if (this.uiActivityMonitorSubscription === null) {
+      return
+    }
+
+    this.uiActivityMonitorSubscription.dispose()
+    this.uiActivityMonitorSubscription = null
   }
 
   /** Get the daily stats. */
@@ -341,6 +382,21 @@ export class StatsStore {
     }))
   }
 
+  /** Record that conflicts were detected by a merge initiated by Desktop */
+  public recordMergeConflictFromPull(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      mergeConflictFromPullCount: m.mergeConflictFromPullCount + 1,
+    }))
+  }
+
+  /** Record that conflicts were detected by a merge initiated by Desktop */
+  public recordMergeConflictFromExplicitMerge(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      mergeConflictFromExplicitMergeCount:
+        m.mergeConflictFromExplicitMergeCount + 1,
+    }))
+  }
+
   /** Record that a merge has been initiated from the `Branch -> Merge Into Current Branch` menu item */
   public recordMenuInitiatedMerge(): Promise<void> {
     return this.updateDailyMeasures(m => ({
@@ -352,6 +408,17 @@ export class StatsStore {
   public recordPRBranchCheckout(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       prBranchCheckouts: m.prBranchCheckouts + 1,
+    }))
+  }
+
+  public recordRepoClicked(repoHasIndicator: boolean): Promise<void> {
+    if (repoHasIndicator) {
+      return this.updateDailyMeasures(m => ({
+        repoWithIndicatorClicked: m.repoWithIndicatorClicked + 1,
+      }))
+    }
+    return this.updateDailyMeasures(m => ({
+      repoWithoutIndicatorClicked: m.repoWithoutIndicatorClicked + 1,
     }))
   }
 
@@ -400,10 +467,10 @@ export class StatsStore {
    * Record that user initiated a merge after getting to compare view
    * from within notificatio banner
    */
-  public async recordDivergingBranchBannerInfluencedCompare(): Promise<void> {
+  public async recordDivergingBranchBannerInfluencedMerge(): Promise<void> {
     return this.updateDailyMeasures(m => ({
-      divergingBranchBannerInfluencedCompare:
-        m.divergingBranchBannerInfluencedCompare + 1,
+      divergingBranchBannerInfluencedMerge:
+        m.divergingBranchBannerInfluencedMerge + 1,
     }))
   }
 
@@ -411,6 +478,35 @@ export class StatsStore {
   public async recordDivergingBranchBannerDisplayed(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       divergingBranchBannerDisplayed: m.divergingBranchBannerDisplayed + 1,
+    }))
+  }
+
+  /** Record that the user pushed to GitHub.com */
+  public async recordPushToGitHub(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      dotcomPushCount: m.dotcomPushCount + 1,
+    }))
+  }
+
+  /** Record that the user pushed to a GitHub Enterprise instance */
+  public async recordPushToGitHubEnterprise(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      enterprisePushCount: m.enterprisePushCount + 1,
+    }))
+  }
+
+  /** Record that the user pushed to a generic remote */
+  public async recordPushToGenericRemote(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      externalPushCount: m.externalPushCount + 1,
+    }))
+  }
+
+  private onUiActivity = async () => {
+    this.disableUiActivityMonitoring()
+
+    return this.updateDailyMeasures(m => ({
+      active: true,
     }))
   }
 

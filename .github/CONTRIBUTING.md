@@ -138,6 +138,10 @@ in the repository. If you are interested in contributing to the project, please
 comment on the issue to let the core team (and the community) know you are
 interested in the issue.
 
+### Set Up Your Machine
+
+Start [here](https://github.com/desktop/desktop/blob/master/docs/contributing/setup.md).
+
 ## Additional Notes
 
 ### Issue and Pull Request Labels
@@ -159,6 +163,8 @@ pull requests.
 | `codemirror` | [search](https://github.com/desktop/desktop/labels/codemirror)  | Issues related to our use of [CodeMirror](https://codemirror.net/) that may require upstream fixes |
 | `electron` | [search](https://github.com/desktop/desktop/labels/electron) | Issues related to our use of [Electron](https://electron.atom.io) that may require upstream fixes |
 | `themes` | [search](https://github.com/desktop/desktop/labels/themes) | Issues related the light or dark themes that ship in Desktop |
+| `user-research` | [search](https://github.com/desktop/desktop/labels/user-research) | Issues that might benefit from user interviews, validations, and/or usability testing |
+| `integrations` | [search](https://github.com/desktop/desktop/labels/integrations) | Issues related to editor and shell integrations that ship in Desktop |
 
 #### Topics
 

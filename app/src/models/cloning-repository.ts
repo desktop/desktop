@@ -14,7 +14,7 @@ export class CloningRepository {
   }
 
   public get name(): string {
-    return Path.basename(this.path)
+    return Path.basename(this.url, '.git')
   }
 
   /**

@@ -1,6 +1,7 @@
 out/
 dist/
 node_modules/
+coverage/
 npm-debug.log
 yarn-error.log
 app/node_modules/

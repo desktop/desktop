@@ -32,6 +32,24 @@ describe('git/log', () => {
       const commits = await getCommits(repo, 'HEAD', 100)
       expect(commits.length).to.equal(2)
     })
+
+    it('handles repository with signed commit and log.showSignature set', async () => {
+      const path = await setupFixtureRepository('just-doing-some-signing')
+      const repository = new Repository(path, 1, null, false)
+
+      // ensure the test repository is configured to detect copies
+      await GitProcess.exec(
+        ['config', 'log.showSignature', 'true'],
+        repository.path
+      )
+
+      const commits = await getCommits(repository, 'HEAD', 100)
+
+      expect(commits.length).to.equal(1)
+      expect(commits[0].sha).to.equal(
+        '415e4987158c49c383ce7114e0ef00ebf4b070c1'
+      )
+    })
   })
 
   describe('getChangedFiles', () => {

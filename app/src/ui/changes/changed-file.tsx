@@ -6,15 +6,18 @@ import { Octicon } from '../octicons'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 
 interface IChangedFileProps {
+  readonly id: string
   readonly path: string
   readonly status: AppFileStatus
   readonly oldPath?: string
   readonly include: boolean | null
   readonly availableWidth: number
+  readonly disableSelection: boolean
   readonly onIncludeChanged: (path: string, include: boolean) => void
 
   /** Callback called when user right-clicks on an item */
   readonly onContextMenu: (
+    id: string,
     path: string,
     status: AppFileStatus,
     event: React.MouseEvent<HTMLDivElement>
@@ -63,6 +66,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
           tabIndex={-1}
           value={this.checkboxValue}
           onChange={this.handleCheckboxChange}
+          disabled={this.props.disableSelection}
         />
 
         <PathLabel
@@ -82,6 +86,11 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
   }
 
   private onContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
-    this.props.onContextMenu(this.props.path, this.props.status, event)
+    this.props.onContextMenu(
+      this.props.id,
+      this.props.path,
+      this.props.status,
+      event
+    )
   }
 }

@@ -273,8 +273,18 @@ export class CreateRepository extends React.Component<
       this.props.dispatcher.postError(e)
     }
 
+    const status = await getStatus(repository)
+    if (status === null) {
+      this.props.dispatcher.postError(
+        new Error(
+          `Unable to create the new repository because there are too many new files in this directory`
+        )
+      )
+
+      return
+    }
+
     try {
-      const status = await getStatus(repository)
       const wd = status.workingDirectory
       const files = wd.files
       if (files.length > 0) {

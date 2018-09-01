@@ -59,6 +59,11 @@ export interface IDailyMeasures {
   /** The number of times the user checks out a branch using the PR menu */
   readonly prBranchCheckouts: number
 
+  /** The numbers of times a repo with indicators is clicked on repo list view */
+  readonly repoWithIndicatorClicked: number
+  /** The numbers of times a repo without indicators is clicked on repo list view */
+  readonly repoWithoutIndicatorClicked: number
+
   /** The number of times the user dismisses the diverged branch notification */
   readonly divergingBranchBannerDismissal: number
 
@@ -72,10 +77,28 @@ export interface IDailyMeasures {
    * The number of times the user merges from the compare view after getting to that state
    * from the diverged branch notification compare CTA button
    */
-  readonly divergingBranchBannerInfluencedCompare: number
+  readonly divergingBranchBannerInfluencedMerge: number
 
   /** The number of times the diverged branch notification is displayed */
   readonly divergingBranchBannerDisplayed: number
+
+  /** The number of times the user pushes to GitHub.com */
+  readonly dotcomPushCount: number
+
+  /** The number of times the user pushed to a GitHub enterprise instance */
+  readonly enterprisePushCount: number
+
+  /** The number of times the users pushes to a generic remote */
+  readonly externalPushCount: number
+
+  /** Whether or not the app has been interacted with during the current reporting window */
+  readonly active: boolean
+
+  /** The number of times a `git pull` initiated by Desktop resulted in a merge conflict for the user */
+  readonly mergeConflictFromPullCount: number
+
+  /** The number of times a `git merge` initiated by Desktop resulted in a merge conflict for the user */
+  readonly mergeConflictFromExplicitMergeCount: number
 }
 
 export class StatsDatabase extends Dexie {

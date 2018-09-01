@@ -1,7 +1,7 @@
 import { ipcRenderer, remote } from 'electron'
+import { pathExists } from 'fs-extra'
 import {
   IRepositoryState,
-  IHistoryState,
   IAppState,
   RepositorySectionTab,
   IChangesState,
@@ -24,9 +24,14 @@ import {
   IDisplayHistory,
   ICompareBranch,
   ICompareFormUpdate,
+  ICompareToBranch,
 } from '../app-state'
 import { Account } from '../../models/account'
-import { Repository, ILocalRepositoryState } from '../../models/repository'
+import {
+  Repository,
+  ILocalRepositoryState,
+  nameOf,
+} from '../../models/repository'
 import { GitHubRepository } from '../../models/github-repository'
 import {
   CommittedFileChange,
@@ -38,8 +43,14 @@ import {
   matchGitHubRepository,
   IMatchedGitHubRepository,
   repositoryMatchesRemote,
-} from '../../lib/repository-matching'
-import { API, getAccountForEndpoint, IAPIUser } from '../../lib/api'
+} from '../repository-matching'
+import {
+  API,
+  getAccountForEndpoint,
+  IAPIUser,
+  getDotComAPIEndpoint,
+  getEnterpriseAPIURL,
+} from '../api'
 import { caseInsensitiveCompare } from '../compare'
 import {
   Branch,
@@ -105,7 +116,7 @@ import {
   EmojiStore,
   GitHubUserStore,
   CloningRepositoriesStore,
-} from '../stores'
+} from '.'
 import { validatedRepositoryPath } from './helpers/validated-repository-path'
 import { IGitAccount } from '../git/authentication'
 import { getGenericHostname, getGenericUsername } from '../generic-git-auth'
@@ -134,13 +145,15 @@ import { IRemote, ForkedRemotePrefix } from '../../models/remote'
 import { IAuthor } from '../../models/author'
 import { ComparisonCache } from '../comparison-cache'
 import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
-import { enableCompareSidebar } from '../feature-flag'
+import { enableRepoInfoIndicators } from '../feature-flag'
 import { inferComparisonBranch } from './helpers/infer-comparison-branch'
 import {
   ApplicationTheme,
   getPersistedTheme,
   setPersistedTheme,
 } from '../../ui/lib/application-theme'
+import { findAccountForRemoteURL } from '../find-account'
+import { inferLastPushForRepository } from '../infer-last-push-for-repository'
 
 /**
  * Enum used by fetch to determine if
@@ -178,8 +191,10 @@ const imageDiffTypeKey = 'image-diff-type'
 
 const shellKey = 'shell'
 
-// background fetching should not occur more than once every two minutes
-const BackgroundFetchMinimumInterval = 2 * 60 * 1000
+// background fetching should occur hourly when Desktop is active, but this
+// lower interval ensures user interactions like switching repositories and
+// switching between apps does not result in excessive fetching in the app
+const BackgroundFetchMinimumInterval = 30 * 60 * 1000
 
 export class AppStore extends TypedBaseStore<IAppState> {
   private accounts: ReadonlyArray<Account> = new Array<Account>()
@@ -356,8 +371,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.accountsStore.onDidError(error => this.emitError(error))
 
     this.repositoriesStore.onDidUpdate(async () => {
-      const repositories = await this.repositoriesStore.getAll()
-      this.repositories = repositories
+      this.repositories = await this.repositoriesStore.getAll()
       this.updateRepositorySelectionAfterRepositoriesChanged()
       this.emitUpdate()
     })
@@ -419,13 +433,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private getInitialRepositoryState(): IRepositoryState {
     return {
-      historyState: {
-        selection: {
-          sha: null,
-          file: null,
-        },
+      commitSelection: {
+        sha: null,
+        file: null,
         changedFiles: new Array<CommittedFileChange>(),
-        history: new Array<string>(),
         diff: null,
       },
       changesState: {
@@ -497,17 +508,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const currentState = this.getRepositoryState(repository)
     const newValues = fn(currentState)
     this.repositoryState.set(repository.hash, merge(currentState, newValues))
-  }
-
-  private updateHistoryState<K extends keyof IHistoryState>(
-    repository: Repository,
-    fn: (historyState: IHistoryState) => Pick<IHistoryState, K>
-  ) {
-    this.updateRepositoryState(repository, state => {
-      const historyState = state.historyState
-      const newValues = fn(historyState)
-      return { historyState: merge(historyState, newValues) }
-    })
   }
 
   private updateCompareState<K extends keyof ICompareState>(
@@ -617,10 +617,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private onGitStoreUpdated(repository: Repository, gitStore: GitStore) {
-    this.updateHistoryState(repository, state => ({
-      history: gitStore.history,
-    }))
-
     this.updateBranchesState(repository, state => ({
       tip: gitStore.tip,
       defaultBranch: gitStore.defaultBranch,
@@ -692,32 +688,55 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return store
   }
 
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _loadHistory(repository: Repository): Promise<void> {
-    const gitStore = this.getGitStore(repository)
-    await gitStore.loadHistory()
+  private clearSelectedCommit(repository: Repository) {
+    this.updateRepositoryState(repository, () => ({
+      commitSelection: {
+        sha: null,
+        file: null,
+        changedFiles: [],
+        diff: null,
+      },
+    }))
+  }
 
-    const state = this.getRepositoryState(repository).historyState
-    let newSelection = state.selection
-    const history = state.history
-    const selectedSHA = state.selection.sha
-    if (selectedSHA) {
-      const index = history.findIndex(sha => sha === selectedSHA)
-      // Our selected SHA disappeared, so clear the selection.
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _changeCommitSelection(
+    repository: Repository,
+    sha: string
+  ): Promise<void> {
+    this.updateRepositoryState(repository, state => {
+      const commitChanged = state.commitSelection.sha !== sha
+      const changedFiles = commitChanged
+        ? new Array<CommittedFileChange>()
+        : state.commitSelection.changedFiles
+      const file = commitChanged ? null : state.commitSelection.file
+      const commitSelection = { sha, file, diff: null, changedFiles }
+      return { commitSelection }
+    })
+
+    this.emitUpdate()
+  }
+
+  private updateOrSelectFirstCommit(
+    repository: Repository,
+    commitSHAs: ReadonlyArray<string>
+  ) {
+    const state = this.getRepositoryState(repository)
+    let selectedSHA = state.commitSelection.sha
+    if (selectedSHA != null) {
+      const index = commitSHAs.findIndex(sha => sha === selectedSHA)
       if (index < 0) {
-        newSelection = {
-          sha: null,
-          file: null,
-        }
+        // selected SHA is not in this list
+        // -> clear the selection in the app state
+        selectedSHA = null
+        this.clearSelectedCommit(repository)
       }
     }
 
-    if (!newSelection.sha && history.length > 0) {
-      this._changeHistoryCommitSelection(repository, history[0])
+    if (selectedSHA == null && commitSHAs.length > 0) {
+      this._changeCommitSelection(repository, commitSHAs[0])
       this._loadChangedFilesForCurrentSelection(repository)
     }
-
-    this.emitUpdate()
   }
 
   private startAheadBehindUpdater(repository: Repository) {
@@ -732,7 +751,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const updater = new AheadBehindUpdater(repository, aheadBehindCache => {
-      this.updateCompareState(repository, state => ({
+      this.updateCompareState(repository, () => ({
         aheadBehindCache,
       }))
       this.emitUpdate()
@@ -804,7 +823,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     }
 
-    this.updateCompareState(repository, state => ({
+    this.updateCompareState(repository, () => ({
       allBranches,
       recentBranches,
       defaultBranch,
@@ -841,10 +860,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const action =
       initialAction != null ? initialAction : getInitialAction(cachedState)
     this._executeCompare(repository, action)
-
-    if (currentBranch != null && this.currentAheadBehindUpdater != null) {
-      this.currentAheadBehindUpdater.schedule(currentBranch, allBranches)
-    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -856,76 +871,100 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const kind = action.kind
 
     if (action.kind === CompareActionKind.History) {
-      await gitStore.loadHistory()
+      // load initial group of commits for current branch
+      const commits = await gitStore.loadCommitBatch('HEAD')
 
-      const repoState = this.getRepositoryState(repository).historyState
-      const commits = repoState.history
+      if (commits === null) {
+        return
+      }
 
-      this.updateCompareState(repository, state => ({
+      this.updateCompareState(repository, () => ({
         formState: {
           kind: ComparisonView.None,
         },
         commitSHAs: commits,
+        filterText: '',
+        showBranchList: false,
       }))
+      this.updateOrSelectFirstCommit(repository, commits)
+
       return this.emitUpdate()
-    } else if (action.kind === CompareActionKind.Branch) {
-      const comparisonBranch = action.branch
-      const compare = await gitStore.getCompareCommits(
-        comparisonBranch,
-        action.mode
-      )
-
-      this.statsStore.recordBranchComparison()
-      const { branchesState } = this.getRepositoryState(repository)
-
-      if (
-        branchesState.defaultBranch !== null &&
-        comparisonBranch.name === branchesState.defaultBranch.name
-      ) {
-        this.statsStore.recordDefaultBranchComparison()
-      }
-
-      if (compare !== null) {
-        const { ahead, behind } = compare
-        const aheadBehind = { ahead, behind }
-
-        this.updateCompareState(repository, s => ({
-          formState: {
-            comparisonBranch,
-            kind: action.mode,
-            aheadBehind,
-          },
-          commitSHAs: compare.commits.map(commit => commit.sha),
-        }))
-
-        const tip = gitStore.tip
-
-        let currentSha: string | null = null
-
-        if (tip.kind === TipState.Valid) {
-          currentSha = tip.branch.tip.sha
-        } else if (tip.kind === TipState.Detached) {
-          currentSha = tip.currentSha
-        }
-
-        if (this.currentAheadBehindUpdater != null && currentSha != null) {
-          const from =
-            action.mode === ComparisonView.Ahead
-              ? comparisonBranch.tip.sha
-              : currentSha
-          const to =
-            action.mode === ComparisonView.Ahead
-              ? currentSha
-              : comparisonBranch.tip.sha
-
-          this.currentAheadBehindUpdater.insert(from, to, aheadBehind)
-        }
-
-        return this.emitUpdate()
-      }
-    } else {
-      return assertNever(action, `Unknown action: ${kind}`)
     }
+
+    if (action.kind === CompareActionKind.Branch) {
+      return this.updateCompareToBranch(repository, action)
+    }
+
+    return assertNever(action, `Unknown action: ${kind}`)
+  }
+
+  private async updateCompareToBranch(
+    repository: Repository,
+    action: ICompareToBranch
+  ) {
+    const gitStore = this.getGitStore(repository)
+
+    const comparisonBranch = action.branch
+    const compare = await gitStore.getCompareCommits(
+      comparisonBranch,
+      action.mode
+    )
+
+    this.statsStore.recordBranchComparison()
+    const { branchesState } = this.getRepositoryState(repository)
+
+    if (
+      branchesState.defaultBranch !== null &&
+      comparisonBranch.name === branchesState.defaultBranch.name
+    ) {
+      this.statsStore.recordDefaultBranchComparison()
+    }
+
+    if (compare == null) {
+      return
+    }
+
+    const { ahead, behind } = compare
+    const aheadBehind = { ahead, behind }
+
+    const commitSHAs = compare.commits.map(commit => commit.sha)
+
+    this.updateCompareState(repository, s => ({
+      formState: {
+        comparisonBranch,
+        kind: action.mode,
+        aheadBehind,
+      },
+      filterText: comparisonBranch.name,
+      commitSHAs,
+    }))
+
+    const tip = gitStore.tip
+
+    let currentSha: string | null = null
+
+    if (tip.kind === TipState.Valid) {
+      currentSha = tip.branch.tip.sha
+    } else if (tip.kind === TipState.Detached) {
+      currentSha = tip.currentSha
+    }
+
+    if (this.currentAheadBehindUpdater != null && currentSha != null) {
+      const from =
+        action.mode === ComparisonView.Ahead
+          ? comparisonBranch.tip.sha
+          : currentSha
+      const to =
+        action.mode === ComparisonView.Ahead
+          ? currentSha
+          : comparisonBranch.tip.sha
+
+      this.currentAheadBehindUpdater.insert(from, to, aheadBehind)
+    }
+
+    this.updateOrSelectFirstCommit(repository, commitSHAs)
+
+    return this.emitUpdate()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -938,31 +977,50 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
 
     this.emitUpdate()
+
+    const { branchesState, compareState } = this.getRepositoryState(repository)
+
+    if (branchesState.tip.kind !== TipState.Valid) {
+      return
+    }
+
+    if (this.currentAheadBehindUpdater === null) {
+      return
+    }
+
+    if (compareState.showBranchList) {
+      const currentBranch = branchesState.tip.branch
+
+      this.currentAheadBehindUpdater.schedule(
+        currentBranch,
+        compareState.defaultBranch,
+        compareState.recentBranches,
+        compareState.allBranches
+      )
+    } else {
+      this.currentAheadBehindUpdater.clear()
+    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _loadNextHistoryBatch(repository: Repository): Promise<void> {
+  public async _loadNextCommitBatch(repository: Repository): Promise<void> {
     const gitStore = this.getGitStore(repository)
 
-    if (enableCompareSidebar()) {
-      const state = this.getRepositoryState(repository)
-      const { formState } = state.compareState
-      if (formState.kind === ComparisonView.None) {
-        const commits = state.compareState.commitSHAs
-        const lastCommitSha = commits[commits.length - 1]
+    const state = this.getRepositoryState(repository)
+    const { formState } = state.compareState
+    if (formState.kind === ComparisonView.None) {
+      const commits = state.compareState.commitSHAs
+      const lastCommitSha = commits[commits.length - 1]
 
-        const newCommits = await gitStore.loadCommitBatch(lastCommitSha)
-        if (newCommits == null) {
-          return
-        }
-
-        this.updateCompareState(repository, state => ({
-          commitSHAs: commits.concat(newCommits),
-        }))
-        this.emitUpdate()
+      const newCommits = await gitStore.loadCommitBatch(`${lastCommitSha}^`)
+      if (newCommits == null) {
+        return
       }
-    } else {
-      return gitStore.loadNextHistoryBatch()
+
+      this.updateCompareState(repository, () => ({
+        commitSHAs: commits.concat(newCommits),
+      }))
+      this.emitUpdate()
     }
   }
 
@@ -971,9 +1029,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository
   ): Promise<void> {
     const state = this.getRepositoryState(repository)
-    const selection = state.historyState.selection
-    const currentSHA = selection.sha
-    if (!currentSHA) {
+    const { commitSelection } = state
+    const currentSHA = commitSelection.sha
+    if (currentSHA == null) {
       return
     }
 
@@ -988,49 +1046,36 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // The selection could have changed between when we started loading the
     // changed files and we finished. We might wanna store the changed files per
     // SHA/path.
-    if (currentSHA !== state.historyState.selection.sha) {
+    if (currentSHA !== state.commitSelection.sha) {
       return
     }
 
     // if we're selecting a commit for the first time, we should select the
     // first file in the commit and render the diff immediately
 
-    const noFileSelected = selection.file === null
+    const noFileSelected = commitSelection.file === null
 
     const firstFileOrDefault =
-      noFileSelected && changedFiles.length ? changedFiles[0] : selection.file
+      noFileSelected && changedFiles.length
+        ? changedFiles[0]
+        : commitSelection.file
 
     const selectionOrFirstFile = {
       file: firstFileOrDefault,
-      sha: selection.sha,
+      sha: commitSelection.sha,
+      changedFiles,
+      diff: null,
     }
 
-    this.updateHistoryState(repository, state => ({ changedFiles }))
+    this.updateRepositoryState(repository, state => ({
+      commitSelection: selectionOrFirstFile,
+    }))
 
     this.emitUpdate()
 
     if (selectionOrFirstFile.file) {
-      this._changeHistoryFileSelection(repository, selectionOrFirstFile.file)
+      this._changeFileSelection(repository, selectionOrFirstFile.file)
     }
-  }
-
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _changeHistoryCommitSelection(
-    repository: Repository,
-    sha: string
-  ): Promise<void> {
-    this.updateHistoryState(repository, state => {
-      const commitChanged = state.selection.sha !== sha
-      const changedFiles = commitChanged
-        ? new Array<CommittedFileChange>()
-        : state.changedFiles
-      const file = commitChanged ? null : state.selection.file
-      const selection = { sha, file }
-      const diff = null
-
-      return { selection, changedFiles, diff }
-    })
-    this.emitUpdate()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -1040,19 +1085,24 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _changeHistoryFileSelection(
+  public async _changeFileSelection(
     repository: Repository,
     file: CommittedFileChange
   ): Promise<void> {
-    this.updateHistoryState(repository, state => {
-      const selection = { sha: state.selection.sha, file }
-      const diff = null
-      return { selection, diff }
+    this.updateRepositoryState(repository, state => {
+      const { sha, changedFiles } = state.commitSelection
+      const commitSelection = {
+        sha,
+        changedFiles,
+        file,
+        diff: null,
+      }
+      return { commitSelection }
     })
     this.emitUpdate()
 
     const stateBeforeLoad = this.getRepositoryState(repository)
-    const sha = stateBeforeLoad.historyState.selection.sha
+    const sha = stateBeforeLoad.commitSelection.sha
 
     if (!sha) {
       if (__DEV__) {
@@ -1070,21 +1120,26 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     // A whole bunch of things could have happened since we initiated the diff load
     if (
-      stateAfterLoad.historyState.selection.sha !==
-      stateBeforeLoad.historyState.selection.sha
+      stateAfterLoad.commitSelection.sha !== stateBeforeLoad.commitSelection.sha
     ) {
       return
     }
-    if (!stateAfterLoad.historyState.selection.file) {
+    if (!stateAfterLoad.commitSelection.file) {
       return
     }
-    if (stateAfterLoad.historyState.selection.file.id !== file.id) {
+    if (stateAfterLoad.commitSelection.file.id !== file.id) {
       return
     }
 
-    this.updateHistoryState(repository, state => {
-      const selection = { sha: state.selection.sha, file }
-      return { selection, diff }
+    this.updateRepositoryState(repository, state => {
+      const { sha, changedFiles } = state.commitSelection
+      const commitSelection = {
+        sha,
+        changedFiles,
+        file,
+        diff,
+      }
+      return { commitSelection }
     })
 
     this.emitUpdate()
@@ -1168,10 +1223,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.startBackgroundFetching(repository, !previouslySelectedRepository)
     this.startPullRequestUpdater(repository)
 
-    if (enableCompareSidebar()) {
-      this.startAheadBehindUpdater(repository)
-    }
-
+    this.startAheadBehindUpdater(repository)
     this.refreshMentionables(repository)
 
     this.addUpstreamRemoteIfNeeded(repository)
@@ -1217,9 +1269,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private startPullRequestUpdater(repository: Repository) {
     if (this.currentPullRequestUpdater) {
       fatalError(
-        `A pull request updater is already active and cannot start updating on ${
-          repository.name
-        }`
+        `A pull request updater is already active and cannot start updating on ${nameOf(
+          repository
+        )}`
       )
 
       return
@@ -1254,27 +1306,43 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
-  private shouldBackgroundFetch(repository: Repository): boolean {
+  private shouldBackgroundFetch(
+    repository: Repository,
+    lastPush: Date | null
+  ): boolean {
     const gitStore = this.getGitStore(repository)
     const lastFetched = gitStore.lastFetched
 
-    if (!lastFetched) {
+    if (lastFetched === null) {
       return true
     }
 
     const now = new Date()
     const timeSinceFetch = now.getTime() - lastFetched.getTime()
-
+    const repoName = nameOf(repository)
     if (timeSinceFetch < BackgroundFetchMinimumInterval) {
       const timeInSeconds = Math.floor(timeSinceFetch / 1000)
 
       log.debug(
-        `skipping background fetch as repository was fetched ${timeInSeconds}s ago`
+        `Skipping background fetch as '${repoName}' was fetched ${timeInSeconds}s ago`
       )
       return false
     }
 
-    return true
+    if (lastPush === null) {
+      return true
+    }
+
+    // we should fetch if the last push happened after the last fetch
+    if (lastFetched < lastPush) {
+      return true
+    }
+
+    log.debug(
+      `Skipping background fetch since nothing has been pushed to '${repoName}' since the last fetch at ${lastFetched}`
+    )
+
+    return false
   }
 
   private startBackgroundFetching(
@@ -1299,11 +1367,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    // Todo: add logic to background checker to check the API before fetching
+    // similar to what's being done in `refreshAllIndicators`
     const fetcher = new BackgroundFetcher(
       repository,
       account,
       r => this.performFetch(r, account, FetchType.BackgroundTask),
-      r => this.shouldBackgroundFetch(r)
+      r => this.shouldBackgroundFetch(r, null)
     )
     fetcher.start(withInitialSkew)
     this.currentBackgroundFetcher = fetcher
@@ -1506,12 +1576,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _loadStatus(
     repository: Repository,
     clearPartialState: boolean = false
-  ): Promise<void> {
+  ): Promise<boolean> {
     const gitStore = this.getGitStore(repository)
     const status = await gitStore.loadStatus()
 
     if (!status) {
-      return
+      return false
     }
 
     this.updateChangesState(repository, state => {
@@ -1578,6 +1648,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
 
     this.updateChangesDiffForCurrentSelection(repository)
+
+    return true
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -1819,13 +1891,27 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    // if the repository path doesn't exist on disk,
+    // set the flag and don't try anything Git-related
+    const exists = await pathExists(repository.path)
+    if (!exists) {
+      this._updateRepositoryMissing(repository, true)
+      return
+    }
+
     const state = this.getRepositoryState(repository)
     const gitStore = this.getGitStore(repository)
 
-    // When refreshing we *always* check the status so that we can update the
-    // changes indicator in the tab bar. But we only load History if it's
-    // selected.
-    await Promise.all([this._loadStatus(repository), gitStore.loadBranches()])
+    // if we cannot get a valid status it's a good indicator that the repository
+    // is in a bad state - let's mark it as missing here and give up on the
+    // further work
+    const status = await this._loadStatus(repository)
+    if (!status) {
+      await this._updateRepositoryMissing(repository, true)
+      return
+    }
+
+    await gitStore.loadBranches()
 
     const section = state.selectedSection
     let refreshSectionPromise: Promise<void>
@@ -1852,6 +1938,78 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this._updateCurrentPullRequest(repository)
     this.updateMenuItemLabels(repository)
     this._initializeCompare(repository)
+    this.refreshIndicatorsForRepositories([repository])
+  }
+
+  public refreshAllIndicators() {
+    return this.refreshIndicatorsForRepositories(this.repositories)
+  }
+
+  private async refreshIndicatorsForRepositories(
+    repositories: ReadonlyArray<Repository>
+  ): Promise<void> {
+    if (!enableRepoInfoIndicators()) {
+      return
+    }
+
+    const startTime = performance && performance.now ? performance.now() : null
+
+    for (const repo of repositories) {
+      await this.refreshIndicatorForRepository(repo)
+    }
+
+    if (startTime && repositories.length > 1) {
+      const delta = performance.now() - startTime
+      const timeInSeconds = (delta / 1000).toFixed(3)
+      log.info(
+        `Background fetch for ${
+          repositories.length
+        } repositories took ${timeInSeconds}sec`
+      )
+    }
+
+    this.emitUpdate()
+  }
+
+  private async refreshIndicatorForRepository(repository: Repository) {
+    const lookup = this.localRepositoryStateLookup
+
+    if (repository.missing) {
+      lookup.delete(repository.id)
+      return
+    }
+
+    const exists = await pathExists(repository.path)
+    if (!exists) {
+      lookup.delete(repository.id)
+      return
+    }
+
+    const gitStore = this.getGitStore(repository)
+    const status = await gitStore.loadStatus()
+    if (status === null) {
+      lookup.delete(repository.id)
+      return
+    }
+
+    const lastPush = await inferLastPushForRepository(
+      this.accounts,
+      gitStore,
+      repository
+    )
+
+    if (this.shouldBackgroundFetch(repository, lastPush)) {
+      await this.withAuthenticatingUser(repository, (repo, account) => {
+        return gitStore.performFailableOperation(() => {
+          return gitStore.fetch(account, true)
+        })
+      })
+    }
+
+    lookup.set(repository.id, {
+      aheadBehind: gitStore.aheadBehind,
+      changedFilesCount: status.workingDirectory.files.length,
+    })
   }
 
   /**
@@ -1892,7 +2050,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       await gitStore.loadLocalCommits(tip.branch)
     }
 
-    return this._loadHistory(repository)
+    return this.updateOrSelectFirstCommit(
+      repository,
+      state.compareState.commitSHAs
+    )
   }
 
   private async refreshAuthor(repository: Repository): Promise<void> {
@@ -2175,23 +2336,25 @@ export class AppStore extends TypedBaseStore<IAppState> {
     branch: Branch,
     includeRemote: boolean
   ): Promise<void> {
-    return this.withAuthenticatingUser(repository, async (repo, account) => {
-      const defaultBranch = this.getRepositoryState(repository).branchesState
-        .defaultBranch
-      if (!defaultBranch) {
-        throw new Error(`No default branch!`)
+    return this.withAuthenticatingUser(repository, async (r, account) => {
+      const { defaultBranch } = this.getRepositoryState(r).branchesState
+
+      if (defaultBranch == null) {
+        throw new Error(
+          `A default branch cannot be found for this repository, so the app is unable to identify which branch to switch to before removing the current branch.`
+        )
       }
 
-      const gitStore = this.getGitStore(repository)
+      const gitStore = this.getGitStore(r)
 
       await gitStore.performFailableOperation(() =>
-        checkoutBranch(repository, account, defaultBranch)
+        checkoutBranch(r, account, defaultBranch)
       )
       await gitStore.performFailableOperation(() =>
-        deleteBranch(repository, branch, account, includeRemote)
+        deleteBranch(r, branch, account, includeRemote)
       )
 
-      return this._refreshRepository(repository)
+      return this._refreshRepository(r)
     })
   }
 
@@ -2332,6 +2495,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
             prUpdater.didPushPullRequest(currentPR)
           }
         }
+
+        const { accounts } = this.getState()
+        const githubAccount = await findAccountForRemoteURL(
+          remote.url,
+          accounts
+        )
+
+        if (githubAccount === null) {
+          this._recordPushToGenericRemote()
+        } else if (githubAccount.endpoint === getDotComAPIEndpoint()) {
+          this._recordPushToGitHub()
+        } else if (
+          githubAccount.endpoint === getEnterpriseAPIURL(githubAccount.endpoint)
+        ) {
+          this._recordPushToGitHubEnterprise()
+        }
       }
     })
   }
@@ -2458,7 +2637,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
                   value: progress.value * pullWeight,
                 })
               }),
-            { retryAction }
+            { command: 'pull', retryAction }
           )
 
           const refreshStartProgress = pullWeight + fetchWeight
@@ -2653,15 +2832,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     await gitStore.undoCommit(commit)
 
-    const state = this.getRepositoryState(repository)
-    const selectedCommit = state.historyState.selection.sha
+    const { commitSelection } = this.getRepositoryState(repository)
 
-    if (selectedCommit === commit.sha) {
-      // clear the selection of this commit in the history view
-      this.updateHistoryState(repository, state => {
-        const selection = { sha: null, file: null }
-        return { selection }
-      })
+    if (commitSelection.sha === commit.sha) {
+      this.clearSelectedCommit(repository)
     }
 
     return this._refreshRepository(repository)
@@ -3330,7 +3504,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       this.updateRevertProgress(repo, null)
 
-      return gitStore.loadHistory()
+      // TODO: what's the equivalent for the compare tab?
+      // This might be re-computed when we switch back, in which case we can :fire:
+      // it to the ground.
+      //return gitStore.loadHistory()
     })
   }
 
@@ -3739,6 +3916,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /**
+   * Increments the `mergeConflictFromPullCount` metric
+   */
+  public _recordMergeConflictFromPull() {
+    this.statsStore.recordMergeConflictFromPull()
+  }
+
+  /**
+   * Increments the `mergeConflictFromExplicitMergeCount` metric
+   */
+  public _recordMergeConflictFromExplicitMerge() {
+    this.statsStore.recordMergeConflictFromExplicitMerge()
+  }
+
+  /**
    * Increments the `mergeIntoCurrentBranchMenuCount` metric
    */
   public _recordMenuInitiatedMerge() {
@@ -3771,17 +3962,67 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /**
-   * The number of times the user dismisses the diverged branch notification
+   * Increments either the `repoWithIndicatorClicked` or
+   * the `repoWithoutIndicatorClicked` metric
+   */
+  public _recordRepoClicked(repoHasIndicator: boolean) {
+    this.statsStore.recordRepoClicked(repoHasIndicator)
+  }
+
+  /** The number of times the user dismisses the diverged branch notification
+   * Increments the `divergingBranchBannerDismissal` metric
    */
   public _recordDivergingBranchBannerDismissal() {
     this.statsStore.recordDivergingBranchBannerDismissal()
   }
 
   /**
-   * The number of times the user showne the diverged branch notification
+   * Increments the `divergingBranchBannerDisplayed` metric
    */
   public _recordDivergingBranchBannerDisplayed() {
     this.statsStore.recordDivergingBranchBannerDisplayed()
+  }
+
+  /**
+   * Increments the `dotcomPushCount` metric
+   */
+  public _recordPushToGitHub() {
+    this.statsStore.recordPushToGitHub()
+  }
+
+  /**
+   * Increments the `enterprisePushCount` metric
+   */
+  public _recordPushToGitHubEnterprise() {
+    this.statsStore.recordPushToGitHubEnterprise()
+  }
+
+  /**
+   * Increments the `externalPushCount` metric
+   */
+  public _recordPushToGenericRemote() {
+    this.statsStore.recordPushToGenericRemote()
+  }
+
+  /**
+   * Increments the `divergingBranchBannerInitiatedCompare` metric
+   */
+  public _recordDivergingBranchBannerInitiatedCompare() {
+    this.statsStore.recordDivergingBranchBannerInitiatedCompare()
+  }
+
+  /**
+   * Increments the `divergingBranchBannerInfluencedMerge` metric
+   */
+  public _recordDivergingBranchBannerInfluencedMerge() {
+    this.statsStore.recordDivergingBranchBannerInfluencedMerge()
+  }
+
+  /**
+   * Increments the `divergingBranchBannerInitatedMerge` metric
+   */
+  public _recordDivergingBranchBannerInitatedMerge() {
+    this.statsStore.recordDivergingBranchBannerInitatedMerge()
   }
 }
 

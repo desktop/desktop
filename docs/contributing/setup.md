@@ -6,13 +6,13 @@ You will need to install these tools on your machine:
 
 ### macOS
 
- - [Node.js v8.9.0](https://nodejs.org/dist/v8.9.0/)
+ - [Node.js v8.11.2](https://nodejs.org/dist/v8.11.2/)
  - [Python 2.7](https://www.python.org/downloads/mac-osx/)
  - Xcode and Xcode Command Line Tools (Xcode -> Preferences -> Downloads)
 
 ### Windows
 
- - [Node.js v8.9.0](https://nodejs.org/dist/v8.9.0/)
+ - [Node.js v8.11.2](https://nodejs.org/dist/v8.11.2/)
     - *Make sure you allow the Node.js installer to add node to the PATH.*
  - [Python 2.7](https://www.python.org/downloads/windows/)
     - *Let Python install into the default suggested path (`c:\Python27`), otherwise you'll have
@@ -32,7 +32,7 @@ You will need to install these tools on your machine:
 
 ### Fedora 26
 
-First, add the NodeJS package repository.
+First, add the NodeJS package repository for 8.x.
 
 ```shellsession
 $ curl --silent --location https://rpm.nodesource.com/setup_8.x | sudo bash -
@@ -61,13 +61,13 @@ $ sudo ln -s `find /usr/lib64/ -type f -name "libreadline.so.7.0"` /usr/lib64/li
 
 ### Ubuntu 16.04
 
-First, install curl:
+First, install curl and a GPG program:
 
 ```shellsession
-$ sudo apt install curl
+$ sudo apt install curl gnupg
 ```
 
-Then add the NodeJS package repository:
+Then add the NodeJS package repository for 8.x:
 
 ```shellsession
 $ curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
@@ -123,7 +123,7 @@ versions look similar to the below output:
 
 ```shellsession
 $ node -v
-v8.10.0
+v8.11.3
 
 $ yarn -v
 1.5.1

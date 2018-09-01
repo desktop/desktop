@@ -287,7 +287,7 @@ app.on('ready', () => {
       )
 
       const window = BrowserWindow.fromWebContents(event.sender)
-      menu.popup(window, { async: true })
+      menu.popup({ window })
     }
   )
 
@@ -368,7 +368,7 @@ app.on('ready', () => {
           return
         }
 
-        if (stats.isDirectory()) {
+        if (!__DARWIN__ && stats.isDirectory()) {
           openDirectorySafe(path)
         } else {
           shell.showItemInFolder(path)
@@ -407,14 +407,24 @@ function createWindow() {
   const window = new AppWindow()
 
   if (__DEV__) {
-    const installer = require('electron-devtools-installer')
+    const {
+      default: installExtension,
+      REACT_DEVELOPER_TOOLS,
+      REACT_PERF,
+    } = require('electron-devtools-installer')
+
     require('electron-debug')({ showDevTools: true })
 
-    const extensions = ['REACT_DEVELOPER_TOOLS', 'REACT_PERF']
+    const ChromeLens = {
+      id: 'idikgljglpfilbhaboonnpnnincjhjkd',
+      electron: '>=1.2.1',
+    }
 
-    for (const name of extensions) {
+    const extensions = [REACT_DEVELOPER_TOOLS, REACT_PERF, ChromeLens]
+
+    for (const extension of extensions) {
       try {
-        installer.default(installer[name])
+        installExtension(extension)
       } catch (e) {}
     }
   }

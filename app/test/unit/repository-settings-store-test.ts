@@ -5,7 +5,7 @@ import { expect } from 'chai'
 
 import { RepositorySettingsStore } from '../../src/lib/stores'
 import { setupEmptyRepository } from '../helpers/repositories'
-import { getStatus } from '../../src/lib/git'
+import { getStatusOrThrow } from '../helpers/status'
 
 describe('RepositorySettingsStore', () => {
   it('can create a gitignore file', async () => {
@@ -54,7 +54,7 @@ describe('RepositorySettingsStore', () => {
     await FSE.writeFile(file, 'thrvbnmerkl;,iuw')
 
     // Check status of repo
-    const status = await getStatus(repo)
+    const status = await getStatusOrThrow(repo)
     const files = status.workingDirectory.files
 
     expect(files.length).to.equal(0)
