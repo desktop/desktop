@@ -35,6 +35,8 @@ describe('App', () => {
   let dispatcher: Dispatcher | null = null
   let statsStore: StatsStore | null = null
   let repositoryStateManager: RepositoryStateManager | null = null
+  let githubUserStore: GitHubUserStore | null = null
+  let issuesStore: IssuesStore | null = null
 
   beforeEach(async () => {
     const db = new TestGitHubUserDatabase()
@@ -61,7 +63,8 @@ describe('App', () => {
       repositoriesStore
     )
 
-    const githubUserStore = new GitHubUserStore(db)
+    githubUserStore = new GitHubUserStore(db)
+    issuesStore = new IssuesStore(issuesDb)
 
     repositoryStateManager = new RepositoryStateManager(githubUserStore)
 
@@ -69,7 +72,7 @@ describe('App', () => {
       githubUserStore,
       new CloningRepositoriesStore(),
       new EmojiStore(),
-      new IssuesStore(issuesDb),
+      issuesStore,
       statsStore,
       new SignInStore(),
       accountsStore,
@@ -87,6 +90,8 @@ describe('App', () => {
         dispatcher={dispatcher!}
         appStore={appStore!}
         repositoryStateManager={repositoryStateManager!}
+        issuesStore={issuesStore!}
+        gitHubUserStore={githubUserStore!}
         startTime={0}
       />
     ) as React.Component<any, any>

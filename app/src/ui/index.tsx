@@ -189,8 +189,10 @@ ReactDOM.render(
   <App
     dispatcher={dispatcher}
     appStore={appStore}
-    startTime={startTime}
     repositoryStateManager={repositoryStateManager}
+    issuesStore={issuesStore}
+    gitHubUserStore={gitHubUserStore}
+    startTime={startTime}
   />,
   document.getElementById('desktop-app-container')!
 )

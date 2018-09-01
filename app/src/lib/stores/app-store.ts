@@ -230,21 +230,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     number,
     ILocalRepositoryState
   >()
-  private readonly repositoryStateManager: RepositoryStateManager
-  public readonly gitHubUserStore: GitHubUserStore
-  private readonly cloningRepositoriesStore: CloningRepositoriesStore
-  private readonly emojiStore: EmojiStore
-  private readonly _issuesStore: IssuesStore
-  private readonly signInStore: SignInStore
-  private readonly accountsStore: AccountsStore
-  private readonly repositoriesStore: RepositoriesStore
-  private readonly statsStore: StatsStore
-  private readonly pullRequestStore: PullRequestStore
-
-  /** The issues store for all repositories. */
-  public get issuesStore(): IssuesStore {
-    return this._issuesStore
-  }
 
   /**
    * The Application menu as an AppMenu instance or null if
@@ -296,29 +281,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private isDivergingBranchBannerVisible = false
 
   public constructor(
-    gitHubUserStore: GitHubUserStore,
-    cloningRepositoriesStore: CloningRepositoriesStore,
-    emojiStore: EmojiStore,
-    issuesStore: IssuesStore,
-    statsStore: StatsStore,
-    signInStore: SignInStore,
-    accountsStore: AccountsStore,
-    repositoriesStore: RepositoriesStore,
-    pullRequestStore: PullRequestStore,
-    repositoryStateManager: RepositoryStateManager
+    private readonly gitHubUserStore: GitHubUserStore,
+    private readonly cloningRepositoriesStore: CloningRepositoriesStore,
+    private readonly emojiStore: EmojiStore,
+    private readonly issuesStore: IssuesStore,
+    private readonly statsStore: StatsStore,
+    private readonly signInStore: SignInStore,
+    private readonly accountsStore: AccountsStore,
+    private readonly repositoriesStore: RepositoriesStore,
+    private readonly pullRequestStore: PullRequestStore,
+    private readonly repositoryStateManager: RepositoryStateManager
   ) {
     super()
 
-    this.gitHubUserStore = gitHubUserStore
-    this.cloningRepositoriesStore = cloningRepositoriesStore
-    this.emojiStore = emojiStore
-    this._issuesStore = issuesStore
-    this.statsStore = statsStore
-    this.signInStore = signInStore
-    this.accountsStore = accountsStore
-    this.repositoriesStore = repositoriesStore
-    this.pullRequestStore = pullRequestStore
-    this.repositoryStateManager = repositoryStateManager
     this.showWelcomeFlow = !hasShownWelcomeFlow()
 
     const window = remote.getCurrentWindow()
@@ -1187,7 +1162,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     try {
-      await this._issuesStore.refreshIssues(repository, user)
+      await this.issuesStore.refreshIssues(repository, user)
     } catch (e) {
       log.warn(`Unable to fetch issues for ${repository.fullName}`, e)
     }

@@ -12,7 +12,7 @@ import {
   CompareActionKind,
 } from '../lib/app-state'
 import { Dispatcher } from '../lib/dispatcher'
-import { AppStore } from '../lib/stores'
+import { AppStore, GitHubUserStore, IssuesStore } from '../lib/stores'
 import { assertNever } from '../lib/fatal-error'
 import { shell } from '../lib/app-shell'
 import { updateStore, UpdateStatus } from './lib/update-store'
@@ -106,6 +106,8 @@ interface IAppProps {
   readonly dispatcher: Dispatcher
   readonly repositoryStateManager: RepositoryStateManager
   readonly appStore: AppStore
+  readonly issuesStore: IssuesStore
+  readonly gitHubUserStore: GitHubUserStore
   readonly startTime: number
 }
 
@@ -1714,8 +1716,8 @@ export class App extends React.Component<IAppProps, IAppState> {
           emoji={state.emoji}
           sidebarWidth={state.sidebarWidth}
           commitSummaryWidth={state.commitSummaryWidth}
-          issuesStore={this.props.appStore.issuesStore}
-          gitHubUserStore={this.props.appStore.gitHubUserStore}
+          issuesStore={this.props.issuesStore}
+          gitHubUserStore={this.props.gitHubUserStore}
           onViewCommitOnGitHub={this.onViewCommitOnGitHub}
           imageDiffType={state.imageDiffType}
           askForConfirmationOnDiscardChanges={
