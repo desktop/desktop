@@ -138,7 +138,7 @@ import { Owner } from '../../models/owner'
 import { PullRequest } from '../../models/pull-request'
 import { PullRequestUpdater } from './helpers/pull-request-updater'
 import * as QueryString from 'querystring'
-import { IRemote, ForkedRemotePrefix } from '../../models/remote'
+import { IRemote, forkPullRequestRemoteName } from '../../models/remote'
 import { IAuthor } from '../../models/author'
 import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
 import {
@@ -3975,8 +3975,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 }
 
-function forkPullRequestRemoteName(remoteName: string) {
-  return `${ForkedRemotePrefix}${remoteName}`
 }
 
 /**
