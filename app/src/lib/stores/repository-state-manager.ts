@@ -1,25 +1,25 @@
-import {
-  IRepositoryState,
-  RepositorySectionTab,
-  ComparisonView,
-  ICompareState,
-  IChangesState,
-  IBranchesState,
-} from '../app-state'
+import { Branch } from '../../models/branch'
+import { Commit } from '../../models/commit'
+import { PullRequest } from '../../models/pull-request'
 import { Repository } from '../../models/repository'
-import { merge } from '../merge'
-import { IGitHubUser } from '../databases'
-import { GitHubUserStore } from './github-user-store'
 import {
   CommittedFileChange,
-  WorkingDirectoryStatus,
   WorkingDirectoryFileChange,
+  WorkingDirectoryStatus,
 } from '../../models/status'
 import { TipState } from '../../models/tip'
-import { Branch } from '../../models/branch'
-import { PullRequest } from '../../models/pull-request'
+import {
+  ComparisonView,
+  IBranchesState,
+  IChangesState,
+  ICompareState,
+  IRepositoryState,
+  RepositorySectionTab,
+} from '../app-state'
 import { ComparisonCache } from '../comparison-cache'
-import { Commit } from '../../models/commit'
+import { IGitHubUser } from '../databases'
+import { merge } from '../merge'
+import { GitHubUserStore } from './github-user-store'
 
 function getInitialRepositoryState(): IRepositoryState {
   return {
