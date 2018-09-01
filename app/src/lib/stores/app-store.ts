@@ -159,15 +159,7 @@ import { inferComparisonBranch } from './helpers/infer-comparison-branch'
 import { PullRequestUpdater } from './helpers/pull-request-updater'
 import { validatedRepositoryPath } from './helpers/validated-repository-path'
 import { RepositoryStateManager } from './repository-state-manager'
-
-/**
- * Enum used by fetch to determine if
- * a fetch was initiated by the backgroundFetcher
- */
-export enum FetchType {
-  BackgroundTask,
-  UserInitiatedTask,
-}
+import { FetchType } from '../../models/fetch'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
