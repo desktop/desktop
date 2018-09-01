@@ -21,62 +21,6 @@ import { IGitHubUser } from '../databases'
 import { merge } from '../merge'
 import { GitHubUserStore } from './github-user-store'
 
-function getInitialRepositoryState(): IRepositoryState {
-  return {
-    commitSelection: {
-      sha: null,
-      file: null,
-      changedFiles: new Array<CommittedFileChange>(),
-      diff: null,
-    },
-    changesState: {
-      workingDirectory: WorkingDirectoryStatus.fromFiles(
-        new Array<WorkingDirectoryFileChange>()
-      ),
-      selectedFileIDs: [],
-      diff: null,
-      contextualCommitMessage: null,
-      commitMessage: null,
-      coAuthors: [],
-      showCoAuthoredBy: false,
-    },
-    selectedSection: RepositorySectionTab.Changes,
-    branchesState: {
-      tip: { kind: TipState.Unknown },
-      defaultBranch: null,
-      allBranches: new Array<Branch>(),
-      recentBranches: new Array<Branch>(),
-      openPullRequests: new Array<PullRequest>(),
-      currentPullRequest: null,
-      isLoadingPullRequests: false,
-    },
-    compareState: {
-      formState: { kind: ComparisonView.None },
-      mergeStatus: null,
-      showBranchList: false,
-      filterText: '',
-      commitSHAs: [],
-      aheadBehindCache: new ComparisonCache(),
-      allBranches: new Array<Branch>(),
-      recentBranches: new Array<Branch>(),
-      defaultBranch: null,
-      inferredComparisonBranch: { branch: null, aheadBehind: null },
-    },
-    commitAuthor: null,
-    gitHubUsers: new Map<string, IGitHubUser>(),
-    commitLookup: new Map<string, Commit>(),
-    localCommitSHAs: [],
-    aheadBehind: null,
-    remote: null,
-    isPushPullFetchInProgress: false,
-    isCommitting: false,
-    lastFetched: null,
-    checkoutProgress: null,
-    pushPullFetchProgress: null,
-    revertProgress: null,
-  }
-}
-
 export class RepositoryStateManager {
   private repositoryState = new Map<string, IRepositoryState>()
 
@@ -138,5 +82,61 @@ export class RepositoryStateManager {
       const newState = merge(changesState, fn(changesState))
       return { branchesState: newState }
     })
+  }
+}
+
+function getInitialRepositoryState(): IRepositoryState {
+  return {
+    commitSelection: {
+      sha: null,
+      file: null,
+      changedFiles: new Array<CommittedFileChange>(),
+      diff: null,
+    },
+    changesState: {
+      workingDirectory: WorkingDirectoryStatus.fromFiles(
+        new Array<WorkingDirectoryFileChange>()
+      ),
+      selectedFileIDs: [],
+      diff: null,
+      contextualCommitMessage: null,
+      commitMessage: null,
+      coAuthors: [],
+      showCoAuthoredBy: false,
+    },
+    selectedSection: RepositorySectionTab.Changes,
+    branchesState: {
+      tip: { kind: TipState.Unknown },
+      defaultBranch: null,
+      allBranches: new Array<Branch>(),
+      recentBranches: new Array<Branch>(),
+      openPullRequests: new Array<PullRequest>(),
+      currentPullRequest: null,
+      isLoadingPullRequests: false,
+    },
+    compareState: {
+      formState: { kind: ComparisonView.None },
+      mergeStatus: null,
+      showBranchList: false,
+      filterText: '',
+      commitSHAs: [],
+      aheadBehindCache: new ComparisonCache(),
+      allBranches: new Array<Branch>(),
+      recentBranches: new Array<Branch>(),
+      defaultBranch: null,
+      inferredComparisonBranch: { branch: null, aheadBehind: null },
+    },
+    commitAuthor: null,
+    gitHubUsers: new Map<string, IGitHubUser>(),
+    commitLookup: new Map<string, Commit>(),
+    localCommitSHAs: [],
+    aheadBehind: null,
+    remote: null,
+    isPushPullFetchInProgress: false,
+    isCommitting: false,
+    lastFetched: null,
+    checkoutProgress: null,
+    pushPullFetchProgress: null,
+    revertProgress: null,
   }
 }
