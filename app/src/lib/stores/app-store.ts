@@ -28,6 +28,7 @@ import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { CloningRepository } from '../../models/cloning-repository'
 import { Commit } from '../../models/commit'
 import { DiffSelection, DiffSelectionType, DiffType } from '../../models/diff'
+import { FetchType } from '../../models/fetch'
 import { GitHubRepository } from '../../models/github-repository'
 import { Owner } from '../../models/owner'
 import { PullRequest } from '../../models/pull-request'
@@ -159,7 +160,6 @@ import { inferComparisonBranch } from './helpers/infer-comparison-branch'
 import { PullRequestUpdater } from './helpers/pull-request-updater'
 import { validatedRepositoryPath } from './helpers/validated-repository-path'
 import { RepositoryStateManager } from './repository-state-manager'
-import { FetchType } from '../../models/fetch'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
