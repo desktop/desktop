@@ -60,6 +60,7 @@ import { ITrailer } from '../git/interpret-trailers'
 import { isGitRepository } from '../git'
 import { ApplicationTheme } from '../../ui/lib/application-theme'
 import { TipState } from '../../models/tip'
+import { RepositoryStateManager } from '../stores/repository-state-manager'
 
 /**
  * An error handler function.
@@ -77,13 +78,12 @@ export type ErrorHandler = (
  * decouples the consumer of state from where/how it is stored.
  */
 export class Dispatcher {
-  private readonly appStore: AppStore
-
   private readonly errorHandlers = new Array<ErrorHandler>()
 
-  public constructor(appStore: AppStore) {
-    this.appStore = appStore
-  }
+  public constructor(
+    private readonly appStore: AppStore,
+    private readonly repositoryStateManager: RepositoryStateManager
+  ) {}
 
   /** Load the initial state for the app. */
   public loadInitialState(): Promise<void> {
@@ -938,7 +938,7 @@ export class Dispatcher {
       await this.fetchRefspec(repository, `pull/${pr}/head:${branch}`)
     }
 
-    const state = this.appStore.getRepositoryState(repository)
+    const state = this.repositoryStateManager.get(repository)
 
     if (pr == null && branch != null) {
       const branches = state.branchesState.allBranches

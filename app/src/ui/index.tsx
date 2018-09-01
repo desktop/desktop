@@ -51,6 +51,7 @@ import {
   withSourceMappedStack,
 } from '../lib/source-map-support'
 import { UiActivityMonitor } from './lib/ui-activity-monitor'
+import { RepositoryStateManager } from '../lib/stores/repository-state-manager'
 
 if (__DEV__) {
   installDevGlobals()
@@ -125,6 +126,8 @@ const pullRequestStore = new PullRequestStore(
   repositoriesStore
 )
 
+const repositoryStateManager = new RepositoryStateManager(gitHubUserStore)
+
 const appStore = new AppStore(
   gitHubUserStore,
   cloningRepositoriesStore,
@@ -134,10 +137,11 @@ const appStore = new AppStore(
   signInStore,
   accountsStore,
   repositoriesStore,
-  pullRequestStore
+  pullRequestStore,
+  repositoryStateManager
 )
 
-const dispatcher = new Dispatcher(appStore)
+const dispatcher = new Dispatcher(appStore, repositoryStateManager)
 
 dispatcher.registerErrorHandler(defaultErrorHandler)
 dispatcher.registerErrorHandler(upstreamAlreadyExistsHandler)
@@ -182,6 +186,11 @@ ipcRenderer.on(
 )
 
 ReactDOM.render(
-  <App dispatcher={dispatcher} appStore={appStore} startTime={startTime} />,
+  <App
+    dispatcher={dispatcher}
+    appStore={appStore}
+    startTime={startTime}
+    repositoryStateManager={repositoryStateManager}
+  />,
   document.getElementById('desktop-app-container')!
 )

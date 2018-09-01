@@ -28,11 +28,13 @@ import {
 import { StatsStore } from '../../src/lib/stats'
 import { InMemoryStore, AsyncInMemoryStore } from '../helpers/stores'
 import { TestActivityMonitor } from '../helpers/test-activity-monitor'
+import { RepositoryStateManager } from '../../src/lib/stores/repository-state-manager'
 
 describe('App', () => {
   let appStore: AppStore | null = null
   let dispatcher: Dispatcher | null = null
   let statsStore: StatsStore | null = null
+  let repositoryStateManager: RepositoryStateManager | null = null
 
   beforeEach(async () => {
     const db = new TestGitHubUserDatabase()
@@ -59,8 +61,12 @@ describe('App', () => {
       repositoriesStore
     )
 
+    const githubUserStore = new GitHubUserStore(db)
+
+    repositoryStateManager = new RepositoryStateManager(githubUserStore)
+
     appStore = new AppStore(
-      new GitHubUserStore(db),
+      githubUserStore,
       new CloningRepositoriesStore(),
       new EmojiStore(),
       new IssuesStore(issuesDb),
@@ -68,15 +74,21 @@ describe('App', () => {
       new SignInStore(),
       accountsStore,
       repositoriesStore,
-      pullRequestStore
+      pullRequestStore,
+      repositoryStateManager
     )
 
-    dispatcher = new InMemoryDispatcher(appStore)
+    dispatcher = new InMemoryDispatcher(appStore, repositoryStateManager)
   })
 
   it('renders', async () => {
     const app = TestUtils.renderIntoDocument(
-      <App dispatcher={dispatcher!} appStore={appStore!} startTime={0} />
+      <App
+        dispatcher={dispatcher!}
+        appStore={appStore!}
+        repositoryStateManager={repositoryStateManager!}
+        startTime={0}
+      />
     ) as React.Component<any, any>
     // Give any promises a tick to resolve.
     await wait(0)
