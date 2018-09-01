@@ -81,7 +81,11 @@ describe('App', () => {
       repositoryStateManager
     )
 
-    dispatcher = new InMemoryDispatcher(appStore, repositoryStateManager)
+    dispatcher = new InMemoryDispatcher(
+      appStore,
+      repositoryStateManager,
+      statsStore
+    )
   })
 
   it('renders', async () => {

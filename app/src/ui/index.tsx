@@ -141,7 +141,7 @@ const appStore = new AppStore(
   repositoryStateManager
 )
 
-const dispatcher = new Dispatcher(appStore, repositoryStateManager)
+const dispatcher = new Dispatcher(appStore, repositoryStateManager, statsStore)
 
 dispatcher.registerErrorHandler(defaultErrorHandler)
 dispatcher.registerErrorHandler(upstreamAlreadyExistsHandler)

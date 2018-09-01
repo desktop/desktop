@@ -32,7 +32,7 @@ import { ICommitMessage } from '../stores/git-store'
 import { executeMenuItem } from '../../ui/main-process-proxy'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
 import { matchExistingRepository } from '../../lib/repository-matching'
-import { ILaunchStats } from '../stats'
+import { ILaunchStats, StatsStore } from '../stats'
 import { fatalError, assertNever } from '../fatal-error'
 import { isGitOnPath } from '../is-git-on-path'
 import { shell } from '../app-shell'
@@ -82,7 +82,8 @@ export class Dispatcher {
 
   public constructor(
     private readonly appStore: AppStore,
-    private readonly repositoryStateManager: RepositoryStateManager
+    private readonly repositoryStateManager: RepositoryStateManager,
+    private readonly statsStore: StatsStore
   ) {}
 
   /** Load the initial state for the app. */
@@ -1212,35 +1213,35 @@ export class Dispatcher {
    * Increments the `mergeConflictFromPullCount` metric
    */
   public recordMergeConflictFromPull() {
-    return this.appStore._recordMergeConflictFromPull()
+    return this.statsStore.recordMergeConflictFromPull()
   }
 
   /**
    * Increments the `mergeConflictFromExplicitMergeCount` metric
    */
   public recordMergeConflictFromExplicitMerge() {
-    return this.appStore._recordMergeConflictFromExplicitMerge()
+    return this.statsStore.recordMergeConflictFromExplicitMerge()
   }
 
   /**
    * Increments the `mergeIntoCurrentBranchMenuCount` metric
    */
   public recordMenuInitiatedMerge() {
-    return this.appStore._recordMenuInitiatedMerge()
+    return this.statsStore.recordMenuInitiatedMerge()
   }
 
   /**
    * Increments the `updateFromDefaultBranchMenuCount` metric
    */
   public recordMenuInitiatedUpdate() {
-    return this.appStore._recordMenuInitiatedUpdate()
+    return this.statsStore.recordMenuInitiatedUpdate()
   }
 
   /**
    * Increments the `mergesInitiatedFromComparison` metric
    */
   public recordCompareInitiatedMerge() {
-    return this.appStore._recordCompareInitiatedMerge()
+    return this.statsStore.recordCompareInitiatedMerge()
   }
 
   /**
@@ -1255,55 +1256,55 @@ export class Dispatcher {
    * the `repoWithoutIndicatorClicked` metric
    */
   public recordRepoClicked(repoHasIndicator: boolean) {
-    return this.appStore._recordRepoClicked(repoHasIndicator)
+    return this.statsStore.recordRepoClicked(repoHasIndicator)
   }
 
   /** The number of times the user dismisses the diverged branch notification
    * Increments the `divergingBranchBannerDismissal` metric
    */
   public recordDivergingBranchBannerDismissal() {
-    return this.appStore._recordDivergingBranchBannerDismissal()
+    return this.statsStore.recordDivergingBranchBannerDismissal()
   }
 
   /**
    * Increments the `dotcomPushCount` metric
    */
   public recordPushToGitHub() {
-    return this.appStore._recordPushToGitHub()
+    return this.statsStore.recordPushToGitHub()
   }
 
   /**
    * Increments the `enterprisePushCount` metric
    */
   public recordPushToGitHubEnterprise() {
-    return this.appStore._recordPushToGitHubEnterprise()
+    return this.statsStore.recordPushToGitHubEnterprise()
   }
 
   /**
    * Increments the `externalPushCount` metric
    */
   public recordPushToGenericRemote() {
-    return this.appStore._recordPushToGenericRemote()
+    return this.statsStore.recordPushToGenericRemote()
   }
 
   /**
    * Increments the `divergingBranchBannerInitiatedCompare` metric
    */
   public recordDivergingBranchBannerInitiatedCompare() {
-    return this.appStore._recordDivergingBranchBannerInitiatedCompare()
+    return this.statsStore.recordDivergingBranchBannerInitiatedCompare()
   }
 
   /**
    * Increments the `divergingBranchBannerInfluencedMerge` metric
    */
   public recordDivergingBranchBannerInfluencedMerge() {
-    return this.appStore._recordDivergingBranchBannerInfluencedMerge()
+    return this.statsStore.recordDivergingBranchBannerInfluencedMerge()
   }
 
   /**
    * Increments the `divergingBranchBannerInitatedMerge` metric
    */
   public recordDivergingBranchBannerInitatedMerge() {
-    return this.appStore._recordDivergingBranchBannerInitatedMerge()
+    return this.statsStore.recordDivergingBranchBannerInitatedMerge()
   }
 }

@@ -2436,13 +2436,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
         )
 
         if (githubAccount === null) {
-          this._recordPushToGenericRemote()
+          this.statsStore.recordPushToGenericRemote()
         } else if (githubAccount.endpoint === getDotComAPIEndpoint()) {
-          this._recordPushToGitHub()
+          this.statsStore.recordPushToGitHub()
         } else if (
           githubAccount.endpoint === getEnterpriseAPIURL(githubAccount.endpoint)
         ) {
-          this._recordPushToGitHubEnterprise()
+          this.statsStore.recordPushToGitHubEnterprise()
         }
       }
     })
@@ -3142,7 +3142,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.isDivergingBranchBannerVisible = visible
 
       if (visible) {
-        this._recordDivergingBranchBannerDisplayed()
+        this.statsStore.recordDivergingBranchBannerDisplayed()
       }
 
       this.emitUpdate()
@@ -3865,41 +3865,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /**
-   * Increments the `mergeConflictFromPullCount` metric
-   */
-  public _recordMergeConflictFromPull() {
-    this.statsStore.recordMergeConflictFromPull()
-  }
-
-  /**
-   * Increments the `mergeConflictFromExplicitMergeCount` metric
-   */
-  public _recordMergeConflictFromExplicitMerge() {
-    this.statsStore.recordMergeConflictFromExplicitMerge()
-  }
-
-  /**
-   * Increments the `mergeIntoCurrentBranchMenuCount` metric
-   */
-  public _recordMenuInitiatedMerge() {
-    this.statsStore.recordMenuInitiatedMerge()
-  }
-
-  /**
-   * Increments the `updateFromDefaultBranchMenuCount` metric
-   */
-  public _recordMenuInitiatedUpdate() {
-    this.statsStore.recordMenuInitiatedUpdate()
-  }
-
-  /**
-   * Increments the `mergesInitiatedFromComparison` metric
-   */
-  public _recordCompareInitiatedMerge() {
-    this.statsStore.recordCompareInitiatedMerge()
-  }
-
-  /**
    * Set the application-wide theme
    */
   public _setSelectedTheme(theme: ApplicationTheme) {
@@ -3909,72 +3874,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     return Promise.resolve()
   }
-
-  /**
-   * Increments either the `repoWithIndicatorClicked` or
-   * the `repoWithoutIndicatorClicked` metric
-   */
-  public _recordRepoClicked(repoHasIndicator: boolean) {
-    this.statsStore.recordRepoClicked(repoHasIndicator)
-  }
-
-  /** The number of times the user dismisses the diverged branch notification
-   * Increments the `divergingBranchBannerDismissal` metric
-   */
-  public _recordDivergingBranchBannerDismissal() {
-    this.statsStore.recordDivergingBranchBannerDismissal()
-  }
-
-  /**
-   * Increments the `divergingBranchBannerDisplayed` metric
-   */
-  public _recordDivergingBranchBannerDisplayed() {
-    this.statsStore.recordDivergingBranchBannerDisplayed()
-  }
-
-  /**
-   * Increments the `dotcomPushCount` metric
-   */
-  public _recordPushToGitHub() {
-    this.statsStore.recordPushToGitHub()
-  }
-
-  /**
-   * Increments the `enterprisePushCount` metric
-   */
-  public _recordPushToGitHubEnterprise() {
-    this.statsStore.recordPushToGitHubEnterprise()
-  }
-
-  /**
-   * Increments the `externalPushCount` metric
-   */
-  public _recordPushToGenericRemote() {
-    this.statsStore.recordPushToGenericRemote()
-  }
-
-  /**
-   * Increments the `divergingBranchBannerInitiatedCompare` metric
-   */
-  public _recordDivergingBranchBannerInitiatedCompare() {
-    this.statsStore.recordDivergingBranchBannerInitiatedCompare()
-  }
-
-  /**
-   * Increments the `divergingBranchBannerInfluencedMerge` metric
-   */
-  public _recordDivergingBranchBannerInfluencedMerge() {
-    this.statsStore.recordDivergingBranchBannerInfluencedMerge()
-  }
-
-  /**
-   * Increments the `divergingBranchBannerInitatedMerge` metric
-   */
-  public _recordDivergingBranchBannerInitatedMerge() {
-    this.statsStore.recordDivergingBranchBannerInitatedMerge()
-  }
-}
-
 }
 
 /**
