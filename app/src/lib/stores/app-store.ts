@@ -1,160 +1,164 @@
 import { ipcRenderer, remote } from 'electron'
 import { pathExists } from 'fs-extra'
+import * as QueryString from 'querystring'
+
 import {
-  IAppState,
-  RepositorySectionTab,
-  Popup,
-  PopupType,
-  Foldout,
-  FoldoutType,
-  PossibleSelections,
-  SelectionType,
-  ICheckoutProgress,
-  Progress,
-  ImageDiffType,
-  IRevertProgress,
-  IFetchProgress,
-  ComparisonView,
-  CompareAction,
-  CompareActionKind,
-  IDisplayHistory,
-  ICompareBranch,
-  ICompareFormUpdate,
-  ICompareToBranch,
-  MergeResultStatus,
-} from '../app-state'
+  AccountsStore,
+  CloningRepositoriesStore,
+  EmojiStore,
+  GitHubUserStore,
+  GitStore,
+  ICommitMessage,
+  IssuesStore,
+  PullRequestStore,
+  RepositoriesStore,
+  RepositorySettingsStore,
+  SignInStore,
+} from '.'
 import { Account } from '../../models/account'
-import {
-  Repository,
-  ILocalRepositoryState,
-  nameOf,
-} from '../../models/repository'
-import { GitHubRepository } from '../../models/github-repository'
-import {
-  CommittedFileChange,
-  WorkingDirectoryStatus,
-  WorkingDirectoryFileChange,
-} from '../../models/status'
-import { DiffSelection, DiffSelectionType, DiffType } from '../../models/diff'
-import {
-  matchGitHubRepository,
-  IMatchedGitHubRepository,
-  repositoryMatchesRemote,
-} from '../repository-matching'
-import {
-  API,
-  getAccountForEndpoint,
-  IAPIUser,
-  getDotComAPIEndpoint,
-  getEnterpriseAPIURL,
-} from '../api'
-import { caseInsensitiveCompare } from '../compare'
+import { AppMenu, IMenu } from '../../models/app-menu'
+import { IAuthor } from '../../models/author'
 import {
   Branch,
   eligibleForFastForward,
   IAheadBehind,
 } from '../../models/branch'
-import { TipState } from '../../models/tip'
+import { BranchesTab } from '../../models/branches-tab'
+import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { CloningRepository } from '../../models/cloning-repository'
 import { Commit } from '../../models/commit'
-import { ExternalEditor, getAvailableEditors, parse } from '../editors'
-import { IGitHubUser } from '../databases/github-user-database'
-import { shell } from '../app-shell'
-import { assertNever, forceUnwrap } from '../fatal-error'
-import { BackgroundFetcher } from './helpers/background-fetcher'
-import { formatCommitMessage } from '../format-commit-message'
-import { AppMenu, IMenu } from '../../models/app-menu'
-import {
-  getAppMenu,
-  updatePreferredAppMenuItemLabels,
-} from '../../ui/main-process-proxy'
-import { merge } from '../merge'
-import { getAppPath } from '../../ui/lib/app-proxy'
-import { StatsStore, ILaunchStats } from '../stats'
-import { hasShownWelcomeFlow, markWelcomeFlowComplete } from '../welcome'
-import { WindowState, getWindowState } from '../window-state'
-import { fatalError } from '../fatal-error'
-import { updateMenuState } from '../menu-update'
-
-import {
-  getAuthorIdentity,
-  pull as pullRepo,
-  push as pushRepo,
-  createBranch,
-  renameBranch,
-  deleteBranch,
-  getCommitDiff,
-  getWorkingDirectoryDiff,
-  getChangedFiles,
-  updateRef,
-  addRemote,
-  getBranchAheadBehind,
-  createCommit,
-  checkoutBranch,
-  formatAsLocalRef,
-  getMergeBase,
-  getRemotes,
-  ITrailer,
-  isCoAuthoredByTrailer,
-  mergeTree,
-} from '../git'
-
-import { launchExternalEditor } from '../editors'
-import { TypedBaseStore } from './base-store'
-import {
-  AccountsStore,
-  RepositoriesStore,
-  RepositorySettingsStore,
-  PullRequestStore,
-  SignInStore,
-  IssuesStore,
-  GitStore,
-  ICommitMessage,
-  EmojiStore,
-  GitHubUserStore,
-  CloningRepositoriesStore,
-} from '.'
-import { validatedRepositoryPath } from './helpers/validated-repository-path'
-import { IGitAccount } from '../git/authentication'
-import { getGenericHostname, getGenericUsername } from '../generic-git-auth'
-import { RetryActionType, RetryAction } from '../retry-actions'
-import { findEditorOrDefault } from '../editors'
-import {
-  Shell,
-  parse as parseShell,
-  Default as DefaultShell,
-  findShellOrDefault,
-  launchShell,
-} from '../shells'
-import {
-  installGlobalLFSFilters,
-  isUsingLFS,
-  installLFSHooks,
-} from '../git/lfs'
-import { CloneRepositoryTab } from '../../models/clone-repository-tab'
-import { getAccountForRepository } from '../get-account-for-repository'
-import { BranchesTab } from '../../models/branches-tab'
+import { DiffSelection, DiffSelectionType, DiffType } from '../../models/diff'
+import { GitHubRepository } from '../../models/github-repository'
 import { Owner } from '../../models/owner'
 import { PullRequest } from '../../models/pull-request'
-import { PullRequestUpdater } from './helpers/pull-request-updater'
-import * as QueryString from 'querystring'
-import { IRemote, forkPullRequestRemoteName } from '../../models/remote'
-import { IAuthor } from '../../models/author'
-import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
+import { forkPullRequestRemoteName, IRemote } from '../../models/remote'
 import {
-  enableRepoInfoIndicators,
-  enableMergeConflictDetection,
-} from '../feature-flag'
-import { inferComparisonBranch } from './helpers/infer-comparison-branch'
+  ILocalRepositoryState,
+  nameOf,
+  Repository,
+} from '../../models/repository'
+import {
+  CommittedFileChange,
+  WorkingDirectoryFileChange,
+  WorkingDirectoryStatus,
+} from '../../models/status'
+import { TipState } from '../../models/tip'
+import { getAppPath } from '../../ui/lib/app-proxy'
 import {
   ApplicationTheme,
   getPersistedTheme,
   setPersistedTheme,
 } from '../../ui/lib/application-theme'
+import {
+  getAppMenu,
+  updatePreferredAppMenuItemLabels,
+} from '../../ui/main-process-proxy'
+import {
+  API,
+  getAccountForEndpoint,
+  getDotComAPIEndpoint,
+  getEnterpriseAPIURL,
+  IAPIUser,
+} from '../api'
+import { shell } from '../app-shell'
+import {
+  CompareAction,
+  CompareActionKind,
+  ComparisonView,
+  Foldout,
+  FoldoutType,
+  IAppState,
+  ICheckoutProgress,
+  ICompareBranch,
+  ICompareFormUpdate,
+  ICompareToBranch,
+  IDisplayHistory,
+  IFetchProgress,
+  ImageDiffType,
+  IRevertProgress,
+  Popup,
+  PopupType,
+  PossibleSelections,
+  Progress,
+  RepositorySectionTab,
+  SelectionType,
+  MergeResultStatus,
+} from '../app-state'
+import { caseInsensitiveCompare } from '../compare'
+import { IGitHubUser } from '../databases/github-user-database'
+import {
+  ExternalEditor,
+  findEditorOrDefault,
+  getAvailableEditors,
+  launchExternalEditor,
+  parse,
+} from '../editors'
+import { assertNever, fatalError, forceUnwrap } from '../fatal-error'
+
 import { findAccountForRemoteURL } from '../find-account'
+import { formatCommitMessage } from '../format-commit-message'
+import { getGenericHostname, getGenericUsername } from '../generic-git-auth'
+import { getAccountForRepository } from '../get-account-for-repository'
+import {
+  addRemote,
+  checkoutBranch,
+  createBranch,
+  createCommit,
+  deleteBranch,
+  formatAsLocalRef,
+  getAuthorIdentity,
+  getBranchAheadBehind,
+  getChangedFiles,
+  getCommitDiff,
+  getMergeBase,
+  getRemotes,
+  getWorkingDirectoryDiff,
+  isCoAuthoredByTrailer,
+  mergeTree,
+  ITrailer,
+  pull as pullRepo,
+  push as pushRepo,
+  renameBranch,
+  updateRef,
+} from '../git'
+import { IGitAccount } from '../git/authentication'
+import {
+  installGlobalLFSFilters,
+  installLFSHooks,
+  isUsingLFS,
+} from '../git/lfs'
 import { inferLastPushForRepository } from '../infer-last-push-for-repository'
+import { updateMenuState } from '../menu-update'
+import { merge } from '../merge'
+import {
+  IMatchedGitHubRepository,
+  matchGitHubRepository,
+  repositoryMatchesRemote,
+} from '../repository-matching'
+import { RetryAction, RetryActionType } from '../retry-actions'
+import {
+  Default as DefaultShell,
+  findShellOrDefault,
+  launchShell,
+  parse as parseShell,
+  Shell,
+} from '../shells'
+import { ILaunchStats, StatsStore } from '../stats'
+import { hasShownWelcomeFlow, markWelcomeFlowComplete } from '../welcome'
+import { getWindowState, WindowState } from '../window-state'
+import { TypedBaseStore } from './base-store'
+import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
+import {
+  enableRepoInfoIndicators,
+  enableMergeConflictDetection,
+} from '../feature-flag'
 import { MergeResultKind } from '../../models/merge'
 import { promiseWithMinimumTimeout } from '../promise'
+import { BackgroundFetcher } from './helpers/background-fetcher'
+import { inferComparisonBranch } from './helpers/infer-comparison-branch'
+import { PullRequestUpdater } from './helpers/pull-request-updater'
+import { validatedRepositoryPath } from './helpers/validated-repository-path'
+import { RepositoryStateManager } from './repository-state-manager'
 
 /**
  * Enum used by fetch to determine if
@@ -164,7 +168,6 @@ export enum FetchType {
   BackgroundTask,
   UserInitiatedTask,
 }
-import { RepositoryStateManager } from './repository-state-manager'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
