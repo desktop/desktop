@@ -51,7 +51,7 @@ import {
   withSourceMappedStack,
 } from '../lib/source-map-support'
 import { UiActivityMonitor } from './lib/ui-activity-monitor'
-import { RepositoryStateManager } from '../lib/stores/repository-state-manager'
+import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
 
 if (__DEV__) {
   installDevGlobals()
@@ -126,7 +126,7 @@ const pullRequestStore = new PullRequestStore(
   repositoriesStore
 )
 
-const repositoryStateManager = new RepositoryStateManager(gitHubUserStore)
+const repositoryStateManager = new RepositoryStateCache(gitHubUserStore)
 
 const appStore = new AppStore(
   gitHubUserStore,

@@ -90,7 +90,7 @@ import { DeletePullRequest } from './delete-branch/delete-pull-request-dialog'
 import { MergeConflictsWarning } from './merge-conflicts'
 import { AppTheme } from './app-theme'
 import { ApplicationTheme } from './lib/application-theme'
-import { RepositoryStateManager } from '../lib/stores/repository-state-manager'
+import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
 
 const MinuteInMilliseconds = 1000 * 60
 
@@ -104,7 +104,7 @@ const UpdateRepositoryIndicatorInterval = 15 * MinuteInMilliseconds
 
 interface IAppProps {
   readonly dispatcher: Dispatcher
-  readonly repositoryStateManager: RepositoryStateManager
+  readonly repositoryStateManager: RepositoryStateCache
   readonly appStore: AppStore
   readonly issuesStore: IssuesStore
   readonly gitHubUserStore: GitHubUserStore

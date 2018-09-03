@@ -159,7 +159,7 @@ import { BackgroundFetcher } from './helpers/background-fetcher'
 import { inferComparisonBranch } from './helpers/infer-comparison-branch'
 import { PullRequestUpdater } from './helpers/pull-request-updater'
 import { validatedRepositoryPath } from './helpers/validated-repository-path'
-import { RepositoryStateManager } from './repository-state-manager'
+import { RepositoryStateCache } from './repository-state-cache'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -285,7 +285,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     private readonly accountsStore: AccountsStore,
     private readonly repositoriesStore: RepositoriesStore,
     private readonly pullRequestStore: PullRequestStore,
-    private readonly repositoryStateManager: RepositoryStateManager
+    private readonly repositoryStateManager: RepositoryStateCache
   ) {
     super()
 

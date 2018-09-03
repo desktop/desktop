@@ -60,7 +60,7 @@ import { ITrailer } from '../git/interpret-trailers'
 import { isGitRepository } from '../git'
 import { ApplicationTheme } from '../../ui/lib/application-theme'
 import { TipState } from '../../models/tip'
-import { RepositoryStateManager } from '../stores/repository-state-manager'
+import { RepositoryStateCache } from '../stores/repository-state-cache'
 
 /**
  * An error handler function.
@@ -82,7 +82,7 @@ export class Dispatcher {
 
   public constructor(
     private readonly appStore: AppStore,
-    private readonly repositoryStateManager: RepositoryStateManager,
+    private readonly repositoryStateManager: RepositoryStateCache,
     private readonly statsStore: StatsStore
   ) {}
 

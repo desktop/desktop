@@ -21,7 +21,7 @@ import { IGitHubUser } from '../databases'
 import { merge } from '../merge'
 import { GitHubUserStore } from './github-user-store'
 
-export class RepositoryStateManager {
+export class RepositoryStateCache {
   private repositoryState = new Map<string, IRepositoryState>()
 
   constructor(private gitHubUserStore: GitHubUserStore) {}

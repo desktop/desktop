@@ -28,13 +28,13 @@ import {
 import { StatsStore } from '../../src/lib/stats'
 import { InMemoryStore, AsyncInMemoryStore } from '../helpers/stores'
 import { TestActivityMonitor } from '../helpers/test-activity-monitor'
-import { RepositoryStateManager } from '../../src/lib/stores/repository-state-manager'
+import { RepositoryStateCache } from '../../src/lib/stores/repository-state-cache'
 
 describe('App', () => {
   let appStore: AppStore | null = null
   let dispatcher: Dispatcher | null = null
   let statsStore: StatsStore | null = null
-  let repositoryStateManager: RepositoryStateManager | null = null
+  let repositoryStateManager: RepositoryStateCache | null = null
   let githubUserStore: GitHubUserStore | null = null
   let issuesStore: IssuesStore | null = null
 
@@ -66,7 +66,7 @@ describe('App', () => {
     githubUserStore = new GitHubUserStore(db)
     issuesStore = new IssuesStore(issuesDb)
 
-    repositoryStateManager = new RepositoryStateManager(githubUserStore)
+    repositoryStateManager = new RepositoryStateCache(githubUserStore)
 
     appStore = new AppStore(
       githubUserStore,
