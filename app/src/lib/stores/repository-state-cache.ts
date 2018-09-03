@@ -28,17 +28,17 @@ export class RepositoryStateCache {
 
   /** Get the state for the repository. */
   public get(repository: Repository): IRepositoryState {
-    let state = this.repositoryState.get(repository.hash)
-    if (state) {
+    const existing = this.repositoryState.get(repository.hash)
+    if (existing != null) {
       const gitHubUsers =
         this.gitHubUserStore.getUsersForRepository(repository) ||
         new Map<string, IGitHubUser>()
-      return merge(state, { gitHubUsers })
+      return merge(existing, { gitHubUsers })
     }
 
-    state = getInitialRepositoryState()
-    this.repositoryState.set(repository.hash, state)
-    return state
+    const newItem = getInitialRepositoryState()
+    this.repositoryState.set(repository.hash, newItem)
+    return newItem
   }
 
   public update<K extends keyof IRepositoryState>(
