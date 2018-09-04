@@ -17,3 +17,20 @@ We recommend using nvm to manage your node version. This makes it easier to know
 
 - Install manually from https://nodejs.org/en/download/
 - you're good to go!
+
+## Python
+
+Mac OS comes with python pre-installed, and it happens to be the right version, so you're probably fine! But if you use other versions of python, here's how to get started.
+
+### Version Managed
+
+For this, we recommennd pyenv.
+
+- install pyenv according to https://github.com/pyenv/pyenv-installer#github-way-recommended
+- install the version of python for GitHub Desktop with `pyenv install`
+- you're good to go!
+
+### Manual
+
+- install manually from https://www.python.org/downloads/
+- you're good to go!
