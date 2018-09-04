@@ -173,9 +173,9 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
 
     if (mergeStatus.kind === MergeResultKind.Invalid) {
       return (
-        <p className="merge-info">
+        <React.Fragment>
           Unable to merge unrelated histories in this repository
-        </p>
+        </React.Fragment>
       )
     }
 
