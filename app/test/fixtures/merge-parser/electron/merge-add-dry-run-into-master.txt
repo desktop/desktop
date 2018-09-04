@@ -1,0 +1,19 @@
+changed in both
+  base   100755 8244e87ec555877901d7c793adc40218dfde0ad0 script/prepare-release.js
+  our    100755 72a28b719bf1ff7770692caef86c76746c4d8edf script/prepare-release.js
+  their  100755 fbc8e56c428635d5e8ff750494c8ca560e1621e7 script/prepare-release.js
+@@ -258,6 +258,14 @@
+ }
+ 
+ async function prepareRelease (isBeta, notesOnly) {
++<<<<<<< .our
++=======
++  if (args.automaticRelease && (pkg.version.indexOf('beta') === -1 ||
++      versionType !== 'beta') && versionType !== 'nightly' && versionType !== 'stable') {
++    console.log(`${fail} Automatic release is only supported for beta and nightly releases`)
++    process.exit(1)
++  }
++>>>>>>> .their
+   if (args.dryRun) {
+     let newVersion = await getNewVersion(true)
+     console.log(newVersion)
