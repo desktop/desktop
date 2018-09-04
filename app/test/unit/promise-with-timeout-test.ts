@@ -6,20 +6,17 @@ jest.useFakeTimers()
 
 describe('promiseWithMinimumTimeout', () => {
   it('handles promise finishing before timeout', async () => {
-    let promiseCallbackFired = false
+    const resolveMock = jest.fn().mockImplementation(resolve => resolve(42))
 
     const fastPromise = new Promise<number>(resolve => {
-      window.setTimeout(() => {
-        resolve(42)
-        promiseCallbackFired = true
-      }, 100)
+      window.setTimeout(() => resolveMock(resolve), 100)
     })
 
     const promise = promiseWithMinimumTimeout(() => fastPromise, 500)
 
     // promise completes
     jest.advanceTimersByTime(250)
-    expect(promiseCallbackFired).is.true
+    expect(resolveMock.mock.calls.length).equals(1)
 
     // timeout completes
     jest.advanceTimersByTime(250)
@@ -47,24 +44,21 @@ describe('promiseWithMinimumTimeout', () => {
   })
 
   it('handles promise finishing after timeout', async () => {
-    let promiseCallbackFired = false
+    const resolveMock = jest.fn().mockImplementation(resolve => resolve(42))
 
     const slowPromise = new Promise<number>(resolve => {
-      window.setTimeout(() => {
-        resolve(42)
-        promiseCallbackFired = true
-      }, 1000)
+      window.setTimeout(() => resolveMock(resolve), 1000)
     })
 
     const promise = promiseWithMinimumTimeout(() => slowPromise, 500)
 
     // timeout completes
     jest.advanceTimersByTime(500)
-    expect(promiseCallbackFired).is.false
+    expect(resolveMock.mock.calls.length).equals(0)
 
     // promise completes
     jest.advanceTimersByTime(500)
-    expect(promiseCallbackFired).is.true
+    expect(resolveMock.mock.calls.length).equals(1)
 
     const result = await promise
 
