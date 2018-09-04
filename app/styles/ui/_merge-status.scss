@@ -37,8 +37,24 @@
   .merge-status-clean {
     color: $green-500;
   }
+
+  .merge-message,
+  .merge-info {
+    margin-bottom: 0;
+    text-align: center;
+    color: var(--text-secondary-color);
+
+    strong {
+      color: var(--text-color);
+    }
+  }
 }
+
 dialog#merge {
+  .merge-info {
+    margin-top: var(--spacing-half);
+  }
+  
   .merge-status-component {
     margin-top: var(--spacing);
   }

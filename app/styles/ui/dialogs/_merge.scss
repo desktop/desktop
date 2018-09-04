@@ -43,16 +43,5 @@ dialog#merge {
       width: 100%;
       padding: var(--spacing-half);
     }
-
-    p.merge-info {
-      margin-bottom: 0;
-      margin-top: var(--spacing-half);
-      text-align: center;
-      color: var(--text-secondary-color);
-
-      strong {
-        color: var(--text-color);
-      }
-    }
   }
 }
