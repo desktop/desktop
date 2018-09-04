@@ -34,3 +34,7 @@ For this, we recommennd pyenv.
 
 - install manually from https://www.python.org/downloads/
 - you're good to go!
+
+## XCode Command Line Tools
+
+- just run `xcode-select --install`
