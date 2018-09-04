@@ -6,9 +6,12 @@ jest.useFakeTimers()
 
 describe('promiseWithMinimumTimeout', () => {
   it('handles promise finishing before timeout', async () => {
-    const fastPromise = new Promise<number>((resolve, reject) => {
+    let promiseCallbackFired = false
+
+    const fastPromise = new Promise<number>(resolve => {
       window.setTimeout(() => {
         resolve(42)
+        promiseCallbackFired = true
       }, 100)
     })
 
@@ -16,6 +19,8 @@ describe('promiseWithMinimumTimeout', () => {
 
     // promise completes
     jest.advanceTimersByTime(250)
+    expect(promiseCallbackFired).is.true
+
     // timeout completes
     jest.advanceTimersByTime(250)
 
@@ -25,7 +30,7 @@ describe('promiseWithMinimumTimeout', () => {
   })
 
   it('handles promise and timeout finishing together', async () => {
-    const mediumPromise = new Promise<number>((resolve, reject) => {
+    const mediumPromise = new Promise<number>(resolve => {
       window.setTimeout(() => {
         resolve(42)
       }, 500)
@@ -42,9 +47,12 @@ describe('promiseWithMinimumTimeout', () => {
   })
 
   it('handles promise finishing after timeout', async () => {
-    const slowPromise = new Promise<number>((resolve, reject) => {
+    let promiseCallbackFired = false
+
+    const slowPromise = new Promise<number>(resolve => {
       window.setTimeout(() => {
         resolve(42)
+        promiseCallbackFired = true
       }, 1000)
     })
 
@@ -52,8 +60,11 @@ describe('promiseWithMinimumTimeout', () => {
 
     // timeout completes
     jest.advanceTimersByTime(500)
+    expect(promiseCallbackFired).is.false
+
     // promise completes
     jest.advanceTimersByTime(500)
+    expect(promiseCallbackFired).is.true
 
     const result = await promise
 
