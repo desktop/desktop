@@ -24,7 +24,7 @@ describe('promiseWithMinimumTimeout', () => {
     expect(result).equals(42)
   })
 
-  it('handles promise finishing and timeout finishing together', async () => {
+  it('handles promise and timeout finishing together', async () => {
     const mediumPromise = new Promise<number>((resolve, reject) => {
       window.setTimeout(() => {
         resolve(42)
