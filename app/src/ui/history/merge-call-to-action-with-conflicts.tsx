@@ -96,9 +96,9 @@ export class MergeCallToActionWithConflicts extends React.Component<
 
     if (mergeStatus.kind === MergeResultKind.Invalid) {
       return (
-        <p className="merge-info">
+        <div className="merge-message">
           Unable to merge unrelated histories in this repository
-        </p>
+        </div>
       )
     }
 
