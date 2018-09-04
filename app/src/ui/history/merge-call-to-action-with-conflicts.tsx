@@ -29,13 +29,15 @@ export class MergeCallToActionWithConflicts extends React.Component<
   public render() {
     const { commitsBehind } = this.props
 
+    const cannotMergeBranch =
+      this.props.mergeStatus != null &&
+      this.props.mergeStatus.kind === MergeResultKind.Invalid
+
+    const disabled = commitsBehind <= 0 || cannotMergeBranch
+
     return (
       <div className="merge-cta">
-        <Button
-          type="submit"
-          disabled={commitsBehind <= 0}
-          onClick={this.onMergeClicked}
-        >
+        <Button type="submit" disabled={disabled} onClick={this.onMergeClicked}>
           Merge into <strong>{this.props.currentBranch.name}</strong>
         </Button>
 
@@ -93,15 +95,7 @@ export class MergeCallToActionWithConflicts extends React.Component<
     if (mergeStatus.kind === MergeResultKind.Invalid) {
       return (
         <p className="merge-info">
-          Cannot test merging
-          {` `}
-          <strong>{branch.name}</strong>
-          {` `}
-          into
-          {` `}
-          <strong>{currentBranch.name}</strong>
-          {` `}
-          as these are separate histories
+          Unable to merge unrelated histories in this repository
         </p>
       )
     }

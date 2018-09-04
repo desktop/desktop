@@ -154,13 +154,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     if (mergeStatus.kind === MergeResultKind.Invalid) {
       return (
         <p className="merge-info">
-          Cannot test merging
-          <strong>{selectedBranch.name}</strong>
-          {` `}
-          into
-          {` `}
-          <strong>{currentBranch.name}</strong>
-          as these are separate histories
+          Unable to merge unrelated histories in this repository
         </p>
       )
     }
@@ -227,11 +221,19 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     const selectedBranch = this.state.selectedBranch
     const currentBranch = this.props.currentBranch
 
-    const disabled =
+    const selectedBranchIsNotCurrentBranch =
       selectedBranch === null ||
       currentBranch === null ||
-      currentBranch.name === selectedBranch.name ||
-      this.state.commitCount === 0
+      currentBranch.name === selectedBranch.name
+
+    const invalidBranchState =
+      selectedBranchIsNotCurrentBranch || this.state.commitCount === 0
+
+    const cannotMergeBranch =
+      this.state.mergeStatus != null &&
+      this.state.mergeStatus.kind === MergeResultKind.Invalid
+
+    const disabled = invalidBranchState || cannotMergeBranch
 
     return (
       <Dialog
@@ -261,7 +263,8 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
               <strong>{currentBranch ? currentBranch.name : ''}</strong>
             </Button>
           </ButtonGroup>
-          {enableMergeConflictDetection() && !disabled ? (
+          {enableMergeConflictDetection() &&
+          !selectedBranchIsNotCurrentBranch ? (
             <MergeStatusHeader status={this.state.mergeStatus} />
           ) : null}
           {enableMergeConflictDetection()

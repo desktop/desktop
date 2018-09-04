@@ -44,8 +44,9 @@ function getSymbolForState(status: MergeResultKind): OcticonSymbol {
     case MergeResultKind.Loading:
       return OcticonSymbol.primitiveDot
     case MergeResultKind.Conflicts:
-    case MergeResultKind.Invalid:
       return OcticonSymbol.alert
+    case MergeResultKind.Invalid:
+      return OcticonSymbol.x
     case MergeResultKind.Clean:
       return OcticonSymbol.check
   }
