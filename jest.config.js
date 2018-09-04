@@ -11,10 +11,17 @@ module.exports = {
   ],
   setupTestFrameworkScriptFile: '<rootDir>/app/test/setup-test-framework.ts',
   collectCoverageFrom: [
-    '**/*.{js,jsx,ts,tsx}',
+    'app/src/**/*.{js,jsx,ts,tsx}',
     '!**/node_modules/**',
     '!**/vendor/**',
     '!**/*.d.*',
+    // not focused on testing these areas currently
+    '!app/src/ask-pass/**/*',
+    '!app/src/cli/**/*',
+    '!app/src/crash/**/*',
+    '!app/src/highlighter/**/*',
+    // ignore index files
+    '!**/index.ts',
   ],
   globals: {
     'ts-jest': {

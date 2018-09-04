@@ -1,0 +1,3013 @@
+changed in both
+  base   100644 e4c97b5a507a78e0ae64a236e85f2a97f14a166a app/package.json
+  our    100644 4ec686d8ad22d3aea1ebe4bddd16f4a7447c3acd app/package.json
+  their  100644 959ed4ff23f809e1ed2250f1a705a22c8658c0e8 app/package.json
+@@ -37,6 +37,7 @@
+     "moment": "^2.17.1",
+     "mri": "^1.1.0",
+     "primer-support": "^4.0.0",
++    "process-exists": "^3.1.0",
+     "queue": "^4.4.2",
+     "react": "^16.3.2",
+     "react-addons-shallow-compare": "^15.6.2",
+changed in both
+  base   100644 d4b62dbf30e18eb25f0eab0014d38984b1e80c6c app/src/lib/api.ts
+  our    100644 e77c79b5d20fbcffe9af534504dac98509135263 app/src/lib/api.ts
+  their  100644 0a507731c02eea0a0511eeddfb8e27ad24cda726 app/src/lib/api.ts
+@@ -25,7 +25,7 @@
+ }
+ 
+ /** The OAuth scopes we need. */
+-const Scopes = ['repo', 'user']
++const Scopes = ['repo', 'user', 'write:public_key']
+ 
+ enum HttpStatusCode {
+   NotModified = 304,
+@@ -183,6 +183,7 @@
+ /** The partial server response when creating a new authorization on behalf of a user */
+ interface IAPIAuthorization {
+   readonly token: string
++  readonly scopes: ReadonlyArray<string>
+ }
+ 
+ /** The response we receive from fetching mentionables. */
+@@ -196,6 +197,16 @@
+   readonly items: ReadonlyArray<T>
+ }
+ 
++interface IAPIPublicKey {
++  id: number
++  key: string
++  url: string
++  title: string
++  verified: boolean
++  created_at: string
++  read_only: boolean
++}
++
+ /**
+  * Parses the Link header from GitHub and returns the 'next' path
+  * if one is present.
+@@ -232,6 +243,11 @@
+   return date.toISOString().replace(/\.\d{3}Z$/, 'Z')
+ }
+ 
++type UserWithTokenScopes = {
++  user: IAPIUser
++  scopes: ReadonlyArray<string>
++}
++
+ /**
+  * An object for making authenticated requests to the GitHub API
+  */
+@@ -280,12 +296,18 @@
+     }
+   }
+ 
+-  /** Fetch the logged in account. */
+-  public async fetchAccount(): Promise<IAPIUser> {
++  /** Fetch the logged in account and the current scopes associated with the token. */
++  public async fetchAccount(): Promise<UserWithTokenScopes> {
+     try {
+       const response = await this.request('GET', 'user')
+-      const result = await parsedResponse<IAPIUser>(response)
+-      return result
++      const user = await parsedResponse<IAPIUser>(response)
++      const scopeHeader = response.headers.get('X-OAuth-Scopes')
++      const scopes =
++        scopeHeader == null
++          ? []
++          : scopeHeader.split(',').map(scope => scope.trim())
++
++      return { user, scopes }
+     } catch (e) {
+       log.warn(`fetchAccount: failed with endpoint ${this.endpoint}`, e)
+       throw e
+@@ -577,6 +599,27 @@
+       throw e
+     }
+   }
++
++  public async createPublicKey(
++    title: string,
++    key: string
++  ): Promise<IAPIPublicKey | null> {
++    try {
++      const response = await this.request('POST', `user/keys`, {
++        title,
++        key,
++      })
++
++      if (response.status === 404) {
++        return null
++      }
++
++      return await parsedResponse<IAPIPublicKey>(response)
++    } catch (e) {
++      log.warn(`createPublicKey: failed with endpoint ${this.endpoint}`, e)
++      throw e
++    }
++  }
+ }
+ 
+ export enum AuthorizationResponseKind {
+@@ -711,7 +754,7 @@
+ ): Promise<Account> {
+   const api = new API(endpoint, token)
+   try {
+-    const user = await api.fetchAccount()
++    const { user, scopes } = await api.fetchAccount()
+     const emails = await api.fetchEmails()
+     const defaultEmail = emails[0].email || ''
+     const avatarURL = getAvatarWithEnterpriseFallback(
+@@ -726,7 +769,8 @@
+       emails,
+       avatarURL,
+       user.id,
+-      user.name || user.login
++      user.name || user.login,
++      scopes
+     )
+   } catch (e) {
+     log.warn(`fetchUser: failed with endpoint ${endpoint}`, e)
+changed in both
+  base   100644 86b3c6de0194dc7492ad693937f515e539e85002 app/src/lib/app-state.ts
+  our    100644 b30f0fe080d909b81d2fb683ceb8deb365fb0191 app/src/lib/app-state.ts
+  their  100644 60f91ffa3783d076aaaf5f5b83ee6df48fa3af87 app/src/lib/app-state.ts
+@@ -27,7 +27,11 @@
+ import { PullRequest } from '../models/pull-request'
+ import { IAuthor } from '../models/author'
+ import { ComparisonCache } from './comparison-cache'
++<<<<<<< .our
+ import { ApplicationTheme } from '../ui/lib/application-theme'
++=======
++import { TroubleshootingState } from '../models/ssh'
++>>>>>>> .their
+ 
+ export { ICommitMessage }
+ 
+@@ -89,6 +93,8 @@
+    */
+   readonly signInState: SignInState | null
+ 
++  readonly troubleshootingState: TroubleshootingState | null
++
+   /**
+    * The current state of the window, ie maximized, minimized full-screen etc.
+    */
+@@ -222,7 +228,11 @@
+   LFSAttributeMismatch,
+   UpstreamAlreadyExists,
+   DeletePullRequest,
++<<<<<<< .our
+   MergeConflicts,
++=======
++  TroubleshootSSH,
++>>>>>>> .their
+ }
+ 
+ export type Popup =
+@@ -301,7 +311,14 @@
+       branch: Branch
+       pullRequest: PullRequest
+     }
++<<<<<<< .our
+   | { type: PopupType.MergeConflicts; repository: Repository }
++=======
++  | {
++      type: PopupType.TroubleshootSSH
++      repository: Repository
++    }
++>>>>>>> .their
+ 
+ export enum FoldoutType {
+   Repository,
+changed in both
+  base   100644 760b02c3045adfd175c5e95574dedb44b6d391b8 app/src/lib/dispatcher/dispatcher.ts
+  our    100644 5e56c00e713342e76f5ccba040062e322e8c90cb app/src/lib/dispatcher/dispatcher.ts
+  their  100644 e5b1337149f1d811958144452169a9a4e26b8947 app/src/lib/dispatcher/dispatcher.ts
+@@ -56,8 +56,12 @@
+ import { PullRequest } from '../../models/pull-request'
+ import { IAuthor } from '../../models/author'
+ import { ITrailer } from '../git/interpret-trailers'
++<<<<<<< .our
+ import { isGitRepository } from '../git'
+ import { ApplicationTheme } from '../../ui/lib/application-theme'
++=======
++import { IValidateHostState, INoRunningAgentState } from '../../models/ssh'
++>>>>>>> .their
+ 
+ /**
+  * An error handler function.
+@@ -1238,6 +1242,7 @@
+     return this.appStore._recordCompareInitiatedMerge()
+   }
+ 
++<<<<<<< .our
+   /**
+    * Set the application-wide theme
+    */
+@@ -1300,5 +1305,35 @@
+    */
+   public recordDivergingBranchBannerInitatedMerge() {
+     return this.appStore._recordDivergingBranchBannerInitatedMerge()
++=======
++  public resetTroubleshooting() {
++    return this.appStore._resetTroubleshooting()
++  }
++
++  public startTroubleshooting(repository: Repository) {
++    return this.appStore._startTroubleshooting(repository)
++  }
++
++  public validateHost(state: IValidateHostState) {
++    return this.appStore._validateHost(state)
++  }
++
++  public launchSSHAgent(state: INoRunningAgentState) {
++    return this.appStore._launchSSHAgent(state)
++  }
++
++  public createSSHKey(
++    account: Account,
++    emailAddress: string,
++    passphrase: string,
++    outputFile: string
++  ) {
++    return this.appStore._createSSHKey(
++      account,
++      emailAddress,
++      passphrase,
++      outputFile
++    )
++>>>>>>> .their
+   }
+ }
+changed in both
+  base   100644 e4bcde44c63c77e4be9175742b2312202cb79018 app/src/lib/dispatcher/error-handlers.ts
+  our    100644 850a08047c6abd12850890e02ebd7c4b6085d2ce app/src/lib/dispatcher/error-handlers.ts
+  their  100644 87abc60a0527d53cb5cda45ff2eadc3cde45e320 app/src/lib/dispatcher/error-handlers.ts
+@@ -245,6 +245,45 @@
+   return error
+ }
+ 
++export async function sshAuthenticationErrorHandler(
++  error: Error,
++  dispatcher: Dispatcher
++): Promise<Error | null> {
++  const e = asErrorWithMetadata(error)
++  if (!e) {
++    return error
++  }
++
++  const gitError = asGitError(e.underlyingError)
++  if (!gitError) {
++    return error
++  }
++
++  const dugiteError = gitError.result.gitError
++  if (!dugiteError) {
++    return error
++  }
++
++  const repository = e.metadata.repository
++  if (!(repository instanceof Repository)) {
++    return error
++  }
++
++  if (
++    dugiteError === DugiteError.SSHAuthenticationFailed ||
++    dugiteError === DugiteError.SSHPermissionDenied ||
++    dugiteError === DugiteError.SSHRepositoryNotFound
++  ) {
++    dispatcher.showPopup({
++      type: PopupType.TroubleshootSSH,
++      repository,
++    })
++    return null
++  }
++
++  return error
++}
++
+ /**
+  * Handler for detecting when a merge conflict is reported to direct the user
+  * to a different dialog than the generic Git error dialog.
+changed in both
+  base   100644 e769a502c81a2d83efba958ed0cd6adfb4da8de7 app/src/lib/feature-flag.ts
+  our    100644 716a3c2396b0db5e84ec87d6529001e633b08700 app/src/lib/feature-flag.ts
+  their  100644 52379a9a2bd9f52206d8252ba3073fd4cb055332 app/src/lib/feature-flag.ts
+@@ -41,3 +41,8 @@
+ export function enableRepoInfoIndicators(): boolean {
+   return true
+ }
++
++/** Should Desktop use the new troubleshooting flow */
++export function enableSSHTroubleshooting(): boolean {
++  return enableDevelopmentFeatures()
++}
+added in remote
+  their  100644 67ec5ef544b4aa1f52130a728004e6549699d5ed app/src/lib/find-executable.ts
+@@ -0,0 +1,106 @@
++import { spawn } from 'child_process'
++import * as Path from 'path'
++
++export function isExecutableOnPath(executableName: string): Promise<boolean> {
++  // adapted from http://stackoverflow.com/a/34953561/1363815
++  if (__WIN32__) {
++    return new Promise<boolean>((resolve, reject) => {
++      const windowsRoot = process.env.SystemRoot || 'C:\\Windows'
++      const wherePath = Path.join(windowsRoot, 'System32', 'where.exe')
++
++      const cp = spawn(wherePath, [executableName])
++
++      cp.on('error', error => {
++        log.warn('Unable to spawn where.exe', error)
++        resolve(false)
++      })
++
++      // `where` will return 0 when the executable
++      // is found under PATH, or 1 if it cannot be found
++      cp.on('close', function(code) {
++        resolve(code === 0)
++      })
++      return
++    })
++  }
++
++  if (__LINUX__ || __DARWIN__) {
++    return new Promise<boolean>((resolve, reject) => {
++      const process = spawn('which', [executableName])
++
++      // `which` will return 0 when the executable
++      // is found under PATH, or 1 if it cannot be found
++      process.on('close', function(code) {
++        resolve(code === 0)
++      })
++    })
++  }
++
++  return Promise.resolve(false)
++}
++
++export function findExecutableOnPath(
++  executableName: string
++): Promise<string | null> {
++  // adapted from http://stackoverflow.com/a/34953561/1363815
++  if (__WIN32__) {
++    return new Promise<string | null>((resolve, reject) => {
++      const windowsRoot = process.env.SystemRoot || 'C:\\Windows'
++      const wherePath = Path.join(windowsRoot, 'System32', 'where.exe')
++
++      const stdoutChunks = new Array<Buffer>()
++      let totalStdoutLength = 0
++
++      const cp = spawn(wherePath, [executableName])
++
++      cp.stdout.on('data', (chunk: Buffer) => {
++        stdoutChunks.push(chunk)
++        totalStdoutLength += chunk.length
++      })
++
++      cp.on('error', error => {
++        log.warn('Unable to spawn where.exe', error)
++        resolve(null)
++      })
++
++      // `where` will return 0 when the executable
++      // is found under PATH, or 1 if it cannot be found
++      cp.on('close', function(code) {
++        if (code === 0) {
++          const stdout = Buffer.concat(stdoutChunks, totalStdoutLength)
++          resolve(stdout.toString().trim())
++        } else {
++          resolve(null)
++        }
++      })
++      return
++    })
++  }
++
++  if (__LINUX__ || __DARWIN__) {
++    return new Promise<string | null>((resolve, reject) => {
++      const cp = spawn('which', [executableName])
++
++      const stdoutChunks = new Array<Buffer>()
++      let totalStdoutLength = 0
++
++      cp.stdout.on('data', (chunk: Buffer) => {
++        stdoutChunks.push(chunk)
++        totalStdoutLength += chunk.length
++      })
++
++      // `which` will return 0 when the executable
++      // is found under PATH, or 1 if it cannot be found
++      cp.on('close', function(code) {
++        if (code === 0) {
++          const stdout = Buffer.concat(stdoutChunks, totalStdoutLength)
++          resolve(stdout.toString().trim())
++        } else {
++          resolve(null)
++        }
++      })
++    })
++  }
++
++  return Promise.resolve(null)
++}
+merged
+  result 100644 2b2c3d048d963952969093e5e38c94ce827169bf app/src/lib/git/authentication.ts
+  our    100644 1b3e09da9e0ab747b09e736a7ba2b66f2eef892d app/src/lib/git/authentication.ts
+@@ -23,6 +23,7 @@
+     // for credentials - even as a fallback
+     GIT_TERMINAL_PROMPT: '0',
+     GIT_TRACE: localStorage.getItem('git-trace') || '0',
++    GIT_SSH_COMMAND: `ssh -o 'StrictHostKeyChecking=yes'`,
+   }
+ 
+   if (!auth) {
+changed in both
+  base   100644 25f5e58c8ceb7199146a603c42fbb7d88e6c431c app/src/lib/is-git-on-path.ts
+  our    100644 efb13fb0c1c8db7af2da3feffa6157cdfcffc386 app/src/lib/is-git-on-path.ts
+  their  100644 fdc939e8402b7dc507bb3ef4f052a34937eb90cc app/src/lib/is-git-on-path.ts
+@@ -1,5 +1,4 @@
+-import { spawn } from 'child_process'
+-import * as Path from 'path'
++import { isExecutableOnPath } from './find-executable'
+ 
+ export function isGitOnPath(): Promise<boolean> {
+   // Modern versions of macOS ship with a Git shim that guides you through
+@@ -9,6 +8,7 @@
+     return Promise.resolve(true)
+   }
+ 
++<<<<<<< .our
+   // adapted from http://stackoverflow.com/a/34953561/1363815
+   if (__WIN32__) {
+     return new Promise<boolean>((resolve, reject) => {
+@@ -44,4 +44,7 @@
+   }
+ 
+   return Promise.resolve(false)
++=======
++  return isExecutableOnPath('git')
++>>>>>>> .their
+ }
+added in remote
+  their  100644 ea4fc79f187ec4f921bf7600b52adab38e48442f app/src/lib/ssh/error-parsing.ts
+@@ -0,0 +1,36 @@
++type HostVerificationError = {
++  host: string
++  fingerprint: string
++  rawOutput: string
++}
++
++export function isHostVerificationError(
++  stderr: string
++): HostVerificationError | null {
++  const noValidHostKeyFoundRe = /No RSA host key is known for (.*) and you have requested strict checking/
++  const hostMatch = noValidHostKeyFoundRe.exec(stderr)
++
++  if (hostMatch == null) {
++    return null
++  }
++
++  const host = hostMatch[1]
++
++  const fingerprintRe = /Server host key: (.*) (.*)/
++  const match = fingerprintRe.exec(stderr)
++
++  if (match == null) {
++    log.debug(`Server host key entry was not found in output from ssh process`)
++    return null
++  }
++
++  const fingerprint = match[2]
++  const rawOutput = `The authenticity of host '${host}' can't be established.\nRSA key fingerprint is ${fingerprint}.`
++
++  return { host, fingerprint, rawOutput }
++}
++
++export function isPermissionError(stderr: string): boolean {
++  const permissionDeniedRe = /.*: Permission denied \(publickey\)\./
++  return permissionDeniedRe.test(stderr)
++}
+added in remote
+  their  100644 252e103b9ebbbde9bf6352e0c4e495a07ad6d393 app/src/lib/ssh/generate-log-file.ts
+@@ -0,0 +1,29 @@
++import { remote } from 'electron'
++import { writeFile } from 'fs'
++import * as moment from 'moment'
++
++export function saveLogFile(stderr: string) {
++  const timestamp = moment().format('YYYYMMDD-HHmmss')
++  const defaultPath = `ssh-output-${timestamp}.txt`
++
++  return new Promise<void>((resolve, reject) => {
++    // TODO: null should be a valid argument here
++    const window: any = null
++    remote.dialog.showSaveDialog(window, { defaultPath }, filename => {
++      if (filename == null) {
++        log.warn(
++          'TODO: filename returned null, this needs to be in the signature'
++        )
++        resolve()
++      } else {
++        writeFile(filename, stderr, err => {
++          if (err) {
++            reject(err)
++          } else {
++            resolve()
++          }
++        })
++      }
++    })
++  })
++}
+added in remote
+  their  100644 c9f1e7e1b70ece7d7159ab02d28cefd6291062e1 app/src/lib/ssh/index.ts
+@@ -0,0 +1,5 @@
++export * from './error-parsing'
++export * from './generate-log-file'
++export * from './ssh-interop'
++export * from './ssh-environment'
++export * from './ssh-agent-manager'
+added in remote
+  their  100644 910bad4ec3c76032f4b6e3556e0a068e8ced9c79 app/src/lib/ssh/ssh-agent-manager.ts
+@@ -0,0 +1,124 @@
++import { exec } from 'child_process'
++
++import { findExecutableOnPath } from '../find-executable'
++
++const processExists = require('process-exists')
++
++export enum AgentStateKind {
++  NotFound = 'NotFound',
++  NotStarted = 'NotStarted',
++  Running = 'Running',
++}
++
++type AgentNotFoundState = {
++  readonly kind: AgentStateKind.NotFound
++}
++
++type AgentNotStartedState = {
++  readonly kind: AgentStateKind.NotStarted
++  readonly executablePath: string
++}
++
++type AgentRunningState = {
++  readonly kind: AgentStateKind.Running
++  readonly executablePath: string
++  readonly env: object
++}
++
++export type AgentState =
++  | AgentNotFoundState
++  | AgentNotStartedState
++  | AgentRunningState
++
++type SSHAgentProcess = {
++  readonly pid: number
++  readonly env: object
++}
++
++export class SSHAgentManager {
++  private env: object = {}
++  private executablePath: string | null = null
++
++  public async reset(): Promise<void> {
++    this.executablePath = await findExecutableOnPath('ssh-agent')
++  }
++
++  public async getState(): Promise<AgentState> {
++    if (this.executablePath == null) {
++      return { kind: AgentStateKind.NotFound }
++    }
++
++    const running: boolean = await processExists(
++      __WIN32__ ? 'ssh-agent.exe' : 'ssh-agent'
++    )
++
++    if (!running) {
++      return {
++        kind: AgentStateKind.NotStarted,
++        executablePath: this.executablePath,
++      }
++    }
++
++    const existingEnv = process.env
++    if (
++      existingEnv.SSH_AUTH_SOCK != null &&
++      existingEnv.SSH_AGENT_PID != null
++    ) {
++      log.debug(
++        '[SSHAgentManager] found existing environment variables for SSH agent, using that...'
++      )
++      this.env = {
++        SSH_AUTH_SOCK: existingEnv.SSH_AUTH_SOCK,
++        SSH_AGENT_PID: existingEnv.SSH_AGENT_PID,
++      }
++    }
++
++    // TODO: get environment variable from shell without needing to poke at this?
++    // This looks interesting:
++    // https://github.com/wwalker/ssh-find-agent/blob/master/ssh-find-agent.sh
++    return {
++      kind: AgentStateKind.Running,
++      executablePath: this.executablePath,
++      env: this.env,
++    }
++  }
++
++  public async launch(): Promise<SSHAgentProcess> {
++    if (this.executablePath == null) {
++      throw new Error(
++        `Unable to launch when the executable isn't found on the machine`
++      )
++    }
++
++    return new Promise<SSHAgentProcess>((resolve, reject) => {
++      let pid = 0
++      const command = `"${this.executablePath}"`
++      const sshAgent = exec(command, (error, stdout, stderr) => {
++        if (error != null) {
++          reject(error)
++          return
++        }
++
++        const sshAuthSocketRe = /SSH_AUTH_SOCK=(.*)\; export SSH_AUTH_SOCK;/
++        const sshAgentPidRe = /SSH_AGENT_PID=(.*)\; export SSH_AGENT_PID;/
++
++        const sshAuthSockMatch = sshAuthSocketRe.exec(stdout)
++        const sshAgentPidMatch = sshAgentPidRe.exec(stdout)
++
++        if (sshAuthSockMatch != null && sshAgentPidMatch != null) {
++          this.env = {
++            SSH_AUTH_SOCK: sshAuthSockMatch[1],
++            SSH_AGENT_PID: sshAgentPidMatch[1],
++          }
++          resolve({ pid, env: this.env })
++        } else {
++          reject('Unable to retrieve environment variables from ssh-agent')
++        }
++      })
++      pid = sshAgent.pid
++
++      // TODO: do we need to do this?
++      sshAgent.unref()
++    })
++  }
++}
+added in remote
+  their  100644 9ad3ef0fd3d7a3f6a2d6d0db037a777f8892bc9c app/src/lib/ssh/ssh-environment.ts
+@@ -0,0 +1,89 @@
++import * as Path from 'path'
++import { enumerateValues, HKEY, RegistryValueType } from 'registry-js'
++import { pathExists } from 'fs-extra'
++
++import { isExecutableOnPath } from '../find-executable'
++import { getPathSegments } from '../process/win32'
++
++async function findGitForWindowsInstall(): Promise<string | null> {
++  const registryPath = enumerateValues(
++    HKEY.HKEY_LOCAL_MACHINE,
++    'SOFTWARE\\GitForWindows'
++  )
++
++  if (registryPath.length === 0) {
++    return null
++  }
++
++  const installPathEntry = registryPath.find(e => e.name === 'InstallPath')
++  if (installPathEntry && installPathEntry.type === RegistryValueType.REG_SZ) {
++    const path = Path.join(installPathEntry.data, 'git-bash.exe')
++
++    if (await pathExists(path)) {
++      return installPathEntry.data
++    } else {
++      log.debug(
++        `[hasGitForWindowsInstall] registry entry found but git-bash.exe does not exist at '${path}'`
++      )
++    }
++  }
++
++  return null
++}
++
++async function appendToPath(directory: string) {
++  const paths = await getPathSegments()
++  const updatedPaths = [...paths, directory]
++  const path = updatedPaths.join(';')
++
++  const env = Object.assign({}, process.env, { path })
++
++  if (env.Path != null) {
++    // this is a stupid win32 hack because `Path` and `path` are distinct keys
++    // on a Javascript hash, but Windows will choose Path and ignore the other value
++    delete env.Path
++  }
++
++  return env
++}
++
++export async function getSSHEnvironment(executable: string, env: object = {}) {
++  // don't even bother checking for macOS as it should be there by default
++  if (__DARWIN__) {
++    return Object.assign({}, process.env, env)
++  }
++
++  const found = await isExecutableOnPath(executable)
++
++  if (found) {
++    // no need to setup our own environment, inherit the default
++    log.debug(
++      `[getSSHEnvironment] found ${executable} on PATH, no need to tweak the environment`
++    )
++    return Object.assign({}, process.env, env)
++  }
++
++  if (__LINUX__) {
++    log.warn(
++      '[getSSHEnvironment] TODO: what should we be doing for the Linux support?'
++    )
++    return Object.assign({}, process.env, env)
++  }
++
++  const foundGitInstall = await findGitForWindowsInstall()
++  if (foundGitInstall != null) {
++    const pathToSSHTools = Path.join(foundGitInstall, 'usr', 'bin')
++    return appendToPath(pathToSSHTools)
++  }
++
++  const localGitDir = process.env['LOCAL_GIT_DIRECTORY']
++  if (localGitDir != null) {
++    const pathToSSHTools = Path.join(localGitDir, 'usr', 'bin')
++    return appendToPath(pathToSSHTools)
++  }
++
++  log.warn(
++    '[getSSHEnvironment] unable to find path to the embedded Git installation'
++  )
++  return Object.assign({}, process.env, env)
++}
+added in remote
+  their  100644 03fbed12881a6501b7f3fdf3c3316599d65e8ac1 app/src/lib/ssh/ssh-interop.ts
+@@ -0,0 +1,152 @@
++import { exec, spawn } from 'child_process'
++import { getSSHEnvironment } from './ssh-environment'
++
++import { createWriteStream } from 'fs'
++import { homedir } from 'os'
++import { join } from 'path'
++
++import { ensureDir } from 'fs-extra'
++
++export async function scanAndWriteToKnownHostsFile(
++  host: string
++): Promise<void> {
++  const sshDir = join(homedir(), '.ssh')
++  await ensureDir(sshDir)
++
++  const command = 'ssh-keyscan'
++  const env = await getSSHEnvironment(command)
++
++  return new Promise<void>((resolve, reject) => {
++    const keyscan = spawn(command, [host], { shell: true, env })
++    const knownHostsPath = join(homedir(), '.ssh', 'known_hosts')
++
++    keyscan.stdout.pipe(createWriteStream(knownHostsPath))
++
++    keyscan.on('error', err => {
++      log.warn(
++        'Unable to execute ssh-keyscan and append to known_hosts file',
++        err
++      )
++    })
++
++    keyscan.on('close', code => {
++      if (code !== 0) {
++        reject(
++          new Error(
++            `ssh-keyscan exited with code '${code}' while adding '${host}' which was not expected`
++          )
++        )
++        return
++      }
++      resolve()
++    })
++  })
++}
++
++type KeyGenResult = {
++  readonly publicKeyFile: string
++  readonly privateKeyFile: string
++}
++
++export async function createSSHKey(
++  emailAddress: string,
++  passphrase: string,
++  outputFile: string
++): Promise<KeyGenResult> {
++  // TODO: ssh-keygen will block if the file exists - need to handle the situation here
++  const command = 'ssh-keygen'
++  const args = `${command} -b 4096 -t rsa -C '${emailAddress}' -N '${passphrase}' -f ${outputFile}`
++  const env = await getSSHEnvironment(command)
++  return new Promise<KeyGenResult>((resolve, reject) => {
++    exec(args, { timeout: 15000, env }, (error, stdout, stderr) => {
++      if (error != null) {
++        reject(error)
++        return
++      }
++
++      const privateKeyFileRe = /Your identification has been saved in (.*)\./
++      const publicKeyFileRe = /Your public key has been saved in (.*)\./
++
++      const privateKeyMatch = privateKeyFileRe.exec(stdout)
++      const publicKeyMatch = publicKeyFileRe.exec(stdout)
++
++      if (privateKeyMatch && publicKeyMatch) {
++        resolve({
++          publicKeyFile: publicKeyMatch[1],
++          privateKeyFile: privateKeyMatch[1],
++        })
++      } else {
++        resolve({ publicKeyFile: '', privateKeyFile: '' })
++      }
++    })
++  })
++}
++
++export async function addToSSHAgent(
++  privateKeyFile: string,
++  passphrase: string,
++  sshEnvironment: object
++): Promise<void> {
++  const command = 'ssh-add'
++  const env = await getSSHEnvironment(command, sshEnvironment)
++
++  return new Promise<void>((resolve, reject) => {
++    const sshAdd = spawn(command, [privateKeyFile], { shell: true, env })
++
++    const stdoutBuffers = new Array<Buffer>()
++    let stdoutLength = 0
++
++    sshAdd.stdout.on('data', (chunk: Buffer) => {
++      stdoutBuffers.push(chunk)
++      stdoutLength += chunk.length
++    })
++
++    const stderrBuffers = new Array<Buffer>()
++    let stderrLength = 0
++    sshAdd.stderr.on('data', (chunk: Buffer) => {
++      stderrBuffers.push(chunk)
++      stderrLength += chunk.length
++    })
++
++    if (passphrase.length > 0) {
++      sshAdd.stdin.end(passphrase)
++    }
++
++    sshAdd.on('close', code => {
++      const stdout = Buffer.concat(stdoutBuffers, stdoutLength)
++      const stderr = Buffer.concat(stderrBuffers, stderrLength)
++
++      log.debug(`[addToSSHAgent] got stdout: '${stdout}'`)
++      log.debug(`[addToSSHAgent] got stderr: '${stderr}'`)
++
++      debugger
++
++      if (code !== 0) {
++        reject('Probably unable to pass in a passphrase with this coding trick')
++      }
++      resolve()
++    })
++  })
++}
++
++export async function executeSSHTest(
++  sshUrl: string,
++  environmentVariables: object
++): Promise<string> {
++  const command = 'ssh'
++  const env = await getSSHEnvironment(command, environmentVariables)
++  return new Promise<string>((resolve, reject) => {
++    exec(
++      `${command} -Tv  -o 'StrictHostKeyChecking=yes' ${sshUrl}`,
++      { timeout: 15000, env },
++      (error, stdout, stderr) => {
++        if (error != null) {
++          // TODO: poke at these details, pass them through?
++          log.warn(`[executeSSHTest] - an error occurred when invoking ssh`)
++        }
++
++        resolve(stderr)
++      }
++    )
++  })
++}
+merged
+  result 100644 2d268b3d00e80a8fe7cf7aed2af48cfb2720e63d app/src/lib/stores/accounts-store.ts
+  our    100644 f11d691b980015ca4a257c25f28433f4a7514376 app/src/lib/stores/accounts-store.ts
+@@ -43,6 +43,7 @@
+   readonly avatarURL: string
+   readonly id: number
+   readonly name: string
++  readonly scopes?: ReadonlyArray<string>
+ }
+ 
+ /** The store for logged in accounts. */
+@@ -182,7 +183,8 @@
+         account.emails,
+         account.avatarURL,
+         account.id,
+-        account.name
++        account.name,
++        account.scopes || []
+       )
+ 
+       const key = getKeyForAccount(accountWithoutToken)
+changed in both
+  base   100644 3664497681402ef660531130f999ac3e39892b4d app/src/lib/stores/app-store.ts
+  our    100644 1a4e387e4d192d34abfd0621b4b5ebe8cc34d8d1 app/src/lib/stores/app-store.ts
+  their  100644 c20711bd525012f3195a7cbcbd6eb47b6169bae7 app/src/lib/stores/app-store.ts
+@@ -116,7 +116,12 @@
+   EmojiStore,
+   GitHubUserStore,
+   CloningRepositoriesStore,
++<<<<<<< .our
+ } from '.'
++=======
++  TroubleshootingStore,
++} from '../stores'
++>>>>>>> .their
+ import { validatedRepositoryPath } from './helpers/validated-repository-path'
+ import { IGitAccount } from '../git/authentication'
+ import { getGenericHostname, getGenericUsername } from '../generic-git-auth'
+@@ -145,6 +150,7 @@
+ import { IAuthor } from '../../models/author'
+ import { ComparisonCache } from '../comparison-cache'
+ import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
++<<<<<<< .our
+ import { enableRepoInfoIndicators } from '../feature-flag'
+ import { inferComparisonBranch } from './helpers/infer-comparison-branch'
+ import {
+@@ -154,6 +160,10 @@
+ } from '../../ui/lib/application-theme'
+ import { findAccountForRemoteURL } from '../find-account'
+ import { inferLastPushForRepository } from '../infer-last-push-for-repository'
++=======
++import { enableCompareSidebar } from '../feature-flag'
++import { IValidateHostState, INoRunningAgentState } from '../../models/ssh'
++>>>>>>> .their
+ 
+ /**
+  * Enum used by fetch to determine if
+@@ -238,6 +248,7 @@
+   private readonly repositoriesStore: RepositoriesStore
+   private readonly statsStore: StatsStore
+   private readonly pullRequestStore: PullRequestStore
++  private readonly troubleshootingStore: TroubleshootingStore
+ 
+   /** The issues store for all repositories. */
+   public get issuesStore(): IssuesStore {
+@@ -300,7 +311,8 @@
+     signInStore: SignInStore,
+     accountsStore: AccountsStore,
+     repositoriesStore: RepositoriesStore,
+-    pullRequestStore: PullRequestStore
++    pullRequestStore: PullRequestStore,
++    troubleshootingStore: TroubleshootingStore
+   ) {
+     super()
+ 
+@@ -313,6 +325,7 @@
+     this.accountsStore = accountsStore
+     this.repositoriesStore = repositoriesStore
+     this.pullRequestStore = pullRequestStore
++    this.troubleshootingStore = troubleshootingStore
+     this.showWelcomeFlow = !hasShownWelcomeFlow()
+ 
+     const window = remote.getCurrentWindow()
+@@ -380,6 +393,11 @@
+     this.pullRequestStore.onDidUpdate(gitHubRepository =>
+       this.onPullRequestStoreUpdated(gitHubRepository)
+     )
++
++    this.troubleshootingStore.onDidError(error => this.emitError(error))
++    this.troubleshootingStore.onDidUpdate(() => {
++      this.onTroubleshootingStoreDidUpdate()
++    })
+   }
+ 
+   /** Load the emoji from disk. */
+@@ -592,6 +610,7 @@
+       appIsFocused: this.appIsFocused,
+       selectedState: this.getSelectedState(),
+       signInState: this.signInStore.getState(),
++      troubleshootingState: this.troubleshootingStore.getState(),
+       currentPopup: this.currentPopup,
+       currentFoldout: this.currentFoldout,
+       errors: this.errors,
+@@ -3698,6 +3717,10 @@
+     this.emitUpdate()
+   }
+ 
++  private async onTroubleshootingStoreDidUpdate() {
++    this.emitUpdate()
++  }
++
+   private findAssociatedPullRequest(
+     branch: Branch,
+     pullRequests: ReadonlyArray<PullRequest>,
+@@ -3948,6 +3971,7 @@
+     this.statsStore.recordCompareInitiatedMerge()
+   }
+ 
++<<<<<<< .our
+   /**
+    * Set the application-wide theme
+    */
+@@ -4021,6 +4045,36 @@
+    */
+   public _recordDivergingBranchBannerInitatedMerge() {
+     this.statsStore.recordDivergingBranchBannerInitatedMerge()
++=======
++  public _resetTroubleshooting() {
++    this.troubleshootingStore.reset()
++  }
++
++  public _startTroubleshooting(repository: Repository) {
++    this.troubleshootingStore.start(repository)
++  }
++
++  public _validateHost(state: IValidateHostState): Promise<void> {
++    return this.troubleshootingStore.validateHost(state)
++  }
++
++  public _launchSSHAgent(state: INoRunningAgentState): Promise<void> {
++    return this.troubleshootingStore.launchSSHAgent(state)
++  }
++
++  public _createSSHKey(
++    account: Account,
++    emailAddress: string,
++    passphrase: string,
++    outputFile: string
++  ) {
++    return this.troubleshootingStore.createSSHKey(
++      account,
++      emailAddress,
++      passphrase,
++      outputFile
++    )
++>>>>>>> .their
+   }
+ }
+ 
+merged
+  result 100644 1cf29fec8cdafb4151239aaef8a87ecc38b1f264 app/src/lib/stores/index.ts
+  our    100644 c81b89a78ad286db4607a8912813e4e384d8e401 app/src/lib/stores/index.ts
+@@ -10,4 +10,5 @@
+ export * from './token-store'
+ export * from './pull-request-store'
+ export * from './repository-settings-store'
++export * from './troubleshooting-store'
+ export { UpstreamRemoteName } from './helpers/find-upstream-remote'
+added in remote
+  their  100644 fc8ceffd9d50ebc729aeb23298d4cf7e3fc59c21 app/src/lib/stores/troubleshooting-store.ts
+@@ -0,0 +1,237 @@
++import { ipcRenderer } from 'electron'
++import { readFile } from 'fs-extra'
++
++import { TypedBaseStore } from './base-store'
++import { AccountsStore } from './accounts-store'
++
++import {
++  TroubleshootingState,
++  TroubleshootingStep,
++  IValidateHostState,
++  INoRunningAgentState,
++} from '../../models/ssh'
++import { Account, accountHasScope } from '../../models/account'
++import { Repository } from '../../models/repository'
++import {
++  scanAndWriteToKnownHostsFile,
++  isHostVerificationError,
++  isPermissionError,
++  executeSSHTest,
++  createSSHKey,
++  addToSSHAgent,
++  SSHAgentManager,
++  AgentStateKind,
++} from '../ssh'
++import { getRemotes } from '../git'
++import { parseRemote } from '../remote-parsing'
++import { API } from '../api'
++
++const initialState: TroubleshootingState = {
++  kind: TroubleshootingStep.WelcomeState,
++  sshUrl: '',
++  isLoading: false,
++}
++
++export class TroubleshootingStore extends TypedBaseStore<TroubleshootingState> {
++  private state = initialState
++  private accounts: ReadonlyArray<Account> = []
++  private sshAgentManager = new SSHAgentManager()
++
++  public constructor(private accountsStore: AccountsStore) {
++    super()
++
++    this.accountsStore.onDidUpdate(async () => {
++      const accounts = await this.accountsStore.getAll()
++      this.accounts = accounts
++    })
++  }
++
++  /**
++   * Update the internal state of the store and emit an update
++   * event.
++   */
++  private setState(state: TroubleshootingState) {
++    this.state = state
++    this.emitUpdate(this.getState())
++  }
++
++  /**
++   * Returns the current state of the sign in store or null if
++   * no sign in process is in flight.
++   */
++  public getState(): TroubleshootingState {
++    return this.state
++  }
++
++  public reset() {
++    this.setState(initialState)
++    this.sshAgentManager.reset()
++  }
++
++  public async start(repository: Repository) {
++    this.setState({
++      kind: TroubleshootingStep.WelcomeState,
++      sshUrl: '',
++      isLoading: true,
++    })
++
++    const remotes = await getRemotes(repository)
++
++    const sshRemotes: Array<string> = []
++    for (const remote of remotes) {
++      const gitRemote = parseRemote(remote.url)
++      if (gitRemote != null && gitRemote.protocol === 'ssh') {
++        sshRemotes.push(gitRemote.hostname)
++      }
++    }
++
++    // TODO: it'd be nice to know the specific remote associated with this error
++    // for multi-remote scenarios, but these are less common than the
++    // single-remote scenario so this isn't a priority. Maybe we can show a UI
++    // for displaying the remotes to work with, where there are multiple SSH
++    // remotes?
++    const sshUrl = `git@${sshRemotes[0]}`
++    await this.validateSSHConnection(sshUrl)
++  }
++
++  public async validateHost(state: IValidateHostState) {
++    this.setState({ ...state, isLoading: true })
++    await scanAndWriteToKnownHostsFile(state.host)
++    await this.validateSSHConnection(state.sshUrl)
++  }
++
++  public async launchSSHAgent(state: INoRunningAgentState) {
++    this.setState({ ...state, isLoading: true })
++
++    const { pid, env } = await this.sshAgentManager.launch()
++
++    // TODO: we should make the main process spawn this process so we can leverage
++    // the OS to cleanup the process when the main process exits. The alternative
++    // would be to rely on Electron's lifecycle events but an initial test suggests
++    // this is Problematic(TM) on Windows at least
++
++    ipcRenderer.send('track-new-process', { name: 'ssh-agent', pid })
++    // TODO: how to pass environment variables through when invoking Git
++    log.debug(
++      `[TroubleshootingStore] found environment variables to pass through: '${JSON.stringify(
++        env
++      )}'`
++    )
++
++    await this.validateSSHConnection(state.sshUrl)
++  }
++
++  public async createSSHKey(
++    account: Account,
++    emailAddress: string,
++    passphrase: string,
++    outputFile: string
++  ) {
++    const state = this.state
++    if (state.kind !== TroubleshootingStep.CreateSSHKey) {
++      return
++    }
++
++    this.setState({
++      ...state,
++      isLoading: true,
++    })
++
++    const { publicKeyFile, privateKeyFile } = await createSSHKey(
++      emailAddress,
++      passphrase,
++      outputFile
++    )
++
++    const agentState = await this.sshAgentManager.getState()
++
++    if (agentState.kind !== AgentStateKind.Running) {
++      log.warn(
++        'Creating an SSH key before ssh-agent is running. This is not the right order. Skipping...'
++      )
++      return
++    }
++
++    await addToSSHAgent(privateKeyFile, passphrase, agentState.env)
++
++    if (accountHasScope(account, 'write:public_key')) {
++      const api = new API(account.endpoint, account.token)
++      const title = 'GitHub Desktop on [MACHINE NAME GOES HERE]'
++      const keyContents = await readFile(publicKeyFile)
++      const key = await api.createPublicKey(title, keyContents.toString())
++      if (key == null) {
++        log.warn('[TroubleshootingStore] unable to create key through API')
++        // TODO: error handling for this flow?
++        return
++      }
++      await this.validateSSHConnection(state.sshUrl)
++    } else {
++      this.setState({
++        kind: TroubleshootingStep.AuthorizeAgain,
++        account: account,
++      })
++    }
++  }
++
++  private async validateSSHConnection(sshUrl: string) {
++    const agentState = await this.sshAgentManager.getState()
++
++    if (agentState.kind === AgentStateKind.NotFound) {
++      // TODO: how to handle this sitatuion?
++      return
++    }
++
++    const sshAgentLocation = agentState.executablePath
++
++    if (agentState.kind === AgentStateKind.NotStarted) {
++      this.setState({
++        kind: TroubleshootingStep.NoRunningAgent,
++        sshAgentLocation,
++        sshUrl,
++      })
++      return
++    }
++
++    const stderr = await executeSSHTest(sshUrl, agentState.env)
++
++    const verificationError = isHostVerificationError(stderr)
++    if (verificationError !== null) {
++      const { rawOutput, host } = verificationError
++      this.setState({
++        kind: TroubleshootingStep.ValidateHost,
++        rawOutput,
++        host,
++        sshUrl,
++      })
++      return
++    }
++
++    if (isPermissionError(stderr)) {
++      // TODO: nail down this flow
++      //  - if we have existing keys, show and let the user choose
++      //     - they may wish to skip to instead create a new key
++      //  - choose a GitHub or GitHub Enterprise account
++      //     - detect whether these accounts have
++
++      const foundKeys = 0
++
++      if (foundKeys > 0) {
++        // TODO: list keys and let the user select a key
++      } else {
++        this.setState({
++          kind: TroubleshootingStep.CreateSSHKey,
++          accounts: this.accounts,
++          sshAgentLocation,
++          sshUrl,
++        })
++        return
++      }
++      return
++    }
++
++    this.setState({
++      kind: TroubleshootingStep.Unknown,
++      error: stderr,
++    })
++  }
++}
+changed in both
+  base   100644 2bbce98d75a6e5e03d9184c46b2af1a43b8fa55a app/src/main-process/main.ts
+  our    100644 a406ea4cd47e8c9a733faee41a125eab3f743aa2 app/src/main-process/main.ts
+  their  100644 deb067ecb23bf35a8fa26ca361098993ac9d98cf app/src/main-process/main.ts
+@@ -2,6 +2,7 @@
+ 
+ import { app, Menu, ipcMain, BrowserWindow, shell } from 'electron'
+ import * as Fs from 'fs'
++import { exec } from 'child_process'
+ 
+ import { AppWindow } from './app-window'
+ import { buildDefaultMenu, MenuEvent, findMenuItemByID } from './menu'
+@@ -33,6 +34,8 @@
+ let preventQuit = false
+ let readyTime: number | null = null
+ 
++const spawnedProcessIds = new Array<number>()
++
+ type OnDidLoadFn = (window: AppWindow) => void
+ /** See the `onDidLoad` function. */
+ let onDidLoadFns: Array<OnDidLoadFn> | null = []
+@@ -376,6 +379,19 @@
+       })
+     }
+   )
++
++  ipcMain.on(
++    'track-new-process',
++    (
++      event: Electron.IpcMessageEvent,
++      { name, pid }: { name: string; pid: number }
++    ) => {
++      log.info(
++        `Process ${name} spawned with pid ${pid} and should be killed when Desktop exits`
++      )
++      spawnedProcessIds.push(pid)
++    }
++  )
+ })
+ 
+ app.on('activate', () => {
+@@ -403,6 +419,22 @@
+   }
+ )
+ 
++app.on('before-quit', () => {
++  spawnedProcessIds.forEach(pid => {
++    if (__WIN32__) {
++      exec(`taskkill /PID ${pid}`, (error, stdout, stderr) => {
++        if (error != null) {
++          log.debug(`Unable to terminate process ${pid}, giving up...`)
++          return
++        }
++        log.debug(`Able to terminate process ${pid} successfully...`)
++      })
++    } else {
++      process.kill(pid)
++    }
++  })
++})
++
+ function createWindow() {
+   const window = new AppWindow()
+ 
+merged
+  result 100644 37976910efbf23449a3321c5e5424124a40a6247 app/src/models/account.ts
+  our    100644 8400b1e41845964df7e675b460454ac5f90de185 app/src/models/account.ts
+@@ -8,7 +8,7 @@
+ export class Account {
+   /** Create an account which can be used to perform unauthenticated API actions */
+   public static anonymous(): Account {
+-    return new Account('', getDotComAPIEndpoint(), '', [], '', -1, '')
++    return new Account('', getDotComAPIEndpoint(), '', [], '', -1, '', [])
+   }
+ 
+   public constructor(
+@@ -25,7 +25,9 @@
+     /** The database id for this account */
+     public readonly id: number,
+     /** The friendly name associated with this account */
+-    public readonly name: string
++    public readonly name: string,
++    /** The OAuth scopes associated with the token */
++    public readonly scopes: ReadonlyArray<string>
+   ) {}
+ 
+   public withToken(token: string): Account {
+@@ -36,7 +38,12 @@
+       this.emails,
+       this.avatarURL,
+       this.id,
+-      this.name
++      this.name,
++      this.scopes
+     )
+   }
+ }
++
++export function accountHasScope(account: Account, scope: string) {
++  return account.scopes.includes(scope)
++}
+added in remote
+  their  100644 52638bf0d07ab61f48b076487a8fd359076b6242 app/src/models/ssh.ts
+@@ -0,0 +1,58 @@
++import { Account } from './account'
++
++export enum TroubleshootingStep {
++  WelcomeState = 'WelcomeState',
++  ValidateHost = 'ValidateHost',
++  NoRunningAgent = 'NoRunningAgent',
++  CreateSSHKey = 'CreateSSHKey',
++  AuthorizeAgain = 'AuthorizeAgain',
++  Unknown = 'Unknown',
++}
++
++export interface IWelcomeState {
++  readonly kind: TroubleshootingStep.WelcomeState
++  readonly sshUrl: string
++  readonly isLoading?: boolean
++}
++
++export interface IValidateHostState {
++  readonly kind: TroubleshootingStep.ValidateHost
++  readonly host: string
++  readonly rawOutput: string
++  readonly sshUrl: string
++  readonly isLoading?: boolean
++}
++
++export interface INoRunningAgentState {
++  readonly kind: TroubleshootingStep.NoRunningAgent
++  readonly sshAgentLocation: string
++  readonly sshUrl: string
++  readonly isLoading?: boolean
++}
++
++export interface ICreateSSHKeyState {
++  readonly kind: TroubleshootingStep.CreateSSHKey
++  readonly accounts: ReadonlyArray<Account>
++  readonly sshAgentLocation: string
++  readonly sshUrl: string
++  readonly isLoading?: boolean
++}
++
++export interface IAuthorizeGitHubAgainState {
++  readonly kind: TroubleshootingStep.AuthorizeAgain
++  readonly account: Account
++  readonly isLoading?: boolean
++}
++
++export interface IUnknownResultState {
++  readonly kind: TroubleshootingStep.Unknown
++  readonly error: string
++}
++
++export type TroubleshootingState =
++  | IWelcomeState
++  | IValidateHostState
++  | INoRunningAgentState
++  | ICreateSSHKeyState
++  | IAuthorizeGitHubAgainState
++  | IUnknownResultState
+changed in both
+  base   100644 2cc39415021d56afee6df52411dd5466e5fcb84b app/src/ui/app.tsx
+  our    100644 c38c806e36c237ea70f3cdeee739941530c0c7cd app/src/ui/app.tsx
+  their  100644 596ec900cc14d8e9fe6e79f1dc8fa38869a40330 app/src/ui/app.tsx
+@@ -84,6 +84,7 @@
+ import { GenericGitAuthentication } from './generic-git-auth'
+ import { ShellError } from './shell'
+ import { InitializeLFS, AttributeMismatch } from './lfs'
++import { TroubleshootSSH } from './ssh'
+ import { UpstreamAlreadyExists } from './upstream-already-exists'
+ import { DeletePullRequest } from './delete-branch/delete-pull-request-dialog'
+ import { MergeConflictsWarning } from './merge-conflicts'
+@@ -1250,6 +1251,21 @@
+             onInitialize={this.initializeLFS}
+           />
+         )
++      case PopupType.TroubleshootSSH:
++        const state = this.props.appStore.getState()
++        if (state.troubleshootingState == null) {
++          return null
++        }
++
++        return (
++          <TroubleshootSSH
++            dispatcher={this.props.dispatcher}
++            repository={popup.repository}
++            onDismissed={this.onPopupDismissed}
++            troubleshootingState={state.troubleshootingState}
++            signInState={state.signInState}
++          />
++        )
+       case PopupType.LFSAttributeMismatch:
+         return (
+           <AttributeMismatch
+changed in both
+  base   100644 68dedd34f265a41733b16e76f0ce3b07e05f865e app/src/ui/index.tsx
+  our    100644 f8f8200917327048c8f002fcfade473dfd6668d1 app/src/ui/index.tsx
+  their  100644 eb14ae24e33a47850d87815b99d3dea2bf302d01 app/src/ui/index.tsx
+@@ -14,6 +14,7 @@
+   openShellErrorHandler,
+   mergeConflictHandler,
+   lfsAttributeMismatchHandler,
++  sshAuthenticationErrorHandler,
+   defaultErrorHandler,
+   missingRepositoryHandler,
+   backgroundTaskHandler,
+@@ -31,6 +32,7 @@
+   TokenStore,
+   AccountsStore,
+   PullRequestStore,
++  TroubleshootingStore,
+ } from '../lib/stores'
+ import { GitHubUserDatabase } from '../lib/databases'
+ import { URLActionType } from '../lib/parse-app-url'
+@@ -52,6 +54,8 @@
+ } from '../lib/source-map-support'
+ import { UiActivityMonitor } from './lib/ui-activity-monitor'
+ 
++import { enableSSHTroubleshooting } from '../lib/feature-flag'
++
+ if (__DEV__) {
+   installDevGlobals()
+ }
+@@ -125,6 +129,8 @@
+   repositoriesStore
+ )
+ 
++const troubleshootingStore = new TroubleshootingStore(accountsStore)
++
+ const appStore = new AppStore(
+   gitHubUserStore,
+   cloningRepositoriesStore,
+@@ -134,7 +140,8 @@
+   signInStore,
+   accountsStore,
+   repositoriesStore,
+-  pullRequestStore
++  pullRequestStore,
++  troubleshootingStore
+ )
+ 
+ const dispatcher = new Dispatcher(appStore)
+@@ -145,6 +152,9 @@
+ dispatcher.registerErrorHandler(openShellErrorHandler)
+ dispatcher.registerErrorHandler(mergeConflictHandler)
+ dispatcher.registerErrorHandler(lfsAttributeMismatchHandler)
++if (enableSSHTroubleshooting()) {
++  dispatcher.registerErrorHandler(sshAuthenticationErrorHandler)
++}
+ dispatcher.registerErrorHandler(gitAuthenticationErrorHandler)
+ dispatcher.registerErrorHandler(pushNeedsPullHandler)
+ dispatcher.registerErrorHandler(backgroundTaskHandler)
+added in remote
+  their  100644 53500935a715eec35d7d0c5c2b1eae5e784d914c app/src/ui/ssh/authorize-github-again.tsx
+@@ -0,0 +1,72 @@
++import * as React from 'react'
++
++import { IAuthorizeGitHubAgainState } from '../../models/ssh'
++
++import { Button } from '../lib/button'
++import { ButtonGroup } from '../lib/button-group'
++import { Loading } from '../lib/loading'
++import { SignIn } from '../lib/sign-in'
++
++import { Dialog, DialogContent, DialogFooter } from '../dialog'
++
++import { Dispatcher } from '../../lib/dispatcher'
++import { SignInState } from '../../lib/stores'
++
++interface IAuthorizeGitHubAgainProps {
++  readonly state: IAuthorizeGitHubAgainState
++  readonly signInState: SignInState | null
++  readonly dispatcher: Dispatcher
++  readonly onDismissed: () => void
++}
++
++export class AuthorizeGitHubAgain extends React.Component<
++  IAuthorizeGitHubAgainProps,
++  {}
++> {
++  private keepOnKeepingOn = () => {
++    this.props.onDismissed()
++  }
++  public render() {
++    const { state } = this.props
++    const disabled = state.isLoading
++
++    if (this.props.signInState == null) {
++      log.warn(`Unable to authorize again because we're not in a valid state`)
++      return null
++    }
++
++    return (
++      <Dialog
++        id="troubleshoot-ssh"
++        title="Troubleshoot SSH Authentication"
++        onDismissed={this.props.onDismissed}
++        onSubmit={this.keepOnKeepingOn}
++      >
++        <DialogContent>
++          <p>
++            The token associated with the {state.account.login} account ({
++              state.account.name
++            }) does not have permission to publish SSH keys for this account.
++          </p>
++          <p>To continue, you need to sign in again:</p>
++
++          <p>
++            <SignIn
++              signInState={this.props.signInState}
++              dispatcher={this.props.dispatcher}
++            />
++          </p>
++        </DialogContent>
++        <DialogFooter>
++          <ButtonGroup>
++            <Button type="submit" disabled={disabled}>
++              {state.isLoading ? <Loading /> : null}
++              Start
++            </Button>
++            <Button onClick={this.props.onDismissed}>Cancel</Button>
++          </ButtonGroup>
++        </DialogFooter>
++      </Dialog>
++    )
++  }
++}
+added in remote
+  their  100644 e7842936bed758f6710f673d27cda500e9b681c2 app/src/ui/ssh/index.ts
+@@ -0,0 +1 @@
++export { TroubleshootSSH } from './troubleshoot-ssh'
+added in remote
+  their  100644 44fea58ca6cec019b36b82434925c9bf9fa77257 app/src/ui/ssh/setup-new-ssh-key.tsx
+@@ -0,0 +1,314 @@
++import * as React from 'react'
++import { remote } from 'electron'
++import * as os from 'os'
++import * as Path from 'path'
++
++import { lookupPreferredEmail } from '../../lib/email'
++import { IAvatarUser } from '../../models/avatar'
++import { Account, accountHasScope } from '../../models/account'
++
++import { Button } from '../lib/button'
++import { ButtonGroup } from '../lib/button-group'
++import { Row } from '../lib/row'
++import { TextBox } from '../lib/text-box'
++import { Ref } from '../lib/ref'
++
++import { Avatar } from '../lib/avatar'
++import { Loading } from '../lib/loading'
++
++import { Dialog, DialogContent, DialogFooter } from '../dialog'
++import { List } from '../lib/list'
++import { Dispatcher } from '../../lib/dispatcher'
++import { ICreateSSHKeyState } from '../../models/ssh'
++import { pathExists } from 'fs-extra'
++import { OcticonSymbol, Octicon } from '../octicons'
++
++function getPathForNewSSHKey(fileName: string) {
++  const homeDir = os.homedir()
++  return Path.join(homeDir, '.ssh', fileName)
++}
++
++interface ISetupNewSSHKeyProps {
++  readonly dispatcher: Dispatcher
++  readonly state: ICreateSSHKeyState
++  readonly onDismissed: () => void
++}
++
++interface ISetupNewSSHKeyState {
++  readonly selectedAccount?: number
++  readonly emailAddress: string
++  readonly passphrase: string
++  readonly confirmPassPhrase: string
++  readonly outputFile: string
++  readonly outputFileExists: boolean | null
++}
++
++export class SetupNewSSHKey extends React.Component<
++  ISetupNewSSHKeyProps,
++  ISetupNewSSHKeyState
++> {
++  public constructor(props: ISetupNewSSHKeyProps) {
++    super(props)
++
++    this.state = {
++      emailAddress: '',
++      passphrase: '',
++      confirmPassPhrase: '',
++      outputFile: getPathForNewSSHKey('github_desktop'),
++      outputFileExists: null,
++    }
++  }
++
++  private onContinue = () => {
++    if (this.state.selectedAccount == null) {
++      return
++    }
++
++    const account = this.props.state.accounts[this.state.selectedAccount]
++
++    this.props.dispatcher.createSSHKey(
++      account,
++      this.state.emailAddress,
++      this.state.passphrase,
++      this.state.outputFile
++    )
++  }
++
++  private updateFile = async (outputFile: string) => {
++    const outputFileExists = await pathExists(outputFile)
++    this.setState({ outputFile, outputFileExists })
++  }
++
++  private showFilePicker = async () => {
++    const defaultPath = this.state.outputFile
++    const window: any = null
++    remote.dialog.showSaveDialog(
++      window,
++      {
++        defaultPath,
++      },
++      async outputFile => {
++        if (outputFile == null) {
++          return
++        }
++
++        await this.updateFile(outputFile)
++      }
++    )
++  }
++
++  private onEmailAddressChanged = (emailAddress: string) => {
++    this.setState({ emailAddress })
++  }
++
++  private onPassPhraseChanged = (passphrase: string) => {
++    this.setState({ passphrase })
++  }
++
++  private onConfirmPassPhraseChanged = (confirmPassPhrase: string) => {
++    this.setState({ confirmPassPhrase })
++    // TODO: validate that the passphrase and text are the same
++  }
++
++  private updateState = async (selectedAccount: number) => {
++    // TODO: validate that this is an entry in the array
++    const account = this.props.state.accounts[selectedAccount]
++    const outputFile = getPathForNewSSHKey(`github_desktop_${account.login}`)
++
++    await this.updateFile(outputFile)
++
++    const email = lookupPreferredEmail(account.emails)
++    const emailAddress = email == null ? '' : email.email
++    this.setState({ selectedAccount, emailAddress })
++  }
++
++  private onAccountSelectionChanged = (rows: ReadonlyArray<number>) => {
++    this.updateState(rows[0])
++  }
++
++  private onAccountRowClick = (row: number) => {
++    this.updateState(row)
++  }
++
++  private onPathChanged = async (outputFile: string) => {
++    await this.updateFile(outputFile)
++  }
++
++  private renderTokenWarning(account: Account) {
++    if (accountHasScope(account, 'write:public_key')) {
++      return null
++    }
++
++    return (
++      <div
++        className="token-alert"
++        title="The token for this account needs to be upgraded to publish your SSH key"
++      >
++        <Octicon symbol={OcticonSymbol.alert} />
++      </div>
++    )
++  }
++
++  private renderRow = (index: number) => {
++    const account = this.props.state.accounts[index]
++
++    const found = lookupPreferredEmail(account.emails)
++    const email = found ? found.email : ''
++
++    const avatarUser: IAvatarUser = {
++      name: account.name,
++      email: email,
++      avatarURL: account.avatarURL,
++    }
++
++    return (
++      <Row className="account-info">
++        <Avatar user={avatarUser} />
++        <div className="user-info">
++          <div className="name">{account.name}</div>
++          <div className="login">@{account.login}</div>
++        </div>
++        {this.renderTokenWarning(account)}
++      </Row>
++    )
++  }
++
++  private renderPasswordMismatch = () => {
++    if (this.state.passphrase === this.state.confirmPassPhrase) {
++      return null
++    }
++
++    return (
++      <Row className="warning-helper-text">
++        <Octicon symbol={OcticonSymbol.alert} />
++        <p>The passphrase and confirmed passphrase do not match.</p>
++      </Row>
++    )
++  }
++
++  private renderExistingKeyWarning = () => {
++    if (!this.state.outputFileExists) {
++      return null
++    }
++
++    return (
++      <Row className="warning-helper-text">
++        <Octicon symbol={OcticonSymbol.alert} />
++        <p>
++          A file already exists at this path. Choose a new path to ensure that
++          you don't overwrite an existing key.
++        </p>
++      </Row>
++    )
++  }
++
++  public render() {
++    const isLoading = this.props.state.isLoading
++
++    const passphraseMatches =
++      this.state.passphrase === this.state.confirmPassPhrase
++
++    const disabled =
++      this.state.selectedAccount == null ||
++      !passphraseMatches ||
++      this.state.outputFileExists ||
++      isLoading
++
++    const selectedRows =
++      this.state.selectedAccount == null ? [] : [this.state.selectedAccount]
++
++    return (
++      <Dialog
++        id="troubleshoot-ssh"
++        title="Create SSH Key"
++        onDismissed={this.props.onDismissed}
++        onSubmit={this.onContinue}
++      >
++        <DialogContent>
++          <Row>Choose an account to associate with the new SSH key:</Row>
++
++          <Row>
++            <div className="account-list-container">
++              <List
++                rowRenderer={this.renderRow}
++                rowCount={this.props.state.accounts.length}
++                rowHeight={34}
++                selectedRows={selectedRows}
++                selectionMode="single"
++                invalidationProps={this.props.state.accounts}
++                onSelectionChanged={this.onAccountSelectionChanged}
++                onRowClick={this.onAccountRowClick}
++              />
++            </div>
++          </Row>
++          <Row>
++            <TextBox
++              value={this.state.emailAddress}
++              onValueChanged={this.onEmailAddressChanged}
++              disabled={isLoading}
++              label="Email address (required)"
++            />
++          </Row>
++          <Row>
++            <span>
++              A passphrase is recommended for extra security. Ensure that you
++              remember this as{' '}
++              <strong>
++                a lost or forgotten passphrase cannot be recovered and a new key
++                must be created
++              </strong>.
++            </span>
++          </Row>
++          <Row>
++            <TextBox
++              value={this.state.passphrase}
++              onValueChanged={this.onPassPhraseChanged}
++              disabled={isLoading}
++              type="password"
++              label="Passphrase (optional)"
++            />
++          </Row>
++          <Row>
++            <TextBox
++              value={this.state.confirmPassPhrase}
++              onValueChanged={this.onConfirmPassPhraseChanged}
++              disabled={isLoading}
++              type="password"
++              label="Confirm passphrase"
++            />
++          </Row>
++
++          {this.renderPasswordMismatch()}
++
++          <Row>
++            <TextBox
++              value={this.state.outputFile}
++              disabled={isLoading}
++              onValueChanged={this.onPathChanged}
++              label={__DARWIN__ ? 'Key Path' : 'Key path'}
++              placeholder="SSH key path"
++            />
++            <Button onClick={this.showFilePicker} disabled={isLoading}>
++              Choose…
++            </Button>
++          </Row>
++
++          {this.renderExistingKeyWarning()}
++
++          <Row>
++            This will create an <Ref>RSA</Ref> key of <Ref>4096 bits</Ref>.
++          </Row>
++        </DialogContent>
++        <DialogFooter>
++          <ButtonGroup>
++            <Button type="submit" disabled={disabled}>
++              {isLoading ? <Loading /> : null}
++              Create
++            </Button>
++            <Button onClick={this.props.onDismissed}>Cancel</Button>
++          </ButtonGroup>
++        </DialogFooter>
++      </Dialog>
++    )
++  }
++}
+added in remote
+  their  100644 ceaa8d0e9d9a673f690fabbb19e83022b859fb27 app/src/ui/ssh/start-ssh-agent.tsx
+@@ -0,0 +1,58 @@
++import * as React from 'react'
++
++import { INoRunningAgentState } from '../../models/ssh'
++
++import { Dispatcher } from '../../lib/dispatcher'
++
++import { Button } from '../lib/button'
++import { ButtonGroup } from '../lib/button-group'
++import { Loading } from '../lib/loading'
++import { Ref } from '../lib/ref'
++
++import { Dialog, DialogContent, DialogFooter } from '../dialog'
++
++interface IStartSSHAgentProps {
++  readonly dispatcher: Dispatcher
++  readonly state: INoRunningAgentState
++  readonly onDismissed: () => void
++}
++
++export class StartSSHAgent extends React.Component<IStartSSHAgentProps, {}> {
++  private launchSSHAgent = () => {
++    this.props.dispatcher.launchSSHAgent(this.props.state)
++  }
++
++  public render() {
++    const { state } = this.props
++    const disabled = state.isLoading
++
++    return (
++      <Dialog
++        id="troubleshoot-ssh"
++        title="Troubleshoot SSH Authentication"
++        onDismissed={this.props.onDismissed}
++        onSubmit={this.launchSSHAgent}
++      >
++        <DialogContent>
++          <p>
++            A running <Ref>ssh-agent</Ref> process is required to perform
++            authentication.
++          </p>
++          <p>
++            Do you want to start the <Ref>ssh-agent</Ref> process found at{' '}
++            <Ref>{state.sshAgentLocation}</Ref>?
++          </p>
++        </DialogContent>
++        <DialogFooter>
++          <ButtonGroup>
++            <Button type="submit" disabled={disabled}>
++              {state.isLoading ? <Loading /> : null}
++              Start
++            </Button>
++            <Button onClick={this.props.onDismissed}>Cancel</Button>
++          </ButtonGroup>
++        </DialogFooter>
++      </Dialog>
++    )
++  }
++}
+added in remote
+  their  100644 9179341ecd05a61f111286a4e11f591343be773c app/src/ui/ssh/troubleshoot-ssh.tsx
+@@ -0,0 +1,89 @@
++import * as React from 'react'
++
++import { Repository } from '../../models/repository'
++import { TroubleshootingState, TroubleshootingStep } from '../../models/ssh'
++
++import { Dispatcher } from '../../lib/dispatcher'
++import { assertNever } from '../../lib/fatal-error'
++
++import { Welcome } from './welcome'
++import { ValidateHost } from './validate-host'
++import { UnknownAction } from './unknown-action'
++import { SetupNewSSHKey } from './setup-new-ssh-key'
++import { StartSSHAgent } from './start-ssh-agent'
++import { AuthorizeGitHubAgain } from './authorize-github-again'
++import { SignInState } from '../../lib/stores'
++
++interface ITroubleshootSSHProps {
++  readonly dispatcher: Dispatcher
++  readonly repository: Repository
++  readonly troubleshootingState: TroubleshootingState
++  readonly signInState: SignInState | null
++  readonly onDismissed: () => void
++}
++
++export class TroubleshootSSH extends React.Component<
++  ITroubleshootSSHProps,
++  {}
++> {
++  public componentDidMount() {
++    this.props.dispatcher.resetTroubleshooting()
++  }
++
++  public render() {
++    const state = this.props.troubleshootingState
++    const stepKind = state.kind
++
++    switch (state.kind) {
++      case TroubleshootingStep.WelcomeState:
++        return (
++          <Welcome
++            dispatcher={this.props.dispatcher}
++            repository={this.props.repository}
++            state={state}
++            onDismissed={this.props.onDismissed}
++          />
++        )
++      case TroubleshootingStep.ValidateHost:
++        return (
++          <ValidateHost
++            dispatcher={this.props.dispatcher}
++            repository={this.props.repository}
++            state={state}
++            onDismissed={this.props.onDismissed}
++          />
++        )
++      case TroubleshootingStep.NoRunningAgent:
++        return (
++          <StartSSHAgent
++            dispatcher={this.props.dispatcher}
++            state={state}
++            onDismissed={this.props.onDismissed}
++          />
++        )
++      case TroubleshootingStep.CreateSSHKey:
++        return (
++          <SetupNewSSHKey
++            dispatcher={this.props.dispatcher}
++            state={state}
++            onDismissed={this.props.onDismissed}
++          />
++        )
++      case TroubleshootingStep.AuthorizeAgain:
++        return (
++          <AuthorizeGitHubAgain
++            state={state}
++            dispatcher={this.props.dispatcher}
++            signInState={this.props.signInState}
++            onDismissed={this.props.onDismissed}
++          />
++        )
++      case TroubleshootingStep.Unknown:
++        return (
++          <UnknownAction state={state} onDismissed={this.props.onDismissed} />
++        )
++      default:
++        return assertNever(state, `Unknown troubleshooting step: ${stepKind}`)
++    }
++  }
++}
+added in remote
+  their  100644 8532ff183cc6b9b6683b232a6ec8661d6ae3b699 app/src/ui/ssh/unknown-action.tsx
+@@ -0,0 +1,63 @@
++import * as React from 'react'
++
++import { IUnknownResultState } from '../../models/ssh'
++
++import { Button } from '../lib/button'
++import { ButtonGroup } from '../lib/button-group'
++import { Dialog, DialogContent, DialogFooter } from '../dialog'
++import { Octicon, OcticonSymbol } from '../octicons'
++
++import { LinkButton } from '../lib/link-button'
++import { saveLogFile } from '../../lib/ssh'
++
++interface IUnknownActionProps {
++  readonly state: IUnknownResultState
++  readonly onDismissed: () => void
++}
++
++export class UnknownAction extends React.Component<IUnknownActionProps, {}> {
++  private saveFile = async () => {
++    try {
++      await saveLogFile(this.props.state.error)
++    } catch (err) {
++      log.error(
++        `[saveLogFile] an error occurred while trying to save the log file`,
++        err
++      )
++    }
++  }
++
++  public render() {
++    return (
++      <Dialog
++        id="troubleshoot-ssh"
++        title="Unable to resolve issue"
++        onSubmit={this.saveFile}
++        onDismissed={this.props.onDismissed}
++      >
++        <DialogContent>
++          <p>
++            Unfortunately Desktop has exhausted all known troubleshooting tricks
++            for this issue.
++          </p>
++          <p>
++            A trace file has been generated here that will help a human
++            troubleshoot the issue. Please reach out to the{' '}
++            <LinkButton uri="https://github.com/desktop/desktop/issues/new">
++              GitHub Desktop
++            </LinkButton>{' '}
++            issue tracker for further support.
++          </p>
++        </DialogContent>
++        <DialogFooter>
++          <ButtonGroup>
++            <Button type="submit">
++              <Octicon symbol={OcticonSymbol.desktopDownload} /> Save log file
++            </Button>
++            <Button onClick={this.props.onDismissed}>Close</Button>
++          </ButtonGroup>
++        </DialogFooter>
++      </Dialog>
++    )
++  }
++}
+added in remote
+  their  100644 9231cb67363e7ffbd92d2a1a2b76dcb3bd4b4629 app/src/ui/ssh/validate-host.tsx
+@@ -0,0 +1,59 @@
++import * as React from 'react'
++
++import { Repository } from '../../models/repository'
++import { IValidateHostState } from '../../models/ssh'
++
++import { Dispatcher } from '../../lib/dispatcher'
++
++import { Button } from '../lib/button'
++import { ButtonGroup } from '../lib/button-group'
++import { Dialog, DialogContent, DialogFooter } from '../dialog'
++import { Loading } from '../lib/loading'
++import { LinkButton } from '../lib/link-button'
++
++interface IValidateHostProps {
++  readonly dispatcher: Dispatcher
++  readonly repository: Repository
++  readonly state: IValidateHostState
++  readonly onDismissed: () => void
++}
++
++export class ValidateHost extends React.Component<IValidateHostProps, {}> {
++  private verifyHost = async () => {
++    await this.props.dispatcher.validateHost(this.props.state)
++  }
++
++  public render() {
++    const { state } = this.props
++    const disabled = state.isLoading
++    return (
++      <Dialog
++        id="troubleshoot-ssh"
++        title="Verify SSH Server"
++        onDismissed={this.props.onDismissed}
++        onSubmit={this.verifyHost}
++      >
++        <DialogContent>
++          <p>A problem was encountered connecting to the host.</p>
++          <p className="output">{state.rawOutput}</p>
++          <p>
++            You will need to verify that this is the correct host to continue.
++            You can compare the value above with the entries documented in the{' '}
++            <LinkButton uri="https://help.github.com/articles/testing-your-ssh-connection/">
++              GitHub help documentation
++            </LinkButton>.
++          </p>
++        </DialogContent>
++        <DialogFooter>
++          <ButtonGroup>
++            <Button type="submit" disabled={disabled}>
++              {state.isLoading ? <Loading /> : null}
++              Verify
++            </Button>
++            <Button onClick={this.props.onDismissed}>Cancel</Button>
++          </ButtonGroup>
++        </DialogFooter>
++      </Dialog>
++    )
++  }
++}
+added in remote
+  their  100644 2ed044ea2216a1a6d3588de86c210ea465bf6c1e app/src/ui/ssh/welcome.tsx
+@@ -0,0 +1,57 @@
++import * as React from 'react'
++
++import { Repository } from '../../models/repository'
++import { IWelcomeState } from '../../models/ssh'
++
++import { Dispatcher } from '../../lib/dispatcher'
++
++import { Button } from '../lib/button'
++import { ButtonGroup } from '../lib/button-group'
++import { Dialog, DialogContent, DialogFooter } from '../dialog'
++import { Loading } from '../lib/loading'
++
++interface IWelcomeProps {
++  readonly dispatcher: Dispatcher
++  readonly repository: Repository
++  readonly state: IWelcomeState
++  readonly onDismissed: () => void
++}
++
++export class Welcome extends React.Component<IWelcomeProps, {}> {
++  private startTroubleshooting = () => {
++    this.props.dispatcher.startTroubleshooting(this.props.repository)
++  }
++
++  public render() {
++    const { state } = this.props
++    const disabled = state.isLoading
++
++    return (
++      <Dialog
++        id="troubleshoot-ssh"
++        title="Troubleshoot SSH Authentication"
++        onDismissed={this.props.onDismissed}
++        onSubmit={this.startTroubleshooting}
++      >
++        <DialogContent>
++          <p>
++            It looks like you are having an issue connecting to an SSH remote.
++          </p>
++          <p>
++            Do you want to troubleshoot your setup to see if Desktop can get
++            this working?
++          </p>
++        </DialogContent>
++        <DialogFooter>
++          <ButtonGroup>
++            <Button type="submit" disabled={disabled}>
++              {state.isLoading ? <Loading /> : null}
++              Start
++            </Button>
++            <Button onClick={this.props.onDismissed}>Cancel</Button>
++          </ButtonGroup>
++        </DialogFooter>
++      </Dialog>
++    )
++  }
++}
+changed in both
+  base   100644 e496a16bd915366f9b11d9d0e63a21a8732099f4 app/styles/ui/_dialog.scss
+  our    100644 94b86d54fb9b0314deb1ef48cc9e1466578ed390 app/styles/ui/_dialog.scss
+  their  100644 921a624a6a252f6aec33df9f06100fc74c95b4dd app/styles/ui/_dialog.scss
+@@ -2,6 +2,7 @@
+ @import 'dialogs/merge';
+ @import 'dialogs/publish-repository';
+ @import 'dialogs/repository-settings';
++@import 'dialogs/ssh';
+ 
+ // The styles herein attempt to follow a flow where margins are only applied
+ // to the bottom of elements (with the exception of the last child). This to
+added in remote
+  their  100644 03a7239ef47bbd8846e22c30a9cc6b2863439043 app/styles/ui/dialogs/_ssh.scss
+@@ -0,0 +1,54 @@
++#troubleshoot-ssh {
++  .spin {
++    margin-right: var(--spacing-half);
++  }
++
++  p.output {
++    -webkit-user-select: auto;
++    user-select: auto;
++    cursor: text;
++
++    // Preserve newlines and other white space in error messages
++    // but make sure we wrap if necessary.
++    white-space: pre-wrap;
++
++    background: var(--path-segment-background);
++    border: var(--path-segment-background);
++    border-radius: var(--border-radius);
++
++    font-family: var(--font-family-monospace);
++  }
++
++  /** A React component holding the currently selected repository's changes */
++  .account-list-container {
++    flex-grow: 1;
++    display: flex;
++    flex-direction: column;
++    min-height: 34px;
++
++    .account-info {
++      .avatar {
++        // 32px for the image + 2 on each side for the base border.
++        width: 34px;
++        height: 34px;
++
++        border: var(--base-border);
++
++        align-self: center;
++      }
++
++      .user-info {
++        flex-grow: 1;
++        align-self: flex-start;
++
++        .name {
++          font-weight: var(--font-weight-semibold);
++          // Tighten it up a little so that the real name and
++          // username lines up with the avatar.
++          margin-top: -2px;
++          margin-bottom: -2px;
++        }
++      }
++    }
++  }
++}
+merged
+  result 100644 395b1944d0a67690181911aef0df4204161dfd17 app/test/unit/accounts-store-test.ts
+  our    100644 eed3816fb2f76f373f7ae51c5cfa9132619fb879 app/test/unit/accounts-store-test.ts
+@@ -17,7 +17,7 @@
+     it('contains the added user', async () => {
+       const newAccountLogin = 'joan'
+       await accountsStore!.addAccount(
+-        new Account(newAccountLogin, '', 'deadbeef', [], '', 1, '')
++        new Account(newAccountLogin, '', 'deadbeef', [], '', 1, '', [])
+       )
+ 
+       const users = await accountsStore!.getAll()
+changed in both
+  base   100644 11161765e2eda88e549efb9ec50be911f6c76442 app/test/unit/app-store-test.ts
+  our    100644 7c7b2a2600b6cdb77d652940772194805df43425 app/test/unit/app-store-test.ts
+  their  100644 92be09473490e2d370d0426d086ce693623bfe30 app/test/unit/app-store-test.ts
+@@ -14,6 +14,7 @@
+   RepositoriesStore,
+   AccountsStore,
+   PullRequestStore,
++  TroubleshootingStore,
+ } from '../../src/lib/stores'
+ import {
+   TestGitHubUserDatabase,
+@@ -62,6 +63,8 @@
+       repositoriesStore
+     )
+ 
++    const troubleshootingStore = new TroubleshootingStore(accountsStore)
++
+     return new AppStore(
+       new GitHubUserStore(db),
+       new CloningRepositoriesStore(),
+@@ -71,7 +74,8 @@
+       new SignInStore(),
+       accountsStore,
+       repositoriesStore,
+-      pullRequestStore
++      pullRequestStore,
++      troubleshootingStore
+     )
+   }
+ 
+changed in both
+  base   100644 cd15b5fd5314d763ed32ce3dd5d2fa8c9bc2b57e app/test/unit/app-test.tsx
+  our    100644 f5a4bb958cedfdbf76f9144a200a3cfac9613c02 app/test/unit/app-test.tsx
+  their  100644 7d73caeacc66d4c7cec923f7f88346f4979b3525 app/test/unit/app-test.tsx
+@@ -16,6 +16,7 @@
+   RepositoriesStore,
+   AccountsStore,
+   PullRequestStore,
++  TroubleshootingStore,
+ } from '../../src/lib/stores'
+ import { InMemoryDispatcher } from '../helpers/in-memory-dispatcher'
+ import {
+@@ -59,6 +60,8 @@
+       repositoriesStore
+     )
+ 
++    const troubleshootingStore = new TroubleshootingStore(accountsStore)
++
+     appStore = new AppStore(
+       new GitHubUserStore(db),
+       new CloningRepositoriesStore(),
+@@ -68,7 +71,8 @@
+       new SignInStore(),
+       accountsStore,
+       repositoriesStore,
+-      pullRequestStore
++      pullRequestStore,
++      troubleshootingStore
+     )
+ 
+     dispatcher = new InMemoryDispatcher(appStore)
+merged
+  result 100644 389d4c4fef56ffe7f38c8fbf93e3cd2c93ca36e0 app/test/unit/repository-matching-test.ts
+  our    100644 abc42b9bb58132839bc3cef0828c66584193b2fc app/test/unit/repository-matching-test.ts
+@@ -10,7 +10,16 @@
+   describe('matchGitHubRepository', () => {
+     it('matches HTTPS URLs', () => {
+       const accounts = [
+-        new Account('alovelace', 'https://api.github.com', '', [], '', 1, ''),
++        new Account(
++          'alovelace',
++          'https://api.github.com',
++          '',
++          [],
++          '',
++          1,
++          '',
++          []
++        ),
+       ]
+       const repo = matchGitHubRepository(
+         accounts,
+@@ -22,7 +31,16 @@
+ 
+     it('matches HTTPS URLs without the git extension', () => {
+       const accounts = [
+-        new Account('alovelace', 'https://api.github.com', '', [], '', 1, ''),
++        new Account(
++          'alovelace',
++          'https://api.github.com',
++          '',
++          [],
++          '',
++          1,
++          '',
++          []
++        ),
+       ]
+       const repo = matchGitHubRepository(
+         accounts,
+@@ -34,7 +52,16 @@
+ 
+     it('matches git URLs', () => {
+       const accounts = [
+-        new Account('alovelace', 'https://api.github.com', '', [], '', 1, ''),
++        new Account(
++          'alovelace',
++          'https://api.github.com',
++          '',
++          [],
++          '',
++          1,
++          '',
++          []
++        ),
+       ]
+       const repo = matchGitHubRepository(
+         accounts,
+@@ -46,7 +73,16 @@
+ 
+     it('matches SSH URLs', () => {
+       const accounts = [
+-        new Account('alovelace', 'https://api.github.com', '', [], '', 1, ''),
++        new Account(
++          'alovelace',
++          'https://api.github.com',
++          '',
++          [],
++          '',
++          1,
++          '',
++          []
++        ),
+       ]
+       const repo = matchGitHubRepository(
+         accounts,
+@@ -65,7 +101,8 @@
+           [],
+           '',
+           1,
+-          ''
++          '',
++          []
+         ),
+       ]
+       const repo = matchGitHubRepository(
+changed in both
+  base   100644 b017e5071b105d30e40c12577ba965bef3cfa5c2 app/yarn.lock
+  our    100644 cd6294bb698115d3ff652d361f00efbf85c1e781 app/yarn.lock
+  their  100644 f23287610c4f96793e0971118d7c4142cea56961 app/yarn.lock
+@@ -95,6 +95,25 @@
+     balanced-match "^1.0.0"
+     concat-map "0.0.1"
+ 
++buffer-alloc-unsafe@^0.1.0:
++  version "0.1.1"
++  resolved "https://registry.yarnpkg.com/buffer-alloc-unsafe/-/buffer-alloc-unsafe-0.1.1.tgz#ffe1f67551dd055737de253337bfe853dfab1a6a"
++
++buffer-alloc@^1.1.0:
++  version "1.1.0"
++  resolved "https://registry.yarnpkg.com/buffer-alloc/-/buffer-alloc-1.1.0.tgz#05514d33bf1656d3540c684f65b1202e90eca303"
++  dependencies:
++    buffer-alloc-unsafe "^0.1.0"
++    buffer-fill "^0.1.0"
++
++buffer-fill@^0.1.0:
++  version "0.1.1"
++  resolved "https://registry.yarnpkg.com/buffer-fill/-/buffer-fill-0.1.1.tgz#76d825c4d6e50e06b7a31eb520c04d08cc235071"
++
++buffer-from@^1.0.0:
++  version "1.0.0"
++  resolved "https://registry.yarnpkg.com/buffer-from/-/buffer-from-1.0.0.tgz#4cb8832d23612589b0406e9e2956c17f06fdf531"
++
+ byline@^5.0.0:
+   version "5.0.0"
+   resolved "https://registry.yarnpkg.com/byline/-/byline-5.0.0.tgz#741c5216468eadc457b03410118ad77de8c1ddb1"
+@@ -175,7 +194,7 @@
+   version "2.5.1"
+   resolved "https://registry.yarnpkg.com/core-js/-/core-js-2.5.1.tgz#ae6874dc66937789b80754ff5428df66819ca50b"
+ 
+-core-util-is@1.0.2:
++core-util-is@1.0.2, core-util-is@~1.0.0:
+   version "1.0.2"
+   resolved "https://registry.yarnpkg.com/core-util-is/-/core-util-is-1.0.2.tgz#b5fd54220aa2bc5ab57aab7140c940754503c1a7"
+ 
+@@ -190,6 +209,27 @@
+   version "0.0.2"
+   resolved "https://registry.yarnpkg.com/cross-unzip/-/cross-unzip-0.0.2.tgz#5183bc47a09559befcf98cc4657964999359372f"
+ 
++<<<<<<< .our
++=======
++cryptiles@3.x.x:
++  version "3.1.2"
++  resolved "https://registry.yarnpkg.com/cryptiles/-/cryptiles-3.1.2.tgz#a89fbb220f5ce25ec56e8c4aa8a4fd7b5b0d29fe"
++  dependencies:
++    boom "5.x.x"
++
++csv-parser@^1.6.0:
++  version "1.12.1"
++  resolved "https://registry.yarnpkg.com/csv-parser/-/csv-parser-1.12.1.tgz#391e1ef961b1f9dcb4c7c0f82eb450a1bd916158"
++  dependencies:
++    buffer-alloc "^1.1.0"
++    buffer-from "^1.0.0"
++    generate-function "^1.0.1"
++    generate-object-property "^1.0.0"
++    inherits "^2.0.1"
++    minimist "^1.2.0"
++    ndjson "^1.4.0"
++
++>>>>>>> .their
+ cycle@1.0.x:
+   version "1.0.3"
+   resolved "https://registry.yarnpkg.com/cycle/-/cycle-1.0.3.tgz#21e80b2be8580f98b468f379430662b046c34ad2"
+@@ -377,6 +417,13 @@
+     combined-stream "^1.0.5"
+     mime-types "^2.1.12"
+ 
++from2@^2.1.1:
++  version "2.3.0"
++  resolved "https://registry.yarnpkg.com/from2/-/from2-2.3.0.tgz#8bfb5502bde4a4d36cfdeea007fcca21d7e382af"
++  dependencies:
++    inherits "^2.0.1"
++    readable-stream "^2.0.0"
++
+ fs-extra@^6.0.0:
+   version "6.0.0"
+   resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-6.0.0.tgz#0f0afb290bb3deb87978da816fcd3c7797f3a817"
+@@ -399,6 +446,23 @@
+   version "0.6.0"
+   resolved "https://registry.yarnpkg.com/fuzzaldrin-plus/-/fuzzaldrin-plus-0.6.0.tgz#832f6489fbe876769459599c914a670ec22947ee"
+ 
++generate-function@^1.0.1:
++  version "1.1.0"
++  resolved "https://registry.yarnpkg.com/generate-function/-/generate-function-1.1.0.tgz#54c21b080192b16d9877779c5bb81666e772365f"
++
++generate-object-property@^1.0.0:
++  version "1.2.0"
++  resolved "https://registry.yarnpkg.com/generate-object-property/-/generate-object-property-1.2.0.tgz#9c0e1c40308ce804f4783618b937fa88f99d50d0"
++  dependencies:
++    is-property "^1.0.0"
++
++get-stream@^2.1.0:
++  version "2.3.1"
++  resolved "https://registry.yarnpkg.com/get-stream/-/get-stream-2.3.1.tgz#5f38f93f346009666ee0150a054167f91bdd95de"
++  dependencies:
++    object-assign "^4.0.1"
++    pinkie-promise "^2.0.0"
++
+ getpass@^0.1.1:
+   version "0.1.7"
+   resolved "https://registry.yarnpkg.com/getpass/-/getpass-0.1.7.tgz#5eff8e3e684d569ae4cb2b1282604e8ba62149fa"
+@@ -466,10 +530,20 @@
+     once "^1.3.0"
+     wrappy "1"
+ 
+-inherits@2, inherits@~2.0.0:
++inherits@2, inherits@^2.0.1, inherits@~2.0.0, inherits@~2.0.3:
+   version "2.0.3"
+   resolved "https://registry.yarnpkg.com/inherits/-/inherits-2.0.3.tgz#633c2c83e3da42a502f52466022480f4208261de"
+ 
++into-stream@^2.0.0:
++  version "2.0.1"
++  resolved "https://registry.yarnpkg.com/into-stream/-/into-stream-2.0.1.tgz#db9b003694453eae091d8a5c84cc11507b781d31"
++  dependencies:
++    from2 "^2.1.1"
++
++is-property@^1.0.0:
++  version "1.0.2"
++  resolved "https://registry.yarnpkg.com/is-property/-/is-property-1.0.2.tgz#57fe1c4e48474edd65b09911f26b1cd4095dda84"
++
+ is-stream@^1.0.1, is-stream@^1.1.0:
+   version "1.1.0"
+   resolved "https://registry.yarnpkg.com/is-stream/-/is-stream-1.1.0.tgz#12d4a3dd4e68e0b79ceb8dbc84173ae80d91ca44"
+@@ -478,6 +552,10 @@
+   version "1.0.0"
+   resolved "https://registry.yarnpkg.com/is-typedarray/-/is-typedarray-1.0.0.tgz#e479c80858df0c1b11ddda6940f96011fcda4a9a"
+ 
++isarray@~1.0.0:
++  version "1.0.0"
++  resolved "https://registry.yarnpkg.com/isarray/-/isarray-1.0.0.tgz#bb935d48582cba168c06834957a54a3e07124f11"
++
+ isexe@^2.0.0:
+   version "2.0.0"
+   resolved "https://registry.yarnpkg.com/isexe/-/isexe-2.0.0.tgz#e8fbf374dc556ff8947a10dcb0572d633f2cfa10"
+@@ -509,7 +587,7 @@
+   version "0.2.3"
+   resolved "https://registry.yarnpkg.com/json-schema/-/json-schema-0.2.3.tgz#b480c892e59a2f05954ce727bd3f2a4e882f9e13"
+ 
+-json-stringify-safe@~5.0.1:
++json-stringify-safe@^5.0.1, json-stringify-safe@~5.0.1:
+   version "5.0.1"
+   resolved "https://registry.yarnpkg.com/json-stringify-safe/-/json-stringify-safe-5.0.1.tgz#1296a2d58fd45f19a0f6ce01d65701e2c735b6eb"
+ 
+@@ -585,6 +663,10 @@
+   version "0.0.8"
+   resolved "https://registry.yarnpkg.com/minimist/-/minimist-0.0.8.tgz#857fcabfc3397d2625b8228262e86aa7a011b05d"
+ 
++minimist@^1.2.0:
++  version "1.2.0"
++  resolved "https://registry.yarnpkg.com/minimist/-/minimist-1.2.0.tgz#a35008b20f41383eec1fb914f4cd5df79a264284"
++
+ minipass@^2.2.1:
+   version "2.2.1"
+   resolved "https://registry.yarnpkg.com/minipass/-/minipass-2.2.1.tgz#5ada97538b1027b4cf7213432428578cb564011f"
+@@ -627,6 +709,23 @@
+   version "2.8.0"
+   resolved "https://registry.yarnpkg.com/nan/-/nan-2.8.0.tgz#ed715f3fe9de02b57a5e6252d90a96675e1f085a"
+ 
++ndjson@^1.4.0:
++  version "1.5.0"
++  resolved "https://registry.yarnpkg.com/ndjson/-/ndjson-1.5.0.tgz#ae603b36b134bcec347b452422b0bf98d5832ec8"
++  dependencies:
++    json-stringify-safe "^5.0.1"
++    minimist "^1.2.0"
++    split2 "^2.1.0"
++    through2 "^2.0.3"
++
++neat-csv@^2.1.0:
++  version "2.1.0"
++  resolved "https://registry.yarnpkg.com/neat-csv/-/neat-csv-2.1.0.tgz#06f58360c4c3b955bd467ddc85ae4511a3907a4c"
++  dependencies:
++    csv-parser "^1.6.0"
++    get-stream "^2.1.0"
++    into-stream "^2.0.0"
++
+ node-fetch@^1.0.1:
+   version "1.7.3"
+   resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-1.7.3.tgz#980f6f72d85211a5347c6b2bc18c5b84c3eb47ef"
+@@ -676,10 +775,38 @@
+   version "2.1.0"
+   resolved "https://registry.yarnpkg.com/performance-now/-/performance-now-2.1.0.tgz#6309f4e0e5fa913ec1c69307ae364b4b377c9e7b"
+ 
++pify@^2.2.0:
++  version "2.3.0"
++  resolved "https://registry.yarnpkg.com/pify/-/pify-2.3.0.tgz#ed141a6ac043a849ea588498e7dca8b15330e90c"
++
++pify@^3.0.0:
++  version "3.0.0"
++  resolved "https://registry.yarnpkg.com/pify/-/pify-3.0.0.tgz#e5a4acd2c101fdf3d9a4d07f0dbc4db49dd28176"
++
++pinkie-promise@^2.0.0:
++  version "2.0.1"
++  resolved "https://registry.yarnpkg.com/pinkie-promise/-/pinkie-promise-2.0.1.tgz#2135d6dfa7a358c069ac9b178776288228450ffa"
++  dependencies:
++    pinkie "^2.0.0"
++
++pinkie@^2.0.0:
++  version "2.0.4"
++  resolved "https://registry.yarnpkg.com/pinkie/-/pinkie-2.0.4.tgz#72556b80cfa0d48a974e80e77248e80ed4f7f870"
++
+ primer-support@^4.0.0:
+   version "4.3.0"
+   resolved "https://registry.yarnpkg.com/primer-support/-/primer-support-4.3.0.tgz#c470fef8c0bff2ec8a771a0749783c2b388118fe"
+ 
++process-exists@^3.1.0:
++  version "3.1.0"
++  resolved "https://registry.yarnpkg.com/process-exists/-/process-exists-3.1.0.tgz#86cae049e1e7b51382690ec9fd8dfd74ff7a17c8"
++  dependencies:
++    ps-list "^4.0.0"
++
++process-nextick-args@~2.0.0:
++  version "2.0.0"
++  resolved "https://registry.yarnpkg.com/process-nextick-args/-/process-nextick-args-2.0.0.tgz#a37d732f4271b4ab1ad070d35508e8290788ffaa"
++
+ progress@^2.0.0:
+   version "2.0.0"
+   resolved "https://registry.yarnpkg.com/progress/-/progress-2.0.0.tgz#8a1be366bf8fc23db2bd23f10c6fe920b4389d1f"
+@@ -698,6 +825,13 @@
+     loose-envify "^1.3.1"
+     object-assign "^4.1.1"
+ 
++ps-list@^4.0.0:
++  version "4.1.0"
++  resolved "https://registry.yarnpkg.com/ps-list/-/ps-list-4.1.0.tgz#8ffd6434add37f9dd1a9f19ab1beb42c9db60dae"
++  dependencies:
++    pify "^3.0.0"
++    tasklist "^3.1.0"
++
+ pseudomap@^1.0.2:
+   version "1.0.2"
+   resolved "https://registry.yarnpkg.com/pseudomap/-/pseudomap-1.0.2.tgz#f052a28da70e618917ef0a8ac34c1ae5a68286b3"
+@@ -770,6 +904,18 @@
+     object-assign "^4.1.1"
+     prop-types "^15.6.0"
+ 
++readable-stream@^2.0.0, readable-stream@^2.1.5:
++  version "2.3.6"
++  resolved "https://registry.yarnpkg.com/readable-stream/-/readable-stream-2.3.6.tgz#b11c27d88b8ff1fbe070643cf94b0c79ae1b0aaf"
++  dependencies:
++    core-util-is "~1.0.0"
++    inherits "~2.0.3"
++    isarray "~1.0.0"
++    process-nextick-args "~2.0.0"
++    safe-buffer "~5.1.1"
++    string_decoder "~1.1.1"
++    util-deprecate "~1.0.1"
++
+ regenerator-runtime@^0.11.0:
+   version "0.11.0"
+   resolved "https://registry.yarnpkg.com/regenerator-runtime/-/regenerator-runtime-0.11.0.tgz#7e54fe5b5ccd5d6624ea6255c3473be090b802e1"
+@@ -825,6 +971,14 @@
+   version "5.1.1"
+   resolved "https://registry.yarnpkg.com/safe-buffer/-/safe-buffer-5.1.1.tgz#893312af69b2123def71f57889001671eeb2c853"
+ 
++safe-buffer@~5.1.0, safe-buffer@~5.1.1:
++  version "5.1.2"
++  resolved "https://registry.yarnpkg.com/safe-buffer/-/safe-buffer-5.1.2.tgz#991ec69d296e0313747d59bdfd2b745c35f8828d"
++
++sec@^1.0.0:
++  version "1.0.0"
++  resolved "https://registry.yarnpkg.com/sec/-/sec-1.0.0.tgz#033d60a3ad20ecf2e00940d14f97823465774335"
++
+ semver@^5.3.0:
+   version "5.4.1"
+   resolved "https://registry.yarnpkg.com/semver/-/semver-5.4.1.tgz#e059c09d8571f0540823733433505d3a2f00b18e"
+@@ -843,6 +997,12 @@
+   version "0.5.7"
+   resolved "https://registry.yarnpkg.com/source-map/-/source-map-0.5.7.tgz#8a039d2d1021d22d1ea14c80d8ea468ba2ef3fcc"
+ 
++split2@^2.1.0:
++  version "2.2.0"
++  resolved "https://registry.yarnpkg.com/split2/-/split2-2.2.0.tgz#186b2575bcf83e85b7d18465756238ee4ee42493"
++  dependencies:
++    through2 "^2.0.2"
++
+ sshpk@^1.7.0:
+   version "1.13.1"
+   resolved "https://registry.yarnpkg.com/sshpk/-/sshpk-1.13.1.tgz#512df6da6287144316dc4c18fe1cf1d940739be3"
+@@ -861,6 +1021,19 @@
+   version "0.0.10"
+   resolved "https://registry.yarnpkg.com/stack-trace/-/stack-trace-0.0.10.tgz#547c70b347e8d32b4e108ea1a2a159e5fdde19c0"
+ 
++<<<<<<< .our
++=======
++string_decoder@~1.1.1:
++  version "1.1.1"
++  resolved "https://registry.yarnpkg.com/string_decoder/-/string_decoder-1.1.1.tgz#9cf1611ba62685d7030ae9e4ba34149c3af03fc8"
++  dependencies:
++    safe-buffer "~5.1.0"
++
++stringstream@~0.0.5:
++  version "0.0.5"
++  resolved "https://registry.yarnpkg.com/stringstream/-/stringstream-0.0.5.tgz#4e484cd4de5a0bbbee18e46307710a8a81621878"
++
++>>>>>>> .their
+ strip-ansi@^3.0.0:
+   version "3.0.1"
+   resolved "https://registry.yarnpkg.com/strip-ansi/-/strip-ansi-3.0.1.tgz#6a385fb8853d952d5ff05d0e8aaf94278dc63dcf"
+@@ -894,6 +1067,14 @@
+     mkdirp "^0.5.0"
+     yallist "^3.0.2"
+ 
++tasklist@^3.1.0:
++  version "3.1.0"
++  resolved "https://registry.yarnpkg.com/tasklist/-/tasklist-3.1.0.tgz#873a98a4e45cbdecfa2c2ee18865353057e63696"
++  dependencies:
++    neat-csv "^2.1.0"
++    pify "^2.2.0"
++    sec "^1.0.0"
++
+ temp@^0.8.3:
+   version "0.8.3"
+   resolved "https://registry.yarnpkg.com/temp/-/temp-0.8.3.tgz#e0c6bc4d26b903124410e4fed81103014dfc1f59"
+@@ -905,6 +1086,13 @@
+   version "3.0.2"
+   resolved "https://registry.yarnpkg.com/textarea-caret/-/textarea-caret-3.0.2.tgz#f360c48699aa1abf718680a43a31a850665c2caf"
+ 
++through2@^2.0.2, through2@^2.0.3:
++  version "2.0.3"
++  resolved "https://registry.yarnpkg.com/through2/-/through2-2.0.3.tgz#0004569b37c7c74ba39c43f3ced78d1ad94140be"
++  dependencies:
++    readable-stream "^2.1.5"
++    xtend "~4.0.1"
++
+ tough-cookie@~2.3.3:
+   version "2.3.3"
+   resolved "https://registry.yarnpkg.com/tough-cookie/-/tough-cookie-2.3.3.tgz#0b618a5565b6dea90bf3425d04d55edc475a7561"
+@@ -940,6 +1128,10 @@
+     execa "^0.4.0"
+     mem "^0.1.0"
+ 
++util-deprecate@~1.0.1:
++  version "1.0.2"
++  resolved "https://registry.yarnpkg.com/util-deprecate/-/util-deprecate-1.0.2.tgz#450d4dc9fa70de732762fbd2d4a28981419a0ccf"
++
+ uuid@^3.0.1, uuid@^3.1.0:
+   version "3.1.0"
+   resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.1.0.tgz#3dd3d3e790abc24d7b0d3a034ffababe28ebbc04"
+@@ -1009,6 +1201,10 @@
+   version "1.0.2"
+   resolved "https://registry.yarnpkg.com/wrappy/-/wrappy-1.0.2.tgz#b5243d8f3ec1aa35f1364605bc0d1036e30ab69f"
+ 
++xtend@~4.0.1:
++  version "4.0.1"
++  resolved "https://registry.yarnpkg.com/xtend/-/xtend-4.0.1.tgz#a5c6d532be656e23db820efb943a1f04998d63af"
++
+ yallist@^2.1.2:
+   version "2.1.2"
+   resolved "https://registry.yarnpkg.com/yallist/-/yallist-2.1.2.tgz#1c11f9218f076089a47dd512f93c6699a6a81d52"
+added in remote
+  their  100644 5b9fe3f8d1195e5d5cf3e5e8d20da8c832f8278a docs/technical/ssh-troubleshooting.md
+@@ -0,0 +1,122 @@
++# SSH Troubleshooting
++
++This document outlines how Desktop inspects the SSH setup to address a number
++of common issues.
++
++## Host Key Verification
++
++As part of initializing the SSH connection, `ssh` will check that it knows
++and trusts the server it is connnecting to. When connecting to an unknown
++host, `ssh` will prompt to ask if you wish to trust this server:
++
++```shellsession
++$ git fetch --progress --prune origin
++The authenticity of host 'github.com (192.30.255.112)' can't be established.
++RSA key fingerprint is SHA256:nThbg6kXUpJWGl7E1IGOCspRomTxdCARLviKw6E5SY8.
++Are you sure you want to continue connecting (yes/no)?
++```
++
++Desktop currently doesn't have a way to support interactive processes like
++this, so we need to hook into some configuration options and manually add this
++to the known hosts file that SSH uses.
++
++To avoid the interactive prompt, adding `StrictHostKeyChecking=yes` as an
++option to `ssh` ensures that the Git operation will fail rather than hang
++waiting for user input:
++
++```shellsession
++$ ssh -o StrictHostKeyChecking=yes git@github.com
++```
++
++To trust a new server, you can use `ssh-keygen`:
++
++```shellsession
++$ ssh-keygen github.com >> ~/.ssh/known_hosts
++```
++
++This isn't currently available in `dugite`, but we can leverage either the
++OpenSSH environment that comes with Windows 10 Fall Creators Update (should
++be on `PATH`) or the version that comes with Git for Windows (need to add to
++`PATH`). macOS should have a working SSH setup by default, Linux will likely be
++in trouble if it's not on `PATH`.
++
++## The `ssh-agent` process
++
++The `ssh-agent` process is important to the SSH connection process, and needs
++to be running for the current user to handle SSH authentication on the local
++machine.
++
++If no running `ssh-agent` process is found, Desktop could launch it's own
++instance of the process and ensure it is killed when Desktop exits. *This is
++currently out of scope for the proof-of-concept.*
++
++As part of launching the `ssh-agent` process, it has a number of environment
++variables that help other tools integrate with it:
++
++```shellsession
++$ ssh-agent -s
++SSH_AUTH_SOCK=/var/folders/dc/ww83254d73g8z6lc9y_msm9r0000gn/T//ssh-oerrG9QXPkWr/agent.15063; export SSH_AUTH_SOCK;
++SSH_AGENT_PID=15064; export SSH_AGENT_PID;
++echo Agent pid 15064;
++```
++
++Desktop needs to inspect these and pass them through to Git whenever it needs
++to do anything authentication-related.
++
++## Working with SSH keys
++
++After verifying the SSH server, and confirming a valid `ssh-agent` process is running,
++a valid public/private key pair is required that represents the identity of the user.
++
++We can see the existing keys by running `ssh-add l`:
++
++```
++$ ssh-all -l
++4096 SHA256:V+fJ7HbKo3UindVz0x2XlZcZDr5GAd3p4+Ex7NnCCBI /Users/shiftkey/.ssh/id_rsa_new (RSA)
++```
++
++I'm not aware of any CLI tools for identifying available SSH keys, but we can assume
++with a good degree of confidence that we have pairs of files at `~/.ssh`:
++
++```
++$ ls ~/.ssh/
++id_rsa         id_rsa.pub     id_rsa_new     id_rsa_new.pub known_hosts
++```
++
++Desktop could list these in the application so that a user may add them to the `ssh-agent`
++process.
++
++We can glean some identity information from the public key file - an email address that
++was used when it was created - and the name of the file. This should be enough to help
++the user identify the right key to add.
++
++We can tell if a private key requires a passphrase by the header contents. Here's a key
++that doesn't require a passphrase:
++
++```
++-----BEGIN RSA PRIVATE KEY-----
++MIIEogIBAAKCAQEA3qKD/4PAc6PMb1yCckTduFl5fA1OpURLR5Z+T4xY1JQt3eTM
++```
++
++And this is the header of a key that requires a passphrase:
++
++```
++-----BEGIN RSA PRIVATE KEY-----
++Proc-Type: 4,ENCRYPTED
++DEK-Info: DES-EDE3-CBC,556C1115CDA822F5
++
++AHi/3++6PEIBv4kfpM57McyoSAAaT2ECxNOA5DRKxJQ9pr2D3aUeMBaBfWGrxd/Q
++```
++
++## Creating a new public/private key pair
++
++If no suitable keys are found, the user should be able to create a new SSH key. This
++can be done from the command line:
++
++```
++ssh-keygen -q -b 4096 -t rsa -N new_passphrase -f output_keyfile
++```
++
++Desktop should use a naming convention to make it clear that it was the source of the key,
++to ensure it doesn't interfere with existing keys from other sources. Something
++like `~/.ssh/github_desktop_[login]` would be radical.

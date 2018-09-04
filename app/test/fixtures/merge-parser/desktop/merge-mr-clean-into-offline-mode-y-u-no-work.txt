@@ -1,0 +1,1961 @@
+changed in both
+  base   100644 eead3dcf0fdacf7030ad7c485f203f058ebf96bf app/src/lib/databases/pull-request-database.ts
+  our    100644 7446a4ce1ebf104f7825a7757e6be2beccfbe4ef app/src/lib/databases/pull-request-database.ts
+  their  100644 c914a57b5e785438f9475dde8880490601fd47b7 app/src/lib/databases/pull-request-database.ts
+@@ -1,8 +1,21 @@
+ import Dexie from 'dexie'
++<<<<<<< .our
+ import { APIRefState, IAPIRefStatusItem } from '../api'
+ import { BaseDatabase } from './base-database'
++=======
++>>>>>>> .their
+ 
+-export interface IPullRequestRef {
++export type RefState = 'failure' | 'pending' | 'success'
++
++export interface IRefStatus {
++  readonly id: number
++  readonly state: RefState
++  readonly targetURL: string
++  readonly description: string
++  readonly context: string
++}
++
++export interface IRefEntity {
+   /**
+    * The database ID of the GitHub repository in which this ref lives. It could
+    * be null if the repository was deleted on the site after the PR was opened.
+@@ -16,7 +29,7 @@
+   readonly sha: string
+ }
+ 
+-export interface IPullRequest {
++export interface IPullRequestEntity {
+   /**
+    * The database ID. This will be undefined if the pull request hasn't been
+    * inserted into the DB.
+@@ -33,16 +46,16 @@
+   readonly createdAt: string
+ 
+   /** The ref from which the pull request's changes are coming. */
+-  readonly head: IPullRequestRef
++  readonly head: IRefEntity
+ 
+   /** The ref which the pull request is targetting. */
+-  readonly base: IPullRequestRef
++  readonly base: IRefEntity
+ 
+   /** The login of the author. */
+   readonly author: string
+ }
+ 
+-export interface IPullRequestStatus {
++export interface IPullRequestStatusEntity {
+   /**
+    * The database ID. This will be undefined if the status hasn't been inserted
+    * into the DB.
+@@ -53,7 +66,7 @@
+   readonly pullRequestId: number
+ 
+   /** The status' state. */
+-  readonly state: APIRefState
++  readonly state: 'failure' | 'pending' | 'success'
+ 
+   /** The number of statuses represented in this combined status. */
+   readonly totalCount: number
+@@ -66,12 +79,21 @@
+    * if the database object was created prior to status support
+    * being added in #3588
+    */
++<<<<<<< .our
+   readonly statuses?: ReadonlyArray<IAPIRefStatusItem>
+ }
+ 
+ export class PullRequestDatabase extends BaseDatabase {
+   public pullRequests!: Dexie.Table<IPullRequest, number>
+   public pullRequestStatus!: Dexie.Table<IPullRequestStatus, number>
++=======
++  readonly statuses: ReadonlyArray<IRefStatus> | undefined
++}
++
++export class PullRequestDatabase extends Dexie {
++  public pullRequests: Dexie.Table<IPullRequestEntity, number>
++  public pullRequestStatus: Dexie.Table<IPullRequestStatusEntity, number>
++>>>>>>> .their
+ 
+   public constructor(name: string, schemaVersion?: number) {
+     super(name, schemaVersion)
+changed in both
+  base   100644 6af2df2cfc1b91598cba2821fff1162a89c901f2 app/src/lib/repository-matching.ts
+  our    100644 320c31614eb7012348f2ae7877bfb5a0b11cf5af app/src/lib/repository-matching.ts
+  their  100644 ffd9c672b3e24afaa09ce84c0d019b78a32bbea4 app/src/lib/repository-matching.ts
+@@ -48,26 +48,25 @@
+ ): IMatchedGitHubRepository | null {
+   const htmlURL = getHTMLURL(account.endpoint)
+   const parsed = URL.parse(htmlURL)
+-  const host = parsed.hostname
+ 
+   const parsedRemote = parseRemote(remote)
+   if (!parsedRemote) {
+     return null
+   }
+ 
++  const host = parsed.hostname
+   const owner = parsedRemote.owner
+   const name = parsedRemote.name
+-
+   if (
+-    host &&
+-    parsedRemote.hostname.toLowerCase() === host.toLowerCase() &&
+-    owner &&
+-    name
++    host == null ||
++    name == null ||
++    owner == null ||
++    parsedRemote.hostname.toLocaleLowerCase() !== host.toLocaleLowerCase()
+   ) {
+-    return { name, owner, endpoint: account.endpoint }
++    return null
+   }
+ 
+-  return null
++  return { name, owner, endpoint: account.endpoint }
+ }
+ 
+ /**
+changed in both
+  base   100644 700d3f933813e7f847a36b6d4955ef5f10bc88c5 app/src/lib/stores/app-store.ts
+  our    100644 1a4e387e4d192d34abfd0621b4b5ebe8cc34d8d1 app/src/lib/stores/app-store.ts
+  their  100644 e98175838c3c8006048a1876a557d0295c793a85 app/src/lib/stores/app-store.ts
+@@ -2212,9 +2212,9 @@
+     repository: Repository
+   ): Promise<Repository> {
+     const oldGitHubRepository = repository.gitHubRepository
+-
+     const matchedGitHubRepository = await this.matchGitHubRepository(repository)
+-    if (!matchedGitHubRepository) {
++
++    if (matchedGitHubRepository == null) {
+       // TODO: We currently never clear GitHub repository associations (see
+       // https://github.com/desktop/desktop/issues/1144). So we can bail early
+       // at this point.
+@@ -3348,10 +3348,12 @@
+   public async _addRepositories(
+     paths: ReadonlyArray<string>
+   ): Promise<ReadonlyArray<Repository>> {
+-    const addedRepositories = new Array<Repository>()
+-    const lfsRepositories = new Array<Repository>()
++    const addedRepositories: Array<Repository> = []
++    const lfsRepositories: Array<Repository> = []
++
+     for (const path of paths) {
+       const validatedPath = await validatedRepositoryPath(path)
++
+       if (validatedPath) {
+         log.info(`[AppStore] adding repository at ${validatedPath} to store`)
+ 
+changed in both
+  base   100644 b692ad47edc1ec903fa137c97c0207a46d7dc97a app/src/lib/stores/pull-request-store.ts
+  our    100644 d9edf0247ea7c33ae2b508f876aa977d8a81d6d4 app/src/lib/stores/pull-request-store.ts
+  their  100644 cd86fe5febba7d37db6e7b2ff50acb6797ba6e21 app/src/lib/stores/pull-request-store.ts
+@@ -1,13 +1,14 @@
+ import {
+   PullRequestDatabase,
+-  IPullRequest,
+-  IPullRequestStatus,
++  IPullRequestEntity,
++  IPullRequestStatusEntity,
++  RefState,
++  IRefStatus,
+ } from '../databases'
+ import { GitHubRepository } from '../../models/github-repository'
+ import { Account } from '../../models/account'
+-import { API, IAPIPullRequest } from '../api'
++import { API, IAPIPullRequest, IAPIRefStatusItem, IAPIRepository } from '../api'
+ import { fatalError, forceUnwrap } from '../fatal-error'
+-import { RepositoriesStore } from './repositories-store'
+ import {
+   PullRequest,
+   PullRequestRef,
+@@ -21,20 +22,77 @@
+ const Decrement = (n: number) => n - 1
+ const Increment = (n: number) => n + 1
+ 
++const mapAPIToEntityPullRequestStatus = (
++  prStatus: ReadonlyArray<IAPIRefStatusItem>
++): ReadonlyArray<IRefStatus> => {
++  return prStatus.map(apiRefStatus => {
++    return {
++      id: apiRefStatus.id,
++      state: apiRefStatus.state,
++      targetURL: apiRefStatus.target_url,
++      description: apiRefStatus.description,
++      context: apiRefStatus.context,
++    }
++  })
++}
++
++const mapAPIToEntityPullRequest = (
++  pr: IAPIPullRequest,
++  base: GitHubRepository,
++  head: GitHubRepository | null = null
++): IPullRequestEntity => {
++  return {
++    number: pr.number,
++    title: pr.title,
++    createdAt: pr.created_at,
++    head: {
++      ref: pr.head.ref,
++      sha: pr.head.sha,
++      repoId: (head && head.dbID) || null,
++    },
++    base: {
++      ref: pr.base.ref,
++      sha: pr.base.sha,
++      repoId: base.dbID,
++    },
++    author: pr.user.login,
++  }
++}
++
+ /** The store for GitHub Pull Requests. */
+ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
+   private readonly pullRequestDatabase: PullRequestDatabase
++<<<<<<< .our
+   private readonly repositoryStore: RepositoriesStore
+   private readonly activeFetchCountPerRepository = new Map<number, number>()
++=======
++  private activeFetchCountPerRepository = new Map<number, number>()
++  private findOrAddGitHubRepository: (
++    endpoint: string,
++    apiRepository: IAPIRepository
++  ) => Promise<GitHubRepository>
++  private findGitHubRepositoryById: (
++    id: number
++  ) => Promise<GitHubRepository | null>
++>>>>>>> .their
+ 
+   public constructor(
+     db: PullRequestDatabase,
+-    repositoriesStore: RepositoriesStore
++    findOrPutGitHubRepository: (
++      endpoint: string,
++      apiRepository: IAPIRepository
++    ) => Promise<GitHubRepository>,
++    findGitHubRepositoryById: (id: number) => Promise<GitHubRepository | null>
+   ) {
+     super()
+ 
+     this.pullRequestDatabase = db
++<<<<<<< .our
+     this.repositoryStore = repositoriesStore
++=======
++    this.findOrAddGitHubRepository = findOrPutGitHubRepository
++    this.findGitHubRepositoryById = findGitHubRepositoryById
++>>>>>>> .their
+   }
+ 
+   /** Loads all pull requests against the given repository. */
+@@ -46,27 +104,52 @@
+       'Can only refresh pull requests for GitHub repositories',
+       repository.gitHubRepository
+     )
++<<<<<<< .our
+     const apiClient = API.fromAccount(account)
++=======
++>>>>>>> .their
+ 
+     this.updateActiveFetchCount(githubRepo, Increment)
+ 
+     try {
++<<<<<<< .our
+       const apiResult = await apiClient.fetchPullRequests(
++=======
++      const api = API.fromAccount(account)
++      const apiResults = await api.fetchPullRequests(
++>>>>>>> .their
+         githubRepo.owner.login,
+         githubRepo.name,
+         'open'
+       )
+ 
++<<<<<<< .our
+       await this.cachePullRequests(apiResult, githubRepo)
++=======
++      await this.writePRs(apiResults, githubRepo)
++>>>>>>> .their
+ 
+       const prs = await this.fetchPullRequestsFromCache(githubRepo)
+ 
++<<<<<<< .our
+       await this.fetchAndCachePullRequestStatus(prs, githubRepo, account)
+       await this.pruneForkedRemotes(repository, prs)
+ 
+       this.emitUpdate(githubRepo)
+     } catch (error) {
+       log.warn(`Error refreshing pull requests for '${repository.name}'`, error)
++=======
++      await Promise.all([
++        this.refreshStatusForPRs(prs, githubRepo, account),
++        this.pruneForkedRemotes(repository, prs),
++      ])
++    } catch (error) {
++      log.error(
++        `Error refreshing pull requests for '${repository.name}'`,
++        error
++      )
++      this.emitError(error)
++>>>>>>> .their
+     } finally {
+       this.updateActiveFetchCount(githubRepo, Decrement)
+     }
+@@ -255,8 +338,14 @@
+     repository: GitHubRepository,
+     account: Account
+   ): Promise<void> {
++<<<<<<< .our
+     const apiClient = API.fromAccount(account)
+     const statuses: Array<IPullRequestStatus> = []
++=======
++    const api = API.fromAccount(account)
++    const statuses: Array<IPullRequestStatusEntity> = []
++    const prs: Array<PullRequest> = []
++>>>>>>> .their
+ 
+     for (const pr of pullRequests) {
+       const combinedRefStatus = await apiClient.fetchCombinedRefStatus(
+@@ -267,10 +356,17 @@
+ 
+       statuses.push({
+         pullRequestId: pr.id,
++<<<<<<< .our
+         state: combinedRefStatus.state,
+         totalCount: combinedRefStatus.total_count,
+         sha: pr.head.sha,
+         statuses: combinedRefStatus.statuses,
++=======
++        state: apiStatus.state as RefState,
++        totalCount: apiStatus.total_count,
++        sha: pr.head.sha,
++        statuses: mapAPIToEntityPullRequestStatus(apiStatus.statuses),
++>>>>>>> .their
+       })
+     }
+ 
+@@ -313,15 +409,20 @@
+     pullRequestsFromAPI: ReadonlyArray<IAPIPullRequest>,
+     repository: GitHubRepository
+   ): Promise<void> {
++<<<<<<< .our
+     const repoDbId = repository.dbID
+ 
+     if (repoDbId == null) {
++=======
++    if (repository.dbID == null) {
++>>>>>>> .their
+       return fatalError(
+         "Cannot store pull requests for a repository that hasn't been inserted into the database!"
+       )
+     }
+ 
+     const table = this.pullRequestDatabase.pullRequests
++<<<<<<< .our
+     const prsToInsert = new Array<IPullRequest>()
+ 
+     for (const pr of pullRequestsFromAPI) {
+@@ -402,6 +503,38 @@
+ 
+   private async cachePullRequestStatuses(
+     statuses: Array<IPullRequestStatus>
++=======
++    const insertablePRs = new Array<IPullRequestEntity>()
++    for (const pr of pullRequests) {
++      // base repo isn't null since that's where we got the PR from
++      const baseRepo = forceUnwrap(
++        'A pull request must have a base repository before it can be inserted',
++        pr.base.repo
++      )
++      const base = await this.findOrAddGitHubRepository(
++        repository.endpoint,
++        baseRepo
++      )
++      const head =
++        (pr.head.repo &&
++          (await this.findOrAddGitHubRepository(
++            repository.endpoint,
++            pr.head.repo
++          ))) ||
++        null
++      const thingToInsert = mapAPIToEntityPullRequest(pr, base, head)
++      insertablePRs.push(thingToInsert)
++    }
++
++    await this.pullRequestDatabase.transaction('rw', table, async () => {
++      await table.clear()
++      await table.bulkAdd(insertablePRs)
++    })
++  }
++
++  private async writePRStatus(
++    statuses: Array<IPullRequestStatusEntity>
++>>>>>>> .their
+   ): Promise<void> {
+     const table = this.pullRequestDatabase.pullRequestStatus
+ 
+@@ -420,4 +553,73 @@
+       }
+     })
+   }
++<<<<<<< .our
++=======
++
++  /** Gets the pull requests against the given repository. */
++  public async getPullRequests(
++    repository: GitHubRepository
++  ): Promise<ReadonlyArray<PullRequest>> {
++    const gitHubRepositoryID = repository.dbID
++
++    if (!gitHubRepositoryID) {
++      return fatalError(
++        "Cannot get pull requests for a repository that hasn't been inserted into the database!"
++      )
++    }
++
++    const raw = await this.pullRequestDatabase.pullRequests
++      .where('base.repoId')
++      .equals(gitHubRepositoryID)
++      .reverse()
++      .sortBy('number')
++
++    const pullRequests = new Array<PullRequest>()
++
++    for (const pr of raw) {
++      const headId = pr.head.repoId
++
++      let head: GitHubRepository | null = null
++
++      if (headId) {
++        head = await this.findGitHubRepositoryById(headId)
++      }
++
++      // We know the base repo ID can't be null since it's the repository we
++      // fetched the PR from in the first place.
++      const baseId = forceUnwrap(
++        'PR cannot have a null base repo id',
++        pr.base.repoId
++      )
++      const base = forceUnwrap(
++        'PR cannot have a null base repo',
++        await this.findGitHubRepositoryById(baseId)
++      )
++
++      // We can be certain the PR ID is valid since we just got it from the
++      // database.
++      const prID = forceUnwrap(
++        'PR cannot have a null ID after being retrieved from the database',
++        pr.id
++      )
++
++      const pullRequestStatus = await this.getPRStatusById(pr.head.sha, prID)
++
++      const pullRequest = new PullRequest(
++        prID,
++        new Date(pr.createdAt),
++        pullRequestStatus,
++        pr.title,
++        pr.number,
++        new PullRequestRef(pr.head.ref, pr.head.sha, head),
++        new PullRequestRef(pr.base.ref, pr.base.sha, base),
++        pr.author
++      )
++
++      pullRequests.push(pullRequest)
++    }
++
++    return pullRequests
++  }
++>>>>>>> .their
+ }
+changed in both
+  base   100644 f3314ebfa4a006dfe567e597d9b9874623736798 app/src/lib/stores/repositories-store.ts
+  our    100644 1c0981c70e593bda2422a96ca43b130cedd5db06 app/src/lib/stores/repositories-store.ts
+  their  100644 d4601ff4f24fcb907d7047d938287e0412e26feb app/src/lib/stores/repositories-store.ts
+@@ -6,7 +6,7 @@
+ import { Owner } from '../../models/owner'
+ import { GitHubRepository } from '../../models/github-repository'
+ import { Repository } from '../../models/repository'
+-import { fatalError } from '../fatal-error'
++import { fatalError, forceUnwrap } from '../fatal-error'
+ import { IAPIRepository } from '../api'
+ import { BaseStore } from './base-store'
+ 
+@@ -31,16 +31,20 @@
+       this.db.gitHubRepositories,
+       this.db.owners,
+       async () => {
+-        const gitHubRepository = await this.db.gitHubRepositories
++        const record = await this.db.gitHubRepositories
+           .where('cloneURL')
+           .equals(apiRepository.clone_url)
+           .limit(1)
+           .first()
+ 
++<<<<<<< .our
+         if (gitHubRepository == null) {
++=======
++        if (record == null) {
++>>>>>>> .their
+           return this.putGitHubRepository(endpoint, apiRepository)
+         } else {
+-          return this.buildGitHubRepository(gitHubRepository)
++          return this.buildGitHubRepository(record)
+         }
+       }
+     )
+@@ -51,12 +55,16 @@
+   ): Promise<GitHubRepository> {
+     const owner = await this.db.owners.get(dbRepo.ownerID)
+ 
++<<<<<<< .our
+     if (owner == null) {
++=======
++    if (!owner) {
++>>>>>>> .their
+       throw new Error(`Couldn't find the owner for ${dbRepo.name}`)
+     }
+ 
+     let parent: GitHubRepository | null = null
+-    if (dbRepo.parentID) {
++    if (dbRepo.parentID != null) {
+       parent = await this.findGitHubRepositoryByID(dbRepo.parentID)
+     }
+ 
+@@ -253,14 +261,19 @@
+     endpoint: string,
+     gitHubRepository: IAPIRepository
+   ): Promise<GitHubRepository> {
+-    let parent: GitHubRepository | null = null
+-    if (gitHubRepository.parent) {
+-      parent = await this.putGitHubRepository(endpoint, gitHubRepository.parent)
++    let parentRepo: GitHubRepository | null = null
++
++    if (gitHubRepository.fork) {
++      const parent = forceUnwrap(
++        'A forked repository must have a parent',
++        gitHubRepository.parent
++      )
++
++      parentRepo = await this.putGitHubRepository(endpoint, parent)
+     }
+ 
+     const login = gitHubRepository.owner.login.toLowerCase()
+     const owner = await this.putOwner(endpoint, login)
+-
+     const existingRepo = await this.db.gitHubRepositories
+       .where('[ownerID+name]')
+       .equals([owner.id!, gitHubRepository.name])
+@@ -273,13 +286,15 @@
+       htmlURL: gitHubRepository.html_url,
+       defaultBranch: gitHubRepository.default_branch,
+       cloneURL: gitHubRepository.clone_url,
+-      parentID: parent ? parent.dbID : null,
++      parentID: parentRepo ? parentRepo.dbID : null,
+     }
++
+     if (existingRepo) {
+       updatedGitHubRepo = { ...updatedGitHubRepo, id: existingRepo.id }
+     }
+ 
+     const id = await this.db.gitHubRepositories.put(updatedGitHubRepo)
++
+     return new GitHubRepository(
+       updatedGitHubRepo.name,
+       owner,
+@@ -288,7 +303,7 @@
+       updatedGitHubRepo.htmlURL,
+       updatedGitHubRepo.defaultBranch,
+       updatedGitHubRepo.cloneURL,
+-      parent
++      parentRepo
+     )
+   }
+ 
+changed in both
+  base   100644 aa510beef50c878b8639a69157281c7460e868ab app/src/ui/index.tsx
+  our    100644 f8f8200917327048c8f002fcfade473dfd6668d1 app/src/ui/index.tsx
+  their  100644 17edd3e21a277257324770e576786dd04cef3c80 app/src/ui/index.tsx
+@@ -122,7 +122,8 @@
+ 
+ const pullRequestStore = new PullRequestStore(
+   new PullRequestDatabase('PullRequestDatabase'),
+-  repositoriesStore
++  repositoriesStore.findOrPutGitHubRepository,
++  repositoriesStore.findGitHubRepositoryByID
+ )
+ 
+ const appStore = new AppStore(
+removed in remote
+  base   100644 eed3816fb2f76f373f7ae51c5cfa9132619fb879 app/test/unit/accounts-store-test.ts
+  our    100644 eed3816fb2f76f373f7ae51c5cfa9132619fb879 app/test/unit/accounts-store-test.ts
+@@ -1,27 +0,0 @@
+-import { expect } from 'chai'
+-
+-import { Account } from '../../src/models/account'
+-import { AccountsStore } from '../../src/lib/stores'
+-import { InMemoryStore, AsyncInMemoryStore } from '../helpers/stores'
+-
+-describe('AccountsStore', () => {
+-  let accountsStore: AccountsStore | null = null
+-  beforeEach(() => {
+-    accountsStore = new AccountsStore(
+-      new InMemoryStore(),
+-      new AsyncInMemoryStore()
+-    )
+-  })
+-
+-  describe('adding a new user', () => {
+-    it('contains the added user', async () => {
+-      const newAccountLogin = 'joan'
+-      await accountsStore!.addAccount(
+-        new Account(newAccountLogin, '', 'deadbeef', [], '', 1, '')
+-      )
+-
+-      const users = await accountsStore!.getAll()
+-      expect(users[0].login).to.equal(newAccountLogin)
+-    })
+-  })
+-})
+removed in remote
+  base   100644 bd8253abfa8404e42377b4b26ffe52f11269f273 app/test/unit/app-store-test.ts
+  our    100644 7c7b2a2600b6cdb77d652940772194805df43425 app/test/unit/app-store-test.ts
+@@ -1,149 +0,0 @@
+-import { expect, AssertionError } from 'chai'
+-
+-import * as Path from 'path'
+-import * as FSE from 'fs-extra'
+-import { GitProcess } from 'dugite'
+-
+-import {
+-  AppStore,
+-  GitHubUserStore,
+-  CloningRepositoriesStore,
+-  EmojiStore,
+-  IssuesStore,
+-  SignInStore,
+-  RepositoriesStore,
+-  AccountsStore,
+-  PullRequestStore,
+-} from '../../src/lib/stores'
+-import {
+-  TestGitHubUserDatabase,
+-  TestStatsDatabase,
+-  TestIssuesDatabase,
+-  TestRepositoriesDatabase,
+-  TestPullRequestDatabase,
+-} from '../helpers/databases'
+-import { setupEmptyRepository } from '../helpers/repositories'
+-import { InMemoryStore, AsyncInMemoryStore } from '../helpers/stores'
+-
+-import { StatsStore } from '../../src/lib/stats'
+-
+-import {
+-  RepositorySectionTab,
+-  SelectionType,
+-  IRepositoryState,
+-} from '../../src/lib/app-state'
+-import { Repository } from '../../src/models/repository'
+-import { Commit } from '../../src/models/commit'
+-import { getCommit } from '../../src/lib/git'
+-import { TestActivityMonitor } from '../helpers/test-activity-monitor'
+-
+-describe('AppStore', () => {
+-  async function createAppStore(): Promise<AppStore> {
+-    const db = new TestGitHubUserDatabase()
+-    await db.reset()
+-
+-    const issuesDb = new TestIssuesDatabase()
+-    await issuesDb.reset()
+-
+-    const statsDb = new TestStatsDatabase()
+-    await statsDb.reset()
+-
+-    const repositoriesDb = new TestRepositoriesDatabase()
+-    await repositoriesDb.reset()
+-    const repositoriesStore = new RepositoriesStore(repositoriesDb)
+-
+-    const accountsStore = new AccountsStore(
+-      new InMemoryStore(),
+-      new AsyncInMemoryStore()
+-    )
+-
+-    const pullRequestStore = new PullRequestStore(
+-      new TestPullRequestDatabase(),
+-      repositoriesStore
+-    )
+-
+-    return new AppStore(
+-      new GitHubUserStore(db),
+-      new CloningRepositoriesStore(),
+-      new EmojiStore(),
+-      new IssuesStore(issuesDb),
+-      new StatsStore(statsDb, new TestActivityMonitor()),
+-      new SignInStore(),
+-      accountsStore,
+-      repositoriesStore,
+-      pullRequestStore
+-    )
+-  }
+-
+-  it('can select a repository', async () => {
+-    const appStore = await createAppStore()
+-
+-    const repo = await setupEmptyRepository()
+-
+-    await appStore._selectRepository(repo)
+-
+-    const state = appStore.getState()
+-    expect(state.selectedState).is.not.null
+-    expect(state.selectedState!.repository.path).to.equal(repo.path)
+-  })
+-
+-  describe('undo first commit', () => {
+-    function getAppState(appStore: AppStore): IRepositoryState {
+-      const selectedState = appStore.getState().selectedState
+-      if (selectedState == null) {
+-        throw new AssertionError('No selected state for AppStore')
+-      }
+-
+-      switch (selectedState.type) {
+-        case SelectionType.Repository:
+-          return selectedState.state
+-        default:
+-          throw new AssertionError(
+-            `Got selected state of type ${
+-              selectedState.type
+-            } which is not supported.`
+-          )
+-      }
+-    }
+-
+-    let repo: Repository | null = null
+-    let firstCommit: Commit | null = null
+-
+-    beforeEach(async () => {
+-      repo = await setupEmptyRepository()
+-
+-      const file = 'README.md'
+-      const filePath = Path.join(repo.path, file)
+-
+-      await FSE.writeFile(filePath, 'SOME WORDS GO HERE\n')
+-
+-      await GitProcess.exec(['add', file], repo.path)
+-      await GitProcess.exec(['commit', '-m', 'added file'], repo.path)
+-
+-      firstCommit = await getCommit(repo, 'master')
+-      expect(firstCommit).to.not.equal(null)
+-      expect(firstCommit!.parentSHAs.length).to.equal(0)
+-    })
+-
+-    it('clears the undo commit dialog', async () => {
+-      const repository = repo!
+-
+-      const appStore = await createAppStore()
+-
+-      // select the repository and show the changes view
+-      await appStore._selectRepository(repository)
+-      await appStore._changeRepositorySection(
+-        repository,
+-        RepositorySectionTab.Changes
+-      )
+-
+-      let state = getAppState(appStore)
+-      expect(state.localCommitSHAs.length).to.equal(1)
+-
+-      await appStore._undoCommit(repository, firstCommit!)
+-
+-      state = getAppState(appStore)
+-      expect(state.localCommitSHAs).to.be.empty
+-    })
+-  })
+-})
+changed in both
+  base   100644 0bbac36c08afbbd66754513e6f476caf3155de3c app/test/unit/app-test.tsx
+  our    100644 f5a4bb958cedfdbf76f9144a200a3cfac9613c02 app/test/unit/app-test.tsx
+  their  100644 e79103f1df9b5ad5ec5640735a4c2d56fe4905b0 app/test/unit/app-test.tsx
+@@ -56,7 +56,8 @@
+ 
+     const pullRequestStore = new PullRequestStore(
+       new TestPullRequestDatabase(),
+-      repositoriesStore
++      repositoriesStore.findOrPutGitHubRepository,
++      repositoriesStore.findGitHubRepositoryByID
+     )
+ 
+     appStore = new AppStore(
+removed in remote
+  base   100644 b69dfb902e2537440f7b72b9537c1de1aaf8b113 app/test/unit/git-store-test.ts
+  our    100644 916df52e71502aa756ade2e09be78d7398a4c7f0 app/test/unit/git-store-test.ts
+@@ -1,226 +0,0 @@
+-import { expect } from 'chai'
+-import * as FSE from 'fs-extra'
+-import * as Path from 'path'
+-import { GitProcess } from 'dugite'
+-
+-import { shell } from '../helpers/test-app-shell'
+-import {
+-  setupEmptyRepository,
+-  setupFixtureRepository,
+-  setupConflictedRepo,
+-} from '../helpers/repositories'
+-import { GitStore } from '../../src/lib/stores'
+-import { AppFileStatus } from '../../src/models/status'
+-import { Repository } from '../../src/models/repository'
+-import { Commit } from '../../src/models/commit'
+-import { TipState, IValidBranch } from '../../src/models/tip'
+-import { getCommit } from '../../src/lib/git'
+-import { getStatusOrThrow } from '../helpers/status'
+-
+-describe('GitStore', () => {
+-  describe('loadCommitBatch', () => {
+-    it('includes HEAD when loading commits', async () => {
+-      const path = await setupFixtureRepository('repository-with-105-commits')
+-      const repo = new Repository(path, -1, null, false)
+-      const gitStore = new GitStore(repo, shell)
+-
+-      const commits = await gitStore.loadCommitBatch('HEAD')
+-
+-      expect(commits).is.not.null
+-      expect(commits!.length).equals(100)
+-      expect(commits![0]).equals('708a46eac512c7b2486da2247f116d11a100b611')
+-    })
+-  })
+-
+-  it('can discard changes from a repository', async () => {
+-    const repo = await setupEmptyRepository()
+-    const gitStore = new GitStore(repo, shell)
+-
+-    const readmeFile = 'README.md'
+-    const readmeFilePath = Path.join(repo.path, readmeFile)
+-
+-    await FSE.writeFile(readmeFilePath, 'SOME WORDS GO HERE\n')
+-
+-    const licenseFile = 'LICENSE.md'
+-    const licenseFilePath = Path.join(repo.path, licenseFile)
+-
+-    await FSE.writeFile(licenseFilePath, 'SOME WORDS GO HERE\n')
+-
+-    // commit the readme file but leave the license
+-    await GitProcess.exec(['add', readmeFile], repo.path)
+-    await GitProcess.exec(['commit', '-m', 'added readme file'], repo.path)
+-
+-    await FSE.writeFile(readmeFilePath, 'WRITING SOME NEW WORDS\n')
+-    // setup requires knowing about the current tip
+-    await gitStore.loadStatus()
+-
+-    let status = await getStatusOrThrow(repo)
+-    let files = status.workingDirectory.files
+-
+-    expect(files.length).to.equal(2)
+-    expect(files[0].path).to.equal('README.md')
+-    expect(files[0].status).to.equal(AppFileStatus.Modified)
+-
+-    // discard the LICENSE.md file
+-    await gitStore.discardChanges([files[1]])
+-
+-    status = await getStatusOrThrow(repo)
+-    files = status.workingDirectory.files
+-
+-    expect(files.length).to.equal(1)
+-  })
+-
+-  it('can discard a renamed file', async () => {
+-    const repo = await setupEmptyRepository()
+-    const gitStore = new GitStore(repo, shell)
+-
+-    const file = 'README.md'
+-    const renamedFile = 'NEW-README.md'
+-    const filePath = Path.join(repo.path, file)
+-
+-    await FSE.writeFile(filePath, 'SOME WORDS GO HERE\n')
+-
+-    // commit the file, and then rename it
+-    await GitProcess.exec(['add', file], repo.path)
+-    await GitProcess.exec(['commit', '-m', 'added file'], repo.path)
+-    await GitProcess.exec(['mv', file, renamedFile], repo.path)
+-
+-    const statusBeforeDiscard = await getStatusOrThrow(repo)
+-    const filesToDiscard = statusBeforeDiscard.workingDirectory.files
+-
+-    // discard the renamed file
+-    await gitStore.discardChanges(filesToDiscard)
+-
+-    const status = await getStatusOrThrow(repo)
+-    const files = status.workingDirectory.files
+-
+-    expect(files.length).to.equal(0)
+-  })
+-
+-  describe('undo first commit', () => {
+-    let repo: Repository | null = null
+-    let firstCommit: Commit | null = null
+-
+-    const commitMessage = 'added file'
+-
+-    beforeEach(async () => {
+-      repo = await setupEmptyRepository()
+-
+-      const file = 'README.md'
+-      const filePath = Path.join(repo.path, file)
+-
+-      await FSE.writeFile(filePath, 'SOME WORDS GO HERE\n')
+-
+-      await GitProcess.exec(['add', file], repo.path)
+-      await GitProcess.exec(['commit', '-m', commitMessage], repo.path)
+-
+-      firstCommit = await getCommit(repo!, 'master')
+-      expect(firstCommit).to.not.equal(null)
+-      expect(firstCommit!.parentSHAs.length).to.equal(0)
+-    })
+-
+-    it('reports the repository is unborn', async () => {
+-      const gitStore = new GitStore(repo!, shell)
+-
+-      await gitStore.loadStatus()
+-      expect(gitStore.tip.kind).to.equal(TipState.Valid)
+-
+-      await gitStore.undoCommit(firstCommit!)
+-
+-      const after = await getStatusOrThrow(repo!)
+-      expect(after.currentTip).to.be.undefined
+-    })
+-
+-    it('pre-fills the commit message', async () => {
+-      const gitStore = new GitStore(repo!, shell)
+-
+-      await gitStore.undoCommit(firstCommit!)
+-
+-      const context = gitStore.contextualCommitMessage
+-      expect(context).to.not.be.null
+-      expect(context!.summary).to.equal(commitMessage)
+-    })
+-
+-    it('clears the undo commit dialog', async () => {
+-      const gitStore = new GitStore(repo!, shell)
+-
+-      await gitStore.loadStatus()
+-
+-      const tip = gitStore.tip as IValidBranch
+-      await gitStore.loadLocalCommits(tip.branch)
+-
+-      expect(gitStore.localCommitSHAs.length).to.equal(1)
+-
+-      await gitStore.undoCommit(firstCommit!)
+-
+-      await gitStore.loadStatus()
+-      expect(gitStore.tip.kind).to.equal(TipState.Unborn)
+-
+-      await gitStore.loadLocalCommits(null)
+-
+-      expect(gitStore.localCommitSHAs).to.be.empty
+-    })
+-
+-    it('has no staged files', async () => {
+-      const gitStore = new GitStore(repo!, shell)
+-
+-      await gitStore.loadStatus()
+-
+-      const tip = gitStore.tip as IValidBranch
+-      await gitStore.loadLocalCommits(tip.branch)
+-
+-      expect(gitStore.localCommitSHAs.length).to.equal(1)
+-
+-      await gitStore.undoCommit(firstCommit!)
+-
+-      // compare the index state to some other tree-ish
+-      // 4b825dc642cb6eb9a060e54bf8d69288fbee4904 is the magic empty tree
+-      // if nothing is staged, this should return no entries
+-      const result = await GitProcess.exec(
+-        [
+-          'diff-index',
+-          '--name-status',
+-          '-z',
+-          '4b825dc642cb6eb9a060e54bf8d69288fbee4904',
+-        ],
+-        repo!.path
+-      )
+-      expect(result.stdout.length).to.equal(0)
+-    })
+-  })
+-
+-  it('hides commented out lines from MERGE_MSG', async () => {
+-    const repo = await setupConflictedRepo()
+-    const gitStore = new GitStore(repo, shell)
+-
+-    await gitStore.loadContextualCommitMessage()
+-
+-    const context = gitStore.contextualCommitMessage
+-    expect(context).to.not.be.null
+-    expect(context!.summary).to.equal(`Merge branch 'master' into other-branch`)
+-    expect(context!.description).to.be.null
+-  })
+-
+-  describe('repository with HEAD file', () => {
+-    it('can discard modified change cleanly', async () => {
+-      const path = await setupFixtureRepository('repository-with-HEAD-file')
+-      const repo = new Repository(path, 1, null, false)
+-      const gitStore = new GitStore(repo, shell)
+-
+-      const file = 'README.md'
+-      const filePath = Path.join(repo.path, file)
+-
+-      await FSE.writeFile(filePath, 'SOME WORDS GO HERE\n')
+-
+-      let status = await getStatusOrThrow(repo!)
+-      let files = status.workingDirectory.files
+-      expect(files.length).to.equal(1)
+-
+-      await gitStore.discardChanges([files[0]])
+-
+-      status = await getStatusOrThrow(repo)
+-      files = status.workingDirectory.files
+-      expect(files.length).to.equal(0)
+-    })
+-  })
+-})
+removed in remote
+  base   100644 4f50c70494d77eebb361fea30170605dcfd57f75 app/test/unit/repositories-store-test.ts
+  our    100644 494c842a7b1384406f5afa4b664134c29366ea2b app/test/unit/repositories-store-test.ts
+@@ -1,102 +0,0 @@
+-import { expect } from 'chai'
+-
+-import { RepositoriesStore } from '../../src/lib/stores/repositories-store'
+-import { TestRepositoriesDatabase } from '../helpers/databases'
+-import { IAPIRepository } from '../../src/lib/api'
+-
+-describe('RepositoriesStore', () => {
+-  let repositoriesStore: RepositoriesStore | null = null
+-
+-  beforeEach(async () => {
+-    const db = new TestRepositoriesDatabase()
+-    await db.reset()
+-
+-    repositoriesStore = new RepositoriesStore(db)
+-  })
+-
+-  describe('adding a new repository', () => {
+-    it('contains the added repository', async () => {
+-      const repoPath = '/some/cool/path'
+-      await repositoriesStore!.addRepository(repoPath)
+-
+-      const repositories = await repositoriesStore!.getAll()
+-      expect(repositories[0].path).to.equal(repoPath)
+-    })
+-  })
+-
+-  describe('getting all repositories', () => {
+-    it('returns multiple repositories', async () => {
+-      await repositoriesStore!.addRepository('/some/cool/path')
+-      await repositoriesStore!.addRepository('/some/other/path')
+-
+-      const repositories = await repositoriesStore!.getAll()
+-      expect(repositories.length).to.equal(2)
+-    })
+-  })
+-
+-  describe('updating a GitHub repository', () => {
+-    const gitHubRepo: IAPIRepository = {
+-      clone_url: 'https://github.com/my-user/my-repo',
+-      html_url: 'https://github.com/my-user/my-repo',
+-      name: 'my-repo',
+-      owner: {
+-        id: 42,
+-        url: 'https://github.com/my-user',
+-        login: 'my-user',
+-        avatar_url: 'https://github.com/my-user.png',
+-        email: 'my-user@users.noreply.github.com',
+-        name: 'My User',
+-        type: 'User',
+-      },
+-      private: true,
+-      fork: false,
+-      default_branch: 'master',
+-      parent: null,
+-      pushed_at: '1995-12-17T03:24:00',
+-    }
+-
+-    it('adds a new GitHub repository', async () => {
+-      const addedRepo = await repositoriesStore!.addRepository(
+-        '/some/cool/path'
+-      )
+-
+-      await repositoriesStore!.updateGitHubRepository(
+-        addedRepo,
+-        'https://api.github.com',
+-        gitHubRepo
+-      )
+-
+-      const repositories = await repositoriesStore!.getAll()
+-      const repo = repositories[0]
+-      expect(repo.gitHubRepository!.private).to.equal(true)
+-      expect(repo.gitHubRepository!.fork).to.equal(false)
+-      expect(repo.gitHubRepository!.htmlURL).to.equal(
+-        'https://github.com/my-user/my-repo'
+-      )
+-    })
+-
+-    it('reuses an existing GitHub repository', async () => {
+-      const firstRepo = await repositoriesStore!.addRepository(
+-        '/some/cool/path'
+-      )
+-      const updatedFirstRepo = await repositoriesStore!.updateGitHubRepository(
+-        firstRepo,
+-        'https://api.github.com',
+-        gitHubRepo
+-      )
+-
+-      const secondRepo = await repositoriesStore!.addRepository(
+-        '/some/other/path'
+-      )
+-      const updatedSecondRepo = await repositoriesStore!.updateGitHubRepository(
+-        secondRepo,
+-        'https://api.github.com',
+-        gitHubRepo
+-      )
+-
+-      expect(updatedFirstRepo.gitHubRepository!.dbID).to.equal(
+-        updatedSecondRepo.gitHubRepository!.dbID
+-      )
+-    })
+-  })
+-})
+removed in remote
+  base   100644 c96d616cf971efe5da8283c233918fc7a712c1de app/test/unit/repository-settings-store-test.ts
+  our    100644 b494a61563050dad05675803d60a24c4bd0becce app/test/unit/repository-settings-store-test.ts
+@@ -1,122 +0,0 @@
+-import * as FSE from 'fs-extra'
+-import * as Path from 'path'
+-import { GitProcess } from 'dugite'
+-import { expect } from 'chai'
+-
+-import { RepositorySettingsStore } from '../../src/lib/stores'
+-import { setupEmptyRepository } from '../helpers/repositories'
+-import { getStatusOrThrow } from '../helpers/status'
+-
+-describe('RepositorySettingsStore', () => {
+-  it('can create a gitignore file', async () => {
+-    const repo = await setupEmptyRepository()
+-    const path = repo.path
+-    const sut = new RepositorySettingsStore(repo)
+-
+-    // Create git ignore file
+-    await sut.saveGitIgnore('node_modules\n')
+-
+-    // Make sure file exists on FS
+-    const exists = await FSE.pathExists(`${path}/.gitignore`)
+-
+-    expect(exists).is.true
+-  })
+-
+-  it('deletes gitignore file when no entries provided', async () => {
+-    const repo = await setupEmptyRepository()
+-    const path = repo.path
+-
+-    const ignoreFile = `${path}/.gitignore`
+-    await FSE.writeFile(ignoreFile, 'node_modules\n')
+-
+-    const sut = new RepositorySettingsStore(repo)
+-
+-    // update gitignore file to be empty
+-    await sut.saveGitIgnore('')
+-
+-    const exists = await FSE.pathExists(ignoreFile)
+-    expect(exists).is.false
+-  })
+-
+-  it('can ignore a file in a repository', async () => {
+-    const repo = await setupEmptyRepository()
+-    const sut = new RepositorySettingsStore(repo)
+-    const path = repo.path
+-
+-    // Ignore txt files
+-    await sut.saveGitIgnore('*.txt\n')
+-    await GitProcess.exec(['add', '.gitignore'], path)
+-    await GitProcess.exec(['commit', '-m', 'create the ignore file'], path)
+-
+-    // Create a txt file
+-    const file = Path.join(repo.path, 'a.txt')
+-
+-    await FSE.writeFile(file, 'thrvbnmerkl;,iuw')
+-
+-    // Check status of repo
+-    const status = await getStatusOrThrow(repo)
+-    const files = status.workingDirectory.files
+-
+-    expect(files.length).to.equal(0)
+-  })
+-
+-  describe('autocrlf and safecrlf are true', () => {
+-    it('appends CRLF to file', async () => {
+-      const repo = await setupEmptyRepository()
+-      const sut = new RepositorySettingsStore(repo)
+-
+-      await GitProcess.exec(
+-        ['config', '--local', 'core.autocrlf', 'true'],
+-        repo.path
+-      )
+-      await GitProcess.exec(
+-        ['config', '--local', 'core.safecrlf', 'true'],
+-        repo.path
+-      )
+-
+-      const path = repo.path
+-
+-      await sut.saveGitIgnore('node_modules')
+-      await GitProcess.exec(['add', '.gitignore'], path)
+-
+-      const commit = await GitProcess.exec(
+-        ['commit', '-m', 'create the ignore file'],
+-        path
+-      )
+-      const contents = await sut.readGitIgnore()
+-
+-      expect(commit.exitCode).to.equal(0)
+-      expect(contents!.endsWith('\r\n'))
+-    })
+-  })
+-
+-  describe('autocrlf and safecrlf are unset', () => {
+-    it('appends LF to file', async () => {
+-      const repo = await setupEmptyRepository()
+-      const sut = new RepositorySettingsStore(repo)
+-
+-      // ensure this repository only ever sticks to LF
+-      await GitProcess.exec(['config', '--local', 'core.eol', 'lf'], repo.path)
+-
+-      // do not do any conversion of line endings when committing
+-      await GitProcess.exec(
+-        ['config', '--local', 'core.autocrlf', 'input'],
+-        repo.path
+-      )
+-
+-      const path = repo.path
+-
+-      await sut.saveGitIgnore('node_modules')
+-      await GitProcess.exec(['add', '.gitignore'], path)
+-
+-      const commit = await GitProcess.exec(
+-        ['commit', '-m', 'create the ignore file'],
+-        path
+-      )
+-      const contents = await sut.readGitIgnore()
+-
+-      expect(commit.exitCode).to.equal(0)
+-      expect(contents!.endsWith('\n'))
+-    })
+-  })
+-})
+added in remote
+  their  100644 3a5a0d3e23ab06bce9d346e875f730dc95558357 app/test/unit/stores/accounts-store-test.ts
+@@ -0,0 +1,27 @@
++import { expect } from 'chai'
++
++import { Account } from '../../../src/models/account'
++import { AccountsStore } from '../../../src/lib/stores'
++import { InMemoryStore, AsyncInMemoryStore } from '../../helpers/stores'
++
++describe('AccountsStore', () => {
++  let accountsStore: AccountsStore | null = null
++  beforeEach(() => {
++    accountsStore = new AccountsStore(
++      new InMemoryStore(),
++      new AsyncInMemoryStore()
++    )
++  })
++
++  describe('adding a new user', () => {
++    it('contains the added user', async () => {
++      const newAccountLogin = 'joan'
++      await accountsStore!.addAccount(
++        new Account(newAccountLogin, '', 'deadbeef', [], '', 1, '')
++      )
++
++      const users = await accountsStore!.getAll()
++      expect(users[0].login).to.equal(newAccountLogin)
++    })
++  })
++})
+added in remote
+  their  100644 5f6d89f86e246507b78f71f823f67dec49b58937 app/test/unit/stores/app-store-test.ts
+@@ -0,0 +1,151 @@
++/* eslint-disable no-sync */
++
++import { expect } from 'chai'
++
++import * as Path from 'path'
++import * as Fs from 'fs'
++import { GitProcess } from 'dugite'
++
++import {
++  AppStore,
++  GitHubUserStore,
++  CloningRepositoriesStore,
++  EmojiStore,
++  IssuesStore,
++  SignInStore,
++  RepositoriesStore,
++  AccountsStore,
++  PullRequestStore,
++} from '../../../src/lib/stores'
++import {
++  TestGitHubUserDatabase,
++  TestStatsDatabase,
++  TestIssuesDatabase,
++  TestRepositoriesDatabase,
++  TestPullRequestDatabase,
++} from '../../helpers/databases'
++import { setupEmptyRepository } from '../../helpers/repositories'
++import { InMemoryStore, AsyncInMemoryStore } from '../../helpers/stores'
++
++import { StatsStore } from '../../../src/lib/stats'
++
++import {
++  RepositorySection,
++  SelectionType,
++  IRepositoryState,
++} from '../../../src/lib/app-state'
++import { Repository } from '../../../src/models/repository'
++import { Commit } from '../../../src/models/commit'
++import { getCommit } from '../../../src/lib/git'
++
++describe('AppStore', () => {
++  async function createAppStore(): Promise<AppStore> {
++    const db = new TestGitHubUserDatabase()
++    await db.reset()
++
++    const issuesDb = new TestIssuesDatabase()
++    await issuesDb.reset()
++
++    const statsDb = new TestStatsDatabase()
++    await statsDb.reset()
++
++    const repositoriesDb = new TestRepositoriesDatabase()
++    await repositoriesDb.reset()
++    const repositoriesStore = new RepositoriesStore(repositoriesDb)
++
++    const accountsStore = new AccountsStore(
++      new InMemoryStore(),
++      new AsyncInMemoryStore()
++    )
++
++    const pullRequestStore = new PullRequestStore(
++      new TestPullRequestDatabase(),
++      repositoriesStore.findOrPutGitHubRepository,
++      repositoriesStore.findGitHubRepositoryByID
++    )
++
++    return new AppStore(
++      new GitHubUserStore(db),
++      new CloningRepositoriesStore(),
++      new EmojiStore(),
++      new IssuesStore(issuesDb),
++      new StatsStore(statsDb),
++      new SignInStore(),
++      accountsStore,
++      repositoriesStore,
++      pullRequestStore
++    )
++  }
++
++  it('can select a repository', async () => {
++    const appStore = await createAppStore()
++
++    const repo = await setupEmptyRepository()
++
++    await appStore._selectRepository(repo)
++
++    const state = appStore.getState()
++    expect(state.selectedState).is.not.null
++    expect(state.selectedState!.repository.path).to.equal(repo.path)
++  })
++
++  describe('undo first commit', () => {
++    function getAppState(appStore: AppStore): IRepositoryState {
++      const selectedState = appStore.getState().selectedState
++      if (!selectedState) {
++        throw new chai.AssertionError('No selected state for AppStore')
++      }
++
++      switch (selectedState.type) {
++        case SelectionType.Repository:
++          return selectedState.state
++        default:
++          throw new chai.AssertionError(
++            `Got selected state of type ${
++              selectedState.type
++            } which is not supported.`
++          )
++      }
++    }
++
++    let repo: Repository | null = null
++    let firstCommit: Commit | null = null
++
++    beforeEach(async () => {
++      repo = await setupEmptyRepository()
++
++      const file = 'README.md'
++      const filePath = Path.join(repo.path, file)
++
++      Fs.writeFileSync(filePath, 'SOME WORDS GO HERE\n')
++
++      await GitProcess.exec(['add', file], repo.path)
++      await GitProcess.exec(['commit', '-m', 'added file'], repo.path)
++
++      firstCommit = await getCommit(repo, 'master')
++      expect(firstCommit).to.not.equal(null)
++      expect(firstCommit!.parentSHAs.length).to.equal(0)
++    })
++
++    it('clears the undo commit dialog', async () => {
++      const repository = repo!
++
++      const appStore = await createAppStore()
++
++      // select the repository and show the changes view
++      await appStore._selectRepository(repository)
++      await appStore._changeRepositorySection(
++        repository,
++        RepositorySection.Changes
++      )
++
++      let state = getAppState(appStore)
++      expect(state.localCommitSHAs.length).to.equal(1)
++
++      await appStore._undoCommit(repository, firstCommit!)
++
++      state = getAppState(appStore)
++      expect(state.localCommitSHAs).to.be.empty
++    })
++  })
++})
+added in remote
+  their  100644 2799672ba597c9fc173b4994f6140993d664fe0f app/test/unit/stores/git-store-test.ts
+@@ -0,0 +1,215 @@
++/* eslint-disable no-sync */
++
++import { expect } from 'chai'
++import * as Fs from 'fs'
++import * as Path from 'path'
++import { GitProcess } from 'dugite'
++
++import { shell } from '../../helpers/test-app-shell'
++import {
++  setupEmptyRepository,
++  setupFixtureRepository,
++  setupConflictedRepo,
++} from '../../helpers/repositories'
++import { GitStore } from '../../../src/lib/stores'
++import { AppFileStatus } from '../../../src/models/status'
++import { Repository } from '../../../src/models/repository'
++import { Commit } from '../../../src/models/commit'
++import { TipState, IValidBranch } from '../../../src/models/tip'
++import { getCommit, getStatus } from '../../../src/lib/git'
++
++describe('GitStore', () => {
++  it('can discard changes from a repository', async () => {
++    const repo = await setupEmptyRepository()
++    const gitStore = new GitStore(repo, shell)
++
++    const readmeFile = 'README.md'
++    const readmeFilePath = Path.join(repo.path, readmeFile)
++
++    Fs.writeFileSync(readmeFilePath, 'SOME WORDS GO HERE\n')
++
++    const licenseFile = 'LICENSE.md'
++    const licenseFilePath = Path.join(repo.path, licenseFile)
++
++    Fs.writeFileSync(licenseFilePath, 'SOME WORDS GO HERE\n')
++
++    // commit the readme file but leave the license
++    await GitProcess.exec(['add', readmeFile], repo.path)
++    await GitProcess.exec(['commit', '-m', 'added readme file'], repo.path)
++
++    Fs.writeFileSync(readmeFilePath, 'WRITING SOME NEW WORDS\n')
++    // setup requires knowing about the current tip
++    await gitStore.loadStatus()
++
++    let status = await getStatus(repo)
++    let files = status.workingDirectory.files
++
++    expect(files.length).to.equal(2)
++    expect(files[0].path).to.equal('README.md')
++    expect(files[0].status).to.equal(AppFileStatus.Modified)
++
++    // discard the LICENSE.md file
++    await gitStore.discardChanges([files[1]])
++
++    status = await getStatus(repo)
++    files = status.workingDirectory.files
++
++    expect(files.length).to.equal(1)
++  })
++
++  it('can discard a renamed file', async () => {
++    const repo = await setupEmptyRepository()
++    const gitStore = new GitStore(repo, shell)
++
++    const file = 'README.md'
++    const renamedFile = 'NEW-README.md'
++    const filePath = Path.join(repo.path, file)
++
++    Fs.writeFileSync(filePath, 'SOME WORDS GO HERE\n')
++
++    // commit the file, and then rename it
++    await GitProcess.exec(['add', file], repo.path)
++    await GitProcess.exec(['commit', '-m', 'added file'], repo.path)
++    await GitProcess.exec(['mv', file, renamedFile], repo.path)
++
++    const statusBeforeDiscard = await getStatus(repo)
++    const filesToDiscard = statusBeforeDiscard.workingDirectory.files
++
++    // discard the renamed file
++    await gitStore.discardChanges(filesToDiscard)
++
++    const status = await getStatus(repo)
++    const files = status.workingDirectory.files
++
++    expect(files.length).to.equal(0)
++  })
++
++  describe('undo first commit', () => {
++    let repo: Repository | null = null
++    let firstCommit: Commit | null = null
++
++    const commitMessage = 'added file'
++
++    beforeEach(async () => {
++      repo = await setupEmptyRepository()
++
++      const file = 'README.md'
++      const filePath = Path.join(repo.path, file)
++
++      Fs.writeFileSync(filePath, 'SOME WORDS GO HERE\n')
++
++      await GitProcess.exec(['add', file], repo.path)
++      await GitProcess.exec(['commit', '-m', commitMessage], repo.path)
++
++      firstCommit = await getCommit(repo!, 'master')
++      expect(firstCommit).to.not.equal(null)
++      expect(firstCommit!.parentSHAs.length).to.equal(0)
++    })
++
++    it('reports the repository is unborn', async () => {
++      const gitStore = new GitStore(repo!, shell)
++
++      await gitStore.loadStatus()
++      expect(gitStore.tip.kind).to.equal(TipState.Valid)
++
++      await gitStore.undoCommit(firstCommit!)
++
++      const after = await getStatus(repo!)
++
++      expect(after).to.not.be.null
++      expect(after!.currentTip).to.be.undefined
++    })
++
++    it('pre-fills the commit message', async () => {
++      const gitStore = new GitStore(repo!, shell)
++
++      await gitStore.undoCommit(firstCommit!)
++
++      const context = gitStore.contextualCommitMessage
++      expect(context).to.not.be.null
++      expect(context!.summary).to.equal(commitMessage)
++    })
++
++    it('clears the undo commit dialog', async () => {
++      const gitStore = new GitStore(repo!, shell)
++
++      await gitStore.loadStatus()
++
++      const tip = gitStore.tip as IValidBranch
++      await gitStore.loadLocalCommits(tip.branch)
++
++      expect(gitStore.localCommitSHAs.length).to.equal(1)
++
++      await gitStore.undoCommit(firstCommit!)
++
++      await gitStore.loadStatus()
++      expect(gitStore.tip.kind).to.equal(TipState.Unborn)
++
++      await gitStore.loadLocalCommits(null)
++
++      expect(gitStore.localCommitSHAs).to.be.empty
++    })
++
++    it('has no staged files', async () => {
++      const gitStore = new GitStore(repo!, shell)
++
++      await gitStore.loadStatus()
++
++      const tip = gitStore.tip as IValidBranch
++      await gitStore.loadLocalCommits(tip.branch)
++
++      expect(gitStore.localCommitSHAs.length).to.equal(1)
++
++      await gitStore.undoCommit(firstCommit!)
++
++      // compare the index state to some other tree-ish
++      // 4b825dc642cb6eb9a060e54bf8d69288fbee4904 is the magic empty tree
++      // if nothing is staged, this should return no entries
++      const result = await GitProcess.exec(
++        [
++          'diff-index',
++          '--name-status',
++          '-z',
++          '4b825dc642cb6eb9a060e54bf8d69288fbee4904',
++        ],
++        repo!.path
++      )
++      expect(result.stdout.length).to.equal(0)
++    })
++  })
++
++  it('hides commented out lines from MERGE_MSG', async () => {
++    const repo = await setupConflictedRepo()
++    const gitStore = new GitStore(repo, shell)
++
++    await gitStore.loadContextualCommitMessage()
++
++    const context = gitStore.contextualCommitMessage
++    expect(context).to.not.be.null
++    expect(context!.summary).to.equal(`Merge branch 'master' into other-branch`)
++    expect(context!.description).to.be.null
++  })
++
++  describe('repository with HEAD file', () => {
++    it('can discard modified change cleanly', async () => {
++      const path = await setupFixtureRepository('repository-with-HEAD-file')
++      const repo = new Repository(path, 1, null, false)
++      const gitStore = new GitStore(repo, shell)
++
++      const file = 'README.md'
++      const filePath = Path.join(repo.path, file)
++
++      Fs.writeFileSync(filePath, 'SOME WORDS GO HERE\n')
++
++      let status = await getStatus(repo!)
++      let files = status.workingDirectory.files
++      expect(files.length).to.equal(1)
++
++      await gitStore.discardChanges([files[0]])
++
++      status = await getStatus(repo)
++      files = status.workingDirectory.files
++      expect(files.length).to.equal(0)
++    })
++  })
++})
+added in remote
+  their  100644 cb5b4dc2d922d6e0291d1dd18496257b2c958945 app/test/unit/stores/pull-request-store-test.ts
+@@ -0,0 +1,84 @@
++import { expect } from 'chai'
++
++import { PullRequestStore } from '../../../src/lib/stores'
++import {
++  TestPullRequestDatabase,
++  TestRepositoriesDatabase,
++} from '../../helpers/databases'
++import { Repository } from '../../../src/models/repository'
++import { Account } from '../../../src/models/account'
++import { GitHubRepository } from '../../../src/models/github-repository'
++import { Owner } from '../../../src/models/owner'
++import { IAPIRepository } from '../../../src/lib/api'
++
++const findGitHubRepositoryByIDStub = (
++  id: number
++): Promise<GitHubRepository | null> => {
++  return Promise.resolve(
++    new GitHubRepository(
++      '',
++      new Owner('login', 'endpoint', 1),
++      1,
++      false,
++      null,
++      null,
++      null,
++      null
++    )
++  )
++}
++
++const findOrPutGitHubRepositoryStub = (
++  endpoint: string,
++  apiRepository: IAPIRepository
++): Promise<GitHubRepository> => {
++  return Promise.resolve(
++    new GitHubRepository(
++      '',
++      new Owner('login', 'endpoint', 1),
++      1,
++      false,
++      null,
++      null,
++      null,
++      null
++    )
++  )
++}
++
++describe('PullRequestStore', () => {
++  const account = new Account('tester', '', 'token', [], '', 1, '')
++  let sut: PullRequestStore | null = null
++  let repository: Repository | null = null
++
++  beforeEach(async () => {
++    const repositoriesDb = new TestRepositoriesDatabase()
++    const pullRequestDb = new TestPullRequestDatabase()
++    await Promise.all([repositoriesDb.reset(), pullRequestDb.reset()])
++
++    sut = new PullRequestStore(
++      pullRequestDb,
++      findOrPutGitHubRepositoryStub,
++      findGitHubRepositoryByIDStub
++    )
++  })
++
++  describe('refreshing pull reqeusts', () => {
++    it.only('insers new prs', async () => {
++      await sut!.refreshPullRequests(repository!, account)
++      const prs = await sut!.getPullRequests(
++        new GitHubRepository(
++          '',
++          new Owner('login', 'endpoint', 1),
++          1,
++          false,
++          null,
++          null,
++          null,
++          null
++        )
++      )
++      expect(prs).is.not.empty
++    })
++  })
++})
+added in remote
+  their  100644 0d221bae3fea70347092c299e47d7e209799d26c app/test/unit/stores/repositories-store-test.ts
+@@ -0,0 +1,101 @@
++import { expect } from 'chai'
++
++import { RepositoriesStore } from '../../../src/lib/stores/repositories-store'
++import { TestRepositoriesDatabase } from '../../helpers/databases'
++import { IAPIRepository } from '../../../src/lib/api'
++
++describe('RepositoriesStore', () => {
++  let repositoriesStore: RepositoriesStore | null = null
++
++  beforeEach(async () => {
++    const db = new TestRepositoriesDatabase()
++    await db.reset()
++
++    repositoriesStore = new RepositoriesStore(db)
++  })
++
++  describe('adding a new repository', () => {
++    it('contains the added repository', async () => {
++      const repoPath = '/some/cool/path'
++      await repositoriesStore!.addRepository(repoPath)
++
++      const repositories = await repositoriesStore!.getAll()
++      expect(repositories[0].path).to.equal(repoPath)
++    })
++  })
++
++  describe('getting all repositories', () => {
++    it('returns multiple repositories', async () => {
++      await repositoriesStore!.addRepository('/some/cool/path')
++      await repositoriesStore!.addRepository('/some/other/path')
++
++      const repositories = await repositoriesStore!.getAll()
++      expect(repositories.length).to.equal(2)
++    })
++  })
++
++  describe('updating a GitHub repository', () => {
++    const gitHubRepo: IAPIRepository = {
++      clone_url: 'https://github.com/my-user/my-repo',
++      html_url: 'https://github.com/my-user/my-repo',
++      name: 'my-repo',
++      owner: {
++        id: 42,
++        url: 'https://github.com/my-user',
++        login: 'my-user',
++        avatar_url: 'https://github.com/my-user.png',
++        email: 'my-user@users.noreply.github.com',
++        name: 'My User',
++        type: 'User',
++      },
++      private: true,
++      fork: false,
++      default_branch: 'master',
++      parent: null,
++    }
++
++    it('adds a new GitHub repository', async () => {
++      const addedRepo = await repositoriesStore!.addRepository(
++        '/some/cool/path'
++      )
++
++      await repositoriesStore!.updateGitHubRepository(
++        addedRepo,
++        'https://api.github.com',
++        gitHubRepo
++      )
++
++      const repositories = await repositoriesStore!.getAll()
++      const repo = repositories[0]
++      expect(repo.gitHubRepository!.private).to.equal(true)
++      expect(repo.gitHubRepository!.fork).to.equal(false)
++      expect(repo.gitHubRepository!.htmlURL).to.equal(
++        'https://github.com/my-user/my-repo'
++      )
++    })
++
++    it('reuses an existing GitHub repository', async () => {
++      const firstRepo = await repositoriesStore!.addRepository(
++        '/some/cool/path'
++      )
++      const updatedFirstRepo = await repositoriesStore!.updateGitHubRepository(
++        firstRepo,
++        'https://api.github.com',
++        gitHubRepo
++      )
++
++      const secondRepo = await repositoriesStore!.addRepository(
++        '/some/other/path'
++      )
++      const updatedSecondRepo = await repositoriesStore!.updateGitHubRepository(
++        secondRepo,
++        'https://api.github.com',
++        gitHubRepo
++      )
++
++      expect(updatedFirstRepo.gitHubRepository!.dbID).to.equal(
++        updatedSecondRepo.gitHubRepository!.dbID
++      )
++    })
++  })
++})
+added in remote
+  their  100644 4372375111e1a70687a21fad975651a1a3f5f93a app/test/unit/stores/repository-settings-store-test.ts
+@@ -0,0 +1,109 @@
++/* eslint-disable no-sync */
++
++import * as FS from 'fs'
++import * as Path from 'path'
++import { GitProcess } from 'dugite'
++import { expect } from 'chai'
++
++import { RepositorySettingsStore } from '../../../src/lib/stores'
++import { setupEmptyRepository } from '../../helpers/repositories'
++import { getStatus } from '../../../src/lib/git'
++import { pathExists } from '../../../src/lib/file-system'
++
++describe('RepositorySettingsStore', () => {
++  it('can create a gitignore file', async () => {
++    const repo = await setupEmptyRepository()
++    const path = repo.path
++    const sut = new RepositorySettingsStore(repo)
++
++    // Create git ignore file
++    await sut.saveGitIgnore('node_modules\n')
++
++    // Make sure file exists on FS
++    const exists = await pathExists(`${path}/.gitignore`)
++
++    expect(exists).is.true
++  })
++
++  it('can ignore a file in a repository', async () => {
++    const repo = await setupEmptyRepository()
++    const sut = new RepositorySettingsStore(repo)
++    const path = repo.path
++
++    // Ignore txt files
++    await sut.saveGitIgnore('*.txt\n')
++    await GitProcess.exec(['add', '.gitignore'], path)
++    await GitProcess.exec(['commit', '-m', 'create the ignore file'], path)
++
++    // Create a txt file
++    const file = Path.join(repo.path, 'a.txt')
++
++    FS.writeFileSync(file, 'thrvbnmerkl;,iuw')
++
++    // Check status of repo
++    const status = await getStatus(repo)
++    const files = status.workingDirectory.files
++
++    expect(files.length).to.equal(0)
++  })
++
++  describe('autocrlf and safecrlf are true', () => {
++    it('appends CRLF to file', async () => {
++      const repo = await setupEmptyRepository()
++      const sut = new RepositorySettingsStore(repo)
++
++      await GitProcess.exec(
++        ['config', '--local', 'core.autocrlf', 'true'],
++        repo.path
++      )
++      await GitProcess.exec(
++        ['config', '--local', 'core.safecrlf', 'true'],
++        repo.path
++      )
++
++      const path = repo.path
++
++      await sut.saveGitIgnore('node_modules')
++      await GitProcess.exec(['add', '.gitignore'], path)
++
++      const commit = await GitProcess.exec(
++        ['commit', '-m', 'create the ignore file'],
++        path
++      )
++      const contents = await sut.readGitIgnore()
++
++      expect(commit.exitCode).to.equal(0)
++      expect(contents!.endsWith('\r\n'))
++    })
++  })
++
++  describe('autocrlf and safecrlf are unset', () => {
++    it('appends LF to file', async () => {
++      const repo = await setupEmptyRepository()
++      const sut = new RepositorySettingsStore(repo)
++
++      // ensure this repository only ever sticks to LF
++      await GitProcess.exec(['config', '--local', 'core.eol', 'lf'], repo.path)
++
++      // do not do any conversion of line endings when committing
++      await GitProcess.exec(
++        ['config', '--local', 'core.autocrlf', 'input'],
++        repo.path
++      )
++
++      const path = repo.path
++
++      await sut.saveGitIgnore('node_modules')
++      await GitProcess.exec(['add', '.gitignore'], path)
++
++      const commit = await GitProcess.exec(
++        ['commit', '-m', 'create the ignore file'],
++        path
++      )
++      const contents = await sut.readGitIgnore()
++
++      expect(commit.exitCode).to.equal(0)
++      expect(contents!.endsWith('\n'))
++    })
++  })
++})
