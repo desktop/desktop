@@ -283,10 +283,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
               <strong>{currentBranch ? currentBranch.name : ''}</strong>
             </Button>
           </ButtonGroup>
-          {enableMergeConflictDetection() &&
-          !selectedBranchIsNotCurrentBranch ? (
-            <MergeStatusHeader status={this.state.mergeStatus} />
-          ) : null}
+
           {enableMergeConflictDetection()
             ? this.renderNewMergeInfo()
             : this.renderMergeInfo()}
