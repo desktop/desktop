@@ -1,0 +1,255 @@
+changed in both
+  base   100644 f30d884421176e7e698743be9d1664f1593eeb7c src/vs/code/electron-main/windows.ts
+  our    100644 ee30f9a282b84b1fa9b3443b77acf86849589d43 src/vs/code/electron-main/windows.ts
+  their  100644 25f7781bf91dff2e311e6e3e2007d9a059d1bc6c src/vs/code/electron-main/windows.ts
+@@ -20,8 +20,13 @@
+ import { ILifecycleService, UnloadReason, IWindowUnloadEvent } from 'vs/platform/lifecycle/electron-main/lifecycleMain';
+ import { IConfigurationService } from 'vs/platform/configuration/common/configuration';
+ import { ILogService } from 'vs/platform/log/common/log';
++<<<<<<< .our
+ import { IWindowSettings, OpenContext, IPath, IWindowConfiguration, INativeOpenDialogOptions, ReadyState, IPathsToWaitFor, IEnterWorkspaceResult, IMessageBoxResult } from 'vs/platform/windows/common/windows';
+ import { getLastActiveWindow, findBestWindowOrFolderForFile, findWindowOnWorkspace, findWindowOnExtensionDevelopmentPath, findWindowOnWorkspaceOrFolderUri } from 'vs/code/node/windowsFinder';
++=======
++import { IWindowSettings, OpenContext, IPath, IWindowConfiguration, INativeOpenDialogOptions, ReadyState, IPathsToWaitFor, IEnterWorkspaceResult, IMessageBoxResult, IOpenOptions } from 'vs/platform/windows/common/windows';
++import { getLastActiveWindow, findBestWindowOrFolderForFile, findWindowOnWorkspace, findWindowOnExtensionDevelopmentPath, findWindowOnWorkspaceOrFolderPath } from 'vs/code/node/windowsFinder';
++>>>>>>> .their
+ import { Event as CommonEvent, Emitter } from 'vs/base/common/event';
+ import product from 'vs/platform/node/product';
+ import { ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
+@@ -68,24 +73,27 @@
+ 
+ type RestoreWindowsSetting = 'all' | 'folders' | 'one' | 'none';
+ 
+-interface IOpenBrowserWindowOptions {
+-	userEnv?: IProcessEnvironment;
+-	cli?: ParsedArgs;
+-
++interface IOpenBrowserWindowOptions extends IOpenOptions {
+ 	workspace?: IWorkspaceIdentifier;
++<<<<<<< .our
+ 	folderUri?: URI;
+ 
+ 	initialStartup?: boolean;
+ 
++=======
++	folderPath?: string;
++>>>>>>> .their
+ 	filesToOpen?: IPath[];
+ 	filesToCreate?: IPath[];
+ 	filesToDiff?: IPath[];
+ 	filesToWait?: IPathsToWaitFor;
++<<<<<<< .our
+ 
+ 	forceNewWindow?: boolean;
+ 	forceNewTabbedWindow?: boolean;
++=======
++>>>>>>> .their
+ 	windowToUse?: ICodeWindow;
+-
+ 	emptyWindowBackupFolder?: string;
+ }
+ 
+@@ -743,10 +751,13 @@
+ 	}
+ 
+ 	private doOpenFolderOrWorkspace(openConfig: IOpenConfiguration, folderOrWorkspace: IPathToOpen, forceNewWindow: boolean, filesToOpen: IPath[], filesToCreate: IPath[], filesToDiff: IPath[], filesToWait: IPathsToWaitFor, windowToUse?: ICodeWindow): ICodeWindow {
++<<<<<<< .our
+ 		if (!forceNewWindow && !windowToUse && typeof openConfig.contextWindowId === 'number') {
+ 			windowToUse = this.getWindowById(openConfig.contextWindowId); // fix for https://github.com/Microsoft/vscode/issues/49587
+ 		}
+ 
++=======
++>>>>>>> .their
+ 		const browserWindow = this.openInBrowserWindow({
+ 			userEnv: openConfig.userEnv,
+ 			cli: openConfig.cli,
+@@ -758,8 +769,12 @@
+ 			filesToDiff,
+ 			filesToWait,
+ 			forceNewWindow,
++<<<<<<< .our
+ 			forceNewTabbedWindow: openConfig.forceNewTabbedWindow,
+ 			windowToUse
++=======
++			windowToUse: windowToUse || this.getWindowById(openConfig.targetWindowId)
++>>>>>>> .their
+ 		});
+ 
+ 		return browserWindow;
+@@ -1173,11 +1188,14 @@
+ 		openConfig.cli['file-uri'] = fileUris;
+ 
+ 		// Open it
++<<<<<<< .our
+ 		this.open({ context: openConfig.context, cli: openConfig.cli, forceNewWindow: true, forceEmpty: !cliArgs.length && !folderUris.length && !fileUris.length, userEnv: openConfig.userEnv });
++=======
++		this.open({ targetWindowId: openConfig.targetWindowId, context: openConfig.context, cli: openConfig.cli, forceNewWindow: true, forceEmpty: openConfig.cli._.length === 0, userEnv: openConfig.userEnv });
++>>>>>>> .their
+ 	}
+ 
+ 	private openInBrowserWindow(options: IOpenBrowserWindowOptions): ICodeWindow {
+-
+ 		// Build IWindowConfiguration from config and options
+ 		const configuration: IWindowConfiguration = mixin({}, options.cli); // inherit all properties from CLI
+ 		configuration.appRoot = this.environmentService.appRoot;
+changed in both
+  base   100644 bb161524a5079839e4046d5a7ec3ab1d5d97a73f src/vs/platform/windows/common/windows.ts
+  our    100644 4b199d0e3e970d59ca6eb0194473ee4a4e86b954 src/vs/platform/windows/common/windows.ts
+  their  100644 ca7a10879d4312c829663641015634b62d55d9df src/vs/platform/windows/common/windows.ts
+@@ -97,6 +97,21 @@
+ 	mode: 'right' | 'bottom' | 'undocked' | 'detach';
+ }
+ 
++export interface IOpenWindowOptions {
++	forceNewWindow?: boolean;
++	forceReuseWindow?: boolean;
++	forceOpenWorkspaceAsFile?: boolean;
++	targetWindowId?: number;
++}
++
++export interface IOpenOptions {
++	cli?: ParsedArgs;
++	userEnv?: IProcessEnvironment;
++	targetWindowId?: number;
++	initialStartup?: boolean;
++	forceNewWindow?: boolean;
++}
++
+ export interface IWindowsService {
+ 
+ 	_serviceBrand: any;
+@@ -158,7 +173,11 @@
+ 	toggleSharedProcess(): TPromise<void>;
+ 
+ 	// Global methods
++<<<<<<< .our
+ 	openWindow(windowId: number, paths: URI[], options?: { forceNewWindow?: boolean, forceReuseWindow?: boolean, forceOpenWorkspaceAsFile?: boolean, args?: ParsedArgs }): TPromise<void>;
++=======
++	openWindow(paths: string[], options?: IOpenWindowOptions): TPromise<void>;
++>>>>>>> .their
+ 	openNewWindow(): TPromise<void>;
+ 	showWindow(windowId: number): TPromise<void>;
+ 	getWindows(): TPromise<{ id: number; workspace?: IWorkspaceIdentifier; folderUri?: ISingleFolderWorkspaceIdentifier; title: string; filename?: string; }[]>;
+changed in both
+  base   100644 8e3877562be6d9087c8344a302e8fd85d6590efc src/vs/platform/windows/electron-main/windows.ts
+  our    100644 20b7711912c4db633052e4e4941fa5b15b602380 src/vs/platform/windows/electron-main/windows.ts
+  their  100644 ef45bbf388b374104b209ac4edadc9b271415b54 src/vs/platform/windows/electron-main/windows.ts
+@@ -6,7 +6,7 @@
+ 'use strict';
+ 
+ import { TPromise } from 'vs/base/common/winjs.base';
+-import { OpenContext, IWindowConfiguration, ReadyState, INativeOpenDialogOptions, IEnterWorkspaceResult, IMessageBoxResult } from 'vs/platform/windows/common/windows';
++import { OpenContext, IWindowConfiguration, ReadyState, INativeOpenDialogOptions, IEnterWorkspaceResult, IMessageBoxResult, IOpenOptions } from 'vs/platform/windows/common/windows';
+ import { ParsedArgs } from 'vs/platform/environment/common/environment';
+ import { Event } from 'vs/base/common/event';
+ import { createDecorator } from 'vs/platform/instantiation/common/instantiation';
+@@ -122,8 +122,9 @@
+ 	quit(): void;
+ }
+ 
+-export interface IOpenConfiguration {
++export interface IOpenConfiguration extends IOpenOptions {
+ 	context: OpenContext;
++<<<<<<< .our
+ 	contextWindowId?: number;
+ 	cli: ParsedArgs;
+ 	userEnv?: IProcessEnvironment;
+@@ -131,14 +132,18 @@
+ 	preferNewWindow?: boolean;
+ 	forceNewWindow?: boolean;
+ 	forceNewTabbedWindow?: boolean;
++=======
++	pathsToOpen?: string[];
++	preferNewWindow?: boolean;
++>>>>>>> .their
+ 	forceReuseWindow?: boolean;
+ 	forceEmpty?: boolean;
+ 	diffMode?: boolean;
+ 	addMode?: boolean;
+ 	forceOpenWorkspaceAsFile?: boolean;
+-	initialStartup?: boolean;
+ }
+ 
++
+ export interface ISharedProcess {
+ 	whenReady(): TPromise<void>;
+ 	toggle(): void;
+changed in both
+  base   100644 24c7924ff9ae9bd30e88888d19c64d8dd123d868 src/vs/platform/windows/electron-main/windowsService.ts
+  our    100644 491a34db33038310851a2457e8f367804d67c299 src/vs/platform/windows/electron-main/windowsService.ts
+  their  100644 96a2b7bce843c657cee3d7d693ceb4d30d98b7a9 src/vs/platform/windows/electron-main/windowsService.ts
+@@ -11,7 +11,7 @@
+ import { assign } from 'vs/base/common/objects';
+ import URI from 'vs/base/common/uri';
+ import product from 'vs/platform/node/product';
+-import { IWindowsService, OpenContext, INativeOpenDialogOptions, IEnterWorkspaceResult, IMessageBoxResult, IDevToolsOptions } from 'vs/platform/windows/common/windows';
++import { IWindowsService, OpenContext, INativeOpenDialogOptions, IEnterWorkspaceResult, IMessageBoxResult, IDevToolsOptions, IOpenWindowOptions } from 'vs/platform/windows/common/windows';
+ import { IEnvironmentService, ParsedArgs } from 'vs/platform/environment/common/environment';
+ import { shell, crashReporter, app, Menu, clipboard } from 'electron';
+ import { Event, fromNodeEventEmitter, mapEvent, filterEvent, anyEvent, latch } from 'vs/base/common/event';
+@@ -400,7 +400,11 @@
+ 		return TPromise.as(null);
+ 	}
+ 
++<<<<<<< .our
+ 	openWindow(windowId: number, paths: URI[], options?: { forceNewWindow?: boolean, forceReuseWindow?: boolean, forceOpenWorkspaceAsFile?: boolean, args?: ParsedArgs }): TPromise<void> {
++=======
++	openWindow(paths: string[], options: IOpenWindowOptions = {}): TPromise<void> {
++>>>>>>> .their
+ 		this.logService.trace('windowsService#openWindow');
+ 		if (!paths || !paths.length) {
+ 			return TPromise.as(null);
+@@ -408,12 +412,18 @@
+ 
+ 		this.windowsMainService.open({
+ 			context: OpenContext.API,
++<<<<<<< .our
+ 			contextWindowId: windowId,
+ 			urisToOpen: paths,
+ 			cli: options && options.args ? { ...this.environmentService.args, ...options.args } : this.environmentService.args,
+ 			forceNewWindow: options && options.forceNewWindow,
+ 			forceReuseWindow: options && options.forceReuseWindow,
+ 			forceOpenWorkspaceAsFile: options && options.forceOpenWorkspaceAsFile
++=======
++			cli: this.environmentService.args,
++			pathsToOpen: paths,
++			...options
++>>>>>>> .their
+ 		});
+ 
+ 		return TPromise.as(null);
+changed in both
+  base   100644 e43e4f7673e5f8853db6714065fcc1ead3580191 src/vs/workbench/parts/files/electron-browser/fileCommands.ts
+  our    100644 38cb4a1c6b995d502359ecceccc8480e423cd6e0 src/vs/workbench/parts/files/electron-browser/fileCommands.ts
+  their  100644 418f7fa7f4cb7d8eac22b0c691742291b364456d src/vs/workbench/parts/files/electron-browser/fileCommands.ts
+@@ -10,6 +10,11 @@
+ import { TPromise } from 'vs/base/common/winjs.base';
+ import * as labels from 'vs/base/common/labels';
+ import URI from 'vs/base/common/uri';
++<<<<<<< .our
++=======
++import { remote } from 'electron';
++import { IWorkbenchEditorService } from 'vs/workbench/services/editor/common/editorService';
++>>>>>>> .their
+ import { toResource, IEditorCommandsContext } from 'vs/workbench/common/editor';
+ import { IWindowsService, IWindowService } from 'vs/platform/windows/common/windows';
+ import { ServicesAccessor, IInstantiationService } from 'vs/platform/instantiation/common/instantiation';
+@@ -79,9 +84,18 @@
+ export const REMOVE_ROOT_FOLDER_COMMAND_ID = 'removeRootFolder';
+ export const REMOVE_ROOT_FOLDER_LABEL = nls.localize('removeFolderFromWorkspace', "Remove Folder from Workspace");
+ 
++<<<<<<< .our
+ export const openWindowCommand = (accessor: ServicesAccessor, paths: (string | URI)[], forceNewWindow: boolean) => {
+ 	const windowService = accessor.get(IWindowService);
+ 	windowService.openWindow(paths.map(p => typeof p === 'string' ? URI.file(p) : p), { forceNewWindow });
++=======
++export const openWindowCommand = (accessor: ServicesAccessor, paths: string[], forceNewWindow: boolean) => {
++	const windowsService = accessor.get(IWindowsService);
++	const currentWindow = remote.getCurrentWindow();
++	const targetWindowId = currentWindow && currentWindow.id;
++
++	windowsService.openWindow(paths, { forceNewWindow, targetWindowId });
++>>>>>>> .their
+ };
+ 
+ function save(

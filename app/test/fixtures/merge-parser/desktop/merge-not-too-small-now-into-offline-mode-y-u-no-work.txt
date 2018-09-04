@@ -1,0 +1,47 @@
+changed in both
+  base   100644 fa95746b3b525b06246015c03db11b35209b8fb1 app/src/ui/repository.tsx
+  our    100644 efb00423012b8da0dfa5e8897acacaeb0a5e648a app/src/ui/repository.tsx
+  their  100644 4d3531ca19c963bdb06019e6d7343e8cf75b68c9 app/src/ui/repository.tsx
+@@ -26,7 +26,14 @@
+ /** The widest the sidebar can be with the minimum window size. */
+ const MaxSidebarWidth = 495
+ 
++<<<<<<< .our
+ interface IRepositoryViewProps {
++=======
++/** The narrowist the sidebar can be with the minumum window size. */
++const MinSideBarWidth = 225
++
++interface IRepositoryProps {
++>>>>>>> .their
+   readonly repository: Repo
+   readonly state: IRepositoryState
+   readonly dispatcher: Dispatcher
+@@ -202,6 +209,7 @@
+ 
+   private renderSidebar(): JSX.Element {
+     return (
++<<<<<<< .our
+       <FocusContainer onFocusWithinChanged={this.onSidebarFocusWithinChanged}>
+         <Resizable
+           id="repository-sidebar"
+@@ -214,6 +222,19 @@
+           {this.renderSidebarContents()}
+         </Resizable>
+       </FocusContainer>
++=======
++      <Resizable
++        id="repository-sidebar"
++        width={this.props.sidebarWidth}
++        onReset={this.handleSidebarWidthReset}
++        onResize={this.handleSidebarResize}
++        maximumWidth={MaxSidebarWidth}
++        minimumWidth={MinSideBarWidth}
++      >
++        {this.renderTabs()}
++        {this.renderSidebarContents()}
++      </Resizable>
++>>>>>>> .their
+     )
+   }
+ 

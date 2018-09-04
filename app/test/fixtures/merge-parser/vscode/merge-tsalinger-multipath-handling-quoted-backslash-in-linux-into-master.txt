@@ -1,0 +1,334 @@
+changed in both
+  base   100644 b8a144fd5ec3b9c98bc86d57454f9546f50aafac src/vs/base/common/paths.ts
+  our    100644 e5ed22fb7b905feb482624e3e7f407091cdf1024 src/vs/base/common/paths.ts
+  their  100644 53dc12f4cfd65a752aafcfdc5b522c1dba1cdc0d src/vs/base/common/paths.ts
+@@ -4,7 +4,7 @@
+  *--------------------------------------------------------------------------------------------*/
+ 'use strict';
+ 
+-import { isWindows } from 'vs/base/common/platform';
++import { isWindows, isLinux } from 'vs/base/common/platform';
+ import { startsWithIgnoreCase, equalsIgnoreCase } from 'vs/base/common/strings';
+ import { CharCode } from 'vs/base/common/charCode';
+ 
+@@ -296,7 +296,15 @@
+ 
+ 	INVALID_FILE_CHARS.lastIndex = 0; // the holy grail of software development
+ 	if (INVALID_FILE_CHARS.test(name)) {
+-		return false; // check for certain invalid file characters
++		let isValid = false;
++		if (isLinux && name.indexOf('/') === -1) {	// forward slashes are not allowed
++			if (name.search(/^['"].+?\\.+?['"]$/) === 0) {	// name starts & ends with a quote and contains a backslash
++				isValid = true;	// linux allows names with backslashes as long as they are in quotes. e.g 'file1\name'
++			}
++		}
++		if (!isValid) {
++			return false; // check for certain invalid file characters
++		}
+ 	}
+ 
+ 	if (isWindows && WINDOWS_FORBIDDEN_NAMES.test(name)) {
+changed in both
+  base   100644 bc440771caca974ad9ab6607445ef5c7817d9c26 src/vs/workbench/parts/files/common/explorerModel.ts
+  our    100644 49d64d0a561cfc89077f412464843a7b0f047e1f src/vs/workbench/parts/files/common/explorerModel.ts
+  their  100644 f0548a68d169a9649ae6ac9f8a3b387cb94e78d7 src/vs/workbench/parts/files/common/explorerModel.ts
+@@ -15,8 +15,14 @@
+ import { toResource, IEditorIdentifier, IEditorInput } from 'vs/workbench/common/editor';
+ import { IDisposable, dispose } from 'vs/base/common/lifecycle';
+ import { Schemas } from 'vs/base/common/network';
++<<<<<<< .our
+ import { rtrim } from 'vs/base/common/strings';
+ import { IEditorGroup } from 'vs/workbench/services/group/common/editorGroupsService';
++=======
++import { startsWith, startsWithIgnoreCase, rtrim } from 'vs/base/common/strings';
++// tslint:disable-next-line:import-patterns
++import * as path from 'path';
++>>>>>>> .their
+ 
+ export class Model {
+ 
+@@ -311,7 +317,11 @@
+ 	}
+ 
+ 	private updateResource(recursive: boolean): void {
++<<<<<<< .our
+ 		this.resource = resources.joinPath(this.parent.resource, this.name);
++=======
++		this.resource = this.parent.resource.with({ path: path.join(this.parent.resource.path, this.name) });
++>>>>>>> .their
+ 
+ 		if (recursive) {
+ 			if (this.isDirectory && this.children) {
+changed in both
+  base   100644 76a6aacb07fe8eac96a9b69e5ac0408b37f64401 src/vs/workbench/parts/files/electron-browser/fileActions.ts
+  our    100644 2b34716fc38cb7630fc57b1b63eaabafcd472436 src/vs/workbench/parts/files/electron-browser/fileActions.ts
+  their  100644 683d0ce5167d379b19f980c419d5d59271ee02fb src/vs/workbench/parts/files/electron-browser/fileActions.ts
+@@ -14,6 +14,10 @@
+ import * as paths from 'vs/base/common/paths';
+ import * as resources from 'vs/base/common/resources';
+ import URI from 'vs/base/common/uri';
++<<<<<<< .our
++=======
++import { posix, join } from 'path';
++>>>>>>> .their
+ import * as errors from 'vs/base/common/errors';
+ import { toErrorMessage } from 'vs/base/common/errorMessage';
+ import * as strings from 'vs/base/common/strings';
+@@ -298,8 +302,33 @@
+ 	}
+ 
+ 	public runAction(newName: string): TPromise<any> {
++<<<<<<< .our
+ 		const parentResource = this.element.parent.resource;
+ 		const targetResource = resources.joinPath(parentResource, newName);
++=======
++		const dirty = this.textFileService.getDirty().filter(d => resources.isEqualOrParent(d, this.element.resource, !isLinux /* ignorecase */));
++		const dirtyRenamed: URI[] = [];
++		return TPromise.join(dirty.map(d => {
++			let renamed: URI;
++
++			// If the dirty file itself got moved, just reparent it to the target folder
++			const targetPath = paths.join(this.element.parent.resource.path, newName);
++			if (this.element.resource.toString() === d.toString()) {
++				renamed = this.element.parent.resource.with({ path: targetPath });
++			}
++
++			// Otherwise, a parent of the dirty resource got moved, so we have to reparent more complicated. Example:
++			else {
++				renamed = this.element.parent.resource.with({ path: join(targetPath, d.path.substr(this.element.resource.path.length + 1)) });
++			}
++
++			dirtyRenamed.push(renamed);
++
++			const model = this.textFileService.models.get(d);
++
++			return this.backupFileService.backupResource(renamed, model.createSnapshot(), model.getVersionId());
++		}))
++>>>>>>> .their
+ 
+ 		return this.textFileService.move(this.element.resource, targetResource);
+ 	}
+@@ -495,7 +524,11 @@
+ 
+ 	public runAction(fileName: string): TPromise<any> {
+ 		const resource = this.element.parent.resource;
++<<<<<<< .our
+ 		return this.fileService.createFile(resources.joinPath(resource, fileName)).then(stat => {
++=======
++		return this.fileService.createFile(resource.with({ path: join(resource.path, fileName) })).then(stat => {
++>>>>>>> .their
+ 			return this.editorService.openEditor({ resource: stat.resource, options: { pinned: true } });
+ 		}, (error) => {
+ 			this.onErrorWithRetry(error, () => this.runAction(fileName));
+@@ -522,7 +555,11 @@
+ 
+ 	public runAction(fileName: string): TPromise<any> {
+ 		const resource = this.element.parent.resource;
++<<<<<<< .our
+ 		return this.fileService.createFolder(resources.joinPath(resource, fileName)).then(null, (error) => {
++=======
++		return this.fileService.createFolder(resource.with({ path: join(resource.path, fileName) })).then(null, (error) => {
++>>>>>>> .their
+ 			this.onErrorWithRetry(error, () => this.runAction(fileName));
+ 		});
+ 	}
+@@ -833,7 +870,11 @@
+ 						resourcesToAdd.forEach(resource => {
+ 							addPromisesFactory.push(() => {
+ 								const sourceFile = resource;
++<<<<<<< .our
+ 								const targetFile = resources.joinPath(targetElement.resource, resources.basename(sourceFile));
++=======
++								const targetFile = targetElement.resource.with({ path: join(targetElement.resource.path, paths.basename(sourceFile.path)) });
++>>>>>>> .their
+ 
+ 								// if the target exists and is dirty, make sure to revert it. otherwise the dirty contents
+ 								// of the target file would replace the contents of the added file. since we already
+@@ -1466,7 +1507,12 @@
+ 		return nls.localize('fileNameStartsWithSlashError', "A file or folder name cannot start with a slash.");
+ 	}
+ 
++<<<<<<< .our
+ 	const names: string[] = name.split(/[\\/]/).filter(part => !!part);
++=======
++	const names: string[] = extractPathSegments(name, isLinux);
++	const analyzedPath = analyzePath(parent, names);
++>>>>>>> .their
+ 
+ 	// Do not allow to overwrite existing file
+ 	const childExists = !!parent.getChild(name);
+@@ -1490,6 +1536,57 @@
+ 	return null;
+ }
+ 
++<<<<<<< .our
++=======
++export function extractPathSegments(name: string, isLinux: boolean) {
++	const slashes: RegExp = /[\\/]/;
++	if (!isLinux) {
++		return name.split(slashes).filter(part => !!part);
++	} else {
++		const quotedBackslashes: RegExp = /(["'].*?\\.*?["'])/;	// 'folder1\\folder2' shouldn't be split https://github.com/Microsoft/vscode/issues/44693
++		const partiallySplittedNames: string[] = name.split(quotedBackslashes).filter(part => !!part); // "'folder1\\folder2'/folder3" becomes ["'folder1\folder2'", "/folder3"]
++		const splittedNames: string[] = [];
++		for (const part of partiallySplittedNames) {
++			if (part.search(quotedBackslashes) !== -1) {
++				splittedNames.push(part);
++			} else {
++				part.split(slashes).filter(part => !!part).forEach(p => splittedNames.push(p));
++			}
++		}
++		return splittedNames;
++	}
++}
++
++function analyzePath(parent: ExplorerItem, pathNames: string[]): { fullPathAlreadyExists: boolean; lastExistingPathSegment: { isFile: boolean; name: string; } } {
++	let lastExistingPathSegment = { isFile: false, name: '' };
++
++	for (const name of pathNames) {
++		const { exists, child } = alreadyExists(parent, name);
++
++		if (exists) {
++			lastExistingPathSegment = { isFile: !child.isDirectory, name };
++			parent = child;
++		} else {
++			return { fullPathAlreadyExists: false, lastExistingPathSegment };
++		}
++	}
++
++	return { fullPathAlreadyExists: true, lastExistingPathSegment };
++}
++
++
++function alreadyExists(parent: ExplorerItem, name: string): { exists: boolean, child: ExplorerItem | undefined } {
++	let duplicateChild: ExplorerItem;
++
++	if (parent && parent.isDirectory) {
++		duplicateChild = parent.getChild(name);
++		return { exists: !!duplicateChild, child: duplicateChild };
++	}
++
++	return { exists: false, child: undefined };
++}
++
++>>>>>>> .their
+ function trimLongName(name: string): string {
+ 	if (name && name.length > 255) {
+ 		return `${name.substr(0, 255)}...`;
+changed in both
+  base   100644 1a418a43fc5ba0c2e14f523bb3b9501f5401309b src/vs/workbench/parts/files/electron-browser/views/explorerViewer.ts
+  our    100644 e0204febe1f4826a27ae39de6c0363afc38b208d src/vs/workbench/parts/files/electron-browser/views/explorerViewer.ts
+  their  100644 f328fc53a7df30787dcce38ae7fda921907571fa src/vs/workbench/parts/files/electron-browser/views/explorerViewer.ts
+@@ -1077,17 +1077,77 @@
+ 							return this.textFileService.move(source.resource, targetResource, true /* overwrite */).then(null, error => this.notificationService.error(error));
+ 						}
+ 
++<<<<<<< .our
+ 						return void 0;
+ 					});
++=======
++				// If the dirty file itself got moved, just reparent it to the target folder
++				if (source.resource.toString() === d.toString()) {
++					moved = target.resource.with({ path: path.join(target.resource.path, source.name) });
++>>>>>>> .their
+ 				}
+ 
+ 				// Any other error
+ 				else {
++<<<<<<< .our
+ 					this.notificationService.error(error);
+ 				}
+ 
+ 				return void 0;
+ 			});
++=======
++					moved = target.resource.with({ path: path.join(target.resource.path, d.path.substr(source.parent.resource.path.length + 1)) });
++				}
++
++				dirtyMoved.push(moved);
++
++				const model = this.textFileService.models.get(d);
++
++				return this.backupFileService.backupResource(moved, model.createSnapshot(), model.getVersionId());
++			}))
++
++				// 2. soft revert all dirty since we have backed up their contents
++				.then(() => this.textFileService.revertAll(dirty, { soft: true /* do not attempt to load content from disk */ }))
++
++				// 3.) run the move operation
++				.then(() => {
++					const targetResource = target.resource.with({ path: path.join(target.resource.path, source.name) });
++
++					return this.fileService.moveFile(source.resource, targetResource).then(null, error => {
++
++						// Conflict
++						if ((<FileOperationError>error).fileOperationResult === FileOperationResult.FILE_MOVE_CONFLICT) {
++							const confirm: IConfirmation = {
++								message: nls.localize('confirmOverwriteMessage', "'{0}' already exists in the destination folder. Do you want to replace it?", source.name),
++								detail: nls.localize('irreversible', "This action is irreversible!"),
++								primaryButton: nls.localize({ key: 'replaceButtonLabel', comment: ['&& denotes a mnemonic'] }, "&&Replace"),
++								type: 'warning'
++							};
++
++							// Move with overwrite if the user confirms
++							return this.dialogService.confirm(confirm).then(res => {
++								if (res.confirmed) {
++									const targetDirty = this.textFileService.getDirty().filter(d => resources.isEqualOrParent(d, targetResource, !isLinux /* ignorecase */));
++
++									// Make sure to revert all dirty in target first to be able to overwrite properly
++									return this.textFileService.revertAll(targetDirty, { soft: true /* do not attempt to load content from disk */ }).then(() => {
++
++										// Then continue to do the move operation
++										return this.fileService.moveFile(source.resource, targetResource, true).then(onSuccess, error => onError(error, true));
++									});
++								}
++
++								return onError();
++							});
++						}
++
++						return onError(error, true);
++					});
++				})
++
++				// 4.) resolve those that were dirty to load their previous dirty contents from disk
++				.then(onSuccess, onError);
++>>>>>>> .their
+ 		}, errors.onUnexpectedError);
+ 	}
+ }
+changed in both
+  base   100644 d072bc62b58fb10fdba41c627f3d44b65894a3be src/vs/workbench/parts/files/test/electron-browser/explorerModel.test.ts
+  our    100644 e88d9dadf02d9731426f8d3052afb402fe2dd7f7 src/vs/workbench/parts/files/test/electron-browser/explorerModel.test.ts
+  their  100644 4a68f7f477ba987e406b907ea92bf329fe828405 src/vs/workbench/parts/files/test/electron-browser/explorerModel.test.ts
+@@ -10,7 +10,7 @@
+ import { isLinux, isWindows } from 'vs/base/common/platform';
+ import URI from 'vs/base/common/uri';
+ import { join } from 'vs/base/common/paths';
+-import { validateFileName } from 'vs/workbench/parts/files/electron-browser/fileActions';
++import { validateFileName, extractPathSegments } from 'vs/workbench/parts/files/electron-browser/fileActions';
+ import { ExplorerItem } from 'vs/workbench/parts/files/common/explorerModel';
+ 
+ function createStat(path: string, name: string, isFolder: boolean, hasChildren: boolean, size: number, mtime: number): ExplorerItem {
+@@ -266,6 +266,21 @@
+ 		assert(validateFileName(wsFolder, '/path/to/stat/') !== null);
+ 	});
+ 
++	test('Split Multi-Path OS-Specific', function () {
++		const isLinux = true;
++		const notLinux = false;
++		// basic tests
++		assert.deepStrictEqual(extractPathSegments('folder1', isLinux), ['folder1']);
++		assert.deepStrictEqual(extractPathSegments('folder1/', isLinux), ['folder1']);
++		assert.deepStrictEqual(extractPathSegments('folder1/folder2//', notLinux), ['folder1', 'folder2']);
++		assert.deepStrictEqual(extractPathSegments('folder1\\folder2', isLinux), ['folder1', 'folder2']);
++
++		// quoted path segments
++		assert.deepStrictEqual(extractPathSegments('"folder1\\folder2"', isLinux), ['"folder1\\folder2"']);
++		assert.deepStrictEqual(extractPathSegments('"folder1//folder2"', isLinux), ['"folder1', 'folder2"']);
++		assert.deepStrictEqual(extractPathSegments('"folder1\\folder2"', notLinux), ['"folder1', 'folder2"']);
++	});
++
+ 	test('Merge Local with Disk', function () {
+ 		const d = new Date().toUTCString();
+ 
