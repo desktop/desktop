@@ -57,11 +57,11 @@ export interface IAPICommit {
   readonly author: IAPIUser | null
 }
 
-export type Plan = 'developer' | 'free' | 'team' | 'business'
+export type PlanType = 'developer' | 'free' | 'team' | 'business'
 
 interface IAccountWithPlan {
   readonly plan: {
-    readonly name: Plan
+    readonly name: PlanType
   }
 }
 

@@ -48,7 +48,7 @@ interface IPublishRepositoryState {
 export class PublishRepository extends React.Component<
   IPublishRepositoryProps,
   IPublishRepositoryState
-> {
+  > {
   public constructor(props: IPublishRepositoryProps) {
     super(props)
 
@@ -59,8 +59,8 @@ export class PublishRepository extends React.Component<
     this.fetchOrgs(this.props.account)
     this.updateSettings({
       org: null,
-      canCreatePrivateRepo: canCreatePrivateRepo(this.props.account),
-      private: canCreatePrivateRepo(this.props.account),
+      canCreatePrivateRepo: canCreatePrivateRepo(this.props.account, null),
+      private: canCreatePrivateRepo(this.props.account, null),
     })
   }
 
@@ -105,8 +105,8 @@ export class PublishRepository extends React.Component<
     if (index < 0 || isNaN(index)) {
       this.updateSettings({
         org: null,
-        canCreatePrivateRepo: canCreatePrivateRepo(this.props.account),
-        private: canCreatePrivateRepo(this.props.account),
+        canCreatePrivateRepo: canCreatePrivateRepo(this.props.account, null),
+        private: canCreatePrivateRepo(this.props.account, null),
       })
     } else {
       const org = this.state.orgs[index]

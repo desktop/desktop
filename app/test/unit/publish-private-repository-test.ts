@@ -17,7 +17,7 @@ describe('can publish private repository', () => {
       { name: 'developer' }
     )
 
-    expect(canCreatePrivateRepo(account)).to.be.true
+    expect(canCreatePrivateRepo(account, null)).to.be.true
   })
 
   it('return false when user on free plan', () => {
@@ -32,7 +32,7 @@ describe('can publish private repository', () => {
       { name: 'free' }
     )
 
-    expect(canCreatePrivateRepo(account)).to.be.false
+    expect(canCreatePrivateRepo(account, null)).to.be.false
   })
 
   it('return false when user plan is missing', () => {
@@ -46,7 +46,7 @@ describe('can publish private repository', () => {
       ''
     )
 
-    expect(canCreatePrivateRepo(account)).to.be.false
+    expect(canCreatePrivateRepo(account, null)).to.be.false
   })
 
   it('return false when org is on free plan', () => {
