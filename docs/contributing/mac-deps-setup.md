@@ -6,17 +6,17 @@ There are two approaches to installing Node, **simple** and **version managed**.
 
 ### Version Managed
 
-We recommend using nvm to manage your node version. This makes it easier to know you are running the correct version of node for this project without effecting setup for other projects on your machine.
+We recommend using [nvm](https://github.com/creationix/nvm) to manage your node version. This makes it easier to know you are running the correct version of node for this project without effecting setup for other projects on your machine.
 
-- install nvm from https://github.com/creationix/nvm#install-script
-- install the version of node for GitHub Desktop with `nvm install`
-- use that version with `nvm use`
-- you're good to go!
+- Install nvm from https://github.com/creationix/nvm#install-script
+- Install the version of node for GitHub Desktop with `nvm install`
+- Use that version with `nvm use`
+- You're good to go!
 
 ### Manual
 
 - Install manually from https://nodejs.org/en/download/
-- you're good to go!
+- You're good to go!
 
 ## Python
 
@@ -24,17 +24,17 @@ Mac OS comes with python pre-installed, and it happens to be the right version, 
 
 ### Version Managed
 
-For this, we recommennd pyenv.
+For this, we recommennd [pyenv](https://github.com/pyenv/pyenv).
 
-- install pyenv according to https://github.com/pyenv/pyenv-installer#github-way-recommended
-- install the version of python for GitHub Desktop with `pyenv install`
-- you're good to go!
+- Install pyenv according to https://github.com/pyenv/pyenv-installer#github-way-recommended
+- Install the version of python for GitHub Desktop with `pyenv install`
+- You're good to go!
 
 ### Manual
 
-- install manually from https://www.python.org/downloads/
-- you're good to go!
+- Install manually from https://www.python.org/downloads/
+- You're good to go!
 
 ## XCode Command Line Tools
 
-- just run `xcode-select --install`
+- Just run `xcode-select --install`
