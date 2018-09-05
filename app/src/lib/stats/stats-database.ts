@@ -92,10 +92,10 @@ export interface IDailyMeasures {
   readonly externalPushCount: number
 
   /** The number of times the user has merged after seeing the conflict warning */
-  readonly userProceededAfterConflictsWarning: number
+  readonly proceededAfterConflictsWarningCount: number
 
   /** The number of times the user has merged after seeing the 'no conflicts' warning */
-  readonly userProceededAfterNoConflictsHint: number
+  readonly proceededAfterNoConflictsHintCount: number
 
   /** Whether or not the app has been interacted with during the current reporting window */
   readonly active: boolean
