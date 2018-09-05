@@ -130,8 +130,8 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
         <p className="merge-info">
           {this.renderMergeStatusMessage(
             mergeStatus,
-            currentBranch,
             selectedBranch,
+            currentBranch,
             commitCount
           )}
         </p>
