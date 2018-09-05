@@ -10,8 +10,8 @@ These are general metrics about users that are aggregated to understand general 
 
 | Metric | Description | Justification |
 |:--|:--|:--|
-| `version` | The version of Desktop. | To visualize update rates and performance metrics for each version of Desktop, so we can make sure our users are updating the app and understand our most used versions. |
-| `osVersion` | The OS version. | To understand the most common versions of Windows and MacOS people use Desktop on, so we can more accurately prioritize version-specific bugs. |
+| `version` | The version of Desktop. | To visualize update rates and performance metrics for each version of Desktop, so we can track whether users are staying up-to-date and which older versions are active. |
+| `osVersion` | The OS version. | To identify the most common versions of Windows and macOS people use Desktop on, so we can more accurately prioritize version-specific bugs. |
 | `platform` | The OS. | To understand which platforms are most popular among people who use Desktop, so we can more accurately prioritize platform-specific bugs.  |
 | `repositoryCount` | The total number of repositories. | To understand the typical number of repositories connected to Desktop, so we can make appropriate decisions in terms of performance and UI. |
 | `gitHubRepositoryCount` | The number of GitHub repositories. | To understand the typical number of repositories connected to Desktop that are hosted on GitHub, so we can more accurately prioritize GitHub workflows in Desktop. |
