@@ -1,5 +1,13 @@
 {
   "releases": {
+    "1.3.5": [
+      "[Fixed] Disable delete button while deleting a branch - #5331",
+      "[Fixed] History now avoids calling log.showSignature if set in config - #5466",
+      "[Fixed] Start blocking the ability to add local bare repositories - #4293. Thanks @Daniel-McCarthy!",
+      "[Fixed] Revert workaround for tooltip issue on Windows - #3362. Thanks @divayprakash!",
+      "[Improved] Error message when publishing to missing organisation - #5380. Thanks @Daniel-McCarthy!",
+      "[Improved] Don't hide commit details when commit description is expanded. - #5471. Thanks @aryyya!"
+    ],
     "1.3.5-beta1": [
       "[Fixed] Disable delete button while deleting a branch - #5331",
       "[Fixed] History now avoids calling log.showSignature if set in config - #5466",
