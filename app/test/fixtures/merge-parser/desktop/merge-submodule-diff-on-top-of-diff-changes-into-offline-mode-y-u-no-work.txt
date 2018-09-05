@@ -1,0 +1,1664 @@
+changed in both
+  base   100644 595c4ccc42a67e036909be3572ab1131e6cd1935 app/src/lib/app-state.ts
+  our    100644 b30f0fe080d909b81d2fb683ceb8deb365fb0191 app/src/lib/app-state.ts
+  their  100644 4601ec5e4074819945b51b57518f924111e115a5 app/src/lib/app-state.ts
+@@ -1,10 +1,16 @@
+ import { Account } from '../models/account'
+ import { CommitIdentity } from '../models/commit-identity'
+ import { IDiff } from '../models/diff'
++<<<<<<< .our
+ import { Repository, ILocalRepositoryState } from '../models/repository'
+ 
+ import { Branch, IAheadBehind } from '../models/branch'
+ import { Tip } from '../models/tip'
++=======
++import { Repository } from '../models/repository'
++import { IAheadBehind } from './git'
++import { Branch } from '../models/branch'
++>>>>>>> .their
+ import { Commit } from '../models/commit'
+ import {
+   CommittedFileChange,
+@@ -571,12 +577,20 @@
+   /** The selected file inside the selected commit */
+   readonly file: CommittedFileChange | null
+ 
++<<<<<<< .our
+   /** The diff of the currently-selected file */
++=======
++>>>>>>> .their
+   readonly diff: IDiff | null
+ }
+ 
+ export interface IChangesState {
+   readonly workingDirectory: WorkingDirectoryStatus
++<<<<<<< .our
++=======
++  readonly selectedFile: WorkingDirectoryFileChange | null
++  readonly diff: IDiff | null
++>>>>>>> .their
+ 
+   /**
+    * The ID of the selected files. The files themselves can be looked up in
+changed in both
+  base   100644 5681db4dacf0b40c8272b8e9e5dd06ebc239cd60 app/src/lib/diff-parser.ts
+  our    100644 d8312b68a2839cd36ba6507b023bede53368a654 app/src/lib/diff-parser.ts
+  their  100644 8e3ebe94815c40ea4c1f6fd46b6b3f9c1f1e0990 app/src/lib/diff-parser.ts
+@@ -1,3 +1,4 @@
++<<<<<<< .our
+ import {
+   IRawDiff,
+   DiffHunk,
+@@ -5,6 +6,9 @@
+   DiffLine,
+   DiffLineType,
+ } from '../models/diff'
++=======
++import { IRawDiff, DiffHunk, DiffHunkHeader, DiffLine, DiffLineType } from '../models/diff'
++>>>>>>> .their
+ import { assertNever } from '../lib/fatal-error'
+ 
+ // https://en.wikipedia.org/wiki/Diff_utility
+@@ -373,6 +377,10 @@
+    *             diffs.
+    */
+   public parse(text: string): IRawDiff {
++<<<<<<< .our
++=======
++
++>>>>>>> .their
+     this.text = text
+ 
+     try {
+@@ -383,11 +391,25 @@
+ 
+       // empty diff
+       if (!headerInfo) {
++<<<<<<< .our
+         return { header, contents: '', hunks: [], isBinary: false }
+       }
+ 
+       if (headerInfo.isBinary) {
+         return { header, contents: '', hunks: [], isBinary: true }
++=======
++        return {
++          hunks: [],
++          isBinary: false,
++        }
++      }
++
++      if (headerInfo.isBinary) {
++        return {
++          hunks: [],
++          isBinary: true,
++        }
++>>>>>>> .their
+       }
+ 
+       const hunks = new Array<DiffHunk>()
+@@ -399,6 +421,7 @@
+         linesConsumed += hunk.lines.length
+       } while (this.peek())
+ 
++<<<<<<< .our
+       const contents = this.text
+         .substring(headerEnd + 1, this.le)
+         // Note that this simply returns a reference to the
+@@ -407,6 +430,12 @@
+         .replace(/\n\\ No newline at end of file/g, '')
+ 
+       return { header, contents, hunks, isBinary: headerInfo.isBinary }
++=======
++      return {
++        hunks,
++        isBinary: headerInfo.isBinary,
++      }
++>>>>>>> .their
+     } finally {
+       this.reset()
+     }
+removed in local
+  base   100644 4844d41b832a89c74a083b9503a1bad1329bc7d8 app/src/lib/dispatcher/app-store.ts
+  their  100644 2e2358a1d3b3a91ac26d1e83a9ea37b5a9babdbc app/src/lib/dispatcher/app-store.ts
+changed in both
+  base   100644 fcdf978c8b65d7d75655455af3799fd77e894bd4 app/src/lib/git/apply.ts
+  our    100644 57f2df6dd951c6129d9da4ea5809b3e26b6a764c app/src/lib/git/apply.ts
+  their  100644 99472b37aff6fd6ef970be7d22ff1e5369074d05 app/src/lib/git/apply.ts
+@@ -1,5 +1,9 @@
+ import { git } from './core'
++<<<<<<< .our
+ import { AppFileStatus, WorkingDirectoryFileChange } from '../../models/status'
++=======
++import { FileStatus, WorkingDirectoryFileChange } from '../../models/status'
++>>>>>>> .their
+ import { DiffType } from '../../models/diff'
+ import { Repository } from '../../models/repository'
+ import { getWorkingDirectoryDiff } from './diff'
+changed in both
+  base   100644 ae50139e7823fd04a2e47f11d0ae428a959fd93a app/src/lib/git/diff.ts
+  our    100644 c7b70925514f334e2076ddb67f208c2f3f12672f app/src/lib/git/diff.ts
+  their  100644 5d54e2ba1a5b991dd4f4edabdbb064c5c15c4d3c app/src/lib/git/diff.ts
+@@ -4,6 +4,7 @@
+ import { getBlobContents } from './show'
+ 
+ import { Repository } from '../../models/repository'
++<<<<<<< .our
+ import {
+   WorkingDirectoryFileChange,
+   FileChange,
+@@ -22,6 +23,12 @@
+ } from '../../models/diff'
+ 
+ import { spawnAndComplete } from './spawn'
++=======
++import { WorkingDirectoryFileChange, FileChange, FileStatus } from '../../models/status'
++import { DiffType, IRawDiff, IDiff, IImageDiff, Image, FileSummary, DiffHunk } from '../../models/diff'
++
++import { getSubmoduleDetails } from '../../lib/git/submodule'
++>>>>>>> .their
+ 
+ import { DiffParser } from '../diff-parser'
+ 
+@@ -93,6 +100,7 @@
+  * @param commitish A commit SHA or some other identifier that ultimately dereferences
+  *                  to a commit.
+  */
++<<<<<<< .our
+ export async function getCommitDiff(
+   repository: Repository,
+   file: FileChange,
+@@ -114,6 +122,9 @@
+   if (file.oldPath != null) {
+     args.push(file.oldPath)
+   }
++=======
++export function getCommitDiff(repository: Repository, file: FileChange, commitish: string): Promise<IDiff> {
++>>>>>>> .their
+ 
+   const { output } = await spawnAndComplete(
+     args,
+@@ -121,7 +132,13 @@
+     'getCommitDiff'
+   )
+ 
++<<<<<<< .our
+   return buildDiff(output, repository, file, commitish)
++=======
++  return git(args, repository.path, 'getCommitDiff')
++    .then(value => diffFromRawDiffOutput(value.stdout))
++    .then(diff => convertDiff(repository, file, diff, commitish))
++>>>>>>> .their
+ }
+ 
+ /**
+@@ -129,11 +146,17 @@
+  * compared against HEAD if it's tracked, if not it'll be compared to an empty file meaning
+  * that all content in the file will be treated as additions.
+  */
++<<<<<<< .our
+ export async function getWorkingDirectoryDiff(
+   repository: Repository,
+   file: WorkingDirectoryFileChange
+ ): Promise<IDiff> {
+   let successExitCodes: Set<number> | undefined
++=======
++export function getWorkingDirectoryDiff(repository: Repository, file: WorkingDirectoryFileChange): Promise<IDiff> {
++
++  let opts: IGitExecutionOptions | undefined
++>>>>>>> .their
+   let args: Array<string>
+ 
+   // `--no-ext-diff` should be provided wherever we invoke `git diff` so that any
+@@ -180,6 +203,7 @@
+       file.path,
+     ]
+   } else {
++<<<<<<< .our
+     args = [
+       'diff',
+       'HEAD',
+@@ -208,6 +232,17 @@
+   file: FileChange,
+   commitish: string
+ ): Promise<IImageDiff> {
++=======
++    args = [ 'diff', 'HEAD', '--patch-with-raw', '-z', '--', file.path ]
++  }
++
++  return git(args, repository.path, 'getWorkingDirectoryDiff', opts)
++    .then(value => diffFromRawDiffOutput(value.stdout))
++    .then(diff => convertDiff(repository, file, diff, 'HEAD'))
++}
++
++async function getImageDiff(repository: Repository, file: FileChange, commitish: string): Promise<IImageDiff> {
++>>>>>>> .their
+   let current: Image | undefined = undefined
+   let previous: Image | undefined = undefined
+ 
+@@ -216,7 +251,11 @@
+     // No idea what to do about this, a conflicted binary (presumably) file.
+     // Ideally we'd show all three versions and let the user pick but that's
+     // a bit out of scope for now.
++<<<<<<< .our
+     if (file.status === AppFileStatus.Conflicted) {
++=======
++    if (file.status === FileStatus.Conflicted) {
++>>>>>>> .their
+       return { kind: DiffType.Image }
+     }
+ 
+@@ -261,6 +300,7 @@
+   }
+ }
+ 
++<<<<<<< .our
+ export async function convertDiff(
+   repository: Repository,
+   file: FileChange,
+@@ -271,6 +311,37 @@
+   const extension = Path.extname(file.path).toLowerCase()
+ 
+   if (diff.isBinary) {
++=======
++/**
++ * normalize the line endings in the diff so that the CodeMirror editor
++ * will display the unified diff correctly
++ */
++function formatLineEnding(text: string): string {
++  if (text.endsWith('\n')) {
++    return text
++  } else if (text.endsWith('\r')) {
++    return text + '\n'
++  } else {
++    return text + '\r\n'
++  }
++}
++
++function diffMatchesSubmoduleChange(hunk: DiffHunk): boolean {
++  // for any sort of submodule change, the first line should match this format
++  const line = hunk.lines[1]
++  const match = /[\+\-]Subproject commit ([a-z0-9]{40})/.exec(line.text)
++  // no need to look at the found hash, just looking for the equivalent format
++  if (match) {
++    return true
++  }
++  return false
++}
++
++export async function convertDiff(repository: Repository, file: FileChange, diff: IRawDiff, commitish: string): Promise<IDiff> {
++  if (diff.isBinary) {
++    const extension = Path.extname(file.path)
++
++>>>>>>> .their
+     // some extension we don't know how to parse, never mind
+     if (!imageFileExtensions.has(extension)) {
+       return {
+@@ -281,11 +352,59 @@
+     }
+   }
+ 
++<<<<<<< .our
+   return {
+     kind: DiffType.Text,
+     text: diff.contents,
+     hunks: diff.hunks,
+     lineEndingsChange,
++=======
++  if (diff.hunks.length === 1) {
++
++    const hunk = diff.hunks[0]
++
++    if (hunk.lines.length <= 3) {
++
++      const maybeSubmodule = diffMatchesSubmoduleChange(hunk)
++
++      if (maybeSubmodule) {
++
++        // TODO: what about renaming a submodule? Would that be handled here?
++        const result = await getSubmoduleDetails(repository, file, commitish)
++
++        if (result) {
++          const name = Path.basename(file.path)
++          const type = result.type
++          const from = result.from
++          const to = result.to
++
++          const changes = from && to
++            ? await getSubmoduleDiff(repository, file, from, to)
++            : undefined
++
++          return {
++            kind: DiffType.Submodule,
++            type,
++            from,
++            to,
++            name,
++            changes,
++          }
++        }
++      }
++    }
++  }
++
++  let diffText = ''
++  diff.hunks.forEach(hunk => {
++    hunk.lines.forEach(l => diffText += formatLineEnding(l.text))
++  })
++
++  return {
++    kind: DiffType.Text,
++    text: diffText,
++    hunks: diff.hunks,
++>>>>>>> .their
+   }
+ }
+ 
+@@ -352,11 +471,15 @@
+  *
+  * Parses the output from a diff-like command that uses `--path-with-raw`
+  */
++<<<<<<< .our
+ function diffFromRawDiffOutput(output: Buffer): IRawDiff {
+   // for now we just assume the diff is UTF-8, but given we have the raw buffer
+   // we can try and convert this into other encodings in the future
+   const result = output.toString('utf-8')
+ 
++=======
++function diffFromRawDiffOutput(result: string): IRawDiff {
++>>>>>>> .their
+   const pieces = result.split('\0')
+   const parser = new DiffParser()
+   return parser.parse(pieces[pieces.length - 1])
+@@ -393,6 +516,38 @@
+   return convertDiff(repository, file, diff, commitish, lineEndingsChange)
+ }
+ 
++function tryParseInt(text: string): number | undefined {
++  const value = parseInt(text, 10)
++  return isNaN(value) ? undefined : value
++}
++
++export async function getSubmoduleDiff(repository: Repository, file: FileChange, from: string, to: string): Promise<ReadonlyArray<FileSummary>> {
++  const args = [ 'diff', '--numstat', '-z', `${from}..${to}` ]
++  const submodulePath = Path.join(repository.path, file.path)
++
++  const diffStats = await git(args, submodulePath, 'getSubmoduleDiff')
++  const output = diffStats.stdout
++
++  const results: Array<FileSummary> = [ ]
++
++  const lines = output.split('\0')
++
++  for (let i = 0; i < lines.length; i++) {
++    const line = lines[i]
++    const entries = line.split('\t')
++
++    if (entries.length === 3) {
++      const added = tryParseInt(entries[0])
++      const removed = tryParseInt(entries[1])
++      const path = entries[2].trim().replace('\0', '')
++
++      results.push(new FileSummary(path, added, removed))
++    }
++  }
++
++  return results
++}
++
+ /**
+  * Retrieve the binary contents of a blob from the object database
+  *
+added in both
+  our    100644 497889aae05c2de60409b2354678563f32994314 app/src/lib/git/submodule.ts
+  their  100644 efb0efe2bbb460832f610eb016e05f58b3c68bda app/src/lib/git/submodule.ts
+@@ -1,4 +1,5 @@
+ import * as Path from 'path'
++<<<<<<< .our
+ import { pathExists } from 'fs-extra'
+ 
+ import { git } from './core'
+@@ -88,3 +89,130 @@
+     )
+   }
+ }
++=======
++
++import { git } from './core'
++import { Repository } from '../../models/repository'
++import { FileStatus, FileChange, WorkingDirectoryFileChange } from '../../models/status'
++import { mapStatus } from './status'
++
++// TODO: docs
++
++export class SubmoduleChange {
++
++  public readonly path: string
++
++  public readonly from?: string
++
++  public readonly to?: string
++
++  public readonly type: FileStatus
++}
++
++const zeroSha = /0{7,40}/
++const submoduleMode = '160000'
++
++// NOTE:
++// as of Git 2.11, abbreviated SHAs may be more than 7 characters
++// we probably need to revisit some places where we do this trimming
++// ourselves - e.g. `commit-summary.tsx`
++function formatSha(text: string): string {
++  return text.slice(0, 7)
++}
++
++/**
++ * Map the found identifier to a object id in the Git database
++ *
++ * @returns the 40-character OID if the object exists, or undefined if the
++ * found input is '0000000000000000000000000000000000000000' which
++ * represents a non-existent object.
++ */
++function getIdentifier(input: string): string | undefined {
++  if (zeroSha.test(input)) {
++    return undefined
++  }
++  return formatSha(input)
++}
++
++const submoduleEntryRegex = /Submodule .* ([a-z0-9]{7,40})..([a-z0-9]{7,40})\:/
++
++async function getSubmoduleDetailsWorkingDirectory(repository: Repository, file: WorkingDirectoryFileChange): Promise<SubmoduleChange | null> {
++
++  if (file.status === FileStatus.New) {
++    // if the submodule has not been staged elsewhere, it's not going to appear
++    // in any of the `git submodule summary` calls - so let's poke at it here
++    const submodulePath = Path.join(repository.path, file.path)
++
++    const result = await git([ 'show-ref', 'HEAD' ], submodulePath, 'submodule-workdir-untracked')
++
++    const output = result.stdout
++    const tokens = output.split(' ')
++
++    const tip = tokens[0]
++
++    const path = file.path
++    const type = file.status
++    const from = undefined
++    const to = tip
++    return { path, from, to, type }
++  } else {
++    const result = await git([ 'diff', '--submodule', '-z', '--', file.path ], repository.path, 'submodule-workdir-tracked')
++
++    const match = submoduleEntryRegex.exec(result.stdout)
++    if (match) {
++      const path = file.path
++      const type = file.status
++      const from = getIdentifier(match[1])
++      const to = getIdentifier(match[2])
++      return { path, from, to, type }
++    }
++
++    return null
++  }
++}
++
++async function getSubmoduleDetailsHistory(repository: Repository, file: FileChange, committish: string): Promise<SubmoduleChange | null> {
++
++  const range = `${committish}~1..${committish}`
++  // TODO: control formatting betterer here?
++  const result = await git([ 'diff-tree', '--raw', '-z', range, '--', file.path ], repository.path, 'submodule-history')
++
++  // the expected format here is a row like this:
++  // :000000 160000 0000000000000000000000000000000000000000 f1a74d299b28b4278d6127fbb3e9cc7aeedc153f A	friendly-bassoon
++  //
++  // index 0 is the empty string before the first semi-colon, skip it
++  const line = result.stdout.substr(1)
++  // \0 separates path from diff stats
++  const tokens = line.split('\0')
++  const inputs = tokens[0].split(' ')
++  const path = tokens[1]
++
++  // the first two values are the mode for the change
++  // if either of these values is 160000, we have a submodule change
++  if (inputs[0] === submoduleMode || inputs[1] === submoduleMode) {
++    const from = getIdentifier(inputs[2])
++    const to = getIdentifier(inputs[3])
++    const type = mapStatus(inputs[4])
++    return { path, from, to, type }
++  }
++
++  return null
++}
++
++/**
++ * Retrieve the submodule list for the current repository.
++ *
++ * For historical commits, use `git diff-tree` as this works independent of the
++ * .gitmodules state.
++ *
++ * For working directory changes, use `git submodule summary` as the .gitmodules
++ * state can be relied on for tracking changes.
++ */
++export async function getSubmoduleDetails(repository: Repository, file: FileChange, committish: string): Promise<SubmoduleChange | null> {
++  if (file instanceof WorkingDirectoryFileChange) {
++    return getSubmoduleDetailsWorkingDirectory(repository, file)
++  } else {
++    return getSubmoduleDetailsHistory(repository, file, committish)
++  }
++}
++>>>>>>> .their
+changed in both
+  base   100644 89bc05d61dc8e935503d1c57fd962a7edd5654de app/src/lib/patch-formatter.ts
+  our    100644 07394cb099e9aa88821fa27c76986f91e7c86007 app/src/lib/patch-formatter.ts
+  their  100644 15945ecc933d4f324d7231f625b341b1675e2fb4 app/src/lib/patch-formatter.ts
+@@ -1,5 +1,9 @@
+ import { assertNever } from '../lib/fatal-error'
++<<<<<<< .our
+ import { WorkingDirectoryFileChange, AppFileStatus } from '../models/status'
++=======
++import { WorkingDirectoryFileChange, FileStatus } from '../models/status'
++>>>>>>> .their
+ import { DiffLineType, ITextDiff } from '../models/diff'
+ 
+ /**
+@@ -114,10 +118,14 @@
+  *
+  * @param diff  The source diff
+  */
++<<<<<<< .our
+ export function formatPatch(
+   file: WorkingDirectoryFileChange,
+   diff: ITextDiff
+ ): string {
++=======
++export function formatPatch(file: WorkingDirectoryFileChange, diff: ITextDiff): string {
++>>>>>>> .their
+   let patch = ''
+ 
+   diff.hunks.forEach((hunk, hunkIndex) => {
+removed in local
+  base   100644 8e1278e78e0dfe9067cfa506261d342c74ae94f8 app/src/models/diff.ts
+  their  100644 d6f40a61ae4fae061485ecc00454a87ee3bc52cf app/src/models/diff.ts
+added in both
+  our    100644 dc40c8309be3d5fb88ce7c549d18e0a218138062 app/src/ui/diff/diff-explorer.ts
+  their  100644 15fc1c1dbbc1f6745f8449df16b05a354e842cb0 app/src/ui/diff/diff-explorer.ts
+@@ -1,13 +1,22 @@
++<<<<<<< .our
+ import { DiffLine, DiffHunk } from '../../models/diff'
++=======
++import { DiffLine, DiffHunk, ITextDiff } from '../../models/diff'
++>>>>>>> .their
+ 
+ /**
+  * Locate the diff hunk for the given (absolute) line number in the diff.
+  */
++<<<<<<< .our
+ export function diffHunkForIndex(
+   hunks: ReadonlyArray<DiffHunk>,
+   index: number
+ ): DiffHunk | null {
+   const hunk = hunks.find(h => {
++=======
++export function diffHunkForIndex(diff: ITextDiff, index: number): DiffHunk | null {
++  const hunk = diff.hunks.find(h => {
++>>>>>>> .their
+     return index >= h.unifiedDiffStart && index <= h.unifiedDiffEnd
+   })
+   return hunk || null
+@@ -16,6 +25,7 @@
+ /**
+  * Locate the diff line for the given (absolute) line number in the diff.
+  */
++<<<<<<< .our
+ export function diffLineForIndex(
+   hunks: ReadonlyArray<DiffHunk>,
+   index: number
+@@ -92,3 +102,11 @@
+ 
+   return { start, end }
+ }
++=======
++export function diffLineForIndex(diff: ITextDiff, index: number): DiffLine | null {
++  const hunk = diffHunkForIndex(diff, index)
++  if (!hunk) { return null }
++
++  return hunk.lines[index - hunk.unifiedDiffStart] || null
++}
++>>>>>>> .their
+changed in both
+  base   100644 3e516b6d4f3d61bfd9ee4f1cf169b1f7daaf8527 app/src/ui/diff/diff-line-gutter.tsx
+  our    100644 de4e6d59229013efd700fa8ab59fdabd09a5054b app/src/ui/diff/diff-line-gutter.tsx
+  their  100644 9dc3b00bbe2647df1093590982d14f7b730e6a37 app/src/ui/diff/diff-line-gutter.tsx
+@@ -1,6 +1,11 @@
+ import * as React from 'react'
++<<<<<<< .our
+ import { DiffHunk, DiffLine, DiffLineType } from '../../models/diff'
+ import { diffHunkForIndex, findInteractiveDiffRange } from './diff-explorer'
++=======
++import { ITextDiff, DiffHunk, DiffLine, DiffLineType } from '../../models/diff'
++import { diffHunkForIndex } from './diff-explorer'
++>>>>>>> .their
+ import { hoverCssClass, selectedLineClass } from './selection/selection'
+ import { assertNever } from '../../lib/fatal-error'
+ import * as classNames from 'classnames'
+@@ -30,7 +35,11 @@
+   /**
+    * The diff currently displayed in the app
+    */
++<<<<<<< .our
+   readonly hunks: ReadonlyArray<DiffHunk>
++=======
++  readonly diff: ITextDiff
++>>>>>>> .their
+ 
+   /**
+    * Callback to apply hover effect to specific lines in the diff
+@@ -203,14 +212,37 @@
+ 
+   private mouseLeaveHandler = (ev: MouseEvent) => {
+     ev.preventDefault()
++<<<<<<< .our
+     const isRangeSelection = isMouseCursorNearEdge(ev)
+     this.updateHoverState(isRangeSelection, false)
++=======
++
++    const isHunkSelection = isMouseInHunkSelectionZone(ev)
++    this.updateHoverState(isHunkSelection, false)
++  }
++
++  private updateHoverState(isHunkSelection: boolean, isActive: boolean) {
++    if (isHunkSelection) {
++      const hunk = diffHunkForIndex(this.props.diff, this.props.index)
++      if (!hunk) {
++        console.error('unable to find hunk for given line in diff')
++        return
++      }
++      this.props.updateHunkHoverState(hunk, isActive)
++    } else {
++      this.setHover(isActive)
++    }
++>>>>>>> .their
+   }
+ 
+   private mouseMoveHandler = (ev: MouseEvent) => {
+     ev.preventDefault()
+ 
++<<<<<<< .our
+     const hunk = diffHunkForIndex(this.props.hunks, this.props.index)
++=======
++    const hunk = diffHunkForIndex(this.props.diff, this.props.index)
++>>>>>>> .their
+     if (!hunk) {
+       console.error('unable to find hunk for given line in diff')
+       return
+changed in both
+  base   100644 611f7bbe5cd13b46da78feabc6c1f0264266862a app/src/ui/diff/index.tsx
+  our    100644 8695c640dc0a5184c74a112f131a2e2a07ef572d app/src/ui/diff/index.tsx
+  their  100644 279bcb59b65d4b90754eb67db81a79729f423f37 app/src/ui/diff/index.tsx
+@@ -1,6 +1,19 @@
+ import * as React from 'react'
++<<<<<<< .our
++=======
++import * as ReactDOM from 'react-dom'
++import { Disposable } from 'event-kit'
++
++import { NewImageDiff } from './new-image-diff'
++import { ModifiedImageDiff } from './modified-image-diff'
++import { DeletedImageDiff } from './deleted-image-diff'
++import { BinaryFile } from './binary-file'
++import { SubmoduleDiff } from './submodule-diff'
++
++>>>>>>> .their
+ import { Editor } from 'codemirror'
+ 
++<<<<<<< .our
+ import { assertNever } from '../../lib/fatal-error'
+ import { encodePathAsUrl } from '../../lib/path'
+ import { ImageDiffType } from '../../lib/app-state'
+@@ -30,17 +43,27 @@
+ } from './image-diffs'
+ import { BinaryFile } from './binary-file'
+ import { diffLineForIndex } from './diff-explorer'
++=======
++import { FileChange, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
++import { DiffHunk, DiffSelection, DiffType, IDiff, IImageDiff, ITextDiff, ISubmoduleDiff } from '../../models/diff'
++import { Dispatcher } from '../../lib/dispatcher/dispatcher'
++
++import { diffLineForIndex, diffHunkForIndex } from './diff-explorer'
++>>>>>>> .their
+ import { DiffLineGutter } from './diff-line-gutter'
+ import { DiffSyntaxMode } from './diff-syntax-mode'
+ 
+ import { ISelectionStrategy } from './selection/selection-strategy'
+ import { TextDiff } from './text-diff'
+ 
++<<<<<<< .our
+ // image used when no diff is displayed
+ const NoDiffImage = encodePathAsUrl(__dirname, 'static/ufo-alert.svg')
+ 
+ type ChangedFile = WorkingDirectoryFileChange | CommittedFileChange
+ 
++=======
++>>>>>>> .their
+ /** The props for the Diff component. */
+ interface IDiffProps {
+   readonly repository: Repository
+@@ -129,7 +152,11 @@
+         }
+ 
+         if (diff.kind === DiffType.Text) {
++<<<<<<< .our
+           const line = diffLineForIndex(diff.hunks, index)
++=======
++          const line = diffLineForIndex(diff, index)
++>>>>>>> .their
+           const isIncludable = line ? line.isIncludeableLine() : false
+           const isSelected = selection.isSelected(index) && isIncludable
+           element.setSelected(isSelected)
+@@ -190,8 +217,42 @@
+     this.selection = null
+   }
+ 
++<<<<<<< .our
+   private onChangeImageDiffType = (type: ImageDiffType) => {
+     this.props.dispatcher.changeImageDiffType(type)
++=======
++  private onMouseDown = (index: number, isHunkSelection: boolean) => {
++    if (!(this.props.file instanceof WorkingDirectoryFileChange)) {
++      fatalError('must not start selection when selected file is not a WorkingDirectoryFileChange')
++      return
++    }
++
++    const diff = this.props.diff
++    if (diff.kind !== DiffType.Text) {
++      // text diffs are the only ones that can handle selection
++      return
++    }
++
++    const snapshot = this.props.file.selection
++    const selected = snapshot.isSelected(index)
++    const desiredSelection = !selected
++
++    if (isHunkSelection) {
++      const hunk = diffHunkForIndex(diff, index)
++      if (!hunk) {
++        console.error('unable to find hunk for given line in diff')
++        return
++      }
++
++      const start = hunk.unifiedDiffStart
++      const end = hunk.unifiedDiffEnd
++      this.selection = new HunkSelection(start, end, desiredSelection, snapshot)
++    } else {
++      this.selection = new DragDropSelection(index, desiredSelection, snapshot)
++    }
++
++    this.selection.paint(this.cachedGutterElements)
++>>>>>>> .their
+   }
+ 
+   private renderImage(imageDiff: IImageDiff) {
+@@ -210,11 +271,96 @@
+       return <NewImageDiff current={imageDiff.current} />
+     }
+ 
++<<<<<<< .our
+     if (
+       imageDiff.previous &&
+       this.props.file.status === AppFileStatus.Deleted
+     ) {
+       return <DeletedImageDiff previous={imageDiff.previous} />
++=======
++    const diff = this.props.diff
++    if (diff.kind !== DiffType.Text) {
++      return
++    }
++
++    const index = instance.getLineNumber(line) as number
++    const hunk = diffHunkForIndex(diff, index)
++    if (hunk) {
++      const relativeIndex = index - hunk.unifiedDiffStart
++      const diffLine = hunk.lines[relativeIndex]
++      if (diffLine) {
++        const diffLineElement = element.children[0] as HTMLSpanElement
++
++        const reactContainer = document.createElement('span')
++
++        let isIncluded = false
++        if (this.props.file instanceof WorkingDirectoryFileChange) {
++          isIncluded = this.props.file.selection.isSelected(index)
++        }
++
++        const cache = this.cachedGutterElements
++
++        ReactDOM.render(
++          <DiffLineGutter
++            line={diffLine}
++            isIncluded={isIncluded}
++            index={index}
++            readOnly={this.props.readOnly}
++            diff={diff}
++            updateHunkHoverState={this.updateHunkHoverState}
++            isSelectionEnabled={this.isSelectionEnabled}
++            onMouseUp={this.onMouseUp}
++            onMouseDown={this.onMouseDown}
++            onMouseMove={this.onMouseMove} />,
++          reactContainer,
++          function (this: DiffLineGutter) {
++            if (this !== undefined) {
++              cache.set(index, this)
++            }
++          }
++        )
++
++        element.insertBefore(reactContainer, diffLineElement)
++
++        // Hack(ish?). In order to be a real good citizen we need to unsubscribe from
++        // the line delete event once we've been called once or the component has been
++        // unmounted. In the latter case it's _probably_ not strictly necessary since
++        // the only thing gc rooted by the event should be isolated and eligble for
++        // collection. But let's be extra cautious I guess.
++        //
++        // The only way to unsubscribe is to pass the exact same function given to the
++        // 'on' function to the 'off' so we need a reference to ourselves, basically.
++        let deleteHandler: () => void
++
++        // Since we manually render a react component we have to take care of unmounting
++        // it or else we'll leak memory. This disposable will unmount the component.
++        //
++        // See https://facebook.github.io/react/blog/2015/10/01/react-render-and-top-level-api.html
++        const gutterCleanup = new Disposable(() => {
++          this.cachedGutterElements.delete(index)
++
++          ReactDOM.unmountComponentAtNode(reactContainer)
++
++          line.off('delete', deleteHandler)
++        })
++
++        // Add the cleanup disposable to our list of disposables so that we clean up when
++        // this component is unmounted or when the line is re-rendered. When either of that
++        // happens the line 'delete' event doesn't  fire.
++        this.lineCleanup.set(line, gutterCleanup)
++
++        // If the line delete event fires we dispose of the disposable (disposing is
++        // idempotent)
++        deleteHandler = () => {
++          const disp = this.lineCleanup.get(line)
++          if (disp) {
++            this.lineCleanup.delete(line)
++            disp.dispose()
++          }
++        }
++        line.on('delete', deleteHandler)
++      }
++>>>>>>> .their
+     }
+ 
+     return null
+@@ -246,6 +392,7 @@
+     )
+   }
+ 
++<<<<<<< .our
+   private renderLargeText(diff: ILargeTextDiff) {
+     // guaranteed to be set since this function won't be called if text or hunks are null
+     const textDiff: ITextDiff = {
+@@ -253,11 +400,27 @@
+       hunks: diff.hunks,
+       kind: DiffType.Text,
+       lineEndingsChange: diff.lineEndingsChange,
++=======
++  private renderImage(imageDiff: IImageDiff) {
++    if (imageDiff.current && imageDiff.previous) {
++      return <ModifiedImageDiff
++                current={imageDiff.current}
++                previous={imageDiff.previous} />
++    }
++
++    if (imageDiff.current && this.props.file.status === FileStatus.New) {
++      return <NewImageDiff current={imageDiff.current} />
++    }
++
++    if (imageDiff.previous && this.props.file.status === FileStatus.Deleted) {
++      return <DeletedImageDiff previous={imageDiff.previous} />
++>>>>>>> .their
+     }
+ 
+     return this.renderTextDiff(textDiff)
+   }
+ 
++<<<<<<< .our
+   private renderText(diff: ITextDiff) {
+     if (diff.hunks.length === 0) {
+       if (this.props.file.status === AppFileStatus.New) {
+@@ -299,6 +462,72 @@
+         hunks={diff.hunks}
+       />
+     )
++=======
++  private renderBinaryFile() {
++    return <BinaryFile path={this.props.file.path}
++                    repository={this.props.repository}
++                    dispatcher={this.props.dispatcher} />
++  }
++
++  private renderSubmoduleDiff(diff: ISubmoduleDiff) {
++    return <SubmoduleDiff name={diff.name}
++                          type={diff.type}
++                          from={diff.from}
++                          to={diff.to}
++                          changes={diff.changes}  />
++  }
++
++  private renderTextDiff(diff: ITextDiff) {
++      const options: IEditorConfigurationExtra = {
++        lineNumbers: false,
++        readOnly: true,
++        showCursorWhenSelecting: false,
++        cursorBlinkRate: -1,
++        lineWrapping: localStorage.getItem('soft-wrap-is-best-wrap') ? true : false,
++        // Make sure CodeMirror doesn't capture Tab and thus destroy tab navigation
++        extraKeys: { Tab: false },
++        scrollbarStyle: __DARWIN__ ? 'simple' : 'native',
++        mode: getDiffMode(),
++      }
++
++      return (
++        <CodeMirrorHost
++          className='diff-code-mirror'
++          value={diff.text}
++          options={options}
++          isSelectionEnabled={this.isSelectionEnabled}
++          onChanges={this.onChanges}
++          onRenderLine={this.renderLine}
++          ref={this.getAndStoreCodeMirrorInstance}
++        />
++      )
++  }
++
++  private getAndStoreCodeMirrorInstance = (cmh: CodeMirrorHost) => {
++    this.codeMirror = cmh === null ? null : cmh.getEditor()
++  }
++
++  public render() {
++    const diff = this.props.diff
++
++    if (diff.kind === DiffType.Image) {
++      return this.renderImage(diff)
++    }
++
++    if (diff.kind === DiffType.Binary) {
++      return this.renderBinaryFile()
++    }
++
++    if (diff.kind === DiffType.Text) {
++      return this.renderTextDiff(diff)
++    }
++
++    if (diff.kind === DiffType.Submodule) {
++      return this.renderSubmoduleDiff(diff)
++    }
++
++    return null
++>>>>>>> .their
+   }
+ 
+   private showLargeDiff = () => {
+added in remote
+  their  100644 3ec848da728a2dd4ce1688ceae1f87cb00aa29d8 app/src/ui/diff/submodule-diff.tsx
+@@ -0,0 +1,68 @@
++import * as React from 'react'
++
++import { Octicon, OcticonSymbol } from '../octicons'
++import { FileSummary } from '../../models/diff'
++import { FileStatus } from '../../models/status'
++
++interface ISubmoduleDiffProps {
++  readonly changes?: ReadonlyArray<FileSummary>
++  readonly name: string
++  readonly type: FileStatus
++  readonly from?: string
++  readonly to?: string
++}
++
++/** A component to render when a new image has been added to the repository */
++export class SubmoduleDiff extends React.Component<ISubmoduleDiffProps, void> {
++
++  public render() {
++
++    if (this.props.type === FileStatus.New || this.props.type === FileStatus.Deleted) {
++      const action = this.props.type === FileStatus.New
++        ? 'added at'
++        : 'removed from'
++
++      // when removing or adding a submodule, only one SHA is available
++      const sha = this.props.type === FileStatus.New
++        ? this.props.to
++        : this.props.from
++
++      if (!sha) {
++        console.error('the submodule diff should have specified a SHA but it didn\'t, look into this')
++      }
++
++      return <div className='panel' id='diff'>
++        <div className='submodule-header'>
++          <Octicon symbol={OcticonSymbol.fileSubmodule} /> Submodule {this.props.name} {action} {sha}
++        </div>
++      </div>
++    }
++
++    const message = this.props.changes
++      ? `${this.props.changes.length} ${this.props.changes.length > 1 ? 'files' : 'file'}`
++      : `from ${this.props.from} to ${this.props.to}`
++
++    const changes = this.props.changes || [ ]
++
++    return <div className='panel' id='diff'>
++      <div className='submodule-header'>
++        <Octicon symbol={OcticonSymbol.fileSubmodule} /> Submodule {this.props.name} updated {message}
++      </div>
++
++      <table className='submodule-changes'>
++        <tbody>
++          {changes.map(f =>
++            <tr className='entry' key={f.id}>
++              <td className='stats'>
++                <span className='added'>+{f.added}</span>
++                <span className='removed'> -{f.removed}</span>
++              </td>
++              <td className='icon'><Octicon symbol={OcticonSymbol.diffModified} /></td>
++              <td className='path'>{f.path}</td>
++            </tr>
++          )}
++        </tbody>
++      </table>
++    </div>
++  }
++}
+changed in both
+  base   100644 e6c3b8f49a2b24e7478e4fbf5c6ebc507f5279be app/styles/_variables.scss
+  our    100644 6c89a529c5a8dbfefb127f171468af9ae5651141 app/styles/_variables.scss
+  their  100644 a11f9adbcecf5e114799353a54e7a7339e18128b app/styles/_variables.scss
+@@ -333,6 +333,7 @@
+   --diff-hover-gutter-color: $blue-400;
+   --diff-hover-text-color: var(--background-color);
+ 
++<<<<<<< .our
+   --diff-add-hover-background-color: $green-300;
+   --diff-add-hover-border-color: $green-400;
+   --diff-add-hover-gutter-color: $green-400;
+@@ -356,6 +357,10 @@
+   --syntax-attribute-color: #6f42c1;
+   --syntax-link-color: #032f62;
+   --syntax-header-color: #0000ff;
++=======
++  --diff-submodule-add-text-color: #55a532;
++  --diff-submodule-remove-text-color: #bd2c00;
++>>>>>>> .their
+ 
+   // Note that this duration *must* match the `UndoCommitAnimationTimeout`
+   // specified in `changes/index.tsx`.
+changed in both
+  base   100644 fe2b84bd34f381a033b197d20aaefa97e9bf8487 app/styles/ui/_diff.scss
+  our    100644 372c4e6b8d6af44922f648559b128e98c085134d app/styles/ui/_diff.scss
+  their  100644 963a4fa2f1f92344c241f4fc9085833ac3feaa45 app/styles/ui/_diff.scss
+@@ -565,3 +565,38 @@
+     }
+   }
+ }
++// ***************************************************************************************************************************
++
++#diff .submodule-header {
++  margin: var(--spacing-half) var(--spacing);
++
++  .octicon {
++    vertical-align: text-top;
++  }
++}
++
++#diff .submodule-changes {
++  margin: 0px var(--spacing-triple);
++
++  .stats {
++    text-align: right;
++    padding-right: var(--spacing);
++    box-sizing: border-box
++  }
++
++  .added {
++    color: var(--diff-submodule-add-text-color);
++  }
++
++  .removed {
++    color: var(--diff-submodule-remove-text-color);
++  }
++
++  .icon {
++    color: var(--color-modified);
++
++    .octicon {
++      vertical-align: text-top;
++    }
++  }
++}
+\ No newline at end of file
+removed in local
+  base   100644 54351aef2f622a952d5f9e76430fdd381745ed60 app/test/fixture-helper.ts
+  their  100644 d5b53ec32b23c5dea5e84be3fdad21dfa582062d app/test/fixture-helper.ts
+added in remote
+  their  100644 a681274e61ddc6f5ce99462d47db6f334b2ef804 app/test/fixtures/repository-with-submodule-change/.gitmodules
+@@ -0,0 +1,3 @@
++[submodule "friendly-bassoon"]
++	path = friendly-bassoon
++	url = https://github.com/shiftkey/friendly-bassoon.git
+added in remote
+  their  100644 e69de29bb2d1d6434b8b29ae775ad8c2e48c5391 app/test/fixtures/repository-with-submodule-change/README.md
+added in remote
+  their  100644 099b35e7ee7aee17705fe449b5479a80de42a46b app/test/fixtures/repository-with-submodule-change/_git/COMMIT_EDITMSG
+@@ -0,0 +1 @@
++added submodule
+added in remote
+  their  100644 cb089cd89a7d7686d284d8761201649346b5aa1c app/test/fixtures/repository-with-submodule-change/_git/HEAD
+@@ -0,0 +1 @@
++ref: refs/heads/master
+added in remote
+  their  100644 638e1db7272faf93c1dbe1d5601211df798235e6 app/test/fixtures/repository-with-submodule-change/_git/config
+@@ -0,0 +1,9 @@
++[core]
++	repositoryformatversion = 0
++	filemode = true
++	bare = false
++	logallrefupdates = true
++	ignorecase = true
++	precomposeunicode = true
++[submodule "friendly-bassoon"]
++	url = https://github.com/shiftkey/friendly-bassoon.git
+added in remote
+  their  100644 498b267a8c7812490d6479839c5577eaaec79d62 app/test/fixtures/repository-with-submodule-change/_git/description
+@@ -0,0 +1 @@
++Unnamed repository; edit this file 'description' to name the repository.
+added in remote
+  their  100644 002b960c2105f2920e2e4d36638eaca5736a09e9 app/test/fixtures/repository-with-submodule-change/_git/index
+@@ -0,0 +1,2 @@
++DIRC+�/���ŭ�?)-O�����fW�+M����W��%������8�
+\ No newline at end of file
+added in remote
+  their  100644 a5196d1be8fb59edf8062bef36d3a602e0812139 app/test/fixtures/repository-with-submodule-change/_git/info/exclude
+@@ -0,0 +1,6 @@
++# git ls-files --others --exclude-from=.git/info/exclude
++# Lines that start with '#' are comments.
++# For a project mostly in C, the following would be a good set of
++# exclude patterns (uncomment them if you want to use them):
++# *.[oa]
++# *~
+added in remote
+  their  100644 9ea85a1ed5c989f698dc54d47e9b1f629ef6c352 app/test/fixtures/repository-with-submodule-change/_git/logs/HEAD
+@@ -0,0 +1,2 @@
++0000000000000000000000000000000000000000 3d86799509ebef82896e96bf175cc2aa22b5c3cc Brendan Forster <brendan@github.com> 1480641798 +1100	commit (initial): create empty file
++3d86799509ebef82896e96bf175cc2aa22b5c3cc 2b0eed7db3ab39050a3bc71888b2ed3fe77802e2 Brendan Forster <brendan@github.com> 1480641906 +1100	commit: added submodule
+added in remote
+  their  100644 9ea85a1ed5c989f698dc54d47e9b1f629ef6c352 app/test/fixtures/repository-with-submodule-change/_git/logs/refs/heads/master
+@@ -0,0 +1,2 @@
++0000000000000000000000000000000000000000 3d86799509ebef82896e96bf175cc2aa22b5c3cc Brendan Forster <brendan@github.com> 1480641798 +1100	commit (initial): create empty file
++3d86799509ebef82896e96bf175cc2aa22b5c3cc 2b0eed7db3ab39050a3bc71888b2ed3fe77802e2 Brendan Forster <brendan@github.com> 1480641906 +1100	commit: added submodule
+added in remote
+  their  100644 d9060fa013fa103fcc4f2f723f8360dbe08e9415 app/test/fixtures/repository-with-submodule-change/_git/modules/friendly-bassoon/FETCH_HEAD
+@@ -0,0 +1 @@
++f1a74d299b28b4278d6127fbb3e9cc7aeedc153f		branch 'master' of https://github.com/shiftkey/friendly-bassoon
+added in remote
+  their  100644 cb089cd89a7d7686d284d8761201649346b5aa1c app/test/fixtures/repository-with-submodule-change/_git/modules/friendly-bassoon/HEAD
+@@ -0,0 +1 @@
++ref: refs/heads/master
+added in remote
+  their  100644 fbf6dff08db39d3e3a25baa082900310039533e9 app/test/fixtures/repository-with-submodule-change/_git/modules/friendly-bassoon/ORIG_HEAD
+@@ -0,0 +1 @@
++ba7ba0bfa67c309b09835bd9b96198b5b19a5b16
+added in remote
+  their  100644 f042bd0069421510841216504515b990f41c559f app/test/fixtures/repository-with-submodule-change/_git/modules/friendly-bassoon/config
+@@ -0,0 +1,14 @@
++[core]
++	repositoryformatversion = 0
++	filemode = true
++	bare = false
++	logallrefupdates = true
++	worktree = ../../../friendly-bassoon
++	ignorecase = true
++	precomposeunicode = true
++[remote "origin"]
++	url = https://github.com/shiftkey/friendly-bassoon.git
++	fetch = +refs/heads/*:refs/remotes/origin/*
++[branch "master"]
++	remote = origin
++	merge = refs/heads/master
+added in remote
+  their  100644 498b267a8c7812490d6479839c5577eaaec79d62 app/test/fixtures/repository-with-submodule-change/_git/modules/friendly-bassoon/description
+@@ -0,0 +1 @@
++Unnamed repository; edit this file 'description' to name the repository.
+added in remote
+  their  100644 639854c84156b7f99a172c48178aa1da16fd804e app/test/fixtures/repository-with-submodule-change/_git/modules/friendly-bassoon/index
+@@ -0,0 +1,3 @@
++DIRC+.gitignore+�E6�XY[KU��N�;�CS�F������|��	�,�
+\ No newline at end of file
+added in remote
+  their  100644 a5196d1be8fb59edf8062bef36d3a602e0812139 app/test/fixtures/repository-with-submodule-change/_git/modules/friendly-bassoon/info/exclude
+@@ -0,0 +1,6 @@
++# git ls-files --others --exclude-from=.git/info/exclude
++# Lines that start with '#' are comments.
++# For a project mostly in C, the following would be a good set of
++# exclude patterns (uncomment them if you want to use them):
++# *.[oa]
++# *~
+added in remote
+  their  100644 27de224e90d50b4e2e3018258f09645377548292 app/test/fixtures/repository-with-submodule-change/_git/modules/friendly-bassoon/logs/HEAD
+@@ -0,0 +1,2 @@
++0000000000000000000000000000000000000000 ba7ba0bfa67c309b09835bd9b96198b5b19a5b16 Brendan Forster <brendan@github.com> 1480641858 +1100	clone: from https://github.com/shiftkey/friendly-bassoon.git
++ba7ba0bfa67c309b09835bd9b96198b5b19a5b16 f1a74d299b28b4278d6127fbb3e9cc7aeedc153f Brendan Forster <brendan@github.com> 1480642009 +1100	pull: Fast-forward
+added in remote
+  their  100644 27de224e90d50b4e2e3018258f09645377548292 app/test/fixtures/repository-with-submodule-change/_git/modules/friendly-bassoon/logs/refs/heads/master
+@@ -0,0 +1,2 @@
++0000000000000000000000000000000000000000 ba7ba0bfa67c309b09835bd9b96198b5b19a5b16 Brendan Forster <brendan@github.com> 1480641858 +1100	clone: from https://github.com/shiftkey/friendly-bassoon.git
++ba7ba0bfa67c309b09835bd9b96198b5b19a5b16 f1a74d299b28b4278d6127fbb3e9cc7aeedc153f Brendan Forster <brendan@github.com> 1480642009 +1100	pull: Fast-forward
+added in remote
+  their  100644 2305d374cbaafed2ce6e898c1c7407f0516fea18 app/test/fixtures/repository-with-submodule-change/_git/modules/friendly-bassoon/logs/refs/remotes/origin/HEAD
+@@ -0,0 +1 @@
++0000000000000000000000000000000000000000 ba7ba0bfa67c309b09835bd9b96198b5b19a5b16 Brendan Forster <brendan@github.com> 1480641858 +1100	clone: from https://github.com/shiftkey/friendly-bassoon.git
+added in remote
+  their  100644 b89ad60ec3fc350b6af7909cc3289b7bae40b432 app/test/fixtures/repository-with-submodule-change/_git/modules/friendly-bassoon/logs/refs/remotes/origin/master
+@@ -0,0 +1 @@
++ba7ba0bfa67c309b09835bd9b96198b5b19a5b16 f1a74d299b28b4278d6127fbb3e9cc7aeedc153f Brendan Forster <brendan@github.com> 1480642001 +1100	fetch: fast-forward
+added in remote
+  their  100644 f61734b707b45193a84dd0793677a2bc965a3a27 app/test/fixtures/repository-with-submodule-change/_git/modules/friendly-bassoon/objects/0b/a8a7e4e260ae93d17a2178a906663faccc712b
+@@ -0,0 +1 @@
++x+)JMU044`040031Q�K�,�L��/Je���B��핢l[�+N�}��������/ؕaU�ݚG-2�������r���� WG_W���m:w�k4�P������)��k���0q
+\ No newline at end of file
+added in remote
+  their  100644 0cc886813b8b1769630710cb632ca43fae648143 app/test/fixtures/repository-with-submodule-change/_git/modules/friendly-bassoon/objects/0f/91ecbd640e30969a56cefde559edeba9e11bed
+@@ -0,0 +1 @@
++xK��OR05bPVH+�L�Kɩ�MJ,.������M���KW(��MUH�H�KO-V(�W(�HUH��I�
+\ No newline at end of file
+added in remote
+  their  100644 6c4a10db08799ff493a350f72e1d5a1c9066590d app/test/fixtures/repository-with-submodule-change/_git/modules/friendly-bassoon/objects/aa/83dd7cfec538e10256998af78d4550a9a543a0
+@@ -0,0 +1,3 @@
++x]RK��0�ٿb��VB��=�Ro��U�8����WG�i���c�l�JH���5nF���ӷ�O[.!ӭ��"$6�w������3�<=��USWO�뼲��ʞ�s�L�ʪ������"�R`zh��U�@=��YY����t�Z�"���q����*l�vδ�F<�L;���k�z=*~P��n��I���	�ܯ��`fV9ou0"�S;�]�p��I����#�|v� ��d:݇�Zl��f�n�����=v�P\����/ƂS�HA����_uKO��A�[D.T.�9��D;��vBJ;:��-��T�C%(��8�K�֚�����N�ī�1������x��Ľ,`q�����8B�n�!/Ƌ�;�nn����z�����6�à*R������OX+Z�y���M������+4?��'���`U� |[f�a��q�Kx�
++k��|��2����3�Ka�D�Ad������\�3-P(��<�eT@�eQ1�O6�y*��mY.�k���
+\ No newline at end of file
+added in remote
+  their  100644 4c692a070a3f7a99d6b73253857afb98dc47e07d app/test/fixtures/repository-with-submodule-change/_git/modules/friendly-bassoon/objects/b6/2cddc72880f8275efd8ae2d931ca13e55bad8b
+@@ -0,0 +1 @@
++xK��OR0�`PVH+�L�Kɩ�MJ,.���
+\ No newline at end of file
+added in remote
+  their  100644 2219f006c10506658c5f5de1e78059036ad9fda4 app/test/fixtures/repository-with-submodule-change/_git/modules/friendly-bassoon/objects/ba/7ba0bfa67c309b09835bd9b96198b5b19a5b16
+@@ -0,0 +1,3 @@
++x��A
++�0E]��d&�Dą�1&�h6����Jo�����.K�@���F	�թe���X�AFd��))%O6Y�\ܚ�I
++�k�tmp�;��r��xJu�
+\ No newline at end of file
+added in remote
+  their  100644 5adaa29679d1f16b2af71ed877d6ab1251deaad6 app/test/fixtures/repository-with-submodule-change/_git/modules/friendly-bassoon/objects/d6/4508360b9d58595b4b550c9b06bf4eb53b1eb6
+@@ -0,0 +1 @@
++x+)JMU044`040031Q�K�,�L��/Je���B��핢l[�+N�}��������/ؕaU�ݚG-2�������r���� WG_W����o���L�v���ȷ�W>�~
+\ No newline at end of file
+added in remote
+  their  100644 d3f7260795dd57806098295aeba31896553d5f2a app/test/fixtures/repository-with-submodule-change/_git/modules/friendly-bassoon/objects/f1/a74d299b28b4278d6127fbb3e9cc7aeedc153f
+@@ -0,0 +1,2 @@
++x}�Aj�0E��)f�X�H`B��5�Il���Ȅ�>*�w����yY�Jǣ�բJ�Ya�;FH�%,Dx`��UH�p�#]+!���Nc��
++����L��۸.nuʅ>[��J_�<��>ns�6Ƽ��X�ζ�������׿��{k.�����u�\ғn�&-�{TGJ
+\ No newline at end of file
+added in remote
+  their  100644 f9f31686ca7aba1cdc075b687cb2b7a634d0017a app/test/fixtures/repository-with-submodule-change/_git/modules/friendly-bassoon/objects/f8/05e810e5c6e087791506b4e721958de3574ae4
+@@ -0,0 +1,2 @@
++x=���0�=�M�(�F����&�'ӟ���"��SL<��Mwf��
++��o1�����*m�GIjQ�
+\ No newline at end of file
+added in remote
+  their  100644 2908b3e468a38f1099d3772d58d7bf4bd860938f app/test/fixtures/repository-with-submodule-change/_git/modules/friendly-bassoon/packed-refs
+@@ -0,0 +1,2 @@
++# pack-refs with: peeled fully-peeled 
++ba7ba0bfa67c309b09835bd9b96198b5b19a5b16 refs/remotes/origin/master
+added in remote
+  their  100644 b15db3b0fa3e514577be6ee9d422d2640602f09e app/test/fixtures/repository-with-submodule-change/_git/modules/friendly-bassoon/refs/heads/master
+@@ -0,0 +1 @@
++f1a74d299b28b4278d6127fbb3e9cc7aeedc153f
+added in remote
+  their  100644 6efe28fff834a94fbc20cac51fe9cd65ecc78d43 app/test/fixtures/repository-with-submodule-change/_git/modules/friendly-bassoon/refs/remotes/origin/HEAD
+@@ -0,0 +1 @@
++ref: refs/remotes/origin/master
+added in remote
+  their  100644 b15db3b0fa3e514577be6ee9d422d2640602f09e app/test/fixtures/repository-with-submodule-change/_git/modules/friendly-bassoon/refs/remotes/origin/master
+@@ -0,0 +1 @@
++f1a74d299b28b4278d6127fbb3e9cc7aeedc153f
+added in remote
+  their  100644 095a034a4f32bf06147462f1cba9372b0ee00f41 app/test/fixtures/repository-with-submodule-change/_git/objects/2b/0eed7db3ab39050a3bc71888b2ed3fe77802e2
+@@ -0,0 +1 @@
++x��Aj�0
+\ No newline at end of file
+added in remote
+  their  100644 8a65b437fe5091113b67449b099cc0a13cf73c19 app/test/fixtures/repository-with-submodule-change/_git/objects/3d/86799509ebef82896e96bf175cc2aa22b5c3cc
+@@ -0,0 +1,3 @@
++x��A
++�0+�U��H����v�m�G��8�	��َ}L�7�K�k�u�n��T*�.�E�-�R�g �s�G"D�������M��* ��o�����>�
+\ No newline at end of file
+added in remote
+  their  100644 6a2e3bd70bd0a3a591a81f554af268c9df0e3ac6 app/test/fixtures/repository-with-submodule-change/_git/objects/96/2f9afa84c5adb23f292d4ffac8f5ebce6657e6
+@@ -0,0 +1 @@
++x+)JMU042`040031Q�K�,��O)�I-fX֨�x���s3�t�o�{��`�*rut�u��Max6���M�9{wk�+��q�IO�DC3 PH+�L�Kɩ�MJ,.���c�U�`���ٜ��7w&�غqV�
+\ No newline at end of file
+added in remote
+  their  100644 0c1dd4b0f7faec0d272efa31b733251d93418df0 app/test/fixtures/repository-with-submodule-change/_git/objects/a6/81274e61ddc6f5ce99462d47db6f334b2ef804
+@@ -0,0 +1,2 @@
++x]�;� @]��]	�&��8X!�%��^g���������
++�hKr��ot�Mu����7)��A-�UR�7�<0g��>#�ぷ�=_����H~��*�
+\ No newline at end of file
+added in remote
+  their  100644 711223894375fe1186ac5bfffdc48fb1fa1e65cc app/test/fixtures/repository-with-submodule-change/_git/objects/e6/9de29bb2d1d6434b8b29ae775ad8c2e48c5391
+@@ -0,0 +1 @@
++xK��OR0`
+\ No newline at end of file
+added in remote
+  their  100644 91fccd447fe1ae44bda5ac217479c40ea5879984 app/test/fixtures/repository-with-submodule-change/_git/objects/f9/3e3a1a1525fb5b91020da86e44810c87a2d7bc
+@@ -0,0 +1 @@
++x+)JMU06g040031Qrut�u��Max6���M�9{wk�+��q�IO�D
+\ No newline at end of file
+added in remote
+  their  100644 c8ac18d211a6983ed81b0e01e3ee099eb3bcea13 app/test/fixtures/repository-with-submodule-change/_git/refs/heads/master
+@@ -0,0 +1 @@
++2b0eed7db3ab39050a3bc71888b2ed3fe77802e2
+added in remote
+  their  100644 f805e810e5c6e087791506b4e721958de3574ae4 app/test/fixtures/repository-with-submodule-change/friendly-bassoon/.gitignore
+@@ -0,0 +1,33 @@
++# Object files
++*.o
++*.ko
++*.obj
++*.elf
++
++# Precompiled Headers
++*.gch
++*.pch
++
++# Libraries
++*.lib
++*.a
++*.la
++*.lo
++
++# Shared objects (inc. Windows DLLs)
++*.dll
++*.so
++*.so.*
++*.dylib
++
++# Executables
++*.exe
++*.out
++*.app
++*.i*86
++*.x86_64
++*.hex
++
++# Debug files
++*.dSYM/
++*.su
+added in remote
+  their  100644 aa83dd7cfec538e10256998af78d4550a9a543a0 app/test/fixtures/repository-with-submodule-change/friendly-bassoon/LICENSE
+@@ -0,0 +1,21 @@
++MIT License
++
++Copyright (c) 2016 Brendan Forster
++
++Permission is hereby granted, free of charge, to any person obtaining a copy
++of this software and associated documentation files (the "Software"), to deal
++in the Software without restriction, including without limitation the rights
++to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
++copies of the Software, and to permit persons to whom the Software is
++furnished to do so, subject to the following conditions:
++
++The above copyright notice and this permission notice shall be included in all
++copies or substantial portions of the Software.
++
++THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
++OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++SOFTWARE.
+added in remote
+  their  100644 0f91ecbd640e30969a56cefde559edeba9e11bed app/test/fixtures/repository-with-submodule-change/friendly-bassoon/README.md
+@@ -0,0 +1,3 @@
++# friendly-bassoon
++
++making some changes to the file
+added in remote
+  their  100644 605d03273508c7eea710bdd641f902153da0082c app/test/fixtures/repository-with-submodule-change/friendly-bassoon/_git
+@@ -0,0 +1 @@
++gitdir: ../.git/modules/friendly-bassoon
+changed in both
+  base   100644 d00f5af6dd1e2536018d5d11e4ae8396320e30e8 app/test/unit/git/commit-test.ts
+  our    100644 82db4554497e52551ddf6d5f89e004c8bd81738f app/test/unit/git/commit-test.ts
+  their  100644 977e497505ea4ba2da8c13e9dbcef446e84323fa app/test/unit/git/commit-test.ts
+@@ -12,11 +12,18 @@
+   getWorkingDirectoryDiff,
+ } from '../../../src/lib/git'
+ 
++<<<<<<< .our
+ import {
+   setupFixtureRepository,
+   setupEmptyRepository,
+   setupConflictedRepo,
+ } from '../../helpers/repositories'
++=======
++import { setupFixtureRepository, setupEmptyRepository } from '../../fixture-helper'
++import { GitProcess } from 'git-kitchen-sink'
++import { FileStatus, WorkingDirectoryFileChange } from '../../../src/models/status'
++import { DiffSelectionType, DiffSelection, ITextDiff, DiffType } from '../../../src/models/diff'
++>>>>>>> .their
+ 
+ import { GitProcess } from 'dugite'
+ import {
+@@ -40,6 +47,12 @@
+   return diff as ITextDiff
+ }
+ 
++async function getTextDiff(repo: Repository, file: WorkingDirectoryFileChange): Promise<ITextDiff> {
++  const diff = await getWorkingDirectoryDiff(repo, file)
++  expect(diff.kind === DiffType.Text)
++  return diff as ITextDiff
++}
++
+ describe('git/commit', () => {
+   let repository: Repository | null = null
+ 
+@@ -201,6 +214,7 @@
+ 
+       const modifiedFile = 'modified-file.md'
+ 
++<<<<<<< .our
+       const unselectedFile = DiffSelection.fromInitialSelection(
+         DiffSelectionType.None
+       )
+@@ -219,6 +233,16 @@
+         diff.hunks[0].unifiedDiffEnd - diff.hunks[0].unifiedDiffStart,
+         false
+       )
++=======
++      const unselectedFile = DiffSelection.fromInitialSelection(DiffSelectionType.None)
++      const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, unselectedFile)
++
++      const diff = await getTextDiff(repository!, file)
++
++      const selection = DiffSelection
++        .fromInitialSelection(DiffSelectionType.All)
++        .withRangeSelection(diff.hunks[0].unifiedDiffStart, diff.hunks[0].unifiedDiffEnd - diff.hunks[0].unifiedDiffStart, false)
++>>>>>>> .their
+ 
+       const updatedFile = file.withSelection(selection)
+ 
+@@ -294,6 +318,7 @@
+ 
+       const modifiedFile = 'modified-file.md'
+ 
++<<<<<<< .our
+       const unselectedFile = DiffSelection.fromInitialSelection(
+         DiffSelectionType.None
+       )
+@@ -318,6 +343,18 @@
+         AppFileStatus.Modified,
+         selection
+       )
++=======
++      const unselectedFile = DiffSelection.fromInitialSelection(DiffSelectionType.None)
++      const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, unselectedFile)
++
++      const diff = await getTextDiff(repository!, file)
++
++      const selection = DiffSelection
++        .fromInitialSelection(DiffSelectionType.All)
++        .withRangeSelection(diff.hunks[1].unifiedDiffStart, diff.hunks[1].unifiedDiffEnd - diff.hunks[1].unifiedDiffStart, false)
++
++      const updatedFile = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, selection)
++>>>>>>> .their
+ 
+       // commit just this change, ignore everything else
+       await createCommit(repository!, 'title', [updatedFile])
+@@ -442,10 +479,14 @@
+ 
+       expect(statusAfter.workingDirectory.files.length).to.equal(1)
+ 
++<<<<<<< .our
+       const diff = await getTextDiff(
+         repo,
+         statusAfter.workingDirectory.files[0]
+       )
++=======
++      const diff = await getTextDiff(repo, statusAfter.workingDirectory.files[0])
++>>>>>>> .their
+ 
+       expect(diff.hunks.length).to.equal(1)
+       expect(diff.hunks[0].lines.length).to.equal(4)
+removed in local
+  base   100644 f85846560a0779faeac9def00f4fa86c4f519306 app/test/unit/git/git-diff-tests.ts
+  their  100644 f52b530461f4813e99a271848f4de7cd38f09ca1 app/test/unit/git/git-diff-tests.ts
+changed in both
+  base   100644 0214e9738c4d7118d5371bd86da609fffcda67c7 app/test/unit/patch-formatter-test.ts
+  our    100644 c0b463a119f370007a15b53596eef661434e881a app/test/unit/patch-formatter-test.ts
+  their  100644 9b89c3124c8aba3e6fc5491408fe3823919994a2 app/test/unit/patch-formatter-test.ts
+@@ -4,6 +4,7 @@
+ import * as FSE from 'fs-extra'
+ 
+ import { Repository } from '../../src/models/repository'
++<<<<<<< .our
+ import {
+   WorkingDirectoryFileChange,
+   FileChange,
+@@ -25,6 +26,20 @@
+   const rawDiff = parser.parse(diff)
+   const repository = new Repository('', -1, null, false)
+   const fileChange = new FileChange('file.txt', AppFileStatus.Modified)
++=======
++import { WorkingDirectoryFileChange, FileChange, FileStatus } from '../../src/models/status'
++import { DiffSelection, DiffSelectionType, ITextDiff, DiffType } from '../../src/models/diff'
++import { DiffParser } from '../../src/lib/diff-parser'
++import { formatPatch } from '../../src/lib/patch-formatter'
++import { getWorkingDirectoryDiff, convertDiff } from '../../src/lib/git'
++import { setupFixtureRepository } from '../fixture-helper'
++
++async function parseDiff(diff: string): Promise<ITextDiff> {
++  const parser = new DiffParser()
++  const rawDiff =  parser.parse(diff)
++  const repository = new Repository('', -1)
++  const fileChange = new FileChange('file.txt', FileStatus.Modified)
++>>>>>>> .their
+   const output = await convertDiff(repository, fileChange, rawDiff, 'HEAD')
+   expect(output.kind === DiffType.Text)
+   return output as ITextDiff
+@@ -58,6 +73,7 @@
+       const textDiff = diff as ITextDiff
+       const second = textDiff.hunks[1]
+ 
++<<<<<<< .our
+       const selection = DiffSelection.fromInitialSelection(
+         DiffSelectionType.All
+       ).withRangeSelection(
+@@ -65,6 +81,11 @@
+         second.unifiedDiffEnd - second.unifiedDiffStart,
+         false
+       )
++=======
++      const selection = DiffSelection
++        .fromInitialSelection(DiffSelectionType.All)
++        .withRangeSelection(second.unifiedDiffStart, second.unifiedDiffEnd - second.unifiedDiffStart, false)
++>>>>>>> .their
+ 
+       const updatedFile = new WorkingDirectoryFileChange(
+         modifiedFile,
+@@ -96,6 +117,13 @@
+ 
+       const textDiff = diff as ITextDiff
+       const first = textDiff.hunks[0]
++<<<<<<< .our
++=======
++
++      const selection = DiffSelection
++        .fromInitialSelection(DiffSelectionType.All)
++        .withRangeSelection(first.unifiedDiffStart, first.unifiedDiffEnd - first.unifiedDiffStart, false)
++>>>>>>> .their
+ 
+       const selection = DiffSelection.fromInitialSelection(
+         DiffSelectionType.All
+@@ -105,12 +133,15 @@
+         false
+       )
+ 
++<<<<<<< .our
+       const updatedFile = new WorkingDirectoryFileChange(
+         modifiedFile,
+         AppFileStatus.Modified,
+         selection
+       )
+ 
++=======
++>>>>>>> .their
+       const patch = formatPatch(updatedFile, textDiff)
+ 
+       expect(patch).to.have.string('--- a/modified-file.md\n')
+@@ -133,6 +164,7 @@
+       const diff = await getWorkingDirectoryDiff(repository!, file)
+ 
+       expect(diff.kind === DiffType.Text)
++<<<<<<< .our
+ 
+       const textDiff = diff as ITextDiff
+       const second = textDiff.hunks[1]
+@@ -150,6 +182,17 @@
+         selection
+       )
+ 
++=======
++
++      const textDiff = diff as ITextDiff
++      const second = textDiff.hunks[1]
++
++      const selection = DiffSelection
++        .fromInitialSelection(DiffSelectionType.All)
++        .withRangeSelection(second.unifiedDiffStart, second.unifiedDiffEnd - second.unifiedDiffStart, false)
++      const updatedFile = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, selection)
++
++>>>>>>> .their
+       const patch = formatPatch(updatedFile, textDiff)
+ 
+       expect(patch).to.have.string('--- a/modified-file.md\n')
+@@ -235,7 +278,11 @@
+       expect(patch).to.equal(expectedPatch)
+     })
+ 
++<<<<<<< .our
+     it("doesn't include unselected added lines as context", async () => {
++=======
++    it('doesn\'t include unselected added lines as context', async () => {
++>>>>>>> .their
+       const rawDiff = [
+         '--- a/file.md',
+         '+++ b/file.md',

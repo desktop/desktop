@@ -1,5 +1,31 @@
 {
   "releases": {
+    "1.3.5-beta1": [
+      "[Fixed] Disable delete button while deleting a branch - #5331",
+      "[Fixed] History now avoids calling log.showSignature if set in config - #5466",
+      "[Fixed] Start blocking the ability to add local bare repositories - #4293. Thanks @Daniel-McCarthy!",
+      "[Fixed] Revert workaround for tooltip issue on Windows - #3362. Thanks @divayprakash!",
+      "[Improved] Error message when publishing to missing organisation - #5380. Thanks @Daniel-McCarthy!",
+      "[Improved] Don't hide commit details when commit summary description is expanded. - #5471. Thanks @aryyya!"
+    ],
+    "1.3.5-beta0": [
+    ],
+    "1.3.4": [
+      "[Improved] Cloning message uses remote repo name not file destination - #5413. Thanks @lisavogtsf!",
+      "[Improved] Support VSCode user scope installation - #5281. Thanks @saschanaz!"
+    ],
+    "1.3.4-beta1": [
+      "[Improved] Cloning message uses remote repo name not file destination - #5413. Thanks @lisavogtsf!",
+      "[Improved] Support VSCode user scope installation - #5281. Thanks @saschanaz!"
+    ],
+    "1.3.4-beta0": [
+    ],
+    "1.3.3": [
+      "[Fixed] Maximize and restore app on Windows does not fill available space - #5033",
+      "[Fixed] 'Clone repository' menu item label is obscured on Windows - #5348. Thanks @Daniel-McCarthy!",
+      "[Fixed] User can toggle files when commit is in progress - #5341. Thanks @masungwon!",
+      "[Improved] Repository indicator background work - #5317 #5326 #5363 #5241 #5320"
+    ],
     "1.3.3-beta1": [
       "[Fixed] Maximize and restore app on Windows does not fill available space - #5033",
       "[Fixed] 'Clone repository' menu item label is obscured on Windows - #5348. Thanks @Daniel-McCarthy!",

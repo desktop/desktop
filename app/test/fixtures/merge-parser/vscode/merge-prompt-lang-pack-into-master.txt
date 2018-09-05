@@ -1,0 +1,211 @@
+changed in both
+  base   100644 5f091c4f6f35d3c671cb086a3029226bd27e84b7 src/vs/platform/localizations/common/localizations.ts
+  our    100644 1f85c99a746302613217291b616a908ac2599aba src/vs/platform/localizations/common/localizations.ts
+  their  100644 b6361b620a47cb08b48cbd89e41e3afe10d5e7e0 src/vs/platform/localizations/common/localizations.ts
+added in both
+  our    100644 42e71e0a7253edee827a8852745f75cf277153de src/vs/platform/node/minimalTranslations.ts
+  their  100644 11248d86d88e3dc8cd1d6e0b721a03006019c3d1 src/vs/platform/node/minimalTranslations.ts
+@@ -9,9 +9,17 @@
+ // So that they are available for VS Code to use without downloading the entire language pack.
+ 
+ export const minimumTranslatedStrings = {
++<<<<<<< .our
+ 	showLanguagePackExtensions: localize('showLanguagePackExtensions', "Search language packs in the Marketplace to change the display language to {0}."),
+ 	searchMarketplace: localize('searchMarketplace', "Search Marketplace"),
+ 	installAndRestartMessage: localize('installAndRestartMessage', "Install language pack to change the display language to {0}."),
+ 	installAndRestart: localize('installAndRestart', "Install and Restart")
++=======
++	showLanguagePackExtensions: localize('showLanguagePackExtensions', "The Marketplace has extensions that can localize VS Code in the {0} language"),
++	searchMarketplace: localize('searchMarketplace', "Search Marketplace"),
++	installAndRestartMessage: localize('installAndRestartMessage', "Install language pack to localize VS Code in {0} language. Restart VS Code after installing for the language to take effect."),
++	installAndRestart: localize('installAndRestart', "Install and Restart"),
++	install: localize('install', 'Install')
++>>>>>>> .their
+ };
+ 
+changed in both
+  base   100644 8736c448bc0e546bc274130beda41e17b4be9492 src/vs/workbench/parts/extensions/electron-browser/extensionTipsService.ts
+  our    100644 6f9d4a74f5feb07a450341f183980ee0a10455a9 src/vs/workbench/parts/extensions/electron-browser/extensionTipsService.ts
+  their  100644 315700baf842e468b2171ca70e0e1f0e7db502f9 src/vs/workbench/parts/extensions/electron-browser/extensionTipsService.ts
+@@ -47,7 +47,10 @@
+ const milliSecondsInADay = 1000 * 60 * 60 * 24;
+ const choiceNever = localize('neverShowAgain', "Don't Show Again");
+ const searchMarketplace = localize('searchMarketplace', "Search Marketplace");
++<<<<<<< .our
+ const processedFileExtensions: string[] = [];
++=======
++>>>>>>> .their
+ 
+ interface IDynamicWorkspaceRecommendations {
+ 	remoteSet: string[];
+@@ -117,7 +120,13 @@
+ 			this._extensionsRecommendationsUrl = product.extensionsGallery.recommendationsUrl;
+ 		}
+ 
++<<<<<<< .our
+ 		this.sessionSeed = +new Date();
++=======
++		this.getCachedDynamicWorkspaceRecommendations();
++		this._suggestFileBasedRecommendations();
++		this.promptWorkspaceRecommendationsPromise = this._suggestWorkspaceRecommendations();
++>>>>>>> .their
+ 
+ 		let globallyIgnored = <string[]>JSON.parse(this.storageService.get('extensionsAssistant/ignored_recommendations', StorageScope.GLOBAL, '[]'));
+ 		this._globallyIgnoredRecommendations = globallyIgnored.map(id => id.toLowerCase());
+changed in both
+  base   100644 ff59ed77adfc6768ac025fa199e1504ad19710b7 src/vs/workbench/parts/localizations/electron-browser/localizations.contribution.ts
+  our    100644 052de75c677677d839ae5533561df1d9238d3218 src/vs/workbench/parts/localizations/electron-browser/localizations.contribution.ts
+  their  100644 11ee1e141aa52c77728598cda50a56f37fa452b3 src/vs/workbench/parts/localizations/electron-browser/localizations.contribution.ts
+@@ -101,6 +101,7 @@
+ 	private checkAndInstall(): void {
+ 		const language = platform.language;
+ 		const locale = platform.locale;
++<<<<<<< .our
+ 		const languagePackSuggestionIgnoreList = <string[]>JSON.parse(this.storageService.get('extensionsAssistant/languagePackSuggestionIgnore', StorageScope.GLOBAL, '[]'));
+ 
+ 		if (!this.galleryService.isEnabled()) {
+@@ -109,6 +110,30 @@
+ 		if (language === 'en' || language.indexOf('en-') === 0) {
+ 			return;
+ 		}
++=======
++		if (language !== 'en' && language !== 'en_us') {
++			this.isLanguageInstalled(language)
++				.then(installed => {
++					if (!installed) {
++						this.getLanguagePackExtension(language)
++							.then(extension => {
++								if (extension) {
++									this.notificationService.prompt(Severity.Warning, localize('install language pack', "In the near future, VS Code will only support language packs in the form of Marketplace extensions. Please install the '{0}' extension in order to continue to use the currently configured language. ", extension.displayName || extension.displayName),
++										[
++											{ label: localize('install', "Install"), run: () => this.installExtension(extension) },
++											{ label: localize('more information', "More Information..."), run: () => window.open('https://go.microsoft.com/fwlink/?linkid=872941') }
++										]);
++								}
++							});
++					}
++				});
++			return;
++		}
++
++		const languagePackSuggestionIgnoreList = <string[]>JSON.parse(this.storageService.get
++			('extensionsAssistant/languagePackSuggestionIgnore', StorageScope.GLOBAL, '[]'));
++
++>>>>>>> .their
+ 		if (language === locale || languagePackSuggestionIgnoreList.indexOf(language) > -1) {
+ 			return;
+ 		}
+@@ -119,6 +144,7 @@
+ 					return;
+ 				}
+ 
++<<<<<<< .our
+ 				this.galleryService.query({ text: `tag:lp-${locale}` }).then(tagResult => {
+ 					if (tagResult.total === 0) {
+ 						return;
+@@ -148,6 +174,105 @@
+ 									translations[key] = `${translationsFromPack[key].replace('{0}', languageDisplayName)} (${minimumTranslatedStrings[key].replace('{0}', languageName)})`;
+ 								}
+ 							});
++=======
++				const ceintlExtensionSearch = this.galleryService.query({ names: [`MS-CEINTL.vscode-language-pack-${locale}`], pageSize: 1 });
++				const tagSearch = this.galleryService.query({ text: `tag:lp-${locale}`, pageSize: 1 });
++
++				TPromise.join([ceintlExtensionSearch, tagSearch]).then(([ceintlResult, tagResult]) => {
++					if (ceintlResult.total === 0 && tagResult.total === 0) {
++						return;
++					}
++
++					const extensionToInstall = ceintlResult.total === 1 ? ceintlResult.firstPage[0] : tagResult.total === 1 ? tagResult.firstPage[0] : null;
++					const extensionToFetchTranslationsFrom = extensionToInstall || tagResult.total > 0 ? tagResult.firstPage[0] : null;
++
++					if (!extensionToFetchTranslationsFrom || !extensionToFetchTranslationsFrom.assets.manifest) {
++						return;
++					}
++
++					this.galleryService.getManifest(extensionToFetchTranslationsFrom).then(x => {
++						if (!x.contributes || !x.contributes.localizations) {
++							return;
++						}
++						const locContribution = x.contributes.localizations.filter(x => x.languageId.toLowerCase() === locale)[0];
++						if (!locContribution) {
++							return;
++						}
++
++						const translations = {
++							...minimumTranslatedStrings,
++							...(locContribution.minimalTranslations || {})
++						};
++
++						const logUserReaction = (userReaction: string) => {
++							/* __GDPR__
++								"languagePackSuggestion:popup" : {
++									"userReaction" : { "classification": "SystemMetaData", "purpose": "FeatureInsight" },
++									"language": { "classification": "SystemMetaData", "purpose": "FeatureInsight" }
++								}
++							*/
++							this.telemetryService.publicLog('languagePackSuggestion:popup', { userReaction, language });
++						};
++
++						const searchAction = {
++							label: translations['searchMarketplace'],
++							run: () => {
++								logUserReaction('search');
++								this.viewletService.openViewlet(EXTENSIONS_VIEWLET_ID, true)
++									.then(viewlet => viewlet as IExtensionsViewlet)
++									.then(viewlet => {
++										viewlet.search(`tag:lp-${locale}`);
++										viewlet.focus();
++									});
++							}
++						};
++
++						const installAction = {
++							label: translations['install'],
++							run: () => {
++								logUserReaction('install');
++								this.installExtension(extensionToInstall);
++							}
++						};
++
++						const installAndRestartAction = {
++							label: translations['installAndRestart'],
++							run: () => {
++								logUserReaction('installAndRestart');
++								this.installExtension(extensionToInstall).then(() => this.windowsService.relaunch({}));
++							}
++						};
++
++						const mainActions = extensionToInstall ? [installAndRestartAction, installAction] : [searchAction];
++						const promptMessage = translations[extensionToInstall ? 'installAndRestartMessage' : 'showLanguagePackExtensions']
++							.replace('{0}', locContribution.languageNameLocalized || locContribution.languageName || locale);
++
++						this.notificationService.prompt(
++							Severity.Info,
++							promptMessage,
++							[...mainActions,
++							{
++								label: localize('neverAgain', "Don't Show Again"),
++								isSecondary: true,
++								run: () => {
++									languagePackSuggestionIgnoreList.push(language);
++									this.storageService.store(
++										'extensionsAssistant/languagePackSuggestionIgnore',
++										JSON.stringify(languagePackSuggestionIgnoreList),
++										StorageScope.GLOBAL
++									);
++									logUserReaction('neverShowAgain');
++								}
++							}],
++							() => {
++								logUserReaction('cancelled');
++							}
++						);
++
++					});
++				});
++			});
++>>>>>>> .their
+ 
+ 							const logUserReaction = (userReaction: string) => {
+ 								/* __GDPR__
