@@ -91,6 +91,12 @@ export interface IDailyMeasures {
   /** The number of times the users pushes to a generic remote */
   readonly externalPushCount: number
 
+  /** The number of times the user has merged after seeing the conflict warning */
+  readonly userProceededAfterConflictsWarning: number
+
+  /** The number of times the user has merged after seeing the 'no conflicts' warning */
+  readonly userProceededAfterNoConflictsHint: number
+
   /** Whether or not the app has been interacted with during the current reporting window */
   readonly active: boolean
 

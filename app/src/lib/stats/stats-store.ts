@@ -51,6 +51,8 @@ const DefaultDailyMeasures: IDailyMeasures = {
   active: false,
   mergeConflictFromPullCount: 0,
   mergeConflictFromExplicitMergeCount: 0,
+  userProceededAfterConflictsWarning: 0,
+  userProceededAfterNoConflictsHint: 0,
 }
 
 interface ICalculatedStats {
@@ -499,6 +501,22 @@ export class StatsStore {
   public async recordPushToGenericRemote(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       externalPushCount: m.externalPushCount + 1,
+    }))
+  }
+
+  /** Record that the user saw a 'merge conflicts' warning but continued with the merge */
+  public async recordUserProccededAfterConflictWarning(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      userProceededAfterConflictsWarning:
+        m.userProceededAfterConflictsWarning + 1,
+    }))
+  }
+
+  /** Record that the user saw a 'merge conflicts' warning but continued with the merge */
+  public async recordMergeHintSuccessAndUserProceeded(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      userProceededAfterNoConflictsHint:
+        m.userProceededAfterNoConflictsHint + 1,
     }))
   }
 
