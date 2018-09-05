@@ -46,3 +46,8 @@ export function enableRepoInfoIndicators(): boolean {
 export function enableMergeConflictDetection(): boolean {
   return enableDevelopmentFeatures()
 }
+
+/** Should `git status` use --no-optional-locks to assist with concurrent usage */
+export function enableStatusWithoutOptionalLocks(): boolean {
+  return enableBetaFeatures()
+}
