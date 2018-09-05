@@ -15,6 +15,11 @@ jobs:
       CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
     steps:
       - checkout
+      - run:
+          name: Setup Code Climate test-reporter
+          command: |
+            curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-darwin-amd64 > ./cc-test-reporter
+            chmod +x ./cc-test-reporter
       - run: mkdir -p $CIRCLE_ARTIFACTS $CIRCLE_TEST_REPORTS
       - restore_cache:
           keys:
@@ -43,7 +48,9 @@ jobs:
           name: Test
           command: |
             yarn test:setup
+            ./cc-test-reporter before-build
             yarn test
+            ./cc-test-reporter after-build --coverage-input-type lcov --exit-code $?
       - run:
           name: Teardown
           command:
