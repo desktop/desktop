@@ -17,6 +17,7 @@ import { enableMergeConflictDetection } from '../../lib/feature-flag'
 import { MergeResultStatus } from '../../lib/app-state'
 import { MergeResultKind } from '../../models/merge'
 import { MergeStatusHeader } from '../history/merge-status-header'
+import { promiseWithMinimumTimeout } from '../../lib/promise'
 
 interface IMergeProps {
   readonly dispatcher: Dispatcher
@@ -110,59 +111,78 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
   }
 
   private renderNewMergeInfo() {
-    const { commitCount, selectedBranch, mergeStatus } = this.state
     const { currentBranch } = this.props
+    const { selectedBranch, mergeStatus, commitCount } = this.state
 
     if (
-      selectedBranch === null ||
-      currentBranch === null ||
-      currentBranch.name === selectedBranch.name
+      mergeStatus == null ||
+      currentBranch == null ||
+      selectedBranch == null ||
+      currentBranch.name === selectedBranch.name ||
+      commitCount == null
     ) {
       return null
     }
 
-    if (mergeStatus === null || mergeStatus.kind === MergeResultKind.Loading) {
-      return (
+    return (
+      <div className="merge-status-component">
+        <MergeStatusHeader status={this.state.mergeStatus} />
         <p className="merge-info">
-          Checking for ability to merge automatically...
+          {this.renderMergeStatusMessage(
+            mergeStatus,
+            currentBranch,
+            selectedBranch,
+            commitCount
+          )}
         </p>
+      </div>
+    )
+  }
+
+  private renderMergeStatusMessage(
+    mergeStatus: MergeResultStatus,
+    selectedBranch: Branch,
+    currentBranch: Branch,
+    commitCount: number
+  ): JSX.Element {
+    if (mergeStatus.kind === MergeResultKind.Loading) {
+      return (
+        <React.Fragment>
+          Checking for ability to merge automatically...
+        </React.Fragment>
       )
     }
 
     if (mergeStatus.kind === MergeResultKind.Clean) {
-      if (commitCount != null && commitCount > 0) {
-        const pluralized = commitCount === 1 ? 'commit' : 'commits'
-        return (
-          <p className="merge-info">
-            This will merge
-            <strong>{` ${commitCount} ${pluralized}`}</strong>
-            {` `}
-            from
-            {` `}
-            <strong>{selectedBranch.name}</strong>
-            {` `}
-            into
-            {` `}
-            <strong>{currentBranch.name}</strong>
-          </p>
-        )
-      } else {
-        return null
-      }
+      const pluralized = commitCount === 1 ? 'commit' : 'commits'
+      return (
+        <React.Fragment>
+          This will merge
+          <strong>{` ${commitCount} ${pluralized}`}</strong>
+          {` `}
+          from
+          {` `}
+          <strong>{selectedBranch.name}</strong>
+          {` `}
+          into
+          {` `}
+          <strong>{currentBranch.name}</strong>
+        </React.Fragment>
+      )
     }
 
     if (mergeStatus.kind === MergeResultKind.Invalid) {
       return (
-        <p className="merge-info">
+        <React.Fragment>
           Unable to merge unrelated histories in this repository
-        </p>
+        </React.Fragment>
       )
     }
 
     const count = mergeStatus.conflictedFiles
     const pluralized = count === 1 ? 'file' : 'files'
     return (
-      <p className="merge-info">
+      <React.Fragment>
         There will be
         <strong>{` ${count} conflicted ${pluralized}`}</strong>
         {` `}
@@ -173,7 +193,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
         into
         {` `}
         <strong>{currentBranch.name}</strong>
-      </p>
+      </React.Fragment>
     )
   }
 
@@ -263,10 +283,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
               <strong>{currentBranch ? currentBranch.name : ''}</strong>
             </Button>
           </ButtonGroup>
-          {enableMergeConflictDetection() &&
-          !selectedBranchIsNotCurrentBranch ? (
-            <MergeStatusHeader status={this.state.mergeStatus} />
-          ) : null}
+
           {enableMergeConflictDetection()
             ? this.renderNewMergeInfo()
             : this.renderMergeInfo()}
@@ -278,11 +295,12 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
   private async updateMergeStatus(branch: Branch) {
     this.setState({ mergeStatus: { kind: MergeResultKind.Loading } })
 
-    if (enableMergeConflictDetection() && this.props.currentBranch != null) {
-      const mergeStatus = await mergeTree(
-        this.props.repository,
-        this.props.currentBranch,
-        branch
+    const { currentBranch } = this.props
+
+    if (enableMergeConflictDetection() && currentBranch != null) {
+      const mergeStatus = await promiseWithMinimumTimeout(
+        () => mergeTree(this.props.repository, currentBranch, branch),
+        500
       )
 
       this.setState({ mergeStatus })

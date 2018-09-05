@@ -41,14 +41,16 @@ export class MergeCallToActionWithConflicts extends React.Component<
           Merge into <strong>{this.props.currentBranch.name}</strong>
         </Button>
 
-        <MergeStatusHeader status={this.props.mergeStatus} />
+        <div className="merge-status-component">
+          <MergeStatusHeader status={this.props.mergeStatus} />
 
-        {this.renderMergeDetails(
-          this.props.currentBranch,
-          this.props.comparisonBranch,
-          this.props.mergeStatus,
-          commitsBehind
-        )}
+          {this.renderMergeDetails(
+            this.props.currentBranch,
+            this.props.comparisonBranch,
+            this.props.mergeStatus,
+            commitsBehind
+          )}
+        </div>
       </div>
     )
   }
@@ -61,7 +63,7 @@ export class MergeCallToActionWithConflicts extends React.Component<
   ) {
     if (mergeStatus === null || mergeStatus.kind === MergeResultKind.Loading) {
       return (
-        <div className="merge-message">
+        <div className="merge-message merge-message-loading">
           Checking for ability to merge automatically...
         </div>
       )
@@ -94,9 +96,9 @@ export class MergeCallToActionWithConflicts extends React.Component<
 
     if (mergeStatus.kind === MergeResultKind.Invalid) {
       return (
-        <p className="merge-info">
+        <div className="merge-message">
           Unable to merge unrelated histories in this repository
-        </p>
+        </div>
       )
     }
 

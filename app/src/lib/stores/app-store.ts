@@ -159,6 +159,7 @@ import {
 import { findAccountForRemoteURL } from '../find-account'
 import { inferLastPushForRepository } from '../infer-last-push-for-repository'
 import { MergeResultKind } from '../../models/merge'
+import { promiseWithMinimumTimeout } from '../promise'
 
 /**
  * Enum used by fetch to determine if
@@ -981,7 +982,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.updateOrSelectFirstCommit(repository, commitSHAs)
 
       if (tip.kind === TipState.Valid) {
-        mergeTree(repository, tip.branch, action.branch).then(mergeStatus => {
+        promiseWithMinimumTimeout(
+          () => mergeTree(repository, tip.branch, action.branch),
+          500
+        ).then(mergeStatus => {
           this.updateCompareState(repository, () => ({
             mergeStatus,
           }))
