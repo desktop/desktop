@@ -41,3 +41,8 @@ export function enableNotificationOfBranchUpdates(): boolean {
 export function enableRepoInfoIndicators(): boolean {
   return true
 }
+
+/** Should `git status` use --no-optional-locks to assist with concurrent usage */
+export function enableStatusWithoutOptionalLocks(): boolean {
+  return enableBetaFeatures()
+}
