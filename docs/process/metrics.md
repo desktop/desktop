@@ -16,8 +16,8 @@ These are general metrics about users that are aggregated to understand general 
 | `repositoryCount` | The total number **tracked** of repositories **in Desktop**. | To understand the typical number of repositories tracked in Desktop, so we can make appropriate decisions in terms of performance and UI. |
 | `gitHubRepositoryCount` | The number of GitHub repositories. | To understand the typical number of repositories connected to Desktop that are hosted on GitHub, so we can more accurately prioritize GitHub workflows in Desktop. |
 | `guid` | The unique ID of a Desktop installation. | This allows us to aggregate metrics across multiple days, so we can understand how many people use Desktop per week or per month, and how many people use a particular feature per month.  |
-| `dotComAccount` | Lets us know if a user logged in with a GitHub.com account. | To understand what percentage of people who use Desktop use it with github.com, so we can more accurately prioritize GitHub workflows in Desktop. |
-| `enterpriseAccount` | Lets us know if a user logged in with an Enterprise account. | To understand what percentage of people who use Desktop use it with an Enterprise instance of GitHub, so we can more accurately prioritize Enterprise-related bugs. |
+| `dotComAccount` | Flag that is set if the user is logged in with a GitHub.com account | Informs us on the percentage of people who use Desktop with GitHub.com, so we can more accurately prioritize GitHub workflows in Desktop. |
+| `enterpriseAccount` | Flag that is set if the user is logged in with a GitHub Enterprise account. | Informs us on the percentage of people who use Desktop with an Enterprise instance of GitHub, so we can more accurately prioritize Enterprise-related bugs. |
 | `theme` | The name of the currently selected theme/application appearance as set at time of stats submission. | To understand usage patterns of the Dark Theme feature, so we can more accurately prioritize theme-related bugs. |
 | `usage` | Constant used to group/filterin data warehouse | Specifies that this data is related to GitHub Desktop usage, so we can filter it correctly in our analytics. |
 
