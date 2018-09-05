@@ -120,9 +120,11 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
   private drawSingleColumnLayout(release: ReleaseSummary): JSX.Element {
     return (
       <div className="container">
-        {this.renderList(release.bugfixes, 'Bugfixes')}
-        {this.renderList(release.enhancements, 'Enhancements')}
-        {this.renderList(release.other, 'Other')}
+        <div className="column">
+          {this.renderList(release.bugfixes, 'Bugfixes')}
+          {this.renderList(release.enhancements, 'Enhancements')}
+          {this.renderList(release.other, 'Other')}
+        </div>
       </div>
     )
   }
