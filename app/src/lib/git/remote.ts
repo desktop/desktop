@@ -1,4 +1,6 @@
 import { git } from './core'
+import { GitError } from 'dugite'
+
 import { Repository } from '../../models/repository'
 import { IRemote } from '../../models/remote'
 import { findDefaultRemote } from '../stores/helpers/find-default-remote'
@@ -11,10 +13,10 @@ export async function getRemotes(
   // see https://github.com/desktop/desktop/pull/5299#discussion_r206603442 for
   // discussion about what needs to change
   const result = await git(['remote', '-v'], repository.path, 'getRemotes', {
-    successExitCodes: new Set([0, 128]),
+    expectedErrors: new Set([GitError.NotAGitRepository]),
   })
 
-  if (result.exitCode === 128) {
+  if (result.gitError === GitError.NotAGitRepository) {
     return []
   }
 

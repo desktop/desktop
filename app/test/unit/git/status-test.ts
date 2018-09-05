@@ -70,6 +70,14 @@ describe('git/status', () => {
       const testRepoPath = await setupFixtureRepository('copy-detection-status')
       repository = new Repository(testRepoPath, -1, null, false)
 
+      // Git 2.18 now uses a new config value to handle detecting copies, so
+      // users who have this enabled will see this. For reference, Desktop does
+      // not enable this by default.
+      await GitProcess.exec(
+        ['config', '--local', 'status.renames', 'copies'],
+        repository.path
+      )
+
       await GitProcess.exec(['add', '.'], repository.path)
 
       const status = await getStatusOrThrow(repository)
