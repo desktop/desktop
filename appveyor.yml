@@ -41,3 +41,7 @@ on_success:
 
 on_finish:
   - yarn test:review
+
+artifacts:
+  - path: '**/*.heapsnapshot'
+    name: Heap Dumps
