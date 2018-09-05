@@ -51,8 +51,9 @@ const DefaultDailyMeasures: IDailyMeasures = {
   active: false,
   mergeConflictFromPullCount: 0,
   mergeConflictFromExplicitMergeCount: 0,
-  proceededAfterNoConflictsHintCount: 0,
-  proceededAfterConflictsWarningCount: 0,
+  mergedWithLoadingHintCount: 0,
+  mergedWithCleanMergeHintCount: 0,
+  mergedWithConflictWarningHintCount: 0,
 }
 
 interface ICalculatedStats {
@@ -505,18 +506,24 @@ export class StatsStore {
   }
 
   /** Record that the user saw a 'merge conflicts' warning but continued with the merge */
-  public async recordUserProccededAfterConflictWarning(): Promise<void> {
+  public async recordUserProccededWhileLoading(): Promise<void> {
     return this.updateDailyMeasures(m => ({
-      proceededAfterConflictsWarningCount:
-        m.proceededAfterConflictsWarningCount + 1,
+      mergedWithLoadingHintCount: m.mergedWithLoadingHintCount + 1,
     }))
   }
 
   /** Record that the user saw a 'merge conflicts' warning but continued with the merge */
   public async recordMergeHintSuccessAndUserProceeded(): Promise<void> {
     return this.updateDailyMeasures(m => ({
-      proceededAfterNoConflictsHintCount:
-        m.proceededAfterNoConflictsHintCount + 1,
+      mergedWithCleanMergeHintCount: m.mergedWithCleanMergeHintCount + 1,
+    }))
+  }
+
+  /** Record that the user saw a 'merge conflicts' warning but continued with the merge */
+  public async recordUserProccededAfterConflictWarning(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      mergedWithConflictWarningHintCount:
+        m.mergedWithConflictWarningHintCount + 1,
     }))
   }
 
