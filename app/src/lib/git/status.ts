@@ -11,6 +11,7 @@ import { DiffSelectionType, DiffSelection } from '../../models/diff'
 import { Repository } from '../../models/repository'
 import { IAheadBehind } from '../../models/branch'
 import { fatalError } from '../../lib/fatal-error'
+import { enableStatusWithoutOptionalLocks } from '../feature-flag'
 
 /**
  * V8 has a limit on the size of string it can create (~256MB), and unless we want to
@@ -64,8 +65,20 @@ function convertToAppStatus(status: FileEntry): AppFileStatus {
 export async function getStatus(
   repository: Repository
 ): Promise<IStatusResult | null> {
+  const baseArgs = [
+    'status',
+    '--untracked-files=all',
+    '--branch',
+    '--porcelain=2',
+    '-z',
+  ]
+
+  const args = enableStatusWithoutOptionalLocks()
+    ? ['--no-optional-locks', ...baseArgs]
+    : baseArgs
+
   const result = await spawnAndComplete(
-    ['status', '--untracked-files=all', '--branch', '--porcelain=2', '-z'],
+    args,
     repository.path,
     'getStatus',
     new Set([0, 128])

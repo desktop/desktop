@@ -137,17 +137,13 @@ function handlePossibleProtocolLauncherArgs(args: ReadonlyArray<string>) {
   log.info(`Received possible protocol arguments: ${args.length}`)
 
   if (__WIN32__) {
-    // We register our protocol handler callback on Windows as
-    // [executable path] --protocol-launcher -- "%1" meaning that any
-    // url data comes after we've stopped processing arguments. We check
-    // for that exact scenario here before doing any processing. If there's
-    // more than 4 args because of a malformed url then we bail out.
-    if (
-      args.length === 4 &&
-      args[1] === '--protocol-launcher' &&
-      args[2] === '--'
-    ) {
-      handleAppURL(args[3])
+    // Desktop registers it's protocol handler callback on Windows as
+    // `[executable path] --protocol-launcher "%1"`. At launch it checks
+    // for that exact scenario here before doing any processing, and only
+    // processing the first argument. If there's more than 3 args because of a
+    // malformed or untrusted url then we bail out.
+    if (args.length === 3 && args[1] === '--protocol-launcher') {
+      handleAppURL(args[2])
     }
   } else if (args.length > 1) {
     handleAppURL(args[1])
@@ -156,14 +152,12 @@ function handlePossibleProtocolLauncherArgs(args: ReadonlyArray<string>) {
 
 /**
  * Wrapper around app.setAsDefaultProtocolClient that adds our
- * custom prefix command line switches on Windows that prevents
- * command line argument parsing after the `--`.
+ * custom prefix command line switches on Windows.
  */
 function setAsDefaultProtocolClient(protocol: string) {
   if (__WIN32__) {
     app.setAsDefaultProtocolClient(protocol, process.execPath, [
       '--protocol-launcher',
-      '--',
     ])
   } else {
     app.setAsDefaultProtocolClient(protocol)

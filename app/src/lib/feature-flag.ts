@@ -43,5 +43,10 @@ export function enableRepoInfoIndicators(): boolean {
 }
 
 export function enableInAppReleaseNotes(): boolean {
+    return enableBetaFeatures()
+}
+
+/** Should `git status` use --no-optional-locks to assist with concurrent usage */
+export function enableStatusWithoutOptionalLocks(): boolean {
   return enableBetaFeatures()
 }
