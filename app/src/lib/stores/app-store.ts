@@ -286,6 +286,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** The current repository filter text */
   private repositoryFilterText: string = ''
 
+  private currentMergeTreePromise: Promise<void> | null = null
+
   /** The function to resolve the current Open in Desktop flow. */
   private resolveOpenInDesktop:
     | ((repository: Repository | null) => void)
@@ -981,8 +983,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       this.updateOrSelectFirstCommit(repository, commitSHAs)
 
+      if (this.currentMergeTreePromise != null) {
+        return this.currentMergeTreePromise
+      }
+
       if (tip.kind === TipState.Valid) {
-        promiseWithMinimumTimeout(
+        const mergeTreePromise = promiseWithMinimumTimeout(
           () => mergeTree(repository, tip.branch, action.branch),
           500
         ).then(mergeStatus => {
@@ -992,12 +998,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
           this.emitUpdate()
         })
+
+        const cleanup = () => (this.currentMergeTreePromise = null)
+
+        mergeTreePromise.then(cleanup, cleanup)
+
+        this.currentMergeTreePromise = mergeTreePromise
+
+        return this.currentMergeTreePromise
       } else {
         this.updateCompareState(repository, () => ({
           mergeStatus: null,
         }))
 
-        this.emitUpdate()
+        return this.emitUpdate()
       }
     }
   }
