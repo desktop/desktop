@@ -24,6 +24,7 @@ These are general metrics about users that are aggregated to understand general 
 ## Measures
 These are general metrics about feature usage and specific feature behaviors. These help us understand our users' mental map of the application, hypothesize pain points within the application, and aid in feature and bugfix planning so that we can improve workflows that are more likely to benefit users.
 
+<!-- The `active` field is marked with an `*` because it's actually a dimension that was defined as a measure. Since it is represented in source that way, it is mimiced in this doc. -->
 | Metric | Description | Justification |
 |:--|:--|:--|
 | `commits` | The number of commits made. | To understand usage patterns of commits made in Desktop. |
