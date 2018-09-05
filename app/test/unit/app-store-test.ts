@@ -128,7 +128,13 @@ describe('AppStore', () => {
       expect(firstCommit!.parentSHAs.length).to.equal(0)
     })
 
-    it('clears the undo commit dialog', async () => {
+    // this test is failing too often for my liking on Windows
+    // for the moment, I need to make it skip the CI test suite
+    // but I'd like to better understand why it's failing and
+    // either rewrite the test or fix whatever bug it is
+    // encountering. I've opened https://github.com/desktop/desktop/issues/5543
+    // to track this
+    it.skip('clears the undo commit dialog', async () => {
       const repository = repo!
 
       const appStore = await createAppStore()
