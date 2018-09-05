@@ -72,8 +72,14 @@ export async function findAccountForRemoteURL(
   if (repositoryIdentifier) {
     const { owner, name, hostname } = repositoryIdentifier
 
-    // Prefer an authenticated dot com account, then Enterprise accounts, and
-    // finally the unauthenticated dot com account.
+    // This chunk of code is designed to sort the user's accounts in this order:
+    //  - authenticated GitHub account
+    //  - GitHub Enterprise accounts
+    //  - unauthenticated GitHub account (access public repositories)
+    //
+    // As this needs to be done efficiently, we consider endpoints not matching
+    // `getDotComAPIEndpoint()` to be GitHub Enterprise accounts, and accounts
+    // without a token to be unauthenticated.
     const sortedAccounts = Array.from(allAccounts).sort((a1, a2) => {
       if (a1.endpoint === getDotComAPIEndpoint()) {
         return a1.token.length ? -1 : 1
