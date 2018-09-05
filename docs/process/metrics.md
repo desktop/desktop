@@ -22,7 +22,7 @@ These are general metrics about users that are aggregated to understand general 
 | `eventType` | Always set to usage. | Specifies that this data is related to GitHub Desktop usage, so we can filter it correctly in our analytics. |
 
 ## Measures
-These are general metrics about general feature usage and specific feature behaviors. These help us understand our users' mental map of the application, hypothesize pain points within the application, and aid us in feature and bug fix planning so that we can improve workflows that might actually be used.
+These are general metrics about feature usage and specific feature behaviors. These help us understand our users' mental map of the application, hypothesize pain points within the application, and aid in feature and bugfix planning so that we can improve workflows that are more likely to benefit users.
 
 | Metric | Description | Justification |
 |:--|:--|:--|
