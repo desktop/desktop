@@ -3119,9 +3119,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       if (mergeStatus.kind === MergeResultKind.Clean) {
         this.statsStore.recordMergeHintSuccessAndUserProceeded()
       } else if (mergeStatus.kind === MergeResultKind.Conflicts) {
-        this.statsStore.recordUserProccededAfterConflictWarning()
+        this.statsStore.recordUserProceededAfterConflictWarning()
       } else if (mergeStatus.kind === MergeResultKind.Loading) {
-        this.statsStore.recordUserProccededWhileLoading()
+        this.statsStore.recordUserProceededWhileLoading()
       }
     }
 
