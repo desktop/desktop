@@ -63,23 +63,25 @@ export class MergeCallToActionWithConflicts extends React.Component<
   ) {
     if (mergeStatus === null || mergeStatus.kind === MergeResultKind.Loading) {
       return this.renderLoadingMergeMessage()
-    } else if (mergeStatus.kind === MergeResultKind.Clean) {
+    }
+    if (mergeStatus.kind === MergeResultKind.Clean) {
       return this.renderCleanMergeMessage(
         currentBranch,
         comparisonBranch,
         behindCount
       )
-    } else if (mergeStatus.kind === MergeResultKind.Invalid) {
+    }
+    if (mergeStatus.kind === MergeResultKind.Invalid) {
       return this.renderInvalidMergeMessage()
-    } else if (mergeStatus.kind === MergeResultKind.Conflicts) {
+    }
+    if (mergeStatus.kind === MergeResultKind.Conflicts) {
       return this.renderConflictedMergeMessage(
         currentBranch,
         comparisonBranch,
         mergeStatus.conflictedFiles
       )
-    } else {
-      return null
     }
+    return null
   }
 
   private renderLoadingMergeMessage() {
