@@ -50,3 +50,6 @@ These are general metrics about feature usage and specific feature behaviors. Th
 | `rendererReadyTime` | The time (in milliseconds) it takes from when our renderer process code is first loaded until the renderer `ready` event is emitted. | To make sure new versions of Desktop are not regressing on performance. |
 | `mergeConflictFromPullCount` | The number of times a `git pull` initiated by Desktop resulted in a merge conflict for the user. | To understand how often people encounter a merge conflict in Desktop. |
 | `mergeConflictFromExplicitMergeCount` | The number of times a `git merge` initiated by Desktop resulted in a merge conflict for the user. | To understand how often people encounter a merge conflict in Desktop. |
+| `mergedWithLoadingHintCount` | The number of times the user merged before seeing the result of the merge hint. | ... |
+| `mergedWithCleanMergeHintCount` | The number of times the user has merged after seeing the 'no conflicts' merge hint. | ... |
+| `mergedWithConflictWarningHintCount` | The number of times the user has merged after seeing the 'you have XX conflicted files' warning. | ... |
