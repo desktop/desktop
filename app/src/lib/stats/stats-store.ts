@@ -506,7 +506,7 @@ export class StatsStore {
   }
 
   /** Record that the user saw a 'merge conflicts' warning but continued with the merge */
-  public async recordUserProccededWhileLoading(): Promise<void> {
+  public async recordUserProceededWhileLoading(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       mergedWithLoadingHintCount: m.mergedWithLoadingHintCount + 1,
     }))
@@ -520,7 +520,7 @@ export class StatsStore {
   }
 
   /** Record that the user saw a 'merge conflicts' warning but continued with the merge */
-  public async recordUserProccededAfterConflictWarning(): Promise<void> {
+  public async recordUserProceededAfterConflictWarning(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       mergedWithConflictWarningHintCount:
         m.mergedWithConflictWarningHintCount + 1,
