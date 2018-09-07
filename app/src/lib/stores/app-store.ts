@@ -25,6 +25,7 @@ import {
   ICompareBranch,
   ICompareFormUpdate,
   ICompareToBranch,
+  MergeResultStatus,
 } from '../app-state'
 import { Account } from '../../models/account'
 import {
@@ -99,6 +100,7 @@ import {
   getRemotes,
   ITrailer,
   isCoAuthoredByTrailer,
+  mergeTree,
 } from '../git'
 
 import { launchExternalEditor } from '../editors'
@@ -144,7 +146,10 @@ import { IRemote, ForkedRemotePrefix } from '../../models/remote'
 import { IAuthor } from '../../models/author'
 import { ComparisonCache } from '../comparison-cache'
 import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
-import { enableRepoInfoIndicators } from '../feature-flag'
+import {
+  enableRepoInfoIndicators,
+  enableMergeConflictDetection,
+} from '../feature-flag'
 import { inferComparisonBranch } from './helpers/infer-comparison-branch'
 import {
   ApplicationTheme,
@@ -153,6 +158,8 @@ import {
 } from '../../ui/lib/application-theme'
 import { findAccountForRemoteURL } from '../find-account'
 import { inferLastPushForRepository } from '../infer-last-push-for-repository'
+import { MergeResultKind } from '../../models/merge'
+import { promiseWithMinimumTimeout } from '../promise'
 
 /**
  * Enum used by fetch to determine if
@@ -278,6 +285,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** The current repository filter text */
   private repositoryFilterText: string = ''
+
+  private currentMergeTreePromise: Promise<void> | null = null
 
   /** The function to resolve the current Open in Desktop flow. */
   private resolveOpenInDesktop:
@@ -461,6 +470,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       },
       compareState: {
         formState: { kind: ComparisonView.None },
+        mergeStatus: null,
         showBranchList: false,
         filterText: '',
         commitSHAs: [],
@@ -961,9 +971,53 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.currentAheadBehindUpdater.insert(from, to, aheadBehind)
     }
 
-    this.updateOrSelectFirstCommit(repository, commitSHAs)
+    if (!enableMergeConflictDetection()) {
+      this.updateOrSelectFirstCommit(repository, commitSHAs)
+      return this.emitUpdate()
+    } else {
+      this.updateCompareState(repository, () => ({
+        mergeStatus: { kind: MergeResultKind.Loading },
+      }))
 
-    return this.emitUpdate()
+      this.emitUpdate()
+
+      this.updateOrSelectFirstCommit(repository, commitSHAs)
+
+      if (this.currentMergeTreePromise != null) {
+        return this.currentMergeTreePromise
+      }
+
+      if (tip.kind === TipState.Valid) {
+        const mergeTreePromise = promiseWithMinimumTimeout(
+          () => mergeTree(repository, tip.branch, action.branch),
+          500
+        ).then(mergeStatus => {
+          this.updateCompareState(repository, () => ({
+            mergeStatus,
+          }))
+
+          this.emitUpdate()
+        })
+
+        const cleanup = () => {
+          this.currentMergeTreePromise = null
+        }
+
+        // TODO: when we have Promise.prototype.finally available we
+        //       should use that here to make this intent clearer
+        mergeTreePromise.then(cleanup, cleanup)
+
+        this.currentMergeTreePromise = mergeTreePromise
+
+        return this.currentMergeTreePromise
+      } else {
+        this.updateCompareState(repository, () => ({
+          mergeStatus: null,
+        }))
+
+        return this.emitUpdate()
+      }
+    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -3062,9 +3116,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   public async _mergeBranch(
     repository: Repository,
-    branch: string
+    branch: string,
+    mergeStatus: MergeResultStatus | null
   ): Promise<void> {
     const gitStore = this.getGitStore(repository)
+
+    if (mergeStatus !== null) {
+      if (mergeStatus.kind === MergeResultKind.Clean) {
+        this.statsStore.recordMergeHintSuccessAndUserProceeded()
+      } else if (mergeStatus.kind === MergeResultKind.Conflicts) {
+        this.statsStore.recordUserProceededAfterConflictWarning()
+      } else if (mergeStatus.kind === MergeResultKind.Loading) {
+        this.statsStore.recordUserProceededWhileLoading()
+      }
+    }
+
     await gitStore.merge(branch)
 
     return this._refreshRepository(repository)
