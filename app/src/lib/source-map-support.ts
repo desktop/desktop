@@ -34,7 +34,7 @@ function retrieveSourceMap(source: string) {
     try {
       const xhr = new XMLHttpRequest()
       xhr.open('GET', path, false)
-      xhr.send()
+      xhr.send(null)
       if (xhr.readyState === 4 && xhr.status === 200) {
         return { url: Path.basename(path), map: xhr.responseText }
       }
