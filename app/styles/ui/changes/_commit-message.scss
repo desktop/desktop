@@ -11,6 +11,13 @@
   background-color: var(--box-alt-background-color);
   padding: var(--spacing);
 
+  .jira {
+    display: inline-block;
+    input {
+      margin-bottom: var(--spacing);
+    }
+  }
+
   .summary {
     display: flex;
     flex-direction: row;

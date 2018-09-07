@@ -22,8 +22,8 @@ export function handleSquirrelEvent(eventName: string): Promise<void> | null {
     case '--squirrel-install':
       return handleInstalled()
 
-    case '--squirrel-updated':
-      return handleUpdated()
+    // case '--squirrel-updated':
+    //   return handleUpdated()
 
     case '--squirrel-uninstall':
       return handleUninstall()
