@@ -16,6 +16,7 @@ export interface IMergeEntry {
   readonly our?: IBlobResult
   readonly their?: IBlobResult
   readonly diff: string
+  readonly hasConflicts?: boolean
 }
 
 export interface IMergeSuccess {
