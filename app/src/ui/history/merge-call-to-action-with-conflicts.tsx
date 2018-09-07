@@ -62,59 +62,79 @@ export class MergeCallToActionWithConflicts extends React.Component<
     behindCount: number
   ) {
     if (mergeStatus === null || mergeStatus.kind === MergeResultKind.Loading) {
-      return (
-        <div className="merge-message merge-message-loading">
-          Checking for ability to merge automatically...
-        </div>
+      return this.renderLoadingMergeMessage()
+    }
+    if (mergeStatus.kind === MergeResultKind.Clean) {
+      return this.renderCleanMergeMessage(
+        currentBranch,
+        comparisonBranch,
+        behindCount
       )
     }
-    const branch = comparisonBranch
-
-    if (mergeStatus.kind === MergeResultKind.Clean) {
-      const count = behindCount
-
-      if (count > 0) {
-        const pluralized = count === 1 ? 'commit' : 'commits'
-        return (
-          <div className="merge-message">
-            This will merge
-            <strong>{` ${count} ${pluralized}`}</strong>
-            {` `}
-            from
-            {` `}
-            <strong>{branch.name}</strong>
-            {` `}
-            into
-            {` `}
-            <strong>{currentBranch.name}</strong>
-          </div>
-        )
-      } else {
-        return null
-      }
-    }
-
     if (mergeStatus.kind === MergeResultKind.Invalid) {
+      return this.renderInvalidMergeMessage()
+    }
+    if (mergeStatus.kind === MergeResultKind.Conflicts) {
+      return this.renderConflictedMergeMessage(
+        currentBranch,
+        comparisonBranch,
+        mergeStatus.conflictedFiles
+      )
+    }
+    return null
+  }
+
+  private renderLoadingMergeMessage() {
+    return (
+      <div className="merge-message merge-message-loading">
+        Checking for ability to merge automatically...
+      </div>
+    )
+  }
+
+  private renderCleanMergeMessage(
+    currentBranch: Branch,
+    branch: Branch,
+    count: number
+  ) {
+    if (count > 0) {
+      const pluralized = count === 1 ? 'commit' : 'commits'
       return (
         <div className="merge-message">
-          Unable to merge unrelated histories in this repository
+          This will merge
+          <strong>{` ${count} ${pluralized}`}</strong>
+          {` from `}
+          <strong>{branch.name}</strong>
+          {` into `}
+          <strong>{currentBranch.name}</strong>
         </div>
       )
+    } else {
+      return null
     }
+  }
 
-    const count = mergeStatus.conflictedFiles
+  private renderInvalidMergeMessage() {
+    return (
+      <div className="merge-message">
+        Unable to merge unrelated histories in this repository
+      </div>
+    )
+  }
+
+  private renderConflictedMergeMessage(
+    currentBranch: Branch,
+    branch: Branch,
+    count: number
+  ) {
     const pluralized = count === 1 ? 'file' : 'files'
     return (
       <div className="merge-message">
         There will be
         <strong>{` ${count} conflicted ${pluralized}`}</strong>
-        {` `}
-        when merging
-        {` `}
+        {` when merging `}
         <strong>{branch.name}</strong>
-        {` `}
-        into
-        {` `}
+        {` into `}
         <strong>{currentBranch.name}</strong>
       </div>
     )
