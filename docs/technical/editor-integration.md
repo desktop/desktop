@@ -216,6 +216,7 @@ These editors are currently supported:
      - To use Brackets the Command Line shortcut must be installed.
        - This can be done by opening Brackets, choosing File > Install Command Line Shortcut
  - [WebStorm](https://www.jetbrains.com/webstorm/)
+ - [Typora](https://typora.io/)
 
 These are defined in an enum at the top of the file:
 
@@ -233,6 +234,7 @@ export enum ExternalEditor {
   TextMate = 'TextMate',
   Brackets = 'Brackets',
   WebStorm = 'WebStorm',
+  Typora = 'Typora',
 }
 ```
 
