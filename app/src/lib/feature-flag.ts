@@ -42,6 +42,12 @@ export function enableRepoInfoIndicators(): boolean {
   return true
 }
 
+/** Should the app try and detect conflicts before the user stumbles into them? */
+export function enableMergeConflictDetection(): boolean {
+  return enableBetaFeatures()
+}
+
+/** Should the app display the new release notes dialog? */
 export function enableInAppReleaseNotes(): boolean {
   return enableBetaFeatures()
 }
