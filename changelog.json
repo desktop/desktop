@@ -6,7 +6,7 @@
       "[Fixed] Avoid double checkout warning when opening a pull request in Desktop - #5375",
       "[Fixed] Error when publishing repository is now associated with the right tab - #5422. Thanks @Daniel-McCarthy!",
       "[Fixed] Disable affected menu items when on detached HEAD - #5500. Thanks @say25!",
-      "[Fixed] Show border when commit description is expanded. - #5506. Thanks @aryyya!",
+      "[Fixed] Show border when commit description is expanded - #5506. Thanks @aryyya!",
       "[Fixed] GitLab URL which corresponds to GitHub repository of same name cloned GitHub repository - #4154",
       "[Improved] avoid multiple lookups of default remote - #5399",
       "[Improved] skip optional locks when checking status of repository - #5376"
