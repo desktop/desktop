@@ -999,7 +999,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
           this.emitUpdate()
         })
 
-        const cleanup = () => (this.currentMergeTreePromise = null)
+        const cleanup = () => {
+          this.currentMergeTreePromise = null
+        }
 
         mergeTreePromise.then(cleanup, cleanup)
 
