@@ -55,21 +55,18 @@
     max-height: 200px;
     display: flex;
     flex-direction: row;
-    padding-left: var(--spacing-double);
-    padding-right: var(--spacing-double);
-    margin-top: var(--spacing);
+    padding-left: var(--spacing-triple);
+    padding-right: var(--spacing-triple);
     overflow: scroll;
+    justify-content: space-around;
 
     .column {
-      width: 275px;
-
-      &:first-of-type {
-        margin-right: var(--spacing);
-      }
+      flex: 1 1 275px;
+      max-width: 75%;
+      margin: 0 calc(var(--spacing) * 1.5);
 
       .section {
-        margin-top: var(--spacing);
-
+        margin: var(--spacing-double) 0;
         .header {
           font-size: 12px;
           font-weight: var(--font-weight-semibold);
