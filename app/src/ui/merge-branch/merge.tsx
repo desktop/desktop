@@ -141,63 +141,82 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
 
   private renderMergeStatusMessage(
     mergeStatus: MergeResultStatus,
-    selectedBranch: Branch,
+    branch: Branch,
     currentBranch: Branch,
     commitCount: number
   ): JSX.Element {
     if (mergeStatus.kind === MergeResultKind.Loading) {
-      return (
-        <React.Fragment>
-          Checking for ability to merge automatically...
-        </React.Fragment>
-      )
+      return this.renderLoadingMergeMessage()
     }
 
     if (mergeStatus.kind === MergeResultKind.Clean) {
-      const pluralized = commitCount === 1 ? 'commit' : 'commits'
-      return (
-        <React.Fragment>
-          This will merge
-          <strong>{` ${commitCount} ${pluralized}`}</strong>
-          {` `}
-          from
-          {` `}
-          <strong>{selectedBranch.name}</strong>
-          {` `}
-          into
-          {` `}
-          <strong>{currentBranch.name}</strong>
-        </React.Fragment>
-      )
+      return this.renderCleanMergeMessage(branch, currentBranch, commitCount)
     }
 
     if (mergeStatus.kind === MergeResultKind.Invalid) {
-      return (
-        <React.Fragment>
-          Unable to merge unrelated histories in this repository
-        </React.Fragment>
-      )
+      return this.renderInvalidMergeMessage()
     }
 
-    const count = mergeStatus.conflictedFiles
-    const pluralized = count === 1 ? 'file' : 'files'
+    return this.renderConflictedMergeMessage(
+      branch,
+      currentBranch,
+      mergeStatus.conflictedFiles
+    )
+  }
+
+  private renderLoadingMergeMessage() {
     return (
       <React.Fragment>
-        There will be
-        <strong>{` ${count} conflicted ${pluralized}`}</strong>
-        {` `}
-        when merging
-        {` `}
-        <strong>{selectedBranch.name}</strong>
-        {` `}
-        into
-        {` `}
+        Checking for ability to merge automatically...
+      </React.Fragment>
+    )
+  }
+
+  private renderCleanMergeMessage(
+    branch: Branch,
+    currentBranch: Branch,
+    commitCount: number
+  ) {
+    const pluralized = commitCount === 1 ? 'commit' : 'commits'
+    return (
+      <React.Fragment>
+        This will merge
+        <strong>{` ${commitCount} ${pluralized}`}</strong>
+        {` from `}
+        <strong>{branch.name}</strong>
+        {` into `}
         <strong>{currentBranch.name}</strong>
       </React.Fragment>
     )
   }
 
-  private renderMergeInfo() {
+  private renderInvalidMergeMessage() {
+    return (
+      <React.Fragment>
+        Unable to merge unrelated histories in this repository
+      </React.Fragment>
+    )
+  }
+
+  private renderConflictedMergeMessage(
+    branch: Branch,
+    currentBranch: Branch,
+    count: number
+  ) {
+    const pluralized = count === 1 ? 'file' : 'files'
+    return (
+      <React.Fragment>
+        There will be
+        <strong>{` ${count} conflicted ${pluralized}`}</strong>
+        {` when merging `}
+        <strong>{branch.name}</strong>
+        {` into `}
+        <strong>{currentBranch.name}</strong>
+      </React.Fragment>
+    )
+  }
+
+  private renderOldMergeMessage() {
     const commitCount = this.state.commitCount
     const selectedBranch = this.state.selectedBranch
     const currentBranch = this.props.currentBranch
@@ -286,7 +305,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
 
           {enableMergeConflictDetection()
             ? this.renderNewMergeInfo()
-            : this.renderMergeInfo()}
+            : this.renderOldMergeMessage()}
         </DialogFooter>
       </Dialog>
     )
