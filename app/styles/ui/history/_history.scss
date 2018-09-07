@@ -84,6 +84,11 @@
     }
   }
 
+  // this style can be removed once we enable the merge hint for everyone
+  .merge-message-legacy {
+    margin-top: var(--spacing);
+  }
+
   .merge-cta {
     border-top: var(--base-border);
     display: flex;

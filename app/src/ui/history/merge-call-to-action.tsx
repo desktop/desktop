@@ -50,7 +50,7 @@ export class MergeCallToAction extends React.Component<
     if (count > 0) {
       const pluralized = count === 1 ? 'commit' : 'commits'
       return (
-        <div className="merge-message">
+        <div className="merge-message merge-message-legacy">
           This will merge
           <strong>{` ${count} ${pluralized}`}</strong>
           {` `}
