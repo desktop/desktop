@@ -4,7 +4,7 @@
       "[New] When an update is available for GitHub Desktop, the release notes can be viewed in Desktop - #2774",
       "[New] Detect merge conflicts when comparing branches - #4588",
       "[Fixed] Avoid double checkout warning when opening a pull request in Desktop - #5375",
-      "[Fixed] Clear error in Publish repository dialog on change of tab - #5422. Thanks @Daniel-McCarthy!",
+      "[Fixed] Error when publishing repository is now associated with the right tab - #5422. Thanks @Daniel-McCarthy!",
       "[Fixed] Disable affected menu items when on detached HEAD - #5500. Thanks @say25!",
       "[Fixed] Show border when commit description is expanded. - #5506. Thanks @aryyya!",
       "[Fixed] GitLab URL which corresponds to GitHub repository of same name cloned GitHub repository - #4154",
