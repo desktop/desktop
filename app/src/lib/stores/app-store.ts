@@ -1,7 +1,6 @@
 import { ipcRenderer, remote } from 'electron'
 import { pathExists } from 'fs-extra'
-import * as QueryString from 'querystring'
-
+import { escape } from 'querystring'
 import {
   AccountsStore,
   CloningRepositoriesStore,
@@ -3705,7 +3704,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const urlEncodedBranchName = QueryString.escape(branch.nameWithoutRemote)
+    const urlEncodedBranchName = escape(branch.nameWithoutRemote)
     const baseURL = `${
       gitHubRepository.htmlURL
     }/pull/new/${urlEncodedBranchName}`
