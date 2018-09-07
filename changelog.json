@@ -1,5 +1,16 @@
 {
   "releases": {
+    "1.4.0-beta1": [
+      "[New] Release notes for update are now displayed within Desktop - #2774",
+      "[New] Detect merge conflicts when comparing branches - #4588",
+      "[Fixed] Avoid double checkout when opening a PR in Desktop - #5375",
+      "[Fixed] Clear Displayed Publish Repository Error on change of tab - #5422. Thanks @Daniel-McCarthy!",
+      "[Fixed] Disable affected menu items when on detached HEAD - #5500. Thanks @say25!",
+      "[Fixed] Show border when commit description is expanded. - #5506. Thanks @aryyya!",
+      "[Fixed] Validate hostname when cloning a URL - #4154",
+      "[Improved] Avoid using getDefaultRemote where possible - #5399",
+      "[Improved] We don't need getStatus to always lock the index - #5376"
+    ],
     "1.4.0-beta0": [
     ],
     "1.3.5": [
