@@ -24,7 +24,7 @@ import { GitHubUserStore } from './github-user-store'
 export class RepositoryStateCache {
   private repositoryState = new Map<string, IRepositoryState>()
 
-  constructor(private gitHubUserStore: GitHubUserStore) {}
+  public constructor(private gitHubUserStore: GitHubUserStore) {}
 
   /** Get the state for the repository. */
   public get(repository: Repository): IRepositoryState {
