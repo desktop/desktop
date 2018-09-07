@@ -44,7 +44,7 @@ export function enableRepoInfoIndicators(): boolean {
 
 /** Should the app try and detect conflicts before the user stumbles into them? */
 export function enableMergeConflictDetection(): boolean {
-  return enableDevelopmentFeatures()
+  return enableBetaFeatures()
 }
 
 /** Should `git status` use --no-optional-locks to assist with concurrent usage */
