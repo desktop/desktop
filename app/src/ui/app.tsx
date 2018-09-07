@@ -85,6 +85,7 @@ import { GenericGitAuthentication } from './generic-git-auth'
 import { ShellError } from './shell'
 import { InitializeLFS, AttributeMismatch } from './lfs'
 import { UpstreamAlreadyExists } from './upstream-already-exists'
+import { ReleaseNotes } from './release-notes'
 import { DeletePullRequest } from './delete-branch/delete-pull-request-dialog'
 import { MergeConflictsWarning } from './merge-conflicts'
 import { AppTheme } from './app-theme'
@@ -1267,7 +1268,14 @@ export class App extends React.Component<IAppProps, IAppState> {
             onIgnore={this.onIgnoreExistingUpstreamRemote}
           />
         )
-
+      case PopupType.ReleaseNotes:
+        return (
+          <ReleaseNotes
+            emoji={this.state.emoji}
+            newRelease={popup.newRelease}
+            onDismissed={this.onPopupDismissed}
+          />
+        )
       case PopupType.DeletePullRequest:
         return (
           <DeletePullRequest
@@ -1640,11 +1648,12 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (!this.state.isUpdateAvailableBannerVisible) {
       return null
     }
-
     const releaseNotesUri = 'https://desktop.github.com/release-notes/'
 
     return (
       <UpdateAvailable
+        dispatcher={this.props.dispatcher}
+        newRelease={updateStore.state.newRelease}
         releaseNotesLink={releaseNotesUri}
         onDismissed={this.onUpdateAvailableDismissed}
       />

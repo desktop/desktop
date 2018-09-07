@@ -25,6 +25,7 @@ import { Shell } from './shells'
 import { CloneRepositoryTab } from '../models/clone-repository-tab'
 import { BranchesTab } from '../models/branches-tab'
 import { PullRequest } from '../models/pull-request'
+import { ReleaseSummary } from '../models/release-notes'
 import { IAuthor } from '../models/author'
 import { ComparisonCache } from './comparison-cache'
 import { ApplicationTheme } from '../ui/lib/application-theme'
@@ -222,6 +223,7 @@ export enum PopupType {
   InitializeLFS,
   LFSAttributeMismatch,
   UpstreamAlreadyExists,
+  ReleaseNotes,
   DeletePullRequest,
   MergeConflicts,
 }
@@ -295,6 +297,10 @@ export type Popup =
       type: PopupType.UpstreamAlreadyExists
       repository: Repository
       existingRemote: IRemote
+    }
+  | {
+      type: PopupType.ReleaseNotes
+      newRelease: ReleaseSummary
     }
   | {
       type: PopupType.DeletePullRequest
