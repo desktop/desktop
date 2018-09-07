@@ -7,7 +7,7 @@
       "[Fixed] Clear error in Publish repository dialog on change of tab - #5422. Thanks @Daniel-McCarthy!",
       "[Fixed] Disable affected menu items when on detached HEAD - #5500. Thanks @say25!",
       "[Fixed] Show border when commit description is expanded. - #5506. Thanks @aryyya!",
-      "[Fixed] Clone URL with matching GitHub repository would incorrectly choose GitHub repository - #4154",
+      "[Fixed] GitLab URL which corresponds to GitHub repository of same name cloned GitHub repository - #4154",
       "[Improved] avoid multiple lookups of default remote - #5399",
       "[Improved] skip optional locks when checking status of repository - #5376"
     ],
