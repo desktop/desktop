@@ -1003,6 +1003,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
           this.currentMergeTreePromise = null
         }
 
+        // TODO: when we have Promise.prototype.finally available we
+        //       should use that here to make this intent clearer
         mergeTreePromise.then(cleanup, cleanup)
 
         this.currentMergeTreePromise = mergeTreePromise
