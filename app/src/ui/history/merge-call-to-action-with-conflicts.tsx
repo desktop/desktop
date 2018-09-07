@@ -141,11 +141,15 @@ export class MergeCallToActionWithConflicts extends React.Component<
   }
 
   private onMergeClicked = async () => {
-    const { comparisonBranch, repository } = this.props
+    const { comparisonBranch, repository, mergeStatus } = this.props
 
     this.props.dispatcher.recordCompareInitiatedMerge()
 
-    await this.props.dispatcher.mergeBranch(repository, comparisonBranch.name)
+    await this.props.dispatcher.mergeBranch(
+      repository,
+      comparisonBranch.name,
+      mergeStatus
+    )
 
     this.props.dispatcher.executeCompare(repository, {
       kind: CompareActionKind.History,

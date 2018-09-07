@@ -19,6 +19,7 @@ import {
   ImageDiffType,
   CompareAction,
   ICompareFormUpdate,
+  MergeResultStatus,
 } from '../app-state'
 import { AppStore } from '../stores/app-store'
 import { CloningRepository } from '../../models/cloning-repository'
@@ -570,8 +571,12 @@ export class Dispatcher {
   }
 
   /** Merge the named branch into the current branch. */
-  public mergeBranch(repository: Repository, branch: string): Promise<void> {
-    return this.appStore._mergeBranch(repository, branch)
+  public mergeBranch(
+    repository: Repository,
+    branch: string,
+    mergeStatus: MergeResultStatus | null
+  ): Promise<void> {
+    return this.appStore._mergeBranch(repository, branch, mergeStatus)
   }
 
   /** Record the given launch stats. */

@@ -25,6 +25,7 @@ import {
   ICompareBranch,
   ICompareFormUpdate,
   ICompareToBranch,
+  MergeResultStatus,
 } from '../app-state'
 import { Account } from '../../models/account'
 import {
@@ -3111,9 +3112,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   public async _mergeBranch(
     repository: Repository,
-    branch: string
+    branch: string,
+    mergeStatus: MergeResultStatus | null
   ): Promise<void> {
     const gitStore = this.getGitStore(repository)
+
+    if (mergeStatus !== null) {
+      if (mergeStatus.kind === MergeResultKind.Clean) {
+        this.statsStore.recordMergeHintSuccessAndUserProceeded()
+      } else if (mergeStatus.kind === MergeResultKind.Conflicts) {
+        this.statsStore.recordUserProceededAfterConflictWarning()
+      } else if (mergeStatus.kind === MergeResultKind.Loading) {
+        this.statsStore.recordUserProceededWhileLoading()
+      }
+    }
+
     await gitStore.merge(branch)
 
     return this._refreshRepository(repository)
