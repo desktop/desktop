@@ -94,7 +94,6 @@ import {
   getBranchAheadBehind,
   createCommit,
   checkoutBranch,
-  getDefaultRemote,
   formatAsLocalRef,
   getMergeBase,
   getRemotes,
@@ -1277,7 +1276,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.addUpstreamRemoteIfNeeded(repository)
 
-    return this._repositoryWithRefreshedGitHubRepository(repository)
+    return this.repositoryWithRefreshedGitHubRepository(repository)
   }
 
   public async _refreshIssues(repository: GitHubRepository) {
@@ -2257,7 +2256,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _repositoryWithRefreshedGitHubRepository(
+  private async repositoryWithRefreshedGitHubRepository(
     repository: Repository
   ): Promise<Repository> {
     const oldGitHubRepository = repository.gitHubRepository
@@ -2343,8 +2342,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private async matchGitHubRepository(
     repository: Repository
   ): Promise<IMatchedGitHubRepository | null> {
-    const remote = await getDefaultRemote(repository)
-    return remote ? matchGitHubRepository(this.accounts, remote.url) : null
+    const gitStore = this.getGitStore(repository)
+    const remote = gitStore.defaultRemote
+    return remote !== null
+      ? matchGitHubRepository(this.accounts, remote.url)
+      : null
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -2803,7 +2805,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       await this.performPush(repository, account)
     }
 
-    return this._repositoryWithRefreshedGitHubRepository(repository)
+    return this.repositoryWithRefreshedGitHubRepository(repository)
   }
 
   private getAccountForRemoteURL(remote: string): IGitAccount | null {
@@ -3410,7 +3412,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           validatedPath
         )
         const [refreshedRepo, usingLFS] = await Promise.all([
-          this._repositoryWithRefreshedGitHubRepository(addedRepo),
+          this.repositoryWithRefreshedGitHubRepository(addedRepo),
           this.isUsingLFS(addedRepo),
         ])
         addedRepositories.push(refreshedRepo)
@@ -3495,7 +3497,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // association is out of date. So try again before we bail on providing an
     // authenticating user.
     if (!account) {
-      updatedRepository = await this._repositoryWithRefreshedGitHubRepository(
+      updatedRepository = await this.repositoryWithRefreshedGitHubRepository(
         repository
       )
       account = getAccountForRepository(this.accounts, updatedRepository)
@@ -3870,13 +3872,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
       head.gitHubRepository.cloneURL === gitHubRepository.cloneURL
 
     if (isRefInThisRepo) {
-      const defaultRemote = await getDefaultRemote(repository)
+      const gitStore = this.getGitStore(repository)
+      const defaultRemote = gitStore.defaultRemote
       // if we don't have a default remote here, it's probably going
       // to just crash and burn on checkout, but that's okay
       if (defaultRemote != null) {
         // the remote ref will be something like `origin/my-cool-branch`
         const remoteRef = `${defaultRemote.name}/${head.ref}`
-        const gitStore = this.getGitStore(repository)
 
         const remoteRefExists =
           gitStore.allBranches.find(branch => branch.name === remoteRef) != null

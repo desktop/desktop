@@ -3,11 +3,17 @@ import { getHTMLURL, API, getDotComAPIEndpoint } from './api'
 import { parseRemote, parseRepositoryIdentifier } from './remote-parsing'
 import { Account } from '../models/account'
 
+type RepositoryLookupFunc = (
+  account: Account,
+  owner: string,
+  name: string
+) => Promise<boolean>
+
 /**
  * Check if the repository designated by the owner and name exists and can be
  * accessed by the given account.
  */
-async function canAccessRepository(
+async function canAccessRepositoryUsingAPI(
   account: Account,
   owner: string,
   name: string
@@ -22,37 +28,6 @@ async function canAccessRepository(
 }
 
 /**
- * Find the account whose endpoint has a repository with the given owner and
- * name. This will prefer dot com over other endpoints.
- */
-async function findRepositoryAccount(
-  accounts: ReadonlyArray<Account>,
-  owner: string,
-  name: string
-): Promise<Account | null> {
-  // Prefer an authenticated dot com account, then Enterprise accounts, and
-  // finally the unauthenticated dot com account.
-  const sortedAccounts = Array.from(accounts).sort((a1, a2) => {
-    if (a1.endpoint === getDotComAPIEndpoint()) {
-      return a1.token.length ? -1 : 1
-    } else if (a2.endpoint === getDotComAPIEndpoint()) {
-      return a2.token.length ? 1 : -1
-    } else {
-      return 0
-    }
-  })
-
-  for (const account of sortedAccounts) {
-    const canAccess = await canAccessRepository(account, owner, name)
-    if (canAccess) {
-      return account
-    }
-  }
-
-  return null
-}
-
-/**
  * Find the GitHub account associated with a given remote URL.
  *
  * @param urlOrRepositoryAlias - the URL or repository alias whose account
@@ -62,7 +37,8 @@ async function findRepositoryAccount(
  */
 export async function findAccountForRemoteURL(
   urlOrRepositoryAlias: string,
-  accounts: ReadonlyArray<Account>
+  accounts: ReadonlyArray<Account>,
+  canAccessRepository: RepositoryLookupFunc = canAccessRepositoryUsingAPI
 ): Promise<Account | null> {
   const allAccounts = [...accounts, Account.anonymous()]
 
@@ -94,10 +70,39 @@ export async function findAccountForRemoteURL(
 
   const repositoryIdentifier = parseRepositoryIdentifier(urlOrRepositoryAlias)
   if (repositoryIdentifier) {
-    const { owner, name } = repositoryIdentifier
-    const account = await findRepositoryAccount(allAccounts, owner, name)
-    if (account) {
-      return account
+    const { owner, name, hostname } = repositoryIdentifier
+
+    // This chunk of code is designed to sort the user's accounts in this order:
+    //  - authenticated GitHub account
+    //  - GitHub Enterprise accounts
+    //  - unauthenticated GitHub account (access public repositories)
+    //
+    // As this needs to be done efficiently, we consider endpoints not matching
+    // `getDotComAPIEndpoint()` to be GitHub Enterprise accounts, and accounts
+    // without a token to be unauthenticated.
+    const sortedAccounts = Array.from(allAccounts).sort((a1, a2) => {
+      if (a1.endpoint === getDotComAPIEndpoint()) {
+        return a1.token.length ? -1 : 1
+      } else if (a2.endpoint === getDotComAPIEndpoint()) {
+        return a2.token.length ? 1 : -1
+      } else {
+        return 0
+      }
+    })
+
+    for (const account of sortedAccounts) {
+      if (hostname != null) {
+        const htmlURL = URL.parse(getHTMLURL(account.endpoint))
+        const accountHost = htmlURL.hostname
+        if (accountHost !== hostname) {
+          continue
+        }
+      }
+
+      const canAccess = await canAccessRepository(account, owner, name)
+      if (canAccess) {
+        return account
+      }
     }
   }
 
