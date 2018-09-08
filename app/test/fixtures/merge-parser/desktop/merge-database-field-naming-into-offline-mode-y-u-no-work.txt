@@ -1,0 +1,595 @@
+merged
+  result 100644 2a0f74dc77543305562cfdb0d7df871b94f4d622 app/src/lib/databases/base-database.ts
+  our    100644 3c62963f65df3f6ff54e368c4b1dfac3b3f8953e app/src/lib/databases/base-database.ts
+@@ -10,11 +10,9 @@
+   }
+ 
+   /**
+-   * Register the version of the schema only if `targetVersion` is less than
++   * Register the version of the schema only if `schemaVersion` is less than
+    * `version` or is `undefined`.
+    *
+-   * targetVersion - The version of the schema that is being targetted. If not
+-   *                 provided, the given version will be registered.
+    * version       - The version being registered.
+    * schema        - The schema to register.
+    * upgrade       - An upgrade function to call after upgrading to the given
+changed in both
+  base   100644 872c7b726ce1803b9a7e9280dab2ce26484e6aa5 app/src/lib/databases/pull-request-database.ts
+  our    100644 7446a4ce1ebf104f7825a7757e6be2beccfbe4ef app/src/lib/databases/pull-request-database.ts
+  their  100644 4c81bea71896008149f396372926584549c4c90d app/src/lib/databases/pull-request-database.ts
+@@ -1,13 +1,18 @@
+ import Dexie from 'dexie'
+-import { APIRefState, IAPIRefStatusItem } from '../api'
+ import { BaseDatabase } from './base-database'
+ 
++export const PullRequestTableName = 'pullRequest'
++export const PullRequestStatusTableName = 'pullRequestStatus'
++
++/** The combined state of a ref. */
++export type RefState = 'failure' | 'pending' | 'success'
++
+ export interface IPullRequestRef {
+   /**
+    * The database ID of the GitHub repository in which this ref lives. It could
+    * be null if the repository was deleted on the site after the PR was opened.
+    */
+-  readonly repoId: number | null
++  readonly repositoryId: number | null
+ 
+   /** The name of the ref. */
+   readonly ref: string
+@@ -16,12 +21,24 @@
+   readonly sha: string
+ }
+ 
++export interface ICombinedRefStatus {
++  readonly id: number
++  /** The state of the status. */
++  readonly state: RefState
++  /** The target URL to associate with this status. */
++  readonly targetUrl: string
++  /** A short description of the status. */
++  readonly description: string
++  /** A string label to differentiate this status from the status of other systems. */
++  readonly context: string
++}
++
+ export interface IPullRequest {
+   /**
+    * The database ID. This will be undefined if the pull request hasn't been
+    * inserted into the DB.
+    */
+-  readonly id?: number
++  readonly _id?: number
+ 
+   /** The GitHub PR number. */
+   readonly number: number
+@@ -47,13 +64,13 @@
+    * The database ID. This will be undefined if the status hasn't been inserted
+    * into the DB.
+    */
+-  readonly id?: number
++  readonly _id?: number
+ 
+   /** The ID of the pull request in the database. */
+   readonly pullRequestId: number
+ 
+   /** The status' state. */
+-  readonly state: APIRefState
++  readonly state: RefState
+ 
+   /** The number of statuses represented in this combined status. */
+   readonly totalCount: number
+@@ -66,18 +83,23 @@
+    * if the database object was created prior to status support
+    * being added in #3588
+    */
+-  readonly statuses?: ReadonlyArray<IAPIRefStatusItem>
++  readonly status: ReadonlyArray<ICombinedRefStatus>
+ }
+ 
+ export class PullRequestDatabase extends BaseDatabase {
++<<<<<<< .our
+   public pullRequests!: Dexie.Table<IPullRequest, number>
+   public pullRequestStatus!: Dexie.Table<IPullRequestStatus, number>
++=======
++  public pullRequest: Dexie.Table<IPullRequest, number>
++  public pullRequestStatus: Dexie.Table<IPullRequestStatus, number>
++>>>>>>> .their
+ 
+   public constructor(name: string, schemaVersion?: number) {
+     super(name, schemaVersion)
+ 
+     this.conditionalVersion(1, {
+-      pullRequests: 'id++, base.repoId',
++      pullRequest: 'id++, base.repoId',
+     })
+ 
+     this.conditionalVersion(2, {
+@@ -91,22 +113,202 @@
+     // we need to run the upgrade function to ensure we add
+     // a status field to all previous records
+     this.conditionalVersion(4, {}, this.addStatusesField)
++
++    // we need to copy data to tmp tables
++    // so we can clear all indexes
++    this.conditionalVersion(
++      5,
++      {
++        pullRequestTmp: '_id++, base.repositoryId',
++        pullRequestStatusTmp: `_id++`,
++      },
++      this.moveDataToTmpTables
++    )
++
++    this.conditionalVersion(
++      6,
++      {
++        pullRequest: '_id++, base.repositoryId',
++        pullRequestStatus: '_id++',
++      },
++      this.upgradeFieldNames
++    )
+   }
+ 
+   private addStatusesField = async (transaction: Dexie.Transaction) => {
+-    const table = this.pullRequestStatus
++    const tableName = 'pullRequestStatus'
+ 
+-    await table.toCollection().modify(async prStatus => {
+-      if (prStatus.statuses == null) {
+-        const newPrStatus = { statuses: [], ...prStatus }
++    await transaction
++      .table(tableName)
++      .toCollection()
++      .modify(async prStatus => {
++        if (prStatus.status == null) {
++          const newPrStatus = { statuses: [], ...prStatus }
+ 
+-        await table
+-          .where('[sha+pullRequestId]')
+-          .equals([prStatus.sha, prStatus.pullRequestId])
+-          .delete()
++          await transaction
++            .table(tableName)
++            .where('[sha+pullRequestId]')
++            .equals([prStatus.sha, prStatus.pullRequestId])
++            .delete()
+ 
+-        await table.add(newPrStatus)
+-      }
+-    })
++          await transaction.table(tableName).add(newPrStatus)
++        }
++      })
++  }
++
++  private moveDataToTmpTables = async (transaction: Dexie.Transaction) => {
++    console.log('moveDataToTmpTables...')
++    let tmpTable: string
++
++    console.dir(transaction)
++
++    try {
++      tmpTable = 'pullRequestTmp'
++
++      const prs = await transaction.table(PullRequestTableName).toArray()
++      console.log('mapping PR data')
++      const updatedPrs = prs.map(pr => {
++        return {
++          _id: pr.id as number,
++          number: pr.number as number,
++          title: pr.title as string,
++          createdAt: pr.createdAt as string,
++          head: {
++            repositoryId: pr.head.repoId,
++            ref: pr.head.ref,
++            sha: pr.head.sha,
++          },
++          base: {
++            repositoryId: pr.base.repoId,
++            ref: pr.base.ref,
++            sha: pr.base.sha,
++          },
++          author: pr.author,
++        }
++      })
++      console.log('adding mapped PR data')
++      await transaction.table(tmpTable).bulkAdd(updatedPrs)
++      console.log(`removing PR data from '${PullRequestTableName}'`)
++      await transaction
++        .table(PullRequestTableName)
++        .toCollection()
++        .delete()
++    } catch (error) {
++      console.error(`Failed to transfer 'pullRequest' data: ${error}`)
++      throw error
++    }
++
++    try {
++      tmpTable = 'pullRequestStatusTmp'
++
++      const prStats = await transaction
++        .table(PullRequestStatusTableName)
++        .toArray()
++      console.log('mapping PR Status data')
++      const updatedPrStats = prStats.map(prStat => {
++        return {
++          _id: prStat.id as number,
++          pullRequestId: prStat.pullRequestId as number,
++          state: prStat.state as RefState,
++          totalCount: prStat.totalCount,
++          sha: prStat.sha,
++          status: prStat.map((s: any) => {
++            return {
++              id: s.id as number,
++              state: s.state as RefState,
++              targetUrl: s.target_url as string,
++              description: s.description as string,
++              context: s.context as string,
++            }
++          }),
++        }
++      })
++      console.log('adding mapped PR Status data')
++      await transaction.table(tmpTable).bulkAdd(updatedPrStats)
++      console.log(
++        `removing PR Status data from '${PullRequestStatusTableName}'`
++      )
++      await transaction
++        .table(PullRequestStatusTableName)
++        .toCollection()
++        .delete()
++    } catch (error) {
++      console.error(`Failed to transfer 'pullRequestStatus' data: ${error}`)
++      throw error
++    }
++    console.log('completed')
++  }
++
++  private upgradeFieldNames = async (transaction: Dexie.Transaction) => {
++    console.log('upgradeFieldNames...')
++    try {
++      const oldPRRecords = await transaction.table('pullRequests').toArray()
++      const newPRRecords: IPullRequest[] = oldPRRecords.map(r => {
++        return {
++          _id: r.id as number,
++          number: r.number as number,
++          title: r.title as string,
++          createdAt: r.createdAt as string,
++          head: {
++            repositoryId: r.head.repoId as number,
++            ref: r.head.ref as string,
++            sha: r.head.sha as string,
++          },
++          base: {
++            repositoryId: r.base.repoId as number,
++            ref: r.base.ref as string,
++            sha: r.base.sha as string,
++          },
++          author: r.author,
++        }
++      })
++
++      console.log(`deleting old indexes on '${PullRequestTableName}'`)
++      await Promise.all(
++        ['id', 'base.repoId'].map(index =>
++          transaction.idbtrans
++            .objectStore(PullRequestTableName)
++            .deleteIndex(index)
++        )
++      )
++      console.log(`clearing table '${PullRequestTableName}'`)
++      await transaction.table(PullRequestTableName).clear()
++      await this.pullRequest.bulkAdd(newPRRecords)
++    } catch (error) {
++      log.error(
++        `Failed to upgrade field names on 'pullRequest' table: ${error}`
++      )
++      throw error
++    }
++
++    try {
++      const oldPrStatusRecords = await transaction
++        .table('pullRequestStatus')
++        .toCollection()
++        .toArray()
++      const newPrStatusRecords: IPullRequestStatus[] = oldPrStatusRecords.map(
++        r => {
++          return {
++            _id: r.id as number,
++            pullRequestId: r.pullRequestId as number,
++            state: r.state as RefState,
++            totalCount: r.totalCount as number,
++            sha: r.sha as string,
++            status: r.statuses as Array<ICombinedRefStatus>,
++          }
++        }
++      )
++      await transaction
++        .table('pullRequestStatus')
++        .toCollection()
++        .delete()
++      this.pullRequestStatus.bulkAdd(newPrStatusRecords)
++    } catch (error) {
++      log.error(
++        `Failed to upgrade field names on 'pullRequestStatus' table: ${error}`
++      )
++      throw error
++    }
++    console.log('completed')
+   }
+ }
+changed in both
+  base   100644 51508430ccce1f6f0a378949a0c1abbd5b0fc3f2 app/src/lib/stores/pull-request-store.ts
+  our    100644 d9edf0247ea7c33ae2b508f876aa977d8a81d6d4 app/src/lib/stores/pull-request-store.ts
+  their  100644 751860efd974cba55ff4c5a3fb1524318bd0908d app/src/lib/stores/pull-request-store.ts
+@@ -122,7 +122,7 @@
+       )
+     }
+ 
+-    const records = await this.pullRequestDatabase.pullRequests
++    const records = await this.pullRequestDatabase.pullRequest
+       .where('base.repoId')
+       .equals(gitHubRepositoryID)
+       .reverse()
+@@ -131,7 +131,7 @@
+     const result = new Array<PullRequest>()
+ 
+     for (const record of records) {
+-      const repositoryDbId = record.head.repoId
++      const repositoryDbId = record.head.repositoryId
+       let githubRepository: GitHubRepository | null = null
+ 
+       if (repositoryDbId != null) {
+@@ -144,7 +144,7 @@
+       // fetched the PR from in the first place.
+       const parentRepositoryDbId = forceUnwrap(
+         'A pull request cannot have a null base repo id',
+-        record.base.repoId
++        record.base.repositoryId
+       )
+       const parentGitGubRepository: GitHubRepository | null = await this.repositoryStore.findGitHubRepositoryByID(
+         parentRepositoryDbId
+@@ -158,7 +158,7 @@
+       // database.
+       const pullRequestDbId = forceUnwrap(
+         'PR cannot have a null ID after being retrieved from the database',
+-        record.id
++        record._id
+       )
+ 
+       const pullRequestStatus = await this.findPullRequestStatus(
+@@ -270,7 +270,15 @@
+         state: combinedRefStatus.state,
+         totalCount: combinedRefStatus.total_count,
+         sha: pr.head.sha,
+-        statuses: combinedRefStatus.statuses,
++        status: combinedRefStatus.statuses.map(x => {
++          return {
++            id: x.id,
++            state: x.state,
++            targetUrl: x.target_url,
++            description: x.description,
++            context: x.context,
++          }
++        }),
+       })
+     }
+ 
+@@ -292,7 +300,7 @@
+       return null
+     }
+ 
+-    const combinedRefStatuses = (result.statuses || []).map(x => {
++    const combinedRefStatuses = (result.status || []).map(x => {
+       return {
+         id: x.id,
+         state: x.state,
+@@ -321,7 +329,7 @@
+       )
+     }
+ 
+-    const table = this.pullRequestDatabase.pullRequests
++    const table = this.pullRequestDatabase.pullRequest
+     const prsToInsert = new Array<IPullRequest>()
+ 
+     for (const pr of pullRequestsFromAPI) {
+@@ -374,18 +382,26 @@
+         head: {
+           ref: pr.head.ref,
+           sha: pr.head.sha,
+-          repoId: githubRepoDbId,
++          repositoryId: githubRepoDbId,
+         },
+         base: {
+           ref: pr.base.ref,
+           sha: pr.base.sha,
+-          repoId: parentGitHubRepoDbId,
++          repositoryId: parentGitHubRepoDbId,
+         },
+         author: pr.user.login,
+       })
+     }
+ 
+     return this.pullRequestDatabase.transaction('rw', table, async () => {
++<<<<<<< .our
++=======
++      // since all PRs come from the same repository
++      // using the base repoId of the fist element
++      // is sufficient here
++      const repoDbId = prsToInsert[0].base.repositoryId!
++
++>>>>>>> .their
+       // we need to delete the stales PRs from the db
+       // so we remove all for a repo to avoid having to
+       // do diffing
+@@ -415,7 +431,7 @@
+         if (record == null) {
+           await table.add(status)
+         } else {
+-          await table.put({ id: record.id, ...status })
++          await table.put({ _id: record._id, ...status })
+         }
+       }
+     })
+merged
+  result 100644 65be61a7ce9118ccb55f8723246c09ad779c791a app/test/unit/pull-request-database-test.ts
+  our    100644 84085903d759de2faabe43e55881fb4e3f2c63e8 app/test/unit/pull-request-database-test.ts
+@@ -2,39 +2,124 @@
+ 
+ import {
+   PullRequestDatabase,
+-  IPullRequestStatus,
++  PullRequestStatusTableName,
++  PullRequestTableName,
+ } from '../../src/lib/databases'
+ 
++const databaseName = 'TestPullRequestDatabase'
++const tmpPullRequestTable = 'pullRequestTmp'
++//const tmpPullRequestStatusTable = 'pullRequestStatusTmp'
++
+ describe('PullRequestDatabase', () => {
+-  it("adds statuses key to records that don't have one on upgrade", async () => {
+-    const databaseName = 'TestPullRequestDatabase'
+-
+-    let database = new PullRequestDatabase(databaseName, 3)
+-    await database.delete()
+-    await database.open()
+-
+-    const prStatus: IPullRequestStatus = {
+-      pullRequestId: 1,
+-      state: 'success',
+-      totalCount: 1,
+-      sha: 'sha',
+-    }
+-    await database.pullRequestStatus.add(prStatus)
+-    const prStatusFromDb = await database.pullRequestStatus.get(1)
+-    expect(prStatusFromDb).to.not.be.undefined
+-    expect(prStatusFromDb!.pullRequestId).to.equal(prStatus.pullRequestId)
+-
+-    database.close()
+-    database = new PullRequestDatabase(databaseName, 4)
+-    await database.open()
+-
+-    const upgradedPrStatusFromDb = await database.pullRequestStatus.get(1)
+-    expect(upgradedPrStatusFromDb).is.not.undefined
+-    expect(upgradedPrStatusFromDb!.pullRequestId).to.equal(
+-      prStatus.pullRequestId
+-    )
+-    expect(upgradedPrStatusFromDb!.statuses).is.not.undefined
+-
+-    await database.delete()
++  describe('Upgrade', () => {
++    describe('PullRequestTable', () => {
++      it.only('renames indexes retaining original data when upgrading to version 4 -> 5 -> 6', async () => {
++        let database = new PullRequestDatabase(databaseName, 4)
++        await database.delete()
++        await database.open()
++
++        // untyped because field names have been updated
++        const pr = {
++          number: 1,
++          title: 'title',
++          createdAt: '2018-01-01',
++          head: {
++            repoId: 1,
++            ref: 'head',
++            sha: 'head.sha',
++          },
++          base: {
++            repoId: 10,
++            ref: 'base',
++            sha: 'base.sha',
++          },
++          author: 'me',
++        }
++        // We need to opt-out of type checking here since
++        // the old schema uses an outdated type
++        const originalTable = database.table(PullRequestTableName)
++        await originalTable.add(pr)
++        const prFromDb = await originalTable.get(1)
++        expect(prFromDb).to.not.be.undefined
++
++        database.close()
++        // we need to run this upgrade first so we can
++        // clear out indexes; new data is in tmp tables
++        // at this point
++        database = new PullRequestDatabase(databaseName, 5)
++        await database.open()
++
++        const tmpTable = database.table(tmpPullRequestTable)
++        const tmpRecord = await tmpTable.get(1)
++        expect(tmpRecord).is.not.undefined
++        expect(tmpRecord.number).to.equal(pr.number)
++
++        database.close()
++        // this is the upgrade we actually care about
++        // data should be back into normal tables at this point
++        database = new PullRequestDatabase(databaseName, 6)
++        await database.open()
++
++        // this is a major change, so make sure no data is lost
++        const upgradedPrFromDb = await database.pullRequest.get(prFromDb.id)
++        expect(upgradedPrFromDb).is.not.undefined
++        expect(upgradedPrFromDb!._id).to.equal(1)
++        expect(upgradedPrFromDb!.number).to.equal(pr.number)
++        expect(upgradedPrFromDb!.title).to.equal(pr.title)
++        expect(upgradedPrFromDb!.createdAt).to.equal(pr.createdAt)
++        expect(upgradedPrFromDb!.head.repositoryId).to.equal(pr.head.repoId)
++        expect(upgradedPrFromDb!.base.repositoryId).to.equal(pr.base.repoId)
++        expect(upgradedPrFromDb!.head.ref).to.equal(pr.head.ref)
++        expect(upgradedPrFromDb!.base.sha).to.equal(pr.base.sha)
++        expect(upgradedPrFromDb!.author).to.equal(pr.author)
++
++        database.close()
++        await database.delete()
++      })
++    })
++
++    describe('PullRequestStatusTable', () => {
++      it('adds default value for the statuses key when upgrading to version 4', async () => {
++        const databaseName = 'TestPullRequestDatabase'
++
++        let database = new PullRequestDatabase(databaseName, 3)
++        await database.delete()
++        await database.open()
++
++        // insert record that is compatible with v3 of db
++        const prStatus = {
++          pullRequestId: 1,
++          state: 'success',
++          totalCount: 1,
++          sha: 'sha',
++        }
++        // Cannot use the safety of types here:
++        // the type is no longer valid with this version of the d
++        await database.table(PullRequestStatusTableName).add(prStatus)
++        const prStatusFromDb = await database
++          .table(PullRequestStatusTableName)
++          .get(1)
++        expect(prStatusFromDb).to.not.be.undefined
++        expect(prStatusFromDb!.pullRequestId).to.equal(prStatus.pullRequestId)
++
++        database.close()
++        // update to v4 of db
++        database = new PullRequestDatabase(databaseName, 4)
++        await database.open()
++
++        // get the upgraded record from the db
++        // note: there is no type-safety here
++        const upgradedPrStatusFromDb = await database
++          .table(PullRequestStatusTableName)
++          .get(1)
++        expect(upgradedPrStatusFromDb).is.not.undefined
++        expect(upgradedPrStatusFromDb!.pullRequestId).to.equal(
++          prStatus.pullRequestId
++        )
++        expect(upgradedPrStatusFromDb!.statuses).is.not.undefined
++
++        await database.delete()
++      })
++    })
+   })
+ })

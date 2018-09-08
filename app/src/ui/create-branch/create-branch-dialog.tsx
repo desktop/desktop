@@ -155,7 +155,8 @@ export class CreateBranch extends React.Component<
         <p>
           You do not currently have any branch checked out (your HEAD reference
           is detached). As such your new branch will be based on your currently
-          checked out commit ({tip.currentSha.substr(0, 7)}).
+          checked out commit ({tip.currentSha.substr(0, 7)}
+          ).
         </p>
       )
     } else if (tip.kind === TipState.Unborn) {
@@ -179,11 +180,10 @@ export class CreateBranch extends React.Component<
         )
         return (
           <p>
-            Your new branch will be based on your currently checked out branch (<Ref
-            >
-              {currentBranch.name}
-            </Ref>). <Ref>{currentBranch.name}</Ref> is the {defaultBranchLink}{' '}
-            for your repository.
+            Your new branch will be based on your currently checked out branch (
+            <Ref>{currentBranch.name}</Ref>
+            ). <Ref>{currentBranch.name}</Ref> is the {defaultBranchLink} for
+            your repository.
           </p>
         )
       } else {

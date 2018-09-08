@@ -46,6 +46,7 @@ export interface IAPIRepository {
   readonly private: boolean
   readonly fork: boolean
   readonly default_branch: string
+  readonly pushed_at: string
   readonly parent: IAPIRepository | null
 }
 
@@ -373,6 +374,13 @@ export class API {
       return await parsedResponse<IAPIRepository>(response)
     } catch (e) {
       if (e instanceof APIError) {
+        if (org !== null) {
+          throw new Error(
+            `Unable to create repository for organization '${
+              org.login
+            }'. Verify it exists and that you have permission to create a repository there.`
+          )
+        }
         throw e
       }
 

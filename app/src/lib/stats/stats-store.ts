@@ -49,6 +49,11 @@ const DefaultDailyMeasures: IDailyMeasures = {
   enterprisePushCount: 0,
   externalPushCount: 0,
   active: false,
+  mergeConflictFromPullCount: 0,
+  mergeConflictFromExplicitMergeCount: 0,
+  mergedWithLoadingHintCount: 0,
+  mergedWithCleanMergeHintCount: 0,
+  mergedWithConflictWarningHintCount: 0,
 }
 
 interface ICalculatedStats {
@@ -380,6 +385,21 @@ export class StatsStore {
     }))
   }
 
+  /** Record that conflicts were detected by a merge initiated by Desktop */
+  public recordMergeConflictFromPull(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      mergeConflictFromPullCount: m.mergeConflictFromPullCount + 1,
+    }))
+  }
+
+  /** Record that conflicts were detected by a merge initiated by Desktop */
+  public recordMergeConflictFromExplicitMerge(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      mergeConflictFromExplicitMergeCount:
+        m.mergeConflictFromExplicitMergeCount + 1,
+    }))
+  }
+
   /** Record that a merge has been initiated from the `Branch -> Merge Into Current Branch` menu item */
   public recordMenuInitiatedMerge(): Promise<void> {
     return this.updateDailyMeasures(m => ({
@@ -482,6 +502,28 @@ export class StatsStore {
   public async recordPushToGenericRemote(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       externalPushCount: m.externalPushCount + 1,
+    }))
+  }
+
+  /** Record that the user saw a 'merge conflicts' warning but continued with the merge */
+  public async recordUserProceededWhileLoading(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      mergedWithLoadingHintCount: m.mergedWithLoadingHintCount + 1,
+    }))
+  }
+
+  /** Record that the user saw a 'merge conflicts' warning but continued with the merge */
+  public async recordMergeHintSuccessAndUserProceeded(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      mergedWithCleanMergeHintCount: m.mergedWithCleanMergeHintCount + 1,
+    }))
+  }
+
+  /** Record that the user saw a 'merge conflicts' warning but continued with the merge */
+  public async recordUserProceededAfterConflictWarning(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      mergedWithConflictWarningHintCount:
+        m.mergedWithConflictWarningHintCount + 1,
     }))
   }
 

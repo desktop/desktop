@@ -1,5 +1,159 @@
 {
   "releases": {
+    "1.4.0-beta1": [
+      "[New] When an update is available for GitHub Desktop, the release notes can be viewed in Desktop - #2774",
+      "[New] Detect merge conflicts when comparing branches - #4588",
+      "[Fixed] Avoid double checkout warning when opening a pull request in Desktop - #5375",
+      "[Fixed] Error when publishing repository is now associated with the right tab - #5422. Thanks @Daniel-McCarthy!",
+      "[Fixed] Disable affected menu items when on detached HEAD - #5500. Thanks @say25!",
+      "[Fixed] Show border when commit description is expanded - #5506. Thanks @aryyya!",
+      "[Fixed] GitLab URL which corresponds to GitHub repository of same name cloned GitHub repository - #4154",
+      "[Improved] Avoid multiple lookups of default remote - #5399",
+      "[Improved] Skip optional locks when checking status of repository - #5376"
+    ],
+    "1.4.0-beta0": [
+    ],
+    "1.3.5": [
+      "[Fixed] Disable delete button while deleting a branch - #5331",
+      "[Fixed] History now avoids calling log.showSignature if set in config - #5466",
+      "[Fixed] Start blocking the ability to add local bare repositories - #4293. Thanks @Daniel-McCarthy!",
+      "[Fixed] Revert workaround for tooltip issue on Windows - #3362. Thanks @divayprakash!",
+      "[Improved] Error message when publishing to missing organisation - #5380. Thanks @Daniel-McCarthy!",
+      "[Improved] Don't hide commit details when commit description is expanded. - #5471. Thanks @aryyya!"
+    ],
+    "1.3.5-beta1": [
+      "[Fixed] Disable delete button while deleting a branch - #5331",
+      "[Fixed] History now avoids calling log.showSignature if set in config - #5466",
+      "[Fixed] Start blocking the ability to add local bare repositories - #4293. Thanks @Daniel-McCarthy!",
+      "[Fixed] Revert workaround for tooltip issue on Windows - #3362. Thanks @divayprakash!",
+      "[Improved] Error message when publishing to missing organisation - #5380. Thanks @Daniel-McCarthy!",
+      "[Improved] Don't hide commit details when commit summary description is expanded. - #5471. Thanks @aryyya!"
+    ],
+    "1.3.5-beta0": [
+    ],
+    "1.3.4": [
+      "[Improved] Cloning message uses remote repo name not file destination - #5413. Thanks @lisavogtsf!",
+      "[Improved] Support VSCode user scope installation - #5281. Thanks @saschanaz!"
+    ],
+    "1.3.4-beta1": [
+      "[Improved] Cloning message uses remote repo name not file destination - #5413. Thanks @lisavogtsf!",
+      "[Improved] Support VSCode user scope installation - #5281. Thanks @saschanaz!"
+    ],
+    "1.3.4-beta0": [
+    ],
+    "1.3.3": [
+      "[Fixed] Maximize and restore app on Windows does not fill available space - #5033",
+      "[Fixed] 'Clone repository' menu item label is obscured on Windows - #5348. Thanks @Daniel-McCarthy!",
+      "[Fixed] User can toggle files when commit is in progress - #5341. Thanks @masungwon!",
+      "[Improved] Repository indicator background work - #5317 #5326 #5363 #5241 #5320"
+    ],
+    "1.3.3-beta1": [
+      "[Fixed] Maximize and restore app on Windows does not fill available space - #5033",
+      "[Fixed] 'Clone repository' menu item label is obscured on Windows - #5348. Thanks @Daniel-McCarthy!",
+      "[Fixed] User can toggle files when commit is in progress - #5341. Thanks @masungwon!",
+      "[Improved] Repository indicator background work - #5317 #5326 #5363 #5241 #5320"
+    ],
+    "1.3.3-test6": [
+      "Testing infrastructure changes"
+    ],
+    "1.3.3-test5": [
+      "Testing the new CircleCI config changes"
+    ],
+    "1.3.3-test4": [
+      "Testing the new CircleCI config changes"
+    ],
+    "1.3.3-test3": [
+      "Testing the new CircleCI config changes"
+    ],
+    "1.3.3-test2": [
+      "Testing the new CircleCI config changes"
+    ],
+    "1.3.3-test1": [
+      "Testing the new CircleCI config changes"
+    ],
+    "1.3.2": [
+      "[Fixed] Bugfix for background checks not being aware of missing repositories - #5282",
+      "[Fixed] Check the local state of a repository before performing Git operations - #5289",
+      "[Fixed] Switch to history view for default branch when deleting current branch during a compare - #5256",
+      "[Fixed] Handle missing .git directory inside a tracked repository - #5291"
+    ],
+    "1.3.2-beta1": [
+      "[Fixed] Bugfix for background checks not being aware of missing repositories - #5282",
+      "[Fixed] Check the local state of a repository before performing Git operations - #5289",
+      "[Fixed] Switch to history view for default branch when deleting current branch during a compare - #5256",
+      "[Fixed] Handle missing .git directory inside a tracked repository - #5291"
+    ],
+    "1.3.1": [
+      "[Fixed] Background Git operations on missing repositories are not handled as expected - #5282"
+    ],
+    "1.3.1-beta1": [
+      "[Fixed] Background Git operations on missing repositories are not handled as expected - #5282"
+    ],
+    "1.3.1-beta0": [
+      "[New] Notification displayed in History tab when the base branch moves ahead of the current branch - #4768",
+      "[New] Repository list displays uncommitted changes indicator and ahead/behind information - #2259 #5095",
+      "[Added] Option to move repository to trash when removing from app - #2108. Thanks @say25!",
+      "[Added] Syntax highlighting for PowerShell files - #5081. Thanks @say25!",
+      "[Fixed] \"Discard Changes\" context menu discards correct file when entry is not part of selected group - #4788",
+      "[Fixed] Display local path of selected repository as tooltip - #4922. Thanks @yongdamsh!",
+      "[Fixed] Display root directory name when repository is located at drive root - #4924",
+      "[Fixed] Handle legacy macOS right click gesture - #4942",
+      "[Fixed] History omits latest commit from list - #5243",
+      "[Fixed] Markdown header elements hard to read in dark mode - #5133. Thanks @agisilaos!",
+      "[Fixed] Only perform ahead/behind comparisons when branch selector is open - #5142",
+      "[Fixed] Relax checks for merge commits for GitHub Enterprise repositories - #4329",
+      "[Fixed] Render clickable link in \"squash and merge\" commit message - #5203. Thanks @1pete!",
+      "[Fixed] Return key disabled when no matches found in Compare branch list - #4458",
+      "[Fixed] Selected commit not remembered when switching between History and Changes tabs - #4985",
+      "[Fixed] Selected commit when comparing is reset to latest when Desktop regains focus - #5069",
+      "[Fixed] Support default branch detection for non-GitHub repositories - #4937",
+      "[Improved] Change primary button color to blue for dark theme - #5074",
+      "[Improved] Diff gutter elements should be considered button elements when interacting - #5158",
+      "[Improved] Status parsing significantly more performant when handling thousands of changed files - #2449 #5186"
+    ],
+    "1.3.0": [
+      "[New] Notification displayed in History tab when the base branch moves ahead of the current branch - #4768",
+      "[New] Repository list displays uncommitted changes indicator and ahead/behind information - #2259 #5095",
+      "[Added] Option to move repository to trash when removing from app - #2108. Thanks @say25!",
+      "[Added] Syntax highlighting for PowerShell files - #5081. Thanks @say25!",
+      "[Fixed] \"Discard Changes\" context menu discards correct file when entry is not part of selected group - #4788",
+      "[Fixed] Display local path of selected repository as tooltip - #4922. Thanks @yongdamsh!",
+      "[Fixed] Display root directory name when repository is located at drive root - #4924",
+      "[Fixed] Handle legacy macOS right click gesture - #4942",
+      "[Fixed] History omits latest commit from list - #5243",
+      "[Fixed] Markdown header elements hard to read in dark mode - #5133. Thanks @agisilaos!",
+      "[Fixed] Only perform ahead/behind comparisons when branch selector is open - #5142",
+      "[Fixed] Relax checks for merge commits for GitHub Enterprise repositories - #4329",
+      "[Fixed] Render clickable link in \"squash and merge\" commit message - #5203. Thanks @1pete!",
+      "[Fixed] Return key disabled when no matches found in Compare branch list - #4458",
+      "[Fixed] Selected commit not remembered when switching between History and Changes tabs - #4985",
+      "[Fixed] Selected commit when comparing is reset to latest when Desktop regains focus - #5069",
+      "[Fixed] Support default branch detection for non-GitHub repositories - #4937",
+      "[Improved] Change primary button color to blue for dark theme - #5074",
+      "[Improved] Diff gutter elements should be considered button elements when interacting - #5158",
+      "[Improved] Status parsing significantly more performant when handling thousands of changed files - #2449 #5186"
+    ],
+    "1.3.0-beta7": [
+
+    ],
+    "1.3.0-beta6": [
+
+    ],
+    "1.3.0-beta5": [
+      "[Fixed] Ensure commit message is cleared after successful commit - #4046",
+      "[Fixed] History omits latest commit from list - #5243"
+    ],
+    "1.3.0-beta4": [
+      "[Fixed] Only perform ahead/behind comparisons when branch selector is open - #5142",
+      "[Fixed] Render clickable link in \"squash and merge\" commit message - #5203. Thanks @1pete!",
+      "[Fixed] Selected commit not remembered when switching between History and Changes tabs - #4985",
+      "[Fixed] Selected commit when comparing is reset to latest when Desktop regains focus - #5069"
+    ],
+    "1.3.0-beta3": [
+      "[Fixed] \"Discard Changes\" context menu discards correct file when entry is not part of selected group - #4788",
+      "[Fixed] Return key disabled when no matches found in Compare branch list - #4458",
+      "[Improved] Status parsing significantly more performant when handling thousands of changed files - #2449 #5186"
+    ],
     "1.3.0-beta2": [
       "[Added] Option to move repository to trash when removing from app - #2108. Thanks @say25!",
       "[Fixed] Markdown header elements hard to read in dark mode - #5133. Thanks @agisilaos!",

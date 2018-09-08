@@ -1,4 +1,6 @@
 import { git } from './core'
+import { GitError } from 'dugite'
+
 import { Repository } from '../../models/repository'
 import { Commit } from '../../models/commit'
 import { Branch, BranchType } from '../../models/branch'
@@ -38,11 +40,20 @@ export async function getBranches(
     prefixes = ['refs/heads', 'refs/remotes']
   }
 
+  // TODO: use expectedErrors here to handle a specific error
+  // see https://github.com/desktop/desktop/pull/5299#discussion_r206603442 for
+  // discussion about what needs to change
   const result = await git(
     ['for-each-ref', `--format=${format}`, ...prefixes],
     repository.path,
-    'getBranches'
+    'getBranches',
+    { expectedErrors: new Set([GitError.NotAGitRepository]) }
   )
+
+  if (result.gitError === GitError.NotAGitRepository) {
+    return []
+  }
+
   const names = result.stdout
   const lines = names.split(delimiterString)
 

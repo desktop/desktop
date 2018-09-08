@@ -9,9 +9,11 @@ import { getStatusOrThrow } from '../../helpers/status'
 import {
   setupFixtureRepository,
   setupEmptyRepository,
+  setupEmptyDirectory,
 } from '../../helpers/repositories'
 import { AppFileStatus } from '../../../src/models/status'
 import * as temp from 'temp'
+import { getStatus } from '../../../src/lib/git'
 
 const _temp = temp.track()
 const mkdir = _temp.mkdir
@@ -68,6 +70,14 @@ describe('git/status', () => {
       const testRepoPath = await setupFixtureRepository('copy-detection-status')
       repository = new Repository(testRepoPath, -1, null, false)
 
+      // Git 2.18 now uses a new config value to handle detecting copies, so
+      // users who have this enabled will see this. For reference, Desktop does
+      // not enable this by default.
+      await GitProcess.exec(
+        ['config', '--local', 'status.renames', 'copies'],
+        repository.path
+      )
+
       await GitProcess.exec(['add', '.'], repository.path)
 
       const status = await getStatusOrThrow(repository)
@@ -84,24 +94,35 @@ describe('git/status', () => {
       expect(files[1].path).to.equal('docs/OVERVIEW.md')
     })
 
-    it('Handles at least 10k untracked files without failing', async () => {
-      const numFiles = 10000
-      const basePath = repository!.path
+    it(
+      'Handles at least 10k untracked files without failing',
+      async () => {
+        const numFiles = 10000
+        const basePath = repository!.path
 
-      await mkdir(basePath)
+        await mkdir(basePath)
 
-      // create a lot of files
-      const promises = []
-      for (let i = 0; i < numFiles; i++) {
-        promises.push(
-          FSE.writeFile(path.join(basePath, `test-file-${i}`), 'Hey there\n')
-        )
-      }
-      await Promise.all(promises)
+        // create a lot of files
+        const promises = []
+        for (let i = 0; i < numFiles; i++) {
+          promises.push(
+            FSE.writeFile(path.join(basePath, `test-file-${i}`), 'Hey there\n')
+          )
+        }
+        await Promise.all(promises)
 
-      const status = await getStatusOrThrow(repository!)
-      const files = status.workingDirectory.files
-      expect(files.length).to.equal(numFiles)
+        const status = await getStatusOrThrow(repository!)
+        const files = status.workingDirectory.files
+        expect(files.length).to.equal(numFiles)
+      },
+      // needs a little extra time on CI
+      25000
+    )
+
+    it('returns null for directory without a .git directory', async () => {
+      repository = setupEmptyDirectory()
+      const status = await getStatus(repository)
+      expect(status).is.null
     })
   })
 })

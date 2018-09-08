@@ -1,4 +1,6 @@
 import { git } from './core'
+import { GitError } from 'dugite'
+
 import { Repository } from '../../models/repository'
 import { IRemote } from '../../models/remote'
 import { findDefaultRemote } from '../stores/helpers/find-default-remote'
@@ -7,7 +9,17 @@ import { findDefaultRemote } from '../stores/helpers/find-default-remote'
 export async function getRemotes(
   repository: Repository
 ): Promise<ReadonlyArray<IRemote>> {
-  const result = await git(['remote', '-v'], repository.path, 'getRemotes')
+  // TODO: use expectedErrors here to handle a specific error
+  // see https://github.com/desktop/desktop/pull/5299#discussion_r206603442 for
+  // discussion about what needs to change
+  const result = await git(['remote', '-v'], repository.path, 'getRemotes', {
+    expectedErrors: new Set([GitError.NotAGitRepository]),
+  })
+
+  if (result.gitError === GitError.NotAGitRepository) {
+    return []
+  }
+
   const output = result.stdout
   const lines = output.split('\n')
   const remotes = lines

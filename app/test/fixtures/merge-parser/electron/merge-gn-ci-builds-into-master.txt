@@ -1,0 +1,193 @@
+changed in both
+  base   100644 3e663d1b625c500580d61cc8d3c8598a7c2f9bcc .circleci/config.yml
+  our    100644 6d44d618aabcce04c60344f2274dec5b0c2a1f68 .circleci/config.yml
+  their  100644 fa90a8c1816207a9b9061f49f0da13e2d3653469 .circleci/config.yml
+@@ -513,10 +513,65 @@
+   electron-gn-linux-x64-debug-fyi:
+     environment:
+       DISPLAY: ':99.0'
++<<<<<<< .our
+       GN_CONFIG: //electron/build/args/debug.gn
+       RUN_TESTS: false
+     <<: *gn-linux-build-machine
+     <<: *gn-build-steps
++=======
++    docker:
++      - image: electronbuilds/electron:0.0.8
++    resource_class: 2xlarge
++    steps:
++      - run:
++          name: Setup depot tools
++          command: |
++            git clone --depth=1 https://chromium.googlesource.com/chromium/tools/depot_tools.git
++            echo 'export PATH=$PATH:`pwd`/depot_tools' >> $BASH_ENV
++      - checkout:
++          path: src/electron
++      - restore_cache:
++          paths:
++            - ~/.gclient-cache
++          keys:
++            - v1-gclient-cache-{{ checksum "src/electron/DEPS" }}
++            - v1-gclient-cache-
++      - run:
++          name: Gclient sync
++          command: |
++            gclient config \
++              --name "src/electron" \
++              --unmanaged \
++              --cache-dir "$HOME/.gclient-cache" \
++              "$CIRCLE_REPOSITORY_URL"
++
++            gclient sync --with_branch_heads --with_tags
++      - save_cache:
++          paths:
++            - ~/.gclient-cache
++          key: v1-gclient-cache-{{ checksum "src/electron/DEPS" }}
++      - run:
++          name: GN gen
++          command: |
++            cd src
++            echo 'export SCCACHE_WRAPPER="'`pwd`'/libchromiumcontent/tools/sccache/aad2120/linux/sccache"' >> $BASH_ENV
++            echo 'export CHROMIUM_BUILDTOOLS_PATH=`pwd`/buildtools' >> $BASH_ENV
++            source $BASH_ENV
++            gn gen out/Default --args='import("//electron/build/args/debug.gn")'
++      - run:
++          name: Ninja build
++          command: |
++            cd src
++            ninja -C out/Default electron:electron_app
++
++      - run:
++          name: Check sccache stats after build
++          command: $SCCACHE_WRAPPER -s
++
++      - run:
++          name: Check sccache stats after build
++          command: $SCCACHE_WRAPPER -s
++>>>>>>> .their
+ 
+   electron-gn-linux-x64-testing-fyi:
+     environment:
+changed in both
+  base   160000 ca55cd0d8f7e7eccdefa49f82fcb6ef3789a230b vendor/libchromiumcontent
+  our    160000 c85470a1c379b1c4bedb372c146521bc4be9b75d vendor/libchromiumcontent
+  their  160000 659aa83375805545402eff8b0746784bbf2d64c2 vendor/libchromiumcontent
+added in both
+  our    100644 3c9985b16c0414cfd9bc6c6648d6411a969fc6ef vsts-gn.yml
+  their  100644 df147ba0aca3283a53fa08e9aaafc663385cf03d vsts-gn.yml
+@@ -6,6 +6,7 @@
+     timeoutInMinutes: 180
+   steps:
+   - bash: |
++<<<<<<< .our
+       git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git "${AGENT_BUILDDIRECTORY}/depot_tools"
+       echo "##vso[task.setvariable variable=PATH]$PATH:${AGENT_BUILDDIRECTORY}/depot_tools"
+     name: Setup_depot_tools
+@@ -25,12 +26,25 @@
+       # BUILD_SOURCEVERSION commit, and so the checkout will fail. Find a
+       # better solution for checking out the commit to be built.
+       (cd src/electron; git fetch origin +"${BUILD_SOURCEBRANCH}"; git checkout "${BUILD_SOURCEVERSION}")
++=======
++      git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
++      echo "##vso[task.setvariable variable=PATH]$PATH:`pwd`/depot_tools"
++    name: Setup_depot_tools
++
++  - bash: |
++      gclient config \
++        --name "src/electron" \
++        --unmanaged \
++        --cache-dir "/Users/electron/libcc_cache" \
++        "https://github.com/electron/electron"
++>>>>>>> .their
+       gclient sync --with_branch_heads --with_tags
+     name: gclient_sync
+ 
+   - bash: |
+       cd src
+       export CHROMIUM_BUILDTOOLS_PATH=`pwd`/buildtools
++<<<<<<< .our
+       export SCCACHE_WRAPPER="`pwd`/electron/external_binaries/sccache"
+       export SCCACHE_HELPER="`pwd`/libchromiumcontent/script/sccache"
+       "$SCCACHE_HELPER" --start-server --azure_container "$(SCCACHE_AZURE_BLOB_CONTAINER)" --azure_connection "$(SCCACHE_AZURE_CONNECTION_STRING)"
+@@ -38,6 +52,14 @@
+       echo "##vso[task.setvariable variable=CHROMIUM_BUILDTOOLS_PATH]`pwd`/buildtools"
+       echo "GN gen for: $GN_CONFIG"
+       gn gen out/Default --args='import("'$GN_CONFIG'") cc_wrapper="'"$SCCACHE_WRAPPER"'"'
++=======
++      export SCCACHE_WRAPPER="`pwd`/libchromiumcontent/tools/sccache/aad2120/mac/sccache"
++      $SCCACHE_WRAPPER --start-server --azure_container "$(SCCACHE_AZURE_BLOB_CONTAINER)" --azure_connection "$(SCCACHE_AZURE_CONNECTION_STRING)"
++      $SCCACHE_WRAPPER -s
++      echo "##vso[task.setvariable variable=SCCACHE_WRAPPER]$SCCACHE_WRAPPER"
++      echo "##vso[task.setvariable variable=CHROMIUM_BUILDTOOLS_PATH]`pwd`/buildtools"
++      gn gen out/Default --args='import("//electron/build/args/debug.gn") cc_wrapper="'"$SCCACHE_WRAPPER"'"'
++>>>>>>> .their
+     name: GN_gen
+ 
+   - bash: |
+@@ -46,18 +68,28 @@
+     name: Ninja_build
+ 
+   - bash: |
++<<<<<<< .our
+       "$SCCACHE_WRAPPER" -s
+       "$SCCACHE_WRAPPER" --stop-server
++=======
++      $SCCACHE_WRAPPER -s
++      $SCCACHE_WRAPPER --stop-server
++>>>>>>> .their
+     name: Check_sccache_stats
+ 
+   - bash: |
+       set +e
+       cd src
++<<<<<<< .our
+       ninja -C out/Default third_party/electron_node:headers
++=======
++      ninja -C out/Default electron/build/node:headers
++>>>>>>> .their
+       export npm_config_nodedir="$PWD/out/Default/gen/node_headers"
+       (cd electron/spec && npm install)
+       ./out/Default/Electron.app/Contents/MacOS/Electron electron/spec --ci --enable-logging
+     name: Test
++<<<<<<< .our
+     condition: and(succeeded(), ne(variables['ELECTRON_RELEASE'], '1'))
+ 
+   - bash: |
+@@ -65,11 +97,14 @@
+       ninja -C out/Default electron:electron_dist_zip
+     name: Build_dist_zip
+     condition: and(succeeded(), eq(variables['ELECTRON_RELEASE'], '1'))
++=======
++>>>>>>> .their
+ 
+   - task: PublishTestResults@2
+     displayName: Publish Test Results
+     inputs:
+       testResultsFiles: '**/test-*.xml'
++<<<<<<< .our
+     condition: and(always(), eq(variables['MOCHA_FILE'], 'junit/test-results.xml'), ne(variables['ELECTRON_RELEASE'], '1'))
+ 
+   - task: PublishBuildArtifacts@1
+@@ -78,6 +113,9 @@
+       PathtoPublish: '$(Build.SourcesDirectory)/out/Default/dist.zip'
+       ArtifactName: dist.zip
+     condition: and(succeeded(), eq(variables['ELECTRON_RELEASE'], '1'))
++=======
++    condition: and(always(), eq(variables['MOCHA_FILE'], 'junit/test-results.xml'))
++>>>>>>> .their
+ 
+   - bash: |
+       export BUILD_URL="${SYSTEM_TEAMFOUNDATIONCOLLECTIONURI}${SYSTEM_TEAMPROJECT}/_build/results?buildId=${BUILD_BUILDID}"
+changed in both
+  base   100644 3e78eea25f8be0334d38f0d566ef539fef981596 vsts.yml
+  our    100644 84bd69c2b2868ac23bc30061aa208ad38fbb9506 vsts.yml
+  their  100644 914ab70479aa73622e304bfbecc4dbea4b2393fc vsts.yml
+@@ -70,7 +70,7 @@
+   displayName: Publish Test Results
+   inputs:
+     testResultsFiles: '**/test-*.xml'
+-  condition: and(always(), eq(variables['MOCHA_FILE'], 'test-results.xml'))
++  condition: and(always(), eq(variables['MOCHA_FILE'], 'junit/test-results.xml'))
+ 
+ - bash: |
+     export BUILD_URL="${SYSTEM_TEAMFOUNDATIONCOLLECTIONURI}${SYSTEM_TEAMPROJECT}/_build/results?buildId=${BUILD_BUILDID}"
