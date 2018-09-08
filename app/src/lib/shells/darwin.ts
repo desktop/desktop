@@ -100,7 +100,8 @@ export async function getAvailableShells(): Promise<
   }
 
   if (kittyPath) {
-    shells.push({ shell: Shell.Kitty, path: kittyPath })
+    const kittyExecutable = `${kittyPath}/Contents/MacOS/kitty`
+    shells.push({ shell: Shell.Kitty, path: kittyExecutable })
   }
 
   return shells
@@ -110,13 +111,16 @@ export function launch(
   foundShell: IFoundShell<Shell>,
   path: string
 ): ChildProcess {
-  const bundleID = getBundleID(foundShell.shell)
-  const baseArgs = ['-b', bundleID]
-
-  // kitty shell does not handle the path explicitly
-  // need to pass in the additional flag
-  const commandArgs =
-    foundShell.shell === Shell.Kitty ? ['--args', '-d', path] : [path]
-
-  return spawn('open', baseArgs.concat(commandArgs))
+  if (foundShell.shell === Shell.Kitty) {
+    // kitty does not handle arguments as expected when using `open` with
+    // an existing session but closed window (it reverts to the previous
+    // directory rather than using the new directory directory).
+    //
+    // This workaround launches the internal `kitty` executable which
+    // will open a new window to the desired path.
+    return spawn(foundShell.path, ['--directory', path])
+  } else {
+    const bundleID = getBundleID(foundShell.shell)
+    return spawn('open', ['-b', bundleID, path])
+  }
 }
