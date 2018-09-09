@@ -102,10 +102,7 @@ export function parseAppURL(url: string): URLActionType {
   const parsedPath = pathName.substr(1)
 
   if (actionName === 'openrepo') {
-    const probablyAURL = parsedPath
-
-    // suffix the remote URL with `.git`, for backwards compatibility
-    const url = `${probablyAURL}.git`
+    const url = parsedPath
 
     const pr = getQueryStringValue(query, 'pr')
     const branch = getQueryStringValue(query, 'branch')
