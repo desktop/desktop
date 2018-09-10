@@ -61,7 +61,11 @@ export class MergeCallToActionWithConflicts extends React.Component<
     mergeStatus: MergeResultStatus | null,
     behindCount: number
   ) {
-    if (mergeStatus === null || mergeStatus.kind === MergeResultKind.Loading) {
+    if (mergeStatus === null) {
+      return null
+    }
+
+    if (mergeStatus.kind === MergeResultKind.Loading) {
       return this.renderLoadingMergeMessage()
     }
     if (mergeStatus.kind === MergeResultKind.Clean) {

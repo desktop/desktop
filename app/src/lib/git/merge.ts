@@ -70,5 +70,11 @@ export async function mergeTree(
   )
 
   const output = result.output.toString()
+
+  if (output.length === 0) {
+    // the merge commit will be empty - this is fine!
+    return { kind: MergeResultKind.Clean, entries: [] }
+  }
+
   return parseMergeResult(output)
 }
