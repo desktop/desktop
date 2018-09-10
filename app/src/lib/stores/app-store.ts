@@ -991,13 +991,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
         const mergeTreePromise = promiseWithMinimumTimeout(
           () => mergeTree(repository, tip.branch, action.branch),
           500
-        ).then(mergeStatus => {
-          this.updateCompareState(repository, () => ({
-            mergeStatus,
-          }))
+        )
+          .catch(err => {
+            log.warn(
+              `Error occurred while trying to merge ${tip.branch.name} (${
+                tip.branch.tip.sha
+              }) and ${action.branch.name} (${action.branch.tip.sha})`,
+              err
+            )
+            return null
+          })
+          .then(mergeStatus => {
+            this.updateCompareState(repository, () => ({
+              mergeStatus,
+            }))
 
-          this.emitUpdate()
-        })
+            this.emitUpdate()
+          })
 
         const cleanup = () => {
           this.currentMergeTreePromise = null
