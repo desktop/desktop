@@ -7,6 +7,9 @@ dist: trusty
 
 sudo: false
 
+services:
+  - docker
+
 os: linux
 compiler: clang
 
@@ -21,15 +24,6 @@ addons:
       # this package is essential for testing Electron in a headless fashion
       # https://github.com/electron/electron/blob/master/docs/tutorial/testing-on-headless-ci.md
       - xvfb
-      # packages required for electron-installer-debian
-      - fakeroot
-      - dpkg
-      # packages required for electron-installer-redhat
-      - rpm
-      # packages required for electron-installer-appimage
-      - xz-utils
-      - xorriso
-      - zsync
 
 branches:
   only:
@@ -62,7 +56,14 @@ after_failure:
   - yarn test:review
 
 after_success:
-  - yarn run package
+  - docker run -v $(pwd):$(pwd) -t snapcore/snapcraft sh -c  "apt install --yes
+    curl gnupg apt-transport-https && curl -sS
+    https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && echo \"deb
+    https://dl.yarnpkg.com/debian/ stable main\" | tee
+    /etc/apt/sources.list.d/yarn.list && curl -sL
+    https://deb.nodesource.com/setup_8.x | bash - && apt update -qq && apt
+    install --yes nodejs yarn fakeroot dpkg rpm xz-utils xorriso zsync && cd
+    $(pwd) && yarn run package"
 
 deploy:
   provider: releases
