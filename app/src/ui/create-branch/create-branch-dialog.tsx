@@ -12,6 +12,7 @@ import { LinkButton } from '../lib/link-button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogError, DialogContent, DialogFooter } from '../dialog'
 import { VerticalSegmentedControl } from '../lib/vertical-segmented-control'
+import { Octicon, OcticonSymbol } from '../octicons'
 import {
   TipState,
   IUnbornRepository,
@@ -39,6 +40,7 @@ enum StartPoint {
 
 interface ICreateBranchState {
   readonly currentError: Error | null
+  readonly currentWarning: string | null
   readonly proposedName: string
   readonly sanitizedName: string
   readonly startPoint: StartPoint
@@ -115,6 +117,7 @@ export class CreateBranch extends React.Component<
 
     this.state = {
       currentError: null,
+      currentWarning: null,
       proposedName: props.initialName,
       sanitizedName: '',
       startPoint: getStartPoint(props, StartPoint.DefaultBranch),
@@ -235,6 +238,7 @@ export class CreateBranch extends React.Component<
       !!this.state.currentError ||
       /^\s*$/.test(this.state.sanitizedName)
     const error = this.state.currentError
+    const warning = this.state.currentWarning
 
     return (
       <Dialog
@@ -262,6 +266,13 @@ export class CreateBranch extends React.Component<
             this.state.sanitizedName
           )}
 
+          {warning ? (
+            <Row className="warning-helper-text">
+              <Octicon symbol={OcticonSymbol.alert} />
+              {warning}
+            </Row>
+          ) : null}
+
           {this.renderBranchSelection()}
         </DialogContent>
 
@@ -285,11 +296,25 @@ export class CreateBranch extends React.Component<
     const sanitizedName = sanitizedBranchName(name)
     const alreadyExists =
       this.props.allBranches.findIndex(b => b.name === sanitizedName) > -1
+
+    const alreadyExistsOnRemote =
+      this.props.allBranches.findIndex(
+        b => b.name === sanitizedName && b.remote !== null
+      ) > -1
     const currentError = alreadyExists
       ? new Error(`A branch named ${sanitizedName} already exists`)
       : null
 
-    this.setState({ proposedName: name, sanitizedName, currentError })
+    const currentWarning = alreadyExistsOnRemote
+      ? `A branch named ${sanitizedName} already exists on remote`
+      : null
+
+    this.setState({
+      proposedName: name,
+      sanitizedName,
+      currentError,
+      currentWarning,
+    })
   }
 
   private createBranch = async () => {
