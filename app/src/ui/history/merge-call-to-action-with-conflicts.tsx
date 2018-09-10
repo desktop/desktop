@@ -35,22 +35,30 @@ export class MergeCallToActionWithConflicts extends React.Component<
 
     const disabled = commitsBehind <= 0 || cannotMergeBranch
 
+    const mergeDetails = commitsBehind > 0 ? this.renderMergeStatus() : null
+
     return (
       <div className="merge-cta">
         <Button type="submit" disabled={disabled} onClick={this.onMergeClicked}>
           Merge into <strong>{this.props.currentBranch.name}</strong>
         </Button>
 
-        <div className="merge-status-component">
-          <MergeStatusHeader status={this.props.mergeStatus} />
+        {mergeDetails}
+      </div>
+    )
+  }
 
-          {this.renderMergeDetails(
-            this.props.currentBranch,
-            this.props.comparisonBranch,
-            this.props.mergeStatus,
-            commitsBehind
-          )}
-        </div>
+  private renderMergeStatus() {
+    return (
+      <div className="merge-status-component">
+        <MergeStatusHeader status={this.props.mergeStatus} />
+
+        {this.renderMergeDetails(
+          this.props.currentBranch,
+          this.props.comparisonBranch,
+          this.props.mergeStatus,
+          this.props.commitsBehind
+        )}
       </div>
     )
   }
