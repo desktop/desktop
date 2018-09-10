@@ -987,7 +987,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         return this.currentMergeTreePromise
       }
 
-      if (tip.kind === TipState.Valid) {
+      if (tip.kind === TipState.Valid && aheadBehind.behind > 0) {
         const mergeTreePromise = promiseWithMinimumTimeout(
           () => mergeTree(repository, tip.branch, action.branch),
           500
