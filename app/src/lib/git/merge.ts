@@ -53,9 +53,7 @@ export async function mergeTree(
   ours: Branch,
   theirs: Branch
 ): Promise<MergeResult | null> {
-  console.time('getMergeBase')
   const mergeBase = await getMergeBase(repository, ours.tip.sha, theirs.tip.sha)
-  console.timeEnd('getMergeBase')
 
   if (mergeBase === null) {
     return { kind: MergeResultKind.Invalid }
@@ -65,13 +63,11 @@ export async function mergeTree(
     return { kind: MergeResultKind.Clean, entries: [] }
   }
 
-  console.time('mergeTree')
   const result = await spawnAndComplete(
     ['merge-tree', mergeBase, ours.tip.sha, theirs.tip.sha],
     repository.path,
     'mergeTree'
   )
-  console.timeEnd('mergeTree')
 
   const output = result.output.toString()
 
@@ -80,8 +76,5 @@ export async function mergeTree(
     return { kind: MergeResultKind.Clean, entries: [] }
   }
 
-  console.time('parseMergeResult')
-  const mergeResult = parseMergeResult(output)
-  console.timeEnd('parseMergeResult')
-  return mergeResult
+  return parseMergeResult(output)
 }
