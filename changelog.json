@@ -1,5 +1,45 @@
 {
   "releases": {
+    "1.4.0-beta2": [
+      "[New] When an update is available for GitHub Desktop, the release notes can be viewed in Desktop - #2774",
+      "[New] Detect merge conflicts when comparing branches - #4588",
+      "[Fixed] Avoid double checkout warning when opening a pull request in Desktop - #5375",
+      "[Fixed] Error when publishing repository is now associated with the right tab - #5422. Thanks @Daniel-McCarthy!",
+      "[Fixed] Disable affected menu items when on detached HEAD - #5500. Thanks @say25!",
+      "[Fixed] Show border when commit description is expanded - #5506. Thanks @aryyya!",
+      "[Fixed] GitLab URL which corresponds to GitHub repository of same name cloned GitHub repository - #4154",
+      "[Improved] Avoid multiple lookups of default remote - #5399",
+      "[Improved] Skip optional locks when checking status of repository - #5376"
+    ],
+    "1.4.0-beta1": [
+      "[New] When an update is available for GitHub Desktop, the release notes can be viewed in Desktop - #2774",
+      "[New] Detect merge conflicts when comparing branches - #4588",
+      "[Fixed] Avoid double checkout warning when opening a pull request in Desktop - #5375",
+      "[Fixed] Error when publishing repository is now associated with the right tab - #5422. Thanks @Daniel-McCarthy!",
+      "[Fixed] Disable affected menu items when on detached HEAD - #5500. Thanks @say25!",
+      "[Fixed] Show border when commit description is expanded - #5506. Thanks @aryyya!",
+      "[Fixed] GitLab URL which corresponds to GitHub repository of same name cloned GitHub repository - #4154",
+      "[Improved] Avoid multiple lookups of default remote - #5399",
+      "[Improved] Skip optional locks when checking status of repository - #5376"
+    ],
+    "1.4.0-beta0": [
+    ],
+    "1.3.5": [
+      "[Fixed] Disable delete button while deleting a branch - #5331",
+      "[Fixed] History now avoids calling log.showSignature if set in config - #5466",
+      "[Fixed] Start blocking the ability to add local bare repositories - #4293. Thanks @Daniel-McCarthy!",
+      "[Fixed] Revert workaround for tooltip issue on Windows - #3362. Thanks @divayprakash!",
+      "[Improved] Error message when publishing to missing organisation - #5380. Thanks @Daniel-McCarthy!",
+      "[Improved] Don't hide commit details when commit description is expanded. - #5471. Thanks @aryyya!"
+    ],
+    "1.3.5-beta1": [
+      "[Fixed] Disable delete button while deleting a branch - #5331",
+      "[Fixed] History now avoids calling log.showSignature if set in config - #5466",
+      "[Fixed] Start blocking the ability to add local bare repositories - #4293. Thanks @Daniel-McCarthy!",
+      "[Fixed] Revert workaround for tooltip issue on Windows - #3362. Thanks @divayprakash!",
+      "[Improved] Error message when publishing to missing organisation - #5380. Thanks @Daniel-McCarthy!",
+      "[Improved] Don't hide commit details when commit summary description is expanded. - #5471. Thanks @aryyya!"
+    ],
     "1.3.5-beta0": [
     ],
     "1.3.4": [

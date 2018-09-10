@@ -1,0 +1,4383 @@
+added in both
+  our    100644 6d44d618aabcce04c60344f2274dec5b0c2a1f68 .circleci/config.yml
+  their  100644 ab085246d001aa13fbfb587c63bd64c63b7ca1ce .circleci/config.yml
+@@ -1,3 +1,4 @@
++<<<<<<< .our
+ notify-slack-failure: &notify-slack-failure
+   run:
+     name: Send a slack notification on failure
+@@ -348,10 +349,13 @@
+   docker:
+     - image: electronbuilds/electron:0.0.8
+   <<: *build-steps
++=======
++>>>>>>> .their
+ 
+ version: 2
+ jobs:
+   electron-linux-arm:
++<<<<<<< .our
+     environment:
+       TARGET_ARCH: arm
+     <<: *build-defaults
+@@ -668,12 +672,211 @@
+       GN_EXTRA_ARGS: 'is_mas_build = true'
+     <<: *gn-mac-build-machine
+     <<: *gn-mac-build-steps
++=======
++    docker:
++      - image: electronbuilds/electron:0.0.4
++        environment:
++          TARGET_ARCH: arm
++    resource_class: 2xlarge
++    steps:
++      - checkout
++      - run:
++          name: Check for release
++          command: |
++            if [ -n "${RUN_RELEASE_BUILD}" ]; then
++              echo 'release build triggered from api'
++              echo 'export ELECTRON_RELEASE=1 TRIGGERED_BY_API=1' >> $BASH_ENV
++            fi
++      - run:
++         name: Bootstrap
++         command: |
++           if [ "$ELECTRON_RELEASE" == "1" ]; then
++              echo 'Bootstrapping Electron for release build'
++              script/bootstrap.py --target_arch=$TARGET_ARCH
++           else
++              echo 'Bootstrapping Electron for debug build'
++              script/bootstrap.py --target_arch=$TARGET_ARCH --dev
++           fi
++      - run: npm run lint
++      - run:
++         name: Build
++         command: |
++           if [ "$ELECTRON_RELEASE" == "1" ]; then
++              echo 'Building Electron for release'
++              script/build.py -c R
++           else
++              echo 'Building Electron for debug'
++              script/build.py -c D
++           fi
++      - run:
++          name: Create distribution
++          command: |
++             if [ "$ELECTRON_RELEASE" == "1" ]; then
++                echo 'Creating Electron release distribution'
++                script/create-dist.py
++             else
++                echo 'Skipping create distribution because build is not for release'
++             fi
++      - run:
++          name: Upload distribution
++          command: |
++             if [ "$ELECTRON_RELEASE" == "1" ] && [ "$TRIGGERED_BY_API" != "1" ]; then
++                echo 'Uploading Electron release distribution to github releases'
++                script/upload.py
++             elif [ "$ELECTRON_RELEASE" == "1" ] && [ "$TRIGGERED_BY_API" == "1" ]; then
++                echo 'Uploading Electron release distribution to s3'
++                script/upload.py --upload_to_s3
++             else
++                echo 'Skipping upload distribution because build is not for release'
++             fi
++  electron-linux-ia32:
++    docker:
++      - image: electronbuilds/electron:0.0.4
++        environment:
++          TARGET_ARCH: ia32
++    resource_class: xlarge
++    steps:
++      - checkout
++      - run:
++          name: Check for release
++          command: |
++            if [ -n "${RUN_RELEASE_BUILD}" ]; then
++              echo 'release build triggered from api'
++              echo 'export ELECTRON_RELEASE=1 TRIGGERED_BY_API=1' >> $BASH_ENV
++            fi
++      - run:
++         name: Bootstrap
++         command: |
++           if [ "$ELECTRON_RELEASE" == "1" ]; then
++              echo 'Bootstrapping Electron for release build'
++              script/bootstrap.py --target_arch=$TARGET_ARCH
++           else
++              echo 'Bootstrapping Electron for debug build'
++              script/bootstrap.py --target_arch=$TARGET_ARCH --dev
++           fi
++      - run: npm run lint
++      - run:
++         name: Build
++         command: |
++           if [ "$ELECTRON_RELEASE" == "1" ]; then
++              echo 'Building Electron for release'
++              script/build.py -c R
++           else
++              echo 'Building Electron for debug'
++              script/build.py -c D
++           fi
++      - run:
++          name: Create distribution
++          command: |
++             if [ "$ELECTRON_RELEASE" == "1" ]; then
++                echo 'Creating Electron release distribution'
++                script/create-dist.py
++             else
++                echo 'Skipping create distribution because build is not for release'
++             fi
++      - run:
++          name: Upload distribution
++          command: |
++             if [ "$ELECTRON_RELEASE" == "1" ] && [ "$TRIGGERED_BY_API" != "1" ]; then
++                echo 'Uploading Electron release distribution to github releases'
++                script/upload.py
++             elif [ "$ELECTRON_RELEASE" == "1" ] && [ "$TRIGGERED_BY_API" == "1" ]; then
++                echo 'Uploading Electron release distribution to s3'
++                script/upload.py --upload_to_s3
++             else
++                echo 'Skipping upload distribution because build is not for release'
++             fi
++  electron-linux-x64:
++    docker:
++      - image: electronbuilds/electron:0.0.4
++        environment:
++          TARGET_ARCH: x64
++          DISPLAY: ':99.0'
++    resource_class: xlarge
++    steps:
++      - checkout
++      - run:
++          name: Setup for headless testing
++          command: sh -e /etc/init.d/xvfb start
++      - run:
++          name: Check for release
++          command: |
++            if [ -n "${RUN_RELEASE_BUILD}" ]; then
++              echo 'release build triggered from api'
++              echo 'export ELECTRON_RELEASE=1 TRIGGERED_BY_API=1' >> $BASH_ENV
++            fi
++      - run:
++         name: Bootstrap
++         command: |
++           if [ "$ELECTRON_RELEASE" == "1" ]; then
++              echo 'Bootstrapping Electron for release build'
++              script/bootstrap.py --target_arch=$TARGET_ARCH
++           else
++              echo 'Bootstrapping Electron for debug build'
++              script/bootstrap.py --target_arch=$TARGET_ARCH --dev
++           fi
++      - run: npm run lint
++      - run:
++         name: Build
++         command: |
++           if [ "$ELECTRON_RELEASE" == "1" ]; then
++              echo 'Building Electron for release'
++              script/build.py -c R
++           else
++              echo 'Building Electron for debug'
++              script/build.py -c D
++           fi
++      - run:
++          name: Create distribution
++          command: |
++             if [ "$ELECTRON_RELEASE" == "1" ]; then
++                echo 'Creating Electron release distribution'
++                script/create-dist.py
++             else
++                echo 'Skipping create distribution because build is not for release'
++             fi
++      - run:
++          name: Upload distribution
++          command: |
++             if [ "$ELECTRON_RELEASE" == "1" ] && [ "$TRIGGERED_BY_API" != "1" ]; then
++                echo 'Uploading Electron release distribution to github releases'
++                script/upload.py
++             elif [ "$ELECTRON_RELEASE" == "1" ] && [ "$TRIGGERED_BY_API" == "1" ]; then
++                echo 'Uploading Electron release distribution to s3'
++                script/upload.py --upload_to_s3
++             else
++                echo 'Skipping upload distribution because build is not for release'
++             fi
++      - run:
++          name: Test
++          environment:
++            MOCHA_FILE: junit/test-results.xml
++            MOCHA_REPORTER: mocha-junit-reporter
++          command: |
++             if [ "$ELECTRON_RELEASE" != "1" ]; then
++                echo 'Testing Electron debug build'
++                mkdir junit
++                script/test.py --ci --rebuild_native_modules
++             else
++                echo 'Skipping testing on release build'
++             fi
++      - run:
++          name: Verify FFmpeg
++          command: |
++             if [ "$ELECTRON_RELEASE" != "1" ]; then
++                echo 'Verifying ffmpeg on debug build'
++                script/verify-ffmpeg.py
++             else
++                echo 'Skipping verify ffmpeg on release build'
++             fi
++>>>>>>> .their
+ 
+ workflows:
+   version: 2
+   build-arm:
+     jobs:
+       - electron-linux-arm
++<<<<<<< .our
+       - electron-linux-arm-test:
+           requires:
+             - electron-linux-arm
+@@ -683,12 +886,15 @@
+       - electron-linux-arm64-test:
+           requires:
+             - electron-linux-arm64
++=======
++>>>>>>> .their
+   build-ia32:
+     jobs:
+       - electron-linux-ia32
+   build-x64:
+     jobs:
+       - electron-linux-x64
++<<<<<<< .our
+   build-osx-x64:
+     jobs:
+       - electron-osx-x64
+@@ -745,3 +951,5 @@
+       - electron-gn-linux-arm64-release-fyi
+       - electron-gn-mas-release-fyi
+       - electron-gn-osx-release-fyi
++=======
++>>>>>>> .their
+removed in remote
+  base   100644 b093d2a2126ea5e5a74712c103159f14f20e0ca2 appveyor.yml
+  our    100644 67a2b2124619d866f67d849f57f3548ba28be26a appveyor.yml
+@@ -1,73 +0,0 @@
+-version: 1.0.{build}
+-branches:
+-  except:
+-  - /^release$|^release-\d-\d-x$/
+-build_cloud: electron-16
+-image: electron-16-vs2017-15.4.5
+-environment:
+-  DISABLE_CRASH_REPORTER_TESTS: true
+-build_script:
+-- ps: >-
+-    if(($env:APPVEYOR_PULL_REQUEST_HEAD_REPO_NAME -split "/")[0] -eq ($env:APPVEYOR_REPO_NAME -split "/")[0]) {
+-      Write-warning "Skipping PR build for branch"; Exit-AppveyorBuild
+-    } else {
+-      Add-Path "$env:ProgramFiles (x86)\Windows Kits\10\Debuggers\x64"
+-      $env:path = "$env:ProgramFiles (x86)\Windows Kits\10\Debuggers\x64;$env:path"
+-      if($env:APPVEYOR_SCHEDULED_BUILD -eq 'True')  {
+-        $env:RUN_RELEASE_BUILD = "1"
+-      }
+-      $Message = (git log --format=%B -n 1 HEAD) | Out-String
+-      if ((Test-Path Env:\RUN_RELEASE_BUILD)) {
+-        $env:ELECTRON_RELEASE = '1'
+-        Write-Output "release build triggered from api"
+-      }
+-      if ((Test-Path Env:\ELECTRON_RELEASE)) {
+-        Write-Output "Running release build"
+-        python script\bootstrap.py --target_arch=$env:TARGET_ARCH
+-        python script\build.py -c R
+-        python script\create-dist.py
+-      } else {
+-        Write-Output "Running debug build"
+-        python script\bootstrap.py --target_arch=$env:TARGET_ARCH --dev
+-        python script\build.py -c D
+-      }
+-      if ($? -ne 'True') {
+-        throw "Build failed with exit code $?"
+-      } else {
+-        "Build succeeded."
+-      }
+-      Push-AppveyorArtifact out
+-    }
+-test_script:
+-- ps: >-
+-    if (Test-Path Env:\ELECTRON_RELEASE) {
+-      Write-Output "Skipping tests for release build"
+-    } else {
+-      Write-Output "Running tests for debug build"
+-      python script\test.py --ci --rebuild_native_modules
+-      if ($LASTEXITCODE -ne '0') {
+-        throw "Tests failed with exit code $LASTEXITCODE"
+-      } else {
+-        Write-Output "Tests succeeded."
+-      }
+-      python script\verify-ffmpeg.py
+-      if ($LASTEXITCODE -ne '0') {
+-        throw "Verify ffmpeg failed with exit code $LASTEXITCODE"
+-      } else {
+-        "Verify ffmpeg succeeded."
+-      }
+-    }
+-artifacts:
+-- path: test-results.xml
+-  name: test-results.xml
+-deploy_script:
+-- ps: >-
+-    if (Test-Path Env:\ELECTRON_RELEASE) {
+-      if (Test-Path Env:\RUN_RELEASE_BUILD) {
+-        Write-Output "Uploading Electron release distribution to s3"
+-        & python script\upload.py --upload_to_s3
+-      } else {
+-        Write-Output "Uploading Electron release distribution to github releases"
+-        & python script\upload.py
+-      }
+-    }
+changed in both
+  base   100644 e1603fa5942f7b000c3385648530255032e775a2 atom/app/atom_library_main.h
+  our    100644 2c7a27caa20a411558010c3c58bd78e7850c0737 atom/app/atom_library_main.h
+  their  100644 63d285bb5e4838578d23505d7738c9ac88575df1 atom/app/atom_library_main.h
+@@ -9,7 +9,12 @@
+ 
+ #if defined(OS_MACOSX)
+ extern "C" {
++<<<<<<< .our
+ __attribute__((visibility("default"))) int AtomMain(int argc, char* argv[]);
++=======
++__attribute__((visibility("default")))
++int AtomMain(int argc, char* argv[]);
++>>>>>>> .their
+ 
+ #ifdef ENABLE_RUN_AS_NODE
+ __attribute__((visibility("default"))) int AtomInitializeICUandStartNode(
+changed in both
+  base   100644 7ee7522934689937f7be7b0f866134bf611c7d69 atom/app/atom_library_main.mm
+  our    100644 57a519fcd0db28548ea75034cf92191161183385 atom/app/atom_library_main.mm
+  their  100644 ae096acd4a931d397e285643d36580625dde14bf atom/app/atom_library_main.mm
+@@ -14,6 +14,10 @@
+ #include "brightray/common/mac/main_application_bundle.h"
+ #include "content/public/app/content_main.h"
+ 
++<<<<<<< .our
++=======
++#if defined(OS_MACOSX)
++>>>>>>> .their
+ int AtomMain(int argc, char* argv[]) {
+   atom::AtomMainDelegate delegate;
+   content::ContentMainParams params(&delegate);
+changed in both
+  base   100644 9c255db5fb278c21a4e657513e6d9a3d53d397da atom/app/atom_main.cc
+  our    100644 fc77100d9acb58221c35f364c4db7866a44d347d atom/app/atom_main.cc
+  their  100644 59cd6801e52aebcd81959df7ed2f4eccdc555f30 atom/app/atom_main.cc
+@@ -71,7 +71,11 @@
+ 
+ #ifdef _DEBUG
+   // Don't display assert dialog boxes in CI test runs
++<<<<<<< .our
+   static const char* kCI = "ELECTRON_CI";
++=======
++  static const auto kCI = "ELECTRON_CI";
++>>>>>>> .their
+   bool is_ci = IsEnvSet(kCI);
+   if (!is_ci) {
+     for (int i = 0; i < arguments.argc; ++i) {
+@@ -88,6 +92,13 @@
+ 
+     _CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_DEBUG | _CRTDBG_MODE_FILE);
+     _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);
++<<<<<<< .our
++=======
++
++    _set_error_mode(_OUT_TO_STDERR);
++  }
++#endif
++>>>>>>> .their
+ 
+     _set_error_mode(_OUT_TO_STDERR);
+   }
+@@ -103,6 +114,7 @@
+   if (run_as_node || !IsEnvSet("ELECTRON_NO_ATTACH_CONSOLE"))
+     base::RouteStdioToConsole(false);
+ 
++<<<<<<< .our
+ #ifndef DEBUG
+   // Chromium has its own TLS subsystem which supports automatic destruction
+   // of thread-local data, and also depends on memory allocation routines
+@@ -121,6 +133,8 @@
+ #endif
+ 
+ #ifdef ENABLE_RUN_AS_NODE
++=======
++>>>>>>> .their
+   if (run_as_node) {
+     std::vector<char*> argv(arguments.argc);
+     std::transform(
+@@ -132,10 +146,14 @@
+     auto ret = atom::NodeMain(argv.size(), argv.data());
+     std::for_each(argv.begin(), argv.end(), free);
+     return ret;
++<<<<<<< .our
+   }
+ #endif
+ 
+   if (IsEnvSet("ELECTRON_INTERNAL_CRASH_SERVICE")) {
++=======
++  } else if (IsEnvSet("ELECTRON_INTERNAL_CRASH_SERVICE")) {
++>>>>>>> .their
+     return crash_service::Main(cmd);
+   }
+ 
+@@ -156,7 +174,10 @@
+ #elif defined(OS_LINUX)  // defined(OS_WIN)
+ 
+ int main(int argc, char* argv[]) {
++<<<<<<< .our
+ #ifdef ENABLE_RUN_AS_NODE
++=======
++>>>>>>> .their
+   if (IsEnvSet(kRunAsNode)) {
+     base::i18n::InitializeICU();
+     base::AtExitManager atexit_manager;
+@@ -175,7 +196,10 @@
+ #else  // defined(OS_LINUX)
+ 
+ int main(int argc, char* argv[]) {
++<<<<<<< .our
+ #ifdef ENABLE_RUN_AS_NODE
++=======
++>>>>>>> .their
+   if (IsEnvSet(kRunAsNode)) {
+     return AtomInitializeICUandStartNode(argc, argv);
+   }
+added in both
+  our    100644 23e870cf4a32aecfc246a81edad46971b4456a55 atom/app/command_line_args.cc
+  their  100644 1cd98bb5f1acf24a7a00ffd264d7e1551d6a7c90 atom/app/command_line_args.cc
+@@ -2,15 +2,30 @@
+ // Use of this source code is governed by the MIT license that can be
+ // found in the LICENSE file.
+ 
++<<<<<<< .our
+ #include "atom/app/command_line_args.h"
+ 
++=======
++#include <string>
++
++#include "atom/app/command_line_args.h"
++
++#include "base/strings/string_util.h"
++#include "base/strings/utf_string_conversions.h"
++#include "content/public/common/content_switches.h"
++
++>>>>>>> .their
+ namespace {
+ 
+ bool IsUrlArg(const base::CommandLine::CharType* arg) {
+   // the first character must be a letter for this to be a URL
+   auto c = *arg;
+   if (('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z')) {
++<<<<<<< .our
+     for (auto* p = arg + 1; *p; ++p) {
++=======
++    for (auto p = arg + 1; *p; ++p) {
++>>>>>>> .their
+       c = *p;
+ 
+       // colon indicates that the argument starts with a URI scheme
+@@ -31,12 +46,1368 @@
+   return false;
+ }
+ 
++<<<<<<< .our
++=======
++const char* blacklist[] = {
++  // node
++  "inspect",
++  "inspect-brk",
++
++  // chromium switches:
++  // find ./ -name "*switches.cc" \
++  //   | xargs grep -P --no-filename "\"\S+\";" \
++  //   | perl -pe 's|^.*?"(\S+)";|  "$1",|' \
++  //   | sort | uniq
++  "?",
++  "0",
++  "accept-resource-provider",
++  "account-consistency",
++  "adaboost",
++  "aec-refined-adaptive-filter",
++  "agc-startup-min-volume",
++  "aggressive",
++  "aggressive-cache-discard",
++  "aggressive-tab-discard",
++  "all",
++  "allarticles",
++  "allow-cross-origin-auth-prompt",
++  "allow-external-pages",
++  "allow-failed-policy-fetch-for-test",
++  "allow-file-access-from-files",
++  "allow-hidden-media-playback",
++  "allow-http-background-page",
++  "allow-http-screen-capture",
++  "allow-insecure-localhost",
++  "allow-legacy-extension-manifests",
++  "allow-loopback-in-peer-connection",
++  "allow-nacl-crxfs-api",
++  "allow-nacl-file-handle-api",
++  "allow-nacl-socket-api",
++  "allow-no-sandbox-job",
++  "allow-outdated-plugins",
++  "allow-ra-in-dev-mode",
++  "allow-running-insecure-content",
++  "allow-sandbox-debugging",
++  "allow-silent-push",
++  "all-toolchains",
++  "alsa-check-close-timeout",
++  "alsa-enable-upsampling",
++  "alsa-fixed-output-sample-rate",
++  "alsa-input-device",
++  "alsa-mute-device-name",
++  "alsa-mute-element-name",
++  "alsa-output-avail-min",
++  "alsa-output-buffer-size",
++  "alsa-output-device",
++  "alsa-output-period-size",
++  "alsa-output-start-threshold",
++  "alsa-volume-device-name",
++  "alsa-volume-element-name",
++  "also-emit-success-logs",
++  "alternative",
++  "always-authorize-plugins",
++  "always-on",
++  "alwaystrue",
++  "always-use-complex-text",
++  "amd-switchable",
++  "android-fonts-path",
++  "android-stderr-port",
++  "android-stdin-port",
++  "android-stdout-port",
++  "angle",
++  "app",
++  "app-auto-launched",
++  "app-id",
++  "apple",
++  "app-mode-auth-code",
++  "app-mode-oauth-token",
++  "app-mode-oem-manifest",
++  "apps-gallery-download-url",
++  "apps-gallery-update-url",
++  "apps-gallery-url",
++  "app-shell-allow-roaming",
++  "app-shell-host-window-size",
++  "app-shell-preferred-network",
++  "app-shell-refresh-token",
++  "app-shell-user",
++  "apps-keep-chrome-alive-in-tests",
++  "arc-availability",
++  "arc-available",
++  "arc-start-mode",
++  "arc-transition-migration-required",
++  "args",
++  "artifacts-dir",
++  "ash-constrain-pointer-to-root",
++  "ash-debug-shortcuts",
++  "ash-dev-shortcuts",
++  "ash-disable-smooth-screen-rotation",
++  "ash-disable-tablet-autohide-titlebars",
++  "ash-disable-touch-exploration-mode",
++  "ash-enable-magnifier-key-scroller",
++  "ash-enable-mirrored-screen",
++  "ash-enable-night-light",
++  "ash-enable-palette-on-all-displays",
++  "ash-enable-scale-settings-tray",
++  "ash-enable-software-mirroring",
++  "ash-enable-unified-desktop",
++  "ash-estimated-presentation-delay",
++  "ash-hide-notifications-for-factory",
++  "ash-host-window-bounds",
++  "ash-shelf-color",
++  "ash-shelf-color-scheme",
++  "ash-touch-hud",
++  "ash-webui-init",
++  "attestation-server",
++  "audio-buffer-size",
++  "audio-output-channels",
++  "aura-legacy-power-button",
++  "auth-ext-path",
++  "auth-server-whitelist",
++  "auth-spnego-account-type",
++  "auto",
++  "auto-open-devtools-for-tabs",
++  "autoplay-policy",
++  "auto-select-desktop-capture-source",
++  "blink-settings",
++  "bootstrap",
++  "browser",
++  "browser-startup-dialog",
++  "browser-subprocess-path",
++  "browser-test",
++  "bwsi",
++  "bypass-app-banner-engagement-checks",
++  "canvas-msaa-sample-count",
++  "cast-initial-screen-height",
++  "cast-initial-screen-width",
++  "cc-layer-tree-test-long-timeout",
++  "cc-layer-tree-test-no-timeout",
++  "cc-rebaseline-pixeltests",
++  "cellular-first",
++  "cellular-only",
++  "check-for-update-interval",
++  "check-layout-test-sys-deps",
++  "child-wallpaper-large",
++  "child-wallpaper-small",
++  "chrome-home-swipe-logic",
++  "ChromeOSMemoryPressureHandling",
++  "cipher-suite-blacklist",
++  "clamshell",
++  "class",
++  "clear-token-service",
++  "cloud-print-file",
++  "cloud-print-file-type",
++  "cloud-print-job-title",
++  "cloud-print-print-ticket",
++  "cloud-print-setup-proxy",
++  "cloud-print-url",
++  "cloud-print-xmpp-endpoint",
++  "color",
++  "compensate-for-unstable-pinch-zoom",
++  "compile-shader-always-succeeds",
++  "component-updater",
++  "connectivity-check-url",
++  "conservative",
++  "content-image-texture-target",
++  "content-shell-host-window-size",
++  "controller",
++  "crash-dumps-dir",
++  "crash-on-failure",
++  "crash-on-hang-threads",
++  "crashpad-handler",
++  "crash-server-url",
++  "crash-test",
++  "create-browser-on-startup-for-tests",
++  "cros-gaia-api-v1",
++  "crosh-command",
++  "cros-region",
++  "cros-regions-mode",
++  "cryptauth-http-host",
++  "custom-devtools-frontend",
++  "custom-launcher-page",
++  "custom_summary",
++  "d3d11",
++  "d3d9",
++  "d3d-support",
++  "daemon",
++  "dark_muted",
++  "dark_vibrant",
++  "data-path",
++  "data-reduction-proxy-config-url",
++  "data-reduction-proxy-experiment",
++  "data-reduction-proxy-http-proxies",
++  "data-reduction-proxy-lo-fi",
++  "data-reduction-proxy-pingback-url",
++  "data-reduction-proxy-secure-proxy-check-url",
++  "data-reduction-proxy-server-experiments-disabled",
++  "dbus-stub",
++  "debug-devtools",
++  "debug-enable-frame-toggle",
++  "debug-packed-apps",
++  "debug-print",
++  "default",
++  "default-background-color",
++  "default-tile-height",
++  "default-tile-width",
++  "default-wallpaper-is-oem",
++  "default-wallpaper-large",
++  "default-wallpaper-small",
++  "demo",
++  "derelict-detection-timeout",
++  "derelict-idle-timeout",
++  "desktop",
++  "desktop-window-1080p",
++  "deterministic-fetch",
++  "device-management-url",
++  "device-scale-factor",
++  "devtools-flags",
++  "diagnostics",
++  "diagnostics-format",
++  "diagnostics-recovery",
++  "dice",
++  "dice_fix_auth_errors",
++  "disable",
++  "disable-2d-canvas-clip-aa",
++  "disable-2d-canvas-image-chromium",
++  "disable-3d-apis",
++  "disable-accelerated-2d-canvas",
++  "disable-accelerated-jpeg-decoding",
++  "disable-accelerated-mjpeg-decode",
++  "disable-accelerated-video-decode",
++  "disable-appcontainer",
++  "disable-app-info-dialog-mac",
++  "disable-app-list-dismiss-on-blur",
++  "disable-app-window-cycling",
++  "disable-arc-data-wipe",
++  "disable-arc-opt-in-verification",
++  "disable-audio-support-for-desktop-share",
++  "disable-avfoundation-overlays",
++  "disable-backgrounding-occluded-windows",
++  "disable-background-networking",
++  "disable-background-timer-throttling",
++  "disable-backing-store-limit",
++  "disable-blink-features",
++  "disable-boot-animation",
++  "disable-breakpad",
++  "disable-browser-task-scheduler",
++  "disable-bundled-ppapi-flash",
++  "disable-canvas-aa",
++  "disable-captive-portal-bypass-proxy",
++  "disable-cast-streaming-hw-encoding",
++  "disable-checker-imaging",
++  "disable-clear-browsing-data-counters",
++  "disable-client-side-phishing-detection",
++  "disable-cloud-import",
++  "disable-component-cloud-policy",
++  "disable-component-extensions-with-background-pages",
++  "disable-component-update",
++  "disable-composited-antialiasing",
++  "disable-contextual-search",
++  "disabled",
++  "disable-d3d11",
++  "disable-databases",
++  "disable-datasaver-prompt",
++  "disable-default-apps",
++  "disable-demo-mode",
++  "disable-device-disabling",
++  "disable-device-discovery-notifications",
++  "disable-dinosaur-easter-egg",
++  "disable-direct-composition",
++  "disable-direct-composition-layers",
++  "disable-directwrite-for-ui",
++  "disable-display-list-2d-canvas",
++  "disable-distance-field-text",
++  "disabled-new-style-notification",
++  "disable-domain-blocking-for-3d-apis",
++  "disable-domain-reliability",
++  "disable-drive-search-in-app-launcher",
++  "disable-dwm-composition",
++  "disable-encryption-migration",
++  "disable-eol-notification",
++  "disable-es3-apis",
++  "disable-es3-gl-context",
++  "disable-extensions",
++  "disable-extensions-except",
++  "disable-extensions-file-access-check",
++  "disable-extensions-http-throttling",
++  "disable-features",
++  "disable-field-trial-config",
++  "disable-file-manager-touch-mode",
++  "disable-file-system",
++  "disable-flash-3d",
++  "disable-flash-stage3d",
++  "disable-fullscreen-low-power-mode",
++  "disable-fullscreen-tab-detaching",
++  "disable-gaia-services",
++  "disable-gesture-editing",
++  "disable-gesture-requirement-for-presentation",
++  "disable-gesture-typing",
++  "disable-gl-drawing-for-tests",
++  "disable-gl-error-limit",
++  "disable-gl-extensions",
++  "disable-glsl-translator",
++  "disable-gpu",
++  "disable-gpu-compositing",
++  "disable-gpu-driver-bug-workarounds",
++  "disable-gpu-early-init",
++  "disable-gpu-memory-buffer-compositor-resources",
++  "disable-gpu-memory-buffer-video-frames",
++  "disable-gpu-process-crash-limit",
++  "disable-gpu-program-cache",
++  "disable-gpu-rasterization",
++  "disable-gpu-sandbox",
++  "disable-gpu-shader-disk-cache",
++  "disable-gpu-vsync",
++  "disable-gpu-watchdog",
++  "disable-hang-monitor",
++  "disable-hid-detection-on-oobe",
++  "disable-histogram-customizer",
++  "disable-hosted-app-shim-creation",
++  "disable-hosted-apps-in-windows",
++  "disable-infobars",
++  "disable-in-process-stack-traces",
++  "disable-input-ime-api",
++  "disable-input-view",
++  "disable-ios-password-suggestions",
++  "disable-javascript-harmony-shipping",
++  "disable-kill-after-bad-ipc",
++  "disable-lcd-text",
++  "disable-legacy-window",
++  "disable-local-storage",
++  "disable-lock-screen-apps",
++  "disable-logging",
++  "disable-logging-redirect",
++  "disable-login-animations",
++  "disable-login-screen-apps",
++  "disable-low-end-device-mode",
++  "disable-low-latency-dxva",
++  "disable-low-res-tiling",
++  "disable-machine-cert-request",
++  "disable-mac-overlays",
++  "disable-mac-views-native-app-windows",
++  "disable-main-frame-before-activation",
++  "disable-md-error-screen",
++  "disable-md-oobe",
++  "disable-media-session-api",
++  "disable-media-suspend",
++  "disable-merge-key-char-events",
++  "disable-mojo-local-storage",
++  "disable-mojo-renderer",
++  "disable-mtp-write-support",
++  "disable-multi-display-layout",
++  "disable-namespace-sandbox",
++  "disable-native-gpu-memory-buffers",
++  "disable-network-portal-notification",
++  "disable-new-korean-ime",
++  "disable-new-virtual-keyboard-behavior",
++  "disable-new-zip-unpacker",
++  "disable-notifications",
++  "disable-ntp-most-likely-favicons-from-server",
++  "disable-ntp-popular-sites",
++  "disable-nv12-dxgi-video",
++  "disable-offer-store-unmasked-wallet-cards",
++  "disable-offer-upload-credit-cards",
++  "disable-office-editing-component-extension",
++  "disable-offline-auto-reload",
++  "disable-offline-auto-reload-visible-only",
++  "disable-origin-trial-controlled-blink-features",
++  "disable-overscroll-edge-effect",
++  "disable-panel-fitting",
++  "disable-partial-raster",
++  "disable-password-generation",
++  "disable-pepper-3d",
++  "disable-pepper-3d-image-chromium",
++  "disable-permission-action-reporting",
++  "disable-permissions-api",
++  "disable-per-user-timezone",
++  "disable-physical-keyboard-autocorrect",
++  "disable-pinch",
++  "disable-pnacl-crash-throttling",
++  "disable-popup-blocking",
++  "disable-prefer-compositing-to-lcd-text",
++  "disable-presentation-api",
++  "disable-print-preview",
++  "disable-prompt-on-repost",
++  "disable-proximity-auth-bluetooth-low-energy-discovery",
++  "disable-pull-to-refresh-effect",
++  "disable-push-api-background-mode",
++  "disable-reading-from-canvas",
++  "disable-remote-core-animation",
++  "disable-remote-fonts",
++  "disable-remote-playback-api",
++  "disable-renderer-accessibility",
++  "disable-renderer-backgrounding",
++  "disable-resize-lock",
++  "disable-rgba-4444-textures",
++  "disable-rollback-option",
++  "disable-rtc-smoothness-algorithm",
++  "disable-screen-orientation-lock",
++  "disable-search-geolocation-disclosure",
++  "disable-seccomp-filter-sandbox",
++  "disable-setuid-sandbox",
++  "disable-shader-name-hashing",
++  "disable-shared-workers",
++  "disable-signin-promo",
++  "disable-signin-scoped-device-id",
++  "disable-single-click-autofill",
++  "disable-skia-runtime-opts",
++  "disable-slimming-paint-invalidation",
++  "disable-slim-navigation-manager",
++  "disable-smooth-scrolling",
++  "disable-software-rasterizer",
++  "disable-speech-api",
++  "disable-suggestions-ui",
++  "disable-surface-references",
++  "disable-sync",
++  "disable-sync-app-list",
++  "disable-sync-types",
++  "disable-system-timezone-automatic-detection",
++  "disable-tab-for-desktop-share",
++  "disable-third-party-keyboard-workaround",
++  "disable-threaded-animation",
++  "disable-threaded-compositing",
++  "disable-threaded-scrolling",
++  "disable-timeouts-for-profiling",
++  "disable-touch-adjustment",
++  "disable-touch-drag-drop",
++  "disable-translate-new-ux",
++  "disable-usb-keyboard-detect",
++  "disable-v8-idle-tasks",
++  "disable-vaapi-accelerated-video-encode",
++  "disable-virtual-keyboard-overscroll",
++  "disable-voice-input",
++  "disable-volume-adjust-sound",
++  "disable-wake-on-wifi",
++  "disable-webgl",
++  "disable-webgl-image-chromium",
++  "disable-web-notification-custom-layouts",
++  "disable-webrtc-encryption",
++  "disable-webrtc-hw-decoding",
++  "disable-webrtc-hw-encoding",
++  "disable-web-security",
++  "disable-win32k-lockdown",
++  "disable-xss-auditor",
++  "disable-zero-browsers-open-for-tests",
++  "disable-zero-copy",
++  "disable-zero-copy-dxgi-video",
++  "disallow-non-exact-resource-reuse",
++  "disk-cache-dir",
++  "disk-cache-size",
++  "display",
++  "dmg-device",
++  "dns-log-details",
++  "document-user-activation-required",
++  "dom-automation",
++  "dotfile",
++  "draft",
++  "draw-view-bounds-rects",
++  "duck-flash",
++  "dump-blink-runtime-call-stats",
++  "dump-browser-histograms",
++  "dump-dom",
++  "eafe-path",
++  "eafe-url",
++  "easy-unlock-app-path",
++  "edge-touch-filtering",
++  "egl",
++  "elevate",
++  "embedded-extension-options",
++  "emphasize-titles-in-omnibox-dropdown",
++  "emulate-shader-precision",
++  "enable-accelerated-2d-canvas",
++  "enable-accelerated-vpx-decode",
++  "enable-accessibility-tab-switcher",
++  "enable-adaptive-selection-handle-orientation",
++  "enable-aggressive-domstorage-flushing",
++  "enable-android-wallpapers-app",
++  "enable-appcontainer",
++  "enable-app-info-dialog-mac",
++  "enable-app-list",
++  "enable-app-window-cycling",
++  "enable-arc",
++  "enable-arc-oobe-optin",
++  "enable-async-event-targeting",
++  "enable-audio-debug-recordings-from-extension",
++  "enable-audio-focus",
++  "enable-automation",
++  "enable-background-fetch-persistence",
++  "enable-benchmarking",
++  "enable-ble-advertising-in-apps",
++  "enable-blink-features",
++  "enable-bookmark-undo",
++  "enable-browser-side-navigation",
++  "enable-browser-task-scheduler",
++  "enable-cast-receiver",
++  "enable-checker-imaging",
++  "enable-chromevox-arc-support",
++  "enable-clear-browsing-data-counters",
++  "enable-cloud-print-proxy",
++  "enable-cloud-print-xps",
++  "enable-consumer-kiosk",
++  "enable-contextual-search",
++  "enable-crash-reporter",
++  "enable-crash-reporter-for-testing",
++  "enable-crx-hash-check",
++  "enabled",
++  "enabled-2g",
++  "enabled-3g",
++  "enable-data-reduction-proxy-bypass-warning",
++  "enable-data-reduction-proxy-force-pingback",
++  "enable-data-reduction-proxy-lite-page",
++  "enable-data-reduction-proxy-savings-promo",
++  "enable-datasaver-prompt",
++  "enable-device-discovery-notifications",
++  "enable-devtools-experiments",
++  "enable-direct-composition-layers",
++  "enable-display-list-2d-canvas",
++  "enable-distance-field-text",
++  "enable-distillability-service",
++  "enabled-new-style-notification",
++  "enable-domain-reliability",
++  "enable-dom-distiller",
++  "enable-drive-search-in-app-launcher",
++  "enable-drm-atomic",
++  "enabled-slow2g",
++  "enable-embedded-extension-options",
++  "enable-encryption-migration",
++  "enable-encryption-selection",
++  "enable-es3-apis",
++  "enable-exclusive-audio",
++  "enable-experimental-accessibility-features",
++  "enable-experimental-canvas-features",
++  "enable-experimental-extension-apis",
++  "enable-experimental-fullscreen-exit-ui",
++  "enable-experimental-input-view-features",
++  "enable-experimental-web-platform-features",
++  "enable-extension-activity-logging",
++  "enable-extension-activity-log-testing",
++  "enable-extension-assets-sharing",
++  "enable-external-drive-rename",
++  "enable-fast-unload",
++  "enable-features",
++  "enable-file-manager-touch-mode",
++  "enable-first-run-ui-transitions",
++  "enable-floating-virtual-keyboard",
++  "enable-font-antialiasing",
++  "enable-fullscreen-tab-detaching",
++  "enable-fullscreen-toolbar-reveal",
++  "enable-google-branded-context-menu",
++  "enable-gpu-async-worker-context",
++  "enable-gpu-benchmarking",
++  "enable-gpu-client-logging",
++  "enable-gpu-client-tracing",
++  "enable-gpu-command-logging",
++  "enable-gpu-debugging",
++  "enable-gpu-driver-debug-logging",
++  "enable-gpu-memory-buffer-compositor-resources",
++  "enable-gpu-memory-buffer-video-frames",
++  "enable-gpu-rasterization",
++  "enable-gpu-service-logging",
++  "enable-gpu-service-tracing",
++  "enable-hardware-overlays",
++  "enable-harfbuzz-rendertext",
++  "enable-heap-profiling",
++  "enable-hosted-app-quit-notification",
++  "enable-hosted-apps-in-windows",
++  "enable-hotword-hardware",
++  "enable-hung-renderer-infobar",
++  "enable-inband-text-tracks",
++  "enable-input-ime-api",
++  "enable-instant-tethering",
++  "enable-internal-media-session",
++  "enable-ios-handoff-to-other-devices",
++  "enable-layer-lists",
++  "enable-lcd-text",
++  "enable-leak-detection",
++  "enable-local-file-accesses",
++  "enable-local-sync-backend",
++  "enable-logging",
++  "enable-longpress-drag-selection",
++  "enable-low-end-device-mode",
++  "enable-low-res-tiling",
++  "enable-mac-views-native-app-windows",
++  "enable-main-frame-before-activation",
++  "enable-md-feedback",
++  "enable-media-suspend",
++  "enable-merge-key-char-events",
++  "enable-message-center-always-scroll-up-upon-notification-removal",
++  "enable-nacl",
++  "enable-nacl-debug",
++  "enable-nacl-nonsfi-mode",
++  "enable-native-gpu-memory-buffers",
++  "enable-natural-scroll-default",
++  "enable-navigation-tracing",
++  "enable-net-benchmarking",
++  "enable-network-information-downlink-max",
++  "enable-network-portal-notification",
++  "enable-new-app-menu-icon",
++  "enable-ntp-most-likely-favicons-from-server",
++  "enable-ntp-popular-sites",
++  "enable-ntp-search-engine-country-detection",
++  "enable-offer-store-unmasked-wallet-cards",
++  "enable-offer-upload-credit-cards",
++  "enable-offline-auto-reload",
++  "enable-offline-auto-reload-visible-only",
++  "enable-oop-rasterization",
++  "enable-osk-overscroll",
++  "enable-override-bookmarks-ui",
++  "enable-partial-raster",
++  "enable-password-generation",
++  "enable-pepper-testing",
++  "enable-permission-action-reporting",
++  "enable-physical-keyboard-autocorrect",
++  "enable-picture-in-picture",
++  "enable-pinch",
++  "enable-pixel-canvas-recording",
++  "enable-pixel-output-in-tests",
++  "enable-plugin-placeholder-testing",
++  "enable-potentially-annoying-security-features",
++  "enable-power-overlay",
++  "enable-precise-memory-info",
++  "enable-prefer-compositing-to-lcd-text",
++  "enable-print-browser",
++  "enable-print-preview-register-promos",
++  "enable-profile-shortcut-manager",
++  "enable-profiling",
++  "enable-push-api-background-mode",
++  "enable-refresh-token-annotation-request",
++  "enable-request-tablet-site",
++  "enable-rgba-4444-textures",
++  "enable-sandbox",
++  "enable-sandbox-logging",
++  "enable-screenshot-testing-with-mode",
++  "enable-scripts-require-action",
++  "enable-scroll-prediction",
++  "enable-service-manager-tracing",
++  "enable-sgi-video-sync",
++  "enable-signin-promo",
++  "enable-single-click-autofill",
++  "enable-site-settings",
++  "enable-skia-benchmarking",
++  "enable-slimming-paint-invalidation",
++  "enable-slimming-paint-v2",
++  "enable-slim-navigation-manager",
++  "enable-smooth-scrolling",
++  "enable-spatial-navigation",
++  "enable-spdy-proxy-auth",
++  "enable-speech-dispatcher",
++  "enable-spelling-feedback-field-trial",
++  "enable-spotlight-actions",
++  "enable-stats-collection-bindings",
++  "enable-stats-table",
++  "enable-strict-mixed-content-checking",
++  "enable-strict-powerful-feature-restrictions",
++  "enable-suggestions-ui",
++  "enable-suggestions-with-substring-match",
++  "enable-supervised-user-managed-bookmarks-folder",
++  "enable-surface-synchronization",
++  "enable-swap-buffers-with-bounds",
++  "enable-sync-app-list",
++  "enable-sync-articles",
++  "enable-tab-audio-muting",
++  "enable-tablet-splitview",
++  "enable-tcp-fastopen",
++  "enable-third-party-keyboard-workaround",
++  "enable-threaded-compositing",
++  "enable-threaded-texture-mailboxes",
++  "enable-tile-compression",
++  "enable-touch-calibration-setting",
++  "enable-touch-drag-drop",
++  "enable-touchpad-three-finger-click",
++  "enable-touchview",
++  "enable-trace-app-source",
++  "enable-tracing",
++  "enable-tracing-output",
++  "enable-translate-new-ux",
++  "enable-ui-devtools",
++  "enable-usermedia-screen-capturing",
++  "enable-user-metrics",
++  "enable-use-zoom-for-dsf",
++  "enable-video-player-chromecast-support",
++  "enable-viewport",
++  "enable-virtual-keyboard",
++  "enable-voice-interaction",
++  "enable-vtune-support",
++  "enable-vulkan",
++  "enable-wayland-server",
++  "enable-webfonts-intervention-trigger",
++  "enable-webfonts-intervention-v2",
++  "enable-webgl-draft-extensions",
++  "enable-webgl-image-chromium",
++  "enable-web-notification-custom-layouts",
++  "enable-webrtc-event-logging-from-extension",
++  "enable-webrtc-srtp-aes-gcm",
++  "enable-webrtc-srtp-encrypted-headers",
++  "enable-webrtc-stun-origin",
++  "enable-webview-variations",
++  "enable-webvr",
++  "enable-wifi-credential-sync",
++  "enable-win7-webrtc-hw-h264-decoding",
++  "enable-zero-copy",
++  "enable-zip-archiver-on-file-manager",
++  "encode-binary",
++  "enforce",
++  "enforce-gl-minimums",
++  "enforce_strict",
++  "enforce-webrtc-ip-permission-check",
++  "enterprise-disable-arc",
++  "enterprise-enable-forced-re-enrollment",
++  "enterprise-enable-license-type-selection",
++  "enterprise-enable-zero-touch-enrollment",
++  "enterprise-enrollment-initial-modulus",
++  "enterprise-enrollment-modulus-limit",
++  "error-console",
++  "evaluate_capability",
++  "evaluate-type",
++  "experiment",
++  "explicitly-allowed-ports",
++  "expose-internals-for-testing",
++  "extension-content-verification",
++  "extension-process",
++  "extensions-install-verification",
++  "extensions-multi-account",
++  "extensions-not-webstore",
++  "extensions-on-chrome-urls",
++  "extensions-update-frequency",
++  "extra-search-query-params",
++  "fail-on-unused-args",
++  "fake-variations-channel",
++  "false",
++  "fast",
++  "fast-start",
++  "feedback-server",
++  "field-trial-handle",
++  "first-exec-after-boot",
++  "flag-switches-begin",
++  "flag-switches-end",
++  "font-cache-shared-handle",
++  "force-android-app-mode",
++  "force-app-mode",
++  "force-clamshell-power-button",
++  "force-color-profile",
++  "force-desktop-ios-promotion",
++  "force-device-scale-factor",
++  "force-dev-mode-highlighting",
++  "force-display-list-2d-canvas",
++  "force-effective-connection-type",
++  "force-enable-metrics-reporting",
++  "force-enable-stylus-tools",
++  "force-fieldtrial-params",
++  "force-fieldtrials",
++  "force-first-run",
++  "force-first-run-ui",
++  "force-gpu-mem-available-mb",
++  "force-gpu-rasterization",
++  "force-happiness-tracking-system",
++  "force-load-easy-unlock-app-in-tests",
++  "force-local-ntp",
++  "force-login-manager-in-tests",
++  "force-mediafoundation",
++  "force-overlay-fullscreen-video",
++  "force-password-reauth",
++  "force-pnacl-subzero",
++  "force-presentation-receiver-for-testing",
++  "force-renderer-accessibility",
++  "force-show-update-menu-badge",
++  "force-show-update-menu-item",
++  "force-system-compositor-mode",
++  "force-tablet-mode",
++  "force-text-direction",
++  "force-ui-direction",
++  "force-variation-ids",
++  "force-video-overlays",
++  "force-wave-audio",
++  "force-webrtc-ip-handling-policy",
++  "full-memory-crash-report",
++  "gaia-url",
++  "gcm-checkin-url",
++  "gcm-mcs-endpoint",
++  "gcm-registration-url",
++  "generate-accessibility-test-expectations",
++  "gl",
++  "gl-composited-overlay-candidate-quad-border",
++  "gles",
++  "gl-shader-interm-output",
++  "golden-screenshots-dir",
++  "google-apis-url",
++  "google-base-url",
++  "google-doodle-url",
++  "google-url",
++  "gpu-active-device-id",
++  "gpu-active-vendor-id",
++  "gpu-device-id",
++  "gpu-driver-date",
++  "gpu-driver-vendor",
++  "gpu-driver-version",
++  "gpu-launcher",
++  "gpu-no-complete-info-collection",
++  "gpu-no-context-lost",
++  "gpu-process",
++  "gpu-program-cache-size-kb",
++  "gpu-rasterization-msaa-sample-count",
++  "gpu-sandbox-allow-sysv-shm",
++  "gpu-sandbox-failures-fatal",
++  "gpu-sandbox-start-early",
++  "gpu-secondary-device-ids",
++  "gpu-secondary-vendor-ids",
++  "gpu-startup-dialog",
++  "gpu-testing-device-id",
++  "gpu-testing-driver-date",
++  "gpu-testing-gl-renderer",
++  "gpu-testing-gl-vendor",
++  "gpu-testing-gl-version",
++  "gpu-testing-os-version",
++  "gpu-testing-secondary-device-ids",
++  "gpu-testing-secondary-vendor-ids",
++  "gpu-testing-vendor-id",
++  "gpu-vendor-id",
++  "graphics-buffer-count",
++  "guest-wallpaper-large",
++  "guest-wallpaper-small",
++  "h",
++  "has-chromeos-diamond-key",
++  "has-chromeos-keyboard",
++  "has-internal-stylus",
++  "headless",
++  "help",
++  "hide",
++  "hide-icons",
++  "hide-scrollbars",
++  "history-entry-requires-user-gesture",
++  "homedir",
++  "homepage",
++  "host",
++  "host-pairing-oobe",
++  "host-resolver-rules",
++  "icu-data-dir",
++  "ignore-autocomplete-off-autofill",
++  "ignore-autoplay-restrictions",
++  "ignore-certificate-errors",
++  "ignore-certificate-errors-spki-list",
++  "ignore-gpu-blacklist",
++  "ignore-urlfetcher-cert-requests",
++  "ignore-user-profile-mapping-for-tests",
++  "incognito",
++  "in-process-gpu",
++  "input",
++  "install-chrome-app",
++  "install-supervised-user-whitelists",
++  "instant-process",
++  "invalidation-use-gcm-channel",
++  "ipc-connection-timeout",
++  "ipc-dump-directory",
++  "ipc-fuzzer-testcase",
++  "isolate-origins",
++  "isolate-sites-for-testing",
++  "is-running-in-mash",
++  "javascript-harmony",
++  "js-flags",
++  "keep-alive-for-test",
++  "kiosk",
++  "kiosk-printing",
++  "lang",
++  "last-launched-app",
++  "layer",
++  "light_muted",
++  "light_vibrant",
++  "limit-fps",
++  "load-and-launch-app",
++  "load-apps",
++  "load-extension",
++  "load-media-router-component-extension",
++  "local-heuristics-only-for-password-generation",
++  "local-ntp-reload",
++  "local-sync-backend-dir",
++  "log-gpu-control-list-decisions",
++  "login-manager",
++  "login-profile",
++  "login-user",
++  "log-level",
++  "log-net-log",
++  "loopback-i2s-bits",
++  "loopback-i2s-bus-name",
++  "loopback-i2s-channels",
++  "loopback-i2s-rate-hz",
++  "lso-url",
++  "ltr",
++  "main-frame-resizes-are-orientation-changes",
++  "make-chrome-default",
++  "make-default-browser",
++  "managed-user-id",
++  "managed-user-sync-token",
++  "markdown",
++  "market-url-for-testing",
++  "mark-non-secure-as",
++  "mash",
++  "material",
++  "material-design-ink-drop-animation-speed",
++  "material-hybrid",
++  "max-gum-fps",
++  "max-output-volume-dba1m",
++  "max-untiled-layer-height",
++  "max-untiled-layer-width",
++  "media-cache-size",
++  "memlog",
++  "memory-pressure-off",
++  "memory-pressure-thresholds",
++  "memory-pressure-thresholds-mb",
++  "mem-pressure-system-reserved-kb",
++  "message-center-changes-while-open",
++  "method",
++  "metrics-client-id",
++  "metrics-recording-only",
++  "mhtml-generator-option",
++  "mirror",
++  "mock",
++  "mojo-local-storage",
++  "mojo-pipe-token",
++  "monitoring-destination-id",
++  "mse-audio-buffer-size-limit",
++  "mse-video-buffer-size-limit",
++  "mus",
++  "mus-config",
++  "mute-audio",
++  "nacl-broker",
++  "nacl-dangerous-no-sandbox-nonsfi",
++  "nacl-debug-mask",
++  "nacl-gdb",
++  "nacl-gdb-script",
++  "nacl-loader",
++  "nacl-loader-nonsfi",
++  "native",
++  "native-crx-bindings",
++  "need-arc-migration-policy-check",
++  "netifs-to-ignore",
++  "net-log-capture-mode",
++  "network-country-iso",
++  "network-settings-config",
++  "new-window",
++  "nocolor",
++  "no-default-browser-check",
++  "noerrdialogs",
++  "no-experiments",
++  "no-first-run",
++  "no-managed-user-acknowledgment-check",
++  "none",
++  "no-network-profile-warning",
++  "non-material",
++  "non-secure",
++  "non-secure-after-editing",
++  "non-secure-while-incognito",
++  "non-secure-while-incognito-or-editing",
++  "no-pings",
++  "no-proxy-server",
++  "no-referrers",
++  "normal_muted",
++  "normal_vibrant",
++  "no-sandbox",
++  "no-service-autorun",
++  "no-session-id",
++  "no-startup-window",
++  "note-taking-app-ids",
++  "no-user-gesture-required",
++  "no-wifi",
++  "no-zygote",
++  "ntp-snippets-add-incomplete",
++  "null",
++  "num-raster-threads",
++  "oauth2-client-id",
++  "oauth2-client-secret",
++  "off",
++  "on",
++  "oobe-bootstrapping-master",
++  "oobe-force-show-screen",
++  "oobe-guest-session",
++  "oobe-skip-postlogin",
++  "oobe-timer-interval",
++  "open-ash",
++  "opengraph",
++  "original-process-start-time",
++  "origin-trial-disabled-features",
++  "origin-trial-disabled-tokens",
++  "origin-trial-public-key",
++  "osmesa",
++  "output",
++  "override",
++  "override-metrics-upload-url",
++  "override-plugin-power-saver-for-testing",
++  "override-use-software-gl-for-tests",
++  "overscroll-history-navigation",
++  "overscroll-start-threshold",
++  "ozone-dump-file",
++  "ozone-platform",
++  "pack-extension",
++  "pack-extension-key",
++  "parent-profile",
++  "parent-window",
++  "passive-listeners-default",
++  "password-store",
++  "permission-request-api-scope",
++  "permission-request-api-url",
++  "ppapi",
++  "ppapi-antialiased-text-enabled",
++  "ppapi-broker",
++  "ppapi-flash-args",
++  "ppapi-flash-path",
++  "ppapi-flash-version",
++  "ppapi-in-process",
++  "ppapi-plugin-launcher",
++  "ppapi-startup-dialog",
++  "ppapi-subpixel-rendering-setting",
++  "/prefetch:1",
++  "/prefetch:2",
++  "/prefetch:3",
++  "/prefetch:4",
++  "/prefetch:5",
++  "/prefetch:6",
++  "/prefetch:8",
++  "previous-app",
++  "primary",
++  "print-to-pdf",
++  "privet-ipv6-only",
++  "process-per-site",
++  "process-per-tab",
++  "product-version",
++  "profile-directory",
++  "profiler-timing",
++  "profiling-at-start",
++  "profiling-file",
++  "profiling-flush",
++  "progress-bar-animation",
++  "progress-bar-completion",
++  "prompt-for-external-extensions",
++  "proxy-auto-detect",
++  "proxy-bypass-list",
++  "proxy-pac-url",
++  "proxy-server",
++  "pull-to-refresh",
++  "q",
++  "rdp_desktop_session",
++  "reader-mode-feedback",
++  "reader-mode-heuristics",
++  "rebaseline-pixel-tests",
++  "record-type",
++  "reduced-referrer-granularity",
++  "reduce-security-for-testing",
++  "register-font-files",
++  "register-pepper-plugins",
++  "relauncher",
++  "remote-debugging-address",
++  "remote-debugging-port",
++  "remote-debugging-socket-fd",
++  "remote-debugging-socket-name",
++  "remote-debugging-targets",
++  "renderer",
++  "renderer-client-id",
++  "renderer-cmd-prefix",
++  "renderer-process-limit",
++  "renderer-startup-dialog",
++  "renderer-wait-for-java-debugger",
++  "renderpass",
++  "repl",
++  "report-vp9-as-an-unsupported-mime-type",
++  "require-audio-hardware-for-testing",
++  "reset-app-list-install-state",
++  "reset-variation-state",
++  "restore-last-session",
++  "root",
++  "root-layer-scrolls",
++  "rtl",
++  "run-all-compositor-stages-before-draw",
++  "run-layout-test",
++  "runtime-deps-list-file",
++  "safebrowsing-disable-auto-update",
++  "safebrowsing-disable-download-protection",
++  "safebrowsing-disable-extension-blacklist",
++  "safebrowsing-manual-download-blacklist",
++  "SafeSites",
++  "sandbox-ipc",
++  "save-page-as-mhtml",
++  "screen-config",
++  "screenshot",
++  "script-executable",
++  "scripts-require-action",
++  "search-provider-logo-url",
++  "secondary",
++  "secondary-display-layout",
++  "secondary-ui-md",
++  "service",
++  "service-manager",
++  "service-name",
++  "service-pipe-token",
++  "service-request-channel-token",
++  "service-runner",
++  "shared-files",
++  "shill-stub",
++  "show-app-list",
++  "show-autofill-signatures",
++  "show-autofill-type-predictions",
++  "show-cert-link",
++  "show-component-extension-options",
++  "show-composited-layer-borders",
++  "show-fps-counter",
++  "show-icons",
++  "show-layer-animation-bounds",
++  "show-login-dev-overlay",
++  "show-mac-overlay-borders",
++  "show-md-login",
++  "show-non-md-login",
++  "show-overdraw-feedback",
++  "show-paint-rects",
++  "show-property-changed-rects",
++  "show-saved-copy",
++  "show-screenspace-rects",
++  "show-surface-damage-rects",
++  "silent-debugger-extension-api",
++  "silent-launch",
++  "simulate-critical-update",
++  "simulate-elevated-recovery",
++  "simulate-outdated",
++  "simulate-outdated-no-au",
++  "simulate-upgrade",
++  "single-process",
++  "site-per-process",
++  "skip-gpu-data-loading",
++  "skip-nostore-all",
++  "skip-nostore-main",
++  "skip-reencoding-on-skp-capture",
++  "slow",
++  "slow-connections-only",
++  "slow-down-compositing-scale-factor",
++  "slow-down-raster-scale-factor",
++  "sms-test-messages",
++  "spdy-proxy-auth-fallback",
++  "spdy-proxy-auth-origin",
++  "spdy-proxy-auth-value",
++  "spelling-service-feedback-interval-seconds",
++  "spelling-service-feedback-url",
++  "spurious-power-button-accel-count",
++  "spurious-power-button-keyboard-accel",
++  "spurious-power-button-lid-angle-change",
++  "spurious-power-button-screen-accel",
++  "spurious-power-button-window",
++  "ssl-key-log-file",
++  "ssl-version-max",
++  "ssl-version-min",
++  "stable-release-mode",
++  "started",
++  "start-fullscreen",
++  "start-maximized",
++  "start-stack-profiler",
++  "stub",
++  "stub-cros-settings",
++  "surface",
++  "swiftshader",
++  "swiftshader-webgl",
++  "sync-allow-insecure-xmpp-connection",
++  "sync-deferred-startup-timeout-seconds",
++  "sync-disable-deferred-startup",
++  "sync-enable-get-update-avoidance",
++  "sync-notification-host-port",
++  "sync-on-draw-hardware",
++  "sync-short-initial-retry-override",
++  "sync-short-nudge-delay-for-test",
++  "sync-url",
++  "system-developer-mode",
++  "system-log-upload-frequency",
++  "tab-management-experiment-type-disabled",
++  "tab-management-experiment-type-elderberry",
++  "task-manager-show-extra-renderers",
++  "task-profiler",
++  "team-drives",
++  "test-auto-update-ui",
++  "test-child-process",
++  "test-cros-gaia-id-migration",
++  "test-do-not-initialize-icu",
++  "test-encryption-migration-ui",
++  "test-gl-lib",
++  "testing-fixed-http-port",
++  "testing-fixed-https-port",
++  "test-launcher-batch-limit",
++  "test-launcher-bot-mode",
++  "test-launcher-debug-launcher",
++  "test-launcher-filter-file",
++  "test-launcher-force-run-broken-tests",
++  "test-launcher-jobs",
++  "test-launcher-list-tests",
++  "test-launcher-output",
++  "test-launcher-print-test-stdio",
++  "test-launcher-print-writable-path",
++  "test-launcher-retry-limit",
++  "test-launcher-shard-index",
++  "test-launcher-summary-output",
++  "test-launcher-test-part-results-limit",
++  "test-launcher-timeout",
++  "test-launcher-total-shards",
++  "test-launcher-trace",
++  "test-name",
++  "test-tiny-timeout",
++  "test-type",
++  "tether-stub",
++  "third-party-doodle-url",
++  "threads",
++  "time",
++  "timeout",
++  "tls1",
++  "tls1.1",
++  "tls1.2",
++  "tls1.3",
++  "tls13-variant",
++  "top-chrome-md",
++  "top-controls-hide-threshold",
++  "top-controls-show-threshold",
++  "touch-calibration",
++  "touch-devices",
++  "touch-events",
++  "touch-noise-filtering",
++  "touch-selection-strategy",
++  "touch_view",
++  "trace-config-file",
++  "trace-export-events-to-etw",
++  "tracelog",
++  "trace-shutdown",
++  "trace-shutdown-file",
++  "trace-startup",
++  "trace-startup-duration",
++  "trace-startup-file",
++  "trace-to-console",
++  "trace-to-file",
++  "trace-to-file-name",
++  "trace-upload-url",
++  "translate-ranker-model-url",
++  "translate-script-url",
++  "translate-security-origin",
++  "true",
++  "trusted-download-sources",
++  "try-chrome-again",
++  "try-supported-channel-layouts",
++  "type",
++  "ui-disable-partial-swap",
++  "ui-enable-layer-lists",
++  "ui-enable-rgba-4444-textures",
++  "ui-enable-zero-copy",
++  "ui-prioritize-in-gpu-process",
++  "ui-show-composited-layer-borders",
++  "ui-show-fps-counter",
++  "ui-show-layer-animation-bounds",
++  "ui-show-paint-rects",
++  "ui-show-property-changed-rects",
++  "ui-show-screenspace-rects",
++  "ui-show-surface-damage-rects",
++  "ui-slow-animations",
++  "ui-test-action-max-timeout",
++  "ui-test-action-timeout",
++  "uninstall",
++  "unlimited-storage",
++  "unsafely-allow-protected-media-identifier-for-domain",
++  "unsafely-treat-insecure-origin-as-secure",
++  "unsafe-pac-url",
++  "use-angle",
++  "use-cras",
++  "use-fake-device-for-media-stream",
++  "use-fake-jpeg-decode-accelerator",
++  "use-fake-ui-for-media-stream",
++  "use-file-for-fake-audio-capture",
++  "use-file-for-fake-video-capture",
++  "use-first-display-as-internal",
++  "use-gl",
++  "use-gpu-in-tests",
++  "use-ime-service",
++  "use-mobile-user-agent",
++  "use-mock-keychain",
++  "use-passthrough-cmd-decoder",
++  "user-agent",
++  "user-always-affiliated",
++  "user-data-dir",
++  "user-gesture-required",
++  "user-gesture-required-for-cross-origin",
++  "use-skia-renderer",
++  "use-system-default-printer",
++  "use-test-config",
++  "use-viz-hit-test",
++  "utility",
++  "utility-allowed-dir",
++  "utility-cmd-prefix",
++  "utility-run-elevated",
++  "utility-sandbox-type",
++  "utility-startup-dialog",
++  "v",
++  "v2-sandbox",
++  "v2-sandbox-enabled",
++  "v8-cache-options",
++  "v8-cache-strategies-for-cache-storage",
++  "validate-crx",
++  "validate-input-event-stream",
++  "variations-override-country",
++  "variations-server-url",
++  "version",
++  "video-image-texture-target",
++  "video-threads",
++  "video-underflow-threshold-ms",
++  "virtual-time-budget",
++  "vmodule",
++  "voice-interaction-supported-locales",
++  "wait-for-debugger",
++  "wait-for-debugger-children",
++  "wake-on-wifi-packet",
++  "wallet-service-use-sandbox",
++  "watcher",
++  "waveout-buffers",
++  "webapk-server-url",
++  "webrtc-stun-probe-trial",
++  "webview-enable-safebrowsing-support",
++  "webview-sandboxed-renderer",
++  "whitelisted-extension-id",
++  "window-position",
++  "windows10-custom-titlebar",
++  "window-size",
++  "window-workspace",
++  "winhttp-proxy-resolver",
++  "win-jumplist-action",
++  "wm-window-animations-disabled",
++  "yield-between-content-script-runs",
++  "zygote",
++  "zygote-cmd-prefix"
++};
++
++bool IsBlacklistedArg(const base::CommandLine::CharType* arg) {
++#if defined(OS_WIN)
++  const auto converted = base::WideToUTF8(arg);
++  const char* a = converted.c_str();
++#else
++  const char* a = arg;
++#endif
++
++  static const char* prefixes[] = {"--", "-", "/"};
++
++  int prefix_length = 0;
++  for (auto& prefix : prefixes) {
++    if (base::StartsWith(a, prefix, base::CompareCase::SENSITIVE)) {
++      prefix_length = strlen(prefix);
++      break;
++    }
++  }
++
++  if (prefix_length > 0) {
++    a += prefix_length;
++    std::string switch_name =
++        base::ToLowerASCII(base::StringPiece(a, strcspn(a, "=")));
++    for (auto& item : blacklist) {
++      if (switch_name == item)
++        return true;
++    }
++  }
++
++  return false;
++}
++
++>>>>>>> .their
+ }  // namespace
+ 
+ namespace atom {
+ 
+ bool CheckCommandLineArguments(int argc, base::CommandLine::CharType** argv) {
+   const base::CommandLine::StringType dashdash(2, '-');
++<<<<<<< .our
+   bool block_args = false;
+   for (int i = 0; i < argc; ++i) {
+     if (argv[i] == dashdash)
+@@ -45,6 +1416,17 @@
+       return false;
+     } else if (IsUrlArg(argv[i])) {
+       block_args = true;
++=======
++  bool block_blacklisted_args = false;
++  for (int i = 0; i < argc; ++i) {
++    if (argv[i] == dashdash)
++      break;
++    if (block_blacklisted_args) {
++      if (IsBlacklistedArg(argv[i]))
++        return false;
++    } else if (IsUrlArg(argv[i])) {
++      block_blacklisted_args = true;
++>>>>>>> .their
+     }
+   }
+   return true;
+added in both
+  our    100644 2c0acc1648ff3b4bc574f000643069f8ef8e94bb atom/app/command_line_args.h
+  their  100644 1f5fd756868898e7a304c754d89625059d36441f atom/app/command_line_args.h
+@@ -14,3 +14,7 @@
+ }  // namespace atom
+ 
+ #endif  // ATOM_APP_COMMAND_LINE_ARGS_H_
++<<<<<<< .our
++=======
++
++>>>>>>> .their
+changed in both
+  base   100644 1024bb0c6ccbe529f8302e1d08cf48ce147ff364 atom/browser/api/atom_api_app.cc
+  our    100644 089a2b63d1bae3afebea925582a3aac81ddeaa4f atom/browser/api/atom_api_app.cc
+  their  100644 03a6fd0c745a88dfe470e4235a3efcc25cdd37e1 atom/browser/api/atom_api_app.cc
+changed in both
+  base   100644 77c3212e2e02cbfd1187c630cd6c04942a7fc14a atom/browser/atom_browser_client.cc
+  our    100644 57c4ee582405e6d501ec23940ccb10689ecd64a1 atom/browser/atom_browser_client.cc
+  their  100644 af4de9f924b98b659722cd9ef4e22b9e7652ce30 atom/browser/atom_browser_client.cc
+@@ -27,6 +27,7 @@
+ #include "base/command_line.h"
+ #include "base/environment.h"
+ #include "base/files/file_util.h"
++#include "base/path_service.h"
+ #include "base/stl_util.h"
+ #include "base/strings/string_number_conversions.h"
+ #include "base/strings/string_util.h"
+@@ -41,7 +42,10 @@
+ #include "content/public/browser/site_instance.h"
+ #include "content/public/browser/web_contents.h"
+ #include "content/public/common/content_paths.h"
++<<<<<<< .our
+ #include "content/public/common/content_switches.h"
++=======
++>>>>>>> .their
+ #include "content/public/common/url_constants.h"
+ #include "content/public/common/web_preferences.h"
+ #include "net/ssl/ssl_cert_request_info.h"
+@@ -296,6 +300,7 @@
+     base::CommandLine* command_line,
+     int process_id) {
+   // Make sure we're about to launch a known executable
++<<<<<<< .our
+   {
+     base::FilePath child_path;
+     PathService::Get(content::CHILD_PROCESS_EXE, &child_path);
+@@ -307,6 +312,14 @@
+   std::string process_type =
+       command_line->GetSwitchValueASCII(::switches::kProcessType);
+   if (process_type != ::switches::kRendererProcess)
++=======
++  base::FilePath child_path;
++  PathService::Get(content::CHILD_PROCESS_EXE, &child_path);
++  CHECK(base::MakeAbsoluteFilePath(command_line->GetProgram()) == child_path);
++
++  std::string process_type = command_line->GetSwitchValueASCII("type");
++  if (process_type != "renderer")
++>>>>>>> .their
+     return;
+ 
+   // Copy following switches to child process.
+changed in both
+  base   100644 abd2fb53f1e2ad7b6df9f25f216b5ccb9d6dc7c6 atom/browser/atom_resource_dispatcher_host_delegate.cc
+  our    100644 934b0ebaa49b711490c58fc73b91985633cba439 atom/browser/atom_resource_dispatcher_host_delegate.cc
+  their  100644 12038ff1bf501dffa1df6512d7a66cfa3666bd29 atom/browser/atom_resource_dispatcher_host_delegate.cc
+@@ -5,13 +5,24 @@
+ #include "atom/browser/atom_resource_dispatcher_host_delegate.h"
+ 
+ #include "atom/browser/atom_browser_context.h"
++<<<<<<< .our
+ #include "atom/browser/web_contents_permission_helper.h"
+ #include "atom/browser/web_contents_preferences.h"
++=======
++#include "atom/browser/login_handler.h"
++#include "atom/browser/web_contents_permission_helper.h"
++#include "atom/browser/web_contents_preferences.h"
++#include "atom/common/atom_constants.h"
++>>>>>>> .their
+ #include "atom/common/platform_util.h"
+ #include "base/strings/utf_string_conversions.h"
+ #include "content/public/browser/browser_thread.h"
+ #include "content/public/browser/download_manager.h"
++<<<<<<< .our
+ #include "content/public/browser/render_frame_host.h"
++=======
++#include "content/public/browser/stream_info.h"
++>>>>>>> .their
+ #include "net/base/escape.h"
+ #include "url/gurl.h"
+ 
+@@ -69,6 +80,7 @@
+   if (!web_contents)
+     return;
+ 
++<<<<<<< .our
+   auto* web_preferences = WebContentsPreferences::From(web_contents);
+   if (!web_preferences || !web_preferences->IsEnabled(options::kPlugins)) {
+     auto* browser_context = web_contents->GetBrowserContext();
+@@ -78,6 +90,16 @@
+     download_manager->DownloadUrl(
+         content::DownloadUrlParameters::CreateForWebContentsMainFrame(
+             web_contents, original_url, NO_TRAFFIC_ANNOTATION_YET));
++=======
++  if (!WebContentsPreferences::IsPluginsEnabled(web_contents)) {
++    auto browser_context = web_contents->GetBrowserContext();
++    auto download_manager =
++      content::BrowserContext::GetDownloadManager(browser_context);
++
++    download_manager->DownloadUrl(
++        content::DownloadUrlParameters::CreateForWebContentsMainFrame(
++            web_contents, original_url));
++>>>>>>> .their
+     return;
+   }
+ 
+changed in both
+  base   100644 9610d80693b1670f696f82812442419504d61454 atom/browser/relauncher.cc
+  our    100644 35c6785e3d87d21eaea27ad5818434d870326047 atom/browser/relauncher.cc
+  their  100644 9dfb6edd06661f302ca7498a2ba34f0ce70c938b atom/browser/relauncher.cc
+changed in both
+  base   100644 d260d2e71f37054b1d948ae5ace28bbfd557cc7d atom/browser/resources/mac/Info.plist
+  our    100644 9094f0f7335edf833d51f688851e6a105de60433 atom/browser/resources/mac/Info.plist
+  their  100644 f752915815a454c7bd99b1c285c7438e3303261a atom/browser/resources/mac/Info.plist
+@@ -17,9 +17,15 @@
+   <key>CFBundleIconFile</key>
+   <string>electron.icns</string>
+   <key>CFBundleVersion</key>
++<<<<<<< .our
+   <string>4.0.0</string>
+   <key>CFBundleShortVersionString</key>
+   <string>4.0.0</string>
++=======
++  <string>1.6.18</string>
++  <key>CFBundleShortVersionString</key>
++  <string>1.6.18</string>
++>>>>>>> .their
+   <key>LSApplicationCategoryType</key>
+   <string>public.app-category.developer-tools</string>
+   <key>LSMinimumSystemVersion</key>
+changed in both
+  base   100644 de126c8f957c96561b27cfa62212ac1d2f3ea36c atom/browser/resources/win/atom.rc
+  our    100644 c0bd831e8bddf10180f75cd40694831e2e98622d atom/browser/resources/win/atom.rc
+  their  100644 b7bed46340edf0b11522421b793d3e9b3be8c205 atom/browser/resources/win/atom.rc
+@@ -56,8 +56,13 @@
+ //
+ 
+ VS_VERSION_INFO VERSIONINFO
++<<<<<<< .our
+  FILEVERSION 4,0,0,20180821
+  PRODUCTVERSION 4,0,0,20180821
++=======
++ FILEVERSION 1,6,18,0
++ PRODUCTVERSION 1,6,18,0
++>>>>>>> .their
+  FILEFLAGSMASK 0x3fL
+ #ifdef _DEBUG
+  FILEFLAGS 0x1L
+@@ -74,12 +79,20 @@
+         BEGIN
+             VALUE "CompanyName", "GitHub, Inc."
+             VALUE "FileDescription", "Electron"
++<<<<<<< .our
+             VALUE "FileVersion", "4.0.0"
++=======
++            VALUE "FileVersion", "1.6.18"
++>>>>>>> .their
+             VALUE "InternalName", "electron.exe"
+             VALUE "LegalCopyright", "Copyright (C) 2015 GitHub, Inc. All rights reserved."
+             VALUE "OriginalFilename", "electron.exe"
+             VALUE "ProductName", "Electron"
++<<<<<<< .our
+             VALUE "ProductVersion", "4.0.0"
++=======
++            VALUE "ProductVersion", "1.6.18"
++>>>>>>> .their
+             VALUE "SquirrelAwareVersion", "1"
+         END
+     END
+changed in both
+  base   100644 266d10b96db9b8fb553f94027a9bc871008e5c38 atom/browser/ui/views/global_menu_bar_x11.cc
+  our    100644 656bd8f991f87c06a240cdc09a3bfcd500d1c1c8 atom/browser/ui/views/global_menu_bar_x11.cc
+  their  100644 b3f37880ce8b302c5a805e81c62d1b52df1a99c0 atom/browser/ui/views/global_menu_bar_x11.cc
+@@ -159,9 +159,15 @@
+ std::string GetMenuModelStatus(AtomMenuModel* model) {
+   std::string ret;
+   for (int i = 0; i < model->GetItemCount(); ++i) {
++<<<<<<< .our
+     int status = model->GetTypeAt(i) | (model->IsVisibleAt(i) << 3) |
+                  (model->IsEnabledAt(i) << 4) |
+                  (model->IsItemCheckedAt(i) << 5);
++=======
++    int status = model->GetTypeAt(i) | (model->IsVisibleAt(i) << 3)
++                                     | (model->IsEnabledAt(i) << 4)
++                                     | (model->IsItemCheckedAt(i) << 5);
++>>>>>>> .their
+     ret += base::StringPrintf(
+         "%s-%X\n", base::UTF16ToUTF8(model->GetLabelAt(i)).c_str(), status);
+   }
+changed in both
+  base   100644 7bb8605039a10e0c98d75559052a3f7701f1e9c1 atom/browser/web_contents_preferences.cc
+  our    100644 c21c93383155091a7481cdd4e741cefad90a4a55 atom/browser/web_contents_preferences.cc
+  their  100644 14e82398ccf86316cf2df336a583d143475a77d2 atom/browser/web_contents_preferences.cc
+@@ -334,10 +334,44 @@
+     }
+   }
+ 
++<<<<<<< .our
+   // We are appending args to a webContents so let's save the current state
+   // of our preferences object so that during the lifetime of the WebContents
+   // we can fetch the options used to initally configure the WebContents
+   last_preference_ = preference_.Clone();
++=======
++  if (window) {
++    bool visible = window->IsVisible() && !window->IsMinimized();
++    if (!visible)  // Default state is visible.
++      command_line->AppendSwitch(switches::kHiddenPage);
++  }
++}
++
++bool WebContentsPreferences::IsPreferenceEnabled(
++    const std::string& attribute_name,
++    content::WebContents* web_contents) {
++  WebContentsPreferences* self;
++  if (!web_contents)
++    return false;
++
++  self = FromWebContents(web_contents);
++  if (!self)
++    return false;
++
++  base::DictionaryValue& web_preferences = self->web_preferences_;
++  bool bool_value = false;
++  web_preferences.GetBoolean(attribute_name, &bool_value);
++  return bool_value;
++}
++
++bool WebContentsPreferences::IsSandboxed(content::WebContents* web_contents) {
++  return IsPreferenceEnabled("sandbox", web_contents);
++}
++
++bool WebContentsPreferences::IsPluginsEnabled(
++    content::WebContents* web_contents) {
++  return IsPreferenceEnabled("plugins", web_contents);
++>>>>>>> .their
+ }
+ 
+ void WebContentsPreferences::OverrideWebkitPrefs(
+changed in both
+  base   100644 f6e44c51b10abbd3cf3c5c8b94956347a029e521 atom/browser/web_contents_preferences.h
+  our    100644 d835347afcd259f473f95271a2c19e42afcc6f2b atom/browser/web_contents_preferences.h
+  their  100644 607b4223852c3e7cd1e58e3812285f235699d3cb atom/browser/web_contents_preferences.h
+@@ -29,8 +29,27 @@
+ class WebContentsPreferences
+     : public content::WebContentsUserData<WebContentsPreferences> {
+  public:
++<<<<<<< .our
+   // Get self from WebContents.
+   static WebContentsPreferences* From(content::WebContents* web_contents);
++=======
++  // Get WebContents according to process ID.
++  // FIXME(zcbenz): This method does not belong here.
++  static content::WebContents* GetWebContentsFromProcessID(int process_id);
++
++  // Append command paramters according to |web_contents|'s preferences.
++  static void AppendExtraCommandLineSwitches(
++      content::WebContents* web_contents, base::CommandLine* command_line);
++
++  static bool IsPreferenceEnabled(const std::string& attribute_name,
++                                  content::WebContents* web_contents);
++  static bool IsSandboxed(content::WebContents* web_contents);
++  static bool IsPluginsEnabled(content::WebContents* web_contents);
++
++  // Modify the WebPreferences according to |web_contents|'s preferences.
++  static void OverrideWebkitPrefs(
++      content::WebContents* web_contents, content::WebPreferences* prefs);
++>>>>>>> .their
+ 
+   WebContentsPreferences(content::WebContents* web_contents,
+                          const mate::Dictionary& web_preferences);
+changed in both
+  base   100644 08880ffe4a3591d9010f55ef18ce288e69101fe1 atom/common/atom_command_line.cc
+  our    100644 287e43f75fef778948ef9acdac8b9a7edfe07d0a atom/common/atom_command_line.cc
+  their  100644 54420b533a6b2600a87c95645b73bc01fbf0122f atom/common/atom_command_line.cc
+changed in both
+  base   100644 5e7df1040f829acfc43130f307f41c3819b258c5 atom/common/atom_version.h
+  our    100644 65e7d19911559a40b1b258319df5fe0fa180354f atom/common/atom_version.h
+  their  100644 d4aefe90dd22ed5d783ab5ec42ef2b7593c47180 atom/common/atom_version.h
+@@ -5,10 +5,22 @@
+ #ifndef ATOM_COMMON_ATOM_VERSION_H_
+ #define ATOM_COMMON_ATOM_VERSION_H_
+ 
++<<<<<<< .our
+ #define ATOM_MAJOR_VERSION 4
+ #define ATOM_MINOR_VERSION 0
+ #define ATOM_PATCH_VERSION 0
+ #define ATOM_PRE_RELEASE_VERSION -nightly.20180821
++=======
++#define ATOM_MAJOR_VERSION 1
++#define ATOM_MINOR_VERSION 6
++#define ATOM_PATCH_VERSION 18
++
++#define ATOM_VERSION_IS_RELEASE 1
++
++#ifndef ATOM_TAG
++# define ATOM_TAG ""
++#endif
++>>>>>>> .their
+ 
+ #ifndef ATOM_STRINGIFY
+ #define ATOM_STRINGIFY(n) ATOM_STRINGIFY_HELPER(n)
+changed in both
+  base   100644 ae757b1da88331bf904df6e2198d5aa222a4149b atom/common/node_bindings.cc
+  our    100644 e6aded2e661af919c2d89c2f9bd46b4921d4aec4 atom/common/node_bindings.cc
+  their  100644 b5f1379059e24aa6b9823d1ed011ee8907a312d5 atom/common/node_bindings.cc
+@@ -228,8 +228,12 @@
+ }
+ 
+ node::Environment* NodeBindings::CreateEnvironment(
++<<<<<<< .our
+     v8::Handle<v8::Context> context,
+     node::MultiIsolatePlatform* platform) {
++=======
++    v8::Handle<v8::Context> context) {
++>>>>>>> .their
+ #if defined(OS_WIN)
+   auto& atom_args = AtomCommandLine::argv();
+   std::vector<std::string> args(atom_args.size());
+@@ -255,8 +259,13 @@
+   base::FilePath resources_path = GetResourcesPath(browser_env_ == BROWSER);
+   base::FilePath script_path =
+       resources_path.Append(FILE_PATH_LITERAL("electron.asar"))
++<<<<<<< .our
+           .Append(process_type)
+           .Append(FILE_PATH_LITERAL("init.js"));
++=======
++                    .Append(process_type)
++                    .Append(FILE_PATH_LITERAL("init.js"));
++>>>>>>> .their
+   args.insert(args.begin() + 1, script_path.AsUTF8Unsafe());
+ 
+   std::unique_ptr<const char* []> c_argv = StringVectorToArgArray(args);
+changed in both
+  base   100644 f103b89391d3bc54d364e48c39f45e971c15dbe8 atom/renderer/api/atom_api_web_frame.cc
+  our    100644 f0f7ef249d73876f7107d3d3865e8fc71ee33945 atom/renderer/api/atom_api_web_frame.cc
+  their  100644 0bc9e6ea4e81e33b183f11222999846faacc12c6 atom/renderer/api/atom_api_web_frame.cc
+@@ -282,9 +282,18 @@
+ }
+ 
+ void WebFrame::InsertText(const std::string& text) {
++<<<<<<< .our
+   web_frame_->FrameWidget()->GetActiveWebInputMethodController()->CommitText(
+       blink::WebString::FromUTF8(text),
+       blink::WebVector<blink::WebImeTextSpan>(), blink::WebRange(), 0);
++=======
++  web_frame_->frameWidget()
++            ->getActiveWebInputMethodController()
++            ->commitText(blink::WebString::fromUTF8(text),
++                         blink::WebVector<blink::WebCompositionUnderline>(),
++                         blink::WebRange(),
++                         0);
++>>>>>>> .their
+ }
+ 
+ void WebFrame::InsertCSS(const std::string& css) {
+changed in both
+  base   100644 5dafe084ce279a8b1b761d8cb7b7aa9c4469c504 atom/renderer/atom_renderer_client.cc
+  our    100644 204f17c2cf0d2d4ec4a71bdbecfcd1cbdc5fc8be atom/renderer/atom_renderer_client.cc
+  their  100644 f8744b7be8236b5bb200654aa28bb6f653d3a479 atom/renderer/atom_renderer_client.cc
+changed in both
+  base   100644 cf537474af244ef281567dc03879ca88400340c5 docs/api/app.md
+  our    100644 14dc557e237404cbbd5bcebabb0e65486dc36926 docs/api/app.md
+  their  100644 614989dc99c609075fb7d34782cffc237b141db6 docs/api/app.md
+@@ -773,6 +773,8 @@
+ 
+ Returns `Boolean`
+ 
++Returns `Boolean`.
++
+ This method makes your application a Single Instance Application - instead of
+ allowing multiple instances of your app to run, this will ensure that only a
+ single instance of your app is running, and other instances signal this
+changed in both
+  base   100644 3b7e6f9b9bf39edf56e18c0c9bd533ecc460593e docs/api/browser-view.md
+  our    100644 ee1780942db5565c9c9a9e3a4139345c413e1eb9 docs/api/browser-view.md
+  their  100644 2779beebfab48dec68181111ed9b63ea30be9cad docs/api/browser-view.md
+@@ -72,6 +72,7 @@
+ ### Instance Methods
+ 
+ Objects created with `new BrowserView` have the following instance methods:
++<<<<<<< .our
+ 
+ #### `view.destroy()`
+ 
+@@ -82,6 +83,8 @@
+ #### `view.isDestroyed()`
+ 
+ Returns `Boolean` - Whether the view is destroyed.
++=======
++>>>>>>> .their
+ 
+ #### `view.setAutoResize(options)` _Experimental_
+ 
+changed in both
+  base   100644 8fcc3f8213d0b2c79b97d368574e5cd6f1efb273 docs/api/browser-window.md
+  our    100644 dff61dd336f047cf2f6f06228b2df2b98ff2304d docs/api/browser-window.md
+  their  100644 cf46fac8ea4ee5eb81ff74b72b6356cefa61e2be docs/api/browser-window.md
+@@ -1165,7 +1165,11 @@
+   * `httpReferrer` (String | [Referrer](structures/referrer.md)) (optional) - An HTTP Referrer url.
+   * `userAgent` String (optional) - A user agent originating the request.
+   * `extraHeaders` String (optional) - Extra headers separated by "\n"
++<<<<<<< .our
+   * `postData` ([UploadRawData[]](structures/upload-raw-data.md) | [UploadFile[]](structures/upload-file.md) | [UploadBlob[]](structures/upload-blob.md)) (optional)
++=======
++  * `postData` ([UploadRawData[]](structures/upload-raw-data.md) | [UploadFile[]](structures/upload-file.md) | [UploadFileSystem[]](structures/upload-file-system.md) | [UploadBlob[]](structures/upload-blob.md)) - (optional)
++>>>>>>> .their
+   * `baseURLForDataURL` String (optional) - Base url (with trailing path separator) for files to be loaded by the data url. This is needed only if the specified `url` is a data url and needs to load other files.
+ 
+ Same as `webContents.loadURL(url[, options])`.
+changed in both
+  base   100644 da496436b324dfc0ad670cd6634c6eb91664b089 docs/api/native-image.md
+  our    100644 d2951b5b273d3803d46b370d5652669b0349442f docs/api/native-image.md
+  their  100644 8163c23396250bd997c080a00ddcfc2e72a32392 docs/api/native-image.md
+changed in both
+  base   100644 69c67f16cc82eab6bd9c9adbe8dd9a229598f5f2 docs/api/structures/memory-info.md
+  our    100644 fe0b7d4d7efc965c2435af3e4fe5580f5867a8f3 docs/api/structures/memory-info.md
+  their  100644 f6b9d17aaa19749f48d81241adc41638cb90fd67 docs/api/structures/memory-info.md
+changed in both
+  base   100644 98b1cbd2f24196747ea01690456cabec37c5070f docs/api/web-contents.md
+  our    100644 8990fe2e97ab62eafdd3f7a4eb8ee782415124c5 docs/api/web-contents.md
+  their  100644 965c6e4df4769f7cd16cbcbe32c3e9baeca0e7ba docs/api/web-contents.md
+@@ -633,8 +633,13 @@
+ * `options` Object (optional)
+   * `httpReferrer` (String | [Referrer](structures/referrer.md)) (optional) - An HTTP Referrer url.
+   * `userAgent` String (optional) - A user agent originating the request.
++<<<<<<< .our
+   * `extraHeaders` String (optional) - Extra headers separated by "\n".
+   * `postData` ([UploadRawData[]](structures/upload-raw-data.md) | [UploadFile[]](structures/upload-file.md) | [UploadBlob[]](structures/upload-blob.md)) (optional)
++=======
++  * `extraHeaders` String (optional) - Extra headers separated by "\n"
++  * `postData` ([UploadRawData[]](structures/upload-raw-data.md) | [UploadFile[]](structures/upload-file.md) | [UploadFileSystem[]](structures/upload-file-system.md) | [UploadBlob[]](structures/upload-blob.md)) - (optional)
++>>>>>>> .their
+   * `baseURLForDataURL` String (optional) - Base url (with trailing path separator) for files to be loaded by the data url. This is needed only if the specified `url` is a data url and needs to load other files.
+ 
+ Loads the `url` in the window. The `url` must contain the protocol prefix,
+changed in both
+  base   100644 1da5679c18ad9b86fb354b934efc850b82cd99fc docs/api/webview-tag.md
+  our    100644 8dc16b4a4e92ad132c7722ac400e2be851723f9b docs/api/webview-tag.md
+  their  100644 8c5ce3ddd15567e763ccd103cfe866b9332f4d45 docs/api/webview-tag.md
+@@ -266,7 +266,11 @@
+   * `httpReferrer` (String | [Referrer](structures/referrer.md)) (optional) - An HTTP Referrer url.
+   * `userAgent` String (optional) - A user agent originating the request.
+   * `extraHeaders` String (optional) - Extra headers separated by "\n"
++<<<<<<< .our
+   * `postData` ([UploadRawData[]](structures/upload-raw-data.md) | [UploadFile[]](structures/upload-file.md) | [UploadBlob[]](structures/upload-blob.md)) (optional)
++=======
++  * `postData` ([UploadRawData[]](structures/upload-raw-data.md) | [UploadFile[]](structures/upload-file.md) | [UploadFileSystem[]](structures/upload-file-system.md) | [UploadBlob[]](structures/upload-blob.md)) - (optional)
++>>>>>>> .their
+   * `baseURLForDataURL` String (optional) - Base url (with trailing path separator) for files to be loaded by the data url. This is needed only if the specified `url` is a data url and needs to load other files.
+ 
+ Loads the `url` in the webview, the `url` must contain the protocol prefix,
+@@ -469,6 +473,7 @@
+ 
+ * `text` String - Content to be searched, must not be empty.
+ * `options` Object (optional)
++<<<<<<< .our
+   * `forward` Boolean (optional) - Whether to search forward or backward, defaults to `true`.
+   * `findNext` Boolean (optional) - Whether the operation is first request or a follow up,
+     defaults to `false`.
+@@ -477,6 +482,16 @@
+   * `wordStart` Boolean (optional) - Whether to look only at the start of words.
+     defaults to `false`.
+   * `medialCapitalAsWordStart` Boolean (optional) - When combined with `wordStart`,
++=======
++  * `forward` Boolean - (optional) Whether to search forward or backward, defaults to `true`.
++  * `findNext` Boolean - (optional) Whether the operation is first request or a follow up,
++    defaults to `false`.
++  * `matchCase` Boolean - (optional) Whether search should be case-sensitive,
++    defaults to `false`.
++  * `wordStart` Boolean - (optional) Whether to look only at the start of words.
++    defaults to `false`.
++  * `medialCapitalAsWordStart` Boolean - (optional) When combined with `wordStart`,
++>>>>>>> .their
+     accepts a match in the middle of a word if the match begins with an
+     uppercase letter followed by a lowercase or non-letter.
+     Accepts several other intra-word matches, defaults to `false`.
+changed in both
+  base   100644 5987a5b541a4c048c88689a15fa158a65d595761 electron.gyp
+  our    100644 944ddab2a3fd879044e31677e4bac2843fffbdee electron.gyp
+  their  100644 2cf6bd03301819081502b7ea4d6b91a31a2e3e01 electron.gyp
+@@ -4,7 +4,11 @@
+     'product_name%': 'Electron',
+     'company_name%': 'GitHub, Inc',
+     'company_abbr%': 'github',
++<<<<<<< .our
+     'version%': '4.0.0-nightly.20180821',
++=======
++    'version%': '1.6.18',
++>>>>>>> .their
+     'js2c_input_dir': '<(SHARED_INTERMEDIATE_DIR)/js2c',
+   },
+   'includes': [
+changed in both
+  base   100644 8408b273e660abe6dddc9f84c90adb2bff42171e filenames.gypi
+  our    100644 f57860558f06b7e5d8a50f48cfc7e53044df0bc6 filenames.gypi
+  their  100644 05103b458f292c4327162130853a6562569afece filenames.gypi
+@@ -114,6 +114,11 @@
+       'atom/app/atom_main_delegate_mac.mm',
+       'atom/app/command_line_args.cc',
+       'atom/app/command_line_args.h',
++<<<<<<< .our
++=======
++      'atom/app/node_main.cc',
++      'atom/app/node_main.h',
++>>>>>>> .their
+       'atom/app/uv_task_runner.cc',
+       'atom/app/uv_task_runner.h',
+       'atom/browser/api/atom_api_app.cc',
+changed in both
+  base   100644 d1ca60280e9371c3c6697081079b8c97f0b66629 lib/browser/api/app.js
+  our    100644 66f6ae651acf10fb19b8ec068fc5280850dd3d91 lib/browser/api/app.js
+  their  100644 8564c1394d7e85c1a05c84e039d7467cfd95f11c lib/browser/api/app.js
+@@ -78,6 +78,14 @@
+   }
+ }
+ 
++// end-of-life support warning. goodbye, `electron/1-6-x` ...
++console.warn(
++  'Electron 1.6.x has reached the end of its support cycle.\n',
++  'Developers are encouraged to upgrade their applications to a newer series.\n',
++  'Read about newer series at https://electronjs.org/releases .\n',
++  'Read about Electron support at https://electronjs.org/docs/tutorial/support#supported-versions .'
++)
++
+ if (process.platform === 'linux') {
+   app.launcher = {
+     setBadgeCount: bindings.unityLauncherSetBadgeCount,
+changed in both
+  base   100644 55b8372f52cf485ea5f812baed5f48296bacb962 lib/browser/api/auto-updater/auto-updater-win.js
+  our    100644 7fead4aabb4a8768db4e4d3bc13da4927cf3c42e lib/browser/api/auto-updater/auto-updater-win.js
+  their  100644 fced1258797756160d28cd1a16e0e5515d39bf5b lib/browser/api/auto-updater/auto-updater-win.js
+changed in both
+  base   100644 4783a9dd98852f303fe50e6fd03dabdecd6d0693 lib/browser/api/auto-updater/squirrel-update-win.js
+  our    100644 fecf7958cd0afd54e978f011f5f87eea751faf6d lib/browser/api/auto-updater/squirrel-update-win.js
+  their  100644 60345f1a1abead139d280b14457e558c6467de45 lib/browser/api/auto-updater/squirrel-update-win.js
+changed in both
+  base   100644 8d543f2d7d3003de981a3067eedecf12887c4eed lib/browser/rpc-server.js
+  our    100644 ff9f77321de3a4145946b67f3fe2a597f98e2510 lib/browser/rpc-server.js
+  their  100644 815298d3d9de8af137f8b3c7a5cf6dd47c5d66c8 lib/browser/rpc-server.js
+@@ -387,12 +387,21 @@
+   objectsRegistry.remove(event.sender, contextId, id)
+ })
+ 
++<<<<<<< .our
+ ipcMain.on('ELECTRON_BROWSER_CONTEXT_RELEASE', (event, contextId) => {
+   objectsRegistry.clear(event.sender, contextId)
+   event.returnValue = null
+ })
+ 
+ ipcMain.on('ELECTRON_BROWSER_GUEST_WEB_CONTENTS', function (event, contextId, guestInstanceId) {
++=======
++ipcMain.on('ELECTRON_BROWSER_CONTEXT_RELEASE', (e) => {
++  objectsRegistry.clear(e.sender.getId())
++  e.returnValue = null
++})
++
++ipcMain.on('ELECTRON_BROWSER_GUEST_WEB_CONTENTS', function (event, guestInstanceId) {
++>>>>>>> .their
+   try {
+     let guestViewManager = require('./guest-view-manager')
+     event.returnValue = valueToMeta(event.sender, contextId, guestViewManager.getGuest(guestInstanceId))
+changed in both
+  base   100644 5e790133d383a5cb413030ecdee9049507960828 lib/renderer/api/remote.js
+  our    100644 59117f8f2dd977fc1817a6b1d540b616ddcb0dae lib/renderer/api/remote.js
+  their  100644 fdc95cdb5cdd66e503f605e1456a040cb7bc465c lib/renderer/api/remote.js
+@@ -293,10 +293,20 @@
+   callbacksRegistry.remove(id)
+ })
+ 
++<<<<<<< .our
+ exports.require = (module) => {
+   const command = 'ELECTRON_BROWSER_REQUIRE'
+   const meta = ipcRenderer.sendSync(command, contextId, module)
+   return metaToValue(meta)
++=======
++process.on('exit', () => {
++  ipcRenderer.sendSync('ELECTRON_BROWSER_CONTEXT_RELEASE')
++})
++
++// Get remote module.
++exports.require = function (module) {
++  return metaToValue(ipcRenderer.sendSync('ELECTRON_BROWSER_REQUIRE', module))
++>>>>>>> .their
+ }
+ 
+ // Alias to remote.require('electron').xxx.
+added in both
+  our    100755 48cdef8f1988b6d3d6ab27a7adc598108c2e987d npm/cli.js
+  their  100755 bfe2c11be311eff92a95b576d04d08db4a29f52b npm/cli.js
+@@ -8,6 +8,7 @@
+ child.on('close', function (code) {
+   process.exit(code)
+ })
++<<<<<<< .our
+ 
+ const handleTerminationSignal = function (signal) {
+   process.on(signal, function signalHandler () {
+@@ -19,3 +20,5 @@
+ 
+ handleTerminationSignal('SIGINT')
+ handleTerminationSignal('SIGTERM')
++=======
++>>>>>>> .their
+added in both
+  our    100644 b33c9b493f3bbbbc47a945b0ef0d19d003ced3b6 npm/index.js
+  their  100644 eb480b9e01dd1cae541ebb8295ce7a766beb38a0 npm/index.js
+@@ -3,6 +3,7 @@
+ 
+ var pathFile = path.join(__dirname, 'path.txt')
+ 
++<<<<<<< .our
+ function getElectronPath () {
+   if (fs.existsSync(pathFile)) {
+     var executablePath = fs.readFileSync(pathFile, 'utf-8')
+@@ -16,3 +17,10 @@
+ }
+ 
+ module.exports = getElectronPath()
++=======
++if (fs.existsSync(pathFile)) {
++  module.exports = path.join(__dirname, fs.readFileSync(pathFile, 'utf-8'))
++} else {
++  throw new Error('Electron failed to install correctly, please delete node_modules/electron and try installing again')
++}
++>>>>>>> .their
+added in both
+  our    100755 ed208de247ef151147c58d9efc4af9519e983f86 npm/install.js
+  their  100755 3a93295f35db537f92c7599518ee798bf70852ed npm/install.js
+@@ -1,6 +1,11 @@
+ #!/usr/bin/env node
+ 
++<<<<<<< .our
+ var version = require('./package').version
++=======
++// maintainer note - x.y.z-ab version in package.json -> x.y.z
++var version = require('./package').version.replace(/-.*/, '')
++>>>>>>> .their
+ 
+ var fs = require('fs')
+ var os = require('os')
+@@ -17,9 +22,13 @@
+ 
+ var platformPath = getPlatformPath()
+ 
++<<<<<<< .our
+ var electronPath = process.env.ELECTRON_OVERRIDE_DIST_PATH || path.join(__dirname, 'dist', platformPath)
+ 
+ if (installedVersion === version && fs.existsSync(electronPath)) {
++=======
++if (installedVersion === version && fs.existsSync(path.join(__dirname, platformPath))) {
++>>>>>>> .their
+   process.exit(0)
+ }
+ 
+@@ -31,7 +40,11 @@
+   arch: process.env.npm_config_arch,
+   strictSSL: process.env.npm_config_strict_ssl === 'true',
+   force: process.env.force_no_cache === 'true',
++<<<<<<< .our
+   quiet: process.env.npm_config_loglevel === 'silent' || process.env.CI
++=======
++  quiet: ['info', 'verbose', 'silly', 'http'].indexOf(process.env.npm_config_loglevel) === -1
++>>>>>>> .their
+ }, extractFile)
+ 
+ // unzips and makes path.txt point at the correct executable
+@@ -54,12 +67,21 @@
+ 
+   switch (platform) {
+     case 'darwin':
++<<<<<<< .our
+       return 'Electron.app/Contents/MacOS/Electron'
+     case 'freebsd':
+     case 'linux':
+       return 'electron'
+     case 'win32':
+       return 'electron.exe'
++=======
++      return 'dist/Electron.app/Contents/MacOS/Electron'
++    case 'freebsd':
++    case 'linux':
++      return 'dist/electron'
++    case 'win32':
++      return 'dist/electron.exe'
++>>>>>>> .their
+     default:
+       throw new Error('Electron builds are not available on platform: ' + platform)
+   }
+added in both
+  our    100644 788f4681727fa501a87262d16ccbe6186ed74818 npm/package.json
+  their  100644 87935105dca77cfbb830ae4e4db76ce65d99f0e3 npm/package.json
+@@ -11,8 +11,13 @@
+   "main": "index.js",
+   "types": "electron.d.ts",
+   "dependencies": {
++<<<<<<< .our
+     "@types/node": "^8.0.24",
+     "electron-download": "^4.1.0",
++=======
++    "@types/node": "^7.0.18",
++    "electron-download": "^3.0.1",
++>>>>>>> .their
+     "extract-zip": "^1.0.3"
+   },
+   "devDependencies": {
+@@ -22,8 +27,11 @@
+   },
+   "directories": {
+     "test": "test"
++<<<<<<< .our
+   },
+   "engines": {
+     "node": ">= 4.0"
++=======
++>>>>>>> .their
+   }
+ }
+changed in both
+  base   100644 a6ab2737818e36c514576ae34ef6dc88a5b7b5e2 package.json
+  our    100644 c081cd89450cd50efba1ec280ff1349a96ea3ce0 package.json
+  their  100644 6efecd9c6aa915c7ef83f6732684d1f9d4125310 package.json
+@@ -1,5 +1,6 @@
+ {
+   "name": "electron",
++<<<<<<< .our
+   "version": "4.0.0-nightly.20180821",
+   "repository": "https://github.com/electron/electron",
+   "description": "Build cross platform desktop apps with JavaScript, HTML, and CSS",
+@@ -31,6 +32,28 @@
+     "standard-markdown": "^4.0.0",
+     "sumchecker": "^2.0.2",
+     "temp": "^0.8.3"
++=======
++  "version": "1.6.18",
++  "devDependencies": {
++    "asar": "^0.11.0",
++    "browserify": "^13.1.0",
++    "colors": "^1.1.2",
++    "dugite": "^1.57.0",
++    "electabul": "~0.0.4",
++    "electron-docs-linter": "^2.3.3",
++    "electron-typescript-definitions": "1.2.7",
++    "github": "^9.2.0",
++    "heads": "^1.3.0",
++    "minimist": "^1.2.0",
++    "nugget": "^2.0.1",
++    "request": "*",
++    "standard": "^8.4.0",
++    "standard-markdown": "^2.1.1",
++    "sumchecker": "^2.0.2"
++  },
++  "optionalDependencies": {
++    "runas": "^3.0.0"
++>>>>>>> .their
+   },
+   "standard": {
+     "ignore": [
+@@ -59,6 +82,7 @@
+     "clang-format": "find atom/ brightray/ chromium_src/ -iname *.h -o -iname *.cc -o -iname *.mm | xargs clang-format -i",
+     "coverage": "npm run instrument-code-coverage && npm test -- --use_instrumented_asar",
+     "instrument-code-coverage": "electabul instrument --input-path ./lib --output-path ./out/coverage/electron.asar",
++<<<<<<< .our
+     "lint": "npm run lint:js && npm run lint:cpp && npm run lint:clang-format && npm run lint:py && npm run lint:docs",
+     "lint:js": "standard && cd spec && standard",
+     "lint:clang-format": "python script/run-clang-format.py -r -c atom/ chromium_src/ brightray/ || (echo \"\\nCode not formatted correctly.\" && exit 1)",
+@@ -75,6 +99,17 @@
+     "precommit": "python script/run-clang-format.py -r -c atom/ chromium_src/ brightray/ && npm run lint:js && remark docs -qf || (echo \"Code not formatted correctly.\" && exit 1)",
+     "prepack": "check-for-leaks",
+     "prepush": "check-for-leaks",
++=======
++    "lint": "npm run lint-js && npm run lint-cpp && npm run lint-py && npm run lint-api-docs-js && npm run lint-api-docs",
++    "lint-js": "standard && cd spec && standard",
++    "lint-cpp": "python ./script/cpplint.py",
++    "lint-py": "python ./script/pylint.py",
++    "lint-api-docs-js": "standard-markdown docs && standard-markdown docs-translations",
++    "lint-api-docs": "electron-docs-linter",
++    "create-api-json": "electron-docs-linter docs --outfile=out/electron-api.json --version=$npm_package_version",
++    "create-typescript-definitions": "npm run create-api-json && electron-typescript-definitions --in=out/electron-api.json --out=out/electron.d.ts",
++    "preinstall": "node -e 'process.exit(0)'",
++>>>>>>> .their
+     "prepare-release": "node ./script/prepare-release.js",
+     "prerelease": "python ./script/bootstrap.py -v --dev && npm run build",
+     "release": "node ./script/release.js",
+changed in both
+  base   100755 4db30b71fca9996003fe44a71fa9d81499677bd2 script/bump-version.py
+  our    100755 564adb2116312b0f6d0351096bd89cb373cd3bab script/bump-version.py
+  their  100755 f7a78a6da63c56eeed78edd7b81362a35bcfea0b script/bump-version.py
+@@ -103,10 +103,14 @@
+     update_package_json(version, suffix)
+     tag_version(version, suffix)
+ 
++<<<<<<< .our
+   print 'Bumped to version: {0}'.format(version + suffix)
+ 
+ def not_reached():
+   raise Exception('Unreachable code was reached')
++=======
++  print 'Bumped to version: {0}'.format(version)
++>>>>>>> .their
+ 
+ def increase_version(versions, index):
+   for i in range(index + 1, 4):
+added in both
+  our    100644 be9f9597387f5f8b7bfddc61c202f32ce4c6d478 script/ci-release-build.js
+  their  100644 0335f1b0afd118d6166cf2a963633d3924cdf385 script/ci-release-build.js
+@@ -1,3 +1,4 @@
++<<<<<<< .our
+ require('dotenv-safe').load()
+ 
+ const assert = require('assert')
+@@ -21,6 +22,22 @@
+ const vstsJobs = [
+   'electron-release-mas-x64',
+   'electron-release-osx-x64'
++=======
++const assert = require('assert')
++const request = require('request')
++const buildAppVeyorURL = 'https://windows-ci.electronjs.org/api/builds'
++const jenkinsServer = 'https://mac-ci.electronjs.org'
++
++const circleCIJobs = [
++  'electron-linux-arm',
++  'electron-linux-ia32',
++  'electron-linux-x64'
++]
++
++const jenkinsJobs = [
++  'electron-mas-x64-release',
++  'electron-osx-x64-release'
++>>>>>>> .their
+ ]
+ 
+ async function makeRequest (requestOptions, parseResponse) {
+@@ -34,6 +51,7 @@
+           resolve(body)
+         }
+       } else {
++<<<<<<< .our
+         console.error('Error occurred while requesting:', requestOptions.url)
+         if (parseResponse) {
+           try {
+@@ -41,6 +59,10 @@
+           } catch (err) {
+             console.log('Error: ', `(status ${res.statusCode})`, err || res.body, requestOptions)
+           }
++=======
++        if (parseResponse) {
++          console.log('Error: ', `(status ${res.statusCode})`, err || JSON.parse(res.body), requestOptions)
++>>>>>>> .their
+         } else {
+           console.log('Error: ', `(status ${res.statusCode})`, err || res.body, requestOptions)
+         }
+@@ -50,7 +72,12 @@
+   })
+ }
+ 
++<<<<<<< .our
+ async function circleCIcall (buildUrl, targetBranch, job, options) {
++=======
++async function circleCIcall (buildUrl, targetBranch, job, ghRelease) {
++  assert(process.env.CIRCLE_TOKEN, 'CIRCLE_TOKEN not found in environment')
++>>>>>>> .their
+   console.log(`Triggering CircleCI to run build job: ${job} on branch: ${targetBranch} with release flag.`)
+   let buildRequest = {
+     'build_parameters': {
+@@ -58,16 +85,23 @@
+     }
+   }
+ 
++<<<<<<< .our
+   if (options.ghRelease) {
++=======
++  if (ghRelease) {
++>>>>>>> .their
+     buildRequest.build_parameters.ELECTRON_RELEASE = 1
+   } else {
+     buildRequest.build_parameters.RUN_RELEASE_BUILD = 'true'
+   }
+ 
++<<<<<<< .our
+   if (options.automaticRelease) {
+     buildRequest.build_parameters.AUTO_RELEASE = 'true'
+   }
+ 
++=======
++>>>>>>> .their
+   let circleResponse = await makeRequest({
+     method: 'POST',
+     url: buildUrl,
+@@ -79,6 +113,7 @@
+   }, true).catch(err => {
+     console.log('Error calling CircleCI:', err)
+   })
++<<<<<<< .our
+   console.log(`CircleCI release build request for ${job} successful.  Check ${circleResponse.build_url} for status.`)
+ }
+ 
+@@ -97,15 +132,29 @@
+   let environmentVariables = {}
+ 
+   if (options.ghRelease) {
++=======
++  console.log(`Check ${circleResponse.build_url} for status. (${job})`)
++}
++
++async function buildAppVeyor (targetBranch, ghRelease) {
++  console.log(`Triggering AppVeyor to run build on branch: ${targetBranch} with release flag.`)
++  assert(process.env.APPVEYOR_TOKEN, 'APPVEYOR_TOKEN not found in environment')
++  let environmentVariables = {}
++
++  if (ghRelease) {
++>>>>>>> .their
+     environmentVariables.ELECTRON_RELEASE = 1
+   } else {
+     environmentVariables.RUN_RELEASE_BUILD = 'true'
+   }
+ 
++<<<<<<< .our
+   if (options.automaticRelease) {
+     environmentVariables.AUTO_RELEASE = 'true'
+   }
+ 
++=======
++>>>>>>> .their
+   const requestOpts = {
+     url: buildAppVeyorURL,
+     auth: {
+@@ -116,7 +165,11 @@
+     },
+     body: JSON.stringify({
+       accountName: 'AppVeyor',
++<<<<<<< .our
+       projectSlug: appVeyorJobs[job],
++=======
++      projectSlug: 'electron',
++>>>>>>> .their
+       branch: targetBranch,
+       environmentVariables
+     }),
+@@ -125,6 +178,7 @@
+   let appVeyorResponse = await makeRequest(requestOpts, true).catch(err => {
+     console.log('Error calling AppVeyor:', err)
+   })
++<<<<<<< .our
+   const buildUrl = `https://windows-ci.electronjs.org/project/AppVeyor/${appVeyorJobs[job]}/build/${appVeyorResponse.version}`
+   console.log(`AppVeyor release build request for ${job} successful.  Check build status at ${buildUrl}`)
+ }
+@@ -200,12 +254,89 @@
+     console.log(`Error calling VSTS for job ${build.name}`, err)
+   })
+   console.log(`VSTS release build request for ${build.name} successful. Check ${vstsResponse._links.web.href} for status.`)
++=======
++  const buildUrl = `https://windows-ci.electronjs.org/project/AppVeyor/electron/build/${appVeyorResponse.version}`
++  console.log(`AppVeyor release build request successful.  Check build status at ${buildUrl}`)
++}
++
++function buildCircleCI (targetBranch, ghRelease, job) {
++  const circleBuildUrl = `https://circleci.com/api/v1.1/project/github/electron/electron/tree/${targetBranch}?circle-token=${process.env.CIRCLE_TOKEN}`
++  if (job) {
++    assert(circleCIJobs.includes(job), `Unknown CI job name: ${job}.`)
++    circleCIcall(circleBuildUrl, targetBranch, job, ghRelease)
++  } else {
++    circleCIJobs.forEach((job) => circleCIcall(circleBuildUrl, targetBranch, job, ghRelease))
++  }
++}
++
++async function buildJenkins (targetBranch, ghRelease, job) {
++  assert(process.env.JENKINS_AUTH_TOKEN, 'JENKINS_AUTH_TOKEN not found in environment')
++  assert(process.env.JENKINS_BUILD_TOKEN, 'JENKINS_BUILD_TOKEN not found in environment')
++  let jenkinsCrumb = await getJenkinsCrumb()
++
++  if (job) {
++    assert(jenkinsJobs.includes(job), `Unknown CI job name: ${job}.`)
++    callJenkinsBuild(job, jenkinsCrumb, targetBranch, ghRelease)
++  } else {
++    jenkinsJobs.forEach((job) => {
++      callJenkinsBuild(job, jenkinsCrumb, targetBranch, ghRelease)
++    })
++  }
++}
++
++async function callJenkins (path, requestParameters, requestHeaders) {
++  let requestOptions = {
++    url: `${jenkinsServer}/${path}`,
++    auth: {
++      user: 'build',
++      pass: process.env.JENKINS_AUTH_TOKEN
++    },
++    qs: requestParameters
++  }
++  if (requestHeaders) {
++    requestOptions.headers = requestHeaders
++  }
++  let jenkinsResponse = await makeRequest(requestOptions).catch(err => {
++    console.log(`Error calling Jenkins:`, err)
++  })
++  return jenkinsResponse
++}
++
++async function callJenkinsBuild (job, jenkinsCrumb, targetBranch, ghRelease) {
++  console.log(`Triggering Jenkins to run build job: ${job} on branch: ${targetBranch} with release flag.`)
++  let jenkinsParams = {
++    token: process.env.JENKINS_BUILD_TOKEN,
++    BRANCH: targetBranch
++  }
++  if (!ghRelease) {
++    jenkinsParams.RUN_RELEASE_BUILD = 1
++  }
++  await callJenkins(`job/${job}/buildWithParameters`, jenkinsParams, jenkinsCrumb)
++    .catch(err => {
++      console.log(`Error calling Jenkins build`, err)
++    })
++  let buildUrl = `${jenkinsServer}/job/${job}/lastBuild/`
++  console.log(`Jenkins build request successful.  Check build status at ${buildUrl}.`)
++}
++
++async function getJenkinsCrumb () {
++  let crumbResponse = await callJenkins('crumbIssuer/api/xml', {
++    xpath: 'concat(//crumbRequestField,":",//crumb)'
++  }).catch(err => {
++    console.log(`Error getting jenkins crumb:`, err)
++  })
++  let crumbDetails = crumbResponse.split(':')
++  let crumbHeader = {}
++  crumbHeader[crumbDetails[0]] = crumbDetails[1]
++  return crumbHeader
++>>>>>>> .their
+ }
+ 
+ function runRelease (targetBranch, options) {
+   if (options.ci) {
+     switch (options.ci) {
+       case 'CircleCI': {
++<<<<<<< .our
+         buildCircleCI(targetBranch, options)
+         break
+       }
+@@ -226,12 +357,31 @@
+     buildCircleCI(targetBranch, options)
+     buildAppVeyor(targetBranch, options)
+     buildVSTS(targetBranch, options)
++=======
++        buildCircleCI(targetBranch, options.ghRelease, options.job)
++        break
++      }
++      case 'AppVeyor': {
++        buildAppVeyor(targetBranch, options.ghRelease)
++        break
++      }
++      case 'Jenkins': {
++        buildJenkins(targetBranch, options.ghRelease, options.job)
++        break
++      }
++    }
++  } else {
++    buildCircleCI(targetBranch, options.ghRelease, options.job)
++    buildAppVeyor(targetBranch, options.ghRelease)
++    buildJenkins(targetBranch, options.ghRelease, options.job)
++>>>>>>> .their
+   }
+ }
+ 
+ module.exports = runRelease
+ 
+ if (require.main === module) {
++<<<<<<< .our
+   const args = require('minimist')(process.argv.slice(2), {
+     boolean: ['ghRelease', 'automaticRelease']
+   })
+@@ -239,6 +389,13 @@
+   if (args._.length < 1) {
+     console.log(`Trigger CI to build release builds of electron.
+     Usage: ci-release-build.js [--job=CI_JOB_NAME] [--ci=CircleCI|AppVeyor|VSTS] [--ghRelease] [--automaticRelease] TARGET_BRANCH
++=======
++  const args = require('minimist')(process.argv.slice(2))
++  const targetBranch = args._[0]
++  if (args._.length < 1) {
++    console.log(`Trigger CI to build release builds of electron.
++    Usage: ci-release-build.js [--job=CI_JOB_NAME] [--ci=CircleCI|AppVeyor|Jenkins] [--ghRelease] TARGET_BRANCH
++>>>>>>> .their
+     `)
+     process.exit(0)
+   }
+changed in both
+  base   100755 f523fa1af5fa2aea22381d5eb443b7e9c51ffea3 script/cibuild
+  our    100755 758dc2c794e642430ab6a0d966e7a41863be947c script/cibuild
+  their  100755 7d7bdb5a65114e6f38db35f8e060c4385b52564a script/cibuild
+@@ -57,6 +57,18 @@
+   if os.environ.has_key('TARGET_ARCH'):
+     target_arch = os.environ['TARGET_ARCH']
+ 
++<<<<<<< .our
++=======
++  is_travis = (os.getenv('TRAVIS') == 'true')
++  if is_travis and PLATFORM == 'linux':
++    print 'Setup travis CI'
++    execute(['sudo', 'apt-get', 'update'])
++    deps = LINUX_DEPS
++    if target_arch == 'arm':
++      deps += LINUX_DEPS_ARM
++    execute(['sudo', 'apt-get', 'install'] + deps)
++
++>>>>>>> .their
+   if PLATFORM == 'linux' and target_arch == 'x64':
+     os.environ['DISPLAY'] = ':99.0'
+     execute(['sh', '-e', '/etc/init.d/xvfb', 'start'])
+@@ -72,8 +84,13 @@
+   os.environ['PATH'] = os.path.pathsep.join([node_bin_dir,
+                                              os.environ.get('PATH', '')])
+ 
++<<<<<<< .our
+   is_release = os.environ.get('ELECTRON_RELEASE', '') == '1'
+   args = ['--target_arch=' + target_arch]
++=======
++  is_release = os.environ.has_key('ELECTRON_RELEASE')
++  args = ['--target_arch=' + target_arch, '-v']
++>>>>>>> .their
+   if not is_release:
+     args += ['--dev']
+   run_script('bootstrap.py', args)
+changed in both
+  base   100644 5818571089ff51c8090fc58a598f56f075c2809b script/lib/config.py
+  our    100644 9ad0fbc680e5ecdeb8c13d0f0d6678bbba7d9031 script/lib/config.py
+  their  100644 bab9dc213c39421e643bf31d286bc4f787df8d4a script/lib/config.py
+@@ -13,6 +13,11 @@
+ 
+ BASE_URL = os.getenv('LIBCHROMIUMCONTENT_MIRROR') or \
+     'https://s3.amazonaws.com/github-janky-artifacts/libchromiumcontent'
++<<<<<<< .our
++=======
++LIBCHROMIUMCONTENT_COMMIT = os.getenv('LIBCHROMIUMCONTENT_COMMIT') or \
++    '19ca886975716c02d6de9fd41b8297a4e1774be2'
++>>>>>>> .their
+ 
+ PLATFORM = {
+   'cygwin': 'win32',
+added in remote
+  their  100755 0c776e03d65f01bdaa9a7faaf810d130f586ed08 script/merge-release.js
+@@ -0,0 +1,116 @@
++#!/usr/bin/env node
++
++require('colors')
++const assert = require('assert')
++const branchToRelease = process.argv[2]
++const fail = '\u2717'.red
++const { GitProcess, GitError } = require('dugite')
++const pass = '\u2713'.green
++const path = require('path')
++const pkg = require('../package.json')
++
++assert(process.env.ELECTRON_GITHUB_TOKEN, 'ELECTRON_GITHUB_TOKEN not found in environment')
++if (!branchToRelease) {
++  console.log(`Usage: merge-release branch`)
++  process.exit(1)
++}
++const gitDir = path.resolve(__dirname, '..')
++
++async function callGit (args, errorMessage, successMessage) {
++  let gitResult = await GitProcess.exec(args, gitDir)
++  if (gitResult.exitCode === 0) {
++    console.log(`${pass} ${successMessage}`)
++    return true
++  } else {
++    console.log(`${fail} ${errorMessage} ${gitResult.stderr}`)
++    process.exit(1)
++  }
++}
++
++async function checkoutBranch (branchName) {
++  console.log(`Checking out ${branchName}.`)
++  let errorMessage = `Error checking out branch ${branchName}:`
++  let successMessage = `Successfully checked out branch ${branchName}.`
++  return callGit(['checkout', branchName], errorMessage, successMessage)
++}
++
++async function commitMerge () {
++  console.log(`Committing the merge for v${pkg.version}`)
++  let errorMessage = `Error committing merge:`
++  let successMessage = `Successfully committed the merge for v${pkg.version}`
++  let gitArgs = ['commit', '-m', `v${pkg.version}`]
++  return callGit(gitArgs, errorMessage, successMessage)
++}
++
++async function mergeReleaseIntoBranch (branchName) {
++  console.log(`Merging release branch into ${branchName}.`)
++  let mergeArgs = ['merge', 'release-1-6-x', '--squash']
++  let mergeDetails = await GitProcess.exec(mergeArgs, gitDir)
++  if (mergeDetails.exitCode === 0) {
++    return true
++  } else {
++    const error = GitProcess.parseError(mergeDetails.stderr)
++    if (error === GitError.MergeConflicts) {
++      console.log(`${fail} Could not merge release branch into ${branchName} ` +
++        `due to merge conflicts.`)
++      return false
++    } else {
++      console.log(`${fail} Could not merge release branch into ${branchName} ` +
++        `due to an error: ${mergeDetails.stderr}.`)
++      process.exit(1)
++    }
++  }
++}
++
++async function pushBranch (branchName) {
++  console.log(`Pushing branch ${branchName}.`)
++  let pushArgs = ['push', 'origin', branchName]
++  let errorMessage = `Could not push branch ${branchName} due to an error:`
++  let successMessage = `Successfully pushed branch ${branchName}.`
++  return callGit(pushArgs, errorMessage, successMessage)
++}
++
++async function pull () {
++  console.log(`Performing a git pull`)
++  let errorMessage = `Could not pull due to an error:`
++  let successMessage = `Successfully performed a git pull`
++  return callGit(['pull'], errorMessage, successMessage)
++}
++
++async function rebase (targetBranch) {
++  console.log(`Rebasing release branch from ${targetBranch}`)
++  let errorMessage = `Could not rebase due to an error:`
++  let successMessage = `Successfully rebased release branch from ` +
++    `${targetBranch}`
++  return callGit(['rebase', targetBranch], errorMessage, successMessage)
++}
++
++async function mergeRelease () {
++  await checkoutBranch(branchToRelease)
++  let mergeSuccess = await mergeReleaseIntoBranch(branchToRelease)
++  if (mergeSuccess) {
++    console.log(`${pass} Successfully merged release branch into ` +
++      `${branchToRelease}.`)
++    await commitMerge()
++    let pushSuccess = await pushBranch(branchToRelease)
++    if (pushSuccess) {
++      console.log(`${pass} Success!!! ${branchToRelease} now has the latest release!`)
++    }
++  } else {
++    console.log(`Trying rebase of ${branchToRelease} into release branch.`)
++    await pull()
++    await checkoutBranch('release-1-6-x')
++    let rebaseResult = await rebase(branchToRelease)
++    if (rebaseResult) {
++      let pushResult = pushBranch('HEAD')
++      if (pushResult) {
++        console.log(`Rebase of ${branchToRelease} into release branch was ` +
++          `successful.  Let release builds run and then try this step again.`)
++      }
++      // Exit as failure so release doesn't continue
++      process.exit(1)
++    }
++  }
++}
++
++mergeRelease()
+added in both
+  our    100755 72a28b719bf1ff7770692caef86c76746c4d8edf script/prepare-release.js
+  their  100755 21d924c32105a12115d653c359e3c2df8a4cca69 script/prepare-release.js
+@@ -1,5 +1,6 @@
+ #!/usr/bin/env node
+ 
++<<<<<<< .our
+ if (!process.env.CI) require('dotenv-safe').load()
+ require('colors')
+ const args = require('minimist')(process.argv.slice(2), {
+@@ -9,20 +10,40 @@
+ const { execSync } = require('child_process')
+ const fail = '\u2717'.red
+ const { GitProcess } = require('dugite')
++=======
++require('colors')
++const args = require('minimist')(process.argv.slice(2))
++const assert = require('assert')
++const ciReleaseBuild = require('./ci-release-build')
++const { execSync } = require('child_process')
++const fail = '\u2717'.red
++const { GitProcess, GitError } = require('dugite')
++>>>>>>> .their
+ const GitHub = require('github')
+ const pass = '\u2713'.green
+ const path = require('path')
+ const pkg = require('../package.json')
++<<<<<<< .our
+ const readline = require('readline')
+ const versionType = args._[0]
+ const targetRepo = versionType === 'nightly' ? 'nightlies' : 'electron'
++=======
++const versionType = args._[0]
++>>>>>>> .their
+ 
+ // TODO (future) automatically determine version based on conventional commits
+ // via conventional-recommended-bump
+ 
++<<<<<<< .our
+ if (!versionType && !args.notesOnly) {
+   console.log(`Usage: prepare-release versionType [stable | beta | nightly]` +
+      ` (--stable) (--notesOnly) (--automaticRelease) (--branch)`)
++=======
++assert(process.env.ELECTRON_GITHUB_TOKEN, 'ELECTRON_GITHUB_TOKEN not found in environment')
++if (!versionType && !args.notesOnly) {
++  console.log(`Usage: prepare-release versionType [major | minor | patch ]` +
++     ` (--notesOnly)`)
++>>>>>>> .their
+   process.exit(1)
+ }
+ 
+@@ -30,6 +51,7 @@
+ const gitDir = path.resolve(__dirname, '..')
+ github.authenticate({type: 'token', token: process.env.ELECTRON_GITHUB_TOKEN})
+ 
++<<<<<<< .our
+ async function getNewVersion (dryRun) {
+   if (!dryRun) {
+     console.log(`Bumping for new "${versionType}" version.`)
+@@ -42,10 +64,38 @@
+   if (dryRun) {
+     scriptArgs.push('--dry-run')
+   }
++=======
++async function createReleaseBranch () {
++  console.log(`Creating release branch.`)
++  let checkoutDetails = await GitProcess.exec([ 'checkout', '-b', 'release-1-6-x' ], gitDir)
++  if (checkoutDetails.exitCode === 0) {
++    console.log(`${pass} Successfully created the release branch.`)
++  } else {
++    const error = GitProcess.parseError(checkoutDetails.stderr)
++    if (error === GitError.BranchAlreadyExists) {
++      console.log(`${fail} Release branch already exists, aborting prepare ` +
++        `release process.`)
++    } else {
++      console.log(`${fail} Error creating release branch: ` +
++        `${checkoutDetails.stderr}`)
++    }
++    process.exit(1)
++  }
++}
++
++function getNewVersion () {
++  console.log(`Bumping for new "${versionType}" version.`)
++  let bumpScript = path.join(__dirname, 'bump-version.py')
++  let scriptArgs = [bumpScript, `${versionType}`]
++  if (args.stable) {
++    scriptArgs.push('--stable')
++  }
++>>>>>>> .their
+   try {
+     let bumpVersion = execSync(scriptArgs.join(' '), {encoding: 'UTF-8'})
+     bumpVersion = bumpVersion.substr(bumpVersion.indexOf(':') + 1).trim()
+     let newVersion = `v${bumpVersion}`
++<<<<<<< .our
+     if (!dryRun) {
+       console.log(`${pass} Successfully bumped version to ${newVersion}`)
+     }
+@@ -53,6 +103,12 @@
+   } catch (err) {
+     console.log(`${fail} Could not bump version, error was:`, err)
+     throw err
++=======
++    console.log(`${pass} Successfully bumped version to ${newVersion}`)
++    return newVersion
++  } catch (err) {
++    console.log(`${fail} Could not bump version, error was:`, err)
++>>>>>>> .their
+   }
+ }
+ 
+@@ -74,6 +130,7 @@
+ }
+ 
+ async function getReleaseNotes (currentBranch) {
++<<<<<<< .our
+   if (versionType === 'nightly') {
+     return 'Nightlies do not get release notes, please compare tags for info'
+   }
+@@ -94,10 +151,25 @@
+   let commitComparison = await github.repos.compareCommits(githubOpts)
+     .catch(err => {
+       console.log(`${fail} Error checking for commits from ${pkg.version} to ` +
++=======
++  console.log(`Generating release notes for ${currentBranch}.`)
++  let githubOpts = {
++    owner: 'electron',
++    repo: 'electron',
++    base: `v${pkg.version}`,
++    head: currentBranch
++  }
++  let releaseNotes = '(placeholder)\n'
++  console.log(`Checking for commits from ${pkg.version} to ${currentBranch}`)
++  let commitComparison = await github.repos.compareCommits(githubOpts)
++    .catch(err => {
++      console.log(`{$fail} Error checking for commits from ${pkg.version} to ` +
++>>>>>>> .their
+         `${currentBranch}`, err)
+       process.exit(1)
+     })
+ 
++<<<<<<< .our
+   if (commitComparison.data.commits.length === 0) {
+     console.log(`${pass} There are no commits from ${pkg.version} to ` +
+       `${currentBranch}, skipping release.`)
+@@ -137,16 +209,32 @@
+     }
+   })
+   console.log(`${pass} Done generating release notes for ${currentBranch}. Found ${prCount} PRs.`)
++=======
++  commitComparison.data.commits.forEach(commitEntry => {
++    let commitMessage = commitEntry.commit.message
++    if (commitMessage.toLowerCase().indexOf('merge') > -1) {
++      releaseNotes += `${commitMessage} \n`
++    }
++  })
++  console.log(`${pass} Done generating release notes for ${currentBranch}.`)
++>>>>>>> .their
+   return releaseNotes
+ }
+ 
+ async function createRelease (branchToTarget, isBeta) {
+   let releaseNotes = await getReleaseNotes(branchToTarget)
++<<<<<<< .our
+   let newVersion = await getNewVersion()
+   await tagRelease(newVersion)
+   const githubOpts = {
+     owner: 'electron',
+     repo: targetRepo
++=======
++  let newVersion = getNewVersion()
++  const githubOpts = {
++    owner: 'electron',
++    repo: 'electron'
++>>>>>>> .their
+   }
+   console.log(`Checking for existing draft release.`)
+   let releases = await github.repos.getReleases(githubOpts)
+@@ -161,6 +249,7 @@
+     process.exit(1)
+   }
+   console.log(`${pass} A draft release does not exist; creating one.`)
++<<<<<<< .our
+   githubOpts.draft = true
+   githubOpts.name = `electron ${newVersion}`
+   if (isBeta) {
+@@ -182,6 +271,21 @@
+   }
+   githubOpts.tag_name = newVersion
+   githubOpts.target_commitish = newVersion.indexOf('nightly') !== -1 ? 'master' : branchToTarget
++=======
++  githubOpts.body = releaseNotes
++  githubOpts.draft = true
++  githubOpts.name = `electron ${newVersion}`
++  if (isBeta) {
++    githubOpts.body = `Note: This is a beta release.  Please file new issues ` +
++      `for any bugs you find in it.\n \n This release is published to npm ` +
++      `under the beta tag and can be installed via npm install electron@beta, ` +
++      `or npm i electron@${newVersion.substr(1)}.`
++    githubOpts.name = `${githubOpts.name}`
++    githubOpts.prerelease = true
++  }
++  githubOpts.tag_name = newVersion
++  githubOpts.target_commitish = branchToTarget
++>>>>>>> .their
+   await github.repos.createRelease(githubOpts)
+     .catch(err => {
+       console.log(`${fail} Error creating new release: `, err)
+@@ -190,6 +294,7 @@
+   console.log(`${pass} Draft release for ${newVersion} has been created.`)
+ }
+ 
++<<<<<<< .our
+ async function pushRelease (branch) {
+   let pushDetails = await GitProcess.exec(['push', 'origin', `HEAD:${branch}`, '--follow-tags'], gitDir)
+   if (pushDetails.exitCode === 0) {
+@@ -197,11 +302,21 @@
+       `release builds to finish before running "npm run release".`)
+   } else {
+     console.log(`${fail} Error pushing the release: ` +
++=======
++async function pushRelease () {
++  let pushDetails = await GitProcess.exec(['push', 'origin', 'HEAD'], gitDir)
++  if (pushDetails.exitCode === 0) {
++    console.log(`${pass} Successfully pushed the release branch.  Wait for ` +
++      `release builds to finish before running "npm run release".`)
++  } else {
++    console.log(`${fail} Error pushing the release branch: ` +
++>>>>>>> .their
+         `${pushDetails.stderr}`)
+     process.exit(1)
+   }
+ }
+ 
++<<<<<<< .our
+ async function runReleaseBuilds (branch) {
+   await ciReleaseBuild(branch, {
+     ghRelease: true,
+@@ -278,6 +393,24 @@
+         process.exit(1)
+       }
+     }
++=======
++async function runReleaseBuilds () {
++  await ciReleaseBuild('release-1-6-x', {
++    ghRelease: true
++  })
++}
++
++async function prepareRelease (isBeta, notesOnly) {
++  let currentBranch = await getCurrentBranch(gitDir)
++  if (notesOnly) {
++    let releaseNotes = await getReleaseNotes(currentBranch)
++    console.log(`Draft release notes are: ${releaseNotes}`)
++  } else {
++    await createReleaseBranch()
++    await createRelease(currentBranch, isBeta)
++    await pushRelease()
++    await runReleaseBuilds()
++>>>>>>> .their
+   }
+ }
+ 
+added in remote
+  their  100755 78b63933009cf47cc50130dabaa8fe6f5f73b30f script/prerelease.js
+@@ -0,0 +1,112 @@
++#!/usr/bin/env node
++
++require('colors')
++const assert = require('assert')
++const GitHub = require('github')
++const heads = require('heads')
++const pkg = require('../package.json')
++const pass = '\u2713'.green
++const fail = '\u2717'.red
++let failureCount = 0
++
++assert(process.env.ELECTRON_GITHUB_TOKEN, 'ELECTRON_GITHUB_TOKEN not found in environment')
++
++const github = new GitHub()
++github.authenticate({type: 'token', token: process.env.ELECTRON_GITHUB_TOKEN})
++github.repos.getReleases({owner: 'electron', repo: 'electron'})
++  .then(res => {
++    const releases = res.data
++    const drafts = releases
++      .filter(release => release.draft) // comment out for testing
++      // .filter(release => release.tag_name === 'v1.7.5') // uncomment for testing
++
++    check(drafts.length === 1, 'one draft exists', true)
++    const draft = drafts[0]
++
++    check(draft.tag_name === `v${pkg.version}`, `draft release version matches local package.json (v${pkg.version})`)
++    check(draft.prerelease, 'draft is a prerelease')
++    check(draft.body.length > 50 && !draft.body.includes('(placeholder)'), 'draft has release notes')
++
++    const requiredAssets = assetsForVersion(draft.tag_name).sort()
++    const extantAssets = draft.assets.map(asset => asset.name).sort()
++
++    requiredAssets.forEach(asset => {
++      check(extantAssets.includes(asset), asset)
++    })
++
++    const s3Urls = s3UrlsForVersion(draft.tag_name)
++    heads(s3Urls)
++      .then(results => {
++        results.forEach((result, i) => {
++          check(result === 200, s3Urls[i])
++        })
++
++        process.exit(failureCount > 0 ? 1 : 0)
++      })
++      .catch(err => {
++        console.error('Error making HEAD requests for S3 assets')
++        console.error(err)
++        process.exit(1)
++      })
++  })
++
++function check (condition, statement, exitIfFail = false) {
++  if (condition) {
++    console.log(`${pass} ${statement}`)
++  } else {
++    failureCount++
++    console.log(`${fail} ${statement}`)
++    if (exitIfFail) process.exit(1)
++  }
++}
++
++function assetsForVersion (version) {
++  const patterns = [
++    'electron-{{VERSION}}-darwin-x64-dsym.zip',
++    'electron-{{VERSION}}-darwin-x64-symbols.zip',
++    'electron-{{VERSION}}-darwin-x64.zip',
++    'electron-{{VERSION}}-linux-arm-symbols.zip',
++    'electron-{{VERSION}}-linux-arm.zip',
++    'electron-{{VERSION}}-linux-armv7l-symbols.zip',
++    'electron-{{VERSION}}-linux-armv7l.zip',
++    'electron-{{VERSION}}-linux-ia32-symbols.zip',
++    'electron-{{VERSION}}-linux-ia32.zip',
++    'electron-{{VERSION}}-linux-x64-symbols.zip',
++    'electron-{{VERSION}}-linux-x64.zip',
++    'electron-{{VERSION}}-mas-x64-dsym.zip',
++    'electron-{{VERSION}}-mas-x64-symbols.zip',
++    'electron-{{VERSION}}-mas-x64.zip',
++    'electron-{{VERSION}}-win32-ia32-pdb.zip',
++    'electron-{{VERSION}}-win32-ia32-symbols.zip',
++    'electron-{{VERSION}}-win32-ia32.zip',
++    'electron-{{VERSION}}-win32-x64-pdb.zip',
++    'electron-{{VERSION}}-win32-x64-symbols.zip',
++    'electron-{{VERSION}}-win32-x64.zip',
++    'electron-api.json',
++    'electron.d.ts',
++    'ffmpeg-{{VERSION}}-darwin-x64.zip',
++    'ffmpeg-{{VERSION}}-linux-arm.zip',
++    'ffmpeg-{{VERSION}}-linux-armv7l.zip',
++    'ffmpeg-{{VERSION}}-linux-ia32.zip',
++    'ffmpeg-{{VERSION}}-linux-x64.zip',
++    'ffmpeg-{{VERSION}}-mas-x64.zip',
++    'ffmpeg-{{VERSION}}-win32-ia32.zip',
++    'ffmpeg-{{VERSION}}-win32-x64.zip'
++  ]
++  return patterns.map(pattern => pattern.replace(/{{VERSION}}/g, version))
++}
++
++function s3UrlsForVersion (version) {
++  const bucket = 'https://gh-contractor-zcbenz.s3.amazonaws.com/'
++  const patterns = [
++    'atom-shell/dist/{{VERSION}}/iojs-{{VERSION}}-headers.tar.gz',
++    'atom-shell/dist/{{VERSION}}/iojs-{{VERSION}}.tar.gz',
++    'atom-shell/dist/{{VERSION}}/node-{{VERSION}}.tar.gz',
++    'atom-shell/dist/{{VERSION}}/node.lib',
++    'atom-shell/dist/{{VERSION}}/win-x64/iojs.lib',
++    'atom-shell/dist/{{VERSION}}/win-x86/iojs.lib',
++    'atom-shell/dist/{{VERSION}}/x64/node.lib',
++    'atom-shell/dist/index.json'
++  ]
++  return patterns.map(pattern => bucket + pattern.replace(/{{VERSION}}/g, version))
++}
+added in both
+  our    100644 27290c513bb28d9bd394575d833f1e6786e3b479 script/publish-to-npm.js
+  their  100644 21960455cfe96fa3a6ba7802747666772febf9ea script/publish-to-npm.js
+@@ -3,6 +3,7 @@
+ const path = require('path')
+ const childProcess = require('child_process')
+ const GitHubApi = require('github')
++<<<<<<< .our
+ const {GitProcess} = require('dugite')
+ const request = require('request')
+ const rootPackageJson = require('../package.json')
+@@ -12,6 +13,12 @@
+   process.exit(1)
+ }
+ 
++=======
++const request = require('request')
++const assert = require('assert')
++const rootPackageJson = require('../package.json')
++
++>>>>>>> .their
+ const github = new GitHubApi({
+   // debug: true,
+   headers: { 'User-Agent': 'electron-npm-publisher' },
+@@ -26,8 +33,12 @@
+   'index.js',
+   'install.js',
+   'package.json',
++<<<<<<< .our
+   'README.md',
+   'LICENSE'
++=======
++  'README.md'
++>>>>>>> .their
+ ]
+ 
+ const jsonFields = [
+@@ -55,10 +66,16 @@
+   tempDir = dirPath
+   // copy files from `/npm` to temp directory
+   files.forEach((name) => {
++<<<<<<< .our
+     const noThirdSegment = name === 'README.md' || name === 'LICENSE'
+     fs.writeFileSync(
+       path.join(tempDir, name),
+       fs.readFileSync(path.join(__dirname, '..', noThirdSegment ? '' : 'npm', name))
++=======
++    fs.writeFileSync(
++      path.join(tempDir, name),
++      fs.readFileSync(path.join(__dirname, '..', name === 'README.md' ? '' : 'npm', name))
++>>>>>>> .their
+     )
+   })
+   // copy from root package.json to temp/package.json
+@@ -73,7 +90,11 @@
+ 
+   return github.repos.getReleases({
+     owner: 'electron',
++<<<<<<< .our
+     repo: rootPackageJson.version.indexOf('nightly') > 0 ? 'nightlies' : 'electron'
++=======
++    repo: 'electron'
++>>>>>>> .their
+   })
+ })
+ .then((releases) => {
+@@ -108,6 +129,7 @@
+     })
+   })
+ })
++<<<<<<< .our
+ .then(async (release) => {
+   if (release.tag_name.indexOf('nightly') > 0) {
+     const currentBranch = await getCurrentBranch()
+@@ -119,6 +141,10 @@
+   } else {
+     npmTag = release.prerelease ? 'beta' : 'latest'
+   }
++=======
++.then((release) => {
++  npmTag = release.prerelease ? 'beta' : 'latest'
++>>>>>>> .their
+ })
+ .then(() => childProcess.execSync('npm pack', { cwd: tempDir }))
+ .then(() => {
+@@ -129,14 +155,24 @@
+       env: Object.assign({}, process.env, { electron_config_cache: tempDir }),
+       cwd: tempDir
+     })
++<<<<<<< .our
+     resolve(tarballPath)
+   })
+ })
+ .then((tarballPath) => childProcess.execSync(`npm publish ${tarballPath} --tag ${npmTag} --otp=${process.env.ELECTRON_NPM_OTP}`))
++=======
++    const checkVersion = childProcess.execSync(`${path.join(tempDir, 'node_modules', '.bin', 'electron')} -v`)
++    assert.strictEqual(checkVersion.toString().trim(), `v${rootPackageJson.version}`)
++    resolve(tarballPath)
++  })
++})
++.then((tarballPath) => childProcess.execSync(`npm publish ${tarballPath} --tag ${npmTag}`))
++>>>>>>> .their
+ .catch((err) => {
+   console.error(`Error: ${err}`)
+   process.exit(1)
+ })
++<<<<<<< .our
+ 
+ async function getCurrentBranch () {
+   const gitDir = path.resolve(__dirname, '..')
+@@ -155,3 +191,5 @@
+     process.exit(1)
+   }
+ }
++=======
++>>>>>>> .their
+added in both
+  our    100755 84e00ad4f309201f151c3f8fcbaf9ee536c9b6cb script/release.js
+  their  100755 df662e5608ee50ec838764bcc26dbe908c6e6e61 script/release.js
+@@ -1,8 +1,14 @@
+ #!/usr/bin/env node
+ 
++<<<<<<< .our
+ if (!process.env.CI) require('dotenv-safe').load()
+ require('colors')
+ const args = require('minimist')(process.argv.slice(2))
++=======
++require('colors')
++const args = require('minimist')(process.argv.slice(2))
++const assert = require('assert')
++>>>>>>> .their
+ const fs = require('fs')
+ const { execSync } = require('child_process')
+ const GitHub = require('github')
+@@ -16,16 +22,30 @@
+ const sumchecker = require('sumchecker')
+ const temp = require('temp').track()
+ const { URL } = require('url')
++<<<<<<< .our
+ const targetRepo = pkgVersion.indexOf('nightly') > 0 ? 'nightlies' : 'electron'
+ let failureCount = 0
+ 
++=======
++let failureCount = 0
++
++assert(process.env.ELECTRON_GITHUB_TOKEN, 'ELECTRON_GITHUB_TOKEN not found in environment')
++
++>>>>>>> .their
+ const github = new GitHub({
+   followRedirects: false
+ })
+ github.authenticate({type: 'token', token: process.env.ELECTRON_GITHUB_TOKEN})
++<<<<<<< .our
+ 
+ async function getDraftRelease (version, skipValidation) {
+   let releaseInfo = await github.repos.getReleases({owner: 'electron', repo: targetRepo})
++=======
++const gitDir = path.resolve(__dirname, '..')
++
++async function getDraftRelease (version, skipValidation) {
++  let releaseInfo = await github.repos.getReleases({owner: 'electron', repo: 'electron'})
++>>>>>>> .their
+   let drafts
+   let versionToCheck
+   if (version) {
+@@ -49,8 +69,13 @@
+   return draft
+ }
+ 
++<<<<<<< .our
+ async function validateReleaseAssets (release, validatingRelease) {
+   const requiredAssets = assetsForVersion(release.tag_name, validatingRelease).sort()
++=======
++async function validateReleaseAssets (release) {
++  const requiredAssets = assetsForVersion(release.tag_name).sort()
++>>>>>>> .their
+   const extantAssets = release.assets.map(asset => asset.name).sort()
+   const downloadUrls = release.assets.map(asset => asset.browser_download_url).sort()
+ 
+@@ -60,6 +85,7 @@
+   })
+   check((failureCount === 0), `All required GitHub assets exist for release`, true)
+ 
++<<<<<<< .our
+   if (!validatingRelease || !release.draft) {
+     if (release.draft) {
+       await verifyAssets(release)
+@@ -72,6 +98,18 @@
+     const s3Urls = s3UrlsForVersion(release.tag_name)
+     await verifyShasums(s3Urls, true)
+   }
++=======
++  if (release.draft) {
++    await verifyAssets(release)
++  } else {
++    await verifyShasums(downloadUrls)
++      .catch(err => {
++        console.log(`${fail} error verifyingShasums`, err)
++      })
++  }
++  const s3Urls = s3UrlsForVersion(release.tag_name)
++  await verifyShasums(s3Urls, true)
++>>>>>>> .their
+ }
+ 
+ function check (condition, statement, exitIfFail = false) {
+@@ -84,13 +122,22 @@
+   }
+ }
+ 
++<<<<<<< .our
+ function assetsForVersion (version, validatingRelease) {
++=======
++function assetsForVersion (version) {
++>>>>>>> .their
+   const patterns = [
+     `electron-${version}-darwin-x64-dsym.zip`,
+     `electron-${version}-darwin-x64-symbols.zip`,
+     `electron-${version}-darwin-x64.zip`,
++<<<<<<< .our
+     `electron-${version}-linux-arm64-symbols.zip`,
+     `electron-${version}-linux-arm64.zip`,
++=======
++    `electron-${version}-linux-arm-symbols.zip`,
++    `electron-${version}-linux-arm.zip`,
++>>>>>>> .their
+     `electron-${version}-linux-armv7l-symbols.zip`,
+     `electron-${version}-linux-armv7l.zip`,
+     `electron-${version}-linux-ia32-symbols.zip`,
+@@ -109,17 +156,27 @@
+     `electron-api.json`,
+     `electron.d.ts`,
+     `ffmpeg-${version}-darwin-x64.zip`,
++<<<<<<< .our
+     `ffmpeg-${version}-linux-arm64.zip`,
++=======
++    `ffmpeg-${version}-linux-arm.zip`,
++>>>>>>> .their
+     `ffmpeg-${version}-linux-armv7l.zip`,
+     `ffmpeg-${version}-linux-ia32.zip`,
+     `ffmpeg-${version}-linux-x64.zip`,
+     `ffmpeg-${version}-mas-x64.zip`,
+     `ffmpeg-${version}-win32-ia32.zip`,
++<<<<<<< .our
+     `ffmpeg-${version}-win32-x64.zip`
+   ]
+   if (!validatingRelease) {
+     patterns.push('SHASUMS256.txt')
+   }
++=======
++    `ffmpeg-${version}-win32-x64.zip`,
++    `SHASUMS256.txt`
++  ]
++>>>>>>> .their
+   return patterns
+ }
+ 
+@@ -141,6 +198,7 @@
+ }
+ 
+ function checkVersion () {
++<<<<<<< .our
+   if (args.skipVersionCheck) return
+ 
+   console.log(`Verifying that app version matches package version ${pkgVersion}.`)
+@@ -150,6 +208,11 @@
+     scriptArgs.unshift('-R')
+   }
+   let appVersion = runScript(startScript, scriptArgs).trim()
++=======
++  console.log(`Verifying that app version matches package version ${pkgVersion}.`)
++  let startScript = path.join(__dirname, 'start.py')
++  let appVersion = runScript(startScript, ['--version']).trim()
++>>>>>>> .their
+   check((pkgVersion.indexOf(appVersion) === 0), `App version ${appVersion} matches ` +
+     `package version ${pkgVersion}.`, true)
+ }
+@@ -180,7 +243,11 @@
+ function uploadIndexJson () {
+   console.log('Uploading index.json to S3.')
+   let scriptPath = path.join(__dirname, 'upload-index-json.py')
++<<<<<<< .our
+   runScript(scriptPath, [pkgVersion])
++=======
++  runScript(scriptPath, [])
++>>>>>>> .their
+   console.log(`${pass} Done uploading index.json to S3.`)
+ }
+ 
+@@ -191,7 +258,11 @@
+     console.log(`${fileName} already exists on GitHub; deleting before creating new file.`)
+     await github.repos.deleteAsset({
+       owner: 'electron',
++<<<<<<< .our
+       repo: targetRepo,
++=======
++      repo: 'electron',
++>>>>>>> .their
+       id: existingAssets[0].id
+     }).catch(err => {
+       console.log(`${fail} Error deleting ${fileName} on GitHub:`, err)
+@@ -210,7 +281,11 @@
+ async function uploadShasumFile (filePath, fileName, release) {
+   let githubOpts = {
+     owner: 'electron',
++<<<<<<< .our
+     repo: targetRepo,
++=======
++    repo: 'electron',
++>>>>>>> .their
+     id: release.id,
+     filePath,
+     name: fileName
+@@ -245,7 +320,11 @@
+ async function publishRelease (release) {
+   let githubOpts = {
+     owner: 'electron',
++<<<<<<< .our
+     repo: targetRepo,
++=======
++    repo: 'electron',
++>>>>>>> .their
+     id: release.id,
+     tag_name: release.tag_name,
+     draft: false
+@@ -259,6 +338,7 @@
+ 
+ async function makeRelease (releaseToValidate) {
+   if (releaseToValidate) {
++<<<<<<< .our
+     if (releaseToValidate === true) {
+       releaseToValidate = pkgVersion
+     } else {
+@@ -267,18 +347,31 @@
+     console.log(`Validating release ${releaseToValidate}`)
+     let release = await getDraftRelease(releaseToValidate)
+     await validateReleaseAssets(release, true)
++=======
++    console.log(`Validating release ${args.validateRelease}`)
++    let release = await getDraftRelease(args.validateRelease)
++    await validateReleaseAssets(release)
++>>>>>>> .their
+   } else {
+     checkVersion()
+     let draftRelease = await getDraftRelease()
+     uploadNodeShasums()
+     uploadIndexJson()
++<<<<<<< .our
+ 
++=======
++>>>>>>> .their
+     await createReleaseShasums(draftRelease)
+     // Fetch latest version of release before verifying
+     draftRelease = await getDraftRelease(pkgVersion, true)
+     await validateReleaseAssets(draftRelease)
++<<<<<<< .our
+     await tagLibCC()
+     await publishRelease(draftRelease)
++=======
++    await publishRelease(draftRelease)
++    await cleanupReleaseBranch()
++>>>>>>> .their
+     console.log(`${pass} SUCCESS!!! Release has been published. Please run ` +
+       `"npm run publish-to-npm" to publish release to npm.`)
+   }
+@@ -300,7 +393,11 @@
+   let downloadDir = await makeTempDir()
+   let githubOpts = {
+     owner: 'electron',
++<<<<<<< .our
+     repo: targetRepo,
++=======
++    repo: 'electron',
++>>>>>>> .their
+     headers: {
+       Accept: 'application/octet-stream'
+     }
+@@ -446,6 +543,7 @@
+     `shasums defined in ${validationArgs.shaSumFile}.`)
+ }
+ 
++<<<<<<< .our
+ async function tagLibCC () {
+   const tag = `electron-${pkg.version}`
+   const libccDir = path.join(path.resolve(__dirname, '..'), 'vendor', 'libchromiumcontent')
+@@ -462,6 +560,26 @@
+   } else {
+     console.log(`${fail} Error tagging libchromiumcontent with ${tag}: ` +
+       `${tagDetails.stderr}`)
++=======
++async function cleanupReleaseBranch () {
++  console.log(`Cleaning up release branch.`)
++  let errorMessage = `Could not delete local release branch.`
++  let successMessage = `Successfully deleted local release branch.`
++  await callGit(['branch', '-D', 'release-1-6-x'], errorMessage, successMessage)
++  errorMessage = `Could not delete remote release branch.`
++  successMessage = `Successfully deleted remote release branch.`
++  return callGit(['push', 'origin', ':release'], errorMessage, successMessage)
++}
++
++async function callGit (args, errorMessage, successMessage) {
++  let gitResult = await GitProcess.exec(args, gitDir)
++  if (gitResult.exitCode === 0) {
++    console.log(`${pass} ${successMessage}`)
++    return true
++  } else {
++    console.log(`${fail} ${errorMessage} ${gitResult.stderr}`)
++    process.exit(1)
++>>>>>>> .their
+   }
+ }
+ 
+added in both
+  our    100644 2facda2daa1b8a8ccb63a28198a15b7e7ecb0880 script/upload-to-github.js
+  their  100644 7c3f8d9c11ce7b75f307850663efd2e571e8644a script/upload-to-github.js
+@@ -1,16 +1,24 @@
++<<<<<<< .our
+ if (!process.env.CI) require('dotenv-safe').load()
+ 
++=======
++>>>>>>> .their
+ const GitHub = require('github')
+ const github = new GitHub()
+ github.authenticate({type: 'token', token: process.env.ELECTRON_GITHUB_TOKEN})
+ 
++<<<<<<< .our
+ if (process.argv.length < 6) {
++=======
++if (process.argv.length < 5) {
++>>>>>>> .their
+   console.log('Usage: upload-to-github filePath fileName releaseId')
+   process.exit(1)
+ }
+ let filePath = process.argv[2]
+ let fileName = process.argv[3]
+ let releaseId = process.argv[4]
++<<<<<<< .our
+ let releaseVersion = process.argv[5]
+ 
+ const targetRepo = releaseVersion.indexOf('nightly') > 0 ? 'nightlies' : 'electron'
+@@ -18,6 +26,12 @@
+ let githubOpts = {
+   owner: 'electron',
+   repo: targetRepo,
++=======
++
++let githubOpts = {
++  owner: 'electron',
++  repo: 'electron',
++>>>>>>> .their
+   id: releaseId,
+   filePath: filePath,
+   name: fileName
+@@ -39,7 +53,11 @@
+           console.log(`${fileName} already exists; will delete before retrying upload.`)
+           github.repos.deleteAsset({
+             owner: 'electron',
++<<<<<<< .our
+             repo: targetRepo,
++=======
++            repo: 'electron',
++>>>>>>> .their
+             id: existingAssets[0].id
+           }).then(uploadToGitHub).catch(uploadToGitHub)
+         } else {
+changed in both
+  base   100755 7d689f6cae87a51154297561139285168a70458c script/upload.py
+  our    100755 2d9eaa201265971ca01acaea6e84a440e5db0532 script/upload.py
+  their  100755 c02fdd0ae92e2f2a8da1bb64c4d47ee3d2b25303 script/upload.py
+@@ -51,6 +51,7 @@
+     return 1
+ 
+   tag_exists = False
++<<<<<<< .our
+   release = get_release(args.version)
+   if not release['draft']:
+     tag_exists = True
+@@ -64,6 +65,35 @@
+   upload_electron(release, os.path.join(DIST_DIR, DIST_NAME), args)
+   if get_target_arch() != 'mips64el':
+     upload_electron(release, os.path.join(DIST_DIR, SYMBOLS_NAME), args)
++=======
++  for release in releases:
++    if not release['draft'] and release['tag_name'] == args.version:
++      tag_exists = True
++      break
++
++  release = create_or_get_release_draft(github, releases, args.version,
++                                        tag_exists)
++
++  if args.publish_release:
++    # Upload the Node SHASUMS*.txt.
++    run_python_script('upload-node-checksums.py', '-v', ELECTRON_VERSION)
++
++    # Upload the index.json.
++    run_python_script('upload-index-json.py')
++
++    # Create and upload the Electron SHASUMS*.txt
++    release_electron_checksums(release)
++
++    # Press the publish button.
++    publish_release(github, release['id'])
++
++    # Do not upload other files when passed "-p".
++    return
++
++  # Upload Electron with GitHub Releases API.
++  upload_electron(github, release, os.path.join(DIST_DIR, DIST_NAME))
++  upload_electron(github, release, os.path.join(DIST_DIR, SYMBOLS_NAME))
++>>>>>>> .their
+   if PLATFORM == 'darwin':
+     upload_electron(release, os.path.join(DIST_DIR, 'electron-api.json'), args)
+     upload_electron(release, os.path.join(DIST_DIR, 'electron.d.ts'), args)
+@@ -149,7 +179,66 @@
+   return dist_time > int(head_time)
+ 
+ 
++<<<<<<< .our
+ def upload_electron(release, file_path, args):
++=======
++def get_text_with_editor(name):
++  editor = os.environ.get('EDITOR', 'nano')
++  initial_message = '\n# Please enter the body of your release note for %s.' \
++                    % name
++
++  t = tempfile.NamedTemporaryFile(suffix='.tmp', delete=False)
++  t.write(initial_message)
++  t.close()
++  subprocess.call([editor, t.name])
++
++  text = ''
++  for line in open(t.name, 'r'):
++    if len(line) == 0 or line[0] != '#':
++      text += line
++
++  os.unlink(t.name)
++  return text
++
++def create_or_get_release_draft(github, releases, tag, tag_exists):
++  # Search for existing draft.
++  for release in releases:
++    if release['draft'] and release['tag_name'] == tag:
++      return release
++
++  if tag_exists:
++    tag = 'do-not-publish-me'
++  return create_release_draft(github, tag)
++
++
++def create_release_draft(github, tag):
++  name = '{0} {1}'.format(PROJECT_NAME, tag)
++  if os.environ.has_key('CI'):
++    body = '(placeholder)'
++  else:
++    body = get_text_with_editor(name)
++  if body == '':
++    sys.stderr.write('Quit due to empty release note.\n')
++    sys.exit(0)
++  data = dict(tag_name=tag, name=name, body=body, draft=True,
++              target_commitish='1-6-x')
++  r = github.repos(ELECTRON_REPO).releases.post(data=data)
++  return r
++
++
++def release_electron_checksums(release):
++  checksums = run_python_script('merge-electron-checksums.py',
++                                '-v', ELECTRON_VERSION)
++  filename = 'SHASUMS256.txt'
++  filepath = os.path.join(SOURCE_ROOT, filename)
++  with open(filepath, 'w') as sha_file:
++      sha_file.write(checksums.decode('utf-8'))
++  upload_io_to_github(release, filename, filepath)
++
++
++def upload_electron(github, release, file_path):
++  # Delete the original file before uploading in CI.
++>>>>>>> .their
+   filename = os.path.basename(file_path)
+ 
+   # if upload_to_s3 is set, skip github upload.
+@@ -165,18 +254,30 @@
+     return
+ 
+   # Upload the file.
++<<<<<<< .our
+   upload_io_to_github(release, filename, file_path, args.version)
++=======
++  upload_io_to_github(release, filename, file_path)
++>>>>>>> .their
+ 
+   # Upload the checksum file.
+   upload_sha256_checksum(args.version, file_path)
+ 
+ 
++<<<<<<< .our
+ def upload_io_to_github(release, filename, filepath, version):
+   print 'Uploading %s to Github' % \
+       (filename)
+   script_path = os.path.join(SOURCE_ROOT, 'script', 'upload-to-github.js')
+   execute(['node', script_path, filepath, filename, str(release['id']),
+           version])
++=======
++def upload_io_to_github(release, filename, filepath):
++  print 'Uploading %s to Github' % \
++      (filename)
++  script_path = os.path.join(SOURCE_ROOT, 'script', 'upload-to-github.js')
++  execute(['node', script_path, filepath, filename, str(release['id'])])
++>>>>>>> .their
+ 
+ 
+ def upload_sha256_checksum(version, file_path, key_prefix=None):
+changed in both
+  base   100644 1bcc1a5c6223f44e4e9af61ce0bce81cb8aeb522 spec/api-app-spec.js
+  our    100644 d224eda2989332c18d655cef05a8bacc2eb6d4b8 spec/api-app-spec.js
+  their  100644 bfebd8a44b3c66f0cd18c2ac24e2c6f9e9ef25b2 spec/api-app-spec.js
+@@ -294,8 +294,15 @@
+     })
+   })
+ 
++<<<<<<< .our
+   xdescribe('app.importCertificate', () => {
+     let w = null
++=======
++  xdescribe('app.importCertificate', function () {
++    if (process.platform !== 'linux') return
++
++    var w = null
++>>>>>>> .their
+ 
+     before(function () {
+       if (process.platform !== 'linux') {
+@@ -535,7 +542,11 @@
+     })
+   })
+ 
++<<<<<<< .our
+   describe('select-client-certificate event', () => {
++=======
++  xdescribe('select-client-certificate event', function () {
++>>>>>>> .their
+     let w = null
+ 
+     before(function () {
+@@ -689,36 +700,80 @@
+       }
+     })
+ 
++<<<<<<< .our
+     it('does not launch for argument following a URL', done => {
+       const appPath = path.join(__dirname, 'fixtures', 'api', 'quit-app')
+       // App should exit with non 123 code.
+       const first = ChildProcess.spawn(remote.process.execPath, [appPath, 'electron-test:?', 'abc'])
+       first.once('exit', code => {
+         expect(code).to.not.equal(123)
++=======
++    it('does not launch for blacklisted argument', function (done) {
++      const appPath = path.join(__dirname, 'fixtures', 'api', 'quit-app')
++      // App should exit with non 123 code.
++      const first = ChildProcess.spawn(remote.process.execPath, [appPath, 'electron-test://?', '--no-sandbox', '--gpu-launcher=cmd.exe /c start calc'])
++      first.once('exit', (code) => {
++        assert.notEqual(code, 123)
++>>>>>>> .their
+         done()
+       })
+     })
+ 
++<<<<<<< .our
+     it('launches successfully for argument following a file path', done => {
+       const appPath = path.join(__dirname, 'fixtures', 'api', 'quit-app')
+       // App should exit with code 123.
+       const first = ChildProcess.spawn(remote.process.execPath, [appPath, 'e:\\abc', 'abc'])
+       first.once('exit', code => {
+         expect(code).to.equal(123)
++=======
++    it('launches successfully for multiple uris in cmd args', function (done) {
++      const appPath = path.join(__dirname, 'fixtures', 'api', 'quit-app')
++      // App should exit with code 123.
++      const first = ChildProcess.spawn(remote.process.execPath, [appPath, 'http://electronjs.org', 'electron-test://testdata'])
++      first.once('exit', (code) => {
++        assert.equal(code, 123)
++>>>>>>> .their
+         done()
+       })
+     })
+ 
++<<<<<<< .our
+     it('launches successfully for multiple URIs following --', done => {
+       const appPath = path.join(__dirname, 'fixtures', 'api', 'quit-app')
+       // App should exit with code 123.
+       const first = ChildProcess.spawn(remote.process.execPath, [appPath, '--', 'http://electronjs.org', 'electron-test://testdata'])
+       first.once('exit', code => {
+         expect(code).to.equal(123)
++=======
++    it('does not launch for encoded space', function (done) {
++      const appPath = path.join(__dirname, 'fixtures', 'api', 'quit-app')
++      // App should exit with non 123 code.
++      const first = ChildProcess.spawn(remote.process.execPath, [appPath, 'electron-test://?', '--no-sandbox', '--gpu-launcher%20"cmd.exe /c start calc'])
++      first.once('exit', (code) => {
++        assert.notEqual(code, 123)
++        done()
++      })
++    })
++
++    it('launches successfully for argnames similar to blacklisted ones', function (done) {
++      const appPath = path.join(__dirname, 'fixtures', 'api', 'quit-app')
++      // inspect is blacklisted, but inspector should work, and app launch should succeed
++      const first = ChildProcess.spawn(remote.process.execPath, [appPath, 'electron-test://?', '--inspector'])
++      first.once('exit', (code) => {
++        assert.equal(code, 123)
++>>>>>>> .their
+         done()
+       })
+     })
+   })
++<<<<<<< .our
++=======
++
++  describe('getFileIcon() API', function () {
++    // FIXME Get these specs running on Linux CI
++    if (process.platform === 'linux' && isCI) return
++>>>>>>> .their
+ 
+   describe('getFileIcon() API', () => {
+     const iconPath = path.join(__dirname, 'fixtures/assets/icon.ico')
+changed in both
+  base   100644 ff2734b5ea2c5da5843b8c952a5ed1602fd586c8 spec/api-browser-window-spec.js
+  our    100644 f4cba12ec19d224bc46fca898db42a99baf4972e spec/api-browser-window-spec.js
+  their  100644 2ce18b856e9156c0a70b7e6a7a18c4a793edec92 spec/api-browser-window-spec.js
+@@ -1589,8 +1589,11 @@
+             sandbox: true
+           }
+         })
++<<<<<<< .our
+         ipcRenderer.send('set-web-preferences-on-next-new-window', w.webContents.id, 'preload', preload)
+ 
++=======
++>>>>>>> .their
+         w.loadURL('file://' + path.join(fixtures, 'api', 'sandbox.html?reload-remote-child'))
+ 
+         ipcMain.on('get-remote-module-path', (event) => {
+@@ -1614,6 +1617,7 @@
+           done()
+         })
+       })
++<<<<<<< .our
+ 
+       it('validates process APIs access in sandboxed renderer', (done) => {
+         ipcMain.once('answer', function (event, test) {
+@@ -1657,6 +1661,8 @@
+         const [, id] = await emittedOnce(ipcMain, 'webview-dom-ready')
+         expect(webContents.id).to.equal(id)
+       })
++=======
++>>>>>>> .their
+     })
+ 
+     describe('nativeWindowOpen option', () => {
+changed in both
+  base   100644 92020dbea6233c09025a2c7c51cd37f82bfc58c9 spec/api-crash-reporter-spec.js
+  our    100644 dd31b91e1244785412b87db96bb141599e5ccb0f spec/api-crash-reporter-spec.js
+  their  100644 a08cbaaa09dddf868234dab67465eed058522718 spec/api-crash-reporter-spec.js
+@@ -10,6 +10,7 @@
+ const {closeWindow} = require('./window-helpers')
+ 
+ const {remote} = require('electron')
++const isCI = remote.getGlobal('isCi')
+ const {app, BrowserWindow, crashReporter} = remote.require('electron')
+ 
+ describe('crashReporter module', () => {
+@@ -18,8 +19,19 @@
+   // TODO(alexeykuzmin): [Ch66] Fails. Fix it and enable back.
+   if (process.platform === 'linux') return
+ 
++<<<<<<< .our
+   let originalTempDirectory = null
+   let tempDirectory = null
++=======
++  // FIXME internal Linux CI is failing when it detects a process crashes
++  // which is a false positive here since crashes are explicitly triggered
++  if (isCI && process.platform === 'linux') {
++    return
++  }
++
++  var originalTempDirectory = null
++  var tempDirectory = null
++>>>>>>> .their
+ 
+   before(() => {
+     tempDirectory = temp.mkdirSync('electronCrashReporterSpec-')
+changed in both
+  base   100644 1302fbbc433125e390a60bab5333477405cc3a91 spec/chromium-spec.js
+  our    100644 d90269769d269e4054d25cba4b6c4ac8a1929aa6 spec/chromium-spec.js
+  their  100644 892992a543fa5006e7d95b46f3229d9a96e0d02d spec/chromium-spec.js
+@@ -1055,6 +1055,7 @@
+       }
+     })
+ 
++<<<<<<< .our
+     beforeEach(() => {
+       this.pdfSource = url.format({
+         pathname: path.join(fixtures, 'assets', 'cat.pdf').replace(/\\/g, '/'),
+@@ -1070,6 +1071,22 @@
+         },
+         protocol: 'file',
+         slashes: true
++=======
++    function createBrowserWindow ({plugins}) {
++      w = new BrowserWindow({
++        show: false,
++        webPreferences: {
++          preload: path.join(fixtures, 'module', 'preload-inject-ipc.js'),
++          plugins: plugins
++        }
++      })
++    }
++
++    it('opens when loading a pdf resource as top level navigation', function (done) {
++      createBrowserWindow({plugins: true})
++      ipcMain.once('pdf-loaded', function (event, success) {
++        if (success) done()
++>>>>>>> .their
+       })
+ 
+       this.createBrowserWindow = ({plugins, preload}) => {
+@@ -1121,11 +1138,34 @@
+       w.webContents.loadURL(this.pdfSource)
+     })
+ 
++<<<<<<< .our
+     it('opens a pdf link given params, the query string should be escaped', (done) => {
+       this.createBrowserWindow({plugins: true, preload: 'preload-pdf-loaded.js'})
+       ipcMain.once('pdf-loaded', (event, state) => {
+         assert.equal(state, 'success')
+         done()
++=======
++    it('should download a pdf when plugins are disabled', function (done) {
++      createBrowserWindow({plugins: false})
++      ipcRenderer.sendSync('set-download-option', false, false)
++      ipcRenderer.once('download-done', function (event, state, url, mimeType, receivedBytes, totalBytes, disposition, filename) {
++        assert.equal(state, 'completed')
++        assert.equal(filename, 'cat.pdf')
++        assert.equal(mimeType, 'application/pdf')
++        fs.unlinkSync(path.join(fixtures, 'mock.pdf'))
++        done()
++      })
++      w.webContents.loadURL(pdfSource)
++    })
++
++    it('should not open when pdf is requested as sub resource', function (done) {
++      createBrowserWindow({plugins: true})
++      webFrame.registerURLSchemeAsPrivileged('file', {
++        secure: false,
++        bypassCSP: false,
++        allowServiceWorkers: false,
++        corsEnabled: false
++>>>>>>> .their
+       })
+       w.webContents.on('page-title-updated', () => {
+         const parsedURL = url.parse(w.webContents.getURL(), true)
+changed in both
+  base   100644 f8d7aa7921de1b025bc0beb1b3659d0713da6aeb spec/fixtures/api/sandbox.html
+  our    100644 af796ebc988b648455025934a991719135853694 spec/fixtures/api/sandbox.html
+  their  100644 5353d8815a7582443f50f34dbde6ff7d01101cba spec/fixtures/api/sandbox.html
+changed in both
+  base   100644 15d6e06a862cf69ad592601bd3d376bec20c05f8 spec/fixtures/module/preload-sandbox.js
+  our    100644 6901be56d0c5fa9f0a318edeb235eef60624ac52 spec/fixtures/module/preload-sandbox.js
+  their  100644 f8f88339852039ecaa3b5c23eae382e06ad06d58 spec/fixtures/module/preload-sandbox.js
+changed in both
+  base   160000 3fe90cfcf54dd946980e59daf550a7cdb2317c8f vendor/node
+  our    160000 ece0a06ac8147efb5b5af431c21f312f1884616e vendor/node
+  their  160000 9b1683e7000481ec6214eafa3eef7ac4594eb410 vendor/node
