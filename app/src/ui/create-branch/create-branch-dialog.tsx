@@ -3,7 +3,7 @@ import * as React from 'react'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../../lib/dispatcher'
 import { sanitizedBranchName } from '../../lib/sanitize-branch'
-import { Branch } from '../../models/branch'
+import { Branch, BranchType } from '../../models/branch'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 import { Ref } from '../lib/ref'
@@ -299,8 +299,10 @@ export class CreateBranch extends React.Component<
 
     const alreadyExistsOnRemote =
       this.props.allBranches.findIndex(
-        b => b.name === sanitizedName && b.remote !== null
+        b =>
+          b.nameWithoutRemote === sanitizedName && b.type === BranchType.Remote
       ) > -1
+
     const currentError = alreadyExists
       ? new Error(`A branch named ${sanitizedName} already exists`)
       : null
