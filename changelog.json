@@ -1,5 +1,10 @@
 {
   "releases": {
+    "1.4.0-beta3": [
+      "[Fixed] Check the start of the diff line for the conflict marker - #5562",
+      "[Improved] Don't show merge hint when branch can be fast-forwarded - #5581",
+      "[Improved] Avoid the merge-tree operation work in some cases - #5582"
+    ],
     "1.4.0-beta2": [
       "[New] When an update is available for GitHub Desktop, the release notes can be viewed in Desktop - #2774",
       "[New] Detect merge conflicts when comparing branches - #4588",
