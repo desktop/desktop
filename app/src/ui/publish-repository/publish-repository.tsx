@@ -48,7 +48,7 @@ interface IPublishRepositoryState {
 export class PublishRepository extends React.Component<
   IPublishRepositoryProps,
   IPublishRepositoryState
-  > {
+> {
   public constructor(props: IPublishRepositoryProps) {
     super(props)
 
