@@ -28,8 +28,12 @@ import {
   NewCommitsBanner,
   DismissalReason,
 } from '../notification/new-commits-banner'
-import { enableNotificationOfBranchUpdates } from '../../lib/feature-flag'
+import {
+  enableNotificationOfBranchUpdates,
+  enableMergeConflictDetection,
+} from '../../lib/feature-flag'
 import { MergeCallToAction } from './merge-call-to-action'
+import { MergeCallToActionWithConflicts } from './merge-call-to-action-with-conflicts'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -323,12 +327,26 @@ export class CompareSidebar extends React.Component<
       return null
     }
 
+    if (!enableMergeConflictDetection()) {
+      return (
+        <MergeCallToAction
+          repository={this.props.repository}
+          dispatcher={this.props.dispatcher}
+          currentBranch={this.props.currentBranch}
+          formState={formState}
+          onMerged={this.onMerge}
+        />
+      )
+    }
+
     return (
-      <MergeCallToAction
+      <MergeCallToActionWithConflicts
         repository={this.props.repository}
         dispatcher={this.props.dispatcher}
+        mergeStatus={this.props.compareState.mergeStatus}
         currentBranch={this.props.currentBranch}
-        formState={formState}
+        comparisonBranch={formState.comparisonBranch}
+        commitsBehind={formState.aheadBehind.behind}
         onMerged={this.onMerge}
       />
     )

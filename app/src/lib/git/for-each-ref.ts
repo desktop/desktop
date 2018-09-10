@@ -1,4 +1,6 @@
 import { git } from './core'
+import { GitError } from 'dugite'
+
 import { Repository } from '../../models/repository'
 import { Commit } from '../../models/commit'
 import { Branch, BranchType } from '../../models/branch'
@@ -45,10 +47,10 @@ export async function getBranches(
     ['for-each-ref', `--format=${format}`, ...prefixes],
     repository.path,
     'getBranches',
-    { successExitCodes: new Set([0, 128]) }
+    { expectedErrors: new Set([GitError.NotAGitRepository]) }
   )
 
-  if (result.exitCode === 128) {
+  if (result.gitError === GitError.NotAGitRepository) {
     return []
   }
 

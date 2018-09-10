@@ -1,6 +1,8 @@
 export enum MergeResultKind {
-  Success = 'Success',
-  Conflicts = 'Conflicts',
+  Loading = 'loading',
+  Invalid = 'invalid',
+  Clean = 'clean',
+  Conflicts = 'conflicts',
 }
 
 interface IBlobResult {
@@ -16,10 +18,11 @@ export interface IMergeEntry {
   readonly our?: IBlobResult
   readonly their?: IBlobResult
   readonly diff: string
+  readonly hasConflicts?: boolean
 }
 
 export interface IMergeSuccess {
-  readonly kind: MergeResultKind.Success
+  readonly kind: MergeResultKind.Clean
   readonly entries: ReadonlyArray<IMergeEntry>
 }
 
@@ -28,4 +31,8 @@ export interface IMergeError {
   readonly conflictedFiles: number
 }
 
-export type MergeResult = IMergeSuccess | IMergeError
+export interface IMergeUnsupported {
+  readonly kind: MergeResultKind.Invalid
+}
+
+export type MergeResult = IMergeSuccess | IMergeError | IMergeUnsupported

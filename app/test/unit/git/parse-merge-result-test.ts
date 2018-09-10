@@ -2,7 +2,11 @@ import { expect } from 'chai'
 import * as Path from 'path'
 import * as FSE from 'fs-extra'
 import { parseMergeResult } from '../../../src/lib/merge-tree-parser'
-import { IMergeSuccess, IMergeError } from '../../../src/models/merge'
+import {
+  IMergeSuccess,
+  IMergeError,
+  MergeResultKind,
+} from '../../../src/models/merge'
 
 import * as glob from 'glob'
 
@@ -42,7 +46,7 @@ describe('parseMergeResult', () => {
     const input = await FSE.readFile(filePath, { encoding: 'utf8' })
 
     const result = parseMergeResult(input)
-    expect(result.kind).equals('Success')
+    expect(result.kind).equals(MergeResultKind.Clean)
 
     const mergeResult = result as IMergeSuccess
     expect(mergeResult.entries.length).equals(21)
@@ -60,7 +64,7 @@ describe('parseMergeResult', () => {
     const input = await FSE.readFile(filePath, { encoding: 'utf8' })
 
     const result = parseMergeResult(input)
-    expect(result.kind).equals('Conflicts')
+    expect(result.kind).equals(MergeResultKind.Conflicts)
 
     const mergeResult = result as IMergeError
     expect(mergeResult.conflictedFiles).equals(1)
@@ -76,7 +80,7 @@ describe('parseMergeResult', () => {
         const input = await FSE.readFile(f, { encoding: 'utf8' })
 
         const result = parseMergeResult(input)
-        expect(result.kind).equals('Conflicts')
+        expect(result.kind).equals(MergeResultKind.Conflicts)
 
         const mergeResult = result as IMergeError
         expect(mergeResult.conflictedFiles).is.greaterThan(0)
@@ -94,7 +98,7 @@ describe('parseMergeResult', () => {
         const input = await FSE.readFile(f, { encoding: 'utf8' })
 
         const result = parseMergeResult(input)
-        expect(result.kind).equals('Conflicts')
+        expect(result.kind).equals(MergeResultKind.Conflicts)
 
         const mergeResult = result as IMergeError
         expect(mergeResult.conflictedFiles).is.greaterThan(0)
@@ -112,7 +116,7 @@ describe('parseMergeResult', () => {
         const input = await FSE.readFile(f, { encoding: 'utf8' })
 
         const result = parseMergeResult(input)
-        expect(result.kind).equals('Conflicts')
+        expect(result.kind).equals(MergeResultKind.Conflicts)
 
         const mergeResult = result as IMergeError
         expect(mergeResult.conflictedFiles).is.greaterThan(0)

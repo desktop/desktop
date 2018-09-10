@@ -168,6 +168,18 @@ export function parseMergeResult(text: string): MergeResult {
         ...currentMergeEntry,
         diff: newDiff,
       }
+
+      const lineHasConflictMarker =
+        line.startsWith('+<<<<<<<') ||
+        line.startsWith('+=======') ||
+        line.startsWith('+>>>>>>>')
+
+      if (lineHasConflictMarker) {
+        currentMergeEntry = {
+          ...currentMergeEntry,
+          hasConflicts: true,
+        }
+      }
     }
   }
 
@@ -177,13 +189,7 @@ export function parseMergeResult(text: string): MergeResult {
     currentMergeEntry = undefined
   }
 
-  const entriesWithConflicts = entries.filter(e => {
-    const ourDiffMarker = e.diff.indexOf('+<<<<<<<')
-    const boundaryMarker = e.diff.indexOf('+=======')
-    const theirDiffMarker = e.diff.indexOf('+>>>>>>>')
-
-    return ourDiffMarker > 0 && boundaryMarker > 0 && theirDiffMarker > 0
-  })
+  const entriesWithConflicts = entries.filter(e => e.hasConflicts || false)
 
   if (entriesWithConflicts.length > 0) {
     return {
@@ -191,6 +197,6 @@ export function parseMergeResult(text: string): MergeResult {
       conflictedFiles: entriesWithConflicts.length,
     }
   } else {
-    return { kind: MergeResultKind.Success, entries }
+    return { kind: MergeResultKind.Clean, entries }
   }
 }

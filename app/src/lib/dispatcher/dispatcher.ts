@@ -19,6 +19,7 @@ import {
   ImageDiffType,
   CompareAction,
   ICompareFormUpdate,
+  MergeResultStatus,
 } from '../app-state'
 import { AppStore } from '../stores/app-store'
 import { CloningRepository } from '../../models/cloning-repository'
@@ -58,6 +59,7 @@ import { IAuthor } from '../../models/author'
 import { ITrailer } from '../git/interpret-trailers'
 import { isGitRepository } from '../git'
 import { ApplicationTheme } from '../../ui/lib/application-theme'
+import { TipState } from '../../models/tip'
 
 /**
  * An error handler function.
@@ -569,8 +571,12 @@ export class Dispatcher {
   }
 
   /** Merge the named branch into the current branch. */
-  public mergeBranch(repository: Repository, branch: string): Promise<void> {
-    return this.appStore._mergeBranch(repository, branch)
+  public mergeBranch(
+    repository: Repository,
+    branch: string,
+    mergeStatus: MergeResultStatus | null
+  ): Promise<void> {
+    return this.appStore._mergeBranch(repository, branch, mergeStatus)
   }
 
   /** Record the given launch stats. */
@@ -839,14 +845,10 @@ export class Dispatcher {
         break
 
       case 'open-repository-from-url':
-        const { pr, url, branch } = action
-        // a forked PR will provide both these values, despite the branch not existing
-        // in the repository - drop the branch argument in this case so a clone will
-        // checkout the default branch when it clones
-        const branchToClone = pr && branch ? null : branch || null
-        const repository = await this.openRepository(url, branchToClone)
+        const { url } = action
+        const repository = await this.openRepository(url)
         if (repository) {
-          this.handleCloneInDesktopOptions(repository, action)
+          await this.handleCloneInDesktopOptions(repository, action)
         } else {
           log.warn(
             `Open Repository from URL failed, did not find repository: ${url} - payload: ${JSON.stringify(
@@ -936,8 +938,9 @@ export class Dispatcher {
       await this.fetchRefspec(repository, `pull/${pr}/head:${branch}`)
     }
 
+    const state = this.appStore.getRepositoryState(repository)
+
     if (pr == null && branch != null) {
-      const state = this.appStore.getRepositoryState(repository)
       const branches = state.branchesState.allBranches
 
       // I don't want to invoke Git functionality from the dispatcher, which
@@ -953,7 +956,17 @@ export class Dispatcher {
     }
 
     if (branch != null) {
-      await this.checkoutBranch(repository, branch)
+      let shouldCheckoutBranch = true
+
+      const { tip } = state.branchesState
+
+      if (tip.kind === TipState.Valid) {
+        shouldCheckoutBranch = tip.branch.nameWithoutRemote !== branch
+      }
+
+      if (shouldCheckoutBranch) {
+        await this.checkoutBranch(repository, branch)
+      }
     }
 
     if (filepath != null) {
@@ -964,10 +977,7 @@ export class Dispatcher {
     }
   }
 
-  private async openRepository(
-    url: string,
-    branch: string | null
-  ): Promise<Repository | null> {
+  private async openRepository(url: string): Promise<Repository | null> {
     const state = this.appStore.getState()
     const repositories = state.repositories
     const existingRepository = repositories.find(r => {
@@ -983,21 +993,16 @@ export class Dispatcher {
     })
 
     if (existingRepository) {
-      const repo = await this.selectRepository(existingRepository)
-      if (!repo || !branch) {
-        return repo
-      }
-
-      return this.checkoutBranch(repo, branch)
-    } else {
-      return this.appStore._startOpenInDesktop(() => {
-        this.changeCloneRepositoriesTab(CloneRepositoryTab.Generic)
-        this.showPopup({
-          type: PopupType.CloneRepository,
-          initialURL: url,
-        })
-      })
+      return await this.selectRepository(existingRepository)
     }
+
+    return this.appStore._startOpenInDesktop(() => {
+      this.changeCloneRepositoriesTab(CloneRepositoryTab.Generic)
+      this.showPopup({
+        type: PopupType.CloneRepository,
+        initialURL: url,
+      })
+    })
   }
 
   /**

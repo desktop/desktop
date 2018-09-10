@@ -25,6 +25,7 @@ import {
   ICompareBranch,
   ICompareFormUpdate,
   ICompareToBranch,
+  MergeResultStatus,
 } from '../app-state'
 import { Account } from '../../models/account'
 import {
@@ -94,12 +95,12 @@ import {
   getBranchAheadBehind,
   createCommit,
   checkoutBranch,
-  getDefaultRemote,
   formatAsLocalRef,
   getMergeBase,
   getRemotes,
   ITrailer,
   isCoAuthoredByTrailer,
+  mergeTree,
 } from '../git'
 
 import { launchExternalEditor } from '../editors'
@@ -145,7 +146,10 @@ import { IRemote, ForkedRemotePrefix } from '../../models/remote'
 import { IAuthor } from '../../models/author'
 import { ComparisonCache } from '../comparison-cache'
 import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
-import { enableRepoInfoIndicators } from '../feature-flag'
+import {
+  enableRepoInfoIndicators,
+  enableMergeConflictDetection,
+} from '../feature-flag'
 import { inferComparisonBranch } from './helpers/infer-comparison-branch'
 import {
   ApplicationTheme,
@@ -154,6 +158,8 @@ import {
 } from '../../ui/lib/application-theme'
 import { findAccountForRemoteURL } from '../find-account'
 import { inferLastPushForRepository } from '../infer-last-push-for-repository'
+import { MergeResultKind } from '../../models/merge'
+import { promiseWithMinimumTimeout } from '../promise'
 
 /**
  * Enum used by fetch to determine if
@@ -279,6 +285,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** The current repository filter text */
   private repositoryFilterText: string = ''
+
+  private currentMergeTreePromise: Promise<void> | null = null
 
   /** The function to resolve the current Open in Desktop flow. */
   private resolveOpenInDesktop:
@@ -462,6 +470,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       },
       compareState: {
         formState: { kind: ComparisonView.None },
+        mergeStatus: null,
         showBranchList: false,
         filterText: '',
         commitSHAs: [],
@@ -962,9 +971,53 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.currentAheadBehindUpdater.insert(from, to, aheadBehind)
     }
 
-    this.updateOrSelectFirstCommit(repository, commitSHAs)
+    if (!enableMergeConflictDetection()) {
+      this.updateOrSelectFirstCommit(repository, commitSHAs)
+      return this.emitUpdate()
+    } else {
+      this.updateCompareState(repository, () => ({
+        mergeStatus: { kind: MergeResultKind.Loading },
+      }))
 
-    return this.emitUpdate()
+      this.emitUpdate()
+
+      this.updateOrSelectFirstCommit(repository, commitSHAs)
+
+      if (this.currentMergeTreePromise != null) {
+        return this.currentMergeTreePromise
+      }
+
+      if (tip.kind === TipState.Valid) {
+        const mergeTreePromise = promiseWithMinimumTimeout(
+          () => mergeTree(repository, tip.branch, action.branch),
+          500
+        ).then(mergeStatus => {
+          this.updateCompareState(repository, () => ({
+            mergeStatus,
+          }))
+
+          this.emitUpdate()
+        })
+
+        const cleanup = () => {
+          this.currentMergeTreePromise = null
+        }
+
+        // TODO: when we have Promise.prototype.finally available we
+        //       should use that here to make this intent clearer
+        mergeTreePromise.then(cleanup, cleanup)
+
+        this.currentMergeTreePromise = mergeTreePromise
+
+        return this.currentMergeTreePromise
+      } else {
+        this.updateCompareState(repository, () => ({
+          mergeStatus: null,
+        }))
+
+        return this.emitUpdate()
+      }
+    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -1228,7 +1281,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.addUpstreamRemoteIfNeeded(repository)
 
-    return this._repositoryWithRefreshedGitHubRepository(repository)
+    return this.repositoryWithRefreshedGitHubRepository(repository)
   }
 
   public async _refreshIssues(repository: GitHubRepository) {
@@ -2208,7 +2261,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _repositoryWithRefreshedGitHubRepository(
+  private async repositoryWithRefreshedGitHubRepository(
     repository: Repository
   ): Promise<Repository> {
     const oldGitHubRepository = repository.gitHubRepository
@@ -2294,8 +2347,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private async matchGitHubRepository(
     repository: Repository
   ): Promise<IMatchedGitHubRepository | null> {
-    const remote = await getDefaultRemote(repository)
-    return remote ? matchGitHubRepository(this.accounts, remote.url) : null
+    const gitStore = this.getGitStore(repository)
+    const remote = gitStore.defaultRemote
+    return remote !== null
+      ? matchGitHubRepository(this.accounts, remote.url)
+      : null
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -2754,7 +2810,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       await this.performPush(repository, account)
     }
 
-    return this._repositoryWithRefreshedGitHubRepository(repository)
+    return this.repositoryWithRefreshedGitHubRepository(repository)
   }
 
   private getAccountForRemoteURL(remote: string): IGitAccount | null {
@@ -3060,9 +3116,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   public async _mergeBranch(
     repository: Repository,
-    branch: string
+    branch: string,
+    mergeStatus: MergeResultStatus | null
   ): Promise<void> {
     const gitStore = this.getGitStore(repository)
+
+    if (mergeStatus !== null) {
+      if (mergeStatus.kind === MergeResultKind.Clean) {
+        this.statsStore.recordMergeHintSuccessAndUserProceeded()
+      } else if (mergeStatus.kind === MergeResultKind.Conflicts) {
+        this.statsStore.recordUserProceededAfterConflictWarning()
+      } else if (mergeStatus.kind === MergeResultKind.Loading) {
+        this.statsStore.recordUserProceededWhileLoading()
+      }
+    }
+
     await gitStore.merge(branch)
 
     return this._refreshRepository(repository)
@@ -3361,7 +3429,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           validatedPath
         )
         const [refreshedRepo, usingLFS] = await Promise.all([
-          this._repositoryWithRefreshedGitHubRepository(addedRepo),
+          this.repositoryWithRefreshedGitHubRepository(addedRepo),
           this.isUsingLFS(addedRepo),
         ])
         addedRepositories.push(refreshedRepo)
@@ -3446,7 +3514,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // association is out of date. So try again before we bail on providing an
     // authenticating user.
     if (!account) {
-      updatedRepository = await this._repositoryWithRefreshedGitHubRepository(
+      updatedRepository = await this.repositoryWithRefreshedGitHubRepository(
         repository
       )
       account = getAccountForRepository(this.accounts, updatedRepository)
@@ -3821,13 +3889,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
       head.gitHubRepository.cloneURL === gitHubRepository.cloneURL
 
     if (isRefInThisRepo) {
-      const defaultRemote = await getDefaultRemote(repository)
+      const gitStore = this.getGitStore(repository)
+      const defaultRemote = gitStore.defaultRemote
       // if we don't have a default remote here, it's probably going
       // to just crash and burn on checkout, but that's okay
       if (defaultRemote != null) {
         // the remote ref will be something like `origin/my-cool-branch`
         const remoteRef = `${defaultRemote.name}/${head.ref}`
-        const gitStore = this.getGitStore(repository)
 
         const remoteRefExists =
           gitStore.allBranches.find(branch => branch.name === remoteRef) != null
