@@ -24,7 +24,7 @@ describe('parseAppURL', () => {
     })
   })
 
-  describe('openRepo', () => {
+  describe('openRepoViaHttps', () => {
     it('returns right name', () => {
       const result = parseAppURL(
         'github-mac://openRepo/https://github.com/desktop/desktop'
