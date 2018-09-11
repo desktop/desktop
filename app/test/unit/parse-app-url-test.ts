@@ -24,7 +24,7 @@ describe('parseAppURL', () => {
     })
   })
 
-  describe('openRepoViaHttps', () => {
+  describe('openRepo via HTTPS', () => {
     it('returns right name', () => {
       const result = parseAppURL(
         'github-mac://openRepo/https://github.com/desktop/desktop'
@@ -97,7 +97,7 @@ describe('parseAppURL', () => {
     })
   })
 
-  describe('openRepoViaSsh', () => {
+  describe('openRepo via SSH', () => {
     it('returns right name', () => {
       const result = parseAppURL(
         'github-mac://openRepo/git@github.com/desktop/desktop'
