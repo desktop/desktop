@@ -22,13 +22,13 @@ describe('sanitizedBranchName', () => {
   })
 
   it('does not allow name to start with plus', () => {
-    const branchName = '+but-can-still-keep-the-rest'
+    const branchName = '++but-can-still-keep-the-rest'
     const result = sanitizedBranchName(branchName)
     expect(result).to.equal('but-can-still-keep-the-rest')
   })
 
   it('does not allow name to start with minus', () => {
-    const branchName = '-but-can-still-keep-the-rest'
+    const branchName = '--but-can-still-keep-the-rest'
     const result = sanitizedBranchName(branchName)
     expect(result).to.equal('but-can-still-keep-the-rest')
   })
