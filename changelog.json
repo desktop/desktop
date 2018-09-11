@@ -8,6 +8,8 @@
       "[Fixed] Disable affected menu items when on detached HEAD - #5500. Thanks @say25!",
       "[Fixed] Show border when commit description is expanded - #5506. Thanks @aryyya!",
       "[Fixed] GitLab URL which corresponds to GitHub repository of same name cloned GitHub repository - #4154",
+      "[Fixed] Caret in co-author selector is hidden when dark theme enabled - #5589",
+      "[Fixed] Authenticating to GitHub Enterprise fails when user has no emails defined - #5585",
       "[Improved] Avoid multiple lookups of default remote - #5399"
     ],
     "1.4.0-beta3": [
