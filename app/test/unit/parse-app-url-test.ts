@@ -131,9 +131,7 @@ describe('parseAppURL', () => {
       expect(result.name).to.equal('open-repository-from-url')
 
       const openRepo = result as IOpenRepositoryFromURLAction
-      expect(openRepo.url).to.equal(
-        'git@github.com/octokit/octokit.net.git'
-      )
+      expect(openRepo.url).to.equal('git@github.com/octokit/octokit.net.git')
       expect(openRepo.branch).to.equal('pr/1569')
       expect(openRepo.pr).to.equal('1569')
     })
@@ -160,9 +158,7 @@ describe('parseAppURL', () => {
       expect(result.name).to.equal('open-repository-from-url')
 
       const openRepo = result as IOpenRepositoryFromURLAction
-      expect(openRepo.url).to.equal(
-        'git@github.com/octokit/octokit.net.git'
-      )
+      expect(openRepo.url).to.equal('git@github.com/octokit/octokit.net.git')
       expect(openRepo.branch).to.equal('master')
       expect(openRepo.filepath).to.equal(
         'Octokit.Reactive/Octokit.Reactive.csproj'
