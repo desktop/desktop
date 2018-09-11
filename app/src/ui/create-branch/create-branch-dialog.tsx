@@ -40,7 +40,7 @@ enum StartPoint {
 
 interface ICreateBranchState {
   readonly currentError: Error | null
-  readonly currentWarning: string | null
+  readonly currentWarning: JSX.Element | null
   readonly proposedName: string
   readonly sanitizedName: string
   readonly startPoint: StartPoint
@@ -304,12 +304,15 @@ export class CreateBranch extends React.Component<
       ) > -1
 
     const currentError = alreadyExists
-      ? new Error(`A branch named ${sanitizedName} already exists`)
+      ? new Error(`
+        A branch named ${sanitizedName} already exists`)
       : null
 
-    const currentWarning = alreadyExistsOnRemote
-      ? `A branch named ${sanitizedName} already exists on remote`
-      : null
+    const currentWarning = alreadyExistsOnRemote ? (
+      <p>
+        A branch named <Ref>{sanitizedName}</Ref> already exists on remote
+      </p>
+    ) : null
 
     this.setState({
       proposedName: name,
