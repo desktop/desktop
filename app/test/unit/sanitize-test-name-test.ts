@@ -27,6 +27,12 @@ describe('sanitizedBranchName', () => {
     expect(result).to.equal('but-can-still-keep-the-rest')
   })
 
+  it('does not allow name to start with minus', () => {
+    const branchName = '-but-can-still-keep-the-rest'
+    const result = sanitizedBranchName(branchName)
+    expect(result).to.equal('but-can-still-keep-the-rest')
+  })
+
   it('does not allow name to end in `.lock`', () => {
     const branchName = 'foo.lock.lock'
     const result = sanitizedBranchName(branchName)
