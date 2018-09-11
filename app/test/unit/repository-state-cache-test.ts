@@ -11,6 +11,8 @@ import {
   AppFileStatus,
 } from '../../src/models/status'
 import { DiffSelection, DiffSelectionType } from '../../src/models/diff'
+import { ComparisonView } from '../../src/lib/app-state'
+import { compare } from 'semver'
 
 function createSampleGitHubRepository() {
   return {
@@ -116,5 +118,27 @@ describe('RepositoryStateCache', () => {
     expect(changesState.workingDirectory.files.length).equals(1)
     expect(changesState.showCoAuthoredBy).is.true
     expect(changesState.commitMessage!.summary).equals(summary)
+  })
+
+  it('can update compare state for a repository', () => {
+    const filterText = 'my-cool-branch'
+    const repository = r!
+
+    const cache = new RepositoryStateCache(githubUserStore!)
+
+    cache.updateCompareState(repository, () => {
+      return {
+        formState: {
+          kind: ComparisonView.None,
+        },
+        filterText,
+        commitSHAs: ['deadbeef'],
+      }
+    })
+
+    const { compareState } = cache.get(repository)
+    expect(compareState.formState.kind).equals(ComparisonView.None)
+    expect(compareState.filterText).equals(filterText)
+    expect(compareState.commitSHAs.length).equals(1)
   })
 })
