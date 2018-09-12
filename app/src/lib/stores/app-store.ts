@@ -160,6 +160,7 @@ import { findAccountForRemoteURL } from '../find-account'
 import { inferLastPushForRepository } from '../infer-last-push-for-repository'
 import { MergeResultKind } from '../../models/merge'
 import { promiseWithMinimumTimeout } from '../promise'
+import { WelcomeStep } from '../../ui/welcome/welcome'
 
 /**
  * Enum used by fetch to determine if
@@ -3040,6 +3041,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     markWelcomeFlowComplete()
 
+    this.statsStore.recordWelcomeWizardTerminated()
+
     return Promise.resolve()
   }
 
@@ -4101,6 +4104,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
    */
   public _recordDivergingBranchBannerInitatedMerge() {
     this.statsStore.recordDivergingBranchBannerInitatedMerge()
+  }
+
+  public _recordWelcomeWizardInitiated() {
+    return this.statsStore.recordWelcomeWizardInitiated()
+  }
+
+  public _recordWelcomeWizardStep(step: WelcomeStep) {
+    return this.statsStore.recordWelcomeWizardStep(step)
   }
 }
 

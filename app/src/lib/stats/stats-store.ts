@@ -531,6 +531,18 @@ export class StatsStore {
     }))
   }
 
+  public recordWelcomeWizardInitiated() {
+    localStorage.setItem('welcome-wizard-initiated-at', `${Date.now()}`)
+  }
+
+  public recordWelcomeWizardTerminated() {
+    localStorage.setItem('welcome-wizard-terminated-at', `${Date.now()}`)
+  }
+
+  public recordWelcomeWizardStep(step: WelcomeStep) {
+    localStorage.setItem('welcome-wizard-last-step', step)
+  }
+
   private onUiActivity = async () => {
     this.disableUiActivityMonitoring()
 

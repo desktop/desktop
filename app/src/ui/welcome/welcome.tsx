@@ -56,6 +56,10 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
     this.advanceOnSuccessfulSignIn(nextProps)
   }
 
+  public componentDidMount() {
+    this.props.dispatcher.recordWelcomeWizardInitiated()
+  }
+
   /**
    * Returns a value indicating whether or not the welcome flow is
    * currently in one of the sign in steps, i.e. either dotcom sign
@@ -175,6 +179,7 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
     }
 
     this.setState({ currentStep: step })
+    this.props.dispatcher.recordWelcomeWizardStep(step)
   }
 
   private done = () => {
