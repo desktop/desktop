@@ -65,6 +65,7 @@ interface IOnboardingStats {
   readonly timeToFirstAddRepository?: number
   readonly timeToFirstCloneRepository?: number
   readonly timeToFirstCreateRepository?: number
+  readonly timeToFirstCommit?: number
   readonly timeToWelcomeWizardTerminated?: number
   readonly welcomeWizardLastStep?: WelcomeStep
 }
