@@ -77,7 +77,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
   private receiveProps(props: IChangesSidebarProps) {
     if (
       this.autocompletionProviders === null ||
-      props.repository !== this.props.repository ||
+      props.repository.hash !== this.props.repository.hash ||
       props.accounts !== this.props.accounts
     ) {
       const autocompletionProviders: IAutocompletionProvider<any>[] = [
