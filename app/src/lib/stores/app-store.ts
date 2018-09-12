@@ -4123,6 +4123,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _recordWelcomeWizardStep(step: WelcomeStep) {
     return this.statsStore.recordWelcomeWizardStep(step)
   }
+
+  public _recordCreateRepository() {
+    this.statsStore.recordCreateRepository()
+  }
 }
 
 function forkPullRequestRemoteName(remoteName: string) {

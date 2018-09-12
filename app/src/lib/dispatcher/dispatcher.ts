@@ -1315,4 +1315,8 @@ export class Dispatcher {
   public recordWelcomeWizardStep(step: WelcomeStep) {
     return this.appStore._recordWelcomeWizardStep(step)
   }
+
+  public recordCreateRepository() {
+    this.appStore._recordCreateRepository()
+  }
 }

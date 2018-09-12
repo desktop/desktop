@@ -64,6 +64,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
 interface IOnboardingStats {
   readonly timeToFirstAddRepository?: number
   readonly timeToFirstCloneRepository?: number
+  readonly timeToFirstCreateRepository?: number
   readonly timeToWelcomeWizardTerminated?: number
   readonly welcomeWizardLastStep?: WelcomeStep
 }
@@ -325,6 +326,10 @@ export class StatsStore {
       wizardInitiatedAt
     )
 
+    const timeToFirstCreateRepository = this.getLocalStorageTimestampDelta(
+      'first-repository-created-at',
+      wizardInitiatedAt
+    )
     debugger
 
     return {
@@ -648,6 +653,10 @@ export class StatsStore {
 
   public recordCloneRepository() {
     this.createLocalStorageTimestamp('first-repository-cloned-at')
+  }
+
+  public recordCreateRepository() {
+    this.createLocalStorageTimestamp('first-repository-created-at')
   }
 
   private onUiActivity = async () => {
