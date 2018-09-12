@@ -11,6 +11,7 @@ import { getPersistedThemeName } from '../../ui/lib/application-theme'
 import { IUiActivityMonitor } from '../../ui/lib/ui-activity-monitor'
 import { Disposable } from 'event-kit'
 import { WelcomeStep } from '../../ui/welcome/welcome'
+import { assertNever } from '../fatal-error'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
