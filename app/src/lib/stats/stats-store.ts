@@ -700,6 +700,12 @@ export class StatsStore {
   }
 }
 
+/**
+ * Store the current date (in unix time) in localStorage.
+ *
+ * If the provided key already exists it will not be
+ * overwritten.
+ */
 function createLocalStorageTimestamp(key: string) {
   if (localStorage.getItem(key) !== null) {
     return
@@ -708,6 +714,12 @@ function createLocalStorageTimestamp(key: string) {
   localStorage.setItem(key, `${Date.now()}`)
 }
 
+/**
+ * Get a time stamp (in unix time) from localStorage.
+ *
+ * If the key doesn't exist or if the stored value can't
+ * be converted into a number this method will return null.
+ */
 function getLocalStorageTimestamp(key: string): number | null {
   const value = parseInt(localStorage.getItem(key) || '', 10)
   return isNaN(value) ? null : value
