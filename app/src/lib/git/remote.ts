@@ -30,7 +30,9 @@ export async function getRemotes(
   return remotes
 }
 
-/** Get the name of the default remote. */
+/** Get the name of the default remote.
+ *  @deprecated use `GitStore(repository).default` instead
+ */
 export async function getDefaultRemote(
   repository: Repository
 ): Promise<IRemote | null> {
