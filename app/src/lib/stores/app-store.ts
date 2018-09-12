@@ -2874,6 +2874,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       r => r.url === url && r.path === path
     )!
 
+    promise.then(success => {
+      if (success) {
+        this.statsStore.recordCloneRepository()
+      }
+    })
+
     return { promise, repository }
   }
 
