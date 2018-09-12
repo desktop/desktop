@@ -3463,6 +3463,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       })
     }
 
+    if (addedRepositories.length > 0) {
+      this.statsStore.recordAddRepository()
+    }
+
     return addedRepositories
   }
 
