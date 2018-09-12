@@ -4,6 +4,7 @@ import { testForInvalidChars } from './sanitize-branch'
 export interface IOAuthAction {
   readonly name: 'oauth'
   readonly code: string
+  readonly state: string
 }
 
 export interface IOpenRepositoryFromURLAction {
@@ -83,8 +84,9 @@ export function parseAppURL(url: string): URLActionType {
   const actionName = hostname.toLowerCase()
   if (actionName === 'oauth') {
     const code = getQueryStringValue(query, 'code')
-    if (code != null) {
-      return { name: 'oauth', code }
+    const state = getQueryStringValue(query, 'state')
+    if (code != null && state != null) {
+      return { name: 'oauth', code, state }
     } else {
       return unknown
     }

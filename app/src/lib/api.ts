@@ -12,6 +12,7 @@ import {
 import { AuthenticationMode } from './2fa'
 import { uuid } from './uuid'
 import { getAvatarWithEnterpriseFallback } from './gravatar'
+import { getDefaultEmail } from './email'
 
 const username: () => Promise<string> = require('username')
 
@@ -720,7 +721,7 @@ export async function fetchUser(
   try {
     const user = await api.fetchAccount()
     const emails = await api.fetchEmails()
-    const defaultEmail = emails[0].email || ''
+    const defaultEmail = getDefaultEmail(emails)
     const avatarURL = getAvatarWithEnterpriseFallback(
       user.avatar_url,
       defaultEmail,
@@ -864,7 +865,6 @@ export function getOAuthAuthorizationURL(
 
 export async function requestOAuthToken(
   endpoint: string,
-  state: string,
   code: string
 ): Promise<string | null> {
   try {
@@ -878,7 +878,6 @@ export async function requestOAuthToken(
         client_id: ClientID,
         client_secret: ClientSecret,
         code: code,
-        state: state,
       }
     )
     const result = await parsedResponse<IAPIAccessToken>(response)
