@@ -6,13 +6,11 @@ There are two approaches to installing Node.js, **manual** and **managed**. We r
 
 ### Managed
 
-We recommend using [nvm](https://github.com/creationix/nvm) to manage your Node.js version. This makes it easier to know you are running the correct version of node for this project without affecting setup for other projects on your machine.
+A few Node.js version managers you can use:
 
-- Install nvm from https://github.com/creationix/nvm#install-script
-- At the top level of this repo:
-  - Install the version of Node.js for GitHub Desktop with `nvm install`
-  - Use that version with `nvm use`
-- You're good to go!
+- [nvm](https://github.com/creationix/nvm)
+- [n](https://github.com/tj/n)
+- [asdf-nodejs](https://github.com/asdf-vm/asdf-nodejs)
 
 ### Manual
 
@@ -25,12 +23,7 @@ macOS comes with Python pre-installed, and it happens to be the right version, s
 
 ### Managed
 
-For this, we recommend [pyenv](https://github.com/pyenv/pyenv).
-
-- Install pyenv according to https://github.com/pyenv/pyenv-installer#github-way-recommended
-- At the top level of this repo:
-  - Install the version of Python for GitHub Desktop with `pyenv install`
-- You're good to go!
+It seems the only game in town is [pyenv](https://github.com/pyenv/pyenv).
 
 ### Manual
 
