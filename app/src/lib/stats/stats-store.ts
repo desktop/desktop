@@ -66,6 +66,7 @@ interface IOnboardingStats {
   readonly timeToFirstCloneRepository?: number
   readonly timeToFirstCreateRepository?: number
   readonly timeToFirstCommit?: number
+  readonly timeToFirstGitHubPush?: number
   readonly timeToWelcomeWizardTerminated?: number
   readonly welcomeWizardLastStep?: WelcomeStep
 }
@@ -337,6 +338,11 @@ export class StatsStore {
       wizardInitiatedAt
     )
 
+    const timeToFirstGitHubPush = this.getLocalStorageTimestampDelta(
+      'first-push-to-github-at',
+      wizardInitiatedAt
+    )
+
     debugger
 
     return {
@@ -346,6 +352,7 @@ export class StatsStore {
       timeToFirstCloneRepository,
       timeToFirstCreateRepository,
       timeToFirstCommit,
+      timeToFirstGitHubPush,
     }
   }
 
@@ -595,16 +602,22 @@ export class StatsStore {
 
   /** Record that the user pushed to GitHub.com */
   public async recordPushToGitHub(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
+    await this.updateDailyMeasures(m => ({
       dotcomPushCount: m.dotcomPushCount + 1,
     }))
+
+    this.createLocalStorageTimestamp('first-push-to-github-at')
   }
 
   /** Record that the user pushed to a GitHub Enterprise instance */
   public async recordPushToGitHubEnterprise(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
+    await this.updateDailyMeasures(m => ({
       enterprisePushCount: m.enterprisePushCount + 1,
     }))
+
+    // Note, this is not a typo. We track both GitHub.com and
+    // GitHub Enteprise under the same key
+    this.createLocalStorageTimestamp('first-push-to-github-at')
   }
 
   /** Record that the user pushed to a generic remote */
