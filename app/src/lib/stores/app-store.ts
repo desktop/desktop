@@ -828,7 +828,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.updateOrSelectFirstCommit(repository, commitSHAs)
       return this.emitUpdate()
     } else {
-      this.repositoryStateManager.updateCompareState(repository, () => ({
+      this.repositoryStateCache.updateCompareState(repository, () => ({
         mergeStatus: { kind: MergeResultKind.Loading },
       }))
 
@@ -855,7 +855,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
             return null
           })
           .then(mergeStatus => {
-            this.repositoryStateManager.updateCompareState(repository, () => ({
+            this.repositoryStateCache.updateCompareState(repository, () => ({
               mergeStatus,
             }))
 
@@ -874,7 +874,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
         return this.currentMergeTreePromise
       } else {
-        this.repositoryStateManager.updateCompareState(repository, () => ({
+        this.repositoryStateCache.updateCompareState(repository, () => ({
           mergeStatus: null,
         }))
 

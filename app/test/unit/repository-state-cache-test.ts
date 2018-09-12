@@ -12,7 +12,6 @@ import {
 } from '../../src/models/status'
 import { DiffSelection, DiffSelectionType } from '../../src/models/diff'
 import { ComparisonView } from '../../src/lib/app-state'
-import { compare } from 'semver'
 
 function createSampleGitHubRepository() {
   return {
