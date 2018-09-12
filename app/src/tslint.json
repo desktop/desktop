@@ -1,0 +1,7 @@
+{
+  "rules": {
+    "deprecation": {
+      "severity": "warning"
+    }
+  }
+}
