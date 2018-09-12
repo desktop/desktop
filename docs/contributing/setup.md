@@ -126,7 +126,7 @@ $ node -v
 v8.11.3
 
 $ yarn -v
-1.5.1
+1.9.4
 
 $ python --version
 Python 2.7.13
