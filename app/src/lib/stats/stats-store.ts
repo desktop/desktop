@@ -10,6 +10,7 @@ import { merge } from '../../lib/merge'
 import { getPersistedThemeName } from '../../ui/lib/application-theme'
 import { IUiActivityMonitor } from '../../ui/lib/ui-activity-monitor'
 import { Disposable } from 'event-kit'
+import { WelcomeStep } from '../../ui/welcome/welcome'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
