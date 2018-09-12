@@ -67,6 +67,7 @@ interface IOnboardingStats {
   readonly timeToFirstCreateRepository?: number
   readonly timeToFirstCommit?: number
   readonly timeToFirstGitHubPush?: number
+  readonly timeToFirstNonDefaultBranchCheckout?: number
   readonly timeToWelcomeWizardTerminated?: number
   readonly welcomeWizardLastStep?: WelcomeStep
 }
@@ -343,6 +344,11 @@ export class StatsStore {
       wizardInitiatedAt
     )
 
+    const timeToFirstNonDefaultBranchCheckout = this.getLocalStorageTimestampDelta(
+      'first-non-default-branch-checkout-at',
+      wizardInitiatedAt
+    )
+
     debugger
 
     return {
@@ -353,6 +359,7 @@ export class StatsStore {
       timeToFirstCreateRepository,
       timeToFirstCommit,
       timeToFirstGitHubPush,
+      timeToFirstNonDefaultBranchCheckout,
     }
   }
 
@@ -681,6 +688,10 @@ export class StatsStore {
 
   public recordCreateRepository() {
     this.createLocalStorageTimestamp('first-repository-created-at')
+  }
+
+  public recordNonDefaultBranchCheckout() {
+    this.createLocalStorageTimestamp('first-non-default-branch-checkout-at')
   }
 
   private onUiActivity = async () => {

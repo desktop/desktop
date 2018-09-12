@@ -2268,6 +2268,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this._initializeCompare(repository, { kind: CompareActionKind.History })
     }
 
+    const { defaultBranch } = this.getRepositoryState(repository).branchesState
+
+    if (defaultBranch !== null && foundBranch.name !== defaultBranch.name) {
+      this.statsStore.recordNonDefaultBranchCheckout()
+    }
+
     return repository
   }
 
