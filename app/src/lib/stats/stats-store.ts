@@ -60,6 +60,11 @@ const DefaultDailyMeasures: IDailyMeasures = {
   mergedWithConflictWarningHintCount: 0,
 }
 
+interface IOnboardingStats {
+  readonly timeToWelcomeWizardTerminated?: number
+  readonly welcomeWizardLastStep?: WelcomeStep
+}
+
 interface ICalculatedStats {
   /** The app version. */
   readonly version: string
@@ -91,11 +96,13 @@ interface ICalculatedStats {
    */
   readonly theme: string
 
-
   readonly eventType: 'usage'
 }
 
-type DailyStats = ICalculatedStats & ILaunchStats & IDailyMeasures
+type DailyStats = ICalculatedStats &
+  ILaunchStats &
+  IDailyMeasures &
+  IOnboardingStats
 
 /** The store for the app's stats. */
 export class StatsStore {
@@ -232,6 +239,7 @@ export class StatsStore {
     const dailyMeasures = await this.getDailyMeasures()
     const userType = this.determineUserType(accounts)
     const repositoryCounts = this.categorizedRepositoryCounts(repositories)
+    const onboardingStats = this.getOnboardingStats()
 
     return {
       eventType: 'usage',
@@ -242,8 +250,72 @@ export class StatsStore {
       ...launchStats,
       ...dailyMeasures,
       ...userType,
+      ...onboardingStats,
       guid: getGUID(),
       ...repositoryCounts,
+    }
+  }
+
+  private getLocalStorageTimestamp(key: string): number | null {
+    const value = parseInt(localStorage.getItem(key) || '', 10)
+    return isNaN(value) ? null : value
+  }
+
+  private getLocalStorageTimestampDelta(
+    key: string,
+    startTime: number
+  ): number | undefined {
+    const endTime = this.getLocalStorageTimestamp(key)
+    return endTime === null || endTime <= startTime
+      ? undefined
+      : endTime - startTime
+  }
+
+  private getLastWelcomeWizardStep(): WelcomeStep {
+    const step = localStorage.getItem(
+      'welcome-wizard-last-step'
+    ) as WelcomeStep | null
+
+    try {
+      switch (step) {
+        case WelcomeStep.Start:
+        case WelcomeStep.SignInToDotCom:
+        case WelcomeStep.SignInToEnterprise:
+        case WelcomeStep.ConfigureGit:
+        case WelcomeStep.UsageOptOut:
+          return step
+        case null:
+          return WelcomeStep.Start
+        default:
+          return assertNever(step, `Unknown welcome step encountered: ${step}`)
+      }
+    } catch (ex) {
+      log.error(`Could not parse last welcome step`, ex)
+      return WelcomeStep.Start
+    }
+  }
+
+  private getOnboardingStats(): IOnboardingStats {
+    const wizardInitiatedAt = this.getLocalStorageTimestamp(
+      'welcome-wizard-initiated-at'
+    )
+
+    // If we don't have a start time for the wizard none of our other metrics
+    // makes sense. This will happen for users who installed the app before
+    // we started tracking onboarding stats.
+    if (wizardInitiatedAt === null) {
+      return {}
+    }
+
+    const timeToWelcomeWizardTerminated = this.getLocalStorageTimestampDelta(
+      'welcome-wizard-terminated-at',
+      wizardInitiatedAt
+    )
+    const welcomeWizardLastStep = this.getLastWelcomeWizardStep()
+
+    return {
+      timeToWelcomeWizardTerminated,
+      welcomeWizardLastStep,
     }
   }
 
