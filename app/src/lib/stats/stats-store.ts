@@ -337,6 +337,7 @@ export class StatsStore {
       welcomeWizardLastStep,
       timeToFirstAddRepository,
       timeToFirstCloneRepository,
+      timeToFirstCreateRepository,
     }
   }
 
