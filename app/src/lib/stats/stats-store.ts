@@ -69,13 +69,71 @@ const DefaultDailyMeasures: IDailyMeasures = {
 }
 
 interface IOnboardingStats {
+  /**
+   * Time (in seconds) from when the user first launched
+   * the application and entered the welcome wizard until
+   * the user added their first existing repository.
+   */
   readonly timeToFirstAddedRepository?: number
+
+  /**
+   * Time (in seconds) from when the user first launched
+   * the application and entered the welcome wizard until
+   * the user cloned their first repository.
+   */
   readonly timeToFirstClonedRepository?: number
+
+  /**
+   * Time (in seconds) from when the user first launched
+   * the application and entered the welcome wizard until
+   * the user created their first new repository.
+   */
   readonly timeToFirstCreatedRepository?: number
+
+  /**
+   * Time (in seconds) from when the user first launched
+   * the application and entered the welcome wizard until
+   * the user crafted their first commit.
+   */
   readonly timeToFirstCommit?: number
+
+  /**
+   * Time (in seconds) from when the user first launched
+   * the application and entered the welcome wizard until
+   * the user performed their first push of a repository
+   * to GitHub.com or GitHub Enterprise. This metric
+   * does not track pushes to non-GitHub remotes.
+   */
   readonly timeToFirstGitHubPush?: number
+
+  /**
+   * Time (in seconds) from when the user first launched
+   * the application and entered the welcome wizard until
+   * the user first checked out a branch in any repository
+   * which is not the default branch of that repository.
+   *
+   * Note that this metric will be set regardless of whether
+   * that repository was a GitHub.com/GHE repository, local
+   * repository or has a non-GitHub remote.
+   */
   readonly timeToFirstNonDefaultBranchCheckout?: number
+
+  /**
+   * Time (in seconds) from when the user first launched
+   * the application and entered the welcome wizard until
+   * the user terminated the wizard. Termination could
+   * either be successful completion of the wizard or
+   * intentional dismissal of the wizard (clicking the
+   * skip button). See the welcomeWizardLastStep for
+   * more information
+   */
   readonly timeToWelcomeWizardTerminated?: number
+
+  /**
+   * The step in the welcome wizard flow that the
+   * user was on when they either completed, or
+   * intentionally dismissed the wizard.
+   */
   readonly welcomeWizardLastStep?: WelcomeStep
   readonly welcomeWizardSignInType?: 'basic' | 'web'
 }
