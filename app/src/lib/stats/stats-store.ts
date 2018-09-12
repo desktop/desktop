@@ -90,11 +90,6 @@ interface ICalculatedStats {
    */
   readonly theme: string
 
-  /**
-   * The first _recorded_ launch in seconds since the epoch (unix time).
-   * Note that this metric has not been present since the beginning.
-   */
-  readonly firstLaunch: number
 
   readonly eventType: 'usage'
 }
@@ -106,32 +101,9 @@ export class StatsStore {
   private readonly db: StatsDatabase
   private readonly uiActivityMonitor: IUiActivityMonitor
   private uiActivityMonitorSubscription: Disposable | null = null
-  private _firstLaunch: number | null = null
 
   /** Has the user opted out of stats reporting? */
   private optOut: boolean
-
-  private get firstLaunch() {
-    if (this._firstLaunch !== null) {
-      return this._firstLaunch
-    }
-
-    const storedFirstLaunch = parseInt(
-      localStorage.getItem(FirstLaunchKey) || '',
-      10
-    )
-    let firstLaunch
-
-    if (isNaN(storedFirstLaunch)) {
-      firstLaunch = Date.now()
-      localStorage.setItem(FirstLaunchKey, `${firstLaunch}`)
-    } else {
-      firstLaunch = storedFirstLaunch
-    }
-
-    this._firstLaunch = firstLaunch
-    return firstLaunch
-  }
 
   public constructor(db: StatsDatabase, uiActivityMonitor: IUiActivityMonitor) {
     this.db = db
@@ -216,10 +188,6 @@ export class StatsStore {
   /** Record the given launch stats. */
   public async recordLaunchStats(stats: ILaunchStats) {
     await this.db.launches.add(stats)
-
-    if (this.firstLaunch === undefined) {
-      localStorage.setItem(FirstLaunchKey, `${Date.now()}`)
-    }
   }
 
   /**
@@ -263,7 +231,6 @@ export class StatsStore {
     const dailyMeasures = await this.getDailyMeasures()
     const userType = this.determineUserType(accounts)
     const repositoryCounts = this.categorizedRepositoryCounts(repositories)
-    const onboardingStats = this.getOnboardingStats()
 
     return {
       eventType: 'usage',
@@ -274,15 +241,8 @@ export class StatsStore {
       ...launchStats,
       ...dailyMeasures,
       ...userType,
-      ...onboardingStats,
       guid: getGUID(),
       ...repositoryCounts,
-    }
-  }
-
-  private getOnboardingStats() {
-    return {
-      firstLaunch: this.firstLaunch,
     }
   }
 
