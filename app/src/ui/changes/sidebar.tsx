@@ -179,7 +179,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
   }
 
   private onIgnore = (pattern: string | string[]) => {
-    this.props.dispatcher.ignore(this.props.repository, pattern)
+    this.props.dispatcher.appendIgnoreRule(this.props.repository, pattern)
   }
 
   /**

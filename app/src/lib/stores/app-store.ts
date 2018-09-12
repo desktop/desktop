@@ -120,7 +120,6 @@ import {
   renameBranch,
   updateRef,
   saveGitIgnore,
-  readGitIgnoreAtRoot,
   appendIgnoreRule,
 } from '../git'
 import { IGitAccount } from '../git/authentication'
@@ -3032,11 +3031,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return saveGitIgnore(repository, text)
   }
 
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _readGitIgnore(repository: Repository): Promise<string | null> {
-    return readGitIgnoreAtRoot(repository)
-  }
-
   /** Has the user opted out of stats reporting? */
   public getStatsOptOut(): boolean {
     return this.statsStore.getOptOut()
@@ -3122,7 +3116,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this.statsStore.recordLaunchStats(stats)
   }
 
-  public async _ignore(
+  public async _appendIgnoreRule(
     repository: Repository,
     pattern: string | string[]
   ): Promise<void> {
