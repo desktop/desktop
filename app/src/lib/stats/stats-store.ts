@@ -260,21 +260,6 @@ export class StatsStore {
     }
   }
 
-  private getLocalStorageTimestamp(key: string): number | null {
-    const value = parseInt(localStorage.getItem(key) || '', 10)
-    return isNaN(value) ? null : value
-  }
-
-  private getLocalStorageTimestampDelta(
-    key: string,
-    startTime: number
-  ): number | undefined {
-    const endTime = this.getLocalStorageTimestamp(key)
-    return endTime === null || endTime <= startTime
-      ? undefined
-      : endTime - startTime
-  }
-
   private getLastWelcomeWizardStep(): WelcomeStep {
     const step = localStorage.getItem(
       'welcome-wizard-last-step'
@@ -300,7 +285,7 @@ export class StatsStore {
   }
 
   private getOnboardingStats(): IOnboardingStats {
-    const wizardInitiatedAt = this.getLocalStorageTimestamp(
+    const wizardInitiatedAt = getLocalStorageTimestamp(
       'welcome-wizard-initiated-at'
     )
 
@@ -311,39 +296,21 @@ export class StatsStore {
       return {}
     }
 
-    const timeToWelcomeWizardTerminated = this.getLocalStorageTimestampDelta(
-      'welcome-wizard-terminated-at',
-      wizardInitiatedAt
+    const timeToWelcomeWizardTerminated = timeToFirst(
+      'welcome-wizard-terminated-at'
     )
     const welcomeWizardLastStep = this.getLastWelcomeWizardStep()
-    const timeToFirstAddRepository = this.getLocalStorageTimestampDelta(
-      'first-repository-added-at',
-      wizardInitiatedAt
+    const timeToFirstAddRepository = timeToFirst('first-repository-added-at')
+    const timeToFirstCloneRepository = timeToFirst('first-repository-cloned-at')
+    const timeToFirstCreateRepository = timeToFirst(
+      'first-repository-created-at'
     )
 
-    const timeToFirstCloneRepository = this.getLocalStorageTimestampDelta(
-      'first-repository-cloned-at',
-      wizardInitiatedAt
-    )
+    const timeToFirstCommit = timeToFirst('first-commit-created-at')
+    const timeToFirstGitHubPush = timeToFirst('first-push-to-github-at')
 
-    const timeToFirstCreateRepository = this.getLocalStorageTimestampDelta(
-      'first-repository-created-at',
-      wizardInitiatedAt
-    )
-
-    const timeToFirstCommit = this.getLocalStorageTimestampDelta(
-      'first-commit-created-at',
-      wizardInitiatedAt
-    )
-
-    const timeToFirstGitHubPush = this.getLocalStorageTimestampDelta(
-      'first-push-to-github-at',
-      wizardInitiatedAt
-    )
-
-    const timeToFirstNonDefaultBranchCheckout = this.getLocalStorageTimestampDelta(
-      'first-non-default-branch-checkout-at',
-      wizardInitiatedAt
+    const timeToFirstNonDefaultBranchCheckout = timeToFirst(
+      'first-non-default-branch-checkout-at'
     )
 
     debugger
@@ -453,7 +420,7 @@ export class StatsStore {
       commits: m.commits + 1,
     }))
 
-    this.createLocalStorageTimestamp('first-commit-created-at')
+    createLocalStorageTimestamp('first-commit-created-at')
   }
 
   /** Record that a partial commit was accomplished. */
@@ -610,7 +577,7 @@ export class StatsStore {
       dotcomPushCount: m.dotcomPushCount + 1,
     }))
 
-    this.createLocalStorageTimestamp('first-push-to-github-at')
+    createLocalStorageTimestamp('first-push-to-github-at')
   }
 
   /** Record that the user pushed to a GitHub Enterprise instance */
@@ -621,7 +588,7 @@ export class StatsStore {
 
     // Note, this is not a typo. We track both GitHub.com and
     // GitHub Enteprise under the same key
-    this.createLocalStorageTimestamp('first-push-to-github-at')
+    createLocalStorageTimestamp('first-push-to-github-at')
   }
 
   /** Record that the user pushed to a generic remote */
@@ -667,28 +634,20 @@ export class StatsStore {
     localStorage.setItem('welcome-wizard-last-step', step)
   }
 
-  private createLocalStorageTimestamp(key: string) {
-    if (localStorage.getItem(key) !== null) {
-      return
-    }
-
-    localStorage.setItem(key, `${Date.now()}`)
-  }
-
   public recordAddRepository() {
-    this.createLocalStorageTimestamp('first-repository-added-at')
+    createLocalStorageTimestamp('first-repository-added-at')
   }
 
   public recordCloneRepository() {
-    this.createLocalStorageTimestamp('first-repository-cloned-at')
+    createLocalStorageTimestamp('first-repository-cloned-at')
   }
 
   public recordCreateRepository() {
-    this.createLocalStorageTimestamp('first-repository-created-at')
+    createLocalStorageTimestamp('first-repository-created-at')
   }
 
   public recordNonDefaultBranchCheckout() {
-    this.createLocalStorageTimestamp('first-non-default-branch-checkout-at')
+    createLocalStorageTimestamp('first-non-default-branch-checkout-at')
   }
 
   private onUiActivity = async () => {
@@ -730,4 +689,30 @@ export class StatsStore {
       log.error(`Error reporting opt ${direction}:`, e)
     }
   }
+}
+
+function createLocalStorageTimestamp(key: string) {
+  if (localStorage.getItem(key) !== null) {
+    return
+  }
+
+  localStorage.setItem(key, `${Date.now()}`)
+}
+
+function getLocalStorageTimestamp(key: string): number | null {
+  const value = parseInt(localStorage.getItem(key) || '', 10)
+  return isNaN(value) ? null : value
+}
+
+function timeToFirst(key: string): number | undefined {
+  const startTime = getLocalStorageTimestamp('welcome-wizard-initiated-at')
+
+  if (startTime === null) {
+    return undefined
+  }
+
+  const endTime = getLocalStorageTimestamp(key)
+  return endTime === null || endTime <= startTime
+    ? undefined
+    : endTime - startTime
 }
