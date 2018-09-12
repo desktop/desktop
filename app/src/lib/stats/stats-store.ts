@@ -26,9 +26,6 @@ const StatsOptOutKey = 'stats-opt-out'
 /** Have we successfully sent the stats opt-in? */
 const HasSentOptInPingKey = 'has-sent-stats-opt-in-ping'
 
-/** The first _recorded_ launch in seconds since the epoch (unix time). */
-const FirstLaunchKey = 'first-launch'
-
 /** How often daily stats should be submitted (i.e., 24 hours). */
 const DailyStatsReportInterval = 1000 * 60 * 60 * 24
 
