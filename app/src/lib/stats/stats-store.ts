@@ -59,9 +59,9 @@ const DefaultDailyMeasures: IDailyMeasures = {
 }
 
 interface IOnboardingStats {
-  readonly timeToFirstAddRepository?: number
-  readonly timeToFirstCloneRepository?: number
-  readonly timeToFirstCreateRepository?: number
+  readonly timeToFirstAddedRepository?: number
+  readonly timeToFirstClonedRepository?: number
+  readonly timeToFirstCreatedRepository?: number
   readonly timeToFirstCommit?: number
   readonly timeToFirstGitHubPush?: number
   readonly timeToFirstNonDefaultBranchCheckout?: number
@@ -300,9 +300,11 @@ export class StatsStore {
       'welcome-wizard-terminated-at'
     )
     const welcomeWizardLastStep = this.getLastWelcomeWizardStep()
-    const timeToFirstAddRepository = timeToFirst('first-repository-added-at')
-    const timeToFirstCloneRepository = timeToFirst('first-repository-cloned-at')
-    const timeToFirstCreateRepository = timeToFirst(
+    const timeToFirstAddedRepository = timeToFirst('first-repository-added-at')
+    const timeToFirstClonedRepository = timeToFirst(
+      'first-repository-cloned-at'
+    )
+    const timeToFirstCreatedRepository = timeToFirst(
       'first-repository-created-at'
     )
 
@@ -318,9 +320,9 @@ export class StatsStore {
     return {
       timeToWelcomeWizardTerminated,
       welcomeWizardLastStep,
-      timeToFirstAddRepository,
-      timeToFirstCloneRepository,
-      timeToFirstCreateRepository,
+      timeToFirstAddedRepository,
+      timeToFirstClonedRepository,
+      timeToFirstCreatedRepository,
       timeToFirstCommit,
       timeToFirstGitHubPush,
       timeToFirstNonDefaultBranchCheckout,
