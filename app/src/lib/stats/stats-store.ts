@@ -534,6 +534,8 @@ export class StatsStore {
 
   public recordWelcomeWizardInitiated() {
     localStorage.setItem('welcome-wizard-initiated-at', `${Date.now()}`)
+    localStorage.setItem('welcome-wizard-last-step', WelcomeStep.Start)
+    localStorage.removeItem('welcome-wizard-terminated-at')
   }
 
   public recordWelcomeWizardTerminated() {
