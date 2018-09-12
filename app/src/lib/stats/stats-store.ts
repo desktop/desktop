@@ -713,6 +713,18 @@ function getLocalStorageTimestamp(key: string): number | null {
   return isNaN(value) ? null : value
 }
 
+/**
+ * Calculated the duration (in seconds) between the time the
+ * welcome wizard was initiated to the time for the given
+ * action.
+ *
+ * If no time stamp exists for when the welcome wizard was
+ * initiated, which would be the case if the user completed
+ * the wizard before we introduced onboarding metrics, or if
+ * the delta between the two values are negative (which could
+ * happen if a user manually manipulated localStorage in order
+ * to run the wizard again) this method will return undefined.
+ */
 function timeToFirst(key: string): number | undefined {
   const startTime = getLocalStorageTimestamp(WelcomeWizardInitiatedAtKey)
 
@@ -723,5 +735,5 @@ function timeToFirst(key: string): number | undefined {
   const endTime = getLocalStorageTimestamp(key)
   return endTime === null || endTime <= startTime
     ? undefined
-    : endTime - startTime
+    : Math.round((endTime - startTime) / 1000)
 }
