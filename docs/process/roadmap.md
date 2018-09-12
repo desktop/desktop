@@ -2,12 +2,6 @@
 
 The following are our marketing releases, as planned to date (and we plan to revisit 6 months from now). They contain the broad features we're considering. The further away a release is, the less defined it is. Releases are subject to change at any time. This is not written in stone!!!
 
-## 1.3 - Detecting merge conflicts
-  
-- [Relationship between branches continued](https://github.com/desktop/desktop/issues/2639) - [#2639](https://github.com/desktop/desktop/issues/2639)
-  - Notifications around diverging from master branch
-  - Detect merge conflicts
-  
 ## 1.4 - New branch, maybe?
 
 - [Move unpublished commits on master to new branch](https://github.com/desktop/desktop/issues/1021) - [#1021](https://github.com/desktop/desktop/issues/1021)
