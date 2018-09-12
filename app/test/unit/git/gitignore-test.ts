@@ -5,9 +5,91 @@ import { expect } from 'chai'
 
 import { setupEmptyRepository } from '../../helpers/repositories'
 import { getStatusOrThrow } from '../../helpers/status'
-import { saveGitIgnore, readGitIgnoreAtRoot } from '../../../src/lib/git'
+import {
+  saveGitIgnore,
+  readGitIgnoreAtRoot,
+  appendIgnoreRule,
+} from '../../../src/lib/git'
 
 describe('gitignore', () => {
+  describe('readGitIgnoreAtRoot', () => {
+    it('returns null when .gitignore does not exist on disk', async () => {
+      const repo = await setupEmptyRepository()
+
+      const gitignore = await readGitIgnoreAtRoot(repo)
+
+      expect(gitignore).is.null
+    })
+
+    it('reads contents from disk', async () => {
+      const repo = await setupEmptyRepository()
+      const path = repo.path
+
+      const expected = 'node_modules\nyarn-error.log\n'
+
+      const ignoreFile = `${path}/.gitignore`
+      await FSE.writeFile(ignoreFile, expected)
+
+      const gitignore = await readGitIgnoreAtRoot(repo)
+
+      expect(gitignore).equals(expected)
+    })
+
+    it('when autocrlf=true and safecrlf=true, appends CRLF to file', async () => {
+      const repo = await setupEmptyRepository()
+
+      await GitProcess.exec(
+        ['config', '--local', 'core.autocrlf', 'true'],
+        repo.path
+      )
+      await GitProcess.exec(
+        ['config', '--local', 'core.safecrlf', 'true'],
+        repo.path
+      )
+
+      const path = repo.path
+
+      await saveGitIgnore(repo, 'node_modules')
+      await GitProcess.exec(['add', '.gitignore'], path)
+
+      const commit = await GitProcess.exec(
+        ['commit', '-m', 'create the ignore file'],
+        path
+      )
+      expect(commit.exitCode).to.equal(0)
+
+      const contents = await readGitIgnoreAtRoot(repo)
+      expect(contents!.endsWith('\r\n'))
+    })
+
+    it('when autocrlf=input, appends LF to file', async () => {
+      const repo = await setupEmptyRepository()
+
+      // ensure this repository only ever sticks to LF
+      await GitProcess.exec(['config', '--local', 'core.eol', 'lf'], repo.path)
+
+      // do not do any conversion of line endings when committing
+      await GitProcess.exec(
+        ['config', '--local', 'core.autocrlf', 'input'],
+        repo.path
+      )
+
+      const path = repo.path
+
+      await saveGitIgnore(repo, 'node_modules')
+      await GitProcess.exec(['add', '.gitignore'], path)
+
+      const commit = await GitProcess.exec(
+        ['commit', '-m', 'create the ignore file'],
+        path
+      )
+      expect(commit.exitCode).to.equal(0)
+
+      const contents = await readGitIgnoreAtRoot(repo)
+      expect(contents!.endsWith('\n'))
+    })
+  })
+
   describe('saveGitIgnore', () => {
     it(`creates gitignore file when it doesn't exist`, async () => {
       const repo = await setupEmptyRepository()
@@ -53,66 +135,37 @@ describe('gitignore', () => {
 
       expect(files.length).to.equal(0)
     })
+  })
 
-    describe('autocrlf and safecrlf are true', () => {
-      it('appends CRLF to file', async () => {
-        const repo = await setupEmptyRepository()
+  describe('appendIgnoreRule', () => {
+    it('appends one rule', async () => {
+      const repo = await setupEmptyRepository()
+      const path = repo.path
 
-        await GitProcess.exec(
-          ['config', '--local', 'core.autocrlf', 'true'],
-          repo.path
-        )
-        await GitProcess.exec(
-          ['config', '--local', 'core.safecrlf', 'true'],
-          repo.path
-        )
+      const ignoreFile = `${path}/.gitignore`
+      await FSE.writeFile(ignoreFile, 'node_modules\n')
 
-        const path = repo.path
+      await appendIgnoreRule(repo, ['yarn-error.log'])
 
-        await saveGitIgnore(repo, 'node_modules')
-        await GitProcess.exec(['add', '.gitignore'], path)
+      const gitignore = await FSE.readFile(ignoreFile)
 
-        const commit = await GitProcess.exec(
-          ['commit', '-m', 'create the ignore file'],
-          path
-        )
-        expect(commit.exitCode).to.equal(0)
-
-        const contents = await readGitIgnoreAtRoot(repo)
-        expect(contents!.endsWith('\r\n'))
-      })
+      const expected = 'node_modules\nyarn-error.log\n'
+      expect(gitignore.toString('utf8')).equals(expected)
     })
 
-    describe('autocrlf and safecrlf are unset', () => {
-      it('appends LF to file', async () => {
-        const repo = await setupEmptyRepository()
+    it('appends multiple rules', async () => {
+      const repo = await setupEmptyRepository()
+      const path = repo.path
 
-        // ensure this repository only ever sticks to LF
-        await GitProcess.exec(
-          ['config', '--local', 'core.eol', 'lf'],
-          repo.path
-        )
+      const ignoreFile = `${path}/.gitignore`
+      await FSE.writeFile(ignoreFile, 'node_modules\n')
 
-        // do not do any conversion of line endings when committing
-        await GitProcess.exec(
-          ['config', '--local', 'core.autocrlf', 'input'],
-          repo.path
-        )
+      await appendIgnoreRule(repo, ['yarn-error.log', '.eslintcache', 'dist/'])
 
-        const path = repo.path
+      const gitignore = await FSE.readFile(ignoreFile)
 
-        await saveGitIgnore(repo, 'node_modules')
-        await GitProcess.exec(['add', '.gitignore'], path)
-
-        const commit = await GitProcess.exec(
-          ['commit', '-m', 'create the ignore file'],
-          path
-        )
-        expect(commit.exitCode).to.equal(0)
-
-        const contents = await readGitIgnoreAtRoot(repo)
-        expect(contents!.endsWith('\n'))
-      })
+      const expected = 'node_modules\nyarn-error.log\n.eslintcache\ndist/\n'
+      expect(gitignore.toString('utf8')).equals(expected)
     })
   })
 })
