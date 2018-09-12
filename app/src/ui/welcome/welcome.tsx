@@ -179,7 +179,6 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
     }
 
     this.setState({ currentStep: step })
-    this.props.dispatcher.recordWelcomeWizardStep(step)
   }
 
   private done = () => {

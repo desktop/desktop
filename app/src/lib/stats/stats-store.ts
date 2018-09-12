@@ -10,8 +10,6 @@ import { merge } from '../../lib/merge'
 import { getPersistedThemeName } from '../../ui/lib/application-theme'
 import { IUiActivityMonitor } from '../../ui/lib/ui-activity-monitor'
 import { Disposable } from 'event-kit'
-import { WelcomeStep } from '../../ui/welcome/welcome'
-import { assertNever } from '../fatal-error'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
@@ -27,7 +25,7 @@ const StatsOptOutKey = 'stats-opt-out'
 const HasSentOptInPingKey = 'has-sent-stats-opt-in-ping'
 
 const WelcomeWizardInitiatedAtKey = 'welcome-wizard-initiated-at'
-const WelcomeWizardTerminatedAtKey = 'welcome-wizard-terminated-at'
+const WelcomeWizardCompletedAtKey = 'welcome-wizard-terminated-at'
 const FirstRepositoryAddedAtKey = 'first-repository-added-at'
 const FirstRepositoryClonedAtKey = 'first-repository-cloned-at'
 const FirstRepositoryCreatedAtKey = 'first-repository-created-at'
@@ -121,20 +119,9 @@ interface IOnboardingStats {
   /**
    * Time (in seconds) from when the user first launched
    * the application and entered the welcome wizard until
-   * the user terminated the wizard. Termination could
-   * either be successful completion of the wizard or
-   * intentional dismissal of the wizard (clicking the
-   * skip button). See the welcomeWizardLastStep for
-   * more information
+   * the user completed the wizard.
    */
   readonly timeToWelcomeWizardTerminated?: number
-
-  /**
-   * The step in the welcome wizard flow that the
-   * user was on when they either completed, or
-   * intentionally dismissed the wizard.
-   */
-  readonly welcomeWizardLastStep?: WelcomeStep
   readonly welcomeWizardSignInType?: 'basic' | 'web'
 }
 
@@ -329,30 +316,6 @@ export class StatsStore {
     }
   }
 
-  private getLastWelcomeWizardStep(): WelcomeStep {
-    const step = localStorage.getItem(
-      'welcome-wizard-last-step'
-    ) as WelcomeStep | null
-
-    try {
-      switch (step) {
-        case WelcomeStep.Start:
-        case WelcomeStep.SignInToDotCom:
-        case WelcomeStep.SignInToEnterprise:
-        case WelcomeStep.ConfigureGit:
-        case WelcomeStep.UsageOptOut:
-          return step
-        case null:
-          return WelcomeStep.Start
-        default:
-          return assertNever(step, `Unknown welcome step encountered: ${step}`)
-      }
-    } catch (ex) {
-      log.error(`Could not parse last welcome step`, ex)
-      return WelcomeStep.Start
-    }
-  }
-
   private getOnboardingStats(): IOnboardingStats {
     const wizardInitiatedAt = getLocalStorageTimestamp(
       WelcomeWizardInitiatedAtKey
@@ -365,9 +328,8 @@ export class StatsStore {
       return {}
     }
 
-    const welcomeWizardLastStep = this.getLastWelcomeWizardStep()
     const timeToWelcomeWizardTerminated = timeToFirst(
-      WelcomeWizardTerminatedAtKey
+      WelcomeWizardCompletedAtKey
     )
 
     const timeToFirstAddedRepository = timeToFirst(FirstRepositoryAddedAtKey)
@@ -383,7 +345,6 @@ export class StatsStore {
     )
 
     return {
-      welcomeWizardLastStep,
       timeToWelcomeWizardTerminated,
       timeToFirstAddedRepository,
       timeToFirstClonedRepository,
@@ -689,16 +650,11 @@ export class StatsStore {
 
   public recordWelcomeWizardInitiated() {
     localStorage.setItem(WelcomeWizardInitiatedAtKey, `${Date.now()}`)
-    localStorage.setItem('welcome-wizard-last-step', WelcomeStep.Start)
-    localStorage.removeItem(WelcomeWizardTerminatedAtKey)
+    localStorage.removeItem(WelcomeWizardCompletedAtKey)
   }
 
   public recordWelcomeWizardTerminated() {
-    localStorage.setItem(WelcomeWizardTerminatedAtKey, `${Date.now()}`)
-  }
-
-  public recordWelcomeWizardStep(step: WelcomeStep) {
-    localStorage.setItem('welcome-wizard-last-step', step)
+    localStorage.setItem(WelcomeWizardCompletedAtKey, `${Date.now()}`)
   }
 
   public recordAddRepository() {

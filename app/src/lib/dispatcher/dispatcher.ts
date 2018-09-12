@@ -60,7 +60,6 @@ import { ITrailer } from '../git/interpret-trailers'
 import { isGitRepository } from '../git'
 import { ApplicationTheme } from '../../ui/lib/application-theme'
 import { TipState } from '../../models/tip'
-import { WelcomeStep } from '../../ui/welcome/welcome'
 
 /**
  * An error handler function.
@@ -1310,10 +1309,6 @@ export class Dispatcher {
 
   public recordWelcomeWizardInitiated() {
     return this.appStore._recordWelcomeWizardInitiated()
-  }
-
-  public recordWelcomeWizardStep(step: WelcomeStep) {
-    return this.appStore._recordWelcomeWizardStep(step)
   }
 
   public recordCreateRepository() {
