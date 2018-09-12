@@ -1,5 +1,7 @@
 {
   "releases": {
+    "1.4.1-beta0": [
+    ],
     "1.4.0": [
       "[New] When an update is available for GitHub Desktop, release notes can be viewed in Desktop - #2774",
       "[New] Detect merge conflicts when comparing branches - #4588",
