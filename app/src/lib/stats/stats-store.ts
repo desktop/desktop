@@ -330,6 +330,12 @@ export class StatsStore {
       'first-repository-created-at',
       wizardInitiatedAt
     )
+
+    const timeToFirstCommit = this.getLocalStorageTimestampDelta(
+      'first-commit-created-at',
+      wizardInitiatedAt
+    )
+
     debugger
 
     return {
@@ -338,6 +344,7 @@ export class StatsStore {
       timeToFirstAddRepository,
       timeToFirstCloneRepository,
       timeToFirstCreateRepository,
+      timeToFirstCommit,
     }
   }
 
@@ -429,10 +436,12 @@ export class StatsStore {
   }
 
   /** Record that a commit was accomplished. */
-  public recordCommit(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
+  public async recordCommit(): Promise<void> {
+    await this.updateDailyMeasures(m => ({
       commits: m.commits + 1,
     }))
+
+    this.createLocalStorageTimestamp('first-commit-created-at')
   }
 
   /** Record that a partial commit was accomplished. */
