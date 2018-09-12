@@ -68,7 +68,7 @@ describe('git/merge', () => {
       expect(ref).is.null
     })
 
-    it('returns null when the branches do not have a common ancestor', async () => {
+    it('returns null when a ref cannot be found', async () => {
       const repository = await setupEmptyRepository()
 
       // create the first commit
