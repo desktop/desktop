@@ -160,6 +160,7 @@ import { findAccountForRemoteURL } from '../find-account'
 import { inferLastPushForRepository } from '../infer-last-push-for-repository'
 import { MergeResultKind } from '../../models/merge'
 import { promiseWithMinimumTimeout } from '../promise'
+import { getDefaultRemote } from '../../lib/git/remote'
 
 /**
  * Enum used by fetch to determine if
@@ -2357,9 +2358,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private async matchGitHubRepository(
     repository: Repository
   ): Promise<IMatchedGitHubRepository | null> {
-    const gitStore = this.getGitStore(repository)
-    await gitStore.loadRemotes()
-    const remote = gitStore.defaultRemote
+    const remote = await getDefaultRemote(repository)
     return remote !== null
       ? matchGitHubRepository(this.accounts, remote.url)
       : null
