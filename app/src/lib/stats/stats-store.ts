@@ -26,6 +26,16 @@ const StatsOptOutKey = 'stats-opt-out'
 /** Have we successfully sent the stats opt-in? */
 const HasSentOptInPingKey = 'has-sent-stats-opt-in-ping'
 
+const WelcomeWizardInitiatedAtKey = 'welcome-wizard-initiated-at'
+const WelcomeWizardTerminatedAtKey = 'welcome-wizard-terminated-at'
+const FirstRepositoryAddedAtKey = 'first-repository-added-at'
+const FirstRepositoryClonedAtKey = 'first-repository-cloned-at'
+const FirstRepositoryCreatedAtKey = 'first-repository-created-at'
+const FirstCommitCreatedAtKey = 'first-commit-created-at'
+const FirstPushToGitHubAtKey = 'first-push-to-github-at'
+const FirstNonDefaultBranchCheckoutAtKey =
+  'first-non-default-branch-checkout-at'
+
 /** How often daily stats should be submitted (i.e., 24 hours). */
 const DailyStatsReportInterval = 1000 * 60 * 60 * 24
 
@@ -67,6 +77,7 @@ interface IOnboardingStats {
   readonly timeToFirstNonDefaultBranchCheckout?: number
   readonly timeToWelcomeWizardTerminated?: number
   readonly welcomeWizardLastStep?: WelcomeStep
+  readonly welcomeWizardSignInType?: 'basic' | 'web'
 }
 
 interface ICalculatedStats {
@@ -286,7 +297,7 @@ export class StatsStore {
 
   private getOnboardingStats(): IOnboardingStats {
     const wizardInitiatedAt = getLocalStorageTimestamp(
-      'welcome-wizard-initiated-at'
+      WelcomeWizardInitiatedAtKey
     )
 
     // If we don't have a start time for the wizard none of our other metrics
@@ -296,30 +307,26 @@ export class StatsStore {
       return {}
     }
 
-    const timeToWelcomeWizardTerminated = timeToFirst(
-      'welcome-wizard-terminated-at'
-    )
     const welcomeWizardLastStep = this.getLastWelcomeWizardStep()
-    const timeToFirstAddedRepository = timeToFirst('first-repository-added-at')
-    const timeToFirstClonedRepository = timeToFirst(
-      'first-repository-cloned-at'
+    const timeToWelcomeWizardTerminated = timeToFirst(
+      WelcomeWizardTerminatedAtKey
     )
+
+    const timeToFirstAddedRepository = timeToFirst(FirstRepositoryAddedAtKey)
+    const timeToFirstClonedRepository = timeToFirst(FirstRepositoryClonedAtKey)
     const timeToFirstCreatedRepository = timeToFirst(
-      'first-repository-created-at'
+      FirstRepositoryCreatedAtKey
     )
 
-    const timeToFirstCommit = timeToFirst('first-commit-created-at')
-    const timeToFirstGitHubPush = timeToFirst('first-push-to-github-at')
-
+    const timeToFirstCommit = timeToFirst(FirstCommitCreatedAtKey)
+    const timeToFirstGitHubPush = timeToFirst(FirstPushToGitHubAtKey)
     const timeToFirstNonDefaultBranchCheckout = timeToFirst(
-      'first-non-default-branch-checkout-at'
+      FirstNonDefaultBranchCheckoutAtKey
     )
-
-    debugger
 
     return {
-      timeToWelcomeWizardTerminated,
       welcomeWizardLastStep,
+      timeToWelcomeWizardTerminated,
       timeToFirstAddedRepository,
       timeToFirstClonedRepository,
       timeToFirstCreatedRepository,
@@ -422,7 +429,7 @@ export class StatsStore {
       commits: m.commits + 1,
     }))
 
-    createLocalStorageTimestamp('first-commit-created-at')
+    createLocalStorageTimestamp(FirstCommitCreatedAtKey)
   }
 
   /** Record that a partial commit was accomplished. */
@@ -579,7 +586,7 @@ export class StatsStore {
       dotcomPushCount: m.dotcomPushCount + 1,
     }))
 
-    createLocalStorageTimestamp('first-push-to-github-at')
+    createLocalStorageTimestamp(FirstPushToGitHubAtKey)
   }
 
   /** Record that the user pushed to a GitHub Enterprise instance */
@@ -590,7 +597,7 @@ export class StatsStore {
 
     // Note, this is not a typo. We track both GitHub.com and
     // GitHub Enteprise under the same key
-    createLocalStorageTimestamp('first-push-to-github-at')
+    createLocalStorageTimestamp(FirstPushToGitHubAtKey)
   }
 
   /** Record that the user pushed to a generic remote */
@@ -623,13 +630,13 @@ export class StatsStore {
   }
 
   public recordWelcomeWizardInitiated() {
-    localStorage.setItem('welcome-wizard-initiated-at', `${Date.now()}`)
+    localStorage.setItem(WelcomeWizardInitiatedAtKey, `${Date.now()}`)
     localStorage.setItem('welcome-wizard-last-step', WelcomeStep.Start)
-    localStorage.removeItem('welcome-wizard-terminated-at')
+    localStorage.removeItem(WelcomeWizardTerminatedAtKey)
   }
 
   public recordWelcomeWizardTerminated() {
-    localStorage.setItem('welcome-wizard-terminated-at', `${Date.now()}`)
+    localStorage.setItem(WelcomeWizardTerminatedAtKey, `${Date.now()}`)
   }
 
   public recordWelcomeWizardStep(step: WelcomeStep) {
@@ -637,19 +644,19 @@ export class StatsStore {
   }
 
   public recordAddRepository() {
-    createLocalStorageTimestamp('first-repository-added-at')
+    createLocalStorageTimestamp(FirstRepositoryAddedAtKey)
   }
 
   public recordCloneRepository() {
-    createLocalStorageTimestamp('first-repository-cloned-at')
+    createLocalStorageTimestamp(FirstRepositoryClonedAtKey)
   }
 
   public recordCreateRepository() {
-    createLocalStorageTimestamp('first-repository-created-at')
+    createLocalStorageTimestamp(FirstRepositoryCreatedAtKey)
   }
 
   public recordNonDefaultBranchCheckout() {
-    createLocalStorageTimestamp('first-non-default-branch-checkout-at')
+    createLocalStorageTimestamp(FirstNonDefaultBranchCheckoutAtKey)
   }
 
   private onUiActivity = async () => {
@@ -707,7 +714,7 @@ function getLocalStorageTimestamp(key: string): number | null {
 }
 
 function timeToFirst(key: string): number | undefined {
-  const startTime = getLocalStorageTimestamp('welcome-wizard-initiated-at')
+  const startTime = getLocalStorageTimestamp(WelcomeWizardInitiatedAtKey)
 
   if (startTime === null) {
     return undefined
