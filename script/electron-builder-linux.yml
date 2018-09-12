@@ -19,7 +19,7 @@ deb:
     - libxtst6
     - libnss3
     # dugite-native dependencies
-    - libcurl3
+    - libcurl3 | libcurl4
     # keytar dependencies
     - libsecret-1-0
 rpm:
