@@ -2358,7 +2358,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private async matchGitHubRepository(
     repository: Repository
   ): Promise<IMatchedGitHubRepository | null> {
-    const remote = await getDefaultRemote(repository)
+    const gitStore = this.getGitStore(repository)
+    const remote = gitStore.defaultRemote
     return remote !== null
       ? matchGitHubRepository(this.accounts, remote.url)
       : null
@@ -3438,6 +3439,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
         const addedRepo = await this.repositoriesStore.addRepository(
           validatedPath
         )
+        
+        // initialize the remotes for this new repository to ensure it can fetch
+        // it's GitHub-related details using the GitHub API (if applicable)
+        const gitStore = this.getGitStore(addedRepo)
+        await gitStore.loadRemotes()
+
         const [refreshedRepo, usingLFS] = await Promise.all([
           this.repositoryWithRefreshedGitHubRepository(addedRepo),
           this.isUsingLFS(addedRepo),
