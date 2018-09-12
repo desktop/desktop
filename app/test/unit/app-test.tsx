@@ -66,7 +66,9 @@ describe('App', () => {
     githubUserStore = new GitHubUserStore(db)
     issuesStore = new IssuesStore(issuesDb)
 
-    repositoryStateManager = new RepositoryStateCache(githubUserStore)
+    repositoryStateManager = new RepositoryStateCache(repo =>
+      githubUserStore!.getUsersForRepository(repo)
+    )
 
     appStore = new AppStore(
       githubUserStore,

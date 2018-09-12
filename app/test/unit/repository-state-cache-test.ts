@@ -1,7 +1,5 @@
 import { expect } from 'chai'
 import { RepositoryStateCache } from '../../src/lib/stores/repository-state-cache'
-import { TestGitHubUserDatabase } from '../helpers/databases'
-import { GitHubUserStore } from '../../src/lib/stores'
 import { Repository } from '../../src/models/repository'
 import { PullRequest } from '../../src/models/pull-request'
 import { GitHubRepository } from '../../src/models/github-repository'
@@ -12,6 +10,7 @@ import {
 } from '../../src/models/status'
 import { DiffSelection, DiffSelectionType } from '../../src/models/diff'
 import { ComparisonView } from '../../src/lib/app-state'
+import { IGitHubUser } from '../../src/lib/databases'
 
 function createSampleGitHubRepository() {
   return {
@@ -58,13 +57,11 @@ function createSamplePullRequest(gitHubRepository: GitHubRepository) {
 
 describe('RepositoryStateCache', () => {
   let r: Repository | null = null
-  let githubUserStore: GitHubUserStore | null = null
+  const defaultGetUsersFunc = (repo: Repository) =>
+    new Map<string, IGitHubUser>()
 
   beforeEach(() => {
     r = new Repository('/something/path', 1, null, false)
-
-    const db = new TestGitHubUserDatabase()
-    githubUserStore = new GitHubUserStore(db)
   })
 
   it('can update branches state for a repository', () => {
@@ -73,7 +70,7 @@ describe('RepositoryStateCache', () => {
 
     const repository = r!
 
-    const cache = new RepositoryStateCache(githubUserStore!)
+    const cache = new RepositoryStateCache(defaultGetUsersFunc)
 
     cache.updateBranchesState(repository, () => {
       return {
@@ -99,7 +96,7 @@ describe('RepositoryStateCache', () => {
     const summary = 'Hello world!'
     const repository = r!
 
-    const cache = new RepositoryStateCache(githubUserStore!)
+    const cache = new RepositoryStateCache(defaultGetUsersFunc)
 
     cache.updateChangesState(repository, () => {
       return {
@@ -123,7 +120,7 @@ describe('RepositoryStateCache', () => {
     const filterText = 'my-cool-branch'
     const repository = r!
 
-    const cache = new RepositoryStateCache(githubUserStore!)
+    const cache = new RepositoryStateCache(defaultGetUsersFunc)
 
     cache.updateCompareState(repository, () => {
       return {

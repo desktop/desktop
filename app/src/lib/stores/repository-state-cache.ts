@@ -19,20 +19,21 @@ import {
 import { ComparisonCache } from '../comparison-cache'
 import { IGitHubUser } from '../databases'
 import { merge } from '../merge'
-import { GitHubUserStore } from './github-user-store'
 
 export class RepositoryStateCache {
-  private repositoryState = new Map<string, IRepositoryState>()
+  private readonly repositoryState = new Map<string, IRepositoryState>()
 
-  public constructor(private gitHubUserStore: GitHubUserStore) {}
+  public constructor(
+    private readonly getUsersForRepository: (
+      repository: Repository
+    ) => Map<string, IGitHubUser>
+  ) {}
 
   /** Get the state for the repository. */
   public get(repository: Repository): IRepositoryState {
     const existing = this.repositoryState.get(repository.hash)
     if (existing != null) {
-      const gitHubUsers =
-        this.gitHubUserStore.getUsersForRepository(repository) ||
-        new Map<string, IGitHubUser>()
+      const gitHubUsers = this.getUsersForRepository(repository)
       return merge(existing, { gitHubUsers })
     }
 

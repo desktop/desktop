@@ -126,7 +126,9 @@ const pullRequestStore = new PullRequestStore(
   repositoriesStore
 )
 
-const repositoryStateManager = new RepositoryStateCache(gitHubUserStore)
+const repositoryStateManager = new RepositoryStateCache(repo =>
+  gitHubUserStore.getUsersForRepository(repo)
+)
 
 const appStore = new AppStore(
   gitHubUserStore,
