@@ -804,7 +804,7 @@ function timeTo(key: string): number | undefined {
     : Math.round((endTime - startTime) / 1000)
 }
 
-function getWelcomeWizardSignInMethod(): SignInMethod | undefined {
+function getWelcomeWizardSignInMethod(): 'basic' | 'web' | undefined {
   const method = localStorage.getItem(
     WelcomeWizardSignInMethodKey
   ) as SignInMethod | null
