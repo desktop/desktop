@@ -3,7 +3,6 @@ import { GitError } from 'dugite'
 
 import { Repository } from '../../models/repository'
 import { IRemote } from '../../models/remote'
-import { findDefaultRemote } from '../stores/helpers/find-default-remote'
 
 /** Get the remote names. */
 export async function getRemotes(
