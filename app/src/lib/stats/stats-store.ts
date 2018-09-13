@@ -364,19 +364,13 @@ export class StatsStore {
       return {}
     }
 
-    const timeToWelcomeWizardTerminated = timeToFirst(
-      WelcomeWizardCompletedAtKey
-    )
-
-    const timeToFirstAddedRepository = timeToFirst(FirstRepositoryAddedAtKey)
-    const timeToFirstClonedRepository = timeToFirst(FirstRepositoryClonedAtKey)
-    const timeToFirstCreatedRepository = timeToFirst(
-      FirstRepositoryCreatedAtKey
-    )
-
-    const timeToFirstCommit = timeToFirst(FirstCommitCreatedAtKey)
-    const timeToFirstGitHubPush = timeToFirst(FirstPushToGitHubAtKey)
-    const timeToFirstNonDefaultBranchCheckout = timeToFirst(
+    const timeToWelcomeWizardTerminated = timeTo(WelcomeWizardCompletedAtKey)
+    const timeToFirstAddedRepository = timeTo(FirstRepositoryAddedAtKey)
+    const timeToFirstClonedRepository = timeTo(FirstRepositoryClonedAtKey)
+    const timeToFirstCreatedRepository = timeTo(FirstRepositoryCreatedAtKey)
+    const timeToFirstCommit = timeTo(FirstCommitCreatedAtKey)
+    const timeToFirstGitHubPush = timeTo(FirstPushToGitHubAtKey)
+    const timeToFirstNonDefaultBranchCheckout = timeTo(
       FirstNonDefaultBranchCheckoutAtKey
     )
 
@@ -787,7 +781,7 @@ function getLocalStorageTimestamp(key: string): number | null {
  * happen if a user manually manipulated localStorage in order
  * to run the wizard again) this method will return undefined.
  */
-function timeToFirst(key: string): number | undefined {
+function timeTo(key: string): number | undefined {
   const startTime = getLocalStorageTimestamp(WelcomeWizardInitiatedAtKey)
 
   if (startTime === null) {
