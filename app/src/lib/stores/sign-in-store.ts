@@ -325,7 +325,7 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
         return
       }
 
-      this.emitAuthenticate(user)
+      this.emitAuthenticate(user, SignInMethod.Basic)
       this.setState({ kind: SignInStep.Success })
     } else if (
       response.kind ===
@@ -425,7 +425,7 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
       return
     }
 
-    this.emitAuthenticate(account)
+    this.emitAuthenticate(account, SignInMethod.Web)
     this.setState({ kind: SignInStep.Success })
   }
 
@@ -575,7 +575,7 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
         return
       }
 
-      this.emitAuthenticate(user)
+      this.emitAuthenticate(user, SignInMethod.Basic)
       this.setState({ kind: SignInStep.Success })
     } else {
       switch (response.kind) {
