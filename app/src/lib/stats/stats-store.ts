@@ -35,6 +35,7 @@ const FirstCommitCreatedAtKey = 'first-commit-created-at'
 const FirstPushToGitHubAtKey = 'first-push-to-github-at'
 const FirstNonDefaultBranchCheckoutAtKey =
   'first-non-default-branch-checkout-at'
+const WelcomeWizardSignInMethodKey = 'welcome-wizard-sign-in-method'
 
 /** How often daily stats should be submitted (i.e., 24 hours). */
 const DailyStatsReportInterval = 1000 * 60 * 60 * 24
@@ -709,7 +710,7 @@ export class StatsStore {
   }
 
   public recordWelcomeWizardSignInMethod(method: SignInMethod) {
-    localStorage.setItem('welcome-wizard-sign-in-method', method)
+    localStorage.setItem(WelcomeWizardSignInMethodKey, method)
   }
 
   private onUiActivity = async () => {
@@ -805,7 +806,7 @@ function timeTo(key: string): number | undefined {
 
 function getWelcomeWizardSignInMethod(): SignInMethod | undefined {
   const method = localStorage.getItem(
-    'welcome-wizard-sign-in-method'
+    WelcomeWizardSignInMethodKey
   ) as SignInMethod | null
 
   try {
