@@ -1,4 +1,4 @@
-# macOS System Dependencies
+# Setting Up Development Dependencies on macOS
 
 You will need to install these tools on your machine:
 
