@@ -6,11 +6,7 @@ You will need to install these tools on your machine:
 
 ### macOS
 
- - [Node.js v8.11.4](https://nodejs.org/dist/v8.11.4/)
- - [Python 2.7](https://www.python.org/downloads/mac-osx/)
- - Xcode and Xcode Command Line Tools (Xcode -> Preferences -> Downloads)
-
-See [mac-deps-setup.md](./mac-deps-setup.md) for additional help with this step.
+See [mac-deps-setup.md](./mac-deps-setup.md).
 
 ### Windows
 

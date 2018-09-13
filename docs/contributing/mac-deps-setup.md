@@ -1,5 +1,11 @@
 # macOS System Dependencies
 
+You will need to install these tools on your machine:
+
+ - Node.js v8.11.4
+ - Python 2.7
+ - Xcode and Xcode Command Line Tools (Xcode -> Preferences -> Downloads)
+
 ## Node.js
 
 There are two approaches to installing Node.js, **manual** and **managed**. We recommend the managed route, but the simple method will work fine if you don't have node installed on your machine and just want to get running!
