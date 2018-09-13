@@ -30,13 +30,6 @@ export async function getRemotes(
   return remotes
 }
 
-/** Get the name of the default remote. */
-export async function getDefaultRemote(
-  repository: Repository
-): Promise<IRemote | null> {
-  return findDefaultRemote(await getRemotes(repository))
-}
-
 /** Add a new remote with the given URL. */
 export async function addRemote(
   repository: Repository,
