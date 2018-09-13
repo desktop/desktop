@@ -94,30 +94,25 @@ describe('git/status', () => {
       expect(files[1].path).to.equal('docs/OVERVIEW.md')
     })
 
-    it(
-      'Handles at least 10k untracked files without failing',
-      async () => {
-        const numFiles = 10000
-        const basePath = repository!.path
+    it('Handles at least 10k untracked files without failing', async () => {
+      const numFiles = 10000
+      const basePath = repository!.path
 
-        await mkdir(basePath)
+      await mkdir(basePath)
 
-        // create a lot of files
-        const promises = []
-        for (let i = 0; i < numFiles; i++) {
-          promises.push(
-            FSE.writeFile(path.join(basePath, `test-file-${i}`), 'Hey there\n')
-          )
-        }
-        await Promise.all(promises)
+      // create a lot of files
+      const promises = []
+      for (let i = 0; i < numFiles; i++) {
+        promises.push(
+          FSE.writeFile(path.join(basePath, `test-file-${i}`), 'Hey there\n')
+        )
+      }
+      await Promise.all(promises)
 
-        const status = await getStatusOrThrow(repository!)
-        const files = status.workingDirectory.files
-        expect(files.length).to.equal(numFiles)
-      },
-      // needs a little extra time on CI
-      25000
-    )
+      const status = await getStatusOrThrow(repository!)
+      const files = status.workingDirectory.files
+      expect(files.length).to.equal(numFiles)
+    })
 
     it('returns null for directory without a .git directory', async () => {
       repository = setupEmptyDirectory()
