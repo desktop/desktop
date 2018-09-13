@@ -10,6 +10,8 @@ import { merge } from '../../lib/merge'
 import { getPersistedThemeName } from '../../ui/lib/application-theme'
 import { IUiActivityMonitor } from '../../ui/lib/ui-activity-monitor'
 import { Disposable } from 'event-kit'
+import { SignInMethod } from '../stores'
+import { assertNever } from '../fatal-error'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
@@ -158,7 +160,7 @@ interface IOnboardingStats {
    * value.
    */
   readonly timeToWelcomeWizardTerminated?: number
-  readonly welcomeWizardSignInType?: 'basic' | 'web'
+  readonly welcomeWizardSignInMethod?: SignInMethod
 }
 
 interface ICalculatedStats {
@@ -374,6 +376,8 @@ export class StatsStore {
       FirstNonDefaultBranchCheckoutAtKey
     )
 
+    const welcomeWizardSignInMethod = getWelcomeWizardSignInMethod()
+
     return {
       timeToWelcomeWizardTerminated,
       timeToFirstAddedRepository,
@@ -382,6 +386,7 @@ export class StatsStore {
       timeToFirstCommit,
       timeToFirstGitHubPush,
       timeToFirstNonDefaultBranchCheckout,
+      welcomeWizardSignInMethod,
     }
   }
 
@@ -703,6 +708,10 @@ export class StatsStore {
     createLocalStorageTimestamp(FirstNonDefaultBranchCheckoutAtKey)
   }
 
+  public recordWelcomeWizardSignInMethod(method: SignInMethod) {
+    localStorage.setItem('welcome-wizard-sign-in-method', method)
+  }
+
   private onUiActivity = async () => {
     this.disableUiActivityMonitoring()
 
@@ -792,4 +801,25 @@ function timeTo(key: string): number | undefined {
   return endTime === null || endTime <= startTime
     ? -1
     : Math.round((endTime - startTime) / 1000)
+}
+
+function getWelcomeWizardSignInMethod(): SignInMethod | undefined {
+  const method = localStorage.getItem(
+    'welcome-wizard-sign-in-method'
+  ) as SignInMethod | null
+
+  try {
+    switch (method) {
+      case SignInMethod.Basic:
+      case SignInMethod.Web:
+        return method
+      case null:
+        return undefined
+      default:
+        return assertNever(method, `Unknown sign in method: ${method}`)
+    }
+  } catch (ex) {
+    log.error(`Could not parse welcome wizard sign in method`, ex)
+    return undefined
+  }
 }

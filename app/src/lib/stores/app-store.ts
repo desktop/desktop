@@ -367,7 +367,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.cloningRepositoriesStore.onDidError(e => this.emitError(e))
 
-    this.signInStore.onDidAuthenticate(account => this._addAccount(account))
+    this.signInStore.onDidAuthenticate((account, method) => {
+      this._addAccount(account)
+
+      if (this.showWelcomeFlow) {
+        this.statsStore.recordWelcomeWizardSignInMethod(method)
+      }
+    })
     this.signInStore.onDidUpdate(() => this.emitUpdate())
     this.signInStore.onDidError(error => this.emitError(error))
 
