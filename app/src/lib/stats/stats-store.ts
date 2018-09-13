@@ -71,6 +71,12 @@ interface IOnboardingStats {
    * Time (in seconds) from when the user first launched
    * the application and entered the welcome wizard until
    * the user added their first existing repository.
+   *
+   * A negative value means that this action hasn't yet
+   * taken place while undefined means that the current
+   * user installed desktop prior to this metric beeing
+   * added and we will thus never be able to provide a
+   * value.
    */
   readonly timeToFirstAddedRepository?: number
 
@@ -78,6 +84,12 @@ interface IOnboardingStats {
    * Time (in seconds) from when the user first launched
    * the application and entered the welcome wizard until
    * the user cloned their first repository.
+   *
+   * A negative value means that this action hasn't yet
+   * taken place while undefined means that the current
+   * user installed desktop prior to this metric beeing
+   * added and we will thus never be able to provide a
+   * value.
    */
   readonly timeToFirstClonedRepository?: number
 
@@ -85,6 +97,12 @@ interface IOnboardingStats {
    * Time (in seconds) from when the user first launched
    * the application and entered the welcome wizard until
    * the user created their first new repository.
+   *
+   * A negative value means that this action hasn't yet
+   * taken place while undefined means that the current
+   * user installed desktop prior to this metric beeing
+   * added and we will thus never be able to provide a
+   * value.
    */
   readonly timeToFirstCreatedRepository?: number
 
@@ -92,6 +110,12 @@ interface IOnboardingStats {
    * Time (in seconds) from when the user first launched
    * the application and entered the welcome wizard until
    * the user crafted their first commit.
+   *
+   * A negative value means that this action hasn't yet
+   * taken place while undefined means that the current
+   * user installed desktop prior to this metric beeing
+   * added and we will thus never be able to provide a
+   * value.
    */
   readonly timeToFirstCommit?: number
 
@@ -113,6 +137,12 @@ interface IOnboardingStats {
    * Note that this metric will be set regardless of whether
    * that repository was a GitHub.com/GHE repository, local
    * repository or has a non-GitHub remote.
+   *
+   * A negative value means that this action hasn't yet
+   * taken place while undefined means that the current
+   * user installed desktop prior to this metric beeing
+   * added and we will thus never be able to provide a
+   * value.
    */
   readonly timeToFirstNonDefaultBranchCheckout?: number
 
@@ -120,6 +150,12 @@ interface IOnboardingStats {
    * Time (in seconds) from when the user first launched
    * the application and entered the welcome wizard until
    * the user completed the wizard.
+   *
+   * A negative value means that this action hasn't yet
+   * taken place while undefined means that the current
+   * user installed desktop prior to this metric beeing
+   * added and we will thus never be able to provide a
+   * value.
    */
   readonly timeToWelcomeWizardTerminated?: number
   readonly welcomeWizardSignInType?: 'basic' | 'web'
@@ -760,6 +796,6 @@ function timeToFirst(key: string): number | undefined {
 
   const endTime = getLocalStorageTimestamp(key)
   return endTime === null || endTime <= startTime
-    ? undefined
+    ? -1
     : Math.round((endTime - startTime) / 1000)
 }
