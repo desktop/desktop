@@ -91,7 +91,7 @@
     "klaw-sync": "^3.0.0",
     "legal-eagle": "0.16.0",
     "mini-css-extract-plugin": "^0.4.0",
-    "node-sass": "^4.7.2",
+    "node-sass": "^4.11.0",
     "octicons": "^8.2.0",
     "parallel-webpack": "^2.3.0",
     "prettier": "1.16.0",
