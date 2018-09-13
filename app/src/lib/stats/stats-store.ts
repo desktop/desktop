@@ -161,7 +161,15 @@ interface IOnboardingStats {
    * value.
    */
   readonly timeToWelcomeWizardTerminated?: number
-  readonly welcomeWizardSignInMethod?: SignInMethod
+
+  /**
+   * The method that was used when authenticating a
+   * user in the welcome flow. If multiple succesful
+   * authentications happened during the welcome flow
+   * due to the user stepping back and signing in to
+   * another account this will reflect the last one.
+   */
+  readonly welcomeWizardSignInMethod?: 'basic' | 'web'
 }
 
 interface ICalculatedStats {
@@ -804,6 +812,13 @@ function timeTo(key: string): number | undefined {
     : Math.round((endTime - startTime) / 1000)
 }
 
+/**
+ * Get a string representing the sign in method that was used
+ * when authenticating a user in the welcome flow. This method
+ * ensures that the reported value is known to the analytics
+ * system regardless of whether the enum value of the SignInMethod
+ * type changes.
+ */
 function getWelcomeWizardSignInMethod(): 'basic' | 'web' | undefined {
   const method = localStorage.getItem(
     WelcomeWizardSignInMethodKey
