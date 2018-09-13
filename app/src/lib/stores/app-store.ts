@@ -3439,7 +3439,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         const addedRepo = await this.repositoriesStore.addRepository(
           validatedPath
         )
-        
+
         // initialize the remotes for this new repository to ensure it can fetch
         // it's GitHub-related details using the GitHub API (if applicable)
         const gitStore = this.getGitStore(addedRepo)
