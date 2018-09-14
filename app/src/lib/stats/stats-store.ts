@@ -175,6 +175,18 @@ interface IOnboardingStats {
   readonly welcomeWizardSignInMethod?: 'basic' | 'web'
 }
 
+/**
+ * Lookup an account identifier associated with the current user's GitHub account
+ *
+ * @param accounts The active accounts stored in Desktop
+ */
+function findGitHubAccountId(accounts: ReadonlyArray<Account>): number | null {
+  const gitHubAccount =
+    accounts.find(a => a.endpoint === getDotComAPIEndpoint()) || null
+
+  return gitHubAccount !== null ? gitHubAccount.id : null
+}
+
 interface ICalculatedStats {
   /** The app version. */
   readonly version: string
@@ -272,8 +284,10 @@ export class StatsStore {
     const now = Date.now()
     const stats = await this.getDailyStats(accounts, repositories)
 
+    const accountId = findGitHubAccountId(accounts)
+
     try {
-      const response = await this.post(stats)
+      const response = await this.post(stats, accountId)
       if (!response.ok) {
         throw new Error(
           `Unexpected status: ${response.statusText} (${response.status})`
@@ -733,11 +747,13 @@ export class StatsStore {
   }
 
   /** Post some data to our stats endpoint. */
-  private post(body: object): Promise<Response> {
+  private post(body: object, userId: number | null): Promise<Response> {
+    const payload = userId === null ? body : { ...body, user_id: userId }
+
     const options: RequestInit = {
       method: 'POST',
       headers: new Headers({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify(body),
+      body: JSON.stringify(payload),
     }
 
     return fetch(StatsEndpoint, options)
@@ -746,10 +762,13 @@ export class StatsStore {
   private async sendOptInStatusPing(optIn: boolean): Promise<void> {
     const direction = optIn ? 'in' : 'out'
     try {
-      const response = await this.post({
-        eventType: 'ping',
-        optIn,
-      })
+      const response = await this.post(
+        {
+          eventType: 'ping',
+          optIn,
+        },
+        null
+      )
       if (!response.ok) {
         throw new Error(
           `Unexpected status: ${response.statusText} (${response.status})`
