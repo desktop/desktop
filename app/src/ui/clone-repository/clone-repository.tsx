@@ -53,7 +53,15 @@ interface ICloneRepositoryState {
   /** The local path to clone to. */
   readonly path: string
 
-  /** The a copy of the default path value to compare if the current path is a different directory. */
+  /** A copy of the path state field which is set when the component initializes.
+   *
+   *  This value, as opposed to the path state variable, doesn't change for the
+   *  lifetime of the component. Used to keep track of whether the user has
+   *  modified the path state field which influences whether we show a
+   *  warning about the directory already existing or not.
+   *
+   *  See the onWindowFocus method for more information.
+   */
   readonly initialPath: string
 
   /** Are we currently trying to load the entered repository? */
