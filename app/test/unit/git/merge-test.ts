@@ -67,5 +67,22 @@ describe('git/merge', () => {
       const ref = await getMergeBase(repository, first.tip.sha, second.tip.sha)
       expect(ref).is.null
     })
+
+    it('returns null when a ref cannot be found', async () => {
+      const repository = await setupEmptyRepository()
+
+      // create the first commit
+      await GitProcess.exec(
+        ['commit', '--allow-empty', '-m', `first commit on master`],
+        repository.path
+      )
+
+      const ref = await getMergeBase(
+        repository,
+        'master',
+        'origin/some-unknown-branch'
+      )
+      expect(ref).is.null
+    })
   })
 })

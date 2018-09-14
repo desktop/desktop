@@ -48,11 +48,11 @@ export class GitHubUserStore extends BaseStore {
   /** Get the map of users for the repository. */
   public getUsersForRepository(
     repository: Repository
-  ): Map<string, IGitHubUser> | null {
+  ): Map<string, IGitHubUser> {
     const endpoint = repository.gitHubRepository
       ? repository.gitHubRepository.endpoint
       : getDotComAPIEndpoint()
-    return this.getUsersForEndpoint(endpoint)
+    return this.getUsersForEndpoint(endpoint) || new Map<string, IGitHubUser>()
   }
 
   /**
