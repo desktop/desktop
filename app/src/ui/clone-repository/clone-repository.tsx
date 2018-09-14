@@ -53,7 +53,7 @@ interface ICloneRepositoryState {
   /** The local path to clone to. */
   readonly path: string
 
-  /** A copy of the initial local path to clone to. */
+  /** The a copy of the default path value to compare if the current path is a different directory. */
   readonly initialPath: string
 
   /** Are we currently trying to load the entered repository? */
