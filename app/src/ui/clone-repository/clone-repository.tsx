@@ -53,6 +53,9 @@ interface ICloneRepositoryState {
   /** The local path to clone to. */
   readonly path: string
 
+  /** A copy of the initial local path to clone to. */
+  readonly initialPath: string
+
   /** Are we currently trying to load the entered repository? */
   readonly loading: boolean
 
@@ -76,9 +79,11 @@ export class CloneRepository extends React.Component<
   public constructor(props: ICloneRepositoryProps) {
     super(props)
 
+    const defaultDirectory = getDefaultDir()
     this.state = {
       url: this.props.initialURL || '',
-      path: getDefaultDir(),
+      path: defaultDirectory,
+      initialPath: defaultDirectory,
       loading: false,
       error: null,
       lastParsedIdentifier: null,
