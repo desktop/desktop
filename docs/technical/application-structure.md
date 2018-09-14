@@ -41,7 +41,7 @@ for the user to launch Desktop.
 
 ### User Interface - `app/src/renderer`
 
-Module and logic to be bundled for the renderer process, which displays the
+Modules and logic to be bundled for the renderer process, which displays the
 user interface and handles most of the data management in Desktop.
 
 As the largest part of the current codebase, I've sketched out how the folders
@@ -70,15 +70,21 @@ for the moment I wanted to focus on addressing these problems:
 
 ### Highlighter worker - `app/src/highlighter`
 
-Module and logic associated with the highlighter web worker that Desktop initializes to perform asynchronous computation of syntax highlighting in diffs.
+Module and logic associated with the highlighter web worker that Desktop
+initializes to perform asynchronous computation of syntax highlighting in diffs.
 
 ### Crash Window - `app/src/crash`
 
-Modules and logic that Desktop uses to show a default UI when an unhandled error occurs that crashes the main application.
+Modules and logic that Desktop uses to show a default UI when an unhandled error
+occurs that crashes the main application.
 
 ### AskPass script - `app/src/ask-pass`
 
-Modules and logic that Desktop uses to act as a credential helper for it's Git operations, bypassing whatever the user has set in config. This is a separate component because Desktop will spawn Git which can only spawn another program, so Desktop sets this script as the program to execute if Git encounters an authentication prompt.
+Modules and logic that Desktop uses to act as a credential helper for it's Git
+operations, bypassing whatever the user has set in config. This is a separate
+component because Desktop will spawn Git which can only spawn another program,
+so Desktop sets this script as the program to execute if Git encounters an
+authentication prompt.
 
 ### Command Line Interface - `app/src/cli`
 
