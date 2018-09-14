@@ -113,3 +113,19 @@ authentication prompt.
 Module and logic to be bundled for the `github` command line interface that
 users can enable for Desktop
 
+## Why move all this stuff around?
+
+Having read all that, you might be asking why do all this work if things are
+currently working?
+
+ - the codebase has grown organically over time amid the pressures of shipping,
+   and I think now is the best chance to revisist things and question the
+   assumptions we made at the beginning of the project
+ - the codebase is now complex enough that confusion is creeping in about
+   where things should be located, and I think we've learned enough to put some
+   structure around things
+ - as we bring fresh eyes and contributors onto the project, we need to better
+   organize things so knowing where code should go and what modules can be
+   consumed by code are more obvious than they are today, and we can build
+   tooling to ensure things are logically organized for how we build and package
+   Desktop
