@@ -12,32 +12,32 @@
 $overlay-background-color: rgba(0, 0, 0, 0.4);
 
 :root {
-  --color-new: $green;
-  --color-deleted: $red;
-  --color-modified: $yellow-700;
-  --color-renamed: $blue;
-  --color-conflicted: $orange;
+  --color-new: #{$green};
+  --color-deleted: #{$red};
+  --color-modified: #{$yellow-700};
+  --color-renamed: #{$blue};
+  --color-conflicted: #{$orange};
 
-  --text-color: $gray-900;
-  --text-secondary-color: $gray-500;
-  --background-color: $white;
+  --text-color: #{$gray-900};
+  --text-secondary-color: #{$gray-500};
+  --background-color: #{$white};
 
   --button-height: 25px;
 
-  --button-background: $blue;
+  --button-background: #{$blue};
   --button-border-radius: 2px;
-  --button-hover-background: lighten($blue, 5%);
-  --button-text-color: $white;
-  --button-focus-border-color: $blue-600;
+  --button-hover-background: #{lighten($blue, 5%)};
+  --button-text-color: #{$white};
+  --button-focus-border-color: #{$blue-600};
 
-  --link-button-color: $blue;
-  --link-button-hover-color: $blue-600;
+  --link-button-color: #{$blue};
+  --link-button-hover-color: #{$blue-600};
 
-  --secondary-button-background: $gray-000;
-  --secondary-button-hover-background: $white;
+  --secondary-button-background: #{$gray-000};
+  --secondary-button-hover-background: #{$white};
   --secondary-button-text-color: var(--text-color);
-  --secondary-button-focus-shadow-color: rgba($gray-200, 0.75);
-  --secondary-button-focus-border-color: $gray-300;
+  --secondary-button-focus-shadow-color: #{rgba($gray-200, 0.75)};
+  --secondary-button-focus-border-color: #{$gray-300};
 
   // Typography
   //
@@ -90,19 +90,19 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   // to decide what states to support (active selection, selection, etc).
 
   --box-background-color: var(--background-color);
-  --box-alt-background-color: $gray-100;
+  --box-alt-background-color: #{$gray-100};
 
   /**
    * Background color for skeleton or "loading" boxes
    */
-  --box-skeleton-background-color: $gray-200;
+  --box-skeleton-background-color: #{$gray-200};
   --skeleton-background-gradient: -webkit-linear-gradient(left, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.5) 50%, rgba(255, 255, 255, 0) 100%);
 
   /**
    * Border color for boxes.
    */
-  --box-border-color: $gray-200;
-  --box-border-accent-color: $blue;
+  --box-border-color: #{$gray-200};
+  --box-border-accent-color: #{$blue};
 
   /**
    * Background color for selected boxes without keyboard focus
@@ -115,7 +115,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
    * implement a hover state since this will conflict with
    * selection and active selection
    */
-  --box-hover-text-color: $gray-900;
+  --box-hover-text-color: #{$gray-900};
 
   /**
    * Background color for when a user hovers over a boxe with a
@@ -127,47 +127,47 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   /**
    * Text color for selected boxes without keyboard focus
    */
-  --box-selected-text-color: $gray-900;
+  --box-selected-text-color: #{$gray-900};
 
   /**
    * Border color for selected boxes without keyboard focus
    */
-  --box-selected-border-color: $gray-400;
+  --box-selected-border-color: #{$gray-400};
 
   /**
    * Background color for selected boxes with active keyboard focus
    */
-  --box-selected-active-background-color: $blue;
+  --box-selected-active-background-color: #{$blue};
 
   /**
    * Text color for selected boxes with active keyboard focus
    */
-  --box-selected-active-text-color: $white;
+  --box-selected-active-text-color: #{$white};
 
   /**
    * Border color for selected boxes with active keyboard focus
    */
-  --box-selected-active-border-color: $gray-400;
+  --box-selected-active-border-color: #{$gray-400};
 
   /**
    * Gradient used to indicate that content is overflowing, intended
    * for use when content can be expanded through other means than
    * scrolling.
    */
-  --box-overflow-shadow-background: linear-gradient(180deg, rgba($white, 0) 0%, rgba($white, 1) 90%, rgba($white, 1) 100%);
+  --box-overflow-shadow-background: #{linear-gradient(180deg, rgba($white, 0) 0%, rgba($white, 1) 90%, rgba($white, 1) 100%)};
 
   /**
    * Author input (co-authors)
    */
-  --co-author-tag-background-color: $blue-000;
-  --co-author-tag-border-color: $blue-200;
+  --co-author-tag-background-color: #{$blue-000};
+  --co-author-tag-border-color: #{$blue-200};
 
   /**
    * The height of the title bar area on Win32 platforms
    * If changed, update titleBarHeight in 'app/src/ui/dialog/dialog.tsx'
   */
   --win32-title-bar-height: 28px;
-  --win32-title-bar-background-color: $gray-900;
+  --win32-title-bar-background-color: #{$gray-900};
 
   /**
    * The height of the title bar area on darwin platforms
@@ -190,30 +190,30 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
 
   --toolbar-height: 50px;
 
-  --toolbar-background-color: $gray-900;
-  --toolbar-border-color: $gray-900;
-  --toolbar-text-color: $white;
-  --toolbar-text-secondary-color: $gray-300;
+  --toolbar-background-color: #{$gray-900};
+  --toolbar-border-color: #{$gray-900};
+  --toolbar-text-color: #{$white};
+  --toolbar-text-secondary-color: #{$gray-300};
 
   --toolbar-button-color: var(--toolbar-text-color);
   --toolbar-button-background-color: transparent;
   --toolbar-button-border-color: black;
   --toolbar-button-secondary-color: var(--toolbar-text-secondary-color);
 
-  --toolbar-button-hover-color: $white;
-  --toolbar-button-hover-background-color: $gray-800;
+  --toolbar-button-hover-color: #{$white};
+  --toolbar-button-hover-background-color: #{$gray-800};
   --toolbar-button-hover-border-color: var(--toolbar-button-border-color);
 
-  --toolbar-button-focus-background-color: $gray-800;
+  --toolbar-button-focus-background-color: #{$gray-800};
 
   --toolbar-button-active-color: var(--text-color);
   --toolbar-button-active-background-color: var(--background-color);
   --toolbar-button-active-border-color: var(--background-color);
 
-  --toolbar-button-progress-color: $gray-800;
-  --toolbar-button-focus-progress-color: $gray-700;
-  --toolbar-button-hover-progress-color: $gray-700;
-  --toolbar-dropdown-open-progress-color: $gray-200;
+  --toolbar-button-progress-color: #{$gray-800};
+  --toolbar-button-focus-progress-color: #{$gray-700};
+  --toolbar-button-hover-progress-color: #{$gray-700};
+  --toolbar-dropdown-open-progress-color: #{$gray-200};
 
   /**
    * App menu bar colors (Windows/Linux only)
@@ -234,28 +234,28 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
     * push/pull button and the PR badge in the branch drop
     * down button.
     */
-  --toolbar-badge-background-color: $gray-600;
-  --toolbar-badge-active-background-color: $gray-200;
+  --toolbar-badge-background-color: #{$gray-600};
+  --toolbar-badge-active-background-color: #{$gray-200};
 
   --tab-bar-height: 29px;
-  --tab-bar-active-color: $blue;
-  --tab-bar-background-color: $white;
+  --tab-bar-active-color: #{$blue};
+  --tab-bar-background-color: #{$white};
 
   /** Count bubble colors when used inside of a tab bar item */
   --tab-bar-count-color: var(--text-color);
-  --tab-bar-count-background-color: $gray-200;
+  --tab-bar-count-background-color: #{$gray-200};
 
   /**
     * Badge colors when used inside of list items.
     * Example of this is the change indicators inside
     * of the repository list.
     */
-  --list-item-badge-color: $gray-800;
-  --list-item-badge-background-color: $gray-200;
-  --list-item-selected-badge-color: $gray-900;
-  --list-item-selected-badge-background-color: $gray-300;
-  --list-item-selected-active-badge-color: $gray-900;
-  --list-item-selected-active-badge-background-color: $white;
+  --list-item-badge-color: #{$gray-800};
+  --list-item-badge-background-color: #{$gray-200};
+  --list-item-selected-badge-color: #{$gray-900};
+  --list-item-selected-badge-background-color: #{$gray-300};
+  --list-item-selected-active-badge-color: #{$gray-900};
+  --list-item-selected-active-badge-background-color: #{$white};
 
   /** Win32 has custom scrol bars, see _scroll.scss */
   --win32-scroll-bar-size: 10px;
@@ -277,17 +277,17 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
    * percentage changing or the app toggling between full screen and normal
    * window mode.
    */
-  --toast-notification-color: $gray-000;
-  --toast-notification-background-color: rgba($gray-900, 0.6);
+  --toast-notification-color: #{$gray-000};
+  --toast-notification-background-color: #{rgba($gray-900, 0.6)};
 
   /** The highlight color used for focus rings and focus box shadows */
-  --focus-color: $blue;
+  --focus-color: #{$blue};
 
   /**
    * Variables for form elements
    */
   --text-field-height: 25px;
-  --text-field-focus-shadow-color: rgba($blue, 0.25);
+  --text-field-focus-shadow-color: #{rgba($blue, 0.25)};
 
   /**
    * Diff view
@@ -295,52 +295,52 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
 
   --diff-line-padding-y: 2px;
 
-  --diff-text-color: $gray-900;
-  --diff-border-color: $gray-200;
-  --diff-gutter-color: $gray-200;
+  --diff-text-color: #{$gray-900};
+  --diff-border-color: #{$gray-200};
+  --diff-gutter-color: #{$gray-200};
   --diff-gutter-background-color: var(--background-color);
 
-  --diff-line-number-color: $gray-700;
+  --diff-line-number-color: #{$gray-700};
   --diff-line-number-column-width: 50px;
 
-  --diff-selected-background-color: $blue-400;
-  --diff-selected-border-color: $blue-600;
-  --diff-selected-gutter-color: $blue-600;
+  --diff-selected-background-color: #{$blue-400};
+  --diff-selected-border-color: #{$blue-600};
+  --diff-selected-gutter-color: #{$blue-600};
   --diff-selected-text-color: var(--background-color);
 
-  --diff-add-background-color: darken($green-000, 2%);
-  --diff-add-border-color: $green-300;
-  --diff-add-gutter-color: $green-300;
-  --diff-add-gutter-background-color: darken($green-100, 3%);
+  --diff-add-background-color: #{darken($green-000, 2%)};
+  --diff-add-border-color: #{$green-300};
+  --diff-add-gutter-color: #{$green-300};
+  --diff-add-gutter-background-color: #{darken($green-100, 3%)};
   --diff-add-inner-background-color: #acf2bd;
-  --diff-add-text-color: var(--diff-text-color);
 
-  --diff-delete-background-color: $red-000;
-  --diff-delete-border-color: $red-200;
-  --diff-delete-gutter-color: $red-200;
-  --diff-delete-gutter-background-color: $red-100;
+  --diff-add-text-color: var(--diff-text-color);
+  --diff-delete-background-color: #{$red-000};
+  --diff-delete-border-color: #{$red-200};
+  --diff-delete-gutter-color: #{$red-200};
+  --diff-delete-gutter-background-color: #{$red-100};
   --diff-delete-inner-background-color: #fdb8c0;
   --diff-delete-text-color: var(--diff-text-color);
 
-  --diff-hunk-background-color: $blue-000;
-  --diff-hunk-border-color: $blue-200;
-  --diff-hunk-gutter-color: darken($blue-200, 5%);
-  --diff-hunk-gutter-background-color: $blue-100;
-  --diff-hunk-text-color: $gray;
+  --diff-hunk-background-color: #{$blue-000};
+  --diff-hunk-border-color: #{$blue-200};
+  --diff-hunk-gutter-color: #{darken($blue-200, 5%)};
+  --diff-hunk-gutter-background-color: #{$blue-100};
+  --diff-hunk-text-color: #{$gray};
 
-  --diff-hover-background-color: $blue-300;
-  --diff-hover-border-color: $blue-400;
-  --diff-hover-gutter-color: $blue-400;
+  --diff-hover-background-color: #{$blue-300};
+  --diff-hover-border-color: #{$blue-400};
+  --diff-hover-gutter-color: #{$blue-400};
   --diff-hover-text-color: var(--background-color);
 
-  --diff-add-hover-background-color: $green-300;
-  --diff-add-hover-border-color: $green-400;
-  --diff-add-hover-gutter-color: $green-400;
+  --diff-add-hover-background-color: #{$green-300};
+  --diff-add-hover-border-color: #{$green-400};
+  --diff-add-hover-gutter-color: #{$green-400};
   --diff-add-hover-text-color: var(--text-color);
 
-  --diff-delete-hover-background-color: $red-200;
-  --diff-delete-hover-border-color: $red-300;
-  --diff-delete-hover-gutter-color: $red-300;
+  --diff-delete-hover-background-color: #{$red-200};
+  --diff-delete-hover-border-color: #{$red-300};
+  --diff-delete-hover-gutter-color: #{$red-300};
   --diff-delete-hover-text-color: var(--text-color);
 
   // Syntax highlighting text colors
@@ -351,7 +351,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --syntax-string-color: #032f62;
   --syntax-qualifier-color: #6f42c1;
   --syntax-type-color: #d73a49;
-  --syntax-comment-color: $gray-500;
+  --syntax-comment-color: #{$gray-500};
   --syntax-tag-color: #22863a;
   --syntax-attribute-color: #6f42c1;
   --syntax-link-color: #032f62;
@@ -362,25 +362,25 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --undo-animation-duration: 500ms;
 
   // Colors for form errors
-  --error-color: $red;
-  --form-error-background: $red-100;
-  --form-error-border-color: $red-200;
-  --form-error-text-color: $red-800;
+  --error-color: #{$red};
+  --form-error-background: #{$red-100};
+  --form-error-border-color: #{$red-200};
+  --form-error-text-color: #{$red-800};
 
   /** Overlay is used as a background for both modals and foldouts */
-  --overlay-background-color: $overlay-background-color;
+  --overlay-background-color: #{$overlay-background-color};
 
   /** Dialog */
-  --dialog-warning-color: $yellow-600;
-  --dialog-error-color: $red;
+  --dialog-warning-color: #{$yellow-600};
+  --dialog-error-color: #{$red};
 
   /** Inline paths and code */
-  --path-segment-background: $blue-000;
+  --path-segment-background: #{$blue-000};
   --path-segment-padding: var(--spacing-third);
 
   /** Diverging notification banner colors */
-  --notification-banner-background: $blue-000;
-  --notification-banner-border-color: $blue-200;
+  --notification-banner-background: #{$blue-000};
+  --notification-banner-border-color: #{$blue-200};
   --notification-ref-background: rgba(255, 255, 255, 0.75);
 
   // http://easings.net/#easeOutBack
@@ -394,5 +394,5 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
 }
 
 ::backdrop {
-  --overlay-background-color: $overlay-background-color;
+  --overlay-background-color: #{$overlay-background-color};
 }
