@@ -8,7 +8,7 @@ You will need to install these tools on your machine:
 
 ## Node.js
 
-There are two approaches to installing Node.js, **manual** and **managed**. We recommend the managed route, but the simple method will work fine if you don't have node installed on your machine and just want to get running!
+There are two approaches to installing Node.js, **manual** and **managed**. If you're not sure which route to go, we recommend the managed route, but do whatever makes the most sense for your development process!
 
 ### Managed
 
@@ -19,6 +19,8 @@ We recommend using [nvm](https://github.com/creationix/nvm) to manage your Node.
   - Install the version of Node.js for GitHub Desktop with `nvm install`
   - Use that version with `nvm use`
 - You're good to go!
+
+Suitable alternatives include (but aren't limited to) [n](https://github.com/tj/n) and [asdf-nodejs](https://github.com/asdf-vm/asdf-nodejs).
 
 ### Manual
 
@@ -31,7 +33,7 @@ macOS comes with Python pre-installed, and it happens to be the right version, s
 
 ### Managed
 
-For this, we recommend [pyenv](https://github.com/pyenv/pyenv).
+For this, we recommend [pyenv](https://github.com/pyenv/pyenv). (It's the only game in town.)
 
 - Install pyenv according to https://github.com/pyenv/pyenv-installer#github-way-recommended
 - At the top level of this repo:
