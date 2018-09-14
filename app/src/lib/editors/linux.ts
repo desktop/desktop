@@ -8,6 +8,7 @@ export enum ExternalEditor {
   VisualStudioCode = 'Visual Studio Code',
   VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
   SublimeText = 'Sublime Text',
+  Typora = 'Typora',
 }
 
 export function parse(label: string): ExternalEditor | null {
@@ -27,6 +28,10 @@ export function parse(label: string): ExternalEditor | null {
     return ExternalEditor.SublimeText
   }
 
+  if (label === ExternalEditor.Typora) {
+    return ExternalEditor.Typora
+  }
+
   return null
 }
 
@@ -44,6 +49,8 @@ function getEditorPath(editor: ExternalEditor): Promise<string | null> {
       return getPathIfAvailable('/usr/bin/code-insiders')
     case ExternalEditor.SublimeText:
       return getPathIfAvailable('/usr/bin/subl')
+    case ExternalEditor.Typora:
+      return getPathIfAvailable('/usr/bin/typora')
     default:
       return assertNever(editor, `Unknown editor: ${editor}`)
   }
@@ -54,14 +61,19 @@ export async function getAvailableEditors(): Promise<
 > {
   const results: Array<IFoundEditor<ExternalEditor>> = []
 
-  const [atomPath, codePath, codeInsidersPath, sublimePath] = await Promise.all(
-    [
-      getEditorPath(ExternalEditor.Atom),
-      getEditorPath(ExternalEditor.VisualStudioCode),
-      getEditorPath(ExternalEditor.VisualStudioCodeInsiders),
-      getEditorPath(ExternalEditor.SublimeText),
-    ]
-  )
+  const [
+    atomPath,
+    codePath,
+    codeInsidersPath,
+    sublimePath,
+    typoraPath,
+  ] = await Promise.all([
+    getEditorPath(ExternalEditor.Atom),
+    getEditorPath(ExternalEditor.VisualStudioCode),
+    getEditorPath(ExternalEditor.VisualStudioCodeInsiders),
+    getEditorPath(ExternalEditor.SublimeText),
+    getEditorPath(ExternalEditor.Typora),
+  ])
 
   if (atomPath) {
     results.push({ editor: ExternalEditor.Atom, path: atomPath })
@@ -80,6 +92,10 @@ export async function getAvailableEditors(): Promise<
 
   if (sublimePath) {
     results.push({ editor: ExternalEditor.SublimeText, path: sublimePath })
+  }
+
+  if (typoraPath) {
+    results.push({ editor: ExternalEditor.Typora, path: typoraPath })
   }
 
   return results
