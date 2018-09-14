@@ -103,7 +103,11 @@ export class CloneRepository extends React.Component<
       this.updateUrl(initialURL)
     }
 
-    window.addEventListener('focus', this.onFocus)
+    window.addEventListener('focus', this.onWindowFocus)
+  }
+  
+  public componentWillUnmount() {
+    window.removeEventListener('focus', this.onWindowFocus)
   }
 
   public render() {
@@ -380,7 +384,7 @@ export class CloneRepository extends React.Component<
     setDefaultDir(Path.resolve(path, '..'))
   }
 
-  private onFocus = () => {
+  private onWindowFocus = () => {
     // Verify the path after focus has been regained in case changes have been made.
     const isDefaultPath =
       this.state.initialPath === this.state.path.replace(/\/$/g, '')
