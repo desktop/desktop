@@ -34,7 +34,7 @@ I'm referring to these folders as "bundles" because our webpack config will
 transpile a specific file in each of these directories to generate what it
 needs to package and run the application.
 
-### Main Process - `app/src/main-process`
+### Main Process - `app/src/main`
 
 Modules and logic to be bundled for the main process, which is the entry point
 for the user to launch Desktop.
