@@ -387,7 +387,7 @@ export class CloneRepository extends React.Component<
   private onWindowFocus = () => {
     // Verify the path after focus has been regained in case changes have been made.
     const isDefaultPath =
-      this.state.initialPath === this.state.path.replace(/\/$/g, '')
+      this.state.initialPath === this.state.path
     const isURLNotEntered = this.state.url === ''
 
     if (isDefaultPath && isURLNotEntered) {
