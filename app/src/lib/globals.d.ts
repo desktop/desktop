@@ -47,20 +47,6 @@ declare const __PROCESS_KIND__:
   | 'highlighter'
 
 /**
- * The DOMHighResTimeStamp type is a double and is used to store a time value.
- *
- * The value could be a discrete point in time or the difference in time between
- * two discrete points in time. The unit is milliseconds and should be accurate
- * to 5 µs (microseconds). However, if the browser is unable to provide a time
- * value accurate to 5 microseconds (due, for example, to hardware or software
- * constraints), the browser can represent the value as a time in milliseconds
- * accurate to a millisecond.
- *
- * See https://developer.mozilla.org/en-US/docs/Web/API/DOMHighResTimeStamp
- */
-declare type DOMHighResTimeStamp = number
-
-/**
  * The IdleDeadline interface is used as the data type of the input parameter to
  * idle callbacks established by calling Window.requestIdleCallback(). It offers
  * a method, timeRemaining(), which lets you determine how much longer the user
@@ -191,6 +177,14 @@ declare namespace NodeJS {
     removeListener(event: 'exit', listener: Function): this
     once(event: 'exit', listener: Function): this
   }
+}
+
+interface XMLHttpRequest extends XMLHttpRequestEventTarget {
+  /**
+   * Initiates the request. The optional argument provides the request body. The argument is ignored if request method is GET or HEAD.
+   * Throws an "InvalidStateError" DOMException if either state is not opened or the send() flag is set.
+   */
+  send(body?: Document | BodyInit | null): void
 }
 
 declare namespace Electron {
