@@ -3028,7 +3028,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     text: string
   ): Promise<void> {
-    return saveGitIgnore(repository, text)
+    await saveGitIgnore(repository, text)
+    return this._refreshRepository(repository)
   }
 
   /** Has the user opted out of stats reporting? */
@@ -3121,7 +3122,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     pattern: string | string[]
   ): Promise<void> {
     await appendIgnoreRule(repository, pattern)
-
     return this._refreshRepository(repository)
   }
 
