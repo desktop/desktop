@@ -51,9 +51,14 @@ within `app/src/renderer` may be organized:
     - src
        - renderer
           - components
-          - models
+            ... 
+            - dialogs
+            - primitives
+            - text
+            ...
           - lib
              - git
+          - models
           - stores
           - views
 
@@ -67,6 +72,23 @@ for the moment I wanted to focus on addressing these problems:
  - reflect our current usage patterns
     - Git operations performed in the renderer
     - stores created and managed in the renderer
+
+What lives in each of these folders:
+
+ - `components` - contains the React components used in our application. I don't
+   have strong opinions on how to organize these, but better organizing of these
+   would simplify our imports elsewhere. I've also mentioned subdirectories that
+   might represent new groups of related components, based on existing components
+ - `lib` - functions and logic specific to the renderer process
+ - `lib/git` - our current Git functionality, localized for use in the renderer
+ - `models` - interfaces and classes specific to the renderer process
+ - `stores` - our existing collection of stores from `lib/stores`
+ - `views` - these are the top-level components that we render based on the state
+   of the repository - `repository.tsx`, `cloning-repository.tsx` and 
+   `missing-repository.tsx`
+
+The entry point `index.tsx` should be available at the root, but everything else
+should be moved to a more relevant location on disk.
 
 ### Highlighter worker - `app/src/highlighter`
 
