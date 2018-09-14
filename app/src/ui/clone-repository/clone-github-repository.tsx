@@ -166,7 +166,16 @@ export class CloneGithubRepository extends React.Component<
         groups={this.state.repositories}
         filterText={this.state.filterText}
         onFilterTextChanged={this.onFilterTextChanged}
+        renderNoItems={this.noMatchingRepositories}
       />
+    )
+  }
+
+  private noMatchingRepositories() {
+    return (
+      <div className="no-results-found">
+        Sorry, there doesn't seem to be any matching repositories
+      </div>
     )
   }
 
