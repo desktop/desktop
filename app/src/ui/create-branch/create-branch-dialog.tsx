@@ -3,7 +3,7 @@ import * as React from 'react'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../../lib/dispatcher'
 import { sanitizedBranchName } from '../../lib/sanitize-branch'
-import { Branch, BranchType } from '../../models/branch'
+import { Branch } from '../../models/branch'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 import { Ref } from '../lib/ref'
@@ -12,7 +12,6 @@ import { LinkButton } from '../lib/link-button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogError, DialogContent, DialogFooter } from '../dialog'
 import { VerticalSegmentedControl } from '../lib/vertical-segmented-control'
-import { Octicon, OcticonSymbol } from '../octicons'
 import {
   TipState,
   IUnbornRepository,
@@ -20,7 +19,10 @@ import {
   IValidBranch,
 } from '../../models/tip'
 import { assertNever } from '../../lib/fatal-error'
-import { renderBranchNameWarning } from '../lib/branch-name-warnings'
+import {
+  renderBranchNameWarning,
+  renderBranchNameExistsOnRemoteWarning,
+} from '../lib/branch-name-warnings'
 
 interface ICreateBranchProps {
   readonly repository: Repository
@@ -40,7 +42,6 @@ enum StartPoint {
 
 interface ICreateBranchState {
   readonly currentError: Error | null
-  readonly currentWarning: JSX.Element | null
   readonly proposedName: string
   readonly sanitizedName: string
   readonly startPoint: StartPoint
@@ -117,7 +118,6 @@ export class CreateBranch extends React.Component<
 
     this.state = {
       currentError: null,
-      currentWarning: null,
       proposedName: props.initialName,
       sanitizedName: '',
       startPoint: getStartPoint(props, StartPoint.DefaultBranch),
@@ -238,7 +238,6 @@ export class CreateBranch extends React.Component<
       !!this.state.currentError ||
       /^\s*$/.test(this.state.sanitizedName)
     const error = this.state.currentError
-    const warning = this.state.currentWarning
 
     return (
       <Dialog
@@ -266,12 +265,10 @@ export class CreateBranch extends React.Component<
             this.state.sanitizedName
           )}
 
-          {warning ? (
-            <Row className="warning-helper-text">
-              <Octicon symbol={OcticonSymbol.alert} />
-              {warning}
-            </Row>
-          ) : null}
+          {renderBranchNameExistsOnRemoteWarning(
+            this.state.sanitizedName,
+            this.props.allBranches
+          )}
 
           {this.renderBranchSelection()}
         </DialogContent>
@@ -297,28 +294,14 @@ export class CreateBranch extends React.Component<
     const alreadyExists =
       this.props.allBranches.findIndex(b => b.name === sanitizedName) > -1
 
-    const alreadyExistsOnRemote =
-      this.props.allBranches.findIndex(
-        b =>
-          b.nameWithoutRemote === sanitizedName && b.type === BranchType.Remote
-      ) > -1
-
     const currentError = alreadyExists
-      ? new Error(`
-        A branch named ${sanitizedName} already exists`)
+      ? new Error(`A branch named ${sanitizedName} already exists`)
       : null
-
-    const currentWarning = alreadyExistsOnRemote ? (
-      <p>
-        A branch named <Ref>{sanitizedName}</Ref> already exists on remote
-      </p>
-    ) : null
 
     this.setState({
       proposedName: name,
       sanitizedName,
       currentError,
-      currentWarning,
     })
   }
 
