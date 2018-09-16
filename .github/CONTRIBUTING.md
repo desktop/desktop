@@ -93,7 +93,7 @@ community understand your suggestion :pencil: and find related suggestions
 Before creating enhancement suggestions, please check [this list](#before-submitting-an-enhancement-suggestion)
 as you might find out that you don't need to create one. When you are creating
 an enhancement suggestion, please [include as many details as possible](#how-do-i-submit-a-good-enhancement-suggestion).
-Fill in [the template](ISSUE_TEMPLATE.md), including the steps
+Fill in [the template](ISSUE_TEMPLATE/), including the steps
 that you imagine you would take if the feature you're requesting existed.
 
 #### Before Submitting An Enhancement Suggestion
