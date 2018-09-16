@@ -12,6 +12,7 @@ export enum Shell {
   PowerShellCore = 'PowerShell Core',
   Hyper = 'Hyper',
   GitBash = 'Git Bash',
+  Cygwin = 'Cygwin',
 }
 
 export const Default = Shell.Cmd
@@ -35,6 +36,10 @@ export function parse(label: string): Shell {
 
   if (label === Shell.GitBash) {
     return Shell.GitBash
+  }
+
+  if (label === Shell.Cygwin) {
+    return Shell.Cygwin
   }
 
   return Default
@@ -79,6 +84,14 @@ export async function getAvailableShells(): Promise<
     shells.push({
       shell: Shell.GitBash,
       path: gitBashPath,
+    })
+  }
+
+  const cygwinPath = await findCygwin()
+  if (cygwinPath != null) {
+    shells.push({
+      shell: Shell.Cygwin,
+      path: cygwinPath,
     })
   }
 
@@ -215,6 +228,30 @@ async function findGitBash(): Promise<string | null> {
   return null
 }
 
+async function findCygwin(): Promise<string | null> {
+  const registryPath = enumerateValues(
+    HKEY.HKEY_LOCAL_MACHINE,
+    'SOFTWARE\\Cygwin\\setup'
+  )
+
+  if (registryPath.length === 0) {
+    return null
+  }
+
+  const installPathEntry = registryPath.find(e => e.name === 'rootdir')
+  if (installPathEntry && installPathEntry.type === RegistryValueType.REG_SZ) {
+    const path = Path.join(installPathEntry.data, 'bin\\mintty.exe')
+
+    if (await pathExists(path)) {
+      return path
+    } else {
+      log.debug(`[Cygwin] registry entry found but does not exist at '${path}'`)
+    }
+  }
+
+  return null
+}
+
 export function launch(
   foundShell: IFoundShell<Shell>,
   path: string
@@ -248,6 +285,17 @@ export function launch(
         shell: true,
         cwd: path,
       })
+    case Shell.Cygwin:
+      const cygwinPath = `"${foundShell.path}"`
+      log.info(`launching ${shell} at path: ${cygwinPath}`)
+      return spawn(
+        cygwinPath,
+        [`/bin/sh -lc 'cd "$(cygpath "${path}")"; exec bash`],
+        {
+          shell: true,
+          cwd: path,
+        }
+      )
     case Shell.Cmd:
       return spawn('START', ['cmd'], { shell: true, cwd: path })
     default:
