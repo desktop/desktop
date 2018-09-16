@@ -104,8 +104,6 @@ export function parseAppURL(url: string): URLActionType {
   const parsedPath = pathName.substr(1)
 
   if (actionName === 'openrepo') {
-    const url = parsedPath
-
     const pr = getQueryStringValue(query, 'pr')
     const branch = getQueryStringValue(query, 'branch')
     const filepath = getQueryStringValue(query, 'filepath')
@@ -127,7 +125,7 @@ export function parseAppURL(url: string): URLActionType {
 
     return {
       name: 'open-repository-from-url',
-      url,
+      url: parsedPath,
       branch,
       pr,
       filepath,
