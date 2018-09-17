@@ -174,7 +174,7 @@ export class CloneGithubRepository extends React.Component<
   private noMatchingRepositories = function() {
     return (
       <div className="no-results-found">
-        Sorry, there doesn't seem to be any matching repositories
+        Sorry, I can't find that repository.
       </div>
     )
   }
