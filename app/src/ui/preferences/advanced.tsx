@@ -132,7 +132,7 @@ export class Advanced extends React.Component<
     return (
       <span>
         Help GitHub Desktop improve by submitting{' '}
-        <LinkButton uri={SamplesURL}>usage data</LinkButton>
+        <LinkButton uri={SamplesURL}>usage stats</LinkButton>
       </span>
     )
   }

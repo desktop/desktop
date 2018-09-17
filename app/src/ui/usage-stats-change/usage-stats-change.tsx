@@ -71,7 +71,7 @@ export class UsageStatsChange extends React.Component<
           </Row>
           <Row className="selection">
             <Checkbox
-              label="Help GitHub Desktop improve by submitting usage data"
+              label="Help GitHub Desktop improve by submitting usage stats"
               value={
                 this.state.optOutOfUsageTracking
                   ? CheckboxValue.Off

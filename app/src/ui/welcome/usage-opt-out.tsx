@@ -37,13 +37,13 @@ export class UsageOptOut extends React.Component<
 
         <p>
           Would you like to help us improve GitHub Desktop by periodically
-          submitting <LinkButton uri={SamplesURL}>usage data</LinkButton>?
+          submitting <LinkButton uri={SamplesURL}>usage stats</LinkButton>?
         </p>
 
         <Form onSubmit={this.finish}>
           <Row>
             <Checkbox
-              label="Yes, submit periodic usage data"
+              label="Yes, submit periodic usage stats"
               value={
                 this.state.newOptOutValue ? CheckboxValue.Off : CheckboxValue.On
               }
