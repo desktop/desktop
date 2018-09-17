@@ -1,5 +1,8 @@
 {
   "releases": {
+    "1.4.1-test2": [
+      "Testing changes to how Desktop performs CI platform checks"
+    ],
     "1.4.1-test1": [
       "Testing changes to how Desktop performs CI platform checks"
     ],
