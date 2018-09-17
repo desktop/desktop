@@ -128,13 +128,13 @@ function getRegistryKeys(
       ]
     case ExternalEditor.CFBuilder:
       return [
-        //64-bit version of ColdFusionBuilder3
+        // 64-bit version of ColdFusionBuilder3
         {
           key: HKEY.HKEY_LOCAL_MACHINE,
           subKey:
             'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Adobe ColdFusion Builder 3_is1',
         },
-        //64-bit version of ColdFusionBuilder2016
+        // 64-bit version of ColdFusionBuilder2016
         {
           key: HKEY.HKEY_LOCAL_MACHINE,
           subKey:
@@ -143,10 +143,17 @@ function getRegistryKeys(
       ]
     case ExternalEditor.Typora:
       return [
+        // 64-bit version of Typora
         {
           key: HKEY.HKEY_LOCAL_MACHINE,
           subKey:
             'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{37771A20-7167-44C0-B322-FD3E54C56156}_is1',
+        },
+        // 32-bit version of Typora
+        {
+          key: HKEY.HKEY_LOCAL_MACHINE,
+          subKey:
+            'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{37771A20-7167-44C0-B322-FD3E54C56156}_is1',
         },
       ]
 
