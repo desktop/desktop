@@ -153,7 +153,7 @@ import {
   parse as parseShell,
   Shell,
 } from '../shells'
-import { ILaunchStats, StatsStore } from '../stats'
+import { ILaunchStats, StatsStore, hasSeenUsageStatsNote } from '../stats'
 import { hasShownWelcomeFlow, markWelcomeFlowComplete } from '../welcome'
 import { getWindowState, WindowState } from '../window-state'
 import { TypedBaseStore } from './base-store'
@@ -3306,6 +3306,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public _reportStats() {
+    // ensure the user has seen and acknowledged the current usage stats setting
+    if (!hasSeenUsageStatsNote()) {
+      this._showPopup({ type: PopupType.UsageReportingChanges })
+      return Promise.resolve()
+    }
+
     return this.statsStore.reportStats(this.accounts, this.repositories)
   }
 

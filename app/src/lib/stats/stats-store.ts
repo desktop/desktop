@@ -176,15 +176,17 @@ interface IOnboardingStats {
 }
 
 /**
- * Lookup an account identifier associated with the current user's GitHub account
+ * Returns the account id of the current user's GitHub.com account or null if the user
+ * is not currently signed in to GitHub.com.
  *
  * @param accounts The active accounts stored in Desktop
  */
-function findGitHubAccountId(accounts: ReadonlyArray<Account>): number | null {
-  const gitHubAccount =
-    accounts.find(a => a.endpoint === getDotComAPIEndpoint()) || null
+function findDotComAccountId(accounts: ReadonlyArray<Account>): number | null {
+  const gitHubAccount = accounts.find(
+    a => a.endpoint === getDotComAPIEndpoint()
+  )
 
-  return gitHubAccount !== null ? gitHubAccount.id : null
+  return gitHubAccount !== undefined ? gitHubAccount.id : null
 }
 
 interface ICalculatedStats {
@@ -284,10 +286,11 @@ export class StatsStore {
     const now = Date.now()
     const stats = await this.getDailyStats(accounts, repositories)
 
-    const accountId = findGitHubAccountId(accounts)
+    const user_id = findDotComAccountId(accounts)
+    const payload = user_id === null ? stats : { ...stats, user_id }
 
     try {
-      const response = await this.post(stats, accountId)
+      const response = await this.post(payload)
       if (!response.ok) {
         throw new Error(
           `Unexpected status: ${response.statusText} (${response.status})`
@@ -630,7 +633,7 @@ export class StatsStore {
 
   /**
    * Record that user initiated a merge after getting to compare view
-   * from within notificatio banner
+   * from within notification banner
    */
   public async recordDivergingBranchBannerInfluencedMerge(): Promise<void> {
     return this.updateDailyMeasures(m => ({
@@ -747,13 +750,11 @@ export class StatsStore {
   }
 
   /** Post some data to our stats endpoint. */
-  private post(body: object, userId: number | null): Promise<Response> {
-    const payload = userId === null ? body : { ...body, user_id: userId }
-
+  private post(body: object): Promise<Response> {
     const options: RequestInit = {
       method: 'POST',
       headers: new Headers({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify(payload),
+      body: JSON.stringify(body),
     }
 
     return fetch(StatsEndpoint, options)
@@ -762,13 +763,10 @@ export class StatsStore {
   private async sendOptInStatusPing(optIn: boolean): Promise<void> {
     const direction = optIn ? 'in' : 'out'
     try {
-      const response = await this.post(
-        {
-          eventType: 'ping',
-          optIn,
-        },
-        null
-      )
+      const response = await this.post({
+        eventType: 'ping',
+        optIn,
+      })
       if (!response.ok) {
         throw new Error(
           `Unexpected status: ${response.statusText} (${response.status})`
