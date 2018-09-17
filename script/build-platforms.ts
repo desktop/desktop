@@ -28,7 +28,7 @@ export function getSha() {
 }
 
 export function isRunningOnFork() {
-  if (isCircleCI() && process.env.CIRCLE_PR_USERNAME == null) {
+  if (isCircleCI() && process.env.CIRCLE_PR_USERNAME != null) {
     return true
   }
 

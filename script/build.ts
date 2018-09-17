@@ -69,7 +69,7 @@ generateLicenseMetadata(outRoot)
 
 moveAnalysisFiles()
 
-if (process.platform === 'darwin' && isCircleCI() && !isRunningOnFork()) {
+if (isCircleCI() && !isRunningOnFork()) {
   console.log('Setting up keychain…')
   cp.execSync(path.join(__dirname, 'setup-macos-keychain'))
 }
