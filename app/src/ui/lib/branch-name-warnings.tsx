@@ -56,16 +56,16 @@ export function renderBranchNameExistsOnRemoteWarning(
       b => b.nameWithoutRemote === sanitizedName && b.type === BranchType.Remote
     ) > -1
 
-  if (alreadyExistsOnRemote) {
-    return (
-      <Row className="warning-helper-text">
-        <Octicon symbol={OcticonSymbol.alert} />
-        <p>
-          A branch named <Ref>{sanitizedName}</Ref> already exists on remote.
-        </p>
-      </Row>
-    )
-  } else {
+  if (alreadyExistsOnRemote === false) {
     return null
   }
+
+  return (
+    <Row className="warning-helper-text">
+      <Octicon symbol={OcticonSymbol.alert} />
+      <p>
+        A branch named <Ref>{sanitizedName}</Ref> already exists on remote.
+      </p>
+    </Row>
+  )
 }
