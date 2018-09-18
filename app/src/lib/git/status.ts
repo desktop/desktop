@@ -36,18 +36,21 @@ export interface IStatusResult {
 }
 
 async function entryHasConflictMarkers(
+  repositoryPath: string,
   entry: IStatusEntry,
   status: FileEntry
 ): Promise<boolean> {
   // only conflicted files can have conflict markers
   if (status.kind !== 'conflicted') return false
 
-  const args = ['diff', '--check']
+  const args = ['diff', '--check', entry.path]
   const { exitCode } = await spawnAndComplete(
     args,
-    entry.path,
+    repositoryPath,
     'diffCheck',
-    new Set([0, 2])
+    new Set([0, 2]),
+    // we don't care about the output
+    0
   )
   // 2 means conflict markers were found
   return exitCode === 2
@@ -137,7 +140,11 @@ export async function getStatus(
     if (entry.kind === 'entry') {
       const status = mapStatus(entry.statusCode)
       if (status.kind === 'conflicted')
-        status.hasConflictMarkers = await entryHasConflictMarkers(entry, status)
+        status.hasConflictMarkers = await entryHasConflictMarkers(
+          repository.path,
+          entry,
+          status
+        )
 
       if (status.kind === 'ordinary') {
         // when a file is added in the index but then removed in the working
