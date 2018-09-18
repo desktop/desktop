@@ -238,26 +238,28 @@ async function findCygwin(): Promise<string | null> {
     'SOFTWARE\\WOW6432Node\\Cygwin\\setup'
   )
 
-  if (registryPath64.length === 0 && registryPath32.length === 0) {
+  if (registryPath64 == null || registryPath32 == null) {
     return null
   }
 
-  let registryPath
-  if (registryPath64.length === 0) {
-    registryPath = registryPath32
-  } else if (registryPath32.length === 0) {
-    registryPath = registryPath32
-  } else {
-    // If picking between 64bit and 32bit, 64bit wins.
-    registryPath = registryPath64
-  }
-
-  const installPathEntry = registryPath.find(e => e.name === 'rootdir')
-  if (installPathEntry && installPathEntry.type === RegistryValueType.REG_SZ) {
-    const path = Path.join(installPathEntry.data, 'bin\\mintty.exe')
+  const installPathEntry64 = registryPath64.find(e => e.name === 'rootdir')
+  const installPathEntry32 = registryPath32.find(e => e.name === 'rootdir')
+  if (
+    installPathEntry64 &&
+    installPathEntry64.type === RegistryValueType.REG_SZ
+  ) {
+    const path = Path.join(installPathEntry64.data, 'bin\\mintty.exe')
 
     if (await pathExists(path)) {
       return path
+    } else if (
+      installPathEntry32 &&
+      installPathEntry32.type === RegistryValueType.REG_SZ
+    ) {
+      const path = Path.join(installPathEntry32.data, 'bin\\mintty.exe')
+      if (await pathExists(path)) {
+        return path
+      }
     } else {
       log.debug(`[Cygwin] registry entry found but does not exist at '${path}'`)
     }
