@@ -171,7 +171,6 @@ export async function getStatus(
           entry.path,
           summary,
           selection,
-          hasConflictMarkers,
           entry.oldPath
         )
       )

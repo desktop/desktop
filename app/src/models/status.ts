@@ -161,20 +161,16 @@ export class FileChange {
 export class WorkingDirectoryFileChange extends FileChange {
   /** contains the selection details for this file - all, nothing or partial */
   public readonly selection: DiffSelection
-  /** whether there are any conflict markers in the file */
-  readonly conflictMarkers?: boolean
 
   public constructor(
     path: string,
     status: AppFileStatus,
     selection: DiffSelection,
-    conflictMarkers?: boolean,
     oldPath?: string
   ) {
     super(path, status, oldPath)
 
     this.selection = selection
-    this.conflictMarkers = conflictMarkers
   }
 
   /** Create a new WorkingDirectoryFileChange with the given includedness. */
@@ -192,7 +188,6 @@ export class WorkingDirectoryFileChange extends FileChange {
       this.path,
       this.status,
       selection,
-      this.conflictMarkers,
       this.oldPath
     )
   }
