@@ -5,7 +5,7 @@ codecov:
 
 coverage:
   precision: 1
-  round: nearest
+  round: down
   # thresholds for red to green color coding
   range: '10...80'
 
@@ -15,7 +15,7 @@ coverage:
         # compares coverage to the base branch
         target: auto
         # if it drops by 10%, send a fail status
-        threshhold: 10%
+        threshhold: 15%
         # only send statuses for prs, not all commits
         base: pr
     patch: no
