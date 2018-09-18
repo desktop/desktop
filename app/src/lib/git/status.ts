@@ -75,7 +75,7 @@ function convertToAppStatus(status: FileEntry): AppFileStatus {
   } else if (status.kind === 'conflicted') {
     return status.hasConflictMarkers
       ? AppFileStatus.Conflicted
-      : AppFileStatus.Modified
+      : AppFileStatus.Resolved
   } else if (status.kind === 'untracked') {
     return AppFileStatus.New
   }
