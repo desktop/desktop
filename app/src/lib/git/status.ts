@@ -47,10 +47,10 @@ async function entryHasConflictMarkers(
     args,
     entry.path,
     'diffCheck',
-    new Set([0, 1])
+    new Set([0, 2])
   )
-  // 1 means conflict markers were found
-  return exitCode === 1
+  // 2 means conflict markers were found
+  return exitCode === 2
 }
 
 function convertToAppStatus(status: FileEntry): AppFileStatus {
