@@ -229,13 +229,27 @@ async function findGitBash(): Promise<string | null> {
 }
 
 async function findCygwin(): Promise<string | null> {
-  const registryPath = enumerateValues(
+  const registryPath64 = enumerateValues(
     HKEY.HKEY_LOCAL_MACHINE,
     'SOFTWARE\\Cygwin\\setup'
   )
+  const registryPath32 = enumerateValues(
+    HKEY.HKEY_LOCAL_MACHINE,
+    'SOFTWARE\\WOW6432Node\\Cygwin\\setup'
+  )
 
-  if (registryPath.length === 0) {
+  if (registryPath64.length === 0 && registryPath32.length === 0) {
     return null
+  }
+
+  let registryPath
+  if (registryPath64.length === 0) {
+    registryPath = registryPath32
+  } else if (registryPath32.length === 0) {
+    registryPath = registryPath32
+  } else {
+    // If picking between 64bit and 32bit, 64bit wins.
+    registryPath = registryPath64
   }
 
   const installPathEntry = registryPath.find(e => e.name === 'rootdir')
