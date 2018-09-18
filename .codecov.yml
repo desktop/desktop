@@ -7,15 +7,15 @@ coverage:
   precision: 1
   round: nearest
   # thresholds for red to green color coding
-  range: '10...100'
+  range: '10...80'
 
   status:
     project:
       default:
         # compares coverage to the base branch
         target: auto
-        # if it drops by 25%, send a fail status
-        threshhold: 25
+        # if it drops by 10%, send a fail status
+        threshhold: 10%
         # only send statuses for prs, not all commits
         base: pr
     patch: no
