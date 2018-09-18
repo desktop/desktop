@@ -67,6 +67,8 @@ type UnmergedEntry = {
   readonly us: GitStatusEntry
   /** the second character of the short code ("theirs")  */
   readonly them: GitStatusEntry
+  /** whether there are any conflict markers in the file */
+  hasConflictMarkers?: boolean
 }
 
 /** The porcelain status for an unmerged entry */

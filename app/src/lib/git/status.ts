@@ -68,7 +68,9 @@ function convertToAppStatus(status: FileEntry): AppFileStatus {
   } else if (status.kind === 'renamed') {
     return AppFileStatus.Renamed
   } else if (status.kind === 'conflicted') {
-    return AppFileStatus.Conflicted
+    return status.hasConflictMarkers
+      ? AppFileStatus.Conflicted
+      : AppFileStatus.Modified
   } else if (status.kind === 'untracked') {
     return AppFileStatus.New
   }
@@ -134,10 +136,8 @@ export async function getStatus(
   for (const entry of parsePorcelainStatus(stdout)) {
     if (entry.kind === 'entry') {
       const status = mapStatus(entry.statusCode)
-      const hasConflictMarkers: boolean = await entryHasConflictMarkers(
-        entry,
-        status
-      )
+      if (status.kind === 'conflicted')
+        status.hasConflictMarkers = await entryHasConflictMarkers(entry, status)
 
       if (status.kind === 'ordinary') {
         // when a file is added in the index but then removed in the working
