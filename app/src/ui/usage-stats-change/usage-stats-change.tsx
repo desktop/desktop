@@ -4,7 +4,6 @@ import { ButtonGroup } from '../lib/button-group'
 import { Button } from '../lib/button'
 import { Row } from '../lib/row'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
-import { Ref } from '../lib/ref'
 
 interface IUsageStatsChangeProps {
   readonly onDismissed: (optOut: boolean) => void
@@ -83,7 +82,7 @@ export class UsageStatsChange extends React.Component<
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>
-            <Button type="submit">Save</Button>
+            <Button type="submit">Continue</Button>
             <Button onClick={this.viewMoreInfo}>
               {' '}
               {__DARWIN__ ? 'More Info' : 'More info'}
