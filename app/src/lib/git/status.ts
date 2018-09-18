@@ -41,7 +41,9 @@ async function entryHasConflictMarkers(
   status: FileEntry
 ): Promise<boolean> {
   // only conflicted files can have conflict markers
-  if (status.kind !== 'conflicted') return false
+  if (status.kind !== 'conflicted') {
+    return false
+  }
 
   const args = ['diff', '--check', entry.path]
   const { exitCode } = await spawnAndComplete(
@@ -139,12 +141,13 @@ export async function getStatus(
   for (const entry of parsePorcelainStatus(stdout)) {
     if (entry.kind === 'entry') {
       const status = mapStatus(entry.statusCode)
-      if (status.kind === 'conflicted')
+      if (status.kind === 'conflicted') {
         status.hasConflictMarkers = await entryHasConflictMarkers(
           repository.path,
           entry,
           status
         )
+      }
 
       if (status.kind === 'ordinary') {
         // when a file is added in the index but then removed in the working
