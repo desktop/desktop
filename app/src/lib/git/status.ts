@@ -6,7 +6,7 @@ import {
   FileEntry,
   GitStatusEntry,
 } from '../../models/status'
-import { parsePorcelainStatus, mapStatus } from '../status-parser'
+import { parsePorcelainStatus, mapStatus, IStatusEntry } from '../status-parser'
 import { DiffSelectionType, DiffSelection } from '../../models/diff'
 import { Repository } from '../../models/repository'
 import { IAheadBehind } from '../../models/branch'
@@ -33,6 +33,24 @@ export interface IStatusResult {
 
   /** the absolute path to the repository's working directory */
   readonly workingDirectory: WorkingDirectoryStatus
+}
+
+async function entryHasConflictMarkers(
+  entry: IStatusEntry,
+  status: FileEntry
+): Promise<boolean> {
+  // only conflicted files can have conflict markers
+  if (status.kind !== 'conflicted') return false
+
+  const args = ['diff', '--check']
+  const { exitCode } = await spawnAndComplete(
+    args,
+    entry.path,
+    'diffCheck',
+    new Set([0, 1])
+  )
+  // 1 means conflict markers were found
+  return exitCode === 1
 }
 
 function convertToAppStatus(status: FileEntry): AppFileStatus {
@@ -116,6 +134,10 @@ export async function getStatus(
   for (const entry of parsePorcelainStatus(stdout)) {
     if (entry.kind === 'entry') {
       const status = mapStatus(entry.statusCode)
+      const hasConflictMarkers: boolean = await entryHasConflictMarkers(
+        entry,
+        status
+      )
 
       if (status.kind === 'ordinary') {
         // when a file is added in the index but then removed in the working
@@ -149,6 +171,7 @@ export async function getStatus(
           entry.path,
           summary,
           selection,
+          hasConflictMarkers,
           entry.oldPath
         )
       )
