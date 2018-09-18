@@ -75,9 +75,9 @@ I've identified:
     application state, and it's actions can be considered side effects.
     - `IssuesStore` -> `IssuesCache` - this component does not touch
     application state or emit updates
-    - replace `RepositorySettingsStore` with a module containing it's
+    - ~~replace `RepositorySettingsStore` with a module containing it's
     functionality, as the component does not raise state changes. These
-    functions can be moved closer to the components that need it for now.
+    functions can be moved closer to the components that need it for now.~~
  - decompose `app-state.ts` into separate code files - the source is over 700
    lines of interfaces, and breaking this up into separate files around what
    they represent.
