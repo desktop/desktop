@@ -35,6 +35,7 @@ build_script:
 test_script:
   - yarn test:setup
   - ./script/test-appveyor.bat
+  - yarn test:report
 
 on_success:
   - yarn run publish
