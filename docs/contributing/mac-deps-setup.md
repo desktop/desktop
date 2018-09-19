@@ -6,26 +6,52 @@ You will need to install these tools on your machine:
  - Python 2.7
  - Xcode and Xcode Command Line Tools (Xcode -> Preferences -> Downloads)
 
+
 ## Node.js
 
-There are two approaches to installing Node.js, **manual** and **managed**. If you're not sure which route to go, we recommend the managed route, but do whatever makes the most sense for your development process!
+Let's see if you have the right version of `node` installed. Open a terminal and run this command inside the Desktop source directory:
 
-### Managed
+```shellsession
+$ node -v
+```
 
-We recommend using [nvm](https://github.com/creationix/nvm) to manage your Node.js version. This makes it easier to know you are running the correct version of node for this project without affecting setup for other projects on your machine.
+If you see an error about being unable to find `node`, that probably means you don't have any Node tools installed. You can install Node LTS (the version we need) from the [Node.js website](https://nodejs.org/en/download/) and restart your shell.
 
-- Install nvm from https://github.com/creationix/nvm#install-script
-- At the top level of this repo:
-  - Install the version of Node.js for GitHub Desktop with `nvm install`
-  - Use that version with `nvm use`
-- You're good to go!
+If you see the output `v8.11.x` (where `x` is any number), you're good to go.
 
-Suitable alternatives include (but aren't limited to) [n](https://github.com/tj/n) and [asdf-nodejs](https://github.com/asdf-vm/asdf-nodejs).
+If you see the output `v10.x.y` you're ahead of what we currently support. We have an outstanding issue building GitHub Desktop with Node 10, and hopefully can resolve this soon. If you don't care about the version you are running, you can install the version from the [Node.js website](https://nodejs.org/en/download/) over the top of your current install.
 
-### Manual
+### I need to use different versions of Node.js in different projects!
 
-- Install manually from https://nodejs.org/en/download/
-- You're good to go!
+We currently support these Node version managers: `nvm` and `asdf-nodejs`.
+
+#### Configuring `nvm`
+
+1. Install `nvm` using the instructions [here](https://github.com/creationix/nvm#install-script).
+
+2. Within the Desktop source directory, install version of Node.js it requires:
+
+```shellsession
+$ nvm install
+```
+
+3. Ensure you are running the right version
+
+```shellsession
+$ nvm use
+```
+
+4. Verify you have the right version by running `node -v` again
+
+```shellsession
+$ node -v
+```
+
+If you see `v8.11.4`, you're good to go.
+
+#### Configuring `asdf-nodejs`
+
+`asdf` is a little more involved to install. Follow the instructions [here](https://github.com/asdf-vm/asdf) and [here](https://github.com/asdf-vm/asdf-nodejs)
 
 ## Python
 
