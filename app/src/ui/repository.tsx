@@ -78,6 +78,17 @@ export class RepositoryView extends React.Component<
     }
   }
 
+  public shouldComponentUpdate(
+    nextProps: IRepositoryViewProps,
+    nextState: IRepositoryViewState
+  ) {
+    const shouldUpdate = nextProps !== this.props || nextState !== this.state
+
+    console.dir(diffObj(this.props, nextProps))
+
+    return shouldUpdate
+  }
+
   private renderChangesBadge(): JSX.Element | null {
     const filesChangedCount = this.props.state.changesState.workingDirectory
       .files.length
@@ -339,4 +350,79 @@ export class RepositoryView extends React.Component<
       section
     )
   }
+}
+
+type KeyStatus = 'new' | 'updated' | 'removed' | 'no change'
+
+function diffObj(oldObj: any, newObj: any) {
+  if (typeof oldObj === 'function' || typeof newObj === 'function') {
+    return {}
+  }
+
+  if (isValue(oldObj) || isValue(newObj)) {
+    return {
+      status: getKeyStatus(oldObj, newObj),
+      previousValue: oldObj || undefined,
+      newValue: oldObj || newObj,
+    }
+  }
+
+  const diff: any = {}
+  for (const key in oldObj) {
+    if (isFunction(oldObj[key])) {
+      continue
+    }
+
+    diff[key] = diffObj(oldObj[key], newObj[key] || undefined)
+  }
+
+  for (const key in newObj) {
+    if (isFunction(newObj[key] || typeof diff[key] != 'undefined')) {
+      continue //if they key already exists, just skip it
+    }
+
+    diff[key] = diffObj(undefined, newObj[key])
+  }
+
+  return diff
+}
+
+function getKeyStatus(a: any, b: any): KeyStatus {
+  if (a === b) {
+    return 'no change'
+  }
+
+  if (
+    a instanceof Date &&
+    b instanceof Date &&
+    a.toUTCString() === b.toUTCString()
+  ) {
+    return 'no change'
+  }
+
+  if (typeof a == undefined) {
+    return 'new'
+  }
+
+  if (typeof b === undefined) {
+    return 'removed'
+  }
+
+  return 'updated'
+}
+
+function isFunction(a: any) {
+  return typeof a === 'function'
+}
+
+function isObject(a: any) {
+  return {}.toString.apply(a) === '[object Object]'
+}
+
+function isArray(a: any) {
+  return a instanceof Array
+}
+
+function isValue(a: any) {
+  return !isObject(a) && !isArray(a)
 }
