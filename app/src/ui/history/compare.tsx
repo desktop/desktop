@@ -104,6 +104,8 @@ export class CompareSidebar extends React.Component<
       }
     }
 
+    const newFormState = this.props.compareState.formState
+    const oldFormState = prevProps.compareState.formState
     if (
       newFormState.kind !== oldFormState.kind &&
       newFormState.kind === ComparisonView.None
@@ -141,6 +143,7 @@ export class CompareSidebar extends React.Component<
     // we ensure any ahead/behind computation work is discarded
     this.props.dispatcher.updateCompareForm(this.props.repository, {
       showBranchList: false,
+      filterText: '',
     })
   }
 
