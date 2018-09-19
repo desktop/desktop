@@ -470,7 +470,10 @@ export class CommitMessage extends React.Component<
 
   public render() {
     const branchName = this.props.branch ? this.props.branch : 'master'
-    const buttonEnabled = this.canCommit() && !this.props.isCommitting
+
+    const isSummaryWhiteSpace = this.state.summary.match(/^\s+$/g)
+    const buttonEnabled =
+      this.canCommit() && !this.props.isCommitting && !isSummaryWhiteSpace
 
     const loading = this.props.isCommitting ? <Loading /> : undefined
     const className = classNames({
