@@ -39,10 +39,10 @@ async function entryHasConflictMarkers(
   repositoryPath: string,
   entry: IStatusEntry,
   status: FileEntry
-): Promise<boolean> {
+): Promise<boolean | null> {
   // only conflicted files can have conflict markers
   if (status.kind !== 'conflicted') {
-    return false
+    return null
   }
 
   const args = ['diff', '--check', entry.path]
@@ -58,7 +58,10 @@ async function entryHasConflictMarkers(
   return exitCode === 2
 }
 
-function convertToAppStatus(status: FileEntry): AppFileStatus {
+function convertToAppStatus(
+  status: FileEntry,
+  hasConflictMarkers: boolean | null
+): AppFileStatus {
   if (status.kind === 'ordinary') {
     switch (status.type) {
       case 'added':
@@ -73,7 +76,7 @@ function convertToAppStatus(status: FileEntry): AppFileStatus {
   } else if (status.kind === 'renamed') {
     return AppFileStatus.Renamed
   } else if (status.kind === 'conflicted') {
-    return status.hasConflictMarkers
+    return hasConflictMarkers
       ? AppFileStatus.Conflicted
       : AppFileStatus.Resolved
   } else if (status.kind === 'untracked') {
@@ -141,13 +144,11 @@ export async function getStatus(
   for (const entry of parsePorcelainStatus(stdout)) {
     if (entry.kind === 'entry') {
       const status = mapStatus(entry.statusCode)
-      if (status.kind === 'conflicted') {
-        status.hasConflictMarkers = await entryHasConflictMarkers(
-          repository.path,
-          entry,
-          status
-        )
-      }
+      const hasConflictMarkers = await entryHasConflictMarkers(
+        repository.path,
+        entry,
+        status
+      )
 
       if (status.kind === 'ordinary') {
         // when a file is added in the index but then removed in the working
@@ -170,7 +171,7 @@ export async function getStatus(
       }
 
       // for now we just poke at the existing summary
-      const summary = convertToAppStatus(status)
+      const summary = convertToAppStatus(status, hasConflictMarkers)
       const selection = DiffSelection.fromInitialSelection(
         DiffSelectionType.All
       )
