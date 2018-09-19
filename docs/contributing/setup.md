@@ -6,7 +6,7 @@ You will need to install these tools on your machine:
 
 ### macOS
 
-See [mac-deps-setup.md](./mac-deps-setup.md).
+See [mac-deps-setup.md](./setup-macos.md).
 
 ### Windows
 
