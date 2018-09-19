@@ -15,7 +15,7 @@ coverage:
         # compares coverage to the base branch
         target: auto
         # if it drops by 10%, send a fail status
-        threshhold: 15%
+        threshhold: 50%
         # only send statuses for prs, not all commits
         base: pr
     patch: no
