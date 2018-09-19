@@ -64,7 +64,7 @@ export function renderBranchNameExistsOnRemoteWarning(
     <Row className="warning-helper-text">
       <Octicon symbol={OcticonSymbol.alert} />
       <p>
-        A branch named <Ref>{sanitizedName}</Ref> already exists on remote.
+        A branch named <Ref>{sanitizedName}</Ref> already exists on the remote.
       </p>
     </Row>
   )
