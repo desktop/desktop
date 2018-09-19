@@ -533,7 +533,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    await this.props.dispatcher.closeCurrentFoldout()
+    this.props.dispatcher.closeCurrentFoldout()
 
     await this.props.dispatcher.initializeCompare(state.repository, {
       kind: CompareActionKind.History,
