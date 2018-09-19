@@ -87,22 +87,17 @@ export class CompareSidebar extends React.Component<
     }
   }
 
-  public componentWillReceiveProps(nextProps: ICompareSidebarProps) {
-    const newFormState = nextProps.compareState.formState
-    const oldFormState = this.props.compareState.formState
+  public componentDidUpdate(prevProps: ICompareSidebarProps) {
+    console.log('CompareSidebar::componentDidUpdate')
 
     if (this.textbox !== null) {
-      if (
-        !this.props.compareState.showBranchList &&
-        nextProps.compareState.showBranchList
-      ) {
+      const oldShowBranchList = prevProps.compareState.showBranchList
+      const newShowBranchList = this.props.compareState.showBranchList
+      if (!oldShowBranchList && newShowBranchList) {
         // showBranchList changes from false -> true
         //  -> ensure the textbox has focus
         this.textbox.focus()
-      } else if (
-        this.props.compareState.showBranchList &&
-        !nextProps.compareState.showBranchList
-      ) {
+      } else if (newShowBranchList && !oldShowBranchList) {
         // showBranchList changes from true -> false
         //  -> ensure the textbox no longer has focus
         this.textbox.blur()
