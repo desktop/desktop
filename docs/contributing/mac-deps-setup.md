@@ -55,22 +55,38 @@ If you see `v8.11.4`, you're good to go.
 
 ## Python
 
-macOS comes with Python pre-installed, and it happens to be the right version, so you're probably fine! But if you use other versions of Python, here's how to get started.
+macOS comes with Python pre-installed, and it happens to be the right version, so you're probably fine! But let's be sure. Open a terminal and run this command inside the Desktop source directory:
 
-### Managed
+```shellsession
+$ python --version
+```
+
+If you see the output `Python 2.7`, you're good to go.
+
+### I need to use different versions of Python in different projects!
 
 For this, we recommend [pyenv](https://github.com/pyenv/pyenv). (It's the only game in town.)
 
-- Install pyenv according to https://github.com/pyenv/pyenv-installer#github-way-recommended
-- At the top level of this repo:
-  - Install the version of Python for GitHub Desktop with `pyenv install`
-- You're good to go!
+1. Install pyenv according to https://github.com/pyenv/pyenv-installer#github-way-recommended
 
-### Manual
+2. Within the Desktop source directory, install version of Python it requires:
 
-- Install manually from https://www.python.org/downloads/
-- You're good to go!
+```shellsession
+pyenv install
+```
+
+3. Verify you have the right version by running `python --version` again
+
+```shellsession
+$ python --version
+```
+
+If you see the output `Python 2.7`, you're good to go.
 
 ## Xcode Command Line Tools
 
-- Just run `xcode-select --install`
+1. Run this command to install the Xcode command line tools. If you already have them, it'll say so!
+
+```shellsession
+xcode-select --install
+```
