@@ -88,8 +88,6 @@ export class CompareSidebar extends React.Component<
   }
 
   public componentDidUpdate(prevProps: ICompareSidebarProps) {
-    console.log('CompareSidebar::componentDidUpdate')
-
     if (this.textbox !== null) {
       const oldShowBranchList = prevProps.compareState.showBranchList
       const newShowBranchList = this.props.compareState.showBranchList
