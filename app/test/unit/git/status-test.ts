@@ -24,7 +24,8 @@ describe('git/status', () => {
     let repository: Repository | null = null
 
     describe('with conflicted repo', () => {
-      let filePath: string | null = null
+      let filePath: string
+
       beforeEach(async () => {
         repository = await setupConflictedRepo()
         filePath = path.join(repository.path, 'foo')
@@ -38,6 +39,7 @@ describe('git/status', () => {
         const file = files[0]
         expect(file.status).to.equal(AppFileStatus.Conflicted)
       })
+
       it('parses resolved files', async () => {
         await FSE.writeFile(filePath, 'b1b2')
         const status = await getStatusOrThrow(repository!)
