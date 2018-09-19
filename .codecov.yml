@@ -5,7 +5,7 @@ codecov:
 
 coverage:
   precision: 1
-  round: down
+  round: nearest
   # thresholds for red to green color coding
   range: '10...80'
 
