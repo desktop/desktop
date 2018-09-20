@@ -113,7 +113,7 @@ export class Resizable extends React.Component<IResizableProps, {}> {
   }
 }
 
-export interface IResizableProps extends React.ClassAttributes<Resizable> {
+export interface IResizableProps {
   readonly width: number
 
   /** The maximum width the panel can be resized to.
