@@ -12,9 +12,6 @@ phases:
           yarn install --force
         name: Install
       - script: |
-          yarn lint
-        name: Lint
-      - script: |
           yarn build:prod
         name: Build
       - script: |
@@ -37,9 +34,6 @@ phases:
           yarn install --force
         name: Install
       - script: |
-          yarn lint
-        name: Lint
-      - script: |
           yarn build:prod
         name: Build
       - script: |
@@ -58,11 +52,27 @@ phases:
           yarn install --force
         name: Install
       - script: |
-          yarn lint
-        name: Lint
-      - script: |
           yarn build:prod
         name: Build
       - script: |
           yarn test:setup && yarn test
         name: Test
+
+  - phase: Lint
+    queue: Hosted Linux Preview
+    steps:
+      - script: |
+          apt-get update
+          apt-get install -y --no-install-recommends libsecret-1-dev
+      - task: NodeTool@0
+        inputs:
+          versionSpec: '8.11.1'
+      - task: geeklearningio.gl-vsts-tasks-yarn.yarn-installer-task.YarnInstaller@2
+        inputs:
+          versionSpec: '1.5.1'
+      - script: |
+          yarn install --force
+        name: Install
+      - script: |
+          yarn lint
+        name: Lint

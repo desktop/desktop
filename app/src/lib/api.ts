@@ -865,7 +865,6 @@ export function getOAuthAuthorizationURL(
 
 export async function requestOAuthToken(
   endpoint: string,
-  state: string,
   code: string
 ): Promise<string | null> {
   try {
@@ -879,7 +878,6 @@ export async function requestOAuthToken(
         client_id: ClientID,
         client_secret: ClientSecret,
         code: code,
-        state: state,
       }
     )
     const result = await parsedResponse<IAPIAccessToken>(response)

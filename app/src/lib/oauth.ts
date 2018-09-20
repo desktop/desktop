@@ -42,20 +42,17 @@ export function askUserToOAuth(endpoint: string) {
  * the code cannot be used to retrieve a valid GitHub user.
  */
 export async function requestAuthenticatedUser(
-  code: string
+  code: string,
+  state: string
 ): Promise<Account | null | undefined> {
-  if (!oauthState) {
+  if (!oauthState || state !== oauthState.state) {
     log.warn(
       'requestAuthenticatedUser was not called with valid OAuth state. This is likely due to a browser reloading the callback URL. Contact GitHub Support if you believe this is an error'
     )
     return undefined
   }
 
-  const token = await requestOAuthToken(
-    oauthState.endpoint,
-    oauthState.state,
-    code
-  )
+  const token = await requestOAuthToken(oauthState.endpoint, code)
   if (token) {
     return fetchUser(oauthState.endpoint, token)
   } else {
