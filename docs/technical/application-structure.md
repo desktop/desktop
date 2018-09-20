@@ -119,7 +119,7 @@ Having read all that, you might be asking why do all this work if things are
 currently working?
 
  - the codebase has grown organically over time amid the pressures of shipping,
-   and I think now is the best chance to revisist things and question the
+   and I think now is the best chance to revisit things and question the
    assumptions we made at the beginning of the project
  - the codebase is now complex enough that confusion is creeping in about
    where things should be located, and I think we've learned enough to put some
