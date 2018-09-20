@@ -758,7 +758,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (paths.length > 1) {
       const addedRepositories = await this.addRepositories(paths)
       if (addedRepositories.length) {
-        this.props.dispatcher.recordAddRepository()
+        this.props.dispatcher.recordAddExistingRepository()
       }
     } else {
       // user may accidentally provide a folder within the repository

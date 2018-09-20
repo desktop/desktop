@@ -867,7 +867,7 @@ export class Dispatcher {
 
         if (existingRepository) {
           await this.selectRepository(existingRepository)
-          this.statsStore.recordAddRepository()
+          this.statsStore.recordAddExistingRepository()
         } else {
           await this.showPopup({
             type: PopupType.AddRepository,
@@ -1302,7 +1302,7 @@ export class Dispatcher {
     this.statsStore.recordCreateRepository()
   }
 
-  public recordAddRepository() {
-    this.statsStore.recordAddRepository()
+  public recordAddExistingRepository() {
+    this.statsStore.recordAddExistingRepository()
   }
 }

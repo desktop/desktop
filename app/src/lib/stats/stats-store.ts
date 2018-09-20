@@ -701,7 +701,7 @@ export class StatsStore {
     localStorage.setItem(WelcomeWizardCompletedAtKey, `${Date.now()}`)
   }
 
-  public recordAddRepository() {
+  public recordAddExistingRepository() {
     createLocalStorageTimestamp(FirstRepositoryAddedAtKey)
   }
 
