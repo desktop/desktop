@@ -355,28 +355,6 @@ export function findItemByAccessKey(
  */
 export class AppMenu {
   /**
-   * A list of currently open menus with their selected items
-   * in the application menu.
-   *
-   * The semantics around what constitutes an open menu and how
-   * selection works is defined within this class class as well as
-   * in the individual components transforming that state.
-   */
-  public readonly openMenus: ReadonlyArray<IMenu>
-
-  /**
-   * The menu that this instance operates on, taken from an
-   * electron Menu instance and converted into an IMenu model
-   * by menuFromElectronMenu.
-   */
-  private readonly menu: IMenu
-
-  /**
-   * A map between menu item ids and their corresponding MenuItem
-   */
-  private readonly menuItemById: Map<string, MenuItem>
-
-  /**
    * Static constructor for the initial creation of an AppMenu instance
    * from an IMenu instance.
    */
@@ -389,14 +367,26 @@ export class AppMenu {
 
   // Used by static constructors and transformers.
   private constructor(
-    menu: IMenu,
-    openMenus: ReadonlyArray<IMenu>,
-    menuItemById: Map<string, MenuItem>
-  ) {
-    this.menu = menu
-    this.openMenus = openMenus
-    this.menuItemById = menuItemById
-  }
+    /**
+     * The menu that this instance operates on, taken from an
+     * electron Menu instance and converted into an IMenu model
+     * by menuFromElectronMenu.
+     */
+    private readonly menu: IMenu,
+    /**
+     * A list of currently open menus with their selected items
+     * in the application menu.
+     *
+     * The semantics around what constitutes an open menu and how
+     * selection works is defined within this class class as well as
+     * in the individual components transforming that state.
+     */
+    public readonly openMenus: ReadonlyArray<IMenu>,
+    /**
+     * A map between menu item ids and their corresponding MenuItem
+     */
+    private readonly menuItemById: Map<string, MenuItem>
+  ) {}
 
   /**
    * Retrieves a menu item by its id.
