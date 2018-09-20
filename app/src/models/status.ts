@@ -128,8 +128,9 @@ export function iconForStatus(status: AppFileStatus): OcticonSymbol {
     case AppFileStatus.Renamed:
       return OcticonSymbol.diffRenamed
     case AppFileStatus.Conflicted:
-    case AppFileStatus.Resolved:
       return OcticonSymbol.alert
+    case AppFileStatus.Resolved:
+      return OcticonSymbol.check
     case AppFileStatus.Copied:
       return OcticonSymbol.diffAdded
   }

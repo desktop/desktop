@@ -19,7 +19,7 @@
       fill: var(--color-conflicted);
     }
     &-resolved {
-      fill: $gray-400;
+      fill: var(--color-new);
     }
   }
 
