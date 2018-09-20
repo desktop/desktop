@@ -102,6 +102,7 @@ const allMenuIds: ReadonlyArray<MenuIDs> = [
   'delete-branch',
   'preferences',
   'update-branch',
+  'compare-to-branch',
   'merge-branch',
   'view-repository-on-github',
   'compare-on-github',
@@ -145,6 +146,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
   let repositorySelected = false
   let onNonDefaultBranch = false
   let onBranch = false
+  let onDetachedHead = false
   let hasDefaultBranch = false
   let hasPublishedBranch = false
   let networkActionInProgress = false
@@ -163,6 +165,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     hasDefaultBranch = Boolean(defaultBranch)
 
     onBranch = tip.kind === TipState.Valid
+    onDetachedHead = tip.kind === TipState.Detached
     tipStateIsUnknown = tip.kind === TipState.Unknown
     branchIsUnborn = tip.kind === TipState.Unborn
 
@@ -216,15 +219,15 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
 
     menuStateBuilder.setEnabled(
       'rename-branch',
-      onNonDefaultBranch && !branchIsUnborn
+      onNonDefaultBranch && !branchIsUnborn && !onDetachedHead
     )
     menuStateBuilder.setEnabled(
       'delete-branch',
-      onNonDefaultBranch && !branchIsUnborn
+      onNonDefaultBranch && !branchIsUnborn && !onDetachedHead
     )
     menuStateBuilder.setEnabled(
       'update-branch',
-      onNonDefaultBranch && hasDefaultBranch
+      onNonDefaultBranch && hasDefaultBranch && !onDetachedHead
     )
     menuStateBuilder.setEnabled('merge-branch', onBranch)
     menuStateBuilder.setEnabled(
@@ -235,7 +238,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     menuStateBuilder.setEnabled('view-repository-on-github', isHostedOnGitHub)
     menuStateBuilder.setEnabled(
       'create-pull-request',
-      isHostedOnGitHub && !branchIsUnborn
+      isHostedOnGitHub && !branchIsUnborn && !onDetachedHead
     )
     menuStateBuilder.setEnabled(
       'push',
@@ -249,6 +252,8 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
       'create-branch',
       !tipStateIsUnknown && !branchIsUnborn
     )
+
+    menuStateBuilder.setEnabled('compare-to-branch', !onDetachedHead)
 
     if (
       selectedState &&

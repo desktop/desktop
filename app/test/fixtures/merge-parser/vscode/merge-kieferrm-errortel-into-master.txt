@@ -1,0 +1,165 @@
+changed in both
+  base   100644 c690f0d6e17fc2dc154e96f38f42abb5a176767d src/vs/monaco.d.ts
+  our    100644 76dcf491ff9c1973ad61bf5d423713bb1a3b4e44 src/vs/monaco.d.ts
+  their  100644 0d32ea6887204015d1f73e66885706964293a891 src/vs/monaco.d.ts
+@@ -1241,11 +1241,6 @@
+ 		 */
+ 		isWholeLine?: boolean;
+ 		/**
+-		 * Specifies the stack order of a decoration.
+-		 * A decoration with greater stack order is always in front of a decoration with a lower stack order.
+-		 */
+-		zIndex?: number;
+-		/**
+ 		 * If set, render this decoration in the overview ruler.
+ 		 */
+ 		overviewRuler?: IModelDecorationOverviewRulerOptions;
+@@ -1540,10 +1535,6 @@
+ 		 */
+ 		getLineContent(lineNumber: number): string;
+ 		/**
+-		 * Get the text length for a certain line.
+-		 */
+-		getLineLength(lineNumber: number): number;
+-		/**
+ 		 * Get the text for all lines.
+ 		 */
+ 		getLinesContent(): string[];
+@@ -1993,13 +1984,9 @@
+ 	 * A (serializable) state of the view.
+ 	 */
+ 	export interface IViewState {
+-		/** written by previous versions */
+-		scrollTop?: number;
+-		/** written by previous versions */
+-		scrollTopWithoutViewZones?: number;
++		scrollTop: number;
++		scrollTopWithoutViewZones: number;
+ 		scrollLeft: number;
+-		firstPosition: IPosition;
+-		firstPositionDeltaTop: number;
+ 	}
+ 
+ 	/**
+@@ -2818,11 +2805,6 @@
+ 		 */
+ 		multiCursorModifier?: 'ctrlCmd' | 'alt';
+ 		/**
+-		 * Merge overlapping selections.
+-		 * Defaults to true
+-		 */
+-		multiCursorMergeOverlapping?: boolean;
+-		/**
+ 		 * Configure the editor's accessibility support.
+ 		 * Defaults to 'auto'. It is best to leave this to 'auto'.
+ 		 */
+@@ -2953,11 +2935,6 @@
+ 		 */
+ 		folding?: boolean;
+ 		/**
+-		 * Selects the folding strategy. 'auto' uses the strategies contributed for the current document, 'indentation' uses the indentation based folding strategy.
+-		 * Defaults to 'auto'.
+-		 */
+-		foldingStrategy?: 'auto' | 'indentation';
+-		/**
+ 		 * Controls whether the fold actions in the gutter stay always visible or hide unless the mouse is over the gutter.
+ 		 * Defaults to 'mouseover'.
+ 		 */
+@@ -3268,7 +3245,6 @@
+ 		readonly occurrencesHighlight: boolean;
+ 		readonly codeLens: boolean;
+ 		readonly folding: boolean;
+-		readonly foldingStrategy: 'auto' | 'indentation';
+ 		readonly showFoldingControls: 'always' | 'mouseover';
+ 		readonly matchBrackets: boolean;
+ 		readonly find: InternalEditorFindOptions;
+@@ -3289,8 +3265,11 @@
+ 		readonly lineHeight: number;
+ 		readonly readOnly: boolean;
+ 		readonly multiCursorModifier: 'altKey' | 'ctrlKey' | 'metaKey';
++<<<<<<< .our
+ 		readonly multiCursorMergeOverlapping: boolean;
+ 		readonly showUnused: boolean;
++=======
++>>>>>>> .their
+ 		readonly wordSeparators: string;
+ 		readonly autoClosingBrackets: boolean;
+ 		readonly autoIndent: boolean;
+@@ -3428,7 +3407,6 @@
+ 		readonly readOnly: boolean;
+ 		readonly accessibilitySupport: boolean;
+ 		readonly multiCursorModifier: boolean;
+-		readonly multiCursorMergeOverlapping: boolean;
+ 		readonly wordSeparators: boolean;
+ 		readonly autoClosingBrackets: boolean;
+ 		readonly autoIndent: boolean;
+@@ -5311,6 +5289,21 @@
+ 		arguments?: any[];
+ 	}
+ 
++	export interface CommentThread {
++		readonly range: IRange;
++		readonly comments: Comment[];
++	}
++
++	export interface Comment {
++		readonly body: IMarkdownString;
++		readonly userName: string;
++		readonly gravatar: string;
++	}
++
++	export interface CommentProvider {
++		provideComments(model: editor.ITextModel, token: CancellationToken): CommentThread[];
++	}
++
+ 	export interface ICodeLensSymbol {
+ 		range: IRange;
+ 		id?: string;
+changed in both
+  base   100644 abc5a96d2076991b93d4960c521a95d2224279e6 src/vs/platform/telemetry/browser/errorTelemetry.ts
+  our    100644 ec06e2c07eef85a9dbde991083fba2510c62b26e src/vs/platform/telemetry/browser/errorTelemetry.ts
+  their  100644 262c59834cfb39df9143c1bf381846811759c9f1 src/vs/platform/telemetry/browser/errorTelemetry.ts
+@@ -12,6 +12,7 @@
+ import * as Errors from 'vs/base/common/errors';
+ import { safeStringify } from 'vs/base/common/objects';
+ 
++<<<<<<< .our
+ /* __GDPR__FRAGMENT__
+ 	"ErrorEvent" : {
+ 		"stack": { "classification": "CustomerContent", "purpose": "PerformanceAndHealth" },
+@@ -24,6 +25,23 @@
+ 		"column": { "classification": "CallstackOrException", "purpose": "PerformanceAndHealth", "isMeasurement": true },
+ 		"uncaught_error_name": { "classification": "CallstackOrException", "purpose": "PerformanceAndHealth" },
+ 		"uncaught_error_msg": { "classification": "CallstackOrException", "purpose": "PerformanceAndHealth" },
++=======
++
++/* __GDPR__FRAGMENT__
++	"ErrorNameAndMessage" : {
++		"message" : { "classification": "CallstackOrException", "purpose": "PerformanceAndHealth" },
++		"name": { "classification": "CallstackOrException", "purpose": "PerformanceAndHealth" }
++	}
++ */
++/* __GDPR__FRAGMENT__
++	"ErrorEvent" : {
++		"stack": { "classification": "CallstackOrException", "purpose": "PerformanceAndHealth" },
++		"message" : { "classification": "CallstackOrException", "purpose": "PerformanceAndHealth" },
++		"filename" : { "classification": "CallstackOrException", "purpose": "PerformanceAndHealth" },
++		"line": { "classification": "CallstackOrException", "purpose": "PerformanceAndHealth", "isMeasurement": true },
++		"column": { "classification": "CallstackOrException", "purpose": "PerformanceAndHealth", "isMeasurement": true },
++		"error" : { "${inline}": [ "${ErrorNameAndMessage}" ] },
++>>>>>>> .their
+ 		"count": { "classification": "CallstackOrException", "purpose": "PerformanceAndHealth", "isMeasurement": true }
+ 	}
+  */
+@@ -166,7 +184,11 @@
+ 					"${include}": [ "${ErrorEvent}" ]
+ 				}
+ 			*/
++<<<<<<< .our
+ 			this._telemetryService.publicLog('UnhandledError', error, true);
++=======
++			this._telemetryService.publicLog('UnhandledError', error);
++>>>>>>> .their
+ 		}
+ 		this._buffer.length = 0;
+ 	}

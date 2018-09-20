@@ -1,0 +1,24 @@
+changed in both
+  base   100644 533087ed7b0032921a9c8a930bf38e25b1e470af src/vs/editor/standalone/browser/standaloneLanguages.ts
+  our    100644 b0287953b31b42b550a9fccdb465b02666dae70f src/vs/editor/standalone/browser/standaloneLanguages.ts
+  their  100644 592e1705796b822d7888df6e2deb64da2756ecd7 src/vs/editor/standalone/browser/standaloneLanguages.ts
+changed in both
+  base   100644 7f4f3612fc64738565ab9aae3adb590738268bda src/vs/editor/standalone/browser/standaloneThemeServiceImpl.ts
+  our    100644 f72758ff75e54bf76df4e4b62045f41b25b82d15 src/vs/editor/standalone/browser/standaloneThemeServiceImpl.ts
+  their  100644 61e358dc4a0a6c85fec9b68cd431f39c66140a40 src/vs/editor/standalone/browser/standaloneThemeServiceImpl.ts
+@@ -100,7 +100,11 @@
+ 	}
+ 
+ 	public defines(colorId: ColorIdentifier): boolean {
++<<<<<<< .our
+ 		return Object.prototype.hasOwnProperty.call(this.getColors(), colorId);
++=======
++		return this.getColors().hasOwnProperty(colorId);
++>>>>>>> .their
+ 	}
+ 
+ 	public get type() {
+changed in both
+  base   100644 05aad76b9ef9a5b0d3f8c9bd2a57d67f6fa8baba src/vs/monaco.d.ts
+  our    100644 76dcf491ff9c1973ad61bf5d423713bb1a3b4e44 src/vs/monaco.d.ts
+  their  100644 dbf4d12daacc186ac1f01c7165f289a8cdfc5b79 src/vs/monaco.d.ts

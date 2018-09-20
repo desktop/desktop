@@ -1,0 +1,127 @@
+changed in both
+  base   100644 4391747c418ed9fe66a952d14148542b8166da72 app/src/lib/app-state.ts
+  our    100644 b30f0fe080d909b81d2fb683ceb8deb365fb0191 app/src/lib/app-state.ts
+  their  100644 9560d603f4b04dbf0c39da4dca97fa599266e767 app/src/lib/app-state.ts
+@@ -232,6 +232,7 @@
+       repository: Repository
+       branch: Branch
+       existsOnRemote: boolean
++      aheadBehind: IAheadBehind | null
+     }
+   | {
+       type: PopupType.ConfirmDiscardChanges
+changed in both
+  base   100644 fa753001aaa85c2f4e7be934fa1b22ccc4ba0da9 app/src/ui/app.tsx
+  our    100644 c38c806e36c237ea70f3cdeee739941530c0c7cd app/src/ui/app.tsx
+  their  100644 4720f6bc902cf560cf83650003adc345a3c06a17 app/src/ui/app.tsx
+@@ -480,9 +480,11 @@
+           pullRequest: currentPullRequest,
+         })
+       } else {
+-        const existsOnRemote = state.state.aheadBehind !== null
++        const aheadBehind = state.state.aheadBehind
++        const existsOnRemote = aheadBehind !== null
+ 
+         this.props.dispatcher.showPopup({
++          aheadBehind,
+           type: PopupType.DeleteBranch,
+           repository: state.repository,
+           branch: tip.branch,
+@@ -996,7 +998,11 @@
+             branch={popup.branch}
+             existsOnRemote={popup.existsOnRemote}
+             onDismissed={this.onPopupDismissed}
++<<<<<<< .our
+             onDeleted={this.onBranchDeleted}
++=======
++            aheadBehind={popup.aheadBehind}
++>>>>>>> .their
+           />
+         )
+       case PopupType.ConfirmDiscardChanges:
+changed in both
+  base   100644 da3dac8dfca303eb8512b4031e6da4b6545ba4a7 app/src/ui/delete-branch/delete-branch-dialog.tsx
+  our    100644 b5c948eb5b4bf338b32d13ebf5656729b009a7c9 app/src/ui/delete-branch/delete-branch-dialog.tsx
+  their  100644 5261d661964111a7d1b3dee8a54f8cd1c96f54c7 app/src/ui/delete-branch/delete-branch-dialog.tsx
+@@ -8,12 +8,14 @@
+ import { Checkbox, CheckboxValue } from '../lib/checkbox'
+ import { Dialog, DialogContent, DialogFooter } from '../dialog'
+ import { Ref } from '../lib/ref'
++import { IAheadBehind } from '../../lib/app-state'
+ 
+ interface IDeleteBranchProps {
+   readonly dispatcher: Dispatcher
+   readonly repository: Repository
+   readonly branch: Branch
+   readonly existsOnRemote: boolean
++  readonly aheadBehind: IAheadBehind | null
+   readonly onDismissed: () => void
+   readonly onDeleted: (repository: Repository) => void
+ }
+@@ -35,6 +37,42 @@
+   }
+ 
+   public render() {
++    const aheadBehind = this.props.aheadBehind
++    return aheadBehind !== null && aheadBehind.ahead > 0
++      ? this.renderDeleteBranchWithUnmergedCommits()
++      : this.renderDeleteBranch()
++  }
++
++  private renderDeleteBranchWithUnmergedCommits() {
++    const unmergedCommits = this.props.aheadBehind!.ahead
++
++    return (
++      <Dialog
++        id="delete-branch"
++        title={__DARWIN__ ? 'Delete Branch' : 'Delete branch'}
++        type="warning"
++        onDismissed={this.props.onDismissed}
++      >
++        <DialogContent>
++          <p>
++            <Ref>{this.props.branch.name}</Ref> has <em>{unmergedCommits}</em>{' '}
++            unmerged {unmergedCommits === 1 ? 'commit' : 'commits'}.
++            <br />
++            Would you like to merge your changes first?
++          </p>
++        </DialogContent>
++        <DialogFooter>
++          <ButtonGroup destructive={true}>
++            <Button type="submit">Cancel</Button>
++            <Button onClick={this.deleteBranch}>No, Delete</Button>
++            <Button onClick={this.mergeAndDelete}>Merge</Button>
++          </ButtonGroup>
++        </DialogFooter>
++      </Dialog>
++    )
++  }
++
++  private renderDeleteBranch() {
+     return (
+       <Dialog
+         id="delete-branch"
+@@ -70,6 +108,9 @@
+               there as well?
+             </strong>
+           </p>
++          {this.props.aheadBehind && this.props.aheadBehind.ahead > 0 ? (
++            <p>Unmerged commits</p>
++          ) : null}
+           <Checkbox
+             label="Yes, delete this branch on the remote"
+             value={
+@@ -105,4 +146,13 @@
+ 
+     return dispatcher.closePopup()
+   }
++
++  private mergeAndDelete = async () => {
++    await this.props.dispatcher.mergeBranch(
++      this.props.repository,
++      this.props.branch.name
++    )
++
++    this.deleteBranch()
++  }
+ }

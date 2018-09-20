@@ -1,0 +1,160 @@
+changed in both
+  base   100644 bf50d9d44ae0c8b2d6956edb5a7fd510254ec68c src/vs/workbench/parts/extensions/common/extensions.ts
+  our    100644 f80eddc2997bb323b4ddc2fa04965332cdf133ab src/vs/workbench/parts/extensions/common/extensions.ts
+  their  100644 06c9fb537670cd8385fa17e8a8722cbf16021283 src/vs/workbench/parts/extensions/common/extensions.ts
+@@ -100,8 +100,12 @@
+ export const CloseExtensionDetailsOnViewChangeKey = 'extensions.closeExtensionDetailsOnViewChange';
+ 
+ export interface IExtensionsConfiguration {
++<<<<<<< .our
+ 	autoUpdate: boolean;
+ 	autoCheckUpdates: boolean;
++=======
++	autoUpdate: string;
++>>>>>>> .their
+ 	ignoreRecommendations: boolean;
+ 	showRecommendationsOnlyOnDemand: boolean;
+ 	closeExtensionDetailsOnViewChange: boolean;
+changed in both
+  base   100644 cccfee273b820b18018d92dd3bcb120c3323b062 src/vs/workbench/parts/extensions/electron-browser/extensions.contribution.ts
+  our    100644 5ce89339923c3f8305329edee9c2f811f190aaa7 src/vs/workbench/parts/extensions/electron-browser/extensions.contribution.ts
+  their  100644 1c0d5ac939280f96b2b9cd716fe0eddc4929a59b src/vs/workbench/parts/extensions/electron-browser/extensions.contribution.ts
+@@ -203,6 +203,7 @@
+ 		type: 'object',
+ 		properties: {
+ 			'extensions.autoUpdate': {
++<<<<<<< .our
+ 				type: 'boolean',
+ 				description: localize('extensionsAutoUpdate', "When enabled, automatically installs updates for extensions. The updates are fetched from an online service."),
+ 				default: true,
+@@ -213,6 +214,17 @@
+ 				type: 'boolean',
+ 				description: localize('extensionsCheckUpdates', "When enabled, automatically checks extensions for updates. If an extension has an update, it is marked as outdated in the Extensions view. The updates are fetched from an online service."),
+ 				default: true,
++=======
++				type: 'string',
++				enum: ['checkAndInstall', 'check', 'off'],
++				enumDescriptions: [
++					localize('extensionsAutoUpdateCheckAndInstall', "Install extension updates automatically in the background."),
++					localize('extensionsAutoUpdateCheck', "Check for extension updates and mark extensions with available updates as outdated in the extensions view."),
++					localize('extensionsAutoUpdateOff', "No checks are made automatically for extension updates. You can still manually check for updates using the `Extension: Check for Updates` command."),
++				],
++				description: localize('extensionsAutoUpdate', "Controls whether VS Code should check for and/or install extension updates in the background."),
++				default: 'checkAndInstall',
++>>>>>>> .their
+ 				scope: ConfigurationScope.APPLICATION,
+ 				tags: ['usesOnlineServices']
+ 			},
+changed in both
+  base   100644 ce4e5210290c112bb2ae57c2b69a2e4045cbcff9 src/vs/workbench/parts/extensions/electron-browser/extensionsActions.ts
+  our    100644 645a6674587a8dca8742c11040e726c40a9702ff src/vs/workbench/parts/extensions/electron-browser/extensionsActions.ts
+  their  100644 1f0adb9254fdfd60c1dff0eac223efeffa1171f2 src/vs/workbench/parts/extensions/electron-browser/extensionsActions.ts
+@@ -792,7 +792,6 @@
+ }
+ 
+ export class ToggleAutoUpdateAction extends Action {
+-
+ 	constructor(
+ 		id: string,
+ 		label: string,
+@@ -800,16 +799,10 @@
+ 		@IConfigurationService private configurationService: IConfigurationService
+ 	) {
+ 		super(id, label, '', true);
+-		this.updateEnablement();
+-		configurationService.onDidChangeConfiguration(() => this.updateEnablement());
+-	}
+-
+-	private updateEnablement(): void {
+-		this.enabled = this.configurationService.getValue(AutoUpdateConfigurationKey) !== this.autoUpdateValue;
+ 	}
+ 
+ 	run(): TPromise<any> {
+-		return this.configurationService.updateValue(AutoUpdateConfigurationKey, this.autoUpdateValue);
++		return this.configurationService.updateValue(AutoUpdateConfigurationKey, this.autoUpdateValue ? 'checkAndInstall' : 'check');
+ 	}
+ }
+ 
+changed in both
+  base   100644 bc834b46f368612971da5284c0c450f78e65e160 src/vs/workbench/parts/extensions/electron-browser/extensionsViewlet.ts
+  our    100644 0deb9a35143336ac44f10debedd6afdf4d47c48d src/vs/workbench/parts/extensions/electron-browser/extensionsViewlet.ts
+  their  100644 9b7ab5ff77ee31ee9a4321f09e651291b2849987 src/vs/workbench/parts/extensions/electron-browser/extensionsViewlet.ts
+@@ -386,6 +386,7 @@
+ 					this.groupByServerAction.enabled = !value || ExtensionsListView.isInstalledExtensionsQuery(value) || ExtensionsListView.isBuiltInExtensionsQuery(value);
+ 				}));
+ 			}
++			const autoUpdateConfigValue = this.configurationService.getValue(AutoUpdateConfigurationKey);
+ 			this.secondaryActions = [
+ 				this.instantiationService.createInstance(ShowInstalledExtensionsAction, ShowInstalledExtensionsAction.ID, ShowInstalledExtensionsAction.LABEL),
+ 				this.instantiationService.createInstance(ShowOutdatedExtensionsAction, ShowOutdatedExtensionsAction.ID, ShowOutdatedExtensionsAction.LABEL),
+@@ -401,7 +402,7 @@
+ 				new Separator(),
+ 				...(this.extensionManagementServerService.extensionManagementServers.length > 1 ? [this.groupByServerAction, new Separator()] : []),
+ 				this.instantiationService.createInstance(CheckForUpdatesAction, CheckForUpdatesAction.ID, CheckForUpdatesAction.LABEL),
+-				...(this.configurationService.getValue(AutoUpdateConfigurationKey) ? [this.instantiationService.createInstance(DisableAutoUpdateAction, DisableAutoUpdateAction.ID, DisableAutoUpdateAction.LABEL)] : [this.instantiationService.createInstance(UpdateAllAction, UpdateAllAction.ID, UpdateAllAction.LABEL), this.instantiationService.createInstance(EnableAutoUpdateAction, EnableAutoUpdateAction.ID, EnableAutoUpdateAction.LABEL)]),
++				...((autoUpdateConfigValue === true || autoUpdateConfigValue === 'checkAndInstall') ? [this.instantiationService.createInstance(DisableAutoUpdateAction, DisableAutoUpdateAction.ID, DisableAutoUpdateAction.LABEL)] : [this.instantiationService.createInstance(UpdateAllAction, UpdateAllAction.ID, UpdateAllAction.LABEL), this.instantiationService.createInstance(EnableAutoUpdateAction, EnableAutoUpdateAction.ID, EnableAutoUpdateAction.LABEL)]),
+ 				this.instantiationService.createInstance(InstallVSIXAction, InstallVSIXAction.ID, InstallVSIXAction.LABEL),
+ 				new Separator(),
+ 				this.instantiationService.createInstance(DisableAllAction, DisableAllAction.ID, DisableAllAction.LABEL),
+changed in both
+  base   100644 8804517eaa16d5378ca66df3f2945d4644f92ef3 src/vs/workbench/parts/extensions/node/extensionsWorkbenchService.ts
+  our    100644 dde370485c80817a804989c810abe2f1db9c0966 src/vs/workbench/parts/extensions/node/extensionsWorkbenchService.ts
+  their  100644 a89d960d8458de142fdff1a498beef264dae78e6 src/vs/workbench/parts/extensions/node/extensionsWorkbenchService.ts
+@@ -409,7 +409,7 @@
+ 
+ 		this.configurationService.onDidChangeConfiguration(e => {
+ 			if (e.affectsConfiguration(AutoUpdateConfigurationKey)) {
+-				if (this.isAutoUpdateEnabled()) {
++				if (this.isSyncEnabled()) {
+ 					this.checkForUpdates();
+ 				}
+ 			}
+@@ -601,7 +601,12 @@
+ 	}
+ 
+ 	private isAutoUpdateEnabled(): boolean {
+-		return this.configurationService.getValue(AutoUpdateConfigurationKey);
++		const configValue = this.configurationService.getValue(AutoUpdateConfigurationKey);
++		return configValue === true || configValue === 'checkAndInstall';
++	}
++
++	private isSyncEnabled(): boolean {
++		return this.configurationService.getValue(AutoUpdateConfigurationKey) !== 'off';
+ 	}
+ 
+ 	private isAutoCheckUpdatesEnabled(): boolean {
+@@ -609,8 +614,12 @@
+ 	}
+ 
+ 	private eventuallySyncWithGallery(immediate = false): void {
++<<<<<<< .our
+ 		const shouldSync = this.isAutoUpdateEnabled() || this.isAutoCheckUpdatesEnabled();
+ 		const loop = () => (shouldSync ? this.syncWithGallery() : TPromise.as(null)).then(() => this.eventuallySyncWithGallery());
++=======
++		const loop = () => (this.isSyncEnabled() ? this.syncWithGallery() : TPromise.as(null)).then(() => this.eventuallySyncWithGallery());
++>>>>>>> .their
+ 		const delay = immediate ? 0 : ExtensionsWorkbenchService.SyncPeriod;
+ 
+ 		this.syncDelayer.trigger(loop, delay)
+changed in both
+  base   100644 eca3169eca8e83f33c8b5d1908950ecc64b86b64 src/vs/workbench/parts/extensions/test/electron-browser/extensionsWorkbenchService.test.ts
+  our    100644 7da387ac880b0ed21957601ffcf9fbb9f1133d6f src/vs/workbench/parts/extensions/test/electron-browser/extensionsWorkbenchService.test.ts
+  their  100644 0ac82bf88a28f708dd2a8ed8061be641750d5a07 src/vs/workbench/parts/extensions/test/electron-browser/extensionsWorkbenchService.test.ts
+@@ -66,6 +66,7 @@
+ 		instantiationService.stub(IURLService, URLService);
+ 
+ 		instantiationService.stub(IWorkspaceContextService, new TestContextService());
++<<<<<<< .our
+ 		instantiationService.stub(IConfigurationService, {
+ 			onDidUpdateConfiguration: () => { },
+ 			onDidChangeConfiguration: () => { },
+@@ -74,6 +75,9 @@
+ 				return (key === AutoCheckUpdatesConfigurationKey || key === AutoUpdateConfigurationKey) ? true : undefined;
+ 			}
+ 		});
++=======
++		instantiationService.stub(IConfigurationService, { onDidUpdateConfiguration: () => { }, onDidChangeConfiguration: () => { }, getConfiguration: () => ({}), getValue: () => { } });
++>>>>>>> .their
+ 
+ 		instantiationService.stub(IExtensionManagementService, ExtensionManagementService);
+ 		instantiationService.stub(IExtensionManagementService, 'onInstallExtension', installEvent.event);
