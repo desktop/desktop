@@ -21,6 +21,7 @@ jobs:
   - script: |
       yarn test:setup && yarn test
     name: Test
+
 - job: Linux
   pool:
     vmImage: ubuntu-16.04
@@ -48,6 +49,7 @@ jobs:
       Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
       yarn test:setup && yarn test
     name: Test
+
 - job: macOS
   pool:
     vmImage: xcode9-macos10.13
