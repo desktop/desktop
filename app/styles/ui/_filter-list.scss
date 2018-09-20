@@ -21,3 +21,9 @@
   padding: 0 var(--spacing);
   font-weight: var(--font-weight-semibold);
 }
+
+//This is used if there are no results to show in the filter list for cloning a repository
+.no-results-found {
+  width: 100%;
+  text-align: center;
+}

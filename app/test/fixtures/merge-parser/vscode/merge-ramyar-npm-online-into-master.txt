@@ -1,0 +1,102 @@
+changed in both
+  base   100644 6c8fa19625d784110351bd4290395f29af5accda extensions/npm/README.md
+  our    100644 a24a7d69d6e00ffa80ddaf5841bb6a5225f2c5cf extensions/npm/README.md
+  their  100644 f4b85999742a23b85f035d1b16b7d20aaa5fb157 extensions/npm/README.md
+@@ -26,6 +26,10 @@
+ 
+ The extension fetches data from https://registry.npmjs/org and https://registry.bower.io to provide auto-completion and information on hover features on npm dependencies.
+ 
++### Others
++
++The extension fetches data from https://registry.npmjs/org and https://registry.bower.io to provide auto-completion and information on hover features on npm dependencies.
++
+ ## Settings
+ 
+ - `npm.autoDetect` - Enable detecting scripts as tasks, the default is `on`.
+changed in both
+  base   100644 df9c903fcb42721bbf356acd58ad97e8dd63dff3 extensions/npm/package.json
+  our    100644 2e478c09e5ec71a0201c841cd3d23ac312a66662 extensions/npm/package.json
+  their  100644 d5647618a81e4e5cad2be67cb761a14fa23894b1 extensions/npm/package.json
+@@ -235,9 +235,13 @@
+           "description": "%config.npm.fetchOnlinePackageInfo%",
+           "default": true,
+           "scope": "window",
++<<<<<<< .our
+           "tags": [
+             "usesOnlineServices"
+           ]
++=======
++          "tags": ["usesOnlineServices"]
++>>>>>>> .their
+         }
+       }
+     },
+changed in both
+  base   100644 92665d5f65a560eea6dcd0cd9467ddcb794f25b6 extensions/npm/package.nls.json
+  our    100644 4a33bcc0bc3d1ef2c1ecff5b27436054c1c22de4 extensions/npm/package.nls.json
+  their  100644 3a59c27cad1daac60a23764fc4859d67b84a8e1d extensions/npm/package.nls.json
+@@ -6,7 +6,11 @@
+ 	"config.npm.packageManager": "The package manager used to run scripts.",
+ 	"config.npm.exclude": "Configure glob patterns for folders that should be excluded from automatic script detection.",
+ 	"config.npm.enableScriptExplorer": "Enable an explorer view for npm scripts.",
++<<<<<<< .our
+ 	"config.npm.scriptExplorerAction": "The default click action used in the scripts explorer: `open` or `run`, the default is `open`.",
++=======
++	"config.npm.scriptExplorerAction": "The default click action used in the scripts explorer: 'open' or 'run', the default is 'open'.",
++>>>>>>> .their
+ 	"config.npm.fetchOnlinePackageInfo": "Fetch data from https://registry.npmjs/org and https://registry.bower.io to provide auto-completion and information on hover features on npm dependencies.",
+ 	"npm.parseError": "Npm task detection: failed to parse the file {0}",
+ 	"taskdef.script": "The npm script to customize.",
+changed in both
+  base   100644 a00f347078c36cde0dce1566157630bfa7708cf0 extensions/npm/src/features/bowerJSONContribution.ts
+  our    100644 300d7dad1f080fbd4f7956814d7d96fafa5953f5 extensions/npm/src/features/bowerJSONContribution.ts
+  their  100644 038057bf2b2a246b9fb663c84e29c637a13cadb7 extensions/npm/src/features/bowerJSONContribution.ts
+@@ -27,8 +27,22 @@
+ 
+ 	private xhr: XHRRequest;
+ 
++<<<<<<< .our
+ 	public constructor(xhr: XHRRequest) {
+ 		this.xhr = xhr;
++=======
++	public constructor(httprequestxhr: XHRRequest) {
++
++		const getxhr = () => {
++			return workspace.getConfiguration('npm').get('fetchOnlinePackageInfo') === false ? xhrDisabled : httprequestxhr;
++		};
++		this.xhr = getxhr();
++		workspace.onDidChangeConfiguration((e) => {
++			if (e.affectsConfiguration('npm.fetchOnlinePackageInfo')) {
++				this.xhr = getxhr();
++			}
++		});
++>>>>>>> .their
+ 	}
+ 
+ 	public getDocumentSelector(): DocumentSelector {
+changed in both
+  base   100644 b060290eb515eff59b641da312163468afa62d02 extensions/npm/src/features/packageJSONContribution.ts
+  our    100644 38e4ce05310d5937b1baf1927961f6d043e792ec extensions/npm/src/features/packageJSONContribution.ts
+  their  100644 1576ded6a4d107d786a15863ebe104cc14bbafdd extensions/npm/src/features/packageJSONContribution.ts
+@@ -34,8 +34,21 @@
+ 		return [{ language: 'json', scheme: '*', pattern: '**/package.json' }];
+ 	}
+ 
++<<<<<<< .our
+ 	public constructor(xhr: XHRRequest) {
+ 		this.xhr = xhr;
++=======
++	public constructor(httprequestxhr: XHRRequest) {
++		const getxhr = () => {
++			return workspace.getConfiguration('npm').get('fetchOnlinePackageInfo') === false ? xhrDisabled : httprequestxhr;
++		};
++		this.xhr = getxhr();
++		workspace.onDidChangeConfiguration((e) => {
++			if (e.affectsConfiguration('npm.fetchOnlinePackageInfo')) {
++				this.xhr = getxhr();
++			}
++		});
++>>>>>>> .their
+ 	}
+ 
+ 	public collectDefaultSuggestions(_fileName: string, result: ISuggestionsCollector): Thenable<any> {

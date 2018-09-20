@@ -1,0 +1,20 @@
+changed in both
+  base   100644 3c76c9bedb4020c6d0f9ffd27f085228835a0c62 src/vs/workbench/parts/welcome/gettingStarted/electron-browser/telemetryOptOut.ts
+  our    100644 62b0d5e5916a6f6112790efcd1f0e99d13ae68e4 src/vs/workbench/parts/welcome/gettingStarted/electron-browser/telemetryOptOut.ts
+  their  100644 d82683942567c08668fbd5ea4e5d33bc518802a9 src/vs/workbench/parts/welcome/gettingStarted/electron-browser/telemetryOptOut.ts
+@@ -98,9 +98,15 @@
+ 					.then(translation => {
+ 						const translationsFromPack = translation && translation.contents ? translation.contents['vs/workbench/parts/welcome/gettingStarted/electron-browser/telemetryOptOut'] : {};
+ 						if (!!translationsFromPack[promptMessageKey] && !!translationsFromPack[yesLabelKey] && !!translationsFromPack[noLabelKey]) {
++<<<<<<< .our
+ 							promptMessage = translationsFromPack[promptMessageKey].replace('{0}', this.privacyUrl) + ' (Please help Microsoft improve Visual Studio Code by allowing the collection of usage data.)';
+ 							yesLabel = translationsFromPack[yesLabelKey] + ' (Yes)';
+ 							noLabel = translationsFromPack[noLabelKey] + ' (No)';
++=======
++							promptMessage = translationsFromPack[promptMessageKey].replace('{0}', this.privacyUrl);
++							yesLabel = translationsFromPack[yesLabelKey];
++							noLabel = translationsFromPack[noLabelKey];
++>>>>>>> .their
+ 						}
+ 						return undefined;
+ 					});
