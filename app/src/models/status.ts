@@ -135,40 +135,31 @@ export function iconForStatus(status: AppFileStatus): OcticonSymbol {
 
 /** encapsulate changes to a file associated with a commit */
 export class FileChange {
-  /** the relative path to the file in the repository */
-  public readonly path: string
-
-  /** The original path in the case of a renamed file */
-  public readonly oldPath?: string
-
-  /** the status of the change to the file */
-  public readonly status: AppFileStatus
-
   /** An ID for the file change. */
   public readonly id: string
 
-  public constructor(path: string, status: AppFileStatus, oldPath?: string) {
-    this.path = path
-    this.status = status
-    this.oldPath = oldPath
+  public constructor(
+    /** the relative path to the file in the repository */
+    public readonly path: string,
+    /** the status of the change to the file */
+    public readonly status: AppFileStatus,
+    /** The original path in the case of a renamed file */
+    public readonly oldPath?: string
+  ) {
     this.id = `${this.status}+${this.path}`
   }
 }
 
 /** encapsulate the changes to a file in the working directory */
 export class WorkingDirectoryFileChange extends FileChange {
-  /** contains the selection details for this file - all, nothing or partial */
-  public readonly selection: DiffSelection
-
   public constructor(
     path: string,
     status: AppFileStatus,
-    selection: DiffSelection,
+    /** contains the selection details for this file - all, nothing or partial */
+    public readonly selection: DiffSelection,
     oldPath?: string
   ) {
     super(path, status, oldPath)
-
-    this.selection = selection
   }
 
   /** Create a new WorkingDirectoryFileChange with the given includedness. */
@@ -195,19 +186,17 @@ export class WorkingDirectoryFileChange extends FileChange {
  * An object encapsulating the changes to a committed file.
  */
 export class CommittedFileChange extends FileChange {
-  /**
-   * A commit SHA or some other identifier that ultimately
-   * dereferences to a commit. This is the pointer to the
-   * 'after' version of this change. I.e. the parent of this
-   * commit will contain the 'before' (or nothing, if the
-   * file change represents a new file).
-   */
-  public readonly commitish: string
-
   public constructor(
     path: string,
     status: AppFileStatus,
-    commitish: string,
+    /**
+     * A commit SHA or some other identifier that ultimately
+     * dereferences to a commit. This is the pointer to the
+     * 'after' version of this change. I.e. the parent of this
+     * commit will contain the 'before' (or nothing, if the
+     * file change represents a new file).
+     */
+    public readonly commitish: string,
     oldPath?: string
   ) {
     super(path, status, oldPath)
@@ -218,19 +207,7 @@ export class CommittedFileChange extends FileChange {
 
 /** the state of the working directory for a repository */
 export class WorkingDirectoryStatus {
-  /**
-   * The list of changes in the repository's working directory
-   */
-  public readonly files: ReadonlyArray<WorkingDirectoryFileChange> = []
-
   private readonly fileIxById = new Map<string, number>()
-
-  /**
-   * Update the include checkbox state of the form
-   * NOTE: we need to track this separately to the file list selection
-   *       and perform two-way binding manually when this changes
-   */
-  public readonly includeAll: boolean | null = true
 
   /** Create a new status with the given files. */
   public static fromFiles(
@@ -240,13 +217,18 @@ export class WorkingDirectoryStatus {
   }
 
   private constructor(
-    files: ReadonlyArray<WorkingDirectoryFileChange>,
-    includeAll: boolean | null
+    /**
+     * The list of changes in the repository's working directory
+     */
+    public readonly files: ReadonlyArray<WorkingDirectoryFileChange>,
+    /**
+     * Update the include checkbox state of the form
+     * NOTE: we need to track this separately to the file list selection
+     *       and perform two-way binding manually when this changes
+     */
+    public readonly includeAll: boolean | null = true
   ) {
-    this.files = files
     files.forEach((f, ix) => this.fileIxById.set(f.id, ix))
-
-    this.includeAll = includeAll
   }
 
   /**
