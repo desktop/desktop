@@ -1,3 +1,4 @@
+import { GitProcess } from 'dugite'
 import { spawnAndComplete } from './spawn'
 import {
   WorkingDirectoryStatus,
@@ -46,14 +47,7 @@ async function entryHasConflictMarkers(
   }
 
   const args = ['diff', '--check', entry.path]
-  const { exitCode } = await spawnAndComplete(
-    args,
-    repositoryPath,
-    'diffCheck',
-    new Set([0, 2]),
-    // we don't care about the output
-    0
-  )
+  const { exitCode } = await GitProcess.exec(args, repositoryPath)
   // 2 means conflict markers were found
   return exitCode === 2
 }
