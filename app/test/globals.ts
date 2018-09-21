@@ -5,8 +5,7 @@ const Dexie = require('dexie')
 Dexie.dependencies.indexedDB = require('fake-indexeddb')
 Dexie.dependencies.IDBKeyRange = require('fake-indexeddb/lib/FDBKeyRange')
 
-import { fetch as fetchPolyfill } from 'whatwg-fetch'
-global.fetch = fetchPolyfill
+import 'airbnb-browser-shims/browser-only'
 
 // These constants are defined by Webpack at build time, but since tests aren't
 // built with Webpack we need to make sure these exist at runtime.
