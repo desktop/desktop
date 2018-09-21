@@ -39,10 +39,10 @@ async function entryHasConflictMarkers(
   repositoryPath: string,
   entry: IStatusEntry,
   status: FileEntry
-): Promise<boolean | null> {
+): Promise<boolean> {
   // only conflicted files can have conflict markers
   if (status.kind !== 'conflicted') {
-    return null
+    return false
   }
 
   const args = ['diff', '--check', entry.path]
@@ -60,7 +60,7 @@ async function entryHasConflictMarkers(
 
 function convertToAppStatus(
   status: FileEntry,
-  hasConflictMarkers: boolean | null
+  hasConflictMarkers: boolean
 ): AppFileStatus {
   if (status.kind === 'ordinary') {
     switch (status.type) {
