@@ -7,7 +7,6 @@ import {
   EmojiStore,
   GitHubUserStore,
   GitStore,
-  ICommitMessage,
   IssuesStore,
   PullRequestStore,
   RepositoriesStore,
@@ -67,18 +66,14 @@ import {
   Foldout,
   FoldoutType,
   IAppState,
-  ICheckoutProgress,
   ICompareBranch,
   ICompareFormUpdate,
   ICompareToBranch,
   IDisplayHistory,
-  IFetchProgress,
   ImageDiffType,
-  IRevertProgress,
   Popup,
   PopupType,
   PossibleSelections,
-  Progress,
   RepositorySectionTab,
   SelectionType,
   MergeResultStatus,
@@ -160,6 +155,13 @@ import { inferComparisonBranch } from './helpers/infer-comparison-branch'
 import { PullRequestUpdater } from './helpers/pull-request-updater'
 import { validatedRepositoryPath } from './helpers/validated-repository-path'
 import { RepositoryStateCache } from './repository-state-cache'
+import { ICommitMessage } from '../../models/commit-message'
+import {
+  Progress,
+  ICheckoutProgress,
+  IFetchProgress,
+  IRevertProgress,
+} from '../../models/progress'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local

@@ -14,7 +14,6 @@ import {
 import { CloningRepository } from '../models/cloning-repository'
 import { IGitHubUser } from './databases/github-user-database'
 import { SignInState } from './stores/sign-in-store'
-import { ICommitMessage } from './stores/git-store'
 import { IMenu } from '../models/app-menu'
 import { IRemote } from '../models/remote'
 import { WindowState } from './window-state'
@@ -30,8 +29,13 @@ import { IAuthor } from '../models/author'
 import { ComparisonCache } from './comparison-cache'
 import { ApplicationTheme } from '../ui/lib/application-theme'
 import { MergeResultKind } from '../models/merge'
-
-export { ICommitMessage }
+import { ICommitMessage } from '../models/commit-message'
+import {
+  IRevertProgress,
+  Progress,
+  ICheckoutProgress,
+  ICloneProgress,
+} from '../models/progress'
 
 export enum SelectionType {
   Repository,

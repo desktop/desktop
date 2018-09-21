@@ -1,7 +1,7 @@
 import { git, IGitExecutionOptions, gitNetworkArguments } from './core'
 import { Repository } from '../../models/repository'
+import { IFetchProgress } from '../../models/progress'
 import { FetchProgressParser, executionOptionsWithProgress } from '../progress'
-import { IFetchProgress } from '../app-state'
 import { IGitAccount, envForAuthentication } from './authentication'
 
 /**

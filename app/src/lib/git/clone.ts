@@ -1,5 +1,5 @@
 import { git, IGitExecutionOptions, gitNetworkArguments } from './core'
-import { ICloneProgress } from '../app-state'
+import { ICloneProgress } from '../../models/progress'
 import { CloneProgressParser, executionOptionsWithProgress } from '../progress'
 import { envForAuthentication, IGitAccount } from './authentication'
 

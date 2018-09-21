@@ -5,8 +5,8 @@ import {
   GitError,
 } from './core'
 import { Repository } from '../../models/repository'
+import { IPushProgress } from '../../models/progress'
 import { PushProgressParser, executionOptionsWithProgress } from '../progress'
-import { IPushProgress } from '../app-state'
 import {
   IGitAccount,
   envForAuthentication,

@@ -5,7 +5,7 @@ import {
   CheckoutProgressParser,
   executionOptionsWithProgress,
 } from '../progress'
-import { ICheckoutProgress } from '../app-state'
+import { ICheckoutProgress } from '../../models/progress'
 
 import {
   IGitAccount,

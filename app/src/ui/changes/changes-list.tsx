@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Path from 'path'
 
-import { ICommitMessage } from '../../lib/app-state'
 import { IGitHubUser } from '../../lib/databases'
 import { Dispatcher } from '../../lib/dispatcher'
 import { ITrailer } from '../../lib/git/interpret-trailers'
@@ -14,6 +13,7 @@ import {
 } from '../../models/status'
 import { DiffSelectionType } from '../../models/diff'
 import { CommitIdentity } from '../../models/commit-identity'
+import { ICommitMessage } from '../../models/commit-message'
 import { Repository } from '../../models/repository'
 import { IAuthor } from '../../models/author'
 import { List, ClickSource } from '../lib/list'

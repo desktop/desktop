@@ -12,7 +12,9 @@ import {
 import { Tip, TipState } from '../../models/tip'
 import { Commit } from '../../models/commit'
 import { IRemote } from '../../models/remote'
-import { IFetchProgress, IRevertProgress, ComparisonView } from '../app-state'
+import { IFetchProgress, IRevertProgress } from '../../models/progress'
+import { ICommitMessage } from '../../models/commit-message'
+import { ComparisonView } from '../app-state'
 
 import { IAppShell } from '../app-shell'
 import { ErrorWithMetadata, IErrorMetadata } from '../error-with-metadata'

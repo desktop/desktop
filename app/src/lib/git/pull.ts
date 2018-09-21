@@ -5,8 +5,8 @@ import {
   gitNetworkArguments,
 } from './core'
 import { Repository } from '../../models/repository'
+import { IPullProgress } from '../../models/progress'
 import { PullProgressParser, executionOptionsWithProgress } from '../progress'
-import { IPullProgress } from '../app-state'
 import {
   IGitAccount,
   envForAuthentication,
