@@ -1,5 +1,5 @@
-import { GitProcess } from 'dugite'
 import { spawnAndComplete } from './spawn'
+import { getFilesWithConflictMarkers } from './diff-check'
 import {
   WorkingDirectoryStatus,
   WorkingDirectoryFileChange,
@@ -7,7 +7,7 @@ import {
   FileEntry,
   GitStatusEntry,
 } from '../../models/status'
-import { parsePorcelainStatus, mapStatus, IStatusEntry } from '../status-parser'
+import { parsePorcelainStatus, mapStatus } from '../status-parser'
 import { DiffSelectionType, DiffSelection } from '../../models/diff'
 import { Repository } from '../../models/repository'
 import { IAheadBehind } from '../../models/branch'
@@ -34,22 +34,6 @@ export interface IStatusResult {
 
   /** the absolute path to the repository's working directory */
   readonly workingDirectory: WorkingDirectoryStatus
-}
-
-async function entryHasConflictMarkers(
-  repositoryPath: string,
-  entry: IStatusEntry,
-  status: FileEntry
-): Promise<boolean> {
-  // only conflicted files can have conflict markers
-  if (status.kind !== 'conflicted') {
-    return false
-  }
-
-  const args = ['diff', '--check', entry.path]
-  const { exitCode } = await GitProcess.exec(args, repositoryPath)
-  // 2 means conflict markers were found
-  return exitCode === 2
 }
 
 function convertToAppStatus(
@@ -126,6 +110,10 @@ export async function getStatus(
 
   const stdout = result.output.toString('utf8')
 
+  const filesWithConflictMarkers = await getFilesWithConflictMarkers(
+    repository.path
+  )
+
   // Map of files keyed on their paths.
   // Note, map maintains insertion order
   const files = new Map<string, WorkingDirectoryFileChange>()
@@ -138,11 +126,7 @@ export async function getStatus(
   for (const entry of parsePorcelainStatus(stdout)) {
     if (entry.kind === 'entry') {
       const status = mapStatus(entry.statusCode)
-      const hasConflictMarkers = await entryHasConflictMarkers(
-        repository.path,
-        entry,
-        status
-      )
+      const hasConflictMarkers = filesWithConflictMarkers.has(entry.path)
 
       if (status.kind === 'ordinary') {
         // when a file is added in the index but then removed in the working
