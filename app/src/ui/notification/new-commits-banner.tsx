@@ -5,11 +5,8 @@ import { Branch } from '../../models/branch'
 import { Button } from '../lib/button'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
-import {
-  CompareActionKind,
-  ComparisonView,
-  PopupType,
-} from '../../lib/app-state'
+import { CompareActionKind, ComparisonView } from '../../lib/app-state'
+import { PopupType } from '../../models/popup'
 
 export type DismissalReason = 'close' | 'compare' | 'merge'
 

@@ -6,25 +6,19 @@ import { Repository, ILocalRepositoryState } from '../models/repository'
 import { Branch, IAheadBehind } from '../models/branch'
 import { Tip } from '../models/tip'
 import { Commit } from '../models/commit'
-import {
-  CommittedFileChange,
-  WorkingDirectoryStatus,
-  WorkingDirectoryFileChange,
-} from '../models/status'
+import { CommittedFileChange, WorkingDirectoryStatus } from '../models/status'
 import { CloningRepository } from '../models/cloning-repository'
 import { IGitHubUser } from './databases/github-user-database'
 import { SignInState } from './stores/sign-in-store'
 import { IMenu } from '../models/app-menu'
 import { IRemote } from '../models/remote'
 import { WindowState } from './window-state'
-import { RetryAction } from './retry-actions'
+
 import { ExternalEditor } from '../lib/editors'
-import { PreferencesTab } from '../models/preferences'
 import { Shell } from './shells'
 import { CloneRepositoryTab } from '../models/clone-repository-tab'
 import { BranchesTab } from '../models/branches-tab'
 import { PullRequest } from '../models/pull-request'
-import { ReleaseSummary } from '../models/release-notes'
 import { IAuthor } from '../models/author'
 import { ComparisonCache } from './comparison-cache'
 import { ApplicationTheme } from '../ui/lib/application-theme'
@@ -36,6 +30,7 @@ import {
   ICheckoutProgress,
   ICloneProgress,
 } from '../models/progress'
+import { Popup } from '../models/popup'
 
 export enum SelectionType {
   Repository,
@@ -184,120 +179,6 @@ export interface IAppState {
   /** The currently selected appearance (aka theme) */
   readonly selectedTheme: ApplicationTheme
 }
-
-export enum PopupType {
-  RenameBranch = 1,
-  DeleteBranch,
-  ConfirmDiscardChanges,
-  Preferences,
-  MergeBranch,
-  RepositorySettings,
-  AddRepository,
-  CreateRepository,
-  CloneRepository,
-  CreateBranch,
-  SignIn,
-  About,
-  InstallGit,
-  PublishRepository,
-  Acknowledgements,
-  UntrustedCertificate,
-  RemoveRepository,
-  TermsAndConditions,
-  PushBranchCommits,
-  CLIInstalled,
-  GenericGitAuthentication,
-  ExternalEditorFailed,
-  OpenShellFailed,
-  InitializeLFS,
-  LFSAttributeMismatch,
-  UpstreamAlreadyExists,
-  ReleaseNotes,
-  DeletePullRequest,
-  MergeConflicts,
-}
-
-export type Popup =
-  | { type: PopupType.RenameBranch; repository: Repository; branch: Branch }
-  | {
-      type: PopupType.DeleteBranch
-      repository: Repository
-      branch: Branch
-      existsOnRemote: boolean
-    }
-  | {
-      type: PopupType.ConfirmDiscardChanges
-      repository: Repository
-      files: ReadonlyArray<WorkingDirectoryFileChange>
-      showDiscardChangesSetting?: boolean
-    }
-  | { type: PopupType.Preferences; initialSelectedTab?: PreferencesTab }
-  | {
-      type: PopupType.MergeBranch
-      repository: Repository
-      branch?: Branch
-    }
-  | { type: PopupType.RepositorySettings; repository: Repository }
-  | { type: PopupType.AddRepository; path?: string }
-  | { type: PopupType.CreateRepository; path?: string }
-  | {
-      type: PopupType.CloneRepository
-      initialURL: string | null
-    }
-  | {
-      type: PopupType.CreateBranch
-      repository: Repository
-      initialName?: string
-    }
-  | { type: PopupType.SignIn }
-  | { type: PopupType.About }
-  | { type: PopupType.InstallGit; path: string }
-  | { type: PopupType.PublishRepository; repository: Repository }
-  | { type: PopupType.Acknowledgements }
-  | {
-      type: PopupType.UntrustedCertificate
-      certificate: Electron.Certificate
-      url: string
-    }
-  | { type: PopupType.RemoveRepository; repository: Repository }
-  | { type: PopupType.TermsAndConditions }
-  | {
-      type: PopupType.PushBranchCommits
-      repository: Repository
-      branch: Branch
-      unPushedCommits?: number
-    }
-  | { type: PopupType.CLIInstalled }
-  | {
-      type: PopupType.GenericGitAuthentication
-      hostname: string
-      retryAction: RetryAction
-    }
-  | {
-      type: PopupType.ExternalEditorFailed
-      message: string
-      suggestAtom?: boolean
-      openPreferences?: boolean
-    }
-  | { type: PopupType.OpenShellFailed; message: string }
-  | { type: PopupType.InitializeLFS; repositories: ReadonlyArray<Repository> }
-  | { type: PopupType.LFSAttributeMismatch }
-  | {
-      type: PopupType.UpstreamAlreadyExists
-      repository: Repository
-      existingRemote: IRemote
-    }
-  | {
-      type: PopupType.ReleaseNotes
-      newRelease: ReleaseSummary
-    }
-  | {
-      type: PopupType.DeletePullRequest
-      repository: Repository
-      branch: Branch
-      pullRequest: PullRequest
-    }
-  | { type: PopupType.MergeConflicts; repository: Repository }
 
 export enum FoldoutType {
   Repository,

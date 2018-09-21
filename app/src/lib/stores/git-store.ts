@@ -59,7 +59,7 @@ import {
   getSymbolicRef,
 } from '../git'
 import { IGitAccount } from '../git/authentication'
-import { RetryAction, RetryActionType } from '../retry-actions'
+import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import { UpstreamAlreadyExistsError } from './upstream-already-exists-error'
 import { forceUnwrap } from '../fatal-error'
 import {

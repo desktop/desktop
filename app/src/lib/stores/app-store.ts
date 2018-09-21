@@ -75,9 +75,7 @@ import {
   ICompareFormUpdate,
   ICompareToBranch,
   IDisplayHistory,
-  Popup,
-  PopupType,
-  PossibleSelections,
+   PossibleSelections,
   RepositorySectionTab,
   SelectionType,
   MergeResultStatus,
@@ -135,7 +133,7 @@ import {
   matchGitHubRepository,
   repositoryMatchesRemote,
 } from '../repository-matching'
-import { RetryAction, RetryActionType } from '../retry-actions'
+import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import {
   Default as DefaultShell,
   findShellOrDefault,
@@ -166,6 +164,7 @@ import {
   IFetchProgress,
   IRevertProgress,
 } from '../../models/progress'
+import { Popup, PopupType } from '../../models/popup';
 
 /**
  * As fast-forwarding local branches is proportional to the number of local

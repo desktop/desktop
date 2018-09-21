@@ -5,8 +5,6 @@ import { CSSTransitionGroup } from 'react-transition-group'
 import {
   IAppState,
   RepositorySectionTab,
-  Popup,
-  PopupType,
   FoldoutType,
   SelectionType,
   CompareActionKind,
@@ -16,7 +14,7 @@ import { AppStore, GitHubUserStore, IssuesStore } from '../lib/stores'
 import { assertNever } from '../lib/fatal-error'
 import { shell } from '../lib/app-shell'
 import { updateStore, UpdateStatus } from './lib/update-store'
-import { RetryAction } from '../lib/retry-actions'
+import { RetryAction } from '../models/retry-actions'
 import { shouldRenderApplicationMenu } from './lib/features'
 import { matchExistingRepository } from '../lib/repository-matching'
 import { getDotComAPIEndpoint } from '../lib/api'
@@ -91,6 +89,7 @@ import { MergeConflictsWarning } from './merge-conflicts'
 import { AppTheme } from './app-theme'
 import { ApplicationTheme } from './lib/application-theme'
 import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
+import { PopupType, Popup } from '../models/popup'
 
 const MinuteInMilliseconds = 1000 * 60
 
