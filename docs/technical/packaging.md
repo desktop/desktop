@@ -123,4 +123,5 @@ applied to each package (if applicable).
 
 ## `script/publish.ts`
 
-TODO
+This script uploads the packaging artifacts to our S3 bucket, which is then
+verified before the build is made available to users.
