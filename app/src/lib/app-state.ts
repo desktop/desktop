@@ -2,26 +2,17 @@ import { Account } from '../models/account'
 import { CommitIdentity } from '../models/commit-identity'
 import { IDiff, ImageDiffType } from '../models/diff'
 import { Repository, ILocalRepositoryState } from '../models/repository'
-
 import { Branch, IAheadBehind } from '../models/branch'
 import { Tip } from '../models/tip'
 import { Commit } from '../models/commit'
 import { CommittedFileChange, WorkingDirectoryStatus } from '../models/status'
 import { CloningRepository } from '../models/cloning-repository'
-import { IGitHubUser } from './databases/github-user-database'
-import { SignInState } from './stores/sign-in-store'
 import { IMenu } from '../models/app-menu'
 import { IRemote } from '../models/remote'
-import { WindowState } from './window-state'
-
-import { ExternalEditor } from '../lib/editors'
-import { Shell } from './shells'
 import { CloneRepositoryTab } from '../models/clone-repository-tab'
 import { BranchesTab } from '../models/branches-tab'
 import { PullRequest } from '../models/pull-request'
 import { IAuthor } from '../models/author'
-import { ComparisonCache } from './comparison-cache'
-import { ApplicationTheme } from '../ui/lib/application-theme'
 import { MergeResultKind } from '../models/merge'
 import { ICommitMessage } from '../models/commit-message'
 import {
@@ -31,6 +22,16 @@ import {
   ICloneProgress,
 } from '../models/progress'
 import { Popup } from '../models/popup'
+
+import { IGitHubUser } from './databases/github-user-database'
+import { SignInState } from './stores/sign-in-store'
+
+import { WindowState } from './window-state'
+import { ExternalEditor } from './editors'
+import { Shell } from './shells'
+import { ComparisonCache } from './comparison-cache'
+
+import { ApplicationTheme } from '../ui/lib/application-theme'
 
 export enum SelectionType {
   Repository,
