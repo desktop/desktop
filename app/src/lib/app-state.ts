@@ -1,6 +1,6 @@
 import { Account } from '../models/account'
 import { CommitIdentity } from '../models/commit-identity'
-import { IDiff } from '../models/diff'
+import { IDiff, ImageDiffType } from '../models/diff'
 import { Repository, ILocalRepositoryState } from '../models/repository'
 
 import { Branch, IAheadBehind } from '../models/branch'
@@ -41,21 +41,6 @@ export enum SelectionType {
   Repository,
   CloningRepository,
   MissingRepository,
-}
-
-/** The image diff type. */
-export enum ImageDiffType {
-  /** Show the old and new images side by side. */
-  TwoUp,
-
-  /** Swipe between the old and new image. */
-  Swipe,
-
-  /** Onion skin. */
-  OnionSkin,
-
-  /** Highlight differences. */
-  Difference,
 }
 
 export type PossibleSelections =

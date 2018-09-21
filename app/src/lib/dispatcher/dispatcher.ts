@@ -9,14 +9,13 @@ import {
   WorkingDirectoryFileChange,
   CommittedFileChange,
 } from '../../models/status'
-import { DiffSelection } from '../../models/diff'
+import { DiffSelection, ImageDiffType } from '../../models/diff'
 import {
   RepositorySectionTab,
   Popup,
   PopupType,
   Foldout,
   FoldoutType,
-  ImageDiffType,
   CompareAction,
   ICompareFormUpdate,
   MergeResultStatus,
