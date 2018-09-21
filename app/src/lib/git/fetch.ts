@@ -1,8 +1,9 @@
 import { git, IGitExecutionOptions, gitNetworkArguments } from './core'
 import { Repository } from '../../models/repository'
+import { IGitAccount } from '../../models/git-account'
 import { IFetchProgress } from '../../models/progress'
 import { FetchProgressParser, executionOptionsWithProgress } from '../progress'
-import { IGitAccount, envForAuthentication } from './authentication'
+import { envForAuthentication } from './authentication'
 
 /**
  * Fetch from the given remote.

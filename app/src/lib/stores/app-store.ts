@@ -46,6 +46,15 @@ import {
   WorkingDirectoryStatus,
 } from '../../models/status'
 import { TipState } from '../../models/tip'
+import { ICommitMessage } from '../../models/commit-message'
+import {
+  Progress,
+  ICheckoutProgress,
+  IFetchProgress,
+  IRevertProgress,
+} from '../../models/progress'
+import { Popup, PopupType } from '../../models/popup'
+import { IGitAccount } from '../../models/git-account'
 import { getAppPath } from '../../ui/lib/app-proxy'
 import {
   ApplicationTheme,
@@ -75,7 +84,7 @@ import {
   ICompareFormUpdate,
   ICompareToBranch,
   IDisplayHistory,
-   PossibleSelections,
+  PossibleSelections,
   RepositorySectionTab,
   SelectionType,
   MergeResultStatus,
@@ -119,7 +128,6 @@ import {
   saveGitIgnore,
   appendIgnoreRule,
 } from '../git'
-import { IGitAccount } from '../git/authentication'
 import {
   installGlobalLFSFilters,
   installLFSHooks,
@@ -157,14 +165,6 @@ import { inferComparisonBranch } from './helpers/infer-comparison-branch'
 import { PullRequestUpdater } from './helpers/pull-request-updater'
 import { validatedRepositoryPath } from './helpers/validated-repository-path'
 import { RepositoryStateCache } from './repository-state-cache'
-import { ICommitMessage } from '../../models/commit-message'
-import {
-  Progress,
-  ICheckoutProgress,
-  IFetchProgress,
-  IRevertProgress,
-} from '../../models/progress'
-import { Popup, PopupType } from '../../models/popup';
 
 /**
  * As fast-forwarding local branches is proportional to the number of local

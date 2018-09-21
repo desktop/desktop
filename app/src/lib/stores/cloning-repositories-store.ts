@@ -1,7 +1,9 @@
 import { CloningRepository } from '../../models/cloning-repository'
 import { ICloneProgress } from '../../models/progress'
-import { clone as cloneRepo, CloneOptions } from '../git'
+import { CloneOptions } from '../../models/clone-options'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
+
+import { clone as cloneRepo } from '../git'
 import { ErrorWithMetadata } from '../error-with-metadata'
 import { BaseStore } from './base-store'
 

@@ -6,12 +6,9 @@ import {
 } from './core'
 import { Repository } from '../../models/repository'
 import { IPushProgress } from '../../models/progress'
+import { IGitAccount } from '../../models/git-account'
 import { PushProgressParser, executionOptionsWithProgress } from '../progress'
-import {
-  IGitAccount,
-  envForAuthentication,
-  AuthenticationErrors,
-} from './authentication'
+import { envForAuthentication, AuthenticationErrors } from './authentication'
 
 /**
  * Push from the remote to the branch, optionally setting the upstream.

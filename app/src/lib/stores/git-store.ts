@@ -58,7 +58,6 @@ import {
   revSymmetricDifference,
   getSymbolicRef,
 } from '../git'
-import { IGitAccount } from '../git/authentication'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import { UpstreamAlreadyExistsError } from './upstream-already-exists-error'
 import { forceUnwrap } from '../fatal-error'
@@ -70,6 +69,7 @@ import { findDefaultRemote } from './helpers/find-default-remote'
 import { IAuthor } from '../../models/author'
 import { formatCommitMessage } from '../format-commit-message'
 import { GitAuthor } from '../../models/git-author'
+import { IGitAccount } from '../../models/git-account'
 import { BaseStore } from './base-store'
 
 /** The number of commits to load from history per batch. */

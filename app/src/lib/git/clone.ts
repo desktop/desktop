@@ -1,15 +1,8 @@
 import { git, IGitExecutionOptions, gitNetworkArguments } from './core'
 import { ICloneProgress } from '../../models/progress'
+import { CloneOptions } from '../../models/clone-options'
 import { CloneProgressParser, executionOptionsWithProgress } from '../progress'
-import { envForAuthentication, IGitAccount } from './authentication'
-
-/** Additional arguments to provide when cloning a repository */
-export type CloneOptions = {
-  /** The optional identity to provide when cloning. */
-  readonly account: IGitAccount | null
-  /** The branch to checkout after the clone has completed. */
-  readonly branch?: string
-}
+import { envForAuthentication } from './authentication'
 
 /**
  * Clones a repository from a given url into to the specified path.

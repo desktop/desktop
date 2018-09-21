@@ -1,5 +1,5 @@
 import { Repository } from './repository'
-import { CloneOptions } from '../lib/git/clone'
+import { CloneOptions } from './clone-options'
 
 /** The types of actions that can be retried. */
 export enum RetryActionType {
