@@ -41,9 +41,9 @@ export function eligibleForFastForward(
   )
 }
 
-/** 
+/**
  * A branch as loaded from Git.
- * 
+ *
  * @param name The short name of the branch. E.g., `master`.
  * @param upstream The remote-prefixed upstream name. E.g., `origin/master`.
  * @param tip The commit associated with this branch
