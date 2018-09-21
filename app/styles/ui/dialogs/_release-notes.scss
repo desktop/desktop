@@ -57,7 +57,7 @@
     flex-direction: row;
     padding-left: var(--spacing-triple);
     padding-right: var(--spacing-triple);
-    overflow: scroll hidden;
+    overflow: auto hidden;
     justify-content: space-around;
 
     .column {
