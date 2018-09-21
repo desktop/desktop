@@ -32,7 +32,7 @@ Webpack also handles these steps:
  - source maps are generated to help with correlating runtime errors to the
    corresponding TypeScript source
  - in production mode `babel-minify` is used to minify the emitted JavaScript -
-   we do this over the in-build `uglify-js` support because `uglify-es` caused
+   we do this over the in-built `uglify-es` support because `uglify-es` caused
    some problems in the past generating invalid minified JS. See [#4859](https://github.com/desktop/desktop/pull/4859) and [#4848](https://github.com/desktop/desktop/pull/4848) for more information.
 
 The output from webpack is stored in the `out` directory, and this folder is
