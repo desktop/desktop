@@ -65,29 +65,29 @@ This script is responsible for:
    so the user can add a suitable license to their new repository when creating
    a repository in Desktop
 
-`electron-packager` is also responsible for codesigning at this stage, and if
-you do not have this configured you will likely see an error like this:
+`electron-packager` is also responsible for code-signing on macOS at this stage,
+and if you do not have this configured you will likely see an error like this:
 
 ```
-Packaging app for platform darwin x64 using electron v2.0.5
+Packaging app for platform darwin x64 using electron v2.0.9
 WARNING: Code sign failed; please retry manually. Error: No identity found for signing.
 ```
 
-This is fine for development purposes, but codesigning is definitely recommended
+This is fine for development purposes, but code-signing is highly recommended
 when distributing Desktop to end users.
 
 ## `script/package.ts`
 
 After the build is the final step is to package the application for distribution
- to end users, and this is where much of the platform-specific variations occur.
+to end users, and this is where much of the platform-specific variations occur.
 
 ### macOS
 
 macOS does not need any additional work, as the previous step generated an
 application bundle and performed the required code-signing.
 
-The generated app is compressed into a `.zip` archive, reducing the download size
-by ~60%.
+The generated app is compressed into a `.zip` archive, reducing the download
+size by ~60%.
 
 ### Windows
 
@@ -98,15 +98,16 @@ Desktop uses `electron-winstaller` to generate two installers:
  - an installer based on [Windows Installer](https://docs.microsoft.com/en-us/windows/desktop/msi/windows-installer-portal)
    that supports being installed by administrators. Please note that this is a
    partial solution and this still leverages `%LOCALAPPDATA%` when each users
-   runs the app for the first time. See [#1086](https://github.com/desktop/desktop/issues/1086) for an ongoing discussion about alternatives.
+   runs the app for the first time. See [#1086](https://github.com/desktop/desktop/issues/1086)
+   for an ongoing discussion about alternatives.
 
 Other things to note about the Windows packaging process:
 
  - `electron-winstaller` is responsible for signing these installers
- - Squirrel supports generating delta packages (the difference between this
-   version and the previous version) to avoid downloading bytes that haven't
-   changed. This has been enabled for Desktop, and requires downloading the
-   previous version from Central to generate the delta package.
+ - Squirrel supports generating delta packages (representing the difference
+   between this version and the previous version) to avoid downloading bytes
+   that haven't changed. This has been enabled for Desktop, and requires
+   downloading the previous version from Central to generate the delta package.
 
 ### Linux
 
@@ -116,7 +117,7 @@ Desktop uses `electron-builder` to generate these three packages:
  - `.rpm` package for RPM-based various distributions
  - `AppImage` package for various distributions (no elevated permissions
    required)
- - `snap` package
+ - `snap` package for various distributions
 
 The `script/electron-builder-linux.yml` configuration file contains the details
 applied to each package (if applicable).
