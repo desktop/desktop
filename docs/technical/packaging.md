@@ -115,9 +115,9 @@ Desktop uses `electron-builder` to generate these three packages:
 
  - `.deb` package for Debian-based distributions
  - `.rpm` package for RPM-based various distributions
- - `AppImage` package for various distributions (no elevated permissions
+ - `.AppImage` package for various distributions (no elevated permissions
    required)
- - `snap` package for various distributions
+ - `.snap` package for various distributions
 
 The `script/electron-builder-linux.yml` configuration file contains the details
 applied to each package (if applicable).
