@@ -78,12 +78,6 @@ const LoadingHistoryRequestKey = 'history'
 /** The max number of recent branches to find. */
 const RecentBranchesLimit = 5
 
-/** A commit message summary and description. */
-export interface ICommitMessage {
-  readonly summary: string
-  readonly description: string | null
-}
-
 /** The store for a repository's git data. */
 export class GitStore extends BaseStore {
   private readonly shell: IAppShell
