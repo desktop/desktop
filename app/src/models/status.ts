@@ -138,12 +138,14 @@ export class FileChange {
   /** An ID for the file change. */
   public readonly id: string
 
+  /**
+   * @param path The relative path to the file in the repository.
+   * @param status The status of the change to the file.
+   * @param oldPath The original path in the case of a renamed file.
+   */
   public constructor(
-    /** the relative path to the file in the repository */
     public readonly path: string,
-    /** the status of the change to the file */
     public readonly status: AppFileStatus,
-    /** The original path in the case of a renamed file */
     public readonly oldPath?: string
   ) {
     this.id = `${this.status}+${this.path}`
@@ -152,10 +154,15 @@ export class FileChange {
 
 /** encapsulate the changes to a file in the working directory */
 export class WorkingDirectoryFileChange extends FileChange {
+  /**
+   * @param path The relative path to the file in the repository.
+   * @param status The status of the change to the file.
+   * @param oldPath The original path in the case of a renamed file.
+   * @param selection Contains the selection details for this file - all, nothing or partial.
+   */
   public constructor(
     path: string,
     status: AppFileStatus,
-    /** contains the selection details for this file - all, nothing or partial */
     public readonly selection: DiffSelection,
     oldPath?: string
   ) {
@@ -184,18 +191,17 @@ export class WorkingDirectoryFileChange extends FileChange {
 
 /**
  * An object encapsulating the changes to a committed file.
+ *
+ * @param status A commit SHA or some other identifier that ultimately
+ *               dereferences to a commit. This is the pointer to the
+ *               'after' version of this change. I.e. the parent of this
+ *               commit will contain the 'before' (or nothing, if the
+ *               file change represents a new file).
  */
 export class CommittedFileChange extends FileChange {
   public constructor(
     path: string,
     status: AppFileStatus,
-    /**
-     * A commit SHA or some other identifier that ultimately
-     * dereferences to a commit. This is the pointer to the
-     * 'after' version of this change. I.e. the parent of this
-     * commit will contain the 'before' (or nothing, if the
-     * file change represents a new file).
-     */
     public readonly commitish: string,
     oldPath?: string
   ) {
@@ -216,16 +222,14 @@ export class WorkingDirectoryStatus {
     return new WorkingDirectoryStatus(files, getIncludeAllState(files))
   }
 
+  /**
+   * @param files The list of changes in the repository's working directory.
+   * @param includeAll Update the include checkbox state of the form.
+   *                   NOTE: we need to track this separately to the file list selection
+   *                         and perform two-way binding manually when this changes.
+   */
   private constructor(
-    /**
-     * The list of changes in the repository's working directory
-     */
     public readonly files: ReadonlyArray<WorkingDirectoryFileChange>,
-    /**
-     * Update the include checkbox state of the form
-     * NOTE: we need to track this separately to the file list selection
-     *       and perform two-way binding manually when this changes
-     */
     public readonly includeAll: boolean | null = true
   ) {
     files.forEach((f, ix) => this.fileIxById.set(f.id, ix))
