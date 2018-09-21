@@ -5,6 +5,9 @@ const Dexie = require('dexie')
 Dexie.dependencies.indexedDB = require('fake-indexeddb')
 Dexie.dependencies.IDBKeyRange = require('fake-indexeddb/lib/FDBKeyRange')
 
+import { fetch as fetchPolyfill } from 'whatwg-fetch'
+global.fetch = fetchPolyfill
+
 // These constants are defined by Webpack at build time, but since tests aren't
 // built with Webpack we need to make sure these exist at runtime.
 const g: any = global
