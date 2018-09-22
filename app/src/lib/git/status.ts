@@ -7,7 +7,14 @@ import {
   FileEntry,
   GitStatusEntry,
 } from '../../models/status'
-import { parsePorcelainStatus, mapStatus } from '../status-parser'
+import {
+  parsePorcelainStatus,
+  mapStatus,
+  IStatusEntry,
+  IStatusHeader,
+  isIStatusHeader,
+  isIStatusEntry,
+} from '../status-parser'
 import { DiffSelectionType, DiffSelection } from '../../models/diff'
 import { Repository } from '../../models/repository'
 import { IAheadBehind } from '../../models/branch'
@@ -123,66 +130,68 @@ export async function getStatus(
   let currentTip: string | undefined = undefined
   let branchAheadBehind: IAheadBehind | undefined = undefined
 
-  for (const entry of parsePorcelainStatus(stdout)) {
-    if (entry.kind === 'entry') {
-      const status = mapStatus(entry.statusCode)
-      const hasConflictMarkers = filesWithConflictMarkers.has(entry.path)
+  const parsed = parsePorcelainStatus(stdout)
+  const headers: ReadonlyArray<IStatusHeader> = parsed.filter(isIStatusHeader)
+  const entries: ReadonlyArray<IStatusEntry> = parsed.filter(isIStatusEntry)
 
-      if (status.kind === 'ordinary') {
-        // when a file is added in the index but then removed in the working
-        // directory, the file won't be part of the commit, so we can skip
-        // displaying this entry in the changes list
-        if (
-          status.index === GitStatusEntry.Added &&
-          status.workingTree === GitStatusEntry.Deleted
-        ) {
-          continue
-        }
+  for (const entry of entries) {
+    const status = mapStatus(entry.statusCode)
+    const hasConflictMarkers = filesWithConflictMarkers.has(entry.path)
+
+    if (status.kind === 'ordinary') {
+      // when a file is added in the index but then removed in the working
+      // directory, the file won't be part of the commit, so we can skip
+      // displaying this entry in the changes list
+      if (
+        status.index === GitStatusEntry.Added &&
+        status.workingTree === GitStatusEntry.Deleted
+      ) {
+        continue
       }
+    }
 
-      if (status.kind === 'untracked') {
-        // when a delete has been staged, but an untracked file exists with the
-        // same path, we should ensure that we only draw one entry in the
-        // changes list - see if an entry already exists for this path and
-        // remove it if found
-        files.delete(entry.path)
-      }
+    if (status.kind === 'untracked') {
+      // when a delete has been staged, but an untracked file exists with the
+      // same path, we should ensure that we only draw one entry in the
+      // changes list - see if an entry already exists for this path and
+      // remove it if found
+      files.delete(entry.path)
+    }
 
-      // for now we just poke at the existing summary
-      const summary = convertToAppStatus(status, hasConflictMarkers)
-      const selection = DiffSelection.fromInitialSelection(
-        DiffSelectionType.All
-      )
+    // for now we just poke at the existing summary
+    const summary = convertToAppStatus(status, hasConflictMarkers)
+    const selection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
 
-      files.set(
+    files.set(
+      entry.path,
+      new WorkingDirectoryFileChange(
         entry.path,
-        new WorkingDirectoryFileChange(
-          entry.path,
-          summary,
-          selection,
-          entry.oldPath
-        )
+        summary,
+        selection,
+        entry.oldPath
       )
-    } else if (entry.kind === 'header') {
-      let m: RegExpMatchArray | null
-      const value = entry.value
+    )
+  }
 
-      // This intentionally does not match branch.oid initial
-      if ((m = value.match(/^branch\.oid ([a-f0-9]+)$/))) {
-        currentTip = m[1]
-      } else if ((m = value.match(/^branch.head (.*)/))) {
-        if (m[1] !== '(detached)') {
-          currentBranch = m[1]
-        }
-      } else if ((m = value.match(/^branch.upstream (.*)/))) {
-        currentUpstreamBranch = m[1]
-      } else if ((m = value.match(/^branch.ab \+(\d+) -(\d+)$/))) {
-        const ahead = parseInt(m[1], 10)
-        const behind = parseInt(m[2], 10)
+  for (const header of headers) {
+    let m: RegExpMatchArray | null
+    const value = header.value
 
-        if (!isNaN(ahead) && !isNaN(behind)) {
-          branchAheadBehind = { ahead, behind }
-        }
+    // This intentionally does not match branch.oid initial
+    if ((m = value.match(/^branch\.oid ([a-f0-9]+)$/))) {
+      currentTip = m[1]
+    } else if ((m = value.match(/^branch.head (.*)/))) {
+      if (m[1] !== '(detached)') {
+        currentBranch = m[1]
+      }
+    } else if ((m = value.match(/^branch.upstream (.*)/))) {
+      currentUpstreamBranch = m[1]
+    } else if ((m = value.match(/^branch.ab \+(\d+) -(\d+)$/))) {
+      const ahead = parseInt(m[1], 10)
+      const behind = parseInt(m[2], 10)
+
+      if (!isNaN(ahead) && !isNaN(behind)) {
+        branchAheadBehind = { ahead, behind }
       }
     }
   }
