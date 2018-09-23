@@ -26,13 +26,13 @@ export interface IStatusEntry {
 export function isIStatusHeader(
   statusItem: StatusItem
 ): statusItem is IStatusHeader {
-  return (<IStatusHeader>statusItem).kind === 'header'
+  return statusItem.kind === 'header'
 }
 
 export function isIStatusEntry(
   statusItem: StatusItem
 ): statusItem is IStatusEntry {
-  return (<IStatusEntry>statusItem).kind === 'entry'
+  return statusItem.kind === 'entry'
 }
 
 const ChangedEntryType = '1'
