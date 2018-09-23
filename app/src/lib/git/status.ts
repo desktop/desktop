@@ -116,12 +116,6 @@ export async function getStatus(
   }
 
   const stdout = result.output.toString('utf8')
-
-  let currentBranch: string | undefined = undefined
-  let currentUpstreamBranch: string | undefined = undefined
-  let currentTip: string | undefined = undefined
-  let branchAheadBehind: IAheadBehind | undefined = undefined
-
   const parsed = parsePorcelainStatus(stdout)
   const headers: ReadonlyArray<IStatusHeader> = parsed.filter(isIStatusHeader)
   const entries: ReadonlyArray<IStatusEntry> = parsed.filter(isIStatusEntry)
@@ -139,28 +133,24 @@ export async function getStatus(
     return addEntryToFiles(files, entry, filesWithConflictMarkers)
   }, new Map<string, WorkingDirectoryFileChange>())
 
-  for (const header of headers) {
-    let m: RegExpMatchArray | null
-    const value = header.value
-
-    // This intentionally does not match branch.oid initial
-    if ((m = value.match(/^branch\.oid ([a-f0-9]+)$/))) {
-      currentTip = m[1]
-    } else if ((m = value.match(/^branch.head (.*)/))) {
-      if (m[1] !== '(detached)') {
-        currentBranch = m[1]
-      }
-    } else if ((m = value.match(/^branch.upstream (.*)/))) {
-      currentUpstreamBranch = m[1]
-    } else if ((m = value.match(/^branch.ab \+(\d+) -(\d+)$/))) {
-      const ahead = parseInt(m[1], 10)
-      const behind = parseInt(m[2], 10)
-
-      if (!isNaN(ahead) && !isNaN(behind)) {
-        branchAheadBehind = { ahead, behind }
-      }
-    }
-  }
+  const {
+    currentBranch,
+    currentUpstreamBranch,
+    currentTip,
+    branchAheadBehind,
+  }: {
+    currentBranch: string | undefined
+    currentUpstreamBranch: string | undefined
+    currentTip: string | undefined
+    branchAheadBehind: IAheadBehind | undefined
+    m: RegExpMatchArray | null
+  } = headers.reduce(handleHeader, {
+    currentBranch: undefined,
+    currentUpstreamBranch: undefined,
+    currentTip: undefined,
+    branchAheadBehind: undefined,
+    m: null,
+  })
 
   const workingDirectory = WorkingDirectoryStatus.fromFiles([...files.values()])
 
@@ -215,4 +205,49 @@ function addEntryToFiles(
     )
   )
   return files
+}
+
+function handleHeader(
+  results: {
+    currentBranch: string | undefined
+    currentUpstreamBranch: string | undefined
+    currentTip: string | undefined
+    branchAheadBehind: IAheadBehind | undefined
+    m: RegExpMatchArray | null
+  },
+  header: IStatusHeader
+) {
+  let {
+    currentBranch,
+    currentUpstreamBranch,
+    currentTip,
+    branchAheadBehind,
+    m,
+  } = results
+  const value = header.value
+
+  // This intentionally does not match branch.oid initial
+  if ((m = value.match(/^branch\.oid ([a-f0-9]+)$/))) {
+    currentTip = m[1]
+  } else if ((m = value.match(/^branch.head (.*)/))) {
+    if (m[1] !== '(detached)') {
+      currentBranch = m[1]
+    }
+  } else if ((m = value.match(/^branch.upstream (.*)/))) {
+    currentUpstreamBranch = m[1]
+  } else if ((m = value.match(/^branch.ab \+(\d+) -(\d+)$/))) {
+    const ahead = parseInt(m[1], 10)
+    const behind = parseInt(m[2], 10)
+
+    if (!isNaN(ahead) && !isNaN(behind)) {
+      branchAheadBehind = { ahead, behind }
+    }
+  }
+  return {
+    currentBranch,
+    currentUpstreamBranch,
+    currentTip,
+    branchAheadBehind,
+    m,
+  }
 }
