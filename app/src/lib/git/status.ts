@@ -117,14 +117,6 @@ export async function getStatus(
 
   const stdout = result.output.toString('utf8')
 
-  const filesWithConflictMarkers = await getFilesWithConflictMarkers(
-    repository.path
-  )
-
-  // Map of files keyed on their paths.
-  // Note, map maintains insertion order
-  const files = new Map<string, WorkingDirectoryFileChange>()
-
   let currentBranch: string | undefined = undefined
   let currentUpstreamBranch: string | undefined = undefined
   let currentTip: string | undefined = undefined
@@ -134,44 +126,18 @@ export async function getStatus(
   const headers: ReadonlyArray<IStatusHeader> = parsed.filter(isIStatusHeader)
   const entries: ReadonlyArray<IStatusEntry> = parsed.filter(isIStatusEntry)
 
-  for (const entry of entries) {
-    const status = mapStatus(entry.statusCode)
-    const hasConflictMarkers = filesWithConflictMarkers.has(entry.path)
+  // run git diff check if anything is conflicted
+  const filesWithConflictMarkers = entries.some(
+    es => mapStatus(es.statusCode).kind === 'conflicted'
+  )
+    ? await getFilesWithConflictMarkers(repository.path)
+    : new Set<string>()
 
-    if (status.kind === 'ordinary') {
-      // when a file is added in the index but then removed in the working
-      // directory, the file won't be part of the commit, so we can skip
-      // displaying this entry in the changes list
-      if (
-        status.index === GitStatusEntry.Added &&
-        status.workingTree === GitStatusEntry.Deleted
-      ) {
-        continue
-      }
-    }
-
-    if (status.kind === 'untracked') {
-      // when a delete has been staged, but an untracked file exists with the
-      // same path, we should ensure that we only draw one entry in the
-      // changes list - see if an entry already exists for this path and
-      // remove it if found
-      files.delete(entry.path)
-    }
-
-    // for now we just poke at the existing summary
-    const summary = convertToAppStatus(status, hasConflictMarkers)
-    const selection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
-
-    files.set(
-      entry.path,
-      new WorkingDirectoryFileChange(
-        entry.path,
-        summary,
-        selection,
-        entry.oldPath
-      )
-    )
-  }
+  // Map of files keyed on their paths.
+  // Note, map maintains insertion order
+  const files = entries.reduce((files, entry) => {
+    return addEntryToFiles(files, entry, filesWithConflictMarkers)
+  }, new Map<string, WorkingDirectoryFileChange>())
 
   for (const header of headers) {
     let m: RegExpMatchArray | null
@@ -206,4 +172,47 @@ export async function getStatus(
     exists: true,
     workingDirectory,
   }
+}
+
+function addEntryToFiles(
+  files: Map<string, WorkingDirectoryFileChange>,
+  entry: IStatusEntry,
+  filesWithConflictMarkers: Set<string>
+) {
+  const status = mapStatus(entry.statusCode)
+  const hasConflictMarkers = filesWithConflictMarkers.has(entry.path)
+  if (status.kind === 'ordinary') {
+    // when a file is added in the index but then removed in the working
+    // directory, the file won't be part of the commit, so we can skip
+    // displaying this entry in the changes list
+    if (
+      status.index === GitStatusEntry.Added &&
+      status.workingTree === GitStatusEntry.Deleted
+    ) {
+      return files
+    }
+  }
+
+  if (status.kind === 'untracked') {
+    // when a delete has been staged, but an untracked file exists with the
+    // same path, we should ensure that we only draw one entry in the
+    // changes list - see if an entry already exists for this path and
+    // remove it if found
+    files.delete(entry.path)
+  }
+
+  // for now we just poke at the existing summary
+  const summary = convertToAppStatus(status, hasConflictMarkers)
+  const selection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
+
+  files.set(
+    entry.path,
+    new WorkingDirectoryFileChange(
+      entry.path,
+      summary,
+      selection,
+      entry.oldPath
+    )
+  )
+  return files
 }
