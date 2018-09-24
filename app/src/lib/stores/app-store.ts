@@ -3016,7 +3016,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   public _endWelcomeFlow(): Promise<void> {
     this.showWelcomeFlow = false
-
     this.emitUpdate()
 
     markWelcomeFlowComplete()
@@ -3231,7 +3230,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  public async markUsageStatsNoteSeen(): Promise<void> {
+  public markUsageStatsNoteSeen() {
     markUsageStatsNoteSeen()
   }
 
@@ -3316,7 +3315,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   public _reportStats() {
     // ensure the user has seen and acknowledged the current usage stats setting
-    if (!hasSeenUsageStatsNote()) {
+    if (!this.showWelcomeFlow && !hasSeenUsageStatsNote()) {
       this._showPopup({ type: PopupType.UsageReportingChanges })
       return Promise.resolve()
     }
