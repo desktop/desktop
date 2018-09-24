@@ -11,7 +11,6 @@ import {
   PullRequestStore,
   RepositoriesStore,
   SignInStore,
-  readEmoji,
 } from '.'
 import { Account } from '../../models/account'
 import { AppMenu, IMenu } from '../../models/app-menu'
@@ -160,6 +159,7 @@ import { inferComparisonBranch } from './helpers/infer-comparison-branch'
 import { PullRequestUpdater } from './helpers/pull-request-updater'
 import { validatedRepositoryPath } from './helpers/validated-repository-path'
 import { RepositoryStateCache } from './repository-state-cache'
+import { readEmoji } from '../read-emoji'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
