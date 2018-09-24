@@ -269,7 +269,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private selectedBranchesTab = BranchesTab.Branches
   private selectedTheme = ApplicationTheme.Light
-  private isDivergingBranchBannerVisible = false
 
   public constructor(
     private readonly gitHubUserStore: GitHubUserStore,
@@ -470,7 +469,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repositoryFilterText: this.repositoryFilterText,
       selectedCloneRepositoryTab: this.selectedCloneRepositoryTab,
       selectedBranchesTab: this.selectedBranchesTab,
-      isDivergingBranchBannerVisible: this.isDivergingBranchBannerVisible,
       selectedTheme: this.selectedTheme,
     }
   }
@@ -682,13 +680,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
         prevInferredBranchState.aheadBehind.behind !==
           aheadBehindOfInferredBranch.behind
       ) {
-        this._setDivergingBranchBannerVisibility(true)
+        this._setDivergingBranchBannerVisibility(repository, true)
       }
     } else if (
       inferComparisonBranch !== null ||
       aheadBehindOfInferredBranch === null
     ) {
-      this._setDivergingBranchBannerVisibility(false)
+      this._setDivergingBranchBannerVisibility(repository, false)
     }
 
     const cachedState = compareState.formState
@@ -3097,9 +3095,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  public _setDivergingBranchBannerVisibility(visible: boolean) {
-    if (this.isDivergingBranchBannerVisible !== visible) {
-      this.isDivergingBranchBannerVisible = visible
+  public _setDivergingBranchBannerVisibility(
+    repository: Repository,
+    visible: boolean
+  ) {
+    const state = this.repositoryStateCache.get(repository)
+    const { compareState } = state
+
+    if (compareState.isDivergingBranchBannerVisible !== visible) {
+      this.repositoryStateCache.updateCompareState(repository, () => ({
+        isDivergingBranchBannerVisible: visible,
+      }))
 
       if (visible) {
         this.statsStore.recordDivergingBranchBannerDisplayed()
