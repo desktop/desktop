@@ -285,32 +285,20 @@
     - [ ] All commits listed in chronological order, with avatar, date and name; list is scrollable with arrow keys enabled
       - [ ] Right clicking any commit shows options: Revert This Commit, Copy SHA, View on GitHub
       - [ ] Hover shows file name in tooltip
-    - [ ] Placing cursor in search field show all branches with number of commits behind/ahead; list is alpha and categorized 
+    - [ ] Placing cursor in search field show all branches with number of commits behind/ahead; list is alpha and categorized
+      - [ ] Filtering for branch name that doesn't exist shows "Sorry, I can't find that branch"
     - [ ] User can search to a target branch to filter commits; `esc` key to exit; autocomplete and text prediction intact
-      - [ ] User can toggle between behind/ahead, with counts shown
-      - [ ] Only commits behind/ahead shown
-      - [ ] User can merge in any commits into current branch for the "behind" tab
+      - [ ] User can toggle between behind/ahead, with counts shown; Behind tab is shown by default
+          - [ ] If more than 0 commits behind, a list of commits are shown in reverse chronological order
+          - [ ] If more than 0 commits ahead, a list of commits are shown in reverse chronological order
+      - [ ] User can merge in any commits into current branch for the "behind" tab; (button disabled if 0 commits behind)
         - [ ] Merge hint shown below `Merge into X` button with status, numbers of commits, and branch names
         - [ ] After successful merge, tab counts update and merge button is disabled
         - [ ] Merge conflict results in dialog shown directing user to commit view
     - [ ] Merge prompt shown above filter if comparing two branches and commits are behind default branch
       - [ ] `View commits` shows commits in Changes list, `Merge... opens Merge in Current Branch modal`, or `X` to close
 	
-### Relationship between branches
-  - [ ] Clicking in field with placeholder text `Select Branch to Compare…` shows a list of all branches and their number of commits ahead and behind the currently checked out branch
-  - [ ] Pressing `esc` key clears the current filter
-  - [ ] Filtering for branch name that doesn't exist shows "Sorry, I can't find that branch"
-  - [ ] Selecting a branch from the list populates the tab with that branch comparison data
-    - [ ] Behind tab is shown by default
-      - [ ] See number of commits behind in tab header
-      - [ ] If more than 0 commits behind, a list of commits are shown in reverse chronological order
-      - [ ] See button to merge into current branch (button disabled if 0 commits behind)
-      - [ ] Clicking the merge button shows merge conflicts if any, or successfully merges the commit(s)
-      - [ ] After merging, the comparison branch is 0 commits behind
-    - [ ] Ahead tab is on the right-hand side
-      - [ ] If more than 0 commits ahead, a list of commits are shown in reverse chronological order
-
-### Diffs tab		
+### Diffs section (History tab)		
   - [ ] All commits have avatar, selectable SHA, # of files changed, commit message, commit description (optional)
     - [ ] Long commit descriptions can be toggled with expand/collapse icon
       - [ ] Reverting commit repopulates commit area
@@ -324,24 +312,24 @@
   - [ ] Diffs cannot be over 3MB
   - [ ] Diffs cannot be longer than 500,000 characters 
 
-### Commit section
+### Commit section (History tab)
   - [ ] Commit created if user clicks `Commit to [branch]` button with commit message and at least one checked file
     - [ ] `Fetch origin` changes to `Push` with number of commits badge
   - [ ] Avatar of user is shown
-  - [ ] User can 'at-mention' those associated with the respective repo; either subject or description field is ok (published repositories only)
+  - [ ] User can 'at-mention' those associated with the respective repository; either subject or description field is ok (published repositories only)
   - [ ] User can 'pound-mention' an issue in the either subject or description field; issue number should populate (published repositories only)
   - [ ] Description field is optional
   - [ ] User can undo last commit
     - [ ] `Push` with number of commits badge is decremented or reverts to `Fetch origin`
   - [ ] `Undo` button disabled if user is pushing commit
-  - [ ] User can publish a new repo with no commits (aka unborn repo/branch)
-  - [ ] User can make new branch the default branch, by making the intial commit on the new branch.
-  - [ ] User can select individual files to commit at a time
+  - [ ] User can publish a new repository with no commits (aka unborn repository/branch)
+  - [ ] User can make new branch the default branch, by making the intial commit on the new branch
+  - [ ] User can select individual file(s) -- and individial lines of a file(s) -- to commit at a time
   
 ### Co-authoring
   - [ ] clicking co-author icon toggles co-author field; or right-click within commit area
     - [ ] Hovering over the icon reveals add/remove 'action' text
-    - [ ] Right-click includes Mac/Windows context menus; option greyed out if repo not published to Github.com
+    - [ ] Right-click includes Mac/Windows context menus; option greyed out if repo not published to github.com
     - [ ] User can tag other GitHub.com users only, or those within your Enterprise org
       - [ ] Tag is tied to public API name/email; email is "no-reply" if user setting is enabled
       - [ ] Mouseover tooltip reveals name and email of any entered tags
@@ -355,8 +343,8 @@
     - [ ] Commits with `Co-Authored-By: Name <username@github.com>`in the decription field reveal avatar of user    
     - [ ] Hovering over an avatar reveals all tagged users
     - [ ] Hovering over the "people" text reveals all names/emails of tagged users
-  - [ ] Undoing a commit re-enables the tags
-  - [ ] Reverting a commit does not re-enable the tags
+  - [ ] Undoing a commit re-enables the valid tags
+  - [ ] Reverting a commit does not re-enable any tags
 
 ### Branches list
   - [ ] Current branch always shows if repository present
@@ -366,7 +354,7 @@
     - [ ] `New` button opens 'New Branch' modal
     - [ ] If filters results are nil, then prefill branch name in modal if user clicks `Create New Branch`
     - [ ] Active branch is highlighted and marked with a check
-    - [ ] `ESC` clears the filter
+    - [ ] `esc` clears the filter
     - [ ] Search filter match results in bold characters
     - [ ] Hover shows full branch name in tooltip
   - [ ] Default branch labeled and listed first, with timestamp
@@ -374,17 +362,17 @@
   - [ ] Creating a new branch shows `Publish branch` button
     - [ ] Publishing successful if logged in only; else error message
       - [ ] `Create Pull Request` menu option shows warning if branch not published yet
-  - [ ] Renamed branches updated on .com and vice-versa if logged in; else error message
+  - [ ] Renamed branches updated on github.com and vice-versa if logged in; else error message
     - [ ] Opens modal with ability to enter new name
-  - [ ] Deleted branches updated on .com and vice-versa if logged in; else error message
+  - [ ] Deleted branches updated on github.com and vice-versa if logged in; else error message
     - [ ] Deleting branch show warning message
 
 ### Fetching origin/Pull
-  - [ ] Code is constantly being fetched from .com with timestamp
+  - [ ] Code is constantly being fetched from github.com with timestamp
      - [ ] Hover shows timestamp in tooltip
-    - [ ] If Pull Requests on .com, they are reflected with down arrow and quantity
+    - [ ] If Pull Requests on github.com, they are reflected with down arrow and quantity
     - [ ] Pull Requests and Commits can co-exist; error surfaces if merge commit
-  - [ ] User cannot Push/Pull without being signed in; error message surfaced
+  - [ ] User cannot Push/Pull without being signed-in; error message surfaced
     - [ ] Push/Pull works with public/private/Enterprise repos
     - [ ] Tooltip shows status upon hover, if progress to display
   - [ ] When a branch is local-only make sure that the `Fetch` button changes to `Publish` and it publishes
@@ -397,21 +385,21 @@
   - [ ] Published repository, network action - `Publish button` disabled (don't interfere with existing action)
   
 ### Github.com
-  - [ ] If Desktop linked to .com (/settings/applications), the Desktop icon should show on File Revisions tab for all Pull Requests.
+  - [ ] If Desktop linked to .com (/settings/applications), the Desktop icon should show on File Revisions tab for all Pull Requests
     - [ ] Clicking the "computer icon" opens from a Pull Request page opens the branch on Desktop
   - [ ] `Open in Desktop` button under a repo's `Clone and Download` button should open repo in Desktop
   - [ ] If private email is enabled (http://github.com/settings/emails), user is blocked from pushing to all associated repositories on Desktop?
   - [ ] If user updates name in Settings, change should reflect in Preferences
 
-### Pull Request list + CI status (v1.1)
- - [ ] Pull request list shown as tab on Branch list
-   - [ ] Only open Pull Requests are reflected; closed Pull Requests not shown in the list
- - [ ] Pull Request toolbar status is surfaced with yellow, green or red icon, or no icon if no status
+### Pull Request list + Continuous Integration (CI) status
+ - [ ] Pull request list shown as tab on Branch list; quality shown in tab
+   - [ ] Only open Pull Requests are reflected; closed Pull Requests are not shown in the list
+ - [ ] Pull Request toolbar status is surfaced with yellow/green/red icon, or no icon if no status
  - [ ] If no pull requests, then no badge shown, and Pull Request tab shows `0` 
    - [ ] User shown current branch in text area, and given option to create a new branch or create new pull request
  - [ ] Pull request for the current branch selected by default, with pull-request-number badge in header
    - [ ] Pull request list can be filtered; `esc` key clears filter; arrow keys can scroll list
-   - [ ] Results in chronological order, with name, id number, date, username, and CI status
+   - [ ] Results in chronological order, with name, id number, date, username, and CI status (if enabled)
      - [ ] Status checks run frequently in background, especially if yellow
      - [ ] If user hovers over CI status icons, tooltips show individual/group status details
  - [ ] PR status can be updated independently of respective PR
