@@ -1,5 +1,19 @@
 {
   "releases": {
+    "1.4.1-beta1": [
+      "[Fixed] Added compare-to-branch to MenuIDs - #5673. Thanks @kanishk98!",
+      "[Improved] Disable commit button when commit summary is only spaces - #5677. Thanks @Daniel-McCarthy!",
+      "[Improved] Improved error handling when checking the merge base of a missing reference - #5612",
+      "[Improved] Verify Clone-Repository path on focus - #5518. Thanks @Daniel-McCarthy!",
+      "[Fixed] Add positive response if no search results in Clone Repo filter. - #5637. Thanks @DanielHix!",
+      "[Fixed] Increase commit summary pane - #5700. Thanks @aryyya!",
+      "[Added] Added support for Cygwin - #5654. Thanks @LordOfTheThunder!",
+      "[Improved] Branch names no longer allow starting with a plus - #5594. Thanks @Daniel-McCarthy!",
+      "[Fixed] Fix overflow CSS for dialog boxes with dark theme on Windows - #5629. Thanks @cwongmath!",
+      "[Improved] Never suffix `.git` to URLs cloned via an opened URL - #5529. Thanks @j-f1!",
+      "[Improved] Warn user if branch exists on remote when creating branch - #5141. Thanks @Daniel-McCarthy!",
+      "[Fixed] You can now add a co-author to a repo that's added after onboarding experience - #5490"
+    ],
     "1.4.1-beta0": [
     ],
     "1.4.0": [
