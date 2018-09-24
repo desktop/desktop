@@ -11,3 +11,4 @@ app/node_modules/
 .vs/
 .eslintcache
 *.iml
+.envrc
