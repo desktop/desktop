@@ -255,7 +255,7 @@ export class CommitMessage extends React.Component<
     const trailers = this.getCoAuthorTrailers()
 
     const commitCreated = await this.props.onCreateCommit(
-      summary,
+      this.props.singleFileCommit ? this.props.placeholder : summary,
       description,
       trailers
     )
