@@ -176,22 +176,22 @@
 
 ### Repository top-level menu. (Only enabled if one repo present)
   - [ ] Push (Mac: `⌘P`; Windows: `Ctrl+P`)
-    - [ ] Commits from repo pushed to .com; error message shown if conflicts
+    - [ ] Commits from repository are pushed to github.com; error message shown if conflicts
   - [ ] Pull (Mac: `⇧⌘P`; Windows: `Ctrl+Shirt+P`)
-    - [ ] Commits from repo pulled from .com; error message shown if conflicts
+    - [ ] Commits from repository are pulled from github.com; error message shown if conflicts
   - [ ] Remove
-    - [ ] Repo is removed from Repo List; confirmation dialogue shown if Preferences option enabled
+    - [ ] Repository is removed from Repository List; confirmation dialogue shown if Preferences option enabled
   - [ ] View on GitHub (Mac: `⌥⌘G`; Windows: `Ctrl+Alt+G`)
-    - [ ] Repo on .com is opened; must be logged in if private repo or Enterprise
-  - [ ] Open in Terminal/Command prompt (Mac: `^[tilde-sign]`; Windows: )
-    - [ ] Local repo is opened
+    - [ ] Repository on github.com is opened; must be logged in if private repository or Enterprise repository
+  - [ ] Open in [insert shell] (Mac: `^[tilde-sign]`; Windows: ); see Shell options in preferences
+    - [ ] Local repository is opened
     - [ ] If git not installed, modal asks to Open with Git or Install Git
   - [ ] Show in Finder/Explorer (Mac: `⇧⌘F`; Windows: `Ctrl+Shift+F`)
-    - [ ] Local repo is opened
-  - [ ] Open in External Editor (Mac: `⇧⌘A`; Windows: `Ctrl+Shift+A`); see External Editor option in prefs
+    - [ ] Local repository is opened
+  - [ ] Open in [insert editor] (Mac: `⇧⌘A`; Windows: `Ctrl+Shift+A`); see External Editor option in preferences
     - [ ] Secondary modal appears if no Editors set; option to Download Atom 
-  - [ ] Repository settings
-    - [ ] Remote path can be edited for existing repo; origin already set. Cannot be empty string, else error message.
+  - [ ] Repository settings...
+    - [ ] Remote path can be edited for existing repository; origin already set. Cannot be empty string, else error message.
       - [ ] `Saved` button saves last entry
       - [ ] `Cancel` button closes modal
     - [ ] User can opt for `Setup custom remote` for a non-GitHub repository
@@ -203,30 +203,32 @@
 	- [ ] `Cancel` button closes modal
 
 ### Branch top-level menu
-  - [ ] New Branch (Mac: `⇧⌘N`; Windows: `Ctrl+Shift+N`)
+  - [ ] New Branch... (Mac: `⇧⌘N`; Windows: `Ctrl+Shift+N`)
     - [ ] Clicking `Create Branch` makes new branch based on the entered name, if not a duplicate
     - [ ] Master branch is mentioned in the list; current branch shown first
     - [ ] `Cancel` button closes modal
-  - [ ] Rename (cannot be master)
+  - [ ] Rename... (cannot be default branch)
     - [ ] `Rename` button changes branch name if field updated
-      - [ ] Same branch on GitHub.com is not renamed
+      - [ ] Same branch on github.com is not renamed
     - [ ] `Cancel` button closes modal
     - [ ] Protected branches cannot be renamed
-  - [ ] Delete (cannot be master)
+  - [ ] Delete... (cannot be default branch)
     - [ ] Option to delete branch on the remote; default is unchecked
-    - [ ] `Delete` button deletes branch name (and remote too if option checked)
+    - [ ] `Delete` button deletes branch (and remote too if option checked)
     - [ ] `Cancel` button closes modal
     - [ ] Protected branches cannot be deleted
-  - [ ] Update from Default Branch (cannot be master; Mac: `⇧⌘U`; Windows: `Ctrl+Shift+U`)
+  - [ ] Update from Default Branch (cannot be default; Mac: `⇧⌘U`; Windows: `Ctrl+Shift+U`)
   - [ ] Compare to Branch (Mac: `⇧⌘B`; Windows: `Ctrl+Shift+B`)
     - [ ] Takes you to the history tab with the input selected so you can directly choose a branch
-  - [ ] Merge into Current Branch (Mac: `⇧⌘M`; Windows: `Ctrl+Shift+M`)
-    - [ ] Use can filter existing branches
+  - [ ] Merge into Current Branch... (Mac: `⇧⌘M`; Windows: `Ctrl+Shift+M`)
+    - [ ] Use can filter to find existing branches
     - [ ] User can select branch, other than current
     - [ ] `Merge` button only activated if something to merge
+      - [ ] Merge hint shows status and branches to be merged
+      - [ ] If conflicts, Merge button surfaces `Merge Conflicts Found` modal; `Close` or `View Conflicts` buttons
     - [ ] `Cancel` button closes modal
-  - [ ] Compare on GitHub (Mac: `⇧⌘C`; Windows: `Ctrl+Shift+C`) (if repo already published on `github.com`)
-  - [ ] Create Pull request (Mac: `⌘R`; Windows: `Ctrl+R`) opens Pull Request on `github.com` 
+  - [ ] Compare on GitHub (Mac: `⇧⌘C`; Windows: `Ctrl+Shift+C`) (if repository already published on `github.com`)
+  - [ ] Create Pull Request (Mac: `⌘R`; Windows: `Ctrl+R`) opens Pull Request on `github.com` 
     - [ ] If branch unpublished, dialogue asks to publish the branch
     - [ ] `Push Local Changes` modal surfaces with option to `Create Without Pushing` and `Push Commits`;(trigger: `Create Pull Request` after commit on branch before pushing)
 
@@ -234,8 +236,8 @@
   - [ ] Minimize, Zoom (maximize app size), Close, Bring All to Front, GitHub Desktop
 
 ### Help top-level menu
-  - [ ] `Report Issue` opens issue template in Desktop repo on `github.com`
-  - [ ] `Contact GitHub Support` opens `https://github.com/contact` page with user and build prepopulated
+  - [ ] `Report Issue...` opens issue filing in Desktop repository on `github.com`
+  - [ ] `Contact GitHub Support...` opens `https://github.com/contact` page with user and build prepopulated
   - [ ] `Show User Guides` opens Desktop help page on `github.com`
   - [ ] `Show Logs in Finder/Explorer` opens Finder/Explorer logs in local directory
     - [ ] Mac: `ls ~/Library/Application\ Support/GitHub\ Desktop/Logs/*.log`
@@ -243,22 +245,23 @@
   - [ ] About GitHub Desktop (Windows only)
 
 ### Repositories list
-  - [ ] Current repo is always shown in top slot with respective icon; if repo exists
-  - [ ] Opening list shows all repos in categorized format with a working filter
+  - [ ] Current repository is always shown in top slot with respective icon; if repository exists
+  - [ ] Opening list shows all repositories in categorized alpha format with a working filter
     - [ ] `ESC` clears the filter
     - [ ] Search filter match results in bold characters
-    - [ ] All repos (private, enterprise, local, public, forked, other) have proper icon and found in the proper category (GitHub.com/Enterprise/Other)
-      - [ ] Hover shows username/repo, url, and/or local path in tooltip
-      - [ ] User must have paid account for private repos
-      - [ ] Repo icon is updated if admin changes status (public vs private)
+    - [ ] A repository with uncommited files shows a `•` next to name
+    - [ ] All repositories (private, enterprise, local, public, forked, other) have proper icon and found in the proper category (GitHub.com/Enterprise/Other)
+      - [ ] Hover shows username/repository, url, and/or local path in tooltip
+      - [ ] User must have paid account for private repositories
+      - [ ] Repository icon is updated if admin changes status (public vs private)
   - [ ] Repositories cloned from non-github servers should always be in the Other group, and have the 'computer' icon.
-  - [ ] Selecting a repo updates Changes/History/Diff areas
+  - [ ] Selecting a repository updates Changes/History/Diff areas
     - [ ] If no Changes, Diff area shows `Open this repository` link to Finder/Explorer on local
-  - [ ] `Right-click` on any repo shows `Open in Terminal`, `Open in Finder/Explorer`, `Open in External Editor`, and `Remove` options
-  - [ ] Repos which have been removed locally (and trash emptied) have 'cannot find repository' warning
-    - [ ] Relaunching the app when it displays a missing repository preserves the repo's name and last seen path
-    - [ ] Remove a repo which can not be found (deleted locally & trash emptied)
-  - [ ] Repos which are cloning display a progress bar
+  - [ ] `Right-click` reveals `Open in [Shell]`, `Open in Finder/Explorer`, `Open in [Editor]`, and `Remove` options
+  - [ ] Repositories which have been removed locally (and trash emptied) have 'cannot find repository' warning
+    - [ ] Relaunching the app when it displays a missing repository preserves the repository's name and last seen path
+    - [ ] Remove a repository which can not be found (deleted locally & trash emptied)
+  - [ ] Repositories which are cloning display a progress bar
 
 ### Changes tab
   - [ ] Changes tab shows `•` icon if files are waiting to be committed
@@ -268,27 +271,30 @@
     - [ ] User can check none, or check one or more files to commit; list is scrollable
       - [ ] User can select one or more lines to commit; diff is scrollable
       - [ ] Right-clicking opens context menu
-        - [ ] User can discard the file; pending confirmation dialogue
+        - [ ] User can discard the file (or all files); pending confirmation dialogue
 	  - [ ] `Do not show this message again`overrides the preference setting if true  
         - [ ] User can ignore single/all files, show in Finder/Explorer, reveal in external editor, or open in default program
-	  - [ ] A specific files can only be ignored once
+	  - [ ] A specific file can only be ignored once
 	  - [ ] All ignored files found in Repository Settings > Ignored Files tab
-	- User can open in finder, preferred editor, or OS default program  
+	- [ ] User can open in finder, preferred editor, or OS default program  
   - [ ] Panes can be resized horizontally, and contents resize to take the full width
-    - [ ] Quitting Desktop and relaunching remembers sizes
+    - [ ] Quitting Desktop and relaunching remembers pane sizes
 
 ### History tab
   - [ ] History tab shows commits on your current branch by default
     - [ ] All commits listed in chronological order, with avatar, date and name; list is scrollable with arrow keys enabled
-      - [ ] Right clicking any commit shows options: Revert, Copy SHA, View on GitHub
+      - [ ] Right clicking any commit shows options: Revert This Commit, Copy SHA, View on GitHub
       - [ ] Hover shows file name in tooltip
-    - [ ] Placing cursor in search field show all branches with number of commits behind/ahead  
+    - [ ] Placing cursor in search field show all branches with number of commits behind/ahead; list is alpha and categorized 
     - [ ] User can search to a target branch to filter commits; `esc` key to exit; autocomplete and text prediction intact
       - [ ] User can toggle between behind/ahead, with counts shown
       - [ ] Only commits behind/ahead shown
       - [ ] User can merge in any commits into current branch for the "behind" tab
+        - [ ] Merge hint shown below `Merge into X` button with status, numbers of commits, and branch names
         - [ ] After successful merge, tab counts update and merge button is disabled
         - [ ] Merge conflict results in dialog shown directing user to commit view
+    - [ ] Merge prompt shown above filter if comparing two branches and commits are behind default branch
+      - [ ] `View commits` shows commits in Changes list, `Merge... opens Merge in Current Branch modal`, or `X` to close
 	
 ### Relationship between branches
   - [ ] Clicking in field with placeholder text `Select Branch to Compare…` shows a list of all branches and their number of commits ahead and behind the currently checked out branch
@@ -412,10 +418,3 @@
  
 ### Security
  - [ ] `Untrusted server` warning surfaced if GitHub cannot verify the identity of `api.github.com`; user can `Cancel` or `Continue`
-
-
-### TBD placeholder (WIP)
-  - Merge tool for conflicted files
-  - Conflicted files vs changed files
-  - Show Git LFS (Cloning, Committing, Checking out, Reverting, Switching branches)
-  - Report Git LFS (Cloning, Pushing, Pulling, Switching branches, Reverting)
