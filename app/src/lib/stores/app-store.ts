@@ -666,26 +666,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
       },
     }))
 
-    // we only want to show the banner when the the number
-    // commits behind has changed since the last it was visible
-    if (
-      inferredBranch !== null &&
-      aheadBehindOfInferredBranch !== null &&
-      aheadBehindOfInferredBranch.behind > 0
-    ) {
+    if (inferredBranch !== null) {
+      const currentCount = getBehindCount(aheadBehindOfInferredBranch)
+
       const prevInferredBranchState =
         state.compareState.inferredComparisonBranch
-      if (
-        prevInferredBranchState.aheadBehind === null ||
-        prevInferredBranchState.aheadBehind.behind !==
-          aheadBehindOfInferredBranch.behind
-      ) {
-        this._setDivergingBranchBannerVisibility(repository, true)
-      }
-    } else if (
-      inferComparisonBranch !== null ||
-      aheadBehindOfInferredBranch === null
-    ) {
+
+      const previousCount = getBehindCount(prevInferredBranchState.aheadBehind)
+
+      // we only want to show the banner when the the number
+      // commits behind has changed since the last it was visible
+      const countChanged = currentCount > 0 && previousCount !== currentCount
+      this._setDivergingBranchBannerVisibility(repository, countChanged)
+    } else {
       this._setDivergingBranchBannerVisibility(repository, false)
     }
 
@@ -3864,4 +3857,12 @@ function getInitialAction(
     branch: cachedState.comparisonBranch,
     mode: cachedState.kind,
   }
+}
+
+function getBehindCount(aheadBehind: IAheadBehind | null): number {
+  if (aheadBehind === null) {
+    return 0
+  }
+
+  return aheadBehind.behind
 }
