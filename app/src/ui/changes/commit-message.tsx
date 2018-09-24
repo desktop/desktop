@@ -28,9 +28,9 @@ const addAuthorIcon = new OcticonSymbol(
   12,
   7,
   'M9.875 2.125H12v1.75H9.875V6h-1.75V3.875H6v-1.75h2.125V0h1.75v2.125zM6 ' +
-  '6.5a.5.5 0 0 1-.5.5h-5a.5.5 0 0 1-.5-.5V6c0-1.316 2-2 2-2s.114-.204 ' +
-  '0-.5c-.42-.31-.472-.795-.5-2C1.587.293 2.434 0 3 0s1.413.293 1.5 1.5c-.028 ' +
-  '1.205-.08 1.69-.5 2-.114.295 0 .5 0 .5s2 .684 2 2v.5z'
+    '6.5a.5.5 0 0 1-.5.5h-5a.5.5 0 0 1-.5-.5V6c0-1.316 2-2 2-2s.114-.204 ' +
+    '0-.5c-.42-.31-.472-.795-.5-2C1.587.293 2.434 0 3 0s1.413.293 1.5 1.5c-.028 ' +
+    '1.205-.08 1.69-.5 2-.114.295 0 .5 0 .5s2 .684 2 2v.5z'
 )
 
 interface ICommitMessageProps {
@@ -100,7 +100,7 @@ function findUserAutoCompleteProvider(
 export class CommitMessage extends React.Component<
   ICommitMessageProps,
   ICommitMessageState
-  > {
+> {
   private descriptionComponent: AutocompletingTextArea | null = null
 
   private descriptionTextArea: HTMLTextAreaElement | null = null
@@ -256,7 +256,9 @@ export class CommitMessage extends React.Component<
 
     const commitCreated = await this.props.onCreateCommit(
       // allow single file commit without summary
-      this.props.singleFileCommit && !this.state.summary ? this.props.placeholder : summary,
+      this.props.singleFileCommit && !this.state.summary
+        ? this.props.placeholder
+        : summary,
       description,
       trailers
     )
