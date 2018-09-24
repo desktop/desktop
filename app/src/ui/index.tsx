@@ -24,7 +24,6 @@ import {
   AppStore,
   GitHubUserStore,
   CloningRepositoriesStore,
-  EmojiStore,
   IssuesStore,
   SignInStore,
   RepositoriesStore,
@@ -108,7 +107,6 @@ const gitHubUserStore = new GitHubUserStore(
   new GitHubUserDatabase('GitHubUserDatabase')
 )
 const cloningRepositoriesStore = new CloningRepositoriesStore()
-const emojiStore = new EmojiStore()
 const issuesStore = new IssuesStore(new IssuesDatabase('IssuesDatabase'))
 const statsStore = new StatsStore(
   new StatsDatabase('StatsDatabase'),
@@ -133,7 +131,6 @@ const repositoryStateManager = new RepositoryStateCache(repo =>
 const appStore = new AppStore(
   gitHubUserStore,
   cloningRepositoriesStore,
-  emojiStore,
   issuesStore,
   statsStore,
   signInStore,
