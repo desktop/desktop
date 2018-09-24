@@ -75,7 +75,8 @@ function getUrlFromUnicodeEmoji(emoji: string): string | null {
   return getEmojiImageUrlFromRelativePath(`unicode/${filename}.png`)
 }
 
-/** Read the stored emoji list from JSON into an in-memory representation.
+/**
+ * Read the stored emoji list from JSON into an in-memory representation.
  *
  * @param rootDir - The folder containing the entry point (index.html or main.js) of the application.
  */
