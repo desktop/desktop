@@ -12,8 +12,8 @@ import {
   mapStatus,
   IStatusEntry,
   IStatusHeader,
-  isIStatusHeader,
-  isIStatusEntry,
+  isStatusHeader,
+  isStatusEntry,
 } from '../status-parser'
 import { DiffSelectionType, DiffSelection } from '../../models/diff'
 import { Repository } from '../../models/repository'
@@ -117,8 +117,8 @@ export async function getStatus(
 
   const stdout = result.output.toString('utf8')
   const parsed = parsePorcelainStatus(stdout)
-  const headers: ReadonlyArray<IStatusHeader> = parsed.filter(isIStatusHeader)
-  const entries: ReadonlyArray<IStatusEntry> = parsed.filter(isIStatusEntry)
+  const headers: ReadonlyArray<IStatusHeader> = parsed.filter(isStatusHeader)
+  const entries: ReadonlyArray<IStatusEntry> = parsed.filter(isStatusEntry)
 
   // run git diff check if anything is conflicted
   const filesWithConflictMarkers = entries.some(
@@ -129,9 +129,10 @@ export async function getStatus(
 
   // Map of files keyed on their paths.
   // Note, map maintains insertion order
-  const files = entries.reduce((files, entry) => {
-    return addEntryToFiles(files, entry, filesWithConflictMarkers)
-  }, new Map<string, WorkingDirectoryFileChange>())
+  const files = entries.reduce(
+    (files, entry) => addEntryToFiles(files, entry, filesWithConflictMarkers),
+    new Map<string, WorkingDirectoryFileChange>()
+  )
 
   const {
     currentBranch,
@@ -143,7 +144,6 @@ export async function getStatus(
     currentUpstreamBranch: string | undefined
     currentTip: string | undefined
     branchAheadBehind: IAheadBehind | undefined
-    m: RegExpMatchArray | null
   } = headers.reduce(handleHeader, {
     currentBranch: undefined,
     currentUpstreamBranch: undefined,
@@ -164,6 +164,9 @@ export async function getStatus(
   }
 }
 
+/** reducer(ish) to create the map of file change statuses
+ * from a list of entries
+ */
 function addEntryToFiles(
   files: Map<string, WorkingDirectoryFileChange>,
   entry: IStatusEntry,
@@ -207,6 +210,9 @@ function addEntryToFiles(
   return files
 }
 
+/** reducer to calculate the ahead / behind and branch names
+ * from a list of headers
+ */
 function handleHeader(
   results: {
     currentBranch: string | undefined

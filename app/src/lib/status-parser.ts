@@ -23,13 +23,13 @@ export interface IStatusEntry {
   readonly oldPath?: string
 }
 
-export function isIStatusHeader(
+export function isStatusHeader(
   statusItem: StatusItem
 ): statusItem is IStatusHeader {
   return statusItem.kind === 'header'
 }
 
-export function isIStatusEntry(
+export function isStatusEntry(
   statusItem: StatusItem
 ): statusItem is IStatusEntry {
   return statusItem.kind === 'entry'
