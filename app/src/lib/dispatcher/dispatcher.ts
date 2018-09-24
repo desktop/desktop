@@ -686,6 +686,10 @@ export class Dispatcher {
     return this.appStore.setStatsOptOut(optOut)
   }
 
+  public markUsageStatsNoteSeen() {
+    this.appStore.markUsageStatsNoteSeen()
+  }
+
   /**
    * Clear any in-flight sign in state and return to the
    * initial (no sign-in) state.

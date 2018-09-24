@@ -153,7 +153,12 @@ import {
   parse as parseShell,
   Shell,
 } from '../shells'
-import { ILaunchStats, StatsStore, hasSeenUsageStatsNote } from '../stats'
+import {
+  ILaunchStats,
+  StatsStore,
+  markUsageStatsNoteSeen,
+  hasSeenUsageStatsNote,
+} from '../stats'
 import { hasShownWelcomeFlow, markWelcomeFlowComplete } from '../welcome'
 import { getWindowState, WindowState } from '../window-state'
 import { TypedBaseStore } from './base-store'
@@ -3224,6 +3229,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await this.statsStore.setOptOut(optOut)
 
     this.emitUpdate()
+  }
+
+  public async markUsageStatsNoteSeen(): Promise<void> {
+    markUsageStatsNoteSeen()
   }
 
   public _setConfirmRepositoryRemovalSetting(

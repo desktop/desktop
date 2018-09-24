@@ -19,7 +19,7 @@ import { RetryAction } from '../models/retry-actions'
 import { shouldRenderApplicationMenu } from './lib/features'
 import { matchExistingRepository } from '../lib/repository-matching'
 import { getDotComAPIEndpoint } from '../lib/api'
-import { ILaunchStats, SamplesURL, markUsageStatsNoteSeen } from '../lib/stats'
+import { ILaunchStats, SamplesURL } from '../lib/stats'
 import { getVersion, getName } from './lib/app-proxy'
 import { getOS } from '../lib/get-os'
 import { validatedRepositoryPath } from '../lib/stores/helpers/validated-repository-path'
@@ -1423,8 +1423,8 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private onUsageReportingDismissed = (optOut: boolean) => {
     this.props.appStore.setStatsOptOut(optOut)
+    this.props.appStore.markUsageStatsNoteSeen()
     this.onPopupDismissed()
-    markUsageStatsNoteSeen()
     this.props.appStore._reportStats()
   }
 
