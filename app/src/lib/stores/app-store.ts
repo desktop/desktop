@@ -27,7 +27,11 @@ import {
   ICompareToBranch,
 } from '../app-state'
 import { Account } from '../../models/account'
-import { Repository, ILocalRepositoryState } from '../../models/repository'
+import {
+  Repository,
+  ILocalRepositoryState,
+  nameOf,
+} from '../../models/repository'
 import { GitHubRepository } from '../../models/github-repository'
 import {
   CommittedFileChange,
@@ -39,14 +43,14 @@ import {
   matchGitHubRepository,
   IMatchedGitHubRepository,
   repositoryMatchesRemote,
-} from '../../lib/repository-matching'
+} from '../repository-matching'
 import {
   API,
   getAccountForEndpoint,
   IAPIUser,
   getDotComAPIEndpoint,
   getEnterpriseAPIURL,
-} from '../../lib/api'
+} from '../api'
 import { caseInsensitiveCompare } from '../compare'
 import {
   Branch,
@@ -112,7 +116,7 @@ import {
   EmojiStore,
   GitHubUserStore,
   CloningRepositoriesStore,
-} from '../stores'
+} from '.'
 import { validatedRepositoryPath } from './helpers/validated-repository-path'
 import { IGitAccount } from '../git/authentication'
 import { getGenericHostname, getGenericUsername } from '../generic-git-auth'
@@ -149,6 +153,7 @@ import {
   setPersistedTheme,
 } from '../../ui/lib/application-theme'
 import { findAccountForRemoteURL } from '../find-account'
+import { inferLastPushForRepository } from '../infer-last-push-for-repository'
 
 /**
  * Enum used by fetch to determine if
@@ -1264,9 +1269,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private startPullRequestUpdater(repository: Repository) {
     if (this.currentPullRequestUpdater) {
       fatalError(
-        `A pull request updater is already active and cannot start updating on ${
-          repository.name
-        }`
+        `A pull request updater is already active and cannot start updating on ${nameOf(
+          repository
+        )}`
       )
 
       return
@@ -1301,27 +1306,43 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
-  private shouldBackgroundFetch(repository: Repository): boolean {
+  private shouldBackgroundFetch(
+    repository: Repository,
+    lastPush: Date | null
+  ): boolean {
     const gitStore = this.getGitStore(repository)
     const lastFetched = gitStore.lastFetched
 
-    if (!lastFetched) {
+    if (lastFetched === null) {
       return true
     }
 
     const now = new Date()
     const timeSinceFetch = now.getTime() - lastFetched.getTime()
-
+    const repoName = nameOf(repository)
     if (timeSinceFetch < BackgroundFetchMinimumInterval) {
       const timeInSeconds = Math.floor(timeSinceFetch / 1000)
 
       log.debug(
-        `skipping background fetch as repository was fetched ${timeInSeconds}s ago`
+        `Skipping background fetch as '${repoName}' was fetched ${timeInSeconds}s ago`
       )
       return false
     }
 
-    return true
+    if (lastPush === null) {
+      return true
+    }
+
+    // we should fetch if the last push happened after the last fetch
+    if (lastFetched < lastPush) {
+      return true
+    }
+
+    log.debug(
+      `Skipping background fetch since nothing has been pushed to '${repoName}' since the last fetch at ${lastFetched}`
+    )
+
+    return false
   }
 
   private startBackgroundFetching(
@@ -1346,11 +1367,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    // Todo: add logic to background checker to check the API before fetching
+    // similar to what's being done in `refreshAllIndicators`
     const fetcher = new BackgroundFetcher(
       repository,
       account,
       r => this.performFetch(r, account, FetchType.BackgroundTask),
-      r => this.shouldBackgroundFetch(r)
+      r => this.shouldBackgroundFetch(r, null)
     )
     fetcher.start(withInitialSkew)
     this.currentBackgroundFetcher = fetcher
@@ -1441,7 +1464,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdateNow()
 
     this.accountsStore.refresh()
-    this.refreshAllIndicators()
   }
 
   private async getSelectedExternalEditor(): Promise<ExternalEditor | null> {
@@ -1930,17 +1952,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    if (repositories.length > 15) {
-      log.info(
-        `repository indicators have been disabled while we investigate reducing the overhead of the computation work as you have ${
-          repositories.length
-        } tracked repositories`
-      )
-      return
-    }
+    const startTime = performance && performance.now ? performance.now() : null
 
     for (const repo of repositories) {
       await this.refreshIndicatorForRepository(repo)
+    }
+
+    if (startTime && repositories.length > 1) {
+      const delta = performance.now() - startTime
+      const timeInSeconds = (delta / 1000).toFixed(3)
+      log.info(
+        `Background fetch for ${
+          repositories.length
+        } repositories took ${timeInSeconds}sec`
+      )
     }
 
     this.emitUpdate()
@@ -1961,20 +1986,25 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const gitStore = this.getGitStore(repository)
-
     const status = await gitStore.loadStatus()
     if (status === null) {
       lookup.delete(repository.id)
       return
     }
 
-    this.withAuthenticatingUser(repository, async (repo, account) => {
-      if (this.shouldBackgroundFetch(repo)) {
-        await gitStore.performFailableOperation(() => {
+    const lastPush = await inferLastPushForRepository(
+      this.accounts,
+      gitStore,
+      repository
+    )
+
+    if (this.shouldBackgroundFetch(repository, lastPush)) {
+      await this.withAuthenticatingUser(repository, (repo, account) => {
+        return gitStore.performFailableOperation(() => {
           return gitStore.fetch(account, true)
         })
-      }
-    })
+      })
+    }
 
     lookup.set(repository.id, {
       aheadBehind: gitStore.aheadBehind,

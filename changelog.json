@@ -1,5 +1,27 @@
 {
   "releases": {
+    "1.3.4": [
+      "[Improved] Cloning message uses remote repo name not file destination - #5413. Thanks @lisavogtsf!",
+      "[Improved] Support VSCode user scope installation - #5281. Thanks @saschanaz!"
+    ],
+    "1.3.4-beta1": [
+      "[Improved] Cloning message uses remote repo name not file destination - #5413. Thanks @lisavogtsf!",
+      "[Improved] Support VSCode user scope installation - #5281. Thanks @saschanaz!"
+    ],
+    "1.3.4-beta0": [
+    ],
+    "1.3.3": [
+      "[Fixed] Maximize and restore app on Windows does not fill available space - #5033",
+      "[Fixed] 'Clone repository' menu item label is obscured on Windows - #5348. Thanks @Daniel-McCarthy!",
+      "[Fixed] User can toggle files when commit is in progress - #5341. Thanks @masungwon!",
+      "[Improved] Repository indicator background work - #5317 #5326 #5363 #5241 #5320"
+    ],
+    "1.3.3-beta1": [
+      "[Fixed] Maximize and restore app on Windows does not fill available space - #5033",
+      "[Fixed] 'Clone repository' menu item label is obscured on Windows - #5348. Thanks @Daniel-McCarthy!",
+      "[Fixed] User can toggle files when commit is in progress - #5341. Thanks @masungwon!",
+      "[Improved] Repository indicator background work - #5317 #5326 #5363 #5241 #5320"
+    ],
     "1.3.3-test6": [
       "Testing infrastructure changes"
     ],

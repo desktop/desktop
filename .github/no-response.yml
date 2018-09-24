@@ -5,13 +5,12 @@ daysUntilClose: 14
 # Label requiring a response
 # TODO: also close `needs-reproduction` issues (blocked by https://github.com/probot/no-response/issues/11)
 responseRequiredLabel: more-information-needed
-# Comment to post when closing an issue due to lack of response. 
+# Comment to post when closing an issue due to lack of response.
 closeComment: >
   Thank you for your issue!
-  
-  We haven’t gotten a response to our questions above.
-  With only the information that is currently in the issue,
-  we don’t have enough information to take action.
-  We’re going to close this but don’t hesitate to reach out
-  if you have or find the answers we need.
-  If you answer our questions above, a maintainer will reopen this issue.
+
+  We haven’t gotten a response to our questions above. With only the information
+  that is currently in the issue, we don’t have enough information to take
+  action. We’re going to close this but don’t hesitate to reach out if you have
+  or find the answers we need. If you answer our questions above, a maintainer
+  will reopen this issue.

@@ -127,7 +127,7 @@ function getSelectedRowsFromProps(
 export class ChangesList extends React.Component<
   IChangesListProps,
   IChangesState
-  > {
+> {
   public constructor(props: IChangesListProps) {
     super(props)
     this.state = {
@@ -176,6 +176,7 @@ export class ChangesList extends React.Component<
         onContextMenu={this.onItemContextMenu}
         onIncludeChanged={this.props.onIncludeChanged}
         availableWidth={this.props.availableWidth}
+        disableSelection={this.props.isCommitting}
       />
     )
   }
@@ -380,7 +381,7 @@ export class ChangesList extends React.Component<
             label={filesDescription}
             value={this.includeAllValue}
             onChange={this.onIncludeAllChanged}
-            disabled={fileCount === 0}
+            disabled={fileCount === 0 || this.props.isCommitting}
           />
         </div>
 

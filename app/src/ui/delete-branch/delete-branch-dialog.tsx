@@ -44,8 +44,7 @@ export class DeleteBranch extends React.Component<
       >
         <DialogContent>
           <p>
-            Delete branch <Ref>{this.props.branch.name}</Ref>?
-            <br />
+            Delete branch <Ref>{this.props.branch.name}</Ref>?<br />
             This action cannot be undone.
           </p>
 

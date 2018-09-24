@@ -368,7 +368,7 @@ app.on('ready', () => {
           return
         }
 
-        if (stats.isDirectory()) {
+        if (!__DARWIN__ && stats.isDirectory()) {
           openDirectorySafe(path)
         } else {
           shell.showItemInFolder(path)

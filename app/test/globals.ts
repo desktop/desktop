@@ -1,3 +1,5 @@
+/// <reference path="../src/lib/globals.d.ts" />
+
 import 'mocha'
 import { use } from 'chai'
 use(require('chai-datetime'))

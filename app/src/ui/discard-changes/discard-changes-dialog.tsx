@@ -69,7 +69,8 @@ export class DiscardChanges extends React.Component<
         <DialogContent>
           {this.renderFileList()}
           <p>
-            Changes can be restored by retrieving them from the {TrashNameLabel}.
+            Changes can be restored by retrieving them from the {TrashNameLabel}
+            .
           </p>
           {this.renderConfirmDiscardChanges()}
         </DialogContent>

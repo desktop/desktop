@@ -52,6 +52,7 @@ describe('RepositoriesStore', () => {
       fork: false,
       default_branch: 'master',
       parent: null,
+      pushed_at: '1995-12-17T03:24:00',
     }
 
     it('adds a new GitHub repository', async () => {

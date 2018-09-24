@@ -41,8 +41,7 @@ export class CloneGenericRepository extends React.Component<
             label={
               <span>
                 Repository URL or GitHub username and repository
-                <br />
-                (<Ref>hubot/cool-repo</Ref>)
+                <br />(<Ref>hubot/cool-repo</Ref>)
               </span>
             }
           />
