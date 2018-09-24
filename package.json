@@ -53,6 +53,7 @@
     "yarn": ">= 1.9"
   },
   "dependencies": {
+    "airbnb-browser-shims": "^3.0.0",
     "ajv": "^6.4.0",
     "awesome-node-loader": "^1.1.0",
     "awesome-typescript-loader": "^5.2.1",
