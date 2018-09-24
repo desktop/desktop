@@ -139,11 +139,6 @@ export async function getStatus(
     currentUpstreamBranch,
     currentTip,
     branchAheadBehind,
-  }: {
-    currentBranch: string | undefined
-    currentUpstreamBranch: string | undefined
-    currentTip: string | undefined
-    branchAheadBehind: IAheadBehind | undefined
   } = headers.reduce(handleHeader, {
     currentBranch: undefined,
     currentUpstreamBranch: undefined,
