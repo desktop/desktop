@@ -105,7 +105,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
     if (ahead > 0) {
       content.push(
         <span key="ahead">
-          {ahead}
+          {ahead.toLocaleString()}
           <Octicon symbol={OcticonSymbol.arrowSmallUp} />
         </span>
       )
@@ -114,7 +114,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
     if (behind > 0) {
       content.push(
         <span key="behind">
-          {behind}
+          {behind.toLocaleString()}
           <Octicon symbol={OcticonSymbol.arrowSmallDown} />
         </span>
       )
