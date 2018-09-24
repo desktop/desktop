@@ -667,12 +667,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }))
 
     if (inferredBranch !== null) {
-      const currentCount = getBehindCount(aheadBehindOfInferredBranch)
+      const currentCount = getBehindOrDefault(aheadBehindOfInferredBranch)
 
       const prevInferredBranchState =
         state.compareState.inferredComparisonBranch
 
-      const previousCount = getBehindCount(prevInferredBranchState.aheadBehind)
+      const previousCount = getBehindOrDefault(
+        prevInferredBranchState.aheadBehind
+      )
 
       // we only want to show the banner when the the number
       // commits behind has changed since the last it was visible
@@ -3859,7 +3861,10 @@ function getInitialAction(
   }
 }
 
-function getBehindCount(aheadBehind: IAheadBehind | null): number {
+/**
+ * Get the behind count (or 0) of the ahead/behind counter
+ */
+function getBehindOrDefault(aheadBehind: IAheadBehind | null): number {
   if (aheadBehind === null) {
     return 0
   }
