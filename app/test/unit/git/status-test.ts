@@ -111,7 +111,7 @@ describe('git/status', () => {
 
       const status = await getStatusOrThrow(repository!)
       const files = status.workingDirectory.files
-      expect(files.length).to.not.equal(numFiles)
+      expect(files.length).to.equal(numFiles)
     })
 
     it('returns null for directory without a .git directory', async () => {
