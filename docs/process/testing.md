@@ -6,29 +6,29 @@
       - [ ] Chocolatey package manager: `choco install github-desktop`
       - [ ] 64-bit and up
     - [ ] Data is retained if you download and open a fresh copy
-  - [ ] Release notes page is up-to-date
-  - [ ] Help page is accessible
+  - [ ] Release notes page is up-to-date in app and here https://desktop.github.com/release-notes/
+  - [ ] Help page is accessible https://help.github.com/desktop/
   - [ ] 'Please update' notification shown in Classic apps
 
 ### Welcome Flow
-  - [ ] Create your account (`/join?source=github-desktop`)
+  - [ ] Create your free account (`/join?source=github-desktop`)
     - [ ] User is not automatically logged into Desktop post account creation
   - [ ] `Sign in to Github.com` link
     - [ ] `Sign in` successful if valid username/email and password
       - [ ] If 2FA activated, user sent auth code to enter (test SMS and authenticator app)
         - [ ] User can reissue auth code with `Resend SMS` link
-	- [ ] Sign in successful with active 2FA code, user goes to Configure Git
-	  - [ ] User sees Repository landing page if sign in successful
+	- [ ] Sign in successful with active 2FA code, user goes to Configure Git page
+	  - [ ] User sees Repository landing page if sign-in successful
 	  - [ ] Error message if code is wrong or inactive 
       - [ ] Error message if incorrect username/email or password
     - [ ] Forgot link (`/password_reset`)
-    - [ ] `Cancel` returns to initial Welcome Flow
-    - [ ] `Sign in using your browser` opens default browser
+    - [ ] `Cancel` returns to initial Welcome Flow page
+    - [ ] `Sign-in using your browser` opens default browser for confirmation
       - [ ] Browser login, "authorize" GitHub Desktop, “accept” link
         - [ ] If successful, Desktop shown in `/settings/applications` in user profile
-  - [ ] `Sign in to Enterprise` link (works with v2.8 and up)
+  - [ ] `Sign in to Enterprise` link (v2.8 and up)
     - [ ] `Continue` successful if server address is valid, else error message
-      - [ ] `Sign in using your browser` opens default browser
+      - [ ] `Sign in using your browser` opens default browser for confirmation
         - [ ] Browser login, [insert custom security measure], Authorize GitHub Desktop, “accept” link
     - [ ] User goes to Configure Git if successful
     - [ ] `Cancel` returns to initial Welcome Flow
@@ -37,12 +37,12 @@
     - [ ] Configure Git
       - [ ] Name and email pulled from global `.gitconfig` file, if configured
   	- [ ] If recognized, your avatar is present in example commit; gravatars not recognized
-      - [ ] `Continue` okay if fields populated or blank
+      - [ ] `Continue` allowed if fields populated or blank
   	- [ ] Valid login credentials from github.com or Enterprise carried through
-	  - [ ] User sees Repository landing page if sign in successful
+	  - [ ] User sees Repository landing page if sign-in successful
   - [ ] Usage Data
-    - [ ] Checked by default; user can uncheck. (Should not be checked if user on free plan only.)
-      - [ ] Clicking `Finish`, and user is signed in successfully to Desktop
+    - [ ] Checked by default; user can uncheck. (Should not be checked by default if user on free plan only.)
+      - [ ] Clicking `Finish`, results in user being signed-in successfully
     - [ ] `Cancel` returns to initial Configure Git page
 
 ### Repositories landing page; default no repositories 
@@ -85,7 +85,7 @@
 ### Publishing a repository
   - [ ] Publish Repository modal present if repo is unpublished and user clicks `Publish repository` button
     - [ ] GitHub tab is default; Enterprise tab is also present
-      - [ ] User must be signed in to publish, else `Sign In` button present on tab
+      - [ ] User must be signed-in to publish, else `Sign In` button present on tab
     - [ ] Modal fields are Name, Description (optional), `Keep this code private` checkbox, Organization list (alpha order, tab-specific, if orgs exist), `Cancel` button, `Publish Repository` button
       - [ ] Clicking `Publish Repository` button pushes repo to GitHub.com or Enterprise; `Cancel` button closes modal
         - [ ] Repository is present on GitHub.com or Enterprise if published 
@@ -96,24 +96,24 @@
 ### Application
   - [ ] Minimize, Maximize, Close buttons work in top nav
       - [ ] If user zooms in and quits app, settings should be retained when reopened
-  - [ ] Double-clicking local desktop icon opens the application (Mac only)
-  - [ ] Double clicking top nav bar toggles full-screen / last used screen-size (Mac only); Exit by (Mac: `^⌘f11`; Windows: `Alt`)
+  - [ ] Double-clicking local desktop icon opens the application (Mac OS only)
+  - [ ] Double clicking top nav bar toggles full-screen / last used screen-size (Mac OS only); Exit by (Mac: `^⌘f11`; Windows: `Alt`)
   - [ ] Clicking Desktop icon in dock/taskbar opens the application
   - [ ] Changing desktop icon name while app is open results in package error; closed app name change is successful
 
 ### GitHub Desktop menu top-level
   - [ ] About GitHub Desktop
     - [ ] Current version shown
-    - [ ] Links to release notes (github.com), terms (modal), licenses (modal)
-    - [ ] Update banner shows `whats new` link and `retart now` link
+    - [ ] Links to release notes (modal), terms (modal), licenses (modal)
+    - [ ] Update banner shows `whats new` (modal) and `restart now`; App will restart with latest build
     - [ ] Update modal shows enhancements / bug fixes in latest build with `Install button`; user can X the banner
-    - [ ] Clicking the version number copies to clipboard
+    - [ ] Clicking the build version number copies to clipboard
     - [ ] Edge case: If build is "old", error message displays warning user to "... manually check for updates".
       - [ ] Clicking `Check for updates` button produces "read-only volume" error message, with link for help
-    - [ ] Clicking `Check for updates` button timestamps last attempt
+    - [ ] Clicking `Check for updates` button timestamps last attempt; periodic autochecking in the background
       - [ ] If update available, `Install Update` button will quit app and install update
       - [ ] If update available, download banner is present in main window with `restart` and `what’s new` links
-      - [ ] If checking for update or download latest update, the `Check for updates` button is disabled
+      - [ ] If checking for update or download latest update in progress, the `Check for updates` button is disabled
       - [ ] Restarting the app automatically checks for updates
     - [ ] `Close` button closes modal 
   - [ ] Preferences/Options (Mac: `⌘,` Windows: `Ctrl+,`)
@@ -121,34 +121,37 @@
       - [ ] GitHub.com name, handle, avatar, `sign out` button, if user signed in
       - [ ] Enterprise handle, avatar, `sign out` button, if user signed in
       - [ ] User can sign out of either account
-      - [ ] User can sign-in to both Enterprise and GitHub.com at same time  
+      - [ ] User can be signed-in to both Enterprise and GitHub.com at same time  
     - [ ] Git
       - [ ] Username and email are displayed if `.gitconfig` configured for Welcome flow
       - [ ] `Save` button saves any changes made
       - [ ] `Cancel` button does not save any changes made; modal closed
+    - [ ] Appearance
+      - [ ] Light theme is default
+      - [ ] Dark theme is optional      
     - [ ] Advanced
       - [ ] External Editor options shown in dropdown; else show "Install Atom?" link
       - [ ] Shell options shown in dropdown
       - [ ] Shared usage data option; selection carried through from Welcome flow
         - [ ] `anonymous usage data` link opens https://desktop.github.com/usage-data/
-        - [ ] Check `stats-opt-out` value in Dev Tools > Application > Local storage > file://
+        - [ ] Verify postive `stats-opt-out` value in Dev Tools > Application > Local storage > file://
       - [ ] Confirmation dialogue for removing repositories is checked by default; user can toggle
-          - [ ] Check `ConfirmDiscardChanges` value in Dev Tools > Application > Local storage > file://
+          - [ ] Verify postive `ConfirmDiscardChanges` value in Dev Tools > Application > Local storage > file://
       - [ ] Confirmation dialogue for discarding files is checked by default; user can toggle
-          - [ ] Check `ConfirmRepoRemoval` value in Dev Tools > Application > Local storage > file://
+          - [ ] Verify postive `ConfirmRepoRemoval` value in Dev Tools > Application > Local storage > file://
       - [ ] `Save` button saves any changes made
       - [ ] `Cancel` button does not save any changes made; modal closed
-  - [ ] Install command line tool installs tool at `/usr/local/bin/github` (Mac only as Windows done automagically, Helper may require password, else error message)
+  - [ ] Install command line tool installs tool at `/usr/local/bin/github` (Mac only as Windows done automagically; Helper may require password, else error message)
     - [ ] If already installed, user sees: "The command line tool has been installed at /usr/local/bin/github"
     - [ ] Clicking `OK` closes modal
   - [ ] Quit/Exit Desktop (Mac: `⌘Q`)
     - [ ] Quitting/Exiting and reopening Desktop returns you to last visited repo
-  - [ ] Menu items are disabled any modal is present; MacOS-default menu items not applicable   
+  - [ ] Menu items are disabled if any modal is present; MacOS-default menu items not applicable   
 
 ### File top-level menu
-  - [ ] Create New Repository (Mac: `⌘N`; Windows: `Ctrl+N`)
-  - [ ] Clone a Repository (Mac: `⇧⌘O`; Windows: `Ctrl+Shift+O`)
-  - [ ] Add a Local Repository (Mac: `⌘O`; Windows: `Ctrl+O`)
+  - [ ] New Repository... (Mac: `⌘N`; Windows: `Ctrl+N`)
+  - [ ] Add Local Repository... (Mac: `⌘O`; Windows: `Ctrl+O`)
+  - [ ] Clone Repository... (Mac: `⇧⌘O`; Windows: `Ctrl+Shift+O`)
   - [ ] Options... (Windows only: `Ctrl+,`)
   - [ ] Exit (Windows only; quits the app)
 
@@ -165,7 +168,7 @@
   - [ ] Show History (Mac: `⌘2`; Windows: `Ctrl+2`)
   - [ ] Show Repositories List (Mac: `⌘T`; Windows: `Ctrl+T`)
   - [ ] Show Branches List (Mac: `⌘B`; Windows: `Ctrl+B`)
-  - [ ] Enter Full Zoom (Mac: `^⌘F`; Windows: `F11`)
+  - [ ] Enter Full Screen (Mac: `^⌘F`; Windows: `F11`)
   - [ ] Reset Zoom (Mac: `⌘0`; Windows: `Ctrl+0`)
   - [ ] Zoom In (Mac: `⌘=`; Windows: `Ctrl+=`)
   - [ ] Zoom Out (Mac: `⌘-`; Windows: `Ctrl+-`)
