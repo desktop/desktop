@@ -108,6 +108,12 @@ export interface IDailyMeasures {
 
   /** The number of times a `git merge` initiated by Desktop resulted in a merge conflict for the user */
   readonly mergeConflictFromExplicitMergeCount: number
+
+  /** The number of times a conflicted merge was successfully completed by the user */
+  readonly mergeSuccesfulAfterConflicts: number
+
+  /** The number of times a conflicted merge was aborted by the user */
+  readonly mergeAbortedAfterConflicts: number
 }
 
 export class StatsDatabase extends Dexie {
