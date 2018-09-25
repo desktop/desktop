@@ -222,7 +222,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     ILocalRepositoryState
   >()
 
-  /** Map from shorcut (e.g., :+1:) to on disk URL. */
+  /** Map from shortcut (e.g., :+1:) to on disk URL. */
   private emoji = new Map<string, string>()
 
   /**
