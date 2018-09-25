@@ -70,7 +70,7 @@ export class UsageOptOut extends React.Component<
   }
 
   private finish = () => {
-    this.props.dispatcher.setStatsOptOut(this.state.newOptOutValue)
+    this.props.dispatcher.setStatsOptOut(this.state.newOptOutValue, true)
     // new users do not need to see the usage notes warning
     this.props.dispatcher.markUsageStatsNoteSeen()
     this.props.done()

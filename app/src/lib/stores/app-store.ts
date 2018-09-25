@@ -3224,8 +3224,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** Set whether the user has opted out of stats reporting. */
-  public async setStatsOptOut(optOut: boolean): Promise<void> {
-    await this.statsStore.setOptOut(optOut)
+  public async setStatsOptOut(
+    optOut: boolean,
+    userViewedPrompt: boolean
+  ): Promise<void> {
+    await this.statsStore.setOptOut(optOut, userViewedPrompt)
 
     this.emitUpdate()
   }

@@ -1422,7 +1422,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private onUsageReportingDismissed = (optOut: boolean) => {
-    this.props.appStore.setStatsOptOut(optOut)
+    this.props.appStore.setStatsOptOut(optOut, true)
     this.props.appStore.markUsageStatsNoteSeen()
     this.onPopupDismissed()
     this.props.appStore._reportStats()

@@ -682,8 +682,11 @@ export class Dispatcher {
   }
 
   /** Set whether the user has opted out of stats reporting. */
-  public setStatsOptOut(optOut: boolean): Promise<void> {
-    return this.appStore.setStatsOptOut(optOut)
+  public setStatsOptOut(
+    optOut: boolean,
+    userViewedPrompt: boolean
+  ): Promise<void> {
+    return this.appStore.setStatsOptOut(optOut, userViewedPrompt)
   }
 
   public markUsageStatsNoteSeen() {
