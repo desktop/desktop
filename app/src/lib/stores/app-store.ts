@@ -40,6 +40,7 @@ import {
   CommittedFileChange,
   WorkingDirectoryFileChange,
   WorkingDirectoryStatus,
+  AppFileStatus,
 } from '../../models/status'
 import { TipState } from '../../models/tip'
 import { getAppPath } from '../../ui/lib/app-proxy'
@@ -1469,6 +1470,31 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (!status) {
       return false
     }
+
+    // were any of these conflicted
+    const inAConflictedMerge: boolean = [...status.workingDirectory.files].some(
+      file => file.status === AppFileStatus.Resolved || file.status === AppFileStatus.Conflicted
+    )
+    const prevouslyInAConflictedMerge = false
+    if (!prevouslyInAConflictedMerge && inAConflictedMerge) {
+
+      if (previousStatus.currentBranch === status.currentBranch) {
+        // if conflicted markers removed and if same branch and if different tip -> merge completed successfully
+        if (previousState.currentTip !== status.currentTip) {
+          this.statsStore.recordMergeSuccesfulAfterConflicts()
+        }
+        // if conflicted markers removed and if same branch and same tip -> merge aborted
+        else {
+          this.statsStore.recordMergeAbortedAfterConflicts()
+        }
+      }
+      // if conflicted markers removed and if branch is different -> merge aborted
+      else {
+        this.statsStore.recordMergeAbortedAfterConflicts()
+      }
+    }
+
+
 
     this.repositoryStateCache.updateChangesState(repository, state => {
       // Populate a map for all files in the current working directory state
