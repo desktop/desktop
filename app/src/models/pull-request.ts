@@ -74,7 +74,7 @@ export class PullRequest {
   public readonly title: string
 
   /** The number. */
-  public readonly number: number
+  public readonly pullRequestNumber: number
 
   /** The ref from which the pull request's changes are coming. */
   public readonly head: PullRequestRef
@@ -96,7 +96,7 @@ export class PullRequest {
     created: Date,
     status: PullRequestStatus | null,
     title: string,
-    number_: number,
+    pullRequestNumber: number,
     head: PullRequestRef,
     base: PullRequestRef,
     author: string
@@ -105,7 +105,7 @@ export class PullRequest {
     this.created = created
     this.status = status
     this.title = title
-    this.number = number_
+    this.pullRequestNumber = pullRequestNumber
     this.head = head
     this.base = base
     this.author = author
