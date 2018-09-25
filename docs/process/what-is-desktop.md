@@ -23,8 +23,8 @@ GitHub Desktop is built and maintained by a team at GitHub and a group of amazin
 as an open source application. It is intended primarily to extend the features of GitHub, not to be an 
 agnostic Git client or replicate the feature set of github.com. While we support very basic functionality 
 that will allow the app to function with other hosting providers, we prioritize work that allows the 
-end-to-end GitHub experience to shine and takes advantage of the fact that we can closely integrate 
-with GitHub features.
+end-to-end GitHub and GitHub Enterprise experience to shine and takes advantage of the fact that we can 
+closely integrate with GitHub features.
 
 ## 3. GitHub Desktop prioritizes workflows for beginners and teams working collaboratively.
 
