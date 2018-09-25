@@ -788,7 +788,7 @@ function getLocalStorageTimestamp(key: string): number | null {
 }
 
 /**
- * Calculated the duration (in seconds) between the time the
+ * Calculate the duration (in seconds) between the time the
  * welcome wizard was initiated to the time for the given
  * action.
  *
