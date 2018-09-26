@@ -179,7 +179,7 @@ function buildStatusMap(
   filesWithConflictMarkers: Set<string>
 ): Map<string, WorkingDirectoryFileChange> {
   const status = mapStatus(entry.statusCode)
-  const hasConflictMarkers = filesWithConflictMarkers.has(entry.path)
+
   if (status.kind === 'ordinary') {
     // when a file is added in the index but then removed in the working
     // directory, the file won't be part of the commit, so we can skip
@@ -201,7 +201,10 @@ function buildStatusMap(
   }
 
   // for now we just poke at the existing summary
-  const summary = convertToAppStatus(status, hasConflictMarkers)
+  const summary = convertToAppStatus(
+    status,
+    filesWithConflictMarkers.has(entry.path)
+  )
   const selection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
 
   files.set(
