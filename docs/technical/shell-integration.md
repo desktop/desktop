@@ -209,7 +209,9 @@ The source for the Linux shell integration is found in [`app/src/lib/shells/linu
 These shells are currently supported:
 
  - [GNOME Terminal](https://help.gnome.org/users/gnome-terminal/stable/)
+ - [MATE Terminal](https://github.com/mate-desktop/mate-terminal)
  - [Tilix](https://github.com/gnunn1/tilix)
+ - [Terminator](https://gnometerminator.blogspot.com)
  - [Rxvt Unicode](http://software.schmorp.de/pkg/rxvt-unicode.html)
  - [Konsole](https://konsole.kde.org/)
  - [XTerm](http://invisible-island.net/xterm/)
