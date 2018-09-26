@@ -1,43 +1,24 @@
 # Roadmap
 
-The following are our marketing releases, as planned to date (and we plan to revisit 6 months from now). They contain the broad features we're considering. The further away a release is, the less defined it is. Releases are subject to change at any time. This is not written in stone!!!
+The following are the areas of upcoming work the GitHub Desktop team intends to explore. This is not written in stone and we'll continue to update it as our priorities evolve.
 
-## 1.4 - New branch, maybe?
-
-- [Move unpublished commits on master to new branch](https://github.com/desktop/desktop/issues/1021) - [#1021](https://github.com/desktop/desktop/issues/1021)
-  - Don't let me commit to branches I shouldn't commit to
-  - Guide me to creating my own branches 
+### Onboarding
   
-**Note:** depending on things, this might get combined with 1.5 
+- Evaluate and improve onboarding for new users: [#5686](https://github.com/desktop/desktop/issues/5686)
+- Measuring success: [#5549](https://github.com/desktop/desktop/issues/5549)
   
-## 1.5 - Better onboarding
+### Merge conflicts handling
 
-- Better onboarding for new users
+- Improve how Desktop handles merge conflicts: [#5400](https://github.com/desktop/desktop/issues/5400)
+- Measuring success: [#5394](https://github.com/desktop/desktop/issues/5394)
 
-## 1.6 - Conflict awareness
+### Support rebase workflows
 
-- [Conflict resolution MVP](https://github.com/desktop/desktop/issues/2640) - [#2640](https://github.com/desktop/desktop/issues/2640)
-  - Differentiate conflicted files from other changed files
-  - Let me choose my mergetool
-  - Let me open my mergetool
+- Improve rebase workflows: [#3422](https://github.com/desktop/desktop/issues/3422)
+- TBD on scope and metrics
   
-## 1.7 - Conflict resolution
+### Merge workflow iteration
 
-- [Conflict resolution continued](https://github.com/desktop/desktop/issues/2640) - [#2640](https://github.com/desktop/desktop/issues/2640)
-  - Edit inline
-  - Abort merge
-  - How did I get here?
-  - Don't let me commit a file with conflict markers
-  
-## 1.8 - Messaging + Tracking
-  
-- End of Progress & in-app messaging
-  - End of Progress: Providing friendly update when longer running processes are complete
-  - In-app Message: providing success/failure notifications for unclear interactions (ex: login) 
+- Evaluate and improve merge flow end-to-end: [#5555](https://github.com/desktop/desktop/issues/5555)
 
-- App interaction tracking
-  - Adding in analytics around features we need data on
-  - (optional) Clarifying what data we collect if people opt-in, potentially adding other opt-in options for different levels of data
-  - (optional) Surfacing data collected back to user 
-
-- [View changes by methods and functions (for supported files)](https://blog.github.com/2017-07-26-quickly-review-changed-methods-and-functions-in-your-pull-requests/)
+We'll be adding more to this roadmap as we further define our intended product direction.

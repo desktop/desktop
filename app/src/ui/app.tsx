@@ -756,7 +756,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     // But if they just dragged one, use the dialog so that they can initialize
     // it if needed.
     if (paths.length > 1) {
-      this.addRepositories(paths)
+      const addedRepositories = await this.addRepositories(paths)
+      if (addedRepositories.length) {
+        this.props.dispatcher.recordAddExistingRepository()
+      }
     } else {
       // user may accidentally provide a folder within the repository
       // this ensures we use the repository root, if it is actually a repository
@@ -823,6 +826,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (repositories.length) {
       this.props.dispatcher.selectRepository(repositories[0])
     }
+
+    return repositories
   }
 
   private showRepositorySettings() {

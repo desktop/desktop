@@ -165,22 +165,51 @@ export interface ISuccessState {
 }
 
 /**
+ * The method used to authenticate a user.
+ */
+export enum SignInMethod {
+  /**
+   * In-app sign-in with username, password, and possibly a
+   * two-factor code.
+   */
+  Basic = 'basic',
+  /**
+   * Sign-in through a web browser with a redirect back to
+   * the application.
+   */
+  Web = 'web',
+}
+
+interface IAuthenticationEvent {
+  readonly account: Account
+  readonly method: SignInMethod
+}
+
+/**
  * A store encapsulating all logic related to signing in a user
  * to GitHub.com, or a GitHub Enterprise instance.
  */
 export class SignInStore extends TypedBaseStore<SignInState | null> {
   private state: SignInState | null = null
 
-  private emitAuthenticate(account: Account) {
-    this.emitter.emit('did-authenticate', account)
+  private emitAuthenticate(account: Account, method: SignInMethod) {
+    const event: IAuthenticationEvent = { account, method }
+    this.emitter.emit('did-authenticate', event)
   }
 
   /**
    * Registers an event handler which will be invoked whenever
    * a user has successfully completed a sign-in process.
    */
-  public onDidAuthenticate(fn: (account: Account) => void): Disposable {
-    return this.emitter.on('did-authenticate', fn)
+  public onDidAuthenticate(
+    fn: (account: Account, method: SignInMethod) => void
+  ): Disposable {
+    return this.emitter.on(
+      'did-authenticate',
+      ({ account, method }: IAuthenticationEvent) => {
+        fn(account, method)
+      }
+    )
   }
 
   /**
@@ -296,7 +325,7 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
         return
       }
 
-      this.emitAuthenticate(user)
+      this.emitAuthenticate(user, SignInMethod.Basic)
       this.setState({ kind: SignInStep.Success })
     } else if (
       response.kind ===
@@ -396,7 +425,7 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
       return
     }
 
-    this.emitAuthenticate(account)
+    this.emitAuthenticate(account, SignInMethod.Web)
     this.setState({ kind: SignInStep.Success })
   }
 
@@ -546,7 +575,7 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
         return
       }
 
-      this.emitAuthenticate(user)
+      this.emitAuthenticate(user, SignInMethod.Basic)
       this.setState({ kind: SignInStep.Success })
     } else {
       switch (response.kind) {

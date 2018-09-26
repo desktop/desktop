@@ -331,7 +331,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.cloningRepositoriesStore.onDidError(e => this.emitError(e))
 
-    this.signInStore.onDidAuthenticate(account => this._addAccount(account))
+    this.signInStore.onDidAuthenticate((account, method) => {
+      this._addAccount(account)
+
+      if (this.showWelcomeFlow) {
+        this.statsStore.recordWelcomeWizardSignInMethod(method)
+      }
+    })
     this.signInStore.onDidUpdate(() => this.emitUpdate())
     this.signInStore.onDidError(error => this.emitError(error))
 
@@ -2097,6 +2103,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this._initializeCompare(repository, { kind: CompareActionKind.History })
     }
 
+    const { branchesState } = this.repositoryStateCache.get(repository)
+    const { defaultBranch } = branchesState
+
+    if (defaultBranch !== null && foundBranch.name !== defaultBranch.name) {
+      this.statsStore.recordNonDefaultBranchCheckout()
+    }
+
     return repository
   }
 
@@ -2710,6 +2723,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       r => r.url === url && r.path === path
     )!
 
+    promise.then(success => {
+      if (success) {
+        this.statsStore.recordCloneRepository()
+      }
+    })
+
     return { promise, repository }
   }
 
@@ -2876,6 +2895,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
 
     markWelcomeFlowComplete()
+
+    this.statsStore.recordWelcomeWizardTerminated()
 
     return Promise.resolve()
   }
