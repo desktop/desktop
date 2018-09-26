@@ -215,6 +215,7 @@ These shells are currently supported:
  - [Rxvt Unicode](http://software.schmorp.de/pkg/rxvt-unicode.html)
  - [Konsole](https://konsole.kde.org/)
  - [XTerm](http://invisible-island.net/xterm/)
+ - [Terminology](https://www.enlightenment.org/docs/apps/terminology.md)
 
 These are defined in an enum at the top of the file:
 
@@ -227,6 +228,7 @@ export enum Shell {
   Urxvt = 'URxvt',
   Konsole = 'Konsole',
   Xterm = 'XTerm',
+  Terminology = 'Terminology',
 }
 ```
 
@@ -260,6 +262,7 @@ export async function getAvailableShells(): Promise<
     urxvtPath,
     konsolePath,
     xtermPath,
+    terminologyPath,
   ] = await Promise.all([
     getShellPath(Shell.Gnome),
     getShellPath(Shell.Mate),
@@ -268,6 +271,7 @@ export async function getAvailableShells(): Promise<
     getShellPath(Shell.Urxvt),
     getShellPath(Shell.Konsole),
     getShellPath(Shell.Xterm),
+    getShellPath(Shell.Terminology),
   ])
 
   ...
@@ -302,6 +306,8 @@ export function launch(
       return spawn(foundShell.path, ['--workdir', path])
     case Shell.Xterm:
       return spawn(foundShell.path, ['-e', '/bin/bash'], { cwd: path })
+    case Shell.Terminology:
+      return spawn(foundShell.path, ['-d', path])
     default:
       return assertNever(shell, `Unknown shell: ${shell}`)
   }
