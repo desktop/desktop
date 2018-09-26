@@ -219,7 +219,9 @@ These are defined in an enum at the top of the file:
 ```ts
 export enum Shell {
   Gnome = 'GNOME Terminal',
+  Mate  = 'MATE Terminal',
   Tilix = 'Tilix',
+  Terminator = 'Terminator',
   Urxvt = 'URxvt',
   Konsole = 'Konsole',
   Xterm = 'XTerm',
@@ -250,13 +252,17 @@ export async function getAvailableShells(): Promise<
 > {
   const [
     gnomeTerminalPath,
+    mateTerminalPath,
     tilixPath,
+    terminatorPath,
     urxvtPath,
     konsolePath,
     xtermPath,
   ] = await Promise.all([
     getShellPath(Shell.Gnome),
+    getShellPath(Shell.Mate),
     getShellPath(Shell.Tilix),
+    getShellPath(Shell.Terminator),
     getShellPath(Shell.Urxvt),
     getShellPath(Shell.Konsole),
     getShellPath(Shell.Xterm),
@@ -283,15 +289,17 @@ export function launch(
 ): ChildProcess {
   const shell = foundShell.shell
   switch (shell) {
+    case Shell.Gnome:
+    case Shell.Mate:
+    case Shell.Tilix:
+    case Shell.Terminator:
+      return spawn(foundShell.path, ['--working-directory', path])
     case Shell.Urxvt:
       return spawn(foundShell.path, ['-cd', path])
     case Shell.Konsole:
       return spawn(foundShell.path, ['--workdir', path])
     case Shell.Xterm:
       return spawn(foundShell.path, ['-e', '/bin/bash'], { cwd: path })
-    case Shell.Tilix:
-    case Shell.Gnome:
-      return spawn(foundShell.path, ['--working-directory', path])
     default:
       return assertNever(shell, `Unknown shell: ${shell}`)
   }
