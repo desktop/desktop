@@ -21,6 +21,7 @@ interface IDiscardChangesProps {
    * to ask for confirmation when discarding
    * changes
    */
+  readonly discardingAllChanges: boolean
   readonly showDiscardChangesSetting: boolean
   readonly onDismissed: () => void
   readonly onConfirmDiscardChangesChanged: (optOut: boolean) => void
