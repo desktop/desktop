@@ -217,7 +217,8 @@ function buildStatusMap(
 }
 
 /**
- * Update status header based on the current header entry
+ * Update status header based on the current header entry.
+ * Reducer.
  */
 function parseStatusHeader(results: StatusHeadersData, header: IStatusHeader) {
   let {
