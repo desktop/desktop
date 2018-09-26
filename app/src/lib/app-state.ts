@@ -241,6 +241,7 @@ export type Popup =
       repository: Repository
       files: ReadonlyArray<WorkingDirectoryFileChange>
       showDiscardChangesSetting?: boolean
+      discardingAllChanges?: boolean
     }
   | { type: PopupType.Preferences; initialSelectedTab?: PreferencesTab }
   | {
