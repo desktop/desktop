@@ -11,6 +11,7 @@ import { Account } from '../../models/account'
 import {
   IRepositoryIdentifier,
   parseRepositoryIdentifier,
+  parseRemote,
 } from '../../lib/remote-parsing'
 import { findAccountForRemoteURL } from '../../lib/find-account'
 import { API } from '../../lib/api'
@@ -356,7 +357,14 @@ export class CloneRepository extends React.Component<
       const api = API.fromAccount(account)
       const repo = await api.fetchRepository(identifier.owner, identifier.name)
       if (repo) {
-        url = repo.clone_url
+        // respect the user's preference if they pasted an SSH URL into the
+        // Clone Generic Repository tab
+        const parsedUrl = parseRemote(url)
+        if (parsedUrl && parsedUrl.protocol === 'ssh') {
+          url = repo.ssh_url
+        } else {
+          url = repo.clone_url
+        }
       }
     }
 
