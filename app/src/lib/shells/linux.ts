@@ -5,7 +5,7 @@ import { IFoundShell } from './found-shell'
 
 export enum Shell {
   Gnome = 'GNOME Terminal',
-  Mate  = 'MATE Terminal',
+  Mate = 'MATE Terminal',
   Tilix = 'Tilix',
   Terminator = 'Terminator',
   Urxvt = 'URxvt',
