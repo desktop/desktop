@@ -13,6 +13,12 @@ uses [React](https://facebook.github.io/react/).
 
 ![GitHub Desktop screenshot - Windows](https://cloud.githubusercontent.com/assets/359239/26094502/a1f56d02-3a5d-11e7-8799-23c7ba5e5106.png)
 
+## Is GitHub Desktop right for me? What are the primary areas of focus?
+
+[This document](https://github.com/desktop/desktop/blob/master/docs/process/what-is-desktop.md) describes the focus of GitHub Desktop and who the product is most useful for.
+
+And to see what the team is working on currently and in the near future, check out the [GitHub Desktop roadmap](https://github.com/desktop/desktop/blob/master/docs/process/roadmap.md).
+
 ## Where can I get it?
 
 Download the official installer for your operating system:
