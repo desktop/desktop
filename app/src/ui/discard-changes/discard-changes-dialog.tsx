@@ -58,11 +58,19 @@ export class DiscardChanges extends React.Component<
   }
 
   public render() {
+    const discardingAllChanges = this.props.discardingAllChanges
+
     return (
       <Dialog
         id="discard-changes"
         title={
-          __DARWIN__ ? 'Confirm Discard Changes' : 'Confirm discard changes'
+          discardingAllChanges
+            ? __DARWIN__
+              ? 'Confirm Discard All Changes'
+              : 'Confirm discard all changes'
+            : __DARWIN__
+              ? 'Confirm Discard Changes'
+              : 'Confirm discard changes'
         }
         onDismissed={this.props.onDismissed}
         type="warning"
@@ -80,7 +88,13 @@ export class DiscardChanges extends React.Component<
           <ButtonGroup destructive={true}>
             <Button type="submit">Cancel</Button>
             <Button onClick={this.discard}>
-              {__DARWIN__ ? 'Discard Changes' : 'Discard changes'}
+              {discardingAllChanges
+                ? __DARWIN__
+                  ? 'Discard All Changes'
+                  : 'Discard all changes'
+                : __DARWIN__
+                  ? 'Discard Changes'
+                  : 'Discard changes'}
             </Button>
           </ButtonGroup>
         </DialogFooter>
