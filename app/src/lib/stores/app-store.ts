@@ -3415,11 +3415,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       })
 
       this.updateRevertProgress(repo, null)
-
-      // TODO: what's the equivalent for the compare tab?
-      // This might be re-computed when we switch back, in which case we can :fire:
-      // it to the ground.
-      //return gitStore.loadHistory()
+      await this._refreshRepository(repository)
     })
   }
 
