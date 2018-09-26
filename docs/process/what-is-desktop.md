@@ -26,7 +26,7 @@ that will allow the app to function with other hosting providers, we prioritize 
 end-to-end GitHub and GitHub Enterprise experience to shine and takes advantage of the fact that we can 
 closely integrate with GitHub features.
 
-## 3. GitHub Desktop prioritizes workflows for beginners and teams working collaboratively.
+## 3. GitHub Desktop prioritizes workflows for beginners and collaborative teams.
 
 We want to create an inclusive and approachable way for developers to turn ideas into reality, and we see 
 GitHub Desktop as critical in reducing the intimidation of working with Git on the command line. Users of 
