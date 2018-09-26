@@ -1,5 +1,19 @@
 {
   "releases": {
+    "1.4.1": [
+      "[Added] Support for opening repository in Cygwin terminal - #5654. Thanks @LordOfTheThunder!",
+      "[Fixed] 'Compare to Branch' menu item not disabled when modal is open - #5673. Thanks @kanishk98!",
+      "[Fixed] Co-author form does not show/hide for newly-added repository - #5490",
+      "[Fixed] Desktop command line always suffixes `.git` to URL when starting a clone - #5529. Thanks @j-f1!",
+      "[Fixed] Dialog styling issue for dark theme users on Windows - #5629. Thanks @cwongmath!",
+      "[Fixed] No message shown when filter returns no results in Clone Repository view - #5637. Thanks @DanielHix!",
+      "[Improved] Branch names cannot start with a '+' character - #5594. Thanks @Daniel-McCarthy!",
+      "[Improved] Clone dialog re-runs filesystem check when re-focusing on Desktop - #5518. Thanks @Daniel-McCarthy!",
+      "[Improved] Commit disabled when commit summary is only spaces - #5677. Thanks @Daniel-McCarthy!",
+      "[Improved] Commit summary expander sometimes shown when not needed - #5700. Thanks @aryyya!",
+      "[Improved] Error handling when looking for merge base of a missing ref - #5612",
+      "[Improved] Warning if branch exists on remote when creating branch - #5141. Thanks @Daniel-McCarthy!"
+    ],
     "1.4.1-beta1": [
       "[Added] Support for opening repository in Cygwin terminal - #5654. Thanks @LordOfTheThunder!",
       "[Fixed] 'Compare to Branch' menu item not disabled when modal is open - #5673. Thanks @kanishk98!",
