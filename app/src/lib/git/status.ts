@@ -43,6 +43,14 @@ export interface IStatusResult {
   readonly workingDirectory: WorkingDirectoryStatus
 }
 
+type StatusHeadersData = {
+  currentBranch: string | undefined
+  currentUpstreamBranch: string | undefined
+  currentTip: string | undefined
+  branchAheadBehind: IAheadBehind | undefined
+  m: RegExpMatchArray | null
+}
+
 function convertToAppStatus(
   status: FileEntry,
   hasConflictMarkers: boolean
@@ -128,9 +136,8 @@ export async function getStatus(
     : new Set<string>()
 
   // Map of files keyed on their paths.
-  // Note, map maintains insertion order
   const files = entries.reduce(
-    (files, entry) => addEntryToFiles(files, entry, filesWithConflictMarkers),
+    (files, entry) => buildStatusMap(files, entry, filesWithConflictMarkers),
     new Map<string, WorkingDirectoryFileChange>()
   )
 
@@ -139,7 +146,7 @@ export async function getStatus(
     currentUpstreamBranch,
     currentTip,
     branchAheadBehind,
-  } = headers.reduce(handleHeader, {
+  }: StatusHeadersData = headers.reduce(parseStatusHeader, {
     currentBranch: undefined,
     currentUpstreamBranch: undefined,
     currentTip: undefined,
@@ -159,16 +166,20 @@ export async function getStatus(
   }
 }
 
-/** reducer(ish) to create the map of file change statuses
- * from a list of entries
+/**
+ *
+ * Update map of working directory changes with a file status entry.
+ * Reducer(ish).
+ *
+ * (Map is used here to maintain insertion order.)
  */
-function addEntryToFiles(
+function buildStatusMap(
   files: Map<string, WorkingDirectoryFileChange>,
   entry: IStatusEntry,
   filesWithConflictMarkers: Set<string>
-) {
+): Map<string, WorkingDirectoryFileChange> {
   const status = mapStatus(entry.statusCode)
-  const hasConflictMarkers = filesWithConflictMarkers.has(entry.path)
+
   if (status.kind === 'ordinary') {
     // when a file is added in the index but then removed in the working
     // directory, the file won't be part of the commit, so we can skip
@@ -190,7 +201,10 @@ function addEntryToFiles(
   }
 
   // for now we just poke at the existing summary
-  const summary = convertToAppStatus(status, hasConflictMarkers)
+  const summary = convertToAppStatus(
+    status,
+    filesWithConflictMarkers.has(entry.path)
+  )
   const selection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
 
   files.set(
@@ -205,19 +219,11 @@ function addEntryToFiles(
   return files
 }
 
-/** reducer to calculate the ahead / behind and branch names
- * from a list of headers
+/**
+ * Update status header based on the current header entry.
+ * Reducer.
  */
-function handleHeader(
-  results: {
-    currentBranch: string | undefined
-    currentUpstreamBranch: string | undefined
-    currentTip: string | undefined
-    branchAheadBehind: IAheadBehind | undefined
-    m: RegExpMatchArray | null
-  },
-  header: IStatusHeader
-) {
+function parseStatusHeader(results: StatusHeadersData, header: IStatusHeader) {
   let {
     currentBranch,
     currentUpstreamBranch,
