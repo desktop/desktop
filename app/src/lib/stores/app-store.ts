@@ -11,7 +11,6 @@ import {
   IssuesStore,
   PullRequestStore,
   RepositoriesStore,
-  RepositorySettingsStore,
   SignInStore,
 } from '.'
 import { Account } from '../../models/account'
@@ -120,6 +119,8 @@ import {
   push as pushRepo,
   renameBranch,
   updateRef,
+  saveGitIgnore,
+  appendIgnoreRule,
 } from '../git'
 import { IGitAccount } from '../git/authentication'
 import {
@@ -215,10 +216,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** GitStores keyed by their hash. */
   private readonly gitStores = new Map<string, GitStore>()
-  private readonly repositorySettingsStores = new Map<
-    string,
-    RepositorySettingsStore
-  >()
 
   private readonly localRepositoryStateLookup = new Map<
     number,
@@ -334,7 +331,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.cloningRepositoriesStore.onDidError(e => this.emitError(e))
 
-    this.signInStore.onDidAuthenticate(account => this._addAccount(account))
+    this.signInStore.onDidAuthenticate((account, method) => {
+      this._addAccount(account)
+
+      if (this.showWelcomeFlow) {
+        this.statsStore.recordWelcomeWizardSignInMethod(method)
+      }
+    })
     this.signInStore.onDidUpdate(() => this.emitUpdate())
     this.signInStore.onDidError(error => this.emitError(error))
 
@@ -524,30 +527,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     return gitStore
-  }
-
-  private removeRepositorySettingsStore(repository: Repository) {
-    const key = repository.hash
-
-    if (this.repositorySettingsStores.has(key)) {
-      this.repositorySettingsStores.delete(key)
-    }
-  }
-
-  private getRepositorySettingsStore(
-    repository: Repository
-  ): RepositorySettingsStore {
-    let store = this.repositorySettingsStores.get(repository.hash)
-
-    if (store == null) {
-      store = new RepositorySettingsStore(repository)
-
-      store.onDidError(error => this.emitError(error))
-
-      this.repositorySettingsStores.set(repository.hash, store)
-    }
-
-    return store
   }
 
   private clearSelectedCommit(repository: Repository) {
@@ -1090,7 +1069,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       // ensures we don't accidentally run any Git operations against the
       // wrong location if the user then relocates the `.git` folder elsewhere
       this.removeGitStore(repository)
-      this.removeRepositorySettingsStore(repository)
       return Promise.resolve(null)
     }
 
@@ -2125,6 +2103,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this._initializeCompare(repository, { kind: CompareActionKind.History })
     }
 
+    const { branchesState } = this.repositoryStateCache.get(repository)
+    const { defaultBranch } = branchesState
+
+    if (defaultBranch !== null && foundBranch.name !== defaultBranch.name) {
+      this.statsStore.recordNonDefaultBranchCheckout()
+    }
+
     return repository
   }
 
@@ -2738,6 +2723,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       r => r.url === url && r.path === path
     )!
 
+    promise.then(success => {
+      if (success) {
+        this.statsStore.recordCloneRepository()
+      }
+    })
+
     return { promise, repository }
   }
 
@@ -2905,6 +2896,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     markWelcomeFlowComplete()
 
+    this.statsStore.recordWelcomeWizardTerminated()
+
     return Promise.resolve()
   }
 
@@ -3056,14 +3049,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     text: string
   ): Promise<void> {
-    const repositorySettingsStore = this.getRepositorySettingsStore(repository)
-    return repositorySettingsStore.saveGitIgnore(text)
-  }
-
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _readGitIgnore(repository: Repository): Promise<string | null> {
-    const repositorySettingsStore = this.getRepositorySettingsStore(repository)
-    return repositorySettingsStore.readGitIgnore()
+    await saveGitIgnore(repository, text)
+    return this._refreshRepository(repository)
   }
 
   /** Has the user opted out of stats reporting? */
@@ -3151,14 +3138,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this.statsStore.recordLaunchStats(stats)
   }
 
-  public async _ignore(
+  public async _appendIgnoreRule(
     repository: Repository,
     pattern: string | string[]
   ): Promise<void> {
-    const repoSettingsStore = this.getRepositorySettingsStore(repository)
-
-    await repoSettingsStore.ignore(pattern)
-
+    await appendIgnoreRule(repository, pattern)
     return this._refreshRepository(repository)
   }
 
@@ -3303,6 +3287,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
         const addedRepo = await this.repositoriesStore.addRepository(
           validatedPath
         )
+
+        // initialize the remotes for this new repository to ensure it can fetch
+        // it's GitHub-related details using the GitHub API (if applicable)
+        const gitStore = this.getGitStore(addedRepo)
+        await gitStore.loadRemotes()
+
         const [refreshedRepo, usingLFS] = await Promise.all([
           this.repositoryWithRefreshedGitHubRepository(addedRepo),
           this.isUsingLFS(addedRepo),
@@ -3446,11 +3436,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       })
 
       this.updateRevertProgress(repo, null)
-
-      // TODO: what's the equivalent for the compare tab?
-      // This might be re-computed when we switch back, in which case we can :fire:
-      // it to the ground.
-      //return gitStore.loadHistory()
+      await this._refreshRepository(repository)
     })
   }
 

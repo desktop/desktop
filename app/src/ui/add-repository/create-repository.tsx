@@ -300,6 +300,7 @@ export class CreateRepository extends React.Component<
     this.updateDefaultDirectory()
 
     this.props.dispatcher.selectRepository(repository)
+    this.props.dispatcher.recordCreateRepository()
     this.props.onDismissed()
   }
 

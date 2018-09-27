@@ -43,29 +43,20 @@ export function eligibleForFastForward(
 
 /** A branch as loaded from Git. */
 export class Branch {
-  /** The short name of the branch. E.g., `master`. */
-  public readonly name: string
-
-  /** The remote-prefixed upstream name. E.g., `origin/master`. */
-  public readonly upstream: string | null
-
-  /** The type of branch, e.g., local or remote. */
-  public readonly type: BranchType
-
-  /** The commit associated with this branch */
-  public readonly tip: Commit
-
+  /**
+   * A branch as loaded from Git.
+   *
+   * @param name The short name of the branch. E.g., `master`.
+   * @param upstream The remote-prefixed upstream name. E.g., `origin/master`.
+   * @param tip The commit associated with this branch
+   * @param type The type of branch, e.g., local or remote.
+   */
   public constructor(
-    name: string,
-    upstream: string | null,
-    tip: Commit,
-    type: BranchType
-  ) {
-    this.name = name
-    this.upstream = upstream
-    this.tip = tip
-    this.type = type
-  }
+    public readonly name: string,
+    public readonly upstream: string | null,
+    public readonly tip: Commit,
+    public readonly type: BranchType
+  ) {}
 
   /** The name of the upstream's remote. */
   public get remote(): string | null {
