@@ -354,7 +354,7 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
         this.setState({
           ...currentState,
           loading: false,
-          error: new Error('Incorrect username or password.'),
+          error: new Error('Incorrect username/email or password.'),
         })
       } else if (
         response.kind === AuthorizationResponseKind.UserRequiresVerification
