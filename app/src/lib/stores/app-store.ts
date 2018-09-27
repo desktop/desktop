@@ -4,7 +4,6 @@ import { escape } from 'querystring'
 import {
   AccountsStore,
   CloningRepositoriesStore,
-  EmojiStore,
   GitHubUserStore,
   GitStore,
   ICommitMessage,
@@ -161,6 +160,7 @@ import { inferComparisonBranch } from './helpers/infer-comparison-branch'
 import { PullRequestUpdater } from './helpers/pull-request-updater'
 import { validatedRepositoryPath } from './helpers/validated-repository-path'
 import { RepositoryStateCache } from './repository-state-cache'
+import { readEmoji } from '../read-emoji'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -223,6 +223,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     ILocalRepositoryState
   >()
 
+  /** Map from shortcut (e.g., :+1:) to on disk URL. */
+  private emoji = new Map<string, string>()
+
   /**
    * The Application menu as an AppMenu instance or null if
    * the main process has not yet provided the renderer with
@@ -275,7 +278,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public constructor(
     private readonly gitHubUserStore: GitHubUserStore,
     private readonly cloningRepositoriesStore: CloningRepositoriesStore,
-    private readonly emojiStore: EmojiStore,
     private readonly issuesStore: IssuesStore,
     private readonly statsStore: StatsStore,
     private readonly signInStore: SignInStore,
@@ -332,7 +334,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.cloningRepositoriesStore.onDidError(e => this.emitError(e))
 
-    this.signInStore.onDidAuthenticate(account => this._addAccount(account))
+    this.signInStore.onDidAuthenticate((account, method) => {
+      this._addAccount(account)
+
+      if (this.showWelcomeFlow) {
+        this.statsStore.recordWelcomeWizardSignInMethod(method)
+      }
+    })
     this.signInStore.onDidUpdate(() => this.emitUpdate())
     this.signInStore.onDidError(error => this.emitError(error))
 
@@ -358,7 +366,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** Load the emoji from disk. */
   public loadEmoji() {
     const rootDir = getAppPath()
-    this.emojiStore.read(rootDir).then(() => this.emitUpdate())
+    readEmoji(rootDir)
+      .then(emoji => {
+        this.emoji = emoji
+        this.emitUpdate()
+      })
+      .catch(err => {
+        log.warn(`Unexpected issue when trying to read emoji into memory`, err)
+      })
   }
 
   protected emitUpdate() {
@@ -456,7 +471,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       currentFoldout: this.currentFoldout,
       errors: this.errors,
       showWelcomeFlow: this.showWelcomeFlow,
-      emoji: this.emojiStore.emoji,
+      emoji: this.emoji,
       sidebarWidth: this.sidebarWidth,
       commitSummaryWidth: this.commitSummaryWidth,
       appMenuState: this.appMenu ? this.appMenu.openMenus : [],
@@ -2123,6 +2138,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this._initializeCompare(repository, { kind: CompareActionKind.History })
     }
 
+    const { branchesState } = this.repositoryStateCache.get(repository)
+    const { defaultBranch } = branchesState
+
+    if (defaultBranch !== null && foundBranch.name !== defaultBranch.name) {
+      this.statsStore.recordNonDefaultBranchCheckout()
+    }
+
     return repository
   }
 
@@ -2736,6 +2758,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       r => r.url === url && r.path === path
     )!
 
+    promise.then(success => {
+      if (success) {
+        this.statsStore.recordCloneRepository()
+      }
+    })
+
     return { promise, repository }
   }
 
@@ -2902,6 +2930,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
 
     markWelcomeFlowComplete()
+
+    this.statsStore.recordWelcomeWizardTerminated()
 
     return Promise.resolve()
   }
@@ -3441,11 +3471,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       })
 
       this.updateRevertProgress(repo, null)
-
-      // TODO: what's the equivalent for the compare tab?
-      // This might be re-computed when we switch back, in which case we can :fire:
-      // it to the ground.
-      //return gitStore.loadHistory()
+      await this._refreshRepository(repository)
     })
   }
 

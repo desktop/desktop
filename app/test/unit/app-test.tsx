@@ -10,7 +10,6 @@ import {
   AppStore,
   GitHubUserStore,
   CloningRepositoriesStore,
-  EmojiStore,
   IssuesStore,
   SignInStore,
   RepositoriesStore,
@@ -73,7 +72,6 @@ describe('App', () => {
     appStore = new AppStore(
       githubUserStore,
       new CloningRepositoriesStore(),
-      new EmojiStore(),
       issuesStore,
       statsStore,
       new SignInStore(),

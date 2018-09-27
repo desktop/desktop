@@ -867,6 +867,7 @@ export class Dispatcher {
 
         if (existingRepository) {
           await this.selectRepository(existingRepository)
+          this.statsStore.recordAddExistingRepository()
         } else {
           await this.showPopup({
             type: PopupType.AddRepository,
@@ -1305,5 +1306,17 @@ export class Dispatcher {
    */
   public recordMergeAbortedAfterConflicts() {
     return this.statsStore.recordMergeAbortedAfterConflicts()
+  }
+
+  public recordWelcomeWizardInitiated() {
+    return this.statsStore.recordWelcomeWizardInitiated()
+  }
+
+  public recordCreateRepository() {
+    this.statsStore.recordCreateRepository()
+  }
+
+  public recordAddExistingRepository() {
+    this.statsStore.recordAddExistingRepository()
   }
 }

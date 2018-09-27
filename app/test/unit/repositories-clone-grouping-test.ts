@@ -38,6 +38,7 @@ describe('clone repository grouping', () => {
     const repositories: Array<IAPIRepository> = [
       {
         clone_url: '',
+        ssh_url: '',
         html_url: '',
         name: 'some-repo',
         owner: users.shiftkey,
@@ -49,6 +50,7 @@ describe('clone repository grouping', () => {
       },
       {
         clone_url: '',
+        ssh_url: '',
         html_url: '',
         name: 'octokit.net',
         owner: users.octokit,
@@ -60,6 +62,7 @@ describe('clone repository grouping', () => {
       },
       {
         clone_url: '',
+        ssh_url: '',
         html_url: '',
         name: 'desktop',
         owner: users.desktop,

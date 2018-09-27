@@ -1,7 +1,0 @@
-# Configuration for lock-threads - https://github.com/dessant/lock-threads
-daysUntilLock: 60
-lockLabel: locked-due-to-inactivity
-lockComment: false
-setLockReason: true
-# Proposals need to be handled separately to normal issues
-exemptLabels: ['future-proposal']
