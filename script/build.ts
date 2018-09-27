@@ -284,7 +284,7 @@ function copyDependencies() {
     Object.keys(newDevDependencies).length
   ) {
     console.log('  Installing dependencies via yarn…')
-    cp.execSync('yarn install', { cwd: outRoot, env: process.env })
+    cp.execSync('yarn install --offline', { cwd: outRoot, env: process.env })
   }
 
   if (!isPublishableBuild) {

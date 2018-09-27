@@ -44,13 +44,12 @@ cache:
   yarn: true
   timeout: 600
   directories:
-    - node_modules
     - $HOME/.electron
     - .eslintcache
     - $HOME/.cache/electron-builder
 
 install:
-  - yarn install --force
+  - yarn install --offline
 
 script:
   - yarn lint && yarn validate-changelog && yarn build:prod && yarn test:setup

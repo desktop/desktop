@@ -23,7 +23,7 @@ jobs:
             - yarn-packages-v1-{{ .Branch }}-
       - run:
           name: Install dependencies
-          command: yarn install --force
+          command: yarn install --offline
       - save_cache:
           key: yarn-packages-v1-{{ .Branch }}-{{ checksum "yarn.lock" }}
           paths:
@@ -31,8 +31,6 @@ jobs:
             - vendor/bundle
             - .eslintcache
             - ~/.electron
-            - ~/Library/Caches/Yarn/v1
-            - ./node_modules
       - run:
           name: Lint and validate changelog
           command: yarn lint && yarn validate-changelog
