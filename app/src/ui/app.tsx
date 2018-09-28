@@ -347,7 +347,10 @@ export class App extends React.Component<IAppProps, IAppState> {
       cancelable: true,
     })
 
-    if (document.activeElement.dispatchEvent(event)) {
+    if (
+      document!.activeElement &&
+      document!.activeElement!.dispatchEvent(event)
+    ) {
       remote.getCurrentWebContents().selectAll()
     }
   }
@@ -611,11 +614,13 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   public componentDidMount() {
-    document.ondragover = e => {
-      if (this.isShowingModal) {
-        e.dataTransfer.dropEffect = 'none'
-      } else {
-        e.dataTransfer.dropEffect = 'copy'
+    document!.ondragover = e => {
+      if (e.dataTransfer !== null) {
+        if (this.isShowingModal) {
+          e.dataTransfer.dropEffect = 'none'
+        } else {
+          e.dataTransfer.dropEffect = 'copy'
+        }
       }
 
       e.preventDefault()
@@ -629,8 +634,10 @@ export class App extends React.Component<IAppProps, IAppState> {
       if (this.isShowingModal) {
         return
       }
-      const files = e.dataTransfer.files
-      this.handleDragAndDrop(files)
+      if (e.dataTransfer !== null) {
+        const files = e.dataTransfer.files
+        this.handleDragAndDrop(files)
+      }
       e.preventDefault()
     }
 
