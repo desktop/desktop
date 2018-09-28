@@ -3,7 +3,8 @@
 
   .dialog-content {
     height: 250px;
-    overflow: scroll hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
 
     p,
     ol,
