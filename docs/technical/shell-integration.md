@@ -209,20 +209,26 @@ The source for the Linux shell integration is found in [`app/src/lib/shells/linu
 These shells are currently supported:
 
  - [GNOME Terminal](https://help.gnome.org/users/gnome-terminal/stable/)
+ - [MATE Terminal](https://github.com/mate-desktop/mate-terminal)
  - [Tilix](https://github.com/gnunn1/tilix)
+ - [Terminator](https://gnometerminator.blogspot.com)
  - [Rxvt Unicode](http://software.schmorp.de/pkg/rxvt-unicode.html)
  - [Konsole](https://konsole.kde.org/)
  - [XTerm](http://invisible-island.net/xterm/)
+ - [Terminology](https://www.enlightenment.org/docs/apps/terminology.md)
 
 These are defined in an enum at the top of the file:
 
 ```ts
 export enum Shell {
   Gnome = 'GNOME Terminal',
+  Mate  = 'MATE Terminal',
   Tilix = 'Tilix',
+  Terminator = 'Terminator',
   Urxvt = 'URxvt',
   Konsole = 'Konsole',
   Xterm = 'XTerm',
+  Terminology = 'Terminology',
 }
 ```
 
@@ -250,16 +256,22 @@ export async function getAvailableShells(): Promise<
 > {
   const [
     gnomeTerminalPath,
+    mateTerminalPath,
     tilixPath,
+    terminatorPath,
     urxvtPath,
     konsolePath,
     xtermPath,
+    terminologyPath,
   ] = await Promise.all([
     getShellPath(Shell.Gnome),
+    getShellPath(Shell.Mate),
     getShellPath(Shell.Tilix),
+    getShellPath(Shell.Terminator),
     getShellPath(Shell.Urxvt),
     getShellPath(Shell.Konsole),
     getShellPath(Shell.Xterm),
+    getShellPath(Shell.Terminology),
   ])
 
   ...
@@ -283,15 +295,19 @@ export function launch(
 ): ChildProcess {
   const shell = foundShell.shell
   switch (shell) {
+    case Shell.Gnome:
+    case Shell.Mate:
+    case Shell.Tilix:
+    case Shell.Terminator:
+      return spawn(foundShell.path, ['--working-directory', path])
     case Shell.Urxvt:
       return spawn(foundShell.path, ['-cd', path])
     case Shell.Konsole:
       return spawn(foundShell.path, ['--workdir', path])
     case Shell.Xterm:
       return spawn(foundShell.path, ['-e', '/bin/bash'], { cwd: path })
-    case Shell.Tilix:
-    case Shell.Gnome:
-      return spawn(foundShell.path, ['--working-directory', path])
+    case Shell.Terminology:
+      return spawn(foundShell.path, ['-d', path])
     default:
       return assertNever(shell, `Unknown shell: ${shell}`)
   }
