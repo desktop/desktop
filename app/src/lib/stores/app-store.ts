@@ -3574,7 +3574,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const baseURL = `${gitHubRepository.htmlURL}/pull/${
-      currentPullRequest.number
+      currentPullRequest.pullRequestNumber
     }`
 
     await this._openInBrowser(baseURL)
@@ -3808,7 +3808,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       const gitStore = this.getGitStore(repository)
 
-      const localBranchName = `pr/${pullRequest.number}`
+      const localBranchName = `pr/${pullRequest.pullRequestNumber}`
       const doesBranchExist =
         gitStore.allBranches.find(branch => branch.name === localBranchName) !=
         null

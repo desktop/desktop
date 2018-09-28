@@ -127,7 +127,7 @@ export class PullRequestUpdater {
         status.state === 'failure'
       ) {
         this.currentPullRequests = this.currentPullRequests.filter(
-          p => p.number !== status.pullRequestNumber
+          p => p.pullRequestNumber !== status.pullRequestNumber
         )
       }
     }
