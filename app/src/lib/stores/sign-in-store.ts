@@ -345,7 +345,7 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
         this.emitError(
           new Error(
             `The server responded with an error while attempting to authenticate (${
-              	response.response.status
+              response.response.status
             })\n\n${response.response.statusText}`
           )
         )
@@ -599,7 +599,7 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
           this.emitError(
             new Error(
               `The server responded with an error (${
-              	response.response.status
+                response.response.status
               })\n\n${response.response.statusText}`
             )
           )
