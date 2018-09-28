@@ -3,9 +3,6 @@
  * info in a commit.
  */
 export class CommitIdentity {
-  public readonly name: string
-  public readonly email: string
-  public readonly date: Date
   public readonly tzOffset: number
 
   /**
@@ -51,14 +48,11 @@ export class CommitIdentity {
   }
 
   public constructor(
-    name: string,
-    email: string,
-    date: Date,
+    public readonly name: string,
+    public readonly email: string,
+    public readonly date: Date,
     tzOffset?: number
   ) {
-    this.name = name
-    this.email = email
-    this.date = date
     this.tzOffset = tzOffset || new Date().getTimezoneOffset()
   }
 }
