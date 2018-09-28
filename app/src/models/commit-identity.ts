@@ -3,8 +3,6 @@
  * info in a commit.
  */
 export class CommitIdentity {
-  public readonly tzOffset: number
-
   /**
    * Parses a Git ident string (GIT_AUTHOR_IDENT or GIT_COMMITTER_IDENT)
    * into a commit identity. Returns null if string could not be parsed.
@@ -51,8 +49,6 @@ export class CommitIdentity {
     public readonly name: string,
     public readonly email: string,
     public readonly date: Date,
-    tzOffset?: number
-  ) {
-    this.tzOffset = tzOffset || new Date().getTimezoneOffset()
-  }
+    public readonly tzOffset: number = new Date().getTimezoneOffset()
+  ) {}
 }
