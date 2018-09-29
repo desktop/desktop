@@ -43,7 +43,7 @@ GitHub has millions of possible use cases and we believe that nearly every indus
 We support its versatility, but when we have to make choices about whose workflows to prioritize, 
 we prioritize those for software developers.
 
-## 5. GitHub Desktop is a tool that you enables you to learn while you get things done
+## 5. GitHub Desktop is a tool that enables you to learn while you get things done
 
 GitHub Desktop should be a helpful tool for beginner developers, but it is not explicitly a teaching tool. 
 It is fundamentally to help you get your work done faster and more effectively, in a way that is consistent 
