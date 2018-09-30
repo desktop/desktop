@@ -329,9 +329,10 @@ export class RepositoryView extends React.Component<
       this.props.repository,
       section
     )
-
-    this.props.dispatcher.updateCompareForm(this.props.repository, {
-      showBranchList: false,
-    })
+    if (!!section) {
+      this.props.dispatcher.updateCompareForm(this.props.repository, {
+        showBranchList: false,
+      })
+    }
   }
 }
