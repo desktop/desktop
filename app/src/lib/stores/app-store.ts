@@ -4,7 +4,6 @@ import { escape } from 'querystring'
 import {
   AccountsStore,
   CloningRepositoriesStore,
-  EmojiStore,
   GitHubUserStore,
   GitStore,
   ICommitMessage,
@@ -160,6 +159,7 @@ import { inferComparisonBranch } from './helpers/infer-comparison-branch'
 import { PullRequestUpdater } from './helpers/pull-request-updater'
 import { validatedRepositoryPath } from './helpers/validated-repository-path'
 import { RepositoryStateCache } from './repository-state-cache'
+import { readEmoji } from '../read-emoji'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -222,6 +222,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     ILocalRepositoryState
   >()
 
+  /** Map from shortcut (e.g., :+1:) to on disk URL. */
+  private emoji = new Map<string, string>()
+
   /**
    * The Application menu as an AppMenu instance or null if
    * the main process has not yet provided the renderer with
@@ -269,12 +272,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private selectedBranchesTab = BranchesTab.Branches
   private selectedTheme = ApplicationTheme.Light
-  private isDivergingBranchBannerVisible = false
 
   public constructor(
     private readonly gitHubUserStore: GitHubUserStore,
     private readonly cloningRepositoriesStore: CloningRepositoriesStore,
-    private readonly emojiStore: EmojiStore,
     private readonly issuesStore: IssuesStore,
     private readonly statsStore: StatsStore,
     private readonly signInStore: SignInStore,
@@ -363,7 +364,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** Load the emoji from disk. */
   public loadEmoji() {
     const rootDir = getAppPath()
-    this.emojiStore.read(rootDir).then(() => this.emitUpdate())
+    readEmoji(rootDir)
+      .then(emoji => {
+        this.emoji = emoji
+        this.emitUpdate()
+      })
+      .catch(err => {
+        log.warn(`Unexpected issue when trying to read emoji into memory`, err)
+      })
   }
 
   protected emitUpdate() {
@@ -461,7 +469,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       currentFoldout: this.currentFoldout,
       errors: this.errors,
       showWelcomeFlow: this.showWelcomeFlow,
-      emoji: this.emojiStore.emoji,
+      emoji: this.emoji,
       sidebarWidth: this.sidebarWidth,
       commitSummaryWidth: this.commitSummaryWidth,
       appMenuState: this.appMenu ? this.appMenu.openMenus : [],
@@ -476,7 +484,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repositoryFilterText: this.repositoryFilterText,
       selectedCloneRepositoryTab: this.selectedCloneRepositoryTab,
       selectedBranchesTab: this.selectedBranchesTab,
-      isDivergingBranchBannerVisible: this.isDivergingBranchBannerVisible,
       selectedTheme: this.selectedTheme,
     }
   }
@@ -674,27 +681,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
       },
     }))
 
-    // we only want to show the banner when the the number
-    // commits behind has changed since the last it was visible
-    if (
-      inferredBranch !== null &&
-      aheadBehindOfInferredBranch !== null &&
-      aheadBehindOfInferredBranch.behind > 0
-    ) {
+    if (inferredBranch !== null) {
+      const currentCount = getBehindOrDefault(aheadBehindOfInferredBranch)
+
       const prevInferredBranchState =
         state.compareState.inferredComparisonBranch
-      if (
-        prevInferredBranchState.aheadBehind === null ||
-        prevInferredBranchState.aheadBehind.behind !==
-          aheadBehindOfInferredBranch.behind
-      ) {
-        this._setDivergingBranchBannerVisibility(true)
-      }
-    } else if (
-      inferComparisonBranch !== null ||
-      aheadBehindOfInferredBranch === null
-    ) {
-      this._setDivergingBranchBannerVisibility(false)
+
+      const previousCount = getBehindOrDefault(
+        prevInferredBranchState.aheadBehind
+      )
+
+      // we only want to show the banner when the the number
+      // commits behind has changed since the last it was visible
+      const countChanged = currentCount > 0 && previousCount !== currentCount
+      this._setDivergingBranchBannerVisibility(repository, countChanged)
+    } else {
+      this._setDivergingBranchBannerVisibility(repository, false)
     }
 
     const cachedState = compareState.formState
@@ -3118,9 +3120,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  public _setDivergingBranchBannerVisibility(visible: boolean) {
-    if (this.isDivergingBranchBannerVisible !== visible) {
-      this.isDivergingBranchBannerVisible = visible
+  public _setDivergingBranchBannerVisibility(
+    repository: Repository,
+    visible: boolean
+  ) {
+    const state = this.repositoryStateCache.get(repository)
+    const { compareState } = state
+
+    if (compareState.isDivergingBranchBannerVisible !== visible) {
+      this.repositoryStateCache.updateCompareState(repository, () => ({
+        isDivergingBranchBannerVisible: visible,
+      }))
 
       if (visible) {
         this.statsStore.recordDivergingBranchBannerDisplayed()
@@ -3436,11 +3446,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       })
 
       this.updateRevertProgress(repo, null)
-
-      // TODO: what's the equivalent for the compare tab?
-      // This might be re-computed when we switch back, in which case we can :fire:
-      // it to the ground.
-      //return gitStore.loadHistory()
+      await this._refreshRepository(repository)
     })
   }
 
@@ -3569,7 +3575,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const baseURL = `${gitHubRepository.htmlURL}/pull/${
-      currentPullRequest.number
+      currentPullRequest.pullRequestNumber
     }`
 
     await this._openInBrowser(baseURL)
@@ -3803,7 +3809,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       const gitStore = this.getGitStore(repository)
 
-      const localBranchName = `pr/${pullRequest.number}`
+      const localBranchName = `pr/${pullRequest.pullRequestNumber}`
       const doesBranchExist =
         gitStore.allBranches.find(branch => branch.name === localBranchName) !=
         null
@@ -3879,4 +3885,15 @@ function getInitialAction(
     branch: cachedState.comparisonBranch,
     mode: cachedState.kind,
   }
+}
+
+/**
+ * Get the behind count (or 0) of the ahead/behind counter
+ */
+function getBehindOrDefault(aheadBehind: IAheadBehind | null): number {
+  if (aheadBehind === null) {
+    return 0
+  }
+
+  return aheadBehind.behind
 }
