@@ -22,17 +22,20 @@ export async function getCaptures(
  * @param re regex to search with. must have global option
  * @returns set of strings captured by supplied regex
  */
-export function getMatches(
+export async function getMatches(
   text: string,
-  re: RegExp,
-  matches = new Array<RegExpExecArray>()
+  re: RegExp
 ): Promise<Array<RegExpExecArray>> {
-  return new Promise(resolve => {
-    const match = re.exec(text)
-    if (match !== null) {
-      matches.push(match)
-      resolve(getMatches(text, re, matches))
-    }
-    resolve(matches)
-  })
+  const matches = new Array<RegExpExecArray>()
+  const getNextMatch = () =>
+    new Promise(resolve => {
+      const match = re.exec(text)
+      if (match !== null) {
+        matches.push(match)
+        resolve(getNextMatch())
+      }
+      resolve(matches)
+    })
+  await getNextMatch()
+  return matches
 }
