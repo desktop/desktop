@@ -22,6 +22,9 @@ import { Account } from '../models/account'
 /** The widest the sidebar can be with the minimum window size. */
 const MaxSidebarWidth = 495
 
+import { remote } from 'electron'
+const { app } = remote
+
 interface IRepositoryProps {
   readonly repository: Repo
   readonly state: IRepositoryModelState
@@ -203,8 +206,17 @@ export class RepositoryView extends React.Component<IRepositoryProps, {}> {
 
   public render() {
     return (
+<<<<<<< HEAD
       <UiView id="repository" onKeyDown={this.onKeyDown}>
         {this.renderSidebar()}
+=======
+      <UiView id='repository'>
+        <div>{app.getVersion()}</div>
+        <Toolbar selectedTab={selectedTab}
+                 onTabClicked={tab => this.onTabClicked(tab)}
+                 hasChanges={this.props.state.changesState.workingDirectory.files.length > 0}/>
+        <ComparisonGraph/>
+>>>>>>> back-in-time
         {this.renderContent()}
       </UiView>
     )
