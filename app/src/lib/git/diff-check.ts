@@ -1,5 +1,5 @@
 import { spawnAndComplete } from './spawn'
-import { getCaptures } from '../helpers/get-captures'
+import { getCaptures } from '../helpers/regex'
 
 /** returns a list of files with conflict markers present
  * @param repositoryPath filepath to repository
@@ -21,7 +21,8 @@ export async function getFilesWithConflictMarkers(
   // result parsing
   const outputStr = output.toString('utf8')
   const flatSet = new Set<string>()
-  getCaptures(outputStr, fileNameCaptureRe).forEach(match =>
+  const captures = await getCaptures(outputStr, fileNameCaptureRe)
+  captures.forEach(match =>
     // fileNameCaptureRe only has one capture
     flatSet.add(match[0])
   )
