@@ -27,7 +27,7 @@ export function getMatches(
 ): Promise<Array<RegExpExecArray>> {
   return new Promise(resolve => {
     const match = re.exec(text)
-    if (match) {
+    if (match !== null) {
       matches.push(match)
       resolve(getMatches(text, re, matches))
     }
