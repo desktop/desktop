@@ -48,7 +48,7 @@ type StatusHeadersData = {
   currentUpstreamBranch: string | undefined
   currentTip: string | undefined
   branchAheadBehind: IAheadBehind | undefined
-  m: RegExpMatchArray | null
+  match: RegExpMatchArray | null
 }
 
 function convertToAppStatus(
@@ -151,7 +151,7 @@ export async function getStatus(
     currentUpstreamBranch: undefined,
     currentTip: undefined,
     branchAheadBehind: undefined,
-    m: null,
+    match: null,
   })
 
   const workingDirectory = WorkingDirectoryStatus.fromFiles([...files.values()])
@@ -229,22 +229,22 @@ function parseStatusHeader(results: StatusHeadersData, header: IStatusHeader) {
     currentUpstreamBranch,
     currentTip,
     branchAheadBehind,
-    m,
+    match,
   } = results
   const value = header.value
 
   // This intentionally does not match branch.oid initial
-  if ((m = value.match(/^branch\.oid ([a-f0-9]+)$/))) {
-    currentTip = m[1]
-  } else if ((m = value.match(/^branch.head (.*)/))) {
-    if (m[1] !== '(detached)') {
-      currentBranch = m[1]
+  if ((match = value.match(/^branch\.oid ([a-f0-9]+)$/))) {
+    currentTip = match[1]
+  } else if ((match = value.match(/^branch.head (.*)/))) {
+    if (match[1] !== '(detached)') {
+      currentBranch = match[1]
     }
-  } else if ((m = value.match(/^branch.upstream (.*)/))) {
-    currentUpstreamBranch = m[1]
-  } else if ((m = value.match(/^branch.ab \+(\d+) -(\d+)$/))) {
-    const ahead = parseInt(m[1], 10)
-    const behind = parseInt(m[2], 10)
+  } else if ((match = value.match(/^branch.upstream (.*)/))) {
+    currentUpstreamBranch = match[1]
+  } else if ((match = value.match(/^branch.ab \+(\d+) -(\d+)$/))) {
+    const ahead = parseInt(match[1], 10)
+    const behind = parseInt(match[2], 10)
 
     if (!isNaN(ahead) && !isNaN(behind)) {
       branchAheadBehind = { ahead, behind }
@@ -255,6 +255,6 @@ function parseStatusHeader(results: StatusHeadersData, header: IStatusHeader) {
     currentUpstreamBranch,
     currentTip,
     branchAheadBehind,
-    m,
+    match,
   }
 }
