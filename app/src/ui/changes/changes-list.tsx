@@ -50,7 +50,7 @@ interface IChangesListProps {
   readonly askForConfirmationOnDiscardChanges: boolean
   readonly onDiscardAllChanges: (
     files: ReadonlyArray<WorkingDirectoryFileChange>,
-    dontDisplayAsAll?: boolean
+    isDiscardingAllChanges?: boolean
   ) => void
 
   /**
@@ -218,15 +218,12 @@ export class ChangesList extends React.Component<
       })
 
       if (modifiedFiles.length > 0) {
-        if (modifiedFiles.length === workingDirectory.files.length) {
-          // Display Discard Changes popup as Display All Changes since all
-          // modified files are selected.
-          this.props.onDiscardAllChanges(modifiedFiles)
-        } else {
-          // Display Discard Changes popup without displaying showing as
-          // Discard All Changes.
-          this.props.onDiscardAllChanges(modifiedFiles, true)
-        }
+        // DiscardAllChanges can also be used for discarding several selected changes.
+        // Therefore, we update the pop up to reflect whether or not it is "all" changes.
+        const discardingAllChanges =
+          modifiedFiles.length === workingDirectory.files.length
+
+        this.props.onDiscardAllChanges(modifiedFiles, discardingAllChanges)
       }
     }
   }
