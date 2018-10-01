@@ -1,4 +1,5 @@
-/** get all regex catpures within a body of text
+/**
+ * get all regex catpures within a body of text
  * @param text string to search
  * @param re regex to search with. must have global option and one capture
  * @returns set of strings captured by supplied regex
@@ -15,7 +16,8 @@ export async function getCaptures(
   return captures
 }
 
-/** get all regex matches within a body of text
+/**
+ * get all regex matches within a body of text
  * @param text string to search
  * @param re regex to search with. must have global option
  * @returns set of strings captured by supplied regex
