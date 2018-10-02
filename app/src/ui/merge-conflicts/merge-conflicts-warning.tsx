@@ -29,29 +29,37 @@ export class MergeConflictsWarning extends React.Component<
     )
     this.props.onDismissed()
   }
+  /**
+   *  aborts the merge and dismisses the modal
+   */
+  private onCancel = () => {
+    // abort current merge here — see https://github.com/desktop/desktop/pull/5729
+    this.props.onDismissed()
+  }
 
   public render() {
     return (
       <Dialog
         id="merge-conflicts-warning"
-        title={__DARWIN__ ? 'Merge Conflicts Found' : 'Merge conflicts found'}
-        onDismissed={this.props.onDismissed}
+        // TODO: replace with helper function from @Daniel-McCarthy — see https://github.com/desktop/desktop/pull/5744
+        title={
+          __DARWIN__
+            ? 'Resolve Conflicts Before Merging'
+            : 'Resolve conflicts before merging'
+        }
+        onDismissed={this.onCancel}
         onSubmit={this.onSubmit}
       >
-        <DialogContent>
-          <p>Conflicts were detected as part of the last merge operation.</p>
-          <p>
-            You will need to view and resolve these conflicts via your editor or
-            shell before finishing and creating the merge commit.
-          </p>
-        </DialogContent>
+        <DialogContent>{/* stuff goes here */}</DialogContent>
 
         <DialogFooter>
           <ButtonGroup>
             <Button type="submit">
-              {__DARWIN__ ? 'View Conflicts' : 'View conflicts'}
+              {/* TODO: replace with helper function from @Daniel-McCarthy — see
+              https://github.com/desktop/desktop/pull/5744 */}
+              {__DARWIN__ ? 'Continue To Commit' : 'Continue to commit'}
             </Button>
-            <Button onClick={this.props.onDismissed}>Close</Button>
+            <Button onClick={this.onCancel}>Close</Button>
           </ButtonGroup>
         </DialogFooter>
       </Dialog>
