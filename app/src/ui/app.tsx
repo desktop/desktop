@@ -1309,6 +1309,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           <MergeConflictsWarning
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
+            status={}
             onDismissed={this.onPopupDismissed}
           />
         )

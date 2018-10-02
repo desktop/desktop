@@ -5,10 +5,15 @@ import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Dispatcher } from '../../lib/dispatcher'
 import { RepositorySectionTab } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
+import {
+  WorkingDirectoryStatus,
+  WorkingDirectoryFileChange,
+} from '../../models/status'
 
 interface IMergeConflictsWarningProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
+  readonly status: WorkingDirectoryStatus
   readonly onDismissed: () => void
 }
 
@@ -50,7 +55,9 @@ export class MergeConflictsWarning extends React.Component<
         onDismissed={this.onCancel}
         onSubmit={this.onSubmit}
       >
-        <DialogContent>{/* stuff goes here */}</DialogContent>
+        <DialogContent>
+          <ul>{this.props.status.files.map(renderConflictedFile)}</ul>
+        </DialogContent>
 
         <DialogFooter>
           <ButtonGroup>
@@ -65,4 +72,10 @@ export class MergeConflictsWarning extends React.Component<
       </Dialog>
     )
   }
+}
+
+const renderConflictedFile = (
+  fileStatus: WorkingDirectoryFileChange
+): JSX.Element => {
+  return <li>{fileStatus.path}</li>
 }
