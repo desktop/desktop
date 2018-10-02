@@ -125,7 +125,7 @@ export async function setupConflictedRepo(): Promise<Repository> {
  * The current branch will be 'other-branch' and the merged branch will be
  * 'master' in your test harness.
  *
- * The conflicted file will be 'foo', 'bar', and 'baz'.
+ * The conflicted files will be 'foo', 'bar', and 'baz'.
  */
 export async function setupConflictedRepoWithMultipleFiles(): Promise<
   Repository
