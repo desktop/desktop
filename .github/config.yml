@@ -15,6 +15,6 @@ requestInfoReplyComment: >
 
 requestInfoLabelToAdd: more-information-needed
 
-requestInfoOn:
-  pullRequest: false
+requestInfoOn:trade dates_symbols_amounts value
+  pullRequest: true
   issue: true

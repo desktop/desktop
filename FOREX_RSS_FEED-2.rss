@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='ISO-8859-1' ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+<title>DDR Real Time Forex Data</title>
+<link>https://rtdata.dtcc.com/gtr/dashboard.do</link>
+<description>DDR Real Time Forex Data</description>
+<pubDate>Fri, 25 May 2018 19:39:00 -0400</pubDate>
+<ttl>1</ttl><atom:link href="https://kgc0418-tdw-data2-0.s3.amazonaws.com/slices/FOREX_RSS_FEED.rss" rel="self" type="application/rss+xml" />
+
+
+<item>
+<title>ForeignExchange:VanillaOption</title>
+<pubDate>Fri, 25 May 2018 19:39:00 -0400</pubDate>
+<guid>
+https://kgc0418-tdw-data2-0.s3.amazonaws.com/slices/FOREX_RSS_FEED.rss#889442123</guid>
+<description>
+"86436971","86387454","CORRECT","2018-05-25T23:08:50","U","PC","","N","Y","OFF","2018-05-25","2019-02-26","","","FX","","ForeignExchange:VanillaOption","Trade","","","PRICE","679,698.972","PRICE","0","EUR","USD","63,755,459","73,000,000","","","","","","1.145","P-","EU","EUR","676,636.68122","","2019-02-26","","","",""</description>
+</item>
+
+</channel>
+</rss>
+
