@@ -101,7 +101,7 @@ Error(s) during clone:
 git clone failed: exit status 128
 ```
 
-### Enable Mandatory ASLR triggers cygheap errors - #3096
+### Enable Mandatory ASLR triggers cygheap errors - [#3096](https://github.com/desktop/desktop/issues/3096)
 
 Windows 10 Fall Creators Edition (version 1709 or later) added enhancements to the Enhanced Mitigation Experience Toolkit, one being to enable Mandatory ASLR. This setting affects the embedded Git shipped in Desktop, and produces errors that look like this:
 
@@ -125,7 +125,7 @@ Electron enables hardware accelerated graphics by default, but some graphics car
 
 **Workaround:** if you set the `GITHUB_DESKTOP_DISABLE_HARDWARE_ACCELERATION` environment variable to any value and launch Desktop again it will disable hardware acceleration on launch, so the application is usable.
 
-### Failed to open CA file after an update - #4832
+### Failed to open CA file after an update - [#4832](https://github.com/desktop/desktop/issues/4832)
 
 A recent upgrade to Git for Windows changed how it uses `http.sslCAInfo`.
 
