@@ -43,11 +43,11 @@ export interface IStatusResult {
   readonly workingDirectory: WorkingDirectoryStatus
 }
 
-type StatusHeadersData = {
-  currentBranch: string | undefined
-  currentUpstreamBranch: string | undefined
-  currentTip: string | undefined
-  branchAheadBehind: IAheadBehind | undefined
+interface IStatusHeadersData {
+  currentBranch?: string
+  currentUpstreamBranch?: string
+  currentTip?: string
+  branchAheadBehind?: IAheadBehind
   match: RegExpMatchArray | null
 }
 
@@ -125,8 +125,8 @@ export async function getStatus(
 
   const stdout = result.output.toString('utf8')
   const parsed = parsePorcelainStatus(stdout)
-  const headers: ReadonlyArray<IStatusHeader> = parsed.filter(isStatusHeader)
-  const entries: ReadonlyArray<IStatusEntry> = parsed.filter(isStatusEntry)
+  const headers = parsed.filter(isStatusHeader)
+  const entries = parsed.filter(isStatusEntry)
 
   // run git diff check if anything is conflicted
   const filesWithConflictMarkers = entries.some(
@@ -146,7 +146,7 @@ export async function getStatus(
     currentUpstreamBranch,
     currentTip,
     branchAheadBehind,
-  }: StatusHeadersData = headers.reduce(parseStatusHeader, {
+  } = headers.reduce(parseStatusHeader, {
     currentBranch: undefined,
     currentUpstreamBranch: undefined,
     currentTip: undefined,
@@ -223,7 +223,7 @@ function buildStatusMap(
  * Update status header based on the current header entry.
  * Reducer.
  */
-function parseStatusHeader(results: StatusHeadersData, header: IStatusHeader) {
+function parseStatusHeader(results: IStatusHeadersData, header: IStatusHeader) {
   let {
     currentBranch,
     currentUpstreamBranch,
