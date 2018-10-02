@@ -1,5 +1,5 @@
 /**
- * get all regex catpures within a body of text
+ * get all regex captures within a body of text
  * @param text string to search
  * @param re regex to search with. must have global option and one capture
  * @returns set of strings captured by supplied regex
