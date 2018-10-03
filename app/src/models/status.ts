@@ -38,6 +38,7 @@ export enum AppFileStatus {
   Copied,
   Renamed,
   Conflicted,
+  Resolved,
 }
 
 /** The porcelain status for an ordinary changed entry */
@@ -101,6 +102,8 @@ export function mapStatus(status: AppFileStatus): string {
       return 'Renamed'
     case AppFileStatus.Conflicted:
       return 'Conflicted'
+    case AppFileStatus.Resolved:
+      return 'Resolved'
     case AppFileStatus.Copied:
       return 'Copied'
   }
@@ -126,6 +129,8 @@ export function iconForStatus(status: AppFileStatus): OcticonSymbol {
       return OcticonSymbol.diffRenamed
     case AppFileStatus.Conflicted:
       return OcticonSymbol.alert
+    case AppFileStatus.Resolved:
+      return OcticonSymbol.check
     case AppFileStatus.Copied:
       return OcticonSymbol.diffAdded
   }
