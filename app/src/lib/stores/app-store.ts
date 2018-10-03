@@ -274,6 +274,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private selectedBranchesTab = BranchesTab.Branches
   private selectedTheme = ApplicationTheme.Light
 
+  private previouslyConflicted = false
+
   public constructor(
     private readonly gitHubUserStore: GitHubUserStore,
     private readonly cloningRepositoriesStore: CloningRepositoriesStore,
@@ -1480,13 +1482,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     // were any of these conflicted
-    const inAConflictedMerge: boolean = [...status.workingDirectory.files].some(
-      file => file.status === AppFileStatus.Resolved || file.status === AppFileStatus.Conflicted
-    )
-    const prevouslyInAConflictedMerge = false
-    if (!prevouslyInAConflictedMerge && inAConflictedMerge) {
+    const currentlyConflicted: boolean =
+    [...status.workingDirectory.files]
+      .some(file => file.status === AppFileStatus.Resolved || file.status === AppFileStatus.Conflicted)
 
-      if (previousStatus.currentBranch === status.currentBranch) {
+    if (this.previouslyConflicted === true && currentlyConflicted) {
+      if (status.currentBranch previousStatus.currentBranch === status.currentBranch) {
         // if conflicted markers removed and if same branch and if different tip -> merge completed successfully
         if (previousState.currentTip !== status.currentTip) {
           this.statsStore.recordMergeSuccesfulAfterConflicts()
@@ -1501,7 +1502,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
         this.statsStore.recordMergeAbortedAfterConflicts()
       }
     }
-
 
 
     this.repositoryStateCache.updateChangesState(repository, state => {
