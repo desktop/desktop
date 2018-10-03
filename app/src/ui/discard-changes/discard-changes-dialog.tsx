@@ -10,6 +10,7 @@ import { PathText } from '../lib/path-text'
 import { Monospaced } from '../lib/monospaced'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { TrashNameLabel } from '../lib/context-menu'
+import { toPlatformCase } from '../../lib/platform-case'
 
 interface IDiscardChangesProps {
   readonly repository: Repository
@@ -65,12 +66,8 @@ export class DiscardChanges extends React.Component<
         id="discard-changes"
         title={
           discardingAllChanges
-            ? __DARWIN__
-              ? 'Confirm Discard All Changes'
-              : 'Confirm discard all changes'
-            : __DARWIN__
-              ? 'Confirm Discard Changes'
-              : 'Confirm discard changes'
+            ? toPlatformCase('Confirm Discard All Changes')
+            : toPlatformCase('Confirm Discard Changes')
         }
         onDismissed={this.props.onDismissed}
         type="warning"
@@ -89,12 +86,8 @@ export class DiscardChanges extends React.Component<
             <Button type="submit">Cancel</Button>
             <Button onClick={this.discard}>
               {discardingAllChanges
-                ? __DARWIN__
-                  ? 'Discard All Changes'
-                  : 'Discard all changes'
-                : __DARWIN__
-                  ? 'Discard Changes'
-                  : 'Discard changes'}
+                ? toPlatformCase('Discard All Changes')
+                : toPlatformCase('Discard Changes')}
             </Button>
           </ButtonGroup>
         </DialogFooter>
