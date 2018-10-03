@@ -1300,6 +1300,20 @@ export class Dispatcher {
     return this.statsStore.recordDivergingBranchBannerInitatedMerge()
   }
 
+  /**
+   * Increments the `recordMergeSuccesfulAfterConflicts` metric
+   */
+  public recordMergeSuccesfulAfterConflicts() {
+    return this.statsStore.recordMergeSuccesfulAfterConflicts()
+  }
+
+  /**
+   * Increments the `recordMergeAbortedAfterConflicts` metric
+   */
+  public recordMergeAbortedAfterConflicts() {
+    return this.statsStore.recordMergeAbortedAfterConflicts()
+  }
+
   public recordWelcomeWizardInitiated() {
     return this.statsStore.recordWelcomeWizardInitiated()
   }

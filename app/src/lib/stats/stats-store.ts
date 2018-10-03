@@ -694,6 +694,20 @@ export class StatsStore {
     }))
   }
 
+  /** Record when a conflicted merge was successfully completed by the user */
+  public async recordMergeSuccesfulAfterConflicts(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      mergeSuccesfulAfterConflicts: m.mergeSuccesfulAfterConflicts + 1,
+    }))
+  }
+
+  /** Record when a conflicted merge was aborted by the user */
+  public async recordMergeAbortedAfterConflicts(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      mergeAbortedAfterConflicts: m.mergeAbortedAfterConflicts + 1,
+    }))
+  }
+
   public recordWelcomeWizardInitiated() {
     localStorage.setItem(WelcomeWizardInitiatedAtKey, `${Date.now()}`)
     localStorage.removeItem(WelcomeWizardCompletedAtKey)
