@@ -49,12 +49,6 @@ interface IRepositoryViewProps {
    * @param fullPath The full path to the file on disk
    */
   readonly onOpenInExternalEditor: (fullPath: string) => void
-
-  /**
-   * Determines if the notification banner and associated dot
-   * on this history tab will be rendered
-   */
-  readonly isDivergingBranchBannerVisible: boolean
 }
 
 interface IRepositoryViewState {
@@ -105,7 +99,7 @@ export class RepositoryView extends React.Component<
         <div className="with-indicator">
           <span>History</span>
           {enableNotificationOfBranchUpdates() &&
-          this.props.isDivergingBranchBannerVisible ? (
+          this.props.state.compareState.isDivergingBranchBannerVisible ? (
             <Octicon
               className="indicator"
               symbol={OcticonSymbol.primitiveDot}
@@ -173,9 +167,6 @@ export class RepositoryView extends React.Component<
         dispatcher={this.props.dispatcher}
         onRevertCommit={this.onRevertCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
-        isDivergingBranchBannerVisible={
-          this.props.isDivergingBranchBannerVisible
-        }
       />
     )
   }
@@ -338,5 +329,10 @@ export class RepositoryView extends React.Component<
       this.props.repository,
       section
     )
+    if (!!section) {
+      this.props.dispatcher.updateCompareForm(this.props.repository, {
+        showBranchList: false,
+      })
+    }
   }
 }

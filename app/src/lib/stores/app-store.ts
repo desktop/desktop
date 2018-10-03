@@ -273,7 +273,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private selectedBranchesTab = BranchesTab.Branches
   private selectedTheme = ApplicationTheme.Light
-  private isDivergingBranchBannerVisible = false
 
   public constructor(
     private readonly gitHubUserStore: GitHubUserStore,
@@ -486,7 +485,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repositoryFilterText: this.repositoryFilterText,
       selectedCloneRepositoryTab: this.selectedCloneRepositoryTab,
       selectedBranchesTab: this.selectedBranchesTab,
-      isDivergingBranchBannerVisible: this.isDivergingBranchBannerVisible,
       selectedTheme: this.selectedTheme,
     }
   }
@@ -684,27 +682,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
       },
     }))
 
-    // we only want to show the banner when the the number
-    // commits behind has changed since the last it was visible
-    if (
-      inferredBranch !== null &&
-      aheadBehindOfInferredBranch !== null &&
-      aheadBehindOfInferredBranch.behind > 0
-    ) {
+    if (inferredBranch !== null) {
+      const currentCount = getBehindOrDefault(aheadBehindOfInferredBranch)
+
       const prevInferredBranchState =
         state.compareState.inferredComparisonBranch
-      if (
-        prevInferredBranchState.aheadBehind === null ||
-        prevInferredBranchState.aheadBehind.behind !==
-          aheadBehindOfInferredBranch.behind
-      ) {
-        this._setDivergingBranchBannerVisibility(true)
-      }
-    } else if (
-      inferComparisonBranch !== null ||
-      aheadBehindOfInferredBranch === null
-    ) {
-      this._setDivergingBranchBannerVisibility(false)
+
+      const previousCount = getBehindOrDefault(
+        prevInferredBranchState.aheadBehind
+      )
+
+      // we only want to show the banner when the the number
+      // commits behind has changed since the last it was visible
+      const countChanged = currentCount > 0 && previousCount !== currentCount
+      this._setDivergingBranchBannerVisibility(repository, countChanged)
+    } else {
+      this._setDivergingBranchBannerVisibility(repository, false)
     }
 
     const cachedState = compareState.formState
@@ -3153,9 +3146,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  public _setDivergingBranchBannerVisibility(visible: boolean) {
-    if (this.isDivergingBranchBannerVisible !== visible) {
-      this.isDivergingBranchBannerVisible = visible
+  public _setDivergingBranchBannerVisibility(
+    repository: Repository,
+    visible: boolean
+  ) {
+    const state = this.repositoryStateCache.get(repository)
+    const { compareState } = state
+
+    if (compareState.isDivergingBranchBannerVisible !== visible) {
+      this.repositoryStateCache.updateCompareState(repository, () => ({
+        isDivergingBranchBannerVisible: visible,
+      }))
 
       if (visible) {
         this.statsStore.recordDivergingBranchBannerDisplayed()
@@ -3600,7 +3601,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const baseURL = `${gitHubRepository.htmlURL}/pull/${
-      currentPullRequest.number
+      currentPullRequest.pullRequestNumber
     }`
 
     await this._openInBrowser(baseURL)
@@ -3834,7 +3835,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       const gitStore = this.getGitStore(repository)
 
-      const localBranchName = `pr/${pullRequest.number}`
+      const localBranchName = `pr/${pullRequest.pullRequestNumber}`
       const doesBranchExist =
         gitStore.allBranches.find(branch => branch.name === localBranchName) !=
         null
@@ -3910,4 +3911,15 @@ function getInitialAction(
     branch: cachedState.comparisonBranch,
     mode: cachedState.kind,
   }
+}
+
+/**
+ * Get the behind count (or 0) of the ahead/behind counter
+ */
+function getBehindOrDefault(aheadBehind: IAheadBehind | null): number {
+  if (aheadBehind === null) {
+    return 0
+  }
+
+  return aheadBehind.behind
 }
