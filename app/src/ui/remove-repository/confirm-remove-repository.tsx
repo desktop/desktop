@@ -3,6 +3,7 @@ import { ButtonGroup } from '../lib/button-group'
 import { Button } from '../lib/button'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
+import { Ref } from '../lib/ref'
 import { Repository } from '../../models/repository'
 import { TrashNameLabel } from '../lib/context-menu'
 
@@ -68,7 +69,7 @@ export class ConfirmRemoveRepository extends React.Component<
           <p className="description">
             The repository will be removed from GitHub Desktop:
             <br />
-            {this.props.repository.path}
+            <Ref>{this.props.repository.path}</Ref>
           </p>
 
           <div>
