@@ -1,9 +1,10 @@
 import { spawnAndComplete } from './spawn'
+import { getCaptures } from '../helpers/regex'
 
-/** returns a list of files with conflict markers present
+/**
+ * returns a list of files with conflict markers present
  * @param repositoryPath filepath to repository
  * @returns set of filepaths with conflict markers
- *
  */
 export async function getFilesWithConflictMarkers(
   repositoryPath: string
@@ -19,19 +20,17 @@ export async function getFilesWithConflictMarkers(
 
   // result parsing
   const outputStr = output.toString('utf8')
-  const fileNameCaptureRe = /(.+):\d+: leftover conflict marker/gi
-  return getMatches(outputStr, fileNameCaptureRe, new Set<string>())
+  const flatSet = new Set<string>()
+  const captures = await getCaptures(outputStr, fileNameCaptureRe)
+  captures.forEach(match =>
+    // fileNameCaptureRe only has one capture
+    flatSet.add(match[0])
+  )
+  return flatSet
 }
 
-function getMatches(
-  text: string,
-  re: RegExp,
-  matches: Set<string>
-): Set<string> {
-  const match = re.exec(text)
-  if (match) {
-    matches.add(match[1])
-    getMatches(text, re, matches)
-  }
-  return matches
-}
+/**
+ * matches a line reporting a leftover conflict marker
+ * and captures the name of the file
+ */
+const fileNameCaptureRe = /(.+):\d+: leftover conflict marker/gi

@@ -31,8 +31,10 @@ const MaxStatusBufferSize = 20e6 // 20MB in decimal
 
 /** The encapsulation of the result from 'git status' */
 export interface IStatusResult {
+  /** The name of the current branch */
   readonly currentBranch?: string
   readonly currentUpstreamBranch?: string
+  /** The SHA of the tip commit of the current branch */
   readonly currentTip?: string
   readonly branchAheadBehind?: IAheadBehind
 
@@ -43,12 +45,12 @@ export interface IStatusResult {
   readonly workingDirectory: WorkingDirectoryStatus
 }
 
-type StatusHeadersData = {
-  currentBranch: string | undefined
-  currentUpstreamBranch: string | undefined
-  currentTip: string | undefined
-  branchAheadBehind: IAheadBehind | undefined
-  m: RegExpMatchArray | null
+interface IStatusHeadersData {
+  currentBranch?: string
+  currentUpstreamBranch?: string
+  currentTip?: string
+  branchAheadBehind?: IAheadBehind
+  match: RegExpMatchArray | null
 }
 
 function convertToAppStatus(
@@ -125,8 +127,8 @@ export async function getStatus(
 
   const stdout = result.output.toString('utf8')
   const parsed = parsePorcelainStatus(stdout)
-  const headers: ReadonlyArray<IStatusHeader> = parsed.filter(isStatusHeader)
-  const entries: ReadonlyArray<IStatusEntry> = parsed.filter(isStatusEntry)
+  const headers = parsed.filter(isStatusHeader)
+  const entries = parsed.filter(isStatusEntry)
 
   // run git diff check if anything is conflicted
   const filesWithConflictMarkers = entries.some(
@@ -146,12 +148,12 @@ export async function getStatus(
     currentUpstreamBranch,
     currentTip,
     branchAheadBehind,
-  }: StatusHeadersData = headers.reduce(parseStatusHeader, {
+  } = headers.reduce(parseStatusHeader, {
     currentBranch: undefined,
     currentUpstreamBranch: undefined,
     currentTip: undefined,
     branchAheadBehind: undefined,
-    m: null,
+    match: null,
   })
 
   const workingDirectory = WorkingDirectoryStatus.fromFiles([...files.values()])
@@ -223,28 +225,28 @@ function buildStatusMap(
  * Update status header based on the current header entry.
  * Reducer.
  */
-function parseStatusHeader(results: StatusHeadersData, header: IStatusHeader) {
+function parseStatusHeader(results: IStatusHeadersData, header: IStatusHeader) {
   let {
     currentBranch,
     currentUpstreamBranch,
     currentTip,
     branchAheadBehind,
-    m,
+    match,
   } = results
   const value = header.value
 
   // This intentionally does not match branch.oid initial
-  if ((m = value.match(/^branch\.oid ([a-f0-9]+)$/))) {
-    currentTip = m[1]
-  } else if ((m = value.match(/^branch.head (.*)/))) {
-    if (m[1] !== '(detached)') {
-      currentBranch = m[1]
+  if ((match = value.match(/^branch\.oid ([a-f0-9]+)$/))) {
+    currentTip = match[1]
+  } else if ((match = value.match(/^branch.head (.*)/))) {
+    if (match[1] !== '(detached)') {
+      currentBranch = match[1]
     }
-  } else if ((m = value.match(/^branch.upstream (.*)/))) {
-    currentUpstreamBranch = m[1]
-  } else if ((m = value.match(/^branch.ab \+(\d+) -(\d+)$/))) {
-    const ahead = parseInt(m[1], 10)
-    const behind = parseInt(m[2], 10)
+  } else if ((match = value.match(/^branch.upstream (.*)/))) {
+    currentUpstreamBranch = match[1]
+  } else if ((match = value.match(/^branch.ab \+(\d+) -(\d+)$/))) {
+    const ahead = parseInt(match[1], 10)
+    const behind = parseInt(match[2], 10)
 
     if (!isNaN(ahead) && !isNaN(behind)) {
       branchAheadBehind = { ahead, behind }
@@ -255,6 +257,6 @@ function parseStatusHeader(results: StatusHeadersData, header: IStatusHeader) {
     currentUpstreamBranch,
     currentTip,
     branchAheadBehind,
-    m,
+    match,
   }
 }
