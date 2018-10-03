@@ -82,6 +82,7 @@ import {
   RepositorySectionTab,
   SelectionType,
   MergeResultStatus,
+  IBranchesState,
 } from '../app-state'
 import { caseInsensitiveCompare } from '../compare'
 import { IGitHubUser } from '../databases/github-user-database'
@@ -121,6 +122,7 @@ import {
   updateRef,
   saveGitIgnore,
   appendIgnoreRule,
+  IStatusResult,
 } from '../git'
 import { IGitAccount } from '../git/authentication'
 import {
@@ -274,7 +276,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private selectedBranchesTab = BranchesTab.Branches
   private selectedTheme = ApplicationTheme.Light
 
-  private previouslyConflicted = false
+  private previouslyHadConflicts = false
 
   public constructor(
     private readonly gitHubUserStore: GitHubUserStore,
@@ -1469,38 +1471,41 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
+  private foo(status: IStatusResult, state: IBranchesState) {
+    const workingDirectoryFiles = [...status.workingDirectory.files]
+    // do we have any resolved conflicts? yes implies there were conflicts
+    const resolvedConflicts = workingDirectoryFiles.filter(file => file.status === AppFileStatus.Resolved)
+    // are there any conflicts?
+    const conflicts = workingDirectoryFiles.filter(file => file.status === AppFileStatus.Conflicted)
+
+
+    // have all conflicts have been resolved and
+    if (workingDirectoryFiles.length === resolvedConflicts.length) {
+      // if we're' on the same branch, but have a different tip the merge was completed successfully
+      // this.statsStore.recordMergeSuccesfulAfterConflicts()
+    } else if (this.previouslyHadConflicts && conflicts.length === 0) {
+      // if we're on the same branch and tip then we can assume the merge was aborted
+      // this.statsStore.recordMergeAbortedAfterConflicts()
+    } else {
+      // this.statsStore.recordMergeAbortedAfterConflicts()
+    }
+  }
+
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _loadStatus(
     repository: Repository,
     clearPartialState: boolean = false
   ): Promise<boolean> {
     const gitStore = this.getGitStore(repository)
+    const { selectedState } = this.getState()
     const status = await gitStore.loadStatus()
 
     if (!status) {
       return false
     }
 
-    // were any of these conflicted
-    const currentlyConflicted: boolean =
-    [...status.workingDirectory.files]
-      .some(file => file.status === AppFileStatus.Resolved || file.status === AppFileStatus.Conflicted)
-
-    if (this.previouslyConflicted === true && currentlyConflicted) {
-      if (status.currentBranch previousStatus.currentBranch === status.currentBranch) {
-        // if conflicted markers removed and if same branch and if different tip -> merge completed successfully
-        if (previousState.currentTip !== status.currentTip) {
-          this.statsStore.recordMergeSuccesfulAfterConflicts()
-        }
-        // if conflicted markers removed and if same branch and same tip -> merge aborted
-        else {
-          this.statsStore.recordMergeAbortedAfterConflicts()
-        }
-      }
-      // if conflicted markers removed and if branch is different -> merge aborted
-      else {
-        this.statsStore.recordMergeAbortedAfterConflicts()
-      }
+    if (selectedState !== null && selectedState.type === SelectionType.Repository) {
+      this.foo(status, selectedState.state.branchesState)
     }
 
     this.repositoryStateCache.updateChangesState(repository, state => {
