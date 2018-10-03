@@ -133,7 +133,7 @@ export async function getStatus(
     es => mapStatus(es.statusCode).kind === 'conflicted'
   )
     ? await getFilesWithConflictMarkers(repository.path)
-    : new Set<string>()
+    : new Map<string, number>()
 
   // Map of files keyed on their paths.
   const files = entries.reduce(
@@ -176,7 +176,7 @@ export async function getStatus(
 function buildStatusMap(
   files: Map<string, WorkingDirectoryFileChange>,
   entry: IStatusEntry,
-  filesWithConflictMarkers: Set<string>
+  filesWithConflictMarkers: Map<string, number>
 ): Map<string, WorkingDirectoryFileChange> {
   const status = mapStatus(entry.statusCode)
 
@@ -213,7 +213,8 @@ function buildStatusMap(
       entry.path,
       summary,
       selection,
-      entry.oldPath
+      entry.oldPath,
+      filesWithConflictMarkers.get(entry.path)
     )
   )
   return files
