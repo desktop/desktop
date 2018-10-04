@@ -1305,11 +1305,19 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       case PopupType.MergeConflicts:
+        const selected = this.state.selectedState
+        if (selected === null || selected.type !== SelectionType.Repository) {
+          return null
+        }
+        const workingDirectoryStatus =
+          selected.state.changesState.workingDirectory
+        // TODO: handle not in a merge state here (return null or something for now)
+        // this.showPopup(null) or closePopup
         return (
           <MergeConflictsWarning
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
-            status={}
+            status={workingDirectoryStatus}
             onDismissed={this.onPopupDismissed}
           />
         )
