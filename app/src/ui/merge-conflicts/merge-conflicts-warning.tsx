@@ -42,6 +42,12 @@ export class MergeConflictsWarning extends React.Component<
     this.props.onDismissed()
   }
 
+  private renderConflictedFile(
+    fileStatus: WorkingDirectoryFileChange
+  ): JSX.Element {
+    return <li>{fileStatus.path}</li>
+  }
+
   public render() {
     return (
       <Dialog
@@ -56,7 +62,7 @@ export class MergeConflictsWarning extends React.Component<
         onSubmit={this.onSubmit}
       >
         <DialogContent>
-          <ul>{this.props.status.files.map(renderConflictedFile)}</ul>
+          <ul>{this.props.status.files.map(this.renderConflictedFile)}</ul>
         </DialogContent>
 
         <DialogFooter>
@@ -72,10 +78,4 @@ export class MergeConflictsWarning extends React.Component<
       </Dialog>
     )
   }
-}
-
-const renderConflictedFile = (
-  fileStatus: WorkingDirectoryFileChange
-): JSX.Element => {
-  return <li>{fileStatus.path}</li>
 }
