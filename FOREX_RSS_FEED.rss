@@ -1,0 +1,102 @@
+<?xml version='1.0' encoding='ISO-8859-1' ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+<title>DDR Real Time Forex Data</title>
+<link>https://rtdata.dtcc.com/gtr/dashboard.do</link>
+<description>DDR Real Time Forex Data</description>
+<pubDate>Tue, 22 May 2018 04:38:35 -0400</pubDate>
+<ttl>1</ttl><atom:link href="https://kgc0418-tdw-data2-0.s3.amazonaws.com/slices/FOREX_RSS_FEED.rss" rel="self" type="application/rss+xml" />
+
+
+<item>
+<title>ForeignExchange:SimpleExotic:Barrier</title>
+<pubDate>Tue, 22 May 2018 04:38:35 -0400</pubDate>
+<guid>
+https://kgc0418-tdw-data2-0.s3.amazonaws.com/slices/FOREX_RSS_FEED.rss#-865498281</guid>
+<description>
+"86103183","","NEW","2018-05-22T08:37:24","U","FC","","Y","N","OFF","","2018-12-26","","","FX","","ForeignExchange:SimpleExotic:Barrier","Trade","","","PRICE","0.01","","","USD","JPY","40,000","4,260,000","","","","","","","P-","","USD","0","","2018-12-26","","","",""</description>
+</item>
+
+
+<item>
+<title>ForeignExchange:SimpleExotic:Barrier</title>
+<pubDate>Tue, 22 May 2018 04:38:35 -0400</pubDate>
+<guid>
+https://kgc0418-tdw-data2-0.s3.amazonaws.com/slices/FOREX_RSS_FEED.rss#325791361</guid>
+<description>
+"86103184","","NEW","2018-05-22T08:37:39","U","FC","","Y","N","OFF","","2019-01-08","","","FX","","ForeignExchange:SimpleExotic:Barrier","Trade","","","PRICE","0.01","","","USD","JPY","40,000","4,260,000","","","","","","","P-","","USD","0","","2019-01-08","","","",""</description>
+</item>
+
+
+<item>
+<title>ForeignExchange:SimpleExotic:Barrier</title>
+<pubDate>Tue, 22 May 2018 04:38:35 -0400</pubDate>
+<guid>
+https://kgc0418-tdw-data2-0.s3.amazonaws.com/slices/FOREX_RSS_FEED.rss#-1383448776</guid>
+<description>
+"86103185","","NEW","2018-05-22T08:37:31","U","FC","","Y","N","OFF","","2019-01-02","","","FX","","ForeignExchange:SimpleExotic:Barrier","Trade","","","PRICE","0.01","","","USD","JPY","40,000","4,260,000","","","","","","","P-","","USD","0","","2019-01-02","","","",""</description>
+</item>
+
+
+<item>
+<title>ForeignExchange:SimpleExotic:Barrier</title>
+<pubDate>Tue, 22 May 2018 04:38:35 -0400</pubDate>
+<guid>
+https://kgc0418-tdw-data2-0.s3.amazonaws.com/slices/FOREX_RSS_FEED.rss#1250304685</guid>
+<description>
+"86103188","","NEW","2018-05-22T08:37:43","U","FC","","Y","N","OFF","","2019-01-15","","","FX","","ForeignExchange:SimpleExotic:Barrier","Trade","","","PRICE","0.01","","","USD","JPY","40,000","4,260,000","","","","","","","P-","","USD","0","","2019-01-15","","","",""</description>
+</item>
+
+
+<item>
+<title>ForeignExchange:SimpleExotic:Barrier</title>
+<pubDate>Tue, 22 May 2018 04:38:35 -0400</pubDate>
+<guid>
+https://kgc0418-tdw-data2-0.s3.amazonaws.com/slices/FOREX_RSS_FEED.rss#1718438423</guid>
+<description>
+"86103189","","NEW","2018-05-22T08:37:46","U","FC","","Y","N","OFF","","2019-01-22","","","FX","","ForeignExchange:SimpleExotic:Barrier","Trade","","","PRICE","0.01","","","USD","JPY","40,000","4,260,000","","","","","","","P-","","USD","0","","2019-01-22","","","",""</description>
+</item>
+
+
+<item>
+<title>ForeignExchange:SimpleExotic:Barrier</title>
+<pubDate>Tue, 22 May 2018 04:38:35 -0400</pubDate>
+<guid>
+https://kgc0418-tdw-data2-0.s3.amazonaws.com/slices/FOREX_RSS_FEED.rss#1584495898</guid>
+<description>
+"86103191","","NEW","2018-05-22T08:37:52","U","FC","","Y","N","OFF","","2019-01-29","","","FX","","ForeignExchange:SimpleExotic:Barrier","Trade","","","PRICE","0.01","","","USD","JPY","40,000","4,260,000","","","","","","","P-","","USD","0","","2019-01-29","","","",""</description>
+</item>
+
+
+<item>
+<title>ForeignExchange:NDF</title>
+<pubDate>Tue, 22 May 2018 04:38:35 -0400</pubDate>
+<guid>
+https://kgc0418-tdw-data2-0.s3.amazonaws.com/slices/FOREX_RSS_FEED.rss#-1130752762</guid>
+<description>
+"86103204","86103074","CANCEL","2018-05-22T08:20:41","U","UC","","N","N","OFF","2018-05-22","2018-06-20","","USD","FX","","ForeignExchange:NDF","Trade","","","PRICE","0.01625","","","USD","RUB","1,000,000","61,534,000","","","","","","","","","","","","","","","",""</description>
+</item>
+
+
+<item>
+<title>ForeignExchange:NDF</title>
+<pubDate>Tue, 22 May 2018 04:38:35 -0400</pubDate>
+<guid>
+https://kgc0418-tdw-data2-0.s3.amazonaws.com/slices/FOREX_RSS_FEED.rss#882868603</guid>
+<description>
+"86100367","","NEW","2018-05-22T08:08:13","U","FC","","N","Y","OFF","2018-05-22","2018-06-28","","USD","FX","","ForeignExchange:NDF","Trade","","","PRICE","68.368","PRICE","0","USD","INR","120,000","8,204,160","","","","","","","","","","","","","","","",""</description>
+</item>
+
+
+<item>
+<title>ForeignExchange:NDF</title>
+<pubDate>Tue, 22 May 2018 04:38:35 -0400</pubDate>
+<guid>
+https://kgc0418-tdw-data2-0.s3.amazonaws.com/slices/FOREX_RSS_FEED.rss#-151988613</guid>
+<description>
+"86103175","","NEW","2018-05-22T08:31:52","U","UC","","N","N","OFF","2018-05-22","2018-05-31","","USD","FX","","ForeignExchange:NDF","Trade","","","PRICE","0.0163","","","USD","RUB","620,000","38,030,677","","","","","","","","","","","","","","","",""</description>
+</item>
+
+</channel>
+</rss>
+

@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='ISO-8859-1' ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+<title>DDR Real Time Forex Data</title>
+<link>https://rtdata.dtcc.com/gtr/dashboard.do</link>
+<description>DDR Real Time Forex Data</description>
+<pubDate>Thu, 31 May 2018 21:38:36 -0400</pubDate>
+<ttl>1</ttl><atom:link href="https://kgc0418-tdw-data2-0.s3.amazonaws.com/slices/FOREX_RSS_FEED.rss" rel="self" type="application/rss+xml" />
+
+
+<item>
+<title>ForeignExchange:NDF</title>
+<pubDate>Thu, 31 May 2018 21:38:36 -0400</pubDate>
+<guid>
+https://kgc0418-tdw-data2-0.s3.amazonaws.com/slices/FOREX_RSS_FEED.rss#1957164507</guid>
+<description>
+"86847993","","NEW","2018-06-01T01:08:11","U","PC","","N","Y","OFF","2018-06-01","2018-06-20","","USD","FX","","ForeignExchange:NDF","Trade","","","PRICE","29.945","","","USD","TWD","2,000,000","59,890,000","","","","","","","","","","","","","","","",""</description>
+</item>
+
+</channel>
+</rss>
+
