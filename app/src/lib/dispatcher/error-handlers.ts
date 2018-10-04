@@ -287,9 +287,11 @@ export async function mergeConflictHandler(
     switch (command) {
       case 'pull':
         dispatcher.recordMergeConflictFromPull()
+        dispatcher.mergeConflictDetected()
         break
       case 'merge':
         dispatcher.recordMergeConflictFromExplicitMerge()
+        dispatcher.mergeConflictDetected()
         break
     }
   }
