@@ -1469,7 +1469,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private detectMergeResolution(status: IStatusResult) {
-    // debugger
     const selection = this.getSelectedState()
 
     if (selection === null || selection.type !== SelectionType.Repository) {
@@ -3926,7 +3925,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
 
   public _mergeConflictDetected() {
-    // debugger
     const selection = this.getSelectedState()
 
     if (selection === null || selection.type !== SelectionType.Repository) {
