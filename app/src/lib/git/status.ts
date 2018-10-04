@@ -31,9 +31,18 @@ const MaxStatusBufferSize = 20e6 // 20MB in decimal
 
 /** The encapsulation of the result from 'git status' */
 export interface IStatusResult {
+  /** The name of the current branch */
   readonly currentBranch?: string
+
+  /** The name of the current upstream branch */
   readonly currentUpstreamBranch?: string
+
+  /** The SHA of the tip commit of the current branch */
   readonly currentTip?: string
+
+  /** How many commits ahead and behind
+   *  the `currentBranch` is compared to the `currentUpstreamBranch`
+   */
   readonly branchAheadBehind?: IAheadBehind
 
   /** true if the repository exists at the given location */
