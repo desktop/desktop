@@ -737,20 +737,6 @@ export class StatsStore {
     localStorage.setItem(WelcomeWizardSignInMethodKey, method)
   }
 
-  /** Record when a conflicted merge was successfully completed by the user */
-  public async recordMergeSuccesfulAfterConflicts(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      mergeSuccesfulAfterConflicts: m.mergeSuccesfulAfterConflicts + 1,
-    }))
-  }
-
-  /** Record when a conflicted merge was aborted by the user */
-  public async recordMergeAbortedAfterConflicts(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      mergeAbortedAfterConflicts: m.mergeAbortedAfterConflicts + 1,
-    }))
-  }
-
   private onUiActivity = async () => {
     this.disableUiActivityMonitoring()
 
