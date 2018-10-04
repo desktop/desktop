@@ -1023,6 +1023,10 @@ export class App extends React.Component<IAppProps, IAppState> {
           popup.showDiscardChangesSetting === undefined
             ? true
             : popup.showDiscardChangesSetting
+        const discardingAllChanges =
+          popup.discardingAllChanges === undefined
+            ? false
+            : popup.discardingAllChanges
 
         return (
           <DiscardChanges
@@ -1034,6 +1038,7 @@ export class App extends React.Component<IAppProps, IAppState> {
               this.state.askForConfirmationOnDiscardChanges
             }
             showDiscardChangesSetting={showSetting}
+            discardingAllChanges={discardingAllChanges}
             onDismissed={this.onPopupDismissed}
             onConfirmDiscardChangesChanged={this.onConfirmDiscardChangesChanged}
           />
