@@ -82,7 +82,6 @@ import {
   RepositorySectionTab,
   SelectionType,
   MergeResultStatus,
-  IBranchesState,
 } from '../app-state'
 import { caseInsensitiveCompare } from '../compare'
 import { IGitHubUser } from '../databases/github-user-database'
@@ -275,8 +274,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private selectedBranchesTab = BranchesTab.Branches
   private selectedTheme = ApplicationTheme.Light
-
-  private previouslyHadConflicts = false
 
   public constructor(
     private readonly gitHubUserStore: GitHubUserStore,
@@ -1471,24 +1468,58 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
-  private foo(status: IStatusResult, state: IBranchesState) {
-    const workingDirectoryFiles = [...status.workingDirectory.files]
-    // do we have any resolved conflicts? yes implies there were conflicts
-    const resolvedConflicts = workingDirectoryFiles.filter(file => file.status === AppFileStatus.Resolved)
-    // are there any conflicts?
-    const conflicts = workingDirectoryFiles.filter(file => file.status === AppFileStatus.Conflicted)
+  private detectMergeResolution(status: IStatusResult) {
+    const selection = this.getSelectedState()
 
-
-    // have all conflicts have been resolved and
-    if (workingDirectoryFiles.length === resolvedConflicts.length) {
-      // if we're' on the same branch, but have a different tip the merge was completed successfully
-      // this.statsStore.recordMergeSuccesfulAfterConflicts()
-    } else if (this.previouslyHadConflicts && conflicts.length === 0) {
-      // if we're on the same branch and tip then we can assume the merge was aborted
-      // this.statsStore.recordMergeAbortedAfterConflicts()
-    } else {
-      // this.statsStore.recordMergeAbortedAfterConflicts()
+    if (selection === null || selection.type !== SelectionType.Repository) {
+      return
     }
+
+    const { tip } = selection.state.branchesState
+
+    if (tip.kind !== TipState.Valid) {
+      return
+    }
+
+    const repository = selection.repository
+    const repoState = this.repositoryStateCache.get(repository)
+
+    if (repoState.conflictState === null) {
+      return
+    }
+
+    const previousBranch = repoState.conflictState.branch
+    const currentBranchName = status.currentBranch
+
+    if (currentBranchName === undefined) {
+      return
+    }
+
+    if (previousBranch.name !== currentBranchName) {
+      this.statsStore.recordMergeAbortedAfterConflicts()
+      this.repositoryStateCache.update(repository, () => ({
+        conflictState: null
+      }))
+      this.emitUpdate()
+      return
+    }
+
+    const workingDirectioryHasConflicts = status.workingDirectory.files.some(file => file.status === AppFileStatus.Conflicted)
+
+    if (workingDirectioryHasConflicts) {
+      return
+    }
+
+    if (status.currentTip === previousBranch.tip.sha) {
+      this.statsStore.recordMergeAbortedAfterConflicts()
+    } else {
+      this.statsStore.recordMergeSuccesfulAfterConflicts()
+    }
+
+    this.repositoryStateCache.update(repository, () => ({
+      conflictState: null
+    }))
+    this.emitUpdate()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -1497,16 +1528,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     clearPartialState: boolean = false
   ): Promise<boolean> {
     const gitStore = this.getGitStore(repository)
-    const { selectedState } = this.getState()
     const status = await gitStore.loadStatus()
 
     if (!status) {
       return false
     }
 
-    if (selectedState !== null && selectedState.type === SelectionType.Repository) {
-      this.foo(status, selectedState.state.branchesState)
-    }
+    this.detectMergeResolution(status)
 
     this.repositoryStateCache.updateChangesState(repository, state => {
       // Populate a map for all files in the current working directory state
@@ -3894,6 +3922,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     return Promise.resolve()
   }
+
+
   public _mergeConflictDetected() {
     const selection = this.getSelectedState()
 
