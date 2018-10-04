@@ -1202,6 +1202,16 @@ export class Dispatcher {
   }
 
   /**
+   * Called when the repository's working directory
+   * contains conflicts as a result of a merge intiated by Desktop
+   *
+   * Used to track ratio of successful to aborted merges
+   */
+  public mergeConflictDetected() {
+    this.appStore._mergeConflictDetected()
+  }
+
+  /**
    * Increments the `mergeConflictFromPullCount` metric
    */
   public recordMergeConflictFromPull() {
@@ -1298,6 +1308,20 @@ export class Dispatcher {
    */
   public recordDivergingBranchBannerInitatedMerge() {
     return this.statsStore.recordDivergingBranchBannerInitatedMerge()
+  }
+
+  /**
+   * Increments the `recordMergeSuccesfulAfterConflicts` metric
+   */
+  public recordMergeSuccesfulAfterConflicts() {
+    return this.statsStore.recordMergeSuccesfulAfterConflicts()
+  }
+
+  /**
+   * Increments the `recordMergeAbortedAfterConflicts` metric
+   */
+  public recordMergeAbortedAfterConflicts() {
+    return this.statsStore.recordMergeAbortedAfterConflicts()
   }
 
   public recordWelcomeWizardInitiated() {
