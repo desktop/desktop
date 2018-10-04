@@ -1320,6 +1320,7 @@ export class Dispatcher {
 
   public recordAddExistingRepository() {
     this.statsStore.recordAddExistingRepository()
+  }
 
   /**
    * Increments the `recordMergeSuccesfulAfterConflicts` metric
