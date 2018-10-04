@@ -72,7 +72,7 @@ interface ICloneRepositoryState {
 export class CloneRepository extends React.Component<
   ICloneRepositoryProps,
   ICloneRepositoryState
-> {
+  > {
   public constructor(props: ICloneRepositoryProps) {
     super(props)
 
@@ -334,6 +334,10 @@ export class CloneRepository extends React.Component<
 
     const account = await findAccountForRemoteURL(url, accounts)
     if (identifier && account) {
+      const repoExists = await fetch(url)
+      if (repoExists.status == 404) {
+        return null
+      }
       const api = API.fromAccount(account)
       const repo = await api.fetchRepository(identifier.owner, identifier.name)
       if (repo) {
@@ -349,6 +353,8 @@ export class CloneRepository extends React.Component<
 
     const url = await this.resolveCloneURL()
     const path = this.state.path
+
+    console.log(url);
 
     if (!url) {
       const error = new Error(
@@ -366,7 +372,7 @@ export class CloneRepository extends React.Component<
     }
   }
 
-  private cloneImpl(url: string, path: string) {
+  private async cloneImpl(url: string, path: string) {
     this.props.dispatcher.clone(url, path)
     this.props.onDismissed()
 
