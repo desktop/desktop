@@ -346,6 +346,10 @@ export enum RepositorySectionTab {
   History,
 }
 
+export interface IConflictState {
+  readonly branch: Branch
+}
+
 export interface IRepositoryState {
   readonly commitSelection: ICommitSelection
   readonly changesState: IChangesState
@@ -417,6 +421,12 @@ export interface IRepositoryState {
    * null if no such operation is in flight.
    */
   readonly revertProgress: IRevertProgress | null
+
+  /**
+   * Will store information about a conflict if the
+   * repository ever enters that state
+   */
+  readonly conflictState: IConflictState | null
 }
 
 export type Progress =
