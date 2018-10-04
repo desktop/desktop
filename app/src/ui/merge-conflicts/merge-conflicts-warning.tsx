@@ -43,10 +43,48 @@ export class MergeConflictsWarning extends React.Component<
     this.props.onDismissed()
   }
 
-  private renderUnmergedFile(
-    fileStatus: WorkingDirectoryFileChange
+  private renderFileWithoutConflicts(path: string): JSX.Element {
+    return (
+      <li>
+        {/* <icon /> */}
+        <div>
+          <div>{path}</div>
+          <div>No conflicts remaining</div>
+        </div>
+        {/* <icon /> */}
+      </li>
+    )
+  }
+
+  private renderFileWithConflicts(
+    path: string,
+    conflicts: number
   ): JSX.Element {
-    return <li>{fileStatus.path}</li>
+    const message = conflicts === 1 ? `1 conflict` : `${conflicts} conflicts`
+    return (
+      <li>
+        {/* <icon /> */}
+        <div>
+          <div>{path}</div>
+          <div>{message}</div>
+        </div>
+        <button>Open in editor</button>
+      </li>
+    )
+  }
+
+  private renderUnmergedFile(
+    file: WorkingDirectoryFileChange
+  ): JSX.Element | null {
+    switch (file.status) {
+      case AppFileStatus.Resolved:
+        return this.renderFileWithoutConflicts(file.path)
+      case AppFileStatus.Conflicted:
+        // TODO: use count implemented in https://github.com/desktop/desktop/pull/5808
+        return this.renderFileWithConflicts(file.path, 1)
+      default:
+        return null
+    }
   }
 
   private renderUnmergedFiles(files: Array<WorkingDirectoryFileChange>) {
