@@ -320,6 +320,9 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.showAbout()
       case 'boomtown':
         return this.boomtown()
+      case 'go-to-summary':
+        this.showChanges()
+        return this.goToSummary()
       case 'open-pull-request': {
         return this.openPullRequest()
       }
@@ -356,6 +359,21 @@ export class App extends React.Component<IAppProps, IAppState> {
     setImmediate(() => {
       throw new Error('Boomtown!')
     })
+  }
+
+  private goToSummary() {
+    const state = this.state.selectedState
+    if (state == null || state.type !== SelectionType.Repository) {
+      return
+    }
+
+    this.props.dispatcher.closeCurrentFoldout()
+    this.props.dispatcher.changeRepositorySection(
+      state.repository,
+      RepositorySectionTab.Changes
+    ).then(() =>
+      document.dispatchEvent(new CustomEvent('go-to-summary'))
+    )
   }
 
   private checkForUpdates(inBackground: boolean) {

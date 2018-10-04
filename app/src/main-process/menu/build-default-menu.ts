@@ -151,6 +151,12 @@ export function buildDefaultMenu(
       },
       separator,
       {
+        label: __DARWIN__ ? 'Go to Summary' : 'Go to &Summary',
+        id: 'go-to-summary',
+        accelerator: 'CmdOrCtrl+S',
+        click: emit('go-to-summary')
+      },
+      {
         label: __DARWIN__ ? 'Toggle Full Screen' : 'Toggle &full screen',
         role: 'togglefullscreen',
       },

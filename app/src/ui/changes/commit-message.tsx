@@ -451,6 +451,12 @@ export class CommitMessage extends React.Component<
     this.descriptionTextArea = elem
   }
 
+  private onSummaryInputRef = (elem: HTMLInputElement | null) => {
+    if (elem) {
+      document.addEventListener('go-to-summary', () => elem.focus());
+    }
+  }
+
   private onFocusContainerClick = (event: React.MouseEvent<HTMLDivElement>) => {
     if (this.descriptionComponent) {
       this.descriptionComponent.focus()
@@ -511,6 +517,7 @@ export class CommitMessage extends React.Component<
             placeholder={this.props.placeholder}
             value={this.state.summary}
             onValueChanged={this.onSummaryChanged}
+            onElementRef={this.onSummaryInputRef}
             autocompletionProviders={this.props.autocompletionProviders}
             onContextMenu={this.onAutocompletingInputContextMenu}
             disabled={this.props.isCommitting}
