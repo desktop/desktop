@@ -1505,7 +1505,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const workingDirectioryHasConflicts = status.workingDirectory.files.some(file => file.status === AppFileStatus.Conflicted)
+    const workingDirectioryHasConflicts = status.workingDirectory.files.some(file => file.status === AppFileStatus.Conflicted || file.status === AppFileStatus.Resolved)
 
     if (workingDirectioryHasConflicts) {
       return
