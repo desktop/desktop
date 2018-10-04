@@ -381,8 +381,6 @@ export class CloneRepository extends React.Component<
     const url = await this.resolveCloneURL()
     const path = this.state.path
 
-    console.log(url);
-
     if (!url) {
       const error = new Error(
         `We couldn't find that repository. Check that you are logged in, the network is accessible, and the URL or repository alias are spelled correctly.`
@@ -399,7 +397,7 @@ export class CloneRepository extends React.Component<
     }
   }
 
-  private async cloneImpl(url: string, path: string) {
+  private cloneImpl(url: string, path: string) {
     this.props.dispatcher.clone(url, path)
     this.props.onDismissed()
 
