@@ -3864,6 +3864,27 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     return Promise.resolve()
   }
+  public _mergeConflictDetected() {
+    const selection = this.getSelectedState()
+
+    if (selection === null || selection.type !== SelectionType.Repository) {
+      return
+    }
+
+    const { tip } = selection.state.branchesState
+
+    if (tip.kind !== TipState.Valid) {
+      return
+    }
+
+    const repository = selection.repository
+    this.repositoryStateCache.update(repository, () => ({
+      conflictState: {
+        branch: tip.branch
+      }
+    }))
+    this.emitUpdate()
+  }
 }
 
 /**
