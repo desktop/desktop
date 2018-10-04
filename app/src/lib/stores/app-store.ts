@@ -1484,6 +1484,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const repository = selection.repository
     const repoState = this.repositoryStateCache.get(repository)
 
+    // check if we're in a conflicted state
     if (repoState.conflictState === null) {
       return
     }
@@ -1491,33 +1492,43 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const previousBranch = repoState.conflictState.branch
     const currentBranchName = status.currentBranch
 
+    // no current branch means something happened so bail
     if (currentBranchName === undefined) {
       return
     }
 
+    // The branch name has changed, so the merge must have been aborted
     if (previousBranch.name !== currentBranchName) {
       this.statsStore.recordMergeAbortedAfterConflicts()
       this.repositoryStateCache.update(repository, () => ({
-        conflictState: null
+        conflictState: null,
       }))
       this.emitUpdate()
       return
     }
 
-    const workingDirectioryHasConflicts = status.workingDirectory.files.some(file => file.status === AppFileStatus.Conflicted)
+    // are there files that have a conflicted or _resolved_ status?
+    const workingDirectioryHasConflicts = status.workingDirectory.files.some(
+      file =>
+        file.status === AppFileStatus.Conflicted ||
+        file.status === AppFileStatus.Resolved
+    )
 
+    // we are still in a conflict, so bail
     if (workingDirectioryHasConflicts) {
       return
     }
 
+    // no more conflicts!
     if (status.currentTip === previousBranch.tip.sha) {
+      // if the tip is the same, no merge commit was created
       this.statsStore.recordMergeAbortedAfterConflicts()
     } else {
       this.statsStore.recordMergeSuccesfulAfterConflicts()
     }
 
     this.repositoryStateCache.update(repository, () => ({
-      conflictState: null
+      conflictState: null,
     }))
     this.emitUpdate()
   }
@@ -1535,7 +1546,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     this.detectMergeResolution(status)
-
     this.repositoryStateCache.updateChangesState(repository, state => {
       // Populate a map for all files in the current working directory state
       const filesByID = new Map<string, WorkingDirectoryFileChange>()
@@ -3923,7 +3933,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return Promise.resolve()
   }
 
-
+  /**
+   * Sets conflict state with a non-null value
+   *
+   * The presence of a non-null value signifies
+   * that the repository is in a conflicted state
+   */
   public _mergeConflictDetected() {
     const selection = this.getSelectedState()
 
@@ -3940,8 +3955,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const repository = selection.repository
     this.repositoryStateCache.update(repository, () => ({
       conflictState: {
-        branch: tip.branch
-      }
+        branch: tip.branch,
+      },
     }))
     this.emitUpdate()
   }
