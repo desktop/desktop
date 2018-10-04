@@ -91,12 +91,12 @@ export class PushBranchCommits extends React.Component<
         id="push-branch-commits"
         key="push-branch-commits"
         title={this.renderDialogTitle()}
-        onSubmit={this.cancel}
         onDismissed={this.cancel}
+        onSubmit={this.cancel}
         loading={this.state.isPushingOrPublishing}
         disabled={this.state.isPushingOrPublishing}
       >
-          {this.renderDialogContent()}
+        {this.renderDialogContent()}
 
         <DialogFooter>{this.renderButtonGroup()}</DialogFooter>
       </Dialog>
@@ -177,7 +177,7 @@ export class PushBranchCommits extends React.Component<
   }
 
   private onPushOrPublishButtonClick = async (
-  e: React.MouseEvent<HTMLButtonElement>
+    e: React.MouseEvent<HTMLButtonElement>
   ) => {
     e.preventDefault()
     
