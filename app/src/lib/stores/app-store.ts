@@ -39,6 +39,7 @@ import {
   CommittedFileChange,
   WorkingDirectoryFileChange,
   WorkingDirectoryStatus,
+  AppFileStatus,
 } from '../../models/status'
 import { TipState } from '../../models/tip'
 import { getAppPath } from '../../ui/lib/app-proxy'
@@ -120,6 +121,7 @@ import {
   updateRef,
   saveGitIgnore,
   appendIgnoreRule,
+  IStatusResult,
 } from '../git'
 import { IGitAccount } from '../git/authentication'
 import {
@@ -1466,6 +1468,60 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
+  private detectMergeResolution(status: IStatusResult) {
+    const selection = this.getSelectedState()
+
+    if (selection === null || selection.type !== SelectionType.Repository) {
+      return
+    }
+
+    const { tip } = selection.state.branchesState
+
+    if (tip.kind !== TipState.Valid) {
+      return
+    }
+
+    const repository = selection.repository
+    const repoState = this.repositoryStateCache.get(repository)
+
+    if (repoState.conflictState === null) {
+      return
+    }
+
+    const previousBranch = repoState.conflictState.branch
+    const currentBranchName = status.currentBranch
+
+    if (currentBranchName === undefined) {
+      return
+    }
+
+    if (previousBranch.name !== currentBranchName) {
+      this.statsStore.recordMergeAbortedAfterConflicts()
+      this.repositoryStateCache.update(repository, () => ({
+        conflictState: null
+      }))
+      this.emitUpdate()
+      return
+    }
+
+    const workingDirectioryHasConflicts = status.workingDirectory.files.some(file => file.status === AppFileStatus.Conflicted)
+
+    if (workingDirectioryHasConflicts) {
+      return
+    }
+
+    if (status.currentTip === previousBranch.tip.sha) {
+      this.statsStore.recordMergeAbortedAfterConflicts()
+    } else {
+      this.statsStore.recordMergeSuccesfulAfterConflicts()
+    }
+
+    this.repositoryStateCache.update(repository, () => ({
+      conflictState: null
+    }))
+    this.emitUpdate()
+  }
+
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _loadStatus(
     repository: Repository,
@@ -1477,6 +1533,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (!status) {
       return false
     }
+
+    this.detectMergeResolution(status)
 
     this.repositoryStateCache.updateChangesState(repository, state => {
       // Populate a map for all files in the current working directory state
@@ -3864,6 +3922,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     return Promise.resolve()
   }
+
+
   public _mergeConflictDetected() {
     const selection = this.getSelectedState()
 
