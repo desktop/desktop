@@ -1501,14 +1501,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (previousBranch.name !== currentBranchName) {
       this.statsStore.recordMergeAbortedAfterConflicts()
       this.repositoryStateCache.update(repository, () => ({
-        conflictState: null
+        conflictState: null,
       }))
       this.emitUpdate()
       return
     }
 
     // are there files that have a conflicted or _resolved_ status?
-    const workingDirectioryHasConflicts = status.workingDirectory.files.some(file => file.status === AppFileStatus.Conflicted || file.status === AppFileStatus.Resolved)
+    const workingDirectioryHasConflicts = status.workingDirectory.files.some(
+      file =>
+        file.status === AppFileStatus.Conflicted ||
+        file.status === AppFileStatus.Resolved
+    )
 
     // we are still in a conflict, so bail
     if (workingDirectioryHasConflicts) {
@@ -1524,7 +1528,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     this.repositoryStateCache.update(repository, () => ({
-      conflictState: null
+      conflictState: null,
     }))
     this.emitUpdate()
   }
@@ -3951,8 +3955,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const repository = selection.repository
     this.repositoryStateCache.update(repository, () => ({
       conflictState: {
-        branch: tip.branch
-      }
+        branch: tip.branch,
+      },
     }))
     this.emitUpdate()
   }
