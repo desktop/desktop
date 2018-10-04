@@ -8,6 +8,7 @@ import { Repository } from '../../models/repository'
 import {
   WorkingDirectoryStatus,
   WorkingDirectoryFileChange,
+  AppFileStatus,
 } from '../../models/status'
 
 interface IMergeConflictsWarningProps {
@@ -42,13 +43,26 @@ export class MergeConflictsWarning extends React.Component<
     this.props.onDismissed()
   }
 
-  private renderConflictedFile(
+  private renderUnmergedFile(
     fileStatus: WorkingDirectoryFileChange
   ): JSX.Element {
     return <li>{fileStatus.path}</li>
   }
 
+  private renderUnmergedFiles(files: Array<WorkingDirectoryFileChange>) {
+    return <ul>{files.map(this.renderUnmergedFile)}</ul>
+  }
+
+  private getUnmergedFiles() {
+    return this.props.status.files.filter(
+      file =>
+        file.status === AppFileStatus.Conflicted ||
+        file.status === AppFileStatus.Resolved
+    )
+  }
+
   public render() {
+    const unmergedFiles = this.getUnmergedFiles()
     return (
       <Dialog
         id="merge-conflicts-warning"
@@ -61,10 +75,7 @@ export class MergeConflictsWarning extends React.Component<
         onDismissed={this.onCancel}
         onSubmit={this.onSubmit}
       >
-        <DialogContent>
-          <ul>{this.props.status.files.map(this.renderConflictedFile)}</ul>
-        </DialogContent>
-
+        <DialogContent>{this.renderUnmergedFiles(unmergedFiles)}</DialogContent>
         <DialogFooter>
           <ButtonGroup>
             <Button type="submit">
