@@ -41,6 +41,7 @@ const NoteURL = 'https://desktop.github.com/'
  */
 export interface IAPIRepository {
   readonly clone_url: string
+  readonly ssh_url: string
   readonly html_url: string
   readonly name: string
   readonly owner: IAPIUser

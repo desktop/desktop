@@ -3,7 +3,6 @@ import { GitError } from 'dugite'
 
 import { Repository } from '../../models/repository'
 import { IRemote } from '../../models/remote'
-import { findDefaultRemote } from '../stores/helpers/find-default-remote'
 
 /** Get the remote names. */
 export async function getRemotes(
@@ -28,13 +27,6 @@ export async function getRemotes(
     .map(x => ({ name: x[0], url: x[1] }))
 
   return remotes
-}
-
-/** Get the name of the default remote. */
-export async function getDefaultRemote(
-  repository: Repository
-): Promise<IRemote | null> {
-  return findDefaultRemote(await getRemotes(repository))
 }
 
 /** Add a new remote with the given URL. */

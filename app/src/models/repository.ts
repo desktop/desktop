@@ -17,26 +17,19 @@ function getBaseName(path: string): string {
 
 /** A local repository. */
 export class Repository {
-  public readonly id: number
-  /** The working directory of this repository */
-  public readonly path: string
   public readonly name: string
-  public readonly gitHubRepository: GitHubRepository | null
 
-  /** Was the repository missing on disk last we checked? */
-  public readonly missing: boolean
-
+  /**
+   * @param path The working directory of this repository
+   * @param missing Was the repository missing on disk last we checked?
+   */
   public constructor(
-    path: string,
-    id: number,
-    gitHubRepository: GitHubRepository | null,
-    missing: boolean
+    public readonly path: string,
+    public readonly id: number,
+    public readonly gitHubRepository: GitHubRepository | null,
+    public readonly missing: boolean
   ) {
-    this.path = path
-    this.gitHubRepository = gitHubRepository
     this.name = (gitHubRepository && gitHubRepository.name) || getBaseName(path)
-    this.id = id
-    this.missing = missing
   }
 
   /**

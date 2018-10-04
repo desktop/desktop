@@ -29,12 +29,14 @@ export async function getMergeBase(
     repository.path,
     'merge-base',
     {
-      // 1 is returned if a common ancestor cannot be resolved
-      successExitCodes: new Set([0, 1]),
+      // - 1 is returned if a common ancestor cannot be resolved
+      // - 128 is returned if a ref cannot be found
+      //   "warning: ignoring broken ref refs/remotes/origin/master."
+      successExitCodes: new Set([0, 1, 128]),
     }
   )
 
-  if (process.exitCode === 1) {
+  if (process.exitCode === 1 || process.exitCode === 128) {
     return null
   }
 

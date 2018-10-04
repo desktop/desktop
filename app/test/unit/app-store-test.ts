@@ -8,7 +8,6 @@ import {
   AppStore,
   GitHubUserStore,
   CloningRepositoriesStore,
-  EmojiStore,
   IssuesStore,
   SignInStore,
   RepositoriesStore,
@@ -36,6 +35,7 @@ import { Repository } from '../../src/models/repository'
 import { Commit } from '../../src/models/commit'
 import { getCommit } from '../../src/lib/git'
 import { TestActivityMonitor } from '../helpers/test-activity-monitor'
+import { RepositoryStateCache } from '../../src/lib/stores/repository-state-cache'
 
 // enable mocked version
 jest.mock('../../src/lib/window-state')
@@ -65,16 +65,22 @@ describe('AppStore', () => {
       repositoriesStore
     )
 
+    const githubUserStore = new GitHubUserStore(db)
+
+    const repositoryStateManager = new RepositoryStateCache(repo =>
+      githubUserStore.getUsersForRepository(repo)
+    )
+
     return new AppStore(
-      new GitHubUserStore(db),
+      githubUserStore,
       new CloningRepositoriesStore(),
-      new EmojiStore(),
       new IssuesStore(issuesDb),
       new StatsStore(statsDb, new TestActivityMonitor()),
       new SignInStore(),
       accountsStore,
       repositoriesStore,
-      pullRequestStore
+      pullRequestStore,
+      repositoryStateManager
     )
   }
 

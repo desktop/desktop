@@ -19,7 +19,10 @@ import {
   IValidBranch,
 } from '../../models/tip'
 import { assertNever } from '../../lib/fatal-error'
-import { renderBranchNameWarning } from '../lib/branch-name-warnings'
+import {
+  renderBranchNameWarning,
+  renderBranchNameExistsOnRemoteWarning,
+} from '../lib/branch-name-warnings'
 
 interface ICreateBranchProps {
   readonly repository: Repository
@@ -262,6 +265,11 @@ export class CreateBranch extends React.Component<
             this.state.sanitizedName
           )}
 
+          {renderBranchNameExistsOnRemoteWarning(
+            this.state.sanitizedName,
+            this.props.allBranches
+          )}
+
           {this.renderBranchSelection()}
         </DialogContent>
 
@@ -285,11 +293,16 @@ export class CreateBranch extends React.Component<
     const sanitizedName = sanitizedBranchName(name)
     const alreadyExists =
       this.props.allBranches.findIndex(b => b.name === sanitizedName) > -1
+
     const currentError = alreadyExists
       ? new Error(`A branch named ${sanitizedName} already exists`)
       : null
 
-    this.setState({ proposedName: name, sanitizedName, currentError })
+    this.setState({
+      proposedName: name,
+      sanitizedName,
+      currentError,
+    })
   }
 
   private createBranch = async () => {
