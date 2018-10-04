@@ -9,7 +9,8 @@ import { IMatches } from '../../lib/fuzzy-find'
 export function renderDefaultBranch(
   item: IBranchListItem,
   matches: IMatches,
-  currentBranch: Branch | null
+  currentBranch: Branch | null,
+  onRenameBranch: (branchName: string) => void
 ): JSX.Element {
   const branch = item.branch
   const commit = branch.tip
@@ -20,6 +21,7 @@ export function renderDefaultBranch(
       isCurrentBranch={branch.name === currentBranchName}
       lastCommitDate={commit ? commit.author.date : null}
       matches={matches}
+      onRenameBranch={onRenameBranch}
     />
   )
 }

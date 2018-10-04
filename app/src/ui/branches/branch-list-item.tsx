@@ -5,6 +5,8 @@ import { IMatches } from '../../lib/fuzzy-find'
 
 import { Octicon, OcticonSymbol } from '../octicons'
 import { HighlightText } from '../lib/highlight-text'
+import { showContextualMenu } from '../main-process-proxy'
+import { IMenuItem } from '../../lib/menu-item'
 
 interface IBranchListItemProps {
   /** The name of the branch */
@@ -18,6 +20,8 @@ interface IBranchListItemProps {
 
   /** The characters in the branch name to highlight */
   readonly matches: IMatches
+
+  readonly onRenameBranch: (branchName: string) => void
 }
 
 /** The branch component. */
@@ -35,7 +39,7 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
         ? lastCommitDate.toString()
         : ''
     return (
-      <div className="branches-list-item">
+      <div onContextMenu={this.onContextMenu} className="branches-list-item">
         <Octicon className="icon" symbol={icon} />
         <div className="name" title={name}>
           <HighlightText text={name} highlight={this.props.matches.title} />
@@ -45,5 +49,23 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
         </div>
       </div>
     )
+  }
+
+  private onContextMenu = (event: React.MouseEvent<any>) => {
+    event.preventDefault()
+
+    const items: ReadonlyArray<IMenuItem> = [
+      {
+        label: `Rename`,
+        action: this.renameBranch,
+        enabled: !this.props.isCurrentBranch,
+      },
+    ]
+
+    showContextualMenu(items)
+  }
+
+  private renameBranch = () => {
+    this.props.onRenameBranch(this.props.name)
   }
 }

@@ -99,7 +99,28 @@ export class BranchesContainer extends React.Component<
   }
 
   private renderBranch = (item: IBranchListItem, matches: IMatches) => {
-    return renderDefaultBranch(item, matches, this.props.currentBranch)
+    return renderDefaultBranch(
+      item,
+      matches,
+      this.props.currentBranch,
+      this.onRenameBranch
+    )
+  }
+
+  private onRenameBranch = (branchName: string) => {
+    const branch = this.props.allBranches.find(
+      branch => branch.name === branchName
+    )
+
+    if (branch === undefined) {
+      return
+    }
+
+    this.props.dispatcher.showPopup({
+      type: PopupType.RenameBranch,
+      repository: this.props.repository,
+      branch: branch,
+    })
   }
 
   private renderSelectedTab() {
