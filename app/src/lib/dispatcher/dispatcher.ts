@@ -1202,6 +1202,16 @@ export class Dispatcher {
   }
 
   /**
+   * Called when the repository's working directory
+   * contains conflicts as a result of a merge intiated by Desktop
+   *
+   * Used to track ratio of successful to aborted merges
+   */
+  public mergeConflictDetected() {
+    this.appStore._mergeConflictDetected()
+  }
+
+  /**
    * Increments the `mergeConflictFromPullCount` metric
    */
   public recordMergeConflictFromPull() {
