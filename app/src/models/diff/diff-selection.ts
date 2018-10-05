@@ -51,12 +51,6 @@ function typeMatchesSelection(
  * whose selection state has diverged from the default selection state.
  */
 export class DiffSelection {
-  /* Any line numbers where the selection differs from the default state. */
-  //private readonly divergingLines: Set<number> | null
-
-  /* Optional set of line numbers which can be selected. */
-  //private readonly selectableLines: Set<number> | null
-
   /**
    * Initialize a new selection instance where either all lines are selected by default
    * or not lines are selected by default.
@@ -77,6 +71,10 @@ export class DiffSelection {
     return new DiffSelection(initialSelection, null, null)
   }
 
+  /**
+   * @param divergingLines Any line numbers where the selection differs from the default state.
+   * @param selectableLines Optional set of line numbers which can be selected.
+   */
   private constructor(
     private readonly defaultSelectionType:
       | DiffSelectionType.All
