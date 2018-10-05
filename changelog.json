@@ -1,5 +1,7 @@
 {
   "releases": {
+    "1.4.2-beta0": [
+    ],
     "1.4.1": [
       "[Added] Support for opening repository in Cygwin terminal - #5654. Thanks @LordOfTheThunder!",
       "[Fixed] 'Compare to Branch' menu item not disabled when modal is open - #5673. Thanks @kanishk98!",
