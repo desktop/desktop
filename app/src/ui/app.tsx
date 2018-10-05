@@ -321,7 +321,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'boomtown':
         return this.boomtown()
       case 'go-to-summary':
-        this.showChanges()
         return this.goToSummary()
       case 'open-pull-request': {
         return this.openPullRequest()
