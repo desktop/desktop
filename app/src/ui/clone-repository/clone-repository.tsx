@@ -84,7 +84,7 @@ interface ICloneRepositoryState {
 export class CloneRepository extends React.Component<
   ICloneRepositoryProps,
   ICloneRepositoryState
-  > {
+> {
   public constructor(props: ICloneRepositoryProps) {
     super(props)
 
@@ -355,7 +355,7 @@ export class CloneRepository extends React.Component<
     const account = await findAccountForRemoteURL(url, accounts)
     if (identifier && account) {
       const repoExists = await fetch(url)
-      if (repoExists.status == 404) {
+      if (repoExists.status === 404) {
         return null
       }
       const api = API.fromAccount(account)
