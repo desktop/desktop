@@ -1243,7 +1243,7 @@ export class GitStore extends BaseStore {
     commit: Commit
   ): Promise<void> {
     await this.performFailableOperation(() =>
-      reset(repository, GitResetMode.Hard, commit.sha)
+      reset(repository, GitResetMode.Soft, commit.sha)
     )
 
     this.emitUpdate()
