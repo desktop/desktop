@@ -56,3 +56,8 @@ export function enableInAppReleaseNotes(): boolean {
 export function enableStatusWithoutOptionalLocks(): boolean {
   return enableBetaFeatures()
 }
+
+/** Should Desktop use the new troubleshooting flow */
+export function enableSSHTroubleshooting(): boolean {
+  return enableDevelopmentFeatures()
+}
