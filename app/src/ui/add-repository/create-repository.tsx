@@ -416,7 +416,10 @@ export class CreateRepository extends React.Component<
   private renderGitRepositoryWarning() {
     const isRepo = this.state.isRepository
 
-    if ((this.state.path.length && !isRepo) || this.state.path.length === 0) {
+    if (
+      (this.state.path.length && !isRepo) ||
+      (this.state.path === null || this.state.path === '')
+    ) {
       return null
     }
 
