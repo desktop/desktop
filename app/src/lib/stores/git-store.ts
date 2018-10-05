@@ -1237,6 +1237,18 @@ export class GitStore extends BaseStore {
     this.emitUpdate()
   }
 
+  /** Reverts the commit with the given SHA */
+  public async resetHeadToCommit(
+    repository: Repository,
+    commit: Commit
+  ): Promise<void> {
+    await this.performFailableOperation(() =>
+      reset(repository, GitResetMode.Hard, commit.sha)
+    )
+
+    this.emitUpdate()
+  }
+
   /**
    * Get the merge message in the repository. This will resolve to null if the
    * repository isn't in the middle of a merge.
