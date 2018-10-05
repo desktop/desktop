@@ -248,9 +248,9 @@ double-ended-queue@^2.1.0-0:
   version "2.1.0-0"
   resolved "https://registry.yarnpkg.com/double-ended-queue/-/double-ended-queue-2.1.0-0.tgz#103d3527fd31528f40188130c841efdd78264e5c"
 
-dugite@^1.76.0:
-  version "1.76.0"
-  resolved "https://registry.yarnpkg.com/dugite/-/dugite-1.76.0.tgz#b38d4a8530894e3b2718013832db499ed3523c12"
+dugite@^1.78.0:
+  version "1.78.0"
+  resolved "https://registry.yarnpkg.com/dugite/-/dugite-1.78.0.tgz#830a6dd160997aa3b4f255a5132262ec7aa7d25d"
   dependencies:
     checksum "^0.1.1"
     mkdirp "^0.5.1"
