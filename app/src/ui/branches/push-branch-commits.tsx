@@ -71,16 +71,15 @@ export class PushBranchCommits extends React.Component<
   IPushBranchCommitsProps,
   IPushBranchCommitsState
 > {
+  private dialogButtonRef: HTMLButtonElement | null = null
   public constructor(props: IPushBranchCommitsProps) {
     super(props)
 
     this.state = { isPushingOrPublishing: false }
   }
 
-  private dialogButtonRef: HTMLButtonElement | null = null
-
   public componentDidMount() {
-    if(this.dialogButtonRef) {
+    if (this.dialogButtonRef) {
       this.dialogButtonRef.focus()
     }
   }
@@ -147,7 +146,11 @@ export class PushBranchCommits extends React.Component<
     if (renderPublishView(this.props.unPushedCommits)) {
       return (
         <ButtonGroup>
-          <Button type="submit" onClick={this.onPushOrPublishButtonClick} onButtonRef={this.onDialogOpenRef}>
+          <Button
+            type="submit"
+            onClick={this.onPushOrPublishButtonClick}
+            onButtonRef={this.onDialogOpenRef}
+          >
             {__DARWIN__ ? 'Publish Branch' : 'Publish branch'}
           </Button>
           <Button onClick={this.cancel}>Cancel</Button>
@@ -180,7 +183,7 @@ export class PushBranchCommits extends React.Component<
     e: React.MouseEvent<HTMLButtonElement>
   ) => {
     e.preventDefault()
-    
+
     const { repository, branch } = this.props
 
     this.setState({ isPushingOrPublishing: true })
