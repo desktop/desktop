@@ -367,12 +367,9 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     this.props.dispatcher.closeCurrentFoldout()
-    this.props.dispatcher.changeRepositorySection(
-      state.repository,
-      RepositorySectionTab.Changes
-    ).then(() =>
-      document.dispatchEvent(new CustomEvent('go-to-summary'))
-    )
+    this.props.dispatcher
+      .changeRepositorySection(state.repository, RepositorySectionTab.Changes)
+      .then(() => document.dispatchEvent(new CustomEvent('go-to-summary')))
   }
 
   private checkForUpdates(inBackground: boolean) {

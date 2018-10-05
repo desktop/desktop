@@ -453,7 +453,7 @@ export class CommitMessage extends React.Component<
 
   private onSummaryInputRef = (elem: HTMLInputElement | null) => {
     if (elem) {
-      document.addEventListener('go-to-summary', () => elem.focus());
+      document.addEventListener('go-to-summary', () => elem.focus())
     }
   }
 
