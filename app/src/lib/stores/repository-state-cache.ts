@@ -15,6 +15,7 @@ import {
   ICompareState,
   IRepositoryState,
   RepositorySectionTab,
+  ICommitSelection,
 } from '../app-state'
 import { ComparisonCache } from '../comparison-cache'
 import { IGitHubUser } from '../databases'
@@ -71,6 +72,17 @@ export class RepositoryStateCache {
       const changesState = state.changesState
       const newState = merge(changesState, fn(changesState))
       return { changesState: newState }
+    })
+  }
+
+  public updateCommitSelection<K extends keyof ICommitSelection>(
+    repository: Repository,
+    fn: (state: ICommitSelection) => Pick<ICommitSelection, K>
+  ) {
+    this.update(repository, state => {
+      const { commitSelection } = state
+      const newState = merge(commitSelection, fn(commitSelection))
+      return { commitSelection: newState }
     })
   }
 
