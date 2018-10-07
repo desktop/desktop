@@ -605,11 +605,11 @@ export class Dispatcher {
   }
 
   /** Add the pattern to the repository's gitignore. */
-  public ignore(
+  public appendIgnoreRule(
     repository: Repository,
     pattern: string | string[]
   ): Promise<void> {
-    return this.appStore._ignore(repository, pattern)
+    return this.appStore._appendIgnoreRule(repository, pattern)
   }
 
   /** Opens a Git-enabled terminal setting the working directory to the repository path */
@@ -638,23 +638,8 @@ export class Dispatcher {
    * If the repository root doesn't contain a .gitignore file one
    * will be created, otherwise the current file will be overwritten.
    */
-  public async saveGitIgnore(
-    repository: Repository,
-    text: string
-  ): Promise<void> {
-    await this.appStore._saveGitIgnore(repository, text)
-    await this.appStore._refreshRepository(repository)
-  }
-
-  /**
-   * Read the contents of the repository's .gitignore.
-   *
-   * Returns a promise which will either be rejected or resolved
-   * with the contents of the file. If there's no .gitignore file
-   * in the repository root the promise will resolve with null.
-   */
-  public async readGitIgnore(repository: Repository): Promise<string | null> {
-    return this.appStore._readGitIgnore(repository)
+  public saveGitIgnore(repository: Repository, text: string): Promise<void> {
+    return this.appStore._saveGitIgnore(repository, text)
   }
 
   /** Set whether the user has opted out of stats reporting. */
@@ -882,6 +867,7 @@ export class Dispatcher {
 
         if (existingRepository) {
           await this.selectRepository(existingRepository)
+          this.statsStore.recordAddExistingRepository()
         } else {
           await this.showPopup({
             type: PopupType.AddRepository,
@@ -1306,5 +1292,17 @@ export class Dispatcher {
    */
   public recordDivergingBranchBannerInitatedMerge() {
     return this.statsStore.recordDivergingBranchBannerInitatedMerge()
+  }
+
+  public recordWelcomeWizardInitiated() {
+    return this.statsStore.recordWelcomeWizardInitiated()
+  }
+
+  public recordCreateRepository() {
+    this.statsStore.recordCreateRepository()
+  }
+
+  public recordAddExistingRepository() {
+    this.statsStore.recordAddExistingRepository()
   }
 }

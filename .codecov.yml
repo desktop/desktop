@@ -1,0 +1,33 @@
+codecov:
+  # no notifications set up
+  notify:
+    require_ci_to_pass: yes
+
+coverage:
+  precision: 1
+  round: nearest
+  # thresholds for red to green color coding
+  range: '10...80'
+
+  status:
+    project:
+      default:
+        # compares coverage to the base branch
+        target: auto
+        # if it drops by 20%, send a fail status
+        threshold: 20%
+        # only send statuses for prs, not all commits
+        base: pr
+    patch: no
+    changes: no
+
+comment: off
+
+# not sure what this does, but its the default!
+parsers:
+  gcov:
+    branch_detection:
+      conditional: yes
+      loop: yes
+      method: no
+      macro: no

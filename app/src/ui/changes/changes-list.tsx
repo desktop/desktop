@@ -369,6 +369,10 @@ export class ChangesList extends React.Component<
     const filesDescription = `${fileCount} changed ${filesPlural}`
     const anyFilesSelected =
       fileCount > 0 && this.includeAllValue !== CheckboxValue.Off
+    const filesSelected = this.props.workingDirectory.files.filter(
+      f => f.selection.getSelectionType() !== DiffSelectionType.None
+    )
+    const singleFileCommit = filesSelected.length === 1
 
     return (
       <div className="changes-list-container file-list">
@@ -407,6 +411,12 @@ export class ChangesList extends React.Component<
           isCommitting={this.props.isCommitting}
           showCoAuthoredBy={this.props.showCoAuthoredBy}
           coAuthors={this.props.coAuthors}
+          placeholder={
+            singleFileCommit
+              ? `Update ${filesSelected[0].path}`
+              : 'Summary (required)'
+          }
+          singleFileCommit={singleFileCommit}
         />
       </div>
     )

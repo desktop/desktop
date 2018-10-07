@@ -11,6 +11,7 @@ import { Account } from '../../models/account'
 import {
   IRepositoryIdentifier,
   parseRepositoryIdentifier,
+  parseRemote,
 } from '../../lib/remote-parsing'
 import { findAccountForRemoteURL } from '../../lib/find-account'
 import { API } from '../../lib/api'
@@ -53,6 +54,17 @@ interface ICloneRepositoryState {
   /** The local path to clone to. */
   readonly path: string
 
+  /** A copy of the path state field which is set when the component initializes.
+   *
+   *  This value, as opposed to the path state variable, doesn't change for the
+   *  lifetime of the component. Used to keep track of whether the user has
+   *  modified the path state field which influences whether we show a
+   *  warning about the directory already existing or not.
+   *
+   *  See the onWindowFocus method for more information.
+   */
+  readonly initialPath: string
+
   /** Are we currently trying to load the entered repository? */
   readonly loading: boolean
 
@@ -76,9 +88,11 @@ export class CloneRepository extends React.Component<
   public constructor(props: ICloneRepositoryProps) {
     super(props)
 
+    const defaultDirectory = getDefaultDir()
     this.state = {
       url: this.props.initialURL || '',
-      path: getDefaultDir(),
+      path: defaultDirectory,
+      initialPath: defaultDirectory,
       loading: false,
       error: null,
       lastParsedIdentifier: null,
@@ -97,6 +111,12 @@ export class CloneRepository extends React.Component<
     if (initialURL) {
       this.updateUrl(initialURL)
     }
+
+    window.addEventListener('focus', this.onWindowFocus)
+  }
+
+  public componentWillUnmount() {
+    window.removeEventListener('focus', this.onWindowFocus)
   }
 
   public render() {
@@ -337,7 +357,14 @@ export class CloneRepository extends React.Component<
       const api = API.fromAccount(account)
       const repo = await api.fetchRepository(identifier.owner, identifier.name)
       if (repo) {
-        url = repo.clone_url
+        // respect the user's preference if they pasted an SSH URL into the
+        // Clone Generic Repository tab
+        const parsedUrl = parseRemote(url)
+        if (parsedUrl && parsedUrl.protocol === 'ssh') {
+          url = repo.ssh_url
+        } else {
+          url = repo.clone_url
+        }
       }
     }
 
@@ -371,5 +398,22 @@ export class CloneRepository extends React.Component<
     this.props.onDismissed()
 
     setDefaultDir(Path.resolve(path, '..'))
+  }
+
+  private onWindowFocus = () => {
+    // Verify the path after focus has been regained in case changes have been made.
+    const isDefaultPath = this.state.initialPath === this.state.path
+    const isURLNotEntered = this.state.url === ''
+
+    if (isDefaultPath && isURLNotEntered) {
+      if (
+        this.state.error !== null &&
+        this.state.error.name === DestinationExistsErrorName
+      ) {
+        this.setState({ error: null })
+      }
+    } else {
+      this.updateAndValidatePath(this.state.path)
+    }
   }
 }

@@ -15,6 +15,7 @@ export enum ExternalEditor {
   TextMate = 'TextMate',
   Brackets = 'Brackets',
   WebStorm = 'WebStorm',
+  Typora = 'Typora',
 }
 
 export function parse(label: string): ExternalEditor | null {
@@ -51,6 +52,9 @@ export function parse(label: string): ExternalEditor | null {
   if (label === ExternalEditor.WebStorm) {
     return ExternalEditor.WebStorm
   }
+  if (label === ExternalEditor.Typora) {
+    return ExternalEditor.Typora
+  }
   return null
 }
 
@@ -83,6 +87,8 @@ function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
       return ['io.brackets.appshell']
     case ExternalEditor.WebStorm:
       return ['com.jetbrains.WebStorm']
+    case ExternalEditor.Typora:
+      return ['abnerworks.Typora']
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -121,6 +127,8 @@ function getExecutableShim(
       return Path.join(installPath, 'Contents', 'MacOS', 'Brackets')
     case ExternalEditor.WebStorm:
       return Path.join(installPath, 'Contents', 'MacOS', 'WebStorm')
+    case ExternalEditor.Typora:
+      return Path.join(installPath, 'Contents', 'MacOS', 'Typora')
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -167,6 +175,7 @@ export async function getAvailableEditors(): Promise<
     textMatePath,
     bracketsPath,
     webStormPath,
+    typoraPath,
   ] = await Promise.all([
     findApplication(ExternalEditor.Atom),
     findApplication(ExternalEditor.MacVim),
@@ -179,6 +188,7 @@ export async function getAvailableEditors(): Promise<
     findApplication(ExternalEditor.TextMate),
     findApplication(ExternalEditor.Brackets),
     findApplication(ExternalEditor.WebStorm),
+    findApplication(ExternalEditor.Typora),
   ])
 
   if (atomPath) {
@@ -226,6 +236,10 @@ export async function getAvailableEditors(): Promise<
 
   if (webStormPath) {
     results.push({ editor: ExternalEditor.WebStorm, path: webStormPath })
+  }
+
+  if (typoraPath) {
+    results.push({ editor: ExternalEditor.Typora, path: typoraPath })
   }
 
   return results

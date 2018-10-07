@@ -32,7 +32,7 @@ describe('parseAppURL', () => {
       expect(result.name).to.equal('open-repository-from-url')
 
       const openRepo = result as IOpenRepositoryFromURLAction
-      expect(openRepo.url).to.equal('https://github.com/desktop/desktop.git')
+      expect(openRepo.url).to.equal('https://github.com/desktop/desktop')
     })
 
     it('returns unknown when no remote defined', () => {
@@ -47,7 +47,7 @@ describe('parseAppURL', () => {
       expect(result.name).to.equal('open-repository-from-url')
 
       const openRepo = result as IOpenRepositoryFromURLAction
-      expect(openRepo.url).to.equal('https://github.com/desktop/desktop.git')
+      expect(openRepo.url).to.equal('https://github.com/desktop/desktop')
       expect(openRepo.branch).to.equal('cancel-2fa-flow')
     })
 
@@ -58,9 +58,7 @@ describe('parseAppURL', () => {
       expect(result.name).to.equal('open-repository-from-url')
 
       const openRepo = result as IOpenRepositoryFromURLAction
-      expect(openRepo.url).to.equal(
-        'https://github.com/octokit/octokit.net.git'
-      )
+      expect(openRepo.url).to.equal('https://github.com/octokit/octokit.net')
       expect(openRepo.branch).to.equal('pr/1569')
       expect(openRepo.pr).to.equal('1569')
     })
@@ -87,9 +85,7 @@ describe('parseAppURL', () => {
       expect(result.name).to.equal('open-repository-from-url')
 
       const openRepo = result as IOpenRepositoryFromURLAction
-      expect(openRepo.url).to.equal(
-        'https://github.com/octokit/octokit.net.git'
-      )
+      expect(openRepo.url).to.equal('https://github.com/octokit/octokit.net')
       expect(openRepo.branch).to.equal('master')
       expect(openRepo.filepath).to.equal(
         'Octokit.Reactive/Octokit.Reactive.csproj'
@@ -105,7 +101,7 @@ describe('parseAppURL', () => {
       expect(result.name).to.equal('open-repository-from-url')
 
       const openRepo = result as IOpenRepositoryFromURLAction
-      expect(openRepo.url).to.equal('git@github.com/desktop/desktop.git')
+      expect(openRepo.url).to.equal('git@github.com/desktop/desktop')
     })
 
     it('returns unknown when no remote defined', () => {
@@ -120,7 +116,7 @@ describe('parseAppURL', () => {
       expect(result.name).to.equal('open-repository-from-url')
 
       const openRepo = result as IOpenRepositoryFromURLAction
-      expect(openRepo.url).to.equal('git@github.com/desktop/desktop.git')
+      expect(openRepo.url).to.equal('git@github.com/desktop/desktop')
       expect(openRepo.branch).to.equal('cancel-2fa-flow')
     })
 
@@ -131,7 +127,7 @@ describe('parseAppURL', () => {
       expect(result.name).to.equal('open-repository-from-url')
 
       const openRepo = result as IOpenRepositoryFromURLAction
-      expect(openRepo.url).to.equal('git@github.com/octokit/octokit.net.git')
+      expect(openRepo.url).to.equal('git@github.com/octokit/octokit.net')
       expect(openRepo.branch).to.equal('pr/1569')
       expect(openRepo.pr).to.equal('1569')
     })
@@ -158,7 +154,7 @@ describe('parseAppURL', () => {
       expect(result.name).to.equal('open-repository-from-url')
 
       const openRepo = result as IOpenRepositoryFromURLAction
-      expect(openRepo.url).to.equal('git@github.com/octokit/octokit.net.git')
+      expect(openRepo.url).to.equal('git@github.com/octokit/octokit.net')
       expect(openRepo.branch).to.equal('master')
       expect(openRepo.filepath).to.equal(
         'Octokit.Reactive/Octokit.Reactive.csproj'
