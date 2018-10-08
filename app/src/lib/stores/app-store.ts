@@ -550,14 +550,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     sha: string
   ): Promise<void> {
-    this.repositoryStateCache.updateCommitSelection(repository, state => {
-      const commitChanged = state.sha !== sha
-      const changedFiles = commitChanged
-        ? new Array<CommittedFileChange>()
-        : state.changedFiles
-      const file = commitChanged ? null : state.file
-      return { sha, file, changedFiles, diff: null }
-    })
+    const { commitSelection } = this.repositoryStateCache.get(repository)
+
+    if (commitSelection.sha === sha) {
+      return
+    }
+
+    this.repositoryStateCache.updateCommitSelection(repository, () => ({
+      sha,
+      file: null,
+      changedFiles: [],
+      diff: null,
+    }))
 
     this.emitUpdate()
   }
