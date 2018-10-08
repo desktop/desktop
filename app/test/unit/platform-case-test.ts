@@ -31,8 +31,8 @@ describe('string to platform case', () => {
   })
   it('converts upper string to detected platform text case', () => {
     if (__DARWIN__) {
-      const result = toPlatformCase(' THIS SHOULD BE TITLE CASE.')
-      expect(result).to.equal(' THIS SHOULD BE TITLE CASE.')
+      const result = toPlatformCase(' THIS SHOULD NOT BE TITLE CASE.')
+      expect(result).to.equal(' THIS SHOULD NOT BE TITLE CASE.')
     } else {
       const result = toPlatformCase(' THIS SHOULD NOT BE SENTENCE CASE.')
       expect(result).to.equal(' THIS sHOULD nOT bE sENTENCE cASE.')
