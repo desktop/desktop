@@ -1,5 +1,18 @@
 {
   "releases": {
+    "1.4.3-beta1": [
+      "[Added] Show default message text if one file selected for commit - #5240. Thanks @lean257!",
+      "[Added] Show resolved conflicts as resolved in Changes pane - #5609",
+      "[Added] Linux Shells: add Terminator, MATE Terminal, Terminology - #5753. Thanks @joaomlneto!",
+      "[Fixed] Clicking History tab should default to commit history list - #5783. Thanks @JKirkYuan!",
+      "[Fixed] Refresh commit list after reverting commit via UI - #5752",
+      "[Fixed] Respect the protocol of a detected GitHub repository - #5721",
+      "[Fixed] Updated sign in error message - #5768. Thanks @tiagodenoronha!",
+      "[Fixed] Overflowing T&C and License Notices dialogs - #5756. Thanks @amarsiingh!",
+      "[Improved] Add repository path to \"Remove repository\" dialog (#5805) - #5807. Thanks @NickCraver!",
+      "[Improved] Added dynamic checking for error - #5775. Thanks @tiagodenoronha!",
+      "[Improved] Update Discard-Changes-Dialog text when discarding all changes - #5744. Thanks @Daniel-McCarthy!"
+    ],
     "1.4.3-beta0": [
     ],
     "1.4.2": ["[Fixed] Update embedded Git in Desktop to use version 2.19.1 of Git"],
