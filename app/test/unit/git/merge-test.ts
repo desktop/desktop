@@ -1,5 +1,3 @@
-import { expect } from 'chai'
-
 import { getMergeBase, getBranches } from '../../../src/lib/git'
 import {
   setupEmptyRepository,
@@ -26,7 +24,7 @@ describe('git/merge', () => {
       }
 
       const ref = await getMergeBase(repository, first.tip.sha, second.tip.sha)
-      expect(ref).equals('df0d73dc92ff496c6a61f10843d527b7461703f4')
+      expect(ref).toEqual('df0d73dc92ff496c6a61f10843d527b7461703f4')
     })
 
     it('returns null when the branches do not have a common ancestor', async () => {
@@ -65,7 +63,7 @@ describe('git/merge', () => {
       }
 
       const ref = await getMergeBase(repository, first.tip.sha, second.tip.sha)
-      expect(ref).is.null
+      expect(ref).toBeNull()
     })
 
     it('returns null when a ref cannot be found', async () => {
@@ -82,7 +80,7 @@ describe('git/merge', () => {
         'master',
         'origin/some-unknown-branch'
       )
-      expect(ref).is.null
+      expect(ref).toBeNull()
     })
   })
 })
