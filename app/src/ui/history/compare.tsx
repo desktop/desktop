@@ -4,7 +4,7 @@ import { CSSTransitionGroup } from 'react-transition-group'
 import { IGitHubUser } from '../../lib/databases'
 import { Commit } from '../../models/commit'
 import {
-  ComparisonView,
+  HistoryTabMode,
   ICompareState,
   ICompareBranch,
   ComparisonMode,
@@ -110,7 +110,7 @@ export class CompareSidebar extends React.Component<
 
     if (
       newFormState.kind !== oldFormState.kind &&
-      newFormState.kind === ComparisonView.History
+      newFormState.kind === HistoryTabMode.History
     ) {
       this.setState({
         focusedBranch: null,
@@ -119,8 +119,8 @@ export class CompareSidebar extends React.Component<
     }
 
     if (
-      newFormState.kind !== ComparisonView.History &&
-      oldFormState.kind !== ComparisonView.History
+      newFormState.kind !== HistoryTabMode.History &&
+      oldFormState.kind !== HistoryTabMode.History
     ) {
       const oldBranch = oldFormState.comparisonBranch
       const newBranch = newFormState.comparisonBranch
@@ -219,7 +219,7 @@ export class CompareSidebar extends React.Component<
     const formState = this.props.compareState.formState
     return (
       <div className="compare-commit-list">
-        {formState.kind === ComparisonView.History
+        {formState.kind === HistoryTabMode.History
           ? this.renderCommitList()
           : this.renderTabBar(formState)}
       </div>
@@ -232,7 +232,7 @@ export class CompareSidebar extends React.Component<
 
   private viewHistoryForBranch = () => {
     this.props.dispatcher.executeCompare(this.props.repository, {
-      kind: ComparisonView.History,
+      kind: HistoryTabMode.History,
     })
 
     this.props.dispatcher.updateCompareForm(this.props.repository, {
@@ -244,7 +244,7 @@ export class CompareSidebar extends React.Component<
     const { formState, commitSHAs } = this.props.compareState
 
     let emptyListMessage: string | JSX.Element
-    if (formState.kind === ComparisonView.History) {
+    if (formState.kind === HistoryTabMode.History) {
       emptyListMessage = 'No history'
     } else {
       const currentlyComparedBranchName = formState.comparisonBranch.name
@@ -353,7 +353,7 @@ export class CompareSidebar extends React.Component<
   private onTabClicked = (index: number) => {
     const formState = this.props.compareState.formState
 
-    if (formState.kind === ComparisonView.History) {
+    if (formState.kind === HistoryTabMode.History) {
       return
     }
 
@@ -361,7 +361,7 @@ export class CompareSidebar extends React.Component<
     const branch = formState.comparisonBranch
 
     this.props.dispatcher.executeCompare(this.props.repository, {
-      kind: ComparisonView.Compare,
+      kind: HistoryTabMode.Compare,
       branch,
       mode,
     })
@@ -427,7 +427,7 @@ export class CompareSidebar extends React.Component<
           const branch = this.state.focusedBranch
 
           this.props.dispatcher.executeCompare(this.props.repository, {
-            kind: ComparisonView.Compare,
+            kind: HistoryTabMode.Compare,
             branch,
             mode: ComparisonMode.Behind,
           })
@@ -474,7 +474,7 @@ export class CompareSidebar extends React.Component<
     const compareState = this.props.compareState
     const formState = compareState.formState
 
-    if (formState.kind === ComparisonView.Compare) {
+    if (formState.kind === HistoryTabMode.Compare) {
       // as the app is currently comparing the current branch to some other
       // branch, everything needed should be loaded
       return
@@ -526,7 +526,7 @@ export class CompareSidebar extends React.Component<
   private onBranchItemClicked = (branch: Branch) => {
     this.props.dispatcher.executeCompare(this.props.repository, {
       branch,
-      kind: ComparisonView.Compare,
+      kind: HistoryTabMode.Compare,
       mode: ComparisonMode.Behind,
     })
 
@@ -547,7 +547,7 @@ export class CompareSidebar extends React.Component<
     if (source.kind === 'mouseclick' && branch != null) {
       this.props.dispatcher.executeCompare(this.props.repository, {
         branch,
-        kind: ComparisonView.Compare,
+        kind: HistoryTabMode.Compare,
         mode: ComparisonMode.Behind,
       })
     }
@@ -597,7 +597,7 @@ function getPlaceholderText(state: ICompareState) {
 
   if (allBranches.length === 0) {
     return __DARWIN__ ? 'No Branches to Compare' : 'No branches to compare'
-  } else if (formState.kind === ComparisonView.History) {
+  } else if (formState.kind === HistoryTabMode.History) {
     return __DARWIN__
       ? 'Select Branch to Compare...'
       : 'Select branch to compare...'

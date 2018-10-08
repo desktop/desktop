@@ -617,7 +617,7 @@ export interface IChangesState {
   readonly coAuthors: ReadonlyArray<IAuthor>
 }
 
-export enum ComparisonView {
+export enum HistoryTabMode {
   History = 'History',
   Compare = 'Compare',
 }
@@ -632,7 +632,7 @@ export enum ComparisonMode {
  * branch.
  */
 export interface IDisplayHistory {
-  readonly kind: ComparisonView.History
+  readonly kind: HistoryTabMode.History
 }
 
 /**
@@ -640,7 +640,7 @@ export interface IDisplayHistory {
  * branch as the base branch.
  */
 export interface ICompareBranch {
-  readonly kind: ComparisonView.Compare
+  readonly kind: HistoryTabMode.Compare
 
   /** The chosen comparison mode determines which commits to show */
   readonly mode: ComparisonMode.Ahead | ComparisonMode.Behind
@@ -724,8 +724,12 @@ export type MergeResultStatus =
   | { kind: MergeResultKind.Clean }
   | { kind: MergeResultKind.Invalid }
 
+export interface IViewHistory {
+  readonly kind: HistoryTabMode.History
+}
+
 export interface ICompareToBranch {
-  readonly kind: ComparisonView.Compare
+  readonly kind: HistoryTabMode.Compare
   readonly branch: Branch
   readonly mode: ComparisonMode.Ahead | ComparisonMode.Behind
 }
@@ -733,8 +737,4 @@ export interface ICompareToBranch {
 /**
  * An action to send to the application store to update the compare state
  */
-export type CompareAction =
-  | {
-      readonly kind: ComparisonView.History
-    }
-  | ICompareToBranch
+export type CompareAction = IViewHistory | ICompareToBranch

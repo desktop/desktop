@@ -9,7 +9,7 @@ import {
 } from '../../models/status'
 import { TipState } from '../../models/tip'
 import {
-  ComparisonView,
+  HistoryTabMode,
   IBranchesState,
   IChangesState,
   ICompareState,
@@ -118,7 +118,7 @@ function getInitialRepositoryState(): IRepositoryState {
     compareState: {
       isDivergingBranchBannerVisible: false,
       formState: {
-        kind: ComparisonView.History,
+        kind: HistoryTabMode.History,
       },
       mergeStatus: null,
       showBranchList: false,
