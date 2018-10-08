@@ -38,4 +38,30 @@ describe('string to platform case', () => {
       expect(result).to.equal(' This should be sentence case.')
     }
   })
+  it('handles special case words to detected platform text case', () => {
+    if (__DARWIN__) {
+      const result = toPlatformCase(
+        'Open _in_ External Editor. Show _in your File Manager_'
+      )
+      expect(result).to.equal(
+        'Open in External Editor. Show in your File Manager'
+      )
+    } else {
+      const result = toPlatformCase(
+        'Open _in_ External Editor. Show _in your File Manager_'
+      )
+      expect(result).to.equal(
+        'Open in external editor. Show in your File Manager'
+      )
+    }
+  })
+  it('handles extra special case words to detected platform text case', () => {
+    if (__DARWIN__) {
+      const result = toPlatformCase('We Love _GitHub_!')
+      expect(result).to.equal('We Love GitHub!')
+    } else {
+      const result = toPlatformCase('We love _GitHub_!')
+      expect(result).to.equal('We love GitHub!')
+    }
+  })
 })

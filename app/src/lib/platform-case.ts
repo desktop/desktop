@@ -10,5 +10,7 @@ export function toPlatformCase(inputText: string): string {
     inputText = inputText.replace(/\b[a-z]/i, $1 => $1.toUpperCase())
   }
 
+  inputText.replace(/_/g, '')
+
   return inputText
 }
