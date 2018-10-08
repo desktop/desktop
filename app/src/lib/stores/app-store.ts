@@ -556,7 +556,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         ? new Array<CommittedFileChange>()
         : state.changedFiles
       const file = commitChanged ? null : state.file
-      return { sha, file, diff: null, changedFiles }
+      return { sha, file, changedFiles, diff: null }
     })
 
     this.emitUpdate()
@@ -956,24 +956,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
         ? changedFiles[0]
         : commitSelection.file
 
-    const selectionOrFirstFile = {
-      file: firstFileOrDefault,
-      sha: commitSelection.sha,
-      changedFiles,
-      diff: null,
-    }
-
     this.repositoryStateCache.updateCommitSelection(repository, () => ({
       file: firstFileOrDefault,
-      sha: commitSelection.sha,
       changedFiles,
       diff: null,
     }))
 
     this.emitUpdate()
 
-    if (selectionOrFirstFile.file) {
-      this._changeFileSelection(repository, selectionOrFirstFile.file)
+    if (firstFileOrDefault !== null) {
+      this._changeFileSelection(repository, firstFileOrDefault)
     }
   }
 
@@ -988,15 +980,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     file: CommittedFileChange
   ): Promise<void> {
-    this.repositoryStateCache.updateCommitSelection(repository, state => {
-      const { sha, changedFiles } = state
-      return {
-        sha,
-        changedFiles,
-        file,
-        diff: null,
-      }
-    })
+    this.repositoryStateCache.updateCommitSelection(repository, () => ({
+      file,
+      diff: null,
+    }))
     this.emitUpdate()
 
     const stateBeforeLoad = this.repositoryStateCache.get(repository)
@@ -1029,15 +1016,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    this.repositoryStateCache.updateCommitSelection(repository, state => {
-      const { sha, changedFiles } = state
-      return {
-        sha,
-        changedFiles,
-        file,
-        diff,
-      }
-    })
+    this.repositoryStateCache.updateCommitSelection(repository, () => ({
+      diff,
+    }))
 
     this.emitUpdate()
   }
