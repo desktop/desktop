@@ -154,10 +154,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         () => {
           const now = performance.now()
           sendReady(now - props.startTime)
-
-          requestIdleCallback(() => {
-            this.performDeferredLaunchActions()
-          })
+          this.performDeferredLaunchActions()
         },
         { timeout: ReadyDelay }
       )
@@ -1668,9 +1665,9 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private renderUpdateBanner() {
-    if (!this.state.isUpdateAvailableBannerVisible) {
-      return null
-    }
+    // if (!this.state.isUpdateAvailableBannerVisible) {
+    //   return null
+    // }
     const releaseNotesUri = 'https://desktop.github.com/release-notes/'
 
     return (
