@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import { CompareActionKind, MergeResultStatus } from '../../lib/app-state'
+import { MergeResultStatus, ComparisonView } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
 import { Dispatcher } from '../../lib/dispatcher'
@@ -164,7 +164,7 @@ export class MergeCallToActionWithConflicts extends React.Component<
     )
 
     this.props.dispatcher.executeCompare(repository, {
-      kind: CompareActionKind.History,
+      kind: ComparisonView.History,
     })
 
     this.props.dispatcher.updateCompareForm(repository, {

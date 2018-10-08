@@ -125,7 +125,7 @@ describe('RepositoryStateCache', () => {
     cache.updateCompareState(repository, () => {
       return {
         formState: {
-          kind: ComparisonView.None,
+          kind: ComparisonView.History,
         },
         filterText,
         commitSHAs: ['deadbeef'],
@@ -133,7 +133,7 @@ describe('RepositoryStateCache', () => {
     })
 
     const { compareState } = cache.get(repository)
-    expect(compareState.formState.kind).equals(ComparisonView.None)
+    expect(compareState.formState.kind).equals(ComparisonView.History)
     expect(compareState.filterText).equals(filterText)
     expect(compareState.commitSHAs.length).equals(1)
   })

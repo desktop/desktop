@@ -618,9 +618,13 @@ export interface IChangesState {
 }
 
 export enum ComparisonView {
-  None = 'none',
-  Ahead = 'ahead',
-  Behind = 'behind',
+  History = 'History',
+  Compare = 'Compare',
+}
+
+export enum ComparisonMode {
+  Ahead = 'Ahead',
+  Behind = 'Behind',
 }
 
 /**
@@ -628,7 +632,7 @@ export enum ComparisonView {
  * branch.
  */
 export interface IDisplayHistory {
-  readonly kind: ComparisonView.None
+  readonly kind: ComparisonView.History
 }
 
 /**
@@ -636,8 +640,10 @@ export interface IDisplayHistory {
  * branch as the base branch.
  */
 export interface ICompareBranch {
+  readonly kind: ComparisonView.Compare
+
   /** The chosen comparison mode determines which commits to show */
-  readonly kind: ComparisonView.Ahead | ComparisonView.Behind
+  readonly mode: ComparisonMode.Ahead | ComparisonMode.Behind
 
   /** The branch to compare against the base branch */
   readonly comparisonBranch: Branch
@@ -718,15 +724,10 @@ export type MergeResultStatus =
   | { kind: MergeResultKind.Clean }
   | { kind: MergeResultKind.Invalid }
 
-export enum CompareActionKind {
-  History = 'History',
-  Branch = 'Branch',
-}
-
 export interface ICompareToBranch {
-  readonly kind: CompareActionKind.Branch
+  readonly kind: ComparisonView.Compare
   readonly branch: Branch
-  readonly mode: ComparisonView.Ahead | ComparisonView.Behind
+  readonly mode: ComparisonMode.Ahead | ComparisonMode.Behind
 }
 
 /**
@@ -734,6 +735,6 @@ export interface ICompareToBranch {
  */
 export type CompareAction =
   | {
-      readonly kind: CompareActionKind.History
+      readonly kind: ComparisonView.History
     }
   | ICompareToBranch

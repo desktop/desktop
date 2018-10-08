@@ -61,7 +61,6 @@ import {
 import { shell } from '../app-shell'
 import {
   CompareAction,
-  CompareActionKind,
   ComparisonView,
   Foldout,
   FoldoutType,
@@ -81,6 +80,7 @@ import {
   RepositorySectionTab,
   SelectionType,
   MergeResultStatus,
+  ComparisonMode,
 } from '../app-state'
 import { caseInsensitiveCompare } from '../compare'
 import { IGitHubUser } from '../databases/github-user-database'
@@ -713,7 +713,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const gitStore = this.getGitStore(repository)
     const kind = action.kind
 
-    if (action.kind === CompareActionKind.History) {
+    if (action.kind === ComparisonView.History) {
       // load initial group of commits for current branch
       const commits = await gitStore.loadCommitBatch('HEAD')
 
@@ -723,7 +723,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       this.repositoryStateCache.updateCompareState(repository, () => ({
         formState: {
-          kind: ComparisonView.None,
+          kind: ComparisonView.History,
         },
         commitSHAs: commits,
         filterText: '',
@@ -734,7 +734,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return this.emitUpdate()
     }
 
-    if (action.kind === CompareActionKind.Branch) {
+    if (action.kind === ComparisonView.Compare) {
       return this.updateCompareToBranch(repository, action)
     }
 
@@ -774,8 +774,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.repositoryStateCache.updateCompareState(repository, s => ({
       formState: {
+        kind: ComparisonView.Compare,
         comparisonBranch,
-        kind: action.mode,
+        mode: action.mode,
         aheadBehind,
       },
       filterText: comparisonBranch.name,
@@ -794,11 +795,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     if (this.currentAheadBehindUpdater != null && currentSha != null) {
       const from =
-        action.mode === ComparisonView.Ahead
+        action.mode === ComparisonMode.Ahead
           ? comparisonBranch.tip.sha
           : currentSha
       const to =
-        action.mode === ComparisonView.Ahead
+        action.mode === ComparisonMode.Ahead
           ? currentSha
           : comparisonBranch.tip.sha
 
@@ -907,7 +908,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const state = this.repositoryStateCache.get(repository)
     const { formState } = state.compareState
-    if (formState.kind === ComparisonView.None) {
+    if (formState.kind === ComparisonView.History) {
       const commits = state.compareState.commitSHAs
       const lastCommitSha = commits[commits.length - 1]
 
@@ -2102,7 +2103,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       await this._refreshRepository(repository)
     } finally {
       this.updateCheckoutProgress(repository, null)
-      this._initializeCompare(repository, { kind: CompareActionKind.History })
+      this._initializeCompare(repository, { kind: ComparisonView.History })
     }
 
     const { branchesState } = this.repositoryStateCache.get(repository)
@@ -3874,16 +3875,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
 function getInitialAction(
   cachedState: IDisplayHistory | ICompareBranch
 ): CompareAction {
-  if (cachedState.kind === ComparisonView.None) {
+  if (cachedState.kind === ComparisonView.History) {
     return {
-      kind: CompareActionKind.History,
+      kind: ComparisonView.History,
     }
   }
 
   return {
-    kind: CompareActionKind.Branch,
+    kind: ComparisonView.Compare,
+    mode: cachedState.mode,
     branch: cachedState.comparisonBranch,
-    mode: cachedState.kind,
   }
 }
 
