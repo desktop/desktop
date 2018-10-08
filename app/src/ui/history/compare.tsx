@@ -45,7 +45,6 @@ interface ICompareSidebarProps {
   readonly dispatcher: Dispatcher
   readonly currentBranch: Branch | null
   readonly selectedCommitSha: string | null
-  readonly isDivergingBranchBannerVisible: boolean
   readonly onRevertCommit: (commit: Commit) => void
   readonly onViewCommitOnGitHub: (sha: string) => void
 }
@@ -195,7 +194,7 @@ export class CompareSidebar extends React.Component<
       return null
     }
 
-    if (!this.props.isDivergingBranchBannerVisible) {
+    if (!this.props.compareState.isDivergingBranchBannerVisible) {
       return null
     }
 
@@ -570,7 +569,10 @@ export class CompareSidebar extends React.Component<
   }
 
   private onNotificationBannerDismissed = (reason: DismissalReason) => {
-    this.props.dispatcher.setDivergingBranchBannerVisibility(false)
+    this.props.dispatcher.setDivergingBranchBannerVisibility(
+      this.props.repository,
+      false
+    )
     this.props.dispatcher.recordDivergingBranchBannerDismissal()
 
     switch (reason) {

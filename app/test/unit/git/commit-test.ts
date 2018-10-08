@@ -470,7 +470,7 @@ describe('git/commit', () => {
 
       expect(files.length).to.equal(1)
       expect(files[0].path).to.equal('foo')
-      expect(files[0].status).to.equal(AppFileStatus.Conflicted)
+      expect(files[0].status).to.equal(AppFileStatus.Resolved)
 
       const selection = files[0].selection.withSelectAll()
       const selectedFile = files[0].withSelection(selection)

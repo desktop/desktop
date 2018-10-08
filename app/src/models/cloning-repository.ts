@@ -5,13 +5,11 @@ let CloningRepositoryID = 1
 /** A repository which is currently being cloned. */
 export class CloningRepository {
   public readonly id = CloningRepositoryID++
-  public readonly path: string
-  public readonly url: string
 
-  public constructor(path: string, url: string) {
-    this.path = path
-    this.url = url
-  }
+  public constructor(
+    public readonly path: string,
+    public readonly url: string
+  ) {}
 
   public get name(): string {
     return Path.basename(this.url, '.git')
