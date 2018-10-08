@@ -537,13 +537,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private clearSelectedCommit(repository: Repository) {
-    this.repositoryStateCache.update(repository, () => ({
-      commitSelection: {
-        sha: null,
-        file: null,
-        changedFiles: [],
-        diff: null,
-      },
+    this.repositoryStateCache.updateCommitSelection(repository, () => ({
+      sha: null,
+      file: null,
+      changedFiles: [],
+      diff: null,
     }))
   }
 
@@ -552,14 +550,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     sha: string
   ): Promise<void> {
-    this.repositoryStateCache.update(repository, state => {
-      const commitChanged = state.commitSelection.sha !== sha
+    this.repositoryStateCache.updateCommitSelection(repository, state => {
+      const commitChanged = state.sha !== sha
       const changedFiles = commitChanged
         ? new Array<CommittedFileChange>()
-        : state.commitSelection.changedFiles
-      const file = commitChanged ? null : state.commitSelection.file
-      const commitSelection = { sha, file, diff: null, changedFiles }
-      return { commitSelection }
+        : state.changedFiles
+      const file = commitChanged ? null : state.file
+      return { sha, file, diff: null, changedFiles }
     })
 
     this.emitUpdate()
@@ -966,8 +963,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       diff: null,
     }
 
-    this.repositoryStateCache.update(repository, () => ({
-      commitSelection: selectionOrFirstFile,
+    this.repositoryStateCache.updateCommitSelection(repository, () => ({
+      file: firstFileOrDefault,
+      sha: commitSelection.sha,
+      changedFiles,
+      diff: null,
     }))
 
     this.emitUpdate()
@@ -988,15 +988,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     file: CommittedFileChange
   ): Promise<void> {
-    this.repositoryStateCache.update(repository, state => {
-      const { sha, changedFiles } = state.commitSelection
-      const commitSelection = {
+    this.repositoryStateCache.updateCommitSelection(repository, state => {
+      const { sha, changedFiles } = state
+      return {
         sha,
         changedFiles,
         file,
         diff: null,
       }
-      return { commitSelection }
     })
     this.emitUpdate()
 
@@ -1030,15 +1029,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    this.repositoryStateCache.update(repository, state => {
-      const { sha, changedFiles } = state.commitSelection
-      const commitSelection = {
+    this.repositoryStateCache.updateCommitSelection(repository, state => {
+      const { sha, changedFiles } = state
+      return {
         sha,
         changedFiles,
         file,
         diff,
       }
-      return { commitSelection }
     })
 
     this.emitUpdate()
