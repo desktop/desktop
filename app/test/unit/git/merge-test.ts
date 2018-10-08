@@ -1,7 +1,8 @@
-import { getMergeBase, getBranches } from '../../../src/lib/git'
+import { abortMerge, getMergeBase, getBranches } from '../../../src/lib/git'
 import {
   setupEmptyRepository,
   setupFixtureRepository,
+  setupConflictedRepo,
 } from '../../helpers/repositories'
 import { GitProcess } from 'dugite'
 import { Repository } from '../../../src/models/repository'
@@ -81,6 +82,28 @@ describe('git/merge', () => {
         'origin/some-unknown-branch'
       )
       expect(ref).toBeNull()
+    })
+  })
+  describe('abortMerge', () => {
+    let repository: Repository
+    const subject = () => abortMerge(repository)
+    describe('when there is no in-progress merge', () => {
+      beforeEach(async () => {
+        repository = await setupEmptyRepository()
+      })
+      it('throws an error', async () => {
+        await expect(subject()).rejects.toThrow(
+          /There is no merge in progress, so there is nothing to abort/
+        )
+      })
+    })
+    describe('in the middle of resolving conflicts merge', () => {
+      beforeEach(async () => {
+        repository = await setupConflictedRepo()
+      })
+      it('aborts the merge', async () => {
+        await expect(subject()).resolves.not.toThrow()
+      })
     })
   })
 })
