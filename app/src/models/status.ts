@@ -162,14 +162,16 @@ export class WorkingDirectoryFileChange extends FileChange {
   /**
    * @param path The relative path to the file in the repository.
    * @param status The status of the change to the file.
-   * @param oldPath The original path in the case of a renamed file.
    * @param selection Contains the selection details for this file - all, nothing or partial.
+   * @param oldPath The original path in the case of a renamed file.
+   * @param conflictMarkers The number of conflict markers found in this file
    */
   public constructor(
     path: string,
     status: AppFileStatus,
     public readonly selection: DiffSelection,
-    oldPath?: string
+    oldPath?: string,
+    public readonly conflictMarkers: number = 0
   ) {
     super(path, status, oldPath)
   }

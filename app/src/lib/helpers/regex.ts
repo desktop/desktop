@@ -2,16 +2,16 @@
  * get all regex captures within a body of text
  * @param text string to search
  * @param re regex to search with. must have global option and one capture
- * @returns set of strings captured by supplied regex
+ * @returns ararys of strings captured by supplied regex
  */
 export async function getCaptures(
   text: string,
   re: RegExp
-): Promise<Set<Array<string>>> {
+): Promise<ReadonlyArray<Array<string>>> {
   const matches = await getMatches(text, re)
   const captures = matches.reduce(
-    (captures, match) => captures.add(match.slice(1)),
-    new Set<Array<string>>()
+    (acc, match) => acc.concat([match.slice(1)]),
+    new Array<Array<string>>()
   )
   return captures
 }
