@@ -1,4 +1,4 @@
-import { git } from './core'
+import { git, IGitResult } from './core'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
 import { MergeResult, MergeResultKind } from '../../models/merge'
@@ -81,7 +81,9 @@ export async function mergeTree(
   return parseMergeResult(output)
 }
 
-/** Abort a mid-flight merge */
-export async function abortMerge(repository: Repository): Promise<void> {
-  await git(['merge', '--abort'], repository.path, 'abortMerge')
+/** Abort a mid-flight (conflicted) merge
+ *  @param repository where to abort the merge
+ */
+export async function abortMerge(repository: Repository): Promise<IGitResult> {
+  return await git(['merge', '--abort'], repository.path, 'abortMerge')
 }
