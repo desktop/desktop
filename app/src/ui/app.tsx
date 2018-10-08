@@ -154,10 +154,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         () => {
           const now = performance.now()
           sendReady(now - props.startTime)
-
-          requestIdleCallback(() => {
-            this.performDeferredLaunchActions()
-          })
+          this.performDeferredLaunchActions()
         },
         { timeout: ReadyDelay }
       )
