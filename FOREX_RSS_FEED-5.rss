@@ -1,0 +1,72 @@
+<?xml version='1.0' encoding='ISO-8859-1' ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+<title>DDR Real Time Forex Data</title>
+<link>https://rtdata.dtcc.com/gtr/dashboard.do</link>
+<description>DDR Real Time Forex Data</description>
+<pubDate>Sat, 26 May 2018 04:27:40 -0400</pubDate>
+<ttl>1</ttl><atom:link href="https://kgc0418-tdw-data2-0.s3.amazonaws.com/slices/FOREX_RSS_FEED.rss" rel="self" type="application/rss+xml" />
+
+
+<item>
+<title>ForeignExchange:NDF</title>
+<pubDate>Sat, 26 May 2018 04:27:40 -0400</pubDate>
+<guid>
+https://kgc0418-tdw-data2-0.s3.amazonaws.com/slices/FOREX_RSS_FEED.rss#-772112167</guid>
+<description>
+"86441614","","NEW","2018-05-11T08:36:44","U","FC","","N","Y","OFF","2018-05-11","2018-05-30","","","FX","","ForeignExchange:NDF","Termination","","","PRICE","67.389","PRICE","0","USD","INR","60,000","4,043,340","","","","","","","","","","","","","","","",""</description>
+</item>
+
+
+<item>
+<title>ForeignExchange:NDF</title>
+<pubDate>Sat, 26 May 2018 04:27:40 -0400</pubDate>
+<guid>
+https://kgc0418-tdw-data2-0.s3.amazonaws.com/slices/FOREX_RSS_FEED.rss#-184223980</guid>
+<description>
+"86441615","","NEW","2018-05-11T08:29:23","U","FC","","N","Y","OFF","2018-05-11","2018-05-31","","","FX","","ForeignExchange:NDF","Termination","","","PRICE","67.4235","PRICE","0","USD","INR","120,000","8,090,820","","","","","","","","","","","","","","","",""</description>
+</item>
+
+
+<item>
+<title>ForeignExchange:NDF</title>
+<pubDate>Sat, 26 May 2018 04:27:40 -0400</pubDate>
+<guid>
+https://kgc0418-tdw-data2-0.s3.amazonaws.com/slices/FOREX_RSS_FEED.rss#-2046069700</guid>
+<description>
+"86441616","","NEW","2018-05-11T08:35:24","U","FC","","N","Y","OFF","2018-05-11","2018-06-29","","","FX","","ForeignExchange:NDF","Termination","","","PRICE","67.655","PRICE","0","USD","INR","60,000","4,059,300","","","","","","","","","","","","","","","",""</description>
+</item>
+
+
+<item>
+<title>ForeignExchange:NDF</title>
+<pubDate>Sat, 26 May 2018 04:27:40 -0400</pubDate>
+<guid>
+https://kgc0418-tdw-data2-0.s3.amazonaws.com/slices/FOREX_RSS_FEED.rss#1019403308</guid>
+<description>
+"86441617","","NEW","2018-05-11T08:35:43","U","FC","","N","Y","OFF","2018-05-11","2018-05-31","","","FX","","ForeignExchange:NDF","Termination","","","PRICE","67.4035","PRICE","0","USD","INR","120,000","8,088,420","","","","","","","","","","","","","","","",""</description>
+</item>
+
+
+<item>
+<title>ForeignExchange:NDF</title>
+<pubDate>Sat, 26 May 2018 04:27:40 -0400</pubDate>
+<guid>
+https://kgc0418-tdw-data2-0.s3.amazonaws.com/slices/FOREX_RSS_FEED.rss#-1145027105</guid>
+<description>
+"86441618","","NEW","2018-05-11T08:56:51","U","FC","","N","Y","OFF","2018-05-11","2018-05-21","","","FX","","ForeignExchange:NDF","Termination","","","PRICE","67.285","PRICE","0","INR","USD","672,850,000","10,000,000","","","","","","","","","","","","","","","",""</description>
+</item>
+
+
+<item>
+<title>ForeignExchange:NDF</title>
+<pubDate>Sat, 26 May 2018 04:27:40 -0400</pubDate>
+<guid>
+https://kgc0418-tdw-data2-0.s3.amazonaws.com/slices/FOREX_RSS_FEED.rss#134203807</guid>
+<description>
+"86441619","","NEW","2018-05-11T08:36:45","U","FC","","N","Y","OFF","2018-05-11","2018-05-30","","","FX","","ForeignExchange:NDF","Termination","","","PRICE","67.387","PRICE","0","USD","INR","60,000","4,043,220","","","","","","","","","","","","","","","",""</description>
+</item>
+
+</channel>
+</rss>
+
