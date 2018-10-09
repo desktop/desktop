@@ -617,11 +617,21 @@ export interface IChangesState {
   readonly coAuthors: ReadonlyArray<IAuthor>
 }
 
+/**
+ * This represents the various states the History tab can be in.
+ *
+ * By default, it should show the history of the current branch.
+ */
 export enum HistoryTabMode {
   History = 'History',
   Compare = 'Compare',
 }
 
+/**
+ * This represents whether the compare tab is currently viewing the
+ * commits ahead or behind when merging some other branch into your
+ * current branch.
+ */
 export enum ComparisonMode {
   Ahead = 'Ahead',
   Behind = 'Behind',
