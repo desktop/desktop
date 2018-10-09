@@ -615,7 +615,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   public componentDidMount() {
     document!.ondragover = e => {
-      if (e.dataTransfer !== null) {
+      if (e.dataTransfer != null) {
         if (this.isShowingModal) {
           e.dataTransfer.dropEffect = 'none'
         } else {
@@ -634,7 +634,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       if (this.isShowingModal) {
         return
       }
-      if (e.dataTransfer !== null) {
+      if (e.dataTransfer != null) {
         const files = e.dataTransfer.files
         this.handleDragAndDrop(files)
       }
