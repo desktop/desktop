@@ -28,8 +28,7 @@ export class DiffHunkHeader {
     public readonly oldStartLine: number,
     public readonly oldLineCount: number,
     public readonly newStartLine: number,
-    public readonly newLineCount: number,
-    sectionHeading?: string | null
+    public readonly newLineCount: number
   ) {}
 }
 
