@@ -13,6 +13,8 @@ import { assertNever } from '../../lib/fatal-error'
 import { ILocalRepositoryState } from '../../models/repository'
 import { enableRepoInfoIndicators } from '../../lib/feature-flag'
 import { Dispatcher } from '../../lib/dispatcher'
+import { Button } from '../lib/button'
+import { Octicon, OcticonSymbol } from '../octicons'
 
 interface IRepositoriesListProps {
   readonly selectedRepository: Repositoryish | null
@@ -154,6 +156,7 @@ export class RepositoriesList extends React.Component<
           renderItem={this.renderItem}
           renderGroupHeader={this.renderGroupHeader}
           onItemClick={this.onItemClick}
+          renderPostFilter={this.renderPostFilter}
           groups={groups}
           invalidationProps={{
             repositories: this.props.repositories,
@@ -161,6 +164,15 @@ export class RepositoriesList extends React.Component<
           }}
         />
       </div>
+    )
+  }
+
+  private renderPostFilter = () => {
+    return (
+      <Button className="new-repository-button">
+        {__DARWIN__ ? 'Add' : 'Add'}
+        <Octicon symbol={OcticonSymbol.triangleDown} />
+      </Button>
     )
   }
 
