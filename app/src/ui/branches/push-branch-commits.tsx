@@ -80,7 +80,7 @@ export class PushBranchCommits extends React.Component<
 
   public componentDidMount() {
     if (this.dialogButtonRef) {
-      this.dialogButtonRef.focus()
+      this.dialogButtonRef.focus() // Focuses on the Publish Branch button when the push-branch-commits dialog opens
     }
   }
 
