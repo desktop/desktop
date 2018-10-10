@@ -17,6 +17,7 @@ import { Button } from '../lib/button'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'
+import { PopupType } from '../../lib/app-state'
 
 interface IRepositoriesListProps {
   readonly selectedRepository: Repositoryish | null
@@ -202,11 +203,20 @@ export class RepositoriesList extends React.Component<
     showContextualMenu(items)
   }
 
-  private onCloneRepository = () => {}
+  private onCloneRepository = () => {
+    this.props.dispatcher.showPopup({
+      type: PopupType.CloneRepository,
+      initialURL: null,
+    })
+  }
 
-  private onAddExistingRepository = () => {}
+  private onAddExistingRepository = () => {
+    this.props.dispatcher.showPopup({ type: PopupType.AddRepository })
+  }
 
-  private onCreateNewRepository = () => {}
+  private onCreateNewRepository = () => {
+    this.props.dispatcher.showPopup({ type: PopupType.CreateRepository })
+  }
 
   private noRepositories() {
     return (
