@@ -15,6 +15,8 @@ import { enableRepoInfoIndicators } from '../../lib/feature-flag'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Button } from '../lib/button'
 import { Octicon, OcticonSymbol } from '../octicons'
+import { showContextualMenu } from '../main-process-proxy'
+import { IMenuItem } from '../../lib/menu-item'
 
 interface IRepositoriesListProps {
   readonly selectedRepository: Repositoryish | null
@@ -169,12 +171,42 @@ export class RepositoriesList extends React.Component<
 
   private renderPostFilter = () => {
     return (
-      <Button className="new-repository-button">
+      <Button
+        className="new-repository-button"
+        onClick={this.onNewRepositoryButtonClick}
+      >
         {__DARWIN__ ? 'Add' : 'Add'}
         <Octicon symbol={OcticonSymbol.triangleDown} />
       </Button>
     )
   }
+
+  private onNewRepositoryButtonClick = () => {
+    const items: IMenuItem[] = [
+      {
+        label: __DARWIN__ ? 'Clone Repository…' : 'Clone repository…',
+        action: this.onCloneRepository,
+      },
+      {
+        label: __DARWIN__
+          ? 'Add Existing Repository…'
+          : 'Add existing repository…',
+        action: this.onAddExistingRepository,
+      },
+      {
+        label: __DARWIN__ ? 'Create New Repository…' : 'Create new repository…',
+        action: this.onCreateNewRepository,
+      },
+    ]
+
+    showContextualMenu(items)
+  }
+
+  private onCloneRepository = () => {}
+
+  private onAddExistingRepository = () => {}
+
+  private onCreateNewRepository = () => {}
 
   private noRepositories() {
     return (
