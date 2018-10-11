@@ -110,10 +110,10 @@ export interface IDailyMeasures {
   readonly mergeConflictFromExplicitMergeCount: number
 
   /** The number of times a conflicted merge was successfully completed by the user */
-  readonly mergeSuccesfulAfterConflicts: number
+  readonly mergedSuccesfulAfterConflictsCount: number
 
   /** The number of times a conflicted merge was aborted by the user */
-  readonly mergeAbortedAfterConflicts: number
+  readonly mergesAbortedAfterConflictsCount: number
 }
 
 export class StatsDatabase extends Dexie {
