@@ -728,13 +728,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const { formState, commitSHAs } = compareState
       const previousTip = compareState.tip
 
-      const tipHasChanged =
+      const tipIsUnchanged =
         currentSha !== null &&
         previousTip !== null &&
         currentSha === previousTip
 
       if (
-        tipHasChanged &&
+        tipIsUnchanged &&
         formState.kind === ComparisonView.None &&
         commitSHAs.length > 0
       ) {
