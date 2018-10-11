@@ -18,6 +18,14 @@ interface IMergeConflictsWarningProps {
   readonly onDismissed: () => void
 }
 
+const titleString = __DARWIN__
+  ? 'Resolve Conflicts Before Merging'
+  : 'Resolve conflicts before merging'
+
+const submitButtonString = __DARWIN__
+  ? 'Continue To Commit'
+  : 'Continue to commit'
+
 /**
  * Modal to tell the user their merge encountered conflicts
  */
@@ -113,12 +121,7 @@ export class MergeConflictsWarning extends React.Component<
     return (
       <Dialog
         id="merge-conflicts-warning"
-        // TODO: replace with helper function from @Daniel-McCarthy — see https://github.com/desktop/desktop/pull/5744
-        title={
-          __DARWIN__
-            ? 'Resolve Conflicts Before Merging'
-            : 'Resolve conflicts before merging'
-        }
+        title={titleString}
         onDismissed={this.onCancel}
         onSubmit={this.onSubmit}
       >
@@ -128,11 +131,7 @@ export class MergeConflictsWarning extends React.Component<
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>
-            <Button type="submit">
-              {/* TODO: replace with helper function from @Daniel-McCarthy — see
-              https://github.com/desktop/desktop/pull/5744 */}
-              {__DARWIN__ ? 'Continue To Commit' : 'Continue to commit'}
-            </Button>
+            <Button type="submit">{submitButtonString}</Button>
             <Button onClick={this.onCancel}>Close</Button>
           </ButtonGroup>
         </DialogFooter>
