@@ -107,12 +107,12 @@ export class MergeConflictsWarning extends React.Component<
     )
   }
 
-  private renderUnmergedFilesSummary(files: Array<WorkingDirectoryFileChange>) {
+  private renderUnmergedFilesSummary(unmergedFiles: number) {
     // localization, it burns :vampire:
     const message =
-      files.length === 1
+      unmergedFiles === 1
         ? `1 conflicted file`
-        : `${files.length} conflicted files`
+        : `${unmergedFiles} conflicted files`
     return <h3>{message}</h3>
   }
 
@@ -126,7 +126,7 @@ export class MergeConflictsWarning extends React.Component<
         onSubmit={this.onSubmit}
       >
         <DialogContent>
-          {this.renderUnmergedFilesSummary(unmergedFiles)}
+          {this.renderUnmergedFilesSummary(unmergedFiles.length)}
           {this.renderUnmergedFiles(unmergedFiles)}
         </DialogContent>
         <DialogFooter>
