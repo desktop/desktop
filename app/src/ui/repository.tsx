@@ -166,6 +166,7 @@ export class RepositoryView extends React.Component<
         localCommitSHAs={this.props.state.localCommitSHAs}
         dispatcher={this.props.dispatcher}
         onRevertCommit={this.onRevertCommit}
+        onResetHeadToCommit={this.onResetHeadToCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
       />
     )
@@ -299,6 +300,10 @@ export class RepositoryView extends React.Component<
 
   private onRevertCommit = (commit: Commit) => {
     this.props.dispatcher.revertCommit(this.props.repository, commit)
+  }
+
+  private onResetHeadToCommit = (commit: Commit) => {
+    this.props.dispatcher.resetHeadToCommit(this.props.repository, commit)
   }
 
   private onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {

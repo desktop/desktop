@@ -18,6 +18,7 @@ interface ICommitProps {
   readonly emoji: Map<string, string>
   readonly isLocal: boolean
   readonly onRevertCommit?: (commit: Commit) => void
+  readonly onResetHeadToCommit?: (commit: Commit) => void
   readonly onViewCommitOnGitHub?: (sha: string) => void
   readonly gitHubUsers: Map<string, IGitHubUser> | null
 }
@@ -116,6 +117,16 @@ export class CommitListItem extends React.Component<
         action: () => {
           if (this.props.onRevertCommit) {
             this.props.onRevertCommit(this.props.commit)
+          }
+        },
+      },
+      {
+        label: __DARWIN__
+          ? 'Reset HEAD To This Commit'
+          : 'Reset HEAD to this commit',
+        action: () => {
+          if (this.props.onResetHeadToCommit) {
+            this.props.onResetHeadToCommit(this.props.commit)
           }
         },
       },

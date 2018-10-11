@@ -46,6 +46,7 @@ interface ICompareSidebarProps {
   readonly currentBranch: Branch | null
   readonly selectedCommitSha: string | null
   readonly onRevertCommit: (commit: Commit) => void
+  readonly onResetHeadToCommit: (commit: Commit) => void
   readonly onViewCommitOnGitHub: (sha: string) => void
 }
 
@@ -274,6 +275,7 @@ export class CompareSidebar extends React.Component<
         emoji={this.props.emoji}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
         onRevertCommit={this.props.onRevertCommit}
+        onResetHeadToCommit={this.props.onResetHeadToCommit}
         onCommitSelected={this.onCommitSelected}
         onScroll={this.onScroll}
         emptyListMessage={emptyListMessage}

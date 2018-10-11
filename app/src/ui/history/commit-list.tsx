@@ -41,6 +41,9 @@ interface ICommitListProps {
   /** Callback to fire to revert a given commit in the current repository */
   readonly onRevertCommit: (commit: Commit) => void
 
+  /** Callback to fire to reset head of a branch to a commit in the current repository */
+  readonly onResetHeadToCommit: (commit: Commit) => void
+
   /** Callback to fire to open a given commit on GitHub */
   readonly onViewCommitOnGitHub: (sha: string) => void
 }
@@ -71,6 +74,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         gitHubUsers={this.props.gitHubUsers}
         emoji={this.props.emoji}
         onRevertCommit={this.props.onRevertCommit}
+        onResetHeadToCommit={this.props.onResetHeadToCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
       />
     )

@@ -3450,6 +3450,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _resetHeadToCommit(
+    repository: Repository,
+    commit: Commit
+  ): Promise<void> {
+    return this.withAuthenticatingUser(repository, async repo => {
+      const gitStore = this.getGitStore(repo)
+
+      await gitStore.resetHeadToCommit(repo, commit)
+
+      this.updateRevertProgress(repo, null)
+      await this._refreshRepository(repository)
+    })
+  }
+
   public async promptForGenericGitAuthentication(
     repository: Repository | CloningRepository,
     retryAction: RetryAction

@@ -450,6 +450,14 @@ export class Dispatcher {
     return this.appStore._revertCommit(repository, commit)
   }
 
+  /** Revert the commit with the given SHA */
+  public resetHeadToCommit(
+    repository: Repository,
+    commit: Commit
+  ): Promise<void> {
+    return this.appStore._resetHeadToCommit(repository, commit)
+  }
+
   /**
    * Set the width of the repository sidebar to the given
    * value. This affects the changes and history sidebar
