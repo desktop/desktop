@@ -9,9 +9,7 @@ function getTestRepository(
   isPrivate: boolean,
   isFork: boolean = false
 ): GitHubRepository {
-  let gitHubRepository: GitHubRepository | null = null
-
-  gitHubRepository = {
+  return {
     dbID: 1,
     name: 'some-repo',
     owner: {
@@ -30,8 +28,6 @@ function getTestRepository(
     hash: '',
     parent: null,
   }
-
-  return gitHubRepository!
 }
 
 describe('octicon/iconForRepository', () => {

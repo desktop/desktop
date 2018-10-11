@@ -24,7 +24,6 @@ import {
   AppStore,
   GitHubUserStore,
   CloningRepositoriesStore,
-  EmojiStore,
   IssuesStore,
   SignInStore,
   RepositoriesStore,
@@ -51,6 +50,7 @@ import {
   withSourceMappedStack,
 } from '../lib/source-map-support'
 import { UiActivityMonitor } from './lib/ui-activity-monitor'
+import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
 
 if (__DEV__) {
   installDevGlobals()
@@ -107,7 +107,6 @@ const gitHubUserStore = new GitHubUserStore(
   new GitHubUserDatabase('GitHubUserDatabase')
 )
 const cloningRepositoriesStore = new CloningRepositoriesStore()
-const emojiStore = new EmojiStore()
 const issuesStore = new IssuesStore(new IssuesDatabase('IssuesDatabase'))
 const statsStore = new StatsStore(
   new StatsDatabase('StatsDatabase'),
@@ -125,19 +124,23 @@ const pullRequestStore = new PullRequestStore(
   repositoriesStore
 )
 
+const repositoryStateManager = new RepositoryStateCache(repo =>
+  gitHubUserStore.getUsersForRepository(repo)
+)
+
 const appStore = new AppStore(
   gitHubUserStore,
   cloningRepositoriesStore,
-  emojiStore,
   issuesStore,
   statsStore,
   signInStore,
   accountsStore,
   repositoriesStore,
-  pullRequestStore
+  pullRequestStore,
+  repositoryStateManager
 )
 
-const dispatcher = new Dispatcher(appStore)
+const dispatcher = new Dispatcher(appStore, repositoryStateManager, statsStore)
 
 dispatcher.registerErrorHandler(defaultErrorHandler)
 dispatcher.registerErrorHandler(upstreamAlreadyExistsHandler)
@@ -182,6 +185,13 @@ ipcRenderer.on(
 )
 
 ReactDOM.render(
-  <App dispatcher={dispatcher} appStore={appStore} startTime={startTime} />,
+  <App
+    dispatcher={dispatcher}
+    appStore={appStore}
+    repositoryStateManager={repositoryStateManager}
+    issuesStore={issuesStore}
+    gitHubUserStore={gitHubUserStore}
+    startTime={startTime}
+  />,
   document.getElementById('desktop-app-container')!
 )

@@ -102,6 +102,7 @@ const allMenuIds: ReadonlyArray<MenuIDs> = [
   'delete-branch',
   'preferences',
   'update-branch',
+  'compare-to-branch',
   'merge-branch',
   'view-repository-on-github',
   'compare-on-github',

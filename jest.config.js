@@ -3,7 +3,7 @@ module.exports = {
   transform: {
     '^.+\\.tsx?$': 'ts-jest',
   },
-  testMatch: ['**/unit/**/*-test.ts'],
+  testMatch: ['**/unit/**/*-test.ts{,x}'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   setupFiles: [
     '<rootDir>/app/test/globals.ts',
@@ -23,6 +23,7 @@ module.exports = {
     // ignore index files
     '!**/index.ts',
   ],
+  coverageReporters: ['text-summary', 'json'],
   globals: {
     'ts-jest': {
       useBabelrc: true,

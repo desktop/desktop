@@ -20,7 +20,11 @@ export class MergeStatusHeader extends React.Component<
 > {
   public render() {
     const { status } = this.props
-    const state = status === null ? MergeResultKind.Loading : status.kind
+    if (status === null) {
+      return null
+    }
+
+    const state = status.kind
 
     return (
       <div className="merge-status-icon-container">

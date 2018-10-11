@@ -7,7 +7,7 @@ import { Repository } from '../../models/repository'
 import { IAheadBehind } from '../../models/branch'
 import { TipState } from '../../models/tip'
 import { RelativeTime } from '../relative-time'
-import { FetchType } from '../../lib/stores/index'
+import { FetchType } from '../../models/fetch'
 
 interface IPushPullButtonProps {
   /**

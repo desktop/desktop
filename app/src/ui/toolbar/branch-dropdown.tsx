@@ -162,6 +162,6 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
       return null
     }
 
-    return <PullRequestBadge number={pr.number} status={pr.status} />
+    return <PullRequestBadge number={pr.pullRequestNumber} status={pr.status} />
   }
 }

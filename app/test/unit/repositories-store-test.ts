@@ -37,6 +37,7 @@ describe('RepositoriesStore', () => {
   describe('updating a GitHub repository', () => {
     const gitHubRepo: IAPIRepository = {
       clone_url: 'https://github.com/my-user/my-repo',
+      ssh_url: 'git@github.com:my-user/my-repo.git',
       html_url: 'https://github.com/my-user/my-repo',
       name: 'my-repo',
       owner: {

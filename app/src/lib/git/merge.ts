@@ -29,12 +29,14 @@ export async function getMergeBase(
     repository.path,
     'merge-base',
     {
-      // 1 is returned if a common ancestor cannot be resolved
-      successExitCodes: new Set([0, 1]),
+      // - 1 is returned if a common ancestor cannot be resolved
+      // - 128 is returned if a ref cannot be found
+      //   "warning: ignoring broken ref refs/remotes/origin/master."
+      successExitCodes: new Set([0, 1, 128]),
     }
   )
 
-  if (process.exitCode === 1) {
+  if (process.exitCode === 1 || process.exitCode === 128) {
     return null
   }
 
@@ -53,9 +55,7 @@ export async function mergeTree(
   ours: Branch,
   theirs: Branch
 ): Promise<MergeResult | null> {
-  console.time('getMergeBase')
   const mergeBase = await getMergeBase(repository, ours.tip.sha, theirs.tip.sha)
-  console.timeEnd('getMergeBase')
 
   if (mergeBase === null) {
     return { kind: MergeResultKind.Invalid }
@@ -65,17 +65,18 @@ export async function mergeTree(
     return { kind: MergeResultKind.Clean, entries: [] }
   }
 
-  console.time('mergeTree')
   const result = await spawnAndComplete(
     ['merge-tree', mergeBase, ours.tip.sha, theirs.tip.sha],
     repository.path,
     'mergeTree'
   )
-  console.timeEnd('mergeTree')
 
   const output = result.output.toString()
-  console.time('parseMergeResult')
-  const mergeResult = parseMergeResult(output)
-  console.timeEnd('parseMergeResult')
-  return mergeResult
+
+  if (output.length === 0) {
+    // the merge commit will be empty - this is fine!
+    return { kind: MergeResultKind.Clean, entries: [] }
+  }
+
+  return parseMergeResult(output)
 }
