@@ -346,7 +346,10 @@ export enum RepositorySectionTab {
   History,
 }
 
-export interface IConflictState {
+/**
+ * Stores information about a merge conflict when it occurs
+ */
+interface IConflictState {
   readonly branch: Branch
 }
 
@@ -423,8 +426,9 @@ export interface IRepositoryState {
   readonly revertProgress: IRevertProgress | null
 
   /**
-   * Will store information about a conflict if the
-   * repository ever enters that state
+   * Stores information about a merge conflict when it occurs
+   *
+   * The absence of a value means there is no merge conflict
    */
   readonly conflictState: IConflictState | null
 }
