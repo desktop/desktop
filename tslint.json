@@ -27,6 +27,7 @@
       }
     ],
     "react-this-binding-issue": true,
+    "jsx-no-multiline-js": true,
     "typedef-whitespace": [
       true,
       {
