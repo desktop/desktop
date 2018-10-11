@@ -714,6 +714,35 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const kind = action.kind
 
     if (action.kind === CompareActionKind.History) {
+      const { tip } = gitStore
+
+      let currentSha: string | null = null
+
+      if (tip.kind === TipState.Valid) {
+        currentSha = tip.branch.tip.sha
+      } else if (tip.kind === TipState.Detached) {
+        currentSha = tip.currentSha
+      }
+
+      const { compareState } = this.repositoryStateCache.get(repository)
+      const { formState, commitSHAs } = compareState
+      const previousTip = compareState.tip
+
+      const tipHasChanged =
+        currentSha !== null &&
+        previousTip !== null &&
+        currentSha === previousTip
+
+      if (
+        tipHasChanged &&
+        formState.kind === ComparisonView.None &&
+        commitSHAs.length > 0
+      ) {
+        // don't refresh the history view here because we know nothing important
+        // has changed and we don't want to rebuild this state
+        return
+      }
+
       // load initial group of commits for current branch
       const commits = await gitStore.loadCommitBatch('HEAD')
 
@@ -722,6 +751,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
 
       this.repositoryStateCache.updateCompareState(repository, () => ({
+        tip: currentSha,
         formState: {
           kind: ComparisonView.None,
         },
