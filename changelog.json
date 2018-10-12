@@ -1,5 +1,11 @@
 {
   "releases": {
+    "1.4.3-beta1": [
+      "[Added] Add Remove Repository keyboard shortcut - #5848. Thanks @say25!",
+      "[Fixed] Fix intermittent emoji autocompletion loading issue - #5859",
+      "[Fixed] Correct Publish branch modal window's default button - #5777. Thanks @JKirkYuan!",
+      "[Fixed] Support python3 in GitHub Desktop CLI - #5843. Thanks @munir131!"
+    ],
     "1.4.3-beta0": [
     ],
     "1.4.2": [
