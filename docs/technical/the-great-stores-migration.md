@@ -14,10 +14,10 @@ This document is focused on:
  - `IssuesStore` - backing store for refreshing and caching open GitHub issues for each repository
  - `PullRequestsStore` - backing store for refreshing and caching open GitHub pull requests for each repository
  - `CloningRepositoriesStore` - component for tracking repository clones in the app
- - `EmojiStore` - contains emoji lookup for use in UI components
+ - ~~`EmojiStore` - contains emoji lookup for use in UI components~~ deprecated
  - `GitHubUserStore` - backing store for refreshing and caching GitHub collaborators for each repository
  - `SignInStore` - component for tracking user sign-in state in the UI
- - `RepositorySettingsStore` - backing store for repository-specific settings
+ - ~~`RepositorySettingsStore` - backing store for repository-specific settings~~ deprecated
  - `TokenStore` - used by `AccountStore` to tidy up credentials, but mostly used
    for authenticating Git operations
 
@@ -67,10 +67,10 @@ I've identified:
    been suffixed with `Store` out of convenience, but as I've been exploring I
    realise they can be named better. I'm open to feedback about these names, if
    you have better ideas.
-    - `EmojiStore` -> `EmojiCache` - this class is initialized at launch, with
+    - ~~`EmojiStore` -> `EmojiCache` - this class is initialized at launch, with
     the emoji results being set in application state which is used by UI
     components, but it doesn't fit the typical pattern of responding to
-    dispatcher events
+    dispatcher events~~
     - `StatsStore` -> `StatsReporter` - this component does not touch
     application state, and it's actions can be considered side effects.
     - `IssuesStore` -> `IssuesCache` - this component does not touch
