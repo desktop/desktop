@@ -662,6 +662,9 @@ export interface ICompareState {
   /** The text entered into the compare branch filter text box */
   readonly filterText: string
 
+  /** The SHA associated with the most recent history state */
+  readonly tip: string | null
+
   /** The SHAs of commits to render in the compare list */
   readonly commitSHAs: ReadonlyArray<string>
 
