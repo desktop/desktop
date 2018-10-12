@@ -153,7 +153,7 @@ export function buildDefaultMenu(
       {
         label: __DARWIN__ ? 'Go to Summary' : 'Go to &Summary',
         id: 'go-to-summary',
-        accelerator: 'CmdOrCtrl+S',
+        accelerator: 'CmdOrCtrl+G',
         click: emit('go-to-summary'),
       },
       {
