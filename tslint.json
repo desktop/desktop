@@ -8,6 +8,11 @@
   "rules": {
     "button-group-order": true,
     "class-name": true,
+    "strict-boolean-expressions": [
+      true,
+      "allow-null-union",
+      "allow-undefined-union"
+    ],
     "jsdoc-format": true,
     "member-ordering": [
       true,
