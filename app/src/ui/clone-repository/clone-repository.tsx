@@ -270,8 +270,11 @@ export class CloneRepository extends React.Component<
     this.setState({ path })
 
     const doesDirectoryExist = await this.doesPathExist(path)
+    const isDirectoryEmptyFolder = doesDirectoryExist
+      ? await this.isPathEmptyFolder(path)
+      : false
 
-    if (doesDirectoryExist) {
+    if (doesDirectoryExist && isDirectoryEmptyFolder !== true) {
       const error: Error = new Error('The destination already exists.')
       error.name = DestinationExistsErrorName
 
