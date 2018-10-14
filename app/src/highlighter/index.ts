@@ -230,7 +230,7 @@ const extentionModes: ReadonlyArray<IModeDefinition> = [
   },
   {
     install: () => import('codemirror/mode/powershell/powershell'),
-    extensions: {
+    mappings: {
       '.ps1': 'application/x-powershell',
     },
   },
