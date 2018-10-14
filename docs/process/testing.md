@@ -249,7 +249,7 @@
   - [ ] Opening list shows all repositories in categorized alpha format with a working filter
     - [ ] `ESC` clears the filter
     - [ ] Search filter match results in bold characters
-    - [ ] A repository with uncommited files shows a `•` next to name
+    - [ ] A repository with uncommitted files shows a `•` next to name
     - [ ] All repositories (private, enterprise, local, public, forked, other) have proper icon and found in the proper category (GitHub.com/Enterprise/Other)
       - [ ] Hover shows username/repository, url, and/or local path in tooltip
       - [ ] User must have paid account for private repositories

@@ -1,5 +1,27 @@
 {
   "releases": {
+    "1.4.3-beta1": [
+      "[Added] Add \"Remove Repository\" keyboard shortcut - #5848. Thanks @say25!",
+      "[Fixed] Fix emoji autocomplete not rendering in some situations - #5859",
+      "[Fixed] Support Python 3 in Desktop CLI on macOS - #5843. Thanks @munir131!",
+      "[Improved] Publish Branch dialog will publish commits when pressing Enter - #5777. Thanks @JKirkYuan!"
+    ],
+    "1.4.3-beta0": [
+    ],
+    "1.4.2": [
+      "[New] Show resolved conflicts as resolved in Changes pane - #5609",
+      "[Added] Add Terminator, MATE Terminal, and Terminology shells - #5753. Thanks @joaomlneto!",
+      "[Fixed] Update embedded Git to version 2.19.1 for security vulnerability fix",
+      "[Fixed] Always show commit history list when History tab is clicked - #5783. Thanks @JKirkYuan!",
+      "[Fixed] Stop overriding the protocol of a detected GitHub repository - #5721",
+      "[Fixed] Update sign in error message - #5766. Thanks @tiagodenoronha!",
+      "[Fixed] Correct overflowing T&C and License Notices dialogs - #5756. Thanks @amarsiingh!",
+      "[Improved] Add default commit message for single-file commits - #5240. Thanks @lean257!",
+      "[Improved] Refresh commit list faster after reverting commit via UI - #5752",
+      "[Improved] Add repository path to Remove repository dialog - #5805. Thanks @NickCraver!",
+      "[Improved] Display whether user entered incorrect username or email address - #5775. Thanks @tiagodenoronha!",
+      "[Improved] Update Discard Changes dialog text when discarding all changes - #5744. Thanks @Daniel-McCarthy!"
+    ],
     "1.4.2-beta0": [
     ],
     "1.4.1": [

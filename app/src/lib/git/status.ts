@@ -31,9 +31,18 @@ const MaxStatusBufferSize = 20e6 // 20MB in decimal
 
 /** The encapsulation of the result from 'git status' */
 export interface IStatusResult {
+  /** The name of the current branch */
   readonly currentBranch?: string
+
+  /** The name of the current upstream branch */
   readonly currentUpstreamBranch?: string
+
+  /** The SHA of the tip commit of the current branch */
   readonly currentTip?: string
+
+  /** How many commits ahead and behind
+   *  the `currentBranch` is compared to the `currentUpstreamBranch`
+   */
   readonly branchAheadBehind?: IAheadBehind
 
   /** true if the repository exists at the given location */
@@ -133,7 +142,7 @@ export async function getStatus(
     es => mapStatus(es.statusCode).kind === 'conflicted'
   )
     ? await getFilesWithConflictMarkers(repository.path)
-    : new Set<string>()
+    : new Map<string, number>()
 
   // Map of files keyed on their paths.
   const files = entries.reduce(
@@ -176,7 +185,7 @@ export async function getStatus(
 function buildStatusMap(
   files: Map<string, WorkingDirectoryFileChange>,
   entry: IStatusEntry,
-  filesWithConflictMarkers: Set<string>
+  filesWithConflictMarkers: Map<string, number>
 ): Map<string, WorkingDirectoryFileChange> {
   const status = mapStatus(entry.statusCode)
 
@@ -213,7 +222,8 @@ function buildStatusMap(
       entry.path,
       summary,
       selection,
-      entry.oldPath
+      entry.oldPath,
+      filesWithConflictMarkers.get(entry.path)
     )
   )
   return files

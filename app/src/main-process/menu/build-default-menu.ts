@@ -223,6 +223,7 @@ export function buildDefaultMenu(
       {
         label: __DARWIN__ ? 'Remove' : '&Remove',
         id: 'remove-repository',
+        accelerator: 'CmdOrCtrl+Delete',
         click: emit('remove-repository'),
       },
       separator,
@@ -278,6 +279,7 @@ export function buildDefaultMenu(
         label: __DARWIN__ ? 'Delete…' : '&Delete…',
         id: 'delete-branch',
         click: emit('delete-branch'),
+        accelerator: 'CmdOrCtrl+Shift+D',
       },
       separator,
       {
