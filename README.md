@@ -42,6 +42,12 @@ beta channel to get access to early builds of Desktop:
 
  - [macOS](https://central.github.com/deployments/desktop/desktop/latest/darwin?env=beta)
  - [Windows](https://central.github.com/deployments/desktop/desktop/latest/win32?env=beta)
+ 
+## Is GitHub Desktop right for me? What are the primary areas of focus?
+
+[This document](https://github.com/desktop/desktop/blob/master/docs/process/what-is-desktop.md) describes the focus of GitHub Desktop and who the product is most useful for.
+
+And to see what the team is working on currently and in the near future, check out the [GitHub Desktop roadmap](https://github.com/desktop/desktop/blob/master/docs/process/roadmap.md).
 
 ## I have a problem with GitHub Desktop
 

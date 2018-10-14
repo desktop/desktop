@@ -23,6 +23,18 @@ export interface IStatusEntry {
   readonly oldPath?: string
 }
 
+export function isStatusHeader(
+  statusItem: StatusItem
+): statusItem is IStatusHeader {
+  return statusItem.kind === 'header'
+}
+
+export function isStatusEntry(
+  statusItem: StatusItem
+): statusItem is IStatusEntry {
+  return statusItem.kind === 'entry'
+}
+
 const ChangedEntryType = '1'
 const RenamedOrCopiedEntryType = '2'
 const UnmergedEntryType = 'u'

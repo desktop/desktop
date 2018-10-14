@@ -41,6 +41,7 @@ function formatPatchHeaderForFile(file: WorkingDirectoryFileChange) {
       return formatPatchHeader(null, file.path)
 
     case AppFileStatus.Conflicted:
+    case AppFileStatus.Resolved:
     // One might initially believe that renamed files should diff
     // against their old path. This is, after all, how git diff
     // does it right after a rename. But if we're creating a patch

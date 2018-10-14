@@ -155,12 +155,20 @@ export abstract class AutocompletingTextInput<
       : -1
     const rect = element.getBoundingClientRect()
     const popupAbsoluteTop = rect.top + coordinates.top
-    const windowHeight = element.ownerDocument.defaultView.innerHeight
-    const spaceToBottomOfWindow = windowHeight - popupAbsoluteTop - YOffset
 
     // The maximum height we can use for the popup without it extending beyond
     // the Window bounds.
-    const maxHeight = Math.min(DefaultPopupHeight, spaceToBottomOfWindow)
+    let maxHeight: number
+    if (
+      element.ownerDocument !== null &&
+      element.ownerDocument.defaultView !== null
+    ) {
+      const windowHeight = element.ownerDocument.defaultView.innerHeight
+      const spaceToBottomOfWindow = windowHeight - popupAbsoluteTop - YOffset
+      maxHeight = Math.min(DefaultPopupHeight, spaceToBottomOfWindow)
+    } else {
+      maxHeight = DefaultPopupHeight
+    }
 
     // The height needed to accomodate all the matched items without overflowing
     //
