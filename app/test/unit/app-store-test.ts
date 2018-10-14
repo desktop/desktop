@@ -8,7 +8,6 @@ import {
   AppStore,
   GitHubUserStore,
   CloningRepositoriesStore,
-  EmojiStore,
   IssuesStore,
   SignInStore,
   RepositoriesStore,
@@ -75,7 +74,6 @@ describe('AppStore', () => {
     return new AppStore(
       githubUserStore,
       new CloningRepositoriesStore(),
-      new EmojiStore(),
       new IssuesStore(issuesDb),
       new StatsStore(statsDb, new TestActivityMonitor()),
       new SignInStore(),

@@ -469,8 +469,14 @@ export class Dispatcher {
   /**
    * Set the divering branch notification banner's visibility
    */
-  public setDivergingBranchBannerVisibility(isVisible: boolean) {
-    return this.appStore._setDivergingBranchBannerVisibility(isVisible)
+  public setDivergingBranchBannerVisibility(
+    repository: Repository,
+    isVisible: boolean
+  ) {
+    return this.appStore._setDivergingBranchBannerVisibility(
+      repository,
+      isVisible
+    )
   }
 
   /**
@@ -865,6 +871,7 @@ export class Dispatcher {
 
         if (existingRepository) {
           await this.selectRepository(existingRepository)
+          this.statsStore.recordAddExistingRepository()
         } else {
           await this.showPopup({
             type: PopupType.AddRepository,
@@ -1289,5 +1296,17 @@ export class Dispatcher {
    */
   public recordDivergingBranchBannerInitatedMerge() {
     return this.statsStore.recordDivergingBranchBannerInitatedMerge()
+  }
+
+  public recordWelcomeWizardInitiated() {
+    return this.statsStore.recordWelcomeWizardInitiated()
+  }
+
+  public recordCreateRepository() {
+    this.statsStore.recordCreateRepository()
+  }
+
+  public recordAddExistingRepository() {
+    this.statsStore.recordAddExistingRepository()
   }
 }

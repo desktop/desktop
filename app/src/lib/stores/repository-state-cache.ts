@@ -116,7 +116,9 @@ function getInitialRepositoryState(): IRepositoryState {
       isLoadingPullRequests: false,
     },
     compareState: {
+      isDivergingBranchBannerVisible: false,
       formState: { kind: ComparisonView.None },
+      tip: null,
       mergeStatus: null,
       showBranchList: false,
       filterText: '',

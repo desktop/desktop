@@ -158,7 +158,7 @@ export class PullRequestList extends React.Component<
     const status =
       pr.status != null
         ? new PullRequestStatus(
-            pr.number,
+            pr.pullRequestNumber,
             pr.status.state,
             pr.status.totalCount,
             pr.status.sha,
@@ -169,7 +169,7 @@ export class PullRequestList extends React.Component<
     return (
       <PullRequestListItem
         title={pr.title}
-        number={pr.number}
+        number={pr.pullRequestNumber}
         created={pr.created}
         author={pr.author}
         status={status}
@@ -199,7 +199,7 @@ export class PullRequestList extends React.Component<
 
 function getSubtitle(pr: PullRequest) {
   const timeAgo = moment(pr.created).fromNow()
-  return `#${pr.number} opened ${timeAgo} by ${pr.author}`
+  return `#${pr.pullRequestNumber} opened ${timeAgo} by ${pr.author}`
 }
 
 function createListItems(
@@ -207,7 +207,7 @@ function createListItems(
 ): IFilterListGroup<IPullRequestListItem> {
   const items = pullRequests.map(pr => ({
     text: [pr.title, getSubtitle(pr)],
-    id: pr.number.toString(),
+    id: pr.pullRequestNumber.toString(),
     pullRequest: pr,
   }))
 
@@ -222,6 +222,8 @@ function findItemForPullRequest(
   pullRequest: PullRequest
 ): IPullRequestListItem | null {
   return (
-    group.items.find(i => i.pullRequest.number === pullRequest.number) || null
+    group.items.find(
+      i => i.pullRequest.pullRequestNumber === pullRequest.pullRequestNumber
+    ) || null
   )
 }

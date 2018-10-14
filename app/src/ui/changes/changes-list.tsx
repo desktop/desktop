@@ -49,7 +49,8 @@ interface IChangesListProps {
   readonly onDiscardChanges: (file: WorkingDirectoryFileChange) => void
   readonly askForConfirmationOnDiscardChanges: boolean
   readonly onDiscardAllChanges: (
-    files: ReadonlyArray<WorkingDirectoryFileChange>
+    files: ReadonlyArray<WorkingDirectoryFileChange>,
+    isDiscardingAllChanges?: boolean
   ) => void
 
   /**
@@ -217,7 +218,12 @@ export class ChangesList extends React.Component<
       })
 
       if (modifiedFiles.length > 0) {
-        this.props.onDiscardAllChanges(modifiedFiles)
+        // DiscardAllChanges can also be used for discarding several selected changes.
+        // Therefore, we update the pop up to reflect whether or not it is "all" changes.
+        const discardingAllChanges =
+          modifiedFiles.length === workingDirectory.files.length
+
+        this.props.onDiscardAllChanges(modifiedFiles, discardingAllChanges)
       }
     }
   }
@@ -369,6 +375,10 @@ export class ChangesList extends React.Component<
     const filesDescription = `${fileCount} changed ${filesPlural}`
     const anyFilesSelected =
       fileCount > 0 && this.includeAllValue !== CheckboxValue.Off
+    const filesSelected = this.props.workingDirectory.files.filter(
+      f => f.selection.getSelectionType() !== DiffSelectionType.None
+    )
+    const singleFileCommit = filesSelected.length === 1
 
     return (
       <div className="changes-list-container file-list">
@@ -407,6 +417,12 @@ export class ChangesList extends React.Component<
           isCommitting={this.props.isCommitting}
           showCoAuthoredBy={this.props.showCoAuthoredBy}
           coAuthors={this.props.coAuthors}
+          placeholder={
+            singleFileCommit
+              ? `Update ${filesSelected[0].path}`
+              : 'Summary (required)'
+          }
+          singleFileCommit={singleFileCommit}
         />
       </div>
     )

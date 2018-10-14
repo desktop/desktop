@@ -80,3 +80,12 @@ export async function mergeTree(
 
   return parseMergeResult(output)
 }
+
+/**
+ * Abort a mid-flight (conflicted) merge
+ *
+ * @param repository where to abort the merge
+ */
+export async function abortMerge(repository: Repository): Promise<void> {
+  await git(['merge', '--abort'], repository.path, 'abortMerge')
+}
