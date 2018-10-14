@@ -54,6 +54,16 @@ export class MergeConflictsWarning extends React.Component<
     this.props.onDismissed()
   }
 
+  private renderCliLink(): JSX.Element {
+    return (
+      <div className="cli-link">
+        You can also
+        <a>open the command line</a>
+        to resolve
+      </div>
+    )
+  }
+
   private renderFileWithoutConflicts(path: string): JSX.Element {
     return (
       <li className="unmerged-file-status-resolved">
@@ -120,7 +130,7 @@ export class MergeConflictsWarning extends React.Component<
       unmergedFiles === 1
         ? `1 conflicted file`
         : `${unmergedFiles} conflicted files`
-    return <h3>{message}</h3>
+    return <h3 className="summary">{message}</h3>
   }
 
   public render() {
@@ -135,6 +145,7 @@ export class MergeConflictsWarning extends React.Component<
         <DialogContent>
           {this.renderUnmergedFilesSummary(unmergedFiles.length)}
           {this.renderUnmergedFiles(unmergedFiles)}
+          {this.renderCliLink()}
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>

@@ -3,17 +3,24 @@
 dialog#merge-conflicts-list {
   width: 450px;
 
+  .summary {
+    margin-bottom: 20px;
+  }
+
   ul {
     list-style: none;
     padding: 0;
 
-    :last-of-type(li) {
+    li {
+      margin-bottom: 20px;
+    }
+
+    li:last-of-type {
       margin-bottom: 55px;
     }
 
     li.unmerged-file-status-resolved,
     li.unmerged-file-status-conflicts {
-      margin-bottom: 20px;
       display: flex;
       flex-flow: row nowrap;
 
@@ -37,6 +44,12 @@ dialog#merge-conflicts-list {
     }
     .unmerged-file-status-conflicts .file-conflicts-status {
       color: $orange;
+    }
+  }
+
+  .cli-link {
+    a {
+      color: $blue;
     }
   }
 }
