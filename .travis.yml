@@ -7,11 +7,11 @@ dist: trusty
 
 sudo: false
 
-matrix:
-  include:
-    - os: linux
-      env: CC=clang CXX=clang++ npm_config_clang=1
-      compiler: clang
+os: linux
+compiler: clang
+
+env:
+  - CC=clang CXX=clang++ npm_config_clang=1
 
 addons:
   apt:
@@ -38,7 +38,7 @@ branches:
 
 language: node_js
 node_js:
-  - "8.11.0"
+  - '8.11.4'
 
 cache:
   yarn: true
@@ -49,15 +49,12 @@ cache:
     - .eslintcache
     - $HOME/.cache/electron-builder
 
-before_install:
-  - curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.5.1
-  - export PATH=$HOME/.yarn/bin:$PATH
-
 install:
   - yarn install --force
 
 script:
-  - yarn lint && yarn validate-changelog && yarn build:prod && yarn test:setup && yarn test
+  - yarn lint && yarn validate-changelog && yarn build:prod && yarn test:setup
+    && yarn test && yarn test:report
 
 after_failure:
   - yarn test:review

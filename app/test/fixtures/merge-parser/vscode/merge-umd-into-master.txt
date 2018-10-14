@@ -1,0 +1,196 @@
+removed in local
+  base   100644 61046c0aa34256b2d478f5263e5cdcc9cc34d7fd extensions/emmet/npm-shrinkwrap.json
+  their  100644 c6088a4b1cd267088740718ac949ed3a76a9fcc1 extensions/emmet/npm-shrinkwrap.json
+changed in both
+  base   100644 493d6c972b74c0b37b839ab83463ff31ee7629cd extensions/emmet/package.json
+  our    100644 d9be62f74d1063d961b7895eab86495b34482691 extensions/emmet/package.json
+  their  100644 65c85d4a5e336853419a75a78a77a66093a71e31 extensions/emmet/package.json
+@@ -443,9 +443,18 @@
+         "vscode": "1.0.1"
+     },
+     "dependencies": {
++<<<<<<< .our
+         "@emmetio/css-parser": "ramya-rao-a/css-parser#vscode",
+         "@emmetio/html-matcher": "^0.3.3",
+         "@emmetio/math-expression": "^0.1.1",
++=======
++  
++        "@emmetio/html-matcher": "^0.3.1",
++        "@emmetio/css-parser": "^0.3.0",
++        "@emmetio/math-expression": "^0.1.1",
++        "vscode-emmet-helper": "^1.0.6",
++        "vscode-languageserver-types": "^3.0.3",
++>>>>>>> .their
+         "image-size": "^0.5.2",
+         "vscode-emmet-helper": "^1.2.11"
+     }
+changed in both
+  base   100644 2ddfaae1e941ce8b4ca4d4296b76e4c35e3ac7f3 extensions/emmet/src/abbreviationActions.ts
+  our    100644 26444af31e5994ebc9cddebb9de151cacae3311b extensions/emmet/src/abbreviationActions.ts
+  their  100644 f4b30cca8cbbfdd025687680c013d63dbd38d8f0 extensions/emmet/src/abbreviationActions.ts
+@@ -4,6 +4,7 @@
+  *--------------------------------------------------------------------------------------------*/
+ 
+ import * as vscode from 'vscode';
++<<<<<<< .our
+ import { Node, HtmlNode, Rule, Property, Stylesheet } from 'EmmetNode';
+ import { getEmmetHelper, getNode, getInnerRange, getMappingForIncludedLanguages, parseDocument, validate, getEmmetConfiguration, isStyleSheet, getEmmetMode, parsePartialStylesheet, isStyleAttribute, getEmbeddedCssNodeIfAny, isTemplateScript } from './util';
+ 
+@@ -14,6 +15,11 @@
+ 	'iframe', 'img', 'input', 'ins', 'kbd', 'label', 'map', 'object', 'q',
+ 	's', 'samp', 'select', 'small', 'span', 'strike', 'strong', 'sub', 'sup',
+ 	'textarea', 'tt', 'u', 'var'];
++=======
++import { Node, HtmlNode, Rule } from 'EmmetNode';
++import { getNode, getInnerRange, getMappingForIncludedLanguages, parseDocument, validate } from './util';
++import { getExpandOptions, extractAbbreviation, extractAbbreviationFromText, isStyleSheet, isAbbreviationValid, getEmmetMode, expandAbbreviation } from 'vscode-emmet-helper';
++>>>>>>> .their
+ 
+ interface ExpandAbbreviationInput {
+ 	syntax: string;
+@@ -225,6 +231,7 @@
+ 	});
+ }
+ 
++<<<<<<< .our
+ export function expandEmmetAbbreviation(args: any): Thenable<boolean | undefined> {
+ 	if (!validate() || !vscode.window.activeTextEditor) {
+ 		return fallbackTab();
+@@ -239,6 +246,9 @@
+ 			return fallbackTab();
+ 		}
+ 	}
++=======
++export function expandEmmetAbbreviation(args) {
++>>>>>>> .their
+ 	const syntax = getSyntaxFromArgs(args);
+ 	if (!syntax) {
+ 		return fallbackTab();
+@@ -595,6 +605,7 @@
+ 
+ 	try {
+ 		// Expand the abbreviation
++<<<<<<< .our
+ 		let expandedText;
+ 
+ 		if (input.textToWrap) {
+@@ -618,6 +629,13 @@
+ 			expandedText = expandedText.replace('\\$TM_SELECTED_TEXT', '$TM_SELECTED_TEXT');
+ 		} else {
+ 			expandedText = helper.expandAbbreviation(input.abbreviation, expandOptions);
++=======
++		let expandedText = expandAbbreviation(input.abbreviation, expandOptions);
++
++		// If the expanded text is single line then we dont need the \t we added to $TM_SELECTED_TEXT earlier
++		if (input.textToWrap && expandedText.indexOf('\n') === -1) {
++			expandedText = expandedText.replace(/\s*\$TM_SELECTED_TEXT\s*/, '\$TM_SELECTED_TEXT');
++>>>>>>> .their
+ 		}
+ 
+ 		return expandedText;
+changed in both
+  base   100644 0c5e74f5052e98b1021506655dd4ffcdf3aef58c extensions/emmet/src/extension.ts
+  our    100644 5bdb9338975585a7a0d7fe9747a6ae14f0ce7908 extensions/emmet/src/extension.ts
+  their  100644 eecdeed5c01f0b0638d55465de59f1e4711d572b extensions/emmet/src/extension.ts
+@@ -5,7 +5,11 @@
+ 
+ import * as vscode from 'vscode';
+ import { DefaultCompletionItemProvider } from './defaultCompletionProvider';
++<<<<<<< .our
+ import { expandEmmetAbbreviation, wrapWithAbbreviation, wrapIndividualLinesWithAbbreviation } from './abbreviationActions';
++=======
++import { expandEmmetAbbreviation, wrapWithAbbreviation } from './abbreviationActions';
++>>>>>>> .their
+ import { removeTag } from './removeTag';
+ import { updateTag } from './updateTag';
+ import { matchTag } from './matchTag';
+changed in both
+  base   100644 b8949b3418824358f3a05e862aa75be8f08a41da extensions/emmet/src/splitJoinTag.ts
+  our    100644 a5f1d255c8550889f815b1295ee8afacee6345ba extensions/emmet/src/splitJoinTag.ts
+  their  100644 382bd1841b09c923d2bf0620fe8aee0575148be9 extensions/emmet/src/splitJoinTag.ts
+@@ -5,14 +5,21 @@
+ 
+ import * as vscode from 'vscode';
+ import { HtmlNode } from 'EmmetNode';
++<<<<<<< .our
+ import { getHtmlNode, parseDocument, validate, getEmmetMode, getEmmetConfiguration } from './util';
++=======
++import { getNode, parseDocument, validate } from './util';
++>>>>>>> .their
+ 
+ export function splitJoinTag() {
+ 	if (!validate(false) || !vscode.window.activeTextEditor) {
+ 		return;
+ 	}
+ 
++<<<<<<< .our
+ 	const editor = vscode.window.activeTextEditor;
++=======
++>>>>>>> .their
+ 	let rootNode = <HtmlNode>parseDocument(editor.document);
+ 	if (!rootNode) {
+ 		return;
+@@ -29,7 +36,12 @@
+ 	});
+ }
+ 
++<<<<<<< .our
+ function getRangesToReplace(document: vscode.TextDocument, nodeToUpdate: HtmlNode): vscode.TextEdit {
++=======
++function getRangesToReplace(document: vscode.TextDocument, selection: vscode.Selection, rootNode: HtmlNode): vscode.TextEdit {
++	let nodeToUpdate = <HtmlNode>getNode(rootNode, selection.start);
++>>>>>>> .their
+ 	let rangeToReplace: vscode.Range;
+ 	let textToReplaceWith: string;
+ 
+changed in both
+  base   100644 b70278dd2dff0aa51ec570e1e404c9ce04da6a09 extensions/emmet/src/test/abbreviationAction.test.ts
+  our    100644 b5fb87d8b0791993b65959e4e4c9219aa4e8388c extensions/emmet/src/test/abbreviationAction.test.ts
+  their  100644 9367035f814700af88e19ad76addc60835a87001 extensions/emmet/src/test/abbreviationAction.test.ts
+@@ -7,8 +7,12 @@
+ import * as assert from 'assert';
+ import { Selection, workspace, CompletionList, CancellationTokenSource, CompletionTriggerKind, ConfigurationTarget } from 'vscode';
+ import { withRandomFileEditor, closeAllEditors } from './testUtils';
++<<<<<<< .our
+ import { expandEmmetAbbreviation } from '../abbreviationActions';
+ import { DefaultCompletionItemProvider } from '../defaultCompletionProvider';
++=======
++import { expandEmmetAbbreviation, wrapWithAbbreviation } from '../abbreviationActions';
++>>>>>>> .their
+ 
+ const completionProvider = new DefaultCompletionItemProvider();
+ 
+@@ -222,7 +226,11 @@
+ 
+ 	test('Expand css when inside style tag (HTML)', () => {
+ 		return withRandomFileEditor(htmlContents, 'html', (editor, doc) => {
++<<<<<<< .our
+ 			editor.selection = new Selection(13, 16, 13, 19);
++=======
++			editor.selection = new Selection(13, 3, 13, 6);
++>>>>>>> .their
+ 			let expandPromise = expandEmmetAbbreviation({ language: 'css' });
+ 			if (!expandPromise) {
+ 				return Promise.resolve();
+@@ -309,6 +317,7 @@
+ 				return Promise.resolve();
+ 			}
+ 
++<<<<<<< .our
+ 			return completionPromise.then((completionList: CompletionList) => {
+ 				if (!completionList.items || !completionList.items.length) {
+ 					assert.equal(1, 2, `Problem with expanding m10`);
+@@ -318,6 +327,13 @@
+ 				assert.equal(emmetCompletionItem.label, expandedText, `Label of completion item doesnt match.`);
+ 				assert.equal((<string>emmetCompletionItem.documentation || '').replace(/\|/g, ''), expandedText, `Docs of completion item doesnt match.`);
+ 				assert.equal(emmetCompletionItem.filterText, abbreviation, `FilterText of completion item doesnt match.`);
++=======
++	test('Expand abbreviation (CSS)', () => {
++		return withRandomFileEditor(cssContents, 'css', (editor, doc) => {
++			editor.selection = new Selection(4, 1, 4, 4);
++			return expandEmmetAbbreviation(null).then(() => {
++				assert.equal(editor.document.getText(), cssContents.replace('m10', 'margin: 10px;'));
++>>>>>>> .their
+ 				return Promise.resolve();
+ 			});
+ 		});

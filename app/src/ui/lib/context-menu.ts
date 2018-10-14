@@ -9,6 +9,8 @@ export const RevealInFileManagerLabel = __DARWIN__
     ? 'Show in Explorer'
     : 'Show in your File Manager'
 
+export const TrashNameLabel = __DARWIN__ ? 'Trash' : 'Recycle Bin'
+
 export const OpenWithDefaultProgramLabel = __DARWIN__
   ? 'Open with Default Program'
   : 'Open with default program'

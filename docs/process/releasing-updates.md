@@ -96,7 +96,7 @@ Here's what you should do next:
 7. Read this to perform the release: https://github.com/desktop/desktop/blob/master/docs/process/releasing-updates.md
 ```
 
-** Note: You should ensure the `version` in `app/package.json` is set to the new version and follows the [semver format](https://semver.org/) of `major.minor.patch`. 
+_Note: You should ensure the `version` in `app/package.json` is set to the new version and follows the [semver format](https://semver.org/) of `major.minor.patch`._ 
 
 Examples:
 * for prod, `1.1.0` -> `1.1.1` or `1.1.13` -> `1.2.0` 
@@ -156,13 +156,13 @@ Testing that an update is detected, downloaded, and applied correctly is very im
 
 If you don't have the app for `beta`, for example, you can always download the previous version on Central to see it update 
 
-** Make sure you move your application out of the Downloads folder and into the Applications folder for macOS or it won't auto-update.
+_Make sure you move your application out of the Downloads folder and into the Applications folder for macOS or it won't auto-update_.
 
 ### 6. Check Error Reporting
 
 If an error occurs during the release process, a needle will be reported to Central's [Haystack](https://haystack.githubapp.com/central).
 
-It is normal to monitor Haystack closely for 15 minutes just to make sure.
+After the release is deployed, you should monitor Desktop's [Haystack](https://haystack.githubapp.com/desktop) closely for 15 minutes to ensure no unexpected needles appear.
 
 ### 6. Celebrate
 

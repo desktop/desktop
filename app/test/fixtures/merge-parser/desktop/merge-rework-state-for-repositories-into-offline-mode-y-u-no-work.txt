@@ -1,0 +1,886 @@
+changed in both
+  base   100644 0f1f72f03c916f554505d816f73ec3f336ff874a app/src/lib/app-state.ts
+  our    100644 b30f0fe080d909b81d2fb683ceb8deb365fb0191 app/src/lib/app-state.ts
+  their  100644 a1faa806de3876ec375b913d275e231a2cbfae41 app/src/lib/app-state.ts
+@@ -1,7 +1,11 @@
+ import { Account } from '../models/account'
+ import { CommitIdentity } from '../models/commit-identity'
+ import { IDiff } from '../models/diff'
++<<<<<<< .our
+ import { Repository, ILocalRepositoryState } from '../models/repository'
++=======
++import { Repository, IRepositoryListItem } from '../models/repository'
++>>>>>>> .their
+ 
+ import { Branch, IAheadBehind } from '../models/branch'
+ import { Tip } from '../models/tip'
+@@ -52,6 +56,10 @@
+   Difference,
+ }
+ 
++export interface IRepositoryListState {
++  readonly repositories: ReadonlyArray<IRepositoryListItem>
++}
++
+ export type PossibleSelections =
+   | {
+       type: SelectionType.Repository
+@@ -68,10 +76,15 @@
+ /** All of the shared app state. */
+ export interface IAppState {
+   readonly accounts: ReadonlyArray<Account>
++<<<<<<< .our
+   /**
+    * The current list of repositories tracked in the application
+    */
+   readonly repositories: ReadonlyArray<Repository | CloningRepository>
++=======
++
++  readonly repositoryList: IRepositoryListState
++>>>>>>> .their
+ 
+   /**
+    * A cache of the latest repository state values, keyed by the repository id
+changed in both
+  base   100644 f7a2f33b4a3e4787f6446ec13c490c0519671b8c app/src/lib/dispatcher/dispatcher.ts
+  our    100644 5e56c00e713342e76f5ccba040062e322e8c90cb app/src/lib/dispatcher/dispatcher.ts
+  their  100644 8ff1e93a00d8036ddc4cdfa83b00ac8c15a1d595 app/src/lib/dispatcher/dispatcher.ts
+@@ -863,7 +863,7 @@
+         const path = (await validatedRepositoryPath(action.path)) || action.path
+         const state = this.appStore.getState()
+         let existingRepository = matchExistingRepository(
+-          state.repositories,
++          state.repositoryList.repositories,
+           path
+         )
+ 
+@@ -969,7 +969,7 @@
+     branch: string | null
+   ): Promise<Repository | null> {
+     const state = this.appStore.getState()
+-    const repositories = state.repositories
++    const repositories = state.repositoryList.repositories.map(r => r.source)
+     const existingRepository = repositories.find(r => {
+       if (r instanceof Repository) {
+         const gitHubRepository = r.gitHubRepository
+changed in both
+  base   100644 7ade1dfc6be6bbfd8149dfb41a77caded99e26c0 app/src/lib/fuzzy-find.ts
+  our    100644 fe445459765dc96bdabb09ac7dea1feccc473728 app/src/lib/fuzzy-find.ts
+  their  100644 b1df8e63b1639dcbfbf7ff42604f96cf5ffa64f7 app/src/lib/fuzzy-find.ts
+@@ -1,23 +1,12 @@
+ import * as fuzzAldrin from 'fuzzaldrin-plus'
+ 
+ import { compareDescending } from './compare'
++import { IMatch } from '../models/filter-list'
+ 
+ function score(str: string, query: string, maxScore: number) {
+   return fuzzAldrin.score(str, query) / maxScore
+ }
+ 
+-export interface IMatches {
+-  readonly title: ReadonlyArray<number>
+-  readonly subtitle: ReadonlyArray<number>
+-}
+-
+-export interface IMatch<T> {
+-  /** `0 <= score <= 1` */
+-  score: number
+-  item: T
+-  matches: IMatches
+-}
+-
+ export type KeyFunction<T> = (item: T) => ReadonlyArray<string>
+ 
+ export function match<T, _K extends keyof T>(
+added in remote
+  their  100644 6047ec0bc933c874c56ec75db9a2eb0ac54d086f app/src/lib/group-repositories.ts
+@@ -0,0 +1,79 @@
++import { Repository } from '../models/repository'
++import { CloningRepository } from '../models/cloning-repository'
++import { getDotComAPIEndpoint } from './api'
++import { caseInsensitiveCompare } from './compare'
++import { IFilterListGroup, IFilterListItem } from '../models/filter-list'
++
++export type RepositoryGroupIdentifier = 'github' | 'enterprise' | 'other'
++
++export type Repositoryish = Repository | CloningRepository
++
++export interface IRepositoryListItem extends IFilterListItem {
++  readonly text: ReadonlyArray<string>
++  readonly id: string
++  readonly repository: Repositoryish
++  readonly needsDisambiguation: boolean
++}
++
++export function groupRepositories(
++  repositories: ReadonlyArray<Repositoryish>
++): ReadonlyArray<IFilterListGroup<IRepositoryListItem>> {
++  const grouped = new Map<RepositoryGroupIdentifier, Repositoryish[]>()
++  for (const repository of repositories) {
++    const gitHubRepository =
++      repository instanceof Repository ? repository.gitHubRepository : null
++    let group: RepositoryGroupIdentifier = 'other'
++    if (gitHubRepository) {
++      if (gitHubRepository.endpoint === getDotComAPIEndpoint()) {
++        group = 'github'
++      } else {
++        group = 'enterprise'
++      }
++    } else {
++      group = 'other'
++    }
++
++    let repositories = grouped.get(group)
++    if (!repositories) {
++      repositories = new Array<Repository>()
++      grouped.set(group, repositories)
++    }
++
++    repositories.push(repository)
++  }
++
++  const groups = new Array<IFilterListGroup<IRepositoryListItem>>()
++
++  const addGroup = (identifier: RepositoryGroupIdentifier) => {
++    const repositories = grouped.get(identifier)
++    if (!repositories || repositories.length === 0) {
++      return
++    }
++
++    const names = new Map<string, number>()
++    for (const repository of repositories) {
++      const existingCount = names.get(repository.name) || 0
++      names.set(repository.name, existingCount + 1)
++    }
++
++    repositories.sort((x, y) => caseInsensitiveCompare(x.name, y.name))
++    const items: ReadonlyArray<IRepositoryListItem> = repositories.map(r => {
++      const nameCount = names.get(r.name) || 0
++      return {
++        text: [r.name],
++        id: r.id.toString(),
++        repository: r,
++        needsDisambiguation: nameCount > 1,
++      }
++    })
++
++    groups.push({ identifier, items })
++  }
++
++  // NB: This ordering reflects the order in the repositories sidebar.
++  addGroup('github')
++  addGroup('enterprise')
++  addGroup('other')
++
++  return groups
++}
+merged
+  result 100644 cfbc4c3fb41fb4d678e3752e33737434470f4387 app/src/lib/repository-matching.ts
+  our    100644 320c31614eb7012348f2ae7877bfb5a0b11cf5af app/src/lib/repository-matching.ts
+@@ -2,7 +2,7 @@
+ import * as Path from 'path'
+ 
+ import { CloningRepository } from '../models/cloning-repository'
+-import { Repository } from '../models/repository'
++import { Repository, IRepositoryListItem } from '../models/repository'
+ import { Account } from '../models/account'
+ import { IRemote } from '../models/remote'
+ import { getHTMLURL } from './api'
+@@ -77,11 +77,11 @@
+  * @param path The path on disk which might be a repository
+  */
+ export function matchExistingRepository(
+-  repositories: ReadonlyArray<Repository | CloningRepository>,
++  repositories: ReadonlyArray<IRepositoryListItem>,
+   path: string
+ ): Repository | CloningRepository | null {
+   return (
+-    repositories.find(r => {
++    repositories.map(r => r.source).find(r => {
+       if (__WIN32__) {
+         // Windows is guaranteed to be case-insensitive so we can be a
+         // bit more accepting.
+changed in both
+  base   100644 cef55da5f79cf3f422447bb55cb4b9e55162076a app/src/lib/stores/app-store.ts
+  our    100644 1a4e387e4d192d34abfd0621b4b5ebe8cc34d8d1 app/src/lib/stores/app-store.ts
+  their  100644 26c65eda55acf194df477bfa99e8897daa8eadcf app/src/lib/stores/app-store.ts
+@@ -24,7 +24,11 @@
+   IDisplayHistory,
+   ICompareBranch,
+   ICompareFormUpdate,
++<<<<<<< .our
+   ICompareToBranch,
++=======
++  IRepositoryListState,
++>>>>>>> .their
+ } from '../app-state'
+ import { Account } from '../../models/account'
+ import {
+@@ -544,6 +548,19 @@
+     })
+   }
+ 
++  private getRepositoryListState(): IRepositoryListState {
++    const allRepos = [
++      ...this.repositories,
++      ...this.cloningRepositoriesStore.repositories,
++    ]
++
++    return {
++      repositories: allRepos.map(source => ({
++        source,
++      })),
++    }
++  }
++
+   private getSelectedState(): PossibleSelections | null {
+     const repository = this.selectedRepository
+     if (!repository) {
+@@ -582,11 +599,15 @@
+   public getState(): IAppState {
+     return {
+       accounts: this.accounts,
++<<<<<<< .our
+       repositories: [
+         ...this.repositories,
+         ...this.cloningRepositoriesStore.repositories,
+       ],
+       localRepositoryStateLookup: this.localRepositoryStateLookup,
++=======
++      repositoryList: this.getRepositoryListState(),
++>>>>>>> .their
+       windowState: this.windowState,
+       windowZoomFactor: this.windowZoomFactor,
+       appIsFocused: this.appIsFocused,
+added in remote
+  their  100644 471a2bbf7f0b40cfb77f041a5adabb83303b1b51 app/src/models/filter-list.ts
+@@ -0,0 +1,41 @@
++export interface IMatches {
++  readonly title: ReadonlyArray<number>
++  readonly subtitle: ReadonlyArray<number>
++}
++
++export interface IMatch<T> {
++  /** `0 <= score <= 1` */
++  score: number
++  item: T
++  matches: IMatches
++}
++
++/** An item in the filter list. */
++export interface IFilterListItem {
++  /** The text which represents the item. This is used for filtering. */
++  readonly text: ReadonlyArray<string>
++
++  /** A unique identifier for the item. */
++  readonly id: string
++}
++
++/** A group of items in the list. */
++export interface IFilterListGroup<T extends IFilterListItem> {
++  /** The identifier for this group. */
++  readonly identifier: string
++
++  /** The items in the group. */
++  readonly items: ReadonlyArray<T>
++}
++
++export interface IFlattenedGroup {
++  readonly kind: 'group'
++  readonly identifier: string
++}
++
++export interface IFlattenedItem<T extends IFilterListItem> {
++  readonly kind: 'item'
++  readonly item: T
++  /** Array of indexes in `item.text` that should be highlighted */
++  readonly matches: IMatches
++}
+changed in both
+  base   100644 0602a86788419c4d0be13a0de4f8c5ac6b37a368 app/src/models/repository.ts
+  our    100644 4eb1a58be5e5e17b1a8714be9248b2d332f526e4 app/src/models/repository.ts
+  their  100644 8593e8a9bf907314361c6157df2fc9fa6f253a45 app/src/models/repository.ts
+@@ -1,6 +1,7 @@
+ import * as Path from 'path'
+ 
+ import { GitHubRepository } from './github-repository'
++<<<<<<< .our
+ import { IAheadBehind } from './branch'
+ 
+ function getBaseName(path: string): string {
+@@ -14,6 +15,9 @@
+ 
+   return baseName
+ }
++=======
++import { CloningRepository } from './cloning-repository'
++>>>>>>> .their
+ 
+ /** A local repository. */
+ export class Repository {
+@@ -53,6 +57,7 @@
+   }
+ }
+ 
++<<<<<<< .our
+ /**
+  * A snapshot for the local state for a given repository
+  */
+@@ -76,4 +81,10 @@
+   const { gitHubRepository } = repository
+ 
+   return gitHubRepository !== null ? gitHubRepository.fullName : repository.name
++=======
++export type Repositoryish = Repository | CloningRepository
++
++export interface IRepositoryListItem {
++  readonly source: Repositoryish
++>>>>>>> .their
+ }
+changed in both
+  base   100644 dbc99e8d5c3c6d7dd14ee7ba7539b1e57f05757a app/src/ui/app.tsx
+  our    100644 c38c806e36c237ea70f3cdeee739941530c0c7cd app/src/ui/app.tsx
+  their  100644 4922d8b238e8e14e03a3228b9f734b88e614dc51 app/src/ui/app.tsx
+@@ -87,10 +87,14 @@
+ import { UpstreamAlreadyExists } from './upstream-already-exists'
+ import { DeletePullRequest } from './delete-branch/delete-pull-request-dialog'
+ import { MergeConflictsWarning } from './merge-conflicts'
++<<<<<<< .our
+ import { AppTheme } from './app-theme'
+ import { ApplicationTheme } from './lib/application-theme'
+ 
+ const MinuteInMilliseconds = 1000 * 60
++=======
++import { groupRepositories } from '../lib/group-repositories'
++>>>>>>> .their
+ 
+ /** The interval at which we should check for updates. */
+ const UpdateCheckInterval = 1000 * 60 * 60 * 4
+@@ -751,7 +755,7 @@
+       const path = (await validatedRepositoryPath(first)) || first
+ 
+       const existingRepository = matchExistingRepository(
+-        this.state.repositories,
++        this.state.repositoryList.repositories,
+         path
+       )
+ 
+@@ -1412,17 +1416,26 @@
+     const externalEditorLabel = this.state.selectedExternalEditor
+     const shellLabel = this.state.selectedShell
+     const filterText = this.state.repositoryFilterText
++
++    const groups = groupRepositories(
++      this.state.repositoryList.repositories.map(r => r.source)
++    )
++
+     return (
+       <RepositoriesList
+         filterText={filterText}
+         onFilterTextChanged={this.onRepositoryFilterTextChanged}
+         selectedRepository={selectedRepository}
+         onSelectionChanged={this.onSelectionChanged}
++<<<<<<< .our
+         repositories={this.state.repositories}
+         localRepositoryStateLookup={this.state.localRepositoryStateLookup}
+         askForConfirmationOnRemoveRepository={
+           this.state.askForConfirmationOnRepositoryRemoval
+         }
++=======
++        groups={groups}
++>>>>>>> .their
+         onRemoveRepository={this.removeRepository}
+         onOpenInShell={this.openInShell}
+         onShowRepository={this.showRepository}
+@@ -1482,7 +1495,7 @@
+     if (repository) {
+       icon = iconForRepository(repository)
+       title = repository.name
+-    } else if (this.state.repositories.length > 0) {
++    } else if (this.state.repositoryList.repositories.length > 0) {
+       icon = OcticonSymbol.repo
+       title = __DARWIN__ ? 'Select a Repository' : 'Select a repository'
+     } else {
+@@ -1668,7 +1681,7 @@
+ 
+   private renderRepository() {
+     const state = this.state
+-    if (state.repositories.length < 1) {
++    if (state.repositoryList.repositories.length < 1) {
+       return (
+         <BlankSlateView
+           onCreate={this.showCreateRepository}
+merged
+  result 100644 4dc52d68274ce071386cb34dda8a2f6f17119962 app/src/ui/branches/branch-list-item.tsx
+  our    100644 474f18ccb67239743953eda7f33488769a615c05 app/src/ui/branches/branch-list-item.tsx
+@@ -1,7 +1,7 @@
+ import * as React from 'react'
+ import * as moment from 'moment'
+ 
+-import { IMatches } from '../../lib/fuzzy-find'
++import { IMatches } from '../../models/filter-list'
+ 
+ import { Octicon, OcticonSymbol } from '../octicons'
+ import { HighlightText } from '../lib/highlight-text'
+changed in both
+  base   100644 c6fd907ca55c1ee3575c15a64b60ef898d259ae9 app/src/ui/branches/branch-list.tsx
+  our    100644 f996cca6bcc1348eedd5f3c852bf8652b60f95aa app/src/ui/branches/branch-list.tsx
+  their  100644 f7ba834036a39cfdffd1b87d044ee03b0e2e5d1d app/src/ui/branches/branch-list.tsx
+@@ -4,12 +4,9 @@
+ 
+ import { assertNever } from '../../lib/fatal-error'
+ 
+-import {
+-  FilterList,
+-  IFilterListGroup,
+-  SelectionSource,
+-} from '../lib/filter-list'
+-import { IMatches } from '../../lib/fuzzy-find'
++import { IFilterListGroup, IMatches } from '../../models/filter-list'
++
++import { FilterList, SelectionSource } from '../lib/filter-list'
+ import { Button } from '../lib/button'
+ import { TextBox } from '../lib/text-box'
+ 
+merged
+  result 100644 6da41ab3f7da5b855ce59e6054c4f82b0ae450ae app/src/ui/branches/branch-renderer.tsx
+  our    100644 dd27f7b0f40a3be55aa8a51cd83f116cf289c7e6 app/src/ui/branches/branch-renderer.tsx
+@@ -1,10 +1,10 @@
+ import * as React from 'react'
+ 
+ import { Branch } from '../../models/branch'
++import { IMatches } from '../../models/filter-list'
+ 
+ import { IBranchListItem } from './group-branches'
+ import { BranchListItem } from './branch-list-item'
+-import { IMatches } from '../../lib/fuzzy-find'
+ 
+ export function renderDefaultBranch(
+   item: IBranchListItem,
+changed in both
+  base   100644 13f691705648f0b7a0f7303372de8f2db79f3d76 app/src/ui/branches/branches-container.tsx
+  our    100644 6a5612ae608b20b3a486f139daf4063209bca568 app/src/ui/branches/branches-container.tsx
+  their  100644 247643b0608b2ae041337ad2e4c558dfc4c49043 app/src/ui/branches/branches-container.tsx
+@@ -5,6 +5,7 @@
+ import { Repository, nameOf } from '../../models/repository'
+ import { Branch } from '../../models/branch'
+ import { BranchesTab } from '../../models/branches-tab'
++import { IMatches } from '../../models/filter-list'
+ 
+ import { Dispatcher } from '../../lib/dispatcher'
+ import { FoldoutType, PopupType } from '../../lib/app-state'
+@@ -17,7 +18,6 @@
+ import { PullRequestsLoading } from './pull-requests-loading'
+ import { IBranchListItem } from './group-branches'
+ import { renderDefaultBranch } from './branch-renderer'
+-import { IMatches } from '../../lib/fuzzy-find'
+ 
+ const PullRequestsLoadingCrossFadeInTimeout = 300
+ const PullRequestsLoadingCrossFadeOutTimeout = 200
+merged
+  result 100644 2ecee9b32490089b39f44642ef6fca16b7b3ab56 app/src/ui/branches/group-branches.ts
+  our    100644 f4953500cb984957451e61da094929c0254c811d app/src/ui/branches/group-branches.ts
+@@ -1,5 +1,5 @@
+ import { Branch } from '../../models/branch'
+-import { IFilterListGroup, IFilterListItem } from '../lib/filter-list'
++import { IFilterListGroup, IFilterListItem } from '../../models/filter-list'
+ 
+ export type BranchGroupIdentifier = 'default' | 'recent' | 'other'
+ 
+merged
+  result 100644 4be30f2736a9018e19fc2b105b3514cabc524c6b app/src/ui/branches/pull-request-list-item.tsx
+  our    100644 075b2904f501296734519cbb19ed658a9f168a05 app/src/ui/branches/pull-request-list-item.tsx
+@@ -5,7 +5,7 @@
+ import { CIStatus } from './ci-status'
+ import { PullRequestStatus } from '../../models/pull-request'
+ import { HighlightText } from '../lib/highlight-text'
+-import { IMatches } from '../../lib/fuzzy-find'
++import { IMatches } from '../../models/filter-list'
+ 
+ export interface IPullRequestListItemProps {
+   /** The title. */
+changed in both
+  base   100644 ec5384d11e1ccc41654a814bf95443c8159d7c17 app/src/ui/branches/pull-request-list.tsx
+  our    100644 484112784b83cd0d9be46284b3a1fb1b877894b2 app/src/ui/branches/pull-request-list.tsx
+  their  100644 d0cb65d04b4ee72da49baed09c132b059f4af620 app/src/ui/branches/pull-request-list.tsx
+@@ -1,15 +1,15 @@
+ import * as React from 'react'
+ import * as moment from 'moment'
++
+ import {
+-  FilterList,
++  IMatches,
+   IFilterListGroup,
+   IFilterListItem,
+-  SelectionSource,
+-} from '../lib/filter-list'
++} from '../../models/filter-list'
++import { FilterList, SelectionSource } from '../lib/filter-list'
+ import { PullRequestListItem } from './pull-request-list-item'
+ import { PullRequest, PullRequestStatus } from '../../models/pull-request'
+ import { NoPullRequests } from './no-pull-requests'
+-import { IMatches } from '../../lib/fuzzy-find'
+ 
+ interface IPullRequestListItem extends IFilterListItem {
+   readonly id: string
+changed in both
+  base   100644 bd003b8166b0069ee40ffc86f2ea9593db202001 app/src/ui/branches/pull-requests-loading.tsx
+  our    100644 6965fcba858e40dc9bebce9bd3f18f369bde8ae3 app/src/ui/branches/pull-requests-loading.tsx
+  their  100644 413230dc687126b2536a2c67a32082eda7e06d68 app/src/ui/branches/pull-requests-loading.tsx
+@@ -1,5 +1,6 @@
+ import * as React from 'react'
+-import { FilterList, IFilterListItem } from '../lib/filter-list'
++import { IFilterListItem } from '../../models/filter-list'
++import { FilterList } from '../lib/filter-list'
+ import {
+   PullRequestListItem,
+   IPullRequestListItemProps,
+merged
+  result 100644 025849db4722f41ecb84201c726a3cd4986d0235 app/src/ui/clone-repository/clone-github-repository.tsx
+  our    100644 81bb2d3dc71f42c419af98460238b7063d80badd app/src/ui/clone-repository/clone-github-repository.tsx
+@@ -1,6 +1,7 @@
+ import * as React from 'react'
+ 
+ import { Account } from '../../models/account'
++import { IFilterListGroup, IMatches } from '../../models/filter-list'
+ import { DialogContent } from '../dialog'
+ import { TextBox } from '../lib/text-box'
+ import { Row } from '../lib/row'
+@@ -9,8 +10,6 @@
+ import { Octicon } from '../octicons'
+ import { FilterList } from '../lib/filter-list'
+ import { API } from '../../lib/api'
+-import { IFilterListGroup } from '../lib/filter-list'
+-import { IMatches } from '../../lib/fuzzy-find'
+ import {
+   IClonableRepositoryListItem,
+   groupRepositories,
+merged
+  result 100644 409a64070c8e30188cda16fff34d038ffb51b8af app/src/ui/clone-repository/group-repositories.ts
+  our    100644 b7412f2d5dd94cba15f7a987e719915969a75f6e app/src/ui/clone-repository/group-repositories.ts
+@@ -1,5 +1,6 @@
++import { IFilterListGroup, IFilterListItem } from '../../models/filter-list'
++
+ import { IAPIRepository } from '../../lib/api'
+-import { IFilterListGroup, IFilterListItem } from '../lib/filter-list'
+ import { caseInsensitiveCompare } from '../../lib/compare'
+ import { OcticonSymbol } from '../octicons'
+ 
+merged
+  result 100644 314c4e3f15fbb4c493a948f1cc22fcf9a3749879 app/src/ui/history/compare-branch-list-item.tsx
+  our    100644 16d4efb540d90ba9514f7b5da356f9fa5372e2f6 app/src/ui/history/compare-branch-list-item.tsx
+@@ -3,7 +3,7 @@
+ import { Octicon, OcticonSymbol } from '../octicons'
+ import { HighlightText } from '../lib/highlight-text'
+ import { Branch, IAheadBehind } from '../../models/branch'
+-import { IMatches } from '../../lib/fuzzy-find'
++import { IMatches } from '../../models/filter-list'
+ 
+ interface ICompareBranchListItemProps {
+   readonly branch: Branch
+changed in both
+  base   100644 502863ec0901ae8ebc62d75cd84ee11869f5c653 app/src/ui/history/compare.tsx
+  our    100644 c0be0e26ce79b9a590edfa3a9fd3718fa58782d4 app/src/ui/history/compare.tsx
+  their  100644 c5431287ccbdbd63877c1207dc5aad90dedded2b app/src/ui/history/compare.tsx
+@@ -3,6 +3,7 @@
+ 
+ import { IGitHubUser } from '../../lib/databases'
+ import { Commit } from '../../models/commit'
++import { IMatches } from '../../models/filter-list'
+ import {
+   ComparisonView,
+   ICompareState,
+@@ -22,7 +23,7 @@
+ import { FancyTextBox } from '../lib/fancy-text-box'
+ import { OcticonSymbol } from '../octicons'
+ import { SelectionSource } from '../lib/filter-list'
+-import { IMatches } from '../../lib/fuzzy-find'
++
+ import { Ref } from '../lib/ref'
+ import {
+   NewCommitsBanner,
+changed in both
+  base   100644 c845440dc0449aaf6b81f86a7a77eb0d3d8d1a8f app/src/ui/lib/filter-list.tsx
+  our    100644 a625bab6249781a07060095fe6306dfd832f032f app/src/ui/lib/filter-list.tsx
+  their  100644 3646e167d967db370f232beec160c6d9213dafb0 app/src/ui/lib/filter-list.tsx
+@@ -8,38 +8,15 @@
+ } from '../lib/list'
+ import { TextBox } from '../lib/text-box'
+ import { Row } from '../lib/row'
+-
+-import { match, IMatch, IMatches } from '../../lib/fuzzy-find'
+-
+-/** An item in the filter list. */
+-export interface IFilterListItem {
+-  /** The text which represents the item. This is used for filtering. */
+-  readonly text: ReadonlyArray<string>
+-
+-  /** A unique identifier for the item. */
+-  readonly id: string
+-}
+-
+-/** A group of items in the list. */
+-export interface IFilterListGroup<T extends IFilterListItem> {
+-  /** The identifier for this group. */
+-  readonly identifier: string
+-
+-  /** The items in the group. */
+-  readonly items: ReadonlyArray<T>
+-}
+-
+-interface IFlattenedGroup {
+-  readonly kind: 'group'
+-  readonly identifier: string
+-}
+-
+-interface IFlattenedItem<T extends IFilterListItem> {
+-  readonly kind: 'item'
+-  readonly item: T
+-  /** Array of indexes in `item.text` that should be highlighted */
+-  readonly matches: IMatches
+-}
++import {
++  IFilterListItem,
++  IFlattenedGroup,
++  IFlattenedItem,
++  IFilterListGroup,
++  IMatches,
++  IMatch,
++} from '../../models/filter-list'
++import { match } from '../../lib/fuzzy-find'
+ 
+ /**
+  * A row in the list. This is used internally after the user-provided groups are
+changed in both
+  base   100644 b86b84acd2592be32e1e96ba15a6e1c4baa01c61 app/src/ui/merge-branch/merge.tsx
+  our    100644 6a7e6976257ec16e58a7331db61b40096a9bde08 app/src/ui/merge-branch/merge.tsx
+  their  100644 1e2ae1fa7934c87eabfdd36fc7ea54af92ba8edf app/src/ui/merge-branch/merge.tsx
+@@ -5,6 +5,7 @@
+ 
+ import { Branch } from '../../models/branch'
+ import { Repository } from '../../models/repository'
++import { IMatches } from '../../models/filter-list'
+ 
+ import { Button } from '../lib/button'
+ import { ButtonGroup } from '../lib/button-group'
+@@ -12,7 +13,6 @@
+ import { Dialog, DialogContent, DialogFooter } from '../dialog'
+ import { BranchList, IBranchListItem, renderDefaultBranch } from '../branches'
+ import { revSymmetricDifference } from '../../lib/git'
+-import { IMatches } from '../../lib/fuzzy-find'
+ 
+ interface IMergeProps {
+   readonly dispatcher: Dispatcher
+removed in remote
+  base   100644 7d155f75357c2b37aaf547a4502c6db165116cae app/src/ui/repositories-list/group-repositories.ts
+  our    100644 9e6e38681ef352ce76fa65fea817492a6aef088f app/src/ui/repositories-list/group-repositories.ts
+@@ -1,92 +0,0 @@
+-import { Repository, ILocalRepositoryState } from '../../models/repository'
+-import { CloningRepository } from '../../models/cloning-repository'
+-import { getDotComAPIEndpoint } from '../../lib/api'
+-import { caseInsensitiveCompare } from '../../lib/compare'
+-import { IFilterListGroup, IFilterListItem } from '../lib/filter-list'
+-import { IAheadBehind } from '../../models/branch'
+-
+-export type RepositoryGroupIdentifier = 'github' | 'enterprise' | 'other'
+-
+-export type Repositoryish = Repository | CloningRepository
+-
+-export interface IRepositoryListItem extends IFilterListItem {
+-  readonly text: ReadonlyArray<string>
+-  readonly id: string
+-  readonly repository: Repositoryish
+-  readonly needsDisambiguation: boolean
+-  readonly aheadBehind: IAheadBehind | null
+-  readonly changedFilesCount: number
+-}
+-
+-const fallbackValue = {
+-  changedFilesCount: 0,
+-  aheadBehind: null,
+-}
+-
+-export function groupRepositories(
+-  repositories: ReadonlyArray<Repositoryish>,
+-  localRepositoryStateLookup: Map<number, ILocalRepositoryState>
+-): ReadonlyArray<IFilterListGroup<IRepositoryListItem>> {
+-  const grouped = new Map<RepositoryGroupIdentifier, Repositoryish[]>()
+-  for (const repository of repositories) {
+-    const gitHubRepository =
+-      repository instanceof Repository ? repository.gitHubRepository : null
+-    let group: RepositoryGroupIdentifier = 'other'
+-    if (gitHubRepository) {
+-      if (gitHubRepository.endpoint === getDotComAPIEndpoint()) {
+-        group = 'github'
+-      } else {
+-        group = 'enterprise'
+-      }
+-    } else {
+-      group = 'other'
+-    }
+-
+-    let repositories = grouped.get(group)
+-    if (!repositories) {
+-      repositories = new Array<Repository>()
+-      grouped.set(group, repositories)
+-    }
+-
+-    repositories.push(repository)
+-  }
+-
+-  const groups = new Array<IFilterListGroup<IRepositoryListItem>>()
+-
+-  const addGroup = (identifier: RepositoryGroupIdentifier) => {
+-    const repositories = grouped.get(identifier)
+-    if (!repositories || repositories.length === 0) {
+-      return
+-    }
+-
+-    const names = new Map<string, number>()
+-    for (const repository of repositories) {
+-      const existingCount = names.get(repository.name) || 0
+-      names.set(repository.name, existingCount + 1)
+-    }
+-
+-    repositories.sort((x, y) => caseInsensitiveCompare(x.name, y.name))
+-    const items: ReadonlyArray<IRepositoryListItem> = repositories.map(r => {
+-      const nameCount = names.get(r.name) || 0
+-      const { aheadBehind, changedFilesCount } =
+-        localRepositoryStateLookup.get(r.id) || fallbackValue
+-      return {
+-        text: [r.name],
+-        id: r.id.toString(),
+-        repository: r,
+-        needsDisambiguation: nameCount > 1,
+-        aheadBehind,
+-        changedFilesCount,
+-      }
+-    })
+-
+-    groups.push({ identifier, items })
+-  }
+-
+-  // NB: This ordering reflects the order in the repositories sidebar.
+-  addGroup('github')
+-  addGroup('enterprise')
+-  addGroup('other')
+-
+-  return groups
+-}
+changed in both
+  base   100644 099975495f19aeb0f19adfcacf11a6f51bc6c4d6 app/src/ui/repositories-list/repositories-list.tsx
+  our    100644 e4ca588b503842ff6df4517d209f5fc5537d4a11 app/src/ui/repositories-list/repositories-list.tsx
+  their  100644 980b0c986ac78fdb0d6ed17f44fb5bb5ee148d8a app/src/ui/repositories-list/repositories-list.tsx
+@@ -1,14 +1,13 @@
+ import * as React from 'react'
+ 
+ import { RepositoryListItem } from './repository-list-item'
++import { Repositoryish } from '../../models/repository'
+ import {
+-  groupRepositories,
+   IRepositoryListItem,
+-  Repositoryish,
+   RepositoryGroupIdentifier,
+-} from './group-repositories'
++} from '../../lib/group-repositories'
++import { IFilterListGroup, IMatches } from '../../models/filter-list'
+ import { FilterList } from '../lib/filter-list'
+-import { IMatches } from '../../lib/fuzzy-find'
+ import { assertNever } from '../../lib/fatal-error'
+ import { ILocalRepositoryState } from '../../models/repository'
+ import { enableRepoInfoIndicators } from '../../lib/feature-flag'
+@@ -16,7 +15,9 @@
+ 
+ interface IRepositoriesListProps {
+   readonly selectedRepository: Repositoryish | null
+-  readonly repositories: ReadonlyArray<Repositoryish>
++
++  /** The grouped repositories to display in the list */
++  readonly groups: ReadonlyArray<IFilterListGroup<IRepositoryListItem>>
+ 
+   /** A cache of the latest repository state values, keyed by the repository id */
+   readonly localRepositoryStateLookup: Map<number, ILocalRepositoryState>
+@@ -119,19 +120,26 @@
+   }
+ 
+   public render() {
+-    if (this.props.repositories.length < 1) {
++    const repositoryCount = this.props.groups
++      .map(g => g.items.length)
++      .reduce((prev, current) => prev + current)
++
++    if (repositoryCount < 1) {
+       return this.noRepositories()
+     }
+ 
++<<<<<<< .our
+     const groups = groupRepositories(
+       this.props.repositories,
+       this.props.localRepositoryStateLookup
+     )
+ 
++=======
++>>>>>>> .their
+     let selectedItem: IRepositoryListItem | null = null
+     const selectedRepository = this.props.selectedRepository
+     if (selectedRepository) {
+-      for (const group of groups) {
++      for (const group of this.props.groups) {
+         selectedItem =
+           group.items.find(i => {
+             const repository = i.repository
+@@ -154,9 +162,9 @@
+           renderItem={this.renderItem}
+           renderGroupHeader={this.renderGroupHeader}
+           onItemClick={this.onItemClick}
+-          groups={groups}
++          groups={this.props.groups}
+           invalidationProps={{
+-            repositories: this.props.repositories,
++            groups: this.props.groups,
+             filterText: this.props.filterText,
+           }}
+         />
+changed in both
+  base   100644 4d6d2718f07e7136c8197bc1c47a8d2bfe8b2d38 app/src/ui/repositories-list/repository-list-item.tsx
+  our    100644 6ca3c771c795eba242cc4b795e3a3b0bbb4c7488 app/src/ui/repositories-list/repository-list-item.tsx
+  their  100644 e4a3aa331427b2bbfcb8b6c4f320e528747277c8 app/src/ui/repositories-list/repository-list-item.tsx
+@@ -1,12 +1,20 @@
+ import * as React from 'react'
++<<<<<<< .our
+ import { Repository } from '../../models/repository'
+ import { Octicon, iconForRepository, OcticonSymbol } from '../octicons'
++=======
++import { Repository, Repositoryish } from '../../models/repository'
++import { Octicon, iconForRepository } from '../octicons'
++>>>>>>> .their
+ import { showContextualMenu } from '../main-process-proxy'
+-import { Repositoryish } from './group-repositories'
+ import { IMenuItem } from '../../lib/menu-item'
+ import { HighlightText } from '../lib/highlight-text'
++<<<<<<< .our
+ import { IMatches } from '../../lib/fuzzy-find'
+ import { IAheadBehind } from '../../models/branch'
++=======
++import { IMatches } from '../../models/filter-list'
++>>>>>>> .their
+ 
+ const defaultEditorLabel = __DARWIN__
+   ? 'Open in External Editor'
+changed in both
+  base   100644 bf18722fdca8c3cfe0ee6e56f94440876e888175 app/test/unit/repositories-list-grouping-test.ts
+  our    100644 8c3c9ac4c1b7875569c8d7d44dec79ca7047423d app/test/unit/repositories-list-grouping-test.ts
+  their  100644 c01b5360134d88f9326a915d704d5d3ceaef0562 app/test/unit/repositories-list-grouping-test.ts
+@@ -1,7 +1,12 @@
+ import { expect } from 'chai'
+ 
++<<<<<<< .our
+ import { groupRepositories } from '../../src/ui/repositories-list/group-repositories'
+ import { Repository, ILocalRepositoryState } from '../../src/models/repository'
++=======
++import { groupRepositories } from '../../src/lib/group-repositories'
++import { Repository } from '../../src/models/repository'
++>>>>>>> .their
+ import { GitHubRepository } from '../../src/models/github-repository'
+ import { Owner } from '../../src/models/owner'
+ import { getDotComAPIEndpoint } from '../../src/lib/api'

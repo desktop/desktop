@@ -3,6 +3,9 @@ import { CloningRepository } from '../models/cloning-repository'
 import { RetryAction } from './retry-actions'
 
 export interface IErrorMetadata {
+  /** The first argument passed to `git` which triggered this error */
+  readonly command?: string
+
   /** Was the action which caused this error part of a background task? */
   readonly backgroundTask?: boolean
 

@@ -1,3 +1,5 @@
+import * as Deque from 'double-ended-queue'
+
 import { FileEntry, GitStatusEntry } from '../models/status'
 
 type StatusItem = IStatusHeader | IStatusEntry
@@ -19,6 +21,18 @@ export interface IStatusEntry {
 
   /** The original path in the case of a renamed file */
   readonly oldPath?: string
+}
+
+export function isStatusHeader(
+  statusItem: StatusItem
+): statusItem is IStatusHeader {
+  return statusItem.kind === 'header'
+}
+
+export function isStatusEntry(
+  statusItem: StatusItem
+): statusItem is IStatusEntry {
+  return statusItem.kind === 'entry'
 }
 
 const ChangedEntryType = '1'
@@ -47,10 +61,12 @@ export function parsePorcelainStatus(
   // containing special characters are not specially formatted; no quoting or
   // backslash-escaping is performed.
 
-  const fields = output.split('\0')
+  const tokens = output.split('\0')
+  const queue = new Deque(tokens)
+
   let field: string | undefined
 
-  while ((field = fields.shift())) {
+  while ((field = queue.shift())) {
     if (field.startsWith('# ') && field.length > 2) {
       entries.push({ kind: 'header', value: field.substr(2) })
       continue
@@ -61,7 +77,7 @@ export function parsePorcelainStatus(
     if (entryKind === ChangedEntryType) {
       entries.push(parseChangedEntry(field))
     } else if (entryKind === RenamedOrCopiedEntryType) {
-      entries.push(parsedRenamedOrCopiedEntry(field, fields.shift()))
+      entries.push(parsedRenamedOrCopiedEntry(field, queue.shift()))
     } else if (entryKind === UnmergedEntryType) {
       entries.push(parseUnmergedEntry(field))
     } else if (entryKind === UntrackedEntryType) {

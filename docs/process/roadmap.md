@@ -1,57 +1,24 @@
 # Roadmap
 
-The following are our marketing releases, as planned to date (and we plan to revisit 6 months from now). They contain the broad features we're considering. The further away a release is, the less defined it is. Releases are subject to change at any time. This is not written in stone!!!
+The following are the areas of upcoming work the GitHub Desktop team intends to explore. This is not written in stone and we'll continue to update it as our priorities evolve.
 
-## 1.2 - Relationship between branches MVP
-
-- [Relationship between branches MVP](https://github.com/desktop/desktop/issues/3956) - [#3956](https://github.com/desktop/desktop/issues/3956)
-  - Compare my work to any branch
-  - Merge in any other branch to my branch
+### Onboarding
   
-- [Upgrade nudge from classic to the new app](https://github.com/desktop/desktop/issues/2146) - [#2146](https://github.com/desktop/desktop/issues/2146)
-
-## 1.3 - Detecting merge conflicts
+- Evaluate and improve onboarding for new users: [#5686](https://github.com/desktop/desktop/issues/5686)
+- Measuring success: [#5549](https://github.com/desktop/desktop/issues/5549)
   
-- [Relationship between branches continued](https://github.com/desktop/desktop/issues/2639) - [#2639](https://github.com/desktop/desktop/issues/2639)
-  - Notifications around diverging from master branch
-  - Detect merge conflicts
+### Merge conflicts handling
+
+- Improve how Desktop handles merge conflicts: [#5400](https://github.com/desktop/desktop/issues/5400)
+- Measuring success: [#5394](https://github.com/desktop/desktop/issues/5394)
+
+### Support rebase workflows
+
+- Improve rebase workflows: [#3422](https://github.com/desktop/desktop/issues/3422)
+- TBD on scope and metrics
   
-## 1.4 - New branch, maybe?
+### Merge workflow iteration
 
-- [Move unpublished commits on master to new branch](https://github.com/desktop/desktop/issues/1021) - [#1021](https://github.com/desktop/desktop/issues/1021)
-  - Don't let me commit to branches I shouldn't commit to
-  - Guide me to creating my own branches 
-  
-**Note:** depending on things, this might get combined with 1.5 
-  
-## 1.5 - Better onboarding
+- Evaluate and improve merge flow end-to-end: [#5555](https://github.com/desktop/desktop/issues/5555)
 
-- Better onboarding for new users
-
-## 1.6 - Conflict awareness
-
-- [Conflict resolution MVP](https://github.com/desktop/desktop/issues/2640) - [#2640](https://github.com/desktop/desktop/issues/2640)
-  - Differentiate conflicted files from other changed files
-  - Let me choose my mergetool
-  - Let me open my mergetool
-  
-## 1.7 - Conflict resolution
-
-- [Conflict resolution continued](https://github.com/desktop/desktop/issues/2640) - [#2640](https://github.com/desktop/desktop/issues/2640)
-  - Edit inline
-  - Abort merge
-  - How did I get here?
-  - Don't let me commit a file with conflict markers
-  
-## 1.8 - Messaging + Tracking
-  
-- End of Progress & in-app messaging
-  - End of Progress: Providing friendly update when longer running processes are complete
-  - In-app Message: providing success/failure notifications for unclear interactions (ex: login) 
-
-- App interaction tracking
-  - Adding in analytics around features we need data on
-  - (optional) Clarifying what data we collect if people opt-in, potentially adding other opt-in options for different levels of data
-  - (optional) Surfacing data collected back to user 
-
-- [View changes by methods and functions (for supported files)](https://blog.github.com/2017-07-26-quickly-review-changed-methods-and-functions-in-your-pull-requests/)
+We'll be adding more to this roadmap as we further define our intended product direction.

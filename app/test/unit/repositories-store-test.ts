@@ -37,6 +37,7 @@ describe('RepositoriesStore', () => {
   describe('updating a GitHub repository', () => {
     const gitHubRepo: IAPIRepository = {
       clone_url: 'https://github.com/my-user/my-repo',
+      ssh_url: 'git@github.com:my-user/my-repo.git',
       html_url: 'https://github.com/my-user/my-repo',
       name: 'my-repo',
       owner: {
@@ -52,6 +53,7 @@ describe('RepositoriesStore', () => {
       fork: false,
       default_branch: 'master',
       parent: null,
+      pushed_at: '1995-12-17T03:24:00',
     }
 
     it('adds a new GitHub repository', async () => {

@@ -14,9 +14,24 @@ import { AppFileStatus } from '../../src/models/status'
 import { Repository } from '../../src/models/repository'
 import { Commit } from '../../src/models/commit'
 import { TipState, IValidBranch } from '../../src/models/tip'
-import { getCommit, getStatus } from '../../src/lib/git'
+import { getCommit } from '../../src/lib/git'
+import { getStatusOrThrow } from '../helpers/status'
 
 describe('GitStore', () => {
+  describe('loadCommitBatch', () => {
+    it('includes HEAD when loading commits', async () => {
+      const path = await setupFixtureRepository('repository-with-105-commits')
+      const repo = new Repository(path, -1, null, false)
+      const gitStore = new GitStore(repo, shell)
+
+      const commits = await gitStore.loadCommitBatch('HEAD')
+
+      expect(commits).is.not.null
+      expect(commits!.length).equals(100)
+      expect(commits![0]).equals('708a46eac512c7b2486da2247f116d11a100b611')
+    })
+  })
+
   it('can discard changes from a repository', async () => {
     const repo = await setupEmptyRepository()
     const gitStore = new GitStore(repo, shell)
@@ -39,7 +54,7 @@ describe('GitStore', () => {
     // setup requires knowing about the current tip
     await gitStore.loadStatus()
 
-    let status = await getStatus(repo)
+    let status = await getStatusOrThrow(repo)
     let files = status.workingDirectory.files
 
     expect(files.length).to.equal(2)
@@ -49,7 +64,7 @@ describe('GitStore', () => {
     // discard the LICENSE.md file
     await gitStore.discardChanges([files[1]])
 
-    status = await getStatus(repo)
+    status = await getStatusOrThrow(repo)
     files = status.workingDirectory.files
 
     expect(files.length).to.equal(1)
@@ -70,13 +85,13 @@ describe('GitStore', () => {
     await GitProcess.exec(['commit', '-m', 'added file'], repo.path)
     await GitProcess.exec(['mv', file, renamedFile], repo.path)
 
-    const statusBeforeDiscard = await getStatus(repo)
+    const statusBeforeDiscard = await getStatusOrThrow(repo)
     const filesToDiscard = statusBeforeDiscard.workingDirectory.files
 
     // discard the renamed file
     await gitStore.discardChanges(filesToDiscard)
 
-    const status = await getStatus(repo)
+    const status = await getStatusOrThrow(repo)
     const files = status.workingDirectory.files
 
     expect(files.length).to.equal(0)
@@ -112,10 +127,8 @@ describe('GitStore', () => {
 
       await gitStore.undoCommit(firstCommit!)
 
-      const after = await getStatus(repo!)
-
-      expect(after).to.not.be.null
-      expect(after!.currentTip).to.be.undefined
+      const after = await getStatusOrThrow(repo!)
+      expect(after.currentTip).to.be.undefined
     })
 
     it('pre-fills the commit message', async () => {
@@ -199,13 +212,13 @@ describe('GitStore', () => {
 
       await FSE.writeFile(filePath, 'SOME WORDS GO HERE\n')
 
-      let status = await getStatus(repo!)
+      let status = await getStatusOrThrow(repo!)
       let files = status.workingDirectory.files
       expect(files.length).to.equal(1)
 
       await gitStore.discardChanges([files[0]])
 
-      status = await getStatus(repo)
+      status = await getStatusOrThrow(repo)
       files = status.workingDirectory.files
       expect(files.length).to.equal(0)
     })

@@ -73,6 +73,16 @@ export async function setupEmptyRepository(): Promise<Repository> {
 }
 
 /**
+ * Initialize a new, empty folder that is incorrectly associated with a Git
+ * repository. This should only be used to test error handling of the Git
+ * interactions.
+ */
+export function setupEmptyDirectory(): Repository {
+  const repoPath = _temp.mkdirSync('no-repository-here')
+  return new Repository(repoPath, -1, null, false)
+}
+
+/**
  * Setup a repository and create a merge conflict
  *
  * @returns the new local repository
@@ -100,6 +110,53 @@ export async function setupConflictedRepo(): Promise<Repository> {
 
   await FSE.writeFile(filePath, 'b2')
   await GitProcess.exec(['add', 'foo'], repo.path)
+  await GitProcess.exec(['commit', '-m', 'Commit'], repo.path)
+
+  await GitProcess.exec(['merge', 'master'], repo.path)
+
+  return repo
+}
+
+/**
+ * Setup a repository and create a merge conflict with multiple files
+ *
+ * @returns the new local repository
+ *
+ * The current branch will be 'other-branch' and the merged branch will be
+ * 'master' in your test harness.
+ *
+ * The conflicted files will be 'foo', 'bar', and 'baz'.
+ */
+export async function setupConflictedRepoWithMultipleFiles(): Promise<
+  Repository
+> {
+  const repo = await setupEmptyRepository()
+  const filePaths = [
+    Path.join(repo.path, 'foo'),
+    Path.join(repo.path, 'bar'),
+    Path.join(repo.path, 'baz'),
+  ]
+
+  await FSE.writeFile(filePaths[0], '')
+  await FSE.writeFile(filePaths[1], '')
+  await FSE.writeFile(filePaths[2], '')
+  await GitProcess.exec(['add', 'foo', 'bar', 'baz'], repo.path)
+  await GitProcess.exec(['commit', '-m', 'Commit'], repo.path)
+
+  await GitProcess.exec(['branch', 'other-branch'], repo.path)
+
+  await FSE.writeFile(filePaths[0], 'b1')
+  await FSE.writeFile(filePaths[1], 'b1')
+  await FSE.writeFile(filePaths[2], 'b1')
+  await GitProcess.exec(['add', 'foo', 'bar', 'baz'], repo.path)
+  await GitProcess.exec(['commit', '-m', 'Commit'], repo.path)
+
+  await GitProcess.exec(['checkout', 'other-branch'], repo.path)
+
+  await FSE.writeFile(filePaths[0], 'b2')
+  await FSE.writeFile(filePaths[1], 'b2')
+  await FSE.writeFile(filePaths[2], 'b2')
+  await GitProcess.exec(['add', 'foo', 'bar', 'baz'], repo.path)
   await GitProcess.exec(['commit', '-m', 'Commit'], repo.path)
 
   await GitProcess.exec(['merge', 'master'], repo.path)

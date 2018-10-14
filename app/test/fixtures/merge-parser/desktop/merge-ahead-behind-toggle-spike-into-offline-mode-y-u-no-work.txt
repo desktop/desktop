@@ -1,0 +1,838 @@
+changed in both
+  base   100644 127d134f2254d76c375b7185af1f42369b62fed0 app/src/lib/app-state.ts
+  our    100644 b30f0fe080d909b81d2fb683ceb8deb365fb0191 app/src/lib/app-state.ts
+  their  100644 f6cb64e0cf4b2fbb859658db3fd65faceb895bde app/src/lib/app-state.ts
+@@ -342,7 +342,12 @@
+ }
+ 
+ export interface IRepositoryState {
++<<<<<<< .our
+   readonly commitSelection: ICommitSelection
++=======
++  readonly historyState: IHistoryState
++  readonly compareState: ICompareState
++>>>>>>> .their
+   readonly changesState: IChangesState
+   readonly compareState: ICompareState
+   readonly selectedSection: RepositorySectionTab
+@@ -564,6 +569,36 @@
+ export interface ICommitSelection {
+   /** The commit currently selected in the app */
+   readonly sha: string | null
++<<<<<<< .our
++=======
++  readonly file: CommittedFileChange | null
++}
++
++export enum CompareMode {
++  Default = 'Default',
++  Ahead = 'Ahead',
++  Behind = 'Behind',
++}
++
++export interface ICompareState {
++  readonly selection: IHistorySelection
++
++  readonly commits: ReadonlyArray<string>
++
++  readonly mode: CompareMode
++
++  readonly branch: Branch | null
++
++  readonly behindCount: number
++  readonly aheadCount: number
++}
++
++export interface IHistoryState {
++  readonly selection: IHistorySelection
++
++  /** The ordered SHAs. */
++  readonly history: ReadonlyArray<string>
++>>>>>>> .their
+ 
+   /** The list of files associated with the current commit */
+   readonly changedFiles: ReadonlyArray<CommittedFileChange>
+changed in both
+  base   100644 9c822d8df65d53f5fbdb6939e203a7ba2e11a58c app/src/lib/dispatcher/dispatcher.ts
+  our    100644 5e56c00e713342e76f5ccba040062e322e8c90cb app/src/lib/dispatcher/dispatcher.ts
+  their  100644 2da1dbbe3c8a2fb7a2a1a916112c7f50d1f9c6cb app/src/lib/dispatcher/dispatcher.ts
+@@ -17,8 +17,12 @@
+   Foldout,
+   FoldoutType,
+   ImageDiffType,
++<<<<<<< .our
+   CompareAction,
+   ICompareFormUpdate,
++=======
++  CompareMode,
++>>>>>>> .their
+ } from '../app-state'
+ import { AppStore } from '../stores/app-store'
+ import { CloningRepository } from '../../models/cloning-repository'
+@@ -120,6 +124,22 @@
+     return this.appStore._updateRepositoryMissing(repository, missing)
+   }
+ 
++<<<<<<< .our
++=======
++  public loadCompareState(
++    repository: Repository,
++    branch: Branch | null,
++    mode: CompareMode
++  ): Promise<void> {
++    return this.appStore._loadCompareState(repository, branch, mode)
++  }
++
++  /** Load the history for the repository. */
++  public loadHistory(repository: Repository): Promise<void> {
++    return this.appStore._loadHistory(repository)
++  }
++
++>>>>>>> .their
+   /** Load the next batch of history for the repository. */
+   public loadNextCommitBatch(repository: Repository): Promise<void> {
+     return this.appStore._loadNextCommitBatch(repository)
+changed in both
+  base   100644 9a3faa08e8e9cdae8d49ff0ac05118135bf2e291 app/src/lib/feature-flag.ts
+  our    100644 716a3c2396b0db5e84ec87d6529001e633b08700 app/src/lib/feature-flag.ts
+  their  100644 1469cbbf931b1ccdde675c010a03df5aa08988eb app/src/lib/feature-flag.ts
+@@ -27,6 +27,18 @@
+   return enableDevelopmentFeatures() || __RELEASE_CHANNEL__ === 'beta'
+ }
+ 
++<<<<<<< .our
++=======
++/** Should PR integration be enabled? */
++export function enablePRIntegration(): boolean {
++  return enableBetaFeatures()
++}
++
++export function enableCompareTab(): boolean {
++  return enableDevelopmentFeatures()
++}
++
++>>>>>>> .their
+ /** Should merge tool integration be enabled? */
+ export function enableMergeTool(): boolean {
+   return enableDevelopmentFeatures()
+changed in both
+  base   100644 ce2b9ab3f38d37bcf3a74d6bb159ef3ab0257083 app/src/lib/git/rev-list.ts
+  our    100644 3f1e4abe01f964c4aa4b46ec41185ef132ec2c8a app/src/lib/git/rev-list.ts
+  their  100644 054b714aa201316976da4403c833ee28a800d077 app/src/lib/git/rev-list.ts
+@@ -1,7 +1,12 @@
+ import { GitError } from 'dugite'
+ import { git } from './core'
+ import { Repository } from '../../models/repository'
++<<<<<<< .our
+ import { Branch, BranchType, IAheadBehind } from '../../models/branch'
++=======
++import { Branch, BranchType } from '../../models/branch'
++import { Commit } from '../../models/commit'
++>>>>>>> .their
+ 
+ /**
+  * Convert two refs into the Git range syntax representing the set of commits
+@@ -33,6 +38,12 @@
+   return `${from}...${to}`
+ }
+ 
++export interface ICompareResult {
++  readonly ahead: number
++  readonly behind: number
++  readonly commits: ReadonlyArray<Commit>
++}
++
+ /** Calculate the number of commits the range is ahead and behind. */
+ export async function getAheadBehind(
+   repository: Repository,
+changed in both
+  base   100644 c07fbbd73ffd330aebdb9910fb2712d21e331c5a app/src/lib/stores/app-store.ts
+  our    100644 1a4e387e4d192d34abfd0621b4b5ebe8cc34d8d1 app/src/lib/stores/app-store.ts
+  their  100644 be19b43b27a9237958322956866f3ac26e0a5f42 app/src/lib/stores/app-store.ts
+@@ -16,6 +16,7 @@
+   Progress,
+   ImageDiffType,
+   IRevertProgress,
++<<<<<<< .our
+   IFetchProgress,
+   ICompareState,
+   ComparisonView,
+@@ -25,6 +26,10 @@
+   ICompareBranch,
+   ICompareFormUpdate,
+   ICompareToBranch,
++=======
++  CompareMode,
++  ICompareState,
++>>>>>>> .their
+ } from '../app-state'
+ import { Account } from '../../models/account'
+ import {
+@@ -439,6 +444,17 @@
+         changedFiles: new Array<CommittedFileChange>(),
+         diff: null,
+       },
++      compareState: {
++        selection: {
++          sha: null,
++          file: null,
++        },
++        branch: null,
++        mode: CompareMode.Default,
++        aheadCount: 0,
++        behindCount: 0,
++        commits: new Array<string>(),
++      },
+       changesState: {
+         workingDirectory: WorkingDirectoryStatus.fromFiles(
+           new Array<WorkingDirectoryFileChange>()
+@@ -511,6 +527,20 @@
+   }
+ 
+   private updateCompareState<K extends keyof ICompareState>(
++<<<<<<< .our
++=======
++    repository: Repository,
++    fn: (compareState: ICompareState) => Pick<ICompareState, K>
++  ) {
++    this.updateRepositoryState(repository, state => {
++      const compareState = state.compareState
++      const newValues = fn(compareState)
++      return { compareState: merge(compareState, newValues) }
++    })
++  }
++
++  private updateHistoryState<K extends keyof IHistoryState>(
++>>>>>>> .their
+     repository: Repository,
+     fn: (state: ICompareState) => Pick<ICompareState, K>
+   ) {
+@@ -700,6 +730,7 @@
+   }
+ 
+   /** This shouldn't be called directly. See `Dispatcher`. */
++<<<<<<< .our
+   public async _changeCommitSelection(
+     repository: Repository,
+     sha: string
+@@ -713,10 +744,53 @@
+       const commitSelection = { sha, file, diff: null, changedFiles }
+       return { commitSelection }
+     })
++=======
++  public async _loadCompareState(
++    repository: Repository,
++    branch: Branch | null,
++    mode: CompareMode
++  ): Promise<void> {
++    const gitStore = this.getGitStore(repository)
++
++    if (mode === CompareMode.Default) {
++      await gitStore.loadHistory()
++
++      const state = this.getRepositoryState(repository).historyState
++      const commits = state.history
++
++      this.updateCompareState(repository, state => ({
++        mode: mode,
++        commits: commits,
++        branch,
++        aheadCount: 0,
++        behindCount: 0,
++      }))
++    } else {
++      if (branch == null) {
++        log.debug(`oops, we can't compare if the branch isn't selected`)
++        return
++      }
++
++      const compare = await gitStore.getCompareDetails(branch, mode)
++
++      if (compare) {
++        const commits = compare.commits.map(c => c.sha)
++
++        this.updateCompareState(repository, state => ({
++          mode,
++          commits,
++          branch,
++          aheadCount: compare.ahead,
++          behindCount: compare.behind,
++        }))
++      }
++    }
++>>>>>>> .their
+ 
+     this.emitUpdate()
+   }
+ 
++<<<<<<< .our
+   private updateOrSelectFirstCommit(
+     repository: Repository,
+     commitSHAs: ReadonlyArray<string>
+@@ -725,6 +799,20 @@
+     let selectedSHA = state.commitSelection.sha
+     if (selectedSHA != null) {
+       const index = commitSHAs.findIndex(sha => sha === selectedSHA)
++=======
++  /** This shouldn't be called directly. See `Dispatcher`. */
++  public async _loadHistory(repository: Repository): Promise<void> {
++    const gitStore = this.getGitStore(repository)
++    await gitStore.loadHistory()
++
++    const state = this.getRepositoryState(repository).historyState
++    let newSelection = state.selection
++    const history = state.history
++    const selectedSHA = state.selection.sha
++    if (selectedSHA) {
++      const index = history.findIndex(sha => sha === selectedSHA)
++      // Our selected SHA disappeared, so clear the selection.
++>>>>>>> .their
+       if (index < 0) {
+         // selected SHA is not in this list
+         // -> clear the selection in the app state
+changed in both
+  base   100644 d5a9ab172983707278c75f9f73fa2a82527a51fe app/src/lib/stores/git-store.ts
+  our    100644 f8eedeb9d958345be59538b82b1b69cd4326d73b app/src/lib/stores/git-store.ts
+  their  100644 11c74cbb03a3f5eb590071256708432c27f90433 app/src/lib/stores/git-store.ts
+@@ -12,7 +12,11 @@
+ import { Tip, TipState } from '../../models/tip'
+ import { Commit } from '../../models/commit'
+ import { IRemote } from '../../models/remote'
++<<<<<<< .our
+ import { IFetchProgress, IRevertProgress, ComparisonView } from '../app-state'
++=======
++import { IFetchProgress, IRevertProgress, CompareMode } from '../app-state'
++>>>>>>> .their
+ 
+ import { IAppShell } from '../app-shell'
+ import { ErrorWithMetadata, IErrorMetadata } from '../error-with-metadata'
+@@ -29,6 +33,12 @@
+   getRecentBranches,
+   getBranches,
+   deleteRef,
++<<<<<<< .our
++=======
++  IAheadBehind,
++  getBranchAheadBehind,
++  getAheadBehind,
++>>>>>>> .their
+   getCommits,
+   merge,
+   setRemoteURL,
+@@ -50,11 +60,15 @@
+   mergeTrailers,
+   getTrailerSeparatorCharacters,
+   parseSingleUnfoldedTrailer,
++<<<<<<< .our
+   isCoAuthoredByTrailer,
+   getAheadBehind,
+   revRange,
+   revSymmetricDifference,
+   getSymbolicRef,
++=======
++  ICompareResult,
++>>>>>>> .their
+ } from '../git'
+ import { IGitAccount } from '../git/authentication'
+ import { RetryAction, RetryActionType } from '../retry-actions'
+@@ -890,6 +904,56 @@
+     }
+   }
+ 
++  /** Calculate the ahead/behind for the current branch. */
++  public async calculateAheadBehindForCurrentBranch(): Promise<void> {
++    if (this.tip.kind === TipState.Valid) {
++      const branch = this.tip.branch
++      this._aheadBehind = await getBranchAheadBehind(this.repository, branch)
++    }
++
++    this.emitUpdate()
++  }
++
++  public async getCompareDetails(
++    branch: Branch,
++    mode: CompareMode
++  ): Promise<ICompareResult | null> {
++    if (this.tip.kind !== TipState.Valid) {
++      return null
++    }
++
++    let compare: ICompareResult | null = null
++
++    const base = this.tip.branch
++
++    const range =
++      mode === CompareMode.Behind
++        ? `${base.name}..${branch.name}`
++        : `${branch.name}..${base.name}`
++
++    const commits = await getCommits(this.repository, range, 250)
++
++    const aheadBehind = await getAheadBehind(
++      this.repository,
++      `${base.name}...${branch.name}`
++    )
++
++    if (aheadBehind) {
++      compare = {
++        ahead: aheadBehind.ahead,
++        behind: aheadBehind.behind,
++        commits,
++      }
++    }
++
++    if (commits) {
++      this.storeCommits(commits)
++      this.emitNewCommitsLoaded(commits)
++    }
++
++    return compare
++  }
++
+   public async loadStatus(): Promise<IStatusResult | null> {
+     const status = await this.performFailableOperation(() =>
+       getStatus(this.repository)
+changed in both
+  base   100644 386fda7ba4818bba12c354f9b59a89893d760283 app/src/ui/history/commit-list.tsx
+  our    100644 3e0e90eccd5a8894b7cce153c15009fe732a39cc app/src/ui/history/commit-list.tsx
+  their  100644 cc0994bd40293e257d7db665dab7185d3f489f6d app/src/ui/history/commit-list.tsx
+@@ -8,6 +8,7 @@
+ const RowHeight = 50
+ 
+ interface ICommitListProps {
++<<<<<<< .our
+   /** The GitHub repository associated with this commit (if found) */
+   readonly gitHubRepository: GitHubRepository | null
+ 
+@@ -18,6 +19,15 @@
+   readonly commitLookup: Map<string, Commit>
+ 
+   /** The SHA of the selected commit */
++=======
++  readonly onCommitChanged: (commit: Commit) => void
++  readonly onScroll?: (start: number, end: number) => void
++  readonly onRevertCommit: (commit: Commit) => void
++  readonly onViewCommitOnGitHub: (sha: string) => void
++  readonly repository: Repository
++  readonly list: ReadonlyArray<string>
++  readonly commitLookup: Map<string, Commit>
++>>>>>>> .their
+   readonly selectedSHA: string | null
+ 
+   /** The lookup for GitHub users related to this repository */
+@@ -28,6 +38,7 @@
+ 
+   /** The list of known local commits for the current branch */
+   readonly localCommitSHAs: ReadonlyArray<string>
++<<<<<<< .our
+ 
+   /** The message to display inside the list when no results are displayed */
+   readonly emptyListMessage: JSX.Element | string
+@@ -43,11 +54,15 @@
+ 
+   /** Callback to fire to open a given commit on GitHub */
+   readonly onViewCommitOnGitHub: (sha: string) => void
++=======
++  readonly noCommitsMessage: string
++>>>>>>> .their
+ }
+ 
+ /** A component which displays the list of commits. */
+ export class CommitList extends React.Component<ICommitListProps, {}> {
+   private renderCommit = (row: number) => {
++<<<<<<< .our
+     const sha = this.props.commitSHAs[row]
+     const commit = this.props.commitLookup.get(sha)
+ 
+@@ -57,6 +72,13 @@
+           `[CommitList]: the commit '${sha}' does not exist in the cache`
+         )
+       }
++=======
++    const sha = this.props.list[row]
++    const commit = this.props.commitLookup.get(sha)
++
++    if (!commit) {
++      log.debug(`[CommitList] unable to find commit ${sha} in cache`)
++>>>>>>> .their
+       return null
+     }
+ 
+@@ -76,8 +98,13 @@
+     )
+   }
+ 
++<<<<<<< .our
+   private onSelectedRowChanged = (row: number) => {
+     const sha = this.props.commitSHAs[row]
++=======
++  private onRowChanged = (row: number) => {
++    const sha = this.props.list[row]
++>>>>>>> .their
+     const commit = this.props.commitLookup.get(sha)
+     if (commit) {
+       this.props.onCommitSelected(commit)
+@@ -85,6 +112,10 @@
+   }
+ 
+   private onScroll = (scrollTop: number, clientHeight: number) => {
++    if (this.props.onScroll == null) {
++      return
++    }
++
+     const numberOfRows = Math.ceil(clientHeight / RowHeight)
+     const top = Math.floor(scrollTop / RowHeight)
+     const bottom = top + numberOfRows
+@@ -97,6 +128,7 @@
+       return -1
+     }
+ 
++<<<<<<< .our
+     return this.props.commitSHAs.findIndex(s => s === sha)
+   }
+ 
+@@ -104,20 +136,37 @@
+     if (this.props.commitSHAs.length === 0) {
+       return (
+         <div className="panel blankslate">{this.props.emptyListMessage}</div>
++=======
++    return this.props.list.findIndex(s => s === sha)
++  }
++
++  public render() {
++    if (this.props.list.length === 0) {
++      return (
++        <div className="panel blankslate">{this.props.noCommitsMessage}</div>
++>>>>>>> .their
+       )
+     }
+ 
+     return (
+       <div id="commit-list">
+         <List
++<<<<<<< .our
+           rowCount={this.props.commitSHAs.length}
++=======
++          rowCount={this.props.list.length}
++>>>>>>> .their
+           rowHeight={RowHeight}
+           selectedRows={[this.rowForSHA(this.props.selectedSHA)]}
+           rowRenderer={this.renderCommit}
+           onSelectedRowChanged={this.onSelectedRowChanged}
+           onScroll={this.onScroll}
+           invalidationProps={{
++<<<<<<< .our
+             commits: this.props.commitSHAs,
++=======
++            list: this.props.list,
++>>>>>>> .their
+             gitHubUsers: this.props.gitHubUsers,
+           }}
+         />
+added in remote
+  their  100644 3336dcc56f60b9a4c43323b82839abf6550d2725 app/src/ui/history/compare-sidebar.tsx
+@@ -0,0 +1,169 @@
++import * as React from 'react'
++import { CommitList } from './commit-list'
++import { Repository } from '../../models/repository'
++import { Commit } from '../../models/commit'
++import { Dispatcher } from '../../lib/dispatcher'
++import { IGitHubUser } from '../../lib/databases'
++import { ICompareState, CompareMode } from '../../lib/app-state'
++import { ThrottledScheduler } from '../lib/throttled-scheduler'
++import { TabBar } from '../tab-bar'
++import { Branch } from '../../models/branch'
++import { Select } from '../lib/select'
++
++interface ICompareSidebarProps {
++  readonly repository: Repository
++  readonly dispatcher: Dispatcher
++  readonly compare: ICompareState
++  readonly gitHubUsers: Map<string, IGitHubUser>
++  readonly emoji: Map<string, string>
++  readonly commitLookup: Map<string, Commit>
++  readonly branches: ReadonlyArray<Branch>
++  readonly localCommitSHAs: ReadonlyArray<string>
++  readonly onRevertCommit: (commit: Commit) => void
++  readonly onViewCommitOnGitHub: (sha: string) => void
++}
++
++/** The Sidebar component. Contains the branch list, the commit list, and the ability to filter commits. */
++export class CompareSidebar extends React.Component<ICompareSidebarProps, {}> {
++  private readonly loadChangedFilesScheduler = new ThrottledScheduler(200)
++
++  public constructor() {
++    super()
++  }
++
++  private onCommitChanged = (commit: Commit) => {
++    this.props.dispatcher.changeHistoryCommitSelection(
++      this.props.repository,
++      commit.sha
++    )
++
++    this.loadChangedFilesScheduler.queue(() => {
++      this.props.dispatcher.loadChangedFilesForCurrentSelection(
++        this.props.repository
++      )
++    })
++  }
++
++  public componentWillMount() {
++    this.props.dispatcher.loadCompareState(
++      this.props.repository,
++      null,
++      CompareMode.Default
++    )
++  }
++
++  public componentWillUnmount() {
++    this.loadChangedFilesScheduler.clear()
++  }
++
++  private onBranchChange = (event: React.FormEvent<HTMLSelectElement>) => {
++    const name = event.currentTarget.value
++    const index = parseInt(name, 10)
++
++    if (isNaN(index)) {
++      log.debug(`oops, we don't have a number?!??!?!`)
++      return
++    }
++
++    if (index === -1) {
++      // 'None' is selected, just show history
++      this.props.dispatcher.loadCompareState(
++        this.props.repository,
++        null,
++        CompareMode.Default
++      )
++    } else {
++      const branch = this.props.branches[index]
++      if (branch == null) {
++        log.debug(`oops, can't find branch: '${name}'`)
++      }
++
++      this.props.dispatcher.loadCompareState(
++        this.props.repository,
++        branch,
++        CompareMode.Behind
++      )
++    }
++  }
++
++  private onTabClicked = (index: number) => {
++    const mode: CompareMode =
++      index === 0 ? CompareMode.Behind : CompareMode.Ahead
++
++    this.props.dispatcher.loadCompareState(
++      this.props.repository,
++      this.props.compare.branch,
++      mode
++    )
++  }
++
++  private renderBranchList(): JSX.Element {
++    const options = new Array<JSX.Element>()
++    options.push(
++      <option value={-1} key={-1}>
++        None
++      </option>
++    )
++
++    let selectedIndex = -1
++    for (const [index, branch] of this.props.branches.entries()) {
++      if (
++        this.props.compare.branch &&
++        this.props.compare.branch.name === branch.name
++      ) {
++        selectedIndex = index
++      }
++
++      options.push(
++        <option value={index} key={branch.name}>
++          {branch.name}
++        </option>
++      )
++    }
++
++    return (
++      <Select value={selectedIndex.toString()} onChange={this.onBranchChange}>
++        {options}
++      </Select>
++    )
++  }
++
++  private renderTabBar(): JSX.Element | null {
++    const compare = this.props.compare
++    if (compare.mode === CompareMode.Default) {
++      return null
++    }
++
++    const selectedTab = compare.mode === CompareMode.Ahead ? 0 : 1
++
++    return (
++      <TabBar selectedIndex={selectedTab} onTabClicked={this.onTabClicked}>
++        <span>Behind ({compare.behindCount})</span>
++        <span>Ahead ({compare.aheadCount})</span>
++      </TabBar>
++    )
++  }
++  public render() {
++    const compare = this.props.compare
++    return (
++      <div id="compare-view">
++        {this.renderBranchList()}
++        {this.renderTabBar()}
++
++        <CommitList
++          repository={this.props.repository}
++          commitLookup={this.props.commitLookup}
++          list={compare.commits}
++          selectedSHA={compare.selection.sha}
++          onCommitChanged={this.onCommitChanged}
++          gitHubUsers={this.props.gitHubUsers}
++          emoji={this.props.emoji}
++          localCommitSHAs={this.props.localCommitSHAs}
++          onRevertCommit={this.props.onRevertCommit}
++          onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
++          noCommitsMessage={'No commits'}
++        />
++      </div>
++    )
++  }
++}
+changed in both
+  base   100644 caa18019759a791f9a4e2b42c02a348a0cf36a0d app/src/ui/history/index.ts
+  our    100644 5314aa21a17e6eaad7f73ab8e92c99e6e83f2108 app/src/ui/history/index.ts
+  their  100644 fc92ceb826bd180f28e78e008f9c89a550858d9e app/src/ui/history/index.ts
+@@ -1,2 +1,8 @@
++<<<<<<< .our
+ export { SelectedCommit } from './selected-commit'
+ export { CompareSidebar } from './compare'
++=======
++export { HistorySidebar } from './sidebar'
++export { History } from './history'
++export { CompareSidebar } from './compare-sidebar'
++>>>>>>> .their
+removed in local
+  base   100644 24ee8948d1e538fc58d461106006cb88f899d096 app/src/ui/history/sidebar.tsx
+  their  100644 729e304c5cfe6f032a5198639abcb038a395f5ce app/src/ui/history/sidebar.tsx
+changed in both
+  base   100644 fa95746b3b525b06246015c03db11b35209b8fb1 app/src/ui/repository.tsx
+  our    100644 efb00423012b8da0dfa5e8897acacaeb0a5e648a app/src/ui/repository.tsx
+  their  100644 95f7a860788ad72489106227279578d041393f1c app/src/ui/repository.tsx
+@@ -5,9 +5,13 @@
+ import { UiView } from './ui-view'
+ import { Changes, ChangesSidebar } from './changes'
+ import { NoChanges } from './changes/no-changes'
++<<<<<<< .our
+ import { MultipleSelection } from './changes/multiple-selection'
+ import { FilesChangedBadge } from './changes/files-changed-badge'
+ import { SelectedCommit, CompareSidebar } from './history'
++=======
++import { History, HistorySidebar, CompareSidebar } from './history'
++>>>>>>> .their
+ import { Resizable } from './resizable'
+ import { TabBar } from './tab-bar'
+ import {
+@@ -19,9 +23,13 @@
+ import { IssuesStore, GitHubUserStore } from '../lib/stores'
+ import { assertNever } from '../lib/fatal-error'
+ import { Account } from '../models/account'
++<<<<<<< .our
+ import { enableNotificationOfBranchUpdates } from '../lib/feature-flag'
+ import { FocusContainer } from './lib/focus-container'
+ import { OcticonSymbol, Octicon } from './octicons'
++=======
++import { enableCompareTab } from '../lib/feature-flag'
++>>>>>>> .their
+ 
+ /** The widest the sidebar can be with the minimum window size. */
+ const MaxSidebarWidth = 495
+@@ -111,7 +119,12 @@
+               symbol={OcticonSymbol.primitiveDot}
+             />
+           ) : null}
++<<<<<<< .our
+         </div>
++=======
++        </span>
++        <span>{enableCompareTab() ? 'Compare' : 'History'}</span>
++>>>>>>> .their
+       </TabBar>
+     )
+   }
+@@ -180,13 +193,37 @@
+     )
+   }
+ 
++  private renderCompareSidebar(): JSX.Element {
++    return (
++      <CompareSidebar
++        repository={this.props.repository}
++        dispatcher={this.props.dispatcher}
++        compare={this.props.state.compareState}
++        gitHubUsers={this.props.state.gitHubUsers}
++        emoji={this.props.emoji}
++        commitLookup={this.props.state.commits}
++        localCommitSHAs={this.props.state.localCommitSHAs}
++        onRevertCommit={this.onRevertCommit}
++        onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
++        branches={this.props.state.branchesState.allBranches}
++      />
++    )
++  }
++
+   private renderSidebarContents(): JSX.Element {
+     const selectedSection = this.props.state.selectedSection
+ 
+     if (selectedSection === RepositorySectionTab.Changes) {
+       return this.renderChangesSidebar()
++<<<<<<< .our
+     } else if (selectedSection === RepositorySectionTab.History) {
+       return this.renderCompareSidebar()
++=======
++    } else if (selectedSection === RepositorySection.History) {
++      return enableCompareTab()
++        ? this.renderCompareSidebar()
++        : this.renderHistorySidebar()
++>>>>>>> .their
+     } else {
+       return assertNever(selectedSection, 'Unknown repository section')
+     }
+changed in both
+  base   100644 867751eb28963ba7f852717ead2d03ce1abecff5 app/styles/ui/history/_history.scss
+  our    100644 58cea508b02182fa4f45daf88643d33c3b2dd020 app/styles/ui/history/_history.scss
+  their  100644 0f5e9af48f0d78ed4497fe4d1f91f234c37ae1e5 app/styles/ui/history/_history.scss
+@@ -17,6 +17,31 @@
+   }
+ }
+ 
++#compare-view {
++  display: flex;
++  flex-direction: column;
++  flex: 1;
++
++  .tab-bar {
++    flex-grow: 0;
++
++    &-item {
++      background: blue;
++      color: white;
++
++      &.selected {
++        box-shadow: none;
++        background: white;
++        color: blue;
++      }
++    }
++  }
++
++  .select-component {
++    flex-grow: 0;
++  }
++}
++
+ #commit-summary-container {
+   flex-grow: 0;
+ }

@@ -12,7 +12,7 @@ import {
   CompareActionKind,
 } from '../lib/app-state'
 import { Dispatcher } from '../lib/dispatcher'
-import { AppStore } from '../lib/stores'
+import { AppStore, GitHubUserStore, IssuesStore } from '../lib/stores'
 import { assertNever } from '../lib/fatal-error'
 import { shell } from '../lib/app-shell'
 import { updateStore, UpdateStatus } from './lib/update-store'
@@ -85,21 +85,29 @@ import { GenericGitAuthentication } from './generic-git-auth'
 import { ShellError } from './shell'
 import { InitializeLFS, AttributeMismatch } from './lfs'
 import { UpstreamAlreadyExists } from './upstream-already-exists'
+import { ReleaseNotes } from './release-notes'
 import { DeletePullRequest } from './delete-branch/delete-pull-request-dialog'
 import { MergeConflictsWarning } from './merge-conflicts'
 import { AppTheme } from './app-theme'
 import { ApplicationTheme } from './lib/application-theme'
+import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
+
+const MinuteInMilliseconds = 1000 * 60
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
 
 const SendStatsInterval = 1000 * 60 * 60 * 4
 
-const updateRepoInfoInterval = 1000 * 60 * 5
+const InitialRepositoryIndicatorTimeout = 2 * MinuteInMilliseconds
+const UpdateRepositoryIndicatorInterval = 15 * MinuteInMilliseconds
 
 interface IAppProps {
   readonly dispatcher: Dispatcher
+  readonly repositoryStateManager: RepositoryStateCache
   readonly appStore: AppStore
+  readonly issuesStore: IssuesStore
+  readonly gitHubUserStore: GitHubUserStore
   readonly startTime: number
 }
 
@@ -122,6 +130,8 @@ export class App extends React.Component<IAppProps, IAppState> {
    * keyup and keydown.
    */
   private lastKeyPressed: string | null = null
+
+  private updateIntervalHandle?: number
 
   /**
    * Gets a value indicating whether or not we're currently showing a
@@ -152,9 +162,15 @@ export class App extends React.Component<IAppProps, IAppState> {
         { timeout: ReadyDelay }
       )
 
-      window.setInterval(() => {
-        this.props.appStore.refreshAllRepositories()
-      }, updateRepoInfoInterval)
+      const initialTimeout = window.setTimeout(async () => {
+        window.clearTimeout(initialTimeout)
+
+        await this.props.appStore.refreshAllIndicators()
+
+        this.updateIntervalHandle = window.setInterval(() => {
+          this.props.appStore.refreshAllIndicators()
+        }, UpdateRepositoryIndicatorInterval)
+      }, InitialRepositoryIndicatorTimeout)
     })
 
     this.state = props.appStore.getState()
@@ -221,6 +237,10 @@ export class App extends React.Component<IAppProps, IAppState> {
         })
       }
     )
+  }
+
+  public componentWillUnmount() {
+    window.clearInterval(this.updateIntervalHandle)
   }
 
   private performDeferredLaunchActions() {
@@ -372,17 +392,26 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private updateBranch() {
-    const state = this.state.selectedState
-    if (state == null || state.type !== SelectionType.Repository) {
+    const { selectedState } = this.state
+    if (
+      selectedState == null ||
+      selectedState.type !== SelectionType.Repository
+    ) {
       return
     }
 
-    const defaultBranch = state.state.branchesState.defaultBranch
+    const { state } = selectedState
+    const defaultBranch = state.branchesState.defaultBranch
     if (!defaultBranch) {
       return
     }
 
-    this.props.dispatcher.mergeBranch(state.repository, defaultBranch.name)
+    const { mergeStatus } = state.compareState
+    this.props.dispatcher.mergeBranch(
+      selectedState.repository,
+      defaultBranch.name,
+      mergeStatus
+    )
   }
 
   private mergeBranch() {
@@ -449,7 +478,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private deleteBranch() {
     const state = this.state.selectedState
-    if (state == null || state.type !== SelectionType.Repository) {
+    if (state === null || state.type !== SelectionType.Repository) {
       return
     }
 
@@ -457,7 +486,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     if (tip.kind === TipState.Valid) {
       const currentPullRequest = state.state.branchesState.currentPullRequest
-      if (currentPullRequest) {
+      if (currentPullRequest !== null) {
         this.props.dispatcher.showPopup({
           type: PopupType.DeletePullRequest,
           repository: state.repository,
@@ -727,7 +756,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     // But if they just dragged one, use the dialog so that they can initialize
     // it if needed.
     if (paths.length > 1) {
-      this.addRepositories(paths)
+      const addedRepositories = await this.addRepositories(paths)
+      if (addedRepositories.length) {
+        this.props.dispatcher.recordAddExistingRepository()
+      }
     } else {
       // user may accidentally provide a folder within the repository
       // this ensures we use the repository root, if it is actually a repository
@@ -759,7 +791,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     if (repository instanceof CloningRepository || repository.missing) {
-      this.props.dispatcher.removeRepositories([repository])
+      this.props.dispatcher.removeRepositories([repository], false)
       return
     }
 
@@ -769,12 +801,15 @@ export class App extends React.Component<IAppProps, IAppState> {
         repository,
       })
     } else {
-      this.props.dispatcher.removeRepositories([repository])
+      this.props.dispatcher.removeRepositories([repository], false)
     }
   }
 
-  private onConfirmRepoRemoval = (repository: Repository) => {
-    this.props.dispatcher.removeRepositories([repository])
+  private onConfirmRepoRemoval = (
+    repository: Repository,
+    deleteRepoFromDisk: boolean
+  ) => {
+    this.props.dispatcher.removeRepositories([repository], deleteRepoFromDisk)
   }
 
   private getRepository(): Repository | CloningRepository | null {
@@ -791,6 +826,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (repositories.length) {
       this.props.dispatcher.selectRepository(repositories[0])
     }
+
+    return repositories
   }
 
   private showRepositorySettings() {
@@ -978,6 +1015,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             branch={popup.branch}
             existsOnRemote={popup.existsOnRemote}
             onDismissed={this.onPopupDismissed}
+            onDeleted={this.onBranchDeleted}
           />
         )
       case PopupType.ConfirmDiscardChanges:
@@ -985,6 +1023,10 @@ export class App extends React.Component<IAppProps, IAppState> {
           popup.showDiscardChangesSetting === undefined
             ? true
             : popup.showDiscardChangesSetting
+        const discardingAllChanges =
+          popup.discardingAllChanges === undefined
+            ? false
+            : popup.discardingAllChanges
 
         return (
           <DiscardChanges
@@ -996,6 +1038,7 @@ export class App extends React.Component<IAppProps, IAppState> {
               this.state.askForConfirmationOnDiscardChanges
             }
             showDiscardChangesSetting={showSetting}
+            discardingAllChanges={discardingAllChanges}
             onDismissed={this.onPopupDismissed}
             onConfirmDiscardChangesChanged={this.onConfirmDiscardChangesChanged}
           />
@@ -1023,7 +1066,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         )
       case PopupType.MergeBranch: {
         const { repository, branch } = popup
-        const state = this.props.appStore.getRepositoryState(repository)
+        const state = this.props.repositoryStateManager.get(repository)
 
         const tip = state.branchesState.tip
         const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
@@ -1044,7 +1087,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       }
       case PopupType.RepositorySettings: {
         const repository = popup.repository
-        const state = this.props.appStore.getRepositoryState(repository)
+        const state = this.props.repositoryStateManager.get(repository)
 
         return (
           <RepositorySettings
@@ -1097,7 +1140,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       case PopupType.CreateBranch: {
-        const state = this.props.appStore.getRepositoryState(popup.repository)
+        const state = this.props.repositoryStateManager.get(popup.repository)
         const branchesState = state.branchesState
         const repository = popup.repository
 
@@ -1248,7 +1291,14 @@ export class App extends React.Component<IAppProps, IAppState> {
             onIgnore={this.onIgnoreExistingUpstreamRemote}
           />
         )
-
+      case PopupType.ReleaseNotes:
+        return (
+          <ReleaseNotes
+            emoji={this.state.emoji}
+            newRelease={popup.newRelease}
+            onDismissed={this.onPopupDismissed}
+          />
+        )
       case PopupType.DeletePullRequest:
         return (
           <DeletePullRequest
@@ -1621,11 +1671,12 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (!this.state.isUpdateAvailableBannerVisible) {
       return null
     }
-
     const releaseNotesUri = 'https://desktop.github.com/release-notes/'
 
     return (
       <UpdateAvailable
+        dispatcher={this.props.dispatcher}
+        newRelease={updateStore.state.newRelease}
         releaseNotesLink={releaseNotesUri}
         onDismissed={this.onUpdateAvailableDismissed}
       />
@@ -1675,8 +1726,8 @@ export class App extends React.Component<IAppProps, IAppState> {
           emoji={state.emoji}
           sidebarWidth={state.sidebarWidth}
           commitSummaryWidth={state.commitSummaryWidth}
-          issuesStore={this.props.appStore.issuesStore}
-          gitHubUserStore={this.props.appStore.gitHubUserStore}
+          issuesStore={this.props.issuesStore}
+          gitHubUserStore={this.props.gitHubUserStore}
           onViewCommitOnGitHub={this.onViewCommitOnGitHub}
           imageDiffType={state.imageDiffType}
           askForConfirmationOnDiscardChanges={
@@ -1685,7 +1736,6 @@ export class App extends React.Component<IAppProps, IAppState> {
           accounts={state.accounts}
           externalEditorLabel={externalEditorLabel}
           onOpenInExternalEditor={this.openFileInExternalEditor}
-          isDivergingBranchBannerVisible={state.isDivergingBranchBannerVisible}
         />
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {
@@ -1766,6 +1816,16 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (baseURL) {
       this.props.dispatcher.openInBrowser(`${baseURL}/commit/${SHA}`)
     }
+  }
+
+  private onBranchDeleted = (repository: Repository) => {
+    // In the event a user is in the middle of a compare
+    // we need to exit out of the compare state after the
+    // branch has been deleted. Calling executeCompare allows
+    // us to do just that.
+    this.props.dispatcher.executeCompare(repository, {
+      kind: CompareActionKind.History,
+    })
   }
 }
 

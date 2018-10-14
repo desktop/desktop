@@ -39,6 +39,7 @@ interface ISelectedCommitProps {
 
 interface ISelectedCommitState {
   readonly isExpanded: boolean
+  readonly hideDescriptionBorder: boolean
 }
 
 /** The History component. Contains the commit list, commit summary, and diff. */
@@ -47,20 +48,26 @@ export class SelectedCommit extends React.Component<
   ISelectedCommitState
 > {
   private readonly loadChangedFilesScheduler = new ThrottledScheduler(200)
+  private historyRef: HTMLDivElement | null = null
 
   public constructor(props: ISelectedCommitProps) {
     super(props)
 
     this.state = {
       isExpanded: false,
+      hideDescriptionBorder: false,
     }
   }
 
   private onFileSelected = (file: FileChange) => {
-    this.props.dispatcher.changeHistoryFileSelection(
+    this.props.dispatcher.changeFileSelection(
       this.props.repository,
       file as CommittedFileChange
     )
+  }
+
+  private onHistoryRef = (ref: HTMLDivElement | null) => {
+    this.historyRef = ref
   }
 
   public componentWillUpdate(nextProps: ISelectedCommitProps) {
@@ -121,12 +128,23 @@ export class SelectedCommit extends React.Component<
         gitHubUsers={this.props.gitHubUsers}
         onExpandChanged={this.onExpandChanged}
         isExpanded={this.state.isExpanded}
+        onDescriptionBottomChanged={this.onDescriptionBottomChanged}
+        hideDescriptionBorder={this.state.hideDescriptionBorder}
       />
     )
   }
 
   private onExpandChanged = (isExpanded: boolean) => {
     this.setState({ isExpanded })
+  }
+
+  private onDescriptionBottomChanged = (descriptionBottom: Number) => {
+    if (this.historyRef) {
+      const historyBottom = this.historyRef.getBoundingClientRect().bottom
+      this.setState({
+        hideDescriptionBorder: descriptionBottom >= historyBottom,
+      })
+    }
   }
 
   private onCommitSummaryReset = () => {
@@ -179,7 +197,7 @@ export class SelectedCommit extends React.Component<
     const className = this.state.isExpanded ? 'expanded' : 'collapsed'
 
     return (
-      <div id="history" className={className}>
+      <div id="history" ref={this.onHistoryRef} className={className}>
         {this.renderCommitSummary(commit)}
         <div id="commit-details">
           <Resizable

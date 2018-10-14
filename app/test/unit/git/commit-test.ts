@@ -5,7 +5,6 @@ import { expect } from 'chai'
 
 import { Repository } from '../../../src/models/repository'
 import {
-  getStatus,
   createCommit,
   getCommits,
   getCommit,
@@ -30,6 +29,7 @@ import {
   ITextDiff,
   DiffType,
 } from '../../../src/models/diff'
+import { getStatusOrThrow } from '../../helpers/status'
 
 async function getTextDiff(
   repo: Repository,
@@ -55,13 +55,13 @@ describe('git/commit', () => {
         'Hi world\n'
       )
 
-      let status = await getStatus(repository!)
+      let status = await getStatusOrThrow(repository!)
       let files = status.workingDirectory.files
       expect(files.length).to.equal(1)
 
       await createCommit(repository!, 'Special commit', files)
 
-      status = await getStatus(repository!)
+      status = await getStatusOrThrow(repository!)
       files = status.workingDirectory.files
       expect(files.length).to.equal(0)
 
@@ -76,7 +76,7 @@ describe('git/commit', () => {
         'Hi world\n'
       )
 
-      const status = await getStatus(repository!)
+      const status = await getStatusOrThrow(repository!)
       const files = status.workingDirectory.files
       expect(files.length).to.equal(1)
 
@@ -98,7 +98,7 @@ describe('git/commit', () => {
       await FSE.writeFile(path.join(repo.path, 'foo'), 'foo\n')
       await FSE.writeFile(path.join(repo.path, 'bar'), 'bar\n')
 
-      const status = await getStatus(repo)
+      const status = await getStatusOrThrow(repo)
       const files = status.workingDirectory.files
 
       expect(files.length).to.equal(2)
@@ -114,7 +114,7 @@ describe('git/commit', () => {
         allChanges
       )
 
-      const statusAfter = await getStatus(repo)
+      const statusAfter = await getStatusOrThrow(repo)
 
       expect(statusAfter.workingDirectory.files.length).to.equal(0)
 
@@ -134,7 +134,7 @@ describe('git/commit', () => {
       await GitProcess.exec(['commit', '-m', 'Initial commit'], repo.path)
       await GitProcess.exec(['mv', 'foo', 'bar'], repo.path)
 
-      const status = await getStatus(repo)
+      const status = await getStatusOrThrow(repo)
       const files = status.workingDirectory.files
 
       expect(files.length).to.equal(1)
@@ -143,7 +143,7 @@ describe('git/commit', () => {
         files[0].withIncludeAll(true),
       ])
 
-      const statusAfter = await getStatus(repo)
+      const statusAfter = await getStatusOrThrow(repo)
 
       expect(statusAfter.workingDirectory.files.length).to.equal(0)
     })
@@ -185,11 +185,11 @@ describe('git/commit', () => {
       expect(changedFiles[0].path).to.equal(newFileName)
 
       // verify that changes remain for this new file
-      const status = await getStatus(repository!)
+      const status = await getStatusOrThrow(repository!)
       expect(status.workingDirectory.files.length).to.equal(4)
 
       // verify that the file is now tracked
-      const fileChange = status.workingDirectory.files.find(
+      const fileChange = status!.workingDirectory.files.find(
         f => f.path === newFileName
       )
       expect(fileChange).to.not.be.undefined
@@ -236,7 +236,7 @@ describe('git/commit', () => {
       expect(changedFiles[0].path).to.equal(modifiedFile)
 
       // verify that changes remain for this modified file
-      const status = await getStatus(repository!)
+      const status = await getStatusOrThrow(repository!)
       expect(status.workingDirectory.files.length).to.equal(4)
 
       // verify that the file is still marked as modified
@@ -333,7 +333,7 @@ describe('git/commit', () => {
       expect(changedFiles[0].path).to.equal(modifiedFile)
 
       // verify that changes remain for this modified file
-      const status = await getStatus(repository!)
+      const status = await getStatusOrThrow(repository!)
       expect(status.workingDirectory.files.length).to.equal(4)
 
       // verify that the file is still marked as modified
@@ -373,7 +373,7 @@ describe('git/commit', () => {
       expect(changedFiles[0].path).to.equal(deletedFile)
 
       // verify that changes remain for this new file
-      const status = await getStatus(repository!)
+      const status = await getStatusOrThrow(repository!)
       expect(status.workingDirectory.files.length).to.equal(4)
 
       // verify that the file is now tracked
@@ -395,7 +395,7 @@ describe('git/commit', () => {
 
       await FSE.writeFile(path.join(repo.path, 'bar'), 'bar\n')
 
-      const status = await getStatus(repo)
+      const status = await getStatusOrThrow(repo)
       const files = status.workingDirectory.files
 
       expect(files.length).to.equal(1)
@@ -404,7 +404,7 @@ describe('git/commit', () => {
         files[0].withIncludeAll(true),
       ])
 
-      const statusAfter = await getStatus(repo)
+      const statusAfter = await getStatusOrThrow(repo)
 
       expect(statusAfter.workingDirectory.files.length).to.equal(0)
     })
@@ -423,7 +423,7 @@ describe('git/commit', () => {
 
       await FSE.writeFile(path.join(repo.path, 'bar'), 'line1\nline2\nline3\n')
 
-      const status = await getStatus(repo)
+      const status = await getStatusOrThrow(repo)
       const files = status.workingDirectory.files
 
       expect(files.length).to.equal(1)
@@ -438,7 +438,7 @@ describe('git/commit', () => {
 
       await createCommit(repo, 'renamed a file', [partiallySelectedFile])
 
-      const statusAfter = await getStatus(repo)
+      const statusAfter = await getStatusOrThrow(repo)
 
       expect(statusAfter.workingDirectory.files.length).to.equal(1)
 
@@ -465,12 +465,12 @@ describe('git/commit', () => {
 
       await FSE.writeFile(filePath, 'b1b2')
 
-      const status = await getStatus(repo)
+      const status = await getStatusOrThrow(repo)
       const files = status.workingDirectory.files
 
       expect(files.length).to.equal(1)
       expect(files[0].path).to.equal('foo')
-      expect(files[0].status).to.equal(AppFileStatus.Conflicted)
+      expect(files[0].status).to.equal(AppFileStatus.Resolved)
 
       const selection = files[0].selection.withSelectAll()
       const selectedFile = files[0].withSelection(selection)
@@ -498,7 +498,7 @@ describe('git/commit', () => {
 
       await FSE.unlink(firstPath)
 
-      status = await getStatus(repo)
+      status = await getStatusOrThrow(repo)
       files = status.workingDirectory.files
 
       expect(files.length).to.equal(1)
@@ -509,7 +509,7 @@ describe('git/commit', () => {
 
       await createCommit(repo, 'commit everything', toCommit.files)
 
-      status = await getStatus(repo)
+      status = await getStatusOrThrow(repo)
       files = status.workingDirectory.files
       expect(files).to.be.empty
 
@@ -534,18 +534,18 @@ describe('git/commit', () => {
       // if the text is now different, everything is fine
       await FSE.writeFile(firstPath, 'line2\n')
 
-      status = await getStatus(repo)
+      status = await getStatusOrThrow(repo)
       files = status.workingDirectory.files
 
       expect(files.length).to.equal(1)
       expect(files[0].path).to.contain('first')
       expect(files[0].status).to.equal(AppFileStatus.New)
 
-      const toCommit = status.workingDirectory.withIncludeAllFiles(true)
+      const toCommit = status!.workingDirectory.withIncludeAllFiles(true)
 
       await createCommit(repo, 'commit again!', toCommit.files)
 
-      status = await getStatus(repo)
+      status = await getStatusOrThrow(repo)
       files = status.workingDirectory.files
       expect(files).to.be.empty
 

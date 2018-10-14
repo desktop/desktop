@@ -1,9 +1,17 @@
 import * as React from 'react'
+import { Dispatcher } from '../../lib/dispatcher/index'
 import { LinkButton } from '../lib/link-button'
 import { updateStore } from '../lib/update-store'
 import { Octicon, OcticonSymbol } from '../octicons'
+import { PopupType } from '../../lib/app-state'
+import { shell } from '../../lib/app-shell'
+
+import { ReleaseSummary } from '../../models/release-notes'
+import { enableInAppReleaseNotes } from '../../lib/feature-flag'
 
 interface IUpdateAvailableProps {
+  readonly dispatcher: Dispatcher
+  readonly newRelease: ReleaseSummary | null
   readonly releaseNotesLink: string
   readonly onDismissed: () => void
 }
@@ -24,11 +32,18 @@ export class UpdateAvailable extends React.Component<
         <span>
           An updated version of GitHub Desktop is available and will be
           installed at the next launch. See{' '}
-          <LinkButton uri={this.props.releaseNotesLink}>what's new</LinkButton>{' '}
+          {enableInAppReleaseNotes() ? (
+            <LinkButton onClick={this.showReleaseNotes}>what's new</LinkButton>
+          ) : (
+            <LinkButton uri={this.props.releaseNotesLink}>
+              what's new
+            </LinkButton>
+          )}{' '}
           or{' '}
           <LinkButton onClick={this.updateNow}>
             restart GitHub Desktop
-          </LinkButton>.
+          </LinkButton>
+          .
         </span>
 
         <a className="close" onClick={this.dismiss}>
@@ -36,6 +51,20 @@ export class UpdateAvailable extends React.Component<
         </a>
       </div>
     )
+  }
+
+  private showReleaseNotes = () => {
+    if (this.props.newRelease == null) {
+      // if, for some reason we're not able to render the release notes we
+      // should redirect the user to the website so we do _something_
+      const releaseNotesUri = 'https://desktop.github.com/release-notes/'
+      shell.openExternal(releaseNotesUri)
+    } else {
+      this.props.dispatcher.showPopup({
+        type: PopupType.ReleaseNotes,
+        newRelease: this.props.newRelease,
+      })
+    }
   }
 
   private updateNow = () => {

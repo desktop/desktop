@@ -1,0 +1,241 @@
+changed in both
+  base   100644 d2d4fe241dd73c289adf5eafe191299a25144a88 app/src/ui/dialog/error.tsx
+  our    100644 744a786b47398054587a2eb3c35460ee471cc51f app/src/ui/dialog/error.tsx
+  their  100644 4279d8bada629e97486dbbcef1cbc5c5166cb4f1 app/src/ui/dialog/error.tsx
+@@ -1,7 +1,24 @@
+ import * as React from 'react'
+ import { Octicon, OcticonSymbol } from '../octicons'
++import * as classNames from 'classnames'
+ 
++<<<<<<< .our
+ interface IDialogErrorProps {}
++=======
++interface IDialogErrorProps {
++  readonly children?: ReadonlyArray<JSX.Element>
++
++  /**
++   * An optional type for the banner displayed.
++   *
++   * When passed 'warning', the error message will render with a yellow
++   * background, black text, and an alert icon.
++   *
++   * Defaults to 'error'
++   */
++  readonly bannertype?: 'error' | 'warning'
++}
++>>>>>>> .their
+ 
+ /**
+  * A component used for displaying short error messages inline
+@@ -16,10 +33,24 @@
+  */
+ export class DialogError extends React.Component<IDialogErrorProps, {}> {
+   public render() {
++<<<<<<< .our
+     return (
+       <div className="dialog-error">
+         <Octicon symbol={OcticonSymbol.stop} />
+         <div>{this.props.children}</div>
++=======
++    const classname = classNames('dialog-error', {
++        'dialog-warning': this.props.bannertype === 'warning',
++      })
++    const octicon = this.props.bannertype === 'warning' ? OcticonSymbol.alert : OcticonSymbol.stop
++
++    return (
++      <div className={classname}>
++        <Octicon symbol={octicon} />
++        <div>
++          {this.props.children}
++        </div>
++>>>>>>> .their
+       </div>
+     )
+   }
+changed in both
+  base   100644 29139bdcd2057b471360a3dd21a47b12fbfb13e1 app/src/ui/sign-in/sign-in.tsx
+  our    100644 e4ee46a6fe80cf3c36db4a62459618eadc3fee7e app/src/ui/sign-in/sign-in.tsx
+  their  100644 8af4667dda19e15010f8fe8684cea73ee7df2c85 app/src/ui/sign-in/sign-in.tsx
+@@ -16,7 +16,14 @@
+ import { ButtonGroup } from '../lib/button-group'
+ import { Dialog, DialogError, DialogContent, DialogFooter } from '../dialog'
+ 
++<<<<<<< .our
+ import { getWelcomeMessage } from '../../lib/2fa'
++=======
++import {
++  AuthenticationMode,
++  getWelcomeMessage,
++ } from '../../lib/2fa'
++>>>>>>> .their
+ 
+ interface ISignInProps {
+   readonly dispatcher: Dispatcher
+@@ -232,12 +239,28 @@
+     )
+   }
+ 
++<<<<<<< .our
+   private renderTwoFactorAuthenticationStep(
+     state: ITwoFactorAuthenticationState
+   ) {
+     return (
+       <DialogContent>
+         <p>{getWelcomeMessage(state.type)}</p>
++=======
++  private renderTwoFactorAuthenticationStep(state: ITwoFactorAuthenticationState) {
++    let resendLink = null
++
++    if (state.type === AuthenticationMode.Sms) {
++      resendLink = <LinkButton className='resend-sms-link'>Resend SMS Code</LinkButton>
++    }
++
++    return (
++      <DialogContent>
++        <p>
++          { getWelcomeMessage(state.type) }
++        </p>
++
++>>>>>>> .their
+         <Row>
+           <TextBox
+             label="Authentication code"
+@@ -248,6 +271,10 @@
+             autoFocus={true}
+           />
+         </Row>
++
++        <Row className='resend-sms-link-row'>
++          {resendLink}
++        </Row>
+       </DialogContent>
+     )
+   }
+changed in both
+  base   100644 61ce0352a8d13a4b2c8d3df20f73809bf4b04d7b app/styles/_variables.scss
+  our    100644 6c89a529c5a8dbfefb127f171468af9ae5651141 app/styles/_variables.scss
+  their  100644 985dff91b66b71b39c825292712c3db339b117bd app/styles/_variables.scss
+@@ -5,11 +5,36 @@
+ // Primer colors, see https://github.com/primer/primer-css/blob/master/modules/primer-support/lib/variables/color-system.scss
+ @import '~primer-support/lib/variables/color-system.scss';
+ 
++<<<<<<< .our
+ // Extracted as a SCSS variable so that we can define the --overlay-background-color
+ // on both the :root and the ::backdrop scope. The ::backdrop pseudo-element
+ // doesn't inherit :root, see
+ // https://bugs.chromium.org/p/chromium/issues/detail?id=594096
+ $overlay-background-color: rgba(0, 0, 0, 0.4);
++=======
++  // Colors
++  //
++  // These are declared here to let us avoid duplicating color constants
++  // in variables. It also makes it easier to read and understand what
++  // color is being used. Note that these variables should _never_ be
++  // used outside of this scope.
++  $darkBlue: #005CC5;
++  $blue: #0366d6;
++  $yellow: #ffd33d;
++  $darkYellow: #745d00;
++  $lightYellow: #fff5b1;
++  $red: #d73a49;
++  $lightRed: #f04747;
++  $green: #28a745;
++  $orange: #f66a0a;
++  $black: #24292e;
++  $darkerGray: #6a737d;
++  $darkGray: #959da5;
++  $gray: #E1E4E8;
++  $lightGray: #F6F8FA;
++  $lighterGray: #fafbfc;
++  $white: #fff;
++>>>>>>> .their
+ 
+ :root {
+   --color-new: $green;
+@@ -370,6 +395,10 @@
+   /** Overlay is used as a background for both modals and foldouts */
+   --overlay-background-color: $overlay-background-color;
+ 
++  // Colors for form warnings
++  --warning-color: $darkYellow;
++  --form-warning-background: $lightYellow;
++
+   /** Dialog */
+   --dialog-warning-color: $yellow-600;
+   --dialog-error-color: $red;
+changed in both
+  base   100644 58f4e9d43bed5cda813e1b05c87b7bc5e1fed407 app/styles/ui/_dialog.scss
+  our    100644 94b86d54fb9b0314deb1ef48cc9e1466578ed390 app/styles/ui/_dialog.scss
+  their  100644 583b976db4e4d400fe15666cd1447c0b0d16d824 app/styles/ui/_dialog.scss
+@@ -97,8 +97,26 @@
+ 
+   .dialog-header {
+     height: 50px;
++<<<<<<< .our
+     border-bottom: var(--base-border);
+ 
++=======
++    box-shadow: 0 1px 0 rgba(#000, 0.1);
++    position: relative;
++
++    // There's at most three elements in the header,
++    //   1. The icon (optional, only for errors, warnings, etc)
++    //   2. The title, a h1 element which is always present if the
++    //      header element is visible
++    //   3. The close button (optional, hidden when dialog isn't dismissable).
++    //
++    // In order to correctly center the title in all scenarios we lay out the
++    // children in a flexbox but we position the icon and close button
++    // absolutely to the left and right side leaving the h1 all available
++    // width. We then add a 40px margin on each side of the h1 ensuring that
++    // even in the scenario where only one of the two optional elements is
++    // visible the h1 stays centered horizontally.
++>>>>>>> .their
+     display: flex;
+     flex-direction: row;
+     align-items: center;
+@@ -260,14 +278,24 @@
+     white-space: pre-wrap;
+ 
+     background: var(--form-error-background);
++<<<<<<< .our
+     border-bottom: 1px solid var(--form-error-border-color);
+     color: var(--form-error-text-color);
++=======
++    box-shadow: inset 0 -1px 0 rgba(#000, 0.1);
++    color: var(--error-color);
++>>>>>>> .their
+ 
+     > .octicon {
+       flex-grow: 0;
+       flex-shrink: 0;
+       margin-right: var(--spacing);
+     }
++
++    &.dialog-warning {
++      background: var(--form-warning-background);
++      color: var(--warning-color);
++    }
+   }
+ 
+   &#app-error {
+@@ -336,6 +364,7 @@
+       justify-content: flex-end;
+     }
+ 
++<<<<<<< .our
+     .forgot-password-link-sign-in {
+       margin-left: auto;
+     }
+@@ -351,6 +380,11 @@
+ 
+   &#lfs-attribute-mismatch {
+     width: 400px;
++=======
++    .resend-sms-link-row {
++      margin-top: calc(var(--spacing-half) * -1);
++    }
++>>>>>>> .their
+   }
+ }
+ 

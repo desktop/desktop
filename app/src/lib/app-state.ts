@@ -25,9 +25,11 @@ import { Shell } from './shells'
 import { CloneRepositoryTab } from '../models/clone-repository-tab'
 import { BranchesTab } from '../models/branches-tab'
 import { PullRequest } from '../models/pull-request'
+import { ReleaseSummary } from '../models/release-notes'
 import { IAuthor } from '../models/author'
 import { ComparisonCache } from './comparison-cache'
 import { ApplicationTheme } from '../ui/lib/application-theme'
+import { MergeResultKind } from '../models/merge'
 
 export { ICommitMessage }
 
@@ -188,8 +190,6 @@ export interface IAppState {
   /** The currently selected tab for the Branches foldout. */
   readonly selectedBranchesTab: BranchesTab
 
-  /** Show the diverging notification banner */
-  readonly isDivergingBranchBannerVisible: boolean
   /** The currently selected appearance (aka theme) */
   readonly selectedTheme: ApplicationTheme
 }
@@ -221,6 +221,7 @@ export enum PopupType {
   InitializeLFS,
   LFSAttributeMismatch,
   UpstreamAlreadyExists,
+  ReleaseNotes,
   DeletePullRequest,
   MergeConflicts,
 }
@@ -238,6 +239,7 @@ export type Popup =
       repository: Repository
       files: ReadonlyArray<WorkingDirectoryFileChange>
       showDiscardChangesSetting?: boolean
+      discardingAllChanges?: boolean
     }
   | { type: PopupType.Preferences; initialSelectedTab?: PreferencesTab }
   | {
@@ -296,6 +298,10 @@ export type Popup =
       existingRemote: IRemote
     }
   | {
+      type: PopupType.ReleaseNotes
+      newRelease: ReleaseSummary
+    }
+  | {
       type: PopupType.DeletePullRequest
       repository: Repository
       branch: Branch
@@ -342,7 +348,7 @@ export enum RepositorySectionTab {
 }
 
 export interface IRepositoryState {
-  readonly historyState: IHistoryState
+  readonly commitSelection: ICommitSelection
   readonly changesState: IChangesState
   readonly compareState: ICompareState
   readonly selectedSection: RepositorySectionTab
@@ -561,19 +567,17 @@ export interface IBranchesState {
   readonly currentPullRequest: PullRequest | null
 }
 
-export interface IHistorySelection {
+export interface ICommitSelection {
+  /** The commit currently selected in the app */
   readonly sha: string | null
-  readonly file: CommittedFileChange | null
-}
 
-export interface IHistoryState {
-  readonly selection: IHistorySelection
-
-  /** The ordered SHAs. */
-  readonly history: ReadonlyArray<string>
-
+  /** The list of files associated with the current commit */
   readonly changedFiles: ReadonlyArray<CommittedFileChange>
 
+  /** The selected file inside the selected commit */
+  readonly file: CommittedFileChange | null
+
+  /** The diff of the currently-selected file */
   readonly diff: IDiff | null
 }
 
@@ -643,14 +647,23 @@ export interface ICompareBranch {
 }
 
 export interface ICompareState {
+  /** Show the diverging notification banner */
+  readonly isDivergingBranchBannerVisible: boolean
+
   /** The current state of the compare form, based on user input */
   readonly formState: IDisplayHistory | ICompareBranch
+
+  /** The result of merging the compare branch into the current branch, if a branch selected */
+  readonly mergeStatus: MergeResultStatus | null
 
   /** Whether the branch list should be expanded or hidden */
   readonly showBranchList: boolean
 
   /** The text entered into the compare branch filter text box */
   readonly filterText: string
+
+  /** The SHA associated with the most recent history state */
+  readonly tip: string | null
 
   /** The SHAs of commits to render in the compare list */
   readonly commitSHAs: ReadonlyArray<string>
@@ -697,9 +710,26 @@ export interface ICompareFormUpdate {
   readonly showBranchList: boolean
 }
 
+export type MergeResultStatus =
+  | {
+      kind: MergeResultKind.Loading
+    }
+  | {
+      kind: MergeResultKind.Conflicts
+      conflictedFiles: number
+    }
+  | { kind: MergeResultKind.Clean }
+  | { kind: MergeResultKind.Invalid }
+
 export enum CompareActionKind {
   History = 'History',
   Branch = 'Branch',
+}
+
+export interface ICompareToBranch {
+  readonly kind: CompareActionKind.Branch
+  readonly branch: Branch
+  readonly mode: ComparisonView.Ahead | ComparisonView.Behind
 }
 
 /**
@@ -709,8 +739,4 @@ export type CompareAction =
   | {
       readonly kind: CompareActionKind.History
     }
-  | {
-      readonly kind: CompareActionKind.Branch
-      readonly branch: Branch
-      readonly mode: ComparisonView.Ahead | ComparisonView.Behind
-    }
+  | ICompareToBranch

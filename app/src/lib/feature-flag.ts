@@ -34,10 +34,25 @@ export function enableMergeTool(): boolean {
 
 /** Should the Notification of Diverging From Default Branch (NDDB) feature be enabled? */
 export function enableNotificationOfBranchUpdates(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 /** Should the repository list display info indicators? */
 export function enableRepoInfoIndicators(): boolean {
-  return enableDevelopmentFeatures()
+  return true
+}
+
+/** Should the app try and detect conflicts before the user stumbles into them? */
+export function enableMergeConflictDetection(): boolean {
+  return true
+}
+
+/** Should the app display the new release notes dialog? */
+export function enableInAppReleaseNotes(): boolean {
+  return true
+}
+
+/** Should `git status` use --no-optional-locks to assist with concurrent usage */
+export function enableStatusWithoutOptionalLocks(): boolean {
+  return enableBetaFeatures()
 }

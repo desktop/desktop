@@ -3,14 +3,15 @@ import { expect } from 'chai'
 import { Repository } from '../../../src/models/repository'
 import {
   getRemotes,
-  getDefaultRemote,
   addRemote,
   removeRemote,
 } from '../../../src/lib/git/remote'
 import {
   setupFixtureRepository,
   setupEmptyRepository,
+  setupEmptyDirectory,
 } from '../../helpers/repositories'
+import { findDefaultRemote } from '../../../src/lib/stores/helpers/find-default-remote'
 
 describe('git/remote', () => {
   describe('getRemotes', () => {
@@ -32,16 +33,24 @@ describe('git/remote', () => {
       expect(result[1].name).to.equal('origin')
       expect(result[1].url.endsWith(nwo)).to.equal(true)
     })
+
+    it('returns empty array for directory without a .git directory', async () => {
+      const repository = setupEmptyDirectory()
+
+      const status = await getRemotes(repository)
+      expect(status).eql([])
+    })
   })
 
-  describe('getDefaultRemote', () => {
+  describe('findDefaultRemote', () => {
     it('returns origin when multiple remotes found', async () => {
       const testRepoPath = await setupFixtureRepository(
         'repo-with-multiple-remotes'
       )
       const repository = new Repository(testRepoPath, -1, null, false)
 
-      const result = await getDefaultRemote(repository)
+      const remotes = await getRemotes(repository)
+      const result = await findDefaultRemote(remotes)
 
       expect(result!.name).to.equal('origin')
     })
@@ -53,7 +62,8 @@ describe('git/remote', () => {
       const repository = new Repository(testRepoPath, -1, null, false)
       await removeRemote(repository, 'origin')
 
-      const result = await getDefaultRemote(repository)
+      const remotes = await getRemotes(repository)
+      const result = await findDefaultRemote(remotes)
 
       expect(result!.name).to.equal('bassoon')
     })
@@ -61,7 +71,8 @@ describe('git/remote', () => {
     it('returns null for new repository', async () => {
       const repository = await setupEmptyRepository()
 
-      const result = await getDefaultRemote(repository)
+      const remotes = await getRemotes(repository)
+      const result = await findDefaultRemote(remotes)
 
       expect(result).to.be.null
     })
@@ -76,7 +87,8 @@ describe('git/remote', () => {
         'https://github.com/desktop/desktop'
       )
 
-      const result = await getDefaultRemote(repository)
+      const remotes = await getRemotes(repository)
+      const result = await findDefaultRemote(remotes)
 
       expect(result!.name).to.equal('origin')
     })

@@ -94,13 +94,10 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
 
     if (channel === 'production') {
       const existingChangelog = getChangelogEntriesSince(previousVersion)
-      const entries = new Array<string>(
-        ...changelogEntries,
-        ...existingChangelog
-      )
+      const entries = [...existingChangelog]
       printInstructions(nextVersion, entries)
     } else if (channel === 'beta') {
-      const entries = new Array<string>(...changelogEntries)
+      const entries = [...changelogEntries]
       printInstructions(nextVersion, entries)
     }
   }

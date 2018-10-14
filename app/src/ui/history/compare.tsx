@@ -28,8 +28,12 @@ import {
   NewCommitsBanner,
   DismissalReason,
 } from '../notification/new-commits-banner'
-import { enableNotificationOfBranchUpdates } from '../../lib/feature-flag'
+import {
+  enableNotificationOfBranchUpdates,
+  enableMergeConflictDetection,
+} from '../../lib/feature-flag'
 import { MergeCallToAction } from './merge-call-to-action'
+import { MergeCallToActionWithConflicts } from './merge-call-to-action-with-conflicts'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -40,7 +44,7 @@ interface ICompareSidebarProps {
   readonly localCommitSHAs: ReadonlyArray<string>
   readonly dispatcher: Dispatcher
   readonly currentBranch: Branch | null
-  readonly isDivergingBranchBannerVisible: boolean
+  readonly selectedCommitSha: string | null
   readonly onRevertCommit: (commit: Commit) => void
   readonly onViewCommitOnGitHub: (sha: string) => void
 }
@@ -52,7 +56,6 @@ interface ICompareSidebarState {
    * For all other cases, use the prop
    */
   readonly focusedBranch: Branch | null
-  readonly selectedCommit: Commit | null
 
   /**
    * Flag that tracks whether the user interacted with one of the notification's
@@ -72,13 +75,13 @@ export class CompareSidebar extends React.Component<
   private readonly loadChangedFilesScheduler = new ThrottledScheduler(200)
   private branchList: BranchList | null = null
   private loadingMoreCommitsPromise: Promise<void> | null = null
+  private resultCount = 0
 
   public constructor(props: ICompareSidebarProps) {
     super(props)
 
     this.state = {
       focusedBranch: null,
-      selectedCommit: null,
       hasConsumedNotification: false,
     }
   }
@@ -137,6 +140,12 @@ export class CompareSidebar extends React.Component<
 
   public componentWillUnmount() {
     this.textbox = null
+
+    // by hiding the branch list here when the component is torn down
+    // we ensure any ahead/behind computation work is discarded
+    this.props.dispatcher.updateCompareForm(this.props.repository, {
+      showBranchList: false,
+    })
   }
 
   public render() {
@@ -185,7 +194,7 @@ export class CompareSidebar extends React.Component<
       return null
     }
 
-    if (!this.props.isDivergingBranchBannerVisible) {
+    if (!this.props.compareState.isDivergingBranchBannerVisible) {
       return null
     }
 
@@ -217,6 +226,10 @@ export class CompareSidebar extends React.Component<
     )
   }
 
+  private filterListResultsChanged = (resultCount: number) => {
+    this.resultCount = resultCount
+  }
+
   private viewHistoryForBranch = () => {
     this.props.dispatcher.executeCompare(this.props.repository, {
       kind: CompareActionKind.History,
@@ -229,7 +242,6 @@ export class CompareSidebar extends React.Component<
 
   private renderCommitList() {
     const { formState, commitSHAs } = this.props.compareState
-    const selectedCommit = this.state.selectedCommit
 
     let emptyListMessage: string | JSX.Element
     if (formState.kind === ComparisonView.None) {
@@ -245,9 +257,8 @@ export class CompareSidebar extends React.Component<
           </p>
         ) : (
           <p>
-            Your branch is up to date with the compared branch (<Ref>
-              {currentlyComparedBranchName}
-            </Ref>)
+            Your branch is up to date with the compared branch (
+            <Ref>{currentlyComparedBranchName}</Ref>)
           </p>
         )
     }
@@ -257,7 +268,7 @@ export class CompareSidebar extends React.Component<
         gitHubRepository={this.props.repository.gitHubRepository}
         commitLookup={this.props.commitLookup}
         commitSHAs={commitSHAs}
-        selectedSHA={selectedCommit !== null ? selectedCommit.sha : null}
+        selectedSHA={this.props.selectedCommitSha}
         gitHubUsers={this.props.gitHubUsers}
         localCommitSHAs={this.props.localCommitSHAs}
         emoji={this.props.emoji}
@@ -305,6 +316,7 @@ export class CompareSidebar extends React.Component<
         onItemClick={this.onBranchItemClicked}
         onFilterTextChanged={this.onBranchFilterTextChanged}
         renderBranch={this.renderCompareBranchListItem}
+        onFilterListResultsChanged={this.filterListResultsChanged}
       />
     )
   }
@@ -314,12 +326,26 @@ export class CompareSidebar extends React.Component<
       return null
     }
 
+    if (!enableMergeConflictDetection()) {
+      return (
+        <MergeCallToAction
+          repository={this.props.repository}
+          dispatcher={this.props.dispatcher}
+          currentBranch={this.props.currentBranch}
+          formState={formState}
+          onMerged={this.onMerge}
+        />
+      )
+    }
+
     return (
-      <MergeCallToAction
+      <MergeCallToActionWithConflicts
         repository={this.props.repository}
         dispatcher={this.props.dispatcher}
+        mergeStatus={this.props.compareState.mergeStatus}
         currentBranch={this.props.currentBranch}
-        formState={formState}
+        comparisonBranch={formState.comparisonBranch}
+        commitsBehind={formState.aheadBehind.behind}
         onMerged={this.onMerge}
       />
     )
@@ -388,6 +414,11 @@ export class CompareSidebar extends React.Component<
     const key = event.key
 
     if (key === 'Enter') {
+      if (this.resultCount === 0) {
+        event.preventDefault()
+        return
+      }
+
       if (this.props.compareState.filterText.length === 0) {
         this.handleEscape()
       } else {
@@ -428,7 +459,7 @@ export class CompareSidebar extends React.Component<
   }
 
   private onCommitSelected = (commit: Commit) => {
-    this.props.dispatcher.changeHistoryCommitSelection(
+    this.props.dispatcher.changeCommitSelection(
       this.props.repository,
       commit.sha
     )
@@ -438,8 +469,6 @@ export class CompareSidebar extends React.Component<
         this.props.repository
       )
     })
-
-    this.setState({ selectedCommit: commit })
   }
 
   private onScroll = (start: number, end: number) => {
@@ -461,7 +490,7 @@ export class CompareSidebar extends React.Component<
       }
 
       this.loadingMoreCommitsPromise = this.props.dispatcher
-        .loadNextHistoryBatch(this.props.repository)
+        .loadNextCommitBatch(this.props.repository)
         .then(() => {
           // deferring unsetting this flag to some time _after_ the commits
           // have been appended to prevent eagerly adding more commits due
@@ -540,7 +569,10 @@ export class CompareSidebar extends React.Component<
   }
 
   private onNotificationBannerDismissed = (reason: DismissalReason) => {
-    this.props.dispatcher.setDivergingBranchBannerVisibility(false)
+    this.props.dispatcher.setDivergingBranchBannerVisibility(
+      this.props.repository,
+      false
+    )
     this.props.dispatcher.recordDivergingBranchBannerDismissal()
 
     switch (reason) {

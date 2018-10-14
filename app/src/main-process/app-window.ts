@@ -87,6 +87,29 @@ export class AppWindow {
         }
       })
     }
+
+    if (__WIN32__) {
+      // workaround for known issue with fullscreen-ing the app and restoring
+      // is that some Chromium API reports the incorrect bounds, so that it
+      // will leave a small space at the top of the screen on every other
+      // maximize
+      //
+      // adapted from https://github.com/electron/electron/issues/12971#issuecomment-403956396
+      //
+      // can be tidied up once https://github.com/electron/electron/issues/12971
+      // has been confirmed as resolved
+      this.window.once('ready-to-show', () => {
+        this.window.on('unmaximize', () => {
+          setTimeout(() => {
+            const bounds = this.window.getBounds()
+            bounds.width += 1
+            this.window.setBounds(bounds)
+            bounds.width -= 1
+            this.window.setBounds(bounds)
+          }, 5)
+        })
+      })
+    }
   }
 
   public load() {

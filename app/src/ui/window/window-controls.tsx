@@ -83,7 +83,8 @@ export class WindowControls extends React.Component<{}, IWindowControlState> {
 
     return (
       <button
-        aria-label={title}
+        aria-label={name}
+        title={title}
         tabIndex={-1}
         className={className}
         onClick={onClick}

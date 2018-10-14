@@ -1,0 +1,272 @@
+changed in both
+  base   100644 91d3f39378aa3df1871bdc01e12b849f1f3366cd src/vs/code/electron-main/launch.ts
+  our    100644 a3affdb0597fc84d217c3981070db0ed9a7afe07 src/vs/code/electron-main/launch.ts
+  their  100644 ed265a71d8e06f037e743a88e14028bf9bf34e8f src/vs/code/electron-main/launch.ts
+@@ -9,7 +9,11 @@
+ import { IChannel } from 'vs/base/parts/ipc/common/ipc';
+ import { ILogService } from 'vs/platform/log/common/log';
+ import { IURLService } from 'vs/platform/url/common/url';
++<<<<<<< .our
+ import { IProcessEnvironment, isMacintosh } from 'vs/base/common/platform';
++=======
++import { IProcessEnvironment } from 'vs/base/common/platform';
++>>>>>>> .their
+ import { ParsedArgs, IEnvironmentService } from 'vs/platform/environment/common/environment';
+ import { createDecorator } from 'vs/platform/instantiation/common/instantiation';
+ import { OpenContext, IWindowSettings } from 'vs/platform/windows/common/windows';
+@@ -122,7 +126,11 @@
+ 		return this.channel.call('get-main-process-info', null);
+ 	}
+ 
++<<<<<<< .our
+ 	getLogsPath(): TPromise<string> {
++=======
++	public getLogsPath(): TPromise<string> {
++>>>>>>> .their
+ 		return this.channel.call('get-logs-path', null);
+ 	}
+ }
+@@ -136,8 +144,12 @@
+ 		@IWindowsMainService private windowsMainService: IWindowsMainService,
+ 		@IURLService private urlService: IURLService,
+ 		@IWorkspacesMainService private workspacesMainService: IWorkspacesMainService,
++<<<<<<< .our
+ 		@IEnvironmentService private readonly environmentService: IEnvironmentService,
+ 		@IConfigurationService private readonly configurationService: IConfigurationService
++=======
++		@IEnvironmentService private readonly environmentService: IEnvironmentService
++>>>>>>> .their
+ 	) { }
+ 
+ 	start(args: ParsedArgs, userEnv: IProcessEnvironment): TPromise<void> {
+@@ -268,6 +280,7 @@
+ 		} as IMainProcessInfo);
+ 	}
+ 
++<<<<<<< .our
+ 	getLogsPath(): TPromise<string> {
+ 		this.logService.trace('Received request for logs path from other instance.');
+ 
+@@ -276,6 +289,15 @@
+ 
+ 	private codeWindowToInfo(window: ICodeWindow): IWindowInfo {
+ 		const folderURIs: URI[] = [];
++=======
++	public getLogsPath(): TPromise<string> {
++		this.logService.trace('Received request for logs path from other instance.');
++		return TPromise.as(this.environmentService.logsPath);
++	}
++
++	private getWindowInfo(window: ICodeWindow): IWindowInfo {
++		const folders: string[] = [];
++>>>>>>> .their
+ 
+ 		if (window.openedFolderUri) {
+ 			folderURIs.push(window.openedFolderUri);
+added in both
+  our    100644 7142aa19a4cc1eda1ba377d464497305ab507809 src/vs/code/electron-main/logUploader.ts
+  their  100644 34e15bbd78babcd4fadbab996b4e66cc26865d77 src/vs/code/electron-main/logUploader.ts
+@@ -8,6 +8,7 @@
+ import * as os from 'os';
+ import * as cp from 'child_process';
+ import * as fs from 'fs';
++<<<<<<< .our
+ import * as path from 'path';
+ 
+ import { localize } from 'vs/nls';
+@@ -115,6 +116,67 @@
+ 				reject(e);
+ 			}
+ 		});
++=======
++import * as https from 'https';
++import * as path from 'path';
++
++import { ILaunchChannel } from 'vs/code/electron-main/launch';
++import { TPromise } from 'vs/base/common/winjs.base';
++
++interface PostResult {
++	blob_id: string;
++}
++
++export async function uploadLogs(
++	channel: ILaunchChannel
++): TPromise<any> {
++	const logsPath = await channel.call('get-logs-path', null);
++	const outZip = await zipLogs(logsPath);
++	const result = await postLogs(logsPath, outZip);
++	console.log('Blob: ' + result.blob_id);
++	return result;
++}
++
++function postLogs(
++	logsPath: string,
++	outZip: string
++): TPromise<PostResult> {
++	return new TPromise((resolve, reject) => {
++		const req = https.request({
++			host: 'vscode-log-uploader.azure-api.net',
++			path: '/v1/upload',
++			method: 'POST',
++			headers: {
++				'Content-Type': 'application/zip',
++				'Content-Length': fs.statSync(outZip).size
++			}
++		}, res => {
++			const chunks: (Buffer)[] = [];
++			res.on('data', (chunk: Buffer) => {
++				chunks.push(chunk);
++			});
++			res.on('end', () => {
++				const body = Buffer.concat(chunks);
++				try {
++					const data = JSON.parse(body.toString());
++					if (data.error) {
++						reject(data.error);
++						return
++					}
++					resolve(data);
++					return;
++				} catch (e) {
++					console.log('Error parsing response');
++					reject(e);
++				}
++			});
++			res.on('error', (e) => {
++				console.log('Error posting logs');
++				reject(e);
++			});
++		});
++		fs.createReadStream(outZip).pipe(req);
++>>>>>>> .their
+ 	});
+ }
+ 
+@@ -125,12 +187,23 @@
+ 	const outZip = path.join(tempDir, 'logs.zip');
+ 	return new TPromise<string>((resolve, reject) => {
+ 		doZip(logsPath, outZip, tempDir, (err, stdout, stderr) => {
++<<<<<<< .our
+ 			if (err) {
+ 				console.error(localize('zipError', 'Error zipping logs: {0}', err));
+ 				reject(err);
+ 			} else {
+ 				resolve(outZip);
+ 			}
++=======
++			console.log(stderr);
++			if (err || stderr) {
++				console.error('Error zipping logs', err, stderr);
++				reject(stderr);
++				return;
++			}
++			console.log('Log zip: ' + outZip);
++			resolve(outZip);
++>>>>>>> .their
+ 		});
+ 	});
+ }
+@@ -144,12 +217,24 @@
+ 	switch (os.platform()) {
+ 		case 'win32':
+ 			// Copy directory first to avoid file locking issues
++<<<<<<< .our
+ 			const sub = path.join(tempDir, 'sub');
++=======
++			const sub = tempDir + '\\sub\\';
++>>>>>>> .their
+ 			return cp.execFile('powershell', ['-Command',
+ 				`[System.IO.Directory]::CreateDirectory("${sub}"); Copy-Item -recurse "${logsPath}" "${sub}"; Compress-Archive -Path "${sub}" -DestinationPath "${outZip}"`],
+ 				{ cwd: logsPath },
+ 				callback);
++<<<<<<< .our
++		default:
++			return cp.execFile('zip', ['-r', outZip, '.'], { cwd: logsPath }, callback);
++	}
++}
++=======
++
+ 		default:
+ 			return cp.execFile('zip', ['-r', outZip, '.'], { cwd: logsPath }, callback);
+ 	}
+ }
++>>>>>>> .their
+changed in both
+  base   100644 3c042ea5a6717c573bde6b7bbcea4d7de5068dd8 src/vs/code/electron-main/main.ts
+  our    100644 dbe95eb11e2541904621bd2a4f74434f9f66801b src/vs/code/electron-main/main.ts
+  their  100644 dd09f17471c9a1a21d25d204c92ff48f3d0b9820 src/vs/code/electron-main/main.ts
+@@ -206,9 +206,15 @@
+ 					}
+ 
+ 					// Log uploader
++<<<<<<< .our
+ 					if (typeof environmentService.args['upload-logs'] !== 'undefined') {
+ 						return uploadLogs(channel, requestService, environmentService)
+ 							.then(() => TPromise.wrapError(new ExpectedError()));
++=======
++					if (environmentService.args['upload-logs']) {
++						return import('vs/code/electron-main/logUploader').then(logUploader =>
++							logUploader.uploadLogs(channel));
++>>>>>>> .their
+ 					}
+ 
+ 					logService.trace('Sending env to running instance...');
+changed in both
+  base   100644 184147fff5f71cbb839ee940b44b0312a60e1b64 src/vs/platform/environment/common/environment.ts
+  our    100644 52431b2e260012bfee9b7964e1e56089ce2601ab src/vs/platform/environment/common/environment.ts
+  their  100644 65536466bd34cbd4b819ac5b9f5a01f0e069e94b src/vs/platform/environment/common/environment.ts
+@@ -57,12 +57,18 @@
+ 	'disable-updates'?: string;
+ 	'disable-crash-reporter'?: string;
+ 	'skip-add-to-recently-opened'?: boolean;
++<<<<<<< .our
+ 	'max-memory'?: number;
+ 	'file-write'?: boolean;
+ 	'file-chmod'?: boolean;
+ 	'upload-logs'?: string;
+ 	'driver'?: string;
+ 	'driver-verbose'?: boolean;
++=======
++	'sudo-write'?: boolean;
++	'sudo-chmod'?: boolean;
++	'upload-logs'?: boolean;
++>>>>>>> .their
+ }
+ 
+ export const IEnvironmentService = createDecorator<IEnvironmentService>('environmentService');
+changed in both
+  base   100644 862f737db012de51ca80d2fd2b925c50fe7bcad5 src/vs/platform/environment/node/argv.ts
+  our    100644 7183c2471eb1043a8263fbc1a8a7863b41344622 src/vs/platform/environment/node/argv.ts
+  their  100644 ca3f36fbe9d230e80e3c059c6edb58da78d5b195 src/vs/platform/environment/node/argv.ts
+@@ -65,9 +65,15 @@
+ 		'disable-crash-reporter',
+ 		'skip-add-to-recently-opened',
+ 		'status',
++<<<<<<< .our
+ 		'file-write',
+ 		'file-chmod',
+ 		'driver-verbose'
++=======
++		'sudo-write',
++		'sudo-chmod',
++		'upload-logs'
++>>>>>>> .their
+ 	],
+ 	alias: {
+ 		add: 'a',
+@@ -177,8 +183,15 @@
+ 	'--inspect-extensions': localize('inspect-extensions', "Allow debugging and profiling of extensions. Check the developer tools for the connection URI."),
+ 	'--inspect-brk-extensions': localize('inspect-brk-extensions', "Allow debugging and profiling of extensions with the extension host being paused after start. Check the developer tools for the connection URI."),
+ 	'--disable-gpu': localize('disableGPU', "Disable GPU hardware acceleration."),
++<<<<<<< .our
+ 	'--upload-logs': localize('uploadLogs', "Uploads logs from current session to a secure endpoint."),
+ 	'--max-memory': localize('maxMemory', "Max memory size for a window (in Mbytes).")
++=======
++	'-s, --status': localize('status', "Print process usage and diagnostics information."),
++	'-v, --version': localize('version', "Print version."),
++	'-h, --help': localize('help', "Print usage."),
++	'--upload-logs': localize('uploadLogs', "Upload logs.")
++>>>>>>> .their
+ };
+ 
+ export function formatOptions(options: { [name: string]: string; }, columns: number): string {

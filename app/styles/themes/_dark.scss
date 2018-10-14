@@ -230,11 +230,11 @@ body.theme-dark {
   --diff-selected-gutter-color: $blue-600;
   --diff-selected-text-color: var(--text-color);
 
-  --diff-add-background-color: darken($green-900, 10%);
-  --diff-add-border-color: darken($green-900, 10%);
-  --diff-add-gutter-color: darken($green-900, 10%);
-  --diff-add-gutter-background-color: darken($green-900, 13%);
-  --diff-add-inner-background-color: $green-900;
+  --diff-add-background-color: darken($green-900, 3%);
+  --diff-add-border-color: darken($green-900, 2%);
+  --diff-add-gutter-color: darken($green-900, 2%);
+  --diff-add-gutter-background-color: darken($green-900, 8%);
+  --diff-add-inner-background-color: $green-600;
   --diff-add-text-color: var(--diff-text-color);
 
   --diff-delete-background-color: darken($red-900, 15%);
@@ -277,6 +277,7 @@ body.theme-dark {
   --syntax-tag-color: $green-400;
   --syntax-attribute-color: $purple-300;
   --syntax-link-color: $blue-300;
+  --syntax-header-color: $red-300;
 
   // Colors for form errors
   --error-color: $red;
@@ -302,4 +303,11 @@ body.theme-dark {
   --notification-banner-background: $gray-800;
   --notification-banner-border-color: $gray-700;
   --notification-ref-background: $gray-700;
+}
+
+// this emulates the cursor for the co-author input because it isn't exactly
+// an input element. credit for identify the right CSS class name goes to
+// this post: https://css-tricks.com/snippets/css/solarized-theme-for-codemirror-and-prettify/
+.CodeMirror-cursor {
+  border-left-color: currentColor;
 }

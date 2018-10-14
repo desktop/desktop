@@ -63,6 +63,7 @@ export function parseRemote(url: string): IGitRemoteURL | null {
 }
 
 export interface IRepositoryIdentifier {
+  readonly hostname: string | null
   readonly owner: string
   readonly name: string
 }
@@ -76,10 +77,9 @@ export function parseRepositoryIdentifier(
   // URL. If not, we'll try treating it as a GitHub repository owner/name
   // shortcut.
   if (parsed) {
-    const owner = parsed.owner
-    const name = parsed.name
+    const { owner, name, hostname } = parsed
     if (owner && name) {
-      return { owner, name }
+      return { owner, name, hostname }
     }
   }
 
@@ -87,7 +87,7 @@ export function parseRepositoryIdentifier(
   if (pieces.length === 2 && pieces[0].length > 0 && pieces[1].length > 0) {
     const owner = pieces[0]
     const name = pieces[1]
-    return { owner, name }
+    return { owner, name, hostname: null }
   }
 
   return null

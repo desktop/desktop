@@ -3,7 +3,7 @@ import { expect } from 'chai'
 
 import { Repository } from '../../../src/models/repository'
 import { reset, resetPaths, GitResetMode } from '../../../src/lib/git/reset'
-import { getStatus } from '../../../src/lib/git/status'
+import { getStatusOrThrow } from '../../helpers/status'
 import { setupFixtureRepository } from '../../helpers/repositories'
 import { GitProcess } from 'dugite'
 
@@ -27,7 +27,7 @@ describe('git/reset', () => {
 
       await reset(repository!, GitResetMode.Hard, 'HEAD')
 
-      const status = await getStatus(repository!)
+      const status = await getStatusOrThrow(repository!)
       expect(status.workingDirectory.files.length).to.equal(0)
     })
   })
@@ -53,7 +53,7 @@ describe('git/reset', () => {
         repoPath
       )
 
-      const status = await getStatus(repository!)
+      const status = await getStatusOrThrow(repository!)
       expect(status.workingDirectory.files.length).to.equal(0)
     })
   })

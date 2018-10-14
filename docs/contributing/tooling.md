@@ -6,11 +6,18 @@ Recommended packages:
 
 * [atom-typescript](https://atom.io/packages/atom-typescript) - syntax
   highlighting and intellisense for TypeScript
-* [atom-build-npm-apm](https://atom.io/packages/build-npm-apm) - invoke
+* [build-npm-apm](https://atom.io/packages/build-npm-apm) - invoke
   all npm scripts straight from the editor by pressing F7 (requires
-  [atom-build](https://atom.io/packages/build))
+  [build](https://atom.io/packages/build))
 * [linter](https://atom.io/packages/linter) and
   [linter-tslint](https://atom.io/packages/linter-tslint) - shows linter errors and warning in the editor
+
+You can install them all at once with:
+
+```shellsession
+apm i atom-typescript build-npm build busy-signal linter-tslint linter linter-ui-default intentions
+```
+If atom prompts you to install any additional dependencies for these packages, be sure to say yes.
 
 ### [Visual Studio Code](https://code.visualstudio.com/)
 

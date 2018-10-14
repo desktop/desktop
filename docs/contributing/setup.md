@@ -6,13 +6,11 @@ You will need to install these tools on your machine:
 
 ### macOS
 
- - [Node.js v8.11.2](https://nodejs.org/dist/v8.11.2/)
- - [Python 2.7](https://www.python.org/downloads/mac-osx/)
- - Xcode and Xcode Command Line Tools (Xcode -> Preferences -> Downloads)
+See [mac-deps-setup.md](./setup-macos.md).
 
 ### Windows
 
- - [Node.js v8.11.2](https://nodejs.org/dist/v8.11.2/)
+ - [Node.js v8.11.4](https://nodejs.org/dist/v8.11.4/)
     - *Make sure you allow the Node.js installer to add node to the PATH.*
  - [Python 2.7](https://www.python.org/downloads/windows/)
     - *Let Python install into the default suggested path (`c:\Python27`), otherwise you'll have
@@ -61,10 +59,10 @@ $ sudo ln -s `find /usr/lib64/ -type f -name "libreadline.so.7.0"` /usr/lib64/li
 
 ### Ubuntu 16.04
 
-First, install curl:
+First, install curl and a GPG program:
 
 ```shellsession
-$ sudo apt install curl
+$ sudo apt install curl gnupg
 ```
 
 Then add the NodeJS package repository for 8.x:
@@ -123,10 +121,10 @@ versions look similar to the below output:
 
 ```shellsession
 $ node -v
-v8.11.2
+v8.11.4
 
 $ yarn -v
-1.5.1
+1.9.4
 
 $ python --version
 Python 2.7.13

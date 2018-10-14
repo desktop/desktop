@@ -96,17 +96,44 @@ export class AheadBehindUpdater {
     this.comparisonCache.set(from, to, value)
   }
 
-  public schedule(currentBranch: Branch, branches: ReadonlyArray<Branch>) {
-    // remove any queued work to prioritize this new set of tasks
+  /**
+   * Stop processing any ahead/behind computations for the current repository
+   */
+  public clear() {
     this.aheadBehindQueue.end()
+  }
+
+  /**
+   * Schedule ahead/behind computations for all available branches in
+   * the current repository, where they haven't been already computed
+   *
+   * @param currentBranch The current branch of the repository
+   * @param defaultBranch The default branch (if defined)
+   * @param recentBranches Recent branches in the repository
+   * @param allBranches All known branches in the repository
+   */
+  public schedule(
+    currentBranch: Branch,
+    defaultBranch: Branch | null,
+    recentBranches: ReadonlyArray<Branch>,
+    allBranches: ReadonlyArray<Branch>
+  ) {
+    this.clear()
 
     const from = currentBranch.tip.sha
 
-    const branchesNotInCache = branches
-      .map(b => b.tip.sha)
-      .filter(to => !this.comparisonCache.has(from, to))
+    const filterBranchesNotInCache = (branches: ReadonlyArray<Branch>) => {
+      return branches
+        .map(b => b.tip.sha)
+        .filter(to => !this.comparisonCache.has(from, to))
+    }
 
-    const newRefsToCompare = new Set<string>(branchesNotInCache)
+    const otherBranches = [...recentBranches, ...allBranches]
+
+    const branches =
+      defaultBranch !== null ? [defaultBranch, ...otherBranches] : otherBranches
+
+    const newRefsToCompare = new Set<string>(filterBranchesNotInCache(branches))
 
     log.debug(
       `[AheadBehindUpdater] - found ${

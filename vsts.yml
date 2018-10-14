@@ -1,62 +1,82 @@
-phases:
-- phase: Windows
-  queue: Hosted VS2017
-  steps:
-  - task: NodeTool@0
-    inputs:
-      versionSpec: "8.11.1"
-  - task: geeklearningio.gl-vsts-tasks-yarn.yarn-installer-task.YarnInstaller@2
-    inputs:
-      versionSpec: "1.5.1"
-  - script: |
-       yarn install --force
-    name: Install
-  - script: |
-      yarn lint && yarn build:prod
-    name: Build
-  - script: |
-      yarn test:setup && yarn test
-    name: Test
+jobs:
+  - job: Windows
+    pool:
+      vmImage: vs2017-win2016
+    steps:
+      - task: NodeTool@0
+        inputs:
+          versionSpec: '8.11.1'
+      - task: geeklearningio.gl-vsts-tasks-yarn.yarn-installer-task.YarnInstaller@2
+        inputs:
+          versionSpec: '1.5.1'
+      - script: |
+          yarn install --force
+        name: Install
+      - script: |
+          yarn build:prod
+        name: Build
+      - script: |
+          yarn test:setup && yarn test
+        name: Test
 
-- phase: Linux
-  queue: Hosted Linux Preview
-  steps:
-  - script: |
-      apt-get update
-      apt-get install -y --no-install-recommends libsecret-1-dev xvfb fakeroot dpkg rpm xz-utils xorriso zsync libxss1 libgconf2-4
-  - task: NodeTool@0
-    inputs:
-      versionSpec: "8.11.1"
-  - task: geeklearningio.gl-vsts-tasks-yarn.yarn-installer-task.YarnInstaller@2
-    inputs:
-      versionSpec: "1.5.1"
-  - script: |
-       yarn install --force
-    name: Install
-  - script: |
-       yarn lint && yarn build:prod
-    name: Build
-  - script: |
-       export DISPLAY=':99.0'
-       Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-       yarn test:setup && yarn test
-    name: Test
+  - job: Linux
+    pool:
+      vmImage: ubuntu-16.04
+    steps:
+      - script: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libsecret-1-dev xvfb fakeroot dpkg rpm xz-utils xorriso zsync libxss1 libgconf2-4 libgtk-3-0
+      - task: NodeTool@0
+        inputs:
+          versionSpec: '8.11.1'
+      - task: geeklearningio.gl-vsts-tasks-yarn.yarn-installer-task.YarnInstaller@2
+        inputs:
+          versionSpec: '1.5.1'
+      - script: |
+          yarn install --force
+        name: Install
+      - script: |
+          yarn build:prod
+        name: Build
+      - script: |
+          export DISPLAY=':99.0'
+          Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+          yarn test:setup && yarn test
+        name: Test
 
-- phase: macOS
-  queue: Hosted macOS Preview
-  steps:
-  - task: NodeTool@0
-    inputs:
-      versionSpec: "8.11.1"
-  - task: geeklearningio.gl-vsts-tasks-yarn.yarn-installer-task.YarnInstaller@2
-    inputs:
-      versionSpec: "1.5.1"
-  - script: |
-      yarn install --force
-    name: Install
-  - script: |
-       yarn lint && yarn build:prod
-    name: Build
-  - script: |
-      yarn test:setup && yarn test
-    name: Test
+  - job: macOS
+    pool:
+      vmImage: xcode9-macos10.13
+    steps:
+      - task: NodeTool@0
+        inputs:
+          versionSpec: '8.11.1'
+      - script: |
+          yarn install --force
+        name: Install
+      - script: |
+          yarn build:prod
+        name: Build
+      - script: |
+          yarn test:setup && yarn test
+        name: Test
+
+  - job: Lint
+    pool:
+      vmImage: ubuntu-16.04
+    steps:
+      - script: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libsecret-1-dev
+      - task: NodeTool@0
+        inputs:
+          versionSpec: '8.11.1'
+      - task: geeklearningio.gl-vsts-tasks-yarn.yarn-installer-task.YarnInstaller@2
+        inputs:
+          versionSpec: '1.5.1'
+      - script: |
+          yarn install --force
+        name: Install
+      - script: |
+          yarn lint
+        name: Lint

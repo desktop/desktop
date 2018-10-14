@@ -28,6 +28,7 @@ These editors are currently supported:
  - [Visual Studio Code](https://code.visualstudio.com/) - both stable and Insiders channel
  - [Sublime Text](https://www.sublimetext.com/)
  - [ColdFusion Builder](https://www.adobe.com/products/coldfusion-builder.html)
+ - [Typora](https://typora.io/)
 
 These are defined in an enum at the top of the file:
 
@@ -38,6 +39,7 @@ export enum ExternalEditor {
   VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
   SublimeText = 'Sublime Text',
   CFBuilder = 'ColdFusion Builder',
+  Typora = 'Typora',
 }
 ```
 
@@ -164,7 +166,7 @@ function isExpectedInstallation(
     ...
     case ExternalEditor.VisualStudioCode:
       return (
-        displayName === 'Visual Studio Code' &&
+        displayName.startsWith('Microsoft Visual Studio Code') &&
         publisher === 'Microsoft Corporation'
       )
     ...
@@ -216,6 +218,7 @@ These editors are currently supported:
      - To use Brackets the Command Line shortcut must be installed.
        - This can be done by opening Brackets, choosing File > Install Command Line Shortcut
  - [WebStorm](https://www.jetbrains.com/webstorm/)
+ - [Typora](https://typora.io/)
 
 These are defined in an enum at the top of the file:
 
@@ -233,6 +236,7 @@ export enum ExternalEditor {
   TextMate = 'TextMate',
   Brackets = 'Brackets',
   WebStorm = 'WebStorm',
+  Typora = 'Typora',
 }
 ```
 
@@ -316,6 +320,7 @@ These editors are currently supported:
  - [Atom](https://atom.io/)
  - [Visual Studio Code](https://code.visualstudio.com/) - both stable and Insiders channel
  - [Sublime Text](https://www.sublimetext.com/)
+ - [Typora](https://typora.io/)
 
 These are defined in an enum at the top of the file:
 
@@ -325,6 +330,7 @@ export enum ExternalEditor {
   VisualStudioCode = 'Visual Studio Code',
   VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
   SublimeText = 'Sublime Text',
+  Typora = 'Typora',
 }
 ```
 
@@ -357,6 +363,7 @@ export async function getAvailableEditors(): Promise<
     getEditorPath(ExternalEditor.Atom),
     getEditorPath(ExternalEditor.VisualStudioCode),
     getEditorPath(ExternalEditor.SublimeText),
+    getEditorPath(ExternalEditor.Typora),
   ])
 
   ...

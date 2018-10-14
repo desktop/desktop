@@ -3,7 +3,7 @@
   "productName": "GitHub Desktop",
   "bundleID": "com.github.GitHubClient",
   "companyName": "GitHub, Inc.",
-  "version": "1.2.7-test1",
+  "version": "1.4.3-beta1",
   "main": "./main.js",
   "repository": {
     "type": "git",
@@ -25,7 +25,8 @@
     "codemirror-mode-elixir": "1.1.1",
     "deep-equal": "^1.0.1",
     "dexie": "^2.0.0",
-    "dugite": "^1.67.0",
+    "double-ended-queue": "^2.1.0-0",
+    "dugite": "^1.78.0",
     "electron-window-state": "^4.0.2",
     "event-kit": "^2.0.0",
     "file-uri-to-path": "0.0.2",
@@ -57,8 +58,8 @@
   },
   "devDependencies": {
     "devtron": "^1.4.0",
-    "electron-debug": "^1.1.0",
-    "electron-devtools-installer": "^2.2.3",
+    "electron-debug": "^2.0.0",
+    "electron-devtools-installer": "^2.2.4",
     "temp": "^0.8.3",
     "webpack-hot-middleware": "^2.10.0"
   }

@@ -1,11 +1,34 @@
-productName: "GitHubDesktop"
-artifactName: "${productName}-${os}-${arch}-${version}.${ext}"
+productName: 'GitHubDesktop'
+artifactName: '${productName}-${os}-${arch}-${version}.${ext}'
 linux:
-  category: "GNOME;GTK;Development"
-  packageCategory: "GNOME;GTK;Development"
-  icon: "app/static/logos"
+  category: 'GNOME;GTK;Development'
+  packageCategory: 'GNOME;GTK;Development'
+  icon: 'app/static/logos'
   target:
     - deb
     - rpm
     - AppImage
-  maintainer: "GitHub, Inc <opensource+desktop@github.com>"
+  maintainer: 'GitHub, Inc <opensource+desktop@github.com>'
+deb:
+  depends:
+    # default Electron dependencies
+    - gconf2
+    - gconf-service
+    - libnotify4
+    - libappindicator1
+    - libxtst6
+    - libnss3
+    # dugite-native dependencies
+    - libcurl3
+    # keytar dependencies
+    - libsecret-1-0
+rpm:
+  depends:
+    # default Electron dependencies
+    - libXScrnSaver
+    - libappindicator
+    - libnotify
+    # dugite-native dependencies
+    - libcurl
+    # keytar dependencies
+    - libsecret

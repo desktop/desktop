@@ -7,9 +7,15 @@ import { Repository } from '../../../src/models/repository'
 import {
   isGitRepository,
   getTopLevelWorkingDirectory,
+  isBareRepository,
 } from '../../../src/lib/git/rev-parse'
 import { git } from '../../../src/lib/git/core'
-import { setupFixtureRepository, mkdirSync } from '../../helpers/repositories'
+import {
+  setupFixtureRepository,
+  mkdirSync,
+  setupEmptyRepository,
+} from '../../helpers/repositories'
+import { GitProcess } from 'dugite'
 
 describe('git/rev-parse', () => {
   let repository: Repository | null = null
@@ -28,6 +34,40 @@ describe('git/rev-parse', () => {
     it('should return false for a directory', async () => {
       const result = await isGitRepository(path.dirname(repository!.path))
       expect(result).to.equal(false)
+    })
+  })
+
+  describe('isBareRepository', () => {
+    it('returns false for default initialized repository', async () => {
+      const repository = await setupEmptyRepository()
+      const result = await isBareRepository(repository.path)
+      expect(result).is.false
+    })
+
+    it('returns true for initialized bare repository', async () => {
+      const path = await mkdirSync('no-repository-here')
+      await GitProcess.exec(['init', '--bare'], path)
+      const result = await isBareRepository(path)
+      expect(result).is.true
+    })
+
+    it('returns false for empty directory', async () => {
+      const path = await mkdirSync('no-actual-repository-here')
+      const result = await isBareRepository(path)
+      expect(result).is.false
+    })
+
+    it('throws error for missing directory', async () => {
+      const rootPath = await mkdirSync('no-actual-repository-here')
+      const missingPath = path.join(rootPath, 'missing-folder')
+      let errorThrown = false
+      try {
+        await isBareRepository(missingPath)
+      } catch {
+        errorThrown = true
+      }
+
+      expect(errorThrown).is.true
     })
   })
 

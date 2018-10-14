@@ -78,6 +78,7 @@ export class DialogHeader extends React.Component<IDialogHeaderProps, {}> {
         <h1 id={this.props.titleId}>{this.props.title}</h1>
         {spinner}
         {this.renderCloseButton()}
+        {this.props.children}
       </header>
     )
   }

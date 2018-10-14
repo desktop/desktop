@@ -1,0 +1,190 @@
+changed in both
+  base   100644 7314589644ac972ec61a9b0bfcde867271351298 src/vs/base/common/glob.ts
+  our    100644 6ec8e429211b4bfe577a5acce697c639e25f14de src/vs/base/common/glob.ts
+  their  100644 6c148c0a0d78baafb18f4a29f47218b28d3a5eae src/vs/base/common/glob.ts
+@@ -256,6 +256,8 @@
+ 	 * Simplify patterns for use as exclusion filters during tree traversal to skip entire subtrees. Cannot be used outside of a tree traversal.
+ 	 */
+ 	trimForExclusions?: boolean;
++
++	caseSensitive?: boolean;
+ }
+ 
+ interface ParsedStringPattern {
+@@ -298,16 +300,22 @@
+ 	// Whitespace trimming
+ 	pattern = pattern.trim();
+ 
++	if (!options.caseSensitive) {
++		pattern = pattern.toLowerCase();
++	}
++
++	// Check cache
++	const patternKey = `${pattern}_${!!options.trimForExclusions}_${!!options.caseSensitive}`;
++	let parsedPattern: ParsedStringPattern;
++	let match: RegExpExecArray;
++
+ 	// Check cache
+-	const patternKey = `${pattern}_${!!options.trimForExclusions}`;
+-	let parsedPattern = CACHE.get(patternKey);
+-	if (parsedPattern) {
+-		return wrapRelativePattern(parsedPattern, arg1);
++	if (CACHE.has(patternKey)) {
++		parsedPattern = CACHE.get(patternKey);
+ 	}
+ 
+ 	// Check for Trivias
+-	let match: RegExpExecArray;
+-	if (T1.test(pattern)) { // common pattern: **/*.txt just need endsWith check
++	else if (T1.test(pattern)) { // common pattern: **/*.txt just need endsWith check
+ 		const base = pattern.substr(4); // '**/*'.length === 4
+ 		parsedPattern = function (path, basename) {
+ 			return path && strings.endsWith(path, base) ? pattern : null;
+@@ -330,7 +338,16 @@
+ 	// Cache
+ 	CACHE.set(patternKey, parsedPattern);
+ 
+-	return wrapRelativePattern(parsedPattern, arg1);
++	const relativePattern = wrapRelativePattern(parsedPattern, arg1);
++	return options.caseSensitive ?
++		relativePattern :
++		wrapCaseInsensitivePattern(relativePattern);
++}
++
++function wrapCaseInsensitivePattern(parsedPattern: ParsedStringPattern): ParsedStringPattern {
++	return function (path, basename) {
++		return parsedPattern(path && path.toLowerCase(), basename);
++	};
+ }
+ 
+ function wrapRelativePattern(parsedPattern: ParsedStringPattern, arg2: string | IRelativePattern): ParsedStringPattern {
+changed in both
+  base   100644 ab62f52ccbef7cac373a7e5b3a08a6ac803a3a45 src/vs/platform/files/common/files.ts
+  our    100644 72b73ed86d2a2250bc747d5e4821c82038379d3b src/vs/platform/files/common/files.ts
+  their  100644 3050b37c5609a506755f782b8d8bd921430d9855 src/vs/platform/files/common/files.ts
+@@ -666,6 +666,7 @@
+ 		eol: string;
+ 		hotExit: string;
+ 		useExperimentalFileWatcher: boolean;
++		caseSensitiveGlobPatterns: boolean;
+ 	};
+ }
+ 
+changed in both
+  base   100644 3090197c532c28cabb1e2110c29df2226005a105 src/vs/platform/search/common/search.ts
+  our    100644 fff587381bac43d30255840e3244372b02a749ff src/vs/platform/search/common/search.ts
+  their  100644 5bfdb482049d86a3645a29deed2a79fc0f592eac src/vs/platform/search/common/search.ts
+@@ -84,7 +84,11 @@
+ 	disregardIgnoreFiles?: boolean;
+ 	disregardExcludeSettings?: boolean;
+ 	ignoreSymlinks?: boolean;
++<<<<<<< .our
+ 	maxFileSize?: number;
++=======
++	caseSensitivePatterns?: boolean;
++>>>>>>> .their
+ }
+ 
+ export interface IQueryOptions extends ICommonQueryOptions<uri> {
+changed in both
+  base   100644 8bedc8f8563957228553e5a5b7ce76d6c330b153 src/vs/workbench/parts/files/electron-browser/files.contribution.ts
+  our    100644 39594b253a5e15c246b9e7e130e1e282a55088a3 src/vs/workbench/parts/files/electron-browser/files.contribution.ts
+  their  100644 5bcb7159a57815be9eb5ecdb26339ed767b180c6 src/vs/workbench/parts/files/electron-browser/files.contribution.ts
+@@ -307,10 +307,17 @@
+ 			'type': 'string',
+ 			'description': nls.localize('defaultLanguage', "The default language mode that is assigned to new files.")
+ 		},
++<<<<<<< .our
+ 		'files.maxMemoryForLargeFilesMB': {
+ 			'type': 'number',
+ 			'default': 4096,
+ 			'markdownDescription': nls.localize('maxMemoryForLargeFilesMB', "Controls the memory available to VS Code after restart when trying to open large files. Same effect as specifying `--max-memory=NEWSIZE` on the command line.")
++=======
++		'files.caseSensitiveGlobPatterns': {
++			'type': 'boolean',
++			'default': false,
++			'description': nls.localize('caseSensitiveGlobPatterns', "Apply glob patterns case-sensitively, anywhere that they are used.")
++>>>>>>> .their
+ 		}
+ 	}
+ });
+changed in both
+  base   100644 f34af09e3107416bf55175577738e6694f41abf6 src/vs/workbench/parts/search/common/queryBuilder.ts
+  our    100644 08bea8ac1cd1ac176f945e3b17a9312781a25be1 src/vs/workbench/parts/search/common/queryBuilder.ts
+  their  100644 2ca50a053a533770a46fc15ae06f8f65b4039392 src/vs/workbench/parts/search/common/queryBuilder.ts
+@@ -78,7 +78,13 @@
+ 			contentPattern.wordSeparators = this.configurationService.getValue<ISearchConfiguration>().editor.wordSeparators;
+ 		}
+ 
++<<<<<<< .our
+ 		const query: ISearchQuery = {
++=======
++		const caseSensitivePatterns = this.configurationService.getValue<ISearchConfiguration>().files.caseSensitiveGlobPatterns;
++
++		const query = <ISearchQuery>{
++>>>>>>> .their
+ 			type,
+ 			folderQueries,
+ 			usingSearchPaths: !!(searchPaths && searchPaths.length),
+@@ -88,6 +94,7 @@
+ 				: options.filePattern,
+ 			excludePattern,
+ 			includePattern,
++			caseSensitivePatterns,
+ 			maxResults: options.maxResults,
+ 			sortByScore: options.sortByScore,
+ 			cacheKey: options.cacheKey,
+changed in both
+  base   100644 8742487da29f7350137609ed085c510728de8c45 src/vs/workbench/services/search/node/ripgrepTextSearch.ts
+  our    100644 56cb2ff5b994c5cedf419a218e3c64e8305f8766 src/vs/workbench/services/search/node/ripgrepTextSearch.ts
+  their  100644 125a81403ca993d3b9c2f90a294c3e9b095d0109 src/vs/workbench/services/search/node/ripgrepTextSearch.ts
+@@ -445,9 +445,11 @@
+ 	const args = ['--hidden', '--heading', '--line-number', '--color', 'ansi', '--colors', 'path:none', '--colors', 'line:none', '--colors', 'match:fg:red', '--colors', 'match:style:nobold'];
+ 	args.push(config.contentPattern.isCaseSensitive ? '--case-sensitive' : '--ignore-case');
+ 
++	const globArgName = config.caseSensitivePatterns ? '-g' : '--iglob';
++
+ 	// includePattern can't have siblingClauses
+ 	foldersToIncludeGlobs(config.folderQueries, config.includePattern).forEach(globArg => {
+-		args.push('-g', globArg);
++		args.push(globArgName, globArg);
+ 	});
+ 
+ 	let siblingClauses: glob.IExpression;
+@@ -457,10 +459,10 @@
+ 	const universalExcludes = findUniversalExcludes(config.folderQueries);
+ 	const rgGlobs = foldersToRgExcludeGlobs(config.folderQueries, config.excludePattern, universalExcludes);
+ 	rgGlobs.globArgs
+-		.forEach(rgGlob => args.push('-g', `!${rgGlob}`));
++		.forEach(rgGlob => args.push(globArgName, `!${rgGlob}`));
+ 	if (universalExcludes) {
+ 		universalExcludes
+-			.forEach(exclude => args.push('-g', `!${trimTrailingSlash(exclude)}`));
++			.forEach(exclude => args.push(globArgName, `!${trimTrailingSlash(exclude)}`));
+ 	}
+ 	siblingClauses = rgGlobs.siblingClauses;
+ 
+changed in both
+  base   100644 1c5c4947e7a76b5e78d73c1a8409eea905631cfa src/vs/workbench/services/search/node/search.ts
+  our    100644 3bb3cc19b4d2b15d628016856b37c5db9c390c5b src/vs/workbench/services/search/node/search.ts
+  their  100644 440b77ea93500e78a40645e3d8af99ed95857347 src/vs/workbench/services/search/node/search.ts
+@@ -26,6 +26,7 @@
+ 	filePattern?: string;
+ 	excludePattern?: IExpression;
+ 	includePattern?: IExpression;
++	caseSensitivePatterns?: boolean;
+ 	contentPattern?: IPatternInfo;
+ 	maxResults?: number;
+ 	exists?: boolean;
+changed in both
+  base   100644 b6307b38dd40d18116241570aeff80ac90b298e4 src/vs/workbench/services/search/node/searchService.ts
+  our    100644 5bf7b93503cb5ecead2832c567244eabe2f261f3 src/vs/workbench/services/search/node/searchService.ts
+  their  100644 30c3f9f72937f0debb3aefef12bf48d5a5a9468e src/vs/workbench/services/search/node/searchService.ts
+@@ -371,6 +371,7 @@
+ 			filePattern: query.filePattern,
+ 			excludePattern: query.excludePattern,
+ 			includePattern: query.includePattern,
++			caseSensitivePatterns: query.caseSensitivePatterns,
+ 			maxResults: query.maxResults,
+ 			exists: query.exists,
+ 			sortByScore: query.sortByScore,

@@ -3,7 +3,7 @@
 [![Travis](https://img.shields.io/travis/desktop/desktop.svg?style=flat-square&label=Travis+CI)](https://travis-ci.org/desktop/desktop)
 [![CircleCI](https://img.shields.io/circleci/project/github/desktop/desktop.svg?style=flat-square&label=CircleCI)](https://circleci.com/gh/desktop/desktop)
 [![AppVeyor Build Status](https://img.shields.io/appveyor/ci/github-windows/desktop/master.svg?style=flat-square&label=AppVeyor&logo=appveyor)](https://ci.appveyor.com/project/github-windows/desktop/branch/master)
-[![VSTS Build Status](https://github.visualstudio.com/_apis/public/build/definitions/845028c2-21f3-4eb1-80b9-215d3e9b1d08/3/badge)](https://github.visualstudio.com/Desktop/_build/index?definitionId=3)
+[![Azure DevOps Pipelines Build Status](https://dev.azure.com/github/Desktop/_apis/build/status/Continuous%20Integration)](https://dev.azure.com/github/Desktop/_build/latest?definitionId=3)
 [![license](https://img.shields.io/github/license/desktop/desktop.svg?style=flat-square)](https://github.com/desktop/desktop/blob/master/LICENSE)
 ![90+% TypeScript](https://img.shields.io/github/languages/top/desktop/desktop.svg?style=flat-square&colorB=green)
 
@@ -42,8 +42,16 @@ beta channel to get access to early builds of Desktop:
 
  - [macOS](https://central.github.com/deployments/desktop/desktop/latest/darwin?env=beta)
  - [Windows](https://central.github.com/deployments/desktop/desktop/latest/win32?env=beta)
+ 
+## Is GitHub Desktop right for me? What are the primary areas of focus?
+
+[This document](https://github.com/desktop/desktop/blob/master/docs/process/what-is-desktop.md) describes the focus of GitHub Desktop and who the product is most useful for.
+
+And to see what the team is working on currently and in the near future, check out the [GitHub Desktop roadmap](https://github.com/desktop/desktop/blob/master/docs/process/roadmap.md).
 
 ## I have a problem with GitHub Desktop
+
+Note: The [GitHub Desktop Code of Conduct](https://github.com/desktop/desktop/blob/master/CODE_OF_CONDUCT.md) applies in all interactions relating to the GitHub Desktop project.
 
 First, please search the [open issues](https://github.com/desktop/desktop/issues?q=is%3Aopen)
 and [closed issues](https://github.com/desktop/desktop/issues?q=is%3Aclosed)
@@ -55,6 +63,10 @@ that are being tracked against Desktop, and some of these issues have workaround
 If you can't find an issue that matches what you're seeing, open a [new issue](https://github.com/desktop/desktop/issues/new/choose),
 choose the right template and provide us with enough information to investigate
 further.
+
+## The issue I reported isn't fixed yet. What can I do?
+
+If nobody has responded to your issue in a few days, you're welcome to respond to it with a friendly ping in the issue. Please do not respond more than a second time if nobody has responded. The GitHub Desktop maintainers are constrained in time and resources, and diagnosing individual configurations can be difficult and time consuming. While we'll try to at least get you pointed in the right direction, we can't guarantee we'll be able to dig too deeply into any one person's issue.
 
 ## How can I contribute to GitHub Desktop?
 
