@@ -10,6 +10,7 @@ import {
   WorkingDirectoryFileChange,
   AppFileStatus,
 } from '../../models/status'
+import { Octicon, OcticonSymbol } from '../octicons'
 
 interface IMergeConflictsWarningProps {
   readonly dispatcher: Dispatcher
@@ -23,8 +24,10 @@ const titleString = __DARWIN__
   : 'Resolve conflicts before merging'
 
 const submitButtonString = __DARWIN__
-  ? 'Continue To Commit'
+  ? 'Continue to Commit'
   : 'Continue to commit'
+
+const openEditorString = __DARWIN__ ? 'Open in Editor' : 'Open in editor'
 
 /**
  * Modal to tell the user their merge encountered conflicts
@@ -53,13 +56,13 @@ export class MergeConflictsWarning extends React.Component<
 
   private renderFileWithoutConflicts(path: string): JSX.Element {
     return (
-      <li>
-        {/* <icon /> */}
-        <div>
-          <div>{path}</div>
-          <div>No conflicts remaining</div>
+      <li className="unmerged-file-status-resolved">
+        <Octicon symbol={OcticonSymbol.fileCode} />
+        <div className="column-left">
+          <div className="file-path">{path}</div>
+          <div className="file-conflicts-status">No conflicts remaining</div>
         </div>
-        {/* <icon /> */}
+        <Octicon symbol={OcticonSymbol.check} />
       </li>
     )
   }
@@ -70,13 +73,13 @@ export class MergeConflictsWarning extends React.Component<
   ): JSX.Element {
     const message = conflicts === 1 ? `1 conflict` : `${conflicts} conflicts`
     return (
-      <li>
-        {/* <icon /> */}
-        <div>
-          <div>{path}</div>
-          <div>{message}</div>
+      <li className="unmerged-file-status-conflicts">
+        <Octicon symbol={OcticonSymbol.fileCode} />
+        <div className="column-left">
+          <div className="file-path">{path}</div>
+          <div className="file-conflicts-status">{message}</div>
         </div>
-        <button>Open in editor</button>
+        <button className="button-component">{openEditorString}</button>
       </li>
     )
   }
@@ -96,7 +99,11 @@ export class MergeConflictsWarning extends React.Component<
   }
 
   private renderUnmergedFiles(files: Array<WorkingDirectoryFileChange>) {
-    return <ul>{files.map(this.renderUnmergedFile)}</ul>
+    return (
+      <ul className="unmerged-file-statuses">
+        {files.map(f => this.renderUnmergedFile(f))}
+      </ul>
+    )
   }
 
   private getUnmergedFiles() {
@@ -120,7 +127,7 @@ export class MergeConflictsWarning extends React.Component<
     const unmergedFiles = this.getUnmergedFiles()
     return (
       <Dialog
-        id="merge-conflicts-warning"
+        id="merge-conflicts-list"
         title={titleString}
         onDismissed={this.onCancel}
         onSubmit={this.onSubmit}

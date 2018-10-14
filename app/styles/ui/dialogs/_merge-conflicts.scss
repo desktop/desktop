@@ -1,0 +1,42 @@
+@import '../../mixins';
+
+dialog#merge-conflicts-list {
+  width: 450px;
+
+  ul {
+    list-style: none;
+    padding: 0;
+
+    :last-of-type(li) {
+      margin-bottom: 55px;
+    }
+
+    li.unmerged-file-status-resolved,
+    li.unmerged-file-status-conflicts {
+      margin-bottom: 20px;
+      display: flex;
+      flex-flow: row nowrap;
+
+      .octicon {
+        margin-right: 10px;
+      }
+
+      .column-left {
+        display: flex;
+        flex-flow: column nowrap;
+        align-items: start;
+      }
+
+      :last-child {
+        margin-left: auto;
+      }
+    }
+
+    .unmerged-file-status-resolved .file-conflicts-status {
+      color: $green;
+    }
+    .unmerged-file-status-conflicts .file-conflicts-status {
+      color: $orange;
+    }
+  }
+}
