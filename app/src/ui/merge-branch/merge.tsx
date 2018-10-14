@@ -119,7 +119,8 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
       currentBranch == null ||
       selectedBranch == null ||
       currentBranch.name === selectedBranch.name ||
-      commitCount == null
+      commitCount == null ||
+      commitCount === 0
     ) {
       return null
     }
