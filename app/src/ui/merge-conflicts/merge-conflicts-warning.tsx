@@ -11,6 +11,7 @@ import {
   AppFileStatus,
 } from '../../models/status'
 import { Octicon, OcticonSymbol } from '../octicons'
+import { abortMerge } from '../../lib/git'
 
 interface IMergeConflictsWarningProps {
   readonly dispatcher: Dispatcher
@@ -28,6 +29,7 @@ const submitButtonString = __DARWIN__
   : 'Continue to commit'
 
 const openEditorString = __DARWIN__ ? 'Open in Editor' : 'Open in editor'
+const cancelButtonString = __DARWIN__ ? 'Abort Merge' : 'Abort merge'
 
 /**
  * Modal to tell the user their merge encountered conflicts
@@ -46,20 +48,19 @@ export class MergeConflictsWarning extends React.Component<
     )
     this.props.onDismissed()
   }
+
   /**
    *  aborts the merge and dismisses the modal
    */
-  private onCancel = () => {
-    // abort current merge here — see https://github.com/desktop/desktop/pull/5729
+  private onCancel = async () => {
+    await abortMerge(this.props.repository)
     this.props.onDismissed()
   }
 
   private renderCliLink(): JSX.Element {
     return (
       <div className="cli-link">
-        You can also
-        <a>open the command line</a>
-        to resolve
+        You can also <a>open the command line</a> to resolve
       </div>
     )
   }
@@ -138,6 +139,7 @@ export class MergeConflictsWarning extends React.Component<
       <Dialog
         id="merge-conflicts-list"
         title={titleString}
+        dismissable={false}
         onDismissed={this.onCancel}
         onSubmit={this.onSubmit}
       >
@@ -149,7 +151,7 @@ export class MergeConflictsWarning extends React.Component<
         <DialogFooter>
           <ButtonGroup>
             <Button type="submit">{submitButtonString}</Button>
-            <Button onClick={this.onCancel}>Close</Button>
+            <Button onClick={this.onCancel}>{cancelButtonString}</Button>
           </ButtonGroup>
         </DialogFooter>
       </Dialog>
