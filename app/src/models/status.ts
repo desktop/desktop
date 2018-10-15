@@ -191,7 +191,8 @@ export class WorkingDirectoryFileChange extends FileChange {
       this.path,
       this.status,
       selection,
-      this.oldPath
+      this.oldPath,
+      this.conflictMarkers
     )
   }
 }
