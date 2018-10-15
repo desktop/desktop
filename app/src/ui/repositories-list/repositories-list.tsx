@@ -176,7 +176,7 @@ export class RepositoriesList extends React.Component<
         className="new-repository-button"
         onClick={this.onNewRepositoryButtonClick}
       >
-        {__DARWIN__ ? 'Add' : 'Add'}
+        Add
         <Octicon symbol={OcticonSymbol.triangleDown} />
       </Button>
     )
