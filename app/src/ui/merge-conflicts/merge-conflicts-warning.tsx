@@ -65,7 +65,7 @@ export class MergeConflictsWarning extends React.Component<
     )
   }
 
-  private renderFileWithoutConflicts(path: string): JSX.Element {
+  private renderResolvedFile(path: string): JSX.Element {
     return (
       <li className="unmerged-file-status-resolved">
         <Octicon symbol={OcticonSymbol.fileCode} />
@@ -78,10 +78,7 @@ export class MergeConflictsWarning extends React.Component<
     )
   }
 
-  private renderFileWithConflicts(
-    path: string,
-    conflicts: number
-  ): JSX.Element {
+  private renderConflictedFile(path: string, conflicts: number): JSX.Element {
     const message = conflicts === 1 ? `1 conflict` : `${conflicts} conflicts`
     return (
       <li className="unmerged-file-status-conflicts">
@@ -100,9 +97,9 @@ export class MergeConflictsWarning extends React.Component<
   ): JSX.Element | null {
     switch (file.status) {
       case AppFileStatus.Resolved:
-        return this.renderFileWithoutConflicts(file.path)
+        return this.renderResolvedFile(file.path)
       case AppFileStatus.Conflicted:
-        return this.renderFileWithConflicts(file.path, file.conflictMarkers)
+        return this.renderConflictedFile(file.path, file.conflictMarkers)
       default:
         return null
     }
