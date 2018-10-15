@@ -1483,14 +1483,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const repository = selection.repository
     const repoState = this.repositoryStateCache.get(repository)
-    // check if conflicts exist by inspecting conflictState: null means no conflicts exist
-    const conflictsExist = repoState.conflictState !== null
+    const {conflictState } = repoState.changesState
 
-    if (conflictsExist) {
+    if (conflictState === null) {
       return
     }
 
-    const previousBranch = repoState.conflictState.branch
+    const previousBranch = conflictState.branch
     const currentBranchName = status.currentBranch
 
     // no current branch means something happened so bail
@@ -1502,7 +1501,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (previousBranch.name !== currentBranchName) {
       this.statsStore.recordMergeAbortedAfterConflicts()
       this.repositoryStateCache.update(repository, () => ({
-        conflictState: null,
+        changesState: { ...repoState.changesState, conflictState: null},
       }))
       this.emitUpdate()
       return
@@ -1529,7 +1528,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     this.repositoryStateCache.update(repository, () => ({
-      conflictState: null,
+      changesState: {...repoState.changesState, conflictState: null},
     }))
     this.emitUpdate()
   }
@@ -3954,10 +3953,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const repository = selection.repository
+    const state = this.repositoryStateCache.get(repository)
+
     this.repositoryStateCache.update(repository, () => ({
-      conflictState: {
+      changesState: {...state.changesState, conflictState: {
         branch: tip.branch,
-      },
+      }},
     }))
     this.emitUpdate()
   }
