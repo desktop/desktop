@@ -34,7 +34,8 @@ dialog#merge-conflicts-list {
         align-items: start;
       }
 
-      :last-child {
+      button:last-child,
+      .octicon:last-child {
         margin-left: auto;
       }
     }
