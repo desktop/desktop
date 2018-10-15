@@ -1483,7 +1483,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const repository = selection.repository
     const repoState = this.repositoryStateCache.get(repository)
-    const {conflictState } = repoState.changesState
+    const { conflictState } = repoState.changesState
 
     if (conflictState === null) {
       return
@@ -1501,7 +1501,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (previousBranch.name !== currentBranchName) {
       this.statsStore.recordMergeAbortedAfterConflicts()
       this.repositoryStateCache.update(repository, () => ({
-        changesState: { ...repoState.changesState, conflictState: null},
+        changesState: { ...repoState.changesState, conflictState: null },
       }))
       this.emitUpdate()
       return
@@ -1528,7 +1528,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     this.repositoryStateCache.update(repository, () => ({
-      changesState: {...repoState.changesState, conflictState: null},
+      changesState: { ...repoState.changesState, conflictState: null },
     }))
     this.emitUpdate()
   }
@@ -3956,9 +3956,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const state = this.repositoryStateCache.get(repository)
 
     this.repositoryStateCache.update(repository, () => ({
-      changesState: {...state.changesState, conflictState: {
-        branch: tip.branch,
-      }},
+      changesState: {
+        ...state.changesState,
+        conflictState: {
+          branch: tip.branch,
+        },
+      },
     }))
     this.emitUpdate()
   }
