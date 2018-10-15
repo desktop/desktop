@@ -1326,7 +1326,7 @@ export class Dispatcher {
    * Increments the `recordMergeSuccesfulAfterConflicts` metric
    */
   public recordMergeSuccesfulAfterConflicts() {
-    return this.statsStore.recordMergeSuccesfulAfterConflicts()
+    return this.statsStore.recordMergeSuccesAfterConflicts()
   }
 
   /**

@@ -67,8 +67,8 @@ const DefaultDailyMeasures: IDailyMeasures = {
   mergedWithLoadingHintCount: 0,
   mergedWithCleanMergeHintCount: 0,
   mergedWithConflictWarningHintCount: 0,
-  mergedSuccesfulAfterConflictsCount: 0,
-  mergesAbortedAfterConflictsCount: 0,
+  mergeSuccessAfterConflictsCount: 0,
+  mergeAbortedAfterConflictsCount: 0,
 }
 
 interface IOnboardingStats {
@@ -724,17 +724,16 @@ export class StatsStore {
   }
 
   /** Record when a conflicted merge was successfully completed by the user */
-  public async recordMergeSuccesfulAfterConflicts(): Promise<void> {
+  public async recordMergeSuccesAfterConflicts(): Promise<void> {
     return this.updateDailyMeasures(m => ({
-      mergedSuccesfulAfterConflictsCount:
-        m.mergedSuccesfulAfterConflictsCount + 1,
+      mergeSuccessAfterConflictsCount: m.mergeSuccessAfterConflictsCount + 1,
     }))
   }
 
   /** Record when a conflicted merge was aborted by the user */
   public async recordMergeAbortedAfterConflicts(): Promise<void> {
     return this.updateDailyMeasures(m => ({
-      mergesAbortedAfterConflictsCount: m.mergesAbortedAfterConflictsCount + 1,
+      mergeAbortedAfterConflictsCount: m.mergeAbortedAfterConflictsCount + 1,
     }))
   }
 

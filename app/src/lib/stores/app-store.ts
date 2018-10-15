@@ -1525,7 +1525,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       // if the tip is the same, no merge commit was created
       this.statsStore.recordMergeAbortedAfterConflicts()
     } else {
-      this.statsStore.recordMergeSuccesfulAfterConflicts()
+      this.statsStore.recordMergeSuccesAfterConflicts()
     }
 
     this.repositoryStateCache.update(repository, () => ({
