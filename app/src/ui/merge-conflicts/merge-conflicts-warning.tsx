@@ -79,7 +79,11 @@ export class MergeConflictsWarning extends React.Component<
   }
 
   private renderConflictedFile(path: string, conflicts: number): JSX.Element {
-    const message = conflicts === 1 ? `1 conflict` : `${conflicts} conflicts`
+    const humanReadableConflicts = Math.ceil(conflicts / 3)
+    const message =
+      humanReadableConflicts === 1
+        ? `1 conflict`
+        : `${humanReadableConflicts} conflicts`
     return (
       <li className="unmerged-file-status-conflicts">
         <Octicon symbol={OcticonSymbol.fileCode} />
