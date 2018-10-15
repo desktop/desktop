@@ -1484,13 +1484,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const repository = selection.repository
     const repoState = this.repositoryStateCache.get(repository)
     // check if conflicts exist by inspecting conflictState: null means no conflicts exist
-    const conflictsExist = repoState.conflictState !== null
+    const noConflictsExist = repoState.conflictState === null
 
-    if (conflictsExist) {
+    if (noConflictsExist) {
       return
     }
 
-    const previousBranch = repoState.conflictState.branch
+    const previousBranch = repoState.conflictState!.branch
     const currentBranchName = status.currentBranch
 
     // no current branch means something happened so bail
