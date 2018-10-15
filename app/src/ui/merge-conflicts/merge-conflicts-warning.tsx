@@ -101,8 +101,7 @@ export class MergeConflictsWarning extends React.Component<
       case AppFileStatus.Resolved:
         return this.renderFileWithoutConflicts(file.path)
       case AppFileStatus.Conflicted:
-        // TODO: use count implemented in https://github.com/desktop/desktop/pull/5808
-        return this.renderFileWithConflicts(file.path, 1)
+        return this.renderFileWithConflicts(file.path, file.conflictMarkers)
       default:
         return null
     }
