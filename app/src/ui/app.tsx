@@ -1331,6 +1331,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={popup.repository}
             status={workingDirectoryStatus}
             onDismissed={this.onPopupDismissed}
+            openFileInExternalEditor={this.openFileInExternalEditor}
           />
         )
       default:

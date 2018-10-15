@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { join } from 'path'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
@@ -18,6 +19,7 @@ interface IMergeConflictsWarningProps {
   readonly repository: Repository
   readonly status: WorkingDirectoryStatus
   readonly onDismissed: () => void
+  readonly openFileInExternalEditor: (path: string) => void
 }
 
 const titleString = __DARWIN__
@@ -78,7 +80,11 @@ export class MergeConflictsWarning extends React.Component<
     )
   }
 
-  private renderConflictedFile(path: string, conflicts: number): JSX.Element {
+  private renderConflictedFile(
+    path: string,
+    conflicts: number,
+    onOpenEditorClick: () => void
+  ): JSX.Element {
     const humanReadableConflicts = Math.ceil(conflicts / 3)
     const message =
       humanReadableConflicts === 1
@@ -91,28 +97,34 @@ export class MergeConflictsWarning extends React.Component<
           <div className="file-path">{path}</div>
           <div className="file-conflicts-status">{message}</div>
         </div>
-        <button className="button-component">{openEditorString}</button>
+        <Button onClick={onOpenEditorClick}>{openEditorString}</Button>
       </li>
     )
   }
 
   private renderUnmergedFile(
-    file: WorkingDirectoryFileChange
+    file: WorkingDirectoryFileChange,
+    repositoryPath: string
   ): JSX.Element | null {
     switch (file.status) {
       case AppFileStatus.Resolved:
         return this.renderResolvedFile(file.path)
       case AppFileStatus.Conflicted:
-        return this.renderConflictedFile(file.path, file.conflictMarkers)
+        return this.renderConflictedFile(file.path, file.conflictMarkers, () =>
+          this.props.openFileInExternalEditor(join(repositoryPath, file.path))
+        )
       default:
         return null
     }
   }
 
-  private renderUnmergedFiles(files: Array<WorkingDirectoryFileChange>) {
+  private renderUnmergedFiles(
+    files: Array<WorkingDirectoryFileChange>,
+    repositoryPath: string
+  ) {
     return (
       <ul className="unmerged-file-statuses">
-        {files.map(f => this.renderUnmergedFile(f))}
+        {files.map(f => this.renderUnmergedFile(f, repositoryPath))}
       </ul>
     )
   }
@@ -146,7 +158,7 @@ export class MergeConflictsWarning extends React.Component<
       >
         <DialogContent>
           {this.renderUnmergedFilesSummary(unmergedFiles.length)}
-          {this.renderUnmergedFiles(unmergedFiles)}
+          {this.renderUnmergedFiles(unmergedFiles, this.props.repository.path)}
           {this.renderCliLink()}
         </DialogContent>
         <DialogFooter>
