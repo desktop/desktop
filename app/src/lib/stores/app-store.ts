@@ -1513,12 +1513,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
         file.status === AppFileStatus.Resolved
     )
 
-    // we are still in a conflict, so bail
     if (workingDirectioryHasConflicts) {
       return
     }
 
-    // no more conflicts!
     if (status.currentTip === previousBranch.tip.sha) {
       // if the tip is the same, no merge commit was created
       this.statsStore.recordMergeAbortedAfterConflicts()
