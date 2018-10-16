@@ -5,8 +5,6 @@ import { WorkingDirectoryFileChange } from '../../models/status'
 import { unstageAll } from './reset'
 
 /**
- * Create a commit
- *
  * @param repository repository to execute merge in
  * @param message commit message
  * @param files files to commit
