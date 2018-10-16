@@ -8,6 +8,7 @@ import {
   getCommit,
   getChangedFiles,
   getWorkingDirectoryDiff,
+  createMergeCommit,
 } from '../../../src/lib/git'
 
 import {
@@ -476,6 +477,37 @@ describe('git/commit', () => {
 
       const commits = await getCommits(repo, 'HEAD', 5)
       expect(commits[0].parentSHAs.length).toEqual(2)
+    })
+  })
+
+  describe('createMergeCommit with a merge conflict', () => {
+    let repository: Repository
+    describe('with a merge conflict', () => {
+      beforeEach(async () => {
+        repository = await setupConflictedRepo()
+      })
+      it('creates a merge commit', async () => {
+        const status = await getStatusOrThrow(repository)
+        await createMergeCommit(repository, status.workingDirectory.files)
+        const newStatus = await getStatusOrThrow(repository)
+        expect(newStatus.workingDirectory.files).toHaveLength(0)
+      })
+    })
+    describe('with no changes', () => {
+      beforeEach(async () => {
+        repository = new Repository(
+          await setupFixtureRepository('test-repo'),
+          -1,
+          null,
+          false
+        )
+      })
+      it('throws an error', async () => {
+        const status = await getStatusOrThrow(repository)
+        expect(
+          createMergeCommit(repository, status.workingDirectory.files)
+        ).rejects.toThrow(/Commit failed/i)
+      })
     })
   })
 
