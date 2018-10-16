@@ -1485,6 +1485,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const repoState = this.repositoryStateCache.get(repository)
     const { conflictState } = repoState.changesState
 
+    // conflict state being null means that there are no conflicts
     if (conflictState === null) {
       return
     }
