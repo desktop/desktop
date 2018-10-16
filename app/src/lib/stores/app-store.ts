@@ -1428,9 +1428,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       editorLabel: editorLabel,
       pullRequestLabel: this.getPullRequestLabel(repository),
       shellLabel: `Open in ${this.selectedShell}`,
-      defaultBranchName: this.getDefaultBranchName(
-        repository
-      ),
+      defaultBranchName: this.getDefaultBranchName(repository),
     })
   }
 
