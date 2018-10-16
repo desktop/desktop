@@ -1469,8 +1469,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private detectMergeResolution(status: IStatusResult) {
-    const selection = this.getSelectedState()
+    const currentBranchName = status.currentBranch
+    if (currentBranchName === undefined) {
+      return
+    }
 
+    const selection = this.getSelectedState()
     if (selection === null || selection.type !== SelectionType.Repository) {
       return
     }
@@ -1491,12 +1495,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const previousBranch = conflictState.branch
-    const currentBranchName = status.currentBranch
-
-    // no current branch means something happened so bail
-    if (currentBranchName === undefined) {
-      return
-    }
 
     // The branch name has changed, so the merge must have been aborted
     if (previousBranch.name !== currentBranchName) {
