@@ -1424,36 +1424,48 @@ export class AppStore extends TypedBaseStore<IAppState> {
       ? `Open in ${this.selectedExternalEditor}`
       : undefined
 
-    const prLabel = repository
-      ? this.getPullRequestLabel(repository)
-      : undefined
-
     updatePreferredAppMenuItemLabels({
-      editor: editorLabel,
-      pullRequestLabel: prLabel,
-      shell: `Open in ${this.selectedShell}`,
+      editorLabel: editorLabel,
+      pullRequestLabel: this.getPullRequestLabel(repository),
+      shellLabel: `Open in ${this.selectedShell}`,
+      defaultBranchName: this.getDefaultBranchName(
+        repository
+      ),
     })
   }
 
-  private getPullRequestLabel(repository: Repository) {
-    const githubRepository = repository.gitHubRepository
-    const defaultPRLabel = __DARWIN__
-      ? 'Create Pull Request'
-      : 'Create &pull request'
-
-    if (!githubRepository) {
-      return defaultPRLabel
+  private getBranchesState(repository?: Repository) {
+    if (!repository || !repository.gitHubRepository) {
+      return undefined
     }
 
     const state = this.repositoryStateCache.get(repository)
 
     const { branchesState } = state
+    return branchesState
+  }
+
+  private getPullRequestLabel(repository?: Repository) {
+    const branchesState = this.getBranchesState(repository)
+    if (!branchesState) {
+      return undefined
+    }
 
     if (branchesState.currentPullRequest === null) {
-      return defaultPRLabel
+      return undefined
     }
 
     return __DARWIN__ ? 'Show Pull Request' : 'Show &pull request'
+  }
+
+  private getDefaultBranchName(repository?: Repository) {
+    const branchesState = this.getBranchesState(repository)
+    if (!branchesState) {
+      return undefined
+    }
+
+    const defaultBranch = branchesState.defaultBranch
+    return (defaultBranch && defaultBranch.upstreamWithoutRemote) || undefined
   }
 
   private updateRepositorySelectionAfterRepositoriesChanged() {
