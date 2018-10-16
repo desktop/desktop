@@ -120,6 +120,7 @@ function getInitialRepositoryState(): IRepositoryState {
       formState: {
         kind: HistoryTabMode.History,
       },
+      tip: null,
       mergeStatus: null,
       showBranchList: false,
       filterText: '',
