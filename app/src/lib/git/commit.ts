@@ -44,21 +44,15 @@ export async function createCommit(
 export async function createMergeCommit(
   repository: Repository,
   files: ReadonlyArray<WorkingDirectoryFileChange>
-): Promise<boolean> {
+): Promise<void> {
   // Clear the staging area, our diffs reflect the difference between the
   // working directory and the last commit (if any) so our commits should
   // do the same thing.
   await unstageAll(repository)
-
   await stageFiles(repository, files)
-
-  try {
-    await git(['commit'], repository.path, 'createMergeCommit')
-    return true
-  } catch (e) {
-    handleCommitError(e)
-    return false
-  }
+  await git(['commit'], repository.path, 'createMergeCommit').catch(
+    handleCommitError
+  )
 }
 
 /**
