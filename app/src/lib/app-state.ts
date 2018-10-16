@@ -347,6 +347,13 @@ export enum RepositorySectionTab {
   History,
 }
 
+/**
+ * Stores information about a merge conflict when it occurs
+ */
+interface IConflictState {
+  readonly branch: Branch
+}
+
 export interface IRepositoryState {
   readonly commitSelection: ICommitSelection
   readonly changesState: IChangesState
@@ -615,6 +622,13 @@ export interface IChangesState {
    * the user has chosen to do so.
    */
   readonly coAuthors: ReadonlyArray<IAuthor>
+
+  /**
+   * Stores information about a merge conflict when it occurs
+   *
+   * The absence of a value means there is no merge conflict
+   */
+  readonly conflictState: IConflictState | null
 }
 
 export enum ComparisonView {
