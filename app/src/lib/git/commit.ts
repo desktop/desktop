@@ -48,11 +48,11 @@ export async function createMergeCommit(
   // do the same thing.
   await unstageAll(repository)
   await stageFiles(repository, files)
-  await git(
-    ['commit', '--no-edit'],
-    repository.path,
-    'createMergeCommit'
-  ).catch(logCommitError)
+  try {
+    await git(['commit', '--no-edit'], repository.path, 'createMergeCommit')
+  } catch (e) {
+    logCommitError(e)
+  }
 }
 
 /**
