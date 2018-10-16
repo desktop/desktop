@@ -57,7 +57,8 @@ export async function createMergeCommit(
 
 /**
  * Commit failures could come from a pre-commit hook rejection.
- * So display a bit more context than we otherwise would.
+ * So display a bit more context than we otherwise would,
+ * then re-raise the error.
  */
 function logCommitError(e: Error): void {
   if (e instanceof GitError) {
