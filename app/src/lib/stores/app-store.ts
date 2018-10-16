@@ -1500,8 +1500,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // The branch name has changed, so the merge must have been aborted
     if (previousBranch.name !== currentBranchName) {
       this.statsStore.recordMergeAbortedAfterConflicts()
-      this.repositoryStateCache.update(repository, () => ({
-        changesState: { ...repoState.changesState, conflictState: null },
+      this.repositoryStateCache.updateChangesState(repository, () => ({
+        conflictState: null,
       }))
       this.emitUpdate()
       return
@@ -1527,8 +1527,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.statsStore.recordMergeSuccesAfterConflicts()
     }
 
-    this.repositoryStateCache.update(repository, () => ({
-      changesState: { ...repoState.changesState, conflictState: null },
+    this.repositoryStateCache.updateChangesState(repository, state => ({
+      conflictState: null,
     }))
     this.emitUpdate()
   }
@@ -3953,14 +3953,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const repository = selection.repository
-    const state = this.repositoryStateCache.get(repository)
 
-    this.repositoryStateCache.update(repository, () => ({
-      changesState: {
-        ...state.changesState,
-        conflictState: {
-          branch: tip.branch,
-        },
+    this.repositoryStateCache.updateChangesState(repository, () => ({
+      conflictState: {
+        branch: tip.branch,
       },
     }))
     this.emitUpdate()
