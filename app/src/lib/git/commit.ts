@@ -27,7 +27,7 @@ export async function createCommit(
     })
     return true
   } catch (e) {
-    handleCommitError(e)
+    logCommitError(e)
     return false
   }
 }
@@ -52,14 +52,14 @@ export async function createMergeCommit(
     ['commit', '--no-edit'],
     repository.path,
     'createMergeCommit'
-  ).catch(handleCommitError)
+  ).catch(logCommitError)
 }
 
 /**
  * Commit failures could come from a pre-commit hook rejection.
  * So display a bit more context than we otherwise would.
  */
-function handleCommitError(e: Error): void {
+function logCommitError(e: Error): void {
   if (e instanceof GitError) {
     const output = e.result.stderr.trim()
 
