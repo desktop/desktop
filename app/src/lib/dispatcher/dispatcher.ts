@@ -1202,26 +1202,20 @@ export class Dispatcher {
   }
 
   /**
-   * Called when the repository's working directory
-   * contains conflicts as a result of a merge intiated by Desktop
-   *
-   * Used to track ratio of successful to aborted merges
+   * Updates the application state to indicate a conflict is in-progress
+   * as a result of a pull and increments the relevant metric.
    */
-  public mergeConflictDetected() {
+  public mergeConflictDetectedFromPull() {
     this.appStore._mergeConflictDetected()
-  }
-
-  /**
-   * Increments the `mergeConflictFromPullCount` metric
-   */
-  public recordMergeConflictFromPull() {
     return this.statsStore.recordMergeConflictFromPull()
   }
 
   /**
-   * Increments the `mergeConflictFromExplicitMergeCount` metric
+   * Updates the application state to indicate a conflict is in-progress
+   * as a result of a merge and increments the relevant metric.
    */
-  public recordMergeConflictFromExplicitMerge() {
+  public mergeConflictDetectedFromExplicitMerge() {
+    this.appStore._mergeConflictDetected()
     return this.statsStore.recordMergeConflictFromExplicitMerge()
   }
 
