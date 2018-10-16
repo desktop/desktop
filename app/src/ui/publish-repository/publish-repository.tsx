@@ -7,6 +7,8 @@ import { DialogContent } from '../dialog'
 import { Row } from '../lib/row'
 import { merge } from '../../lib/merge'
 import { caseInsensitiveCompare } from '../../lib/compare'
+import { sanitizedRepositoryName } from '../add-repository/sanitized-repository-name'
+import { Octicon, OcticonSymbol } from '../octicons'
 
 interface IPublishRepositoryProps {
   /** The user to use for publishing. */
@@ -150,6 +152,8 @@ export class PublishRepository extends React.Component<
           />
         </Row>
 
+        {this.renderSanitizedName()}
+
         <Row>
           <TextBox
             label="Description"
@@ -171,6 +175,20 @@ export class PublishRepository extends React.Component<
 
         {this.renderOrgs()}
       </DialogContent>
+    )
+  }
+
+  private renderSanitizedName() {
+    const sanitizedName = sanitizedRepositoryName(this.props.settings.name)
+    if (this.props.settings.name === sanitizedName) {
+      return null
+    }
+
+    return (
+      <Row className="warning-helper-text">
+        <Octicon symbol={OcticonSymbol.alert} />
+        Will be created as {sanitizedName}
+      </Row>
     )
   }
 }
