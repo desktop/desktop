@@ -424,13 +424,6 @@ export interface IRepositoryState {
    * null if no such operation is in flight.
    */
   readonly revertProgress: IRevertProgress | null
-
-  /**
-   * Stores information about a merge conflict when it occurs
-   *
-   * The absence of a value means there is no merge conflict
-   */
-  readonly conflictState: IConflictState | null
 }
 
 export type Progress =
@@ -628,6 +621,13 @@ export interface IChangesState {
    * the user has chosen to do so.
    */
   readonly coAuthors: ReadonlyArray<IAuthor>
+
+  /**
+   * Stores information about a merge conflict when it occurs
+   *
+   * The absence of a value means there is no merge conflict
+   */
+  readonly conflictState: IConflictState | null
 }
 
 export enum ComparisonView {
