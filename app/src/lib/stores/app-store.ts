@@ -1462,7 +1462,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return undefined
     }
 
-    const defaultBranch = branchesState.defaultBranch
+    const { defaultBranch } = branchesState
     return (defaultBranch && defaultBranch.upstreamWithoutRemote) || undefined
   }
 
