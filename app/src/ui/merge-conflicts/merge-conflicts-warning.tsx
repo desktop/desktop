@@ -168,7 +168,9 @@ export class MergeConflictsWarning extends React.Component<
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>
-            <Button type="submit">{submitButtonString}</Button>
+            <Button type="submit" disabled={unmergedFiles.length > 0}>
+              {submitButtonString}
+            </Button>
             <Button onClick={this.onCancel}>{cancelButtonString}</Button>
           </ButtonGroup>
         </DialogFooter>
