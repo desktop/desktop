@@ -21,6 +21,7 @@ import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import {
   isSafeFileExtension,
   DefaultEditorLabel,
+  CopyFilePathLabel,
   RevealInFileManagerLabel,
   OpenWithDefaultProgramLabel,
 } from '../lib/context-menu'
@@ -29,6 +30,7 @@ import { ChangedFile } from './changed-file'
 import { IAutocompletionProvider } from '../autocompletion'
 import { showContextualMenu } from '../main-process-proxy'
 import { arrayEquals } from '../../lib/equality'
+import { clipboard } from 'electron'
 
 const RowHeight = 29
 
@@ -345,6 +347,14 @@ export class ChangesList extends React.Component<
 
     items.push(
       { type: 'separator' },
+      {
+        label: CopyFilePathLabel,
+        action: () => {
+          const fullPath = Path.join(this.props.repository.path, path)
+          clipboard.writeText(fullPath)
+        },
+        enabled: status !== AppFileStatus.Deleted,
+      },
       {
         label: RevealInFileManagerLabel,
         action: () => revealInFileManager(this.props.repository, path),
