@@ -1063,6 +1063,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             confirmDiscardChanges={
               this.state.askForConfirmationOnDiscardChanges
             }
+            initiateSyncAfterCommit={this.state.willInitiateSyncAfterCommit}
             selectedExternalEditor={this.state.selectedExternalEditor}
             optOutOfUsageTracking={this.props.appStore.getStatsOptOut()}
             enterpriseAccount={this.getEnterpriseAccount()}

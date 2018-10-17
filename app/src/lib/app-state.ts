@@ -172,6 +172,9 @@ export interface IAppState {
   /** Whether we should show a confirmation dialog */
   readonly askForConfirmationOnDiscardChanges: boolean
 
+  /** Whether we should automatically sync after a commit. */
+  readonly willInitiateSyncAfterCommit: boolean
+
   /** The external editor to use when opening repositories */
   readonly selectedExternalEditor?: ExternalEditor
 

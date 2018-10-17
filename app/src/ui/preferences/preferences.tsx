@@ -33,6 +33,7 @@ interface IPreferencesProps {
   readonly initialSelectedTab?: PreferencesTab
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
+  readonly initiateSyncAfterCommit: boolean
   readonly selectedExternalEditor?: ExternalEditor
   readonly selectedShell: Shell
   readonly selectedTheme: ApplicationTheme
@@ -46,6 +47,7 @@ interface IPreferencesState {
   readonly optOutOfUsageTracking: boolean
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
+  readonly initiateSyncAfterCommit: boolean
   readonly availableEditors: ReadonlyArray<ExternalEditor>
   readonly selectedExternalEditor?: ExternalEditor
   readonly availableShells: ReadonlyArray<Shell>
@@ -70,6 +72,7 @@ export class Preferences extends React.Component<
       optOutOfUsageTracking: false,
       confirmRepositoryRemoval: false,
       confirmDiscardChanges: false,
+      initiateSyncAfterCommit: false,
       selectedExternalEditor: this.props.selectedExternalEditor,
       availableShells: [],
       selectedShell: this.props.selectedShell,
@@ -116,6 +119,7 @@ export class Preferences extends React.Component<
       optOutOfUsageTracking: this.props.optOutOfUsageTracking,
       confirmRepositoryRemoval: this.props.confirmRepositoryRemoval,
       confirmDiscardChanges: this.props.confirmDiscardChanges,
+      initiateSyncAfterCommit: this.props.initiateSyncAfterCommit,
       availableShells,
       availableEditors,
       mergeTool,
@@ -220,6 +224,7 @@ export class Preferences extends React.Component<
             optOutOfUsageTracking={this.state.optOutOfUsageTracking}
             confirmRepositoryRemoval={this.state.confirmRepositoryRemoval}
             confirmDiscardChanges={this.state.confirmDiscardChanges}
+            initiateSyncAfterCommit={this.state.initiateSyncAfterCommit}
             availableEditors={this.state.availableEditors}
             selectedExternalEditor={this.state.selectedExternalEditor}
             onOptOutofReportingchanged={this.onOptOutofReportingChanged}
@@ -227,6 +232,9 @@ export class Preferences extends React.Component<
               this.onConfirmRepositoryRemovalChanged
             }
             onConfirmDiscardChangesChanged={this.onConfirmDiscardChangesChanged}
+            onInitiateSyncAfterCommitChanged={
+              this.onInitiateSyncAfterCommitChanged
+            }
             onSelectedEditorChanged={this.onSelectedEditorChanged}
             availableShells={this.state.availableShells}
             selectedShell={this.state.selectedShell}
@@ -252,6 +260,10 @@ export class Preferences extends React.Component<
 
   private onConfirmDiscardChangesChanged = (value: boolean) => {
     this.setState({ confirmDiscardChanges: value })
+  }
+
+  private onInitiateSyncAfterCommitChanged = (value: boolean) => {
+    this.setState({ initiateSyncAfterCommit: value })
   }
 
   private onCommitterNameChanged = (committerName: string) => {
@@ -326,6 +338,9 @@ export class Preferences extends React.Component<
     await this.props.dispatcher.setShell(this.state.selectedShell)
     await this.props.dispatcher.setConfirmDiscardChangesSetting(
       this.state.confirmDiscardChanges
+    )
+    await this.props.dispatcher.setInitiateSyncAfterCommitSetting(
+      this.state.initiateSyncAfterCommit
     )
 
     const mergeTool = this.state.mergeTool

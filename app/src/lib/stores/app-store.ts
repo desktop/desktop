@@ -180,8 +180,10 @@ const commitSummaryWidthConfigKey: string = 'commit-summary-width'
 
 const confirmRepoRemovalDefault: boolean = true
 const confirmDiscardChangesDefault: boolean = true
+const initiateSyncAfterCommitDefault: boolean = false
 const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
 const confirmDiscardChangesKey: string = 'confirmDiscardChanges'
+const initiateSyncAfterCommitKey: string = 'initiateSyncAfterCommit'
 
 const externalEditorKey: string = 'externalEditor'
 
@@ -253,6 +255,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private isUpdateAvailableBannerVisible: boolean = false
   private confirmRepoRemoval: boolean = confirmRepoRemovalDefault
   private confirmDiscardChanges: boolean = confirmDiscardChangesDefault
+  private initiateSyncAfterCommit: boolean = initiateSyncAfterCommitDefault
   private imageDiffType: ImageDiffType = imageDiffTypeDefault
 
   private selectedExternalEditor?: ExternalEditor
@@ -480,6 +483,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       isUpdateAvailableBannerVisible: this.isUpdateAvailableBannerVisible,
       askForConfirmationOnRepositoryRemoval: this.confirmRepoRemoval,
       askForConfirmationOnDiscardChanges: this.confirmDiscardChanges,
+      willInitiateSyncAfterCommit: this.initiateSyncAfterCommit,
       selectedExternalEditor: this.selectedExternalEditor,
       imageDiffType: this.imageDiffType,
       selectedShell: this.selectedShell,
@@ -1372,6 +1376,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
       confirmDiscardChangesValue === null
         ? confirmDiscardChangesDefault
         : confirmDiscardChangesValue === '1'
+
+    const initiateSyncAfterCommitValue = localStorage.getItem(
+      initiateSyncAfterCommitKey
+    )
+
+    this.initiateSyncAfterCommit =
+      initiateSyncAfterCommitValue === null
+        ? initiateSyncAfterCommitDefault
+        : initiateSyncAfterCommitValue === '1'
 
     const externalEditorValue = await this.getSelectedExternalEditor()
     if (externalEditorValue) {
@@ -3176,6 +3189,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.confirmDiscardChanges = value
 
     localStorage.setItem(confirmDiscardChangesKey, value ? '1' : '0')
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  public _setInitiateSyncAfterCommitSetting(value: boolean): Promise<void> {
+    this.initiateSyncAfterCommit = value
+
+    localStorage.setItem(initiateSyncAfterCommitKey, value ? '1' : '0')
     this.emitUpdate()
 
     return Promise.resolve()
