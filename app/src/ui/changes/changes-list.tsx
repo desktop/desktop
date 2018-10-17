@@ -48,6 +48,7 @@ interface IChangesListProps {
   ) => Promise<boolean>
   readonly onDiscardChanges: (file: WorkingDirectoryFileChange) => void
   readonly askForConfirmationOnDiscardChanges: boolean
+  readonly willInitiateSyncOnCommit: boolean
   readonly onDiscardAllChanges: (
     files: ReadonlyArray<WorkingDirectoryFileChange>,
     isDiscardingAllChanges?: boolean
@@ -423,6 +424,7 @@ export class ChangesList extends React.Component<
               : 'Summary (required)'
           }
           singleFileCommit={singleFileCommit}
+          willInitiateSyncOnCommit={this.props.willInitiateSyncOnCommit}
         />
       </div>
     )

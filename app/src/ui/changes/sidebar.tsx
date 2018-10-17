@@ -47,6 +47,7 @@ interface IChangesSidebarProps {
   readonly isPushPullFetchInProgress: boolean
   readonly gitHubUserStore: GitHubUserStore
   readonly askForConfirmationOnDiscardChanges: boolean
+  readonly willInitiateSyncAfterCommit: boolean
   readonly accounts: ReadonlyArray<Account>
   /** The name of the currently selected external editor */
   readonly externalEditorLabel?: string
@@ -302,6 +303,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
             this.props.askForConfirmationOnDiscardChanges
           }
           onDiscardAllChanges={this.onDiscardAllChanges}
+          willInitiateSyncOnCommit={this.props.willInitiateSyncAfterCommit}
           onOpenItem={this.onOpenItem}
           onRowClick={this.onChangedItemClick}
           commitAuthor={this.props.commitAuthor}

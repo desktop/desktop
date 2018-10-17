@@ -1741,6 +1741,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           askForConfirmationOnDiscardChanges={
             state.askForConfirmationOnDiscardChanges
           }
+          willInitiateSyncAfterCommit={state.willInitiateSyncAfterCommit}
           accounts={state.accounts}
           externalEditorLabel={externalEditorLabel}
           onOpenInExternalEditor={this.openFileInExternalEditor}

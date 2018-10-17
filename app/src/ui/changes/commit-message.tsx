@@ -51,6 +51,7 @@ interface ICommitMessageProps {
   readonly isCommitting: boolean
   readonly placeholder: string
   readonly singleFileCommit: boolean
+  readonly willInitiateSyncOnCommit: boolean
 
   /**
    * Whether or not to show a field for adding co-authors to

@@ -38,6 +38,7 @@ interface IRepositoryViewProps {
   readonly onViewCommitOnGitHub: (SHA: string) => void
   readonly imageDiffType: ImageDiffType
   readonly askForConfirmationOnDiscardChanges: boolean
+  readonly willInitiateSyncAfterCommit: boolean
   readonly accounts: ReadonlyArray<Account>
 
   /** The name of the currently selected external editor */
@@ -143,6 +144,7 @@ export class RepositoryView extends React.Component<
         askForConfirmationOnDiscardChanges={
           this.props.askForConfirmationOnDiscardChanges
         }
+        willInitiateSyncAfterCommit={this.props.willInitiateSyncAfterCommit}
         accounts={this.props.accounts}
         externalEditorLabel={this.props.externalEditorLabel}
         onOpenInExternalEditor={this.props.onOpenInExternalEditor}
