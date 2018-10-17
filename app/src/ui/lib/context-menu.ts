@@ -1,5 +1,7 @@
 const RestrictedFileExtensions = ['.cmd', '.exe', '.bat', '.sh']
-export const CopyFilePathLabel = __DARWIN__ ? 'Copy File Path' : 'Copy file path'
+export const CopyFilePathLabel = __DARWIN__
+  ? 'Copy File Path'
+  : 'Copy file path'
 
 export const DefaultEditorLabel = __DARWIN__
   ? 'Open in External Editor'
