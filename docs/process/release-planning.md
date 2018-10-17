@@ -32,16 +32,18 @@ milestone defined as soon as possible, to indicate the anticipated release and
 help track.
 
 These pull requests should also be behind a feature flag, so we can control when
-the feature is enabled for users. If you are running the GitHub Desktop
+a feature is enabled for users. If you are using the GitHub Desktop
 [beta channel](https://github.com/desktop/desktop#beta-channel)
-you are able to help test and provide feedback about these features early.
+you will be able to help test and provide feedback about these features early.
 
 ### Bugfixes
 
 Pull Requests associated with bugfixes or unplanned work can be opened early,
-but should not have a milestone assigned until after it has been reviewed and
-approved. This gives the maintainers a chance to propose when this should land,
-based on these factors:
+but **should not** be assigned a milestone until after it has been reviewed and
+approved.
+
+This gives the maintainers a chance to propose when this should land, based on
+these factors:
 
  - **priority** - Some bugs are more harmful (and affect more users) than
    others...
@@ -49,16 +51,17 @@ based on these factors:
    go?
  - **timing** - Are we close to a release? Maybe it can wait a couple of days...
 
-We do this as late as possible in the review process to give the maintainers
-a chance to discuss when this should be merged, and sometimes the work required
-to review a pull request can take it beyond the current milestone.
+We do this as late as possible in the lifetime of the pull request to give the
+maintainers an opportunity to discuss when this should be merged, and sometimes
+the time and effort required to review a pull request can take it beyond the
+current milestone.
 
 Once a milestone is agreed upon, and it is assigned by a maintainer, the Pull
-Request can be merged by a maintainer at the appropriate time. The reviewer
-should also ensure any issues linked in the milestone are also assigned to the
-same milestone, for traceability.
+Request can be merged by a maintainer when the milestone corresponds with the
+current release. The reviewer should also ensure any issues linked in the
+milestone are also assigned to the same milestone, for traceability.
 
-> **TODO:** this feels like something to automate:
+> **TODO: (BF)** this feels like something to automate:
 >
 > The reviewer should also ensure any issues linked in the milestone are also
 assigned to the same milestone, for traceability.
