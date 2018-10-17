@@ -31,10 +31,18 @@ function createTestBranch(
 }
 
 function createTestGhRepo(
-  name: string,
+  owner: string,
   defaultBranch: string | null = null,
   parent: GitHubRepository | null = null
 ) {
+  if (owner.indexOf('/') !== -1) {
+    throw new Error(
+      'Providing a slash in the repository name is no longer supported, please update your test'
+    )
+  }
+
+  const cloneURL = `https://github.com/${owner}/my-cool-repo.git`
+
   return new GitHubRepository(
     name,
     new Owner('', '', null),
@@ -46,7 +54,7 @@ function createTestGhRepo(
         ? defaultBranch.split('/')[1]
         : defaultBranch
     }`,
-    `${name.indexOf('/') !== -1 ? name.split('/')[1] : name}.git`,
+    cloneURL,
     parent
   )
 }
