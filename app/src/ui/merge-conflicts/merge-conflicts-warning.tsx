@@ -27,9 +27,7 @@ const titleString = __DARWIN__
   ? 'Resolve Conflicts Before Merging'
   : 'Resolve conflicts before merging'
 
-const submitButtonString = __DARWIN__
-  ? 'Continue to Commit'
-  : 'Continue to commit'
+const submitButtonString = __DARWIN__ ? 'Commit Merge' : 'Commit merge'
 
 const openEditorString = __DARWIN__ ? 'Open in Editor' : 'Open in editor'
 const cancelButtonString = __DARWIN__ ? 'Abort Merge' : 'Abort merge'
