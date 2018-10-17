@@ -200,7 +200,7 @@ app.on('ready', () => {
 
   createWindow()
 
-  let menu = buildDefaultMenu()
+  let menu = buildDefaultMenu({})
   Menu.setApplicationMenu(menu)
 
   ipcMain.on(

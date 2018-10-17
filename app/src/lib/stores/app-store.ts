@@ -1438,9 +1438,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const state = this.repositoryStateCache.get(repository)
-
-    const { branchesState } = state
-    return branchesState
+    return state.branchesState
   }
 
   private getPullRequestLabel(repository?: Repository) {
@@ -1463,7 +1461,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const { defaultBranch } = branchesState
-    return (defaultBranch && defaultBranch.upstreamWithoutRemote) || undefined
+    if (defaultBranch == null || defaultBranch.upstreamWithoutRemote == null) {
+      return undefined
+    }
+    return defaultBranch.upstreamWithoutRemote
   }
 
   private updateRepositorySelectionAfterRepositoriesChanged() {

@@ -30,7 +30,7 @@ export function buildDefaultMenu({
   shellLabel = defaultShellLabel,
   pullRequestLabel = defaultPullRequestLabel,
   defaultBranchName = defaultBranchNameValue,
-}: MenuLabels = {}): Electron.Menu {
+}: MenuLabels): Electron.Menu {
   const template = new Array<Electron.MenuItemConstructorOptions>()
   const separator: Electron.MenuItemConstructorOptions = { type: 'separator' }
 
