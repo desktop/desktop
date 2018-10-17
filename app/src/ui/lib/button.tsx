@@ -16,7 +16,7 @@ export interface IButtonProps {
    */
   readonly onMouseEnter?: (event: React.MouseEvent<HTMLButtonElement>) => void
 
-  /** tooltip text */
+  /** An optional tooltip to render when hovering over the button */
   readonly tooltip?: string
 
   /** Is the button disabled? */
