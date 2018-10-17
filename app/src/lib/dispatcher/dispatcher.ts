@@ -31,7 +31,10 @@ import { GitHubRepository } from '../../models/github-repository'
 import { ICommitMessage } from '../stores/git-store'
 import { executeMenuItem } from '../../ui/main-process-proxy'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
-import { matchExistingRepository } from '../../lib/repository-matching'
+import {
+  matchExistingRepository,
+  urlMatchesCloneURL,
+} from '../../lib/repository-matching'
 import { ILaunchStats, StatsStore } from '../stats'
 import { fatalError, assertNever } from '../fatal-error'
 import { isGitOnPath } from '../is-git-on-path'
@@ -979,7 +982,7 @@ export class Dispatcher {
         if (!gitHubRepository) {
           return false
         }
-        return gitHubRepository.cloneURL === url
+        return urlMatchesCloneURL(url, gitHubRepository)
       } else {
         return false
       }
