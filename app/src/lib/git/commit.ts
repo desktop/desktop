@@ -46,9 +46,9 @@ export async function createMergeCommit(
   // Clear the staging area, our diffs reflect the difference between the
   // working directory and the last commit (if any) so our commits should
   // do the same thing.
-  await unstageAll(repository)
-  await stageFiles(repository, files)
   try {
+    await unstageAll(repository)
+    await stageFiles(repository, files)
     await git(['commit', '--no-edit'], repository.path, 'createMergeCommit')
   } catch (e) {
     logCommitError(e)
