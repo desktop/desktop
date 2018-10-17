@@ -735,7 +735,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       if (
         tipIsUnchanged &&
-        formState.kind === ComparisonView.None &&
+        formState.kind === HistoryTabMode.History &&
         commitSHAs.length > 0
       ) {
         // don't refresh the history view here because we know nothing important
