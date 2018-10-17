@@ -104,6 +104,7 @@ interface IChangesListProps {
    * @param fullPath The full path to the file on disk
    */
   readonly onOpenInExternalEditor: (fullPath: string) => void
+  readonly remoteName: string | null
 }
 
 interface IChangesState {
@@ -425,6 +426,7 @@ export class ChangesList extends React.Component<
           }
           singleFileCommit={singleFileCommit}
           willInitiateSyncOnCommit={this.props.willInitiateSyncOnCommit}
+          remoteName={this.props.remoteName}
         />
       </div>
     )

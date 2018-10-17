@@ -50,6 +50,7 @@ interface IRepositoryViewProps {
    * @param fullPath The full path to the file on disk
    */
   readonly onOpenInExternalEditor: (fullPath: string) => void
+  readonly remoteName: string | null
 }
 
 interface IRepositoryViewState {
@@ -148,6 +149,7 @@ export class RepositoryView extends React.Component<
         accounts={this.props.accounts}
         externalEditorLabel={this.props.externalEditorLabel}
         onOpenInExternalEditor={this.props.onOpenInExternalEditor}
+        remoteName={this.props.remoteName}
       />
     )
   }

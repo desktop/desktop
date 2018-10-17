@@ -58,6 +58,7 @@ interface IChangesSidebarProps {
    * @param fullPath The full path to the file on disk
    */
   readonly onOpenInExternalEditor: (fullPath: string) => void
+  readonly remoteName: string | null
 }
 
 export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
@@ -319,6 +320,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           coAuthors={this.props.changes.coAuthors}
           externalEditorLabel={this.props.externalEditorLabel}
           onOpenInExternalEditor={this.props.onOpenInExternalEditor}
+          remoteName={this.props.remoteName}
         />
         {this.renderMostRecentLocalCommit()}
       </div>

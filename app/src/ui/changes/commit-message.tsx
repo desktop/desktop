@@ -67,6 +67,7 @@ interface ICommitMessageProps {
    * the user has chosen to do so.
    */
   readonly coAuthors: ReadonlyArray<IAuthor>
+  readonly remoteName: string | null
 }
 
 interface ICommitMessageState {
