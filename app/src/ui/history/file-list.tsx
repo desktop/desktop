@@ -137,7 +137,6 @@ export class FileList extends React.Component<IFileListProps, {}> {
       {
         label: CopyFilePathLabel,
         action: () => clipboard.writeText(fullPath),
-        enabled: fileExistsOnDisk,
       },
       {
         label: RevealInFileManagerLabel,

@@ -353,7 +353,6 @@ export class ChangesList extends React.Component<
           const fullPath = Path.join(this.props.repository.path, path)
           clipboard.writeText(fullPath)
         },
-        enabled: status !== AppFileStatus.Deleted,
       },
       {
         label: RevealInFileManagerLabel,
