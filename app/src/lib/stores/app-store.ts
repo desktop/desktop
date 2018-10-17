@@ -1458,7 +1458,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private getDefaultBranchName(repository?: Repository) {
     const branchesState = this.getBranchesState(repository)
-    if (!branchesState) {
+    if (branchesState == null) {
       return undefined
     }
 
