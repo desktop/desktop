@@ -1445,7 +1445,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private getPullRequestLabel(repository?: Repository) {
     const branchesState = this.getBranchesState(repository)
-    if (!branchesState) {
+    if (branchesState == null) {
       return undefined
     }
 
