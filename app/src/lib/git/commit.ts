@@ -64,11 +64,8 @@ function logCommitError(e: Error): void {
   if (e instanceof GitError) {
     const output = e.result.stderr.trim()
 
-    let standardError = ''
-    if (output.length > 0) {
-      standardError = `, with output: '${output}'`
-    }
-    const exitCode = e.result.exitCode
+    const standardError = output.length > 0 ? `, with output: '${output}'` : ''
+    const { exitCode } = e.result
     const error = new Error(
       `Commit failed - exit code ${exitCode} received${standardError}`
     )
