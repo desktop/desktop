@@ -235,9 +235,13 @@ export class CommitMessage extends React.Component<
   private onSubmit = async () => {
     this.createCommit()
 
-    if (this.props.willInitiateSyncOnCommit) {
-      await this.props.dispatcher.pull(this.props.repository)
-      this.props.dispatcher.push(this.props.repository)
+    const initiateSyncOnCommit = this.props.willInitiateSyncOnCommit
+    const remoteExists = this.props.remoteName != null
+
+    if (initiateSyncOnCommit && remoteExists) {
+      const repository = this.props.repository
+      await this.props.dispatcher.pull(repository)
+      this.props.dispatcher.push(repository)
     }
   }
 
