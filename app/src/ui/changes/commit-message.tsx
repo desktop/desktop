@@ -231,8 +231,13 @@ export class CommitMessage extends React.Component<
     this.setState({ description })
   }
 
-  private onSubmit = () => {
+  private onSubmit = async () => {
     this.createCommit()
+
+    if (this.props.willInitiateSyncOnCommit) {
+      await this.props.dispatcher.pull(this.props.repository)
+      this.props.dispatcher.push(this.props.repository)
+    }
   }
 
   private getCoAuthorTrailers() {
