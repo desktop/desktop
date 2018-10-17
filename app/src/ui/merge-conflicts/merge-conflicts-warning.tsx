@@ -20,6 +20,7 @@ interface IMergeConflictsWarningProps {
   readonly status: WorkingDirectoryStatus
   readonly onDismissed: () => void
   readonly openFileInExternalEditor: (path: string) => void
+  readonly openRepositoryInShell: (repository: Repository) => void
 }
 
 const titleString = __DARWIN__
@@ -59,10 +60,12 @@ export class MergeConflictsWarning extends React.Component<
     this.props.onDismissed()
   }
 
-  private renderCliLink(): JSX.Element {
+  private renderCliLink(openThisRepositoryInShell: () => void): JSX.Element {
     return (
       <div className="cli-link">
-        You can also <a>open the command line</a> to resolve
+        You can also{' '}
+        <a onClick={openThisRepositoryInShell}>open the command line</a> to
+        resolve
       </div>
     )
   }
@@ -148,6 +151,8 @@ export class MergeConflictsWarning extends React.Component<
 
   public render() {
     const unmergedFiles = this.getUnmergedFiles()
+    const openThisRepositoryInShell = () =>
+      this.props.openRepositoryInShell(this.props.repository)
     return (
       <Dialog
         id="merge-conflicts-list"
@@ -159,7 +164,7 @@ export class MergeConflictsWarning extends React.Component<
         <DialogContent>
           {this.renderUnmergedFilesSummary(unmergedFiles.length)}
           {this.renderUnmergedFiles(unmergedFiles, this.props.repository.path)}
-          {this.renderCliLink()}
+          {this.renderCliLink(openThisRepositoryInShell)}
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>
