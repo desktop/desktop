@@ -28,7 +28,7 @@ export class GitStoreCache {
 
   public get(repository: Repository): GitStore {
     let gitStore = this.gitStores.get(repository.hash)
-    if (!gitStore) {
+    if (gitStore === undefined) {
       gitStore = new GitStore(repository, this.shell)
       gitStore.onDidUpdate(() => this.onGitStoreUpdated(repository, gitStore!))
       gitStore.onDidLoadNewCommits(commits =>
