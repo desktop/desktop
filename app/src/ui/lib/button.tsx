@@ -16,6 +16,9 @@ export interface IButtonProps {
    */
   readonly onMouseEnter?: (event: React.MouseEvent<HTMLButtonElement>) => void
 
+  /** tooltip text */
+  readonly tooltip?: string
+
   /** Is the button disabled? */
   readonly disabled?: boolean
 
@@ -125,6 +128,7 @@ export class Button extends React.Component<IButtonProps, {}> {
         ref={this.onButtonRef}
         tabIndex={this.props.tabIndex}
         onMouseEnter={this.props.onMouseEnter}
+        title={this.props.tooltip}
         role={this.props.role}
         aria-expanded={this.props.ariaExpanded}
         aria-haspopup={this.props.ariaHasPopup}
