@@ -7,6 +7,17 @@ dialog#merge-conflicts-list {
     margin-bottom: 20px;
   }
 
+  .green-circle {
+    background-color: var(--color-new);
+    color: var(--background-color);
+    border-radius: 50%;
+    height: 22px;
+    width: 22px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
   ul {
     list-style: none;
     padding: 0;
@@ -25,7 +36,7 @@ dialog#merge-conflicts-list {
       display: flex;
       flex-flow: row nowrap;
 
-      .octicon {
+      .file-octicon {
         margin-right: 10px;
       }
 
@@ -36,7 +47,7 @@ dialog#merge-conflicts-list {
       }
 
       button:last-child,
-      .octicon:last-child {
+      .green-circle:last-child {
         margin-left: auto;
       }
     }
