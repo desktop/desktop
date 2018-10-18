@@ -59,5 +59,5 @@ export function enableStatusWithoutOptionalLocks(): boolean {
 
 /** Should git pass `--recurse-submodules` when performing operations? */
 export function enableRecurseSubmodulesFlag(): boolean {
-  return enableDevelopmentFeatures()
+  return enableBetaFeatures()
 }
