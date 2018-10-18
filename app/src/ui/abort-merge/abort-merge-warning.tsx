@@ -53,6 +53,7 @@ export class AbortMergeWarning extends React.Component<
       <Dialog
         id="abort-merge-warning"
         title={titleString}
+        dismissable={false}
         onDismissed={this.onCancel}
         onSubmit={this.onSubmit}
       >
