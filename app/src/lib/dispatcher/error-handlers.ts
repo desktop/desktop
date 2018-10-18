@@ -11,7 +11,7 @@ import { Repository } from '../../models/repository'
 import { PopupType } from '../../lib/app-state'
 import { ShellError } from '../shells'
 import { UpstreamAlreadyExistsError } from '../stores/upstream-already-exists-error'
-import { FetchType } from '../stores/index'
+import { FetchType } from '../../models/fetch'
 
 /** An error which also has a code property. */
 interface IErrorWithCode extends Error {
@@ -286,10 +286,10 @@ export async function mergeConflictHandler(
   if (command != null) {
     switch (command) {
       case 'pull':
-        dispatcher.recordMergeConflictFromPull()
+        dispatcher.mergeConflictDetectedFromPull()
         break
       case 'merge':
-        dispatcher.recordMergeConflictFromExplicitMerge()
+        dispatcher.mergeConflictDetectedFromExplicitMerge()
         break
     }
   }

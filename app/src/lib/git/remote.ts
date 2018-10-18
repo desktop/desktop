@@ -1,7 +1,8 @@
 import { git } from './core'
+import { GitError } from 'dugite'
+
 import { Repository } from '../../models/repository'
 import { IRemote } from '../../models/remote'
-import { findDefaultRemote } from '../stores/helpers/find-default-remote'
 
 /** Get the remote names. */
 export async function getRemotes(
@@ -11,10 +12,10 @@ export async function getRemotes(
   // see https://github.com/desktop/desktop/pull/5299#discussion_r206603442 for
   // discussion about what needs to change
   const result = await git(['remote', '-v'], repository.path, 'getRemotes', {
-    successExitCodes: new Set([0, 128]),
+    expectedErrors: new Set([GitError.NotAGitRepository]),
   })
 
-  if (result.exitCode === 128) {
+  if (result.gitError === GitError.NotAGitRepository) {
     return []
   }
 
@@ -26,13 +27,6 @@ export async function getRemotes(
     .map(x => ({ name: x[0], url: x[1] }))
 
   return remotes
-}
-
-/** Get the name of the default remote. */
-export async function getDefaultRemote(
-  repository: Repository
-): Promise<IRemote | null> {
-  return findDefaultRemote(await getRemotes(repository))
 }
 
 /** Add a new remote with the given URL. */

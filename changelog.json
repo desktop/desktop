@@ -1,5 +1,127 @@
 {
   "releases": {
+    "1.4.3-beta2": [
+      "[Added] Added keyboard shortcut to delete a branch - #5018. Thanks @JakeHL!",
+      "[Fixed] Fix release notes text overflowing dialog box - #5854. Thanks @amarsiingh!",
+      "[Improved] Avoid unnecessarily reloading commit history - #5470"
+    ],
+    "1.4.3-beta1": [
+      "[Added] Add \"Remove Repository\" keyboard shortcut - #5848. Thanks @say25!",
+      "[Fixed] Fix emoji autocomplete not rendering in some situations - #5859",
+      "[Fixed] Support Python 3 in Desktop CLI on macOS - #5843. Thanks @munir131!",
+      "[Improved] Publish Branch dialog will publish commits when pressing Enter - #5777. Thanks @JKirkYuan!"
+    ],
+    "1.4.3-beta0": [
+    ],
+    "1.4.2": [
+      "[New] Show resolved conflicts as resolved in Changes pane - #5609",
+      "[Added] Add Terminator, MATE Terminal, and Terminology shells - #5753. Thanks @joaomlneto!",
+      "[Fixed] Update embedded Git to version 2.19.1 for security vulnerability fix",
+      "[Fixed] Always show commit history list when History tab is clicked - #5783. Thanks @JKirkYuan!",
+      "[Fixed] Stop overriding the protocol of a detected GitHub repository - #5721",
+      "[Fixed] Update sign in error message - #5766. Thanks @tiagodenoronha!",
+      "[Fixed] Correct overflowing T&C and License Notices dialogs - #5756. Thanks @amarsiingh!",
+      "[Improved] Add default commit message for single-file commits - #5240. Thanks @lean257!",
+      "[Improved] Refresh commit list faster after reverting commit via UI - #5752",
+      "[Improved] Add repository path to Remove repository dialog - #5805. Thanks @NickCraver!",
+      "[Improved] Display whether user entered incorrect username or email address - #5775. Thanks @tiagodenoronha!",
+      "[Improved] Update Discard Changes dialog text when discarding all changes - #5744. Thanks @Daniel-McCarthy!"
+    ],
+    "1.4.2-beta0": [
+    ],
+    "1.4.1": [
+      "[Added] Support for opening repository in Cygwin terminal - #5654. Thanks @LordOfTheThunder!",
+      "[Fixed] 'Compare to Branch' menu item not disabled when modal is open - #5673. Thanks @kanishk98!",
+      "[Fixed] Co-author form does not show/hide for newly-added repository - #5490",
+      "[Fixed] Desktop command line always suffixes `.git` to URL when starting a clone - #5529. Thanks @j-f1!",
+      "[Fixed] Dialog styling issue for dark theme users on Windows - #5629. Thanks @cwongmath!",
+      "[Fixed] No message shown when filter returns no results in Clone Repository view - #5637. Thanks @DanielHix!",
+      "[Improved] Branch names cannot start with a '+' character - #5594. Thanks @Daniel-McCarthy!",
+      "[Improved] Clone dialog re-runs filesystem check when re-focusing on Desktop - #5518. Thanks @Daniel-McCarthy!",
+      "[Improved] Commit disabled when commit summary is only spaces - #5677. Thanks @Daniel-McCarthy!",
+      "[Improved] Commit summary expander sometimes shown when not needed - #5700. Thanks @aryyya!",
+      "[Improved] Error handling when looking for merge base of a missing ref - #5612",
+      "[Improved] Warning if branch exists on remote when creating branch - #5141. Thanks @Daniel-McCarthy!"
+    ],
+    "1.4.1-beta1": [
+      "[Added] Support for opening repository in Cygwin terminal - #5654. Thanks @LordOfTheThunder!",
+      "[Fixed] 'Compare to Branch' menu item not disabled when modal is open - #5673. Thanks @kanishk98!",
+      "[Fixed] No message shown when filter returns no results in Clone Repository view - #5637. Thanks @DanielHix!",
+      "[Fixed] Co-author form does not show/hide for newly-added repository - #5490",
+      "[Fixed] Dialog styling issue for dark theme users on Windows - #5629. Thanks @cwongmath!",
+      "[Fixed] Desktop command line always suffixes `.git` to URL when starting a clone - #5529. Thanks @j-f1!",
+      "[Improved] Commit summary expander sometimes shown when not needed - #5700. Thanks @aryyya!",
+      "[Improved] Commit disabled when commit summary is only spaces - #5677. Thanks @Daniel-McCarthy!",
+      "[Improved] Error handling when looking for merge base of a missing ref - #5612",
+      "[Improved] Clone dialog re-runs filesystem check when re-focusing on Desktop - #5518. Thanks @Daniel-McCarthy!",
+      "[Improved] Branch names cannot start with a '+' character - #5594. Thanks @Daniel-McCarthy!",
+      "[Improved] Warning if branch exists on remote when creating branch - #5141. Thanks @Daniel-McCarthy!"
+    ],
+    "1.4.1-beta0": [
+    ],
+    "1.4.0": [
+      "[New] When an update is available for GitHub Desktop, release notes can be viewed in Desktop - #2774",
+      "[New] Detect merge conflicts when comparing branches - #4588",
+      "[Fixed] Avoid double checkout warning when opening a pull request in Desktop - #5375",
+      "[Fixed] Error when publishing repository is now associated with the right tab - #5422. Thanks @Daniel-McCarthy!",
+      "[Fixed] Disable affected menu items when on detached HEAD - #5500. Thanks @say25!",
+      "[Fixed] Show border when commit description is expanded - #5506. Thanks @aryyya!",
+      "[Fixed] GitLab URL which corresponds to GitHub repository of same name cloned GitHub repository - #4154",
+      "[Fixed] Caret in co-author selector is hidden when dark theme enabled - #5589",
+      "[Fixed] Authenticating to GitHub Enterprise fails when user has no emails defined - #5585",
+      "[Improved] Avoid multiple lookups of default remote - #5399"
+    ],
+    "1.4.0-beta3": [
+      "[New] When an update is available for GitHub Desktop, the release notes can be viewed in Desktop - #2774",
+      "[New] Detect merge conflicts when comparing branches - #4588",
+      "[Fixed] Avoid double checkout warning when opening a pull request in Desktop - #5375",
+      "[Fixed] Error when publishing repository is now associated with the right tab - #5422. Thanks @Daniel-McCarthy!",
+      "[Fixed] Disable affected menu items when on detached HEAD - #5500. Thanks @say25!",
+      "[Fixed] Show border when commit description is expanded - #5506. Thanks @aryyya!",
+      "[Fixed] GitLab URL which corresponds to GitHub repository of same name cloned GitHub repository - #4154",
+      "[Improved] Avoid multiple lookups of default remote - #5399",
+      "[Improved] Skip optional locks when checking status of repository - #5376"
+    ],
+    "1.4.0-beta2": [
+      "[New] When an update is available for GitHub Desktop, the release notes can be viewed in Desktop - #2774",
+      "[New] Detect merge conflicts when comparing branches - #4588",
+      "[Fixed] Avoid double checkout warning when opening a pull request in Desktop - #5375",
+      "[Fixed] Error when publishing repository is now associated with the right tab - #5422. Thanks @Daniel-McCarthy!",
+      "[Fixed] Disable affected menu items when on detached HEAD - #5500. Thanks @say25!",
+      "[Fixed] Show border when commit description is expanded - #5506. Thanks @aryyya!",
+      "[Fixed] GitLab URL which corresponds to GitHub repository of same name cloned GitHub repository - #4154",
+      "[Improved] Avoid multiple lookups of default remote - #5399",
+      "[Improved] Skip optional locks when checking status of repository - #5376"
+    ],
+    "1.4.0-beta1": [
+      "[New] When an update is available for GitHub Desktop, the release notes can be viewed in Desktop - #2774",
+      "[New] Detect merge conflicts when comparing branches - #4588",
+      "[Fixed] Avoid double checkout warning when opening a pull request in Desktop - #5375",
+      "[Fixed] Error when publishing repository is now associated with the right tab - #5422. Thanks @Daniel-McCarthy!",
+      "[Fixed] Disable affected menu items when on detached HEAD - #5500. Thanks @say25!",
+      "[Fixed] Show border when commit description is expanded - #5506. Thanks @aryyya!",
+      "[Fixed] GitLab URL which corresponds to GitHub repository of same name cloned GitHub repository - #4154",
+      "[Improved] Avoid multiple lookups of default remote - #5399",
+      "[Improved] Skip optional locks when checking status of repository - #5376"
+    ],
+    "1.4.0-beta0": [
+    ],
+    "1.3.5": [
+      "[Fixed] Disable delete button while deleting a branch - #5331",
+      "[Fixed] History now avoids calling log.showSignature if set in config - #5466",
+      "[Fixed] Start blocking the ability to add local bare repositories - #4293. Thanks @Daniel-McCarthy!",
+      "[Fixed] Revert workaround for tooltip issue on Windows - #3362. Thanks @divayprakash!",
+      "[Improved] Error message when publishing to missing organisation - #5380. Thanks @Daniel-McCarthy!",
+      "[Improved] Don't hide commit details when commit description is expanded. - #5471. Thanks @aryyya!"
+    ],
+    "1.3.5-beta1": [
+      "[Fixed] Disable delete button while deleting a branch - #5331",
+      "[Fixed] History now avoids calling log.showSignature if set in config - #5466",
+      "[Fixed] Start blocking the ability to add local bare repositories - #4293. Thanks @Daniel-McCarthy!",
+      "[Fixed] Revert workaround for tooltip issue on Windows - #3362. Thanks @divayprakash!",
+      "[Improved] Error message when publishing to missing organisation - #5380. Thanks @Daniel-McCarthy!",
+      "[Improved] Don't hide commit details when commit summary description is expanded. - #5471. Thanks @aryyya!"
+    ],
     "1.3.5-beta0": [
     ],
     "1.3.4": [

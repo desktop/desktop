@@ -1,0 +1,78 @@
+@import '../../../styles/variables';
+
+#release-notes {
+  max-height: 450px;
+
+  .dialog-content {
+    // we'll own the layout inside here
+    padding: 0;
+  }
+
+  .dialog-header {
+    height: 100px;
+
+    .release-notes-header {
+      display: flex;
+      flex: 1;
+    }
+
+    .release-note-graphic-left {
+      margin-right: 20px;
+    }
+
+    .release-note-graphic-right {
+      margin-left: 20px;
+    }
+
+    .title {
+      text-align: center;
+      flex-grow: 1;
+
+      .version {
+        font-size: 14px;
+        font-weight: var(--font-weight-semibold);
+        margin-bottom: 0;
+      }
+
+      .date {
+        font-size: 11px;
+        color: var(--text-secondary-color);
+      }
+    }
+  }
+
+  ul {
+    list-style: none;
+    padding-left: 0;
+
+    li {
+      padding-left: 0;
+    }
+  }
+
+  .container {
+    width: 600px;
+    max-height: 200px;
+    display: flex;
+    flex-direction: row;
+    padding-left: var(--spacing-triple);
+    padding-right: var(--spacing-triple);
+    overflow-x: hidden;
+    overflow-y: auto;
+    justify-content: space-around;
+
+    .column {
+      flex: 1 1 275px;
+      max-width: 75%;
+      margin: 0 calc(var(--spacing) * 1.5);
+
+      .section {
+        margin: var(--spacing-double) 0;
+        .header {
+          font-size: 12px;
+          font-weight: var(--font-weight-semibold);
+        }
+      }
+    }
+  }
+}

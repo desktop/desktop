@@ -18,6 +18,7 @@ export enum ExternalEditor {
   VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
   SublimeText = 'Sublime Text',
   CFBuilder = 'ColdFusion Builder',
+  Typora = 'Typora',
 }
 
 export function parse(label: string): ExternalEditor | null {
@@ -35,6 +36,9 @@ export function parse(label: string): ExternalEditor | null {
   }
   if (label === ExternalEditor.CFBuilder) {
     return ExternalEditor.CFBuilder
+  }
+  if (label === ExternalEditor.Typora) {
+    return ExternalEditor.Typora
   }
 
   return null
@@ -124,17 +128,32 @@ function getRegistryKeys(
       ]
     case ExternalEditor.CFBuilder:
       return [
-        //64-bit version of ColdFusionBuilder3
+        // 64-bit version of ColdFusionBuilder3
         {
           key: HKEY.HKEY_LOCAL_MACHINE,
           subKey:
             'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Adobe ColdFusion Builder 3_is1',
         },
-        //64-bit version of ColdFusionBuilder2016
+        // 64-bit version of ColdFusionBuilder2016
         {
           key: HKEY.HKEY_LOCAL_MACHINE,
           subKey:
             'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Adobe ColdFusion Builder 2016',
+        },
+      ]
+    case ExternalEditor.Typora:
+      return [
+        // 64-bit version of Typora
+        {
+          key: HKEY.HKEY_LOCAL_MACHINE,
+          subKey:
+            'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{37771A20-7167-44C0-B322-FD3E54C56156}_is1',
+        },
+        // 32-bit version of Typora
+        {
+          key: HKEY.HKEY_LOCAL_MACHINE,
+          subKey:
+            'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{37771A20-7167-44C0-B322-FD3E54C56156}_is1',
         },
       ]
 
@@ -164,6 +183,8 @@ function getExecutableShim(
       return Path.join(installLocation, 'subl.exe')
     case ExternalEditor.CFBuilder:
       return Path.join(installLocation, 'CFBuilder.exe')
+    case ExternalEditor.Typora:
+      return Path.join(installLocation, 'bin', 'typora.exe')
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -204,6 +225,8 @@ function isExpectedInstallation(
           displayName === 'Adobe ColdFusion Builder 2016') &&
         publisher === 'Adobe Systems Incorporated'
       )
+    case ExternalEditor.Typora:
+      return displayName.startsWith('Typora') && publisher === 'typora.io'
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -282,6 +305,13 @@ function extractApplicationInformation(
     return { displayName, publisher, installLocation }
   }
 
+  if (editor === ExternalEditor.Typora) {
+    const displayName = getKeyOrEmpty(keys, 'DisplayName')
+    const publisher = getKeyOrEmpty(keys, 'Publisher')
+    const installLocation = getKeyOrEmpty(keys, 'InstallLocation')
+    return { displayName, publisher, installLocation }
+  }
+
   return assertNever(editor, `Unknown external editor: ${editor}`)
 }
 
@@ -338,12 +368,14 @@ export async function getAvailableEditors(): Promise<
     codeInsidersPath,
     sublimePath,
     cfBuilderPath,
+    typoraPath,
   ] = await Promise.all([
     findApplication(ExternalEditor.Atom),
     findApplication(ExternalEditor.VisualStudioCode),
     findApplication(ExternalEditor.VisualStudioCodeInsiders),
     findApplication(ExternalEditor.SublimeText),
     findApplication(ExternalEditor.CFBuilder),
+    findApplication(ExternalEditor.Typora),
   ])
 
   if (atomPath) {
@@ -378,6 +410,13 @@ export async function getAvailableEditors(): Promise<
     results.push({
       editor: ExternalEditor.CFBuilder,
       path: cfBuilderPath,
+    })
+  }
+
+  if (typoraPath) {
+    results.push({
+      editor: ExternalEditor.Typora,
+      path: typoraPath,
     })
   }
 

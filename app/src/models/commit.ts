@@ -25,36 +25,6 @@ function extractCoAuthors(trailers: ReadonlyArray<ITrailer>) {
 
 /** A git commit. */
 export class Commit {
-  /** The commit's SHA. */
-  public readonly sha: string
-
-  /** The first line of the commit message. */
-  public readonly summary: string
-
-  /** The commit message without the first line and CR. */
-  public readonly body: string
-
-  /**
-   * Information about the author of this commit.
-   * Includes name, email and date.
-   */
-  public readonly author: CommitIdentity
-
-  /**
-   * Information about the committer of this commit.
-   * Includes name, email and date.
-   */
-  public readonly committer: CommitIdentity
-
-  /** The SHAs for the parents of the commit. */
-  public readonly parentSHAs: ReadonlyArray<string>
-
-  /**
-   * Parsed, unfolded trailers from the commit message body,
-   * if any, as interpreted by `git interpret-trailers`
-   */
-  public readonly trailers: ReadonlyArray<ITrailer>
-
   /**
    * A list of co-authors parsed from the commit message
    * trailers.
@@ -67,22 +37,27 @@ export class Commit {
    */
   public readonly authoredByCommitter: boolean
 
+  /**
+   * @param sha The commit's SHA.
+   * @param summary The first line of the commit message.
+   * @param body The commit message without the first line and CR.
+   * @param author Information about the author of this commit.
+   *               Includes name, email and date.
+   * @param committer Information about the committer of this commit.
+   *                 Includes name, email and date.
+   * @param parentSHAS The SHAs for the parents of the commit.
+   * @param trailers Parsed, unfolded trailers from the commit message body,
+   *                 if any, as interpreted by `git interpret-trailers`
+   */
   public constructor(
-    sha: string,
-    summary: string,
-    body: string,
-    author: CommitIdentity,
-    committer: CommitIdentity,
-    parentSHAs: ReadonlyArray<string>,
-    trailers: ReadonlyArray<ITrailer>
+    public readonly sha: string,
+    public readonly summary: string,
+    public readonly body: string,
+    public readonly author: CommitIdentity,
+    public readonly committer: CommitIdentity,
+    public readonly parentSHAs: ReadonlyArray<string>,
+    public readonly trailers: ReadonlyArray<ITrailer>
   ) {
-    this.sha = sha
-    this.summary = summary
-    this.body = body
-    this.author = author
-    this.committer = committer
-    this.parentSHAs = parentSHAs
-    this.trailers = trailers
     this.coAuthors = extractCoAuthors(trailers)
 
     this.authoredByCommitter =

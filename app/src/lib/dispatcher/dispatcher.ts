@@ -19,6 +19,7 @@ import {
   ImageDiffType,
   CompareAction,
   ICompareFormUpdate,
+  MergeResultStatus,
 } from '../app-state'
 import { AppStore } from '../stores/app-store'
 import { CloningRepository } from '../../models/cloning-repository'
@@ -31,7 +32,7 @@ import { ICommitMessage } from '../stores/git-store'
 import { executeMenuItem } from '../../ui/main-process-proxy'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
 import { matchExistingRepository } from '../../lib/repository-matching'
-import { ILaunchStats } from '../stats'
+import { ILaunchStats, StatsStore } from '../stats'
 import { fatalError, assertNever } from '../fatal-error'
 import { isGitOnPath } from '../is-git-on-path'
 import { shell } from '../app-shell'
@@ -52,12 +53,14 @@ import { Shell } from '../shells'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { validatedRepositoryPath } from '../../lib/stores/helpers/validated-repository-path'
 import { BranchesTab } from '../../models/branches-tab'
-import { FetchType } from '../../lib/stores'
+import { FetchType } from '../../models/fetch'
 import { PullRequest } from '../../models/pull-request'
 import { IAuthor } from '../../models/author'
 import { ITrailer } from '../git/interpret-trailers'
 import { isGitRepository } from '../git'
 import { ApplicationTheme } from '../../ui/lib/application-theme'
+import { TipState } from '../../models/tip'
+import { RepositoryStateCache } from '../stores/repository-state-cache'
 
 /**
  * An error handler function.
@@ -75,13 +78,13 @@ export type ErrorHandler = (
  * decouples the consumer of state from where/how it is stored.
  */
 export class Dispatcher {
-  private readonly appStore: AppStore
-
   private readonly errorHandlers = new Array<ErrorHandler>()
 
-  public constructor(appStore: AppStore) {
-    this.appStore = appStore
-  }
+  public constructor(
+    private readonly appStore: AppStore,
+    private readonly repositoryStateManager: RepositoryStateCache,
+    private readonly statsStore: StatsStore
+  ) {}
 
   /** Load the initial state for the app. */
   public loadInitialState(): Promise<void> {
@@ -468,8 +471,14 @@ export class Dispatcher {
   /**
    * Set the divering branch notification banner's visibility
    */
-  public setDivergingBranchBannerVisibility(isVisible: boolean) {
-    return this.appStore._setDivergingBranchBannerVisibility(isVisible)
+  public setDivergingBranchBannerVisibility(
+    repository: Repository,
+    isVisible: boolean
+  ) {
+    return this.appStore._setDivergingBranchBannerVisibility(
+      repository,
+      isVisible
+    )
   }
 
   /**
@@ -569,8 +578,12 @@ export class Dispatcher {
   }
 
   /** Merge the named branch into the current branch. */
-  public mergeBranch(repository: Repository, branch: string): Promise<void> {
-    return this.appStore._mergeBranch(repository, branch)
+  public mergeBranch(
+    repository: Repository,
+    branch: string,
+    mergeStatus: MergeResultStatus | null
+  ): Promise<void> {
+    return this.appStore._mergeBranch(repository, branch, mergeStatus)
   }
 
   /** Record the given launch stats. */
@@ -598,11 +611,11 @@ export class Dispatcher {
   }
 
   /** Add the pattern to the repository's gitignore. */
-  public ignore(
+  public appendIgnoreRule(
     repository: Repository,
     pattern: string | string[]
   ): Promise<void> {
-    return this.appStore._ignore(repository, pattern)
+    return this.appStore._appendIgnoreRule(repository, pattern)
   }
 
   /** Opens a Git-enabled terminal setting the working directory to the repository path */
@@ -631,23 +644,8 @@ export class Dispatcher {
    * If the repository root doesn't contain a .gitignore file one
    * will be created, otherwise the current file will be overwritten.
    */
-  public async saveGitIgnore(
-    repository: Repository,
-    text: string
-  ): Promise<void> {
-    await this.appStore._saveGitIgnore(repository, text)
-    await this.appStore._refreshRepository(repository)
-  }
-
-  /**
-   * Read the contents of the repository's .gitignore.
-   *
-   * Returns a promise which will either be rejected or resolved
-   * with the contents of the file. If there's no .gitignore file
-   * in the repository root the promise will resolve with null.
-   */
-  public async readGitIgnore(repository: Repository): Promise<string | null> {
-    return this.appStore._readGitIgnore(repository)
+  public saveGitIgnore(repository: Repository, text: string): Promise<void> {
+    return this.appStore._saveGitIgnore(repository, text)
   }
 
   /** Set whether the user has opted out of stats reporting. */
@@ -815,7 +813,7 @@ export class Dispatcher {
       case 'oauth':
         try {
           log.info(`[Dispatcher] requesting authenticated user`)
-          const user = await requestAuthenticatedUser(action.code)
+          const user = await requestAuthenticatedUser(action.code, action.state)
           if (user) {
             resolveOAuthRequest(user)
           } else if (user === null) {
@@ -839,14 +837,10 @@ export class Dispatcher {
         break
 
       case 'open-repository-from-url':
-        const { pr, url, branch } = action
-        // a forked PR will provide both these values, despite the branch not existing
-        // in the repository - drop the branch argument in this case so a clone will
-        // checkout the default branch when it clones
-        const branchToClone = pr && branch ? null : branch || null
-        const repository = await this.openRepository(url, branchToClone)
+        const { url } = action
+        const repository = await this.openRepository(url)
         if (repository) {
-          this.handleCloneInDesktopOptions(repository, action)
+          await this.handleCloneInDesktopOptions(repository, action)
         } else {
           log.warn(
             `Open Repository from URL failed, did not find repository: ${url} - payload: ${JSON.stringify(
@@ -879,6 +873,7 @@ export class Dispatcher {
 
         if (existingRepository) {
           await this.selectRepository(existingRepository)
+          this.statsStore.recordAddExistingRepository()
         } else {
           await this.showPopup({
             type: PopupType.AddRepository,
@@ -936,8 +931,9 @@ export class Dispatcher {
       await this.fetchRefspec(repository, `pull/${pr}/head:${branch}`)
     }
 
+    const state = this.repositoryStateManager.get(repository)
+
     if (pr == null && branch != null) {
-      const state = this.appStore.getRepositoryState(repository)
       const branches = state.branchesState.allBranches
 
       // I don't want to invoke Git functionality from the dispatcher, which
@@ -953,7 +949,17 @@ export class Dispatcher {
     }
 
     if (branch != null) {
-      await this.checkoutBranch(repository, branch)
+      let shouldCheckoutBranch = true
+
+      const { tip } = state.branchesState
+
+      if (tip.kind === TipState.Valid) {
+        shouldCheckoutBranch = tip.branch.nameWithoutRemote !== branch
+      }
+
+      if (shouldCheckoutBranch) {
+        await this.checkoutBranch(repository, branch)
+      }
     }
 
     if (filepath != null) {
@@ -964,10 +970,7 @@ export class Dispatcher {
     }
   }
 
-  private async openRepository(
-    url: string,
-    branch: string | null
-  ): Promise<Repository | null> {
+  private async openRepository(url: string): Promise<Repository | null> {
     const state = this.appStore.getState()
     const repositories = state.repositories
     const existingRepository = repositories.find(r => {
@@ -983,21 +986,16 @@ export class Dispatcher {
     })
 
     if (existingRepository) {
-      const repo = await this.selectRepository(existingRepository)
-      if (!repo || !branch) {
-        return repo
-      }
-
-      return this.checkoutBranch(repo, branch)
-    } else {
-      return this.appStore._startOpenInDesktop(() => {
-        this.changeCloneRepositoriesTab(CloneRepositoryTab.Generic)
-        this.showPopup({
-          type: PopupType.CloneRepository,
-          initialURL: url,
-        })
-      })
+      return await this.selectRepository(existingRepository)
     }
+
+    return this.appStore._startOpenInDesktop(() => {
+      this.changeCloneRepositoriesTab(CloneRepositoryTab.Generic)
+      this.showPopup({
+        type: PopupType.CloneRepository,
+        initialURL: url,
+      })
+    })
   }
 
   /**
@@ -1204,38 +1202,42 @@ export class Dispatcher {
   }
 
   /**
-   * Increments the `mergeConflictFromPullCount` metric
+   * Updates the application state to indicate a conflict is in-progress
+   * as a result of a pull and increments the relevant metric.
    */
-  public recordMergeConflictFromPull() {
-    return this.appStore._recordMergeConflictFromPull()
+  public mergeConflictDetectedFromPull() {
+    this.appStore._mergeConflictDetected()
+    return this.statsStore.recordMergeConflictFromPull()
   }
 
   /**
-   * Increments the `mergeConflictFromExplicitMergeCount` metric
+   * Updates the application state to indicate a conflict is in-progress
+   * as a result of a merge and increments the relevant metric.
    */
-  public recordMergeConflictFromExplicitMerge() {
-    return this.appStore._recordMergeConflictFromExplicitMerge()
+  public mergeConflictDetectedFromExplicitMerge() {
+    this.appStore._mergeConflictDetected()
+    return this.statsStore.recordMergeConflictFromExplicitMerge()
   }
 
   /**
    * Increments the `mergeIntoCurrentBranchMenuCount` metric
    */
   public recordMenuInitiatedMerge() {
-    return this.appStore._recordMenuInitiatedMerge()
+    return this.statsStore.recordMenuInitiatedMerge()
   }
 
   /**
    * Increments the `updateFromDefaultBranchMenuCount` metric
    */
   public recordMenuInitiatedUpdate() {
-    return this.appStore._recordMenuInitiatedUpdate()
+    return this.statsStore.recordMenuInitiatedUpdate()
   }
 
   /**
    * Increments the `mergesInitiatedFromComparison` metric
    */
   public recordCompareInitiatedMerge() {
-    return this.appStore._recordCompareInitiatedMerge()
+    return this.statsStore.recordCompareInitiatedMerge()
   }
 
   /**
@@ -1250,55 +1252,81 @@ export class Dispatcher {
    * the `repoWithoutIndicatorClicked` metric
    */
   public recordRepoClicked(repoHasIndicator: boolean) {
-    return this.appStore._recordRepoClicked(repoHasIndicator)
+    return this.statsStore.recordRepoClicked(repoHasIndicator)
   }
 
   /** The number of times the user dismisses the diverged branch notification
    * Increments the `divergingBranchBannerDismissal` metric
    */
   public recordDivergingBranchBannerDismissal() {
-    return this.appStore._recordDivergingBranchBannerDismissal()
+    return this.statsStore.recordDivergingBranchBannerDismissal()
   }
 
   /**
    * Increments the `dotcomPushCount` metric
    */
   public recordPushToGitHub() {
-    return this.appStore._recordPushToGitHub()
+    return this.statsStore.recordPushToGitHub()
   }
 
   /**
    * Increments the `enterprisePushCount` metric
    */
   public recordPushToGitHubEnterprise() {
-    return this.appStore._recordPushToGitHubEnterprise()
+    return this.statsStore.recordPushToGitHubEnterprise()
   }
 
   /**
    * Increments the `externalPushCount` metric
    */
   public recordPushToGenericRemote() {
-    return this.appStore._recordPushToGenericRemote()
+    return this.statsStore.recordPushToGenericRemote()
   }
 
   /**
    * Increments the `divergingBranchBannerInitiatedCompare` metric
    */
   public recordDivergingBranchBannerInitiatedCompare() {
-    return this.appStore._recordDivergingBranchBannerInitiatedCompare()
+    return this.statsStore.recordDivergingBranchBannerInitiatedCompare()
   }
 
   /**
    * Increments the `divergingBranchBannerInfluencedMerge` metric
    */
   public recordDivergingBranchBannerInfluencedMerge() {
-    return this.appStore._recordDivergingBranchBannerInfluencedMerge()
+    return this.statsStore.recordDivergingBranchBannerInfluencedMerge()
   }
 
   /**
    * Increments the `divergingBranchBannerInitatedMerge` metric
    */
   public recordDivergingBranchBannerInitatedMerge() {
-    return this.appStore._recordDivergingBranchBannerInitatedMerge()
+    return this.statsStore.recordDivergingBranchBannerInitatedMerge()
+  }
+
+  public recordWelcomeWizardInitiated() {
+    return this.statsStore.recordWelcomeWizardInitiated()
+  }
+
+  public recordCreateRepository() {
+    this.statsStore.recordCreateRepository()
+  }
+
+  public recordAddExistingRepository() {
+    this.statsStore.recordAddExistingRepository()
+  }
+
+  /**
+   * Increments the `recordMergeSuccesfulAfterConflicts` metric
+   */
+  public recordMergeSuccesfulAfterConflicts() {
+    return this.statsStore.recordMergeSuccesAfterConflicts()
+  }
+
+  /**
+   * Increments the `recordMergeAbortedAfterConflicts` metric
+   */
+  public recordMergeAbortedAfterConflicts() {
+    return this.statsStore.recordMergeAbortedAfterConflicts()
   }
 }

@@ -1,0 +1,2758 @@
+added in remote
+  their  100644 cef52ece3d909f713567ef3f874c758fb766387c extensions/extension-editing/src/quickInputExploration.ts
+@@ -0,0 +1,249 @@
++/*---------------------------------------------------------------------------------------------
++ *  Copyright (c) Microsoft Corporation. All rights reserved.
++ *  Licensed under the MIT License. See License.txt in the project root for license information.
++ *--------------------------------------------------------------------------------------------*/
++
++import { ExtensionContext, commands, QuickPickItem, window, Disposable, CancellationToken, QuickInputButton, QuickInput } from 'vscode';
++
++export function activate(context: ExtensionContext) {
++	context.subscriptions.push(commands.registerCommand('foobar', async () => {
++		const inputs = await collectInputs();
++		console.log(inputs);
++	}));
++}
++
++const resourceGroups: QuickPickItem[] = ['vscode-data-function', 'vscode-website-microservices', 'vscode-website-monitor', 'vscode-website-preview', 'vscode-website-prod']
++	.map(label => ({ label }));
++
++
++interface Result {
++	resourceGroup: QuickPickItem | string;
++	name: string;
++	runtime: QuickPickItem;
++}
++
++async function collectInputs() {
++	const result = {} as Partial<Result>;
++	await MultiStepInput.run(input => pickResourceGroup(input, {}));
++	return result;
++}
++
++class MyCommand implements QuickInputButton {
++	constructor(public iconPath: string) { }
++}
++
++async function pickResourceGroup(input: MultiStepInput, state: Partial<Result>) {
++	const createResourceGroupItem = new MyCommand('createResourceGroup.svg');
++	const pick = await input.showQuickPick({
++		placeHolder: 'Pick a resource group',
++		items: resourceGroups,
++		commands: [createResourceGroupItem],
++		shouldResume: shouldResume
++	});
++	if (pick instanceof MyCommand) {
++		return (input: MultiStepInput) => inputResourceGroupName(input, state);
++	}
++	state.resourceGroup = pick;
++	return (input: MultiStepInput) => inputName(input, state);
++}
++
++async function inputResourceGroupName(input: MultiStepInput, state: Partial<Result>) {
++	state.resourceGroup = await input.showInputBox({
++		prompt: 'Choose a unique name for the resource group',
++		validate: validateNameIsUnique,
++		shouldResume: shouldResume
++	});
++	return (input: MultiStepInput) => inputName(input, state);
++}
++
++async function inputName(input: MultiStepInput, state: Partial<Result>) {
++	state.name = await input.showInputBox({
++		prompt: 'Choose a unique name for the application service',
++		validate: validateNameIsUnique,
++		shouldResume: shouldResume
++	});
++	return (input: MultiStepInput) => pickRuntime(input, state);
++}
++
++async function pickRuntime(input: MultiStepInput, state: Partial<Result>) {
++	const runtimes = await getAvailableRuntimes(state.resourceGroup, null /* token */);
++	state.runtime = await input.showQuickPick({
++		placeHolder: 'Pick a runtime',
++		items: runtimes,
++		shouldResume: shouldResume
++	});
++}
++
++function shouldResume() {
++	// Could show a notification with the option to resume.
++	return new Promise<boolean>((resolve, reject) => {
++
++	});
++}
++
++class InputFlowAction {
++	private constructor() { }
++	static back = new InputFlowAction();
++	static cancel = new InputFlowAction();
++	static resume = new InputFlowAction();
++}
++
++type InputStep = (input: MultiStepInput) => Thenable<InputStep | void>;
++
++interface QuickPickParameters {
++	items: QuickPickItem[];
++	placeHolder: string;
++	commands?: QuickInputButton[];
++	shouldResume: () => Thenable<boolean>;
++}
++
++interface InputBoxParameters {
++	prompt: string;
++	validate: (value: string) => Promise<string>;
++	commands?: QuickInputButton[];
++	shouldResume: () => Thenable<boolean>;
++}
++
++const backItem: QuickInputButton = { iconPath: 'back.svg' };
++
++class MultiStepInput {
++
++	static async run<T>(start: InputStep) {
++		const input = new MultiStepInput();
++		return input.stepThrough(start);
++	}
++
++	private current?: QuickInput;
++	private steps: InputStep[] = [];
++
++	private async stepThrough<T>(start: InputStep) {
++		let step: InputStep | void = start;
++		while (step) {
++			this.steps.push(step);
++			if (this.current) {
++				this.current.enabled = false;
++				this.current.busy = true;
++			}
++			try {
++				step = await step(this);
++			} catch (err) {
++				if (err === InputFlowAction.back) {
++					this.steps.pop();
++					step = this.steps.pop();
++				} else if (err === InputFlowAction.resume) {
++					step = this.steps.pop();
++				} else if (err === InputFlowAction.cancel) {
++					step = undefined;
++				} else {
++					throw err;
++				}
++			}
++		}
++		if (this.current) {
++			this.current.dispose();
++		}
++	}
++
++	async showQuickPick<P extends QuickPickParameters>({ items, placeHolder, commands, shouldResume }: P) {
++		const disposables: Disposable[] = [];
++		try {
++			return await new Promise<QuickPickItem | (P extends { commands: (infer I)[] } ? I : never)>((resolve, reject) => {
++				const input = window.createQuickPick();
++				input.placeholder = placeHolder;
++				input.items = items;
++				input.buttons = [
++					...(this.steps.length > 1 ? [backItem] : []),
++					...(commands || [])
++				];
++				disposables.push(
++					input,
++					input.onDidTriggerButton(item => {
++						if (item === backItem) {
++							reject(InputFlowAction.back);
++						}
++					}),
++					input.onDidChangeSelection(items => resolve(items[0])),
++					input.onDidHide(() => {
++						(async () => {
++							reject(shouldResume && await shouldResume() ? InputFlowAction.resume : InputFlowAction.cancel);
++						})()
++							.catch(reject);
++					})
++				);
++				if (this.current) {
++					this.current.hide();
++				}
++				this.current = input;
++				this.current.show();
++			});
++		} finally {
++			disposables.forEach(d => d.dispose());
++		}
++	}
++
++	async showInputBox<P extends InputBoxParameters>({ prompt, validate, commands, shouldResume }: P) {
++		const disposables: Disposable[] = [];
++		try {
++			return await new Promise<string | (P extends { commands: (infer I)[] } ? I : never)>((resolve, reject) => {
++				const input = window.createInputBox();
++				input.prompt = prompt;
++				input.buttons = [
++					...(this.steps.length > 1 ? [backItem] : []),
++					...(commands || [])
++				];
++				let validating = validate('');
++				disposables.push(
++					input,
++					input.onDidTriggerButton(item => {
++						if (item === backItem) {
++							reject(InputFlowAction.back);
++						}
++					}),
++					input.onDidAccept(async text => {
++						if (!(await validate(text))) {
++							resolve(text);
++						}
++					}),
++					input.onDidChangeValue(async text => {
++						const current = validate(text);
++						validating = current;
++						const validationMessage = await current;
++						if (current === validating) {
++							input.validationMessage = validationMessage;
++						}
++					}),
++					input.onDidHide(() => {
++						(async () => {
++							reject(shouldResume && await shouldResume() ? InputFlowAction.resume : InputFlowAction.cancel);
++						})()
++							.catch(reject);
++					})
++				);
++				if (this.current) {
++					this.current.hide();
++				}
++				this.current = input;
++				this.current.show();
++			});
++		} finally {
++			disposables.forEach(d => d.dispose());
++		}
++	}
++}
++
++
++// ---------------------------------------------------------------------------------------
++
++
++async function validateNameIsUnique(name: string) {
++	// ...validate...
++	await new Promise(resolve => setTimeout(resolve, 1000));
++	return name === 'vscode' ? 'Name not unique' : undefined;
++}
++
++async function getAvailableRuntimes(resourceGroup: QuickPickItem | string, token: CancellationToken): Promise<QuickPickItem[]> {
++	// ...retrieve...
++	await new Promise(resolve => setTimeout(resolve, 2000));
++	return ['Node 8.9', 'Node 6.11', 'Node 4.5']
++		.map(label => ({ label }));
++}
+merged
+  result 100644 c9849d48e083fe1a719179065d190e1a803486f1 extensions/extension-editing/src/typings/ref.d.ts
+  our    100644 216911a680eb22a4ef86b9a54eb9ee28e67db23e extensions/extension-editing/src/typings/ref.d.ts
+@@ -4,3 +4,4 @@
+  *--------------------------------------------------------------------------------------------*/
+ 
+ /// <reference path='../../../../src/vs/vscode.d.ts'/>
++/// <reference path='../../../../src/vs/vscode.proposed.d.ts'/>
+added in both
+  our    100644 04f8ba296e3e0ba1391a1ab32940763dc1d53a5c extensions/vscode-api-tests/src/singlefolder-tests/quickInput.test.ts
+  their  100644 19ad6839edf44300173d1588b351438d4a9fb55b extensions/vscode-api-tests/src/singlefolder-tests/quickInput.test.ts
+@@ -9,6 +9,7 @@
+ import { window, commands } from 'vscode';
+ import { closeAllEditors } from '../utils';
+ 
++<<<<<<< .our
+ interface QuickPickExpected {
+ 	events: string[];
+ 	activeItems: string[][];
+@@ -19,6 +20,8 @@
+ 	};
+ }
+ 
++=======
++>>>>>>> .their
+ suite('window namespace tests', function () {
+ 
+ 	suite('QuickInput tests', function () {
+@@ -29,6 +32,7 @@
+ 				done = () => {};
+ 				_done(err);
+ 			};
++<<<<<<< .our
+ 
+ 			const quickPick = createQuickPick({
+ 				events: ['active', 'active', 'selection', 'accept', 'hide'],
+@@ -90,20 +94,47 @@
+ 				},
+ 			}, (err?: any) => done(err));
+ 			quickPick.canSelectMany = true;
++=======
++			const quickPick = window.createQuickPick();
++			const expectedFocusChanges = [['eins'], ['zwei']];
++			quickPick.onDidChangeActive(items => {
++				try {
++					assert.deepEqual(items.map(item => item.label), expectedFocusChanges.shift());
++				} catch (err) {
++					done(err);
++				}
++			});
++			quickPick.onDidAccept(() => {
++				try {
++					const items = quickPick.activeItems;
++					quickPick.dispose();
++					assert.equal(items.length, 1);
++					assert.equal(items[0].label, 'zwei');
++					assert.equal(expectedFocusChanges.length, 0);
++					done();
++				} catch (err) {
++					done(err);
++				}
++			});
++>>>>>>> .their
+ 			quickPick.items = ['eins', 'zwei', 'drei'].map(label => ({ label }));
+ 			quickPick.show();
+ 
+ 			(async () => {
+ 				await commands.executeCommand('workbench.action.quickOpenSelectNext');
++<<<<<<< .our
+ 				await commands.executeCommand('workbench.action.quickPickManyToggle');
+ 				await commands.executeCommand('workbench.action.quickOpenSelectNext');
+ 				await commands.executeCommand('workbench.action.quickPickManyToggle');
++=======
++>>>>>>> .their
+ 				await commands.executeCommand('workbench.action.acceptSelectedQuickOpenItem');
+ 			})()
+ 				.catch(err => done(err));
+ 		});
+ 	});
+ });
++<<<<<<< .our
+ 
+ function createQuickPick(expected: QuickPickExpected, done: (err?: any) => void) {
+ 	const quickPick = window.createQuickPick();
+@@ -149,4 +180,6 @@
+ 	});
+ 
+ 	return quickPick;
+-}
+\ No newline at end of file
++}
++=======
++>>>>>>> .their
+changed in both
+  base   100644 efe7c1848e60f7377d0971b69af7db5373258776 extensions/vscode-api-tests/src/singlefolder-tests/window.test.ts
+  our    100644 ab90746f65a472d1786bcdf33b4a22ef90fb8db7 extensions/vscode-api-tests/src/singlefolder-tests/window.test.ts
+  their  100644 4efe6c0f4e3891ef08cf606878295996082df5e8 extensions/vscode-api-tests/src/singlefolder-tests/window.test.ts
+changed in both
+  base   100755 8222ce00f1c633ff767f1a3eee5437279a8be44f scripts/test-integration.sh
+  our    100755 d2225c4475d754de72e745def72814606c90f9a3 scripts/test-integration.sh
+  their  100755 0eff7c4a0a6b2835357d384bc15752f43dd9958f scripts/test-integration.sh
+@@ -13,20 +13,33 @@
+ cd $ROOT
+ 
+ # Tests in the extension host
++<<<<<<< .our
+ ./scripts/code.sh $ROOT/extensions/vscode-api-tests/testWorkspace --extensionDevelopmentPath=$ROOT/extensions/vscode-api-tests --extensionTestsPath=$ROOT/extensions/vscode-api-tests/out/singlefolder-tests --disableExtensions --user-data-dir=$VSCODEUSERDATADIR --skip-getting-started
+ ./scripts/code.sh $ROOT/extensions/vscode-api-tests/testworkspace.code-workspace --extensionDevelopmentPath=$ROOT/extensions/vscode-api-tests --extensionTestsPath=$ROOT/extensions/vscode-api-tests/out/workspace-tests --disableExtensions --user-data-dir=$VSCODEUSERDATADIR --skip-getting-started
+ ./scripts/code.sh $ROOT/extensions/vscode-colorize-tests/test --extensionDevelopmentPath=$ROOT/extensions/vscode-colorize-tests --extensionTestsPath=$ROOT/extensions/vscode-colorize-tests/out --disableExtensions --user-data-dir=$VSCODEUSERDATADIR --skip-getting-started
+ ./scripts/code.sh $ROOT/extensions/markdown-language-features/test-fixtures --extensionDevelopmentPath=$ROOT/extensions/markdown-language-features --extensionTestsPath=$ROOT/extensions/markdown-language-features/out/test --disableExtensions --user-data-dir=$VSCODEUSERDATADIR --skip-getting-started
++=======
++./scripts/code.sh $ROOT/extensions/vscode-api-tests/testWorkspace --extensionDevelopmentPath=$ROOT/extensions/vscode-api-tests --extensionTestsPath=$ROOT/extensions/vscode-api-tests/out/singlefolder-tests --disableExtensions --user-data-dir=$VSCODEUSERDATADIR --skip-getting-started #--debugBrkPluginHost=5687
++# ./scripts/code.sh $ROOT/extensions/vscode-api-tests/testworkspace.code-workspace --extensionDevelopmentPath=$ROOT/extensions/vscode-api-tests --extensionTestsPath=$ROOT/extensions/vscode-api-tests/out/workspace-tests --disableExtensions --user-data-dir=$VSCODEUSERDATADIR --skip-getting-started
++# ./scripts/code.sh $ROOT/extensions/vscode-colorize-tests/test --extensionDevelopmentPath=$ROOT/extensions/vscode-colorize-tests --extensionTestsPath=$ROOT/extensions/vscode-colorize-tests/out --disableExtensions --user-data-dir=$VSCODEUSERDATADIR --skip-getting-started
++# ./scripts/code.sh $ROOT/extensions/markdown-language-features/test-fixtures --extensionDevelopmentPath=$ROOT/extensions/markdown-language-features --extensionTestsPath=$ROOT/extensions/markdown-language-features/out/test --disableExtensions --user-data-dir=$VSCODEUSERDATADIR --skip-getting-started
++exit 0
++>>>>>>> .their
+ 
+-mkdir $ROOT/extensions/emmet/test-fixtures
+-./scripts/code.sh $ROOT/extensions/emmet/test-fixtures --extensionDevelopmentPath=$ROOT/extensions/emmet --extensionTestsPath=$ROOT/extensions/emmet/out/test --disableExtensions --user-data-dir=$VSCODEUSERDATADIR --skip-getting-started .
+-rm -r $ROOT/extensions/emmet/test-fixtures
++# mkdir $ROOT/extensions/emmet/test-fixtures
++# ./scripts/code.sh $ROOT/extensions/emmet/test-fixtures --extensionDevelopmentPath=$ROOT/extensions/emmet --extensionTestsPath=$ROOT/extensions/emmet/out/test --disableExtensions --user-data-dir=$VSCODEUSERDATADIR --skip-getting-started .
++# rm -r $ROOT/extensions/emmet/test-fixtures
+ 
+-# Integration tests in AMD
+-./scripts/test.sh --runGlob **/*.integrationTest.js "$@"
++# # Integration tests in AMD
++# ./scripts/test.sh --runGlob **/*.integrationTest.js "$@"
+ 
++<<<<<<< .our
+ # Tests in commonJS
+ cd $ROOT/extensions/css-language-features/server && $ROOT/scripts/node-electron.sh test/index.js
+ cd $ROOT/extensions/html-language-features/server && $ROOT/scripts/node-electron.sh test/index.js
++=======
++# # Tests in commonJS (HTML, CSS, JSON language server tests...)
++# ./scripts/node-electron.sh ./node_modules/mocha/bin/_mocha ./extensions/*/server/out/test/
++>>>>>>> .their
+ 
+ rm -r $VSCODEUSERDATADIR
+changed in both
+  base   100644 14edbfdfa229d1a149d0448bfdee198f16491a40 src/vs/platform/quickinput/common/quickInput.ts
+  our    100644 b384addd50947ac569852010fe7ee90e9558cf6b src/vs/platform/quickinput/common/quickInput.ts
+  their  100644 6ec617b0535d27f5365a0e7f0755112927eb3283 src/vs/platform/quickinput/common/quickInput.ts
+@@ -9,10 +9,17 @@
+ import { CancellationToken } from 'vs/base/common/cancellation';
+ import { ResolvedKeybinding } from 'vs/base/common/keyCodes';
+ import URI from 'vs/base/common/uri';
++<<<<<<< .our
+ import { Event } from 'vs/base/common/event';
+ 
+ export interface IQuickPickItem {
+ 	type?: 'item';
++=======
++import { ThemeIcon } from 'vs/platform/theme/common/themeService';
++import { Event } from 'vs/base/common/event';
++
++export interface IQuickPickItem {
++>>>>>>> .their
+ 	id?: string;
+ 	label: string;
+ 	description?: string;
+@@ -121,6 +128,7 @@
+ 
+ export interface IQuickInput {
+ 
++<<<<<<< .our
+ 	title: string | undefined;
+ 
+ 	step: number | undefined;
+@@ -131,6 +139,11 @@
+ 
+ 	contextKey: string | undefined;
+ 
++=======
++
++	enabled: boolean;
++
++>>>>>>> .their
+ 	busy: boolean;
+ 
+ 	ignoreFocusOut: boolean;
+@@ -144,6 +157,7 @@
+ 	dispose(): void;
+ }
+ 
++<<<<<<< .our
+ export interface IQuickPick<T extends IQuickPickItem> extends IQuickInput {
+ 
+ 	value: string;
+@@ -151,16 +165,31 @@
+ 	placeholder: string | undefined;
+ 
+ 	readonly onDidChangeValue: Event<string>;
++=======
++export interface IQuickPick extends IQuickInput {
++
++	value: string;
++
++	placeholder: string;
++
++	readonly onDidValueChange: Event<string>;
++>>>>>>> .their
+ 
+ 	readonly onDidAccept: Event<string>;
+ 
+ 	buttons: ReadonlyArray<IQuickInputButton>;
+ 
++<<<<<<< .our
+ 	readonly onDidTriggerButton: Event<IQuickInputButton>;
+ 
+ 	readonly onDidTriggerItemButton: Event<IQuickPickItemButtonEvent<T>>;
+ 
+ 	items: ReadonlyArray<T | IQuickPickSeparator>;
++=======
++	readonly onDidTriggerCommand: Event<IQuickInputButton>;
++
++	items: ReadonlyArray<IQuickPickItem>;
++>>>>>>> .their
+ 
+ 	canSelectMany: boolean;
+ 
+@@ -168,6 +197,7 @@
+ 
+ 	matchOnDetail: boolean;
+ 
++<<<<<<< .our
+ 	quickNavigate: IQuickNavigateConfiguration | undefined;
+ 
+ 	activeItems: ReadonlyArray<T>;
+@@ -179,6 +209,15 @@
+ 	readonly onDidChangeSelection: Event<T[]>;
+ 
+ 	readonly keyMods: IKeyMods;
++=======
++	readonly activeItems: ReadonlyArray<IQuickPickItem>;
++
++	readonly onDidChangeActive: Event<IQuickPickItem[]>;
++
++	readonly selectedItems: ReadonlyArray<IQuickPickItem>;
++
++	readonly onDidChangeSelection: Event<IQuickPickItem[]>;
++>>>>>>> .their
+ }
+ 
+ export interface IInputBox extends IQuickInput {
+@@ -187,7 +226,11 @@
+ 
+ 	valueSelection: Readonly<[number, number]>;
+ 
++<<<<<<< .our
+ 	placeholder: string | undefined;
++=======
++	placeholder: string;
++>>>>>>> .their
+ 
+ 	password: boolean;
+ 
+@@ -199,6 +242,7 @@
+ 
+ 	readonly onDidTriggerButton: Event<IQuickInputButton>;
+ 
++<<<<<<< .our
+ 	prompt: string | undefined;
+ 
+ 	validationMessage: string | undefined;
+@@ -217,14 +261,27 @@
+ 
+ export interface IQuickPickItemButtonContext<T extends IQuickPickItem> extends IQuickPickItemButtonEvent<T> {
+ 	removeItem(): void;
++=======
++	prompt: string;
++
++	validationMessage: string;
++}
++
++export interface IQuickInputButton {
++	iconPath: string | URI | { light: string | URI; dark: string | URI } | ThemeIcon;
++	tooltip?: string | undefined;
++>>>>>>> .their
+ }
+ 
+ export const IQuickInputService = createDecorator<IQuickInputService>('quickInputService');
+ 
++<<<<<<< .our
+ export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
+ 
+ export type QuickPickInput<T = IQuickPickItem> = T | IQuickPickSeparator;
+ 
++=======
++>>>>>>> .their
+ export interface IQuickInputService {
+ 
+ 	_serviceBrand: any;
+@@ -232,18 +289,26 @@
+ 	/**
+ 	 * Opens the quick input box for selecting items and returns a promise with the user selected item(s) if any.
+ 	 */
++<<<<<<< .our
+ 	pick<T extends IQuickPickItem>(picks: TPromise<QuickPickInput<T>[]> | QuickPickInput<T>[], options?: IPickOptions<T> & { canPickMany: true }, token?: CancellationToken): TPromise<T[]>;
+ 	pick<T extends IQuickPickItem>(picks: TPromise<QuickPickInput<T>[]> | QuickPickInput<T>[], options?: IPickOptions<T> & { canPickMany: false }, token?: CancellationToken): TPromise<T>;
+ 	pick<T extends IQuickPickItem>(picks: TPromise<QuickPickInput<T>[]> | QuickPickInput<T>[], options?: Omit<IPickOptions<T>, 'canPickMany'>, token?: CancellationToken): TPromise<T>;
++=======
++	pick<T extends IQuickPickItem, O extends IPickOptions>(picks: TPromise<T[]>, options?: O, token?: CancellationToken): TPromise<O extends { canPickMany: true } ? T[] : T>;
++>>>>>>> .their
+ 
+ 	/**
+ 	 * Opens the quick input box for text input and returns a promise with the user typed value if any.
+ 	 */
+ 	input(options?: IInputOptions, token?: CancellationToken): TPromise<string>;
+ 
++<<<<<<< .our
+ 	backButton: IQuickInputButton;
+ 
+ 	createQuickPick<T extends IQuickPickItem>(): IQuickPick<T>;
++=======
++	createQuickPick(): IQuickPick;
++>>>>>>> .their
+ 	createInputBox(): IInputBox;
+ 
+ 	focus(): void;
+changed in both
+  base   100644 7f0634707038962af26042da5fe74792a49844b9 src/vs/vscode.proposed.d.ts
+  our    100644 3de4a7af9dda9e3e523ba4b5774f1667d66b0b9b src/vs/vscode.proposed.d.ts
+  their  100644 4801bc52870fae75c097fbbadd1756206fb9f263 src/vs/vscode.proposed.d.ts
+@@ -5,6 +5,8 @@
+ 
+ // This is the place for API experiments and proposals.
+ 
++import { QuickPickItem } from 'vscode';
++
+ declare module 'vscode' {
+ 
+ 	export namespace window {
+@@ -681,6 +683,98 @@
+ 		 */
+ 		dimensions: TerminalDimensions | undefined;
+ 
++<<<<<<< .our
++=======
++	//#region QuickInput API
++
++	export namespace window {
++
++		export function createQuickPick(): QuickPick;
++		export function createInputBox(): InputBox;
++	}
++
++	export interface QuickInput {
++
++		enabled: boolean;
++
++		busy: boolean;
++
++		ignoreFocusOut: boolean;
++
++		show(): void;
++
++		hide(): void;
++
++		onDidHide: Event<void>;
++
++		dispose(): void;
++	}
++
++	export interface QuickPick extends QuickInput {
++
++		value: string;
++
++		placeholder: string;
++
++		readonly onDidChangeValue: Event<string>;
++
++		readonly onDidAccept: Event<void>;
++
++		buttons: ReadonlyArray<QuickInputButton>;
++
++		readonly onDidTriggerButton: Event<QuickInputButton>;
++
++		items: ReadonlyArray<QuickPickItem>;
++
++		canSelectMany: boolean;
++
++		matchOnDescription: boolean;
++
++		matchOnDetail: boolean;
++
++		readonly activeItems: ReadonlyArray<QuickPickItem>;
++
++		readonly onDidChangeActive: Event<QuickPickItem[]>;
++
++		readonly selectedItems: ReadonlyArray<QuickPickItem>;
++
++		readonly onDidChangeSelection: Event<QuickPickItem[]>;
++	}
++
++	export interface InputBox extends QuickInput {
++
++		value: string;
++
++		placeholder: string;
++
++		password: boolean;
++
++		readonly onDidChangeValue: Event<string>;
++
++		readonly onDidAccept: Event<string>;
++
++		buttons: ReadonlyArray<QuickInputButton>;
++
++		readonly onDidTriggerButton: Event<QuickInputButton>;
++
++		prompt: string;
++
++		validationMessage: string;
++	}
++
++	export interface QuickInputButton {
++		iconPath: string | Uri | { light: string | Uri; dark: string | Uri } | ThemeIcon;
++		tooltip?: string | undefined;
++	}
++
++	//#endregion
++
++	//#region mjbvz: Unused diagnostics
++	/**
++	 * Additional metadata about the type of diagnostic.
++	 */
++	export enum DiagnosticTag {
++>>>>>>> .their
+ 		/**
+ 		 * The maximum dimensions of the terminal, this will be undefined immediately after a
+ 		 * terminal renderer is created and also until the terminal becomes visible in the UI.
+changed in both
+  base   100644 e98293c8a8a8abd46b38cc58caf66f59f2f6f7a2 src/vs/workbench/api/electron-browser/mainThreadQuickOpen.ts
+  our    100644 7435dda07b668fcc7e08e3f118b731133774c674 src/vs/workbench/api/electron-browser/mainThreadQuickOpen.ts
+  their  100644 03e43b23d46c3e851e96b54aa6d02c06154da0c4 src/vs/workbench/api/electron-browser/mainThreadQuickOpen.ts
+@@ -8,15 +8,22 @@
+ import { asWinJsPromise } from 'vs/base/common/async';
+ import { IPickOptions, IInputOptions, IQuickInputService, IQuickInput } from 'vs/platform/quickinput/common/quickInput';
+ import { InputBoxOptions } from 'vscode';
++<<<<<<< .our
+ import { ExtHostContext, MainThreadQuickOpenShape, ExtHostQuickOpenShape, TransferQuickPickItems, MainContext, IExtHostContext, TransferQuickInput, TransferQuickInputButton } from 'vs/workbench/api/node/extHost.protocol';
++=======
++import { ExtHostContext, MainThreadQuickOpenShape, ExtHostQuickOpenShape, MyQuickPickItems, MainContext, IExtHostContext, TransferQuickInput } from '../node/extHost.protocol';
++>>>>>>> .their
+ import { extHostNamedCustomer } from 'vs/workbench/api/electron-browser/extHostCustomers';
+ import URI from 'vs/base/common/uri';
+ 
++<<<<<<< .our
+ interface QuickInputSession {
+ 	input: IQuickInput;
+ 	handlesToItems: Map<number, TransferQuickPickItems>;
+ }
+ 
++=======
++>>>>>>> .their
+ @extHostNamedCustomer(MainContext.MainThreadQuickOpen)
+ export class MainThreadQuickOpen implements MainThreadQuickOpenShape {
+ 
+@@ -38,7 +45,11 @@
+ 	public dispose(): void {
+ 	}
+ 
++<<<<<<< .our
+ 	$show(options: IPickOptions<TransferQuickPickItems>): TPromise<number | number[]> {
++=======
++	$show(options: IPickOptions): TPromise<number | number[]> {
++>>>>>>> .their
+ 		const myToken = ++this._token;
+ 
+ 		this._contents = new TPromise<TransferQuickPickItems[]>((c, e) => {
+@@ -120,7 +131,11 @@
+ 
+ 	// ---- QuickInput
+ 
++<<<<<<< .our
+ 	private sessions = new Map<number, QuickInputSession>();
++=======
++	private sessions = new Map<number, IQuickInput>();
++>>>>>>> .their
+ 
+ 	$createOrUpdate(params: TransferQuickInput): TPromise<void> {
+ 		const sessionId = params.id;
+@@ -132,6 +147,7 @@
+ 					this._proxy.$onDidAccept(sessionId);
+ 				});
+ 				input.onDidChangeActive(items => {
++<<<<<<< .our
+ 					this._proxy.$onDidChangeActive(sessionId, items.map(item => (item as TransferQuickPickItems).handle));
+ 				});
+ 				input.onDidChangeSelection(items => {
+@@ -150,11 +166,20 @@
+ 					input,
+ 					handlesToItems: new Map()
+ 				};
++=======
++					this._proxy.$onDidChangeActive(sessionId, items.map(item => (item as MyQuickPickItems).handle));
++				});
++				input.onDidChangeSelection(items => {
++					this._proxy.$onDidChangeSelection(sessionId, items.map(item => (item as MyQuickPickItems).handle));
++				});
++				session = input;
++>>>>>>> .their
+ 			} else {
+ 				const input = this._quickInputService.createInputBox();
+ 				input.onDidAccept(() => {
+ 					this._proxy.$onDidAccept(sessionId);
+ 				});
++<<<<<<< .our
+ 				input.onDidTriggerButton(button => {
+ 					this._proxy.$onDidTriggerButton(sessionId, (button as TransferQuickInputButton).handle);
+ 				});
+@@ -172,12 +197,19 @@
+ 			this.sessions.set(sessionId, session);
+ 		}
+ 		const { input, handlesToItems } = session;
++=======
++				session = input;
++			}
++			this.sessions.set(sessionId, session);
++		}
++>>>>>>> .their
+ 		for (const param in params) {
+ 			if (param === 'id' || param === 'type') {
+ 				continue;
+ 			}
+ 			if (param === 'visible') {
+ 				if (params.visible) {
++<<<<<<< .our
+ 					input.show();
+ 				} else {
+ 					input.hide();
+@@ -209,6 +241,14 @@
+ 				});
+ 			} else {
+ 				input[param] = params[param];
++=======
++					session.show();
++				} else {
++					session.hide();
++				}
++			} else {
++				session[param] = params[param];
++>>>>>>> .their
+ 			}
+ 		}
+ 		return TPromise.as(undefined);
+@@ -217,7 +257,11 @@
+ 	$dispose(sessionId: number): TPromise<void> {
+ 		const session = this.sessions.get(sessionId);
+ 		if (session) {
++<<<<<<< .our
+ 			session.input.dispose();
++=======
++			session.dispose();
++>>>>>>> .their
+ 			this.sessions.delete(sessionId);
+ 		}
+ 		return TPromise.as(undefined);
+changed in both
+  base   100644 52309306e47ad59f30e0f0bf09148844eef6c0d9 src/vs/workbench/api/node/extHost.api.impl.ts
+  our    100644 ea64898c5b15cfae4b4ab32d722f4ae4a68f831a src/vs/workbench/api/node/extHost.api.impl.ts
+  their  100644 ca2f8e5a5a70d6e0a025130982fa64eedf7f858d src/vs/workbench/api/node/extHost.api.impl.ts
+@@ -401,6 +401,15 @@
+ 			},
+ 			showInputBox(options?: vscode.InputBoxOptions, token?: vscode.CancellationToken) {
+ 				return extHostQuickOpen.showInput(options, token);
++<<<<<<< .our
++=======
++			},
++			createQuickPick(): vscode.QuickPick {
++				return extHostQuickOpen.createQuickPick(extension.id);
++			},
++			createInputBox(): vscode.InputBox {
++				return extHostQuickOpen.createInputBox(extension.id);
++>>>>>>> .their
+ 			},
+ 			showOpenDialog(options) {
+ 				return extHostDialogs.showOpenDialog(options);
+changed in both
+  base   100644 5b9cbdc684fba567cb55574c0b37e2917f879add src/vs/workbench/api/node/extHost.protocol.ts
+  our    100644 edb764542adfbf0fba64e1b93de7c309bedf0d12 src/vs/workbench/api/node/extHost.protocol.ts
+  their  100644 96968d918577251d5839ab5ee51e561c5942c56d src/vs/workbench/api/node/extHost.protocol.ts
+@@ -9,6 +9,26 @@
+ import Severity from 'vs/base/common/severity';
+ import URI, { UriComponents } from 'vs/base/common/uri';
+ import { TPromise } from 'vs/base/common/winjs.base';
++<<<<<<< .our
++=======
++
++import { IMarkerData } from 'vs/platform/markers/common/markers';
++import { EditorViewColumn } from 'vs/workbench/api/shared/editor';
++import { IExtensionDescription } from 'vs/workbench/services/extensions/common/extensions';
++import { StatusbarAlignment as MainThreadStatusBarAlignment } from 'vs/platform/statusbar/common/statusbar';
++import { ITelemetryInfo } from 'vs/platform/telemetry/common/telemetry';
++import { ICommandHandlerDescription } from 'vs/platform/commands/common/commands';
++import { IProgressOptions, IProgressStep } from 'vs/workbench/services/progress/common/progress';
++
++import * as editorCommon from 'vs/editor/common/editorCommon';
++import * as modes from 'vs/editor/common/modes';
++
++import { IConfigurationData, ConfigurationTarget, IConfigurationModel } from 'vs/platform/configuration/common/configuration';
++import { IConfig, IAdapterExecutable, ITerminalSettings } from 'vs/workbench/parts/debug/common/debug';
++
++import { IQuickPickItem, IPickOptions } from 'vs/platform/quickinput/common/quickInput';
++import { SaveReason } from 'vs/workbench/services/textfile/common/textfiles';
++>>>>>>> .their
+ import { TextEditorCursorStyle } from 'vs/editor/common/config/editorOptions';
+ import { IPosition } from 'vs/editor/common/core/position';
+ import { IRange } from 'vs/editor/common/core/range';
+@@ -340,7 +360,11 @@
+ 	handle: number;
+ }
+ 
++<<<<<<< .our
+ export interface TransferQuickInputButton extends IQuickInputButton {
++=======
++export interface MyQuickPickItems extends IQuickPickItem {
++>>>>>>> .their
+ 	handle: number;
+ }
+ 
+@@ -367,6 +391,7 @@
+ 
+ 	placeholder?: string;
+ 
++<<<<<<< .our
+ 	buttons?: TransferQuickInputButton[];
+ 
+ 	items?: TransferQuickPickItems[];
+@@ -374,6 +399,11 @@
+ 	activeItems?: number[];
+ 
+ 	selectedItems?: number[];
++=======
++	commands?: TransferQuickInputCommand[];
++
++	items?: MyQuickPickItems[];
++>>>>>>> .their
+ 
+ 	canSelectMany?: boolean;
+ 
+@@ -394,16 +424,31 @@
+ 
+ 	password?: boolean;
+ 
++<<<<<<< .our
+ 	buttons?: TransferQuickInputButton[];
++=======
++	commands?: TransferQuickInputCommand[];
++>>>>>>> .their
+ 
+ 	prompt?: string;
+ 
+ 	validationMessage?: string;
+ }
+ 
++<<<<<<< .our
+ export interface MainThreadQuickOpenShape extends IDisposable {
+ 	$show(options: IPickOptions<TransferQuickPickItems>): TPromise<number | number[]>;
+ 	$setItems(items: TransferQuickPickItems[]): TPromise<any>;
++=======
++export interface TransferQuickInputCommand {
++	iconPath: { light: string; dark: string; };
++	tooltip?: string | undefined;
++}
++
++export interface MainThreadQuickOpenShape extends IDisposable {
++	$show(options: IPickOptions): TPromise<number | number[]>;
++	$setItems(items: MyQuickPickItems[]): TPromise<any>;
++>>>>>>> .their
+ 	$setError(error: Error): TPromise<any>;
+ 	$input(options: vscode.InputBoxOptions, validateInput: boolean): TPromise<string>;
+ 	$createOrUpdate(params: TransferQuickInput): TPromise<void>;
+@@ -852,9 +897,12 @@
+ 	$onDidChangeActive(sessionId: number, handles: number[]): void;
+ 	$onDidChangeSelection(sessionId: number, handles: number[]): void;
+ 	$onDidAccept(sessionId: number): void;
++<<<<<<< .our
+ 	$onDidChangeValue(sessionId: number, value: string): void;
+ 	$onDidTriggerButton(sessionId: number, handle: number): void;
+ 	$onDidHide(sessionId: number): void;
++=======
++>>>>>>> .their
+ }
+ 
+ export interface ShellLaunchConfigDto {
+changed in both
+  base   100644 bb1af794ce9e6003bc0fa632a60f7379e1db8026 src/vs/workbench/api/node/extHostQuickOpen.ts
+  our    100644 29928df44f9e10f445081622c42d5ce1027abeb4 src/vs/workbench/api/node/extHostQuickOpen.ts
+  their  100644 7ad24f9235d636b5c2065771933bd33a63da1a30 src/vs/workbench/api/node/extHostQuickOpen.ts
+@@ -6,6 +6,7 @@
+ 
+ import { asWinJsPromise, wireCancellationToken } from 'vs/base/common/async';
+ import { CancellationToken } from 'vs/base/common/cancellation';
++<<<<<<< .our
+ import { Emitter } from 'vs/base/common/event';
+ import { dispose, IDisposable } from 'vs/base/common/lifecycle';
+ import { TPromise } from 'vs/base/common/winjs.base';
+@@ -15,6 +16,15 @@
+ import { ExtHostQuickOpenShape, IMainContext, MainContext, MainThreadQuickOpenShape, TransferQuickPickItems, TransferQuickInput, TransferQuickInputButton } from './extHost.protocol';
+ import URI from 'vs/base/common/uri';
+ import { ThemeIcon, QuickInputButtons } from 'vs/workbench/api/node/extHostTypes';
++=======
++import { QuickPickOptions, QuickPickItem, InputBoxOptions, WorkspaceFolderPickOptions, WorkspaceFolder, QuickInput, QuickPick, InputBox, QuickInputButton } from 'vscode';
++import { MainContext, MainThreadQuickOpenShape, ExtHostQuickOpenShape, MyQuickPickItems, IMainContext, TransferQuickInput } from './extHost.protocol';
++import { ExtHostWorkspace } from 'vs/workbench/api/node/extHostWorkspace';
++import { ExtHostCommands } from 'vs/workbench/api/node/extHostCommands';
++import { Emitter } from 'vs/base/common/event';
++import { assign } from 'vs/base/common/objects';
++import { IDisposable, dispose } from 'vs/base/common/lifecycle';
++>>>>>>> .their
+ 
+ export type Item = string | QuickPickItem;
+ 
+@@ -151,7 +161,11 @@
+ 
+ 	// ---- QuickInput
+ 
++<<<<<<< .our
+ 	createQuickPick<T extends QuickPickItem>(extensionId: string): QuickPick<T> {
++=======
++	createQuickPick(extensionId: string): QuickPick {
++>>>>>>> .their
+ 		const session = new ExtHostQuickPick(this._proxy, extensionId, () => this._sessions.delete(session._id));
+ 		this._sessions.set(session._id, session);
+ 		return session;
+@@ -163,6 +177,7 @@
+ 		return session;
+ 	}
+ 
++<<<<<<< .our
+ 	$onDidChangeValue(sessionId: number, value: string): void {
+ 		const session = this._sessions.get(sessionId);
+ 		if (session) {
+@@ -173,6 +188,11 @@
+ 	$onDidAccept(sessionId: number): void {
+ 		const session = this._sessions.get(sessionId);
+ 		if (session) {
++=======
++	$onDidAccept(sessionId: number): void {
++		const session = this._sessions.get(sessionId);
++		if (session instanceof ExtHostQuickPick) {
++>>>>>>> .their
+ 			session._fireDidAccept();
+ 		}
+ 	}
+@@ -180,7 +200,11 @@
+ 	$onDidChangeActive(sessionId: number, handles: number[]): void {
+ 		const session = this._sessions.get(sessionId);
+ 		if (session instanceof ExtHostQuickPick) {
++<<<<<<< .our
+ 			session._fireDidChangeActive(handles);
++=======
++			session._fireDidChangeFocus(handles);
++>>>>>>> .their
+ 		}
+ 	}
+ 
+@@ -190,6 +214,7 @@
+ 			session._fireDidChangeSelection(handles);
+ 		}
+ 	}
++<<<<<<< .our
+ 
+ 	$onDidTriggerButton(sessionId: number, handle: number): void {
+ 		const session = this._sessions.get(sessionId);
+@@ -292,6 +317,275 @@
+ 	set ignoreFocusOut(ignoreFocusOut: boolean) {
+ 		this._ignoreFocusOut = ignoreFocusOut;
+ 		this.update({ ignoreFocusOut });
++=======
++}
++
++class ExtHostQuickInput implements QuickInput {
++
++	private static _nextId = 1;
++	_id = ExtHostQuickPick._nextId++;
++
++	private _visible = false;
++	private _enabled = true;
++	private _busy = false;
++	private _ignoreFocusOut = true;
++	private _onDidHideEmitter = new Emitter<void>();
++	private _updateTimeout: number;
++	private _pendingUpdate: TransferQuickInput = { id: this._id };
++
++	private _disposed = false;
++	protected _disposables: IDisposable[] = [
++		this._onDidHideEmitter
++	];
++
++	constructor(protected _proxy: MainThreadQuickOpenShape, protected _extensionId: string, private _onDidDispose: () => void) {
++	}
++
++	get enabled() {
++		return this._enabled;
++	}
++
++	set enabled(enabled: boolean) {
++		this._enabled = enabled;
++		this.update({ enabled });
++	}
++
++	get busy() {
++		return this._busy;
++	}
++
++	set busy(busy: boolean) {
++		this._busy = busy;
++		this.update({ busy });
++	}
++
++	get ignoreFocusOut() {
++		return this._ignoreFocusOut;
++	}
++
++	set ignoreFocusOut(ignoreFocusOut: boolean) {
++		this._ignoreFocusOut = ignoreFocusOut;
++		this.update({ ignoreFocusOut });
++	}
++
++	show(): void {
++		this._visible = true;
++		this.update({ visible: true });
++	}
++
++	hide(): void {
++		this._visible = false;
++		this.update({ visible: false });
++	}
++
++	onDidHide = this._onDidHideEmitter.event;
++
++	public dispose(): void {
++		if (this._disposed) {
++			return;
++		}
++		this._disposed = true;
++		this._disposables = dispose(this._disposables);
++		if (this._updateTimeout) {
++			clearTimeout(this._updateTimeout);
++			this._updateTimeout = undefined;
++		}
++		this._proxy.$dispose(this._id);
++		this._onDidDispose();
++	}
++
++	protected update(properties: Record<string, any>): void {
++		if (this._disposed) {
++			return;
++		}
++		assign(this._pendingUpdate, properties);
++
++		if (!this._visible) {
++			return;
++		}
++
++		if (properties.visible) {
++			if (this._updateTimeout) {
++				clearTimeout(this._updateTimeout);
++				this._updateTimeout = undefined;
++			}
++			this.dispatchUpdate();
++		} else if (!this._updateTimeout) {
++			// Defer the update so that multiple changes to setters dont cause a redraw each
++			this._updateTimeout = setTimeout(() => {
++				this._updateTimeout = undefined;
++				this.dispatchUpdate();
++			}, 0);
++		}
++	}
++
++	private dispatchUpdate() {
++		this._proxy.$createOrUpdate(this._pendingUpdate);
++		this._pendingUpdate = { id: this._id };
++	}
++}
++
++class ExtHostQuickPick extends ExtHostQuickInput implements QuickPick {
++
++	private _value = '';
++	private _placeholder: string;
++	private _onDidChangeValueEmitter = new Emitter<string>();
++	private _onDidAcceptEmitter = new Emitter<void>();
++	private _commands: QuickInputButton[] = [];
++	private _onDidTriggerButtonEmitter = new Emitter<QuickInputButton>();
++	private _items: QuickPickItem[] = [];
++	private _handlesToItems = new Map<number, QuickPickItem>();
++	private _canSelectMany = false;
++	private _matchOnDescription = true;
++	private _matchOnDetail = true;
++	private _focusedItems: QuickPickItem[] = [];
++	private _onDidChangeActiveEmitter = new Emitter<QuickPickItem[]>();
++	private _selectedItems: QuickPickItem[] = [];
++	private _onDidChangeSelectionEmitter = new Emitter<QuickPickItem[]>();
++
++	constructor(proxy: MainThreadQuickOpenShape, extensionId: string, onDispose: () => void) {
++		super(proxy, extensionId, onDispose);
++		this._disposables.push(
++			this._onDidChangeValueEmitter,
++			this._onDidAcceptEmitter,
++			this._onDidTriggerButtonEmitter,
++			this._onDidChangeActiveEmitter,
++			this._onDidChangeSelectionEmitter,
++		);
++		this.update({ type: 'quickPick' });
++	}
++
++	get value() {
++		return this._value;
++	}
++
++	set value(value: string) {
++		this._value = value;
++		this.update({ value });
++	}
++
++	get placeholder() {
++		return this._placeholder;
++	}
++
++	set placeholder(placeholder: string) {
++		this._placeholder = placeholder;
++		this.update({ placeholder });
++	}
++
++	onDidChangeValue = this._onDidChangeValueEmitter.event;
++
++	onDidAccept = this._onDidAcceptEmitter.event;
++
++	get buttons() {
++		return this._commands;
++	}
++
++	set buttons(commands: QuickInputButton[]) {
++		this._commands = commands;
++		this.update({ commands });
++	}
++
++	onDidTriggerButton = this._onDidTriggerButtonEmitter.event;
++
++	get items() {
++		return this._items;
++	}
++
++	set items(items: QuickPickItem[]) {
++		this._items = items;
++		this._handlesToItems.clear();
++		items.forEach((item, i) => {
++			this._handlesToItems.set(i, item);
++		});
++		this.update({
++			items: items.map((item, i) => ({
++				label: item.label,
++				description: item.description,
++				handle: i,
++				detail: item.detail,
++				picked: item.picked
++			}))
++		});
++	}
++
++	get canSelectMany() {
++		return this._canSelectMany;
++	}
++
++	set canSelectMany(canSelectMany: boolean) {
++		this._canSelectMany = canSelectMany;
++		this.update({ canSelectMany });
++	}
++
++	get matchOnDescription() {
++		return this._matchOnDescription;
++	}
++
++	set matchOnDescription(matchOnDescription: boolean) {
++		this._matchOnDescription = matchOnDescription;
++		this.update({ matchOnDescription });
++	}
++
++	get matchOnDetail() {
++		return this._matchOnDetail;
++	}
++
++	set matchOnDetail(matchOnDetail: boolean) {
++		this._matchOnDetail = matchOnDetail;
++		this.update({ matchOnDetail });
++	}
++
++	get activeItems() {
++		return this._focusedItems;
++	}
++
++	onDidChangeActive = this._onDidChangeActiveEmitter.event;
++
++	get selectedItems() {
++		return this._selectedItems;
++	}
++
++	onDidChangeSelection = this._onDidChangeSelectionEmitter.event;
++
++	_fireDidAccept() {
++		this._onDidAcceptEmitter.fire();
++	}
++
++	_fireDidChangeFocus(handles: number[]) {
++		const items = handles.map(handle => this._handlesToItems.get(handle));
++		this._focusedItems = items;
++		this._onDidChangeActiveEmitter.fire(items);
++	}
++
++	_fireDidChangeSelection(handles: number[]) {
++		const items = handles.map(handle => this._handlesToItems.get(handle));
++		this._selectedItems = items;
++		this._onDidChangeSelectionEmitter.fire(items);
++	}
++}
++
++class ExtHostInputBox extends ExtHostQuickInput implements InputBox {
++
++	private _value = '';
++	private _placeholder: string;
++	private _password: boolean;
++	private _prompt: string;
++	private _validationMessage: string;
++	private _onDidChangeValueEmitter = new Emitter<string>();
++	private _onDidAcceptEmitter = new Emitter<string>();
++	private _commands: QuickInputButton[] = [];
++	private _onDidTriggerButtonEmitter = new Emitter<QuickInputButton>();
++
++	constructor(proxy: MainThreadQuickOpenShape, extensionId: string, onDispose: () => void) {
++		super(proxy, extensionId, onDispose);
++		this._disposables.push(
++			this._onDidChangeValueEmitter,
++			this._onDidAcceptEmitter,
++			this._onDidTriggerButtonEmitter,
++		);
++		this.update({ type: 'inputBox' });
++>>>>>>> .their
+ 	}
+ 
+ 	get value() {
+@@ -312,6 +606,7 @@
+ 		this.update({ placeholder });
+ 	}
+ 
++<<<<<<< .our
+ 	onDidChangeValue = this._onDidChangeValueEmitter.event;
+ 
+ 	onDidAccept = this._onDidAcceptEmitter.event;
+@@ -561,6 +856,8 @@
+ 		this.update({ type: 'inputBox' });
+ 	}
+ 
++=======
++>>>>>>> .their
+ 	get password() {
+ 		return this._password;
+ 	}
+@@ -587,4 +884,22 @@
+ 		this._validationMessage = validationMessage;
+ 		this.update({ validationMessage });
+ 	}
++<<<<<<< .our
++=======
++
++	onDidChangeValue = this._onDidChangeValueEmitter.event;
++
++	onDidAccept = this._onDidAcceptEmitter.event;
++
++	get buttons() {
++		return this._commands;
++	}
++
++	set buttons(commands: QuickInputButton[]) {
++		this._commands = commands;
++		this.update({ commands });
++	}
++
++	onDidTriggerButton = this._onDidTriggerButtonEmitter.event;
++>>>>>>> .their
+ }
+\ No newline at end of file
+changed in both
+  base   100644 630d3d6ba5f7b14b12d49ed0013a3f3315c4aab4 src/vs/workbench/browser/parts/quickinput/quickInput.css
+  our    100644 690286ea03324d7f2df24ff450315cac3c7620b3 src/vs/workbench/browser/parts/quickinput/quickInput.css
+  their  100644 b3e7a8784183fc792a07649d817e85d079125e06 src/vs/workbench/browser/parts/quickinput/quickInput.css
+@@ -155,11 +155,19 @@
+ 	margin-left: 10px;
+ }
+ 
++<<<<<<< .our
+ .quick-input-widget .quick-input-list .quick-input-list-checkbox {
+ 	display: none;
+ }
+ .quick-input-widget.show-checkboxes .quick-input-list .quick-input-list-checkbox {
+ 	display: inline;
++=======
++.quick-input-widget .quick-input-list .quick-input-list-rows input[type=checkbox] {
++	display: 'none';
++}
++.quick-input-widget.show-checkboxes .quick-input-list .quick-input-list-rows input[type=checkbox] {
++	display: 'inline';
++>>>>>>> .their
+ }
+ 
+ .quick-input-list .quick-input-list-rows > .quick-input-list-row {
+changed in both
+  base   100644 dffd902c812482964da61f4dcebf0be17575736c src/vs/workbench/browser/parts/quickinput/quickInput.ts
+  our    100644 d834bd59460d51375417fd865daeb856b353a144 src/vs/workbench/browser/parts/quickinput/quickInput.ts
+  their  100644 7899036534a832c55cfca32c12679719eeeec405 src/vs/workbench/browser/parts/quickinput/quickInput.ts
+@@ -7,7 +7,11 @@
+ 
+ import 'vs/css!./quickInput';
+ import { Component } from 'vs/workbench/common/component';
++<<<<<<< .our
+ import { IQuickInputService, IQuickPickItem, IPickOptions, IInputOptions, IQuickNavigateConfiguration, IQuickPick, IQuickInput, IQuickInputButton, IInputBox, IQuickPickItemButtonEvent, QuickPickInput, IQuickPickSeparator, IKeyMods } from 'vs/platform/quickinput/common/quickInput';
++=======
++import { IQuickInputService, IQuickPickItem, IPickOptions, IInputOptions, IQuickNavigateConfiguration, IQuickPick, IQuickInput, IQuickInputButton, IInputBox } from 'vs/platform/quickinput/common/quickInput';
++>>>>>>> .their
+ import { IPartService } from 'vs/workbench/services/part/common/partService';
+ import * as dom from 'vs/base/browser/dom';
+ import { IInstantiationService } from 'vs/platform/instantiation/common/instantiation';
+@@ -28,7 +32,11 @@
+ import { attachBadgeStyler, attachProgressBarStyler, attachButtonStyler } from 'vs/platform/theme/common/styler';
+ import { IEnvironmentService } from 'vs/platform/environment/common/environment';
+ import { ProgressBar } from 'vs/base/browser/ui/progressbar/progressbar';
++<<<<<<< .our
+ import { debounceEvent, Emitter, Event } from 'vs/base/common/event';
++=======
++import { chain, debounceEvent, Emitter, Event } from 'vs/base/common/event';
++>>>>>>> .their
+ import { Button } from 'vs/base/browser/ui/button/button';
+ import { dispose, IDisposable } from 'vs/base/common/lifecycle';
+ import Severity from 'vs/base/common/severity';
+@@ -48,6 +56,7 @@
+ 
+ type Writeable<T> = { -readonly [P in keyof T]: T[P] };
+ 
++<<<<<<< .our
+ const backButton = {
+ 	iconPath: {
+ 		dark: URI.parse(require.toUrl('vs/workbench/browser/parts/quickinput/media/dark/arrow-left.svg')),
+@@ -56,6 +65,44 @@
+ 	tooltip: localize('quickInput.back', "Back"),
+ 	handle: -1 // TODO
+ };
++=======
++type InputResult<P extends InputParameters> =
++	P extends PickOneParameters<infer T> ? T :
++	P extends PickManyParameters<infer T> ? T[] :
++	P extends TextInputParameters ? string :
++	never;
++
++interface BaseInputParameters {
++	readonly type: 'pickOne' | 'pickMany' | 'textInput';
++	readonly ignoreFocusLost?: boolean;
++}
++
++interface PickParameters<T extends IQuickPickItem = IQuickPickItem> extends BaseInputParameters {
++	readonly type: 'pickOne' | 'pickMany';
++	readonly picks: TPromise<T[]>;
++	readonly matchOnDescription?: boolean;
++	readonly matchOnDetail?: boolean;
++	readonly placeholder?: string;
++}
++
++interface PickOneParameters<T extends IQuickPickItem = IQuickPickItem> extends PickParameters<T> {
++	readonly type: 'pickOne';
++}
++
++interface PickManyParameters<T extends IQuickPickItem = IQuickPickItem> extends PickParameters<T> {
++	readonly type: 'pickMany';
++}
++
++interface TextInputParameters extends BaseInputParameters {
++	readonly type: 'textInput';
++	readonly value?: string;
++	readonly valueSelection?: [number, number];
++	readonly prompt?: string;
++	readonly placeHolder?: string;
++	readonly password?: boolean;
++	readonly validateInput?: (input: string) => TPromise<string>;
++}
++>>>>>>> .their
+ 
+ interface QuickInputUI {
+ 	container: HTMLElement;
+@@ -70,6 +117,7 @@
+ 	progressBar: ProgressBar;
+ 	list: QuickInputList;
+ 	onDidAccept: Event<void>;
++<<<<<<< .our
+ 	onDidTriggerButton: Event<IQuickInputButton>;
+ 	ignoreFocusOut: boolean;
+ 	keyMods: Writeable<IKeyMods>;
+@@ -332,6 +380,46 @@
+ 	get value() {
+ 		return this._value;
+ 	}
++=======
++	ignoreFocusOut: boolean;
++	show(controller: QuickInput): void;
++	hide(): void;
++	setVisibilities(visibilities: Visibilities): void;
++	close(ok?: true | Thenable<never>): void;
++}
++
++type Visibilities = { [k in keyof QuickInputUI]?: boolean; } & { ok?: boolean; };
++
++interface InputController<R> {
++	readonly showUI: Visibilities;
++	readonly result: TPromise<R>;
++	readonly ready: TPromise<void>;
++	readonly resolve: (ok?: true | Thenable<never>) => void | TPromise<void>;
++}
++
++class PickOneController<T extends IQuickPickItem> implements InputController<T> {
++	public showUI = { inputBox: true, list: true };
++	public result: TPromise<T>;
++	public ready: TPromise<void>;
++	public resolve: (ok?: true | Thenable<never>) => void;
++	public progress: (value: T) => void;
++	private closed = false;
++	private quickNavigate = false;
++	private disposables: IDisposable[] = [];
++
++	constructor(private ui: QuickInputUI, parameters: PickOneParameters<T>) {
++		this.result = new TPromise<T>((resolve, reject, progress) => {
++			this.resolve = ok => resolve(ok === true ? <T>ui.list.getFocusedElements()[0] : ok);
++			this.progress = progress;
++		});
++		this.result.then(() => this.dispose());
++
++		ui.inputBox.value = '';
++		ui.inputBox.placeholder = parameters.placeholder || '';
++		ui.list.matchOnDescription = parameters.matchOnDescription;
++		ui.list.matchOnDetail = parameters.matchOnDetail;
++		ui.list.setElements([]);
++>>>>>>> .their
+ 
+ 	set value(value: string) {
+ 		this._value = value || '';
+@@ -379,6 +467,7 @@
+ 		this.update();
+ 	}
+ 
++<<<<<<< .our
+ 	get matchOnDetail() {
+ 		return this._matchOnDetail;
+ 	}
+@@ -424,6 +513,12 @@
+ 				this.ui.inputBox.onDidChange(value => {
+ 					if (value === this.value) {
+ 						return;
++=======
++			this.disposables.push(
++				ui.list.onDidChangeSelection(elements => {
++					if (elements[0]) {
++						ui.close(true);
++>>>>>>> .their
+ 					}
+ 					this._value = value;
+ 					this.ui.list.filter(this.ui.inputBox.value);
+@@ -517,11 +612,20 @@
+ 		super.show();
+ 	}
+ 
++<<<<<<< .our
+ 	private registerQuickNavigation() {
+ 		return dom.addDisposableListener(this.ui.container, dom.EventType.KEY_UP, (e: KeyboardEvent) => {
+ 			if (this.canSelectMany || !this.quickNavigate) {
+ 				return;
+ 			}
++=======
++	configureQuickNavigate(quickNavigate: IQuickNavigateConfiguration) {
++		// TODO: Add to new implementation.
++		if (this.quickNavigate) {
++			return;
++		}
++		this.quickNavigate = true;
++>>>>>>> .their
+ 
+ 			const keyboardEvent: StandardKeyboardEvent = new StandardKeyboardEvent(e as KeyboardEvent);
+ 			const keyCode = keyboardEvent.keyCode;
+@@ -620,6 +724,7 @@
+ 	}
+ }
+ 
++<<<<<<< .our
+ class InputBox extends QuickInput implements IInputBox {
+ 
+ 	private static noPromptMessage = localize('inputModeEntry', "Press 'Enter' to confirm your input or 'Escape' to cancel");
+@@ -646,6 +751,41 @@
+ 	get value() {
+ 		return this._value;
+ 	}
++=======
++class PickManyController<T extends IQuickPickItem> implements InputController<T[]> {
++	public showUI = { checkAll: true, inputBox: true, count: true, ok: true, list: true };
++	public result: TPromise<T[]>;
++	public ready: TPromise<void>;
++	public resolve: (ok?: true | Thenable<never>) => void;
++	public progress: (value: T) => void;
++	private closed = false;
++	private disposables: IDisposable[] = [];
++
++	constructor(ui: QuickInputUI, parameters: PickManyParameters<T>) {
++		this.result = new TPromise<T[]>((resolve, reject, progress) => {
++			this.resolve = ok => resolve(ok === true ? <T[]>ui.list.getCheckedElements() : ok);
++			this.progress = progress;
++		});
++		this.result.then(() => this.dispose());
++
++		ui.inputBox.value = '';
++		ui.inputBox.placeholder = parameters.placeholder || '';
++		ui.list.matchOnDescription = parameters.matchOnDescription;
++		ui.list.matchOnDetail = parameters.matchOnDetail;
++		ui.list.setElements([]);
++		ui.checkAll.checked = ui.list.getAllVisibleChecked();
++		ui.count.setCount(ui.list.getCheckedCount());
++
++		this.ready = parameters.picks.then(elements => {
++			if (this.closed) {
++				return;
++			}
++
++			ui.list.setElements(elements);
++			ui.list.filter(ui.inputBox.value);
++			ui.checkAll.checked = ui.list.getAllVisibleChecked();
++			ui.count.setCount(ui.list.getCheckedCount());
++>>>>>>> .their
+ 
+ 	set value(value: string) {
+ 		this._value = value || '';
+@@ -658,8 +798,45 @@
+ 		this.update();
+ 	}
+ 
++<<<<<<< .our
+ 	get placeholder() {
+ 		return this._placeholder;
++=======
++class TextInputController implements InputController<string> {
++	public showUI = { inputBox: true, message: true };
++	public result: TPromise<string>;
++	public ready = TPromise.as(null);
++	public resolveResult: (string) => void;
++	private validationValue: string;
++	private validation: TPromise<string>;
++	private defaultMessage: string;
++	private disposables: IDisposable[] = [];
++
++	constructor(private ui: QuickInputUI, private parameters: TextInputParameters) {
++		this.result = new TPromise<string>((resolve, reject, progress) => {
++			this.resolveResult = resolve;
++		});
++		this.result.then(() => this.dispose());
++
++		ui.inputBox.value = parameters.value || '';
++		const selection = parameters.valueSelection;
++		ui.inputBox.select(selection && { start: selection[0], end: selection[1] });
++		ui.inputBox.placeholder = parameters.placeHolder || '';
++		this.defaultMessage = parameters.prompt
++			? localize('inputModeEntryDescription', "{0} (Press 'Enter' to confirm or 'Escape' to cancel)", parameters.prompt)
++			: localize('inputModeEntry', "Press 'Enter' to confirm your input or 'Escape' to cancel");
++		ui.message.textContent = this.defaultMessage;
++		ui.inputBox.password = parameters.password;
++
++		if (parameters.validateInput) {
++			const onDidChange = debounceEvent(ui.inputBox.onDidChange, (last, cur) => cur, 100);
++			this.disposables.push(onDidChange(() => this.didChange()));
++			if (ui.inputBox.value) {
++				// Replicating old behavior: only fire if value is not empty.
++				this.didChange();
++			}
++		}
++>>>>>>> .their
+ 	}
+ 
+ 	set placeholder(placeholder: string) {
+@@ -762,6 +939,7 @@
+ 	private okContainer: HTMLElement;
+ 	private ok: Button;
+ 	private ui: QuickInputUI;
++<<<<<<< .our
+ 	private enabled = true;
+ 	private inQuickOpenWidgets: Record<string, boolean> = {};
+ 	private inQuickOpenContext: IContextKey<boolean>;
+@@ -770,6 +948,15 @@
+ 	private onDidTriggerButtonEmitter = this._register(new Emitter<IQuickInputButton>());
+ 
+ 	private controller: QuickInput;
++=======
++	private ready = false;
++	private inQuickOpenWidgets: Record<string, boolean> = {};
++	private inQuickOpenContext: IContextKey<boolean>;
++	private onDidAcceptEmitter = new Emitter<void>();
++
++	private controller: InputController<any>;
++	private controller2: QuickInput;
++>>>>>>> .their
+ 
+ 	constructor(
+ 		@IEnvironmentService private environmentService: IEnvironmentService,
+@@ -784,8 +971,16 @@
+ 	) {
+ 		super(QuickInputService.ID, themeService);
+ 		this.inQuickOpenContext = new RawContextKey<boolean>('inQuickOpen', false).bindTo(contextKeyService);
++<<<<<<< .our
+ 		this._register(this.quickOpenService.onShow(() => this.inQuickOpen('quickOpen', true)));
+ 		this._register(this.quickOpenService.onHide(() => this.inQuickOpen('quickOpen', false)));
++=======
++		this.toUnbind.push(
++			this.quickOpenService.onShow(() => this.inQuickOpen('quickOpen', true)),
++			this.quickOpenService.onHide(() => this.inQuickOpen('quickOpen', false)),
++			this.onDidAcceptEmitter
++		);
++>>>>>>> .their
+ 	}
+ 
+ 	private inQuickOpen(widget: 'quickInput' | 'quickOpen', open: boolean) {
+@@ -883,17 +1078,32 @@
+ 		this._register(attachBadgeStyler(count, this.themeService));
+ 
+ 		this.okContainer = dom.append(headerContainer, $('.quick-input-action'));
++<<<<<<< .our
+ 		this.ok = new Button(this.okContainer);
+ 		attachButtonStyler(this.ok, this.themeService);
+ 		this.ok.label = localize('ok', "OK");
+ 		this._register(this.ok.onDidClick(e => {
+ 			this.onDidAcceptEmitter.fire();
++=======
++		const ok = new Button(this.okContainer);
++		attachButtonStyler(ok, this.themeService);
++		ok.label = localize('ok', "OK");
++		this.toUnbind.push(ok.onDidClick(e => {
++			if (this.controller) {
++				if (this.ready) {
++					this.close(true);
++				}
++			} else {
++				this.onDidAcceptEmitter.fire(); // TODO: make single-select QuickPick exclusively use Accept?
++			}
++>>>>>>> .their
+ 		}));
+ 
+ 		const message = dom.append(container, $('.quick-input-message'));
+ 
+ 		const progressBar = new ProgressBar(container);
+ 		dom.addClass(progressBar.getContainer(), 'quick-input-progress');
++<<<<<<< .our
+ 		this._register(attachProgressBarStyler(progressBar, this.themeService));
+ 
+ 		const list = this._register(this.instantiationService.createInstance(QuickInputList, container));
+@@ -904,6 +1114,16 @@
+ 			visibleCount.setCount(c);
+ 		}));
+ 		this._register(list.onChangedCheckedCount(c => {
++=======
++		this.toUnbind.push(attachProgressBarStyler(progressBar, this.themeService));
++
++		const list = this.instantiationService.createInstance(QuickInputList, container);
++		this.toUnbind.push(list);
++		this.toUnbind.push(list.onChangedAllVisibleChecked(checked => {
++			checkAll.checked = checked;
++		}));
++		this.toUnbind.push(list.onChangedCheckedCount(c => {
++>>>>>>> .their
+ 			count.setCount(c);
+ 		}));
+ 		this._register(list.onLeave(() => {
+@@ -915,12 +1135,43 @@
+ 				}
+ 			}, 0);
+ 		}));
++<<<<<<< .our
+ 
+ 		const focusTracker = dom.trackFocus(container);
+ 		this._register(focusTracker);
+ 		this._register(focusTracker.onDidBlur(() => {
+ 			if (!this.ui.ignoreFocusOut && !this.environmentService.args['sticky-quickopen'] && this.configurationService.getValue(CLOSE_ON_FOCUS_LOST_CONFIG)) {
+ 				this.hide(true);
++=======
++		this.toUnbind.push(
++			chain(list.onDidChangeFocus)
++				.map(e => e[0])
++				.filter(e => !!e)
++				.latch()
++				.on(e => {
++					if (this.controller instanceof PickOneController || this.controller instanceof PickManyController) {
++						this.controller.progress(e);
++					}
++				})
++		);
++
++		this.toUnbind.push(dom.addDisposableListener(container, 'focusout', (e: FocusEvent) => {
++			if (e.relatedTarget === container) {
++				(<HTMLElement>e.target).focus();
++				return;
++			}
++			for (let element = <Element>e.relatedTarget; element; element = element.parentElement) {
++				if (element === container) {
++					return;
++				}
++			}
++			if (!this.ui.ignoreFocusOut && !this.environmentService.args['sticky-quickopen'] && this.configurationService.getValue(CLOSE_ON_FOCUS_LOST_CONFIG)) {
++				if (this.controller) {
++					this.close(undefined, true);
++				} else {
++					this.hide2(true);
++				}
++>>>>>>> .their
+ 			}
+ 		}));
+ 		this._register(dom.addDisposableListener(container, dom.EventType.KEY_DOWN, (e: KeyboardEvent) => {
+@@ -928,11 +1179,29 @@
+ 			switch (event.keyCode) {
+ 				case KeyCode.Enter:
+ 					dom.EventHelper.stop(e, true);
++<<<<<<< .our
+ 					this.onDidAcceptEmitter.fire();
+ 					break;
+ 				case KeyCode.Escape:
+ 					dom.EventHelper.stop(e, true);
+ 					this.hide();
++=======
++					if (this.controller) {
++						if (this.ready) {
++							this.close(true);
++						}
++					} else {
++						this.onDidAcceptEmitter.fire();
++					}
++					break;
++				case KeyCode.Escape:
++					dom.EventHelper.stop(e, true);
++					if (this.controller) {
++						this.close();
++					} else {
++						this.hide2();
++					}
++>>>>>>> .their
+ 					break;
+ 				case KeyCode.Tab:
+ 					if (!event.altKey && !event.ctrlKey && !event.metaKey) {
+@@ -982,6 +1251,7 @@
+ 			}
+ 		}));
+ 
++<<<<<<< .our
+ 		this._register(this.quickOpenService.onShow(() => this.hide(true)));
+ 
+ 		this.ui = {
+@@ -992,11 +1262,20 @@
+ 			checkAll,
+ 			inputBox,
+ 			visibleCount,
++=======
++		this.toUnbind.push(this.quickOpenService.onShow(() => this.controller ? this.close() : this.hide2()));
++
++		this.ui = {
++			container,
++			checkAll,
++			inputBox,
++>>>>>>> .their
+ 			count,
+ 			message,
+ 			progressBar,
+ 			list,
+ 			onDidAccept: this.onDidAcceptEmitter.event,
++<<<<<<< .our
+ 			onDidTriggerButton: this.onDidTriggerButtonEmitter.event,
+ 			ignoreFocusOut: false,
+ 			keyMods: { ctrlCmd: false, alt: false },
+@@ -1005,10 +1284,18 @@
+ 			setVisibilities: visibilities => this.setVisibilities(visibilities),
+ 			setEnabled: enabled => this.setEnabled(enabled),
+ 			setContextKey: contextKey => this.setContextKey(contextKey),
++=======
++			ignoreFocusOut: false,
++			show: controller => this.show2(controller),
++			hide: () => this.hide2(),
++			setVisibilities: visibilities => this.setVisibilities(visibilities),
++			close: ok => this.close(ok)
++>>>>>>> .their
+ 		};
+ 		this.updateStyles();
+ 	}
+ 
++<<<<<<< .our
+ 	pick<T extends IQuickPickItem, O extends IPickOptions<T>>(picks: TPromise<QuickPickInput<T>[]> | QuickPickInput<T>[], options: O = <O>{}, token: CancellationToken = CancellationToken.None): TPromise<O extends { canPickMany: true } ? T[] : T> {
+ 		return new TPromise<O extends { canPickMany: true } ? T[] : T>((doResolve, reject) => {
+ 			let resolve = (result: any) => {
+@@ -1175,6 +1462,168 @@
+ 	}
+ 
+ 	private show(controller: QuickInput) {
++=======
++	private close(ok?: true | Thenable<never>, focusLost?: boolean) {
++		if (!this.isDisplayed()) {
++			return TPromise.as(undefined);
++		}
++		if (this.controller) {
++			const resolved = this.controller.resolve(ok);
++			if (resolved) {
++				const result = resolved
++					.then(() => {
++						this.hide(focusLost);
++					});
++				result.then(null, onUnexpectedError);
++				return result;
++			}
++		}
++		this.hide(focusLost);
++		return TPromise.as(undefined);
++	}
++
++	private hide(focusLost?: boolean) {
++		this.inQuickOpen('quickInput', false);
++		this.ui.container.style.display = 'none';
++		if (!focusLost) {
++			this.editorGroupService.activeGroup.focus();
++		}
++	}
++
++	private hide2(focusLost?: boolean) {
++		const controller = this.controller2;
++		if (controller) {
++			this.controller2 = null;
++			this.hide(focusLost);
++			controller.doHide();
++		}
++	}
++
++	pick<T extends IQuickPickItem, O extends IPickOptions>(picks: TPromise<T[]>, options: O = <O>{}, token: CancellationToken = CancellationToken.None): TPromise<O extends { canPickMany: true } ? T[] : T> {
++		return new TPromise<O extends { canPickMany: true } ? T[] : T>((resolve, reject, progress) => {
++			if (token.isCancellationRequested) {
++				resolve(undefined);
++				return;
++			}
++			const input = this.createQuickPick();
++			const disposables = [
++				input,
++				input.onDidAccept(() => {
++					if (input.canSelectMany) {
++						resolve(<any>input.selectedItems); // TODO: generify interface to use T extends IQuickPickItem
++						input.hide();
++					} else {
++						const result = input.activeItems[0];
++						if (result) {
++							resolve(<any>result);
++							input.hide();
++						}
++					}
++				}),
++				input.onDidChangeActive(items => {
++					const focused = items[0];
++					if (focused) {
++						progress(focused);
++					}
++				}),
++				input.onDidChangeSelection(items => {
++					if (!input.canSelectMany) {
++						const result = items[0];
++						if (result) {
++							resolve(<any>result);
++							input.hide();
++						}
++					}
++				}),
++				token.onCancellationRequested(() => {
++					input.hide();
++				}),
++				input.onDidHide(() => {
++					dispose(disposables);
++					resolve(undefined);
++				}),
++			];
++			input.canSelectMany = options.canPickMany;
++			input.placeholder = options.placeHolder;
++			input.ignoreFocusOut = options.ignoreFocusLost;
++			input.matchOnDescription = options.matchOnDescription;
++			input.matchOnDetail = options.matchOnDetail;
++			input.busy = true;
++			picks.then(items => {
++				input.busy = false;
++				input.items = items;
++			});
++			input.show();
++			picks.then(null, err => {
++				reject(err);
++				input.hide();
++			});
++		});
++	}
++
++	input(options: IInputOptions = {}, token: CancellationToken = CancellationToken.None): TPromise<string> {
++		return new TPromise<string>((resolve, reject) => {
++			if (token.isCancellationRequested) {
++				resolve(undefined);
++				return;
++			}
++			const input = this.createInputBox();
++			const validateInput = options.validateInput || (() => TPromise.as(undefined));
++			const onDidValueChange = debounceEvent(input.onDidChangeValue, (last, cur) => cur, 100);
++			let validationValue: string;
++			let validation = TPromise.as('');
++			const disposables = [
++				input,
++				onDidValueChange(value => {
++					if (value !== validationValue) {
++						validation = TPromise.wrap(validateInput(value));
++					}
++					validation.then(result => {
++						input.validationMessage = result;
++					});
++				}),
++				input.onDidAccept(() => {
++					const value = input.value;
++					if (value !== validationValue) {
++						validation = TPromise.wrap(validateInput(value));
++					}
++					validation.then(result => {
++						if (!result) {
++							resolve(value);
++							input.hide();
++						}
++					});
++				}),
++				token.onCancellationRequested(() => {
++					input.hide();
++				}),
++				input.onDidHide(() => {
++					dispose(disposables);
++					resolve(undefined);
++				}),
++			];
++			input.value = options.value;
++			input.valueSelection = options.valueSelection;
++			input.prompt = options.prompt;
++			input.placeholder = options.placeHolder;
++			input.password = options.password;
++			input.ignoreFocusOut = options.ignoreFocusLost;
++			input.show();
++		});
++	}
++
++	createQuickPick(): IQuickPick {
++		this.create();
++		return new QuickPick(this.ui);
++	}
++
++	createInputBox(): IInputBox {
++		this.create();
++		return new InputBox(this.ui);
++	}
++
++	show<P extends InputParameters>(parameters: P, token: CancellationToken = CancellationToken.None): TPromise<InputResult<P>> {
++>>>>>>> .their
+ 		this.create();
+ 		this.quickOpenService.close();
+ 		const oldController = this.controller;
+@@ -1183,6 +1632,7 @@
+ 			oldController.didHide();
+ 		}
+ 
++<<<<<<< .our
+ 		this.setEnabled(true);
+ 		this.ui.leftActionBar.clear();
+ 		this.ui.title.textContent = '';
+@@ -1208,6 +1658,18 @@
+ 
+ 		this.inQuickOpen('quickInput', true);
+ 		this.resetContextKeys();
++=======
++		this.ui.container.setAttribute('data-type', parameters.type);
++
++		this.ui.ignoreFocusOut = parameters.ignoreFocusLost;
++
++		this.ui.progressBar.stop();
++		this.ready = false;
++
++		this.controller = this.createController(parameters);
++		this.setVisibilities(this.controller.showUI);
++		this.ui.inputBox.showDecoration(Severity.Ignore);
++>>>>>>> .their
+ 
+ 		this.ui.container.style.display = '';
+ 		this.updateLayout();
+@@ -1227,15 +1689,23 @@
+ 		this.updateLayout(); // TODO
+ 	}
+ 
++<<<<<<< .our
+ 	private setEnabled(enabled: boolean) {
+ 		if (enabled !== this.enabled) {
+ 			this.enabled = enabled;
+ 			for (const item of this.ui.leftActionBar.items) {
+ 				(item as ActionItem).getAction().enabled = enabled;
++=======
++		const delay = TPromise.timeout(800);
++		delay.then(() => {
++			if (this.controller === wasController) {
++				this.ui.progressBar.infinite();
++>>>>>>> .their
+ 			}
+ 			for (const item of this.ui.rightActionBar.items) {
+ 				(item as ActionItem).getAction().enabled = enabled;
+ 			}
++<<<<<<< .our
+ 			this.ui.checkAll.disabled = !enabled;
+ 			// this.ui.inputBox.enabled = enabled; Avoid loosing focus.
+ 			this.ok.enabled = enabled;
+@@ -1255,6 +1725,67 @@
+ 			}
+ 			controller.didHide();
+ 		}
++=======
++
++			this.ui.progressBar.stop();
++			this.ready = true;
++
++			this.updateLayout();
++		}).then(null, reason => this.close(TPromise.wrapError(reason)));
++
++		return this.controller.result;
++	}
++
++	private createController(parameters: InputParameters) {
++		switch (parameters.type) {
++			case 'pickOne': return new PickOneController(this.ui, parameters);
++			case 'pickMany': return new PickManyController(this.ui, parameters);
++			case 'textInput': return new TextInputController(this.ui, parameters);
++			default: ((p: never) => {
++				throw new Error(`Unknown input type: ${(<any>p).type}`);
++			})(parameters);
++		}
++	}
++
++	private show2(controller: QuickInput) {
++		this.create();
++		this.quickOpenService.close();
++		const oldController = this.controller2;
++		this.controller2 = controller;
++		if (oldController) {
++			oldController.doHide();
++		}
++
++		this.ui.checkAll.checked = false;
++		this.ui.inputBox.value = '';
++		this.ui.inputBox.placeholder = '';
++		this.ui.inputBox.password = false;
++		this.ui.inputBox.showDecoration(Severity.Ignore);
++		this.ui.count.setCount(0);
++		this.ui.message.textContent = '';
++		this.ui.progressBar.stop();
++		this.ui.list.setElements([]);
++		this.ui.list.matchOnDescription = false;
++		this.ui.list.matchOnDetail = false;
++		this.ui.ignoreFocusOut = false;
++
++		this.inQuickOpen('quickInput', true);
++
++		this.ui.container.style.display = '';
++		this.updateLayout();
++		this.ui.inputBox.setFocus();
++	}
++
++	private setVisibilities(visibilities: Visibilities) {
++		this.ui.checkAll.style.display = visibilities.checkAll ? '' : 'none';
++		this.filterContainer.style.display = visibilities.inputBox ? '' : 'none';
++		this.countContainer.style.display = visibilities.count ? '' : 'none';
++		this.okContainer.style.display = visibilities.ok ? '' : 'none';
++		this.ui.message.style.display = visibilities.message ? '' : 'none';
++		this.ui.list.display(visibilities.list);
++		this.ui.container.classList[visibilities.checkAll ? 'add' : 'remove']('show-checkboxes');
++		this.updateLayout(); // TODO
++>>>>>>> .their
+ 	}
+ 
+ 	focus() {
+@@ -1264,7 +1795,11 @@
+ 	}
+ 
+ 	toggle() {
++<<<<<<< .our
+ 		if (this.isDisplayed() && this.controller instanceof QuickPick && this.controller.canSelectMany) {
++=======
++		if (this.isDisplayed() && ((this.controller2 instanceof QuickPick && this.controller2.canSelectMany) || this.controller instanceof PickManyController)) {
++>>>>>>> .their
+ 			this.ui.list.toggleCheckbox();
+ 		}
+ 	}
+@@ -1279,6 +1814,7 @@
+ 	}
+ 
+ 	accept() {
++<<<<<<< .our
+ 		this.onDidAcceptEmitter.fire();
+ 		return TPromise.as(undefined);
+ 	}
+@@ -1291,6 +1827,23 @@
+ 	cancel() {
+ 		this.hide();
+ 		return TPromise.as(undefined);
++=======
++		if (this.controller) {
++			return this.close(true);
++		} else {
++			this.onDidAcceptEmitter.fire();
++			return TPromise.as(undefined);
++		}
++	}
++
++	cancel() {
++		if (this.controller) {
++			return this.close();
++		} else {
++			this.hide2();
++			return TPromise.as(undefined);
++		}
++>>>>>>> .their
+ 	}
+ 
+ 	layout(dimension: dom.Dimension): void {
+@@ -1347,6 +1900,7 @@
+ 	}
+ };
+ 
++<<<<<<< .our
+ export class BackAction extends Action {
+ 
+ 	public static readonly ID = 'workbench.action.quickInputBack';
+@@ -1361,3 +1915,437 @@
+ 		return TPromise.as(null);
+ 	}
+ }
++=======
++class QuickInput implements IQuickInput {
++
++	protected visible = false;
++	private _enabled = true;
++	private _busy = false;
++	private _ignoreFocusOut = false;
++	private onDidHideEmitter = new Emitter<void>();
++
++	protected visibleDisposables: IDisposable[] = [];
++	protected disposables: IDisposable[] = [];
++
++	private busyDelay: TPromise<void>;
++
++	constructor(protected ui: QuickInputUI) {
++		this.disposables.push(this.onDidHideEmitter);
++	}
++
++	get enabled() {
++		return this._enabled;
++	}
++
++	set enabled(enabled: boolean) {
++		this._enabled = enabled;
++		this.update(); // TODO
++	}
++
++	get busy() {
++		return this._busy;
++	}
++
++	set busy(busy: boolean) {
++		this._busy = busy;
++		this.update();
++	}
++
++	get ignoreFocusOut() {
++		return this._ignoreFocusOut;
++	}
++
++	set ignoreFocusOut(ignoreFocusOut: boolean) {
++		this._ignoreFocusOut = ignoreFocusOut;
++		this.update();
++	}
++
++	show(): void {
++		if (this.visible) {
++			return;
++		}
++		this.ui.show(this);
++		this.visible = true;
++		this.update();
++	}
++
++	hide(): void {
++		if (!this.visible) {
++			return;
++		}
++		this.ui.hide();
++	}
++
++	doHide(): void {
++		this.visible = false;
++		this.visibleDisposables = dispose(this.visibleDisposables);
++		this.onDidHideEmitter.fire();
++	}
++
++	onDidHide = this.onDidHideEmitter.event;
++
++	protected update() {
++		if (!this.visible) {
++			return;
++		}
++		if (this.busy && !this.busyDelay) {
++			this.busyDelay = TPromise.timeout(800);
++			this.busyDelay.then(() => {
++				this.ui.progressBar.infinite();
++			}, () => { /* ignore */ });
++		}
++		if (!this.busy && this.busyDelay) {
++			this.ui.progressBar.stop();
++			this.busyDelay.cancel();
++			this.busyDelay = null;
++		}
++	}
++
++	public dispose(): void {
++		this.hide();
++		this.disposables = dispose(this.disposables);
++	}
++}
++
++class QuickPick extends QuickInput implements IQuickPick {
++
++	private _value = '';
++	private _placeholder = '';
++	private onDidChangeValueEmitter = new Emitter<string>();
++	private onDidAcceptEmitter = new Emitter<string>();
++	private _commands: IQuickInputButton[] = [];
++	private onDidTriggerCommandEmitter = new Emitter<IQuickInputButton>();
++	private _items: IQuickPickItem[] = [];
++	private itemsUpdated = false;
++	private _canSelectMany = false;
++	private _matchOnDescription = true;
++	private _matchOnDetail = true;
++	private _activeItems: IQuickPickItem[] = [];
++	private onDidChangeActiveEmitter = new Emitter<IQuickPickItem[]>();
++	private _selectedItems: IQuickPickItem[] = [];
++	private onDidChangeSelectionEmitter = new Emitter<IQuickPickItem[]>();
++
++	constructor(ui: QuickInputUI) {
++		super(ui);
++		this.disposables.push(
++			this.onDidChangeValueEmitter,
++			this.onDidAcceptEmitter,
++			this.onDidTriggerCommandEmitter,
++			this.onDidChangeActiveEmitter,
++			this.onDidChangeSelectionEmitter,
++		);
++	}
++
++	get value() {
++		return this._value;
++	}
++
++	set value(value: string) {
++		this._value = value || '';
++		this.update();
++	}
++
++	get placeholder() {
++		return this._placeholder;
++	}
++
++	set placeholder(placeholder: string) {
++		this._placeholder = placeholder || '';
++		this.update();
++	}
++
++	onDidValueChange = this.onDidChangeValueEmitter.event;
++
++	onDidAccept = this.onDidAcceptEmitter.event;
++
++	get buttons() {
++		return this._commands;
++	}
++
++	set buttons(commands: IQuickInputButton[]) {
++		this._commands = commands;
++		this.update(); // TODO
++	}
++
++	onDidTriggerCommand = this.onDidTriggerCommandEmitter.event;
++
++	get items() {
++		return this._items;
++	}
++
++	set items(items: IQuickPickItem[]) {
++		this._items = items;
++		this.itemsUpdated = true;
++		this.update();
++	}
++
++	get canSelectMany() {
++		return this._canSelectMany;
++	}
++
++	set canSelectMany(canSelectMany: boolean) {
++		this._canSelectMany = canSelectMany;
++		this.update();
++	}
++
++	get matchOnDescription() {
++		return this._matchOnDescription;
++	}
++
++	set matchOnDescription(matchOnDescription: boolean) {
++		this._matchOnDescription = matchOnDescription;
++		this.update();
++	}
++
++	get matchOnDetail() {
++		return this._matchOnDetail;
++	}
++
++	set matchOnDetail(matchOnDetail: boolean) {
++		this._matchOnDetail = matchOnDetail;
++		this.update();
++	}
++
++	get activeItems() {
++		return this._activeItems;
++	}
++
++	onDidChangeActive = this.onDidChangeActiveEmitter.event;
++
++	get selectedItems() {
++		return this._selectedItems;
++	}
++
++	onDidChangeSelection = this.onDidChangeSelectionEmitter.event;
++
++	show() {
++		if (!this.visible) {
++			// TODO: this.onDidTriggerCommandEmitter,
++			this.visibleDisposables.push(
++				this.ui.inputBox.onDidChange(value => {
++					this._value = value;
++					this.ui.list.filter(this.ui.inputBox.value);
++					if (!this.canSelectMany) {
++						this.ui.list.focus('First');
++					}
++					this.onDidChangeValueEmitter.fire(value);
++				}),
++				this.ui.inputBox.onKeyDown(event => {
++					switch (event.keyCode) {
++						case KeyCode.DownArrow:
++							this.ui.list.focus('Next');
++							if (this.canSelectMany) {
++								this.ui.list.domFocus();
++							}
++							break;
++						case KeyCode.UpArrow:
++							this.ui.list.focus('Previous');
++							if (this.canSelectMany) {
++								this.ui.list.domFocus();
++							}
++							break;
++					}
++				}),
++				this.ui.onDidAccept(() => this.onDidAcceptEmitter.fire()),
++				this.ui.list.onDidChangeFocus(focusedItems => {
++					// Drop initial event.
++					if (!focusedItems.length && !this._activeItems.length) {
++						return;
++					}
++					this._activeItems = focusedItems;
++					this.onDidChangeActiveEmitter.fire(focusedItems);
++				}),
++				this.ui.list.onDidChangeSelection(selectedItems => {
++					if (this.canSelectMany) {
++						return;
++					}
++					// Drop initial event.
++					if (!selectedItems.length && !this._selectedItems.length) {
++						return;
++					}
++					this._selectedItems = selectedItems;
++					this.onDidChangeSelectionEmitter.fire(selectedItems);
++				}),
++				this.ui.list.onChangedCheckedElements(checkedItems => {
++					if (!this.canSelectMany) {
++						return;
++					}
++					this._selectedItems = checkedItems;
++					this.onDidChangeSelectionEmitter.fire(checkedItems);
++				}),
++			);
++		}
++		super.show();
++	}
++
++	protected update() {
++		super.update();
++		if (!this.visible) {
++			return;
++		}
++		if (this.ui.inputBox.value !== this.value) {
++			this.ui.inputBox.value = this.value;
++		}
++		if (this.ui.inputBox.placeholder !== this.placeholder) {
++			this.ui.inputBox.placeholder = this.placeholder;
++		}
++		if (this.itemsUpdated) {
++			this.ui.list.setElements(this.items);
++			this.ui.list.filter(this.ui.inputBox.value);
++			this.ui.checkAll.checked = this.ui.list.getAllVisibleChecked();
++			this.ui.count.setCount(this.ui.list.getCheckedCount());
++			if (!this.canSelectMany) {
++				this.ui.list.focus('First');
++			}
++			this.itemsUpdated = false;
++		}
++		if (this.ui.container.classList.contains('show-checkboxes') !== this.canSelectMany) {
++			if (this.canSelectMany) {
++				this.ui.list.clearFocus();
++			} else {
++				this.ui.list.focus('First');
++			}
++		}
++		this.ui.ignoreFocusOut = this.ignoreFocusOut;
++		this.ui.list.matchOnDescription = this.matchOnDescription;
++		this.ui.list.matchOnDetail = this.matchOnDetail;
++		this.ui.setVisibilities(this.canSelectMany ? { checkAll: true, inputBox: true, count: true, ok: true, list: true } : { inputBox: true, list: true });
++	}
++}
++
++class InputBox extends QuickInput implements IInputBox {
++
++	private _value = '';
++	private _valueSelection: Readonly<[number, number]>;
++	private valueSelectionUpdated = true;
++	private _placeholder = '';
++	private _password = false;
++	private _prompt = '';
++	private _validationMessage = '';
++	private onDidValueChangeEmitter = new Emitter<string>();
++	private onDidAcceptEmitter = new Emitter<string>();
++	private _commands: IQuickInputButton[] = [];
++	private onDidTriggerCommandEmitter = new Emitter<IQuickInputButton>();
++
++	constructor(ui: QuickInputUI) {
++		super(ui);
++		this.disposables.push(
++			this.onDidValueChangeEmitter,
++			this.onDidAcceptEmitter,
++			this.onDidTriggerCommandEmitter,
++		);
++	}
++
++	get value() {
++		return this._value;
++	}
++
++	set value(value: string) {
++		this._value = value || '';
++		this.update();
++	}
++
++	set valueSelection(valueSelection: Readonly<[number, number]>) {
++		this._valueSelection = valueSelection;
++		this.valueSelectionUpdated = true;
++		this.update();
++	}
++
++	get placeholder() {
++		return this._placeholder;
++	}
++
++	set placeholder(placeholder: string) {
++		this._placeholder = placeholder || '';
++		this.update();
++	}
++
++	get password() {
++		return this._password;
++	}
++
++	set password(password: boolean) {
++		this._password = password || false;
++		this.update();
++	}
++
++	get prompt() {
++		return this._prompt;
++	}
++
++	set prompt(prompt: string) {
++		this._prompt = prompt || '';
++		this.update();
++	}
++
++	get validationMessage() {
++		return this._validationMessage;
++	}
++
++	set validationMessage(validationMessage: string) {
++		this._validationMessage = validationMessage || '';
++		this.update();
++	}
++
++	onDidChangeValue = this.onDidValueChangeEmitter.event;
++
++	onDidAccept = this.onDidAcceptEmitter.event;
++
++	get buttons() {
++		return this._commands;
++	}
++
++	set buttons(commands: IQuickInputButton[]) {
++		this._commands = commands;
++		this.update(); // TODO
++	}
++
++	onDidTriggerButton = this.onDidTriggerCommandEmitter.event;
++
++	show() {
++		if (!this.visible) {
++			// TODO: this.onDidTriggerCommandEmitter,
++			this.visibleDisposables.push(
++				this.ui.inputBox.onDidChange(value => {
++					this._value = value;
++					this.onDidValueChangeEmitter.fire(value);
++				}),
++				this.ui.onDidAccept(() => this.onDidAcceptEmitter.fire()),
++			);
++		}
++		super.show();
++	}
++
++	protected update() {
++		super.update();
++		if (!this.visible) {
++			return;
++		}
++		if (this.ui.inputBox.value !== this.value) {
++			this.ui.inputBox.value = this.value;
++		}
++		if (this.valueSelectionUpdated) {
++			this.valueSelectionUpdated = false;
++			this.ui.inputBox.select(this._valueSelection && { start: this._valueSelection[0], end: this._valueSelection[1] });
++		}
++		if (this.ui.inputBox.placeholder !== this.placeholder) {
++			this.ui.inputBox.placeholder = this.placeholder;
++		}
++		if (this.ui.inputBox.password !== this.password) {
++			this.ui.inputBox.password = this.password;
++		}
++		if (this.ui.inputBox.password !== this.password) {
++			this.ui.inputBox.password = this.password;
++		}
++		if (!this.validationMessage && this.ui.message.textContent !== this.prompt) {
++			this.ui.message.textContent = this.prompt;
++			this.ui.inputBox.showDecoration(Severity.Ignore);
++		}
++		if (this.validationMessage && this.ui.message.textContent !== this.validationMessage) {
++			this.ui.message.textContent = this.validationMessage;
++			this.ui.inputBox.showDecoration(Severity.Error);
++		}
++		this.ui.setVisibilities({ inputBox: true, message: true });
++	}
++}
++>>>>>>> .their
+changed in both
+  base   100644 b99245aece5d069f52dc02ead3221b3091809e1b src/vs/workbench/browser/parts/quickinput/quickInputBox.ts
+  our    100644 a0dcdf10dcae42f216ed10dc555b680c6f826450 src/vs/workbench/browser/parts/quickinput/quickInputBox.ts
+  their  100644 e03a4d66cf8450e395f5036991574211d7937c9f src/vs/workbench/browser/parts/quickinput/quickInputBox.ts
+@@ -81,10 +81,13 @@
+ 
+ 	set password(password: boolean) {
+ 		this.inputBox.inputElement.type = password ? 'password' : 'text';
++<<<<<<< .our
+ 	}
+ 
+ 	set enabled(enabled: boolean) {
+ 		this.inputBox.setEnabled(enabled);
++=======
++>>>>>>> .their
+ 	}
+ 
+ 	showDecoration(decoration: Severity): void {
+changed in both
+  base   100644 1af9308ea94b3173a47ef3ff2ec6ba182e1881d2 src/vs/workbench/browser/parts/quickinput/quickInputList.ts
+  our    100644 0b2ecb2d2654b011c55a59c24ed9e4cd19ca2710 src/vs/workbench/browser/parts/quickinput/quickInputList.ts
+  their  100644 4ccc0b8437d676fd6578366238aea9560eb26753 src/vs/workbench/browser/parts/quickinput/quickInputList.ts
+@@ -11,7 +11,11 @@
+ import { dispose, IDisposable } from 'vs/base/common/lifecycle';
+ import { WorkbenchList } from 'vs/platform/list/browser/listService';
+ import { IInstantiationService } from 'vs/platform/instantiation/common/instantiation';
++<<<<<<< .our
+ import { IQuickPickItem, IQuickPickItemButtonEvent, IQuickPickSeparator } from 'vs/platform/quickinput/common/quickInput';
++=======
++import { IQuickPickItem } from 'vs/platform/quickinput/common/quickInput';
++>>>>>>> .their
+ import { IMatch } from 'vs/base/common/filters';
+ import { matchesFuzzyOcticonAware, parseOcticons } from 'vs/base/common/octicon';
+ import { compareAnything } from 'vs/base/common/comparers';
+@@ -36,8 +40,11 @@
+ 	index: number;
+ 	item: IQuickPickItem;
+ 	checked: boolean;
++<<<<<<< .our
+ 	separator: IQuickPickSeparator;
+ 	fireButtonTriggered: (event: IQuickPickItemButtonEvent<IQuickPickItem>) => void;
++=======
++>>>>>>> .their
+ }
+ 
+ class ListElement implements IListElement {
+@@ -213,12 +220,17 @@
+ 	onChangedAllVisibleChecked: Event<boolean> = this._onChangedAllVisibleChecked.event;
+ 	private _onChangedCheckedCount = new Emitter<number>();
+ 	onChangedCheckedCount: Event<number> = this._onChangedCheckedCount.event;
++<<<<<<< .our
+ 	private _onChangedVisibleCount = new Emitter<number>();
+ 	onChangedVisibleCount: Event<number> = this._onChangedVisibleCount.event;
+ 	private _onChangedCheckedElements = new Emitter<IQuickPickItem[]>();
+ 	onChangedCheckedElements: Event<IQuickPickItem[]> = this._onChangedCheckedElements.event;
+ 	private _onButtonTriggered = new Emitter<IQuickPickItemButtonEvent<IQuickPickItem>>();
+ 	onButtonTriggered = this._onButtonTriggered.event;
++=======
++	private _onChangedCheckedElements = new Emitter<IQuickPickItem[]>();
++	onChangedCheckedElements: Event<IQuickPickItem[]> = this._onChangedCheckedElements.event;
++>>>>>>> .their
+ 	private _onLeave = new Emitter<void>();
+ 	onLeave: Event<void> = this._onLeave.event;
+ 	private _fireCheckedEvents = true;
+@@ -339,6 +351,7 @@
+ 		}
+ 	}
+ 
++<<<<<<< .our
+ 	setElements(inputElements: (IQuickPickItem | IQuickPickSeparator)[]): void {
+ 		this.elementDisposables = dispose(this.elementDisposables);
+ 		const fireButtonTriggered = (event: IQuickPickItemButtonEvent<IQuickPickItem>) => this.fireButtonTriggered(event);
+@@ -362,6 +375,16 @@
+ 			map.set(element.item, index);
+ 			return map;
+ 		}, new Map<IQuickPickItem, number>());
++=======
++	setElements(elements: IQuickPickItem[]): void {
++		this.elementDisposables = dispose(this.elementDisposables);
++		this.elements = elements.map((item, index) => new ListElement({
++			index,
++			item,
++			checked: !!item.picked
++		}));
++		this.elementDisposables.push(...this.elements.map(element => element.onChecked(() => this.fireCheckedEvents())));
++>>>>>>> .their
+ 		this.list.splice(0, this.list.length, this.elements);
+ 		this.list.setFocus([]);
+ 		this._onChangedVisibleCount.fire(this.elements.length);
+@@ -389,11 +412,12 @@
+ 			.map(item => this.elementsToIndexes.get(item)));
+ 	}
+ 
+-	getCheckedElements() {
+-		return this.elements.filter(e => e.checked)
++	getFocusedElements() {
++		return this.list.getFocusedElements()
+ 			.map(e => e.item);
+ 	}
+ 
++<<<<<<< .our
+ 	setCheckedElements(items: IQuickPickItem[]) {
+ 		try {
+ 			this._fireCheckedEvents = false;
+@@ -412,6 +436,16 @@
+ 
+ 	set enabled(value: boolean) {
+ 		this.list.getHTMLElement().style.pointerEvents = value ? null : 'none';
++=======
++	getSelectedElements() {
++		return this.list.getSelectedElements()
++			.map(e => e.item);
++	}
++
++	getCheckedElements() {
++		return this.elements.filter(e => e.checked)
++			.map(e => e.item);
++>>>>>>> .their
+ 	}
+ 
+ 	focus(what: 'First' | 'Last' | 'Next' | 'Previous' | 'NextPage' | 'PreviousPage'): void {
+@@ -498,7 +532,10 @@
+ 		this.list.layout();
+ 
+ 		this._onChangedAllVisibleChecked.fire(this.getAllVisibleChecked());
++<<<<<<< .our
+ 		this._onChangedVisibleCount.fire(shownElements.length);
++=======
++>>>>>>> .their
+ 	}
+ 
+ 	toggleCheckbox() {

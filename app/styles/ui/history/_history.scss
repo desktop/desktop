@@ -66,6 +66,29 @@
     flex-direction: column;
   }
 
+  .merge-status {
+    background: var(--background-color);
+    border-width: 0 var(--spacing-half);
+    border: solid transparent;
+    box-sizing: content-box;
+    position: relative;
+    z-index: 1;
+  }
+
+  .merge-message {
+    max-height: 500px;
+    transition: max-height 750ms ease;
+
+    &-loading {
+      max-height: 40px;
+    }
+  }
+
+  // this style can be removed once we enable the merge hint for everyone
+  .merge-message-legacy {
+    margin-top: var(--spacing);
+  }
+
   .merge-cta {
     border-top: var(--base-border);
     display: flex;
@@ -73,10 +96,6 @@
     font-size: var(--font-size-sm);
     text-align: center;
     padding: var(--spacing);
-  }
-
-  .merge-message {
-    margin-top: var(--spacing);
   }
 
   .no-branches {

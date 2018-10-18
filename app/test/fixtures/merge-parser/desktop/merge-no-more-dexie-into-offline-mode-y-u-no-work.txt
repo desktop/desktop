@@ -1,0 +1,1621 @@
+changed in both
+  base   100644 e4c97b5a507a78e0ae64a236e85f2a97f14a166a app/package.json
+  our    100644 4ec686d8ad22d3aea1ebe4bddd16f4a7447c3acd app/package.json
+  their  100644 36077c186aacb4a754ace1aeab392f4d65c8a3e0 app/package.json
+@@ -24,6 +24,7 @@
+     "codemirror": "^5.31.0",
+     "codemirror-mode-elixir": "1.1.1",
+     "deep-equal": "^1.0.1",
++    "lokijs": "^1.5.3",
+     "dexie": "^2.0.0",
+     "double-ended-queue": "^2.1.0-0",
+     "dugite": "^1.67.0",
+@@ -61,6 +62,7 @@
+     "electron-debug": "^2.0.0",
+     "electron-devtools-installer": "^2.2.4",
+     "temp": "^0.8.3",
+-    "webpack-hot-middleware": "^2.10.0"
++    "webpack-hot-middleware": "^2.10.0",
++    "@types/lokijs": "1.5.2"
+   }
+ }
+added in remote
+  their  100644 600991b61a0b68507cefcc1f4f72fc0049447a3b app/src/database/collections.ts
+@@ -0,0 +1,3 @@
++export enum Collections {
++  Repository = 'repository',
++}
+added in remote
+  their  100644 ab444ae2ecf25c444dceb833bdbc3df77eff5d2d app/src/database/command-query/pull-request.ts
+@@ -0,0 +1,69 @@
++import {
++  getGHDatabase,
++  RepositoryKey,
++  Collections,
++  toPullRequestModel,
++  GHDatabase,
++} from '..'
++import { IPullRequestAPIResult } from '../../lib/api'
++import { IPullRequestStatus } from '../../lib/databases'
++import { forceUnwrap } from '../../lib/fatal-error'
++
++const ghDb = getGHDatabase()
++
++async function updatePullRequests(
++  key: RepositoryKey,
++  apiResults: ReadonlyArray<IPullRequestAPIResult>,
++  ghDatabase: GHDatabase = ghDb()
++): Promise<void> {
++  const collection = ghDatabase.getCollection(Collections.Repository)
++  await collection.findAndUpdate({ name: key.name, path: key.path }, d => {
++    const ghRepo = d.ghRepository
++    return {
++      ...d,
++      ghRepository: {
++        ...ghRepo,
++        pullRequests: apiResults.map(toPullRequestModel),
++      },
++    }
++  })
++
++  ghDatabase.save()
++}
++
++async function updatePullRequestStatuses(
++  key: RepositoryKey,
++  prStatusList: Array<IPullRequestStatus>,
++  ghDatabase: GHDatabase = ghDb()
++): Promise<void> {
++  const collection = ghDatabase.getCollection(Collections.Repository)
++  const repo = collection.findOne({ name: key.name, path: key.path })
++
++  if (repo === null) {
++    return log.error(
++      `Repository with key ${key.name}+${key.path} cannot be found`
++    )
++  }
++
++  const ghRepo = forceUnwrap(
++    'Cannot update pull request on unpublished repository',
++    repo.ghRepository
++  )
++  const updated = {
++    ...repo,
++    ghRepository: {
++      ...ghRepo,
++      prStatusList,
++    },
++  }
++
++  collection.update(updated)
++  ghDatabase.save()
++}
++
++export const Command = {
++  updatePullRequests,
++  updatePullRequestStatuses,
++}
++
++export const Query = {}
+added in remote
+  their  100644 aac17ef31fe7ee555b655c8675e012ffe9cf01eb app/src/database/command-query/repository.ts
+@@ -0,0 +1,197 @@
++import * as Path from 'path'
++
++import {
++  Collections,
++  IRepository,
++  toGHRepositoryModel,
++  toRepositoryModel,
++  IGHRepository,
++  getGHDatabase,
++  RepositoryKey,
++  GHDatabase,
++} from '..'
++import { IRepositoryAPIResult } from '../../lib/api'
++
++const ghDb = getGHDatabase()
++
++function repositoryNotFound(key: RepositoryKey) {
++  return `Repository with key ${key.name}+${key.path} cannot be found`
++}
++
++function repositoryAlreadyExists(key: RepositoryKey) {
++  return `Repository with key ${key.name}+${key.path} already exists`
++}
++
++function noAssociatedGHRepository(key: RepositoryKey) {
++  return `Repository with key ${key.name}+${
++    key.path
++  } has no associated GH Repositroy`
++}
++
++function associatedGHRepositry(key: RepositoryKey) {
++  return `Repository with key ${key.name}+${
++    key.path
++  } already has an associated GH Repository`
++}
++
++async function addParentGHRepository(
++  key: RepositoryKey,
++  endpoint: string,
++  head: IGHRepository,
++  base: IGHRepository,
++  ghDatabase: GHDatabase = ghDb()
++): Promise<void> {
++  const collection = ghDatabase.getCollection(Collections.Repository)
++  const document = collection.findOne({
++    name: key.name,
++    path: key.path,
++  })
++
++  if (document === null) {
++    return log.warn(repositoryNotFound(key))
++  }
++
++  if (document.ghRepository === undefined) {
++    return log.warn(noAssociatedGHRepository(key))
++  }
++
++  await collection.findAndUpdate(
++    {
++      name: key.name,
++      path: key.path,
++    },
++    r => ({
++      kind: 'repository',
++      ...r,
++      ghRepository: {
++        ...head,
++        parent: {
++          ...base,
++        },
++      },
++    })
++  )
++
++  await ghDatabase.save()
++}
++
++async function addGHRepository(
++  key: RepositoryKey,
++  ghRepository: IGHRepository,
++  ghDatabase: GHDatabase = ghDb()
++): Promise<void> {
++  const collection = ghDatabase.getCollection(Collections.Repository)
++  const document = collection.findOne({
++    name: key.name,
++    path: key.path,
++  })
++
++  if (document === null) {
++    return log.warn(repositoryNotFound(key))
++  }
++
++  if (document.ghRepository != null) {
++    return log.warn(associatedGHRepositry(key))
++  }
++
++  const updated: IRepository & LokiObj = {
++    ...document,
++    ghRepository,
++  }
++
++  await collection.update(updated)
++  await ghDatabase.save()
++}
++
++async function getAll(
++  ghDatabase: GHDatabase = ghDb()
++): Promise<ReadonlyArray<IRepository>> {
++  const collection = ghDatabase.getCollection(Collections.Repository)
++  const repos = await collection.find().map(toRepositoryModel)
++
++  return repos
++}
++
++async function addRepository(
++  path: string,
++  ghDatabase: GHDatabase = ghDb()
++): Promise<void> {
++  const collection = ghDatabase.getCollection(Collections.Repository)
++  const key = { name: Path.basename(path), path }
++  const repo = collection.findOne({ name: key.name, path: key.path })
++
++  if (repo !== null) {
++    return log.warn(repositoryAlreadyExists(key))
++  }
++
++  const newRepo = await collection.insertOne({
++    kind: 'repository',
++    name: Path.basename(path),
++    isMissing: false,
++    path,
++  })
++
++  if (newRepo === undefined) {
++    return log.error('Unable to add repository')
++  }
++
++  await ghDatabase.save()
++}
++
++async function updateMissingStatus(
++  key: RepositoryKey,
++  isMissing: boolean,
++  ghDatabase: GHDatabase = ghDb()
++): Promise<void> {
++  const collection = ghDatabase.getCollection(Collections.Repository)
++  await collection.findAndUpdate({ name: key.name, path: key.path }, r => ({
++    ...r,
++    isMissing: isMissing,
++  }))
++
++  await ghDatabase.save()
++}
++
++async function updatePath(
++  key: RepositoryKey,
++  path: string,
++  ghDatabase: GHDatabase = ghDb()
++): Promise<void> {
++  const collection = ghDatabase.getCollection(Collections.Repository)
++  await collection.findAndUpdate({ name: key.name, path: key.path }, r => ({
++    ...r,
++    path,
++    isMissing: false,
++  }))
++
++  await ghDatabase.save()
++}
++
++async function updateGHRepository<K extends keyof IRepository>(
++  key: RepositoryKey,
++  ghRepository: Pick<IRepository, K>,
++  ghDatabase: GHDatabase = ghDb()
++): Promise<void> {
++  const collection = ghDatabase.getCollection(Collections.Repository)
++  await collection.findAndUpdate({ name: key.name, path: key.path }, r => ({
++    ...r,
++    ghRepository: {
++      ghRepository,
++    },
++  }))
++
++  ghDatabase.save()
++}
++
++export const Command = {
++  addRepository,
++  addGHRepository,
++  addParentGHRepository,
++  updateMissingStatus,
++  updatePath,
++  updateGHRepository,
++}
++
++export const Query = {
++  getAll,
++}
+added in remote
+  their  100644 b7068815397ad608c53ddfc711d3f410e58ab2bb app/src/database/gh-database.ts
+@@ -0,0 +1,51 @@
++import * as Loki from 'lokijs'
++import { Collections, IRepository } from '.'
++import { assertNever } from '../lib/fatal-error'
++
++const DbPath = '/Users/williamshepherd/Desktop/gh.db'
++
++export function getGHDatabase() {
++  let ghDb: GHDatabase | null = null
++
++  return function() {
++    if (ghDb === null) {
++      ghDb = new GHDatabase(DbPath)
++    }
++
++    return ghDb
++  }
++}
++
++export class GHDatabase {
++  private readonly db: Loki
++
++  public constructor(path: string) {
++    this.db = new Loki(path)
++    this.initCollections()
++  }
++
++  public getCollection(collection: Collections) {
++    switch (collection) {
++      case Collections.Repository:
++        return this.db.getCollection<IRepository>(Collections.Repository)
++      default:
++        return assertNever(collection, `unknown collection ${collection}`)
++    }
++  }
++
++  public async save() {
++    await this.db.save(this.onSaveError)
++  }
++
++  private initCollections() {
++    if (this.db.getCollection(Collections.Repository) == null) {
++      this.db.addCollection<IRepository>(Collections.Repository)
++    }
++  }
++
++  private onSaveError = (error?: any) => {
++    if (error != null) {
++      log.error(error)
++    }
++  }
++}
+added in remote
+  their  100644 2c746de6c43c9928f79b18b1f1a9e25b48167769 app/src/database/helpers.ts
+@@ -0,0 +1,132 @@
++import * as Path from 'path'
++import { IUser, IRepository, IGHRepository, IPullRequest } from '.'
++import { IRepositoryAPIResult, IPullRequestAPIResult } from '../lib/api'
++
++export type RepositoryKey = { name: string; path: string }
++
++export function keyOf(repository: IRepository): RepositoryKey {
++  return {
++    name: repository.name,
++    path: repository.path,
++  }
++}
++
++export function getFullName(repository: IGHRepository | IRepository) {
++  let name: string = repository.name
++
++  if (repository.kind === 'repository') {
++    name =
++      repository.ghRepository == null
++        ? repository.name || Path.basename(repository.path)
++        : `${repository.ghRepository.owner.login}/${repository.name}`
++  } else if (repository.kind === 'gh-repository') {
++    name = `${repository.owner.login}/${repository.name}`
++  }
++
++  return name
++}
++
++export function computeUserHash(user: IUser): string {
++  return `${user.login}+${user.endpoint}+${user.avatarUrl}`
++}
++
++export function computeGHRepositoryHash(ghRepo: IGHRepository): string {
++  return `${ghRepo.defaultBranch}+
++      ${ghRepo.isPrivate}+
++      ${ghRepo.cloneUrl}+
++      ${ghRepo.name}+
++      ${ghRepo.htmlUrl}+
++      ${computeUserHash(ghRepo.owner)}+
++      ${ghRepo.parent && computeGHRepositoryHash(ghRepo.parent)}`
++}
++
++export function computeRepositoryHash(repo: IRepository): string {
++  return `${repo.name}+
++      ${repo.path}+
++      ${repo.isMissing}+
++      ${repo.ghRepository && computeGHRepositoryHash(repo.ghRepository)}`
++}
++
++export function isFork(ghRepository: IGHRepository) {
++  return ghRepository.parent != null
++}
++
++export function getEndpoint(repository: IGHRepository): string {
++  return repository.owner.endpoint
++}
++
++export function createRepositoryModel(
++  path: string,
++  isMissing: boolean = false,
++  ghRepository?: IGHRepository
++): IRepository {
++  const model: IRepository = {
++    kind: 'repository',
++    name: (ghRepository && ghRepository.name) || Path.basename(path),
++    path,
++    isMissing,
++    ghRepository,
++  }
++
++  return model
++}
++
++export function toRepositoryModel(document: IRepository & LokiObj) {
++  const result: IRepository = {
++    kind: 'repository',
++    name: document.name,
++    path: document.path,
++    isMissing: document.isMissing,
++    ghRepository: document.ghRepository,
++  }
++
++  return result
++}
++
++export function toGHRepositoryModel(
++  apiResult: IRepositoryAPIResult,
++  endpoint?: string
++): IGHRepository {
++  const ghRepo: IGHRepository = {
++    kind: 'gh-repository',
++    name: apiResult.name,
++    defaultBranch: apiResult.default_branch,
++    isPrivate: apiResult.private,
++    cloneUrl: apiResult.clone_url,
++    htmlUrl: apiResult.html_url,
++    owner: {
++      name: apiResult.owner.name,
++      login: apiResult.owner.login,
++      email: apiResult.owner.email,
++      endpoint: endpoint || '', // what is endpoint?
++      avatarUrl: apiResult.owner.avatar_url,
++    },
++    parent: apiResult.parent && toGHRepositoryModel(apiResult.parent), // where do forked repos get their endpoint from
++    issues: [],
++    mentionables: [],
++    pullRequests: [],
++  }
++
++  return ghRepo
++}
++
++export function toPullRequestModel(
++  apiResult: IPullRequestAPIResult
++): IPullRequest {
++  const model: IPullRequest = {
++    number: apiResult.number,
++    title: apiResult.title,
++    createdAt: apiResult.created_at,
++    head: {
++      ref: apiResult.head.ref,
++      sha: apiResult.head.sha,
++    },
++    base: {
++      ref: apiResult.base.ref,
++      sha: apiResult.base.sha,
++    },
++    author: apiResult.user.login,
++  }
++
++  return model
++}
+added in remote
+  their  100644 7671ad538e80517882ca29d1051953eff4e2e4c3 app/src/database/index.ts
+@@ -0,0 +1,12 @@
++export * from './models'
++export * from './collections'
++export * from './helpers'
++export * from './gh-database'
++export {
++  Command as RepositoryCommands,
++  Query as RepositoryQueries,
++} from './command-query/repository'
++export {
++  Command as PullRequestCommands,
++  Query as PullRequestQueries,
++} from './command-query/pull-request'
+added in remote
+  their  100644 47c351d6d7cb94d19c659c76961d23d7ad46cf3f app/src/database/models.ts
+@@ -0,0 +1,90 @@
++export type CIStatus = 'failure' | 'pending' | 'success'
++
++export interface IRepository {
++  readonly kind: 'repository'
++  readonly name: string
++  readonly path: string
++  readonly isMissing: boolean
++  readonly ghRepository?: IGHRepository
++}
++
++export interface IGHRepository {
++  readonly kind: 'gh-repository'
++  readonly name: string
++  readonly defaultBranch: string
++  readonly isPrivate: boolean
++  readonly cloneUrl: string
++  readonly htmlUrl: string | null
++  readonly issues: ReadonlyArray<IIssue>
++  readonly owner: IUser
++  readonly parent: IGHRepository | null
++  readonly mentionables: ReadonlyArray<IUser>
++  readonly pullRequests: ReadonlyArray<IPullRequest>
++}
++
++export interface IIssue {
++  readonly number: number
++  readonly title: string
++  readonly updatedAt: Date
++}
++
++export interface IUser {
++  readonly name: string | null
++  readonly login: string //key
++  readonly email: string | null
++  readonly endpoint: string //key
++  readonly avatarUrl: string
++}
++
++export interface IPullRequestStatus {
++  /** The status' state. */
++  readonly state: CIStatus
++
++  /** The number of statuses represented in this combined status. */
++  readonly totalCount: number
++
++  /** The SHA for which this status applies. */
++  readonly sha: string
++
++  /**
++   * The list of statuses for this specific ref or undefined
++   * if the database object was created prior to status support
++   * being added in #3588
++   */
++  readonly statuses?: ReadonlyArray<IPullRequestStatusItem>
++}
++
++export interface IPullRequest {
++  /** The GitHub PR number. */
++  readonly number: number
++
++  /** The title. */
++  readonly title: string
++
++  /** The string formatted date on which the PR was created. */
++  readonly createdAt: string
++
++  /** The ref from which the pull request's changes are coming. */
++  readonly head: IPullRequestRef
++
++  /** The ref which the pull request is targetting. */
++  readonly base: IPullRequestRef
++
++  /** The login of the author. */
++  readonly author: string
++}
++
++export interface IPullRequestRef {
++  /** The name of the ref. */
++  readonly ref: string
++
++  /** The SHA of the ref. */
++  readonly sha: string
++}
++
++export interface IPullRequestStatusItem {
++  readonly state: CIStatus
++  readonly targetUrl: string
++  readonly description: string
++  readonly context: string
++}
+changed in both
+  base   100644 d4b62dbf30e18eb25f0eab0014d38984b1e80c6c app/src/lib/api.ts
+  our    100644 e77c79b5d20fbcffe9af534504dac98509135263 app/src/lib/api.ts
+  their  100644 5c6cfde01ed305e7711bd373cc9a1e9a2c8a54b5 app/src/lib/api.ts
+@@ -38,30 +38,34 @@
+ /**
+  * Information about a repository as returned by the GitHub API.
+  */
+-export interface IAPIRepository {
++export interface IRepositoryAPIResult {
+   readonly clone_url: string
+   readonly html_url: string
+   readonly name: string
+-  readonly owner: IAPIUser
++  readonly owner: IUserAPIResult
+   readonly private: boolean
+   readonly fork: boolean
+   readonly default_branch: string
++<<<<<<< .our
+   readonly pushed_at: string
+   readonly parent: IAPIRepository | null
++=======
++  readonly parent: IRepositoryAPIResult | null
++>>>>>>> .their
+ }
+ 
+ /**
+  * Information about a commit as returned by the GitHub API.
+  */
+-export interface IAPICommit {
++export interface ICommitAPIResult {
+   readonly sha: string
+-  readonly author: IAPIUser | null
++  readonly author: IUserAPIResult | null
+ }
+ 
+ /**
+  * Information about a user as returned by the GitHub API.
+  */
+-export interface IAPIUser {
++export interface IUserAPIResult {
+   readonly id: number
+   readonly url: string
+   readonly login: string
+@@ -82,7 +86,7 @@
+ }
+ 
+ /** The users we get from the mentionables endpoint. */
+-export interface IAPIMentionableUser {
++export interface IMentionableUserAPIResult {
+   readonly avatar_url: string
+ 
+   /**
+@@ -106,7 +110,7 @@
+ /**
+  * Information about a user's email as returned by the GitHub API.
+  */
+-export interface IAPIEmail {
++export interface IEmailAPIResult {
+   readonly email: string
+   readonly verified: boolean
+   readonly primary: boolean
+@@ -114,7 +118,7 @@
+ }
+ 
+ /** Information about an issue as returned by the GitHub API. */
+-export interface IAPIIssue {
++export interface IIssueAPIResult {
+   readonly number: number
+   readonly title: string
+   readonly state: 'open' | 'closed'
+@@ -128,7 +132,7 @@
+  * The API response for a combined view of a commit
+  * status for a given ref
+  */
+-export interface IAPIRefStatusItem {
++export interface IRefStatusItemAPIResult {
+   readonly state: APIRefState
+   readonly target_url: string
+   readonly description: string
+@@ -137,13 +141,13 @@
+ }
+ 
+ /** The API response to a ref status request. */
+-interface IAPIRefStatus {
++interface IRefStatusAPIResult {
+   readonly state: APIRefState
+   readonly total_count: number
+-  readonly statuses: ReadonlyArray<IAPIRefStatusItem>
++  readonly statuses: ReadonlyArray<IRefStatusItemAPIResult>
+ }
+ 
+-interface IAPIPullRequestRef {
++interface IPullRequestRefAPIResult {
+   readonly ref: string
+   readonly sha: string
+ 
+@@ -151,17 +155,17 @@
+    * The repository in which this ref lives. It could be null if the repository
+    * has been deleted since the PR was opened.
+    */
+-  readonly repo: IAPIRepository | null
++  readonly repo: IRepositoryAPIResult | null
+ }
+ 
+ /** Information about a pull request as returned by the GitHub API. */
+-export interface IAPIPullRequest {
++export interface IPullRequestAPIResult {
+   readonly number: number
+   readonly title: string
+   readonly created_at: string
+-  readonly user: IAPIUser
+-  readonly head: IAPIPullRequestRef
+-  readonly base: IAPIPullRequestRef
++  readonly user: IUserAPIResult
++  readonly head: IPullRequestRefAPIResult
++  readonly base: IPullRequestRefAPIResult
+ }
+ 
+ /** The metadata about a GitHub server. */
+@@ -174,21 +178,21 @@
+ }
+ 
+ /** The server response when handling the OAuth callback (with code) to obtain an access token */
+-interface IAPIAccessToken {
++interface IAccessTokenAPIResult {
+   readonly access_token: string
+   readonly scope: string
+   readonly token_type: string
+ }
+ 
+ /** The partial server response when creating a new authorization on behalf of a user */
+-interface IAPIAuthorization {
++interface IAuthorizationAPIResult {
+   readonly token: string
+ }
+ 
+ /** The response we receive from fetching mentionables. */
+-interface IAPIMentionablesResponse {
++interface IMentionablesResponseAPIResult {
+   readonly etag: string | null
+-  readonly users: ReadonlyArray<IAPIMentionableUser>
++  readonly users: ReadonlyArray<IMentionableUserAPIResult>
+ }
+ 
+ /** The response for search results. */
+@@ -254,14 +258,14 @@
+   public async fetchRepository(
+     owner: string,
+     name: string
+-  ): Promise<IAPIRepository | null> {
++  ): Promise<IRepositoryAPIResult | null> {
+     try {
+       const response = await this.request('GET', `repos/${owner}/${name}`)
+       if (response.status === HttpStatusCode.NotFound) {
+         log.warn(`fetchRepository: '${owner}/${name}' returned a 404`)
+         return null
+       }
+-      return await parsedResponse<IAPIRepository>(response)
++      return await parsedResponse<IRepositoryAPIResult>(response)
+     } catch (e) {
+       log.warn(`fetchRepository: an error occurred for '${owner}/${name}'`, e)
+       return null
+@@ -270,10 +274,10 @@
+ 
+   /** Fetch all repos a user has access to. */
+   public async fetchRepositories(): Promise<ReadonlyArray<
+-    IAPIRepository
++    IRepositoryAPIResult
+   > | null> {
+     try {
+-      return await this.fetchAll<IAPIRepository>('user/repos')
++      return await this.fetchAll<IRepositoryAPIResult>('user/repos')
+     } catch (error) {
+       log.warn(`fetchRepositories: ${error}`)
+       return null
+@@ -281,10 +285,10 @@
+   }
+ 
+   /** Fetch the logged in account. */
+-  public async fetchAccount(): Promise<IAPIUser> {
++  public async fetchAccount(): Promise<IUserAPIResult> {
+     try {
+       const response = await this.request('GET', 'user')
+-      const result = await parsedResponse<IAPIUser>(response)
++      const result = await parsedResponse<IUserAPIResult>(response)
+       return result
+     } catch (e) {
+       log.warn(`fetchAccount: failed with endpoint ${this.endpoint}`, e)
+@@ -293,10 +297,10 @@
+   }
+ 
+   /** Fetch the current user's emails. */
+-  public async fetchEmails(): Promise<ReadonlyArray<IAPIEmail>> {
++  public async fetchEmails(): Promise<ReadonlyArray<IEmailAPIResult>> {
+     try {
+       const response = await this.request('GET', 'user/emails')
+-      const result = await parsedResponse<ReadonlyArray<IAPIEmail>>(response)
++      const result = await parsedResponse<ReadonlyArray<IEmailAPIResult>>(response)
+ 
+       return Array.isArray(result) ? result : []
+     } catch (e) {
+@@ -310,7 +314,7 @@
+     owner: string,
+     name: string,
+     sha: string
+-  ): Promise<IAPICommit | null> {
++  ): Promise<ICommitAPIResult | null> {
+     try {
+       const path = `repos/${owner}/${name}/commits/${sha}`
+       const response = await this.request('GET', path)
+@@ -318,7 +322,7 @@
+         log.warn(`fetchCommit: '${path}' returned a 404`)
+         return null
+       }
+-      return parsedResponse<IAPICommit>(response)
++      return parsedResponse<ICommitAPIResult>(response)
+     } catch (e) {
+       log.warn(`fetchCommit: returned an error '${owner}/${name}@${sha}'`, e)
+       return null
+@@ -326,12 +330,12 @@
+   }
+ 
+   /** Search for a user with the given public email. */
+-  public async searchForUserWithEmail(email: string): Promise<IAPIUser | null> {
++  public async searchForUserWithEmail(email: string): Promise<IUserAPIResult | null> {
+     try {
+       const params = { q: `${email} in:email type:user` }
+       const url = urlWithQueryString('search/users', params)
+       const response = await this.request('GET', url)
+-      const result = await parsedResponse<ISearchResults<IAPIUser>>(response)
++      const result = await parsedResponse<ISearchResults<IUserAPIResult>>(response)
+       const items = result.items
+       if (items.length) {
+         // The results are sorted by score, best to worst. So the first result
+@@ -347,9 +351,9 @@
+   }
+ 
+   /** Fetch all the orgs to which the user belongs. */
+-  public async fetchOrgs(): Promise<ReadonlyArray<IAPIUser>> {
++  public async fetchOrgs(): Promise<ReadonlyArray<IUserAPIResult>> {
+     try {
+-      return this.fetchAll<IAPIUser>('user/orgs')
++      return this.fetchAll<IUserAPIResult>('user/orgs')
+     } catch (e) {
+       log.warn(`fetchOrgs: failed with endpoint ${this.endpoint}`, e)
+       return []
+@@ -358,11 +362,11 @@
+ 
+   /** Create a new GitHub repository with the given properties. */
+   public async createRepository(
+-    org: IAPIUser | null,
++    org: IUserAPIResult | null,
+     name: string,
+     description: string,
+     private_: boolean
+-  ): Promise<IAPIRepository> {
++  ): Promise<IRepositoryAPIResult> {
+     try {
+       const apiPath = org ? `orgs/${org.login}/repos` : 'user/repos'
+       const response = await this.request('POST', apiPath, {
+@@ -371,7 +375,7 @@
+         private: private_,
+       })
+ 
+-      return await parsedResponse<IAPIRepository>(response)
++      return await parsedResponse<IRepositoryAPIResult>(response)
+     } catch (e) {
+       if (e instanceof APIError) {
+         throw e
+@@ -393,7 +397,7 @@
+     name: string,
+     state: 'open' | 'closed' | 'all',
+     since: Date | null
+-  ): Promise<ReadonlyArray<IAPIIssue>> {
++  ): Promise<ReadonlyArray<IIssueAPIResult>> {
+     const params: { [key: string]: string } = {
+       state,
+     }
+@@ -403,7 +407,7 @@
+ 
+     const url = urlWithQueryString(`repos/${owner}/${name}/issues`, params)
+     try {
+-      const issues = await this.fetchAll<IAPIIssue>(url)
++      const issues = await this.fetchAll<IIssueAPIResult>(url)
+ 
+       // PRs are issues! But we only want Really Seriously Issues.
+       return issues.filter((i: any) => !i.pullRequest)
+@@ -418,10 +422,10 @@
+     owner: string,
+     name: string,
+     state: 'open' | 'closed' | 'all'
+-  ): Promise<ReadonlyArray<IAPIPullRequest>> {
++  ): Promise<ReadonlyArray<IPullRequestAPIResult>> {
+     const url = urlWithQueryString(`repos/${owner}/${name}/pulls`, { state })
+     try {
+-      const prs = await this.fetchAll<IAPIPullRequest>(url)
++      const prs = await this.fetchAll<IPullRequestAPIResult>(url)
+       return prs
+     } catch (e) {
+       log.warn(`fetchPullRequests: failed for repository ${owner}/${name}`, e)
+@@ -434,11 +438,11 @@
+     owner: string,
+     name: string,
+     ref: string
+-  ): Promise<IAPIRefStatus> {
++  ): Promise<IRefStatusAPIResult> {
+     const path = `repos/${owner}/${name}/commits/${ref}/status`
+     try {
+       const response = await this.request('GET', path)
+-      const status = await parsedResponse<IAPIRefStatus>(response)
++      const status = await parsedResponse<IRefStatusAPIResult>(response)
+       return status
+     } catch (e) {
+       log.warn(
+@@ -523,7 +527,7 @@
+     owner: string,
+     name: string,
+     etag: string | null
+-  ): Promise<IAPIMentionablesResponse | null> {
++  ): Promise<IMentionablesResponseAPIResult | null> {
+     // NB: this custom `Accept` is required for the `mentionables` endpoint.
+     const headers: any = {
+       Accept: 'application/vnd.github.jerry-maguire-preview',
+@@ -545,7 +549,7 @@
+       if (response.status === HttpStatusCode.NotModified) {
+         return null
+       }
+-      const users = await parsedResponse<ReadonlyArray<IAPIMentionableUser>>(
++      const users = await parsedResponse<ReadonlyArray<IMentionableUserAPIResult>>(
+         response
+       )
+       const etag = response.headers.get('etag')
+@@ -560,7 +564,7 @@
+    * Retrieve the public profile information of a user with
+    * a given username.
+    */
+-  public async fetchUser(login: string): Promise<IAPIUser | null> {
++  public async fetchUser(login: string): Promise<IUserAPIResult | null> {
+     try {
+       const response = await this.request(
+         'GET',
+@@ -571,7 +575,7 @@
+         return null
+       }
+ 
+-      return await parsedResponse<IAPIUser>(response)
++      return await parsedResponse<IUserAPIResult>(response)
+     } catch (e) {
+       log.warn(`fetchUser: failed with endpoint ${this.endpoint}`, e)
+       throw e
+@@ -637,7 +641,7 @@
+   )
+ 
+   try {
+-    const result = await parsedResponse<IAPIAuthorization>(response)
++    const result = await parsedResponse<IAuthorizationAPIResult>(response)
+     if (result) {
+       const token = result.token
+       if (token && typeof token === 'string' && token.length) {
+@@ -874,7 +878,7 @@
+         state: state,
+       }
+     )
+-    const result = await parsedResponse<IAPIAccessToken>(response)
++    const result = await parsedResponse<IAccessTokenAPIResult>(response)
+     return result.access_token
+   } catch (e) {
+     log.warn(`requestOAuthToken: failed with endpoint ${endpoint}`, e)
+merged
+  result 100644 e9f18567505d90c790ed1a9e78cc3d5c7607540d app/src/lib/databases/pull-request-database.ts
+  our    100644 7446a4ce1ebf104f7825a7757e6be2beccfbe4ef app/src/lib/databases/pull-request-database.ts
+@@ -1,5 +1,5 @@
+ import Dexie from 'dexie'
+-import { APIRefState, IAPIRefStatusItem } from '../api'
++import { APIRefState, IRefStatusItemAPIResult } from '../api'
+ import { BaseDatabase } from './base-database'
+ 
+ export interface IPullRequestRef {
+@@ -66,7 +66,7 @@
+    * if the database object was created prior to status support
+    * being added in #3588
+    */
+-  readonly statuses?: ReadonlyArray<IAPIRefStatusItem>
++  readonly statuses?: ReadonlyArray<IRefStatusItemAPIResult>
+ }
+ 
+ export class PullRequestDatabase extends BaseDatabase {
+changed in both
+  base   100644 760b02c3045adfd175c5e95574dedb44b6d391b8 app/src/lib/dispatcher/dispatcher.ts
+  our    100644 5e56c00e713342e76f5ccba040062e322e8c90cb app/src/lib/dispatcher/dispatcher.ts
+  their  100644 d3a21040c57d47665e2454cf71f005b4758f9526 app/src/lib/dispatcher/dispatcher.ts
+@@ -25,7 +25,7 @@
+ import { Branch } from '../../models/branch'
+ import { Commit } from '../../models/commit'
+ import { ExternalEditor } from '../../lib/editors'
+-import { IAPIUser } from '../../lib/api'
++import { IUserAPIResult } from '../../lib/api'
+ import { GitHubRepository } from '../../models/github-repository'
+ import { ICommitMessage } from '../stores/git-store'
+ import { executeMenuItem } from '../../ui/main-process-proxy'
+@@ -329,7 +329,7 @@
+     description: string,
+     private_: boolean,
+     account: Account,
+-    org: IAPIUser | null
++    org: IUserAPIResult | null
+   ): Promise<Repository> {
+     return this.appStore._publishRepository(
+       repository,
+merged
+  result 100644 8f5db8c73829182de3f168745e3fa54305542e9d app/src/lib/email.ts
+  our    100644 3ac283444e4f360757ee5da392edc097c37794bc app/src/lib/email.ts
+@@ -1,4 +1,4 @@
+-import { IAPIEmail } from './api'
++import { IEmailAPIResult } from './api'
+ 
+ /**
+  * Lookup a suitable email address to display in the application, based on the
+@@ -14,8 +14,8 @@
+  * @param emails array of email addresses associated with an account
+  */
+ export function lookupPreferredEmail(
+-  emails: ReadonlyArray<IAPIEmail>
+-): IAPIEmail | null {
++  emails: ReadonlyArray<IEmailAPIResult>
++): IEmailAPIResult | null {
+   if (emails.length === 0) {
+     return null
+   }
+@@ -38,7 +38,7 @@
+ /**
+  * Is the email public?
+  */
+-function isEmailPublic(email: IAPIEmail): boolean {
++function isEmailPublic(email: IEmailAPIResult): boolean {
+   // If an email doesn't have a visibility setting it means it's coming from an
+   // older Enterprise server which doesn't have the concept of visiblity.
+   return email.visibility === 'public' || !email.visibility
+changed in both
+  base   100644 3664497681402ef660531130f999ac3e39892b4d app/src/lib/stores/app-store.ts
+  our    100644 1a4e387e4d192d34abfd0621b4b5ebe8cc34d8d1 app/src/lib/stores/app-store.ts
+  their  100644 0da783ee96ab4fd9f8643355f356060d44cc2c3b app/src/lib/stores/app-store.ts
+@@ -43,6 +43,7 @@
+   matchGitHubRepository,
+   IMatchedGitHubRepository,
+   repositoryMatchesRemote,
++<<<<<<< .our
+ } from '../repository-matching'
+ import {
+   API,
+@@ -51,6 +52,10 @@
+   getDotComAPIEndpoint,
+   getEnterpriseAPIURL,
+ } from '../api'
++=======
++} from '../../lib/repository-matching'
++import { API, getAccountForEndpoint, IUserAPIResult } from '../../lib/api'
++>>>>>>> .their
+ import { caseInsensitiveCompare } from '../compare'
+ import {
+   Branch,
+@@ -2730,7 +2735,7 @@
+     description: string,
+     private_: boolean,
+     account: Account,
+-    org: IAPIUser | null
++    org: IUserAPIResult | null
+   ): Promise<Repository> {
+     const api = API.fromAccount(account)
+     const apiRepository = await api.createRepository(
+merged
+  result 100644 3468d42c0ef4395a79e75b4cadaf6ca401c80c58 app/src/lib/stores/issues-store.ts
+  our    100644 c4b2992a861aecc044e73eeb318e9675d0ee59e7 app/src/lib/stores/issues-store.ts
+@@ -1,5 +1,5 @@
+ import { IssuesDatabase, IIssue } from '../databases/issues-database'
+-import { API, IAPIIssue } from '../api'
++import { API, IIssueAPIResult } from '../api'
+ import { Account } from '../../models/account'
+ import { GitHubRepository } from '../../models/github-repository'
+ import { fatalError } from '../fatal-error'
+@@ -76,7 +76,7 @@
+   }
+ 
+   private async storeIssues(
+-    issues: ReadonlyArray<IAPIIssue>,
++    issues: ReadonlyArray<IIssueAPIResult>,
+     repository: GitHubRepository
+   ): Promise<void> {
+     const gitHubRepositoryID = repository.dbID
+changed in both
+  base   100644 23008ccae33cd7a55484a79207c7d3d9543c27d7 app/src/lib/stores/pull-request-store.ts
+  our    100644 d9edf0247ea7c33ae2b508f876aa977d8a81d6d4 app/src/lib/stores/pull-request-store.ts
+  their  100644 f1dde026873fcee9f4de25abc66d8c53329bf9d2 app/src/lib/stores/pull-request-store.ts
+@@ -5,7 +5,7 @@
+ } from '../databases'
+ import { GitHubRepository } from '../../models/github-repository'
+ import { Account } from '../../models/account'
+-import { API, IAPIPullRequest } from '../api'
++import { API, IPullRequestAPIResult } from '../api'
+ import { fatalError, forceUnwrap } from '../fatal-error'
+ import { RepositoriesStore } from './repositories-store'
+ import {
+@@ -310,7 +310,7 @@
+   }
+ 
+   private async cachePullRequests(
+-    pullRequestsFromAPI: ReadonlyArray<IAPIPullRequest>,
++    pullRequestsFromAPI: ReadonlyArray<IPullRequestAPIResult>,
+     repository: GitHubRepository
+   ): Promise<void> {
+     const repoDbId = repository.dbID
+merged
+  result 100644 a302a2e6b935b27ccea24b60fb308f019b956b48 app/src/lib/stores/repositories-store.ts
+  our    100644 1c0981c70e593bda2422a96ca43b130cedd5db06 app/src/lib/stores/repositories-store.ts
+@@ -7,7 +7,7 @@
+ import { GitHubRepository } from '../../models/github-repository'
+ import { Repository } from '../../models/repository'
+ import { fatalError } from '../fatal-error'
+-import { IAPIRepository } from '../api'
++import { IRepositoryAPIResult } from '../api'
+ import { BaseStore } from './base-store'
+ 
+ /** The store for local repositories. */
+@@ -23,7 +23,7 @@
+   /** Find the matching GitHub repository or add it if it doesn't exist. */
+   public async upsertGitHubRepository(
+     endpoint: string,
+-    apiRepository: IAPIRepository
++    apiRepository: IRepositoryAPIResult
+   ): Promise<GitHubRepository> {
+     return this.db.transaction(
+       'rw',
+@@ -251,7 +251,7 @@
+ 
+   private async putGitHubRepository(
+     endpoint: string,
+-    gitHubRepository: IAPIRepository
++    gitHubRepository: IRepositoryAPIResult
+   ): Promise<GitHubRepository> {
+     let parent: GitHubRepository | null = null
+     if (gitHubRepository.parent) {
+@@ -296,7 +296,7 @@
+   public async updateGitHubRepository(
+     repository: Repository,
+     endpoint: string,
+-    gitHubRepository: IAPIRepository
++    gitHubRepository: IRepositoryAPIResult
+   ): Promise<Repository> {
+     const repoID = repository.id
+     if (!repoID) {
+merged
+  result 100644 aab6a484f467bc265ab4217886451e865db504f2 app/src/models/account.ts
+  our    100644 8400b1e41845964df7e675b460454ac5f90de185 app/src/models/account.ts
+@@ -1,4 +1,4 @@
+-import { getDotComAPIEndpoint, IAPIEmail } from '../lib/api'
++import { getDotComAPIEndpoint, IEmailAPIResult } from '../lib/api'
+ 
+ /**
+  * A GitHub account, representing the user found on GitHub The Website or GitHub Enterprise.
+@@ -19,7 +19,7 @@
+     /** The access token used to perform operations on behalf of this account */
+     public readonly token: string,
+     /** The current list of email addresses associated with the account */
+-    public readonly emails: ReadonlyArray<IAPIEmail>,
++    public readonly emails: ReadonlyArray<IEmailAPIResult>,
+     /** The profile URL to render for this account */
+     public readonly avatarURL: string,
+     /** The database id for this account */
+changed in both
+  base   100644 d14189ae128a22845dc39ec28b62ae2e108a42ba app/src/ui/clone-repository/group-repositories.ts
+  our    100644 b7412f2d5dd94cba15f7a987e719915969a75f6e app/src/ui/clone-repository/group-repositories.ts
+  their  100644 6cce360d40425ead0bbcc38fd341c00cb77fc1d3 app/src/ui/clone-repository/group-repositories.ts
+@@ -1,4 +1,4 @@
+-import { IAPIRepository } from '../../lib/api'
++import { IRepositoryAPIResult } from '../../lib/api'
+ import { IFilterListGroup, IFilterListItem } from '../lib/filter-list'
+ import { caseInsensitiveCompare } from '../../lib/compare'
+ import { OcticonSymbol } from '../octicons'
+@@ -23,7 +23,7 @@
+   readonly url: string
+ }
+ 
+-function getIcon(gitHubRepo: IAPIRepository): OcticonSymbol {
++function getIcon(gitHubRepo: IRepositoryAPIResult): OcticonSymbol {
+   if (gitHubRepo.private) {
+     return OcticonSymbol.lock
+   }
+@@ -35,7 +35,7 @@
+ }
+ 
+ function convert(
+-  repositories: ReadonlyArray<IAPIRepository>
++  repositories: ReadonlyArray<IRepositoryAPIResult>
+ ): ReadonlyArray<IClonableRepositoryListItem> {
+   const repos: ReadonlyArray<IClonableRepositoryListItem> = repositories.map(
+     repo => {
+@@ -55,7 +55,7 @@
+ }
+ 
+ export function groupRepositories(
+-  repositories: ReadonlyArray<IAPIRepository>,
++  repositories: ReadonlyArray<IRepositoryAPIResult>,
+   login: string
+ ): ReadonlyArray<IFilterListGroup<IClonableRepositoryListItem>> {
+   const userRepos = repositories.filter(repo => repo.owner.type === 'User')
+merged
+  result 100644 0046063ad8f56f2b7cb21d2a88898cdc0fa75a91 app/src/ui/publish-repository/publish-repository.tsx
+  our    100644 c14a53943087c492bc981e916b32c2d35eedc78c app/src/ui/publish-repository/publish-repository.tsx
+@@ -1,6 +1,6 @@
+ import * as React from 'react'
+ import { Account } from '../../models/account'
+-import { API, IAPIUser } from '../../lib/api'
++import { API, IUserAPIResult } from '../../lib/api'
+ import { TextBox } from '../lib/text-box'
+ import { Select } from '../lib/select'
+ import { DialogContent } from '../dialog'
+@@ -33,11 +33,11 @@
+    * The org to which this repository belongs. If null, the repository should be
+    * published as a personal repository.
+    */
+-  readonly org: IAPIUser | null
++  readonly org: IUserAPIResult | null
+ }
+ 
+ interface IPublishRepositoryState {
+-  readonly orgs: ReadonlyArray<IAPIUser>
++  readonly orgs: ReadonlyArray<IUserAPIResult>
+ }
+ 
+ /** The Publish Repository component. */
+@@ -65,7 +65,7 @@
+ 
+   private async fetchOrgs(account: Account) {
+     const api = API.fromAccount(account)
+-    const orgs = (await api.fetchOrgs()) as Array<IAPIUser>
++    const orgs = (await api.fetchOrgs()) as Array<IUserAPIResult>
+     orgs.sort((a, b) => caseInsensitiveCompare(a.login, b.login))
+     this.setState({ orgs })
+   }
+merged
+  result 100644 fadc5d62c89aeeb2ac87efb8af09198fbf3d3278 app/test/helpers/databases/index.ts
+  our    100644 3db7bdbaa949fd7f7b318dbe44f1785679b6e126 app/test/helpers/databases/index.ts
+@@ -3,3 +3,4 @@
+ export * from './test-repositories-database'
+ export * from './test-stats-database'
+ export * from './test-pull-request-database'
++export * from './test-gh-database'
+added in remote
+  their  100644 96dd276a52363919e479191833e5cc846162a201 app/test/helpers/databases/test-gh-database.ts
+@@ -0,0 +1,34 @@
++import * as FSE from 'fs-extra'
++import { expect } from 'chai'
++import { getTestGHDatabase, TestGHDatabasePath } from '../test-gh-database'
++import { Collections } from '../../../src/database'
++
++const testDb = getTestGHDatabase()
++
++describe('Database', () => {
++  describe('Initialization', () => {
++    it('initializes all collections', () => {
++      const repos = testDb().getCollection(Collections.Repository)
++
++      expect(repos).is.not.null
++    })
++  })
++
++  describe('Adding data', () => {
++    it('persists the data to disk', async () => {
++      const repos = testDb().getCollection(Collections.Repository)
++      await repos.insertOne({
++        kind: 'repository',
++        name: 'test',
++        path: '~/ghd.test.db',
++        isMissing: false,
++      })
++
++      await testDb().save()
++
++      const exists = FSE.existsSync(TestGHDatabasePath)
++
++      expect(exists).is.true
++    })
++  })
++})
+added in remote
+  their  100644 8854265709ca4481c2c13489a6daf6f89e0bc788 app/test/helpers/test-gh-database.ts
+@@ -0,0 +1,15 @@
++import { GHDatabase } from '../../src/database'
++
++export const TestGHDatabasePath = '/Users/iamwillshepherd/Desktop/gh.db.json'
++
++export function getTestGHDatabase() {
++  let ghDb: GHDatabase | null = null
++
++  return function() {
++    if (ghDb === null) {
++      ghDb = new GHDatabase(TestGHDatabasePath)
++    }
++
++    return ghDb
++  }
++}
+added in remote
+  their  100644 7789a4b41a51e928ff54516a9d9988febb824835 app/test/unit/database/repository-command-query-test.ts
+@@ -0,0 +1,166 @@
++import { expect } from 'chai'
++import { getTestGHDatabase } from '../../helpers/test-gh-database'
++import {
++  RepositoryCommands,
++  Collections,
++  RepositoryQueries,
++  RepositoryKey,
++  IGHRepository,
++  IUser,
++  IRepository,
++  keyOf,
++} from '../../../src/database'
++
++const testDb = getTestGHDatabase()
++
++describe('Repository Commands', () => {
++  beforeEach(async () => {
++    const collection = testDb().getCollection(Collections.Repository)
++    await collection.clear()
++    await testDb().save()
++  })
++
++  describe('addRepository', () => {
++    it('adds the repository', async () => {
++      const testPath = 'test'
++      await RepositoryCommands.addRepository(testPath, testDb())
++
++      const addedRepo = testDb()
++        .getCollection(Collections.Repository)
++        .find()
++
++      expect(addedRepo.length).to.equal(1)
++    })
++
++    it('performs no-op when given path that already exists', async () => {
++      const testPath = 'test'
++      await RepositoryCommands.addRepository(testPath, testDb())
++      await RepositoryCommands.addRepository(testPath, testDb())
++
++      const addedRepo = testDb()
++        .getCollection(Collections.Repository)
++        .find()
++
++      expect(addedRepo.length).to.equal(1)
++    })
++  })
++
++  describe('addGHRepository', () => {
++    it('adds the ghRepository', async () => {
++      // create new repo
++      const testPath = 'path'
++      const key: RepositoryKey = {
++        name: testPath,
++        path: testPath,
++      }
++
++      await RepositoryCommands.addRepository(testPath, testDb())
++
++      // get repo to add a ghRepository to it
++      let repo = await testDb()
++        .getCollection(Collections.Repository)
++        .findOne({ name: key.name, path: key.path })
++
++      expect(repo!.ghRepository).to.be.undefined
++
++      // add ghRepository
++      await RepositoryCommands.addGHRepository(
++        key,
++        createGHRepository(),
++        testDb()
++      )
++
++      // get the new repo
++      repo = await testDb()
++        .getCollection(Collections.Repository)
++        .findOne({ name: key.name, path: key.path })
++
++      expect(repo!.ghRepository).to.not.be.undefined
++    })
++  })
++
++  describe('addParentGHRepository', () => {
++    it.only('adds gh repository to document', async () => {
++      const repoToInsert = {
++        ...createRepository(),
++        ghRepository: {
++          ...createGHRepository(),
++        },
++      }
++      const key = keyOf(repoToInsert)
++      await testDb()
++        .getCollection(Collections.Repository)
++        .insertOne(repoToInsert)
++
++      testDb().save()
++
++      await RepositoryCommands.addParentGHRepository(
++        key,
++        '',
++        createGHRepository(),
++        createGHRepository(),
++        testDb()
++      )
++
++      const updatedRepo = await testDb()
++        .getCollection(Collections.Repository)
++        .findOne({ name: key.name, path: key.path })
++
++      expect(updatedRepo!.ghRepository).to.not.be.undefined
++    })
++  })
++})
++
++describe('Repository Queries', () => {
++  beforeEach(async () => {
++    const collection = testDb().getCollection(Collections.Repository)
++    await collection.clear()
++    await testDb().save()
++  })
++
++  describe('getAll', () => {
++    it('returns all repositories', async () => {
++      await RepositoryCommands.addRepository('test-repo-1', testDb())
++      await RepositoryCommands.addRepository('test-repo-2', testDb())
++      await RepositoryCommands.addRepository('test-repo-3', testDb())
++      await RepositoryCommands.addRepository('test-repo-4', testDb())
++
++      const repos = await RepositoryQueries.getAll(testDb())
++
++      expect(repos.length).to.equal(4)
++    })
++  })
++})
++
++function createRepository(): IRepository {
++  return {
++    kind: 'repository',
++    name: 'name',
++    path: 'path',
++    isMissing: false,
++  }
++}
++
++function createGHRepository(): IGHRepository {
++  const owner: IUser = {
++    name: null,
++    login: '',
++    email: null,
++    endpoint: '',
++    avatarUrl: '',
++  }
++  const ghRepository: IGHRepository = {
++    kind: 'gh-repository',
++    name: '',
++    defaultBranch: '',
++    isPrivate: false,
++    cloneUrl: '',
++    htmlUrl: '',
++    issues: [],
++    owner: owner,
++    parent: null,
++    mentionables: [],
++    pullRequests: [],
++  }
++  return ghRepository
++}
+merged
+  result 100644 51e0b11ff0ba9f9fbbc5b903e884ba9c9fcb00eb app/test/unit/email-test.ts
+  our    100644 55c63b58438949fc7f8a2362f9a990117cc5d936 app/test/unit/email-test.ts
+@@ -1,7 +1,7 @@
+ import { expect } from 'chai'
+ 
+ import { lookupPreferredEmail } from '../../src/lib/email'
+-import { IAPIEmail } from '../../src/lib/api'
++import { IEmailAPIResult } from '../../src/lib/api'
+ 
+ describe('emails', () => {
+   it('returns null for empty list', () => {
+@@ -9,7 +9,7 @@
+   })
+ 
+   it('returns the primary if it has public visibility', () => {
+-    const emails: IAPIEmail[] = [
++    const emails: IEmailAPIResult[] = [
+       {
+         email: 'shiftkey@example.com',
+         primary: false,
+@@ -36,7 +36,7 @@
+   })
+ 
+   it('returns the primary if it has null visibility', () => {
+-    const emails: IAPIEmail[] = [
++    const emails: IEmailAPIResult[] = [
+       {
+         email: 'shiftkey@example.com',
+         primary: false,
+@@ -63,7 +63,7 @@
+   })
+ 
+   it('returns the noreply if there is no public address', () => {
+-    const emails: IAPIEmail[] = [
++    const emails: IEmailAPIResult[] = [
+       {
+         email: 'shiftkey@example.com',
+         primary: false,
+@@ -90,7 +90,7 @@
+   })
+ 
+   it('uses first email if nothing special found', () => {
+-    const emails: IAPIEmail[] = [
++    const emails: IEmailAPIResult[] = [
+       {
+         email: 'shiftkey@example.com',
+         primary: false,
+changed in both
+  base   100644 8034e9a41509ef0bedf3e3cc1a10879c5713939b app/test/unit/repositories-clone-grouping-test.ts
+  our    100644 83c00fb3fa5a862ae8b27e94721b2d5ac962335d app/test/unit/repositories-clone-grouping-test.ts
+  their  100644 927f59189b4c030a5934364e7b662bcd373eab4d app/test/unit/repositories-clone-grouping-test.ts
+@@ -4,7 +4,7 @@
+   groupRepositories,
+   YourRepositoriesIdentifier,
+ } from '../../src/ui/clone-repository/group-repositories'
+-import { IAPIRepository, IAPIUser } from '../../src/lib/api'
++import { IRepositoryAPIResult, IUserAPIResult } from '../../src/lib/api'
+ 
+ const users = {
+   shiftkey: {
+@@ -14,7 +14,7 @@
+     avatar_url: '',
+     name: 'Brendan Forster',
+     type: 'User',
+-  } as IAPIUser,
++  } as IUserAPIResult,
+   desktop: {
+     id: 2,
+     url: '',
+@@ -22,7 +22,7 @@
+     avatar_url: '',
+     name: 'Desktop',
+     type: 'Organization',
+-  } as IAPIUser,
++  } as IUserAPIResult,
+   octokit: {
+     id: 3,
+     url: '',
+@@ -30,12 +30,12 @@
+     avatar_url: '',
+     name: 'Octokit',
+     type: 'Organization',
+-  } as IAPIUser,
++  } as IUserAPIResult,
+ }
+ 
+ describe('clone repository grouping', () => {
+   it('groups repositories by organization', () => {
+-    const repositories: Array<IAPIRepository> = [
++    const repositories: Array<IRepositoryAPIResult> = [
+       {
+         clone_url: '',
+         html_url: '',
+changed in both
+  base   100644 4f50c70494d77eebb361fea30170605dcfd57f75 app/test/unit/repositories-store-test.ts
+  our    100644 494c842a7b1384406f5afa4b664134c29366ea2b app/test/unit/repositories-store-test.ts
+  their  100644 a29ae0bd759983bd2b0561e49afa77901a3ce1d6 app/test/unit/repositories-store-test.ts
+@@ -2,7 +2,7 @@
+ 
+ import { RepositoriesStore } from '../../src/lib/stores/repositories-store'
+ import { TestRepositoriesDatabase } from '../helpers/databases'
+-import { IAPIRepository } from '../../src/lib/api'
++import { IRepositoryAPIResult } from '../../src/lib/api'
+ 
+ describe('RepositoriesStore', () => {
+   let repositoriesStore: RepositoriesStore | null = null
+@@ -35,7 +35,7 @@
+   })
+ 
+   describe('updating a GitHub repository', () => {
+-    const gitHubRepo: IAPIRepository = {
++    const gitHubRepo: IRepositoryAPIResult = {
+       clone_url: 'https://github.com/my-user/my-repo',
+       html_url: 'https://github.com/my-user/my-repo',
+       name: 'my-repo',
+changed in both
+  base   100644 b017e5071b105d30e40c12577ba965bef3cfa5c2 app/yarn.lock
+  our    100644 cd6294bb698115d3ff652d361f00efbf85c1e781 app/yarn.lock
+  their  100644 4c3c5a5dd1c1e3959da17bbfd1bfd78855021857 app/yarn.lock
+@@ -6,6 +6,10 @@
+   version "0.0.6"
+   resolved "https://registry.yarnpkg.com/7zip/-/7zip-0.0.6.tgz#9cafb171af82329490353b4816f03347aa150a30"
+ 
++"@types/lokijs@1.5.2":
++  version "1.5.2"
++  resolved "https://registry.yarnpkg.com/@types/lokijs/-/lokijs-1.5.2.tgz#ed228f080033ce1fb16eff4acde65cb9ae0f1bf2"
++
+ accessibility-developer-tools@^2.11.0:
+   version "2.12.0"
+   resolved "https://registry.yarnpkg.com/accessibility-developer-tools/-/accessibility-developer-tools-2.12.0.tgz#3da0cce9d6ec6373964b84f35db7cfc3df7ab514"
+@@ -548,6 +552,21 @@
+   dependencies:
+     nan "2.5.1"
+ 
++<<<<<<< .our
++=======
++loader-utils@^1.0.2:
++  version "1.1.0"
++  resolved "https://registry.yarnpkg.com/loader-utils/-/loader-utils-1.1.0.tgz#c98aef488bcceda2ffb5e2de646d6a754429f5cd"
++  dependencies:
++    big.js "^3.1.3"
++    emojis-list "^2.0.0"
++    json5 "^0.5.0"
++
++lokijs@^1.5.3:
++  version "1.5.3"
++  resolved "https://registry.yarnpkg.com/lokijs/-/lokijs-1.5.3.tgz#6952722ffa3049a55a5e1c10ee4a0947a3e5e19b"
++
++>>>>>>> .their
+ loose-envify@^1.0.0, loose-envify@^1.1.0, loose-envify@^1.3.0, loose-envify@^1.3.1:
+   version "1.3.1"
+   resolved "https://registry.yarnpkg.com/loose-envify/-/loose-envify-1.3.1.tgz#d1a8ad33fa9ce0e713d65fdd0ac8b748d478c848"

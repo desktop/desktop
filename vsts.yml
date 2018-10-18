@@ -1,6 +1,7 @@
-phases:
-  - phase: Windows
-    queue: Hosted VS2017
+jobs:
+  - job: Windows
+    pool:
+      vmImage: vs2017-win2016
     steps:
       - task: NodeTool@0
         inputs:
@@ -11,9 +12,6 @@ phases:
       - script: |
           yarn install --force
         name: Install
-      - script: |
-          yarn lint
-        name: Lint
       - script: |
           yarn build:prod
         name: Build
@@ -21,12 +19,13 @@ phases:
           yarn test:setup && yarn test
         name: Test
 
-  - phase: Linux
-    queue: Hosted Linux Preview
+  - job: Linux
+    pool:
+      vmImage: ubuntu-16.04
     steps:
       - script: |
-          apt-get update
-          apt-get install -y --no-install-recommends libsecret-1-dev xvfb fakeroot dpkg rpm xz-utils xorriso zsync libxss1 libgconf2-4 libgtk-3-0
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libsecret-1-dev xvfb fakeroot dpkg rpm xz-utils xorriso zsync libxss1 libgconf2-4 libgtk-3-0
       - task: NodeTool@0
         inputs:
           versionSpec: '8.11.1'
@@ -36,9 +35,6 @@ phases:
       - script: |
           yarn install --force
         name: Install
-      - script: |
-          yarn lint
-        name: Lint
       - script: |
           yarn build:prod
         name: Build
@@ -48,8 +44,9 @@ phases:
           yarn test:setup && yarn test
         name: Test
 
-  - phase: macOS
-    queue: Hosted macOS Preview
+  - job: macOS
+    pool:
+      vmImage: xcode9-macos10.13
     steps:
       - task: NodeTool@0
         inputs:
@@ -58,11 +55,28 @@ phases:
           yarn install --force
         name: Install
       - script: |
-          yarn lint
-        name: Lint
-      - script: |
           yarn build:prod
         name: Build
       - script: |
           yarn test:setup && yarn test
         name: Test
+
+  - job: Lint
+    pool:
+      vmImage: ubuntu-16.04
+    steps:
+      - script: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libsecret-1-dev
+      - task: NodeTool@0
+        inputs:
+          versionSpec: '8.11.1'
+      - task: geeklearningio.gl-vsts-tasks-yarn.yarn-installer-task.YarnInstaller@2
+        inputs:
+          versionSpec: '1.5.1'
+      - script: |
+          yarn install --force
+        name: Install
+      - script: |
+          yarn lint
+        name: Lint

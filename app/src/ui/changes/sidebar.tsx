@@ -76,12 +76,13 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
 
   private receiveProps(props: IChangesSidebarProps) {
     if (
-      props.repository.id !== this.props.repository.id ||
-      !this.autocompletionProviders ||
+      this.autocompletionProviders === null ||
+      this.props.emoji.size === 0 ||
+      props.repository.hash !== this.props.repository.hash ||
       props.accounts !== this.props.accounts
     ) {
       const autocompletionProviders: IAutocompletionProvider<any>[] = [
-        new EmojiAutocompletionProvider(this.props.emoji),
+        new EmojiAutocompletionProvider(props.emoji),
       ]
 
       // Issues autocompletion is only available for GitHub repositories.
@@ -168,18 +169,20 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
   }
 
   private onDiscardAllChanges = (
-    files: ReadonlyArray<WorkingDirectoryFileChange>
+    files: ReadonlyArray<WorkingDirectoryFileChange>,
+    isDiscardingAllChanges: boolean = true
   ) => {
     this.props.dispatcher.showPopup({
       type: PopupType.ConfirmDiscardChanges,
       repository: this.props.repository,
       showDiscardChangesSetting: false,
+      discardingAllChanges: isDiscardingAllChanges,
       files,
     })
   }
 
   private onIgnore = (pattern: string | string[]) => {
-    this.props.dispatcher.ignore(this.props.repository, pattern)
+    this.props.dispatcher.appendIgnoreRule(this.props.repository, pattern)
   }
 
   /**

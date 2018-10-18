@@ -23,10 +23,6 @@
   }
 
   &.expanded {
-    .commit-summary-description-container {
-      border-bottom: none;
-    }
-
     .commit-summary-description-scroll-view {
       max-height: none;
       overflow: auto;
@@ -34,6 +30,12 @@
       &:before {
         content: none;
       }
+    }
+  }
+
+  &.hide-description-border {
+    .commit-summary-description-container {
+      border-bottom: none;
     }
   }
 
@@ -80,7 +82,6 @@
 
   &-description-container {
     display: flex;
-
     // So that we have something to position the expander against
     position: relative;
     border-bottom: var(--base-border);
@@ -89,7 +90,7 @@
   &-description-scroll-view {
     overflow: hidden;
     // The extra pixel makes the space align up with the commit list.
-    max-height: 61px;
+    max-height: 69px;
     flex: 1;
   }
 
@@ -101,6 +102,7 @@
       -webkit-user-select: text;
       user-select: text;
     }
+
     span {
       cursor: text;
     }
@@ -129,7 +131,6 @@
     display: flex;
     flex-direction: row;
     min-width: 0;
-
     margin-right: var(--spacing);
     font-size: var(--font-size-sm);
 

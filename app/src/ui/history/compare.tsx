@@ -28,8 +28,12 @@ import {
   NewCommitsBanner,
   DismissalReason,
 } from '../notification/new-commits-banner'
-import { enableNotificationOfBranchUpdates } from '../../lib/feature-flag'
+import {
+  enableNotificationOfBranchUpdates,
+  enableMergeConflictDetection,
+} from '../../lib/feature-flag'
 import { MergeCallToAction } from './merge-call-to-action'
+import { MergeCallToActionWithConflicts } from './merge-call-to-action-with-conflicts'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -41,7 +45,6 @@ interface ICompareSidebarProps {
   readonly dispatcher: Dispatcher
   readonly currentBranch: Branch | null
   readonly selectedCommitSha: string | null
-  readonly isDivergingBranchBannerVisible: boolean
   readonly onRevertCommit: (commit: Commit) => void
   readonly onViewCommitOnGitHub: (sha: string) => void
 }
@@ -191,7 +194,7 @@ export class CompareSidebar extends React.Component<
       return null
     }
 
-    if (!this.props.isDivergingBranchBannerVisible) {
+    if (!this.props.compareState.isDivergingBranchBannerVisible) {
       return null
     }
 
@@ -323,12 +326,26 @@ export class CompareSidebar extends React.Component<
       return null
     }
 
+    if (!enableMergeConflictDetection()) {
+      return (
+        <MergeCallToAction
+          repository={this.props.repository}
+          dispatcher={this.props.dispatcher}
+          currentBranch={this.props.currentBranch}
+          formState={formState}
+          onMerged={this.onMerge}
+        />
+      )
+    }
+
     return (
-      <MergeCallToAction
+      <MergeCallToActionWithConflicts
         repository={this.props.repository}
         dispatcher={this.props.dispatcher}
+        mergeStatus={this.props.compareState.mergeStatus}
         currentBranch={this.props.currentBranch}
-        formState={formState}
+        comparisonBranch={formState.comparisonBranch}
+        commitsBehind={formState.aheadBehind.behind}
         onMerged={this.onMerge}
       />
     )
@@ -552,7 +569,10 @@ export class CompareSidebar extends React.Component<
   }
 
   private onNotificationBannerDismissed = (reason: DismissalReason) => {
-    this.props.dispatcher.setDivergingBranchBannerVisibility(false)
+    this.props.dispatcher.setDivergingBranchBannerVisibility(
+      this.props.repository,
+      false
+    )
     this.props.dispatcher.recordDivergingBranchBannerDismissal()
 
     switch (reason) {

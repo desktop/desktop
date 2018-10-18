@@ -43,3 +43,5 @@ and how things work:
  - **[Developer OAuth App](technical/oauth.md)** - GitHub Desktop ships with
     the ability to OAuth on behalf of a user. A developer OAuth app is bundled
     to reduce the friction of getting started.
+ - **[Building and Packaging Desktop](technical/packaging.md)** - Outlines how
+    Desktop is currently packaged for all platforms 

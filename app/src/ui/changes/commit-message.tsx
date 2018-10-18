@@ -49,6 +49,8 @@ interface ICommitMessageProps {
   readonly dispatcher: Dispatcher
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
   readonly isCommitting: boolean
+  readonly placeholder: string
+  readonly singleFileCommit: boolean
 
   /**
    * Whether or not to show a field for adding co-authors to
@@ -253,7 +255,10 @@ export class CommitMessage extends React.Component<
     const trailers = this.getCoAuthorTrailers()
 
     const commitCreated = await this.props.onCreateCommit(
-      summary,
+      // allow single file commit without summary
+      this.props.singleFileCommit && !this.state.summary
+        ? this.props.placeholder
+        : summary,
       description,
       trailers
     )
@@ -264,7 +269,10 @@ export class CommitMessage extends React.Component<
   }
 
   private canCommit(): boolean {
-    return this.props.anyFilesSelected && this.state.summary.length > 0
+    return (
+      (this.props.anyFilesSelected && this.state.summary.length > 0) ||
+      this.props.singleFileCommit
+    )
   }
 
   private onKeyDown = (event: React.KeyboardEvent<Element>) => {
@@ -470,7 +478,10 @@ export class CommitMessage extends React.Component<
 
   public render() {
     const branchName = this.props.branch ? this.props.branch : 'master'
-    const buttonEnabled = this.canCommit() && !this.props.isCommitting
+
+    const isSummaryWhiteSpace = this.state.summary.match(/^\s+$/g)
+    const buttonEnabled =
+      this.canCommit() && !this.props.isCommitting && !isSummaryWhiteSpace
 
     const loading = this.props.isCommitting ? <Loading /> : undefined
     const className = classNames({
@@ -497,7 +508,7 @@ export class CommitMessage extends React.Component<
           <AutocompletingInput
             isRequired={true}
             className="summary-field"
-            placeholder="Summary (required)"
+            placeholder={this.props.placeholder}
             value={this.state.summary}
             onValueChanged={this.onSummaryChanged}
             autocompletionProviders={this.props.autocompletionProviders}

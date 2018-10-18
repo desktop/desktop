@@ -50,7 +50,7 @@ export class MergeCallToAction extends React.Component<
     if (count > 0) {
       const pluralized = count === 1 ? 'commit' : 'commits'
       return (
-        <div className="merge-message">
+        <div className="merge-message merge-message-legacy">
           This will merge
           <strong>{` ${count} ${pluralized}`}</strong>
           {` `}
@@ -68,14 +68,15 @@ export class MergeCallToAction extends React.Component<
     return null
   }
 
-  private onMergeClicked = async (event: React.MouseEvent<any>) => {
+  private onMergeClicked = async () => {
     const formState = this.props.formState
 
     this.props.dispatcher.recordCompareInitiatedMerge()
 
     await this.props.dispatcher.mergeBranch(
       this.props.repository,
-      formState.comparisonBranch.name
+      formState.comparisonBranch.name,
+      null
     )
 
     this.props.dispatcher.executeCompare(this.props.repository, {

@@ -141,6 +141,12 @@ export class Tokenizer {
       maybeIssue = text.slice(index, nextIndex)
     }
 
+    // release notes may add a full stop as part of formatting the entry
+    if (maybeIssue.endsWith('.')) {
+      nextIndex -= 1
+      maybeIssue = text.slice(index, nextIndex)
+    }
+
     if (!/^#\d+$/.test(maybeIssue)) {
       return null
     }
@@ -168,8 +174,15 @@ export class Tokenizer {
       return null
     }
 
-    const nextIndex = this.scanForEndOfWord(text, index)
-    const maybeMention = text.slice(index, nextIndex)
+    let nextIndex = this.scanForEndOfWord(text, index)
+    let maybeMention = text.slice(index, nextIndex)
+
+    // release notes add a ! to the very last user, or use , to separate users
+    if (maybeMention.endsWith('!') || maybeMention.endsWith(',')) {
+      nextIndex -= 1
+      maybeMention = text.slice(index, nextIndex)
+    }
+
     if (!/^@[a-zA-Z0-9\-]+$/.test(maybeMention)) {
       return null
     }

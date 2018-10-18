@@ -304,3 +304,10 @@ body.theme-dark {
   --notification-banner-border-color: $gray-700;
   --notification-ref-background: $gray-700;
 }
+
+// this emulates the cursor for the co-author input because it isn't exactly
+// an input element. credit for identify the right CSS class name goes to
+// this post: https://css-tricks.com/snippets/css/solarized-theme-for-codemirror-and-prettify/
+.CodeMirror-cursor {
+  border-left-color: currentColor;
+}
