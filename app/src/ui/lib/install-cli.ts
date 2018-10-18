@@ -25,15 +25,11 @@ export async function installCLI(): Promise<void> {
 }
 
 async function getResolvedInstallPath(): Promise<string | null> {
-  return new Promise<string | null>((resolve, reject) => {
-    FSE.readlink(InstalledCLIPath, (err, realpath) => {
-      if (err) {
-        resolve(null)
-      } else {
-        resolve(realpath)
-      }
-    })
-  })
+  try {
+    return await FSE.readlink(InstalledCLIPath)
+  } catch {
+    return null
+  }
 }
 
 function removeExistingSymlink(asAdmin: boolean) {
