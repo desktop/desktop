@@ -360,16 +360,9 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
   }
 
-  private goToCommitMessage() {
-    const state = this.state.selectedState
-    if (state == null || state.type !== SelectionType.Repository) {
-      return
-    }
-
-    this.props.dispatcher.closeCurrentFoldout()
-    this.props.dispatcher
-      .changeRepositorySection(state.repository, RepositorySectionTab.Changes)
-      .then(() => document.dispatchEvent(new CustomEvent('go-to-commit-message')))
+  private async goToCommitMessage() {
+    await this.showChanges()
+    document.dispatchEvent(new CustomEvent('go-to-commit-message'))
   }
 
   private checkForUpdates(inBackground: boolean) {
@@ -571,7 +564,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     this.props.dispatcher.closeCurrentFoldout()
-    this.props.dispatcher.changeRepositorySection(
+    return this.props.dispatcher.changeRepositorySection(
       state.repository,
       RepositorySectionTab.Changes
     )
