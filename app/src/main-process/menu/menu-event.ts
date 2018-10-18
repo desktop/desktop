@@ -22,7 +22,7 @@ export type MenuEvent =
   | 'view-repository-on-github'
   | 'clone-repository'
   | 'show-about'
-  | 'go-to-summary'
+  | 'go-to-commit-message'
   | 'boomtown'
   | 'open-pull-request'
   | 'install-cli'

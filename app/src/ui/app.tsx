@@ -320,8 +320,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.showAbout()
       case 'boomtown':
         return this.boomtown()
-      case 'go-to-summary':
-        return this.goToSummary()
+      case 'go-to-commit-message':
+        return this.goToCommitMessage()
       case 'open-pull-request': {
         return this.openPullRequest()
       }
@@ -360,7 +360,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
   }
 
-  private goToSummary() {
+  private goToCommitMessage() {
     const state = this.state.selectedState
     if (state == null || state.type !== SelectionType.Repository) {
       return
@@ -369,7 +369,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.closeCurrentFoldout()
     this.props.dispatcher
       .changeRepositorySection(state.repository, RepositorySectionTab.Changes)
-      .then(() => document.dispatchEvent(new CustomEvent('go-to-summary')))
+      .then(() => document.dispatchEvent(new CustomEvent('go-to-commit-message')))
   }
 
   private checkForUpdates(inBackground: boolean) {
