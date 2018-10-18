@@ -56,16 +56,14 @@ export class AbortMergeWarning extends React.Component<
         onDismissed={this.onCancel}
         onSubmit={this.onSubmit}
       >
-        <DialogContent>
-          <div>
-            <Octicon symbol={OcticonSymbol.alert} />
-            <div>
-              <p>Are you sure you want to abort merging?</p>
-              <p>
-                Aborting this merge will take you back to the pre-merge state
-                and the conflicts you've already resolved will still be present.
-              </p>
-            </div>
+        <DialogContent className="content-wrapper">
+          <Octicon symbol={OcticonSymbol.alert} />
+          <div className="column-left">
+            <p>Are you sure you want to abort merging?</p>
+            <p>
+              Aborting this merge will take you back to the pre-merge state and
+              the conflicts you've already resolved will still be present.
+            </p>
           </div>
         </DialogContent>
         <DialogFooter>
