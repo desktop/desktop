@@ -118,20 +118,19 @@ Here's an example of the previous changelog draft after it has been edited:
 }
 ```
 
-Once you've pushed up the version update and the changelog changes, you're ready to release! Get the others on the team to :thumbsup: in a PR if you're not sure. Note that any version change that does not have an associated changelog entry will not successfully release.
+Create a new branch off `master` to represent the work that will be released to users. Add your new changelog entries and version update, and push this branch to GitHub. This becomes the release branch, and lets other maintainers continue to merge into `master` without affecting your release.
+
+If a maintainer would like to backport a pull request to the next release, it is their responsibilty to co-ordinate with the release owner and ensure they are fine with accepting this work.
+
+Once your release branch is ready to review and ship, add the `ready-for-review` label and ask the other maintainers to review and approve the changes!
 
 ### 3. Releasing
 
-When you feel ready to start the deployment, run this command in Chat:
+When you are ready to start the deployment, run this command in chat (where `X.Y.Z-release` is the name of your release branch):
 
 ```
-.release! desktop/YOUR_BRANCH to {production|beta|test}
+.release! desktop/X.Y.Z-release to {production|beta|test}
 ```
-
-If you are releasing from master, YOUR_BRANCH is unnecessary; write:
-```
-.release! desktop to {production|beta|test}
-``` 
 
 We're using `.release` with a bang so that we don't have to wait for any current CI on the branch to finish. This might feel a little wrong, but it's OK since making the release itself will also run CI.
 
