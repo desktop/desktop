@@ -10,7 +10,7 @@ function getFetchArgs(
   progressCallback?: (progress: IFetchProgress) => void
 ) {
   if (enableRecurseSubmodulesFlag()) {
-    return progressCallback
+    return progressCallback != null
       ? [
           ...gitNetworkArguments,
           'fetch',
@@ -27,7 +27,7 @@ function getFetchArgs(
           remote,
         ]
   } else {
-    return progressCallback
+    return progressCallback != null
       ? [...gitNetworkArguments, 'fetch', '--progress', '--prune', remote]
       : [...gitNetworkArguments, 'fetch', '--prune', remote]
   }

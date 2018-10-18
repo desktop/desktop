@@ -19,7 +19,7 @@ function getPullArgs(
   progressCallback?: (progress: IPullProgress) => void
 ) {
   if (enableRecurseSubmodulesFlag()) {
-    return progressCallback
+    return progressCallback != null
       ? [
           ...gitNetworkArguments,
           'pull',
@@ -36,7 +36,7 @@ function getPullArgs(
           remote,
         ]
   } else {
-    return progressCallback
+    return progressCallback != null
       ? [...gitNetworkArguments, 'pull', '--no-rebase', '--progress', remote]
       : [...gitNetworkArguments, 'pull', '--no-rebase', remote]
   }
