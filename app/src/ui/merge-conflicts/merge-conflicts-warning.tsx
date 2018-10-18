@@ -12,6 +12,7 @@ import {
   AppFileStatus,
 } from '../../models/status'
 import { Octicon, OcticonSymbol } from '../octicons'
+import { Branch } from '../../models/branch'
 
 interface IMergeConflictsWarningProps {
   readonly dispatcher: Dispatcher
@@ -20,11 +21,9 @@ interface IMergeConflictsWarningProps {
   readonly onDismissed: () => void
   readonly openFileInExternalEditor: (path: string) => void
   readonly openRepositoryInShell: (repository: Repository) => void
+  readonly currentBranch: Branch
+  readonly comparisonBranch: Branch
 }
-
-const titleString = __DARWIN__
-  ? 'Resolve Conflicts Before Merging'
-  : 'Resolve conflicts before merging'
 
 const submitButtonString = __DARWIN__ ? 'Commit Merge' : 'Commit merge'
 
@@ -58,6 +57,12 @@ export class MergeConflictsWarning extends React.Component<
       type: PopupType.AbortMerge,
       repository: this.props.repository,
     })
+  }
+
+  private titleString(currentBranchName: string, comparisonBranchName: string) {
+    return __DARWIN__
+      ? `Resolve Conflicts Before Merging ${comparisonBranchName} into ${currentBranchName}`
+      : `Resolve conflicts before merging ${comparisonBranchName} into ${currentBranchName}`
   }
 
   private renderShellLink(openThisRepositoryInShell: () => void): JSX.Element {
@@ -152,6 +157,10 @@ export class MergeConflictsWarning extends React.Component<
   }
 
   public render() {
+    const titleString = this.titleString(
+      this.props.currentBranch.name,
+      this.props.comparisonBranch.name
+    )
     const unmergedFiles = this.getUnmergedFiles()
     const openThisRepositoryInShell = () =>
       this.props.openRepositoryInShell(this.props.repository)
