@@ -1063,6 +1063,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             confirmDiscardChanges={
               this.state.askForConfirmationOnDiscardChanges
             }
+            initiateSyncAfterCommit={this.state.willInitiateSyncAfterCommit}
             selectedExternalEditor={this.state.selectedExternalEditor}
             optOutOfUsageTracking={this.props.appStore.getStatsOptOut()}
             enterpriseAccount={this.getEnterpriseAccount()}
@@ -1725,6 +1726,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (selectedState.type === SelectionType.Repository) {
       const externalEditorLabel = state.selectedExternalEditor
 
+      const remoteName = selectedState.state.remote
+        ? selectedState.state.remote.name
+        : null
+
       return (
         <RepositoryView
           repository={selectedState.repository}
@@ -1740,9 +1745,11 @@ export class App extends React.Component<IAppProps, IAppState> {
           askForConfirmationOnDiscardChanges={
             state.askForConfirmationOnDiscardChanges
           }
+          willInitiateSyncAfterCommit={state.willInitiateSyncAfterCommit}
           accounts={state.accounts}
           externalEditorLabel={externalEditorLabel}
           onOpenInExternalEditor={this.openFileInExternalEditor}
+          remoteName={remoteName}
         />
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {

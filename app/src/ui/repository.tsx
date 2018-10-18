@@ -38,6 +38,7 @@ interface IRepositoryViewProps {
   readonly onViewCommitOnGitHub: (SHA: string) => void
   readonly imageDiffType: ImageDiffType
   readonly askForConfirmationOnDiscardChanges: boolean
+  readonly willInitiateSyncAfterCommit: boolean
   readonly accounts: ReadonlyArray<Account>
 
   /** The name of the currently selected external editor */
@@ -49,6 +50,7 @@ interface IRepositoryViewProps {
    * @param fullPath The full path to the file on disk
    */
   readonly onOpenInExternalEditor: (fullPath: string) => void
+  readonly remoteName: string | null
 }
 
 interface IRepositoryViewState {
@@ -143,9 +145,11 @@ export class RepositoryView extends React.Component<
         askForConfirmationOnDiscardChanges={
           this.props.askForConfirmationOnDiscardChanges
         }
+        willInitiateSyncAfterCommit={this.props.willInitiateSyncAfterCommit}
         accounts={this.props.accounts}
         externalEditorLabel={this.props.externalEditorLabel}
         onOpenInExternalEditor={this.props.onOpenInExternalEditor}
+        remoteName={this.props.remoteName}
       />
     )
   }

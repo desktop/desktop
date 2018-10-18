@@ -907,6 +907,13 @@ export class Dispatcher {
   }
 
   /**
+   * Sets the user's preference to control whether to automatically sync after a commit.
+   */
+  public setInitiateSyncAfterCommitSetting(value: boolean): Promise<void> {
+    return this.appStore._setInitiateSyncAfterCommitSetting(value)
+  }
+
+  /**
    * Sets the user's preference for an external program to open repositories in.
    */
   public setExternalEditor(editor: ExternalEditor): Promise<void> {

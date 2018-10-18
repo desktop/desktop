@@ -47,6 +47,7 @@ interface IChangesSidebarProps {
   readonly isPushPullFetchInProgress: boolean
   readonly gitHubUserStore: GitHubUserStore
   readonly askForConfirmationOnDiscardChanges: boolean
+  readonly willInitiateSyncAfterCommit: boolean
   readonly accounts: ReadonlyArray<Account>
   /** The name of the currently selected external editor */
   readonly externalEditorLabel?: string
@@ -57,6 +58,7 @@ interface IChangesSidebarProps {
    * @param fullPath The full path to the file on disk
    */
   readonly onOpenInExternalEditor: (fullPath: string) => void
+  readonly remoteName: string | null
 }
 
 export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
@@ -302,6 +304,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
             this.props.askForConfirmationOnDiscardChanges
           }
           onDiscardAllChanges={this.onDiscardAllChanges}
+          willInitiateSyncOnCommit={this.props.willInitiateSyncAfterCommit}
           onOpenItem={this.onOpenItem}
           onRowClick={this.onChangedItemClick}
           commitAuthor={this.props.commitAuthor}
@@ -317,6 +320,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           coAuthors={this.props.changes.coAuthors}
           externalEditorLabel={this.props.externalEditorLabel}
           onOpenInExternalEditor={this.props.onOpenInExternalEditor}
+          remoteName={this.props.remoteName}
         />
         {this.renderMostRecentLocalCommit()}
       </div>

@@ -51,6 +51,7 @@ interface ICommitMessageProps {
   readonly isCommitting: boolean
   readonly placeholder: string
   readonly singleFileCommit: boolean
+  readonly willInitiateSyncOnCommit: boolean
 
   /**
    * Whether or not to show a field for adding co-authors to
@@ -66,6 +67,7 @@ interface ICommitMessageProps {
    * the user has chosen to do so.
    */
   readonly coAuthors: ReadonlyArray<IAuthor>
+  readonly remoteName: string | null
 }
 
 interface ICommitMessageState {
@@ -230,8 +232,17 @@ export class CommitMessage extends React.Component<
     this.setState({ description })
   }
 
-  private onSubmit = () => {
+  private onSubmit = async () => {
     this.createCommit()
+
+    const initiateSyncOnCommit = this.props.willInitiateSyncOnCommit
+    const remoteExists = this.props.remoteName != null
+
+    if (initiateSyncOnCommit && remoteExists) {
+      const repository = this.props.repository
+      await this.props.dispatcher.pull(repository)
+      this.props.dispatcher.push(repository)
+    }
   }
 
   private getCoAuthorTrailers() {

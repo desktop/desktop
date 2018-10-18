@@ -50,6 +50,7 @@ interface IChangesListProps {
   ) => Promise<boolean>
   readonly onDiscardChanges: (file: WorkingDirectoryFileChange) => void
   readonly askForConfirmationOnDiscardChanges: boolean
+  readonly willInitiateSyncOnCommit: boolean
   readonly onDiscardAllChanges: (
     files: ReadonlyArray<WorkingDirectoryFileChange>,
     isDiscardingAllChanges?: boolean
@@ -105,6 +106,7 @@ interface IChangesListProps {
    * @param fullPath The full path to the file on disk
    */
   readonly onOpenInExternalEditor: (fullPath: string) => void
+  readonly remoteName: string | null
 }
 
 interface IChangesState {
@@ -432,6 +434,8 @@ export class ChangesList extends React.Component<
               : 'Summary (required)'
           }
           singleFileCommit={singleFileCommit}
+          willInitiateSyncOnCommit={this.props.willInitiateSyncOnCommit}
+          remoteName={this.props.remoteName}
         />
       </div>
     )

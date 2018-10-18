@@ -15,6 +15,7 @@ interface IAdvancedPreferencesProps {
   readonly optOutOfUsageTracking: boolean
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
+  readonly initiateSyncAfterCommit: boolean
   readonly availableEditors: ReadonlyArray<ExternalEditor>
   readonly selectedExternalEditor?: ExternalEditor
   readonly availableShells: ReadonlyArray<Shell>
@@ -22,6 +23,7 @@ interface IAdvancedPreferencesProps {
   readonly onOptOutofReportingchanged: (checked: boolean) => void
   readonly onConfirmDiscardChangesChanged: (checked: boolean) => void
   readonly onConfirmRepositoryRemovalChanged: (checked: boolean) => void
+  readonly onInitiateSyncAfterCommitChanged: (checked: boolean) => void
   readonly onSelectedEditorChanged: (editor: ExternalEditor) => void
   readonly onSelectedShellChanged: (shell: Shell) => void
 
@@ -36,6 +38,7 @@ interface IAdvancedPreferencesState {
   readonly selectedShell: Shell
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
+  readonly initiateSyncAfterCommit: boolean
 }
 
 export class Advanced extends React.Component<
@@ -49,6 +52,7 @@ export class Advanced extends React.Component<
       optOutOfUsageTracking: this.props.optOutOfUsageTracking,
       confirmRepositoryRemoval: this.props.confirmRepositoryRemoval,
       confirmDiscardChanges: this.props.confirmDiscardChanges,
+      initiateSyncAfterCommit: this.props.initiateSyncAfterCommit,
       selectedExternalEditor: this.props.selectedExternalEditor,
       selectedShell: this.props.selectedShell,
     }
@@ -108,6 +112,15 @@ export class Advanced extends React.Component<
 
     this.setState({ confirmRepositoryRemoval: value })
     this.props.onConfirmRepositoryRemovalChanged(value)
+  }
+
+  private onInitiateSyncAfterCommitChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    const value = event.currentTarget.checked
+
+    this.setState({ initiateSyncAfterCommit: value })
+    this.props.onInitiateSyncAfterCommitChanged(value)
   }
 
   private onSelectedEditorChanged = (
@@ -258,6 +271,17 @@ export class Advanced extends React.Component<
                 : CheckboxValue.Off
             }
             onChange={this.onConfirmDiscardChangesChanged}
+          />
+        </Row>
+        <Row>
+          <Checkbox
+            label="Automatically sync after creating a commit."
+            value={
+              this.state.initiateSyncAfterCommit
+                ? CheckboxValue.On
+                : CheckboxValue.Off
+            }
+            onChange={this.onInitiateSyncAfterCommitChanged}
           />
         </Row>
       </DialogContent>
