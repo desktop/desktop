@@ -60,7 +60,7 @@ export class MergeConflictsWarning extends React.Component<
     })
   }
 
-  private renderCliLink(openThisRepositoryInShell: () => void): JSX.Element {
+  private renderShellLink(openThisRepositoryInShell: () => void): JSX.Element {
     return (
       <div className="cli-link">
         You can also{' '}
@@ -164,7 +164,7 @@ export class MergeConflictsWarning extends React.Component<
         <DialogContent>
           {this.renderUnmergedFilesSummary(unmergedFiles.length)}
           {this.renderUnmergedFiles(unmergedFiles, this.props.repository.path)}
-          {this.renderCliLink(openThisRepositoryInShell)}
+          {this.renderShellLink(openThisRepositoryInShell)}
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>
