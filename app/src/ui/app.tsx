@@ -91,6 +91,7 @@ import { MergeConflictsWarning } from './merge-conflicts'
 import { AppTheme } from './app-theme'
 import { ApplicationTheme } from './lib/application-theme'
 import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
+import { AbortMergeWarning } from './abort-merge'
 
 const MinuteInMilliseconds = 1000 * 60
 
@@ -1333,6 +1334,14 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={this.onPopupDismissed}
             openFileInExternalEditor={this.openFileInExternalEditor}
             openRepositoryInShell={this.openInShell}
+          />
+        )
+      case PopupType.AbortMerge:
+        return (
+          <AbortMergeWarning
+            dispatcher={this.props.dispatcher}
+            repository={popup.repository}
+            onDismissed={this.onPopupDismissed}
           />
         )
       default:

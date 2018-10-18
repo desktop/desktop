@@ -4,7 +4,7 @@ import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Dispatcher } from '../../lib/dispatcher'
-import { RepositorySectionTab } from '../../lib/app-state'
+import { RepositorySectionTab, PopupType } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
 import {
   WorkingDirectoryStatus,
@@ -12,7 +12,6 @@ import {
   AppFileStatus,
 } from '../../models/status'
 import { Octicon, OcticonSymbol } from '../octicons'
-import { abortMerge } from '../../lib/git'
 
 interface IMergeConflictsWarningProps {
   readonly dispatcher: Dispatcher
@@ -51,11 +50,14 @@ export class MergeConflictsWarning extends React.Component<
   }
 
   /**
-   *  aborts the merge and dismisses the modal
+   *  dismisses the modal and shows the abort merge warning modal
    */
-  private onCancel = async () => {
-    await abortMerge(this.props.repository)
+  private onCancel = () => {
     this.props.onDismissed()
+    this.props.dispatcher.showPopup({
+      type: PopupType.AbortMerge,
+      repository: this.props.repository,
+    })
   }
 
   private renderCliLink(openThisRepositoryInShell: () => void): JSX.Element {
