@@ -1,5 +1,7 @@
 {
   "releases": {
+    "1.4.4-beta0": [
+    ],
     "1.4.3": [
       "[Added] Add \"Remove Repository\" keyboard shortcut - #5848. Thanks @say25!",
       "[Added] Add keyboard shortcut to delete a branch - #5018. Thanks @JakeHL!",
