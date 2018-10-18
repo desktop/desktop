@@ -103,6 +103,8 @@ export class CommitMessage extends React.Component<
 > {
   private descriptionComponent: AutocompletingTextArea | null = null
 
+  private summaryTextInput: HTMLInputElement | null = null
+
   private descriptionTextArea: HTMLTextAreaElement | null = null
   private descriptionTextAreaScrollDebounceId: number | null = null
 
@@ -451,9 +453,21 @@ export class CommitMessage extends React.Component<
     this.descriptionTextArea = elem
   }
 
+  private focusSummary = () => {
+    if (this.summaryTextInput !== null) {
+      this.summaryTextInput.focus()
+    }
+  }
+
   private onSummaryInputRef = (elem: HTMLInputElement | null) => {
-    if (elem) {
-      document.addEventListener('go-to-commit-message', () => elem.focus())
+    if (elem === null && this.summaryTextInput !== null) {
+      document.removeEventListener('go-to-summary', this.focusSummary)
+    }
+
+    this.summaryTextInput = elem
+
+    if (elem !== null) {
+      document.addEventListener('go-to-commit-message', this.focusSummary)
     }
   }
 
