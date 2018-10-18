@@ -12,8 +12,32 @@ import {
   envForAuthentication,
   AuthenticationErrors,
 } from './authentication'
+import { enableRecurseSubmodulesFlag } from '../feature-flag'
 
 export type ProgressCallback = (progress: ICheckoutProgress) => void
+
+function getCheckoutArgs(branch: Branch, progressCallback?: ProgressCallback) {
+  const baseArgs =
+    progressCallback != null
+      ? [...gitNetworkArguments, 'checkout', '--progress']
+      : [...gitNetworkArguments, 'checkout']
+
+  if (enableRecurseSubmodulesFlag()) {
+    return branch.type === BranchType.Remote
+      ? baseArgs.concat(
+          branch.name,
+          '-b',
+          branch.nameWithoutRemote,
+          '--recurse-submodules',
+          '--'
+        )
+      : baseArgs.concat(branch.name, '--recurse-submodules', '--')
+  } else {
+    return branch.type === BranchType.Remote
+      ? baseArgs.concat(branch.name, '-b', branch.nameWithoutRemote, '--')
+      : baseArgs.concat(branch.name, '--')
+  }
+}
 
 /**
  * Check out the given branch.
@@ -62,21 +86,7 @@ export async function checkoutBranch(
     progressCallback({ kind, title, value: 0, targetBranch })
   }
 
-  const baseArgs =
-    progressCallback != null
-      ? [...gitNetworkArguments, 'checkout', '--progress']
-      : [...gitNetworkArguments, 'checkout']
-
-  const args =
-    branch.type === BranchType.Remote
-      ? baseArgs.concat(
-          branch.name,
-          '-b',
-          branch.nameWithoutRemote,
-          '--recurse-submodules',
-          '--'
-        )
-      : baseArgs.concat(branch.name, '--recurse-submodules', '--')
+  const args = getCheckoutArgs(branch, progressCallback)
 
   await git(args, repository.path, 'checkoutBranch', opts)
 }
