@@ -5,7 +5,7 @@ import { Repository } from '../../models/repository'
 import { IRemote } from '../../models/remote'
 
 /**
- * List the remote names, sorted alphabetically by `name`, for a repository.
+ * List the remotes, sorted alphabetically by `name`, for a repository.
  */
 export async function getRemotes(
   repository: Repository
