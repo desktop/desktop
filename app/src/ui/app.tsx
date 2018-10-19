@@ -88,11 +88,12 @@ import { InitializeLFS, AttributeMismatch } from './lfs'
 import { UpstreamAlreadyExists } from './upstream-already-exists'
 import { ReleaseNotes } from './release-notes'
 import { DeletePullRequest } from './delete-branch/delete-pull-request-dialog'
-import { MergeConflictsDialog } from './merge-conflicts'
+import { MergeConflictsDialog, MergeConflictsWarning } from './merge-conflicts'
 import { AppTheme } from './app-theme'
 import { ApplicationTheme } from './lib/application-theme'
 import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
 import { AbortMergeWarning } from './abort-merge'
+import { enableMergeConflictsDialog } from '../lib/feature-flag'
 
 const MinuteInMilliseconds = 1000 * 60
 
@@ -1318,66 +1319,78 @@ export class App extends React.Component<IAppProps, IAppState> {
             pullRequest={popup.pullRequest}
           />
         )
-      case PopupType.MergeConflicts: {
-        const selected = this.state.selectedState
-        if (selected === null || selected.type !== SelectionType.Repository) {
+      case PopupType.MergeConflicts:
+        if (enableMergeConflictsDialog()) {
+          const selected = this.state.selectedState
+          if (selected === null || selected.type !== SelectionType.Repository) {
+            return null
+          }
+          const formState = selected.state.compareState.formState
+          if (
+            formState.kind !== ComparisonView.Ahead &&
+            formState.kind !== ComparisonView.Behind
+          ) {
+            return null
+          }
+          const tip = selected.state.branchesState.tip
+          if (tip.kind !== TipState.Valid) {
+            return null
+          }
+          const workingDirectoryStatus =
+            selected.state.changesState.workingDirectory
+          // TODO: handle not in a merge state here (return null or something for now)
+          // this.showPopup(null) or closePopup
+          return (
+            <MergeConflictsDialog
+              dispatcher={this.props.dispatcher}
+              repository={popup.repository}
+              status={workingDirectoryStatus}
+              onDismissed={this.onPopupDismissed}
+              openFileInExternalEditor={this.openFileInExternalEditor}
+              externalEditorName={this.state.selectedExternalEditor}
+              openRepositoryInShell={this.openInShell}
+              currentBranch={tip.branch}
+              comparisonBranch={formState.comparisonBranch}
+            />
+          )
+        } else {
+          return (
+            <MergeConflictsWarning
+              dispatcher={this.props.dispatcher}
+              repository={popup.repository}
+              onDismissed={this.onPopupDismissed}
+            />
+          )
+        }
+      case PopupType.AbortMerge:
+        if (enableMergeConflictsDialog()) {
+          const selected = this.state.selectedState
+          if (selected === null || selected.type !== SelectionType.Repository) {
+            return null
+          }
+          const formState = selected.state.compareState.formState
+          if (
+            formState.kind !== ComparisonView.Ahead &&
+            formState.kind !== ComparisonView.Behind
+          ) {
+            return null
+          }
+          const tip = selected.state.branchesState.tip
+          if (tip.kind !== TipState.Valid) {
+            return null
+          }
+          return (
+            <AbortMergeWarning
+              dispatcher={this.props.dispatcher}
+              repository={popup.repository}
+              onDismissed={this.onPopupDismissed}
+              currentBranchName={tip.branch.name}
+              comparisonBranchName={formState.comparisonBranch.name}
+            />
+          )
+        } else {
           return null
         }
-        const formState = selected.state.compareState.formState
-        if (
-          formState.kind !== ComparisonView.Ahead &&
-          formState.kind !== ComparisonView.Behind
-        ) {
-          return null
-        }
-        const tip = selected.state.branchesState.tip
-        if (tip.kind !== TipState.Valid) {
-          return null
-        }
-        const workingDirectoryStatus =
-          selected.state.changesState.workingDirectory
-        // TODO: handle not in a merge state here (return null or something for now)
-        // this.showPopup(null) or closePopup
-        return (
-          <MergeConflictsDialog
-            dispatcher={this.props.dispatcher}
-            repository={popup.repository}
-            status={workingDirectoryStatus}
-            onDismissed={this.onPopupDismissed}
-            openFileInExternalEditor={this.openFileInExternalEditor}
-            externalEditorName={this.state.selectedExternalEditor}
-            openRepositoryInShell={this.openInShell}
-            currentBranch={tip.branch}
-            comparisonBranch={formState.comparisonBranch}
-          />
-        )
-      }
-      case PopupType.AbortMerge: {
-        const selected = this.state.selectedState
-        if (selected === null || selected.type !== SelectionType.Repository) {
-          return null
-        }
-        const formState = selected.state.compareState.formState
-        if (
-          formState.kind !== ComparisonView.Ahead &&
-          formState.kind !== ComparisonView.Behind
-        ) {
-          return null
-        }
-        const tip = selected.state.branchesState.tip
-        if (tip.kind !== TipState.Valid) {
-          return null
-        }
-        return (
-          <AbortMergeWarning
-            dispatcher={this.props.dispatcher}
-            repository={popup.repository}
-            onDismissed={this.onPopupDismissed}
-            currentBranchName={tip.branch.name}
-            comparisonBranchName={formState.comparisonBranch.name}
-          />
-        )
-      }
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }

@@ -56,3 +56,8 @@ export function enableInAppReleaseNotes(): boolean {
 export function enableStatusWithoutOptionalLocks(): boolean {
   return enableBetaFeatures()
 }
+
+/** Should the app use the MergeConflictsDialog component and flow? */
+export function enableMergeConflictsDialog(): boolean {
+  return enableBetaFeatures()
+}
