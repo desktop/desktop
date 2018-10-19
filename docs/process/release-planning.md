@@ -10,7 +10,7 @@ We organize releases in two ways - marketing and milestones:
 
  - Marketing releases are what we use to represent planned features, and are
    high-level goals
-      - **e.g. 1.4, 1.5, etc**
+      - **for example: 1.4, 1.5, etc.**
  - Milestone releases are used to track issues and pull requests associated
    with a marketing release, and can be followed along on GitHub
       - **e.g. 1.4.1, 1.4.2, 1.5.0, etc**
