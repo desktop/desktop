@@ -13,7 +13,6 @@ import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { BranchList, IBranchListItem, renderDefaultBranch } from '../branches'
 import { revSymmetricDifference } from '../../lib/git'
 import { IMatches } from '../../lib/fuzzy-find'
-import { enableMergeConflictDetection } from '../../lib/feature-flag'
 import { MergeResultStatus } from '../../lib/app-state'
 import { MergeResultKind } from '../../models/merge'
 import { MergeStatusHeader } from '../history/merge-status-header'
@@ -312,9 +311,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
             </Button>
           </ButtonGroup>
 
-          {enableMergeConflictDetection()
-            ? this.renderNewMergeInfo()
-            : this.renderOldMergeMessage()}
+          {true ? this.renderNewMergeInfo() : this.renderOldMergeMessage()}
         </DialogFooter>
       </Dialog>
     )
@@ -325,7 +322,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
 
     const { currentBranch } = this.props
 
-    if (enableMergeConflictDetection() && currentBranch != null) {
+    if (true && currentBranch != null) {
       const mergeStatus = await promiseWithMinimumTimeout(
         () => mergeTree(this.props.repository, currentBranch, branch),
         500

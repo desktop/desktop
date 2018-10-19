@@ -28,10 +28,7 @@ import {
   NewCommitsBanner,
   DismissalReason,
 } from '../notification/new-commits-banner'
-import {
-  enableNotificationOfBranchUpdates,
-  enableMergeConflictDetection,
-} from '../../lib/feature-flag'
+import { enableNotificationOfBranchUpdates } from '../../lib/feature-flag'
 import { MergeCallToAction } from './merge-call-to-action'
 import { MergeCallToActionWithConflicts } from './merge-call-to-action-with-conflicts'
 
@@ -326,7 +323,7 @@ export class CompareSidebar extends React.Component<
       return null
     }
 
-    if (!enableMergeConflictDetection()) {
+    if (!true) {
       return (
         <MergeCallToAction
           repository={this.props.repository}
