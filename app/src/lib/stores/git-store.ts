@@ -1030,19 +1030,33 @@ export class GitStore extends BaseStore {
     return this._aheadBehind
   }
 
-  /** Get the remote we're working with. */
+  /**
+   * The remote considered to be the "default" remote in the repository.
+   *
+   *  - the 'origin' remote, if found
+   *  - the first remote, listed alphabetically
+   *
+   * If no remotes are defined in the repository, this will be `null`.
+   */
   public get defaultRemote(): IRemote | null {
     return this._defaultRemote
   }
 
-  /** Get the remote we're working with. */
+  /**
+   * The remote associated with the current branch in the repository.
+   *
+   * If the branch has a valid tip, the tracking branch name is used here.
+   * Otherwise this will be the same value as `this.defaultRemote`.
+   */
   public get remote(): IRemote | null {
     return this._remote
   }
 
   /**
-   * Get the remote for the upstream repository. This will be null if the
-   * repository isn't a fork, or if the fork doesn't have an upstream remote.
+   * The remote for the upstream repository.
+   *
+   * This will be `null` if the repository isn't a fork, or if the fork doesn't
+   * have an upstream remote.
    */
   public get upstream(): IRemote | null {
     return this._upstream
