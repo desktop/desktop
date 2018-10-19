@@ -94,6 +94,11 @@ describe('repository-matching', () => {
         expect(urlMatchesRemote(cloneURL, remoteWithSuffix)).toEqual(true)
       })
 
+      it('matches cloneURL from API with different casing', () => {
+        const cloneURL = 'https://GITHUB.COM/SHIFTKEY/DESKTOP.git'
+        expect(urlMatchesRemote(cloneURL, remoteWithSuffix)).toEqual(true)
+      })
+
       it('matches cloneURL from API without suffix', () => {
         const cloneURL = 'https://github.com/shiftkey/desktop.git'
         expect(urlMatchesRemote(cloneURL, remote)).toEqual(true)
@@ -101,6 +106,11 @@ describe('repository-matching', () => {
 
       it('matches htmlURL from API', () => {
         const htmlURL = 'https://github.com/shiftkey/desktop'
+        expect(urlMatchesRemote(htmlURL, remoteWithSuffix)).toEqual(true)
+      })
+
+      it('matches htmlURL from API with different casing', () => {
+        const htmlURL = 'https://GITHUB.COM/SHIFTKEY/DESKTOP'
         expect(urlMatchesRemote(htmlURL, remoteWithSuffix)).toEqual(true)
       })
 
