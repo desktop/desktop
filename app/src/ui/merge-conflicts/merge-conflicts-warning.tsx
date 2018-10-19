@@ -169,11 +169,17 @@ export class MergeConflictsWarning extends React.Component<
   }
 
   public render() {
+    const unmergedFiles = this.getUnmergedFiles()
+    const anyConflictedFiles = unmergedFiles.some(
+      f => f.status === AppFileStatus.Conflicted
+    )
     const titleString = this.titleString(
       this.props.currentBranch.name,
       this.props.comparisonBranch.name
     )
-    const unmergedFiles = this.getUnmergedFiles()
+    const tooltipString = anyConflictedFiles
+      ? 'Resolve all changes before merging'
+      : undefined
     const openThisRepositoryInShell = () =>
       this.props.openRepositoryInShell(this.props.repository)
     return (
@@ -195,7 +201,11 @@ export class MergeConflictsWarning extends React.Component<
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>
-            <Button type="submit" disabled={unmergedFiles.length > 0}>
+            <Button
+              type="submit"
+              disabled={anyConflictedFiles}
+              tooltip={tooltipString}
+            >
               {submitButtonString}
             </Button>
             <Button onClick={this.onCancel}>{cancelButtonString}</Button>
