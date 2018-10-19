@@ -88,7 +88,7 @@ import { InitializeLFS, AttributeMismatch } from './lfs'
 import { UpstreamAlreadyExists } from './upstream-already-exists'
 import { ReleaseNotes } from './release-notes'
 import { DeletePullRequest } from './delete-branch/delete-pull-request-dialog'
-import { MergeConflictsWarning } from './merge-conflicts'
+import { MergeConflictsDialog } from './merge-conflicts'
 import { AppTheme } from './app-theme'
 import { ApplicationTheme } from './lib/application-theme'
 import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
@@ -1339,7 +1339,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         // TODO: handle not in a merge state here (return null or something for now)
         // this.showPopup(null) or closePopup
         return (
-          <MergeConflictsWarning
+          <MergeConflictsDialog
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
             status={workingDirectoryStatus}

@@ -15,7 +15,7 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { Branch } from '../../models/branch'
 import { createMergeCommit } from '../../lib/git'
 
-interface IMergeConflictsWarningProps {
+interface IMergeConflictsDialogProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
   readonly status: WorkingDirectoryStatus
@@ -33,8 +33,8 @@ const cancelButtonString = __DARWIN__ ? 'Abort Merge' : 'Abort merge'
 /**
  * Modal to tell the user their merge encountered conflicts
  */
-export class MergeConflictsWarning extends React.Component<
-  IMergeConflictsWarningProps,
+export class MergeConflictsDialog extends React.Component<
+  IMergeConflictsDialogProps,
   {}
 > {
   /**
