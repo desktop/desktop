@@ -21,7 +21,7 @@ flow of improvements to our users. Track our progress in the [current milestones
 ## Scheduling Pull Requests
 
 Pull Requests for user-facing changes should have a milestone associated with
-it, to indicate when it should be merged.
+them, to indicate when they should be merged.
 
 ### Features
 
