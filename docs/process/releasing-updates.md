@@ -126,7 +126,7 @@ Create a new branch to represent the work that will be released to users:
 
 If you are creating a new beta release, the `yarn draft-release beta` command will help you find the new release entries for the changelog.
 
-If you are create a new `production` release, you should just use the previous `beta` changelog entires.
+If you are create a new `production` release, you should just combine and sort the previous `beta` changelog entries.
 
 Add your new changelog entries to `changelog.json`, update the version in `app/package.json`, commit the changes, and push this branch to GitHub. This becomes the release branch, and lets other maintainers continue to merge into `master` without affecting your release.
 
