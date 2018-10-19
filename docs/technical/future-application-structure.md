@@ -1,10 +1,11 @@
-# Application Structure
+# Future Application Structure
 
-This document is a work in progress but covers where things can be found and
-explains how things are organized in the GitHub Desktop source.
+This document is a work in progress which covers where things should be found and
+outlines how things will be organized in the GitHub Desktop source.
 
-**Note:** this is an aspirational document and to be used as a starting point
-for discussions, and doesn't currently reflect reality.
+**Note:** this document will be updated over time because this will be an
+incremental process, with lots of unknowns, and we want to continue to ship
+features while doing this work
 
 ## `app/src`
 
