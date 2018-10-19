@@ -37,7 +37,7 @@ you will be able to help test and provide feedback about these features early.
 ### Bugfixes
 
 Pull Requests associated with bugfixes or unplanned work can be opened early,
-but **should not** be assigned a milestone until after it has been reviewed and
+but **should not** be assigned a milestone until after they have been reviewed and
 approved.
 
 This gives the maintainers a chance to propose when this should land, based on
