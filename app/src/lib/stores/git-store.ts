@@ -121,7 +121,7 @@ export class GitStore extends BaseStore {
 
   private _currentRemote: IRemote | null = null
 
-  private _upstream: IRemote | null = null
+  private _upstreamRemote: IRemote | null = null
 
   private _lastFetched: Date | null = null
 
@@ -776,8 +776,8 @@ export class GitStore extends BaseStore {
     }
 
     // And finally the upstream if we're a fork
-    if (this.upstream) {
-      remotes.set(this.upstream.name, this.upstream)
+    if (this.upstreamRemote) {
+      remotes.set(this.upstreamRemote.name, this.upstreamRemote)
     }
 
     if (remotes.size > 0) {
@@ -973,7 +973,7 @@ export class GitStore extends BaseStore {
       this.repository.gitHubRepository &&
       this.repository.gitHubRepository.parent
 
-    this._upstream = parent ? findUpstreamRemote(parent, remotes) : null
+    this._upstreamRemote = parent ? findUpstreamRemote(parent, remotes) : null
 
     this.emitUpdate()
   }
@@ -1016,7 +1016,7 @@ export class GitStore extends BaseStore {
     await this.performFailableOperation(() =>
       addRemote(this.repository, UpstreamRemoteName, url)
     )
-    this._upstream = { name: UpstreamRemoteName, url }
+    this._upstreamRemote = { name: UpstreamRemoteName, url }
   }
 
   /**
@@ -1058,8 +1058,8 @@ export class GitStore extends BaseStore {
    * This will be `null` if the repository isn't a fork, or if the fork doesn't
    * have an upstream remote.
    */
-  public get upstream(): IRemote | null {
-    return this._upstream
+  public get upstreamRemote(): IRemote | null {
+    return this._upstreamRemote
   }
 
   /**
