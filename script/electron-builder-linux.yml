@@ -7,6 +7,7 @@ linux:
   target:
     - deb
     - rpm
+    - snap
     - AppImage
   maintainer: 'GitHub, Inc <opensource+desktop@github.com>'
 deb:
@@ -19,7 +20,7 @@ deb:
     - libxtst6
     - libnss3
     # dugite-native dependencies
-    - libcurl3
+    - libcurl3 | libcurl4
     # keytar dependencies
     - libsecret-1-0
 rpm:
@@ -32,3 +33,12 @@ rpm:
     - libcurl
     # keytar dependencies
     - libsecret
+snap:
+  confinement: 'classic'
+  stagePackages:
+    - default
+    - libcurl3
+    - libsecret-1-0
+    - openssh-client
+  plugs:
+    - password-manager-service
