@@ -2396,16 +2396,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     return this.withPushPull(repository, async () => {
-      if (state.branchesState.tip.kind === TipState.Unborn) {
+      const { tip } = state.branchesState
+
+      if (tip.kind === TipState.Unborn) {
         throw new Error('The current branch is unborn.')
       }
 
-      if (state.branchesState.tip.kind === TipState.Detached) {
+      if (tip.kind === TipState.Detached) {
         throw new Error('The current repository is in a detached HEAD state.')
       }
 
-      if (state.branchesState.tip.kind === TipState.Valid) {
-        const branch = state.branchesState.tip.branch
+      if (tip.kind === TipState.Valid) {
+        const { branch } = tip
 
         const pushTitle = `Pushing to ${remote.name}`
 
