@@ -27,8 +27,8 @@ interface IMergeConflictsDialogProps {
   readonly comparisonBranch: Branch
 }
 
-const submitButtonString = __DARWIN__ ? 'Commit Merge' : 'Commit merge'
-const cancelButtonString = __DARWIN__ ? 'Abort Merge' : 'Abort merge'
+const submitButtonString = 'Commit merge'
+const cancelButtonString = 'Abort merge'
 
 /**
  * Modal to tell the user their merge encountered conflicts
@@ -61,13 +61,11 @@ export class MergeConflictsDialog extends React.Component<
   }
 
   private titleString(currentBranchName: string, comparisonBranchName: string) {
-    return __DARWIN__
-      ? `Resolve Conflicts Before Merging ${comparisonBranchName} into ${currentBranchName}`
-      : `Resolve conflicts before merging ${comparisonBranchName} into ${currentBranchName}`
+    return `Resolve conflicts before merging ${comparisonBranchName} into ${currentBranchName}`
   }
 
   private editorButtonString(editorName: string | undefined) {
-    const defaultEditorString = __DARWIN__ ? 'Editor' : 'editor'
+    const defaultEditorString = 'editor'
     return `Open in ${editorName || defaultEditorString}`
   }
 

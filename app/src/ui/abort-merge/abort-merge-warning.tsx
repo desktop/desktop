@@ -16,9 +16,9 @@ interface IAbortMergeWarningProps {
   readonly comparisonBranchName: string
 }
 
-const titleString = __DARWIN__ ? 'Confirm Abort Merge' : 'Confirm abort merge'
+const titleString = 'Confirm abort merge'
 const cancelButtonString = 'Cancel'
-const abortButtonString = __DARWIN__ ? 'Abort Merge' : 'Abort merge'
+const abortButtonString = 'Abort merge'
 
 /**
  * Modal to tell the user their merge encountered conflicts
