@@ -13,7 +13,7 @@ We organize releases in two ways - marketing and milestones:
       - **for example: 1.4, 1.5, etc.**
  - Milestone releases are used to track issues and pull requests associated
    with a marketing release, and can be followed along on GitHub
-      - **e.g. 1.4.1, 1.4.2, 1.5.0, etc**
+      - **for example: 1.4.1, 1.4.2, 1.5.0, etc.**
 
 We aim to ship updates to production approximately every two weeks, to ensure a continuous
 flow of improvements to our users. Track our progress in the [current milestones](https://github.com/desktop/desktop/milestones?direction=desc&sort=completeness&state=open).
