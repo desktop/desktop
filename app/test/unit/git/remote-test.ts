@@ -10,6 +10,7 @@ import {
   setupEmptyDirectory,
 } from '../../helpers/repositories'
 import { findDefaultRemote } from '../../../src/lib/stores/helpers/find-default-remote'
+import { GitProcess } from 'dugite'
 
 describe('git/remote', () => {
   describe('getRemotes', () => {
@@ -30,6 +31,28 @@ describe('git/remote', () => {
 
       expect(result[1].name).toEqual('origin')
       expect(result[1].url.endsWith(nwo)).toEqual(true)
+    })
+
+    it('returns remotes sorted alphabetically', async () => {
+      const repository = await setupEmptyRepository()
+
+      // adding these remotes out-of-order to test how they are then retrieved
+      const url = 'https://github.com/desktop/not-found.git'
+
+      await GitProcess.exec(['remote', 'add', 'X', url], repository.path)
+      await GitProcess.exec(['remote', 'add', 'A', url], repository.path)
+      await GitProcess.exec(['remote', 'add', 'L', url], repository.path)
+      await GitProcess.exec(['remote', 'add', 'T', url], repository.path)
+      await GitProcess.exec(['remote', 'add', 'D', url], repository.path)
+
+      const result = await getRemotes(repository)
+      expect(result).toHaveLength(5)
+
+      expect(result[0].name).toEqual('A')
+      expect(result[1].name).toEqual('D')
+      expect(result[2].name).toEqual('L')
+      expect(result[3].name).toEqual('T')
+      expect(result[4].name).toEqual('X')
     })
 
     it('returns empty array for directory without a .git directory', async () => {
