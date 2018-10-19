@@ -14,6 +14,7 @@ import {
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Branch } from '../../models/branch'
 import { createMergeCommit } from '../../lib/git'
+import { PathText } from '../lib/path-text'
 
 interface IMergeConflictsDialogProps {
   readonly dispatcher: Dispatcher
@@ -84,7 +85,7 @@ export class MergeConflictsDialog extends React.Component<
       <li className="unmerged-file-status-resolved">
         <Octicon symbol={OcticonSymbol.fileCode} className="file-octicon" />
         <div className="column-left">
-          <div className="file-path">{path}</div>
+          <PathText path={path} />
           <div className="file-conflicts-status">No conflicts remaining</div>
         </div>
         <div className="green-circle">
