@@ -12,6 +12,8 @@ interface IAbortMergeWarningProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
   readonly onDismissed: () => void
+  readonly currentBranchName: string
+  readonly comparisonBranchName: string
 }
 
 const titleString = __DARWIN__ ? 'Confirm Abort Merge' : 'Confirm abort merge'
@@ -60,7 +62,11 @@ export class AbortMergeWarning extends React.Component<
         <DialogContent className="content-wrapper">
           <Octicon symbol={OcticonSymbol.alert} />
           <div className="column-left">
-            <p>Are you sure you want to abort merging?</p>
+            <p>
+              {`Are you sure you want to abort merging ${
+                this.props.comparisonBranchName
+              } into ${this.props.currentBranchName}?`}
+            </p>
             <p>
               Aborting this merge will take you back to the pre-merge state and
               the conflicts you've already resolved will still be present.

@@ -1318,7 +1318,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             pullRequest={popup.pullRequest}
           />
         )
-      case PopupType.MergeConflicts:
+      case PopupType.MergeConflicts: {
         const selected = this.state.selectedState
         if (selected === null || selected.type !== SelectionType.Repository) {
           return null
@@ -1350,14 +1350,33 @@ export class App extends React.Component<IAppProps, IAppState> {
             comparisonBranch={formState.comparisonBranch}
           />
         )
-      case PopupType.AbortMerge:
+      }
+      case PopupType.AbortMerge: {
+        const selected = this.state.selectedState
+        if (selected === null || selected.type !== SelectionType.Repository) {
+          return null
+        }
+        const formState = selected.state.compareState.formState
+        if (
+          formState.kind !== ComparisonView.Ahead &&
+          formState.kind !== ComparisonView.Behind
+        ) {
+          return null
+        }
+        const tip = selected.state.branchesState.tip
+        if (tip.kind !== TipState.Valid) {
+          return null
+        }
         return (
           <AbortMergeWarning
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
             onDismissed={this.onPopupDismissed}
+            currentBranchName={tip.branch.name}
+            comparisonBranchName={formState.comparisonBranch.name}
           />
         )
+      }
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
