@@ -13,7 +13,7 @@ import {
 } from '../../models/status'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Branch } from '../../models/branch'
-import { createMergeCommit } from '../../lib/git'
+import { createMergeCommit, abortMerge } from '../../lib/git'
 import { PathText } from '../lib/path-text'
 
 interface IMergeConflictsDialogProps {
@@ -53,12 +53,20 @@ export class MergeConflictsDialog extends React.Component<
   /**
    *  dismisses the modal and shows the abort merge warning modal
    */
-  private onCancel = () => {
-    this.props.onDismissed()
-    this.props.dispatcher.showPopup({
-      type: PopupType.AbortMerge,
-      repository: this.props.repository,
-    })
+  private onCancel = async () => {
+    const anyResolvedFiles = this.getUnmergedFiles().some(
+      f => f.status === AppFileStatus.Resolved
+    )
+    if (!anyResolvedFiles) {
+      await abortMerge(this.props.repository)
+      this.props.onDismissed()
+    } else {
+      this.props.onDismissed()
+      this.props.dispatcher.showPopup({
+        type: PopupType.AbortMerge,
+        repository: this.props.repository,
+      })
+    }
   }
 
   private titleString(currentBranchName: string, comparisonBranchName: string) {
