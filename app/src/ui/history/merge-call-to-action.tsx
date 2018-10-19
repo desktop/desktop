@@ -8,7 +8,7 @@ import { Button } from '../lib/button'
 import { MergeStatusHeader } from './merge-status-header'
 import { MergeResultKind } from '../../models/merge'
 
-interface IMergeCallToActionWithConflictsProps {
+interface IMergeCallToActionProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
   readonly mergeStatus: MergeResultStatus | null
@@ -22,8 +22,8 @@ interface IMergeCallToActionWithConflictsProps {
   readonly onMerged: () => void
 }
 
-export class MergeCallToActionWithConflicts extends React.Component<
-  IMergeCallToActionWithConflictsProps,
+export class MergeCallToAction extends React.Component<
+  IMergeCallToActionProps,
   {}
 > {
   public render() {

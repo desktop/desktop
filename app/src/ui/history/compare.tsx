@@ -29,7 +29,7 @@ import {
   DismissalReason,
 } from '../notification/new-commits-banner'
 import { enableNotificationOfBranchUpdates } from '../../lib/feature-flag'
-import { MergeCallToActionWithConflicts } from './merge-call-to-action-with-conflicts'
+import { MergeCallToAction } from './merge-call-to-action'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -323,7 +323,7 @@ export class CompareSidebar extends React.Component<
     }
 
     return (
-      <MergeCallToActionWithConflicts
+      <MergeCallToAction
         repository={this.props.repository}
         dispatcher={this.props.dispatcher}
         mergeStatus={this.props.compareState.mergeStatus}
