@@ -9,6 +9,7 @@ import { Repository } from '../../models/repository'
 import { PathLabel } from '../lib/path-label'
 import {
   isSafeFileExtension,
+  CopyFilePathLabel,
   DefaultEditorLabel,
   RevealInFileManagerLabel,
   OpenWithDefaultProgramLabel,
@@ -17,6 +18,7 @@ import { List } from '../lib/list'
 
 import { Octicon } from '../octicons'
 import { showContextualMenu } from '../main-process-proxy'
+import { clipboard } from 'electron'
 
 interface IFileListProps {
   readonly files: ReadonlyArray<FileChange>
@@ -132,6 +134,10 @@ export class FileList extends React.Component<IFileListProps, {}> {
       : DefaultEditorLabel
 
     const items = [
+      {
+        label: CopyFilePathLabel,
+        action: () => clipboard.writeText(fullPath),
+      },
       {
         label: RevealInFileManagerLabel,
         action: () => revealInFileManager(this.props.repository, filePath),

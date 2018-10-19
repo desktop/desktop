@@ -7,8 +7,8 @@
 
   min-width: inherit;
 
-  &-filter-field {
-    padding: var(--spacing);
+  .filter-field-row {
+    margin: var(--spacing);
   }
 
   &-container {

@@ -1202,16 +1202,20 @@ export class Dispatcher {
   }
 
   /**
-   * Increments the `mergeConflictFromPullCount` metric
+   * Updates the application state to indicate a conflict is in-progress
+   * as a result of a pull and increments the relevant metric.
    */
-  public recordMergeConflictFromPull() {
+  public mergeConflictDetectedFromPull() {
+    this.appStore._mergeConflictDetected()
     return this.statsStore.recordMergeConflictFromPull()
   }
 
   /**
-   * Increments the `mergeConflictFromExplicitMergeCount` metric
+   * Updates the application state to indicate a conflict is in-progress
+   * as a result of a merge and increments the relevant metric.
    */
-  public recordMergeConflictFromExplicitMerge() {
+  public mergeConflictDetectedFromExplicitMerge() {
+    this.appStore._mergeConflictDetected()
     return this.statsStore.recordMergeConflictFromExplicitMerge()
   }
 
@@ -1310,5 +1314,19 @@ export class Dispatcher {
 
   public recordAddExistingRepository() {
     this.statsStore.recordAddExistingRepository()
+  }
+
+  /**
+   * Increments the `recordMergeSuccesfulAfterConflicts` metric
+   */
+  public recordMergeSuccesfulAfterConflicts() {
+    return this.statsStore.recordMergeSuccesAfterConflicts()
+  }
+
+  /**
+   * Increments the `recordMergeAbortedAfterConflicts` metric
+   */
+  public recordMergeAbortedAfterConflicts() {
+    return this.statsStore.recordMergeAbortedAfterConflicts()
   }
 }
