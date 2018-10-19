@@ -1345,6 +1345,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             status={workingDirectoryStatus}
             onDismissed={this.onPopupDismissed}
             openFileInExternalEditor={this.openFileInExternalEditor}
+            externalEditorName={this.state.selectedExternalEditor}
             openRepositoryInShell={this.openInShell}
             currentBranch={tip.branch}
             comparisonBranch={formState.comparisonBranch}

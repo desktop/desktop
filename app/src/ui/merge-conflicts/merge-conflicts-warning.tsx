@@ -20,14 +20,13 @@ interface IMergeConflictsWarningProps {
   readonly status: WorkingDirectoryStatus
   readonly onDismissed: () => void
   readonly openFileInExternalEditor: (path: string) => void
+  readonly externalEditorName?: string
   readonly openRepositoryInShell: (repository: Repository) => void
   readonly currentBranch: Branch
   readonly comparisonBranch: Branch
 }
 
 const submitButtonString = __DARWIN__ ? 'Commit Merge' : 'Commit merge'
-
-const openEditorString = __DARWIN__ ? 'Open in Editor' : 'Open in editor'
 const cancelButtonString = __DARWIN__ ? 'Abort Merge' : 'Abort merge'
 
 /**
@@ -65,6 +64,10 @@ export class MergeConflictsWarning extends React.Component<
       : `Resolve conflicts before merging ${comparisonBranchName} into ${currentBranchName}`
   }
 
+  private editorButtonString(editorName: string | undefined) {
+    return `Open in ${editorName || 'Editor'}`
+  }
+
   private renderShellLink(openThisRepositoryInShell: () => void): JSX.Element {
     return (
       <div className="cli-link">
@@ -93,6 +96,7 @@ export class MergeConflictsWarning extends React.Component<
   private renderConflictedFile(
     path: string,
     conflicts: number,
+    editorName: string | undefined,
     onOpenEditorClick: () => void
   ): JSX.Element {
     const humanReadableConflicts = Math.ceil(conflicts / 3)
@@ -107,21 +111,28 @@ export class MergeConflictsWarning extends React.Component<
           <div className="file-path">{path}</div>
           <div className="file-conflicts-status">{message}</div>
         </div>
-        <Button onClick={onOpenEditorClick}>{openEditorString}</Button>
+        <Button onClick={onOpenEditorClick}>
+          {this.editorButtonString(editorName)}
+        </Button>
       </li>
     )
   }
 
   private renderUnmergedFile(
     file: WorkingDirectoryFileChange,
+    editorName: string | undefined,
     repositoryPath: string
   ): JSX.Element | null {
     switch (file.status) {
       case AppFileStatus.Resolved:
         return this.renderResolvedFile(file.path)
       case AppFileStatus.Conflicted:
-        return this.renderConflictedFile(file.path, file.conflictMarkers, () =>
-          this.props.openFileInExternalEditor(join(repositoryPath, file.path))
+        return this.renderConflictedFile(
+          file.path,
+          file.conflictMarkers,
+          editorName,
+          () =>
+            this.props.openFileInExternalEditor(join(repositoryPath, file.path))
         )
       default:
         return null
@@ -130,11 +141,12 @@ export class MergeConflictsWarning extends React.Component<
 
   private renderUnmergedFiles(
     files: Array<WorkingDirectoryFileChange>,
+    editorName: string | undefined,
     repositoryPath: string
   ) {
     return (
       <ul className="unmerged-file-statuses">
-        {files.map(f => this.renderUnmergedFile(f, repositoryPath))}
+        {files.map(f => this.renderUnmergedFile(f, editorName, repositoryPath))}
       </ul>
     )
   }
@@ -174,7 +186,11 @@ export class MergeConflictsWarning extends React.Component<
       >
         <DialogContent>
           {this.renderUnmergedFilesSummary(unmergedFiles.length)}
-          {this.renderUnmergedFiles(unmergedFiles, this.props.repository.path)}
+          {this.renderUnmergedFiles(
+            unmergedFiles,
+            this.props.externalEditorName,
+            this.props.repository.path
+          )}
           {this.renderShellLink(openThisRepositoryInShell)}
         </DialogContent>
         <DialogFooter>
