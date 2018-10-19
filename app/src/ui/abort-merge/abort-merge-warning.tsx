@@ -59,9 +59,10 @@ export class AbortMergeWarning extends React.Component<
           <Octicon symbol={OcticonSymbol.alert} />
           <div className="column-left">
             <p>
-              {`Are you sure you want to abort merging ${
-                this.props.comparisonBranchName
-              } into ${this.props.currentBranchName}?`}
+              {'Are you sure you want to abort merging '}
+              <strong>{this.props.comparisonBranchName}</strong>
+              {' into '}
+              <strong>{this.props.currentBranchName}</strong>?
             </p>
             <p>
               Aborting this merge will take you back to the pre-merge state and
