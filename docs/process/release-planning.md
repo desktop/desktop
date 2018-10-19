@@ -40,7 +40,7 @@ Pull Requests associated with bugfixes or unplanned work can be opened early,
 but **should not** be assigned a milestone until after they have been reviewed and
 approved.
 
-This gives the maintainers a chance to propose when this should land, based on
+This gives the maintainers a chance to propose when the pull request should land, based on
 these factors:
 
  - **priority** - Some bugs are more harmful (and affect more users) than
