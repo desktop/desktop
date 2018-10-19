@@ -2426,7 +2426,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           repository,
         }
 
-        const gitStore = this.getGitStore(repository)
+        const gitStore = this.gitStoreCache.get(repository)
         await gitStore.performFailableOperation(
           async () => {
             await pushRepo(
