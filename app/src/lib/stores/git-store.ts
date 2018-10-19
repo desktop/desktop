@@ -119,7 +119,7 @@ export class GitStore extends BaseStore {
 
   private _defaultRemote: IRemote | null = null
 
-  private _remote: IRemote | null = null
+  private _currentRemote: IRemote | null = null
 
   private _upstream: IRemote | null = null
 
@@ -344,11 +344,11 @@ export class GitStore extends BaseStore {
       return gitHubRepository.defaultBranch
     }
 
-    if (this.remote != null) {
+    if (this.currentRemote != null) {
       // the Git server should use [remote]/HEAD to advertise
       // it's default branch, so see if it exists and matches
       // a valid branch on the remote and attempt to use that
-      const remoteNamespace = `refs/remotes/${this.remote.name}/`
+      const remoteNamespace = `refs/remotes/${this.currentRemote.name}/`
       const match = await getSymbolicRef(
         this.repository,
         `${remoteNamespace}HEAD`
@@ -766,8 +766,8 @@ export class GitStore extends BaseStore {
     const remotes = new Map<string, IRemote>()
 
     // We want to fetch the current remote first
-    if (this.remote) {
-      remotes.set(this.remote.name, this.remote)
+    if (this.currentRemote) {
+      remotes.set(this.currentRemote.name, this.currentRemote)
     }
 
     // And then the default remote if it differs from the current
@@ -964,7 +964,7 @@ export class GitStore extends BaseStore {
     // Load the remote that the current branch is tracking. If the branch
     // is not tracking any remote or the remote which it's tracking has
     // been removed we'll default to the default branch.
-    this._remote =
+    this._currentRemote =
       currentRemoteName !== null
         ? remotes.find(r => r.name === currentRemoteName) || this._defaultRemote
         : this._defaultRemote
@@ -1048,8 +1048,8 @@ export class GitStore extends BaseStore {
    * If the branch has a valid tip, the tracking branch name is used here.
    * Otherwise this will be the same value as `this.defaultRemote`.
    */
-  public get remote(): IRemote | null {
-    return this._remote
+  public get currentRemote(): IRemote | null {
+    return this._currentRemote
   }
 
   /**
