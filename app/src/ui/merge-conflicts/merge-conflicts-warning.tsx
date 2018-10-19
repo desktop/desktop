@@ -65,7 +65,8 @@ export class MergeConflictsWarning extends React.Component<
   }
 
   private editorButtonString(editorName: string | undefined) {
-    return `Open in ${editorName || 'Editor'}`
+    const defaultEditorString = __DARWIN__ ? 'Editor' : 'editor'
+    return `Open in ${editorName || defaultEditorString}`
   }
 
   private renderShellLink(openThisRepositoryInShell: () => void): JSX.Element {
