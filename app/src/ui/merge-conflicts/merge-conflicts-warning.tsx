@@ -13,6 +13,7 @@ import {
 } from '../../models/status'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Branch } from '../../models/branch'
+import { createMergeCommit } from '../../lib/git'
 
 interface IMergeConflictsWarningProps {
   readonly dispatcher: Dispatcher
@@ -37,9 +38,10 @@ export class MergeConflictsWarning extends React.Component<
   {}
 > {
   /**
-   *  displays the repository changes tab and dismisses the modal
+   *  commits the merge displays the repository changes tab and dismisses the modal
    */
-  private onSubmit = () => {
+  private onSubmit = async () => {
+    await createMergeCommit(this.props.repository, this.props.status.files)
     this.props.dispatcher.changeRepositorySection(
       this.props.repository,
       RepositorySectionTab.Changes
