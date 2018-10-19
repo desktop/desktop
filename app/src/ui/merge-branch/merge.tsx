@@ -224,42 +224,6 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     )
   }
 
-  private renderOldMergeMessage() {
-    const commitCount = this.state.commitCount
-    const selectedBranch = this.state.selectedBranch
-    const currentBranch = this.props.currentBranch
-
-    if (
-      selectedBranch === null ||
-      currentBranch === null ||
-      currentBranch.name === selectedBranch.name
-    ) {
-      return null
-    }
-
-    if (commitCount === 0) {
-      return <p className="merge-info">Nothing to merge</p>
-    }
-
-    const countPlural = commitCount === 1 ? 'commit' : 'commits'
-    const countText =
-      commitCount === undefined ? (
-        'commits'
-      ) : (
-        <strong>
-          {commitCount} {countPlural}
-        </strong>
-      )
-
-    return (
-      <p className="merge-info">
-        This will bring in {countText}
-        {' from '}
-        <strong>{selectedBranch ? selectedBranch.name : 'HEAD'}</strong>
-      </p>
-    )
-  }
-
   private renderBranch = (item: IBranchListItem, matches: IMatches) => {
     return renderDefaultBranch(item, matches, this.props.currentBranch)
   }
@@ -311,7 +275,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
             </Button>
           </ButtonGroup>
 
-          {true ? this.renderNewMergeInfo() : this.renderOldMergeMessage()}
+          {this.renderNewMergeInfo()}
         </DialogFooter>
       </Dialog>
     )
