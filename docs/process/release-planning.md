@@ -16,9 +16,7 @@ We organize releases in two ways - marketing and milestones:
       - **e.g. 1.4.1, 1.4.2, 1.5.0, etc**
 
 We aim to ship updates to production every two weeks, to ensure a continuous
-flow of improvements to our users. You can follow along with the latest
-milestones [here](https://github.com/desktop/desktop/milestones?direction=desc&sort=completeness&state=open)
-to track our progress.
+flow of improvements to our users. Track our progress in the [current milestones](https://github.com/desktop/desktop/milestones?direction=desc&sort=completeness&state=open).
 
 ## Scheduling Pull Requests
 
