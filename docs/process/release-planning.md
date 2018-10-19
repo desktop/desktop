@@ -57,7 +57,7 @@ current milestone.
 Once a milestone is agreed upon, and it is assigned by a maintainer, the Pull
 Request can be merged by a maintainer when the milestone corresponds with the
 current release. The reviewer should also ensure any issues linked in the
-milestone are also assigned to the same milestone, for traceability.
+pull request are also assigned to the same milestone, for traceability.
 
 > **TODO: (BF)** this feels like something to automate:
 >
