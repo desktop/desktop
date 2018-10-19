@@ -4,7 +4,9 @@ import { GitError } from 'dugite'
 import { Repository } from '../../models/repository'
 import { IRemote } from '../../models/remote'
 
-/** Get the remote names. */
+/**
+ * List the remote names, sorted alphabetically by `name`, for a repository.
+ */
 export async function getRemotes(
   repository: Repository
 ): Promise<ReadonlyArray<IRemote>> {
