@@ -8,9 +8,6 @@ import { IRemote } from '../../models/remote'
 export async function getRemotes(
   repository: Repository
 ): Promise<ReadonlyArray<IRemote>> {
-  // TODO: use expectedErrors here to handle a specific error
-  // see https://github.com/desktop/desktop/pull/5299#discussion_r206603442 for
-  // discussion about what needs to change
   const result = await git(['remote', '-v'], repository.path, 'getRemotes', {
     expectedErrors: new Set([GitError.NotAGitRepository]),
   })
