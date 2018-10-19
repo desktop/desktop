@@ -2388,15 +2388,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     account: IGitAccount | null
   ): Promise<void> {
-    const gitStore = this.getGitStore(repository)
-    const remote = gitStore.remote
-    if (!remote) {
+    const state = this.repositoryStateCache.get(repository)
+    const { remote } = state
+    if (remote === null) {
       this._showPopup({ type: PopupType.PublishRepository, repository })
       return
     }
 
     return this.withPushPull(repository, async () => {
-      const state = this.repositoryStateCache.get(repository)
       if (state.branchesState.tip.kind === TipState.Unborn) {
         throw new Error('The current branch is unborn.')
       }
@@ -2438,6 +2437,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
           type: RetryActionType.Push,
           repository,
         }
+
+        const gitStore = this.getGitStore(repository)
         await gitStore.performFailableOperation(
           async () => {
             await pushRepo(
