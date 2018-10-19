@@ -106,7 +106,7 @@ export class MergeConflictsWarning extends React.Component<
         : `${humanReadableConflicts} conflicts`
     return (
       <li className="unmerged-file-status-conflicts">
-        <Octicon symbol={OcticonSymbol.fileCode} />
+        <Octicon symbol={OcticonSymbol.fileCode} className="file-octicon" />
         <div className="column-left">
           <div className="file-path">{path}</div>
           <div className="file-conflicts-status">{message}</div>
