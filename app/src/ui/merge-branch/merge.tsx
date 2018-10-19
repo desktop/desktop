@@ -322,7 +322,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
 
     const { currentBranch } = this.props
 
-    if (true && currentBranch != null) {
+    if (currentBranch != null) {
       const mergeStatus = await promiseWithMinimumTimeout(
         () => mergeTree(this.props.repository, currentBranch, branch),
         500
