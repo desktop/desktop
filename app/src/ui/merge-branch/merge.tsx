@@ -177,6 +177,15 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     currentBranch: Branch,
     commitCount: number
   ) {
+    if (commitCount === 0) {
+      return (
+        <React.Fragment>
+          {`This branch is up to date with `}
+          <strong>{branch.name}</strong>
+        </React.Fragment>
+      )
+    }
+
     const pluralized = commitCount === 1 ? 'commit' : 'commits'
     return (
       <React.Fragment>
