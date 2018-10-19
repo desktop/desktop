@@ -3,7 +3,7 @@ import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Dispatcher } from '../../lib/dispatcher'
-import { RepositorySectionTab, PopupType } from '../../lib/app-state'
+import { PopupType } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
 import { abortMerge } from '../../lib/git'
 import { Octicon, OcticonSymbol } from '../octicons'
@@ -33,10 +33,6 @@ export class AbortMergeWarning extends React.Component<
   private onSubmit = async () => {
     await abortMerge(this.props.repository)
     this.props.onDismissed()
-    this.props.dispatcher.changeRepositorySection(
-      this.props.repository,
-      RepositorySectionTab.Changes
-    )
   }
 
   /**
