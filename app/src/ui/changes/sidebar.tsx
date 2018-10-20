@@ -46,6 +46,7 @@ interface IChangesSidebarProps {
   readonly isCommitting: boolean
   readonly isPushPullFetchInProgress: boolean
   readonly gitHubUserStore: GitHubUserStore
+  readonly focusCommitMessage: boolean
   readonly askForConfirmationOnDiscardChanges: boolean
   readonly accounts: ReadonlyArray<Account>
   /** The name of the currently selected external editor */
@@ -307,6 +308,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           branch={this.props.branch}
           gitHubUser={user}
           commitMessage={this.props.changes.commitMessage}
+          focusCommitMessage={this.props.focusCommitMessage}
           contextualCommitMessage={this.props.changes.contextualCommitMessage}
           autocompletionProviders={this.autocompletionProviders!}
           availableWidth={this.props.availableWidth}

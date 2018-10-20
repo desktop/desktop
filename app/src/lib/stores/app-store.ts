@@ -209,6 +209,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private currentAheadBehindUpdater: AheadBehindUpdater | null = null
 
   private showWelcomeFlow = false
+  private focusCommitMessage = false
   private currentPopup: Popup | null = null
   private currentFoldout: Foldout | null = null
   private errors: ReadonlyArray<Error> = new Array<Error>()
@@ -469,6 +470,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       currentFoldout: this.currentFoldout,
       errors: this.errors,
       showWelcomeFlow: this.showWelcomeFlow,
+      focusCommitMessage: this.focusCommitMessage,
       emoji: this.emoji,
       sidebarWidth: this.sidebarWidth,
       commitSummaryWidth: this.commitSummaryWidth,
@@ -2899,6 +2901,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     markWelcomeFlowComplete()
 
     this.statsStore.recordWelcomeWizardTerminated()
+
+    return Promise.resolve()
+  }
+
+  public _toggleCommitMessageFocus(): Promise<void> {
+    this.focusCommitMessage = !this.focusCommitMessage
+
+    this.emitUpdate()
 
     return Promise.resolve()
   }

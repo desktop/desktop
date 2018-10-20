@@ -362,7 +362,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private async goToCommitMessage() {
     await this.showChanges()
-    document.dispatchEvent(new CustomEvent('go-to-commit-message'))
+    await this.props.dispatcher.toggleCommitMessageFocus()
   }
 
   private checkForUpdates(inBackground: boolean) {
@@ -1737,6 +1737,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           gitHubUserStore={this.props.gitHubUserStore}
           onViewCommitOnGitHub={this.onViewCommitOnGitHub}
           imageDiffType={state.imageDiffType}
+          focusCommitMessage={state.focusCommitMessage}
           askForConfirmationOnDiscardChanges={
             state.askForConfirmationOnDiscardChanges
           }

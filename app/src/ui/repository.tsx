@@ -38,6 +38,7 @@ interface IRepositoryViewProps {
   readonly onViewCommitOnGitHub: (SHA: string) => void
   readonly imageDiffType: ImageDiffType
   readonly askForConfirmationOnDiscardChanges: boolean
+  readonly focusCommitMessage: boolean
   readonly accounts: ReadonlyArray<Account>
 
   /** The name of the currently selected external editor */
@@ -140,6 +141,7 @@ export class RepositoryView extends React.Component<
         gitHubUserStore={this.props.gitHubUserStore}
         isCommitting={this.props.state.isCommitting}
         isPushPullFetchInProgress={this.props.state.isPushPullFetchInProgress}
+        focusCommitMessage={this.props.focusCommitMessage}
         askForConfirmationOnDiscardChanges={
           this.props.askForConfirmationOnDiscardChanges
         }

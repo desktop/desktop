@@ -43,6 +43,7 @@ interface ICommitMessageProps {
   readonly commitAuthor: CommitIdentity | null
   readonly gitHubUser: IGitHubUser | null
   readonly anyFilesSelected: boolean
+  readonly focusCommitMessage: boolean
   readonly commitMessage: ICommitMessage | null
   readonly contextualCommitMessage: ICommitMessage | null
   readonly repository: Repository
@@ -153,6 +154,8 @@ export class CommitMessage extends React.Component<
       })
     }
 
+    if (nextProps.focusCommitMessage) this.focusSummary()
+
     // This is rather gnarly. We want to persist the commit message (summary,
     // and description) in the dispatcher on a per-repository level (git-store).
     //
@@ -222,6 +225,13 @@ export class CommitMessage extends React.Component<
 
   private clearCommitMessage() {
     this.setState({ summary: '', description: null })
+  }
+
+  private focusSummary() {
+    if (this.summaryTextInput !== null) {
+      this.summaryTextInput.focus()
+      this.props.dispatcher.toggleCommitMessageFocus();
+    }
   }
 
   private onSummaryChanged = (summary: string) => {
@@ -453,22 +463,8 @@ export class CommitMessage extends React.Component<
     this.descriptionTextArea = elem
   }
 
-  private focusSummary = () => {
-    if (this.summaryTextInput !== null) {
-      this.summaryTextInput.focus()
-    }
-  }
-
   private onSummaryInputRef = (elem: HTMLInputElement | null) => {
-    if (elem === null && this.summaryTextInput !== null) {
-      document.removeEventListener('go-to-summary', this.focusSummary)
-    }
-
     this.summaryTextInput = elem
-
-    if (elem !== null) {
-      document.addEventListener('go-to-commit-message', this.focusSummary)
-    }
   }
 
   private onFocusContainerClick = (event: React.MouseEvent<HTMLDivElement>) => {

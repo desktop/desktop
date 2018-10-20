@@ -48,6 +48,7 @@ interface IChangesListProps {
   ) => Promise<boolean>
   readonly onDiscardChanges: (file: WorkingDirectoryFileChange) => void
   readonly askForConfirmationOnDiscardChanges: boolean
+  readonly focusCommitMessage: boolean
   readonly onDiscardAllChanges: (
     files: ReadonlyArray<WorkingDirectoryFileChange>,
     isDiscardingAllChanges?: boolean
@@ -412,6 +413,7 @@ export class ChangesList extends React.Component<
           repository={this.props.repository}
           dispatcher={this.props.dispatcher}
           commitMessage={this.props.commitMessage}
+          focusCommitMessage={this.props.focusCommitMessage}
           contextualCommitMessage={this.props.contextualCommitMessage}
           autocompletionProviders={this.props.autocompletionProviders}
           isCommitting={this.props.isCommitting}
