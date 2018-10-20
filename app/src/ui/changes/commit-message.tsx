@@ -154,7 +154,9 @@ export class CommitMessage extends React.Component<
       })
     }
 
-    if (nextProps.focusCommitMessage) this.focusSummary()
+    if (nextProps.focusCommitMessage) {
+      this.focusSummary()
+    }
 
     // This is rather gnarly. We want to persist the commit message (summary,
     // and description) in the dispatcher on a per-repository level (git-store).
@@ -230,7 +232,7 @@ export class CommitMessage extends React.Component<
   private focusSummary() {
     if (this.summaryTextInput !== null) {
       this.summaryTextInput.focus()
-      this.props.dispatcher.toggleCommitMessageFocus();
+      this.props.dispatcher.toggleCommitMessageFocus()
     }
   }
 
