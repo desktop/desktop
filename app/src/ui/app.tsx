@@ -1322,23 +1322,26 @@ export class App extends React.Component<IAppProps, IAppState> {
         )
       case PopupType.MergeConflicts:
         if (enableMergeConflictsDialog()) {
-          const selected = this.state.selectedState
-          if (selected === null || selected.type !== SelectionType.Repository) {
+          const { selectedState } = this.state
+          if (
+            selectedState === null ||
+            selectedState.type !== SelectionType.Repository
+          ) {
             return null
           }
-          const formState = selected.state.compareState.formState
+          const { formState } = selectedState.state.compareState
           if (
             formState.kind !== ComparisonView.Ahead &&
             formState.kind !== ComparisonView.Behind
           ) {
             return null
           }
-          const tip = selected.state.branchesState.tip
+          const tip = selectedState.state.branchesState.tip
           if (tip.kind !== TipState.Valid) {
             return null
           }
           const workingDirectoryStatus =
-            selected.state.changesState.workingDirectory
+            selectedState.state.changesState.workingDirectory
           // double check that this repository is actually in merge
           const isInConflictedMerge = workingDirectoryStatus.files.some(
             file =>
@@ -1373,26 +1376,28 @@ export class App extends React.Component<IAppProps, IAppState> {
         }
       case PopupType.AbortMerge:
         if (enableMergeConflictsDialog()) {
-          const selected = this.state.selectedState
-          if (selected === null || selected.type !== SelectionType.Repository) {
+          const { selectedState } = this.state
+          if (
+            selectedState === null ||
+            selectedState.type !== SelectionType.Repository
+          ) {
             return null
           }
-          const formState = selected.state.compareState.formState
+          const { formState } = selectedState.state.compareState
           if (
             formState.kind !== ComparisonView.Ahead &&
             formState.kind !== ComparisonView.Behind
           ) {
             return null
           }
-          const tip = selected.state.branchesState.tip
+          const { tip } = selectedState.state.branchesState
           if (tip.kind !== TipState.Valid) {
             return null
           }
 
-          const workingDirectoryStatus =
-            selected.state.changesState.workingDirectory
+          const workingDirectory = selectedState.state.changesState
           // double check that this repository is actually in merge
-          const isInConflictedMerge = workingDirectoryStatus.files.some(
+          const isInConflictedMerge = workingDirectory.files.some(
             file =>
               file.status === AppFileStatus.Conflicted ||
               file.status === AppFileStatus.Resolved
