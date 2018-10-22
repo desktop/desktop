@@ -50,11 +50,15 @@ dialog#merge-conflicts-list {
         display: flex;
         flex-flow: column nowrap;
         align-items: start;
+        max-width: 50%;
+        overflow: auto;
       }
 
       button:last-child,
       .green-circle:last-child {
         margin-left: auto;
+        flex-shrink: 0;
+        flex: 0 1 auto;
       }
     }
 
