@@ -94,6 +94,7 @@ import { ApplicationTheme } from './lib/application-theme'
 import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
 import { AbortMergeWarning } from './abort-merge'
 import { enableMergeConflictsDialog } from '../lib/feature-flag'
+import { AppFileStatus } from '../models/status'
 
 const MinuteInMilliseconds = 1000 * 60
 
@@ -1338,8 +1339,16 @@ export class App extends React.Component<IAppProps, IAppState> {
           }
           const workingDirectoryStatus =
             selected.state.changesState.workingDirectory
-          // TODO: handle not in a merge state here (return null or something for now)
-          // this.showPopup(null) or closePopup
+          // double check that this repository is actually in merge
+          const isInConflictedMerge = workingDirectoryStatus.files.some(
+            file =>
+              file.status === AppFileStatus.Conflicted ||
+              file.status === AppFileStatus.Resolved
+          )
+          if (!isInConflictedMerge) {
+            return null
+          }
+
           return (
             <MergeConflictsDialog
               dispatcher={this.props.dispatcher}
@@ -1379,6 +1388,19 @@ export class App extends React.Component<IAppProps, IAppState> {
           if (tip.kind !== TipState.Valid) {
             return null
           }
+
+          const workingDirectoryStatus =
+            selected.state.changesState.workingDirectory
+          // double check that this repository is actually in merge
+          const isInConflictedMerge = workingDirectoryStatus.files.some(
+            file =>
+              file.status === AppFileStatus.Conflicted ||
+              file.status === AppFileStatus.Resolved
+          )
+          if (!isInConflictedMerge) {
+            return null
+          }
+
           return (
             <AbortMergeWarning
               dispatcher={this.props.dispatcher}
@@ -1388,9 +1410,8 @@ export class App extends React.Component<IAppProps, IAppState> {
               comparisonBranchName={formState.comparisonBranch.name}
             />
           )
-        } else {
-          return null
         }
+        return null
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
