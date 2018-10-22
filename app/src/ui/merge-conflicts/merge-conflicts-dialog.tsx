@@ -88,6 +88,9 @@ export class MergeConflictsDialog extends React.Component<
     return `Open in ${editorName || defaultEditorString}`
   }
 
+  private openThisRepositoryInShell = () =>
+    this.props.openRepositoryInShell(this.props.repository)
+
   private renderShellLink(openThisRepositoryInShell: () => void): JSX.Element {
     return (
       <div className="cli-link">
@@ -200,8 +203,6 @@ export class MergeConflictsDialog extends React.Component<
     const tooltipString = anyConflictedFiles
       ? 'Resolve all changes before merging'
       : undefined
-    const openThisRepositoryInShell = () =>
-      this.props.openRepositoryInShell(this.props.repository)
     return (
       <Dialog
         id="merge-conflicts-list"
@@ -217,7 +218,7 @@ export class MergeConflictsDialog extends React.Component<
             this.props.externalEditorName,
             this.props.repository.path
           )}
-          {this.renderShellLink(openThisRepositoryInShell)}
+          {this.renderShellLink(this.openThisRepositoryInShell)}
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>
