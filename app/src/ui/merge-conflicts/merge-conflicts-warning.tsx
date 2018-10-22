@@ -20,7 +20,7 @@ export class MergeConflictsWarning extends React.Component<
   {}
 > {
   /**
-   *  displays the repository changes tab and dismisses the modal
+   *  Displays the repository changes tab and dismisses the modal
    */
   private onSubmit = () => {
     this.props.dispatcher.changeRepositorySection(
