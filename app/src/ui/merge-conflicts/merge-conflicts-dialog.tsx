@@ -69,6 +69,16 @@ export class MergeConflictsDialog extends React.Component<
     }
   }
 
+  /**
+   * Calculates the number of merge conclicts in a file from the number of markers
+   * divides by three and rounds up since each conflict is indicated by three separate markers
+   * (`<<<<<`, `>>>>>`, and `=====`)
+   * @param conflictMarkers number of conflict markers in a file
+   */
+  private calculateConflicts(conflictMarkers: number) {
+    return Math.ceil(conflictMarkers / 3)
+  }
+
   private titleString(currentBranchName: string, comparisonBranchName: string) {
     return `Resolve conflicts before merging ${comparisonBranchName} into ${currentBranchName}`
   }
@@ -109,7 +119,7 @@ export class MergeConflictsDialog extends React.Component<
     editorName: string | undefined,
     onOpenEditorClick: () => void
   ): JSX.Element {
-    const humanReadableConflicts = Math.ceil(conflicts / 3)
+    const humanReadableConflicts = this.calculateConflicts(conflicts)
     const message =
       humanReadableConflicts === 1
         ? `1 conflict`
