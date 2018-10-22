@@ -63,6 +63,7 @@ rules:
   no-unused-expressions: error
   no-var: error
   prefer-const: error
+  prefer-destructuring: error
   eqeqeq:
     - error
     - smart
