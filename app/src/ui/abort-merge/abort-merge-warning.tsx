@@ -28,7 +28,7 @@ export class AbortMergeWarning extends React.Component<
   {}
 > {
   /**
-   *  aborte the merge and dismisses the modal
+   *  Aborts the merge and dismisses the modal
    */
   private onSubmit = async () => {
     await abortMerge(this.props.repository)
