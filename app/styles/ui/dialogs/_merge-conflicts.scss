@@ -25,6 +25,8 @@ dialog#merge-conflicts-list {
   ul {
     list-style: none;
     padding: 0;
+    max-height: 200px;
+    overflow-y: auto;
 
     li {
       margin-bottom: var(--spacing-double);
