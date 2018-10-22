@@ -279,8 +279,8 @@ export function buildDefaultMenu(
       {
         label: __DARWIN__ ? 'Delete…' : '&Delete…',
         id: 'delete-branch',
-        click: emit('delete-branch'),
         accelerator: 'CmdOrCtrl+Shift+D',
+        click: emit('delete-branch'),
       },
       separator,
       {
