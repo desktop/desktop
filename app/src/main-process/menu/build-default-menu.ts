@@ -273,6 +273,7 @@ export function buildDefaultMenu(
       {
         label: __DARWIN__ ? 'Rename…' : '&Rename…',
         id: 'rename-branch',
+        accelerator: 'CmdOrCtrl+Shift+R',
         click: emit('rename-branch'),
       },
       {
