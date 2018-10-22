@@ -51,7 +51,12 @@ dialog#merge-conflicts-list {
         flex-flow: column nowrap;
         align-items: start;
         max-width: 50%;
-        overflow: auto;
+        padding-right: var(--spacing);
+
+        .path-text-component {
+          text-overflow: ellipsis;
+          max-width: 100%;
+        }
       }
 
       button:last-child,
