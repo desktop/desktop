@@ -93,7 +93,7 @@ export class MergeConflictsDialog extends React.Component<
       <li className="unmerged-file-status-resolved">
         <Octicon symbol={OcticonSymbol.fileCode} className="file-octicon" />
         <div className="column-left">
-          <PathText path={path} />
+          <PathText path={path} availableWidth={50} />
           <div className="file-conflicts-status">No conflicts remaining</div>
         </div>
         <div className="green-circle">
@@ -118,7 +118,7 @@ export class MergeConflictsDialog extends React.Component<
       <li className="unmerged-file-status-conflicts">
         <Octicon symbol={OcticonSymbol.fileCode} className="file-octicon" />
         <div className="column-left">
-          <PathText path={path} />
+          <PathText path={path} availableWidth={50} />
           <div className="file-conflicts-status">{message}</div>
         </div>
         <Button onClick={onOpenEditorClick}>
