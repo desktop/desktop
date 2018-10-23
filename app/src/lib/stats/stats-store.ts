@@ -12,6 +12,7 @@ import { IUiActivityMonitor } from '../../ui/lib/ui-activity-monitor'
 import { Disposable } from 'event-kit'
 import { SignInMethod } from '../stores'
 import { assertNever } from '../fatal-error'
+import { getNumber, setNumber, getBoolean, setBoolean } from '../local-storage'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
@@ -226,17 +227,12 @@ export class StatsStore {
     this.db = db
     this.uiActivityMonitor = uiActivityMonitor
 
-    const optOutValue = localStorage.getItem(StatsOptOutKey)
-    if (optOutValue) {
-      this.optOut = !!parseInt(optOutValue, 10)
+    this.optOut = getBoolean(StatsOptOutKey, false)
 
-      // If the user has set an opt out value but we haven't sent the ping yet,
-      // give it a shot now.
-      if (!localStorage.getItem(HasSentOptInPingKey)) {
-        this.sendOptInStatusPing(!this.optOut)
-      }
-    } else {
-      this.optOut = false
+    // If the user has set an opt out value but we haven't sent the ping yet,
+    // give it a shot now.
+    if (!getBoolean(HasSentOptInPingKey, false)) {
+      this.sendOptInStatusPing(!this.optOut)
     }
 
     this.enableUiActivityMonitoring()
@@ -244,16 +240,7 @@ export class StatsStore {
 
   /** Should the app report its daily stats? */
   private shouldReportDailyStats(): boolean {
-    const lastDateString = localStorage.getItem(LastDailyStatsReportKey)
-    let lastDate = 0
-    if (lastDateString && lastDateString.length > 0) {
-      lastDate = parseInt(lastDateString, 10)
-    }
-
-    if (isNaN(lastDate)) {
-      lastDate = 0
-    }
-
+    const lastDate = getNumber(LastDailyStatsReportKey)
     const now = Date.now()
     return now - lastDate > DailyStatsReportInterval
   }
@@ -296,7 +283,7 @@ export class StatsStore {
       log.info('Stats reported.')
 
       await this.clearDailyStats()
-      localStorage.setItem(LastDailyStatsReportKey, now.toString())
+      setNumber(LastDailyStatsReportKey, now)
     } catch (e) {
       log.error('Error reporting stats:', e)
     }
@@ -592,7 +579,7 @@ export class StatsStore {
 
     this.optOut = optOut
 
-    localStorage.setItem(StatsOptOutKey, optOut ? '1' : '0')
+    setBoolean(StatsOptOutKey, optOut)
 
     if (changed) {
       await this.sendOptInStatusPing(!optOut)
@@ -695,12 +682,12 @@ export class StatsStore {
   }
 
   public recordWelcomeWizardInitiated() {
-    localStorage.setItem(WelcomeWizardInitiatedAtKey, `${Date.now()}`)
+    setNumber(WelcomeWizardInitiatedAtKey, Date.now())
     localStorage.removeItem(WelcomeWizardCompletedAtKey)
   }
 
   public recordWelcomeWizardTerminated() {
-    localStorage.setItem(WelcomeWizardCompletedAtKey, `${Date.now()}`)
+    setNumber(WelcomeWizardCompletedAtKey, Date.now())
   }
 
   public recordAddExistingRepository() {
@@ -769,7 +756,7 @@ export class StatsStore {
         )
       }
 
-      localStorage.setItem(HasSentOptInPingKey, '1')
+      setBoolean(HasSentOptInPingKey, true)
 
       log.info(`Opt ${direction} reported.`)
     } catch (e) {
@@ -789,7 +776,7 @@ function createLocalStorageTimestamp(key: string) {
     return
   }
 
-  localStorage.setItem(key, `${Date.now()}`)
+  setNumber(key, Date.now())
 }
 
 /**
@@ -799,8 +786,8 @@ function createLocalStorageTimestamp(key: string) {
  * be converted into a number this method will return null.
  */
 function getLocalStorageTimestamp(key: string): number | null {
-  const value = parseInt(localStorage.getItem(key) || '', 10)
-  return isNaN(value) ? null : value
+  const value = getNumber(key)
+  return value === 0 ? null : value
 }
 
 /**
