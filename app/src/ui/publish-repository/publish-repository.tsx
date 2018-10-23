@@ -47,10 +47,14 @@ export class PublishRepository extends React.Component<
   IPublishRepositoryProps,
   IPublishRepositoryState
 > {
+  /** The repository name entered by the user. It has not yet been sanitized. */
+  private name: string
+
   public constructor(props: IPublishRepositoryProps) {
     super(props)
 
     this.state = { orgs: [] }
+    this.name = props.settings.name
   }
 
   public async componentWillMount() {
@@ -81,6 +85,9 @@ export class PublishRepository extends React.Component<
   }
 
   private onNameChange = (name: string) => {
+    this.name = name
+
+    name = sanitizedRepositoryName(name)
     this.updateSettings({ name })
   }
 
@@ -146,7 +153,7 @@ export class PublishRepository extends React.Component<
         <Row>
           <TextBox
             label="Name"
-            value={this.props.settings.name}
+            value={this.name}
             autoFocus={true}
             onValueChanged={this.onNameChange}
           />
@@ -179,8 +186,8 @@ export class PublishRepository extends React.Component<
   }
 
   private renderSanitizedName() {
-    const sanitizedName = sanitizedRepositoryName(this.props.settings.name)
-    if (this.props.settings.name === sanitizedName) {
+    const sanitizedName = this.props.settings.name
+    if (this.name === sanitizedName) {
       return null
     }
 
