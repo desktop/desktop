@@ -177,8 +177,7 @@ export function buildDefaultMenu(
         // Ctrl+Alt is interpreted as AltGr on international keyboards and this
         // can clash with other shortcuts. We should always use Ctrl+Shift for
         // chorded shortcuts, but this menu item is not a user-facing feature
-        // so we are going to keep this one around. Ctrl+Shift+R shortcut is
-        // used for renaming a branch which is a user facing feature.
+        // so we are going to keep this one around.
         accelerator: 'CmdOrCtrl+Alt+R',
         click(item: any, focusedWindow: Electron.BrowserWindow) {
           if (focusedWindow) {
