@@ -11,8 +11,8 @@ We organize releases in two ways - marketing and milestones:
  - Marketing releases are what we use to represent planned features, and are
    high-level goals
       - **for example: 1.4, 1.5, etc.**
- - Milestones are used to track issues and pull requests associated with a
-   marketing release, and can be [followed on GitHub](https://github.com/desktop/desktop/milestones)
+ - Milestones are used to track issues and pull requests associated with an
+   upcoming release, and can be [followed on GitHub](https://github.com/desktop/desktop/milestones)
       - **for example: 1.4.1, 1.4.2, 1.5.0, etc.**
 
 We aim to ship updates to production approximately every two weeks, to ensure a
