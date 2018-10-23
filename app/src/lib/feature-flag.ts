@@ -54,5 +54,5 @@ export function enableInAppReleaseNotes(): boolean {
 
 /** Should `git status` use --no-optional-locks to assist with concurrent usage */
 export function enableStatusWithoutOptionalLocks(): boolean {
-  return enableBetaFeatures()
+  return true
 }
