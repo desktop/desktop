@@ -12,6 +12,11 @@ export function getBoolean(key: string, defaultValue = false): boolean {
   }
 
   const intValue = parseInt(value, 10)
+
+  if (isNaN(intValue)) {
+    return defaultValue
+  }
+
   return intValue === 1
 }
 
