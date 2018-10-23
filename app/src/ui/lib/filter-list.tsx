@@ -254,14 +254,16 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
 
         <div className="filter-list-container">{this.renderContent()}</div>
 
-        {this.props.isBranchListDropdown &&
+        {this.props.isBranchListDropdown && (
           <Row className="merge-button-row">
             <Button className="merge-button">
               <Octicon className="icon" symbol={OcticonSymbol.gitMerge} />
-              <span title={`Commit to master`}>Choose a branch to merge into <strong>master</strong></span>
+              <span title={`Commit to master`}>
+                Choose a branch to merge into <strong>master</strong>
+              </span>
             </Button>
           </Row>
-        }
+        )}
       </div>
     )
   }
