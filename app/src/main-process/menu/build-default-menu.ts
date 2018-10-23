@@ -16,7 +16,9 @@ const defaultShellLabel = __DARWIN__
 const defaultPullRequestLabel = __DARWIN__
   ? 'Create Pull Request'
   : 'Create &pull request'
-const defaultBranchNameValue = __DARWIN__ ? 'Default Branch' : 'default branch'
+const defaultBranchNameDefaultValue = __DARWIN__
+  ? 'Default Branch'
+  : 'default branch'
 
 export type MenuLabels = {
   editorLabel?: string
@@ -29,8 +31,10 @@ export function buildDefaultMenu({
   editorLabel = defaultEditorLabel,
   shellLabel = defaultShellLabel,
   pullRequestLabel = defaultPullRequestLabel,
-  defaultBranchName = defaultBranchNameValue,
+  defaultBranchName = defaultBranchNameDefaultValue,
 }: MenuLabels): Electron.Menu {
+  defaultBranchName = truncateWithEllipsis(defaultBranchName, 25)
+
   const template = new Array<Electron.MenuItemConstructorOptions>()
   const separator: Electron.MenuItemConstructorOptions = { type: 'separator' }
 
@@ -517,4 +521,12 @@ function zoom(direction: ZoomDirection): ClickHandler {
       })
     }
   }
+}
+
+function truncateWithEllipsis(text: string, maxLength: number) {
+  if (text.length <= maxLength) {
+    return text
+  }
+
+  return `${text.substr(0, maxLength)}…`
 }
