@@ -6,45 +6,78 @@ import {
 } from '../../src/lib/local-storage'
 
 describe('local storage', () => {
-  describe('working with booleans', () => {
-    const key = 'some-boolean-key'
+  const booleanKey = 'some-boolean-key'
+  const numberKey = 'some-number-key'
 
-    it('can round-trip a true value', () => {
+  describe('setBoolean', () => {
+    it('round-trips a true value', () => {
       const expected = true
-
-      setBoolean(key, expected)
-
-      expect(getBoolean(key)).toEqual(expected)
+      setBoolean(booleanKey, expected)
+      expect(getBoolean(booleanKey)).toEqual(expected)
     })
 
-    it('returns default value when malformed string encountered', () => {
-      localStorage.setItem(key, 'blahblahblah')
-      const defaultValue = true
-
-      const actual = getBoolean(key, defaultValue)
-
-      expect(actual).toEqual(defaultValue)
+    it('round-trips a false value', () => {
+      const expected = false
+      setBoolean(booleanKey, expected)
+      expect(getBoolean(booleanKey)).toEqual(expected)
     })
   })
 
-  describe('working with numbers', () => {
-    const key = 'some-number-key'
-
-    it('can round-trip a true value', () => {
-      const expected = 12345
-
-      setNumber(key, expected)
-
-      expect(getNumber(key)).toEqual(expected)
-    })
-
+  describe('getBoolean parsing', () => {
     it('returns default value when malformed string encountered', () => {
-      localStorage.setItem(key, 'blahblahblah')
-      const defaultValue = 3456
+      localStorage.setItem(booleanKey, 'blahblahblah')
+      const defaultValue = true
 
-      const actual = getNumber(key, defaultValue)
+      const actual = getBoolean(booleanKey, defaultValue)
 
       expect(actual).toEqual(defaultValue)
+    })
+
+    it('returns false if found and ignores default value', () => {
+      localStorage.setItem(booleanKey, '0')
+
+      const actual = getBoolean(booleanKey, true)
+
+      expect(actual).toEqual(false)
+    })
+  })
+
+  describe('setNumber', () => {
+    it('round-trip a valid number', () => {
+      const expected = 12345
+
+      setNumber(numberKey, expected)
+
+      expect(getNumber(numberKey)).toEqual(expected)
+    })
+
+    it('round-trip zero and ignore default value', () => {
+      const expected = 0
+      const defaultNumber = 1234
+
+      setNumber(numberKey, expected)
+
+      expect(getNumber(numberKey, defaultNumber)).toEqual(expected)
+    })
+  })
+
+  describe('getNumber parsing', () => {
+    it('returns default value when malformed string encountered', () => {
+      localStorage.setItem(numberKey, 'blahblahblah')
+      const defaultValue = 3456
+
+      const actual = getNumber(numberKey, defaultValue)
+
+      expect(actual).toEqual(defaultValue)
+    })
+
+    it('returns zero if found and ignores default value', () => {
+      localStorage.setItem(numberKey, '0')
+      const defaultValue = 3456
+
+      const actual = getNumber(numberKey, defaultValue)
+
+      expect(actual).toEqual(0)
     })
   })
 })
