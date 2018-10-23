@@ -173,6 +173,7 @@ function packageApp() {
         ],
       },
     ],
+    extendInfo: `${projectRoot}/script/info.plist`,
 
     // Windows
     win32metadata: {
