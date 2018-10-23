@@ -6,6 +6,8 @@ import {
   SelectionSource as ListSelectionSource,
   findNextSelectableRow,
 } from '../lib/list'
+import { Octicon, OcticonSymbol } from '../octicons'
+import { Button } from '../lib/button'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 
@@ -248,6 +250,13 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
         </Row>
 
         <div className="filter-list-container">{this.renderContent()}</div>
+
+        <Row className="merge-button-row">
+          <Button className="merge-button">
+            <Octicon className="icon" symbol={OcticonSymbol.gitMerge} />
+            <span title={`Commit to master`}>Choose a branch to merge into <strong>master</strong></span>
+          </Button>
+        </Row>
       </div>
     )
   }
