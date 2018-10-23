@@ -1,6 +1,8 @@
 import * as React from 'react'
 import * as classnames from 'classnames'
 
+import { Branch } from '../../models/branch'
+
 import {
   List,
   SelectionSource as ListSelectionSource,
@@ -57,6 +59,9 @@ interface IFilterListProps<T extends IFilterListItem> {
 
   /** Whether this filter list instance is the branch list dropdown. */
   readonly isBranchListDropdown?: boolean
+
+  /** The current branch. */
+  readonly currentBranch?: Branch | null
 
   /** The height of the rows. */
   readonly rowHeight: number
@@ -243,6 +248,10 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
   }
 
   public render() {
+    const branchName = this.props.currentBranch
+      ? this.props.currentBranch.name
+      : 'master'
+
     return (
       <div className={classnames('filter-list', this.props.className)}>
         {this.props.renderPreList ? this.props.renderPreList() : null}
@@ -258,8 +267,8 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
           <Row className="merge-button-row">
             <Button className="merge-button">
               <Octicon className="icon" symbol={OcticonSymbol.gitMerge} />
-              <span title={`Commit to master`}>
-                Choose a branch to merge into <strong>master</strong>
+              <span title={`Commit to ${branchName}`}>
+                Choose a branch to merge into <strong>{branchName}</strong>
               </span>
             </Button>
           </Row>

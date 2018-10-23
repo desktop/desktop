@@ -177,6 +177,7 @@ export class BranchList extends React.Component<
         className="branches-list"
         rowHeight={RowHeight}
         filterText={this.props.filterText}
+        currentBranch={this.props.currentBranch}
         isBranchListDropdown={this.props.isBranchListDropdown}
         onFilterTextChanged={this.props.onFilterTextChanged}
         onFilterKeyDown={this.props.onFilterKeyDown}
