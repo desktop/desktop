@@ -29,12 +29,12 @@ export function setBoolean(key: string, value: boolean) {
 }
 
 /**
- * Retrieve a numeric value from a given local storage entry.
- *
- * Returns `0` if a valid number is not found in this key
+ * Retrieve a `number` value from a given local storage entry if found, or the
+ * provided `defaultValue` if the key doesn't exist or if the value cannot be
+ * convered into a number
  *
  * @param key local storage entry to read
- * @param defaultValue fallback value if key not found
+ * @param defaultValue fallback value if unable to find key or valid value
  */
 export function getNumber(key: string, defaultValue = 0): number {
   const numberAsText = localStorage.getItem(key)
