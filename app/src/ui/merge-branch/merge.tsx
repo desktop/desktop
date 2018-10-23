@@ -33,6 +33,9 @@ interface IMergeProps {
    */
   readonly currentBranch: Branch | null
 
+  /**  */
+  readonly isBranchListDropdown?: boolean
+
   /**
    * See IBranchesState.allBranches
    */

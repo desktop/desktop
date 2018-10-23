@@ -55,6 +55,9 @@ interface IFilterListProps<T extends IFilterListItem> {
   /** A class name for the wrapping element. */
   readonly className?: string
 
+  /** Whether this filter list instance is the branch list dropdown. */
+  readonly isBranchListDropdown?: boolean
+
   /** The height of the rows. */
   readonly rowHeight: number
 
@@ -251,12 +254,14 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
 
         <div className="filter-list-container">{this.renderContent()}</div>
 
-        <Row className="merge-button-row">
-          <Button className="merge-button">
-            <Octicon className="icon" symbol={OcticonSymbol.gitMerge} />
-            <span title={`Commit to master`}>Choose a branch to merge into <strong>master</strong></span>
-          </Button>
-        </Row>
+        {this.props.isBranchListDropdown &&
+          <Row className="merge-button-row">
+            <Button className="merge-button">
+              <Octicon className="icon" symbol={OcticonSymbol.gitMerge} />
+              <span title={`Commit to master`}>Choose a branch to merge into <strong>master</strong></span>
+            </Button>
+          </Row>
+        }
       </div>
     )
   }

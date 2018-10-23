@@ -115,6 +115,7 @@ export class BranchesContainer extends React.Component<
             defaultBranch={this.props.defaultBranch}
             currentBranch={this.props.currentBranch}
             allBranches={this.props.allBranches}
+            isBranchListDropdown={true}
             recentBranches={this.props.recentBranches}
             onItemClick={this.onBranchItemClick}
             filterText={this.state.branchFilterText}
