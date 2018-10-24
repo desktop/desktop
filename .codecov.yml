@@ -18,6 +18,8 @@ coverage:
         threshold: 20%
         # only send statuses for prs, not all commits
         base: pr
+        # only include coverage in "app/src/" folder
+        paths: 'app/src/'
     patch: no
     changes: no
 
