@@ -9,6 +9,10 @@ describe('local storage', () => {
   const booleanKey = 'some-boolean-key'
   const numberKey = 'some-number-key'
 
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
   describe('setBoolean', () => {
     it('round-trips a true value', () => {
       const expected = true
