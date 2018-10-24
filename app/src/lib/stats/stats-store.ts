@@ -786,7 +786,8 @@ function createLocalStorageTimestamp(key: string) {
  * be converted into a number this method will return null.
  */
 function getLocalStorageTimestamp(key: string): number | null {
-  return getNumber(key) || null
+  const timestamp = getNumber(key)
+  return timestamp === undefined ? null : timestamp
 }
 
 /**
