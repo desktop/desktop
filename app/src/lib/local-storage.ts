@@ -5,7 +5,12 @@
  * @param key local storage entry to find
  * @param defaultValue fallback value if key not found
  */
-export function getBoolean(key: string, defaultValue = false): boolean {
+export function getBoolean(key: string): boolean | undefined
+export function getBoolean(key: string, defaultValue: boolean): boolean
+export function getBoolean(
+  key: string,
+  defaultValue?: boolean
+): boolean | undefined {
   const value = localStorage.getItem(key)
   if (value === null) {
     return defaultValue
@@ -50,7 +55,12 @@ export function setBoolean(key: string, value: boolean) {
  * @param key local storage entry to read
  * @param defaultValue fallback value if unable to find key or valid value
  */
-export function getNumber(key: string, defaultValue = 0): number {
+export function getNumber(key: string): number | undefined
+export function getNumber(key: string, defaultValue: number): number
+export function getNumber(
+  key: string,
+  defaultValue?: number
+): number | undefined {
   const numberAsText = localStorage.getItem(key)
 
   if (numberAsText === null || numberAsText.length === 0) {
