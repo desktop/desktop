@@ -76,7 +76,7 @@ export class BranchesContainer extends React.Component<
         {this.renderTabBar()}
         {this.renderSelectedTab()}
         <Row className="merge-button-row">
-          <Button className="merge-button">
+          <Button className="merge-button" onClick={this.onMergeClick}>
             <Octicon className="icon" symbol={OcticonSymbol.gitMerge} />
             <span title={`Commit to ${branchName}`}>
               Choose a branch to merge into <strong>{branchName}</strong>
@@ -197,6 +197,13 @@ export class BranchesContainer extends React.Component<
 
   private onDismiss = () => {
     this.props.dispatcher.closeFoldout(FoldoutType.Branch)
+  }
+
+  private onMergeClick = () => {
+    this.props.dispatcher.showPopup({
+      type: PopupType.MergeBranch,
+      repository: this.props.repository,
+    })
   }
 
   private onBranchItemClick = (branch: Branch) => {
