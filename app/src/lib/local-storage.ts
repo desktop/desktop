@@ -11,6 +11,13 @@ export function getBoolean(key: string, defaultValue = false): boolean {
     return defaultValue
   }
 
+  // NOTE:
+  // 'true' and 'false' were acceptable values for controlling feature flags
+  // but it required users to set them manually, and were not documented well in
+  // the codebase
+  // For now we can check these values for compatibility, but we could drop
+  // these at some point in the future
+
   if (value === '1' || value === 'true') {
     return true
   }
