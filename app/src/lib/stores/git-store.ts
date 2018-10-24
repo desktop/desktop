@@ -344,7 +344,7 @@ export class GitStore extends BaseStore {
       return gitHubRepository.defaultBranch
     }
 
-    if (this.currentRemote != null) {
+    if (this.currentRemote !== null) {
       // the Git server should use [remote]/HEAD to advertise
       // it's default branch, so see if it exists and matches
       // a valid branch on the remote and attempt to use that
@@ -766,17 +766,17 @@ export class GitStore extends BaseStore {
     const remotes = new Map<string, IRemote>()
 
     // We want to fetch the current remote first
-    if (this.currentRemote) {
+    if (this.currentRemote !== null) {
       remotes.set(this.currentRemote.name, this.currentRemote)
     }
 
     // And then the default remote if it differs from the current
-    if (this.defaultRemote) {
+    if (this.defaultRemote !== null) {
       remotes.set(this.defaultRemote.name, this.defaultRemote)
     }
 
     // And finally the upstream if we're a fork
-    if (this.upstreamRemote) {
+    if (this.upstreamRemote !== null) {
       remotes.set(this.upstreamRemote.name, this.upstreamRemote)
     }
 
