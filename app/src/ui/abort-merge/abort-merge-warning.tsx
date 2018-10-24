@@ -12,8 +12,8 @@ interface IAbortMergeWarningProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
   readonly onDismissed: () => void
-  readonly currentBranchName: string
-  readonly comparisonBranchName: string
+  readonly currentBranch: string
+  readonly comparisonBranch: string
 }
 
 const titleString = 'Confirm abort merge'
@@ -43,6 +43,8 @@ export class AbortMergeWarning extends React.Component<
     this.props.dispatcher.showPopup({
       type: PopupType.MergeConflicts,
       repository: this.props.repository,
+      currentBranch: this.props.currentBranch,
+      comparisonBranch: this.props.comparisonBranch,
     })
   }
 
@@ -60,9 +62,9 @@ export class AbortMergeWarning extends React.Component<
           <div className="column-left">
             <p>
               {'Are you sure you want to abort merging '}
-              <strong>{this.props.comparisonBranchName}</strong>
+              <strong>{this.props.comparisonBranch}</strong>
               {' into '}
-              <strong>{this.props.currentBranchName}</strong>?
+              <strong>{this.props.currentBranch}</strong>?
             </p>
             <p>
               Aborting this merge will take you back to the pre-merge state and

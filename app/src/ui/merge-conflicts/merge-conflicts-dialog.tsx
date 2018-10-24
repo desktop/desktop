@@ -12,7 +12,6 @@ import {
   AppFileStatus,
 } from '../../models/status'
 import { Octicon, OcticonSymbol } from '../octicons'
-import { Branch } from '../../models/branch'
 import { createMergeCommit, abortMerge } from '../../lib/git'
 import { PathText } from '../lib/path-text'
 
@@ -24,8 +23,8 @@ interface IMergeConflictsDialogProps {
   readonly openFileInExternalEditor: (path: string) => void
   readonly externalEditorName?: string
   readonly openRepositoryInShell: (repository: Repository) => void
-  readonly currentBranch: Branch
-  readonly comparisonBranch: Branch
+  readonly currentBranch: string
+  readonly comparisonBranch: string
 }
 
 const submitButtonString = 'Commit merge'
@@ -65,6 +64,8 @@ export class MergeConflictsDialog extends React.Component<
       this.props.dispatcher.showPopup({
         type: PopupType.AbortMerge,
         repository: this.props.repository,
+        currentBranch: this.props.currentBranch,
+        comparisonBranch: this.props.comparisonBranch,
       })
     }
   }
@@ -197,8 +198,8 @@ export class MergeConflictsDialog extends React.Component<
       f => f.status === AppFileStatus.Conflicted
     )
     const titleString = this.titleString(
-      this.props.currentBranch.name,
-      this.props.comparisonBranch.name
+      this.props.currentBranch,
+      this.props.comparisonBranch
     )
     const tooltipString = anyConflictedFiles
       ? 'Resolve all changes before merging'

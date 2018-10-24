@@ -10,7 +10,6 @@ import {
   FoldoutType,
   SelectionType,
   CompareActionKind,
-  ComparisonView,
 } from '../lib/app-state'
 import { Dispatcher } from '../lib/dispatcher'
 import { AppStore, GitHubUserStore, IssuesStore } from '../lib/stores'
@@ -1329,17 +1328,6 @@ export class App extends React.Component<IAppProps, IAppState> {
           ) {
             return null
           }
-          const { formState } = selectedState.state.compareState
-          if (
-            formState.kind !== ComparisonView.Ahead &&
-            formState.kind !== ComparisonView.Behind
-          ) {
-            return null
-          }
-          const tip = selectedState.state.branchesState.tip
-          if (tip.kind !== TipState.Valid) {
-            return null
-          }
           const workingDirectoryStatus =
             selectedState.state.changesState.workingDirectory
           // double check that this repository is actually in merge
@@ -1361,8 +1349,8 @@ export class App extends React.Component<IAppProps, IAppState> {
               openFileInExternalEditor={this.openFileInExternalEditor}
               externalEditorName={this.state.selectedExternalEditor}
               openRepositoryInShell={this.openInShell}
-              currentBranch={tip.branch}
-              comparisonBranch={formState.comparisonBranch}
+              currentBranch={popup.currentBranch}
+              comparisonBranch={popup.comparisonBranch}
             />
           )
         } else {
@@ -1383,18 +1371,6 @@ export class App extends React.Component<IAppProps, IAppState> {
           ) {
             return null
           }
-          const { formState } = selectedState.state.compareState
-          if (
-            formState.kind !== ComparisonView.Ahead &&
-            formState.kind !== ComparisonView.Behind
-          ) {
-            return null
-          }
-          const { tip } = selectedState.state.branchesState
-          if (tip.kind !== TipState.Valid) {
-            return null
-          }
-
           const { workingDirectory } = selectedState.state.changesState
           // double check that this repository is actually in merge
           const isInConflictedMerge = workingDirectory.files.some(
@@ -1411,8 +1387,8 @@ export class App extends React.Component<IAppProps, IAppState> {
               dispatcher={this.props.dispatcher}
               repository={popup.repository}
               onDismissed={this.onPopupDismissed}
-              currentBranchName={tip.branch.name}
-              comparisonBranchName={formState.comparisonBranch.name}
+              currentBranch={popup.currentBranch}
+              comparisonBranch={popup.comparisonBranch}
             />
           )
         }
