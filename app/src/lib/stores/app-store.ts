@@ -3097,17 +3097,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
 
       this._mergeConflictDetected()
-      const { command }: { command: string } = e.metadata
-      if (command !== null && command !== undefined) {
-        switch (command) {
-          case 'pull':
-            this.statsStore.recordMergeConflictFromPull()
-            break
-          case 'merge':
-            this.statsStore.recordMergeConflictFromExplicitMerge()
-            break
-        }
-      }
+      this.statsStore.recordMergeConflictFromExplicitMerge()
 
       const tip = gitStore.tip
       if (tip.kind !== TipState.Valid) {
