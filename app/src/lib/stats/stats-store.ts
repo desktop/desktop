@@ -240,7 +240,7 @@ export class StatsStore {
 
   /** Should the app report its daily stats? */
   private shouldReportDailyStats(): boolean {
-    const lastDate = getNumber(LastDailyStatsReportKey)
+    const lastDate = getNumber(LastDailyStatsReportKey, 0)
     const now = Date.now()
     return now - lastDate > DailyStatsReportInterval
   }
@@ -786,8 +786,7 @@ function createLocalStorageTimestamp(key: string) {
  * be converted into a number this method will return null.
  */
 function getLocalStorageTimestamp(key: string): number | null {
-  const value = getNumber(key)
-  return value === 0 ? null : value
+  return getNumber(key) || null
 }
 
 /**

@@ -47,7 +47,7 @@ class UpdateStore {
   private userInitiatedUpdate = true
 
   public constructor() {
-    const lastSuccessfulCheckTime = getNumber(lastSuccessfulCheckKey)
+    const lastSuccessfulCheckTime = getNumber(lastSuccessfulCheckKey, 0)
 
     if (lastSuccessfulCheckTime > 0) {
       this.lastSuccessfulCheck = new Date(lastSuccessfulCheckTime)

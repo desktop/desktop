@@ -1449,7 +1449,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     if (newSelectedRepository === null && this.repositories.length > 0) {
-      const lastSelectedID = getNumber(LastSelectedRepositoryIDKey)
+      const lastSelectedID = getNumber(LastSelectedRepositoryIDKey, 0)
       if (lastSelectedID > 0) {
         newSelectedRepository =
           this.repositories.find(r => r.id === lastSelectedID) || null
