@@ -250,7 +250,7 @@ export class CompareSidebar extends React.Component<
       const currentlyComparedBranchName = formState.comparisonBranch.name
 
       emptyListMessage =
-        formState.mode === ComparisonMode.Ahead ? (
+        formState.comparisonMode === ComparisonMode.Ahead ? (
           <p>
             The compared branch (<Ref>{currentlyComparedBranchName}</Ref>) is up
             to date with your branch
@@ -285,7 +285,7 @@ export class CompareSidebar extends React.Component<
     return (
       <div className="compare-commit-list">
         {this.renderCommitList()}
-        {view.mode === ComparisonMode.Behind
+        {view.comparisonMode === ComparisonMode.Behind
           ? this.renderMergeCallToAction(view)
           : null}
       </div>
@@ -357,18 +357,20 @@ export class CompareSidebar extends React.Component<
       return
     }
 
-    const mode = index === 0 ? ComparisonMode.Behind : ComparisonMode.Ahead
+    const comparisonMode =
+      index === 0 ? ComparisonMode.Behind : ComparisonMode.Ahead
     const branch = formState.comparisonBranch
 
     this.props.dispatcher.executeCompare(this.props.repository, {
       kind: HistoryTabMode.Compare,
       branch,
-      mode,
+      comparisonMode,
     })
   }
 
   private renderTabBar(formState: ICompareBranch) {
-    const selectedTab = formState.mode === ComparisonMode.Behind ? 0 : 1
+    const selectedTab =
+      formState.comparisonMode === ComparisonMode.Behind ? 0 : 1
 
     return (
       <div className="compare-content">
@@ -428,8 +430,8 @@ export class CompareSidebar extends React.Component<
 
           this.props.dispatcher.executeCompare(this.props.repository, {
             kind: HistoryTabMode.Compare,
+            comparisonMode: ComparisonMode.Behind,
             branch,
-            mode: ComparisonMode.Behind,
           })
 
           this.props.dispatcher.updateCompareForm(this.props.repository, {
@@ -525,9 +527,9 @@ export class CompareSidebar extends React.Component<
 
   private onBranchItemClicked = (branch: Branch) => {
     this.props.dispatcher.executeCompare(this.props.repository, {
-      branch,
       kind: HistoryTabMode.Compare,
-      mode: ComparisonMode.Behind,
+      comparisonMode: ComparisonMode.Behind,
+      branch,
     })
 
     this.setState({
@@ -546,9 +548,9 @@ export class CompareSidebar extends React.Component<
   ) => {
     if (source.kind === 'mouseclick' && branch != null) {
       this.props.dispatcher.executeCompare(this.props.repository, {
-        branch,
         kind: HistoryTabMode.Compare,
-        mode: ComparisonMode.Behind,
+        comparisonMode: ComparisonMode.Behind,
+        branch,
       })
     }
 

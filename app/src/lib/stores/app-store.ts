@@ -782,7 +782,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const comparisonBranch = action.branch
     const compare = await gitStore.getCompareCommits(
       comparisonBranch,
-      action.mode
+      action.comparisonMode
     )
 
     this.statsStore.recordBranchComparison()
@@ -808,7 +808,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       formState: {
         kind: HistoryTabMode.Compare,
         comparisonBranch,
-        mode: action.mode,
+        comparisonMode: action.comparisonMode,
         aheadBehind,
       },
       filterText: comparisonBranch.name,
@@ -827,11 +827,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     if (this.currentAheadBehindUpdater != null && currentSha != null) {
       const from =
-        action.mode === ComparisonMode.Ahead
+        action.comparisonMode === ComparisonMode.Ahead
           ? comparisonBranch.tip.sha
           : currentSha
       const to =
-        action.mode === ComparisonMode.Ahead
+        action.comparisonMode === ComparisonMode.Ahead
           ? currentSha
           : comparisonBranch.tip.sha
 
@@ -4005,10 +4005,12 @@ function getInitialAction(
     }
   }
 
+  const { comparisonMode, comparisonBranch } = cachedState
+
   return {
     kind: HistoryTabMode.Compare,
-    mode: cachedState.mode,
-    branch: cachedState.comparisonBranch,
+    comparisonMode,
+    branch: comparisonBranch,
   }
 }
 

@@ -1308,7 +1308,7 @@ export class GitStore extends BaseStore {
    */
   public async getCompareCommits(
     branch: Branch,
-    mode: ComparisonMode
+    comparisonMode: ComparisonMode
   ): Promise<ICompareResult | null> {
     if (this.tip.kind !== TipState.Valid) {
       return null
@@ -1325,11 +1325,13 @@ export class GitStore extends BaseStore {
     }
 
     const revisionRange =
-      mode === ComparisonMode.Ahead
+      comparisonMode === ComparisonMode.Ahead
         ? revRange(branch.name, base.name)
         : revRange(base.name, branch.name)
     const commitsToLoad =
-      mode === ComparisonMode.Ahead ? aheadBehind.ahead : aheadBehind.behind
+      comparisonMode === ComparisonMode.Ahead
+        ? aheadBehind.ahead
+        : aheadBehind.behind
     const commits = await getCommits(
       this.repository,
       revisionRange,

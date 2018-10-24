@@ -94,7 +94,7 @@ export class NewCommitsBanner extends React.Component<
     dispatcher.executeCompare(repository, {
       kind: HistoryTabMode.Compare,
       branch: this.props.baseBranch,
-      mode: ComparisonMode.Behind,
+      comparisonMode: ComparisonMode.Behind,
     })
     dispatcher.recordDivergingBranchBannerInitiatedCompare()
     this.props.onDismiss('compare')
