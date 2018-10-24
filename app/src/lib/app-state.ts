@@ -308,8 +308,18 @@ export type Popup =
       branch: Branch
       pullRequest: PullRequest
     }
-  | { type: PopupType.MergeConflicts; repository: Repository }
-  | { type: PopupType.AbortMerge; repository: Repository }
+  | {
+      type: PopupType.MergeConflicts
+      repository: Repository
+      currentBranch: string
+      comparisonBranch: string
+    }
+  | {
+      type: PopupType.AbortMerge
+      repository: Repository
+      currentBranch: string
+      comparisonBranch: string
+    }
 
 export enum FoldoutType {
   Repository,

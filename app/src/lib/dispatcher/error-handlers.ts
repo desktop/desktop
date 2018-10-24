@@ -246,63 +246,6 @@ export async function pushNeedsPullHandler(
 }
 
 /**
- * Handler for detecting when a merge conflict is reported to direct the user
- * to a different dialog than the generic Git error dialog.
- */
-export async function mergeConflictHandler(
-  error: Error,
-  dispatcher: Dispatcher
-): Promise<Error | null> {
-  const e = asErrorWithMetadata(error)
-  if (!e) {
-    return error
-  }
-
-  const gitError = asGitError(e.underlyingError)
-  if (!gitError) {
-    return error
-  }
-
-  const dugiteError = gitError.result.gitError
-  if (!dugiteError) {
-    return error
-  }
-
-  if (dugiteError !== DugiteError.MergeConflicts) {
-    return error
-  }
-
-  const repository = e.metadata.repository
-  if (!repository) {
-    return error
-  }
-
-  if (!(repository instanceof Repository)) {
-    return error
-  }
-
-  const command = e.metadata.command
-
-  if (command != null) {
-    switch (command) {
-      case 'pull':
-        dispatcher.mergeConflictDetectedFromPull()
-        break
-      case 'merge':
-        dispatcher.mergeConflictDetectedFromExplicitMerge()
-        break
-    }
-  }
-
-  dispatcher.showPopup({
-    type: PopupType.MergeConflicts,
-    repository,
-  })
-
-  return null
-}
-
-/**
  * Handler for when we attempt to install the global LFS filters and LFS throws
  * an error.
  */
