@@ -28,6 +28,14 @@ describe('local storage', () => {
   })
 
   describe('getBoolean parsing', () => {
+    it('returns default value when no key found', () => {
+      const defaultValue = true
+
+      const actual = getBoolean(booleanKey, defaultValue)
+
+      expect(actual).toEqual(defaultValue)
+    })
+
     it('returns default value when malformed string encountered', () => {
       localStorage.setItem(booleanKey, 'blahblahblah')
       const defaultValue = true
@@ -83,6 +91,12 @@ describe('local storage', () => {
   })
 
   describe('getNumber parsing', () => {
+    it('returns default value when no key found', () => {
+      const defaultValue = 3456
+      const actual = getNumber(numberKey, defaultValue)
+      expect(actual).toEqual(defaultValue)
+    })
+
     it('returns default value when malformed string encountered', () => {
       localStorage.setItem(numberKey, 'blahblahblah')
       const defaultValue = 3456
