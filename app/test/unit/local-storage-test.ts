@@ -40,6 +40,23 @@ describe('local storage', () => {
 
       expect(actual).toEqual(false)
     })
+
+    it(`can parse the string 'true' if found`, () => {
+      localStorage.setItem(booleanKey, 'true')
+
+      const actual = getBoolean(booleanKey)
+
+      expect(actual).toEqual(true)
+    })
+
+    it(`can parse the string 'false' if found`, () => {
+      localStorage.setItem(booleanKey, 'false')
+      const defaultValue = true
+
+      const actual = getBoolean(booleanKey, defaultValue)
+
+      expect(actual).toEqual(false)
+    })
   })
 
   describe('setNumber', () => {
