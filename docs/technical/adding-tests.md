@@ -10,11 +10,12 @@ into these subdirectories:
 
  - `unit` - unit tests for small parts of the codebase. This currently makes up
    the majority of our tests.
-   - the subdirectories defined here are intended to match layout of the
+   - the subdirectories defined here are intended to match the layout of the
      `app/src/` directory, but this has not been rigorously defined and will be
      affected by our plans in [#5645](https://github.com/desktop/desktop/pull/5645)
      to evolve the source layout
- - `integration` - these tests are for end-to-end testing of the application
+ - `integration` - these tests are for end-to-end testing and involve launching
+    and driving the app using UI automation
 
 Other important folders:
 
@@ -56,12 +57,14 @@ tests to exercise your work.
 
 ### Adding tests to a test module
 
-Feel free to borrow ideas from our current test suite, but here are some
-guidelines to help you figure out what to test.
+Feel free to borrow ideas from our [current test suite](https://github.com/desktop/desktop/tree/master/app/test/unit),
+but here are some guidelines to help you figure out what to test.
 
  - focus on a specific module or function when writing unit tests - complex unit
-   tests are a sign that the code isn't organized in an ideal way for testing
- - write tests to cover the scenarios you think we should care about
+   tests are a sign that the code isn't organized in an ideal way for testing, 
+   or that the test is doing too much
+ - write tests to cover the scenarios you think we should care about in the
+   long-term (these are great to help us not accidentally regress your work)
  - keep tests simple and easy to read - code comments shouldn't be necessary
  - if you're not confident in writing tests, the [Arrange-Act-Assert](http://wiki.c2.com/?ArrangeActAssert)
    pattern is a nice way to get started
