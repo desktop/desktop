@@ -12,7 +12,6 @@ import {
   AppFileStatus,
 } from '../../models/status'
 import { Octicon, OcticonSymbol } from '../octicons'
-import { createMergeCommit, abortMerge } from '../../lib/git'
 import { PathText } from '../lib/path-text'
 
 interface IMergeConflictsDialogProps {
@@ -41,7 +40,10 @@ export class MergeConflictsDialog extends React.Component<
    *  commits the merge displays the repository changes tab and dismisses the modal
    */
   private onSubmit = async () => {
-    await createMergeCommit(this.props.repository, this.props.status.files)
+    await this.props.dispatcher.createMergeCommit(
+      this.props.repository,
+      this.props.status.files
+    )
     this.props.dispatcher.changeRepositorySection(
       this.props.repository,
       RepositorySectionTab.Changes
@@ -57,7 +59,7 @@ export class MergeConflictsDialog extends React.Component<
       f => f.status === AppFileStatus.Resolved
     )
     if (!anyResolvedFiles) {
-      await abortMerge(this.props.repository)
+      await this.props.dispatcher.abortMerge(this.props.repository)
       this.props.onDismissed()
     } else {
       this.props.onDismissed()

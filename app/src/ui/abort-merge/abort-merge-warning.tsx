@@ -5,7 +5,6 @@ import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Dispatcher } from '../../lib/dispatcher'
 import { PopupType } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
-import { abortMerge } from '../../lib/git'
 import { Octicon, OcticonSymbol } from '../octicons'
 
 interface IAbortMergeWarningProps {
@@ -31,7 +30,7 @@ export class AbortMergeWarning extends React.Component<
    *  Aborts the merge and dismisses the modal
    */
   private onSubmit = async () => {
-    await abortMerge(this.props.repository)
+    await this.props.dispatcher.abortMerge(this.props.repository)
     this.props.onDismissed()
   }
 
