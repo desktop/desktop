@@ -263,6 +263,7 @@ dialog {
 
     border-top: var(--base-border);
     padding: var(--spacing-double);
+    padding-top: 0;
 
     .button-group {
       display: flex;
