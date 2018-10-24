@@ -43,7 +43,7 @@ function asErrorWithMetadata(error: Error): ErrorWithMetadata | null {
 }
 
 /** Cast the error to a `GitError` if possible. Otherwise return null. */
-function asGitError(error: Error): GitError | null {
+export function asGitError(error: Error): GitError | null {
   if (error instanceof GitError) {
     return error
   } else {
