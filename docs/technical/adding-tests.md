@@ -1,4 +1,4 @@
-# Adding Tests to the project
+# Adding tests to the project
 
 This document explains a bit about our testing infrastructure, and how you can
 contribute tests to go with changes to the codebase.
