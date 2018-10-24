@@ -1,6 +1,7 @@
 import { Menu, ipcMain, shell, app } from 'electron'
 import { ensureItemIds } from './ensure-item-ids'
 import { MenuEvent } from './menu-event'
+import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
 import { getLogDirectoryPath } from '../../lib/logging/get-log-path'
 import { ensureDir } from 'fs-extra'
 
@@ -521,12 +522,4 @@ function zoom(direction: ZoomDirection): ClickHandler {
       })
     }
   }
-}
-
-function truncateWithEllipsis(text: string, maxLength: number) {
-  if (text.length <= maxLength) {
-    return text
-  }
-
-  return `${text.substr(0, maxLength)}…`
 }
