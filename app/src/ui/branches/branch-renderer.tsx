@@ -6,6 +6,10 @@ import { IBranchListItem } from './group-branches'
 import { BranchListItem } from './branch-list-item'
 import { IMatches } from '../../lib/fuzzy-find'
 
+const deleteFunction = () => {
+  console.log("Deleting branch");
+};
+
 export function renderDefaultBranch(
   item: IBranchListItem,
   matches: IMatches,
@@ -20,6 +24,7 @@ export function renderDefaultBranch(
       isCurrentBranch={branch.name === currentBranchName}
       lastCommitDate={commit ? commit.author.date : null}
       matches={matches}
+      onDeleteBranch={deleteFunction}
     />
   )
 }

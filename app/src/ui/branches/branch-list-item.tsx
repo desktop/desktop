@@ -5,6 +5,8 @@ import { IMatches } from '../../lib/fuzzy-find'
 
 import { Octicon, OcticonSymbol } from '../octicons'
 import { HighlightText } from '../lib/highlight-text'
+import { showContextualMenu } from '../main-process-proxy';
+import { IMenuItem } from '../../lib/menu-item';
 
 interface IBranchListItemProps {
   /** The name of the branch */
@@ -18,6 +20,9 @@ interface IBranchListItemProps {
 
   /** The characters in the branch name to highlight */
   readonly matches: IMatches
+
+  /** The characters in the branch name to highlight */
+  readonly onDeleteBranch: () => void
 }
 
 /** The branch component. */
@@ -35,7 +40,7 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
         ? lastCommitDate.toString()
         : ''
     return (
-      <div className="branches-list-item">
+      <div className="branches-list-item" onContextMenu={this.onDeleteBranch}>
         <Octicon className="icon" symbol={icon} />
         <div className="name" title={name}>
           <HighlightText text={name} highlight={this.props.matches.title} />
@@ -43,7 +48,14 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
         <div className="description" title={infoTitle}>
           {date}
         </div>
-      </div>
+      </div >
     )
+  }
+
+  private onDeleteBranch = async (event: React.MouseEvent<HTMLDivElement>) => {
+    event.preventDefault()
+
+    const menuItems: IMenuItem[] = [{ label: "Delete", action: this.props.onDeleteBranch }]
+    showContextualMenu(menuItems)
   }
 }
