@@ -52,11 +52,12 @@ export function setBoolean(key: string, value: boolean) {
  */
 export function getNumber(key: string, defaultValue = 0): number {
   const numberAsText = localStorage.getItem(key)
-  let value = 0
-  if (numberAsText && numberAsText.length > 0) {
-    value = parseInt(numberAsText, 10)
+
+  if (numberAsText === null || numberAsText.length === 0) {
+    return defaultValue
   }
 
+  const value = parseInt(numberAsText, 10)
   if (isNaN(value)) {
     return defaultValue
   }
