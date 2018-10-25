@@ -1,6 +1,6 @@
 import { Repository } from '../models/repository'
 import { CloningRepository } from '../models/cloning-repository'
-import { RetryAction } from './retry-actions'
+import { RetryAction } from '../models/retry-actions'
 
 export interface IErrorMetadata {
   /** The first argument passed to `git` which triggered this error */

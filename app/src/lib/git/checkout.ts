@@ -1,17 +1,13 @@
 import { git, IGitExecutionOptions, gitNetworkArguments } from './core'
 import { Repository } from '../../models/repository'
 import { Branch, BranchType } from '../../models/branch'
+import { ICheckoutProgress } from '../../models/progress'
+import { IGitAccount } from '../../models/git-account'
 import {
   CheckoutProgressParser,
   executionOptionsWithProgress,
 } from '../progress'
-import { ICheckoutProgress } from '../app-state'
-
-import {
-  IGitAccount,
-  envForAuthentication,
-  AuthenticationErrors,
-} from './authentication'
+import { envForAuthentication, AuthenticationErrors } from './authentication'
 import { enableRecurseSubmodulesFlag } from '../feature-flag'
 
 export type ProgressCallback = (progress: ICheckoutProgress) => void

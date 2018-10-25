@@ -6,7 +6,6 @@ import {
   CloningRepositoriesStore,
   GitHubUserStore,
   GitStore,
-  ICommitMessage,
   IssuesStore,
   PullRequestStore,
   RepositoriesStore,
@@ -24,7 +23,12 @@ import { BranchesTab } from '../../models/branches-tab'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { CloningRepository } from '../../models/cloning-repository'
 import { Commit } from '../../models/commit'
-import { DiffSelection, DiffSelectionType, DiffType } from '../../models/diff'
+import {
+  DiffSelection,
+  DiffSelectionType,
+  DiffType,
+  ImageDiffType,
+} from '../../models/diff'
 import { FetchType } from '../../models/fetch'
 import { GitHubRepository } from '../../models/github-repository'
 import { Owner } from '../../models/owner'
@@ -42,6 +46,15 @@ import {
   AppFileStatus,
 } from '../../models/status'
 import { TipState } from '../../models/tip'
+import { ICommitMessage } from '../../models/commit-message'
+import {
+  Progress,
+  ICheckoutProgress,
+  IFetchProgress,
+  IRevertProgress,
+} from '../../models/progress'
+import { Popup, PopupType } from '../../models/popup'
+import { IGitAccount } from '../../models/git-account'
 import { getAppPath } from '../../ui/lib/app-proxy'
 import {
   ApplicationTheme,
@@ -66,18 +79,11 @@ import {
   Foldout,
   FoldoutType,
   IAppState,
-  ICheckoutProgress,
   ICompareBranch,
   ICompareFormUpdate,
   ICompareToBranch,
   IDisplayHistory,
-  IFetchProgress,
-  ImageDiffType,
-  IRevertProgress,
-  Popup,
-  PopupType,
   PossibleSelections,
-  Progress,
   RepositorySectionTab,
   SelectionType,
   MergeResultStatus,
@@ -123,7 +129,6 @@ import {
   appendIgnoreRule,
   IStatusResult,
 } from '../git'
-import { IGitAccount } from '../git/authentication'
 import {
   installGlobalLFSFilters,
   installLFSHooks,
@@ -137,7 +142,7 @@ import {
   matchGitHubRepository,
   repositoryMatchesRemote,
 } from '../repository-matching'
-import { RetryAction, RetryActionType } from '../retry-actions'
+import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import {
   Default as DefaultShell,
   findShellOrDefault,

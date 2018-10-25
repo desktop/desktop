@@ -1,8 +1,9 @@
 import { git, IGitExecutionOptions, gitNetworkArguments } from './core'
 import { Repository } from '../../models/repository'
+import { IGitAccount } from '../../models/git-account'
+import { IFetchProgress } from '../../models/progress'
 import { FetchProgressParser, executionOptionsWithProgress } from '../progress'
-import { IFetchProgress } from '../app-state'
-import { IGitAccount, envForAuthentication } from './authentication'
+import { envForAuthentication } from './authentication'
 import { enableRecurseSubmodulesFlag } from '../feature-flag'
 
 function getFetchArgs(

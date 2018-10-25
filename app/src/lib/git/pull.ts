@@ -5,13 +5,10 @@ import {
   gitNetworkArguments,
 } from './core'
 import { Repository } from '../../models/repository'
+import { IPullProgress } from '../../models/progress'
+import { IGitAccount } from '../../models/git-account'
 import { PullProgressParser, executionOptionsWithProgress } from '../progress'
-import { IPullProgress } from '../app-state'
-import {
-  IGitAccount,
-  envForAuthentication,
-  AuthenticationErrors,
-} from './authentication'
+import { envForAuthentication, AuthenticationErrors } from './authentication'
 import { enableRecurseSubmodulesFlag } from '../feature-flag'
 
 function getPullArgs(

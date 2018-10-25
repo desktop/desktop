@@ -5,9 +5,10 @@ import { PullRequest } from '../../models/pull-request'
 import { Repository, nameOf } from '../../models/repository'
 import { Branch } from '../../models/branch'
 import { BranchesTab } from '../../models/branches-tab'
+import { PopupType } from '../../models/popup'
 
 import { Dispatcher } from '../../lib/dispatcher'
-import { FoldoutType, PopupType } from '../../lib/app-state'
+import { FoldoutType } from '../../lib/app-state'
 import { assertNever } from '../../lib/fatal-error'
 
 import { TabBar } from '../tab-bar'

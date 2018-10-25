@@ -5,7 +5,8 @@ import { Branch } from '../../models/branch'
 import { Button } from '../lib/button'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
-import { HistoryTabMode, PopupType, ComparisonMode } from '../../lib/app-state'
+import { HistoryTabMode, ComparisonMode } from '../../lib/app-state'
+import { PopupType } from '../../models/popup'
 
 export type DismissalReason = 'close' | 'compare' | 'merge'
 

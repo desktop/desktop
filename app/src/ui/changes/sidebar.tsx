@@ -3,7 +3,7 @@ import * as React from 'react'
 
 import { ChangesList } from './changes-list'
 import { DiffSelectionType } from '../../models/diff'
-import { IChangesState, PopupType } from '../../lib/app-state'
+import { IChangesState } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../../lib/dispatcher'
 import { IGitHubUser } from '../../lib/databases'
@@ -23,6 +23,7 @@ import { CSSTransitionGroup } from 'react-transition-group'
 import { openFile } from '../../lib/open-file'
 import { ITrailer } from '../../lib/git/interpret-trailers'
 import { Account } from '../../models/account'
+import { PopupType } from '../../models/popup'
 
 /**
  * The timeout for the animation of the enter/leave animation for Undo.

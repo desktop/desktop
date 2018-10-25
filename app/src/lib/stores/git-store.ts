@@ -12,7 +12,9 @@ import {
 import { Tip, TipState } from '../../models/tip'
 import { Commit } from '../../models/commit'
 import { IRemote } from '../../models/remote'
-import { IFetchProgress, IRevertProgress, ComparisonMode } from '../app-state'
+import { IFetchProgress, IRevertProgress } from '../../models/progress'
+import { ICommitMessage } from '../../models/commit-message'
+import { ComparisonMode } from '../app-state'
 
 import { IAppShell } from '../app-shell'
 import { ErrorWithMetadata, IErrorMetadata } from '../error-with-metadata'
@@ -56,8 +58,7 @@ import {
   revSymmetricDifference,
   getSymbolicRef,
 } from '../git'
-import { IGitAccount } from '../git/authentication'
-import { RetryAction, RetryActionType } from '../retry-actions'
+import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import { UpstreamAlreadyExistsError } from './upstream-already-exists-error'
 import { forceUnwrap } from '../fatal-error'
 import {
@@ -68,6 +69,7 @@ import { findDefaultRemote } from './helpers/find-default-remote'
 import { IAuthor } from '../../models/author'
 import { formatCommitMessage } from '../format-commit-message'
 import { GitAuthor } from '../../models/git-author'
+import { IGitAccount } from '../../models/git-account'
 import { BaseStore } from './base-store'
 
 /** The number of commits to load from history per batch. */
@@ -77,12 +79,6 @@ const LoadingHistoryRequestKey = 'history'
 
 /** The max number of recent branches to find. */
 const RecentBranchesLimit = 5
-
-/** A commit message summary and description. */
-export interface ICommitMessage {
-  readonly summary: string
-  readonly description: string | null
-}
 
 /** The store for a repository's git data. */
 export class GitStore extends BaseStore {

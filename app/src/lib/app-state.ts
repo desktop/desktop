@@ -1,57 +1,42 @@
 import { Account } from '../models/account'
 import { CommitIdentity } from '../models/commit-identity'
-import { IDiff } from '../models/diff'
+import { IDiff, ImageDiffType } from '../models/diff'
 import { Repository, ILocalRepositoryState } from '../models/repository'
-
 import { Branch, IAheadBehind } from '../models/branch'
 import { Tip } from '../models/tip'
 import { Commit } from '../models/commit'
-import {
-  CommittedFileChange,
-  WorkingDirectoryStatus,
-  WorkingDirectoryFileChange,
-} from '../models/status'
+import { CommittedFileChange, WorkingDirectoryStatus } from '../models/status'
 import { CloningRepository } from '../models/cloning-repository'
-import { IGitHubUser } from './databases/github-user-database'
-import { SignInState } from './stores/sign-in-store'
-import { ICommitMessage } from './stores/git-store'
 import { IMenu } from '../models/app-menu'
 import { IRemote } from '../models/remote'
-import { WindowState } from './window-state'
-import { RetryAction } from './retry-actions'
-import { ExternalEditor } from '../lib/editors'
-import { PreferencesTab } from '../models/preferences'
-import { Shell } from './shells'
 import { CloneRepositoryTab } from '../models/clone-repository-tab'
 import { BranchesTab } from '../models/branches-tab'
 import { PullRequest } from '../models/pull-request'
-import { ReleaseSummary } from '../models/release-notes'
 import { IAuthor } from '../models/author'
-import { ComparisonCache } from './comparison-cache'
-import { ApplicationTheme } from '../ui/lib/application-theme'
 import { MergeResultKind } from '../models/merge'
+import { ICommitMessage } from '../models/commit-message'
+import {
+  IRevertProgress,
+  Progress,
+  ICheckoutProgress,
+  ICloneProgress,
+} from '../models/progress'
+import { Popup } from '../models/popup'
 
-export { ICommitMessage }
+import { IGitHubUser } from './databases/github-user-database'
+import { SignInState } from './stores/sign-in-store'
+
+import { WindowState } from './window-state'
+import { ExternalEditor } from './editors'
+import { Shell } from './shells'
+import { ComparisonCache } from './comparison-cache'
+
+import { ApplicationTheme } from '../ui/lib/application-theme'
 
 export enum SelectionType {
   Repository,
   CloningRepository,
   MissingRepository,
-}
-
-/** The image diff type. */
-export enum ImageDiffType {
-  /** Show the old and new images side by side. */
-  TwoUp,
-
-  /** Swipe between the old and new image. */
-  Swipe,
-
-  /** Onion skin. */
-  OnionSkin,
-
-  /** Highlight differences. */
-  Difference,
 }
 
 export type PossibleSelections =
@@ -194,121 +179,6 @@ export interface IAppState {
   readonly selectedTheme: ApplicationTheme
 }
 
-export enum PopupType {
-  RenameBranch = 1,
-  DeleteBranch,
-  ConfirmDiscardChanges,
-  Preferences,
-  MergeBranch,
-  RepositorySettings,
-  AddRepository,
-  CreateRepository,
-  CloneRepository,
-  CreateBranch,
-  SignIn,
-  About,
-  InstallGit,
-  PublishRepository,
-  Acknowledgements,
-  UntrustedCertificate,
-  RemoveRepository,
-  TermsAndConditions,
-  PushBranchCommits,
-  CLIInstalled,
-  GenericGitAuthentication,
-  ExternalEditorFailed,
-  OpenShellFailed,
-  InitializeLFS,
-  LFSAttributeMismatch,
-  UpstreamAlreadyExists,
-  ReleaseNotes,
-  DeletePullRequest,
-  MergeConflicts,
-}
-
-export type Popup =
-  | { type: PopupType.RenameBranch; repository: Repository; branch: Branch }
-  | {
-      type: PopupType.DeleteBranch
-      repository: Repository
-      branch: Branch
-      existsOnRemote: boolean
-    }
-  | {
-      type: PopupType.ConfirmDiscardChanges
-      repository: Repository
-      files: ReadonlyArray<WorkingDirectoryFileChange>
-      showDiscardChangesSetting?: boolean
-      discardingAllChanges?: boolean
-    }
-  | { type: PopupType.Preferences; initialSelectedTab?: PreferencesTab }
-  | {
-      type: PopupType.MergeBranch
-      repository: Repository
-      branch?: Branch
-    }
-  | { type: PopupType.RepositorySettings; repository: Repository }
-  | { type: PopupType.AddRepository; path?: string }
-  | { type: PopupType.CreateRepository; path?: string }
-  | {
-      type: PopupType.CloneRepository
-      initialURL: string | null
-    }
-  | {
-      type: PopupType.CreateBranch
-      repository: Repository
-      initialName?: string
-    }
-  | { type: PopupType.SignIn }
-  | { type: PopupType.About }
-  | { type: PopupType.InstallGit; path: string }
-  | { type: PopupType.PublishRepository; repository: Repository }
-  | { type: PopupType.Acknowledgements }
-  | {
-      type: PopupType.UntrustedCertificate
-      certificate: Electron.Certificate
-      url: string
-    }
-  | { type: PopupType.RemoveRepository; repository: Repository }
-  | { type: PopupType.TermsAndConditions }
-  | {
-      type: PopupType.PushBranchCommits
-      repository: Repository
-      branch: Branch
-      unPushedCommits?: number
-    }
-  | { type: PopupType.CLIInstalled }
-  | {
-      type: PopupType.GenericGitAuthentication
-      hostname: string
-      retryAction: RetryAction
-    }
-  | {
-      type: PopupType.ExternalEditorFailed
-      message: string
-      suggestAtom?: boolean
-      openPreferences?: boolean
-    }
-  | { type: PopupType.OpenShellFailed; message: string }
-  | { type: PopupType.InitializeLFS; repositories: ReadonlyArray<Repository> }
-  | { type: PopupType.LFSAttributeMismatch }
-  | {
-      type: PopupType.UpstreamAlreadyExists
-      repository: Repository
-      existingRemote: IRemote
-    }
-  | {
-      type: PopupType.ReleaseNotes
-      newRelease: ReleaseSummary
-    }
-  | {
-      type: PopupType.DeletePullRequest
-      repository: Repository
-      branch: Branch
-      pullRequest: PullRequest
-    }
-  | { type: PopupType.MergeConflicts; repository: Repository }
-
 export enum FoldoutType {
   Repository,
   Branch,
@@ -425,115 +295,6 @@ export interface IRepositoryState {
    * null if no such operation is in flight.
    */
   readonly revertProgress: IRevertProgress | null
-}
-
-export type Progress =
-  | IGenericProgress
-  | ICheckoutProgress
-  | IFetchProgress
-  | IPullProgress
-  | IPushProgress
-  | IRevertProgress
-
-/**
- * Base interface containing all the properties that progress events
- * need to support.
- */
-interface IProgress {
-  /**
-   * The overall progress of the operation, represented as a fraction between
-   * 0 and 1.
-   */
-  readonly value: number
-
-  /**
-   * An informative text for user consumption indicating the current operation
-   * state. This will be high level such as 'Pushing origin' or
-   * 'Fetching upstream' and will typically persist over a number of progress
-   * events. For more detailed information about the progress see
-   * the description field
-   */
-  readonly title: string
-
-  /**
-   * An informative text for user consumption. In the case of git progress this
-   * will usually be the last raw line of output from git.
-   */
-  readonly description?: string
-}
-
-/**
- * An object describing progression of an operation that can't be
- * directly mapped or attributed to either one of the more specific
- * progress events (Fetch, Checkout etc). An example of this would be
- * our own refreshing of internal repository state that takes part
- * after fetch, push and pull.
- */
-export interface IGenericProgress extends IProgress {
-  kind: 'generic'
-}
-
-/**
- * An object describing the progression of a branch checkout operation
- */
-export interface ICheckoutProgress extends IProgress {
-  kind: 'checkout'
-
-  /** The branch that's currently being checked out */
-  readonly targetBranch: string
-}
-
-/**
- * An object describing the progression of a fetch operation
- */
-export interface IFetchProgress extends IProgress {
-  kind: 'fetch'
-
-  /**
-   * The remote that's being fetched
-   */
-  readonly remote: string
-}
-
-/**
- * An object describing the progression of a pull operation
- */
-export interface IPullProgress extends IProgress {
-  kind: 'pull'
-
-  /**
-   * The remote that's being pulled from
-   */
-  readonly remote: string
-}
-
-/**
- * An object describing the progression of a pull operation
- */
-export interface IPushProgress extends IProgress {
-  kind: 'push'
-
-  /**
-   * The remote that's being pushed to
-   */
-  readonly remote: string
-
-  /**
-   * The branch that's being pushed
-   */
-  readonly branch: string
-}
-
-/**
- * An object describing the progression of a fetch operation
- */
-export interface ICloneProgress extends IProgress {
-  kind: 'clone'
-}
-
-/** An object describing the progression of a revert operation. */
-export interface IRevertProgress extends IProgress {
-  kind: 'revert'
 }
 
 export interface IBranchesState {

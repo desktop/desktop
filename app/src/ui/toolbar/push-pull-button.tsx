@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { ToolbarButton, ToolbarButtonStyle } from './button'
-import { Progress } from '../../lib/app-state'
+import { Progress } from '../../models/progress'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Repository } from '../../models/repository'

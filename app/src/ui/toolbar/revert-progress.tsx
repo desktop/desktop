@@ -1,7 +1,7 @@
 import * as React from 'react'
+import { IRevertProgress } from '../../models/progress'
 import { ToolbarButton, ToolbarButtonStyle } from './button'
 import { OcticonSymbol } from '../octicons'
-import { IRevertProgress } from '../../lib/app-state'
 
 interface IRevertProgressProps {
   /** Progress information associated with the current operation */

@@ -9,14 +9,11 @@ import {
   WorkingDirectoryFileChange,
   CommittedFileChange,
 } from '../../models/status'
-import { DiffSelection } from '../../models/diff'
+import { DiffSelection, ImageDiffType } from '../../models/diff'
 import {
   RepositorySectionTab,
-  Popup,
-  PopupType,
   Foldout,
   FoldoutType,
-  ImageDiffType,
   CompareAction,
   ICompareFormUpdate,
   MergeResultStatus,
@@ -28,7 +25,7 @@ import { Commit } from '../../models/commit'
 import { ExternalEditor } from '../../lib/editors'
 import { IAPIUser } from '../../lib/api'
 import { GitHubRepository } from '../../models/github-repository'
-import { ICommitMessage } from '../stores/git-store'
+import { ICommitMessage } from '../../models/commit-message'
 import { executeMenuItem } from '../../ui/main-process-proxy'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
 import {
@@ -51,7 +48,7 @@ import {
 } from '../../lib/oauth'
 import { installCLI } from '../../ui/lib/install-cli'
 import { setGenericUsername, setGenericPassword } from '../generic-git-auth'
-import { RetryAction, RetryActionType } from '../retry-actions'
+import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import { Shell } from '../shells'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { validatedRepositoryPath } from '../../lib/stores/helpers/validated-repository-path'
@@ -64,6 +61,7 @@ import { isGitRepository } from '../git'
 import { ApplicationTheme } from '../../ui/lib/application-theme'
 import { TipState } from '../../models/tip'
 import { RepositoryStateCache } from '../stores/repository-state-cache'
+import { Popup, PopupType } from '../../models/popup'
 
 /**
  * An error handler function.
