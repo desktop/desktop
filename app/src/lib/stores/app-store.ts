@@ -165,6 +165,7 @@ import { validatedRepositoryPath } from './helpers/validated-repository-path'
 import { RepositoryStateCache } from './repository-state-cache'
 import { readEmoji } from '../read-emoji'
 import { GitStoreCache } from './git-store-cache'
+import { MergeConflictsErrorContext } from '../git-error-context'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -2594,12 +2595,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       if (tip.kind === TipState.Valid) {
         let mergeBase: string | null = null
-        if (tip.branch.upstream) {
+        let gitContext: MergeConflictsErrorContext | undefined = undefined
+
+        if (tip.branch.upstream !== null) {
           mergeBase = await getMergeBase(
             repository,
             tip.branch.name,
             tip.branch.upstream
           )
+
+          gitContext = {
+            kind: 'pull',
+            tip,
+            branch: tip.branch.upstream,
+          }
         }
 
         const title = `Pulling ${remote.name}`
@@ -2638,7 +2647,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
                   value: progress.value * pullWeight,
                 })
               }),
-            { gitContext: { kind: 'pull' }, retryAction }
+            {
+              gitContext,
+              retryAction,
+            }
           )
 
           const refreshStartProgress = pullWeight + fetchWeight

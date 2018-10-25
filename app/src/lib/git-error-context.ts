@@ -1,6 +1,6 @@
 import { Tip } from '../models/tip'
 
-type MergeConflictsErrorContext = {
+export type MergeConflictsErrorContext = {
   /** The Git operation that triggered the conflicted state */
   readonly kind: 'merge' | 'pull'
   /** The tip of the repository at the time of the merge operation */
