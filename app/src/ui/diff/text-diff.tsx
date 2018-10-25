@@ -719,7 +719,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   public render() {
     const options: IEditorConfigurationExtra = {
       lineNumbers: false,
-      readOnly: true,
+      readOnly: 'nocursor',
       showCursorWhenSelecting: false,
       cursorBlinkRate: -1,
       lineWrapping: true,
