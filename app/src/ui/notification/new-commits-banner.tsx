@@ -5,11 +5,7 @@ import { Branch } from '../../models/branch'
 import { Button } from '../lib/button'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
-import {
-  CompareActionKind,
-  ComparisonView,
-  PopupType,
-} from '../../lib/app-state'
+import { HistoryTabMode, PopupType, ComparisonMode } from '../../lib/app-state'
 
 export type DismissalReason = 'close' | 'compare' | 'merge'
 
@@ -96,9 +92,9 @@ export class NewCommitsBanner extends React.Component<
     const { repository, dispatcher } = this.props
 
     dispatcher.executeCompare(repository, {
-      kind: CompareActionKind.Branch,
+      kind: HistoryTabMode.Compare,
       branch: this.props.baseBranch,
-      mode: ComparisonView.Behind,
+      comparisonMode: ComparisonMode.Behind,
     })
     dispatcher.recordDivergingBranchBannerInitiatedCompare()
     this.props.onDismiss('compare')
