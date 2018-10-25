@@ -4,7 +4,7 @@
       "[New] Repository switcher has a convenient \"Add\" button to add other repositories - #5878",
       "[New] macOS tray icon now supports drag-and-drop to add local repositories - #5048",
       "[Added] Keyboard shortcut to \"Rename Branch\" menu item - #5964. Thanks @agisilaos!",
-      "[Fixed] Add \"Copy File Path\" context menu action to commit file list - #2944. Thanks @Amabel!",
+      "[Added] Commit file list now has \"Copy File Path\" context menu action - #2944. Thanks @Amabel!",
       "[Fixed] Launching Desktop from browser always asks to clone repository - #5913",
       "[Fixed] Publish dialog always displayed instead of pushing changes to tracked branch - #5936",
       "[Improved] Sanitize repository name before publishing to GitHub - #3090. Thanks @Daniel-McCarthy!",
