@@ -165,6 +165,7 @@ import { validatedRepositoryPath } from './helpers/validated-repository-path'
 import { RepositoryStateCache } from './repository-state-cache'
 import { readEmoji } from '../read-emoji'
 import { GitStoreCache } from './git-store-cache'
+import { IErrorMetadata } from '../error-with-metadata'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -3085,7 +3086,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const { tip } = gitStore
-    const errorMetadata = { tip }
+    const errorMetadata: IErrorMetadata = {
+      tip,
+      context: {
+        kind: 'merge',
+        branch,
+      },
+    }
 
     await gitStore.performFailableOperation(
       () => gitStore.merge(branch),
