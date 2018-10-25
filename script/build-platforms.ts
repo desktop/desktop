@@ -22,6 +22,10 @@ export function getSha() {
     return pullRequestCommitId
   }
 
+  if (process.env.NODE_ENV === 'development') {
+    return 'development'
+  }
+
   throw new Error(
     `Unable to get the SHA for the current platform. Check the documentation for the expected environment variables.`
   )
