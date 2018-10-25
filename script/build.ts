@@ -50,6 +50,7 @@ const outRoot = path.join(projectRoot, 'out')
 
 const isPublishableBuild = getReleaseChannel() !== 'development'
 
+// don't call `getSha` when not on CI
 if (isPublishableBuild) {
   console.log(`Building for ${getReleaseChannel()} from commit id ${getSha()}…`)
 } else {
