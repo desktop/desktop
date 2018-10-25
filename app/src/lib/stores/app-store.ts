@@ -516,7 +516,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       commitLookup: gitStore.commitLookup,
       localCommitSHAs: gitStore.localCommitSHAs,
       aheadBehind: gitStore.aheadBehind,
-      remote: gitStore.remote,
+      remote: gitStore.currentRemote,
       lastFetched: gitStore.lastFetched,
     }))
 
@@ -2560,7 +2560,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<void> {
     return this.withPushPull(repository, async () => {
       const gitStore = this.gitStoreCache.get(repository)
-      const remote = gitStore.remote
+      const remote = gitStore.currentRemote
 
       if (!remote) {
         throw new Error('The repository has no remotes.')
@@ -3465,7 +3465,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     if (!account) {
       const gitStore = this.gitStoreCache.get(repository)
-      const remote = gitStore.remote
+      const remote = gitStore.currentRemote
       if (remote) {
         const hostname = getGenericHostname(remote.url)
         const username = getGenericUsername(hostname)
@@ -3525,7 +3525,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     let url
     if (repository instanceof Repository) {
       const gitStore = this.gitStoreCache.get(repository)
-      const remote = gitStore.remote
+      const remote = gitStore.currentRemote
       if (!remote) {
         return
       }
