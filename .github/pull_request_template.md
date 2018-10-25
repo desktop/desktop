@@ -15,9 +15,9 @@ If an issue doesn't exist for this pull request (PR) to address, please open one
 ## Release notes
 
 <!--
-If this is related to a user-facing change and should be added to the release notes, please add a summary of the change.
+If this is related to a feature, bugfix or improvement, please add a summary of the change so it can be featured in the releaase notes.
 
-For changes related to documentation or techical debt, just add `no-notes` to indicate this can be skipped.
+If you don't believe this change needs to be mentioned in the release notes, write "no-notes" to indicate this can be skipped.
 -->
 
 Notes:
