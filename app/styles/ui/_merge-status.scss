@@ -63,4 +63,10 @@ dialog#merge {
   .merge-status-component {
     margin-top: var(--spacing);
   }
+
+  .merge-status-icon-container {
+    &:after {
+      border-bottom: 0;
+    }
+  }
 }
