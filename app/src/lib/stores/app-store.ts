@@ -2373,26 +2373,27 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     account: IGitAccount | null
   ): Promise<void> {
-    const gitStore = this.gitStoreCache.get(repository)
-    const remote = gitStore.currentRemote
-    if (!remote) {
+    const state = this.repositoryStateCache.get(repository)
+    const { remote } = state
+    if (remote === null) {
       this._showPopup({ type: PopupType.PublishRepository, repository })
 
       return
     }
 
     return this.withPushPull(repository, async () => {
-      const state = this.repositoryStateCache.get(repository)
-      if (state.branchesState.tip.kind === TipState.Unborn) {
+      const { tip } = state.branchesState
+
+      if (tip.kind === TipState.Unborn) {
         throw new Error('The current branch is unborn.')
       }
 
-      if (state.branchesState.tip.kind === TipState.Detached) {
+      if (tip.kind === TipState.Detached) {
         throw new Error('The current repository is in a detached HEAD state.')
       }
 
-      if (state.branchesState.tip.kind === TipState.Valid) {
-        const branch = state.branchesState.tip.branch
+      if (tip.kind === TipState.Valid) {
+        const { branch } = tip
 
         const pushTitle = `Pushing to ${remote.name}`
 
@@ -2424,6 +2425,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
           type: RetryActionType.Push,
           repository,
         }
+
+        const gitStore = this.gitStoreCache.get(repository)
         await gitStore.performFailableOperation(
           async () => {
             await pushRepo(

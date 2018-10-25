@@ -56,3 +56,8 @@ export function enableInAppReleaseNotes(): boolean {
 export function enableStatusWithoutOptionalLocks(): boolean {
   return true
 }
+
+/** Should git pass `--recurse-submodules` when performing operations? */
+export function enableRecurseSubmodulesFlag(): boolean {
+  return enableBetaFeatures()
+}
