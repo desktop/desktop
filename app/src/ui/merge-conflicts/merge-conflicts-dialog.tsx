@@ -185,27 +185,28 @@ export class MergeConflictsDialog extends React.Component<
     )
   }
 
-  private renderUnmergedFilesSummary(unmergedFiles: number) {
+  private renderUnmergedFilesSummary(conflictedFilesCount: number) {
     // localization, it burns :vampire:
     const message =
-      unmergedFiles === 1
+      conflictedFilesCount === 1
         ? `1 conflicted file`
-        : `${unmergedFiles} conflicted files`
+        : `${conflictedFilesCount} conflicted files`
     return <h3 className="summary">{message}</h3>
   }
 
   public render() {
     const unmergedFiles = this.getUnmergedFiles()
-    const anyConflictedFiles = unmergedFiles.some(
+    const conflictedFilesCount = unmergedFiles.filter(
       f => f.status === AppFileStatus.Conflicted
-    )
+    ).length
     const titleString = this.titleString(
       this.props.currentBranch,
       this.props.theirBranch
     )
-    const tooltipString = anyConflictedFiles
-      ? 'Resolve all changes before merging'
-      : undefined
+    const tooltipString =
+      conflictedFilesCount > 0
+        ? 'Resolve all changes before merging'
+        : undefined
     return (
       <Dialog
         id="merge-conflicts-list"
@@ -215,7 +216,7 @@ export class MergeConflictsDialog extends React.Component<
         onSubmit={this.onSubmit}
       >
         <DialogContent>
-          {this.renderUnmergedFilesSummary(unmergedFiles.length)}
+          {this.renderUnmergedFilesSummary(conflictedFilesCount)}
           {this.renderUnmergedFiles(
             unmergedFiles,
             this.props.externalEditorName,
@@ -227,7 +228,7 @@ export class MergeConflictsDialog extends React.Component<
           <ButtonGroup>
             <Button
               type="submit"
-              disabled={anyConflictedFiles}
+              disabled={conflictedFilesCount > 0}
               tooltip={tooltipString}
             >
               {submitButtonString}
