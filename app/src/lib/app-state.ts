@@ -312,13 +312,13 @@ export type Popup =
       type: PopupType.MergeConflicts
       repository: Repository
       currentBranch: string
-      comparisonBranch: string
+      theirBranch: string
     }
   | {
       type: PopupType.AbortMerge
       repository: Repository
       currentBranch: string
-      comparisonBranch: string
+      theirBranch: string
     }
 
 export enum FoldoutType {

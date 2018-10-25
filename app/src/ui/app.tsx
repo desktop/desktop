@@ -1350,7 +1350,7 @@ export class App extends React.Component<IAppProps, IAppState> {
               externalEditorName={this.state.selectedExternalEditor}
               openRepositoryInShell={this.openInShell}
               currentBranch={popup.currentBranch}
-              comparisonBranch={popup.comparisonBranch}
+              theirBranch={popup.theirBranch}
             />
           )
         } else {
@@ -1388,7 +1388,7 @@ export class App extends React.Component<IAppProps, IAppState> {
               repository={popup.repository}
               onDismissed={this.onPopupDismissed}
               currentBranch={popup.currentBranch}
-              comparisonBranch={popup.comparisonBranch}
+              theirBranch={popup.theirBranch}
             />
           )
         }
