@@ -14,6 +14,7 @@ import {
 } from '../../models/status'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { PathText } from '../lib/path-text'
+import { DialogHeader } from '../dialog/header'
 
 interface IMergeConflictsDialogProps {
   readonly dispatcher: Dispatcher
@@ -83,8 +84,18 @@ export class MergeConflictsDialog extends React.Component<
     return Math.ceil(conflictMarkers / 3)
   }
 
-  private titleString(currentBranchName: string, comparisonBranchName: string) {
-    return `Resolve conflicts before merging ${comparisonBranchName} into ${currentBranchName}`
+  private renderHeaderTitle(
+    currentBranchName: string,
+    comparisonBranchName: string
+  ) {
+    return (
+      <span>
+        {`Resolve conflicts before merging `}
+        <strong>{comparisonBranchName}</strong>
+        {` into `}
+        <strong>{currentBranchName}</strong>
+      </span>
+    )
   }
 
   private editorButtonString(editorName: string | undefined) {
@@ -200,7 +211,7 @@ export class MergeConflictsDialog extends React.Component<
     const conflictedFilesCount = unmergedFiles.filter(
       f => f.status === AppFileStatus.Conflicted
     ).length
-    const titleString = this.titleString(
+    const headerTitle = this.renderHeaderTitle(
       this.props.currentBranch,
       this.props.theirBranch
     )
@@ -211,11 +222,11 @@ export class MergeConflictsDialog extends React.Component<
     return (
       <Dialog
         id="merge-conflicts-list"
-        title={titleString}
         dismissable={false}
         onDismissed={this.onCancel}
         onSubmit={this.onSubmit}
       >
+        <DialogHeader title={headerTitle} dismissable={false} />
         <DialogContent>
           {this.renderUnmergedFilesSummary(conflictedFilesCount)}
           {this.renderUnmergedFiles(
