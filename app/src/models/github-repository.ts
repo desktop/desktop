@@ -58,13 +58,9 @@ export class GitHubRepository {
    * Objects with the same hash are guaranteed to be structurally equal.
    */
   public get hash(): string {
-    return `${this.dbID}+
-      ${this.defaultBranch}+
-      ${this.private}+
-      ${this.cloneURL}+
-      ${this.name}+
-      ${this.htmlURL}+
-      ${this.owner.hash}+
-      ${this.parent && this.parent.hash}`
+    return `${this.dbID}+${this.defaultBranch}+${this.private}+${
+      this.cloneURL
+    }+${this.name}+${this.htmlURL}+${this.owner.hash}+${this.parent &&
+      this.parent.hash}`
   }
 }
