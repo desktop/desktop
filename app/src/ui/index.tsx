@@ -12,6 +12,7 @@ import {
   gitAuthenticationErrorHandler,
   externalEditorErrorHandler,
   openShellErrorHandler,
+  mergeConflictHandler,
   lfsAttributeMismatchHandler,
   defaultErrorHandler,
   missingRepositoryHandler,
@@ -145,6 +146,7 @@ dispatcher.registerErrorHandler(defaultErrorHandler)
 dispatcher.registerErrorHandler(upstreamAlreadyExistsHandler)
 dispatcher.registerErrorHandler(externalEditorErrorHandler)
 dispatcher.registerErrorHandler(openShellErrorHandler)
+dispatcher.registerErrorHandler(mergeConflictHandler)
 dispatcher.registerErrorHandler(lfsAttributeMismatchHandler)
 dispatcher.registerErrorHandler(gitAuthenticationErrorHandler)
 dispatcher.registerErrorHandler(pushNeedsPullHandler)
