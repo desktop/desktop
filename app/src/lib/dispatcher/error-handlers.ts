@@ -273,7 +273,7 @@ export async function mergeConflictHandler(
     return error
   }
 
-  const { command, tip, repository, context } = e.metadata
+  const { repository, gitContext } = e.metadata
   if (repository == null) {
     return error
   }
@@ -282,31 +282,34 @@ export async function mergeConflictHandler(
     return error
   }
 
-  if (command != null) {
-    switch (command) {
-      case 'pull':
-        dispatcher.mergeConflictDetectedFromPull()
-        break
-      case 'merge':
-        dispatcher.mergeConflictDetectedFromExplicitMerge()
-        break
+  if (gitContext == null) {
+    return error
+  }
+
+  switch (gitContext.kind) {
+    case 'pull':
+      dispatcher.mergeConflictDetectedFromPull()
+      break
+    case 'merge':
+      dispatcher.mergeConflictDetectedFromExplicitMerge()
+      break
+  }
+
+  if (gitContext.kind === 'merge') {
+    const { tip, branch } = gitContext
+    if (tip == null || tip.kind !== TipState.Valid) {
+      return error
     }
-  }
 
-  if (tip == null || tip.kind !== TipState.Valid) {
-    return error
+    dispatcher.showPopup({
+      type: PopupType.MergeConflicts,
+      repository,
+      currentBranch: tip.branch.name,
+      comparisonBranch: branch,
+    })
+  } else {
+    // TODO: what should we display if this is a pull?
   }
-
-  if (context == null || context.kind !== 'merge') {
-    return error
-  }
-
-  dispatcher.showPopup({
-    type: PopupType.MergeConflicts,
-    repository,
-    currentBranch: tip.branch.name,
-    comparisonBranch: context.branch,
-  })
 
   return null
 }

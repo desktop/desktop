@@ -165,7 +165,6 @@ import { validatedRepositoryPath } from './helpers/validated-repository-path'
 import { RepositoryStateCache } from './repository-state-cache'
 import { readEmoji } from '../read-emoji'
 import { GitStoreCache } from './git-store-cache'
-import { IErrorMetadata } from '../error-with-metadata'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -2639,7 +2638,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
                   value: progress.value * pullWeight,
                 })
               }),
-            { command: 'pull', retryAction }
+            { gitContext: { kind: 'pull' }, retryAction }
           )
 
           const refreshStartProgress = pullWeight + fetchWeight
@@ -3086,18 +3085,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const { tip } = gitStore
-    const errorMetadata: IErrorMetadata = {
-      tip,
-      context: {
+    await gitStore.performFailableOperation(() => gitStore.merge(branch), {
+      gitContext: {
         kind: 'merge',
+        tip,
         branch,
       },
-    }
-
-    await gitStore.performFailableOperation(
-      () => gitStore.merge(branch),
-      errorMetadata
-    )
+    })
 
     return this._refreshRepository(repository)
   }

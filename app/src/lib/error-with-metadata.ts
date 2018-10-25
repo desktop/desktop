@@ -1,21 +1,9 @@
 import { Repository } from '../models/repository'
 import { CloningRepository } from '../models/cloning-repository'
 import { RetryAction } from './retry-actions'
-import { Tip } from '../models/tip'
-
-type MergeErrorContext = {
-  kind: 'merge'
-  /** the branch passed to Git as part of the merge operation */
-  branch: string
-}
-
-/** A custom shape of data for actions to provide to help with error handling */
-type IErrorContext = MergeErrorContext
+import { IGitErrorContext } from './git-error-context'
 
 export interface IErrorMetadata {
-  /** The first argument passed to `git` which triggered this error */
-  readonly command?: string
-
   /** Was the action which caused this error part of a background task? */
   readonly backgroundTask?: boolean
 
@@ -25,11 +13,8 @@ export interface IErrorMetadata {
   /** The action to retry if applicable. */
   readonly retryAction?: RetryAction
 
-  /** The tip of the repository at the time of the action */
-  readonly tip?: Tip
-
   /** Additional context that specific actions can provide fields for */
-  readonly context?: IErrorContext
+  readonly gitContext?: IGitErrorContext
 }
 
 /** An error which contains additional metadata. */
