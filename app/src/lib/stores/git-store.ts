@@ -14,7 +14,7 @@ import { Commit } from '../../models/commit'
 import { IRemote } from '../../models/remote'
 import { IFetchProgress, IRevertProgress } from '../../models/progress'
 import { ICommitMessage } from '../../models/commit-message'
-import { ComparisonView } from '../app-state'
+import { ComparisonMode } from '../app-state'
 
 import { IAppShell } from '../app-shell'
 import { ErrorWithMetadata, IErrorMetadata } from '../error-with-metadata'
@@ -1304,7 +1304,7 @@ export class GitStore extends BaseStore {
    */
   public async getCompareCommits(
     branch: Branch,
-    compareType: ComparisonView.Ahead | ComparisonView.Behind
+    comparisonMode: ComparisonMode
   ): Promise<ICompareResult | null> {
     if (this.tip.kind !== TipState.Valid) {
       return null
@@ -1321,11 +1321,11 @@ export class GitStore extends BaseStore {
     }
 
     const revisionRange =
-      compareType === ComparisonView.Ahead
+      comparisonMode === ComparisonMode.Ahead
         ? revRange(branch.name, base.name)
         : revRange(base.name, branch.name)
     const commitsToLoad =
-      compareType === ComparisonView.Ahead
+      comparisonMode === ComparisonMode.Ahead
         ? aheadBehind.ahead
         : aheadBehind.behind
     const commits = await getCommits(

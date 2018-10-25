@@ -392,10 +392,24 @@ export interface IChangesState {
   readonly conflictState: IConflictState | null
 }
 
-export enum ComparisonView {
-  None = 'none',
-  Ahead = 'ahead',
-  Behind = 'behind',
+/**
+ * This represents the various states the History tab can be in.
+ *
+ * By default, it should show the history of the current branch.
+ */
+export enum HistoryTabMode {
+  History = 'History',
+  Compare = 'Compare',
+}
+
+/**
+ * This represents whether the compare tab is currently viewing the
+ * commits ahead or behind when merging some other branch into your
+ * current branch.
+ */
+export enum ComparisonMode {
+  Ahead = 'Ahead',
+  Behind = 'Behind',
 }
 
 /**
@@ -403,7 +417,7 @@ export enum ComparisonView {
  * branch.
  */
 export interface IDisplayHistory {
-  readonly kind: ComparisonView.None
+  readonly kind: HistoryTabMode.History
 }
 
 /**
@@ -411,8 +425,10 @@ export interface IDisplayHistory {
  * branch as the base branch.
  */
 export interface ICompareBranch {
+  readonly kind: HistoryTabMode.Compare
+
   /** The chosen comparison mode determines which commits to show */
-  readonly kind: ComparisonView.Ahead | ComparisonView.Behind
+  readonly comparisonMode: ComparisonMode.Ahead | ComparisonMode.Behind
 
   /** The branch to compare against the base branch */
   readonly comparisonBranch: Branch
@@ -496,22 +512,17 @@ export type MergeResultStatus =
   | { kind: MergeResultKind.Clean }
   | { kind: MergeResultKind.Invalid }
 
-export enum CompareActionKind {
-  History = 'History',
-  Branch = 'Branch',
+export interface IViewHistory {
+  readonly kind: HistoryTabMode.History
 }
 
 export interface ICompareToBranch {
-  readonly kind: CompareActionKind.Branch
+  readonly kind: HistoryTabMode.Compare
   readonly branch: Branch
-  readonly mode: ComparisonView.Ahead | ComparisonView.Behind
+  readonly comparisonMode: ComparisonMode.Ahead | ComparisonMode.Behind
 }
 
 /**
  * An action to send to the application store to update the compare state
  */
-export type CompareAction =
-  | {
-      readonly kind: CompareActionKind.History
-    }
-  | ICompareToBranch
+export type CompareAction = IViewHistory | ICompareToBranch

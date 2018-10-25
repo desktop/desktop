@@ -75,8 +75,7 @@ import {
 import { shell } from '../app-shell'
 import {
   CompareAction,
-  CompareActionKind,
-  ComparisonView,
+  HistoryTabMode,
   Foldout,
   FoldoutType,
   IAppState,
@@ -88,6 +87,7 @@ import {
   RepositorySectionTab,
   SelectionType,
   MergeResultStatus,
+  ComparisonMode,
 } from '../app-state'
 import { caseInsensitiveCompare } from '../compare'
 import { IGitHubUser } from '../databases/github-user-database'
@@ -529,13 +529,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private clearSelectedCommit(repository: Repository) {
-    this.repositoryStateCache.update(repository, () => ({
-      commitSelection: {
-        sha: null,
-        file: null,
-        changedFiles: [],
-        diff: null,
-      },
+    this.repositoryStateCache.updateCommitSelection(repository, () => ({
+      sha: null,
+      file: null,
+      changedFiles: [],
+      diff: null,
     }))
   }
 
@@ -544,15 +542,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     sha: string
   ): Promise<void> {
-    this.repositoryStateCache.update(repository, state => {
-      const commitChanged = state.commitSelection.sha !== sha
-      const changedFiles = commitChanged
-        ? new Array<CommittedFileChange>()
-        : state.commitSelection.changedFiles
-      const file = commitChanged ? null : state.commitSelection.file
-      const commitSelection = { sha, file, diff: null, changedFiles }
-      return { commitSelection }
-    })
+    const { commitSelection } = this.repositoryStateCache.get(repository)
+
+    if (commitSelection.sha === sha) {
+      return
+    }
+
+    this.repositoryStateCache.updateCommitSelection(repository, () => ({
+      sha,
+      file: null,
+      changedFiles: [],
+      diff: null,
+    }))
 
     this.emitUpdate()
   }
@@ -705,7 +706,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const gitStore = this.gitStoreCache.get(repository)
     const kind = action.kind
 
-    if (action.kind === CompareActionKind.History) {
+    if (action.kind === HistoryTabMode.History) {
       const { tip } = gitStore
 
       let currentSha: string | null = null
@@ -727,7 +728,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       if (
         tipIsUnchanged &&
-        formState.kind === ComparisonView.None &&
+        formState.kind === HistoryTabMode.History &&
         commitSHAs.length > 0
       ) {
         // don't refresh the history view here because we know nothing important
@@ -745,7 +746,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.repositoryStateCache.updateCompareState(repository, () => ({
         tip: currentSha,
         formState: {
-          kind: ComparisonView.None,
+          kind: HistoryTabMode.History,
         },
         commitSHAs: commits,
         filterText: '',
@@ -756,7 +757,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return this.emitUpdate()
     }
 
-    if (action.kind === CompareActionKind.Branch) {
+    if (action.kind === HistoryTabMode.Compare) {
       return this.updateCompareToBranch(repository, action)
     }
 
@@ -772,7 +773,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const comparisonBranch = action.branch
     const compare = await gitStore.getCompareCommits(
       comparisonBranch,
-      action.mode
+      action.comparisonMode
     )
 
     this.statsStore.recordBranchComparison()
@@ -796,8 +797,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.repositoryStateCache.updateCompareState(repository, s => ({
       formState: {
+        kind: HistoryTabMode.Compare,
         comparisonBranch,
-        kind: action.mode,
+        comparisonMode: action.comparisonMode,
         aheadBehind,
       },
       filterText: comparisonBranch.name,
@@ -816,11 +818,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     if (this.currentAheadBehindUpdater != null && currentSha != null) {
       const from =
-        action.mode === ComparisonView.Ahead
+        action.comparisonMode === ComparisonMode.Ahead
           ? comparisonBranch.tip.sha
           : currentSha
       const to =
-        action.mode === ComparisonView.Ahead
+        action.comparisonMode === ComparisonMode.Ahead
           ? currentSha
           : comparisonBranch.tip.sha
 
@@ -929,7 +931,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const state = this.repositoryStateCache.get(repository)
     const { formState } = state.compareState
-    if (formState.kind === ComparisonView.None) {
+    if (formState.kind === HistoryTabMode.History) {
       const commits = state.compareState.commitSHAs
       const lastCommitSha = commits[commits.length - 1]
 
@@ -981,21 +983,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
         ? changedFiles[0]
         : commitSelection.file
 
-    const selectionOrFirstFile = {
+    this.repositoryStateCache.updateCommitSelection(repository, () => ({
       file: firstFileOrDefault,
-      sha: commitSelection.sha,
       changedFiles,
       diff: null,
-    }
-
-    this.repositoryStateCache.update(repository, () => ({
-      commitSelection: selectionOrFirstFile,
     }))
 
     this.emitUpdate()
 
-    if (selectionOrFirstFile.file) {
-      this._changeFileSelection(repository, selectionOrFirstFile.file)
+    if (firstFileOrDefault !== null) {
+      this._changeFileSelection(repository, firstFileOrDefault)
     }
   }
 
@@ -1010,16 +1007,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     file: CommittedFileChange
   ): Promise<void> {
-    this.repositoryStateCache.update(repository, state => {
-      const { sha, changedFiles } = state.commitSelection
-      const commitSelection = {
-        sha,
-        changedFiles,
-        file,
-        diff: null,
-      }
-      return { commitSelection }
-    })
+    this.repositoryStateCache.updateCommitSelection(repository, () => ({
+      file,
+      diff: null,
+    }))
     this.emitUpdate()
 
     const stateBeforeLoad = this.repositoryStateCache.get(repository)
@@ -1052,16 +1043,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    this.repositoryStateCache.update(repository, state => {
-      const { sha, changedFiles } = state.commitSelection
-      const commitSelection = {
-        sha,
-        changedFiles,
-        file,
-        diff,
-      }
-      return { commitSelection }
-    })
+    this.repositoryStateCache.updateCommitSelection(repository, () => ({
+      diff,
+    }))
 
     this.emitUpdate()
   }
@@ -2187,7 +2171,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       await this._refreshRepository(repository)
     } finally {
       this.updateCheckoutProgress(repository, null)
-      this._initializeCompare(repository, { kind: CompareActionKind.History })
+      this._initializeCompare(repository, { kind: HistoryTabMode.History })
     }
 
     const { branchesState } = this.repositoryStateCache.get(repository)
@@ -3992,16 +3976,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
 function getInitialAction(
   cachedState: IDisplayHistory | ICompareBranch
 ): CompareAction {
-  if (cachedState.kind === ComparisonView.None) {
+  if (cachedState.kind === HistoryTabMode.History) {
     return {
-      kind: CompareActionKind.History,
+      kind: HistoryTabMode.History,
     }
   }
 
+  const { comparisonMode, comparisonBranch } = cachedState
+
   return {
-    kind: CompareActionKind.Branch,
-    branch: cachedState.comparisonBranch,
-    mode: cachedState.kind,
+    kind: HistoryTabMode.Compare,
+    comparisonMode,
+    branch: comparisonBranch,
   }
 }
 

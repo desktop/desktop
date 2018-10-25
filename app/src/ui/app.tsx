@@ -7,7 +7,7 @@ import {
   RepositorySectionTab,
   FoldoutType,
   SelectionType,
-  CompareActionKind,
+  HistoryTabMode,
 } from '../lib/app-state'
 import { Dispatcher } from '../lib/dispatcher'
 import { AppStore, GitHubUserStore, IssuesStore } from '../lib/stores'
@@ -538,7 +538,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     await this.props.dispatcher.closeCurrentFoldout()
 
     await this.props.dispatcher.initializeCompare(state.repository, {
-      kind: CompareActionKind.History,
+      kind: HistoryTabMode.History,
     })
 
     await this.props.dispatcher.changeRepositorySection(
@@ -1830,7 +1830,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     // branch has been deleted. Calling executeCompare allows
     // us to do just that.
     this.props.dispatcher.executeCompare(repository, {
-      kind: CompareActionKind.History,
+      kind: HistoryTabMode.History,
     })
   }
 }
