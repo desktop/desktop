@@ -70,4 +70,8 @@ dialog#merge {
       border-bottom: 0;
     }
   }
+
+  .dialog-footer {
+    padding-top: var(--spacing);
+  }
 }
