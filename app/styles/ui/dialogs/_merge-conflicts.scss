@@ -78,6 +78,10 @@ dialog#merge-conflicts-list {
   .cli-link {
     a {
       color: $blue;
+
+      &:hover {
+        text-decoration: underline;
+      }
     }
   }
 }
