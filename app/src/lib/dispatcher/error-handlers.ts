@@ -295,21 +295,17 @@ export async function mergeConflictHandler(
       break
   }
 
-  if (gitContext.kind === 'merge') {
-    const { tip, branch } = gitContext
-    if (tip == null || tip.kind !== TipState.Valid) {
-      return error
-    }
-
-    dispatcher.showPopup({
-      type: PopupType.MergeConflicts,
-      repository,
-      currentBranch: tip.branch.name,
-      comparisonBranch: branch,
-    })
-  } else {
-    // TODO: what should we display if this is a pull?
+  const { tip, branch } = gitContext
+  if (tip == null || tip.kind !== TipState.Valid) {
+    return error
   }
+
+  dispatcher.showPopup({
+    type: PopupType.MergeConflicts,
+    repository,
+    currentBranch: tip.branch.name,
+    comparisonBranch: branch,
+  })
 
   return null
 }
