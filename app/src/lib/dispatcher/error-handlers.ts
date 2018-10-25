@@ -273,7 +273,7 @@ export async function mergeConflictHandler(
     return error
   }
 
-  const { command, tip, repository } = e.metadata
+  const { command, tip, repository, context } = e.metadata
   if (repository == null) {
     return error
   }
@@ -297,14 +297,15 @@ export async function mergeConflictHandler(
     return error
   }
 
-  // TODO: where can we get this from?
-  const branch = 'my-cool-branch'
+  if (context == null || context.kind !== 'merge') {
+    return error
+  }
 
   dispatcher.showPopup({
     type: PopupType.MergeConflicts,
     repository,
     currentBranch: tip.branch.name,
-    comparisonBranch: branch,
+    comparisonBranch: context.branch,
   })
 
   return null
