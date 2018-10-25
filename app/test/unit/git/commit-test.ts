@@ -1,8 +1,6 @@
 import * as path from 'path'
 import * as FSE from 'fs-extra'
 
-import { expect } from 'chai'
-
 import { Repository } from '../../../src/models/repository'
 import {
   createCommit,
@@ -10,6 +8,7 @@ import {
   getCommit,
   getChangedFiles,
   getWorkingDirectoryDiff,
+  createMergeCommit,
 } from '../../../src/lib/git'
 
 import {
@@ -57,17 +56,17 @@ describe('git/commit', () => {
 
       let status = await getStatusOrThrow(repository!)
       let files = status.workingDirectory.files
-      expect(files.length).to.equal(1)
+      expect(files.length).toEqual(1)
 
       await createCommit(repository!, 'Special commit', files)
 
       status = await getStatusOrThrow(repository!)
       files = status.workingDirectory.files
-      expect(files.length).to.equal(0)
+      expect(files.length).toEqual(0)
 
       const commits = await getCommits(repository!, 'HEAD', 100)
-      expect(commits.length).to.equal(6)
-      expect(commits[0].summary).to.equal('Special commit')
+      expect(commits.length).toEqual(6)
+      expect(commits[0].summary).toEqual('Special commit')
     })
 
     it('commit does not strip commentary by default', async () => {
@@ -78,7 +77,7 @@ describe('git/commit', () => {
 
       const status = await getStatusOrThrow(repository!)
       const files = status.workingDirectory.files
-      expect(files.length).to.equal(1)
+      expect(files.length).toEqual(1)
 
       const message = `Special commit
 
@@ -87,9 +86,9 @@ describe('git/commit', () => {
       await createCommit(repository!, message, files)
 
       const commit = await getCommit(repository!, 'HEAD')
-      expect(commit).to.not.be.null
-      expect(commit!.summary).to.equal('Special commit')
-      expect(commit!.body).to.equal('# this is a comment\n')
+      expect(commit).not.toBeNull()
+      expect(commit!.summary).toEqual('Special commit')
+      expect(commit!.body).toEqual('# this is a comment\n')
     })
 
     it('can commit for empty repository', async () => {
@@ -101,7 +100,7 @@ describe('git/commit', () => {
       const status = await getStatusOrThrow(repo)
       const files = status.workingDirectory.files
 
-      expect(files.length).to.equal(2)
+      expect(files.length).toEqual(2)
 
       const allChanges = [
         files[0].withIncludeAll(true),
@@ -116,13 +115,13 @@ describe('git/commit', () => {
 
       const statusAfter = await getStatusOrThrow(repo)
 
-      expect(statusAfter.workingDirectory.files.length).to.equal(0)
+      expect(statusAfter.workingDirectory.files.length).toEqual(0)
 
       const history = await getCommits(repo, 'HEAD', 2)
 
-      expect(history.length).to.equal(1)
-      expect(history[0].summary).to.equal('added two files')
-      expect(history[0].body).to.equal('this is a description\n')
+      expect(history.length).toEqual(1)
+      expect(history[0].summary).toEqual('added two files')
+      expect(history[0].body).toEqual('this is a description\n')
     })
 
     it('can commit renames', async () => {
@@ -137,7 +136,7 @@ describe('git/commit', () => {
       const status = await getStatusOrThrow(repo)
       const files = status.workingDirectory.files
 
-      expect(files.length).to.equal(1)
+      expect(files.length).toEqual(1)
 
       await createCommit(repo, 'renamed a file', [
         files[0].withIncludeAll(true),
@@ -145,7 +144,7 @@ describe('git/commit', () => {
 
       const statusAfter = await getStatusOrThrow(repo)
 
-      expect(statusAfter.workingDirectory.files.length).to.equal(0)
+      expect(statusAfter.workingDirectory.files.length).toEqual(0)
     })
   })
 
@@ -176,24 +175,24 @@ describe('git/commit', () => {
 
       // verify that the HEAD of the repository has moved
       const newTip = (await getCommits(repository!, 'HEAD', 1))[0]
-      expect(newTip.sha).to.not.equal(previousTip.sha)
-      expect(newTip.summary).to.equal('title')
+      expect(newTip.sha).not.toEqual(previousTip.sha)
+      expect(newTip.summary).toEqual('title')
 
       // verify that the contents of this new commit are just the new file
       const changedFiles = await getChangedFiles(repository!, newTip.sha)
-      expect(changedFiles.length).to.equal(1)
-      expect(changedFiles[0].path).to.equal(newFileName)
+      expect(changedFiles.length).toEqual(1)
+      expect(changedFiles[0].path).toEqual(newFileName)
 
       // verify that changes remain for this new file
       const status = await getStatusOrThrow(repository!)
-      expect(status.workingDirectory.files.length).to.equal(4)
+      expect(status.workingDirectory.files.length).toEqual(4)
 
       // verify that the file is now tracked
       const fileChange = status!.workingDirectory.files.find(
         f => f.path === newFileName
       )
-      expect(fileChange).to.not.be.undefined
-      expect(fileChange!.status).to.equal(AppFileStatus.Modified)
+      expect(fileChange).not.toBeUndefined()
+      expect(fileChange!.status).toEqual(AppFileStatus.Modified)
     })
 
     it('can commit second hunk from modified file', async () => {
@@ -227,24 +226,24 @@ describe('git/commit', () => {
 
       // verify that the HEAD of the repository has moved
       const newTip = (await getCommits(repository!, 'HEAD', 1))[0]
-      expect(newTip.sha).to.not.equal(previousTip.sha)
-      expect(newTip.summary).to.equal('title')
+      expect(newTip.sha).not.toEqual(previousTip.sha)
+      expect(newTip.summary).toEqual('title')
 
       // verify that the contents of this new commit are just the modified file
       const changedFiles = await getChangedFiles(repository!, newTip.sha)
-      expect(changedFiles.length).to.equal(1)
-      expect(changedFiles[0].path).to.equal(modifiedFile)
+      expect(changedFiles.length).toEqual(1)
+      expect(changedFiles[0].path).toEqual(modifiedFile)
 
       // verify that changes remain for this modified file
       const status = await getStatusOrThrow(repository!)
-      expect(status.workingDirectory.files.length).to.equal(4)
+      expect(status.workingDirectory.files.length).toEqual(4)
 
       // verify that the file is still marked as modified
       const fileChange = status.workingDirectory.files.find(
         f => f.path === modifiedFile
       )
-      expect(fileChange).to.not.be.undefined
-      expect(fileChange!.status).to.equal(AppFileStatus.Modified)
+      expect(fileChange).not.toBeUndefined()
+      expect(fileChange!.status).toEqual(AppFileStatus.Modified)
     })
 
     it('can commit single delete from modified file', async () => {
@@ -280,13 +279,13 @@ describe('git/commit', () => {
 
       // verify that the HEAD of the repository has moved
       const newTip = (await getCommits(repository!, 'HEAD', 1))[0]
-      expect(newTip.sha).to.not.equal(previousTip.sha)
-      expect(newTip.summary).to.equal('title')
+      expect(newTip.sha).not.toEqual(previousTip.sha)
+      expect(newTip.summary).toEqual('title')
 
       // verify that the contents of this new commit are just the modified file
       const changedFiles = await getChangedFiles(repository!, newTip.sha)
-      expect(changedFiles.length).to.equal(1)
-      expect(changedFiles[0].path).to.equal(fileName)
+      expect(changedFiles.length).toEqual(1)
+      expect(changedFiles[0].path).toEqual(fileName)
     })
 
     it('can commit multiple hunks from modified file', async () => {
@@ -324,24 +323,24 @@ describe('git/commit', () => {
 
       // verify that the HEAD of the repository has moved
       const newTip = (await getCommits(repository!, 'HEAD', 1))[0]
-      expect(newTip.sha).to.not.equal(previousTip.sha)
-      expect(newTip.summary).to.equal('title')
+      expect(newTip.sha).not.toEqual(previousTip.sha)
+      expect(newTip.summary).toEqual('title')
 
       // verify that the contents of this new commit are just the modified file
       const changedFiles = await getChangedFiles(repository!, newTip.sha)
-      expect(changedFiles.length).to.equal(1)
-      expect(changedFiles[0].path).to.equal(modifiedFile)
+      expect(changedFiles.length).toEqual(1)
+      expect(changedFiles[0].path).toEqual(modifiedFile)
 
       // verify that changes remain for this modified file
       const status = await getStatusOrThrow(repository!)
-      expect(status.workingDirectory.files.length).to.equal(4)
+      expect(status.workingDirectory.files.length).toEqual(4)
 
       // verify that the file is still marked as modified
       const fileChange = status.workingDirectory.files.find(
         f => f.path === modifiedFile
       )
-      expect(fileChange).to.not.be.undefined
-      expect(fileChange!.status).to.equal(AppFileStatus.Modified)
+      expect(fileChange).not.toBeUndefined()
+      expect(fileChange!.status).toEqual(AppFileStatus.Modified)
     })
 
     it('can commit some lines from deleted file', async () => {
@@ -364,24 +363,24 @@ describe('git/commit', () => {
 
       // verify that the HEAD of the repository has moved
       const newTip = (await getCommits(repository!, 'HEAD', 1))[0]
-      expect(newTip.sha).to.not.equal(previousTip.sha)
-      expect(newTip.summary).to.equal('title')
+      expect(newTip.sha).not.toEqual(previousTip.sha)
+      expect(newTip.summary).toEqual('title')
 
       // verify that the contents of this new commit are just the new file
       const changedFiles = await getChangedFiles(repository!, newTip.sha)
-      expect(changedFiles.length).to.equal(1)
-      expect(changedFiles[0].path).to.equal(deletedFile)
+      expect(changedFiles.length).toEqual(1)
+      expect(changedFiles[0].path).toEqual(deletedFile)
 
       // verify that changes remain for this new file
       const status = await getStatusOrThrow(repository!)
-      expect(status.workingDirectory.files.length).to.equal(4)
+      expect(status.workingDirectory.files.length).toEqual(4)
 
       // verify that the file is now tracked
       const fileChange = status.workingDirectory.files.find(
         f => f.path === deletedFile
       )
-      expect(fileChange).to.not.be.undefined
-      expect(fileChange!.status).to.equal(AppFileStatus.Deleted)
+      expect(fileChange).not.toBeUndefined()
+      expect(fileChange!.status).toEqual(AppFileStatus.Deleted)
     })
 
     it('can commit renames with modifications', async () => {
@@ -398,7 +397,7 @@ describe('git/commit', () => {
       const status = await getStatusOrThrow(repo)
       const files = status.workingDirectory.files
 
-      expect(files.length).to.equal(1)
+      expect(files.length).toEqual(1)
 
       await createCommit(repo, 'renamed a file', [
         files[0].withIncludeAll(true),
@@ -406,7 +405,7 @@ describe('git/commit', () => {
 
       const statusAfter = await getStatusOrThrow(repo)
 
-      expect(statusAfter.workingDirectory.files.length).to.equal(0)
+      expect(statusAfter.workingDirectory.files.length).toEqual(0)
     })
 
     // The scenario here is that the user has staged a rename (probably using git mv)
@@ -426,9 +425,9 @@ describe('git/commit', () => {
       const status = await getStatusOrThrow(repo)
       const files = status.workingDirectory.files
 
-      expect(files.length).to.equal(1)
-      expect(files[0].path).to.contain('bar')
-      expect(files[0].status).to.equal(AppFileStatus.Renamed)
+      expect(files.length).toEqual(1)
+      expect(files[0].path).toContain('bar')
+      expect(files[0].status).toEqual(AppFileStatus.Renamed)
 
       const selection = files[0].selection
         .withSelectNone()
@@ -440,16 +439,16 @@ describe('git/commit', () => {
 
       const statusAfter = await getStatusOrThrow(repo)
 
-      expect(statusAfter.workingDirectory.files.length).to.equal(1)
+      expect(statusAfter.workingDirectory.files.length).toEqual(1)
 
       const diff = await getTextDiff(
         repo,
         statusAfter.workingDirectory.files[0]
       )
 
-      expect(diff.hunks.length).to.equal(1)
-      expect(diff.hunks[0].lines.length).to.equal(4)
-      expect(diff.hunks[0].lines[3].text).to.equal('+line3')
+      expect(diff.hunks.length).toEqual(1)
+      expect(diff.hunks[0].lines.length).toEqual(4)
+      expect(diff.hunks[0].lines[3].text).toEqual('+line3')
     })
   })
 
@@ -461,23 +460,54 @@ describe('git/commit', () => {
       const inMerge = await FSE.pathExists(
         path.join(repo.path, '.git', 'MERGE_HEAD')
       )
-      expect(inMerge).to.equal(true)
+      expect(inMerge).toEqual(true)
 
       await FSE.writeFile(filePath, 'b1b2')
 
       const status = await getStatusOrThrow(repo)
       const files = status.workingDirectory.files
 
-      expect(files.length).to.equal(1)
-      expect(files[0].path).to.equal('foo')
-      expect(files[0].status).to.equal(AppFileStatus.Resolved)
+      expect(files.length).toEqual(1)
+      expect(files[0].path).toEqual('foo')
+      expect(files[0].status).toEqual(AppFileStatus.Resolved)
 
       const selection = files[0].selection.withSelectAll()
       const selectedFile = files[0].withSelection(selection)
       await createCommit(repo, 'Merge commit!', [selectedFile])
 
       const commits = await getCommits(repo, 'HEAD', 5)
-      expect(commits[0].parentSHAs.length).to.equal(2)
+      expect(commits[0].parentSHAs.length).toEqual(2)
+    })
+  })
+
+  describe('createMergeCommit with a merge conflict', () => {
+    let repository: Repository
+    describe('with a merge conflict', () => {
+      beforeEach(async () => {
+        repository = await setupConflictedRepo()
+      })
+      it('creates a merge commit', async () => {
+        const status = await getStatusOrThrow(repository)
+        await createMergeCommit(repository, status.workingDirectory.files)
+        const newStatus = await getStatusOrThrow(repository)
+        expect(newStatus.workingDirectory.files).toHaveLength(0)
+      })
+    })
+    describe('with no changes', () => {
+      beforeEach(async () => {
+        repository = new Repository(
+          await setupFixtureRepository('test-repo'),
+          -1,
+          null,
+          false
+        )
+      })
+      it('throws an error', async () => {
+        const status = await getStatusOrThrow(repository)
+        expect(
+          createMergeCommit(repository, status.workingDirectory.files)
+        ).rejects.toThrow(/Commit failed/i)
+      })
     })
   })
 
@@ -501,9 +531,9 @@ describe('git/commit', () => {
       status = await getStatusOrThrow(repo)
       files = status.workingDirectory.files
 
-      expect(files.length).to.equal(1)
-      expect(files[0].path).to.contain('second')
-      expect(files[0].status).to.equal(AppFileStatus.New)
+      expect(files.length).toEqual(1)
+      expect(files[0].path).toContain('second')
+      expect(files[0].status).toEqual(AppFileStatus.New)
 
       const toCommit = status.workingDirectory.withIncludeAllFiles(true)
 
@@ -511,11 +541,11 @@ describe('git/commit', () => {
 
       status = await getStatusOrThrow(repo)
       files = status.workingDirectory.files
-      expect(files).to.be.empty
+      expect(files).toHaveLength(0)
 
       const commit = await getCommit(repo, 'HEAD')
-      expect(commit).to.not.be.null
-      expect(commit!.summary).to.equal('commit everything')
+      expect(commit).not.toBeNull()
+      expect(commit!.summary).toEqual('commit everything')
     })
 
     it('can commit when a delete is staged and the untracked file exists', async () => {
@@ -537,9 +567,9 @@ describe('git/commit', () => {
       status = await getStatusOrThrow(repo)
       files = status.workingDirectory.files
 
-      expect(files.length).to.equal(1)
-      expect(files[0].path).to.contain('first')
-      expect(files[0].status).to.equal(AppFileStatus.New)
+      expect(files.length).toEqual(1)
+      expect(files[0].path).toContain('first')
+      expect(files[0].status).toEqual(AppFileStatus.New)
 
       const toCommit = status!.workingDirectory.withIncludeAllFiles(true)
 
@@ -547,11 +577,11 @@ describe('git/commit', () => {
 
       status = await getStatusOrThrow(repo)
       files = status.workingDirectory.files
-      expect(files).to.be.empty
+      expect(files).toHaveLength(0)
 
       const commit = await getCommit(repo, 'HEAD')
-      expect(commit).to.not.be.null
-      expect(commit!.summary).to.equal('commit again!')
+      expect(commit).not.toBeNull()
+      expect(commit!.summary).toEqual('commit again!')
     })
   })
 })
