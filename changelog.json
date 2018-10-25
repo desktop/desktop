@@ -1,5 +1,17 @@
 {
   "releases": {
+    "1.5.0-beta1": [
+      "[New] Repository switcher has a convenient \"Add\" button to add other repositories - #5878",
+      "[New] macOS tray icon now supports drag-and-drop to add local repository - #5048",
+      "[Added] Add keyboard shortcut for rename branch menu action - #5964. Thanks @agisilaos!",
+      "[Fixed] Add \"Copy File Path\" context menu action to commit file list - #2944. Thanks @Amabel!",
+      "[Fixed] Launching Desktop from browser always asks to clone repository - #5913",
+      "[Fixed] Publish dialog always displayed instead of pushing changes to tracked branch - #5936",
+      "[Improved] Sanitize repository name before publishing to GitHub - #3090. Thanks @Daniel-McCarthy!",
+      "[Improved] Avoid optional locks when checking status of repository - #5952",
+      "[Improved] Avoid repository checks when no path is specified in \"Create Repository\" dialog - #5828. Thanks @JakeHL!",
+      "[Improved] Merge dialog displays a more informative message when branch is up to date - #5890"
+    ],
     "1.4.4-beta0": [
     ],
     "1.4.3": [
