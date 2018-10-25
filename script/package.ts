@@ -14,6 +14,7 @@ import {
   shouldMakeDelta,
   getUpdatesURL,
 } from './dist-info'
+import { isAppveyor } from './build-platforms'
 
 const distPath = getDistPath()
 const productName = getProductName()
@@ -50,7 +51,7 @@ function packageWindows() {
     'cleanup-windows-certificate.ps1'
   )
 
-  if (process.env.APPVEYOR) {
+  if (isAppveyor()) {
     cp.execSync(`powershell ${setupCertificatePath}`)
   }
 
@@ -101,7 +102,7 @@ function packageWindows() {
     options.remoteReleases = getUpdatesURL()
   }
 
-  if (process.env.APPVEYOR) {
+  if (isAppveyor()) {
     const certificatePath = path.join(__dirname, 'windows-certificate.pfx')
     options.signWithParams = `/f ${certificatePath} /p ${
       process.env.WINDOWS_CERT_PASSWORD

@@ -43,13 +43,14 @@ import {
 } from '../app/package-info'
 
 import { getReleaseChannel, getDistRoot, getExecutableName } from './dist-info'
+import { getSha, isRunningOnFork, isCircleCI } from './build-platforms'
 
 const projectRoot = path.join(__dirname, '..')
 const outRoot = path.join(projectRoot, 'out')
 
 const isPublishableBuild = getReleaseChannel() !== 'development'
 
-console.log(`Building for ${getReleaseChannel()}…`)
+console.log(`Building for ${getReleaseChannel()} from commit id ${getSha()}…`)
 
 console.log('Removing old distribution…')
 fs.removeSync(getDistRoot())
@@ -68,8 +69,7 @@ generateLicenseMetadata(outRoot)
 
 moveAnalysisFiles()
 
-const isFork = process.env.CIRCLE_PR_USERNAME
-if (process.platform === 'darwin' && process.env.CIRCLECI && !isFork) {
+if (isCircleCI() && !isRunningOnFork()) {
   console.log('Setting up keychain…')
   cp.execSync(path.join(__dirname, 'setup-macos-keychain'))
 }
