@@ -1,6 +1,7 @@
 import { Repository } from '../models/repository'
 import { CloningRepository } from '../models/cloning-repository'
 import { RetryAction } from './retry-actions'
+import { Tip } from '../models/tip'
 
 export interface IErrorMetadata {
   /** The first argument passed to `git` which triggered this error */
@@ -14,6 +15,9 @@ export interface IErrorMetadata {
 
   /** The action to retry if applicable. */
   readonly retryAction?: RetryAction
+
+  /** The tip of the repository at the time of the action */
+  readonly tip?: Tip
 }
 
 /** An error which contains additional metadata. */
