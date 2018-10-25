@@ -50,7 +50,11 @@ const outRoot = path.join(projectRoot, 'out')
 
 const isPublishableBuild = getReleaseChannel() !== 'development'
 
-console.log(`Building for ${getReleaseChannel()} from commit id ${getSha()}…`)
+if (isPublishableBuild) {
+  console.log(`Building for ${getReleaseChannel()} from commit id ${getSha()}…`)
+} else {
+  console.log(`Building for ${getReleaseChannel()}`)
+}
 
 console.log('Removing old distribution…')
 fs.removeSync(getDistRoot())
