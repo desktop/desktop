@@ -165,8 +165,6 @@ import { validatedRepositoryPath } from './helpers/validated-repository-path'
 import { RepositoryStateCache } from './repository-state-cache'
 import { readEmoji } from '../read-emoji'
 import { GitStoreCache } from './git-store-cache'
-import { asGitError } from '../dispatcher'
-import { GitError as DugiteError } from 'dugite'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -3086,33 +3084,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     }
 
-    try {
-      await gitStore.merge(branch)
-    } catch (e) {
-      const gitError = asGitError(e)
-      if (gitError === null) {
-        throw e
-      }
-      const dugiteError = gitError.result.gitError
-      if (dugiteError !== DugiteError.MergeConflicts) {
-        throw e
-      }
+    const { tip } = gitStore
+    const errorMetadata = { tip }
 
-      this._mergeConflictDetected()
-      this.statsStore.recordMergeConflictFromExplicitMerge()
-
-      const tip = gitStore.tip
-      if (tip.kind !== TipState.Valid) {
-        throw e
-      }
-
-      this._showPopup({
-        type: PopupType.MergeConflicts,
-        repository,
-        currentBranch: tip.branch.name,
-        comparisonBranch: branch,
-      })
-    }
+    await gitStore.performFailableOperation(
+      () => gitStore.merge(branch),
+      errorMetadata
+    )
 
     return this._refreshRepository(repository)
   }
