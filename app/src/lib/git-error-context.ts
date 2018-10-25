@@ -5,8 +5,8 @@ export type MergeConflictsErrorContext = {
   readonly kind: 'merge' | 'pull'
   /** The tip of the repository at the time of the merge operation */
   readonly tip?: Tip
-  /** the branch passed to Git as part of the merge operation */
-  readonly branch: string
+  /** The branch currently being merged into the current branch, "their" in Git terminology */
+  readonly theirBranch: string
 }
 
 /** A custom shape of data for actions to provide to help with error handling */

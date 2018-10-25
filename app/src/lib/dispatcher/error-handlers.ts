@@ -295,7 +295,7 @@ export async function mergeConflictHandler(
       break
   }
 
-  const { tip, branch } = gitContext
+  const { tip, theirBranch } = gitContext
   if (tip == null || tip.kind !== TipState.Valid) {
     return error
   }
@@ -304,7 +304,7 @@ export async function mergeConflictHandler(
     type: PopupType.MergeConflicts,
     repository,
     currentBranch: tip.branch.name,
-    comparisonBranch: branch,
+    theirBranch,
   })
 
   return null

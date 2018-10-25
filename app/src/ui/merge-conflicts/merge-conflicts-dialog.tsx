@@ -23,7 +23,7 @@ interface IMergeConflictsDialogProps {
   readonly externalEditorName?: string
   readonly openRepositoryInShell: (repository: Repository) => void
   readonly currentBranch: string
-  readonly comparisonBranch: string
+  readonly theirBranch: string
 }
 
 const submitButtonString = 'Commit merge'
@@ -67,7 +67,7 @@ export class MergeConflictsDialog extends React.Component<
         type: PopupType.AbortMerge,
         repository: this.props.repository,
         currentBranch: this.props.currentBranch,
-        comparisonBranch: this.props.comparisonBranch,
+        theirBranch: this.props.theirBranch,
       })
     }
   }
@@ -201,7 +201,7 @@ export class MergeConflictsDialog extends React.Component<
     )
     const titleString = this.titleString(
       this.props.currentBranch,
-      this.props.comparisonBranch
+      this.props.theirBranch
     )
     const tooltipString = anyConflictedFiles
       ? 'Resolve all changes before merging'

@@ -12,7 +12,7 @@ interface IAbortMergeWarningProps {
   readonly repository: Repository
   readonly onDismissed: () => void
   readonly currentBranch: string
-  readonly comparisonBranch: string
+  readonly theirBranch: string
 }
 
 const titleString = 'Confirm abort merge'
@@ -43,7 +43,7 @@ export class AbortMergeWarning extends React.Component<
       type: PopupType.MergeConflicts,
       repository: this.props.repository,
       currentBranch: this.props.currentBranch,
-      comparisonBranch: this.props.comparisonBranch,
+      theirBranch: this.props.theirBranch,
     })
   }
 
@@ -61,7 +61,7 @@ export class AbortMergeWarning extends React.Component<
           <div className="column-left">
             <p>
               {'Are you sure you want to abort merging '}
-              <strong>{this.props.comparisonBranch}</strong>
+              <strong>{this.props.theirBranch}</strong>
               {' into '}
               <strong>{this.props.currentBranch}</strong>?
             </p>

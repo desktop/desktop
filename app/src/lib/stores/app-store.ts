@@ -2607,7 +2607,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           gitContext = {
             kind: 'pull',
             tip,
-            branch: tip.branch.upstream,
+            theirBranch: tip.branch.upstream,
           }
         }
 
@@ -3101,7 +3101,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       gitContext: {
         kind: 'merge',
         tip,
-        branch,
+        theirBranch: branch,
       },
     })
 
