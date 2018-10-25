@@ -11,3 +11,13 @@ If an issue doesn't exist for this pull request (PR) to address, please open one
 ## Description
 
 -
+
+## Release notes
+
+<!--
+If this is related to a user-facing change and should be added to the release notes, please add a summary of the change.
+
+For changes related to documentation or techical debt, just add `no-notes` to indicate this can be skipped.
+-->
+
+Notes:
