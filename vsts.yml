@@ -1,3 +1,10 @@
+trigger:
+  batch: true
+  branches:
+    include:
+      - master
+      - __release-.*
+
 jobs:
   - job: Windows
     pool:
