@@ -17,7 +17,7 @@
 
     &:after {
       display: block;
-      border-bottom: 0;
+      border-bottom: var(--base-border);
       content: '';
       position: absolute;
       z-index: 0;
