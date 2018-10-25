@@ -4,13 +4,12 @@ import { GitError } from 'dugite'
 import { Repository } from '../../models/repository'
 import { IRemote } from '../../models/remote'
 
-/** Get the remote names. */
+/**
+ * List the remotes, sorted alphabetically by `name`, for a repository.
+ */
 export async function getRemotes(
   repository: Repository
 ): Promise<ReadonlyArray<IRemote>> {
-  // TODO: use expectedErrors here to handle a specific error
-  // see https://github.com/desktop/desktop/pull/5299#discussion_r206603442 for
-  // discussion about what needs to change
   const result = await git(['remote', '-v'], repository.path, 'getRemotes', {
     expectedErrors: new Set([GitError.NotAGitRepository]),
   })

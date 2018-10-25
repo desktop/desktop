@@ -12,7 +12,9 @@ import {
 import { Tip, TipState } from '../../models/tip'
 import { Commit } from '../../models/commit'
 import { IRemote } from '../../models/remote'
-import { IFetchProgress, IRevertProgress, ComparisonView } from '../app-state'
+import { IFetchProgress, IRevertProgress } from '../../models/progress'
+import { ICommitMessage } from '../../models/commit-message'
+import { ComparisonMode } from '../app-state'
 
 import { IAppShell } from '../app-shell'
 import { ErrorWithMetadata, IErrorMetadata } from '../error-with-metadata'
@@ -56,8 +58,7 @@ import {
   revSymmetricDifference,
   getSymbolicRef,
 } from '../git'
-import { IGitAccount } from '../git/authentication'
-import { RetryAction, RetryActionType } from '../retry-actions'
+import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import { UpstreamAlreadyExistsError } from './upstream-already-exists-error'
 import { forceUnwrap } from '../fatal-error'
 import {
@@ -68,6 +69,7 @@ import { findDefaultRemote } from './helpers/find-default-remote'
 import { IAuthor } from '../../models/author'
 import { formatCommitMessage } from '../format-commit-message'
 import { GitAuthor } from '../../models/git-author'
+import { IGitAccount } from '../../models/git-account'
 import { BaseStore } from './base-store'
 
 /** The number of commits to load from history per batch. */
@@ -77,12 +79,6 @@ const LoadingHistoryRequestKey = 'history'
 
 /** The max number of recent branches to find. */
 const RecentBranchesLimit = 5
-
-/** A commit message summary and description. */
-export interface ICommitMessage {
-  readonly summary: string
-  readonly description: string | null
-}
 
 /** The store for a repository's git data. */
 export class GitStore extends BaseStore {
@@ -119,9 +115,9 @@ export class GitStore extends BaseStore {
 
   private _defaultRemote: IRemote | null = null
 
-  private _remote: IRemote | null = null
+  private _currentRemote: IRemote | null = null
 
-  private _upstream: IRemote | null = null
+  private _upstreamRemote: IRemote | null = null
 
   private _lastFetched: Date | null = null
 
@@ -344,11 +340,11 @@ export class GitStore extends BaseStore {
       return gitHubRepository.defaultBranch
     }
 
-    if (this.remote != null) {
+    if (this.currentRemote !== null) {
       // the Git server should use [remote]/HEAD to advertise
       // it's default branch, so see if it exists and matches
       // a valid branch on the remote and attempt to use that
-      const remoteNamespace = `refs/remotes/${this.remote.name}/`
+      const remoteNamespace = `refs/remotes/${this.currentRemote.name}/`
       const match = await getSymbolicRef(
         this.repository,
         `${remoteNamespace}HEAD`
@@ -766,18 +762,18 @@ export class GitStore extends BaseStore {
     const remotes = new Map<string, IRemote>()
 
     // We want to fetch the current remote first
-    if (this.remote) {
-      remotes.set(this.remote.name, this.remote)
+    if (this.currentRemote !== null) {
+      remotes.set(this.currentRemote.name, this.currentRemote)
     }
 
     // And then the default remote if it differs from the current
-    if (this.defaultRemote) {
+    if (this.defaultRemote !== null) {
       remotes.set(this.defaultRemote.name, this.defaultRemote)
     }
 
     // And finally the upstream if we're a fork
-    if (this.upstream) {
-      remotes.set(this.upstream.name, this.upstream)
+    if (this.upstreamRemote !== null) {
+      remotes.set(this.upstreamRemote.name, this.upstreamRemote)
     }
 
     if (remotes.size > 0) {
@@ -964,7 +960,7 @@ export class GitStore extends BaseStore {
     // Load the remote that the current branch is tracking. If the branch
     // is not tracking any remote or the remote which it's tracking has
     // been removed we'll default to the default branch.
-    this._remote =
+    this._currentRemote =
       currentRemoteName !== null
         ? remotes.find(r => r.name === currentRemoteName) || this._defaultRemote
         : this._defaultRemote
@@ -973,7 +969,7 @@ export class GitStore extends BaseStore {
       this.repository.gitHubRepository &&
       this.repository.gitHubRepository.parent
 
-    this._upstream = parent ? findUpstreamRemote(parent, remotes) : null
+    this._upstreamRemote = parent ? findUpstreamRemote(parent, remotes) : null
 
     this.emitUpdate()
   }
@@ -1016,7 +1012,7 @@ export class GitStore extends BaseStore {
     await this.performFailableOperation(() =>
       addRemote(this.repository, UpstreamRemoteName, url)
     )
-    this._upstream = { name: UpstreamRemoteName, url }
+    this._upstreamRemote = { name: UpstreamRemoteName, url }
   }
 
   /**
@@ -1030,22 +1026,36 @@ export class GitStore extends BaseStore {
     return this._aheadBehind
   }
 
-  /** Get the remote we're working with. */
+  /**
+   * The remote considered to be the "default" remote in the repository.
+   *
+   *  - the 'origin' remote, if found
+   *  - the first remote, listed alphabetically
+   *
+   * If no remotes are defined in the repository, this will be `null`.
+   */
   public get defaultRemote(): IRemote | null {
     return this._defaultRemote
   }
 
-  /** Get the remote we're working with. */
-  public get remote(): IRemote | null {
-    return this._remote
+  /**
+   * The remote associated with the current branch in the repository.
+   *
+   * If the branch has a valid tip, the tracking branch name is used here.
+   * Otherwise this will be the same value as `this.defaultRemote`.
+   */
+  public get currentRemote(): IRemote | null {
+    return this._currentRemote
   }
 
   /**
-   * Get the remote for the upstream repository. This will be null if the
-   * repository isn't a fork, or if the fork doesn't have an upstream remote.
+   * The remote for the upstream repository.
+   *
+   * This will be `null` if the repository isn't a fork, or if the fork doesn't
+   * have an upstream remote.
    */
-  public get upstream(): IRemote | null {
-    return this._upstream
+  private get upstreamRemote(): IRemote | null {
+    return this._upstreamRemote
   }
 
   /**
@@ -1306,7 +1316,7 @@ export class GitStore extends BaseStore {
    */
   public async getCompareCommits(
     branch: Branch,
-    compareType: ComparisonView.Ahead | ComparisonView.Behind
+    comparisonMode: ComparisonMode
   ): Promise<ICompareResult | null> {
     if (this.tip.kind !== TipState.Valid) {
       return null
@@ -1323,11 +1333,11 @@ export class GitStore extends BaseStore {
     }
 
     const revisionRange =
-      compareType === ComparisonView.Ahead
+      comparisonMode === ComparisonMode.Ahead
         ? revRange(branch.name, base.name)
         : revRange(base.name, branch.name)
     const commitsToLoad =
-      compareType === ComparisonView.Ahead
+      comparisonMode === ComparisonMode.Ahead
         ? aheadBehind.ahead
         : aheadBehind.behind
     const commits = await getCommits(

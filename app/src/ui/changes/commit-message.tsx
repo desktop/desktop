@@ -7,7 +7,7 @@ import {
   UserAutocompletionProvider,
 } from '../autocompletion'
 import { CommitIdentity } from '../../models/commit-identity'
-import { ICommitMessage } from '../../lib/app-state'
+import { ICommitMessage } from '../../models/commit-message'
 import { Dispatcher } from '../../lib/dispatcher'
 import { IGitHubUser } from '../../lib/databases/github-user-database'
 import { Repository } from '../../models/repository'

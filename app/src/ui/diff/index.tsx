@@ -3,7 +3,7 @@ import { Editor } from 'codemirror'
 
 import { assertNever } from '../../lib/fatal-error'
 import { encodePathAsUrl } from '../../lib/path'
-import { ImageDiffType } from '../../lib/app-state'
+
 import { Dispatcher } from '../../lib/dispatcher/dispatcher'
 
 import { Repository } from '../../models/repository'
@@ -19,6 +19,7 @@ import {
   IImageDiff,
   ITextDiff,
   ILargeTextDiff,
+  ImageDiffType,
 } from '../../models/diff'
 
 import { Button } from '../lib/button'

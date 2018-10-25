@@ -4,8 +4,9 @@ import { Octicon, OcticonSymbol } from '../octicons'
 interface IDialogHeaderProps {
   /**
    * The dialog title text. Will be rendered top and center in a dialog.
+   * You can also pass JSX for custom styling
    */
-  readonly title: string
+  readonly title: string | JSX.Element
 
   /**
    * An optional id for the h1 element that contains the title of this
@@ -68,6 +69,10 @@ export class DialogHeader extends React.Component<IDialogHeaderProps, {}> {
     )
   }
 
+  private renderTitle() {
+    return <h1 id={this.props.titleId}>{this.props.title}</h1>
+  }
+
   public render() {
     const spinner = this.props.loading ? (
       <Octicon className="icon spin" symbol={OcticonSymbol.sync} />
@@ -75,7 +80,7 @@ export class DialogHeader extends React.Component<IDialogHeaderProps, {}> {
 
     return (
       <header className="dialog-header">
-        <h1 id={this.props.titleId}>{this.props.title}</h1>
+        {this.renderTitle()}
         {spinner}
         {this.renderCloseButton()}
         {this.props.children}

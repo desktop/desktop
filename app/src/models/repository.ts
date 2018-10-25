@@ -38,11 +38,9 @@ export class Repository {
    * Objects with the same hash are guaranteed to be structurally equal.
    */
   public get hash(): string {
-    return `${this.id}+
-      ${this.gitHubRepository && this.gitHubRepository.hash}+
-      ${this.path}+
-      ${this.missing}+
-      ${this.name}`
+    return `${this.id}+${this.gitHubRepository && this.gitHubRepository.hash}+${
+      this.path
+    }+${this.missing}+${this.name}`
   }
 }
 

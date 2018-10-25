@@ -2,7 +2,8 @@ import { git, gitNetworkArguments } from './core'
 import { getBranches } from './for-each-ref'
 import { Repository } from '../../models/repository'
 import { Branch, BranchType } from '../../models/branch'
-import { IGitAccount, envForAuthentication } from './authentication'
+import { IGitAccount } from '../../models/git-account'
+import { envForAuthentication } from './authentication'
 
 /**
  * Create a new branch from the given start point.

@@ -5,18 +5,16 @@ import { CSSTransitionGroup } from 'react-transition-group'
 import {
   IAppState,
   RepositorySectionTab,
-  Popup,
-  PopupType,
   FoldoutType,
   SelectionType,
-  CompareActionKind,
+  HistoryTabMode,
 } from '../lib/app-state'
 import { Dispatcher } from '../lib/dispatcher'
 import { AppStore, GitHubUserStore, IssuesStore } from '../lib/stores'
 import { assertNever } from '../lib/fatal-error'
 import { shell } from '../lib/app-shell'
 import { updateStore, UpdateStatus } from './lib/update-store'
-import { RetryAction } from '../lib/retry-actions'
+import { RetryAction } from '../models/retry-actions'
 import { shouldRenderApplicationMenu } from './lib/features'
 import { matchExistingRepository } from '../lib/repository-matching'
 import { getDotComAPIEndpoint } from '../lib/api'
@@ -94,6 +92,7 @@ import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
 import { AbortMergeWarning } from './abort-merge'
 import { enableMergeConflictsDialog } from '../lib/feature-flag'
 import { AppFileStatus } from '../models/status'
+import { PopupType, Popup } from '../models/popup'
 
 const MinuteInMilliseconds = 1000 * 60
 
@@ -542,7 +541,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     await this.props.dispatcher.closeCurrentFoldout()
 
     await this.props.dispatcher.initializeCompare(state.repository, {
-      kind: CompareActionKind.History,
+      kind: HistoryTabMode.History,
     })
 
     await this.props.dispatcher.changeRepositorySection(
@@ -1900,7 +1899,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     // branch has been deleted. Calling executeCompare allows
     // us to do just that.
     this.props.dispatcher.executeCompare(repository, {
-      kind: CompareActionKind.History,
+      kind: HistoryTabMode.History,
     })
   }
 }

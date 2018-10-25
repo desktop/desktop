@@ -9,7 +9,7 @@ import {
   AppFileStatus,
 } from '../../src/models/status'
 import { DiffSelection, DiffSelectionType } from '../../src/models/diff'
-import { ComparisonView } from '../../src/lib/app-state'
+import { HistoryTabMode } from '../../src/lib/app-state'
 import { IGitHubUser } from '../../src/lib/databases'
 
 function createSampleGitHubRepository() {
@@ -125,7 +125,7 @@ describe('RepositoryStateCache', () => {
     cache.updateCompareState(repository, () => {
       return {
         formState: {
-          kind: ComparisonView.None,
+          kind: HistoryTabMode.History,
         },
         filterText,
         commitSHAs: ['deadbeef'],
@@ -133,7 +133,7 @@ describe('RepositoryStateCache', () => {
     })
 
     const { compareState } = cache.get(repository)
-    expect(compareState.formState.kind).equals(ComparisonView.None)
+    expect(compareState.formState.kind).equals(HistoryTabMode.History)
     expect(compareState.filterText).equals(filterText)
     expect(compareState.commitSHAs.length).equals(1)
   })

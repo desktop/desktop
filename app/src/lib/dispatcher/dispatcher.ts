@@ -9,14 +9,11 @@ import {
   WorkingDirectoryFileChange,
   CommittedFileChange,
 } from '../../models/status'
-import { DiffSelection } from '../../models/diff'
+import { DiffSelection, ImageDiffType } from '../../models/diff'
 import {
   RepositorySectionTab,
-  Popup,
-  PopupType,
   Foldout,
   FoldoutType,
-  ImageDiffType,
   CompareAction,
   ICompareFormUpdate,
   MergeResultStatus,
@@ -28,10 +25,13 @@ import { Commit } from '../../models/commit'
 import { ExternalEditor } from '../../lib/editors'
 import { IAPIUser } from '../../lib/api'
 import { GitHubRepository } from '../../models/github-repository'
-import { ICommitMessage } from '../stores/git-store'
+import { ICommitMessage } from '../../models/commit-message'
 import { executeMenuItem } from '../../ui/main-process-proxy'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
-import { matchExistingRepository } from '../../lib/repository-matching'
+import {
+  matchExistingRepository,
+  urlMatchesCloneURL,
+} from '../../lib/repository-matching'
 import { ILaunchStats, StatsStore } from '../stats'
 import { fatalError, assertNever } from '../fatal-error'
 import { isGitOnPath } from '../is-git-on-path'
@@ -48,7 +48,7 @@ import {
 } from '../../lib/oauth'
 import { installCLI } from '../../ui/lib/install-cli'
 import { setGenericUsername, setGenericPassword } from '../generic-git-auth'
-import { RetryAction, RetryActionType } from '../retry-actions'
+import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import { Shell } from '../shells'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { validatedRepositoryPath } from '../../lib/stores/helpers/validated-repository-path'
@@ -61,6 +61,7 @@ import { isGitRepository } from '../git'
 import { ApplicationTheme } from '../../ui/lib/application-theme'
 import { TipState } from '../../models/tip'
 import { RepositoryStateCache } from '../stores/repository-state-cache'
+import { Popup, PopupType } from '../../models/popup'
 
 /**
  * An error handler function.
@@ -942,6 +943,10 @@ export class Dispatcher {
       await this.fetchRefspec(repository, `pull/${pr}/head:${branch}`)
     }
 
+    // ensure a fresh clone repository has it's in-memory state
+    // up-to-date before performing the "Clone in Desktop" steps
+    await this.appStore._refreshRepository(repository)
+
     const state = this.repositoryStateManager.get(repository)
 
     if (pr == null && branch != null) {
@@ -990,7 +995,7 @@ export class Dispatcher {
         if (!gitHubRepository) {
           return false
         }
-        return gitHubRepository.cloneURL === url
+        return urlMatchesCloneURL(url, gitHubRepository)
       } else {
         return false
       }

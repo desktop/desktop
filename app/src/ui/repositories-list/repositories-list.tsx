@@ -17,7 +17,7 @@ import { Button } from '../lib/button'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'
-import { PopupType } from '../../lib/app-state'
+import { PopupType } from '../../models/popup'
 
 interface IRepositoriesListProps {
   readonly selectedRepository: Repositoryish | null

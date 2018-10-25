@@ -125,6 +125,32 @@ app.on('will-finish-launching', () => {
   })
 })
 
+if (__DARWIN__) {
+  app.on('open-file', async (event, path) => {
+    event.preventDefault()
+
+    log.info(`[main] a path to ${path} was triggered`)
+
+    Fs.stat(path, (err, stats) => {
+      if (err) {
+        log.error(`Unable to open path '${path}' in Desktop`, err)
+        return
+      }
+
+      if (stats.isFile()) {
+        log.warn(
+          `A file at ${path} was dropped onto Desktop, but it can only handle folders. Ignoring this action.`
+        )
+        return
+      }
+
+      handleAppURL(
+        `x-github-client://openLocalRepo/${encodeURIComponent(path)}`
+      )
+    })
+  })
+}
+
 /**
  * Attempt to detect and handle any protocol handler arguments passed
  * either via the command line directly to the current process or through
