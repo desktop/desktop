@@ -12,6 +12,7 @@ import { PopupType } from '../../lib/app-state'
 import { ShellError } from '../shells'
 import { UpstreamAlreadyExistsError } from '../stores/upstream-already-exists-error'
 import { FetchType } from '../../models/fetch'
+import { TipState } from '../../models/tip'
 
 /** An error which also has a code property. */
 interface IErrorWithCode extends Error {
@@ -43,7 +44,7 @@ function asErrorWithMetadata(error: Error): ErrorWithMetadata | null {
 }
 
 /** Cast the error to a `GitError` if possible. Otherwise return null. */
-export function asGitError(error: Error): GitError | null {
+function asGitError(error: Error): GitError | null {
   if (error instanceof GitError) {
     return error
   } else {
@@ -243,6 +244,70 @@ export async function pushNeedsPullHandler(
   dispatcher.fetch(repository, FetchType.UserInitiatedTask)
 
   return error
+}
+
+/**
+ * Handler for detecting when a merge conflict is reported to direct the user
+ * to a different dialog than the generic Git error dialog.
+ */
+export async function mergeConflictHandler(
+  error: Error,
+  dispatcher: Dispatcher
+): Promise<Error | null> {
+  const e = asErrorWithMetadata(error)
+  if (!e) {
+    return error
+  }
+
+  const gitError = asGitError(e.underlyingError)
+  if (!gitError) {
+    return error
+  }
+
+  const dugiteError = gitError.result.gitError
+  if (!dugiteError) {
+    return error
+  }
+
+  if (dugiteError !== DugiteError.MergeConflicts) {
+    return error
+  }
+
+  const { command, tip, repository } = e.metadata
+  if (repository == null) {
+    return error
+  }
+
+  if (!(repository instanceof Repository)) {
+    return error
+  }
+
+  if (command != null) {
+    switch (command) {
+      case 'pull':
+        dispatcher.mergeConflictDetectedFromPull()
+        break
+      case 'merge':
+        dispatcher.mergeConflictDetectedFromExplicitMerge()
+        break
+    }
+  }
+
+  if (tip == null || tip.kind !== TipState.Valid) {
+    return error
+  }
+
+  // TODO: where can we get this from?
+  const branch = 'my-cool-branch'
+
+  dispatcher.showPopup({
+    type: PopupType.MergeConflicts,
+    repository,
+    currentBranch: tip.branch.name,
+    comparisonBranch: branch,
+  })
+
+  return null
 }
 
 /**
