@@ -6,7 +6,7 @@ import { Repository } from '../models/repository'
 import { Account } from '../models/account'
 import { IRemote } from '../models/remote'
 import { getHTMLURL } from './api'
-import { parseRemote } from './remote-parsing'
+import { parseRemote, parseRepositoryIdentifier } from './remote-parsing'
 import { caseInsensitiveEquals } from './compare'
 import { GitHubRepository } from '../models/github-repository'
 
@@ -146,5 +146,31 @@ export function urlMatchesRemote(url: string | null, remote: IRemote): boolean {
   return (
     caseInsensitiveEquals(remoteUrl.owner, cloneUrl.owner) &&
     caseInsensitiveEquals(remoteUrl.name, cloneUrl.name)
+  )
+}
+
+/**
+ * Match a URL-like string to the Clone URL of a GitHub Repository
+ *
+ * @param url A remote-like URL to verify against the existing information
+ * @param gitHubRepository GitHub API details for a repository
+ */
+export function urlMatchesCloneURL(
+  url: string,
+  gitHubRepository: GitHubRepository
+): boolean {
+  if (gitHubRepository.cloneURL === null) {
+    return false
+  }
+
+  const firstIdentifier = parseRepositoryIdentifier(gitHubRepository.cloneURL)
+  const secondIdentifier = parseRepositoryIdentifier(url)
+
+  return (
+    firstIdentifier !== null &&
+    secondIdentifier !== null &&
+    firstIdentifier.hostname === secondIdentifier.hostname &&
+    firstIdentifier.owner === secondIdentifier.owner &&
+    firstIdentifier.name === secondIdentifier.name
   )
 }

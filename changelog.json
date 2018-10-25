@@ -1,5 +1,21 @@
 {
   "releases": {
+    "1.4.4-beta0": [
+    ],
+    "1.4.3": [
+      "[Added] Add \"Remove Repository\" keyboard shortcut - #5848. Thanks @say25!",
+      "[Added] Add keyboard shortcut to delete a branch - #5018. Thanks @JakeHL!",
+      "[Fixed] Emoji autocomplete not rendering in some situations - #5859",
+      "[Fixed] Release notes text overflowing dialog box - #5854. Thanks @amarsiingh!",
+      "[Improved] Support Python 3 in Desktop CLI on macOS - #5843. Thanks @munir131!",
+      "[Improved] Avoid unnecessarily reloading commit history - #5470",
+      "[Improved] Publish Branch dialog will publish commits when pressing Enter - #5777. Thanks @JKirkYuan!"
+    ],
+    "1.4.3-beta2": [
+      "[Added] Added keyboard shortcut to delete a branch - #5018. Thanks @JakeHL!",
+      "[Fixed] Fix release notes text overflowing dialog box - #5854. Thanks @amarsiingh!",
+      "[Improved] Avoid unnecessarily reloading commit history - #5470"
+    ],
     "1.4.3-beta1": [
       "[Added] Add \"Remove Repository\" keyboard shortcut - #5848. Thanks @say25!",
       "[Fixed] Fix emoji autocomplete not rendering in some situations - #5859",

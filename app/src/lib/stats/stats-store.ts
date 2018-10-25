@@ -67,6 +67,8 @@ const DefaultDailyMeasures: IDailyMeasures = {
   mergedWithLoadingHintCount: 0,
   mergedWithCleanMergeHintCount: 0,
   mergedWithConflictWarningHintCount: 0,
+  mergeSuccessAfterConflictsCount: 0,
+  mergeAbortedAfterConflictsCount: 0,
 }
 
 interface IOnboardingStats {
@@ -719,6 +721,20 @@ export class StatsStore {
 
   public recordWelcomeWizardSignInMethod(method: SignInMethod) {
     localStorage.setItem(WelcomeWizardSignInMethodKey, method)
+  }
+
+  /** Record when a conflicted merge was successfully completed by the user */
+  public async recordMergeSuccesAfterConflicts(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      mergeSuccessAfterConflictsCount: m.mergeSuccessAfterConflictsCount + 1,
+    }))
+  }
+
+  /** Record when a conflicted merge was aborted by the user */
+  public async recordMergeAbortedAfterConflicts(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      mergeAbortedAfterConflictsCount: m.mergeAbortedAfterConflictsCount + 1,
+    }))
   }
 
   private onUiActivity = async () => {

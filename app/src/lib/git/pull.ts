@@ -9,6 +9,35 @@ import { IPullProgress } from '../../models/progress'
 import { IGitAccount } from '../../models/git-account'
 import { PullProgressParser, executionOptionsWithProgress } from '../progress'
 import { envForAuthentication, AuthenticationErrors } from './authentication'
+import { enableRecurseSubmodulesFlag } from '../feature-flag'
+
+function getPullArgs(
+  remote: string,
+  progressCallback?: (progress: IPullProgress) => void
+) {
+  if (enableRecurseSubmodulesFlag()) {
+    return progressCallback != null
+      ? [
+          ...gitNetworkArguments,
+          'pull',
+          '--no-rebase',
+          '--recurse-submodules',
+          '--progress',
+          remote,
+        ]
+      : [
+          ...gitNetworkArguments,
+          'pull',
+          '--no-rebase',
+          '--recurse-submodules',
+          remote,
+        ]
+  } else {
+    return progressCallback != null
+      ? [...gitNetworkArguments, 'pull', '--no-rebase', '--progress', remote]
+      : [...gitNetworkArguments, 'pull', '--no-rebase', remote]
+  }
+}
 
 /**
  * Pull from the specified remote.
@@ -65,10 +94,7 @@ export async function pull(
     progressCallback({ kind, title, value: 0, remote })
   }
 
-  const args = progressCallback
-    ? [...gitNetworkArguments, 'pull', '--no-rebase', '--progress', remote]
-    : [...gitNetworkArguments, 'pull', '--no-rebase', remote]
-
+  const args = getPullArgs(remote, progressCallback)
   const result = await git(args, repository.path, 'pull', opts)
 
   if (result.gitErrorDescription) {
