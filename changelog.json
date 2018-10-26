@@ -10,7 +10,7 @@
       "[Improved] Sanitize repository name before publishing to GitHub - #3090. Thanks @Daniel-McCarthy!",
       "[Improved] Avoid optional locks when checking status of repository - #5952",
       "[Improved] Avoid repository checks when no path is specified in \"Create Repository\" dialog - #5828. Thanks @JakeHL!",
-      "[Improved] Merge dialog displays a more informative message when branch is up to date - #5890"
+      "[Improved] Display a more informative message on merge dialog when branch is up to date - #5890"
     ],
     "1.4.4-beta0": [
     ],
