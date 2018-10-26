@@ -255,14 +255,19 @@ export class CommitMessage extends React.Component<
       return
     }
 
-    const overSizedFiles = await this.checkForLargeFiles()
-    if (overSizedFiles.length !== 0) {
-      this.props.dispatcher.showPopup({
-        type: PopupType.OversizedFiles,
-        fileList: overSizedFiles,
-      })
+    const lfsSupported = await this.checkForLFS()
 
-      return
+    if (lfsSupported === false) {
+      const overSizedFiles = await this.checkForLargeFiles()
+
+      if (overSizedFiles.length !== 0) {
+        this.props.dispatcher.showPopup({
+          type: PopupType.OversizedFiles,
+          fileList: overSizedFiles,
+        })
+
+        return
+      }
     }
 
     const trailers = this.getCoAuthorTrailers()
@@ -289,15 +294,7 @@ export class CommitMessage extends React.Component<
   }
 
   private async checkForLargeFiles() {
-    const lfsSupported = await this.checkForLFS()
-
-    if (lfsSupported) {
-      return []
-    }
-
-    const oversizedFiles: string[] = await this.props.getNamesOfSelectedOversizedFiles()
-
-    return oversizedFiles
+    return await this.props.getNamesOfSelectedOversizedFiles()
   }
 
   private async checkForLFS() {
