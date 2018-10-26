@@ -8,6 +8,7 @@ import {
   FoldoutType,
   SelectionType,
   HistoryTabMode,
+  SuccessfulMergeBannerState,
 } from '../lib/app-state'
 import { Dispatcher } from '../lib/dispatcher'
 import { AppStore, GitHubUserStore, IssuesStore } from '../lib/stores'
@@ -90,6 +91,7 @@ import { AppTheme } from './app-theme'
 import { ApplicationTheme } from './lib/application-theme'
 import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
 import { PopupType, Popup } from '../models/popup'
+import { SuccessfulMerge } from './banners'
 
 const MinuteInMilliseconds = 1000 * 60
 
@@ -990,6 +992,9 @@ export class App extends React.Component<IAppProps, IAppState> {
   private onUpdateAvailableDismissed = () =>
     this.props.dispatcher.setUpdateBannerVisibility(false)
 
+  private onSuccessfulMergeDismissed = () =>
+    this.props.dispatcher.setSuccessfulMergeBannerState(false)
+
   private currentPopupContent(): JSX.Element | null {
     // Hide any dialogs while we're displaying an error
     if (this.state.errors.length) {
@@ -1434,7 +1439,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     return (
       <div id="desktop-app-contents">
         {this.renderToolbar()}
-        {this.renderUpdateBanner()}
+        {this.renderBanner()}
         {this.renderRepository()}
         {this.renderPopup()}
         {this.renderAppError()}
@@ -1673,10 +1678,19 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
-  private renderUpdateBanner() {
-    if (!this.state.isUpdateAvailableBannerVisible) {
-      return null
+  // we currently only render one banner at a time
+  private renderBanner(): JSX.Element | null {
+    if (this.state.successfulMergeBannerState !== false) {
+      return this.renderSuccessfulMergeBanner(
+        this.state.successfulMergeBannerState
+      )
+    } else if (this.state.isUpdateAvailableBannerVisible) {
+      return this.renderUpdateBanner()
     }
+    return null
+  }
+
+  private renderUpdateBanner() {
     const releaseNotesUri = 'https://desktop.github.com/release-notes/'
 
     return (
@@ -1685,6 +1699,21 @@ export class App extends React.Component<IAppProps, IAppState> {
         newRelease={updateStore.state.newRelease}
         releaseNotesLink={releaseNotesUri}
         onDismissed={this.onUpdateAvailableDismissed}
+      />
+    )
+  }
+
+  private renderSuccessfulMergeBanner(
+    successfulMergeBannerState: SuccessfulMergeBannerState
+  ) {
+    if (successfulMergeBannerState === false) {
+      return null
+    }
+    return (
+      <SuccessfulMerge
+        currentBranch={successfulMergeBannerState.currentBranch}
+        theirBranch={successfulMergeBannerState.theirBranch}
+        onDismissed={this.onSuccessfulMergeDismissed}
       />
     )
   }

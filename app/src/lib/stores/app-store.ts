@@ -88,6 +88,7 @@ import {
   SelectionType,
   MergeResultStatus,
   ComparisonMode,
+  SuccessfulMergeBannerState,
 } from '../app-state'
 import { caseInsensitiveCompare } from '../compare'
 import { IGitHubUser } from '../databases/github-user-database'
@@ -256,6 +257,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private windowState: WindowState
   private windowZoomFactor: number = 1
   private isUpdateAvailableBannerVisible: boolean = false
+  private successfulMergeBannerState: SuccessfulMergeBannerState = false
   private confirmRepoRemoval: boolean = confirmRepoRemovalDefault
   private confirmDiscardChanges: boolean = confirmDiscardChangesDefault
   private imageDiffType: ImageDiffType = imageDiffTypeDefault
@@ -445,18 +447,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
         return null
       }
 
-      return {
-        type: SelectionType.CloningRepository,
-        repository,
-        progress,
-      }
+      return { type: SelectionType.CloningRepository, repository, progress }
     }
 
     if (repository.missing) {
-      return {
-        type: SelectionType.MissingRepository,
-        repository,
-      }
+      return { type: SelectionType.MissingRepository, repository }
     }
 
     return {
@@ -490,6 +485,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       titleBarStyle: this.showWelcomeFlow ? 'light' : 'dark',
       highlightAccessKeys: this.highlightAccessKeys,
       isUpdateAvailableBannerVisible: this.isUpdateAvailableBannerVisible,
+      successfulMergeBannerState: this.successfulMergeBannerState,
       askForConfirmationOnRepositoryRemoval: this.confirmRepoRemoval,
       askForConfirmationOnDiscardChanges: this.confirmDiscardChanges,
       selectedExternalEditor: this.selectedExternalEditor,
@@ -2033,7 +2029,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
         getAuthorIdentity(repository)
       )) || null
 
-    this.repositoryStateCache.update(repository, () => ({ commitAuthor }))
+    this.repositoryStateCache.update(repository, () => ({
+      commitAuthor,
+    }))
     this.emitUpdate()
   }
 
@@ -2118,7 +2116,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     checkoutProgress: ICheckoutProgress | null
   ) {
-    this.repositoryStateCache.update(repository, () => ({ checkoutProgress }))
+    this.repositoryStateCache.update(repository, () => ({
+      checkoutProgress,
+    }))
 
     if (this.selectedRepository === repository) {
       this.emitUpdate()
@@ -2171,7 +2171,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       await this._refreshRepository(repository)
     } finally {
       this.updateCheckoutProgress(repository, null)
-      this._initializeCompare(repository, { kind: HistoryTabMode.History })
+      this._initializeCompare(repository, {
+        kind: HistoryTabMode.History,
+      })
     }
 
     const { branchesState } = this.repositoryStateCache.get(repository)
@@ -2365,7 +2367,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const state = this.repositoryStateCache.get(repository)
     const { remote } = state
     if (remote === null) {
-      this._showPopup({ type: PopupType.PublishRepository, repository })
+      this._showPopup({
+        type: PopupType.PublishRepository,
+        repository,
+      })
 
       return
     }
@@ -3074,7 +3079,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     }
 
-    await gitStore.merge(branch)
+    if ((await gitStore.merge(branch)) === true) {
+      const currentBranchName =
+        gitStore.tip.kind === TipState.Valid
+          ? gitStore.tip.branch.name
+          : 'unknown branch'
+      this._setSuccessfulMergeBannerState({
+        currentBranch: currentBranchName,
+        theirBranch: branch,
+      })
+    }
 
     return this._refreshRepository(repository)
   }
@@ -3189,6 +3203,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   public _setUpdateBannerVisibility(visibility: boolean) {
     this.isUpdateAvailableBannerVisible = visibility
+
+    this.emitUpdate()
+  }
+
+  public _setSuccessfulMergeBannerState(state: SuccessfulMergeBannerState) {
+    this.successfulMergeBannerState = state
 
     this.emitUpdate()
   }

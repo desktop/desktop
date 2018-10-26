@@ -17,6 +17,7 @@ import {
   CompareAction,
   ICompareFormUpdate,
   MergeResultStatus,
+  SuccessfulMergeBannerState,
 } from '../app-state'
 import { AppStore } from '../stores/app-store'
 import { CloningRepository } from '../../models/cloning-repository'
@@ -470,6 +471,13 @@ export class Dispatcher {
   }
 
   /**
+   * Set the successful merge banner's state
+   */
+  public setSuccessfulMergeBannerState(state: SuccessfulMergeBannerState) {
+    return this.appStore._setSuccessfulMergeBannerState(state)
+  }
+
+  /**
    * Set the divering branch notification banner's visibility
    */
   public setDivergingBranchBannerVisibility(
@@ -628,7 +636,10 @@ export class Dispatcher {
     if (gitFound || ignoreWarning) {
       this.appStore._openShell(path)
     } else {
-      this.appStore._showPopup({ type: PopupType.InstallGit, path })
+      this.appStore._showPopup({
+        type: PopupType.InstallGit,
+        path,
+      })
     }
   }
 
