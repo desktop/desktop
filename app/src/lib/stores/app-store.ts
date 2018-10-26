@@ -3088,14 +3088,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     }
 
-    const { tip } = gitStore
-    await gitStore.performFailableOperation(() => gitStore.merge(branch), {
-      gitContext: {
-        kind: 'merge',
-        tip,
-        theirBranch: branch,
-      },
-    })
+    await gitStore.merge(branch)
 
     return this._refreshRepository(repository)
   }
