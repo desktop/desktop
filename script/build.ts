@@ -43,19 +43,14 @@ import {
 } from '../app/package-info'
 
 import { getReleaseChannel, getDistRoot, getExecutableName } from './dist-info'
-import { getSha, isRunningOnFork, isCircleCI } from './build-platforms'
+import { isRunningOnFork, isCircleCI } from './build-platforms'
 
 const projectRoot = path.join(__dirname, '..')
 const outRoot = path.join(projectRoot, 'out')
 
 const isPublishableBuild = getReleaseChannel() !== 'development'
 
-// don't call `getSha` when not on CI
-if (isPublishableBuild) {
-  console.log(`Building for ${getReleaseChannel()} from commit id ${getSha()}…`)
-} else {
-  console.log(`Building for ${getReleaseChannel()}`)
-}
+console.log(`Building for ${getReleaseChannel()}…`)
 
 console.log('Removing old distribution…')
 fs.removeSync(getDistRoot())

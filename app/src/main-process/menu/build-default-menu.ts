@@ -1,6 +1,7 @@
 import { Menu, ipcMain, shell, app } from 'electron'
 import { ensureItemIds } from './ensure-item-ids'
 import { MenuEvent } from './menu-event'
+import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
 import { getLogDirectoryPath } from '../../lib/logging/get-log-path'
 import { ensureDir } from 'fs-extra'
 
@@ -16,12 +17,25 @@ const defaultShellLabel = __DARWIN__
 const defaultPullRequestLabel = __DARWIN__
   ? 'Create Pull Request'
   : 'Create &pull request'
+const defaultBranchNameDefaultValue = __DARWIN__
+  ? 'Default Branch'
+  : 'default branch'
 
-export function buildDefaultMenu(
-  editorLabel: string = defaultEditorLabel,
-  shellLabel: string = defaultShellLabel,
-  pullRequestLabel: string = defaultPullRequestLabel
-): Electron.Menu {
+export type MenuLabels = {
+  editorLabel?: string
+  shellLabel?: string
+  pullRequestLabel?: string
+  defaultBranchName?: string
+}
+
+export function buildDefaultMenu({
+  editorLabel = defaultEditorLabel,
+  shellLabel = defaultShellLabel,
+  pullRequestLabel = defaultPullRequestLabel,
+  defaultBranchName = defaultBranchNameDefaultValue,
+}: MenuLabels): Electron.Menu {
+  defaultBranchName = truncateWithEllipsis(defaultBranchName, 25)
+
   const template = new Array<Electron.MenuItemConstructorOptions>()
   const separator: Electron.MenuItemConstructorOptions = { type: 'separator' }
 
@@ -284,8 +298,8 @@ export function buildDefaultMenu(
       separator,
       {
         label: __DARWIN__
-          ? 'Update From Default Branch'
-          : '&Update from default branch',
+          ? `Update From ${defaultBranchName}`
+          : `&Update from ${defaultBranchName}`,
         id: 'update-branch',
         accelerator: 'CmdOrCtrl+Shift+U',
         click: emit('update-branch'),

@@ -171,6 +171,7 @@ import { RepositoryStateCache } from './repository-state-cache'
 import { readEmoji } from '../read-emoji'
 import { GitStoreCache } from './git-store-cache'
 import { MergeConflictsErrorContext } from '../git-error-context'
+import { setNumber, setBoolean, getBoolean, getNumber } from '../local-storage'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -1073,7 +1074,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return Promise.resolve(null)
     }
 
-    localStorage.setItem(LastSelectedRepositoryIDKey, repository.id.toString())
+    setNumber(LastSelectedRepositoryIDKey, repository.id)
 
     if (repository.missing) {
       // as the repository is no longer found on disk, cleaning this up
@@ -1325,30 +1326,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.updateRepositorySelectionAfterRepositoriesChanged()
 
-    this.sidebarWidth =
-      parseInt(localStorage.getItem(sidebarWidthConfigKey) || '', 10) ||
-      defaultSidebarWidth
-    this.commitSummaryWidth =
-      parseInt(localStorage.getItem(commitSummaryWidthConfigKey) || '', 10) ||
+    this.sidebarWidth = getNumber(sidebarWidthConfigKey, defaultSidebarWidth)
+    this.commitSummaryWidth = getNumber(
+      commitSummaryWidthConfigKey,
       defaultCommitSummaryWidth
-
-    const confirmRepositoryRemovalValue = localStorage.getItem(
-      confirmRepoRemovalKey
     )
 
-    this.confirmRepoRemoval =
-      confirmRepositoryRemovalValue === null
-        ? confirmRepoRemovalDefault
-        : confirmRepositoryRemovalValue === '1'
-
-    const confirmDiscardChangesValue = localStorage.getItem(
-      confirmDiscardChangesKey
+    this.confirmRepoRemoval = getBoolean(
+      confirmRepoRemovalKey,
+      confirmRepoRemovalDefault
     )
 
-    this.confirmDiscardChanges =
-      confirmDiscardChangesValue === null
-        ? confirmDiscardChangesDefault
-        : confirmDiscardChangesValue === '1'
+    this.confirmDiscardChanges = getBoolean(
+      confirmDiscardChangesKey,
+      confirmDiscardChangesDefault
+    )
 
     const externalEditorValue = await this.getSelectedExternalEditor()
     if (externalEditorValue) {
@@ -1401,36 +1393,47 @@ export class AppStore extends TypedBaseStore<IAppState> {
       ? `Open in ${this.selectedExternalEditor}`
       : undefined
 
-    const prLabel = repository
-      ? this.getPullRequestLabel(repository)
-      : undefined
-
     updatePreferredAppMenuItemLabels({
-      editor: editorLabel,
-      pullRequestLabel: prLabel,
-      shell: `Open in ${this.selectedShell}`,
+      editorLabel: editorLabel,
+      pullRequestLabel: this.getPullRequestLabel(repository),
+      shellLabel: `Open in ${this.selectedShell}`,
+      defaultBranchName: this.getDefaultBranchName(repository),
     })
   }
 
-  private getPullRequestLabel(repository: Repository) {
-    const githubRepository = repository.gitHubRepository
-    const defaultPRLabel = __DARWIN__
-      ? 'Create Pull Request'
-      : 'Create &pull request'
-
-    if (!githubRepository) {
-      return defaultPRLabel
+  private getBranchesState(repository?: Repository) {
+    if (!repository || !repository.gitHubRepository) {
+      return undefined
     }
 
     const state = this.repositoryStateCache.get(repository)
+    return state.branchesState
+  }
 
-    const { branchesState } = state
+  private getPullRequestLabel(repository?: Repository) {
+    const branchesState = this.getBranchesState(repository)
+    if (branchesState == null) {
+      return undefined
+    }
 
     if (branchesState.currentPullRequest === null) {
-      return defaultPRLabel
+      return undefined
     }
 
     return __DARWIN__ ? 'Show Pull Request' : 'Show &pull request'
+  }
+
+  private getDefaultBranchName(repository?: Repository) {
+    const branchesState = this.getBranchesState(repository)
+    if (branchesState == null) {
+      return undefined
+    }
+
+    const { defaultBranch } = branchesState
+    if (defaultBranch == null || defaultBranch.upstreamWithoutRemote == null) {
+      return undefined
+    }
+    return defaultBranch.upstreamWithoutRemote
   }
 
   private updateRepositorySelectionAfterRepositoriesChanged() {
@@ -1449,11 +1452,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     if (newSelectedRepository === null && this.repositories.length > 0) {
-      const lastSelectedID = parseInt(
-        localStorage.getItem(LastSelectedRepositoryIDKey) || '',
-        10
-      )
-      if (lastSelectedID && !isNaN(lastSelectedID)) {
+      const lastSelectedID = getNumber(LastSelectedRepositoryIDKey, 0)
+      if (lastSelectedID > 0) {
         newSelectedRepository =
           this.repositories.find(r => r.id === lastSelectedID) || null
       }
@@ -2992,7 +2992,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   public _setSidebarWidth(width: number): Promise<void> {
     this.sidebarWidth = width
-    localStorage.setItem(sidebarWidthConfigKey, width.toString())
+    setNumber(sidebarWidthConfigKey, width)
     this.emitUpdate()
 
     return Promise.resolve()
@@ -3008,7 +3008,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   public _setCommitSummaryWidth(width: number): Promise<void> {
     this.commitSummaryWidth = width
-    localStorage.setItem(commitSummaryWidthConfigKey, width.toString())
+    setNumber(commitSummaryWidthConfigKey, width)
     this.emitUpdate()
 
     return Promise.resolve()
@@ -3175,7 +3175,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     confirmRepoRemoval: boolean
   ): Promise<void> {
     this.confirmRepoRemoval = confirmRepoRemoval
-    localStorage.setItem(confirmRepoRemovalKey, confirmRepoRemoval ? '1' : '0')
+    setBoolean(confirmRepoRemovalKey, confirmRepoRemoval)
     this.emitUpdate()
 
     return Promise.resolve()
@@ -3184,7 +3184,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _setConfirmDiscardChangesSetting(value: boolean): Promise<void> {
     this.confirmDiscardChanges = value
 
-    localStorage.setItem(confirmDiscardChangesKey, value ? '1' : '0')
+    setBoolean(confirmDiscardChangesKey, value)
     this.emitUpdate()
 
     return Promise.resolve()
@@ -3827,7 +3827,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   public _ignoreExistingUpstreamRemote(repository: Repository): Promise<void> {
     const key = this.getIgnoreExistingUpstreamRemoteKey(repository)
-    localStorage.setItem(key, '1')
+    setBoolean(key, true)
 
     return Promise.resolve()
   }
@@ -3836,8 +3836,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository
   ): Promise<boolean> {
     const key = this.getIgnoreExistingUpstreamRemoteKey(repository)
-    const value = localStorage.getItem(key)
-    return Promise.resolve(value === '1')
+    return Promise.resolve(getBoolean(key, false))
   }
 
   private async addUpstreamRemoteIfNeeded(repository: Repository) {
