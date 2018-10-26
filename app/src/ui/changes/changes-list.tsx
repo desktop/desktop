@@ -31,6 +31,8 @@ import { IAutocompletionProvider } from '../autocompletion'
 import { showContextualMenu } from '../main-process-proxy'
 import { arrayEquals } from '../../lib/equality'
 import { clipboard } from 'electron'
+import * as FSE from 'fs-extra'
+import * as path from 'path'
 
 const RowHeight = 29
 
@@ -375,6 +377,30 @@ export class ChangesList extends React.Component<
     )
 
     showContextualMenu(items)
+  }
+
+  private getNamesOfSelectedOversizedFiles = () => {
+    const fileNames: string[] = []
+    const workingDirectoryFiles = this.props.workingDirectory.files
+
+    for (const file of workingDirectoryFiles) {
+      const fileIsSelected =
+        file.selection.getSelectionType() !== DiffSelectionType.None
+
+      if (fileIsSelected) {
+        try {
+          const filePath = path.join(this.props.repository.path, file.path)
+          // eslint-disable-next-line no-sync
+          const fileStatus = FSE.statSync(filePath)
+          const fileSizeMegabytes = fileStatus.size / 1000000
+          if (fileSizeMegabytes > 100) {
+            fileNames.push(file.path)
+          }
+        } catch (error) {}
+      }
+    }
+
+    return fileNames
   }
 
   public render() {
