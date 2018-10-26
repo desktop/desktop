@@ -261,9 +261,20 @@ export class CommitMessage extends React.Component<
       const overSizedFiles = await this.checkForLargeFiles()
 
       if (overSizedFiles.length !== 0) {
+        const finalSummary =
+          this.props.singleFileCommit && !this.state.summary
+            ? this.props.placeholder
+            : summary
+        const trailers = this.getCoAuthorTrailers()
+
         this.props.dispatcher.showPopup({
           type: PopupType.OversizedFiles,
+          dispatcher: this.props.dispatcher,
           fileList: overSizedFiles,
+          commitSummary: finalSummary,
+          commitDescription: description,
+          repository: this.props.repository,
+          trailers: trailers,
         })
 
         return
