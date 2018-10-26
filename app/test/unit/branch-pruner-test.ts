@@ -1,7 +1,6 @@
 import * as moment from 'moment'
 import { BranchPruner } from '../../src/lib/stores/helpers/branch-pruner'
 import { Repository } from '../../src/models/repository'
-import { GitStoreCache } from '../../src/lib/stores/git-store-cache'
 import { RepositoriesStore, GitStore } from '../../src/lib/stores'
 import { RepositoryStateCache } from '../../src/lib/stores/repository-state-cache'
 import { setupFixtureRepository } from '../helpers/repositories'
@@ -12,23 +11,12 @@ import { IGitHubUser } from '../../src/lib/databases'
 import { IAPIRepository } from '../../src/lib/api'
 
 describe('BranchPruner', () => {
-  const onGitStoreUpdated = () => {}
-  const onDidLoadNewCommits = () => {}
-  const onDidError = () => {}
-
-  let gitStoreCache: GitStoreCache
   let repositoriesStore: RepositoriesStore
   let repositoriesStateCache: RepositoryStateCache
   let onPruneCompleted: jest.Mock<(repository: Repository) => Promise<void>>
+  let onEmitError: jest.Mock<(error: Error) => void>
 
   beforeEach(async () => {
-    gitStoreCache = new GitStoreCache(
-      shell,
-      onGitStoreUpdated,
-      onDidLoadNewCommits,
-      onDidError
-    )
-
     const repositoriesDb = new TestRepositoriesDatabase()
     await repositoriesDb.reset()
     repositoriesStore = new RepositoriesStore(repositoriesDb)
@@ -49,10 +37,10 @@ describe('BranchPruner', () => {
     )
     const branchPruner = new BranchPruner(
       repo,
-      gitStoreCache,
       repositoriesStore,
       repositoriesStateCache,
-      onPruneCompleted
+      onPruneCompleted,
+      onEmitError
     )
 
     const branchesBeforePruning = await getBranchesFromGit(repo)
@@ -74,10 +62,10 @@ describe('BranchPruner', () => {
     )
     const branchPruner = new BranchPruner(
       repo,
-      gitStoreCache,
       repositoriesStore,
       repositoriesStateCache,
-      onPruneCompleted
+      onPruneCompleted,
+      onEmitError
     )
 
     await branchPruner.start()
@@ -105,10 +93,10 @@ describe('BranchPruner', () => {
     )
     const branchPruner = new BranchPruner(
       repo,
-      gitStoreCache,
       repositoriesStore,
       repositoriesStateCache,
-      onPruneCompleted
+      onPruneCompleted,
+      onEmitError
     )
 
     const branchesBeforePruning = await getBranchesFromGit(repo)
@@ -130,10 +118,10 @@ describe('BranchPruner', () => {
     )
     const branchPruner = new BranchPruner(
       repo,
-      gitStoreCache,
       repositoriesStore,
       repositoriesStateCache,
-      onPruneCompleted
+      onPruneCompleted,
+      onEmitError
     )
 
     const branchesBeforePruning = await getBranchesFromGit(repo)
@@ -155,10 +143,10 @@ describe('BranchPruner', () => {
     )
     const branchPruner = new BranchPruner(
       repo,
-      gitStoreCache,
       repositoriesStore,
       repositoriesStateCache,
-      onPruneCompleted
+      onPruneCompleted,
+      onEmitError
     )
 
     await branchPruner.start()

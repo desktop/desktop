@@ -238,6 +238,9 @@ import { arrayEquals } from '../equality'
 import { MenuLabelsEvent } from '../../models/menu-labels'
 import { findRemoteBranchName } from './helpers/find-branch-name'
 
+import { IErrorMetadata } from '../error-with-metadata'
+import { createFailableOperationHandler } from './error-handling'
+
 /**
  * As fast-forwarding local branches is proportional to the number of local
  * branches, and is run after every fetch/push/pull, this is skipped when the
@@ -484,6 +487,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.apiRepositoriesStore.onDidUpdate(() => this.emitUpdate())
     this.apiRepositoriesStore.onDidError(error => this.emitError(error))
+  }
+
+  private withErrorHandling<T>(
+    repository: Repository,
+    action: () => Promise<T>,
+    errorMetadata?: IErrorMetadata
+  ) {
+    const handler = createFailableOperationHandler(repository, this.emitError)
+    return handler(action, errorMetadata)
   }
 
   /** Load the emoji from disk. */
@@ -1153,10 +1165,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const gitStore = this.gitStoreCache.get(repository)
-    const changedFiles = await gitStore.performFailableOperation(() =>
+    const changedFiles = await this.withErrorHandling(repository, () =>
       getChangedFiles(repository, currentSHA)
     )
+
     if (!changedFiles) {
       return
     }
@@ -1395,10 +1407,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (enableBranchPruning()) {
       const pruner = new BranchPruner(
         repository,
-        this.gitStoreCache,
         this.repositoriesStore,
         this.repositoryStateCache,
-        repository => this._refreshRepository(repository)
+        repository => this._refreshRepository(repository),
+        error => this.emitError(error)
       )
       this.currentBranchPruner = pruner
       this.currentBranchPruner.start()
@@ -2338,10 +2350,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return file.selection.getSelectionType() !== DiffSelectionType.None
     })
 
-    const gitStore = this.gitStoreCache.get(repository)
-
     const result = await this.isCommitting(repository, () => {
-      return gitStore.performFailableOperation(async () => {
+      return this.withErrorHandling(repository, async () => {
         const message = await formatCommitMessage(repository, context)
         return createCommit(repository, message, selectedFiles)
       })
@@ -2391,6 +2401,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
           if (branchProtectionsFound) {
             this.statsStore.recordCommitToRepositoryWithBranchProtections()
           }
+
+          const gitStore = this.gitStoreCache.get(repository)
 
           const branchName = findRemoteBranchName(
             gitStore.tip,
@@ -2745,9 +2757,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private async refreshAuthor(repository: Repository): Promise<void> {
-    const gitStore = this.gitStoreCache.get(repository)
     const commitAuthor =
-      (await gitStore.performFailableOperation(() =>
+      (await this.withErrorHandling(repository, () =>
         getAuthorIdentity(repository)
       )) || null
 
@@ -2825,8 +2836,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     startPoint: string | null,
     uncommittedChangesStrategy: UncommittedChangesStrategy = askToStash
   ): Promise<Repository> {
-    const gitStore = this.gitStoreCache.get(repository)
-    const branch = await gitStore.performFailableOperation(() =>
+    const branch = await this.withErrorHandling(repository, () =>
       createBranch(repository, name, startPoint)
     )
 
@@ -2891,7 +2901,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     branch: Branch | string,
     uncommittedChangesStrategy: UncommittedChangesStrategy = askToStash
   ): Promise<Repository> {
-    const gitStore = this.gitStoreCache.get(repository)
     const kind = 'checkout'
     const foundBranch =
       typeof branch === 'string'
@@ -2946,7 +2955,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           hasDeletedFiles &&
           uncommittedChangesStrategy.transientStashEntry === null
         ) {
-          const stashCreated = await gitStore.performFailableOperation(() => {
+          const stashCreated = await this.withErrorHandling(repository, () => {
             return createDesktopStashEntry(repository, foundBranch.name)
           })
 
@@ -2962,7 +2971,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const checkoutSucceeded =
       (await this.withAuthenticatingUser(repository, (repository, account) =>
-        gitStore.performFailableOperation(
+        this.withErrorHandling(
+          repository,
           () =>
             checkoutBranch(repository, account, foundBranch, progress => {
               this.updateCheckoutProgress(repository, progress)
@@ -2998,7 +3008,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       stashToPop = stashToPop || uncommittedChangesStrategy.transientStashEntry
       if (stashToPop !== null) {
         const stashSha = stashToPop.stashSha
-        await gitStore.performFailableOperation(() => {
+        await this.withErrorHandling(repository, () => {
           return popStashEntry(repository, stashSha)
         })
       }
@@ -3159,8 +3169,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     branch: Branch,
     newName: string
   ): Promise<void> {
-    const gitStore = this.gitStoreCache.get(repository)
-    await gitStore.performFailableOperation(() =>
+    await this.withErrorHandling(repository, () =>
       renameBranch(repository, branch, newName)
     )
 
@@ -3183,14 +3192,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
         )
       }
 
-      const gitStore = this.gitStoreCache.get(r)
-
-      await gitStore.performFailableOperation(() =>
-        checkoutBranch(r, account, defaultBranch)
-      )
-      await gitStore.performFailableOperation(() =>
-        deleteBranch(r, branch, account, includeRemote)
-      )
+      await this.withErrorHandling(r, async () => {
+        await checkoutBranch(r, account, defaultBranch)
+        await deleteBranch(r, branch, account, includeRemote)
+      })
 
       return this._refreshRepository(r)
     })
@@ -3282,7 +3287,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
         }
 
         const gitStore = this.gitStoreCache.get(repository)
-        await gitStore.performFailableOperation(
+
+        await this.withErrorHandling(
+          repository,
           async () => {
             await pushRepo(
               repository,
@@ -3486,7 +3493,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
             this.statsStore.recordPullWithDefaultSetting()
           }
 
-          await gitStore.performFailableOperation(
+          await this.withErrorHandling(
+            repository,
             () =>
               pullRepo(repository, account, remote.name, progress => {
                 this.updatePushPullFetchProgress(repository, {
@@ -3602,10 +3610,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       private_
     )
 
-    const gitStore = this.gitStoreCache.get(repository)
-    await gitStore.performFailableOperation(() =>
+    await this.withErrorHandling(repository, () =>
       addRemote(repository, 'origin', apiRepository.clone_url)
     )
+
+    const gitStore = this.gitStoreCache.get(repository)
     await gitStore.loadRemotes()
 
     // skip pushing if the current branch is a detached HEAD or the repository
@@ -4062,8 +4071,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.emitUpdate()
     }
 
-    const gitStore = this.gitStoreCache.get(repository)
-    const result = await gitStore.performFailableOperation(() =>
+    const result = await this.withErrorHandling(repository, () =>
       rebase(repository, baseBranch, targetBranch, progressCallback)
     )
 
@@ -4072,8 +4080,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _abortRebase(repository: Repository) {
-    const gitStore = this.gitStoreCache.get(repository)
-    return await gitStore.performFailableOperation(() =>
+    return await this.withErrorHandling(repository, () =>
       abortRebase(repository)
     )
   }
@@ -4092,8 +4099,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.emitUpdate()
     }
 
-    const gitStore = this.gitStoreCache.get(repository)
-    const result = await gitStore.performFailableOperation(() =>
+    const result = await this.withErrorHandling(repository, () =>
       continueRebase(
         repository,
         workingDirectory.files,
@@ -4107,8 +4113,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _abortMerge(repository: Repository): Promise<void> {
-    const gitStore = this.gitStoreCache.get(repository)
-    return await gitStore.performFailableOperation(() => abortMerge(repository))
+    return await this.withErrorHandling(repository, () =>
+      abortMerge(repository)
+    )
   }
 
   /** This shouldn't be called directly. See `Dispatcher`.
@@ -4138,8 +4145,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const conflictedFiles = workingDirectory.files.filter(f => {
       return f.status.kind === AppFileStatusKind.Conflicted
     })
-    const gitStore = this.gitStoreCache.get(repository)
-    return await gitStore.performFailableOperation(() =>
+
+    return await this.withErrorHandling(repository, () =>
       createMergeCommit(repository, conflictedFiles, manualResolutions)
     )
   }
@@ -5152,8 +5159,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const gitStore = this.gitStoreCache.get(repository)
-    const isStashCreated = await gitStore.performFailableOperation(() => {
+    const isStashCreated = await this.withErrorHandling(repository, () => {
       return createDesktopStashEntry(repository, branchToCheckout)
     })
 
@@ -5177,12 +5183,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (!enableStashing()) {
       return
     }
-    const gitStore = this.gitStoreCache.get(repository)
-    await gitStore.performFailableOperation(() => {
+
+    await this.withErrorHandling(repository, () => {
       return popStashEntry(repository, stashEntry.stashSha)
     })
+
     log.info(
-      `[AppStore. _popStashEntry] popped stash with commit id ${
+      `[AppStore._popStashEntry] popped stash with commit id ${
         stashEntry.stashSha
       }`
     )
@@ -5199,10 +5206,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (!enableStashing()) {
       return
     }
-    const gitStore = this.gitStoreCache.get(repository)
-    await gitStore.performFailableOperation(() => {
+
+    await this.withErrorHandling(repository, () => {
       return dropDesktopStashEntry(repository, stashEntry.stashSha)
     })
+
     log.info(
       `[AppStore. _dropStashEntry] dropped stash with commit id ${
         stashEntry.stashSha
@@ -5210,6 +5218,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
 
     this.statsStore.recordStashDiscard()
+
+    const gitStore = this.gitStoreCache.get(repository)
     await gitStore.loadStashEntries()
   }
 

@@ -1,7 +1,6 @@
 import { Repository } from '../../../models/repository'
 import { RepositoriesStore } from '../repositories-store'
 import { Branch } from '../../../models/branch'
-import { GitStoreCache } from '../git-store-cache'
 import {
   getMergedBranches,
   getCheckoutsAfterDate,
@@ -13,6 +12,8 @@ import {
 import { fatalError } from '../../fatal-error'
 import { RepositoryStateCache } from '../repository-state-cache'
 import * as moment from 'moment'
+import { IErrorMetadata } from '../../error-with-metadata'
+import { createFailableOperationHandler } from '../error-handling'
 
 /** Check if a repo needs to be pruned at least every 4 hours */
 const BackgroundPruneMinimumInterval = 1000 * 60 * 60 * 4
@@ -33,11 +34,22 @@ export class BranchPruner {
 
   public constructor(
     private readonly repository: Repository,
-    private readonly gitStoreCache: GitStoreCache,
     private readonly repositoriesStore: RepositoriesStore,
     private readonly repositoriesStateCache: RepositoryStateCache,
-    private readonly onPruneCompleted: (repository: Repository) => Promise<void>
+    private readonly onPruneCompleted: (
+      repository: Repository
+    ) => Promise<void>,
+    private readonly emitError: (error: Error) => void
   ) {}
+
+  private withErrorHandling<T>(
+    repository: Repository,
+    action: () => Promise<T>,
+    errorMetadata?: IErrorMetadata
+  ) {
+    const handler = createFailableOperationHandler(repository, this.emitError)
+    return handler(action, errorMetadata)
+  }
 
   public async start() {
     if (this.timer !== null) {
@@ -68,8 +80,7 @@ export class BranchPruner {
     repository: Repository,
     defaultBranch: Branch
   ): Promise<ReadonlyArray<IMergedBranch>> {
-    const gitStore = this.gitStoreCache.get(repository)
-    const mergedBranches = await gitStore.performFailableOperation(() =>
+    const mergedBranches = await this.withErrorHandling(repository, () =>
       getMergedBranches(repository, defaultBranch.name)
     )
 
@@ -159,7 +170,6 @@ export class BranchPruner {
       } (${defaultBranch.tip.sha}), from '${this.repository.name}`
     )
 
-    const gitStore = this.gitStoreCache.get(this.repository)
     const branchRefPrefix = `refs/heads/`
 
     for (const branch of branchesReadyForPruning) {
@@ -169,7 +179,7 @@ export class BranchPruner {
 
       const branchName = branch.canonicalRef.substr(branchRefPrefix.length)
 
-      const isDeleted = await gitStore.performFailableOperation(() =>
+      const isDeleted = await this.withErrorHandling(this.repository, () =>
         deleteLocalBranch(this.repository, branchName)
       )
 
