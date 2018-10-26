@@ -458,6 +458,9 @@ export class ChangesList extends React.Component<
               : 'Summary (required)'
           }
           singleFileCommit={singleFileCommit}
+          getNamesOfSelectedOversizedFiles={
+            this.getNamesOfSelectedOversizedFiles
+          }
         />
       </div>
     )
