@@ -170,7 +170,7 @@ pull requests.
 
 | Label name | :mag_right: | Description |
 | --- | --- | --- |
-| `help wanted` | [search](https://github.com/desktop/desktop/labels/help%20wanted)  | Issues marked as ideal for external contributors |
+| `help-wanted` | [search](https://github.com/desktop/desktop/labels/help-wanted)  | Issues marked as ideal for external contributors |
 | `tech-debt` | [search](https://github.com/desktop/desktop/labels/tech-debt) | Issues related to code or architecture decisions |
 | `needs-design-input` | [search](https://github.com/desktop/desktop/labels/needs-design-input)  | Issues that require design input from the core team before the work can be started |
 
