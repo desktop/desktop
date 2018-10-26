@@ -973,14 +973,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const performFailableOperation = createFailableOperationHandler(
-      repository,
-      this.emitError
-    )
-
-    const changedFiles = await performFailableOperation(() =>
+    const changedFiles = await this.withErrorHandling(repository, () =>
       getChangedFiles(repository, currentSHA)
     )
+
     if (!changedFiles) {
       return
     }
@@ -1773,13 +1769,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return file.selection.getSelectionType() !== DiffSelectionType.None
     })
 
-    const result = await this.isCommitting(repository, () => {
-      const performFailableOperation = createFailableOperationHandler(
-        repository,
-        this.emitError
-      )
-
-      return performFailableOperation(async () => {
+    const result = await this.isCommitting(repository, () =>
+      this.withErrorHandling(repository, async () => {
         const message = await formatCommitMessage(
           repository,
           summary,
@@ -1788,7 +1779,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         )
         return createCommit(repository, message, selectedFiles)
       })
-    })
+    )
 
     if (result) {
       this.statsStore.recordCommit()
