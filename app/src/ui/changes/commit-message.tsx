@@ -8,6 +8,7 @@ import {
 } from '../autocompletion'
 import { CommitIdentity } from '../../models/commit-identity'
 import { ICommitMessage } from '../../models/commit-message'
+import { PopupType } from '../../models/popup'
 import { Dispatcher } from '../../lib/dispatcher'
 import { IGitHubUser } from '../../lib/databases/github-user-database'
 import { Repository } from '../../models/repository'
@@ -251,6 +252,16 @@ export class CommitMessage extends React.Component<
     const { summary, description } = this.state
 
     if (!this.canCommit()) {
+      return
+    }
+
+    const overSizedFiles = await this.checkForLargeFiles()
+    if (overSizedFiles.length !== 0) {
+      this.props.dispatcher.showPopup({
+        type: PopupType.OversizedFiles,
+        fileList: overSizedFiles,
+      })
+
       return
     }
 
