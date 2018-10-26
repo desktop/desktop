@@ -23,6 +23,7 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { ITrailer } from '../../lib/git/interpret-trailers'
 import { IAuthor } from '../../models/author'
 import { IMenuItem } from '../../lib/menu-item'
+import { isUsingLFS } from '../../lib/git/lfs'
 
 const addAuthorIcon = new OcticonSymbol(
   12,
@@ -273,6 +274,15 @@ export class CommitMessage extends React.Component<
       (this.props.anyFilesSelected && this.state.summary.length > 0) ||
       this.props.singleFileCommit
     )
+  }
+
+
+  private async checkForLFS() {
+    try {
+      return await isUsingLFS(this.props.repository)
+    } catch (err) {
+      return false
+    }
   }
 
   private onKeyDown = (event: React.KeyboardEvent<Element>) => {
