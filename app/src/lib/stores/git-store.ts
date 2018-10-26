@@ -17,7 +17,7 @@ import { ICommitMessage } from '../../models/commit-message'
 import { ComparisonMode } from '../app-state'
 
 import { IAppShell } from '../app-shell'
-import { ErrorWithMetadata, IErrorMetadata } from '../error-with-metadata'
+import { IErrorMetadata } from '../error-with-metadata'
 import { structuralEquals } from '../../lib/equality'
 import { compare } from '../../lib/compare'
 import { queueWorkHigh } from '../../lib/queue-work'
@@ -57,6 +57,7 @@ import {
   revRange,
   revSymmetricDifference,
   getSymbolicRef,
+  abortMerge,
 } from '../git'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import { UpstreamAlreadyExistsError } from './upstream-already-exists-error'
@@ -71,6 +72,7 @@ import { formatCommitMessage } from '../format-commit-message'
 import { GitAuthor } from '../../models/git-author'
 import { IGitAccount } from '../../models/git-account'
 import { BaseStore } from './base-store'
+import { createFailableOperationHandler } from './error-handling'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -121,11 +123,21 @@ export class GitStore extends BaseStore {
 
   private _lastFetched: Date | null = null
 
+  private readonly withErrorHandling: <T>(
+    fn: () => Promise<T>,
+    errorMetadata?: IErrorMetadata | undefined
+  ) => Promise<T | undefined>
+
   public constructor(repository: Repository, shell: IAppShell) {
     super()
 
     this.repository = repository
     this.shell = shell
+
+    this.withErrorHandling = createFailableOperationHandler(
+      this.repository,
+      this.emitError
+    )
   }
 
   private emitNewCommitsLoaded(commits: ReadonlyArray<Commit>) {
@@ -156,7 +168,7 @@ export class GitStore extends BaseStore {
 
     const range = revRange('HEAD', mergeBase)
 
-    const commits = await this.performFailableOperation(() =>
+    const commits = await this.withErrorHandling(() =>
       getCommits(this.repository, range, CommitBatchSize)
     )
     if (commits == null) {
@@ -202,7 +214,7 @@ export class GitStore extends BaseStore {
 
     this.requestsInFight.add(requestKey)
 
-    const commits = await this.performFailableOperation(() =>
+    const commits = await this.withErrorHandling(() =>
       getCommits(this.repository, `${lastSHA}^`, CommitBatchSize)
     )
     if (!commits) {
@@ -228,7 +240,7 @@ export class GitStore extends BaseStore {
 
     this.requestsInFight.add(requestKey)
 
-    const commits = await this.performFailableOperation(() =>
+    const commits = await this.withErrorHandling(() =>
       getCommits(this.repository, commitish, CommitBatchSize)
     )
 
@@ -249,8 +261,8 @@ export class GitStore extends BaseStore {
   /** Load all the branches. */
   public async loadBranches() {
     const [localAndRemoteBranches, recentBranchNames] = await Promise.all([
-      this.performFailableOperation(() => getBranches(this.repository)) || [],
-      this.performFailableOperation(() =>
+      this.withErrorHandling(() => getBranches(this.repository)) || [],
+      this.withErrorHandling(() =>
         getRecentBranches(this.repository, RecentBranchesLimit)
       ),
     ])
@@ -429,11 +441,11 @@ export class GitStore extends BaseStore {
     let localCommits: ReadonlyArray<Commit> | undefined
     if (branch.upstream) {
       const range = revRange(branch.upstream, branch.name)
-      localCommits = await this.performFailableOperation(() =>
+      localCommits = await this.withErrorHandling(() =>
         getCommits(this.repository, range, CommitBatchSize)
       )
     } else {
-      localCommits = await this.performFailableOperation(() =>
+      localCommits = await this.withErrorHandling(() =>
         getCommits(this.repository, 'HEAD', CommitBatchSize, [
           '--not',
           '--remotes',
@@ -482,7 +494,7 @@ export class GitStore extends BaseStore {
     // isn't suitable because we should preserve the other working directory
     // changes.
 
-    const status = await this.performFailableOperation(() =>
+    const status = await this.withErrorHandling(() =>
       getStatus(this.repository)
     )
 
@@ -518,7 +530,7 @@ export class GitStore extends BaseStore {
   public async undoCommit(commit: Commit): Promise<void> {
     // For an initial commit, just delete the reference but leave HEAD. This
     // will make the branch unborn again.
-    const success = await this.performFailableOperation(
+    const success = await this.withErrorHandling(
       () =>
         commit.parentSHAs.length === 0
           ? this.undoFirstCommit(this.repository)
@@ -687,31 +699,6 @@ export class GitStore extends BaseStore {
     }
   }
 
-  /**
-   * Perform an operation that may fail by throwing an error. If an error is
-   * thrown, catch it and emit it, and return `undefined`.
-   *
-   * @param errorMetadata - The metadata which should be attached to any errors
-   *                        that are thrown.
-   */
-  public async performFailableOperation<T>(
-    fn: () => Promise<T>,
-    errorMetadata?: IErrorMetadata
-  ): Promise<T | undefined> {
-    try {
-      const result = await fn()
-      return result
-    } catch (e) {
-      e = new ErrorWithMetadata(e, {
-        repository: this.repository,
-        ...errorMetadata,
-      })
-
-      this.emitError(e)
-      return undefined
-    }
-  }
-
   /** The commit message for a work-in-progress commit in the changes view. */
   public get commitMessage(): ICommitMessage | null {
     return this._commitMessage
@@ -855,7 +842,7 @@ export class GitStore extends BaseStore {
       type: RetryActionType.Fetch,
       repository: this.repository,
     }
-    await this.performFailableOperation(
+    await this.withErrorHandling(
       () => {
         return fetchRepo(this.repository, account, remote, progressCallback)
       },
@@ -880,14 +867,14 @@ export class GitStore extends BaseStore {
     const remotes = await getRemotes(this.repository)
 
     for (const remote of remotes) {
-      await this.performFailableOperation(() =>
+      await this.withErrorHandling(() =>
         fetchRefspec(this.repository, account, remote.name, refspec)
       )
     }
   }
 
   public async loadStatus(): Promise<IStatusResult | null> {
-    const status = await this.performFailableOperation(() =>
+    const status = await this.withErrorHandling(() =>
       getStatus(this.repository)
     )
 
@@ -936,7 +923,7 @@ export class GitStore extends BaseStore {
       return Promise.resolve(cachedCommit)
     }
 
-    const foundCommit = await this.performFailableOperation(() =>
+    const foundCommit = await this.withErrorHandling(() =>
       getCommit(this.repository, sha)
     )
 
@@ -1009,7 +996,7 @@ export class GitStore extends BaseStore {
       parent.cloneURL
     )
 
-    await this.performFailableOperation(() =>
+    await this.withErrorHandling(() =>
       addRemote(this.repository, UpstreamRemoteName, url)
     )
     this._upstreamRemote = { name: UpstreamRemoteName, url }
@@ -1115,16 +1102,19 @@ export class GitStore extends BaseStore {
 
   /** Merge the named branch into the current branch. */
   public merge(branch: string): Promise<void> {
-    return this.performFailableOperation(() => merge(this.repository, branch), {
+    return this.withErrorHandling(() => merge(this.repository, branch), {
       command: 'merge',
     })
   }
 
+  /** Abort the merge against the current repository */
+  public abortMerge(): Promise<void> {
+    return this.withErrorHandling(() => abortMerge(this.repository))
+  }
+
   /** Changes the URL for the remote that matches the given name  */
   public async setRemoteURL(name: string, url: string): Promise<void> {
-    await this.performFailableOperation(() =>
-      setRemoteURL(this.repository, name, url)
-    )
+    await this.withErrorHandling(() => setRemoteURL(this.repository, name, url))
     await this.loadRemotes()
 
     this.emitUpdate()
@@ -1202,7 +1192,7 @@ export class GitStore extends BaseStore {
     //
     // 3. Checkout all the files that we've discarded that existed in the previous
     //    commit from the index.
-    await this.performFailableOperation(async () => {
+    await this.withErrorHandling(async () => {
       await resetSubmodulePaths(this.repository, submodulePaths)
       await resetPaths(
         this.repository,
@@ -1240,7 +1230,7 @@ export class GitStore extends BaseStore {
     account: IGitAccount | null,
     progressCallback?: (fetchProgress: IRevertProgress) => void
   ): Promise<void> {
-    await this.performFailableOperation(() =>
+    await this.withErrorHandling(() =>
       revertCommit(repository, commit, account, progressCallback)
     )
 
@@ -1285,9 +1275,7 @@ export class GitStore extends BaseStore {
   }
 
   public async openMergeTool(path: string): Promise<void> {
-    await this.performFailableOperation(() =>
-      openMergeTool(this.repository, path)
-    )
+    await this.withErrorHandling(() => openMergeTool(this.repository, path))
   }
 
   /**
@@ -1308,7 +1296,7 @@ export class GitStore extends BaseStore {
       parent.cloneURL
     )
 
-    await this.performFailableOperation(() =>
+    await this.withErrorHandling(() =>
       setRemoteURL(this.repository, UpstreamRemoteName, url)
     )
   }
