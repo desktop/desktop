@@ -6,7 +6,7 @@
       "[Added] Keyboard shortcut for \"Rename Branch\" menu item - #5964. Thanks @agisilaos!",
       "[Added] Commit file list now has \"Copy File Path\" context menu action - #2944. Thanks @Amabel!",
       "[Fixed] Launching Desktop from browser always asks to clone repository - #5913",
-      "[Fixed] Publish dialog always displayed instead of pushing changes to tracked branch - #5936",
+      "[Fixed] Publish dialog displayed on push when repository is already published - #5936",
       "[Improved] Sanitize repository name before publishing to GitHub - #3090. Thanks @Daniel-McCarthy!",
       "[Improved] Avoid optional locks when checking status of repository - #5952",
       "[Improved] Avoid repository checks when no path is specified in \"Create Repository\" dialog - #5828. Thanks @JakeHL!",
