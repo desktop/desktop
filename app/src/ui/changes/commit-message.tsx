@@ -277,6 +277,17 @@ export class CommitMessage extends React.Component<
     )
   }
 
+  private async checkForLargeFiles() {
+    const lfsSupported = await this.checkForLFS()
+
+    if (lfsSupported) {
+      return []
+    }
+
+    const oversizedFiles: string[] = await this.props.getNamesOfSelectedOversizedFiles()
+
+    return oversizedFiles
+  }
 
   private async checkForLFS() {
     try {
