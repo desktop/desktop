@@ -4,11 +4,11 @@
  * @param re regex to search with. must have global option and one capture
  * @returns ararys of strings captured by supplied regex
  */
-export async function getCaptures(
+export function getCaptures(
   text: string,
   re: RegExp
-): Promise<ReadonlyArray<Array<string>>> {
-  const matches = await getMatches(text, re)
+): ReadonlyArray<Array<string>> {
+  const matches = getMatches(text, re)
   const captures = matches.reduce(
     (acc, match) => acc.concat([match.slice(1)]),
     new Array<Array<string>>()
@@ -22,20 +22,13 @@ export async function getCaptures(
  * @param re regex to search with. must have global option
  * @returns set of strings captured by supplied regex
  */
-export async function getMatches(
-  text: string,
-  re: RegExp
-): Promise<Array<RegExpExecArray>> {
+export function getMatches(text: string, re: RegExp): Array<RegExpExecArray> {
   const matches = new Array<RegExpExecArray>()
-  const getNextMatch = () =>
-    new Promise(resolve => {
-      const match = re.exec(text)
-      if (match !== null) {
-        matches.push(match)
-        resolve(getNextMatch())
-      }
-      resolve(matches)
-    })
-  await getNextMatch()
+  let match = re.exec(text)
+
+  while (match !== null) {
+    matches.push(match)
+    match = re.exec(text)
+  }
   return matches
 }

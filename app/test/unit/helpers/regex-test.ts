@@ -9,8 +9,8 @@ describe('getCaptures()', () => {
     beforeAll(() => {
       bodyOfText = `capture me!:matching:capture me too!\nalso capture me!:matching:also capture me too!\n`
     })
-    it('returns all captures', async () => {
-      expect(await subject()).toEqual([
+    it('returns all captures', () => {
+      expect(subject()).toEqual([
         ['capture me!', 'capture me too!'],
         ['also capture me!', 'also capture me too!'],
       ])
@@ -20,8 +20,8 @@ describe('getCaptures()', () => {
     beforeAll(() => {
       bodyOfText = ' '
     })
-    it('returns empty array', async () => {
-      expect(await subject()).toEqual([])
+    it('returns empty array', () => {
+      expect(subject()).toEqual([])
     })
   })
 })
