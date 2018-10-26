@@ -305,16 +305,15 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
           />
         </DialogContent>
         <DialogFooter>
-          <ButtonGroup>
-            <Button type="submit" disabled={disabled}>
-              Merge into{' '}
-              <strong>{currentBranch ? currentBranch.name : ''}</strong>
-            </Button>
-          </ButtonGroup>
-
           {enableMergeConflictDetection()
             ? this.renderNewMergeInfo()
             : this.renderOldMergeMessage()}
+          <ButtonGroup>
+            <Button type="submit" disabled={disabled}>
+              Merge <strong>{selectedBranch ? selectedBranch.name : ''}</strong>{' '}
+              into <strong>{currentBranch ? currentBranch.name : ''}</strong>
+            </Button>
+          </ButtonGroup>
         </DialogFooter>
       </Dialog>
     )
