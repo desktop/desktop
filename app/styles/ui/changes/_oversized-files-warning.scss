@@ -1,0 +1,12 @@
+#oversized-files {
+  .dialog-content {
+    max-height: 300px;
+    -webkit-margin-after: 1em;
+
+    .files-list {
+      max-height: 185px;
+      overflow-y: auto;
+      -webkit-margin-after: 1em;
+    }
+  }
+}

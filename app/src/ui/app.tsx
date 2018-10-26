@@ -90,6 +90,7 @@ import { AppTheme } from './app-theme'
 import { ApplicationTheme } from './lib/application-theme'
 import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
 import { PopupType, Popup } from '../models/popup'
+import { OversizedFiles } from './changes/oversized-files-warning'
 
 const MinuteInMilliseconds = 1000 * 60
 
@@ -1320,6 +1321,13 @@ export class App extends React.Component<IAppProps, IAppState> {
           <MergeConflictsWarning
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
+            onDismissed={this.onPopupDismissed}
+          />
+        )
+      case PopupType.OversizedFiles:
+        return (
+          <OversizedFiles
+            fileNames={popup.fileList}
             onDismissed={this.onPopupDismissed}
           />
         )

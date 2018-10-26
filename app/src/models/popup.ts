@@ -37,6 +37,7 @@ export enum PopupType {
   ReleaseNotes,
   DeletePullRequest,
   MergeConflicts,
+  OversizedFiles,
 }
 
 export type Popup =
@@ -121,3 +122,7 @@ export type Popup =
       pullRequest: PullRequest
     }
   | { type: PopupType.MergeConflicts; repository: Repository }
+  | {
+      type: PopupType.OversizedFiles
+      fileList: string[]
+    }
