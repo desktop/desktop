@@ -4,8 +4,8 @@ trigger:
     include:
       - master
       - __release-*
-      
-# initialize submodules before running build jobs      
+
+# initialize submodules before running build jobs
 resources:
   repositories:
     - repository: self
