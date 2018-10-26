@@ -249,29 +249,28 @@ export class CommitMessage extends React.Component<
   }
 
   private async createCommit() {
-    const { summary, description } = this.state
-
     if (!this.canCommit()) {
       return
     }
 
-    const lfsSupported = await this.checkForLFS()
+    const trailers = this.getCoAuthorTrailers()
+    const { summary, description } = this.state
+    // allow single file commit without summary
+    const commitSummary =
+      this.props.singleFileCommit && !this.state.summary
+        ? this.props.placeholder
+        : summary
 
+    const lfsSupported = await this.checkForLFS()
     if (lfsSupported === false) {
       const overSizedFiles = await this.checkForLargeFiles()
 
       if (overSizedFiles.length !== 0) {
-        const finalSummary =
-          this.props.singleFileCommit && !this.state.summary
-            ? this.props.placeholder
-            : summary
-        const trailers = this.getCoAuthorTrailers()
-
         this.props.dispatcher.showPopup({
           type: PopupType.OversizedFiles,
           dispatcher: this.props.dispatcher,
           fileList: overSizedFiles,
-          commitSummary: finalSummary,
+          commitSummary: commitSummary,
           commitDescription: description,
           repository: this.props.repository,
           trailers: trailers,
@@ -281,13 +280,8 @@ export class CommitMessage extends React.Component<
       }
     }
 
-    const trailers = this.getCoAuthorTrailers()
-
     const commitCreated = await this.props.onCreateCommit(
-      // allow single file commit without summary
-      this.props.singleFileCommit && !this.state.summary
-        ? this.props.placeholder
-        : summary,
+      commitSummary,
       description,
       trailers
     )
