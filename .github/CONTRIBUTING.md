@@ -133,7 +133,7 @@ external contributors to pick up. These tasks:
  - have a narrow scope and/or easy reproduction steps
  - can be worked on independent of other tasks
 
-These issues will be labelled as [`help wanted`](https://github.com/desktop/desktop/labels/help%20wanted)
+These issues will be labelled as [`help-wanted`](https://github.com/desktop/desktop/labels/help-wanted)
 in the repository. If you are interested in contributing to the project, please
 comment on the issue to let the core team (and the community) know you are
 interested in the issue.
