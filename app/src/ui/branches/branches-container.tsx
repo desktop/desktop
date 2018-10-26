@@ -69,7 +69,7 @@ export class BranchesContainer extends React.Component<
   public render() {
     const branchName = this.props.currentBranch
       ? this.props.currentBranch.name
-      : 'master'
+      : this.props.defaultBranch || 'master'
 
     return (
       <div className="branches-container">
