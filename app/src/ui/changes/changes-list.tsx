@@ -31,6 +31,7 @@ import { IAutocompletionProvider } from '../autocompletion'
 import { showContextualMenu } from '../main-process-proxy'
 import { arrayEquals } from '../../lib/equality'
 import { clipboard } from 'electron'
+import * as path from 'path'
 
 const RowHeight = 29
 
@@ -428,7 +429,7 @@ export class ChangesList extends React.Component<
           coAuthors={this.props.coAuthors}
           placeholder={
             singleFileCommit
-              ? `Update ${filesSelected[0].path}`
+              ? `Update ${path.parse(filesSelected[0].path).base}`
               : 'Summary (required)'
           }
           singleFileCommit={singleFileCommit}
