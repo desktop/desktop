@@ -429,7 +429,11 @@ export class ChangesList extends React.Component<
           coAuthors={this.props.coAuthors}
           placeholder={
             singleFileCommit
-              ? `Update ${path.parse(filesSelected[0].path).base}`
+              ? filesSelected[0].status === AppFileStatus.New
+                ? `Create ${path.parse(filesSelected[0].path).base}`
+                : filesSelected[0].status === AppFileStatus.Deleted
+                  ? `Delete ${path.parse(filesSelected[0].path).base}`
+                  : `Update ${path.parse(filesSelected[0].path).base}`
               : 'Summary (required)'
           }
           singleFileCommit={singleFileCommit}
