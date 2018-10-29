@@ -395,7 +395,9 @@ export class ChangesList extends React.Component<
           if (fileSizeMegabytes > 100) {
             fileNames.push(file.path)
           }
-        } catch (error) {}
+        } catch (error) {
+          log.debug(`Unable to get the file size for ${filePath}`, error)
+        }
       }
     }
 
