@@ -29,9 +29,9 @@ interface IMergeProps {
   readonly defaultBranch: Branch | null
 
   /**
-   * The currently checked out branch or null if HEAD is detached
+   * The currently checked out branch
    */
-  readonly currentBranch: Branch | null
+  readonly currentBranch: Branch
 
   /**
    * See IBranchesState.allBranches
