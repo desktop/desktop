@@ -9,7 +9,7 @@ import { spawnAndComplete } from './spawn'
 export async function merge(
   repository: Repository,
   branch: string
-): Promise<void | true> {
+): Promise<true> {
   await git(['merge', branch], repository.path, 'merge')
   return true
 }
