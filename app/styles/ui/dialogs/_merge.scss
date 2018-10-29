@@ -44,4 +44,8 @@ dialog#merge {
       padding: var(--spacing-half);
     }
   }
+
+  .merge-dialog-header {
+    font-weight: var(--font-weight-light);
+  }
 }
