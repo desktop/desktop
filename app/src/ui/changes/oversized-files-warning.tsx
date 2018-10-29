@@ -3,6 +3,8 @@ import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { LinkButton } from '../lib/link-button'
+import { Monospaced } from '../lib/monospaced'
+import { PathText } from '../lib/path-text'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
 import { ITrailer } from '../../lib/git/interpret-trailers'
@@ -43,7 +45,7 @@ export class OversizedFiles extends React.Component<IOversizedFilesProps> {
             </strong>
           </p>
           {this.renderFileList()}
-          <p>
+          <p className="recommendation">
             We recommend you remove these files before committing or use{' '}
             <LinkButton uri={GitLFSWebsiteURL}>Git LFS</LinkButton> to store
             large files on GitHub.
@@ -66,7 +68,11 @@ export class OversizedFiles extends React.Component<IOversizedFilesProps> {
     return (
       <div className="files-list">
         {this.props.oversizedFiles.map(fileName => (
-          <p key={fileName}>{fileName}</p>
+          <ul key={fileName}>
+            <Monospaced>
+              <PathText path={fileName} />
+            </Monospaced>
+          </ul>
         ))}
       </div>
     )
