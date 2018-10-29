@@ -31,7 +31,7 @@ import { IAutocompletionProvider } from '../autocompletion'
 import { showContextualMenu } from '../main-process-proxy'
 import { arrayEquals } from '../../lib/equality'
 import { clipboard } from 'electron'
-import * as path from 'path'
+import { basename } from 'path'
 
 const RowHeight = 29
 
@@ -430,10 +430,10 @@ export class ChangesList extends React.Component<
           placeholder={
             singleFileCommit
               ? filesSelected[0].status === AppFileStatus.New
-                ? `Create ${path.parse(filesSelected[0].path).base}`
+                ? `Create ${basename(filesSelected[0].path)}`
                 : filesSelected[0].status === AppFileStatus.Deleted
-                  ? `Delete ${path.parse(filesSelected[0].path).base}`
-                  : `Update ${path.parse(filesSelected[0].path).base}`
+                  ? `Delete ${basename(filesSelected[0].path)}`
+                  : `Update ${basename(filesSelected[0].path)}`
               : 'Summary (required)'
           }
           singleFileCommit={singleFileCommit}
