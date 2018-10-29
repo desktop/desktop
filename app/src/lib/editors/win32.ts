@@ -19,7 +19,7 @@ export enum ExternalEditor {
   SublimeText = 'Sublime Text',
   CFBuilder = 'ColdFusion Builder',
   Typora = 'Typora',
-  SlickEdit = 'Visual SlickEdit'
+  SlickEdit = 'Visual SlickEdit',
 }
 
 export function parse(label: string): ExternalEditor | null {
