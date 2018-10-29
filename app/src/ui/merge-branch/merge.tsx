@@ -19,6 +19,8 @@ import { MergeResultKind } from '../../models/merge'
 import { MergeStatusHeader } from '../history/merge-status-header'
 import { promiseWithMinimumTimeout } from '../../lib/promise'
 import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
+import { DialogHeader } from '../dialog/header'
+import { Ref } from '../lib/ref'
 
 interface IMergeProps {
   readonly dispatcher: Dispatcher
@@ -292,14 +294,16 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     return (
       <Dialog
         id="merge"
-        title={
-          __DARWIN__
-            ? `Merge Into ${currentBranchName}`
-            : `Merge into ${currentBranchName}`
-        }
         onDismissed={this.props.onDismissed}
         onSubmit={this.merge}
       >
+        <DialogHeader title={` `} dismissable={true}>
+          <div className={''}>
+            <p>
+              Merge into <Ref>{currentBranchName}</Ref>
+            </p>
+          </div>
+        </DialogHeader>
         <DialogContent>
           <BranchList
             allBranches={this.props.allBranches}
