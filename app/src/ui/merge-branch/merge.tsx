@@ -286,7 +286,9 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     return (
       <Dialog
         id="merge"
-        title={__DARWIN__ ? 'Merge Branch' : 'Merge branch'}
+        title={
+          __DARWIN__ ? 'Merge Into Current Branch' : 'Merge into current branch'
+        }
         onDismissed={this.props.onDismissed}
         onSubmit={this.merge}
       >
