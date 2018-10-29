@@ -3079,13 +3079,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     }
 
-    if ((await gitStore.merge(branch)) === true) {
-      const currentBranchName =
-        gitStore.tip.kind === TipState.Valid
-          ? gitStore.tip.branch.name
-          : 'unknown branch'
+    const mergeSuccessful = await gitStore.merge(branch)
+    const { tip } = gitStore
+
+    if (mergeSuccessful && tip.kind === TipState.Valid) {
       this._setSuccessfulMergeBannerState({
-        currentBranch: currentBranchName,
+        currentBranch: tip.branch.name,
         theirBranch: branch,
       })
     }
