@@ -59,7 +59,7 @@ implementing features:
 ### Specialized areas
 
 We use these labels to identify issues related to a specific area or the app,
-or a specicif subset of users
+or a specific subset of users:
 
 |                             | Label name     | Description |
 | --------------------------- | -------------- | ----------- |
