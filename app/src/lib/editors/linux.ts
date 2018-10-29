@@ -9,6 +9,7 @@ export enum ExternalEditor {
   VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
   SublimeText = 'Sublime Text',
   Typora = 'Typora',
+  SlickEdit = 'Visual SlickEdit',
 }
 
 export function parse(label: string): ExternalEditor | null {
@@ -32,6 +33,10 @@ export function parse(label: string): ExternalEditor | null {
     return ExternalEditor.Typora
   }
 
+  if (label === ExternalEditor.SlickEdit) {
+    return ExternalEditor.SlickEdit
+  }
+
   return null
 }
 
@@ -51,6 +56,23 @@ function getEditorPath(editor: ExternalEditor): Promise<string | null> {
       return getPathIfAvailable('/usr/bin/subl')
     case ExternalEditor.Typora:
       return getPathIfAvailable('/usr/bin/typora')
+    case ExternalEditor.SlickEdit:
+      var slickeditPath
+      slickeditPath = getPathIfAvailable('/opt/slickedit-pro2018/bin/vs')
+      if (slickeditPath) {
+        return slickeditPath
+      }
+      slickeditPath = getPathIfAvailable('/opt/slickedit-pro2017/bin/vs')
+      if (slickeditPath) {
+        return slickeditPath
+      }
+      slickeditPath = getPathIfAvailable('/opt/slickedit-pro2016/bin/vs')
+      if (slickeditPath) {
+        return slickeditPath
+      }
+      slickeditPath = getPathIfAvailable('/opt/slickedit-pro2015/bin/vs')
+      // SlickEdit Pro 2015 is the last one we look for, so return that path no matter what
+      return slickeditPath
     default:
       return assertNever(editor, `Unknown editor: ${editor}`)
   }
@@ -67,12 +89,14 @@ export async function getAvailableEditors(): Promise<
     codeInsidersPath,
     sublimePath,
     typoraPath,
+    slickeditPath,
   ] = await Promise.all([
     getEditorPath(ExternalEditor.Atom),
     getEditorPath(ExternalEditor.VisualStudioCode),
     getEditorPath(ExternalEditor.VisualStudioCodeInsiders),
     getEditorPath(ExternalEditor.SublimeText),
     getEditorPath(ExternalEditor.Typora),
+    getEditorPath(ExternalEditor.SlickEdit),
   ])
 
   if (atomPath) {
@@ -96,6 +120,10 @@ export async function getAvailableEditors(): Promise<
 
   if (typoraPath) {
     results.push({ editor: ExternalEditor.Typora, path: typoraPath })
+  }
+
+  if (slickeditPath) {
+    results.push({ editor: ExternalEditor.SlickEdit, path: slickeditPath })
   }
 
   return results
