@@ -282,7 +282,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
       this.state.mergeStatus.kind === MergeResultKind.Invalid
 
     const disabled = invalidBranchState || cannotMergeBranch
-    const currentBranchName = this.props.currentBranch!.name
+    const currentBranchName = this.props.currentBranch.name
     return (
       <Dialog
         id="merge"
