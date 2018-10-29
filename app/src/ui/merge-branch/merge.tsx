@@ -18,6 +18,7 @@ import { MergeResultStatus } from '../../lib/app-state'
 import { MergeResultKind } from '../../models/merge'
 import { MergeStatusHeader } from '../history/merge-status-header'
 import { promiseWithMinimumTimeout } from '../../lib/promise'
+import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
 
 interface IMergeProps {
   readonly dispatcher: Dispatcher
@@ -282,7 +283,12 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
       this.state.mergeStatus.kind === MergeResultKind.Invalid
 
     const disabled = invalidBranchState || cannotMergeBranch
-    const currentBranchName = this.props.currentBranch.name
+
+    // the amount of characters to allow before we truncate was chosen arbitrarily
+    const currentBranchName = truncateWithEllipsis(
+      this.props.currentBranch.name,
+      40
+    )
     return (
       <Dialog
         id="merge"
