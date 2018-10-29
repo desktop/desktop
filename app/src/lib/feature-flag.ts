@@ -61,3 +61,8 @@ export function enableStatusWithoutOptionalLocks(): boolean {
 export function enableRecurseSubmodulesFlag(): boolean {
   return enableBetaFeatures()
 }
+
+/** Should the app check and warn the user about committing large files? */
+export function enableFileSizeWarningCheck(): boolean {
+  return enableDevelopmentFeatures()
+}

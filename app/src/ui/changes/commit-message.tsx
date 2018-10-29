@@ -25,6 +25,7 @@ import { ITrailer } from '../../lib/git/interpret-trailers'
 import { IAuthor } from '../../models/author'
 import { IMenuItem } from '../../lib/menu-item'
 import { isUsingLFS } from '../../lib/git/lfs'
+import { enableFileSizeWarningCheck } from '../../lib/feature-flag'
 
 const addAuthorIcon = new OcticonSymbol(
   12,
@@ -261,22 +262,24 @@ export class CommitMessage extends React.Component<
         ? this.props.placeholder
         : summary
 
-    const lfsSupported = await this.checkForLFS()
-    if (lfsSupported === false) {
-      const overSizedFiles = await this.checkForLargeFiles()
+    if (enableFileSizeWarningCheck()) {
+      const lfsSupported = await this.checkForLFS()
+      if (lfsSupported === false) {
+        const overSizedFiles = await this.checkForLargeFiles()
 
-      if (overSizedFiles.length !== 0) {
-        this.props.dispatcher.showPopup({
-          type: PopupType.OversizedFiles,
-          dispatcher: this.props.dispatcher,
-          fileList: overSizedFiles,
-          commitSummary: commitSummary,
-          commitDescription: description,
-          repository: this.props.repository,
-          trailers: trailers,
-        })
+        if (overSizedFiles.length !== 0) {
+          this.props.dispatcher.showPopup({
+            type: PopupType.OversizedFiles,
+            dispatcher: this.props.dispatcher,
+            fileList: overSizedFiles,
+            commitSummary: commitSummary,
+            commitDescription: description,
+            repository: this.props.repository,
+            trailers: trailers,
+          })
 
-        return
+          return
+        }
       }
     }
 
