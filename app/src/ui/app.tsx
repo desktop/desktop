@@ -993,7 +993,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.setUpdateBannerVisibility(false)
 
   private onSuccessfulMergeDismissed = () =>
-    this.props.dispatcher.setSuccessfulMergeBannerState(false)
+    this.props.dispatcher.setSuccessfulMergeBannerState(null)
 
   private currentPopupContent(): JSX.Element | null {
     // Hide any dialogs while we're displaying an error
@@ -1680,7 +1680,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   // we currently only render one banner at a time
   private renderBanner(): JSX.Element | null {
-    if (this.state.successfulMergeBannerState !== false) {
+    if (this.state.successfulMergeBannerState !== null) {
       return this.renderSuccessfulMergeBanner(
         this.state.successfulMergeBannerState
       )
@@ -1706,7 +1706,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   private renderSuccessfulMergeBanner(
     successfulMergeBannerState: SuccessfulMergeBannerState
   ) {
-    if (successfulMergeBannerState === false) {
+    if (successfulMergeBannerState === null) {
       return null
     }
     return (

@@ -530,9 +530,7 @@ export interface ICompareToBranch {
  */
 export type CompareAction = IViewHistory | ICompareToBranch
 
-export type SuccessfulMergeBannerState =
-  | {
-      currentBranch: string
-      theirBranch: string
-    }
-  | false
+export type SuccessfulMergeBannerState = {
+  currentBranch: string
+  theirBranch: string
+} | null
