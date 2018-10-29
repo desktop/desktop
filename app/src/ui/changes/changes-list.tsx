@@ -379,7 +379,7 @@ export class ChangesList extends React.Component<
     showContextualMenu(items)
   }
 
-  private getNamesOfSelectedOversizedFiles = () => {
+  private getNamesOfSelectedOversizedFiles = async () => {
     const fileNames: string[] = []
     const workingDirectoryFiles = this.props.workingDirectory.files
 
@@ -388,10 +388,9 @@ export class ChangesList extends React.Component<
         file.selection.getSelectionType() !== DiffSelectionType.None
 
       if (fileIsSelected) {
+        const filePath = path.join(this.props.repository.path, file.path)
         try {
-          const filePath = path.join(this.props.repository.path, file.path)
-          // eslint-disable-next-line no-sync
-          const fileStatus = FSE.statSync(filePath)
+          const fileStatus = await FSE.stat(filePath)
           const fileSizeMegabytes = fileStatus.size / 1000000
           if (fileSizeMegabytes > 100) {
             fileNames.push(file.path)
@@ -454,7 +453,11 @@ export class ChangesList extends React.Component<
           coAuthors={this.props.coAuthors}
           placeholder={
             singleFileCommit
-              ? `Update ${filesSelected[0].path}`
+              ? filesSelected[0].status === AppFileStatus.New
+                ? `Create ${path.parse(filesSelected[0].path).base}`
+                : filesSelected[0].status === AppFileStatus.Deleted
+                  ? `Delete ${path.parse(filesSelected[0].path).base}`
+                  : `Update ${path.parse(filesSelected[0].path).base}`
               : 'Summary (required)'
           }
           singleFileCommit={singleFileCommit}

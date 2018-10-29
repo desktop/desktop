@@ -68,7 +68,7 @@ interface ICommitMessageProps {
    * the user has chosen to do so.
    */
   readonly coAuthors: ReadonlyArray<IAuthor>
-  readonly getNamesOfSelectedOversizedFiles: () => string[]
+  readonly getNamesOfSelectedOversizedFiles: () => Promise<string[]>
 }
 
 interface ICommitMessageState {
