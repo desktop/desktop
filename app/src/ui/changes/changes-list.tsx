@@ -380,24 +380,22 @@ export class ChangesList extends React.Component<
   }
 
   private getNamesOfSelectedOversizedFiles = async () => {
-    const fileNames: string[] = []
+    const fileNames = new Array<string>()
     const workingDirectoryFiles = this.props.workingDirectory.files
+    const includedFiles = workingDirectoryFiles.filter(
+      file => file.selection.getSelectionType() !== DiffSelectionType.None
+    )
 
-    for (const file of workingDirectoryFiles) {
-      const fileIsSelected =
-        file.selection.getSelectionType() !== DiffSelectionType.None
-
-      if (fileIsSelected) {
-        const filePath = path.join(this.props.repository.path, file.path)
-        try {
-          const fileStatus = await FSE.stat(filePath)
-          const fileSizeMegabytes = fileStatus.size / 1000000
-          if (fileSizeMegabytes > 100) {
-            fileNames.push(file.path)
-          }
-        } catch (error) {
-          log.debug(`Unable to get the file size for ${filePath}`, error)
+    for (const file of includedFiles) {
+      const filePath = path.join(this.props.repository.path, file.path)
+      try {
+        const fileStatus = await FSE.stat(filePath)
+        const fileSizeMegabytes = fileStatus.size / 1000000
+        if (fileSizeMegabytes > 100) {
+          fileNames.push(file.path)
         }
+      } catch (error) {
+        log.debug(`Unable to get the file size for ${filePath}`, error)
       }
     }
 
