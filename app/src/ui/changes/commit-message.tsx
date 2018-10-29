@@ -232,7 +232,7 @@ export class CommitMessage extends React.Component<
   private focusSummary() {
     if (this.summaryTextInput !== null) {
       this.summaryTextInput.focus()
-      this.props.dispatcher.toggleCommitMessageFocus()
+      this.props.dispatcher.setCommitMessageFocus(false)
     }
   }
 

@@ -2905,12 +2905,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return Promise.resolve()
   }
 
-  public _toggleCommitMessageFocus(): Promise<void> {
-    this.focusCommitMessage = !this.focusCommitMessage
-
-    this.emitUpdate()
-
-    return Promise.resolve()
+  public _setCommitMessageFocus(focus: boolean) {
+    const previousValue = this.focusCommitMessage
+    this.focusCommitMessage = focus
+    if (this.focusCommitMessage !== previousValue) {
+      this.emitUpdate()
+    }
   }
 
   public _setSidebarWidth(width: number): Promise<void> {

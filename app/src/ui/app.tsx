@@ -362,7 +362,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private async goToCommitMessage() {
     await this.showChanges()
-    await this.props.dispatcher.toggleCommitMessageFocus()
+    this.props.dispatcher.setCommitMessageFocus(true)
   }
 
   private checkForUpdates(inBackground: boolean) {
