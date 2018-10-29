@@ -11,7 +11,7 @@ const GitLFSWebsiteURL =
   'https://help.github.com/articles/versioning-large-files/'
 
 interface IOversizedFilesProps {
-  readonly fileNames: string[]
+  readonly oversizedFiles: string[]
   readonly onDismissed: () => void
   readonly dispatcher: Dispatcher
   readonly commitSummary: string
@@ -65,7 +65,7 @@ export class OversizedFiles extends React.Component<IOversizedFilesProps> {
   private renderFileList() {
     return (
       <div className="files-list">
-        {this.props.fileNames.map(fileName => (
+        {this.props.oversizedFiles.map(fileName => (
           <p key={fileName}>{fileName}</p>
         ))}
       </div>

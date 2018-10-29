@@ -1327,7 +1327,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.OversizedFiles:
         return (
           <OversizedFiles
-            fileNames={popup.fileList}
+            oversizedFiles={popup.oversizedFiles}
             onDismissed={this.onPopupDismissed}
             dispatcher={this.props.dispatcher}
             commitSummary={popup.commitSummary}

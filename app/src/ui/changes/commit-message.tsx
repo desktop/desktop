@@ -270,7 +270,7 @@ export class CommitMessage extends React.Component<
         if (overSizedFiles.length !== 0) {
           this.props.dispatcher.showPopup({
             type: PopupType.OversizedFiles,
-            fileList: overSizedFiles,
+            oversizedFiles: overSizedFiles,
             commitSummary: commitSummary,
             commitDescription: description,
             repository: this.props.repository,

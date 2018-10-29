@@ -125,7 +125,7 @@ export type Popup =
   | { type: PopupType.MergeConflicts; repository: Repository }
   | {
       type: PopupType.OversizedFiles
-      fileList: string[]
+      oversizedFiles: string[]
       commitSummary: string
       commitDescription: string | null
       repository: Repository
