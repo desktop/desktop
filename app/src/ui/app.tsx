@@ -1329,7 +1329,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           <OversizedFiles
             fileNames={popup.fileList}
             onDismissed={this.onPopupDismissed}
-            dispatcher={popup.dispatcher}
+            dispatcher={this.props.dispatcher}
             commitSummary={popup.commitSummary}
             commitDescription={popup.commitDescription}
             repository={popup.repository}

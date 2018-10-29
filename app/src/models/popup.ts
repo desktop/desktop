@@ -7,7 +7,6 @@ import { RetryAction } from './retry-actions'
 import { WorkingDirectoryFileChange } from './status'
 import { PreferencesTab } from './preferences'
 import { ITrailer } from '../lib/git/interpret-trailers'
-import { Dispatcher } from '../lib/dispatcher'
 
 export enum PopupType {
   RenameBranch = 1,
@@ -126,7 +125,6 @@ export type Popup =
   | { type: PopupType.MergeConflicts; repository: Repository }
   | {
       type: PopupType.OversizedFiles
-      dispatcher: Dispatcher
       fileList: string[]
       commitSummary: string
       commitDescription: string | null
