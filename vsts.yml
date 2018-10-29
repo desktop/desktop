@@ -1,3 +1,6 @@
+# DO NOT MAKE CHANGES TO THIS CONFIG AS IT WILL BE OBSOLETED SOON
+# MAKE ANY REQUIRED CHANGES TO azure-pipelines.yml INSTEAD
+
 jobs:
   - job: Windows
     pool:
