@@ -43,7 +43,6 @@ interface ICommitMessageProps {
   readonly gitHubUser: IGitHubUser | null
   readonly anyFilesSelected: boolean
   readonly commitMessage: ICommitMessage | null
-  readonly contextualCommitMessage: ICommitMessage | null
   readonly repository: Repository
   readonly dispatcher: Dispatcher
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
@@ -70,9 +69,6 @@ interface ICommitMessageProps {
 interface ICommitMessageState {
   readonly summary: string
   readonly description: string | null
-
-  /** The last contextual commit message we've received. */
-  readonly lastContextualCommitMessage: ICommitMessage | null
 
   readonly userAutocompletionProvider: UserAutocompletionProvider | null
 
@@ -113,7 +109,6 @@ export class CommitMessage extends React.Component<
     this.state = {
       summary: commitMessage ? commitMessage.summary : '',
       description: commitMessage ? commitMessage.description : null,
-      lastContextualCommitMessage: this.props.contextualCommitMessage,
       userAutocompletionProvider: findUserAutoCompleteProvider(
         props.autocompletionProviders
       ),

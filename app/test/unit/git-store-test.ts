@@ -6,7 +6,6 @@ import { shell } from '../helpers/test-app-shell'
 import {
   setupEmptyRepository,
   setupFixtureRepository,
-  setupConflictedRepo,
 } from '../helpers/repositories'
 import { GitStore } from '../../src/lib/stores'
 import { AppFileStatus } from '../../src/models/status'
@@ -186,18 +185,6 @@ describe('GitStore', () => {
       )
       expect(result.stdout.length).toEqual(0)
     })
-  })
-
-  it('hides commented out lines from MERGE_MSG', async () => {
-    const repo = await setupConflictedRepo()
-    const gitStore = new GitStore(repo, shell)
-
-    await gitStore.loadContextualCommitMessage()
-
-    const context = gitStore.contextualCommitMessage
-    expect(context).not.toBeNull()
-    expect(context!.summary).toEqual(`Merge branch 'master' into other-branch`)
-    expect(context!.description).toBeNull()
   })
 
   describe('repository with HEAD file', () => {

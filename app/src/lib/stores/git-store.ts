@@ -18,7 +18,6 @@ import { ComparisonMode } from '../app-state'
 
 import { IAppShell } from '../app-shell'
 import { ErrorWithMetadata, IErrorMetadata } from '../error-with-metadata'
-import { structuralEquals } from '../../lib/equality'
 import { compare } from '../../lib/compare'
 import { queueWorkHigh } from '../../lib/queue-work'
 
@@ -104,8 +103,6 @@ export class GitStore extends BaseStore {
   private _localCommitSHAs: ReadonlyArray<string> = []
 
   private _commitMessage: ICommitMessage | null = null
-
-  private _contextualCommitMessage: ICommitMessage | null = null
 
   private _showCoAuthoredBy: boolean = false
 
@@ -718,14 +715,6 @@ export class GitStore extends BaseStore {
   }
 
   /**
-   * The commit message to use based on the context of the repository, e.g., the
-   * message from a recently undone commit.
-   */
-  public get contextualCommitMessage(): ICommitMessage | null {
-    return this._contextualCommitMessage
-  }
-
-  /**
    * Gets a value indicating whether the user has chosen to
    * hide or show the co-authors field in the commit message
    * component
@@ -1214,25 +1203,6 @@ export class GitStore extends BaseStore {
     })
   }
 
-  /** Load the contextual commit message if there is one. */
-  public async loadContextualCommitMessage(): Promise<void> {
-    const message = await this.getMergeMessage()
-    const existingMessage = this._contextualCommitMessage
-    // In the case where we're in the middle of a merge, we're gonna keep
-    // finding the same merge message over and over. We don't need to keep
-    // telling the world.
-    if (
-      existingMessage &&
-      message &&
-      structuralEquals(existingMessage, message)
-    ) {
-      return
-    }
-
-    this._contextualCommitMessage = message
-    this.emitUpdate()
-  }
-
   /** Reverts the commit with the given SHA */
   public async revertCommit(
     repository: Repository,
@@ -1245,43 +1215,6 @@ export class GitStore extends BaseStore {
     )
 
     this.emitUpdate()
-  }
-
-  /**
-   * Get the merge message in the repository. This will resolve to null if the
-   * repository isn't in the middle of a merge.
-   */
-  private async getMergeMessage(): Promise<ICommitMessage | null> {
-    const messagePath = Path.join(this.repository.path, '.git', 'MERGE_MSG')
-    return new Promise<ICommitMessage | null>((resolve, reject) => {
-      Fs.readFile(messagePath, 'utf8', (err, data) => {
-        if (err || !data.length) {
-          resolve(null)
-        } else {
-          const pieces = data.match(/(.*)\n\n([\S\s]*)/m)
-          if (!pieces || pieces.length < 3) {
-            resolve(null)
-            return
-          }
-
-          // exclude any commented-out lines from the MERGE_MSG body
-          let description: string | null = pieces[2]
-            .split('\n')
-            .filter(line => line[0] !== '#')
-            .join('\n')
-
-          // join with no elements will return an empty string
-          if (description.length === 0) {
-            description = null
-          }
-
-          resolve({
-            summary: pieces[1],
-            description,
-          })
-        }
-      })
-    })
   }
 
   public async openMergeTool(path: string): Promise<void> {
