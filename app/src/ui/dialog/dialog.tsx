@@ -31,7 +31,7 @@ interface IDialogProps {
    * By omitting this consumers may use their own custom DialogHeader
    * for when the default component doesn't cut it.
    */
-  readonly title?: string
+  readonly title?: string | JSX.Element
 
   /**
    * Whether or not the dialog should be dismissable. A dismissable dialog
