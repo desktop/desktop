@@ -86,10 +86,13 @@ import { InitializeLFS, AttributeMismatch } from './lfs'
 import { UpstreamAlreadyExists } from './upstream-already-exists'
 import { ReleaseNotes } from './release-notes'
 import { DeletePullRequest } from './delete-branch/delete-pull-request-dialog'
-import { MergeConflictsWarning } from './merge-conflicts'
+import { MergeConflictsDialog, MergeConflictsWarning } from './merge-conflicts'
 import { AppTheme } from './app-theme'
 import { ApplicationTheme } from './lib/application-theme'
 import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
+import { AbortMergeWarning } from './abort-merge'
+import { enableMergeConflictsDialog } from '../lib/feature-flag'
+import { AppFileStatus } from '../models/status'
 import { PopupType, Popup } from '../models/popup'
 import { SuccessfulMerge } from './banners'
 
@@ -1321,13 +1324,79 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       case PopupType.MergeConflicts:
-        return (
-          <MergeConflictsWarning
-            dispatcher={this.props.dispatcher}
-            repository={popup.repository}
-            onDismissed={this.onPopupDismissed}
-          />
-        )
+        if (enableMergeConflictsDialog()) {
+          const { selectedState } = this.state
+          if (
+            selectedState === null ||
+            selectedState.type !== SelectionType.Repository
+          ) {
+            return null
+          }
+          const workingDirectoryStatus =
+            selectedState.state.changesState.workingDirectory
+          // double check that this repository is actually in merge
+          const isInConflictedMerge = workingDirectoryStatus.files.some(
+            file =>
+              file.status === AppFileStatus.Conflicted ||
+              file.status === AppFileStatus.Resolved
+          )
+          if (!isInConflictedMerge) {
+            return null
+          }
+
+          return (
+            <MergeConflictsDialog
+              dispatcher={this.props.dispatcher}
+              repository={popup.repository}
+              status={workingDirectoryStatus}
+              onDismissed={this.onPopupDismissed}
+              openFileInExternalEditor={this.openFileInExternalEditor}
+              externalEditorName={this.state.selectedExternalEditor}
+              openRepositoryInShell={this.openInShell}
+              currentBranch={popup.currentBranch}
+              theirBranch={popup.theirBranch}
+            />
+          )
+        } else {
+          return (
+            <MergeConflictsWarning
+              dispatcher={this.props.dispatcher}
+              repository={popup.repository}
+              onDismissed={this.onPopupDismissed}
+            />
+          )
+        }
+      case PopupType.AbortMerge:
+        if (enableMergeConflictsDialog()) {
+          const { selectedState } = this.state
+          if (
+            selectedState === null ||
+            selectedState.type !== SelectionType.Repository
+          ) {
+            return null
+          }
+          const { workingDirectory } = selectedState.state.changesState
+          // double check that this repository is actually in merge
+          const isInConflictedMerge = workingDirectory.files.some(
+            file =>
+              file.status === AppFileStatus.Conflicted ||
+              file.status === AppFileStatus.Resolved
+          )
+          if (!isInConflictedMerge) {
+            return null
+          }
+
+          return (
+            <AbortMergeWarning
+              dispatcher={this.props.dispatcher}
+              repository={popup.repository}
+              onDismissed={this.onPopupDismissed}
+              currentBranch={popup.currentBranch}
+              theirBranch={popup.theirBranch}
+            />
+          )
+        }
+        return null
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }

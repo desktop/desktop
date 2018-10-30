@@ -595,6 +595,17 @@ export class Dispatcher {
     return this.appStore._mergeBranch(repository, branch, mergeStatus)
   }
 
+  public abortMerge(repository: Repository) {
+    return this.appStore._abortMerge(repository)
+  }
+
+  public createMergeCommit(
+    repository: Repository,
+    files: ReadonlyArray<WorkingDirectoryFileChange>
+  ) {
+    return this.appStore._createMergeCommit(repository, files)
+  }
+
   /** Record the given launch stats. */
   public recordLaunchStats(stats: ILaunchStats): Promise<void> {
     return this.appStore._recordLaunchStats(stats)
