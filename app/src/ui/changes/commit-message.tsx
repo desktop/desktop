@@ -137,15 +137,6 @@ export class CommitMessage extends React.Component<
         ),
       })
     }
-    if (
-      this.props.commitMessage &&
-      prevProps.commitMessage != this.props.commitMessage
-    ) {
-      this.setState({
-        summary: this.props.commitMessage.summary,
-        description: this.props.commitMessage.description,
-      })
-    }
   }
 
   private clearCommitMessage() {
