@@ -19,23 +19,27 @@ export class SuccessfulMerge extends React.Component<
         <div className="green-circle">
           <Octicon className="check-icon" symbol={OcticonSymbol.check} />
         </div>
-        <span>
-          {'Successfully merged '}
-          <strong>{this.props.theirBranch}</strong>
-          {' into '}
-          <strong>{this.props.currentBranch}</strong>
-        </span>
-        <a className="close" onClick={this.dismiss}>
-          <Octicon symbol={OcticonSymbol.x} />
-        </a>
+        <div className="banner-message">
+          <span>
+            {'Successfully merged '}
+            <strong>{this.props.theirBranch}</strong>
+            {' into '}
+            <strong>{this.props.currentBranch}</strong>
+          </span>
+        </div>
+        <div className="close">
+          <a onClick={this.dismiss}>
+            <Octicon symbol={OcticonSymbol.x} />
+          </a>
+        </div>
       </div>
     )
   }
 
   public componentDidMount = () => {
-    this.timeoutId = setTimeout(() => {
-      this.dismiss()
-    }, 3250)
+    // this.timeoutId = setTimeout(() => {
+    //   this.dismiss()
+    // }, 3250)
   }
 
   public componentWillUnmount = () => {
