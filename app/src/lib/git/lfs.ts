@@ -38,3 +38,20 @@ export async function isUsingLFS(repository: Repository): Promise<boolean> {
   const result = await getLfsTrackOutput(repository)
   return result.stdout.length > 0
 }
+
+export async function getLFSPaths(
+  repository: Repository
+): Promise<ReadonlyArray<string>> {
+  const { stdout } = await getLfsTrackOutput(repository)
+  const trackExpressionRegex = /\s*(.*)\s\(.*\)\n/g
+
+  const matches = new Array<string>()
+  let match = trackExpressionRegex.exec(stdout)
+
+  while (match !== null && match.length === 2) {
+    const expression = match[1]
+    matches.push(expression)
+    match = trackExpressionRegex.exec(stdout)
+  }
+  return matches
+}
