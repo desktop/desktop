@@ -135,9 +135,9 @@ describe('GitStore', () => {
 
       await gitStore.undoCommit(firstCommit!)
 
-      const context = gitStore.contextualCommitMessage
-      expect(context).not.toBeNull()
-      expect(context!.summary).toEqual(commitMessage)
+      const newCommitMessage = gitStore.commitMessage
+      expect(newCommitMessage).not.toBeNull()
+      expect(newCommitMessage!.summary).toEqual(commitMessage)
     })
 
     it('clears the undo commit dialog', async () => {
