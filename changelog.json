@@ -1,5 +1,15 @@
 {
   "releases": {
+    "1.5.0-beta2": [
+      "[New] Successful merge banner - #5851",
+      "[New] Merge button in branch selector - #5929. Thanks @bruncun!",
+      "[New] Merge conflict resolution flow - #5400",
+      "[Fixed] Single file commit summary now matches behavior of GitHub.com - #6017. Thanks @Daniel-McCarthy!",
+      "[Improved] License and GitIgnore Support - #6024. Thanks @say25!",
+      "[Improved] Title of merge dialog now includes current branch name - #6027",
+      "[Improved] Merge dialog now includes merge direction - #5930. Thanks @JQuinnie!",
+      "[Improved] \"Update From Default Branch\" menu item now shows the branch name - #3018. Thanks @a-golovanov!"
+    ],
     "1.5.0-beta1": [
       "[New] Repository switcher has a convenient \"Add\" button to add other repositories - #5878",
       "[New] macOS tray icon now supports drag-and-drop to add local repositories - #5048",
