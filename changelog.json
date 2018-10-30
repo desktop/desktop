@@ -5,7 +5,7 @@
       "[New] Merge button in branch selector - #5929. Thanks @bruncun!",
       "[New] Merge conflict resolution flow - #5400",
       "[Fixed] Single file commit summary now matches behavior of GitHub.com - #6017. Thanks @Daniel-McCarthy!",
-      "[Improved] License and GitIgnore Support - #6024. Thanks @say25!",
+      "[Improved] Updated license and .gitignore templates for initializing a new repository - #6024. Thanks @say25!",
       "[Improved] Title of merge dialog now includes current branch name - #6027",
       "[Improved] Merge dialog now includes merge direction - #5930. Thanks @JQuinnie!",
       "[Improved] \"Update From Default Branch\" menu item now shows the branch name - #3018. Thanks @a-golovanov!"
