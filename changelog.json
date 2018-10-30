@@ -1,7 +1,7 @@
 {
   "releases": {
     "1.5.0-beta2": [
-      "[New] Successful merge banner - #5851",
+      "[New] Banner message displayed after successful merge - #5851",
       "[New] Merge button in branch selector - #5929. Thanks @bruncun!",
       "[New] Merge conflict resolution flow - #5400",
       "[Fixed] Single file commit summary now matches behavior of GitHub.com - #6017. Thanks @Daniel-McCarthy!",
