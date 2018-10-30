@@ -298,7 +298,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
       >
         <DialogHeader
           title={
-            <div className={'merge-dialog-header'}>
+            <div className="merge-dialog-header">
               Merge into <b>{currentBranchName}</b>
             </div>
           }
