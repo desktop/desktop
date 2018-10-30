@@ -94,7 +94,12 @@ function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
     case ExternalEditor.Typora:
       return ['abnerworks.Typora']
     case ExternalEditor.SlickEdit:
-      return ['com.slickedit.SlickEditPro2018','com.slickedit.SlickEditPro2017','com.slickedit.SlickEditPro2016','com.slickedit.SlickEditPro2015']
+      return [
+        'com.slickedit.SlickEditPro2018',
+        'com.slickedit.SlickEditPro2017',
+        'com.slickedit.SlickEditPro2016',
+        'com.slickedit.SlickEditPro2015',
+      ]
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }

@@ -303,7 +303,9 @@ function isExpectedInstallation(
     case ExternalEditor.Typora:
       return displayName.startsWith('Typora') && publisher === 'typora.io'
     case ExternalEditor.SlickEdit:
-      return displayName.startsWith('SlickEdit') && publisher === 'SlickEdit Inc.'
+      return (
+        displayName.startsWith('SlickEdit') && publisher === 'SlickEdit Inc.'
+      )
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
