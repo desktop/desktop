@@ -303,6 +303,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
             </div>
           }
           dismissable={true}
+          onDismissed={this.props.onDismissed}
         />
         <DialogContent>
           <BranchList
