@@ -292,6 +292,12 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     return (
       <Dialog
         id="merge"
+        title={
+          <div key="merge-dialog" className="merge-dialog-header">
+            Merge into <b>{currentBranchName}</b>
+          </div>
+        }
+        dismissable={true}
         onDismissed={this.props.onDismissed}
         onSubmit={this.merge}
       >
