@@ -44,7 +44,7 @@ async function getPathIfAvailable(path: string): Promise<string | null> {
   return (await pathExists(path)) ? path : null
 }
 
-function getEditorPath(editor: ExternalEditor): Promise<string | null> {
+async function getEditorPath(editor: ExternalEditor): Promise<string | null> {
   switch (editor) {
     case ExternalEditor.Atom:
       return getPathIfAvailable('/usr/bin/atom')
@@ -64,14 +64,12 @@ function getEditorPath(editor: ExternalEditor): Promise<string | null> {
         '/opt/slickedit-pro2015/bin/vs',
       ]
       for (const possiblePath of possiblePaths) {
-        const slickeditPath = getPathIfAvailable(possiblePath)
+        const slickeditPath = await getPathIfAvailable(possiblePath)
         if (slickeditPath) {
           return slickeditPath
         }
       }
-      return new Promise<string | null>((resolve, reject) => {
-        resolve(null)
-      })
+      return null
     default:
       return assertNever(editor, `Unknown editor: ${editor}`)
   }
