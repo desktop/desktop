@@ -1,4 +1,3 @@
-import { expect } from 'chai'
 import { setupFixtureRepository } from '../../helpers/repositories'
 import { Repository } from '../../../src/models/repository'
 import { GitProcess } from 'dugite'
@@ -11,7 +10,7 @@ describe('git-lfs', () => {
       const repository = new Repository(path, -1, null, false)
 
       const usingLFS = await isUsingLFS(repository)
-      expect(usingLFS).to.equal(false)
+      expect(usingLFS).toBe(false)
     })
 
     it('returns true if LFS is tracking a path', async () => {
@@ -21,7 +20,7 @@ describe('git-lfs', () => {
       await GitProcess.exec(['lfs', 'track', '*.psd'], repository.path)
 
       const usingLFS = await isUsingLFS(repository)
-      expect(usingLFS).to.equal(true)
+      expect(usingLFS).toBe(true)
     })
   })
 })
