@@ -432,6 +432,7 @@ export class ChangesList extends React.Component<
               : 'Summary (required)'
           }
           singleFileCommit={singleFileCommit}
+          key={this.props.repository.id}
         />
       </div>
     )
