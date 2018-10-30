@@ -137,7 +137,7 @@ export class CommitMessage extends React.Component<
         ),
       })
     }
-    if (prevProps.commitMessage != this.props.commitMessage) {
+    if (prevProps.commitMessage !== this.props.commitMessage) {
       if (this.props.commitMessage) {
         this.setState({
           summary: this.props.commitMessage.summary,
