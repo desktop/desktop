@@ -2835,11 +2835,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.clearSelectedCommit(repository)
     }
 
-    await gitStore.setCommitMessage({
-      summary: commit.summary,
-      description: commit.body,
-    })
-
     return this._refreshRepository(repository)
   }
 

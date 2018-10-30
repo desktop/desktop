@@ -544,7 +544,7 @@ export class GitStore extends BaseStore {
       }
     }
 
-    this._contextualCommitMessage = {
+    this._commitMessage = {
       summary: commit.summary,
       description: commit.body,
     }
@@ -578,7 +578,7 @@ export class GitStore extends BaseStore {
 
     // This is the happy path, nothing more for us to do
     if (coAuthorTrailers.length === 0) {
-      this._contextualCommitMessage = {
+      this._commitMessage = {
         summary: commit.summary,
         description: commit.body,
       }
@@ -649,7 +649,7 @@ export class GitStore extends BaseStore {
 
     const newBody = lines.join('\n').trim()
 
-    this._contextualCommitMessage = {
+    this._commitMessage = {
       summary: commit.summary,
       description: newBody,
     }
