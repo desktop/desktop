@@ -7,7 +7,7 @@
       "[Improved] Commit summary when committing single file  - #6017. Thanks @Daniel-McCarthy!",
       "[Improved] Updated license and .gitignore templates for initializing a new repository - #6024. Thanks @say25!",
       "[Improved] Merge dialog displays current branch in header - #6027",
-      "[Improved] Merge dialog now includes merge direction - #5930. Thanks @JQuinnie!",
+      "[Improved] Clarify the direction of merging branches - #5930. Thanks @JQuinnie!",
       "[Improved] \"Update From Default Branch\" menu item now shows the branch name - #3018. Thanks @a-golovanov!"
     ],
     "1.5.0-beta1": [
