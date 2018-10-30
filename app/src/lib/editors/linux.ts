@@ -57,22 +57,21 @@ function getEditorPath(editor: ExternalEditor): Promise<string | null> {
     case ExternalEditor.Typora:
       return getPathIfAvailable('/usr/bin/typora')
     case ExternalEditor.SlickEdit:
-      var slickeditPath
-      slickeditPath = getPathIfAvailable('/opt/slickedit-pro2018/bin/vs')
-      if (slickeditPath) {
-        return slickeditPath
+      const possiblePaths = [
+        '/opt/slickedit-pro2018/bin/vs',
+        '/opt/slickedit-pro2017/bin/vs',
+        '/opt/slickedit-pro2016/bin/vs',
+        '/opt/slickedit-pro2015/bin/vs',
+      ]
+      for (const possiblePath of possiblePaths) {
+        const slickeditPath = getPathIfAvailable(possiblePath)
+        if (slickeditPath) {
+          return slickeditPath
+        }
       }
-      slickeditPath = getPathIfAvailable('/opt/slickedit-pro2017/bin/vs')
-      if (slickeditPath) {
-        return slickeditPath
-      }
-      slickeditPath = getPathIfAvailable('/opt/slickedit-pro2016/bin/vs')
-      if (slickeditPath) {
-        return slickeditPath
-      }
-      slickeditPath = getPathIfAvailable('/opt/slickedit-pro2015/bin/vs')
-      // SlickEdit Pro 2015 is the last one we look for, so return that path no matter what
-      return slickeditPath
+      return new Promise<string | null>((resolve, reject) => {
+        resolve(null)
+      })
     default:
       return assertNever(editor, `Unknown editor: ${editor}`)
   }
