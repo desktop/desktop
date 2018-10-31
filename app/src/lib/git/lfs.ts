@@ -50,10 +50,24 @@ export async function isTrackedByLFS(
   path: string
 ): Promise<boolean> {
   const { stdout } = await git(
-    ['check-attr', '-a', path],
+    ['check-attr', 'filter', path],
     repository.path,
     'checkAttrForLFS'
   )
+
+  // "git check-attr -a" will output every filter it can find in .gitattributes
+  // and it looks like this:
+  //
+  // README.md: diff: lfs
+  // README.md: merge: lfs
+  // README.md: text: unset
+  // README.md: filter: lfs
+  //
+  // To verify git-lfs this test will just focus on that last row, "filter",
+  // and the value associated with it. If nothing is found in .gitattributes
+  // the output will look like this
+  //
+  // README.md: filter: unspecified
 
   const lfsFilterRegex = /(.*): filter: lfs/
 
