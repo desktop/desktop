@@ -84,3 +84,27 @@ export async function isTrackedByLFS(
 
   return true
 }
+
+/**
+ * Query a Git repository and filter the set of provided relative paths to see
+ * which are not covered by the current Git LFS configuration.
+ *
+ * @param repository
+ * @param filePaths List of relative paths in the repository
+ */
+export async function filesNotTrackedByLFS(
+  repository: Repository,
+  filePaths: ReadonlyArray<string>
+): Promise<ReadonlyArray<string>> {
+  const filesNotTrackedByGitLFS = new Array<string>()
+
+  for (const file of filePaths) {
+    const isTracked = await isTrackedByLFS(repository, file)
+
+    if (!isTracked) {
+      filesNotTrackedByGitLFS.push(file)
+    }
+  }
+
+  return filesNotTrackedByGitLFS
+}
