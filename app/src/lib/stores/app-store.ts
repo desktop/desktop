@@ -2906,9 +2906,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public _setCommitMessageFocus(focus: boolean) {
-    const previousValue = this.focusCommitMessage
-    this.focusCommitMessage = focus
-    if (this.focusCommitMessage !== previousValue) {
+    if (this.focusCommitMessage !== focus) {
+      this.focusCommitMessage = focus
       this.emitUpdate()
     }
   }
