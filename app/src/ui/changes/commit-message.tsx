@@ -22,6 +22,7 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { ITrailer } from '../../lib/git/interpret-trailers'
 import { IAuthor } from '../../models/author'
 import { IMenuItem } from '../../lib/menu-item'
+import { shallowEquals } from '../../lib/equality'
 
 const addAuthorIcon = new OcticonSymbol(
   12,
@@ -132,17 +133,14 @@ export class CommitMessage extends React.Component<
         ),
       })
     }
-    if (prevProps.commitMessage !== this.props.commitMessage) {
+    if (!shallowEquals(prevProps.commitMessage, this.props.commitMessage)) {
       if (this.props.commitMessage) {
         this.setState({
           summary: this.props.commitMessage.summary,
           description: this.props.commitMessage.description,
         })
       } else {
-        this.setState({
-          summary: '',
-          description: null,
-        })
+        this.setState({ summary: '', description: null })
       }
     }
   }
