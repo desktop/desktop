@@ -60,6 +60,7 @@ import {
   ApplicationTheme,
   getPersistedTheme,
   setPersistedTheme,
+  setAutoSwitchPersistedTheme,
 } from '../../ui/lib/application-theme'
 import {
   getAppMenu,
@@ -285,6 +286,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private selectedBranchesTab = BranchesTab.Branches
   private selectedTheme = ApplicationTheme.Light
+  private automaticallySwitchTheme = false
 
   public constructor(
     private readonly gitHubUserStore: GitHubUserStore,
@@ -499,6 +501,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       selectedCloneRepositoryTab: this.selectedCloneRepositoryTab,
       selectedBranchesTab: this.selectedBranchesTab,
       selectedTheme: this.selectedTheme,
+      automaticallySwitchTheme: this.automaticallySwitchTheme,
     }
   }
 
@@ -3980,6 +3983,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _setSelectedTheme(theme: ApplicationTheme) {
     setPersistedTheme(theme)
     this.selectedTheme = theme
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  /**
+   * Set the application-wide theme
+   */
+  public _setAutomaticallySwitchTheme(automaticallySwitchTheme: boolean) {
+    setAutoSwitchPersistedTheme(automaticallySwitchTheme)
+    this.automaticallySwitchTheme = automaticallySwitchTheme
     this.emitUpdate()
 
     return Promise.resolve()

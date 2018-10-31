@@ -1276,6 +1276,13 @@ export class Dispatcher {
   }
 
   /**
+   * Set the automatically switch application-wide theme
+   */
+  public onAutomaticallySwitchThemeChanged(theme: boolean) {
+    return this.appStore._setAutomaticallySwitchTheme(theme)
+  }
+
+  /**
    * Increments either the `repoWithIndicatorClicked` or
    * the `repoWithoutIndicatorClicked` metric
    */

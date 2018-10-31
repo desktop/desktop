@@ -180,6 +180,9 @@ export interface IAppState {
 
   /** The currently selected appearance (aka theme) */
   readonly selectedTheme: ApplicationTheme
+
+  /** Whether we should automatically change the currently selected appearance (aka theme) */
+  readonly automaticallySwitchTheme: boolean
 }
 
 export enum FoldoutType {
