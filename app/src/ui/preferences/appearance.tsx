@@ -1,4 +1,5 @@
 import * as React from 'react'
+// import { app, systemPreferences } from 'electron'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Row } from '../lib/row'
 import { DialogContent } from '../dialog'
@@ -55,6 +56,19 @@ export class Appearance extends React.Component<
     event: React.FormEvent<HTMLInputElement>
   ) => {
     const value = event.currentTarget.checked
+
+    // const updateThemeBasedOnSystem = () => {
+    //   // Flip Bit
+    //   this.onSelectedThemeChanged(this.props.selectedTheme ? 0 : 1);
+    // };
+
+    // const subscriptionID = systemPreferences.subscribeNotification('AppleInterfaceThemeChangedNotification', updateThemeBasedOnSystem);
+
+    // updateThemeBasedOnSystem()
+
+    // app.on('will-quit', () => {
+    //   systemPreferences.unsubscribeNotification(subscriptionID)
+    // })
 
     this.setState({ automaticallySwitchTheme: value })
     this.props.onAutomaticallySwitchThemeChanged(value)
