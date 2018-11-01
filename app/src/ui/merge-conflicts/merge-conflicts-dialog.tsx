@@ -11,11 +11,11 @@ import {
   WorkingDirectoryStatus,
   WorkingDirectoryFileChange,
   AppFileStatus,
-  ConflictStatus,
 } from '../../models/status'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { PathText } from '../lib/path-text'
 import { DialogHeader } from '../dialog/header'
+import { ConflictFileStatus } from '../../models/conflicts'
 
 interface IMergeConflictsDialogProps {
   readonly dispatcher: Dispatcher
@@ -134,7 +134,7 @@ export class MergeConflictsDialog extends React.Component<
 
   private renderConflictedFile(
     path: string,
-    conflictStatus: ConflictStatus,
+    conflictStatus: ConflictFileStatus,
     editorName: string | undefined,
     onOpenEditorClick: () => void
   ): JSX.Element | null {

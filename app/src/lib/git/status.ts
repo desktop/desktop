@@ -6,7 +6,6 @@ import {
   AppFileStatus,
   FileEntry,
   GitStatusEntry,
-  UnmergedEntry,
 } from '../../models/status'
 import {
   parsePorcelainStatus,
