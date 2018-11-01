@@ -109,7 +109,9 @@
     "webpack-dev-middleware": "^5.3.1",
     "webpack-hot-middleware": "^2.25.1",
     "webpack-merge": "^5.8.0",
-    "xml2js": "^0.4.16"
+    "xml2js": "^0.4.16",
+    "xvfb-maybe": "^0.2.1",
+    "yaml": "^1.4.0"
   },
   "devDependencies": {
     "@types/byline": "^4.2.31",
