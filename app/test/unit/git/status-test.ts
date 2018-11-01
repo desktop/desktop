@@ -56,11 +56,28 @@ describe('git/status', () => {
         )
         repository = new Repository(path, -1, null, false)
         await GitProcess.exec(['checkout', 'make-a-change'], repository.path)
-        await GitProcess.exec(['merge', 'master'], repository.path)
       })
 
-      it('parses conflicted image file', async () => {
+      it('parses conflicted image file on merge', async () => {
         const repo = repository!
+
+        await GitProcess.exec(['merge', 'master'], repo.path)
+
+        const status = await getStatusOrThrow(repo)
+        const files = status.workingDirectory.files
+        expect(files).toHaveLength(1)
+
+        const file = files[0]
+        expect(file.status).toBe(AppFileStatus.Conflicted)
+      })
+
+      it('parses conflicted image file on merge after removing', async () => {
+        const repo = repository!
+
+        await GitProcess.exec(['rm', 'my-cool-image.png'], repo.path)
+        await GitProcess.exec(['commit', '-am', 'removed the image'], repo.path)
+
+        await GitProcess.exec(['merge', 'master'], repo.path)
 
         const status = await getStatusOrThrow(repo)
         const files = status.workingDirectory.files
