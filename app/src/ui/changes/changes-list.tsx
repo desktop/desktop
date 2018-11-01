@@ -74,7 +74,6 @@ interface IChangesListProps {
    */
   readonly onRowClick?: (row: number, source: ClickSource) => void
   readonly commitMessage: ICommitMessage | null
-  readonly contextualCommitMessage: ICommitMessage | null
 
   /** The autocompletion providers available to the repository. */
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
@@ -447,7 +446,6 @@ export class ChangesList extends React.Component<
           repository={this.props.repository}
           dispatcher={this.props.dispatcher}
           commitMessage={this.props.commitMessage}
-          contextualCommitMessage={this.props.contextualCommitMessage}
           autocompletionProviders={this.props.autocompletionProviders}
           isCommitting={this.props.isCommitting}
           showCoAuthoredBy={this.props.showCoAuthoredBy}
@@ -457,6 +455,7 @@ export class ChangesList extends React.Component<
             singleFileCommit
           )}
           singleFileCommit={singleFileCommit}
+          key={this.props.repository.id}
         />
       </div>
     )
