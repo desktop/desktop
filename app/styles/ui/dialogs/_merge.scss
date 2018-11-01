@@ -18,11 +18,11 @@ dialog#merge {
     padding: 0;
 
     .filter-field-row {
-      padding: 0 var(--spacing-double);
+      margin: 0;
       border-bottom: var(--base-border);
 
       .filter-list-filter-field {
-        padding: 0;
+        padding: 0 var(--spacing-double);
         padding-bottom: var(--spacing);
       }
     }
