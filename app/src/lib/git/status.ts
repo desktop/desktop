@@ -21,6 +21,7 @@ import { Repository } from '../../models/repository'
 import { IAheadBehind } from '../../models/branch'
 import { fatalError } from '../../lib/fatal-error'
 import { enableStatusWithoutOptionalLocks } from '../feature-flag'
+import { filterBinaryFiles } from './binary-files'
 
 /**
  * V8 has a limit on the size of string it can create (~256MB), and unless we want to
@@ -102,11 +103,10 @@ async function buildConflictState(
     filesWithConflictMarkers: await getFilesWithConflictMarkers(
       repository.path
     ),
-    binaryFilePathsInConflicts: [],
-    // binaryFilePathsInConflicts: await filterBinaryFiles(
-    //   repository,
-    //   conflictedFilesRelativePaths
-    // ),
+    binaryFilePathsInConflicts: await filterBinaryFiles(
+      repository,
+      conflictedFilesRelativePaths
+    ),
   }
 }
 
