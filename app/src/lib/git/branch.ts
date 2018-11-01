@@ -4,6 +4,7 @@ import { Repository } from '../../models/repository'
 import { Branch, BranchType } from '../../models/branch'
 import { IGitAccount } from '../../models/git-account'
 import { envForAuthentication } from './authentication'
+import { getCaptures } from '../helpers/regex'
 
 /**
  * Create a new branch from the given start point.
@@ -116,4 +117,17 @@ async function checkIfBranchExistsOnRemote(
     opts
   )
   return result.stdout.length > 0
+}
+
+export async function getBranchesPointedAt(
+  repository: Repository,
+  commitish: string
+): Promise<Array<string>> {
+  const args = ['branch', `points-at=${commitish}`]
+  const { stdout } = await git(args, repository.path, 'branchPointsAt')
+  // split along newlines, which should just be branch names
+  const captures = getCaptures(stdout, /(.*)\s+/gi).reduce((acc, val) =>
+    acc.concat(val)
+  )
+  return captures
 }
