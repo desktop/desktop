@@ -29,6 +29,7 @@ These editors are currently supported:
  - [Sublime Text](https://www.sublimetext.com/)
  - [ColdFusion Builder](https://www.adobe.com/products/coldfusion-builder.html)
  - [Typora](https://typora.io/)
+ - [SlickEdit](https://www.slickedit.com)
 
 These are defined in an enum at the top of the file:
 
@@ -40,6 +41,7 @@ export enum ExternalEditor {
   SublimeText = 'Sublime Text',
   CFBuilder = 'ColdFusion Builder',
   Typora = 'Typora',
+  SlickEdit = 'SlickEdit',
 }
 ```
 
