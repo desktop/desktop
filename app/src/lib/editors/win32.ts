@@ -19,7 +19,7 @@ export enum ExternalEditor {
   SublimeText = 'Sublime Text',
   CFBuilder = 'ColdFusion Builder',
   Typora = 'Typora',
-  SlickEdit = 'Visual SlickEdit',
+  SlickEdit = 'SlickEdit',
 }
 
 export function parse(label: string): ExternalEditor | null {
@@ -162,67 +162,67 @@ function getRegistryKeys(
       ]
     case ExternalEditor.SlickEdit:
       return [
-        // 64-bit version of Visual SlickEdit Pro 2018
+        // 64-bit version of SlickEdit Pro 2018
         {
           key: HKEY.HKEY_LOCAL_MACHINE,
           subKey:
             'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{18406187-F49E-4822-CAF2-1D25C0C83BA2}',
         },
-        // 32-bit version of Visual SlickEdit Pro 2018
+        // 32-bit version of SlickEdit Pro 2018
         {
           key: HKEY.HKEY_LOCAL_MACHINE,
           subKey:
             'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{18006187-F49E-4822-CAF2-1D25C0C83BA2}',
         },
-        // 64-bit version of Visual SlickEdit Standard 2018
+        // 64-bit version of SlickEdit Standard 2018
         {
           key: HKEY.HKEY_LOCAL_MACHINE,
           subKey:
             'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{18606187-F49E-4822-CAF2-1D25C0C83BA2}',
         },
-        // 32-bit version of Visual SlickEdit Standard 2018
+        // 32-bit version of SlickEdit Standard 2018
         {
           key: HKEY.HKEY_LOCAL_MACHINE,
           subKey:
             'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{18206187-F49E-4822-CAF2-1D25C0C83BA2}',
         },
-        // 64-bit version of Visual SlickEdit Pro 2017
+        // 64-bit version of SlickEdit Pro 2017
         {
           key: HKEY.HKEY_LOCAL_MACHINE,
           subKey:
             'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{15406187-F49E-4822-CAF2-1D25C0C83BA2}',
         },
-        // 32-bit version of Visual SlickEdit Pro 2017
+        // 32-bit version of SlickEdit Pro 2017
         {
           key: HKEY.HKEY_LOCAL_MACHINE,
           subKey:
             'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{15006187-F49E-4822-CAF2-1D25C0C83BA2}',
         },
-        // 64-bit version of Visual SlickEdit Pro 2016 (21.0.1)
+        // 64-bit version of SlickEdit Pro 2016 (21.0.1)
         {
           key: HKEY.HKEY_LOCAL_MACHINE,
           subKey:
             'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{10C06187-F49E-4822-CAF2-1D25C0C83BA2}',
         },
-        // 64-bit version of Visual SlickEdit Pro 2016 (21.0.0)
+        // 64-bit version of SlickEdit Pro 2016 (21.0.0)
         {
           key: HKEY.HKEY_LOCAL_MACHINE,
           subKey:
             'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{10406187-F49E-4822-CAF2-1D25C0C83BA2}',
         },
-        // 64-bit version of Visual SlickEdit Pro 2015 (20.0.3)
+        // 64-bit version of SlickEdit Pro 2015 (20.0.3)
         {
           key: HKEY.HKEY_LOCAL_MACHINE,
           subKey:
             'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{0DC06187-F49E-4822-CAF2-1D25C0C83BA2}',
         },
-        // 64-bit version of Visual SlickEdit Pro 2015 (20.0.2)
+        // 64-bit version of SlickEdit Pro 2015 (20.0.2)
         {
           key: HKEY.HKEY_LOCAL_MACHINE,
           subKey:
             'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{0D406187-F49E-4822-CAF2-1D25C0C83BA2}',
         },
-        // 64-bit version of Visual SlickEdit Pro 2014 (19.0.2)
+        // 64-bit version of SlickEdit Pro 2014 (19.0.2)
         {
           key: HKEY.HKEY_LOCAL_MACHINE,
           subKey:
