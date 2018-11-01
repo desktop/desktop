@@ -1,5 +1,4 @@
 import * as path from 'path'
-import { expect } from 'chai'
 import * as FSE from 'fs-extra'
 import { GitProcess } from 'dugite'
 
@@ -34,19 +33,19 @@ describe('git/status', () => {
       it('parses conflicted files', async () => {
         const status = await getStatusOrThrow(repository!)
         const files = status.workingDirectory.files
-        expect(files.length).to.equal(1)
+        expect(files).toHaveLength(1)
 
         const file = files[0]
-        expect(file.status).to.equal(AppFileStatus.Conflicted)
+        expect(file.status).toBe(AppFileStatus.Conflicted)
       })
 
       it('parses resolved files', async () => {
         await FSE.writeFile(filePath, 'b1b2')
         const status = await getStatusOrThrow(repository!)
         const files = status.workingDirectory.files
-        expect(files.length).to.equal(1)
+        expect(files).toHaveLength(1)
         const file = files[0]
-        expect(file.status).to.equal(AppFileStatus.Resolved)
+        expect(file.status).toBe(AppFileStatus.Resolved)
       })
     })
 
@@ -64,17 +63,17 @@ describe('git/status', () => {
 
         const status = await getStatusOrThrow(repository!)
         const files = status.workingDirectory.files
-        expect(files.length).to.equal(1)
+        expect(files).toHaveLength(1)
 
         const file = files[0]
-        expect(file.path).to.equal('README.md')
-        expect(file.status).to.equal(AppFileStatus.Modified)
+        expect(file.path).toBe('README.md')
+        expect(file.status).toBe(AppFileStatus.Modified)
       })
 
       it('returns an empty array when there are no changes', async () => {
         const status = await getStatusOrThrow(repository!)
         const files = status.workingDirectory.files
-        expect(files.length).to.equal(0)
+        expect(files).toHaveLength(0)
       })
 
       it('reflects renames', async () => {
@@ -89,10 +88,10 @@ describe('git/status', () => {
         const status = await getStatusOrThrow(repo)
         const files = status.workingDirectory.files
 
-        expect(files.length).to.equal(1)
-        expect(files[0].status).to.equal(AppFileStatus.Renamed)
-        expect(files[0].oldPath).to.equal('foo')
-        expect(files[0].path).to.equal('bar')
+        expect(files).toHaveLength(1)
+        expect(files[0].status).toBe(AppFileStatus.Renamed)
+        expect(files[0].oldPath).toBe('foo')
+        expect(files[0].path).toBe('bar')
       })
 
       it('reflects copies', async () => {
@@ -114,15 +113,15 @@ describe('git/status', () => {
         const status = await getStatusOrThrow(repository)
         const files = status.workingDirectory.files
 
-        expect(files.length).to.equal(2)
+        expect(files).toHaveLength(2)
 
-        expect(files[0].status).to.equal(AppFileStatus.Modified)
-        expect(files[0].oldPath).to.be.undefined
-        expect(files[0].path).to.equal('CONTRIBUTING.md')
+        expect(files[0].status).toBe(AppFileStatus.Modified)
+        expect(files[0].oldPath).toBeUndefined()
+        expect(files[0].path).toBe('CONTRIBUTING.md')
 
-        expect(files[1].status).to.equal(AppFileStatus.Copied)
-        expect(files[1].oldPath).to.equal('CONTRIBUTING.md')
-        expect(files[1].path).to.equal('docs/OVERVIEW.md')
+        expect(files[1].status).toBe(AppFileStatus.Copied)
+        expect(files[1].oldPath).toBe('CONTRIBUTING.md')
+        expect(files[1].path).toBe('docs/OVERVIEW.md')
       })
 
       it(
@@ -147,7 +146,7 @@ describe('git/status', () => {
 
           const status = await getStatusOrThrow(repository!)
           const files = status.workingDirectory.files
-          expect(files.length).to.equal(numFiles)
+          expect(files).toHaveLength(numFiles)
         },
         // needs a little extra time on CI
         25000
@@ -156,7 +155,7 @@ describe('git/status', () => {
       it('returns null for directory without a .git directory', async () => {
         repository = setupEmptyDirectory()
         const status = await getStatus(repository)
-        expect(status).is.null
+        expect(status).toBeNull()
       })
     })
   })
