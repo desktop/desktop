@@ -31,8 +31,8 @@ import { IAutocompletionProvider } from '../autocompletion'
 import { showContextualMenu } from '../main-process-proxy'
 import { arrayEquals } from '../../lib/equality'
 import { clipboard } from 'electron'
-import * as FSE from 'fs-extra'
-import * as path from 'path'
+import { stat } from 'fs-extra'
+import { basename, join } from 'path'
 
 const RowHeight = 29
 
@@ -75,7 +75,6 @@ interface IChangesListProps {
    */
   readonly onRowClick?: (row: number, source: ClickSource) => void
   readonly commitMessage: ICommitMessage | null
-  readonly contextualCommitMessage: ICommitMessage | null
 
   /** The autocompletion providers available to the repository. */
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
@@ -387,9 +386,9 @@ export class ChangesList extends React.Component<
     )
 
     for (const file of includedFiles) {
-      const filePath = path.join(this.props.repository.path, file.path)
+      const filePath = join(this.props.repository.path, file.path)
       try {
-        const fileStatus = await FSE.stat(filePath)
+        const fileStatus = await stat(filePath)
         const fileSizeMegabytes = fileStatus.size / 1000000
         if (fileSizeMegabytes > 100) {
           fileNames.push(file.path)
@@ -400,6 +399,31 @@ export class ChangesList extends React.Component<
     }
 
     return fileNames
+  }
+
+  private getPlaceholderMessage(
+    files: ReadonlyArray<WorkingDirectoryFileChange>,
+    singleFileCommit: boolean
+  ) {
+    if (!singleFileCommit) {
+      return 'Summary (required)'
+    }
+
+    const firstFile = files[0]
+    const fileName = basename(firstFile.path)
+
+    switch (firstFile.status) {
+      case AppFileStatus.New:
+        return `Create ${fileName}`
+      case AppFileStatus.Deleted:
+        return `Delete ${fileName}`
+      default:
+        // TODO:
+        // this doesn't feel like a great message for AppFileStatus.Copied or
+        // AppFileStatus.Renamed but without more insight (and whether this
+        // affects other parts of the flow) we can just default to this for now
+        return `Update ${fileName}`
+    }
   }
 
   public render() {
@@ -446,24 +470,19 @@ export class ChangesList extends React.Component<
           repository={this.props.repository}
           dispatcher={this.props.dispatcher}
           commitMessage={this.props.commitMessage}
-          contextualCommitMessage={this.props.contextualCommitMessage}
           autocompletionProviders={this.props.autocompletionProviders}
           isCommitting={this.props.isCommitting}
           showCoAuthoredBy={this.props.showCoAuthoredBy}
           coAuthors={this.props.coAuthors}
-          placeholder={
+          placeholder={this.getPlaceholderMessage(
+            filesSelected,
             singleFileCommit
-              ? filesSelected[0].status === AppFileStatus.New
-                ? `Create ${path.parse(filesSelected[0].path).base}`
-                : filesSelected[0].status === AppFileStatus.Deleted
-                  ? `Delete ${path.parse(filesSelected[0].path).base}`
-                  : `Update ${path.parse(filesSelected[0].path).base}`
-              : 'Summary (required)'
-          }
+          )}
           singleFileCommit={singleFileCommit}
           getNamesOfSelectedOversizedFiles={
             this.getNamesOfSelectedOversizedFiles
           }
+          key={this.props.repository.id}
         />
       </div>
     )

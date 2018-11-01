@@ -38,6 +38,7 @@ export enum PopupType {
   ReleaseNotes,
   DeletePullRequest,
   MergeConflicts,
+  AbortMerge,
   OversizedFiles,
 }
 
@@ -122,7 +123,18 @@ export type Popup =
       branch: Branch
       pullRequest: PullRequest
     }
-  | { type: PopupType.MergeConflicts; repository: Repository }
+  | {
+      type: PopupType.MergeConflicts
+      repository: Repository
+      currentBranch: string
+      theirBranch: string
+    }
+  | {
+      type: PopupType.AbortMerge
+      repository: Repository
+      currentBranch: string
+      theirBranch: string
+    }
   | {
       type: PopupType.OversizedFiles
       oversizedFiles: string[]

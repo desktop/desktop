@@ -17,6 +17,7 @@ import {
   CompareAction,
   ICompareFormUpdate,
   MergeResultStatus,
+  SuccessfulMergeBannerState,
 } from '../app-state'
 import { AppStore } from '../stores/app-store'
 import { CloningRepository } from '../../models/cloning-repository'
@@ -470,6 +471,13 @@ export class Dispatcher {
   }
 
   /**
+   * Set the successful merge banner's state
+   */
+  public setSuccessfulMergeBannerState(state: SuccessfulMergeBannerState) {
+    return this.appStore._setSuccessfulMergeBannerState(state)
+  }
+
+  /**
    * Set the divering branch notification banner's visibility
    */
   public setDivergingBranchBannerVisibility(
@@ -587,6 +595,18 @@ export class Dispatcher {
     return this.appStore._mergeBranch(repository, branch, mergeStatus)
   }
 
+  public async abortMerge(repository: Repository) {
+    await this.appStore._abortMerge(repository)
+    await this.appStore._loadStatus(repository)
+  }
+
+  public createMergeCommit(
+    repository: Repository,
+    files: ReadonlyArray<WorkingDirectoryFileChange>
+  ) {
+    return this.appStore._createMergeCommit(repository, files)
+  }
+
   /** Record the given launch stats. */
   public recordLaunchStats(stats: ILaunchStats): Promise<void> {
     return this.appStore._recordLaunchStats(stats)
@@ -628,7 +648,10 @@ export class Dispatcher {
     if (gitFound || ignoreWarning) {
       this.appStore._openShell(path)
     } else {
-      this.appStore._showPopup({ type: PopupType.InstallGit, path })
+      this.appStore._showPopup({
+        type: PopupType.InstallGit,
+        path,
+      })
     }
   }
 

@@ -66,3 +66,8 @@ export function enableRecurseSubmodulesFlag(): boolean {
 export function enableFileSizeWarningCheck(): boolean {
   return enableDevelopmentFeatures()
 }
+
+/** Should the app use the MergeConflictsDialog component and flow? */
+export function enableMergeConflictsDialog(): boolean {
+  return enableBetaFeatures()
+}
