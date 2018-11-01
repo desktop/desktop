@@ -137,10 +137,8 @@ export class MergeConflictsDialog extends React.Component<
     conflictStatus: ConflictStatus,
     editorName: string | undefined,
     onOpenEditorClick: () => void
-  ): JSX.Element {
-    if (conflictStatus.kind === 'binary') {
-      return <div>TODO</div>
-    } else {
+  ): JSX.Element | null {
+    if (conflictStatus.kind === 'text') {
       const humanReadableConflicts = this.calculateConflicts(
         conflictStatus.conflictMarkerCount
       )
@@ -161,6 +159,7 @@ export class MergeConflictsDialog extends React.Component<
         </li>
       )
     }
+    return null
   }
 
   private renderUnmergedFile(
