@@ -32,13 +32,13 @@ export enum GitStatusEntry {
 
 /** The file status as represented in GitHub Desktop. */
 export enum AppFileStatus {
-  New,
-  Modified,
-  Deleted,
-  Copied,
-  Renamed,
-  Conflicted,
-  Resolved,
+  New = 'New',
+  Modified = 'Modified',
+  Deleted = 'Deleted',
+  Copied = 'Copied',
+  Renamed = 'Renamed',
+  Conflicted = 'Conflicted',
+  Resolved = 'Resolved',
 }
 
 /** The porcelain status for an ordinary changed entry */
