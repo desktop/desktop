@@ -125,7 +125,7 @@ export type Popup =
       type: PopupType.MergeConflicts
       repository: Repository
       currentBranch: string
-      theirBranch: string
+      theirBranch?: string
     }
   | {
       type: PopupType.AbortMerge

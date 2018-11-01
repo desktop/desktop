@@ -131,6 +131,7 @@ import {
   appendIgnoreRule,
   IStatusResult,
   createMergeCommit,
+  getBranchesPointedAt,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -1620,17 +1621,27 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // we trigger the conflict resolution flow
     // (if we're not already in it)
     if (
+      status.currentBranch !== undefined &&
       inConflictedMerge &&
       (this.currentPopup === null ||
         (this.currentPopup !== null &&
           this.currentPopup.type !== PopupType.MergeConflicts &&
           this.currentPopup.type !== PopupType.AbortMerge))
     ) {
+      const possibleTheirsBranches = await getBranchesPointedAt(
+        repository,
+        'MERGE_HEAD'
+      )
+      const theirBranch =
+        possibleTheirsBranches.length === 1
+          ? possibleTheirsBranches[0]
+          : undefined
+      const currentBranch = status.currentBranch
       this._showPopup({
         type: PopupType.MergeConflicts,
-        repository: repository,
-        currentBranch: 'currentBranch',
-        theirBranch: 'theirBranch',
+        repository,
+        currentBranch,
+        theirBranch,
       })
     }
     this.emitUpdate()
