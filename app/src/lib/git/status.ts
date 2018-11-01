@@ -6,7 +6,7 @@ import {
   AppFileStatus,
   FileEntry,
   GitStatusEntry,
-  ConflictStatus,
+  UnmergedEntry,
 } from '../../models/status'
 import {
   parsePorcelainStatus,
@@ -22,6 +22,11 @@ import { IAheadBehind } from '../../models/branch'
 import { fatalError } from '../../lib/fatal-error'
 import { enableStatusWithoutOptionalLocks } from '../feature-flag'
 import { filterBinaryFiles } from './binary-files'
+import {
+  ConflictState,
+  ConflictFileStatus,
+  ConflictedFile,
+} from '../../models/conflicts'
 
 /**
  * V8 has a limit on the size of string it can create (~256MB), and unless we want to
@@ -62,11 +67,6 @@ interface IStatusHeadersData {
   match: RegExpMatchArray | null
 }
 
-type ConflictState = {
-  readonly binaryFilePathsInConflicts: ReadonlyArray<string>
-  readonly filesWithConflictMarkers: Map<string, number>
-}
-
 function convertToAppStatus(
   status: FileEntry,
   hasConflictMarkers: boolean
@@ -97,7 +97,7 @@ function convertToAppStatus(
 
 async function buildConflictState(
   repository: Repository,
-  conflictedFilesRelativePaths: ReadonlyArray<string>
+  conflictedFiles: ReadonlyArray<ConflictedFile>
 ): Promise<ConflictState> {
   return {
     filesWithConflictMarkers: await getFilesWithConflictMarkers(
@@ -105,7 +105,7 @@ async function buildConflictState(
     ),
     binaryFilePathsInConflicts: await filterBinaryFiles(
       repository,
-      conflictedFilesRelativePaths
+      conflictedFiles
     ),
   }
 }
@@ -164,9 +164,10 @@ export async function getStatus(
     status: mapStatus(es.statusCode),
   }))
 
-  const conflictedFilesInIndex = filesAndKeys
-    .filter(es => es.status.kind === 'conflicted')
-    .map(es => es.path)
+  // implicit cast here because filter doesn't infer the union type correctly :(
+  const conflictedFilesInIndex = filesAndKeys.filter(
+    es => es.status.kind === 'conflicted'
+  ) as ReadonlyArray<ConflictedFile>
 
   const hasConflictedFiles = conflictedFilesInIndex.length > 0
 
@@ -212,11 +213,17 @@ export async function getStatus(
 function getConflictStatus(
   path: string,
   conflictState: ConflictState
-): ConflictStatus | null {
+): ConflictFileStatus | null {
   const { filesWithConflictMarkers, binaryFilePathsInConflicts } = conflictState
 
-  if (binaryFilePathsInConflicts.indexOf(path) !== -1) {
-    return { kind: 'binary' }
+  const foundBinaryFile = binaryFilePathsInConflicts.find(p => p.path === path)
+  if (foundBinaryFile != null) {
+    const { us, them } = foundBinaryFile.status
+    return {
+      kind: 'binary',
+      us,
+      them,
+    }
   }
 
   const conflictMarkerCount = filesWithConflictMarkers.get(path)

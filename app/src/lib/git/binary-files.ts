@@ -1,6 +1,7 @@
 import { Repository } from '../../models/repository'
 import { spawnAndComplete } from './spawn'
 import { getCaptures } from '../helpers/regex'
+import { ConflictedFile } from '../../models/conflicts'
 
 const binaryFileEntryRe = /\-\s*\-\s*(.+)/g
 
@@ -14,8 +15,8 @@ const binaryFileEntryRe = /\-\s*\-\s*(.+)/g
  */
 export async function filterBinaryFiles(
   repository: Repository,
-  relativePaths: ReadonlyArray<string>
-): Promise<ReadonlyArray<string>> {
+  conflictedFiles: ReadonlyArray<ConflictedFile>
+): Promise<ReadonlyArray<ConflictedFile>> {
   // 4b825dc642cb6eb9a060e54bf8d69288fbee4904 is the special id in Git which
   // represents an empty commit - in this case what we're doing is diffing the
   // current commit to an empty commit to identify which paths correspond to
@@ -25,19 +26,14 @@ export async function filterBinaryFiles(
     '4b825dc642cb6eb9a060e54bf8d69288fbee4904',
     '--numstat',
     '--',
-    ...relativePaths,
+    ...conflictedFiles.map(c => c.path),
   ]
   const result = await spawnAndComplete(
     args,
     repository.path,
     'diffToDetectBinaryFiles',
-    new Set([0, 128])
+    new Set([0])
   )
-
-  if (result.exitCode === 128) {
-    // unborn repository, `HEAD` does not exist
-    return relativePaths
-  }
 
   const outputStr = result.output.toString('utf8')
   const captures = getCaptures(outputStr, binaryFileEntryRe)
@@ -45,5 +41,7 @@ export async function filterBinaryFiles(
     return []
   }
 
-  return captures.map(array => array[0])
+  const foundItems = captures.map(array => array[0])
+
+  return conflictedFiles.filter(f => foundItems.indexOf(f.path) !== -1)
 }
