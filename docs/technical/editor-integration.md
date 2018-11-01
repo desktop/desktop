@@ -221,6 +221,7 @@ These editors are currently supported:
        - This can be done by opening Brackets, choosing File > Install Command Line Shortcut
  - [WebStorm](https://www.jetbrains.com/webstorm/)
  - [Typora](https://typora.io/)
+ - [SlickEdit](https://www.slickedit.com)
 
 These are defined in an enum at the top of the file:
 
@@ -239,6 +240,7 @@ export enum ExternalEditor {
   Brackets = 'Brackets',
   WebStorm = 'WebStorm',
   Typora = 'Typora',
+  SlickEdit = 'SlickEdit',
 }
 ```
 
@@ -323,6 +325,7 @@ These editors are currently supported:
  - [Visual Studio Code](https://code.visualstudio.com/) - both stable and Insiders channel
  - [Sublime Text](https://www.sublimetext.com/)
  - [Typora](https://typora.io/)
+ - [SlickEdit](https://www.slickedit.com)
 
 These are defined in an enum at the top of the file:
 
@@ -333,6 +336,7 @@ export enum ExternalEditor {
   VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
   SublimeText = 'Sublime Text',
   Typora = 'Typora',
+  SlickEdit = 'SlickEdit',
 }
 ```
 
