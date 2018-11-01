@@ -13,6 +13,7 @@ import {
 } from '../../../src/models/tip'
 import { GitStore } from '../../../src/lib/stores'
 import { GitProcess } from 'dugite'
+import { getBranchesPointedAt, createBranch } from '../../../src/lib/git'
 
 describe('git/branch', () => {
   describe('tip', () => {
@@ -102,6 +103,40 @@ describe('git/branch', () => {
       expect(valid.branch.remote).toEqual('bassoon')
       expect(valid.branch.upstream).toEqual('bassoon/master')
       expect(valid.branch.upstreamWithoutRemote).toEqual('master')
+    })
+  })
+
+  describe('getBranchesPointedAt', () => {
+    let repository: Repository
+    describe('in a local repo', () => {
+      beforeEach(async () => {
+        const path = await setupFixtureRepository('test-repo')
+        repository = new Repository(path, -1, null, false)
+      })
+
+      it('finds one branch name', async () => {
+        const branches = await getBranchesPointedAt(repository, 'HEAD')
+        expect(branches).toHaveLength(1)
+        expect(branches[0]).toEqual('master')
+      })
+
+      it('finds no branch names', async () => {
+        const branches = await getBranchesPointedAt(repository, 'HEAD^')
+        expect(branches).toHaveLength(0)
+      })
+    })
+    describe('in a repo with identical branches', () => {
+      beforeEach(async () => {
+        const path = await setupFixtureRepository('repo-with-multiple-remotes')
+        repository = new Repository(path, -1, null, false)
+        await createBranch(repository, 'other-branch')
+      })
+      it('finds multiple branch names', async () => {
+        const branches = await getBranchesPointedAt(repository, 'HEAD')
+        expect(branches).toHaveLength(2)
+        expect(branches).toContain('other-branch')
+        expect(branches).toContain('master')
+      })
     })
   })
 })
