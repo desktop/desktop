@@ -61,6 +61,11 @@ interface IStatusHeadersData {
   match: RegExpMatchArray | null
 }
 
+type ConflictState = {
+  readonly binaryFilePathsInConflicts: ReadonlyArray<string>
+  readonly filesWithConflictMarkers: Map<string, number>
+}
+
 function convertToAppStatus(
   status: FileEntry,
   hasConflictMarkers: boolean
@@ -87,6 +92,22 @@ function convertToAppStatus(
   }
 
   return fatalError(`Unknown file status ${status}`)
+}
+
+async function buildConflictState(
+  repository: Repository,
+  conflictedFilesRelativePaths: ReadonlyArray<string>
+): Promise<ConflictState> {
+  return {
+    filesWithConflictMarkers: await getFilesWithConflictMarkers(
+      repository.path
+    ),
+    binaryFilePathsInConflicts: [],
+    // binaryFilePathsInConflicts: await filterBinaryFiles(
+    //   repository,
+    //   conflictedFilesRelativePaths
+    // ),
+  }
 }
 
 /**
@@ -138,16 +159,28 @@ export async function getStatus(
   const headers = parsed.filter(isStatusHeader)
   const entries = parsed.filter(isStatusEntry)
 
-  // run git diff check if anything is conflicted
-  const filesWithConflictMarkers = entries.some(
-    es => mapStatus(es.statusCode).kind === 'conflicted'
-  )
-    ? await getFilesWithConflictMarkers(repository.path)
-    : new Map<string, number>()
+  const filesAndKeys = entries.map(es => ({
+    path: es.path,
+    status: mapStatus(es.statusCode),
+  }))
+
+  const conflictedFilesInIndex = filesAndKeys
+    .filter(es => es.status.kind === 'conflicted')
+    .map(es => es.path)
+
+  const hasConflictedFiles = conflictedFilesInIndex.length > 0
+
+  // if we have any conflicted files reported by status, let
+  const conflictState = hasConflictedFiles
+    ? await buildConflictState(repository, conflictedFilesInIndex)
+    : {
+        binaryFilePathsInConflicts: [],
+        filesWithConflictMarkers: new Map<string, number>(),
+      }
 
   // Map of files keyed on their paths.
   const files = entries.reduce(
-    (files, entry) => buildStatusMap(files, entry, filesWithConflictMarkers),
+    (files, entry) => buildStatusMap(files, entry, conflictState),
     new Map<string, WorkingDirectoryFileChange>()
   )
 
@@ -176,6 +209,25 @@ export async function getStatus(
   }
 }
 
+function getConflictStatus(
+  path: string,
+  conflictState: ConflictState
+): ConflictStatus | null {
+  const { filesWithConflictMarkers, binaryFilePathsInConflicts } = conflictState
+
+  if (binaryFilePathsInConflicts.indexOf(path) !== -1) {
+    return { kind: 'binary' }
+  }
+
+  const conflictMarkerCount = filesWithConflictMarkers.get(path)
+
+  if (conflictMarkerCount != null) {
+    return { kind: 'text', conflictMarkerCount }
+  }
+
+  return null
+}
+
 /**
  *
  * Update map of working directory changes with a file status entry.
@@ -186,7 +238,7 @@ export async function getStatus(
 function buildStatusMap(
   files: Map<string, WorkingDirectoryFileChange>,
   entry: IStatusEntry,
-  filesWithConflictMarkers: Map<string, number>
+  conflictState: ConflictState
 ): Map<string, WorkingDirectoryFileChange> {
   const status = mapStatus(entry.statusCode)
 
@@ -210,24 +262,11 @@ function buildStatusMap(
     files.delete(entry.path)
   }
 
-  // TODO: we need to differentiate here between conflicted text files (that
-  //       we can inspect and check if they have been resolved) and binary files
-  //       (that we cannot inspect, and we need to do our own inspection and
-  //       defer to the index state)
+  const conflictStatus = getConflictStatus(entry.path, conflictState)
 
   // for now we just poke at the existing summary
-  const summary = convertToAppStatus(
-    status,
-    filesWithConflictMarkers.has(entry.path)
-  )
+  const summary = convertToAppStatus(status, conflictStatus !== null)
   const selection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
-
-  // TODO: detect that a binary file is conflicted and generate a different
-  //       `conflictStatus` value
-  const conflictMarkerCount = filesWithConflictMarkers.get(entry.path)
-
-  const conflictStatus: ConflictStatus | null =
-    conflictMarkerCount == null ? null : { kind: 'text', conflictMarkerCount }
 
   files.set(
     entry.path,
