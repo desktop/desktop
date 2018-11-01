@@ -3,10 +3,14 @@
 import * as fs from 'fs-extra'
 import * as cp from 'child_process'
 import * as path from 'path'
+import * as crypto from 'crypto'
 import * as electronInstaller from 'electron-winstaller'
+import * as glob from 'glob'
+
 import { getProductName, getCompanyName } from '../app/package-info'
 import {
   getDistPath,
+  getDistRoot,
   getOSXZipPath,
   getWindowsIdentifierName,
   getWindowsStandaloneName,
@@ -123,6 +127,25 @@ function packageWindows() {
     })
 }
 
+function getSha256Checksum(fullPath: string): Promise<string> {
+  return new Promise<string>((resolve, reject) => {
+    const algo = 'sha256'
+    const shasum = crypto.createHash(algo)
+
+    const s = fs.createReadStream(fullPath)
+    s.on('data', function(d) {
+      shasum.update(d)
+    })
+    s.on('error', err => {
+      reject(err)
+    })
+    s.on('end', function() {
+      const d = shasum.digest('hex')
+      resolve(d)
+    })
+  })
+}
+
 function packageLinux() {
   const electronBuilder = path.resolve(
     __dirname,
@@ -144,4 +167,32 @@ function packageLinux() {
   ]
 
   cp.spawnSync(electronBuilder, args, { stdio: 'inherit' })
+
+  const distRoot = getDistRoot()
+
+  const installersPath = `${distRoot}/GitHubDesktop-linux-*`
+
+  glob(installersPath, async (error, files) => {
+    if (error != null) {
+      throw error
+    }
+
+    const checksums = new Map<string, string>()
+
+    for (const f of files) {
+      const checksum = await getSha256Checksum(f)
+      checksums.set(f, checksum)
+    }
+
+    let checksumsText = `Checksums: \n`
+
+    for (const [fullPath, checksum] of checksums) {
+      const fileName = path.basename(fullPath)
+      checksumsText += `${checksum} - ${fileName}\n`
+    }
+
+    const checksumFile = path.join(distRoot, 'checksums.txt')
+
+    fs.writeFile(checksumFile, checksumsText)
+  })
 }
