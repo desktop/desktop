@@ -1,4 +1,3 @@
-import { expect } from 'chai'
 import { shell } from '../../helpers/test-app-shell'
 import {
   setupEmptyRepository,
@@ -24,9 +23,9 @@ describe('git/branch', () => {
       await store.loadStatus()
       const tip = store.tip
 
-      expect(tip.kind).to.equal(TipState.Unborn)
+      expect(tip.kind).toEqual(TipState.Unborn)
       const unborn = tip as IUnbornRepository
-      expect(unborn.ref).to.equal('master')
+      expect(unborn.ref).toEqual('master')
     })
 
     it('returns correct ref if checkout occurs', async () => {
@@ -38,9 +37,9 @@ describe('git/branch', () => {
       await store.loadStatus()
       const tip = store.tip
 
-      expect(tip.kind).to.equal(TipState.Unborn)
+      expect(tip.kind).toEqual(TipState.Unborn)
       const unborn = tip as IUnbornRepository
-      expect(unborn.ref).to.equal('not-master')
+      expect(unborn.ref).toEqual('not-master')
     })
 
     it('returns detached for arbitrary checkout', async () => {
@@ -51,9 +50,9 @@ describe('git/branch', () => {
       await store.loadStatus()
       const tip = store.tip
 
-      expect(tip.kind).to.equal(TipState.Detached)
+      expect(tip.kind).toEqual(TipState.Detached)
       const detached = tip as IDetachedHead
-      expect(detached.currentSha).to.equal(
+      expect(detached.currentSha).toEqual(
         '2acb028231d408aaa865f9538b1c89de5a2b9da8'
       )
     })
@@ -66,10 +65,10 @@ describe('git/branch', () => {
       await store.loadStatus()
       const tip = store.tip
 
-      expect(tip.kind).to.equal(TipState.Valid)
+      expect(tip.kind).toEqual(TipState.Valid)
       const onBranch = tip as IValidBranch
-      expect(onBranch.branch.name).to.equal('commit-with-long-description')
-      expect(onBranch.branch.tip.sha).to.equal(
+      expect(onBranch.branch.name).toEqual('commit-with-long-description')
+      expect(onBranch.branch.tip.sha).toEqual(
         'dfa96676b65e1c0ed43ca25492252a5e384c8efd'
       )
     })
@@ -82,9 +81,9 @@ describe('git/branch', () => {
       await store.loadStatus()
       const tip = store.tip
 
-      expect(tip.kind).to.equal(TipState.Valid)
+      expect(tip.kind).toEqual(TipState.Valid)
       const valid = tip as IValidBranch
-      expect(valid.branch.remote).to.equal('bassoon')
+      expect(valid.branch.remote).toEqual('bassoon')
     })
   })
 
@@ -97,12 +96,12 @@ describe('git/branch', () => {
       await store.loadStatus()
       const tip = store.tip
 
-      expect(tip.kind).to.equal(TipState.Valid)
+      expect(tip.kind).toEqual(TipState.Valid)
 
       const valid = tip as IValidBranch
-      expect(valid.branch.remote).to.equal('bassoon')
-      expect(valid.branch.upstream).to.equal('bassoon/master')
-      expect(valid.branch.upstreamWithoutRemote).to.equal('master')
+      expect(valid.branch.remote).toEqual('bassoon')
+      expect(valid.branch.upstream).toEqual('bassoon/master')
+      expect(valid.branch.upstreamWithoutRemote).toEqual('master')
     })
   })
 })
