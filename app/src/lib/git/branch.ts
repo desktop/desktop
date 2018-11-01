@@ -123,11 +123,16 @@ export async function getBranchesPointedAt(
   repository: Repository,
   commitish: string
 ): Promise<Array<string>> {
-  const args = ['branch', `points-at=${commitish}`]
-  const { stdout } = await git(args, repository.path, 'branchPointsAt')
+  const args = [
+    'branch',
+    `--points-at=${commitish}`,
+    '--format=%(refname:short)',
+  ]
+  const { stdout } = await git(args, repository.path, 'branchPointedAt')
   // split along newlines, which should just be branch names
-  const captures = getCaptures(stdout, /(.*)\s+/gi).reduce((acc, val) =>
-    acc.concat(val)
-  )
-  return captures
+  const captures = getCaptures(stdout, /\s*(.+)\n/g)
+  if (captures.length === 0) {
+    return []
+  }
+  return captures.reduce((acc, val) => acc.concat(val))
 }
