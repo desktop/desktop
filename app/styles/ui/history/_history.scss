@@ -53,6 +53,10 @@
   flex-direction: column;
   flex: 1;
 
+  .filter-list .filter-field-row {
+    margin: 0;
+  }
+
   .compare-form {
     background: var(--box-alt-background-color);
     flex: initial;

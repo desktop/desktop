@@ -1,6 +1,7 @@
 #successful-merge {
   position: relative;
   display: flex;
+  flex-wrap: nowrap;
   overflow: hidden;
   align-content: center;
   align-items: center;
@@ -13,6 +14,18 @@
   // Prevents the notification banner from decreasing its height
   // when a large diff is rendered.
   flex: none;
+
+  .banner-message {
+    span {
+      max-width: 100%;
+      overflow-x: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    overflow-x: hidden;
+    display: flex;
+    flex: 1 1 auto;
+  }
 
   &.active {
     height: 30px;
@@ -28,16 +41,19 @@
     justify-content: center;
     align-items: center;
     margin-right: var(--spacing);
+    display: flex;
+    flex-shrink: 0;
+    flex-grow: 0;
   }
 
   .close {
-    position: absolute;
-    right: var(--spacing);
-    border: 0;
-    height: 16px;
+    display: flex;
+    flex-shrink: 0;
+    flex-grow: 0;
     width: 16px;
-    margin: 0;
-    padding: 0;
+    height: 16px;
+    margin-right: var(--spacing);
+    margin-left: var(--spacing);
     background: transparent;
 
     color: var(--text-secondary-color);

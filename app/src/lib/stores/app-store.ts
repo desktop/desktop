@@ -512,7 +512,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.repositoryStateCache.updateChangesState(repository, () => ({
       commitMessage: gitStore.commitMessage,
-      contextualCommitMessage: gitStore.contextualCommitMessage,
       showCoAuthoredBy: gitStore.showCoAuthoredBy,
       coAuthors: gitStore.coAuthors,
     }))
@@ -1900,7 +1899,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       gitStore.loadRemotes(),
       gitStore.updateLastFetched(),
       this.refreshAuthor(repository),
-      gitStore.loadContextualCommitMessage(),
       refreshSectionPromise,
     ])
 
