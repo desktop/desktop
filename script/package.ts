@@ -146,28 +146,7 @@ function getSha256Checksum(fullPath: string): Promise<string> {
   })
 }
 
-function packageLinux() {
-  const electronBuilder = path.resolve(
-    __dirname,
-    '..',
-    'node_modules',
-    '.bin',
-    'electron-builder'
-  )
-
-  const configPath = path.resolve(__dirname, 'electron-builder-linux.yml')
-
-  const args = [
-    'build',
-    '--prepackaged',
-    distPath,
-    '--x64',
-    '--config',
-    configPath,
-  ]
-
-  cp.spawnSync(electronBuilder, args, { stdio: 'inherit' })
-
+function generateChecksums() {
   const distRoot = getDistRoot()
 
   const installersPath = `${distRoot}/GitHubDesktop-linux-*`
@@ -195,4 +174,33 @@ function packageLinux() {
 
     fs.writeFile(checksumFile, checksumsText)
   })
+}
+
+function packageLinux() {
+  const electronBuilder = path.resolve(
+    __dirname,
+    '..',
+    'node_modules',
+    '.bin',
+    'electron-builder'
+  )
+
+  const configPath = path.resolve(__dirname, 'electron-builder-linux.yml')
+
+  const args = [
+    'build',
+    '--prepackaged',
+    distPath,
+    '--x64',
+    '--config',
+    configPath,
+  ]
+
+  const { error } = cp.spawnSync(electronBuilder, args, { stdio: 'inherit' })
+
+  if (error != null) {
+    throw error
+  }
+
+  generateChecksums()
 }
