@@ -55,3 +55,37 @@ These are general metrics about feature usage and specific feature behaviors. Th
 | `mergedWithConflictWarningHintCount` | The number of times the user has merged after seeing the 'you have XX conflicted files' warning. | To understand how frequently people are merging even though they know there will be conflicts |
 | `mergeSuccessAfterConflictsCount` | The number of times the user successfully completes a merge after a merge conflict. | To understand how effectively users are able to resolve conflicts and complete their merge successfully |
 | `mergeAbortedAfterConflictsCount` | The number of times the user aborts a merge after a merge conflict. | To understand the frequency of merges that are never completed after attempting to merge and hitting a merge conflict |
+
+## Adding new metrics
+
+1. Create an issue with the proposed metrics in desktop/desktop
+
+   - Get approval from @desktop/product 
+   -  Add the following checklist to the body of your issue:
+
+   ```md
+   **Tasks**
+   - [ ] Create issue in [github/analytics](https://github.com/github/analytics) - [link to issue]
+   - [ ] Add metrics to Desktop - [link to PR]
+   - [ ] Update [GitHub Desktop Metrics](https://github.com/desktop/desktop/blob/master/docs/process/metrics.md#github-desktop-metrics) - [link to PR]
+   - [ ] Update [github/central](https://github.com/github/central) - [link to PR]
+   - [ ] Update [marketing site](https://github.com/github/desktop.github.com) - [link to PR]
+   
+   ```
+
+   - Cc @desktop/analytics
+
+1. Open an issue in github/analytics (see [example](https://github.com/github/analytics/issues/712)). At minimum, you will need to:
+
+   - link back to proposed metrics issue from the previous step so they have all the necessary context
+   - list of the new metrics names
+   - Cc @telliott27 (@desktop/analytics) and @billygriifin (@desktop/product)
+
+   At this stage, it's best not to change any of the metrics because that may lead to @desktop/analytics having to do more work.
+
+1. Open a PR in `desktop/desktop` that implements the new metrcs (see [example](https://github.com/desktop/desktop/pull/5810))
+2. Open a PR in `desktop/desktop` that updates the [GitHub Desktop Metrics](https://github.com/desktop/desktop/blob/master/docs/process/metrics.md#github-desktop-metrics) documentation
+3. Open a PR in `github/central` so the new metrics are added to the payload we send to ??? (see [example](https://github.com/github/central/pull/411))
+4. Open a PR in `github/desktop.github.com` to add the new metrics to `usage-data.html` (see [example](https://github.com/github/desktop.github.com/pull/119))
+
+
