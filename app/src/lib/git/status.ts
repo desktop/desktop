@@ -6,6 +6,7 @@ import {
   AppFileStatus,
   FileEntry,
   GitStatusEntry,
+  ConflictStatus,
 } from '../../models/status'
 import {
   parsePorcelainStatus,
@@ -209,12 +210,24 @@ function buildStatusMap(
     files.delete(entry.path)
   }
 
+  // TODO: we need to differentiate here between conflicted text files (that
+  //       we can inspect and check if they have been resolved) and binary files
+  //       (that we cannot inspect, and we need to do our own inspection and
+  //       defer to the index state)
+
   // for now we just poke at the existing summary
   const summary = convertToAppStatus(
     status,
     filesWithConflictMarkers.has(entry.path)
   )
   const selection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
+
+  // TODO: detect that a binary file is conflicted and generate a different
+  //       `conflictStatus` value
+  const conflictMarkerCount = filesWithConflictMarkers.get(entry.path)
+
+  const conflictStatus: ConflictStatus | null =
+    conflictMarkerCount == null ? null : { kind: 'text', conflictMarkerCount }
 
   files.set(
     entry.path,
@@ -223,7 +236,7 @@ function buildStatusMap(
       summary,
       selection,
       entry.oldPath,
-      filesWithConflictMarkers.get(entry.path)
+      conflictStatus
     )
   )
   return files
