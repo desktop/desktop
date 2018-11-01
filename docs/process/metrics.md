@@ -58,6 +58,7 @@ These are general metrics about feature usage and specific feature behaviors. Th
 
 ## Adding new metrics
 
+### Implementor
 1. Create an issue with the proposed metrics in desktop/desktop
 
    - Get approval from @desktop/product 
@@ -88,4 +89,4 @@ These are general metrics about feature usage and specific feature behaviors. Th
 3. Open a PR in `github/central` so the new metrics are added to the payload we send to ??? (see [example](https://github.com/github/central/pull/411))
 4. Open a PR in `github/desktop.github.com` to add the new metrics to `usage-data.html` (see [example](https://github.com/github/desktop.github.com/pull/119))
 
-
+### Reviewer
