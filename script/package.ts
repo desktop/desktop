@@ -5,7 +5,8 @@ import * as cp from 'child_process'
 import * as path from 'path'
 import * as crypto from 'crypto'
 import * as electronInstaller from 'electron-winstaller'
-import * as glob from 'glob'
+
+import glob = require('glob')
 
 import { getProductName, getCompanyName } from '../app/package-info'
 import {
@@ -133,42 +134,20 @@ function getSha256Checksum(fullPath: string): Promise<string> {
     const shasum = crypto.createHash(algo)
 
     const s = fs.createReadStream(fullPath)
-    s.on('data', function(d) {
+    s.on('data', function (d) {
       shasum.update(d)
     })
     s.on('error', err => {
       reject(err)
     })
-    s.on('end', function() {
+    s.on('end', function () {
       const d = shasum.digest('hex')
       resolve(d)
     })
   })
 }
 
-function packageLinux() {
-  const electronBuilder = path.resolve(
-    __dirname,
-    '..',
-    'node_modules',
-    '.bin',
-    'electron-builder'
-  )
-
-  const configPath = path.resolve(__dirname, 'electron-builder-linux.yml')
-
-  const args = [
-    'build',
-    '--prepackaged',
-    distPath,
-    '--x64',
-    '--config',
-    configPath,
-  ]
-
-  console.log('Packaging for Linux…')
-  cp.spawnSync(electronBuilder, args, { stdio: 'inherit' })
-
+function generateChecksums() {
   const distRoot = getDistRoot()
 
   const installersPath = `${distRoot}/GitHubDesktop-linux-*`
@@ -196,4 +175,33 @@ function packageLinux() {
 
     fs.writeFile(checksumFile, checksumsText)
   })
+}
+
+function packageLinux() {
+  const electronBuilder = path.resolve(
+    __dirname,
+    '..',
+    'node_modules',
+    '.bin',
+    'electron-builder'
+  )
+
+  const configPath = path.resolve(__dirname, 'electron-builder-linux.yml')
+
+  const args = [
+    'build',
+    '--prepackaged',
+    distPath,
+    '--x64',
+    '--config',
+    configPath,
+  ]
+
+  const { error } = cp.spawnSync(electronBuilder, args, { stdio: 'inherit' })
+
+  if (error != null) {
+    throw error
+  }
+
+  generateChecksums()
 }
