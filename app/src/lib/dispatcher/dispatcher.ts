@@ -595,8 +595,9 @@ export class Dispatcher {
     return this.appStore._mergeBranch(repository, branch, mergeStatus)
   }
 
-  public abortMerge(repository: Repository) {
-    return this.appStore._abortMerge(repository)
+  public async abortMerge(repository: Repository) {
+    await this.appStore._abortMerge(repository)
+    await this.appStore._loadStatus(repository)
   }
 
   public createMergeCommit(
