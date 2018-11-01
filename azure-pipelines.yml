@@ -1,0 +1,170 @@
+variables:
+  PYTHON: 'python2.7'
+
+resources:
+  repositories:
+    - repository: self
+      checkoutOptions:
+        submodules: true
+
+trigger:
+  batch: true
+  branches:
+    include:
+      - refs/heads/development
+      # specific to shiftkey/desktop
+      - refs/heads/linux
+      # release candidate branches
+      - refs/heads/linux-release-*
+      # transient branch to help with Snap confinement migration
+      - refs/heads/snap-strict-enclosure
+      - refs/tags/*
+
+pr:
+  autoCancel: true
+  branches:
+    include:
+      - '*'
+
+jobs:
+  - job: Windows
+    pool:
+      vmImage: windows-2019
+    steps:
+      - task: NodeTool@0
+        inputs:
+          versionSpec: '10.x'
+      - task: geeklearningio.gl-vsts-tasks-yarn.yarn-installer-task.YarnInstaller@2
+        inputs:
+          versionSpec: '1.5.1'
+      - script: |
+          yarn install --force
+        name: Install
+      - script: |
+          yarn build:prod
+        name: Build
+      - script: |
+          yarn test:setup && yarn test
+        name: Test
+      - task: PublishTestResults@2
+        displayName: 'Publish Test Results'
+        inputs:
+          testResultsFiles: '**junit*.xml'
+          testRunTitle: $(Agent.OS) Test Results
+        condition: always()
+      - task: PublishCodeCoverageResults@1
+        displayName: 'Publish code coverage results'
+        inputs:
+          codeCoverageTool: 'cobertura'
+          summaryFileLocation: '**/app/coverage/cobertura-coverage.xml'
+        condition: always()
+
+  - job: Linux
+    pool:
+      vmImage: ubuntu-16.04
+    steps:
+      - script: |
+          mkdir -p /tmp/local/.cache
+          mkdir -p /tmp/local/.yarn
+          mkdir -p /tmp/local/.node-gyp
+          mkdir -p /tmp/local/.local
+        displayName: 'Setup local caches'
+      - script:
+          docker run -u $(id -u):$(id -g) -v $(Build.SourcesDirectory):/src -v
+          /tmp/local/.cache:/.cache -v /tmp/local/.yarn:/.yarn -v
+          /tmp/local/.node-gyp:/.node-gyp -v /tmp/local/.local:/.local -w /src
+          shiftkey/desktop:trusty-node-yarn-git sh -c "yarn install --force &&
+          yarn build:prod"
+        displayName: 'Build in container'
+      - script: |
+          export DISPLAY=':99.0'
+          Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+          yarn test:setup && yarn test
+        name: Test
+      - script:
+          docker run -v $(Build.SourcesDirectory):/src -v
+          /tmp/local/.cache:/.cache -v /tmp/local/.yarn:/.yarn -v
+          /tmp/local/.node-gyp:/.node-gyp -v /tmp/local/.local:/.local -w /src
+          shiftkey/desktop:snapcraft-node-yarn sh -c "yarn run package"
+        displayName: 'Package in Container'
+      - task: CopyFiles@2
+        inputs:
+          contents: |
+            dist/*.AppImage
+            dist/*.deb
+            dist/*.rpm
+            dist/*.snap
+            dist/*.txt
+          targetFolder: $(Build.ArtifactStagingDirectory)
+          flattenFolders: true
+        condition:
+          and(succeeded(), startsWith(variables['Build.SourceBranch'],
+          'refs/tags/'))
+      - task: PublishBuildArtifacts@1
+        condition:
+          and(succeeded(), startsWith(variables['Build.SourceBranch'],
+          'refs/tags/'))
+      - task: PublishTestResults@2
+        displayName: 'Publish Test Results'
+        inputs:
+          testResultsFiles: '**junit*.xml'
+          testRunTitle: $(Agent.OS) Test Results
+        condition: always()
+      - task: PublishCodeCoverageResults@1
+        displayName: 'Publish code coverage results'
+        inputs:
+          codeCoverageTool: 'cobertura'
+          summaryFileLocation: '**/app/coverage/cobertura-coverage.xml'
+        condition: always()
+
+  - job: macOS
+    pool:
+      vmImage: macOS-10.15
+    steps:
+      - task: NodeTool@0
+        inputs:
+          versionSpec: '10.x'
+      - script: |
+          yarn install --force
+        name: Install
+      - script: |
+          yarn build:prod
+        name: Build
+      - script: |
+          yarn test:setup && yarn test
+        name: Test
+      - task: PublishTestResults@2
+        displayName: 'Publish Test Results'
+        inputs:
+          testResultsFiles: '**junit*.xml'
+          testRunTitle: $(Agent.OS) Test Results
+        condition: always()
+      - task: PublishCodeCoverageResults@1
+        displayName: 'Publish code coverage results'
+        inputs:
+          codeCoverageTool: 'cobertura'
+          summaryFileLocation: '**/app/coverage/cobertura-coverage.xml'
+        condition: always()
+
+  - job: Lint
+    pool:
+      vmImage: ubuntu-16.04
+    steps:
+      - script: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libsecret-1-dev
+      - task: NodeTool@0
+        inputs:
+          versionSpec: '10.x'
+      - task: geeklearningio.gl-vsts-tasks-yarn.yarn-installer-task.YarnInstaller@2
+        inputs:
+          versionSpec: '1.5.1'
+      - script: |
+          yarn install --force
+        name: Install
+      - script: |
+          yarn lint
+        name: Lint
+      - script: |
+          yarn check-modified
+        displayName: 'Check for modified files'
