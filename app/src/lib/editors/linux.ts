@@ -9,7 +9,7 @@ export enum ExternalEditor {
   VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
   SublimeText = 'Sublime Text',
   Typora = 'Typora',
-  SlickEdit = 'Visual SlickEdit',
+  SlickEdit = 'SlickEdit',
 }
 
 export function parse(label: string): ExternalEditor | null {

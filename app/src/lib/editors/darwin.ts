@@ -16,7 +16,7 @@ export enum ExternalEditor {
   Brackets = 'Brackets',
   WebStorm = 'WebStorm',
   Typora = 'Typora',
-  SlickEdit = 'Visual SlickEdit',
+  SlickEdit = 'SlickEdit',
 }
 
 export function parse(label: string): ExternalEditor | null {
