@@ -1,5 +1,12 @@
 {
   "releases": {
+    "1.5.0-beta3": [
+      "[???] Add support for reporting a binary file is in a conflicted state - #6072",
+      "[???] Handle really long banner messages - #6050",
+      "[Fixed] Ensure status after aborting a merge reflects reality - #6052",
+      "[Fixed] Kill off unnecessary margin inside compare tab branch list - #6058",
+      "[Fixed] Styling changes for merge filter text box - #5998"
+    ],
     "1.5.0-beta2": [
       "[Added] Resolve merge conflicts through a guided flow - #5400",
       "[Added] Notify users when a merge is successfully completed - #5851",
