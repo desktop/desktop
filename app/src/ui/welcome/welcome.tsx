@@ -9,6 +9,7 @@ import { SignInEnterprise } from './sign-in-enterprise'
 import { ConfigureGit } from './configure-git'
 import { UiView } from '../ui-view'
 import { UsageOptOut } from './usage-opt-out'
+import classNames = require('classnames')
 
 /** The steps along the Welcome flow. */
 export enum WelcomeStep {
@@ -27,6 +28,7 @@ interface IWelcomeProps {
 
 interface IWelcomeState {
   readonly currentStep: WelcomeStep
+  readonly exiting: boolean
 }
 
 // Note that we're reusing the welcome illustrations in the crash process, any
@@ -49,7 +51,7 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
   public constructor(props: IWelcomeProps) {
     super(props)
 
-    this.state = { currentStep: WelcomeStep.Start }
+    this.state = { currentStep: WelcomeStep.Start, exiting: false }
   }
 
   public componentWillReceiveProps(nextProps: IWelcomeProps) {
@@ -182,12 +184,19 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
   }
 
   private done = () => {
-    this.props.dispatcher.endWelcomeFlow()
+    this.setState({ exiting: true }, () => {
+      setTimeout(() => {
+        this.props.dispatcher.endWelcomeFlow()
+      }, 250)
+    })
   }
 
   public render() {
+    const className = classNames({
+      exiting: this.state.exiting,
+    })
     return (
-      <UiView id="welcome">
+      <UiView id="welcome" className={className}>
         <div className="welcome-left">
           <div className="welcome-content">
             {this.getComponentForCurrentStep()}
