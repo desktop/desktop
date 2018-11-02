@@ -2,7 +2,7 @@
   "releases": {
     "1.5.0-beta3": [
       "[Added] Will now reportup when a binary file is in a conflicted state - #6072",
-      "[Fixed] Handle really long banner messages - #6050",
+      "[Improved] Merge success banner handles very long branch names - #6050",
       "[Fixed] Changes are updated after aborting a merge - #6052",
       "[Fixed] Kill off unnecessary margin inside compare tab branch list - #6058",
       "[Fixed] Styling changes for merge filter text box - #5998"
