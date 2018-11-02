@@ -12,11 +12,11 @@ time as the team learns, listens and refines how we work with the community.
 
 #### Table Of Contents
 
-[What should I know before I get started?](#what-should-i-know-before-i-get-started)
+- [What should I know before I get started?](#what-should-i-know-before-i-get-started)
   * [Code of Conduct](#code-of-conduct)
   * [The Roadmap](#the-roadmap)
 
-[How Can I Contribute?](#how-can-i-contribute)
+- [How Can I Contribute?](#how-can-i-contribute)
   * [Reporting Bugs](#reporting-bugs)
   * [Suggesting Enhancements](#suggesting-enhancements)
   * [Help Wanted](#help-wanted)
