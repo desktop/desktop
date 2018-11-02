@@ -1756,6 +1756,14 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   // we currently only render one banner at a time
   private renderBanner(): JSX.Element | null {
+    // The inset light title bar style without the toolbar
+    // can't support banners at the moment. So for the
+    // no-repositories blank slate we'll have to live without
+    // them.
+    if (this.state.repositories.length === 0) {
+      return null
+    }
+
     if (this.state.successfulMergeBannerState !== null) {
       return this.renderSuccessfulMergeBanner(
         this.state.successfulMergeBannerState
