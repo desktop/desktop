@@ -1,10 +1,10 @@
 {
   "releases": {
     "1.5.0-beta3": [
-      "[Fixed] Handle really long banner messages - #6050",
       "[Fixed] Changes are updated after aborting a merge - #6052",
       "[Fixed] Kill off unnecessary margin inside compare tab branch list - #6058",
-      "[Fixed] Styling changes for merge filter text box - #5998"
+      "[Fixed] Styling changes for merge filter text box - #5998",
+      "[Improved] Merge success banner handles very long branch names - #6050"
     ],
     "1.5.0-beta2": [
       "[Added] Resolve merge conflicts through a guided flow - #5400",
