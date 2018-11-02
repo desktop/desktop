@@ -27,3 +27,20 @@
   width: 100%;
   text-align: center;
 }
+
+.merge-button {
+  &.button-component {
+    align-self: auto;
+  }
+
+  &-row {
+    display: flex;
+    flex-direction: column;
+    border-top: var(--base-border);
+    padding: var(--spacing);
+  }
+
+  .icon {
+    margin-right: var(--spacing-half);
+  }
+}

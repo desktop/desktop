@@ -61,3 +61,8 @@ export function enableStatusWithoutOptionalLocks(): boolean {
 export function enableRecurseSubmodulesFlag(): boolean {
   return enableBetaFeatures()
 }
+
+/** Should the app use the MergeConflictsDialog component and flow? */
+export function enableMergeConflictsDialog(): boolean {
+  return enableBetaFeatures()
+}

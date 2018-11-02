@@ -12,10 +12,16 @@ interface IMergeConflictsWarningProps {
   readonly onDismissed: () => void
 }
 
+/**
+ * Modal to tell the user their merge encountered conflicts
+ */
 export class MergeConflictsWarning extends React.Component<
   IMergeConflictsWarningProps,
   {}
 > {
+  /**
+   *  Displays the repository changes tab and dismisses the modal
+   */
   private onSubmit = () => {
     this.props.dispatcher.changeRepositorySection(
       this.props.repository,

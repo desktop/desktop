@@ -112,7 +112,6 @@ function getInitialRepositoryState(): IRepositoryState {
       ),
       selectedFileIDs: [],
       diff: null,
-      contextualCommitMessage: null,
       commitMessage: null,
       coAuthors: [],
       showCoAuthoredBy: false,

@@ -151,6 +151,9 @@ export interface IAppState {
   /** Whether we should show the update banner */
   readonly isUpdateAvailableBannerVisible: boolean
 
+  /** Whether we should show the merge success banner */
+  readonly successfulMergeBannerState: SuccessfulMergeBannerState
+
   /** Whether we should show a confirmation dialog */
   readonly askForConfirmationOnRepositoryRemoval: boolean
 
@@ -360,12 +363,6 @@ export interface IChangesState {
 
   readonly diff: IDiff | null
 
-  /**
-   * The commit message to use based on the context of the repository, e.g., the
-   * message from a recently undone commit.
-   */
-  readonly contextualCommitMessage: ICommitMessage | null
-
   /** The commit message for a work-in-progress commit in the changes view. */
   readonly commitMessage: ICommitMessage | null
 
@@ -526,3 +523,8 @@ export interface ICompareToBranch {
  * An action to send to the application store to update the compare state
  */
 export type CompareAction = IViewHistory | ICompareToBranch
+
+export type SuccessfulMergeBannerState = {
+  currentBranch: string
+  theirBranch: string
+} | null

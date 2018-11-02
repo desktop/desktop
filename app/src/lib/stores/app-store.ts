@@ -88,6 +88,7 @@ import {
   SelectionType,
   MergeResultStatus,
   ComparisonMode,
+  SuccessfulMergeBannerState,
 } from '../app-state'
 import { caseInsensitiveCompare } from '../compare'
 import { IGitHubUser } from '../databases/github-user-database'
@@ -105,6 +106,7 @@ import { formatCommitMessage } from '../format-commit-message'
 import { getGenericHostname, getGenericUsername } from '../generic-git-auth'
 import { getAccountForRepository } from '../get-account-for-repository'
 import {
+  abortMerge,
   addRemote,
   checkoutBranch,
   createBranch,
@@ -128,6 +130,7 @@ import {
   saveGitIgnore,
   appendIgnoreRule,
   IStatusResult,
+  createMergeCommit,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -168,6 +171,7 @@ import { validatedRepositoryPath } from './helpers/validated-repository-path'
 import { RepositoryStateCache } from './repository-state-cache'
 import { readEmoji } from '../read-emoji'
 import { GitStoreCache } from './git-store-cache'
+import { MergeConflictsErrorContext } from '../git-error-context'
 import { setNumber, setBoolean, getBoolean, getNumber } from '../local-storage'
 
 /**
@@ -257,6 +261,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private windowState: WindowState
   private windowZoomFactor: number = 1
   private isUpdateAvailableBannerVisible: boolean = false
+  private successfulMergeBannerState: SuccessfulMergeBannerState = null
   private confirmRepoRemoval: boolean = confirmRepoRemovalDefault
   private confirmDiscardChanges: boolean = confirmDiscardChangesDefault
   private imageDiffType: ImageDiffType = imageDiffTypeDefault
@@ -446,18 +451,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
         return null
       }
 
-      return {
-        type: SelectionType.CloningRepository,
-        repository,
-        progress,
-      }
+      return { type: SelectionType.CloningRepository, repository, progress }
     }
 
     if (repository.missing) {
-      return {
-        type: SelectionType.MissingRepository,
-        repository,
-      }
+      return { type: SelectionType.MissingRepository, repository }
     }
 
     return {
@@ -491,6 +489,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       titleBarStyle: this.showWelcomeFlow ? 'light' : 'dark',
       highlightAccessKeys: this.highlightAccessKeys,
       isUpdateAvailableBannerVisible: this.isUpdateAvailableBannerVisible,
+      successfulMergeBannerState: this.successfulMergeBannerState,
       askForConfirmationOnRepositoryRemoval: this.confirmRepoRemoval,
       askForConfirmationOnDiscardChanges: this.confirmDiscardChanges,
       selectedExternalEditor: this.selectedExternalEditor,
@@ -513,7 +512,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.repositoryStateCache.updateChangesState(repository, () => ({
       commitMessage: gitStore.commitMessage,
-      contextualCommitMessage: gitStore.contextualCommitMessage,
       showCoAuthoredBy: gitStore.showCoAuthoredBy,
       coAuthors: gitStore.coAuthors,
     }))
@@ -1901,7 +1899,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       gitStore.loadRemotes(),
       gitStore.updateLastFetched(),
       this.refreshAuthor(repository),
-      gitStore.loadContextualCommitMessage(),
       refreshSectionPromise,
     ])
 
@@ -2033,7 +2030,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
         getAuthorIdentity(repository)
       )) || null
 
-    this.repositoryStateCache.update(repository, () => ({ commitAuthor }))
+    this.repositoryStateCache.update(repository, () => ({
+      commitAuthor,
+    }))
     this.emitUpdate()
   }
 
@@ -2118,7 +2117,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     checkoutProgress: ICheckoutProgress | null
   ) {
-    this.repositoryStateCache.update(repository, () => ({ checkoutProgress }))
+    this.repositoryStateCache.update(repository, () => ({
+      checkoutProgress,
+    }))
 
     if (this.selectedRepository === repository) {
       this.emitUpdate()
@@ -2171,7 +2172,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       await this._refreshRepository(repository)
     } finally {
       this.updateCheckoutProgress(repository, null)
-      this._initializeCompare(repository, { kind: HistoryTabMode.History })
+      this._initializeCompare(repository, {
+        kind: HistoryTabMode.History,
+      })
     }
 
     const { branchesState } = this.repositoryStateCache.get(repository)
@@ -2365,7 +2368,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const state = this.repositoryStateCache.get(repository)
     const { remote } = state
     if (remote === null) {
-      this._showPopup({ type: PopupType.PublishRepository, repository })
+      this._showPopup({
+        type: PopupType.PublishRepository,
+        repository,
+      })
 
       return
     }
@@ -2584,12 +2590,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       if (tip.kind === TipState.Valid) {
         let mergeBase: string | null = null
-        if (tip.branch.upstream) {
+        let gitContext: MergeConflictsErrorContext | undefined = undefined
+
+        if (tip.branch.upstream !== null) {
           mergeBase = await getMergeBase(
             repository,
             tip.branch.name,
             tip.branch.upstream
           )
+
+          gitContext = {
+            kind: 'pull',
+            tip,
+            theirBranch: tip.branch.upstream,
+          }
         }
 
         const title = `Pulling ${remote.name}`
@@ -2628,7 +2642,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
                   value: progress.value * pullWeight,
                 })
               }),
-            { command: 'pull', retryAction }
+            {
+              gitContext,
+              retryAction,
+            }
           )
 
           const refreshStartProgress = pullWeight + fetchWeight
@@ -3074,9 +3091,34 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     }
 
-    await gitStore.merge(branch)
+    const mergeSuccessful = await gitStore.merge(branch)
+    const { tip } = gitStore
+
+    if (mergeSuccessful && tip.kind === TipState.Valid) {
+      this._setSuccessfulMergeBannerState({
+        currentBranch: tip.branch.name,
+        theirBranch: branch,
+      })
+    }
 
     return this._refreshRepository(repository)
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _abortMerge(repository: Repository): Promise<void> {
+    const gitStore = this.gitStoreCache.get(repository)
+    return await gitStore.performFailableOperation(() => abortMerge(repository))
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _createMergeCommit(
+    repository: Repository,
+    files: ReadonlyArray<WorkingDirectoryFileChange>
+  ): Promise<void> {
+    const gitStore = this.gitStoreCache.get(repository)
+    return await gitStore.performFailableOperation(() =>
+      createMergeCommit(repository, files)
+    )
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -3189,6 +3231,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   public _setUpdateBannerVisibility(visibility: boolean) {
     this.isUpdateAvailableBannerVisible = visibility
+
+    this.emitUpdate()
+  }
+
+  public _setSuccessfulMergeBannerState(state: SuccessfulMergeBannerState) {
+    this.successfulMergeBannerState = state
 
     this.emitUpdate()
   }
