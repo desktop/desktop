@@ -55,9 +55,34 @@ export function findIssueRef(body: string): string {
   return issueRef
 }
 
-function getChangelogEntry(commit: IParsedCommit, pr: IAPIPR): string {
+type ReleaseNotes =
+  | {
+      readonly kind: 'found' | 'default'
+      readonly text: string
+    }
+  | {
+      readonly kind: 'omitted'
+    }
+
+export function getReleaseNotesDescription(pr: IAPIPR): ReleaseNotes {
+  const re = /[Nn]otes: (.*)/gm
+  const match = re.exec(pr.body)
+
+  if (match != null && match.length === 2) {
+    const text = match[1]
+
+    if (text.toLowerCase() === 'no-notes') {
+      return { kind: 'omitted' }
+    } else {
+      return { kind: 'found', text }
+    }
+  }
+
+  return { kind: 'default', text: capitalized(pr.title) }
+}
+
+function getChangelogEntry(commit: IParsedCommit, pr: IAPIPR): string | null {
   let type = PlaceholderChangeType
-  const description = capitalized(pr.title)
 
   let issueRef = findIssueRef(pr.body)
 
@@ -72,13 +97,32 @@ function getChangelogEntry(commit: IParsedCommit, pr: IAPIPR): string {
     attribution = `. Thanks @${commit.owner}!`
   }
 
+  const releaseNotesEntry = getReleaseNotesDescription(pr)
+  if (releaseNotesEntry.kind === 'omitted') {
+    return null
+  }
+
+  const description = releaseNotesEntry.text
+
   return `[${type}] ${description} -${issueRef}${attribution}`
+}
+
+type PullRequestSummary = {
+  readonly id: number
+  readonly title: string
+}
+
+type ChangelogResults = {
+  readonly entries: ReadonlyArray<string>
+  readonly omitted: ReadonlyArray<PullRequestSummary>
 }
 
 export async function convertToChangelogFormat(
   lines: ReadonlyArray<string>
-): Promise<ReadonlyArray<string>> {
-  const entries = []
+): Promise<ChangelogResults> {
+  const entries = new Array<string>()
+  const omitted = new Array<PullRequestSummary>()
+
   for (const line of lines) {
     try {
       const commit = parseCommitTitle(line)
@@ -88,7 +132,11 @@ export async function convertToChangelogFormat(
       }
 
       const entry = getChangelogEntry(commit, pr)
-      entries.push(entry)
+      if (entry != null) {
+        entries.push(entry)
+      } else {
+        omitted.push({ id: commit.prID, title: pr.title })
+      }
     } catch (e) {
       console.warn('Unable to parse line, using the full message.', e)
 
@@ -96,7 +144,7 @@ export async function convertToChangelogFormat(
     }
   }
 
-  return entries
+  return { entries, omitted }
 }
 
 export function getChangelogEntriesSince(previousVersion: string): string[] {

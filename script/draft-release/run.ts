@@ -88,7 +88,7 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
   if (noChangesFound) {
     printInstructions(nextVersion, [])
   } else {
-    const changelogEntries = await convertToChangelogFormat(lines)
+    const { entries, omitted } = await convertToChangelogFormat(lines)
 
     console.log("Here's what you should do next:\n")
 
@@ -97,8 +97,7 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
       const entries = [...existingChangelog]
       printInstructions(nextVersion, entries)
     } else if (channel === 'beta') {
-      const entries = [...changelogEntries]
-      printInstructions(nextVersion, entries)
+      printInstructions(nextVersion, [...entries])
     }
   }
 }
