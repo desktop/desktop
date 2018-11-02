@@ -1,5 +1,6 @@
 import * as React from 'react'
 // import { app, systemPreferences } from 'electron'
+import { isMojaveOrLater } from '../../lib/get-os'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Row } from '../lib/row'
 import { DialogContent } from '../dialog'
@@ -77,8 +78,9 @@ export class Appearance extends React.Component<
   public render() {
     const selectedIndex =
       this.props.selectedTheme === ApplicationTheme.Dark ? 1 : 0
+    const allowAutoSwitchTheme = isMojaveOrLater()
 
-    return __DARWIN__ ? (
+    return allowAutoSwitchTheme ? (
       <DialogContent>
         <Row>
           <VerticalSegmentedControl

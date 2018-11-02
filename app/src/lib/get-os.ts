@@ -16,3 +16,16 @@ export function getOS() {
     return `${OS.type()} ${OS.release()}`
   }
 }
+
+/** See the OS we're currently running on is at least Mojave. */
+export function isMojaveOrLater() {
+  if (__DARWIN__) {
+    const parser = new UAParser()
+    const os = parser.getOS()
+    // Check that it is Mojave or later
+    if (os.version && os.version.split('.')[1] > '13') {
+      return true
+    }
+  }
+  return false
+}
