@@ -8,11 +8,11 @@ class ThemeChangeMonitor implements IDisposable {
 
   private subscriptionID: number | null = null
 
-  constructor() {
+  public constructor() {
     this.subscribe()
   }
 
-  dispose() {
+  public dispose() {
     this.unsubscribe()
   }
 
@@ -28,19 +28,12 @@ class ThemeChangeMonitor implements IDisposable {
   }
 
   private onThemeNotificationFromOS = (event: string, userInfo: any) => {
-    // if there is details in the payload from the OS about the theme change we should
-    // use that rather than query again for the dark theme state
     const darkModeEnabled = isDarkModeEnabled()
 
     const theme = darkModeEnabled
       ? ApplicationTheme.Dark
       : ApplicationTheme.Light
     this.emitThemeChanged(theme)
-
-    // do we need to re-subscribe to the event after it was raised? if not, these
-    // lines are unnecessary and can be removed
-    this.unsubscribe()
-    this.subscribe()
   }
 
   private unsubscribe = () => {
@@ -49,7 +42,6 @@ class ThemeChangeMonitor implements IDisposable {
     }
   }
 
-  // subscribers call this function and pass in the callback they want to run
   public onThemeChanged(fn: (theme: ApplicationTheme) => void): Disposable {
     return this.emitter.on('theme-changed', fn)
   }
