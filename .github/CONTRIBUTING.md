@@ -21,6 +21,8 @@ time as the team learns, listens and refines how we work with the community.
   * [Suggesting Enhancements](#suggesting-enhancements)
   * [Help Wanted](#help-wanted)
 
+- [Process Documentation](#process-documentation)
+
 ## What should I know before I get started?
 
 ### Code of Conduct
@@ -138,3 +140,14 @@ interested in the issue.
 ### Set Up Your Machine
 
 Start [here](https://github.com/desktop/desktop/blob/master/docs/contributing/setup.md).
+
+
+## Process Documentation
+
+These documents are useful resources for contributors  to learn more about the project and how it is run:
+
+ - [Teams](https://github.com/desktop/desktop/blob/master/docs/process/teams.md)
+ - [Release Planning](https://github.com/desktop/desktop/blob/master/docs/process/release-planning.md)
+ - [Issue Triage](https://github.com/desktop/desktop/blob/master/docs/process/issue-triage.md)
+ - [Issue and Pull Request Labels](https://github.com/desktop/desktop/blob/master/docs/process/labels.md)
+ - [Pull Request Triage](https://github.com/desktop/desktop/blob/master/docs/process/pull-request-triage.md)
