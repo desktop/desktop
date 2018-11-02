@@ -171,7 +171,17 @@ export class MergeConflictsDialog extends React.Component<
           </li>
         )
       case 'binary':
-        return null
+        return (
+          <li className="unmerged-file-status-conflicts">
+            <Octicon symbol={OcticonSymbol.fileCode} className="file-octicon" />
+            <div>
+              <PathText path={path} availableWidth={400} />
+              <div className="command-line-hint">
+                Use command line to resolve binary files
+              </div>
+            </div>
+          </li>
+        )
       default:
         return assertNever(
           conflictStatus,
