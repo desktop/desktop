@@ -51,6 +51,8 @@ export class Appearance extends React.Component<
     } else {
       fatalError(`Unknown theme index ${index}`)
     }
+    this.setState({ automaticallySwitchTheme: false })
+    this.props.onAutomaticallySwitchThemeChanged(false)
   }
 
   private onAutomaticallySwitchThemeChanged = (
