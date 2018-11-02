@@ -1,6 +1,6 @@
 import { expect } from 'chai'
 
-import { findIssueRef } from '../parser'
+import { findIssueRef, getReleaseNotesDescription } from '../parser'
 
 describe('changelog/parser', () => {
   describe('findIssueRef', () => {
@@ -54,6 +54,45 @@ quam vel augue.`
     it('handles resolves syntax', () => {
       const body = `This resolves #2314 and is totally wild`
       expect(findIssueRef(body)).to.equal(' #2314')
+    })
+  })
+
+  describe('getReleaseNotesDescription', () => {
+    it('defaults to PR title if not found', () => {
+      const pr = {
+        title: 'some title goes here',
+        body: `lol didn't write words`,
+      }
+      const result = getReleaseNotesDescription(pr)
+      expect(result.kind).to.equal('default')
+      if (result.kind === 'default') {
+        expect(result.text).to.equal('Some title goes here')
+      }
+    })
+
+    it('finds no-notes input to indicate this should be omitted', () => {
+      const pr = {
+        title: 'some title goes here',
+        body: `# Release notes
+
+Notes: no-notes`,
+      }
+      const result = getReleaseNotesDescription(pr)
+      expect(result.kind).to.equal('omitted')
+    })
+
+    it('finds release notes in body', () => {
+      const pr = {
+        title: 'some title goes here',
+        body: `# Release notes
+
+Notes: This Feature Fixes A Bug`,
+      }
+      const result = getReleaseNotesDescription(pr)
+      expect(result.kind).to.equal('found')
+      if (result.kind === 'found') {
+        expect(result.text).to.equal('This Feature Fixes A Bug')
+      }
     })
   })
 })
