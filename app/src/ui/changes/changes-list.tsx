@@ -31,6 +31,7 @@ import { IAutocompletionProvider } from '../autocompletion'
 import { showContextualMenu } from '../main-process-proxy'
 import { arrayEquals } from '../../lib/equality'
 import { clipboard } from 'electron'
+import { basename } from 'path'
 
 const RowHeight = 29
 
@@ -73,7 +74,6 @@ interface IChangesListProps {
    */
   readonly onRowClick?: (row: number, source: ClickSource) => void
   readonly commitMessage: ICommitMessage | null
-  readonly contextualCommitMessage: ICommitMessage | null
 
   /** The autocompletion providers available to the repository. */
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
@@ -377,6 +377,31 @@ export class ChangesList extends React.Component<
     showContextualMenu(items)
   }
 
+  private getPlaceholderMessage(
+    files: ReadonlyArray<WorkingDirectoryFileChange>,
+    singleFileCommit: boolean
+  ) {
+    if (!singleFileCommit) {
+      return 'Summary (required)'
+    }
+
+    const firstFile = files[0]
+    const fileName = basename(firstFile.path)
+
+    switch (firstFile.status) {
+      case AppFileStatus.New:
+        return `Create ${fileName}`
+      case AppFileStatus.Deleted:
+        return `Delete ${fileName}`
+      default:
+        // TODO:
+        // this doesn't feel like a great message for AppFileStatus.Copied or
+        // AppFileStatus.Renamed but without more insight (and whether this
+        // affects other parts of the flow) we can just default to this for now
+        return `Update ${fileName}`
+    }
+  }
+
   public render() {
     const fileList = this.props.workingDirectory.files
     const fileCount = fileList.length
@@ -421,17 +446,16 @@ export class ChangesList extends React.Component<
           repository={this.props.repository}
           dispatcher={this.props.dispatcher}
           commitMessage={this.props.commitMessage}
-          contextualCommitMessage={this.props.contextualCommitMessage}
           autocompletionProviders={this.props.autocompletionProviders}
           isCommitting={this.props.isCommitting}
           showCoAuthoredBy={this.props.showCoAuthoredBy}
           coAuthors={this.props.coAuthors}
-          placeholder={
+          placeholder={this.getPlaceholderMessage(
+            filesSelected,
             singleFileCommit
-              ? `Update ${filesSelected[0].path}`
-              : 'Summary (required)'
-          }
+          )}
           singleFileCommit={singleFileCommit}
+          key={this.props.repository.id}
         />
       </div>
     )

@@ -18,6 +18,8 @@ import { MergeResultStatus } from '../../lib/app-state'
 import { MergeResultKind } from '../../models/merge'
 import { MergeStatusHeader } from '../history/merge-status-header'
 import { promiseWithMinimumTimeout } from '../../lib/promise'
+import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
+import { DialogHeader } from '../dialog/header'
 
 interface IMergeProps {
   readonly dispatcher: Dispatcher
@@ -29,9 +31,9 @@ interface IMergeProps {
   readonly defaultBranch: Branch | null
 
   /**
-   * The currently checked out branch or null if HEAD is detached
+   * The currently checked out branch
    */
-  readonly currentBranch: Branch | null
+  readonly currentBranch: Branch
 
   /**
    * See IBranchesState.allBranches
@@ -283,13 +285,26 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
 
     const disabled = invalidBranchState || cannotMergeBranch
 
+    // the amount of characters to allow before we truncate was chosen arbitrarily
+    const currentBranchName = truncateWithEllipsis(
+      this.props.currentBranch.name,
+      40
+    )
     return (
       <Dialog
         id="merge"
-        title={__DARWIN__ ? 'Merge Branch' : 'Merge branch'}
         onDismissed={this.props.onDismissed}
         onSubmit={this.merge}
       >
+        <DialogHeader
+          title={
+            <div className="merge-dialog-header">
+              Merge into <b>{currentBranchName}</b>
+            </div>
+          }
+          dismissable={true}
+          onDismissed={this.props.onDismissed}
+        />
         <DialogContent>
           <BranchList
             allBranches={this.props.allBranches}
