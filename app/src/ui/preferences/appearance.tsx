@@ -1,6 +1,5 @@
 import * as React from 'react'
-import { isMojaveOrLater } from '../../lib/get-os'
-import { useOSDarkMode } from '../lib/os-dark-mode'
+import { supportsDarkMode, isDarkModeEnabled } from '../lib/dark-theme'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Row } from '../lib/row'
 import { DialogContent } from '../dialog'
@@ -61,7 +60,7 @@ export class Appearance extends React.Component<
     const value = event.currentTarget.checked
 
     if (value) {
-      const usingDarkMode = useOSDarkMode()
+      const usingDarkMode = isDarkModeEnabled()
       this.onSelectedThemeChanged(usingDarkMode ? 1 : 0)
     }
 
@@ -72,9 +71,9 @@ export class Appearance extends React.Component<
   public render() {
     const selectedIndex =
       this.props.selectedTheme === ApplicationTheme.Dark ? 1 : 0
-    const allowAutoSwitchTheme = isMojaveOrLater()
+    const doesSupportDarkMode = supportsDarkMode()
 
-    return allowAutoSwitchTheme ? (
+    return doesSupportDarkMode ? (
       <DialogContent>
         <Row>
           <VerticalSegmentedControl
