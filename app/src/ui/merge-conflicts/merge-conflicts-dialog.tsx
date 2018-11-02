@@ -16,6 +16,7 @@ import {
 import { Octicon, OcticonSymbol } from '../octicons'
 import { PathText } from '../lib/path-text'
 import { DialogHeader } from '../dialog/header'
+import { LinkButton } from '../lib/link-button'
 
 interface IMergeConflictsDialogProps {
   readonly dispatcher: Dispatcher
@@ -111,8 +112,10 @@ export class MergeConflictsDialog extends React.Component<
     return (
       <div className="cli-link">
         You can also{' '}
-        <a onClick={openThisRepositoryInShell}>open the command line</a> to
-        resolve
+        <LinkButton onClick={openThisRepositoryInShell}>
+          open the command line
+        </LinkButton>{' '}
+        to resolve
       </div>
     )
   }
