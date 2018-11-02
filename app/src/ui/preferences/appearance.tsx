@@ -1,6 +1,6 @@
 import * as React from 'react'
-// import { app, systemPreferences } from 'electron'
 import { isMojaveOrLater } from '../../lib/get-os'
+import { useOSDarkMode } from '../lib/os-dark-mode'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Row } from '../lib/row'
 import { DialogContent } from '../dialog'
@@ -60,18 +60,10 @@ export class Appearance extends React.Component<
   ) => {
     const value = event.currentTarget.checked
 
-    // const updateThemeBasedOnSystem = () => {
-    //   // Flip Bit
-    //   this.onSelectedThemeChanged(this.props.selectedTheme ? 0 : 1);
-    // };
-
-    // const subscriptionID = systemPreferences.subscribeNotification('AppleInterfaceThemeChangedNotification', updateThemeBasedOnSystem);
-
-    // updateThemeBasedOnSystem()
-
-    // app.on('will-quit', () => {
-    //   systemPreferences.unsubscribeNotification(subscriptionID)
-    // })
+    if (value) {
+      const usingDarkMode = useOSDarkMode()
+      this.onSelectedThemeChanged(usingDarkMode ? 1 : 0)
+    }
 
     this.setState({ automaticallySwitchTheme: value })
     this.props.onAutomaticallySwitchThemeChanged(value)

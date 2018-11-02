@@ -55,6 +55,7 @@ import {
 } from '../../models/progress'
 import { Popup, PopupType } from '../../models/popup'
 import { IGitAccount } from '../../models/git-account'
+import { useOSDarkMode } from '../../ui/lib/os-dark-mode'
 import { getAppPath } from '../../ui/lib/app-proxy'
 import {
   ApplicationTheme,
@@ -1359,6 +1360,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.selectedTheme = getPersistedTheme()
     this.automaticallySwitchTheme = getAutoSwitchPersistedTheme()
+
+    if (this.automaticallySwitchTheme) {
+      useOSDarkMode()
+    }
 
     this.emitUpdateNow()
 
