@@ -78,8 +78,8 @@ experience with that setup - can easily find them in the issue tracker.
 
 |                        | Label name | Description |
 | ---------------------- | ---------- | ----------- |
-| [:mag_right:][linux]   | `linux`    |  Issues specific to Desktop usage on Linux |
-| [:mag_right:][macOS]   | `macOS`    |  Issues specific to Desktop usage on macOS |
+| [:mag_right:][linux]   | `linux`    | Issues specific to Desktop usage on Linux |
+| [:mag_right:][macOS]   | `macOS`    | Issues specific to Desktop usage on macOS |
 | [:mag_right:][windows] | `windows`  | Issues specific Desktop usage on Windows |
 
 
