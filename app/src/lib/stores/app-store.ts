@@ -60,6 +60,7 @@ import {
   ApplicationTheme,
   getPersistedTheme,
   setPersistedTheme,
+  getAutoSwitchPersistedTheme,
   setAutoSwitchPersistedTheme,
 } from '../../ui/lib/application-theme'
 import {
@@ -1357,6 +1358,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         : parseInt(imageDiffTypeValue)
 
     this.selectedTheme = getPersistedTheme()
+    this.automaticallySwitchTheme = getAutoSwitchPersistedTheme()
 
     this.emitUpdateNow()
 
