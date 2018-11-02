@@ -69,7 +69,7 @@ export function getReleaseNotesDescription(pr: IAPIPR): ReleaseNotes {
   const match = re.exec(pr.body)
 
   if (match != null && match.length === 2) {
-    const text = match[1]
+    const text = match[1].trim()
 
     if (text.toLowerCase() === 'no-notes') {
       return { kind: 'omitted' }
