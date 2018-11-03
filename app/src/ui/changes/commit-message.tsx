@@ -8,7 +8,6 @@ import {
 } from '../autocompletion'
 import { CommitIdentity } from '../../models/commit-identity'
 import { ICommitMessage } from '../../models/commit-message'
-import { PopupType } from '../../models/popup'
 import { Dispatcher } from '../../lib/dispatcher'
 import { IGitHubUser } from '../../lib/databases/github-user-database'
 import { Repository } from '../../models/repository'
@@ -23,8 +22,6 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { ITrailer } from '../../lib/git/interpret-trailers'
 import { IAuthor } from '../../models/author'
 import { IMenuItem } from '../../lib/menu-item'
-import { isUsingLFS } from '../../lib/git/lfs'
-import { enableFileSizeWarningCheck } from '../../lib/feature-flag'
 import { shallowEquals } from '../../lib/equality'
 
 const addAuthorIcon = new OcticonSymbol(
@@ -68,7 +65,6 @@ interface ICommitMessageProps {
    * the user has chosen to do so.
    */
   readonly coAuthors: ReadonlyArray<IAuthor>
-  readonly getNamesOfSelectedOversizedFiles: () => Promise<string[]>
 }
 
 interface ICommitMessageState {
@@ -177,40 +173,19 @@ export class CommitMessage extends React.Component<
   }
 
   private async createCommit() {
+    const { summary, description } = this.state
+
     if (!this.canCommit()) {
       return
     }
 
     const trailers = this.getCoAuthorTrailers()
-    const { summary, description } = this.state
-    // allow single file commit without summary
-    const commitSummary =
-      this.props.singleFileCommit && !this.state.summary
-        ? this.props.placeholder
-        : summary
-
-    if (enableFileSizeWarningCheck()) {
-      const lfsSupported = await this.checkForLFS()
-      if (lfsSupported === false) {
-        const overSizedFiles = await this.checkForLargeFiles()
-
-        if (overSizedFiles.length !== 0) {
-          this.props.dispatcher.showPopup({
-            type: PopupType.OversizedFiles,
-            oversizedFiles: overSizedFiles,
-            commitSummary: commitSummary,
-            commitDescription: description,
-            repository: this.props.repository,
-            trailers: trailers,
-          })
-
-          return
-        }
-      }
-    }
 
     const commitCreated = await this.props.onCreateCommit(
-      commitSummary,
+      // allow single file commit without summary
+      this.props.singleFileCommit && !this.state.summary
+        ? this.props.placeholder
+        : summary,
       description,
       trailers
     )
@@ -225,18 +200,6 @@ export class CommitMessage extends React.Component<
       (this.props.anyFilesSelected && this.state.summary.length > 0) ||
       this.props.singleFileCommit
     )
-  }
-
-  private async checkForLargeFiles() {
-    return await this.props.getNamesOfSelectedOversizedFiles()
-  }
-
-  private async checkForLFS() {
-    try {
-      return await isUsingLFS(this.props.repository)
-    } catch (err) {
-      return false
-    }
   }
 
   private onKeyDown = (event: React.KeyboardEvent<Element>) => {

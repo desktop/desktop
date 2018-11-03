@@ -31,8 +31,7 @@ import { IAutocompletionProvider } from '../autocompletion'
 import { showContextualMenu } from '../main-process-proxy'
 import { arrayEquals } from '../../lib/equality'
 import { clipboard } from 'electron'
-import { stat } from 'fs-extra'
-import { basename, join } from 'path'
+import { basename } from 'path'
 
 const RowHeight = 29
 
@@ -378,29 +377,6 @@ export class ChangesList extends React.Component<
     showContextualMenu(items)
   }
 
-  private getNamesOfSelectedOversizedFiles = async () => {
-    const fileNames = new Array<string>()
-    const workingDirectoryFiles = this.props.workingDirectory.files
-    const includedFiles = workingDirectoryFiles.filter(
-      file => file.selection.getSelectionType() !== DiffSelectionType.None
-    )
-
-    for (const file of includedFiles) {
-      const filePath = join(this.props.repository.path, file.path)
-      try {
-        const fileStatus = await stat(filePath)
-        const fileSizeMegabytes = fileStatus.size / 1000000
-        if (fileSizeMegabytes > 100) {
-          fileNames.push(file.path)
-        }
-      } catch (error) {
-        log.debug(`Unable to get the file size for ${filePath}`, error)
-      }
-    }
-
-    return fileNames
-  }
-
   private getPlaceholderMessage(
     files: ReadonlyArray<WorkingDirectoryFileChange>,
     singleFileCommit: boolean
@@ -479,9 +455,6 @@ export class ChangesList extends React.Component<
             singleFileCommit
           )}
           singleFileCommit={singleFileCommit}
-          getNamesOfSelectedOversizedFiles={
-            this.getNamesOfSelectedOversizedFiles
-          }
           key={this.props.repository.id}
         />
       </div>

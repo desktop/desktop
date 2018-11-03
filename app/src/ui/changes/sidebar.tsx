@@ -24,6 +24,9 @@ import { openFile } from '../../lib/open-file'
 import { ITrailer } from '../../lib/git/interpret-trailers'
 import { Account } from '../../models/account'
 import { PopupType } from '../../models/popup'
+import { enableFileSizeWarningCheck } from '../../lib/feature-flag'
+import { filesNotTrackedByLFS } from '../../lib/git/lfs'
+import { getLargeFilePaths } from '../../lib/large-files'
 
 /**
  * The timeout for the animation of the enter/leave animation for Undo.
@@ -114,11 +117,36 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     }
   }
 
-  private onCreateCommit = (
+  private onCreateCommit = async (
     summary: string,
     description: string | null,
     trailers?: ReadonlyArray<ITrailer>
   ): Promise<boolean> => {
+    if (enableFileSizeWarningCheck()) {
+      const overSizedFiles = await getLargeFilePaths(
+        this.props.repository,
+        this.props.changes.workingDirectory,
+        100
+      )
+      const filesIgnoredByLFS = await filesNotTrackedByLFS(
+        this.props.repository,
+        overSizedFiles
+      )
+
+      if (filesIgnoredByLFS.length !== 0) {
+        this.props.dispatcher.showPopup({
+          type: PopupType.OversizedFiles,
+          oversizedFiles: filesIgnoredByLFS,
+          commitSummary: summary,
+          commitDescription: description,
+          repository: this.props.repository,
+          trailers: trailers,
+        })
+
+        return false
+      }
+    }
+
     return this.props.dispatcher.commitIncludedChanges(
       this.props.repository,
       summary,
