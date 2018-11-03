@@ -137,7 +137,7 @@ export type Popup =
     }
   | {
       type: PopupType.OversizedFiles
-      oversizedFiles: string[]
+      oversizedFiles: ReadonlyArray<string>
       commitSummary: string
       commitDescription: string | null
       repository: Repository

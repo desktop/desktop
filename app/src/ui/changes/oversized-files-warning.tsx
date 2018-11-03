@@ -13,7 +13,7 @@ const GitLFSWebsiteURL =
   'https://help.github.com/articles/versioning-large-files/'
 
 interface IOversizedFilesProps {
-  readonly oversizedFiles: string[]
+  readonly oversizedFiles: ReadonlyArray<string>
   readonly onDismissed: () => void
   readonly dispatcher: Dispatcher
   readonly commitSummary: string
