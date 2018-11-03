@@ -2,7 +2,7 @@ import { expect } from 'chai'
 
 import { sanitizedRepositoryName } from '../../src/ui/add-repository/sanitized-repository-name'
 
-describe.only('sanitizedRepositoryName', () => {
+describe('sanitizedRepositoryName', () => {
   it('leaves a good repo name alone', () => {
     const repoName = 'this-is-fine'
     const result = sanitizedRepositoryName(repoName)
@@ -39,10 +39,9 @@ describe.only('sanitizedRepositoryName', () => {
     expect(result).to.equal(repoName)
   })
 
-  it.only('replaces slash in newlines with dash', () => {
-    const repoName = 'hello\r\nworld'
+  it('replaces slash in newlines with dash', () => {
+    const repoName = 'hello\\r\\nworld'
     const result = sanitizedRepositoryName(repoName)
-    console.log('result', result)
     expect(result).to.equal('hello-r-nworld')
   })
 
