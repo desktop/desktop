@@ -124,7 +124,14 @@ describe('git/branch', () => {
         const branches = await getBranchesPointedAt(repository, 'HEAD^')
         expect(branches).toHaveLength(0)
       })
+
+      it('throws error on malformed committishes', () => {
+        expect(
+          getBranchesPointedAt(repository, 'MERGE_HEAD')
+        ).rejects.toThrowError(/malformed/i)
+      })
     })
+
     describe('in a repo with identical branches', () => {
       beforeEach(async () => {
         const path = await setupFixtureRepository('repo-with-multiple-remotes')
