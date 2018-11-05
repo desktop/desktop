@@ -67,11 +67,14 @@ export class BranchesContainer extends React.Component<
     }
   }
 
-  public render() {
-    const branchName = this.props.currentBranch
+  private getBranchName = (): string => {
+    return this.props.currentBranch
       ? this.props.currentBranch.name
       : this.props.defaultBranch || 'master'
+  }
 
+  public render() {
+    const branchName = this.getBranchName()
     return (
       <div className="branches-container">
         {this.renderTabBar()}
