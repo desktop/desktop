@@ -13,7 +13,7 @@ Because of the nature of the Node ecosystem, changes upgrading between versions
 of a package can introduce subtle changes that need to be reviewed and vetted.
 We also have finite engineering resources on the project, so we're a bit choosy
 with how and when we choose to upgrade dependencies, and some dependencies might
-be very stale at a time.
+be very stale for a very long period of time.
 
 The measured impact of a dependency can be identified by answering these three
 questions, and some examples of answers here will help with the next section.
@@ -21,33 +21,34 @@ questions, and some examples of answers here will help with the next section.
 ### How is this dependency used in the project?
 
   - Core dependencies like Electron, React and Typescript are critical to
-    Desktop - without these dependencies we'd have a very different end result
-  - Application dependencies are other external packages which are used in the
-    application - how can we test they still work as expected?
+    Desktop - without these dependencies we'd have a very different product
+  - Application dependencies are other external packages which are needed at
+    runtime - how can we test they still work as expected?
   - Tooling dependencies help to build and verify Desktop works as expected, but
     aren't shipped to users
 
-### if we ship a bad update due to updating this dependency, what is the impact to users?
+### If we ship a bad update due to updating a dependency, what is the impact to users?
 
-  - if a core dependency is broken, it may cause the app to crash, lose the
+  - If a core dependency is broken, it may cause the app to crash, lose the
     user's work, or require the user to reinstall an old version of Desktop to
     get back to a usable state
-  - an application dependency breaking may affect some user's workflows and
+  - An application dependency breaking may affect some user's workflows and
     their ability to work
-  - broken tooling impacts the developers and their ability to work on the
+  - Broken tooling impacts the developers and their ability to work on the
     project, and potentially affects shipping builds to users, but otherwise
     might not be seen
 
 ### Can we leverage automation to verify a change is safe?
 
   - Core dependencies need to be tested in a variety of setups due to their
-    complexity, and may still require manual testing in some cases
+    complexity, and may still require manual testing in some cases even with
+    automated tests in place
   - Application dependencies may be able to be wrapped in tests, to help
     identify regressions before a change is released to users
   - Tooling dependencies are used heavily as part of continuous integration
     tests, and any potential problems will be caught early
 
-## Breakdown of dependencies
+## Grouping dependencies by impact
 
 With the criteria above, we can group dependencies into these three buckets that
 help guide when they should be updated.
