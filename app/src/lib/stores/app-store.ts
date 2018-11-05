@@ -3116,7 +3116,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     files: ReadonlyArray<WorkingDirectoryFileChange>
   ): Promise<void> {
     const gitStore = this.gitStoreCache.get(repository)
-    return await gitStore.performFailableOperation(() =>
+    await gitStore.performFailableOperation(() =>
       createMergeCommit(repository, files)
     )
   }

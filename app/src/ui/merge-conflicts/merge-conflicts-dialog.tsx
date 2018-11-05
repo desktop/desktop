@@ -47,6 +47,10 @@ export class MergeConflictsDialog extends React.Component<
       this.props.repository,
       this.props.status.files
     )
+    this.props.dispatcher.setSuccessfulMergeBannerState({
+      currentBranch: this.props.currentBranch,
+      theirBranch: this.props.theirBranch,
+    })
     this.props.dispatcher.changeRepositorySection(
       this.props.repository,
       RepositorySectionTab.Changes
