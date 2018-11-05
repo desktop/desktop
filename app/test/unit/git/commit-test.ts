@@ -68,6 +68,7 @@ describe('git/commit', () => {
       const commits = await getCommits(repository!, 'HEAD', 100)
       expect(commits.length).toEqual(6)
       expect(commits[0].summary).toEqual('Special commit')
+      expect(commits[0].sha.substring(0, 7)).toEqual(sha)
     })
 
     it('commit does not strip commentary by default', async () => {
@@ -91,6 +92,7 @@ describe('git/commit', () => {
       expect(commit).not.toBeNull()
       expect(commit!.summary).toEqual('Special commit')
       expect(commit!.body).toEqual('# this is a comment\n')
+      expect(commit!.sha.substring(0, 7)).toEqual(sha)
     })
 
     it('can commit for empty repository', async () => {
@@ -182,6 +184,7 @@ describe('git/commit', () => {
       const newTip = (await getCommits(repository!, 'HEAD', 1))[0]
       expect(newTip.sha).not.toEqual(previousTip.sha)
       expect(newTip.summary).toEqual('title')
+      expect(newTip.sha.substring(0, 7)).toEqual(sha)
 
       // verify that the contents of this new commit are just the new file
       const changedFiles = await getChangedFiles(repository!, newTip.sha)
@@ -288,6 +291,7 @@ describe('git/commit', () => {
       const newTip = (await getCommits(repository!, 'HEAD', 1))[0]
       expect(newTip.sha).not.toEqual(previousTip.sha)
       expect(newTip.summary).toEqual('title')
+      expect(newTip.sha.substring(0, 7)).toEqual(sha)
 
       // verify that the contents of this new commit are just the modified file
       const changedFiles = await getChangedFiles(repository!, newTip.sha)
@@ -333,6 +337,7 @@ describe('git/commit', () => {
       const newTip = (await getCommits(repository!, 'HEAD', 1))[0]
       expect(newTip.sha).not.toEqual(previousTip.sha)
       expect(newTip.summary).toEqual('title')
+      expect(newTip.sha.substring(0, 7)).toEqual(sha)
 
       // verify that the contents of this new commit are just the modified file
       const changedFiles = await getChangedFiles(repository!, newTip.sha)
@@ -374,6 +379,7 @@ describe('git/commit', () => {
       const newTip = (await getCommits(repository!, 'HEAD', 1))[0]
       expect(newTip.sha).not.toEqual(previousTip.sha)
       expect(newTip.summary).toEqual('title')
+      expect(newTip.sha.substring(0, 7)).toEqual(sha)
 
       // verify that the contents of this new commit are just the new file
       const changedFiles = await getChangedFiles(repository!, newTip.sha)
@@ -416,6 +422,7 @@ describe('git/commit', () => {
       const statusAfter = await getStatusOrThrow(repo)
 
       expect(statusAfter.workingDirectory.files.length).toEqual(0)
+      expect(statusAfter.currentTip!.substring(0, 7)).toEqual(sha)
     })
 
     // The scenario here is that the user has staged a rename (probably using git mv)
@@ -491,6 +498,7 @@ describe('git/commit', () => {
 
       const commits = await getCommits(repo, 'HEAD', 5)
       expect(commits[0].parentSHAs.length).toEqual(2)
+      expect(commits[0]!.sha.substring(0, 7)).toEqual(sha)
     })
   })
 
@@ -602,6 +610,7 @@ describe('git/commit', () => {
       const commit = await getCommit(repo, 'HEAD')
       expect(commit).not.toBeNull()
       expect(commit!.summary).toEqual('commit again!')
+      expect(commit!.sha.substring(0, 7)).toEqual(sha)
     })
   })
 })
