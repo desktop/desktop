@@ -104,11 +104,11 @@ describe('create-branch/getStartPoint', () => {
     })
 
     it('returns current HEAD when current branch requested', () => {
-      expect(action(StartPoint.CurrentBranch)).toBe(StartPoint.DefaultBranch)
+      expect(action(StartPoint.CurrentBranch)).toBe(StartPoint.Head)
     })
 
     it('returns current HEAD when default branch requested', () => {
-      expect(action(StartPoint.DefaultBranch)).toBe(StartPoint.DefaultBranch)
+      expect(action(StartPoint.DefaultBranch)).toBe(StartPoint.Head)
     })
   })
 })
