@@ -10,6 +10,10 @@ export function getStartPoint(
   props: BranchInfo,
   preferred: StartPoint
 ): StartPoint {
+  if (props.tip.kind === TipState.Detached) {
+    return StartPoint.Head
+  }
+
   if (preferred === StartPoint.DefaultBranch && props.defaultBranch) {
     return preferred
   }
