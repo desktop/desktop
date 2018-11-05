@@ -1609,24 +1609,41 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return { workingDirectory, selectedFileIDs, diff }
     })
 
+    this._triggerMergeConflictsFlow(repository, status)
+
+    this.emitUpdate()
+
+    this.updateChangesDiffForCurrentSelection(repository)
+
+    return true
+  }
+
+  /** starts the conflict resolution flow, if appropriate */
+  private async _triggerMergeConflictsFlow(
+    repository: Repository,
+    status: IStatusResult
+  ) {
     const inConflictedMerge = status.workingDirectory.files.some(f => {
       return (
         f.status === AppFileStatus.Conflicted ||
         f.status === AppFileStatus.Resolved
       )
     })
-
-    // if any files are conflicted or resolved,
-    // we trigger the conflict resolution flow
-    // (if we're not already in it)
+    if (!inConflictedMerge) {
+      return
+    }
+    if (status.currentBranch === undefined) {
+      return
+    }
+    // if we're already in the conflict merge resolution flow, bail
     if (
-      status.currentBranch !== undefined &&
-      inConflictedMerge &&
-      (this.currentPopup === null ||
-        (this.currentPopup !== null &&
-          this.currentPopup.type !== PopupType.MergeConflicts &&
-          this.currentPopup.type !== PopupType.AbortMerge))
+      this.currentPopup !== null &&
+      this.currentPopup.type !== PopupType.MergeConflicts &&
+      this.currentPopup.type !== PopupType.AbortMerge
     ) {
+      return
+    }
+    try {
       const possibleTheirsBranches = await getBranchesPointedAt(
         repository,
         'MERGE_HEAD'
@@ -1642,12 +1659,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
         ourBranch,
         theirBranch,
       })
+    } catch (e) {
+      log.info(e)
     }
-    this.emitUpdate()
-
-    this.updateChangesDiffForCurrentSelection(repository)
-
-    return true
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
