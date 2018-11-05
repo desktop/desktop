@@ -178,6 +178,11 @@ export class Dispatcher {
     return this.appStore._setBranchFilterText(text)
   }
 
+  /** Set the branch filter text. */
+  public setPullRequestFilterText(text: string): Promise<void> {
+    return this.appStore._setPullRequestFilterText(text)
+  }
+
   /** Select the repository. */
   public selectRepository(
     repository: Repository | CloningRepository

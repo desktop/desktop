@@ -1739,6 +1739,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     const repository = selection.repository
     const branchesState = selection.state.branchesState
     const branchFilterText = this.state.branchFilterText
+    const pullRequestFilterText = this.state.pullRequestFilterText
 
     return (
       <BranchDropdown
@@ -1752,6 +1753,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         currentPullRequest={branchesState.currentPullRequest}
         isLoadingPullRequests={branchesState.isLoadingPullRequests}
         branchFilterText={branchFilterText}
+        pullRequestFilterText={pullRequestFilterText}
       />
     )
   }

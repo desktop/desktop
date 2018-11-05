@@ -37,6 +37,7 @@ interface IBranchesContainerProps {
   readonly recentBranches: ReadonlyArray<Branch>
   readonly pullRequests: ReadonlyArray<PullRequest>
   readonly branchFilterText: string
+  readonly pullRequestFilterText: string
 
   /** The pull request associated with the current branch. */
   readonly currentPullRequest: PullRequest | null
@@ -63,8 +64,8 @@ export class BranchesContainer extends React.Component<
     this.state = {
       selectedBranch: props.currentBranch,
       selectedPullRequest: props.currentPullRequest,
-      pullRequestFilterText: '',
       branchFilterText: props.branchFilterText,
+      pullRequestFilterText: props.pullRequestFilterText,
     }
   }
 
@@ -242,6 +243,7 @@ export class BranchesContainer extends React.Component<
 
   private onPullRequestFilterTextChanged = (text: string) => {
     this.setState({ pullRequestFilterText: text })
+    this.props.dispatcher.setPullRequestFilterText(text)
   }
 
   private onPullRequestSelectionChanged = (

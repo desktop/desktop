@@ -277,6 +277,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** The current branch filter text */
   private branchFilterText: string = ''
 
+  /** The current pull request filter text */
+  private pullRequestFilterText: string = ''
+
   private currentMergeTreePromise: Promise<void> | null = null
 
   /** The function to resolve the current Open in Desktop flow. */
@@ -500,6 +503,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       selectedShell: this.selectedShell,
       repositoryFilterText: this.repositoryFilterText,
       branchFilterText: this.branchFilterText,
+      pullRequestFilterText: this.pullRequestFilterText,
       selectedCloneRepositoryTab: this.selectedCloneRepositoryTab,
       selectedBranchesTab: this.selectedBranchesTab,
       selectedTheme: this.selectedTheme,
@@ -1008,6 +1012,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _setBranchFilterText(text: string): Promise<void> {
     this.branchFilterText = text
+    this.emitUpdate()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _setPullRequestFilterText(text: string): Promise<void> {
+    this.pullRequestFilterText = text
     this.emitUpdate()
   }
 

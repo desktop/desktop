@@ -44,6 +44,9 @@ interface IBranchDropdownProps {
 
   /** Text used to filter the branches list. */
   readonly branchFilterText: string
+
+  /** Text used to filter the pull request list. */
+  readonly pullRequestFilterText: string
 }
 
 /**
@@ -70,6 +73,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
         currentPullRequest={this.props.currentPullRequest}
         isLoadingPullRequests={this.props.isLoadingPullRequests}
         branchFilterText={this.props.branchFilterText}
+        pullRequestFilterText={this.props.pullRequestFilterText}
       />
     )
   }

@@ -175,6 +175,9 @@ export interface IAppState {
   /** The current branch filter text. */
   readonly branchFilterText: string
 
+  /** The current pull request filter text. */
+  readonly pullRequestFilterText: string
+
   /** The currently selected tab for Clone Repository. */
   readonly selectedCloneRepositoryTab: CloneRepositoryTab
 
