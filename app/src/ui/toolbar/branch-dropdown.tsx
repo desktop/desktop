@@ -41,6 +41,9 @@ interface IBranchDropdownProps {
 
   /** Are we currently loading pull requests? */
   readonly isLoadingPullRequests: boolean
+
+  /** Text used to filter the branches list. */
+  readonly branchFilterText: string
 }
 
 /**
@@ -66,6 +69,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
         pullRequests={this.props.pullRequests}
         currentPullRequest={this.props.currentPullRequest}
         isLoadingPullRequests={this.props.isLoadingPullRequests}
+        branchFilterText={this.props.branchFilterText}
       />
     )
   }
