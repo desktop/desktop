@@ -4,8 +4,6 @@ import { Repository } from '../../models/repository'
 import { Branch, BranchType } from '../../models/branch'
 import { IGitAccount } from '../../models/git-account'
 import { envForAuthentication } from './authentication'
-import { getCaptures } from '../helpers/regex'
-import { isAzurePipelines } from '../../../../script/build-platforms'
 
 /**
  * Create a new branch from the given start point.
