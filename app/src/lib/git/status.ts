@@ -110,6 +110,32 @@ async function buildConflictState(
 }
 
 /**
+ * Read the status entries to find any files marked as conflicted
+ *
+ * @param entries raw status entries provided by Git
+ */
+function filterConflictedFiles(
+  entries: ReadonlyArray<IStatusEntry>
+): ReadonlyArray<ConflictedFile> {
+  const filesAndKeys = entries.map(es => ({
+    path: es.path,
+    status: mapStatus(es.statusCode),
+  }))
+
+  return filesAndKeys.filter(isConflictedFile)
+}
+
+/**
+ * Type guard to filter for a conflicted file
+ */
+function isConflictedFile(entry: {
+  path: string
+  status: FileEntry
+}): entry is ConflictedFile {
+  return entry.status.kind === 'conflicted'
+}
+
+/**
  *  Retrieve the status for a given repository,
  *  and fail gracefully if the location is not a Git repository
  */
@@ -158,15 +184,7 @@ export async function getStatus(
   const headers = parsed.filter(isStatusHeader)
   const entries = parsed.filter(isStatusEntry)
 
-  const filesAndKeys = entries.map(es => ({
-    path: es.path,
-    status: mapStatus(es.statusCode),
-  }))
-
-  // implicit cast here because filter doesn't infer the union type correctly :(
-  const conflictedFilesInIndex = filesAndKeys.filter(
-    es => es.status.kind === 'conflicted'
-  ) as ReadonlyArray<ConflictedFile>
+  const conflictedFilesInIndex = filterConflictedFiles(entries)
 
   const hasConflictedFiles = conflictedFilesInIndex.length > 0
 
