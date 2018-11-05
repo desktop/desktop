@@ -79,7 +79,7 @@ export class BranchesContainer extends React.Component<
         <Row className="merge-button-row">
           <Button className="merge-button" onClick={this.onMergeClick}>
             <Octicon className="icon" symbol={OcticonSymbol.gitMerge} />
-            <span title={`Commit to ${branchName}`}>
+            <span title={`Merge a branch into ${branchName}`}>
               Choose a branch to merge into <strong>{branchName}</strong>
             </span>
           </Button>
