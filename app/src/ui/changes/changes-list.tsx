@@ -165,8 +165,8 @@ export class ChangesList extends React.Component<
       selection === DiffSelectionType.All
         ? true
         : selection === DiffSelectionType.None
-          ? false
-          : null
+        ? false
+        : null
 
     return (
       <ChangedFile
@@ -237,8 +237,8 @@ export class ChangesList extends React.Component<
           ? `Discard Changes`
           : `Discard changes`
         : __DARWIN__
-          ? `Discard ${files.length} Selected Changes`
-          : `Discard ${files.length} selected changes`
+        ? `Discard ${files.length} Selected Changes`
+        : `Discard ${files.length} selected changes`
 
     return this.props.askForConfirmationOnDiscardChanges ? `${label}…` : label
   }

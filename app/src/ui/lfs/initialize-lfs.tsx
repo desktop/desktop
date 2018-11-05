@@ -62,7 +62,7 @@ export class InitializeLFS extends React.Component<IInitializeLFSProps, {}> {
     if (this.props.repositories.length > MaxRepositoriesToList) {
       return (
         <p>
-          {this.props.repositories.length} repositories use{' '}
+          {this.props.repositories.length} repositories use{" "}
           <LinkButton uri={LFSURL}>Git LFS</LinkButton>. To contribute to them,
           Git LFS must first be initialized. Would you like to do so now?
         </p>
@@ -76,8 +76,8 @@ export class InitializeLFS extends React.Component<IInitializeLFSProps, {}> {
       return (
         <div>
           <p>
-            {pluralizedRepositories}{' '}
-            <LinkButton uri={LFSURL}>Git LFS</LinkButton>. To contribute to{' '}
+            {pluralizedRepositories}{" "}
+            <LinkButton uri={LFSURL}>Git LFS</LinkButton>. To contribute to{" "}
             {pluralizedUse}, Git LFS must first be initialized. Would you like
             to do so now?
           </p>

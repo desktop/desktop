@@ -54,7 +54,7 @@ export class GenericGitAuthentication extends React.Component<
       >
         <DialogContent>
           <p>
-            We were unable to authenticate with{' '}
+            We were unable to authenticate with{" "}
             <Monospaced>{this.props.hostname}</Monospaced>. Please enter your
             username and password to try again.
           </p>

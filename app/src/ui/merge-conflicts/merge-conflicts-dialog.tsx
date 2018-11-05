@@ -110,7 +110,7 @@ export class MergeConflictsDialog extends React.Component<
   private renderShellLink(openThisRepositoryInShell: () => void): JSX.Element {
     return (
       <div className="cli-link">
-        You can also{' '}
+        You can also{" "}
         <a onClick={openThisRepositoryInShell}>open the command line</a> to
         resolve
       </div>

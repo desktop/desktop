@@ -127,7 +127,7 @@ export class PushBranchCommits extends React.Component<
           You have {localCommits} that haven't been pushed to the remote yet.
         </p>
         <p>
-          Would you like to push your changes to{' '}
+          Would you like to push your changes to{" "}
           <Ref>{this.props.branch.name}</Ref> before creating your pull request?
         </p>
       </DialogContent>

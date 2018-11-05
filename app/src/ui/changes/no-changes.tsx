@@ -20,16 +20,16 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
     const opener = __DARWIN__
       ? 'Finder'
       : __WIN32__
-        ? 'Explorer'
-        : 'your File Manager'
+      ? 'Explorer'
+      : 'your File Manager'
     return (
       <div className="panel blankslate" id="no-changes">
         <img src={BlankSlateImage} className="blankslate-image" />
         <div>No local changes</div>
 
         <div>
-          Would you like to{' '}
-          <LinkButton onClick={this.open}>open this repository</LinkButton> in{' '}
+          Would you like to{" "}
+          <LinkButton onClick={this.open}>open this repository</LinkButton> in{" "}
           {opener}?
         </div>
       </div>

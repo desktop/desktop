@@ -282,8 +282,8 @@ export class CommitMessage extends React.Component<
         ? 'Remove Co-Authors'
         : 'Remove co-authors'
       : __DARWIN__
-        ? 'Add Co-Authors'
-        : 'Add co-authors'
+      ? 'Add Co-Authors'
+      : 'Add co-authors'
   }
 
   private getAddRemoveCoAuthorsMenuItem(): IMenuItem {

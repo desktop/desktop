@@ -74,7 +74,7 @@ export class CommitListItem extends React.Component<
               <CommitAttribution
                 gitHubRepository={this.props.gitHubRepository}
                 commit={commit}
-              />{' '}
+              />{" "}
               <RelativeTime date={author.date} />
             </div>
           </div>

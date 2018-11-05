@@ -515,11 +515,10 @@ export class GitStore extends BaseStore {
   public async undoCommit(commit: Commit): Promise<void> {
     // For an initial commit, just delete the reference but leave HEAD. This
     // will make the branch unborn again.
-    const success = await this.performFailableOperation(
-      () =>
-        commit.parentSHAs.length === 0
-          ? this.undoFirstCommit(this.repository)
-          : reset(this.repository, GitResetMode.Mixed, commit.parentSHAs[0])
+    const success = await this.performFailableOperation(() =>
+      commit.parentSHAs.length === 0
+        ? this.undoFirstCommit(this.repository)
+        : reset(this.repository, GitResetMode.Mixed, commit.parentSHAs[0])
     )
 
     if (success === undefined) {

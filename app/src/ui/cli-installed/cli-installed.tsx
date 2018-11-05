@@ -24,7 +24,7 @@ export class CLIInstalled extends React.Component<ICLIInstalledProps, {}> {
       >
         <DialogContent>
           <div>
-            The command line tool has been installed at{' '}
+            The command line tool has been installed at{" "}
             <strong>{InstalledCLIPath}</strong>.
           </div>
         </DialogContent>

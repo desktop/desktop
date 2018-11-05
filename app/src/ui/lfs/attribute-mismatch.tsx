@@ -70,7 +70,7 @@ export class AttributeMismatch extends React.Component<
       >
         <DialogContent>
           <p>
-            Git LFS filters are already configured in{' '}
+            Git LFS filters are already configured in{" "}
             {this.renderGlobalGitConfigLink()} but are not the values it
             expects. Would you like to update them now?
           </p>

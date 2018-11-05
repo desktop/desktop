@@ -131,7 +131,7 @@ export class Advanced extends React.Component<
   public reportDesktopUsageLabel() {
     return (
       <span>
-        Help GitHub Desktop improve by submitting{' '}
+        Help GitHub Desktop improve by submitting{" "}
         <LinkButton uri={SamplesURL}>anonymous usage data</LinkButton>
       </span>
     )
@@ -151,7 +151,7 @@ export class Advanced extends React.Component<
         <div className="select-component no-options-found">
           <label>{label}</label>
           <span>
-            No editors found.{' '}
+            No editors found.{" "}
             <LinkButton uri="https://atom.io/">Install Atom?</LinkButton>
           </span>
         </div>

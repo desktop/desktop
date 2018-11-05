@@ -44,7 +44,7 @@ export class MissingRepository extends React.Component<
         <div className="title-container">
           <div className="title">Can't find "{this.props.repository.name}"</div>
           <div className="details">
-            It was last seen at{' '}
+            It was last seen at{" "}
             <span className="path">{this.props.repository.path}</span>
           </div>
         </div>

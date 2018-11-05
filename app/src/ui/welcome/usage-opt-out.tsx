@@ -37,7 +37,7 @@ export class UsageOptOut extends React.Component<
 
         <p>
           Would you like to help us improve GitHub Desktop by periodically
-          submitting{' '}
+          submitting{" "}
           <LinkButton uri={SamplesURL}>anonymous usage data</LinkButton>?
         </p>
 
