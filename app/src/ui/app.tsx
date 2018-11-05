@@ -1360,7 +1360,7 @@ export class App extends React.Component<IAppProps, IAppState> {
               openFileInExternalEditor={this.openFileInExternalEditor}
               externalEditorName={this.state.selectedExternalEditor}
               openRepositoryInShell={this.openInShell}
-              currentBranch={popup.currentBranch}
+              ourBranch={popup.ourBranch}
               theirBranch={popup.theirBranch}
             />
           )
@@ -1398,7 +1398,7 @@ export class App extends React.Component<IAppProps, IAppState> {
               dispatcher={this.props.dispatcher}
               repository={popup.repository}
               onDismissed={this.onPopupDismissed}
-              currentBranch={popup.currentBranch}
+              ourBranch={popup.ourBranch}
               theirBranch={popup.theirBranch}
             />
           )

@@ -24,8 +24,8 @@ interface IMergeConflictsDialogProps {
   readonly openFileInExternalEditor: (path: string) => void
   readonly externalEditorName?: string
   readonly openRepositoryInShell: (repository: Repository) => void
-  readonly currentBranch: string
-  readonly theirBranch: string
+  readonly ourBranch: string
+  readonly theirBranch?: string
 }
 
 const submitButtonString = 'Commit merge'
@@ -68,7 +68,7 @@ export class MergeConflictsDialog extends React.Component<
       this.props.dispatcher.showPopup({
         type: PopupType.AbortMerge,
         repository: this.props.repository,
-        currentBranch: this.props.currentBranch,
+        ourBranch: this.props.ourBranch,
         theirBranch: this.props.theirBranch,
       })
     }
@@ -84,16 +84,21 @@ export class MergeConflictsDialog extends React.Component<
     return Math.ceil(conflictMarkers / 3)
   }
 
-  private renderHeaderTitle(
-    currentBranchName: string,
-    comparisonBranchName: string
-  ) {
+  private renderHeaderTitle(ourBranch: string, theirBranch?: string) {
+    if (theirBranch !== undefined) {
+      return (
+        <span>
+          {`Resolve conflicts before merging `}
+          <strong>{theirBranch}</strong>
+          {` into `}
+          <strong>{ourBranch}</strong>
+        </span>
+      )
+    }
     return (
       <span>
-        {`Resolve conflicts before merging `}
-        <strong>{comparisonBranchName}</strong>
-        {` into `}
-        <strong>{currentBranchName}</strong>
+        {`Resolve conflicts before merging into `}
+        <strong>{ourBranch}</strong>
       </span>
     )
   }
@@ -212,7 +217,7 @@ export class MergeConflictsDialog extends React.Component<
       f => f.status === AppFileStatus.Conflicted
     ).length
     const headerTitle = this.renderHeaderTitle(
-      this.props.currentBranch,
+      this.props.ourBranch,
       this.props.theirBranch
     )
     const tooltipString =

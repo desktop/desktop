@@ -174,7 +174,6 @@ import { readEmoji } from '../read-emoji'
 import { GitStoreCache } from './git-store-cache'
 import { MergeConflictsErrorContext } from '../git-error-context'
 import { setNumber, setBoolean, getBoolean, getNumber } from '../local-storage'
-import { MergeConflictsDialog } from '../../ui/merge-conflicts'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -1636,11 +1635,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
         possibleTheirsBranches.length === 1
           ? possibleTheirsBranches[0]
           : undefined
-      const currentBranch = status.currentBranch
+      const ourBranch = status.currentBranch
       this._showPopup({
         type: PopupType.MergeConflicts,
         repository,
-        currentBranch,
+        ourBranch,
         theirBranch,
       })
     }
