@@ -88,7 +88,7 @@ This group of dependencies represent the rest of the listed dependencies in
 for external contributions.
 
 If you are interested in upgrading one of these, take a look at where it is
-used in the application and confirm the affected functionality works as
+used in the application and confirm that the affected functionality works as
 expected before opening a pull request.
 
 ### Tooling dependencies
