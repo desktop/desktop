@@ -1,8 +1,6 @@
 import { CommitIdentity } from './commit-identity'
 import { ITrailer, isCoAuthoredByTrailer } from '../lib/git/interpret-trailers'
 import { GitAuthor } from './git-author'
-import { GitHubRepository } from './github-repository'
-import { getDotComAPIEndpoint } from '../lib/api'
 
 /**
  * Extract any Co-Authored-By trailers from an array of arbitrary
@@ -63,39 +61,5 @@ export class Commit {
     this.authoredByCommitter =
       this.author.name === this.committer.name &&
       this.author.email === this.committer.email
-  }
-
-  /**
-   * Best-effort attempt to figure out if this commit was committed using
-   * the web flow on GitHub.com or GitHub Enterprise. Web flow
-   * commits (such as PR merges) will have a special GitHub committer
-   * with a noreply email address.
-   *
-   * For GitHub.com we can be spot on but for GitHub Enterprise it's
-   * possible we could fail if they've set up a custom smtp host
-   * that doesn't correspond to the hostname.
-   */
-  public isWebFlowCommitter(gitHubRepository: GitHubRepository) {
-    if (!gitHubRepository) {
-      return false
-    }
-
-    const endpoint = gitHubRepository.owner.endpoint
-    const { name, email } = this.committer
-
-    if (
-      endpoint === getDotComAPIEndpoint() &&
-      name === 'GitHub' &&
-      email === 'noreply@github.com'
-    ) {
-      return true
-    }
-
-    if (this.committer.name === 'GitHub Enterprise') {
-      const host = new URL(endpoint).host.toLowerCase()
-      return email.endsWith(`@${host}`)
-    }
-
-    return false
   }
 }
