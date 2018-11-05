@@ -25,6 +25,7 @@ interface IMergeConflictsDialogProps {
   readonly externalEditorName?: string
   readonly openRepositoryInShell: (repository: Repository) => void
   readonly ourBranch: string
+  /* `undefined` when we didn't know the branch name upstream */
   readonly theirBranch?: string
 }
 
