@@ -5,6 +5,7 @@ import { Branch, BranchType } from '../../models/branch'
 import { IGitAccount } from '../../models/git-account'
 import { envForAuthentication } from './authentication'
 import { getCaptures } from '../helpers/regex'
+import { isAzurePipelines } from '../../../../script/build-platforms'
 
 /**
  * Create a new branch from the given start point.
@@ -128,11 +129,8 @@ export async function getBranchesPointedAt(
     `--points-at=${commitish}`,
     '--format=%(refname:short)',
   ]
+  // this command has an implicit \n delimiter
   const { stdout } = await git(args, repository.path, 'branchPointedAt')
-  // split along newlines, which should just be branch names
-  const captures = getCaptures(stdout, /\s*(.+)\n/g)
-  if (captures.length === 0) {
-    return []
-  }
-  return captures.reduce((acc, val) => acc.concat(val))
+  // split (and remove trailing element cause its always an empty string)
+  return stdout.split('\n').slice(0, -1)
 }
