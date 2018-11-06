@@ -65,7 +65,7 @@ export class MergeConflictsDialog extends React.Component<
   IMergeConflictsDialogProps,
   IMergeConflictsDialogState
 > {
-  constructor(props: IMergeConflictsDialogProps) {
+  public constructor(props: IMergeConflictsDialogProps) {
     super(props)
 
     this.state = { foundExternalEditor: null }
