@@ -3169,12 +3169,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _createMergeCommit(
     repository: Repository,
-    files: ReadonlyArray<WorkingDirectoryFileChange>
+    files: ReadonlyArray<WorkingDirectoryFileChange>,
+    successfulMergeBannerState: SuccessfulMergeBannerState
   ): Promise<void> {
     const gitStore = this.gitStoreCache.get(repository)
-    await gitStore.performFailableOperation(() =>
+    const result = await gitStore.performFailableOperation(() =>
       createMergeCommit(repository, files)
     )
+    if (result !== undefined) {
+      this._setSuccessfulMergeBannerState(successfulMergeBannerState)
+    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */

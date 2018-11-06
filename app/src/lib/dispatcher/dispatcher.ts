@@ -602,9 +602,14 @@ export class Dispatcher {
 
   public createMergeCommit(
     repository: Repository,
-    files: ReadonlyArray<WorkingDirectoryFileChange>
+    files: ReadonlyArray<WorkingDirectoryFileChange>,
+    successfulMergeBannerState: SuccessfulMergeBannerState
   ) {
-    return this.appStore._createMergeCommit(repository, files)
+    return this.appStore._createMergeCommit(
+      repository,
+      files,
+      successfulMergeBannerState
+    )
   }
 
   /** Record the given launch stats. */
