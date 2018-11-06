@@ -131,6 +131,7 @@ import {
   appendIgnoreRule,
   IStatusResult,
   createMergeCommit,
+  getBranchesPointedAt,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -161,6 +162,7 @@ import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
 import {
   enableRepoInfoIndicators,
   enableMergeConflictDetection,
+  enableMergeConflictsDialog,
 } from '../feature-flag'
 import { MergeResultKind } from '../../models/merge'
 import { promiseWithMinimumTimeout } from '../promise'
@@ -1606,11 +1608,64 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       return { workingDirectory, selectedFileIDs, diff }
     })
+
+    this._triggerMergeConflictsFlow(repository, status)
+
     this.emitUpdate()
 
     this.updateChangesDiffForCurrentSelection(repository)
 
     return true
+  }
+
+  /** starts the conflict resolution flow, if appropriate */
+  private async _triggerMergeConflictsFlow(
+    repository: Repository,
+    status: IStatusResult
+  ) {
+    if (!enableMergeConflictsDialog()) {
+      return
+    }
+    const inConflictedMerge = status.workingDirectory.files.some(f => {
+      return (
+        f.status === AppFileStatus.Conflicted ||
+        f.status === AppFileStatus.Resolved
+      )
+    })
+    if (!inConflictedMerge) {
+      return
+    }
+    if (status.currentBranch === undefined) {
+      return
+    }
+
+    const alreadyInFlow =
+      this.currentPopup !== null &&
+      (this.currentPopup.type === PopupType.MergeConflicts ||
+        this.currentPopup.type === PopupType.AbortMerge)
+    if (alreadyInFlow) {
+      return
+    }
+
+    const possibleTheirsBranches = await getBranchesPointedAt(
+      repository,
+      'MERGE_HEAD'
+    )
+    // null means we encountered an error
+    if (possibleTheirsBranches === null) {
+      return
+    }
+    const theirBranch =
+      possibleTheirsBranches.length === 1
+        ? possibleTheirsBranches[0]
+        : undefined
+    const ourBranch = status.currentBranch
+    this._showPopup({
+      type: PopupType.MergeConflicts,
+      repository,
+      ourBranch,
+      theirBranch,
+    })
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -2510,7 +2565,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private async isCommitting(
     repository: Repository,
-    fn: () => Promise<boolean | undefined>
+    fn: () => Promise<string | undefined>
   ): Promise<boolean | undefined> {
     const state = this.repositoryStateCache.get(repository)
     // ensure the user doesn't try and commit again
@@ -2524,7 +2579,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
 
     try {
-      return await fn()
+      const sha = await fn()
+      return sha !== undefined
     } finally {
       this.repositoryStateCache.update(repository, () => ({
         isCommitting: false,

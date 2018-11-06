@@ -862,12 +862,12 @@ export class Dispatcher {
 
       case 'open-repository-from-url':
         const { url } = action
-        const repository = await this.openRepository(url)
+        const repository = await this.openOrCloneRepository(url)
         if (repository) {
           await this.handleCloneInDesktopOptions(repository, action)
         } else {
           log.warn(
-            `Open Repository from URL failed, did not find repository: ${url} - payload: ${JSON.stringify(
+            `Open Repository from URL failed, did not find or clone repository: ${url} - payload: ${JSON.stringify(
               action
             )}`
           )
@@ -998,7 +998,7 @@ export class Dispatcher {
     }
   }
 
-  private async openRepository(url: string): Promise<Repository | null> {
+  private async openOrCloneRepository(url: string): Promise<Repository | null> {
     const state = this.appStore.getState()
     const repositories = state.repositories
     const existingRepository = repositories.find(r => {

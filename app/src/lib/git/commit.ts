@@ -1,4 +1,4 @@
-import { git, GitError } from './core'
+import { git, GitError, IGitResult } from './core'
 import { stageFiles } from './update-index'
 import { Repository } from '../../models/repository'
 import { WorkingDirectoryFileChange } from '../../models/status'
@@ -13,7 +13,7 @@ export async function createCommit(
   repository: Repository,
   message: string,
   files: ReadonlyArray<WorkingDirectoryFileChange>
-): Promise<boolean> {
+): Promise<string | undefined> {
   // Clear the staging area, our diffs reflect the difference between the
   // working directory and the last commit (if any) so our commits should
   // do the same thing.
@@ -22,13 +22,18 @@ export async function createCommit(
   await stageFiles(repository, files)
 
   try {
-    await git(['commit', '-F', '-'], repository.path, 'createCommit', {
-      stdin: message,
-    })
-    return true
+    const result = await git(
+      ['commit', '-F', '-'],
+      repository.path,
+      'createCommit',
+      {
+        stdin: message,
+      }
+    )
+    return parseCommitSHA(result)
   } catch (e) {
     logCommitError(e)
-    return false
+    return undefined
   }
 }
 
@@ -42,17 +47,27 @@ export async function createCommit(
 export async function createMergeCommit(
   repository: Repository,
   files: ReadonlyArray<WorkingDirectoryFileChange>
-): Promise<void> {
+): Promise<string | undefined> {
   // Clear the staging area, our diffs reflect the difference between the
   // working directory and the last commit (if any) so our commits should
   // do the same thing.
   try {
     await unstageAll(repository)
     await stageFiles(repository, files)
-    await git(['commit', '--no-edit'], repository.path, 'createMergeCommit')
+    const result = await git(
+      ['commit', '--no-edit'],
+      repository.path,
+      'createMergeCommit'
+    )
+    return parseCommitSHA(result)
   } catch (e) {
     logCommitError(e)
+    return undefined
   }
+}
+
+function parseCommitSHA(result: IGitResult): string {
+  return result.stdout.split(']')[0].split(' ')[1]
 }
 
 /**

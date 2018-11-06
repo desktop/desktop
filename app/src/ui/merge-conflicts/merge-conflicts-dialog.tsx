@@ -11,11 +11,12 @@ import {
   WorkingDirectoryStatus,
   WorkingDirectoryFileChange,
   AppFileStatus,
-  ConflictStatus,
 } from '../../models/status'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { PathText } from '../lib/path-text'
 import { DialogHeader } from '../dialog/header'
+import { ConflictFileStatus } from '../../models/conflicts'
+import { LinkButton } from '../lib/link-button'
 
 interface IMergeConflictsDialogProps {
   readonly dispatcher: Dispatcher
@@ -25,8 +26,9 @@ interface IMergeConflictsDialogProps {
   readonly openFileInExternalEditor: (path: string) => void
   readonly externalEditorName?: string
   readonly openRepositoryInShell: (repository: Repository) => void
-  readonly currentBranch: string
-  readonly theirBranch: string
+  readonly ourBranch: string
+  /* `undefined` when we didn't know the branch at the beginning of this flow */
+  readonly theirBranch?: string
 }
 
 const submitButtonString = 'Commit merge'
@@ -51,6 +53,7 @@ export class MergeConflictsDialog extends React.Component<
       currentBranch: this.props.currentBranch,
       theirBranch: this.props.theirBranch,
     })
+    this.props.dispatcher.setCommitMessage(this.props.repository, null)
     this.props.dispatcher.changeRepositorySection(
       this.props.repository,
       RepositorySectionTab.Changes
@@ -73,7 +76,7 @@ export class MergeConflictsDialog extends React.Component<
       this.props.dispatcher.showPopup({
         type: PopupType.AbortMerge,
         repository: this.props.repository,
-        currentBranch: this.props.currentBranch,
+        ourBranch: this.props.ourBranch,
         theirBranch: this.props.theirBranch,
       })
     }
@@ -89,16 +92,21 @@ export class MergeConflictsDialog extends React.Component<
     return Math.ceil(conflictMarkers / 3)
   }
 
-  private renderHeaderTitle(
-    currentBranchName: string,
-    comparisonBranchName: string
-  ) {
+  private renderHeaderTitle(ourBranch: string, theirBranch?: string) {
+    if (theirBranch !== undefined) {
+      return (
+        <span>
+          {`Resolve conflicts before merging `}
+          <strong>{theirBranch}</strong>
+          {` into `}
+          <strong>{ourBranch}</strong>
+        </span>
+      )
+    }
     return (
       <span>
-        {`Resolve conflicts before merging `}
-        <strong>{comparisonBranchName}</strong>
-        {` into `}
-        <strong>{currentBranchName}</strong>
+        {`Resolve conflicts before merging into `}
+        <strong>{ourBranch}</strong>
       </span>
     )
   }
@@ -115,8 +123,10 @@ export class MergeConflictsDialog extends React.Component<
     return (
       <div className="cli-link">
         You can also{' '}
-        <a onClick={openThisRepositoryInShell}>open the command line</a> to
-        resolve
+        <LinkButton onClick={openThisRepositoryInShell}>
+          open the command line
+        </LinkButton>{' '}
+        to resolve
       </div>
     )
   }
@@ -138,7 +148,7 @@ export class MergeConflictsDialog extends React.Component<
 
   private renderConflictedFile(
     path: string,
-    conflictStatus: ConflictStatus,
+    conflictStatus: ConflictFileStatus,
     editorName: string | undefined,
     onOpenEditorClick: () => void
   ): JSX.Element | null {
@@ -228,7 +238,7 @@ export class MergeConflictsDialog extends React.Component<
       f => f.status === AppFileStatus.Conflicted
     ).length
     const headerTitle = this.renderHeaderTitle(
-      this.props.currentBranch,
+      this.props.ourBranch,
       this.props.theirBranch
     )
     const tooltipString =
