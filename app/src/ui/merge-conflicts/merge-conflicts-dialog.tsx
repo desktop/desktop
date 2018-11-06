@@ -48,6 +48,7 @@ export class MergeConflictsDialog extends React.Component<
       this.props.repository,
       this.props.status.files
     )
+    this.props.dispatcher.setCommitMessage(this.props.repository, null)
     this.props.dispatcher.changeRepositorySection(
       this.props.repository,
       RepositorySectionTab.Changes
