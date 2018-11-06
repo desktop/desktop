@@ -124,12 +124,12 @@ export type Popup =
   | {
       type: PopupType.MergeConflicts
       repository: Repository
-      currentBranch: string
-      theirBranch: string
+      ourBranch: string
+      theirBranch?: string
     }
   | {
       type: PopupType.AbortMerge
       repository: Repository
-      currentBranch: string
-      theirBranch: string
+      ourBranch: string
+      theirBranch?: string
     }
