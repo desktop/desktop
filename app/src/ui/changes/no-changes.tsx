@@ -28,8 +28,8 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
         <div>No local changes</div>
 
         <div>
-          Would you like to{" "}
-          <LinkButton onClick={this.open}>open this repository</LinkButton> in{" "}
+          Would you like to{' '}
+          <LinkButton onClick={this.open}>open this repository</LinkButton> in{' '}
           {opener}?
         </div>
       </div>

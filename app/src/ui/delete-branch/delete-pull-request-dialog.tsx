@@ -31,10 +31,10 @@ export class DeletePullRequest extends React.Component<IDeleteBranchProps, {}> {
         <DialogContent>
           <p>This branch has an open pull request associated with it.</p>
           <p>
-            If{" "}
+            If{' '}
             <LinkButton onClick={this.openPullRequest}>
               #{this.props.pullRequest.pullRequestNumber}
-            </LinkButton>{" "}
+            </LinkButton>{' '}
             has been merged, you can also remove the remote branch on GitHub.
           </p>
         </DialogContent>

@@ -118,10 +118,10 @@ export class AddExistingRepository extends React.Component<
         <p>
           This directory does not appear to be a Git repository.
           <br />
-          Would you like to{" "}
+          Would you like to{' '}
           <LinkButton onClick={this.onCreateRepositoryClicked}>
             create a repository
-          </LinkButton>{" "}
+          </LinkButton>{' '}
           here instead?
         </p>
       </Row>

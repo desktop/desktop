@@ -58,7 +58,7 @@ export class TwoUp extends React.Component<ITwoUpProps, {}> {
             <div className="image-diff-footer">
               <span className="strong">W:</span> {previousImageSize.width}
               px | <span className="strong">H:</span> {previousImageSize.height}
-              px | <span className="strong">Size:</span>{" "}
+              px | <span className="strong">Size:</span>{' '}
               {formatBytes(this.props.previous.bytes)}
             </div>
           </div>
@@ -74,13 +74,13 @@ export class TwoUp extends React.Component<ITwoUpProps, {}> {
             <div className="image-diff-footer">
               <span className="strong">W:</span> {currentImageSize.width}
               px | <span className="strong">H:</span> {currentImageSize.height}
-              px | <span className="strong">Size:</span>{" "}
+              px | <span className="strong">Size:</span>{' '}
               {formatBytes(this.props.current.bytes)}
             </div>
           </div>
         </div>
         <div className="image-diff-summary">
-          Diff:{" "}
+          Diff:{' '}
           <span
             className={classNames({
               added: diffBytes > 0,

@@ -52,7 +52,7 @@ export class InstallGit extends React.Component<IInstallGitProps, {}> {
         <DialogContent>
           <p>
             We were unable to locate Git on your system. This means you won't be
-            able to execute any Git commands in the{" "}
+            able to execute any Git commands in the{' '}
             {__DARWIN__ ? 'Terminal window' : 'command prompt'}.
           </p>
           <p>

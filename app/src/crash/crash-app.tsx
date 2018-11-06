@@ -137,7 +137,7 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
         <p>
           GitHub Desktop encountered a catastrophic error that prevents it from
           launching. This has been reported to the team, but if you encounter
-          this repeatedly please report this issue to the GitHub Desktop{" "}
+          this repeatedly please report this issue to the GitHub Desktop{' '}
           <LinkButton uri={issuesUri}>issue tracker</LinkButton>.
         </p>
       )
@@ -146,7 +146,7 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
         <p>
           GitHub Desktop has encountered an unrecoverable error and will need to
           restart. This has been reported to the team, but if you encounter this
-          repeatedly please report this issue to the GitHub Desktop{" "}
+          repeatedly please report this issue to the GitHub Desktop{' '}
           <LinkButton uri={issuesUri}>issue tracker</LinkButton>.
         </p>
       )

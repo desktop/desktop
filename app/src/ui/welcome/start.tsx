@@ -21,7 +21,7 @@ export class Start extends React.Component<IStartProps, {}> {
         </p>
 
         <p className="welcome-text">
-          New to GitHub?{" "}
+          New to GitHub?{' '}
           <LinkButton uri={CreateAccountURL}>
             Create your free account.
           </LinkButton>

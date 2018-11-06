@@ -167,7 +167,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
 
     return (
       <p className="update-status">
-        You have the latest version (last checked{" "}
+        You have the latest version (last checked{' '}
         <RelativeTime date={lastCheckedDate} />)
       </p>
     )
@@ -268,7 +268,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
               onClick={this.onClickVersion}
             >
               Version {version}
-            </LinkButton>{" "}
+            </LinkButton>{' '}
             ({releaseNotesLink})
           </p>
           <p className="no-padding">

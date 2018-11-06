@@ -424,10 +424,10 @@ export class CreateRepository extends React.Component<
       <Row className="warning-helper-text">
         <Octicon symbol={OcticonSymbol.alert} />
         <p>
-          This directory appears to be a Git repository. Would you like to{" "}
+          This directory appears to be a Git repository. Would you like to{' '}
           <LinkButton onClick={this.onAddRepositoryClicked}>
             add this repository
-          </LinkButton>{" "}
+          </LinkButton>{' '}
           instead?
         </p>
       </Row>

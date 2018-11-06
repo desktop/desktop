@@ -52,8 +52,8 @@ export class UpstreamAlreadyExists extends React.Component<
       >
         <DialogContent>
           <p>
-            The repository <Ref>{name}</Ref> is a fork of{" "}
-            <Ref>{parentName}</Ref>, but its <Ref>{UpstreamRemoteName}</Ref>{" "}
+            The repository <Ref>{name}</Ref> is a fork of{' '}
+            <Ref>{parentName}</Ref>, but its <Ref>{UpstreamRemoteName}</Ref>{' '}
             remote points elsewhere.
           </p>
           <ul>

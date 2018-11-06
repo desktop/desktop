@@ -56,20 +56,20 @@ export class NoPullRequests extends React.Component<INoPullRequestsProps, {}> {
     if (this.props.isOnDefaultBranch) {
       return (
         <div className="call-to-action">
-          Would you like to{" "}
+          Would you like to{' '}
           <LinkButton onClick={this.props.onCreateBranch}>
             create a new branch
-          </LinkButton>{" "}
+          </LinkButton>{' '}
           and get going on your next project?
         </div>
       )
     } else {
       return (
         <div className="call-to-action">
-          Would you like to{" "}
+          Would you like to{' '}
           <LinkButton onClick={this.props.onCreatePullRequest}>
             create a pull request
-          </LinkButton>{" "}
+          </LinkButton>{' '}
           from the current branch?
         </div>
       )

@@ -95,7 +95,7 @@ export class TermsAndConditions extends React.Component<
             To the extent the terms of the licenses applicable to open source
             components require GitHub to make an offer to provide source code in
             connection with the Software, such offer is hereby made, and you may
-            exercise it by contacting GitHub:{" "}
+            exercise it by contacting GitHub:{' '}
             <LinkButton uri={contact}>contact</LinkButton>.
           </p>
 
@@ -125,7 +125,7 @@ export class TermsAndConditions extends React.Component<
             Windows, Atom, the Octocat, and related GitHub logos and/or stylized
             names are trademarks of GitHub. You agree not to display or use
             these trademarks in any manner without GitHub's prior, written
-            permission, except as allowed by GitHub's Logos and Usage Policy:{" "}
+            permission, except as allowed by GitHub's Logos and Usage Policy:{' '}
             <LinkButton uri={logos}>logos</LinkButton>.
           </p>
 
@@ -241,7 +241,7 @@ export class TermsAndConditions extends React.Component<
 
             <li>
               License to GitHub Policies. These Application Terms are licensed
-              under the{" "}
+              under the{' '}
               <LinkButton uri={license}>
                 Creative Commons Attribution license
               </LinkButton>

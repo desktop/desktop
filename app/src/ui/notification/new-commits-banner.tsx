@@ -52,11 +52,11 @@ export class NewCommitsBanner extends React.Component<
         <div className="notification-banner-content">
           <div className="notification-banner-content-body">
             <p>
-              We have noticed that your branch is{" "}
+              We have noticed that your branch is{' '}
               <strong>
                 {this.props.commitsBehindBaseBranch} commit
                 {pluralize ? 's' : ''}
-              </strong>{" "}
+              </strong>{' '}
               behind <Ref>{this.props.baseBranch.name}</Ref>.
             </p>
           </div>
