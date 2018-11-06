@@ -162,6 +162,7 @@ import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
 import {
   enableRepoInfoIndicators,
   enableMergeConflictDetection,
+  enableMergeConflictsDialog,
 } from '../feature-flag'
 import { MergeResultKind } from '../../models/merge'
 import { promiseWithMinimumTimeout } from '../promise'
@@ -1622,6 +1623,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     status: IStatusResult
   ) {
+    if (!enableMergeConflictsDialog()) {
+      return
+    }
     const inConflictedMerge = status.workingDirectory.files.some(f => {
       return (
         f.status === AppFileStatus.Conflicted ||
