@@ -32,13 +32,13 @@ export enum GitStatusEntry {
 
 /** The file status as represented in GitHub Desktop. */
 export enum AppFileStatus {
-  New,
-  Modified,
-  Deleted,
-  Copied,
-  Renamed,
-  Conflicted,
-  Resolved,
+  New = 'New',
+  Modified = 'Modified',
+  Deleted = 'Deleted',
+  Copied = 'Copied',
+  Renamed = 'Renamed',
+  Conflicted = 'Conflicted',
+  Resolved = 'Resolved',
 }
 
 /** The porcelain status for an ordinary changed entry */
@@ -138,6 +138,15 @@ export function iconForStatus(status: AppFileStatus): OcticonSymbol {
   return assertNever(status, `Unknown file status ${status}`)
 }
 
+export type ConflictStatus =
+  | {
+      readonly kind: 'text'
+      readonly conflictMarkerCount: number
+    }
+  | {
+      readonly kind: 'binary'
+    }
+
 /** encapsulate changes to a file associated with a commit */
 export class FileChange {
   /** An ID for the file change. */
@@ -171,7 +180,7 @@ export class WorkingDirectoryFileChange extends FileChange {
     status: AppFileStatus,
     public readonly selection: DiffSelection,
     oldPath?: string,
-    public readonly conflictMarkers: number = 0
+    public readonly conflictStatus: ConflictStatus | null = null
   ) {
     super(path, status, oldPath)
   }
@@ -192,7 +201,7 @@ export class WorkingDirectoryFileChange extends FileChange {
       this.status,
       selection,
       this.oldPath,
-      this.conflictMarkers
+      this.conflictStatus
     )
   }
 }

@@ -11,6 +11,7 @@ import {
   WorkingDirectoryStatus,
   WorkingDirectoryFileChange,
   AppFileStatus,
+  ConflictStatus,
 } from '../../models/status'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { PathText } from '../lib/path-text'
@@ -139,27 +140,32 @@ export class MergeConflictsDialog extends React.Component<
 
   private renderConflictedFile(
     path: string,
-    conflicts: number,
+    conflictStatus: ConflictStatus,
     editorName: string | undefined,
     onOpenEditorClick: () => void
-  ): JSX.Element {
-    const humanReadableConflicts = this.calculateConflicts(conflicts)
-    const message =
-      humanReadableConflicts === 1
-        ? `1 conflict`
-        : `${humanReadableConflicts} conflicts`
-    return (
-      <li className="unmerged-file-status-conflicts">
-        <Octicon symbol={OcticonSymbol.fileCode} className="file-octicon" />
-        <div className="column-left">
-          <PathText path={path} availableWidth={200} />
-          <div className="file-conflicts-status">{message}</div>
-        </div>
-        <Button onClick={onOpenEditorClick}>
-          {this.editorButtonString(editorName)}
-        </Button>
-      </li>
-    )
+  ): JSX.Element | null {
+    if (conflictStatus.kind === 'text') {
+      const humanReadableConflicts = this.calculateConflicts(
+        conflictStatus.conflictMarkerCount
+      )
+      const message =
+        humanReadableConflicts === 1
+          ? `1 conflict`
+          : `${humanReadableConflicts} conflicts`
+      return (
+        <li className="unmerged-file-status-conflicts">
+          <Octicon symbol={OcticonSymbol.fileCode} className="file-octicon" />
+          <div className="column-left">
+            <PathText path={path} availableWidth={200} />
+            <div className="file-conflicts-status">{message}</div>
+          </div>
+          <Button onClick={onOpenEditorClick}>
+            {this.editorButtonString(editorName)}
+          </Button>
+        </li>
+      )
+    }
+    return null
   }
 
   private renderUnmergedFile(
@@ -171,9 +177,15 @@ export class MergeConflictsDialog extends React.Component<
       case AppFileStatus.Resolved:
         return this.renderResolvedFile(file.path)
       case AppFileStatus.Conflicted:
+        if (file.conflictStatus === null) {
+          throw new Error(
+            'Invalid state - a conflicted file should have conflicted status set'
+          )
+        }
+
         return this.renderConflictedFile(
           file.path,
-          file.conflictMarkers,
+          file.conflictStatus,
           editorName,
           () =>
             this.props.openFileInExternalEditor(join(repositoryPath, file.path))
