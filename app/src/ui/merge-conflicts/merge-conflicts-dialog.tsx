@@ -36,6 +36,25 @@ interface IMergeConflictsDialogState {
   readonly foundExternalEditor: string | null
 }
 
+/**
+ * Calculates the number of merge conclicts in a file from the number of markers
+ * divides by three and rounds up since each conflict is indicated by three separate markers
+ * (`<<<<<`, `>>>>>`, and `=====`)
+ * @param conflictMarkers number of conflict markers in a file
+ */
+function calculateConflicts(conflictMarkers: number) {
+  return Math.ceil(conflictMarkers / 3)
+}
+
+/** Filter working directory changes for conflicted or resolved files  */
+function getUnmergedFiles(status: WorkingDirectoryStatus) {
+  return status.files.filter(
+    file =>
+      file.status === AppFileStatus.Conflicted ||
+      file.status === AppFileStatus.Resolved
+  )
+}
+
 const submitButtonString = 'Commit merge'
 const cancelButtonString = 'Abort merge'
 
@@ -78,7 +97,7 @@ export class MergeConflictsDialog extends React.Component<
    *  dismisses the modal and shows the abort merge warning modal
    */
   private onCancel = async () => {
-    const anyResolvedFiles = this.getUnmergedFiles().some(
+    const anyResolvedFiles = getUnmergedFiles(this.props.status).some(
       f => f.status === AppFileStatus.Resolved
     )
     if (!anyResolvedFiles) {
@@ -93,16 +112,6 @@ export class MergeConflictsDialog extends React.Component<
         theirBranch: this.props.theirBranch,
       })
     }
-  }
-
-  /**
-   * Calculates the number of merge conclicts in a file from the number of markers
-   * divides by three and rounds up since each conflict is indicated by three separate markers
-   * (`<<<<<`, `>>>>>`, and `=====`)
-   * @param conflictMarkers number of conflict markers in a file
-   */
-  private calculateConflicts(conflictMarkers: number) {
-    return Math.ceil(conflictMarkers / 3)
   }
 
   private renderHeaderTitle(ourBranch: string, theirBranch?: string) {
@@ -165,7 +174,7 @@ export class MergeConflictsDialog extends React.Component<
     onOpenEditorClick: () => void
   ): JSX.Element | null {
     if (conflictStatus.kind === 'text') {
-      const humanReadableConflicts = this.calculateConflicts(
+      const humanReadableConflicts = calculateConflicts(
         conflictStatus.conflictMarkerCount
       )
       const message =
@@ -227,14 +236,6 @@ export class MergeConflictsDialog extends React.Component<
     )
   }
 
-  private getUnmergedFiles() {
-    return this.props.status.files.filter(
-      file =>
-        file.status === AppFileStatus.Conflicted ||
-        file.status === AppFileStatus.Resolved
-    )
-  }
-
   private renderUnmergedFilesSummary(conflictedFilesCount: number) {
     // localization, it burns :vampire:
     const message =
@@ -245,7 +246,7 @@ export class MergeConflictsDialog extends React.Component<
   }
 
   public render() {
-    const unmergedFiles = this.getUnmergedFiles()
+    const unmergedFiles = getUnmergedFiles(this.props.status)
     const conflictedFilesCount = unmergedFiles.filter(
       f => f.status === AppFileStatus.Conflicted
     ).length
