@@ -126,6 +126,7 @@ export type Popup =
       repository: Repository
       ourBranch: string
       theirBranch?: string
+      mergeHeadFound: boolean
     }
   | {
       type: PopupType.AbortMerge
