@@ -6,7 +6,6 @@ import { Dispatcher } from '../../lib/dispatcher'
 import { PopupType } from '../../models/popup'
 import { Repository } from '../../models/repository'
 import { Octicon, OcticonSymbol } from '../octicons'
-import { isMergeHeadSet } from '../../lib/git'
 
 interface IAbortMergeWarningProps {
   readonly dispatcher: Dispatcher
@@ -41,14 +40,11 @@ export class AbortMergeWarning extends React.Component<
   private onCancel = async () => {
     this.props.onDismissed()
 
-    const mergeHeadFound = await isMergeHeadSet(this.props.repository)
-
     this.props.dispatcher.showPopup({
       type: PopupType.MergeConflicts,
       repository: this.props.repository,
       ourBranch: this.props.ourBranch,
       theirBranch: this.props.theirBranch,
-      mergeHeadFound,
     })
   }
 

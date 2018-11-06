@@ -1642,7 +1642,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repository,
       ourBranch,
       theirBranch,
-      mergeHeadFound: true,
     })
   }
 
