@@ -274,12 +274,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** The current repository filter text */
   private repositoryFilterText: string = ''
 
-  /** The current branch filter text */
-  private branchFilterText: string = ''
-
-  /** The current pull request filter text */
-  private pullRequestFilterText: string = ''
-
   private currentMergeTreePromise: Promise<void> | null = null
 
   /** The function to resolve the current Open in Desktop flow. */
@@ -502,8 +496,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       imageDiffType: this.imageDiffType,
       selectedShell: this.selectedShell,
       repositoryFilterText: this.repositoryFilterText,
-      branchFilterText: this.branchFilterText,
-      pullRequestFilterText: this.pullRequestFilterText,
       selectedCloneRepositoryTab: this.selectedCloneRepositoryTab,
       selectedBranchesTab: this.selectedBranchesTab,
       selectedTheme: this.selectedTheme,
@@ -1010,14 +1002,24 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _setBranchFilterText(text: string): Promise<void> {
-    this.branchFilterText = text
+  public async _setBranchFilterText(
+    repository: Repository,
+    text: string
+  ): Promise<void> {
+    this.repositoryStateCache.update(repository, () => ({
+      branchFilterText: text,
+    }))
     this.emitUpdate()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _setPullRequestFilterText(text: string): Promise<void> {
-    this.pullRequestFilterText = text
+  public async _setPullRequestFilterText(
+    repository: Repository,
+    text: string
+  ): Promise<void> {
+    this.repositoryStateCache.update(repository, () => ({
+      pullRequestFilterText: text,
+    }))
     this.emitUpdate()
   }
 

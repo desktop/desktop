@@ -174,13 +174,19 @@ export class Dispatcher {
   }
 
   /** Set the branch filter text. */
-  public setBranchFilterText(text: string): Promise<void> {
-    return this.appStore._setBranchFilterText(text)
+  public setBranchFilterText(
+    repository: Repository,
+    text: string
+  ): Promise<void> {
+    return this.appStore._setBranchFilterText(repository, text)
   }
 
   /** Set the branch filter text. */
-  public setPullRequestFilterText(text: string): Promise<void> {
-    return this.appStore._setPullRequestFilterText(text)
+  public setPullRequestFilterText(
+    repository: Repository,
+    text: string
+  ): Promise<void> {
+    return this.appStore._setPullRequestFilterText(repository, text)
   }
 
   /** Select the repository. */
