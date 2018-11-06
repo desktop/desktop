@@ -2510,7 +2510,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private async isCommitting(
     repository: Repository,
-    fn: () => Promise<boolean | undefined>
+    fn: () => Promise<string | undefined>
   ): Promise<boolean | undefined> {
     const state = this.repositoryStateCache.get(repository)
     // ensure the user doesn't try and commit again
@@ -2524,7 +2524,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
 
     try {
-      return await fn()
+      const sha = await fn()
+      return sha !== undefined
     } finally {
       this.repositoryStateCache.update(repository, () => ({
         isCommitting: false,
@@ -3116,7 +3117,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     files: ReadonlyArray<WorkingDirectoryFileChange>
   ): Promise<void> {
     const gitStore = this.gitStoreCache.get(repository)
-    return await gitStore.performFailableOperation(() =>
+    await gitStore.performFailableOperation(() =>
       createMergeCommit(repository, files)
     )
   }
