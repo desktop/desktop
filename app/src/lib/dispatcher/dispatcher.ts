@@ -1234,7 +1234,6 @@ export class Dispatcher {
    * as a result of a pull and increments the relevant metric.
    */
   public mergeConflictDetectedFromPull() {
-    this.appStore._mergeConflictDetected()
     return this.statsStore.recordMergeConflictFromPull()
   }
 
@@ -1243,7 +1242,6 @@ export class Dispatcher {
    * as a result of a merge and increments the relevant metric.
    */
   public mergeConflictDetectedFromExplicitMerge() {
-    this.appStore._mergeConflictDetected()
     return this.statsStore.recordMergeConflictFromExplicitMerge()
   }
 

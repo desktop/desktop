@@ -1340,11 +1340,15 @@ export class App extends React.Component<IAppProps, IAppState> {
             return null
           }
 
-          if (!popup.mergeHeadFound) {
+          const {
+            workingDirectory,
+            conflictState,
+          } = selectedState.state.changesState
+
+          if (conflictState === null) {
             return null
           }
 
-          const { workingDirectory } = selectedState.state.changesState
           return (
             <MergeConflictsDialog
               dispatcher={this.props.dispatcher}
