@@ -55,6 +55,24 @@ function getUnmergedFiles(status: WorkingDirectoryStatus) {
   )
 }
 
+function editorButtonString(editorName: string | null): string {
+  const defaultEditorString = 'editor'
+  return `Open in ${editorName || defaultEditorString}`
+}
+
+function editorButtonTooltip(editorName: string | null): string | undefined {
+  if (editorName !== null) {
+    // no need to render a tooltip if we have a known editor
+    return
+  }
+
+  if (__DARWIN__) {
+    return `No editor configured in Preferences > Advanced`
+  } else {
+    return `No editor configured in Options > Advanced`
+  }
+}
+
 const submitButtonString = 'Commit merge'
 const cancelButtonString = 'Abort merge'
 
@@ -133,11 +151,6 @@ export class MergeConflictsDialog extends React.Component<
     )
   }
 
-  private editorButtonString(editorName: string | undefined) {
-    const defaultEditorString = 'editor'
-    return `Open in ${editorName || defaultEditorString}`
-  }
-
   private openThisRepositoryInShell = () =>
     this.props.openRepositoryInShell(this.props.repository)
 
@@ -182,12 +195,9 @@ export class MergeConflictsDialog extends React.Component<
           ? `1 conflict`
           : `${humanReadableConflicts} conflicts`
 
-      const button =
-        this.state.foundExternalEditor != null ? (
-          <Button onClick={onOpenEditorClick}>
-            {this.editorButtonString(this.state.foundExternalEditor)}
-          </Button>
-        ) : null
+      const disabled = this.state.foundExternalEditor === null
+
+      const tooltip = editorButtonTooltip(this.state.foundExternalEditor)
 
       return (
         <li className="unmerged-file-status-conflicts">
@@ -196,7 +206,13 @@ export class MergeConflictsDialog extends React.Component<
             <PathText path={path} availableWidth={200} />
             <div className="file-conflicts-status">{message}</div>
           </div>
-          {button}
+          <Button
+            onClick={onOpenEditorClick}
+            disabled={disabled}
+            tooltip={tooltip}
+          >
+            {editorButtonString(this.state.foundExternalEditor)}
+          </Button>
         </li>
       )
     }
