@@ -1628,8 +1628,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const mergeHeadExists = await isMergeHeadSet(repository)
-    if (!mergeHeadExists) {
+    const mergeHeadFound = await isMergeHeadSet(repository)
+    if (!mergeHeadFound) {
       return
     }
 
@@ -1658,11 +1658,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
         ? possibleTheirsBranches[0]
         : undefined
     const ourBranch = status.currentBranch
+
     this._showPopup({
       type: PopupType.MergeConflicts,
       repository,
       ourBranch,
       theirBranch,
+      mergeHeadFound,
     })
   }
 
