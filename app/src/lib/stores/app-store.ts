@@ -3152,7 +3152,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     if (mergeSuccessful && tip.kind === TipState.Valid) {
       this._setSuccessfulMergeBannerState({
-        currentBranch: tip.branch.name,
+        ourBranch: tip.branch.name,
         theirBranch: branch,
       })
     }

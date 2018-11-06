@@ -1787,7 +1787,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
     return (
       <SuccessfulMerge
-        currentBranch={successfulMergeBannerState.currentBranch}
+        ourBranch={successfulMergeBannerState.ourBranch}
         theirBranch={successfulMergeBannerState.theirBranch}
         onDismissed={this.onSuccessfulMergeDismissed}
       />
