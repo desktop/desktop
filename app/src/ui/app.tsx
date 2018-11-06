@@ -1351,11 +1351,12 @@ export class App extends React.Component<IAppProps, IAppState> {
             return null
           }
 
+          const { workingDirectory } = selectedState.state.changesState
           return (
             <MergeConflictsDialog
               dispatcher={this.props.dispatcher}
               repository={popup.repository}
-              status={workingDirectoryStatus}
+              workingDirectory={workingDirectory}
               onDismissed={this.onPopupDismissed}
               openFileInExternalEditor={this.openFileInExternalEditor}
               externalEditorName={this.state.selectedExternalEditor}
