@@ -225,7 +225,6 @@ export class BranchesContainer extends React.Component<
 
   private onBranchFilterTextChanged = (text: string) => {
     this.setState({ branchFilterText: text })
-    this.props.dispatcher.setBranchFilterText(this.props.repository, text)
   }
 
   private onCreateBranchWithName = (name: string) => {
@@ -243,7 +242,6 @@ export class BranchesContainer extends React.Component<
 
   private onPullRequestFilterTextChanged = (text: string) => {
     this.setState({ pullRequestFilterText: text })
-    this.props.dispatcher.setPullRequestFilterText(this.props.repository, text)
   }
 
   private onPullRequestSelectionChanged = (
@@ -265,5 +263,16 @@ export class BranchesContainer extends React.Component<
     )
 
     this.onPullRequestSelectionChanged(pullRequest)
+  }
+
+  public componentWillUnmount() {
+    this.props.dispatcher.setBranchFilterText(
+      this.props.repository,
+      this.state.branchFilterText
+    )
+    this.props.dispatcher.setPullRequestFilterText(
+      this.props.repository,
+      this.state.pullRequestFilterText
+    )
   }
 }
