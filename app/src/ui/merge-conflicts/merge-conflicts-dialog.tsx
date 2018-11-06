@@ -16,6 +16,7 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { PathText } from '../lib/path-text'
 import { DialogHeader } from '../dialog/header'
 import { ConflictFileStatus } from '../../models/conflicts'
+import { LinkButton } from '../lib/link-button'
 
 interface IMergeConflictsDialogProps {
   readonly dispatcher: Dispatcher
@@ -47,6 +48,7 @@ export class MergeConflictsDialog extends React.Component<
       this.props.repository,
       this.props.status.files
     )
+    this.props.dispatcher.setCommitMessage(this.props.repository, null)
     this.props.dispatcher.changeRepositorySection(
       this.props.repository,
       RepositorySectionTab.Changes
@@ -111,8 +113,10 @@ export class MergeConflictsDialog extends React.Component<
     return (
       <div className="cli-link">
         You can also{' '}
-        <a onClick={openThisRepositoryInShell}>open the command line</a> to
-        resolve
+        <LinkButton onClick={openThisRepositoryInShell}>
+          open the command line
+        </LinkButton>{' '}
+        to resolve
       </div>
     )
   }
