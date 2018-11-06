@@ -132,6 +132,7 @@ import {
   IStatusResult,
   createMergeCommit,
   getBranchesPointedAt,
+  isMergeHeadSet,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -1618,7 +1619,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return true
   }
 
-  /** starts the conflict resolution flow, if appropriate */
+  /** starts the conflict resolution flow, if required */
   private async _triggerMergeConflictsFlow(
     repository: Repository,
     status: IStatusResult
@@ -1626,15 +1627,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (!enableMergeConflictsDialog()) {
       return
     }
-    const inConflictedMerge = status.workingDirectory.files.some(f => {
-      return (
-        f.status === AppFileStatus.Conflicted ||
-        f.status === AppFileStatus.Resolved
-      )
-    })
-    if (!inConflictedMerge) {
+
+    const mergeHeadExists = await isMergeHeadSet(repository)
+    if (!mergeHeadExists) {
       return
     }
+
     if (status.currentBranch === undefined) {
       return
     }
