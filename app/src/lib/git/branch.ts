@@ -143,10 +143,10 @@ export async function getBranchesPointedAt(
       // - 1 is returned if a common ancestor cannot be resolved
       // - 129 is returned if ref is malformed
       //   "warning: ignoring broken ref refs/remotes/origin/master."
-      successExitCodes: new Set([0, 1, 128]),
+      successExitCodes: new Set([0, 1, 129]),
     }
   )
-  if (exitCode === 1 || exitCode === 128) {
+  if (exitCode === 1 || exitCode === 129) {
     return null
   }
   // split (and remove trailing element cause its always an empty string)
