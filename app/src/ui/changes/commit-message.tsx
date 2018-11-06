@@ -137,10 +137,10 @@ export class CommitMessage extends React.Component<
       })
     }
 
-    if (nextProps.focusCommitMessage) {
+    if (this.props.focusCommitMessage) {
       this.focusSummary()
     }
-    
+
     if (!shallowEquals(prevProps.commitMessage, this.props.commitMessage)) {
       if (this.props.commitMessage) {
         this.setState({
