@@ -117,7 +117,7 @@ describe('git/branch', () => {
       it('finds one branch name', async () => {
         const branches = await getBranchesPointedAt(repository, 'HEAD')
         expect(branches).toHaveLength(1)
-        expect(branches[0]).toEqual('master')
+        expect(branches![0]).toEqual('master')
       })
 
       it('finds no branch names', async () => {
@@ -125,10 +125,9 @@ describe('git/branch', () => {
         expect(branches).toHaveLength(0)
       })
 
-      it('throws error on malformed committishes', () => {
-        expect(
-          getBranchesPointedAt(repository, 'MERGE_HEAD')
-        ).rejects.toThrowError(/malformed/i)
+      it('returns null on a malformed committish', async () => {
+        const branches = await getBranchesPointedAt(repository, 'MERGE_HEAD')
+        expect(branches).toBeNull()
       })
     })
 

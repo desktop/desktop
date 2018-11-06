@@ -1635,33 +1635,34 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (status.currentBranch === undefined) {
       return
     }
-    // if we're already in the conflict merge resolution flow, bail
-    if (
+
+    const alreadyInFlow =
       this.currentPopup !== null &&
-      this.currentPopup.type !== PopupType.MergeConflicts &&
-      this.currentPopup.type !== PopupType.AbortMerge
-    ) {
+      (this.currentPopup.type === PopupType.MergeConflicts ||
+        this.currentPopup.type === PopupType.AbortMerge)
+    if (alreadyInFlow) {
       return
     }
-    try {
-      const possibleTheirsBranches = await getBranchesPointedAt(
-        repository,
-        'MERGE_HEAD'
-      )
-      const theirBranch =
-        possibleTheirsBranches.length === 1
-          ? possibleTheirsBranches[0]
-          : undefined
-      const ourBranch = status.currentBranch
-      this._showPopup({
-        type: PopupType.MergeConflicts,
-        repository,
-        ourBranch,
-        theirBranch,
-      })
-    } catch (e) {
-      log.info(e)
+
+    const possibleTheirsBranches = await getBranchesPointedAt(
+      repository,
+      'MERGE_HEAD'
+    )
+    // null means we encountered an error
+    if (possibleTheirsBranches === null) {
+      return
     }
+    const theirBranch =
+      possibleTheirsBranches.length === 1
+        ? possibleTheirsBranches[0]
+        : undefined
+    const ourBranch = status.currentBranch
+    this._showPopup({
+      type: PopupType.MergeConflicts,
+      repository,
+      ourBranch,
+      theirBranch,
+    })
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */

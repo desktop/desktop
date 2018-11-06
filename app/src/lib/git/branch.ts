@@ -118,17 +118,37 @@ async function checkIfBranchExistsOnRemote(
   return result.stdout.length > 0
 }
 
+/**
+ * Finds branches that have a tip equal to the given committish
+ *
+ * @param repository within which to execute the command
+ * @param commitish a sha, HEAD, etc that the branch(es) tip should be
+ * @returns list branch names. null if an error is encountered
+ */
 export async function getBranchesPointedAt(
   repository: Repository,
   commitish: string
-): Promise<Array<string>> {
+): Promise<Array<string> | null> {
   const args = [
     'branch',
     `--points-at=${commitish}`,
     '--format=%(refname:short)',
   ]
   // this command has an implicit \n delimiter
-  const { stdout } = await git(args, repository.path, 'branchPointedAt')
+  const { stdout, exitCode } = await git(
+    args,
+    repository.path,
+    'branchPointedAt',
+    {
+      // - 1 is returned if a common ancestor cannot be resolved
+      // - 129 is returned if ref is malformed
+      //   "warning: ignoring broken ref refs/remotes/origin/master."
+      successExitCodes: new Set([0, 1, 128]),
+    }
+  )
+  if (exitCode === 1 || exitCode === 128) {
+    return null
+  }
   // split (and remove trailing element cause its always an empty string)
   return stdout.split('\n').slice(0, -1)
 }
