@@ -17,6 +17,7 @@ import { PathText } from '../lib/path-text'
 import { DialogHeader } from '../dialog/header'
 import { ConflictFileStatus } from '../../models/conflicts'
 import { LinkButton } from '../lib/link-button'
+import { findEditorOrDefault } from '../../lib/editors'
 
 interface IMergeConflictsDialogProps {
   readonly dispatcher: Dispatcher
@@ -24,11 +25,15 @@ interface IMergeConflictsDialogProps {
   readonly status: WorkingDirectoryStatus
   readonly onDismissed: () => void
   readonly openFileInExternalEditor: (path: string) => void
-  readonly externalEditorName?: string
+  readonly selectedExternalEditor?: string
   readonly openRepositoryInShell: (repository: Repository) => void
   readonly ourBranch: string
   /* `undefined` when we didn't know the branch at the beginning of this flow */
   readonly theirBranch?: string
+}
+
+interface IMergeConflictsDialogState {
+  readonly foundExternalEditor: string | null
 }
 
 const submitButtonString = 'Commit merge'
@@ -39,8 +44,20 @@ const cancelButtonString = 'Abort merge'
  */
 export class MergeConflictsDialog extends React.Component<
   IMergeConflictsDialogProps,
-  {}
+  IMergeConflictsDialogState
 > {
+  constructor(props: IMergeConflictsDialogProps) {
+    super(props)
+
+    this.state = { foundExternalEditor: null }
+  }
+
+  public async componentDidMount() {
+    const match = await findEditorOrDefault(this.props.selectedExternalEditor)
+    const foundExternalEditor = match != null ? match.editor : null
+    this.setState({ foundExternalEditor })
+  }
+
   /**
    *  commits the merge displays the repository changes tab and dismisses the modal
    */
@@ -145,7 +162,6 @@ export class MergeConflictsDialog extends React.Component<
   private renderConflictedFile(
     path: string,
     conflictStatus: ConflictFileStatus,
-    editorName: string | undefined,
     onOpenEditorClick: () => void
   ): JSX.Element | null {
     if (conflictStatus.kind === 'text') {
@@ -156,6 +172,14 @@ export class MergeConflictsDialog extends React.Component<
         humanReadableConflicts === 1
           ? `1 conflict`
           : `${humanReadableConflicts} conflicts`
+
+      const button =
+        this.state.foundExternalEditor != null ? (
+          <Button onClick={onOpenEditorClick}>
+            {this.editorButtonString(this.state.foundExternalEditor)}
+          </Button>
+        ) : null
+
       return (
         <li className="unmerged-file-status-conflicts">
           <Octicon symbol={OcticonSymbol.fileCode} className="file-octicon" />
@@ -163,9 +187,7 @@ export class MergeConflictsDialog extends React.Component<
             <PathText path={path} availableWidth={200} />
             <div className="file-conflicts-status">{message}</div>
           </div>
-          <Button onClick={onOpenEditorClick}>
-            {this.editorButtonString(editorName)}
-          </Button>
+          {button}
         </li>
       )
     }
@@ -174,7 +196,6 @@ export class MergeConflictsDialog extends React.Component<
 
   private renderUnmergedFile(
     file: WorkingDirectoryFileChange,
-    editorName: string | undefined,
     repositoryPath: string
   ): JSX.Element | null {
     switch (file.status) {
@@ -187,12 +208,8 @@ export class MergeConflictsDialog extends React.Component<
           )
         }
 
-        return this.renderConflictedFile(
-          file.path,
-          file.conflictStatus,
-          editorName,
-          () =>
-            this.props.openFileInExternalEditor(join(repositoryPath, file.path))
+        return this.renderConflictedFile(file.path, file.conflictStatus, () =>
+          this.props.openFileInExternalEditor(join(repositoryPath, file.path))
         )
       default:
         return null
@@ -201,12 +218,11 @@ export class MergeConflictsDialog extends React.Component<
 
   private renderUnmergedFiles(
     files: Array<WorkingDirectoryFileChange>,
-    editorName: string | undefined,
     repositoryPath: string
   ) {
     return (
       <ul className="unmerged-file-statuses">
-        {files.map(f => this.renderUnmergedFile(f, editorName, repositoryPath))}
+        {files.map(f => this.renderUnmergedFile(f, repositoryPath))}
       </ul>
     )
   }
@@ -251,11 +267,7 @@ export class MergeConflictsDialog extends React.Component<
         <DialogHeader title={headerTitle} dismissable={false} />
         <DialogContent>
           {this.renderUnmergedFilesSummary(conflictedFilesCount)}
-          {this.renderUnmergedFiles(
-            unmergedFiles,
-            this.props.externalEditorName,
-            this.props.repository.path
-          )}
+          {this.renderUnmergedFiles(unmergedFiles, this.props.repository.path)}
           {this.renderShellLink(this.openThisRepositoryInShell)}
         </DialogContent>
         <DialogFooter>
