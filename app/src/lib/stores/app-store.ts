@@ -175,6 +175,7 @@ import { readEmoji } from '../read-emoji'
 import { GitStoreCache } from './git-store-cache'
 import { MergeConflictsErrorContext } from '../git-error-context'
 import { setNumber, setBoolean, getBoolean, getNumber } from '../local-storage'
+import { ExternalEditorError } from '../editors/shared'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -3206,11 +3207,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** Open a path to a repository or file using the user's configured editor */
   public async _openInExternalEditor(fullPath: string): Promise<void> {
-    const selectedExternalEditor =
-      this.getState().selectedExternalEditor || null
+    const { selectedExternalEditor } = this.getState()
 
     try {
       const match = await findEditorOrDefault(selectedExternalEditor)
+      if (match === null) {
+        this.emitError(
+          new ExternalEditorError(
+            'No suitable editors installed for GitHub Desktop to launch. Install Atom for your platform and restart GitHub Desktop to try again.',
+            { suggestAtom: true }
+          )
+        )
+        return
+      }
+
       await launchExternalEditor(fullPath, match)
     } catch (error) {
       this.emitError(error)
