@@ -1,11 +1,9 @@
 import { Repository } from '../models/repository'
 import { CloningRepository } from '../models/cloning-repository'
-import { RetryAction } from './retry-actions'
+import { RetryAction } from '../models/retry-actions'
+import { IGitErrorContext } from './git-error-context'
 
 export interface IErrorMetadata {
-  /** The first argument passed to `git` which triggered this error */
-  readonly command?: string
-
   /** Was the action which caused this error part of a background task? */
   readonly backgroundTask?: boolean
 
@@ -14,6 +12,9 @@ export interface IErrorMetadata {
 
   /** The action to retry if applicable. */
   readonly retryAction?: RetryAction
+
+  /** Additional context that specific actions can provide fields for */
+  readonly gitContext?: IGitErrorContext
 }
 
 /** An error which contains additional metadata. */

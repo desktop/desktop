@@ -1,6 +1,74 @@
 {
   "releases": {
+    "1.5.0-beta3": [
+    ],
+    "1.5.0-beta2": [
+      "[Added] Resolve merge conflicts through a guided flow - #5400",
+      "[Added] Notify users when a merge is successfully completed - #5851",
+      "[Added] Allow merging branches directly from branch dropdown - #5929. Thanks @bruncun!",
+      "[Improved] Merge dialog displays current branch in header - #6027",
+      "[Improved] Clarify the direction of merging branches - #5930. Thanks @JQuinnie!",
+      "[Improved] Show the branch name in \"Update From Default Branch\" menu item - #3018. Thanks @a-golovanov!",
+      "[Improved] Default commit summary more explanatory and consistent with GitHub.com - #6017. Thanks @Daniel-McCarthy!",
+      "[Improved] Updated license and .gitignore templates for initializing a new repository - #6024. Thanks @say25!"
+    ],
+    "1.5.0-beta1": [
+      "[New] Repository switcher has a convenient \"Add\" button to add other repositories - #5878",
+      "[New] macOS tray icon now supports drag-and-drop to add local repositories - #5048",
+      "[Added] Keyboard shortcut for \"Rename Branch\" menu item - #5964. Thanks @agisilaos!",
+      "[Added] Commit file list now has \"Copy File Path\" context menu action - #2944. Thanks @Amabel!",
+      "[Fixed] Launching Desktop from browser always asks to clone repository - #5913",
+      "[Fixed] Publish dialog displayed on push when repository is already published - #5936",
+      "[Improved] Sanitize repository name before publishing to GitHub - #3090. Thanks @Daniel-McCarthy!",
+      "[Improved] Getting a repository's status only blocks other operations when absolutely necessary - #5952",
+      "[Improved] Avoid repository checks when no path is specified in \"Create Repository\" dialog - #5828. Thanks @JakeHL!",
+      "[Improved] Display a more informative message on merge dialog when branch is up to date - #5890"
+    ],
+    "1.4.4-beta0": [
+    ],
+    "1.4.3": [
+      "[Added] Add \"Remove Repository\" keyboard shortcut - #5848. Thanks @say25!",
+      "[Added] Add keyboard shortcut to delete a branch - #5018. Thanks @JakeHL!",
+      "[Fixed] Emoji autocomplete not rendering in some situations - #5859",
+      "[Fixed] Release notes text overflowing dialog box - #5854. Thanks @amarsiingh!",
+      "[Improved] Support Python 3 in Desktop CLI on macOS - #5843. Thanks @munir131!",
+      "[Improved] Avoid unnecessarily reloading commit history - #5470",
+      "[Improved] Publish Branch dialog will publish commits when pressing Enter - #5777. Thanks @JKirkYuan!"
+    ],
+    "1.4.3-beta2": [
+      "[Added] Added keyboard shortcut to delete a branch - #5018. Thanks @JakeHL!",
+      "[Fixed] Fix release notes text overflowing dialog box - #5854. Thanks @amarsiingh!",
+      "[Improved] Avoid unnecessarily reloading commit history - #5470"
+    ],
+    "1.4.3-beta1": [
+      "[Added] Add \"Remove Repository\" keyboard shortcut - #5848. Thanks @say25!",
+      "[Fixed] Fix emoji autocomplete not rendering in some situations - #5859",
+      "[Fixed] Support Python 3 in Desktop CLI on macOS - #5843. Thanks @munir131!",
+      "[Improved] Publish Branch dialog will publish commits when pressing Enter - #5777. Thanks @JKirkYuan!"
+    ],
+    "1.4.3-beta0": [
+    ],
+    "1.4.2": [
+      "[New] Show resolved conflicts as resolved in Changes pane - #5609",
+      "[Added] Add Terminator, MATE Terminal, and Terminology shells - #5753. Thanks @joaomlneto!",
+      "[Fixed] Update embedded Git to version 2.19.1 for security vulnerability fix",
+      "[Fixed] Always show commit history list when History tab is clicked - #5783. Thanks @JKirkYuan!",
+      "[Fixed] Stop overriding the protocol of a detected GitHub repository - #5721",
+      "[Fixed] Update sign in error message - #5766. Thanks @tiagodenoronha!",
+      "[Fixed] Correct overflowing T&C and License Notices dialogs - #5756. Thanks @amarsiingh!",
+      "[Improved] Add default commit message for single-file commits - #5240. Thanks @lean257!",
+      "[Improved] Refresh commit list faster after reverting commit via UI - #5752",
+      "[Improved] Add repository path to Remove repository dialog - #5805. Thanks @NickCraver!",
+      "[Improved] Display whether user entered incorrect username or email address - #5775. Thanks @tiagodenoronha!",
+      "[Improved] Update Discard Changes dialog text when discarding all changes - #5744. Thanks @Daniel-McCarthy!"
+    ],
     "1.4.2-beta0": [
+    ],
+    "1.4.1-test2": [
+      "Testing changes to how Desktop performs CI platform checks"
+    ],
+    "1.4.1-test1": [
+      "Testing changes to how Desktop performs CI platform checks"
     ],
     "1.4.1": [
       "[Added] Support for opening repository in Cygwin terminal - #5654. Thanks @LordOfTheThunder!",

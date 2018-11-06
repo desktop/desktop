@@ -1,6 +1,7 @@
 import { Menu, ipcMain, shell, app } from 'electron'
 import { ensureItemIds } from './ensure-item-ids'
 import { MenuEvent } from './menu-event'
+import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
 import { getLogDirectoryPath } from '../../lib/logging/get-log-path'
 import { ensureDir } from 'fs-extra'
 
@@ -16,12 +17,25 @@ const defaultShellLabel = __DARWIN__
 const defaultPullRequestLabel = __DARWIN__
   ? 'Create Pull Request'
   : 'Create &pull request'
+const defaultBranchNameDefaultValue = __DARWIN__
+  ? 'Default Branch'
+  : 'default branch'
 
-export function buildDefaultMenu(
-  editorLabel: string = defaultEditorLabel,
-  shellLabel: string = defaultShellLabel,
-  pullRequestLabel: string = defaultPullRequestLabel
-): Electron.Menu {
+export type MenuLabels = {
+  editorLabel?: string
+  shellLabel?: string
+  pullRequestLabel?: string
+  defaultBranchName?: string
+}
+
+export function buildDefaultMenu({
+  editorLabel = defaultEditorLabel,
+  shellLabel = defaultShellLabel,
+  pullRequestLabel = defaultPullRequestLabel,
+  defaultBranchName = defaultBranchNameDefaultValue,
+}: MenuLabels): Electron.Menu {
+  defaultBranchName = truncateWithEllipsis(defaultBranchName, 25)
+
   const template = new Array<Electron.MenuItemConstructorOptions>()
   const separator: Electron.MenuItemConstructorOptions = { type: 'separator' }
 
@@ -183,8 +197,7 @@ export function buildDefaultMenu(
         // Ctrl+Alt is interpreted as AltGr on international keyboards and this
         // can clash with other shortcuts. We should always use Ctrl+Shift for
         // chorded shortcuts, but this menu item is not a user-facing feature
-        // so we are going to keep this one around and save Ctrl+Shift+R for
-        // a different shortcut in the future...
+        // so we are going to keep this one around.
         accelerator: 'CmdOrCtrl+Alt+R',
         click(item: any, focusedWindow: Electron.BrowserWindow) {
           if (focusedWindow) {
@@ -229,6 +242,7 @@ export function buildDefaultMenu(
       {
         label: __DARWIN__ ? 'Remove' : '&Remove',
         id: 'remove-repository',
+        accelerator: 'CmdOrCtrl+Delete',
         click: emit('remove-repository'),
       },
       separator,
@@ -278,18 +292,20 @@ export function buildDefaultMenu(
       {
         label: __DARWIN__ ? 'Rename…' : '&Rename…',
         id: 'rename-branch',
+        accelerator: 'CmdOrCtrl+Shift+R',
         click: emit('rename-branch'),
       },
       {
         label: __DARWIN__ ? 'Delete…' : '&Delete…',
         id: 'delete-branch',
+        accelerator: 'CmdOrCtrl+Shift+D',
         click: emit('delete-branch'),
       },
       separator,
       {
         label: __DARWIN__
-          ? 'Update From Default Branch'
-          : '&Update from default branch',
+          ? `Update From ${defaultBranchName}`
+          : `&Update from ${defaultBranchName}`,
         id: 'update-branch',
         accelerator: 'CmdOrCtrl+Shift+U',
         click: emit('update-branch'),

@@ -1,8 +1,11 @@
 import { git, gitNetworkArguments, IGitExecutionOptions } from './core'
+import { envForAuthentication } from './authentication'
+
 import { Repository } from '../../models/repository'
 import { Commit } from '../../models/commit'
-import { envForAuthentication, IGitAccount } from './authentication'
-import { IRevertProgress } from '../app-state'
+import { IRevertProgress } from '../../models/progress'
+import { IGitAccount } from '../../models/git-account'
+
 import { executionOptionsWithProgress } from '../progress/from-process'
 import { RevertProgressParser } from '../progress/revert'
 

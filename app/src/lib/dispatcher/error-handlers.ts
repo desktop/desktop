@@ -8,10 +8,11 @@ import { ErrorWithMetadata } from '../error-with-metadata'
 import { ExternalEditorError } from '../editors/shared'
 import { AuthenticationErrors } from '../git/authentication'
 import { Repository } from '../../models/repository'
-import { PopupType } from '../../lib/app-state'
+import { PopupType } from '../../models/popup'
 import { ShellError } from '../shells'
 import { UpstreamAlreadyExistsError } from '../stores/upstream-already-exists-error'
 import { FetchType } from '../../models/fetch'
+import { TipState } from '../../models/tip'
 
 /** An error which also has a code property. */
 interface IErrorWithCode extends Error {
@@ -272,8 +273,8 @@ export async function mergeConflictHandler(
     return error
   }
 
-  const repository = e.metadata.repository
-  if (!repository) {
+  const { repository, gitContext } = e.metadata
+  if (repository == null) {
     return error
   }
 
@@ -281,22 +282,29 @@ export async function mergeConflictHandler(
     return error
   }
 
-  const command = e.metadata.command
+  if (gitContext == null) {
+    return error
+  }
 
-  if (command != null) {
-    switch (command) {
-      case 'pull':
-        dispatcher.recordMergeConflictFromPull()
-        break
-      case 'merge':
-        dispatcher.recordMergeConflictFromExplicitMerge()
-        break
-    }
+  switch (gitContext.kind) {
+    case 'pull':
+      dispatcher.mergeConflictDetectedFromPull()
+      break
+    case 'merge':
+      dispatcher.mergeConflictDetectedFromExplicitMerge()
+      break
+  }
+
+  const { tip, theirBranch } = gitContext
+  if (tip == null || tip.kind !== TipState.Valid) {
+    return error
   }
 
   dispatcher.showPopup({
     type: PopupType.MergeConflicts,
     repository,
+    currentBranch: tip.branch.name,
+    theirBranch,
   })
 
   return null

@@ -30,10 +30,10 @@ export async function inferLastPushForRepository(
 
   const api = API.fromAccount(account)
   let lastPushDate: Date | null = null
-  if (gitStore.remote !== null) {
+  if (gitStore.currentRemote !== null) {
     const matchedRepository = matchGitHubRepository(
       accounts,
-      gitStore.remote.url
+      gitStore.currentRemote.url
     )
 
     if (matchedRepository !== null) {

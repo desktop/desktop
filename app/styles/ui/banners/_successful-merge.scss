@@ -1,0 +1,69 @@
+#successful-merge {
+  position: relative;
+  display: flex;
+  flex-wrap: nowrap;
+  overflow: hidden;
+  align-content: center;
+  align-items: center;
+  justify-content: left;
+  padding-left: var(--spacing);
+  border-bottom: var(--base-border);
+
+  height: 0px;
+  transition: height 0.25s;
+  // Prevents the notification banner from decreasing its height
+  // when a large diff is rendered.
+  flex: none;
+
+  .banner-message {
+    span {
+      max-width: 100%;
+      overflow-x: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    overflow-x: hidden;
+    display: flex;
+    flex: 1 1 auto;
+  }
+
+  &.active {
+    height: 30px;
+  }
+
+  .green-circle {
+    background-color: var(--color-new);
+    color: var(--background-color);
+    border-radius: 50%;
+    height: 16px;
+    width: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: var(--spacing);
+    display: flex;
+    flex-shrink: 0;
+    flex-grow: 0;
+  }
+
+  .close {
+    display: flex;
+    flex-shrink: 0;
+    flex-grow: 0;
+    width: 16px;
+    height: 16px;
+    margin-right: var(--spacing);
+    margin-left: var(--spacing);
+    background: transparent;
+
+    color: var(--text-secondary-color);
+
+    &:hover {
+      color: var(--text-color);
+    }
+
+    &:focus {
+      outline: 0;
+    }
+  }
+}

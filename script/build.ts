@@ -43,6 +43,7 @@ import {
 } from '../app/package-info'
 
 import { getReleaseChannel, getDistRoot, getExecutableName } from './dist-info'
+import { isRunningOnFork, isCircleCI } from './build-platforms'
 
 const projectRoot = path.join(__dirname, '..')
 const outRoot = path.join(projectRoot, 'out')
@@ -68,8 +69,7 @@ generateLicenseMetadata(outRoot)
 
 moveAnalysisFiles()
 
-const isFork = process.env.CIRCLE_PR_USERNAME
-if (process.platform === 'darwin' && process.env.CIRCLECI && !isFork) {
+if (isCircleCI() && !isRunningOnFork()) {
   console.log('Setting up keychain…')
   cp.execSync(path.join(__dirname, 'setup-macos-keychain'))
 }
@@ -173,6 +173,7 @@ function packageApp() {
         ],
       },
     ],
+    extendInfo: `${projectRoot}/script/info.plist`,
 
     // Windows
     win32metadata: {

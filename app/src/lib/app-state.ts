@@ -1,57 +1,42 @@
 import { Account } from '../models/account'
 import { CommitIdentity } from '../models/commit-identity'
-import { IDiff } from '../models/diff'
+import { IDiff, ImageDiffType } from '../models/diff'
 import { Repository, ILocalRepositoryState } from '../models/repository'
-
 import { Branch, IAheadBehind } from '../models/branch'
 import { Tip } from '../models/tip'
 import { Commit } from '../models/commit'
-import {
-  CommittedFileChange,
-  WorkingDirectoryStatus,
-  WorkingDirectoryFileChange,
-} from '../models/status'
+import { CommittedFileChange, WorkingDirectoryStatus } from '../models/status'
 import { CloningRepository } from '../models/cloning-repository'
-import { IGitHubUser } from './databases/github-user-database'
-import { SignInState } from './stores/sign-in-store'
-import { ICommitMessage } from './stores/git-store'
 import { IMenu } from '../models/app-menu'
 import { IRemote } from '../models/remote'
-import { WindowState } from './window-state'
-import { RetryAction } from './retry-actions'
-import { ExternalEditor } from '../lib/editors'
-import { PreferencesTab } from '../models/preferences'
-import { Shell } from './shells'
 import { CloneRepositoryTab } from '../models/clone-repository-tab'
 import { BranchesTab } from '../models/branches-tab'
 import { PullRequest } from '../models/pull-request'
-import { ReleaseSummary } from '../models/release-notes'
 import { IAuthor } from '../models/author'
-import { ComparisonCache } from './comparison-cache'
-import { ApplicationTheme } from '../ui/lib/application-theme'
 import { MergeResultKind } from '../models/merge'
+import { ICommitMessage } from '../models/commit-message'
+import {
+  IRevertProgress,
+  Progress,
+  ICheckoutProgress,
+  ICloneProgress,
+} from '../models/progress'
+import { Popup } from '../models/popup'
 
-export { ICommitMessage }
+import { IGitHubUser } from './databases/github-user-database'
+import { SignInState } from './stores/sign-in-store'
+
+import { WindowState } from './window-state'
+import { ExternalEditor } from './editors'
+import { Shell } from './shells'
+import { ComparisonCache } from './comparison-cache'
+
+import { ApplicationTheme } from '../ui/lib/application-theme'
 
 export enum SelectionType {
   Repository,
   CloningRepository,
   MissingRepository,
-}
-
-/** The image diff type. */
-export enum ImageDiffType {
-  /** Show the old and new images side by side. */
-  TwoUp,
-
-  /** Swipe between the old and new image. */
-  Swipe,
-
-  /** Onion skin. */
-  OnionSkin,
-
-  /** Highlight differences. */
-  Difference,
 }
 
 export type PossibleSelections =
@@ -167,6 +152,9 @@ export interface IAppState {
   /** Whether we should show the update banner */
   readonly isUpdateAvailableBannerVisible: boolean
 
+  /** Whether we should show the merge success banner */
+  readonly successfulMergeBannerState: SuccessfulMergeBannerState
+
   /** Whether we should show a confirmation dialog */
   readonly askForConfirmationOnRepositoryRemoval: boolean
 
@@ -194,121 +182,6 @@ export interface IAppState {
   /** The currently selected appearance (aka theme) */
   readonly selectedTheme: ApplicationTheme
 }
-
-export enum PopupType {
-  RenameBranch = 1,
-  DeleteBranch,
-  ConfirmDiscardChanges,
-  Preferences,
-  MergeBranch,
-  RepositorySettings,
-  AddRepository,
-  CreateRepository,
-  CloneRepository,
-  CreateBranch,
-  SignIn,
-  About,
-  InstallGit,
-  PublishRepository,
-  Acknowledgements,
-  UntrustedCertificate,
-  RemoveRepository,
-  TermsAndConditions,
-  PushBranchCommits,
-  CLIInstalled,
-  GenericGitAuthentication,
-  ExternalEditorFailed,
-  OpenShellFailed,
-  InitializeLFS,
-  LFSAttributeMismatch,
-  UpstreamAlreadyExists,
-  ReleaseNotes,
-  DeletePullRequest,
-  MergeConflicts,
-}
-
-export type Popup =
-  | { type: PopupType.RenameBranch; repository: Repository; branch: Branch }
-  | {
-      type: PopupType.DeleteBranch
-      repository: Repository
-      branch: Branch
-      existsOnRemote: boolean
-    }
-  | {
-      type: PopupType.ConfirmDiscardChanges
-      repository: Repository
-      files: ReadonlyArray<WorkingDirectoryFileChange>
-      showDiscardChangesSetting?: boolean
-      discardingAllChanges?: boolean
-    }
-  | { type: PopupType.Preferences; initialSelectedTab?: PreferencesTab }
-  | {
-      type: PopupType.MergeBranch
-      repository: Repository
-      branch?: Branch
-    }
-  | { type: PopupType.RepositorySettings; repository: Repository }
-  | { type: PopupType.AddRepository; path?: string }
-  | { type: PopupType.CreateRepository; path?: string }
-  | {
-      type: PopupType.CloneRepository
-      initialURL: string | null
-    }
-  | {
-      type: PopupType.CreateBranch
-      repository: Repository
-      initialName?: string
-    }
-  | { type: PopupType.SignIn }
-  | { type: PopupType.About }
-  | { type: PopupType.InstallGit; path: string }
-  | { type: PopupType.PublishRepository; repository: Repository }
-  | { type: PopupType.Acknowledgements }
-  | {
-      type: PopupType.UntrustedCertificate
-      certificate: Electron.Certificate
-      url: string
-    }
-  | { type: PopupType.RemoveRepository; repository: Repository }
-  | { type: PopupType.TermsAndConditions }
-  | {
-      type: PopupType.PushBranchCommits
-      repository: Repository
-      branch: Branch
-      unPushedCommits?: number
-    }
-  | { type: PopupType.CLIInstalled }
-  | {
-      type: PopupType.GenericGitAuthentication
-      hostname: string
-      retryAction: RetryAction
-    }
-  | {
-      type: PopupType.ExternalEditorFailed
-      message: string
-      suggestAtom?: boolean
-      openPreferences?: boolean
-    }
-  | { type: PopupType.OpenShellFailed; message: string }
-  | { type: PopupType.InitializeLFS; repositories: ReadonlyArray<Repository> }
-  | { type: PopupType.LFSAttributeMismatch }
-  | {
-      type: PopupType.UpstreamAlreadyExists
-      repository: Repository
-      existingRemote: IRemote
-    }
-  | {
-      type: PopupType.ReleaseNotes
-      newRelease: ReleaseSummary
-    }
-  | {
-      type: PopupType.DeletePullRequest
-      repository: Repository
-      branch: Branch
-      pullRequest: PullRequest
-    }
-  | { type: PopupType.MergeConflicts; repository: Repository }
 
 export enum FoldoutType {
   Repository,
@@ -346,6 +219,13 @@ export type Foldout =
 export enum RepositorySectionTab {
   Changes,
   History,
+}
+
+/**
+ * Stores information about a merge conflict when it occurs
+ */
+interface IConflictState {
+  readonly branch: Branch
 }
 
 export interface IRepositoryState {
@@ -421,115 +301,6 @@ export interface IRepositoryState {
   readonly revertProgress: IRevertProgress | null
 }
 
-export type Progress =
-  | IGenericProgress
-  | ICheckoutProgress
-  | IFetchProgress
-  | IPullProgress
-  | IPushProgress
-  | IRevertProgress
-
-/**
- * Base interface containing all the properties that progress events
- * need to support.
- */
-interface IProgress {
-  /**
-   * The overall progress of the operation, represented as a fraction between
-   * 0 and 1.
-   */
-  readonly value: number
-
-  /**
-   * An informative text for user consumption indicating the current operation
-   * state. This will be high level such as 'Pushing origin' or
-   * 'Fetching upstream' and will typically persist over a number of progress
-   * events. For more detailed information about the progress see
-   * the description field
-   */
-  readonly title: string
-
-  /**
-   * An informative text for user consumption. In the case of git progress this
-   * will usually be the last raw line of output from git.
-   */
-  readonly description?: string
-}
-
-/**
- * An object describing progression of an operation that can't be
- * directly mapped or attributed to either one of the more specific
- * progress events (Fetch, Checkout etc). An example of this would be
- * our own refreshing of internal repository state that takes part
- * after fetch, push and pull.
- */
-export interface IGenericProgress extends IProgress {
-  kind: 'generic'
-}
-
-/**
- * An object describing the progression of a branch checkout operation
- */
-export interface ICheckoutProgress extends IProgress {
-  kind: 'checkout'
-
-  /** The branch that's currently being checked out */
-  readonly targetBranch: string
-}
-
-/**
- * An object describing the progression of a fetch operation
- */
-export interface IFetchProgress extends IProgress {
-  kind: 'fetch'
-
-  /**
-   * The remote that's being fetched
-   */
-  readonly remote: string
-}
-
-/**
- * An object describing the progression of a pull operation
- */
-export interface IPullProgress extends IProgress {
-  kind: 'pull'
-
-  /**
-   * The remote that's being pulled from
-   */
-  readonly remote: string
-}
-
-/**
- * An object describing the progression of a pull operation
- */
-export interface IPushProgress extends IProgress {
-  kind: 'push'
-
-  /**
-   * The remote that's being pushed to
-   */
-  readonly remote: string
-
-  /**
-   * The branch that's being pushed
-   */
-  readonly branch: string
-}
-
-/**
- * An object describing the progression of a fetch operation
- */
-export interface ICloneProgress extends IProgress {
-  kind: 'clone'
-}
-
-/** An object describing the progression of a revert operation. */
-export interface IRevertProgress extends IProgress {
-  kind: 'revert'
-}
-
 export interface IBranchesState {
   /**
    * The current tip of HEAD, either a branch, a commit (if HEAD is
@@ -593,12 +364,6 @@ export interface IChangesState {
 
   readonly diff: IDiff | null
 
-  /**
-   * The commit message to use based on the context of the repository, e.g., the
-   * message from a recently undone commit.
-   */
-  readonly contextualCommitMessage: ICommitMessage | null
-
   /** The commit message for a work-in-progress commit in the changes view. */
   readonly commitMessage: ICommitMessage | null
 
@@ -616,12 +381,33 @@ export interface IChangesState {
    * the user has chosen to do so.
    */
   readonly coAuthors: ReadonlyArray<IAuthor>
+
+  /**
+   * Stores information about a merge conflict when it occurs
+   *
+   * The absence of a value means there is no merge conflict
+   */
+  readonly conflictState: IConflictState | null
 }
 
-export enum ComparisonView {
-  None = 'none',
-  Ahead = 'ahead',
-  Behind = 'behind',
+/**
+ * This represents the various states the History tab can be in.
+ *
+ * By default, it should show the history of the current branch.
+ */
+export enum HistoryTabMode {
+  History = 'History',
+  Compare = 'Compare',
+}
+
+/**
+ * This represents whether the compare tab is currently viewing the
+ * commits ahead or behind when merging some other branch into your
+ * current branch.
+ */
+export enum ComparisonMode {
+  Ahead = 'Ahead',
+  Behind = 'Behind',
 }
 
 /**
@@ -629,7 +415,7 @@ export enum ComparisonView {
  * branch.
  */
 export interface IDisplayHistory {
-  readonly kind: ComparisonView.None
+  readonly kind: HistoryTabMode.History
 }
 
 /**
@@ -637,8 +423,10 @@ export interface IDisplayHistory {
  * branch as the base branch.
  */
 export interface ICompareBranch {
+  readonly kind: HistoryTabMode.Compare
+
   /** The chosen comparison mode determines which commits to show */
-  readonly kind: ComparisonView.Ahead | ComparisonView.Behind
+  readonly comparisonMode: ComparisonMode.Ahead | ComparisonMode.Behind
 
   /** The branch to compare against the base branch */
   readonly comparisonBranch: Branch
@@ -662,6 +450,9 @@ export interface ICompareState {
 
   /** The text entered into the compare branch filter text box */
   readonly filterText: string
+
+  /** The SHA associated with the most recent history state */
+  readonly tip: string | null
 
   /** The SHAs of commits to render in the compare list */
   readonly commitSHAs: ReadonlyArray<string>
@@ -719,22 +510,22 @@ export type MergeResultStatus =
   | { kind: MergeResultKind.Clean }
   | { kind: MergeResultKind.Invalid }
 
-export enum CompareActionKind {
-  History = 'History',
-  Branch = 'Branch',
+export interface IViewHistory {
+  readonly kind: HistoryTabMode.History
 }
 
 export interface ICompareToBranch {
-  readonly kind: CompareActionKind.Branch
+  readonly kind: HistoryTabMode.Compare
   readonly branch: Branch
-  readonly mode: ComparisonView.Ahead | ComparisonView.Behind
+  readonly comparisonMode: ComparisonMode.Ahead | ComparisonMode.Behind
 }
 
 /**
  * An action to send to the application store to update the compare state
  */
-export type CompareAction =
-  | {
-      readonly kind: CompareActionKind.History
-    }
-  | ICompareToBranch
+export type CompareAction = IViewHistory | ICompareToBranch
+
+export type SuccessfulMergeBannerState = {
+  currentBranch: string
+  theirBranch: string
+} | null

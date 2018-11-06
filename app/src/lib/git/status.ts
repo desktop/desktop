@@ -6,6 +6,7 @@ import {
   AppFileStatus,
   FileEntry,
   GitStatusEntry,
+  ConflictStatus,
 } from '../../models/status'
 import {
   parsePorcelainStatus,
@@ -142,7 +143,7 @@ export async function getStatus(
     es => mapStatus(es.statusCode).kind === 'conflicted'
   )
     ? await getFilesWithConflictMarkers(repository.path)
-    : new Set<string>()
+    : new Map<string, number>()
 
   // Map of files keyed on their paths.
   const files = entries.reduce(
@@ -185,7 +186,7 @@ export async function getStatus(
 function buildStatusMap(
   files: Map<string, WorkingDirectoryFileChange>,
   entry: IStatusEntry,
-  filesWithConflictMarkers: Set<string>
+  filesWithConflictMarkers: Map<string, number>
 ): Map<string, WorkingDirectoryFileChange> {
   const status = mapStatus(entry.statusCode)
 
@@ -209,6 +210,11 @@ function buildStatusMap(
     files.delete(entry.path)
   }
 
+  // TODO: we need to differentiate here between conflicted text files (that
+  //       we can inspect and check if they have been resolved) and binary files
+  //       (that we cannot inspect, and we need to do our own inspection and
+  //       defer to the index state)
+
   // for now we just poke at the existing summary
   const summary = convertToAppStatus(
     status,
@@ -216,13 +222,21 @@ function buildStatusMap(
   )
   const selection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
 
+  // TODO: detect that a binary file is conflicted and generate a different
+  //       `conflictStatus` value
+  const conflictMarkerCount = filesWithConflictMarkers.get(entry.path)
+
+  const conflictStatus: ConflictStatus | null =
+    conflictMarkerCount == null ? null : { kind: 'text', conflictMarkerCount }
+
   files.set(
     entry.path,
     new WorkingDirectoryFileChange(
       entry.path,
       summary,
       selection,
-      entry.oldPath
+      entry.oldPath,
+      conflictStatus
     )
   )
   return files

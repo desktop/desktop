@@ -71,10 +71,17 @@ export class PushBranchCommits extends React.Component<
   IPushBranchCommitsProps,
   IPushBranchCommitsState
 > {
+  private dialogButtonRef: HTMLButtonElement | null = null
   public constructor(props: IPushBranchCommitsProps) {
     super(props)
 
     this.state = { isPushingOrPublishing: false }
+  }
+
+  public componentDidMount() {
+    if (this.dialogButtonRef) {
+      this.dialogButtonRef.focus() // Focuses on the Publish Branch button when the push-branch-commits dialog opens
+    }
   }
 
   public render() {
@@ -93,6 +100,10 @@ export class PushBranchCommits extends React.Component<
         <DialogFooter>{this.renderButtonGroup()}</DialogFooter>
       </Dialog>
     )
+  }
+
+  private onDialogOpenRef = (element: HTMLButtonElement | null) => {
+    this.dialogButtonRef = element
   }
 
   private renderDialogContent() {
@@ -135,7 +146,11 @@ export class PushBranchCommits extends React.Component<
     if (renderPublishView(this.props.unPushedCommits)) {
       return (
         <ButtonGroup>
-          <Button type="submit" onClick={this.onPushOrPublishButtonClick}>
+          <Button
+            type="submit"
+            onClick={this.onPushOrPublishButtonClick}
+            onButtonRef={this.onDialogOpenRef}
+          >
             {__DARWIN__ ? 'Publish Branch' : 'Publish branch'}
           </Button>
           <Button onClick={this.cancel}>Cancel</Button>

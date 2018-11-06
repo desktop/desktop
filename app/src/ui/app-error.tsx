@@ -9,7 +9,7 @@ import {
 } from './app'
 import { GitError } from '../lib/git/core'
 import { GitError as GitErrorType } from 'dugite'
-import { Popup, PopupType } from '../lib/app-state'
+import { Popup, PopupType } from '../models/popup'
 import { CSSTransitionGroup } from 'react-transition-group'
 
 interface IAppErrorProps {
