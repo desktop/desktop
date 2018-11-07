@@ -7,6 +7,7 @@ import { IChangesState, IConflictState } from '../../app-state'
 import { DiffSelectionType } from '../../../models/diff'
 import { caseInsensitiveCompare } from '../../compare'
 import { StatsStore } from '../../stats'
+import { IStatsStore } from '../../stats/stats-store'
 
 // TODO: I want to use generics here so I don't need to hard-code the keys
 
@@ -101,7 +102,7 @@ function getConflictState(status: IStatusResult): IConflictState | null {
 
 export function updateConflictState(
   status: IStatusResult,
-  statsStore: StatsStore,
+  statsStore: IStatsStore,
   state: IChangesState
 ): Pick<IChangesState, 'conflictState'> {
   const prevConflictState = state.conflictState
