@@ -223,8 +223,9 @@ export enum RepositorySectionTab {
 /**
  * Stores information about a merge conflict when it occurs
  */
-interface IConflictState {
-  readonly branch: Branch
+export interface IConflictState {
+  readonly currentBranch: string
+  readonly currentTip: string
 }
 
 export interface IRepositoryState {
@@ -525,6 +526,6 @@ export interface ICompareToBranch {
 export type CompareAction = IViewHistory | ICompareToBranch
 
 export type SuccessfulMergeBannerState = {
-  currentBranch: string
-  theirBranch: string
+  ourBranch: string
+  theirBranch?: string
 } | null

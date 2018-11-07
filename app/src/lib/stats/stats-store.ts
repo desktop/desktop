@@ -711,7 +711,7 @@ export class StatsStore {
   }
 
   /** Record when a conflicted merge was successfully completed by the user */
-  public async recordMergeSuccesAfterConflicts(): Promise<void> {
+  public async recordMergeSuccessAfterConflicts(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       mergeSuccessAfterConflictsCount: m.mergeSuccessAfterConflictsCount + 1,
     }))

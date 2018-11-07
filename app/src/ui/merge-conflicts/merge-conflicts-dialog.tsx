@@ -22,7 +22,7 @@ import { findEditorOrDefault } from '../../lib/editors'
 interface IMergeConflictsDialogProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
-  readonly status: WorkingDirectoryStatus
+  readonly workingDirectory: WorkingDirectoryStatus
   readonly onDismissed: () => void
   readonly openFileInExternalEditor: (path: string) => void
   readonly selectedExternalEditor?: string
@@ -101,7 +101,11 @@ export class MergeConflictsDialog extends React.Component<
   private onSubmit = async () => {
     await this.props.dispatcher.createMergeCommit(
       this.props.repository,
-      this.props.status.files
+      this.props.workingDirectory.files,
+      {
+        ourBranch: this.props.ourBranch,
+        theirBranch: this.props.theirBranch,
+      }
     )
     this.props.dispatcher.setCommitMessage(this.props.repository, null)
     this.props.dispatcher.changeRepositorySection(
@@ -115,7 +119,7 @@ export class MergeConflictsDialog extends React.Component<
    *  dismisses the modal and shows the abort merge warning modal
    */
   private onCancel = async () => {
-    const anyResolvedFiles = getUnmergedFiles(this.props.status).some(
+    const anyResolvedFiles = getUnmergedFiles(this.props.workingDirectory).some(
       f => f.status === AppFileStatus.Resolved
     )
     if (!anyResolvedFiles) {
@@ -262,7 +266,7 @@ export class MergeConflictsDialog extends React.Component<
   }
 
   public render() {
-    const unmergedFiles = getUnmergedFiles(this.props.status)
+    const unmergedFiles = getUnmergedFiles(this.props.workingDirectory)
     const conflictedFilesCount = unmergedFiles.filter(
       f => f.status === AppFileStatus.Conflicted
     ).length

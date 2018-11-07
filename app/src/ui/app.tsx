@@ -1339,15 +1339,13 @@ export class App extends React.Component<IAppProps, IAppState> {
           ) {
             return null
           }
-          const workingDirectoryStatus =
-            selectedState.state.changesState.workingDirectory
-          // double check that this repository is actually in merge
-          const isInConflictedMerge = workingDirectoryStatus.files.some(
-            file =>
-              file.status === AppFileStatus.Conflicted ||
-              file.status === AppFileStatus.Resolved
-          )
-          if (!isInConflictedMerge) {
+
+          const {
+            workingDirectory,
+            conflictState,
+          } = selectedState.state.changesState
+
+          if (conflictState === null) {
             return null
           }
 
@@ -1355,7 +1353,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             <MergeConflictsDialog
               dispatcher={this.props.dispatcher}
               repository={popup.repository}
-              status={workingDirectoryStatus}
+              workingDirectory={workingDirectory}
               onDismissed={this.onPopupDismissed}
               openFileInExternalEditor={this.openFileInExternalEditor}
               selectedExternalEditor={this.state.selectedExternalEditor}
@@ -1787,7 +1785,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
     return (
       <SuccessfulMerge
-        currentBranch={successfulMergeBannerState.currentBranch}
+        ourBranch={successfulMergeBannerState.ourBranch}
         theirBranch={successfulMergeBannerState.theirBranch}
         onDismissed={this.onSuccessfulMergeDismissed}
       />
