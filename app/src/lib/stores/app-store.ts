@@ -1581,7 +1581,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         // the repository is no longer conflicted, what do we think happened?
         if (tipChanged) {
           // the tip has changed -> merge conflict created
-          this.statsStore.recordMergeSuccesAfterConflicts()
+          this.statsStore.recordMergeSuccessAfterConflicts()
         } else {
           // the tip has not changed -> merge conflict aborted
           this.statsStore.recordMergeAbortedAfterConflicts()
