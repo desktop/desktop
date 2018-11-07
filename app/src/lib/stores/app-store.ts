@@ -4016,35 +4016,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     return Promise.resolve()
   }
-
-  /**
-   * Sets conflict state with a non-null value
-   *
-   * The presence of a non-null value signifies
-   * that the repository is in a conflicted state
-   */
-  public _mergeConflictDetected() {
-    const selection = this.getSelectedState()
-
-    if (selection === null || selection.type !== SelectionType.Repository) {
-      return
-    }
-
-    const { tip } = selection.state.branchesState
-
-    if (tip.kind !== TipState.Valid) {
-      return
-    }
-
-    const repository = selection.repository
-
-    this.repositoryStateCache.updateChangesState(repository, () => ({
-      conflictState: {
-        branch: tip.branch,
-      },
-    }))
-    this.emitUpdate()
-  }
 }
 
 /**
