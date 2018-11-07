@@ -90,9 +90,11 @@ dialog#merge-conflicts-list {
   .all-conflicts-resolved {
     display: flex;
     flex-flow: row nowrap;
+    padding: var(--spacing) 0 var(--spacing-double);
 
     .message {
       padding-left: var(--spacing);
+      padding-top: var(--spacing-third);
     }
   }
 
