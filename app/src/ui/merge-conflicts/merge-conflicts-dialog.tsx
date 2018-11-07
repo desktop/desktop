@@ -246,19 +246,23 @@ export class MergeConflictsDialog extends React.Component<
     return <h3 className="summary">{message}</h3>
   }
 
+  private renderAllResolved() {
+    return (
+      <div className="all-conflicts-resolved">
+        <div className="green-circle">
+          <Octicon symbol={OcticonSymbol.check} />
+        </div>
+        <div className="message">All conflicts resolved</div>
+      </div>
+    )
+  }
+
   private renderContent(
     unmergedFiles: ReadonlyArray<WorkingDirectoryFileChange>,
     conflictedFilesCount: number
   ): JSX.Element {
     if (unmergedFiles.length === 0) {
-      return (
-        <div className="all-conflicts-resolved">
-          <div className="green-circle">
-            <Octicon symbol={OcticonSymbol.check} />
-          </div>
-          <div className="message">All conflicts resolved</div>
-        </div>
-      )
+      return this.renderAllResolved()
     }
 
     return (
