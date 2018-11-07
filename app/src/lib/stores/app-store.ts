@@ -1564,26 +1564,28 @@ export class AppStore extends TypedBaseStore<IAppState> {
         currentBranchName != null &&
         previousBranchName !== currentBranchName
 
-      // The branch name has changed, so the merge must have been aborted
+      // The branch name has changed -> the merge must have been aborted
       if (branchNameChanged) {
         this.statsStore.recordMergeAbortedAfterConflicts()
+        return { conflictState: newConflictState }
       }
 
       const previousTip =
         prevConflictState != null ? prevConflictState.currentTip : null
-      const currentTip =
-        newConflictState != null ? newConflictState.currentTip : null
+      const currentTip = status.currentTip
 
       const tipChanged =
         previousTip != null && currentTip != null && previousTip !== currentTip
 
-      // TODO: what are we actually trying to do?
-
-      if (!tipChanged) {
-        // if the tip is the same, no merge commit was created
-        this.statsStore.recordMergeAbortedAfterConflicts()
-      } else {
-        this.statsStore.recordMergeSuccesAfterConflicts()
+      if (prevConflictState != null && newConflictState == null) {
+        // the repository is no longer conflicted, what do we think happened?
+        if (tipChanged) {
+          // the tip has changed -> merge conflict created
+          this.statsStore.recordMergeSuccesAfterConflicts()
+        } else {
+          // the tip has not changed -> merge conflict aborted
+          this.statsStore.recordMergeAbortedAfterConflicts()
+        }
       }
 
       return { conflictState: newConflictState }
