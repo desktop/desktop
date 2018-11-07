@@ -1,7 +1,10 @@
-import { updateConflictState } from '../../../src/lib/stores/helpers/app-store-update-actions'
-import { IStatusResult } from '../../../src/lib/git'
-import { IChangesState } from '../../../src/lib/app-state'
-import { WorkingDirectoryStatus } from '../../../src/models/status'
+import {
+  updateConflictState,
+  updateChangedFiles,
+} from '../../../../src/lib/stores/updates/changes-state'
+import { IStatusResult } from '../../../../src/lib/git'
+import { IChangesState } from '../../../../src/lib/app-state'
+import { WorkingDirectoryStatus } from '../../../../src/models/status'
 
 const baseChangesState: IChangesState = {
   workingDirectory: WorkingDirectoryStatus.fromFiles([]),
@@ -20,6 +23,16 @@ const baseStatus: IStatusResult = {
 }
 
 describe('AppStore Update Actions', () => {
+  describe('updateChangedFiles', () => {
+    it('does something', () => {
+      const prevState = { ...baseChangesState }
+      const status = { ...baseStatus }
+      const { diff } = updateChangedFiles(status, false, prevState)
+
+      expect(diff).toBeNull()
+    })
+  })
+
   describe('updateConflictState', () => {
     const statsStore = {
       recordMergeAbortedAfterConflicts: jest.fn(),
