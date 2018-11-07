@@ -75,8 +75,15 @@ dialog#merge-conflicts-list {
     .unmerged-file-status-resolved .file-conflicts-status {
       color: $green;
     }
-    .unmerged-file-status-conflicts .file-conflicts-status {
-      color: $orange;
+
+    .unmerged-file-status-conflicts {
+      .file-conflicts-status {
+        color: $orange;
+      }
+
+      .command-line-hint {
+        color: $gray;
+      }
     }
   }
 

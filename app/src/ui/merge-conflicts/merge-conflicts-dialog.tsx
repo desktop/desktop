@@ -17,6 +17,7 @@ import { PathText } from '../lib/path-text'
 import { DialogHeader } from '../dialog/header'
 import { ConflictFileStatus } from '../../models/conflicts'
 import { LinkButton } from '../lib/link-button'
+import { assertNever } from '../../lib/fatal-error'
 
 interface IMergeConflictsDialogProps {
   readonly dispatcher: Dispatcher
@@ -152,28 +153,45 @@ export class MergeConflictsDialog extends React.Component<
     editorName: string | undefined,
     onOpenEditorClick: () => void
   ): JSX.Element | null {
-    if (conflictStatus.kind === 'text') {
-      const humanReadableConflicts = this.calculateConflicts(
-        conflictStatus.conflictMarkerCount
-      )
-      const message =
-        humanReadableConflicts === 1
-          ? `1 conflict`
-          : `${humanReadableConflicts} conflicts`
-      return (
-        <li className="unmerged-file-status-conflicts">
-          <Octicon symbol={OcticonSymbol.fileCode} className="file-octicon" />
-          <div className="column-left">
-            <PathText path={path} availableWidth={200} />
-            <div className="file-conflicts-status">{message}</div>
-          </div>
-          <Button onClick={onOpenEditorClick}>
-            {this.editorButtonString(editorName)}
-          </Button>
-        </li>
-      )
+    switch (conflictStatus.kind) {
+      case 'text':
+        const humanReadableConflicts = this.calculateConflicts(
+          conflictStatus.conflictMarkerCount
+        )
+        const message =
+          humanReadableConflicts === 1
+            ? `1 conflict`
+            : `${humanReadableConflicts} conflicts`
+        return (
+          <li className="unmerged-file-status-conflicts">
+            <Octicon symbol={OcticonSymbol.fileCode} className="file-octicon" />
+            <div className="column-left">
+              <PathText path={path} availableWidth={200} />
+              <div className="file-conflicts-status">{message}</div>
+            </div>
+            <Button onClick={onOpenEditorClick}>
+              {this.editorButtonString(editorName)}
+            </Button>
+          </li>
+        )
+      case 'binary':
+        return (
+          <li className="unmerged-file-status-conflicts">
+            <Octicon symbol={OcticonSymbol.fileCode} className="file-octicon" />
+            <div>
+              <PathText path={path} availableWidth={400} />
+              <div className="command-line-hint">
+                Use command line to resolve binary files
+              </div>
+            </div>
+          </li>
+        )
+      default:
+        return assertNever(
+          conflictStatus,
+          `Unknown conflict found: ${JSON.stringify(conflictStatus)}`
+        )
     }
-    return null
   }
 
   private renderUnmergedFile(
