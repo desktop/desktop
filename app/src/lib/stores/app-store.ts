@@ -271,6 +271,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private selectedExternalEditor?: ExternalEditor
 
+  private resolvedExternalEditor: ExternalEditor | null = null
+
   /** The user's preferred shell. */
   private selectedShell = DefaultShell
 
@@ -499,6 +501,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       imageDiffType: this.imageDiffType,
       selectedShell: this.selectedShell,
       repositoryFilterText: this.repositoryFilterText,
+      resolvedExternalEditor: this.resolvedExternalEditor,
       selectedCloneRepositoryTab: this.selectedCloneRepositoryTab,
       selectedBranchesTab: this.selectedBranchesTab,
       selectedTheme: this.selectedTheme,

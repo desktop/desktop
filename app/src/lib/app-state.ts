@@ -163,6 +163,16 @@ export interface IAppState {
   /** The external editor to use when opening repositories */
   readonly selectedExternalEditor?: ExternalEditor
 
+  /**
+   * A cached entry representing an external editor found on the user's machine:
+   *
+   *  - If the `selectedExternalEditor` can be found, choose that
+   *  - Otherwise, if any editors found, this will be set to the first value
+   *    based on the search order in `app/src/lib/editors/{platform}.ts`
+   *  - If no editors found, this will remain `null`
+   */
+  readonly resolvedExternalEditor: ExternalEditor | null
+
   /** What type of visual diff mode we should use to compare images */
   readonly imageDiffType: ImageDiffType
 

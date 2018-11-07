@@ -17,7 +17,6 @@ import { PathText } from '../lib/path-text'
 import { DialogHeader } from '../dialog/header'
 import { ConflictFileStatus } from '../../models/conflicts'
 import { LinkButton } from '../lib/link-button'
-import { findEditorOrDefault } from '../../lib/editors'
 
 interface IMergeConflictsDialogProps {
   readonly dispatcher: Dispatcher
@@ -25,15 +24,11 @@ interface IMergeConflictsDialogProps {
   readonly workingDirectory: WorkingDirectoryStatus
   readonly onDismissed: () => void
   readonly openFileInExternalEditor: (path: string) => void
-  readonly selectedExternalEditor?: string
+  readonly resolvedExternalEditor: string | null
   readonly openRepositoryInShell: (repository: Repository) => void
   readonly ourBranch: string
   /* `undefined` when we didn't know the branch at the beginning of this flow */
   readonly theirBranch?: string
-}
-
-interface IMergeConflictsDialogState {
-  readonly foundExternalEditor: string | null
 }
 
 /**
@@ -199,9 +194,9 @@ export class MergeConflictsDialog extends React.Component<
           ? `1 conflict`
           : `${humanReadableConflicts} conflicts`
 
-      const disabled = this.state.foundExternalEditor === null
+      const disabled = this.props.resolvedExternalEditor === null
 
-      const tooltip = editorButtonTooltip(this.state.foundExternalEditor)
+      const tooltip = editorButtonTooltip(this.props.resolvedExternalEditor)
 
       return (
         <li className="unmerged-file-status-conflicts">
@@ -215,7 +210,7 @@ export class MergeConflictsDialog extends React.Component<
             disabled={disabled}
             tooltip={tooltip}
           >
-            {editorButtonString(this.state.foundExternalEditor)}
+            {editorButtonString(this.props.resolvedExternalEditor)}
           </Button>
         </li>
       )
