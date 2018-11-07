@@ -4,15 +4,18 @@
       #error-page {
         margin: 10px;
         font-size: 12px;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", Arial, sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
+          'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans',
+          'Helvetica Neue', Arial, sans-serif;
       }
       .stack {
-        font-family: Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-family: Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+          monospace;
       }
     </style>
   </head>
   <body>
-    <div id='error-page'>
+    <div id="error-page">
       <h1>GitHub Desktop failed to launch &#x1F4A5;</h1>
 
       <p>
@@ -21,16 +24,20 @@
       </p>
 
       <p>
-        Unfortunately this isn't something that can be forwarded to the development
-        team to triage.
+        Unfortunately this isn't something that can be forwarded to the
+        development team to triage.
       </p>
 
       <p>
-        Would you mind opening an issue on the GitHub Desktop <a onclick='return onClick(event);' href='https://github.com/desktop/desktop/issues'>issue tracker</a>?
-        The details you need are included below:
+        Would you mind opening an issue on the GitHub Desktop
+        <a
+          onclick="return onClick(event);"
+          href="https://github.com/desktop/desktop/issues"
+          >issue tracker</a
+        >? The details you need are included below:
       </p>
 
-      <!--{{content}}-->
+      <!-- {{content}} -->
     </div>
     <script>
       function onClick(e) {
