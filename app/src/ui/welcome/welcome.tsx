@@ -37,11 +37,11 @@ const WelcomeRightImageUri = encodePathAsUrl(
   __dirname,
   'static/welcome-illustration-right.svg'
 )
-const WelcomeLeftTopImageUri = encodePathAsUrl(
+export const WelcomeLeftTopImageUri = encodePathAsUrl(
   __dirname,
   'static/welcome-illustration-left-top.svg'
 )
-const WelcomeLeftBottomImageUri = encodePathAsUrl(
+export const WelcomeLeftBottomImageUri = encodePathAsUrl(
   __dirname,
   'static/welcome-illustration-left-bottom.svg'
 )
