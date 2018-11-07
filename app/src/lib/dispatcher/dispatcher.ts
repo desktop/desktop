@@ -1341,18 +1341,4 @@ export class Dispatcher {
   public recordAddExistingRepository() {
     this.statsStore.recordAddExistingRepository()
   }
-
-  /**
-   * Increments the `recordMergeSuccesfulAfterConflicts` metric
-   */
-  public recordMergeSuccesfulAfterConflicts() {
-    return this.statsStore.recordMergeSuccesAfterConflicts()
-  }
-
-  /**
-   * Increments the `recordMergeAbortedAfterConflicts` metric
-   */
-  public recordMergeAbortedAfterConflicts() {
-    return this.statsStore.recordMergeAbortedAfterConflicts()
-  }
 }
