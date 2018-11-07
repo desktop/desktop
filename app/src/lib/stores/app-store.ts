@@ -3152,7 +3152,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     if (mergeSuccessful && tip.kind === TipState.Valid) {
       this._setSuccessfulMergeBannerState({
-        currentBranch: tip.branch.name,
+        ourBranch: tip.branch.name,
         theirBranch: branch,
       })
     }
@@ -3170,9 +3170,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _createMergeCommit(
     repository: Repository,
     files: ReadonlyArray<WorkingDirectoryFileChange>
-  ): Promise<void> {
+  ): Promise<string | undefined> {
     const gitStore = this.gitStoreCache.get(repository)
-    await gitStore.performFailableOperation(() =>
+    return await gitStore.performFailableOperation(() =>
       createMergeCommit(repository, files)
     )
   }

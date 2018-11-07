@@ -47,7 +47,11 @@ export class MergeConflictsDialog extends React.Component<
   private onSubmit = async () => {
     await this.props.dispatcher.createMergeCommit(
       this.props.repository,
-      this.props.status.files
+      this.props.status.files,
+      {
+        ourBranch: this.props.ourBranch,
+        theirBranch: this.props.theirBranch,
+      }
     )
     this.props.dispatcher.setCommitMessage(this.props.repository, null)
     this.props.dispatcher.changeRepositorySection(
