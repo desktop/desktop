@@ -1548,16 +1548,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.repositoryStateCache.updateChangesState(repository, state => {
       const prevConflictState = state.conflictState
-      const newConflictStatus = getConflictStatus(status)
+      const newConflictState = getConflictState(status)
 
-      if (prevConflictState == null && newConflictStatus == null) {
+      if (prevConflictState == null && newConflictState == null) {
         return { conflictState: null }
       }
 
       const previousBranchName =
         prevConflictState != null ? prevConflictState.currentBranch : null
       const currentBranchName =
-        newConflictStatus != null ? newConflictStatus.currentBranch : null
+        newConflictState != null ? newConflictState.currentBranch : null
 
       const branchNameChanged =
         previousBranchName != null &&
@@ -1572,7 +1572,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const previousTip =
         prevConflictState != null ? prevConflictState.currentTip : null
       const currentTip =
-        newConflictStatus != null ? newConflictStatus.currentTip : null
+        newConflictState != null ? newConflictState.currentTip : null
 
       const tipChanged =
         previousTip != null && currentTip != null && previousTip !== currentTip
@@ -1586,7 +1586,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         this.statsStore.recordMergeSuccesAfterConflicts()
       }
 
-      return { conflictState: newConflictStatus }
+      return { conflictState: newConflictState }
     })
 
     this._triggerMergeConflictsFlow(repository)
@@ -4048,17 +4048,13 @@ function getBehindOrDefault(aheadBehind: IAheadBehind | null): number {
   return aheadBehind.behind
 }
 
-function getConflictStatus(status: IStatusResult): IConflictState | null {
+function getConflictState(status: IStatusResult): IConflictState | null {
   if (!status.mergeHeadFound) {
     return null
   }
 
   const { currentBranch, currentTip } = status
-  if (currentBranch == null) {
-    return null
-  }
-
-  if (currentTip == null) {
+  if (currentBranch == null || currentTip == null) {
     return null
   }
 
