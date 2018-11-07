@@ -38,7 +38,7 @@ dialog#merge-conflicts-list {
     }
 
     li:last-of-type {
-      margin-bottom: calc(var(--spacing) * 5);
+      margin-bottom: calc(var(--spacing) * 2);
     }
 
     li.unmerged-file-status-resolved,
@@ -66,6 +66,7 @@ dialog#merge-conflicts-list {
       button:last-child,
       .green-circle:last-child {
         margin-left: auto;
+        margin-top: var(--spacing);
         flex-shrink: 0;
         flex: 0 1 auto;
       }

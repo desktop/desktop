@@ -39,7 +39,7 @@ export class SuccessfulMerge extends React.Component<
   public componentDidMount = () => {
     this.timeoutId = setTimeout(() => {
       this.dismiss()
-    }, 3250)
+    }, 5000)
   }
 
   public componentWillUnmount = () => {
