@@ -1,20 +1,21 @@
 #blank-slate {
   display: flex;
-  padding: var(--spacing);
+  padding: var(--spacing-quint);
   align-items: center;
 
-  .header {
-    max-width: 400px;
-    align-self: center;
+  header {
+    align-self: flex-start;
+    margin-bottom: var(--spacing-quad);
 
-    text-align: center;
-  }
+    h1 {
+      font-size: var(--font-size-xxl);
+      font-weight: var(--font-weight-light);
+    }
 
-  .title {
-    font-size: var(--font-size-md);
-    font-weight: var(--font-weight-semibold);
-    text-align: center;
-    margin-bottom: var(--spacing-double);
+    h1,
+    p {
+      margin: 0;
+    }
   }
 
   .content,
@@ -81,6 +82,30 @@
 
   .callout:not(:last-child) {
     border-right: var(--base-border);
+  }
+
+  .blankslate-graphic-bottom {
+    position: absolute;
+    right: var(--spacing);
+    bottom: var(--spacing);
+
+    width: auto;
+    max-width: 40%;
+    height: 40%;
+    // I hate this but we'll have to live with it for beta.
+    z-index: -1;
+  }
+
+  .blankslate-graphic-top {
+    position: absolute;
+    right: 80px;
+    top: 40px;
+
+    width: auto;
+    max-width: 20%;
+    height: 20%;
+    // I hate this but we'll have to live with it for beta.
+    z-index: -1;
   }
 }
 
