@@ -4048,6 +4048,9 @@ function getBehindOrDefault(aheadBehind: IAheadBehind | null): number {
   return aheadBehind.behind
 }
 
+/**
+ * Convert the received status information into a conflict state
+ */
 function getConflictState(status: IStatusResult): IConflictState | null {
   if (!status.mergeHeadFound) {
     return null
