@@ -252,9 +252,12 @@ export class MergeConflictsDialog extends React.Component<
   ): JSX.Element {
     if (unmergedFiles.length === 0) {
       return (
-        <>
-          <span>All conflicts resolved</span>
-        </>
+        <div className="all-conflicts-resolved">
+          <div className="green-circle">
+            <Octicon symbol={OcticonSymbol.check} />
+          </div>
+          <div className="message">All conflicts resolved</div>
+        </div>
       )
     }
 

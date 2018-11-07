@@ -87,6 +87,15 @@ dialog#merge-conflicts-list {
     }
   }
 
+  .all-conflicts-resolved {
+    display: flex;
+    flex-flow: row nowrap;
+
+    .message {
+      padding-left: var(--spacing);
+    }
+  }
+
   .cli-link {
     a {
       color: $blue;
