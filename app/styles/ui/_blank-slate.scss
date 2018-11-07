@@ -82,24 +82,11 @@
   .callout:not(:last-child) {
     border-right: var(--base-border);
   }
-
-  // Custom image sizing explicitly for the dedicated
-  // blank slate view (a.k.a the no-repositories view).
-  .blankslate-image {
-    max-width: 400px;
-    width: 80%;
-    flex-grow: 0.6;
-    // Background image url is set in react since we need to
-    // calculate it at runtime.
-    background-repeat: no-repeat;
-    background-position: center bottom;
-    background-size: contain;
-  }
 }
 
 // For all views other than the dedicated blank slate
 // view. Yes, this is confusing.
-.ui-view:not(#blank-slate) .blankslate-image {
+.blankslate-image {
   width: 50%;
   min-width: 400px;
   max-width: 800px;
