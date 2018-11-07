@@ -76,18 +76,10 @@ const cancelButtonString = 'Abort merge'
  */
 export class MergeConflictsDialog extends React.Component<
   IMergeConflictsDialogProps,
-  IMergeConflictsDialogState
+  {}
 > {
-  public constructor(props: IMergeConflictsDialogProps) {
-    super(props)
-
-    this.state = { foundExternalEditor: null }
-  }
-
   public async componentDidMount() {
-    const match = await findEditorOrDefault(this.props.selectedExternalEditor)
-    const foundExternalEditor = match != null ? match.editor : null
-    this.setState({ foundExternalEditor })
+    this.props.dispatcher.resolveCurrentEditor()
   }
 
   /**

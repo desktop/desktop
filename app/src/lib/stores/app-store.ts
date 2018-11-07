@@ -4026,6 +4026,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     return Promise.resolve()
   }
+
+  public async _resolveCurrentEditor() {
+    const match = await findEditorOrDefault(this.selectedExternalEditor)
+    const resolvedExternalEditor = match != null ? match.editor : null
+    if (this.resolvedExternalEditor != resolvedExternalEditor) {
+      this.resolvedExternalEditor = resolvedExternalEditor
+      this.emitUpdate()
+    }
+  }
 }
 
 /**
