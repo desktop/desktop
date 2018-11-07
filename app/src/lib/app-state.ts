@@ -223,8 +223,9 @@ export enum RepositorySectionTab {
 /**
  * Stores information about a merge conflict when it occurs
  */
-interface IConflictState {
-  readonly branch: Branch
+export interface IConflictState {
+  readonly currentBranch: string
+  readonly currentTip: string
 }
 
 export interface IRepositoryState {

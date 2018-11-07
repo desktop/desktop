@@ -43,7 +43,6 @@ import {
   CommittedFileChange,
   WorkingDirectoryFileChange,
   WorkingDirectoryStatus,
-  AppFileStatus,
 } from '../../models/status'
 import { TipState } from '../../models/tip'
 import { ICommitMessage } from '../../models/commit-message'
@@ -89,6 +88,7 @@ import {
   MergeResultStatus,
   ComparisonMode,
   SuccessfulMergeBannerState,
+  IConflictState,
 } from '../app-state'
 import { caseInsensitiveCompare } from '../compare'
 import { IGitHubUser } from '../databases/github-user-database'
@@ -1472,68 +1472,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
-  private detectMergeResolution(status: IStatusResult) {
-    const currentBranchName = status.currentBranch
-    if (currentBranchName === undefined) {
-      return
-    }
-
-    const selection = this.getSelectedState()
-    if (selection === null || selection.type !== SelectionType.Repository) {
-      return
-    }
-
-    const { tip } = selection.state.branchesState
-
-    if (tip.kind !== TipState.Valid) {
-      return
-    }
-
-    const repository = selection.repository
-    const repoState = this.repositoryStateCache.get(repository)
-    const { conflictState } = repoState.changesState
-
-    // conflict state being null means that there are no conflicts
-    if (conflictState === null) {
-      return
-    }
-
-    const previousBranch = conflictState.branch
-
-    // The branch name has changed, so the merge must have been aborted
-    if (previousBranch.name !== currentBranchName) {
-      this.statsStore.recordMergeAbortedAfterConflicts()
-      this.repositoryStateCache.updateChangesState(repository, () => ({
-        conflictState: null,
-      }))
-      this.emitUpdate()
-      return
-    }
-
-    // are there files that have a conflicted or _resolved_ status?
-    const workingDirectioryHasConflicts = status.workingDirectory.files.some(
-      file =>
-        file.status === AppFileStatus.Conflicted ||
-        file.status === AppFileStatus.Resolved
-    )
-
-    if (workingDirectioryHasConflicts) {
-      return
-    }
-
-    if (status.currentTip === previousBranch.tip.sha) {
-      // if the tip is the same, no merge commit was created
-      this.statsStore.recordMergeAbortedAfterConflicts()
-    } else {
-      this.statsStore.recordMergeSuccesAfterConflicts()
-    }
-
-    this.repositoryStateCache.updateChangesState(repository, state => ({
-      conflictState: null,
-    }))
-    this.emitUpdate()
-  }
-
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _loadStatus(
     repository: Repository,
@@ -1546,7 +1484,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return false
     }
 
-    this.detectMergeResolution(status)
     this.repositoryStateCache.updateChangesState(repository, state => {
       // Populate a map for all files in the current working directory state
       const filesByID = new Map<string, WorkingDirectoryFileChange>()
@@ -1609,6 +1546,49 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return { workingDirectory, selectedFileIDs, diff }
     })
 
+    this.repositoryStateCache.updateChangesState(repository, state => {
+      const prevConflictState = state.conflictState
+      const newConflictStatus = getConflictStatus(status)
+
+      if (prevConflictState == null && newConflictStatus == null) {
+        return { conflictState: null }
+      }
+
+      const previousBranchName =
+        prevConflictState != null ? prevConflictState.currentBranch : null
+      const currentBranchName =
+        newConflictStatus != null ? newConflictStatus.currentBranch : null
+
+      const branchNameChanged =
+        previousBranchName != null &&
+        currentBranchName != null &&
+        previousBranchName !== currentBranchName
+
+      // The branch name has changed, so the merge must have been aborted
+      if (branchNameChanged) {
+        this.statsStore.recordMergeAbortedAfterConflicts()
+      }
+
+      const previousTip =
+        prevConflictState != null ? prevConflictState.currentTip : null
+      const currentTip =
+        newConflictStatus != null ? newConflictStatus.currentTip : null
+
+      const tipChanged =
+        previousTip != null && currentTip != null && previousTip !== currentTip
+
+      // TODO: what are we actually trying to do?
+
+      if (!tipChanged) {
+        // if the tip is the same, no merge commit was created
+        this.statsStore.recordMergeAbortedAfterConflicts()
+      } else {
+        this.statsStore.recordMergeSuccesAfterConflicts()
+      }
+
+      return { conflictState: newConflictStatus }
+    })
+
     this._triggerMergeConflictsFlow(repository, status)
 
     this.emitUpdate()
@@ -1626,15 +1606,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (!enableMergeConflictsDialog()) {
       return
     }
-    const inConflictedMerge = status.workingDirectory.files.some(f => {
-      return (
-        f.status === AppFileStatus.Conflicted ||
-        f.status === AppFileStatus.Resolved
-      )
-    })
-    if (!inConflictedMerge) {
+
+    if (!status.mergeHeadFound) {
       return
     }
+
     if (status.currentBranch === undefined) {
       return
     }
@@ -4103,4 +4079,24 @@ function getBehindOrDefault(aheadBehind: IAheadBehind | null): number {
   }
 
   return aheadBehind.behind
+}
+
+function getConflictStatus(status: IStatusResult): IConflictState | null {
+  if (!status.mergeHeadFound) {
+    return null
+  }
+
+  const { currentBranch, currentTip } = status
+  if (currentBranch == null) {
+    return null
+  }
+
+  if (currentTip == null) {
+    return null
+  }
+
+  return {
+    currentBranch,
+    currentTip,
+  }
 }

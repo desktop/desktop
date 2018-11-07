@@ -21,7 +21,7 @@ import { LinkButton } from '../lib/link-button'
 interface IMergeConflictsDialogProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
-  readonly status: WorkingDirectoryStatus
+  readonly workingDirectory: WorkingDirectoryStatus
   readonly onDismissed: () => void
   readonly openFileInExternalEditor: (path: string) => void
   readonly externalEditorName?: string
@@ -47,7 +47,7 @@ export class MergeConflictsDialog extends React.Component<
   private onSubmit = async () => {
     await this.props.dispatcher.createMergeCommit(
       this.props.repository,
-      this.props.status.files
+      this.props.workingDirectory.files
     )
     this.props.dispatcher.setCommitMessage(this.props.repository, null)
     this.props.dispatcher.changeRepositorySection(
@@ -212,7 +212,7 @@ export class MergeConflictsDialog extends React.Component<
   }
 
   private getUnmergedFiles() {
-    return this.props.status.files.filter(
+    return this.props.workingDirectory.files.filter(
       file =>
         file.status === AppFileStatus.Conflicted ||
         file.status === AppFileStatus.Resolved
