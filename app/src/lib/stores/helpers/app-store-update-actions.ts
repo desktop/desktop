@@ -6,7 +6,6 @@ import { IStatusResult } from '../../git'
 import { IChangesState, IConflictState } from '../../app-state'
 import { DiffSelectionType } from '../../../models/diff'
 import { caseInsensitiveCompare } from '../../compare'
-import { StatsStore } from '../../stats'
 import { IStatsStore } from '../../stats/stats-store'
 
 // TODO: I want to use generics here so I don't need to hard-code the keys
