@@ -107,6 +107,22 @@
     // I hate this but we'll have to live with it for beta.
     z-index: -1;
   }
+
+  @media screen and (min-width: 1366px) {
+    zoom: 1.2;
+  }
+
+  @media screen and (min-width: 1400px) {
+    zoom: 1.3;
+  }
+
+  @media screen and (min-width: 1600px) {
+    zoom: 1.4;
+  }
+
+  @media screen and (min-width: 1800px) {
+    zoom: 1.5;
+  }
 }
 
 // For all views other than the dedicated blank slate
