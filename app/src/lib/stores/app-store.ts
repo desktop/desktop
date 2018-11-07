@@ -1589,7 +1589,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return { conflictState: newConflictStatus }
     })
 
-    this._triggerMergeConflictsFlow(repository, status)
+    this._triggerMergeConflictsFlow(repository)
 
     this.emitUpdate()
 
@@ -1599,19 +1599,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** starts the conflict resolution flow, if appropriate */
-  private async _triggerMergeConflictsFlow(
-    repository: Repository,
-    status: IStatusResult
-  ) {
+  private async _triggerMergeConflictsFlow(repository: Repository) {
     if (!enableMergeConflictsDialog()) {
-      return
-    }
-
-    if (!status.mergeHeadFound) {
-      return
-    }
-
-    if (status.currentBranch === undefined) {
       return
     }
 
@@ -1620,6 +1609,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       (this.currentPopup.type === PopupType.MergeConflicts ||
         this.currentPopup.type === PopupType.AbortMerge)
     if (alreadyInFlow) {
+      return
+    }
+
+    const repoState = this.repositoryStateCache.get(repository)
+    const { conflictState } = repoState.changesState
+    if (conflictState === null) {
       return
     }
 
@@ -1635,7 +1630,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       possibleTheirsBranches.length === 1
         ? possibleTheirsBranches[0]
         : undefined
-    const ourBranch = status.currentBranch
+
+    const ourBranch = conflictState.currentBranch
     this._showPopup({
       type: PopupType.MergeConflicts,
       repository,
