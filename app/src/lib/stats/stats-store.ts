@@ -214,8 +214,13 @@ type DailyStats = ICalculatedStats &
   IDailyMeasures &
   IOnboardingStats
 
+export interface IStatsStore {
+  recordMergeAbortedAfterConflicts: () => void
+  recordMergeSuccessAfterConflicts: () => void
+}
+
 /** The store for the app's stats. */
-export class StatsStore {
+export class StatsStore implements IStatsStore {
   private readonly db: StatsDatabase
   private readonly uiActivityMonitor: IUiActivityMonitor
   private uiActivityMonitorSubscription: Disposable | null = null
