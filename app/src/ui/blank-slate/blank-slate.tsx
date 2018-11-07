@@ -1,8 +1,11 @@
 import * as React from 'react'
-import { encodePathAsUrl } from '../../lib/path'
 import { UiView } from '../ui-view'
 import { Button } from '../lib/button'
 import { Octicon, OcticonSymbol } from '../octicons'
+import {
+  WelcomeLeftTopImageUri,
+  WelcomeLeftBottomImageUri,
+} from '../welcome/welcome'
 
 interface IBlankSlateProps {
   /** A function to call when the user chooses to create a repository. */
@@ -15,15 +18,6 @@ interface IBlankSlateProps {
   readonly onAdd: () => void
 }
 
-const BlankSlateImageUrl = encodePathAsUrl(
-  __dirname,
-  'static/empty-no-repo.svg'
-)
-
-const ImageStyle: React.CSSProperties = {
-  backgroundImage: `url(${BlankSlateImageUrl})`,
-}
-
 /**
  * The blank slate view. This is shown when the user hasn't added any
  * repositories to the app.
@@ -32,7 +26,6 @@ export class BlankSlateView extends React.Component<IBlankSlateProps, {}> {
   public render() {
     return (
       <UiView id="blank-slate">
-        <div className="blankslate-image" style={ImageStyle} />
 
         <div className="content">
           <div className="title">
@@ -75,6 +68,12 @@ export class BlankSlateView extends React.Component<IBlankSlateProps, {}> {
           Alternatively, you can drag and drop a local repository here to add
           it.
         </p>
+
+        <img className="blankslate-graphic-top" src={WelcomeLeftTopImageUri} />
+        <img
+          className="blankslate-graphic-bottom"
+          src={WelcomeLeftBottomImageUri}
+        />
       </UiView>
     )
   }
