@@ -1,4 +1,4 @@
-import { git, GitError, IGitResult } from './core'
+import { git, GitError, parseCommitSHA } from './core'
 import { stageFiles } from './update-index'
 import { Repository } from '../../models/repository'
 import { WorkingDirectoryFileChange } from '../../models/status'
@@ -64,10 +64,6 @@ export async function createMergeCommit(
     logCommitError(e)
     return undefined
   }
-}
-
-function parseCommitSHA(result: IGitResult): string {
-  return result.stdout.split(']')[0].split(' ')[1]
 }
 
 /**

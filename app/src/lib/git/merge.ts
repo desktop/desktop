@@ -1,4 +1,4 @@
-import { git } from './core'
+import { git, parseCommitSHA } from './core'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
 import { MergeResult, MergeResultKind } from '../../models/merge'
@@ -9,9 +9,9 @@ import { spawnAndComplete } from './spawn'
 export async function merge(
   repository: Repository,
   branch: string
-): Promise<true> {
-  await git(['merge', branch], repository.path, 'merge')
-  return true
+): Promise<string> {
+  const result = await git(['merge', branch], repository.path, 'merge')
+  return parseCommitSHA(result)
 }
 
 /**
