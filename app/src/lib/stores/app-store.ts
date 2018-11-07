@@ -176,7 +176,7 @@ import { ExternalEditorError } from '../editors/shared'
 import {
   updateChangedFiles,
   updateConflictState,
-} from './helpers/app-store-update-actions'
+} from './updates/changes-state'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
