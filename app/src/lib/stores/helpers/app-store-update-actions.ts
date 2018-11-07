@@ -3,9 +3,10 @@ import {
   WorkingDirectoryFileChange,
 } from '../../../models/status'
 import { IStatusResult } from '../../git'
-import { IChangesState } from '../../app-state'
+import { IChangesState, IConflictState } from '../../app-state'
 import { DiffSelectionType } from '../../../models/diff'
 import { caseInsensitiveCompare } from '../../compare'
+import { StatsStore } from '../../stats'
 
 // TODO: I want to use generics here so I don't need to hard-code the keys
 
@@ -77,4 +78,71 @@ export function updateChangedFiles(
     selectedFileIDs,
     diff,
   }
+}
+
+/**
+ * Convert the received status information into a conflict state
+ */
+function getConflictState(status: IStatusResult): IConflictState | null {
+  if (!status.mergeHeadFound) {
+    return null
+  }
+
+  const { currentBranch, currentTip } = status
+  if (currentBranch == null || currentTip == null) {
+    return null
+  }
+
+  return {
+    currentBranch,
+    currentTip,
+  }
+}
+
+export function updateConflictState(
+  status: IStatusResult,
+  statsStore: StatsStore,
+  state: IChangesState
+): Pick<IChangesState, 'conflictState'> {
+  const prevConflictState = state.conflictState
+  const newConflictState = getConflictState(status)
+
+  if (prevConflictState == null && newConflictState == null) {
+    return { conflictState: null }
+  }
+
+  const previousBranchName =
+    prevConflictState != null ? prevConflictState.currentBranch : null
+  const currentBranchName =
+    newConflictState != null ? newConflictState.currentBranch : null
+
+  const branchNameChanged =
+    previousBranchName != null &&
+    currentBranchName != null &&
+    previousBranchName !== currentBranchName
+
+  // The branch name has changed while remaining conflicted -> the merge must have been aborted
+  if (branchNameChanged) {
+    statsStore.recordMergeAbortedAfterConflicts()
+    return { conflictState: newConflictState }
+  }
+
+  const { currentTip } = status
+
+  // if the repository is no longer conflicted, what do we think happened?
+  if (
+    prevConflictState != null &&
+    newConflictState == null &&
+    currentTip != null
+  ) {
+    const previousTip = prevConflictState.currentTip
+
+    if (previousTip !== currentTip) {
+      statsStore.recordMergeSuccessAfterConflicts()
+    } else {
+      statsStore.recordMergeAbortedAfterConflicts()
+    }
+  }
+
+  return { conflictState: newConflictState }
 }
