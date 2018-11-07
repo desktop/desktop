@@ -58,6 +58,11 @@
           flex-direction: row;
           align-items: center;
 
+          /** These buttons need to wrap in high zoom levels */
+          text-overflow: unset;
+          white-space: normal;
+          min-width: 0;
+
           .octicon {
             margin-right: var(--spacing);
             height: 32px;

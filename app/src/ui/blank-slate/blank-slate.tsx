@@ -37,22 +37,26 @@ export class BlankSlateView extends React.Component<IBlankSlateProps, {}> {
               <li>
                 <Button onClick={this.props.onClone}>
                   <Octicon symbol={OcticonSymbol.repoClone} />
-                  {__DARWIN__
-                    ? 'Clone a Repository from the Internet...'
-                    : 'Clone a repository from the Internet'}
+                  <div>
+                    {__DARWIN__
+                      ? 'Clone a Repository from the Internet...'
+                      : 'Clone a repository from the Internet'}
+                  </div>
                 </Button>
               </li>
               <li>
                 <Button onClick={this.props.onCreate}>
                   <Octicon symbol={OcticonSymbol.plus} />
-                  {__DARWIN__
-                    ? 'Create a New Repository on Your Hard Drive…'
-                    : 'Create a New Repository on your hard drive…'}
+                  <div>
+                    {__DARWIN__
+                      ? 'Create a New Repository on Your Hard Drive…'
+                      : 'Create a New Repository on your hard drive…'}
+                  </div>
                 </Button>
               </li>
               <li>
                 <Button onClick={this.props.onAdd}>
-                  <Octicon symbol={OcticonSymbol.deviceDesktop} />
+                  <Octicon symbol={OcticonSymbol.fileDirectory} />
                   <div>
                     {__DARWIN__
                       ? 'Add an Existing Repository from Your Hard Drive…'
