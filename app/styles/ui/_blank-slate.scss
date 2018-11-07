@@ -1,6 +1,6 @@
 #blank-slate {
   display: flex;
-  padding: var(--spacing-quint);
+  padding: calc(var(--spacing) * 6);
   align-items: center;
 
   header {
@@ -18,70 +18,67 @@
     }
   }
 
-  .content,
-  .footer {
-    display: flex;
-    flex-direction: column;
-    align-self: center;
-    flex-shrink: 0;
-  }
-
   .content {
-    margin: var(--spacing-double) 0;
-    min-width: 80%;
-  }
-
-  .footer {
-    margin: 0;
-  }
-
-  .callouts {
+    align-self: stretch;
+    flex-direction: row;
     display: flex;
     flex-shrink: 0;
-    min-width: 0;
-    min-height: 0;
-    justify-content: center;
+    flex-grow: 1;
+
+    & > .content-pane {
+      display: flex;
+      flex-direction: column;
+      align-self: stretch;
+      flex-shrink: 0;
+      max-width: 50%;
+      flex-grow: 1;
+
+      &:not(:last-child) {
+        margin-right: var(--spacing-double);
+      }
+    }
+
+    ul.button-group {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+      flex-grow: 1;
+
+      li {
+        margin-bottom: var(--spacing);
+        width: 100%;
+
+        .button-component {
+          width: 100%;
+          padding: var(--spacing);
+          height: auto;
+          text-align: left;
+          margin-bottom: var(--spacing);
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+
+          .octicon {
+            margin-right: var(--spacing);
+            height: 32px;
+            width: 32px;
+          }
+        }
+      }
+    }
   }
 
-  .callout {
-    &:last-child {
-      padding-right: 0;
-    }
-
-    &:first-child {
-      padding-left: 0;
-    }
-
+  .drag-drop-info {
+    background: var(--tip-box-background-color);
+    border: 2px dashed var(--tip-box-border-color);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-double);
     display: flex;
-    flex-direction: column;
-    flex-shrink: 0;
-
-    width: 33%;
-    max-width: 300px;
-    align-items: center;
-
-    text-align: center;
-
-    padding: 0 var(--spacing);
-
-    div {
-      margin: var(--spacing) 0;
-    }
+    flex-direction: row;
 
     .octicon {
-      flex-shrink: 0;
+      margin-right: var(--spacing);
     }
-
-    button {
-      flex-grow: 0;
-      flex-shrink: 0;
-      min-height: var(--button-height);
-      height: auto;
-    }
-  }
-
-  .callout:not(:last-child) {
-    border-right: var(--base-border);
   }
 
   .blankslate-graphic-bottom {
@@ -144,15 +141,14 @@
 // in the app window)
 @media (max-height: 400px) {
   #blank-slate {
-    // Vertically center everything
-    justify-content: center;
+    padding: var(--spacing);
 
-    .blankslate-image {
-      display: none;
+    header {
+      margin-bottom: var(--spacing);
     }
 
-    .content {
-      margin-top: 0;
+    .drag-drop-info {
+      display: none;
     }
   }
 }

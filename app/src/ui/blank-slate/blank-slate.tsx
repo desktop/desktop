@@ -32,26 +32,46 @@ export class BlankSlateView extends React.Component<IBlankSlateProps, {}> {
         </header>
 
         <div className="content">
-          <Button onClick={this.props.onClone}>
-            <Octicon symbol={OcticonSymbol.repoClone} />
-            {__DARWIN__ ? 'Clone a Repository' : 'Clone a repository'}
-          </Button>
+          <div className="content-pane">
+            <ul className="button-group">
+              <li>
+                <Button onClick={this.props.onClone}>
+                  <Octicon symbol={OcticonSymbol.repoClone} />
+                  {__DARWIN__
+                    ? 'Clone a Repository from the Internet...'
+                    : 'Clone a repository from the Internet'}
+                </Button>
+              </li>
+              <li>
+                <Button onClick={this.props.onCreate}>
+                  <Octicon symbol={OcticonSymbol.plus} />
+                  {__DARWIN__
+                    ? 'Create a New Repository on Your Hard Drive…'
+                    : 'Create a New Repository on your hard drive…'}
+                </Button>
+              </li>
+              <li>
+                <Button onClick={this.props.onAdd}>
+                  <Octicon symbol={OcticonSymbol.deviceDesktop} />
+                  <div>
+                    {__DARWIN__
+                      ? 'Add an Existing Repository from Your Hard Drive…'
+                      : 'Add an Existing Repository from your hard drive…'}
+                  </div>
+                </Button>
+              </li>
+            </ul>
 
-          <Button onClick={this.props.onCreate}>
-            <Octicon symbol={OcticonSymbol.plus} />
-            {__DARWIN__ ? 'Create New Repository' : 'Create new repository'}
-          </Button>
-
-          <Button onClick={this.props.onAdd}>
-            <Octicon symbol={OcticonSymbol.deviceDesktop} />
-            {__DARWIN__ ? 'Add a Local Repository' : 'Add a local repository'}
-          </Button>
+            <p className="drag-drop-info">
+              <Octicon symbol={OcticonSymbol.lightBulb} />
+              <div>
+                <strong>ProTip!</strong>
+                You can drag &amp; drop an existing repository folder here to
+                add it to Desktop
+              </div>
+            </p>
+          </div>
         </div>
-
-        <p className="footer">
-          Alternatively, you can drag and drop a local repository here to add
-          it.
-        </p>
 
         <img className="blankslate-graphic-top" src={WelcomeLeftTopImageUri} />
         <img
