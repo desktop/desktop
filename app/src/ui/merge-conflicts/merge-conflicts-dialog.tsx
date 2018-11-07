@@ -222,7 +222,7 @@ export class MergeConflictsDialog extends React.Component<
   }
 
   private renderUnmergedFiles(
-    files: Array<WorkingDirectoryFileChange>,
+    files: ReadonlyArray<WorkingDirectoryFileChange>,
     editorName: string | undefined,
     repositoryPath: string
   ) {
@@ -250,11 +250,37 @@ export class MergeConflictsDialog extends React.Component<
     return <h3 className="summary">{message}</h3>
   }
 
+  private renderContent(
+    unmergedFiles: ReadonlyArray<WorkingDirectoryFileChange>,
+    conflictedFilesCount: number
+  ): JSX.Element {
+    if (unmergedFiles.length === 0) {
+      return (
+        <>
+          <span>All conflicts resolved</span>
+        </>
+      )
+    }
+
+    return (
+      <>
+        {this.renderUnmergedFilesSummary(conflictedFilesCount)}
+        {this.renderUnmergedFiles(
+          unmergedFiles,
+          this.props.externalEditorName,
+          this.props.repository.path
+        )}
+        {this.renderShellLink(this.openThisRepositoryInShell)}
+      </>
+    )
+  }
+
   public render() {
     const unmergedFiles = this.getUnmergedFiles()
     const conflictedFilesCount = unmergedFiles.filter(
       f => f.status === AppFileStatus.Conflicted
     ).length
+
     const headerTitle = this.renderHeaderTitle(
       this.props.ourBranch,
       this.props.theirBranch
@@ -263,6 +289,7 @@ export class MergeConflictsDialog extends React.Component<
       conflictedFilesCount > 0
         ? 'Resolve all changes before merging'
         : undefined
+
     return (
       <Dialog
         id="merge-conflicts-list"
@@ -272,13 +299,7 @@ export class MergeConflictsDialog extends React.Component<
       >
         <DialogHeader title={headerTitle} dismissable={false} />
         <DialogContent>
-          {this.renderUnmergedFilesSummary(conflictedFilesCount)}
-          {this.renderUnmergedFiles(
-            unmergedFiles,
-            this.props.externalEditorName,
-            this.props.repository.path
-          )}
-          {this.renderShellLink(this.openThisRepositoryInShell)}
+          {this.renderContent(unmergedFiles, conflictedFilesCount)}
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>
