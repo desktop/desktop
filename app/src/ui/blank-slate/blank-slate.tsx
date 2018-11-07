@@ -66,13 +66,13 @@ export class BlankSlateView extends React.Component<IBlankSlateProps, {}> {
               </li>
             </ul>
 
-            <p className="drag-drop-info">
+            <div className="drag-drop-info">
               <Octicon symbol={OcticonSymbol.lightBulb} />
               <div>
                 <strong>ProTip!</strong> You can drag &amp; drop an existing
                 repository folder here to add it to Desktop
               </div>
-            </p>
+            </div>
           </div>
         </div>
 
