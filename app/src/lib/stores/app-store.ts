@@ -1564,7 +1564,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         currentBranchName != null &&
         previousBranchName !== currentBranchName
 
-      // The branch name has changed -> the merge must have been aborted
+      // The branch name has changed while remaining conflicted -> the merge must have been aborted
       if (branchNameChanged) {
         this.statsStore.recordMergeAbortedAfterConflicts()
         return { conflictState: newConflictState }
@@ -1572,7 +1572,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       const previousTip =
         prevConflictState != null ? prevConflictState.currentTip : null
-      const currentTip = status.currentTip
+      const { currentTip } = status
 
       const tipChanged =
         previousTip != null && currentTip != null && previousTip !== currentTip
