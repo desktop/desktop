@@ -44,13 +44,11 @@ describe('updateChangedFiles', () => {
     it('clears diff if selected file is not in previous state', () => {
       const workingDirectory = WorkingDirectoryStatus.fromFiles(files)
 
-      const previousDiff: IBinaryDiff = { kind: DiffType.Binary }
-
       const prevState = createState({
         workingDirectory: workingDirectory,
         // an unknown file was set as selected last time
         selectedFileIDs: ['id-from-file-not-in-status'],
-        diff: previousDiff,
+        diff: { kind: DiffType.Binary },
       })
 
       const status = createStatus({ workingDirectory })
@@ -65,12 +63,10 @@ describe('updateChangedFiles', () => {
       // first file was selected the last time we updated state
       const selectedFileIDs = [files[0].id]
 
-      const previousDiff: IBinaryDiff = { kind: DiffType.Binary }
-
       const prevState = createState({
         workingDirectory,
         selectedFileIDs,
-        diff: previousDiff,
+        diff: { kind: DiffType.Binary },
       })
 
       // same working directory is provided as last time
@@ -78,7 +74,7 @@ describe('updateChangedFiles', () => {
 
       const { diff } = updateChangedFiles(status, false, prevState)
 
-      expect(diff).toBe(previousDiff)
+      expect(diff).toBe(prevState.diff)
     })
   })
 })
