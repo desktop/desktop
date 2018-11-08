@@ -30,18 +30,35 @@ const baseStatus: IStatusResult = {
 }
 
 const allSelected = DiffSelection.fromInitialSelection(DiffSelectionType.All)
+const noneSelected = DiffSelection.fromInitialSelection(DiffSelectionType.None)
+
+const files = [
+  new WorkingDirectoryFileChange(
+    'README.md',
+    AppFileStatus.Modified,
+    allSelected
+  ),
+  new WorkingDirectoryFileChange(
+    'app/package.json',
+    AppFileStatus.Modified,
+    noneSelected
+  ),
+]
 
 describe('updateChangedFiles', () => {
-  describe('diff', () => {
-    it('clears diff if selected file is not found', () => {
-      const files = [
-        new WorkingDirectoryFileChange(
-          'README.md',
-          AppFileStatus.New,
-          allSelected
-        ),
-      ]
+  describe('workingDirectory', () => {
+    // preserves selection state if clearPartialState is false
+    // resets selection state if clearPartialState is true
+    // returns a different object than status.workingDirectory
+  })
 
+  describe('selectedFileIDs', () => {
+    // defaults to first file if not set
+    // should not be empty
+  })
+
+  describe('diff', () => {
+    it('clears diff if selected file is not in previous state', () => {
       const workingDirectory = WorkingDirectoryStatus.fromFiles(files)
 
       const previousDiff: IBinaryDiff = { kind: DiffType.Binary }
@@ -49,7 +66,8 @@ describe('updateChangedFiles', () => {
       const prevState = {
         ...baseChangesState,
         workingDirectory: workingDirectory,
-        selectedFileIDs: [],
+        // an unknown file was set as selected last time
+        selectedFileIDs: ['id-from-file-not-in-status'],
         diff: previousDiff,
       }
 
@@ -59,17 +77,10 @@ describe('updateChangedFiles', () => {
       expect(diff).toBeNull()
     })
 
-    it('returns same diff if selected file is still found', () => {
-      const files = [
-        new WorkingDirectoryFileChange(
-          'README.md',
-          AppFileStatus.New,
-          allSelected
-        ),
-      ]
-
+    it('returns same diff if selected file from previous state is found', () => {
       const workingDirectory = WorkingDirectoryStatus.fromFiles(files)
 
+      // first file was selected the last time we updated state
       const selectedFileIDs = [files[0].id]
 
       const previousDiff: IBinaryDiff = { kind: DiffType.Binary }
@@ -81,6 +92,7 @@ describe('updateChangedFiles', () => {
         diff: previousDiff,
       }
 
+      // same working directory is provided as last time
       const status = { ...baseStatus, workingDirectory }
 
       const { diff } = updateChangedFiles(status, false, prevState)
