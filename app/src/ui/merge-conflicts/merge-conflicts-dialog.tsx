@@ -17,7 +17,6 @@ import { PathText } from '../lib/path-text'
 import { DialogHeader } from '../dialog/header'
 import { ConflictFileStatus } from '../../models/conflicts'
 import { LinkButton } from '../lib/link-button'
-import { assertNever } from '../../lib/fatal-error'
 
 interface IMergeConflictsDialogProps {
   readonly dispatcher: Dispatcher
@@ -178,24 +177,21 @@ export class MergeConflictsDialog extends React.Component<
     conflictStatus: ConflictFileStatus,
     onOpenEditorClick: () => void
   ): JSX.Element | null {
-    switch (conflictStatus.kind) {
-      case 'text':
-        if (conflictStatus.conflictMarkerCount === null) {
-          return (
-            <li className="unmerged-file-status-conflicts">
-              <Octicon
-                symbol={OcticonSymbol.fileCode}
-                className="file-octicon"
-              />
-              <div>
-                <PathText path={path} availableWidth={400} />
-                <div className="command-line-hint">
-                  Use command line to resolve this file
-                </div>
+    let content = null
+    if (conflictStatus.kind === 'text') {
+      if (conflictStatus.conflictMarkerCount === null) {
+        content = (
+          <li className="unmerged-file-status-conflicts">
+            <Octicon symbol={OcticonSymbol.fileCode} className="file-octicon" />
+            <div>
+              <PathText path={path} availableWidth={400} />
+              <div className="command-line-hint">
+                Use command line to resolve this file
               </div>
-            </li>
-          )
-        }
+            </div>
+          </li>
+        )
+      } else {
         const humanReadableConflicts = calculateConflicts(
           conflictStatus.conflictMarkerCount
         )
@@ -208,9 +204,8 @@ export class MergeConflictsDialog extends React.Component<
 
         const tooltip = editorButtonTooltip(this.props.resolvedExternalEditor)
 
-        return (
-          <li className="unmerged-file-status-conflicts">
-            <Octicon symbol={OcticonSymbol.fileCode} className="file-octicon" />
+        content = (
+          <>
             <div className="column-left">
               <PathText path={path} availableWidth={200} />
               <div className="file-conflicts-status">{message}</div>
@@ -222,26 +217,27 @@ export class MergeConflictsDialog extends React.Component<
             >
               {editorButtonString(this.props.resolvedExternalEditor)}
             </Button>
-          </li>
+          </>
         )
-      case 'binary':
-        return (
-          <li className="unmerged-file-status-conflicts">
-            <Octicon symbol={OcticonSymbol.fileCode} className="file-octicon" />
-            <div>
-              <PathText path={path} availableWidth={400} />
-              <div className="command-line-hint">
-                Use command line to resolve binary files
-              </div>
+      }
+    } else if (conflictStatus.kind === 'binary') {
+      content = (
+        <>
+          <div>
+            <PathText path={path} availableWidth={400} />
+            <div className="command-line-hint">
+              Use command line to resolve binary files
             </div>
-          </li>
-        )
-      default:
-        return assertNever(
-          conflictStatus,
-          `Unknown conflict found: ${JSON.stringify(conflictStatus)}`
-        )
+          </div>
+        </>
+      )
     }
+    return content !== null ? (
+      <li className="unmerged-file-status-conflicts">
+        <Octicon symbol={OcticonSymbol.fileCode} className="file-octicon" />
+        {content}
+      </li>
+    ) : null
   }
 
   private renderUnmergedFile(
