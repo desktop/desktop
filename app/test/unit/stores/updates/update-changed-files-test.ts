@@ -36,8 +36,31 @@ describe('updateChangedFiles', () => {
   })
 
   describe('selectedFileIDs', () => {
-    // defaults to first file if not set
-    // should not be empty
+    it('defaults to selecting the first file if none set', () => {
+      const prevState = createState({})
+
+      const workingDirectory = WorkingDirectoryStatus.fromFiles(files)
+      const status = createStatus({ workingDirectory })
+      const { selectedFileIDs } = updateChangedFiles(status, false, prevState)
+
+      expect(selectedFileIDs).toHaveLength(1)
+      // function sorts the paths and `app/package.json` appears before `README.md`
+      expect(selectedFileIDs[0]).toBe(files[1].id)
+    })
+
+    it('remembers previous selection if file is found in status', () => {
+      const firstFile = files[0].id
+      const prevState = createState({
+        selectedFileIDs: [firstFile],
+      })
+
+      const workingDirectory = WorkingDirectoryStatus.fromFiles(files)
+      const status = createStatus({ workingDirectory })
+      const { selectedFileIDs } = updateChangedFiles(status, false, prevState)
+
+      expect(selectedFileIDs).toHaveLength(1)
+      expect(selectedFileIDs[0]).toBe(firstFile)
+    })
   })
 
   describe('diff', () => {
