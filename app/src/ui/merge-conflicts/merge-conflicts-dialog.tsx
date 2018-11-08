@@ -17,6 +17,7 @@ import { PathText } from '../lib/path-text'
 import { DialogHeader } from '../dialog/header'
 import { ConflictFileStatus } from '../../models/conflicts'
 import { LinkButton } from '../lib/link-button'
+import { assertNever } from '../../lib/fatal-error'
 
 interface IMergeConflictsDialogProps {
   readonly dispatcher: Dispatcher
@@ -177,42 +178,58 @@ export class MergeConflictsDialog extends React.Component<
     conflictStatus: ConflictFileStatus,
     onOpenEditorClick: () => void
   ): JSX.Element | null {
-    if (conflictStatus.kind === 'text') {
-      const humanReadableConflicts = calculateConflicts(
-        conflictStatus.conflictMarkerCount
-      )
-      const message =
-        humanReadableConflicts === 1
-          ? `1 conflict`
-          : `${humanReadableConflicts} conflicts`
+    switch (conflictStatus.kind) {
+      case 'text':
+        const humanReadableConflicts = calculateConflicts(
+          conflictStatus.conflictMarkerCount
+        )
+        const message =
+          humanReadableConflicts === 1
+            ? `1 conflict`
+            : `${humanReadableConflicts} conflicts`
 
-      const disabled = this.props.resolvedExternalEditor === null
+        const disabled = this.props.resolvedExternalEditor === null
 
-      const tooltip = editorButtonTooltip(this.props.resolvedExternalEditor)
+        const tooltip = editorButtonTooltip(this.props.resolvedExternalEditor)
 
-      return (
-        <li className="unmerged-file-status-conflicts">
-          <Octicon symbol={OcticonSymbol.fileCode} className="file-octicon" />
-          <div className="column-left">
-            <PathText path={path} availableWidth={200} />
-            <div className="file-conflicts-status">{message}</div>
-          </div>
-          <Button
-            onClick={onOpenEditorClick}
-            disabled={disabled}
-            tooltip={tooltip}
-          >
-            {editorButtonString(this.props.resolvedExternalEditor)}
-          </Button>
-        </li>
-      )
+        return (
+          <li className="unmerged-file-status-conflicts">
+            <Octicon symbol={OcticonSymbol.fileCode} className="file-octicon" />
+            <div className="column-left">
+              <PathText path={path} availableWidth={200} />
+              <div className="file-conflicts-status">{message}</div>
+            </div>
+            <Button
+              onClick={onOpenEditorClick}
+              disabled={disabled}
+              tooltip={tooltip}
+            >
+              {editorButtonString(this.props.resolvedExternalEditor)}
+            </Button>
+          </li>
+        )
+      case 'binary':
+        return (
+          <li className="unmerged-file-status-conflicts">
+            <Octicon symbol={OcticonSymbol.fileCode} className="file-octicon" />
+            <div>
+              <PathText path={path} availableWidth={400} />
+              <div className="command-line-hint">
+                Use command line to resolve binary files
+              </div>
+            </div>
+          </li>
+        )
+      default:
+        return assertNever(
+          conflictStatus,
+          `Unknown conflict found: ${JSON.stringify(conflictStatus)}`
+        )
     }
-    return null
   }
 
   private renderUnmergedFile(
-    file: WorkingDirectoryFileChange,
-    repositoryPath: string
+    file: WorkingDirectoryFileChange
   ): JSX.Element | null {
     switch (file.status) {
       case AppFileStatus.Resolved:
@@ -225,7 +242,9 @@ export class MergeConflictsDialog extends React.Component<
         }
 
         return this.renderConflictedFile(file.path, file.conflictStatus, () =>
-          this.props.openFileInExternalEditor(join(repositoryPath, file.path))
+          this.props.openFileInExternalEditor(
+            join(this.props.repository.path, file.path)
+          )
         )
       default:
         return null
@@ -233,12 +252,11 @@ export class MergeConflictsDialog extends React.Component<
   }
 
   private renderUnmergedFiles(
-    files: Array<WorkingDirectoryFileChange>,
-    repositoryPath: string
+    files: ReadonlyArray<WorkingDirectoryFileChange>
   ) {
     return (
       <ul className="unmerged-file-statuses">
-        {files.map(f => this.renderUnmergedFile(f, repositoryPath))}
+        {files.map(f => this.renderUnmergedFile(f))}
       </ul>
     )
   }
@@ -252,11 +270,40 @@ export class MergeConflictsDialog extends React.Component<
     return <h3 className="summary">{message}</h3>
   }
 
+  private renderAllResolved() {
+    return (
+      <div className="all-conflicts-resolved">
+        <div className="green-circle">
+          <Octicon symbol={OcticonSymbol.check} />
+        </div>
+        <div className="message">All conflicts resolved</div>
+      </div>
+    )
+  }
+
+  private renderContent(
+    unmergedFiles: ReadonlyArray<WorkingDirectoryFileChange>,
+    conflictedFilesCount: number
+  ): JSX.Element {
+    if (unmergedFiles.length === 0) {
+      return this.renderAllResolved()
+    }
+
+    return (
+      <>
+        {this.renderUnmergedFilesSummary(conflictedFilesCount)}
+        {this.renderUnmergedFiles(unmergedFiles)}
+        {this.renderShellLink(this.openThisRepositoryInShell)}
+      </>
+    )
+  }
+
   public render() {
     const unmergedFiles = getUnmergedFiles(this.props.workingDirectory)
     const conflictedFilesCount = unmergedFiles.filter(
       f => f.status === AppFileStatus.Conflicted
     ).length
+
     const headerTitle = this.renderHeaderTitle(
       this.props.ourBranch,
       this.props.theirBranch
@@ -265,6 +312,7 @@ export class MergeConflictsDialog extends React.Component<
       conflictedFilesCount > 0
         ? 'Resolve all changes before merging'
         : undefined
+
     return (
       <Dialog
         id="merge-conflicts-list"
@@ -274,9 +322,7 @@ export class MergeConflictsDialog extends React.Component<
       >
         <DialogHeader title={headerTitle} dismissable={false} />
         <DialogContent>
-          {this.renderUnmergedFilesSummary(conflictedFilesCount)}
-          {this.renderUnmergedFiles(unmergedFiles, this.props.repository.path)}
-          {this.renderShellLink(this.openThisRepositoryInShell)}
+          {this.renderContent(unmergedFiles, conflictedFilesCount)}
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>
