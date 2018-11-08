@@ -263,7 +263,7 @@ function getConflictStatus(
     status.us !== GitStatusEntry.UpdatedButUnmerged
 
   if (uncoveredConflict) {
-    return { kind: 'text', conflictMarkerCount: 0 }
+    return { kind: 'text', conflictMarkerCount: null }
   }
 
   return null

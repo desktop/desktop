@@ -180,7 +180,7 @@ export class MergeConflictsDialog extends React.Component<
   ): JSX.Element | null {
     switch (conflictStatus.kind) {
       case 'text':
-        if (conflictStatus.conflictMarkerCount === 0) {
+        if (conflictStatus.conflictMarkerCount === null) {
           return (
             <li className="unmerged-file-status-conflicts">
               <Octicon

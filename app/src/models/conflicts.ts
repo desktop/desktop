@@ -10,8 +10,10 @@ import { GitStatusEntry, UnmergedEntry } from './status'
 export type ConflictFileStatus =
   | {
       readonly kind: 'text'
-      /** This number should be greater than zero */
-      readonly conflictMarkerCount: number
+      /** This number should be greater than zero, or null
+       *  if the file has a non-markered conflict (like added vs removed)
+       */
+      readonly conflictMarkerCount: number | null
     }
   | {
       readonly kind: 'binary'
