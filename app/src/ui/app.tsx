@@ -1356,7 +1356,7 @@ export class App extends React.Component<IAppProps, IAppState> {
               workingDirectory={workingDirectory}
               onDismissed={this.onPopupDismissed}
               openFileInExternalEditor={this.openFileInExternalEditor}
-              externalEditorName={this.state.selectedExternalEditor}
+              resolvedExternalEditor={this.state.resolvedExternalEditor}
               openRepositoryInShell={this.openInShell}
               ourBranch={popup.ourBranch}
               theirBranch={popup.theirBranch}
@@ -1754,14 +1754,24 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   // we currently only render one banner at a time
   private renderBanner(): JSX.Element | null {
+    let banner = null
     if (this.state.successfulMergeBannerState !== null) {
-      return this.renderSuccessfulMergeBanner(
+      banner = this.renderSuccessfulMergeBanner(
         this.state.successfulMergeBannerState
       )
     } else if (this.state.isUpdateAvailableBannerVisible) {
-      return this.renderUpdateBanner()
+      banner = this.renderUpdateBanner()
     }
-    return null
+    return (
+      <CSSTransitionGroup
+        transitionName="banner"
+        component="div"
+        transitionEnterTimeout={500}
+        transitionLeaveTimeout={400}
+      >
+        {banner}
+      </CSSTransitionGroup>
+    )
   }
 
   private renderUpdateBanner() {
@@ -1773,6 +1783,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         newRelease={updateStore.state.newRelease}
         releaseNotesLink={releaseNotesUri}
         onDismissed={this.onUpdateAvailableDismissed}
+        key={'update-available'}
       />
     )
   }
@@ -1788,6 +1799,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         ourBranch={successfulMergeBannerState.ourBranch}
         theirBranch={successfulMergeBannerState.theirBranch}
         onDismissed={this.onSuccessfulMergeDismissed}
+        key={'successful-merge'}
       />
     )
   }

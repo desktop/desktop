@@ -1241,6 +1241,10 @@ export class Dispatcher {
     return this.appStore._updateCompareForm(repository, newState)
   }
 
+  public resolveCurrentEditor() {
+    return this.appStore._resolveCurrentEditor()
+  }
+
   /**
    * Updates the application state to indicate a conflict is in-progress
    * as a result of a pull and increments the relevant metric.

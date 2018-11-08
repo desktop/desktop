@@ -175,6 +175,7 @@ import { readEmoji } from '../read-emoji'
 import { GitStoreCache } from './git-store-cache'
 import { MergeConflictsErrorContext } from '../git-error-context'
 import { setNumber, setBoolean, getBoolean, getNumber } from '../local-storage'
+import { ExternalEditorError } from '../editors/shared'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -269,6 +270,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private imageDiffType: ImageDiffType = imageDiffTypeDefault
 
   private selectedExternalEditor?: ExternalEditor
+
+  private resolvedExternalEditor: ExternalEditor | null = null
 
   /** The user's preferred shell. */
   private selectedShell = DefaultShell
@@ -498,6 +501,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       imageDiffType: this.imageDiffType,
       selectedShell: this.selectedShell,
       repositoryFilterText: this.repositoryFilterText,
+      resolvedExternalEditor: this.resolvedExternalEditor,
       selectedCloneRepositoryTab: this.selectedCloneRepositoryTab,
       selectedBranchesTab: this.selectedBranchesTab,
       selectedTheme: this.selectedTheme,
@@ -3179,11 +3183,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** Open a path to a repository or file using the user's configured editor */
   public async _openInExternalEditor(fullPath: string): Promise<void> {
-    const selectedExternalEditor =
-      this.getState().selectedExternalEditor || null
+    const { selectedExternalEditor } = this.getState()
 
     try {
       const match = await findEditorOrDefault(selectedExternalEditor)
+      if (match === null) {
+        this.emitError(
+          new ExternalEditorError(
+            'No suitable editors installed for GitHub Desktop to launch. Install Atom for your platform and restart GitHub Desktop to try again.',
+            { suggestAtom: true }
+          )
+        )
+        return
+      }
+
       await launchExternalEditor(fullPath, match)
     } catch (error) {
       this.emitError(error)
@@ -4012,6 +4025,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
 
     return Promise.resolve()
+  }
+
+  public async _resolveCurrentEditor() {
+    const match = await findEditorOrDefault(this.selectedExternalEditor)
+    const resolvedExternalEditor = match != null ? match.editor : null
+    if (this.resolvedExternalEditor !== resolvedExternalEditor) {
+      this.resolvedExternalEditor = resolvedExternalEditor
+      this.emitUpdate()
+    }
   }
 }
 

@@ -31,7 +31,7 @@ export class SuccessfulMerge extends React.Component<
 
   public render() {
     return (
-      <div id="successful-merge" className="active">
+      <div id="successful-merge">
         <div className="green-circle">
           <Octicon className="check-icon" symbol={OcticonSymbol.check} />
         </div>

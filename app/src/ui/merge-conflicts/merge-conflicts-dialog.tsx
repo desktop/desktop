@@ -25,15 +25,12 @@ interface IMergeConflictsDialogProps {
   readonly workingDirectory: WorkingDirectoryStatus
   readonly onDismissed: () => void
   readonly openFileInExternalEditor: (path: string) => void
-  readonly externalEditorName?: string
+  readonly resolvedExternalEditor: string | null
   readonly openRepositoryInShell: (repository: Repository) => void
   readonly ourBranch: string
   /* `undefined` when we didn't know the branch at the beginning of this flow */
   readonly theirBranch?: string
 }
-
-const submitButtonString = 'Commit merge'
-const cancelButtonString = 'Abort merge'
 
 /**
  * Calculates the number of merge conclicts in a file from the number of markers
@@ -45,16 +42,35 @@ function calculateConflicts(conflictMarkers: number) {
   return Math.ceil(conflictMarkers / 3)
 }
 
-/**
- * Filter the working directory for unmerged files (conflicted or resolved)
- */
-function getUnmergedFiles(workingDirectory: WorkingDirectoryStatus) {
-  return workingDirectory.files.filter(
+/** Filter working directory changes for conflicted or resolved files  */
+function getUnmergedFiles(status: WorkingDirectoryStatus) {
+  return status.files.filter(
     file =>
       file.status === AppFileStatus.Conflicted ||
       file.status === AppFileStatus.Resolved
   )
 }
+
+function editorButtonString(editorName: string | null): string {
+  const defaultEditorString = 'editor'
+  return `Open in ${editorName || defaultEditorString}`
+}
+
+function editorButtonTooltip(editorName: string | null): string | undefined {
+  if (editorName !== null) {
+    // no need to render a tooltip if we have a known editor
+    return
+  }
+
+  if (__DARWIN__) {
+    return `No editor configured in Preferences > Advanced`
+  } else {
+    return `No editor configured in Options > Advanced`
+  }
+}
+
+const submitButtonString = 'Commit merge'
+const cancelButtonString = 'Abort merge'
 
 /**
  * Modal to tell the user their merge encountered conflicts
@@ -63,6 +79,10 @@ export class MergeConflictsDialog extends React.Component<
   IMergeConflictsDialogProps,
   {}
 > {
+  public async componentDidMount() {
+    this.props.dispatcher.resolveCurrentEditor()
+  }
+
   /**
    *  commits the merge displays the repository changes tab and dismisses the modal
    */
@@ -123,11 +143,6 @@ export class MergeConflictsDialog extends React.Component<
     )
   }
 
-  private editorButtonString(editorName: string | undefined) {
-    const defaultEditorString = 'editor'
-    return `Open in ${editorName || defaultEditorString}`
-  }
-
   private openThisRepositoryInShell = () =>
     this.props.openRepositoryInShell(this.props.repository)
 
@@ -172,6 +187,11 @@ export class MergeConflictsDialog extends React.Component<
           humanReadableConflicts === 1
             ? `1 conflict`
             : `${humanReadableConflicts} conflicts`
+
+        const disabled = this.props.resolvedExternalEditor === null
+
+        const tooltip = editorButtonTooltip(this.props.resolvedExternalEditor)
+
         return (
           <li className="unmerged-file-status-conflicts">
             <Octicon symbol={OcticonSymbol.fileCode} className="file-octicon" />
@@ -179,8 +199,12 @@ export class MergeConflictsDialog extends React.Component<
               <PathText path={path} availableWidth={200} />
               <div className="file-conflicts-status">{message}</div>
             </div>
-            <Button onClick={onOpenEditorClick}>
-              {this.editorButtonString(this.props.externalEditorName)}
+            <Button
+              onClick={onOpenEditorClick}
+              disabled={disabled}
+              tooltip={tooltip}
+            >
+              {editorButtonString(this.props.resolvedExternalEditor)}
             </Button>
           </li>
         )
