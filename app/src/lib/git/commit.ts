@@ -55,7 +55,11 @@ export async function createMergeCommit(
     await unstageAll(repository)
     await stageFiles(repository, files)
     const result = await git(
-      ['commit', '--no-edit'],
+      [
+        'commit',
+        // no-edit here ensures the app does not accidentally invoke the user's editor
+        '--no-edit',
+      ],
       repository.path,
       'createMergeCommit'
     )
