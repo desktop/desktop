@@ -4,17 +4,21 @@ import {
 } from '../../../models/status'
 import { IStatusResult } from '../../git'
 import { IChangesState, IConflictState } from '../../app-state'
-import { DiffSelectionType } from '../../../models/diff'
+import { DiffSelectionType, IDiff } from '../../../models/diff'
 import { caseInsensitiveCompare } from '../../compare'
 import { IStatsStore } from '../../stats/stats-store'
 
-// TODO: I want to use generics here so I don't need to hard-code the keys
+type ChangedFilesResult = {
+  readonly workingDirectory: WorkingDirectoryStatus
+  readonly selectedFileIDs: string[]
+  readonly diff: IDiff | null
+}
 
 export function updateChangedFiles(
   status: IStatusResult,
   clearPartialState: boolean,
   state: IChangesState
-): Pick<IChangesState, 'workingDirectory' | 'selectedFileIDs' | 'diff'> {
+): ChangedFilesResult {
   // Populate a map for all files in the current working directory state
   const filesByID = new Map<string, WorkingDirectoryFileChange>()
   state.workingDirectory.files.forEach(f => filesByID.set(f.id, f))
