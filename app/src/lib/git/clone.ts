@@ -30,9 +30,11 @@ export async function clone(
   options: CloneOptions,
   progressCallback?: (progress: ICloneProgress) => void
 ): Promise<void> {
+  const networkArguments = gitNetworkArguments(options.account)
+
   const env = envForAuthentication(options.account)
 
-  const args = [...gitNetworkArguments, 'clone', '--recursive']
+  const args = [...networkArguments, 'clone', '--recursive']
 
   let opts: IGitExecutionOptions = { env }
 

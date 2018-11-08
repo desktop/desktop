@@ -1,12 +1,17 @@
-import { assertNever } from '../fatal-error'
-import * as GitPerf from '../../ui/lib/git-perf'
-
 import {
   GitProcess,
   IGitResult as DugiteResult,
   GitError as DugiteError,
   IGitExecutionOptions as DugiteExecutionOptions,
 } from 'dugite'
+
+import { assertNever } from '../fatal-error'
+import { getDotComAPIEndpoint } from '../api'
+import { enableGitProtocolVersionTwo } from '../feature-flag'
+
+import { IGitAccount } from '../../models/git-account'
+
+import * as GitPerf from '../../ui/lib/git-perf'
 
 /**
  * An extension of the execution options in dugite that
@@ -263,20 +268,40 @@ function getDescriptionForError(error: DugiteError): string {
 }
 
 /**
- * An array of command line arguments for network operation that unset
- * or hard-code git configuration values that should not be read from
- * local, global, or system level git configs.
+ * Return an array of command line arguments for network operation that override
+ * the default git configuration values provided by local, global, or system
+ * level git configs.
  *
  * These arguments should be inserted before the subcommand, i.e in
  * the case of `git pull` these arguments needs to go before the `pull`
  * argument.
  */
-export const gitNetworkArguments: ReadonlyArray<string> = [
-  // Explicitly unset any defined credential helper, we rely on our
-  // own askpass for authentication.
-  '-c',
-  'credential.helper=',
-]
+export function gitNetworkArguments(
+  account: IGitAccount | null
+): ReadonlyArray<string> {
+  const baseArgs = [
+    // Explicitly unset any defined credential helper, we rely on our
+    // own askpass for authentication.
+    '-c',
+    'credential.helper=',
+  ]
+
+  if (!enableGitProtocolVersionTwo()) {
+    return baseArgs
+  }
+
+  if (account === null) {
+    return baseArgs
+  }
+
+  const isDotComAccount = account.endpoint === getDotComAPIEndpoint()
+
+  if (isDotComAccount) {
+    return [...baseArgs, '-c', 'protocol.version=2']
+  } else {
+    return baseArgs
+  }
+}
 
 /**
  * Returns the SHA of the passed in IGitResult

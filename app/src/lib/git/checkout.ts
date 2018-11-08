@@ -12,11 +12,17 @@ import { enableRecurseSubmodulesFlag } from '../feature-flag'
 
 export type ProgressCallback = (progress: ICheckoutProgress) => void
 
-function getCheckoutArgs(branch: Branch, progressCallback?: ProgressCallback) {
+function getCheckoutArgs(
+  branch: Branch,
+  account: IGitAccount | null,
+  progressCallback?: ProgressCallback
+) {
+  const networkArguments = gitNetworkArguments(account)
+
   const baseArgs =
     progressCallback != null
-      ? [...gitNetworkArguments, 'checkout', '--progress']
-      : [...gitNetworkArguments, 'checkout']
+      ? [...networkArguments, 'checkout', '--progress']
+      : [...networkArguments, 'checkout']
 
   if (enableRecurseSubmodulesFlag()) {
     return branch.type === BranchType.Remote
@@ -82,7 +88,7 @@ export async function checkoutBranch(
     progressCallback({ kind, title, value: 0, targetBranch })
   }
 
-  const args = getCheckoutArgs(branch, progressCallback)
+  const args = getCheckoutArgs(branch, account, progressCallback)
 
   await git(args, repository.path, 'checkoutBranch', opts)
 }

@@ -13,12 +13,15 @@ import { enableRecurseSubmodulesFlag } from '../feature-flag'
 
 function getPullArgs(
   remote: string,
+  account: IGitAccount | null,
   progressCallback?: (progress: IPullProgress) => void
 ) {
+  const networkArguments = gitNetworkArguments(account)
+
   if (enableRecurseSubmodulesFlag()) {
     return progressCallback != null
       ? [
-          ...gitNetworkArguments,
+          ...networkArguments,
           'pull',
           '--no-rebase',
           '--recurse-submodules',
@@ -26,7 +29,7 @@ function getPullArgs(
           remote,
         ]
       : [
-          ...gitNetworkArguments,
+          ...networkArguments,
           'pull',
           '--no-rebase',
           '--recurse-submodules',
@@ -34,8 +37,8 @@ function getPullArgs(
         ]
   } else {
     return progressCallback != null
-      ? [...gitNetworkArguments, 'pull', '--no-rebase', '--progress', remote]
-      : [...gitNetworkArguments, 'pull', '--no-rebase', remote]
+      ? [...networkArguments, 'pull', '--no-rebase', '--progress', remote]
+      : [...networkArguments, 'pull', '--no-rebase', remote]
   }
 }
 
@@ -94,7 +97,7 @@ export async function pull(
     progressCallback({ kind, title, value: 0, remote })
   }
 
-  const args = getPullArgs(remote, progressCallback)
+  const args = getPullArgs(remote, account, progressCallback)
   const result = await git(args, repository.path, 'pull', opts)
 
   if (result.gitErrorDescription) {
