@@ -14,6 +14,10 @@ export type ConflictFileStatus =
        *  if the file has a non-markered conflict (like added vs removed)
        */
       readonly conflictMarkerCount: number | null
+      /** The state of the file in the current branch */
+      readonly us?: GitStatusEntry
+      /** THe state of the file in the other branch */
+      readonly them?: GitStatusEntry
     }
   | {
       readonly kind: 'binary'
