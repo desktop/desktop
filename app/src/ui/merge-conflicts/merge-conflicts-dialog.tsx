@@ -180,6 +180,22 @@ export class MergeConflictsDialog extends React.Component<
   ): JSX.Element | null {
     switch (conflictStatus.kind) {
       case 'text':
+        if (conflictStatus.conflictMarkerCount === 0) {
+          return (
+            <li className="unmerged-file-status-conflicts">
+              <Octicon
+                symbol={OcticonSymbol.fileCode}
+                className="file-octicon"
+              />
+              <div>
+                <PathText path={path} availableWidth={400} />
+                <div className="command-line-hint">
+                  Use command line to resolve this file
+                </div>
+              </div>
+            </li>
+          )
+        }
         const humanReadableConflicts = calculateConflicts(
           conflictStatus.conflictMarkerCount
         )
