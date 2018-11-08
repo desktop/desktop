@@ -257,13 +257,17 @@ function getConflictStatus(
     return { kind: 'text', conflictMarkerCount }
   }
 
-  const uncoveredConflict =
-    status.kind === 'conflicted' &&
-    status.them !== GitStatusEntry.UpdatedButUnmerged &&
-    status.us !== GitStatusEntry.UpdatedButUnmerged
+  if (status.kind === 'conflicted') {
+    const uncoveredConflict =
+      status.them !== GitStatusEntry.UpdatedButUnmerged &&
+      status.us !== GitStatusEntry.UpdatedButUnmerged &&
+      status.them !== GitStatusEntry.Modified &&
+      status.us !== GitStatusEntry.Modified
 
-  if (uncoveredConflict) {
-    return { kind: 'text', conflictMarkerCount: null }
+    if (uncoveredConflict) {
+      const { us, them } = status
+      return { kind: 'text', conflictMarkerCount: null, us, them }
+    }
   }
 
   return null
