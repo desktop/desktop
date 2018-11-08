@@ -105,7 +105,8 @@ describe('updateChangedFiles', () => {
       const { selectedFileIDs } = updateChangedFiles(status, false, prevState)
 
       expect(selectedFileIDs).toHaveLength(1)
-      // function sorts the paths and `app/package.json` appears before `README.md`
+      // NOTE: `updateChangedFiles` sorts the paths and `app/package.json` will
+      // appear in list before `README.md`
       expect(selectedFileIDs[0]).toBe(files[1].id)
     })
 
