@@ -8,7 +8,6 @@ import {
   DiffSelection,
   DiffSelectionType,
   DiffType,
-  IBinaryDiff,
 } from '../../../../src/models/diff'
 import { createState, createStatus } from './changes-state-helper'
 
@@ -36,11 +35,12 @@ describe('updateChangedFiles', () => {
   })
 
   describe('selectedFileIDs', () => {
-    it('defaults to selecting the first file if none set', () => {
+    it('selects the first file if none found in state', () => {
       const prevState = createState({})
 
-      const workingDirectory = WorkingDirectoryStatus.fromFiles(files)
-      const status = createStatus({ workingDirectory })
+      const status = createStatus({
+        workingDirectory: WorkingDirectoryStatus.fromFiles(files),
+      })
       const { selectedFileIDs } = updateChangedFiles(status, false, prevState)
 
       expect(selectedFileIDs).toHaveLength(1)
@@ -54,12 +54,25 @@ describe('updateChangedFiles', () => {
         selectedFileIDs: [firstFile],
       })
 
-      const workingDirectory = WorkingDirectoryStatus.fromFiles(files)
-      const status = createStatus({ workingDirectory })
+      const status = createStatus({
+        workingDirectory: WorkingDirectoryStatus.fromFiles(files),
+      })
       const { selectedFileIDs } = updateChangedFiles(status, false, prevState)
 
       expect(selectedFileIDs).toHaveLength(1)
       expect(selectedFileIDs[0]).toBe(firstFile)
+    })
+
+    it('clears selection if no files found in status', () => {
+      const firstFile = files[0].id
+      const prevState = createState({
+        selectedFileIDs: [firstFile],
+      })
+
+      const status = createStatus({})
+      const { selectedFileIDs } = updateChangedFiles(status, false, prevState)
+
+      expect(selectedFileIDs).toHaveLength(0)
     })
   })
 
