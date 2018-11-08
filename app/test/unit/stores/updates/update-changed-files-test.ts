@@ -1,6 +1,4 @@
 import { updateChangedFiles } from '../../../../src/lib/stores/updates/changes-state'
-import { IStatusResult } from '../../../../src/lib/git'
-import { IChangesState } from '../../../../src/lib/app-state'
 import {
   WorkingDirectoryStatus,
   WorkingDirectoryFileChange,
@@ -12,22 +10,7 @@ import {
   DiffType,
   IBinaryDiff,
 } from '../../../../src/models/diff'
-
-const baseChangesState: IChangesState = {
-  workingDirectory: WorkingDirectoryStatus.fromFiles([]),
-  selectedFileIDs: [],
-  diff: null,
-  commitMessage: null,
-  showCoAuthoredBy: false,
-  coAuthors: [],
-  conflictState: null,
-}
-
-const baseStatus: IStatusResult = {
-  exists: true,
-  mergeHeadFound: false,
-  workingDirectory: WorkingDirectoryStatus.fromFiles([]),
-}
+import { createState, createStatus } from './changes-state-helper'
 
 const allSelected = DiffSelection.fromInitialSelection(DiffSelectionType.All)
 const noneSelected = DiffSelection.fromInitialSelection(DiffSelectionType.None)
@@ -63,15 +46,14 @@ describe('updateChangedFiles', () => {
 
       const previousDiff: IBinaryDiff = { kind: DiffType.Binary }
 
-      const prevState = {
-        ...baseChangesState,
+      const prevState = createState({
         workingDirectory: workingDirectory,
         // an unknown file was set as selected last time
         selectedFileIDs: ['id-from-file-not-in-status'],
         diff: previousDiff,
-      }
+      })
 
-      const status = { ...baseStatus, workingDirectory }
+      const status = createStatus({ workingDirectory })
       const { diff } = updateChangedFiles(status, false, prevState)
 
       expect(diff).toBeNull()
@@ -85,15 +67,14 @@ describe('updateChangedFiles', () => {
 
       const previousDiff: IBinaryDiff = { kind: DiffType.Binary }
 
-      const prevState = {
-        ...baseChangesState,
+      const prevState = createState({
         workingDirectory,
         selectedFileIDs,
         diff: previousDiff,
-      }
+      })
 
       // same working directory is provided as last time
-      const status = { ...baseStatus, workingDirectory }
+      const status = createStatus({ workingDirectory })
 
       const { diff } = updateChangedFiles(status, false, prevState)
 
