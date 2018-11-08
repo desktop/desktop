@@ -11,8 +11,8 @@ export type ConflictFileStatus =
   | {
       readonly kind: 'text'
       /**
-       * This number should be greater than zero, or null
-       *  if the file has a non-markered conflict (like added vs removed)
+       *  This number should be greater than zero
+       *  or null if the file has a non-markered conflict (like added vs removed)
        */
       readonly conflictMarkerCount: number | null
       /** The state of the file in the current branch */
