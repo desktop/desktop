@@ -10,7 +10,7 @@ describe('updateConflictState', () => {
   it('returns null when no MERGE_HEAD file found', () => {
     const prevState = createState({ conflictState: null })
     const status = createStatus({ mergeHeadFound: false })
-    const { conflictState } = updateConflictState(status, statsStore, prevState)
+    const conflictState = updateConflictState(status, statsStore, prevState)
     expect(conflictState).toBeNull()
   })
 
@@ -22,7 +22,7 @@ describe('updateConflictState', () => {
       currentTip: undefined,
     })
 
-    const { conflictState } = updateConflictState(status, statsStore, prevState)
+    const conflictState = updateConflictState(status, statsStore, prevState)
     expect(conflictState).toBeNull()
   })
 
@@ -36,7 +36,7 @@ describe('updateConflictState', () => {
       currentTip: 'first-sha',
     })
 
-    const { conflictState } = updateConflictState(status, statsStore, prevState)
+    const conflictState = updateConflictState(status, statsStore, prevState)
 
     expect(conflictState).toEqual({
       currentBranch: 'master',

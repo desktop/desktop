@@ -103,12 +103,12 @@ export function updateConflictState(
   status: IStatusResult,
   statsStore: IStatsStore,
   state: IChangesState
-): Pick<IChangesState, 'conflictState'> {
+): IConflictState | null {
   const prevConflictState = state.conflictState
   const newConflictState = getConflictState(status)
 
   if (prevConflictState == null && newConflictState == null) {
-    return { conflictState: null }
+    return null
   }
 
   const previousBranchName =
@@ -124,7 +124,7 @@ export function updateConflictState(
   // The branch name has changed while remaining conflicted -> the merge must have been aborted
   if (branchNameChanged) {
     statsStore.recordMergeAbortedAfterConflicts()
-    return { conflictState: newConflictState }
+    return newConflictState
   }
 
   const { currentTip } = status
@@ -144,5 +144,5 @@ export function updateConflictState(
     }
   }
 
-  return { conflictState: newConflictState }
+  return newConflictState
 }
