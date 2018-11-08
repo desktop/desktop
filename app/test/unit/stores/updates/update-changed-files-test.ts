@@ -29,9 +29,70 @@ const files = [
 
 describe('updateChangedFiles', () => {
   describe('workingDirectory', () => {
-    // preserves selection state if clearPartialState is false
-    // resets selection state if clearPartialState is true
-    // returns a different object than status.workingDirectory
+    let partiallySelectedFile: WorkingDirectoryFileChange
+    let oldWorkingDirectory: WorkingDirectoryStatus
+
+    beforeEach(() => {
+      const partialFileSelection = noneSelected
+        .withSelectableLines(new Set([1, 2, 3, 4, 5, 6]))
+        .withLineSelection(1, true)
+        .withLineSelection(2, true)
+        .withLineSelection(3, true)
+
+      partiallySelectedFile = new WorkingDirectoryFileChange(
+        'app/index.ts',
+        AppFileStatus.New,
+        partialFileSelection
+      )
+
+      const filesWithPartialChange = [...files, partiallySelectedFile]
+
+      oldWorkingDirectory = WorkingDirectoryStatus.fromFiles(
+        filesWithPartialChange
+      )
+    })
+
+    it('clears partial selection on file when clearPartialState is true', () => {
+      const prevState = createState({
+        workingDirectory: oldWorkingDirectory,
+      })
+
+      const status = createStatus({
+        workingDirectory: oldWorkingDirectory,
+      })
+
+      const { workingDirectory } = updateChangedFiles(status, true, prevState)
+
+      const partialFile = workingDirectory.findFileWithID(
+        partiallySelectedFile.id
+      )
+
+      expect(partialFile!.selection.getSelectionType()).toBe(
+        DiffSelectionType.None
+      )
+    })
+
+    it('preserves partial selection on file when clearPartialState is false', () => {
+      const prevState = createState({
+        workingDirectory: oldWorkingDirectory,
+      })
+
+      const status = createStatus({
+        workingDirectory: oldWorkingDirectory,
+      })
+
+      const { workingDirectory } = updateChangedFiles(status, false, prevState)
+
+      const partialFile = workingDirectory.findFileWithID(
+        partiallySelectedFile.id
+      )
+
+      expect(partialFile!.selection.getSelectionType()).toBe(
+        DiffSelectionType.Partial
+      )
+    })
+
+    it('does not return the same working directory list', () => {})
   })
 
   describe('selectedFileIDs', () => {
