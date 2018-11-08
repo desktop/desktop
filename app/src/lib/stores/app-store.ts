@@ -1490,11 +1490,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     this.repositoryStateCache.updateChangesState(repository, state =>
-      updateChangedFiles(status, clearPartialState, state)
+      updateChangedFiles(state, status, clearPartialState)
     )
 
     this.repositoryStateCache.updateChangesState(repository, state => ({
-      conflictState: updateConflictState(status, this.statsStore, state),
+      conflictState: updateConflictState(state, status, this.statsStore),
     }))
 
     this._triggerMergeConflictsFlow(repository)

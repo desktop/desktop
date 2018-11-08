@@ -8,6 +8,11 @@ import { DiffSelectionType, IDiff } from '../../../models/diff'
 import { caseInsensitiveCompare } from '../../compare'
 import { IStatsStore } from '../../stats/stats-store'
 
+/**
+ * Internal shape of the return value from this response because the compiler
+ * seems to complain about attempts to create an object which satifies the
+ * constraints of Pick<T,K>
+ */
 type ChangedFilesResult = {
   readonly workingDirectory: WorkingDirectoryStatus
   readonly selectedFileIDs: string[]
@@ -15,9 +20,9 @@ type ChangedFilesResult = {
 }
 
 export function updateChangedFiles(
+  state: IChangesState,
   status: IStatusResult,
-  clearPartialState: boolean,
-  state: IChangesState
+  clearPartialState: boolean
 ): ChangedFilesResult {
   // Populate a map for all files in the current working directory state
   const filesByID = new Map<string, WorkingDirectoryFileChange>()
@@ -104,9 +109,9 @@ function getConflictState(status: IStatusResult): IConflictState | null {
 }
 
 export function updateConflictState(
+  state: IChangesState,
   status: IStatusResult,
-  statsStore: IStatsStore,
-  state: IChangesState
+  statsStore: IStatsStore
 ): IConflictState | null {
   const prevConflictState = state.conflictState
   const newConflictState = getConflictState(status)

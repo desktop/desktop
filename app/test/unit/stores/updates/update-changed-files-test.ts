@@ -61,7 +61,7 @@ describe('updateChangedFiles', () => {
         workingDirectory: oldWorkingDirectory,
       })
 
-      const { workingDirectory } = updateChangedFiles(status, true, prevState)
+      const { workingDirectory } = updateChangedFiles(prevState, status, true)
 
       const partialFile = workingDirectory.findFileWithID(
         partiallySelectedFile.id
@@ -81,7 +81,7 @@ describe('updateChangedFiles', () => {
         workingDirectory: oldWorkingDirectory,
       })
 
-      const { workingDirectory } = updateChangedFiles(status, false, prevState)
+      const { workingDirectory } = updateChangedFiles(prevState, status, false)
 
       const partialFile = workingDirectory.findFileWithID(
         partiallySelectedFile.id
@@ -102,7 +102,7 @@ describe('updateChangedFiles', () => {
         workingDirectory: oldWorkingDirectory,
       })
 
-      const { workingDirectory } = updateChangedFiles(status, false, prevState)
+      const { workingDirectory } = updateChangedFiles(prevState, status, false)
 
       expect(workingDirectory).not.toBe(oldWorkingDirectory)
     })
@@ -115,7 +115,7 @@ describe('updateChangedFiles', () => {
       const status = createStatus({
         workingDirectory: WorkingDirectoryStatus.fromFiles(files),
       })
-      const { selectedFileIDs } = updateChangedFiles(status, false, prevState)
+      const { selectedFileIDs } = updateChangedFiles(prevState, status, false)
 
       expect(selectedFileIDs).toHaveLength(1)
       // NOTE: `updateChangedFiles` sorts the paths and `app/package.json` will
@@ -132,7 +132,7 @@ describe('updateChangedFiles', () => {
       const status = createStatus({
         workingDirectory: WorkingDirectoryStatus.fromFiles(files),
       })
-      const { selectedFileIDs } = updateChangedFiles(status, false, prevState)
+      const { selectedFileIDs } = updateChangedFiles(prevState, status, false)
 
       expect(selectedFileIDs).toHaveLength(1)
       expect(selectedFileIDs[0]).toBe(firstFile)
@@ -145,7 +145,7 @@ describe('updateChangedFiles', () => {
       })
 
       const status = createStatus({})
-      const { selectedFileIDs } = updateChangedFiles(status, false, prevState)
+      const { selectedFileIDs } = updateChangedFiles(prevState, status, false)
 
       expect(selectedFileIDs).toHaveLength(0)
     })
@@ -163,7 +163,7 @@ describe('updateChangedFiles', () => {
       })
 
       const status = createStatus({ workingDirectory })
-      const { diff } = updateChangedFiles(status, false, prevState)
+      const { diff } = updateChangedFiles(prevState, status, false)
 
       expect(diff).toBeNull()
     })
@@ -183,7 +183,7 @@ describe('updateChangedFiles', () => {
       // same working directory is provided as last time
       const status = createStatus({ workingDirectory })
 
-      const { diff } = updateChangedFiles(status, false, prevState)
+      const { diff } = updateChangedFiles(prevState, status, false)
 
       expect(diff).toBe(prevState.diff)
     })
