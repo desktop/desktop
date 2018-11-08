@@ -92,7 +92,20 @@ describe('updateChangedFiles', () => {
       )
     })
 
-    it('does not return the same working directory list', () => {})
+    it('does not return same working directory object', () => {
+      const oldWorkingDirectory = WorkingDirectoryStatus.fromFiles(files)
+      const prevState = createState({
+        workingDirectory: oldWorkingDirectory,
+      })
+
+      const status = createStatus({
+        workingDirectory: oldWorkingDirectory,
+      })
+
+      const { workingDirectory } = updateChangedFiles(status, false, prevState)
+
+      expect(workingDirectory).not.toBe(oldWorkingDirectory)
+    })
   })
 
   describe('selectedFileIDs', () => {
