@@ -10,6 +10,7 @@ import {
   setupEmptyRepository,
   setupEmptyDirectory,
   setupConflictedRepo,
+  setupConflictedRepoWithMultipleFiles,
 } from '../../helpers/repositories'
 import { AppFileStatus } from '../../../src/models/status'
 import * as temp from 'temp'
@@ -26,26 +27,25 @@ describe('git/status', () => {
       let filePath: string
 
       beforeEach(async () => {
-        repository = await setupConflictedRepo()
+        repository = await setupConflictedRepoWithMultipleFiles()
         filePath = path.join(repository.path, 'foo')
       })
 
       it('parses conflicted files', async () => {
         const status = await getStatusOrThrow(repository!)
         const files = status.workingDirectory.files
-        expect(files).toHaveLength(1)
-
-        const file = files[0]
-        expect(file.status).toBe(AppFileStatus.Conflicted)
+        expect(files).toHaveLength(5)
+        const file = files.find(f => f.path === 'foo')
+        expect(file!.status).toBe(AppFileStatus.Conflicted)
       })
 
       it('parses resolved files', async () => {
         await FSE.writeFile(filePath, 'b1b2')
         const status = await getStatusOrThrow(repository!)
         const files = status.workingDirectory.files
-        expect(files).toHaveLength(1)
-        const file = files[0]
-        expect(file.status).toBe(AppFileStatus.Resolved)
+        expect(files).toHaveLength(5)
+        const file = files.find(f => f.path === 'foo')
+        expect(file!.status).toBe(AppFileStatus.Resolved)
       })
     })
 
