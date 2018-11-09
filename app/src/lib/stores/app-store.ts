@@ -2408,7 +2408,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    return this.withPushPull(repository, async () => {
+    return this.withPushPullFetch(repository, async () => {
       const { tip } = state.branchesState
 
       if (tip.kind === TipState.Unborn) {
@@ -2566,7 +2566,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
-  private async withPushPull(
+  private async withPushPullFetch(
     repository: Repository,
     fn: () => Promise<void>
   ): Promise<void> {
@@ -2602,7 +2602,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     account: IGitAccount | null
   ): Promise<void> {
-    return this.withPushPull(repository, async () => {
+    return this.withPushPullFetch(repository, async () => {
       const gitStore = this.gitStoreCache.get(repository)
       const remote = gitStore.currentRemote
 
@@ -2955,7 +2955,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     fetchType: FetchType,
     remotes?: IRemote[]
   ): Promise<void> {
-    await this.withPushPull(repository, async () => {
+    await this.withPushPullFetch(repository, async () => {
       const gitStore = this.gitStoreCache.get(repository)
 
       try {
