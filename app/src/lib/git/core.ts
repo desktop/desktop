@@ -297,6 +297,7 @@ export function gitNetworkArguments(
   const isDotComAccount = account.endpoint === getDotComAPIEndpoint()
 
   if (isDotComAccount) {
+    // opt in for v2 of the Git Wire protocol for GitHub repositories
     return [...baseArgs, '-c', 'protocol.version=2']
   } else {
     return baseArgs
