@@ -1948,11 +1948,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * Refresh in-memory indicators for a set of repositories
    *
    * @param repositories the set of repositories to update
-   * @param shouldFetch attempt to fetch the repositories while updating
+   * @param shouldFetch request to `git fetch` from the remote for the repository
    */
   private async refreshIndicatorsForRepositories(
     repositories: ReadonlyArray<Repository>,
-    shouldFetch: boolean
+    tryFetch: boolean
   ): Promise<void> {
     if (!enableRepoInfoIndicators()) {
       return
@@ -1961,7 +1961,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const startTime = performance && performance.now ? performance.now() : null
 
     for (const repo of repositories) {
-      await this.refreshIndicatorForRepository(repo, shouldFetch)
+      await this.refreshIndicatorForRepository(repo, tryFetch)
     }
 
     if (startTime && repositories.length > 1) {
@@ -1981,11 +1981,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * Refresh in-memory indicators for a repository
    *
    * @param repository the repository to check and update
-   * @param shouldFetch attempt to fetch the repositories while updating
+   * @param tryFetch request to `git fetch` from the remote for the repository
    */
   private async refreshIndicatorForRepository(
     repository: Repository,
-    shouldFetch: boolean
+    tryFetch: boolean
   ) {
     const lookup = this.localRepositoryStateLookup
 
@@ -2007,7 +2007,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    if (shouldFetch) {
+    if (tryFetch) {
       const lastPush = await inferLastPushForRepository(
         this.accounts,
         gitStore,
