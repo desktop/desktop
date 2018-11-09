@@ -20,6 +20,15 @@ coverage:
         base: pr
         # only include coverage in "app/src/" folder
         paths: 'app/src/'
+      lib-git:
+        # compares coverage to the base branch
+        target: auto
+        # if it drops by 20%, send a fail status
+        threshold: 5%
+        # only send statuses for prs, not all commits
+        base: pr
+        # only include coverage in "app/src/lib/git" folder
+        paths: 'app/src/lib/git'
     patch: no
     changes: no
 
