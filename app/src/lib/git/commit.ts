@@ -79,7 +79,7 @@ export async function createMergeCommit(
         //     default
         //        Same as `strip` if the message is to be edited. Otherwise `whitespace`.
         //
-        // We should emulate the behaviour in this situation because we don't
+        // We should emulate the behavior in this situation because we don't
         // let the user view or change the commit message before making the
         // commit.
         '--cleanup=strip',
