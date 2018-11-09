@@ -211,6 +211,7 @@ export class BranchesContainer extends React.Component<
   }
 
   private onMergeClick = () => {
+    this.props.dispatcher.closeFoldout(FoldoutType.Branch)
     this.props.dispatcher.showPopup({
       type: PopupType.MergeBranch,
       repository: this.props.repository,
