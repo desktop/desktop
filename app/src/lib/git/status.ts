@@ -259,11 +259,11 @@ function getConflictStatus(
 
   if (status.kind === 'conflicted') {
     const { us, them } = status
+    const code = them === us ? us : null
     const conflictWithoutMarkers =
-      them !== GitStatusEntry.UpdatedButUnmerged &&
-      us !== GitStatusEntry.UpdatedButUnmerged &&
-      them !== GitStatusEntry.Modified &&
-      us !== GitStatusEntry.Modified
+      code !== GitStatusEntry.UpdatedButUnmerged &&
+      code !== GitStatusEntry.Modified &&
+      code !== GitStatusEntry.Added
 
     if (conflictWithoutMarkers) {
       return { kind: 'text', conflictMarkerCount: null, us, them }
