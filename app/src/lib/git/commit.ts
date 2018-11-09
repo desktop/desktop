@@ -55,7 +55,35 @@ export async function createMergeCommit(
     await unstageAll(repository)
     await stageFiles(repository, files)
     const result = await git(
-      ['commit', '--no-edit'],
+      [
+        'commit',
+        // no-edit here ensures the app does not accidentally invoke the user's editor
+        '--no-edit',
+        // By default Git merge commits do not contain any commentary (which
+        // are lines prefixed with `#`). This works because the Git CLI will
+        // prompt the user to edit the file in `.git/COMMIT_MSG` before
+        // committing, and then it will run `--cleanup=strip`.
+        //
+        // This clashes with our use of `--no-edit` above as Git will now change
+        // it's behavior to invoke `--cleanup=whitespace` as it did not ask
+        // the user to edit the COMMIT_MSG as part of creating a commit.
+        //
+        // From the docs on git-commit (https://git-scm.com/docs/git-commit) I'll
+        // quote the relevant section:
+        // --cleanup=<mode>
+        //     strip
+        //        Strip leading and trailing empty lines, trailing whitespace,
+        //        commentary and collapse consecutive empty lines.
+        //     whitespace
+        //        Same as `strip` except #commentary is not removed.
+        //     default
+        //        Same as `strip` if the message is to be edited. Otherwise `whitespace`.
+        //
+        // We should emulate the behavior in this situation because we don't
+        // let the user view or change the commit message before making the
+        // commit.
+        '--cleanup=strip',
+      ],
       repository.path,
       'createMergeCommit'
     )
