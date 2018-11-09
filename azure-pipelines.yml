@@ -5,7 +5,7 @@ jobs:
     steps:
       - task: NodeTool@0
         inputs:
-          versionSpec: '8.11.1'
+          versionSpec: '8.12.0'
       - task: geeklearningio.gl-vsts-tasks-yarn.yarn-installer-task.YarnInstaller@2
         inputs:
           versionSpec: '1.5.1'
@@ -28,7 +28,7 @@ jobs:
           sudo apt-get install -y --no-install-recommends libsecret-1-dev xvfb fakeroot dpkg rpm xz-utils xorriso zsync libxss1 libgconf2-4 libgtk-3-0
       - task: NodeTool@0
         inputs:
-          versionSpec: '8.11.1'
+          versionSpec: '8.12.0'
       - task: geeklearningio.gl-vsts-tasks-yarn.yarn-installer-task.YarnInstaller@2
         inputs:
           versionSpec: '1.5.1'
@@ -50,7 +50,7 @@ jobs:
     steps:
       - task: NodeTool@0
         inputs:
-          versionSpec: '8.11.1'
+          versionSpec: '8.12.0'
       - script: |
           yarn install --force
         name: Install
@@ -70,7 +70,7 @@ jobs:
           sudo apt-get install -y --no-install-recommends libsecret-1-dev
       - task: NodeTool@0
         inputs:
-          versionSpec: '8.11.1'
+          versionSpec: '8.12.0'
       - task: geeklearningio.gl-vsts-tasks-yarn.yarn-installer-task.YarnInstaller@2
         inputs:
           versionSpec: '1.5.1'
