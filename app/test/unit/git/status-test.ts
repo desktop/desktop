@@ -14,6 +14,7 @@ import {
 import { AppFileStatus } from '../../../src/models/status'
 import * as temp from 'temp'
 import { getStatus } from '../../../src/lib/git'
+import { IConflictTextFileStatus } from '../../../src/models/conflicts'
 
 const _temp = temp.track()
 const mkdir = _temp.mkdir
@@ -33,16 +34,23 @@ describe('git/status', () => {
       it('parses conflicted files', async () => {
         const status = await getStatusOrThrow(repository!)
         const files = status.workingDirectory.files
-        expect(files).toHaveLength(5)
-        const file = files.find(f => f.path === 'foo')
-        expect(file!.status).toBe(AppFileStatus.Conflicted)
+        expect(files).toHaveLength(3)
+        expect(
+          files.filter(f => f.status === AppFileStatus.Conflicted)
+        ).toHaveLength(3)
+        const barFileConfclictStatus = files.find(f => f.path === 'bar')!
+          .conflictStatus as IConflictTextFileStatus
+        expect(barFileConfclictStatus.conflictMarkerCount).toBeNull()
       })
 
       it('parses resolved files', async () => {
         await FSE.writeFile(filePath, 'b1b2')
         const status = await getStatusOrThrow(repository!)
         const files = status.workingDirectory.files
-        expect(files).toHaveLength(5)
+        expect(files).toHaveLength(3)
+        expect(
+          files.filter(f => f.status === AppFileStatus.Conflicted)
+        ).toHaveLength(2)
         const file = files.find(f => f.path === 'foo')
         expect(file!.status).toBe(AppFileStatus.Resolved)
       })

@@ -135,20 +135,12 @@ export async function setupConflictedRepoWithMultipleFiles(): Promise<
     Path.join(repo.path, 'foo'),
     Path.join(repo.path, 'bar'),
     Path.join(repo.path, 'baz'),
-    Path.join(repo.path, 'cow'),
-    Path.join(repo.path, 'cat'),
   ]
 
   await FSE.writeFile(filePaths[0], 'b0')
   await FSE.writeFile(filePaths[1], 'b0')
-  await FSE.writeFile(filePaths[2], 'b0')
   await GitProcess.exec(
-    [
-      'add',
-      Path.basename(filePaths[0]),
-      Path.basename(filePaths[1]),
-      Path.basename(filePaths[2]),
-    ],
+    ['add', Path.basename(filePaths[0]), Path.basename(filePaths[1])],
     repo.path
   )
   await GitProcess.exec(['commit', '-m', 'Commit'], repo.path)
@@ -156,14 +148,10 @@ export async function setupConflictedRepoWithMultipleFiles(): Promise<
   await GitProcess.exec(['branch', 'other-branch'], repo.path)
 
   await FSE.writeFile(filePaths[0], 'b1')
-  await FSE.writeFile(filePaths[3], 'b1')
+  await FSE.writeFile(filePaths[2], 'b1')
   await GitProcess.exec(['rm', Path.basename(filePaths[1])], repo.path)
   await GitProcess.exec(
-    ['mv', Path.basename(filePaths[2]), Path.basename(filePaths[4])],
-    repo.path
-  )
-  await GitProcess.exec(
-    ['add', Path.basename(filePaths[0]), Path.basename(filePaths[3])],
+    ['add', Path.basename(filePaths[0]), Path.basename(filePaths[2])],
     repo.path
   )
   await GitProcess.exec(['commit', '-m', 'Commit'], repo.path)
@@ -173,16 +161,13 @@ export async function setupConflictedRepoWithMultipleFiles(): Promise<
   await FSE.writeFile(filePaths[0], 'b2')
   await FSE.writeFile(filePaths[1], 'b2')
   await FSE.writeFile(filePaths[2], 'b2')
-  await FSE.writeFile(filePaths[3], 'b2')
-  await FSE.writeFile(filePaths[4], 'b2')
+
   await GitProcess.exec(
     [
       'add',
       Path.basename(filePaths[0]),
       Path.basename(filePaths[1]),
       Path.basename(filePaths[2]),
-      Path.basename(filePaths[3]),
-      Path.basename(filePaths[4]),
     ],
     repo.path
   )
