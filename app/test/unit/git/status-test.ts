@@ -31,13 +31,32 @@ describe('git/status', () => {
         filePath = path.join(repository.path, 'foo')
       })
 
-      it('parses conflicted files', async () => {
+      it('parses conflicted files with markers', async () => {
         const status = await getStatusOrThrow(repository!)
         const files = status.workingDirectory.files
-        expect(files).toHaveLength(3)
+        expect(files).toHaveLength(4)
+        const conflictedFiles = files.filter(
+          f => f.status === AppFileStatus.Conflicted
+        )
+        expect(conflictedFiles).toHaveLength(4)
+        const fooFileConfclictStatus = files.find(f => f.path === 'foo')!
+          .conflictStatus as IConflictTextFileStatus
+        expect(fooFileConfclictStatus.conflictMarkerCount).not.toBeNull()
+        const bazFileConfclictStatus = files.find(f => f.path === 'baz')!
+          .conflictStatus as IConflictTextFileStatus
+        expect(bazFileConfclictStatus.conflictMarkerCount).not.toBeNull()
+        const catFileConfclictStatus = files.find(f => f.path === 'cat')!
+          .conflictStatus as IConflictTextFileStatus
+        expect(catFileConfclictStatus.conflictMarkerCount).not.toBeNull()
+      })
+
+      it('parses conflicted files without markers', async () => {
+        const status = await getStatusOrThrow(repository!)
+        const files = status.workingDirectory.files
+        expect(files).toHaveLength(4)
         expect(
           files.filter(f => f.status === AppFileStatus.Conflicted)
-        ).toHaveLength(3)
+        ).toHaveLength(4)
         const barFileConfclictStatus = files.find(f => f.path === 'bar')!
           .conflictStatus as IConflictTextFileStatus
         expect(barFileConfclictStatus.conflictMarkerCount).toBeNull()
@@ -47,10 +66,10 @@ describe('git/status', () => {
         await FSE.writeFile(filePath, 'b1b2')
         const status = await getStatusOrThrow(repository!)
         const files = status.workingDirectory.files
-        expect(files).toHaveLength(3)
+        expect(files).toHaveLength(4)
         expect(
           files.filter(f => f.status === AppFileStatus.Conflicted)
-        ).toHaveLength(2)
+        ).toHaveLength(3)
         const file = files.find(f => f.path === 'foo')
         expect(file!.status).toBe(AppFileStatus.Resolved)
       })
