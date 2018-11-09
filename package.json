@@ -13,7 +13,7 @@
     "test": "yarn test:unit:cov --runInBand && yarn test:script && yarn test:integration",
     "test:setup": "ts-node -P script/tsconfig.json script/test-setup.ts",
     "test:review": "ts-node  -P script/tsconfig.json script/test-review.ts",
-    "test:report": "codecov -f coverage/*.json",
+    "test:report": "codecov --disable=gcov -f coverage/*.json",
     "postinstall": "ts-node -P script/tsconfig.json script/post-install.ts",
     "start": "cross-env NODE_ENV=development ts-node -P script/tsconfig.json script/start.ts",
     "start:prod": "cross-env NODE_ENV=production ts-node -P script/tsconfig.json script/start.ts",
