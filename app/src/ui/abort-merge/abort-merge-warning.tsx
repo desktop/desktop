@@ -11,8 +11,8 @@ interface IAbortMergeWarningProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
   readonly onDismissed: () => void
-  readonly currentBranch: string
-  readonly theirBranch: string
+  readonly ourBranch: string
+  readonly theirBranch?: string
 }
 
 const titleString = 'Confirm abort merge'
@@ -42,9 +42,41 @@ export class AbortMergeWarning extends React.Component<
     this.props.dispatcher.showPopup({
       type: PopupType.MergeConflicts,
       repository: this.props.repository,
-      currentBranch: this.props.currentBranch,
+      ourBranch: this.props.ourBranch,
       theirBranch: this.props.theirBranch,
     })
+  }
+
+  private renderTextContent(ourBranch: string, theirBranch?: string) {
+    let firstParagraph
+
+    if (theirBranch !== undefined) {
+      firstParagraph = (
+        <p>
+          {'Are you sure you want to abort merging '}
+          <strong>{theirBranch}</strong>
+          {' into '}
+          <strong>{ourBranch}</strong>?
+        </p>
+      )
+    } else {
+      firstParagraph = (
+        <p>
+          {'Are you sure you want to abort merging into '}
+          <strong>{ourBranch}</strong>?
+        </p>
+      )
+    }
+
+    return (
+      <div className="column-left">
+        {firstParagraph}
+        <p>
+          Aborting this merge will take you back to the pre-merge state and the
+          conflicts you've already resolved will still be present.
+        </p>
+      </div>
+    )
   }
 
   public render() {
@@ -58,18 +90,7 @@ export class AbortMergeWarning extends React.Component<
       >
         <DialogContent className="content-wrapper">
           <Octicon symbol={OcticonSymbol.alert} />
-          <div className="column-left">
-            <p>
-              {'Are you sure you want to abort merging '}
-              <strong>{this.props.theirBranch}</strong>
-              {' into '}
-              <strong>{this.props.currentBranch}</strong>?
-            </p>
-            <p>
-              Aborting this merge will take you back to the pre-merge state and
-              the conflicts you've already resolved will still be present.
-            </p>
-          </div>
+          {this.renderTextContent(this.props.ourBranch, this.props.theirBranch)}
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>

@@ -303,7 +303,7 @@ export async function mergeConflictHandler(
   dispatcher.showPopup({
     type: PopupType.MergeConflicts,
     repository,
-    currentBranch: tip.branch.name,
+    ourBranch: tip.branch.name,
     theirBranch,
   })
 

@@ -67,11 +67,21 @@ export class BranchesContainer extends React.Component<
     }
   }
 
-  public render() {
-    const branchName = this.props.currentBranch
-      ? this.props.currentBranch.name
-      : this.props.defaultBranch || 'master'
+  private getBranchName = (): string => {
+    const { currentBranch, defaultBranch } = this.props
+    if (currentBranch != null) {
+      return currentBranch.name
+    }
 
+    if (defaultBranch != null) {
+      return defaultBranch.name
+    }
+
+    return 'master'
+  }
+
+  public render() {
+    const branchName = this.getBranchName()
     return (
       <div className="branches-container">
         {this.renderTabBar()}
@@ -79,7 +89,7 @@ export class BranchesContainer extends React.Component<
         <Row className="merge-button-row">
           <Button className="merge-button" onClick={this.onMergeClick}>
             <Octicon className="icon" symbol={OcticonSymbol.gitMerge} />
-            <span title={`Commit to ${branchName}`}>
+            <span title={`Merge a branch into ${branchName}`}>
               Choose a branch to merge into <strong>{branchName}</strong>
             </span>
           </Button>
@@ -201,6 +211,7 @@ export class BranchesContainer extends React.Component<
   }
 
   private onMergeClick = () => {
+    this.props.dispatcher.closeFoldout(FoldoutType.Branch)
     this.props.dispatcher.showPopup({
       type: PopupType.MergeBranch,
       repository: this.props.repository,
