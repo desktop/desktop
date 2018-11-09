@@ -236,6 +236,7 @@ export async function getStatus(
 
 function getConflictStatus(
   path: string,
+  status: FileEntry,
   conflictState: ConflictState
 ): ConflictFileStatus | null {
   const { filesWithConflictMarkers, binaryFilePathsInConflicts } = conflictState
@@ -254,6 +255,19 @@ function getConflictStatus(
 
   if (conflictMarkerCount != null) {
     return { kind: 'text', conflictMarkerCount }
+  }
+
+  if (status.kind === 'conflicted') {
+    const { us, them } = status
+    const code = them === us ? us : null
+    const conflictWithoutMarkers =
+      code !== GitStatusEntry.UpdatedButUnmerged &&
+      code !== GitStatusEntry.Modified &&
+      code !== GitStatusEntry.Added
+
+    if (conflictWithoutMarkers) {
+      return { kind: 'text', conflictMarkerCount: null, us, them }
+    }
   }
 
   return null
@@ -293,7 +307,7 @@ function buildStatusMap(
     files.delete(entry.path)
   }
 
-  const conflictStatus = getConflictStatus(entry.path, conflictState)
+  const conflictStatus = getConflictStatus(entry.path, status, conflictState)
 
   // for now we just poke at the existing summary
   const summary = convertToAppStatus(status, conflictStatus !== null)
