@@ -181,15 +181,12 @@ export class MergeConflictsDialog extends React.Component<
     if (conflictStatus.kind === 'text') {
       if (conflictStatus.conflictMarkerCount === null) {
         content = (
-          <li className="unmerged-file-status-conflicts">
-            <Octicon symbol={OcticonSymbol.fileCode} className="file-octicon" />
-            <div>
-              <PathText path={path} availableWidth={400} />
-              <div className="command-line-hint">
-                Use command line to resolve this file
-              </div>
+          <div>
+            <PathText path={path} availableWidth={400} />
+            <div className="command-line-hint">
+              Use command line to resolve this file
             </div>
-          </li>
+          </div>
         )
       } else {
         const humanReadableConflicts = calculateConflicts(
@@ -222,14 +219,12 @@ export class MergeConflictsDialog extends React.Component<
       }
     } else if (conflictStatus.kind === 'binary') {
       content = (
-        <>
-          <div>
-            <PathText path={path} availableWidth={400} />
-            <div className="command-line-hint">
-              Use command line to resolve binary files
-            </div>
+        <div>
+          <PathText path={path} availableWidth={400} />
+          <div className="command-line-hint">
+            Use command line to resolve binary files
           </div>
-        </>
+        </div>
       )
     }
     return content !== null ? (
