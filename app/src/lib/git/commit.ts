@@ -65,7 +65,7 @@ export async function createMergeCommit(
         // committing, and then it will run `--cleanup=strip`.
         //
         // This clashes with our use of `--no-edit` above as Git will now change
-        // it's behaviour to invoke `--cleanup=whitespace` as it did not ask
+        // it's behavior to invoke `--cleanup=whitespace` as it did not ask
         // the user to edit the COMMIT_MSG as part of creating a commit.
         //
         // From the docs on git-commit (https://git-scm.com/docs/git-commit) I'll
