@@ -9,7 +9,6 @@ import {
   setupFixtureRepository,
   setupEmptyRepository,
   setupEmptyDirectory,
-  setupConflictedRepo,
   setupConflictedRepoWithMultipleFiles,
 } from '../../helpers/repositories'
 import { AppFileStatus } from '../../../src/models/status'
