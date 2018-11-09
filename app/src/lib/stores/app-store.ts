@@ -1998,11 +1998,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
 
     if (this.shouldBackgroundFetch(repository, lastPush)) {
-      await this.withAuthenticatingUser(repository, (repo, account) => {
-        return gitStore.performFailableOperation(() => {
-          return gitStore.fetch(account, true)
-        })
-      })
+      return this._fetch(repository, FetchType.BackgroundTask)
     }
 
     lookup.set(repository.id, {
