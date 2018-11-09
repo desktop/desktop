@@ -24,5 +24,3 @@ coverage:
     changes: no
 
 comment: off
-
-parsers: false
