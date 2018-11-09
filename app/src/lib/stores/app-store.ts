@@ -1937,15 +1937,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this._updateCurrentPullRequest(repository)
     this.updateMenuItemLabels(repository)
     this._initializeCompare(repository)
-    this.refreshIndicatorsForRepositories([repository])
+    this.refreshIndicatorsForRepositories([repository], false)
   }
 
   public refreshAllIndicators() {
-    return this.refreshIndicatorsForRepositories(this.repositories)
+    return this.refreshIndicatorsForRepositories(this.repositories, true)
   }
 
+  /**
+   * Refresh in-memory indicators for a set of repositories
+   *
+   * @param repositories the set of repositories to update
+   * @param shouldFetch attempt to fetch the repositories while updating
+   */
   private async refreshIndicatorsForRepositories(
-    repositories: ReadonlyArray<Repository>
+    repositories: ReadonlyArray<Repository>,
+    shouldFetch: boolean
   ): Promise<void> {
     if (!enableRepoInfoIndicators()) {
       return
@@ -1954,7 +1961,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const startTime = performance && performance.now ? performance.now() : null
 
     for (const repo of repositories) {
-      await this.refreshIndicatorForRepository(repo)
+      await this.refreshIndicatorForRepository(repo, shouldFetch)
     }
 
     if (startTime && repositories.length > 1) {
@@ -1970,7 +1977,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  private async refreshIndicatorForRepository(repository: Repository) {
+  /**
+   * Refresh in-memory indicators for a repository
+   *
+   * @param repository the repository to check and update
+   * @param shouldFetch attempt to fetch the repositories while updating
+   */
+  private async refreshIndicatorForRepository(
+    repository: Repository,
+    shouldFetch: boolean
+  ) {
     const lookup = this.localRepositoryStateLookup
 
     if (repository.missing) {
@@ -1991,14 +2007,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const lastPush = await inferLastPushForRepository(
-      this.accounts,
-      gitStore,
-      repository
-    )
+    if (shouldFetch) {
+      const lastPush = await inferLastPushForRepository(
+        this.accounts,
+        gitStore,
+        repository
+      )
 
-    if (this.shouldBackgroundFetch(repository, lastPush)) {
-      return this._fetch(repository, FetchType.BackgroundTask)
+      if (this.shouldBackgroundFetch(repository, lastPush)) {
+        await this._fetch(repository, FetchType.BackgroundTask)
+      }
     }
 
     lookup.set(repository.id, {
