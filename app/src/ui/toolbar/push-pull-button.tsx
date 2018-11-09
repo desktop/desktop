@@ -19,7 +19,7 @@ interface IPushPullButtonProps {
   /** The name of the remote. */
   readonly remoteName: string | null
 
-  /** Is a push/pull/update in progress? */
+  /** Is a push/pull/fetch in progress? */
   readonly networkActionInProgress: boolean
 
   /** The date of the last fetch. */
