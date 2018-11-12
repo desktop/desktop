@@ -43,7 +43,17 @@ export class ApiRepositoriesStore extends BaseStore {
     account: Account,
     repositories: Pick<IAccountRepositories, K>
   ) {
-    this.accountState = mergeState(this.accountState, account, repositories)
+    const newState = new Map<Account, IAccountRepositories>(this.accountState)
+    const existingRepositories = newState.get(account)
+
+    newState.set(
+      account,
+      existingRepositories === undefined
+        ? repositories
+        : merge(existingRepositories, repositories)
+    )
+
+    this.accountState = newState
     this.emitUpdate()
   }
 
@@ -64,22 +74,4 @@ export class ApiRepositoriesStore extends BaseStore {
   public getState(): ReadonlyMap<Account, IAccountRepositories> {
     return this.accountState
   }
-}
-
-function mergeState<T, K extends keyof IAccountRepositories>(
-  state: ReadonlyMap<Account, IAccountRepositories>,
-  account: Account,
-  repositories: Pick<IAccountRepositories, K>
-) {
-  const newState = new Map<Account, IAccountRepositories>(state)
-  const existingRepositories = newState.get(account)
-
-  newState.set(
-    account,
-    existingRepositories === undefined
-      ? repositories
-      : merge(existingRepositories, repositories)
-  )
-
-  return newState
 }
