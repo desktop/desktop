@@ -1,4 +1,4 @@
-import { git, GitError } from './core'
+import { git, GitError, IGitResult } from './core'
 import { stageFiles } from './update-index'
 import { Repository } from '../../models/repository'
 import { WorkingDirectoryFileChange } from '../../models/status'
@@ -13,7 +13,7 @@ export async function createCommit(
   repository: Repository,
   message: string,
   files: ReadonlyArray<WorkingDirectoryFileChange>
-): Promise<boolean> {
+): Promise<string | undefined> {
   // Clear the staging area, our diffs reflect the difference between the
   // working directory and the last commit (if any) so our commits should
   // do the same thing.
@@ -22,13 +22,18 @@ export async function createCommit(
   await stageFiles(repository, files)
 
   try {
-    await git(['commit', '-F', '-'], repository.path, 'createCommit', {
-      stdin: message,
-    })
-    return true
+    const result = await git(
+      ['commit', '-F', '-'],
+      repository.path,
+      'createCommit',
+      {
+        stdin: message,
+      }
+    )
+    return parseCommitSHA(result)
   } catch (e) {
     logCommitError(e)
-    return false
+    return undefined
   }
 }
 
@@ -42,17 +47,55 @@ export async function createCommit(
 export async function createMergeCommit(
   repository: Repository,
   files: ReadonlyArray<WorkingDirectoryFileChange>
-): Promise<void> {
+): Promise<string | undefined> {
   // Clear the staging area, our diffs reflect the difference between the
   // working directory and the last commit (if any) so our commits should
   // do the same thing.
   try {
     await unstageAll(repository)
     await stageFiles(repository, files)
-    await git(['commit', '--no-edit'], repository.path, 'createMergeCommit')
+    const result = await git(
+      [
+        'commit',
+        // no-edit here ensures the app does not accidentally invoke the user's editor
+        '--no-edit',
+        // By default Git merge commits do not contain any commentary (which
+        // are lines prefixed with `#`). This works because the Git CLI will
+        // prompt the user to edit the file in `.git/COMMIT_MSG` before
+        // committing, and then it will run `--cleanup=strip`.
+        //
+        // This clashes with our use of `--no-edit` above as Git will now change
+        // it's behavior to invoke `--cleanup=whitespace` as it did not ask
+        // the user to edit the COMMIT_MSG as part of creating a commit.
+        //
+        // From the docs on git-commit (https://git-scm.com/docs/git-commit) I'll
+        // quote the relevant section:
+        // --cleanup=<mode>
+        //     strip
+        //        Strip leading and trailing empty lines, trailing whitespace,
+        //        commentary and collapse consecutive empty lines.
+        //     whitespace
+        //        Same as `strip` except #commentary is not removed.
+        //     default
+        //        Same as `strip` if the message is to be edited. Otherwise `whitespace`.
+        //
+        // We should emulate the behavior in this situation because we don't
+        // let the user view or change the commit message before making the
+        // commit.
+        '--cleanup=strip',
+      ],
+      repository.path,
+      'createMergeCommit'
+    )
+    return parseCommitSHA(result)
   } catch (e) {
     logCommitError(e)
+    return undefined
   }
+}
+
+function parseCommitSHA(result: IGitResult): string {
+  return result.stdout.split(']')[0].split(' ')[1]
 }
 
 /**

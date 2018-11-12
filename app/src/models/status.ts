@@ -1,33 +1,34 @@
 import { DiffSelection, DiffSelectionType } from './diff'
 import { OcticonSymbol } from '../ui/octicons'
 import { assertNever } from '../lib/fatal-error'
+import { ConflictFileStatus } from './conflicts'
 
 /**
  * The status entry code as reported by Git.
  */
 export enum GitStatusEntry {
   // M
-  Modified,
+  Modified = 'M',
   // A
-  Added,
+  Added = 'A',
   // D
-  Deleted,
+  Deleted = 'D',
   // R
-  Renamed,
+  Renamed = 'R',
   // C
-  Copied,
+  Copied = 'C',
   // .
-  Unchanged,
+  Unchanged = '.',
   // ?
-  Untracked,
+  Untracked = '?',
   // !
-  Ignored,
+  Ignored = '!',
   // U
   //
   // While U is a valid code here, we currently mark conflicts as "Modified"
   // in the application - this will likely be something we need to revisit
   // down the track as we improve our merge conflict experience
-  UpdatedButUnmerged,
+  UpdatedButUnmerged = 'U',
 }
 
 /** The file status as represented in GitHub Desktop. */
@@ -62,7 +63,7 @@ type RenamedOrCopiedEntry = {
 }
 
 /** The porcelain status for an unmerged entry */
-type UnmergedEntry = {
+export type UnmergedEntry = {
   readonly kind: 'conflicted'
   /** the first character of the short code ("ours")  */
   readonly us: GitStatusEntry
@@ -138,15 +139,6 @@ export function iconForStatus(status: AppFileStatus): OcticonSymbol {
   return assertNever(status, `Unknown file status ${status}`)
 }
 
-export type ConflictStatus =
-  | {
-      readonly kind: 'text'
-      readonly conflictMarkerCount: number
-    }
-  | {
-      readonly kind: 'binary'
-    }
-
 /** encapsulate changes to a file associated with a commit */
 export class FileChange {
   /** An ID for the file change. */
@@ -180,7 +172,7 @@ export class WorkingDirectoryFileChange extends FileChange {
     status: AppFileStatus,
     public readonly selection: DiffSelection,
     oldPath?: string,
-    public readonly conflictStatus: ConflictStatus | null = null
+    public readonly conflictStatus: ConflictFileStatus | null = null
   ) {
     super(path, status, oldPath)
   }

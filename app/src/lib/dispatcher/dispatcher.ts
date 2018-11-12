@@ -595,16 +595,28 @@ export class Dispatcher {
     return this.appStore._mergeBranch(repository, branch, mergeStatus)
   }
 
+  /** aborts an in-flight merge and refreshes the repository's status */
   public async abortMerge(repository: Repository) {
     await this.appStore._abortMerge(repository)
     await this.appStore._loadStatus(repository)
   }
 
-  public createMergeCommit(
+  /**
+   * commits an in-flight merge and shows a banner if successful
+   *
+   * @param repository
+   * @param files files to commit. should be all of them in the repository
+   * @param successfulMergeBannerState information for banner to be displayed if merge is successful
+   */
+  public async createMergeCommit(
     repository: Repository,
-    files: ReadonlyArray<WorkingDirectoryFileChange>
+    files: ReadonlyArray<WorkingDirectoryFileChange>,
+    successfulMergeBannerState: SuccessfulMergeBannerState
   ) {
-    return this.appStore._createMergeCommit(repository, files)
+    const result = await this.appStore._createMergeCommit(repository, files)
+    if (result !== undefined) {
+      this.appStore._setSuccessfulMergeBannerState(successfulMergeBannerState)
+    }
   }
 
   /** Record the given launch stats. */
@@ -862,12 +874,12 @@ export class Dispatcher {
 
       case 'open-repository-from-url':
         const { url } = action
-        const repository = await this.openRepository(url)
+        const repository = await this.openOrCloneRepository(url)
         if (repository) {
           await this.handleCloneInDesktopOptions(repository, action)
         } else {
           log.warn(
-            `Open Repository from URL failed, did not find repository: ${url} - payload: ${JSON.stringify(
+            `Open Repository from URL failed, did not find or clone repository: ${url} - payload: ${JSON.stringify(
               action
             )}`
           )
@@ -998,7 +1010,7 @@ export class Dispatcher {
     }
   }
 
-  private async openRepository(url: string): Promise<Repository | null> {
+  private async openOrCloneRepository(url: string): Promise<Repository | null> {
     const state = this.appStore.getState()
     const repositories = state.repositories
     const existingRepository = repositories.find(r => {
@@ -1229,12 +1241,15 @@ export class Dispatcher {
     return this.appStore._updateCompareForm(repository, newState)
   }
 
+  public resolveCurrentEditor() {
+    return this.appStore._resolveCurrentEditor()
+  }
+
   /**
    * Updates the application state to indicate a conflict is in-progress
    * as a result of a pull and increments the relevant metric.
    */
   public mergeConflictDetectedFromPull() {
-    this.appStore._mergeConflictDetected()
     return this.statsStore.recordMergeConflictFromPull()
   }
 
@@ -1243,7 +1258,6 @@ export class Dispatcher {
    * as a result of a merge and increments the relevant metric.
    */
   public mergeConflictDetectedFromExplicitMerge() {
-    this.appStore._mergeConflictDetected()
     return this.statsStore.recordMergeConflictFromExplicitMerge()
   }
 
@@ -1342,19 +1356,5 @@ export class Dispatcher {
 
   public recordAddExistingRepository() {
     this.statsStore.recordAddExistingRepository()
-  }
-
-  /**
-   * Increments the `recordMergeSuccesfulAfterConflicts` metric
-   */
-  public recordMergeSuccesfulAfterConflicts() {
-    return this.statsStore.recordMergeSuccesAfterConflicts()
-  }
-
-  /**
-   * Increments the `recordMergeAbortedAfterConflicts` metric
-   */
-  public recordMergeAbortedAfterConflicts() {
-    return this.statsStore.recordMergeAbortedAfterConflicts()
   }
 }

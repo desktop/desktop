@@ -49,6 +49,45 @@ describe('git/status', () => {
       })
     })
 
+    describe('with conflicted images repo', () => {
+      beforeEach(async () => {
+        const path = await setupFixtureRepository(
+          'detect-conflict-in-binary-file'
+        )
+        repository = new Repository(path, -1, null, false)
+        await GitProcess.exec(['checkout', 'make-a-change'], repository.path)
+      })
+
+      it('parses conflicted image file on merge', async () => {
+        const repo = repository!
+
+        await GitProcess.exec(['merge', 'master'], repo.path)
+
+        const status = await getStatusOrThrow(repo)
+        const files = status.workingDirectory.files
+        expect(files).toHaveLength(1)
+
+        const file = files[0]
+        expect(file.status).toBe(AppFileStatus.Conflicted)
+      })
+
+      it('parses conflicted image file on merge after removing', async () => {
+        const repo = repository!
+
+        await GitProcess.exec(['rm', 'my-cool-image.png'], repo.path)
+        await GitProcess.exec(['commit', '-am', 'removed the image'], repo.path)
+
+        await GitProcess.exec(['merge', 'master'], repo.path)
+
+        const status = await getStatusOrThrow(repo)
+        const files = status.workingDirectory.files
+        expect(files).toHaveLength(1)
+
+        const file = files[0]
+        expect(file.status).toBe(AppFileStatus.Conflicted)
+      })
+    })
+
     describe('with unconflicted repo', () => {
       beforeEach(async () => {
         const testRepoPath = await setupFixtureRepository('test-repo')

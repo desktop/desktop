@@ -43,7 +43,6 @@ import {
   CommittedFileChange,
   WorkingDirectoryFileChange,
   WorkingDirectoryStatus,
-  AppFileStatus,
 } from '../../models/status'
 import { TipState } from '../../models/tip'
 import { ICommitMessage } from '../../models/commit-message'
@@ -89,6 +88,7 @@ import {
   MergeResultStatus,
   ComparisonMode,
   SuccessfulMergeBannerState,
+  IConflictState,
 } from '../app-state'
 import { caseInsensitiveCompare } from '../compare'
 import { IGitHubUser } from '../databases/github-user-database'
@@ -131,6 +131,7 @@ import {
   appendIgnoreRule,
   IStatusResult,
   createMergeCommit,
+  getBranchesPointedAt,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -161,6 +162,7 @@ import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
 import {
   enableRepoInfoIndicators,
   enableMergeConflictDetection,
+  enableMergeConflictsDialog,
 } from '../feature-flag'
 import { MergeResultKind } from '../../models/merge'
 import { promiseWithMinimumTimeout } from '../promise'
@@ -173,6 +175,7 @@ import { readEmoji } from '../read-emoji'
 import { GitStoreCache } from './git-store-cache'
 import { MergeConflictsErrorContext } from '../git-error-context'
 import { setNumber, setBoolean, getBoolean, getNumber } from '../local-storage'
+import { ExternalEditorError } from '../editors/shared'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -267,6 +270,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private imageDiffType: ImageDiffType = imageDiffTypeDefault
 
   private selectedExternalEditor?: ExternalEditor
+
+  private resolvedExternalEditor: ExternalEditor | null = null
 
   /** The user's preferred shell. */
   private selectedShell = DefaultShell
@@ -499,6 +504,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       imageDiffType: this.imageDiffType,
       selectedShell: this.selectedShell,
       repositoryFilterText: this.repositoryFilterText,
+      resolvedExternalEditor: this.resolvedExternalEditor,
       selectedCloneRepositoryTab: this.selectedCloneRepositoryTab,
       selectedBranchesTab: this.selectedBranchesTab,
       selectedTheme: this.selectedTheme,
@@ -1473,68 +1479,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
-  private detectMergeResolution(status: IStatusResult) {
-    const currentBranchName = status.currentBranch
-    if (currentBranchName === undefined) {
-      return
-    }
-
-    const selection = this.getSelectedState()
-    if (selection === null || selection.type !== SelectionType.Repository) {
-      return
-    }
-
-    const { tip } = selection.state.branchesState
-
-    if (tip.kind !== TipState.Valid) {
-      return
-    }
-
-    const repository = selection.repository
-    const repoState = this.repositoryStateCache.get(repository)
-    const { conflictState } = repoState.changesState
-
-    // conflict state being null means that there are no conflicts
-    if (conflictState === null) {
-      return
-    }
-
-    const previousBranch = conflictState.branch
-
-    // The branch name has changed, so the merge must have been aborted
-    if (previousBranch.name !== currentBranchName) {
-      this.statsStore.recordMergeAbortedAfterConflicts()
-      this.repositoryStateCache.updateChangesState(repository, () => ({
-        conflictState: null,
-      }))
-      this.emitUpdate()
-      return
-    }
-
-    // are there files that have a conflicted or _resolved_ status?
-    const workingDirectioryHasConflicts = status.workingDirectory.files.some(
-      file =>
-        file.status === AppFileStatus.Conflicted ||
-        file.status === AppFileStatus.Resolved
-    )
-
-    if (workingDirectioryHasConflicts) {
-      return
-    }
-
-    if (status.currentTip === previousBranch.tip.sha) {
-      // if the tip is the same, no merge commit was created
-      this.statsStore.recordMergeAbortedAfterConflicts()
-    } else {
-      this.statsStore.recordMergeSuccesAfterConflicts()
-    }
-
-    this.repositoryStateCache.updateChangesState(repository, state => ({
-      conflictState: null,
-    }))
-    this.emitUpdate()
-  }
-
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _loadStatus(
     repository: Repository,
@@ -1547,7 +1491,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return false
     }
 
-    this.detectMergeResolution(status)
     this.repositoryStateCache.updateChangesState(repository, state => {
       // Populate a map for all files in the current working directory state
       const filesByID = new Map<string, WorkingDirectoryFileChange>()
@@ -1609,11 +1552,100 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       return { workingDirectory, selectedFileIDs, diff }
     })
+
+    this.repositoryStateCache.updateChangesState(repository, state => {
+      const prevConflictState = state.conflictState
+      const newConflictState = getConflictState(status)
+
+      if (prevConflictState == null && newConflictState == null) {
+        return { conflictState: null }
+      }
+
+      const previousBranchName =
+        prevConflictState != null ? prevConflictState.currentBranch : null
+      const currentBranchName =
+        newConflictState != null ? newConflictState.currentBranch : null
+
+      const branchNameChanged =
+        previousBranchName != null &&
+        currentBranchName != null &&
+        previousBranchName !== currentBranchName
+
+      // The branch name has changed while remaining conflicted -> the merge must have been aborted
+      if (branchNameChanged) {
+        this.statsStore.recordMergeAbortedAfterConflicts()
+        return { conflictState: newConflictState }
+      }
+
+      const { currentTip } = status
+
+      // if the repository is no longer conflicted, what do we think happened?
+      if (
+        prevConflictState != null &&
+        newConflictState == null &&
+        currentTip != null
+      ) {
+        const previousTip = prevConflictState.currentTip
+
+        if (previousTip !== currentTip) {
+          this.statsStore.recordMergeSuccessAfterConflicts()
+        } else {
+          this.statsStore.recordMergeAbortedAfterConflicts()
+        }
+      }
+
+      return { conflictState: newConflictState }
+    })
+
+    this._triggerMergeConflictsFlow(repository)
+
     this.emitUpdate()
 
     this.updateChangesDiffForCurrentSelection(repository)
 
     return true
+  }
+
+  /** starts the conflict resolution flow, if appropriate */
+  private async _triggerMergeConflictsFlow(repository: Repository) {
+    if (!enableMergeConflictsDialog()) {
+      return
+    }
+
+    const alreadyInFlow =
+      this.currentPopup !== null &&
+      (this.currentPopup.type === PopupType.MergeConflicts ||
+        this.currentPopup.type === PopupType.AbortMerge)
+    if (alreadyInFlow) {
+      return
+    }
+
+    const repoState = this.repositoryStateCache.get(repository)
+    const { conflictState } = repoState.changesState
+    if (conflictState === null) {
+      return
+    }
+
+    const possibleTheirsBranches = await getBranchesPointedAt(
+      repository,
+      'MERGE_HEAD'
+    )
+    // null means we encountered an error
+    if (possibleTheirsBranches === null) {
+      return
+    }
+    const theirBranch =
+      possibleTheirsBranches.length === 1
+        ? possibleTheirsBranches[0]
+        : undefined
+
+    const ourBranch = conflictState.currentBranch
+    this._showPopup({
+      type: PopupType.MergeConflicts,
+      repository,
+      ourBranch,
+      theirBranch,
+    })
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -2513,7 +2545,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private async isCommitting(
     repository: Repository,
-    fn: () => Promise<boolean | undefined>
+    fn: () => Promise<string | undefined>
   ): Promise<boolean | undefined> {
     const state = this.repositoryStateCache.get(repository)
     // ensure the user doesn't try and commit again
@@ -2527,7 +2559,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
 
     try {
-      return await fn()
+      const sha = await fn()
+      return sha !== undefined
     } finally {
       this.repositoryStateCache.update(repository, () => ({
         isCommitting: false,
@@ -3099,7 +3132,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     if (mergeSuccessful && tip.kind === TipState.Valid) {
       this._setSuccessfulMergeBannerState({
-        currentBranch: tip.branch.name,
+        ourBranch: tip.branch.name,
         theirBranch: branch,
       })
     }
@@ -3117,7 +3150,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _createMergeCommit(
     repository: Repository,
     files: ReadonlyArray<WorkingDirectoryFileChange>
-  ): Promise<void> {
+  ): Promise<string | undefined> {
     const gitStore = this.gitStoreCache.get(repository)
     return await gitStore.performFailableOperation(() =>
       createMergeCommit(repository, files)
@@ -3153,11 +3186,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** Open a path to a repository or file using the user's configured editor */
   public async _openInExternalEditor(fullPath: string): Promise<void> {
-    const selectedExternalEditor =
-      this.getState().selectedExternalEditor || null
+    const { selectedExternalEditor } = this.getState()
 
     try {
       const match = await findEditorOrDefault(selectedExternalEditor)
+      if (match === null) {
+        this.emitError(
+          new ExternalEditorError(
+            'No suitable editors installed for GitHub Desktop to launch. Install Atom for your platform and restart GitHub Desktop to try again.',
+            { suggestAtom: true }
+          )
+        )
+        return
+      }
+
       await launchExternalEditor(fullPath, match)
     } catch (error) {
       this.emitError(error)
@@ -3988,33 +4030,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return Promise.resolve()
   }
 
-  /**
-   * Sets conflict state with a non-null value
-   *
-   * The presence of a non-null value signifies
-   * that the repository is in a conflicted state
-   */
-  public _mergeConflictDetected() {
-    const selection = this.getSelectedState()
-
-    if (selection === null || selection.type !== SelectionType.Repository) {
-      return
+  public async _resolveCurrentEditor() {
+    const match = await findEditorOrDefault(this.selectedExternalEditor)
+    const resolvedExternalEditor = match != null ? match.editor : null
+    if (this.resolvedExternalEditor !== resolvedExternalEditor) {
+      this.resolvedExternalEditor = resolvedExternalEditor
+      this.emitUpdate()
     }
-
-    const { tip } = selection.state.branchesState
-
-    if (tip.kind !== TipState.Valid) {
-      return
-    }
-
-    const repository = selection.repository
-
-    this.repositoryStateCache.updateChangesState(repository, () => ({
-      conflictState: {
-        branch: tip.branch,
-      },
-    }))
-    this.emitUpdate()
   }
 }
 
@@ -4050,4 +4072,23 @@ function getBehindOrDefault(aheadBehind: IAheadBehind | null): number {
   }
 
   return aheadBehind.behind
+}
+
+/**
+ * Convert the received status information into a conflict state
+ */
+function getConflictState(status: IStatusResult): IConflictState | null {
+  if (!status.mergeHeadFound) {
+    return null
+  }
+
+  const { currentBranch, currentTip } = status
+  if (currentBranch == null || currentTip == null) {
+    return null
+  }
+
+  return {
+    currentBranch,
+    currentTip,
+  }
 }
