@@ -1,3 +1,6 @@
+variables:
+  PYTHON: 'python2.7'
+
 jobs:
   - job: Windows
     pool:
