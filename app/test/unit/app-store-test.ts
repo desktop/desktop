@@ -36,6 +36,7 @@ import { Commit } from '../../src/models/commit'
 import { getCommit } from '../../src/lib/git'
 import { TestActivityMonitor } from '../helpers/test-activity-monitor'
 import { RepositoryStateCache } from '../../src/lib/stores/repository-state-cache'
+import { ApiRepositoriesStore } from '../../src/lib/stores/apiRepositoriesStore'
 
 // enable mocked version
 jest.mock('../../src/lib/window-state')
@@ -71,6 +72,8 @@ describe('AppStore', () => {
       githubUserStore.getUsersForRepository(repo)
     )
 
+    const apiRepositoriesStore = new ApiRepositoriesStore(accountsStore)
+
     return new AppStore(
       githubUserStore,
       new CloningRepositoriesStore(),
@@ -80,7 +83,8 @@ describe('AppStore', () => {
       accountsStore,
       repositoriesStore,
       pullRequestStore,
-      repositoryStateManager
+      repositoryStateManager,
+      apiRepositoriesStore
     )
   }
 

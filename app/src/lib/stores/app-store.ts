@@ -176,6 +176,7 @@ import { GitStoreCache } from './git-store-cache'
 import { MergeConflictsErrorContext } from '../git-error-context'
 import { setNumber, setBoolean, getBoolean, getNumber } from '../local-storage'
 import { ExternalEditorError } from '../editors/shared'
+import { ApiRepositoriesStore } from './apiRepositoriesStore'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -300,7 +301,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     private readonly accountsStore: AccountsStore,
     private readonly repositoriesStore: RepositoriesStore,
     private readonly pullRequestStore: PullRequestStore,
-    private readonly repositoryStateCache: RepositoryStateCache
+    private readonly repositoryStateCache: RepositoryStateCache,
+    private readonly apiRepositoriesStore: ApiRepositoriesStore
   ) {
     super()
 
@@ -505,6 +507,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       selectedCloneRepositoryTab: this.selectedCloneRepositoryTab,
       selectedBranchesTab: this.selectedBranchesTab,
       selectedTheme: this.selectedTheme,
+      apiRepositories: this.apiRepositoriesStore.getState(),
     }
   }
 
