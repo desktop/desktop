@@ -6,8 +6,17 @@ import { getDotComAPIEndpoint } from '../lib/api'
 
 /** Grouping of information required to create a commit */
 export interface ICommitContext {
+  /**
+   * The summary of the commit message (required)
+   */
   readonly summary: string
+  /**
+   * Additional details for the commit message (optional)
+   */
   readonly description: string | null
+  /**
+   * Trailers representing co-author information (optional)
+   */
   readonly trailers?: ReadonlyArray<ITrailer>
 }
 
