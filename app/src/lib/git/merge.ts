@@ -2,6 +2,7 @@ import * as FSE from 'fs-extra'
 import * as Path from 'path'
 
 import { git } from './core'
+import { GitError } from 'dugite'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
 import { MergeResult, MergeResultKind } from '../../models/merge'
@@ -13,7 +14,9 @@ export async function merge(
   repository: Repository,
   branch: string
 ): Promise<true> {
-  await git(['merge', branch], repository.path, 'merge')
+  await git(['merge', branch], repository.path, 'merge', {
+    expectedErrors: new Set([GitError.MergeConflicts]),
+  })
   return true
 }
 
