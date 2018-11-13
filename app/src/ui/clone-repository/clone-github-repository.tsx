@@ -154,7 +154,7 @@ export class CloneGithubRepository extends React.Component<
         selectedItem={this.state.selectedItem}
         renderItem={this.renderItem}
         renderGroupHeader={this.renderGroupHeader}
-        onItemClick={this.onItemClicked}
+        onSelectionChanged={this.onSelectionChanged}
         invalidationProps={this.state.repositories}
         groups={this.state.repositories}
         filterText={this.state.filterText}
@@ -176,9 +176,9 @@ export class CloneGithubRepository extends React.Component<
     this.setState({ filterText })
   }
 
-  private onItemClicked = (item: IClonableRepositoryListItem) => {
+  private onSelectionChanged = (item: IClonableRepositoryListItem | null) => {
     this.setState({ selectedItem: item })
-    this.props.onGitHubRepositorySelected(item.url)
+    this.props.onGitHubRepositorySelected(item != null ? item.url : '')
   }
 
   private onChooseDirectory = async () => {

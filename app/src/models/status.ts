@@ -7,23 +7,14 @@ import { ConflictFileStatus } from './conflicts'
  * The status entry code as reported by Git.
  */
 export enum GitStatusEntry {
-  // M
   Modified = 'M',
-  // A
   Added = 'A',
-  // D
   Deleted = 'D',
-  // R
   Renamed = 'R',
-  // C
   Copied = 'C',
-  // .
   Unchanged = '.',
-  // ?
   Untracked = '?',
-  // !
   Ignored = '!',
-  // U
   //
   // While U is a valid code here, we currently mark conflicts as "Modified"
   // in the application - this will likely be something we need to revisit
