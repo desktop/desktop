@@ -1,8 +1,8 @@
 {
   "releases": {
     "1.5.0": [
-      "[New] Repository switcher has a convenient \"Add\" button to add other repositories - #5878",
-      "[New] macOS tray icon now supports drag-and-drop to add local repositories - #5048",
+      "[New] Clone, create, or add repositories right from the repository dropdown - #5878",
+      "[New] Drag-and-drop to add local repositories from macOS tray icon - #5048",
       "[Added] Resolve merge conflicts through a guided flow - #5400",
       "[Added] Allow merging branches directly from branch dropdown - #5929. Thanks @bruncun!",
       "[Added] Commit file list now has \"Copy File Path\" context menu action - #2944. Thanks @Amabel!",
@@ -18,10 +18,10 @@
       "[Improved] Default commit summary more explanatory and consistent with GitHub.com - #6017. Thanks @Daniel-McCarthy!",
       "[Improved] Display a more informative message on merge dialog when branch is up to date - #5890",
       "[Improved] Getting a repository's status only blocks other operations when absolutely necessary - #5952",
-      "[Improved] Merge dialog displays current branch in header - #6027",
+      "[Improved] Display current branch in header of merge dialog - #6027",
       "[Improved] Sanitize repository name before publishing to GitHub - #3090. Thanks @Daniel-McCarthy!",
       "[Improved] Show the branch name in \"Update From Default Branch\" menu item - #3018. Thanks @a-golovanov!",
-      "[Improved] Updated license and .gitignore templates for initializing a new repository - #6024. Thanks @say25!"
+      "[Improved] Update license and .gitignore templates for initializing a new repository - #6024. Thanks @say25!"
     ],
     "1.5.0-beta5": [
 
