@@ -4,6 +4,13 @@ import { GitAuthor } from './git-author'
 import { GitHubRepository } from './github-repository'
 import { getDotComAPIEndpoint } from '../lib/api'
 
+/** Grouping of information required to create a commit */
+export interface ICommitContext {
+  readonly summary: string
+  readonly description: string | null
+  readonly trailers?: ReadonlyArray<ITrailer>
+}
+
 /**
  * Extract any Co-Authored-By trailers from an array of arbitrary
  * trailers.
