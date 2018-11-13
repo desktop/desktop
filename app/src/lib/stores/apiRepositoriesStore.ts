@@ -69,7 +69,7 @@ export class ApiRepositoriesStore extends BaseStore {
     const api = API.fromAccount(account)
     const repositories = await api.fetchRepositories()
 
-    if (!repositories) {
+    if (repositories === null) {
       this.updateAccount(account, { loading: false })
       return
     }
