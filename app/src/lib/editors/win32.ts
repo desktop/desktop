@@ -359,7 +359,7 @@ async function findApplication(editor: ExternalEditor): Promise<string | null> {
  */
 export async function getAvailableEditors(): Promise<
   ReadonlyArray<IFoundEditor<ExternalEditor>>
-  > {
+> {
   const results: Array<IFoundEditor<ExternalEditor>> = []
 
   const [
@@ -382,7 +382,7 @@ export async function getAvailableEditors(): Promise<
     results.push({
       editor: ExternalEditor.Atom,
       path: atomPath,
-      usesShell: true
+      usesShell: true,
     })
   }
 
@@ -390,7 +390,7 @@ export async function getAvailableEditors(): Promise<
     results.push({
       editor: ExternalEditor.VisualStudioCode,
       path: codePath,
-      usesShell: true
+      usesShell: true,
     })
   }
 
@@ -398,7 +398,7 @@ export async function getAvailableEditors(): Promise<
     results.push({
       editor: ExternalEditor.VisualStudioCodeInsiders,
       path: codeInsidersPath,
-      usesShell: true
+      usesShell: true,
     })
   }
 
@@ -406,7 +406,7 @@ export async function getAvailableEditors(): Promise<
     results.push({
       editor: ExternalEditor.SublimeText,
       path: sublimePath,
-      usesShell: false
+      usesShell: false,
     })
   }
 
@@ -414,7 +414,7 @@ export async function getAvailableEditors(): Promise<
     results.push({
       editor: ExternalEditor.CFBuilder,
       path: cfBuilderPath,
-      usesShell: false
+      usesShell: false,
     })
   }
 
@@ -422,7 +422,7 @@ export async function getAvailableEditors(): Promise<
     results.push({
       editor: ExternalEditor.Typora,
       path: typoraPath,
-      usesShell: false
+      usesShell: false,
     })
   }
 
