@@ -18,11 +18,14 @@ export async function launchExternalEditor(
     const label = __DARWIN__ ? 'Preferences' : 'Options'
     throw new ExternalEditorError(
       `Could not find executable for '${editor.editor}' at path '${
-        editor.path
+      editor.path
       }'.  Please open ${label} and select an available editor.`,
       { openPreferences: true }
     )
   }
-
-  spawn(editorPath, [fullPath])
+  if (editor.usesShell) {
+    spawn(`"${editorPath}"`, [`"${fullPath}"`], { shell: true })
+  } else {
+    spawn(editorPath, [fullPath])
+  }
 }

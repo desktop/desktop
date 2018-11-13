@@ -16,7 +16,7 @@ export function parse(label: string): ExternalEditor | null {
 
   throw new Error(
     `Platform not currently supported for resolving editors: ${
-      process.platform
+    process.platform
     }`
   )
 }
@@ -33,6 +33,10 @@ export type FoundEditor = {
    * The executable associated with the editor to launch
    */
   path: string
+  /**
+   * the editor requires a shell spawn to launch
+   */
+  usesShell?: boolean
 }
 
 interface IErrorMetadata {

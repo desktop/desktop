@@ -174,11 +174,11 @@ function getExecutableShim(
 ): string {
   switch (editor) {
     case ExternalEditor.Atom:
-      return Path.join(installLocation, 'bin', 'atom.cmd')
+      return Path.join(installLocation, 'bin', 'atom.cmd') // remember, CMD must 'useShell'
     case ExternalEditor.VisualStudioCode:
-      return Path.join(installLocation, 'bin', 'code.cmd')
+      return Path.join(installLocation, 'bin', 'code.cmd') // remember, CMD must 'useShell'
     case ExternalEditor.VisualStudioCodeInsiders:
-      return Path.join(installLocation, 'bin', 'code-insiders.cmd')
+      return Path.join(installLocation, 'bin', 'code-insiders.cmd') // remember, CMD must 'useShell'
     case ExternalEditor.SublimeText:
       return Path.join(installLocation, 'subl.exe')
     case ExternalEditor.CFBuilder:
@@ -359,7 +359,7 @@ async function findApplication(editor: ExternalEditor): Promise<string | null> {
  */
 export async function getAvailableEditors(): Promise<
   ReadonlyArray<IFoundEditor<ExternalEditor>>
-> {
+  > {
   const results: Array<IFoundEditor<ExternalEditor>> = []
 
   const [
@@ -382,6 +382,7 @@ export async function getAvailableEditors(): Promise<
     results.push({
       editor: ExternalEditor.Atom,
       path: atomPath,
+      usesShell: true
     })
   }
 
@@ -389,6 +390,7 @@ export async function getAvailableEditors(): Promise<
     results.push({
       editor: ExternalEditor.VisualStudioCode,
       path: codePath,
+      usesShell: true
     })
   }
 
@@ -396,6 +398,7 @@ export async function getAvailableEditors(): Promise<
     results.push({
       editor: ExternalEditor.VisualStudioCodeInsiders,
       path: codeInsidersPath,
+      usesShell: true
     })
   }
 
@@ -403,6 +406,7 @@ export async function getAvailableEditors(): Promise<
     results.push({
       editor: ExternalEditor.SublimeText,
       path: sublimePath,
+      usesShell: false
     })
   }
 
@@ -410,6 +414,7 @@ export async function getAvailableEditors(): Promise<
     results.push({
       editor: ExternalEditor.CFBuilder,
       path: cfBuilderPath,
+      usesShell: false
     })
   }
 
@@ -417,6 +422,7 @@ export async function getAvailableEditors(): Promise<
     results.push({
       editor: ExternalEditor.Typora,
       path: typoraPath,
+      usesShell: false
     })
   }
 
