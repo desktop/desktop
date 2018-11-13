@@ -58,9 +58,15 @@ export class ApiRepositoriesStore extends BaseStore {
   }
 
   public async loadRepositories(account: Account) {
-    const api = API.fromAccount(account)
+    const existingRepositories = this.accountState.get(account)
+
+    if (existingRepositories !== undefined && existingRepositories.loading) {
+      return
+    }
 
     this.updateAccount(account, { loading: true })
+
+    const api = API.fromAccount(account)
     const repositories = await api.fetchRepositories()
 
     if (!repositories) {
