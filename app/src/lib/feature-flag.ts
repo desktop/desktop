@@ -54,5 +54,15 @@ export function enableInAppReleaseNotes(): boolean {
 
 /** Should `git status` use --no-optional-locks to assist with concurrent usage */
 export function enableStatusWithoutOptionalLocks(): boolean {
+  return true
+}
+
+/** Should git pass `--recurse-submodules` when performing operations? */
+export function enableRecurseSubmodulesFlag(): boolean {
+  return enableBetaFeatures()
+}
+
+/** Should the app use the MergeConflictsDialog component and flow? */
+export function enableMergeConflictsDialog(): boolean {
   return enableBetaFeatures()
 }

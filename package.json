@@ -84,6 +84,7 @@
     "glob": "^7.1.2",
     "html-webpack-plugin": "^3.2.0",
     "jest": "^23.5.0",
+    "jest-localstorage-mock": "^2.3.0",
     "json-pretty": "^0.0.1",
     "klaw-sync": "^3.0.0",
     "legal-eagle": "0.16.0",
@@ -161,7 +162,7 @@
     "@types/winston": "^2.2.0",
     "@types/xml2js": "^0.4.0",
     "electron": "2.0.9",
-    "electron-builder": "20.27.1",
+    "electron-builder": "20.28.4",
     "electron-packager": "^12.0.0",
     "electron-winstaller": "2.5.2"
   }

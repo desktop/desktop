@@ -9,12 +9,13 @@ import {
 } from '../../models/status'
 import { TipState } from '../../models/tip'
 import {
-  ComparisonView,
+  HistoryTabMode,
   IBranchesState,
   IChangesState,
   ICompareState,
   IRepositoryState,
   RepositorySectionTab,
+  ICommitSelection,
 } from '../app-state'
 import { ComparisonCache } from '../comparison-cache'
 import { IGitHubUser } from '../databases'
@@ -74,6 +75,17 @@ export class RepositoryStateCache {
     })
   }
 
+  public updateCommitSelection<K extends keyof ICommitSelection>(
+    repository: Repository,
+    fn: (state: ICommitSelection) => Pick<ICommitSelection, K>
+  ) {
+    this.update(repository, state => {
+      const { commitSelection } = state
+      const newState = merge(commitSelection, fn(commitSelection))
+      return { commitSelection: newState }
+    })
+  }
+
   public updateBranchesState<K extends keyof IBranchesState>(
     repository: Repository,
     fn: (branchesState: IBranchesState) => Pick<IBranchesState, K>
@@ -100,7 +112,6 @@ function getInitialRepositoryState(): IRepositoryState {
       ),
       selectedFileIDs: [],
       diff: null,
-      contextualCommitMessage: null,
       commitMessage: null,
       coAuthors: [],
       showCoAuthoredBy: false,
@@ -118,7 +129,9 @@ function getInitialRepositoryState(): IRepositoryState {
     },
     compareState: {
       isDivergingBranchBannerVisible: false,
-      formState: { kind: ComparisonView.None },
+      formState: {
+        kind: HistoryTabMode.History,
+      },
       tip: null,
       mergeStatus: null,
       showBranchList: false,

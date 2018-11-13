@@ -10,6 +10,8 @@ import { checkoutBranch, getBranches, createBranch } from '../../../src/lib/git'
 import { TipState, IValidBranch } from '../../../src/models/tip'
 import { GitStore } from '../../../src/lib/stores'
 import { Branch, BranchType } from '../../../src/models/branch'
+import { getStatusOrThrow } from '../../helpers/status'
+import { GitProcess } from 'dugite'
 
 describe('git/checkout', () => {
   it('throws when invalid characters are used for branch name', async () => {
@@ -146,5 +148,54 @@ describe('git/checkout', () => {
     }
 
     expect(errorRaised).to.be.true
+  })
+
+  describe('with submodules', () => {
+    it('cleans up an submodule that no longer exists', async () => {
+      const path = await setupFixtureRepository('test-submodule-checkouts')
+      const repository = new Repository(path, -1, null, false)
+
+      // put the repository into a known good state
+      await GitProcess.exec(
+        ['checkout', 'add-private-repo', '-f', '--recurse-submodules'],
+        path
+      )
+
+      const branches = await getBranches(repository)
+      const masterBranch = branches.find(b => b.name === 'master')
+
+      if (masterBranch == null) {
+        throw new Error(`Could not find branch: 'master'`)
+      }
+
+      await checkoutBranch(repository, null, masterBranch)
+
+      const status = await getStatusOrThrow(repository)
+
+      expect(status.workingDirectory.files.length).to.equal(0)
+    })
+
+    it('updates a changed submodule reference', async () => {
+      const path = await setupFixtureRepository('test-submodule-checkouts')
+      const repository = new Repository(path, -1, null, false)
+
+      // put the repository into a known good state
+      await GitProcess.exec(
+        ['checkout', 'master', '-f', '--recurse-submodules'],
+        path
+      )
+
+      const branches = await getBranches(repository)
+      const devBranch = branches.find(b => b.name === 'dev')
+
+      if (devBranch == null) {
+        throw new Error(`Could not find branch: 'dev'`)
+      }
+
+      await checkoutBranch(repository, null, devBranch)
+
+      const status = await getStatusOrThrow(repository)
+      expect(status.workingDirectory.files.length).equals(0)
+    })
   })
 })

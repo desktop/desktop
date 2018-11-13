@@ -1,6 +1,6 @@
 # Roadmap
 
-The following are the areas of upcoming work the GitHub Desktop team intends to explore. This is not written in stone and we'll continue to update it as our priorities evolve.
+The following are the larger areas of upcoming work the GitHub Desktop team intends to explore. This is not inclusive of everything we're working on, and it's not written in stone. We'll continue to update it as our priorities evolve.
 
 ### Onboarding
   
@@ -14,11 +14,10 @@ The following are the areas of upcoming work the GitHub Desktop team intends to 
 
 ### Support rebase workflows
 
-- Improve rebase workflows: [#3422](https://github.com/desktop/desktop/issues/3422)
-- TBD on scope and metrics
+- Improve rebase workflows: [#5953](https://github.com/desktop/desktop/issues/5953)
+- Measuring success: TBD alongside the work + usability testing
   
 ### Merge workflow iteration
 
 - Evaluate and improve merge flow end-to-end: [#5555](https://github.com/desktop/desktop/issues/5555)
-
-We'll be adding more to this roadmap as we further define our intended product direction.
+- Usability testing for merging

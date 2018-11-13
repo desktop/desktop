@@ -1,3 +1,6 @@
+import * as FSE from 'fs-extra'
+import * as Path from 'path'
+
 import { git } from './core'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
@@ -9,8 +12,9 @@ import { spawnAndComplete } from './spawn'
 export async function merge(
   repository: Repository,
   branch: string
-): Promise<void> {
+): Promise<true> {
   await git(['merge', branch], repository.path, 'merge')
+  return true
 }
 
 /**
@@ -88,4 +92,13 @@ export async function mergeTree(
  */
 export async function abortMerge(repository: Repository): Promise<void> {
   await git(['merge', '--abort'], repository.path, 'abortMerge')
+}
+
+/**
+ * Check the `.git/MERGE_HEAD` file exists in a repository to confirm
+ * that it is in a conflicted state.
+ */
+export async function isMergeHeadSet(repository: Repository): Promise<boolean> {
+  const path = Path.join(repository.path, '.git', 'MERGE_HEAD')
+  return FSE.pathExists(path)
 }

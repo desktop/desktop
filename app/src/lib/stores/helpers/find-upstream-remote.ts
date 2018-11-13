@@ -1,7 +1,6 @@
 import { GitHubRepository } from '../../../models/github-repository'
 import { IRemote } from '../../../models/remote'
-import { parseRemote } from '../../remote-parsing'
-import { forceUnwrap } from '../../fatal-error'
+import { repositoryMatchesRemote } from '../../repository-matching'
 
 /** The name for a fork's upstream remote. */
 export const UpstreamRemoteName = 'upstream'
@@ -19,23 +18,5 @@ export function findUpstreamRemote(
     return null
   }
 
-  const parsedUpstream = parseRemote(upstream.url)
-  if (!parsedUpstream || !parsedUpstream.name || !parsedUpstream.owner) {
-    return null
-  }
-
-  const cloneURL = forceUnwrap(
-    'Parent repositories are fully loaded',
-    parent.cloneURL
-  )
-  const parentURL = new URL(cloneURL)
-  if (
-    parsedUpstream.owner.toLowerCase() === parent.owner.login.toLowerCase() &&
-    parsedUpstream.name.toLowerCase() === parent.name.toLowerCase() &&
-    parsedUpstream.hostname.toLowerCase() === parentURL.hostname.toLowerCase()
-  ) {
-    return upstream
-  } else {
-    return null
-  }
+  return repositoryMatchesRemote(parent, upstream) ? upstream : null
 }
