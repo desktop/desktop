@@ -8,7 +8,7 @@ import { Button } from '../lib/button'
 import { Loading } from '../lib/loading'
 import { Octicon } from '../octicons'
 import { FilterList } from '../lib/filter-list'
-import { API } from '../../lib/api'
+import { IAPIRepository } from '../../lib/api'
 import { IFilterListGroup } from '../lib/filter-list'
 import { IMatches } from '../../lib/fuzzy-find'
 import {
@@ -38,12 +38,13 @@ interface ICloneGithubRepositoryProps {
 
   /** Should the component clear the filter text on render? */
   readonly shouldClearFilter: boolean
+
+  readonly repositories: ReadonlyArray<IAPIRepository> | null
+  readonly loading: boolean
+  readonly onRefreshRepositories: (account: Account) => void
 }
 
 interface ICloneGithubRepositoryState {
-  /** Are we currently loading the repositories list? */
-  readonly loading: boolean
-
   /** The list of clonable repositories. */
   readonly repositories: ReadonlyArray<
     IFilterListGroup<IClonableRepositoryListItem>
@@ -71,7 +72,6 @@ export class CloneGithubRepository extends React.Component<
     super(props)
 
     this.state = {
-      loading: false,
       repositories: [],
       selectedItem: null,
       filterText: '',
@@ -81,38 +81,28 @@ export class CloneGithubRepository extends React.Component<
   public componentDidMount() {
     this.mounted = true
 
-    this.loadRepositories(this.props.account)
+    if (this.props.repositories === null) {
+      this.props.onRefreshRepositories(this.props.account)
+    }
+
+    this.loadRepositories()
   }
 
   public componentWillUnmount() {
     this.mounted = false
   }
 
-  private async loadRepositories(account: Account) {
-    this.setState({
-      loading: true,
-    })
-
-    const api = API.fromAccount(account)
-    const result = await api.fetchRepositories()
-
-    // The account could have changed while we were working. Bail if it did.
-    if (account.id !== this.props.account.id) {
-      return
-    }
-
+  private async loadRepositories() {
     if (!this.mounted) {
       return
     }
 
-    const repositories = result
-      ? groupRepositories(result, this.props.account.login)
-      : []
+    const repositories =
+      this.props.repositories === null || this.props.repositories.length === 0
+        ? []
+        : groupRepositories(this.props.repositories, this.props.account.login)
 
-    this.setState({
-      repositories,
-      loading: false,
-    })
+    this.setState({ repositories })
   }
 
   public componentWillReceiveProps(nextProps: ICloneGithubRepositoryProps) {
@@ -122,8 +112,11 @@ export class CloneGithubRepository extends React.Component<
       })
     }
 
+    if (nextProps.repositories !== this.props.repositories) {
+    }
+
     if (nextProps.account.id !== this.props.account.id) {
-      this.loadRepositories(nextProps.account)
+      this.loadRepositories()
     }
   }
 
@@ -146,7 +139,7 @@ export class CloneGithubRepository extends React.Component<
   }
 
   private renderRepositoryList() {
-    if (this.state.loading) {
+    if (this.props.loading) {
       return (
         <div className="clone-github-repo clone-loading">
           <Loading /> Loading repositories…

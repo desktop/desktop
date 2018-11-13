@@ -1158,6 +1158,8 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispatcher={this.props.dispatcher}
             selectedTab={this.state.selectedCloneRepositoryTab}
             onTabSelected={this.onCloneRepositoriesTabSelected}
+            apiRepositories={this.state.apiRepositories}
+            onRefreshRepositories={this.onRefreshRepositories}
           />
         )
       case PopupType.CreateBranch: {
@@ -1427,6 +1429,10 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private onCloneRepositoriesTabSelected = (tab: CloneRepositoryTab) => {
     this.props.dispatcher.changeCloneRepositoriesTab(tab)
+  }
+
+  readonly onRefreshRepositories = (account: Account) => {
+    this.props.dispatcher.refreshApiRepositories(account)
   }
 
   private onShowAdvancedPreferences = () => {

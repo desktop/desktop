@@ -1127,6 +1127,10 @@ export class Dispatcher {
     return this.appStore._changeCloneRepositoriesTab(tab)
   }
 
+  public refreshApiRepositories(account: Account) {
+    return this.appStore._refreshApiRepositories(account)
+  }
+
   /** Open the merge tool for the given file. */
   public openMergeTool(repository: Repository, path: string): Promise<void> {
     return this.appStore._openMergeTool(repository, path)

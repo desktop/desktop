@@ -3679,6 +3679,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return Promise.resolve()
   }
 
+  public _refreshApiRepositories(account: Account) {
+    return this.apiRepositoriesStore.loadRepositories(account)
+  }
+
   public _openMergeTool(repository: Repository, path: string): Promise<void> {
     const gitStore = this.gitStoreCache.get(repository)
     return gitStore.openMergeTool(path)

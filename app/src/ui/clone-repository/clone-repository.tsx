@@ -23,6 +23,7 @@ import { CloneGithubRepository } from './clone-github-repository'
 
 import { assertNever } from '../../lib/fatal-error'
 import { CallToAction } from '../lib/call-to-action'
+import { IAccountRepositories } from '../../lib/stores/apiRepositoriesStore'
 
 /** The name for the error when the destination already exists. */
 const DestinationExistsErrorName = 'DestinationExistsError'
@@ -45,6 +46,9 @@ interface ICloneRepositoryProps {
 
   /** Called when the user selects a tab. */
   readonly onTabSelected: (tab: CloneRepositoryTab) => void
+
+  readonly apiRepositories: ReadonlyMap<Account, IAccountRepositories>
+  readonly onRefreshRepositories: (account: Account) => void
 }
 
 interface ICloneRepositoryState {
@@ -200,6 +204,12 @@ export class CloneRepository extends React.Component<
         if (!account) {
           return <DialogContent>{this.renderSignIn(tab)}</DialogContent>
         } else {
+          const accountState = this.props.apiRepositories.get(account)
+          const repositories =
+            accountState === undefined ? null : accountState.repositories
+          const loading =
+            accountState === undefined ? false : accountState.loading
+
           return (
             <CloneGithubRepository
               path={this.state.path}
@@ -208,6 +218,9 @@ export class CloneRepository extends React.Component<
               onGitHubRepositorySelected={this.updateUrl}
               onChooseDirectory={this.onChooseDirectory}
               shouldClearFilter={this.state.shouldClearFilter}
+              repositories={repositories}
+              loading={loading}
+              onRefreshRepositories={this.props.onRefreshRepositories}
             />
           )
         }
