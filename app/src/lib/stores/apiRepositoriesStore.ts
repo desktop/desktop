@@ -71,10 +71,9 @@ export class ApiRepositoriesStore extends BaseStore {
 
     if (repositories === null) {
       this.updateAccount(account, { loading: false })
-      return
+    } else {
+      this.updateAccount(account, { loading: false, repositories })
     }
-
-    this.updateAccount(account, { loading: true, repositories })
   }
 
   public getState(): ReadonlyMap<Account, IAccountRepositories> {
