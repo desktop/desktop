@@ -4,7 +4,12 @@ import { app, Menu, ipcMain, BrowserWindow, shell } from 'electron'
 import * as Fs from 'fs'
 
 import { AppWindow } from './app-window'
-import { buildDefaultMenu, MenuEvent, findMenuItemByID } from './menu'
+import {
+  buildDefaultMenu,
+  MenuEvent,
+  MenuLabels,
+  findMenuItemByID,
+} from './menu'
 import { shellNeedsPatching, updateEnvironmentForProcess } from '../lib/shell'
 import { parseAppURL } from '../lib/parse-app-url'
 import { handleSquirrelEvent } from './squirrel-updater'
@@ -125,6 +130,32 @@ app.on('will-finish-launching', () => {
   })
 })
 
+if (__DARWIN__) {
+  app.on('open-file', async (event, path) => {
+    event.preventDefault()
+
+    log.info(`[main] a path to ${path} was triggered`)
+
+    Fs.stat(path, (err, stats) => {
+      if (err) {
+        log.error(`Unable to open path '${path}' in Desktop`, err)
+        return
+      }
+
+      if (stats.isFile()) {
+        log.warn(
+          `A file at ${path} was dropped onto Desktop, but it can only handle folders. Ignoring this action.`
+        )
+        return
+      }
+
+      handleAppURL(
+        `x-github-client://openLocalRepo/${encodeURIComponent(path)}`
+      )
+    })
+  })
+}
+
 /**
  * Attempt to detect and handle any protocol handler arguments passed
  * either via the command line directly to the current process or through
@@ -195,20 +226,13 @@ app.on('ready', () => {
 
   createWindow()
 
-  let menu = buildDefaultMenu()
+  let menu = buildDefaultMenu({})
   Menu.setApplicationMenu(menu)
 
   ipcMain.on(
     'update-preferred-app-menu-item-labels',
-    (
-      event: Electron.IpcMessageEvent,
-      labels: { editor?: string; pullRequestLabel?: string; shell: string }
-    ) => {
-      menu = buildDefaultMenu(
-        labels.editor,
-        labels.shell,
-        labels.pullRequestLabel
-      )
+    (event: Electron.IpcMessageEvent, labels: MenuLabels) => {
+      menu = buildDefaultMenu(labels)
       Menu.setApplicationMenu(menu)
       if (mainWindow) {
         mainWindow.sendAppMenu()

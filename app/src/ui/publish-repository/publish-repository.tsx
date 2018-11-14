@@ -7,6 +7,8 @@ import { DialogContent } from '../dialog'
 import { Row } from '../lib/row'
 import { merge } from '../../lib/merge'
 import { caseInsensitiveCompare } from '../../lib/compare'
+import { sanitizedRepositoryName } from '../add-repository/sanitized-repository-name'
+import { Octicon, OcticonSymbol } from '../octicons'
 
 interface IPublishRepositoryProps {
   /** The user to use for publishing. */
@@ -45,10 +47,14 @@ export class PublishRepository extends React.Component<
   IPublishRepositoryProps,
   IPublishRepositoryState
 > {
+  /** The repository name entered by the user. It has not yet been sanitized. */
+  private name: string
+
   public constructor(props: IPublishRepositoryProps) {
     super(props)
 
     this.state = { orgs: [] }
+    this.name = props.settings.name
   }
 
   public async componentWillMount() {
@@ -79,6 +85,9 @@ export class PublishRepository extends React.Component<
   }
 
   private onNameChange = (name: string) => {
+    this.name = name
+
+    name = sanitizedRepositoryName(name)
     this.updateSettings({ name })
   }
 
@@ -144,11 +153,13 @@ export class PublishRepository extends React.Component<
         <Row>
           <TextBox
             label="Name"
-            value={this.props.settings.name}
+            value={this.name}
             autoFocus={true}
             onValueChanged={this.onNameChange}
           />
         </Row>
+
+        {this.renderSanitizedName()}
 
         <Row>
           <TextBox
@@ -171,6 +182,20 @@ export class PublishRepository extends React.Component<
 
         {this.renderOrgs()}
       </DialogContent>
+    )
+  }
+
+  private renderSanitizedName() {
+    const sanitizedName = this.props.settings.name
+    if (this.name === sanitizedName) {
+      return null
+    }
+
+    return (
+      <Row className="warning-helper-text">
+        <Octicon symbol={OcticonSymbol.alert} />
+        Will be created as {sanitizedName}
+      </Row>
     )
   }
 }

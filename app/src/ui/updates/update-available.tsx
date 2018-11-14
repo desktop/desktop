@@ -3,7 +3,7 @@ import { Dispatcher } from '../../lib/dispatcher/index'
 import { LinkButton } from '../lib/link-button'
 import { updateStore } from '../lib/update-store'
 import { Octicon, OcticonSymbol } from '../octicons'
-import { PopupType } from '../../lib/app-state'
+import { PopupType } from '../../models/popup'
 import { shell } from '../../lib/app-shell'
 
 import { ReleaseSummary } from '../../models/release-notes'

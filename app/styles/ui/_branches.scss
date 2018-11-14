@@ -4,14 +4,14 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  width: 300px;
+  width: 350px;
 
   & > .tab-bar {
     border-top: var(--base-border);
   }
 
   .branches-list {
-    width: 300px;
+    width: 350px;
   }
 }
 
@@ -224,16 +224,6 @@
       text-align: right;
       white-space: nowrap;
     }
-  }
-
-  .filter-list-filter-field {
-    padding-right: 0;
-  }
-
-  // We need to beat Row's style at the specificity game :|
-  button.new-branch-button {
-    align-self: center;
-    margin-right: var(--spacing);
   }
 }
 

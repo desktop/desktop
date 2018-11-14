@@ -8,13 +8,12 @@ import { Repository } from '../../models/repository'
 import { CommittedFileChange, FileChange } from '../../models/status'
 import { Commit } from '../../models/commit'
 import { Dispatcher } from '../../lib/dispatcher'
-import { ImageDiffType } from '../../lib/app-state'
 import { encodePathAsUrl } from '../../lib/path'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
 import { IGitHubUser } from '../../lib/databases'
 import { Resizable } from '../resizable'
 import { openFile } from '../../lib/open-file'
-import { IDiff } from '../../models/diff'
+import { IDiff, ImageDiffType } from '../../models/diff'
 
 interface ISelectedCommitProps {
   readonly repository: Repository
