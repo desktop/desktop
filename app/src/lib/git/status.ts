@@ -72,12 +72,12 @@ interface IStatusHeadersData {
 }
 
 function convertToAppStatus(
-  status: FileEntry,
-  hasConflictMarkers: boolean,
+  entry: FileEntry,
+  getConflictStatus: (entry: FileEntry) => ConflictFileStatus | null,
   oldPath?: string
 ): AppFileStatus {
-  if (status.kind === 'ordinary') {
-    switch (status.type) {
+  if (entry.kind === 'ordinary') {
+    switch (entry.type) {
       case 'added':
         return { kind: AppFileStatusKind.New }
       case 'modified':
@@ -85,15 +85,16 @@ function convertToAppStatus(
       case 'deleted':
         return { kind: AppFileStatusKind.Deleted }
     }
-  } else if (status.kind === 'copied' && oldPath != null) {
+  } else if (entry.kind === 'copied' && oldPath != null) {
     return { kind: AppFileStatusKind.Copied, oldPath }
-  } else if (status.kind === 'renamed' && oldPath != null) {
+  } else if (entry.kind === 'renamed' && oldPath != null) {
     return { kind: AppFileStatusKind.Renamed, oldPath }
-  } else if (status.kind === 'conflicted') {
-    return hasConflictMarkers
-      ? { kind: AppFileStatusKind.Conflicted }
+  } else if (entry.kind === 'conflicted') {
+    const conflictStatus = getConflictStatus(entry)
+    return conflictStatus != null
+      ? { kind: AppFileStatusKind.Conflicted, conflictStatus }
       : { kind: AppFileStatusKind.Resolved }
-  } else if (status.kind === 'untracked') {
+  } else if (entry.kind === 'untracked') {
     return { kind: AppFileStatusKind.New }
   }
 
@@ -309,20 +310,22 @@ function buildStatusMap(
     files.delete(entry.path)
   }
 
-  const conflictStatus = getConflictStatus(entry.path, status, conflictState)
-
   // for now we just poke at the existing summary
-  const summary = convertToAppStatus(status, conflictStatus !== null)
+  const appStatus = convertToAppStatus(
+    status,
+    s => getConflictStatus(entry.path, s, conflictState),
+    entry.oldPath
+  )
+
   const selection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
 
   files.set(
     entry.path,
     new WorkingDirectoryFileChange(
       entry.path,
-      summary,
+      appStatus,
       selection,
-      entry.oldPath,
-      conflictStatus
+      entry.oldPath
     )
   )
   return files

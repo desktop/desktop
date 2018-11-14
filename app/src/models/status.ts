@@ -39,6 +39,8 @@ export type PlainFileStatus = {
     | AppFileStatusKind.New
     | AppFileStatusKind.Modified
     | AppFileStatusKind.Deleted
+    // TODO: where should this live?
+    | AppFileStatusKind.Resolved
 }
 
 export type CopiedOrRenamedFileStatus = {
@@ -47,7 +49,8 @@ export type CopiedOrRenamedFileStatus = {
 }
 
 export type ConflictedFileStatus = {
-  kind: AppFileStatusKind.Resolved | AppFileStatusKind.Conflicted
+  kind: AppFileStatusKind.Conflicted
+  conflictStatus: ConflictFileStatus
 }
 
 export type AppFileStatus =

@@ -238,17 +238,12 @@ export class MergeConflictsDialog extends React.Component<
   private renderUnmergedFile(
     file: WorkingDirectoryFileChange
   ): JSX.Element | null {
-    switch (file.status.kind) {
+    const { status } = file
+    switch (status.kind) {
       case AppFileStatusKind.Resolved:
         return this.renderResolvedFile(file.path)
       case AppFileStatusKind.Conflicted:
-        if (file.conflictStatus === null) {
-          throw new Error(
-            'Invalid state - a conflicted file should have conflicted status set'
-          )
-        }
-
-        return this.renderConflictedFile(file.path, file.conflictStatus, () =>
+        return this.renderConflictedFile(file.path, status.conflictStatus, () =>
           this.props.openFileInExternalEditor(
             join(this.props.repository.path, file.path)
           )
