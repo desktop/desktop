@@ -1,5 +1,7 @@
 {
   "releases": {
+    "1.5.1-beta0": [
+    ],
     "1.5.0": [
       "[New] Clone, create, or add repositories right from the repository dropdown - #5878",
       "[New] Drag-and-drop to add local repositories from macOS tray icon - #5048",
@@ -24,7 +26,6 @@
       "[Improved] Update license and .gitignore templates for initializing a new repository - #6024. Thanks @say25!"
     ],
     "1.5.0-beta5": [
-
     ],
     "1.5.0-beta4": [
       "[Fixed] \"Compare on GitHub\" menu item enabled when no repository is selected - #6078",
