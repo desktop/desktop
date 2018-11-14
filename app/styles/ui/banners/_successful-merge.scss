@@ -1,4 +1,6 @@
 #successful-merge {
+  $banner-height: 30px;
+  height: $banner-height;
   position: relative;
   display: flex;
   flex-wrap: nowrap;
@@ -7,10 +9,7 @@
   align-items: center;
   justify-content: left;
   padding-left: var(--spacing);
-  border-bottom: var(--base-border);
 
-  height: 0px;
-  transition: height 0.25s;
   // Prevents the notification banner from decreasing its height
   // when a large diff is rendered.
   flex: none;
@@ -27,10 +26,6 @@
     flex: 1 1 auto;
   }
 
-  &.active {
-    height: 30px;
-  }
-
   .green-circle {
     background-color: var(--color-new);
     color: var(--background-color);
@@ -44,6 +39,11 @@
     display: flex;
     flex-shrink: 0;
     flex-grow: 0;
+  }
+
+  .check-icon {
+    height: 12px;
+    width: 12px;
   }
 
   .close {
@@ -64,6 +64,29 @@
 
     &:focus {
       outline: 0;
+    }
+  }
+
+  // animations for entering and leaving
+  &.banner-enter {
+    height: 0px;
+    opacity: 0;
+
+    &.banner-enter-active {
+      height: $banner-height;
+      opacity: 1;
+      transition: height 300ms ease-in-out, opacity 200ms ease-in 300ms;
+    }
+  }
+
+  &.banner-leave {
+    height: $banner-height;
+    opacity: 1;
+
+    &.banner-leave-active {
+      height: 0px;
+      opacity: 0;
+      transition: height 225ms ease-in-out 175ms, opacity 175ms ease-in;
     }
   }
 }
