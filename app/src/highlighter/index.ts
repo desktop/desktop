@@ -270,7 +270,7 @@ const basenameMIMEMap = new Map<string, string>()
  */
 const mimeModeMap = new Map<string, IModeDefinition>()
 
-for (const extensionMode of extentionModes) {
+for (const extensionMode of extensionModes) {
   for (const [mapping, mimeType] of Object.entries(extensionMode.mappings)) {
     extensionMIMEMap.set(mapping, mimeType)
     mimeModeMap.set(mimeType, extensionMode)
