@@ -40,7 +40,7 @@ interface IModeDefinition {
  * Array describing all currently supported extensionModes and the file extensions
  * that they cover.
  */
-const extentionModes: ReadonlyArray<IModeDefinition> = [
+const extensionModes: ReadonlyArray<IModeDefinition> = [
   {
     install: () => import('codemirror/mode/javascript/javascript'),
     mappings: {
