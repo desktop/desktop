@@ -46,7 +46,7 @@ export class OversizedFiles extends React.Component<IOversizedFilesProps> {
           </p>
           {this.renderFileList()}
           <p className="recommendation">
-            We recommend you avoid committing these files before committing or
+            We recommend you avoid committing these files or
             use <LinkButton uri={GitLFSWebsiteURL}>Git LFS</LinkButton> to store
             large files on GitHub.
           </p>
