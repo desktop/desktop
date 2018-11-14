@@ -157,7 +157,7 @@ export class FileChange {
     public readonly status: AppFileStatus,
     public readonly oldPath?: string
   ) {
-    this.id = `${this.status}+${this.path}`
+    this.id = `${this.status.kind}+${this.path}`
   }
 }
 
