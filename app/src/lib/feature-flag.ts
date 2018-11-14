@@ -64,5 +64,5 @@ export function enableRecurseSubmodulesFlag(): boolean {
 
 /** Should the app use the MergeConflictsDialog component and flow? */
 export function enableMergeConflictsDialog(): boolean {
-  return enableBetaFeatures()
+  return true
 }
