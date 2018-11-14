@@ -26,7 +26,7 @@ interface IModeDefinition {
   readonly install: () => Promise<void>
 
   /**
-   * A map between file extentions (including the leading dot, i.e.
+   * A map between file extensions (including the leading dot, i.e.
    * ".jpeg") or basenames (i.e. "dockerfile") and the selected mime
    * type to use when highlighting that extension as specified in
    * the CodeMirror mode itself.
