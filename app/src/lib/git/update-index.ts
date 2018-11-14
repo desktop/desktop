@@ -2,7 +2,10 @@ import { git } from './core'
 import { Repository } from '../../models/repository'
 import { DiffSelectionType } from '../../models/diff'
 import { applyPatchToIndex } from './apply'
-import { AppFileStatus, WorkingDirectoryFileChange } from '../../models/status'
+import {
+  WorkingDirectoryFileChange,
+  AppFileStatusKind,
+} from '../../models/status'
 
 interface IUpdateIndexOptions {
   /**
@@ -113,7 +116,7 @@ export async function stageFiles(
   for (const file of files) {
     if (file.selection.getSelectionType() === DiffSelectionType.All) {
       normal.push(file.path)
-      if (file.status === AppFileStatus.Renamed && file.oldPath) {
+      if (file.status.kind === AppFileStatusKind.Renamed && file.oldPath) {
         oldRenamed.push(file.oldPath)
       }
     } else {

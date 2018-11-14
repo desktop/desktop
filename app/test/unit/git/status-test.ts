@@ -11,7 +11,7 @@ import {
   setupEmptyDirectory,
   setupConflictedRepo,
 } from '../../helpers/repositories'
-import { AppFileStatus } from '../../../src/models/status'
+import { AppFileStatusKind } from '../../../src/models/status'
 import * as temp from 'temp'
 import { getStatus } from '../../../src/lib/git'
 
@@ -36,7 +36,7 @@ describe('git/status', () => {
         expect(files).toHaveLength(1)
 
         const file = files[0]
-        expect(file.status).toBe(AppFileStatus.Conflicted)
+        expect(file.status.kind).toBe(AppFileStatusKind.Conflicted)
       })
 
       it('parses resolved files', async () => {
@@ -45,7 +45,7 @@ describe('git/status', () => {
         const files = status.workingDirectory.files
         expect(files).toHaveLength(1)
         const file = files[0]
-        expect(file.status).toBe(AppFileStatus.Resolved)
+        expect(file.status.kind).toBe(AppFileStatusKind.Resolved)
       })
     })
 
@@ -68,7 +68,7 @@ describe('git/status', () => {
         expect(files).toHaveLength(1)
 
         const file = files[0]
-        expect(file.status).toBe(AppFileStatus.Conflicted)
+        expect(file.status.kind).toBe(AppFileStatusKind.Conflicted)
       })
 
       it('parses conflicted image file on merge after removing', async () => {
@@ -84,7 +84,7 @@ describe('git/status', () => {
         expect(files).toHaveLength(1)
 
         const file = files[0]
-        expect(file.status).toBe(AppFileStatus.Conflicted)
+        expect(file.status.kind).toBe(AppFileStatusKind.Conflicted)
       })
     })
 
@@ -106,7 +106,7 @@ describe('git/status', () => {
 
         const file = files[0]
         expect(file.path).toBe('README.md')
-        expect(file.status).toBe(AppFileStatus.Modified)
+        expect(file.status.kind).toBe(AppFileStatusKind.Modified)
       })
 
       it('returns an empty array when there are no changes', async () => {
@@ -128,7 +128,7 @@ describe('git/status', () => {
         const files = status.workingDirectory.files
 
         expect(files).toHaveLength(1)
-        expect(files[0].status).toBe(AppFileStatus.Renamed)
+        expect(files[0].status.kind).toBe(AppFileStatusKind.Renamed)
         expect(files[0].oldPath).toBe('foo')
         expect(files[0].path).toBe('bar')
       })
@@ -154,11 +154,11 @@ describe('git/status', () => {
 
         expect(files).toHaveLength(2)
 
-        expect(files[0].status).toBe(AppFileStatus.Modified)
+        expect(files[0].status.kind).toBe(AppFileStatusKind.Modified)
         expect(files[0].oldPath).toBeUndefined()
         expect(files[0].path).toBe('CONTRIBUTING.md')
 
-        expect(files[1].status).toBe(AppFileStatus.Copied)
+        expect(files[1].status.kind).toBe(AppFileStatusKind.Copied)
         expect(files[1].oldPath).toBe('CONTRIBUTING.md')
         expect(files[1].path).toBe('docs/OVERVIEW.md')
       })

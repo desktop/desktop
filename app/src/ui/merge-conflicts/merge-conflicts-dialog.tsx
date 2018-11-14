@@ -10,7 +10,7 @@ import { Repository } from '../../models/repository'
 import {
   WorkingDirectoryStatus,
   WorkingDirectoryFileChange,
-  AppFileStatus,
+  AppFileStatusKind,
 } from '../../models/status'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { PathText } from '../lib/path-text'
@@ -45,8 +45,8 @@ function calculateConflicts(conflictMarkers: number) {
 function getUnmergedFiles(status: WorkingDirectoryStatus) {
   return status.files.filter(
     file =>
-      file.status === AppFileStatus.Conflicted ||
-      file.status === AppFileStatus.Resolved
+      file.status.kind === AppFileStatusKind.Conflicted ||
+      file.status.kind === AppFileStatusKind.Resolved
   )
 }
 
@@ -107,7 +107,7 @@ export class MergeConflictsDialog extends React.Component<
    */
   private onCancel = async () => {
     const anyResolvedFiles = getUnmergedFiles(this.props.workingDirectory).some(
-      f => f.status === AppFileStatus.Resolved
+      f => f.status.kind === AppFileStatusKind.Resolved
     )
     if (!anyResolvedFiles) {
       await this.props.dispatcher.abortMerge(this.props.repository)
@@ -238,10 +238,10 @@ export class MergeConflictsDialog extends React.Component<
   private renderUnmergedFile(
     file: WorkingDirectoryFileChange
   ): JSX.Element | null {
-    switch (file.status) {
-      case AppFileStatus.Resolved:
+    switch (file.status.kind) {
+      case AppFileStatusKind.Resolved:
         return this.renderResolvedFile(file.path)
-      case AppFileStatus.Conflicted:
+      case AppFileStatusKind.Conflicted:
         if (file.conflictStatus === null) {
           throw new Error(
             'Invalid state - a conflicted file should have conflicted status set'
@@ -308,7 +308,7 @@ export class MergeConflictsDialog extends React.Component<
   public render() {
     const unmergedFiles = getUnmergedFiles(this.props.workingDirectory)
     const conflictedFilesCount = unmergedFiles.filter(
-      f => f.status === AppFileStatus.Conflicted
+      f => f.status.kind === AppFileStatusKind.Conflicted
     ).length
 
     const headerTitle = this.renderHeaderTitle(

@@ -1,3 +1,4 @@
+// TODO: remove this and update tests in next commit
 import { expect } from 'chai'
 import { RepositoryStateCache } from '../../src/lib/stores/repository-state-cache'
 import { Repository } from '../../src/models/repository'
@@ -6,7 +7,7 @@ import { GitHubRepository } from '../../src/models/github-repository'
 import {
   WorkingDirectoryStatus,
   WorkingDirectoryFileChange,
-  AppFileStatus,
+  AppFileStatusKind,
 } from '../../src/models/status'
 import { DiffSelection, DiffSelectionType } from '../../src/models/diff'
 import { HistoryTabMode } from '../../src/lib/app-state'
@@ -88,7 +89,7 @@ describe('RepositoryStateCache', () => {
     const files = [
       new WorkingDirectoryFileChange(
         'README.md',
-        AppFileStatus.New,
+        { kind: AppFileStatusKind.New },
         DiffSelection.fromInitialSelection(DiffSelectionType.All)
       ),
     ]

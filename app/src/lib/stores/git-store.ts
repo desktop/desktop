@@ -2,7 +2,10 @@ import * as Fs from 'fs'
 import * as Path from 'path'
 import { Disposable } from 'event-kit'
 import { Repository } from '../../models/repository'
-import { WorkingDirectoryFileChange, AppFileStatus } from '../../models/status'
+import {
+  WorkingDirectoryFileChange,
+  AppFileStatusKind,
+} from '../../models/status'
 import {
   Branch,
   BranchType,
@@ -491,7 +494,9 @@ export class GitStore extends BaseStore {
 
     const paths = status.workingDirectory.files
 
-    const deletedFiles = paths.filter(p => p.status === AppFileStatus.Deleted)
+    const deletedFiles = paths.filter(
+      p => p.status.kind === AppFileStatusKind.Deleted
+    )
     const deletedFilePaths = deletedFiles.map(d => d.path)
 
     await checkoutPaths(repository, deletedFilePaths)
@@ -1134,7 +1139,7 @@ export class GitStore extends BaseStore {
     await queueWorkHigh(files, async file => {
       const foundSubmodule = submodules.some(s => s.path === file.path)
 
-      if (file.status !== AppFileStatus.Deleted && !foundSubmodule) {
+      if (file.status.kind !== AppFileStatusKind.Deleted && !foundSubmodule) {
         // N.B. moveItemToTrash is synchronous can take a fair bit of time
         // which is why we're running it inside this work queue that spreads
         // out the calls across as many animation frames as it needs to.
@@ -1144,8 +1149,8 @@ export class GitStore extends BaseStore {
       }
 
       if (
-        file.status === AppFileStatus.Copied ||
-        file.status === AppFileStatus.Renamed
+        file.status.kind === AppFileStatusKind.Copied ||
+        file.status.kind === AppFileStatusKind.Renamed
       ) {
         // file.path is the "destination" or "new" file in a copy or rename.
         // we've already deleted it so all we need to do is make sure the

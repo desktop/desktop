@@ -22,8 +22,8 @@ export enum GitStatusEntry {
   UpdatedButUnmerged = 'U',
 }
 
-/** The file status as represented in GitHub Desktop. */
-export enum AppFileStatus {
+/** The enum representation of a Git file change in GitHub Desktop. */
+export enum AppFileStatusKind {
   New = 'New',
   Modified = 'Modified',
   Deleted = 'Deleted',
@@ -31,6 +31,18 @@ export enum AppFileStatus {
   Renamed = 'Renamed',
   Conflicted = 'Conflicted',
   Resolved = 'Resolved',
+}
+
+/** The state of a GitHub Desktop-specific change containing additional metadata */
+export type AppFileStatus = {
+  kind:
+    | AppFileStatusKind.New
+    | AppFileStatusKind.Modified
+    | AppFileStatusKind.Deleted
+    | AppFileStatusKind.Copied
+    | AppFileStatusKind.Renamed
+    | AppFileStatusKind.Conflicted
+    | AppFileStatusKind.Resolved
 }
 
 /** The porcelain status for an ordinary changed entry */
@@ -82,21 +94,21 @@ export type FileEntry =
  *
  * Used in file lists.
  */
-export function mapStatus(status: AppFileStatus): string {
+export function mapStatus(status: AppFileStatusKind): string {
   switch (status) {
-    case AppFileStatus.New:
+    case AppFileStatusKind.New:
       return 'New'
-    case AppFileStatus.Modified:
+    case AppFileStatusKind.Modified:
       return 'Modified'
-    case AppFileStatus.Deleted:
+    case AppFileStatusKind.Deleted:
       return 'Deleted'
-    case AppFileStatus.Renamed:
+    case AppFileStatusKind.Renamed:
       return 'Renamed'
-    case AppFileStatus.Conflicted:
+    case AppFileStatusKind.Conflicted:
       return 'Conflicted'
-    case AppFileStatus.Resolved:
+    case AppFileStatusKind.Resolved:
       return 'Resolved'
-    case AppFileStatus.Copied:
+    case AppFileStatusKind.Copied:
       return 'Copied'
   }
 
@@ -109,21 +121,21 @@ export function mapStatus(status: AppFileStatus): string {
  *
  * Used in file lists.
  */
-export function iconForStatus(status: AppFileStatus): OcticonSymbol {
+export function iconForStatus(status: AppFileStatusKind): OcticonSymbol {
   switch (status) {
-    case AppFileStatus.New:
+    case AppFileStatusKind.New:
       return OcticonSymbol.diffAdded
-    case AppFileStatus.Modified:
+    case AppFileStatusKind.Modified:
       return OcticonSymbol.diffModified
-    case AppFileStatus.Deleted:
+    case AppFileStatusKind.Deleted:
       return OcticonSymbol.diffRemoved
-    case AppFileStatus.Renamed:
+    case AppFileStatusKind.Renamed:
       return OcticonSymbol.diffRenamed
-    case AppFileStatus.Conflicted:
+    case AppFileStatusKind.Conflicted:
       return OcticonSymbol.alert
-    case AppFileStatus.Resolved:
+    case AppFileStatusKind.Resolved:
       return OcticonSymbol.check
-    case AppFileStatus.Copied:
+    case AppFileStatusKind.Copied:
       return OcticonSymbol.diffAdded
   }
 

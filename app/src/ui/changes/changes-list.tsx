@@ -10,6 +10,7 @@ import {
   AppFileStatus,
   WorkingDirectoryStatus,
   WorkingDirectoryFileChange,
+  AppFileStatusKind,
 } from '../../models/status'
 import { DiffSelectionType } from '../../models/diff'
 import { CommitIdentity } from '../../models/commit-identity'
@@ -357,7 +358,7 @@ export class ChangesList extends React.Component<
       {
         label: RevealInFileManagerLabel,
         action: () => revealInFileManager(this.props.repository, path),
-        enabled: status !== AppFileStatus.Deleted,
+        enabled: status.kind !== AppFileStatusKind.Deleted,
       },
       {
         label: openInExternalEditor,
@@ -365,12 +366,12 @@ export class ChangesList extends React.Component<
           const fullPath = Path.join(this.props.repository.path, path)
           this.props.onOpenInExternalEditor(fullPath)
         },
-        enabled: isSafeExtension && status !== AppFileStatus.Deleted,
+        enabled: isSafeExtension && status.kind !== AppFileStatusKind.Deleted,
       },
       {
         label: OpenWithDefaultProgramLabel,
         action: () => this.props.onOpenItem(path),
-        enabled: isSafeExtension && status !== AppFileStatus.Deleted,
+        enabled: isSafeExtension && status.kind !== AppFileStatusKind.Deleted,
       }
     )
 
@@ -388,10 +389,10 @@ export class ChangesList extends React.Component<
     const firstFile = files[0]
     const fileName = basename(firstFile.path)
 
-    switch (firstFile.status) {
-      case AppFileStatus.New:
+    switch (firstFile.status.kind) {
+      case AppFileStatusKind.New:
         return `Create ${fileName}`
-      case AppFileStatus.Deleted:
+      case AppFileStatusKind.Deleted:
         return `Delete ${fileName}`
       default:
         // TODO:

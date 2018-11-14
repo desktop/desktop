@@ -57,7 +57,7 @@ export class FileList extends React.Component<IFileListProps, {}> {
   private renderFile = (row: number) => {
     const file = this.props.files[row]
     const status = file.status
-    const fileStatus = mapStatus(status)
+    const fileStatus = mapStatus(status.kind)
 
     const listItemPadding = 10 * 2
     const statusWidth = 16
@@ -78,7 +78,7 @@ export class FileList extends React.Component<IFileListProps, {}> {
         />
 
         <Octicon
-          symbol={iconForStatus(status)}
+          symbol={iconForStatus(status.kind)}
           className={'status status-' + fileStatus.toLowerCase()}
           title={fileStatus}
         />

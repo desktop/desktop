@@ -6,6 +6,7 @@ import {
   AppFileStatus,
   FileEntry,
   GitStatusEntry,
+  AppFileStatusKind,
 } from '../../models/status'
 import {
   parsePorcelainStatus,
@@ -77,22 +78,22 @@ function convertToAppStatus(
   if (status.kind === 'ordinary') {
     switch (status.type) {
       case 'added':
-        return AppFileStatus.New
+        return { kind: AppFileStatusKind.New }
       case 'modified':
-        return AppFileStatus.Modified
+        return { kind: AppFileStatusKind.Modified }
       case 'deleted':
-        return AppFileStatus.Deleted
+        return { kind: AppFileStatusKind.Deleted }
     }
   } else if (status.kind === 'copied') {
-    return AppFileStatus.Copied
+    return { kind: AppFileStatusKind.Copied }
   } else if (status.kind === 'renamed') {
-    return AppFileStatus.Renamed
+    return { kind: AppFileStatusKind.Renamed }
   } else if (status.kind === 'conflicted') {
     return hasConflictMarkers
-      ? AppFileStatus.Conflicted
-      : AppFileStatus.Resolved
+      ? { kind: AppFileStatusKind.Conflicted }
+      : { kind: AppFileStatusKind.Resolved }
   } else if (status.kind === 'untracked') {
-    return AppFileStatus.New
+    return { kind: AppFileStatusKind.New }
   }
 
   return fatalError(`Unknown file status ${status}`)

@@ -10,7 +10,7 @@ import { ITokens } from '../../../lib/highlighter/types'
 import {
   CommittedFileChange,
   WorkingDirectoryFileChange,
-  AppFileStatus,
+  AppFileStatusKind,
 } from '../../../models/status'
 import { Repository } from '../../../models/repository'
 import { DiffHunk, DiffLineType, DiffLine } from '../../../models/diff'
@@ -40,7 +40,7 @@ async function getOldFileContent(
   repository: Repository,
   file: ChangedFile
 ): Promise<Buffer> {
-  if (file.status === AppFileStatus.New) {
+  if (file.status.kind === AppFileStatusKind.New) {
     return new Buffer(0)
   }
 
@@ -70,7 +70,7 @@ async function getNewFileContent(
   repository: Repository,
   file: ChangedFile
 ): Promise<Buffer> {
-  if (file.status === AppFileStatus.Deleted) {
+  if (file.status.kind === AppFileStatusKind.Deleted) {
     return new Buffer(0)
   }
 

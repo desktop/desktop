@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import { AppFileStatus } from '../../models/status'
+import { AppFileStatus, AppFileStatusKind } from '../../models/status'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { PathText } from './path-text'
 
@@ -33,7 +33,8 @@ export class PathLabel extends React.Component<IPathLabelProps, {}> {
 
     const status = this.props.status
     const renderBothPaths =
-      status === AppFileStatus.Renamed || status === AppFileStatus.Copied
+      status.kind === AppFileStatusKind.Renamed ||
+      status.kind === AppFileStatusKind.Copied
 
     const availableWidth = this.props.availableWidth
     if (renderBothPaths && this.props.oldPath) {

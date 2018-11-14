@@ -1,9 +1,10 @@
+// TODO: remove this and update tests in next commit
 import { expect } from 'chai'
 
 import { Repository } from '../../../src/models/repository'
 import { getChangedFiles, getCommits } from '../../../src/lib/git'
 import { setupFixtureRepository } from '../../helpers/repositories'
-import { AppFileStatus } from '../../../src/models/status'
+import { AppFileStatusKind } from '../../../src/models/status'
 import { GitProcess } from 'dugite'
 
 describe('git/log', () => {
@@ -60,7 +61,7 @@ describe('git/log', () => {
       )
       expect(files.length).to.equal(1)
       expect(files[0].path).to.equal('README.md')
-      expect(files[0].status).to.equal(AppFileStatus.New)
+      expect(files[0].status.kind).to.equal(AppFileStatusKind.New)
     })
 
     it('detects renames', async () => {
@@ -71,13 +72,13 @@ describe('git/log', () => {
 
       const first = await getChangedFiles(repository, '55bdecb')
       expect(first.length).to.equal(1)
-      expect(first[0].status).to.equal(AppFileStatus.Renamed)
+      expect(first[0].status.kind).to.equal(AppFileStatusKind.Renamed)
       expect(first[0].oldPath).to.equal('NEW.md')
       expect(first[0].path).to.equal('NEWER.md')
 
       const second = await getChangedFiles(repository, 'c898ca8')
       expect(second.length).to.equal(1)
-      expect(second[0].status).to.equal(AppFileStatus.Renamed)
+      expect(second[0].status.kind).to.equal(AppFileStatusKind.Renamed)
       expect(second[0].oldPath).to.equal('OLD.md')
       expect(second[0].path).to.equal('NEW.md')
     })
@@ -97,11 +98,11 @@ describe('git/log', () => {
       const files = await getChangedFiles(repository, 'a500bf415')
       expect(files.length).to.equal(2)
 
-      expect(files[0].status).to.equal(AppFileStatus.Copied)
+      expect(files[0].status.kind).to.equal(AppFileStatusKind.Copied)
       expect(files[0].oldPath).to.equal('initial.md')
       expect(files[0].path).to.equal('duplicate-with-edits.md')
 
-      expect(files[1].status).to.equal(AppFileStatus.Copied)
+      expect(files[1].status.kind).to.equal(AppFileStatusKind.Copied)
       expect(files[1].oldPath).to.equal('initial.md')
       expect(files[1].path).to.equal('duplicate.md')
     })
@@ -110,7 +111,7 @@ describe('git/log', () => {
       const files = await getChangedFiles(repository!, 'HEAD')
       expect(files.length).to.equal(1)
       expect(files[0].path).to.equal('README.md')
-      expect(files[0].status).to.equal(AppFileStatus.Modified)
+      expect(files[0].status.kind).to.equal(AppFileStatusKind.Modified)
     })
   })
 })
