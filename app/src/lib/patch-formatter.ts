@@ -54,7 +54,7 @@ function formatPatchHeaderForFile(file: WorkingDirectoryFileChange) {
       return formatPatchHeader(file.path, file.path)
   }
 
-  return assertNever(file.status.kind, `Unknown file status ${file.status}`)
+  return assertNever(file.status, `Unknown file status ${file.status}`)
 }
 
 /**

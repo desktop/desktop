@@ -34,16 +34,25 @@ export enum AppFileStatusKind {
 }
 
 /** The state of a GitHub Desktop-specific change containing additional metadata */
-export type AppFileStatus = {
+export type PlainFileStatus = {
   kind:
     | AppFileStatusKind.New
     | AppFileStatusKind.Modified
     | AppFileStatusKind.Deleted
-    | AppFileStatusKind.Copied
-    | AppFileStatusKind.Renamed
-    | AppFileStatusKind.Conflicted
-    | AppFileStatusKind.Resolved
 }
+
+export type CopiedOrRenamedFileStatus = {
+  kind: AppFileStatusKind.Copied | AppFileStatusKind.Renamed
+}
+
+export type ConflictedFileStatus = {
+  kind: AppFileStatusKind.Resolved | AppFileStatusKind.Conflicted
+}
+
+export type AppFileStatus =
+  | PlainFileStatus
+  | CopiedOrRenamedFileStatus
+  | ConflictedFileStatus
 
 /** The porcelain status for an ordinary changed entry */
 type OrdinaryEntry = {

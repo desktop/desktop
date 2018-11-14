@@ -1,5 +1,10 @@
 import { git } from './core'
-import { CommittedFileChange, AppFileStatusKind } from '../../models/status'
+import {
+  CommittedFileChange,
+  AppFileStatusKind,
+  PlainFileStatus,
+  CopiedOrRenamedFileStatus,
+} from '../../models/status'
 import { Repository } from '../../models/repository'
 import { Commit } from '../../models/commit'
 import { CommitIdentity } from '../../models/commit-identity'
@@ -12,36 +17,38 @@ import {
  * Map the raw status text from Git to an app-friendly value
  * shamelessly borrowed from GitHub Desktop (Windows)
  */
-function mapStatus(rawStatus: string): AppFileStatusKind {
+function mapStatus(
+  rawStatus: string
+): PlainFileStatus | CopiedOrRenamedFileStatus {
   const status = rawStatus.trim()
 
   if (status === 'M') {
-    return AppFileStatusKind.Modified
+    return { kind: AppFileStatusKind.Modified }
   } // modified
   if (status === 'A') {
-    return AppFileStatusKind.New
+    return { kind: AppFileStatusKind.New }
   } // added
   if (status === 'D') {
-    return AppFileStatusKind.Deleted
+    return { kind: AppFileStatusKind.Deleted }
   } // deleted
   if (status === 'R') {
-    return AppFileStatusKind.Renamed
+    return { kind: AppFileStatusKind.Renamed }
   } // renamed
   if (status === 'C') {
-    return AppFileStatusKind.Copied
+    return { kind: AppFileStatusKind.Copied }
   } // copied
 
   // git log -M --name-status will return a RXXX - where XXX is a percentage
   if (status.match(/R[0-9]+/)) {
-    return AppFileStatusKind.Renamed
+    return { kind: AppFileStatusKind.Renamed }
   }
 
   // git log -C --name-status will return a CXXX - where XXX is a percentage
   if (status.match(/C[0-9]+/)) {
-    return AppFileStatusKind.Copied
+    return { kind: AppFileStatusKind.Copied }
   }
 
-  return AppFileStatusKind.Modified
+  return { kind: AppFileStatusKind.Modified }
 }
 
 /**
@@ -178,15 +185,15 @@ export async function getChangedFiles(
     let oldPath: string | undefined = undefined
 
     if (
-      status === AppFileStatusKind.Renamed ||
-      status === AppFileStatusKind.Copied
+      status.kind === AppFileStatusKind.Renamed ||
+      status.kind === AppFileStatusKind.Copied
     ) {
       oldPath = lines[++i]
     }
 
     const path = lines[++i]
 
-    files.push(new CommittedFileChange(path, { kind: status }, sha, oldPath))
+    files.push(new CommittedFileChange(path, status, sha, oldPath))
   }
 
   return files
