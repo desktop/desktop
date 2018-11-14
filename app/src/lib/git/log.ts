@@ -18,7 +18,8 @@ import {
  * shamelessly borrowed from GitHub Desktop (Windows)
  */
 function mapStatus(
-  rawStatus: string
+  rawStatus: string,
+  oldPath?: string
 ): PlainFileStatus | CopiedOrRenamedFileStatus {
   const status = rawStatus.trim()
 
@@ -31,21 +32,21 @@ function mapStatus(
   if (status === 'D') {
     return { kind: AppFileStatusKind.Deleted }
   } // deleted
-  if (status === 'R') {
-    return { kind: AppFileStatusKind.Renamed }
+  if (status === 'R' && oldPath != null) {
+    return { kind: AppFileStatusKind.Renamed, oldPath }
   } // renamed
-  if (status === 'C') {
-    return { kind: AppFileStatusKind.Copied }
+  if (status === 'C' && oldPath != null) {
+    return { kind: AppFileStatusKind.Copied, oldPath }
   } // copied
 
   // git log -M --name-status will return a RXXX - where XXX is a percentage
-  if (status.match(/R[0-9]+/)) {
-    return { kind: AppFileStatusKind.Renamed }
+  if (status.match(/R[0-9]+/) && oldPath != null) {
+    return { kind: AppFileStatusKind.Renamed, oldPath }
   }
 
   // git log -C --name-status will return a CXXX - where XXX is a percentage
-  if (status.match(/C[0-9]+/)) {
-    return { kind: AppFileStatusKind.Copied }
+  if (status.match(/C[0-9]+/) && oldPath != null) {
+    return { kind: AppFileStatusKind.Copied, oldPath }
   }
 
   return { kind: AppFileStatusKind.Modified }
@@ -180,16 +181,16 @@ export async function getChangedFiles(
   for (let i = 0; i < lines.length; i++) {
     const statusText = lines[i]
 
-    const status = mapStatus(statusText)
-
     let oldPath: string | undefined = undefined
 
     if (
-      status.kind === AppFileStatusKind.Renamed ||
-      status.kind === AppFileStatusKind.Copied
+      statusText.length > 0 &&
+      (statusText[0] === 'R' || statusText[0] === 'C')
     ) {
       oldPath = lines[++i]
     }
+
+    const status = mapStatus(statusText, oldPath)
 
     const path = lines[++i]
 

@@ -73,7 +73,8 @@ interface IStatusHeadersData {
 
 function convertToAppStatus(
   status: FileEntry,
-  hasConflictMarkers: boolean
+  hasConflictMarkers: boolean,
+  oldPath?: string
 ): AppFileStatus {
   if (status.kind === 'ordinary') {
     switch (status.type) {
@@ -84,10 +85,10 @@ function convertToAppStatus(
       case 'deleted':
         return { kind: AppFileStatusKind.Deleted }
     }
-  } else if (status.kind === 'copied') {
-    return { kind: AppFileStatusKind.Copied }
-  } else if (status.kind === 'renamed') {
-    return { kind: AppFileStatusKind.Renamed }
+  } else if (status.kind === 'copied' && oldPath != null) {
+    return { kind: AppFileStatusKind.Copied, oldPath }
+  } else if (status.kind === 'renamed' && oldPath != null) {
+    return { kind: AppFileStatusKind.Renamed, oldPath }
   } else if (status.kind === 'conflicted') {
     return hasConflictMarkers
       ? { kind: AppFileStatusKind.Conflicted }
