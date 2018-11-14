@@ -1802,7 +1802,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
 
       const { trailers } = context
-      if (trailers != null && trailers.some(isCoAuthoredByTrailer)) {
+      if (trailers !== undefined && trailers.some(isCoAuthoredByTrailer)) {
         this.statsStore.recordCoAuthoredCommit()
       }
 
