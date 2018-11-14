@@ -37,7 +37,7 @@ interface IModeDefinition {
 }
 
 /**
- * Array describing all currently supported extentionModes and the file extensions
+ * Array describing all currently supported extensionModes and the file extensions
  * that they cover.
  */
 const extentionModes: ReadonlyArray<IModeDefinition> = [
