@@ -5,7 +5,7 @@ import { GitAuthor } from './git-author'
 import { generateGravatarUrl } from '../lib/gravatar'
 import { getDotComAPIEndpoint } from '../lib/api'
 import { GitHubRepository } from './github-repository'
-import { isWebFlowCommitter } from '../lib/commit-identity'
+import { isWebFlowCommitter } from '../lib/web-flow-committer'
 
 /** The minimum properties we need in order to display a user's avatar. */
 export interface IAvatarUser {

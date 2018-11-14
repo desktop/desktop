@@ -3,7 +3,7 @@ import * as React from 'react'
 import { CommitIdentity } from '../../models/commit-identity'
 import { GitAuthor } from '../../models/git-author'
 import { GitHubRepository } from '../../models/github-repository'
-import { isWebFlowCommitter } from '../../lib/commit-identity'
+import { isWebFlowCommitter } from '../../lib/web-flow-committer'
 
 interface ICommitAttributionProps {
   /**
