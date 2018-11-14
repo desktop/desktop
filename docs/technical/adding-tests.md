@@ -61,7 +61,7 @@ Feel free to borrow ideas from our [current test suite](https://github.com/deskt
 but here are some guidelines to help you figure out what to test.
 
  - focus on a specific module or function when writing unit tests - complex unit
-   tests are a sign that the code isn't organized in an ideal way for testing, 
+   tests are a sign that the code isn't organized in an ideal way for testing,
    or that the test is doing too much
  - write tests to cover the scenarios you think we should care about in the
    long-term (these are great to help us not accidentally regress your work)
@@ -71,6 +71,64 @@ but here are some guidelines to help you figure out what to test.
 
 As you're writing your tests, don't forget to `yarn test:unit` to verify that
 your tests are working as expected.
+
+## Specific Testing Scenarios
+
+### State updates in `AppStore`
+
+If you find yourself writing complex rules as part of updating application
+state, consider whether you can extract the logic to a function that lives
+outside of `AppStore`.
+
+This has some important benefits:
+
+ - by extracting it from `AppStore`, we can write a pure function that avoids
+   any implicit state and clearly declares what it needs as parameters
+ - by following a pattern of writing functions that take the current state and
+   generate new state, we keep each function focused on a particular task
+ - because the function only depends on the arguments it receives, this becomes
+   much easier to test
+
+An example of this is `updateChangedFiles` in
+[`app/src/lib/stores/updates/changes-state.ts`](https://github.com/desktop/desktop/blob/15294ad41016e2fe393ffe942d48ca36cec144e5/app/src/lib/stores/updates/changes-state.ts#L22)
+which updates the repository state to ensure selection state is remembered
+correctly.
+
+```ts
+export function updateChangedFiles(
+  state: IChangesState,
+  status: IStatusResult,
+  clearPartialState: boolean
+): ChangedFilesResult {
+  ...
+}
+```
+
+This uses the current `IChangesState`, as well as additional parameters and
+returns an object containing the changes that should be applied create a new
+`IChangesState` for the repository:
+
+```ts
+/**
+ * Internal shape of the return value from this response because the compiler
+ * seems to complain about attempts to create an object which satifies the
+ * constraints of Pick<T,K>
+ */
+type ChangedFilesResult = {
+  readonly workingDirectory: WorkingDirectoryStatus
+  readonly selectedFileIDs: string[]
+  readonly diff: IDiff | null
+}
+```
+
+And the return value is merged into the current state:
+
+```ts
+this.repositoryStateCache.updateChangesState(repository, state =>
+  updateChangedFiles(state, status, clearPartialState)
+)
+```
+
 
 ### Transitioning to Jest
 
