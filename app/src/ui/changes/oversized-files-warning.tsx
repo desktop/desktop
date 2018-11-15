@@ -24,8 +24,21 @@ interface IOversizedFilesProps {
 
 /** A dialog to display a list of files that are too large to commit. */
 export class OversizedFiles extends React.Component<IOversizedFilesProps> {
+  private closeButton: Button | null = null
+
   public constructor(props: IOversizedFilesProps) {
     super(props)
+  }
+
+  private onCloseButtonRef = (button: Button | null) => {
+    this.closeButton = button
+  }
+
+  public componentDidMount() {
+    // Since focus is given to the Git LFS link by default, we will instead set focus onto the cancel button.
+    if (this.closeButton != null) {
+      this.closeButton.focus()
+    }
   }
 
   public render() {
@@ -54,7 +67,9 @@ export class OversizedFiles extends React.Component<IOversizedFilesProps> {
 
         <DialogFooter>
           <ButtonGroup destructive={true}>
-            <Button type="submit">Cancel</Button>
+            <Button type="submit" ref={this.onCloseButtonRef}>
+              Cancel
+            </Button>
             <Button onClick={this.commitAnyway}>
               {__DARWIN__ ? 'Commit Anyway' : 'Commit anyway'}
             </Button>
