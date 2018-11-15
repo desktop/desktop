@@ -72,7 +72,6 @@ export class FileList extends React.Component<IFileListProps, {}> {
       <div className="file" onContextMenu={this.onContextMenu}>
         <PathLabel
           path={file.path}
-          oldPath={file.oldPath}
           status={file.status}
           availableWidth={availablePathWidth}
         />

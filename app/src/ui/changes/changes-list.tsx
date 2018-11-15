@@ -174,7 +174,6 @@ export class ChangesList extends React.Component<
         id={file.id}
         path={file.path}
         status={file.status}
-        oldPath={file.oldPath}
         include={includeAll}
         key={file.id}
         onContextMenu={this.onItemContextMenu}

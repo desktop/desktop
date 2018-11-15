@@ -24,6 +24,7 @@ import {
 import { spawnAndComplete } from './spawn'
 
 import { DiffParser } from '../diff-parser'
+import { getOldPathOrDefault } from '../get-old-path'
 
 /**
  * V8 has a limit on the size of string it can create (~256MB), and unless we want to
@@ -111,8 +112,11 @@ export async function getCommitDiff(
     file.path,
   ]
 
-  if (file.oldPath != null) {
-    args.push(file.oldPath)
+  if (
+    file.status.kind === AppFileStatusKind.Renamed ||
+    file.status.kind === AppFileStatusKind.Copied
+  ) {
+    args.push(file.status.oldPath)
   }
 
   const { output } = await spawnAndComplete(
@@ -230,7 +234,7 @@ async function getImageDiff(
       // look for that file.
       previous = await getBlobImage(
         repository,
-        file.oldPath || file.path,
+        getOldPathOrDefault(file),
         'HEAD'
       )
     }
@@ -248,7 +252,7 @@ async function getImageDiff(
       // look for that file.
       previous = await getBlobImage(
         repository,
-        file.oldPath || file.path,
+        getOldPathOrDefault(file),
         `${commitish}^`
       )
     }

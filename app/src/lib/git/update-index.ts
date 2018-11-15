@@ -116,8 +116,8 @@ export async function stageFiles(
   for (const file of files) {
     if (file.selection.getSelectionType() === DiffSelectionType.All) {
       normal.push(file.path)
-      if (file.status.kind === AppFileStatusKind.Renamed && file.oldPath) {
-        oldRenamed.push(file.oldPath)
+      if (file.status.kind === AppFileStatusKind.Renamed) {
+        oldRenamed.push(file.status.oldPath)
       }
     } else {
       partial.push(file)

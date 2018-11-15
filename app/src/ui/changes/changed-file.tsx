@@ -9,7 +9,6 @@ interface IChangedFileProps {
   readonly id: string
   readonly path: string
   readonly status: AppFileStatus
-  readonly oldPath?: string
   readonly include: boolean | null
   readonly availableWidth: number
   readonly disableSelection: boolean
@@ -71,7 +70,6 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
 
         <PathLabel
           path={this.props.path}
-          oldPath={this.props.oldPath}
           status={this.props.status}
           availableWidth={availablePathWidth}
         />

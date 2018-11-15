@@ -13,7 +13,6 @@ import { enableMergeTool } from '../../lib/feature-flag'
 
 interface IChangedFileDetailsProps {
   readonly path: string
-  readonly oldPath?: string
   readonly status: AppFileStatus
   readonly diff: IDiff
 
@@ -31,11 +30,7 @@ export class ChangedFileDetails extends React.Component<
 
     return (
       <div className="header">
-        <PathLabel
-          path={this.props.path}
-          oldPath={this.props.oldPath}
-          status={this.props.status}
-        />
+        <PathLabel path={this.props.path} status={this.props.status} />
         {this.renderDecorator()}
 
         <Octicon

@@ -14,6 +14,7 @@ import {
 } from '../../../models/status'
 import { Repository } from '../../../models/repository'
 import { DiffHunk, DiffLineType, DiffLine } from '../../../models/diff'
+import { getOldPathOrDefault } from '../../../lib/get-old-path'
 
 /** The maximum number of bytes we'll process for highlighting. */
 const MaxHighlightContentLength = 256 * 1024
@@ -61,7 +62,7 @@ async function getOldFileContent(
   return getPartialBlobContents(
     repository,
     commitish,
-    file.oldPath || file.path,
+    getOldPathOrDefault(file),
     MaxHighlightContentLength
   )
 }
@@ -179,7 +180,7 @@ export async function highlightContents(
   const [oldTokens, newTokens] = await Promise.all([
     highlight(
       oldContents.toString('utf8'),
-      Path.extname(file.oldPath || file.path),
+      Path.extname(getOldPathOrDefault(file)),
       tabSize,
       lineFilters.oldLineFilter
     ).catch(e => {

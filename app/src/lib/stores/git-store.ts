@@ -1157,11 +1157,9 @@ export class GitStore extends BaseStore {
         // index forgets about it.
         pathsToReset.push(file.path)
 
-        // Checkout the old path though
-        if (file.oldPath) {
-          pathsToCheckout.push(file.oldPath)
-          pathsToReset.push(file.oldPath)
-        }
+        // checkout the old path too
+        pathsToCheckout.push(file.status.oldPath)
+        pathsToReset.push(file.status.oldPath)
       } else {
         pathsToCheckout.push(file.path)
         pathsToReset.push(file.path)
