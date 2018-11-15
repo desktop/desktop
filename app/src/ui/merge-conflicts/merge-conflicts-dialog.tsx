@@ -18,6 +18,7 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { PathText } from '../lib/path-text'
 import { DialogHeader } from '../dialog/header'
 import { LinkButton } from '../lib/link-button'
+import { ResolvedFileItem } from './resolved-file-item'
 
 interface IMergeConflictsDialogProps {
   readonly dispatcher: Dispatcher
@@ -157,21 +158,6 @@ export class MergeConflictsDialog extends React.Component<
     )
   }
 
-  private renderResolvedFile(path: string): JSX.Element {
-    return (
-      <li className="unmerged-file-status-resolved">
-        <Octicon symbol={OcticonSymbol.fileCode} className="file-octicon" />
-        <div className="column-left">
-          <PathText path={path} availableWidth={200} />
-          <div className="file-conflicts-status">No conflicts remaining</div>
-        </div>
-        <div className="green-circle">
-          <Octicon symbol={OcticonSymbol.check} />
-        </div>
-      </li>
-    )
-  }
-
   private renderConflictedFile(
     path: string,
     status: ConflictedFileStatus,
@@ -236,7 +222,7 @@ export class MergeConflictsDialog extends React.Component<
           : false
 
         if (isResolved) {
-          return this.renderResolvedFile(file.path)
+          return <ResolvedFileItem path={file.path} />
         }
 
         return this.renderConflictedFile(file.path, status, () =>
