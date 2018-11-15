@@ -10,29 +10,30 @@ coverage:
   range: '10...80'
 
   status:
-    lib-git:
-      target: auto
-      threshold: 5%
-      base: pr
-      paths: 'app/src/lib/git'
-    lib-app:
-      target: auto
-      threshold: 5%
-      base: pr
-      paths:
-        - 'app/src/lib/stores'
-        - 'app/src/lib/dispatcher'
-        - 'app/src/lib/databases'
-    models:
-      target: auto
-      threshold: 5%
-      base: pr
-      paths: 'app/src/models'
-    ui-components:
-      target: auto
-      threshold: 5%
-      base: pr
-      paths: 'app/src/ui'
+    desktop:
+      lib-git:
+        target: auto
+        threshold: 5%
+        base: pr
+        paths: 'app/src/lib/git'
+      lib-app:
+        target: auto
+        threshold: 5%
+        base: pr
+        paths:
+          - 'app/src/lib/stores'
+          - 'app/src/lib/dispatcher'
+          - 'app/src/lib/databases'
+      models:
+        target: auto
+        threshold: 5%
+        base: pr
+        paths: 'app/src/models'
+      ui-components:
+        target: auto
+        threshold: 5%
+        base: pr
+        paths: 'app/src/ui'
     patch: no
     changes: no
 
