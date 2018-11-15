@@ -6,11 +6,7 @@ export function supportsDarkMode() {
     return false
   }
 
-  if (!isMojaveOrLater()) {
-    return false
-  }
-
-  return true
+  return isMojaveOrLater()
 }
 
 export function isDarkModeEnabled() {
