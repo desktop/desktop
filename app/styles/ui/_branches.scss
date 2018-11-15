@@ -4,14 +4,14 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  width: 300px;
+  width: 350px;
 
   & > .tab-bar {
     border-top: var(--base-border);
   }
 
   .branches-list {
-    width: 300px;
+    width: 350px;
   }
 }
 
@@ -228,7 +228,7 @@
 }
 
 .no-pull-requests {
-  width: 300px;
+  width: 350px;
   display: flex;
   flex-direction: column;
 

@@ -2,8 +2,8 @@ import * as React from 'react'
 import { Octicon, OcticonSymbol } from '../octicons'
 
 interface ISuccessfulMergeProps {
-  readonly currentBranch: string
-  readonly theirBranch: string
+  readonly ourBranch: string
+  readonly theirBranch?: string
   readonly onDismissed: () => void
 }
 
@@ -13,19 +13,30 @@ export class SuccessfulMerge extends React.Component<
 > {
   private timeoutId: NodeJS.Timer | null = null
 
+  private renderMessage(ourBranch: string, theirBranch?: string) {
+    return theirBranch !== undefined ? (
+      <span>
+        {'Successfully merged '}
+        <strong>{theirBranch}</strong>
+        {' into '}
+        <strong>{ourBranch}</strong>
+      </span>
+    ) : (
+      <span>
+        {'Successfully merged into '}
+        <strong>{ourBranch}</strong>
+      </span>
+    )
+  }
+
   public render() {
     return (
-      <div id="successful-merge" className="active">
+      <div id="successful-merge">
         <div className="green-circle">
           <Octicon className="check-icon" symbol={OcticonSymbol.check} />
         </div>
         <div className="banner-message">
-          <span>
-            {'Successfully merged '}
-            <strong>{this.props.theirBranch}</strong>
-            {' into '}
-            <strong>{this.props.currentBranch}</strong>
-          </span>
+          {this.renderMessage(this.props.ourBranch, this.props.theirBranch)}
         </div>
         <div className="close">
           <a onClick={this.dismiss}>
@@ -39,7 +50,7 @@ export class SuccessfulMerge extends React.Component<
   public componentDidMount = () => {
     this.timeoutId = setTimeout(() => {
       this.dismiss()
-    }, 3250)
+    }, 5000)
   }
 
   public componentWillUnmount = () => {

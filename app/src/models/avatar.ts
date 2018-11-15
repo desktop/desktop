@@ -5,6 +5,7 @@ import { GitAuthor } from './git-author'
 import { generateGravatarUrl } from '../lib/gravatar'
 import { getDotComAPIEndpoint } from '../lib/api'
 import { GitHubRepository } from './github-repository'
+import { isWebFlowCommitter } from '../lib/web-flow-committer'
 
 /** The minimum properties we need in order to display a user's avatar. */
 export interface IAvatarUser {
@@ -83,10 +84,10 @@ export function getAvatarUsersForCommit(
     )
   )
 
-  const isWebFlowCommitter =
-    gitHubRepository !== null && commit.isWebFlowCommitter(gitHubRepository)
+  const webFlowCommitter =
+    gitHubRepository !== null && isWebFlowCommitter(commit, gitHubRepository)
 
-  if (!commit.authoredByCommitter && !isWebFlowCommitter) {
+  if (!commit.authoredByCommitter && !webFlowCommitter) {
     avatarUsers.push(
       getAvatarUserFromAuthor(gitHubRepository, gitHubUsers, commit.committer)
     )

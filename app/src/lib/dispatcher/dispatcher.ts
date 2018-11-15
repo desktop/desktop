@@ -22,7 +22,7 @@ import {
 import { AppStore } from '../stores/app-store'
 import { CloningRepository } from '../../models/cloning-repository'
 import { Branch } from '../../models/branch'
-import { Commit } from '../../models/commit'
+import { Commit, ICommitContext } from '../../models/commit'
 import { ExternalEditor } from '../../lib/editors'
 import { IAPIUser } from '../../lib/api'
 import { GitHubRepository } from '../../models/github-repository'
@@ -57,7 +57,6 @@ import { BranchesTab } from '../../models/branches-tab'
 import { FetchType } from '../../models/fetch'
 import { PullRequest } from '../../models/pull-request'
 import { IAuthor } from '../../models/author'
-import { ITrailer } from '../git/interpret-trailers'
 import { isGitRepository } from '../git'
 import { ApplicationTheme } from '../../ui/lib/application-theme'
 import { TipState } from '../../models/tip'
@@ -208,16 +207,9 @@ export class Dispatcher {
    */
   public async commitIncludedChanges(
     repository: Repository,
-    summary: string,
-    description: string | null,
-    trailers?: ReadonlyArray<ITrailer>
+    context: ICommitContext
   ): Promise<boolean> {
-    return this.appStore._commitIncludedChanges(
-      repository,
-      summary,
-      description,
-      trailers
-    )
+    return this.appStore._commitIncludedChanges(repository, context)
   }
 
   /** Change the file's includedness. */
@@ -595,16 +587,28 @@ export class Dispatcher {
     return this.appStore._mergeBranch(repository, branch, mergeStatus)
   }
 
+  /** aborts an in-flight merge and refreshes the repository's status */
   public async abortMerge(repository: Repository) {
     await this.appStore._abortMerge(repository)
     await this.appStore._loadStatus(repository)
   }
 
-  public createMergeCommit(
+  /**
+   * commits an in-flight merge and shows a banner if successful
+   *
+   * @param repository
+   * @param files files to commit. should be all of them in the repository
+   * @param successfulMergeBannerState information for banner to be displayed if merge is successful
+   */
+  public async createMergeCommit(
     repository: Repository,
-    files: ReadonlyArray<WorkingDirectoryFileChange>
+    files: ReadonlyArray<WorkingDirectoryFileChange>,
+    successfulMergeBannerState: SuccessfulMergeBannerState
   ) {
-    return this.appStore._createMergeCommit(repository, files)
+    const result = await this.appStore._createMergeCommit(repository, files)
+    if (result !== undefined) {
+      this.appStore._setSuccessfulMergeBannerState(successfulMergeBannerState)
+    }
   }
 
   /** Record the given launch stats. */
@@ -1229,12 +1233,15 @@ export class Dispatcher {
     return this.appStore._updateCompareForm(repository, newState)
   }
 
+  public resolveCurrentEditor() {
+    return this.appStore._resolveCurrentEditor()
+  }
+
   /**
    * Updates the application state to indicate a conflict is in-progress
    * as a result of a pull and increments the relevant metric.
    */
   public mergeConflictDetectedFromPull() {
-    this.appStore._mergeConflictDetected()
     return this.statsStore.recordMergeConflictFromPull()
   }
 
@@ -1243,7 +1250,6 @@ export class Dispatcher {
    * as a result of a merge and increments the relevant metric.
    */
   public mergeConflictDetectedFromExplicitMerge() {
-    this.appStore._mergeConflictDetected()
     return this.statsStore.recordMergeConflictFromExplicitMerge()
   }
 
@@ -1342,19 +1348,5 @@ export class Dispatcher {
 
   public recordAddExistingRepository() {
     this.statsStore.recordAddExistingRepository()
-  }
-
-  /**
-   * Increments the `recordMergeSuccesfulAfterConflicts` metric
-   */
-  public recordMergeSuccesfulAfterConflicts() {
-    return this.statsStore.recordMergeSuccesAfterConflicts()
-  }
-
-  /**
-   * Increments the `recordMergeAbortedAfterConflicts` metric
-   */
-  public recordMergeAbortedAfterConflicts() {
-    return this.statsStore.recordMergeAbortedAfterConflicts()
   }
 }

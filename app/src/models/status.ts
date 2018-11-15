@@ -7,28 +7,19 @@ import { ConflictFileStatus } from './conflicts'
  * The status entry code as reported by Git.
  */
 export enum GitStatusEntry {
-  // M
-  Modified,
-  // A
-  Added,
-  // D
-  Deleted,
-  // R
-  Renamed,
-  // C
-  Copied,
-  // .
-  Unchanged,
-  // ?
-  Untracked,
-  // !
-  Ignored,
-  // U
+  Modified = 'M',
+  Added = 'A',
+  Deleted = 'D',
+  Renamed = 'R',
+  Copied = 'C',
+  Unchanged = '.',
+  Untracked = '?',
+  Ignored = '!',
   //
   // While U is a valid code here, we currently mark conflicts as "Modified"
   // in the application - this will likely be something we need to revisit
   // down the track as we improve our merge conflict experience
-  UpdatedButUnmerged,
+  UpdatedButUnmerged = 'U',
 }
 
 /** The file status as represented in GitHub Desktop. */
