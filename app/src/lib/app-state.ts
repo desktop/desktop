@@ -163,6 +163,16 @@ export interface IAppState {
   /** The external editor to use when opening repositories */
   readonly selectedExternalEditor?: ExternalEditor
 
+  /**
+   * A cached entry representing an external editor found on the user's machine:
+   *
+   *  - If the `selectedExternalEditor` can be found, choose that
+   *  - Otherwise, if any editors found, this will be set to the first value
+   *    based on the search order in `app/src/lib/editors/{platform}.ts`
+   *  - If no editors found, this will remain `null`
+   */
+  readonly resolvedExternalEditor: ExternalEditor | null
+
   /** What type of visual diff mode we should use to compare images */
   readonly imageDiffType: ImageDiffType
 
@@ -226,8 +236,9 @@ export enum RepositorySectionTab {
 /**
  * Stores information about a merge conflict when it occurs
  */
-interface IConflictState {
-  readonly branch: Branch
+export interface IConflictState {
+  readonly currentBranch: string
+  readonly currentTip: string
 }
 
 export interface IRepositoryState {
@@ -528,6 +539,6 @@ export interface ICompareToBranch {
 export type CompareAction = IViewHistory | ICompareToBranch
 
 export type SuccessfulMergeBannerState = {
-  currentBranch: string
-  theirBranch: string
+  ourBranch: string
+  theirBranch?: string
 } | null

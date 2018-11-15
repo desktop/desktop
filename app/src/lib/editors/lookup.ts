@@ -49,14 +49,11 @@ export async function getAvailableEditors(): Promise<
  * be found (i.e. it has been removed).
  */
 export async function findEditorOrDefault(
-  name: string | null
-): Promise<IFoundEditor<ExternalEditor>> {
+  name?: string
+): Promise<IFoundEditor<ExternalEditor> | null> {
   const editors = await getAvailableEditors()
   if (editors.length === 0) {
-    throw new ExternalEditorError(
-      'No suitable editors installed for GitHub Desktop to launch. Install Atom for your platform and restart GitHub Desktop to try again.',
-      { suggestAtom: true }
-    )
+    return null
   }
 
   if (name) {

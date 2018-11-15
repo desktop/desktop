@@ -724,8 +724,8 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       cursorBlinkRate: -1,
       lineWrapping: true,
       mode: { name: DiffSyntaxMode.ModeName },
-      // Make sure CodeMirror doesn't capture Tab and thus destroy tab navigation
-      extraKeys: { Tab: false },
+      // Make sure CodeMirror doesn't capture Tab (and Shift-Tab) and thus destroy tab navigation
+      extraKeys: { Tab: false, 'Shift-Tab': false },
       scrollbarStyle: __DARWIN__ ? 'simple' : 'native',
       styleSelectedText: true,
       lineSeparator: '\n',
