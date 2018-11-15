@@ -69,39 +69,48 @@ export class Appearance extends React.Component<
   }
 
   public render() {
+    return (
+      <DialogContent>
+        {this.renderThemeOptions()}
+        {this.renderAutoSwitcherOption()}
+      </DialogContent>
+    )
+  }
+
+  public renderAutoSwitcherOption() {
     const selectedIndex =
       this.props.selectedTheme === ApplicationTheme.Dark ? 1 : 0
-    const doesSupportDarkMode = supportsDarkMode()
 
-    return doesSupportDarkMode ? (
-      <DialogContent>
-        <Row>
-          <VerticalSegmentedControl
-            items={themes}
-            selectedIndex={selectedIndex}
-            onSelectionChanged={this.onSelectedThemeChanged}
-          />
-        </Row>
-        <Row>
-          <Checkbox
-            label="Automatically switch theme to match system theme."
-            value={
-              this.state.automaticallySwitchTheme
-                ? CheckboxValue.On
-                : CheckboxValue.Off
-            }
-            onChange={this.onAutomaticallySwitchThemeChanged}
-          />
-        </Row>
-      </DialogContent>
-    ) : (
-      <DialogContent>
+    return (
+      <Row>
         <VerticalSegmentedControl
           items={themes}
           selectedIndex={selectedIndex}
           onSelectionChanged={this.onSelectedThemeChanged}
         />
-      </DialogContent>
+      </Row>
+    )
+  }
+
+  public renderThemeOptions() {
+    const doesSupportDarkMode = supportsDarkMode()
+
+    if (!doesSupportDarkMode) {
+      return null
+    }
+
+    return (
+      <Row>
+        <Checkbox
+          label="Automatically switch theme to match system theme."
+          value={
+            this.state.automaticallySwitchTheme
+              ? CheckboxValue.On
+              : CheckboxValue.Off
+          }
+          onChange={this.onAutomaticallySwitchThemeChanged}
+        />
+      </Row>
     )
   }
 }
