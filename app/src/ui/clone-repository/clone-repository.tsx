@@ -1,7 +1,7 @@
 import * as Path from 'path'
 import * as React from 'react'
 import { remote } from 'electron'
-import { pathExists, readdirSync } from 'fs-extra'
+import { pathExists, readdir } from 'fs-extra'
 
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
@@ -340,22 +340,8 @@ export class CloneRepository extends React.Component<
   }
 
   private async isPathEmptyFolder(path: string) {
-    try {
-      const directoryFiles = await readdirSync(path)
-
-      // If the path changed while we were checking, we don't care anymore.
-      if (this.state.path !== path) {
-        return
-      }
-
-      return directoryFiles.length === 0
-    } catch (error) {
-      if (error.code === -2) {
-        // Directory does not exist error
-        return false
-      }
-      return error
-    }
+    const directoryFiles = await readdir(path)
+    return directoryFiles.length === 0
   }
 
   /**
