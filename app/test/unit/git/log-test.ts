@@ -1,7 +1,10 @@
 import { Repository } from '../../../src/models/repository'
 import { getChangedFiles, getCommits } from '../../../src/lib/git'
 import { setupFixtureRepository } from '../../helpers/repositories'
-import { AppFileStatusKind } from '../../../src/models/status'
+import {
+  AppFileStatusKind,
+  CopiedOrRenamedFileStatus,
+} from '../../../src/models/status'
 import { GitProcess } from 'dugite'
 
 describe('git/log', () => {
@@ -65,15 +68,21 @@ describe('git/log', () => {
 
       const first = await getChangedFiles(repository, '55bdecb')
       expect(first).toHaveLength(1)
-      expect(first[0].status.kind).toBe(AppFileStatusKind.Renamed)
-      expect(first[0].oldPath).toBe('NEW.md')
+
       expect(first[0].path).toBe('NEWER.md')
+      expect(first[0].status.kind).toBe(AppFileStatusKind.Renamed)
+
+      const firstRenamedFile = first[0].status as CopiedOrRenamedFileStatus
+      expect(firstRenamedFile.oldPath).toBe('NEW.md')
 
       const second = await getChangedFiles(repository, 'c898ca8')
       expect(second).toHaveLength(1)
-      expect(second[0].status.kind).toBe(AppFileStatusKind.Renamed)
-      expect(second[0].oldPath).toBe('OLD.md')
+
       expect(second[0].path).toBe('NEW.md')
+      expect(second[0].status.kind).toBe(AppFileStatusKind.Renamed)
+
+      const secondRenamedFile = second[0].status as CopiedOrRenamedFileStatus
+      expect(secondRenamedFile.oldPath).toBe('OLD.md')
     })
 
     it('detect copies', async () => {
@@ -91,13 +100,17 @@ describe('git/log', () => {
       const files = await getChangedFiles(repository, 'a500bf415')
       expect(files).toHaveLength(2)
 
-      expect(files[0].status.kind).toBe(AppFileStatusKind.Copied)
-      expect(files[0].oldPath).toBe('initial.md')
       expect(files[0].path).toBe('duplicate-with-edits.md')
+      expect(files[0].status.kind).toBe(AppFileStatusKind.Copied)
 
-      expect(files[1].status.kind).toBe(AppFileStatusKind.Copied)
-      expect(files[1].oldPath).toBe('initial.md')
+      const firstCopiedFile = files[0].status as CopiedOrRenamedFileStatus
+      expect(firstCopiedFile.oldPath).toBe('initial.md')
+
       expect(files[1].path).toBe('duplicate.md')
+      expect(files[1].status.kind).toBe(AppFileStatusKind.Copied)
+
+      const secondCopiedFile = files[1].status as CopiedOrRenamedFileStatus
+      expect(secondCopiedFile.oldPath).toBe('initial.md')
     })
 
     it('handles commit when HEAD exists on disk', async () => {

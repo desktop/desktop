@@ -170,7 +170,14 @@ export class FileChange {
     public readonly status: AppFileStatus,
     public readonly oldPath?: string
   ) {
-    this.id = `${this.status.kind}+${this.path}`
+    if (
+      status.kind === AppFileStatusKind.Renamed ||
+      status.kind === AppFileStatusKind.Copied
+    ) {
+      this.id = `${this.status.kind}+${this.path}+${status.oldPath}`
+    } else {
+      this.id = `${this.status.kind}+${this.path}`
+    }
   }
 }
 
