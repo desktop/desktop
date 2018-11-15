@@ -179,6 +179,7 @@ export async function highlightContents(
   const [oldTokens, newTokens] = await Promise.all([
     highlight(
       oldContents.toString('utf8'),
+      Path.basename(file.oldPath || file.path),
       Path.extname(file.oldPath || file.path),
       tabSize,
       lineFilters.oldLineFilter
@@ -188,6 +189,7 @@ export async function highlightContents(
     }),
     highlight(
       newContents.toString('utf8'),
+      Path.basename(file.path),
       Path.extname(file.path),
       tabSize,
       lineFilters.newLineFilter

@@ -1,7 +1,31 @@
 {
   "releases": {
+    "1.5.1-beta0": [
+    ],
+    "1.5.0": [
+      "[New] Clone, create, or add repositories right from the repository dropdown - #5878",
+      "[New] Drag-and-drop to add local repositories from macOS tray icon - #5048",
+      "[Added] Resolve merge conflicts through a guided flow - #5400",
+      "[Added] Allow merging branches directly from branch dropdown - #5929. Thanks @bruncun!",
+      "[Added] Commit file list now has \"Copy File Path\" context menu action - #2944. Thanks @Amabel!",
+      "[Added] Keyboard shortcut for \"Rename Branch\" menu item - #5964. Thanks @agisilaos!",
+      "[Added] Notify users when a merge is successfully completed - #5851",
+      "[Fixed] \"Compare on GitHub\" menu item enabled when no repository is selected - #6078",
+      "[Fixed] Diff viewer blocks keyboard navigation using reverse tab order - #2794",
+      "[Fixed] Launching Desktop from browser always asks to clone repository - #5913",
+      "[Fixed] Publish dialog displayed on push when repository is already published - #5936",
+      "[Improved] \"Publish Repository\" dialog handles emoji characters - #5980. Thanks @WaleedAshraf!",
+      "[Improved] Avoid repository checks when no path is specified in \"Create Repository\" dialog - #5828. Thanks @JakeHL!",
+      "[Improved] Clarify the direction of merging branches - #5930. Thanks @JQuinnie!",
+      "[Improved] Default commit summary more explanatory and consistent with GitHub.com - #6017. Thanks @Daniel-McCarthy!",
+      "[Improved] Display a more informative message on merge dialog when branch is up to date - #5890",
+      "[Improved] Getting a repository's status only blocks other operations when absolutely necessary - #5952",
+      "[Improved] Display current branch in header of merge dialog - #6027",
+      "[Improved] Sanitize repository name before publishing to GitHub - #3090. Thanks @Daniel-McCarthy!",
+      "[Improved] Show the branch name in \"Update From Default Branch\" menu item - #3018. Thanks @a-golovanov!",
+      "[Improved] Update license and .gitignore templates for initializing a new repository - #6024. Thanks @say25!"
+    ],
     "1.5.0-beta5": [
-
     ],
     "1.5.0-beta4": [
       "[Fixed] \"Compare on GitHub\" menu item enabled when no repository is selected - #6078",
