@@ -316,12 +316,12 @@ export async function gitNetworkArguments(
 
   if (repository != null) {
     const protocolVersion = await getConfigValue(repository, 'protocol.version')
-    if (protocolVersion === '1') {
+    if (protocolVersion !== null) {
       return baseArgs
     }
   } else {
     const protocolVersion = await getGlobalConfigValue('protocol.version')
-    if (protocolVersion === '1') {
+    if (protocolVersion !== null) {
       return baseArgs
     }
   }
