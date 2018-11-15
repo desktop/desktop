@@ -70,19 +70,19 @@ describe('git/log', () => {
       expect(first).toHaveLength(1)
 
       expect(first[0].path).toBe('NEWER.md')
-      expect(first[0].status.kind).toBe(AppFileStatusKind.Renamed)
-
-      const firstRenamedFile = first[0].status as CopiedOrRenamedFileStatus
-      expect(firstRenamedFile.oldPath).toBe('NEW.md')
+      expect(first[0].status).toEqual({
+        kind: AppFileStatusKind.Renamed,
+        oldPath: 'NEW.md',
+      })
 
       const second = await getChangedFiles(repository, 'c898ca8')
       expect(second).toHaveLength(1)
 
       expect(second[0].path).toBe('NEW.md')
-      expect(second[0].status.kind).toBe(AppFileStatusKind.Renamed)
-
-      const secondRenamedFile = second[0].status as CopiedOrRenamedFileStatus
-      expect(secondRenamedFile.oldPath).toBe('OLD.md')
+      expect(second[0].status).toEqual({
+        kind: AppFileStatusKind.Renamed,
+        oldPath: 'OLD.md',
+      })
     })
 
     it('detect copies', async () => {
@@ -101,16 +101,16 @@ describe('git/log', () => {
       expect(files).toHaveLength(2)
 
       expect(files[0].path).toBe('duplicate-with-edits.md')
-      expect(files[0].status.kind).toBe(AppFileStatusKind.Copied)
-
-      const firstCopiedFile = files[0].status as CopiedOrRenamedFileStatus
-      expect(firstCopiedFile.oldPath).toBe('initial.md')
+      expect(files[0].status).toEqual({
+        kind: AppFileStatusKind.Copied,
+        oldPath: 'initial.md',
+      })
 
       expect(files[1].path).toBe('duplicate.md')
-      expect(files[1].status.kind).toBe(AppFileStatusKind.Copied)
-
-      const secondCopiedFile = files[1].status as CopiedOrRenamedFileStatus
-      expect(secondCopiedFile.oldPath).toBe('initial.md')
+      expect(files[1].status).toEqual({
+        kind: AppFileStatusKind.Copied,
+        oldPath: 'initial.md',
+      })
     })
 
     it('handles commit when HEAD exists on disk', async () => {
