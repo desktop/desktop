@@ -58,7 +58,8 @@ describe('git/commit', () => {
       let files = status.workingDirectory.files
       expect(files.length).toEqual(1)
 
-      await createCommit(repository!, 'Special commit', files)
+      const sha = await createCommit(repository!, 'Special commit', files)
+      expect(sha).toHaveLength(7)
 
       status = await getStatusOrThrow(repository!)
       files = status.workingDirectory.files
@@ -67,6 +68,7 @@ describe('git/commit', () => {
       const commits = await getCommits(repository!, 'HEAD', 100)
       expect(commits.length).toEqual(6)
       expect(commits[0].summary).toEqual('Special commit')
+      expect(commits[0].sha.substring(0, 7)).toEqual(sha)
     })
 
     it('commit does not strip commentary by default', async () => {
@@ -83,12 +85,14 @@ describe('git/commit', () => {
 
 # this is a comment`
 
-      await createCommit(repository!, message, files)
+      const sha = await createCommit(repository!, message, files)
+      expect(sha).toHaveLength(7)
 
       const commit = await getCommit(repository!, 'HEAD')
       expect(commit).not.toBeNull()
       expect(commit!.summary).toEqual('Special commit')
       expect(commit!.body).toEqual('# this is a comment\n')
+      expect(commit!.sha.substring(0, 7)).toEqual(sha)
     })
 
     it('can commit for empty repository', async () => {
@@ -107,11 +111,12 @@ describe('git/commit', () => {
         files[1].withIncludeAll(true),
       ]
 
-      await createCommit(
+      const sha = await createCommit(
         repo,
         'added two files\n\nthis is a description',
         allChanges
       )
+      expect(sha).toEqual('(root-commit)')
 
       const statusAfter = await getStatusOrThrow(repo)
 
@@ -138,9 +143,10 @@ describe('git/commit', () => {
 
       expect(files.length).toEqual(1)
 
-      await createCommit(repo, 'renamed a file', [
+      const sha = await createCommit(repo, 'renamed a file', [
         files[0].withIncludeAll(true),
       ])
+      expect(sha).toHaveLength(7)
 
       const statusAfter = await getStatusOrThrow(repo)
 
@@ -171,12 +177,14 @@ describe('git/commit', () => {
       )
 
       // commit just this change, ignore everything else
-      await createCommit(repository!, 'title', [file])
+      const sha = await createCommit(repository!, 'title', [file])
+      expect(sha).toHaveLength(7)
 
       // verify that the HEAD of the repository has moved
       const newTip = (await getCommits(repository!, 'HEAD', 1))[0]
       expect(newTip.sha).not.toEqual(previousTip.sha)
       expect(newTip.summary).toEqual('title')
+      expect(newTip.sha.substring(0, 7)).toEqual(sha)
 
       // verify that the contents of this new commit are just the new file
       const changedFiles = await getChangedFiles(repository!, newTip.sha)
@@ -222,7 +230,8 @@ describe('git/commit', () => {
       const updatedFile = file.withSelection(selection)
 
       // commit just this change, ignore everything else
-      await createCommit(repository!, 'title', [updatedFile])
+      const sha = await createCommit(repository!, 'title', [updatedFile])
+      expect(sha).toHaveLength(7)
 
       // verify that the HEAD of the repository has moved
       const newTip = (await getCommits(repository!, 'HEAD', 1))[0]
@@ -275,12 +284,14 @@ describe('git/commit', () => {
       )
 
       // commit just this change, ignore everything else
-      await createCommit(repository!, 'title', [file])
+      const sha = await createCommit(repository!, 'title', [file])
+      expect(sha).toHaveLength(7)
 
       // verify that the HEAD of the repository has moved
       const newTip = (await getCommits(repository!, 'HEAD', 1))[0]
       expect(newTip.sha).not.toEqual(previousTip.sha)
       expect(newTip.summary).toEqual('title')
+      expect(newTip.sha.substring(0, 7)).toEqual(sha)
 
       // verify that the contents of this new commit are just the modified file
       const changedFiles = await getChangedFiles(repository!, newTip.sha)
@@ -319,12 +330,14 @@ describe('git/commit', () => {
       )
 
       // commit just this change, ignore everything else
-      await createCommit(repository!, 'title', [updatedFile])
+      const sha = await createCommit(repository!, 'title', [updatedFile])
+      expect(sha).toHaveLength(7)
 
       // verify that the HEAD of the repository has moved
       const newTip = (await getCommits(repository!, 'HEAD', 1))[0]
       expect(newTip.sha).not.toEqual(previousTip.sha)
       expect(newTip.summary).toEqual('title')
+      expect(newTip.sha.substring(0, 7)).toEqual(sha)
 
       // verify that the contents of this new commit are just the modified file
       const changedFiles = await getChangedFiles(repository!, newTip.sha)
@@ -359,12 +372,14 @@ describe('git/commit', () => {
       )
 
       // commit just this change, ignore everything else
-      await createCommit(repository!, 'title', [file])
+      const sha = await createCommit(repository!, 'title', [file])
+      expect(sha).toHaveLength(7)
 
       // verify that the HEAD of the repository has moved
       const newTip = (await getCommits(repository!, 'HEAD', 1))[0]
       expect(newTip.sha).not.toEqual(previousTip.sha)
       expect(newTip.summary).toEqual('title')
+      expect(newTip.sha.substring(0, 7)).toEqual(sha)
 
       // verify that the contents of this new commit are just the new file
       const changedFiles = await getChangedFiles(repository!, newTip.sha)
@@ -399,13 +414,15 @@ describe('git/commit', () => {
 
       expect(files.length).toEqual(1)
 
-      await createCommit(repo, 'renamed a file', [
+      const sha = await createCommit(repo, 'renamed a file', [
         files[0].withIncludeAll(true),
       ])
+      expect(sha).toHaveLength(7)
 
       const statusAfter = await getStatusOrThrow(repo)
 
       expect(statusAfter.workingDirectory.files.length).toEqual(0)
+      expect(statusAfter.currentTip!.substring(0, 7)).toEqual(sha)
     })
 
     // The scenario here is that the user has staged a rename (probably using git mv)
@@ -435,7 +452,10 @@ describe('git/commit', () => {
 
       const partiallySelectedFile = files[0].withSelection(selection)
 
-      await createCommit(repo, 'renamed a file', [partiallySelectedFile])
+      const sha = await createCommit(repo, 'renamed a file', [
+        partiallySelectedFile,
+      ])
+      expect(sha).toHaveLength(7)
 
       const statusAfter = await getStatusOrThrow(repo)
 
@@ -473,10 +493,12 @@ describe('git/commit', () => {
 
       const selection = files[0].selection.withSelectAll()
       const selectedFile = files[0].withSelection(selection)
-      await createCommit(repo, 'Merge commit!', [selectedFile])
+      const sha = await createCommit(repo, 'Merge commit!', [selectedFile])
+      expect(sha).toHaveLength(7)
 
       const commits = await getCommits(repo, 'HEAD', 5)
       expect(commits[0].parentSHAs.length).toEqual(2)
+      expect(commits[0]!.sha.substring(0, 7)).toEqual(sha)
     })
   })
 
@@ -488,8 +510,12 @@ describe('git/commit', () => {
       })
       it('creates a merge commit', async () => {
         const status = await getStatusOrThrow(repository)
-        await createMergeCommit(repository, status.workingDirectory.files)
+        const sha = await createMergeCommit(
+          repository,
+          status.workingDirectory.files
+        )
         const newStatus = await getStatusOrThrow(repository)
+        expect(sha).toHaveLength(7)
         expect(newStatus.workingDirectory.files).toHaveLength(0)
       })
     })
@@ -537,7 +563,8 @@ describe('git/commit', () => {
 
       const toCommit = status.workingDirectory.withIncludeAllFiles(true)
 
-      await createCommit(repo, 'commit everything', toCommit.files)
+      const sha = await createCommit(repo, 'commit everything', toCommit.files)
+      expect(sha).toEqual('(root-commit)')
 
       status = await getStatusOrThrow(repo)
       files = status.workingDirectory.files
@@ -573,7 +600,8 @@ describe('git/commit', () => {
 
       const toCommit = status!.workingDirectory.withIncludeAllFiles(true)
 
-      await createCommit(repo, 'commit again!', toCommit.files)
+      const sha = await createCommit(repo, 'commit again!', toCommit.files)
+      expect(sha).toHaveLength(7)
 
       status = await getStatusOrThrow(repo)
       files = status.workingDirectory.files
@@ -582,6 +610,7 @@ describe('git/commit', () => {
       const commit = await getCommit(repo, 'HEAD')
       expect(commit).not.toBeNull()
       expect(commit!.summary).toEqual('commit again!')
+      expect(commit!.sha.substring(0, 7)).toEqual(sha)
     })
   })
 })

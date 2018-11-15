@@ -2,7 +2,7 @@
 
 You will need to install these tools on your machine:
 
- - Node.js v8.11.4
+ - Node.js v8.12.0
  - Python 2.7
  - Xcode and Xcode Command Line Tools (Xcode -> Preferences -> Downloads)
 
@@ -14,11 +14,11 @@ Let's see if you have the right version of `node` installed. Open a terminal and
 $ node -v
 ```
 
-If you see an error about being unable to find `node`, that probably means you don't have any Node tools installed. You can install Node LTS (the version we need) from the [Node.js website](https://nodejs.org/en/download/) and restart your shell.
+If you see an error about being unable to find `node`, that probably means you don't have any Node tools installed. You can install Node 8 from the [Node.js website](https://nodejs.org/download/release/v8.12.0/) and restart your shell.
 
-If you see the output `v8.11.x` (where `x` is any number), you're good to go.
+If you see the output `v8.12.0`, you're good to go.
 
-If you see the output `v10.x.y` you're ahead of what we currently support. We have an outstanding issue building GitHub Desktop with Node 10, and hopefully can resolve this soon. If you don't care about the version you are running, you can install the version from the [Node.js website](https://nodejs.org/en/download/) over the top of your current install.
+If you see the output `v10.x.y` you're ahead of what we currently support. See [#5876](https://github.com/desktop/desktop/issues/5876) for details about building GitHub Desktop with Node 10, which we can hopefully resolve soon. If you don't care about the version you are running, you can install the version from the [Node.js website](https://nodejs.org/download/release/v8.12.0/) over the top of your current install.
 
 ### I need to use different versions of Node.js in different projects!
 
@@ -46,7 +46,7 @@ $ nvm use
 $ node -v
 ```
 
-If you see `v8.11.4`, you're good to go.
+If you see `v8.12.0`, you're good to go.
 
 #### Configuring `asdf-nodejs`
 

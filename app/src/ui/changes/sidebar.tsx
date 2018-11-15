@@ -9,7 +9,7 @@ import { Dispatcher } from '../../lib/dispatcher'
 import { IGitHubUser } from '../../lib/databases'
 import { IssuesStore, GitHubUserStore } from '../../lib/stores'
 import { CommitIdentity } from '../../models/commit-identity'
-import { Commit } from '../../models/commit'
+import { Commit, ICommitContext } from '../../models/commit'
 import { UndoCommit } from './undo-commit'
 import {
   IAutocompletionProvider,
@@ -21,7 +21,6 @@ import { ClickSource } from '../lib/list'
 import { WorkingDirectoryFileChange } from '../../models/status'
 import { CSSTransitionGroup } from 'react-transition-group'
 import { openFile } from '../../lib/open-file'
-import { ITrailer } from '../../lib/git/interpret-trailers'
 import { Account } from '../../models/account'
 import { PopupType } from '../../models/popup'
 import { enableFileSizeWarningCheck } from '../../lib/feature-flag'
@@ -118,9 +117,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
   }
 
   private onCreateCommit = async (
-    summary: string,
-    description: string | null,
-    trailers?: ReadonlyArray<ITrailer>
+    context: ICommitContext
   ): Promise<boolean> => {
     if (enableFileSizeWarningCheck()) {
       const overSizedFiles = await getLargeFilePaths(
@@ -137,10 +134,10 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
         this.props.dispatcher.showPopup({
           type: PopupType.OversizedFiles,
           oversizedFiles: filesIgnoredByLFS,
-          commitSummary: summary,
-          commitDescription: description,
+          commitSummary: context.summary,
+          commitDescription: context.description,
           repository: this.props.repository,
-          trailers: trailers,
+          trailers: context.trailers,
         })
 
         return false
@@ -149,9 +146,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
 
     return this.props.dispatcher.commitIncludedChanges(
       this.props.repository,
-      summary,
-      description,
-      trailers
+      context
     )
   }
 
