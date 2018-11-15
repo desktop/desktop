@@ -6,7 +6,7 @@ import { IRemote } from './remote'
 import { RetryAction } from './retry-actions'
 import { WorkingDirectoryFileChange } from './status'
 import { PreferencesTab } from './preferences'
-import { ITrailer } from '../lib/git/interpret-trailers'
+import { ICommitContext } from './commit'
 
 export enum PopupType {
   RenameBranch = 1,
@@ -138,8 +138,6 @@ export type Popup =
   | {
       type: PopupType.OversizedFiles
       oversizedFiles: ReadonlyArray<string>
-      commitSummary: string
-      commitDescription: string | null
+      context: ICommitContext
       repository: Repository
-      trailers?: ReadonlyArray<ITrailer>
     }

@@ -7,7 +7,7 @@ import { Monospaced } from '../lib/monospaced'
 import { PathText } from '../lib/path-text'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
-import { ITrailer } from '../../lib/git/interpret-trailers'
+import { ICommitContext } from '../../models/commit'
 
 const GitLFSWebsiteURL =
   'https://help.github.com/articles/versioning-large-files/'
@@ -16,10 +16,8 @@ interface IOversizedFilesProps {
   readonly oversizedFiles: ReadonlyArray<string>
   readonly onDismissed: () => void
   readonly dispatcher: Dispatcher
-  readonly commitSummary: string
-  readonly commitDescription: string | null
+  readonly context: ICommitContext
   readonly repository: Repository
-  readonly trailers?: ReadonlyArray<ITrailer>
 }
 
 /** A dialog to display a list of files that are too large to commit. */
@@ -94,12 +92,8 @@ export class OversizedFiles extends React.Component<IOversizedFilesProps> {
   }
 
   private commitAnyway = async () => {
-    this.props.dispatcher.commitIncludedChanges(
-      this.props.repository,
-      this.props.commitSummary,
-      this.props.commitDescription,
-      this.props.trailers
-    )
+    const context = this.props.context
+    this.props.dispatcher.commitIncludedChanges(this.props.repository, context)
 
     await this.props.dispatcher.closePopup()
   }

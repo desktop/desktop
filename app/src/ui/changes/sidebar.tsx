@@ -134,10 +134,8 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
         this.props.dispatcher.showPopup({
           type: PopupType.OversizedFiles,
           oversizedFiles: filesIgnoredByLFS,
-          commitSummary: context.summary,
-          commitDescription: context.description,
+          context: context,
           repository: this.props.repository,
-          trailers: context.trailers,
         })
 
         return false

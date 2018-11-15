@@ -1409,10 +1409,8 @@ export class App extends React.Component<IAppProps, IAppState> {
             oversizedFiles={popup.oversizedFiles}
             onDismissed={this.onPopupDismissed}
             dispatcher={this.props.dispatcher}
-            commitSummary={popup.commitSummary}
-            commitDescription={popup.commitDescription}
+            context={popup.context}
             repository={popup.repository}
-            trailers={popup.trailers}
           />
         )
       default:
