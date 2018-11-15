@@ -127,13 +127,14 @@ export class ConflictedFileItem extends React.Component<
   }
 
   private renderResolvedManualConflict = () => {
+    const message = 'Using modified file from master '
+
     return (
       <>
         <div className="column-left">
           <PathText path={this.props.file.path} availableWidth={200} />
           <div className="file-conflicts-status">
-            Using modified file from master{' '}
-            <LinkButton onClick={this.undoChoice}>Undo</LinkButton>
+            {message} <LinkButton onClick={this.undoChoice}>Undo</LinkButton>
           </div>
         </div>
         <div className="green-circle">
@@ -148,6 +149,7 @@ export class ConflictedFileItem extends React.Component<
 
     let resolved = false
     let content: JSX.Element
+
     if (status.lookForConflictMarkers && status.conflictMarkerCount > 0) {
       content = this.renderTextConflicts(status.conflictMarkerCount)
     } else if (this.props.choice != null) {
