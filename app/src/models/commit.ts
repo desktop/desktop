@@ -2,6 +2,22 @@ import { CommitIdentity } from './commit-identity'
 import { ITrailer, isCoAuthoredByTrailer } from '../lib/git/interpret-trailers'
 import { GitAuthor } from './git-author'
 
+/** Grouping of information required to create a commit */
+export interface ICommitContext {
+  /**
+   * The summary of the commit message (required)
+   */
+  readonly summary: string
+  /**
+   * Additional details for the commit message (optional)
+   */
+  readonly description: string | null
+  /**
+   * An optional array of commit trailers (for example Co-Authored-By trailers) which will be appended to the commit message in accordance with the Git trailer configuration.
+   */
+  readonly trailers?: ReadonlyArray<ITrailer>
+}
+
 /**
  * Extract any Co-Authored-By trailers from an array of arbitrary
  * trailers.

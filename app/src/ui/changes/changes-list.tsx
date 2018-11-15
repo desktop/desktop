@@ -3,7 +3,6 @@ import * as Path from 'path'
 
 import { IGitHubUser } from '../../lib/databases'
 import { Dispatcher } from '../../lib/dispatcher'
-import { ITrailer } from '../../lib/git/interpret-trailers'
 import { IMenuItem } from '../../lib/menu-item'
 import { revealInFileManager } from '../../lib/app-shell'
 import {
@@ -32,6 +31,7 @@ import { showContextualMenu } from '../main-process-proxy'
 import { arrayEquals } from '../../lib/equality'
 import { clipboard } from 'electron'
 import { basename } from 'path'
+import { ICommitContext } from '../../models/commit'
 
 const RowHeight = 29
 
@@ -44,11 +44,7 @@ interface IChangesListProps {
   readonly onFileSelectionChanged: (rows: ReadonlyArray<number>) => void
   readonly onIncludeChanged: (path: string, include: boolean) => void
   readonly onSelectAll: (selectAll: boolean) => void
-  readonly onCreateCommit: (
-    summary: string,
-    description: string | null,
-    trailers?: ReadonlyArray<ITrailer>
-  ) => Promise<boolean>
+  readonly onCreateCommit: (context: ICommitContext) => Promise<boolean>
   readonly onDiscardChanges: (file: WorkingDirectoryFileChange) => void
   readonly askForConfirmationOnDiscardChanges: boolean
   readonly onDiscardAllChanges: (
