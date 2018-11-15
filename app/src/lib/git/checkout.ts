@@ -12,12 +12,13 @@ import { enableRecurseSubmodulesFlag } from '../feature-flag'
 
 export type ProgressCallback = (progress: ICheckoutProgress) => void
 
-function getCheckoutArgs(
+async function getCheckoutArgs(
+  repository: Repository,
   branch: Branch,
   account: IGitAccount | null,
   progressCallback?: ProgressCallback
 ) {
-  const networkArguments = gitNetworkArguments(account)
+  const networkArguments = await gitNetworkArguments(repository, account)
 
   const baseArgs =
     progressCallback != null
@@ -88,7 +89,12 @@ export async function checkoutBranch(
     progressCallback({ kind, title, value: 0, targetBranch })
   }
 
-  const args = getCheckoutArgs(branch, account, progressCallback)
+  const args = await getCheckoutArgs(
+    repository,
+    branch,
+    account,
+    progressCallback
+  )
 
   await git(args, repository.path, 'checkoutBranch', opts)
 }

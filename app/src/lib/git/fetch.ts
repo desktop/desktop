@@ -6,12 +6,13 @@ import { FetchProgressParser, executionOptionsWithProgress } from '../progress'
 import { envForAuthentication } from './authentication'
 import { enableRecurseSubmodulesFlag } from '../feature-flag'
 
-function getFetchArgs(
+async function getFetchArgs(
+  repository: Repository,
   remote: string,
   account: IGitAccount | null,
   progressCallback?: (progress: IFetchProgress) => void
 ) {
-  const networkArguments = gitNetworkArguments(account)
+  const networkArguments = await gitNetworkArguments(repository, account)
 
   if (enableRecurseSubmodulesFlag()) {
     return progressCallback != null
@@ -93,7 +94,7 @@ export async function fetch(
     progressCallback({ kind, title, value: 0, remote })
   }
 
-  const args = getFetchArgs(remote, account, progressCallback)
+  const args = await getFetchArgs(repository, remote, account, progressCallback)
   await git(args, repository.path, 'fetch', opts)
 }
 
@@ -109,7 +110,7 @@ export async function fetchRefspec(
     env: envForAuthentication(account),
   }
 
-  const networkArguments = gitNetworkArguments(account)
+  const networkArguments = await gitNetworkArguments(repository, account)
 
   const args = [...networkArguments, 'fetch', remote, refspec]
 

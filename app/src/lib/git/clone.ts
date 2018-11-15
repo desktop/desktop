@@ -30,7 +30,7 @@ export async function clone(
   options: CloneOptions,
   progressCallback?: (progress: ICloneProgress) => void
 ): Promise<void> {
-  const networkArguments = gitNetworkArguments(options.account)
+  const networkArguments = await gitNetworkArguments(null, options.account)
 
   const env = envForAuthentication(options.account)
 

@@ -23,7 +23,7 @@ export async function revertCommit(
   account: IGitAccount | null,
   progressCallback?: (progress: IRevertProgress) => void
 ) {
-  const networkArguments = gitNetworkArguments(account)
+  const networkArguments = await gitNetworkArguments(repository, account)
 
   const args = [...networkArguments, 'revert']
   if (commit.parentSHAs.length > 1) {

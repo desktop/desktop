@@ -12,6 +12,8 @@ import { enableGitProtocolVersionTwo } from '../feature-flag'
 import { IGitAccount } from '../../models/git-account'
 
 import * as GitPerf from '../../ui/lib/git-perf'
+import { Repository } from '../../models/repository'
+import { getConfigValue, getGlobalConfigValue } from './config'
 
 /**
  * An extension of the execution options in dugite that
@@ -275,10 +277,22 @@ function getDescriptionForError(error: DugiteError): string {
  * These arguments should be inserted before the subcommand, i.e in
  * the case of `git pull` these arguments needs to go before the `pull`
  * argument.
+ *
+ * @param repository the local repository associated with the command, to check
+ *                   local, global and system config for an existing value.
+ *                   If `null` if provided (for example, when cloning a new
+ *                   repository), this function will check global and system
+ *                   config for an existing `protocol.version` setting
+ *
+ * @param account the identity associated with the repository, or `null` if
+ *                unknown. The `protocol.version` behaviour is currently only
+ *                enabled for GitHub.com repositories that don't have an
+ *                existing `protocol.version` setting.
  */
-export function gitNetworkArguments(
+export async function gitNetworkArguments(
+  repository: Repository | null,
   account: IGitAccount | null
-): ReadonlyArray<string> {
+): Promise<ReadonlyArray<string>> {
   const baseArgs = [
     // Explicitly unset any defined credential helper, we rely on our
     // own askpass for authentication.
@@ -296,12 +310,24 @@ export function gitNetworkArguments(
 
   const isDotComAccount = account.endpoint === getDotComAPIEndpoint()
 
-  if (isDotComAccount) {
-    // opt in for v2 of the Git Wire protocol for GitHub repositories
-    return [...baseArgs, '-c', 'protocol.version=2']
-  } else {
+  if (!isDotComAccount) {
     return baseArgs
   }
+
+  if (repository != null) {
+    const protocolVersion = await getConfigValue(repository, 'protocol.version')
+    if (protocolVersion === '1') {
+      return baseArgs
+    }
+  } else {
+    const protocolVersion = await getGlobalConfigValue('protocol.version')
+    if (protocolVersion === '1') {
+      return baseArgs
+    }
+  }
+
+  // opt in for v2 of the Git Wire protocol for GitHub repositories
+  return [...baseArgs, '-c', 'protocol.version=2']
 }
 
 /**
