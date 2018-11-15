@@ -18,6 +18,7 @@ import { DialogHeader } from '../dialog/header'
 import { LinkButton } from '../lib/link-button'
 import { ResolvedFileItem } from './resolved-file-item'
 import { ConflictedFileItem } from './conflicted-file-item'
+import { Choice } from '../../models/conflicts'
 
 interface IMergeConflictsDialogProps {
   readonly dispatcher: Dispatcher
@@ -30,6 +31,10 @@ interface IMergeConflictsDialogProps {
   readonly ourBranch: string
   /* `undefined` when we didn't know the branch at the beginning of this flow */
   readonly theirBranch?: string
+}
+
+interface IMergeConflictsDialogState {
+  readonly resolutions: Map<string, Choice>
 }
 
 /** Filter working directory changes for conflicted or resolved files  */
@@ -50,8 +55,16 @@ const cancelButtonString = 'Abort merge'
  */
 export class MergeConflictsDialog extends React.Component<
   IMergeConflictsDialogProps,
-  {}
+  IMergeConflictsDialogState
 > {
+  public constructor(props: IMergeConflictsDialogProps) {
+    super(props)
+
+    this.state = {
+      resolutions: new Map<string, Choice>(),
+    }
+  }
+
   public async componentDidMount() {
     this.props.dispatcher.resolveCurrentEditor()
   }
@@ -138,6 +151,18 @@ export class MergeConflictsDialog extends React.Component<
     this.props.openFileInExternalEditor(join(this.props.repository.path, path))
   }
 
+  private resolveManualConflict = (path: string, choice: Choice) => {
+    const { resolutions } = this.state
+    resolutions.set(path, choice)
+    this.setState({ resolutions })
+  }
+
+  private onUndo = (path: string) => {
+    const { resolutions } = this.state
+    resolutions.delete(path)
+    this.setState({ resolutions })
+  }
+
   private renderUnmergedFile(
     file: WorkingDirectoryFileChange
   ): JSX.Element | null {
@@ -149,15 +174,20 @@ export class MergeConflictsDialog extends React.Component<
           : false
 
         if (isResolved) {
-          return <ResolvedFileItem path={file.path} />
+          return <ResolvedFileItem file={file} />
         }
+
+        const choice = this.state.resolutions.get(file.path) || null
 
         return (
           <ConflictedFileItem
-            path={file.path}
+            file={file}
             status={status}
+            choice={choice}
             resolvedExternalEditor={this.props.resolvedExternalEditor}
             onOpenFileInEditor={this.openFileInEditor}
+            onResolveManualConflict={this.resolveManualConflict}
+            onUndo={this.onUndo}
           />
         )
       default:
