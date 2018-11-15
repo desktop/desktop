@@ -22,7 +22,7 @@ import {
 import { AppStore } from '../stores/app-store'
 import { CloningRepository } from '../../models/cloning-repository'
 import { Branch } from '../../models/branch'
-import { Commit } from '../../models/commit'
+import { Commit, ICommitContext } from '../../models/commit'
 import { ExternalEditor } from '../../lib/editors'
 import { IAPIUser } from '../../lib/api'
 import { GitHubRepository } from '../../models/github-repository'
@@ -57,7 +57,6 @@ import { BranchesTab } from '../../models/branches-tab'
 import { FetchType } from '../../models/fetch'
 import { PullRequest } from '../../models/pull-request'
 import { IAuthor } from '../../models/author'
-import { ITrailer } from '../git/interpret-trailers'
 import { isGitRepository } from '../git'
 import { ApplicationTheme } from '../../ui/lib/application-theme'
 import { TipState } from '../../models/tip'
@@ -208,16 +207,9 @@ export class Dispatcher {
    */
   public async commitIncludedChanges(
     repository: Repository,
-    summary: string,
-    description: string | null,
-    trailers?: ReadonlyArray<ITrailer>
+    context: ICommitContext
   ): Promise<boolean> {
-    return this.appStore._commitIncludedChanges(
-      repository,
-      summary,
-      description,
-      trailers
-    )
+    return this.appStore._commitIncludedChanges(repository, context)
   }
 
   /** Change the file's includedness. */

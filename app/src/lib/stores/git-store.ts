@@ -561,12 +561,10 @@ export class GitStore extends BaseStore {
 
     // git-interpret-trailers is really only made for working
     // with full commit messages so let's start with that
-    const message = await formatCommitMessage(
-      repository,
-      commit.summary,
-      commit.body,
-      []
-    )
+    const message = await formatCommitMessage(repository, {
+      summary: commit.summary,
+      description: commit.body,
+    })
 
     // Next we extract any co-authored-by trailers we
     // can find. We use interpret-trailers for this
@@ -1103,7 +1101,7 @@ export class GitStore extends BaseStore {
   }
 
   /** Merge the named branch into the current branch. */
-  public merge(branch: string): Promise<true | undefined> {
+  public merge(branch: string): Promise<string | undefined> {
     return this.performFailableOperation(() => merge(this.repository, branch), {
       gitContext: {
         kind: 'merge',
