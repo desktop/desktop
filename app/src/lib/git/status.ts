@@ -321,12 +321,7 @@ function buildStatusMap(
 
   files.set(
     entry.path,
-    new WorkingDirectoryFileChange(
-      entry.path,
-      appStatus,
-      selection,
-      entry.oldPath
-    )
+    new WorkingDirectoryFileChange(entry.path, appStatus, selection)
   )
   return files
 }

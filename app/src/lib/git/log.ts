@@ -194,7 +194,7 @@ export async function getChangedFiles(
 
     const path = lines[++i]
 
-    files.push(new CommittedFileChange(path, status, sha, oldPath))
+    files.push(new CommittedFileChange(path, status, sha))
   }
 
   return files

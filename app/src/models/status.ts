@@ -163,12 +163,10 @@ export class FileChange {
   /**
    * @param path The relative path to the file in the repository.
    * @param status The status of the change to the file.
-   * @param oldPath The original path in the case of a renamed file.
    */
   public constructor(
     public readonly path: string,
-    public readonly status: AppFileStatus,
-    public readonly oldPath?: string
+    public readonly status: AppFileStatus
   ) {
     if (
       status.kind === AppFileStatusKind.Renamed ||
@@ -192,10 +190,9 @@ export class WorkingDirectoryFileChange extends FileChange {
   public constructor(
     path: string,
     status: AppFileStatus,
-    public readonly selection: DiffSelection,
-    oldPath?: string
+    public readonly selection: DiffSelection
   ) {
-    super(path, status, oldPath)
+    super(path, status)
   }
 
   /** Create a new WorkingDirectoryFileChange with the given includedness. */
@@ -209,12 +206,7 @@ export class WorkingDirectoryFileChange extends FileChange {
 
   /** Create a new WorkingDirectoryFileChange with the given diff selection. */
   public withSelection(selection: DiffSelection): WorkingDirectoryFileChange {
-    return new WorkingDirectoryFileChange(
-      this.path,
-      this.status,
-      selection,
-      this.oldPath
-    )
+    return new WorkingDirectoryFileChange(this.path, this.status, selection)
   }
 }
 
@@ -231,10 +223,9 @@ export class CommittedFileChange extends FileChange {
   public constructor(
     path: string,
     status: AppFileStatus,
-    public readonly commitish: string,
-    oldPath?: string
+    public readonly commitish: string
   ) {
-    super(path, status, oldPath)
+    super(path, status)
 
     this.commitish = commitish
   }
