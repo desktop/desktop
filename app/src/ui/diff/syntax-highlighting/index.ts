@@ -177,10 +177,13 @@ export async function highlightContents(
 ): Promise<IFileTokens> {
   const { file, oldContents, newContents } = contents
 
+  const oldPath = getOldPathOrDefault(file)
+
   const [oldTokens, newTokens] = await Promise.all([
     highlight(
       oldContents.toString('utf8'),
-      Path.extname(getOldPathOrDefault(file)),
+      Path.basename(oldPath),
+      Path.extname(oldPath),
       tabSize,
       lineFilters.oldLineFilter
     ).catch(e => {
@@ -189,6 +192,7 @@ export async function highlightContents(
     }),
     highlight(
       newContents.toString('utf8'),
+      Path.basename(file.path),
       Path.extname(file.path),
       tabSize,
       lineFilters.newLineFilter

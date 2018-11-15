@@ -22,7 +22,7 @@ import {
 import { BranchesTab } from '../../models/branches-tab'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { CloningRepository } from '../../models/cloning-repository'
-import { Commit } from '../../models/commit'
+import { Commit, ICommitContext } from '../../models/commit'
 import {
   DiffSelection,
   DiffSelectionType,
@@ -122,7 +122,6 @@ import {
   getWorkingDirectoryDiff,
   isCoAuthoredByTrailer,
   mergeTree,
-  ITrailer,
   pull as pullRepo,
   push as pushRepo,
   renameBranch,
@@ -1760,8 +1759,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       selectableLines
     )
     const selectedFile = currentlySelectedFile.withSelection(newSelection)
-    const updatedFiles = changesState.workingDirectory.files.map(
-      f => (f.id === selectedFile.id ? selectedFile : f)
+    const updatedFiles = changesState.workingDirectory.files.map(f =>
+      f.id === selectedFile.id ? selectedFile : f
     )
     const workingDirectory = WorkingDirectoryStatus.fromFiles(updatedFiles)
 
@@ -1775,9 +1774,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _commitIncludedChanges(
     repository: Repository,
-    summary: string,
-    description: string | null,
-    trailers?: ReadonlyArray<ITrailer>
+    context: ICommitContext
   ): Promise<boolean> {
     const state = this.repositoryStateCache.get(repository)
     const files = state.changesState.workingDirectory.files
@@ -1789,12 +1786,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const result = await this.isCommitting(repository, () => {
       return gitStore.performFailableOperation(async () => {
-        const message = await formatCommitMessage(
-          repository,
-          summary,
-          description,
-          trailers
-        )
+        const message = await formatCommitMessage(repository, context)
         return createCommit(repository, message, selectedFiles)
       })
     })
@@ -1809,7 +1801,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
         this.statsStore.recordPartialCommit()
       }
 
-      if (trailers != null && trailers.some(isCoAuthoredByTrailer)) {
+      const { trailers } = context
+      if (trailers !== undefined && trailers.some(isCoAuthoredByTrailer)) {
         this.statsStore.recordCoAuthoredCommit()
       }
 
@@ -1856,8 +1849,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     selection: DiffSelection
   ) {
     this.repositoryStateCache.updateChangesState(repository, state => {
-      const newFiles = state.workingDirectory.files.map(
-        f => (f.id === file.id ? f.withSelection(selection) : f)
+      const newFiles = state.workingDirectory.files.map(f =>
+        f.id === file.id ? f.withSelection(selection) : f
       )
 
       const workingDirectory = WorkingDirectoryStatus.fromFiles(newFiles)
