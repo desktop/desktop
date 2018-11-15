@@ -10,39 +10,29 @@ coverage:
   range: '10...80'
 
   status:
-    project:
-      default:
-        # compares coverage to the base branch
-        target: auto
-        # if it drops by 20%, send a fail status
-        threshold: 20%
-        # only send statuses for prs, not all commits
-        base: pr
-        # only include coverage in "app/src/" folder
-        paths: 'app/src/'
-      lib-git:
-        target: auto
-        threshold: 5%
-        base: pr
-        paths: 'app/src/lib/git'
-      lib-app:
-        target: auto
-        threshold: 5%
-        base: pr
-        paths:
-          - 'app/src/lib/stores'
-          - 'app/src/lib/dispatcher'
-          - 'app/src/lib/databases'
-      models:
-        target: auto
-        threshold: 5%
-        base: pr
-        paths: 'app/src/models'
-      ui-components:
-        target: auto
-        threshold: 5%
-        base: pr
-        paths: 'app/src/ui'
+    lib-git:
+      target: auto
+      threshold: 5%
+      base: pr
+      paths: 'app/src/lib/git'
+    lib-app:
+      target: auto
+      threshold: 5%
+      base: pr
+      paths:
+        - 'app/src/lib/stores'
+        - 'app/src/lib/dispatcher'
+        - 'app/src/lib/databases'
+    models:
+      target: auto
+      threshold: 5%
+      base: pr
+      paths: 'app/src/models'
+    ui-components:
+      target: auto
+      threshold: 5%
+      base: pr
+      paths: 'app/src/ui'
     patch: no
     changes: no
 
