@@ -57,9 +57,6 @@ interface ICloneGithubRepositoryState {
   readonly filterText: string
 }
 
-const ClonableRepositoryFilterList: new () => FilterList<
-  IClonableRepositoryListItem
-> = FilterList as any
 const RowHeight = 31
 
 export class CloneGithubRepository extends React.Component<
@@ -133,7 +130,7 @@ export class CloneGithubRepository extends React.Component<
     }
 
     return (
-      <ClonableRepositoryFilterList
+      <FilterList<IClonableRepositoryListItem>
         className="clone-github-repo"
         rowHeight={RowHeight}
         selectedItem={this.state.selectedItem}
