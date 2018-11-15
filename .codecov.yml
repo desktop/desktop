@@ -24,12 +24,3 @@ coverage:
     changes: no
 
 comment: off
-
-# not sure what this does, but its the default!
-parsers:
-  gcov:
-    branch_detection:
-      conditional: yes
-      loop: yes
-      method: no
-      macro: no

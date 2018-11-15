@@ -290,6 +290,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     menuStateBuilder.disable('push')
     menuStateBuilder.disable('pull')
     menuStateBuilder.disable('compare-to-branch')
+    menuStateBuilder.disable('compare-on-github')
   }
   return menuStateBuilder
 }

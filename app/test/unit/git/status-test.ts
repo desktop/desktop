@@ -49,6 +49,45 @@ describe('git/status', () => {
       })
     })
 
+    describe('with conflicted images repo', () => {
+      beforeEach(async () => {
+        const path = await setupFixtureRepository(
+          'detect-conflict-in-binary-file'
+        )
+        repository = new Repository(path, -1, null, false)
+        await GitProcess.exec(['checkout', 'make-a-change'], repository.path)
+      })
+
+      it('parses conflicted image file on merge', async () => {
+        const repo = repository!
+
+        await GitProcess.exec(['merge', 'master'], repo.path)
+
+        const status = await getStatusOrThrow(repo)
+        const files = status.workingDirectory.files
+        expect(files).toHaveLength(1)
+
+        const file = files[0]
+        expect(file.status).toBe(AppFileStatus.Conflicted)
+      })
+
+      it('parses conflicted image file on merge after removing', async () => {
+        const repo = repository!
+
+        await GitProcess.exec(['rm', 'my-cool-image.png'], repo.path)
+        await GitProcess.exec(['commit', '-am', 'removed the image'], repo.path)
+
+        await GitProcess.exec(['merge', 'master'], repo.path)
+
+        const status = await getStatusOrThrow(repo)
+        const files = status.workingDirectory.files
+        expect(files).toHaveLength(1)
+
+        const file = files[0]
+        expect(file.status).toBe(AppFileStatus.Conflicted)
+      })
+    })
+
     describe('with unconflicted repo', () => {
       beforeEach(async () => {
         const testRepoPath = await setupFixtureRepository('test-repo')
@@ -124,33 +163,25 @@ describe('git/status', () => {
         expect(files[1].path).toBe('docs/OVERVIEW.md')
       })
 
-      it(
-        'Handles at least 10k untracked files without failing',
-        async () => {
-          const numFiles = 10000
-          const basePath = repository!.path
+      it('Handles at least 10k untracked files without failing', async () => {
+        const numFiles = 10000
+        const basePath = repository!.path
 
-          await mkdir(basePath)
+        await mkdir(basePath)
 
-          // create a lot of files
-          const promises = []
-          for (let i = 0; i < numFiles; i++) {
-            promises.push(
-              FSE.writeFile(
-                path.join(basePath, `test-file-${i}`),
-                'Hey there\n'
-              )
-            )
-          }
-          await Promise.all(promises)
+        // create a lot of files
+        const promises = []
+        for (let i = 0; i < numFiles; i++) {
+          promises.push(
+            FSE.writeFile(path.join(basePath, `test-file-${i}`), 'Hey there\n')
+          )
+        }
+        await Promise.all(promises)
 
-          const status = await getStatusOrThrow(repository!)
-          const files = status.workingDirectory.files
-          expect(files).toHaveLength(numFiles)
-        },
-        // needs a little extra time on CI
-        25000
-      )
+        const status = await getStatusOrThrow(repository!)
+        const files = status.workingDirectory.files
+        expect(files).toHaveLength(numFiles)
+      }, 25000) // needs a little extra time on CI
 
       it('returns null for directory without a .git directory', async () => {
         repository = setupEmptyDirectory()

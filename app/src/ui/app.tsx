@@ -1346,15 +1346,13 @@ export class App extends React.Component<IAppProps, IAppState> {
           ) {
             return null
           }
-          const workingDirectoryStatus =
-            selectedState.state.changesState.workingDirectory
-          // double check that this repository is actually in merge
-          const isInConflictedMerge = workingDirectoryStatus.files.some(
-            file =>
-              file.status === AppFileStatus.Conflicted ||
-              file.status === AppFileStatus.Resolved
-          )
-          if (!isInConflictedMerge) {
+
+          const {
+            workingDirectory,
+            conflictState,
+          } = selectedState.state.changesState
+
+          if (conflictState === null) {
             return null
           }
 
@@ -1362,12 +1360,12 @@ export class App extends React.Component<IAppProps, IAppState> {
             <MergeConflictsDialog
               dispatcher={this.props.dispatcher}
               repository={popup.repository}
-              status={workingDirectoryStatus}
+              workingDirectory={workingDirectory}
               onDismissed={this.onPopupDismissed}
               openFileInExternalEditor={this.openFileInExternalEditor}
-              externalEditorName={this.state.selectedExternalEditor}
+              resolvedExternalEditor={this.state.resolvedExternalEditor}
               openRepositoryInShell={this.openInShell}
-              currentBranch={popup.currentBranch}
+              ourBranch={popup.ourBranch}
               theirBranch={popup.theirBranch}
             />
           )
@@ -1405,7 +1403,7 @@ export class App extends React.Component<IAppProps, IAppState> {
               dispatcher={this.props.dispatcher}
               repository={popup.repository}
               onDismissed={this.onPopupDismissed}
-              currentBranch={popup.currentBranch}
+              ourBranch={popup.ourBranch}
               theirBranch={popup.theirBranch}
             />
           )
@@ -1763,14 +1761,24 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   // we currently only render one banner at a time
   private renderBanner(): JSX.Element | null {
+    let banner = null
     if (this.state.successfulMergeBannerState !== null) {
-      return this.renderSuccessfulMergeBanner(
+      banner = this.renderSuccessfulMergeBanner(
         this.state.successfulMergeBannerState
       )
     } else if (this.state.isUpdateAvailableBannerVisible) {
-      return this.renderUpdateBanner()
+      banner = this.renderUpdateBanner()
     }
-    return null
+    return (
+      <CSSTransitionGroup
+        transitionName="banner"
+        component="div"
+        transitionEnterTimeout={500}
+        transitionLeaveTimeout={400}
+      >
+        {banner}
+      </CSSTransitionGroup>
+    )
   }
 
   private renderUpdateBanner() {
@@ -1782,6 +1790,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         newRelease={updateStore.state.newRelease}
         releaseNotesLink={releaseNotesUri}
         onDismissed={this.onUpdateAvailableDismissed}
+        key={'update-available'}
       />
     )
   }
@@ -1794,9 +1803,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
     return (
       <SuccessfulMerge
-        currentBranch={successfulMergeBannerState.currentBranch}
+        ourBranch={successfulMergeBannerState.ourBranch}
         theirBranch={successfulMergeBannerState.theirBranch}
         onDismissed={this.onSuccessfulMergeDismissed}
+        key={'successful-merge'}
       />
     )
   }

@@ -379,8 +379,8 @@ export function buildDefaultMenu({
   const showLogsLabel = __DARWIN__
     ? 'Show Logs in Finder'
     : __WIN32__
-      ? 'S&how logs in Explorer'
-      : 'S&how logs in your File Manager'
+    ? 'S&how logs in Explorer'
+    : 'S&how logs in your File Manager'
 
   const showLogsItem: Electron.MenuItemConstructorOptions = {
     label: showLogsLabel,
@@ -512,9 +512,8 @@ function zoom(direction: ZoomDirection): ClickHandler {
         // zoom factors the value is referring to.
         const currentZoom = findClosestValue(zoomFactors, rawZoom)
 
-        const nextZoomLevel = zoomFactors.find(
-          f =>
-            direction === ZoomDirection.In ? f > currentZoom : f < currentZoom
+        const nextZoomLevel = zoomFactors.find(f =>
+          direction === ZoomDirection.In ? f > currentZoom : f < currentZoom
         )
 
         // If we couldn't find a zoom level (likely due to manual manipulation
