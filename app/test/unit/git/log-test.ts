@@ -1,10 +1,7 @@
 import { Repository } from '../../../src/models/repository'
 import { getChangedFiles, getCommits } from '../../../src/lib/git'
 import { setupFixtureRepository } from '../../helpers/repositories'
-import {
-  AppFileStatusKind,
-  CopiedOrRenamedFileStatus,
-} from '../../../src/models/status'
+import { AppFileStatusKind } from '../../../src/models/status'
 import { GitProcess } from 'dugite'
 
 describe('git/log', () => {
