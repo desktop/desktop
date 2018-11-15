@@ -11,10 +11,7 @@ import {
   setupEmptyDirectory,
   setupConflictedRepo,
 } from '../../helpers/repositories'
-import {
-  AppFileStatusKind,
-  CopiedOrRenamedFileStatus,
-} from '../../../src/models/status'
+import { AppFileStatusKind } from '../../../src/models/status'
 import * as temp from 'temp'
 import { getStatus } from '../../../src/lib/git'
 
@@ -132,10 +129,10 @@ describe('git/status', () => {
 
         expect(files).toHaveLength(1)
         expect(files[0].path).toBe('bar')
-        expect(files[0].status.kind).toBe(AppFileStatusKind.Renamed)
-
-        const firstCopiedFile = files[0].status as CopiedOrRenamedFileStatus
-        expect(firstCopiedFile.oldPath).toBe('foo')
+        expect(files[0].status).toEqual({
+          kind: AppFileStatusKind.Renamed,
+          oldPath: 'foo',
+        })
       })
 
       it('reflects copies', async () => {
@@ -163,10 +160,10 @@ describe('git/status', () => {
         expect(files[0].path).toBe('CONTRIBUTING.md')
 
         expect(files[1].path).toBe('docs/OVERVIEW.md')
-        expect(files[1].status.kind).toBe(AppFileStatusKind.Copied)
-
-        const firstCopiedFile = files[1].status as CopiedOrRenamedFileStatus
-        expect(firstCopiedFile.oldPath).toBe('CONTRIBUTING.md')
+        expect(files[1].status).toEqual({
+          kind: AppFileStatusKind.Copied,
+          oldPath: 'CONTRIBUTING.md',
+        })
       })
 
       it(
