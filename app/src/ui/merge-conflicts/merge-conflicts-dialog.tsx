@@ -11,14 +11,13 @@ import {
   WorkingDirectoryStatus,
   WorkingDirectoryFileChange,
   AppFileStatusKind,
-  ConflictedFileStatus,
   isConflictedFile,
 } from '../../models/status'
 import { Octicon, OcticonSymbol } from '../octicons'
-import { PathText } from '../lib/path-text'
 import { DialogHeader } from '../dialog/header'
 import { LinkButton } from '../lib/link-button'
 import { ResolvedFileItem } from './resolved-file-item'
+import { ConflictedFileItem } from './conflicted-file-item'
 
 interface IMergeConflictsDialogProps {
   readonly dispatcher: Dispatcher
@@ -33,37 +32,9 @@ interface IMergeConflictsDialogProps {
   readonly theirBranch?: string
 }
 
-/**
- * Calculates the number of merge conclicts in a file from the number of markers
- * divides by three and rounds up since each conflict is indicated by three separate markers
- * (`<<<<<`, `>>>>>`, and `=====`)
- * @param conflictMarkers number of conflict markers in a file
- */
-function calculateConflicts(conflictMarkers: number) {
-  return Math.ceil(conflictMarkers / 3)
-}
-
 /** Filter working directory changes for conflicted or resolved files  */
 function getUnmergedFiles(status: WorkingDirectoryStatus) {
   return status.files.filter(f => isConflictedFile(f.status))
-}
-
-function editorButtonString(editorName: string | null): string {
-  const defaultEditorString = 'editor'
-  return `Open in ${editorName || defaultEditorString}`
-}
-
-function editorButtonTooltip(editorName: string | null): string | undefined {
-  if (editorName !== null) {
-    // no need to render a tooltip if we have a known editor
-    return
-  }
-
-  if (__DARWIN__) {
-    return `No editor configured in Preferences > Advanced`
-  } else {
-    return `No editor configured in Options > Advanced`
-  }
 }
 
 const submitButtonString = 'Commit merge'
@@ -158,57 +129,8 @@ export class MergeConflictsDialog extends React.Component<
     )
   }
 
-  private renderConflictedFile(
-    path: string,
-    status: ConflictedFileStatus,
-    onOpenEditorClick: () => void
-  ): JSX.Element | null {
-    let content = null
-    if (status.lookForConflictMarkers) {
-      const humanReadableConflicts = calculateConflicts(
-        status.conflictMarkerCount
-      )
-      const message =
-        humanReadableConflicts === 1
-          ? `1 conflict`
-          : `${humanReadableConflicts} conflicts`
-
-      const disabled = this.props.resolvedExternalEditor === null
-
-      const tooltip = editorButtonTooltip(this.props.resolvedExternalEditor)
-
-      content = (
-        <>
-          <div className="column-left">
-            <PathText path={path} availableWidth={200} />
-            <div className="file-conflicts-status">{message}</div>
-          </div>
-          <Button
-            onClick={onOpenEditorClick}
-            disabled={disabled}
-            tooltip={tooltip}
-          >
-            {editorButtonString(this.props.resolvedExternalEditor)}
-          </Button>
-        </>
-      )
-    } else {
-      content = (
-        <div>
-          <PathText path={path} availableWidth={400} />
-          <div className="command-line-hint">
-            Use command line to resolve this file
-          </div>
-        </div>
-      )
-    }
-
-    return content !== null ? (
-      <li className="unmerged-file-status-conflicts">
-        <Octicon symbol={OcticonSymbol.fileCode} className="file-octicon" />
-        {content}
-      </li>
-    ) : null
+  private openFileInEditor = (path: string) => {
+    this.props.openFileInExternalEditor(join(this.props.repository.path, path))
   }
 
   private renderUnmergedFile(
@@ -225,10 +147,13 @@ export class MergeConflictsDialog extends React.Component<
           return <ResolvedFileItem path={file.path} />
         }
 
-        return this.renderConflictedFile(file.path, status, () =>
-          this.props.openFileInExternalEditor(
-            join(this.props.repository.path, file.path)
-          )
+        return (
+          <ConflictedFileItem
+            path={file.path}
+            status={status}
+            resolvedExternalEditor={this.props.resolvedExternalEditor}
+            onOpenFileInEditor={this.openFileInEditor}
+          />
         )
       default:
         return null
