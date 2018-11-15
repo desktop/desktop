@@ -77,7 +77,7 @@ export class Appearance extends React.Component<
     )
   }
 
-  public renderAutoSwitcherOption() {
+  public renderThemeOptions() {
     const selectedIndex =
       this.props.selectedTheme === ApplicationTheme.Dark ? 1 : 0
 
@@ -92,7 +92,7 @@ export class Appearance extends React.Component<
     )
   }
 
-  public renderThemeOptions() {
+  public renderAutoSwitcherOption() {
     const doesSupportDarkMode = supportsDarkMode()
 
     if (!doesSupportDarkMode) {
