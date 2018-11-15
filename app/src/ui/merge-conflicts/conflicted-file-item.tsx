@@ -8,7 +8,9 @@ import { LinkButton } from '../lib/link-button'
 import {
   WorkingDirectoryFileChange,
   ConflictedFileStatus,
+  GitStatusEntry,
 } from '../../models/status'
+import { assertNever } from '../../lib/fatal-error'
 
 /**
  * Calculates the number of merge conclicts in a file from the number of markers
@@ -38,6 +40,26 @@ function editorButtonTooltip(editorName: string | null): string | undefined {
   }
 }
 
+type UnmergedStatusEntry =
+  | GitStatusEntry.Added
+  | GitStatusEntry.UpdatedButUnmerged
+  | GitStatusEntry.Deleted
+
+function getLabelForOption(entry: UnmergedStatusEntry, branch: string): string {
+  const suffix = ` from ${branch}`
+
+  switch (entry) {
+    case GitStatusEntry.Added:
+      return `Use the added file${suffix}`
+    case GitStatusEntry.UpdatedButUnmerged:
+      return `Use the modified file${suffix}`
+    case GitStatusEntry.Deleted:
+      return `Use the deleted file${suffix}`
+    default:
+      return assertNever(entry, 'Unknown status entry to format')
+  }
+}
+
 interface IConflictedFileItemProps {
   readonly file: WorkingDirectoryFileChange
   readonly status: ConflictedFileStatus
@@ -57,15 +79,20 @@ export class ConflictedFileItem extends React.Component<
   }
 
   private onShowContextMenu = () => {
+    const { us, them } = this.props.status.entry
+
+    const themLabel = getLabelForOption(them, 'master')
+    const usLabel = getLabelForOption(us, 'add-items')
+
     const options = [
       {
-        label: 'Use the modified file from master',
+        label: themLabel,
         action: () => {
           this.props.onResolveManualConflict(this.props.file.path, 'theirs')
         },
       },
       {
-        label: 'Use the deleted file from add-items',
+        label: usLabel,
         action: () => {
           this.props.onResolveManualConflict(this.props.file.path, 'ours')
         },
@@ -126,8 +153,12 @@ export class ConflictedFileItem extends React.Component<
     )
   }
 
-  private renderResolvedManualConflict = () => {
-    const message = 'Using modified file from master '
+  private renderResolvedManualConflict = (choice: Choice) => {
+    const { us, them } = this.props.status.entry
+    const message =
+      choice === 'theirs'
+        ? getLabelForOption(them, 'master')
+        : getLabelForOption(us, 'add-items')
 
     return (
       <>
@@ -154,7 +185,7 @@ export class ConflictedFileItem extends React.Component<
       content = this.renderTextConflicts(status.conflictMarkerCount)
     } else if (this.props.choice != null) {
       resolved = true
-      content = this.renderResolvedManualConflict()
+      content = this.renderResolvedManualConflict(this.props.choice)
     } else {
       content = this.renderUnresolvedManualConflict()
     }
