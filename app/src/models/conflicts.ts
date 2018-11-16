@@ -1,36 +1,4 @@
-import { GitStatusEntry, UnmergedEntry } from './status'
-
-/**
- * The conflict details attached to a file in the working directory.
- *
- * Conflicts can be either textual, in which case Git will try and merge the
- * changes and defer to the user to address any outstanding conflicts, or
- * binary, which need to be reviewed by the user and a decision made.
- */
-export type ConflictFileStatus =
-  | IConflictTextFileStatus
-  | IConflictBinaryFileStatus
-
-export interface IConflictTextFileStatus {
-  readonly kind: 'text'
-  /**
-   *  This number should be greater than zero
-   *  or null if the file has a non-markered conflict (like added vs removed)
-   */
-  readonly conflictMarkerCount: number | null
-  /** The state of the file in the current branch */
-  readonly us?: GitStatusEntry
-  /** THe state of the file in the other branch */
-  readonly them?: GitStatusEntry
-}
-
-export interface IConflictBinaryFileStatus {
-  readonly kind: 'binary'
-  /** The state of the file in the current branch */
-  readonly us: GitStatusEntry
-  /** THe state of the file in the other branch */
-  readonly them: GitStatusEntry
-}
+import { UnmergedEntry } from './status'
 
 /**
  * Meshing together the path and status information for a conflicted file,
