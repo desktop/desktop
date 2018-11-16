@@ -9,9 +9,9 @@ import {
   setupFixtureRepository,
   setupEmptyRepository,
   setupEmptyDirectory,
-  setupConflictedRepo,
+  setupConflictedRepoWithMultipleFiles,
 } from '../../helpers/repositories'
-import { AppFileStatusKind } from '../../../src/models/status'
+import { AppFileStatusKind, GitStatusEntry } from '../../../src/models/status'
 import * as temp from 'temp'
 import { getStatus } from '../../../src/lib/git'
 
@@ -26,26 +26,78 @@ describe('git/status', () => {
       let filePath: string
 
       beforeEach(async () => {
-        repository = await setupConflictedRepo()
+        repository = await setupConflictedRepoWithMultipleFiles()
         filePath = path.join(repository.path, 'foo')
       })
 
-      it('parses conflicted files', async () => {
+      it('parses conflicted files with markers', async () => {
         const status = await getStatusOrThrow(repository!)
         const files = status.workingDirectory.files
-        expect(files).toHaveLength(1)
+        expect(files).toHaveLength(4)
+        const conflictedFiles = files.filter(
+          f => f.status.kind === AppFileStatusKind.Conflicted
+        )
+        expect(conflictedFiles).toHaveLength(4)
 
-        const file = files[0]
-        expect(file.status.kind).toBe(AppFileStatusKind.Conflicted)
+        const fooFile = files.find(f => f.path === 'foo')!
+        expect(fooFile.status).toEqual({
+          kind: AppFileStatusKind.Conflicted,
+          conflictStatus: {
+            kind: 'text',
+            conflictMarkerCount: 3,
+          },
+        })
+
+        const bazFile = files.find(f => f.path === 'baz')!
+        expect(bazFile.status).toEqual({
+          kind: AppFileStatusKind.Conflicted,
+          conflictStatus: {
+            kind: 'text',
+            conflictMarkerCount: 3,
+          },
+        })
+
+        const catFile = files.find(f => f.path === 'cat')!
+        expect(catFile.status).toEqual({
+          kind: AppFileStatusKind.Conflicted,
+          conflictStatus: {
+            kind: 'text',
+            conflictMarkerCount: 3,
+          },
+        })
+      })
+
+      it('parses conflicted files without markers', async () => {
+        const status = await getStatusOrThrow(repository!)
+        const files = status.workingDirectory.files
+        expect(files).toHaveLength(4)
+        expect(
+          files.filter(f => f.status.kind === AppFileStatusKind.Conflicted)
+        ).toHaveLength(4)
+
+        const barFile = files.find(f => f.path === 'bar')!
+        expect(barFile.status).toEqual({
+          kind: AppFileStatusKind.Conflicted,
+          conflictStatus: {
+            kind: 'text',
+            us: GitStatusEntry.Modified,
+            them: GitStatusEntry.Deleted,
+            conflictMarkerCount: null,
+          },
+        })
       })
 
       it('parses resolved files', async () => {
         await FSE.writeFile(filePath, 'b1b2')
         const status = await getStatusOrThrow(repository!)
         const files = status.workingDirectory.files
-        expect(files).toHaveLength(1)
-        const file = files[0]
-        expect(file.status.kind).toBe(AppFileStatusKind.Resolved)
+
+        expect(files).toHaveLength(4)
+        expect(
+          files.filter(f => f.status.kind === AppFileStatusKind.Conflicted)
+        ).toHaveLength(3)
+        const file = files.find(f => f.path === 'foo')
+        expect(file!.status).toEqual({ kind: AppFileStatusKind.Resolved })
       })
     })
 
