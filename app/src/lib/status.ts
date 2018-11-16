@@ -21,8 +21,6 @@ export function mapStatus(status: AppFileStatusKind): string {
       return 'Renamed'
     case AppFileStatusKind.Conflicted:
       return 'Conflicted'
-    case AppFileStatusKind.Resolved:
-      return 'Resolved'
     case AppFileStatusKind.Copied:
       return 'Copied'
   }
