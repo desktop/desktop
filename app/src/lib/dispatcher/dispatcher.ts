@@ -519,6 +519,11 @@ export class Dispatcher {
     return this.appStore._endWelcomeFlow()
   }
 
+  /** Set the commit message input's focus. */
+  public setCommitMessageFocus(focus: boolean) {
+    this.appStore._setCommitMessageFocus(focus)
+  }
+
   /**
    * Set the commit summary and description for a work-in-progress
    * commit in the changes view for a particular repository.
