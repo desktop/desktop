@@ -134,7 +134,6 @@ async function buildConflictState(
   repository: Repository
 ): Promise<ConflictState> {
   return {
-    binaryFilePathsInConflicts: [],
     filesWithConflictMarkers: await getFilesWithConflictMarkers(
       repository.path
     ),
@@ -196,7 +195,6 @@ export async function getStatus(
   const conflictState = mergeHeadFound
     ? await buildConflictState(repository)
     : {
-        binaryFilePathsInConflicts: [],
         filesWithConflictMarkers: new Map<string, number>(),
       }
 
