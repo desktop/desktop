@@ -109,6 +109,7 @@
     "tslint-react": "^3.6.0",
     "typescript": "^3.1.1",
     "typescript-eslint-parser": "^20.0.0",
+    "typescript-tslint-plugin": "^0.0.6",
     "webpack": "^4.8.3",
     "webpack-bundle-analyzer": "^2.13.0",
     "webpack-dev-middleware": "^3.1.3",
