@@ -31,6 +31,7 @@ import {
   DiffType,
 } from '../../../src/models/diff'
 import { getStatusOrThrow } from '../../helpers/status'
+import { Choice } from '../../../src/models/conflicts'
 
 async function getTextDiff(
   repo: Repository,
@@ -525,7 +526,8 @@ describe('git/commit', () => {
         const status = await getStatusOrThrow(repository)
         const sha = await createMergeCommit(
           repository,
-          status.workingDirectory.files
+          status.workingDirectory.files,
+          new Map<string, Choice>()
         )
         const newStatus = await getStatusOrThrow(repository)
         expect(sha).toHaveLength(7)
@@ -544,7 +546,11 @@ describe('git/commit', () => {
       it('throws an error', async () => {
         const status = await getStatusOrThrow(repository)
         expect(
-          createMergeCommit(repository, status.workingDirectory.files)
+          createMergeCommit(
+            repository,
+            status.workingDirectory.files,
+            new Map<string, Choice>()
+          )
         ).rejects.toThrow(/Commit failed/i)
       })
     })

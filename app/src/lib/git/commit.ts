@@ -1,8 +1,13 @@
 import { git, GitError, parseCommitSHA } from './core'
 import { stageFiles } from './update-index'
 import { Repository } from '../../models/repository'
-import { WorkingDirectoryFileChange } from '../../models/status'
+import {
+  WorkingDirectoryFileChange,
+  AppFileStatusKind,
+  GitStatusEntry,
+} from '../../models/status'
 import { unstageAll } from './reset'
+import { Choice } from '../../models/conflicts'
 
 /**
  * @param repository repository to execute merge in
@@ -43,17 +48,47 @@ export async function createCommit(
  *
  * @param repository repository to execute merge in
  * @param files files to commit
+ * @param resolutions choices about files that differ in the index
  */
 export async function createMergeCommit(
   repository: Repository,
-  files: ReadonlyArray<WorkingDirectoryFileChange>
+  files: ReadonlyArray<WorkingDirectoryFileChange>,
+  resolutions: ReadonlyMap<string, Choice>
 ): Promise<string | undefined> {
   // Clear the staging area, our diffs reflect the difference between the
   // working directory and the last commit (if any) so our commits should
   // do the same thing.
   try {
+    // TODO:
+    // git should already have these other files staged, so I wonder if
+    // we can avoid this overhead of unstaging and staging files
     await unstageAll(repository)
-    await stageFiles(repository, files)
+
+    for (const [path, choice] of resolutions) {
+      const file = files.find(f => f.path === path)
+      if (file == null) {
+        // we didn't find the file somehow
+        continue
+      }
+
+      const { status } = file
+      if (status.kind !== AppFileStatusKind.Conflicted) {
+        // for some reason the file isn't in a conflicted state
+        continue
+      }
+
+      const option = choice === 'theirs' ? status.entry.them : status.entry.us
+
+      if (option === GitStatusEntry.Deleted) {
+        await git(['rm', path], repository.path, 'removeConflictedFile')
+      } else {
+        await git(['add', path], repository.path, 'removeConflictedFile')
+      }
+    }
+
+    const otherFiles = files.filter(f => !resolutions.has(f.path))
+
+    await stageFiles(repository, otherFiles)
     const result = await git(
       [
         'commit',

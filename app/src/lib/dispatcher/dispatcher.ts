@@ -609,9 +609,14 @@ export class Dispatcher {
   public async createMergeCommit(
     repository: Repository,
     files: ReadonlyArray<WorkingDirectoryFileChange>,
+    resolutions: ReadonlyMap<string, Choice>,
     successfulMergeBannerState: SuccessfulMergeBannerState
   ) {
-    const result = await this.appStore._createMergeCommit(repository, files)
+    const result = await this.appStore._createMergeCommit(
+      repository,
+      files,
+      resolutions
+    )
     if (result !== undefined) {
       this.appStore._setSuccessfulMergeBannerState(successfulMergeBannerState)
     }
