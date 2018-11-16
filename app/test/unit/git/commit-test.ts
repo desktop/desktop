@@ -21,6 +21,8 @@ import { GitProcess } from 'dugite'
 import {
   WorkingDirectoryFileChange,
   AppFileStatusKind,
+  UnmergedEntrySummary,
+  GitStatusEntry,
 } from '../../../src/models/status'
 import {
   DiffSelectionType,
@@ -489,7 +491,18 @@ describe('git/commit', () => {
 
       expect(files.length).toEqual(1)
       expect(files[0].path).toEqual('foo')
-      expect(files[0].status.kind).toEqual(AppFileStatusKind.Resolved)
+
+      expect(files[0].status).toEqual({
+        kind: AppFileStatusKind.Conflicted,
+        entry: {
+          kind: 'conflicted',
+          action: UnmergedEntrySummary.BothModified,
+          them: GitStatusEntry.UpdatedButUnmerged,
+          us: GitStatusEntry.UpdatedButUnmerged,
+        },
+        lookForConflictMarkers: true,
+        conflictMarkerCount: 0,
+      })
 
       const selection = files[0].selection.withSelectAll()
       const selectedFile = files[0].withSelection(selection)
