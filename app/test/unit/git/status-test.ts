@@ -9,11 +9,12 @@ import {
   setupFixtureRepository,
   setupEmptyRepository,
   setupEmptyDirectory,
-  setupConflictedRepo,
+  setupConflictedRepoWithMultipleFiles,
 } from '../../helpers/repositories'
 import { AppFileStatus } from '../../../src/models/status'
 import * as temp from 'temp'
 import { getStatus } from '../../../src/lib/git'
+import { IConflictTextFileStatus } from '../../../src/models/conflicts'
 
 const _temp = temp.track()
 const mkdir = _temp.mkdir
@@ -26,26 +27,51 @@ describe('git/status', () => {
       let filePath: string
 
       beforeEach(async () => {
-        repository = await setupConflictedRepo()
+        repository = await setupConflictedRepoWithMultipleFiles()
         filePath = path.join(repository.path, 'foo')
       })
 
-      it('parses conflicted files', async () => {
+      it('parses conflicted files with markers', async () => {
         const status = await getStatusOrThrow(repository!)
         const files = status.workingDirectory.files
-        expect(files).toHaveLength(1)
+        expect(files).toHaveLength(4)
+        const conflictedFiles = files.filter(
+          f => f.status === AppFileStatus.Conflicted
+        )
+        expect(conflictedFiles).toHaveLength(4)
+        const fooFileConfclictStatus = files.find(f => f.path === 'foo')!
+          .conflictStatus as IConflictTextFileStatus
+        expect(fooFileConfclictStatus.conflictMarkerCount).not.toBeNull()
+        const bazFileConfclictStatus = files.find(f => f.path === 'baz')!
+          .conflictStatus as IConflictTextFileStatus
+        expect(bazFileConfclictStatus.conflictMarkerCount).not.toBeNull()
+        const catFileConfclictStatus = files.find(f => f.path === 'cat')!
+          .conflictStatus as IConflictTextFileStatus
+        expect(catFileConfclictStatus.conflictMarkerCount).not.toBeNull()
+      })
 
-        const file = files[0]
-        expect(file.status).toBe(AppFileStatus.Conflicted)
+      it('parses conflicted files without markers', async () => {
+        const status = await getStatusOrThrow(repository!)
+        const files = status.workingDirectory.files
+        expect(files).toHaveLength(4)
+        expect(
+          files.filter(f => f.status === AppFileStatus.Conflicted)
+        ).toHaveLength(4)
+        const barFileConfclictStatus = files.find(f => f.path === 'bar')!
+          .conflictStatus as IConflictTextFileStatus
+        expect(barFileConfclictStatus.conflictMarkerCount).toBeNull()
       })
 
       it('parses resolved files', async () => {
         await FSE.writeFile(filePath, 'b1b2')
         const status = await getStatusOrThrow(repository!)
         const files = status.workingDirectory.files
-        expect(files).toHaveLength(1)
-        const file = files[0]
-        expect(file.status).toBe(AppFileStatus.Resolved)
+        expect(files).toHaveLength(4)
+        expect(
+          files.filter(f => f.status === AppFileStatus.Conflicted)
+        ).toHaveLength(3)
+        const file = files.find(f => f.path === 'foo')
+        expect(file!.status).toBe(AppFileStatus.Resolved)
       })
     })
 
