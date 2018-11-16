@@ -45,6 +45,24 @@ type UnmergedStatusEntry =
   | GitStatusEntry.UpdatedButUnmerged
   | GitStatusEntry.Deleted
 
+function getLabelForChoice(
+  entry: UnmergedStatusEntry,
+  branch?: string
+): string {
+  const suffix = branch ? ` from ${branch}` : ''
+
+  switch (entry) {
+    case GitStatusEntry.Added:
+      return `Using the added file${suffix}`
+    case GitStatusEntry.UpdatedButUnmerged:
+      return `Using the modified file${suffix}`
+    case GitStatusEntry.Deleted:
+      return `Using the deleted file${suffix}`
+    default:
+      return assertNever(entry, 'Unknown status entry to format')
+  }
+}
+
 function getLabelForOption(
   entry: UnmergedStatusEntry,
   branch?: string
@@ -152,7 +170,7 @@ export class ConflictedFileItem extends React.Component<
           onClick={this.onShowContextMenu}
           tooltip="Choose an option to resolve this conflict"
         >
-          Resolve
+          Resolve <Octicon symbol={OcticonSymbol.triangleDown} />
         </Button>
       </>
     )
@@ -162,8 +180,8 @@ export class ConflictedFileItem extends React.Component<
     const { us, them } = this.props.status.entry
     const message =
       choice === 'theirs'
-        ? getLabelForOption(them, this.props.theirBranch)
-        : getLabelForOption(us, this.props.ourBranch)
+        ? getLabelForChoice(them, this.props.theirBranch)
+        : getLabelForChoice(us, this.props.ourBranch)
 
     return (
       <>
