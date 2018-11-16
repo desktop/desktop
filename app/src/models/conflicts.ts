@@ -16,6 +16,5 @@ export type ConflictedFile = {
  * conflicts in the repository.
  */
 export type ConflictState = {
-  readonly binaryFilePathsInConflicts: ReadonlyArray<ConflictedFile>
   readonly filesWithConflictMarkers: Map<string, number>
 }
