@@ -1390,9 +1390,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           const { workingDirectory } = selectedState.state.changesState
           // double check that this repository is actually in merge
           const isInConflictedMerge = workingDirectory.files.some(
-            file =>
-              file.status.kind === AppFileStatusKind.Conflicted ||
-              file.status.kind === AppFileStatusKind.Resolved
+            file => file.status.kind === AppFileStatusKind.Conflicted
           )
           if (!isInConflictedMerge) {
             return null

@@ -77,7 +77,7 @@ export class FileList extends React.Component<IFileListProps, {}> {
         />
 
         <Octicon
-          symbol={iconForStatus(status.kind)}
+          symbol={iconForStatus(status)}
           className={'status status-' + fileStatus.toLowerCase()}
           title={fileStatus}
         />

@@ -11,11 +11,11 @@ import {
   WorkingDirectoryStatus,
   WorkingDirectoryFileChange,
   AppFileStatusKind,
+  ConflictedFileStatus,
 } from '../../models/status'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { PathText } from '../lib/path-text'
 import { DialogHeader } from '../dialog/header'
-import { ConflictFileStatus } from '../../models/conflicts'
 import { LinkButton } from '../lib/link-button'
 
 interface IMergeConflictsDialogProps {
@@ -44,9 +44,7 @@ function calculateConflicts(conflictMarkers: number) {
 /** Filter working directory changes for conflicted or resolved files  */
 function getUnmergedFiles(status: WorkingDirectoryStatus) {
   return status.files.filter(
-    file =>
-      file.status.kind === AppFileStatusKind.Conflicted ||
-      file.status.kind === AppFileStatusKind.Resolved
+    file => file.status.kind === AppFileStatusKind.Conflicted
   )
 }
 
@@ -107,7 +105,10 @@ export class MergeConflictsDialog extends React.Component<
    */
   private onCancel = async () => {
     const anyResolvedFiles = getUnmergedFiles(this.props.workingDirectory).some(
-      f => f.status.kind === AppFileStatusKind.Resolved
+      f =>
+        f.status.kind === AppFileStatusKind.Conflicted &&
+        f.status.lookForConflictMarkers &&
+        f.status.conflictMarkerCount === 0
     )
     if (!anyResolvedFiles) {
       await this.props.dispatcher.abortMerge(this.props.repository)
@@ -174,59 +175,49 @@ export class MergeConflictsDialog extends React.Component<
 
   private renderConflictedFile(
     path: string,
-    conflictStatus: ConflictFileStatus,
+    status: ConflictedFileStatus,
     onOpenEditorClick: () => void
   ): JSX.Element | null {
     let content = null
-    if (conflictStatus.kind === 'text') {
-      if (conflictStatus.conflictMarkerCount === null) {
-        content = (
-          <div>
-            <PathText path={path} availableWidth={400} />
-            <div className="command-line-hint">
-              Use command line to resolve this file
-            </div>
+    if (status.lookForConflictMarkers) {
+      const humanReadableConflicts = calculateConflicts(
+        status.conflictMarkerCount
+      )
+      const message =
+        humanReadableConflicts === 1
+          ? `1 conflict`
+          : `${humanReadableConflicts} conflicts`
+
+      const disabled = this.props.resolvedExternalEditor === null
+
+      const tooltip = editorButtonTooltip(this.props.resolvedExternalEditor)
+
+      content = (
+        <>
+          <div className="column-left">
+            <PathText path={path} availableWidth={200} />
+            <div className="file-conflicts-status">{message}</div>
           </div>
-        )
-      } else {
-        const humanReadableConflicts = calculateConflicts(
-          conflictStatus.conflictMarkerCount
-        )
-        const message =
-          humanReadableConflicts === 1
-            ? `1 conflict`
-            : `${humanReadableConflicts} conflicts`
-
-        const disabled = this.props.resolvedExternalEditor === null
-
-        const tooltip = editorButtonTooltip(this.props.resolvedExternalEditor)
-
-        content = (
-          <>
-            <div className="column-left">
-              <PathText path={path} availableWidth={200} />
-              <div className="file-conflicts-status">{message}</div>
-            </div>
-            <Button
-              onClick={onOpenEditorClick}
-              disabled={disabled}
-              tooltip={tooltip}
-            >
-              {editorButtonString(this.props.resolvedExternalEditor)}
-            </Button>
-          </>
-        )
-      }
-    } else if (conflictStatus.kind === 'binary') {
+          <Button
+            onClick={onOpenEditorClick}
+            disabled={disabled}
+            tooltip={tooltip}
+          >
+            {editorButtonString(this.props.resolvedExternalEditor)}
+          </Button>
+        </>
+      )
+    } else {
       content = (
         <div>
           <PathText path={path} availableWidth={400} />
           <div className="command-line-hint">
-            Use command line to resolve binary files
+            Use command line to resolve this file
           </div>
         </div>
       )
     }
+
     return content !== null ? (
       <li className="unmerged-file-status-conflicts">
         <Octicon symbol={OcticonSymbol.fileCode} className="file-octicon" />
@@ -240,10 +231,16 @@ export class MergeConflictsDialog extends React.Component<
   ): JSX.Element | null {
     const { status } = file
     switch (status.kind) {
-      case AppFileStatusKind.Resolved:
-        return this.renderResolvedFile(file.path)
       case AppFileStatusKind.Conflicted:
-        return this.renderConflictedFile(file.path, status.conflictStatus, () =>
+        const isResolved = status.lookForConflictMarkers
+          ? status.conflictMarkerCount === 0
+          : false
+
+        if (isResolved) {
+          return this.renderResolvedFile(file.path)
+        }
+
+        return this.renderConflictedFile(file.path, status, () =>
           this.props.openFileInExternalEditor(
             join(this.props.repository.path, file.path)
           )

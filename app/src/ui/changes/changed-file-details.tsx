@@ -34,7 +34,7 @@ export class ChangedFileDetails extends React.Component<
         {this.renderDecorator()}
 
         <Octicon
-          symbol={iconForStatus(status.kind)}
+          symbol={iconForStatus(status)}
           className={'status status-' + fileStatus.toLowerCase()}
           title={fileStatus}
         />
