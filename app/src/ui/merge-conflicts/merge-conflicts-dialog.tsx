@@ -24,6 +24,7 @@ interface IMergeConflictsDialogProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
   readonly workingDirectory: WorkingDirectoryStatus
+  readonly resolutions: Map<string, Choice>
   readonly onDismissed: () => void
   readonly openFileInExternalEditor: (path: string) => void
   readonly resolvedExternalEditor: string | null
@@ -31,10 +32,6 @@ interface IMergeConflictsDialogProps {
   readonly ourBranch: string
   /* `undefined` when we didn't know the branch at the beginning of this flow */
   readonly theirBranch?: string
-}
-
-interface IMergeConflictsDialogState {
-  readonly resolutions: Map<string, Choice>
 }
 
 /** Filter working directory changes for conflicted or resolved files  */
@@ -55,14 +52,10 @@ const cancelButtonString = 'Abort merge'
  */
 export class MergeConflictsDialog extends React.Component<
   IMergeConflictsDialogProps,
-  IMergeConflictsDialogState
+  {}
 > {
   public constructor(props: IMergeConflictsDialogProps) {
     super(props)
-
-    this.state = {
-      resolutions: new Map<string, Choice>(),
-    }
   }
 
   public async componentDidMount() {
@@ -152,15 +145,15 @@ export class MergeConflictsDialog extends React.Component<
   }
 
   private resolveManualConflict = (path: string, choice: Choice) => {
-    const { resolutions } = this.state
-    resolutions.set(path, choice)
-    this.setState({ resolutions })
+    this.props.dispatcher.updateConflictedFileChoice(
+      this.props.repository,
+      path,
+      choice
+    )
   }
 
   private onUndo = (path: string) => {
-    const { resolutions } = this.state
-    resolutions.delete(path)
-    this.setState({ resolutions })
+    this.props.dispatcher.undoConflictedFileChoice(this.props.repository, path)
   }
 
   private renderUnmergedFile(
@@ -177,7 +170,7 @@ export class MergeConflictsDialog extends React.Component<
           return <ResolvedFileItem file={file} />
         }
 
-        const choice = this.state.resolutions.get(file.path) || null
+        const choice = this.props.resolutions.get(file.path) || null
 
         return (
           <ConflictedFileItem
@@ -260,7 +253,7 @@ export class MergeConflictsDialog extends React.Component<
     )
 
     const remainingChoicesToMake =
-      filesWithManualConflicts.length - this.state.resolutions.size
+      filesWithManualConflicts.length - this.props.resolutions.size
 
     const unresolvedFileCount =
       remainingChoicesToMake + unresolvedTextFilesWithConflicts.length

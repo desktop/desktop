@@ -175,6 +175,7 @@ import { GitStoreCache } from './git-store-cache'
 import { MergeConflictsErrorContext } from '../git-error-context'
 import { setNumber, setBoolean, getBoolean, getNumber } from '../local-storage'
 import { ExternalEditorError } from '../editors/shared'
+import { Choice } from '../../models/conflicts'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -1553,10 +1554,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.repositoryStateCache.updateChangesState(repository, state => {
       const prevConflictState = state.conflictState
-      const newConflictState = getConflictState(status)
+      let newConflictState = getConflictState(status)
 
       if (prevConflictState == null && newConflictState == null) {
         return { conflictState: null }
+      }
+
+      // HACK: ensure resolutions are remembered
+      if (prevConflictState != null && newConflictState != null) {
+        newConflictState = {
+          ...newConflictState,
+          resolutions: prevConflictState.resolutions,
+        }
       }
 
       const previousBranchName =
@@ -4037,6 +4046,56 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.emitUpdate()
     }
   }
+
+  public async _updateConflictedFileChoice(
+    repository: Repository,
+    path: string,
+    choice: Choice
+  ) {
+    this.repositoryStateCache.updateChangesState(repository, state => {
+      const { conflictState } = state
+
+      if (conflictState === null) {
+        // not currently in a conflict, whatever
+        return { conflictState }
+      }
+
+      const updatedResolutions = conflictState.resolutions.set(path, choice)
+
+      return {
+        conflictState: {
+          ...conflictState,
+          resolutions: updatedResolutions,
+        },
+      }
+    })
+
+    this.emitUpdate()
+  }
+
+  public async _undoConflictedFileChoice(repository: Repository, path: string) {
+    this.repositoryStateCache.updateChangesState(repository, state => {
+      const { conflictState } = state
+
+      if (conflictState === null) {
+        // not currently in a conflict, whatever
+        return { conflictState }
+      }
+
+      const { resolutions } = conflictState
+
+      resolutions.delete(path)
+
+      return {
+        conflictState: {
+          ...conflictState,
+          resolutions,
+        },
+      }
+    })
+
+    this.emitUpdate()
+  }
 }
 
 /**
@@ -4089,5 +4148,6 @@ function getConflictState(status: IStatusResult): IConflictState | null {
   return {
     currentBranch,
     currentTip,
+    resolutions: new Map<string, Choice>(),
   }
 }

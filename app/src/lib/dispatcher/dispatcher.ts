@@ -62,6 +62,7 @@ import { ApplicationTheme } from '../../ui/lib/application-theme'
 import { TipState } from '../../models/tip'
 import { RepositoryStateCache } from '../stores/repository-state-cache'
 import { Popup, PopupType } from '../../models/popup'
+import { Choice } from '../../models/conflicts'
 
 /**
  * An error handler function.
@@ -1240,6 +1241,18 @@ export class Dispatcher {
 
   public resolveCurrentEditor() {
     return this.appStore._resolveCurrentEditor()
+  }
+
+  public updateConflictedFileChoice(
+    repository: Repository,
+    path: string,
+    choice: Choice
+  ) {
+    return this.appStore._updateConflictedFileChoice(repository, path, choice)
+  }
+
+  public undoConflictedFileChoice(repository: Repository, path: string) {
+    return this.appStore._undoConflictedFileChoice(repository, path)
   }
 
   /**

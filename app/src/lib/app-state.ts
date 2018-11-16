@@ -32,6 +32,7 @@ import { Shell } from './shells'
 import { ComparisonCache } from './comparison-cache'
 
 import { ApplicationTheme } from '../ui/lib/application-theme'
+import { Choice } from '../models/conflicts'
 
 export enum SelectionType {
   Repository,
@@ -237,6 +238,7 @@ export enum RepositorySectionTab {
 export interface IConflictState {
   readonly currentBranch: string
   readonly currentTip: string
+  readonly resolutions: Map<string, Choice>
 }
 
 export interface IRepositoryState {
