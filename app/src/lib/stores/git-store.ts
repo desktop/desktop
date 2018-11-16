@@ -1100,7 +1100,7 @@ export class GitStore extends BaseStore {
   }
 
   /** Merge the named branch into the current branch. */
-  public merge(branch: string): Promise<string | undefined> {
+  public merge(branch: string): Promise<boolean | undefined> {
     return this.performFailableOperation(() => merge(this.repository, branch), {
       gitContext: {
         kind: 'merge',
