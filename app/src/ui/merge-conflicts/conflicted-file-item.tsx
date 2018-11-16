@@ -45,8 +45,11 @@ type UnmergedStatusEntry =
   | GitStatusEntry.UpdatedButUnmerged
   | GitStatusEntry.Deleted
 
-function getLabelForOption(entry: UnmergedStatusEntry, branch: string): string {
-  const suffix = ` from ${branch}`
+function getLabelForOption(
+  entry: UnmergedStatusEntry,
+  branch?: string
+): string {
+  const suffix = branch ? ` from ${branch}` : ''
 
   switch (entry) {
     case GitStatusEntry.Added:
@@ -64,6 +67,8 @@ interface IConflictedFileItemProps {
   readonly file: WorkingDirectoryFileChange
   readonly status: ConflictedFileStatus
   readonly choice: Choice | null
+  readonly ourBranch: string
+  readonly theirBranch?: string
   readonly resolvedExternalEditor: string | null
   readonly onOpenFileInEditor: (path: string) => void
   readonly onResolveManualConflict: (path: string, choice: Choice) => void
@@ -81,8 +86,8 @@ export class ConflictedFileItem extends React.Component<
   private onShowContextMenu = () => {
     const { us, them } = this.props.status.entry
 
-    const themLabel = getLabelForOption(them, 'master')
-    const usLabel = getLabelForOption(us, 'add-items')
+    const themLabel = getLabelForOption(them, this.props.theirBranch)
+    const usLabel = getLabelForOption(us, this.props.ourBranch)
 
     const options = [
       {
@@ -157,8 +162,8 @@ export class ConflictedFileItem extends React.Component<
     const { us, them } = this.props.status.entry
     const message =
       choice === 'theirs'
-        ? getLabelForOption(them, 'master')
-        : getLabelForOption(us, 'add-items')
+        ? getLabelForOption(them, this.props.theirBranch)
+        : getLabelForOption(us, this.props.ourBranch)
 
     return (
       <>

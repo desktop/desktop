@@ -184,6 +184,8 @@ export class MergeConflictsDialog extends React.Component<
             file={file}
             status={status}
             choice={choice}
+            ourBranch={this.props.ourBranch}
+            theirBranch={this.props.theirBranch}
             resolvedExternalEditor={this.props.resolvedExternalEditor}
             onOpenFileInEditor={this.openFileInEditor}
             onResolveManualConflict={this.resolveManualConflict}
