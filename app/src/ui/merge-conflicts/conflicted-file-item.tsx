@@ -185,8 +185,8 @@ export class ConflictedFileItem extends React.Component<
 
     return (
       <>
-        <div className="column-left">
-          <PathText path={this.props.file.path} availableWidth={200} />
+        <div>
+          <PathText path={this.props.file.path} availableWidth={300} />
           <div className="file-conflicts-status">
             {message} <LinkButton onClick={this.undoChoice}>Undo</LinkButton>
           </div>
