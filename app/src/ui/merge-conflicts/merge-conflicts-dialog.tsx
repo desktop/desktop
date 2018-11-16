@@ -245,18 +245,37 @@ export class MergeConflictsDialog extends React.Component<
 
   public render() {
     const unmergedFiles = getUnmergedFiles(this.props.workingDirectory)
-    const conflictedFilesCount = unmergedFiles.filter(f =>
-      isConflictedFile(f.status)
-    ).length
+
+    const unresolvedTextFilesWithConflicts = unmergedFiles.filter(
+      f =>
+        f.status.kind === AppFileStatusKind.Conflicted &&
+        f.status.lookForConflictMarkers &&
+        f.status.conflictMarkerCount > 0
+    )
+
+    const filesWithManualConflicts = unmergedFiles.filter(
+      f =>
+        f.status.kind === AppFileStatusKind.Conflicted &&
+        !f.status.lookForConflictMarkers
+    )
+
+    const remainingChoicesToMake =
+      filesWithManualConflicts.length - this.state.resolutions.size
+
+    const unresolvedFileCount =
+      remainingChoicesToMake + unresolvedTextFilesWithConflicts.length
+
+    const allConflictsResolved = unresolvedFileCount === 0
+
+    const disabled = !allConflictsResolved
 
     const headerTitle = this.renderHeaderTitle(
       this.props.ourBranch,
       this.props.theirBranch
     )
-    const tooltipString =
-      conflictedFilesCount > 0
-        ? 'Resolve all changes before merging'
-        : undefined
+    const tooltipString = allConflictsResolved
+      ? undefined
+      : 'Resolve all changes before merging'
 
     return (
       <Dialog
@@ -267,15 +286,11 @@ export class MergeConflictsDialog extends React.Component<
       >
         <DialogHeader title={headerTitle} dismissable={false} />
         <DialogContent>
-          {this.renderContent(unmergedFiles, conflictedFilesCount)}
+          {this.renderContent(unmergedFiles, unresolvedFileCount)}
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>
-            <Button
-              type="submit"
-              disabled={conflictedFilesCount > 0}
-              tooltip={tooltipString}
-            >
+            <Button type="submit" disabled={disabled} tooltip={tooltipString}>
               {submitButtonString}
             </Button>
             <Button onClick={this.onCancel}>{cancelButtonString}</Button>
