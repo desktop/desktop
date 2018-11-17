@@ -38,6 +38,13 @@ export class Acknowledgements extends React.Component<
   IAcknowledgementsProps,
   IAcknowledgementsState
 > {
+  private dialogContainerRef: HTMLDivElement | null = null
+  private closeButtonRef: HTMLButtonElement | null = null
+
+  private onCloseButtonRef = (element: HTMLButtonElement | null) => {
+    this.closeButtonRef = element
+  }
+
   public constructor(props: IAcknowledgementsProps) {
     super(props)
 
@@ -61,6 +68,18 @@ export class Acknowledgements extends React.Component<
 
       this.setState({ licenses: parsed })
     })
+
+    // When the dialog is mounted it automatically moves focus to the first
+    // focusable element which in this case is a link to an external site. We don't
+    // want that so let's just reset it.
+    if (this.dialogContainerRef) {
+      this.dialogContainerRef.scrollTop = 0
+    }
+
+    // And let's just move focus to the close button.
+    if (this.closeButtonRef) {
+      this.closeButtonRef.focus()
+    }
   }
 
   private renderLicenses(licenses: Licenses) {
@@ -141,7 +160,7 @@ export class Acknowledgements extends React.Component<
 
         <DialogFooter>
           <ButtonGroup>
-            <Button type="submit">Close</Button>
+            <Button type="submit" onButtonRef={this.onCloseButtonRef}>Close</Button>
           </ButtonGroup>
         </DialogFooter>
       </Dialog>
