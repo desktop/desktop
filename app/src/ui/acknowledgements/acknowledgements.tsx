@@ -160,7 +160,9 @@ export class Acknowledgements extends React.Component<
 
         <DialogFooter>
           <ButtonGroup>
-            <Button type="submit" onButtonRef={this.onCloseButtonRef}>Close</Button>
+            <Button type="submit" onButtonRef={this.onCloseButtonRef}>
+              Close
+            </Button>
           </ButtonGroup>
         </DialogFooter>
       </Dialog>
