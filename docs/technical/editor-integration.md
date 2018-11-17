@@ -174,7 +174,7 @@ function isExpectedInstallation(
 }
 ```
 
-### Step 3: Launch the program
+### Step 3: Determine the program to launch
 
 Now that Desktop knows the program is the one it expects, it can use the
 install location to then find the executable to launch. Many editors provide a
@@ -198,6 +198,30 @@ function getExecutableShim(
 
 Desktop will confirm this file exists on disk before launching - if it's
 missing or lost it won't let you launch the external editor.
+
+If the external editor utilizes a CMD.EXE shell script to launch, Desktop
+needs to know this in order to properly launch the CMD.EXE shell.  This is 
+done by setting the property `usesShell: true` in `getAvailableEditors`.
+
+```ts
+export async function getAvailableEditors(): Promise<
+  ReadonlyArray<IFoundEditor<ExternalEditor>>
+> {
+  ...
+
+  if (codePath) {
+    results.push({
+      editor: ExternalEditor.VisualStudioCode,
+      path: codePath,
+      usesShell: true,
+    })
+  }
+
+  ...
+
+  return results
+}
+```
 
 ## macOS
 
