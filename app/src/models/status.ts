@@ -25,7 +25,9 @@ export enum AppFileStatusKind {
   Conflicted = 'Conflicted',
 }
 
-/** The state of a GitHub Desktop-specific change containing additional metadata */
+/**
+ * Normal changes to a repository detected by GitHub Desktop
+ */
 export type PlainFileStatus = {
   kind:
     | AppFileStatusKind.New
@@ -33,6 +35,13 @@ export type PlainFileStatus = {
     | AppFileStatusKind.Deleted
 }
 
+/**
+ * Copied or renamed files are change staged in the index that have a source
+ * as well as a destination.
+ *
+ * The `oldPath` of a copied file also exists in the working directory, but the
+ * `oldPath` of a renamed file will be missing from the working directory.
+ */
 export type CopiedOrRenamedFileStatus = {
   kind: AppFileStatusKind.Copied | AppFileStatusKind.Renamed
   oldPath: string
@@ -62,6 +71,7 @@ type ManualConflict = {
 /** Union of potential conflict scenarios the application should handle */
 export type ConflictedFileStatus = ConflictsWithMarkers | ManualConflict
 
+/** The union of potential states associated with a file change in Desktop */
 export type AppFileStatus =
   | PlainFileStatus
   | CopiedOrRenamedFileStatus
