@@ -172,9 +172,9 @@ export class FileChange {
       status.kind === AppFileStatusKind.Renamed ||
       status.kind === AppFileStatusKind.Copied
     ) {
-      this.id = `${this.status.kind}+${this.path}+${status.oldPath}`
+      this.id = `${status.kind}+${path}+${status.oldPath}`
     } else {
-      this.id = `${this.status.kind}+${this.path}`
+      this.id = `${status.kind}+${path}`
     }
   }
 }
