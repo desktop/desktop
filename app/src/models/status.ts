@@ -39,9 +39,10 @@ export type PlainFileStatus = {
     | AppFileStatusKind.New
     | AppFileStatusKind.Modified
     | AppFileStatusKind.Deleted
-    // TODO: where should this live?
-    | AppFileStatusKind.Resolved
 }
+
+/** A placeholder type until we can figure out the shape of our conflicts state */
+type ResolvedFileStatus = { kind: AppFileStatusKind.Resolved }
 
 export type CopiedOrRenamedFileStatus = {
   kind: AppFileStatusKind.Copied | AppFileStatusKind.Renamed
@@ -57,6 +58,7 @@ export type AppFileStatus =
   | PlainFileStatus
   | CopiedOrRenamedFileStatus
   | ConflictedFileStatus
+  | ResolvedFileStatus
 
 /** The porcelain status for an ordinary changed entry */
 type OrdinaryEntry = {
