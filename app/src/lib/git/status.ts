@@ -24,7 +24,6 @@ import { Repository } from '../../models/repository'
 import { IAheadBehind } from '../../models/branch'
 import { fatalError } from '../../lib/fatal-error'
 import { enableStatusWithoutOptionalLocks } from '../feature-flag'
-import { ConflictState } from '../../models/conflicts'
 import { isMergeHeadSet } from './merge'
 
 /**
@@ -69,15 +68,16 @@ interface IStatusHeadersData {
   match: RegExpMatchArray | null
 }
 
+type ConflictCountsByPath = ReadonlyMap<string, number>
+
 function parseConflictedState(
   entry: UnmergedEntry,
   path: string,
-  conflictState: ConflictState
+  filesWithConflictMarkers: ConflictCountsByPath
 ): ConflictedFileStatus {
   switch (entry.action) {
     case UnmergedEntrySummary.BothAdded:
-      const addedConflictsLeft =
-        conflictState.filesWithConflictMarkers.get(path) || 0
+      const addedConflictsLeft = filesWithConflictMarkers.get(path) || 0
       return {
         kind: AppFileStatusKind.Conflicted,
         entry,
@@ -85,8 +85,7 @@ function parseConflictedState(
         conflictMarkerCount: addedConflictsLeft,
       }
     case UnmergedEntrySummary.BothModified:
-      const modifedConflictsLeft =
-        conflictState.filesWithConflictMarkers.get(path) || 0
+      const modifedConflictsLeft = filesWithConflictMarkers.get(path) || 0
       return {
         kind: AppFileStatusKind.Conflicted,
         entry,
@@ -105,7 +104,7 @@ function parseConflictedState(
 function convertToAppStatus(
   path: string,
   entry: FileEntry,
-  conflictState: ConflictState,
+  filesWithConflictMarkers: ConflictCountsByPath,
   oldPath?: string
 ): AppFileStatus {
   if (entry.kind === 'ordinary') {
@@ -124,20 +123,10 @@ function convertToAppStatus(
   } else if (entry.kind === 'untracked') {
     return { kind: AppFileStatusKind.New }
   } else if (entry.kind === 'conflicted') {
-    return parseConflictedState(entry, path, conflictState)
+    return parseConflictedState(entry, path, filesWithConflictMarkers)
   }
 
   return fatalError(`Unknown file status ${status}`)
-}
-
-async function buildConflictState(
-  repository: Repository
-): Promise<ConflictState> {
-  return {
-    filesWithConflictMarkers: await getFilesWithConflictMarkers(
-      repository.path
-    ),
-  }
 }
 
 /**
@@ -193,10 +182,8 @@ export async function getStatus(
 
   // if we have any conflicted files reported by status, let
   const conflictState = mergeHeadFound
-    ? await buildConflictState(repository)
-    : {
-        filesWithConflictMarkers: new Map<string, number>(),
-      }
+    ? await getFilesWithConflictMarkers(repository.path)
+    : new Map<string, number>()
 
   // Map of files keyed on their paths.
   const files = entries.reduce(
@@ -240,7 +227,7 @@ export async function getStatus(
 function buildStatusMap(
   files: Map<string, WorkingDirectoryFileChange>,
   entry: IStatusEntry,
-  conflictState: ConflictState
+  filesWithConflictMarkers: ConflictCountsByPath
 ): Map<string, WorkingDirectoryFileChange> {
   const status = mapStatus(entry.statusCode)
 
@@ -268,7 +255,7 @@ function buildStatusMap(
   const appStatus = convertToAppStatus(
     entry.path,
     status,
-    conflictState,
+    filesWithConflictMarkers,
     entry.oldPath
   )
 
