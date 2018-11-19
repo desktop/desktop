@@ -373,3 +373,10 @@ function getIncludeAllState(
 
   return includeAll
 }
+
+/** Typechecker helper to identify conflicted files */
+export function isConflictedFile(
+  file: AppFileStatus
+): file is ConflictedFileStatus {
+  return file.kind === AppFileStatusKind.Conflicted
+}
