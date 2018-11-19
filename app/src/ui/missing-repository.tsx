@@ -26,7 +26,7 @@ const recoveryDelayShort = 1000
 export class MissingRepository extends React.Component<
   IMissingRepositoryProps,
   {}
-  > {
+> {
   private timer: number | null = null
 
   private clearTimer() {
@@ -135,7 +135,11 @@ export class MissingRepository extends React.Component<
       // if not, set timeout to try again
 
       // first test the repository path for existence, then test if the existing path is a git repository
-      if (await pathExists(this.props.repository.path) ? await isGitRepository(this.props.repository.path) : false) {
+      if (
+        (await pathExists(this.props.repository.path))
+          ? await isGitRepository(this.props.repository.path)
+          : false
+      ) {
         // a git repository was found on the original path
         if (
           (await this.props.dispatcher.updateRepositoryMissing(
