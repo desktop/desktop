@@ -53,7 +53,8 @@ function formatPatchHeaderForFile(file: WorkingDirectoryFileChange) {
     // conflicted without more information about it's current state.
     // I'd like to get to a point where `WorkingDirectoryFileChange` can be
     // differentiated between ordinary, renamed/copied and unmerged entries
-    // but I think that is out of scope for this area of work
+    // and we can then verify the conflicted file is in a known good state but
+    // that work needs to be done waaaaaaaay before we get to this point.
     case AppFileStatusKind.Conflicted:
       return formatPatchHeader(file.path, file.path)
   }
