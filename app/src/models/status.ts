@@ -1,6 +1,4 @@
 import { DiffSelection, DiffSelectionType } from './diff'
-import { OcticonSymbol } from '../ui/octicons'
-import { assertNever } from '../lib/fatal-error'
 import { ConflictFileStatus } from './conflicts'
 
 /**
@@ -100,62 +98,6 @@ export type FileEntry =
   | RenamedOrCopiedEntry
   | UnmergedEntry
   | UntrackedEntry
-
-/**
- * Convert a given FileStatus value to a human-readable string to be
- * presented to users which describes the state of a file.
- *
- * Typically this will be the same value as that of the enum key.
- *
- * Used in file lists.
- */
-export function mapStatus(status: AppFileStatusKind): string {
-  switch (status) {
-    case AppFileStatusKind.New:
-      return 'New'
-    case AppFileStatusKind.Modified:
-      return 'Modified'
-    case AppFileStatusKind.Deleted:
-      return 'Deleted'
-    case AppFileStatusKind.Renamed:
-      return 'Renamed'
-    case AppFileStatusKind.Conflicted:
-      return 'Conflicted'
-    case AppFileStatusKind.Resolved:
-      return 'Resolved'
-    case AppFileStatusKind.Copied:
-      return 'Copied'
-  }
-
-  return assertNever(status, `Unknown file status ${status}`)
-}
-
-/**
- * Converts a given FileStatus value to an Octicon symbol
- * presented to users when displaying the file path.
- *
- * Used in file lists.
- */
-export function iconForStatus(status: AppFileStatusKind): OcticonSymbol {
-  switch (status) {
-    case AppFileStatusKind.New:
-      return OcticonSymbol.diffAdded
-    case AppFileStatusKind.Modified:
-      return OcticonSymbol.diffModified
-    case AppFileStatusKind.Deleted:
-      return OcticonSymbol.diffRemoved
-    case AppFileStatusKind.Renamed:
-      return OcticonSymbol.diffRenamed
-    case AppFileStatusKind.Conflicted:
-      return OcticonSymbol.alert
-    case AppFileStatusKind.Resolved:
-      return OcticonSymbol.check
-    case AppFileStatusKind.Copied:
-      return OcticonSymbol.diffAdded
-  }
-
-  return assertNever(status, `Unknown file status ${status}`)
-}
 
 /** encapsulate changes to a file associated with a commit */
 export class FileChange {
