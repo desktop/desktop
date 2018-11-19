@@ -12,6 +12,7 @@ import {
   WorkingDirectoryFileChange,
   AppFileStatusKind,
   ConflictedFileStatus,
+  isConflictedFile,
 } from '../../models/status'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { PathText } from '../lib/path-text'
@@ -43,9 +44,7 @@ function calculateConflicts(conflictMarkers: number) {
 
 /** Filter working directory changes for conflicted or resolved files  */
 function getUnmergedFiles(status: WorkingDirectoryStatus) {
-  return status.files.filter(
-    file => file.status.kind === AppFileStatusKind.Conflicted
-  )
+  return status.files.filter(f => isConflictedFile(f.status))
 }
 
 function editorButtonString(editorName: string | null): string {
@@ -106,7 +105,7 @@ export class MergeConflictsDialog extends React.Component<
   private onCancel = async () => {
     const anyResolvedFiles = getUnmergedFiles(this.props.workingDirectory).some(
       f =>
-        f.status.kind === AppFileStatusKind.Conflicted &&
+        isConflictedFile(f.status) &&
         f.status.lookForConflictMarkers &&
         f.status.conflictMarkerCount === 0
     )
@@ -299,8 +298,8 @@ export class MergeConflictsDialog extends React.Component<
 
   public render() {
     const unmergedFiles = getUnmergedFiles(this.props.workingDirectory)
-    const conflictedFilesCount = unmergedFiles.filter(
-      f => f.status.kind === AppFileStatusKind.Conflicted
+    const conflictedFilesCount = unmergedFiles.filter(f =>
+      isConflictedFile(f.status)
     ).length
 
     const headerTitle = this.renderHeaderTitle(
