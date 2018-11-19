@@ -2,7 +2,7 @@ import { AppFileStatusKind } from '../models/status'
 import { assertNever } from './fatal-error'
 
 /**
- * Convert a given FileStatus value to a human-readable string to be
+ * Convert a given `AppFileStatusKind` value to a human-readable string to be
  * presented to users which describes the state of a file.
  *
  * Typically this will be the same value as that of the enum key.

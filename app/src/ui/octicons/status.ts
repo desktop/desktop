@@ -3,7 +3,7 @@ import { OcticonSymbol } from './octicons.generated'
 import { assertNever } from '../../lib/fatal-error'
 
 /**
- * Converts a given FileStatus value to an Octicon symbol
+ * Converts a given `AppFileStatusKind` value to an Octicon symbol
  * presented to users when displaying the file path.
  *
  * Used in file lists.
