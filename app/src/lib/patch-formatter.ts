@@ -40,7 +40,6 @@ function formatPatchHeaderForFile(file: WorkingDirectoryFileChange) {
     case AppFileStatusKind.New:
       return formatPatchHeader(null, file.path)
 
-    case AppFileStatusKind.Conflicted:
     // One might initially believe that renamed files should diff
     // against their old path. This is, after all, how git diff
     // does it right after a rename. But if we're creating a patch
@@ -50,6 +49,12 @@ function formatPatchHeaderForFile(file: WorkingDirectoryFileChange) {
     case AppFileStatusKind.Deleted:
     case AppFileStatusKind.Modified:
     case AppFileStatusKind.Copied:
+    // We should not have the ability to format a file that's marked as
+    // conflicted without more information about it's current state.
+    // I'd like to get to a point where `WorkingDirectoryFileChange` can be
+    // differentiated between ordinary, renamed/copied and unmerged entries
+    // but I think that is out of scope for this area of work
+    case AppFileStatusKind.Conflicted:
       return formatPatchHeader(file.path, file.path)
   }
 
