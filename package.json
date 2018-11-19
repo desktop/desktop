@@ -32,7 +32,7 @@
     "lint:src": "yarn tslint && yarn eslint-check && yarn eslint",
     "lint:src:fix": "yarn tslint --fix && yarn eslint --fix",
     "tslint": "tslint -p .",
-    "eslint": "ts-node -P script/tsconfig.json script/eslint.ts",
+    "eslint": "eslint --cache --rulesdir ./eslint-rules \"./{script,eslint-rules,tslint-rules}/**/*.{j,t}s{,x}\" \"./app/{src,typings,test}/**/*.{j,t}s{,x}\" \"./changelog.json\"",
     "eslint-check": "eslint --print-config .eslintrc.* | eslint-config-prettier-check",
     "publish": "ts-node -P script/tsconfig.json script/publish.ts",
     "clean-slate": "rimraf out node_modules app/node_modules coverage && yarn",
