@@ -5,7 +5,7 @@ coverage:
   range: '10...80'
 
   status:
-    desktop:
+    project:
       lib-git:
         target: auto
         threshold: 5%
