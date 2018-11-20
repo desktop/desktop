@@ -1,7 +1,7 @@
 import * as Path from 'path'
 import * as React from 'react'
 import { remote } from 'electron'
-import { pathExists, readdir } from 'fs-extra'
+import { readdir } from 'fs-extra'
 
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
@@ -269,12 +269,10 @@ export class CloneRepository extends React.Component<
   private updateAndValidatePath = async (path: string) => {
     this.setState({ path })
 
-    const doesDirectoryExist = await this.doesPathExist(path)
-    const isDirectoryEmptyFolder = doesDirectoryExist
-      ? await this.isPathEmptyFolder(path)
-      : false
+    const doesPathContainFiles = await this.doesPathContainFiles(path)
+    const pathHasChanged = this.state.path !== path
 
-    if (doesDirectoryExist && isDirectoryEmptyFolder !== true) {
+    if (doesPathContainFiles === true || pathHasChanged === true) {
       const error: Error = new Error('The destination already exists.')
       error.name = DestinationExistsErrorName
 
@@ -329,19 +327,17 @@ export class CloneRepository extends React.Component<
     this.updateAndValidatePath(newPath)
   }
 
-  private async doesPathExist(path: string) {
-    const exists = await pathExists(path)
-    // If the path changed while we were checking, we don't care anymore.
-    if (this.state.path !== path) {
-      return
+  private async doesPathContainFiles(path: string): Promise<boolean | Error> {
+    try {
+      const directoryFiles = await readdir(path)
+      return directoryFiles.length !== 0
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        return false
+      }
+
+      return error
     }
-
-    return exists
-  }
-
-  private async isPathEmptyFolder(path: string) {
-    const directoryFiles = await readdir(path)
-    return directoryFiles.length === 0
   }
 
   /**
