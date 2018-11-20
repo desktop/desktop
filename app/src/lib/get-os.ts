@@ -22,10 +22,18 @@ export function isMojaveOrLater() {
   if (__DARWIN__) {
     const parser = new UAParser()
     const os = parser.getOS()
-    // Check that it is Mojave or later
-    if (os.version && os.version.split('.')[1] > '13') {
-      return true
+
+    if (os.version == null) {
+      return false
     }
+
+    const parts = os.version.split('.')
+    if (parts.length !== 2) {
+      // unknown version format, giving up
+      return false
+    }
+
+    return parts[1] > '13'
   }
   return false
 }
