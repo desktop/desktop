@@ -1,8 +1,6 @@
-# [GitHub Desktop](https://desktop.github.com)
+# [GitHub Desktop](https://desktop.github.com) - The Linux Fork
 
-[![Travis](https://img.shields.io/travis/desktop/desktop.svg?style=flat-square&label=Travis+CI)](https://travis-ci.org/desktop/desktop)
-[![CircleCI](https://img.shields.io/circleci/project/github/desktop/desktop.svg?style=flat-square&label=CircleCI)](https://circleci.com/gh/desktop/desktop)
-[![AppVeyor Build Status](https://img.shields.io/appveyor/ci/github-windows/desktop/development.svg?style=flat-square&label=AppVeyor&logo=appveyor)](https://ci.appveyor.com/project/github-windows/desktop/branch/development)
+[![Build Status](https://brendanforster.visualstudio.com/desktop-linux/_apis/build/status/Azure%20Pipelines%20Build?branchName=linux)](https://brendanforster.visualstudio.com/desktop-linux/_build/latest?definitionId=10&branchName=linux)
 [![license](https://img.shields.io/github/license/desktop/desktop.svg?style=flat-square)](https://github.com/desktop/desktop/blob/development/LICENSE)
 ![90+% TypeScript](https://img.shields.io/github/languages/top/desktop/desktop.svg?style=flat-square&colorB=green)
 
@@ -12,80 +10,71 @@ uses [React](https://facebook.github.io/react/).
 
 ![GitHub Desktop screenshot - Windows](https://cloud.githubusercontent.com/assets/359239/26094502/a1f56d02-3a5d-11e7-8799-23c7ba5e5106.png)
 
-## Where can I get it?
+## What is this repository for?
 
-Download the official installer for your operating system:
+This repository contains specific patches on top of the upstream
+`desktop/desktop` repository to support Linux usage.
 
- - [macOS](https://central.github.com/deployments/desktop/desktop/latest/darwin)
- - [Windows](https://central.github.com/deployments/desktop/desktop/latest/win32)
- - [Windows machine-wide install](https://central.github.com/deployments/desktop/desktop/latest/win32?format=msi)
+It also hosts preview packages for various Linux distributions:
 
-You can install this alongside your existing GitHub Desktop for Mac or GitHub
-Desktop for Windows application.
+ - AppImage (`.AppImage`)
+ - Debian (`.deb`)
+ - RPM (`.rpm`)
 
-**NOTE**: there is no current migration path to import your existing
-repositories into the new application - you can drag-and-drop your repositories
-from disk onto the application to get started.
+Check out the [latest releases](https://github.com/shiftkey/desktop/releases) to
+help out with testing on your distribution.
 
-### Beta Channel
+## packagecloud
 
-Want to test out new features and get fixes before everyone else? Install the
-beta channel to get access to early builds of Desktop:
+We are trialing using [PackageCloud](https://packagecloud.io/) for distributing
+the installers for Debian and RPM-based distributions.
 
- - [macOS](https://central.github.com/deployments/desktop/desktop/latest/darwin?env=beta)
- - [Windows](https://central.github.com/deployments/desktop/desktop/latest/win32?env=beta)
+### Debian/Ubuntu distributions
 
-### Community Releases
+To setup the package repository, run these commands:
 
-There are several community-supported package managers that can be used to
-install GitHub Desktop:
- - Windows users can install using [Chocolatey](https://chocolatey.org/) package manager:
-      `c:\> choco install github-desktop`
- - macOS users can install using [Homebrew](https://brew.sh/) package manager:
-      `$ brew cask install github`
+```
+$ wget -qO - https://packagecloud.io/shiftkey/desktop/gpgkey | sudo apt-key add -
+$ sudo sh -c 'echo "deb [arch=amd64] https://packagecloud.io/shiftkey/desktop/any/ any main" > /etc/apt/sources.list.d/packagecloud-shiftky-desktop.list'
+$ sudo apt-get update
+```
 
-Installers for various Linux distributions can be found on the
-[`shiftkey/desktop`](https://github.com/shiftkey/desktop) fork.
+Then install GitHub Desktop:
 
-Arch Linux users can install the latest version from the
+```
+$ sudo apt install github-desktop
+```
+
+### Red Hat/CentOS/Fedora distributions
+
+To setup the package repository, run these commands:
+
+```
+$ sudo rpm --import https://packagecloud.io/shiftkey/desktop/gpgkey
+$ sudo sh -c 'echo -e "[shiftkey]\nname=GitHub Desktop\nbaseurl=https://packagecloud.io/shiftkey/desktop/el/7/\$basearch\nenabled=1\ngpgcheck=0\nrepo_gpgcheck=1\ngpgkey=https://packagecloud.io/shiftkey/desktop/gpgkey" > /etc/yum.repos.d/shiftkey-desktop.repo'
+```
+
+Then install GitHub Desktop:
+
+```
+# if yum is your package manager
+$ sudo yum install github-desktop
+# if dnf is your package manager
+$ sudo dnf install github-desktop
+```
+
+## Other Distributions
+
+Arch Linux users can install GitHub Desktop from the
 [AUR](https://aur.archlinux.org/packages/github-desktop-bin/).
 
-## Is GitHub Desktop right for me? What are the primary areas of focus?
+`gnome-keyring` is required and the daemon must be launched either at login or when the X server is started. Normally this is handled by a display manager, but in other cases following the instructions found on the [Arch Wiki](https://wiki.archlinux.org/index.php/GNOME/Keyring#Using_the_keyring_outside_GNOME) will fix the issue of not being able to save login credentials.
 
-[This document](https://github.com/desktop/desktop/blob/development/docs/process/what-is-desktop.md) describes the focus of GitHub Desktop and who the product is most useful for.
+## More information
 
-And to see what the team is working on currently and in the near future, check out the [GitHub Desktop roadmap](https://github.com/desktop/desktop/blob/development/docs/process/roadmap.md).
-
-## I have a problem with GitHub Desktop
-
-Note: The [GitHub Desktop Code of Conduct](https://github.com/desktop/desktop/blob/development/CODE_OF_CONDUCT.md) applies in all interactions relating to the GitHub Desktop project.
-
-First, please search the [open issues](https://github.com/desktop/desktop/issues?q=is%3Aopen)
-and [closed issues](https://github.com/desktop/desktop/issues?q=is%3Aclosed)
-to see if your issue hasn't already been reported (it may also be fixed).
-
-There is also a list of [known issues](https://github.com/desktop/desktop/blob/development/docs/known-issues.md)
-that are being tracked against Desktop, and some of these issues have workarounds.
-
-If you can't find an issue that matches what you're seeing, open a [new issue](https://github.com/desktop/desktop/issues/new/choose),
-choose the right template and provide us with enough information to investigate
-further.
-
-## The issue I reported isn't fixed yet. What can I do?
-
-If nobody has responded to your issue in a few days, you're welcome to respond to it with a friendly ping in the issue. Please do not respond more than a second time if nobody has responded. The GitHub Desktop maintainers are constrained in time and resources, and diagnosing individual configurations can be difficult and time consuming. While we'll try to at least get you pointed in the right direction, we can't guarantee we'll be able to dig too deeply into any one person's issue.
-
-## How can I contribute to GitHub Desktop?
-
-The [CONTRIBUTING.md](./.github/CONTRIBUTING.md) document will help you get setup and
-familiar with the source. The [documentation](docs/) folder also contains more
-resources relevant to the project.
-
-If you're looking for something to work on, check out the [help wanted](https://github.com/desktop/desktop/issues?q=is%3Aissue+is%3Aopen+label%3A%22help%20wanted%22) label.
-
-## More Resources
-
-See [desktop.github.com](https://desktop.github.com) for more product-oriented
+Please check out the [README](https://github.com/desktop/desktop#github-desktop)
+on the upstream [GitHub Desktop project](https://github.com/desktop/desktop) and
+[desktop.github.com](https://desktop.github.com) for more product-oriented
 information about GitHub Desktop.
 
 ## License

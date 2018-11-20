@@ -1,6 +1,9 @@
 ---
-name: "\U00002B50 Submit a request or solve a problem"
+name: "⭐ Submit a request or solve a problem"
 about: Surface a problem that you think should be solved
+title: ''
+labels: ''
+assignees: ''
 
 ---
 
