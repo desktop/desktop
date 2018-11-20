@@ -29,7 +29,6 @@ import {
   DismissalReason,
 } from '../notification/new-commits-banner'
 import {
-  enableNotificationOfBranchUpdates,
   enableMergeConflictDetection,
 } from '../../lib/feature-flag'
 import { MergeCallToAction } from './merge-call-to-action'
