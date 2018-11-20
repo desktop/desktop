@@ -269,10 +269,9 @@ export class CloneRepository extends React.Component<
   private updateAndValidatePath = async (path: string) => {
     this.setState({ path })
 
-    const doesPathContainFiles = await this.doesPathContainFiles(path)
-    const pathHasChanged = this.state.path !== path
+    const pathValidation = await this.validateEmptyFolder(path)
 
-    if (doesPathContainFiles === true || pathHasChanged === true) {
+    if (pathValidation != null) {
       const error: Error = new Error('The destination already exists.')
       error.name = DestinationExistsErrorName
 
@@ -327,16 +326,27 @@ export class CloneRepository extends React.Component<
     this.updateAndValidatePath(newPath)
   }
 
-  private async doesPathContainFiles(path: string): Promise<boolean | Error> {
+  private async validateEmptyFolder(path: string): Promise<null | Error> {
     try {
       const directoryFiles = await readdir(path)
-      return directoryFiles.length !== 0
-    } catch (error) {
-      if (error.code === 'ENOENT') {
-        return false
+
+      // If the path has changed we no longer want the result
+      if (path !== this.state.path) {
+        return new Error('The path has been changed during check.')
       }
 
-      return error
+      if (directoryFiles.length === 0) {
+        return null
+      } else {
+        return new Error('The path folder contains files.')
+      }
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        // Folder does not exist
+        return null
+      }
+
+      return new Error(error.message)
     }
   }
 
