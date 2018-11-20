@@ -1,15 +1,11 @@
 import * as React from 'react'
 import { PathLabel } from '../lib/path-label'
-import {
-  AppFileStatus,
-  mapStatus,
-  iconForStatus,
-  AppFileStatusKind,
-} from '../../models/status'
+import { AppFileStatus, AppFileStatusKind } from '../../models/status'
 import { IDiff, DiffType } from '../../models/diff'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon, OcticonSymbol, iconForStatus } from '../octicons'
 import { Button } from '../lib/button'
 import { enableMergeTool } from '../../lib/feature-flag'
+import { mapStatus } from '../../lib/status'
 
 interface IChangedFileDetailsProps {
   readonly path: string
