@@ -17,10 +17,6 @@ interface IAppearanceProps {
   readonly onAutomaticallySwitchThemeChanged: (checked: boolean) => void
 }
 
-interface IAppearanceState {
-  readonly automaticallySwitchTheme: boolean
-}
-
 const themes: ReadonlyArray<ISegmentedItem> = [
   { title: 'Light', description: 'The default theme of GitHub Desktop' },
   {
@@ -30,18 +26,7 @@ const themes: ReadonlyArray<ISegmentedItem> = [
   },
 ]
 
-export class Appearance extends React.Component<
-  IAppearanceProps,
-  IAppearanceState
-> {
-  public constructor(props: IAppearanceProps) {
-    super(props)
-
-    this.state = {
-      automaticallySwitchTheme: this.props.automaticallySwitchTheme,
-    }
-  }
-
+export class Appearance extends React.Component<IAppearanceProps, {}> {
   private onSelectedThemeChanged = (index: number) => {
     if (index === 0) {
       this.props.onSelectedThemeChanged(ApplicationTheme.Light)
@@ -50,7 +35,6 @@ export class Appearance extends React.Component<
     } else {
       fatalError(`Unknown theme index ${index}`)
     }
-    this.setState({ automaticallySwitchTheme: false })
     this.props.onAutomaticallySwitchThemeChanged(false)
   }
 
@@ -64,7 +48,6 @@ export class Appearance extends React.Component<
       this.onSelectedThemeChanged(usingDarkMode ? 1 : 0)
     }
 
-    this.setState({ automaticallySwitchTheme: value })
     this.props.onAutomaticallySwitchThemeChanged(value)
   }
 
@@ -104,7 +87,7 @@ export class Appearance extends React.Component<
         <Checkbox
           label="Automatically switch theme to match system theme."
           value={
-            this.state.automaticallySwitchTheme
+            this.props.automaticallySwitchTheme
               ? CheckboxValue.On
               : CheckboxValue.Off
           }
