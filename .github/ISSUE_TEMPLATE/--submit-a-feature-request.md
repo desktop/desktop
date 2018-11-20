@@ -1,6 +1,6 @@
 ---
 name: "⭐ Submit a feature request"
-about: 'Feature requests are considered based on team''s capacity '
+about: Feature requests are considered based on team''s capacity
 title: ''
 labels: ''
 assignees: ''
