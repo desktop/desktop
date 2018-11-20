@@ -1782,13 +1782,10 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private renderUpdateBanner() {
-    const releaseNotesUri = 'https://desktop.github.com/release-notes/'
-
     return (
       <UpdateAvailable
         dispatcher={this.props.dispatcher}
         newRelease={updateStore.state.newRelease}
-        releaseNotesLink={releaseNotesUri}
         onDismissed={this.onUpdateAvailableDismissed}
         key={'update-available'}
       />
