@@ -161,7 +161,6 @@ import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
 import {
   enableRepoInfoIndicators,
   enableMergeConflictDetection,
-  enableMergeConflictsDialog,
 } from '../feature-flag'
 import { MergeResultKind } from '../../models/merge'
 import { promiseWithMinimumTimeout } from '../promise'
@@ -1606,10 +1605,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** starts the conflict resolution flow, if appropriate */
   private async _triggerMergeConflictsFlow(repository: Repository) {
-    if (!enableMergeConflictsDialog()) {
-      return
-    }
-
     const alreadyInFlow =
       this.currentPopup !== null &&
       (this.currentPopup.type === PopupType.MergeConflicts ||
