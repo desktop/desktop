@@ -20,8 +20,8 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
     const opener = __DARWIN__
       ? 'Finder'
       : __WIN32__
-        ? 'Explorer'
-        : 'your File Manager'
+      ? 'Explorer'
+      : 'your File Manager'
     return (
       <div className="panel blankslate" id="no-changes">
         <img src={BlankSlateImage} className="blankslate-image" />

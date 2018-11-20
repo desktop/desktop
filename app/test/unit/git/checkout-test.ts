@@ -43,7 +43,6 @@ describe('git/checkout', () => {
         parentSHAs: [],
         trailers: [],
         coAuthors: [],
-        isWebFlowCommitter: () => false,
       },
       remote: null,
     }

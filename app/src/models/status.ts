@@ -7,23 +7,14 @@ import { ConflictFileStatus } from './conflicts'
  * The status entry code as reported by Git.
  */
 export enum GitStatusEntry {
-  // M
   Modified = 'M',
-  // A
   Added = 'A',
-  // D
   Deleted = 'D',
-  // R
   Renamed = 'R',
-  // C
   Copied = 'C',
-  // .
   Unchanged = '.',
-  // ?
   Untracked = '?',
-  // !
   Ignored = '!',
-  // U
   //
   // While U is a valid code here, we currently mark conflicts as "Modified"
   // in the application - this will likely be something we need to revisit
@@ -31,8 +22,8 @@ export enum GitStatusEntry {
   UpdatedButUnmerged = 'U',
 }
 
-/** The file status as represented in GitHub Desktop. */
-export enum AppFileStatus {
+/** The enum representation of a Git file change in GitHub Desktop. */
+export enum AppFileStatusKind {
   New = 'New',
   Modified = 'Modified',
   Deleted = 'Deleted',
@@ -41,6 +32,33 @@ export enum AppFileStatus {
   Conflicted = 'Conflicted',
   Resolved = 'Resolved',
 }
+
+/** The state of a GitHub Desktop-specific change containing additional metadata */
+export type PlainFileStatus = {
+  kind:
+    | AppFileStatusKind.New
+    | AppFileStatusKind.Modified
+    | AppFileStatusKind.Deleted
+}
+
+/** A placeholder type until we can figure out the shape of our conflicts state */
+type ResolvedFileStatus = { kind: AppFileStatusKind.Resolved }
+
+export type CopiedOrRenamedFileStatus = {
+  kind: AppFileStatusKind.Copied | AppFileStatusKind.Renamed
+  oldPath: string
+}
+
+export type ConflictedFileStatus = {
+  kind: AppFileStatusKind.Conflicted
+  conflictStatus: ConflictFileStatus
+}
+
+export type AppFileStatus =
+  | PlainFileStatus
+  | CopiedOrRenamedFileStatus
+  | ConflictedFileStatus
+  | ResolvedFileStatus
 
 /** The porcelain status for an ordinary changed entry */
 type OrdinaryEntry = {
@@ -91,21 +109,21 @@ export type FileEntry =
  *
  * Used in file lists.
  */
-export function mapStatus(status: AppFileStatus): string {
+export function mapStatus(status: AppFileStatusKind): string {
   switch (status) {
-    case AppFileStatus.New:
+    case AppFileStatusKind.New:
       return 'New'
-    case AppFileStatus.Modified:
+    case AppFileStatusKind.Modified:
       return 'Modified'
-    case AppFileStatus.Deleted:
+    case AppFileStatusKind.Deleted:
       return 'Deleted'
-    case AppFileStatus.Renamed:
+    case AppFileStatusKind.Renamed:
       return 'Renamed'
-    case AppFileStatus.Conflicted:
+    case AppFileStatusKind.Conflicted:
       return 'Conflicted'
-    case AppFileStatus.Resolved:
+    case AppFileStatusKind.Resolved:
       return 'Resolved'
-    case AppFileStatus.Copied:
+    case AppFileStatusKind.Copied:
       return 'Copied'
   }
 
@@ -118,21 +136,21 @@ export function mapStatus(status: AppFileStatus): string {
  *
  * Used in file lists.
  */
-export function iconForStatus(status: AppFileStatus): OcticonSymbol {
+export function iconForStatus(status: AppFileStatusKind): OcticonSymbol {
   switch (status) {
-    case AppFileStatus.New:
+    case AppFileStatusKind.New:
       return OcticonSymbol.diffAdded
-    case AppFileStatus.Modified:
+    case AppFileStatusKind.Modified:
       return OcticonSymbol.diffModified
-    case AppFileStatus.Deleted:
+    case AppFileStatusKind.Deleted:
       return OcticonSymbol.diffRemoved
-    case AppFileStatus.Renamed:
+    case AppFileStatusKind.Renamed:
       return OcticonSymbol.diffRenamed
-    case AppFileStatus.Conflicted:
+    case AppFileStatusKind.Conflicted:
       return OcticonSymbol.alert
-    case AppFileStatus.Resolved:
+    case AppFileStatusKind.Resolved:
       return OcticonSymbol.check
-    case AppFileStatus.Copied:
+    case AppFileStatusKind.Copied:
       return OcticonSymbol.diffAdded
   }
 
@@ -147,14 +165,19 @@ export class FileChange {
   /**
    * @param path The relative path to the file in the repository.
    * @param status The status of the change to the file.
-   * @param oldPath The original path in the case of a renamed file.
    */
   public constructor(
     public readonly path: string,
-    public readonly status: AppFileStatus,
-    public readonly oldPath?: string
+    public readonly status: AppFileStatus
   ) {
-    this.id = `${this.status}+${this.path}`
+    if (
+      status.kind === AppFileStatusKind.Renamed ||
+      status.kind === AppFileStatusKind.Copied
+    ) {
+      this.id = `${status.kind}+${path}+${status.oldPath}`
+    } else {
+      this.id = `${status.kind}+${path}`
+    }
   }
 }
 
@@ -165,16 +188,13 @@ export class WorkingDirectoryFileChange extends FileChange {
    * @param status The status of the change to the file.
    * @param selection Contains the selection details for this file - all, nothing or partial.
    * @param oldPath The original path in the case of a renamed file.
-   * @param conflictMarkers The number of conflict markers found in this file
    */
   public constructor(
     path: string,
     status: AppFileStatus,
-    public readonly selection: DiffSelection,
-    oldPath?: string,
-    public readonly conflictStatus: ConflictFileStatus | null = null
+    public readonly selection: DiffSelection
   ) {
-    super(path, status, oldPath)
+    super(path, status)
   }
 
   /** Create a new WorkingDirectoryFileChange with the given includedness. */
@@ -188,13 +208,7 @@ export class WorkingDirectoryFileChange extends FileChange {
 
   /** Create a new WorkingDirectoryFileChange with the given diff selection. */
   public withSelection(selection: DiffSelection): WorkingDirectoryFileChange {
-    return new WorkingDirectoryFileChange(
-      this.path,
-      this.status,
-      selection,
-      this.oldPath,
-      this.conflictStatus
-    )
+    return new WorkingDirectoryFileChange(this.path, this.status, selection)
   }
 }
 
@@ -211,10 +225,9 @@ export class CommittedFileChange extends FileChange {
   public constructor(
     path: string,
     status: AppFileStatus,
-    public readonly commitish: string,
-    oldPath?: string
+    public readonly commitish: string
   ) {
-    super(path, status, oldPath)
+    super(path, status)
 
     this.commitish = commitish
   }

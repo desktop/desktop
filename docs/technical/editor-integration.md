@@ -29,6 +29,7 @@ These editors are currently supported:
  - [Sublime Text](https://www.sublimetext.com/)
  - [ColdFusion Builder](https://www.adobe.com/products/coldfusion-builder.html)
  - [Typora](https://typora.io/)
+ - [SlickEdit](https://www.slickedit.com)
 
 These are defined in an enum at the top of the file:
 
@@ -40,6 +41,7 @@ export enum ExternalEditor {
   SublimeText = 'Sublime Text',
   CFBuilder = 'ColdFusion Builder',
   Typora = 'Typora',
+  SlickEdit = 'SlickEdit',
 }
 ```
 
@@ -76,10 +78,30 @@ function getRegistryKeys(editor: ExternalEditor): ReadonlyArray<string> {
     ...
     case ExternalEditor.VisualStudioCode:
       return [
-        // 64-bit version of VSCode
-        'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{EA457B21-F73E-494C-ACAB-524FDE069978}_is1',
-        // 32-bit version of VSCode
-        'HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{F8A2A208-72B3-4D61-95FC-8A65D340689B}_is1',
+        // 64-bit version of VSCode (user) - provided by default in 64-bit Windows
+        {
+          key: HKEY.HKEY_CURRENT_USER,
+          subKey:
+            'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{771FD6B0-FA20-440A-A002-3B3BAC16DC50}_is1',
+        },
+        // 32-bit version of VSCode (user)
+        {
+          key: HKEY.HKEY_CURRENT_USER,
+          subKey:
+            'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{D628A17A-9713-46BF-8D57-E671B46A741E}_is1',
+        },
+        // 64-bit version of VSCode (system) - was default before user scope installation
+        {
+          key: HKEY.HKEY_LOCAL_MACHINE,
+          subKey:
+            'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{EA457B21-F73E-494C-ACAB-524FDE069978}_is1',
+        },
+        // 32-bit version of VSCode (system)
+        {
+          key: HKEY.HKEY_LOCAL_MACHINE,
+          subKey:
+            'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{F8A2A208-72B3-4D61-95FC-8A65D340689B}_is1',
+        },
       ]
     ...
   }
@@ -125,21 +147,14 @@ function extractApplicationInformation(
 
   if (
     editor === ExternalEditor.VisualStudioCode ||
-    editor === ExternalEditor.SublimeText
+    editor === ExternalEditor.VisualStudioCodeInsiders
   ) {
-    for (const item of keys) {
-      if (item.name === 'Inno Setup: Icon Group') {
-        displayName = item.value
-      } else if (item.name === 'Publisher') {
-        publisher = item.value
-      } else if (item.name === 'Inno Setup: App Path') {
-        installLocation = item.value
-      }
-    }
-
+    const displayName = getKeyOrEmpty(keys, 'DisplayName')
+    const publisher = getKeyOrEmpty(keys, 'Publisher')
+    const installLocation = getKeyOrEmpty(keys, 'InstallLocation')
     return { displayName, publisher, installLocation }
   }
-
+  
   ...
 }
 ```
@@ -243,6 +258,7 @@ These editors are currently supported:
        - This can be done by opening Brackets, choosing File > Install Command Line Shortcut
  - [WebStorm](https://www.jetbrains.com/webstorm/)
  - [Typora](https://typora.io/)
+ - [SlickEdit](https://www.slickedit.com)
 
 These are defined in an enum at the top of the file:
 
@@ -261,6 +277,7 @@ export enum ExternalEditor {
   Brackets = 'Brackets',
   WebStorm = 'WebStorm',
   Typora = 'Typora',
+  SlickEdit = 'SlickEdit',
 }
 ```
 
@@ -294,7 +311,7 @@ function getBundleIdentifier(editor: ExternalEditor): string {
   switch (editor) {
     ...
     case ExternalEditor.VisualStudioCode:
-      return 'com.microsoft.VSCode'
+      return ['com.microsoft.VSCode']
     ...
   }
 }
@@ -345,6 +362,7 @@ These editors are currently supported:
  - [Visual Studio Code](https://code.visualstudio.com/) - both stable and Insiders channel
  - [Sublime Text](https://www.sublimetext.com/)
  - [Typora](https://typora.io/)
+ - [SlickEdit](https://www.slickedit.com)
 
 These are defined in an enum at the top of the file:
 
@@ -355,6 +373,7 @@ export enum ExternalEditor {
   VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
   SublimeText = 'Sublime Text',
   Typora = 'Typora',
+  SlickEdit = 'SlickEdit',
 }
 ```
 
@@ -383,13 +402,22 @@ export async function getAvailableEditors(): Promise<
 > {
   const results: Array<IFoundEditor<ExternalEditor>> = []
 
-  const [atomPath, codePath, sublimePath] = await Promise.all([
+  const [
+    atomPath,
+    codePath,
+    codeInsidersPath,
+    sublimePath,
+    typoraPath,
+    slickeditPath,
+  ] = await Promise.all([
     getEditorPath(ExternalEditor.Atom),
     getEditorPath(ExternalEditor.VisualStudioCode),
+    getEditorPath(ExternalEditor.VisualStudioCodeInsiders),
     getEditorPath(ExternalEditor.SublimeText),
     getEditorPath(ExternalEditor.Typora),
+    getEditorPath(ExternalEditor.SlickEdit),
   ])
-
+  
   ...
 
   if (codePath) {

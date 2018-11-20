@@ -92,7 +92,7 @@ import { ApplicationTheme } from './lib/application-theme'
 import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
 import { AbortMergeWarning } from './abort-merge'
 import { enableMergeConflictsDialog } from '../lib/feature-flag'
-import { AppFileStatus } from '../models/status'
+import { AppFileStatusKind } from '../models/status'
 import { PopupType, Popup } from '../models/popup'
 import { SuccessfulMerge } from './banners'
 
@@ -324,6 +324,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.showAbout()
       case 'boomtown':
         return this.boomtown()
+      case 'go-to-commit-message':
+        return this.goToCommitMessage()
       case 'open-pull-request': {
         return this.openPullRequest()
       }
@@ -363,6 +365,11 @@ export class App extends React.Component<IAppProps, IAppState> {
     setImmediate(() => {
       throw new Error('Boomtown!')
     })
+  }
+
+  private async goToCommitMessage() {
+    await this.showChanges()
+    this.props.dispatcher.setCommitMessageFocus(true)
   }
 
   private checkForUpdates(inBackground: boolean) {
@@ -564,7 +571,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     this.props.dispatcher.closeCurrentFoldout()
-    this.props.dispatcher.changeRepositorySection(
+    return this.props.dispatcher.changeRepositorySection(
       state.repository,
       RepositorySectionTab.Changes
     )
@@ -1384,8 +1391,8 @@ export class App extends React.Component<IAppProps, IAppState> {
           // double check that this repository is actually in merge
           const isInConflictedMerge = workingDirectory.files.some(
             file =>
-              file.status === AppFileStatus.Conflicted ||
-              file.status === AppFileStatus.Resolved
+              file.status.kind === AppFileStatusKind.Conflicted ||
+              file.status.kind === AppFileStatusKind.Resolved
           )
           if (!isInConflictedMerge) {
             return null
@@ -1851,6 +1858,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           gitHubUserStore={this.props.gitHubUserStore}
           onViewCommitOnGitHub={this.onViewCommitOnGitHub}
           imageDiffType={state.imageDiffType}
+          focusCommitMessage={state.focusCommitMessage}
           askForConfirmationOnDiscardChanges={
             state.askForConfirmationOnDiscardChanges
           }
