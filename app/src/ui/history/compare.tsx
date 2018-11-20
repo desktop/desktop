@@ -28,9 +28,7 @@ import {
   NewCommitsBanner,
   DismissalReason,
 } from '../notification/new-commits-banner'
-import {
-  enableMergeConflictDetection
-} from '../../lib/feature-flag'
+import { enableMergeConflictDetection } from '../../lib/feature-flag'
 import { MergeCallToAction } from './merge-call-to-action'
 import { MergeCallToActionWithConflicts } from './merge-call-to-action-with-conflicts'
 
