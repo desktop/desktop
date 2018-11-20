@@ -12,12 +12,12 @@ import {
   WorkingDirectoryFileChange,
   AppFileStatusKind,
   ConflictedFileStatus,
-  isConflictedFile,
 } from '../../models/status'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { PathText } from '../lib/path-text'
 import { DialogHeader } from '../dialog/header'
 import { LinkButton } from '../lib/link-button'
+import { isConflictedFile } from '../../lib/status'
 
 interface IMergeConflictsDialogProps {
   readonly dispatcher: Dispatcher

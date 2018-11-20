@@ -1,4 +1,8 @@
-import { AppFileStatusKind } from '../models/status'
+import {
+  AppFileStatusKind,
+  AppFileStatus,
+  ConflictedFileStatus,
+} from '../models/status'
 import { assertNever } from './fatal-error'
 
 /**
@@ -26,4 +30,11 @@ export function mapStatus(status: AppFileStatusKind): string {
   }
 
   return assertNever(status, `Unknown file status ${status}`)
+}
+
+/** Typechecker helper to identify conflicted files */
+export function isConflictedFile(
+  file: AppFileStatus
+): file is ConflictedFileStatus {
+  return file.kind === AppFileStatusKind.Conflicted
 }

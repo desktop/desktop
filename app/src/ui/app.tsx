@@ -92,7 +92,7 @@ import { ApplicationTheme } from './lib/application-theme'
 import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
 import { AbortMergeWarning } from './abort-merge'
 import { enableMergeConflictsDialog } from '../lib/feature-flag'
-import { isConflictedFile } from '../models/status'
+import { isConflictedFile } from '../lib/status'
 import { PopupType, Popup } from '../models/popup'
 import { SuccessfulMerge } from './banners'
 
