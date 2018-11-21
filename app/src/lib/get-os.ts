@@ -28,7 +28,7 @@ export function isMojaveOrLater() {
     }
 
     const parts = os.version.split('.')
-    if (parts.length !== 2) {
+    if (parts.length < 2) {
       // unknown version format, giving up
       return false
     }
