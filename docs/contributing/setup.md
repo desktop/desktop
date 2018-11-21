@@ -2,102 +2,12 @@
 
 ## Setup
 
-You will need to install these tools on your machine:
+Check out the instructions based on your chosen operating system:
 
-### macOS
-
-See [mac-deps-setup.md](./setup-macos.md).
-
-### Windows
-
- - [Node.js v8.12.0](https://nodejs.org/dist/v8.12.0/)
-    - *Make sure you allow the Node.js installer to add node to the PATH.*
- - [Python 2.7](https://www.python.org/downloads/windows/)
-    - *Let Python install into the default suggested path (`c:\Python27`), otherwise you'll have
-      to configure node-gyp manually with the path which is annoying.*
-    - *Ensure the **Add python.exe to Path** option is selected.*
- - One of Visual Studio 2015, Visual C++ Build Tools or Visual Studio 2017
-   - [Visual C++ Build Tools](http://go.microsoft.com/fwlink/?LinkId=691126)
-     - *Run `npm config set msvs_version 2015` to tell node to use this toolchain.*
-   - Visual Studio 2015
-     - *Ensure you select the **Common Tools for Visual C++ 2015** feature as that is required by Node.js
-        for installing native modules.*
-     - *Run `npm config set msvs_version 2015` to tell node to use this toolchain.*
-   - [Visual Studio 2017](https://www.visualstudio.com/vs/community/)
-     - *Ensure you select the **Desktop development with C++** feature as that is required by Node.js for
-        installing native modules.*
-     - *Run `npm config set msvs_version 2017` to tell node to use this toolchain.*
-
-### Fedora 26
-
-First, add the NodeJS package repository for 8.x.
-
-```shellsession
-$ curl --silent --location https://rpm.nodesource.com/setup_8.x | sudo bash -
-```
-
-After that, install the dependencies to build and test the app:
-
-```shellsession
-$ sudo dnf install -y nodejs gcc-c++ make libsecret-devel libXScrnSaver
-```
-
-If you want to package Desktop for distribution, you will need these additional dependencies:
-
-```shellsession
-$ sudo dnf install fakeroot dpkg rpm rpm-build xz xorriso appstream bzip2-devel
-```
-
-If you have problems packaging for AppImage, you may need to force the linker to use the right
-version of specific dependencies. More information [here](https://michaelheap.com/error-while-loading-shared-libraries-libbz2-so-1-0-cannot-open-shared-object-file-on-centos-7)
-and [here](https://github.com/electron-userland/electron-builder/issues/993#issuecomment-291021974)
-
-```shellsession
-$ sudo ln -s `find /usr/lib64/ -type f -name "libbz2.so.1*"` /usr/lib64/libbz2.so.1.0
-$ sudo ln -s `find /usr/lib64/ -type f -name "libreadline.so.7.0"` /usr/lib64/libreadline.so.6
-```
-
-### Ubuntu 16.04
-
-First, install curl and a GPG program:
-
-```shellsession
-$ sudo apt install curl gnupg
-```
-
-Then add the NodeJS package repository for 8.x:
-
-```shellsession
-$ curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
-```
-
-After that, install the dependencies to build and test the app:
-
-```shellsession
-$ sudo apt update && sudo apt install -y nodejs gcc make libsecret-1-dev
-```
-
-If you want to package Desktop for distribution, install these packages:
-
-```shellsession
-$ sudo apt install -y fakeroot dpkg rpm xz-utils xorriso zsync
-```
-
-### arm64 builds
-
-Desktop can be built and run on arm64 (aarch64) hardware such as a Raspberry Pi 3.
-In order to build for arm64, you will need the following:
-
-* A computer with a 64-bit ARMv8 processor.
-* A 64-bit OS.  You can use [Ubuntu 16.04](#ubuntu-1604) and then follow the instructions
-on setup there.
-* Instead of running `yarn` to get all required dependencies on your machine, you will
-instead need to run `script/install-arm64-deps.sh`.
-* Before building with `yarn build:dev` or `yarn build:prod`, you will need to
-set the environment variable `TARGET_ARCH` to `arm64` eg:
-```shellsession
-export TARGET_ARCH=arm64
-```
+ - [macOS](./setup-macos.md)
+ - [Windows](./setup-windows.md)
+ - [Linux](./setup-linux.md)
+ - [ARM64](./setup-arm64.md)
 
 ## Install Yarn
 
