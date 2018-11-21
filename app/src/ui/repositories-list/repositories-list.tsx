@@ -11,7 +11,6 @@ import { FilterList } from '../lib/filter-list'
 import { IMatches } from '../../lib/fuzzy-find'
 import { assertNever } from '../../lib/fatal-error'
 import { ILocalRepositoryState } from '../../models/repository'
-import { enableRepoInfoIndicators } from '../../lib/feature-flag'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Button } from '../lib/button'
 import { Octicon, OcticonSymbol } from '../octicons'
@@ -112,14 +111,12 @@ export class RepositoriesList extends React.Component<
   }
 
   private onItemClick = (item: IRepositoryListItem) => {
-    if (enableRepoInfoIndicators()) {
-      const hasIndicator =
-        item.changedFilesCount > 0 ||
-        (item.aheadBehind !== null
-          ? item.aheadBehind.ahead > 0 || item.aheadBehind.behind > 0
-          : false)
-      this.props.dispatcher.recordRepoClicked(hasIndicator)
-    }
+    const hasIndicator =
+      item.changedFilesCount > 0 ||
+      (item.aheadBehind !== null
+        ? item.aheadBehind.ahead > 0 || item.aheadBehind.behind > 0
+        : false)
+    this.props.dispatcher.recordRepoClicked(hasIndicator)
     this.props.onSelectionChanged(item.repository)
   }
 

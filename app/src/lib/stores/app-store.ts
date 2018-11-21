@@ -164,7 +164,6 @@ import { getWindowState, WindowState } from '../window-state'
 import { TypedBaseStore } from './base-store'
 import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
 import {
-  enableRepoInfoIndicators,
   enableMergeConflictDetection,
   enableMergeConflictsDialog,
 } from '../feature-flag'
@@ -1969,10 +1968,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private async refreshIndicatorsForRepositories(
     repositories: ReadonlyArray<Repository>
   ): Promise<void> {
-    if (!enableRepoInfoIndicators()) {
-      return
-    }
-
     const startTime = performance && performance.now ? performance.now() : null
 
     for (const repo of repositories) {

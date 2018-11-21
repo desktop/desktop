@@ -37,11 +37,6 @@ export function enableNotificationOfBranchUpdates(): boolean {
   return true
 }
 
-/** Should the repository list display info indicators? */
-export function enableRepoInfoIndicators(): boolean {
-  return true
-}
-
 /** Should the app try and detect conflicts before the user stumbles into them? */
 export function enableMergeConflictDetection(): boolean {
   return true
