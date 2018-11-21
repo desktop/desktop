@@ -31,7 +31,6 @@ export class Changes extends React.Component<IChangesProps, {}> {
       <div className="changed-file">
         <ChangedFileDetails
           path={file.path}
-          oldPath={file.oldPath}
           status={file.status}
           diff={diff}
           onOpenMergeTool={this.onOpenMergeTool}

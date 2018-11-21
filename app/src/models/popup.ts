@@ -38,6 +38,7 @@ export enum PopupType {
   DeletePullRequest,
   MergeConflicts,
   AbortMerge,
+  UsageReportingChanges,
 }
 
 export type Popup =
@@ -133,3 +134,4 @@ export type Popup =
       ourBranch: string
       theirBranch?: string
     }
+  | { type: PopupType.UsageReportingChanges }

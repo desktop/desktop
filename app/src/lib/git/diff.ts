@@ -7,7 +7,7 @@ import { Repository } from '../../models/repository'
 import {
   WorkingDirectoryFileChange,
   FileChange,
-  AppFileStatus,
+  AppFileStatusKind,
 } from '../../models/status'
 import {
   DiffType,
@@ -24,6 +24,7 @@ import {
 import { spawnAndComplete } from './spawn'
 
 import { DiffParser } from '../diff-parser'
+import { getOldPathOrDefault } from '../get-old-path'
 
 /**
  * V8 has a limit on the size of string it can create (~256MB), and unless we want to
@@ -111,8 +112,11 @@ export async function getCommitDiff(
     file.path,
   ]
 
-  if (file.oldPath != null) {
-    args.push(file.oldPath)
+  if (
+    file.status.kind === AppFileStatusKind.Renamed ||
+    file.status.kind === AppFileStatusKind.Copied
+  ) {
+    args.push(file.status.oldPath)
   }
 
   const { output } = await spawnAndComplete(
@@ -139,7 +143,7 @@ export async function getWorkingDirectoryDiff(
   // `--no-ext-diff` should be provided wherever we invoke `git diff` so that any
   // diff.external program configured by the user is ignored
 
-  if (file.status === AppFileStatus.New) {
+  if (file.status.kind === AppFileStatusKind.New) {
     // `git diff --no-index` seems to emulate the exit codes from `diff` irrespective of
     // whether you set --exit-code
     //
@@ -162,7 +166,7 @@ export async function getWorkingDirectoryDiff(
       '/dev/null',
       file.path,
     ]
-  } else if (file.status === AppFileStatus.Renamed) {
+  } else if (file.status.kind === AppFileStatusKind.Renamed) {
     // NB: Technically this is incorrect, the best kind of incorrect.
     // In order to show exactly what will end up in the commit we should
     // perform a diff between the new file and the old file as it appears
@@ -216,39 +220,39 @@ async function getImageDiff(
     // No idea what to do about this, a conflicted binary (presumably) file.
     // Ideally we'd show all three versions and let the user pick but that's
     // a bit out of scope for now.
-    if (file.status === AppFileStatus.Conflicted) {
+    if (file.status.kind === AppFileStatusKind.Conflicted) {
       return { kind: DiffType.Image }
     }
 
     // Does it even exist in the working directory?
-    if (file.status !== AppFileStatus.Deleted) {
+    if (file.status.kind !== AppFileStatusKind.Deleted) {
       current = await getWorkingDirectoryImage(repository, file)
     }
 
-    if (file.status !== AppFileStatus.New) {
+    if (file.status.kind !== AppFileStatusKind.New) {
       // If we have file.oldPath that means it's a rename so we'll
       // look for that file.
       previous = await getBlobImage(
         repository,
-        file.oldPath || file.path,
+        getOldPathOrDefault(file),
         'HEAD'
       )
     }
   } else {
     // File status can't be conflicted for a file in a commit
-    if (file.status !== AppFileStatus.Deleted) {
+    if (file.status.kind !== AppFileStatusKind.Deleted) {
       current = await getBlobImage(repository, file.path, commitish)
     }
 
     // File status can't be conflicted for a file in a commit
-    if (file.status !== AppFileStatus.New) {
+    if (file.status.kind !== AppFileStatusKind.New) {
       // TODO: commitish^ won't work for the first commit
       //
       // If we have file.oldPath that means it's a rename so we'll
       // look for that file.
       previous = await getBlobImage(
         repository,
-        file.oldPath || file.path,
+        getOldPathOrDefault(file),
         `${commitish}^`
       )
     }

@@ -94,6 +94,7 @@ export interface IAppState {
   readonly appIsFocused: boolean
 
   readonly showWelcomeFlow: boolean
+  readonly focusCommitMessage: boolean
   readonly currentPopup: Popup | null
   readonly currentFoldout: Foldout | null
 
@@ -312,6 +313,12 @@ export interface IRepositoryState {
    * null if no such operation is in flight.
    */
   readonly revertProgress: IRevertProgress | null
+
+  /** The current branch filter text. */
+  readonly branchFilterText: string
+
+  /** The current pull request filter text. */
+  readonly pullRequestFilterText: string
 }
 
 export interface IBranchesState {

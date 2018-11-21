@@ -8,25 +8,29 @@ import { GitStatusEntry, UnmergedEntry } from './status'
  * binary, which need to be reviewed by the user and a decision made.
  */
 export type ConflictFileStatus =
-  | {
-      readonly kind: 'text'
-      /**
-       *  This number should be greater than zero
-       *  or null if the file has a non-markered conflict (like added vs removed)
-       */
-      readonly conflictMarkerCount: number | null
-      /** The state of the file in the current branch */
-      readonly us?: GitStatusEntry
-      /** THe state of the file in the other branch */
-      readonly them?: GitStatusEntry
-    }
-  | {
-      readonly kind: 'binary'
-      /** The state of the file in the current branch */
-      readonly us: GitStatusEntry
-      /** THe state of the file in the other branch */
-      readonly them: GitStatusEntry
-    }
+  | IConflictTextFileStatus
+  | IConflictBinaryFileStatus
+
+export interface IConflictTextFileStatus {
+  readonly kind: 'text'
+  /**
+   *  This number should be greater than zero
+   *  or null if the file has a non-markered conflict (like added vs removed)
+   */
+  readonly conflictMarkerCount: number | null
+  /** The state of the file in the current branch */
+  readonly us?: GitStatusEntry
+  /** THe state of the file in the other branch */
+  readonly them?: GitStatusEntry
+}
+
+export interface IConflictBinaryFileStatus {
+  readonly kind: 'binary'
+  /** The state of the file in the current branch */
+  readonly us: GitStatusEntry
+  /** THe state of the file in the other branch */
+  readonly them: GitStatusEntry
+}
 
 /**
  * Meshing together the path and status information for a conflicted file,

@@ -175,6 +175,20 @@ interface IOnboardingStats {
   readonly welcomeWizardSignInMethod?: 'basic' | 'web'
 }
 
+/**
+ * Returns the account id of the current user's GitHub.com account or null if the user
+ * is not currently signed in to GitHub.com.
+ *
+ * @param accounts The active accounts stored in Desktop
+ */
+function findDotComAccountId(accounts: ReadonlyArray<Account>): number | null {
+  const gitHubAccount = accounts.find(
+    a => a.endpoint === getDotComAPIEndpoint()
+  )
+
+  return gitHubAccount !== undefined ? gitHubAccount.id : null
+}
+
 interface ICalculatedStats {
   /** The app version. */
   readonly version: string
@@ -272,8 +286,11 @@ export class StatsStore {
     const now = Date.now()
     const stats = await this.getDailyStats(accounts, repositories)
 
+    const user_id = findDotComAccountId(accounts)
+    const payload = user_id === null ? stats : { ...stats, user_id }
+
     try {
-      const response = await this.post(stats)
+      const response = await this.post(payload)
       if (!response.ok) {
         throw new Error(
           `Unexpected status: ${response.statusText} (${response.status})`
@@ -574,14 +591,17 @@ export class StatsStore {
   }
 
   /** Set whether the user has opted out of stats reporting. */
-  public async setOptOut(optOut: boolean): Promise<void> {
+  public async setOptOut(
+    optOut: boolean,
+    userViewedPrompt: boolean
+  ): Promise<void> {
     const changed = this.optOut !== optOut
 
     this.optOut = optOut
 
     setBoolean(StatsOptOutKey, optOut)
 
-    if (changed) {
+    if (changed || userViewedPrompt) {
       await this.sendOptInStatusPing(!optOut)
     }
   }
@@ -616,7 +636,7 @@ export class StatsStore {
 
   /**
    * Record that user initiated a merge after getting to compare view
-   * from within notificatio banner
+   * from within notification banner
    */
   public async recordDivergingBranchBannerInfluencedMerge(): Promise<void> {
     return this.updateDailyMeasures(m => ({

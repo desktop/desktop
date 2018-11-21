@@ -12,6 +12,11 @@
     "noEmit": true,
     "outDir": "./out"
   },
+  "plugins": [
+    {
+      "name": "typescript-tslint-plugin"
+    }
+  ],
   "include": [
     "app/**/*.ts",
     "app/**/*.tsx",
