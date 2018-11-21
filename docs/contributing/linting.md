@@ -6,9 +6,9 @@
 
 Our linting tooling uses a combination of
 
-* [prettier](https://github.com/prettier/prettier)
-* [eslint](https://github.com/eslint/eslint)
-* [tslint](https://github.com/palantir/tslint).
+* [Prettier](https://github.com/prettier/prettier)
+* [ESLint](https://github.com/eslint/eslint)
+* [TSLint](https://github.com/palantir/tslint).
 
 Most (if not all) editors have integrations for these tools so that they will report errors and fix formatting in realtime. See [tooling](./tooling.md) for how to set these integrations up while developing for desktop.
 
