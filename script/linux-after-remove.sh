@@ -5,9 +5,9 @@ PROFILE_D_FILE="/etc/profile.d/github-desktop.sh"
 
 case "$1" in
     purge|remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
-      echo "#!/bin/sh" > ${PROFILE_D_FILE};
-      . ${PROFILE_D_FILE};
-      rm ${PROFILE_D_FILE};
+      echo "#!/bin/sh" > "${PROFILE_D_FILE}";
+      . "${PROFILE_D_FILE}";
+      rm "${PROFILE_D_FILE}";
     ;;
 
     *)
