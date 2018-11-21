@@ -209,14 +209,6 @@ declare namespace Electron {
       type: 'string'
     ): AppleActionOnDoubleClickPref
   }
-
-  // Remove after updating to Electron 2.0.13+
-  interface SystemPreferences {
-    subscribeNotification(
-      key: 'AppleInterfaceThemeChangedNotification',
-      callback: (event: string, userInfo: any) => void
-    ): number
-  }
 }
 
 // https://wicg.github.io/ResizeObserver/#resizeobserverentry
