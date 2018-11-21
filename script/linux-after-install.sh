@@ -2,7 +2,7 @@
 
 set -e
 
-PROFILE_D_FILE="/etc/profile.d/${productFilename}.sh"
+PROFILE_D_FILE="/etc/profile.d/github-desktop.sh"
 INSTALL_DIR="/opt/${productFilename}"
 SCRIPT="#!/bin/sh
 export PATH=$INSTALL_DIR:\$PATH"

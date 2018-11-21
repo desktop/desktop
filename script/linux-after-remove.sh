@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-PROFILE_D_FILE="/etc/profile.d/${productFilename}.sh"
+PROFILE_D_FILE="/etc/profile.d/github-desktop.sh"
 
 case "$1" in
     purge|remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
