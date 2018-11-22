@@ -30,6 +30,7 @@ These editors are currently supported:
  - [ColdFusion Builder](https://www.adobe.com/products/coldfusion-builder.html)
  - [Typora](https://typora.io/)
  - [SlickEdit](https://www.slickedit.com)
+ - [JetBrains WebStorm](https://www.jetbrains.com/webstorm/)
 
 These are defined in an enum at the top of the file:
 
