@@ -228,7 +228,7 @@ export class MergeConflictsDialog extends React.Component<
       )
     }
     return content !== null ? (
-      <li className="unmerged-file-status-conflicts">
+      <li key={path} className="unmerged-file-status-conflicts">
         <Octicon symbol={OcticonSymbol.fileCode} className="file-octicon" />
         {content}
       </li>
