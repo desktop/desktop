@@ -230,7 +230,7 @@ function getRegistryKeys(
             'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{7CC0E567-ACD6-41E8-95DA-154CEEDB0A18}',
         },
       ]
-      case ExternalEditor.Webstorm:
+    case ExternalEditor.Webstorm:
       return [
         // 32-bit version of WebStorm
         {
@@ -319,7 +319,9 @@ function isExpectedInstallation(
         displayName.startsWith('SlickEdit') && publisher === 'SlickEdit Inc.'
       )
     case ExternalEditor.Webstorm:
-      return displayName.startsWith('WebStorm') && publisher === 'JetBrains s.r.o.'
+      return (
+        displayName.startsWith('WebStorm') && publisher === 'JetBrains s.r.o.'
+      )
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
