@@ -264,12 +264,11 @@ export class CloneRepository extends React.Component<
               onPathChanged={this.updateAndValidatePath}
               onGitHubRepositorySelected={this.updateUrl}
               onChooseDirectory={this.onChooseDirectory}
-              shouldClearFilter={
-                this.state.shouldClearFilter
-              } /* todo: remove */
               repositories={repositories}
               loading={loading}
               onRefreshRepositories={this.props.onRefreshRepositories}
+              filterText={tabState.filterText}
+              onFilterTextChanged={this.onFilterTextChanged}
             />
           )
         }
@@ -354,6 +353,23 @@ export class CloneRepository extends React.Component<
     }
   }
 
+  private setGitHubTabState<K extends keyof IGitHubTabState>(
+    tabState: Pick<IGitHubTabState, K>,
+    tab: CloneRepositoryTab.DotCom | CloneRepositoryTab.Enterprise
+  ): void {
+    if (tab === CloneRepositoryTab.DotCom) {
+      this.setState(prevState => ({
+        dotComTabState: merge(prevState.dotComTabState, tabState),
+      }))
+    } else if (tab === CloneRepositoryTab.Enterprise) {
+      this.setState(prevState => ({
+        enterpriseTabState: merge(prevState.enterpriseTabState, tabState),
+      }))
+    } else {
+      return assertNever(tab, `Unknown tab: ${tab}`)
+    }
+  }
+
   private renderSignIn(tab: CloneRepositoryTab) {
     const signInTitle = __DARWIN__ ? 'Sign In' : 'Sign in'
     switch (tab) {
@@ -411,6 +427,12 @@ export class CloneRepository extends React.Component<
       this.setTabState({ error }, tab)
     } else {
       this.setTabState({ error: null }, tab)
+    }
+  }
+
+  private onFilterTextChanged = (filterText: string) => {
+    if (this.props.selectedTab !== CloneRepositoryTab.Generic) {
+      this.setGitHubTabState({ filterText }, this.props.selectedTab)
     }
   }
 

@@ -36,12 +36,11 @@ interface ICloneGithubRepositoryProps {
   /** Called when a repository is selected. */
   readonly onGitHubRepositorySelected: (url: string) => void
 
-  /** Should the component clear the filter text on render? */
-  readonly shouldClearFilter: boolean
-
   readonly repositories: ReadonlyArray<IAPIRepository> | null
   readonly loading: boolean
   readonly onRefreshRepositories: (account: Account) => void
+  readonly filterText: string
+  readonly onFilterTextChanged: (filterText: string) => void
 }
 
 interface ICloneGithubRepositoryState {
@@ -52,9 +51,6 @@ interface ICloneGithubRepositoryState {
 
   /** The currently selected item. */
   readonly selectedItem: IClonableRepositoryListItem | null
-
-  /** The currently entered filter text. */
-  readonly filterText: string
 }
 
 const RowHeight = 31
@@ -69,7 +65,6 @@ export class CloneGithubRepository extends React.Component<
     this.state = {
       repositories: [],
       selectedItem: null,
-      filterText: '',
     }
   }
 
@@ -94,14 +89,6 @@ export class CloneGithubRepository extends React.Component<
         : groupRepositories(this.props.repositories, this.props.account.login)
 
     this.setState({ repositories })
-  }
-
-  public componentWillReceiveProps(nextProps: ICloneGithubRepositoryProps) {
-    if (nextProps.shouldClearFilter) {
-      this.setState({
-        filterText: '',
-      })
-    }
   }
 
   public render() {
@@ -141,8 +128,8 @@ export class CloneGithubRepository extends React.Component<
         onSelectionChanged={this.onSelectionChanged}
         invalidationProps={this.state.repositories}
         groups={this.state.repositories}
-        filterText={this.state.filterText}
-        onFilterTextChanged={this.onFilterTextChanged}
+        filterText={this.props.filterText}
+        onFilterTextChanged={this.props.onFilterTextChanged}
         renderNoItems={this.noMatchingRepositories}
       />
     )
@@ -154,10 +141,6 @@ export class CloneGithubRepository extends React.Component<
         Sorry, I can't find that repository.
       </div>
     )
-  }
-
-  private onFilterTextChanged = (filterText: string) => {
-    this.setState({ filterText })
   }
 
   private onSelectionChanged = (item: IClonableRepositoryListItem | null) => {
