@@ -1,56 +1,45 @@
 # Setting Up Development Dependencies on Linux
 
-### Fedora 26
+You will need to install these tools on your machine:
 
-First, add the NodeJS package repository for 8.x.
+ - Node.js v8.12.0 (also ensure you can build native modules)
+ - Python 2.7
+ - Electron dependencies
 
-```shellsession
-$ curl --silent --location https://rpm.nodesource.com/setup_8.x | sudo bash -
-```
+## Node.js
 
-After that, install the dependencies to build and test the app:
+The GitHub Desktop toolchain currently requires Node 8.x currently, and the
+NodeJS project has instructions for installing across a variety of
+distributions and package managers.
 
-```shellsession
-$ sudo dnf install -y nodejs gcc-c++ make libsecret-devel libXScrnSaver
-```
+Find your distribution on [this list](https://nodejs.org/en/download/package-manager/)
+and follow the instructions to install the version you require.
 
-If you want to package Desktop for distribution, you will need these additional dependencies:
+## Python 2
 
-```shellsession
-$ sudo dnf install fakeroot dpkg rpm rpm-build xz xorriso appstream bzip2-devel
-```
+Refer to your distributions package manager to obtain the latest version of the
+Python 2 series.
 
-If you have problems packaging for AppImage, you may need to force the linker to use the right
-version of specific dependencies. More information [here](https://michaelheap.com/error-while-loading-shared-libraries-libbz2-so-1-0-cannot-open-shared-object-file-on-centos-7)
-and [here](https://github.com/electron-userland/electron-builder/issues/993#issuecomment-291021974)
+## Electron dependencies
 
-```shellsession
-$ sudo ln -s `find /usr/lib64/ -type f -name "libbz2.so.1*"` /usr/lib64/libbz2.so.1.0
-$ sudo ln -s `find /usr/lib64/ -type f -name "libreadline.so.7.0"` /usr/lib64/libreadline.so.6
-```
+There are some additional dependencies which are required as part of building
+and running GitHub Desktop locally:
 
-### Ubuntu 16.04
+ - `libsecret-1.so.0` for reading and writing credentials using [`keytar`](https://github.com/atom/node-keytar)
+ - `libXss.so.1` - the library for the X11 screen saver extension
 
-First, install curl and a GPG program:
+Where to find these will vary based on your distribution, but below are some
+examples of distributions we've tested.
 
-```shellsession
-$ sudo apt install curl gnupg
-```
-
-Then add the NodeJS package repository for 8.x:
+### Fedora 26 and later
 
 ```shellsession
-$ curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
+$ sudo dnf install -y libsecret-devel libXScrnSaver
 ```
 
-After that, install the dependencies to build and test the app:
+### Ubuntu 14.04 and later
 
 ```shellsession
-$ sudo apt update && sudo apt install -y nodejs gcc make libsecret-1-dev
+$ sudo apt install libsecret-1-dev
 ```
 
-If you want to package Desktop for distribution, install these packages:
-
-```shellsession
-$ sudo apt install -y fakeroot dpkg rpm xz-utils xorriso zsync
-```
