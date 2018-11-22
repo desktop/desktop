@@ -12,21 +12,6 @@ Experimental support for building Desktop is also available for these platforms:
 
  - [ARM64](./building-arm64.md)
 
-## Install Yarn
-
-After doing this setup, you also need to install `yarn` as Desktop uses
-this for managing packages instead of NPM. **Do not install `yarn` through
-NPM**. Refer to the [install instructions](https://yarnpkg.com/en/docs/install)
-for your OS.
-
-This is important because `yarn` uses lock files to pin dependencies. If you
-find yourself changing packages, this will prevent mismatches in versions
-between machines.
-
-If you're not familiar with `yarn`, please read [this document](./working-with-packages.md)
-to help familiarize yourself with how to do the common package tasks that are
-relevant to Desktop.
-
 ## Verification
 
 Then verify you have these commands available in your shell and that the found

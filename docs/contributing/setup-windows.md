@@ -3,6 +3,7 @@
 You will need to install these tools on your machine:
 
  - Node.js v8.12.0
+ - Yarn
  - Python 2.7
  - Visual C++ Build Tools
 
@@ -35,6 +36,20 @@ the top of your current install.
 ### I need to use different versions of Node.js in different projects!
 
 _TODO: what options do we have here for Windows?_
+
+## Yarn
+
+Follow [this guide](https://yarnpkg.com/en/docs/install#windows-stable) to install
+a system-level `yarn`. GitHub Desktop uses a local version of `yarn`, but it
+needs a version on your `PATH` to bootstrap itself.
+
+This is important because `yarn` uses lock files to pin dependencies. If you
+find yourself changing packages, this will prevent mismatches in versions
+between machines.
+
+If you're not familiar with `yarn`, please read [this document](./working-with-packages.md)
+to help familiarize yourself with how to do the common package tasks that are
+relevant to Desktop.
 
 ## Python
 
