@@ -262,7 +262,8 @@ export class CloneRepository extends React.Component<
               path={tabState.path}
               account={account}
               onPathChanged={this.updateAndValidatePath}
-              onGitHubRepositorySelected={this.updateUrl}
+              selectedItem={tabState.selectedItem}
+              onSelectionChanged={this.onSelectionChanged}
               onChooseDirectory={this.onChooseDirectory}
               repositories={repositories}
               loading={loading}
@@ -433,6 +434,12 @@ export class CloneRepository extends React.Component<
   private onFilterTextChanged = (filterText: string) => {
     if (this.props.selectedTab !== CloneRepositoryTab.Generic) {
       this.setGitHubTabState({ filterText }, this.props.selectedTab)
+    }
+  }
+
+  private onSelectionChanged = (selectedItem: IAPIRepository | null) => {
+    if (this.props.selectedTab !== CloneRepositoryTab.Generic) {
+      this.setGitHubTabState({ selectedItem }, this.props.selectedTab)
     }
   }
 

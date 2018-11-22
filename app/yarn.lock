@@ -680,6 +680,11 @@ mem@^0.1.0:
   resolved "https://registry.yarnpkg.com/mem/-/mem-0.1.1.tgz#24df988c3102b03c074c1b296239c5b2e6647825"
   integrity sha1-JN+YjDECsDwHTBspYjnFsuZkeCU=
 
+memoize-one@^4.0.3:
+  version "4.0.3"
+  resolved "https://registry.yarnpkg.com/memoize-one/-/memoize-one-4.0.3.tgz#cdfdd942853f1a1b4c71c5336b8c49da0bf0273c"
+  integrity sha512-QmpUu4KqDmX0plH4u+tf0riMc1KHE1+lw95cMrLlXQAFOx/xnBtwhZ52XJxd9X2O6kwKBqX32kmhbhlobD0cuw==
+
 mime-db@~1.30.0:
   version "1.30.0"
   resolved "https://registry.yarnpkg.com/mime-db/-/mime-db-1.30.0.tgz#74c643da2dd9d6a45399963465b26d5ca7d71f01"

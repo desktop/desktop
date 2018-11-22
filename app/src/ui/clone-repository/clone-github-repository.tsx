@@ -17,6 +17,7 @@ import {
   YourRepositoriesIdentifier,
 } from './group-repositories'
 import { HighlightText } from '../lib/highlight-text'
+import memoizeOne from 'memoize-one'
 
 interface ICloneGithubRepositoryProps {
   /** The account to clone from. */
@@ -33,62 +34,65 @@ interface ICloneGithubRepositoryProps {
    */
   readonly onChooseDirectory: () => Promise<string | undefined>
 
+  readonly selectedItem: IAPIRepository | null
+
   /** Called when a repository is selected. */
-  readonly onGitHubRepositorySelected: (url: string) => void
+  readonly onSelectionChanged: (selectedItem: IAPIRepository | null) => void
 
   readonly repositories: ReadonlyArray<IAPIRepository> | null
   readonly loading: boolean
   readonly onRefreshRepositories: (account: Account) => void
   readonly filterText: string
   readonly onFilterTextChanged: (filterText: string) => void
-}
-
-interface ICloneGithubRepositoryState {
-  /** The list of clonable repositories. */
-  readonly repositories: ReadonlyArray<
-    IFilterListGroup<IClonableRepositoryListItem>
-  >
 
   /** The currently selected item. */
-  readonly selectedItem: IClonableRepositoryListItem | null
 }
 
+interface ICloneGithubRepositoryState {}
+
 const RowHeight = 31
+
+function findMatchingListItem(
+  groups: ReadonlyArray<IFilterListGroup<IClonableRepositoryListItem>>,
+  selectedRepository: IAPIRepository | null
+) {
+  if (selectedRepository !== null) {
+    for (const group of groups) {
+      for (const item of group.items) {
+        if (item.url === selectedRepository.clone_url) {
+          return item
+        }
+      }
+    }
+  }
+
+  return null
+}
 
 export class CloneGithubRepository extends React.Component<
   ICloneGithubRepositoryProps,
   ICloneGithubRepositoryState
 > {
-  public constructor(props: ICloneGithubRepositoryProps) {
-    super(props)
+  private getRepositoryGroups = memoizeOne(
+    (
+      repositories: ReadonlyArray<IAPIRepository> | null,
+      selectedItem: IAPIRepository | null
+    ) => {
+      const groups =
+        this.props.repositories === null || this.props.repositories.length === 0
+          ? []
+          : groupRepositories(this.props.repositories, this.props.account.login)
 
-    this.state = {
-      repositories: [],
-      selectedItem: null,
+      const selectedListItem = findMatchingListItem(groups, selectedItem)
+
+      return { groups, selectedItem: selectedListItem }
     }
-  }
+  )
 
   public componentDidMount() {
     if (this.props.repositories === null) {
       this.props.onRefreshRepositories(this.props.account)
-    } else {
-      this.loadRepositories()
     }
-  }
-
-  public componentDidUpdate(prevProps: ICloneGithubRepositoryProps) {
-    if (prevProps.repositories !== this.props.repositories) {
-      this.loadRepositories()
-    }
-  }
-
-  private async loadRepositories() {
-    const repositories =
-      this.props.repositories === null || this.props.repositories.length === 0
-        ? []
-        : groupRepositories(this.props.repositories, this.props.account.login)
-
-    this.setState({ repositories })
   }
 
   public render() {
@@ -118,16 +122,21 @@ export class CloneGithubRepository extends React.Component<
       )
     }
 
+    const { selectedItem, groups } = this.getRepositoryGroups(
+      this.props.repositories,
+      this.props.selectedItem
+    )
+
     return (
       <FilterList<IClonableRepositoryListItem>
         className="clone-github-repo"
         rowHeight={RowHeight}
-        selectedItem={this.state.selectedItem}
+        selectedItem={selectedItem}
         renderItem={this.renderItem}
         renderGroupHeader={this.renderGroupHeader}
         onSelectionChanged={this.onSelectionChanged}
-        invalidationProps={this.state.repositories}
-        groups={this.state.repositories}
+        invalidationProps={groups}
+        groups={groups}
         filterText={this.props.filterText}
         onFilterTextChanged={this.props.onFilterTextChanged}
         renderNoItems={this.noMatchingRepositories}
@@ -144,8 +153,13 @@ export class CloneGithubRepository extends React.Component<
   }
 
   private onSelectionChanged = (item: IClonableRepositoryListItem | null) => {
-    this.setState({ selectedItem: item })
-    this.props.onGitHubRepositorySelected(item != null ? item.url : '')
+    if (item === null || this.props.repositories === null) {
+      this.props.onSelectionChanged(null)
+    } else {
+      this.props.onSelectionChanged(
+        this.props.repositories.find(r => r.clone_url === item.url) || null
+      )
+    }
   }
 
   private onPathChanged = (path: string) => {
