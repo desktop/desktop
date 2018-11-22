@@ -81,6 +81,12 @@ export class CloneGithubRepository extends React.Component<
     }
   }
 
+  public componentDidUpdate(prevProps: ICloneGithubRepositoryProps) {
+    if (prevProps.repositories !== this.props.repositories) {
+      this.loadRepositories()
+    }
+  }
+
   private async loadRepositories() {
     const repositories =
       this.props.repositories === null || this.props.repositories.length === 0
@@ -95,10 +101,6 @@ export class CloneGithubRepository extends React.Component<
       this.setState({
         filterText: '',
       })
-    }
-
-    if (nextProps.repositories !== this.props.repositories) {
-      this.loadRepositories()
     }
   }
 
