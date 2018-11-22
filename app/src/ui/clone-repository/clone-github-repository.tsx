@@ -103,7 +103,7 @@ export class CloneGithubRepository extends React.Component<
             placeholder="repository path"
             onValueChanged={this.onPathChanged}
           />
-          <Button onClick={this.onChooseDirectory}>Choose…</Button>
+          <Button onClick={this.props.onChooseDirectory}>Choose…</Button>
         </Row>
       </DialogContent>
     )
@@ -146,14 +146,6 @@ export class CloneGithubRepository extends React.Component<
   private onSelectionChanged = (item: IClonableRepositoryListItem | null) => {
     this.setState({ selectedItem: item })
     this.props.onGitHubRepositorySelected(item != null ? item.url : '')
-  }
-
-  private onChooseDirectory = async () => {
-    const path = await this.props.onChooseDirectory()
-
-    if (path) {
-      this.props.onPathChanged(path)
-    }
   }
 
   private onPathChanged = (path: string) => {
