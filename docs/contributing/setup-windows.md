@@ -35,7 +35,31 @@ the top of your current install.
 
 ### I need to use different versions of Node.js in different projects!
 
-_TODO: what options do we have here for Windows?_
+We currently support `nvm`.
+
+#### Configuring `nvm`
+
+1. Install `nvm` using the instructions [here](https://github.com/coreybutler/nvm-windows).
+
+2. Within the Desktop source directory, install version of Node.js it requires:
+
+```shellsession
+$ nvm install
+```
+
+3. Ensure you are running the right version:
+
+```shellsession
+$ nvm use
+```
+
+4. Verify you have the right version by running `node -v` again:
+
+```shellsession
+$ node -v
+```
+
+If you see `v8.12.0`, you're good to go.
 
 ## Yarn
 
@@ -70,10 +94,6 @@ don't have any Node tools installed. You can install Python 2.7 from the
  - Let Python install into the default suggested path (`c:\Python27`), otherwise
    you'll have to configure `node-gyp` manually to look at a different path.
  - Ensure the **Add python.exe to Path** option is selected.
-
-### I need to use different versions of Python in different projects!
-
-_TODO: what options do we have here for Windows?_
 
 ## Visual C++ Build Tools
 
