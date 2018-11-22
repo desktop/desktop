@@ -48,8 +48,6 @@ interface ICloneGithubRepositoryProps {
   /** The currently selected item. */
 }
 
-interface ICloneGithubRepositoryState {}
-
 const RowHeight = 31
 
 function findMatchingListItem(
@@ -69,9 +67,8 @@ function findMatchingListItem(
   return null
 }
 
-export class CloneGithubRepository extends React.Component<
-  ICloneGithubRepositoryProps,
-  ICloneGithubRepositoryState
+export class CloneGithubRepository extends React.PureComponent<
+  ICloneGithubRepositoryProps
 > {
   private getRepositoryGroups = memoizeOne(
     (
