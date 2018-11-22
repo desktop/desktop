@@ -14,7 +14,7 @@ import {
   parseRemote,
 } from '../../lib/remote-parsing'
 import { findAccountForRemoteURL } from '../../lib/find-account'
-import { API } from '../../lib/api'
+import { API, IAPIRepository } from '../../lib/api'
 import { Dialog, DialogError, DialogFooter, DialogContent } from '../dialog'
 import { TabBar } from '../tab-bar'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
@@ -24,6 +24,7 @@ import { CloneGithubRepository } from './clone-github-repository'
 import { assertNever } from '../../lib/fatal-error'
 import { CallToAction } from '../lib/call-to-action'
 import { IAccountRepositories } from '../../lib/stores/apiRepositoriesStore'
+import { merge } from '../../lib/merge'
 
 /** The name for the error when the destination already exists. */
 const DestinationExistsErrorName = 'DestinationExistsError'
@@ -52,12 +53,6 @@ interface ICloneRepositoryProps {
 }
 
 interface ICloneRepositoryState {
-  /** The user-entered URL or `owner/name` shortcut. */
-  readonly url: string
-
-  /** The local path to clone to. */
-  readonly path: string
-
   /** A copy of the path state field which is set when the component initializes.
    *
    *  This value, as opposed to the path state variable, doesn't change for the
@@ -72,6 +67,15 @@ interface ICloneRepositoryState {
   /** Are we currently trying to load the entered repository? */
   readonly loading: boolean
 
+  /** Should the component clear the filter text on render? */
+  readonly shouldClearFilter: boolean
+
+  readonly dotComTabState: IGitHubTabState
+  readonly enterpriseTabState: IGitHubTabState
+  readonly urlTabState: IUrlTabState
+}
+
+interface IBaseTabState {
   /** The current error if one occurred. */
   readonly error: Error | null
 
@@ -79,9 +83,21 @@ interface ICloneRepositoryState {
    * The repository identifier that was last parsed from the user-entered URL.
    */
   readonly lastParsedIdentifier: IRepositoryIdentifier | null
+  /** The local path to clone to. */
+  readonly path: string
 
-  /** Should the component clear the filter text on render? */
-  readonly shouldClearFilter: boolean
+  /** The user-entered URL or `owner/name` shortcut. */
+  readonly url: string
+}
+
+interface IUrlTabState extends IBaseTabState {
+  readonly kind: 'urlTabState'
+}
+
+interface IGitHubTabState extends IBaseTabState {
+  readonly kind: 'dotComTabState' | 'enterpriseTabState'
+  readonly filterText: string
+  readonly selectedItem: IAPIRepository | null
 }
 
 /** The component for cloning a repository. */
@@ -94,13 +110,34 @@ export class CloneRepository extends React.Component<
 
     const defaultDirectory = getDefaultDir()
     this.state = {
-      url: this.props.initialURL || '',
-      path: defaultDirectory,
       initialPath: defaultDirectory,
       loading: false,
-      error: null,
-      lastParsedIdentifier: null,
       shouldClearFilter: false,
+      dotComTabState: {
+        kind: 'dotComTabState',
+        error: null,
+        lastParsedIdentifier: null,
+        filterText: '',
+        path: defaultDirectory,
+        selectedItem: null,
+        url: this.props.initialURL || '',
+      },
+      enterpriseTabState: {
+        kind: 'enterpriseTabState',
+        error: null,
+        lastParsedIdentifier: null,
+        filterText: '',
+        path: defaultDirectory,
+        selectedItem: null,
+        url: this.props.initialURL || '',
+      },
+      urlTabState: {
+        kind: 'urlTabState',
+        error: null,
+        lastParsedIdentifier: null,
+        path: defaultDirectory,
+        url: this.props.initialURL || '',
+      },
     }
   }
 
@@ -108,6 +145,12 @@ export class CloneRepository extends React.Component<
     this.setState({
       shouldClearFilter: this.props.selectedTab !== nextProps.selectedTab,
     })
+  }
+
+  public componentDidUpdate(prevProps: ICloneRepositoryProps) {
+    if (prevProps.selectedTab !== this.props.selectedTab) {
+      this.refreshPath()
+    }
   }
 
   public componentDidMount() {
@@ -124,7 +167,7 @@ export class CloneRepository extends React.Component<
   }
 
   public render() {
-    const error = this.state.error
+    const { error } = this.getSelectedTabState()
     return (
       <Dialog
         className="clone-repository"
@@ -160,10 +203,12 @@ export class CloneRepository extends React.Component<
       return null
     }
 
-    const error = this.state.error
+    const tabState = this.getSelectedTabState()
+
+    const error = tabState.error
     const disabled =
-      this.state.url.length === 0 ||
-      this.state.path.length === 0 ||
+      tabState.url.length === 0 ||
+      tabState.path.length === 0 ||
       this.state.loading ||
       (!!error && error.name === DestinationExistsErrorName)
 
@@ -188,10 +233,11 @@ export class CloneRepository extends React.Component<
 
     switch (tab) {
       case CloneRepositoryTab.Generic:
+        const tabState = this.state.urlTabState
         return (
           <CloneGenericRepository
-            path={this.state.path}
-            url={this.state.url}
+            path={tabState.path}
+            url={tabState.url}
             onPathChanged={this.updateAndValidatePath}
             onUrlChanged={this.updateUrl}
             onChooseDirectory={this.onChooseDirectory}
@@ -209,15 +255,18 @@ export class CloneRepository extends React.Component<
             accountState === undefined ? null : accountState.repositories
           const loading =
             accountState === undefined ? false : accountState.loading
+          const tabState = this.getGitHubTabState(tab)
 
           return (
             <CloneGithubRepository
-              path={this.state.path}
+              path={tabState.path}
               account={account}
               onPathChanged={this.updateAndValidatePath}
               onGitHubRepositorySelected={this.updateUrl}
               onChooseDirectory={this.onChooseDirectory}
-              shouldClearFilter={this.state.shouldClearFilter}
+              shouldClearFilter={
+                this.state.shouldClearFilter
+              } /* todo: remove */
               repositories={repositories}
               loading={loading}
               onRefreshRepositories={this.props.onRefreshRepositories}
@@ -238,6 +287,70 @@ export class CloneRepository extends React.Component<
         return this.props.enterpriseAccount
       default:
         return null
+    }
+  }
+
+  private getGitHubTabState(
+    tab: CloneRepositoryTab.DotCom | CloneRepositoryTab.Enterprise
+  ): IGitHubTabState {
+    if (tab === CloneRepositoryTab.DotCom) {
+      return this.state.dotComTabState
+    } else if (tab === CloneRepositoryTab.Enterprise) {
+      return this.state.enterpriseTabState
+    } else {
+      return assertNever(tab, `Unknown tab: ${tab}`)
+    }
+  }
+
+  private getTabState(tab: CloneRepositoryTab): IBaseTabState {
+    if (tab === CloneRepositoryTab.DotCom) {
+      return this.state.dotComTabState
+    } else if (tab === CloneRepositoryTab.Enterprise) {
+      return this.state.enterpriseTabState
+    } else if (tab === CloneRepositoryTab.Generic) {
+      return this.state.urlTabState
+    } else {
+      return assertNever(tab, `Unknown tab: ${tab}`)
+    }
+  }
+
+  private getSelectedTabState(): IBaseTabState {
+    return this.getTabState(this.props.selectedTab)
+  }
+
+  private setSelectedTabState<K extends keyof IBaseTabState>(
+    state: Pick<IBaseTabState, K>
+  ) {
+    this.setTabState(state, this.props.selectedTab)
+  }
+
+  private setTabState<K extends keyof IBaseTabState>(
+    state: Pick<IBaseTabState, K>,
+    tab: CloneRepositoryTab
+  ): void {
+    if (tab === CloneRepositoryTab.DotCom) {
+      this.setState(prevState => ({
+        dotComTabState: merge<IGitHubTabState, keyof IBaseTabState>(
+          prevState.dotComTabState,
+          state
+        ),
+      }))
+    } else if (tab === CloneRepositoryTab.Enterprise) {
+      this.setState(prevState => ({
+        enterpriseTabState: merge<IGitHubTabState, keyof IBaseTabState>(
+          prevState.dotComTabState,
+          state
+        ),
+      }))
+    } else if (tab === CloneRepositoryTab.Generic) {
+      this.setState(prevState => ({
+        urlTabState: merge<IUrlTabState, keyof IBaseTabState>(
+          prevState.urlTabState,
+          state
+        ),
+      }))
+    } else {
+      return assertNever(tab, `Unknown tab: ${tab}`)
     }
   }
 
@@ -280,17 +393,24 @@ export class CloneRepository extends React.Component<
   }
 
   private updateAndValidatePath = async (path: string) => {
-    this.setState({ path })
+    const tab = this.props.selectedTab
+    this.setTabState({ path }, tab)
 
-    const doesDirectoryExist = await this.doesPathExist(path)
+    const doesDirectoryExist = await pathExists(path)
+    const tabState = this.getTabState(tab)
+
+    // If the path changed while we were checking, we don't care anymore.
+    if (tabState.path !== path) {
+      return
+    }
 
     if (doesDirectoryExist) {
       const error: Error = new Error('The destination already exists.')
       error.name = DestinationExistsErrorName
 
-      this.setState({ error })
+      this.setTabState({ error }, tab)
     } else {
-      this.setState({ error: null })
+      this.setTabState({ error: null }, tab)
     }
   }
 
@@ -303,7 +423,8 @@ export class CloneRepository extends React.Component<
       return
     }
 
-    const lastParsedIdentifier = this.state.lastParsedIdentifier
+    const tabState = this.getSelectedTabState()
+    const lastParsedIdentifier = tabState.lastParsedIdentifier
     const directory = lastParsedIdentifier
       ? Path.join(directories[0], lastParsedIdentifier.name)
       : directories[0]
@@ -315,23 +436,24 @@ export class CloneRepository extends React.Component<
 
   private updateUrl = async (url: string) => {
     const parsed = parseRepositoryIdentifier(url)
-    const lastParsedIdentifier = this.state.lastParsedIdentifier
+    const tabState = this.getSelectedTabState()
+    const lastParsedIdentifier = tabState.lastParsedIdentifier
 
     let newPath: string
 
     if (lastParsedIdentifier) {
       if (parsed) {
-        newPath = Path.join(Path.dirname(this.state.path), parsed.name)
+        newPath = Path.join(Path.dirname(tabState.path), parsed.name)
       } else {
-        newPath = Path.dirname(this.state.path)
+        newPath = Path.dirname(tabState.path)
       }
     } else if (parsed) {
-      newPath = Path.join(this.state.path, parsed.name)
+      newPath = Path.join(tabState.path, parsed.name)
     } else {
-      newPath = this.state.path
+      newPath = tabState.path
     }
 
-    this.setState({
+    this.setSelectedTabState({
       url,
       lastParsedIdentifier: parsed,
     })
@@ -339,23 +461,14 @@ export class CloneRepository extends React.Component<
     this.updateAndValidatePath(newPath)
   }
 
-  private async doesPathExist(path: string) {
-    const exists = await pathExists(path)
-    // If the path changed while we were checking, we don't care anymore.
-    if (this.state.path !== path) {
-      return
-    }
-
-    return exists
-  }
-
   /**
    * Lookup the account associated with the clone (if applicable) and resolve
    * the repository alias to the clone URL.
    */
   private async resolveCloneURL(): Promise<string | null> {
-    const identifier = this.state.lastParsedIdentifier
-    let url = this.state.url
+    const tabState = this.getSelectedTabState()
+    const identifier = tabState.lastParsedIdentifier
+    let url = tabState.url
     const accounts: Array<Account> = []
     if (this.props.dotComAccount) {
       accounts.push(this.props.dotComAccount)
@@ -388,13 +501,14 @@ export class CloneRepository extends React.Component<
     this.setState({ loading: true })
 
     const url = await this.resolveCloneURL()
-    const path = this.state.path
+    const { path } = this.getSelectedTabState()
 
     if (!url) {
       const error = new Error(
         `We couldn't find that repository. Check that you are logged in, the network is accessible, and the URL or repository alias are spelled correctly.`
       )
-      this.setState({ loading: false, error })
+      this.setState({ loading: false })
+      this.setSelectedTabState({ error })
       return
     }
 
@@ -402,7 +516,8 @@ export class CloneRepository extends React.Component<
       this.cloneImpl(url.trim(), path)
     } catch (e) {
       log.error(`CloneRepostiory: clone failed to complete to ${path}`, e)
-      this.setState({ loading: false, error: e })
+      this.setState({ loading: false })
+      this.setSelectedTabState({ error: e })
     }
   }
 
@@ -413,20 +528,25 @@ export class CloneRepository extends React.Component<
     setDefaultDir(Path.resolve(path, '..'))
   }
 
-  private onWindowFocus = () => {
-    // Verify the path after focus has been regained in case changes have been made.
-    const isDefaultPath = this.state.initialPath === this.state.path
-    const isURLNotEntered = this.state.url === ''
+  private refreshPath() {
+    const tabState = this.getSelectedTabState()
+    const isDefaultPath = this.state.initialPath === tabState.path
+    const isURLNotEntered = tabState.url === ''
 
     if (isDefaultPath && isURLNotEntered) {
       if (
-        this.state.error !== null &&
-        this.state.error.name === DestinationExistsErrorName
+        tabState.error !== null &&
+        tabState.error.name === DestinationExistsErrorName
       ) {
-        this.setState({ error: null })
+        this.setSelectedTabState({ error: null })
       }
     } else {
-      this.updateAndValidatePath(this.state.path)
+      this.updateAndValidatePath(tabState.path)
     }
+  }
+
+  private onWindowFocus = () => {
+    // Verify the path after focus has been regained in case changes have been made.
+    this.refreshPath()
   }
 }
