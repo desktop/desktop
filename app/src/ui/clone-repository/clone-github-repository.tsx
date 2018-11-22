@@ -34,6 +34,10 @@ interface ICloneGithubRepositoryProps {
    */
   readonly onChooseDirectory: () => Promise<string | undefined>
 
+  /**
+   * The currently selected repository, or null if no repository
+   * is selected.
+   */
   readonly selectedItem: IAPIRepository | null
 
   /** Called when a repository is selected. */
@@ -44,8 +48,6 @@ interface ICloneGithubRepositoryProps {
   readonly onRefreshRepositories: (account: Account) => void
   readonly filterText: string
   readonly onFilterTextChanged: (filterText: string) => void
-
-  /** The currently selected item. */
 }
 
 const RowHeight = 31
