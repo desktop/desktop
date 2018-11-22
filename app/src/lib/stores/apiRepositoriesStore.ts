@@ -49,7 +49,7 @@ export class ApiRepositoriesStore extends BaseStore {
     newState.set(
       account,
       existingRepositories === undefined
-        ? repositories
+        ? merge({ loading: false, repositories: [] }, repositories)
         : merge(existingRepositories, repositories)
     )
 
