@@ -328,7 +328,7 @@ export class CloneRepository extends React.Component<
     } else if (tab === CloneRepositoryTab.Enterprise) {
       this.setState(prevState => ({
         enterpriseTabState: merge<IGitHubTabState, keyof IBaseTabState>(
-          prevState.dotComTabState,
+          prevState.enterpriseTabState,
           state
         ),
       }))
