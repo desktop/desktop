@@ -67,9 +67,6 @@ interface ICloneRepositoryState {
   /** Are we currently trying to load the entered repository? */
   readonly loading: boolean
 
-  /** Should the component clear the filter text on render? */
-  readonly shouldClearFilter: boolean
-
   readonly dotComTabState: IGitHubTabState
   readonly enterpriseTabState: IGitHubTabState
   readonly urlTabState: IUrlTabState
@@ -112,7 +109,6 @@ export class CloneRepository extends React.Component<
     this.state = {
       initialPath: defaultDirectory,
       loading: false,
-      shouldClearFilter: false,
       dotComTabState: {
         kind: 'dotComTabState',
         error: null,
@@ -139,12 +135,6 @@ export class CloneRepository extends React.Component<
         url: this.props.initialURL || '',
       },
     }
-  }
-
-  public componentWillReceiveProps(nextProps: ICloneRepositoryProps) {
-    this.setState({
-      shouldClearFilter: this.props.selectedTab !== nextProps.selectedTab,
-    })
   }
 
   public componentDidUpdate(prevProps: ICloneRepositoryProps) {
