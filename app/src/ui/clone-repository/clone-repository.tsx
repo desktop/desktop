@@ -338,7 +338,9 @@ export class CloneRepository extends React.Component<
       if (directoryFiles.length === 0) {
         return null
       } else {
-        return new Error('The path folder contains files.')
+        return new Error(
+          'This folder contains files. Git can only clone to empty folders.'
+        )
       }
     } catch (error) {
       if (error.code === 'ENOENT') {
@@ -346,7 +348,12 @@ export class CloneRepository extends React.Component<
         return null
       }
 
-      return new Error(error.message)
+      log.error(
+        'CloneRepository: Path validation failed. Error: ' + error.message
+      )
+      return new Error(
+        'Unable to read path on disk. Please check the path and try again.'
+      )
     }
   }
 
