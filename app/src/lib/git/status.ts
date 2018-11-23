@@ -6,6 +6,7 @@ import {
   AppFileStatus,
   FileEntry,
   GitStatusEntry,
+  AppFileStatusKind,
 } from '../../models/status'
 import {
   parsePorcelainStatus,
@@ -71,28 +72,30 @@ interface IStatusHeadersData {
 }
 
 function convertToAppStatus(
-  status: FileEntry,
-  hasConflictMarkers: boolean
+  entry: FileEntry,
+  getConflictStatus: (entry: FileEntry) => ConflictFileStatus | null,
+  oldPath?: string
 ): AppFileStatus {
-  if (status.kind === 'ordinary') {
-    switch (status.type) {
+  if (entry.kind === 'ordinary') {
+    switch (entry.type) {
       case 'added':
-        return AppFileStatus.New
+        return { kind: AppFileStatusKind.New }
       case 'modified':
-        return AppFileStatus.Modified
+        return { kind: AppFileStatusKind.Modified }
       case 'deleted':
-        return AppFileStatus.Deleted
+        return { kind: AppFileStatusKind.Deleted }
     }
-  } else if (status.kind === 'copied') {
-    return AppFileStatus.Copied
-  } else if (status.kind === 'renamed') {
-    return AppFileStatus.Renamed
-  } else if (status.kind === 'conflicted') {
-    return hasConflictMarkers
-      ? AppFileStatus.Conflicted
-      : AppFileStatus.Resolved
-  } else if (status.kind === 'untracked') {
-    return AppFileStatus.New
+  } else if (entry.kind === 'copied' && oldPath != null) {
+    return { kind: AppFileStatusKind.Copied, oldPath }
+  } else if (entry.kind === 'renamed' && oldPath != null) {
+    return { kind: AppFileStatusKind.Renamed, oldPath }
+  } else if (entry.kind === 'conflicted') {
+    const conflictStatus = getConflictStatus(entry)
+    return conflictStatus != null
+      ? { kind: AppFileStatusKind.Conflicted, conflictStatus }
+      : { kind: AppFileStatusKind.Resolved }
+  } else if (entry.kind === 'untracked') {
+    return { kind: AppFileStatusKind.New }
   }
 
   return fatalError(`Unknown file status ${status}`)
@@ -307,21 +310,18 @@ function buildStatusMap(
     files.delete(entry.path)
   }
 
-  const conflictStatus = getConflictStatus(entry.path, status, conflictState)
-
   // for now we just poke at the existing summary
-  const summary = convertToAppStatus(status, conflictStatus !== null)
+  const appStatus = convertToAppStatus(
+    status,
+    s => getConflictStatus(entry.path, s, conflictState),
+    entry.oldPath
+  )
+
   const selection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
 
   files.set(
     entry.path,
-    new WorkingDirectoryFileChange(
-      entry.path,
-      summary,
-      selection,
-      entry.oldPath,
-      conflictStatus
-    )
+    new WorkingDirectoryFileChange(entry.path, appStatus, selection)
   )
   return files
 }

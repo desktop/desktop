@@ -194,7 +194,7 @@ export class CommitSummary extends React.Component<
 
     const expanded = this.props.isExpanded
     const onClick = expanded ? this.onCollapse : this.onExpand
-    const icon = expanded ? OcticonSymbol.unfold : OcticonSymbol.fold
+    const icon = expanded ? OcticonSymbol.fold : OcticonSymbol.unfold
 
     return (
       <a onClick={onClick} className="expander">

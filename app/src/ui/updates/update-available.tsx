@@ -7,12 +7,10 @@ import { PopupType } from '../../models/popup'
 import { shell } from '../../lib/app-shell'
 
 import { ReleaseSummary } from '../../models/release-notes'
-import { enableInAppReleaseNotes } from '../../lib/feature-flag'
 
 interface IUpdateAvailableProps {
   readonly dispatcher: Dispatcher
   readonly newRelease: ReleaseSummary | null
-  readonly releaseNotesLink: string
   readonly onDismissed: () => void
 }
 
@@ -32,14 +30,7 @@ export class UpdateAvailable extends React.Component<
         <span>
           An updated version of GitHub Desktop is available and will be
           installed at the next launch. See{' '}
-          {enableInAppReleaseNotes() ? (
-            <LinkButton onClick={this.showReleaseNotes}>what's new</LinkButton>
-          ) : (
-            <LinkButton uri={this.props.releaseNotesLink}>
-              what's new
-            </LinkButton>
-          )}{' '}
-          or{' '}
+          <LinkButton onClick={this.showReleaseNotes}>what's new</LinkButton> or{' '}
           <LinkButton onClick={this.updateNow}>
             restart GitHub Desktop
           </LinkButton>
