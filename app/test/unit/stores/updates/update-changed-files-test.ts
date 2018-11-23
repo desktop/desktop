@@ -2,7 +2,7 @@ import { updateChangedFiles } from '../../../../src/lib/stores/updates/changes-s
 import {
   WorkingDirectoryStatus,
   WorkingDirectoryFileChange,
-  AppFileStatus,
+  AppFileStatusKind,
 } from '../../../../src/models/status'
 import {
   DiffSelection,
@@ -17,12 +17,12 @@ const noneSelected = DiffSelection.fromInitialSelection(DiffSelectionType.None)
 const files = [
   new WorkingDirectoryFileChange(
     'README.md',
-    AppFileStatus.Modified,
+    { kind: AppFileStatusKind.Modified },
     allSelected
   ),
   new WorkingDirectoryFileChange(
     'app/package.json',
-    AppFileStatus.Modified,
+    { kind: AppFileStatusKind.Modified },
     noneSelected
   ),
 ]
@@ -41,7 +41,7 @@ describe('updateChangedFiles', () => {
 
       partiallySelectedFile = new WorkingDirectoryFileChange(
         'app/index.ts',
-        AppFileStatus.New,
+        { kind: AppFileStatusKind.New },
         partialFileSelection
       )
 
