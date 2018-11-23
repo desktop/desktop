@@ -440,6 +440,7 @@ export class CloneRepository extends React.Component<
   private onSelectionChanged = (selectedItem: IAPIRepository | null) => {
     if (this.props.selectedTab !== CloneRepositoryTab.Generic) {
       this.setGitHubTabState({ selectedItem }, this.props.selectedTab)
+      this.updateUrl(selectedItem === null ? '' : selectedItem.clone_url)
     }
   }
 
