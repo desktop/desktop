@@ -106,33 +106,32 @@ export class CloneRepository extends React.Component<
     super(props)
 
     const defaultDirectory = getDefaultDir()
+
+    const initialBaseTabState: IBaseTabState = {
+      error: null,
+      lastParsedIdentifier: null,
+      path: defaultDirectory,
+      url: this.props.initialURL || '',
+    }
+
     this.state = {
       initialPath: defaultDirectory,
       loading: false,
       dotComTabState: {
         kind: 'dotComTabState',
-        error: null,
-        lastParsedIdentifier: null,
         filterText: '',
-        path: defaultDirectory,
         selectedItem: null,
-        url: this.props.initialURL || '',
+        ...initialBaseTabState,
       },
       enterpriseTabState: {
         kind: 'enterpriseTabState',
-        error: null,
-        lastParsedIdentifier: null,
         filterText: '',
-        path: defaultDirectory,
         selectedItem: null,
-        url: this.props.initialURL || '',
+        ...initialBaseTabState,
       },
       urlTabState: {
         kind: 'urlTabState',
-        error: null,
-        lastParsedIdentifier: null,
-        path: defaultDirectory,
-        url: this.props.initialURL || '',
+        ...initialBaseTabState,
       },
     }
   }
