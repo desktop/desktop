@@ -6,7 +6,7 @@ import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 import { Button } from '../lib/button'
 import { Loading } from '../lib/loading'
-import { Octicon } from '../octicons'
+import { Octicon, OcticonSymbol } from '../octicons'
 import { FilterList } from '../lib/filter-list'
 import { IAPIRepository } from '../../lib/api'
 import { IFilterListGroup } from '../lib/filter-list'
@@ -83,8 +83,12 @@ export class CloneGithubRepository extends React.PureComponent<
 
   public componentDidMount() {
     if (this.props.repositories === null) {
-      this.props.onRefreshRepositories(this.props.account)
+      this.refreshRepositories()
     }
+  }
+
+  private refreshRepositories = () => {
+    this.props.onRefreshRepositories(this.props.account)
   }
 
   public render() {
@@ -106,7 +110,10 @@ export class CloneGithubRepository extends React.PureComponent<
   }
 
   private renderRepositoryList() {
-    if (this.props.loading) {
+    if (
+      this.props.loading &&
+      (this.props.repositories === null || this.props.repositories.length === 0)
+    ) {
       return (
         <div className="clone-github-repo clone-loading">
           <Loading /> Loading repositories…
@@ -133,7 +140,23 @@ export class CloneGithubRepository extends React.PureComponent<
         filterText={this.props.filterText}
         onFilterTextChanged={this.props.onFilterTextChanged}
         renderNoItems={this.noMatchingRepositories}
+        renderPostFilter={this.renderPostFilter}
       />
+    )
+  }
+
+  private renderPostFilter = () => {
+    return (
+      <Button
+        disabled={this.props.loading}
+        onClick={this.refreshRepositories}
+        tooltip="Refresh the list of repositories"
+      >
+        <Octicon
+          symbol={OcticonSymbol.sync}
+          className={this.props.loading ? 'spin' : undefined}
+        />
+      </Button>
     )
   }
 
