@@ -241,12 +241,14 @@ export class StatsStore {
     this.db = db
     this.uiActivityMonitor = uiActivityMonitor
 
-    this.optOut = getBoolean(StatsOptOutKey, false)
+    const storedValue = getBoolean(StatsOptOutKey)
+
+    this.optOut = storedValue || false
 
     // If the user has set an opt out value but we haven't sent the ping yet,
     // give it a shot now.
     if (!getBoolean(HasSentOptInPingKey, false)) {
-      this.sendOptInStatusPing(!this.optOut)
+      this.sendOptInStatusPing(!this.optOut, storedValue)
     }
 
     this.enableUiActivityMonitoring()
@@ -599,10 +601,12 @@ export class StatsStore {
 
     this.optOut = optOut
 
+    const previousValue = getBoolean(StatsOptOutKey)
+
     setBoolean(StatsOptOutKey, optOut)
 
     if (changed || userViewedPrompt) {
-      await this.sendOptInStatusPing(!optOut)
+      await this.sendOptInStatusPing(!optOut, previousValue)
     }
   }
 
@@ -763,12 +767,21 @@ export class StatsStore {
     return fetch(StatsEndpoint, options)
   }
 
-  private async sendOptInStatusPing(optIn: boolean): Promise<void> {
+  /**
+   * Send opt-in ping with details of previous stored value (if known)
+   */
+  private async sendOptInStatusPing(
+    optIn: boolean,
+    previousValue?: boolean
+  ): Promise<void> {
     const direction = optIn ? 'in' : 'out'
+    const previousValueOrNull =
+      previousValue === undefined ? null : previousValue
     try {
       const response = await this.post({
         eventType: 'ping',
         optIn,
+        previousValue: previousValueOrNull,
       })
       if (!response.ok) {
         throw new Error(
