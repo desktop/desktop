@@ -322,6 +322,7 @@ export async function gitNetworkArguments(
       : getGlobalConfigValue(name)
 
   if (protocolVersion !== null) {
+    // protocol.version is already set, we should not override it with our own
     return baseArgs
   }
 
