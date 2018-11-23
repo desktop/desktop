@@ -87,6 +87,15 @@ export class CloneGithubRepository extends React.PureComponent<
     }
   }
 
+  public componentDidUpdate(prevProps: ICloneGithubRepositoryProps) {
+    if (
+      prevProps.repositories !== this.props.repositories &&
+      this.props.repositories === null
+    ) {
+      this.refreshRepositories()
+    }
+  }
+
   private refreshRepositories = () => {
     this.props.onRefreshRepositories(this.props.account)
   }
