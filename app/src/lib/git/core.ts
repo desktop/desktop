@@ -314,16 +314,15 @@ export async function gitNetworkArguments(
     return baseArgs
   }
 
-  if (repository != null) {
-    const protocolVersion = await getConfigValue(repository, 'protocol.version')
-    if (protocolVersion !== null) {
-      return baseArgs
-    }
-  } else {
-    const protocolVersion = await getGlobalConfigValue('protocol.version')
-    if (protocolVersion !== null) {
-      return baseArgs
-    }
+  const name = 'protocol.version'
+
+  const protocolVersion =
+    repository != null
+      ? await getConfigValue(repository, name)
+      : getGlobalConfigValue(name)
+
+  if (protocolVersion !== null) {
+    return baseArgs
   }
 
   // opt in for v2 of the Git Wire protocol for GitHub repositories
