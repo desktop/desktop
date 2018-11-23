@@ -73,20 +73,13 @@ export class CloneGithubRepository extends React.PureComponent<
   ICloneGithubRepositoryProps
 > {
   private getRepositoryGroups = memoizeOne(
-    (
-      repositories: ReadonlyArray<IAPIRepository> | null,
-      selectedItem: IAPIRepository | null
-    ) => {
-      const groups =
-        this.props.repositories === null || this.props.repositories.length === 0
-          ? []
-          : groupRepositories(this.props.repositories, this.props.account.login)
-
-      const selectedListItem = findMatchingListItem(groups, selectedItem)
-
-      return { groups, selectedItem: selectedListItem }
-    }
+    (repositories: ReadonlyArray<IAPIRepository> | null) =>
+      this.props.repositories === null
+        ? []
+        : groupRepositories(this.props.repositories, this.props.account.login)
   )
+
+  private getSelectedListItem = memoizeOne(findMatchingListItem)
 
   public componentDidMount() {
     if (this.props.repositories === null) {
@@ -121,8 +114,9 @@ export class CloneGithubRepository extends React.PureComponent<
       )
     }
 
-    const { selectedItem, groups } = this.getRepositoryGroups(
-      this.props.repositories,
+    const groups = this.getRepositoryGroups(this.props.repositories)
+    const selectedItem = this.getSelectedListItem(
+      groups,
       this.props.selectedItem
     )
 
