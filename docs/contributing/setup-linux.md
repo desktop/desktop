@@ -16,6 +16,9 @@ distributions and package managers.
 Find your distribution on [this list](https://nodejs.org/en/download/package-manager/)
 and follow the instructions to install the version you require.
 
+Ensure that you also choose the option for building native Node modules, as
+those are used in some dependencies used in GitHub Desktop.
+
 ## Yarn
 
 Follow [this guide](https://yarnpkg.com/en/docs/install) to install
@@ -42,6 +45,7 @@ and running GitHub Desktop locally:
 
  - `libsecret-1.so.0` for reading and writing credentials using [`keytar`](https://github.com/atom/node-keytar)
  - `libXss.so.1` - the library for the X11 screen saver extension
+ - `libgconf-2-4.so.4` - library for accessing GNOME configuration database
 
 Where to find these will vary based on your distribution, but below are some
 examples of distributions we've tested.
@@ -55,6 +59,6 @@ $ sudo dnf install -y libsecret-devel libXScrnSaver
 ### Ubuntu 14.04 and later
 
 ```shellsession
-$ sudo apt install libsecret-1-dev
+$ sudo apt install libsecret-1-dev libgconf-2-4
 ```
 
