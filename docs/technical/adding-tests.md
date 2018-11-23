@@ -105,7 +105,7 @@ export function updateChangedFiles(
 ```
 
 This uses the current `IChangesState`, as well as additional parameters and
-returns an object containing the changes that should be applied create a new
+returns an object containing the changes that should be applied to create a new
 `IChangesState` for the repository:
 
 ```ts
