@@ -1456,7 +1456,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.changeCloneRepositoriesTab(tab)
   }
 
-  readonly onRefreshRepositories = (account: Account) => {
+  private onRefreshRepositories = (account: Account) => {
     this.props.dispatcher.refreshApiRepositories(account)
   }
 
