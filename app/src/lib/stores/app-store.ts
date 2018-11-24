@@ -131,6 +131,7 @@ import {
   IStatusResult,
   createMergeCommit,
   getBranchesPointedAt,
+  isGitRepository,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -1878,6 +1879,29 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
 
     return Promise.resolve()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _attemptRecoverMissingRepository(
+    repository: Repository
+  ): Promise<void> {
+    /* 
+        if the repository is marked missing, check to see if the file path exists, 
+        and if so then see if git recognizes the path as a valid repository,
+        and if so, reset the missing status and then attempt to refresh
+      */
+    if (repository.missing) {
+      const updatedRepository = await this._updateRepositoryMissing(
+        repository,
+        (await pathExists(repository.path))
+          ? !(await isGitRepository(repository.path))
+          : true
+      )
+      if (!updatedRepository.missing) {
+        // repository has returned, attempt to refresh it now.
+        return await this._refreshRepository(updatedRepository)
+      }
+    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
