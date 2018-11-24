@@ -11,10 +11,9 @@ import {
   setupEmptyDirectory,
   setupConflictedRepoWithMultipleFiles,
 } from '../../helpers/repositories'
-import { AppFileStatus } from '../../../src/models/status'
+import { AppFileStatusKind, GitStatusEntry } from '../../../src/models/status'
 import * as temp from 'temp'
 import { getStatus } from '../../../src/lib/git'
-import { IConflictTextFileStatus } from '../../../src/models/conflicts'
 
 const _temp = temp.track()
 const mkdir = _temp.mkdir
@@ -36,18 +35,36 @@ describe('git/status', () => {
         const files = status.workingDirectory.files
         expect(files).toHaveLength(4)
         const conflictedFiles = files.filter(
-          f => f.status === AppFileStatus.Conflicted
+          f => f.status.kind === AppFileStatusKind.Conflicted
         )
         expect(conflictedFiles).toHaveLength(4)
-        const fooFileConfclictStatus = files.find(f => f.path === 'foo')!
-          .conflictStatus as IConflictTextFileStatus
-        expect(fooFileConfclictStatus.conflictMarkerCount).not.toBeNull()
-        const bazFileConfclictStatus = files.find(f => f.path === 'baz')!
-          .conflictStatus as IConflictTextFileStatus
-        expect(bazFileConfclictStatus.conflictMarkerCount).not.toBeNull()
-        const catFileConfclictStatus = files.find(f => f.path === 'cat')!
-          .conflictStatus as IConflictTextFileStatus
-        expect(catFileConfclictStatus.conflictMarkerCount).not.toBeNull()
+
+        const fooFile = files.find(f => f.path === 'foo')!
+        expect(fooFile.status).toEqual({
+          kind: AppFileStatusKind.Conflicted,
+          conflictStatus: {
+            kind: 'text',
+            conflictMarkerCount: 3,
+          },
+        })
+
+        const bazFile = files.find(f => f.path === 'baz')!
+        expect(bazFile.status).toEqual({
+          kind: AppFileStatusKind.Conflicted,
+          conflictStatus: {
+            kind: 'text',
+            conflictMarkerCount: 3,
+          },
+        })
+
+        const catFile = files.find(f => f.path === 'cat')!
+        expect(catFile.status).toEqual({
+          kind: AppFileStatusKind.Conflicted,
+          conflictStatus: {
+            kind: 'text',
+            conflictMarkerCount: 3,
+          },
+        })
       })
 
       it('parses conflicted files without markers', async () => {
@@ -55,23 +72,32 @@ describe('git/status', () => {
         const files = status.workingDirectory.files
         expect(files).toHaveLength(4)
         expect(
-          files.filter(f => f.status === AppFileStatus.Conflicted)
+          files.filter(f => f.status.kind === AppFileStatusKind.Conflicted)
         ).toHaveLength(4)
-        const barFileConfclictStatus = files.find(f => f.path === 'bar')!
-          .conflictStatus as IConflictTextFileStatus
-        expect(barFileConfclictStatus.conflictMarkerCount).toBeNull()
+
+        const barFile = files.find(f => f.path === 'bar')!
+        expect(barFile.status).toEqual({
+          kind: AppFileStatusKind.Conflicted,
+          conflictStatus: {
+            kind: 'text',
+            us: GitStatusEntry.Modified,
+            them: GitStatusEntry.Deleted,
+            conflictMarkerCount: null,
+          },
+        })
       })
 
       it('parses resolved files', async () => {
         await FSE.writeFile(filePath, 'b1b2')
         const status = await getStatusOrThrow(repository!)
         const files = status.workingDirectory.files
+
         expect(files).toHaveLength(4)
         expect(
-          files.filter(f => f.status === AppFileStatus.Conflicted)
+          files.filter(f => f.status.kind === AppFileStatusKind.Conflicted)
         ).toHaveLength(3)
         const file = files.find(f => f.path === 'foo')
-        expect(file!.status).toBe(AppFileStatus.Resolved)
+        expect(file!.status).toEqual({ kind: AppFileStatusKind.Resolved })
       })
     })
 
@@ -94,7 +120,7 @@ describe('git/status', () => {
         expect(files).toHaveLength(1)
 
         const file = files[0]
-        expect(file.status).toBe(AppFileStatus.Conflicted)
+        expect(file.status.kind).toBe(AppFileStatusKind.Conflicted)
       })
 
       it('parses conflicted image file on merge after removing', async () => {
@@ -110,7 +136,7 @@ describe('git/status', () => {
         expect(files).toHaveLength(1)
 
         const file = files[0]
-        expect(file.status).toBe(AppFileStatus.Conflicted)
+        expect(file.status.kind).toBe(AppFileStatusKind.Conflicted)
       })
     })
 
@@ -132,7 +158,7 @@ describe('git/status', () => {
 
         const file = files[0]
         expect(file.path).toBe('README.md')
-        expect(file.status).toBe(AppFileStatus.Modified)
+        expect(file.status.kind).toBe(AppFileStatusKind.Modified)
       })
 
       it('returns an empty array when there are no changes', async () => {
@@ -154,9 +180,11 @@ describe('git/status', () => {
         const files = status.workingDirectory.files
 
         expect(files).toHaveLength(1)
-        expect(files[0].status).toBe(AppFileStatus.Renamed)
-        expect(files[0].oldPath).toBe('foo')
         expect(files[0].path).toBe('bar')
+        expect(files[0].status).toEqual({
+          kind: AppFileStatusKind.Renamed,
+          oldPath: 'foo',
+        })
       })
 
       it('reflects copies', async () => {
@@ -180,13 +208,14 @@ describe('git/status', () => {
 
         expect(files).toHaveLength(2)
 
-        expect(files[0].status).toBe(AppFileStatus.Modified)
-        expect(files[0].oldPath).toBeUndefined()
+        expect(files[0].status.kind).toBe(AppFileStatusKind.Modified)
         expect(files[0].path).toBe('CONTRIBUTING.md')
 
-        expect(files[1].status).toBe(AppFileStatus.Copied)
-        expect(files[1].oldPath).toBe('CONTRIBUTING.md')
         expect(files[1].path).toBe('docs/OVERVIEW.md')
+        expect(files[1].status).toEqual({
+          kind: AppFileStatusKind.Copied,
+          oldPath: 'CONTRIBUTING.md',
+        })
       })
 
       it('Handles at least 10k untracked files without failing', async () => {

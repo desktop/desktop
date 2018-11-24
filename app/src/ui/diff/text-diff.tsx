@@ -67,9 +67,7 @@ function highlightParametersEqual(
   }
 
   return (
-    newProps.file.path === prevProps.file.path &&
-    newProps.file.oldPath === prevProps.file.oldPath &&
-    newProps.text === prevProps.text
+    newProps.file.id === prevProps.file.id && newProps.text === prevProps.text
   )
 }
 
