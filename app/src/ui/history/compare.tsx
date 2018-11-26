@@ -28,7 +28,6 @@ import {
   NewCommitsBanner,
   DismissalReason,
 } from '../notification/new-commits-banner'
-import { MergeCallToAction } from './merge-call-to-action'
 import { MergeCallToActionWithConflicts } from './merge-call-to-action-with-conflicts'
 
 interface ICompareSidebarProps {
