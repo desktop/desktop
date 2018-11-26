@@ -1,5 +1,4 @@
 import * as React from 'react'
-import { pathExists } from 'fs-extra'
 
 import { UiView } from './ui-view'
 import { Dispatcher } from '../lib/dispatcher'
@@ -7,35 +6,17 @@ import { Repository } from '../models/repository'
 
 import { Button } from './lib/button'
 import { Row } from './lib/row'
-import { isGitRepository } from '../lib/git'
 
 interface IMissingRepositoryProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
 }
 
-// The maximum value that can be used in setInterval or
-// setTimeout without it overflowing (2 ^ 31 - 1). See
-//  http://stackoverflow.com/a/16314807
-const MAX_INTERVAL = 2147483647
-
-const recoveryDelayLong = 10000
-const recoveryDelayShort = 1000
-
 /** The view displayed when a repository is missing. */
 export class MissingRepository extends React.Component<
   IMissingRepositoryProps,
   {}
 > {
-  private timer: number | null = null
-
-  private clearTimer() {
-    if (this.timer) {
-      window.clearTimeout(this.timer)
-      this.timer = null
-    }
-  }
-
   public render() {
     const buttons = new Array<JSX.Element>()
     buttons.push(
@@ -64,8 +45,6 @@ export class MissingRepository extends React.Component<
       </Button>
     )
 
-    this.awaitAutoRecovery(recoveryDelayShort) // attempt auto recovery, or set timer to try again later
-
     return (
       <UiView id="missing-repository-view">
         <div className="title-container">
@@ -91,12 +70,10 @@ export class MissingRepository extends React.Component<
   }
 
   private remove = () => {
-    this.clearTimer()
     this.props.dispatcher.removeRepositories([this.props.repository], false)
   }
 
   private locate = () => {
-    this.clearTimer()
     this.props.dispatcher.relocateRepository(this.props.repository)
   }
 
@@ -111,7 +88,6 @@ export class MissingRepository extends React.Component<
       return
     }
 
-    this.clearTimer()
     try {
       await this.props.dispatcher.cloneAgain(
         cloneURL,
@@ -119,53 +95,6 @@ export class MissingRepository extends React.Component<
       )
     } catch (error) {
       this.props.dispatcher.postError(error)
-    }
-  }
-
-  private awaitAutoRecovery(timeout: number) {
-    // set a timeout to wait to attempt an auto recovery
-    this.clearTimer()
-    this.timer = window.setTimeout(
-      this.attemptAutoRecovery,
-      Math.min(timeout, MAX_INTERVAL)
-    )
-  }
-
-  private readonly attemptAutoRecovery = () => {
-    this.AutoRecovery()
-  }
-
-  public componentWillUnmount() {
-    this.clearTimer()
-  }
-
-  private async AutoRecovery() {
-    if (this.timer && this.props.repository.missing) {
-      // do attempt to recover the missing repository, unless timer has been cleared
-      // if not, set timeout to try again
-
-      // first test the repository path for existence, then test if the existing path is a git repository
-      if (
-        (await pathExists(this.props.repository.path))
-          ? await isGitRepository(this.props.repository.path)
-          : false
-      ) {
-        // a git repository was found on the original path
-        if (
-          (await this.props.dispatcher.updateRepositoryMissing(
-            this.props.repository,
-            false
-          )).missing
-        ) {
-          this.awaitAutoRecovery(recoveryDelayLong)
-        } else {
-          this.clearTimer() // repository is no longer missing
-        }
-      } else {
-        this.awaitAutoRecovery(recoveryDelayLong)
-      }
-    } else if (this.timer) {
-      this.clearTimer() // clear timer as repository is not marked missing ??
     }
   }
 }
