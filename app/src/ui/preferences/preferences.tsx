@@ -313,7 +313,10 @@ export class Preferences extends React.Component<
   private onSave = async () => {
     await setGlobalConfigValue('user.name', this.state.committerName)
     await setGlobalConfigValue('user.email', this.state.committerEmail)
-    await this.props.dispatcher.setStatsOptOut(this.state.optOutOfUsageTracking)
+    await this.props.dispatcher.setStatsOptOut(
+      this.state.optOutOfUsageTracking,
+      false
+    )
     await this.props.dispatcher.setConfirmRepoRemovalSetting(
       this.state.confirmRepositoryRemoval
     )

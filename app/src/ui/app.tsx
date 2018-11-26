@@ -19,13 +19,11 @@ import { RetryAction } from '../models/retry-actions'
 import { shouldRenderApplicationMenu } from './lib/features'
 import { matchExistingRepository } from '../lib/repository-matching'
 import { getDotComAPIEndpoint } from '../lib/api'
-import { ILaunchStats } from '../lib/stats'
+import { ILaunchStats, SamplesURL } from '../lib/stats'
 import { getVersion, getName } from './lib/app-proxy'
 import { getOS } from '../lib/get-os'
 import { validatedRepositoryPath } from '../lib/stores/helpers/validated-repository-path'
-
 import { MenuEvent } from '../main-process/menu'
-
 import { Repository } from '../models/repository'
 import { Branch } from '../models/branch'
 import { PreferencesTab } from '../models/preferences'
@@ -95,6 +93,7 @@ import { enableMergeConflictsDialog } from '../lib/feature-flag'
 import { AppFileStatusKind } from '../models/status'
 import { PopupType, Popup } from '../models/popup'
 import { SuccessfulMerge } from './banners'
+import { UsageStatsChange } from './usage-stats-change'
 
 const MinuteInMilliseconds = 1000 * 60
 
@@ -1409,9 +1408,28 @@ export class App extends React.Component<IAppProps, IAppState> {
           )
         }
         return null
+      case PopupType.UsageReportingChanges:
+        return (
+          <UsageStatsChange
+            onOpenUsageDataUrl={this.openUsageDataUrl}
+            onDismissed={this.onUsageReportingDismissed}
+          />
+        )
+
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
+  }
+
+  private onUsageReportingDismissed = (optOut: boolean) => {
+    this.props.appStore.setStatsOptOut(optOut, true)
+    this.props.appStore.markUsageStatsNoteSeen()
+    this.onPopupDismissed()
+    this.props.appStore._reportStats()
+  }
+
+  private openUsageDataUrl = () => {
+    this.props.dispatcher.openInBrowser(SamplesURL)
   }
 
   private onUpdateExistingUpstreamRemote = (repository: Repository) => {

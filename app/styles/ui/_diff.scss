@@ -283,6 +283,9 @@
   .tab-bar {
     width: 350px;
     margin: 10px auto 0;
+    // Workaround to allow toggling between different modes until
+    // root issue with DPI scaling is addressed, see https://github.com/desktop/desktop/issues/2480
+    z-index: 0;
   }
 
   .image-diff-previous {
