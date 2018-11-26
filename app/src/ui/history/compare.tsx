@@ -28,7 +28,6 @@ import {
   NewCommitsBanner,
   DismissalReason,
 } from '../notification/new-commits-banner'
-import { enableMergeConflictDetection } from '../../lib/feature-flag'
 import { MergeCallToAction } from './merge-call-to-action'
 import { MergeCallToActionWithConflicts } from './merge-call-to-action-with-conflicts'
 
@@ -87,24 +86,6 @@ export class CompareSidebar extends React.Component<
     const newFormState = nextProps.compareState.formState
     const oldFormState = this.props.compareState.formState
 
-    if (this.textbox !== null) {
-      if (
-        !this.props.compareState.showBranchList &&
-        nextProps.compareState.showBranchList
-      ) {
-        // showBranchList changes from false -> true
-        //  -> ensure the textbox has focus
-        this.textbox.focus()
-      } else if (
-        this.props.compareState.showBranchList &&
-        !nextProps.compareState.showBranchList
-      ) {
-        // showBranchList changes from true -> false
-        //  -> ensure the textbox no longer has focus
-        this.textbox.blur()
-      }
-    }
-
     if (
       newFormState.kind !== oldFormState.kind &&
       newFormState.kind === HistoryTabMode.History
@@ -127,6 +108,18 @@ export class CompareSidebar extends React.Component<
         this.setState({
           focusedBranch: newBranch,
         })
+      }
+    }
+  }
+
+  public componentDidUpdate(prevProps: ICompareSidebarProps) {
+    const { showBranchList } = this.props.compareState
+
+    if (this.textbox !== null) {
+      if (showBranchList) {
+        this.textbox.focus()
+      } else if (!showBranchList) {
+        this.textbox.blur()
       }
     }
   }
@@ -316,18 +309,6 @@ export class CompareSidebar extends React.Component<
   private renderMergeCallToAction(formState: ICompareBranch) {
     if (this.props.currentBranch == null) {
       return null
-    }
-
-    if (!enableMergeConflictDetection()) {
-      return (
-        <MergeCallToAction
-          repository={this.props.repository}
-          dispatcher={this.props.dispatcher}
-          currentBranch={this.props.currentBranch}
-          formState={formState}
-          onMerged={this.onMerge}
-        />
-      )
     }
 
     return (

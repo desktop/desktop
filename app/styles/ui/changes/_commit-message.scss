@@ -76,6 +76,9 @@
     // Fake that we're a text-box
     cursor: text;
 
+    // Hide overflowed content
+    overflow: hidden;
+
     &.focus-within {
       outline: none;
       border-color: var(--focus-color);
