@@ -28,7 +28,6 @@ import {
   NewCommitsBanner,
   DismissalReason,
 } from '../notification/new-commits-banner'
-import { enableNotificationOfBranchUpdates } from '../../lib/feature-flag'
 import { MergeCallToActionWithConflicts } from './merge-call-to-action-with-conflicts'
 
 interface ICompareSidebarProps {
@@ -180,10 +179,6 @@ export class CompareSidebar extends React.Component<
   }
 
   private renderNotificationBanner() {
-    if (!enableNotificationOfBranchUpdates()) {
-      return null
-    }
-
     if (!this.props.compareState.isDivergingBranchBannerVisible) {
       return null
     }
