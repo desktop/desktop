@@ -74,7 +74,7 @@ export function getAvatarUsersForCommit(
   commit: Commit
 ) {
   const avatarUsers = []
-  var coAuthoredByCommitter = false
+  let coAuthoredByCommitter = false
 
   avatarUsers.push(
     getAvatarUserFromAuthor(gitHubRepository, gitHubUsers, commit.author)
