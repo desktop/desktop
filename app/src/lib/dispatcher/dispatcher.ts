@@ -172,6 +172,22 @@ export class Dispatcher {
     return this.appStore._setRepositoryFilterText(text)
   }
 
+  /** Set the branch filter text. */
+  public setBranchFilterText(
+    repository: Repository,
+    text: string
+  ): Promise<void> {
+    return this.appStore._setBranchFilterText(repository, text)
+  }
+
+  /** Set the branch filter text. */
+  public setPullRequestFilterText(
+    repository: Repository,
+    text: string
+  ): Promise<void> {
+    return this.appStore._setPullRequestFilterText(repository, text)
+  }
+
   /** Select the repository. */
   public selectRepository(
     repository: Repository | CloningRepository
@@ -519,6 +535,11 @@ export class Dispatcher {
     return this.appStore._endWelcomeFlow()
   }
 
+  /** Set the commit message input's focus. */
+  public setCommitMessageFocus(focus: boolean) {
+    this.appStore._setCommitMessageFocus(focus)
+  }
+
   /**
    * Set the commit summary and description for a work-in-progress
    * commit in the changes view for a particular repository.
@@ -677,8 +698,15 @@ export class Dispatcher {
   }
 
   /** Set whether the user has opted out of stats reporting. */
-  public setStatsOptOut(optOut: boolean): Promise<void> {
-    return this.appStore.setStatsOptOut(optOut)
+  public setStatsOptOut(
+    optOut: boolean,
+    userViewedPrompt: boolean
+  ): Promise<void> {
+    return this.appStore.setStatsOptOut(optOut, userViewedPrompt)
+  }
+
+  public markUsageStatsNoteSeen() {
+    this.appStore.markUsageStatsNoteSeen()
   }
 
   /**

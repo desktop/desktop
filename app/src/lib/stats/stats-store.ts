@@ -175,6 +175,20 @@ interface IOnboardingStats {
   readonly welcomeWizardSignInMethod?: 'basic' | 'web'
 }
 
+/**
+ * Returns the account id of the current user's GitHub.com account or null if the user
+ * is not currently signed in to GitHub.com.
+ *
+ * @param accounts The active accounts stored in Desktop
+ */
+function findDotComAccountId(accounts: ReadonlyArray<Account>): number | null {
+  const gitHubAccount = accounts.find(
+    a => a.endpoint === getDotComAPIEndpoint()
+  )
+
+  return gitHubAccount !== undefined ? gitHubAccount.id : null
+}
+
 interface ICalculatedStats {
   /** The app version. */
   readonly version: string
@@ -227,12 +241,14 @@ export class StatsStore {
     this.db = db
     this.uiActivityMonitor = uiActivityMonitor
 
-    this.optOut = getBoolean(StatsOptOutKey, false)
+    const storedValue = getBoolean(StatsOptOutKey)
+
+    this.optOut = storedValue || false
 
     // If the user has set an opt out value but we haven't sent the ping yet,
     // give it a shot now.
     if (!getBoolean(HasSentOptInPingKey, false)) {
-      this.sendOptInStatusPing(!this.optOut)
+      this.sendOptInStatusPing(!this.optOut, storedValue)
     }
 
     this.enableUiActivityMonitoring()
@@ -272,8 +288,11 @@ export class StatsStore {
     const now = Date.now()
     const stats = await this.getDailyStats(accounts, repositories)
 
+    const user_id = findDotComAccountId(accounts)
+    const payload = user_id === null ? stats : { ...stats, user_id }
+
     try {
-      const response = await this.post(stats)
+      const response = await this.post(payload)
       if (!response.ok) {
         throw new Error(
           `Unexpected status: ${response.statusText} (${response.status})`
@@ -574,15 +593,20 @@ export class StatsStore {
   }
 
   /** Set whether the user has opted out of stats reporting. */
-  public async setOptOut(optOut: boolean): Promise<void> {
+  public async setOptOut(
+    optOut: boolean,
+    userViewedPrompt: boolean
+  ): Promise<void> {
     const changed = this.optOut !== optOut
 
     this.optOut = optOut
 
+    const previousValue = getBoolean(StatsOptOutKey)
+
     setBoolean(StatsOptOutKey, optOut)
 
-    if (changed) {
-      await this.sendOptInStatusPing(!optOut)
+    if (changed || userViewedPrompt) {
+      await this.sendOptInStatusPing(!optOut, previousValue)
     }
   }
 
@@ -616,7 +640,7 @@ export class StatsStore {
 
   /**
    * Record that user initiated a merge after getting to compare view
-   * from within notificatio banner
+   * from within notification banner
    */
   public async recordDivergingBranchBannerInfluencedMerge(): Promise<void> {
     return this.updateDailyMeasures(m => ({
@@ -743,12 +767,21 @@ export class StatsStore {
     return fetch(StatsEndpoint, options)
   }
 
-  private async sendOptInStatusPing(optIn: boolean): Promise<void> {
+  /**
+   * Send opt-in ping with details of previous stored value (if known)
+   */
+  private async sendOptInStatusPing(
+    optIn: boolean,
+    previousValue?: boolean
+  ): Promise<void> {
     const direction = optIn ? 'in' : 'out'
+    const previousValueOrNull =
+      previousValue === undefined ? null : previousValue
     try {
       const response = await this.post({
         eventType: 'ping',
         optIn,
+        previousValue: previousValueOrNull,
       })
       if (!response.ok) {
         throw new Error(

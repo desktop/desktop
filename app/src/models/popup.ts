@@ -40,6 +40,7 @@ export enum PopupType {
   MergeConflicts,
   AbortMerge,
   OversizedFiles,
+  UsageReportingChanges,
 }
 
 export type Popup =
@@ -141,3 +142,4 @@ export type Popup =
       context: ICommitContext
       repository: Repository
     }
+  | { type: PopupType.UsageReportingChanges }

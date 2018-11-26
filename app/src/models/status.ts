@@ -1,6 +1,4 @@
 import { DiffSelection, DiffSelectionType } from './diff'
-import { OcticonSymbol } from '../ui/octicons'
-import { assertNever } from '../lib/fatal-error'
 import { ConflictFileStatus } from './conflicts'
 
 /**
@@ -22,8 +20,8 @@ export enum GitStatusEntry {
   UpdatedButUnmerged = 'U',
 }
 
-/** The file status as represented in GitHub Desktop. */
-export enum AppFileStatus {
+/** The enum representation of a Git file change in GitHub Desktop. */
+export enum AppFileStatusKind {
   New = 'New',
   Modified = 'Modified',
   Deleted = 'Deleted',
@@ -32,6 +30,33 @@ export enum AppFileStatus {
   Conflicted = 'Conflicted',
   Resolved = 'Resolved',
 }
+
+/** The state of a GitHub Desktop-specific change containing additional metadata */
+export type PlainFileStatus = {
+  kind:
+    | AppFileStatusKind.New
+    | AppFileStatusKind.Modified
+    | AppFileStatusKind.Deleted
+}
+
+/** A placeholder type until we can figure out the shape of our conflicts state */
+type ResolvedFileStatus = { kind: AppFileStatusKind.Resolved }
+
+export type CopiedOrRenamedFileStatus = {
+  kind: AppFileStatusKind.Copied | AppFileStatusKind.Renamed
+  oldPath: string
+}
+
+export type ConflictedFileStatus = {
+  kind: AppFileStatusKind.Conflicted
+  conflictStatus: ConflictFileStatus
+}
+
+export type AppFileStatus =
+  | PlainFileStatus
+  | CopiedOrRenamedFileStatus
+  | ConflictedFileStatus
+  | ResolvedFileStatus
 
 /** The porcelain status for an ordinary changed entry */
 type OrdinaryEntry = {
@@ -74,62 +99,6 @@ export type FileEntry =
   | UnmergedEntry
   | UntrackedEntry
 
-/**
- * Convert a given FileStatus value to a human-readable string to be
- * presented to users which describes the state of a file.
- *
- * Typically this will be the same value as that of the enum key.
- *
- * Used in file lists.
- */
-export function mapStatus(status: AppFileStatus): string {
-  switch (status) {
-    case AppFileStatus.New:
-      return 'New'
-    case AppFileStatus.Modified:
-      return 'Modified'
-    case AppFileStatus.Deleted:
-      return 'Deleted'
-    case AppFileStatus.Renamed:
-      return 'Renamed'
-    case AppFileStatus.Conflicted:
-      return 'Conflicted'
-    case AppFileStatus.Resolved:
-      return 'Resolved'
-    case AppFileStatus.Copied:
-      return 'Copied'
-  }
-
-  return assertNever(status, `Unknown file status ${status}`)
-}
-
-/**
- * Converts a given FileStatus value to an Octicon symbol
- * presented to users when displaying the file path.
- *
- * Used in file lists.
- */
-export function iconForStatus(status: AppFileStatus): OcticonSymbol {
-  switch (status) {
-    case AppFileStatus.New:
-      return OcticonSymbol.diffAdded
-    case AppFileStatus.Modified:
-      return OcticonSymbol.diffModified
-    case AppFileStatus.Deleted:
-      return OcticonSymbol.diffRemoved
-    case AppFileStatus.Renamed:
-      return OcticonSymbol.diffRenamed
-    case AppFileStatus.Conflicted:
-      return OcticonSymbol.alert
-    case AppFileStatus.Resolved:
-      return OcticonSymbol.check
-    case AppFileStatus.Copied:
-      return OcticonSymbol.diffAdded
-  }
-
-  return assertNever(status, `Unknown file status ${status}`)
-}
-
 /** encapsulate changes to a file associated with a commit */
 export class FileChange {
   /** An ID for the file change. */
@@ -138,14 +107,19 @@ export class FileChange {
   /**
    * @param path The relative path to the file in the repository.
    * @param status The status of the change to the file.
-   * @param oldPath The original path in the case of a renamed file.
    */
   public constructor(
     public readonly path: string,
-    public readonly status: AppFileStatus,
-    public readonly oldPath?: string
+    public readonly status: AppFileStatus
   ) {
-    this.id = `${this.status}+${this.path}`
+    if (
+      status.kind === AppFileStatusKind.Renamed ||
+      status.kind === AppFileStatusKind.Copied
+    ) {
+      this.id = `${status.kind}+${path}+${status.oldPath}`
+    } else {
+      this.id = `${status.kind}+${path}`
+    }
   }
 }
 
@@ -156,16 +130,13 @@ export class WorkingDirectoryFileChange extends FileChange {
    * @param status The status of the change to the file.
    * @param selection Contains the selection details for this file - all, nothing or partial.
    * @param oldPath The original path in the case of a renamed file.
-   * @param conflictMarkers The number of conflict markers found in this file
    */
   public constructor(
     path: string,
     status: AppFileStatus,
-    public readonly selection: DiffSelection,
-    oldPath?: string,
-    public readonly conflictStatus: ConflictFileStatus | null = null
+    public readonly selection: DiffSelection
   ) {
-    super(path, status, oldPath)
+    super(path, status)
   }
 
   /** Create a new WorkingDirectoryFileChange with the given includedness. */
@@ -179,13 +150,7 @@ export class WorkingDirectoryFileChange extends FileChange {
 
   /** Create a new WorkingDirectoryFileChange with the given diff selection. */
   public withSelection(selection: DiffSelection): WorkingDirectoryFileChange {
-    return new WorkingDirectoryFileChange(
-      this.path,
-      this.status,
-      selection,
-      this.oldPath,
-      this.conflictStatus
-    )
+    return new WorkingDirectoryFileChange(this.path, this.status, selection)
   }
 }
 
@@ -202,10 +167,9 @@ export class CommittedFileChange extends FileChange {
   public constructor(
     path: string,
     status: AppFileStatus,
-    public readonly commitish: string,
-    oldPath?: string
+    public readonly commitish: string
   ) {
-    super(path, status, oldPath)
+    super(path, status)
 
     this.commitish = commitish
   }

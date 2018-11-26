@@ -4,7 +4,6 @@ plugins:
   - typescript
   - babel
   - react
-  - prettier
   - json
 
 extends:
@@ -73,9 +72,6 @@ rules:
   ###########
   # SPECIAL #
   ###########
-  prettier/prettier:
-    - error
-    - parser: typescript
   no-restricted-syntax:
     - error
     # no-default-export

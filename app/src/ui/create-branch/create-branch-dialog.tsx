@@ -3,7 +3,7 @@ import * as React from 'react'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../../lib/dispatcher'
 import { sanitizedBranchName } from '../../lib/sanitize-branch'
-import { Branch } from '../../models/branch'
+import { Branch, StartPoint } from '../../models/branch'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 import { Ref } from '../lib/ref'
@@ -23,6 +23,7 @@ import {
   renderBranchNameWarning,
   renderBranchNameExistsOnRemoteWarning,
 } from '../lib/branch-name-warnings'
+import { getStartPoint } from '../../lib/create-branch'
 
 interface ICreateBranchProps {
   readonly repository: Repository
@@ -32,12 +33,6 @@ interface ICreateBranchProps {
   readonly defaultBranch: Branch | null
   readonly allBranches: ReadonlyArray<Branch>
   readonly initialName: string
-}
-
-enum StartPoint {
-  CurrentBranch,
-  DefaultBranch,
-  Head,
 }
 
 interface ICreateBranchState {
@@ -78,34 +73,6 @@ interface ICreateBranchState {
 enum SelectedBranch {
   DefaultBranch = 0,
   CurrentBranch = 1,
-}
-
-function getStartPoint(
-  props: ICreateBranchProps,
-  preferred: StartPoint
-): StartPoint {
-  if (preferred === StartPoint.DefaultBranch && props.defaultBranch) {
-    return preferred
-  }
-
-  if (
-    preferred === StartPoint.CurrentBranch &&
-    props.tip.kind === TipState.Valid
-  ) {
-    return preferred
-  }
-
-  if (preferred === StartPoint.Head) {
-    return preferred
-  }
-
-  if (props.defaultBranch) {
-    return StartPoint.DefaultBranch
-  } else if (props.tip.kind === TipState.Valid) {
-    return StartPoint.CurrentBranch
-  } else {
-    return StartPoint.Head
-  }
 }
 
 /** The Create Branch component. */
