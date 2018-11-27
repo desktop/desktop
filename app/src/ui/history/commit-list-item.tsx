@@ -118,6 +118,7 @@ export class CommitListItem extends React.Component<
             this.props.onRevertCommit(this.props.commit)
           }
         },
+        enabled: this.props.onRevertCommit ? true : false,
       },
       { type: 'separator' },
       {

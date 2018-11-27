@@ -258,7 +258,14 @@ export class CompareSidebar extends React.Component<
         localCommitSHAs={this.props.localCommitSHAs}
         emoji={this.props.emoji}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
-        onRevertCommit={this.props.onRevertCommit}
+        onRevertCommit={
+          // do not allow revert if in comparison:behind mode
+          (formState.kind === HistoryTabMode.History
+          ? true
+          : formState.comparisonMode === ComparisonMode.Ahead)
+            ? this.props.onRevertCommit
+            : undefined
+        }
         onCommitSelected={this.onCommitSelected}
         onScroll={this.onScroll}
         emptyListMessage={emptyListMessage}
