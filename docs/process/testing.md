@@ -226,12 +226,12 @@
     - [ ] User can select branch, other than current one
     - [ ] Merge hint shows status and branches to be merged
     - [ ] `Merge` button only activated if something to merge (includes awaiting conflicts)
-          - [ ] If merged, success banner is shown temporarily; user can `X` to remove
-          - [ ] If conflicts, conflict modal shows quality of files, ability to open in [editor], open in command line, `Abort` button, while `Commit merge` button is deactivated until files are resolved; Changes tab shows all files
-	    - [ ] If conflict resolved, files marked green, and user can click `Commit merge` button
-	      - [ ] Binary files must be resolved in command line
-	      - [ ] If merged, success banner is shown temporarily; user can `X` to remove
-            - [ ] Aborting partially resolved commit surfaces "Are you sure?" dialogue; `Cancel` or `Abort merge` buttons
+      - [ ] If merged, success banner is shown temporarily; user can `X` to remove
+      - [ ] If conflicts, conflict modal shows quality of files, ability to open in [editor], open in command line, `Abort` button, while `Commit merge` button is deactivated until files are resolved; Changes tab shows all files 
+        - [ ] If conflict resolved, files marked green, and user can click `Commit merge` button
+	    - [ ] If merged, success banner is shown temporarily; user can `X` to remove
+	    - [ ] Binary files must be resolved in command line before committing merge
+        - [ ] Aborting partially resolved commit surfaces "Are you sure?" dialogue; `Cancel` or `Abort merge` buttons
   - [ ] Compare on GitHub (Mac: `⇧⌘C`; Windows: `Ctrl+Shift+C`) (if repository already published on `github.com`)
   - [ ] Create Pull Request (Mac: `⌘R`; Windows: `Ctrl+R`) opens Pull Request on `github.com` 
     - [ ] If branch unpublished, dialogue asks to publish the branch
