@@ -6,7 +6,7 @@ import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 import { Button } from '../lib/button'
 import { Loading } from '../lib/loading'
-import { Octicon } from '../octicons'
+import { Octicon, OcticonSymbol } from '../octicons'
 import { FilterList } from '../lib/filter-list'
 import { API } from '../../lib/api'
 import { IFilterListGroup } from '../lib/filter-list'
@@ -17,6 +17,7 @@ import {
   YourRepositoriesIdentifier,
 } from './group-repositories'
 import { HighlightText } from '../lib/highlight-text'
+import { LinkButton } from '../lib/link-button'
 
 interface ICloneGithubRepositoryProps {
   /** The account to clone from. */
@@ -54,6 +55,9 @@ interface ICloneGithubRepositoryState {
 
   /** The currently entered filter text. */
   readonly filterText: string
+
+  /** Whether loading the repositories failed due to connection issues. */
+  readonly connectionFailed: boolean
 }
 
 const ClonableRepositoryFilterList: new () => FilterList<
@@ -75,6 +79,7 @@ export class CloneGithubRepository extends React.Component<
       repositories: [],
       selectedItem: null,
       filterText: '',
+      connectionFailed: false,
     }
   }
 
@@ -112,6 +117,7 @@ export class CloneGithubRepository extends React.Component<
     this.setState({
       repositories,
       loading: false,
+      connectionFailed: result == null,
     })
   }
 
@@ -154,6 +160,21 @@ export class CloneGithubRepository extends React.Component<
       )
     }
 
+    if (this.state.connectionFailed === true) {
+      const tryAgainLink = (
+        <LinkButton onClick={this.reloadAndRenderRepositories}>
+          Try again?
+        </LinkButton>
+      )
+
+      return (
+        <div className="no-internet-connection-warning">
+          <Octicon symbol={OcticonSymbol.circleSlash} />
+          <p>No internet connection. {tryAgainLink}</p>
+        </div>
+      )
+    }
+
     return (
       <ClonableRepositoryFilterList
         className="clone-github-repo"
@@ -169,6 +190,11 @@ export class CloneGithubRepository extends React.Component<
         renderNoItems={this.noMatchingRepositories}
       />
     )
+  }
+
+  private reloadAndRenderRepositories = () => {
+    this.loadRepositories(this.props.account)
+    this.renderRepositoryList()
   }
 
   private noMatchingRepositories = function() {
