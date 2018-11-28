@@ -593,6 +593,7 @@ export class StatsStore {
     }))
   }
 
+  /** Records that the user made a commit that will go unattributed on dotcom */
   public recordUnattributedCommit(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       unattributedCommits: m.unattributedCommits + 1,

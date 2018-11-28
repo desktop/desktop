@@ -115,7 +115,7 @@ export interface IDailyMeasures {
   /** The number of times a conflicted merge was aborted by the user */
   readonly mergeAbortedAfterConflictsCount: number
 
-  /** The number of times a commit is made with no identity info */
+  /** The number of commits that will go unattributed on dotcom */
   readonly unattributedCommits: number
 }
 
