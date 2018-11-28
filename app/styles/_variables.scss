@@ -240,6 +240,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --tab-bar-height: 29px;
   --tab-bar-active-color: $blue;
   --tab-bar-background-color: $white;
+  --tab-bar-hover-background-color: $gray-100;
 
   /** Count bubble colors when used inside of a tab bar item */
   --tab-bar-count-color: var(--text-color);
