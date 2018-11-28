@@ -256,6 +256,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --list-item-selected-badge-background-color: $gray-300;
   --list-item-selected-active-badge-color: $gray-900;
   --list-item-selected-active-badge-background-color: $white;
+  --list-item-hover-background-color: $gray-100;
 
   /** Win32 has custom scrol bars, see _scroll.scss */
   --win32-scroll-bar-size: 10px;
