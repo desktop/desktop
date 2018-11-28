@@ -1811,11 +1811,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       })
     })
 
-    if (state.commitAuthor === null) {
-      //this means the committer won't get attributed on dotcom
-      this.statsStore.recordUnattributedCommit()
-    }
-
     if (result) {
       this.statsStore.recordCommit()
 
@@ -1829,6 +1824,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const { trailers } = context
       if (trailers !== undefined && trailers.some(isCoAuthoredByTrailer)) {
         this.statsStore.recordCoAuthoredCommit()
+      }
+
+      const { commitAuthor } = state
+      if (commitAuthor === null) {
+        //this means the committer won't get attributed on dotcom
+        this.statsStore.recordUnattributedCommit()
       }
 
       await this._refreshRepository(repository)
