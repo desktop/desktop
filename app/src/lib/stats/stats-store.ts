@@ -70,6 +70,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   mergedWithConflictWarningHintCount: 0,
   mergeSuccessAfterConflictsCount: 0,
   mergeAbortedAfterConflictsCount: 0,
+  unattributedCommits: 0,
 }
 
 interface IOnboardingStats {
@@ -589,6 +590,12 @@ export class StatsStore {
     }
     return this.updateDailyMeasures(m => ({
       repoWithoutIndicatorClicked: m.repoWithoutIndicatorClicked + 1,
+    }))
+  }
+
+  public recordUnattributedCommit(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      unattributedCommits: m.unattributedCommits + 1,
     }))
   }
 
