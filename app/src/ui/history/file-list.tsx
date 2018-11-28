@@ -3,7 +3,7 @@ import * as Path from 'path'
 import { pathExists } from 'fs-extra'
 import { revealInFileManager } from '../../lib/app-shell'
 
-import { FileChange, mapStatus, iconForStatus } from '../../models/status'
+import { FileChange } from '../../models/status'
 import { Repository } from '../../models/repository'
 
 import { PathLabel } from '../lib/path-label'
@@ -16,9 +16,10 @@ import {
 } from '../lib/context-menu'
 import { List } from '../lib/list'
 
-import { Octicon } from '../octicons'
+import { Octicon, iconForStatus } from '../octicons'
 import { showContextualMenu } from '../main-process-proxy'
 import { clipboard } from 'electron'
+import { mapStatus } from '../../lib/status'
 
 interface IFileListProps {
   readonly files: ReadonlyArray<FileChange>
@@ -77,7 +78,7 @@ export class FileList extends React.Component<IFileListProps, {}> {
         />
 
         <Octicon
-          symbol={iconForStatus(status.kind)}
+          symbol={iconForStatus(status)}
           className={'status status-' + fileStatus.toLowerCase()}
           title={fileStatus}
         />
