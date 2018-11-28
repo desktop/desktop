@@ -1811,6 +1811,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       })
     })
 
+    if (state.commitAuthor === null) {
+      //this means the committer won't get attributed on dotcom
+      this.statsStore.recordUnattributedCommit()
+    }
+
     if (result) {
       this.statsStore.recordCommit()
 
