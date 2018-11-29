@@ -36,7 +36,7 @@ import { Commit } from '../../src/models/commit'
 import { getCommit } from '../../src/lib/git'
 import { TestActivityMonitor } from '../helpers/test-activity-monitor'
 import { RepositoryStateCache } from '../../src/lib/stores/repository-state-cache'
-import { ApiRepositoriesStore } from '../../src/lib/stores/apiRepositoriesStore'
+import { ApiRepositoriesStore } from '../../src/lib/stores/api-repositories-store'
 
 // enable mocked version
 jest.mock('../../src/lib/window-state')

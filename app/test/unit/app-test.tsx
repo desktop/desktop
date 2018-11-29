@@ -28,7 +28,7 @@ import { StatsStore } from '../../src/lib/stats'
 import { InMemoryStore, AsyncInMemoryStore } from '../helpers/stores'
 import { TestActivityMonitor } from '../helpers/test-activity-monitor'
 import { RepositoryStateCache } from '../../src/lib/stores/repository-state-cache'
-import { ApiRepositoriesStore } from '../../src/lib/stores/apiRepositoriesStore'
+import { ApiRepositoriesStore } from '../../src/lib/stores/api-repositories-store'
 
 describe('App', () => {
   let appStore: AppStore | null = null

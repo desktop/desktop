@@ -176,7 +176,7 @@ import { GitStoreCache } from './git-store-cache'
 import { MergeConflictsErrorContext } from '../git-error-context'
 import { setNumber, setBoolean, getBoolean, getNumber } from '../local-storage'
 import { ExternalEditorError } from '../editors/shared'
-import { ApiRepositoriesStore } from './apiRepositoriesStore'
+import { ApiRepositoriesStore } from './api-repositories-store'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local

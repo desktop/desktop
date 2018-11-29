@@ -51,7 +51,7 @@ import {
 } from '../lib/source-map-support'
 import { UiActivityMonitor } from './lib/ui-activity-monitor'
 import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
-import { ApiRepositoriesStore } from '../lib/stores/apiRepositoriesStore'
+import { ApiRepositoriesStore } from '../lib/stores/api-repositories-store'
 
 if (__DEV__) {
   installDevGlobals()

@@ -32,7 +32,7 @@ import { Shell } from './shells'
 import { ComparisonCache } from './comparison-cache'
 
 import { ApplicationTheme } from '../ui/lib/application-theme'
-import { IAccountRepositories } from './stores/apiRepositoriesStore'
+import { IAccountRepositories } from './stores/api-repositories-store'
 
 export enum SelectionType {
   Repository,

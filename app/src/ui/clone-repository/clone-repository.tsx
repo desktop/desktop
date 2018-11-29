@@ -23,7 +23,7 @@ import { CloneGithubRepository } from './clone-github-repository'
 
 import { assertNever } from '../../lib/fatal-error'
 import { CallToAction } from '../lib/call-to-action'
-import { IAccountRepositories } from '../../lib/stores/apiRepositoriesStore'
+import { IAccountRepositories } from '../../lib/stores/api-repositories-store'
 import { merge } from '../../lib/merge'
 
 /** The name for the error when the destination already exists. */
