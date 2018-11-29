@@ -46,3 +46,8 @@ export function enableRecurseSubmodulesFlag(): boolean {
 export function enableMergeConflictsDialog(): boolean {
   return true
 }
+
+/** Should the app set protocol.version=2 for any fetch/push/pull/clone operation? */
+export function enableGitProtocolVersionTwo(): boolean {
+  return enableDevelopmentFeatures()
+}

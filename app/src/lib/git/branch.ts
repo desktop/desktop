@@ -78,8 +78,10 @@ export async function deleteBranch(
   )
 
   if (branchExistsOnRemote) {
+    const networkArguments = await gitNetworkArguments(repository, account)
+
     const args = [
-      ...gitNetworkArguments,
+      ...networkArguments,
       'push',
       remote,
       `:${branch.nameWithoutRemote}`,
@@ -101,8 +103,10 @@ async function checkIfBranchExistsOnRemote(
   account: IGitAccount | null,
   remote: string
 ): Promise<boolean> {
+  const networkArguments = await gitNetworkArguments(repository, account)
+
   const args = [
-    ...gitNetworkArguments,
+    ...networkArguments,
     'ls-remote',
     '--heads',
     remote,
