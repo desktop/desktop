@@ -3710,6 +3710,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return Promise.resolve()
   }
 
+  /**
+   * Request a refresh of the list of repositories that
+   * the provided account has explicit permissions to access.
+   * See ApiRepositoriesStore for more details.
+   */
   public _refreshApiRepositories(account: Account) {
     return this.apiRepositoriesStore.loadRepositories(account)
   }

@@ -1147,6 +1147,11 @@ export class Dispatcher {
     return this.appStore._changeCloneRepositoriesTab(tab)
   }
 
+  /**
+   * Request a refresh of the list of repositories that
+   * the provided account has explicit permissions to access.
+   * See ApiRepositoriesStore for more details.
+   */
   public refreshApiRepositories(account: Account) {
     return this.appStore._refreshApiRepositories(account)
   }
