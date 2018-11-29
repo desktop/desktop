@@ -1,4 +1,5 @@
 @import 'banners/successful-merge';
+@import 'banners/update-available';
 
 .banner {
   $banner-height: 30px;
@@ -9,13 +10,21 @@
   overflow: hidden;
   align-content: center;
   align-items: center;
-  justify-content: left;
+  justify-content: space-between;
   padding-left: var(--spacing);
 
   // Prevents the notification banner from decreasing its height
   // when a large diff is rendered.
   flex: none;
 
+  .contents {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow: hidden;
+    align-content: center;
+    justify-content: left;
+    align-items: center;
+  }
   .close {
     display: flex;
     flex-shrink: 0;

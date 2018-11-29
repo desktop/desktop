@@ -13,7 +13,7 @@ export class Banner extends React.Component<IBannerProps, {}> {
   public render() {
     return (
       <div id={this.props.id} className="banner">
-        {this.props.children}
+        <div className="contents">{this.props.children}</div>
         <div className="close">
           <a onClick={this.props.onDismissed}>
             <Octicon symbol={OcticonSymbol.x} />
