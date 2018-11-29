@@ -77,6 +77,10 @@ interface ICloneGithubRepositoryProps {
 
 const RowHeight = 31
 
+/**
+ * Iterate over all groups until a list item is found that matches
+ * the clone url of the provided repository.
+ */
 function findMatchingListItem(
   groups: ReadonlyArray<IFilterListGroup<IClonableRepositoryListItem>>,
   selectedRepository: IAPIRepository | null
@@ -97,6 +101,12 @@ function findMatchingListItem(
 export class CloneGithubRepository extends React.PureComponent<
   ICloneGithubRepositoryProps
 > {
+  /**
+   * A memoized function for grouping repositories for display
+   * in the FilterList. The group will not be recomputed as long
+   * as the provided list of repositories is equal to the last
+   * time the method was called (reference equality).
+   */
   private getRepositoryGroups = memoizeOne(
     (repositories: ReadonlyArray<IAPIRepository> | null) =>
       this.props.repositories === null
@@ -104,6 +114,15 @@ export class CloneGithubRepository extends React.PureComponent<
         : groupRepositories(this.props.repositories, this.props.account.login)
   )
 
+  /**
+   * A memoized function for finding the selected list item based
+   * on a IAPIRepository instance. The selected item will not be
+   * recomputed as long as the provided list of repositories and
+   * the selected data object is equal to the last time the method
+   * was called (reference equality).
+   *
+   * See findMatchingListItem for more details.
+   */
   private getSelectedListItem = memoizeOne(findMatchingListItem)
 
   public componentDidMount() {
