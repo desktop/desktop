@@ -602,6 +602,20 @@ export class StatsStore {
     }))
   }
 
+  /** Records that the user made a commit to a GHE instance */
+  public recordCommitToGitHubEnterprise(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      gheCommits: m.gheCommits + 1,
+    }))
+  }
+
+  /** Records that the user made a commit to Dotcom */
+  public recordCommitToDotcom(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      dotcomCommits: m.dotcomCommits + 1,
+    }))
+  }
+
   /** Set whether the user has opted out of stats reporting. */
   public async setOptOut(
     optOut: boolean,
