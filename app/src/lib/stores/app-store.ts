@@ -1827,6 +1827,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
 
       const { commitAuthor } = state
+      // todo: checking for null is not enough
+      // will need to check if user is a signed in or not
+      // then check if this object can be matched to any of the
+      // emails returned from our api
       if (commitAuthor === null) {
         //this means the committer won't get attributed on dotcom
         this.statsStore.recordUnattributedCommit()
