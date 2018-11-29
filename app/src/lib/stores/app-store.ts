@@ -1845,7 +1845,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
             )
             if (email == null) {
               this.statsStore.recordUnattributedCommit()
-            } else {
+            } else if (
+              account.endpoint === getEnterpriseAPIURL(account.endpoint)
+            ) {
+              this.statsStore.recordCommitToGitHubEnterprise()
+            } else if (account.endpoint === getDotComAPIEndpoint()) {
+              this.statsStore.recordCommitToDotcom()
             }
           }
         }
