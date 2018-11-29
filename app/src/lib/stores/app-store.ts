@@ -1826,14 +1826,29 @@ export class AppStore extends TypedBaseStore<IAppState> {
         this.statsStore.recordCoAuthoredCommit()
       }
 
-      const { commitAuthor } = state
-      // todo: checking for null is not enough
-      // will need to check if user is a signed in or not
-      // then check if this object can be matched to any of the
-      // emails returned from our api
-      if (commitAuthor === null) {
-        //this means the committer won't get attributed on dotcom
-        this.statsStore.recordUnattributedCommit()
+      const selectedState = this.getSelectedState()
+      if (
+        selectedState !== null &&
+        selectedState.type === SelectionType.Repository &&
+        selectedState.repository.gitHubRepository !== null
+      ) {
+        const { commitAuthor } = state
+        if (commitAuthor !== null) {
+          const account = getAccountForRepository(
+            this.accounts,
+            selectedState.repository
+          )
+          if (account !== null) {
+            const email = account.emails.find(
+              email =>
+                email.email.toLowerCase() === commitAuthor.email.toLowerCase()
+            )
+            if (email == null) {
+              this.statsStore.recordUnattributedCommit()
+            } else {
+            }
+          }
+        }
       }
 
       await this._refreshRepository(repository)
