@@ -43,11 +43,36 @@ interface ICloneGithubRepositoryProps {
   /** Called when a repository is selected. */
   readonly onSelectionChanged: (selectedItem: IAPIRepository | null) => void
 
+  /**
+   * The list of repositories that the account has explicit permissions
+   * to access, or null if no repositories has been loaded yet.
+   */
   readonly repositories: ReadonlyArray<IAPIRepository> | null
+
+  /**
+   * Whether or not the list of repositories is currently being loaded
+   * by the API Repositories Store. This determines whether the loading
+   * indicator is shown or not.
+   */
   readonly loading: boolean
-  readonly onRefreshRepositories: (account: Account) => void
+
+  /**
+   * The contents of the filter text box used to filter the list of
+   * repositories.
+   */
   readonly filterText: string
+
+  /**
+   * Called when the filter text is changed by the user entering a new
+   * value in the filter text box.
+   */
   readonly onFilterTextChanged: (filterText: string) => void
+
+  /**
+   * Called when the user requests a refresh of the repositories
+   * available for cloning.
+   */
+  readonly onRefreshRepositories: (account: Account) => void
 }
 
 const RowHeight = 31
