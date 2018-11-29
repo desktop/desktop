@@ -71,6 +71,8 @@ const DefaultDailyMeasures: IDailyMeasures = {
   mergeSuccessAfterConflictsCount: 0,
   mergeAbortedAfterConflictsCount: 0,
   unattributedCommits: 0,
+  gheCommits: 0,
+  dotcomCommits: 0,
 }
 
 interface IOnboardingStats {
