@@ -55,3 +55,6 @@ These are general metrics about feature usage and specific feature behaviors. Th
 | `mergedWithConflictWarningHintCount` | The number of times the user has merged after seeing the 'you have XX conflicted files' warning. | To understand how frequently people are merging even though they know there will be conflicts |
 | `mergeSuccessAfterConflictsCount` | The number of times the user successfully completes a merge after a merge conflict. | To understand how effectively users are able to resolve conflicts and complete their merge successfully |
 | `mergeAbortedAfterConflictsCount` | The number of times the user aborts a merge after a merge conflict. | To understand the frequency of merges that are never completed after attempting to merge and hitting a merge conflict |
+| `unattributedCommits` | The number of commits that will go unattributed on GitHub. | todo |
+| `gheCommits` | The number of times the user made a commit to a GHE repo. | todo |
+| `dotcomCommits` | The number of time the user made a commit to a repo hosted on Dotcom. | todo |
