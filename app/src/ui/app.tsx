@@ -90,7 +90,7 @@ import { ApplicationTheme } from './lib/application-theme'
 import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
 import { AbortMergeWarning } from './abort-merge'
 import { enableMergeConflictsDialog } from '../lib/feature-flag'
-import { AppFileStatusKind } from '../models/status'
+import { isConflictedFile } from '../lib/status'
 import { PopupType, Popup } from '../models/popup'
 import { SuccessfulMerge } from './banners'
 import { UsageStatsChange } from './usage-stats-change'
@@ -1390,10 +1390,8 @@ export class App extends React.Component<IAppProps, IAppState> {
           }
           const { workingDirectory } = selectedState.state.changesState
           // double check that this repository is actually in merge
-          const isInConflictedMerge = workingDirectory.files.some(
-            file =>
-              file.status.kind === AppFileStatusKind.Conflicted ||
-              file.status.kind === AppFileStatusKind.Resolved
+          const isInConflictedMerge = workingDirectory.files.some(file =>
+            isConflictedFile(file.status)
           )
           if (!isInConflictedMerge) {
             return null

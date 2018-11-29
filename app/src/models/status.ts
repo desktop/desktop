@@ -1,5 +1,4 @@
 import { DiffSelection, DiffSelectionType } from './diff'
-import { ConflictFileStatus } from './conflicts'
 
 /**
  * The status entry code as reported by Git.
@@ -13,10 +12,6 @@ export enum GitStatusEntry {
   Unchanged = '.',
   Untracked = '?',
   Ignored = '!',
-  //
-  // While U is a valid code here, we currently mark conflicts as "Modified"
-  // in the application - this will likely be something we need to revisit
-  // down the track as we improve our merge conflict experience
   UpdatedButUnmerged = 'U',
 }
 
@@ -28,10 +23,11 @@ export enum AppFileStatusKind {
   Copied = 'Copied',
   Renamed = 'Renamed',
   Conflicted = 'Conflicted',
-  Resolved = 'Resolved',
 }
 
-/** The state of a GitHub Desktop-specific change containing additional metadata */
+/**
+ * Normal changes to a repository detected by GitHub Desktop
+ */
 export type PlainFileStatus = {
   kind:
     | AppFileStatusKind.New
@@ -39,24 +35,47 @@ export type PlainFileStatus = {
     | AppFileStatusKind.Deleted
 }
 
-/** A placeholder type until we can figure out the shape of our conflicts state */
-type ResolvedFileStatus = { kind: AppFileStatusKind.Resolved }
-
+/**
+ * Copied or renamed files are change staged in the index that have a source
+ * as well as a destination.
+ *
+ * The `oldPath` of a copied file also exists in the working directory, but the
+ * `oldPath` of a renamed file will be missing from the working directory.
+ */
 export type CopiedOrRenamedFileStatus = {
   kind: AppFileStatusKind.Copied | AppFileStatusKind.Renamed
   oldPath: string
 }
 
-export type ConflictedFileStatus = {
+/**
+ * Details about a file marked as conflicted in the index which may have
+ * conflict markers to inspect.
+ */
+type ConflictsWithMarkers = {
   kind: AppFileStatusKind.Conflicted
-  conflictStatus: ConflictFileStatus
+  entry: TextConflictEntry
+  lookForConflictMarkers: true
+  conflictMarkerCount: number
 }
 
+/**
+ * Details about a file marked as conflicted in the index which needs to be
+ * resolved manually by the user.
+ */
+type ManualConflict = {
+  kind: AppFileStatusKind.Conflicted
+  entry: ManualConflictEntry
+  lookForConflictMarkers: false
+}
+
+/** Union of potential conflict scenarios the application should handle */
+export type ConflictedFileStatus = ConflictsWithMarkers | ManualConflict
+
+/** The union of potential states associated with a file change in Desktop */
 export type AppFileStatus =
   | PlainFileStatus
   | CopiedOrRenamedFileStatus
   | ConflictedFileStatus
-  | ResolvedFileStatus
 
 /** The porcelain status for an ordinary changed entry */
 type OrdinaryEntry = {
@@ -78,14 +97,73 @@ type RenamedOrCopiedEntry = {
   readonly workingTree?: GitStatusEntry
 }
 
-/** The porcelain status for an unmerged entry */
-export type UnmergedEntry = {
-  readonly kind: 'conflicted'
-  /** the first character of the short code ("ours")  */
-  readonly us: GitStatusEntry
-  /** the second character of the short code ("theirs")  */
-  readonly them: GitStatusEntry
+export enum UnmergedEntrySummary {
+  AddedByUs = 'added-by-us',
+  DeletedByUs = 'deleted-by-us',
+  AddedByThem = 'added-by-them',
+  DeletedByThem = 'deleted-by-them',
+  BothDeleted = 'both-deleted',
+  BothAdded = 'both-added',
+  BothModified = 'both-modified',
 }
+
+/**
+ * Valid Git index states that the application should detect text conflict
+ * markers
+ */
+type TextConflictDetails =
+  | {
+      readonly action: UnmergedEntrySummary.BothAdded
+      readonly us: GitStatusEntry.Added
+      readonly them: GitStatusEntry.Added
+    }
+  | {
+      readonly action: UnmergedEntrySummary.BothModified
+      readonly us: GitStatusEntry.UpdatedButUnmerged
+      readonly them: GitStatusEntry.UpdatedButUnmerged
+    }
+
+type TextConflictEntry = {
+  readonly kind: 'conflicted'
+} & TextConflictDetails
+
+/**
+ * Valid Git index states where the user needs to choose one of `us` or `them`
+ * in the app.
+ */
+type ManualConflictDetails =
+  | {
+      readonly action: UnmergedEntrySummary.AddedByUs
+      readonly us: GitStatusEntry.Added
+      readonly them: GitStatusEntry.UpdatedButUnmerged
+    }
+  | {
+      readonly action: UnmergedEntrySummary.DeletedByThem
+      readonly us: GitStatusEntry.UpdatedButUnmerged
+      readonly them: GitStatusEntry.Deleted
+    }
+  | {
+      readonly action: UnmergedEntrySummary.AddedByThem
+      readonly us: GitStatusEntry.UpdatedButUnmerged
+      readonly them: GitStatusEntry.Added
+    }
+  | {
+      readonly action: UnmergedEntrySummary.DeletedByUs
+      readonly us: GitStatusEntry.Deleted
+      readonly them: GitStatusEntry.UpdatedButUnmerged
+    }
+  | {
+      readonly action: UnmergedEntrySummary.BothDeleted
+      readonly us: GitStatusEntry.Deleted
+      readonly them: GitStatusEntry.Deleted
+    }
+
+type ManualConflictEntry = {
+  readonly kind: 'conflicted'
+} & ManualConflictDetails
+
+/** The porcelain status for an unmerged entry */
+export type UnmergedEntry = TextConflictEntry | ManualConflictEntry
 
 /** The porcelain status for an unmerged entry */
 type UntrackedEntry = {
