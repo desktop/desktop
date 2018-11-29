@@ -357,12 +357,22 @@ export class CloneRepository extends React.Component<
     return this.getTabState(this.props.selectedTab)
   }
 
+  /**
+   * Update the state for the currently selected tab. Note that
+   * since the selected tab can be using either IGitHubTabState
+   * or IUrlTabState this method can only accept subset state
+   * shared between the two types.
+   */
   private setSelectedTabState<K extends keyof IBaseTabState>(
     state: Pick<IBaseTabState, K>
   ) {
     this.setTabState(state, this.props.selectedTab)
   }
 
+  /**
+   * Merge the current state with the provided subset of state
+   * for the provided tab.
+   */
   private setTabState<K extends keyof IBaseTabState>(
     state: Pick<IBaseTabState, K>,
     tab: CloneRepositoryTab
