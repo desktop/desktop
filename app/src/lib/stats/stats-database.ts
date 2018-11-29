@@ -117,6 +117,12 @@ export interface IDailyMeasures {
 
   /** The number of commits that will go unattributed on dotcom */
   readonly unattributedCommits: number
+
+  /** The number of times the user made a commit to a GHE repo */
+  readonly gheCommits: number
+
+  /** The number of time the user made a commit to a repo hosted on Dotcom */
+  readonly dotcomCommits: number
 }
 
 export class StatsDatabase extends Dexie {
