@@ -116,6 +116,7 @@ interface IBaseTabState {
    * The repository identifier that was last parsed from the user-entered URL.
    */
   readonly lastParsedIdentifier: IRepositoryIdentifier | null
+
   /** The local path to clone to. */
   readonly path: string
 
