@@ -48,7 +48,26 @@ interface ICloneRepositoryProps {
   /** Called when the user selects a tab. */
   readonly onTabSelected: (tab: CloneRepositoryTab) => void
 
+  /**
+   * A map keyed on a user account (GitHub.com or GitHub Enterprise)
+   * containing an object with repositories that the authenticated
+   * user has explicit permission (:read, :write, or :admin) to access
+   * as well as information about whether the list of repositories
+   * is currently being loaded or not.
+   *
+   * If a currently signed in account is missing from the map that
+   * means that the list of accessible repositories has not yet been
+   * loaded. An entry for an account with an empty list of repositories
+   * means that no accessible repositories was found for the account.
+   *
+   * See the ApiRepositoriesStore for more details on loading repositories
+   */
   readonly apiRepositories: ReadonlyMap<Account, IAccountRepositories>
+
+  /**
+   * Called when the user requests a refresh of the repositories
+   * available for cloning.
+   */
   readonly onRefreshRepositories: (account: Account) => void
 }
 
