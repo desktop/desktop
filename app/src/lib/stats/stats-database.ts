@@ -115,7 +115,7 @@ export interface IDailyMeasures {
   /** The number of times a conflicted merge was aborted by the user */
   readonly mergeAbortedAfterConflictsCount: number
 
-  /** The number of commits that will go unattributed on dotcom */
+  /** The number of commits that will go unattributed to GitHub users */
   readonly unattributedCommits: number
 
   /** The number of times the user made a commit to a GHE repo */
