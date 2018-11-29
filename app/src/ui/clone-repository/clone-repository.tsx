@@ -86,11 +86,28 @@ interface ICloneRepositoryState {
   /** Are we currently trying to load the entered repository? */
   readonly loading: boolean
 
+  /**
+   * The persisted state of the CloneGitHubRepository component for
+   * the GitHub.com account.
+   */
   readonly dotComTabState: IGitHubTabState
+
+  /**
+   * The persisted state of the CloneGitHubRepository component for
+   * the GitHub Enterprise account.
+   */
   readonly enterpriseTabState: IGitHubTabState
+
+  /**
+   * The persisted state of the CloneGenericRepository component.
+   */
   readonly urlTabState: IUrlTabState
 }
 
+/**
+ * Common persisted state for the CloneGitHubRepository and
+ * CloneGenericRepository components.
+ */
 interface IBaseTabState {
   /** The current error if one occurred. */
   readonly error: Error | null
@@ -110,9 +127,22 @@ interface IUrlTabState extends IBaseTabState {
   readonly kind: 'urlTabState'
 }
 
+/**
+ * Persisted state for the CloneGitHubRepository component.
+ */
 interface IGitHubTabState extends IBaseTabState {
   readonly kind: 'dotComTabState' | 'enterpriseTabState'
+
+  /**
+   * The contents of the filter text box used to filter the list of
+   * repositories.
+   */
   readonly filterText: string
+
+  /**
+   * The currently selected repository, or null if no repository
+   * is selected.
+   */
   readonly selectedItem: IAPIRepository | null
 }
 
