@@ -49,7 +49,7 @@ export class ApiRepositoriesStore extends BaseStore {
 
   public constructor(private readonly accountsStore: AccountsStore) {
     super()
-    this.accountsStore.onDidUpdate(this.onAccountsChanged)
+    accountsStore.onDidUpdate(() => this.onAccountsChanged())
   }
 
   /**
