@@ -118,10 +118,13 @@ export interface IDailyMeasures {
   /** The number of commits that will go unattributed to GitHub users */
   readonly unattributedCommits: number
 
-  /** The number of times the user made a commit to a GHE repo */
+  /**
+   * The number of times the user made a commit to a repo hosted on
+   * a GitHub Enterprise instance
+   */
   readonly enterpriseCommits: number
 
-  /** The number of time the user made a commit to a repo hosted on Dotcom */
+  /** The number of time the user made a commit to a repo hosted on Github.com */
   readonly dotcomCommits: number
 }
 
