@@ -71,7 +71,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   mergeSuccessAfterConflictsCount: 0,
   mergeAbortedAfterConflictsCount: 0,
   unattributedCommits: 0,
-  gheCommits: 0,
+  enterpriseCommits: 0,
   dotcomCommits: 0,
 }
 
@@ -603,9 +603,9 @@ export class StatsStore {
   }
 
   /** Records that the user made a commit to a GHE instance */
-  public recordCommitToGitHubEnterprise(): Promise<void> {
+  public recordCommitToEnterprise(): Promise<void> {
     return this.updateDailyMeasures(m => ({
-      gheCommits: m.gheCommits + 1,
+      enterpriseCommits: m.enterpriseCommits + 1,
     }))
   }
 

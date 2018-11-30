@@ -119,7 +119,7 @@ export interface IDailyMeasures {
   readonly unattributedCommits: number
 
   /** The number of times the user made a commit to a GHE repo */
-  readonly gheCommits: number
+  readonly enterpriseCommits: number
 
   /** The number of time the user made a commit to a repo hosted on Dotcom */
   readonly dotcomCommits: number
