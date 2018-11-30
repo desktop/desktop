@@ -23,7 +23,6 @@ import { IAuthor } from '../../models/author'
 import { IMenuItem } from '../../lib/menu-item'
 import { shallowEquals } from '../../lib/equality'
 import { ICommitContext } from '../../models/commit'
-import { hasConflictedFiles } from '../../lib/status'
 
 const addAuthorIcon = new OcticonSymbol(
   12,
