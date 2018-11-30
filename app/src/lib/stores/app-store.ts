@@ -1688,8 +1688,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       selectableLines
     )
     const selectedFile = currentlySelectedFile.withSelection(newSelection)
-    const updatedFiles = changesState.workingDirectory.files.map(
-      f => (f.id === selectedFile.id ? selectedFile : f)
+    const updatedFiles = changesState.workingDirectory.files.map(f =>
+      f.id === selectedFile.id ? selectedFile : f
     )
     const workingDirectory = WorkingDirectoryStatus.fromFiles(updatedFiles)
 
@@ -1778,8 +1778,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     selection: DiffSelection
   ) {
     this.repositoryStateCache.updateChangesState(repository, state => {
-      const newFiles = state.workingDirectory.files.map(
-        f => (f.id === file.id ? f.withSelection(selection) : f)
+      const newFiles = state.workingDirectory.files.map(f =>
+        f.id === file.id ? f.withSelection(selection) : f
       )
 
       const workingDirectory = WorkingDirectoryStatus.fromFiles(newFiles)
