@@ -1826,28 +1826,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
         this.statsStore.recordCoAuthoredCommit()
       }
 
-      const selectedState = this.getSelectedState()
-      if (
-        selectedState !== null &&
-        selectedState.type === SelectionType.Repository &&
-        selectedState.repository.gitHubRepository !== null
-      ) {
-        const { commitAuthor } = state
-        if (commitAuthor !== null) {
-          const account = getAccountForRepository(this.accounts, repository)
-          if (account !== null) {
+      const account = getAccountForRepository(this.accounts, repository)
+      if (repository.gitHubRepository !== null) {
+        if (account !== null) {
+          if (account.endpoint === getDotComAPIEndpoint()) {
+            this.statsStore.recordCommitToDotcom()
+          } else {
+            this.statsStore.recordCommitToEnterprise()
+          }
+
+          const { commitAuthor } = state
+          if (commitAuthor !== null) {
             const commitEmailMatchesAccount = account.emails.some(
               email =>
                 email.email.toLowerCase() === commitAuthor.email.toLowerCase()
             )
             if (!commitEmailMatchesAccount) {
               this.statsStore.recordUnattributedCommit()
-            } else if (
-              account.endpoint === getEnterpriseAPIURL(account.endpoint)
-            ) {
-              this.statsStore.recordCommitToEnterprise()
-            } else if (account.endpoint === getDotComAPIEndpoint()) {
-              this.statsStore.recordCommitToDotcom()
             }
           }
         }
