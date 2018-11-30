@@ -142,6 +142,7 @@
     "@types/jest": "^23.3.1",
     "@types/keytar": "^4.0.0",
     "@types/legal-eagle": "^0.15.0",
+    "@types/memoize-one": "^3.1.1",
     "@types/mini-css-extract-plugin": "^0.2.0",
     "@types/mri": "^1.1.0",
     "@types/node": "^8.10.4",
