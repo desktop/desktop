@@ -92,6 +92,7 @@ time:
 |                                 | Label name         | Description |
 | ------------------------------- | ------------------ | ----------- |
 | [:mag_right:][ready-for-review] | `ready-for-review` | Pull Requests that are ready to be reviewed by the maintainers |
+| [:mag_right:][time-sensitive]   | `time-sensitive`   | Pull Requests that require review in a more timely manner      |
 
 
 [bug]: https://github.com/desktop/desktop/labels/bug
@@ -116,6 +117,7 @@ time:
 [ready-for-review]: https://github.com/desktop/desktop/labels/ready-for-review
 [tech-debt]: https://github.com/desktop/desktop/labels/tech-debt
 [themes]: https://github.com/desktop/desktop/labels/themes
+[time-sensitive]: https://github.com/desktop/desktop/labels/time-sensitive
 [user-research]: https://github.com/desktop/desktop/labels/user-research
 [website]: https://github.com/desktop/desktop/labels/website
 [windows]: https://github.com/desktop/desktop/labels/windows

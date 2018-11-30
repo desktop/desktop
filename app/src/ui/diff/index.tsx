@@ -10,7 +10,7 @@ import { Repository } from '../../models/repository'
 import {
   CommittedFileChange,
   WorkingDirectoryFileChange,
-  AppFileStatus,
+  AppFileStatusKind,
 } from '../../models/status'
 import {
   DiffSelection,
@@ -207,13 +207,16 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
       )
     }
 
-    if (imageDiff.current && this.props.file.status === AppFileStatus.New) {
+    if (
+      imageDiff.current &&
+      this.props.file.status.kind === AppFileStatusKind.New
+    ) {
       return <NewImageDiff current={imageDiff.current} />
     }
 
     if (
       imageDiff.previous &&
-      this.props.file.status === AppFileStatus.Deleted
+      this.props.file.status.kind === AppFileStatusKind.Deleted
     ) {
       return <DeletedImageDiff previous={imageDiff.previous} />
     }
@@ -261,11 +264,11 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
 
   private renderText(diff: ITextDiff) {
     if (diff.hunks.length === 0) {
-      if (this.props.file.status === AppFileStatus.New) {
+      if (this.props.file.status.kind === AppFileStatusKind.New) {
         return <div className="panel empty">The file is empty</div>
       }
 
-      if (this.props.file.status === AppFileStatus.Renamed) {
+      if (this.props.file.status.kind === AppFileStatusKind.Renamed) {
         return (
           <div className="panel renamed">
             The file was renamed but not changed

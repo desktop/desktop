@@ -8,7 +8,7 @@ import {
   setupFixtureRepository,
 } from '../helpers/repositories'
 import { GitStore } from '../../src/lib/stores'
-import { AppFileStatus } from '../../src/models/status'
+import { AppFileStatusKind } from '../../src/models/status'
 import { Repository } from '../../src/models/repository'
 import { Commit } from '../../src/models/commit'
 import { TipState, IValidBranch } from '../../src/models/tip'
@@ -57,7 +57,7 @@ describe('GitStore', () => {
 
     expect(files).toHaveLength(2)
     expect(files[0].path).toEqual('README.md')
-    expect(files[0].status).toEqual(AppFileStatus.Modified)
+    expect(files[0].status.kind).toEqual(AppFileStatusKind.Modified)
 
     // discard the LICENSE.md file
     await gitStore.discardChanges([files[1]])

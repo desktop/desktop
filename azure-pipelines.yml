@@ -1,3 +1,6 @@
+variables:
+  PYTHON: 'python2.7'
+
 jobs:
   - job: Windows
     pool:
@@ -5,7 +8,7 @@ jobs:
     steps:
       - task: NodeTool@0
         inputs:
-          versionSpec: '8.11.1'
+          versionSpec: '8.12.0'
       - task: geeklearningio.gl-vsts-tasks-yarn.yarn-installer-task.YarnInstaller@2
         inputs:
           versionSpec: '1.5.1'
@@ -18,6 +21,16 @@ jobs:
       - script: |
           yarn test:setup && yarn test
         name: Test
+      - task: PublishTestResults@2
+        displayName: 'Publish Test Results'
+        inputs:
+          testResultsFiles: '**junit*.xml'
+          testRunTitle: TestRun ${{ parameters.name }} $(node_version)
+      - task: PublishCodeCoverageResults@1
+        displayName: 'Publish code coverage results'
+        inputs:
+          codeCoverageTool: 'cobertura'
+          summaryFileLocation: '**/coverage/cobertura-coverage.xml'
 
   - job: Linux
     pool:
@@ -28,7 +41,7 @@ jobs:
           sudo apt-get install -y --no-install-recommends libsecret-1-dev xvfb fakeroot dpkg rpm xz-utils xorriso zsync libxss1 libgconf2-4 libgtk-3-0
       - task: NodeTool@0
         inputs:
-          versionSpec: '8.11.1'
+          versionSpec: '8.12.0'
       - task: geeklearningio.gl-vsts-tasks-yarn.yarn-installer-task.YarnInstaller@2
         inputs:
           versionSpec: '1.5.1'
@@ -43,6 +56,16 @@ jobs:
           Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
           yarn test:setup && yarn test
         name: Test
+      - task: PublishTestResults@2
+        displayName: 'Publish Test Results'
+        inputs:
+          testResultsFiles: '**junit*.xml'
+          testRunTitle: TestRun ${{ parameters.name }} $(node_version)
+      - task: PublishCodeCoverageResults@1
+        displayName: 'Publish code coverage results'
+        inputs:
+          codeCoverageTool: 'cobertura'
+          summaryFileLocation: '**/coverage/cobertura-coverage.xml'
 
   - job: macOS
     pool:
@@ -50,7 +73,7 @@ jobs:
     steps:
       - task: NodeTool@0
         inputs:
-          versionSpec: '8.11.1'
+          versionSpec: '8.12.0'
       - script: |
           yarn install --force
         name: Install
@@ -60,6 +83,16 @@ jobs:
       - script: |
           yarn test:setup && yarn test
         name: Test
+      - task: PublishTestResults@2
+        displayName: 'Publish Test Results'
+        inputs:
+          testResultsFiles: '**junit*.xml'
+          testRunTitle: TestRun ${{ parameters.name }} $(node_version)
+      - task: PublishCodeCoverageResults@1
+        displayName: 'Publish code coverage results'
+        inputs:
+          codeCoverageTool: 'cobertura'
+          summaryFileLocation: '**/coverage/cobertura-coverage.xml'
 
   - job: Lint
     pool:
@@ -70,7 +103,7 @@ jobs:
           sudo apt-get install -y --no-install-recommends libsecret-1-dev
       - task: NodeTool@0
         inputs:
-          versionSpec: '8.11.1'
+          versionSpec: '8.12.0'
       - task: geeklearningio.gl-vsts-tasks-yarn.yarn-installer-task.YarnInstaller@2
         inputs:
           versionSpec: '1.5.1'

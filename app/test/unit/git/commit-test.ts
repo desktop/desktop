@@ -19,8 +19,10 @@ import {
 
 import { GitProcess } from 'dugite'
 import {
-  AppFileStatus,
   WorkingDirectoryFileChange,
+  AppFileStatusKind,
+  UnmergedEntrySummary,
+  GitStatusEntry,
 } from '../../../src/models/status'
 import {
   DiffSelectionType,
@@ -172,7 +174,7 @@ describe('git/commit', () => {
 
       const file = new WorkingDirectoryFileChange(
         newFileName,
-        AppFileStatus.New,
+        { kind: AppFileStatusKind.New },
         selection
       )
 
@@ -200,7 +202,7 @@ describe('git/commit', () => {
         f => f.path === newFileName
       )
       expect(fileChange).not.toBeUndefined()
-      expect(fileChange!.status).toEqual(AppFileStatus.Modified)
+      expect(fileChange!.status.kind).toEqual(AppFileStatusKind.Modified)
     })
 
     it('can commit second hunk from modified file', async () => {
@@ -213,7 +215,7 @@ describe('git/commit', () => {
       )
       const file = new WorkingDirectoryFileChange(
         modifiedFile,
-        AppFileStatus.Modified,
+        { kind: AppFileStatusKind.Modified },
         unselectedFile
       )
 
@@ -252,7 +254,7 @@ describe('git/commit', () => {
         f => f.path === modifiedFile
       )
       expect(fileChange).not.toBeUndefined()
-      expect(fileChange!.status).toEqual(AppFileStatus.Modified)
+      expect(fileChange!.status.kind).toEqual(AppFileStatusKind.Modified)
     })
 
     it('can commit single delete from modified file', async () => {
@@ -265,7 +267,7 @@ describe('git/commit', () => {
       )
       const modifiedFile = new WorkingDirectoryFileChange(
         fileName,
-        AppFileStatus.Modified,
+        { kind: AppFileStatusKind.Modified },
         unselectedFile
       )
 
@@ -279,7 +281,7 @@ describe('git/commit', () => {
 
       const file = new WorkingDirectoryFileChange(
         fileName,
-        AppFileStatus.Modified,
+        { kind: AppFileStatusKind.Modified },
         selection
       )
 
@@ -309,7 +311,7 @@ describe('git/commit', () => {
       )
       const file = new WorkingDirectoryFileChange(
         modifiedFile,
-        AppFileStatus.Modified,
+        { kind: AppFileStatusKind.Modified },
         unselectedFile
       )
 
@@ -325,7 +327,7 @@ describe('git/commit', () => {
 
       const updatedFile = new WorkingDirectoryFileChange(
         modifiedFile,
-        AppFileStatus.Modified,
+        { kind: AppFileStatusKind.Modified },
         selection
       )
 
@@ -353,7 +355,7 @@ describe('git/commit', () => {
         f => f.path === modifiedFile
       )
       expect(fileChange).not.toBeUndefined()
-      expect(fileChange!.status).toEqual(AppFileStatus.Modified)
+      expect(fileChange!.status.kind).toEqual(AppFileStatusKind.Modified)
     })
 
     it('can commit some lines from deleted file', async () => {
@@ -367,7 +369,7 @@ describe('git/commit', () => {
 
       const file = new WorkingDirectoryFileChange(
         deletedFile,
-        AppFileStatus.Deleted,
+        { kind: AppFileStatusKind.Deleted },
         selection
       )
 
@@ -395,7 +397,7 @@ describe('git/commit', () => {
         f => f.path === deletedFile
       )
       expect(fileChange).not.toBeUndefined()
-      expect(fileChange!.status).toEqual(AppFileStatus.Deleted)
+      expect(fileChange!.status.kind).toEqual(AppFileStatusKind.Deleted)
     })
 
     it('can commit renames with modifications', async () => {
@@ -444,7 +446,7 @@ describe('git/commit', () => {
 
       expect(files.length).toEqual(1)
       expect(files[0].path).toContain('bar')
-      expect(files[0].status).toEqual(AppFileStatus.Renamed)
+      expect(files[0].status.kind).toEqual(AppFileStatusKind.Renamed)
 
       const selection = files[0].selection
         .withSelectNone()
@@ -489,7 +491,18 @@ describe('git/commit', () => {
 
       expect(files.length).toEqual(1)
       expect(files[0].path).toEqual('foo')
-      expect(files[0].status).toEqual(AppFileStatus.Resolved)
+
+      expect(files[0].status).toEqual({
+        kind: AppFileStatusKind.Conflicted,
+        entry: {
+          kind: 'conflicted',
+          action: UnmergedEntrySummary.BothModified,
+          them: GitStatusEntry.UpdatedButUnmerged,
+          us: GitStatusEntry.UpdatedButUnmerged,
+        },
+        lookForConflictMarkers: true,
+        conflictMarkerCount: 0,
+      })
 
       const selection = files[0].selection.withSelectAll()
       const selectedFile = files[0].withSelection(selection)
@@ -559,7 +572,7 @@ describe('git/commit', () => {
 
       expect(files.length).toEqual(1)
       expect(files[0].path).toContain('second')
-      expect(files[0].status).toEqual(AppFileStatus.New)
+      expect(files[0].status.kind).toEqual(AppFileStatusKind.New)
 
       const toCommit = status.workingDirectory.withIncludeAllFiles(true)
 
@@ -596,7 +609,7 @@ describe('git/commit', () => {
 
       expect(files.length).toEqual(1)
       expect(files[0].path).toContain('first')
-      expect(files[0].status).toEqual(AppFileStatus.New)
+      expect(files[0].status.kind).toEqual(AppFileStatusKind.New)
 
       const toCommit = status!.workingDirectory.withIncludeAllFiles(true)
 

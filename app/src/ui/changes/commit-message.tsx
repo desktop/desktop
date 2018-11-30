@@ -19,10 +19,10 @@ import { AuthorInput } from '../lib/author-input'
 import { FocusContainer } from '../lib/focus-container'
 import { showContextualMenu } from '../main-process-proxy'
 import { Octicon, OcticonSymbol } from '../octicons'
-import { ITrailer } from '../../lib/git/interpret-trailers'
 import { IAuthor } from '../../models/author'
 import { IMenuItem } from '../../lib/menu-item'
 import { shallowEquals } from '../../lib/equality'
+import { ICommitContext } from '../../models/commit'
 
 const addAuthorIcon = new OcticonSymbol(
   12,
@@ -34,15 +34,12 @@ const addAuthorIcon = new OcticonSymbol(
 )
 
 interface ICommitMessageProps {
-  readonly onCreateCommit: (
-    summary: string,
-    description: string | null,
-    trailers?: ReadonlyArray<ITrailer>
-  ) => Promise<boolean>
+  readonly onCreateCommit: (context: ICommitContext) => Promise<boolean>
   readonly branch: string | null
   readonly commitAuthor: CommitIdentity | null
   readonly gitHubUser: IGitHubUser | null
   readonly anyFilesSelected: boolean
+  readonly focusCommitMessage: boolean
   readonly commitMessage: ICommitMessage | null
   readonly repository: Repository
   readonly dispatcher: Dispatcher
@@ -99,6 +96,8 @@ export class CommitMessage extends React.Component<
 > {
   private descriptionComponent: AutocompletingTextArea | null = null
 
+  private summaryTextInput: HTMLInputElement | null = null
+
   private descriptionTextArea: HTMLTextAreaElement | null = null
   private descriptionTextAreaScrollDebounceId: number | null = null
 
@@ -133,6 +132,11 @@ export class CommitMessage extends React.Component<
         ),
       })
     }
+
+    if (this.props.focusCommitMessage) {
+      this.focusSummary()
+    }
+
     if (!shallowEquals(prevProps.commitMessage, this.props.commitMessage)) {
       if (this.props.commitMessage) {
         this.setState({
@@ -147,6 +151,13 @@ export class CommitMessage extends React.Component<
 
   private clearCommitMessage() {
     this.setState({ summary: '', description: null })
+  }
+
+  private focusSummary() {
+    if (this.summaryTextInput !== null) {
+      this.summaryTextInput.focus()
+      this.props.dispatcher.setCommitMessageFocus(false)
+    }
   }
 
   private onSummaryChanged = (summary: string) => {
@@ -181,14 +192,18 @@ export class CommitMessage extends React.Component<
 
     const trailers = this.getCoAuthorTrailers()
 
-    const commitCreated = await this.props.onCreateCommit(
-      // allow single file commit without summary
+    const summaryOrPlaceholder =
       this.props.singleFileCommit && !this.state.summary
         ? this.props.placeholder
-        : summary,
+        : summary
+
+    const commitContext = {
+      summary: summaryOrPlaceholder,
       description,
-      trailers
-    )
+      trailers,
+    }
+
+    const commitCreated = await this.props.onCreateCommit(commitContext)
 
     if (commitCreated) {
       this.clearCommitMessage()
@@ -282,8 +297,8 @@ export class CommitMessage extends React.Component<
         ? 'Remove Co-Authors'
         : 'Remove co-authors'
       : __DARWIN__
-        ? 'Add Co-Authors'
-        : 'Add co-authors'
+      ? 'Add Co-Authors'
+      : 'Add co-authors'
   }
 
   private getAddRemoveCoAuthorsMenuItem(): IMenuItem {
@@ -378,6 +393,10 @@ export class CommitMessage extends React.Component<
     this.descriptionTextArea = elem
   }
 
+  private onSummaryInputRef = (elem: HTMLInputElement | null) => {
+    this.summaryTextInput = elem
+  }
+
   private onFocusContainerClick = (event: React.MouseEvent<HTMLDivElement>) => {
     if (this.descriptionComponent) {
       this.descriptionComponent.focus()
@@ -438,6 +457,7 @@ export class CommitMessage extends React.Component<
             placeholder={this.props.placeholder}
             value={this.state.summary}
             onValueChanged={this.onSummaryChanged}
+            onElementRef={this.onSummaryInputRef}
             autocompletionProviders={this.props.autocompletionProviders}
             onContextMenu={this.onAutocompletingInputContextMenu}
             disabled={this.props.isCommitting}

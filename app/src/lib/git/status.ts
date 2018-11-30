@@ -6,6 +6,10 @@ import {
   AppFileStatus,
   FileEntry,
   GitStatusEntry,
+  AppFileStatusKind,
+  UnmergedEntry,
+  ConflictedFileStatus,
+  UnmergedEntrySummary,
 } from '../../models/status'
 import {
   parsePorcelainStatus,
@@ -20,12 +24,6 @@ import { Repository } from '../../models/repository'
 import { IAheadBehind } from '../../models/branch'
 import { fatalError } from '../../lib/fatal-error'
 import { enableStatusWithoutOptionalLocks } from '../feature-flag'
-import { filterBinaryFiles } from './binary-files'
-import {
-  ConflictState,
-  ConflictFileStatus,
-  ConflictedFile,
-} from '../../models/conflicts'
 import { isMergeHeadSet } from './merge'
 
 /**
@@ -70,73 +68,65 @@ interface IStatusHeadersData {
   match: RegExpMatchArray | null
 }
 
+type ConflictCountsByPath = ReadonlyMap<string, number>
+
+function parseConflictedState(
+  entry: UnmergedEntry,
+  path: string,
+  filesWithConflictMarkers: ConflictCountsByPath
+): ConflictedFileStatus {
+  switch (entry.action) {
+    case UnmergedEntrySummary.BothAdded:
+      const addedConflictsLeft = filesWithConflictMarkers.get(path) || 0
+      return {
+        kind: AppFileStatusKind.Conflicted,
+        entry,
+        lookForConflictMarkers: true,
+        conflictMarkerCount: addedConflictsLeft,
+      }
+    case UnmergedEntrySummary.BothModified:
+      const modifedConflictsLeft = filesWithConflictMarkers.get(path) || 0
+      return {
+        kind: AppFileStatusKind.Conflicted,
+        entry,
+        lookForConflictMarkers: true,
+        conflictMarkerCount: modifedConflictsLeft,
+      }
+    default:
+      return {
+        kind: AppFileStatusKind.Conflicted,
+        entry,
+        lookForConflictMarkers: false,
+      }
+  }
+}
+
 function convertToAppStatus(
-  status: FileEntry,
-  hasConflictMarkers: boolean
+  path: string,
+  entry: FileEntry,
+  filesWithConflictMarkers: ConflictCountsByPath,
+  oldPath?: string
 ): AppFileStatus {
-  if (status.kind === 'ordinary') {
-    switch (status.type) {
+  if (entry.kind === 'ordinary') {
+    switch (entry.type) {
       case 'added':
-        return AppFileStatus.New
+        return { kind: AppFileStatusKind.New }
       case 'modified':
-        return AppFileStatus.Modified
+        return { kind: AppFileStatusKind.Modified }
       case 'deleted':
-        return AppFileStatus.Deleted
+        return { kind: AppFileStatusKind.Deleted }
     }
-  } else if (status.kind === 'copied') {
-    return AppFileStatus.Copied
-  } else if (status.kind === 'renamed') {
-    return AppFileStatus.Renamed
-  } else if (status.kind === 'conflicted') {
-    return hasConflictMarkers
-      ? AppFileStatus.Conflicted
-      : AppFileStatus.Resolved
-  } else if (status.kind === 'untracked') {
-    return AppFileStatus.New
+  } else if (entry.kind === 'copied' && oldPath != null) {
+    return { kind: AppFileStatusKind.Copied, oldPath }
+  } else if (entry.kind === 'renamed' && oldPath != null) {
+    return { kind: AppFileStatusKind.Renamed, oldPath }
+  } else if (entry.kind === 'untracked') {
+    return { kind: AppFileStatusKind.New }
+  } else if (entry.kind === 'conflicted') {
+    return parseConflictedState(entry, path, filesWithConflictMarkers)
   }
 
   return fatalError(`Unknown file status ${status}`)
-}
-
-async function buildConflictState(
-  repository: Repository,
-  conflictedFiles: ReadonlyArray<ConflictedFile>
-): Promise<ConflictState> {
-  return {
-    filesWithConflictMarkers: await getFilesWithConflictMarkers(
-      repository.path
-    ),
-    binaryFilePathsInConflicts: await filterBinaryFiles(
-      repository,
-      conflictedFiles
-    ),
-  }
-}
-
-/**
- * Read the status entries to find any files marked as conflicted
- *
- * @param entries raw status entries provided by Git
- */
-function filterConflictedFiles(
-  entries: ReadonlyArray<IStatusEntry>
-): ReadonlyArray<ConflictedFile> {
-  const filesAndKeys = entries.map(es => ({
-    path: es.path,
-    status: mapStatus(es.statusCode),
-  }))
-
-  return filesAndKeys.filter(isConflictedFile)
-}
-
-/**
- * Type guard to filter for a conflicted file
- */
-function isConflictedFile(entry: {
-  path: string
-  status: FileEntry
-}): entry is ConflictedFile {
-  return entry.status.kind === 'conflicted'
 }
 
 /**
@@ -188,17 +178,12 @@ export async function getStatus(
   const headers = parsed.filter(isStatusHeader)
   const entries = parsed.filter(isStatusEntry)
 
-  const conflictedFilesInIndex = filterConflictedFiles(entries)
-
-  const hasConflictedFiles = conflictedFilesInIndex.length > 0
+  const mergeHeadFound = await isMergeHeadSet(repository)
 
   // if we have any conflicted files reported by status, let
-  const conflictState = hasConflictedFiles
-    ? await buildConflictState(repository, conflictedFilesInIndex)
-    : {
-        binaryFilePathsInConflicts: [],
-        filesWithConflictMarkers: new Map<string, number>(),
-      }
+  const conflictState = mergeHeadFound
+    ? await getFilesWithConflictMarkers(repository.path)
+    : new Map<string, number>()
 
   // Map of files keyed on their paths.
   const files = entries.reduce(
@@ -221,8 +206,6 @@ export async function getStatus(
 
   const workingDirectory = WorkingDirectoryStatus.fromFiles([...files.values()])
 
-  const mergeHeadFound = await isMergeHeadSet(repository)
-
   return {
     currentBranch,
     currentTip,
@@ -232,45 +215,6 @@ export async function getStatus(
     mergeHeadFound,
     workingDirectory,
   }
-}
-
-function getConflictStatus(
-  path: string,
-  status: FileEntry,
-  conflictState: ConflictState
-): ConflictFileStatus | null {
-  const { filesWithConflictMarkers, binaryFilePathsInConflicts } = conflictState
-
-  const foundBinaryFile = binaryFilePathsInConflicts.find(p => p.path === path)
-  if (foundBinaryFile != null) {
-    const { us, them } = foundBinaryFile.status
-    return {
-      kind: 'binary',
-      us,
-      them,
-    }
-  }
-
-  const conflictMarkerCount = filesWithConflictMarkers.get(path)
-
-  if (conflictMarkerCount != null) {
-    return { kind: 'text', conflictMarkerCount }
-  }
-
-  if (status.kind === 'conflicted') {
-    const { us, them } = status
-    const code = them === us ? us : null
-    const conflictWithoutMarkers =
-      code !== GitStatusEntry.UpdatedButUnmerged &&
-      code !== GitStatusEntry.Modified &&
-      code !== GitStatusEntry.Added
-
-    if (conflictWithoutMarkers) {
-      return { kind: 'text', conflictMarkerCount: null, us, them }
-    }
-  }
-
-  return null
 }
 
 /**
@@ -283,7 +227,7 @@ function getConflictStatus(
 function buildStatusMap(
   files: Map<string, WorkingDirectoryFileChange>,
   entry: IStatusEntry,
-  conflictState: ConflictState
+  filesWithConflictMarkers: ConflictCountsByPath
 ): Map<string, WorkingDirectoryFileChange> {
   const status = mapStatus(entry.statusCode)
 
@@ -307,21 +251,19 @@ function buildStatusMap(
     files.delete(entry.path)
   }
 
-  const conflictStatus = getConflictStatus(entry.path, status, conflictState)
-
   // for now we just poke at the existing summary
-  const summary = convertToAppStatus(status, conflictStatus !== null)
+  const appStatus = convertToAppStatus(
+    entry.path,
+    status,
+    filesWithConflictMarkers,
+    entry.oldPath
+  )
+
   const selection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
 
   files.set(
     entry.path,
-    new WorkingDirectoryFileChange(
-      entry.path,
-      summary,
-      selection,
-      entry.oldPath,
-      conflictStatus
-    )
+    new WorkingDirectoryFileChange(entry.path, appStatus, selection)
   )
   return files
 }

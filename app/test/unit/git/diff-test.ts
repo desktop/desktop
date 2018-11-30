@@ -1,12 +1,10 @@
-import { expect } from 'chai'
-
 import * as path from 'path'
 import * as FSE from 'fs-extra'
 
 import { Repository } from '../../../src/models/repository'
 import {
-  AppFileStatus,
   WorkingDirectoryFileChange,
+  AppFileStatusKind,
 } from '../../../src/models/status'
 import {
   ITextDiff,
@@ -53,13 +51,13 @@ describe('git/diff', () => {
       )
       const file = new WorkingDirectoryFileChange(
         'new-image.png',
-        AppFileStatus.New,
+        { kind: AppFileStatusKind.New },
         diffSelection
       )
       const current = await getWorkingDirectoryImage(repository!, file)
 
-      expect(current.mediaType).to.equal('image/png')
-      expect(current.contents).to.match(/A2HkbLsBYSgAAAABJRU5ErkJggg==$/)
+      expect(current.mediaType).toBe('image/png')
+      expect(current.contents).toMatch(/A2HkbLsBYSgAAAABJRU5ErkJggg==$/)
     })
 
     it('retrieves valid images for modified file', async () => {
@@ -68,12 +66,12 @@ describe('git/diff', () => {
       )
       const file = new WorkingDirectoryFileChange(
         'modified-image.jpg',
-        AppFileStatus.Modified,
+        { kind: AppFileStatusKind.Modified },
         diffSelection
       )
       const current = await getWorkingDirectoryImage(repository!, file)
-      expect(current.mediaType).to.equal('image/jpg')
-      expect(current.contents).to.match(/gdTTb6MClWJ3BU8T8PTtXoB88kFL\/9k=$/)
+      expect(current.mediaType).toBe('image/jpg')
+      expect(current.contents).toMatch(/gdTTb6MClWJ3BU8T8PTtXoB88kFL\/9k=$/)
     })
   })
 
@@ -84,13 +82,13 @@ describe('git/diff', () => {
       )
       const file = new WorkingDirectoryFileChange(
         'modified-image.jpg',
-        AppFileStatus.Modified,
+        { kind: AppFileStatusKind.Modified },
         diffSelection
       )
       const current = await getBlobImage(repository!, file.path, 'HEAD')
 
-      expect(current.mediaType).to.equal('image/jpg')
-      expect(current.contents).to.match(
+      expect(current.mediaType).toBe('image/jpg')
+      expect(current.contents).toMatch(
         /zcabBFNf6G8U1y7QpBYtbOWQivIsDU8T4kYKKTQFg7v\/9k=/
       )
     })
@@ -101,13 +99,13 @@ describe('git/diff', () => {
       )
       const file = new WorkingDirectoryFileChange(
         'new-animated-image.gif',
-        AppFileStatus.Deleted,
+        { kind: AppFileStatusKind.Deleted },
         diffSelection
       )
       const previous = await getBlobImage(repository!, file.path, 'HEAD')
 
-      expect(previous.mediaType).to.equal('image/gif')
-      expect(previous.contents).to.match(
+      expect(previous.mediaType).toBe('image/gif')
+      expect(previous.contents).toMatch(
         /pSQ0J85QG55rqWbgLdEmOWQJ1MjFS3WWA2slfZxeEAtp3AykkAAA7$/
       )
     })
@@ -120,7 +118,7 @@ describe('git/diff', () => {
       )
       const file = new WorkingDirectoryFileChange(
         'modified-image.jpg',
-        AppFileStatus.Modified,
+        { kind: AppFileStatusKind.Modified },
         diffSelection
       )
       const diff = await getWorkingDirectoryDiff(repository!, file)
@@ -128,8 +126,8 @@ describe('git/diff', () => {
       expect(diff.kind === DiffType.Image)
 
       const imageDiff = diff as IImageDiff
-      expect(imageDiff.previous).is.not.undefined
-      expect(imageDiff.current).is.not.undefined
+      expect(imageDiff.previous).not.toBeUndefined()
+      expect(imageDiff.current).not.toBeUndefined()
     })
 
     it('changes for text are not set', async () => {
@@ -141,12 +139,12 @@ describe('git/diff', () => {
       )
       const file = new WorkingDirectoryFileChange(
         'new-file.md',
-        AppFileStatus.New,
+        { kind: AppFileStatusKind.New },
         diffSelection
       )
       const diff = await getTextDiff(repository!, file)
 
-      expect(diff.hunks.length).is.greaterThan(0)
+      expect(diff.hunks.length).toBeGreaterThan(0)
     })
   })
 
@@ -162,21 +160,21 @@ describe('git/diff', () => {
       )
       const file = new WorkingDirectoryFileChange(
         'new-file.md',
-        AppFileStatus.New,
+        { kind: AppFileStatusKind.New },
         diffSelection
       )
       const diff = await getTextDiff(repository!, file)
 
       const hunk = diff.hunks[0]
 
-      expect(hunk.lines[0].text).to.have.string('@@ -0,0 +1,33 @@')
+      expect(hunk.lines[0].text).toContain('@@ -0,0 +1,33 @@')
 
-      expect(hunk.lines[1].text).to.have.string('+Lorem ipsum dolor sit amet,')
-      expect(hunk.lines[2].text).to.have.string(
+      expect(hunk.lines[1].text).toContain('+Lorem ipsum dolor sit amet,')
+      expect(hunk.lines[2].text).toContain(
         '+ullamcorper sit amet tellus eget, '
       )
 
-      expect(hunk.lines[33].text).to.have.string(
+      expect(hunk.lines[33].text).toContain(
         '+ urna, ac porta justo leo sed magna.'
       )
     })
@@ -187,26 +185,26 @@ describe('git/diff', () => {
       )
       const file = new WorkingDirectoryFileChange(
         'modified-file.md',
-        AppFileStatus.Modified,
+        { kind: AppFileStatusKind.Modified },
         diffSelection
       )
       const diff = await getTextDiff(repository!, file)
 
       const first = diff.hunks[0]
-      expect(first.lines[0].text).to.have.string('@@ -4,10 +4,6 @@')
+      expect(first.lines[0].text).toContain('@@ -4,10 +4,6 @@')
 
-      expect(first.lines[4].text).to.have.string('-Aliquam leo ipsum')
-      expect(first.lines[5].text).to.have.string('-nisl eget hendrerit')
-      expect(first.lines[6].text).to.have.string('-eleifend mi.')
-      expect(first.lines[7].text).to.have.string('-')
+      expect(first.lines[4].text).toContain('-Aliquam leo ipsum')
+      expect(first.lines[5].text).toContain('-nisl eget hendrerit')
+      expect(first.lines[6].text).toContain('-eleifend mi.')
+      expect(first.lines[7].text).toContain('-')
 
       const second = diff.hunks[1]
-      expect(second.lines[0].text).to.have.string('@@ -21,6 +17,10 @@')
+      expect(second.lines[0].text).toContain('@@ -21,6 +17,10 @@')
 
-      expect(second.lines[4].text).to.have.string('+Aliquam leo ipsum')
-      expect(second.lines[5].text).to.have.string('+nisl eget hendrerit')
-      expect(second.lines[6].text).to.have.string('+eleifend mi.')
-      expect(second.lines[7].text).to.have.string('+')
+      expect(second.lines[4].text).toContain('+Aliquam leo ipsum')
+      expect(second.lines[5].text).toContain('+nisl eget hendrerit')
+      expect(second.lines[6].text).toContain('+eleifend mi.')
+      expect(second.lines[7].text).toContain('+')
     })
 
     it('counts lines for staged file', async () => {
@@ -215,30 +213,30 @@ describe('git/diff', () => {
       )
       const file = new WorkingDirectoryFileChange(
         'staged-file.md',
-        AppFileStatus.Modified,
+        { kind: AppFileStatusKind.Modified },
         diffSelection
       )
       const diff = await getTextDiff(repository!, file)
 
       const first = diff.hunks[0]
-      expect(first.lines[0].text).to.have.string('@@ -2,7 +2,7 @@ ')
+      expect(first.lines[0].text).toContain('@@ -2,7 +2,7 @@ ')
 
-      expect(first.lines[4].text).to.have.string(
+      expect(first.lines[4].text).toContain(
         '-tortor placerat facilisis. Ut sed ex tortor. Duis consectetur at ex vel mattis.'
       )
-      expect(first.lines[5].text).to.have.string('+tortor placerat facilisis.')
+      expect(first.lines[5].text).toContain('+tortor placerat facilisis.')
 
       const second = diff.hunks[1]
-      expect(second.lines[0].text).to.have.string('@@ -17,9 +17,7 @@ ')
+      expect(second.lines[0].text).toContain('@@ -17,9 +17,7 @@ ')
 
-      expect(second.lines[4].text).to.have.string('-vel sagittis nisl rutrum. ')
-      expect(second.lines[5].text).to.have.string(
+      expect(second.lines[4].text).toContain('-vel sagittis nisl rutrum. ')
+      expect(second.lines[5].text).toContain(
         '-tempor a ligula. Proin pretium ipsum '
       )
-      expect(second.lines[6].text).to.have.string(
+      expect(second.lines[6].text).toContain(
         '-elementum neque id tellus gravida rhoncus.'
       )
-      expect(second.lines[7].text).to.have.string('+vel sagittis nisl rutrum.')
+      expect(second.lines[7].text).toContain('+vel sagittis nisl rutrum.')
     })
 
     it('displays a binary diff for a docx file', async () => {
@@ -248,11 +246,11 @@ describe('git/diff', () => {
       const status = await getStatusOrThrow(repo)
       const files = status.workingDirectory.files
 
-      expect(files.length).to.equal(1)
+      expect(files).toHaveLength(1)
 
       const diff = await getWorkingDirectoryDiff(repo, files[0])
 
-      expect(diff.kind).to.equal(DiffType.Binary)
+      expect(diff.kind).toBe(DiffType.Binary)
     })
 
     it('is empty for a renamed file', async () => {
@@ -267,11 +265,11 @@ describe('git/diff', () => {
       const status = await getStatusOrThrow(repo)
       const files = status.workingDirectory.files
 
-      expect(files.length).to.equal(1)
+      expect(files).toHaveLength(1)
 
       const diff = await getTextDiff(repo, files[0])
 
-      expect(diff.hunks.length).to.equal(0)
+      expect(diff.hunks).toHaveLength(0)
     })
 
     // A renamed file in the working directory is just two staged files
@@ -292,16 +290,16 @@ describe('git/diff', () => {
       const status = await getStatusOrThrow(repo)
       const files = status.workingDirectory.files
 
-      expect(files.length).to.equal(1)
+      expect(files).toHaveLength(1)
 
       const diff = await getTextDiff(repo, files[0])
 
-      expect(diff.hunks.length).to.equal(1)
+      expect(diff.hunks).toHaveLength(1)
 
       const first = diff.hunks[0]
-      expect(first.lines.length).to.equal(3)
-      expect(first.lines[1].text).to.equal('-foo')
-      expect(first.lines[2].text).to.equal('+bar')
+      expect(first.lines).toHaveLength(3)
+      expect(first.lines[1].text).toBe('-foo')
+      expect(first.lines[2].text).toBe('+bar')
     })
 
     it('handles unborn repository with mixed state', async () => {
@@ -319,15 +317,15 @@ describe('git/diff', () => {
       const status = await getStatusOrThrow(repo)
       const files = status.workingDirectory.files
 
-      expect(files.length).to.equal(1)
+      expect(files).toHaveLength(1)
 
       const diff = await getTextDiff(repo, files[0])
 
-      expect(diff.hunks.length).to.equal(1)
+      expect(diff.hunks).toHaveLength(1)
 
       const first = diff.hunks[0]
-      expect(first.lines.length).to.equal(2)
-      expect(first.lines[1].text).to.equal('+WRITING OVER THE TOP')
+      expect(first.lines).toHaveLength(2)
+      expect(first.lines[1].text).toBe('+WRITING OVER THE TOP')
     })
   })
 
@@ -360,13 +358,13 @@ describe('git/diff', () => {
       const status = await getStatusOrThrow(repo)
       const files = status.workingDirectory.files
 
-      expect(files.length).to.equal(1)
+      expect(files).toHaveLength(1)
 
       const diff = await getTextDiff(repo, files[0])
 
-      expect(diff.lineEndingsChange).to.not.be.undefined
-      expect(diff.lineEndingsChange!.from).to.equal('LF')
-      expect(diff.lineEndingsChange!.to).to.equal('CRLF')
+      expect(diff.lineEndingsChange).not.toBeUndefined()
+      expect(diff.lineEndingsChange!.from).toBe('LF')
+      expect(diff.lineEndingsChange!.to).toBe('CRLF')
     })
   })
 
@@ -380,10 +378,10 @@ describe('git/diff', () => {
 
       const status = await getStatusOrThrow(repo)
       const files = status.workingDirectory.files
-      expect(files.length).to.equal(1)
+      expect(files).toHaveLength(1)
 
       const diff = await getTextDiff(repo, files[0])
-      expect(diff.text).to.equal(`@@ -0,0 +1 @@\n+${testString}`)
+      expect(diff.text).toBe(`@@ -0,0 +1 @@\n+${testString}`)
     })
   })
 })

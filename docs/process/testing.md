@@ -217,16 +217,21 @@
     - [ ] `Delete` button deletes branch (and remote too if option checked)
     - [ ] `Cancel` button closes modal
     - [ ] Protected branches cannot be deleted
-  - [ ] Update from Default Branch (cannot be default; Mac: `⇧⌘U`; Windows: `Ctrl+Shift+U`)
+  - [ ] Update from [default branch] (cannot be default; Mac: `⇧⌘U`; Windows: `Ctrl+Shift+U`)
+    - [ ] Merge success banner is shown temporarily; user can `X` to remove
   - [ ] Compare to Branch (Mac: `⇧⌘B`; Windows: `Ctrl+Shift+B`)
     - [ ] Takes you to the history tab with the input selected so you can directly choose a branch
   - [ ] Merge into Current Branch... (Mac: `⇧⌘M`; Windows: `Ctrl+Shift+M`)
     - [ ] Use can filter to find existing branches
-    - [ ] User can select branch, other than current
-    - [ ] `Merge` button only activated if something to merge
-      - [ ] Merge hint shows status and branches to be merged
-      - [ ] If conflicts, Merge button surfaces `Merge Conflicts Found` modal; `Close` or `View Conflicts` buttons
-    - [ ] `Cancel` button closes modal
+    - [ ] User can select branch, other than current one
+    - [ ] Merge hint shows status and branches to be merged
+    - [ ] `Merge` button only activated if something to merge (includes awaiting conflicts)
+      - [ ] If merged, success banner is shown temporarily; user can `X` to remove
+      - [ ] If conflicts, conflict modal shows quality of files, ability to open in [editor], open in command line, `Abort` button, while `Commit merge` button is deactivated until files are resolved; Changes tab shows all files 
+        - [ ] If conflict resolved, files marked green, and user can click `Commit merge` button
+	    - [ ] If merged, success banner is shown temporarily; user can `X` to remove
+	    - [ ] Binary files must be resolved in command line before committing merge
+        - [ ] Aborting partially resolved commit surfaces "Are you sure?" dialogue; `Cancel` or `Abort merge` buttons
   - [ ] Compare on GitHub (Mac: `⇧⌘C`; Windows: `Ctrl+Shift+C`) (if repository already published on `github.com`)
   - [ ] Create Pull Request (Mac: `⌘R`; Windows: `Ctrl+R`) opens Pull Request on `github.com` 
     - [ ] If branch unpublished, dialogue asks to publish the branch
@@ -254,6 +259,7 @@
       - [ ] Hover shows username/repository, url, and/or local path in tooltip
       - [ ] User must have paid account for private repositories
       - [ ] Repository icon is updated if admin changes status (public vs private)
+  - [ ] `Add` button dropdown shows three options: Clone Repository, Add Existing Repository, Create New Repository    
   - [ ] Repositories cloned from non-github servers should always be in the Other group, and have the 'computer' icon.
   - [ ] Selecting a repository updates Changes/History/Diff areas
     - [ ] If no Changes, Diff area shows `Open this repository` link to Finder/Explorer on local
@@ -312,12 +318,13 @@
   - [ ] Diffs cannot be over 3MB
   - [ ] Diffs cannot be longer than 500,000 characters 
 
-### Commit section (History tab)
+### Commit section (Changes tab)
   - [ ] Commit created if user clicks `Commit to [branch]` button with commit message and at least one checked file
     - [ ] `Fetch origin` changes to `Push` with number of commits badge
   - [ ] Avatar of user is shown
-  - [ ] User can 'at-mention' those associated with the respective repository; either subject or description field is ok (published repositories only)
-  - [ ] User can 'pound-mention' an issue in the either subject or description field; issue number should populate (published repositories only)
+  - [ ] User can 'at-mention' those associated with the respective repository; either summary or description field is ok (published repositories only)
+  - [ ] User can 'pound-mention' an issue in the either summary or description field; issue number should populate (published repositories only)
+  - [ ] Summary field is required
   - [ ] Description field is optional
   - [ ] User can undo last commit
     - [ ] `Push` with number of commits badge is decremented or reverts to `Fetch origin`
@@ -326,7 +333,7 @@
   - [ ] User can make new branch the default branch, by making the intial commit on the new branch
   - [ ] User can select individual file(s) -- and individial lines of a file(s) -- to commit at a time
   
-### Co-authoring
+### Co-authoring (Changes tab)
   - [ ] clicking co-author icon toggles co-author field; or right-click within commit area
     - [ ] Hovering over the icon reveals add/remove 'action' text
     - [ ] Right-click includes Mac/Windows context menus; option greyed out if repo not published to github.com
@@ -357,6 +364,7 @@
     - [ ] `esc` clears the filter
     - [ ] Search filter match results in bold characters
     - [ ] Hover shows full branch name in tooltip
+    - [ ] `Choose a branch to merge into [current branch]` button is shown; (Mac: `⇧⌘M`; Windows: `Ctrl+Shift+M`)
   - [ ] Default branch labeled and listed first, with timestamp
   - [ ] Selecting a branch switches branches
   - [ ] Creating a new branch shows `Publish branch` button
