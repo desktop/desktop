@@ -1834,10 +1834,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       ) {
         const { commitAuthor } = state
         if (commitAuthor !== null) {
-          const account = getAccountForRepository(
-            this.accounts,
-            selectedState.repository
-          )
+          const account = getAccountForRepository(this.accounts, repository)
           if (account !== null) {
             const commitEmailMatchesAccount = account.emails.some(
               email =>
