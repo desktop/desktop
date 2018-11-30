@@ -617,7 +617,7 @@ export class StatsStore {
     }))
   }
 
-  /** Records that the user made a commit to Dotcom */
+  /** Records that the user made a commit to a repository hosted on GitHub.com */
   public recordCommitToDotcom(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       dotcomCommits: m.dotcomCommits + 1,
