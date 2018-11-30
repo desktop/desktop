@@ -194,7 +194,6 @@ export class CloneGithubRepository extends React.Component<
 
   private reloadAndRenderRepositories = () => {
     this.loadRepositories(this.props.account)
-    this.renderRepositoryList()
   }
 
   private noMatchingRepositories = function() {
