@@ -2,6 +2,7 @@ import {
   AppFileStatusKind,
   AppFileStatus,
   ConflictedFileStatus,
+  WorkingDirectoryStatus,
 } from '../models/status'
 import { assertNever } from './fatal-error'
 
@@ -37,4 +38,10 @@ export function isConflictedFile(
   file: AppFileStatus
 ): file is ConflictedFileStatus {
   return file.kind === AppFileStatusKind.Conflicted
+}
+
+export function anyConflictedFiles(
+  workingDirectoryStatus: WorkingDirectoryStatus
+): boolean {
+  return workingDirectoryStatus.files.some(f => isConflictedFile(f.status))
 }
