@@ -74,6 +74,9 @@ interface IMergeState {
   readonly filterText: string
 }
 
+/** The number of characters a branch name can be before truncation happens */
+const maxBranchNameLength = 32
+
 /** A component for merging a branch into the current branch. */
 export class Merge extends React.Component<IMergeProps, IMergeState> {
   public constructor(props: IMergeProps) {
@@ -103,11 +106,11 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
   }
 
   private onSelectionChanged = async (selectedBranch: Branch | null) => {
-    if (selectedBranch != null) {
+    if (selectedBranch !== null) {
       this.setState({ selectedBranch })
       await this.updateMergeStatus(selectedBranch)
     } else {
-      this.setState({ selectedBranch, commitCount: 0, mergeStatus: null })
+      this.setState({ selectedBranch: null, commitCount: 0, mergeStatus: null })
     }
   }
 
@@ -251,7 +254,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     // the amount of characters to allow before we truncate was chosen arbitrarily
     const currentBranchName = truncateWithEllipsis(
       this.props.currentBranch.name,
-      40
+      maxBranchNameLength
     )
     return (
       <Dialog
