@@ -602,7 +602,10 @@ export class StatsStore {
     }))
   }
 
-  /** Records that the user made a commit to a GHE instance */
+  /**
+   * Records that the user made a commit to a repository hosted on
+   * a GitHub Enterprise instance
+   */
   public recordCommitToGitHubEnterprise(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       gheCommits: m.gheCommits + 1,
