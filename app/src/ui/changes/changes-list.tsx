@@ -33,6 +33,7 @@ import { arrayEquals } from '../../lib/equality'
 import { clipboard } from 'electron'
 import { basename } from 'path'
 import { ICommitContext } from '../../models/commit'
+import { anyConflictedFiles } from '../../lib/status'
 
 const RowHeight = 29
 
@@ -440,6 +441,7 @@ export class ChangesList extends React.Component<
           gitHubUser={this.props.gitHubUser}
           commitAuthor={this.props.commitAuthor}
           anyFilesSelected={anyFilesSelected}
+          anyConflictedFiles={anyConflictedFiles(this.props.workingDirectory)}
           repository={this.props.repository}
           dispatcher={this.props.dispatcher}
           commitMessage={this.props.commitMessage}

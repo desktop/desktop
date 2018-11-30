@@ -23,6 +23,7 @@ import { IAuthor } from '../../models/author'
 import { IMenuItem } from '../../lib/menu-item'
 import { shallowEquals } from '../../lib/equality'
 import { ICommitContext } from '../../models/commit'
+import { anyConflictedFiles } from '../../lib/status'
 
 const addAuthorIcon = new OcticonSymbol(
   12,
@@ -39,6 +40,7 @@ interface ICommitMessageProps {
   readonly commitAuthor: CommitIdentity | null
   readonly gitHubUser: IGitHubUser | null
   readonly anyFilesSelected: boolean
+  readonly anyConflictedFiles: boolean
   readonly focusCommitMessage: boolean
   readonly commitMessage: ICommitMessage | null
   readonly repository: Repository
@@ -212,9 +214,16 @@ export class CommitMessage extends React.Component<
 
   private canCommit(): boolean {
     return (
-      (this.props.anyFilesSelected && this.state.summary.length > 0) ||
-      this.props.singleFileCommit
+      !this.props.anyConflictedFiles &&
+      ((this.props.anyFilesSelected && this.state.summary.length > 0) ||
+        this.props.singleFileCommit)
     )
+  }
+
+  private commitButtonTooltipText() {
+    return anyConflictedFiles
+      ? 'Resolve all conflicts before committing'
+      : undefined
   }
 
   private onKeyDown = (event: React.KeyboardEvent<Element>) => {
@@ -489,6 +498,7 @@ export class CommitMessage extends React.Component<
           className="commit-button"
           onClick={this.onSubmit}
           disabled={!buttonEnabled}
+          tooltip={this.commitButtonTooltipText()}
         >
           {loading}
           <span title={`Commit to ${branchName}`}>
