@@ -1839,11 +1839,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
             selectedState.repository
           )
           if (account !== null) {
-            const email = account.emails.find(
+            const commitEmailMatchesAccount = account.emails.some(
               email =>
                 email.email.toLowerCase() === commitAuthor.email.toLowerCase()
             )
-            if (email == null) {
+            if (!commitEmailMatchesAccount) {
               this.statsStore.recordUnattributedCommit()
             } else if (
               account.endpoint === getEnterpriseAPIURL(account.endpoint)
