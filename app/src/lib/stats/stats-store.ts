@@ -595,15 +595,23 @@ export class StatsStore {
     }))
   }
 
-  /** Records that the user made a commit that will go unattributed on dotcom */
+  /**
+   * Records that the user made a commit using an email address that
+   * was not associated with the user's account on GitHub.com or GitHub
+   * Enterprise, meaning that the commit will not be attributed to the user's
+   * account.
+   */
   public recordUnattributedCommit(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       unattributedCommits: m.unattributedCommits + 1,
     }))
   }
 
-  /** Records that the user made a commit to a GHE instance */
-  public recordCommitToEnterprise(): Promise<void> {
+  /**
+   * Records that the user made a commit to a repository hosted on
+   * a GitHub Enterprise instance
+   */
+  public recordCommitToGitHubEnterprise(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       enterpriseCommits: m.enterpriseCommits + 1,
     }))
