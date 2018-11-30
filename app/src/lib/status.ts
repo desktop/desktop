@@ -40,7 +40,7 @@ export function isConflictedFile(
   return file.kind === AppFileStatusKind.Conflicted
 }
 
-export function anyConflictedFiles(
+export function hasConflictedFiles(
   workingDirectoryStatus: WorkingDirectoryStatus
 ): boolean {
   return workingDirectoryStatus.files.some(f => isConflictedFile(f.status))

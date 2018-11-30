@@ -23,7 +23,7 @@ import { IAuthor } from '../../models/author'
 import { IMenuItem } from '../../lib/menu-item'
 import { shallowEquals } from '../../lib/equality'
 import { ICommitContext } from '../../models/commit'
-import { anyConflictedFiles } from '../../lib/status'
+import { hasConflictedFiles } from '../../lib/status'
 
 const addAuthorIcon = new OcticonSymbol(
   12,
@@ -221,7 +221,7 @@ export class CommitMessage extends React.Component<
   }
 
   private commitButtonTooltipText() {
-    return anyConflictedFiles
+    return hasConflictedFiles
       ? 'Resolve all conflicts before committing'
       : undefined
   }
