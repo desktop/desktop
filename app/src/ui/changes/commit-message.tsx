@@ -221,7 +221,7 @@ export class CommitMessage extends React.Component<
   }
 
   private commitButtonTooltipText() {
-    return hasConflictedFiles
+    return this.props.anyConflictedFiles
       ? 'Resolve all conflicts before committing'
       : undefined
   }
