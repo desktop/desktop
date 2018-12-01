@@ -3,20 +3,23 @@ import * as Path from 'path'
 import { pathExists } from 'fs-extra'
 import { revealInFileManager } from '../../lib/app-shell'
 
-import { FileChange, mapStatus, iconForStatus } from '../../models/status'
+import { FileChange } from '../../models/status'
 import { Repository } from '../../models/repository'
 
 import { PathLabel } from '../lib/path-label'
 import {
   isSafeFileExtension,
+  CopyFilePathLabel,
   DefaultEditorLabel,
   RevealInFileManagerLabel,
   OpenWithDefaultProgramLabel,
 } from '../lib/context-menu'
 import { List } from '../lib/list'
 
-import { Octicon } from '../octicons'
+import { Octicon, iconForStatus } from '../octicons'
 import { showContextualMenu } from '../main-process-proxy'
+import { clipboard } from 'electron'
+import { mapStatus } from '../../lib/status'
 
 interface IFileListProps {
   readonly files: ReadonlyArray<FileChange>
@@ -55,7 +58,7 @@ export class FileList extends React.Component<IFileListProps, {}> {
   private renderFile = (row: number) => {
     const file = this.props.files[row]
     const status = file.status
-    const fileStatus = mapStatus(status)
+    const fileStatus = mapStatus(status.kind)
 
     const listItemPadding = 10 * 2
     const statusWidth = 16
@@ -70,7 +73,6 @@ export class FileList extends React.Component<IFileListProps, {}> {
       <div className="file" onContextMenu={this.onContextMenu}>
         <PathLabel
           path={file.path}
-          oldPath={file.oldPath}
           status={file.status}
           availableWidth={availablePathWidth}
         />
@@ -132,6 +134,10 @@ export class FileList extends React.Component<IFileListProps, {}> {
       : DefaultEditorLabel
 
     const items = [
+      {
+        label: CopyFilePathLabel,
+        action: () => clipboard.writeText(fullPath),
+      },
       {
         label: RevealInFileManagerLabel,
         action: () => revealInFileManager(this.props.repository, filePath),

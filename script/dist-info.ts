@@ -2,6 +2,7 @@ import * as Path from 'path'
 import * as Fs from 'fs'
 
 import { getProductName, getVersion } from '../app/package-info'
+import { getReleaseBranchName } from './build-platforms'
 
 const productName = getProductName()
 const version = getVersion()
@@ -95,14 +96,6 @@ export function getBundleSizes() {
   // eslint-disable-next-line no-sync
   const mainStats = Fs.statSync(Path.join(projectRoot, 'out', 'main.js'))
   return { rendererSize: rendererStats.size, mainSize: mainStats.size }
-}
-
-export function getReleaseBranchName(): string {
-  return (
-    process.env.CIRCLE_BRANCH || // macOS
-    process.env.APPVEYOR_REPO_BRANCH || // Windows
-    ''
-  )
 }
 
 export function getReleaseChannel() {

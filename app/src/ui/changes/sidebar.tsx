@@ -3,13 +3,13 @@ import * as React from 'react'
 
 import { ChangesList } from './changes-list'
 import { DiffSelectionType } from '../../models/diff'
-import { IChangesState, PopupType } from '../../lib/app-state'
+import { IChangesState } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../../lib/dispatcher'
 import { IGitHubUser } from '../../lib/databases'
 import { IssuesStore, GitHubUserStore } from '../../lib/stores'
 import { CommitIdentity } from '../../models/commit-identity'
-import { Commit } from '../../models/commit'
+import { Commit, ICommitContext } from '../../models/commit'
 import { UndoCommit } from './undo-commit'
 import {
   IAutocompletionProvider,
@@ -21,8 +21,8 @@ import { ClickSource } from '../lib/list'
 import { WorkingDirectoryFileChange } from '../../models/status'
 import { CSSTransitionGroup } from 'react-transition-group'
 import { openFile } from '../../lib/open-file'
-import { ITrailer } from '../../lib/git/interpret-trailers'
 import { Account } from '../../models/account'
+import { PopupType } from '../../models/popup'
 
 /**
  * The timeout for the animation of the enter/leave animation for Undo.
@@ -46,6 +46,7 @@ interface IChangesSidebarProps {
   readonly isCommitting: boolean
   readonly isPushPullFetchInProgress: boolean
   readonly gitHubUserStore: GitHubUserStore
+  readonly focusCommitMessage: boolean
   readonly askForConfirmationOnDiscardChanges: boolean
   readonly accounts: ReadonlyArray<Account>
   /** The name of the currently selected external editor */
@@ -113,16 +114,10 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     }
   }
 
-  private onCreateCommit = (
-    summary: string,
-    description: string | null,
-    trailers?: ReadonlyArray<ITrailer>
-  ): Promise<boolean> => {
+  private onCreateCommit = (context: ICommitContext): Promise<boolean> => {
     return this.props.dispatcher.commitIncludedChanges(
       this.props.repository,
-      summary,
-      description,
-      trailers
+      context
     )
   }
 
@@ -308,7 +303,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           branch={this.props.branch}
           gitHubUser={user}
           commitMessage={this.props.changes.commitMessage}
-          contextualCommitMessage={this.props.changes.contextualCommitMessage}
+          focusCommitMessage={this.props.focusCommitMessage}
           autocompletionProviders={this.autocompletionProviders!}
           availableWidth={this.props.availableWidth}
           onIgnore={this.onIgnore}

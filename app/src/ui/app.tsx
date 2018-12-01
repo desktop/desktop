@@ -5,28 +5,25 @@ import { CSSTransitionGroup } from 'react-transition-group'
 import {
   IAppState,
   RepositorySectionTab,
-  Popup,
-  PopupType,
   FoldoutType,
   SelectionType,
-  CompareActionKind,
+  HistoryTabMode,
+  SuccessfulMergeBannerState,
 } from '../lib/app-state'
 import { Dispatcher } from '../lib/dispatcher'
 import { AppStore, GitHubUserStore, IssuesStore } from '../lib/stores'
 import { assertNever } from '../lib/fatal-error'
 import { shell } from '../lib/app-shell'
 import { updateStore, UpdateStatus } from './lib/update-store'
-import { RetryAction } from '../lib/retry-actions'
+import { RetryAction } from '../models/retry-actions'
 import { shouldRenderApplicationMenu } from './lib/features'
 import { matchExistingRepository } from '../lib/repository-matching'
 import { getDotComAPIEndpoint } from '../lib/api'
-import { ILaunchStats } from '../lib/stats'
+import { ILaunchStats, SamplesURL } from '../lib/stats'
 import { getVersion, getName } from './lib/app-proxy'
 import { getOS } from '../lib/get-os'
 import { validatedRepositoryPath } from '../lib/stores/helpers/validated-repository-path'
-
 import { MenuEvent } from '../main-process/menu'
-
 import { Repository } from '../models/repository'
 import { Branch } from '../models/branch'
 import { PreferencesTab } from '../models/preferences'
@@ -87,10 +84,16 @@ import { InitializeLFS, AttributeMismatch } from './lfs'
 import { UpstreamAlreadyExists } from './upstream-already-exists'
 import { ReleaseNotes } from './release-notes'
 import { DeletePullRequest } from './delete-branch/delete-pull-request-dialog'
-import { MergeConflictsWarning } from './merge-conflicts'
+import { MergeConflictsDialog, MergeConflictsWarning } from './merge-conflicts'
 import { AppTheme } from './app-theme'
 import { ApplicationTheme } from './lib/application-theme'
 import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
+import { AbortMergeWarning } from './abort-merge'
+import { enableMergeConflictsDialog } from '../lib/feature-flag'
+import { isConflictedFile } from '../lib/status'
+import { PopupType, Popup } from '../models/popup'
+import { SuccessfulMerge } from './banners'
+import { UsageStatsChange } from './usage-stats-change'
 
 const MinuteInMilliseconds = 1000 * 60
 
@@ -320,6 +323,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.showAbout()
       case 'boomtown':
         return this.boomtown()
+      case 'go-to-commit-message':
+        return this.goToCommitMessage()
       case 'open-pull-request': {
         return this.openPullRequest()
       }
@@ -347,7 +352,10 @@ export class App extends React.Component<IAppProps, IAppState> {
       cancelable: true,
     })
 
-    if (document.activeElement.dispatchEvent(event)) {
+    if (
+      document.activeElement != null &&
+      document.activeElement.dispatchEvent(event)
+    ) {
       remote.getCurrentWebContents().selectAll()
     }
   }
@@ -356,6 +364,11 @@ export class App extends React.Component<IAppProps, IAppState> {
     setImmediate(() => {
       throw new Error('Boomtown!')
     })
+  }
+
+  private async goToCommitMessage() {
+    await this.showChanges()
+    this.props.dispatcher.setCommitMessageFocus(true)
   }
 
   private checkForUpdates(inBackground: boolean) {
@@ -536,7 +549,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     await this.props.dispatcher.closeCurrentFoldout()
 
     await this.props.dispatcher.initializeCompare(state.repository, {
-      kind: CompareActionKind.History,
+      kind: HistoryTabMode.History,
     })
 
     await this.props.dispatcher.changeRepositorySection(
@@ -557,7 +570,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     this.props.dispatcher.closeCurrentFoldout()
-    this.props.dispatcher.changeRepositorySection(
+    return this.props.dispatcher.changeRepositorySection(
       state.repository,
       RepositorySectionTab.Changes
     )
@@ -612,10 +625,12 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   public componentDidMount() {
     document.ondragover = e => {
-      if (this.isShowingModal) {
-        e.dataTransfer.dropEffect = 'none'
-      } else {
-        e.dataTransfer.dropEffect = 'copy'
+      if (e.dataTransfer != null) {
+        if (this.isShowingModal) {
+          e.dataTransfer.dropEffect = 'none'
+        } else {
+          e.dataTransfer.dropEffect = 'copy'
+        }
       }
 
       e.preventDefault()
@@ -629,8 +644,10 @@ export class App extends React.Component<IAppProps, IAppState> {
       if (this.isShowingModal) {
         return
       }
-      const files = e.dataTransfer.files
-      this.handleDragAndDrop(files)
+      if (e.dataTransfer != null) {
+        const files = e.dataTransfer.files
+        this.handleDragAndDrop(files)
+      }
       e.preventDefault()
     }
 
@@ -984,6 +1001,9 @@ export class App extends React.Component<IAppProps, IAppState> {
   private onUpdateAvailableDismissed = () =>
     this.props.dispatcher.setUpdateBannerVisibility(false)
 
+  private onSuccessfulMergeDismissed = () =>
+    this.props.dispatcher.setSuccessfulMergeBannerState(null)
+
   private currentPopupContent(): JSX.Element | null {
     // Hide any dialogs while we're displaying an error
     if (this.state.errors.length) {
@@ -1069,7 +1089,14 @@ export class App extends React.Component<IAppProps, IAppState> {
         const state = this.props.repositoryStateManager.get(repository)
 
         const tip = state.branchesState.tip
-        const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
+
+        // we should never get in this state since we disable the menu
+        // item in a detatched HEAD state, this check is so TSC is happy
+        if (tip.kind !== TipState.Valid) {
+          return null
+        }
+
+        const currentBranch = tip.branch
 
         return (
           <Merge
@@ -1310,16 +1337,97 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       case PopupType.MergeConflicts:
+        if (enableMergeConflictsDialog()) {
+          const { selectedState } = this.state
+          if (
+            selectedState === null ||
+            selectedState.type !== SelectionType.Repository
+          ) {
+            return null
+          }
+
+          const {
+            workingDirectory,
+            conflictState,
+          } = selectedState.state.changesState
+
+          if (conflictState === null) {
+            return null
+          }
+
+          return (
+            <MergeConflictsDialog
+              dispatcher={this.props.dispatcher}
+              repository={popup.repository}
+              workingDirectory={workingDirectory}
+              onDismissed={this.onPopupDismissed}
+              openFileInExternalEditor={this.openFileInExternalEditor}
+              resolvedExternalEditor={this.state.resolvedExternalEditor}
+              openRepositoryInShell={this.openInShell}
+              ourBranch={popup.ourBranch}
+              theirBranch={popup.theirBranch}
+            />
+          )
+        } else {
+          return (
+            <MergeConflictsWarning
+              dispatcher={this.props.dispatcher}
+              repository={popup.repository}
+              onDismissed={this.onPopupDismissed}
+            />
+          )
+        }
+      case PopupType.AbortMerge:
+        if (enableMergeConflictsDialog()) {
+          const { selectedState } = this.state
+          if (
+            selectedState === null ||
+            selectedState.type !== SelectionType.Repository
+          ) {
+            return null
+          }
+          const { workingDirectory } = selectedState.state.changesState
+          // double check that this repository is actually in merge
+          const isInConflictedMerge = workingDirectory.files.some(file =>
+            isConflictedFile(file.status)
+          )
+          if (!isInConflictedMerge) {
+            return null
+          }
+
+          return (
+            <AbortMergeWarning
+              dispatcher={this.props.dispatcher}
+              repository={popup.repository}
+              onDismissed={this.onPopupDismissed}
+              ourBranch={popup.ourBranch}
+              theirBranch={popup.theirBranch}
+            />
+          )
+        }
+        return null
+      case PopupType.UsageReportingChanges:
         return (
-          <MergeConflictsWarning
-            dispatcher={this.props.dispatcher}
-            repository={popup.repository}
-            onDismissed={this.onPopupDismissed}
+          <UsageStatsChange
+            onOpenUsageDataUrl={this.openUsageDataUrl}
+            onDismissed={this.onUsageReportingDismissed}
           />
         )
+
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
+  }
+
+  private onUsageReportingDismissed = (optOut: boolean) => {
+    this.props.appStore.setStatsOptOut(optOut, true)
+    this.props.appStore.markUsageStatsNoteSeen()
+    this.onPopupDismissed()
+    this.props.appStore._reportStats()
+  }
+
+  private openUsageDataUrl = () => {
+    this.props.dispatcher.openInBrowser(SamplesURL)
   }
 
   private onUpdateExistingUpstreamRemote = (repository: Repository) => {
@@ -1428,7 +1536,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     return (
       <div id="desktop-app-contents">
         {this.renderToolbar()}
-        {this.renderUpdateBanner()}
+        {this.renderBanner()}
         {this.renderRepository()}
         {this.renderPopup()}
         {this.renderAppError()}
@@ -1667,18 +1775,51 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
-  private renderUpdateBanner() {
-    if (!this.state.isUpdateAvailableBannerVisible) {
-      return null
+  // we currently only render one banner at a time
+  private renderBanner(): JSX.Element | null {
+    let banner = null
+    if (this.state.successfulMergeBannerState !== null) {
+      banner = this.renderSuccessfulMergeBanner(
+        this.state.successfulMergeBannerState
+      )
+    } else if (this.state.isUpdateAvailableBannerVisible) {
+      banner = this.renderUpdateBanner()
     }
-    const releaseNotesUri = 'https://desktop.github.com/release-notes/'
+    return (
+      <CSSTransitionGroup
+        transitionName="banner"
+        component="div"
+        transitionEnterTimeout={500}
+        transitionLeaveTimeout={400}
+      >
+        {banner}
+      </CSSTransitionGroup>
+    )
+  }
 
+  private renderUpdateBanner() {
     return (
       <UpdateAvailable
         dispatcher={this.props.dispatcher}
         newRelease={updateStore.state.newRelease}
-        releaseNotesLink={releaseNotesUri}
         onDismissed={this.onUpdateAvailableDismissed}
+        key={'update-available'}
+      />
+    )
+  }
+
+  private renderSuccessfulMergeBanner(
+    successfulMergeBannerState: SuccessfulMergeBannerState
+  ) {
+    if (successfulMergeBannerState === null) {
+      return null
+    }
+    return (
+      <SuccessfulMerge
+        ourBranch={successfulMergeBannerState.ourBranch}
+        theirBranch={successfulMergeBannerState.theirBranch}
+        onDismissed={this.onSuccessfulMergeDismissed}
+        key={'successful-merge'}
       />
     )
   }
@@ -1730,6 +1871,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           gitHubUserStore={this.props.gitHubUserStore}
           onViewCommitOnGitHub={this.onViewCommitOnGitHub}
           imageDiffType={state.imageDiffType}
+          focusCommitMessage={state.focusCommitMessage}
           askForConfirmationOnDiscardChanges={
             state.askForConfirmationOnDiscardChanges
           }
@@ -1824,7 +1966,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     // branch has been deleted. Calling executeCompare allows
     // us to do just that.
     this.props.dispatcher.executeCompare(repository, {
-      kind: CompareActionKind.History,
+      kind: HistoryTabMode.History,
     })
   }
 }

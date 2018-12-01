@@ -111,6 +111,7 @@ const allMenuIds: ReadonlyArray<MenuIDs> = [
   'pull',
   'branch',
   'repository',
+  'go-to-commit-message',
   'create-branch',
   'show-changes',
   'show-history',
@@ -199,6 +200,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     'open-in-shell',
     'open-working-directory',
     'show-repository-settings',
+    'go-to-commit-message',
     'show-changes',
     'show-history',
     'show-branches-list',
@@ -288,6 +290,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     menuStateBuilder.disable('push')
     menuStateBuilder.disable('pull')
     menuStateBuilder.disable('compare-to-branch')
+    menuStateBuilder.disable('compare-on-github')
   }
   return menuStateBuilder
 }

@@ -1,8 +1,11 @@
 @import '../mixins';
 @import 'dialogs/merge';
+@import 'dialogs/merge-conflicts';
+@import 'dialogs/abort-merge';
 @import 'dialogs/publish-repository';
 @import 'dialogs/repository-settings';
 @import 'dialogs/release-notes';
+@import 'dialogs/usage-reporting';
 
 // The styles herein attempt to follow a flow where margins are only applied
 // to the bottom of elements (with the exception of the last child). This to

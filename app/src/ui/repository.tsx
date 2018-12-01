@@ -10,18 +10,14 @@ import { FilesChangedBadge } from './changes/files-changed-badge'
 import { SelectedCommit, CompareSidebar } from './history'
 import { Resizable } from './resizable'
 import { TabBar } from './tab-bar'
-import {
-  IRepositoryState,
-  RepositorySectionTab,
-  ImageDiffType,
-} from '../lib/app-state'
+import { IRepositoryState, RepositorySectionTab } from '../lib/app-state'
 import { Dispatcher } from '../lib/dispatcher'
 import { IssuesStore, GitHubUserStore } from '../lib/stores'
 import { assertNever } from '../lib/fatal-error'
 import { Account } from '../models/account'
-import { enableNotificationOfBranchUpdates } from '../lib/feature-flag'
 import { FocusContainer } from './lib/focus-container'
 import { OcticonSymbol, Octicon } from './octicons'
+import { ImageDiffType } from '../models/diff'
 
 /** The widest the sidebar can be with the minimum window size. */
 const MaxSidebarWidth = 495
@@ -38,6 +34,7 @@ interface IRepositoryViewProps {
   readonly onViewCommitOnGitHub: (SHA: string) => void
   readonly imageDiffType: ImageDiffType
   readonly askForConfirmationOnDiscardChanges: boolean
+  readonly focusCommitMessage: boolean
   readonly accounts: ReadonlyArray<Account>
 
   /** The name of the currently selected external editor */
@@ -98,8 +95,7 @@ export class RepositoryView extends React.Component<
 
         <div className="with-indicator">
           <span>History</span>
-          {enableNotificationOfBranchUpdates() &&
-          this.props.state.compareState.isDivergingBranchBannerVisible ? (
+          {this.props.state.compareState.isDivergingBranchBannerVisible ? (
             <Octicon
               className="indicator"
               symbol={OcticonSymbol.primitiveDot}
@@ -140,6 +136,7 @@ export class RepositoryView extends React.Component<
         gitHubUserStore={this.props.gitHubUserStore}
         isCommitting={this.props.state.isCommitting}
         isPushPullFetchInProgress={this.props.state.isPushPullFetchInProgress}
+        focusCommitMessage={this.props.focusCommitMessage}
         askForConfirmationOnDiscardChanges={
           this.props.askForConfirmationOnDiscardChanges
         }

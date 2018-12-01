@@ -1,6 +1,7 @@
 import { Menu, ipcMain, shell, app } from 'electron'
 import { ensureItemIds } from './ensure-item-ids'
 import { MenuEvent } from './menu-event'
+import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
 import { getLogDirectoryPath } from '../../lib/logging/get-log-path'
 import { ensureDir } from 'fs-extra'
 
@@ -16,12 +17,25 @@ const defaultShellLabel = __DARWIN__
 const defaultPullRequestLabel = __DARWIN__
   ? 'Create Pull Request'
   : 'Create &pull request'
+const defaultBranchNameDefaultValue = __DARWIN__
+  ? 'Default Branch'
+  : 'default branch'
 
-export function buildDefaultMenu(
-  editorLabel: string = defaultEditorLabel,
-  shellLabel: string = defaultShellLabel,
-  pullRequestLabel: string = defaultPullRequestLabel
-): Electron.Menu {
+export type MenuLabels = {
+  editorLabel?: string
+  shellLabel?: string
+  pullRequestLabel?: string
+  defaultBranchName?: string
+}
+
+export function buildDefaultMenu({
+  editorLabel = defaultEditorLabel,
+  shellLabel = defaultShellLabel,
+  pullRequestLabel = defaultPullRequestLabel,
+  defaultBranchName = defaultBranchNameDefaultValue,
+}: MenuLabels): Electron.Menu {
+  defaultBranchName = truncateWithEllipsis(defaultBranchName, 25)
+
   const template = new Array<Electron.MenuItemConstructorOptions>()
   const separator: Electron.MenuItemConstructorOptions = { type: 'separator' }
 
@@ -151,6 +165,12 @@ export function buildDefaultMenu(
       },
       separator,
       {
+        label: __DARWIN__ ? 'Go to Summary' : 'Go to &Summary',
+        id: 'go-to-commit-message',
+        accelerator: 'CmdOrCtrl+G',
+        click: emit('go-to-commit-message'),
+      },
+      {
         label: __DARWIN__ ? 'Toggle Full Screen' : 'Toggle &full screen',
         role: 'togglefullscreen',
       },
@@ -177,8 +197,7 @@ export function buildDefaultMenu(
         // Ctrl+Alt is interpreted as AltGr on international keyboards and this
         // can clash with other shortcuts. We should always use Ctrl+Shift for
         // chorded shortcuts, but this menu item is not a user-facing feature
-        // so we are going to keep this one around and save Ctrl+Shift+R for
-        // a different shortcut in the future...
+        // so we are going to keep this one around.
         accelerator: 'CmdOrCtrl+Alt+R',
         click(item: any, focusedWindow: Electron.BrowserWindow) {
           if (focusedWindow) {
@@ -273,19 +292,20 @@ export function buildDefaultMenu(
       {
         label: __DARWIN__ ? 'Rename…' : '&Rename…',
         id: 'rename-branch',
+        accelerator: 'CmdOrCtrl+Shift+R',
         click: emit('rename-branch'),
       },
       {
         label: __DARWIN__ ? 'Delete…' : '&Delete…',
         id: 'delete-branch',
-        click: emit('delete-branch'),
         accelerator: 'CmdOrCtrl+Shift+D',
+        click: emit('delete-branch'),
       },
       separator,
       {
         label: __DARWIN__
-          ? 'Update From Default Branch'
-          : '&Update from default branch',
+          ? `Update From ${defaultBranchName}`
+          : `&Update from ${defaultBranchName}`,
         id: 'update-branch',
         accelerator: 'CmdOrCtrl+Shift+U',
         click: emit('update-branch'),
@@ -359,8 +379,8 @@ export function buildDefaultMenu(
   const showLogsLabel = __DARWIN__
     ? 'Show Logs in Finder'
     : __WIN32__
-      ? 'S&how logs in Explorer'
-      : 'S&how logs in your File Manager'
+    ? 'S&how logs in Explorer'
+    : 'S&how logs in your File Manager'
 
   const showLogsItem: Electron.MenuItemConstructorOptions = {
     label: showLogsLabel,
@@ -492,9 +512,8 @@ function zoom(direction: ZoomDirection): ClickHandler {
         // zoom factors the value is referring to.
         const currentZoom = findClosestValue(zoomFactors, rawZoom)
 
-        const nextZoomLevel = zoomFactors.find(
-          f =>
-            direction === ZoomDirection.In ? f > currentZoom : f < currentZoom
+        const nextZoomLevel = zoomFactors.find(f =>
+          direction === ZoomDirection.In ? f > currentZoom : f < currentZoom
         )
 
         // If we couldn't find a zoom level (likely due to manual manipulation

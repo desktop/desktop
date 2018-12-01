@@ -5,12 +5,17 @@ import { PullRequest } from '../../models/pull-request'
 import { Repository, nameOf } from '../../models/repository'
 import { Branch } from '../../models/branch'
 import { BranchesTab } from '../../models/branches-tab'
+import { PopupType } from '../../models/popup'
 
 import { Dispatcher } from '../../lib/dispatcher'
-import { FoldoutType, PopupType } from '../../lib/app-state'
+import { FoldoutType } from '../../lib/app-state'
 import { assertNever } from '../../lib/fatal-error'
 
 import { TabBar } from '../tab-bar'
+
+import { Row } from '../lib/row'
+import { Octicon, OcticonSymbol } from '../octicons'
+import { Button } from '../lib/button'
 
 import { BranchList } from './branch-list'
 import { PullRequestList } from './pull-request-list'
@@ -31,6 +36,8 @@ interface IBranchesContainerProps {
   readonly currentBranch: Branch | null
   readonly recentBranches: ReadonlyArray<Branch>
   readonly pullRequests: ReadonlyArray<PullRequest>
+  readonly branchFilterText: string
+  readonly pullRequestFilterText: string
 
   /** The pull request associated with the current branch. */
   readonly currentPullRequest: PullRequest | null
@@ -57,16 +64,38 @@ export class BranchesContainer extends React.Component<
     this.state = {
       selectedBranch: props.currentBranch,
       selectedPullRequest: props.currentPullRequest,
-      branchFilterText: '',
-      pullRequestFilterText: '',
+      branchFilterText: props.branchFilterText,
+      pullRequestFilterText: props.pullRequestFilterText,
     }
   }
 
+  private getBranchName = (): string => {
+    const { currentBranch, defaultBranch } = this.props
+    if (currentBranch != null) {
+      return currentBranch.name
+    }
+
+    if (defaultBranch != null) {
+      return defaultBranch.name
+    }
+
+    return 'master'
+  }
+
   public render() {
+    const branchName = this.getBranchName()
     return (
       <div className="branches-container">
         {this.renderTabBar()}
         {this.renderSelectedTab()}
+        <Row className="merge-button-row">
+          <Button className="merge-button" onClick={this.onMergeClick}>
+            <Octicon className="icon" symbol={OcticonSymbol.gitMerge} />
+            <span title={`Merge a branch into ${branchName}`}>
+              Choose a branch to merge into <strong>{branchName}</strong>
+            </span>
+          </Button>
+        </Row>
       </div>
     )
   }
@@ -183,6 +212,14 @@ export class BranchesContainer extends React.Component<
     this.props.dispatcher.closeFoldout(FoldoutType.Branch)
   }
 
+  private onMergeClick = () => {
+    this.props.dispatcher.closeFoldout(FoldoutType.Branch)
+    this.props.dispatcher.showPopup({
+      type: PopupType.MergeBranch,
+      repository: this.props.repository,
+    })
+  }
+
   private onBranchItemClick = (branch: Branch) => {
     this.props.dispatcher.closeFoldout(FoldoutType.Branch)
 
@@ -237,5 +274,16 @@ export class BranchesContainer extends React.Component<
     )
 
     this.onPullRequestSelectionChanged(pullRequest)
+  }
+
+  public componentWillUnmount() {
+    this.props.dispatcher.setBranchFilterText(
+      this.props.repository,
+      this.state.branchFilterText
+    )
+    this.props.dispatcher.setPullRequestFilterText(
+      this.props.repository,
+      this.state.pullRequestFilterText
+    )
   }
 }

@@ -12,6 +12,7 @@ import { IUiActivityMonitor } from '../../ui/lib/ui-activity-monitor'
 import { Disposable } from 'event-kit'
 import { SignInMethod } from '../stores'
 import { assertNever } from '../fatal-error'
+import { getNumber, setNumber, getBoolean, setBoolean } from '../local-storage'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
@@ -67,6 +68,8 @@ const DefaultDailyMeasures: IDailyMeasures = {
   mergedWithLoadingHintCount: 0,
   mergedWithCleanMergeHintCount: 0,
   mergedWithConflictWarningHintCount: 0,
+  mergeSuccessAfterConflictsCount: 0,
+  mergeAbortedAfterConflictsCount: 0,
 }
 
 interface IOnboardingStats {
@@ -172,6 +175,20 @@ interface IOnboardingStats {
   readonly welcomeWizardSignInMethod?: 'basic' | 'web'
 }
 
+/**
+ * Returns the account id of the current user's GitHub.com account or null if the user
+ * is not currently signed in to GitHub.com.
+ *
+ * @param accounts The active accounts stored in Desktop
+ */
+function findDotComAccountId(accounts: ReadonlyArray<Account>): number | null {
+  const gitHubAccount = accounts.find(
+    a => a.endpoint === getDotComAPIEndpoint()
+  )
+
+  return gitHubAccount !== undefined ? gitHubAccount.id : null
+}
+
 interface ICalculatedStats {
   /** The app version. */
   readonly version: string
@@ -211,8 +228,20 @@ type DailyStats = ICalculatedStats &
   IDailyMeasures &
   IOnboardingStats
 
+/**
+ * Testable interface for StatsStore
+ *
+ * Note: for the moment this only contains methods that are needed for testing,
+ * so fight the urge to implement every public method from StatsStore here
+ *
+ */
+export interface IStatsStore {
+  recordMergeAbortedAfterConflicts: () => void
+  recordMergeSuccessAfterConflicts: () => void
+}
+
 /** The store for the app's stats. */
-export class StatsStore {
+export class StatsStore implements IStatsStore {
   private readonly db: StatsDatabase
   private readonly uiActivityMonitor: IUiActivityMonitor
   private uiActivityMonitorSubscription: Disposable | null = null
@@ -224,17 +253,14 @@ export class StatsStore {
     this.db = db
     this.uiActivityMonitor = uiActivityMonitor
 
-    const optOutValue = localStorage.getItem(StatsOptOutKey)
-    if (optOutValue) {
-      this.optOut = !!parseInt(optOutValue, 10)
+    const storedValue = getBoolean(StatsOptOutKey)
 
-      // If the user has set an opt out value but we haven't sent the ping yet,
-      // give it a shot now.
-      if (!localStorage.getItem(HasSentOptInPingKey)) {
-        this.sendOptInStatusPing(!this.optOut)
-      }
-    } else {
-      this.optOut = false
+    this.optOut = storedValue || false
+
+    // If the user has set an opt out value but we haven't sent the ping yet,
+    // give it a shot now.
+    if (!getBoolean(HasSentOptInPingKey, false)) {
+      this.sendOptInStatusPing(!this.optOut, storedValue)
     }
 
     this.enableUiActivityMonitoring()
@@ -242,16 +268,7 @@ export class StatsStore {
 
   /** Should the app report its daily stats? */
   private shouldReportDailyStats(): boolean {
-    const lastDateString = localStorage.getItem(LastDailyStatsReportKey)
-    let lastDate = 0
-    if (lastDateString && lastDateString.length > 0) {
-      lastDate = parseInt(lastDateString, 10)
-    }
-
-    if (isNaN(lastDate)) {
-      lastDate = 0
-    }
-
+    const lastDate = getNumber(LastDailyStatsReportKey, 0)
     const now = Date.now()
     return now - lastDate > DailyStatsReportInterval
   }
@@ -283,8 +300,11 @@ export class StatsStore {
     const now = Date.now()
     const stats = await this.getDailyStats(accounts, repositories)
 
+    const user_id = findDotComAccountId(accounts)
+    const payload = user_id === null ? stats : { ...stats, user_id }
+
     try {
-      const response = await this.post(stats)
+      const response = await this.post(payload)
       if (!response.ok) {
         throw new Error(
           `Unexpected status: ${response.statusText} (${response.status})`
@@ -294,7 +314,7 @@ export class StatsStore {
       log.info('Stats reported.')
 
       await this.clearDailyStats()
-      localStorage.setItem(LastDailyStatsReportKey, now.toString())
+      setNumber(LastDailyStatsReportKey, now)
     } catch (e) {
       log.error('Error reporting stats:', e)
     }
@@ -585,15 +605,20 @@ export class StatsStore {
   }
 
   /** Set whether the user has opted out of stats reporting. */
-  public async setOptOut(optOut: boolean): Promise<void> {
+  public async setOptOut(
+    optOut: boolean,
+    userViewedPrompt: boolean
+  ): Promise<void> {
     const changed = this.optOut !== optOut
 
     this.optOut = optOut
 
-    localStorage.setItem(StatsOptOutKey, optOut ? '1' : '0')
+    const previousValue = getBoolean(StatsOptOutKey)
 
-    if (changed) {
-      await this.sendOptInStatusPing(!optOut)
+    setBoolean(StatsOptOutKey, optOut)
+
+    if (changed || userViewedPrompt) {
+      await this.sendOptInStatusPing(!optOut, previousValue)
     }
   }
 
@@ -627,7 +652,7 @@ export class StatsStore {
 
   /**
    * Record that user initiated a merge after getting to compare view
-   * from within notificatio banner
+   * from within notification banner
    */
   public async recordDivergingBranchBannerInfluencedMerge(): Promise<void> {
     return this.updateDailyMeasures(m => ({
@@ -693,12 +718,12 @@ export class StatsStore {
   }
 
   public recordWelcomeWizardInitiated() {
-    localStorage.setItem(WelcomeWizardInitiatedAtKey, `${Date.now()}`)
+    setNumber(WelcomeWizardInitiatedAtKey, Date.now())
     localStorage.removeItem(WelcomeWizardCompletedAtKey)
   }
 
   public recordWelcomeWizardTerminated() {
-    localStorage.setItem(WelcomeWizardCompletedAtKey, `${Date.now()}`)
+    setNumber(WelcomeWizardCompletedAtKey, Date.now())
   }
 
   public recordAddExistingRepository() {
@@ -721,6 +746,20 @@ export class StatsStore {
     localStorage.setItem(WelcomeWizardSignInMethodKey, method)
   }
 
+  /** Record when a conflicted merge was successfully completed by the user */
+  public async recordMergeSuccessAfterConflicts(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      mergeSuccessAfterConflictsCount: m.mergeSuccessAfterConflictsCount + 1,
+    }))
+  }
+
+  /** Record when a conflicted merge was aborted by the user */
+  public async recordMergeAbortedAfterConflicts(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      mergeAbortedAfterConflictsCount: m.mergeAbortedAfterConflictsCount + 1,
+    }))
+  }
+
   private onUiActivity = async () => {
     this.disableUiActivityMonitoring()
 
@@ -740,12 +779,21 @@ export class StatsStore {
     return fetch(StatsEndpoint, options)
   }
 
-  private async sendOptInStatusPing(optIn: boolean): Promise<void> {
+  /**
+   * Send opt-in ping with details of previous stored value (if known)
+   */
+  private async sendOptInStatusPing(
+    optIn: boolean,
+    previousValue?: boolean
+  ): Promise<void> {
     const direction = optIn ? 'in' : 'out'
+    const previousValueOrNull =
+      previousValue === undefined ? null : previousValue
     try {
       const response = await this.post({
         eventType: 'ping',
         optIn,
+        previousValue: previousValueOrNull,
       })
       if (!response.ok) {
         throw new Error(
@@ -753,7 +801,7 @@ export class StatsStore {
         )
       }
 
-      localStorage.setItem(HasSentOptInPingKey, '1')
+      setBoolean(HasSentOptInPingKey, true)
 
       log.info(`Opt ${direction} reported.`)
     } catch (e) {
@@ -773,7 +821,7 @@ function createLocalStorageTimestamp(key: string) {
     return
   }
 
-  localStorage.setItem(key, `${Date.now()}`)
+  setNumber(key, Date.now())
 }
 
 /**
@@ -783,8 +831,8 @@ function createLocalStorageTimestamp(key: string) {
  * be converted into a number this method will return null.
  */
 function getLocalStorageTimestamp(key: string): number | null {
-  const value = parseInt(localStorage.getItem(key) || '', 10)
-  return isNaN(value) ? null : value
+  const timestamp = getNumber(key)
+  return timestamp === undefined ? null : timestamp
 }
 
 /**

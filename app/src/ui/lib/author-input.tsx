@@ -769,7 +769,7 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
     return cm
   }
 
-  private onContextMenu(cm: Editor, e: PointerEvent) {
+  private onContextMenu(cm: Editor, e: MouseEvent) {
     e.preventDefault()
 
     const menu: IMenuItem[] = [

@@ -58,9 +58,20 @@
 dialog#merge {
   .merge-info {
     margin-top: var(--spacing-half);
+    margin-bottom: var(--spacing);
   }
 
   .merge-status-component {
-    margin-top: var(--spacing);
+    margin-top: 0;
+  }
+
+  .merge-status-icon-container {
+    &:after {
+      border-bottom: 0;
+    }
+  }
+
+  .dialog-footer {
+    padding-top: var(--spacing);
   }
 }
