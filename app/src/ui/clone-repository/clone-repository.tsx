@@ -330,11 +330,6 @@ export class CloneRepository extends React.Component<
     try {
       const directoryFiles = await readdir(path)
 
-      // If the path has changed we no longer want the result
-      if (path !== this.state.path) {
-        return new Error('The path has been changed during check.')
-      }
-
       if (directoryFiles.length === 0) {
         return null
       } else {
