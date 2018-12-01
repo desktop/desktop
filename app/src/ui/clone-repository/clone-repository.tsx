@@ -270,15 +270,7 @@ export class CloneRepository extends React.Component<
     this.setState({ path })
 
     const pathValidation = await this.validateEmptyFolder(path)
-
-    if (pathValidation != null) {
-      const error: Error = new Error('The destination already exists.')
-      error.name = DestinationExistsErrorName
-
-      this.setState({ error })
-    } else {
-      this.setState({ error: null })
-    }
+    this.setState({ error: pathValidation })
   }
 
   private onChooseDirectory = async () => {
