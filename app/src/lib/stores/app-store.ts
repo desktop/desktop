@@ -1089,13 +1089,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return Promise.resolve(null)
     }
 
-    return this._selectRepository_refreshTasks(
+    return this._selectRepositoryRefreshTasks(
       refreshedRepository,
       previouslySelectedRepository
     )
   }
 
-  private async _selectRepository_refreshTasks(
+  // finish `_selectRepository`s refresh tasks
+  private async _selectRepositoryRefreshTasks(
     repository: Repository,
     previouslySelectedRepository: Repository | CloningRepository | null
   ): Promise<Repository | null> {
