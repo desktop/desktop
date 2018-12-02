@@ -76,6 +76,13 @@ interface ICreateRepositoryState {
 
   /** The license to include in the repository. */
   readonly license: string
+
+  /**
+   * Whether or not a ReadMe.md file already exists in the
+   * directory that may be overwritten by initializing with
+   * a new ReadMe.md
+   */
+  readonly readMeExists: boolean
 }
 
 /** The Create New Repository component. */
@@ -106,6 +113,7 @@ export class CreateRepository extends React.Component<
       license: NoLicenseValue.name,
       isValidPath: null,
       isRepository: false,
+      readMeExists: false,
     }
   }
 
