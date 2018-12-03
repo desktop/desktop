@@ -228,8 +228,20 @@ type DailyStats = ICalculatedStats &
   IDailyMeasures &
   IOnboardingStats
 
+/**
+ * Testable interface for StatsStore
+ *
+ * Note: for the moment this only contains methods that are needed for testing,
+ * so fight the urge to implement every public method from StatsStore here
+ *
+ */
+export interface IStatsStore {
+  recordMergeAbortedAfterConflicts: () => void
+  recordMergeSuccessAfterConflicts: () => void
+}
+
 /** The store for the app's stats. */
-export class StatsStore {
+export class StatsStore implements IStatsStore {
   private readonly db: StatsDatabase
   private readonly uiActivityMonitor: IUiActivityMonitor
   private uiActivityMonitorSubscription: Disposable | null = null
