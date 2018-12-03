@@ -134,7 +134,19 @@ export class BlankSlateView extends React.Component<
       return null
     }
 
-    return <div className="content-pane">{JSON.stringify(accountState)}</div>
+    return (
+      <div className="content-pane">
+        {JSON.stringify({
+          account,
+          accountState: accountState
+            ? {
+                loading: accountState.loading,
+                repositories: accountState.repositories.length,
+              }
+            : undefined,
+        })}
+      </div>
+    )
   }
 
   private renderRightPanel() {
