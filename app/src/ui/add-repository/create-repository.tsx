@@ -126,16 +126,25 @@ export class CreateRepository extends React.Component<
 
     const isRepository = await isGitRepository(this.state.path)
     this.setState({ isRepository })
+
+    const readMeExists = await this.doesReadMeExist(
+      this.state.path,
+      this.state.name
+    )
+    this.setState({ readMeExists })
   }
 
   private onPathChanged = async (path: string) => {
     const isRepository = await isGitRepository(path)
+    const readMeExists = await this.doesReadMeExist(path, this.state.name)
 
-    this.setState({ isRepository, path, isValidPath: null })
+    this.setState({ isRepository, path, readMeExists, isValidPath: null })
   }
 
-  private onNameChanged = (name: string) => {
-    this.setState({ name })
+  private onNameChanged = async (name: string) => {
+    const readMeExists = await this.doesReadMeExist(this.state.path, name)
+
+    this.setState({ name, readMeExists })
   }
 
   private onDescriptionChanged = (description: string) => {
@@ -155,6 +164,25 @@ export class CreateRepository extends React.Component<
     const isRepository = await isGitRepository(path)
 
     this.setState({ isRepository, path })
+  }
+
+  private async doesReadMeExist(path: string, name: string) {
+    try {
+      const fullPath = Path.join(path, sanitizedRepositoryName(name))
+      const directoryFileNames = await FSE.readdir(fullPath)
+
+      if (
+        directoryFileNames != null &&
+        directoryFileNames.length !== 0 &&
+        directoryFileNames.some(fileName => /^ReadMe.md$/i.test(fileName))
+      ) {
+        return true
+      }
+
+      return false
+    } catch (error) {
+      return false
+    }
   }
 
   private resolveRepositoryRoot = async (): Promise<string> => {
