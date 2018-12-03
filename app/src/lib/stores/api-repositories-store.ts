@@ -36,16 +36,32 @@ function resolveAccount(
   account: Account,
   accountState: ReadonlyMap<Account, IAccountRepositories>
 ) {
+  // The set uses reference equality so if we find our
+  // account instance in the set there's no need to look
+  // any further.
   if (accountState.has(account)) {
     return account
   }
 
+  // If we can't find our account instance in the set one
+  // of two things have happened. Either the account has
+  // been removed (by the user explicitly signing out) or
+  // the accounts store has refreshed the account details
+  // from the API and as such the reference equality no
+  // longer holds. In the latter case we attempt to
+  // find the updated account instance by comparing its
+  // user id and endpoint to the provided account.
   for (const existingAccount of accountState.keys()) {
     if (accountEquals(existingAccount, account)) {
       return existingAccount
     }
   }
 
+  // If we can't find a matching account it's likely
+  // that it's the first time we're loading the list
+  // of repositories for this account so we return
+  // whatever was provided to us such that it may be
+  // inserted into the set as a new entry.
   return account
 }
 
