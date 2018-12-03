@@ -84,12 +84,11 @@ import { InitializeLFS, AttributeMismatch } from './lfs'
 import { UpstreamAlreadyExists } from './upstream-already-exists'
 import { ReleaseNotes } from './release-notes'
 import { DeletePullRequest } from './delete-branch/delete-pull-request-dialog'
-import { MergeConflictsDialog, MergeConflictsWarning } from './merge-conflicts'
+import { MergeConflictsDialog } from './merge-conflicts'
 import { AppTheme } from './app-theme'
 import { ApplicationTheme } from './lib/application-theme'
 import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
 import { AbortMergeWarning } from './abort-merge'
-import { enableMergeConflictsDialog } from '../lib/feature-flag'
 import { isConflictedFile } from '../lib/status'
 import { PopupType, Popup } from '../models/popup'
 import { SuccessfulMerge } from './banners'
@@ -1336,76 +1335,65 @@ export class App extends React.Component<IAppProps, IAppState> {
             pullRequest={popup.pullRequest}
           />
         )
-      case PopupType.MergeConflicts:
-        if (enableMergeConflictsDialog()) {
-          const { selectedState } = this.state
-          if (
-            selectedState === null ||
-            selectedState.type !== SelectionType.Repository
-          ) {
-            return null
-          }
-
-          const {
-            workingDirectory,
-            conflictState,
-          } = selectedState.state.changesState
-
-          if (conflictState === null) {
-            return null
-          }
-
-          return (
-            <MergeConflictsDialog
-              dispatcher={this.props.dispatcher}
-              repository={popup.repository}
-              workingDirectory={workingDirectory}
-              onDismissed={this.onPopupDismissed}
-              openFileInExternalEditor={this.openFileInExternalEditor}
-              resolvedExternalEditor={this.state.resolvedExternalEditor}
-              openRepositoryInShell={this.openInShell}
-              ourBranch={popup.ourBranch}
-              theirBranch={popup.theirBranch}
-            />
-          )
-        } else {
-          return (
-            <MergeConflictsWarning
-              dispatcher={this.props.dispatcher}
-              repository={popup.repository}
-              onDismissed={this.onPopupDismissed}
-            />
-          )
+      case PopupType.MergeConflicts: {
+        const { selectedState } = this.state
+        if (
+          selectedState === null ||
+          selectedState.type !== SelectionType.Repository
+        ) {
+          return null
         }
-      case PopupType.AbortMerge:
-        if (enableMergeConflictsDialog()) {
-          const { selectedState } = this.state
-          if (
-            selectedState === null ||
-            selectedState.type !== SelectionType.Repository
-          ) {
-            return null
-          }
-          const { workingDirectory } = selectedState.state.changesState
-          // double check that this repository is actually in merge
-          const isInConflictedMerge = workingDirectory.files.some(file =>
-            isConflictedFile(file.status)
-          )
-          if (!isInConflictedMerge) {
-            return null
-          }
 
-          return (
-            <AbortMergeWarning
-              dispatcher={this.props.dispatcher}
-              repository={popup.repository}
-              onDismissed={this.onPopupDismissed}
-              ourBranch={popup.ourBranch}
-              theirBranch={popup.theirBranch}
-            />
-          )
+        const {
+          workingDirectory,
+          conflictState,
+        } = selectedState.state.changesState
+
+        if (conflictState === null) {
+          return null
         }
-        return null
+
+        return (
+          <MergeConflictsDialog
+            dispatcher={this.props.dispatcher}
+            repository={popup.repository}
+            workingDirectory={workingDirectory}
+            onDismissed={this.onPopupDismissed}
+            openFileInExternalEditor={this.openFileInExternalEditor}
+            resolvedExternalEditor={this.state.resolvedExternalEditor}
+            openRepositoryInShell={this.openInShell}
+            ourBranch={popup.ourBranch}
+            theirBranch={popup.theirBranch}
+          />
+        )
+      }
+      case PopupType.AbortMerge: {
+        const { selectedState } = this.state
+        if (
+          selectedState === null ||
+          selectedState.type !== SelectionType.Repository
+        ) {
+          return null
+        }
+        const { workingDirectory } = selectedState.state.changesState
+        // double check that this repository is actually in merge
+        const isInConflictedMerge = workingDirectory.files.some(file =>
+          isConflictedFile(file.status)
+        )
+        if (!isInConflictedMerge) {
+          return null
+        }
+
+        return (
+          <AbortMergeWarning
+            dispatcher={this.props.dispatcher}
+            repository={popup.repository}
+            onDismissed={this.onPopupDismissed}
+            ourBranch={popup.ourBranch}
+            theirBranch={popup.theirBranch}
+          />
+        )
+      }
       case PopupType.UsageReportingChanges:
         return (
           <UsageStatsChange
