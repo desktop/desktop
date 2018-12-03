@@ -1862,9 +1862,13 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (state.repositories.length < 1) {
       return (
         <BlankSlateView
+          dotComAccount={this.getDotComAccount()}
+          enterpriseAccount={this.getEnterpriseAccount()}
           onCreate={this.showCreateRepository}
           onClone={this.showCloneRepo}
           onAdd={this.showAddLocalRepo}
+          apiRepositories={this.state.apiRepositories}
+          onRefreshRepositories={this.onRefreshRepositories}
         />
       )
     }
