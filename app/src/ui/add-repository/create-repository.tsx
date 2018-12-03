@@ -28,6 +28,7 @@ import { Dialog, DialogContent, DialogFooter, DialogError } from '../dialog'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { LinkButton } from '../lib/link-button'
 import { PopupType } from '../../models/popup'
+import { Ref } from '../lib/ref'
 
 /** The sentinel value used to indicate no gitignore should be used. */
 const NoGitIgnoreValue = 'None'
@@ -470,6 +471,25 @@ export class CreateRepository extends React.Component<
     )
   }
 
+  private renderReadmeOverwriteWarning() {
+    if (
+      this.state.createWithReadme === false ||
+      this.state.readMeExists === false
+    ) {
+      return null
+    }
+
+    return (
+      <Row className="warning-helper-text">
+        <Octicon symbol={OcticonSymbol.alert} />
+        <p>
+          This directory contains a <Ref>ReadMe.md</Ref> file already. Checking
+          this box will result in the existing file being overwritten.
+        </p>
+      </Row>
+    )
+  }
+
   private onAddRepositoryClicked = () => {
     return this.props.dispatcher.showPopup({
       type: PopupType.AddRepository,
@@ -545,6 +565,7 @@ export class CreateRepository extends React.Component<
               onChange={this.onCreateWithReadmeChange}
             />
           </Row>
+          {this.renderReadmeOverwriteWarning()}
 
           {this.renderGitIgnores()}
           {this.renderLicenses()}
