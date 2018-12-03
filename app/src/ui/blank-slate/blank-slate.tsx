@@ -32,48 +32,8 @@ export class BlankSlateView extends React.Component<IBlankSlateProps, {}> {
         </header>
 
         <div className="content">
-          <div className="content-pane">
-            <ul className="button-group">
-              <li>
-                <Button onClick={this.props.onClone}>
-                  <Octicon symbol={OcticonSymbol.repoClone} />
-                  <div>
-                    {__DARWIN__
-                      ? 'Clone a Repository from the Internet…'
-                      : 'Clone a repository from the Internet…'}
-                  </div>
-                </Button>
-              </li>
-              <li>
-                <Button onClick={this.props.onCreate}>
-                  <Octicon symbol={OcticonSymbol.plus} />
-                  <div>
-                    {__DARWIN__
-                      ? 'Create a New Repository on Your Hard Drive…'
-                      : 'Create a New Repository on your hard drive…'}
-                  </div>
-                </Button>
-              </li>
-              <li>
-                <Button onClick={this.props.onAdd}>
-                  <Octicon symbol={OcticonSymbol.fileDirectory} />
-                  <div>
-                    {__DARWIN__
-                      ? 'Add an Existing Repository from Your Hard Drive…'
-                      : 'Add an Existing Repository from your hard drive…'}
-                  </div>
-                </Button>
-              </li>
-            </ul>
-
-            <div className="drag-drop-info">
-              <Octicon symbol={OcticonSymbol.lightBulb} />
-              <div>
-                <strong>ProTip!</strong> You can drag &amp; drop an existing
-                repository folder here to add it to Desktop
-              </div>
-            </div>
-          </div>
+          <div className="content-pane">{this.renderLeftPanel()}</div>
+          <div className="content-pane">{this.renderRightPanel()}</div>
         </div>
 
         <img className="blankslate-graphic-top" src={WelcomeLeftTopImageUri} />
@@ -82,6 +42,57 @@ export class BlankSlateView extends React.Component<IBlankSlateProps, {}> {
           src={WelcomeLeftBottomImageUri}
         />
       </UiView>
+    )
+  }
+
+  private renderLeftPanel() {
+    return 'hello'
+  }
+
+  private renderRightPanel() {
+    return (
+      <>
+        <ul className="button-group">
+          <li>
+            <Button onClick={this.props.onClone}>
+              <Octicon symbol={OcticonSymbol.repoClone} />
+              <div>
+                {__DARWIN__
+                  ? 'Clone a Repository from the Internet…'
+                  : 'Clone a repository from the Internet…'}
+              </div>
+            </Button>
+          </li>
+          <li>
+            <Button onClick={this.props.onCreate}>
+              <Octicon symbol={OcticonSymbol.plus} />
+              <div>
+                {__DARWIN__
+                  ? 'Create a New Repository on Your Hard Drive…'
+                  : 'Create a New Repository on your hard drive…'}
+              </div>
+            </Button>
+          </li>
+          <li>
+            <Button onClick={this.props.onAdd}>
+              <Octicon symbol={OcticonSymbol.fileDirectory} />
+              <div>
+                {__DARWIN__
+                  ? 'Add an Existing Repository from Your Hard Drive…'
+                  : 'Add an Existing Repository from your hard drive…'}
+              </div>
+            </Button>
+          </li>
+        </ul>
+
+        <div className="drag-drop-info">
+          <Octicon symbol={OcticonSymbol.lightBulb} />
+          <div>
+            <strong>ProTip!</strong> You can drag &amp; drop an existing
+            repository folder here to add it to Desktop
+          </div>
+        </div>
+      </>
     )
   }
 }
