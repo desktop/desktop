@@ -39,8 +39,8 @@ export class BlankSlateView extends React.Component<IBlankSlateProps, {}> {
                   <Octicon symbol={OcticonSymbol.repoClone} />
                   <div>
                     {__DARWIN__
-                      ? 'Clone a Repository from the Internet...'
-                      : 'Clone a repository from the Internet'}
+                      ? 'Clone a Repository from the Internet…'
+                      : 'Clone a repository from the Internet…'}
                   </div>
                 </Button>
               </li>
