@@ -133,6 +133,12 @@ export class CreateRepository extends React.Component<
       this.state.name
     )
     this.setState({ readMeExists })
+
+    window.addEventListener('focus', this.onWindowFocus)
+  }
+
+  public componentWillUnmount() {
+    window.removeEventListener('focus', this.onWindowFocus)
   }
 
   private onPathChanged = async (path: string) => {
@@ -582,5 +588,15 @@ export class CreateRepository extends React.Component<
         </DialogFooter>
       </Dialog>
     )
+  }
+
+  private onWindowFocus = async () => {
+    // Verify whether or not a ReadMe.md file exists at the chosen directory
+    // in case one has been added or removed and the warning can be displayed.
+    const readMeExists = await this.doesReadMeExist(
+      this.state.path,
+      this.state.name
+    )
+    this.setState({ readMeExists })
   }
 }
