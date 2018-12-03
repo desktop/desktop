@@ -20,6 +20,16 @@ function accountEquals(x: Account, y: Account) {
  * Attempt to look up an existing account in the account state
  * map based on endpoint and user id equality (see accountEquals).
  *
+ * The purpose of this method is to ensure that we're using the
+ * most recent Account instance during our asynchronous refresh
+ * operations. While we're refreshing the list of repositories
+ * that a user has explicit permissions to access it's possible
+ * that the accounts store will emit updated account instances
+ * (for example updating the user real name, or the list of
+ * email addresses associated with an account) and in order to
+ * guarantee reference equality with the accounts emitted by
+ * the accounts store we need to ensure we're in sync.
+ *
  * If no match is found the provided account is returned.
  */
 function resolveAccount(
