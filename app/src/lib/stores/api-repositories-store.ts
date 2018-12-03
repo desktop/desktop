@@ -5,6 +5,41 @@ import { Account } from '../../models/account'
 import { merge } from '../merge'
 
 /**
+ * Returns a value indicating whether two account instances
+ * can be considered equal. Equality is determined by comparing
+ * the two instances' endpoints and user id. This allows
+ * us to keep receiving updated Account details from the API
+ * while still maintaining the association between repositories
+ * and a particular account.
+ */
+function accountEquals(x: Account, y: Account) {
+  return x.endpoint === y.endpoint && x.id === y.id
+}
+
+/**
+ * Attempt to look up an existing account in the account state
+ * map based on endpoint and user id equality (see accountEquals).
+ *
+ * If no match is found the provided account is returned.
+ */
+function resolveAccount(
+  account: Account,
+  accountState: ReadonlyMap<Account, IAccountRepositories>
+) {
+  if (accountState.has(account)) {
+    return account
+  }
+
+  for (const existingAccount of accountState.keys()) {
+    if (accountEquals(existingAccount, account)) {
+      return existingAccount
+    }
+  }
+
+  return account
+}
+
+/**
  * An interface describing the current state of
  * repositories that a particular account has explicit
  * permissions to access and whether or not the list of
@@ -71,7 +106,7 @@ export class ApiRepositoriesStore extends BaseStore {
         // Check to see whether the accounts store only emitted an
         // updated Account for the same login and endpoint meaning
         // that we don't need to discard our cached data.
-        if (key.login === account.login && key.endpoint === account.endpoint) {
+        if (accountEquals(key, account)) {
           newState.set(account, value)
           break
         }
@@ -87,14 +122,20 @@ export class ApiRepositoriesStore extends BaseStore {
     repositories: Pick<IAccountRepositories, K>
   ) {
     const newState = new Map<Account, IAccountRepositories>(this.accountState)
-    const existingRepositories = newState.get(account)
+
+    // The account instance might have changed between the refresh and
+    // the update so we'll need to look it up by endpoint and user id.
+    // If we can't find it we're likely being asked to insert info for
+    // an account for the first time.
+    const newOrExistingAccount = resolveAccount(account, newState)
+    const existingRepositories = newState.get(newOrExistingAccount)
 
     const newRepositories =
       existingRepositories === undefined
         ? merge({ loading: false, repositories: [] }, repositories)
         : merge(existingRepositories, repositories)
 
-    newState.set(account, newRepositories)
+    newState.set(newOrExistingAccount, newRepositories)
 
     this.accountState = newState
     this.emitUpdate()
