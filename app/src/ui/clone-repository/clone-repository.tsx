@@ -1,7 +1,7 @@
 import * as Path from 'path'
 import * as React from 'react'
 import { remote } from 'electron'
-import { pathExists } from 'fs-extra'
+import { readdir } from 'fs-extra'
 
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
@@ -269,16 +269,8 @@ export class CloneRepository extends React.Component<
   private updateAndValidatePath = async (path: string) => {
     this.setState({ path })
 
-    const doesDirectoryExist = await this.doesPathExist(path)
-
-    if (doesDirectoryExist) {
-      const error: Error = new Error('The destination already exists.')
-      error.name = DestinationExistsErrorName
-
-      this.setState({ error })
-    } else {
-      this.setState({ error: null })
-    }
+    const pathValidation = await this.validateEmptyFolder(path)
+    this.setState({ error: pathValidation })
   }
 
   private onChooseDirectory = async () => {
@@ -326,14 +318,30 @@ export class CloneRepository extends React.Component<
     this.updateAndValidatePath(newPath)
   }
 
-  private async doesPathExist(path: string) {
-    const exists = await pathExists(path)
-    // If the path changed while we were checking, we don't care anymore.
-    if (this.state.path !== path) {
-      return
-    }
+  private async validateEmptyFolder(path: string): Promise<null | Error> {
+    try {
+      const directoryFiles = await readdir(path)
 
-    return exists
+      if (directoryFiles.length === 0) {
+        return null
+      } else {
+        return new Error(
+          'This folder contains files. Git can only clone to empty folders.'
+        )
+      }
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        // Folder does not exist
+        return null
+      }
+
+      log.error(
+        'CloneRepository: Path validation failed. Error: ' + error.message
+      )
+      return new Error(
+        'Unable to read path on disk. Please check the path and try again.'
+      )
+    }
   }
 
   /**
