@@ -1,0 +1,22 @@
+@import '../../mixins';
+
+dialog#rename-branch {
+  position: relative;
+
+  & button {
+    position: relative;
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    overflow: hidden;
+    justify-content: center;
+    align-content: center;
+
+    svg.icon {
+      flex-shrink: 0;
+      margin-right: var(--spacing);
+      position: relative;
+    }
+  }
+}

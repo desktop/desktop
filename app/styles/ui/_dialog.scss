@@ -6,6 +6,7 @@
 @import 'dialogs/repository-settings';
 @import 'dialogs/release-notes';
 @import 'dialogs/usage-reporting';
+@import 'dialogs/rename-branch';
 
 // The styles herein attempt to follow a flow where margins are only applied
 // to the bottom of elements (with the exception of the last child). This to
@@ -156,6 +157,7 @@ dialog {
         outline: 0;
       }
     }
+
     @include close-button;
   }
 
@@ -239,6 +241,7 @@ dialog {
     h2 {
       font-size: var(--font-size-md);
     }
+
     h3 {
       font-size: var(--font-size);
     }
@@ -331,21 +334,27 @@ dialog {
   &#preferences {
     width: 450px;
   }
+
   &#about {
     width: 450px;
   }
+
   &#create-repository {
     width: 400px;
   }
+
   &#create-branch {
     width: 400px;
   }
+
   &#push-branch-commits {
     width: 450px;
   }
+
   &#publish-branch {
     width: 450px;
   }
+
   &#generic-git-auth {
     width: 450px;
   }
