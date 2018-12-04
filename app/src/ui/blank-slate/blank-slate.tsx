@@ -101,9 +101,7 @@ export class BlankSlateView extends React.Component<
   }
 
   public componentDidUpdate(prevProps: IBlankSlateProps) {
-    if (this.props.apiRepositories !== prevProps.apiRepositories) {
-      this.ensureRepositoriesForAccount(this.getSelectedAccount())
-    }
+    this.ensureRepositoriesForAccount(this.getSelectedAccount())
   }
 
   private ensureRepositoriesForAccount(account: Account | null) {
@@ -217,10 +215,8 @@ export class BlankSlateView extends React.Component<
   private onTabClicked = (index: number) => {
     if (index === 0) {
       this.setState({ selectedAccount: 'dotcom' })
-      this.ensureRepositoriesForAccount(this.props.dotComAccount)
     } else if (index === 1) {
       this.setState({ selectedAccount: 'enterprise' })
-      this.ensureRepositoriesForAccount(this.props.enterpriseAccount)
     }
   }
 
