@@ -174,22 +174,8 @@ export class CreateRepository extends React.Component<
   }
 
   private async doesReadMeExist(path: string, name: string) {
-    try {
-      const fullPath = Path.join(path, sanitizedRepositoryName(name))
-      const directoryFileNames = await FSE.readdir(fullPath)
-
-      if (
-        directoryFileNames != null &&
-        directoryFileNames.length !== 0 &&
-        directoryFileNames.some(fileName => /^ReadMe.md$/i.test(fileName))
-      ) {
-        return true
-      }
-
-      return false
-    } catch (error) {
-      return false
-    }
+    const fullPath = Path.join(path, sanitizedRepositoryName(name), 'README.md')
+    return await FSE.pathExists(fullPath)
   }
 
   private resolveRepositoryRoot = async (): Promise<string> => {
