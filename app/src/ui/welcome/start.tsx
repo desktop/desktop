@@ -2,7 +2,7 @@ import * as React from 'react'
 import { WelcomeStep } from './welcome'
 import { LinkButton } from '../lib/link-button'
 
-const CreateAccountURL = 'https://github.com/join?source=github-desktop'
+export const CreateAccountURL = 'https://github.com/join?source=github-desktop'
 
 interface IStartProps {
   readonly advance: (step: WelcomeStep) => void

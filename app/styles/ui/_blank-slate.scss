@@ -31,6 +31,7 @@
       align-self: stretch;
       flex-shrink: 0;
       max-width: 50%;
+      width: 50%;
       flex-grow: 1;
 
       &:not(:last-child) {
@@ -108,6 +109,10 @@
     height: 20%;
     // I hate this but we'll have to live with it for beta.
     z-index: -1;
+  }
+
+  .sign-in-button-row {
+    margin-top: var(--spacing);
   }
 
   @media screen and (min-width: 1366px) {

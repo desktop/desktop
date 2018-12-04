@@ -8,6 +8,10 @@ import {
 } from '../welcome/welcome'
 import { IAccountRepositories } from '../../lib/stores/api-repositories-store'
 import { Account } from '../../models/account'
+import { TabBar } from '../tab-bar'
+import { CreateAccountURL } from '../welcome/start'
+import { LinkButton } from '../lib/link-button'
+import { Row } from '../lib/row'
 
 interface IBlankSlateProps {
   /** A function to call when the user chooses to create a repository. */
@@ -18,6 +22,9 @@ interface IBlankSlateProps {
 
   /** A function to call when the user chooses to add a local repository. */
   readonly onAdd: () => void
+
+  readonly onSignInToDotCom: () => void
+  readonly onSignInToEnterprise: () => void
 
   /** The logged in account for GitHub.com. */
   readonly dotComAccount: Account | null
@@ -124,18 +131,57 @@ export class BlankSlateView extends React.Component<
 
     if (account === null) {
       // not signed in to any accounts
-      return null
+      return <div className="content-pane">{this.renderSignInButtons()}</div>
     }
 
     const accountState = this.props.apiRepositories.get(account)
 
-    if (accountState === undefined) {
+    return (
+      <div className="content-pane">
+        {this.renderAccountsTabBar()}
+        {this.renderAccountTab(account, accountState)}
+      </div>
+    )
+  }
+
+  private renderSignInButtons() {
+    return (
+      <>
+        <div>
+          You don't appear to be signed in to any account. Are you new to
+          GitHub?{' '}
+          <LinkButton uri={CreateAccountURL}>
+            Create your free account.
+          </LinkButton>
+        </div>
+
+        <Row className="sign-in-button-row">
+          <Button onClick={this.props.onSignInToDotCom}>
+            Sign into GitHub.com
+          </Button>
+
+          <Button onClick={this.props.onSignInToEnterprise}>
+            Sign into GitHub Enterprise
+          </Button>
+        </Row>
+      </>
+    )
+  }
+
+  private renderAccountTab(
+    account: Account,
+    accountState: IAccountRepositories | undefined
+  ) {
+    if (
+      accountState === undefined ||
+      (accountState.loading && accountState.repositories.length === 0)
+    ) {
       // no repositories loaded yet
-      return null
+      return <div>Loading…</div>
     }
 
     return (
-      <div className="content-pane">
+      <span>
         {JSON.stringify({
           account,
           accountState: accountState
@@ -145,7 +191,22 @@ export class BlankSlateView extends React.Component<
               }
             : undefined,
         })}
-      </div>
+      </span>
+    )
+  }
+
+  private renderAccountsTabBar() {
+    if (
+      this.props.dotComAccount === null ||
+      this.props.enterpriseAccount === null
+    ) {
+      return null
+    }
+    return (
+      <TabBar selectedIndex={0} onTabClicked={this.props.onClone}>
+        <span>GitHub.com</span>
+        <span>Enterprise</span>
+      </TabBar>
     )
   }
 
