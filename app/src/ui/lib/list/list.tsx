@@ -639,6 +639,7 @@ export class List extends React.Component<IListProps, IListState> {
         style={params.style}
         tabIndex={tabIndex}
         children={element}
+        selectable={selectable}
       />
     )
   }
