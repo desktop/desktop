@@ -79,9 +79,9 @@ interface ICreateRepositoryState {
   readonly license: string
 
   /**
-   * Whether or not a ReadMe.md file already exists in the
+   * Whether or not a README.md file already exists in the
    * directory that may be overwritten by initializing with
-   * a new ReadMe.md
+   * a new README.md.
    */
   readonly readMeExists: boolean
 }
@@ -475,7 +475,7 @@ export class CreateRepository extends React.Component<
       <Row className="warning-helper-text">
         <Octicon symbol={OcticonSymbol.alert} />
         <p>
-          This directory contains a <Ref>ReadMe.md</Ref> file already. Checking
+          This directory contains a <Ref>README.md</Ref> file already. Checking
           this box will result in the existing file being overwritten.
         </p>
       </Row>
@@ -577,7 +577,7 @@ export class CreateRepository extends React.Component<
   }
 
   private onWindowFocus = async () => {
-    // Verify whether or not a ReadMe.md file exists at the chosen directory
+    // Verify whether or not a README.md file exists at the chosen directory
     // in case one has been added or removed and the warning can be displayed.
     const readMeExists = await this.doesReadMeExist(
       this.state.path,
