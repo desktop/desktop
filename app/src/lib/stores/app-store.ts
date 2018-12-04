@@ -1895,7 +1895,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _attemptRecoverMissingRepository(
+  public async _refreshOrRecoverRepository(
     repository: Repository
   ): Promise<void> {
     // if repository is missing, try checking if it has been restored
@@ -1905,6 +1905,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
         // repository has been restored, attempt to refresh it now.
         return this._refreshRepository(updatedRepository)
       }
+    } else {
+      return this._refreshRepository(repository)
     }
   }
 
