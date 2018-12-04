@@ -115,7 +115,6 @@ const InitialRepositoryIndicatorTimeout = 2 * MinuteInMilliseconds
 
 /**
  * Refresh repository indicators every 15 minutes.
- * 15 Minutes
  */
 const UpdateRepositoryIndicatorInterval = 15 * MinuteInMilliseconds
 
