@@ -110,6 +110,11 @@ const UpdateCheckInterval = 4 * HourInMilliseconds
  */
 const SendStatsInterval = 4 * HourInMilliseconds
 
+/**
+ * How often to prune stale local branhces.
+ * 24 Hours
+ */
+const PruneStaleBranchesInterval = 24 * HourInMilliseconds
 
 /**
  * How long to wait before refreshing repository indicators
