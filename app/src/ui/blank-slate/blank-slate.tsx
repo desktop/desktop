@@ -202,12 +202,26 @@ export class BlankSlateView extends React.Component<
     ) {
       return null
     }
+
+    let selectedIndex =
+      this.getSelectedAccount() === this.props.dotComAccount ? 0 : 1
+
     return (
-      <TabBar selectedIndex={0} onTabClicked={this.props.onClone}>
+      <TabBar selectedIndex={selectedIndex} onTabClicked={this.onTabClicked}>
         <span>GitHub.com</span>
         <span>Enterprise</span>
       </TabBar>
     )
+  }
+
+  private onTabClicked = (index: number) => {
+    if (index === 0) {
+      this.setState({ selectedAccount: 'dotcom' })
+      this.ensureRepositoriesForAccount(this.props.dotComAccount)
+    } else if (index === 1) {
+      this.setState({ selectedAccount: 'enterprise' })
+      this.ensureRepositoriesForAccount(this.props.enterpriseAccount)
+    }
   }
 
   private renderRightPanel() {
