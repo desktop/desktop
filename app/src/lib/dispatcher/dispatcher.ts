@@ -1377,4 +1377,8 @@ export class Dispatcher {
   public recordAddExistingRepository() {
     this.statsStore.recordAddExistingRepository()
   }
+
+  public pruneStaleBranches(): Promise<void> {
+    return this.appStore._pruneLocalBranches()
+  }
 }

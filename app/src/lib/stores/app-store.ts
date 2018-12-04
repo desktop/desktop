@@ -3966,6 +3966,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.emitUpdate()
     }
   }
+
+  public async _pruneLocalBranches() {}
 }
 
 /**

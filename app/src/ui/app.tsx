@@ -282,6 +282,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     setInterval(() => this.checkForUpdates(true), UpdateCheckInterval)
     this.checkForUpdates(true)
 
+    setInterval(() => this.pruneStaleBranches(), PruneStaleBranchesInterval)
+
     log.info(`launching: ${getVersion()} (${getOS()})`)
     log.info(`execPath: '${process.execPath}'`)
   }
@@ -1992,6 +1994,8 @@ export class App extends React.Component<IAppProps, IAppState> {
       kind: HistoryTabMode.History,
     })
   }
+
+  private pruneStaleBranches(): Promise<void> {}
 }
 
 function NoRepositorySelected() {
