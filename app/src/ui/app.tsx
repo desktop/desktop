@@ -100,7 +100,7 @@ const HourInMilliseconds = MinuteInMilliseconds * 60
 
 /**
  * How often to check for updates.
- * 4 Hours
+ * Check for updates every 4 hours
  */
 const UpdateCheckInterval = 4 * HourInMilliseconds
 
