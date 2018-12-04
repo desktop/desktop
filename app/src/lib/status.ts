@@ -40,6 +40,11 @@ export function isConflictedFile(
   return file.kind === AppFileStatusKind.Conflicted
 }
 
+/**
+ * Returns a value indicating whether any of the files in the
+ * working directory is in a conflicted state. See `isConflictedFile`
+ * for the definition of a conflicted file.
+ */
 export function hasConflictedFiles(
   workingDirectoryStatus: WorkingDirectoryStatus
 ): boolean {
