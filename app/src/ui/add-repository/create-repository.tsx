@@ -128,11 +128,7 @@ export class CreateRepository extends React.Component<
     const isRepository = await isGitRepository(this.state.path)
     this.setState({ isRepository })
 
-    const readMeExists = await this.doesReadMeExist(
-      this.state.path,
-      this.state.name
-    )
-    this.setState({ readMeExists })
+    await this.updateReadMeExists(this.state.path, this.state.name)
 
     window.addEventListener('focus', this.onWindowFocus)
   }
@@ -143,15 +139,15 @@ export class CreateRepository extends React.Component<
 
   private onPathChanged = async (path: string) => {
     const isRepository = await isGitRepository(path)
-    const readMeExists = await this.doesReadMeExist(path, this.state.name)
+    await this.updateReadMeExists(path, this.state.name)
 
-    this.setState({ isRepository, path, readMeExists, isValidPath: null })
+    this.setState({ isRepository, path, isValidPath: null })
   }
 
   private onNameChanged = async (name: string) => {
-    const readMeExists = await this.doesReadMeExist(this.state.path, name)
+    await this.updateReadMeExists(this.state.path, name)
 
-    this.setState({ name, readMeExists })
+    this.setState({ name })
   }
 
   private onDescriptionChanged = (description: string) => {
@@ -173,9 +169,10 @@ export class CreateRepository extends React.Component<
     this.setState({ isRepository, path })
   }
 
-  private async doesReadMeExist(path: string, name: string) {
+  private async updateReadMeExists(path: string, name: string) {
     const fullPath = Path.join(path, sanitizedRepositoryName(name), 'README.md')
-    return await FSE.pathExists(fullPath)
+    const readMeExists = await FSE.pathExists(fullPath)
+    this.setState({ readMeExists })
   }
 
   private resolveRepositoryRoot = async (): Promise<string> => {
@@ -579,10 +576,6 @@ export class CreateRepository extends React.Component<
   private onWindowFocus = async () => {
     // Verify whether or not a README.md file exists at the chosen directory
     // in case one has been added or removed and the warning can be displayed.
-    const readMeExists = await this.doesReadMeExist(
-      this.state.path,
-      this.state.name
-    )
-    this.setState({ readMeExists })
+    await this.updateReadMeExists(this.state.path, this.state.name)
   }
 }
