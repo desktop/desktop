@@ -114,7 +114,7 @@ const SendStatsInterval = 4 * HourInMilliseconds
 const InitialRepositoryIndicatorTimeout = 2 * MinuteInMilliseconds
 
 /**
- * How often to refresh repository indicators.
+ * Refresh repository indicators every 15 minutes.
  * 15 Minutes
  */
 const UpdateRepositoryIndicatorInterval = 15 * MinuteInMilliseconds
