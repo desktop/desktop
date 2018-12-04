@@ -109,7 +109,7 @@ const UpdateCheckInterval = 4 * HourInMilliseconds
 const SendStatsInterval = 4 * HourInMilliseconds
 
 /**
- * How long to wait before refreshing repository indicators
+ * Wait 2 minutes before refreshing repository indicators
  * 2 Minutes
  */
 const InitialRepositoryIndicatorTimeout = 2 * MinuteInMilliseconds
