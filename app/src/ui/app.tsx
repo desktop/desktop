@@ -96,13 +96,31 @@ import { SuccessfulMerge } from './banners'
 import { UsageStatsChange } from './usage-stats-change'
 
 const MinuteInMilliseconds = 1000 * 60
+const HourInMilliseconds = MinuteInMilliseconds * 60
 
-/** The interval at which we should check for updates. */
-const UpdateCheckInterval = 1000 * 60 * 60 * 4
+/**
+ * How often to check for updates.
+ * 4 Hours
+ */
+const UpdateCheckInterval = 4 * HourInMilliseconds
 
-const SendStatsInterval = 1000 * 60 * 60 * 4
+/**
+ * How often to send usage stats.
+ * 4 Hours
+ */
+const SendStatsInterval = 4 * HourInMilliseconds
 
+
+/**
+ * How long to wait before refreshing repository indicators
+ * 2 Minutes
+ */
 const InitialRepositoryIndicatorTimeout = 2 * MinuteInMilliseconds
+
+/**
+ * How often to refresh repository indicators.
+ * 15 Minutes
+ */
 const UpdateRepositoryIndicatorInterval = 15 * MinuteInMilliseconds
 
 interface IAppProps {
