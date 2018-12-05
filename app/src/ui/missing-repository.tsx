@@ -21,12 +21,6 @@ export class MissingRepository extends React.Component<
   public render() {
     const buttons = new Array<JSX.Element>()
     buttons.push(
-      <Button key="check-again" onClick={this.checkAgain}>
-        Check Again
-      </Button>
-    )
-
-    buttons.push(
       <Button key="locate" onClick={this.locate} type="submit">
         Locate…
       </Button>
