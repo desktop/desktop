@@ -9,7 +9,6 @@ import { Row } from '../lib/row'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
-import { Octicon, OcticonSymbol } from '../octicons'
 import {
   renderBranchNameWarning,
   renderBranchHasRemoteWarning,
@@ -23,6 +22,11 @@ interface IRenameBranchProps {
 
 interface IRenameBranchState {
   readonly newName: string
+  /**
+   * Whether or not the component is currently processing the rename.
+   * When this is set the dialog will be considered busy and the dialog
+   * buttons will be disabled.
+   */
   readonly renaming: boolean
 }
 
@@ -37,15 +41,14 @@ export class RenameBranch extends React.Component<
   }
 
   public render() {
-    const icon = this.state.renaming ? (
-      <Octicon symbol={OcticonSymbol.sync} className="icon spin" />
-    ) : null
     const disabled =
       !this.state.newName.length || /^\s*$/.test(this.state.newName)
     return (
       <Dialog
         id="rename-branch"
         title={__DARWIN__ ? 'Rename Branch' : 'Rename branch'}
+        loading={this.state.renaming}
+        disabled={this.state.renaming}
         onDismissed={this.cancel}
         onSubmit={this.renameBranch}
       >
@@ -68,7 +71,6 @@ export class RenameBranch extends React.Component<
         <DialogFooter>
           <ButtonGroup>
             <Button type="submit" disabled={disabled}>
-              {icon}
               Rename {this.props.branch.name}
             </Button>
             <Button onClick={this.cancel}>Cancel</Button>
