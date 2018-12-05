@@ -20,22 +20,48 @@ function accountEquals(x: Account, y: Account) {
  * Attempt to look up an existing account in the account state
  * map based on endpoint and user id equality (see accountEquals).
  *
+ * The purpose of this method is to ensure that we're using the
+ * most recent Account instance during our asynchronous refresh
+ * operations. While we're refreshing the list of repositories
+ * that a user has explicit permissions to access it's possible
+ * that the accounts store will emit updated account instances
+ * (for example updating the user real name, or the list of
+ * email addresses associated with an account) and in order to
+ * guarantee reference equality with the accounts emitted by
+ * the accounts store we need to ensure we're in sync.
+ *
  * If no match is found the provided account is returned.
  */
 function resolveAccount(
   account: Account,
   accountState: ReadonlyMap<Account, IAccountRepositories>
 ) {
+  // The set uses reference equality so if we find our
+  // account instance in the set there's no need to look
+  // any further.
   if (accountState.has(account)) {
     return account
   }
 
+  // If we can't find our account instance in the set one
+  // of two things have happened. Either the account has
+  // been removed (by the user explicitly signing out) or
+  // the accounts store has refreshed the account details
+  // from the API and as such the reference equality no
+  // longer holds. In the latter case we attempt to
+  // find the updated account instance by comparing its
+  // user id and endpoint to the provided account.
   for (const existingAccount of accountState.keys()) {
     if (accountEquals(existingAccount, account)) {
       return existingAccount
     }
   }
 
+  // If we can't find a matching account it's likely
+  // that it's the first time we're loading the list
+  // of repositories for this account so we return
+  // whatever was provided to us such that it may be
+  // inserted into the set as a new entry.
   return account
 }
 

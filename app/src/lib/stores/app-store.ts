@@ -160,7 +160,6 @@ import { hasShownWelcomeFlow, markWelcomeFlowComplete } from '../welcome'
 import { getWindowState, WindowState } from '../window-state'
 import { TypedBaseStore } from './base-store'
 import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
-import { enableMergeConflictsDialog } from '../feature-flag'
 import { MergeResultKind } from '../../models/merge'
 import { promiseWithMinimumTimeout } from '../promise'
 import { BackgroundFetcher } from './helpers/background-fetcher'
@@ -1536,10 +1535,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** starts the conflict resolution flow, if appropriate */
   private async _triggerMergeConflictsFlow(repository: Repository) {
-    if (!enableMergeConflictsDialog()) {
-      return
-    }
-
     const alreadyInFlow =
       this.currentPopup !== null &&
       (this.currentPopup.type === PopupType.MergeConflicts ||
@@ -1736,6 +1731,28 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const { trailers } = context
       if (trailers !== undefined && trailers.some(isCoAuthoredByTrailer)) {
         this.statsStore.recordCoAuthoredCommit()
+      }
+
+      const account = getAccountForRepository(this.accounts, repository)
+      if (repository.gitHubRepository !== null) {
+        if (account !== null) {
+          if (account.endpoint === getDotComAPIEndpoint()) {
+            this.statsStore.recordCommitToDotcom()
+          } else {
+            this.statsStore.recordCommitToEnterprise()
+          }
+
+          const { commitAuthor } = state
+          if (commitAuthor !== null) {
+            const commitEmailMatchesAccount = account.emails.some(
+              email =>
+                email.email.toLowerCase() === commitAuthor.email.toLowerCase()
+            )
+            if (!commitEmailMatchesAccount) {
+              this.statsStore.recordUnattributedCommit()
+            }
+          }
+        }
       }
 
       await this._refreshRepository(repository)
