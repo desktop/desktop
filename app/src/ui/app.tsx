@@ -1995,7 +1995,9 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
   }
 
-  private pruneStaleBranches(): Promise<void> {}
+  private pruneStaleBranches(): Promise<void> {
+    return this.props.appStore._pruneLocalBranches()
+  }
 }
 
 function NoRepositorySelected() {
