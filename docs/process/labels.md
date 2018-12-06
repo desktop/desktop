@@ -28,7 +28,7 @@ the flow of an issue through this process
 |                                        | Label name                  | Description |
 | -------------------------------------- | ----------------------------| ----------- |
 | [:mag_right:][bug]                     | `bug`                     | Confirmed bugs or reports that are very likely to be bugs |
-| [:mag_right:][enhancement]             | `enhancement`             | |
+| [:mag_right:][enhancement]             | `enhancement`             | Issues that propose to improve the app and solve a problem for users |
 | [:mag_right:][investigation-needed]    | `investigation-needed`    | Likely bugs, but haven't been reliably reproduced by a reviewer |
 | [:mag_right:][more-information-needed] | `more-information-needed` | The submitter needs to provide more information about the issue |
 | [:mag_right:][priority-1]              | `priority-1`              | Major bug affecting large population and inhibiting their work |
