@@ -153,12 +153,9 @@ export class CloneRepository extends React.Component<
       return null
     }
 
-    const error = this.state.error
+    const { error, url, path, loading } = this.state
     const disabled =
-      this.state.url.length === 0 ||
-      this.state.path.length === 0 ||
-      this.state.loading ||
-      !!error
+      url.length === 0 || path.length === 0 || loading || error !== null
 
     return (
       <DialogFooter>
