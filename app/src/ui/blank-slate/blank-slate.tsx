@@ -20,7 +20,7 @@ interface IBlankSlateProps {
   readonly onCreate: () => void
 
   /** A function to call when the user chooses to clone a repository. */
-  readonly onClone: () => void
+  readonly onClone: (cloneURL?: string | null) => void
 
   /** A function to call when the user chooses to add a local repository. */
   readonly onAdd: () => void
@@ -176,6 +176,12 @@ export class BlankSlateView extends React.Component<
     )
   }
 
+  private getSelectedItemForAccount(account: Account) {
+    return account === this.props.dotComAccount
+      ? this.state.selectedDotComRepository
+      : this.state.selectedEnterpriseRepository
+  }
+
   private renderAccountTab(
     account: Account,
     accountState: IAccountRepositories | undefined
@@ -188,10 +194,7 @@ export class BlankSlateView extends React.Component<
       return <div>Loading…</div>
     }
 
-    const selectedRepository =
-      account === this.props.dotComAccount
-        ? this.state.selectedDotComRepository
-        : this.state.selectedEnterpriseRepository
+    const selectedItem = this.getSelectedItemForAccount(account)
 
     const filterText =
       account === this.props.dotComAccount
@@ -199,17 +202,54 @@ export class BlankSlateView extends React.Component<
         : this.state.enterpriseFilterText
 
     return (
-      <CloneableRepositoryFilterList
-        account={account}
-        selectedItem={selectedRepository}
-        filterText={filterText}
-        onRefreshRepositories={this.props.onRefreshRepositories}
-        loading={accountState.loading}
-        repositories={accountState.repositories}
-        onSelectionChanged={this.onSelectionChanged}
-        onFilterTextChanged={this.onFilterTextChanged}
-      />
+      <>
+        <CloneableRepositoryFilterList
+          account={account}
+          selectedItem={selectedItem}
+          filterText={filterText}
+          onRefreshRepositories={this.props.onRefreshRepositories}
+          loading={accountState.loading}
+          repositories={accountState.repositories}
+          onSelectionChanged={this.onSelectionChanged}
+          onFilterTextChanged={this.onFilterTextChanged}
+        />
+        {this.renderCloneSelectedRepositoryButton(selectedItem)}
+      </>
     )
+  }
+
+  private renderCloneSelectedRepositoryButton(
+    selectedItem: IAPIRepository | null
+  ) {
+    if (selectedItem === null) {
+      return null
+    }
+
+    return (
+      <div>
+        <Button type="submit" onClick={this.onCloneSelectedRepository}>
+          Clone{' '}
+          <strong>
+            {selectedItem.owner.login}/{selectedItem.name}
+          </strong>
+        </Button>
+      </div>
+    )
+  }
+
+  private onCloneSelectedRepository = () => {
+    const selectedAccount = this.getSelectedAccount()
+    if (selectedAccount === null) {
+      return
+    }
+
+    const selectedItem = this.getSelectedItemForAccount(selectedAccount)
+
+    if (selectedItem === null) {
+      return
+    }
+
+    this.props.onClone(selectedItem.clone_url)
   }
 
   private onSelectionChanged = (selectedItem: IAPIRepository | null) => {
@@ -257,12 +297,14 @@ export class BlankSlateView extends React.Component<
     }
   }
 
+  private onShowClone = () => this.props.onClone()
+
   private renderRightPanel() {
     return (
       <div className="content-pane">
         <ul className="button-group">
           <li>
-            <Button onClick={this.props.onClone}>
+            <Button onClick={this.onShowClone}>
               <Octicon symbol={OcticonSymbol.repoClone} />
               <div>
                 {__DARWIN__
