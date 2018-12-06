@@ -326,7 +326,6 @@ export class CloneRepository extends React.Component<
         url,
         lastParsedIdentifier: parsed,
         path: newPath,
-        error: null,
       },
       this.validatePath
     )
