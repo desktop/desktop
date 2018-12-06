@@ -24,9 +24,6 @@ import { CloneGithubRepository } from './clone-github-repository'
 import { assertNever } from '../../lib/fatal-error'
 import { CallToAction } from '../lib/call-to-action'
 
-/** The name for the error when the destination already exists. */
-const DestinationExistsErrorName = 'DestinationExistsError'
-
 interface ICloneRepositoryProps {
   readonly dispatcher: Dispatcher
   readonly onDismissed: () => void
@@ -161,7 +158,7 @@ export class CloneRepository extends React.Component<
       this.state.url.length === 0 ||
       this.state.path.length === 0 ||
       this.state.loading ||
-      (!!error && error.name === DestinationExistsErrorName)
+      !!error
 
     return (
       <DialogFooter>
