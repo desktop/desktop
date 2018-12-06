@@ -12,6 +12,8 @@ import { TabBar } from '../tab-bar'
 import { CreateAccountURL } from '../welcome/start'
 import { LinkButton } from '../lib/link-button'
 import { Row } from '../lib/row'
+import { CloneableRepositoryFilterList } from '../clone-repository/cloneable-repository-filter-list'
+import { IAPIRepository } from '../../lib/api'
 
 interface IBlankSlateProps {
   /** A function to call when the user chooses to create a repository. */
@@ -57,6 +59,10 @@ interface IBlankSlateProps {
 
 interface IBlankSlateState {
   readonly selectedAccount: 'dotcom' | 'enterprise'
+  readonly dotComFilterText: string
+  readonly selectedDotComRepository: IAPIRepository | null
+  readonly selectedEnterpriseRepository: IAPIRepository | null
+  readonly enterpriseFilterText: string
 }
 
 /**
@@ -71,6 +77,10 @@ export class BlankSlateView extends React.Component<
     super(props)
     this.state = {
       selectedAccount: 'dotcom',
+      dotComFilterText: '',
+      enterpriseFilterText: '',
+      selectedDotComRepository: null,
+      selectedEnterpriseRepository: null,
     }
   }
 
@@ -178,19 +188,46 @@ export class BlankSlateView extends React.Component<
       return <div>Loading…</div>
     }
 
+    const selectedRepository =
+      account === this.props.dotComAccount
+        ? this.state.selectedDotComRepository
+        : this.state.selectedEnterpriseRepository
+
+    const filterText =
+      account === this.props.dotComAccount
+        ? this.state.dotComFilterText
+        : this.state.enterpriseFilterText
+
     return (
-      <span>
-        {JSON.stringify({
-          account,
-          accountState: accountState
-            ? {
-                loading: accountState.loading,
-                repositories: accountState.repositories.length,
-              }
-            : undefined,
-        })}
-      </span>
+      <CloneableRepositoryFilterList
+        account={account}
+        selectedItem={selectedRepository}
+        filterText={filterText}
+        onRefreshRepositories={this.props.onRefreshRepositories}
+        loading={accountState.loading}
+        repositories={accountState.repositories}
+        onSelectionChanged={this.onSelectionChanged}
+        onFilterTextChanged={this.onFilterTextChanged}
+      />
     )
+  }
+
+  private onSelectionChanged = (selectedItem: IAPIRepository | null) => {
+    const account = this.getSelectedAccount()
+    if (account === this.props.dotComAccount) {
+      this.setState({ selectedDotComRepository: selectedItem })
+    } else if (account === this.props.enterpriseAccount) {
+      this.setState({ selectedEnterpriseRepository: selectedItem })
+    }
+  }
+
+  private onFilterTextChanged = (filterText: string) => {
+    const account = this.getSelectedAccount()
+    if (account === this.props.dotComAccount) {
+      this.setState({ dotComFilterText: filterText })
+    } else if (account === this.props.enterpriseAccount) {
+      this.setState({ enterpriseFilterText: filterText })
+    }
   }
 
   private renderAccountsTabBar() {
