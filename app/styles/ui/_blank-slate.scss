@@ -35,7 +35,11 @@
       flex-grow: 1;
 
       &:not(:last-child) {
-        margin-right: var(--spacing-double);
+        padding-right: var(--spacing);
+      }
+
+      &:not(:first-child) {
+        padding-left: var(--spacing);
       }
     }
 
