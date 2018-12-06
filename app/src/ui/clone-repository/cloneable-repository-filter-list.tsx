@@ -13,6 +13,7 @@ import { IMatches } from '../../lib/fuzzy-find'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { HighlightText } from '../lib/highlight-text'
 import { Loading } from '../lib/loading'
+import { ClickSource } from '../lib/list'
 
 interface ICloneableRepositoryFilterListProps {
   /** The account to clone from. */
@@ -57,6 +58,21 @@ interface ICloneableRepositoryFilterListProps {
    * available for cloning.
    */
   readonly onRefreshRepositories: (account: Account) => void
+
+  /**
+   * This function will be called when a pointer device is pressed and then
+   * released on a selectable row. Note that this follows the conventions
+   * of button elements such that pressing Enter or Space on a keyboard
+   * while focused on a particular row will also trigger this event. Consumers
+   * can differentiate between the two using the source parameter.
+   *
+   * Consumers of this event do _not_ have to call event.preventDefault,
+   * when this event is subscribed to the list will automatically call it.
+   */
+  readonly onItemClicked?: (
+    repository: IAPIRepository,
+    source: ClickSource
+  ) => void
 }
 
 const RowHeight = 31
@@ -172,8 +188,26 @@ export class CloneableRepositoryFilterList extends React.PureComponent<
         onFilterTextChanged={this.props.onFilterTextChanged}
         renderNoItems={this.renderNoMatchingRepositories}
         renderPostFilter={this.renderPostFilter}
+        onItemClick={this.props.onItemClicked ? this.onItemClick : undefined}
       />
     )
+  }
+
+  private onItemClick = (
+    item: IClonableRepositoryListItem,
+    source: ClickSource
+  ) => {
+    const { onItemClicked, repositories } = this.props
+
+    if (onItemClicked === undefined || repositories === null) {
+      return
+    }
+
+    const selectedItem = findRepositoryForListItem(repositories, item)
+
+    if (selectedItem !== null) {
+      onItemClicked(selectedItem, source)
+    }
   }
 
   private onSelectionChanged = (item: IClonableRepositoryListItem | null) => {
