@@ -179,6 +179,10 @@ export class CloneRepository extends React.Component<
     this.props.onTabSelected(tab)
   }
 
+  private onPathChanged = (path: string) => {
+    this.setState({ path }, this.validatePath)
+  }
+
   private renderActiveTab() {
     const tab = this.props.selectedTab
 
@@ -188,7 +192,7 @@ export class CloneRepository extends React.Component<
           <CloneGenericRepository
             path={this.state.path}
             url={this.state.url}
-            onPathChanged={this.updateAndValidatePath}
+            onPathChanged={this.onPathChanged}
             onUrlChanged={this.updateUrl}
             onChooseDirectory={this.onChooseDirectory}
           />
@@ -204,7 +208,7 @@ export class CloneRepository extends React.Component<
             <CloneGithubRepository
               path={this.state.path}
               account={account}
-              onPathChanged={this.updateAndValidatePath}
+              onPathChanged={this.onPathChanged}
               onGitHubRepositorySelected={this.updateUrl}
               onChooseDirectory={this.onChooseDirectory}
               shouldClearFilter={this.state.shouldClearFilter}
@@ -266,11 +270,26 @@ export class CloneRepository extends React.Component<
     this.props.dispatcher.showEnterpriseSignInDialog()
   }
 
-  private updateAndValidatePath = async (path: string) => {
-    this.setState({ path })
+  private validatePath = async () => {
+    const { path } = this.state
+    const isDefaultPath = this.state.initialPath === this.state.path
+    const isURLNotEntered = this.state.url === ''
 
-    const pathValidation = await this.validateEmptyFolder(path)
-    this.setState({ error: pathValidation })
+    if (isDefaultPath && isURLNotEntered) {
+      if (this.state.error) {
+        this.setState({ error: null })
+      }
+    } else {
+      const pathValidation = await this.validateEmptyFolder(path)
+
+      // If the path has changed while we check we don't care
+      // about the result
+      if (this.state.path !== path) {
+        return
+      }
+
+      this.setState({ error: pathValidation, path })
+    }
   }
 
   private onChooseDirectory = async () => {
@@ -287,7 +306,7 @@ export class CloneRepository extends React.Component<
       ? Path.join(directories[0], lastParsedIdentifier.name)
       : directories[0]
 
-    this.updateAndValidatePath(directory)
+    this.setState({ path: directory, error: null }, this.validatePath)
 
     return directory
   }
@@ -310,12 +329,15 @@ export class CloneRepository extends React.Component<
       newPath = this.state.path
     }
 
-    this.setState({
-      url,
-      lastParsedIdentifier: parsed,
-    })
-
-    this.updateAndValidatePath(newPath)
+    this.setState(
+      {
+        url,
+        lastParsedIdentifier: parsed,
+        path: newPath,
+        error: null,
+      },
+      this.validatePath
+    )
   }
 
   private async validateEmptyFolder(path: string): Promise<null | Error> {
@@ -409,19 +431,9 @@ export class CloneRepository extends React.Component<
   }
 
   private onWindowFocus = () => {
-    // Verify the path after focus has been regained in case changes have been made.
-    const isDefaultPath = this.state.initialPath === this.state.path
-    const isURLNotEntered = this.state.url === ''
-
-    if (isDefaultPath && isURLNotEntered) {
-      if (
-        this.state.error !== null &&
-        this.state.error.name === DestinationExistsErrorName
-      ) {
-        this.setState({ error: null })
-      }
-    } else {
-      this.updateAndValidatePath(this.state.path)
-    }
+    // Verify the path after focus has been regained in
+    // case the directory or directory contents has been
+    // created/removed/altered while the user wasn't in-app.
+    this.validatePath()
   }
 }
