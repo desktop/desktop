@@ -6,18 +6,8 @@ import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 import { Button } from '../lib/button'
 import { Loading } from '../lib/loading'
-import { Octicon, OcticonSymbol } from '../octicons'
-import { FilterList } from '../lib/filter-list'
 import { IAPIRepository } from '../../lib/api'
-import { IFilterListGroup } from '../lib/filter-list'
-import { IMatches } from '../../lib/fuzzy-find'
-import {
-  IClonableRepositoryListItem,
-  groupRepositories,
-  YourRepositoriesIdentifier,
-} from './group-repositories'
-import { HighlightText } from '../lib/highlight-text'
-import memoizeOne from 'memoize-one'
+import { CloneableRepositoryFilterList } from './cloneable-repository-filter-list'
 
 interface ICloneGithubRepositoryProps {
   /** The account to clone from. */
@@ -75,75 +65,9 @@ interface ICloneGithubRepositoryProps {
   readonly onRefreshRepositories: (account: Account) => void
 }
 
-const RowHeight = 31
-
-/**
- * Iterate over all groups until a list item is found that matches
- * the clone url of the provided repository.
- */
-function findMatchingListItem(
-  groups: ReadonlyArray<IFilterListGroup<IClonableRepositoryListItem>>,
-  selectedRepository: IAPIRepository | null
-) {
-  if (selectedRepository !== null) {
-    for (const group of groups) {
-      for (const item of group.items) {
-        if (item.url === selectedRepository.clone_url) {
-          return item
-        }
-      }
-    }
-  }
-
-  return null
-}
-
 export class CloneGithubRepository extends React.PureComponent<
   ICloneGithubRepositoryProps
 > {
-  /**
-   * A memoized function for grouping repositories for display
-   * in the FilterList. The group will not be recomputed as long
-   * as the provided list of repositories is equal to the last
-   * time the method was called (reference equality).
-   */
-  private getRepositoryGroups = memoizeOne(
-    (repositories: ReadonlyArray<IAPIRepository> | null) =>
-      this.props.repositories === null
-        ? []
-        : groupRepositories(this.props.repositories, this.props.account.login)
-  )
-
-  /**
-   * A memoized function for finding the selected list item based
-   * on a IAPIRepository instance. The selected item will not be
-   * recomputed as long as the provided list of repositories and
-   * the selected data object is equal to the last time the method
-   * was called (reference equality).
-   *
-   * See findMatchingListItem for more details.
-   */
-  private getSelectedListItem = memoizeOne(findMatchingListItem)
-
-  public componentDidMount() {
-    if (this.props.repositories === null) {
-      this.refreshRepositories()
-    }
-  }
-
-  public componentDidUpdate(prevProps: ICloneGithubRepositoryProps) {
-    if (
-      prevProps.repositories !== this.props.repositories &&
-      this.props.repositories === null
-    ) {
-      this.refreshRepositories()
-    }
-  }
-
-  private refreshRepositories = () => {
-    this.props.onRefreshRepositories(this.props.account)
-  }
-
   public render() {
     return (
       <DialogContent className="clone-github-repository-content">
@@ -154,7 +78,7 @@ export class CloneGithubRepository extends React.PureComponent<
             value={this.props.path}
             label={__DARWIN__ ? 'Local Path' : 'Local path'}
             placeholder="repository path"
-            onValueChanged={this.onPathChanged}
+            onValueChanged={this.props.onPathChanged}
           />
           <Button onClick={this.props.onChooseDirectory}>Choose…</Button>
         </Row>
@@ -174,90 +98,17 @@ export class CloneGithubRepository extends React.PureComponent<
       )
     }
 
-    const groups = this.getRepositoryGroups(this.props.repositories)
-    const selectedItem = this.getSelectedListItem(
-      groups,
-      this.props.selectedItem
-    )
-
     return (
-      <FilterList<IClonableRepositoryListItem>
-        className="clone-github-repo"
-        rowHeight={RowHeight}
-        selectedItem={selectedItem}
-        renderItem={this.renderItem}
-        renderGroupHeader={this.renderGroupHeader}
-        onSelectionChanged={this.onSelectionChanged}
-        invalidationProps={groups}
-        groups={groups}
+      <CloneableRepositoryFilterList
+        account={this.props.account}
+        selectedItem={this.props.selectedItem}
+        onSelectionChanged={this.props.onSelectionChanged}
+        loading={this.props.loading}
+        repositories={this.props.repositories}
         filterText={this.props.filterText}
         onFilterTextChanged={this.props.onFilterTextChanged}
-        renderNoItems={this.noMatchingRepositories}
-        renderPostFilter={this.renderPostFilter}
+        onRefreshRepositories={this.props.onRefreshRepositories}
       />
-    )
-  }
-
-  private renderPostFilter = () => {
-    return (
-      <Button
-        disabled={this.props.loading}
-        onClick={this.refreshRepositories}
-        tooltip="Refresh the list of repositories"
-      >
-        <Octicon
-          symbol={OcticonSymbol.sync}
-          className={this.props.loading ? 'spin' : undefined}
-        />
-      </Button>
-    )
-  }
-
-  private noMatchingRepositories = function() {
-    return (
-      <div className="no-results-found">
-        Sorry, I can't find that repository.
-      </div>
-    )
-  }
-
-  private onSelectionChanged = (item: IClonableRepositoryListItem | null) => {
-    if (item === null || this.props.repositories === null) {
-      this.props.onSelectionChanged(null)
-    } else {
-      this.props.onSelectionChanged(
-        this.props.repositories.find(r => r.clone_url === item.url) || null
-      )
-    }
-  }
-
-  private onPathChanged = (path: string) => {
-    this.props.onPathChanged(path)
-  }
-
-  private renderGroupHeader = (identifier: string) => {
-    let header = identifier
-    if (identifier === YourRepositoriesIdentifier) {
-      header = __DARWIN__ ? 'Your Repositories' : 'Your repositories'
-    }
-    return (
-      <div className="clone-repository-list-content clone-repository-list-group-header">
-        {header}
-      </div>
-    )
-  }
-
-  private renderItem = (
-    item: IClonableRepositoryListItem,
-    matches: IMatches
-  ) => {
-    return (
-      <div className="clone-repository-list-item">
-        <Octicon className="icon" symbol={item.icon} />
-        <div className="name" title={item.text[0]}>
-          <HighlightText text={item.text[0]} highlight={matches.title} />
-        </div>
-      </div>
     )
   }
 }
