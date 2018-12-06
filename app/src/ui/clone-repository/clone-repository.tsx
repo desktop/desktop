@@ -265,9 +265,9 @@ export class CloneRepository extends React.Component<
   }
 
   private validatePath = async () => {
-    const { path, initialPath } = this.state
+    const { path, initialPath, url } = this.state
     const isDefaultPath = initialPath === path
-    const isURLNotEntered = this.state.url === ''
+    const isURLNotEntered = url === ''
 
     if (isDefaultPath && isURLNotEntered) {
       if (this.state.error) {
