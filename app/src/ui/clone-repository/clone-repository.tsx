@@ -106,6 +106,12 @@ export class CloneRepository extends React.Component<
     })
   }
 
+  public componentDidUpdate() {
+    if (this.state.shouldClearFilter) {
+      this.setState({ shouldClearFilter: false })
+    }
+  }
+
   public componentDidMount() {
     const initialURL = this.props.initialURL
     if (initialURL) {
