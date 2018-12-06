@@ -93,8 +93,8 @@ export class BlankSlateView extends React.Component<
         </header>
 
         <div className="content">
-          {this.renderLeftPanel()}
-          {this.renderRightPanel()}
+          <div className="content-pane left">{this.renderLeftPanel()}</div>
+          <div className="content-pane right">{this.renderRightPanel()}</div>
         </div>
 
         <img className="blankslate-graphic-top" src={WelcomeLeftTopImageUri} />
@@ -139,16 +139,16 @@ export class BlankSlateView extends React.Component<
 
     if (account === null) {
       // not signed in to any accounts
-      return <div className="content-pane">{this.renderSignInButtons()}</div>
+      return this.renderSignInButtons()
     }
 
     const accountState = this.props.apiRepositories.get(account)
 
     return (
-      <div className="content-pane">
+      <>
         {this.renderAccountsTabBar()}
         {this.renderAccountTab(account, accountState)}
-      </div>
+      </>
     )
   }
 
@@ -227,7 +227,11 @@ export class BlankSlateView extends React.Component<
 
     return (
       <div>
-        <Button type="submit" onClick={this.onCloneSelectedRepository}>
+        <Button
+          type="submit"
+          className="clone-selected-repository"
+          onClick={this.onCloneSelectedRepository}
+        >
           Clone{' '}
           <strong>
             {selectedItem.owner.login}/{selectedItem.name}
@@ -301,7 +305,7 @@ export class BlankSlateView extends React.Component<
 
   private renderRightPanel() {
     return (
-      <div className="content-pane">
+      <>
         <ul className="button-group">
           <li>
             <Button onClick={this.onShowClone}>
@@ -342,7 +346,7 @@ export class BlankSlateView extends React.Component<
             repository folder here to add it to Desktop
           </div>
         </div>
-      </div>
+      </>
     )
   }
 }
