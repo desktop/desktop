@@ -34,6 +34,7 @@ the flow of an issue through this process
 | [:mag_right:][priority-1]              | `priority-1`              | Major bug affecting large population and inhibiting their work |
 | [:mag_right:][priority-2]              | `priority-2`              | Bug that affects more than a few users in a meaningful way but doesn't prevent core functions |
 | [:mag_right:][priority-3]              | `priority-3`              | Bugs that affect small number of users and/or relatively cosmetic in nature |
+| [:mag_right:][support]                 | `support`                 | Issues specific to an individual users' configuration requiring diagnosis and clarification to resolve |
 
 ### External contributions
 
@@ -115,6 +116,7 @@ time:
 [priority-2]: https://github.com/desktop/desktop/labels/priority-2
 [priority-3]: https://github.com/desktop/desktop/labels/priority-3
 [ready-for-review]: https://github.com/desktop/desktop/labels/ready-for-review
+[support]: https://github.com/desktop/desktop/labels/support
 [tech-debt]: https://github.com/desktop/desktop/labels/tech-debt
 [themes]: https://github.com/desktop/desktop/labels/themes
 [time-sensitive]: https://github.com/desktop/desktop/labels/time-sensitive
