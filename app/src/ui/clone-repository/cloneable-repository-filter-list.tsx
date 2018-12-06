@@ -82,6 +82,18 @@ function findMatchingListItem(
   return null
 }
 
+/**
+ * Attempt to locate the source IAPIRepository instance given
+ * an ICloneableRepositoryList item using clone_url for the
+ * equality comparison.
+ */
+function findRepositoryForListItem(
+  repositories: ReadonlyArray<IAPIRepository>,
+  listItem: IClonableRepositoryListItem
+) {
+  return repositories.find(r => r.clone_url === listItem.url) || null
+}
+
 export class CloneableRepositoryFilterList extends React.PureComponent<
   ICloneableRepositoryFilterListProps
 > {
@@ -169,7 +181,7 @@ export class CloneableRepositoryFilterList extends React.PureComponent<
       this.props.onSelectionChanged(null)
     } else {
       this.props.onSelectionChanged(
-        this.props.repositories.find(r => r.clone_url === item.url) || null
+        findRepositoryForListItem(this.props.repositories, item)
       )
     }
   }
