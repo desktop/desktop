@@ -533,10 +533,19 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
   }
 
-  private showCloneRepo = () => {
+  private showCloneRepo = (cloneUrl?: string | null) => {
+    let initialURL: string | null = null
+
+    if (cloneUrl !== undefined && cloneUrl !== null) {
+      this.props.dispatcher.changeCloneRepositoriesTab(
+        CloneRepositoryTab.Generic
+      )
+      initialURL = cloneUrl
+    }
+
     return this.props.dispatcher.showPopup({
       type: PopupType.CloneRepository,
-      initialURL: null,
+      initialURL,
     })
   }
 
