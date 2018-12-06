@@ -276,13 +276,11 @@ export class CloneRepository extends React.Component<
     } else {
       const pathValidation = await this.validateEmptyFolder(path)
 
-      // If the path has changed while we check we don't care
-      // about the result
-      if (this.state.path !== path) {
-        return
+      // We only care about the result if the path hasn't
+      // changed since we went async
+      if (this.state.path === path) {
+        this.setState({ error: pathValidation, path })
       }
-
-      this.setState({ error: pathValidation, path })
     }
   }
 
