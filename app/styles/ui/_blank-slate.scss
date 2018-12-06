@@ -115,6 +115,37 @@
     margin-top: var(--spacing);
   }
 
+  .content-pane.left {
+    .tab-bar {
+      margin-bottom: var(--spacing);
+      border: var(--base-border);
+      border-radius: var(--border-radius);
+
+      .tab-bar-item {
+        border-bottom: 0;
+      }
+    }
+    .clone-selected-repository {
+      margin-top: var(--spacing);
+      width: 100%;
+    }
+
+    .filter-list {
+      .filter-field-row {
+        margin: 0;
+        margin-bottom: var(--spacing);
+      }
+
+      .clone-repository-list-group-header {
+        padding: var(--spacing);
+      }
+
+      .clone-repository-list-item {
+        padding: 0 var(--spacing);
+      }
+    }
+  }
+
   @media screen and (min-width: 1366px) {
     zoom: 1.2;
   }
