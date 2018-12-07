@@ -1,5 +1,9 @@
 {
   "releases": {
+    "1.5.1-beta2": [
+      "[Fixed] Fix for \"directory not empty\" error when no repository selected - #6357",
+      "[Fixed] Fix odd filtering behavior after switching tabs in the clone dialog - #6356"
+    ],
     "1.5.1-beta1": [
       "[Added] Provide keyboard shortcut for getting to commit summary field - #1719. Thanks @bruncun!",
       "[Added] Add hover states on list items and tabs - #6310",
