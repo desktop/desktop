@@ -47,6 +47,27 @@ function getUnmergedFiles(status: WorkingDirectoryStatus) {
   return status.files.filter(f => isConflictedFile(f.status))
 }
 
+/** Filter working directory changes for resolved files  */
+function getResolvedFiles(status: WorkingDirectoryStatus) {
+  return status.files.filter(
+    f =>
+      isConflictedFile(f.status) &&
+      f.status.lookForConflictMarkers &&
+      f.status.conflictMarkerCount === 0
+  )
+}
+
+/** Filter working directory changes for conflicted files  */
+function getConflictedFiles(status: WorkingDirectoryStatus) {
+  return status.files.filter(
+    f =>
+      (isConflictedFile(f.status) && !f.status.lookForConflictMarkers) ||
+      (isConflictedFile(f.status) &&
+        f.status.lookForConflictMarkers &&
+        f.status.conflictMarkerCount > 0)
+  )
+}
+
 function editorButtonString(editorName: string | null): string {
   const defaultEditorString = 'editor'
   return `Open in ${editorName || defaultEditorString}`
@@ -103,12 +124,8 @@ export class MergeConflictsDialog extends React.Component<
    *  dismisses the modal and shows the abort merge warning modal
    */
   private onCancel = async () => {
-    const anyResolvedFiles = getUnmergedFiles(this.props.workingDirectory).some(
-      f =>
-        isConflictedFile(f.status) &&
-        f.status.lookForConflictMarkers &&
-        f.status.conflictMarkerCount === 0
-    )
+    const anyResolvedFiles =
+      getResolvedFiles(this.props.workingDirectory).length > 0
     if (!anyResolvedFiles) {
       await this.props.dispatcher.abortMerge(this.props.repository)
       this.props.onDismissed()
@@ -298,9 +315,8 @@ export class MergeConflictsDialog extends React.Component<
 
   public render() {
     const unmergedFiles = getUnmergedFiles(this.props.workingDirectory)
-    const conflictedFilesCount = unmergedFiles.filter(f =>
-      isConflictedFile(f.status)
-    ).length
+    const conflictedFilesCount = getConflictedFiles(this.props.workingDirectory)
+      .length
 
     const headerTitle = this.renderHeaderTitle(
       this.props.ourBranch,
