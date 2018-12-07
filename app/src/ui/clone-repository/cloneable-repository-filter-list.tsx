@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Account } from '../../models/account'
 import { FilterList, IFilterListGroup } from '../lib/filter-list'
-import { IAPIRepository } from '../../lib/api'
+import { IAPIRepository, getDotComAPIEndpoint, getHTMLURL } from '../../lib/api'
 import {
   IClonableRepositoryListItem,
   groupRepositories,
@@ -12,8 +12,9 @@ import { Button } from '../lib/button'
 import { IMatches } from '../../lib/fuzzy-find'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { HighlightText } from '../lib/highlight-text'
-import { Loading } from '../lib/loading'
 import { ClickSource } from '../lib/list'
+import { LinkButton } from '../lib/link-button'
+import { Ref } from '../lib/ref'
 
 interface ICloneableRepositoryFilterListProps {
   /** The account to clone from. */
@@ -157,17 +158,6 @@ export class CloneableRepositoryFilterList extends React.PureComponent<
   }
 
   public render() {
-    if (
-      this.props.loading &&
-      (this.props.repositories === null || this.props.repositories.length === 0)
-    ) {
-      return (
-        <div className="clone-github-repo clone-loading">
-          <Loading /> Loading repositories…
-        </div>
-      )
-    }
-
     const groups = this.getRepositoryGroups(this.props.repositories)
     const selectedItem = this.getSelectedListItem(
       groups,
@@ -186,7 +176,7 @@ export class CloneableRepositoryFilterList extends React.PureComponent<
         groups={groups}
         filterText={this.props.filterText}
         onFilterTextChanged={this.props.onFilterTextChanged}
-        renderNoItems={this.renderNoMatchingRepositories}
+        renderNoItems={this.renderNoItems}
         renderPostFilter={this.renderPostFilter}
         onItemClick={this.props.onItemClicked ? this.onItemClick : undefined}
       />
@@ -261,10 +251,39 @@ export class CloneableRepositoryFilterList extends React.PureComponent<
     )
   }
 
-  private renderNoMatchingRepositories = function() {
+  private renderNoItems = () => {
+    const { loading, repositories } = this.props
+
+    if (loading && (repositories === null || repositories.length === 0)) {
+      return <div className="no-items loading">Loading repositories…</div>
+    }
+
+    if (this.props.filterText.length !== 0) {
+      return (
+        <div className="no-items no-results-found">
+          <div>
+            Sorry, I can't find any repository matching{' '}
+            <Ref>{this.props.filterText}</Ref>
+          </div>
+        </div>
+      )
+    }
+
+    const endpointName =
+      this.props.account.endpoint === getDotComAPIEndpoint()
+        ? 'GitHub.com'
+        : getHTMLURL(this.props.account.endpoint)
+
     return (
-      <div className="no-results-found">
-        Sorry, I can't find that repository.
+      <div className="no-items empty-repository-list">
+        <div>
+          Couldn't find any repositories for the account{' '}
+          <Ref>{this.props.account.login}</Ref> on {endpointName}.
+          <LinkButton onClick={this.refreshRepositories}>
+            Refresh the list
+          </LinkButton>
+          if you've created a repository recently.
+        </div>
       </div>
     )
   }
