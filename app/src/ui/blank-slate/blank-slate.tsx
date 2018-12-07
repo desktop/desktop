@@ -9,9 +9,6 @@ import {
 import { IAccountRepositories } from '../../lib/stores/api-repositories-store'
 import { Account } from '../../models/account'
 import { TabBar } from '../tab-bar'
-import { CreateAccountURL } from '../welcome/start'
-import { LinkButton } from '../lib/link-button'
-import { Row } from '../lib/row'
 import { CloneableRepositoryFilterList } from '../clone-repository/cloneable-repository-filter-list'
 import { IAPIRepository } from '../../lib/api'
 
@@ -24,9 +21,6 @@ interface IBlankSlateProps {
 
   /** A function to call when the user chooses to add a local repository. */
   readonly onAdd: () => void
-
-  readonly onSignInToDotCom: () => void
-  readonly onSignInToEnterprise: () => void
 
   /** The logged in account for GitHub.com. */
   readonly dotComAccount: Account | null
@@ -139,7 +133,7 @@ export class BlankSlateView extends React.Component<
 
     if (account === null) {
       // not signed in to any accounts
-      return this.renderSignInButtons()
+      return null
     }
 
     const accountState = this.props.apiRepositories.get(account)
@@ -148,30 +142,6 @@ export class BlankSlateView extends React.Component<
       <>
         {this.renderAccountsTabBar()}
         {this.renderAccountTab(account, accountState)}
-      </>
-    )
-  }
-
-  private renderSignInButtons() {
-    return (
-      <>
-        <div>
-          You don't appear to be signed in to any account. Are you new to
-          GitHub?{' '}
-          <LinkButton uri={CreateAccountURL}>
-            Create your free account.
-          </LinkButton>
-        </div>
-
-        <Row className="sign-in-button-row">
-          <Button onClick={this.props.onSignInToDotCom}>
-            Sign into GitHub.com
-          </Button>
-
-          <Button onClick={this.props.onSignInToEnterprise}>
-            Sign into GitHub Enterprise
-          </Button>
-        </Row>
       </>
     )
   }

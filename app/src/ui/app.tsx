@@ -522,11 +522,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     return this.props.dispatcher.showPopup({ type: PopupType.AddRepository })
   }
 
-  private showDotComSignInDialog = () =>
-    this.props.dispatcher.showDotComSignInDialog()
-  private showEnterpriseSignInDialog = () =>
-    this.props.dispatcher.showEnterpriseSignInDialog()
-
   private showCreateRepository = () => {
     this.props.dispatcher.showPopup({
       type: PopupType.CreateRepository,
@@ -1869,8 +1864,6 @@ export class App extends React.Component<IAppProps, IAppState> {
           onCreate={this.showCreateRepository}
           onClone={this.showCloneRepo}
           onAdd={this.showAddLocalRepo}
-          onSignInToDotCom={this.showDotComSignInDialog}
-          onSignInToEnterprise={this.showEnterpriseSignInDialog}
           apiRepositories={this.state.apiRepositories}
           onRefreshRepositories={this.onRefreshRepositories}
         />
