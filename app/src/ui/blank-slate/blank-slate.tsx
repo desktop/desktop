@@ -249,7 +249,7 @@ export class BlankSlateView extends React.Component<
       return null
     }
 
-    let selectedIndex =
+    const selectedIndex =
       this.getSelectedAccount() === this.props.dotComAccount ? 0 : 1
 
     return (
