@@ -186,13 +186,10 @@ export class BlankSlateView extends React.Component<
     account: Account,
     accountState: IAccountRepositories | undefined
   ) {
-    if (
-      accountState === undefined ||
-      (accountState.loading && accountState.repositories.length === 0)
-    ) {
-      // no repositories loaded yet
-      return <div>Loading…</div>
-    }
+    const loading = accountState === undefined ? true : accountState.loading
+
+    const repositories =
+      accountState === undefined ? null : accountState.repositories
 
     const selectedItem = this.getSelectedItemForAccount(account)
 
@@ -208,8 +205,8 @@ export class BlankSlateView extends React.Component<
           selectedItem={selectedItem}
           filterText={filterText}
           onRefreshRepositories={this.props.onRefreshRepositories}
-          loading={accountState.loading}
-          repositories={accountState.repositories}
+          loading={loading}
+          repositories={repositories}
           onSelectionChanged={this.onSelectionChanged}
           onFilterTextChanged={this.onFilterTextChanged}
         />
