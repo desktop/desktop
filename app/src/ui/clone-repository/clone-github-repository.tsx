@@ -5,7 +5,6 @@ import { DialogContent } from '../dialog'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 import { Button } from '../lib/button'
-import { Loading } from '../lib/loading'
 import { IAPIRepository } from '../../lib/api'
 import { CloneableRepositoryFilterList } from './cloneable-repository-filter-list'
 
@@ -71,7 +70,18 @@ export class CloneGithubRepository extends React.PureComponent<
   public render() {
     return (
       <DialogContent className="clone-github-repository-content">
-        <Row>{this.renderRepositoryList()}</Row>
+        <Row>
+          <CloneableRepositoryFilterList
+            account={this.props.account}
+            selectedItem={this.props.selectedItem}
+            onSelectionChanged={this.props.onSelectionChanged}
+            loading={this.props.loading}
+            repositories={this.props.repositories}
+            filterText={this.props.filterText}
+            onFilterTextChanged={this.props.onFilterTextChanged}
+            onRefreshRepositories={this.props.onRefreshRepositories}
+          />
+        </Row>
 
         <Row className="local-path-field">
           <TextBox
@@ -83,32 +93,6 @@ export class CloneGithubRepository extends React.PureComponent<
           <Button onClick={this.props.onChooseDirectory}>Choose…</Button>
         </Row>
       </DialogContent>
-    )
-  }
-
-  private renderRepositoryList() {
-    if (
-      this.props.loading &&
-      (this.props.repositories === null || this.props.repositories.length === 0)
-    ) {
-      return (
-        <div className="clone-github-repo clone-loading">
-          <Loading /> Loading repositories…
-        </div>
-      )
-    }
-
-    return (
-      <CloneableRepositoryFilterList
-        account={this.props.account}
-        selectedItem={this.props.selectedItem}
-        onSelectionChanged={this.props.onSelectionChanged}
-        loading={this.props.loading}
-        repositories={this.props.repositories}
-        filterText={this.props.filterText}
-        onFilterTextChanged={this.props.onFilterTextChanged}
-        onRefreshRepositories={this.props.onRefreshRepositories}
-      />
     )
   }
 }
