@@ -155,6 +155,9 @@ export interface IAppState {
   /** Whether we should show the merge success banner */
   readonly successfulMergeBannerState: SuccessfulMergeBannerState
 
+  /** Whether we should show the merge success banner */
+  readonly mergeConflictsBannerState: MergeConflictsBannerState
+
   /** Whether we should show a confirmation dialog */
   readonly askForConfirmationOnRepositoryRemoval: boolean
 
@@ -545,4 +548,9 @@ export type CompareAction = IViewHistory | ICompareToBranch
 export type SuccessfulMergeBannerState = {
   ourBranch: string
   theirBranch?: string
+} | null
+
+export type MergeConflictsBannerState = {
+  readonly ourBranch: string
+  readonly popup: Popup
 } | null

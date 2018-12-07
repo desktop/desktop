@@ -88,6 +88,7 @@ import {
   MergeResultStatus,
   ComparisonMode,
   SuccessfulMergeBannerState,
+  MergeConflictsBannerState,
 } from '../app-state'
 import { IGitHubUser } from '../databases/github-user-database'
 import {
@@ -266,6 +267,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private windowZoomFactor: number = 1
   private isUpdateAvailableBannerVisible: boolean = false
   private successfulMergeBannerState: SuccessfulMergeBannerState = null
+  private mergeConflictsBannerState: MergeConflictsBannerState = null
   private confirmRepoRemoval: boolean = confirmRepoRemovalDefault
   private confirmDiscardChanges: boolean = confirmDiscardChangesDefault
   private imageDiffType: ImageDiffType = imageDiffTypeDefault
@@ -497,6 +499,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       highlightAccessKeys: this.highlightAccessKeys,
       isUpdateAvailableBannerVisible: this.isUpdateAvailableBannerVisible,
       successfulMergeBannerState: this.successfulMergeBannerState,
+      mergeConflictsBannerState: this.mergeConflictsBannerState,
       askForConfirmationOnRepositoryRemoval: this.confirmRepoRemoval,
       askForConfirmationOnDiscardChanges: this.confirmDiscardChanges,
       selectedExternalEditor: this.selectedExternalEditor,
@@ -2561,11 +2564,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
             tip.branch.upstream
           )
 
-          gitContext = {
-            kind: 'pull',
-            tip,
-            theirBranch: tip.branch.upstream,
-          }
+          gitContext = { kind: 'pull', tip, theirBranch: tip.branch.upstream }
         }
 
         const title = `Pulling ${remote.name}`
@@ -3221,6 +3220,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   public _setSuccessfulMergeBannerState(state: SuccessfulMergeBannerState) {
     this.successfulMergeBannerState = state
+
+    this.emitUpdate()
+  }
+
+  public _setMergeConflictsBannerState(state: MergeConflictsBannerState) {
+    this.mergeConflictsBannerState = state
 
     this.emitUpdate()
   }
