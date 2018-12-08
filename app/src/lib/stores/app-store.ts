@@ -1088,6 +1088,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
     this.stopBackgroundFetching()
     this.stopPullRequestUpdater()
+    this._setMergeConflictsBannerState(null)
 
     if (repository == null) {
       return Promise.resolve(null)
@@ -1533,7 +1534,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.currentPopup !== null &&
       (this.currentPopup.type === PopupType.MergeConflicts ||
         this.currentPopup.type === PopupType.AbortMerge)
-    if (alreadyInFlow) {
+    const alreadyExitedFlow = this.mergeConflictsBannerState !== null
+
+    if (alreadyInFlow || alreadyExitedFlow) {
       return
     }
 
