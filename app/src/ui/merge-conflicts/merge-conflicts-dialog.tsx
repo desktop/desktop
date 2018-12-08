@@ -142,6 +142,15 @@ export class MergeConflictsDialog extends React.Component<
 
   private onDismissed = async () => {
     this.props.onDismissed()
+    this.props.dispatcher.setMergeConflictsBannerState({
+      ourBranch: this.props.ourBranch,
+      popup: {
+        type: PopupType.MergeConflicts,
+        ourBranch: this.props.ourBranch,
+        theirBranch: this.props.theirBranch,
+        repository: this.props.repository,
+      },
+    })
   }
 
   private renderHeaderTitle(ourBranch: string, theirBranch?: string) {
@@ -338,7 +347,11 @@ export class MergeConflictsDialog extends React.Component<
         onDismissed={this.onDismissed}
         onSubmit={this.onSubmit}
       >
-        <DialogHeader title={headerTitle} dismissable={true} />
+        <DialogHeader
+          title={headerTitle}
+          dismissable={true}
+          onDismissed={this.onDismissed}
+        />
         <DialogContent>
           {this.renderContent(unmergedFiles, conflictedFilesCount)}
         </DialogContent>
