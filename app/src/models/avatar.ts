@@ -62,7 +62,7 @@ function getAvatarUserFromAuthor(
  *
  * Avatars are returned ordered, starting with the author, followed
  * by all co-authors and finally the committer (if different from
- * author).
+ * author and any co-author).
  *
  * @param gitHubRepository
  * @param gitHubUsers
@@ -84,10 +84,18 @@ export function getAvatarUsersForCommit(
     )
   )
 
+  const coAuthoredByCommitter = commit.coAuthors.some(
+    x => x.name === commit.committer.name && x.email === commit.committer.email
+  )
+
   const webFlowCommitter =
     gitHubRepository !== null && isWebFlowCommitter(commit, gitHubRepository)
 
-  if (!commit.authoredByCommitter && !webFlowCommitter) {
+  if (
+    !commit.authoredByCommitter &&
+    !webFlowCommitter &&
+    !coAuthoredByCommitter
+  ) {
     avatarUsers.push(
       getAvatarUserFromAuthor(gitHubRepository, gitHubUsers, commit.committer)
     )

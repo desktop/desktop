@@ -21,6 +21,16 @@ jobs:
       - script: |
           yarn test:setup && yarn test
         name: Test
+      - task: PublishTestResults@2
+        displayName: 'Publish Test Results'
+        inputs:
+          testResultsFiles: '**junit*.xml'
+          testRunTitle: TestRun ${{ parameters.name }} $(node_version)
+      - task: PublishCodeCoverageResults@1
+        displayName: 'Publish code coverage results'
+        inputs:
+          codeCoverageTool: 'cobertura'
+          summaryFileLocation: '**/coverage/cobertura-coverage.xml'
 
   - job: Linux
     pool:
@@ -46,6 +56,16 @@ jobs:
           Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
           yarn test:setup && yarn test
         name: Test
+      - task: PublishTestResults@2
+        displayName: 'Publish Test Results'
+        inputs:
+          testResultsFiles: '**junit*.xml'
+          testRunTitle: TestRun ${{ parameters.name }} $(node_version)
+      - task: PublishCodeCoverageResults@1
+        displayName: 'Publish code coverage results'
+        inputs:
+          codeCoverageTool: 'cobertura'
+          summaryFileLocation: '**/coverage/cobertura-coverage.xml'
 
   - job: macOS
     pool:
@@ -63,6 +83,16 @@ jobs:
       - script: |
           yarn test:setup && yarn test
         name: Test
+      - task: PublishTestResults@2
+        displayName: 'Publish Test Results'
+        inputs:
+          testResultsFiles: '**junit*.xml'
+          testRunTitle: TestRun ${{ parameters.name }} $(node_version)
+      - task: PublishCodeCoverageResults@1
+        displayName: 'Publish code coverage results'
+        inputs:
+          codeCoverageTool: 'cobertura'
+          summaryFileLocation: '**/coverage/cobertura-coverage.xml'
 
   - job: Lint
     pool:

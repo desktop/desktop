@@ -1,4 +1,4 @@
-import { AppFileStatusKind } from '../../models/status'
+import { AppFileStatusKind, AppFileStatus } from '../../models/status'
 import { OcticonSymbol } from './octicons.generated'
 import { assertNever } from '../../lib/fatal-error'
 
@@ -8,8 +8,8 @@ import { assertNever } from '../../lib/fatal-error'
  *
  * Used in file lists.
  */
-export function iconForStatus(status: AppFileStatusKind): OcticonSymbol {
-  switch (status) {
+export function iconForStatus(status: AppFileStatus): OcticonSymbol {
+  switch (status.kind) {
     case AppFileStatusKind.New:
       return OcticonSymbol.diffAdded
     case AppFileStatusKind.Modified:
@@ -19,9 +19,11 @@ export function iconForStatus(status: AppFileStatusKind): OcticonSymbol {
     case AppFileStatusKind.Renamed:
       return OcticonSymbol.diffRenamed
     case AppFileStatusKind.Conflicted:
+      if (status.lookForConflictMarkers) {
+        const conflictsCount = status.conflictMarkerCount
+        return conflictsCount > 0 ? OcticonSymbol.alert : OcticonSymbol.check
+      }
       return OcticonSymbol.alert
-    case AppFileStatusKind.Resolved:
-      return OcticonSymbol.check
     case AppFileStatusKind.Copied:
       return OcticonSymbol.diffAdded
   }

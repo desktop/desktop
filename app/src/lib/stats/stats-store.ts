@@ -70,6 +70,9 @@ const DefaultDailyMeasures: IDailyMeasures = {
   mergedWithConflictWarningHintCount: 0,
   mergeSuccessAfterConflictsCount: 0,
   mergeAbortedAfterConflictsCount: 0,
+  unattributedCommits: 0,
+  enterpriseCommits: 0,
+  dotcomCommits: 0,
 }
 
 interface IOnboardingStats {
@@ -228,8 +231,20 @@ type DailyStats = ICalculatedStats &
   IDailyMeasures &
   IOnboardingStats
 
+/**
+ * Testable interface for StatsStore
+ *
+ * Note: for the moment this only contains methods that are needed for testing,
+ * so fight the urge to implement every public method from StatsStore here
+ *
+ */
+export interface IStatsStore {
+  recordMergeAbortedAfterConflicts: () => void
+  recordMergeSuccessAfterConflicts: () => void
+}
+
 /** The store for the app's stats. */
-export class StatsStore {
+export class StatsStore implements IStatsStore {
   private readonly db: StatsDatabase
   private readonly uiActivityMonitor: IUiActivityMonitor
   private uiActivityMonitorSubscription: Disposable | null = null
@@ -589,6 +604,35 @@ export class StatsStore {
     }
     return this.updateDailyMeasures(m => ({
       repoWithoutIndicatorClicked: m.repoWithoutIndicatorClicked + 1,
+    }))
+  }
+
+  /**
+   * Records that the user made a commit using an email address that
+   * was not associated with the user's account on GitHub.com or GitHub
+   * Enterprise, meaning that the commit will not be attributed to the user's
+   * account.
+   */
+  public recordUnattributedCommit(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      unattributedCommits: m.unattributedCommits + 1,
+    }))
+  }
+
+  /**
+   * Records that the user made a commit to a repository hosted on
+   * a GitHub Enterprise instance
+   */
+  public recordCommitToEnterprise(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      enterpriseCommits: m.enterpriseCommits + 1,
+    }))
+  }
+
+  /** Records that the user made a commit to a repository hosted on GitHub.com */
+  public recordCommitToDotcom(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      dotcomCommits: m.dotcomCommits + 1,
     }))
   }
 

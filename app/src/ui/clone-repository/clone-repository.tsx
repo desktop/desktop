@@ -1,7 +1,7 @@
 import * as Path from 'path'
 import * as React from 'react'
 import { remote } from 'electron'
-import { pathExists } from 'fs-extra'
+import { readdir } from 'fs-extra'
 
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
@@ -23,9 +23,6 @@ import { CloneGithubRepository } from './clone-github-repository'
 
 import { assertNever } from '../../lib/fatal-error'
 import { CallToAction } from '../lib/call-to-action'
-
-/** The name for the error when the destination already exists. */
-const DestinationExistsErrorName = 'DestinationExistsError'
 
 interface ICloneRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -106,6 +103,12 @@ export class CloneRepository extends React.Component<
     })
   }
 
+  public componentDidUpdate() {
+    if (this.state.shouldClearFilter) {
+      this.setState({ shouldClearFilter: false })
+    }
+  }
+
   public componentDidMount() {
     const initialURL = this.props.initialURL
     if (initialURL) {
@@ -156,12 +159,9 @@ export class CloneRepository extends React.Component<
       return null
     }
 
-    const error = this.state.error
+    const { error, url, path, loading } = this.state
     const disabled =
-      this.state.url.length === 0 ||
-      this.state.path.length === 0 ||
-      this.state.loading ||
-      (!!error && error.name === DestinationExistsErrorName)
+      url.length === 0 || path.length === 0 || loading || error !== null
 
     return (
       <DialogFooter>
@@ -179,6 +179,10 @@ export class CloneRepository extends React.Component<
     this.props.onTabSelected(tab)
   }
 
+  private onPathChanged = (path: string) => {
+    this.setState({ path }, this.validatePath)
+  }
+
   private renderActiveTab() {
     const tab = this.props.selectedTab
 
@@ -188,7 +192,7 @@ export class CloneRepository extends React.Component<
           <CloneGenericRepository
             path={this.state.path}
             url={this.state.url}
-            onPathChanged={this.updateAndValidatePath}
+            onPathChanged={this.onPathChanged}
             onUrlChanged={this.updateUrl}
             onChooseDirectory={this.onChooseDirectory}
           />
@@ -204,7 +208,7 @@ export class CloneRepository extends React.Component<
             <CloneGithubRepository
               path={this.state.path}
               account={account}
-              onPathChanged={this.updateAndValidatePath}
+              onPathChanged={this.onPathChanged}
               onGitHubRepositorySelected={this.updateUrl}
               onChooseDirectory={this.onChooseDirectory}
               shouldClearFilter={this.state.shouldClearFilter}
@@ -266,18 +270,23 @@ export class CloneRepository extends React.Component<
     this.props.dispatcher.showEnterpriseSignInDialog()
   }
 
-  private updateAndValidatePath = async (path: string) => {
-    this.setState({ path })
+  private validatePath = async () => {
+    const { path, initialPath, url } = this.state
+    const isDefaultPath = initialPath === path
+    const isURLNotEntered = url === ''
 
-    const doesDirectoryExist = await this.doesPathExist(path)
-
-    if (doesDirectoryExist) {
-      const error: Error = new Error('The destination already exists.')
-      error.name = DestinationExistsErrorName
-
-      this.setState({ error })
+    if (isDefaultPath && isURLNotEntered) {
+      if (this.state.error) {
+        this.setState({ error: null })
+      }
     } else {
-      this.setState({ error: null })
+      const pathValidation = await this.validateEmptyFolder(path)
+
+      // We only care about the result if the path hasn't
+      // changed since we went async
+      if (this.state.path === path) {
+        this.setState({ error: pathValidation, path })
+      }
     }
   }
 
@@ -295,7 +304,7 @@ export class CloneRepository extends React.Component<
       ? Path.join(directories[0], lastParsedIdentifier.name)
       : directories[0]
 
-    this.updateAndValidatePath(directory)
+    this.setState({ path: directory, error: null }, this.validatePath)
 
     return directory
   }
@@ -318,22 +327,40 @@ export class CloneRepository extends React.Component<
       newPath = this.state.path
     }
 
-    this.setState({
-      url,
-      lastParsedIdentifier: parsed,
-    })
-
-    this.updateAndValidatePath(newPath)
+    this.setState(
+      {
+        url,
+        lastParsedIdentifier: parsed,
+        path: newPath,
+      },
+      this.validatePath
+    )
   }
 
-  private async doesPathExist(path: string) {
-    const exists = await pathExists(path)
-    // If the path changed while we were checking, we don't care anymore.
-    if (this.state.path !== path) {
-      return
-    }
+  private async validateEmptyFolder(path: string): Promise<null | Error> {
+    try {
+      const directoryFiles = await readdir(path)
 
-    return exists
+      if (directoryFiles.length === 0) {
+        return null
+      } else {
+        return new Error(
+          'This folder contains files. Git can only clone to empty folders.'
+        )
+      }
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        // Folder does not exist
+        return null
+      }
+
+      log.error(
+        'CloneRepository: Path validation failed. Error: ' + error.message
+      )
+      return new Error(
+        'Unable to read path on disk. Please check the path and try again.'
+      )
+    }
   }
 
   /**
@@ -401,19 +428,9 @@ export class CloneRepository extends React.Component<
   }
 
   private onWindowFocus = () => {
-    // Verify the path after focus has been regained in case changes have been made.
-    const isDefaultPath = this.state.initialPath === this.state.path
-    const isURLNotEntered = this.state.url === ''
-
-    if (isDefaultPath && isURLNotEntered) {
-      if (
-        this.state.error !== null &&
-        this.state.error.name === DestinationExistsErrorName
-      ) {
-        this.setState({ error: null })
-      }
-    } else {
-      this.updateAndValidatePath(this.state.path)
-    }
+    // Verify the path after focus has been regained in
+    // case the directory or directory contents has been
+    // created/removed/altered while the user wasn't in-app.
+    this.validatePath()
   }
 }
