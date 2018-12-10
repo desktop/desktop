@@ -1,5 +1,7 @@
 {
   "releases": {
+    "1.5.1-beta3": [
+    ],
     "1.5.1-beta2": [
       "[Improved] Clarified internal documentation - #6348. Thanks @bblarney!"
     ],
