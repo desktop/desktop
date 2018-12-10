@@ -1,5 +1,8 @@
 {
   "releases": {
+    "1.5.1-beta3": [
+      "[Improved] Maintains state on tabs for different methods of cloning repositories - #5937"
+    ],
     "1.5.1-beta2": [
       "[Improved] Clarified internal documentation - #6348. Thanks @bblarney!"
     ],
