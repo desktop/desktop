@@ -92,13 +92,16 @@ export class OversizedFiles extends React.Component<IOversizedFilesProps> {
   }
 
   private commitAnyway = async () => {
-    const context = this.props.context
-    this.props.dispatcher.commitIncludedChanges(this.props.repository, context)
+    this.props.dispatcher.closePopup()
+
+    await this.props.dispatcher.commitIncludedChanges(
+      this.props.repository,
+      this.props.context
+    )
 
     this.props.dispatcher.setCommitMessage(this.props.repository, {
       summary: '',
       description: '',
     })
-    await this.props.dispatcher.closePopup()
   }
 }
