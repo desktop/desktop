@@ -49,6 +49,14 @@ interface IDialogProps {
   readonly dismissable?: boolean
 
   /**
+   * Option to prevent dismissal by clicking outside of the dialog.
+   * Requires `dismissal` to be true (or omitted) to have an effect.
+   *
+   * Defaults to false if omitted
+   */
+  readonly disableClickDismissalAlways?: boolean
+
+  /**
    * Event triggered when the dialog is dismissed by the user in the
    * ways described in the dismissable prop.
    */
@@ -283,7 +291,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
       rect.left <= e.clientX &&
       e.clientX <= rect.left + rect.width
 
-    if (!isInDialog) {
+    if (!this.props.disableClickDismissalAlways && !isInDialog) {
       e.preventDefault()
       this.onDismiss()
     }
