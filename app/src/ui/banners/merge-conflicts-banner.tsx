@@ -12,7 +12,7 @@ interface IMergeConflictsBannerProps {
   readonly onDismissed: () => void
 }
 
-export class ResolveMergeConflictsManually extends React.Component<
+export class MergeConflictsBanner extends React.Component<
   IMergeConflictsBannerProps,
   {}
 > {

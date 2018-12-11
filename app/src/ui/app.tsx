@@ -92,9 +92,8 @@ import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
 import { AbortMergeWarning } from './abort-merge'
 import { isConflictedFile } from '../lib/status'
 import { PopupType, Popup } from '../models/popup'
-import { SuccessfulMerge } from './banners'
+import { SuccessfulMerge, MergeConflictsBanner } from './banners'
 import { UsageStatsChange } from './usage-stats-change'
-import { ResolveMergeConflictsManually } from './banners/resolve-merge-conflicts-manually'
 
 const MinuteInMilliseconds = 1000 * 60
 
@@ -1800,7 +1799,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
     return (
-      <ResolveMergeConflictsManually
+      <MergeConflictsBanner
         dispatcher={this.props.dispatcher}
         ourBranch={mergeConflictsBannerState.ourBranch}
         popup={mergeConflictsBannerState.popup}
