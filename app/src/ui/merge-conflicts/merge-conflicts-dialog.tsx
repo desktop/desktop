@@ -217,6 +217,7 @@ export class MergeConflictsDialog extends React.Component<
             onClick={onOpenEditorClick}
             disabled={disabled}
             tooltip={tooltip}
+            className="small-button"
           >
             {editorButtonString(this.props.resolvedExternalEditor)}
           </Button>
