@@ -263,7 +263,7 @@ export class StatsStore implements IStatsStore {
     // If the user has set an opt out value but we haven't sent the ping yet,
     // give it a shot now.
     if (!getBoolean(HasSentOptInPingKey, false)) {
-      this.sendOptInStatusPing(!this.optOut, storedValue)
+      this.sendOptInStatusPing(this.optOut, storedValue)
     }
 
     this.enableUiActivityMonitoring()
@@ -650,7 +650,7 @@ export class StatsStore implements IStatsStore {
     setBoolean(StatsOptOutKey, optOut)
 
     if (changed || userViewedPrompt) {
-      await this.sendOptInStatusPing(!optOut, previousValue)
+      await this.sendOptInStatusPing(optOut, previousValue)
     }
   }
 
@@ -813,19 +813,31 @@ export class StatsStore implements IStatsStore {
 
   /**
    * Send opt-in ping with details of previous stored value (if known)
+   *
+   * @param optOut        Whether or not the user has opted
+   *                      out of usage reporting.
+   * @param previousValue The raw, current value stored for the
+   *                      "stats-opt-out" localStorage key, or
+   *                      undefined if no previously stored value
+   *                      exists.
    */
   private async sendOptInStatusPing(
-    optIn: boolean,
-    previousValue?: boolean
+    optOut: boolean,
+    previousValue: boolean | undefined
   ): Promise<void> {
+    // The analytics pipeline expects us to submit `optIn` but we
+    // track `optOut` so we need to invert the value before we send
+    // it.
+    const optIn = !optOut
+    const previousOptInValue =
+      previousValue === undefined ? null : !previousValue
     const direction = optIn ? 'in' : 'out'
-    const previousValueOrNull =
-      previousValue === undefined ? null : previousValue
+
     try {
       const response = await this.post({
         eventType: 'ping',
         optIn,
-        previousValue: previousValueOrNull,
+        previousOptInValue,
       })
       if (!response.ok) {
         throw new Error(
