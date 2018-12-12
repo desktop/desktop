@@ -92,6 +92,7 @@ import { AbortMergeWarning } from './abort-merge'
 import { isConflictedFile } from '../lib/status'
 import { PopupType, Popup } from '../models/popup'
 import { SuccessfulMerge } from './banners'
+import { OversizedFiles } from './changes/oversized-files-warning'
 import { UsageStatsChange } from './usage-stats-change'
 
 const MinuteInMilliseconds = 1000 * 60
@@ -1369,6 +1370,16 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       }
+      case PopupType.OversizedFiles:
+        return (
+          <OversizedFiles
+            oversizedFiles={popup.oversizedFiles}
+            onDismissed={this.onPopupDismissed}
+            dispatcher={this.props.dispatcher}
+            context={popup.context}
+            repository={popup.repository}
+          />
+        )
       case PopupType.AbortMerge: {
         const { selectedState } = this.state
         if (
