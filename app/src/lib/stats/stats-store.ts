@@ -823,7 +823,7 @@ export class StatsStore implements IStatsStore {
    */
   private async sendOptInStatusPing(
     optOut: boolean,
-    previousValue?: boolean
+    previousValue: boolean | undefined
   ): Promise<void> {
     // The analytics pipeline expects us to submit `optIn` but we
     // track `optOut` so we need to invert the value before we send
