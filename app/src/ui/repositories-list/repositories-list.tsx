@@ -186,14 +186,14 @@ export class RepositoriesList extends React.Component<
         action: this.onCloneRepository,
       },
       {
+        label: __DARWIN__ ? 'Create New Repository…' : 'Create new repository…',
+        action: this.onCreateNewRepository,
+      },
+      {
         label: __DARWIN__
           ? 'Add Existing Repository…'
           : 'Add existing repository…',
         action: this.onAddExistingRepository,
-      },
-      {
-        label: __DARWIN__ ? 'Create New Repository…' : 'Create new repository…',
-        action: this.onCreateNewRepository,
       },
     ]
 
