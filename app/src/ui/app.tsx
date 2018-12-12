@@ -96,13 +96,26 @@ import { OversizedFiles } from './changes/oversized-files-warning'
 import { UsageStatsChange } from './usage-stats-change'
 
 const MinuteInMilliseconds = 1000 * 60
+const HourInMilliseconds = MinuteInMilliseconds * 60
 
-/** The interval at which we should check for updates. */
-const UpdateCheckInterval = 1000 * 60 * 60 * 4
+/**
+ * Check for updates every 4 hours
+ */
+const UpdateCheckInterval = 4 * HourInMilliseconds
 
-const SendStatsInterval = 1000 * 60 * 60 * 4
+/**
+ * Send usage stats every 4 hours
+ */
+const SendStatsInterval = 4 * HourInMilliseconds
 
+/**
+ * Wait 2 minutes before refreshing repository indicators
+ */
 const InitialRepositoryIndicatorTimeout = 2 * MinuteInMilliseconds
+
+/**
+ * Refresh repository indicators every 15 minutes.
+ */
 const UpdateRepositoryIndicatorInterval = 15 * MinuteInMilliseconds
 
 interface IAppProps {
