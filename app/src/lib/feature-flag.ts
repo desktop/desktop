@@ -51,3 +51,8 @@ export function enableFileSizeWarningCheck(): boolean {
 export function enableGitProtocolVersionTwo(): boolean {
   return enableDevelopmentFeatures()
 }
+
+export function enableReadmeOverwriteWarning(): boolean {
+  // return enableBetaFeatures()
+  return false
+}
