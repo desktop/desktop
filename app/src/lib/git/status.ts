@@ -7,6 +7,9 @@ import {
   FileEntry,
   GitStatusEntry,
   AppFileStatusKind,
+  UnmergedEntry,
+  ConflictedFileStatus,
+  UnmergedEntrySummary,
 } from '../../models/status'
 import {
   parsePorcelainStatus,
@@ -21,12 +24,6 @@ import { Repository } from '../../models/repository'
 import { IAheadBehind } from '../../models/branch'
 import { fatalError } from '../../lib/fatal-error'
 import { enableStatusWithoutOptionalLocks } from '../feature-flag'
-import { filterBinaryFiles } from './binary-files'
-import {
-  ConflictState,
-  ConflictFileStatus,
-  ConflictedFile,
-} from '../../models/conflicts'
 import { isMergeHeadSet } from './merge'
 
 /**
@@ -71,9 +68,43 @@ interface IStatusHeadersData {
   match: RegExpMatchArray | null
 }
 
+type ConflictCountsByPath = ReadonlyMap<string, number>
+
+function parseConflictedState(
+  entry: UnmergedEntry,
+  path: string,
+  filesWithConflictMarkers: ConflictCountsByPath
+): ConflictedFileStatus {
+  switch (entry.action) {
+    case UnmergedEntrySummary.BothAdded:
+      const addedConflictsLeft = filesWithConflictMarkers.get(path) || 0
+      return {
+        kind: AppFileStatusKind.Conflicted,
+        entry,
+        lookForConflictMarkers: true,
+        conflictMarkerCount: addedConflictsLeft,
+      }
+    case UnmergedEntrySummary.BothModified:
+      const modifedConflictsLeft = filesWithConflictMarkers.get(path) || 0
+      return {
+        kind: AppFileStatusKind.Conflicted,
+        entry,
+        lookForConflictMarkers: true,
+        conflictMarkerCount: modifedConflictsLeft,
+      }
+    default:
+      return {
+        kind: AppFileStatusKind.Conflicted,
+        entry,
+        lookForConflictMarkers: false,
+      }
+  }
+}
+
 function convertToAppStatus(
+  path: string,
   entry: FileEntry,
-  getConflictStatus: (entry: FileEntry) => ConflictFileStatus | null,
+  filesWithConflictMarkers: ConflictCountsByPath,
   oldPath?: string
 ): AppFileStatus {
   if (entry.kind === 'ordinary') {
@@ -89,57 +120,13 @@ function convertToAppStatus(
     return { kind: AppFileStatusKind.Copied, oldPath }
   } else if (entry.kind === 'renamed' && oldPath != null) {
     return { kind: AppFileStatusKind.Renamed, oldPath }
-  } else if (entry.kind === 'conflicted') {
-    const conflictStatus = getConflictStatus(entry)
-    return conflictStatus != null
-      ? { kind: AppFileStatusKind.Conflicted, conflictStatus }
-      : { kind: AppFileStatusKind.Resolved }
   } else if (entry.kind === 'untracked') {
     return { kind: AppFileStatusKind.New }
+  } else if (entry.kind === 'conflicted') {
+    return parseConflictedState(entry, path, filesWithConflictMarkers)
   }
 
   return fatalError(`Unknown file status ${status}`)
-}
-
-async function buildConflictState(
-  repository: Repository,
-  conflictedFiles: ReadonlyArray<ConflictedFile>
-): Promise<ConflictState> {
-  return {
-    filesWithConflictMarkers: await getFilesWithConflictMarkers(
-      repository.path
-    ),
-    binaryFilePathsInConflicts: await filterBinaryFiles(
-      repository,
-      conflictedFiles
-    ),
-  }
-}
-
-/**
- * Read the status entries to find any files marked as conflicted
- *
- * @param entries raw status entries provided by Git
- */
-function filterConflictedFiles(
-  entries: ReadonlyArray<IStatusEntry>
-): ReadonlyArray<ConflictedFile> {
-  const filesAndKeys = entries.map(es => ({
-    path: es.path,
-    status: mapStatus(es.statusCode),
-  }))
-
-  return filesAndKeys.filter(isConflictedFile)
-}
-
-/**
- * Type guard to filter for a conflicted file
- */
-function isConflictedFile(entry: {
-  path: string
-  status: FileEntry
-}): entry is ConflictedFile {
-  return entry.status.kind === 'conflicted'
 }
 
 /**
@@ -191,17 +178,12 @@ export async function getStatus(
   const headers = parsed.filter(isStatusHeader)
   const entries = parsed.filter(isStatusEntry)
 
-  const conflictedFilesInIndex = filterConflictedFiles(entries)
-
-  const hasConflictedFiles = conflictedFilesInIndex.length > 0
+  const mergeHeadFound = await isMergeHeadSet(repository)
 
   // if we have any conflicted files reported by status, let
-  const conflictState = hasConflictedFiles
-    ? await buildConflictState(repository, conflictedFilesInIndex)
-    : {
-        binaryFilePathsInConflicts: [],
-        filesWithConflictMarkers: new Map<string, number>(),
-      }
+  const conflictState = mergeHeadFound
+    ? await getFilesWithConflictMarkers(repository.path)
+    : new Map<string, number>()
 
   // Map of files keyed on their paths.
   const files = entries.reduce(
@@ -224,8 +206,6 @@ export async function getStatus(
 
   const workingDirectory = WorkingDirectoryStatus.fromFiles([...files.values()])
 
-  const mergeHeadFound = await isMergeHeadSet(repository)
-
   return {
     currentBranch,
     currentTip,
@@ -235,45 +215,6 @@ export async function getStatus(
     mergeHeadFound,
     workingDirectory,
   }
-}
-
-function getConflictStatus(
-  path: string,
-  status: FileEntry,
-  conflictState: ConflictState
-): ConflictFileStatus | null {
-  const { filesWithConflictMarkers, binaryFilePathsInConflicts } = conflictState
-
-  const foundBinaryFile = binaryFilePathsInConflicts.find(p => p.path === path)
-  if (foundBinaryFile != null) {
-    const { us, them } = foundBinaryFile.status
-    return {
-      kind: 'binary',
-      us,
-      them,
-    }
-  }
-
-  const conflictMarkerCount = filesWithConflictMarkers.get(path)
-
-  if (conflictMarkerCount != null) {
-    return { kind: 'text', conflictMarkerCount }
-  }
-
-  if (status.kind === 'conflicted') {
-    const { us, them } = status
-    const code = them === us ? us : null
-    const conflictWithoutMarkers =
-      code !== GitStatusEntry.UpdatedButUnmerged &&
-      code !== GitStatusEntry.Modified &&
-      code !== GitStatusEntry.Added
-
-    if (conflictWithoutMarkers) {
-      return { kind: 'text', conflictMarkerCount: null, us, them }
-    }
-  }
-
-  return null
 }
 
 /**
@@ -286,7 +227,7 @@ function getConflictStatus(
 function buildStatusMap(
   files: Map<string, WorkingDirectoryFileChange>,
   entry: IStatusEntry,
-  conflictState: ConflictState
+  filesWithConflictMarkers: ConflictCountsByPath
 ): Map<string, WorkingDirectoryFileChange> {
   const status = mapStatus(entry.statusCode)
 
@@ -312,8 +253,9 @@ function buildStatusMap(
 
   // for now we just poke at the existing summary
   const appStatus = convertToAppStatus(
+    entry.path,
     status,
-    s => getConflictStatus(entry.path, s, conflictState),
+    filesWithConflictMarkers,
     entry.oldPath
   )
 

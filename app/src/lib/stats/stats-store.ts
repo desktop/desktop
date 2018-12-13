@@ -70,6 +70,9 @@ const DefaultDailyMeasures: IDailyMeasures = {
   mergedWithConflictWarningHintCount: 0,
   mergeSuccessAfterConflictsCount: 0,
   mergeAbortedAfterConflictsCount: 0,
+  unattributedCommits: 0,
+  enterpriseCommits: 0,
+  dotcomCommits: 0,
 }
 
 interface IOnboardingStats {
@@ -228,8 +231,20 @@ type DailyStats = ICalculatedStats &
   IDailyMeasures &
   IOnboardingStats
 
+/**
+ * Testable interface for StatsStore
+ *
+ * Note: for the moment this only contains methods that are needed for testing,
+ * so fight the urge to implement every public method from StatsStore here
+ *
+ */
+export interface IStatsStore {
+  recordMergeAbortedAfterConflicts: () => void
+  recordMergeSuccessAfterConflicts: () => void
+}
+
 /** The store for the app's stats. */
-export class StatsStore {
+export class StatsStore implements IStatsStore {
   private readonly db: StatsDatabase
   private readonly uiActivityMonitor: IUiActivityMonitor
   private uiActivityMonitorSubscription: Disposable | null = null
@@ -241,12 +256,14 @@ export class StatsStore {
     this.db = db
     this.uiActivityMonitor = uiActivityMonitor
 
-    this.optOut = getBoolean(StatsOptOutKey, false)
+    const storedValue = getBoolean(StatsOptOutKey)
+
+    this.optOut = storedValue || false
 
     // If the user has set an opt out value but we haven't sent the ping yet,
     // give it a shot now.
     if (!getBoolean(HasSentOptInPingKey, false)) {
-      this.sendOptInStatusPing(!this.optOut)
+      this.sendOptInStatusPing(this.optOut, storedValue)
     }
 
     this.enableUiActivityMonitoring()
@@ -590,6 +607,35 @@ export class StatsStore {
     }))
   }
 
+  /**
+   * Records that the user made a commit using an email address that
+   * was not associated with the user's account on GitHub.com or GitHub
+   * Enterprise, meaning that the commit will not be attributed to the user's
+   * account.
+   */
+  public recordUnattributedCommit(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      unattributedCommits: m.unattributedCommits + 1,
+    }))
+  }
+
+  /**
+   * Records that the user made a commit to a repository hosted on
+   * a GitHub Enterprise instance
+   */
+  public recordCommitToEnterprise(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      enterpriseCommits: m.enterpriseCommits + 1,
+    }))
+  }
+
+  /** Records that the user made a commit to a repository hosted on GitHub.com */
+  public recordCommitToDotcom(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      dotcomCommits: m.dotcomCommits + 1,
+    }))
+  }
+
   /** Set whether the user has opted out of stats reporting. */
   public async setOptOut(
     optOut: boolean,
@@ -599,10 +645,12 @@ export class StatsStore {
 
     this.optOut = optOut
 
+    const previousValue = getBoolean(StatsOptOutKey)
+
     setBoolean(StatsOptOutKey, optOut)
 
     if (changed || userViewedPrompt) {
-      await this.sendOptInStatusPing(!optOut)
+      await this.sendOptInStatusPing(optOut, previousValue)
     }
   }
 
@@ -763,12 +811,33 @@ export class StatsStore {
     return fetch(StatsEndpoint, options)
   }
 
-  private async sendOptInStatusPing(optIn: boolean): Promise<void> {
+  /**
+   * Send opt-in ping with details of previous stored value (if known)
+   *
+   * @param optOut        Whether or not the user has opted
+   *                      out of usage reporting.
+   * @param previousValue The raw, current value stored for the
+   *                      "stats-opt-out" localStorage key, or
+   *                      undefined if no previously stored value
+   *                      exists.
+   */
+  private async sendOptInStatusPing(
+    optOut: boolean,
+    previousValue: boolean | undefined
+  ): Promise<void> {
+    // The analytics pipeline expects us to submit `optIn` but we
+    // track `optOut` so we need to invert the value before we send
+    // it.
+    const optIn = !optOut
+    const previousOptInValue =
+      previousValue === undefined ? null : !previousValue
     const direction = optIn ? 'in' : 'out'
+
     try {
       const response = await this.post({
         eventType: 'ping',
         optIn,
+        previousOptInValue,
       })
       if (!response.ok) {
         throw new Error(

@@ -23,6 +23,9 @@ import { CSSTransitionGroup } from 'react-transition-group'
 import { openFile } from '../../lib/open-file'
 import { Account } from '../../models/account'
 import { PopupType } from '../../models/popup'
+import { enableFileSizeWarningCheck } from '../../lib/feature-flag'
+import { filesNotTrackedByLFS } from '../../lib/git/lfs'
+import { getLargeFilePaths } from '../../lib/large-files'
 
 /**
  * The timeout for the animation of the enter/leave animation for Undo.
@@ -114,7 +117,32 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     }
   }
 
-  private onCreateCommit = (context: ICommitContext): Promise<boolean> => {
+  private onCreateCommit = async (
+    context: ICommitContext
+  ): Promise<boolean> => {
+    if (enableFileSizeWarningCheck()) {
+      const overSizedFiles = await getLargeFilePaths(
+        this.props.repository,
+        this.props.changes.workingDirectory,
+        100
+      )
+      const filesIgnoredByLFS = await filesNotTrackedByLFS(
+        this.props.repository,
+        overSizedFiles
+      )
+
+      if (filesIgnoredByLFS.length !== 0) {
+        this.props.dispatcher.showPopup({
+          type: PopupType.OversizedFiles,
+          oversizedFiles: filesIgnoredByLFS,
+          context: context,
+          repository: this.props.repository,
+        })
+
+        return false
+      }
+    }
+
     return this.props.dispatcher.commitIncludedChanges(
       this.props.repository,
       context

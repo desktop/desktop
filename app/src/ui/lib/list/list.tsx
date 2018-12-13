@@ -263,6 +263,12 @@ export class List extends React.Component<IListProps, IListState> {
   public constructor(props: IListProps) {
     super(props)
 
+    // If we have a selected row when we're about to mount
+    // we'll scroll to it immediately.
+    if (props.selectedRows.length > 0) {
+      this.scrollToRow = props.selectedRows[0]
+    }
+
     this.state = {}
 
     const ResizeObserverClass: typeof ResizeObserver = (window as any)
@@ -633,6 +639,7 @@ export class List extends React.Component<IListProps, IListState> {
         style={params.style}
         tabIndex={tabIndex}
         children={element}
+        selectable={selectable}
       />
     )
   }

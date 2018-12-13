@@ -114,6 +114,18 @@ export interface IDailyMeasures {
 
   /** The number of times a conflicted merge was aborted by the user */
   readonly mergeAbortedAfterConflictsCount: number
+
+  /** The number of commits that will go unattributed to GitHub users */
+  readonly unattributedCommits: number
+
+  /**
+   * The number of times the user made a commit to a repo hosted on
+   * a GitHub Enterprise instance
+   */
+  readonly enterpriseCommits: number
+
+  /** The number of time the user made a commit to a repo hosted on Github.com */
+  readonly dotcomCommits: number
 }
 
 export class StatsDatabase extends Dexie {

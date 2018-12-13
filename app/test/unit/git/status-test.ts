@@ -11,7 +11,11 @@ import {
   setupEmptyDirectory,
   setupConflictedRepoWithMultipleFiles,
 } from '../../helpers/repositories'
-import { AppFileStatusKind, GitStatusEntry } from '../../../src/models/status'
+import {
+  AppFileStatusKind,
+  UnmergedEntrySummary,
+  GitStatusEntry,
+} from '../../../src/models/status'
 import * as temp from 'temp'
 import { getStatus } from '../../../src/lib/git'
 
@@ -42,28 +46,40 @@ describe('git/status', () => {
         const fooFile = files.find(f => f.path === 'foo')!
         expect(fooFile.status).toEqual({
           kind: AppFileStatusKind.Conflicted,
-          conflictStatus: {
-            kind: 'text',
-            conflictMarkerCount: 3,
+          entry: {
+            kind: 'conflicted',
+            action: UnmergedEntrySummary.BothModified,
+            them: GitStatusEntry.UpdatedButUnmerged,
+            us: GitStatusEntry.UpdatedButUnmerged,
           },
+          lookForConflictMarkers: true,
+          conflictMarkerCount: 3,
         })
 
         const bazFile = files.find(f => f.path === 'baz')!
         expect(bazFile.status).toEqual({
           kind: AppFileStatusKind.Conflicted,
-          conflictStatus: {
-            kind: 'text',
-            conflictMarkerCount: 3,
+          entry: {
+            kind: 'conflicted',
+            action: UnmergedEntrySummary.BothAdded,
+            them: GitStatusEntry.Added,
+            us: GitStatusEntry.Added,
           },
+          lookForConflictMarkers: true,
+          conflictMarkerCount: 3,
         })
 
         const catFile = files.find(f => f.path === 'cat')!
         expect(catFile.status).toEqual({
           kind: AppFileStatusKind.Conflicted,
-          conflictStatus: {
-            kind: 'text',
-            conflictMarkerCount: 3,
+          entry: {
+            kind: 'conflicted',
+            action: UnmergedEntrySummary.BothAdded,
+            them: GitStatusEntry.Added,
+            us: GitStatusEntry.Added,
           },
+          lookForConflictMarkers: true,
+          conflictMarkerCount: 3,
         })
       })
 
@@ -78,12 +94,13 @@ describe('git/status', () => {
         const barFile = files.find(f => f.path === 'bar')!
         expect(barFile.status).toEqual({
           kind: AppFileStatusKind.Conflicted,
-          conflictStatus: {
-            kind: 'text',
-            us: GitStatusEntry.Modified,
+          entry: {
+            kind: 'conflicted',
+            action: UnmergedEntrySummary.DeletedByThem,
+            us: GitStatusEntry.UpdatedButUnmerged,
             them: GitStatusEntry.Deleted,
-            conflictMarkerCount: null,
           },
+          lookForConflictMarkers: false,
         })
       })
 
@@ -93,11 +110,24 @@ describe('git/status', () => {
         const files = status.workingDirectory.files
 
         expect(files).toHaveLength(4)
+
+        // all files are now considered conflicted
         expect(
           files.filter(f => f.status.kind === AppFileStatusKind.Conflicted)
-        ).toHaveLength(3)
+        ).toHaveLength(4)
+
         const file = files.find(f => f.path === 'foo')
-        expect(file!.status).toEqual({ kind: AppFileStatusKind.Resolved })
+        expect(file!.status).toEqual({
+          kind: AppFileStatusKind.Conflicted,
+          entry: {
+            kind: 'conflicted',
+            action: UnmergedEntrySummary.BothModified,
+            them: GitStatusEntry.UpdatedButUnmerged,
+            us: GitStatusEntry.UpdatedButUnmerged,
+          },
+          lookForConflictMarkers: true,
+          conflictMarkerCount: 0,
+        })
       })
     })
 
