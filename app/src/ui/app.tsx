@@ -9,6 +9,7 @@ import {
   SelectionType,
   HistoryTabMode,
   SuccessfulMergeBannerState,
+  MergeConflictsBannerState,
 } from '../lib/app-state'
 import { Dispatcher } from '../lib/dispatcher'
 import { AppStore, GitHubUserStore, IssuesStore } from '../lib/stores'
@@ -91,7 +92,7 @@ import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
 import { AbortMergeWarning } from './abort-merge'
 import { isConflictedFile } from '../lib/status'
 import { PopupType, Popup } from '../models/popup'
-import { SuccessfulMerge } from './banners'
+import { SuccessfulMerge, MergeConflictsBanner } from './banners'
 import { OversizedFiles } from './changes/oversized-files-warning'
 import { UsageStatsChange } from './usage-stats-change'
 
@@ -1017,6 +1018,9 @@ export class App extends React.Component<IAppProps, IAppState> {
   private onSuccessfulMergeDismissed = () =>
     this.props.dispatcher.setSuccessfulMergeBannerState(null)
 
+  private onMergeConflictsBannerDismissed = () =>
+    this.props.dispatcher.setMergeConflictsBannerState(null)
+
   private currentPopupContent(): JSX.Element | null {
     // Hide any dialogs while we're displaying an error
     if (this.state.errors.length) {
@@ -1800,6 +1804,10 @@ export class App extends React.Component<IAppProps, IAppState> {
       banner = this.renderSuccessfulMergeBanner(
         this.state.successfulMergeBannerState
       )
+    } else if (this.state.mergeConflictsBannerState !== null) {
+      banner = this.renderMergeConflictsBanner(
+        this.state.mergeConflictsBannerState
+      )
     } else if (this.state.isUpdateAvailableBannerVisible) {
       banner = this.renderUpdateBanner()
     }
@@ -1812,6 +1820,22 @@ export class App extends React.Component<IAppProps, IAppState> {
       >
         {banner}
       </CSSTransitionGroup>
+    )
+  }
+  private renderMergeConflictsBanner(
+    mergeConflictsBannerState: MergeConflictsBannerState
+  ): JSX.Element | null {
+    if (mergeConflictsBannerState === null) {
+      return null
+    }
+    return (
+      <MergeConflictsBanner
+        dispatcher={this.props.dispatcher}
+        ourBranch={mergeConflictsBannerState.ourBranch}
+        popup={mergeConflictsBannerState.popup}
+        onDismissed={this.onMergeConflictsBannerDismissed}
+        key={'merge-conflicts'}
+      />
     )
   }
 

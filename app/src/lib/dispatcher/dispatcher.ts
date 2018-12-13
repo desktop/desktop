@@ -18,6 +18,7 @@ import {
   ICompareFormUpdate,
   MergeResultStatus,
   SuccessfulMergeBannerState,
+  MergeConflictsBannerState,
 } from '../app-state'
 import { AppStore } from '../stores/app-store'
 import { CloningRepository } from '../../models/cloning-repository'
@@ -483,6 +484,13 @@ export class Dispatcher {
    */
   public setSuccessfulMergeBannerState(state: SuccessfulMergeBannerState) {
     return this.appStore._setSuccessfulMergeBannerState(state)
+  }
+
+  /**
+   * Set the successful merge banner's state
+   */
+  public setMergeConflictsBannerState(state: MergeConflictsBannerState) {
+    return this.appStore._setMergeConflictsBannerState(state)
   }
 
   /**

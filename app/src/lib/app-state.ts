@@ -156,6 +156,9 @@ export interface IAppState {
   /** Whether we should show the merge success banner */
   readonly successfulMergeBannerState: SuccessfulMergeBannerState
 
+  /** Whether we should show the merge success banner */
+  readonly mergeConflictsBannerState: MergeConflictsBannerState
+
   /** Whether we should show a confirmation dialog */
   readonly askForConfirmationOnRepositoryRemoval: boolean
 
@@ -559,7 +562,22 @@ export interface ICompareToBranch {
  */
 export type CompareAction = IViewHistory | ICompareToBranch
 
+/** State for displaying the sucessful merge banner
+ * `null` to remove banner
+ */
 export type SuccessfulMergeBannerState = {
+  /** name of the branch that was merged into */
   ourBranch: string
+  /** name of the branch we merged into `ourBranch` */
   theirBranch?: string
+} | null
+
+/** State for displaying the merge conflicts banner
+ *  `null` to remove banner
+ */
+export type MergeConflictsBannerState = {
+  /** name of the branch that is being merged into */
+  readonly ourBranch: string
+  /** popup to be shown from the banner */
+  readonly popup: Popup
 } | null
