@@ -37,6 +37,8 @@ const FirstPushToGitHubAtKey = 'first-push-to-github-at'
 const FirstNonDefaultBranchCheckoutAtKey =
   'first-non-default-branch-checkout-at'
 const WelcomeWizardSignInMethodKey = 'welcome-wizard-sign-in-method'
+const terminalEmulatorKey = 'shell'
+const textEditorKey: string = 'externalEditor'
 
 /** How often daily stats should be submitted (i.e., 24 hours). */
 const DailyStatsReportInterval = 1000 * 60 * 60 * 24
@@ -222,6 +224,12 @@ interface ICalculatedStats {
    * appearance as set at time of stats submission.
    */
   readonly theme: string
+
+  /** The selected terminal emulator at the time of stats submission */
+  readonly selectedTerminalEmulator: string
+
+  /** The selected text editor at the time of stats submission */
+  readonly selectedTextEditor: string
 
   readonly eventType: 'usage'
 }
