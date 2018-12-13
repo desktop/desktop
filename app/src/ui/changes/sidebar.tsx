@@ -26,6 +26,7 @@ import { PopupType } from '../../models/popup'
 import { enableFileSizeWarningCheck } from '../../lib/feature-flag'
 import { filesNotTrackedByLFS } from '../../lib/git/lfs'
 import { getLargeFilePaths } from '../../lib/large-files'
+import { isConflictedFile } from '../../lib/status'
 
 /**
  * The timeout for the animation of the enter/leave animation for Undo.
@@ -141,6 +142,21 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
 
         return false
       }
+    }
+
+    const anyConflictedFilesSelected = this.props.changes.workingDirectory.files.some(
+      f =>
+        isConflictedFile(f.status) &&
+        f.selection.getSelectionType() !== DiffSelectionType.None
+    )
+
+    if (anyConflictedFilesSelected) {
+      this.props.dispatcher.showPopup({
+        type: PopupType.CommitConflictsWarning,
+        repository: this.props.repository,
+        context,
+      })
+      return false
     }
 
     return this.props.dispatcher.commitIncludedChanges(
