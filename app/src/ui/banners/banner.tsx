@@ -12,19 +12,25 @@ export class Banner extends React.Component<IBannerProps, {}> {
   private timeoutId: NodeJS.Timer | null = null
 
   public render() {
-    const close =
-      this.props.dismissable !== undefined &&
-      this.props.dismissable === true ? (
-        <div className="close">
-          <a onClick={this.props.onDismissed}>
-            <Octicon symbol={OcticonSymbol.x} />
-          </a>
-        </div>
-      ) : null
     return (
       <div id={this.props.id} className="banner">
         <div className="contents">{this.props.children}</div>
-        {close}
+        {this.renderCloseButton()}
+      </div>
+    )
+  }
+
+  private renderCloseButton() {
+    const { dismissable } = this.props
+    if (dismissable === undefined || dismissable === false) {
+      return null
+    }
+
+    return (
+      <div className="close">
+        <a onClick={this.props.onDismissed}>
+          <Octicon symbol={OcticonSymbol.x} />
+        </a>
       </div>
     )
   }
