@@ -18,8 +18,8 @@ These are general metrics about users that are aggregated to understand general 
 | `osVersion` | The OS version. | To identify the most common versions of operating systems people use Desktop on, so we can more accurately prioritize version-specific bugs. |
 | `platform` | The OS. | To understand which platforms are most popular among people who use Desktop, so we can more accurately prioritize platform-specific bugs.  |
 | `repositoryCount` | The total number of tracked repositories in Desktop. | To understand the typical number of repositories tracked in Desktop, so we can make appropriate decisions in terms of performance and UI. |
-| `selectedTerminalEmulator` | The name of the currently selected terminal emulator at the time of stats submission. | |
-| `selectedTextEditor` | The name of the currently selected text editor at the time of stats submission. | |
+| `selectedTerminalEmulator` | The name of the currently selected terminal emulator at the time of stats submission. | To understand what percentage of people have a shell detected and what the most common ones are as certain features allow for opening in shell. |
+| `selectedTextEditor` | The name of the currently selected text editor at the time of stats submission. | To understand what percentage of people have an editor detected and what the most common ones are as certain features send users to their editor. |
 | `theme` | The name of the currently selected theme/application appearance as set at time of stats submission. | To understand usage patterns of the Dark Theme feature, so we can more accurately prioritize theme-related bugs. |
 | `version` | The version of Desktop. | To visualize update rates and performance metrics for each version of Desktop, so we can track whether users are staying up-to-date and which older versions are active. |
 
