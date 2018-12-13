@@ -1536,10 +1536,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** starts the conflict resolution flow, if appropriate */
   private async _triggerMergeConflictsFlow(repository: Repository) {
+    // are we already in the merge conflicts flow?
     const alreadyInFlow =
       this.currentPopup !== null &&
       (this.currentPopup.type === PopupType.MergeConflicts ||
         this.currentPopup.type === PopupType.AbortMerge)
+
+    // have we already been shown the merge conflicts flow *and closed it*?
     const alreadyExitedFlow = this.mergeConflictsBannerState !== null
 
     if (alreadyInFlow || alreadyExitedFlow) {

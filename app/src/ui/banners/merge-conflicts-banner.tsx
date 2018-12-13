@@ -7,7 +7,9 @@ import { LinkButton } from '../lib/link-button'
 
 interface IMergeConflictsBannerProps {
   readonly dispatcher: Dispatcher
+  /** branch the user is merging into */
   readonly ourBranch: string
+  /** merge conflicts dialog popup to be shown by this banner */
   readonly popup: Popup
   readonly onDismissed: () => void
 }
