@@ -1,4 +1,4 @@
-/** tslint:disable:button-group-order */
+// tslint:disable:button-group-order
 
 import * as React from 'react'
 import { Button } from '../lib/button'
