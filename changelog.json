@@ -1,5 +1,10 @@
 {
   "releases": {
+    "1.5.1-beta4": [
+      "[Added] Display warning if existing readme file will be overwritten - #6338. Thanks @Daniel-McCarthy!",
+      "[Added] Add check for attempts to commit >100 MB files without Git LFS - #997. Thanks @Daniel-McCarthy!",
+      "[Improved] Merge conflicts dialog visual updates - #6377"
+    ],
     "1.5.1-beta3": [
       "[Improved] Maintains state on tabs for different methods of cloning repositories - #5937"
     ],
