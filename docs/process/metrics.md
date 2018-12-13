@@ -10,6 +10,7 @@ These are general metrics about users that are aggregated to understand general 
 
 | Metric | Description | Justification |
 |:--|:--|:--|
+| `eventType` | Always set to usage. | Specifies that this data is related to GitHub Desktop usage, so we can filter it correctly in our analytics. |
 | `version` | The version of Desktop. | To visualize update rates and performance metrics for each version of Desktop, so we can track whether users are staying up-to-date and which older versions are active. |
 | `osVersion` | The OS version. | To identify the most common versions of operating systems people use Desktop on, so we can more accurately prioritize version-specific bugs. |
 | `platform` | The OS. | To understand which platforms are most popular among people who use Desktop, so we can more accurately prioritize platform-specific bugs.  |
@@ -19,7 +20,6 @@ These are general metrics about users that are aggregated to understand general 
 | `dotComAccount` | Flag that is set if the user is logged in with a GitHub.com account | Informs us on the percentage of people who use Desktop with GitHub.com, so we can more accurately prioritize GitHub workflows in Desktop. |
 | `enterpriseAccount` | Flag that is set if the user is logged in with a GitHub Enterprise account. | Informs us on the percentage of people who use Desktop with an Enterprise instance of GitHub, so we can more accurately prioritize Enterprise-related bugs. |
 | `theme` | The name of the currently selected theme/application appearance as set at time of stats submission. | To understand usage patterns of the Dark Theme feature, so we can more accurately prioritize theme-related bugs. |
-| `eventType` | Always set to usage. | Specifies that this data is related to GitHub Desktop usage, so we can filter it correctly in our analytics. |
 
 ## Measures
 These are general metrics about feature usage and specific feature behaviors. These help us understand our users' mental map of the application, hypothesize pain points within the application, and aid in feature and bugfix planning so that we can improve workflows that are more likely to benefit users.
