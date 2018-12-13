@@ -6,9 +6,7 @@ import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
-import { DialogHeader } from '../dialog/header'
 import { ICommitContext } from '../../models/commit'
-import { Octicon, OcticonSymbol } from '../octicons'
 
 interface ICommitConflictsWarningProps {
   readonly dispatcher: Dispatcher
@@ -34,6 +32,7 @@ export class CommitConflictsWarning extends React.Component<
       this.props.repository,
       this.props.context
     )
+    this.props.dispatcher.setMergeConflictsBannerState(null)
     this.props.dispatcher.setCommitMessage(this.props.repository, {
       summary: '',
       description: '',
@@ -43,19 +42,19 @@ export class CommitConflictsWarning extends React.Component<
   public render() {
     return (
       <Dialog
-        id="merge-conflicts-list"
+        id="commit-conflict-markers-warning"
         dismissable={false}
         onDismissed={this.onCancel}
         onSubmit={this.onSubmit}
+        title={'Confirm commit files with conflict markers'}
+        type={'warning'}
       >
-        <DialogHeader
-          title={'Confirm commit files with conflict markers'}
-          dismissable={false}
-        />
         <DialogContent>
-          <Octicon className="alert-icon" symbol={OcticonSymbol.alert} />
-          If you choose to commit, you'll be committing conflict markers into
-          your repository. Are you sure you want to commit conflict markers?
+          <p>
+            If you choose to commit, you'll be committing conflict markers into
+            your repository.
+          </p>
+          <p>Are you sure you want to commit conflict markers?</p>
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>
