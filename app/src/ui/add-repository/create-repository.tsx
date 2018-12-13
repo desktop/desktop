@@ -29,6 +29,7 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { LinkButton } from '../lib/link-button'
 import { PopupType } from '../../models/popup'
 import { Ref } from '../lib/ref'
+import { enableReadmeOverwriteWarning } from '../../lib/feature-flag'
 
 /** The sentinel value used to indicate no gitignore should be used. */
 const NoGitIgnoreValue = 'None'
@@ -145,7 +146,9 @@ export class CreateRepository extends React.Component<
   }
 
   private onNameChanged = async (name: string) => {
-    await this.updateReadMeExists(this.state.path, name)
+    if (enableReadmeOverwriteWarning()) {
+      await this.updateReadMeExists(this.state.path, name)
+    }
 
     this.setState({ name })
   }
@@ -461,6 +464,10 @@ export class CreateRepository extends React.Component<
   }
 
   private renderReadmeOverwriteWarning() {
+    if (!enableReadmeOverwriteWarning()) {
+      return null
+    }
+
     if (
       this.state.createWithReadme === false ||
       this.state.readMeExists === false
@@ -576,6 +583,8 @@ export class CreateRepository extends React.Component<
   private onWindowFocus = async () => {
     // Verify whether or not a README.md file exists at the chosen directory
     // in case one has been added or removed and the warning can be displayed.
-    await this.updateReadMeExists(this.state.path, this.state.name)
+    if (enableReadmeOverwriteWarning()) {
+      await this.updateReadMeExists(this.state.path, this.state.name)
+    }
   }
 }
