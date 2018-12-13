@@ -1,5 +1,11 @@
 {
   "releases": {
+    "1.5.1-beta3": [
+      "[Improved] Maintains state on tabs for different methods of cloning repositories - #5937"
+    ],
+    "1.5.1-beta2": [
+      "[Improved] Clarified internal documentation - #6348. Thanks @bblarney!"
+    ],
     "1.5.1-beta1": [
       "[Added] Provide keyboard shortcut for getting to commit summary field - #1719. Thanks @bruncun!",
       "[Added] Add hover states on list items and tabs - #6310",
