@@ -53,6 +53,5 @@ export function enableGitProtocolVersionTwo(): boolean {
 }
 
 export function enableReadmeOverwriteWarning(): boolean {
-  // return enableBetaFeatures()
-  return false
+  return enableBetaFeatures()
 }
