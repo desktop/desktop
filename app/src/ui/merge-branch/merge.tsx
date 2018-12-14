@@ -14,7 +14,7 @@ import { BranchList, IBranchListItem, renderDefaultBranch } from '../branches'
 import { revSymmetricDifference } from '../../lib/git'
 import { IMatches } from '../../lib/fuzzy-find'
 import { MergeResultStatus } from '../../lib/app-state'
-import { MergeResultKind } from '../../models/merge'
+import { MergeResultKind, MergeSource } from '../../models/merge'
 import { MergeStatusHeader } from '../history/merge-status-header'
 import { promiseWithMinimumTimeout } from '../../lib/promise'
 import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
@@ -48,6 +48,8 @@ interface IMergeProps {
    * The branch to select when the merge dialog is opened
    */
   readonly initialBranch?: Branch
+
+  readonly initiatedBy: MergeSource
 
   /**
    * A function that's called when the dialog is dismissed by the user in the
