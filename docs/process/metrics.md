@@ -60,3 +60,8 @@ These are general metrics about feature usage and specific feature behaviors. Th
 | `repoWithoutIndicatorClicked` | The numbers of times a repo without indicators is clicked on repo list view.  | To understand usage patterns around the repository indicators feature. |
 | `unattributedCommits` | The number of commits that will go unattributed to GitHub users. | To understand how frequently commits in GitHub Desktop are unattributed and how highly we should prioritize design for those instances |
 | `updateFromDefaultBranchMenuCount` | The number of times the `Branch -> Update From Default Branch` menu item is used. | To understand usage patterns around the compare branches feature. |
+| `mergeConflictsDialogDismissalCount` | The number of times the Merge Conflicts Dialog is dismissed. | To understand usage patterns around the Merge Conflicts flow. |
+| `anyConflictsLeftOnMergeConflictsDialogDismissalCount` | The number of times there were any merge conflicts present when the Merge Conflicts Dialog is dismissed. | To understand usage patterns around the Merge Conflicts flow. |
+| `mergeConflictsDialogReopenedCount` | The number of times the Merge Conflicts Dialog is reopened from the Merge Conflicts Banner. | To understand usage patterns around the Merge Conflicts flow. |
+| `guidedConflictedMergeCompletionCount` | The number of times a conflicted merge is completed from the Changes Sidebar Tab | To understand usage patterns around the Merge Conflicts flow. |
+| `unguidedConflictedMergeCompletionCount` | The number of times a conflicted merge is completed from the Merge Conflicts Dialog. | To understand usage patterns around the Merge Conflicts flow. |
