@@ -1103,7 +1103,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       case PopupType.MergeBranch: {
-        const { repository, branch } = popup
+        const { repository, branch, initiatedBy } = popup
         const state = this.props.repositoryStateManager.get(repository)
 
         const tip = state.branchesState.tip
@@ -1127,6 +1127,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             currentBranch={currentBranch}
             initialBranch={branch}
             onDismissed={this.onPopupDismissed}
+            initiatedBy={initiatedBy}
           />
         )
       }
