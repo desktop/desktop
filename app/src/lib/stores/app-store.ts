@@ -3072,18 +3072,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     switch (initiatedBy) {
+      // merge from within compare tab
       case MergeSource.Compare:
         this.statsStore.recordCompareInitiatedMerge()
         break
+      // branch -> Merge into current branch
       case MergeSource.MergeIntoCurrentBranchMenuItem:
         this.statsStore.recordMenuInitiatedMerge()
         break
+      // branch -> Update branch
       case MergeSource.UpdateBranchMenuItem:
         this.statsStore.recordMenuInitiatedUpdate()
         break
+      // Branches dropdown -> merge button
       case MergeSource.BranchDropDown:
         this.statsStore.recordBranchDropdownIniatedMerge()
         break
+      // NDDB prompt
       case MergeSource.NewCommitsBanner:
         this.statsStore.recordDivergingBranchBannerInitatedMerge()
     }

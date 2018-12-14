@@ -61,6 +61,7 @@ export interface IDailyMeasures {
 
   /** The numbers of times a repo with indicators is clicked on repo list view */
   readonly repoWithIndicatorClicked: number
+
   /** The numbers of times a repo without indicators is clicked on repo list view */
   readonly repoWithoutIndicatorClicked: number
 
