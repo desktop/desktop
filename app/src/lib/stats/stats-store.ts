@@ -793,6 +793,13 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
+  /** Record that the user initiated a merge from the branch dropdown */
+  public async recordBranchDropdownIniatedMerge(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      mergesIniatedFromBranchList: m.mergesIniatedFromBranchList + 1,
+    }))
+  }
+
   private onUiActivity = async () => {
     this.disableUiActivityMonitoring()
 
