@@ -494,6 +494,13 @@ export class Dispatcher {
   }
 
   /**
+   * Clear (close) the successful merge banner
+   */
+  public clearMergeConflictsBanner() {
+    return this.appStore._setMergeConflictsBannerState(null)
+  }
+
+  /**
    * Set the divering branch notification banner's visibility
    */
   public setDivergingBranchBannerVisibility(
