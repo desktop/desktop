@@ -9,6 +9,7 @@ import { Repository } from '../../models/repository'
 import { ICommitContext } from '../../models/commit'
 import { WorkingDirectoryFileChange } from '../../models/status'
 import { PathText } from '../lib/path-text'
+import { Monospaced } from '../lib/monospaced'
 
 interface ICommitConflictsWarningProps {
   readonly dispatcher: Dispatcher
@@ -46,7 +47,9 @@ export class CommitConflictsWarning extends React.Component<
     return (
       <p>
         {files.map(f => (
-          <PathText path={f.path} />
+          <Monospaced>
+            <PathText path={f.path} key={f.path} />
+          </Monospaced>
         ))}
       </p>
     )
