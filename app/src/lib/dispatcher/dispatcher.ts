@@ -1412,6 +1412,6 @@ export class Dispatcher {
   }
 
   public recordUnguidedConflictedMergeCompletion() {
-    this.statsStore.recordUnguidedConflictedMergeCompletionCount()
+    this.statsStore.recordUnguidedConflictedMergeCompletion()
   }
 }
