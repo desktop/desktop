@@ -3071,6 +3071,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     }
 
+    switch (initiatedBy) {
+      case MergeSource.Compare:
+        this.statsStore.recordCompareInitiatedMerge()
+        break
+      case MergeSource.MergeIntoCurrentBranchMenuItem:
+        this.statsStore.recordMenuInitiatedMerge()
+        break
+      case MergeSource.UpdateBranchMenuItem:
+        this.statsStore.recordMenuInitiatedUpdate()
+        break
+      case MergeSource.BranchDropDown:
+        this.statsStore.recordBranchDropdownIniatedMerge()
+        break
+      case MergeSource.NewCommitsBanner:
+        this.statsStore.recordDivergingBranchBannerInitatedMerge()
+    }
+
     const mergeSuccessful = await gitStore.merge(branch)
     const { tip } = gitStore
 
