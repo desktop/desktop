@@ -144,7 +144,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
       }
     }
 
-    // which of the files selected for committing are conflicted?
+    // are any conflicted files left?
     const conflictedFilesLeft = this.props.changes.workingDirectory.files.filter(
       f =>
         isConflictedFile(f.status) &&
@@ -153,6 +153,23 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
 
     if (conflictedFilesLeft.length === 0) {
       this.props.dispatcher.recordUnguidedConflictedMergeCompletion()
+    }
+
+    // which of the files selected for committing are conflicted?
+    const conflictedFilesSelected = this.props.changes.workingDirectory.files.filter(
+      f =>
+        isConflictedFile(f.status) &&
+        f.selection.getSelectionType() !== DiffSelectionType.None
+    )
+
+    if (conflictedFilesSelected.length > 0) {
+      this.props.dispatcher.showPopup({
+        type: PopupType.CommitConflictsWarning,
+        files: conflictedFilesSelected,
+        repository: this.props.repository,
+        context,
+      })
+      return false
     }
 
     return this.props.dispatcher.commitIncludedChanges(

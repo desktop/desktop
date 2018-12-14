@@ -37,6 +37,8 @@ const FirstPushToGitHubAtKey = 'first-push-to-github-at'
 const FirstNonDefaultBranchCheckoutAtKey =
   'first-non-default-branch-checkout-at'
 const WelcomeWizardSignInMethodKey = 'welcome-wizard-sign-in-method'
+const terminalEmulatorKey = 'shell'
+const textEditorKey: string = 'externalEditor'
 
 /** How often daily stats should be submitted (i.e., 24 hours). */
 const DailyStatsReportInterval = 1000 * 60 * 60 * 24
@@ -228,6 +230,12 @@ interface ICalculatedStats {
    */
   readonly theme: string
 
+  /** The selected terminal emulator at the time of stats submission */
+  readonly selectedTerminalEmulator: string
+
+  /** The selected text editor at the time of stats submission */
+  readonly selectedTextEditor: string
+
   readonly eventType: 'usage'
 }
 
@@ -375,6 +383,9 @@ export class StatsStore implements IStatsStore {
     const userType = this.determineUserType(accounts)
     const repositoryCounts = this.categorizedRepositoryCounts(repositories)
     const onboardingStats = this.getOnboardingStats()
+    const selectedTerminalEmulator =
+      localStorage.getItem(terminalEmulatorKey) || 'none'
+    const selectedTextEditor = localStorage.getItem(textEditorKey) || 'none'
 
     return {
       eventType: 'usage',
@@ -382,6 +393,8 @@ export class StatsStore implements IStatsStore {
       osVersion: getOS(),
       platform: process.platform,
       theme: getPersistedThemeName(),
+      selectedTerminalEmulator,
+      selectedTextEditor,
       ...launchStats,
       ...dailyMeasures,
       ...userType,

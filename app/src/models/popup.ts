@@ -41,6 +41,7 @@ export enum PopupType {
   AbortMerge,
   OversizedFiles,
   UsageReportingChanges,
+  CommitConflictsWarning,
 }
 
 export type Popup =
@@ -143,3 +144,12 @@ export type Popup =
       repository: Repository
     }
   | { type: PopupType.UsageReportingChanges }
+  | {
+      type: PopupType.CommitConflictsWarning
+      /** files that were selected for committing that are also conflicted */
+      files: ReadonlyArray<WorkingDirectoryFileChange>
+      /** repository user is committing in */
+      repository: Repository
+      /** information for completing the commit */
+      context: ICommitContext
+    }
