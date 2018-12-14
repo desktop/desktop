@@ -39,7 +39,7 @@ export class CommitConflictsWarning extends React.Component<
       this.props.repository,
       this.props.context
     )
-    this.props.dispatcher.setMergeConflictsBannerState(null)
+    this.props.dispatcher.clearMergeConflictsBanner()
     this.props.dispatcher.setCommitMessage(this.props.repository, {
       summary: '',
       description: '',
