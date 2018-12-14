@@ -47,8 +47,8 @@ export class CommitConflictsWarning extends React.Component<
     return (
       <p>
         {files.map(f => (
-          <Monospaced>
-            <PathText path={f.path} key={f.path} />
+          <Monospaced key={f.path}>
+            <PathText path={f.path} />
           </Monospaced>
         ))}
       </p>
