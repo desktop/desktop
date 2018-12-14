@@ -320,7 +320,6 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.showHistory(true)
       }
       case 'merge-branch': {
-        this.props.dispatcher.recordMenuInitiatedMerge()
         return this.mergeBranch()
       }
       case 'show-repository-settings':
@@ -451,6 +450,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.showPopup({
       type: PopupType.MergeBranch,
       repository: state.repository,
+      initiatedBy: MergeSource.MergeIntoCurrentBranchMenuItem,
     })
   }
 
