@@ -144,6 +144,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
       }
     }
 
+    // which of the files selected for committing are conflicted?
     const conflictedFilesSelected = this.props.changes.workingDirectory.files.filter(
       f =>
         isConflictedFile(f.status) &&

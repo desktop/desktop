@@ -13,8 +13,11 @@ import { Monospaced } from '../lib/monospaced'
 
 interface ICommitConflictsWarningProps {
   readonly dispatcher: Dispatcher
+  /** files that were selected for committing that are also conflicted */
   readonly files: ReadonlyArray<WorkingDirectoryFileChange>
+  /** repository user is committing in */
   readonly repository: Repository
+  /** information for completing the commit */
   readonly context: ICommitContext
   readonly onDismissed: () => void
 }
