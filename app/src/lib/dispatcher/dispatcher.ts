@@ -63,6 +63,7 @@ import { ApplicationTheme } from '../../ui/lib/application-theme'
 import { TipState } from '../../models/tip'
 import { RepositoryStateCache } from '../stores/repository-state-cache'
 import { Popup, PopupType } from '../../models/popup'
+import { MergeSource } from '../../models/merge'
 
 /**
  * An error handler function.
@@ -611,9 +612,15 @@ export class Dispatcher {
   public mergeBranch(
     repository: Repository,
     branch: string,
-    mergeStatus: MergeResultStatus | null
+    mergeStatus: MergeResultStatus | null,
+    initiatedBy: MergeSource
   ): Promise<void> {
-    return this.appStore._mergeBranch(repository, branch, mergeStatus)
+    return this.appStore._mergeBranch(
+      repository,
+      branch,
+      mergeStatus,
+      initiatedBy
+    )
   }
 
   /** aborts an in-flight merge and refreshes the repository's status */
