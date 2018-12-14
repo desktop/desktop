@@ -784,7 +784,7 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
-  public async unguidedConflictedMergeCompletionCount(): Promise<void> {
+  public async recordUnguidedConflictedMergeCompletionCount(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       unguidedConflictedMergeCompletionCount:
         m.unguidedConflictedMergeCompletionCount + 1,
