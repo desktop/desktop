@@ -1306,27 +1306,6 @@ export class Dispatcher {
   }
 
   /**
-   * Increments the `mergeIntoCurrentBranchMenuCount` metric
-   */
-  public recordMenuInitiatedMerge() {
-    return this.statsStore.recordMenuInitiatedMerge()
-  }
-
-  /**
-   * Increments the `updateFromDefaultBranchMenuCount` metric
-   */
-  public recordMenuInitiatedUpdate() {
-    return this.statsStore.recordMenuInitiatedUpdate()
-  }
-
-  /**
-   * Increments the `mergesInitiatedFromComparison` metric
-   */
-  public recordCompareInitiatedMerge() {
-    return this.statsStore.recordCompareInitiatedMerge()
-  }
-
-  /**
    * Set the application-wide theme
    */
   public setSelectedTheme(theme: ApplicationTheme) {
@@ -1381,13 +1360,6 @@ export class Dispatcher {
    */
   public recordDivergingBranchBannerInfluencedMerge() {
     return this.statsStore.recordDivergingBranchBannerInfluencedMerge()
-  }
-
-  /**
-   * Increments the `divergingBranchBannerInitatedMerge` metric
-   */
-  public recordDivergingBranchBannerInitatedMerge() {
-    return this.statsStore.recordDivergingBranchBannerInitatedMerge()
   }
 
   public recordWelcomeWizardInitiated() {
