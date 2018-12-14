@@ -36,3 +36,12 @@ export interface IMergeUnsupported {
 }
 
 export type MergeResult = IMergeSuccess | IMergeError | IMergeUnsupported
+
+export enum MergeSource {
+  BranchDropDown,
+  MergeIntoCurrentBranchMenuItem,
+  UpdateBranchMenuItem,
+  Compare,
+  DivergingBranchNotification,
+  NewCommitsBanner,
+}
