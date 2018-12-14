@@ -95,6 +95,7 @@ import { PopupType, Popup } from '../models/popup'
 import { SuccessfulMerge, MergeConflictsBanner } from './banners'
 import { OversizedFiles } from './changes/oversized-files-warning'
 import { UsageStatsChange } from './usage-stats-change'
+import { MergeSource } from '../models/merge'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -313,7 +314,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'open-working-directory':
         return this.openCurrentRepositoryWorkingDirectory()
       case 'update-branch': {
-        this.props.dispatcher.recordMenuInitiatedUpdate()
         return this.updateBranch()
       }
       case 'compare-to-branch': {
@@ -437,7 +437,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.mergeBranch(
       selectedState.repository,
       defaultBranch.name,
-      mergeStatus
+      mergeStatus,
+      MergeSource.UpdateBranchMenuItem
     )
   }
 
