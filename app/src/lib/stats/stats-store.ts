@@ -767,6 +767,9 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
+  /**
+   * Increments the `mergeConflictsDialogDismissalCount` metric
+   */
   public async recordMergeConflictsDialogDismissal(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       mergeConflictsDialogDismissalCount:
@@ -774,6 +777,9 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
+  /**
+   * Increments the `anyConflictsLeftOnMergeConflictsDialogDismissalCount` metric
+   */
   public async recordAnyConflictsLeftOnMergeConflictsDialogDismissal(): Promise<
     void
   > {
@@ -783,6 +789,9 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
+  /**
+   * Increments the `mergeConflictsDialogReopenedCount` metric
+   */
   public async recordMergeConflictsDialogReopened(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       mergeConflictsDialogReopenedCount:
@@ -790,6 +799,9 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
+  /**
+   * Increments the `guidedConflictedMergeCompletionCount` metric
+   */
   public async recordGuidedConflictedMergeCompletion(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       guidedConflictedMergeCompletionCount:
@@ -797,6 +809,9 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
+  /**
+   * Increments the `unguidedConflictedMergeCompletionCount` metric
+   */
   public async recordUnguidedConflictedMergeCompletion(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       unguidedConflictedMergeCompletionCount:
