@@ -144,15 +144,16 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
       }
     }
 
-    const anyConflictedFilesSelected = this.props.changes.workingDirectory.files.some(
+    const conflictedFilesSelected = this.props.changes.workingDirectory.files.filter(
       f =>
         isConflictedFile(f.status) &&
         f.selection.getSelectionType() !== DiffSelectionType.None
     )
 
-    if (anyConflictedFilesSelected) {
+    if (conflictedFilesSelected.length > 0) {
       this.props.dispatcher.showPopup({
         type: PopupType.CommitConflictsWarning,
+        files: conflictedFilesSelected,
         repository: this.props.repository,
         context,
       })

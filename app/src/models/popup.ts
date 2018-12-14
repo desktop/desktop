@@ -146,6 +146,7 @@ export type Popup =
   | { type: PopupType.UsageReportingChanges }
   | {
       type: PopupType.CommitConflictsWarning
+      files: ReadonlyArray<WorkingDirectoryFileChange>
       repository: Repository
       context: ICommitContext
     }

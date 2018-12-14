@@ -7,9 +7,12 @@ import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
 import { ICommitContext } from '../../models/commit'
+import { WorkingDirectoryFileChange } from '../../models/status'
+import { PathText } from '../lib/path-text'
 
 interface ICommitConflictsWarningProps {
   readonly dispatcher: Dispatcher
+  readonly files: ReadonlyArray<WorkingDirectoryFileChange>
   readonly repository: Repository
   readonly context: ICommitContext
   readonly onDismissed: () => void
@@ -39,6 +42,16 @@ export class CommitConflictsWarning extends React.Component<
     })
   }
 
+  private renderFiles(files: ReadonlyArray<WorkingDirectoryFileChange>) {
+    return (
+      <p>
+        {files.map(f => (
+          <PathText path={f.path} />
+        ))}
+      </p>
+    )
+  }
+
   public render() {
     return (
       <Dialog
@@ -46,15 +59,16 @@ export class CommitConflictsWarning extends React.Component<
         dismissable={false}
         onDismissed={this.onCancel}
         onSubmit={this.onSubmit}
-        title={'Confirm commit files with conflict markers'}
+        title={'Confirm committing conflicted files'}
         type={'warning'}
       >
         <DialogContent>
           <p>
-            If you choose to commit, you'll be committing conflict markers into
-            your repository.
+            If you choose to commit, you’ll be committing the following
+            conflicted files into your repository:
           </p>
-          <p>Are you sure you want to commit conflict markers?</p>
+          {this.renderFiles(this.props.files)}
+          <p>Are you sure you want to commit these conflicted files?</p>
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>

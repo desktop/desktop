@@ -1435,6 +1435,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         return (
           <CommitConflictsWarning
             dispatcher={this.props.dispatcher}
+            files={popup.files}
             repository={popup.repository}
             context={popup.context}
             onDismissed={this.onPopupDismissed}
