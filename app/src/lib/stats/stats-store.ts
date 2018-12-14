@@ -73,6 +73,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   unattributedCommits: 0,
   enterpriseCommits: 0,
   dotcomCommits: 0,
+  mergesIniatedFromBranchList: 0,
 }
 
 interface IOnboardingStats {
