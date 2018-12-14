@@ -14,7 +14,7 @@ Experimental support for building Desktop is also available for these platforms:
 
 ## Verification
 
-Then verify you have these commands available in your shell and that the found
+Verify you have these commands available in your shell and that the found
 versions look similar to the below output:
 
 ```shellsession
