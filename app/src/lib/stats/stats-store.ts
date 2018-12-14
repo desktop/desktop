@@ -73,6 +73,11 @@ const DefaultDailyMeasures: IDailyMeasures = {
   unattributedCommits: 0,
   enterpriseCommits: 0,
   dotcomCommits: 0,
+  mergeConflictsDialogDismissalCount: 0,
+  anyConflictsLeftOnMergeConflictsDialogDismissalCount: 0,
+  mergeConflictsDialogReopenedCount: 0,
+  guidedConflictedMergeCompletionCount: 0,
+  unguidedConflictedMergeCompletionCount: 0,
 }
 
 interface IOnboardingStats {
@@ -746,6 +751,43 @@ export class StatsStore implements IStatsStore {
     return this.updateDailyMeasures(m => ({
       mergedWithConflictWarningHintCount:
         m.mergedWithConflictWarningHintCount + 1,
+    }))
+  }
+
+  public async recordMergeConflictsDialogDismissal(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      mergeConflictsDialogDismissalCount:
+        m.mergeConflictsDialogDismissalCount + 1,
+    }))
+  }
+
+  public async recordAnyConflictsLeftOnMergeConflictsDialogDismissal(): Promise<
+    void
+  > {
+    return this.updateDailyMeasures(m => ({
+      anyConflictsLeftOnMergeConflictsDialogDismissalCount:
+        m.anyConflictsLeftOnMergeConflictsDialogDismissalCount + 1,
+    }))
+  }
+
+  public async recordMergeConflictsDialogReopened(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      mergeConflictsDialogReopenedCount:
+        m.mergeConflictsDialogReopenedCount + 1,
+    }))
+  }
+
+  public async recordGuidedConflictedMergeCompletion(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      guidedConflictedMergeCompletionCount:
+        m.guidedConflictedMergeCompletionCount + 1,
+    }))
+  }
+
+  public async unguidedConflictedMergeCompletionCount(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      unguidedConflictedMergeCompletionCount:
+        m.unguidedConflictedMergeCompletionCount + 1,
     }))
   }
 

@@ -1394,4 +1394,24 @@ export class Dispatcher {
   public recordAddExistingRepository() {
     this.statsStore.recordAddExistingRepository()
   }
+
+  public recordMergeConflictsDialogDismissal() {
+    this.statsStore.recordMergeConflictsDialogDismissal()
+  }
+
+  public recordMergeConflictsDialogReopened() {
+    this.statsStore.recordMergeConflictsDialogReopened()
+  }
+
+  public recordAnyConflictsLeftOnMergeConflictsDialogDismissal() {
+    this.statsStore.recordAnyConflictsLeftOnMergeConflictsDialogDismissal()
+  }
+
+  public recordGuidedConflictedMergeCompletion() {
+    this.statsStore.recordGuidedConflictedMergeCompletion()
+  }
+
+  public unguidedConflictedMergeCompletionCount() {
+    this.statsStore.unguidedConflictedMergeCompletionCount()
+  }
 }
