@@ -126,6 +126,9 @@ export interface IDailyMeasures {
 
   /** The number of time the user made a commit to a repo hosted on Github.com */
   readonly dotcomCommits: number
+
+  /** The number of times the user iniated a merge from within the branch dropdown */
+  readonly mergesIniatedFromBranchList: number
 }
 
 export class StatsDatabase extends Dexie {
