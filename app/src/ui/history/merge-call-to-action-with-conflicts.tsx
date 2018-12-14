@@ -6,7 +6,7 @@ import { Branch } from '../../models/branch'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Button } from '../lib/button'
 import { MergeStatusHeader } from './merge-status-header'
-import { MergeResultKind } from '../../models/merge'
+import { MergeResultKind, MergeSource } from '../../models/merge'
 
 interface IMergeCallToActionWithConflictsProps {
   readonly repository: Repository
@@ -15,6 +15,7 @@ interface IMergeCallToActionWithConflictsProps {
   readonly currentBranch: Branch
   readonly comparisonBranch: Branch
   readonly commitsBehind: number
+  readonly initiatedBy: MergeSource
 
   /**
    * Callback to execute after a merge has been performed
