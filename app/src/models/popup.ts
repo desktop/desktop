@@ -7,6 +7,7 @@ import { RetryAction } from './retry-actions'
 import { WorkingDirectoryFileChange } from './status'
 import { PreferencesTab } from './preferences'
 import { ICommitContext } from './commit'
+import { MergeSource } from './merge'
 
 export enum PopupType {
   RenameBranch = 1,
@@ -63,6 +64,7 @@ export type Popup =
       type: PopupType.MergeBranch
       repository: Repository
       branch?: Branch
+      initiatedBy: MergeSource
     }
   | { type: PopupType.RepositorySettings; repository: Repository }
   | { type: PopupType.AddRepository; path?: string }
