@@ -910,6 +910,8 @@ export class GitStore extends BaseStore {
       this._tip = { kind: TipState.Unknown }
     }
 
+    this.emitUpdate()
+
     return status
   }
 

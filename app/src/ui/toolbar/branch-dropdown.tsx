@@ -158,6 +158,10 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
     )
   }
 
+  public shouldComponentUpdate(nextProps: IBranchDropdownProps) {
+    return !nextProps.repositoryState.isRenaming
+  }
+
   private renderPullRequestInfo() {
     const pr = this.props.currentPullRequest
     if (!pr) {

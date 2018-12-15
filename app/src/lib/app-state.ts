@@ -316,6 +316,9 @@ export interface IRepositoryState {
 
   /** The current pull request filter text. */
   readonly pullRequestFilterText: string
+
+  /** Is a renaming operation in progress */
+  readonly isRenaming: boolean
 }
 
 export interface IBranchesState {

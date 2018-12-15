@@ -2266,12 +2266,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
     branch: Branch,
     newName: string
   ): Promise<void> {
+    this.repositoryStateCache.update(repository, () => ({
+      isRenaming: true,
+    }))
     const gitStore = this.gitStoreCache.get(repository)
     await gitStore.performFailableOperation(() =>
       renameBranch(repository, branch, newName)
     )
 
-    return this._refreshRepository(repository)
+    await this._refreshRepository(repository)
+
+    this.repositoryStateCache.update(repository, () => ({
+      isRenaming: false,
+    }))
+    this.emitUpdate()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */

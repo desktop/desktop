@@ -157,5 +157,6 @@ function getInitialRepositoryState(): IRepositoryState {
     revertProgress: null,
     branchFilterText: '',
     pullRequestFilterText: '',
+    isRenaming: false,
   }
 }
