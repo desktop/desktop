@@ -27,7 +27,7 @@ branches:
 
 language: node_js
 node_js:
-  - '8.12'
+  - '8.14'
 
 cache:
   yarn: true
