@@ -57,7 +57,7 @@ async function getRawShellEnv(): Promise<string | null> {
       cleanup()
     }, 5000)
 
-    const options: ChildProcess.SpawnOptions = {
+    const options = {
       detached: true,
       stdio: ['ignore', 'pipe', process.stderr],
     }
