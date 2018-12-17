@@ -18,6 +18,7 @@ import {
   ICompareFormUpdate,
   MergeResultStatus,
   SuccessfulMergeBannerState,
+  MergeConflictsBannerState,
 } from '../app-state'
 import { AppStore } from '../stores/app-store'
 import { CloningRepository } from '../../models/cloning-repository'
@@ -483,6 +484,20 @@ export class Dispatcher {
    */
   public setSuccessfulMergeBannerState(state: SuccessfulMergeBannerState) {
     return this.appStore._setSuccessfulMergeBannerState(state)
+  }
+
+  /**
+   * Set the successful merge banner's state
+   */
+  public setMergeConflictsBannerState(state: MergeConflictsBannerState) {
+    return this.appStore._setMergeConflictsBannerState(state)
+  }
+
+  /**
+   * Clear (close) the successful merge banner
+   */
+  public clearMergeConflictsBanner() {
+    return this.appStore._setMergeConflictsBannerState(null)
   }
 
   /**
@@ -1385,5 +1400,40 @@ export class Dispatcher {
 
   public recordAddExistingRepository() {
     this.statsStore.recordAddExistingRepository()
+  }
+
+  /**
+   * Increments the `mergeConflictsDialogDismissalCount` metric
+   */
+  public recordMergeConflictsDialogDismissal() {
+    this.statsStore.recordMergeConflictsDialogDismissal()
+  }
+
+  /**
+   * Increments the `mergeConflictsDialogReopenedCount` metric
+   */
+  public recordMergeConflictsDialogReopened() {
+    this.statsStore.recordMergeConflictsDialogReopened()
+  }
+
+  /**
+   * Increments the `anyConflictsLeftOnMergeConflictsDialogDismissalCount` metric
+   */
+  public recordAnyConflictsLeftOnMergeConflictsDialogDismissal() {
+    this.statsStore.recordAnyConflictsLeftOnMergeConflictsDialogDismissal()
+  }
+
+  /**
+   * Increments the `guidedConflictedMergeCompletionCount` metric
+   */
+  public recordGuidedConflictedMergeCompletion() {
+    this.statsStore.recordGuidedConflictedMergeCompletion()
+  }
+
+  /**
+   * Increments the `unguidedConflictedMergeCompletionCount` metric
+   */
+  public recordUnguidedConflictedMergeCompletion() {
+    this.statsStore.recordUnguidedConflictedMergeCompletion()
   }
 }

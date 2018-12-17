@@ -9,6 +9,7 @@ import {
   SelectionType,
   HistoryTabMode,
   SuccessfulMergeBannerState,
+  MergeConflictsBannerState,
 } from '../lib/app-state'
 import { Dispatcher } from '../lib/dispatcher'
 import { AppStore, GitHubUserStore, IssuesStore } from '../lib/stores'
@@ -84,24 +85,38 @@ import { InitializeLFS, AttributeMismatch } from './lfs'
 import { UpstreamAlreadyExists } from './upstream-already-exists'
 import { ReleaseNotes } from './release-notes'
 import { DeletePullRequest } from './delete-branch/delete-pull-request-dialog'
-import { MergeConflictsDialog } from './merge-conflicts'
+import { MergeConflictsDialog, CommitConflictsWarning } from './merge-conflicts'
 import { AppTheme } from './app-theme'
 import { ApplicationTheme } from './lib/application-theme'
 import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
 import { AbortMergeWarning } from './abort-merge'
 import { isConflictedFile } from '../lib/status'
 import { PopupType, Popup } from '../models/popup'
-import { SuccessfulMerge } from './banners'
+import { SuccessfulMerge, MergeConflictsBanner } from './banners'
+import { OversizedFiles } from './changes/oversized-files-warning'
 import { UsageStatsChange } from './usage-stats-change'
 
 const MinuteInMilliseconds = 1000 * 60
+const HourInMilliseconds = MinuteInMilliseconds * 60
 
-/** The interval at which we should check for updates. */
-const UpdateCheckInterval = 1000 * 60 * 60 * 4
+/**
+ * Check for updates every 4 hours
+ */
+const UpdateCheckInterval = 4 * HourInMilliseconds
 
-const SendStatsInterval = 1000 * 60 * 60 * 4
+/**
+ * Send usage stats every 4 hours
+ */
+const SendStatsInterval = 4 * HourInMilliseconds
 
+/**
+ * Wait 2 minutes before refreshing repository indicators
+ */
 const InitialRepositoryIndicatorTimeout = 2 * MinuteInMilliseconds
+
+/**
+ * Refresh repository indicators every 15 minutes.
+ */
 const UpdateRepositoryIndicatorInterval = 15 * MinuteInMilliseconds
 
 interface IAppProps {
@@ -1012,6 +1027,9 @@ export class App extends React.Component<IAppProps, IAppState> {
   private onSuccessfulMergeDismissed = () =>
     this.props.dispatcher.setSuccessfulMergeBannerState(null)
 
+  private onMergeConflictsBannerDismissed = () =>
+    this.props.dispatcher.setMergeConflictsBannerState(null)
+
   private currentPopupContent(): JSX.Element | null {
     // Hide any dialogs while we're displaying an error
     if (this.state.errors.length) {
@@ -1378,6 +1396,16 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       }
+      case PopupType.OversizedFiles:
+        return (
+          <OversizedFiles
+            oversizedFiles={popup.oversizedFiles}
+            onDismissed={this.onPopupDismissed}
+            dispatcher={this.props.dispatcher}
+            context={popup.context}
+            repository={popup.repository}
+          />
+        )
       case PopupType.AbortMerge: {
         const { selectedState } = this.state
         if (
@@ -1412,7 +1440,16 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={this.onUsageReportingDismissed}
           />
         )
-
+      case PopupType.CommitConflictsWarning:
+        return (
+          <CommitConflictsWarning
+            dispatcher={this.props.dispatcher}
+            files={popup.files}
+            repository={popup.repository}
+            context={popup.context}
+            onDismissed={this.onPopupDismissed}
+          />
+        )
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
@@ -1793,6 +1830,10 @@ export class App extends React.Component<IAppProps, IAppState> {
       banner = this.renderSuccessfulMergeBanner(
         this.state.successfulMergeBannerState
       )
+    } else if (this.state.mergeConflictsBannerState !== null) {
+      banner = this.renderMergeConflictsBanner(
+        this.state.mergeConflictsBannerState
+      )
     } else if (this.state.isUpdateAvailableBannerVisible) {
       banner = this.renderUpdateBanner()
     }
@@ -1805,6 +1846,22 @@ export class App extends React.Component<IAppProps, IAppState> {
       >
         {banner}
       </CSSTransitionGroup>
+    )
+  }
+  private renderMergeConflictsBanner(
+    mergeConflictsBannerState: MergeConflictsBannerState
+  ): JSX.Element | null {
+    if (mergeConflictsBannerState === null) {
+      return null
+    }
+    return (
+      <MergeConflictsBanner
+        dispatcher={this.props.dispatcher}
+        ourBranch={mergeConflictsBannerState.ourBranch}
+        popup={mergeConflictsBannerState.popup}
+        onDismissed={this.onMergeConflictsBannerDismissed}
+        key={'merge-conflicts'}
+      />
     )
   }
 

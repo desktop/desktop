@@ -26,9 +26,6 @@ import { CallToAction } from '../lib/call-to-action'
 import { IAccountRepositories } from '../../lib/stores/api-repositories-store'
 import { merge } from '../../lib/merge'
 
-/** The name for the error when the destination already exists. */
-const DestinationExistsErrorName = 'DestinationExistsError'
-
 interface ICloneRepositoryProps {
   readonly dispatcher: Dispatcher
   readonly onDismissed: () => void
@@ -188,7 +185,7 @@ export class CloneRepository extends React.Component<
 
   public componentDidUpdate(prevProps: ICloneRepositoryProps) {
     if (prevProps.selectedTab !== this.props.selectedTab) {
-      this.refreshPath()
+      this.validatePath()
     }
   }
 
@@ -244,12 +241,11 @@ export class CloneRepository extends React.Component<
 
     const tabState = this.getSelectedTabState()
 
-    const error = tabState.error
+    const { error, url, path } = tabState
+    const { loading } = this.state
+
     const disabled =
-      tabState.url.length === 0 ||
-      tabState.path.length === 0 ||
-      this.state.loading ||
-      (!!error && error.name === DestinationExistsErrorName)
+      url.length === 0 || path.length === 0 || loading || error !== null
 
     return (
       <DialogFooter>
@@ -267,6 +263,10 @@ export class CloneRepository extends React.Component<
     this.props.onTabSelected(tab)
   }
 
+  private onPathChanged = (path: string) => {
+    this.setSelectedTabState({ path }, this.validatePath)
+  }
+
   private renderActiveTab() {
     const tab = this.props.selectedTab
 
@@ -277,7 +277,7 @@ export class CloneRepository extends React.Component<
           <CloneGenericRepository
             path={tabState.path}
             url={tabState.url}
-            onPathChanged={this.updateAndValidatePath}
+            onPathChanged={this.onPathChanged}
             onUrlChanged={this.updateUrl}
             onChooseDirectory={this.onChooseDirectory}
           />
@@ -300,9 +300,9 @@ export class CloneRepository extends React.Component<
             <CloneGithubRepository
               path={tabState.path}
               account={account}
-              onPathChanged={this.updateAndValidatePath}
               selectedItem={tabState.selectedItem}
               onSelectionChanged={this.onSelectionChanged}
+              onPathChanged={this.onPathChanged}
               onChooseDirectory={this.onChooseDirectory}
               repositories={repositories}
               loading={loading}
@@ -364,9 +364,10 @@ export class CloneRepository extends React.Component<
    * shared between the two types.
    */
   private setSelectedTabState<K extends keyof IBaseTabState>(
-    state: Pick<IBaseTabState, K>
+    state: Pick<IBaseTabState, K>,
+    callback?: () => void
   ) {
-    this.setTabState(state, this.props.selectedTab)
+    this.setTabState(state, this.props.selectedTab, callback)
   }
 
   /**
@@ -375,29 +376,39 @@ export class CloneRepository extends React.Component<
    */
   private setTabState<K extends keyof IBaseTabState>(
     state: Pick<IBaseTabState, K>,
-    tab: CloneRepositoryTab
+    tab: CloneRepositoryTab,
+    callback?: () => void
   ): void {
     if (tab === CloneRepositoryTab.DotCom) {
-      this.setState(prevState => ({
-        dotComTabState: merge<IGitHubTabState, keyof IBaseTabState>(
-          prevState.dotComTabState,
-          state
-        ),
-      }))
+      this.setState(
+        prevState => ({
+          dotComTabState: merge<IGitHubTabState, keyof IBaseTabState>(
+            prevState.dotComTabState,
+            state
+          ),
+        }),
+        callback
+      )
     } else if (tab === CloneRepositoryTab.Enterprise) {
-      this.setState(prevState => ({
-        enterpriseTabState: merge<IGitHubTabState, keyof IBaseTabState>(
-          prevState.enterpriseTabState,
-          state
-        ),
-      }))
+      this.setState(
+        prevState => ({
+          enterpriseTabState: merge<IGitHubTabState, keyof IBaseTabState>(
+            prevState.enterpriseTabState,
+            state
+          ),
+        }),
+        callback
+      )
     } else if (tab === CloneRepositoryTab.Generic) {
-      this.setState(prevState => ({
-        urlTabState: merge<IUrlTabState, keyof IBaseTabState>(
-          prevState.urlTabState,
-          state
-        ),
-      }))
+      this.setState(
+        prevState => ({
+          urlTabState: merge<IUrlTabState, keyof IBaseTabState>(
+            prevState.urlTabState,
+            state
+          ),
+        }),
+        callback
+      )
     } else {
       return assertNever(tab, `Unknown tab: ${tab}`)
     }
@@ -458,21 +469,6 @@ export class CloneRepository extends React.Component<
     this.props.dispatcher.showEnterpriseSignInDialog()
   }
 
-  private updateAndValidatePath = async (path: string) => {
-    const tab = this.props.selectedTab
-    this.setTabState({ path }, tab)
-
-    const pathError = await this.validateEmptyFolder(path)
-    const tabState = this.getTabState(tab)
-
-    // If the path changed while we were checking, we don't care anymore.
-    if (tabState.path !== path) {
-      return
-    }
-
-    this.setTabState({ error: pathError }, tab)
-  }
-
   private onFilterTextChanged = (filterText: string) => {
     if (this.props.selectedTab !== CloneRepositoryTab.Generic) {
       this.setGitHubTabState({ filterText }, this.props.selectedTab)
@@ -483,6 +479,29 @@ export class CloneRepository extends React.Component<
     if (this.props.selectedTab !== CloneRepositoryTab.Generic) {
       this.setGitHubTabState({ selectedItem }, this.props.selectedTab)
       this.updateUrl(selectedItem === null ? '' : selectedItem.clone_url)
+    }
+  }
+
+  private validatePath = async () => {
+    const tabState = this.getSelectedTabState()
+    const { path, url, error } = tabState
+    const { initialPath } = this.state
+    const isDefaultPath = initialPath === path
+    const isURLNotEntered = url === ''
+
+    if (isDefaultPath && isURLNotEntered) {
+      if (error) {
+        this.setSelectedTabState({ error: null })
+      }
+    } else {
+      const pathValidation = await this.validateEmptyFolder(path)
+
+      // We only care about the result if the path hasn't
+      // changed since we went async
+      const newTabState = this.getSelectedTabState()
+      if (newTabState.path === path) {
+        this.setSelectedTabState({ error: pathValidation, path })
+      }
     }
   }
 
@@ -501,7 +520,10 @@ export class CloneRepository extends React.Component<
       ? Path.join(directories[0], lastParsedIdentifier.name)
       : directories[0]
 
-    this.updateAndValidatePath(directory)
+    this.setSelectedTabState(
+      { path: directory, error: null },
+      this.validatePath
+    )
 
     return directory
   }
@@ -525,12 +547,14 @@ export class CloneRepository extends React.Component<
       newPath = tabState.path
     }
 
-    this.setSelectedTabState({
-      url,
-      lastParsedIdentifier: parsed,
-    })
-
-    this.updateAndValidatePath(newPath)
+    this.setSelectedTabState(
+      {
+        url,
+        lastParsedIdentifier: parsed,
+        path: newPath,
+      },
+      this.validatePath
+    )
   }
 
   private async validateEmptyFolder(path: string): Promise<null | Error> {
@@ -626,25 +650,10 @@ export class CloneRepository extends React.Component<
     setDefaultDir(Path.resolve(path, '..'))
   }
 
-  private refreshPath() {
-    const tabState = this.getSelectedTabState()
-    const isDefaultPath = this.state.initialPath === tabState.path
-    const isURLNotEntered = tabState.url === ''
-
-    if (isDefaultPath && isURLNotEntered) {
-      if (
-        tabState.error !== null &&
-        tabState.error.name === DestinationExistsErrorName
-      ) {
-        this.setSelectedTabState({ error: null })
-      }
-    } else {
-      this.updateAndValidatePath(tabState.path)
-    }
-  }
-
   private onWindowFocus = () => {
-    // Verify the path after focus has been regained in case changes have been made.
-    this.refreshPath()
+    // Verify the path after focus has been regained in
+    // case the directory or directory contents has been
+    // created/removed/altered while the user wasn't in-app.
+    this.validatePath()
   }
 }

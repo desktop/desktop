@@ -42,7 +42,16 @@ export function enableRecurseSubmodulesFlag(): boolean {
   return enableBetaFeatures()
 }
 
+/** Should the app check and warn the user about committing large files? */
+export function enableFileSizeWarningCheck(): boolean {
+  return enableBetaFeatures()
+}
+
 /** Should the app set protocol.version=2 for any fetch/push/pull/clone operation? */
 export function enableGitProtocolVersionTwo(): boolean {
   return enableDevelopmentFeatures()
+}
+
+export function enableReadmeOverwriteWarning(): boolean {
+  return enableBetaFeatures()
 }

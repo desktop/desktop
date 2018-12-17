@@ -126,6 +126,21 @@ export interface IDailyMeasures {
 
   /** The number of time the user made a commit to a repo hosted on Github.com */
   readonly dotcomCommits: number
+
+  /** The number of times the user dismissed the merge conflicts dialog */
+  readonly mergeConflictsDialogDismissalCount: number
+
+  /** The number of times the user dismissed the merge conflicts dialog with conflicts left */
+  readonly anyConflictsLeftOnMergeConflictsDialogDismissalCount: number
+
+  /** The number of times the user reopened the merge conflicts dialog (after closing it) */
+  readonly mergeConflictsDialogReopenedCount: number
+
+  /** The number of times the user committed a conflicted merge via the merge conflicts dialog */
+  readonly guidedConflictedMergeCompletionCount: number
+
+  /** The number of times the user committed a conflicted merge outside the merge conflicts dialog */
+  readonly unguidedConflictedMergeCompletionCount: number
 }
 
 export class StatsDatabase extends Dexie {
