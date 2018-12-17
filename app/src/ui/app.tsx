@@ -1893,6 +1893,9 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private renderToolbar() {
+    /**
+     * No toolbar if we're in the blank slate view.
+     */
     if (this.state.repositories.length === 0) {
       return null
     }
