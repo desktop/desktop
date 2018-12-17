@@ -96,7 +96,8 @@ let isDuplicateInstance = false
 // We want to let the updated instance launch and do its work. It will then quit
 // once it's done.
 if (!handlingSquirrelEvent) {
-  isDuplicateInstance = app.makeSingleInstance((args, workingDirectory) => {
+  isDuplicateInstance = app.requestSingleInstanceLock()
+  app.on('second-instance', (event, argv, workingDirectory) => {
     // Someone tried to run a second instance, we should focus our window.
     if (mainWindow) {
       if (mainWindow.isMinimized()) {
@@ -110,7 +111,7 @@ if (!handlingSquirrelEvent) {
       mainWindow.focus()
     }
 
-    handlePossibleProtocolLauncherArgs(args)
+    handlePossibleProtocolLauncherArgs(argv)
   })
 
   if (isDuplicateInstance) {
