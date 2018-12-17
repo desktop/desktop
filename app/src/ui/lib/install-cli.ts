@@ -1,7 +1,26 @@
 import * as FSE from 'fs-extra'
 import * as Path from 'path'
 
-const fsAdmin = require('fs-admin')
+// stub type declaration for what fs-admin needs, using fs-extra as a starting point
+type AdminFileSystem = {
+  makeTree(
+    path: string | Buffer,
+    callback: (err: NodeJS.ErrnoException) => void
+  ): void
+
+  unlink(
+    path: string | Buffer,
+    callback: (err: NodeJS.ErrnoException) => void
+  ): void
+
+  symlink(
+    srcpath: string | Buffer,
+    dstpath: string | Buffer,
+    callback: (err: NodeJS.ErrnoException) => void
+  ): void
+}
+
+const fsAdmin: AdminFileSystem = require('fs-admin')
 
 /** The path for the installed command line tool. */
 export const InstalledCLIPath = '/usr/local/bin/github'
