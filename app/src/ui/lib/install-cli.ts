@@ -1,26 +1,7 @@
 import * as FSE from 'fs-extra'
 import * as Path from 'path'
 
-// stub type declaration for what fs-admin needs, using fs-extra as a starting point
-type AdminFileSystem = {
-  makeTree(
-    path: string | Buffer,
-    callback: (err: NodeJS.ErrnoException) => void
-  ): void
-
-  unlink(
-    path: string | Buffer,
-    callback: (err: NodeJS.ErrnoException) => void
-  ): void
-
-  symlink(
-    srcpath: string | Buffer,
-    dstpath: string | Buffer,
-    callback: (err: NodeJS.ErrnoException) => void
-  ): void
-}
-
-const fsAdmin: AdminFileSystem = require('fs-admin')
+import fsAdmin = require('fs-admin')
 
 /** The path for the installed command line tool. */
 export const InstalledCLIPath = '/usr/local/bin/github'
@@ -57,7 +38,7 @@ function removeExistingSymlink(asAdmin: boolean) {
   }
 
   return new Promise<void>((resolve, reject) => {
-    fsAdmin.unlink(InstalledCLIPath, (error: Error | null) => {
+    fsAdmin.unlink(InstalledCLIPath, error => {
       if (error !== null) {
         reject(
           new Error(
@@ -80,7 +61,7 @@ function createDirectories(asAdmin: boolean) {
   }
 
   return new Promise<void>((resolve, reject) => {
-    fsAdmin.makeTree(path, (error: Error | null) => {
+    fsAdmin.makeTree(path, error => {
       if (error !== null) {
         reject(
           new Error(
@@ -101,7 +82,7 @@ function createNewSymlink(asAdmin: boolean) {
   }
 
   return new Promise<void>((resolve, reject) => {
-    fsAdmin.symlink(PackagedPath, InstalledCLIPath, (error: Error | null) => {
+    fsAdmin.symlink(PackagedPath, InstalledCLIPath, error => {
       if (error !== null) {
         reject(
           new Error(`Failed to symlink ${PackagedPath} to ${InstalledCLIPath}`)
