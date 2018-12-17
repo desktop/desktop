@@ -29,7 +29,7 @@ we get significant benefits from doing it the first way.
 
 ### Replacements
 
-The replacements defined for Desktop are found in [`app/app-info.js`](https://github.com/desktop/desktop/blob/master/app/app-info.js)
+The replacements defined for Desktop are found in [`app/app-info.ts`](https://github.com/desktop/desktop/blob/master/app/app-info.ts)
 as a hash of key-value pairs.
 
 ```ts

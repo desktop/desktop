@@ -11,9 +11,9 @@
 .clone-github-repo {
   height: 250px;
 
-  .filter-list-filter-field {
-    padding: var(--spacing-double);
-    padding-bottom: var(--spacing);
+  &.filter-list .filter-field-row {
+    margin: var(--spacing-double);
+    margin-bottom: var(--spacing);
   }
 
   .clone-repository-list {
@@ -50,10 +50,6 @@
 .dialog-content {
   &.clone-github-repository-content {
     padding: 0;
-
-    .row-component:not(:last-child) {
-      margin: 0;
-    }
   }
 
   &.clone-generic-repository-content {

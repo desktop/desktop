@@ -5,13 +5,11 @@ notifications:
 
 dist: trusty
 
-sudo: false
+os: linux
+compiler: clang
 
-matrix:
-  include:
-    - os: linux
-      env: CC=clang CXX=clang++ npm_config_clang=1
-      compiler: clang
+env:
+  - CC=clang CXX=clang++ npm_config_clang=1
 
 addons:
   apt:
@@ -21,15 +19,6 @@ addons:
       # this package is essential for testing Electron in a headless fashion
       # https://github.com/electron/electron/blob/master/docs/tutorial/testing-on-headless-ci.md
       - xvfb
-      # packages required for electron-installer-debian
-      - fakeroot
-      - dpkg
-      # packages required for electron-installer-redhat
-      - rpm
-      # packages required for electron-installer-appimage
-      - xz-utils
-      - xorriso
-      - zsync
 
 branches:
   only:
@@ -38,7 +27,7 @@ branches:
 
 language: node_js
 node_js:
-  - "8.9.0"
+  - '8.12'
 
 cache:
   yarn: true
@@ -49,15 +38,12 @@ cache:
     - .eslintcache
     - $HOME/.cache/electron-builder
 
-before_install:
-  - curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.3.2
-  - export PATH=$HOME/.yarn/bin:$PATH
-
 install:
   - yarn install --force
 
 script:
-  - yarn lint && yarn build:prod && yarn test:setup && yarn test
+  - yarn lint && yarn validate-changelog && yarn build:prod && yarn test:setup
+    && yarn test && yarn test:report
 
 after_failure:
   - yarn test:review

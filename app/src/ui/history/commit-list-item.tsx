@@ -6,10 +6,11 @@ import { RichText } from '../lib/rich-text'
 import { RelativeTime } from '../relative-time'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { clipboard } from 'electron'
-import { showContextualMenu, IMenuItem } from '../main-process-proxy'
+import { showContextualMenu } from '../main-process-proxy'
 import { CommitAttribution } from '../lib/commit-attribution'
 import { IGitHubUser } from '../../lib/databases/github-user-database'
 import { AvatarStack } from '../lib/avatar-stack'
+import { IMenuItem } from '../../lib/menu-item'
 
 interface ICommitProps {
   readonly gitHubRepository: GitHubRepository | null

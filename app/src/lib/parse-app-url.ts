@@ -4,6 +4,7 @@ import { testForInvalidChars } from './sanitize-branch'
 export interface IOAuthAction {
   readonly name: 'oauth'
   readonly code: string
+  readonly state: string
 }
 
 export interface IOpenRepositoryFromURLAction {
@@ -13,13 +14,13 @@ export interface IOpenRepositoryFromURLAction {
   readonly url: string
 
   /** the optional branch name which should be checked out. use the default branch otherwise. */
-  readonly branch?: string
+  readonly branch: string | null
 
   /** the pull request number, if pull request originates from a fork of the repository */
-  readonly pr?: string
+  readonly pr: string | null
 
   /** the file to open after cloning the repository */
-  readonly filepath?: string
+  readonly filepath: string | null
 }
 
 export interface IOpenRepositoryFromPathAction {
@@ -40,6 +41,36 @@ export type URLActionType =
   | IOpenRepositoryFromPathAction
   | IUnknownAction
 
+// eslint-disable-next-line typescript/interface-name-prefix
+interface ParsedUrlQueryWithUndefined {
+  // `undefined` is added here to ensure we handle the missing querystring key
+  // See https://github.com/Microsoft/TypeScript/issues/13778 for discussion about
+  // why this isn't supported natively in TypeScript
+  [key: string]: string | string[] | undefined
+}
+
+/**
+ * Parse the URL to find a given key in the querystring text.
+ *
+ * @param url The source URL containing querystring key-value pairs
+ * @param key The key to look for in the querystring
+ */
+function getQueryStringValue(
+  query: ParsedUrlQueryWithUndefined,
+  key: string
+): string | null {
+  const value = query[key]
+  if (value == null) {
+    return null
+  }
+
+  if (Array.isArray(value)) {
+    return value[0]
+  }
+
+  return value
+}
+
 export function parseAppURL(url: string): URLActionType {
   const parsedURL = URL.parse(url, true)
   const hostname = parsedURL.hostname
@@ -48,9 +79,17 @@ export function parseAppURL(url: string): URLActionType {
     return unknown
   }
 
+  const query = parsedURL.query
+
   const actionName = hostname.toLowerCase()
   if (actionName === 'oauth') {
-    return { name: 'oauth', code: parsedURL.query.code }
+    const code = getQueryStringValue(query, 'code')
+    const state = getQueryStringValue(query, 'state')
+    if (code != null && state != null) {
+      return { name: 'oauth', code, state }
+    } else {
+      return unknown
+    }
   }
 
   // we require something resembling a URL first
@@ -65,38 +104,28 @@ export function parseAppURL(url: string): URLActionType {
   const parsedPath = pathName.substr(1)
 
   if (actionName === 'openrepo') {
-    const probablyAURL = parsedPath
+    const pr = getQueryStringValue(query, 'pr')
+    const branch = getQueryStringValue(query, 'branch')
+    const filepath = getQueryStringValue(query, 'filepath')
 
-    // suffix the remote URL with `.git`, for backwards compatibility
-    const url = `${probablyAURL}.git`
-
-    const queryString = parsedURL.query
-
-    const pr = queryString.pr
-    const branch = queryString.branch
-    const filepath = queryString.filepath
-
-    if (pr) {
-      // if anything other than a number is used for the PR value, exit
+    if (pr != null) {
       if (!/^\d+$/.test(pr)) {
         return unknown
       }
 
       // we also expect the branch for a forked PR to be a given ref format
-      if (!/^pr\/\d+$/.test(branch)) {
+      if (branch != null && !/^pr\/\d+$/.test(branch)) {
         return unknown
       }
     }
 
-    if (branch) {
-      if (testForInvalidChars(branch)) {
-        return unknown
-      }
+    if (branch != null && testForInvalidChars(branch)) {
+      return unknown
     }
 
     return {
       name: 'open-repository-from-url',
-      url,
+      url: parsedPath,
       branch,
       pr,
       filepath,

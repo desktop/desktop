@@ -1,13 +1,13 @@
-import { DiffLine, DiffHunk, ITextDiff } from '../../models/diff'
+import { DiffLine, DiffHunk } from '../../models/diff'
 
 /**
  * Locate the diff hunk for the given (absolute) line number in the diff.
  */
 export function diffHunkForIndex(
-  diff: ITextDiff,
+  hunks: ReadonlyArray<DiffHunk>,
   index: number
 ): DiffHunk | null {
-  const hunk = diff.hunks.find(h => {
+  const hunk = hunks.find(h => {
     return index >= h.unifiedDiffStart && index <= h.unifiedDiffEnd
   })
   return hunk || null
@@ -17,10 +17,10 @@ export function diffHunkForIndex(
  * Locate the diff line for the given (absolute) line number in the diff.
  */
 export function diffLineForIndex(
-  diff: ITextDiff,
+  hunks: ReadonlyArray<DiffHunk>,
   index: number
 ): DiffLine | null {
-  const hunk = diffHunkForIndex(diff, index)
+  const hunk = diffHunkForIndex(hunks, index)
   if (!hunk) {
     return null
   }
@@ -31,10 +31,10 @@ export function diffLineForIndex(
 /** Get the line number as represented in the diff text itself. */
 export function lineNumberForDiffLine(
   diffLine: DiffLine,
-  diff: ITextDiff
+  hunks: ReadonlyArray<DiffHunk>
 ): number {
   let lineOffset = 0
-  for (const hunk of diff.hunks) {
+  for (const hunk of hunks) {
     const index = hunk.lines.indexOf(diffLine)
     if (index > -1) {
       return index + lineOffset
@@ -51,10 +51,10 @@ export function lineNumberForDiffLine(
  * should be displayed as interactive, as a hunk is not granular enough
  */
 export function findInteractiveDiffRange(
-  diff: ITextDiff,
+  hunks: ReadonlyArray<DiffHunk>,
   index: number
 ): { start: number; end: number } | null {
-  const hunk = diffHunkForIndex(diff, index)
+  const hunk = diffHunkForIndex(hunks, index)
   if (!hunk) {
     return null
   }

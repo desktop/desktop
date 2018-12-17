@@ -2,6 +2,7 @@ import * as React from 'react'
 import { DialogContent } from '../dialog'
 import { TextArea } from '../lib/text-area'
 import { LinkButton } from '../lib/link-button'
+import { Ref } from '../lib/ref'
 
 interface IGitIgnoreProps {
   readonly text: string | null
@@ -15,14 +16,14 @@ export class GitIgnore extends React.Component<IGitIgnoreProps, {}> {
     return (
       <DialogContent>
         <p>
-          The .gitignore file controls which files are tracked by Git and which
-          are ignored. Check out{' '}
+          Editing <Ref>.gitignore</Ref>. This file specifies intentionally
+          untracked files that Git should ignore. Files already tracked by Git
+          are not affected.{' '}
           <LinkButton onClick={this.props.onShowExamples}>
-            git-scm.com
-          </LinkButton>{' '}
-          for more information about the file format, or simply ignore a file by
-          right clicking on it in the uncommitted changes view.
+            Learn more
+          </LinkButton>
         </p>
+
         <TextArea
           placeholder="Ignored files"
           value={this.props.text || ''}

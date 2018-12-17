@@ -8,22 +8,28 @@ import {
   RepositoryGroupIdentifier,
 } from './group-repositories'
 import { FilterList } from '../lib/filter-list'
+import { IMatches } from '../../lib/fuzzy-find'
 import { assertNever } from '../../lib/fatal-error'
-
-/**
- * TS can't parse generic specialization in JSX, so we have to alias it here
- * with the generic type. See https://github.com/Microsoft/TypeScript/issues/6395.
- */
-const RepositoryFilterList: new () => FilterList<
-  IRepositoryListItem
-> = FilterList as any
+import { ILocalRepositoryState } from '../../models/repository'
+import { Dispatcher } from '../../lib/dispatcher'
+import { Button } from '../lib/button'
+import { Octicon, OcticonSymbol } from '../octicons'
+import { showContextualMenu } from '../main-process-proxy'
+import { IMenuItem } from '../../lib/menu-item'
+import { PopupType } from '../../models/popup'
 
 interface IRepositoriesListProps {
   readonly selectedRepository: Repositoryish | null
   readonly repositories: ReadonlyArray<Repositoryish>
 
+  /** A cache of the latest repository state values, keyed by the repository id */
+  readonly localRepositoryStateLookup: Map<number, ILocalRepositoryState>
+
   /** Called when a repository has been selected. */
   readonly onSelectionChanged: (repository: Repositoryish) => void
+
+  /** Whether the user has enabled the setting to confirm removing a repository from the app */
+  readonly askForConfirmationOnRemoveRepository: boolean
 
   /** Called when the repository should be removed. */
   readonly onRemoveRepository: (repository: Repositoryish) => void
@@ -40,9 +46,6 @@ interface IRepositoriesListProps {
   /** The current external editor selected by the user */
   readonly externalEditorLabel?: string
 
-  /** Called when the repositories list should be closed. */
-  readonly onClose: () => void
-
   /** The label for the user's preferred shell. */
   readonly shellLabel: string
 
@@ -51,6 +54,8 @@ interface IRepositoriesListProps {
 
   /** The text entered by the user to filter their repository list */
   readonly filterText: string
+
+  readonly dispatcher: Dispatcher
 }
 
 const RowHeight = 29
@@ -60,16 +65,16 @@ export class RepositoriesList extends React.Component<
   IRepositoriesListProps,
   {}
 > {
-  private renderItem = (
-    item: IRepositoryListItem,
-    matches: ReadonlyArray<number>
-  ) => {
+  private renderItem = (item: IRepositoryListItem, matches: IMatches) => {
     const repository = item.repository
     return (
       <RepositoryListItem
         key={repository.id}
         repository={repository}
         needsDisambiguation={item.needsDisambiguation}
+        askForConfirmationOnRemoveRepository={
+          this.props.askForConfirmationOnRemoveRepository
+        }
         onRemoveRepository={this.props.onRemoveRepository}
         onShowRepository={this.props.onShowRepository}
         onOpenInShell={this.props.onOpenInShell}
@@ -77,6 +82,8 @@ export class RepositoriesList extends React.Component<
         externalEditorLabel={this.props.externalEditorLabel}
         shellLabel={this.props.shellLabel}
         matches={matches}
+        aheadBehind={item.aheadBehind}
+        changedFilesCount={item.changedFilesCount}
       />
     )
   }
@@ -104,16 +111,13 @@ export class RepositoriesList extends React.Component<
   }
 
   private onItemClick = (item: IRepositoryListItem) => {
+    const hasIndicator =
+      item.changedFilesCount > 0 ||
+      (item.aheadBehind !== null
+        ? item.aheadBehind.ahead > 0 || item.aheadBehind.behind > 0
+        : false)
+    this.props.dispatcher.recordRepoClicked(hasIndicator)
     this.props.onSelectionChanged(item.repository)
-  }
-
-  private onFilterKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Escape') {
-      if (this.props.filterText.length === 0) {
-        this.props.onClose()
-        event.preventDefault()
-      }
-    }
   }
 
   public render() {
@@ -121,7 +125,10 @@ export class RepositoriesList extends React.Component<
       return this.noRepositories()
     }
 
-    const groups = groupRepositories(this.props.repositories)
+    const groups = groupRepositories(
+      this.props.repositories,
+      this.props.localRepositoryStateLookup
+    )
 
     let selectedItem: IRepositoryListItem | null = null
     const selectedRepository = this.props.selectedRepository
@@ -141,7 +148,7 @@ export class RepositoriesList extends React.Component<
 
     return (
       <div className="repository-list">
-        <RepositoryFilterList
+        <FilterList<IRepositoryListItem>
           rowHeight={RowHeight}
           selectedItem={selectedItem}
           filterText={this.props.filterText}
@@ -149,7 +156,7 @@ export class RepositoriesList extends React.Component<
           renderItem={this.renderItem}
           renderGroupHeader={this.renderGroupHeader}
           onItemClick={this.onItemClick}
-          onFilterKeyDown={this.onFilterKeyDown}
+          renderPostFilter={this.renderPostFilter}
           groups={groups}
           invalidationProps={{
             repositories: this.props.repositories,
@@ -158,6 +165,54 @@ export class RepositoriesList extends React.Component<
         />
       </div>
     )
+  }
+
+  private renderPostFilter = () => {
+    return (
+      <Button
+        className="new-repository-button"
+        onClick={this.onNewRepositoryButtonClick}
+      >
+        Add
+        <Octicon symbol={OcticonSymbol.triangleDown} />
+      </Button>
+    )
+  }
+
+  private onNewRepositoryButtonClick = () => {
+    const items: IMenuItem[] = [
+      {
+        label: __DARWIN__ ? 'Clone Repository…' : 'Clone repository…',
+        action: this.onCloneRepository,
+      },
+      {
+        label: __DARWIN__
+          ? 'Add Existing Repository…'
+          : 'Add existing repository…',
+        action: this.onAddExistingRepository,
+      },
+      {
+        label: __DARWIN__ ? 'Create New Repository…' : 'Create new repository…',
+        action: this.onCreateNewRepository,
+      },
+    ]
+
+    showContextualMenu(items)
+  }
+
+  private onCloneRepository = () => {
+    this.props.dispatcher.showPopup({
+      type: PopupType.CloneRepository,
+      initialURL: null,
+    })
+  }
+
+  private onAddExistingRepository = () => {
+    this.props.dispatcher.showPopup({ type: PopupType.AddRepository })
+  }
+
+  private onCreateNewRepository = () => {
+    this.props.dispatcher.showPopup({ type: PopupType.CreateRepository })
   }
 
   private noRepositories() {

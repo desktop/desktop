@@ -3,6 +3,7 @@ import * as React from 'react'
 import { CommitIdentity } from '../../models/commit-identity'
 import { GitAuthor } from '../../models/git-author'
 import { GitHubRepository } from '../../models/github-repository'
+import { isWebFlowCommitter } from '../../lib/web-flow-committer'
 
 interface ICommitAttributionProps {
   /**
@@ -80,7 +81,7 @@ export class CommitAttribution extends React.Component<
       !commit.authoredByCommitter &&
       !(
         this.props.gitHubRepository !== null &&
-        commit.isWebFlowCommitter(this.props.gitHubRepository)
+        isWebFlowCommitter(commit, this.props.gitHubRepository)
       )
 
     return (

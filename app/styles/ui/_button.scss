@@ -1,4 +1,7 @@
+@import '../mixins';
+
 .button-component {
+  @include ellipsis;
   // Chrome on Windows ignores the body element
   // font-family and uses Arial so we redefine
   // it here

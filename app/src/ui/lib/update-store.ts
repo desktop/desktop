@@ -11,6 +11,10 @@ import { sendWillQuitSync } from '../main-process-proxy'
 import { ErrorWithMetadata } from '../../lib/error-with-metadata'
 import { parseError } from '../../lib/squirrel-error-parser'
 
+import { ReleaseSummary } from '../../models/release-notes'
+import { generateReleaseSummary } from '../../lib/release-notes'
+import { setNumber, getNumber } from '../../lib/local-storage'
+
 /** The states the auto updater can be in. */
 export enum UpdateStatus {
   /** The auto updater is checking for updates. */
@@ -29,6 +33,7 @@ export enum UpdateStatus {
 export interface IUpdateState {
   status: UpdateStatus
   lastSuccessfulCheck: Date | null
+  newRelease: ReleaseSummary | null
 }
 
 /** A store which contains the current state of the auto updater. */
@@ -36,21 +41,16 @@ class UpdateStore {
   private emitter = new Emitter()
   private status = UpdateStatus.UpdateNotAvailable
   private lastSuccessfulCheck: Date | null = null
+  private newRelease: ReleaseSummary | null = null
 
   /** Is the most recent update check user initiated? */
   private userInitiatedUpdate = true
 
   public constructor() {
-    const lastSuccessfulCheckValue = localStorage.getItem(
-      lastSuccessfulCheckKey
-    )
+    const lastSuccessfulCheckTime = getNumber(lastSuccessfulCheckKey, 0)
 
-    if (lastSuccessfulCheckValue) {
-      const lastSuccessfulCheckTime = parseInt(lastSuccessfulCheckValue, 10)
-
-      if (!isNaN(lastSuccessfulCheckTime)) {
-        this.lastSuccessfulCheck = new Date(lastSuccessfulCheckTime)
-      }
+    if (lastSuccessfulCheckTime > 0) {
+      this.lastSuccessfulCheck = new Date(lastSuccessfulCheckTime)
     }
 
     autoUpdater.on('error', this.onAutoUpdaterError)
@@ -59,32 +59,25 @@ class UpdateStore {
     autoUpdater.on('update-not-available', this.onUpdateNotAvailable)
     autoUpdater.on('update-downloaded', this.onUpdateDownloaded)
 
-    // This seems to prevent tests from cleanly exiting on Appveyor (see
-    // https://ci.appveyor.com/project/github-windows/desktop/build/1466). So
-    // let's just avoid it.
-    if (!process.env.TEST_ENV) {
-      window.addEventListener('beforeunload', () => {
-        autoUpdater.removeListener('error', this.onAutoUpdaterError)
-        autoUpdater.removeListener(
-          'checking-for-update',
-          this.onCheckingForUpdate
-        )
-        autoUpdater.removeListener('update-available', this.onUpdateAvailable)
-        autoUpdater.removeListener(
-          'update-not-available',
-          this.onUpdateNotAvailable
-        )
-        autoUpdater.removeListener('update-downloaded', this.onUpdateDownloaded)
-      })
-    }
+    window.addEventListener('beforeunload', () => {
+      autoUpdater.removeListener('error', this.onAutoUpdaterError)
+      autoUpdater.removeListener(
+        'checking-for-update',
+        this.onCheckingForUpdate
+      )
+      autoUpdater.removeListener('update-available', this.onUpdateAvailable)
+      autoUpdater.removeListener(
+        'update-not-available',
+        this.onUpdateNotAvailable
+      )
+      autoUpdater.removeListener('update-downloaded', this.onUpdateDownloaded)
+    })
   }
 
   private touchLastChecked() {
     const now = new Date()
-    const persistedValue = now.getTime().toString()
-
     this.lastSuccessfulCheck = now
-    localStorage.setItem(lastSuccessfulCheckKey, persistedValue)
+    setNumber(lastSuccessfulCheckKey, now.getTime())
   }
 
   private onAutoUpdaterError = (error: Error) => {
@@ -115,8 +108,11 @@ class UpdateStore {
     this.emitDidChange()
   }
 
-  private onUpdateDownloaded = () => {
+  private onUpdateDownloaded = async () => {
+    this.newRelease = await generateReleaseSummary()
+
     this.status = UpdateStatus.UpdateReady
+
     this.emitDidChange()
   }
 
@@ -146,6 +142,7 @@ class UpdateStore {
     return {
       status: this.status,
       lastSuccessfulCheck: this.lastSuccessfulCheck,
+      newRelease: this.newRelease,
     }
   }
 
@@ -166,7 +163,7 @@ class UpdateStore {
     this.userInitiatedUpdate = !inBackground
 
     try {
-      autoUpdater.setFeedURL(__UPDATES_URL__)
+      autoUpdater.setFeedURL({ url: __UPDATES_URL__ })
       autoUpdater.checkForUpdates()
     } catch (e) {
       this.emitError(e)

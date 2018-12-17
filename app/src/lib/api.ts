@@ -12,6 +12,7 @@ import {
 import { AuthenticationMode } from './2fa'
 import { uuid } from './uuid'
 import { getAvatarWithEnterpriseFallback } from './gravatar'
+import { getDefaultEmail } from './email'
 
 const username: () => Promise<string> = require('username')
 
@@ -40,12 +41,14 @@ const NoteURL = 'https://desktop.github.com/'
  */
 export interface IAPIRepository {
   readonly clone_url: string
+  readonly ssh_url: string
   readonly html_url: string
   readonly name: string
   readonly owner: IAPIUser
   readonly private: boolean
   readonly fork: boolean
   readonly default_branch: string
+  readonly pushed_at: string
   readonly parent: IAPIRepository | null
 }
 
@@ -373,6 +376,13 @@ export class API {
       return await parsedResponse<IAPIRepository>(response)
     } catch (e) {
       if (e instanceof APIError) {
+        if (org !== null) {
+          throw new Error(
+            `Unable to create repository for organization '${
+              org.login
+            }'. Verify it exists and that you have permission to create a repository there.`
+          )
+        }
         throw e
       }
 
@@ -712,7 +722,7 @@ export async function fetchUser(
   try {
     const user = await api.fetchAccount()
     const emails = await api.fetchEmails()
-    const defaultEmail = emails[0].email || ''
+    const defaultEmail = getDefaultEmail(emails)
     const avatarURL = getAvatarWithEnterpriseFallback(
       user.avatar_url,
       defaultEmail,
@@ -824,7 +834,12 @@ export function getEnterpriseAPIURL(endpoint: string): string {
 
 /** Get github.com's API endpoint. */
 export function getDotComAPIEndpoint(): string {
-  const envEndpoint = process.env['API_ENDPOINT']
+  // NOTE:
+  // `DESKTOP_GITHUB_DOTCOM_API_ENDPOINT` only needs to be set if you are
+  // developing against a local version of GitHub the Website, and need to debug
+  // the server-side interaction. For all other cases you should leave this
+  // unset.
+  const envEndpoint = process.env['DESKTOP_GITHUB_DOTCOM_API_ENDPOINT']
   if (envEndpoint && envEndpoint.length > 0) {
     return envEndpoint
   }
@@ -851,7 +866,6 @@ export function getOAuthAuthorizationURL(
 
 export async function requestOAuthToken(
   endpoint: string,
-  state: string,
   code: string
 ): Promise<string | null> {
   try {
@@ -865,7 +879,6 @@ export async function requestOAuthToken(
         client_id: ClientID,
         client_secret: ClientSecret,
         code: code,
-        state: state,
       }
     )
     const result = await parsedResponse<IAPIAccessToken>(response)

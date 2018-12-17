@@ -1,0 +1,342 @@
+changed in both
+  base   100644 c521e553d1a11b607a994fcbc4d3590c5b7203fc app/src/lib/app-state.ts
+  our    100644 b30f0fe080d909b81d2fb683ceb8deb365fb0191 app/src/lib/app-state.ts
+  their  100644 789cf613e7c1df5994e59a439a137c7c1ed2d9a2 app/src/lib/app-state.ts
+@@ -189,9 +189,13 @@
+   readonly selectedBranchesTab: BranchesTab
+ 
+   /** Show the diverging notification banner */
++<<<<<<< .our
+   readonly isDivergingBranchBannerVisible: boolean
+   /** The currently selected appearance (aka theme) */
+   readonly selectedTheme: ApplicationTheme
++=======
++  readonly isDivergingBannerVisible: boolean
++>>>>>>> .their
+ }
+ 
+ export enum PopupType {
+changed in both
+  base   100644 99a2c7d01fb2ea70977e58590f06fc970284b1d5 app/src/lib/dispatcher/dispatcher.ts
+  our    100644 5e56c00e713342e76f5ccba040062e322e8c90cb app/src/lib/dispatcher/dispatcher.ts
+  their  100644 f3e59ad64ad00e45ed32ae6ed570afc8c3203281 app/src/lib/dispatcher/dispatcher.ts
+@@ -466,10 +466,18 @@
+   }
+ 
+   /**
++<<<<<<< .our
+    * Set the divering branch notification banner's visibility
+    */
+   public setDivergingBranchBannerVisibility(isVisible: boolean) {
+     return this.appStore._setDivergingBranchBannerVisibility(isVisible)
++=======
++   * Set the update banner's visibility
++   */
++  public setDivergingBannerVisible(isVisible: boolean) {
++    console.log('hello from dispatcher!!!!!!!')
++    return this.appStore._setDivergingBannerVisible(isVisible)
++>>>>>>> .their
+   }
+ 
+   /**
+changed in both
+  base   100644 4cee841bc4c314fa326fcd00d2a037b661073822 app/src/lib/stores/app-store.ts
+  our    100644 1a4e387e4d192d34abfd0621b4b5ebe8cc34d8d1 app/src/lib/stores/app-store.ts
+  their  100644 04241406fccef40ca879aad3bda611660ada1919 app/src/lib/stores/app-store.ts
+@@ -291,6 +291,8 @@
+   private selectedTheme = ApplicationTheme.Light
+   private isDivergingBranchBannerVisible = false
+ 
++  private isDivergingBannerVisible: boolean = false
++
+   public constructor(
+     gitHubUserStore: GitHubUserStore,
+     cloningRepositoriesStore: CloningRepositoriesStore,
+@@ -611,8 +613,12 @@
+       repositoryFilterText: this.repositoryFilterText,
+       selectedCloneRepositoryTab: this.selectedCloneRepositoryTab,
+       selectedBranchesTab: this.selectedBranchesTab,
++<<<<<<< .our
+       isDivergingBranchBannerVisible: this.isDivergingBranchBannerVisible,
+       selectedTheme: this.selectedTheme,
++=======
++      isDivergingBannerVisible: this.isDivergingBannerVisible,
++>>>>>>> .their
+     }
+   }
+ 
+@@ -3186,6 +3192,7 @@
+     this.emitUpdate()
+   }
+ 
++<<<<<<< .our
+   public _setDivergingBranchBannerVisibility(visible: boolean) {
+     if (this.isDivergingBranchBannerVisible !== visible) {
+       this.isDivergingBranchBannerVisible = visible
+@@ -3196,6 +3203,14 @@
+ 
+       this.emitUpdate()
+     }
++=======
++  public _setDivergingBannerVisible(visibility: boolean) {
++    console.log('hello from app store!!!!!!!!!!!')
++
++    this.isDivergingBannerVisible = visibility
++
++    this.emitUpdate()
++>>>>>>> .their
+   }
+ 
+   public _reportStats() {
+changed in both
+  base   100644 d67117115eac84151c211af50ce249ee557c91d5 app/src/ui/app.tsx
+  our    100644 c38c806e36c237ea70f3cdeee739941530c0c7cd app/src/ui/app.tsx
+  their  100644 03aed455ddef0f2d51844ea722adc16e1deb3bd7 app/src/ui/app.tsx
+@@ -1704,7 +1704,11 @@
+           accounts={state.accounts}
+           externalEditorLabel={externalEditorLabel}
+           onOpenInExternalEditor={this.openFileInExternalEditor}
++<<<<<<< .our
+           isDivergingBranchBannerVisible={state.isDivergingBranchBannerVisible}
++=======
++          hasDiverged={this.state.isDivergingBannerVisible}
++>>>>>>> .their
+         />
+       )
+     } else if (selectedState.type === SelectionType.CloningRepository) {
+changed in both
+  base   100644 2c937c5f439252828e8397251948aacceee8f081 app/src/ui/changes/commit-message.tsx
+  our    100644 0a0e18fc9f4c8956a648726827dc496f3d5f98db app/src/ui/changes/commit-message.tsx
+  their  100644 0fad97ef7ca35381fc99f37f1b2e88ab7b5b57b0 app/src/ui/changes/commit-message.tsx
+@@ -229,6 +229,11 @@
+   }
+ 
+   private onSubmit = () => {
++    setTimeout(() => {
++        console.log(this)
++        this.props.dispatcher.setDivergingBannerVisible(true)
++    }, 2000)
++
+     this.createCommit()
+   }
+ 
+changed in both
+  base   100644 6744747929eeb10cd3e1a1e162d12f05d11612bc app/src/ui/history/compare.tsx
+  our    100644 c0be0e26ce79b9a590edfa3a9fd3718fa58782d4 app/src/ui/history/compare.tsx
+  their  100644 a22e1c207edbc9210db2ac711fedfda6e93fd2b0 app/src/ui/history/compare.tsx
+@@ -24,12 +24,16 @@
+ import { SelectionSource } from '../lib/filter-list'
+ import { IMatches } from '../../lib/fuzzy-find'
+ import { Ref } from '../lib/ref'
++<<<<<<< .our
+ import {
+   NewCommitsBanner,
+   DismissalReason,
+ } from '../notification/new-commits-banner'
+ import { enableNotificationOfBranchUpdates } from '../../lib/feature-flag'
+ import { MergeCallToAction } from './merge-call-to-action'
++=======
++import { NotificationBanner } from '../notification-banner';
++>>>>>>> .their
+ 
+ interface ICompareSidebarProps {
+   readonly repository: Repository
+@@ -152,6 +156,7 @@
+ 
+     return (
+       <div id="compare-view">
++<<<<<<< .our
+         <CSSTransitionGroup
+           transitionName="diverge-banner"
+           transitionAppear={true}
+@@ -161,6 +166,9 @@
+         >
+           {this.renderNotificationBanner()}
+         </CSSTransitionGroup>
++=======
++        <NotificationBanner />
++>>>>>>> .their
+ 
+         <div className="compare-form">
+           <FancyTextBox
+added in remote
+  their  100644 4546992a97ba5b9bd5aef3e6b724a81c6a26b398 app/src/ui/notification-banner/index.tsx
+@@ -0,0 +1,36 @@
++import * as React from 'react'
++import { ButtonGroup } from '../lib/button-group';
++import { Button } from '../lib/button';
++import { Ref } from '../lib/ref';
++import { Octicon, OcticonSymbol } from '../octicons';
++
++interface INotificationBannerProps {
++}
++
++export class NotificationBanner extends React.Component<INotificationBannerProps, {}> {
++  public render() {
++    return (<div className="notification-banner diverge-banner">
++      <div className="notification-banner-content">
++        <p>
++          Your branch is <strong>42 commits</strong> behind <Ref>origin/master</Ref>
++        </p>
++
++        <a className="close" aria-label="Dismiss banner">
++          <Octicon symbol={OcticonSymbol.x} />
++        </a>
++      </div>
++
++      <ButtonGroup>
++        <Button type="submit" onClick={this.noop}>
++          Merge...
++        </Button>
++
++        <Button onClick={this.noop}>
++          Compare
++        </Button>
++      </ButtonGroup>
++    </div>)
++  }
++
++  private noop = () => {}
++}
+changed in both
+  base   100644 f56d583b254f9167699125105c753492fd59fa33 app/src/ui/repository.tsx
+  our    100644 efb00423012b8da0dfa5e8897acacaeb0a5e648a app/src/ui/repository.tsx
+  their  100644 913672d601bbe40dac1fbeaad0e2eb2132388d61 app/src/ui/repository.tsx
+@@ -50,11 +50,15 @@
+    */
+   readonly onOpenInExternalEditor: (fullPath: string) => void
+ 
++<<<<<<< .our
+   /**
+    * Determines if the notification banner and associated dot
+    * on this history tab will be rendered
+    */
+   readonly isDivergingBranchBannerVisible: boolean
++=======
++  readonly hasDiverged: boolean
++>>>>>>> .their
+ }
+ 
+ interface IRepositoryViewState {
+@@ -111,7 +115,22 @@
+               symbol={OcticonSymbol.primitiveDot}
+             />
+           ) : null}
++<<<<<<< .our
+         </div>
++=======
++        </span>
++
++        <span className="with-indicator">
++          <span>History</span>
++
++          {this.props.hasDiverged ? (
++            <Octicon
++              className="indicator"
++              symbol={OcticonSymbol.primitiveDot}
++            />
++          ) : null}
++        </span>
++>>>>>>> .their
+       </TabBar>
+     )
+   }
+changed in both
+  base   100644 2c54d4b7728a6487ddd3f6fd4ac7d7c641b10459 app/styles/_mixins.scss
+  our    100644 2547663981e9047637d8e4edf9b40db74c9d5c51 app/styles/_mixins.scss
+  their  100644 d8eaaa11ac3816418fae454ec2cda3dbb1647425 app/styles/_mixins.scss
+@@ -3,4 +3,8 @@
+ @import 'mixins/octicon-status';
+ @import 'mixins/textboxish';
+ @import 'mixins/checkboard-background';
++<<<<<<< .our
++=======
++
++>>>>>>> .their
+ @import 'mixins/close-button';
+changed in both
+  base   100644 e496a16bd915366f9b11d9d0e63a21a8732099f4 app/styles/ui/_dialog.scss
+  our    100644 94b86d54fb9b0314deb1ef48cc9e1466578ed390 app/styles/ui/_dialog.scss
+  their  100644 971c11206672d1816b1ce06c3629ffd4988e9371 app/styles/ui/_dialog.scss
+added in both
+  our    100644 ec2aae86b8d44d23f35f56cb9684489301016d6b app/styles/ui/_notification-banner.scss
+  their  100644 46736e371cff3d4823c7e53d86d6ad4df0215b7d app/styles/ui/_notification-banner.scss
+@@ -1,5 +1,6 @@
+ @import '../mixins';
+ 
++<<<<<<< .our
+ .notification-banner + .compare-form {
+   border-top: var(--base-border);
+ }
+@@ -30,21 +31,39 @@
+       & + p {
+         margin-top: var(--spacing-half);
+       }
++=======
++.notification-banner {
++  padding: var(--spacing-half);
++
++  &-content {
++    display: flex;
++
++    p {
++      flex-grow: 1;
++>>>>>>> .their
+     }
+   }
+ 
+   @include close-button;
+ 
+   .ref-component {
++<<<<<<< .our
+     background: var(--notification-ref-background);
++=======
++>>>>>>> .their
+     word-break: normal;
+   }
+ 
+   .close {
++<<<<<<< .our
+     position: absolute;
+     margin: 0;
+     top: var(--spacing);
+     right: var(--spacing);
++=======
++    flex-grow: 0;
++    margin: 0;
++>>>>>>> .their
+     text-align: center;
+ 
+     .octicon {
+@@ -54,6 +73,7 @@
+ }
+ 
+ .diverge-banner {
++<<<<<<< .our
+   margin: var(--spacing-half);
+   overflow: hidden;
+ 
+@@ -98,5 +118,23 @@
+   .button-component {
+     margin-top: var(--spacing-half);
+     margin-right: var(--spacing-half);
++=======
++  p {
++    margin-top: 0;
++  }
++
++  .button-group {
++    display: flex;
++  }
++
++  .button-component {
++    flex: 1;
++    margin-right: var(--spacing-half);
++
++
++    &:last-of-type {
++      margin-right: 0;
++    }
++>>>>>>> .their
+   }
+ }

@@ -23,10 +23,6 @@
   }
 
   &.expanded {
-    .commit-summary-description-container {
-      border-bottom: none;
-    }
-
     .commit-summary-description-scroll-view {
       max-height: none;
       overflow: auto;
@@ -37,9 +33,30 @@
     }
   }
 
+  &.hide-description-border {
+    .commit-summary-description-container {
+      border-bottom: none;
+    }
+  }
+
   &.has-expander {
     .commit-summary-description {
       padding-right: 100px;
+    }
+
+    // When the description area can be, but isn't yet, expanded
+    // we'll add a small shadow towards the bottom to hint that
+    // there's more content available.
+    &:not(.expanded) {
+      .commit-summary-description:before {
+        content: '';
+        background: var(--box-overflow-shadow-background);
+        position: absolute;
+        height: 30px;
+        bottom: 0px;
+        width: 100%;
+        pointer-events: none;
+      }
     }
   }
 }
@@ -65,7 +82,6 @@
 
   &-description-container {
     display: flex;
-
     // So that we have something to position the expander against
     position: relative;
     border-bottom: var(--base-border);
@@ -74,23 +90,8 @@
   &-description-scroll-view {
     overflow: hidden;
     // The extra pixel makes the space align up with the commit list.
-    max-height: 61px;
+    max-height: 69px;
     flex: 1;
-
-    &:before {
-      content: '';
-      background: linear-gradient(
-        180deg,
-        rgba(255, 255, 255, 0) 0px,
-        rgba(255, 255, 255, 0) 40px,
-        rgba(255, 255, 255, 0.5) 40px,
-        white 60px
-      );
-      position: absolute;
-      height: 100%;
-      width: 100%;
-      pointer-events: none;
-    }
   }
 
   // Enable text selection inside the title and description elements.
@@ -101,6 +102,7 @@
       -webkit-user-select: text;
       user-select: text;
     }
+
     span {
       cursor: text;
     }
@@ -129,7 +131,6 @@
     display: flex;
     flex-direction: row;
     min-width: 0;
-
     margin-right: var(--spacing);
     font-size: var(--font-size-sm);
 

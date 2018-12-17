@@ -4,8 +4,11 @@ import * as Path from 'path'
 import { CloningRepository } from '../models/cloning-repository'
 import { Repository } from '../models/repository'
 import { Account } from '../models/account'
+import { IRemote } from '../models/remote'
 import { getHTMLURL } from './api'
-import { parseRemote } from './remote-parsing'
+import { parseRemote, parseRepositoryIdentifier } from './remote-parsing'
+import { caseInsensitiveEquals } from './compare'
+import { GitHubRepository } from '../models/github-repository'
 
 export interface IMatchedGitHubRepository {
   /**
@@ -90,5 +93,84 @@ export function matchExistingRepository(
         return Path.normalize(r.path) === Path.normalize(path)
       }
     }) || null
+  )
+}
+
+/**
+ * Check whether or not a GitHub repository matches a given remote.
+ *
+ * @param gitHubRepository the repository containing information from the GitHub API
+ * @param remote the remote details found in the Git repository
+ */
+export function repositoryMatchesRemote(
+  gitHubRepository: GitHubRepository,
+  remote: IRemote
+): boolean {
+  return (
+    urlMatchesRemote(gitHubRepository.htmlURL, remote) ||
+    urlMatchesRemote(gitHubRepository.cloneURL, remote)
+  )
+}
+
+/**
+ * Check whether or not a GitHub repository URL matches a given remote, by
+ * parsing and comparing the structure of the each URL.
+ *
+ * @param url a URL associated with the GitHub repository
+ * @param remote the remote details found in the Git repository
+ */
+export function urlMatchesRemote(url: string | null, remote: IRemote): boolean {
+  if (url == null) {
+    return false
+  }
+
+  const cloneUrl = parseRemote(url)
+  const remoteUrl = parseRemote(remote.url)
+
+  if (remoteUrl == null || cloneUrl == null) {
+    return false
+  }
+
+  if (!caseInsensitiveEquals(remoteUrl.hostname, cloneUrl.hostname)) {
+    return false
+  }
+
+  if (remoteUrl.owner == null || cloneUrl.owner == null) {
+    return false
+  }
+
+  if (remoteUrl.name == null || cloneUrl.name == null) {
+    return false
+  }
+
+  return (
+    caseInsensitiveEquals(remoteUrl.owner, cloneUrl.owner) &&
+    caseInsensitiveEquals(remoteUrl.name, cloneUrl.name)
+  )
+}
+
+/**
+ * Match a URL-like string to the Clone URL of a GitHub Repository
+ *
+ * @param url A remote-like URL to verify against the existing information
+ * @param gitHubRepository GitHub API details for a repository
+ */
+export function urlMatchesCloneURL(
+  url: string,
+  gitHubRepository: GitHubRepository
+): boolean {
+  if (gitHubRepository.cloneURL === null) {
+    return false
+  }
+
+  const firstIdentifier = parseRepositoryIdentifier(gitHubRepository.cloneURL)
+  const secondIdentifier = parseRepositoryIdentifier(url)
+
+  return (
+    firstIdentifier !== null &&
+    secondIdentifier !== null &&
+    firstIdentifier.hostname === secondIdentifier.hostname &&
+    firstIdentifier.owner === secondIdentifier.owner &&
+    firstIdentifier.name === secondIdentifier.name
   )
 }

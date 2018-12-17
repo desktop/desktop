@@ -1,10 +1,11 @@
 import * as Path from 'path'
-import { pathExists } from '../file-system'
+import { pathExists } from 'fs-extra'
 import { IFoundEditor } from './found-editor'
 import { assertNever } from '../fatal-error'
 
 export enum ExternalEditor {
   Atom = 'Atom',
+  MacVim = 'MacVim',
   VisualStudioCode = 'Visual Studio Code',
   VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
   SublimeText = 'Sublime Text',
@@ -12,11 +13,18 @@ export enum ExternalEditor {
   PhpStorm = 'PhpStorm',
   RubyMine = 'RubyMine',
   TextMate = 'TextMate',
+  Brackets = 'Brackets',
+  WebStorm = 'WebStorm',
+  Typora = 'Typora',
+  SlickEdit = 'SlickEdit',
 }
 
 export function parse(label: string): ExternalEditor | null {
   if (label === ExternalEditor.Atom) {
     return ExternalEditor.Atom
+  }
+  if (label === ExternalEditor.MacVim) {
+    return ExternalEditor.MacVim
   }
   if (label === ExternalEditor.VisualStudioCode) {
     return ExternalEditor.VisualStudioCode
@@ -39,6 +47,18 @@ export function parse(label: string): ExternalEditor | null {
   if (label === ExternalEditor.TextMate) {
     return ExternalEditor.TextMate
   }
+  if (label === ExternalEditor.Brackets) {
+    return ExternalEditor.Brackets
+  }
+  if (label === ExternalEditor.WebStorm) {
+    return ExternalEditor.WebStorm
+  }
+  if (label === ExternalEditor.Typora) {
+    return ExternalEditor.Typora
+  }
+  if (label === ExternalEditor.SlickEdit) {
+    return ExternalEditor.SlickEdit
+  }
   return null
 }
 
@@ -51,6 +71,8 @@ function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
   switch (editor) {
     case ExternalEditor.Atom:
       return ['com.github.atom']
+    case ExternalEditor.MacVim:
+      return ['org.vim.MacVim']
     case ExternalEditor.VisualStudioCode:
       return ['com.microsoft.VSCode']
     case ExternalEditor.VisualStudioCodeInsiders:
@@ -65,6 +87,19 @@ function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
       return ['com.jetbrains.RubyMine']
     case ExternalEditor.TextMate:
       return ['com.macromates.TextMate']
+    case ExternalEditor.Brackets:
+      return ['io.brackets.appshell']
+    case ExternalEditor.WebStorm:
+      return ['com.jetbrains.WebStorm']
+    case ExternalEditor.Typora:
+      return ['abnerworks.Typora']
+    case ExternalEditor.SlickEdit:
+      return [
+        'com.slickedit.SlickEditPro2018',
+        'com.slickedit.SlickEditPro2017',
+        'com.slickedit.SlickEditPro2016',
+        'com.slickedit.SlickEditPro2015',
+      ]
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -87,6 +122,8 @@ function getExecutableShim(
         'bin',
         'code'
       )
+    case ExternalEditor.MacVim:
+      return Path.join(installPath, 'Contents', 'MacOS', 'MacVim')
     case ExternalEditor.SublimeText:
       return Path.join(installPath, 'Contents', 'SharedSupport', 'bin', 'subl')
     case ExternalEditor.BBEdit:
@@ -97,6 +134,14 @@ function getExecutableShim(
       return Path.join(installPath, 'Contents', 'MacOS', 'rubymine')
     case ExternalEditor.TextMate:
       return Path.join(installPath, 'Contents', 'Resources', 'mate')
+    case ExternalEditor.Brackets:
+      return Path.join(installPath, 'Contents', 'MacOS', 'Brackets')
+    case ExternalEditor.WebStorm:
+      return Path.join(installPath, 'Contents', 'MacOS', 'WebStorm')
+    case ExternalEditor.Typora:
+      return Path.join(installPath, 'Contents', 'MacOS', 'Typora')
+    case ExternalEditor.SlickEdit:
+      return Path.join(installPath, 'Contents', 'MacOS', 'vs')
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -133,6 +178,7 @@ export async function getAvailableEditors(): Promise<
 
   const [
     atomPath,
+    macVimPath,
     codePath,
     codeInsidersPath,
     sublimePath,
@@ -140,8 +186,13 @@ export async function getAvailableEditors(): Promise<
     phpStormPath,
     rubyMinePath,
     textMatePath,
+    bracketsPath,
+    webStormPath,
+    typoraPath,
+    slickeditPath,
   ] = await Promise.all([
     findApplication(ExternalEditor.Atom),
+    findApplication(ExternalEditor.MacVim),
     findApplication(ExternalEditor.VisualStudioCode),
     findApplication(ExternalEditor.VisualStudioCodeInsiders),
     findApplication(ExternalEditor.SublimeText),
@@ -149,10 +200,18 @@ export async function getAvailableEditors(): Promise<
     findApplication(ExternalEditor.PhpStorm),
     findApplication(ExternalEditor.RubyMine),
     findApplication(ExternalEditor.TextMate),
+    findApplication(ExternalEditor.Brackets),
+    findApplication(ExternalEditor.WebStorm),
+    findApplication(ExternalEditor.Typora),
+    findApplication(ExternalEditor.SlickEdit),
   ])
 
   if (atomPath) {
     results.push({ editor: ExternalEditor.Atom, path: atomPath })
+  }
+
+  if (macVimPath) {
+    results.push({ editor: ExternalEditor.MacVim, path: macVimPath })
   }
 
   if (codePath) {
@@ -184,6 +243,22 @@ export async function getAvailableEditors(): Promise<
 
   if (textMatePath) {
     results.push({ editor: ExternalEditor.TextMate, path: textMatePath })
+  }
+
+  if (bracketsPath) {
+    results.push({ editor: ExternalEditor.Brackets, path: bracketsPath })
+  }
+
+  if (webStormPath) {
+    results.push({ editor: ExternalEditor.WebStorm, path: webStormPath })
+  }
+
+  if (typoraPath) {
+    results.push({ editor: ExternalEditor.Typora, path: typoraPath })
+  }
+
+  if (slickeditPath) {
+    results.push({ editor: ExternalEditor.SlickEdit, path: slickeditPath })
   }
 
   return results

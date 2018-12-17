@@ -11,106 +11,278 @@ import {
 
 import { ITokens, IHighlightRequest } from '../lib/highlighter/types'
 
+/**
+ * A mode definition object is used to map a certain file
+ * extension to a mode loader (see the documentation for
+ * the install property).
+ */
+interface IModeDefinition {
+  /**
+   * A function that, when called, will attempt to asynchronously
+   * load the required modules for a particular mode. This function
+   * is idempotent and can be called multiple times with no adverse
+   * effect.
+   */
+  readonly install: () => Promise<void>
+
+  /**
+   * A map between file extensions (including the leading dot, i.e.
+   * ".jpeg") or basenames (i.e. "dockerfile") and the selected mime
+   * type to use when highlighting that extension as specified in
+   * the CodeMirror mode itself.
+   */
+  readonly mappings: {
+    readonly [key: string]: string
+  }
+}
+
+/**
+ * Array describing all currently supported extensionModes and the file extensions
+ * that they cover.
+ */
+const extensionModes: ReadonlyArray<IModeDefinition> = [
+  {
+    install: () => import('codemirror/mode/javascript/javascript'),
+    mappings: {
+      '.ts': 'text/typescript',
+      '.js': 'text/javascript',
+      '.json': 'application/json',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/coffeescript/coffeescript'),
+    mappings: {
+      '.coffee': 'text/x-coffeescript',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/jsx/jsx'),
+    mappings: {
+      '.tsx': 'text/typescript-jsx',
+      '.jsx': 'text/jsx',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/htmlmixed/htmlmixed'),
+    mappings: {
+      '.html': 'text/html',
+      '.htm': 'text/html',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/htmlembedded/htmlembedded'),
+    mappings: {
+      '.jsp': 'application/x-jsp',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/css/css'),
+    mappings: {
+      '.css': 'text/css',
+      '.scss': 'text/x-scss',
+      '.less': 'text/x-less',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/vue/vue'),
+    mappings: {
+      '.vue': 'text/x-vue',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/markdown/markdown'),
+    mappings: {
+      '.markdown': 'text/x-markdown',
+      '.md': 'text/x-markdown',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/yaml/yaml'),
+    mappings: {
+      '.yaml': 'text/yaml',
+      '.yml': 'text/yaml',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/xml/xml'),
+    mappings: {
+      '.xml': 'text/xml',
+      '.xaml': 'text/xml',
+      '.csproj': 'text/xml',
+      '.fsproj': 'text/xml',
+      '.vcxproj': 'text/xml',
+      '.vbproj': 'text/xml',
+      '.svg': 'text/xml',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/clike/clike'),
+    mappings: {
+      '.m': 'text/x-objectivec',
+      '.scala': 'text/x-scala',
+      '.sc': 'text/x-scala',
+      '.cs': 'text/x-csharp',
+      '.cake': 'text/x-csharp',
+      '.java': 'text/x-java',
+      '.c': 'text/x-c',
+      '.h': 'text/x-c',
+      '.cpp': 'text/x-c++src',
+      '.hpp': 'text/x-c++src',
+      '.kt': 'text/x-kotlin',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/mllike/mllike'),
+    mappings: {
+      '.ml': 'text/x-ocaml',
+      '.fs': 'text/x-fsharp',
+      '.fsx': 'text/x-fsharp',
+      '.fsi': 'text/x-fsharp',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/swift/swift'),
+    mappings: {
+      '.swift': 'text/x-swift',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/shell/shell'),
+    mappings: {
+      '.sh': 'text/x-sh',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/sql/sql'),
+    mappings: {
+      '.sql': 'text/x-sql',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/cypher/cypher'),
+    mappings: {
+      '.cql': 'application/x-cypher-query',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/go/go'),
+    mappings: {
+      '.go': 'text/x-go',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/perl/perl'),
+    mappings: {
+      '.pl': 'text/x-perl',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/php/php'),
+    mappings: {
+      '.php': 'application/x-httpd-php',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/python/python'),
+    mappings: {
+      '.py': 'text/x-python',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/ruby/ruby'),
+    mappings: {
+      '.rb': 'text/x-ruby',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/clojure/clojure'),
+    mappings: {
+      '.clj': 'text/x-clojure',
+      '.cljc': 'text/x-clojure',
+      '.cljs': 'text/x-clojure',
+      '.edn': 'text/x-clojure',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/rust/rust'),
+    mappings: {
+      '.rs': 'text/x-rustsrc',
+    },
+  },
+  {
+    install: () => import('codemirror-mode-elixir'),
+    mappings: {
+      '.ex': 'text/x-elixir',
+      '.exs': 'text/x-elixir',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/haxe/haxe'),
+    mappings: {
+      '.hx': 'text/x-haxe',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/r/r'),
+    mappings: {
+      '.r': 'text/x-rsrc',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/powershell/powershell'),
+    mappings: {
+      '.ps1': 'application/x-powershell',
+    },
+  },
+]
+
+/**
+ * A map between file extensions and mime types, see
+ * the 'mappings' property on the IModeDefinition interface
+ * for more information
+ */
 const extensionMIMEMap = new Map<string, string>()
 
-import 'codemirror/mode/javascript/javascript'
-extensionMIMEMap.set('.ts', 'text/typescript')
-extensionMIMEMap.set('.js', 'text/javascript')
-extensionMIMEMap.set('.json', 'application/json')
+/**
+ * Array describing all currently supported basenameModes and the file names
+ * that they cover.
+ */
+const basenameModes: ReadonlyArray<IModeDefinition> = [
+  {
+    install: () => import('codemirror/mode/dockerfile/dockerfile'),
+    mappings: {
+      dockerfile: 'text/x-dockerfile',
+    },
+  },
+]
 
-import 'codemirror/mode/coffeescript/coffeescript'
-extensionMIMEMap.set('.coffee', 'text/x-coffeescript')
+/**
+ * A map between file basenames and mime types, see
+ * the 'basenames' property on the IModeDefinition interface
+ * for more information
+ */
+const basenameMIMEMap = new Map<string, string>()
 
-import 'codemirror/mode/jsx/jsx'
-extensionMIMEMap.set('.tsx', 'text/typescript-jsx')
-extensionMIMEMap.set('.jsx', 'text/jsx')
+/**
+ * A map between mime types and mode definitions. See the
+ * documentation for the IModeDefinition interface
+ * for more information
+ */
+const mimeModeMap = new Map<string, IModeDefinition>()
 
-import 'codemirror/mode/htmlmixed/htmlmixed'
-extensionMIMEMap.set('.html', 'text/html')
-extensionMIMEMap.set('.htm', 'text/html')
+for (const extensionMode of extensionModes) {
+  for (const [mapping, mimeType] of Object.entries(extensionMode.mappings)) {
+    extensionMIMEMap.set(mapping, mimeType)
+    mimeModeMap.set(mimeType, extensionMode)
+  }
+}
 
-import 'codemirror/mode/css/css'
-extensionMIMEMap.set('.css', 'text/css')
-extensionMIMEMap.set('.scss', 'text/x-scss')
-extensionMIMEMap.set('.less', 'text/x-less')
-
-import 'codemirror/mode/vue/vue'
-extensionMIMEMap.set('.vue', 'text/x-vue')
-
-import 'codemirror/mode/markdown/markdown'
-extensionMIMEMap.set('.markdown', 'text/x-markdown')
-extensionMIMEMap.set('.md', 'text/x-markdown')
-
-import 'codemirror/mode/yaml/yaml'
-extensionMIMEMap.set('.yaml', 'text/yaml')
-extensionMIMEMap.set('.yml', 'text/yaml')
-
-import 'codemirror/mode/xml/xml'
-extensionMIMEMap.set('.xml', 'text/xml')
-extensionMIMEMap.set('.xaml', 'text/xml')
-extensionMIMEMap.set('.csproj', 'text/xml')
-extensionMIMEMap.set('.fsproj', 'text/xml')
-extensionMIMEMap.set('.vcxproj', 'text/xml')
-extensionMIMEMap.set('.vbproj', 'text/xml')
-extensionMIMEMap.set('.svg', 'text/xml')
-
-import 'codemirror/mode/clike/clike'
-extensionMIMEMap.set('.m', 'text/x-objectivec')
-extensionMIMEMap.set('.scala', 'text/x-scala')
-extensionMIMEMap.set('.sc', 'text/x-scala')
-extensionMIMEMap.set('.cs', 'text/x-csharp')
-extensionMIMEMap.set('.java', 'text/x-java')
-extensionMIMEMap.set('.c', 'text/x-c')
-extensionMIMEMap.set('.h', 'text/x-c')
-extensionMIMEMap.set('.cpp', 'text/x-c++src')
-extensionMIMEMap.set('.hpp', 'text/x-c++src')
-extensionMIMEMap.set('.kt', 'text/x-kotlin')
-
-import 'codemirror/mode/mllike/mllike'
-extensionMIMEMap.set('.ml', 'text/x-ocaml')
-extensionMIMEMap.set('.fs', 'text/x-fsharp')
-extensionMIMEMap.set('.fsx', 'text/x-fsharp')
-extensionMIMEMap.set('.fsi', 'text/x-fsharp')
-
-import 'codemirror/mode/swift/swift'
-extensionMIMEMap.set('.swift', 'text/x-swift')
-
-import 'codemirror/mode/shell/shell'
-extensionMIMEMap.set('.sh', 'text/x-sh')
-
-import 'codemirror/mode/sql/sql'
-extensionMIMEMap.set('.sql', 'text/x-sql')
-
-import 'codemirror/mode/cypher/cypher'
-extensionMIMEMap.set('.cql', 'application/x-cypher-query')
-
-import 'codemirror/mode/go/go'
-extensionMIMEMap.set('.go', 'text/x-go')
-
-import 'codemirror/mode/perl/perl'
-extensionMIMEMap.set('.pl', 'text/x-perl')
-
-import 'codemirror/mode/php/php'
-extensionMIMEMap.set('.php', 'application/x-httpd-php')
-
-import 'codemirror/mode/python/python'
-extensionMIMEMap.set('.py', 'text/x-python')
-
-import 'codemirror/mode/ruby/ruby'
-extensionMIMEMap.set('.rb', 'text/x-ruby')
-
-import 'codemirror/mode/clojure/clojure'
-extensionMIMEMap.set('.clj', 'text/x-clojure')
-extensionMIMEMap.set('.cljc', 'text/x-clojure')
-extensionMIMEMap.set('.cljs', 'text/x-clojure')
-extensionMIMEMap.set('.edn', 'text/x-clojure')
-
-import 'codemirror/mode/rust/rust'
-extensionMIMEMap.set('.rs', 'text/x-rustsrc')
-
-import 'codemirror-mode-elixir'
-extensionMIMEMap.set('.ex', 'text/x-elixir')
-extensionMIMEMap.set('.exs', 'text/x-elixir')
+for (const basenameMode of basenameModes) {
+  for (const [mapping, mimeType] of Object.entries(basenameMode.mappings)) {
+    basenameMIMEMap.set(mapping, mimeType)
+    mimeModeMap.set(mimeType, basenameMode)
+  }
+}
 
 function guessMimeType(contents: string) {
   if (contents.startsWith('<?xml')) {
@@ -144,13 +316,25 @@ function guessMimeType(contents: string) {
   return null
 }
 
-function detectMode(request: IHighlightRequest): CodeMirror.Mode<{}> | null {
+async function detectMode(
+  request: IHighlightRequest
+): Promise<CodeMirror.Mode<{}> | null> {
   const mimeType =
-    extensionMIMEMap.get(request.extension) || guessMimeType(request.contents)
+    extensionMIMEMap.get(request.extension.toLowerCase()) ||
+    basenameMIMEMap.get(request.basename.toLowerCase()) ||
+    guessMimeType(request.contents)
 
   if (!mimeType) {
     return null
   }
+
+  const modeDefinition = mimeModeMap.get(mimeType)
+
+  if (modeDefinition === undefined) {
+    return null
+  }
+
+  await modeDefinition.install()
 
   return getMode({}, mimeType) || null
 }
@@ -213,14 +397,14 @@ function readToken(
   throw new Error(`Mode ${getModeName(mode)} failed to advance stream.`)
 }
 
-onmessage = (ev: MessageEvent) => {
+onmessage = async (ev: MessageEvent) => {
   const request = ev.data as IHighlightRequest
 
   const tabSize = request.tabSize || 4
   const contents = request.contents
   const addModeClass = request.addModeClass === true
 
-  const mode = detectMode(request)
+  const mode = await detectMode(request)
 
   if (!mode) {
     postMessage({})

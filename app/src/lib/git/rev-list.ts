@@ -1,12 +1,36 @@
 import { GitError } from 'dugite'
 import { git } from './core'
 import { Repository } from '../../models/repository'
-import { Branch, BranchType } from '../../models/branch'
+import { Branch, BranchType, IAheadBehind } from '../../models/branch'
 
-/** The number of commits a revision range is ahead/behind. */
-export interface IAheadBehind {
-  readonly ahead: number
-  readonly behind: number
+/**
+ * Convert two refs into the Git range syntax representing the set of commits
+ * that are reachable from `to` but excluding those that are reachable from
+ * `from`.
+ *
+ * Each parameter can be the commit SHA or a ref name, or specify an empty
+ * string to represent HEAD.
+ *
+ * @param from The start of the range
+ * @param to The end of the range
+ */
+export function revRange(from: string, to: string) {
+  return `${from}..${to}`
+}
+
+/**
+ * Convert two refs into the Git symmetric difference syntax, which represents
+ * the set of commits that are reachable from either `from` or `to` but not
+ * from both.
+ *
+ * Each parameter can be the commit SHA or a ref name, or you can use an empty
+ * string to represent HEAD.
+ *
+ * @param from The start of the range
+ * @param to The end of the range
+ */
+export function revSymmetricDifference(from: string, to: string) {
+  return `${from}...${to}`
 }
 
 /** Calculate the number of commits the range is ahead and behind. */
@@ -64,6 +88,6 @@ export async function getBranchAheadBehind(
   // NB: The three dot form means we'll go all the way back to the merge base
   // of the branch and its upstream. Practically this is important for seeing
   // "through" merges.
-  const range = `${branch.name}...${upstream}`
+  const range = revSymmetricDifference(branch.name, upstream)
   return getAheadBehind(repository, range)
 }

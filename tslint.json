@@ -14,7 +14,7 @@
       "static-before-instance",
       "variables-before-functions"
     ],
-    "no-stateless-class": true,
+    "no-unnecessary-class": true,
     "promise-must-complete": true,
     "react-no-unbound-dispatcher-props": true,
     "react-proper-lifecycle-methods": true,
@@ -37,6 +37,7 @@
         "variable-declaration": "nospace"
       }
     ],
-    "variable-name": [true, "ban-keywords"]
+    "variable-name": [true, "ban-keywords"],
+    "deprecation": true
   }
 }

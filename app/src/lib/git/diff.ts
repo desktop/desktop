@@ -7,7 +7,7 @@ import { Repository } from '../../models/repository'
 import {
   WorkingDirectoryFileChange,
   FileChange,
-  AppFileStatus,
+  AppFileStatusKind,
 } from '../../models/status'
 import {
   DiffType,
@@ -17,53 +17,56 @@ import {
   Image,
   LineEndingsChange,
   parseLineEndingText,
+  ILargeTextDiff,
+  IUnrenderableDiff,
 } from '../../models/diff'
 
 import { spawnAndComplete } from './spawn'
 
 import { DiffParser } from '../diff-parser'
+import { getOldPathOrDefault } from '../get-old-path'
 
 /**
- * V8 has a limit on the size of string it can create, and unless we want to
+ * V8 has a limit on the size of string it can create (~256MB), and unless we want to
  * trigger an unhandled exception we need to do the encoding conversion by hand.
  *
  * This is a hard limit on how big a buffer can be and still be converted into
  * a string.
  */
-const MaxDiffBufferSize = 268435441
+const MaxDiffBufferSize = 70e6 // 70MB in decimal
 
 /**
  * Where `MaxDiffBufferSize` is a hard limit, this is a suggested limit. Diffs
  * bigger than this _could_ be displayed but it might cause some slowness.
  */
-const MaxReasonableDiffSize = 3000000
+const MaxReasonableDiffSize = MaxDiffBufferSize / 16 // ~4.375MB in decimal
 
 /**
  * The longest line length we should try to display. If a diff has a line longer
- * than this, we probably shouldn't attempt it.
+ * than this, we probably shouldn't attempt it
  */
-const MaxLineLength = 500000
+const MaxCharactersPerLine = 5000
 
 /**
  * Utility function to check whether parsing this buffer is going to cause
  * issues at runtime.
  *
- * @param output A buffer of binary text from a spawned process
+ * @param buffer A buffer of binary text from a spawned process
  */
 function isValidBuffer(buffer: Buffer) {
-  return buffer.length < MaxDiffBufferSize
+  return buffer.length <= MaxDiffBufferSize
 }
 
 /** Is the buffer too large for us to reasonably represent? */
 function isBufferTooLarge(buffer: Buffer) {
-  return !isValidBuffer(buffer) || buffer.length >= MaxReasonableDiffSize
+  return buffer.length >= MaxReasonableDiffSize
 }
 
 /** Is the diff too large for us to reasonably represent? */
 function isDiffTooLarge(diff: IRawDiff) {
   for (const hunk of diff.hunks) {
     for (const line of hunk.lines) {
-      if (line.text.length > MaxLineLength) {
+      if (line.text.length > MaxCharactersPerLine) {
         return true
       }
     }
@@ -75,7 +78,15 @@ function isDiffTooLarge(diff: IRawDiff) {
 /**
  *  Defining the list of known extensions we can render inside the app
  */
-const imageFileExtensions = new Set(['.png', '.jpg', '.jpeg', '.gif', '.ico'])
+const imageFileExtensions = new Set([
+  '.png',
+  '.jpg',
+  '.jpeg',
+  '.gif',
+  '.ico',
+  '.webp',
+  '.bmp',
+])
 
 /**
  * Render the difference between a file in the given commit and its parent
@@ -101,8 +112,11 @@ export async function getCommitDiff(
     file.path,
   ]
 
-  if (file.oldPath != null) {
-    args.push(file.oldPath)
+  if (
+    file.status.kind === AppFileStatusKind.Renamed ||
+    file.status.kind === AppFileStatusKind.Copied
+  ) {
+    args.push(file.status.oldPath)
   }
 
   const { output } = await spawnAndComplete(
@@ -110,16 +124,8 @@ export async function getCommitDiff(
     repository.path,
     'getCommitDiff'
   )
-  if (isBufferTooLarge(output)) {
-    return { kind: DiffType.TooLarge, length: output.length }
-  }
 
-  const diffText = diffFromRawDiffOutput(output)
-  if (isDiffTooLarge(diffText)) {
-    return { kind: DiffType.TooLarge, length: output.length }
-  }
-
-  return convertDiff(repository, file, diffText, commitish)
+  return buildDiff(output, repository, file, commitish)
 }
 
 /**
@@ -137,7 +143,7 @@ export async function getWorkingDirectoryDiff(
   // `--no-ext-diff` should be provided wherever we invoke `git diff` so that any
   // diff.external program configured by the user is ignored
 
-  if (file.status === AppFileStatus.New) {
+  if (file.status.kind === AppFileStatusKind.New) {
     // `git diff --no-index` seems to emulate the exit codes from `diff` irrespective of
     // whether you set --exit-code
     //
@@ -160,7 +166,7 @@ export async function getWorkingDirectoryDiff(
       '/dev/null',
       file.path,
     ]
-  } else if (file.status === AppFileStatus.Renamed) {
+  } else if (file.status.kind === AppFileStatusKind.Renamed) {
     // NB: Technically this is incorrect, the best kind of incorrect.
     // In order to show exactly what will end up in the commit we should
     // perform a diff between the new file and the old file as it appears
@@ -196,20 +202,9 @@ export async function getWorkingDirectoryDiff(
     'getWorkingDirectoryDiff',
     successExitCodes
   )
-  if (isBufferTooLarge(output)) {
-    // we know we can't transform this process output into a diff, so let's
-    // just return a placeholder for now that we can display to the user
-    // to say we're at the limits of the runtime
-    return { kind: DiffType.TooLarge, length: output.length }
-  }
-
-  const diffText = diffFromRawDiffOutput(output)
-  if (isDiffTooLarge(diffText)) {
-    return { kind: DiffType.TooLarge, length: output.length }
-  }
-
   const lineEndingsChange = parseLineEndingsWarning(error)
-  return convertDiff(repository, file, diffText, 'HEAD', lineEndingsChange)
+
+  return buildDiff(output, repository, file, 'HEAD', lineEndingsChange)
 }
 
 async function getImageDiff(
@@ -225,39 +220,39 @@ async function getImageDiff(
     // No idea what to do about this, a conflicted binary (presumably) file.
     // Ideally we'd show all three versions and let the user pick but that's
     // a bit out of scope for now.
-    if (file.status === AppFileStatus.Conflicted) {
+    if (file.status.kind === AppFileStatusKind.Conflicted) {
       return { kind: DiffType.Image }
     }
 
     // Does it even exist in the working directory?
-    if (file.status !== AppFileStatus.Deleted) {
+    if (file.status.kind !== AppFileStatusKind.Deleted) {
       current = await getWorkingDirectoryImage(repository, file)
     }
 
-    if (file.status !== AppFileStatus.New) {
+    if (file.status.kind !== AppFileStatusKind.New) {
       // If we have file.oldPath that means it's a rename so we'll
       // look for that file.
       previous = await getBlobImage(
         repository,
-        file.oldPath || file.path,
+        getOldPathOrDefault(file),
         'HEAD'
       )
     }
   } else {
     // File status can't be conflicted for a file in a commit
-    if (file.status !== AppFileStatus.Deleted) {
+    if (file.status.kind !== AppFileStatusKind.Deleted) {
       current = await getBlobImage(repository, file.path, commitish)
     }
 
     // File status can't be conflicted for a file in a commit
-    if (file.status !== AppFileStatus.New) {
+    if (file.status.kind !== AppFileStatusKind.New) {
       // TODO: commitish^ won't work for the first commit
       //
       // If we have file.oldPath that means it's a rename so we'll
       // look for that file.
       previous = await getBlobImage(
         repository,
-        file.oldPath || file.path,
+        getOldPathOrDefault(file),
         `${commitish}^`
       )
     }
@@ -277,9 +272,9 @@ export async function convertDiff(
   commitish: string,
   lineEndingsChange?: LineEndingsChange
 ): Promise<IDiff> {
-  if (diff.isBinary) {
-    const extension = Path.extname(file.path)
+  const extension = Path.extname(file.path).toLowerCase()
 
+  if (diff.isBinary) {
     // some extension we don't know how to parse, never mind
     if (!imageFileExtensions.has(extension)) {
       return {
@@ -313,6 +308,12 @@ function getMediaType(extension: string) {
   }
   if (extension === '.ico') {
     return 'image/x-icon'
+  }
+  if (extension === '.webp') {
+    return 'image/webp'
+  }
+  if (extension === '.bmp') {
+    return 'image/bmp'
   }
 
   // fallback value as per the spec
@@ -365,6 +366,37 @@ function diffFromRawDiffOutput(output: Buffer): IRawDiff {
   return parser.parse(pieces[pieces.length - 1])
 }
 
+function buildDiff(
+  buffer: Buffer,
+  repository: Repository,
+  file: FileChange,
+  commitish: string,
+  lineEndingsChange?: LineEndingsChange
+): Promise<IDiff> {
+  if (!isValidBuffer(buffer)) {
+    // the buffer's diff is too large to be renderable in the UI
+    return Promise.resolve<IUnrenderableDiff>({ kind: DiffType.Unrenderable })
+  }
+
+  const diff = diffFromRawDiffOutput(buffer)
+
+  if (isBufferTooLarge(buffer) || isDiffTooLarge(diff)) {
+    // we don't want to render by default
+    // but we keep it as an option by
+    // passing in text and hunks
+    const largeTextDiff: ILargeTextDiff = {
+      kind: DiffType.LargeText,
+      text: diff.contents,
+      hunks: diff.hunks,
+      lineEndingsChange,
+    }
+
+    return Promise.resolve(largeTextDiff)
+  }
+
+  return convertDiff(repository, file, diff, commitish, lineEndingsChange)
+}
+
 /**
  * Retrieve the binary contents of a blob from the object database
  *
@@ -381,11 +413,11 @@ export async function getBlobImage(
 ): Promise<Image> {
   const extension = Path.extname(path)
   const contents = await getBlobContents(repository, commitish, path)
-  const diff: Image = {
-    contents: contents.toString('base64'),
-    mediaType: getMediaType(extension),
-  }
-  return diff
+  return new Image(
+    contents.toString('base64'),
+    getMediaType(extension),
+    contents.length
+  )
 }
 /**
  * Retrieve the binary contents of a blob from the working directory
@@ -403,9 +435,9 @@ export async function getWorkingDirectoryImage(
   const contents = await fileSystem.readFile(
     Path.join(repository.path, file.path)
   )
-  const diff: Image = {
-    contents: contents.toString('base64'),
-    mediaType: getMediaType(Path.extname(file.path)),
-  }
-  return diff
+  return new Image(
+    contents.toString('base64'),
+    getMediaType(Path.extname(file.path)),
+    contents.length
+  )
 }

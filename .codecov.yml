@@ -1,0 +1,35 @@
+coverage:
+  precision: 1
+  round: nearest
+  # thresholds for red to green color coding
+  range: '10...80'
+
+  status:
+    project:
+      lib-git:
+        target: auto
+        threshold: 5%
+        base: pr
+        paths: 'app/src/lib/git'
+      lib-app:
+        target: auto
+        threshold: 5%
+        base: pr
+        paths:
+          - 'app/src/lib/stores'
+          - 'app/src/lib/dispatcher'
+          - 'app/src/lib/databases'
+      models:
+        target: auto
+        threshold: 5%
+        base: pr
+        paths: 'app/src/models'
+      ui-components:
+        target: auto
+        threshold: 5%
+        base: pr
+        paths: 'app/src/ui'
+    patch: no
+    changes: no
+
+comment: off

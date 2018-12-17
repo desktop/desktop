@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { ICommonImageDiffProperties } from './modified-image-diff'
-import { DiffImage } from './diff-image'
+import { ImageContainer } from './image-container'
 
 interface IOnionSkinState {
   readonly crossfade: number
@@ -32,7 +32,7 @@ export class OnionSkin extends React.Component<
         <div className="sizing-container" ref={this.props.onContainerRef}>
           <div className="image-container" style={style}>
             <div className="image-diff-previous" style={style}>
-              <DiffImage
+              <ImageContainer
                 image={this.props.previous}
                 onElementLoad={this.props.onPreviousImageLoad}
                 style={maxSize}
@@ -46,7 +46,7 @@ export class OnionSkin extends React.Component<
                 opacity: this.state.crossfade,
               }}
             >
-              <DiffImage
+              <ImageContainer
                 image={this.props.current}
                 onElementLoad={this.props.onCurrentImageLoad}
                 style={maxSize}

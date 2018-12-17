@@ -1,7 +1,11 @@
 @import '../mixins';
 @import 'dialogs/merge';
+@import 'dialogs/merge-conflicts';
+@import 'dialogs/abort-merge';
 @import 'dialogs/publish-repository';
 @import 'dialogs/repository-settings';
+@import 'dialogs/release-notes';
+@import 'dialogs/usage-reporting';
 
 // The styles herein attempt to follow a flow where margins are only applied
 // to the bottom of elements (with the exception of the last child). This to
@@ -53,7 +57,7 @@ dialog {
       transition: transform 250ms var(--easing-ease-out-back);
 
       &::backdrop {
-        opacity: 0.4;
+        opacity: 1;
         transition: opacity 100ms ease-in;
       }
     }
@@ -64,15 +68,14 @@ dialog {
       pointer-events: none;
 
       &::backdrop {
-        opacity: 0.4;
+        opacity: 1;
       }
     }
 
     &-leave-active {
       opacity: 0.01;
       transform: scale(0.25);
-      transition: opacity 100ms ease-in,
-        transform 100ms var(--easing-ease-in-back);
+      transition: opacity 100ms ease-in, transform 100ms var(--easing-ease-in-back);
 
       &::backdrop {
         opacity: 0.01;
@@ -82,8 +85,8 @@ dialog {
   }
 
   &::backdrop {
-    background: #000;
-    opacity: 0.4;
+    background: var(--overlay-background-color);
+    opacity: 1;
   }
 
   // The dialog embeds a fieldset as the first child of the form element
@@ -153,6 +156,7 @@ dialog {
         outline: 0;
       }
     }
+    @include close-button;
   }
 
   &.warning,
@@ -168,10 +172,7 @@ dialog {
       // Ensure that the dialog contents always have room for the icon,
       // account for two double spacers at top and bottom plus the 5px
       // icon offset (margin-top) and the size of the icon itself.
-      min-height: calc(
-        var(--spacing-double) * 2 + var(--spacing-half) +
-          var(--dialog-icon-size)
-      );
+      min-height: calc(var(--spacing-double) * 2 + var(--spacing-half) + var(--dialog-icon-size));
 
       // We're creating an opaque 24 by 24px div with the background color
       // that we want the icon to appear in and then apply the icon path
@@ -370,6 +371,10 @@ dialog {
     .what-is-this-row {
       font-size: var(--font-size-sm);
       justify-content: flex-end;
+    }
+
+    .forgot-password-link-sign-in {
+      margin-left: auto;
     }
   }
 

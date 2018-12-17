@@ -1,9 +1,646 @@
 {
   "releases": {
+    "1.5.1-beta4": [
+      "[Improved] Display warning if existing readme file will be overwritten - #6338. Thanks @Daniel-McCarthy!",
+      "[Improved] Add check for attempts to commit >100 MB files without Git LFS - #997. Thanks @Daniel-McCarthy!",
+      "[Improved] Merge conflicts dialog visual updates - #6377"
+    ],
+    "1.5.1-beta3": [
+      "[Improved] Maintains state on tabs for different methods of cloning repositories - #5937"
+    ],
+    "1.5.1-beta2": [
+      "[Improved] Clarified internal documentation - #6348. Thanks @bblarney!"
+    ],
+    "1.5.1-beta1": [
+      "[Added] Provide keyboard shortcut for getting to commit summary field - #1719. Thanks @bruncun!",
+      "[Added] Add hover states on list items and tabs - #6310",
+      "[Added] Add Dockerfile syntax highlighting - #4533. Thanks @say25!",
+      "[Added] Support Visual SlickEdit as an external editor - #6029. Thanks @texasaggie97!",
+      "[Improved] Allow toggling between diff modes - #6231. Thanks @06b!",
+      "[Improved] Show focus around full input field - #6234. Thanks @seokju-na!",
+      "[Improved] Make lists scroll to bring selected items into view - #6279",
+      "[Fixed] Allow repositories to be cloned to empty folders - #5857. Thanks @Daniel-McCarthy!",
+      "[Fixed] Prevent creating branch with detached HEAD from reverting to default branch - #6085",
+      "[Fixed] Fix 'Open In External Editor' for Atom/VS Code on Windows when paths contain spaces - #6181. Thanks @msftrncs!",
+      "[Fixed] Persist Branch List and Pull Request List filter text - #6002. Thanks @Daniel-McCarthy!",
+      "[Fixed] Retain renamed branches position in recent branches list - #6155. Thanks @gnehcc!",
+      "[Fixed] Prevent avatar duplication when user is co-author and committer - #6135. Thanks @bblarney!",
+      "[Fixed] Provide keyboard selection for the ‘Clone a Repository’ dialog - #3596. Thanks @a-golovanov!",
+      "[Fixed] Close License & Open Source Notices dialog upon pressing \"Enter\" in dialog - #6137. Thanks @bblarney!",
+      "[Fixed] Dismiss \"Merge into Branch\" dialog with escape key - #6154. Thanks @altaf933!",
+      "[Fixed] Focus branch selector when comparing to branch from menu - #5600",
+      "[Fixed] Reverse fold/unfold icons for expand/collapse commit summary - #6196. Thanks @HazemAM!"
+    ],
+    "1.5.1-beta0": [
+    ],
+    "1.5.0": [
+      "[New] Clone, create, or add repositories right from the repository dropdown - #5878",
+      "[New] Drag-and-drop to add local repositories from macOS tray icon - #5048",
+      "[Added] Resolve merge conflicts through a guided flow - #5400",
+      "[Added] Allow merging branches directly from branch dropdown - #5929. Thanks @bruncun!",
+      "[Added] Commit file list now has \"Copy File Path\" context menu action - #2944. Thanks @Amabel!",
+      "[Added] Keyboard shortcut for \"Rename Branch\" menu item - #5964. Thanks @agisilaos!",
+      "[Added] Notify users when a merge is successfully completed - #5851",
+      "[Fixed] \"Compare on GitHub\" menu item enabled when no repository is selected - #6078",
+      "[Fixed] Diff viewer blocks keyboard navigation using reverse tab order - #2794",
+      "[Fixed] Launching Desktop from browser always asks to clone repository - #5913",
+      "[Fixed] Publish dialog displayed on push when repository is already published - #5936",
+      "[Improved] \"Publish Repository\" dialog handles emoji characters - #5980. Thanks @WaleedAshraf!",
+      "[Improved] Avoid repository checks when no path is specified in \"Create Repository\" dialog - #5828. Thanks @JakeHL!",
+      "[Improved] Clarify the direction of merging branches - #5930. Thanks @JQuinnie!",
+      "[Improved] Default commit summary more explanatory and consistent with GitHub.com - #6017. Thanks @Daniel-McCarthy!",
+      "[Improved] Display a more informative message on merge dialog when branch is up to date - #5890",
+      "[Improved] Getting a repository's status only blocks other operations when absolutely necessary - #5952",
+      "[Improved] Display current branch in header of merge dialog - #6027",
+      "[Improved] Sanitize repository name before publishing to GitHub - #3090. Thanks @Daniel-McCarthy!",
+      "[Improved] Show the branch name in \"Update From Default Branch\" menu item - #3018. Thanks @a-golovanov!",
+      "[Improved] Update license and .gitignore templates for initializing a new repository - #6024. Thanks @say25!"
+    ],
+    "1.5.0-beta5": [
+    ],
+    "1.5.0-beta4": [
+      "[Fixed] \"Compare on GitHub\" menu item enabled when no repository is selected - #6078",
+      "[Fixed] Diff viewer blocks keyboard navigation using reverse tab order - #2794",
+      "[Improved] \"Publish Repository\" dialog handles emoji characters - #5980. Thanks @WaleedAshraf!"
+    ],
+    "1.5.0-beta3": [
+    ],
+    "1.5.0-beta2": [
+      "[Added] Resolve merge conflicts through a guided flow - #5400",
+      "[Added] Notify users when a merge is successfully completed - #5851",
+      "[Added] Allow merging branches directly from branch dropdown - #5929. Thanks @bruncun!",
+      "[Improved] Merge dialog displays current branch in header - #6027",
+      "[Improved] Clarify the direction of merging branches - #5930. Thanks @JQuinnie!",
+      "[Improved] Show the branch name in \"Update From Default Branch\" menu item - #3018. Thanks @a-golovanov!",
+      "[Improved] Default commit summary more explanatory and consistent with GitHub.com - #6017. Thanks @Daniel-McCarthy!",
+      "[Improved] Updated license and .gitignore templates for initializing a new repository - #6024. Thanks @say25!"
+    ],
+    "1.5.0-beta1": [
+      "[New] Repository switcher has a convenient \"Add\" button to add other repositories - #5878",
+      "[New] macOS tray icon now supports drag-and-drop to add local repositories - #5048",
+      "[Added] Keyboard shortcut for \"Rename Branch\" menu item - #5964. Thanks @agisilaos!",
+      "[Added] Commit file list now has \"Copy File Path\" context menu action - #2944. Thanks @Amabel!",
+      "[Fixed] Launching Desktop from browser always asks to clone repository - #5913",
+      "[Fixed] Publish dialog displayed on push when repository is already published - #5936",
+      "[Improved] Sanitize repository name before publishing to GitHub - #3090. Thanks @Daniel-McCarthy!",
+      "[Improved] Getting a repository's status only blocks other operations when absolutely necessary - #5952",
+      "[Improved] Avoid repository checks when no path is specified in \"Create Repository\" dialog - #5828. Thanks @JakeHL!",
+      "[Improved] Display a more informative message on merge dialog when branch is up to date - #5890"
+    ],
+    "1.4.4-beta0": [
+    ],
+    "1.4.3": [
+      "[Added] Add \"Remove Repository\" keyboard shortcut - #5848. Thanks @say25!",
+      "[Added] Add keyboard shortcut to delete a branch - #5018. Thanks @JakeHL!",
+      "[Fixed] Emoji autocomplete not rendering in some situations - #5859",
+      "[Fixed] Release notes text overflowing dialog box - #5854. Thanks @amarsiingh!",
+      "[Improved] Support Python 3 in Desktop CLI on macOS - #5843. Thanks @munir131!",
+      "[Improved] Avoid unnecessarily reloading commit history - #5470",
+      "[Improved] Publish Branch dialog will publish commits when pressing Enter - #5777. Thanks @JKirkYuan!"
+    ],
+    "1.4.3-beta2": [
+      "[Added] Added keyboard shortcut to delete a branch - #5018. Thanks @JakeHL!",
+      "[Fixed] Fix release notes text overflowing dialog box - #5854. Thanks @amarsiingh!",
+      "[Improved] Avoid unnecessarily reloading commit history - #5470"
+    ],
+    "1.4.3-beta1": [
+      "[Added] Add \"Remove Repository\" keyboard shortcut - #5848. Thanks @say25!",
+      "[Fixed] Fix emoji autocomplete not rendering in some situations - #5859",
+      "[Fixed] Support Python 3 in Desktop CLI on macOS - #5843. Thanks @munir131!",
+      "[Improved] Publish Branch dialog will publish commits when pressing Enter - #5777. Thanks @JKirkYuan!"
+    ],
+    "1.4.3-beta0": [
+    ],
+    "1.4.2": [
+      "[New] Show resolved conflicts as resolved in Changes pane - #5609",
+      "[Added] Add Terminator, MATE Terminal, and Terminology shells - #5753. Thanks @joaomlneto!",
+      "[Fixed] Update embedded Git to version 2.19.1 for security vulnerability fix",
+      "[Fixed] Always show commit history list when History tab is clicked - #5783. Thanks @JKirkYuan!",
+      "[Fixed] Stop overriding the protocol of a detected GitHub repository - #5721",
+      "[Fixed] Update sign in error message - #5766. Thanks @tiagodenoronha!",
+      "[Fixed] Correct overflowing T&C and License Notices dialogs - #5756. Thanks @amarsiingh!",
+      "[Improved] Add default commit message for single-file commits - #5240. Thanks @lean257!",
+      "[Improved] Refresh commit list faster after reverting commit via UI - #5752",
+      "[Improved] Add repository path to Remove repository dialog - #5805. Thanks @NickCraver!",
+      "[Improved] Display whether user entered incorrect username or email address - #5775. Thanks @tiagodenoronha!",
+      "[Improved] Update Discard Changes dialog text when discarding all changes - #5744. Thanks @Daniel-McCarthy!"
+    ],
+    "1.4.2-beta0": [
+    ],
+    "1.4.1-test2": [
+      "Testing changes to how Desktop performs CI platform checks"
+    ],
+    "1.4.1-test1": [
+      "Testing changes to how Desktop performs CI platform checks"
+    ],
+    "1.4.1": [
+      "[Added] Support for opening repository in Cygwin terminal - #5654. Thanks @LordOfTheThunder!",
+      "[Fixed] 'Compare to Branch' menu item not disabled when modal is open - #5673. Thanks @kanishk98!",
+      "[Fixed] Co-author form does not show/hide for newly-added repository - #5490",
+      "[Fixed] Desktop command line always suffixes `.git` to URL when starting a clone - #5529. Thanks @j-f1!",
+      "[Fixed] Dialog styling issue for dark theme users on Windows - #5629. Thanks @cwongmath!",
+      "[Fixed] No message shown when filter returns no results in Clone Repository view - #5637. Thanks @DanielHix!",
+      "[Improved] Branch names cannot start with a '+' character - #5594. Thanks @Daniel-McCarthy!",
+      "[Improved] Clone dialog re-runs filesystem check when re-focusing on Desktop - #5518. Thanks @Daniel-McCarthy!",
+      "[Improved] Commit disabled when commit summary is only spaces - #5677. Thanks @Daniel-McCarthy!",
+      "[Improved] Commit summary expander sometimes shown when not needed - #5700. Thanks @aryyya!",
+      "[Improved] Error handling when looking for merge base of a missing ref - #5612",
+      "[Improved] Warning if branch exists on remote when creating branch - #5141. Thanks @Daniel-McCarthy!"
+    ],
+    "1.4.1-beta1": [
+      "[Added] Support for opening repository in Cygwin terminal - #5654. Thanks @LordOfTheThunder!",
+      "[Fixed] 'Compare to Branch' menu item not disabled when modal is open - #5673. Thanks @kanishk98!",
+      "[Fixed] No message shown when filter returns no results in Clone Repository view - #5637. Thanks @DanielHix!",
+      "[Fixed] Co-author form does not show/hide for newly-added repository - #5490",
+      "[Fixed] Dialog styling issue for dark theme users on Windows - #5629. Thanks @cwongmath!",
+      "[Fixed] Desktop command line always suffixes `.git` to URL when starting a clone - #5529. Thanks @j-f1!",
+      "[Improved] Commit summary expander sometimes shown when not needed - #5700. Thanks @aryyya!",
+      "[Improved] Commit disabled when commit summary is only spaces - #5677. Thanks @Daniel-McCarthy!",
+      "[Improved] Error handling when looking for merge base of a missing ref - #5612",
+      "[Improved] Clone dialog re-runs filesystem check when re-focusing on Desktop - #5518. Thanks @Daniel-McCarthy!",
+      "[Improved] Branch names cannot start with a '+' character - #5594. Thanks @Daniel-McCarthy!",
+      "[Improved] Warning if branch exists on remote when creating branch - #5141. Thanks @Daniel-McCarthy!"
+    ],
+    "1.4.1-beta0": [
+    ],
+    "1.4.0": [
+      "[New] When an update is available for GitHub Desktop, release notes can be viewed in Desktop - #2774",
+      "[New] Detect merge conflicts when comparing branches - #4588",
+      "[Fixed] Avoid double checkout warning when opening a pull request in Desktop - #5375",
+      "[Fixed] Error when publishing repository is now associated with the right tab - #5422. Thanks @Daniel-McCarthy!",
+      "[Fixed] Disable affected menu items when on detached HEAD - #5500. Thanks @say25!",
+      "[Fixed] Show border when commit description is expanded - #5506. Thanks @aryyya!",
+      "[Fixed] GitLab URL which corresponds to GitHub repository of same name cloned GitHub repository - #4154",
+      "[Fixed] Caret in co-author selector is hidden when dark theme enabled - #5589",
+      "[Fixed] Authenticating to GitHub Enterprise fails when user has no emails defined - #5585",
+      "[Improved] Avoid multiple lookups of default remote - #5399"
+    ],
+    "1.4.0-beta3": [
+      "[New] When an update is available for GitHub Desktop, the release notes can be viewed in Desktop - #2774",
+      "[New] Detect merge conflicts when comparing branches - #4588",
+      "[Fixed] Avoid double checkout warning when opening a pull request in Desktop - #5375",
+      "[Fixed] Error when publishing repository is now associated with the right tab - #5422. Thanks @Daniel-McCarthy!",
+      "[Fixed] Disable affected menu items when on detached HEAD - #5500. Thanks @say25!",
+      "[Fixed] Show border when commit description is expanded - #5506. Thanks @aryyya!",
+      "[Fixed] GitLab URL which corresponds to GitHub repository of same name cloned GitHub repository - #4154",
+      "[Improved] Avoid multiple lookups of default remote - #5399",
+      "[Improved] Skip optional locks when checking status of repository - #5376"
+    ],
+    "1.4.0-beta2": [
+      "[New] When an update is available for GitHub Desktop, the release notes can be viewed in Desktop - #2774",
+      "[New] Detect merge conflicts when comparing branches - #4588",
+      "[Fixed] Avoid double checkout warning when opening a pull request in Desktop - #5375",
+      "[Fixed] Error when publishing repository is now associated with the right tab - #5422. Thanks @Daniel-McCarthy!",
+      "[Fixed] Disable affected menu items when on detached HEAD - #5500. Thanks @say25!",
+      "[Fixed] Show border when commit description is expanded - #5506. Thanks @aryyya!",
+      "[Fixed] GitLab URL which corresponds to GitHub repository of same name cloned GitHub repository - #4154",
+      "[Improved] Avoid multiple lookups of default remote - #5399",
+      "[Improved] Skip optional locks when checking status of repository - #5376"
+    ],
+    "1.4.0-beta1": [
+      "[New] When an update is available for GitHub Desktop, the release notes can be viewed in Desktop - #2774",
+      "[New] Detect merge conflicts when comparing branches - #4588",
+      "[Fixed] Avoid double checkout warning when opening a pull request in Desktop - #5375",
+      "[Fixed] Error when publishing repository is now associated with the right tab - #5422. Thanks @Daniel-McCarthy!",
+      "[Fixed] Disable affected menu items when on detached HEAD - #5500. Thanks @say25!",
+      "[Fixed] Show border when commit description is expanded - #5506. Thanks @aryyya!",
+      "[Fixed] GitLab URL which corresponds to GitHub repository of same name cloned GitHub repository - #4154",
+      "[Improved] Avoid multiple lookups of default remote - #5399",
+      "[Improved] Skip optional locks when checking status of repository - #5376"
+    ],
+    "1.4.0-beta0": [
+    ],
+    "1.3.5": [
+      "[Fixed] Disable delete button while deleting a branch - #5331",
+      "[Fixed] History now avoids calling log.showSignature if set in config - #5466",
+      "[Fixed] Start blocking the ability to add local bare repositories - #4293. Thanks @Daniel-McCarthy!",
+      "[Fixed] Revert workaround for tooltip issue on Windows - #3362. Thanks @divayprakash!",
+      "[Improved] Error message when publishing to missing organisation - #5380. Thanks @Daniel-McCarthy!",
+      "[Improved] Don't hide commit details when commit description is expanded. - #5471. Thanks @aryyya!"
+    ],
+    "1.3.5-beta1": [
+      "[Fixed] Disable delete button while deleting a branch - #5331",
+      "[Fixed] History now avoids calling log.showSignature if set in config - #5466",
+      "[Fixed] Start blocking the ability to add local bare repositories - #4293. Thanks @Daniel-McCarthy!",
+      "[Fixed] Revert workaround for tooltip issue on Windows - #3362. Thanks @divayprakash!",
+      "[Improved] Error message when publishing to missing organisation - #5380. Thanks @Daniel-McCarthy!",
+      "[Improved] Don't hide commit details when commit summary description is expanded. - #5471. Thanks @aryyya!"
+    ],
+    "1.3.5-beta0": [
+    ],
+    "1.3.4": [
+      "[Improved] Cloning message uses remote repo name not file destination - #5413. Thanks @lisavogtsf!",
+      "[Improved] Support VSCode user scope installation - #5281. Thanks @saschanaz!"
+    ],
+    "1.3.4-beta1": [
+      "[Improved] Cloning message uses remote repo name not file destination - #5413. Thanks @lisavogtsf!",
+      "[Improved] Support VSCode user scope installation - #5281. Thanks @saschanaz!"
+    ],
+    "1.3.4-beta0": [
+    ],
+    "1.3.3": [
+      "[Fixed] Maximize and restore app on Windows does not fill available space - #5033",
+      "[Fixed] 'Clone repository' menu item label is obscured on Windows - #5348. Thanks @Daniel-McCarthy!",
+      "[Fixed] User can toggle files when commit is in progress - #5341. Thanks @masungwon!",
+      "[Improved] Repository indicator background work - #5317 #5326 #5363 #5241 #5320"
+    ],
+    "1.3.3-beta1": [
+      "[Fixed] Maximize and restore app on Windows does not fill available space - #5033",
+      "[Fixed] 'Clone repository' menu item label is obscured on Windows - #5348. Thanks @Daniel-McCarthy!",
+      "[Fixed] User can toggle files when commit is in progress - #5341. Thanks @masungwon!",
+      "[Improved] Repository indicator background work - #5317 #5326 #5363 #5241 #5320"
+    ],
+    "1.3.3-test6": [
+      "Testing infrastructure changes"
+    ],
+    "1.3.3-test5": [
+      "Testing the new CircleCI config changes"
+    ],
+    "1.3.3-test4": [
+      "Testing the new CircleCI config changes"
+    ],
+    "1.3.3-test3": [
+      "Testing the new CircleCI config changes"
+    ],
+    "1.3.3-test2": [
+      "Testing the new CircleCI config changes"
+    ],
+    "1.3.3-test1": [
+      "Testing the new CircleCI config changes"
+    ],
+    "1.3.2": [
+      "[Fixed] Bugfix for background checks not being aware of missing repositories - #5282",
+      "[Fixed] Check the local state of a repository before performing Git operations - #5289",
+      "[Fixed] Switch to history view for default branch when deleting current branch during a compare - #5256",
+      "[Fixed] Handle missing .git directory inside a tracked repository - #5291"
+    ],
+    "1.3.2-beta1": [
+      "[Fixed] Bugfix for background checks not being aware of missing repositories - #5282",
+      "[Fixed] Check the local state of a repository before performing Git operations - #5289",
+      "[Fixed] Switch to history view for default branch when deleting current branch during a compare - #5256",
+      "[Fixed] Handle missing .git directory inside a tracked repository - #5291"
+    ],
+    "1.3.1": [
+      "[Fixed] Background Git operations on missing repositories are not handled as expected - #5282"
+    ],
+    "1.3.1-beta1": [
+      "[Fixed] Background Git operations on missing repositories are not handled as expected - #5282"
+    ],
+    "1.3.1-beta0": [
+      "[New] Notification displayed in History tab when the base branch moves ahead of the current branch - #4768",
+      "[New] Repository list displays uncommitted changes indicator and ahead/behind information - #2259 #5095",
+      "[Added] Option to move repository to trash when removing from app - #2108. Thanks @say25!",
+      "[Added] Syntax highlighting for PowerShell files - #5081. Thanks @say25!",
+      "[Fixed] \"Discard Changes\" context menu discards correct file when entry is not part of selected group - #4788",
+      "[Fixed] Display local path of selected repository as tooltip - #4922. Thanks @yongdamsh!",
+      "[Fixed] Display root directory name when repository is located at drive root - #4924",
+      "[Fixed] Handle legacy macOS right click gesture - #4942",
+      "[Fixed] History omits latest commit from list - #5243",
+      "[Fixed] Markdown header elements hard to read in dark mode - #5133. Thanks @agisilaos!",
+      "[Fixed] Only perform ahead/behind comparisons when branch selector is open - #5142",
+      "[Fixed] Relax checks for merge commits for GitHub Enterprise repositories - #4329",
+      "[Fixed] Render clickable link in \"squash and merge\" commit message - #5203. Thanks @1pete!",
+      "[Fixed] Return key disabled when no matches found in Compare branch list - #4458",
+      "[Fixed] Selected commit not remembered when switching between History and Changes tabs - #4985",
+      "[Fixed] Selected commit when comparing is reset to latest when Desktop regains focus - #5069",
+      "[Fixed] Support default branch detection for non-GitHub repositories - #4937",
+      "[Improved] Change primary button color to blue for dark theme - #5074",
+      "[Improved] Diff gutter elements should be considered button elements when interacting - #5158",
+      "[Improved] Status parsing significantly more performant when handling thousands of changed files - #2449 #5186"
+    ],
+    "1.3.0": [
+      "[New] Notification displayed in History tab when the base branch moves ahead of the current branch - #4768",
+      "[New] Repository list displays uncommitted changes indicator and ahead/behind information - #2259 #5095",
+      "[Added] Option to move repository to trash when removing from app - #2108. Thanks @say25!",
+      "[Added] Syntax highlighting for PowerShell files - #5081. Thanks @say25!",
+      "[Fixed] \"Discard Changes\" context menu discards correct file when entry is not part of selected group - #4788",
+      "[Fixed] Display local path of selected repository as tooltip - #4922. Thanks @yongdamsh!",
+      "[Fixed] Display root directory name when repository is located at drive root - #4924",
+      "[Fixed] Handle legacy macOS right click gesture - #4942",
+      "[Fixed] History omits latest commit from list - #5243",
+      "[Fixed] Markdown header elements hard to read in dark mode - #5133. Thanks @agisilaos!",
+      "[Fixed] Only perform ahead/behind comparisons when branch selector is open - #5142",
+      "[Fixed] Relax checks for merge commits for GitHub Enterprise repositories - #4329",
+      "[Fixed] Render clickable link in \"squash and merge\" commit message - #5203. Thanks @1pete!",
+      "[Fixed] Return key disabled when no matches found in Compare branch list - #4458",
+      "[Fixed] Selected commit not remembered when switching between History and Changes tabs - #4985",
+      "[Fixed] Selected commit when comparing is reset to latest when Desktop regains focus - #5069",
+      "[Fixed] Support default branch detection for non-GitHub repositories - #4937",
+      "[Improved] Change primary button color to blue for dark theme - #5074",
+      "[Improved] Diff gutter elements should be considered button elements when interacting - #5158",
+      "[Improved] Status parsing significantly more performant when handling thousands of changed files - #2449 #5186"
+    ],
+    "1.3.0-beta7": [
+
+    ],
+    "1.3.0-beta6": [
+
+    ],
+    "1.3.0-beta5": [
+      "[Fixed] Ensure commit message is cleared after successful commit - #4046",
+      "[Fixed] History omits latest commit from list - #5243"
+    ],
+    "1.3.0-beta4": [
+      "[Fixed] Only perform ahead/behind comparisons when branch selector is open - #5142",
+      "[Fixed] Render clickable link in \"squash and merge\" commit message - #5203. Thanks @1pete!",
+      "[Fixed] Selected commit not remembered when switching between History and Changes tabs - #4985",
+      "[Fixed] Selected commit when comparing is reset to latest when Desktop regains focus - #5069"
+    ],
+    "1.3.0-beta3": [
+      "[Fixed] \"Discard Changes\" context menu discards correct file when entry is not part of selected group - #4788",
+      "[Fixed] Return key disabled when no matches found in Compare branch list - #4458",
+      "[Improved] Status parsing significantly more performant when handling thousands of changed files - #2449 #5186"
+    ],
+    "1.3.0-beta2": [
+      "[Added] Option to move repository to trash when removing from app - #2108. Thanks @say25!",
+      "[Fixed] Markdown header elements hard to read in dark mode - #5133. Thanks @agisilaos!",
+      "[Improved] Diff gutter elements should be considered button elements when interacting - #5158"
+    ],
+    "1.2.7-test3": [
+      "Test deployment for electron version bump."
+    ],
+    "1.3.0-beta1": [
+      "[New] Notification displayed in History tab when the base branch moves ahead of the current branch - #4768",
+      "[New] Repository list displays uncommitted changes count and ahead/behind information - #2259",
+      "[Added] Syntax highlighting for PowerShell files- #5081. Thanks @say25!",
+      "[Fixed] Display something when repository is located at drive root - #4924",
+      "[Fixed] Relax checks for merge commits for GitHub Enterprise repositories - #4329",
+      "[Fixed] Display local path of selected repository as tooltip - #4922. Thanks @yongdamsh!",
+      "[Fixed] Support default branch detection for non-GitHub repositories - #4937",
+      "[Fixed] Handle legacy macOS right click gesture - #4942",
+      "[Improved] Repository list badge style tweaks and tweaks for dark theme - #5095",
+      "[Improved] Change primary button color to blue for dark theme - #5074"
+    ],
+    "1.2.7-test2": [
+      "Test deployment for electron version bump."
+    ],
+    "1.2.7-test1": [
+      "Sanity check deployment for refactored scripts"
+    ],
+    "1.2.7-beta0": [
+      "[Fixed] Visual indicator for upcoming feature should not be shown - #5026"
+    ],
+    "1.2.6": [
+      "[Fixed] Visual indicator for upcoming feature should not be shown - #5026"
+    ],
+    "1.2.6-beta0": [
+      "[Fixed] Feature flag for upcoming feature not applied correctly - #5024"
+    ],
+    "1.2.5": [
+      "[Fixed] Feature flag for upcoming feature not applied correctly - #5024"
+    ],
+    "1.2.4": [
+      "[New] Dark Theme preview - #4849",
+      "[Added] Syntax highlighting for Cake files - #4935. Thanks @say25!",
+      "[Added] WebStorm support for macOS - #4841. Thanks @mrsimonfletcher!",
+      "[Fixed] Compare tab appends older commits when scrolling to bottom of list - #4964",
+      "[Fixed] Remove temporary directory after Git LFS operation completes - #4414",
+      "[Fixed] Unable to compare when two branches exist - #4947 #4730",
+      "[Fixed] Unhandled errors when refreshing pull requests fails - #4844 #4866",
+      "[Improved] Remove context menu needs to hint if a dialog will be shown - #4975",
+      "[Improved] Upgrade embedded Git LFS - #4602 #4745",
+      "[Improved] Update banner message clarifies that only Desktop needs to be restarted - #4891. Thanks @KennethSweezy!",
+      "[Improved] Discard Changes context menu entry should contain ellipses when user needs to confirm - #4846. Thanks @yongdamsh!",
+      "[Improved] Initializing syntax highlighting components - #4764",
+      "[Improved] Only show overflow shadow when description overflows - #4898",
+      "[Improved] Changes tab displays number of changed files instead of dot - #4772. Thanks @yongdamsh!"
+    ],
+    "1.2.4-beta5": [
+
+    ],
+    "1.2.4-beta4": [
+      "[Fixed] Compare tab appends older commits when scrolling to bottom of list - #4964",
+      "[Fixed] Remove temporary directory after Git LFS operation completes - #4414",
+      "[Improved] Remove context menu needs to hint if a dialog will be shown - #4975",
+      "[Improved] Upgrade embedded Git LFS - #4602 #4745"
+    ],
+    "1.2.4-test1": [
+      "Confirming latest Git LFS version addresses reported issues"
+    ],
+    "1.2.4-beta3": [
+      "[Added] WebStorm support for macOS - #4841. Thanks @mrsimonfletcher!",
+      "[Improved] Update banner message clarifies that only Desktop needs to be restarted - #4891. Thanks @KennethSweezy!"
+    ],
+    "1.2.4-beta2": [
+    ],
+    "1.2.4-beta1": [
+      "[New] Dark Theme preview - #4849",
+      "[Added] Syntax highlighting for Cake files - #4935. Thanks @say25!",
+      "[Fixed] Unable to compare when two branches exist - #4947 #4730",
+      "[Fixed] Unhandled errors when refreshing pull requests fails - #4844 #4866",
+      "[Improved] Discard Changes context menu entry should contain ellipses when user needs to confirm - #4846. Thanks @yongdamsh!",
+      "[Improved] Initializing syntax highlighting components - #4764",
+      "[Improved] Only show overflow shadow when description overflows - #4898",
+      "[Improved] Changes tab displays number of changed files instead of dot - #4772. Thanks @yongdamsh!"
+    ],
+    "1.2.3": [
+      "[Fixed] No autocomplete when searching for co-authors - #4847",
+      "[Fixed] Error when checking out a PR from a fork - #4842"
+    ],
+    "1.2.3-beta1": [
+      "[Fixed] No autocomplete when searching for co-authors - #4847",
+      "[Fixed] Error when checking out a PR from a fork - #4842"
+    ],
+    "1.2.3-test1": [
+      "Confirming switch from uglify-es to babel-minify addresses minification issue - #4871"
+    ],
+    "1.2.2": [
+      "[Fixed] Make cURL/schannel default to using the Windows certificate store - #4817",
+      "[Fixed] Restore text selection highlighting in diffs - #4818"
+    ],
+    "1.2.2-beta1": [
+      "[Fixed] Make cURL/schannel default to using the Windows certificate store - #4817",
+      "[Fixed] Text selection highlighting in diffs is back - #4818"
+    ],
+    "1.2.1": [
+      "[Added] Brackets support for macOS - #4608. Thanks @3raxton!",
+      "[Added] Pull request number and author are included in fuzzy-find filtering - #4653. Thanks @damaneice!",
+      "[Fixed] Decreased the max line length limit - #3740. Thanks @sagaragarwal94!",
+      "[Fixed] Updated embedded Git to 2.17.1 to address upstream security issue - #4791",
+      "[Improved] Display the difference in file size of an image in the diff view - #4380. Thanks @ggajos!"
+    ],
+    "1.2.1-test1": [
+      "Upgraded embedded Git to 2.17.0"
+    ],
+    "1.2.1-beta1": [
+      "[Added] Brackets support for macOS - #4608. Thanks @3raxton!",
+      "[Added] Pull request number and author are included in fuzzy-find filtering - #4653. Thanks @damaneice!",
+      "[Fixed] Decreased the max line length limit - #3740. Thanks @sagaragarwal94!",
+      "[Fixed] Updated embedded Git to 2.17.1 to address upstream security issue - #4791",
+      "[Improved] Display the difference in file size of an image in the diff view - #4380. Thanks @ggajos!"
+    ],
+    "1.2.1-beta0": [
+
+    ],
+    "1.1.2-test6": [
+      "Testing the Webpack v4 output from the project"
+    ],
+    "1.2.0": [
+      "[New] History now has ability to compare to another branch and merge outstanding commits",
+      "[New] Support for selecting more than one file in the changes list - #1712. Thanks @icosamuel!",
+      "[New] Render bitmap images in diffs - #4367. Thanks @MagicMarvMan!",
+      "[Added] Add PowerShell Core support for Windows and macOS - #3791. Thanks @saschanaz!",
+      "[Added] Add MacVim support for macOS - #4532. Thanks @johnelliott!",
+      "[Added] Syntax highlighting for JavaServer Pages (JSP) - #4470. Thanks @damaneice!",
+      "[Added] Syntax highlighting for Haxe files - #4445. Thanks @Gama11!",
+      "[Added] Syntax highlighting for R files - #4455. Thanks @say25!",
+      "[Fixed] 'Open in Shell' on Linux ensures Git is on PATH - #4619. Thanks @ziggy42!",
+      "[Fixed] Pressing 'Enter' on filtered Pull Request does not checkout - #4673",
+      "[Fixed] Alert icon shrinks in rename dialog when branch name is long - #4566",
+      "[Fixed] 'Open in Desktop' performs fetch to ensure branch exists before checkout - #3006",
+      "[Fixed] 'Open in Default Program' on Windows changes the window title - #4446",
+      "[Fixed] Skip fast-forwarding when there are many eligible local branches - #4392",
+      "[Fixed] Image diffs not working for files with upper-case file extension - #4466",
+      "[Fixed] Syntax highlighting not working for files with upper-case file extension - #4462. Thanks @say25!",
+      "[Fixed] Error when creating Git LFS progress causes clone to fail - #4307. Thanks @MagicMarvMan!",
+      "[Fixed] 'Open File in External Editor' always opens a new instance - #4381",
+      "[Fixed] 'Select All' shortcut now works for changes list - #3821",
+      "[Improved] Automatically add valid repository when using command line interface - #4513. Thanks @ggajos!",
+      "[Improved] Always fast-forward the default branch - #4506",
+      "[Improved] Warn when trying to rename a published branch - #4035. Thanks @agisilaos!",
+      "[Improved] Added context menu for files in commit history - #2845. Thanks @crea7or",
+      "[Improved] Discarding all changes always prompts for confirmation - #4459",
+      "[Improved] Getting list of changed files is now more efficient when dealing with thousands of files - #4443",
+      "[Improved] Checking out a Pull Request may skip unnecessary fetch - #4068. Thanks @agisilaos!",
+      "[Improved] Commit summary now has a hint to indicate why committing is disabled - #4429.",
+      "[Improved] Pull request status text now matches format on GitHub - #3521",
+      "[Improved] Add escape hatch to disable hardware acceleration when launching - #3921"
+    ],
+    "1.1.2-beta7": [
+    ],
+    "1.1.2-beta6": [
+      "[Added] Add MacVim support for macOS - #4532. Thanks @johnelliott!",
+      "[Fixed] Open in Shell on Linux ensures Git is available on the user's PATH - #4619. Thanks @ziggy42!",
+      "[Fixed] Keyboard focus issues when navigating Pull Request list - #4673",
+      "[Improved] Automatically add valid repository when using command line interface - #4513. Thanks @ggajos!"
+    ],
+    "1.1.2-test5": [
+      "Actually upgrading fs-extra to v6 in the app"
+    ],
+    "1.1.2-test4": [
+      "Upgrading fs-extra to v6"
+    ],
+    "1.1.2-beta5": [
+      "[Added] Syntax highlighting for JavaServer Pages (JSP) - #4470. Thanks @damaneice!",
+      "[Fixed] Prevent icon from shrinking in rename dialog - #4566"
+    ],
+    "1.1.2-beta4": [
+      "[New] New Compare tab allowing visualization of the relationship between branches",
+      "[New] Support for selecting more than one file in the changes list - #1712. Thanks @icosamuel!",
+      "[Fixed] 'Select All' shortcut now works for changes list - #3821",
+      "[Improved] Always fast-forward the default branch - #4506",
+      "[Improved] Warn when trying to rename a published branch - #4035. Thanks @agisilaos!",
+      "[Improved] Added context menu for files in commit history - #2845. Thanks @crea7or",
+      "[Improved] Discarding all changes always prompts for confirmation - #4459"
+    ],
+    "1.1.2-beta3": [
+      "[Added] Syntax highlighting for Haxe files - #4445. Thanks @Gama11!",
+      "[Added] Syntax highlighting for R files - #4455. Thanks @say25!",
+      "[Fixed] Fetch to ensure \"Open in Desktop\" has a branch to checkout - #3006",
+      "[Fixed] Handle the click event when opening a binary file - #4446",
+      "[Fixed] Skip fast-forwarding when there are a lot of eligible local branches - #4392",
+      "[Fixed] Image diffs not working for files with upper-case file extension - #4466",
+      "[Fixed] Syntax highlighting not working for files with upper-case file extension - #4462. Thanks @say25!",
+      "[Improved] Getting list of changed files is now more efficient when dealing with thousands of files - #4443",
+      "[Improved] Checking out a Pull Request may skip unnecessary fetch - #4068. Thanks @agisilaos!",
+      "[Improved] Commit summary now has a hint to indicate why committing is disabled - #4429."
+    ],
+    "1.1.2-test3": [
+      "[New] Comparison Branch demo build"
+    ],
+    "1.1.2-test2": [
+      "Refactoring the diff internals to potentially land some SVG improvements"
+    ],
+    "1.1.2-test1": [
+      "Refactoring the diff internals to potentially land some SVG improvements"
+    ],
+    "1.1.2-beta2": [
+      "[New] Render bitmap images in diffs - #4367. Thanks @MagicMarvMan!",
+      "[New] Add PowerShell Core support for Windows and macOS - #3791. Thanks @saschanaz!",
+      "[Fixed] Error when creating Git LFS progress causes clone to fail - #4307. Thanks @MagicMarvMan!",
+      "[Fixed] 'Open File in External Editor' does not use existing window - #4381",
+      "[Fixed] Always ask for confirmation when discarding all changes - #4423",
+      "[Improved] Pull request status text now matches format on GitHub - #3521",
+      "[Improved] Add escape hatch to disable hardware acceleration when launching - #3921"
+    ],
+    "1.1.2-beta1": [
+
+    ],
+    "1.1.1": [
+      "[New] Render WebP images in diffs - #4164. Thanks @agisilaos!",
+      "[Fixed] Edit context menus in commit form input elements - #3886",
+      "[Fixed] Escape behavior for Pull Request list does not match Branch List - #3597",
+      "[Fixed] Keep caret position after inserting completion for emoji/mention - #3835. Thanks @CarlRosell!",
+      "[Fixed] Handle error events when watching files used to get Git LFS output - #4117",
+      "[Fixed] Potential race condition when opening a fork pull request - #4149",
+      "[Fixed] Show placeholder image when no pull requests found - #3973",
+      "[Fixed] Disable commit summary and description inputs while commit in progress - #3893. Thanks @crea7or!",
+      "[Fixed] Ensure pull request cache is cleared after last pull request merged - #4122",
+      "[Fixed] Focus two-factor authentication dialog on input - #4220. Thanks @WaleedAshraf!",
+      "[Fixed] Branches button no longer disabled while on an unborn branch - #4236. Thanks @agisilaos!",
+      "[Fixed] Delete gitignore file when all entries cleared in Repository Settings - #1896",
+      "[Fixed] Add visual indicator that a folder can be dropped on Desktop - #4004. Thanks @agisilaos!",
+      "[Fixed] Attempt to focus the application window on macOS after signing in via the browser - #4126",
+      "[Fixed] Refresh issues when user manually fetches - #4076",
+      "[Improved] Add `Discard All Changes...` to context menu on changed file list - #4197. Thanks @xamm!",
+      "[Improved] Improve contrast for button labels in app toolbar - #4219",
+      "[Improved] Speed up check for submodules when discarding - #4186. Thanks @kmscode!",
+      "[Improved] Make the keychain known issue more clear within Desktop - #4125",
+      "[Improved] Continue past the 'diff too large' message and view the diff - #4050",
+      "[Improved] Repository association might not have expected prefix - #4090. Thanks @mathieudutour!",
+      "[Improved] Add message to gitignore dialog when not on default branch - #3720",
+      "[Improved] Hide Desktop-specific forks in Branch List - #4127",
+      "[Improved] Disregard accidental whitespace when cloning a repository by URL - #4216",
+      "[Improved] Show alert icon in repository list when repository not found on disk - #4254. Thanks @gingerbeardman!",
+      "[Improved] Repository list now closes after removing last repository - #4269. Thanks @agisilaos!",
+      "[Improved] Move forget password link after the password dialog to match expected tab order - #4283. Thanks @iamnapo!",
+      "[Improved] More descriptive text in repository toolbar button when no repositories are tracked - #4268. Thanks @agisilaos!",
+      "[Improved] Context menu in Changes tab now supports opening file in your preferred editor - #4030"
+    ],
+    "1.1.1-beta4": [
+      "[Improved] Context menu in Changes tab now supports opening file in your preferred editor - #4030"
+    ],
+    "1.1.1-beta3": [
+
+    ],
+    "1.1.1-beta2": [
+      "[New] Render WebP images in diffs - #4164. Thanks @agisilaos!",
+      "[Fixed] Edit context menus in commit form input elements - #3886",
+      "[Fixed] Escape behavior should match that of Branch List - #3972",
+      "[Fixed] Keep caret position after inserting completion - #3835. Thanks @CarlRosell!",
+      "[Fixed] Handle error events when watching files used to get Git LFS output - #4117",
+      "[Fixed] Potential race condition when opening a fork pull request - #4149",
+      "[Fixed] Show placeholder image when no pull requests found - #3973",
+      "[Fixed] Disable input fields summary and description while commit in progress - #3893. Thanks @crea7or!",
+      "[Fixed] Ensure pull request cache is cleared after last pull request merged - #4122",
+      "[Fixed] Focus two-factor authentication dialog on input - #4220. Thanks @WaleedAshraf!",
+      "[Fixed] Branches button no longer disabled while on an unborn branch - #4236. Thanks @agisilaos!",
+      "[Fixed] Delete gitignore file when entries cleared in Repository Settings - #1896",
+      "[Fixed] Add visual indicator that a folder can be dropped on Desktop - #4004. Thanks @agisilaos!",
+      "[Improved] Add `Discard All Changes...` to context menu on changed file list - #4197. Thanks @xamm!",
+      "[Improved] Improve contrast for button labels in app toolbar - #4219",
+      "[Improved] Speed up check for submodules when discarding - #4186. Thanks @kmscode!",
+      "[Improved] Make the keychain known issue more clear within Desktop - #4125",
+      "[Improved] Continue past the 'diff too large' message and view the diff - #4050",
+      "[Improved] Repository association might not have expected prefix - #4090. Thanks @mathieudutour!",
+      "[Improved] Add message to gitignore dialog when not on default branch - #3720",
+      "[Improved] Hide Desktop-specific forks in Branch List - #4127",
+      "[Improved] Disregard accidental whitespace when cloning a repository by URL - #4216",
+      "[Improved] Show alert icon in repository list when repository not found on disk - #4254. Thanks @gingerbeardman!",
+      "[Improved] Repository list now closes after removing last repository - #4269. Thanks @agisilaos!",
+      "[Improved] Move forget password link to after the password dialog to maintain expected tab order - #4283. Thanks @iamnapo!",
+      "[Improved] More descriptive text in repository toolbar button when no repositories are tracked - #4268. Thanks @agisilaos!"
+    ],
+    "1.1.1-test2": [
+      "[Improved] Electron 1.8.3 upgrade (again)"
+    ],
+    "1.1.1-test1": [
+      "[Improved] Forcing a focus on the window after the OAuth dance is done"
+    ],
     "1.1.1-beta1": [
 
-    ]
-    ,"1.1.0": [
+    ],
+    "1.1.0": [
       "[New] Check out pull requests from collaborators or forks from within Desktop",
       "[New] View the commit status of the branch when it has an open pull request",
       "[Added] Add RubyMine support for macOS - #3883. Thanks @gssbzn!",
@@ -53,6 +690,9 @@
       "[Fixed] Support legacy usernames as co-authors - #3897",
       "[Improved] Enable fuzzy search in the repository, branch, PR, and clone FilterLists - #911. Thanks @j-f1!",
       "[Improved] Tidy up commit summary and description layout in commit list - #3922. Thanks @willnode!"
+    ],
+    "1.0.14-test1": [
+      "[Improved] Electron 1.8.2 upgrade"
     ],
     "1.0.14-beta3": [
       "[Added] Add TextMate support for macOS - #3910. Thanks @caiofbpa!",
@@ -593,8 +1233,7 @@
       "[Fixed] 'Create Without Pushing' button throwing an exception while opening a pull request - #2368",
       "[Fixed] Windows: Don't removing the running app out from under itself when there are updates pending - #2373",
       "[Fixed] Windows: Respect `core.autocrlf` and `core.safeclrf` when modifying the .gitignore - #1535",
-      "[Fixed] Windows: Fix opening the app from the command line - #2396",
-      "[Fixed] 'Create Without Pushing' button throwing an exception while opening a pull request - #2368"
+      "[Fixed] Windows: Fix opening the app from the command line - #2396"
     ],
     "0.7.3-beta5": [],
     "0.7.3-beta4": [],

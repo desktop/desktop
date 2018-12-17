@@ -12,9 +12,9 @@ Some known issues have a workaround that users have reported addresses the issue
 
 Each known issue links off to an existing GitHub issue. If you have additional questions or feedback, please comment on the issue.
 
-### My issue is not listed here? 
+### My issue is not listed here?
 
-Please check the [open](https://github.com/desktop/desktop/labels/bug) and [closed](https://github.com/desktop/desktop/issues?q=is%3Aclosed+label%3Abug) bugs in the issue tracker for the details of your bug. If you can't find it, or if you're not sure, open a [new issue](https://github.com/desktop/desktop/issues/new).
+Please check the [open](https://github.com/desktop/desktop/labels/bug) and [closed](https://github.com/desktop/desktop/issues?q=is%3Aclosed+label%3Abug) bugs in the issue tracker for the details of your bug. If you can't find it, or if you're not sure, open a [new issue](https://github.com/desktop/desktop/issues/new?template=bug_report.md).
 
 ## macOS
 
@@ -22,24 +22,38 @@ Please check the [open](https://github.com/desktop/desktop/labels/bug) and [clos
 
 This seems to be caused by the Keychain being in an invalid state, affecting applications that try to use the keychain to store or retrieve credentials. Seems to be specific to macOS High Sierra (10.13).
 
-**Workaround:** 
+**Workaround:**
 
 - Open `Keychain Access.app`
 - Right-click on the `login` keychain and try locking it
 - Right-click on the `login` keychain and try unlocking it
 - Sign into your GitHub account again
 
+### Checking for updates triggers a 'Could not create temporary directory: Permission denied' message - [#4115](https://github.com/desktop/desktop/issues/4115)
+
+This issue seems to be caused by missing permissions for the `~/Library/Caches/com.github.GitHubClient.ShipIt` folder. This is a directory that Desktop uses to create and unpack temporary files as part of updating the application.
+
+**Workaround:**
+
+ - Close Desktop
+ - Open Finder and navigate to `~/Library/Caches/`
+ - Context-click `com.github.GitHubClient.ShipIt` and select **Get Info**
+ - Expand the **Sharing & Permissions** section
+ - If you do not see the "You can read and write" message, add yourself with
+   the "Read & Write" permissions
+ - Start Desktop again and check for updates
+
 ## Windows
- 
+
 ### Window is hidden after detaching secondary monitor - [#2107](https://github.com/desktop/desktop/issues/2107)
 
 This is related to Desktop tracking the window position between launches, but not changes to your display configuration such as removing the secondary monitor where Desktop was positioned.
 
-**Workaround:** 
+**Workaround:**
 
- - Remove `%APPDATA%\GitHub Desktop\window-state.json` 
+ - Remove `%APPDATA%\GitHub Desktop\window-state.json`
  - Restart Desktop
- 
+
 ### Certificate revocation check fails - [#3326](https://github.com/desktop/desktop/issues/3326)
 
 If you are using Desktop on a corporate network, you may encounter an error like this:
@@ -58,8 +72,10 @@ Once you've downloaded that PEM file somewhere, open a shell with Git and run th
 
 ```shellsession
 $ git config --global http.sslBackend "openssl"
-$ git config --global http.sslCAInfo [path to .pem file]
+$ git config --global http.sslCAInfo "C:/path with spaces/to/directory/cacert.pem"
 ```
+
+Ensure you use forward slashes for the path when setting the `sslCAInfo` value.
 
 ### Using a repository configured with Folder Redirection - [#2972](https://github.com/desktop/desktop/issues/2972)
 
@@ -70,12 +86,12 @@ $ git config --global http.sslCAInfo [path to .pem file]
 ```shellsession
 2017-09-21T23:16:05.933Z - error: [ui] `git -c credential.helper= lfs clone --recursive --progress --progress -- https://github.com/owner/name.git \\harvest\Redirected\andrewd\My Documents\GitHub\name` exited with an unexpected code: 2.
 Cloning into '\\harvest\Redirected\andrewd\My Documents\GitHub\name'...
-remote: Counting objects: 4, done.        
-remote: Compressing objects:  33% (1/3)           
-remote: Compressing objects:  66% (2/3)           
-remote: Compressing objects: 100% (3/3)           
-remote: Compressing objects: 100% (3/3), done.        
-remote: Total 4 (delta 1), reused 4 (delta 1), pack-reused 0        
+remote: Counting objects: 4, done.
+remote: Compressing objects:  33% (1/3)
+remote: Compressing objects:  66% (2/3)
+remote: Compressing objects: 100% (3/3)
+remote: Compressing objects: 100% (3/3), done.
+remote: Total 4 (delta 1), reused 4 (delta 1), pack-reused 0
 fatal: unable to get current working directory: No such file or directory
 warning: Clone succeeded, but checkout failed.
 You can inspect what was checked out with 'git status'
@@ -85,7 +101,7 @@ Error(s) during clone:
 git clone failed: exit status 128
 ```
 
-### Enable Mandatory ASLR triggers cygheap errors - #3096
+### Enable Mandatory ASLR triggers cygheap errors - [#3096](https://github.com/desktop/desktop/issues/3096)
 
 Windows 10 Fall Creators Edition (version 1709 or later) added enhancements to the Enhanced Mitigation Experience Toolkit, one being to enable Mandatory ASLR. This setting affects the embedded Git shipped in Desktop, and produces errors that look like this:
 
@@ -102,3 +118,45 @@ are unable to find another cygwin DLL.
 Enabling Mandatory ASLR affects the MSYS2 core library, which is relied upon by Git for Windows to emulate process forking.
 
 **Not supported:** this is an upstream limitation of MSYS2, and it is recommend that you either disable Mandatory ASLR or whitelist all executables under `<Git>\usr\bin` which depend on MSYS2.
+
+### I get a black screen when launching Desktop
+
+Electron enables hardware accelerated graphics by default, but some graphics cards have issues with hardware acceleration which means the application will launch successfully but it will be a black screen.
+
+**Workaround:** if you set the `GITHUB_DESKTOP_DISABLE_HARDWARE_ACCELERATION` environment variable to any value and launch Desktop again it will disable hardware acceleration on launch, so the application is usable.
+
+### Failed to open CA file after an update - [#4832](https://github.com/desktop/desktop/issues/4832)
+
+A recent upgrade to Git for Windows changed how it uses `http.sslCAInfo`.
+
+An example of this error:
+
+> fatal: unable to access 'https://github.com/\<owner>/\<repo>.git/': schannel: failed to open CA file 'C:/Users/\<account>/AppData/Local/GitHubDesktop/app-1.2.2/resources/app/git/mingw64/bin/curl-ca-bundle.crt': No such file or directory
+
+This is occuring because some users have an existing Git for Windows installation that created a special config at `C:\ProgramData\Git\config`, and this config may contain a `http.sslCAInfo` entry, which is inherited by Desktop.
+
+There's two problems with this current state:
+
+ - Desktop doesn't need custom certificates for it's Git operations - it uses SChannel by default, which uses the Windows Certificate Store to verify server certificates
+ - this `http.sslCAInfo` config value may resolve to a location or file that doesn't exist in Desktop's Git installation
+
+**Workaround:**
+
+1. Verify that you have the problem configuration by checking the output of this command:
+
+```
+> git config -l --show-origin
+```
+
+You should have an entry that looks like this:
+
+```
+file:"C:\ProgramData/Git/config" http.sslcainfo=[some value here]
+```
+
+2. Open `C:\ProgramData\Git\config` (requires elevated privileges) and remove the corresponding lines that look like this:
+
+```
+[http]
+sslCAInfo = [some value here]
+```

@@ -9,12 +9,6 @@
   // Necessary so that the diff doesn't expand
   // beyond the width of the history
   min-width: 0;
-
-  &.expanded {
-    #commit-details {
-      display: none;
-    }
-  }
 }
 
 #commit-summary-container {
@@ -41,6 +35,142 @@
     &.binary {
       justify-content: center;
       align-items: center;
+    }
+    &.large-diff {
+      margin: var(--spacing-double);
+      text-align: center;
+      justify-content: initial;
+
+      .blankslate-image {
+        max-height: 150px;
+      }
+    }
+  }
+}
+
+#compare-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+
+  .filter-list .filter-field-row {
+    margin: 0;
+  }
+
+  .compare-form {
+    background: var(--box-alt-background-color);
+    flex: initial;
+    padding: var(--spacing-half);
+    border-bottom: var(--base-border);
+  }
+
+  .compare-commit-list {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .merge-status {
+    background: var(--background-color);
+    border-width: 0 var(--spacing-half);
+    border: solid transparent;
+    box-sizing: content-box;
+    position: relative;
+    z-index: 1;
+  }
+
+  .merge-message {
+    max-height: 500px;
+    transition: max-height 750ms ease;
+
+    &-loading {
+      max-height: 40px;
+    }
+  }
+
+  // this style can be removed once we enable the merge hint for everyone
+  .merge-message-legacy {
+    margin-top: var(--spacing);
+  }
+
+  .merge-cta {
+    border-top: var(--base-border);
+    display: flex;
+    flex-direction: column;
+    font-size: var(--font-size-sm);
+    text-align: center;
+    padding: var(--spacing);
+  }
+
+  .no-branches {
+    color: var(--text-secondary-color);
+    margin-top: var(--spacing-double);
+  }
+
+  .branch-commit-counter {
+    color: var(--text-secondary-color);
+    display: flex;
+    justify-content: flex-end;
+    flex: 1;
+    font-size: var(--font-size-sm);
+
+    &-item {
+      display: flex;
+      align-items: center;
+
+      &:first-child {
+        margin-right: var(--spacing-half);
+      }
+    }
+
+    .octicon {
+      fill: var(--text-secondary-color);
+      width: 8px;
+      margin-left: 1px;
+
+      &:last-child {
+        margin-right: 0;
+      }
+    }
+  }
+
+  .tab-bar {
+    padding: var(--spacing-half);
+    border-bottom: var(--base-border);
+    height: initial;
+
+    &-item {
+      box-shadow: none;
+      background: var(--tab-bar-background-color);
+      border: var(--base-border);
+
+      &:first-of-type {
+        border-radius: var(--border-radius) 0 0 var(--border-radius);
+      }
+
+      &:last-of-type {
+        border-radius: 0 var(--border-radius) var(--border-radius) 0;
+      }
+
+      &.selected {
+        background: var(--box-selected-active-background-color);
+        border-color: var(--box-border-accent-color);
+        color: var(--box-selected-active-text-color);
+      }
+    }
+  }
+
+  .select-component {
+    flex-grow: 0;
+  }
+
+  .compare-content {
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+
+    .ref-component {
+      word-break: break-word;
     }
   }
 }

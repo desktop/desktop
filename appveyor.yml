@@ -4,7 +4,7 @@ platform:
   - x64
 
 environment:
-  nodejs_version: "8.9.0"
+  nodejs_version: '8.12'
 
 cache:
   - .eslintcache
@@ -19,7 +19,7 @@ branches:
 
 skip_tags: true
 
-version: "{build}"
+version: '{build}'
 
 install:
   - cmd: regedit /s script\default-to-tls12-on-appveyor.reg
@@ -29,12 +29,13 @@ install:
 
 build_script:
   - yarn lint
+  - yarn validate-changelog
   - yarn build:prod
 
 test_script:
-  - node --version
   - yarn test:setup
   - ./script/test-appveyor.bat
+  - yarn test:report
 
 on_success:
   - yarn run publish

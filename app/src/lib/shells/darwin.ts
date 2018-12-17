@@ -8,6 +8,7 @@ export enum Shell {
   Terminal = 'Terminal',
   Hyper = 'Hyper',
   iTerm2 = 'iTerm2',
+  PowerShellCore = 'PowerShell Core',
 }
 
 export const Default = Shell.Terminal
@@ -25,6 +26,10 @@ export function parse(label: string): Shell {
     return Shell.iTerm2
   }
 
+  if (label === Shell.PowerShellCore) {
+    return Shell.PowerShellCore
+  }
+
   return Default
 }
 
@@ -36,6 +41,8 @@ function getBundleID(shell: Shell): string {
       return 'com.googlecode.iterm2'
     case Shell.Hyper:
       return 'co.zeit.hyper'
+    case Shell.PowerShellCore:
+      return 'com.microsoft.powershell'
     default:
       return assertNever(shell, `Unknown shell: ${shell}`)
   }
@@ -54,10 +61,16 @@ async function getShellPath(shell: Shell): Promise<string | null> {
 export async function getAvailableShells(): Promise<
   ReadonlyArray<IFoundShell<Shell>>
 > {
-  const [terminalPath, hyperPath, iTermPath] = await Promise.all([
+  const [
+    terminalPath,
+    hyperPath,
+    iTermPath,
+    powerShellCorePath,
+  ] = await Promise.all([
     getShellPath(Shell.Terminal),
     getShellPath(Shell.Hyper),
     getShellPath(Shell.iTerm2),
+    getShellPath(Shell.PowerShellCore),
   ])
 
   const shells: Array<IFoundShell<Shell>> = []
@@ -71,6 +84,10 @@ export async function getAvailableShells(): Promise<
 
   if (iTermPath) {
     shells.push({ shell: Shell.iTerm2, path: iTermPath })
+  }
+
+  if (powerShellCorePath) {
+    shells.push({ shell: Shell.PowerShellCore, path: powerShellCorePath })
   }
 
   return shells

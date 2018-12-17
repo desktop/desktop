@@ -148,7 +148,7 @@ function createState(props: IMenuPaneProps): IMenuPaneState {
 }
 
 export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
-  private list: List | null
+  private list: List | null = null
 
   public constructor(props: IMenuPaneProps) {
     super(props)
@@ -180,7 +180,7 @@ export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
     }
   }
 
-  private onSelectionChanged = (row: number, source: SelectionSource) => {
+  private onSelectedRowChanged = (row: number, source: SelectionSource) => {
     const item = this.state.items[row]
     this.props.onSelectionChanged(this.props.depth, item, source)
   }
@@ -276,9 +276,9 @@ export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
           rowCount={this.state.items.length}
           rowHeight={this.rowHeight}
           rowRenderer={this.renderMenuItem}
-          selectedRow={this.state.selectedIndex}
+          selectedRows={[this.state.selectedIndex]}
           onRowClick={this.onRowClick}
-          onSelectionChanged={this.onSelectionChanged}
+          onSelectedRowChanged={this.onSelectedRowChanged}
           canSelectRow={this.canSelectRow}
           onRowKeyDown={this.onRowKeyDown}
           invalidationProps={this.state.items}

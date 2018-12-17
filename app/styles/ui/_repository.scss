@@ -5,6 +5,11 @@
   display: flex;
   flex-direction: row;
   flex: 1;
+  border-top: var(--base-border);
+
+  > .focus-container {
+    display: flex;
+  }
 
   &-sidebar {
     display: flex;

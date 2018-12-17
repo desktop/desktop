@@ -121,7 +121,7 @@ export class AuthenticationForm extends React.Component<
             className="forgot-password-link"
             uri={this.props.forgotPasswordUrl}
           >
-            Forgot password
+            Forgot password?
           </LinkButton>
         ) : null}
       </div>

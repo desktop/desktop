@@ -13,7 +13,7 @@ import { TabBar } from '../tab-bar'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { assertNever, fatalError } from '../../lib/fatal-error'
 import { CallToAction } from '../lib/call-to-action'
-import { getGitDescription } from '../../lib/git/description'
+import { getGitDescription } from '../../lib/git'
 
 enum PublishTab {
   DotCom = 0,
@@ -47,6 +47,13 @@ interface IPublishState {
    */
   readonly error: Error | null
 
+  /**
+   * The error pertaining to the tab the user is not
+   * actively using. It is swapped when the user changes
+   * the current tab.
+   */
+  readonly inactiveTabError: Error | null
+
   /** Is the repository currently being published? */
   readonly publishing: boolean
 }
@@ -76,6 +83,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
       currentTab: startingTab,
       publishSettings,
       error: null,
+      inactiveTabError: null,
       publishing: false,
     }
   }
@@ -239,9 +247,17 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
   }
 
   private onTabClicked = (index: PublishTab) => {
-    // Clear the selected org since dot com and Enterprise will have a different
-    // set of orgs.
-    const settings = { ...this.state.publishSettings, org: null }
-    this.setState({ currentTab: index, publishSettings: settings })
+    const isTabChanging = index !== this.state.currentTab
+    if (isTabChanging) {
+      // Clear the selected org since dot com and Enterprise will have a different
+      // set of orgs.
+      const settings = { ...this.state.publishSettings, org: null }
+      this.setState({ currentTab: index, publishSettings: settings })
+      // Swap the current stored error from the active tab with the error from
+      // the inactive tab. So that each tab saves and displays their own error.
+      const temporaryError: Error | null = this.state.error
+      this.setState({ error: this.state.inactiveTabError })
+      this.setState({ inactiveTabError: temporaryError })
+    }
   }
 }

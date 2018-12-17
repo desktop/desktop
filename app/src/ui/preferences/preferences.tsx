@@ -21,6 +21,8 @@ import { lookupPreferredEmail } from '../../lib/email'
 import { Shell, getAvailableShells } from '../../lib/shells'
 import { getAvailableEditors } from '../../lib/editors/lookup'
 import { disallowedCharacters } from './identifier-rules'
+import { Appearance } from './appearance'
+import { ApplicationTheme } from '../lib/application-theme'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
@@ -33,6 +35,7 @@ interface IPreferencesProps {
   readonly confirmDiscardChanges: boolean
   readonly selectedExternalEditor?: ExternalEditor
   readonly selectedShell: Shell
+  readonly selectedTheme: ApplicationTheme
 }
 
 interface IPreferencesState {
@@ -134,6 +137,7 @@ export class Preferences extends React.Component<
         >
           <span>Accounts</span>
           <span>Git</span>
+          <span>Appearance</span>
           <span>Advanced</span>
         </TabBar>
 
@@ -203,6 +207,13 @@ export class Preferences extends React.Component<
           />
         )
       }
+      case PreferencesTab.Appearance:
+        return (
+          <Appearance
+            selectedTheme={this.props.selectedTheme}
+            onSelectedThemeChanged={this.onSelectedThemeChanged}
+          />
+        )
       case PreferencesTab.Advanced: {
         return (
           <Advanced
@@ -269,12 +280,17 @@ export class Preferences extends React.Component<
     this.setState({ selectedShell: shell })
   }
 
+  private onSelectedThemeChanged = (theme: ApplicationTheme) => {
+    this.props.dispatcher.setSelectedTheme(theme)
+  }
+
   private renderFooter() {
     const hasDisabledError = this.state.disallowedCharactersMessage != null
 
     const index = this.state.selectedIndex
     switch (index) {
       case PreferencesTab.Accounts:
+      case PreferencesTab.Appearance:
         return null
       case PreferencesTab.Advanced:
       case PreferencesTab.Git: {
@@ -297,7 +313,10 @@ export class Preferences extends React.Component<
   private onSave = async () => {
     await setGlobalConfigValue('user.name', this.state.committerName)
     await setGlobalConfigValue('user.email', this.state.committerEmail)
-    await this.props.dispatcher.setStatsOptOut(this.state.optOutOfUsageTracking)
+    await this.props.dispatcher.setStatsOptOut(
+      this.state.optOutOfUsageTracking,
+      false
+    )
     await this.props.dispatcher.setConfirmRepoRemovalSetting(
       this.state.confirmRepositoryRemoval
     )

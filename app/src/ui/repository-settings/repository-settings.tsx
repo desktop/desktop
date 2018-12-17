@@ -5,12 +5,13 @@ import { GitIgnore } from './git-ignore'
 import { assertNever } from '../../lib/fatal-error'
 import { IRemote } from '../../models/remote'
 import { Dispatcher } from '../../lib/dispatcher'
-import { PopupType } from '../../lib/app-state'
+import { PopupType } from '../../models/popup'
 import { Repository } from '../../models/repository'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogError, DialogFooter } from '../dialog'
 import { NoRemote } from './no-remote'
+import { readGitIgnoreAtRoot } from '../../lib/git'
 
 interface IRepositorySettingsProps {
   readonly dispatcher: Dispatcher
@@ -51,18 +52,16 @@ export class RepositorySettings extends React.Component<
 
   public async componentWillMount() {
     try {
-      const ignoreText = await this.props.dispatcher.readGitIgnore(
-        this.props.repository
-      )
+      const ignoreText = await readGitIgnoreAtRoot(this.props.repository)
       this.setState({ ignoreText })
     } catch (e) {
       log.error(
-        `RepositorySettings: unable to read .gitignore file at ${
+        `RepositorySettings: unable to read root .gitignore file for ${
           this.props.repository.path
         }`,
         e
       )
-      this.setState({ errors: [`Could not read .gitignore: ${e}`] })
+      this.setState({ errors: [`Could not read root .gitignore: ${e}`] })
     }
   }
 
@@ -190,7 +189,7 @@ export class RepositorySettings extends React.Component<
       try {
         await this.props.dispatcher.saveGitIgnore(
           this.props.repository,
-          this.state.ignoreText || ''
+          this.state.ignoreText
         )
       } catch (e) {
         log.error(

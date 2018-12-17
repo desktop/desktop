@@ -1,9 +1,12 @@
 import * as React from 'react'
 import { Repository } from '../../models/repository'
-import { Octicon, iconForRepository } from '../octicons'
-import { showContextualMenu, IMenuItem } from '../main-process-proxy'
+import { Octicon, iconForRepository, OcticonSymbol } from '../octicons'
+import { showContextualMenu } from '../main-process-proxy'
 import { Repositoryish } from './group-repositories'
+import { IMenuItem } from '../../lib/menu-item'
 import { HighlightText } from '../lib/highlight-text'
+import { IMatches } from '../../lib/fuzzy-find'
+import { IAheadBehind } from '../../models/branch'
 
 const defaultEditorLabel = __DARWIN__
   ? 'Open in External Editor'
@@ -11,6 +14,9 @@ const defaultEditorLabel = __DARWIN__
 
 interface IRepositoryListItemProps {
   readonly repository: Repositoryish
+
+  /** Whether the user has enabled the setting to confirm removing a repository from the app */
+  readonly askForConfirmationOnRemoveRepository: boolean
 
   /** Called when the repository should be removed. */
   readonly onRemoveRepository: (repository: Repositoryish) => void
@@ -34,7 +40,13 @@ interface IRepositoryListItemProps {
   readonly shellLabel: string
 
   /** The characters in the repository name to highlight */
-  readonly matches: ReadonlyArray<number>
+  readonly matches: IMatches
+
+  /** Number of commits this local repo branch is behind or ahead of its remote brance */
+  readonly aheadBehind: IAheadBehind | null
+
+  /** Number of uncommitted changes */
+  readonly changedFilesCount: number
 }
 
 /** A repository item. */
@@ -47,7 +59,37 @@ export class RepositoryListItem extends React.Component<
     const path = repository.path
     const gitHubRepo =
       repository instanceof Repository ? repository.gitHubRepository : null
-    const tooltip = gitHubRepo
+    const hasChanges = this.props.changedFilesCount > 0
+    const renderAheadBehindIndicator = () => {
+      if (
+        !(repository instanceof Repository) ||
+        this.props.aheadBehind === null
+      ) {
+        return null
+      }
+      const { ahead, behind } = this.props.aheadBehind
+      if (ahead === 0 && behind === 0) {
+        return null
+      }
+      const commitGrammar = (commitNum: number) =>
+        `${commitNum} commit${commitNum > 1 ? 's' : ''}` // english is hard
+      const aheadBehindTooltip =
+        'The currently checked out branch is' +
+        (behind ? ` ${commitGrammar(behind)} behind ` : '') +
+        (behind && ahead ? 'and' : '') +
+        (ahead ? ` ${commitGrammar(ahead)} ahead of ` : '') +
+        'its tracked branch.'
+
+      return (
+        <div className="ahead-behind" title={aheadBehindTooltip}>
+          {ahead > 0 ? <Octicon symbol={OcticonSymbol.arrowSmallUp} /> : null}
+          {behind > 0 ? (
+            <Octicon symbol={OcticonSymbol.arrowSmallDown} />
+          ) : null}
+        </div>
+      )
+    }
+    const repoTooltip = gitHubRepo
       ? gitHubRepo.fullName + '\n' + gitHubRepo.htmlURL + '\n' + path
       : path
 
@@ -57,20 +99,30 @@ export class RepositoryListItem extends React.Component<
     }
 
     return (
-      <div
-        onContextMenu={this.onContextMenu}
-        className="repository-list-item"
-        title={tooltip}
-      >
+      <div onContextMenu={this.onContextMenu} className="repository-list-item">
+        <div
+          className="change-indicator-wrapper"
+          title={
+            hasChanges ? 'There are uncommitted changes in this repository' : ''
+          }
+        >
+          {hasChanges ? (
+            <Octicon
+              className="change-indicator"
+              symbol={OcticonSymbol.primitiveDot}
+            />
+          ) : null}
+        </div>
         <Octicon symbol={iconForRepository(repository)} />
-
-        <div className="name">
+        <div className="name" title={repoTooltip}>
           {prefix ? <span className="prefix">{prefix}</span> : null}
           <HighlightText
             text={repository.name}
-            highlight={this.props.matches}
+            highlight={this.props.matches.title}
           />
         </div>
+
+        {renderAheadBehindIndicator()}
       </div>
     )
   }
@@ -100,7 +152,9 @@ export class RepositoryListItem extends React.Component<
 
     const showRepositoryLabel = __DARWIN__
       ? 'Show in Finder'
-      : __WIN32__ ? 'Show in Explorer' : 'Show in your File Manager'
+      : __WIN32__
+      ? 'Show in Explorer'
+      : 'Show in your File Manager'
 
     const items: ReadonlyArray<IMenuItem> = [
       {
@@ -120,7 +174,9 @@ export class RepositoryListItem extends React.Component<
       },
       { type: 'separator' },
       {
-        label: 'Remove',
+        label: this.props.askForConfirmationOnRemoveRepository
+          ? 'Remove…'
+          : 'Remove',
         action: this.removeRepository,
       },
     ]

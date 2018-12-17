@@ -9,7 +9,10 @@ import { Row } from '../lib/row'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
-import { renderBranchNameWarning } from '../lib/branch-name-warnings'
+import {
+  renderBranchNameWarning,
+  renderBranchHasRemoteWarning,
+} from '../lib/branch-name-warnings'
 
 interface IRenameBranchProps {
   readonly dispatcher: Dispatcher
@@ -48,13 +51,13 @@ export class RenameBranch extends React.Component<
               autoFocus={true}
               value={this.state.newName}
               onValueChanged={this.onNameChange}
-              onKeyDown={this.onKeyDown}
             />
           </Row>
           {renderBranchNameWarning(
             this.state.newName,
             sanitizedBranchName(this.state.newName)
           )}
+          {renderBranchHasRemoteWarning(this.props.branch)}
         </DialogContent>
 
         <DialogFooter>
@@ -67,12 +70,6 @@ export class RenameBranch extends React.Component<
         </DialogFooter>
       </Dialog>
     )
-  }
-
-  private onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Escape') {
-      this.props.dispatcher.closePopup()
-    }
   }
 
   private onNameChange = (name: string) => {

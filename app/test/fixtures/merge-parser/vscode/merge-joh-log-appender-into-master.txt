@@ -1,0 +1,48 @@
+changed in both
+  base   100644 d25b0eca0f28fd2eabb7327f5d663d87d1cb6d99 product.json
+  our    100644 ed3ced1c1be38da7c830b702ce373ea369167da8 product.json
+  their  100644 d16dca66ecd0347c83874c2cfec923e64a33d704 product.json
+@@ -4,6 +4,7 @@
+ 	"applicationName": "code-oss",
+ 	"dataFolderName": ".vscode-oss",
+ 	"win32MutexName": "vscodeoss",
++	"enableTelemetry": true,
+ 	"licenseName": "MIT",
+ 	"licenseUrl": "https://github.com/Microsoft/vscode/blob/master/LICENSE.txt",
+ 	"win32DirName": "Microsoft Code OSS",
+changed in both
+  base   100644 6598053532274c9aa3ff65c32dfb15c0555532e8 src/vs/code/electron-browser/issue/issueReporterMain.ts
+  our    100644 2e25cb33248a3d343edf9a79d532a58614f0a2b1 src/vs/code/electron-browser/issue/issueReporterMain.ts
+  their  100644 cc305121e2cb4e9b767f1a8aae252e28d7391a79 src/vs/code/electron-browser/issue/issueReporterMain.ts
+changed in both
+  base   100644 deaea3955f35171dd3dab9953b3f39544fb44e77 src/vs/code/electron-browser/sharedProcess/sharedProcessMain.ts
+  our    100644 547d1bd99d6c12bde8243ed7766b2a76f887438c src/vs/code/electron-browser/sharedProcess/sharedProcessMain.ts
+  their  100644 afe2f1ead7721072f16731fb9ff2f3446a5ad643 src/vs/code/electron-browser/sharedProcess/sharedProcessMain.ts
+changed in both
+  base   100644 f2a7d0cae04d69b8d02ea27e1f3cb059a923f992 src/vs/code/electron-main/app.ts
+  our    100644 c0185b039e95315e65379ca7cda7ff397219bdf9 src/vs/code/electron-main/app.ts
+  their  100644 37710f8bd07adeb450e65c3f167077e937a9b4fa src/vs/code/electron-main/app.ts
+changed in both
+  base   100644 3d75158aa79394934473d529c90f77b96775b9b9 src/vs/platform/telemetry/common/telemetryUtils.ts
+  our    100644 83a4326ca5e511e1b955212a7929341083ae29ff src/vs/platform/telemetry/common/telemetryUtils.ts
+  their  100644 9f2f46c6ce30ab46e2c05431618b7381bf64e973 src/vs/platform/telemetry/common/telemetryUtils.ts
+@@ -46,7 +46,11 @@
+ 
+ export class LogAppender implements ITelemetryAppender {
+ 
++<<<<<<< .our
+ 	private commonPropertiesRegex = /^sessionID$|^version$|^timestamp$|^commitHash$|^common\./;
++=======
++	private commonPropertiesRegex = /^sessionID$|^version$|^timestamp$|^common\./;
++>>>>>>> .their
+ 	constructor(@ILogService private readonly _logService: ILogService) { }
+ 
+ 	dispose(): TPromise<any> {
+changed in both
+  base   100644 1096104def6f355257642f6d26212c401e031e29 src/vs/workbench/electron-browser/shell.ts
+  our    100644 33bea4a0ca07789e5913902a82c7d187af26b943 src/vs/workbench/electron-browser/shell.ts
+  their  100644 cd65162ae269844cd418aaff7dae8dfda9e85fb3 src/vs/workbench/electron-browser/shell.ts
+changed in both
+  base   100644 4ebfb3a4e5680cb6d7dcf0b7e2e305ad2b2431f7 src/vs/workbench/parts/logs/electron-browser/logsActions.ts
+  our    100644 e9695b3cde05a32f9ebc377de77caf1288e1ff09 src/vs/workbench/parts/logs/electron-browser/logsActions.ts
+  their  100644 2fcdc413e3d8856f2a1f2b374aa8f3fc88475541 src/vs/workbench/parts/logs/electron-browser/logsActions.ts

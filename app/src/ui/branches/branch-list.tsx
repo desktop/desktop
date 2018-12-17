@@ -1,27 +1,24 @@
 import * as React from 'react'
+
 import { Branch } from '../../models/branch'
-import {
-  groupBranches,
-  IBranchListItem,
-  BranchGroupIdentifier,
-} from './group-branches'
-import { BranchListItem } from './branch'
+
+import { assertNever } from '../../lib/fatal-error'
+
 import {
   FilterList,
   IFilterListGroup,
   SelectionSource,
 } from '../lib/filter-list'
-import { assertNever } from '../../lib/fatal-error'
+import { IMatches } from '../../lib/fuzzy-find'
 import { Button } from '../lib/button'
-import { NoBranches } from './no-branches'
+import { TextBox } from '../lib/text-box'
 
-/**
- * TS can't parse generic specialization in JSX, so we have to alias it here
- * with the generic type. See https://github.com/Microsoft/TypeScript/issues/6395.
- */
-const BranchesFilterList: new () => FilterList<
-  IBranchListItem
-> = FilterList as any
+import {
+  groupBranches,
+  IBranchListItem,
+  BranchGroupIdentifier,
+} from './group-branches'
+import { NoBranches } from './no-branches'
 
 const RowHeight = 30
 
@@ -91,6 +88,21 @@ interface IBranchListProps {
    * to prepopulate the new branch name field.
    */
   readonly onCreateNewBranch?: (name: string) => void
+
+  readonly textbox?: TextBox
+
+  /**
+   * Render function to apply to each branch in the list
+   */
+  readonly renderBranch: (
+    item: IBranchListItem,
+    matches: IMatches
+  ) => JSX.Element
+
+  /**
+   * Callback to fire when the items in the filter list are updated
+   */
+  readonly onFilterListResultsChanged?: (resultCount: number) => void
 }
 
 interface IBranchListState {
@@ -138,28 +150,76 @@ export class BranchList extends React.Component<
   IBranchListProps,
   IBranchListState
 > {
+  private branchFilterList: FilterList<IBranchListItem> | null = null
+
   public constructor(props: IBranchListProps) {
     super(props)
     this.state = createState(props)
   }
 
-  private renderItem = (
-    item: IBranchListItem,
-    matches: ReadonlyArray<number>
-  ) => {
-    const branch = item.branch
-    const commit = branch.tip
-    const currentBranchName = this.props.currentBranch
-      ? this.props.currentBranch.name
-      : null
+  public componentWillReceiveProps(nextProps: IBranchListProps) {
+    this.setState(createState(nextProps))
+  }
+
+  public selectFirstItem(focus: boolean = false) {
+    if (this.branchFilterList !== null) {
+      this.branchFilterList.selectFirstItem(focus)
+    }
+  }
+
+  public render() {
     return (
-      <BranchListItem
-        name={branch.name}
-        isCurrentBranch={branch.name === currentBranchName}
-        lastCommitDate={commit ? commit.author.date : null}
-        matches={matches}
+      <FilterList<IBranchListItem>
+        ref={this.onBranchesFilterListRef}
+        className="branches-list"
+        rowHeight={RowHeight}
+        filterText={this.props.filterText}
+        onFilterTextChanged={this.props.onFilterTextChanged}
+        onFilterKeyDown={this.props.onFilterKeyDown}
+        selectedItem={this.state.selectedItem}
+        renderItem={this.renderItem}
+        renderGroupHeader={this.renderGroupHeader}
+        onItemClick={this.onItemClick}
+        onSelectionChanged={this.onSelectionChanged}
+        groups={this.state.groups}
+        invalidationProps={this.props.allBranches}
+        renderPostFilter={this.onRenderNewButton}
+        renderNoItems={this.onRenderNoItems}
+        filterTextBox={this.props.textbox}
+        onFilterListResultsChanged={this.props.onFilterListResultsChanged}
       />
     )
+  }
+
+  private onBranchesFilterListRef = (
+    filterList: FilterList<IBranchListItem> | null
+  ) => {
+    this.branchFilterList = filterList
+  }
+
+  private renderItem = (item: IBranchListItem, matches: IMatches) => {
+    return this.props.renderBranch(item, matches)
+  }
+
+  private parseHeader(label: string): BranchGroupIdentifier | null {
+    switch (label) {
+      case 'default':
+      case 'recent':
+      case 'other':
+        return label
+      default:
+        return null
+    }
+  }
+
+  private renderGroupHeader = (label: string) => {
+    const identifier = this.parseHeader(label)
+
+    return identifier !== null ? (
+      <div className="branches-list-content filter-list-group-header">
+        {this.getGroupLabel(identifier)}
+      </div>
+    ) : null
   }
 
   private getGroupLabel(identifier: BranchGroupIdentifier) {
@@ -174,13 +234,21 @@ export class BranchList extends React.Component<
     }
   }
 
-  private renderGroupHeader = (id: string) => {
-    const identifier = id as BranchGroupIdentifier
+  private onRenderNoItems = () => {
     return (
-      <div className="branches-list-content filter-list-group-header">
-        {this.getGroupLabel(identifier)}
-      </div>
+      <NoBranches
+        onCreateNewBranch={this.onCreateNewBranch}
+        canCreateNewBranch={this.props.canCreateNewBranch}
+      />
     )
+  }
+
+  private onRenderNewButton = () => {
+    return this.props.canCreateNewBranch ? (
+      <Button className="new-branch-button" onClick={this.onCreateNewBranch}>
+        {__DARWIN__ ? 'New Branch' : 'New branch'}
+      </Button>
+    ) : null
   }
 
   private onItemClick = (item: IBranchListItem) => {
@@ -198,52 +266,6 @@ export class BranchList extends React.Component<
         selectedItem ? selectedItem.branch : null,
         source
       )
-    }
-  }
-
-  public componentWillReceiveProps(nextProps: IBranchListProps) {
-    this.setState(createState(nextProps))
-  }
-
-  public render() {
-    return (
-      <BranchesFilterList
-        className="branches-list"
-        rowHeight={RowHeight}
-        filterText={this.props.filterText}
-        onFilterTextChanged={this.props.onFilterTextChanged}
-        selectedItem={this.state.selectedItem}
-        renderItem={this.renderItem}
-        renderGroupHeader={this.renderGroupHeader}
-        onItemClick={this.onItemClick}
-        onFilterKeyDown={this.props.onFilterKeyDown}
-        onSelectionChanged={this.onSelectionChanged}
-        groups={this.state.groups}
-        invalidationProps={this.props.allBranches}
-        renderPostFilter={this.renderNewButton}
-        renderNoItems={this.renderNoItems}
-      />
-    )
-  }
-
-  private renderNoItems = () => {
-    return (
-      <NoBranches
-        onCreateNewBranch={this.onCreateNewBranch}
-        canCreateNewBranch={this.props.canCreateNewBranch}
-      />
-    )
-  }
-
-  private renderNewButton = () => {
-    if (this.props.canCreateNewBranch) {
-      return (
-        <Button className="new-branch-button" onClick={this.onCreateNewBranch}>
-          {__DARWIN__ ? 'New Branch' : 'New branch'}
-        </Button>
-      )
-    } else {
-      return null
     }
   }
 

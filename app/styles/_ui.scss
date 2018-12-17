@@ -41,6 +41,7 @@
 @import 'ui/checkbox';
 @import 'ui/errors';
 @import 'ui/dialog';
+@import 'ui/banners';
 @import 'ui/add-repository';
 @import 'ui/discard-changes';
 @import 'ui/filter-list';
@@ -50,7 +51,6 @@
 @import 'ui/avatar';
 @import 'ui/call-to-action';
 @import 'ui/acknowledgements';
-@import 'ui/update-notification';
 @import 'ui/vertical-segmented-control';
 @import 'ui/blank-slate';
 @import 'ui/terms-and-conditions';
@@ -64,3 +64,6 @@
 @import 'ui/author-input';
 @import 'ui/avatar-stack';
 @import 'ui/commit-attribution';
+@import 'ui/fancy-text-box';
+@import 'ui/notification-banner';
+@import 'ui/merge-status';

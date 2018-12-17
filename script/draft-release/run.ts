@@ -47,12 +47,15 @@ function printInstructions(nextVersion: string, entries: Array<string>) {
   object[`${nextVersion}`] = entries.sort()
 
   const steps = [
-    `Ensure the app/package.json 'version' is set to '${nextVersion}'`,
-    `Add this to changelog.json as a starting point:\n${jsonStringify(
+    `Update the app/package.json 'version' to '${nextVersion}' (make sure this aligns with semver format of 'major.minor.patch')`,
+    `Concatenate this to the beginning of the 'releases' element in the changelog.json as a starting point:\n${jsonStringify(
       object
     )}\n`,
-    'Update the release notes so they make sense and only contain user-facing changes',
-    'Commit the changes and push them to GitHub',
+    `Remove any entries of contributions that don't affect the end user`,
+    'Update the release notes to have user-friendly summary lines',
+    'For issues prefixed with [???], look at the PR to update the prefix to one of: [New], [Added], [Fixed], [Improved], [Removed]',
+    'Sort the entries so that the prefixes are ordered in this way: [New], [Added], [Fixed], [Improved], [Removed]',
+    'Commit the changes (on master or as new branch) and push them to GitHub',
     'Read this to perform the release: https://github.com/desktop/desktop/blob/master/docs/process/releasing-updates.md',
   ]
 
@@ -91,13 +94,10 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
 
     if (channel === 'production') {
       const existingChangelog = getChangelogEntriesSince(previousVersion)
-      const entries = new Array<string>(
-        ...changelogEntries,
-        ...existingChangelog
-      )
+      const entries = [...existingChangelog]
       printInstructions(nextVersion, entries)
     } else if (channel === 'beta') {
-      const entries = new Array<string>(...changelogEntries)
+      const entries = [...changelogEntries]
       printInstructions(nextVersion, entries)
     }
   }

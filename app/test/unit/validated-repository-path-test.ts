@@ -7,7 +7,7 @@ import { validatedRepositoryPath } from '../../src/lib/stores/helpers/validated-
 
 describe('validatedRepositoryPath', () => {
   it('returns the path to the repository', async () => {
-    const testRepoPath = setupFixtureRepository('test-repo')
+    const testRepoPath = await setupFixtureRepository('test-repo')
     const result = await validatedRepositoryPath(testRepoPath)
     expect(result).to.equal(testRepoPath)
   })

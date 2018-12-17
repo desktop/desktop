@@ -1,6 +1,7 @@
 out/
 dist/
 node_modules/
+coverage/
 npm-debug.log
 yarn-error.log
 app/node_modules/
@@ -9,3 +10,6 @@ app/node_modules/
 .idea/
 .vs/
 .eslintcache
+*.iml
+.envrc
+junit.xml

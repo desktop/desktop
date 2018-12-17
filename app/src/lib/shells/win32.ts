@@ -1,16 +1,18 @@
 import { spawn, ChildProcess } from 'child_process'
 import * as Path from 'path'
 import { enumerateValues, HKEY, RegistryValueType } from 'registry-js'
+import { pathExists } from 'fs-extra'
 
-import { pathExists } from '../file-system'
 import { assertNever } from '../fatal-error'
 import { IFoundShell } from './found-shell'
 
 export enum Shell {
   Cmd = 'Command Prompt',
   PowerShell = 'PowerShell',
+  PowerShellCore = 'PowerShell Core',
   Hyper = 'Hyper',
   GitBash = 'Git Bash',
+  Cygwin = 'Cygwin',
 }
 
 export const Default = Shell.Cmd
@@ -24,12 +26,20 @@ export function parse(label: string): Shell {
     return Shell.PowerShell
   }
 
+  if (label === Shell.PowerShellCore) {
+    return Shell.PowerShellCore
+  }
+
   if (label === Shell.Hyper) {
     return Shell.Hyper
   }
 
   if (label === Shell.GitBash) {
     return Shell.GitBash
+  }
+
+  if (label === Shell.Cygwin) {
+    return Shell.Cygwin
   }
 
   return Default
@@ -53,6 +63,14 @@ export async function getAvailableShells(): Promise<
     })
   }
 
+  const powerShellCorePath = await findPowerShellCore()
+  if (powerShellCorePath != null) {
+    shells.push({
+      shell: Shell.PowerShellCore,
+      path: powerShellCorePath,
+    })
+  }
+
   const hyperPath = await findHyper()
   if (hyperPath != null) {
     shells.push({
@@ -66,6 +84,14 @@ export async function getAvailableShells(): Promise<
     shells.push({
       shell: Shell.GitBash,
       path: gitBashPath,
+    })
+  }
+
+  const cygwinPath = await findCygwin()
+  if (cygwinPath != null) {
+    shells.push({
+      shell: Shell.Cygwin,
+      path: cygwinPath,
     })
   }
 
@@ -111,6 +137,32 @@ async function findPowerShell(): Promise<string | null> {
   return null
 }
 
+async function findPowerShellCore(): Promise<string | null> {
+  const powerShellCore = enumerateValues(
+    HKEY.HKEY_LOCAL_MACHINE,
+    'Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\pwsh.exe'
+  )
+
+  if (powerShellCore.length === 0) {
+    return null
+  }
+
+  const first = powerShellCore[0]
+  if (first.type === RegistryValueType.REG_SZ) {
+    const path = first.data
+
+    if (await pathExists(path)) {
+      return path
+    } else {
+      log.debug(
+        `[PowerShellCore] registry entry found but does not exist at '${path}'`
+      )
+    }
+  }
+
+  return null
+}
+
 async function findHyper(): Promise<string | null> {
   const hyper = enumerateValues(
     HKEY.HKEY_CURRENT_USER,
@@ -128,11 +180,19 @@ async function findHyper(): Promise<string | null> {
     // This regex is designed to get the path to the version-specific Hyper.
     // commandPieces = ['"{installationPath}\app-x.x.x\Hyper.exe"', '"', '{installationPath}\app-x.x.x\Hyper.exe', ...]
     const commandPieces = first.data.match(/(["'])(.*?)\1/)
+    const localAppData = process.env.LocalAppData
+
     const path = commandPieces
       ? commandPieces[2]
-      : process.env.LocalAppData.concat('\\hyper\\Hyper.exe') // fall back to the launcher in install root
+      : localAppData != null
+      ? localAppData.concat('\\hyper\\Hyper.exe')
+      : null // fall back to the launcher in install root
 
-    if (await pathExists(path)) {
+    if (path == null) {
+      log.debug(
+        `[Hyper] LOCALAPPDATA environment variable is unset, aborting fallback behavior`
+      )
+    } else if (await pathExists(path)) {
       return path
     } else {
       log.debug(`[Hyper] registry entry found but does not exist at '${path}'`)
@@ -168,6 +228,46 @@ async function findGitBash(): Promise<string | null> {
   return null
 }
 
+async function findCygwin(): Promise<string | null> {
+  const registryPath64 = enumerateValues(
+    HKEY.HKEY_LOCAL_MACHINE,
+    'SOFTWARE\\Cygwin\\setup'
+  )
+  const registryPath32 = enumerateValues(
+    HKEY.HKEY_LOCAL_MACHINE,
+    'SOFTWARE\\WOW6432Node\\Cygwin\\setup'
+  )
+
+  if (registryPath64 == null || registryPath32 == null) {
+    return null
+  }
+
+  const installPathEntry64 = registryPath64.find(e => e.name === 'rootdir')
+  const installPathEntry32 = registryPath32.find(e => e.name === 'rootdir')
+  if (
+    installPathEntry64 &&
+    installPathEntry64.type === RegistryValueType.REG_SZ
+  ) {
+    const path = Path.join(installPathEntry64.data, 'bin\\mintty.exe')
+
+    if (await pathExists(path)) {
+      return path
+    } else if (
+      installPathEntry32 &&
+      installPathEntry32.type === RegistryValueType.REG_SZ
+    ) {
+      const path = Path.join(installPathEntry32.data, 'bin\\mintty.exe')
+      if (await pathExists(path)) {
+        return path
+      }
+    } else {
+      log.debug(`[Cygwin] registry entry found but does not exist at '${path}'`)
+    }
+  }
+
+  return null
+}
+
 export function launch(
   foundShell: IFoundShell<Shell>,
   path: string
@@ -178,6 +278,12 @@ export function launch(
     case Shell.PowerShell:
       const psCommand = `"Set-Location -LiteralPath '${path}'"`
       return spawn('START', ['powershell', '-NoExit', '-Command', psCommand], {
+        shell: true,
+        cwd: path,
+      })
+    case Shell.PowerShellCore:
+      const psCoreCommand = `"Set-Location -LiteralPath '${path}'"`
+      return spawn('START', ['pwsh', '-NoExit', '-Command', psCoreCommand], {
         shell: true,
         cwd: path,
       })
@@ -195,6 +301,17 @@ export function launch(
         shell: true,
         cwd: path,
       })
+    case Shell.Cygwin:
+      const cygwinPath = `"${foundShell.path}"`
+      log.info(`launching ${shell} at path: ${cygwinPath}`)
+      return spawn(
+        cygwinPath,
+        [`/bin/sh -lc 'cd "$(cygpath "${path}")"; exec bash`],
+        {
+          shell: true,
+          cwd: path,
+        }
+      )
     case Shell.Cmd:
       return spawn('START', ['cmd'], { shell: true, cwd: path })
     default:

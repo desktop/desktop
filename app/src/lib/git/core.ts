@@ -1,12 +1,19 @@
-import { assertNever } from '../fatal-error'
-import * as GitPerf from '../../ui/lib/git-perf'
-
 import {
   GitProcess,
   IGitResult as DugiteResult,
   GitError as DugiteError,
   IGitExecutionOptions as DugiteExecutionOptions,
 } from 'dugite'
+
+import { assertNever } from '../fatal-error'
+import { getDotComAPIEndpoint } from '../api'
+import { enableGitProtocolVersionTwo } from '../feature-flag'
+
+import { IGitAccount } from '../../models/git-account'
+
+import * as GitPerf from '../../ui/lib/git-perf'
+import { Repository } from '../../models/repository'
+import { getConfigValue, getGlobalConfigValue } from './config'
 
 /**
  * An extension of the execution options in dugite that
@@ -81,17 +88,17 @@ export class GitError extends Error {
 /**
  * Shell out to git with the given arguments, at the given path.
  *
- * @param {args}             The arguments to pass to `git`.
+ * @param args             The arguments to pass to `git`.
  *
- * @param {path}             The working directory path for the execution of the
- *                           command.
+ * @param path             The working directory path for the execution of the
+ *                         command.
  *
- * @param {name}             The name for the command based on its caller's
- *                           context. This will be used for performance
- *                           measurements and debugging.
+ * @param name             The name for the command based on its caller's
+ *                         context. This will be used for performance
+ *                         measurements and debugging.
  *
- * @param {options}          Configuration options for the execution of git,
- *                           see IGitExecutionOptions for more information.
+ * @param options          Configuration options for the execution of git,
+ *                         see IGitExecutionOptions for more information.
  *
  * Returns the result. If the command exits with a code not in
  * `successExitCodes` or an error not in `expectedErrors`, a `GitError` will be
@@ -245,23 +252,88 @@ function getDescriptionForError(error: DugiteError): string {
       return 'This branch cannot be deleted from the remote repository because it is marked as protected.'
     case DugiteError.ProtectedBranchRequiredStatus:
       return 'The push was rejected by the remote server because a required status check has not been satisfied.'
+    case DugiteError.BranchRenameFailed:
+      return 'The branch could not be renamed.'
+    case DugiteError.PathDoesNotExist:
+      return 'The path does not exist on disk.'
+    case DugiteError.InvalidObjectName:
+      return 'The object was not found in the Git repository.'
+    case DugiteError.OutsideRepository:
+      return 'This path is not a valid path inside the repository.'
+    case DugiteError.LockFileAlreadyExists:
+      return 'A lock file already exists in the repository, which blocks this operation from completing.'
+    case DugiteError.NoMergeToAbort:
+      return 'There is no merge in progress, so there is nothing to abort.'
     default:
       return assertNever(error, `Unknown error: ${error}`)
   }
 }
 
 /**
- * An array of command line arguments for network operation that unset
- * or hard-code git configuration values that should not be read from
- * local, global, or system level git configs.
+ * Return an array of command line arguments for network operation that override
+ * the default git configuration values provided by local, global, or system
+ * level git configs.
  *
  * These arguments should be inserted before the subcommand, i.e in
  * the case of `git pull` these arguments needs to go before the `pull`
  * argument.
+ *
+ * @param repository the local repository associated with the command, to check
+ *                   local, global and system config for an existing value.
+ *                   If `null` if provided (for example, when cloning a new
+ *                   repository), this function will check global and system
+ *                   config for an existing `protocol.version` setting
+ *
+ * @param account the identity associated with the repository, or `null` if
+ *                unknown. The `protocol.version` behaviour is currently only
+ *                enabled for GitHub.com repositories that don't have an
+ *                existing `protocol.version` setting.
  */
-export const gitNetworkArguments: ReadonlyArray<string> = [
-  // Explicitly unset any defined credential helper, we rely on our
-  // own askpass for authentication.
-  '-c',
-  'credential.helper=',
-]
+export async function gitNetworkArguments(
+  repository: Repository | null,
+  account: IGitAccount | null
+): Promise<ReadonlyArray<string>> {
+  const baseArgs = [
+    // Explicitly unset any defined credential helper, we rely on our
+    // own askpass for authentication.
+    '-c',
+    'credential.helper=',
+  ]
+
+  if (!enableGitProtocolVersionTwo()) {
+    return baseArgs
+  }
+
+  if (account === null) {
+    return baseArgs
+  }
+
+  const isDotComAccount = account.endpoint === getDotComAPIEndpoint()
+
+  if (!isDotComAccount) {
+    return baseArgs
+  }
+
+  const name = 'protocol.version'
+
+  const protocolVersion =
+    repository != null
+      ? await getConfigValue(repository, name)
+      : getGlobalConfigValue(name)
+
+  if (protocolVersion !== null) {
+    // protocol.version is already set, we should not override it with our own
+    return baseArgs
+  }
+
+  // opt in for v2 of the Git Wire protocol for GitHub repositories
+  return [...baseArgs, '-c', 'protocol.version=2']
+}
+
+/**
+ * Returns the SHA of the passed in IGitResult
+ * @param result
+ */
+export function parseCommitSHA(result: IGitResult): string {
+  return result.stdout.split(']')[0].split(' ')[1]
+}

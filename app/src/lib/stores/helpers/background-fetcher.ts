@@ -96,7 +96,11 @@ export class BackgroundFetcher {
       try {
         await this.fetch(this.repository)
       } catch (e) {
-        log.error('Error performing periodic fetch', e)
+        const ghRepo = this.repository.gitHubRepository
+        const repoName =
+          ghRepo !== null ? ghRepo.fullName : this.repository.name
+
+        log.error(`Error performing periodic fetch for '${repoName}'`, e)
       }
     }
 

@@ -9,6 +9,7 @@
 .diff-code-mirror .CodeMirror {
   height: 100%;
   color: var(--diff-text-color);
+  background: var(--background-color);
   font-size: var(--font-size-sm);
   font-family: var(--font-family-monospace);
 
@@ -61,6 +62,7 @@
 .diff-line-gutter {
   display: flex;
   height: 100%;
+  background: var(--diff-gutter-background-color);
 
   &.diff-add {
     background: var(--diff-add-gutter-background-color);
@@ -82,6 +84,19 @@
     border-right: 4px solid var(--diff-border-color);
   }
 
+  .diff-line-number {
+    cursor: default;
+  }
+
+  &.diff-add,
+  &.diff-delete {
+    &:not(.read-only) {
+      .diff-line-number {
+        cursor: pointer;
+      }
+    }
+  }
+
   &.read-only .after {
     border-right-width: 1px;
   }
@@ -95,8 +110,25 @@
   text-align: right;
 }
 
-.diff-add {
-  background: var(--diff-add-background-color);
+.CodeMirror-linebackground {
+  &.diff-add {
+    background: var(--diff-add-background-color);
+  }
+
+  &.diff-delete {
+    background: var(--diff-delete-background-color);
+  }
+
+  &.diff-context {
+    background: var(--background-color);
+  }
+
+  &.diff-hunk {
+    background: var(--diff-hunk-background-color);
+  }
+}
+
+.CodeMirror pre.diff-add {
   color: var(--diff-add-text-color);
   padding: 0;
 
@@ -109,8 +141,7 @@
   }
 }
 
-.diff-delete {
-  background: var(--diff-delete-background-color);
+.CodeMirror pre.diff-delete {
   color: var(--diff-delete-text-color);
   padding: 0;
 
@@ -123,9 +154,8 @@
   }
 }
 
-.diff-context {
-  background: var(--background-color);
-  color: var(--diff-context-text-color);
+.CodeMirror pre.diff-context {
+  color: var(--diff-text-color);
   padding: 0;
 
   .diff-line-number {
@@ -159,11 +189,10 @@
 }
 
 .cm-diff-context {
-  color: var(--diff-context-text-color);
+  color: var(--diff-text-color);
 }
 
-.diff-hunk {
-  background: var(--diff-hunk-background-color);
+.CodeMirror pre.diff-hunk {
   color: var(--diff-hunk-text-color);
   padding: 0;
 
@@ -176,7 +205,7 @@
   }
 }
 
-.diff-line-selected {
+.CodeMirror pre.CodeMirror-line .diff-line-selected {
   .diff-line-number {
     background: var(--diff-selected-background-color);
     border-color: var(--diff-selected-border-color);
@@ -188,7 +217,7 @@
   }
 }
 
-.diff-line-hover {
+.CodeMirror pre.CodeMirror-line .diff-line-hover {
   .diff-line-number {
     background: var(--diff-hover-background-color);
     border-color: var(--diff-hover-border-color);
@@ -246,15 +275,6 @@
   padding: 0;
 }
 // ***************************************************************************************************************************
-#diff a {
-  text-decoration: none;
-  margin-left: var(--spacing-half);
-}
-
-#diff a:link {
-  color: (orange);
-}
-
 .panel.image {
   display: flex;
   flex: 1;
@@ -263,6 +283,9 @@
   .tab-bar {
     width: 350px;
     margin: 10px auto 0;
+    // Workaround to allow toggling between different modes until
+    // root issue with DPI scaling is addressed, see https://github.com/desktop/desktop/issues/2480
+    z-index: 0;
   }
 
   .image-diff-previous {
@@ -295,17 +318,36 @@
   }
 }
 
-.image-diff-two-up {
+.image-diff-container {
   display: flex;
   flex: 1;
   justify-content: center;
   align-items: center;
+  flex-direction: column;
 
-  .image-diff-previous {
-    margin-right: 7.5px;
+  .image-diff-two-up {
+    display: flex;
+    align-items: center;
+
+    .image-diff-previous {
+      margin-right: var(--spacing-half);
+      margin-bottom: var(--spacing-half);
+    }
+    .image-diff-current {
+      margin-left: var(--spacing-half);
+      margin-bottom: var(--spacing-half);
+    }
   }
-  .image-diff-current {
-    margin-left: 7.5px;
+
+  .image-diff-summary {
+    color: var(--text-secondary-color);
+    font-weight: var(--font-weight-semibold);
+    .added {
+      color: var(--color-new);
+    }
+    .removed {
+      color: var(--color-deleted);
+    }
   }
 }
 
@@ -436,15 +478,15 @@
 // https://github.com/primer/github-syntax-light/blob/5aeffad2559647286080328436156c4904a9785b/lib/github-light.css
 .cm-s-default {
   .cm-variable {
-    color: #6f42c1;
+    color: var(--syntax-variable-color);
   }
 
   .cm-keyword {
-    color: #d73a49;
+    color: var(--syntax-keyword-color);
   }
 
   .cm-atom {
-    color: #005cc5;
+    color: var(--syntax-atom-color);
   }
   .cm-number {
     color: inherit;
@@ -456,25 +498,25 @@
 
   .cm-variable-2,
   .cm-variable-3 {
-    color: #24292e;
+    color: var(--syntax-alt-variable-color);
   }
   .cm-comment,
   .cm-meta {
-    color: $gray-500;
+    color: var(--syntax-comment-color);
   }
   .cm-string,
   .cm-string-2 {
-    color: #032f62;
+    color: var(--syntax-string-color);
 
     &.cm-property {
       color: inherit;
     }
   }
   .cm-qualifier {
-    color: #6f42c1;
+    color: var(--syntax-qualifier-color);
   }
   .cm-type {
-    color: #d73a49;
+    color: var(--syntax-type-color);
   }
   .cm-builtin {
     color: inherit;
@@ -483,17 +525,20 @@
     color: inherit;
   }
   .cm-tag {
-    color: #22863a;
+    color: var(--syntax-tag-color);
   }
   .cm-attribute {
-    color: #6f42c1;
+    color: var(--syntax-attribute-color);
   }
   .cm-hr {
     color: inherit;
   }
   .cm-link {
     text-decoration: underline;
-    color: #032f62;
+    color: var(--syntax-link-color);
+  }
+  .cm-header {
+    color: var(--syntax-header-color);
   }
 
   // Intra line markings takes precedence over syntax highlighting.
@@ -507,19 +552,19 @@
 
   .cm-m-css {
     &.cm-property {
-      color: #005cc5;
+      color: var(--syntax-atom-color);
     }
   }
 
   .cm-m-shell {
     &.cm-builtin {
-      color: #005cc5;
+      color: var(--syntax-atom-color);
     }
   }
 
   .cm-m-javascript {
     &.cm-type {
-      color: #6f42c1;
+      color: var(--syntax-variable-color);
     }
   }
 }

@@ -75,6 +75,10 @@
       background-color: transparent;
       transition: background-color 0.25s ease;
 
+      // Explicitly setting the line height to the height
+      // of the SVG illustrations helps with vertical alignment.
+      line-height: 10px;
+
       &:focus {
         outline: none;
       }

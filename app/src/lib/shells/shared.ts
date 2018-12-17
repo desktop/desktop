@@ -1,9 +1,9 @@
 import { ChildProcess } from 'child_process'
+import { pathExists } from 'fs-extra'
 
 import * as Darwin from './darwin'
 import * as Win32 from './win32'
 import * as Linux from './linux'
-import { pathExists } from '../file-system'
 import { IFoundShell } from './found-shell'
 import { ShellError } from './error'
 

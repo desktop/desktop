@@ -9,6 +9,8 @@ import { compare } from '../../lib/compare'
 import { arrayEquals } from '../../lib/equality'
 import { OcticonSymbol } from '../octicons'
 import { IAuthor } from '../../models/author'
+import { showContextualMenu } from '../main-process-proxy'
+import { IMenuItem } from '../../lib/menu-item'
 
 interface IAuthorInputProps {
   /**
@@ -170,17 +172,6 @@ function scanUntil(
   iter: (doc: Doc, pos: Position) => Position
 ): Position {
   return scanWhile(doc, start, (doc, pos) => !predicate(doc, pos), iter)
-}
-
-/**
- * Given a cursor position, expand it into a range covering as
- * long of an autocompletable string as possible.
- */
-function getHintRangeFromCursor(doc: Doc, cursor: Position) {
-  return {
-    from: scanUntil(doc, cursor, isMarkOrWhitespace, prevPosition),
-    to: scanUntil(doc, cursor, isMarkOrWhitespace, nextPosition),
-  }
 }
 
 function appendTextMarker(
@@ -633,7 +624,10 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
     const doc = cm.getDoc()
     const cursor = doc.getCursor() as Readonly<Position>
 
-    const { from, to } = getHintRangeFromCursor(doc, cursor)
+    // expand the current cursor position into a range covering as
+    // long of an autocompletable string as possible.
+    const from = scanUntil(doc, cursor, isMarkOrWhitespace, prevPosition)
+    const to = scanUntil(doc, cursor, isMarkOrWhitespace, nextPosition)
 
     const word = doc.getRange(from, to)
 
@@ -757,16 +751,48 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
       this.updateAuthors(cm)
     })
 
+    const wrapperElem = cm.getWrapperElement()
+
     // Do the very least we can do to pretend that we're a
     // single line textbox. Users can still paste newlines
     // though and if the do we don't care.
-    cm.getWrapperElement().addEventListener('keypress', (e: KeyboardEvent) => {
+    wrapperElem.addEventListener('keypress', (e: KeyboardEvent) => {
       if (!e.defaultPrevented && e.key === 'Enter') {
         e.preventDefault()
       }
     })
 
+    wrapperElem.addEventListener('contextmenu', e => {
+      this.onContextMenu(cm, e)
+    })
+
     return cm
+  }
+
+  private onContextMenu(cm: Editor, e: MouseEvent) {
+    e.preventDefault()
+
+    const menu: IMenuItem[] = [
+      { label: 'Undo', action: () => cm.getDoc().undo() },
+      { label: 'Redo', action: () => cm.getDoc().redo() },
+      { type: 'separator' },
+      { role: 'cut' },
+      { role: 'copy' },
+      { role: 'paste' },
+    ]
+
+    if (__WIN32__) {
+      menu.push({ type: 'separator' })
+    }
+
+    menu.push({
+      label: __DARWIN__ ? 'Select All' : 'Select all',
+      action: () => {
+        cm.execCommand('selectAll')
+      },
+    })
+
+    showContextualMenu(menu)
   }
 
   private updateAuthors(cm: Editor) {

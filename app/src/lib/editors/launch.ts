@@ -1,15 +1,15 @@
 import { spawn } from 'child_process'
-import { pathExists } from '../file-system'
+import { pathExists } from 'fs-extra'
 import { ExternalEditorError, FoundEditor } from './shared'
 
 /**
- * Open a given folder in the desired external editor.
+ * Open a given file or folder in the desired external editor.
  *
- * @param path The folder to pass as an argument when launching the editor.
+ * @param fullPath A folder or file path to pass as an argument when launching the editor.
  * @param editor The external editor to launch.
  */
 export async function launchExternalEditor(
-  path: string,
+  fullPath: string,
   editor: FoundEditor
 ): Promise<void> {
   const editorPath = editor.path
@@ -23,6 +23,9 @@ export async function launchExternalEditor(
       { openPreferences: true }
     )
   }
-
-  spawn(editorPath, [path])
+  if (editor.usesShell) {
+    spawn(`"${editorPath}"`, [`"${fullPath}"`], { shell: true })
+  } else {
+    spawn(editorPath, [fullPath])
+  }
 }

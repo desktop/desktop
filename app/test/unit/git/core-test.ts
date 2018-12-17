@@ -1,5 +1,3 @@
-/* eslint-disable no-sync */
-
 import { expect } from 'chai'
 import { GitError } from 'dugite'
 
@@ -10,8 +8,8 @@ import { setupFixtureRepository } from '../../helpers/repositories'
 describe('git/core', () => {
   let repository: Repository | null = null
 
-  beforeEach(() => {
-    const testRepoPath = setupFixtureRepository('test-repo')
+  beforeEach(async () => {
+    const testRepoPath = await setupFixtureRepository('test-repo')
     repository = new Repository(testRepoPath, -1, null, false)
   })
 

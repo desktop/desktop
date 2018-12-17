@@ -1,7 +1,5 @@
-/* eslint-disable no-sync */
-
 import * as path from 'path'
-import * as Fs from 'fs'
+import * as FSE from 'fs-extra'
 import * as os from 'os'
 import { expect } from 'chai'
 
@@ -9,15 +7,21 @@ import { Repository } from '../../../src/models/repository'
 import {
   isGitRepository,
   getTopLevelWorkingDirectory,
+  isBareRepository,
 } from '../../../src/lib/git/rev-parse'
 import { git } from '../../../src/lib/git/core'
-import { setupFixtureRepository, mkdirSync } from '../../helpers/repositories'
+import {
+  setupFixtureRepository,
+  mkdirSync,
+  setupEmptyRepository,
+} from '../../helpers/repositories'
+import { GitProcess } from 'dugite'
 
 describe('git/rev-parse', () => {
   let repository: Repository | null = null
 
-  beforeEach(() => {
-    const testRepoPath = setupFixtureRepository('test-repo')
+  beforeEach(async () => {
+    const testRepoPath = await setupFixtureRepository('test-repo')
     repository = new Repository(testRepoPath, -1, null, false)
   })
 
@@ -33,16 +37,47 @@ describe('git/rev-parse', () => {
     })
   })
 
+  describe('isBareRepository', () => {
+    it('returns false for default initialized repository', async () => {
+      const repository = await setupEmptyRepository()
+      const result = await isBareRepository(repository.path)
+      expect(result).is.false
+    })
+
+    it('returns true for initialized bare repository', async () => {
+      const path = await mkdirSync('no-repository-here')
+      await GitProcess.exec(['init', '--bare'], path)
+      const result = await isBareRepository(path)
+      expect(result).is.true
+    })
+
+    it('returns false for empty directory', async () => {
+      const path = await mkdirSync('no-actual-repository-here')
+      const result = await isBareRepository(path)
+      expect(result).is.false
+    })
+
+    it('throws error for missing directory', async () => {
+      const rootPath = await mkdirSync('no-actual-repository-here')
+      const missingPath = path.join(rootPath, 'missing-folder')
+      let errorThrown = false
+      try {
+        await isBareRepository(missingPath)
+      } catch {
+        errorThrown = true
+      }
+
+      expect(errorThrown).is.true
+    })
+  })
+
   describe('getTopLevelWorkingDirectory', () => {
     it('should return an absolute path when run inside a working directory', async () => {
       const result = await getTopLevelWorkingDirectory(repository!.path)
       expect(result).to.equal(repository!.path)
 
       const subdirPath = path.join(repository!.path, 'subdir')
-
-      await new Promise<void>((resolve, reject) => {
-        Fs.mkdir(subdirPath, e => (e ? reject(e) : resolve()))
-      })
+      await FSE.mkdir(subdirPath)
 
       const subDirResult = await getTopLevelWorkingDirectory(repository!.path)
       expect(subDirResult).to.equal(repository!.path)

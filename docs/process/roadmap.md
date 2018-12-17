@@ -1,63 +1,49 @@
 # Roadmap
 
-The following are our marketing releases as planned to date. They contain the broad features we're considering. The further away a release is, the less defined it is. Releases are subject to change at any time.
+The following are the larger areas of upcoming work the GitHub Desktop team intends to explore. This is not inclusive of everything we're working on, and it's not written in stone. We'll continue to update it as our priorities evolve.
 
-## 1.1
+#### Onboarding
+  
+- Improve onboarding for new users: [#5686](https://github.com/desktop/desktop/issues/5686)
+- Measuring success: [#5549](https://github.com/desktop/desktop/issues/5549) + usability testing
 
-- Relationship to _X_
-  - Show how the current branch relates to the target branch
-  - The target is the default branch or the upstream's default branch
-  - _Probably_ let the user switch the target branch
+#### Merge conflicts iteration
 
-- Conflict resolution lite
-  - Differentiate conflicted files from other changed files
-  - Let me choose my mergetool
-  - Let me open my mergetool
+- Iterate on initial merge conflicts ship: [#6213](https://github.com/desktop/desktop/issues/6213)
+- Measuring success: [#6388](https://github.com/desktop/desktop/issues/6388)
 
-- Pull request list
-  - _Probably_ a tab in the Branches foldout
-  - Group my pull requests vs. others
+#### Support rebase workflows
 
-- Pull request CI status
-  - Show PRs CI status in the above pull request list
+- Improve rebase workflows: [#5953](https://github.com/desktop/desktop/issues/5953)
+- Measuring success: TBD alongside the work + usability testing
 
-- Auto-config upstreams on fork
-  - Create an `upstream` remote for forks
-  - Fetch periodically
+#### Accessibility improvements
 
-## 1.2
+- To be further defined, but we want to prioritize scoping a chunk of work on improving accessibility for our users
 
-- Full conflict resolution
-  - Lots TBD
-  - Pick ours/theirs/both
-  - Edit inline
-  - Abort merge
-  - How did I get here?
+#### Working with uncommitted changes
 
-- Fork if needed
-  - Offer to fork on clone, or push, or ?
+- Improve workflows when you have uncommitted changes: https://github.com/desktop/desktop/issues/6107
+- Measuring success: TBD alongside the work + usability testing
 
-- Protected branches and default branch protection
-  - Don't let me commit to branches I shouldn't commit to
-  - Guide me to creating my own branches
+#### Branch list grows with merged & deleted branches making it difficult to find those you care about
 
-- CI status notifications lite
-  - Only on my PRs
-  - Use OS notifications
-  - Notifications link to the PR on dotcom
+- Prune branches after they've been deleted: https://github.com/desktop/desktop/issues/750
+- Measuring success: TBD alongside the work + usability testing
 
-## 1.3
+#### Users behind corporate proxies cannot clone without manual setup
 
-- Keep environment up-to-date
-  - Do I need to run `npm install`? `bundle install`?
-  - Is it pluggable?
+- Help people get set up correctly if they're behind a proxy: https://github.com/desktop/desktop/issues/2789
+- Measuring success: TBD alongside the work
 
-- Linting
-  - TBD
+## Shipped in previous releases
+  
+#### Merge conflicts handling (1.5)
 
-- Save face
-  - Keep me from making embarrassing mistakes
-  - Don't let me commit a file with conflict markers
+- Improve how Desktop handles merge conflicts: [#5400](https://github.com/desktop/desktop/issues/5400)
+- Measuring success: [#5394](https://github.com/desktop/desktop/issues/5394)
+  
+#### Merge workflow iteration (1.5)
 
-- Repository list info
-  - Does a repository need my attention?
+- Evaluate and improve merge flow end-to-end: [#5555](https://github.com/desktop/desktop/issues/5555)
+- Usability testing for merging

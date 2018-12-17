@@ -105,5 +105,6 @@ generateIconData().then(result => {
 
   console.log('Ensuring generated file is formatted correctly...')
   const root = Path.dirname(__dirname)
-  return cp.spawn('yarn', ['lint:fix'], { cwd: root, stdio: 'inherit' })
+  const yarnExecutable = process.platform === 'win32' ? 'yarn.cmd' : 'yarn'
+  return cp.spawn(yarnExecutable, ['lint:fix'], { cwd: root, stdio: 'inherit' })
 })

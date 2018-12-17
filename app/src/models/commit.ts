@@ -1,8 +1,22 @@
 import { CommitIdentity } from './commit-identity'
 import { ITrailer, isCoAuthoredByTrailer } from '../lib/git/interpret-trailers'
 import { GitAuthor } from './git-author'
-import { GitHubRepository } from './github-repository'
-import { getDotComAPIEndpoint } from '../lib/api'
+
+/** Grouping of information required to create a commit */
+export interface ICommitContext {
+  /**
+   * The summary of the commit message (required)
+   */
+  readonly summary: string
+  /**
+   * Additional details for the commit message (optional)
+   */
+  readonly description: string | null
+  /**
+   * An optional array of commit trailers (for example Co-Authored-By trailers) which will be appended to the commit message in accordance with the Git trailer configuration.
+   */
+  readonly trailers?: ReadonlyArray<ITrailer>
+}
 
 /**
  * Extract any Co-Authored-By trailers from an array of arbitrary
@@ -25,36 +39,6 @@ function extractCoAuthors(trailers: ReadonlyArray<ITrailer>) {
 
 /** A git commit. */
 export class Commit {
-  /** The commit's SHA. */
-  public readonly sha: string
-
-  /** The first line of the commit message. */
-  public readonly summary: string
-
-  /** The commit message without the first line and CR. */
-  public readonly body: string
-
-  /**
-   * Information about the author of this commit.
-   * Includes name, email and date.
-   */
-  public readonly author: CommitIdentity
-
-  /**
-   * Information about the committer of this commit.
-   * Includes name, email and date.
-   */
-  public readonly committer: CommitIdentity
-
-  /** The SHAs for the parents of the commit. */
-  public readonly parentSHAs: ReadonlyArray<string>
-
-  /**
-   * Parsed, unfolded trailers from the commit message body,
-   * if any, as interpreted by `git interpret-trailers`
-   */
-  public readonly trailers: ReadonlyArray<ITrailer>
-
   /**
    * A list of co-authors parsed from the commit message
    * trailers.
@@ -67,60 +51,31 @@ export class Commit {
    */
   public readonly authoredByCommitter: boolean
 
+  /**
+   * @param sha The commit's SHA.
+   * @param summary The first line of the commit message.
+   * @param body The commit message without the first line and CR.
+   * @param author Information about the author of this commit.
+   *               Includes name, email and date.
+   * @param committer Information about the committer of this commit.
+   *                 Includes name, email and date.
+   * @param parentSHAS The SHAs for the parents of the commit.
+   * @param trailers Parsed, unfolded trailers from the commit message body,
+   *                 if any, as interpreted by `git interpret-trailers`
+   */
   public constructor(
-    sha: string,
-    summary: string,
-    body: string,
-    author: CommitIdentity,
-    committer: CommitIdentity,
-    parentSHAs: ReadonlyArray<string>,
-    trailers: ReadonlyArray<ITrailer>
+    public readonly sha: string,
+    public readonly summary: string,
+    public readonly body: string,
+    public readonly author: CommitIdentity,
+    public readonly committer: CommitIdentity,
+    public readonly parentSHAs: ReadonlyArray<string>,
+    public readonly trailers: ReadonlyArray<ITrailer>
   ) {
-    this.sha = sha
-    this.summary = summary
-    this.body = body
-    this.author = author
-    this.committer = committer
-    this.parentSHAs = parentSHAs
-    this.trailers = trailers
     this.coAuthors = extractCoAuthors(trailers)
 
     this.authoredByCommitter =
       this.author.name === this.committer.name &&
       this.author.email === this.committer.email
-  }
-
-  /**
-   * Best-effort attempt to figure out if this commit was committed using
-   * the web flow on GitHub.com or GitHub Enterprise. Web flow
-   * commits (such as PR merges) will have a special GitHub committer
-   * with a noreply email address.
-   *
-   * For GitHub.com we can be spot on but for GitHub Enterprise it's
-   * possible we could fail if they've set up a custom smtp host
-   * that doesn't correspond to the hostname.
-   */
-  public isWebFlowCommitter(gitHubRepository: GitHubRepository) {
-    if (!gitHubRepository) {
-      return false
-    }
-
-    const endpoint = gitHubRepository.owner.endpoint
-    const { name, email } = this.committer
-
-    if (
-      endpoint === getDotComAPIEndpoint() &&
-      name === 'GitHub' &&
-      email === 'noreply@github.com'
-    ) {
-      return true
-    }
-
-    if (this.committer.name === 'GitHub Enterprise') {
-      const host = new URL(endpoint).host.toLowerCase()
-      return email === `noreply@${host}`
-    }
-
-    return false
   }
 }

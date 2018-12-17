@@ -1,4 +1,4 @@
-import { ITextDiff, DiffLine } from '../../models/diff'
+import { DiffHunk, DiffLine } from '../../models/diff'
 import * as CodeMirror from 'codemirror'
 import { diffLineForIndex } from './diff-explorer'
 import { ITokens } from '../../lib/highlighter/types'
@@ -9,7 +9,7 @@ export interface IDiffSyntaxModeOptions {
   /**
    * The unified diff representing the change
    */
-  readonly diff: ITextDiff
+  readonly hunks: ReadonlyArray<DiffHunk>
 
   /**
    * Tokens returned from the highlighter for the 'before'
@@ -80,16 +80,16 @@ function getTokensForDiffLine(
 export class DiffSyntaxMode {
   public static readonly ModeName = 'github-diff-syntax'
 
-  private readonly diff?: ITextDiff
+  private readonly hunks?: ReadonlyArray<DiffHunk>
   private readonly oldTokens?: ITokens
   private readonly newTokens?: ITokens
 
   public constructor(
-    diff?: ITextDiff,
+    hunks?: ReadonlyArray<DiffHunk>,
     oldTokens?: ITokens,
     newTokens?: ITokens
   ) {
-    this.diff = diff
+    this.hunks = hunks
     this.oldTokens = oldTokens
     this.newTokens = newTokens
   }
@@ -125,11 +125,11 @@ export class DiffSyntaxMode {
     // This happens when the mode is running without tokens, in this
     // case there's really nothing more for us to do than what we've
     // already done above to deal with the diff line marker.
-    if (!this.diff) {
+    if (this.hunks == null) {
       return skipLine(stream, state)
     }
 
-    const diffLine = diffLineForIndex(this.diff, state.diffLineIndex)
+    const diffLine = diffLineForIndex(this.hunks, state.diffLineIndex)
 
     if (!diffLine) {
       return skipLine(stream, state)
@@ -181,7 +181,7 @@ CodeMirror.defineMode(DiffSyntaxMode.ModeName, function(
   }
 
   return new DiffSyntaxMode(
-    modeOptions.diff,
+    modeOptions.hunks,
     modeOptions.oldTokens,
     modeOptions.newTokens
   )

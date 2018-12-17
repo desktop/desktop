@@ -1,0 +1,50 @@
+changed in both
+  base   100644 f6f6922c78da6efeb7fd01f89bc73adb7b4d4fed extensions/css-language-features/.vscode/launch.json
+  our    100644 d6393141c5dfe77bd85296902d4194bc332d0d52 extensions/css-language-features/.vscode/launch.json
+  their  100644 6b0913faf5267e43049c52811bfbfc79f214f5b6 extensions/css-language-features/.vscode/launch.json
+@@ -24,7 +24,7 @@
+ 				"${workspaceFolder}/client/out/**/*.js"
+ 			],
+ 			"smartStep": true,
+-			"preLaunchTask": "npm: compile"
++			"preLaunchTask": "npm: watch"
+ 		},
+ 		{
+ 			"name": "Launch Tests",
+merged
+  result 100644 5d2e06e9ad528c258097eb424ed110bd06346c34 extensions/css-language-features/.vscode/tasks.json
+  our    100644 9984afdba4e8e6b26d6651200e5a8ef98e02f752 extensions/css-language-features/.vscode/tasks.json
+@@ -3,11 +3,11 @@
+ 	"tasks": [
+ 		{
+ 			"type": "npm",
+-			"script": "compile",
+-			"problemMatcher": "$tsc-watch",
++			"script": "watch",
++			"problemMatcher": "$gulp-tsc",
+ 			"isBackground": true,
+ 			"presentation": {
+-				"reveal": "never"
++				"reveal": "always"
+ 			},
+ 			"group": {
+ 				"kind": "build",
+changed in both
+  base   100644 44a960237e0b54673d80f7e2956208e5f6699e83 extensions/css-language-features/package.json
+  our    100644 cf0903f0a81a63c2988c208743d6ade134006866 extensions/css-language-features/package.json
+  their  100644 e69688e3f59ba8459b559ccaa143dd2024b022ae extensions/css-language-features/package.json
+@@ -17,9 +17,14 @@
+   "enableProposedApi": true,
+   "main": "./client/out/cssMain",
+   "scripts": {
++<<<<<<< .our
+     "compile": "gulp compile-extension:css-language-features-client compile-extension:css-language-features-server",
+     "watch": "gulp watch-extension:css-language-features-client watch-extension:css-language-features-server",
+     "test": "mocha",
++=======
++    "compile": "gulp compile-extension:css-language-features-client && gulp compile-extension:css-language-features-server",
++    "watch": "gulp watch-extension:css-language-features-client && gulp watch-extension:css-language-features-server",
++>>>>>>> .their
+     "postinstall": "cd server && yarn install",
+     "install-client-next": "yarn add vscode-languageclient@next"
+   },

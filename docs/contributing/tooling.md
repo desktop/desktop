@@ -6,11 +6,18 @@ Recommended packages:
 
 * [atom-typescript](https://atom.io/packages/atom-typescript) - syntax
   highlighting and intellisense for TypeScript
-* [atom-build-npm-apm](https://atom.io/packages/build-npm-apm) - invoke
+* [build-npm-apm](https://atom.io/packages/build-npm-apm) - invoke
   all npm scripts straight from the editor by pressing F7 (requires
-  [atom-build](https://atom.io/packages/build))
+  [build](https://atom.io/packages/build))
 * [linter](https://atom.io/packages/linter) and
   [linter-tslint](https://atom.io/packages/linter-tslint) - shows linter errors and warning in the editor
+
+You can install them all at once with:
+
+```shellsession
+apm i atom-typescript build-npm build busy-signal linter-tslint linter linter-ui-default intentions
+```
+If atom prompts you to install any additional dependencies for these packages, be sure to say yes.
 
 ### [Visual Studio Code](https://code.visualstudio.com/)
 
@@ -21,10 +28,18 @@ The Desktop repository includes a list of recommended extensions:
 
 ## Debugging
 
-### Chrome
+When running the app in development mode, the Chrome Dev Tools are also launched, to assist with debugging and poking at the live application.
 
-1. Run the command `npm start`
-2. Open _Chrome Dev Tools_
+```shellsession
+$ yarn
+$ yarn build:dev
+$ yarn start
+```
 
-[React Dev Tools](https://chrome.google.com/webstore/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi?hl=en) should automatically install itself on first start. If you would also like to use [Devtron](http://electron.atom.io/devtron/), run the command `require('devtron').install()` inside of the console in _Chrome Dev Tools_.
+At a basic level, the logs from the running app are displayed in the **Console** tab, but other features include:
 
+ - [React Dev Tools](https://chrome.google.com/webstore/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi?hl=en) - enables you to inspect components and view rendering activity in real time
+ - [Devtron](http://electron.atom.io/devtron/) - not enabled by default, but you can add this from the console: `require('devtron').install()`
+
+If you are looking to diagnose React performance issues in Desktop, [this post by Ben Schwarz](https://building.calibreapp.com/debugging-react-performance-with-react-16-and-chrome-devtools-c90698a522ad)
+is a great introduction to the workflow enabled by React 16 around measuring and investigating using the **Performance** tab.

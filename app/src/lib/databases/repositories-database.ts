@@ -30,13 +30,13 @@ export interface IDatabaseRepository {
 /** The repositories database. */
 export class RepositoriesDatabase extends BaseDatabase {
   /** The local repositories table. */
-  public repositories: Dexie.Table<IDatabaseRepository, number>
+  public repositories!: Dexie.Table<IDatabaseRepository, number>
 
   /** The GitHub repositories table. */
-  public gitHubRepositories: Dexie.Table<IDatabaseGitHubRepository, number>
+  public gitHubRepositories!: Dexie.Table<IDatabaseGitHubRepository, number>
 
   /** The GitHub repository owners table. */
-  public owners: Dexie.Table<IDatabaseOwner, number>
+  public owners!: Dexie.Table<IDatabaseOwner, number>
 
   /**
    * Initialize a new repository database.

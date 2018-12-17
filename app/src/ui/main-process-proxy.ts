@@ -1,7 +1,8 @@
 import { ipcRenderer } from 'electron'
 import { ExecutableMenuItem } from '../models/app-menu'
-import { MenuIDs } from '../main-process/menu'
+import { MenuIDs, MenuLabels } from '../main-process/menu'
 import { IMenuItemState } from '../lib/menu-update'
+import { IMenuItem } from '../lib/menu-item'
 
 /** Set the menu item's enabledness. */
 export function updateMenuState(
@@ -52,20 +53,6 @@ export function getAppMenu() {
   ipcRenderer.send('get-app-menu')
 }
 
-export interface IMenuItem {
-  /** The user-facing label. */
-  readonly label?: string
-
-  /** The action to invoke when the user selects the item. */
-  readonly action?: () => void
-
-  /** The type of item. */
-  readonly type?: 'separator'
-
-  /** Is the menu item enabled? Defaults to true. */
-  readonly enabled?: boolean
-}
-
 /**
  * There's currently no way for us to know when a contextual menu is closed (see
  * https://github.com/electron/electron/issues/9441). So we'll store the latest
@@ -106,11 +93,7 @@ export function showContextualMenu(items: ReadonlyArray<IMenuItem>) {
 }
 
 /** Update the menu item labels with the user's preferred apps. */
-export function updatePreferredAppMenuItemLabels(labels: {
-  editor?: string
-  pullRequestLabel?: string
-  shell: string
-}) {
+export function updatePreferredAppMenuItemLabels(labels: MenuLabels) {
   ipcRenderer.send('update-preferred-app-menu-item-labels', labels)
 }
 

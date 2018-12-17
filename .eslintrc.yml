@@ -4,7 +4,7 @@ plugins:
   - typescript
   - babel
   - react
-  - prettier
+  - json
 
 extends:
   - prettier
@@ -65,18 +65,25 @@ rules:
   eqeqeq:
     - error
     - smart
+  strict:
+    - error
+    - global
 
   ###########
   # SPECIAL #
   ###########
-  prettier/prettier:
-    - error
-    - parser: typescript
   no-restricted-syntax:
     - error
     # no-default-export
     - selector: ExportDefaultDeclaration
       message: Use of default exports is forbidden
+
+overrides:
+  - files: '*.d.ts'
+    rules:
+      strict:
+        - error
+        - never
 
 parserOptions:
   sourceType: module

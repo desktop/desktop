@@ -1,0 +1,77 @@
+.merge-status-component {
+  margin-top: var(--spacing-third);
+
+  .merge-status-icon-container {
+    height: 20px;
+    position: relative;
+    text-align: center;
+
+    .merge-status {
+      background: var(--background-color);
+      border-width: 0 var(--spacing-half);
+      border: solid transparent;
+      box-sizing: content-box;
+      position: relative;
+      z-index: 1;
+    }
+
+    &:after {
+      display: block;
+      border-bottom: var(--base-border);
+      content: '';
+      position: absolute;
+      z-index: 0;
+      display: block;
+      width: 100%;
+      top: var(--spacing);
+    }
+  }
+
+  .merge-status-loading {
+    color: $yellow-700;
+  }
+
+  .merge-status-conflicts {
+    color: var(--color-conflicted);
+  }
+
+  .merge-status-invalid {
+    color: $red-500;
+  }
+
+  .merge-status-clean {
+    color: $green-500;
+  }
+
+  .merge-message,
+  .merge-info {
+    margin-bottom: 0;
+    text-align: center;
+    color: var(--text-secondary-color);
+
+    strong {
+      color: var(--text-color);
+    }
+  }
+}
+
+dialog#merge {
+  .merge-info {
+    margin-top: var(--spacing-half);
+    margin-bottom: var(--spacing);
+  }
+
+  .merge-status-component {
+    margin-top: 0;
+  }
+
+  .merge-status-icon-container {
+    &:after {
+      border-bottom: 0;
+    }
+  }
+
+  .dialog-footer {
+    padding-top: var(--spacing);
+  }
+}

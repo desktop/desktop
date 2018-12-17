@@ -8,7 +8,13 @@ import { getExecutableName } from './dist-info'
 
 function getUserDataPath() {
   if (process.platform === 'win32') {
-    return path.join(process.env.APPDATA, getExecutableName())
+    if (process.env.APPDATA) {
+      return path.join(process.env.APPDATA, getExecutableName())
+    } else {
+      throw new Error(
+        `Unable to find the application data directory on Windows :(`
+      )
+    }
   } else if (process.platform === 'darwin') {
     const home = os.homedir()
     return path.join(home, 'Library', 'Application Support', getProductName())

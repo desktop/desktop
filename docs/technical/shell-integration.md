@@ -25,6 +25,7 @@ These shells are currently supported:
 
  - Command Prompt (cmd)
  - PowerShell
+ - [PowerShell Core](https://github.com/powershell/powershell/)
  - [Hyper](https://hyper.sh/)
  - Git Bash (from [Git for Windows](https://git-for-windows.github.io/))
 
@@ -34,6 +35,7 @@ These are defined in an enum at the top of the file:
 export enum Shell {
   Cmd = 'Command Prompt',
   PowerShell = 'PowerShell',
+  PowerShellCore = 'PowerShell Core',
   Hyper = 'Hyper',
   GitBash = 'Git Bash',
 }
@@ -117,13 +119,14 @@ changes here to handle a new shell.
 
 ## macOS
 
-The source for the macOS shell integration is found in [`app/src/lib/shells/darwin.ts`](https://github.com/desktop/desktop/blob/master/app/src/lib/shell/darwin.ts).
+The source for the macOS shell integration is found in [`app/src/lib/shells/darwin.ts`](https://github.com/desktop/desktop/blob/master/app/src/lib/shells/darwin.ts).
 
 These shells are currently supported:
 
  - Terminal
  - [Hyper](https://hyper.sh/)
  - [iTerm2](https://www.iterm2.com/)
+ - [PowerShell Core](https://github.com/powershell/powershell/)
 
 These are defined in an enum at the top of the file:
 
@@ -132,6 +135,7 @@ export enum Shell {
   Terminal = 'Terminal',
   Hyper = 'Hyper',
   iTerm2 = 'iTerm2',
+  PowerShellCore = 'PowerShell Core',
 }
 ```
 
@@ -159,10 +163,16 @@ new entry to lookup the install path for your shell.
 export async function getAvailableShells(): Promise<
   ReadonlyArray<IFoundShell<Shell>>
 > {
-  const [terminalPath, hyperPath, iTermPath] = await Promise.all([
+  const [
+    terminalPath,
+    hyperPath,
+    iTermPath,
+    powerShellCorePath,
+  ] = await Promise.all([
     getShellPath(Shell.Terminal),
     getShellPath(Shell.Hyper),
     getShellPath(Shell.iTerm2),
+    getShellPath(Shell.PowerShellCore),
   ])
 
   // other code
@@ -194,25 +204,31 @@ export function launch(
 
 ## Linux
 
-The source for the Linux shell integration is found in [`app/src/lib/shells/linux.ts`](https://github.com/desktop/desktop/blob/master/app/src/lib/shell/linux.ts).
+The source for the Linux shell integration is found in [`app/src/lib/shells/linux.ts`](https://github.com/desktop/desktop/blob/master/app/src/lib/shells/linux.ts).
 
 These shells are currently supported:
 
  - [GNOME Terminal](https://help.gnome.org/users/gnome-terminal/stable/)
+ - [MATE Terminal](https://github.com/mate-desktop/mate-terminal)
  - [Tilix](https://github.com/gnunn1/tilix)
+ - [Terminator](https://gnometerminator.blogspot.com)
  - [Rxvt Unicode](http://software.schmorp.de/pkg/rxvt-unicode.html)
  - [Konsole](https://konsole.kde.org/)
  - [XTerm](http://invisible-island.net/xterm/)
+ - [Terminology](https://www.enlightenment.org/docs/apps/terminology.md)
 
 These are defined in an enum at the top of the file:
 
 ```ts
 export enum Shell {
   Gnome = 'GNOME Terminal',
+  Mate  = 'MATE Terminal',
   Tilix = 'Tilix',
+  Terminator = 'Terminator',
   Urxvt = 'URxvt',
   Konsole = 'Konsole',
   Xterm = 'XTerm',
+  Terminology = 'Terminology',
 }
 ```
 
@@ -238,12 +254,24 @@ new entry to lookup the install path for your shell.
 export async function getAvailableShells(): Promise<
   ReadonlyArray<IFoundShell<Shell>>
 > {
-  const [gnomeTerminalPath, tilixPath] = await Promise.all([
+  const [
+    gnomeTerminalPath,
+    mateTerminalPath,
+    tilixPath,
+    terminatorPath,
+    urxvtPath,
+    konsolePath,
+    xtermPath,
+    terminologyPath,
+  ] = await Promise.all([
     getShellPath(Shell.Gnome),
+    getShellPath(Shell.Mate),
     getShellPath(Shell.Tilix),
+    getShellPath(Shell.Terminator),
     getShellPath(Shell.Urxvt),
     getShellPath(Shell.Konsole),
     getShellPath(Shell.Xterm),
+    getShellPath(Shell.Terminology),
   ])
 
   ...
@@ -267,15 +295,19 @@ export function launch(
 ): ChildProcess {
   const shell = foundShell.shell
   switch (shell) {
+    case Shell.Gnome:
+    case Shell.Mate:
+    case Shell.Tilix:
+    case Shell.Terminator:
+      return spawn(foundShell.path, ['--working-directory', path])
     case Shell.Urxvt:
       return spawn(foundShell.path, ['-cd', path])
     case Shell.Konsole:
       return spawn(foundShell.path, ['--workdir', path])
     case Shell.Xterm:
       return spawn(foundShell.path, ['-e', '/bin/bash'], { cwd: path })
-    case Shell.Tilix:
-    case Shell.Gnome:
-      return spawn(foundShell.path, ['--working-directory', path])
+    case Shell.Terminology:
+      return spawn(foundShell.path, ['-d', path])
     default:
       return assertNever(shell, `Unknown shell: ${shell}`)
   }

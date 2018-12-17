@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 
 import { groupRepositories } from '../../src/ui/repositories-list/group-repositories'
-import { Repository } from '../../src/models/repository'
+import { Repository, ILocalRepositoryState } from '../../src/models/repository'
 import { GitHubRepository } from '../../src/models/github-repository'
 import { Owner } from '../../src/models/owner'
 import { getDotComAPIEndpoint } from '../../src/lib/api'
@@ -28,8 +28,10 @@ describe('repository list grouping', () => {
     ),
   ]
 
+  const cache = new Map<number, ILocalRepositoryState>()
+
   it('groups repositories by GitHub/Enterprise/Other', () => {
-    const grouped = groupRepositories(repositories)
+    const grouped = groupRepositories(repositories, cache)
     expect(grouped.length).to.equal(3)
 
     expect(grouped[0].identifier).to.equal('github')
@@ -68,7 +70,10 @@ describe('repository list grouping', () => {
     )
     const repoZ = new Repository('z', 3, null, false)
 
-    const grouped = groupRepositories([repoC, repoB, repoZ, repoD, repoA])
+    const grouped = groupRepositories(
+      [repoC, repoB, repoZ, repoD, repoA],
+      cache
+    )
     expect(grouped.length).to.equal(2)
 
     expect(grouped[0].identifier).to.equal('github')
@@ -119,20 +124,20 @@ describe('repository list grouping', () => {
       false
     )
 
-    const grouped = groupRepositories([repoA, repoB, repoC])
+    const grouped = groupRepositories([repoA, repoB, repoC], cache)
     expect(grouped.length).to.equal(1)
 
     expect(grouped[0].identifier).to.equal('github')
     expect(grouped[0].items.length).to.equal(3)
 
     const items = grouped[0].items
-    expect(items[0].text).to.equal('cool-repo')
+    expect(items[0].text[0]).to.equal('cool-repo')
     expect(items[0].needsDisambiguation).to.equal(false)
 
-    expect(items[1].text).to.equal('repo')
+    expect(items[1].text[0]).to.equal('repo')
     expect(items[1].needsDisambiguation).to.equal(true)
 
-    expect(items[2].text).to.equal('repo')
+    expect(items[2].text[0]).to.equal('repo')
     expect(items[2].needsDisambiguation).to.equal(true)
   })
 })

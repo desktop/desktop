@@ -1,7 +1,6 @@
 import * as React from 'react'
 
-import { ImageDiffType } from '../../../lib/app-state'
-import { Image } from '../../../models/diff'
+import { Image, ImageDiffType } from '../../../models/diff'
 import { TabBar, TabBarType } from '../../tab-bar'
 import { TwoUp } from './two-up'
 import { DifferenceBlend } from './difference-blend'
@@ -57,7 +56,7 @@ export class ModifiedImageDiff extends React.Component<
   IModifiedImageDiffProps,
   IModifiedImageDiffState
 > {
-  private container: HTMLElement | null
+  private container: HTMLElement | null = null
 
   private readonly resizeObserver: ResizeObserver
   private resizedTimeoutID: number | null = null

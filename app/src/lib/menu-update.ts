@@ -102,14 +102,16 @@ const allMenuIds: ReadonlyArray<MenuIDs> = [
   'delete-branch',
   'preferences',
   'update-branch',
+  'compare-to-branch',
   'merge-branch',
   'view-repository-on-github',
-  'compare-branch',
+  'compare-on-github',
   'open-in-shell',
   'push',
   'pull',
   'branch',
   'repository',
+  'go-to-commit-message',
   'create-branch',
   'show-changes',
   'show-history',
@@ -145,6 +147,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
   let repositorySelected = false
   let onNonDefaultBranch = false
   let onBranch = false
+  let onDetachedHead = false
   let hasDefaultBranch = false
   let hasPublishedBranch = false
   let networkActionInProgress = false
@@ -163,6 +166,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     hasDefaultBranch = Boolean(defaultBranch)
 
     onBranch = tip.kind === TipState.Valid
+    onDetachedHead = tip.kind === TipState.Detached
     tipStateIsUnknown = tip.kind === TipState.Unknown
     branchIsUnborn = tip.kind === TipState.Unborn
 
@@ -196,10 +200,12 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     'open-in-shell',
     'open-working-directory',
     'show-repository-settings',
+    'go-to-commit-message',
     'show-changes',
     'show-history',
     'show-branches-list',
     'open-external-editor',
+    'compare-to-branch',
   ]
 
   const menuStateBuilder = new MenuStateBuilder()
@@ -215,26 +221,26 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
 
     menuStateBuilder.setEnabled(
       'rename-branch',
-      onNonDefaultBranch && !branchIsUnborn
+      onNonDefaultBranch && !branchIsUnborn && !onDetachedHead
     )
     menuStateBuilder.setEnabled(
       'delete-branch',
-      onNonDefaultBranch && !branchIsUnborn
+      onNonDefaultBranch && !branchIsUnborn && !onDetachedHead
     )
     menuStateBuilder.setEnabled(
       'update-branch',
-      onNonDefaultBranch && hasDefaultBranch
+      onNonDefaultBranch && hasDefaultBranch && !onDetachedHead
     )
     menuStateBuilder.setEnabled('merge-branch', onBranch)
     menuStateBuilder.setEnabled(
-      'compare-branch',
+      'compare-on-github',
       isHostedOnGitHub && hasPublishedBranch
     )
 
     menuStateBuilder.setEnabled('view-repository-on-github', isHostedOnGitHub)
     menuStateBuilder.setEnabled(
       'create-pull-request',
-      isHostedOnGitHub && !branchIsUnborn
+      isHostedOnGitHub && !branchIsUnborn && !onDetachedHead
     )
     menuStateBuilder.setEnabled(
       'push',
@@ -248,6 +254,8 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
       'create-branch',
       !tipStateIsUnknown && !branchIsUnborn
     )
+
+    menuStateBuilder.setEnabled('compare-to-branch', !onDetachedHead)
 
     if (
       selectedState &&
@@ -278,10 +286,11 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     menuStateBuilder.disable('delete-branch')
     menuStateBuilder.disable('update-branch')
     menuStateBuilder.disable('merge-branch')
-    menuStateBuilder.disable('compare-branch')
 
     menuStateBuilder.disable('push')
     menuStateBuilder.disable('pull')
+    menuStateBuilder.disable('compare-to-branch')
+    menuStateBuilder.disable('compare-on-github')
   }
   return menuStateBuilder
 }

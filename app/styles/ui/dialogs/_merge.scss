@@ -18,11 +18,11 @@ dialog#merge {
     padding: 0;
 
     .filter-field-row {
-      padding: 0 var(--spacing-double);
+      margin: 0;
       border-bottom: var(--base-border);
 
       .filter-list-filter-field {
-        padding: 0;
+        padding: 0 var(--spacing-double);
         padding-bottom: var(--spacing);
       }
     }
@@ -43,18 +43,9 @@ dialog#merge {
       width: 100%;
       padding: var(--spacing-half);
     }
+  }
 
-    p.merge-info {
-      margin-bottom: 0;
-      margin-top: var(--spacing-half);
-      text-align: center;
-      color: var(--text-secondary-color);
-      @include ellipsis;
-
-      strong {
-        font-weight: normal;
-        color: var(--text-color);
-      }
-    }
+  .merge-dialog-header {
+    font-weight: var(--font-weight-light);
   }
 }

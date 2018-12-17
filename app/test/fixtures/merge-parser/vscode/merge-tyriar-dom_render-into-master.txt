@@ -1,0 +1,346 @@
+changed in both
+  base   100644 370f0bc132ef62e537e3f01339fdd5099ccf41e0 package.json
+  our    100644 d0e982ce0b76c5b1b5eb02b673e459e47f3353a4 package.json
+  their  100644 cda01e9c540fa1bac0f6ad55439c72971c9a3a90 package.json
+@@ -47,10 +47,16 @@
+     "vscode-chokidar": "1.6.2",
+     "vscode-debugprotocol": "1.31.0",
+     "vscode-nsfw": "1.0.17",
++<<<<<<< .our
+     "vscode-ripgrep": "1.1.0",
+     "vscode-textmate": "^4.0.1",
+     "vscode-xterm": "3.7.0-beta4",
+     "winreg": "^1.2.4",
++=======
++    "vscode-ripgrep": "^0.8.1",
++    "vscode-textmate": "^3.3.3",
++    "vscode-xterm": "3.5.0-beta2",
++>>>>>>> .their
+     "yauzl": "^2.9.1"
+   },
+   "devDependencies": {
+changed in both
+  base   100644 2bbcfac4f8f1fafc92cc3df5ed3841cb8d2716aa src/typings/vscode-xterm.d.ts
+  our    100644 5f1e27de082b20ad0a1b7536a2075477c90e529a src/typings/vscode-xterm.d.ts
+  their  100644 6801d469fd92f9236d0d4faa722d2e74dc98edb1 src/typings/vscode-xterm.d.ts
+@@ -123,6 +123,22 @@
+ 		 * Whether to treat option as the meta key.
+ 		 */
+ 		macOptionIsMeta?: boolean;
++		/**
++		 * (EXPERIMENTAL) The type of renderer to use, this allows using the
++		 * fallback DOM renderer when canvas is too slow for the environment. The
++		 * following features do not work when the DOM renderer is used:
++		 *
++		 * - Links
++		 * - Line height
++		 * - Letter spacing
++		 * - Cursor blink
++		 * - Cursor style
++		 *
++		 * This option is marked as experiemental because it will eventually be
++		 * moved to an addon. You can only set this option in the constructor (not
++		 * setOption).
++		 */
++		rendererType?: RendererType;
+ 
+ 		/**
+ 		 * Whether holding a modifier key will force normal selection behavior,
+changed in both
+  base   100644 3db04d06bdcd02ed956b5dc8c71450991f0706a3 src/vs/code/electron-main/diagnostics.ts
+  our    100644 3bb9e182899533e24fe8967328f2174571df8e45 src/vs/code/electron-main/diagnostics.ts
+  their  100644 1fb52572284438f76cc8e70bbfd20dbb019d4500 src/vs/code/electron-main/diagnostics.ts
+@@ -16,23 +16,17 @@
+ import { isWindows } from 'vs/base/common/platform';
+ import { app } from 'electron';
+ import { basename } from 'path';
++<<<<<<< .our
+ import URI from 'vs/base/common/uri';
++=======
++import { SystemInfo } from 'vs/platform/issue/common/issue';
++>>>>>>> .their
+ 
+ export interface VersionInfo {
+ 	vscodeVersion: string;
+ 	os: string;
+ }
+ 
+-export interface SystemInfo {
+-	CPUs?: string;
+-	'Memory (System)': string;
+-	'Load (avg)'?: string;
+-	VM: string;
+-	'Screen Reader': string;
+-	'Process Argv': string;
+-	'GPU Status': Electron.GPUFeatureStatus;
+-}
+-
+ export interface ProcessInfo {
+ 	cpu: number;
+ 	memory: number;
+changed in both
+  base   100644 228bcdfefb1192358d83a30c0c7e462408fce07b src/vs/platform/issue/common/issue.ts
+  our    100644 46d378dc8d4cd7b20dfb66315d50d0a50e0a12c9 src/vs/platform/issue/common/issue.ts
+  their  100644 60d7c7cac18906169ca7cfa862c24813ddd20b27 src/vs/platform/issue/common/issue.ts
+@@ -81,4 +81,75 @@
+ 	_serviceBrand: any;
+ 	openReporter(data: IssueReporterData): TPromise<void>;
+ 	openProcessExplorer(data: ProcessExplorerData): TPromise<void>;
++	// TODO: getSystemInfo would make more sense in a diagnostics-related service
++	getSystemInfo(): TPromise<SystemInfo>;
+ }
++
++// This interface is copied from Electron to prevent a layer issue
++export interface GPUFeatureStatus {
++
++	// Docs: http://electron.atom.io/docs/api/structures/gpu-feature-status
++
++	/**
++	 * Canvas
++	 */
++	'2d_canvas': string;
++	/**
++	 * Flash
++	 */
++	flash_3d: string;
++	/**
++	 * Flash Stage3D
++	 */
++	flash_stage3d: string;
++	/**
++	 * Flash Stage3D Baseline profile
++	 */
++	flash_stage3d_baseline: string;
++	/**
++	 * Compositing
++	 */
++	gpu_compositing: string;
++	/**
++	 * Multiple Raster Threads
++	 */
++	multiple_raster_threads: string;
++	/**
++	 * Native GpuMemoryBuffers
++	 */
++	native_gpu_memory_buffers: string;
++	/**
++	 * Rasterization
++	 */
++	rasterization: string;
++	/**
++	 * Video Decode
++	 */
++	video_decode: string;
++	/**
++	 * Video Encode
++	 */
++	video_encode: string;
++	/**
++	 * VPx Video Decode
++	 */
++	vpx_decode: string;
++	/**
++	 * WebGL
++	 */
++	webgl: string;
++	/**
++	 * WebGL2
++	 */
++	webgl2: string;
++}
++
++export interface SystemInfo {
++	CPUs?: string;
++	'Memory (System)': string;
++	'Load (avg)'?: string;
++	VM: string;
++	'Screen Reader': string;
++	'Process Argv': string;
++	'GPU Status': GPUFeatureStatus;
++}
+\ No newline at end of file
+changed in both
+  base   100644 d804c6579fe48c96cbf9135b4e6bd850d4420858 src/vs/platform/issue/common/issueIpc.ts
+  our    100644 d45c1d870ee3c63db989f023028363c389abbdeb src/vs/platform/issue/common/issueIpc.ts
+  their  100644 00f83f110683d11d7049cec767906ddca5e4a216 src/vs/platform/issue/common/issueIpc.ts
+@@ -7,8 +7,12 @@
+ 
+ import { TPromise } from 'vs/base/common/winjs.base';
+ import { IChannel } from 'vs/base/parts/ipc/common/ipc';
++<<<<<<< .our
+ import { IIssueService, IssueReporterData, ProcessExplorerData } from './issue';
+ import { Event } from 'vs/base/common/event';
++=======
++import { IIssueService, IssueReporterData, ProcessExplorerData, SystemInfo } from 'vs/platform/issue/common/issue';
++>>>>>>> .their
+ 
+ export interface IIssueChannel extends IChannel {
+ 	call(command: 'openIssueReporter', arg: IssueReporterData): TPromise<void>;
+@@ -30,6 +34,8 @@
+ 				return this.service.openReporter(arg);
+ 			case 'openProcessExplorer':
+ 				return this.service.openProcessExplorer(arg);
++			case 'getSystemInfo':
++				return this.service.getSystemInfo();
+ 		}
+ 		return undefined;
+ 	}
+@@ -48,4 +54,8 @@
+ 	openProcessExplorer(data: ProcessExplorerData): TPromise<void> {
+ 		return this.channel.call('openProcessExplorer', data);
+ 	}
++
++	getSystemInfo(): TPromise<SystemInfo> {
++		return this.channel.call('getSystemInfo');
++	}
+ }
+\ No newline at end of file
+changed in both
+  base   100644 d8eceb42c9281255b9abd73ec6722040e873b3ed src/vs/platform/issue/electron-main/issueService.ts
+  our    100644 cebb4e612373900c38659291fafa9b78f51e1be1 src/vs/platform/issue/electron-main/issueService.ts
+  their  100644 bc7a0df7bc1f068aae438132907d23365a23b94d src/vs/platform/issue/electron-main/issueService.ts
+@@ -9,10 +9,10 @@
+ import { localize } from 'vs/nls';
+ import * as objects from 'vs/base/common/objects';
+ import { parseArgs } from 'vs/platform/environment/node/argv';
+-import { IIssueService, IssueReporterData, IssueReporterFeatures, ProcessExplorerData } from 'vs/platform/issue/common/issue';
++import { IIssueService, IssueReporterData, IssueReporterFeatures, ProcessExplorerData, SystemInfo } from 'vs/platform/issue/common/issue';
+ import { BrowserWindow, ipcMain, screen } from 'electron';
+ import { ILaunchService } from 'vs/code/electron-main/launch';
+-import { getPerformanceInfo, PerformanceInfo, getSystemInfo, SystemInfo } from 'vs/code/electron-main/diagnostics';
++import { getPerformanceInfo, PerformanceInfo, getSystemInfo } from 'vs/code/electron-main/diagnostics';
+ import { IEnvironmentService } from 'vs/platform/environment/common/environment';
+ import { isMacintosh, IProcessEnvironment } from 'vs/base/common/platform';
+ import { ILogService } from 'vs/platform/log/common/log';
+@@ -34,8 +34,9 @@
+ 	) { }
+ 
+ 	openReporter(data: IssueReporterData): TPromise<void> {
++		// TODO: We don't need this anymore?
+ 		ipcMain.on('issueSystemInfoRequest', event => {
+-			this.getSystemInformation().then(msg => {
++			this.getSystemInfo().then(msg => {
+ 				event.sender.send('issueSystemInfoResponse', msg);
+ 			});
+ 		});
+@@ -224,7 +225,7 @@
+ 		return state;
+ 	}
+ 
+-	private getSystemInformation(): TPromise<SystemInfo> {
++	public getSystemInfo(): TPromise<SystemInfo> {
+ 		return new Promise((resolve, reject) => {
+ 			this.launchService.getMainProcessInfo().then(info => {
+ 				resolve(getSystemInfo(info));
+changed in both
+  base   100644 e90284ad14f12a26b820d53b5b24a8d9fbc449d8 src/vs/workbench/parts/terminal/electron-browser/terminalInstance.ts
+  our    100644 04d9dcba251cf79c28429027cda3ca3b0c10a29c src/vs/workbench/parts/terminal/electron-browser/terminalInstance.ts
+  their  100644 f696602bf30da75cd81e5bfe057263e3699405be src/vs/workbench/parts/terminal/electron-browser/terminalInstance.ts
+@@ -33,12 +33,16 @@
+ import { ILogService } from 'vs/platform/log/common/log';
+ import { TerminalCommandTracker } from 'vs/workbench/parts/terminal/node/terminalCommandTracker';
+ import { TerminalProcessManager } from './terminalProcessManager';
++<<<<<<< .our
+ import { IStorageService, StorageScope } from 'vs/platform/storage/common/storage';
+ 
+ // How long in milliseconds should an average frame take to render for a notification to appear
+ // which suggests the fallback DOM-based renderer
+ const SLOW_CANVAS_RENDER_THRESHOLD = 50;
+ const NUMBER_OF_FRAMES_TO_MEASURE = 20;
++=======
++import { IIssueService } from 'vs/platform/issue/common/issue';
++>>>>>>> .their
+ 
+ let Terminal: typeof XTermTerminal;
+ 
+@@ -126,7 +130,11 @@
+ 		@IThemeService private readonly _themeService: IThemeService,
+ 		@IConfigurationService private readonly _configurationService: IConfigurationService,
+ 		@ILogService private _logService: ILogService,
++<<<<<<< .our
+ 		@IStorageService private readonly _storageService: IStorageService
++=======
++		@IIssueService private _issueService: IIssueService
++>>>>>>> .their
+ 	) {
+ 		this._disposables = [];
+ 		this._skipTerminalCommands = [];
+@@ -275,7 +283,15 @@
+ 		}
+ 		const accessibilitySupport = this._configurationService.getValue<IEditorOptions>('editor').accessibilitySupport;
+ 		const font = this._configHelper.getFont(undefined, true);
++<<<<<<< .our
+ 		const config = this._configHelper.config;
++=======
++
++		console.log('request sys info');
++		const info = await this._issueService.getSystemInfo();
++		console.log('info', info);
++
++>>>>>>> .their
+ 		this._xterm = new Terminal({
+ 			scrollback: config.scrollback,
+ 			theme: this._getXtermTheme(),
+@@ -288,6 +304,7 @@
+ 			lineHeight: font.lineHeight,
+ 			bellStyle: config.enableBell ? 'sound' : 'none',
+ 			screenReaderMode: accessibilitySupport === 'on',
++<<<<<<< .our
+ 			macOptionIsMeta: config.macOptionIsMeta,
+ 			macOptionClickForcesSelection: config.macOptionClickForcesSelection,
+ 			rightClickSelectsWord: config.rightClickBehavior === 'selectWord',
+@@ -295,6 +312,11 @@
+ 			rendererType: config.rendererType === 'auto' ? 'canvas' : config.rendererType,
+ 			// TODO: Remove this once the setting is removed upstream
+ 			experimentalCharAtlas: 'dynamic'
++=======
++			macOptionIsMeta: this._configHelper.config.macOptionIsMeta,
++			rightClickSelectsWord: this._configHelper.config.rightClickBehavior === 'selectWord',
++			rendererType: 'dom'
++>>>>>>> .their
+ 		});
+ 		if (this._shellLaunchConfig.initialText) {
+ 			this._xterm.writeln(this._shellLaunchConfig.initialText);
+@@ -983,6 +1005,7 @@
+ 
+ 			this._xterm.resize(cols, rows);
+ 			if (this._isVisible) {
++<<<<<<< .our
+ 				// HACK: Force the renderer to unpause by simulating an IntersectionObserver event.
+ 				// This is to fix an issue where dragging the window to the top of the screen to
+ 				// maximize on Windows/Linux would fire an event saying that the terminal was not
+@@ -992,6 +1015,14 @@
+ 					// HACK: Force a refresh of the screen to ensure links are refresh corrected.
+ 					// This can probably be removed when the above hack is fixed in Chromium.
+ 					this._xterm.refresh(0, this._xterm.rows - 1);
++=======
++				// Force the renderer to unpause by simulating an IntersectionObserver event. This
++				// is to fix an issue where dragging the window to the top of the screen to maximize
++				// on Winodws/Linux would fire an event saying that the terminal was not visible.
++				// This should only force a refresh if one is needed.
++				if (this._xterm.getOption('rendererType') === 'canvas') {
++					(<any>this._xterm).renderer.onIntersectionChange({ intersectionRatio: 1 });
++>>>>>>> .their
+ 				}
+ 			}
+ 		}
+changed in both
+  base   100644 9de31dd99a7a874e3d40cb3c957a1c4f466a7305 yarn.lock
+  our    100644 b56aa332449f9eb6db4b03a16548d91df21604bb yarn.lock
+  their  100644 d58fefbb3bf4a4d3253581d9cc536703488fd46d yarn.lock
+@@ -7916,9 +7916,15 @@
+   dependencies:
+     oniguruma "^7.0.0"
+ 
++<<<<<<< .our
+ vscode-xterm@3.7.0-beta4:
+   version "3.7.0-beta4"
+   resolved "https://registry.yarnpkg.com/vscode-xterm/-/vscode-xterm-3.7.0-beta4.tgz#f980d66f94f09ae80e100715dae60715dcae1ac6"
++=======
++vscode-xterm@3.5.0-beta2:
++  version "3.5.0-beta2"
++  resolved "https://registry.yarnpkg.com/vscode-xterm/-/vscode-xterm-3.5.0-beta2.tgz#a431cc2ae2e1b6c78197d2c12e6b8d079fbe2481"
++>>>>>>> .their
+ 
+ vso-node-api@^6.1.2-preview:
+   version "6.1.2-preview"

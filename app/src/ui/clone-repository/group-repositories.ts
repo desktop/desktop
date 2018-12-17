@@ -11,7 +11,7 @@ export interface IClonableRepositoryListItem extends IFilterListItem {
   readonly id: string
 
   /** The search text. */
-  readonly text: string
+  readonly text: ReadonlyArray<string>
 
   /** The name of the repository. */
   readonly name: string
@@ -43,7 +43,7 @@ function convert(
 
       return {
         id: repo.html_url,
-        text: `${repo.owner.login}/${repo.name}`,
+        text: [`${repo.owner.login}/${repo.name}`],
         url: repo.clone_url,
         name: repo.name,
         icon,

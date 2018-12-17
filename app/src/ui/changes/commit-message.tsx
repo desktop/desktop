@@ -7,21 +7,22 @@ import {
   UserAutocompletionProvider,
 } from '../autocompletion'
 import { CommitIdentity } from '../../models/commit-identity'
-import { ICommitMessage } from '../../lib/app-state'
+import { ICommitMessage } from '../../models/commit-message'
 import { Dispatcher } from '../../lib/dispatcher'
 import { IGitHubUser } from '../../lib/databases/github-user-database'
 import { Repository } from '../../models/repository'
 import { Button } from '../lib/button'
 import { Avatar } from '../lib/avatar'
 import { Loading } from '../lib/loading'
-import { structuralEquals } from '../../lib/equality'
 import { generateGravatarUrl } from '../../lib/gravatar'
 import { AuthorInput } from '../lib/author-input'
 import { FocusContainer } from '../lib/focus-container'
-import { showContextualMenu, IMenuItem } from '../main-process-proxy'
+import { showContextualMenu } from '../main-process-proxy'
 import { Octicon, OcticonSymbol } from '../octicons'
-import { ITrailer } from '../../lib/git/interpret-trailers'
 import { IAuthor } from '../../models/author'
+import { IMenuItem } from '../../lib/menu-item'
+import { shallowEquals } from '../../lib/equality'
+import { ICommitContext } from '../../models/commit'
 
 const addAuthorIcon = new OcticonSymbol(
   12,
@@ -33,21 +34,19 @@ const addAuthorIcon = new OcticonSymbol(
 )
 
 interface ICommitMessageProps {
-  readonly onCreateCommit: (
-    summary: string,
-    description: string | null,
-    trailers?: ReadonlyArray<ITrailer>
-  ) => Promise<boolean>
+  readonly onCreateCommit: (context: ICommitContext) => Promise<boolean>
   readonly branch: string | null
   readonly commitAuthor: CommitIdentity | null
   readonly gitHubUser: IGitHubUser | null
   readonly anyFilesSelected: boolean
+  readonly focusCommitMessage: boolean
   readonly commitMessage: ICommitMessage | null
-  readonly contextualCommitMessage: ICommitMessage | null
   readonly repository: Repository
   readonly dispatcher: Dispatcher
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
   readonly isCommitting: boolean
+  readonly placeholder: string
+  readonly singleFileCommit: boolean
 
   /**
    * Whether or not to show a field for adding co-authors to
@@ -68,9 +67,6 @@ interface ICommitMessageProps {
 interface ICommitMessageState {
   readonly summary: string
   readonly description: string | null
-
-  /** The last contextual commit message we've received. */
-  readonly lastContextualCommitMessage: ICommitMessage | null
 
   readonly userAutocompletionProvider: UserAutocompletionProvider | null
 
@@ -100,25 +96,24 @@ export class CommitMessage extends React.Component<
 > {
   private descriptionComponent: AutocompletingTextArea | null = null
 
+  private summaryTextInput: HTMLInputElement | null = null
+
   private descriptionTextArea: HTMLTextAreaElement | null = null
   private descriptionTextAreaScrollDebounceId: number | null = null
 
   public constructor(props: ICommitMessageProps) {
     super(props)
 
+    const { commitMessage } = this.props
+
     this.state = {
-      summary: '',
-      description: '',
-      lastContextualCommitMessage: null,
+      summary: commitMessage ? commitMessage.summary : '',
+      description: commitMessage ? commitMessage.description : null,
       userAutocompletionProvider: findUserAutoCompleteProvider(
         props.autocompletionProviders
       ),
       descriptionObscured: false,
     }
-  }
-
-  public componentWillMount() {
-    this.receiveProps(this.props, true)
   }
 
   public componentWillUnmount() {
@@ -127,96 +122,42 @@ export class CommitMessage extends React.Component<
     this.props.dispatcher.setCommitMessage(this.props.repository, this.state)
   }
 
-  public componentWillReceiveProps(nextProps: ICommitMessageProps) {
-    this.receiveProps(nextProps, false)
-  }
-
-  private receiveProps(nextProps: ICommitMessageProps, initializing: boolean) {
-    // If we're switching away from one repository to another we'll persist
-    // our commit message in the dispatcher.
-    if (nextProps.repository.id !== this.props.repository.id) {
-      this.props.dispatcher.setCommitMessage(this.props.repository, this.state)
-    }
-
+  public componentDidUpdate(prevProps: ICommitMessageProps) {
     if (
-      nextProps.autocompletionProviders !== this.props.autocompletionProviders
+      this.props.autocompletionProviders !== prevProps.autocompletionProviders
     ) {
       this.setState({
         userAutocompletionProvider: findUserAutoCompleteProvider(
-          nextProps.autocompletionProviders
+          this.props.autocompletionProviders
         ),
       })
     }
 
-    // This is rather gnarly. We want to persist the commit message (summary,
-    // and description) in the dispatcher on a per-repository level (git-store).
-    //
-    // Our dispatcher is asynchronous and only emits and update on animation
-    // frames. This is a great thing for performance but it gets real messy
-    // when you throw text boxes into the mix. If we went for a traditional
-    // approach of persisting the textbox values in the dispatcher and updating
-    // the virtual dom when we get new props there's an interim state which
-    // means that the browser can't keep track of the cursor for us, see:
-    //
-    //   http://stackoverflow.com/a/28922465
-    //
-    // So in order to work around that we keep the text values in the component
-    // state. Whenever they get updated we submit the update to the dispatcher
-    // but we disregard the message that flows to us on the subsequent animation
-    // frame unless we have switched repositories.
-    //
-    // Then there's the case when we're being mounted (think switching between
-    // history and changes tabs. In that case we have to rely on what's in the
-    // dispatcher since we don't have any state of our own.
+    if (this.props.focusCommitMessage) {
+      this.focusSummary()
+    }
 
-    const nextContextualCommitMessage = nextProps.contextualCommitMessage
-    const lastContextualCommitMessage = this.state.lastContextualCommitMessage
-    // If the contextual commit message changed, we'll use it as our commit
-    // message.
-    if (
-      nextContextualCommitMessage &&
-      (!lastContextualCommitMessage ||
-        !structuralEquals(
-          nextContextualCommitMessage,
-          lastContextualCommitMessage
-        ))
-    ) {
-      this.setState({
-        summary: nextContextualCommitMessage.summary,
-        description: nextContextualCommitMessage.description,
-        lastContextualCommitMessage: nextContextualCommitMessage,
-      })
-    } else if (
-      initializing ||
-      this.props.repository.id !== nextProps.repository.id
-    ) {
-      // We're either initializing (ie being mounted) or someone has switched
-      // repositories. If we receive a message we'll take it
-      if (nextProps.commitMessage) {
-        // Don't update dispatcher here, we're receiving it, could cause never-
-        // ending loop.
+    if (!shallowEquals(prevProps.commitMessage, this.props.commitMessage)) {
+      if (this.props.commitMessage) {
         this.setState({
-          summary: nextProps.commitMessage.summary,
-          description: nextProps.commitMessage.description,
-          lastContextualCommitMessage: nextContextualCommitMessage,
+          summary: this.props.commitMessage.summary,
+          description: this.props.commitMessage.description,
         })
       } else {
-        // No message, assume clean slate
-        this.setState({
-          summary: '',
-          description: null,
-          lastContextualCommitMessage: nextContextualCommitMessage,
-        })
+        this.setState({ summary: '', description: null })
       }
-    } else {
-      this.setState({
-        lastContextualCommitMessage: nextContextualCommitMessage,
-      })
     }
   }
 
   private clearCommitMessage() {
     this.setState({ summary: '', description: null })
+  }
+
+  private focusSummary() {
+    if (this.summaryTextInput !== null) {
+      this.summaryTextInput.focus()
+      this.props.dispatcher.setCommitMessageFocus(false)
+    }
   }
 
   private onSummaryChanged = (summary: string) => {
@@ -251,11 +192,18 @@ export class CommitMessage extends React.Component<
 
     const trailers = this.getCoAuthorTrailers()
 
-    const commitCreated = await this.props.onCreateCommit(
-      summary,
+    const summaryOrPlaceholder =
+      this.props.singleFileCommit && !this.state.summary
+        ? this.props.placeholder
+        : summary
+
+    const commitContext = {
+      summary: summaryOrPlaceholder,
       description,
-      trailers
-    )
+      trailers,
+    }
+
+    const commitCreated = await this.props.onCreateCommit(commitContext)
 
     if (commitCreated) {
       this.clearCommitMessage()
@@ -263,7 +211,10 @@ export class CommitMessage extends React.Component<
   }
 
   private canCommit(): boolean {
-    return this.props.anyFilesSelected && this.state.summary.length > 0
+    return (
+      (this.props.anyFilesSelected && this.state.summary.length > 0) ||
+      this.props.singleFileCommit
+    )
   }
 
   private onKeyDown = (event: React.KeyboardEvent<Element>) => {
@@ -342,21 +293,42 @@ export class CommitMessage extends React.Component<
 
   private get toggleCoAuthorsText(): string {
     return this.props.showCoAuthoredBy
-      ? __DARWIN__ ? 'Remove Co-Authors' : 'Remove co-authors'
-      : __DARWIN__ ? 'Add Co-Authors' : 'Add co-authors'
+      ? __DARWIN__
+        ? 'Remove Co-Authors'
+        : 'Remove co-authors'
+      : __DARWIN__
+      ? 'Add Co-Authors'
+      : 'Add co-authors'
+  }
+
+  private getAddRemoveCoAuthorsMenuItem(): IMenuItem {
+    return {
+      label: this.toggleCoAuthorsText,
+      action: this.onToggleCoAuthors,
+      enabled:
+        this.props.repository.gitHubRepository !== null &&
+        !this.props.isCommitting,
+    }
   }
 
   private onContextMenu = (event: React.MouseEvent<any>) => {
+    if (event.defaultPrevented) {
+      return
+    }
+
+    event.preventDefault()
+
+    const items: IMenuItem[] = [this.getAddRemoveCoAuthorsMenuItem()]
+    showContextualMenu(items)
+  }
+
+  private onAutocompletingInputContextMenu = (event: React.MouseEvent<any>) => {
     event.preventDefault()
 
     const items: IMenuItem[] = [
-      {
-        label: this.toggleCoAuthorsText,
-        action: this.onToggleCoAuthors,
-        enabled:
-          this.props.repository.gitHubRepository !== null &&
-          !this.props.isCommitting,
-      },
+      this.getAddRemoveCoAuthorsMenuItem(),
+      { type: 'separator' },
+      { role: 'editMenu' },
     ]
 
     showContextualMenu(items)
@@ -421,6 +393,10 @@ export class CommitMessage extends React.Component<
     this.descriptionTextArea = elem
   }
 
+  private onSummaryInputRef = (elem: HTMLInputElement | null) => {
+    this.summaryTextInput = elem
+  }
+
   private onFocusContainerClick = (event: React.MouseEvent<HTMLDivElement>) => {
     if (this.descriptionComponent) {
       this.descriptionComponent.focus()
@@ -448,7 +424,10 @@ export class CommitMessage extends React.Component<
 
   public render() {
     const branchName = this.props.branch ? this.props.branch : 'master'
-    const buttonEnabled = this.canCommit() && !this.props.isCommitting
+
+    const isSummaryWhiteSpace = this.state.summary.match(/^\s+$/g)
+    const buttonEnabled =
+      this.canCommit() && !this.props.isCommitting && !isSummaryWhiteSpace
 
     const loading = this.props.isCommitting ? <Loading /> : undefined
     const className = classNames({
@@ -473,11 +452,14 @@ export class CommitMessage extends React.Component<
           {this.renderAvatar()}
 
           <AutocompletingInput
+            isRequired={true}
             className="summary-field"
-            placeholder="Summary"
+            placeholder={this.props.placeholder}
             value={this.state.summary}
             onValueChanged={this.onSummaryChanged}
+            onElementRef={this.onSummaryInputRef}
             autocompletionProviders={this.props.autocompletionProviders}
+            onContextMenu={this.onAutocompletingInputContextMenu}
             disabled={this.props.isCommitting}
           />
         </div>
@@ -494,6 +476,7 @@ export class CommitMessage extends React.Component<
             autocompletionProviders={this.props.autocompletionProviders}
             ref={this.onDescriptionFieldRef}
             onElementRef={this.onDescriptionTextAreaRef}
+            onContextMenu={this.onAutocompletingInputContextMenu}
             disabled={this.props.isCommitting}
           />
           {this.renderActionBar()}

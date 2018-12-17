@@ -98,11 +98,11 @@ issues from time to time that isn't and won't be covered here.
 
 ## More Information Needed
 
-Periodically we should be doing a sweep of issues that are open and labeled
-`more-information-needed`. If the original poster has not responded within
-two weeks after the last question by an official maintainer, close the issue
-with a message saying that you're closing the issue due to inactivity but are
-happy to re-open if they can provide more details.
+If a reviewer cannot understand or reproduce the issue with the information provided, they should add a comment indicating what is not clear and add the label `more-information-needed`.
+
+Although we use a bot, the first responder should also do a manual sweep of issues that are open and labeled `more-information-needed` at least once a week.
+* If a `more-information-needed` issue is stale for more than 14 days after the last comment by a reviewer, the issue will be automatically closed by the no-response bot.
+* If the original poster did not fill out the issue template and has not responded to our request within 7 days, close the issue with the following message `I'm closing the issue due to inactivity but I'm happy to re-open if you can provide more details.`
 
 ## Needs Reproduction
 

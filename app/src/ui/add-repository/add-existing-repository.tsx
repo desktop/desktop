@@ -3,6 +3,7 @@ import * as React from 'react'
 
 import { Dispatcher } from '../../lib/dispatcher'
 import { isGitRepository } from '../../lib/git'
+import { isBareRepository } from '../../lib/git'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { TextBox } from '../lib/text-box'
@@ -10,7 +11,7 @@ import { Row } from '../lib/row'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { LinkButton } from '../lib/link-button'
-import { PopupType } from '../../lib/app-state'
+import { PopupType } from '../../models/popup'
 import * as Path from 'path'
 
 import untildify = require('untildify')
@@ -48,6 +49,7 @@ interface IAddExistingRepositoryState {
    * flickering for our users as they type in a path.
    */
   readonly showNonGitRepositoryWarning: boolean
+  readonly isRepositoryBare: boolean
 }
 
 /** The component for adding an existing local repository. */
@@ -64,6 +66,7 @@ export class AddExistingRepository extends React.Component<
       path,
       isRepository: false,
       showNonGitRepositoryWarning: false,
+      isRepositoryBare: false,
     }
   }
 
@@ -82,12 +85,31 @@ export class AddExistingRepository extends React.Component<
       return
     }
 
+    const isBare = await isBareRepository(this.state.path)
+    if (isBare === true) {
+      this.setState({ isRepositoryBare: true })
+      return
+    }
+
     this.setState({ isRepository, showNonGitRepositoryWarning: !isRepository })
+    this.setState({ isRepositoryBare: false })
   }
 
   private renderWarning() {
     if (!this.state.path.length || !this.state.showNonGitRepositoryWarning) {
       return null
+    }
+
+    if (this.state.isRepositoryBare) {
+      return (
+        <Row className="warning-helper-text">
+          <Octicon symbol={OcticonSymbol.alert} />
+          <p>
+            This directory appears to be a bare repository. Bare repositories
+            are not currently supported.
+          </p>
+        </Row>
+      )
     }
 
     return (
@@ -107,7 +129,10 @@ export class AddExistingRepository extends React.Component<
   }
 
   public render() {
-    const disabled = this.state.path.length === 0 || !this.state.isRepository
+    const disabled =
+      this.state.path.length === 0 ||
+      !this.state.isRepository ||
+      this.state.isRepositoryBare
 
     return (
       <Dialog
@@ -158,11 +183,13 @@ export class AddExistingRepository extends React.Component<
 
     const path = directory[0]
     const isRepository = await isGitRepository(path)
+    const isRepositoryBare = await isBareRepository(path)
 
     this.setState({
       path,
       isRepository,
-      showNonGitRepositoryWarning: !isRepository,
+      showNonGitRepositoryWarning: !isRepository || isRepositoryBare,
+      isRepositoryBare,
     })
   }
 
@@ -181,6 +208,7 @@ export class AddExistingRepository extends React.Component<
     if (repositories && repositories.length) {
       const repository = repositories[0]
       this.props.dispatcher.selectRepository(repository)
+      this.props.dispatcher.recordAddExistingRepository()
     }
   }
 

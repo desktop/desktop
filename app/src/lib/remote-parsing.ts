@@ -1,4 +1,8 @@
+type Protocol = 'ssh' | 'https'
+
 interface IGitRemoteURL {
+  readonly protocol: Protocol
+
   /** The hostname of the remote. */
   readonly hostname: string
 
@@ -15,21 +19,33 @@ interface IGitRemoteURL {
   readonly name: string | null
 }
 
+// Examples:
+// https://github.com/octocat/Hello-World.git
+// https://github.com/octocat/Hello-World.git/
+// git@github.com:octocat/Hello-World.git
+// git:github.com/octocat/Hello-World.git
+const remoteRegexes: ReadonlyArray<{ protocol: Protocol; regex: RegExp }> = [
+  {
+    protocol: 'https',
+    regex: new RegExp('^https?://(?:.+@)?(.+)/(.+)/(.+?)(?:/|.git/?)?$'),
+  },
+  {
+    protocol: 'ssh',
+    regex: new RegExp('^git@(.+):(.+)/(.+?)(?:/|.git)?$'),
+  },
+  {
+    protocol: 'ssh',
+    regex: new RegExp('^git:(.+)/(.+)/(.+?)(?:/|.git)?$'),
+  },
+  {
+    protocol: 'ssh',
+    regex: new RegExp('^ssh://git@(.+)/(.+)/(.+?)(?:/|.git)?$'),
+  },
+]
+
 /** Parse the remote information from URL. */
 export function parseRemote(url: string): IGitRemoteURL | null {
-  // Examples:
-  // https://github.com/octocat/Hello-World.git
-  // https://github.com/octocat/Hello-World.git/
-  // git@github.com:octocat/Hello-World.git
-  // git:github.com/octocat/Hello-World.git
-  const regexes = [
-    new RegExp('^https?://(?:.+@)?(.+)/(.+)/(.+?)(?:/|.git/?)?$'),
-    new RegExp('^git@(.+):(.+)/(.+?)(?:/|.git)?$'),
-    new RegExp('^git:(.+)/(.+)/(.+?)(?:/|.git)?$'),
-    new RegExp('^ssh://git@(.+)/(.+)/(.+?)(?:/|.git)?$'),
-  ]
-
-  for (const regex of regexes) {
+  for (const { protocol, regex } of remoteRegexes) {
     const result = url.match(regex)
     if (!result) {
       continue
@@ -39,7 +55,7 @@ export function parseRemote(url: string): IGitRemoteURL | null {
     const owner = result[2]
     const name = result[3]
     if (hostname) {
-      return { hostname, owner, name }
+      return { protocol, hostname, owner, name }
     }
   }
 
@@ -47,6 +63,7 @@ export function parseRemote(url: string): IGitRemoteURL | null {
 }
 
 export interface IRepositoryIdentifier {
+  readonly hostname: string | null
   readonly owner: string
   readonly name: string
 }
@@ -60,10 +77,9 @@ export function parseRepositoryIdentifier(
   // URL. If not, we'll try treating it as a GitHub repository owner/name
   // shortcut.
   if (parsed) {
-    const owner = parsed.owner
-    const name = parsed.name
+    const { owner, name, hostname } = parsed
     if (owner && name) {
-      return { owner, name }
+      return { owner, name, hostname }
     }
   }
 
@@ -71,7 +87,7 @@ export function parseRepositoryIdentifier(
   if (pieces.length === 2 && pieces[0].length > 0 && pieces[1].length > 0) {
     const owner = pieces[0]
     const name = pieces[1]
-    return { owner, name }
+    return { owner, name, hostname: null }
   }
 
   return null

@@ -50,7 +50,7 @@
       @include ellipsis;
 
       .prefix {
-        color: var(--text-tertiary-color);
+        color: var(--text-secondary-color);
       }
 
       /* Used to highlight substring matches in filtered lists */
@@ -61,6 +61,51 @@
         color: currentColor;
       }
     }
+
+    .change-indicator {
+      color: var(--tab-bar-active-color);
+      margin-right: 0;
+      width: auto;
+    }
+
+    .change-indicator-wrapper {
+      display: flex;
+      min-width: 12px;
+    }
+
+    .ahead-behind {
+      height: 16px;
+      background: var(--list-item-badge-background-color);
+      color: var(--list-item-badge-color);
+      align-items: center;
+      margin-left: auto;
+
+      // Perfectly round semi circle ends with real tight
+      // padding on either side. Now in two flavors!
+      @include darwin {
+        height: 12px;
+        line-height: 12px;
+      }
+
+      @include win32 {
+        height: 13px;
+        line-height: 13px;
+      }
+
+      .octicon {
+        margin: 0;
+        height: 20px;
+        width: 12px;
+      }
+    }
+  }
+
+  .new-repository-button {
+    .octicon {
+      margin-left: 5px;
+      width: 9px;
+      height: 13px;
+    }
   }
 
   .sidebar-message {
@@ -69,5 +114,33 @@
     align-items: center;
     justify-content: center;
     text-align: center;
+  }
+}
+
+.list-focus-container {
+  /** Ahead/behind badge colors when list item is selected but not focused */
+  .list-item.selected {
+    .repository-list-item {
+      .ahead-behind {
+        background: var(--list-item-selected-badge-background-color);
+        color: var(--list-item-selected-badge-color);
+      }
+    }
+  }
+
+  &.focus-within {
+    /** Ahead/behind badge colors when list item is selected and focused */
+    .list-item.selected {
+      .repository-list-item {
+        .ahead-behind {
+          background: var(--list-item-selected-active-badge-background-color);
+          color: var(--list-item-selected-active-badge-color);
+        }
+      }
+    }
+
+    .change-indicator {
+      color: var(--text-color);
+    }
   }
 }

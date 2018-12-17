@@ -16,6 +16,9 @@ export interface IButtonProps {
    */
   readonly onMouseEnter?: (event: React.MouseEvent<HTMLButtonElement>) => void
 
+  /** An optional tooltip to render when hovering over the button */
+  readonly tooltip?: string
+
   /** Is the button disabled? */
   readonly disabled?: boolean
 
@@ -116,18 +119,6 @@ export class Button extends React.Component<IButtonProps, {}> {
       this.props.className
     )
 
-    let ariaExpanded: string | undefined = undefined
-
-    if (this.props.ariaExpanded !== undefined) {
-      ariaExpanded = this.props.ariaExpanded ? 'true' : 'false'
-    }
-
-    let ariaHasPopup: string | undefined = undefined
-
-    if (this.props.ariaHasPopup !== undefined) {
-      ariaHasPopup = this.props.ariaHasPopup ? 'true' : 'false'
-    }
-
     return (
       <button
         className={className}
@@ -137,9 +128,10 @@ export class Button extends React.Component<IButtonProps, {}> {
         ref={this.onButtonRef}
         tabIndex={this.props.tabIndex}
         onMouseEnter={this.props.onMouseEnter}
+        title={this.props.tooltip}
         role={this.props.role}
-        aria-expanded={ariaExpanded}
-        aria-haspopup={ariaHasPopup}
+        aria-expanded={this.props.ariaExpanded}
+        aria-haspopup={this.props.ariaHasPopup}
       >
         {this.props.children}
       </button>

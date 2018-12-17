@@ -24,8 +24,8 @@
 
     .handle {
       border-radius: 3px;
-      border: 1px solid #c3e1ff;
-      background: #f0f8ff;
+      border: 1px solid var(--co-author-tag-border-color);
+      background: var(--co-author-tag-background-color);
       padding: 1px 1px;
       margin: 0px 2px;
 

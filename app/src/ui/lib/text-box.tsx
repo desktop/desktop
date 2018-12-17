@@ -2,8 +2,9 @@ import * as React from 'react'
 import * as classNames from 'classnames'
 import { createUniqueId, releaseUniqueId } from './id-pool'
 import { LinkButton } from './link-button'
+import { showContextualMenu } from '../main-process-proxy'
 
-interface ITextBoxProps {
+export interface ITextBoxProps {
   /** The label for the input field. */
   readonly label?: string | JSX.Element
 
@@ -73,6 +74,21 @@ interface ITextBoxProps {
 
   /** The tab index of the input element. */
   readonly tabIndex?: number
+
+  /**
+   * Callback used when the component is focused.
+   */
+  readonly onFocus?: () => void
+
+  /**
+   * Callback used when the component loses focus.
+   */
+  readonly onBlur?: () => void
+
+  /**
+   * Callback used when the user has cleared the search text.
+   */
+  readonly onSearchCleared?: () => void
 }
 
 interface ITextBoxState {
@@ -127,11 +143,18 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
    * (i.e. if it's not disabled explicitly or implicitly through for example a fieldset).
    */
   public focus() {
-    if (this.inputElement === null) {
-      return
+    if (this.inputElement !== null) {
+      this.inputElement.focus()
     }
+  }
 
-    this.inputElement.focus()
+  /**
+   * Programmatically removes keyboard focus from the inner text input element
+   */
+  public blur() {
+    if (this.inputElement !== null) {
+      this.inputElement.blur()
+    }
   }
 
   private onChange = (event: React.FormEvent<HTMLInputElement>) => {
@@ -144,8 +167,33 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
     })
   }
 
+  private onSearchTextCleared = () => {
+    if (this.props.onSearchCleared != null) {
+      this.props.onSearchCleared()
+    }
+  }
+
+  /**
+   * The search event here is a Chrome and Safari specific event that is
+   * only reported for input[type=search] elements.
+   *
+   * Source: http://help.dottoro.com/ljdvxmhr.php
+   *
+   * TODO: can we hook into the warning API of React to report on incorrect usage
+   * when you set a `onSearchCleared` callback prop but don't use a `type=search`
+   * input - because this won't set an event handler.
+   *
+   */
   private onInputRef = (element: HTMLInputElement | null) => {
+    if (this.inputElement != null && this.props.type === 'search') {
+      this.inputElement.removeEventListener('search', this.onSearchTextCleared)
+    }
+
     this.inputElement = element
+
+    if (this.inputElement != null && this.props.type === 'search') {
+      this.inputElement.addEventListener('search', this.onSearchTextCleared)
+    }
   }
 
   private renderLabelLink() {
@@ -177,6 +225,45 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
     )
   }
 
+  private onContextMenu = (event: React.MouseEvent<any>) => {
+    event.preventDefault()
+    showContextualMenu([{ role: 'editMenu' }])
+  }
+
+  private onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    const value = this.state.value
+
+    if (
+      value !== '' &&
+      this.props.type === 'search' &&
+      event.key === 'Escape'
+    ) {
+      const value = ''
+
+      event.preventDefault()
+      this.setState({ value })
+
+      if (this.props.onValueChanged) {
+        this.props.onValueChanged(value)
+      }
+    } else if (
+      this.props.type === 'search' &&
+      event.key === 'Escape' &&
+      value === ''
+    ) {
+      if (this.props.onBlur) {
+        this.props.onBlur()
+        if (this.inputElement !== null) {
+          this.inputElement.blur()
+        }
+      }
+    }
+
+    if (this.props.onKeyDown !== undefined) {
+      this.props.onKeyDown(event)
+    }
+  }
+
   public render() {
     const className = classNames('text-box-component', this.props.className)
     const inputId = this.props.label ? this.state.inputId : undefined
@@ -188,16 +275,31 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
         <input
           id={inputId}
           ref={this.onInputRef}
+          onFocus={this.onFocus}
+          onBlur={this.onBlur}
           autoFocus={this.props.autoFocus}
           disabled={this.props.disabled}
           type={this.props.type}
           placeholder={this.props.placeholder}
           value={this.state.value}
           onChange={this.onChange}
-          onKeyDown={this.props.onKeyDown}
+          onKeyDown={this.onKeyDown}
           tabIndex={this.props.tabIndex}
+          onContextMenu={this.onContextMenu}
         />
       </div>
     )
+  }
+
+  private onFocus = (event: React.FocusEvent<HTMLInputElement>) => {
+    if (!this.props.autoFocus && this.props.onFocus !== undefined) {
+      this.props.onFocus()
+    }
+  }
+
+  private onBlur = (event: React.FocusEvent<HTMLInputElement>) => {
+    if (this.props.onBlur !== undefined) {
+      this.props.onBlur()
+    }
   }
 }

@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as classNames from 'classnames'
+import { showContextualMenu } from '../main-process-proxy'
 
 interface ITextAreaProps {
   /** The label for the textarea field. */
@@ -58,6 +59,10 @@ export class TextArea extends React.Component<ITextAreaProps, {}> {
       this.props.onValueChanged(event.currentTarget.value)
     }
   }
+  private onContextMenu = (event: React.MouseEvent<any>) => {
+    event.preventDefault()
+    showContextualMenu([{ role: 'editMenu' }])
+  }
 
   public render() {
     const className = classNames(
@@ -78,6 +83,7 @@ export class TextArea extends React.Component<ITextAreaProps, {}> {
           onChange={this.onChange}
           onKeyDown={this.props.onKeyDown}
           ref={this.props.onTextAreaRef}
+          onContextMenu={this.onContextMenu}
         />
       </label>
     )

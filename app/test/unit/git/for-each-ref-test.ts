@@ -3,6 +3,7 @@ import { Repository } from '../../../src/models/repository'
 import {
   setupFixtureRepository,
   setupEmptyRepository,
+  setupEmptyDirectory,
 } from '../../helpers/repositories'
 import { getBranches } from '../../../src/lib/git/for-each-ref'
 import { BranchType } from '../../../src/models/branch'
@@ -10,8 +11,8 @@ import { BranchType } from '../../../src/models/branch'
 describe('git/for-each-ref', () => {
   let repository: Repository | null = null
 
-  beforeEach(() => {
-    const testRepoPath = setupFixtureRepository('repo-with-many-refs')
+  beforeEach(async () => {
+    const testRepoPath = await setupFixtureRepository('repo-with-many-refs')
     repository = new Repository(testRepoPath, -1, null, false)
   })
 
@@ -57,6 +58,12 @@ describe('git/for-each-ref', () => {
       const repo = await setupEmptyRepository()
       const branches = await getBranches(repo)
       expect(branches.length).to.equal(0)
+    })
+
+    it('should return empty list for directory without a .git directory', async () => {
+      const repo = setupEmptyDirectory()
+      const status = await getBranches(repo)
+      expect(status).eql([])
     })
   })
 })

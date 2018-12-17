@@ -11,12 +11,15 @@
     border-bottom: var(--base-border);
   }
 
-  // Only use special colors for the change type icons when
-  // the list item doesn't have active focus. If it does we
-  // fall back to using the ambient foreground color of the
-  // list item.
-  .list-item:not(:focus) {
-    @include octicon-status;
+  .list-focus-container {
+    // Default to using status aware colors for the change type
+    // octicons (i.e. green for added, yellowish for modified etc)
+    // but fall back to picking up the ambient text color when the
+    // list item is both focused and selected.
+    &.focus-within .list-item:not(.selected),
+    &:not(.focus-within) .list-item {
+      @include octicon-status;
+    }
   }
 
   .file {

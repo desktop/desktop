@@ -62,6 +62,17 @@
   }
 }
 
+.list-focus-container {
+  // The selected items must act as the focused element when inside
+  &.focus-within .list-item.selected {
+    --text-color: var(--box-selected-active-text-color);
+    --text-secondary-color: var(--box-selected-active-text-color);
+
+    color: var(--text-color);
+    background-color: var(--box-selected-active-background-color);
+  }
+}
+
 .list-item {
   display: flex;
   flex-direction: row;
@@ -76,17 +87,13 @@
 
     color: var(--text-color);
     background-color: var(--box-selected-background-color);
-
-    &:focus {
-      --text-color: var(--box-selected-active-text-color);
-      --text-secondary-color: var(--box-selected-active-text-color);
-
-      color: var(--text-color);
-      background-color: var(--box-selected-active-background-color);
-    }
   }
 
   &:focus {
     outline: none;
+  }
+
+  &:not(.not-selectable):hover {
+    background: var(--list-item-hover-background-color);
   }
 }

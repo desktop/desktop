@@ -1,12 +1,17 @@
 import { git } from './core'
+import { GitError } from 'dugite'
+
 import { Repository } from '../../models/repository'
 import { Commit } from '../../models/commit'
 import { Branch, BranchType } from '../../models/branch'
 import { CommitIdentity } from '../../models/commit-identity'
+import { ForkedRemotePrefix } from '../../models/remote'
 import {
   getTrailerSeparatorCharacters,
   parseRawUnfoldedTrailers,
 } from './interpret-trailers'
+
+const ForksReferencesPrefix = `refs/remotes/${ForkedRemotePrefix}`
 
 /** Get all the branches. */
 export async function getBranches(
@@ -35,11 +40,20 @@ export async function getBranches(
     prefixes = ['refs/heads', 'refs/remotes']
   }
 
+  // TODO: use expectedErrors here to handle a specific error
+  // see https://github.com/desktop/desktop/pull/5299#discussion_r206603442 for
+  // discussion about what needs to change
   const result = await git(
     ['for-each-ref', `--format=${format}`, ...prefixes],
     repository.path,
-    'getBranches'
+    'getBranches',
+    { expectedErrors: new Set([GitError.NotAGitRepository]) }
   )
+
+  if (result.gitError === GitError.NotAGitRepository) {
+    return []
+  }
+
   const names = result.stdout
   const lines = names.split(delimiterString)
 
@@ -99,6 +113,14 @@ export async function getBranches(
 
     if (symref.length > 0) {
       // excude symbolic refs from the branch list
+      continue
+    }
+
+    if (ref.startsWith(ForksReferencesPrefix)) {
+      // hide refs from our known remotes as these are considered plumbing
+      // and can add noise to everywhere in the user interface where we
+      // display branches as forks will likely contain duplicates of the same
+      // ref names
       continue
     }
 

@@ -8,10 +8,11 @@ import { ErrorWithMetadata } from '../error-with-metadata'
 import { ExternalEditorError } from '../editors/shared'
 import { AuthenticationErrors } from '../git/authentication'
 import { Repository } from '../../models/repository'
-import { PopupType } from '../../lib/app-state'
+import { PopupType } from '../../models/popup'
 import { ShellError } from '../shells'
 import { UpstreamAlreadyExistsError } from '../stores/upstream-already-exists-error'
-import { FetchType } from '../stores/index'
+import { FetchType } from '../../models/fetch'
+import { TipState } from '../../models/tip'
 
 /** An error which also has a code property. */
 interface IErrorWithCode extends Error {
@@ -243,6 +244,70 @@ export async function pushNeedsPullHandler(
   dispatcher.fetch(repository, FetchType.UserInitiatedTask)
 
   return error
+}
+
+/**
+ * Handler for detecting when a merge conflict is reported to direct the user
+ * to a different dialog than the generic Git error dialog.
+ */
+export async function mergeConflictHandler(
+  error: Error,
+  dispatcher: Dispatcher
+): Promise<Error | null> {
+  const e = asErrorWithMetadata(error)
+  if (!e) {
+    return error
+  }
+
+  const gitError = asGitError(e.underlyingError)
+  if (!gitError) {
+    return error
+  }
+
+  const dugiteError = gitError.result.gitError
+  if (!dugiteError) {
+    return error
+  }
+
+  if (dugiteError !== DugiteError.MergeConflicts) {
+    return error
+  }
+
+  const { repository, gitContext } = e.metadata
+  if (repository == null) {
+    return error
+  }
+
+  if (!(repository instanceof Repository)) {
+    return error
+  }
+
+  if (gitContext == null) {
+    return error
+  }
+
+  switch (gitContext.kind) {
+    case 'pull':
+      dispatcher.mergeConflictDetectedFromPull()
+      break
+    case 'merge':
+      dispatcher.mergeConflictDetectedFromExplicitMerge()
+      break
+  }
+
+  const { tip, theirBranch } = gitContext
+  if (tip == null || tip.kind !== TipState.Valid) {
+    return error
+  }
+
+  dispatcher.showPopup({
+    type: PopupType.MergeConflicts,
+    repository,
+    ourBranch: tip.branch.name,
+    theirBranch,
+  })
+
+  return null
 }
 
 /**
