@@ -87,8 +87,8 @@ export class BlankSlateView extends React.Component<
         </header>
 
         <div className="content">
-          <div className="content-pane left">{this.renderLeftPanel()}</div>
-          <div className="content-pane right">{this.renderRightPanel()}</div>
+          {this.renderLeftPanel()}
+          {this.renderRightPanel()}
         </div>
 
         <img className="blankslate-graphic-top" src={WelcomeLeftTopImageUri} />
@@ -139,10 +139,10 @@ export class BlankSlateView extends React.Component<
     const accountState = this.props.apiRepositories.get(account)
 
     return (
-      <>
+      <div className="content-pane left">
         {this.renderAccountsTabBar()}
         {this.renderAccountTab(account, accountState)}
-      </>
+      </div>
     )
   }
 
@@ -272,7 +272,7 @@ export class BlankSlateView extends React.Component<
 
   private renderRightPanel() {
     return (
-      <>
+      <div className="content-pane right">
         <ul className="button-group">
           <li>
             <Button onClick={this.onShowClone}>
@@ -313,7 +313,7 @@ export class BlankSlateView extends React.Component<
             repository folder here to add it to Desktop
           </div>
         </div>
-      </>
+      </div>
     )
   }
 }
