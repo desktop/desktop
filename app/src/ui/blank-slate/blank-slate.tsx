@@ -11,6 +11,7 @@ import { Account } from '../../models/account'
 import { TabBar } from '../tab-bar'
 import { CloneableRepositoryFilterList } from '../clone-repository/cloneable-repository-filter-list'
 import { IAPIRepository } from '../../lib/api'
+import { assertNever } from '../../lib/fatal-error'
 
 interface IBlankSlateProps {
   /** A function to call when the user chooses to create a repository. */
@@ -51,8 +52,23 @@ interface IBlankSlateProps {
   readonly onRefreshRepositories: (account: Account) => void
 }
 
+/**
+ * An enumeration of all the tabs potentially available for
+ * selection.
+ */
+enum AccountTab {
+  dotCom,
+  enterprise,
+}
+
 interface IBlankSlateState {
-  readonly selectedAccount: 'dotcom' | 'enterprise'
+  /**
+   * The selected account, or rather the preferred selection.
+   * Has no effect when the user isn't signed in to any account.
+   * If the selected account is GitHub.com and the user signs out
+   * of that account the
+   */
+  readonly selectedTab: AccountTab
   readonly dotComFilterText: string
   readonly selectedDotComRepository: IAPIRepository | null
   readonly selectedEnterpriseRepository: IAPIRepository | null
@@ -69,8 +85,9 @@ export class BlankSlateView extends React.Component<
 > {
   public constructor(props: IBlankSlateProps) {
     super(props)
+
     this.state = {
-      selectedAccount: 'dotcom',
+      selectedTab: AccountTab.dotCom,
       dotComFilterText: '',
       enterpriseFilterText: '',
       selectedDotComRepository: null,
@@ -119,12 +136,13 @@ export class BlankSlateView extends React.Component<
   }
 
   private getSelectedAccount() {
-    const { selectedAccount } = this.state
-
-    if (selectedAccount === 'dotcom') {
+    const { selectedTab } = this.state
+    if (selectedTab === AccountTab.dotCom) {
       return this.props.dotComAccount || this.props.enterpriseAccount
-    } else {
+    } else if (selectedTab === AccountTab.enterprise) {
       return this.props.enterpriseAccount || this.props.dotComAccount
+    } else {
+      return assertNever(selectedTab, `Unknown account tab ${selectedTab}`)
     }
   }
 
@@ -262,9 +280,9 @@ export class BlankSlateView extends React.Component<
 
   private onTabClicked = (index: number) => {
     if (index === 0) {
-      this.setState({ selectedAccount: 'dotcom' })
+      this.setState({ selectedTab: AccountTab.dotCom })
     } else if (index === 1) {
-      this.setState({ selectedAccount: 'enterprise' })
+      this.setState({ selectedTab: AccountTab.enterprise })
     }
   }
 
