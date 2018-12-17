@@ -1,4 +1,3 @@
-import { expect } from 'chai'
 import { RepositoryStateCache } from '../../src/lib/stores/repository-state-cache'
 import { Repository } from '../../src/models/repository'
 import { PullRequest } from '../../src/models/pull-request'
@@ -6,7 +5,7 @@ import { GitHubRepository } from '../../src/models/github-repository'
 import {
   WorkingDirectoryStatus,
   WorkingDirectoryFileChange,
-  AppFileStatus,
+  AppFileStatusKind,
 } from '../../src/models/status'
 import { DiffSelection, DiffSelectionType } from '../../src/models/diff'
 import { HistoryTabMode } from '../../src/lib/app-state'
@@ -80,15 +79,15 @@ describe('RepositoryStateCache', () => {
     })
 
     const { branchesState } = cache.get(repository)
-    expect(branchesState.isLoadingPullRequests).is.true
-    expect(branchesState.openPullRequests.length).equals(1)
+    expect(branchesState.isLoadingPullRequests).toBe(true)
+    expect(branchesState.openPullRequests).toHaveLength(1)
   })
 
   it('can update changes state for a repository', () => {
     const files = [
       new WorkingDirectoryFileChange(
         'README.md',
-        AppFileStatus.New,
+        { kind: AppFileStatusKind.New },
         DiffSelection.fromInitialSelection(DiffSelectionType.All)
       ),
     ]
@@ -110,10 +109,10 @@ describe('RepositoryStateCache', () => {
     })
 
     const { changesState } = cache.get(repository)
-    expect(changesState.workingDirectory.includeAll).is.true
-    expect(changesState.workingDirectory.files.length).equals(1)
-    expect(changesState.showCoAuthoredBy).is.true
-    expect(changesState.commitMessage!.summary).equals(summary)
+    expect(changesState.workingDirectory.includeAll).toBe(true)
+    expect(changesState.workingDirectory.files).toHaveLength(1)
+    expect(changesState.showCoAuthoredBy).toBe(true)
+    expect(changesState.commitMessage!.summary).toBe(summary)
   })
 
   it('can update compare state for a repository', () => {
@@ -133,8 +132,8 @@ describe('RepositoryStateCache', () => {
     })
 
     const { compareState } = cache.get(repository)
-    expect(compareState.formState.kind).equals(HistoryTabMode.History)
-    expect(compareState.filterText).equals(filterText)
-    expect(compareState.commitSHAs.length).equals(1)
+    expect(compareState.formState.kind).toBe(HistoryTabMode.History)
+    expect(compareState.filterText).toBe(filterText)
+    expect(compareState.commitSHAs).toHaveLength(1)
   })
 })

@@ -1,5 +1,68 @@
 {
   "releases": {
+    "1.5.1-beta4": [
+      "[Improved] Display warning if existing readme file will be overwritten - #6338. Thanks @Daniel-McCarthy!",
+      "[Improved] Add check for attempts to commit >100 MB files without Git LFS - #997. Thanks @Daniel-McCarthy!",
+      "[Improved] Merge conflicts dialog visual updates - #6377"
+    ],
+    "1.5.1-beta3": [
+      "[Improved] Maintains state on tabs for different methods of cloning repositories - #5937"
+    ],
+    "1.5.1-beta2": [
+      "[Improved] Clarified internal documentation - #6348. Thanks @bblarney!"
+    ],
+    "1.5.1-beta1": [
+      "[Added] Provide keyboard shortcut for getting to commit summary field - #1719. Thanks @bruncun!",
+      "[Added] Add hover states on list items and tabs - #6310",
+      "[Added] Add Dockerfile syntax highlighting - #4533. Thanks @say25!",
+      "[Added] Support Visual SlickEdit as an external editor - #6029. Thanks @texasaggie97!",
+      "[Improved] Allow toggling between diff modes - #6231. Thanks @06b!",
+      "[Improved] Show focus around full input field - #6234. Thanks @seokju-na!",
+      "[Improved] Make lists scroll to bring selected items into view - #6279",
+      "[Fixed] Allow repositories to be cloned to empty folders - #5857. Thanks @Daniel-McCarthy!",
+      "[Fixed] Prevent creating branch with detached HEAD from reverting to default branch - #6085",
+      "[Fixed] Fix 'Open In External Editor' for Atom/VS Code on Windows when paths contain spaces - #6181. Thanks @msftrncs!",
+      "[Fixed] Persist Branch List and Pull Request List filter text - #6002. Thanks @Daniel-McCarthy!",
+      "[Fixed] Retain renamed branches position in recent branches list - #6155. Thanks @gnehcc!",
+      "[Fixed] Prevent avatar duplication when user is co-author and committer - #6135. Thanks @bblarney!",
+      "[Fixed] Provide keyboard selection for the ‘Clone a Repository’ dialog - #3596. Thanks @a-golovanov!",
+      "[Fixed] Close License & Open Source Notices dialog upon pressing \"Enter\" in dialog - #6137. Thanks @bblarney!",
+      "[Fixed] Dismiss \"Merge into Branch\" dialog with escape key - #6154. Thanks @altaf933!",
+      "[Fixed] Focus branch selector when comparing to branch from menu - #5600",
+      "[Fixed] Reverse fold/unfold icons for expand/collapse commit summary - #6196. Thanks @HazemAM!"
+    ],
+    "1.5.1-beta0": [
+    ],
+    "1.5.0": [
+      "[New] Clone, create, or add repositories right from the repository dropdown - #5878",
+      "[New] Drag-and-drop to add local repositories from macOS tray icon - #5048",
+      "[Added] Resolve merge conflicts through a guided flow - #5400",
+      "[Added] Allow merging branches directly from branch dropdown - #5929. Thanks @bruncun!",
+      "[Added] Commit file list now has \"Copy File Path\" context menu action - #2944. Thanks @Amabel!",
+      "[Added] Keyboard shortcut for \"Rename Branch\" menu item - #5964. Thanks @agisilaos!",
+      "[Added] Notify users when a merge is successfully completed - #5851",
+      "[Fixed] \"Compare on GitHub\" menu item enabled when no repository is selected - #6078",
+      "[Fixed] Diff viewer blocks keyboard navigation using reverse tab order - #2794",
+      "[Fixed] Launching Desktop from browser always asks to clone repository - #5913",
+      "[Fixed] Publish dialog displayed on push when repository is already published - #5936",
+      "[Improved] \"Publish Repository\" dialog handles emoji characters - #5980. Thanks @WaleedAshraf!",
+      "[Improved] Avoid repository checks when no path is specified in \"Create Repository\" dialog - #5828. Thanks @JakeHL!",
+      "[Improved] Clarify the direction of merging branches - #5930. Thanks @JQuinnie!",
+      "[Improved] Default commit summary more explanatory and consistent with GitHub.com - #6017. Thanks @Daniel-McCarthy!",
+      "[Improved] Display a more informative message on merge dialog when branch is up to date - #5890",
+      "[Improved] Getting a repository's status only blocks other operations when absolutely necessary - #5952",
+      "[Improved] Display current branch in header of merge dialog - #6027",
+      "[Improved] Sanitize repository name before publishing to GitHub - #3090. Thanks @Daniel-McCarthy!",
+      "[Improved] Show the branch name in \"Update From Default Branch\" menu item - #3018. Thanks @a-golovanov!",
+      "[Improved] Update license and .gitignore templates for initializing a new repository - #6024. Thanks @say25!"
+    ],
+    "1.5.0-beta5": [
+    ],
+    "1.5.0-beta4": [
+      "[Fixed] \"Compare on GitHub\" menu item enabled when no repository is selected - #6078",
+      "[Fixed] Diff viewer blocks keyboard navigation using reverse tab order - #2794",
+      "[Improved] \"Publish Repository\" dialog handles emoji characters - #5980. Thanks @WaleedAshraf!"
+    ],
     "1.5.0-beta3": [
     ],
     "1.5.0-beta2": [

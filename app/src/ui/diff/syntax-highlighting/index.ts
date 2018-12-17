@@ -10,10 +10,11 @@ import { ITokens } from '../../../lib/highlighter/types'
 import {
   CommittedFileChange,
   WorkingDirectoryFileChange,
-  AppFileStatus,
+  AppFileStatusKind,
 } from '../../../models/status'
 import { Repository } from '../../../models/repository'
 import { DiffHunk, DiffLineType, DiffLine } from '../../../models/diff'
+import { getOldPathOrDefault } from '../../../lib/get-old-path'
 
 /** The maximum number of bytes we'll process for highlighting. */
 const MaxHighlightContentLength = 256 * 1024
@@ -40,7 +41,7 @@ async function getOldFileContent(
   repository: Repository,
   file: ChangedFile
 ): Promise<Buffer> {
-  if (file.status === AppFileStatus.New) {
+  if (file.status.kind === AppFileStatusKind.New) {
     return new Buffer(0)
   }
 
@@ -61,7 +62,7 @@ async function getOldFileContent(
   return getPartialBlobContents(
     repository,
     commitish,
-    file.oldPath || file.path,
+    getOldPathOrDefault(file),
     MaxHighlightContentLength
   )
 }
@@ -70,7 +71,7 @@ async function getNewFileContent(
   repository: Repository,
   file: ChangedFile
 ): Promise<Buffer> {
-  if (file.status === AppFileStatus.Deleted) {
+  if (file.status.kind === AppFileStatusKind.Deleted) {
     return new Buffer(0)
   }
 
@@ -176,10 +177,13 @@ export async function highlightContents(
 ): Promise<IFileTokens> {
   const { file, oldContents, newContents } = contents
 
+  const oldPath = getOldPathOrDefault(file)
+
   const [oldTokens, newTokens] = await Promise.all([
     highlight(
       oldContents.toString('utf8'),
-      Path.extname(file.oldPath || file.path),
+      Path.basename(oldPath),
+      Path.extname(oldPath),
       tabSize,
       lineFilters.oldLineFilter
     ).catch(e => {
@@ -188,6 +192,7 @@ export async function highlightContents(
     }),
     highlight(
       newContents.toString('utf8'),
+      Path.basename(file.path),
       Path.extname(file.path),
       tabSize,
       lineFilters.newLineFilter

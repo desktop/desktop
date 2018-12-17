@@ -28,12 +28,13 @@ the flow of an issue through this process
 |                                        | Label name                  | Description |
 | -------------------------------------- | ----------------------------| ----------- |
 | [:mag_right:][bug]                     | `bug`                     | Confirmed bugs or reports that are very likely to be bugs |
-| [:mag_right:][enhancement]             | `enhancement`             | |
+| [:mag_right:][enhancement]             | `enhancement`             | Issues that propose to improve the app and solve a problem for users |
 | [:mag_right:][investigation-needed]    | `investigation-needed`    | Likely bugs, but haven't been reliably reproduced by a reviewer |
 | [:mag_right:][more-information-needed] | `more-information-needed` | The submitter needs to provide more information about the issue |
 | [:mag_right:][priority-1]              | `priority-1`              | Major bug affecting large population and inhibiting their work |
 | [:mag_right:][priority-2]              | `priority-2`              | Bug that affects more than a few users in a meaningful way but doesn't prevent core functions |
 | [:mag_right:][priority-3]              | `priority-3`              | Bugs that affect small number of users and/or relatively cosmetic in nature |
+| [:mag_right:][support]                 | `support`                 | Issues specific to an individual users' configuration requiring diagnosis and clarification to resolve |
 
 ### External contributions
 
@@ -92,6 +93,7 @@ time:
 |                                 | Label name         | Description |
 | ------------------------------- | ------------------ | ----------- |
 | [:mag_right:][ready-for-review] | `ready-for-review` | Pull Requests that are ready to be reviewed by the maintainers |
+| [:mag_right:][time-sensitive]   | `time-sensitive`   | Pull Requests that require review in a more timely manner      |
 
 
 [bug]: https://github.com/desktop/desktop/labels/bug
@@ -114,8 +116,10 @@ time:
 [priority-2]: https://github.com/desktop/desktop/labels/priority-2
 [priority-3]: https://github.com/desktop/desktop/labels/priority-3
 [ready-for-review]: https://github.com/desktop/desktop/labels/ready-for-review
+[support]: https://github.com/desktop/desktop/labels/support
 [tech-debt]: https://github.com/desktop/desktop/labels/tech-debt
 [themes]: https://github.com/desktop/desktop/labels/themes
+[time-sensitive]: https://github.com/desktop/desktop/labels/time-sensitive
 [user-research]: https://github.com/desktop/desktop/labels/user-research
 [website]: https://github.com/desktop/desktop/labels/website
 [windows]: https://github.com/desktop/desktop/labels/windows

@@ -1,5 +1,8 @@
 import { git } from './core'
-import { AppFileStatus, WorkingDirectoryFileChange } from '../../models/status'
+import {
+  WorkingDirectoryFileChange,
+  AppFileStatusKind,
+} from '../../models/status'
 import { DiffType } from '../../models/diff'
 import { Repository } from '../../models/repository'
 import { getWorkingDirectoryDiff } from './diff'
@@ -12,7 +15,7 @@ export async function applyPatchToIndex(
   // If the file was a rename we have to recreate that rename since we've
   // just blown away the index. Think of this block of weird looking commands
   // as running `git mv`.
-  if (file.status === AppFileStatus.Renamed && file.oldPath) {
+  if (file.status.kind === AppFileStatusKind.Renamed) {
     // Make sure the index knows of the removed file. We could use
     // update-index --force-remove here but we're not since it's
     // possible that someone staged a rename and then recreated the
@@ -21,7 +24,7 @@ export async function applyPatchToIndex(
     // worst that could happen is that we re-stage a file already staged
     // by updateIndex.
     await git(
-      ['add', '--u', '--', file.oldPath],
+      ['add', '--u', '--', file.status.oldPath],
       repository.path,
       'applyPatchToIndex'
     )
@@ -29,7 +32,7 @@ export async function applyPatchToIndex(
     // Figure out the blob oid of the removed file
     // <mode> SP <type> SP <object> TAB <file>
     const oldFile = await git(
-      ['ls-tree', 'HEAD', '--', file.oldPath],
+      ['ls-tree', 'HEAD', '--', file.status.oldPath],
       repository.path,
       'applyPatchToIndex'
     )

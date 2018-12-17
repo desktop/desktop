@@ -37,6 +37,8 @@ const FirstPushToGitHubAtKey = 'first-push-to-github-at'
 const FirstNonDefaultBranchCheckoutAtKey =
   'first-non-default-branch-checkout-at'
 const WelcomeWizardSignInMethodKey = 'welcome-wizard-sign-in-method'
+const terminalEmulatorKey = 'shell'
+const textEditorKey: string = 'externalEditor'
 
 /** How often daily stats should be submitted (i.e., 24 hours). */
 const DailyStatsReportInterval = 1000 * 60 * 60 * 24
@@ -70,6 +72,14 @@ const DefaultDailyMeasures: IDailyMeasures = {
   mergedWithConflictWarningHintCount: 0,
   mergeSuccessAfterConflictsCount: 0,
   mergeAbortedAfterConflictsCount: 0,
+  unattributedCommits: 0,
+  enterpriseCommits: 0,
+  dotcomCommits: 0,
+  mergeConflictsDialogDismissalCount: 0,
+  anyConflictsLeftOnMergeConflictsDialogDismissalCount: 0,
+  mergeConflictsDialogReopenedCount: 0,
+  guidedConflictedMergeCompletionCount: 0,
+  unguidedConflictedMergeCompletionCount: 0,
 }
 
 interface IOnboardingStats {
@@ -175,6 +185,20 @@ interface IOnboardingStats {
   readonly welcomeWizardSignInMethod?: 'basic' | 'web'
 }
 
+/**
+ * Returns the account id of the current user's GitHub.com account or null if the user
+ * is not currently signed in to GitHub.com.
+ *
+ * @param accounts The active accounts stored in Desktop
+ */
+function findDotComAccountId(accounts: ReadonlyArray<Account>): number | null {
+  const gitHubAccount = accounts.find(
+    a => a.endpoint === getDotComAPIEndpoint()
+  )
+
+  return gitHubAccount !== undefined ? gitHubAccount.id : null
+}
+
 interface ICalculatedStats {
   /** The app version. */
   readonly version: string
@@ -206,6 +230,12 @@ interface ICalculatedStats {
    */
   readonly theme: string
 
+  /** The selected terminal emulator at the time of stats submission */
+  readonly selectedTerminalEmulator: string
+
+  /** The selected text editor at the time of stats submission */
+  readonly selectedTextEditor: string
+
   readonly eventType: 'usage'
 }
 
@@ -214,8 +244,20 @@ type DailyStats = ICalculatedStats &
   IDailyMeasures &
   IOnboardingStats
 
+/**
+ * Testable interface for StatsStore
+ *
+ * Note: for the moment this only contains methods that are needed for testing,
+ * so fight the urge to implement every public method from StatsStore here
+ *
+ */
+export interface IStatsStore {
+  recordMergeAbortedAfterConflicts: () => void
+  recordMergeSuccessAfterConflicts: () => void
+}
+
 /** The store for the app's stats. */
-export class StatsStore {
+export class StatsStore implements IStatsStore {
   private readonly db: StatsDatabase
   private readonly uiActivityMonitor: IUiActivityMonitor
   private uiActivityMonitorSubscription: Disposable | null = null
@@ -227,12 +269,14 @@ export class StatsStore {
     this.db = db
     this.uiActivityMonitor = uiActivityMonitor
 
-    this.optOut = getBoolean(StatsOptOutKey, false)
+    const storedValue = getBoolean(StatsOptOutKey)
+
+    this.optOut = storedValue || false
 
     // If the user has set an opt out value but we haven't sent the ping yet,
     // give it a shot now.
     if (!getBoolean(HasSentOptInPingKey, false)) {
-      this.sendOptInStatusPing(!this.optOut)
+      this.sendOptInStatusPing(this.optOut, storedValue)
     }
 
     this.enableUiActivityMonitoring()
@@ -272,8 +316,11 @@ export class StatsStore {
     const now = Date.now()
     const stats = await this.getDailyStats(accounts, repositories)
 
+    const user_id = findDotComAccountId(accounts)
+    const payload = user_id === null ? stats : { ...stats, user_id }
+
     try {
-      const response = await this.post(stats)
+      const response = await this.post(payload)
       if (!response.ok) {
         throw new Error(
           `Unexpected status: ${response.statusText} (${response.status})`
@@ -336,6 +383,9 @@ export class StatsStore {
     const userType = this.determineUserType(accounts)
     const repositoryCounts = this.categorizedRepositoryCounts(repositories)
     const onboardingStats = this.getOnboardingStats()
+    const selectedTerminalEmulator =
+      localStorage.getItem(terminalEmulatorKey) || 'none'
+    const selectedTextEditor = localStorage.getItem(textEditorKey) || 'none'
 
     return {
       eventType: 'usage',
@@ -343,6 +393,8 @@ export class StatsStore {
       osVersion: getOS(),
       platform: process.platform,
       theme: getPersistedThemeName(),
+      selectedTerminalEmulator,
+      selectedTextEditor,
       ...launchStats,
       ...dailyMeasures,
       ...userType,
@@ -573,16 +625,50 @@ export class StatsStore {
     }))
   }
 
+  /**
+   * Records that the user made a commit using an email address that
+   * was not associated with the user's account on GitHub.com or GitHub
+   * Enterprise, meaning that the commit will not be attributed to the user's
+   * account.
+   */
+  public recordUnattributedCommit(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      unattributedCommits: m.unattributedCommits + 1,
+    }))
+  }
+
+  /**
+   * Records that the user made a commit to a repository hosted on
+   * a GitHub Enterprise instance
+   */
+  public recordCommitToEnterprise(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      enterpriseCommits: m.enterpriseCommits + 1,
+    }))
+  }
+
+  /** Records that the user made a commit to a repository hosted on GitHub.com */
+  public recordCommitToDotcom(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      dotcomCommits: m.dotcomCommits + 1,
+    }))
+  }
+
   /** Set whether the user has opted out of stats reporting. */
-  public async setOptOut(optOut: boolean): Promise<void> {
+  public async setOptOut(
+    optOut: boolean,
+    userViewedPrompt: boolean
+  ): Promise<void> {
     const changed = this.optOut !== optOut
 
     this.optOut = optOut
 
+    const previousValue = getBoolean(StatsOptOutKey)
+
     setBoolean(StatsOptOutKey, optOut)
 
-    if (changed) {
-      await this.sendOptInStatusPing(!optOut)
+    if (changed || userViewedPrompt) {
+      await this.sendOptInStatusPing(optOut, previousValue)
     }
   }
 
@@ -616,7 +702,7 @@ export class StatsStore {
 
   /**
    * Record that user initiated a merge after getting to compare view
-   * from within notificatio banner
+   * from within notification banner
    */
   public async recordDivergingBranchBannerInfluencedMerge(): Promise<void> {
     return this.updateDailyMeasures(m => ({
@@ -678,6 +764,58 @@ export class StatsStore {
     return this.updateDailyMeasures(m => ({
       mergedWithConflictWarningHintCount:
         m.mergedWithConflictWarningHintCount + 1,
+    }))
+  }
+
+  /**
+   * Increments the `mergeConflictsDialogDismissalCount` metric
+   */
+  public async recordMergeConflictsDialogDismissal(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      mergeConflictsDialogDismissalCount:
+        m.mergeConflictsDialogDismissalCount + 1,
+    }))
+  }
+
+  /**
+   * Increments the `anyConflictsLeftOnMergeConflictsDialogDismissalCount` metric
+   */
+  public async recordAnyConflictsLeftOnMergeConflictsDialogDismissal(): Promise<
+    void
+  > {
+    return this.updateDailyMeasures(m => ({
+      anyConflictsLeftOnMergeConflictsDialogDismissalCount:
+        m.anyConflictsLeftOnMergeConflictsDialogDismissalCount + 1,
+    }))
+  }
+
+  /**
+   * Increments the `mergeConflictsDialogReopenedCount` metric
+   */
+  public async recordMergeConflictsDialogReopened(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      mergeConflictsDialogReopenedCount:
+        m.mergeConflictsDialogReopenedCount + 1,
+    }))
+  }
+
+  /**
+   * Increments the `guidedConflictedMergeCompletionCount` metric
+   */
+  public async recordGuidedConflictedMergeCompletion(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      guidedConflictedMergeCompletionCount:
+        m.guidedConflictedMergeCompletionCount + 1,
+    }))
+  }
+
+  /**
+   * Increments the `unguidedConflictedMergeCompletionCount` metric
+   */
+  public async recordUnguidedConflictedMergeCompletion(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      unguidedConflictedMergeCompletionCount:
+        m.unguidedConflictedMergeCompletionCount + 1,
     }))
   }
 
@@ -743,12 +881,33 @@ export class StatsStore {
     return fetch(StatsEndpoint, options)
   }
 
-  private async sendOptInStatusPing(optIn: boolean): Promise<void> {
+  /**
+   * Send opt-in ping with details of previous stored value (if known)
+   *
+   * @param optOut        Whether or not the user has opted
+   *                      out of usage reporting.
+   * @param previousValue The raw, current value stored for the
+   *                      "stats-opt-out" localStorage key, or
+   *                      undefined if no previously stored value
+   *                      exists.
+   */
+  private async sendOptInStatusPing(
+    optOut: boolean,
+    previousValue: boolean | undefined
+  ): Promise<void> {
+    // The analytics pipeline expects us to submit `optIn` but we
+    // track `optOut` so we need to invert the value before we send
+    // it.
+    const optIn = !optOut
+    const previousOptInValue =
+      previousValue === undefined ? null : !previousValue
     const direction = optIn ? 'in' : 'out'
+
     try {
       const response = await this.post({
         eventType: 'ping',
         optIn,
+        previousOptInValue,
       })
       if (!response.ok) {
         throw new Error(

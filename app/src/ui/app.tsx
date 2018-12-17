@@ -9,6 +9,7 @@ import {
   SelectionType,
   HistoryTabMode,
   SuccessfulMergeBannerState,
+  MergeConflictsBannerState,
 } from '../lib/app-state'
 import { Dispatcher } from '../lib/dispatcher'
 import { AppStore, GitHubUserStore, IssuesStore } from '../lib/stores'
@@ -19,13 +20,11 @@ import { RetryAction } from '../models/retry-actions'
 import { shouldRenderApplicationMenu } from './lib/features'
 import { matchExistingRepository } from '../lib/repository-matching'
 import { getDotComAPIEndpoint } from '../lib/api'
-import { ILaunchStats } from '../lib/stats'
+import { ILaunchStats, SamplesURL } from '../lib/stats'
 import { getVersion, getName } from './lib/app-proxy'
 import { getOS } from '../lib/get-os'
 import { validatedRepositoryPath } from '../lib/stores/helpers/validated-repository-path'
-
 import { MenuEvent } from '../main-process/menu'
-
 import { Repository } from '../models/repository'
 import { Branch } from '../models/branch'
 import { PreferencesTab } from '../models/preferences'
@@ -59,7 +58,7 @@ import {
 import { DiscardChanges } from './discard-changes'
 import { Welcome } from './welcome'
 import { AppMenuBar } from './app-menu'
-import { UpdateAvailable } from './updates'
+import { UpdateAvailable } from './banners'
 import { Preferences } from './preferences'
 import { Merge } from './merge-branch'
 import { RepositorySettings } from './repository-settings'
@@ -86,24 +85,38 @@ import { InitializeLFS, AttributeMismatch } from './lfs'
 import { UpstreamAlreadyExists } from './upstream-already-exists'
 import { ReleaseNotes } from './release-notes'
 import { DeletePullRequest } from './delete-branch/delete-pull-request-dialog'
-import { MergeConflictsDialog, MergeConflictsWarning } from './merge-conflicts'
+import { MergeConflictsDialog, CommitConflictsWarning } from './merge-conflicts'
 import { AppTheme } from './app-theme'
 import { ApplicationTheme } from './lib/application-theme'
 import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
 import { AbortMergeWarning } from './abort-merge'
-import { enableMergeConflictsDialog } from '../lib/feature-flag'
-import { AppFileStatus } from '../models/status'
+import { isConflictedFile } from '../lib/status'
 import { PopupType, Popup } from '../models/popup'
-import { SuccessfulMerge } from './banners'
+import { SuccessfulMerge, MergeConflictsBanner } from './banners'
+import { OversizedFiles } from './changes/oversized-files-warning'
+import { UsageStatsChange } from './usage-stats-change'
 
 const MinuteInMilliseconds = 1000 * 60
+const HourInMilliseconds = MinuteInMilliseconds * 60
 
-/** The interval at which we should check for updates. */
-const UpdateCheckInterval = 1000 * 60 * 60 * 4
+/**
+ * Check for updates every 4 hours
+ */
+const UpdateCheckInterval = 4 * HourInMilliseconds
 
-const SendStatsInterval = 1000 * 60 * 60 * 4
+/**
+ * Send usage stats every 4 hours
+ */
+const SendStatsInterval = 4 * HourInMilliseconds
 
+/**
+ * Wait 2 minutes before refreshing repository indicators
+ */
 const InitialRepositoryIndicatorTimeout = 2 * MinuteInMilliseconds
+
+/**
+ * Refresh repository indicators every 15 minutes.
+ */
 const UpdateRepositoryIndicatorInterval = 15 * MinuteInMilliseconds
 
 interface IAppProps {
@@ -324,6 +337,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.showAbout()
       case 'boomtown':
         return this.boomtown()
+      case 'go-to-commit-message':
+        return this.goToCommitMessage()
       case 'open-pull-request': {
         return this.openPullRequest()
       }
@@ -363,6 +378,11 @@ export class App extends React.Component<IAppProps, IAppState> {
     setImmediate(() => {
       throw new Error('Boomtown!')
     })
+  }
+
+  private async goToCommitMessage() {
+    await this.showChanges()
+    this.props.dispatcher.setCommitMessageFocus(true)
   }
 
   private checkForUpdates(inBackground: boolean) {
@@ -564,7 +584,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     this.props.dispatcher.closeCurrentFoldout()
-    this.props.dispatcher.changeRepositorySection(
+    return this.props.dispatcher.changeRepositorySection(
       state.repository,
       RepositorySectionTab.Changes
     )
@@ -998,6 +1018,9 @@ export class App extends React.Component<IAppProps, IAppState> {
   private onSuccessfulMergeDismissed = () =>
     this.props.dispatcher.setSuccessfulMergeBannerState(null)
 
+  private onMergeConflictsBannerDismissed = () =>
+    this.props.dispatcher.setMergeConflictsBannerState(null)
+
   private currentPopupContent(): JSX.Element | null {
     // Hide any dialogs while we're displaying an error
     if (this.state.errors.length) {
@@ -1158,6 +1181,8 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispatcher={this.props.dispatcher}
             selectedTab={this.state.selectedCloneRepositoryTab}
             onTabSelected={this.onCloneRepositoriesTabSelected}
+            apiRepositories={this.state.apiRepositories}
+            onRefreshRepositories={this.onRefreshRepositories}
           />
         )
       case PopupType.CreateBranch: {
@@ -1330,81 +1355,106 @@ export class App extends React.Component<IAppProps, IAppState> {
             pullRequest={popup.pullRequest}
           />
         )
-      case PopupType.MergeConflicts:
-        if (enableMergeConflictsDialog()) {
-          const { selectedState } = this.state
-          if (
-            selectedState === null ||
-            selectedState.type !== SelectionType.Repository
-          ) {
-            return null
-          }
-
-          const {
-            workingDirectory,
-            conflictState,
-          } = selectedState.state.changesState
-
-          if (conflictState === null) {
-            return null
-          }
-
-          return (
-            <MergeConflictsDialog
-              dispatcher={this.props.dispatcher}
-              repository={popup.repository}
-              workingDirectory={workingDirectory}
-              onDismissed={this.onPopupDismissed}
-              openFileInExternalEditor={this.openFileInExternalEditor}
-              resolvedExternalEditor={this.state.resolvedExternalEditor}
-              openRepositoryInShell={this.openInShell}
-              ourBranch={popup.ourBranch}
-              theirBranch={popup.theirBranch}
-            />
-          )
-        } else {
-          return (
-            <MergeConflictsWarning
-              dispatcher={this.props.dispatcher}
-              repository={popup.repository}
-              onDismissed={this.onPopupDismissed}
-            />
-          )
+      case PopupType.MergeConflicts: {
+        const { selectedState } = this.state
+        if (
+          selectedState === null ||
+          selectedState.type !== SelectionType.Repository
+        ) {
+          return null
         }
-      case PopupType.AbortMerge:
-        if (enableMergeConflictsDialog()) {
-          const { selectedState } = this.state
-          if (
-            selectedState === null ||
-            selectedState.type !== SelectionType.Repository
-          ) {
-            return null
-          }
-          const { workingDirectory } = selectedState.state.changesState
-          // double check that this repository is actually in merge
-          const isInConflictedMerge = workingDirectory.files.some(
-            file =>
-              file.status === AppFileStatus.Conflicted ||
-              file.status === AppFileStatus.Resolved
-          )
-          if (!isInConflictedMerge) {
-            return null
-          }
 
-          return (
-            <AbortMergeWarning
-              dispatcher={this.props.dispatcher}
-              repository={popup.repository}
-              onDismissed={this.onPopupDismissed}
-              ourBranch={popup.ourBranch}
-              theirBranch={popup.theirBranch}
-            />
-          )
+        const {
+          workingDirectory,
+          conflictState,
+        } = selectedState.state.changesState
+
+        if (conflictState === null) {
+          return null
         }
-        return null
+
+        return (
+          <MergeConflictsDialog
+            dispatcher={this.props.dispatcher}
+            repository={popup.repository}
+            workingDirectory={workingDirectory}
+            onDismissed={this.onPopupDismissed}
+            openFileInExternalEditor={this.openFileInExternalEditor}
+            resolvedExternalEditor={this.state.resolvedExternalEditor}
+            openRepositoryInShell={this.openInShell}
+            ourBranch={popup.ourBranch}
+            theirBranch={popup.theirBranch}
+          />
+        )
+      }
+      case PopupType.OversizedFiles:
+        return (
+          <OversizedFiles
+            oversizedFiles={popup.oversizedFiles}
+            onDismissed={this.onPopupDismissed}
+            dispatcher={this.props.dispatcher}
+            context={popup.context}
+            repository={popup.repository}
+          />
+        )
+      case PopupType.AbortMerge: {
+        const { selectedState } = this.state
+        if (
+          selectedState === null ||
+          selectedState.type !== SelectionType.Repository
+        ) {
+          return null
+        }
+        const { workingDirectory } = selectedState.state.changesState
+        // double check that this repository is actually in merge
+        const isInConflictedMerge = workingDirectory.files.some(file =>
+          isConflictedFile(file.status)
+        )
+        if (!isInConflictedMerge) {
+          return null
+        }
+
+        return (
+          <AbortMergeWarning
+            dispatcher={this.props.dispatcher}
+            repository={popup.repository}
+            onDismissed={this.onPopupDismissed}
+            ourBranch={popup.ourBranch}
+            theirBranch={popup.theirBranch}
+          />
+        )
+      }
+      case PopupType.UsageReportingChanges:
+        return (
+          <UsageStatsChange
+            onOpenUsageDataUrl={this.openUsageDataUrl}
+            onDismissed={this.onUsageReportingDismissed}
+          />
+        )
+      case PopupType.CommitConflictsWarning:
+        return (
+          <CommitConflictsWarning
+            dispatcher={this.props.dispatcher}
+            files={popup.files}
+            repository={popup.repository}
+            context={popup.context}
+            onDismissed={this.onPopupDismissed}
+          />
+        )
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
+  }
+
+  private onUsageReportingDismissed = (optOut: boolean) => {
+    this.props.appStore.setStatsOptOut(optOut, true)
+    this.props.appStore.markUsageStatsNoteSeen()
+    this.onPopupDismissed()
+    this.props.appStore._reportStats()
+  }
+
+  private openUsageDataUrl = () => {
+    this.props.dispatcher.openInBrowser(SamplesURL)
   }
 
   private onUpdateExistingUpstreamRemote = (repository: Repository) => {
@@ -1427,6 +1477,10 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private onCloneRepositoriesTabSelected = (tab: CloneRepositoryTab) => {
     this.props.dispatcher.changeCloneRepositoriesTab(tab)
+  }
+
+  private onRefreshRepositories = (account: Account) => {
+    this.props.dispatcher.refreshApiRepositories(account)
   }
 
   private onShowAdvancedPreferences = () => {
@@ -1759,6 +1813,10 @@ export class App extends React.Component<IAppProps, IAppState> {
       banner = this.renderSuccessfulMergeBanner(
         this.state.successfulMergeBannerState
       )
+    } else if (this.state.mergeConflictsBannerState !== null) {
+      banner = this.renderMergeConflictsBanner(
+        this.state.mergeConflictsBannerState
+      )
     } else if (this.state.isUpdateAvailableBannerVisible) {
       banner = this.renderUpdateBanner()
     }
@@ -1773,15 +1831,28 @@ export class App extends React.Component<IAppProps, IAppState> {
       </CSSTransitionGroup>
     )
   }
+  private renderMergeConflictsBanner(
+    mergeConflictsBannerState: MergeConflictsBannerState
+  ): JSX.Element | null {
+    if (mergeConflictsBannerState === null) {
+      return null
+    }
+    return (
+      <MergeConflictsBanner
+        dispatcher={this.props.dispatcher}
+        ourBranch={mergeConflictsBannerState.ourBranch}
+        popup={mergeConflictsBannerState.popup}
+        onDismissed={this.onMergeConflictsBannerDismissed}
+        key={'merge-conflicts'}
+      />
+    )
+  }
 
   private renderUpdateBanner() {
-    const releaseNotesUri = 'https://desktop.github.com/release-notes/'
-
     return (
       <UpdateAvailable
         dispatcher={this.props.dispatcher}
         newRelease={updateStore.state.newRelease}
-        releaseNotesLink={releaseNotesUri}
         onDismissed={this.onUpdateAvailableDismissed}
         key={'update-available'}
       />
@@ -1851,6 +1922,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           gitHubUserStore={this.props.gitHubUserStore}
           onViewCommitOnGitHub={this.onViewCommitOnGitHub}
           imageDiffType={state.imageDiffType}
+          focusCommitMessage={state.focusCommitMessage}
           askForConfirmationOnDiscardChanges={
             state.askForConfirmationOnDiscardChanges
           }

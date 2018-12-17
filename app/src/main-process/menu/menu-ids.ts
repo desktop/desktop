@@ -11,6 +11,7 @@ export type MenuIDs =
   | 'pull'
   | 'branch'
   | 'repository'
+  | 'go-to-commit-message'
   | 'create-branch'
   | 'show-changes'
   | 'show-history'

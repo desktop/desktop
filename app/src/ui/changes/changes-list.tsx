@@ -3,13 +3,13 @@ import * as Path from 'path'
 
 import { IGitHubUser } from '../../lib/databases'
 import { Dispatcher } from '../../lib/dispatcher'
-import { ITrailer } from '../../lib/git/interpret-trailers'
 import { IMenuItem } from '../../lib/menu-item'
 import { revealInFileManager } from '../../lib/app-shell'
 import {
   AppFileStatus,
   WorkingDirectoryStatus,
   WorkingDirectoryFileChange,
+  AppFileStatusKind,
 } from '../../models/status'
 import { DiffSelectionType } from '../../models/diff'
 import { CommitIdentity } from '../../models/commit-identity'
@@ -32,6 +32,7 @@ import { showContextualMenu } from '../main-process-proxy'
 import { arrayEquals } from '../../lib/equality'
 import { clipboard } from 'electron'
 import { basename } from 'path'
+import { ICommitContext } from '../../models/commit'
 
 const RowHeight = 29
 
@@ -44,13 +45,10 @@ interface IChangesListProps {
   readonly onFileSelectionChanged: (rows: ReadonlyArray<number>) => void
   readonly onIncludeChanged: (path: string, include: boolean) => void
   readonly onSelectAll: (selectAll: boolean) => void
-  readonly onCreateCommit: (
-    summary: string,
-    description: string | null,
-    trailers?: ReadonlyArray<ITrailer>
-  ) => Promise<boolean>
+  readonly onCreateCommit: (context: ICommitContext) => Promise<boolean>
   readonly onDiscardChanges: (file: WorkingDirectoryFileChange) => void
   readonly askForConfirmationOnDiscardChanges: boolean
+  readonly focusCommitMessage: boolean
   readonly onDiscardAllChanges: (
     files: ReadonlyArray<WorkingDirectoryFileChange>,
     isDiscardingAllChanges?: boolean
@@ -165,15 +163,14 @@ export class ChangesList extends React.Component<
       selection === DiffSelectionType.All
         ? true
         : selection === DiffSelectionType.None
-          ? false
-          : null
+        ? false
+        : null
 
     return (
       <ChangedFile
         id={file.id}
         path={file.path}
         status={file.status}
-        oldPath={file.oldPath}
         include={includeAll}
         key={file.id}
         onContextMenu={this.onItemContextMenu}
@@ -237,8 +234,8 @@ export class ChangesList extends React.Component<
           ? `Discard Changes`
           : `Discard changes`
         : __DARWIN__
-          ? `Discard ${files.length} Selected Changes`
-          : `Discard ${files.length} selected changes`
+        ? `Discard ${files.length} Selected Changes`
+        : `Discard ${files.length} selected changes`
 
     return this.props.askForConfirmationOnDiscardChanges ? `${label}…` : label
   }
@@ -357,7 +354,7 @@ export class ChangesList extends React.Component<
       {
         label: RevealInFileManagerLabel,
         action: () => revealInFileManager(this.props.repository, path),
-        enabled: status !== AppFileStatus.Deleted,
+        enabled: status.kind !== AppFileStatusKind.Deleted,
       },
       {
         label: openInExternalEditor,
@@ -365,12 +362,12 @@ export class ChangesList extends React.Component<
           const fullPath = Path.join(this.props.repository.path, path)
           this.props.onOpenInExternalEditor(fullPath)
         },
-        enabled: isSafeExtension && status !== AppFileStatus.Deleted,
+        enabled: isSafeExtension && status.kind !== AppFileStatusKind.Deleted,
       },
       {
         label: OpenWithDefaultProgramLabel,
         action: () => this.props.onOpenItem(path),
-        enabled: isSafeExtension && status !== AppFileStatus.Deleted,
+        enabled: isSafeExtension && status.kind !== AppFileStatusKind.Deleted,
       }
     )
 
@@ -388,10 +385,10 @@ export class ChangesList extends React.Component<
     const firstFile = files[0]
     const fileName = basename(firstFile.path)
 
-    switch (firstFile.status) {
-      case AppFileStatus.New:
+    switch (firstFile.status.kind) {
+      case AppFileStatusKind.New:
         return `Create ${fileName}`
-      case AppFileStatus.Deleted:
+      case AppFileStatusKind.Deleted:
         return `Delete ${fileName}`
       default:
         // TODO:
@@ -446,6 +443,7 @@ export class ChangesList extends React.Component<
           repository={this.props.repository}
           dispatcher={this.props.dispatcher}
           commitMessage={this.props.commitMessage}
+          focusCommitMessage={this.props.focusCommitMessage}
           autocompletionProviders={this.props.autocompletionProviders}
           isCommitting={this.props.isCommitting}
           showCoAuthoredBy={this.props.showCoAuthoredBy}

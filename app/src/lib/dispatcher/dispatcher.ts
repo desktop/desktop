@@ -18,11 +18,12 @@ import {
   ICompareFormUpdate,
   MergeResultStatus,
   SuccessfulMergeBannerState,
+  MergeConflictsBannerState,
 } from '../app-state'
 import { AppStore } from '../stores/app-store'
 import { CloningRepository } from '../../models/cloning-repository'
 import { Branch } from '../../models/branch'
-import { Commit } from '../../models/commit'
+import { Commit, ICommitContext } from '../../models/commit'
 import { ExternalEditor } from '../../lib/editors'
 import { IAPIUser } from '../../lib/api'
 import { GitHubRepository } from '../../models/github-repository'
@@ -57,7 +58,6 @@ import { BranchesTab } from '../../models/branches-tab'
 import { FetchType } from '../../models/fetch'
 import { PullRequest } from '../../models/pull-request'
 import { IAuthor } from '../../models/author'
-import { ITrailer } from '../git/interpret-trailers'
 import { isGitRepository } from '../git'
 import { ApplicationTheme } from '../../ui/lib/application-theme'
 import { TipState } from '../../models/tip'
@@ -173,6 +173,22 @@ export class Dispatcher {
     return this.appStore._setRepositoryFilterText(text)
   }
 
+  /** Set the branch filter text. */
+  public setBranchFilterText(
+    repository: Repository,
+    text: string
+  ): Promise<void> {
+    return this.appStore._setBranchFilterText(repository, text)
+  }
+
+  /** Set the branch filter text. */
+  public setPullRequestFilterText(
+    repository: Repository,
+    text: string
+  ): Promise<void> {
+    return this.appStore._setPullRequestFilterText(repository, text)
+  }
+
   /** Select the repository. */
   public selectRepository(
     repository: Repository | CloningRepository
@@ -208,16 +224,9 @@ export class Dispatcher {
    */
   public async commitIncludedChanges(
     repository: Repository,
-    summary: string,
-    description: string | null,
-    trailers?: ReadonlyArray<ITrailer>
+    context: ICommitContext
   ): Promise<boolean> {
-    return this.appStore._commitIncludedChanges(
-      repository,
-      summary,
-      description,
-      trailers
-    )
+    return this.appStore._commitIncludedChanges(repository, context)
   }
 
   /** Change the file's includedness. */
@@ -478,6 +487,20 @@ export class Dispatcher {
   }
 
   /**
+   * Set the successful merge banner's state
+   */
+  public setMergeConflictsBannerState(state: MergeConflictsBannerState) {
+    return this.appStore._setMergeConflictsBannerState(state)
+  }
+
+  /**
+   * Clear (close) the successful merge banner
+   */
+  public clearMergeConflictsBanner() {
+    return this.appStore._setMergeConflictsBannerState(null)
+  }
+
+  /**
    * Set the divering branch notification banner's visibility
    */
   public setDivergingBranchBannerVisibility(
@@ -525,6 +548,11 @@ export class Dispatcher {
   /** End the Welcome flow. */
   public endWelcomeFlow(): Promise<void> {
     return this.appStore._endWelcomeFlow()
+  }
+
+  /** Set the commit message input's focus. */
+  public setCommitMessageFocus(focus: boolean) {
+    this.appStore._setCommitMessageFocus(focus)
   }
 
   /**
@@ -685,8 +713,15 @@ export class Dispatcher {
   }
 
   /** Set whether the user has opted out of stats reporting. */
-  public setStatsOptOut(optOut: boolean): Promise<void> {
-    return this.appStore.setStatsOptOut(optOut)
+  public setStatsOptOut(
+    optOut: boolean,
+    userViewedPrompt: boolean
+  ): Promise<void> {
+    return this.appStore.setStatsOptOut(optOut, userViewedPrompt)
+  }
+
+  public markUsageStatsNoteSeen() {
+    this.appStore.markUsageStatsNoteSeen()
   }
 
   /**
@@ -1127,6 +1162,15 @@ export class Dispatcher {
     return this.appStore._changeCloneRepositoriesTab(tab)
   }
 
+  /**
+   * Request a refresh of the list of repositories that
+   * the provided account has explicit permissions to access.
+   * See ApiRepositoriesStore for more details.
+   */
+  public refreshApiRepositories(account: Account) {
+    return this.appStore._refreshApiRepositories(account)
+  }
+
   /** Open the merge tool for the given file. */
   public openMergeTool(repository: Repository, path: string): Promise<void> {
     return this.appStore._openMergeTool(repository, path)
@@ -1356,5 +1400,40 @@ export class Dispatcher {
 
   public recordAddExistingRepository() {
     this.statsStore.recordAddExistingRepository()
+  }
+
+  /**
+   * Increments the `mergeConflictsDialogDismissalCount` metric
+   */
+  public recordMergeConflictsDialogDismissal() {
+    this.statsStore.recordMergeConflictsDialogDismissal()
+  }
+
+  /**
+   * Increments the `mergeConflictsDialogReopenedCount` metric
+   */
+  public recordMergeConflictsDialogReopened() {
+    this.statsStore.recordMergeConflictsDialogReopened()
+  }
+
+  /**
+   * Increments the `anyConflictsLeftOnMergeConflictsDialogDismissalCount` metric
+   */
+  public recordAnyConflictsLeftOnMergeConflictsDialogDismissal() {
+    this.statsStore.recordAnyConflictsLeftOnMergeConflictsDialogDismissal()
+  }
+
+  /**
+   * Increments the `guidedConflictedMergeCompletionCount` metric
+   */
+  public recordGuidedConflictedMergeCompletion() {
+    this.statsStore.recordGuidedConflictedMergeCompletion()
+  }
+
+  /**
+   * Increments the `unguidedConflictedMergeCompletionCount` metric
+   */
+  public recordUnguidedConflictedMergeCompletion() {
+    this.statsStore.recordUnguidedConflictedMergeCompletion()
   }
 }

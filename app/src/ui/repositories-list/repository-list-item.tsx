@@ -153,8 +153,8 @@ export class RepositoryListItem extends React.Component<
     const showRepositoryLabel = __DARWIN__
       ? 'Show in Finder'
       : __WIN32__
-        ? 'Show in Explorer'
-        : 'Show in your File Manager'
+      ? 'Show in Explorer'
+      : 'Show in your File Manager'
 
     const items: ReadonlyArray<IMenuItem> = [
       {
