@@ -648,7 +648,7 @@ describe('git/commit', () => {
       const beforeCommit = await getStatusOrThrow(repo)
       const files = beforeCommit.workingDirectory.files
       expect(files.length).toBe(2)
-      expect(files[1].status).toBe(AppFileStatusKind.Deleted)
+      expect(files[1].status.kind).toBe(AppFileStatusKind.Deleted)
 
       // Commit changes
       await createCommit(repo!, 'FAIL commit', files)
@@ -658,8 +658,8 @@ describe('git/commit', () => {
       // Verify the file was delete in repo
       const changedFiles = await getChangedFiles(repo, afterCommit.currentTip!)
       expect(changedFiles.length).toBe(2)
-      expect(changedFiles[0].status).toBe(AppFileStatusKind.Modified)
-      expect(changedFiles[1].status).toBe(AppFileStatusKind.Deleted)
+      expect(changedFiles[0].status.kind).toBe(AppFileStatusKind.Modified)
+      expect(changedFiles[1].status.kind).toBe(AppFileStatusKind.Deleted)
     })
   })
 })
