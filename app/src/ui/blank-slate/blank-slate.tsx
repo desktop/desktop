@@ -231,18 +231,16 @@ export class BlankSlateView extends React.Component<
     }
 
     return (
-      <div>
-        <Button
-          type="submit"
-          className="clone-selected-repository"
-          onClick={this.onCloneSelectedRepository}
-        >
-          Clone{' '}
-          <strong>
-            {selectedItem.owner.login}/{selectedItem.name}
-          </strong>
-        </Button>
-      </div>
+      <Button
+        type="submit"
+        className="clone-selected-repository"
+        onClick={this.onCloneSelectedRepository}
+      >
+        Clone{' '}
+        <strong>
+          {selectedItem.owner.login}/{selectedItem.name}
+        </strong>
+      </Button>
     )
   }
 
