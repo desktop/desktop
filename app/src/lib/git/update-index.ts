@@ -121,7 +121,7 @@ export async function stageFiles(
         oldRenamed.push(file.status.oldPath)
       }
 
-      if (file.status === AppFileStatus.Deleted) {
+      if (file.status.kind === AppFileStatusKind.Deleted) {
         deletedFiles.push(file.path)
       }
     } else {
