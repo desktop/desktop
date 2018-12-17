@@ -281,7 +281,7 @@ export class CloneableRepositoryFilterList extends React.PureComponent<
           <Ref>{this.props.account.login}</Ref> on {endpointName}.
           <LinkButton onClick={this.refreshRepositories}>
             Refresh the list
-          </LinkButton>
+          </LinkButton>{' '}
           if you've created a repository recently.
         </div>
       </div>
