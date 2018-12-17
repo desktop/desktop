@@ -66,12 +66,32 @@ interface IBlankSlateState {
    * The selected account, or rather the preferred selection.
    * Has no effect when the user isn't signed in to any account.
    * If the selected account is GitHub.com and the user signs out
-   * of that account the
+   * of that account they will be coerced onto the Enterprise tab
+   * if that account is signed in, see the getSelectedAccount
+   * method.
    */
   readonly selectedTab: AccountTab
-  readonly dotComFilterText: string
+
+  /**
+   * The currently selected repository (if any) in the GitHub.com
+   * tab.
+   */
   readonly selectedDotComRepository: IAPIRepository | null
+
+  /**
+   * The current filter text in the GitHub.com clone tab
+   */
+  readonly dotComFilterText: string
+
+  /**
+   * The currently selected repository (if any) in the GitHub
+   * Enterprise tab.
+   */
   readonly selectedEnterpriseRepository: IAPIRepository | null
+
+  /**
+   * The current filter text in the GitHub.com clone tab
+   */
   readonly enterpriseFilterText: string
 }
 
