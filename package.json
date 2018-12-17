@@ -49,7 +49,7 @@
   },
   "license": "MIT",
   "engines": {
-    "node": ">= 10.0",
+    "node": ">= 8.11",
     "yarn": ">= 1.9"
   },
   "dependencies": {
@@ -93,7 +93,7 @@
     "mocha": "^5.2.0",
     "mocha-junit-reporter": "^1.18.0",
     "mocha-multi-reporters": "^1.1.7",
-    "node-sass": "^4.11.0",
+    "node-sass": "^4.7.2",
     "octicons": "^7.0.1",
     "parallel-webpack": "^2.3.0",
     "prettier": "1.15.2",
@@ -145,7 +145,7 @@
     "@types/memoize-one": "^3.1.1",
     "@types/mini-css-extract-plugin": "^0.2.0",
     "@types/mri": "^1.1.0",
-    "@types/node": "^10.12.15",
+    "@types/node": "^8.11.0",
     "@types/react": "^16.3.16",
     "@types/react-dom": "^16.0.5",
     "@types/react-transition-group": "1.1.1",
