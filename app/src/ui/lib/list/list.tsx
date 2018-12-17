@@ -258,7 +258,7 @@ export class List extends React.Component<IListProps, IListState> {
   private list: HTMLDivElement | null = null
   private grid: React.Component<any, any> | null = null
   private readonly resizeObserver: ResizeObserver | null = null
-  private updateSizeTimeoutId: number | null = null
+  private updateSizeTimeoutId: NodeJS.Immediate | null = null
 
   public constructor(props: IListProps) {
     super(props)

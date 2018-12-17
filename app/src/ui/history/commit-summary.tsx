@@ -123,7 +123,7 @@ export class CommitSummary extends React.Component<
 > {
   private descriptionScrollViewRef: HTMLDivElement | null = null
   private readonly resizeObserver: ResizeObserver | null = null
-  private updateOverflowTimeoutId: number | null = null
+  private updateOverflowTimeoutId: NodeJS.Immediate | null = null
   private descriptionRef: HTMLDivElement | null = null
 
   public constructor(props: ICommitSummaryProps) {
