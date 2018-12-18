@@ -1,6 +1,8 @@
 {
   "releases": {
     "1.5.1-beta6": [
+      "[Improved] Consistently order the options for adding a repository - #6396. Thanks @vilanz!",
+      "[Improved] Clear merge conflicts banner after there are no more conflicted files - #6428"
     ],
     "1.5.1-beta5": [
       "[Improved] Commit conflicted files warning - #6381",
