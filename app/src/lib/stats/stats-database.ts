@@ -129,7 +129,7 @@ export interface IDailyMeasures {
   readonly dotcomCommits: number
 
   /** The number of times the user iniated a merge from within the branch dropdown */
-  readonly mergesIniatedFromBranchList: number
+  readonly mergesInitiatedFromBranchList: number
 
   /** The number of times the user dismissed the merge conflicts dialog */
   readonly mergeConflictsDialogDismissalCount: number

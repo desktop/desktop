@@ -75,7 +75,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   unattributedCommits: 0,
   enterpriseCommits: 0,
   dotcomCommits: 0,
-  mergesIniatedFromBranchList: 0,
+  mergesInitiatedFromBranchList: 0,
   mergeConflictsDialogDismissalCount: 0,
   anyConflictsLeftOnMergeConflictsDialogDismissalCount: 0,
   mergeConflictsDialogReopenedCount: 0,
@@ -866,7 +866,7 @@ export class StatsStore implements IStatsStore {
   /** Record that the user initiated a merge from the branch dropdown */
   public async recordBranchDropdownIniatedMerge(): Promise<void> {
     return this.updateDailyMeasures(m => ({
-      mergesIniatedFromBranchList: m.mergesIniatedFromBranchList + 1,
+      mergesInitiatedFromBranchList: m.mergesInitiatedFromBranchList + 1,
     }))
   }
 
