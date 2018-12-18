@@ -163,6 +163,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     const conflictedFilesSelected = this.props.changes.workingDirectory.files.filter(
       f =>
         isConflictedFile(f.status) &&
+        hasUnresolvedConflicts(f.status) &&
         f.selection.getSelectionType() !== DiffSelectionType.None
     )
 
