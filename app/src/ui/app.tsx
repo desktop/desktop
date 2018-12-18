@@ -1929,6 +1929,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           accounts={state.accounts}
           externalEditorLabel={externalEditorLabel}
           onOpenInExternalEditor={this.openFileInExternalEditor}
+          appMenu={this.state.appMenuState[0]}
         />
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {
