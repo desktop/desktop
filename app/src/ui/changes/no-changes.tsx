@@ -17,6 +17,8 @@ const BlankSlateImage = encodePathAsUrl(
   'static/empty-no-file-selected.svg'
 )
 
+const PaperStackImage = encodePathAsUrl(__dirname, 'static/paper-stack.svg')
+
 interface INoChangesProps {
   readonly repository: Repository
 
@@ -120,12 +122,19 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
 
     return (
       <div id="no-changes" className={className}>
-        <h1>No local changes</h1>
-        <p>
-          You have no uncommitted changes in your repository! Here’s some
-          friendly suggestions for what to do next.
-        </p>
-        {this.renderActions()}
+        <div className="content">
+          <div className="header">
+            <div className="text">
+              <h1>No local changes</h1>
+              <p>
+                You have no uncommitted changes in your repository! Here’s some
+                friendly suggestions for what to do next.
+              </p>
+            </div>
+            <img src={PaperStackImage} className="blankslate-image" />
+          </div>
+          {this.renderActions()}
+        </div>
       </div>
     )
   }
@@ -140,8 +149,10 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
     const cn = classNames('action', className)
     return (
       <div className={cn}>
-        <h2>{title}</h2>
-        <p>{description}</p>
+        <div className="text-wrapper">
+          <h2>{title}</h2>
+          <p>{description}</p>
+        </div>
         <Button onClick={onClick}>{buttonText}</Button>
       </div>
     )
@@ -158,7 +169,9 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
 
   private renderDiscoverabilityElements(menuItem: IMenuItemInfo) {
     const parentMenusText = menuItem.parentMenuLabels.join(' -> ')
-    const keyboardShortcut = menuItem.acceleratorKeys.map(k => <kbd>{k}</kbd>)
+    const keyboardShortcut = menuItem.acceleratorKeys.map((k, i) => (
+      <kbd key={k + i}>{k}</kbd>
+    ))
 
     return (
       <>
@@ -185,7 +198,12 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
   }
 
   private renderActions() {
-    return <div className="actions">{this.renderShowInFinderAction()}</div>
+    return (
+      <div className="actions">
+        {this.renderShowInFinderAction()}
+        {this.renderShowInFinderAction()}
+      </div>
+    )
   }
 
   public render() {
