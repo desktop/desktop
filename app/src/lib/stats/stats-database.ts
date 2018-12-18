@@ -128,7 +128,7 @@ export interface IDailyMeasures {
   /** The number of time the user made a commit to a repo hosted on Github.com */
   readonly dotcomCommits: number
 
-  /** The number of times the user iniated a merge from within the branch dropdown */
+  /** The number of times the user initiated a merge from within the branch dropdown */
   readonly mergesInitiatedFromBranchList: number
 
   /** The number of times the user dismissed the merge conflicts dialog */
