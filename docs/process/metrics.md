@@ -54,7 +54,7 @@ These are general metrics about feature usage and specific feature behaviors. Th
 | `mergedWithConflictWarningHintCount` | The number of times the user has merged after seeing the 'you have XX conflicted files' warning. | To understand how frequently people are merging even though they know there will be conflicts |
 | `mergedWithLoadingHintCount` | The number of times the user merged before seeing the result of the merge hint. | To understand how many people are merging before learning whether there will be conflicts or not |
 | `mergeIntoCurrentBranchMenuCount` | The number of times the `Branch -> Merge Into Current Branch` menu item is used. | To understand usage patterns around the compare branches feature. |
-| `mergesInitiatedFromBranchList` | The number of times the user iniated a merge from within the branch dropdown. | Todo: @desktop/product |
+| `mergesInitiatedFromBranchList` | The number of times the user iniated a merge from within the branch dropdown. | To understand how people prefer to initiate a merge and whether this path improves in app discoverability. |
 | `mergesInitiatedFromComparison` | The number of times a merge is initiated in the `compare` sidebar. | To understand usage patterns around the compare branches feature. |
 | `mergeSuccessAfterConflictsCount` | The number of times the user successfully completes a merge after a merge conflict. | To understand how effectively users are able to resolve conflicts and complete their merge successfully |
 | `openShellCount` | The number of times the user has opened a shell from the app. | To understand if people need to use the command line because of missing features. |
