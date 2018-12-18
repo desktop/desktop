@@ -1,5 +1,7 @@
 {
   "releases": {
+    "1.5.1-beta6": [
+    ],
     "1.5.1-beta5": [
       "[Improved] Commit conflicted files warning - #6381",
       "[Improved] Dismissable merge conflict dialog and associated banner - #6379 #6380",
