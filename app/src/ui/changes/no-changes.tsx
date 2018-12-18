@@ -189,11 +189,18 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
     )
   }
 
+  private renderViewOnGitHub() {
+    return this.renderMenuBackedAction(
+      'view-repository-on-github',
+      `Open the repository page on GitHub in your browser`
+    )
+  }
+
   private renderActions() {
     return (
       <div className="actions">
         {this.renderShowInFinderAction()}
-        {this.renderShowInFinderAction()}
+        {this.renderViewOnGitHub()}
       </div>
     )
   }
