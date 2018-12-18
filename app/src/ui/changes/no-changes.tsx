@@ -32,6 +32,7 @@ interface IMenuItemInfo {
   readonly label: string
   readonly acceleratorKeys: ReadonlyArray<string>
   readonly parentMenuLabels: ReadonlyArray<string>
+  readonly enabled: boolean
 }
 
 function getItemAcceleratorKeys(item: MenuItem) {
@@ -63,6 +64,7 @@ function buildMenuItemInfoMap(
       acceleratorKeys: getItemAcceleratorKeys(item),
       parentMenuLabels:
         parent === undefined ? [] : [parent.label, ...parent.parentMenuLabels],
+      enabled: item.enabled,
     }
 
     map.set(item.id, infoItem)
@@ -161,6 +163,10 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
 
     if (menuItem === undefined) {
       log.error(`Could not find matching menu item for ${itemId}`)
+      return null
+    }
+
+    if (!menuItem.enabled) {
       return null
     }
 
