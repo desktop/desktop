@@ -18,7 +18,10 @@ import {
   UserAutocompletionProvider,
 } from '../autocompletion'
 import { ClickSource } from '../lib/list'
-import { WorkingDirectoryFileChange } from '../../models/status'
+import {
+  WorkingDirectoryFileChange,
+  ConflictedFileStatus,
+} from '../../models/status'
 import { CSSTransitionGroup } from 'react-transition-group'
 import { openFile } from '../../lib/open-file'
 import { Account } from '../../models/account'
@@ -375,4 +378,14 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
       </div>
     )
   }
+}
+
+function hasUnresolvedConflicts(status: ConflictedFileStatus) {
+  if (!status.lookForConflictMarkers) {
+    // binary file doesn't contain markers
+    return true
+  }
+
+  // text file will have conflict markers removed
+  return status.conflictMarkerCount > 0
 }
