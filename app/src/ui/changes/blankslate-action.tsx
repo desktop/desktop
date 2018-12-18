@@ -21,7 +21,7 @@ export class BlankslateAction extends React.Component<
   {}
 > {
   public render() {
-    const cn = classNames('action', this.props.className)
+    const cn = classNames('blankslate-action', this.props.className)
     return (
       <div className={cn}>
         <div className="text-wrapper">
