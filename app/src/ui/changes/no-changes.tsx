@@ -241,13 +241,24 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
     return this.renderMenuBackedAction(itemId, title, description)
   }
 
+  private renderRemoteAction() {}
+
   private renderActions() {
+    const remoteAction = this.renderRemoteAction()
+    const remoteActions =
+      remoteAction === null || remoteAction === undefined ? null : (
+        <div className="actions">{remoteAction}</div>
+      )
+
     return (
-      <div className="actions">
-        {this.renderShowInFinderAction()}
-        {this.renderOpenInExternalEditor()}
-        {this.renderViewOnGitHub()}
-      </div>
+      <>
+        {remoteActions}
+        <div className="actions">
+          {this.renderShowInFinderAction()}
+          {this.renderOpenInExternalEditor()}
+          {this.renderViewOnGitHub()}
+        </div>
+      </>
     )
   }
 
