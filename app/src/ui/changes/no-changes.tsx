@@ -4,6 +4,7 @@ import { encodePathAsUrl } from '../../lib/path'
 import { revealInFileManager } from '../../lib/app-shell'
 import { Repository } from '../../models/repository'
 import { LinkButton } from '../lib/link-button'
+import { enableNewNoChangesBlankslate } from '../../lib/feature-flag'
 
 const BlankSlateImage = encodePathAsUrl(
   __dirname,
@@ -16,7 +17,7 @@ interface INoChangesProps {
 
 /** The component to display when there are no local changes. */
 export class NoChanges extends React.Component<INoChangesProps, {}> {
-  public render() {
+  private renderClassicBlankSlate() {
     const opener = __DARWIN__
       ? 'Finder'
       : __WIN32__
@@ -34,6 +35,18 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
         </div>
       </div>
     )
+  }
+
+  private renderNewNoChangesBlankSlate() {
+    return <div />
+  }
+
+  public render() {
+    if (enableNewNoChangesBlankslate()) {
+      return this.renderNewNoChangesBlankSlate()
+    }
+
+    return this.renderClassicBlankSlate()
   }
 
   private open = () => {
