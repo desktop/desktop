@@ -129,7 +129,7 @@ export class CloneableRepositoryFilterList extends React.PureComponent<
 
   /**
    * A memoized function for finding the selected list item based
-   * on a IAPIRepository instance. The selected item will not be
+   * on an IAPIRepository instance. The selected item will not be
    * recomputed as long as the provided list of repositories and
    * the selected data object is equal to the last time the method
    * was called (reference equality).

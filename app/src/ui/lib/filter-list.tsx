@@ -80,7 +80,7 @@ interface IFilterListProps<T extends IFilterListItem> {
    * can differentiate between the two using the source parameter.
    *
    * Note that this event handler will not be called for keyboard events
-   * if event.preventDefault was called in the onRowKeyDown event handler.
+   * if `event.preventDefault()` was called in the onRowKeyDown event handler.
    *
    * Consumers of this event do _not_ have to call event.preventDefault,
    * when this event is subscribed to the list will automatically call it.
