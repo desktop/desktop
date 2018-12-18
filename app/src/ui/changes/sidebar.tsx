@@ -381,6 +381,10 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
   }
 }
 
+/**
+ * Determine if we have a `ManualConflict` type
+ * or conflict markers
+ */
 function hasUnresolvedConflicts(status: ConflictedFileStatus) {
   if (!status.lookForConflictMarkers) {
     // binary file doesn't contain markers
