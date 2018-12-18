@@ -11,6 +11,7 @@ import { IMenu, MenuItem } from '../../models/app-menu'
 import memoizeOne from 'memoize-one'
 import { getPlatformSpecificNameOrSymbolForModifier } from '../../lib/menu-item'
 import { MenuBackedBlankslateAction } from './menu-backed-blankslate-action'
+import { executeMenuItemById } from '../main-process-proxy'
 
 const BlankSlateImage = encodePathAsUrl(
   __dirname,
@@ -158,7 +159,11 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
     )
   }
 
-  private renderMenuBackedAction(itemId: MenuIDs, title: string) {
+  private renderMenuBackedAction(
+    itemId: MenuIDs,
+    title: string,
+    description?: string | JSX.Element
+  ) {
     const menuItem = this.getMenuItemInfo(itemId)
 
     if (menuItem === undefined) {
@@ -170,10 +175,15 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
       return null
     }
 
+    description =
+      description === undefined
+        ? this.renderDiscoverabilityElements(menuItem)
+        : description
+
     return (
       <MenuBackedBlankslateAction
         title={title}
-        description={this.renderDiscoverabilityElements(menuItem)}
+        description={description}
         menuItemId={itemId}
         buttonText={menuItem.label}
       />
@@ -196,10 +206,46 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
     )
   }
 
+  private openPreferences = () => {
+    executeMenuItemById('preferences')
+  }
+
+  private renderOpenInExternalEditor() {
+    const itemId: MenuIDs = 'open-external-editor'
+    const menuItem = this.getMenuItemInfo(itemId)
+
+    if (menuItem === undefined) {
+      log.error(`Could not find matching menu item for ${itemId}`)
+      return null
+    }
+
+    const preferencesMenuItem = this.getMenuItemInfo('preferences')
+
+    if (preferencesMenuItem === undefined) {
+      log.error(`Could not find matching menu item for ${itemId}`)
+      return null
+    }
+
+    const title = `Open the repository in your external editor`
+
+    const description = (
+      <>
+        {this.renderDiscoverabilityElements(menuItem)}. You can configure which
+        editor you wish to use in{' '}
+        <LinkButton onClick={this.openPreferences}>
+          {__DARWIN__ ? 'preferences' : 'options'}
+        </LinkButton>
+      </>
+    )
+
+    return this.renderMenuBackedAction(itemId, title, description)
+  }
+
   private renderActions() {
     return (
       <div className="actions">
         {this.renderShowInFinderAction()}
+        {this.renderOpenInExternalEditor()}
         {this.renderViewOnGitHub()}
       </div>
     )
