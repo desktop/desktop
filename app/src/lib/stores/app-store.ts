@@ -3071,7 +3071,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     }
 
-    switch (initiatedBy) {
+    this.incrementMergeMetric(initiatedBy)
+
+    const mergeSuccessful = await gitStore.merge(branch)
+    const { tip } = gitStore
+
+    if (mergeSuccessful && tip.kind === TipState.Valid) {
+      this._setSuccessfulMergeBannerState({
+        ourBranch: tip.branch.name,
+        theirBranch: branch,
+      })
+    }
+
+    return this._refreshRepository(repository)
+  }
+
+  private incrementMergeMetric(source: MergeSource) {
+    switch (source) {
       // merge from within compare tab
       case MergeSource.Compare:
         this.statsStore.recordCompareInitiatedMerge()
@@ -3092,18 +3108,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       case MergeSource.NewCommitsBanner:
         this.statsStore.recordDivergingBranchBannerInitatedMerge()
     }
-
-    const mergeSuccessful = await gitStore.merge(branch)
-    const { tip } = gitStore
-
-    if (mergeSuccessful && tip.kind === TipState.Valid) {
-      this._setSuccessfulMergeBannerState({
-        ourBranch: tip.branch.name,
-        theirBranch: branch,
-      })
-    }
-
-    return this._refreshRepository(repository)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
