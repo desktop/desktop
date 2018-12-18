@@ -11,7 +11,7 @@
       "[Fixed] Persist Branch List and Pull Request List filter text - #6002. Thanks @Daniel-McCarthy!",
       "[Fixed] Retain renamed branches position in recent branches list - #6155. Thanks @gnehcc!",
       "[Fixed] Prevent avatar duplication when user is co-author and committer - #6135. Thanks @bblarney!",
-      "[Fixed] Provide keyboard selection for the ‘Clone a Repository’ dialog - #3596. Thanks @a-golovanov!",
+      "[Fixed] Provide keyboard selection for the \"Clone a Repository\" dialog - #3596. Thanks @a-golovanov!",
       "[Fixed] Close License & Open Source Notices dialog upon pressing \"Enter\" in dialog - #6137. Thanks @bblarney!",
       "[Fixed] Dismiss \"Merge into Branch\" dialog with escape key - #6154. Thanks @altaf933!",
       "[Fixed] Focus branch selector when comparing to branch from menu - #5600",
