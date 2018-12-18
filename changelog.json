@@ -1,5 +1,10 @@
 {
   "releases": {
+    "1.5.1-beta5": [
+      "[Improved] Commit conflicted files warning - #6381",
+      "[Improved] Dismissable merge conflict dialog and associated banner - #6379 #6380",
+      "[Fixed] Fix feature flag for readme overwrite warning so that it shows on beta - #6412"
+    ],
     "1.5.1-beta4": [
       "[Improved] Display warning if existing readme file will be overwritten - #6338. Thanks @Daniel-McCarthy!",
       "[Improved] Add check for attempts to commit >100 MB files without Git LFS - #997. Thanks @Daniel-McCarthy!",

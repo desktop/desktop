@@ -21,6 +21,7 @@ export class MergeConflictsBanner extends React.Component<
   private openDialog = () => {
     this.props.onDismissed()
     this.props.dispatcher.showPopup(this.props.popup)
+    this.props.dispatcher.recordMergeConflictsDialogReopened()
   }
   public render() {
     return (

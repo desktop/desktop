@@ -118,6 +118,7 @@ export class MergeConflictsDialog extends React.Component<
       RepositorySectionTab.Changes
     )
     this.props.onDismissed()
+    this.props.dispatcher.recordGuidedConflictedMergeCompletion()
   }
 
   /**
@@ -151,6 +152,10 @@ export class MergeConflictsDialog extends React.Component<
         repository: this.props.repository,
       },
     })
+    this.props.dispatcher.recordMergeConflictsDialogDismissal()
+    if (getConflictedFiles(this.props.workingDirectory).length > 0) {
+      this.props.dispatcher.recordAnyConflictsLeftOnMergeConflictsDialogDismissal()
+    }
   }
 
   private renderHeaderTitle(ourBranch: string, theirBranch?: string) {
