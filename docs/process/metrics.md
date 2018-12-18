@@ -30,6 +30,7 @@ These are general metrics about feature usage and specific feature behaviors. Th
 | Metric | Description | Justification |
 |:--|:--|:--|
 | `active*` | Flag indicating whether the app has been interacted with during the current reporting window. | To identify users who are actively using Desktop versus those who have it open but never interact with it. |
+| `anyConflictsLeftOnMergeConflictsDialogDismissalCount` | The number of times there were any merge conflicts present when the Merge Conflicts Dialog is dismissed. | To understand whether people dismiss the dialog after resolving conflicts for one last check or just want to back out of the guided flow entirely. |
 | `branchComparisons` | The number of times a branch is compared to an arbitrary branch. | To understand usage patterns around the compare branches feature. |
 | `coAuthoredCommits` | The number of commits created with one or more co-authors. | To understand usage patterns of commits made in Desktop. |
 | `commits` | The number of commits made. | To understand usage patterns of commits made in Desktop. |
@@ -41,15 +42,19 @@ These are general metrics about feature usage and specific feature behaviors. Th
 | `divergingBranchBannerInitiatedCompare` | The number of times the user compares from the diverged branch notification compare CTA button. | To understand usage patterns around the notification of diverging from the default branch feature. |
 | `dotcomCommits` | The number of time the user made a commit to a repo hosted on Github.com. | To understand the total percentage of commits made to GitHub repos compared to GitHub Enterprise and other remotes to help prioritize our work and focus areas |
 | `enterpriseCommits` | The number of times the user made a commit to a repo hosted on a GitHub Enterprise instance. | To understand the total percentage of commits made to GitHub Enterprise repos to help prioritize our work associated with enterprise use of GitHub Desktop compared to GitHub |
+| `guidedConflictedMergeCompletionCount` | The number of times a conflicted merge is completed from the Merge Conflicts Dialog. | To understand how many times people prefer to finish the merge in the guided flow after resolving conflicts. |
 | `loadTime` | The time (in milliseconds) it takes from when loading begins to loading end. | To make sure new versions of Desktop are not regressing on performance. |
 | `mainReadyTime` | The time (in milliseconds) it takes from when our main process code is first loaded until the app `ready` event is emitted. | To make sure new versions of Desktop are not regressing on performance. |
 | `mergeAbortedAfterConflictsCount` | The number of times the user aborts a merge after a merge conflict. | To understand the frequency of merges that are never completed after attempting to merge and hitting a merge conflict |
 | `mergeConflictFromExplicitMergeCount` | The number of times a `git merge` initiated by Desktop resulted in a merge conflict for the user. | To understand how often people encounter a merge conflict in Desktop. |
 | `mergeConflictFromPullCount` | The number of times a `git pull` initiated by Desktop resulted in a merge conflict for the user. | To understand how often people encounter a merge conflict in Desktop. |
+| `mergeConflictsDialogDismissalCount` | The number of times the Merge Conflicts Dialog is dismissed. | To understand how frequently people prefer a different merge conflicts flow than the guided one. |
+| `mergeConflictsDialogReopenedCount` | The number of times the Merge Conflicts Dialog is reopened from the Merge Conflicts Banner. | To understand whether people find value in both the guided and unguided merge conflicts flow. |
 | `mergedWithCleanMergeHintCount` | The number of times the user has merged after seeing the 'no conflicts' merge hint. | To understand how many "clean" merges there are |
 | `mergedWithConflictWarningHintCount` | The number of times the user has merged after seeing the 'you have XX conflicted files' warning. | To understand how frequently people are merging even though they know there will be conflicts |
 | `mergedWithLoadingHintCount` | The number of times the user merged before seeing the result of the merge hint. | To understand how many people are merging before learning whether there will be conflicts or not |
 | `mergeIntoCurrentBranchMenuCount` | The number of times the `Branch -> Merge Into Current Branch` menu item is used. | To understand usage patterns around the compare branches feature. |
+| `mergesInitiatedFromBranchList` | The number of times the user iniated a merge from within the branch dropdown. | Todo: @desktop/product |
 | `mergesInitiatedFromComparison` | The number of times a merge is initiated in the `compare` sidebar. | To understand usage patterns around the compare branches feature. |
 | `mergeSuccessAfterConflictsCount` | The number of times the user successfully completes a merge after a merge conflict. | To understand how effectively users are able to resolve conflicts and complete their merge successfully |
 | `openShellCount` | The number of times the user has opened a shell from the app. | To understand if people need to use the command line because of missing features. |
@@ -59,9 +64,5 @@ These are general metrics about feature usage and specific feature behaviors. Th
 | `repoWithIndicatorClicked` | The numbers of times a repo with indicators is clicked on repo list view. | To understand usage patterns around the repository indicators feature. |
 | `repoWithoutIndicatorClicked` | The numbers of times a repo without indicators is clicked on repo list view.  | To understand usage patterns around the repository indicators feature. |
 | `unattributedCommits` | The number of commits that will go unattributed to GitHub users. | To understand how frequently commits in GitHub Desktop are unattributed and how highly we should prioritize design for those instances |
-| `updateFromDefaultBranchMenuCount` | The number of times the `Branch -> Update From Default Branch` menu item is used. | To understand usage patterns around the compare branches feature. |
-| `mergeConflictsDialogDismissalCount` | The number of times the Merge Conflicts Dialog is dismissed. | To understand how frequently people prefer a different merge conflicts flow than the guided one. |
-| `anyConflictsLeftOnMergeConflictsDialogDismissalCount` | The number of times there were any merge conflicts present when the Merge Conflicts Dialog is dismissed. | To understand whether people dismiss the dialog after resolving conflicts for one last check or just want to back out of the guided flow entirely. |
-| `mergeConflictsDialogReopenedCount` | The number of times the Merge Conflicts Dialog is reopened from the Merge Conflicts Banner. | To understand whether people find value in both the guided and unguided merge conflicts flow. |
-| `guidedConflictedMergeCompletionCount` | The number of times a conflicted merge is completed from the Merge Conflicts Dialog. | To understand how many times people prefer to finish the merge in the guided flow after resolving conflicts. |
 | `unguidedConflictedMergeCompletionCount` | The number of times a conflicted merge is completed from the diff/changes view. | To understand how many times people prefer to finish the merge in the changes/diff view after resolving conflicts. |
+| `updateFromDefaultBranchMenuCount` | The number of times the `Branch -> Update From Default Branch` menu item is used. | To understand usage patterns around the compare branches feature. |
