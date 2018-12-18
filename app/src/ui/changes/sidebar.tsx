@@ -152,6 +152,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     )
 
     if (conflictedFilesLeft.length === 0) {
+      this.props.dispatcher.clearMergeConflictsBanner()
       this.props.dispatcher.recordUnguidedConflictedMergeCompletion()
     }
 
