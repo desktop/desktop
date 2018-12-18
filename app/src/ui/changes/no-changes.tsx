@@ -1,16 +1,16 @@
 import * as React from 'react'
+import * as classNames from 'classnames'
 
 import { encodePathAsUrl } from '../../lib/path'
 import { revealInFileManager } from '../../lib/app-shell'
 import { Repository } from '../../models/repository'
 import { LinkButton } from '../lib/link-button'
 import { enableNewNoChangesBlankslate } from '../../lib/feature-flag'
-import { Button } from '../lib/button'
-import classNames = require('classnames')
 import { MenuIDs } from '../../main-process/menu'
 import { IMenu, MenuItem } from '../../models/app-menu'
 import memoizeOne from 'memoize-one'
 import { getPlatformSpecificNameOrSymbolForModifier } from '../../lib/menu-item'
+import { MenuBackedBlankslateAction } from './menu-backed-blankslate-action'
 
 const BlankSlateImage = encodePathAsUrl(
   __dirname,
@@ -27,15 +27,6 @@ interface INoChangesProps {
    */
   readonly appMenu: IMenu | undefined
 }
-
-// interface INoChangesAction {
-//   readonly title: string
-//   readonly description: string
-//   readonly actionLabel: string
-//   readonly execute: (props: INoChangesProps) => void
-// }
-
-// const actions =
 
 interface IMenuItemInfo {
   readonly label: string
@@ -63,8 +54,12 @@ function buildMenuItemInfoMap(
   parent?: IMenuItemInfo
 ): ReadonlyMap<string, IMenuItemInfo> {
   for (const item of menu.items) {
+    if (item.type === 'separator') {
+      continue
+    }
+
     const infoItem: IMenuItemInfo = {
-      label: item.type === 'separator' ? '-' : item.label,
+      label: item.label,
       acceleratorKeys: getItemAcceleratorKeys(item),
       parentMenuLabels:
         parent === undefined ? [] : [parent.label, ...parent.parentMenuLabels],
@@ -139,25 +134,6 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
     )
   }
 
-  private renderAction(
-    title: string,
-    description: string | JSX.Element,
-    buttonText: string,
-    onClick: () => void,
-    className?: string
-  ) {
-    const cn = classNames('action', className)
-    return (
-      <div className={cn}>
-        <div className="text-wrapper">
-          <h2>{title}</h2>
-          <p>{description}</p>
-        </div>
-        <Button onClick={onClick}>{buttonText}</Button>
-      </div>
-    )
-  }
-
   private getPlatformFileManagerName() {
     if (__DARWIN__) {
       return 'Finder'
@@ -180,20 +156,30 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
     )
   }
 
-  private renderShowInFinderAction() {
-    const fileManager = this.getPlatformFileManagerName()
-    const menuItem = this.getMenuItemInfo('open-working-directory')
+  private renderMenuBackedAction(itemId: MenuIDs, title: string) {
+    const menuItem = this.getMenuItemInfo(itemId)
 
     if (menuItem === undefined) {
-      log.error(`Could not find matching menu item for ShowInFinderAction`)
+      log.error(`Could not find matching menu item for ${itemId}`)
       return null
     }
 
-    return this.renderAction(
-      `View the files in your repository in ${fileManager}`,
-      this.renderDiscoverabilityElements(menuItem),
-      `Show in ${fileManager}`,
-      () => {}
+    return (
+      <MenuBackedBlankslateAction
+        title={title}
+        description={this.renderDiscoverabilityElements(menuItem)}
+        menuItemId={itemId}
+        buttonText={menuItem.label}
+      />
+    )
+  }
+
+  private renderShowInFinderAction() {
+    const fileManager = this.getPlatformFileManagerName()
+
+    return this.renderMenuBackedAction(
+      'open-working-directory',
+      `View the files in your repository in ${fileManager}`
     )
   }
 
