@@ -28,6 +28,13 @@ interface IWelcomeProps {
 
 interface IWelcomeState {
   readonly currentStep: WelcomeStep
+
+  /**
+   * Whether the welcome wizard is terminating. Used
+   * in order to delay the actual dismissal of the view
+   * such that the exit animations (defined in css) have
+   * time to run to completion.
+   */
   readonly exiting: boolean
 }
 
