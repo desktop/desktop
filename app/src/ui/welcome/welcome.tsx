@@ -1,4 +1,6 @@
 import * as React from 'react'
+import * as classNames from 'classnames'
+
 import { Dispatcher } from '../../lib/dispatcher'
 import { encodePathAsUrl } from '../../lib/path'
 import { AppStore, SignInState, SignInStep } from '../../lib/stores'
@@ -9,7 +11,6 @@ import { SignInEnterprise } from './sign-in-enterprise'
 import { ConfigureGit } from './configure-git'
 import { UiView } from '../ui-view'
 import { UsageOptOut } from './usage-opt-out'
-import classNames = require('classnames')
 
 /** The steps along the Welcome flow. */
 export enum WelcomeStep {
