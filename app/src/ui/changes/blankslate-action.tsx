@@ -4,7 +4,8 @@ import { Button } from '../lib/button'
 
 interface IBlankSlateActionProps {
   readonly title: string
-  readonly description: string | JSX.Element
+  readonly description?: string | JSX.Element
+  readonly discoverabilityContent: string | JSX.Element
   readonly buttonText: string | JSX.Element
   readonly onClick: () => void
   readonly className?: string
@@ -22,11 +23,18 @@ export class BlankslateAction extends React.Component<
 > {
   public render() {
     const cn = classNames('blankslate-action', this.props.className)
+    const description =
+      this.props.description === undefined ? (
+        undefined
+      ) : (
+        <p className="description">{this.props.description}</p>
+      )
     return (
       <div className={cn}>
         <div className="text-wrapper">
           <h2>{this.props.title}</h2>
-          <p>{this.props.description}</p>
+          {description}
+          <p className="discoverability">{this.props.discoverabilityContent}</p>
         </div>
         <Button onClick={this.props.onClick}>{this.props.buttonText}</Button>
       </div>

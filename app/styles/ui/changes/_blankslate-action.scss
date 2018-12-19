@@ -31,7 +31,14 @@
     font-weight: var(--font-weight-semibold);
   }
 
-  p {
+  p.description {
+    margin: 0;
+    padding: 0;
+    font-size: var(--font-size);
+    margin-bottom: var(--spacing-half);
+  }
+
+  p.discoverability {
     margin: 0;
     padding: 0;
     font-size: var(--font-size);

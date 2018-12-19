@@ -5,7 +5,8 @@ import { executeMenuItemById } from '../main-process-proxy'
 
 interface IMenuBackedBlankSlateActionProps {
   readonly title: string
-  readonly description: string | JSX.Element
+  readonly description?: string | JSX.Element
+  readonly discoverabilityContent: string | JSX.Element
   readonly buttonText: string | JSX.Element
   readonly className?: string
   readonly menuItemId: MenuIDs
@@ -26,6 +27,7 @@ export class MenuBackedBlankslateAction extends React.Component<
       <BlankslateAction
         title={this.props.title}
         description={this.props.description}
+        discoverabilityContent={this.props.discoverabilityContent}
         buttonText={this.props.buttonText}
         onClick={this.onClick}
         className={this.props.className}

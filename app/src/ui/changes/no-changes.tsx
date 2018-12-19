@@ -12,6 +12,10 @@ import memoizeOne from 'memoize-one'
 import { getPlatformSpecificNameOrSymbolForModifier } from '../../lib/menu-item'
 import { MenuBackedBlankslateAction } from './menu-backed-blankslate-action'
 import { executeMenuItemById } from '../main-process-proxy'
+import { IRepositoryState } from '../../lib/app-state'
+import { Dispatcher } from '../../lib/dispatcher'
+import { PopupType } from '../../models/popup'
+import { BlankslateAction } from './blankslate-action'
 
 const BlankSlateImage = encodePathAsUrl(
   __dirname,
@@ -21,12 +25,21 @@ const BlankSlateImage = encodePathAsUrl(
 const PaperStackImage = encodePathAsUrl(__dirname, 'static/paper-stack.svg')
 
 interface INoChangesProps {
+  readonly dispatcher: Dispatcher
   readonly repository: Repository
 
   /**
    * The top-level application menu item.
    */
   readonly appMenu: IMenu | undefined
+
+  /**
+   * An object describing the current state of
+   * the selected repository. Used to determine
+   * whether to render push, pull, publish, or
+   * 'open pr' actions.
+   */
+  readonly repositoryState: IRepositoryState
 }
 
 interface IMenuItemInfo {
@@ -175,15 +188,11 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
       return null
     }
 
-    description =
-      description === undefined
-        ? this.renderDiscoverabilityElements(menuItem)
-        : description
-
     return (
       <MenuBackedBlankslateAction
         title={title}
         description={description}
+        discoverabilityContent={this.renderDiscoverabilityElements(menuItem)}
         menuItemId={itemId}
         buttonText={menuItem.label}
       />
