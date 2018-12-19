@@ -1,5 +1,29 @@
 {
   "releases": {
+    "1.5.2-beta0": [
+    ],
+    "1.5.1": [
+      "[Added] Provide keyboard shortcut for getting to commit summary field - #1719. Thanks @bruncun!",
+      "[Added] Add hover states on list items and tabs - #6310",
+      "[Added] Add Dockerfile syntax highlighting - #4533. Thanks @say25!",
+      "[Added] Support Visual SlickEdit as an external editor - #6029. Thanks @texasaggie97!",
+      "[Fixed] Allow repositories to be cloned to empty folders - #5857. Thanks @Daniel-McCarthy!",
+      "[Fixed] Prevent creating branch with detached HEAD from reverting to default branch - #6085",
+      "[Fixed] Fix \"Open In External Editor\" for Atom/VS Code on Windows when paths contain spaces - #6181. Thanks @msftrncs!",
+      "[Fixed] Persist Branch List and Pull Request List filter text - #6002. Thanks @Daniel-McCarthy!",
+      "[Fixed] Retain renamed branches position in recent branches list - #6155. Thanks @gnehcc!",
+      "[Fixed] Prevent avatar duplication when user is co-author and committer - #6135. Thanks @bblarney!",
+      "[Fixed] Provide keyboard selection for the \"Clone a Repository\" dialog - #3596. Thanks @a-golovanov!",
+      "[Fixed] Close License & Open Source Notices dialog upon pressing \"Enter\" in dialog - #6137. Thanks @bblarney!",
+      "[Fixed] Dismiss \"Merge into Branch\" dialog with escape key - #6154. Thanks @altaf933!",
+      "[Fixed] Focus branch selector when comparing to branch from menu - #5600",
+      "[Fixed] Reverse fold/unfold icons for expand/collapse commit summary - #6196. Thanks @HazemAM!",
+      "[Improved] Allow toggling between diff modes - #6231. Thanks @06b!",
+      "[Improved] Show focus around full input field - #6234. Thanks @seokju-na!",
+      "[Improved] Make lists scroll to bring selected items into view - #6279",
+      "[Improved] Consistently order the options for adding a repository - #6396. Thanks @vilanz!",
+      "[Improved] Clear merge conflicts banner after there are no more conflicted files - #6428"
+    ],
     "1.5.1-beta6": [
       "[Improved] Consistently order the options for adding a repository - #6396. Thanks @vilanz!",
       "[Improved] Clear merge conflicts banner after there are no more conflicted files - #6428"
