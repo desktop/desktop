@@ -527,6 +527,15 @@ export class List extends React.Component<IListProps, IListState> {
       }
 
       if (this.props.onSelectedRowChanged) {
+        const rowCount = this.props.rowCount
+
+        if (newRow < 0 || newRow >= rowCount) {
+          log.debug(
+            `[List.moveSelection] unable to onSelectedRowChanged for row '${newRow}' as it is outside the bounds of the array [0, ${rowCount}]`
+          )
+          return
+        }
+
         this.props.onSelectedRowChanged(newRow, {
           kind: 'keyboard',
           event,
@@ -915,13 +924,24 @@ export class List extends React.Component<IListProps, IListState> {
         if (this.props.onSelectionChanged) {
           this.props.onSelectionChanged([row], { kind: 'mouseclick', event })
         }
+
         if (this.props.onSelectedRangeChanged) {
           this.props.onSelectedRangeChanged(row, row, {
             kind: 'mouseclick',
             event,
           })
         }
+
         if (this.props.onSelectedRowChanged) {
+          const rowCount = this.props.rowCount
+
+          if (row < 0 || row >= rowCount) {
+            log.debug(
+              `[List.onRowMouseDown] unable to onSelectedRowChanged for row '${row}' as it is outside the bounds of the array [0, ${rowCount}]`
+            )
+            return
+          }
+
           this.props.onSelectedRowChanged(row, { kind: 'mouseclick', event })
         }
       }
