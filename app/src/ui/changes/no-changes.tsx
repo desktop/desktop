@@ -239,8 +239,7 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
 
     const description = (
       <>
-        {this.renderDiscoverabilityElements(menuItem)}. You can configure which
-        editor you wish to use in{' '}
+        Configure which editor you wish to use in{' '}
         <LinkButton onClick={this.openPreferences}>
           {__DARWIN__ ? 'preferences' : 'options'}
         </LinkButton>
