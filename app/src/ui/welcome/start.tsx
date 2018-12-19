@@ -2,6 +2,11 @@ import * as React from 'react'
 import { WelcomeStep } from './welcome'
 import { LinkButton } from '../lib/link-button'
 
+/**
+ * The URL to the sign-up page on GitHub.com. Used in conjunction
+ * with account actions in the app where the user might want to
+ * consider signing up.
+ */
 export const CreateAccountURL = 'https://github.com/join?source=github-desktop'
 
 interface IStartProps {
