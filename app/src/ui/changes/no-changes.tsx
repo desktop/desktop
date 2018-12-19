@@ -249,13 +249,53 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
     return this.renderMenuBackedAction(itemId, title, description)
   }
 
-  private renderRemoteAction() {}
+  private renderRemoteAction() {
+    const { remote } = this.props.repositoryState
+
+    if (remote === null) {
+      return this.renderPublishRepositoryAction()
+    }
+
+    return null
+  }
+
+  private onPublishRepositoryClicked = () => {
+    this.props.dispatcher.showPopup({
+      type: PopupType.PublishRepository,
+      repository: this.props.repository,
+    })
+  }
+
+  private renderPublishRepositoryAction() {
+    // This is a bit confusing, there's no dedicated
+    // publish menu item, the 'Push' menu item will initiate
+    // a publish if the repository doesn't have a remote. We'll
+    // use it here for the keyboard shortcut only.
+    const itemId: MenuIDs = 'push'
+    const menuItem = this.getMenuItemInfo(itemId)
+
+    if (menuItem === undefined) {
+      log.error(`Could not find matching menu item for ${itemId}`)
+      return null
+    }
+
+    return (
+      <BlankslateAction
+        title="Publish your repository to GitHub"
+        description="This repository is currently only available on your local machine. By publishing it on GitHub you can share it, and collaborate with others."
+        discoverabilityContent={this.renderDiscoverabilityElements(menuItem)}
+        buttonText="Publish repository"
+        onClick={this.onPublishRepositoryClicked}
+        type="primary"
+      />
+    )
+  }
 
   private renderActions() {
     const remoteAction = this.renderRemoteAction()
     const remoteActions =
       remoteAction === null || remoteAction === undefined ? null : (
-        <div className="actions">{remoteAction}</div>
+        <div className="actions primary">{remoteAction}</div>
       )
 
     return (
