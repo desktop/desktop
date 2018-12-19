@@ -292,6 +292,12 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --text-field-focus-shadow-color: rgba($blue, 0.25);
 
   /**
+   * Blankslate actions, see `BlankslateAction` component.
+   */
+  --primary-blankslate-action-background: $blue-000;
+  --primary-blankslate-action-border-color: $blue-200;
+
+  /**
    * Diff view
    */
 

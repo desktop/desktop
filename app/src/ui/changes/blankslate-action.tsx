@@ -9,6 +9,7 @@ interface IBlankSlateActionProps {
   readonly buttonText: string | JSX.Element
   readonly onClick: () => void
   readonly className?: string
+  readonly type?: 'normal' | 'primary'
 }
 
 /**
@@ -22,7 +23,10 @@ export class BlankslateAction extends React.Component<
   {}
 > {
   public render() {
-    const cn = classNames('blankslate-action', this.props.className)
+    const primary = this.props.type === 'primary'
+    const cn = classNames('blankslate-action', this.props.className, {
+      primary,
+    })
     const description =
       this.props.description === undefined ? (
         undefined
@@ -36,7 +40,12 @@ export class BlankslateAction extends React.Component<
           {description}
           <p className="discoverability">{this.props.discoverabilityContent}</p>
         </div>
-        <Button onClick={this.props.onClick}>{this.props.buttonText}</Button>
+        <Button
+          type={primary ? 'submit' : undefined}
+          onClick={this.props.onClick}
+        >
+          {this.props.buttonText}
+        </Button>
       </div>
     )
   }

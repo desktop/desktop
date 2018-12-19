@@ -17,6 +17,11 @@
     border-bottom: var(--base-border);
   }
 
+  &.primary {
+    background: var(--primary-blankslate-action-background);
+    border-color: var(--primary-blankslate-action-border-color);
+  }
+
   .text-wrapper {
     display: flex;
     flex-direction: column;
