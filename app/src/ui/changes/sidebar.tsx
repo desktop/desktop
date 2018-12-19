@@ -18,7 +18,10 @@ import {
   UserAutocompletionProvider,
 } from '../autocompletion'
 import { ClickSource } from '../lib/list'
-import { WorkingDirectoryFileChange } from '../../models/status'
+import {
+  WorkingDirectoryFileChange,
+  ConflictedFileStatus,
+} from '../../models/status'
 import { CSSTransitionGroup } from 'react-transition-group'
 import { openFile } from '../../lib/open-file'
 import { Account } from '../../models/account'
@@ -160,6 +163,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     const conflictedFilesSelected = this.props.changes.workingDirectory.files.filter(
       f =>
         isConflictedFile(f.status) &&
+        hasUnresolvedConflicts(f.status) &&
         f.selection.getSelectionType() !== DiffSelectionType.None
     )
 
@@ -375,4 +379,18 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
       </div>
     )
   }
+}
+
+/**
+ * Determine if we have a `ManualConflict` type
+ * or conflict markers
+ */
+function hasUnresolvedConflicts(status: ConflictedFileStatus) {
+  if (!status.lookForConflictMarkers) {
+    // binary file doesn't contain markers
+    return true
+  }
+
+  // text file will have conflict markers removed
+  return status.conflictMarkerCount > 0
 }
