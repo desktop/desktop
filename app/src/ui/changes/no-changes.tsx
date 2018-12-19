@@ -125,8 +125,8 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
             <div className="text">
               <h1>No local changes</h1>
               <p>
-                You have no uncommitted changes in your repository! Here’s some
-                friendly suggestions for what to do next.
+                You have no uncommitted changes in your repository! Here are
+                some friendly suggestions for what to do next.
               </p>
             </div>
             <img src={PaperStackImage} className="blankslate-image" />
