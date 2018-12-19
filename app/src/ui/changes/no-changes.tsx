@@ -159,15 +159,17 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
 
   private renderDiscoverabilityElements(menuItem: IMenuItemInfo) {
     const parentMenusText = menuItem.parentMenuLabels.join(' -> ')
-    const keyboardShortcut = menuItem.acceleratorKeys.map((k, i) => (
-      <kbd key={k + i}>{k}</kbd>
-    ))
 
     return (
       <>
-        {parentMenusText} menu or {keyboardShortcut}
+        {parentMenusText} menu or{' '}
+        {this.renderDiscoverabilityKeyboardShortcut(menuItem)}
       </>
     )
+  }
+
+  private renderDiscoverabilityKeyboardShortcut(menuItem: IMenuItemInfo) {
+    return menuItem.acceleratorKeys.map((k, i) => <kbd key={k + i}>{k}</kbd>)
   }
 
   private renderMenuBackedAction(
@@ -275,11 +277,18 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
       return null
     }
 
+    const discoverabilityContent = (
+      <>
+        Always available in the toolbar for local repositories or{' '}
+        {this.renderDiscoverabilityKeyboardShortcut(menuItem)}
+      </>
+    )
+
     return (
       <MenuBackedBlankslateAction
         title="Publish your repository to GitHub"
         description="This repository is currently only available on your local machine. By publishing it on GitHub you can share it, and collaborate with others."
-        discoverabilityContent={this.renderDiscoverabilityElements(menuItem)}
+        discoverabilityContent={discoverabilityContent}
         buttonText="Publish repository"
         menuItemId={itemId}
         type="primary"
@@ -319,12 +328,19 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
       </>
     )
 
+    const discoverabilityContent = (
+      <>
+        Always available in the toolbar or{' '}
+        {this.renderDiscoverabilityKeyboardShortcut(menuItem)}
+      </>
+    )
+
     return (
       <MenuBackedBlankslateAction
         title="Publish your branch"
         menuItemId={itemId}
         description={description}
-        discoverabilityContent={this.renderDiscoverabilityElements(menuItem)}
+        discoverabilityContent={discoverabilityContent}
         buttonText="Publish branch"
         type="primary"
       />
