@@ -13,9 +13,8 @@ import { getPlatformSpecificNameOrSymbolForModifier } from '../../lib/menu-item'
 import { MenuBackedBlankslateAction } from './menu-backed-blankslate-action'
 import { executeMenuItemById } from '../main-process-proxy'
 import { IRepositoryState } from '../../lib/app-state'
-import { Dispatcher } from '../../lib/dispatcher'
-import { PopupType } from '../../models/popup'
-import { BlankslateAction } from './blankslate-action'
+import { TipState } from '../../models/tip'
+import { Ref } from '../lib/ref'
 
 const BlankSlateImage = encodePathAsUrl(
   __dirname,
@@ -25,7 +24,6 @@ const BlankSlateImage = encodePathAsUrl(
 const PaperStackImage = encodePathAsUrl(__dirname, 'static/paper-stack.svg')
 
 interface INoChangesProps {
-  readonly dispatcher: Dispatcher
   readonly repository: Repository
 
   /**
@@ -250,20 +248,18 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
   }
 
   private renderRemoteAction() {
-    const { remote } = this.props.repositoryState
+    const { remote, aheadBehind } = this.props.repositoryState
 
     if (remote === null) {
       return this.renderPublishRepositoryAction()
     }
 
-    return null
-  }
+    // Branch not published
+    if (aheadBehind === null) {
+      return this.renderPublishBranchAction()
+    }
 
-  private onPublishRepositoryClicked = () => {
-    this.props.dispatcher.showPopup({
-      type: PopupType.PublishRepository,
-      repository: this.props.repository,
-    })
+    return null
   }
 
   private renderPublishRepositoryAction() {
@@ -280,12 +276,56 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
     }
 
     return (
-      <BlankslateAction
+      <MenuBackedBlankslateAction
         title="Publish your repository to GitHub"
         description="This repository is currently only available on your local machine. By publishing it on GitHub you can share it, and collaborate with others."
         discoverabilityContent={this.renderDiscoverabilityElements(menuItem)}
         buttonText="Publish repository"
-        onClick={this.onPublishRepositoryClicked}
+        menuItemId={itemId}
+        type="primary"
+      />
+    )
+  }
+
+  private renderPublishBranchAction() {
+    // This is a bit confusing, there's no dedicated
+    // publish branch menu item, the 'Push' menu item will initiate
+    // a publish if the branch doesn't have a remote tracking branch.
+    // We'll use it here for the keyboard shortcut only.
+    const itemId: MenuIDs = 'push'
+    const menuItem = this.getMenuItemInfo(itemId)
+
+    if (menuItem === undefined) {
+      log.error(`Could not find matching menu item for ${itemId}`)
+      return null
+    }
+
+    const { branchesState } = this.props.repositoryState
+    const { tip } = branchesState
+
+    const isGitHub = this.props.repository.gitHubRepository !== null
+
+    if (tip.kind !== TipState.Valid) {
+      return null
+    }
+
+    const description = (
+      <>
+        The branch you're currently on (<Ref>{tip.branch.name}</Ref>) hasn't
+        been published to the remote yet. By publishing it{' '}
+        {isGitHub ? 'to GitHub' : ''} you can share it,{' '}
+        {isGitHub ? 'open a pull request, ' : ''}
+        and collaborate with others.
+      </>
+    )
+
+    return (
+      <MenuBackedBlankslateAction
+        title="Publish your branch"
+        menuItemId={itemId}
+        description={description}
+        discoverabilityContent={this.renderDiscoverabilityElements(menuItem)}
+        buttonText="Publish branch"
         type="primary"
       />
     )

@@ -246,7 +246,6 @@ export class RepositoryView extends React.Component<
             appMenu={this.props.appMenu}
             repository={this.props.repository}
             repositoryState={this.props.state}
-            dispatcher={this.props.dispatcher}
           />
         )
       } else {
