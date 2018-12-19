@@ -173,4 +173,8 @@ kbd {
 
   font-family: var(--font-family);
   text-align: center;
+
+  &:not(:last-child) {
+    margin-right: 2px;
+  }
 }
