@@ -173,6 +173,7 @@ kbd {
 
   font-family: var(--font-family);
   text-align: center;
+  min-width: 2.5em;
 
   &:not(:last-child) {
     margin-right: 2px;

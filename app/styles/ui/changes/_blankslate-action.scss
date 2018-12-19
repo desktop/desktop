@@ -48,6 +48,10 @@
     padding: 0;
     font-size: var(--font-size);
     color: var(--text-secondary-color);
+
+    kbd {
+      color: var(--text-color);
+    }
   }
 
   .button-component {
