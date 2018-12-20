@@ -104,9 +104,14 @@ export class MergeConflictsDialog extends React.Component<
    *  commits the merge displays the repository changes tab and dismisses the modal
    */
   private onSubmit = async () => {
+    // filter out untracked files so we don't commit them
+    const trackedFiles = this.props.workingDirectory.files.filter(f => {
+      return f.status.kind !== AppFileStatusKind.Untracked
+    })
+
     await this.props.dispatcher.createMergeCommit(
       this.props.repository,
-      this.props.workingDirectory.files,
+      trackedFiles,
       {
         ourBranch: this.props.ourBranch,
         theirBranch: this.props.theirBranch,
