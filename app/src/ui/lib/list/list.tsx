@@ -431,7 +431,7 @@ export class List extends React.Component<IListProps, IListState> {
         return
       }
 
-      const rowCount = this.props.rowCount
+      const { rowCount } = this.props
 
       if (row < 0 || row >= rowCount) {
         log.debug(
@@ -933,7 +933,7 @@ export class List extends React.Component<IListProps, IListState> {
         }
 
         if (this.props.onSelectedRowChanged) {
-          const rowCount = this.props.rowCount
+          const { rowCount } = this.props
 
           if (row < 0 || row >= rowCount) {
             log.debug(
