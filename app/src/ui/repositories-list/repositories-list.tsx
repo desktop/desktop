@@ -7,7 +7,7 @@ import {
   Repositoryish,
   RepositoryGroupIdentifier,
 } from './group-repositories'
-import { FilterList } from '../lib/filter-list'
+import { FilterList, IFilterListGroup } from '../lib/filter-list'
 import { IMatches } from '../../lib/fuzzy-find'
 import { assertNever } from '../../lib/fatal-error'
 import { ILocalRepositoryState } from '../../models/repository'
