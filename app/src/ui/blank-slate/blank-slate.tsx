@@ -18,7 +18,7 @@ interface IBlankSlateProps {
   readonly onCreate: () => void
 
   /** A function to call when the user chooses to clone a repository. */
-  readonly onClone: (cloneURL?: string | null) => void
+  readonly onClone: (cloneURL?: string) => void
 
   /** A function to call when the user chooses to add a local repository. */
   readonly onAdd: () => void

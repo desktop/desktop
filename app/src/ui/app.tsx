@@ -543,10 +543,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
   }
 
-  private showCloneRepo = (cloneUrl?: string | null) => {
+  private showCloneRepo = (cloneUrl?: string) => {
     let initialURL: string | null = null
 
-    if (cloneUrl !== undefined && cloneUrl !== null) {
+    if (cloneUrl !== undefined) {
       this.props.dispatcher.changeCloneRepositoriesTab(
         CloneRepositoryTab.Generic
       )
