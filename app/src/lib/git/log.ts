@@ -29,6 +29,9 @@ function mapStatus(
   if (status === 'A') {
     return { kind: AppFileStatusKind.New }
   } // added
+  if (status === '?') {
+    return { kind: AppFileStatusKind.Untracked }
+  } // untracked
   if (status === 'D') {
     return { kind: AppFileStatusKind.Deleted }
   } // deleted

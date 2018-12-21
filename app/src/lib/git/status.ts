@@ -121,7 +121,7 @@ function convertToAppStatus(
   } else if (entry.kind === 'renamed' && oldPath != null) {
     return { kind: AppFileStatusKind.Renamed, oldPath }
   } else if (entry.kind === 'untracked') {
-    return { kind: AppFileStatusKind.New }
+    return { kind: AppFileStatusKind.Untracked }
   } else if (entry.kind === 'conflicted') {
     return parseConflictedState(entry, path, filesWithConflictMarkers)
   }
