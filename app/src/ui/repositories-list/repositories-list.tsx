@@ -68,6 +68,22 @@ export class RepositoriesList extends React.Component<
   IRepositoriesListProps,
   {}
 > {
+  /**
+   * A memoized function for grouping repositories for display
+   * in the FilterList. The group will not be recomputed as long
+   * as the provided list of repositories is equal to the last
+   * time the method was called (reference equality).
+   */
+  private getRepositoryGroups = memoizeOne(
+    (
+      repositories: ReadonlyArray<Repositoryish> | null,
+      localRepositoryStateLookup: ReadonlyMap<number, ILocalRepositoryState>
+    ) =>
+      repositories === null
+        ? []
+        : groupRepositories(repositories, localRepositoryStateLookup)
+  )
+
   private renderItem = (item: IRepositoryListItem, matches: IMatches) => {
     const repository = item.repository
     return (
@@ -128,7 +144,7 @@ export class RepositoriesList extends React.Component<
       return this.noRepositories()
     }
 
-    const groups = groupRepositories(
+    const groups = this.getRepositoryGroups(
       this.props.repositories,
       this.props.localRepositoryStateLookup
     )
