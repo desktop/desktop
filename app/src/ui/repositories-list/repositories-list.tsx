@@ -197,10 +197,51 @@ export class RepositoriesList extends React.Component<
   private renderNoItems = () => {
     return (
       <div className="no-items no-results-found">
-        Sorry, I can't find any repository matching{' '}
-        <Ref>{this.props.filterText}</Ref>
+        <img src={BlankSlateImage} className="blankslate-image" />
+        <div className="title">Sorry, I can't find that repository</div>
+
+        <div className="protip">
+          ProTip! Press {this.renderAddLocalShortcut()} to quickly add a local
+          repository, and {this.renderCloneRepositoryShortcut()} to clone from
+          anywhere within the app
+        </div>
       </div>
     )
+  }
+
+  private renderAddLocalShortcut() {
+    if (__DARWIN__) {
+      return (
+        <div className="kbd-shortcut">
+          <kbd>⌘</kbd>
+          <kbd>O</kbd>
+        </div>
+      )
+    } else {
+      return (
+        <div className="kbd-shortcut">
+          <kbd>Ctrl</kbd> + <kbd>O</kbd>
+        </div>
+      )
+    }
+  }
+
+  private renderCloneRepositoryShortcut() {
+    if (__DARWIN__) {
+      return (
+        <div className="kbd-shortcut">
+          <kbd>⇧</kbd>
+          <kbd>⌘</kbd>
+          <kbd>O</kbd>
+        </div>
+      )
+    } else {
+      return (
+        <div className="kbd-shortcut">
+          <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>O</kbd>
+        </div>
+      )
+    }
   }
 
   private onNewRepositoryButtonClick = () => {
