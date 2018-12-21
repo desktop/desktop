@@ -64,6 +64,27 @@ interface IRepositoriesListProps {
 
 const RowHeight = 29
 
+/**
+ * Iterate over all groups until a list item is found that matches
+ * the id of the provided repository.
+ */
+function findMatchingListItem(
+  groups: ReadonlyArray<IFilterListGroup<IRepositoryListItem>>,
+  selectedRepository: Repositoryish | null
+) {
+  if (selectedRepository !== null) {
+    for (const group of groups) {
+      for (const item of group.items) {
+        if (item.repository.id === selectedRepository.id) {
+          return item
+        }
+      }
+    }
+  }
+
+  return null
+}
+
 /** The list of user-added repositories. */
 export class RepositoriesList extends React.Component<
   IRepositoriesListProps,
@@ -84,6 +105,17 @@ export class RepositoriesList extends React.Component<
         ? []
         : groupRepositories(repositories, localRepositoryStateLookup)
   )
+
+  /**
+   * A memoized function for finding the selected list item based
+   * on an IAPIRepository instance. The selected item will not be
+   * recomputed as long as the provided list of repositories and
+   * the selected data object is equal to the last time the method
+   * was called (reference equality).
+   *
+   * See findMatchingListItem for more details.
+   */
+  private getSelectedListItem = memoizeOne(findMatchingListItem)
 
   private renderItem = (item: IRepositoryListItem, matches: IMatches) => {
     const repository = item.repository
@@ -150,21 +182,10 @@ export class RepositoriesList extends React.Component<
       this.props.localRepositoryStateLookup
     )
 
-    let selectedItem: IRepositoryListItem | null = null
-    const selectedRepository = this.props.selectedRepository
-    if (selectedRepository) {
-      for (const group of groups) {
-        selectedItem =
-          group.items.find(i => {
-            const repository = i.repository
-            return repository.id === selectedRepository.id
-          }) || null
-
-        if (selectedItem) {
-          break
-        }
-      }
-    }
+    const selectedItem = this.getSelectedListItem(
+      groups,
+      this.props.selectedRepository
+    )
 
     return (
       <div className="repository-list">
