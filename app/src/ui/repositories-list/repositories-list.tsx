@@ -19,6 +19,8 @@ import { IMenuItem } from '../../lib/menu-item'
 import { PopupType } from '../../models/popup'
 import memoizeOne from 'memoize-one'
 
+const BlankSlateImage = encodePathAsUrl(__dirname, 'static/empty-no-repo.svg')
+
 interface IRepositoriesListProps {
   readonly selectedRepository: Repositoryish | null
   readonly repositories: ReadonlyArray<Repositoryish>
