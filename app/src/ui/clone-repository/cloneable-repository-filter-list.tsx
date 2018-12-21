@@ -121,10 +121,8 @@ export class CloneableRepositoryFilterList extends React.PureComponent<
    * time the method was called (reference equality).
    */
   private getRepositoryGroups = memoizeOne(
-    (repositories: ReadonlyArray<IAPIRepository> | null) =>
-      this.props.repositories === null
-        ? []
-        : groupRepositories(this.props.repositories, this.props.account.login)
+    (repositories: ReadonlyArray<IAPIRepository> | null, login: string) =>
+      repositories === null ? [] : groupRepositories(repositories, login)
   )
 
   /**
@@ -158,7 +156,11 @@ export class CloneableRepositoryFilterList extends React.PureComponent<
   }
 
   public render() {
-    const groups = this.getRepositoryGroups(this.props.repositories)
+    const groups = this.getRepositoryGroups(
+      this.props.repositories,
+      this.props.account.login
+    )
+
     const selectedItem = this.getSelectedListItem(
       groups,
       this.props.selectedItem
