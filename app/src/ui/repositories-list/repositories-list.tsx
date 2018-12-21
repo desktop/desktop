@@ -18,6 +18,7 @@ import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'
 import { PopupType } from '../../models/popup'
 import memoizeOne from 'memoize-one'
+import { encodePathAsUrl } from '../../lib/path'
 
 const BlankSlateImage = encodePathAsUrl(__dirname, 'static/empty-no-repo.svg')
 
