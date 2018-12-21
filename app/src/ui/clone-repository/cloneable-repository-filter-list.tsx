@@ -156,21 +156,16 @@ export class CloneableRepositoryFilterList extends React.PureComponent<
   }
 
   public render() {
-    const groups = this.getRepositoryGroups(
-      this.props.repositories,
-      this.props.account.login
-    )
+    const { repositories, account, selectedItem } = this.props
 
-    const selectedItem = this.getSelectedListItem(
-      groups,
-      this.props.selectedItem
-    )
+    const groups = this.getRepositoryGroups(repositories, account.login)
+    const selectedListItem = this.getSelectedListItem(groups, selectedItem)
 
     return (
       <FilterList<IClonableRepositoryListItem>
         className="clone-github-repo"
         rowHeight={RowHeight}
-        selectedItem={selectedItem}
+        selectedItem={selectedListItem}
         renderItem={this.renderItem}
         renderGroupHeader={this.renderGroupHeader}
         onSelectionChanged={this.onSelectionChanged}
