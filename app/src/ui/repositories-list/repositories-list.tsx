@@ -17,7 +17,6 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'
 import { PopupType } from '../../models/popup'
-import memoizeOne from 'memoize-one'
 import { encodePathAsUrl } from '../../lib/path'
 
 const BlankSlateImage = encodePathAsUrl(__dirname, 'static/empty-no-repo.svg')
@@ -69,22 +68,6 @@ export class RepositoriesList extends React.Component<
   IRepositoriesListProps,
   {}
 > {
-  /**
-   * A memoized function for grouping repositories for display
-   * in the FilterList. The group will not be recomputed as long
-   * as the provided list of repositories is equal to the last
-   * time the method was called (reference equality).
-   */
-  private getRepositoryGroups = memoizeOne(
-    (
-      repositories: ReadonlyArray<Repositoryish> | null,
-      localRepositoryStateLookup: Map<number, ILocalRepositoryState>
-    ) =>
-      repositories === null
-        ? []
-        : groupRepositories(repositories, localRepositoryStateLookup)
-  )
-
   private renderItem = (item: IRepositoryListItem, matches: IMatches) => {
     const repository = item.repository
     return (
@@ -141,7 +124,7 @@ export class RepositoriesList extends React.Component<
   }
 
   public render() {
-    const groups = this.getRepositoryGroups(
+    const groups = groupRepositories(
       this.props.repositories,
       this.props.localRepositoryStateLookup
     )
