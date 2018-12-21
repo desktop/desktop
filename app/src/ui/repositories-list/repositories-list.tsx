@@ -7,7 +7,7 @@ import {
   Repositoryish,
   RepositoryGroupIdentifier,
 } from './group-repositories'
-import { FilterList } from '../lib/filter-list'
+import { FilterList, IFilterListGroup } from '../lib/filter-list'
 import { IMatches } from '../../lib/fuzzy-find'
 import { assertNever } from '../../lib/fatal-error'
 import { ILocalRepositoryState } from '../../models/repository'
@@ -17,13 +17,17 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'
 import { PopupType } from '../../models/popup'
+import memoizeOne from 'memoize-one'
 
 interface IRepositoriesListProps {
   readonly selectedRepository: Repositoryish | null
   readonly repositories: ReadonlyArray<Repositoryish>
 
   /** A cache of the latest repository state values, keyed by the repository id */
-  readonly localRepositoryStateLookup: Map<number, ILocalRepositoryState>
+  readonly localRepositoryStateLookup: ReadonlyMap<
+    number,
+    ILocalRepositoryState
+  >
 
   /** Called when a repository has been selected. */
   readonly onSelectionChanged: (repository: Repositoryish) => void
@@ -60,11 +64,59 @@ interface IRepositoriesListProps {
 
 const RowHeight = 29
 
+/**
+ * Iterate over all groups until a list item is found that matches
+ * the id of the provided repository.
+ */
+function findMatchingListItem(
+  groups: ReadonlyArray<IFilterListGroup<IRepositoryListItem>>,
+  selectedRepository: Repositoryish | null
+) {
+  if (selectedRepository !== null) {
+    for (const group of groups) {
+      for (const item of group.items) {
+        if (item.repository.id === selectedRepository.id) {
+          return item
+        }
+      }
+    }
+  }
+
+  return null
+}
+
 /** The list of user-added repositories. */
 export class RepositoriesList extends React.Component<
   IRepositoriesListProps,
   {}
 > {
+  /**
+   * A memoized function for grouping repositories for display
+   * in the FilterList. The group will not be recomputed as long
+   * as the provided list of repositories is equal to the last
+   * time the method was called (reference equality).
+   */
+  private getRepositoryGroups = memoizeOne(
+    (
+      repositories: ReadonlyArray<Repositoryish> | null,
+      localRepositoryStateLookup: ReadonlyMap<number, ILocalRepositoryState>
+    ) =>
+      repositories === null
+        ? []
+        : groupRepositories(repositories, localRepositoryStateLookup)
+  )
+
+  /**
+   * A memoized function for finding the selected list item based
+   * on an IAPIRepository instance. The selected item will not be
+   * recomputed as long as the provided list of repositories and
+   * the selected data object is equal to the last time the method
+   * was called (reference equality).
+   *
+   * See findMatchingListItem for more details.
+   */
+  private getSelectedListItem = memoizeOne(findMatchingListItem)
+
   private renderItem = (item: IRepositoryListItem, matches: IMatches) => {
     const repository = item.repository
     return (
@@ -125,26 +177,15 @@ export class RepositoriesList extends React.Component<
       return this.noRepositories()
     }
 
-    const groups = groupRepositories(
+    const groups = this.getRepositoryGroups(
       this.props.repositories,
       this.props.localRepositoryStateLookup
     )
 
-    let selectedItem: IRepositoryListItem | null = null
-    const selectedRepository = this.props.selectedRepository
-    if (selectedRepository) {
-      for (const group of groups) {
-        selectedItem =
-          group.items.find(i => {
-            const repository = i.repository
-            return repository.id === selectedRepository.id
-          }) || null
-
-        if (selectedItem) {
-          break
-        }
-      }
-    }
+    const selectedItem = this.getSelectedListItem(
+      groups,
+      this.props.selectedRepository
+    )
 
     return (
       <div className="repository-list">
