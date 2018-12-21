@@ -17,6 +17,7 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'
 import { PopupType } from '../../models/popup'
+import memoizeOne from 'memoize-one'
 
 interface IRepositoriesListProps {
   readonly selectedRepository: Repositoryish | null
