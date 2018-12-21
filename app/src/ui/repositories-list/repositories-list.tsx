@@ -17,6 +17,7 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'
 import { PopupType } from '../../models/popup'
+import { Ref } from '../lib/ref'
 
 interface IRepositoriesListProps {
   readonly selectedRepository: Repositoryish | null
@@ -121,10 +122,6 @@ export class RepositoriesList extends React.Component<
   }
 
   public render() {
-    if (this.props.repositories.length < 1) {
-      return this.noRepositories()
-    }
-
     const groups = groupRepositories(
       this.props.repositories,
       this.props.localRepositoryStateLookup
@@ -157,6 +154,7 @@ export class RepositoriesList extends React.Component<
           renderGroupHeader={this.renderGroupHeader}
           onItemClick={this.onItemClick}
           renderPostFilter={this.renderPostFilter}
+          renderNoItems={this.renderNoItems}
           groups={groups}
           invalidationProps={{
             repositories: this.props.repositories,
@@ -176,6 +174,15 @@ export class RepositoriesList extends React.Component<
         Add
         <Octicon symbol={OcticonSymbol.triangleDown} />
       </Button>
+    )
+  }
+
+  private renderNoItems = () => {
+    return (
+      <div className="no-items no-results-found">
+        Sorry, I can't find any repository matching{' '}
+        <Ref>{this.props.filterText}</Ref>
+      </div>
     )
   }
 
@@ -213,15 +220,5 @@ export class RepositoriesList extends React.Component<
 
   private onCreateNewRepository = () => {
     this.props.dispatcher.showPopup({ type: PopupType.CreateRepository })
-  }
-
-  private noRepositories() {
-    return (
-      <div className="repository-list">
-        <div className="filter-list">
-          <div className="sidebar-message">No repositories</div>
-        </div>
-      </div>
-    )
   }
 }
