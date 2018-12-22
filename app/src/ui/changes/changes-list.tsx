@@ -53,6 +53,8 @@ interface IChangesListProps {
     files: ReadonlyArray<WorkingDirectoryFileChange>,
     isDiscardingAllChanges?: boolean
   ) => void
+  readonly onChangesListScrolled: (rowNumber: number) => void
+  readonly changesListScroll: number
 
   /**
    * Called to open a file it its default application
@@ -399,6 +401,10 @@ export class ChangesList extends React.Component<
     }
   }
 
+  private onScroll = (scrollTop: number, clientHeight: number) => {
+    this.props.onChangesListScrolled(scrollTop)
+  }
+
   public render() {
     const fileList = this.props.workingDirectory.files
     const fileCount = fileList.length
@@ -432,6 +438,8 @@ export class ChangesList extends React.Component<
           onSelectionChanged={this.props.onFileSelectionChanged}
           invalidationProps={this.props.workingDirectory}
           onRowClick={this.props.onRowClick}
+          onScroll={this.onScroll}
+          setScrollTop={this.props.changesListScroll}
         />
 
         <CommitMessage

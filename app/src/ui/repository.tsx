@@ -50,6 +50,7 @@ interface IRepositoryViewProps {
 
 interface IRepositoryViewState {
   readonly sidebarHasFocusWithin: boolean
+  readonly changesListScroll: number
 }
 
 const enum Tab {
@@ -66,7 +67,12 @@ export class RepositoryView extends React.Component<
 
     this.state = {
       sidebarHasFocusWithin: false,
+      changesListScroll: 0,
     }
+  }
+
+  private onChangesListScrolled = (rowNumber: number) => {
+    this.setState({ changesListScroll: rowNumber })
   }
 
   private renderChangesBadge(): JSX.Element | null {
@@ -143,6 +149,8 @@ export class RepositoryView extends React.Component<
         accounts={this.props.accounts}
         externalEditorLabel={this.props.externalEditorLabel}
         onOpenInExternalEditor={this.props.onOpenInExternalEditor}
+        onChangesListScrolled={this.onChangesListScrolled}
+        changesListScroll={this.state.changesListScroll}
       />
     )
   }
