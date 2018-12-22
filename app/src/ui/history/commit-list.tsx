@@ -43,6 +43,9 @@ interface ICommitListProps {
 
   /** Callback to fire to open a given commit on GitHub */
   readonly onViewCommitOnGitHub: (sha: string) => void
+
+  readonly onCompareListScrolled: (rowNumber: number) => void
+  readonly compareListScroll: number
 }
 
 /** A component which displays the list of commits. */
@@ -89,6 +92,9 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     const top = Math.floor(scrollTop / RowHeight)
     const bottom = top + numberOfRows
     this.props.onScroll(top, bottom)
+
+    // Store new scroll value so the scroll position will be remembered.
+    this.props.onCompareListScrolled(scrollTop)
   }
 
   private rowForSHA(sha_: string | null): number {
@@ -120,6 +126,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
             commits: this.props.commitSHAs,
             gitHubUsers: this.props.gitHubUsers,
           }}
+          setScrollTop={this.props.compareListScroll}
         />
       </div>
     )

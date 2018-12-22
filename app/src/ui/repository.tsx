@@ -51,6 +51,7 @@ interface IRepositoryViewProps {
 interface IRepositoryViewState {
   readonly sidebarHasFocusWithin: boolean
   readonly changesListScroll: number
+  readonly compareListScroll: number
 }
 
 const enum Tab {
@@ -68,11 +69,16 @@ export class RepositoryView extends React.Component<
     this.state = {
       sidebarHasFocusWithin: false,
       changesListScroll: 0,
+      compareListScroll: 0,
     }
   }
 
   private onChangesListScrolled = (rowNumber: number) => {
     this.setState({ changesListScroll: rowNumber })
+  }
+
+  private onCompareListScrolled = (rowNumber: number) => {
+    this.setState({ compareListScroll: rowNumber })
   }
 
   private renderChangesBadge(): JSX.Element | null {
@@ -172,6 +178,8 @@ export class RepositoryView extends React.Component<
         dispatcher={this.props.dispatcher}
         onRevertCommit={this.onRevertCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
+        onCompareListScrolled={this.onCompareListScrolled}
+        compareListScroll={this.state.compareListScroll}
       />
     )
   }
