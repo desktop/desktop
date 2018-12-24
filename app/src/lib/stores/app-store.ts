@@ -1431,6 +1431,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       pullRequestLabel: this.getPullRequestLabel(repository),
       shellLabel: `Open in ${this.selectedShell}`,
       defaultBranchName: this.getDefaultBranchName(repository),
+      removeRepoLabel: this.getRemoveRepoLabel(),
     })
   }
 
@@ -1454,6 +1455,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     return __DARWIN__ ? 'Show Pull Request' : 'Show &pull request'
+  }
+
+  private getRemoveRepoLabel() {
+    const showRemoveRepoDialog = localStorage.getItem(confirmRepoRemovalKey)
+    const repoDialogEnabled: boolean =
+      showRemoveRepoDialog != null && showRemoveRepoDialog === '1'
+    return repoDialogEnabled
+      ? __DARWIN__
+        ? 'Remove...'
+        : '&Remove...'
+      : __DARWIN__
+      ? 'Remove'
+      : '&Remove'
   }
 
   private getDefaultBranchName(repository?: Repository) {

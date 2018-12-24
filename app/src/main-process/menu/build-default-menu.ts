@@ -20,12 +20,14 @@ const defaultPullRequestLabel = __DARWIN__
 const defaultBranchNameDefaultValue = __DARWIN__
   ? 'Default Branch'
   : 'default branch'
+const defaultRepositoryRemovalLabel = __DARWIN__ ? 'Remove' : '&Remove'
 
 export type MenuLabels = {
   editorLabel?: string
   shellLabel?: string
   pullRequestLabel?: string
   defaultBranchName?: string
+  removeRepoLabel?: string
 }
 
 export function buildDefaultMenu({
@@ -33,6 +35,7 @@ export function buildDefaultMenu({
   shellLabel = defaultShellLabel,
   pullRequestLabel = defaultPullRequestLabel,
   defaultBranchName = defaultBranchNameDefaultValue,
+  removeRepoLabel = defaultRepositoryRemovalLabel,
 }: MenuLabels): Electron.Menu {
   defaultBranchName = truncateWithEllipsis(defaultBranchName, 25)
 
@@ -240,7 +243,7 @@ export function buildDefaultMenu({
         click: emit('pull'),
       },
       {
-        label: __DARWIN__ ? 'Remove' : '&Remove',
+        label: removeRepoLabel,
         id: 'remove-repository',
         accelerator: 'CmdOrCtrl+Delete',
         click: emit('remove-repository'),
