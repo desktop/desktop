@@ -110,7 +110,7 @@
     "tslint-config-prettier": "^1.14.0",
     "tslint-microsoft-contrib": "^5.2.1",
     "tslint-react": "^3.6.0",
-    "typescript": "^3.1.1",
+    "typescript": "^3.2.0",
     "typescript-eslint-parser": "^20.0.0",
     "typescript-tslint-plugin": "^0.0.6",
     "webpack": "^4.8.3",
