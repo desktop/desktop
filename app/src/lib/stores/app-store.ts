@@ -762,11 +762,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
         return
       }
 
+      const newState: IDisplayHistory = {
+        kind: HistoryTabMode.History,
+      }
+
       this.repositoryStateCache.updateCompareState(repository, () => ({
         tip: currentSha,
-        formState: {
-          kind: HistoryTabMode.History,
-        },
+        formState: newState,
         commitSHAs: commits,
         filterText: '',
         showBranchList: false,
@@ -814,13 +816,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const commitSHAs = compare.commits.map(commit => commit.sha)
 
+    const newState: ICompareBranch = {
+      kind: HistoryTabMode.Compare,
+      comparisonBranch,
+      comparisonMode: action.comparisonMode,
+      aheadBehind,
+    }
+
     this.repositoryStateCache.updateCompareState(repository, s => ({
-      formState: {
-        kind: HistoryTabMode.Compare,
-        comparisonBranch,
-        comparisonMode: action.comparisonMode,
-        aheadBehind,
-      },
+      formState: newState,
       filterText: comparisonBranch.name,
       commitSHAs,
     }))
@@ -848,8 +852,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.currentAheadBehindUpdater.insert(from, to, aheadBehind)
     }
 
+    const loadingMerge: MergeResultStatus = { kind: MergeResultKind.Loading }
+
     this.repositoryStateCache.updateCompareState(repository, () => ({
-      mergeStatus: { kind: MergeResultKind.Loading },
+      mergeStatus: loadingMerge,
     }))
 
     this.emitUpdate()
