@@ -1458,10 +1458,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private getRemoveRepoLabel() {
-    const showRemoveRepoDialog = localStorage.getItem(confirmRepoRemovalKey)
-    const repoDialogEnabled: boolean =
-      showRemoveRepoDialog != null && showRemoveRepoDialog === '1'
-    return repoDialogEnabled
+    const showRemoveRepoDialog = getBoolean(
+      confirmRepoRemovalKey,
+      confirmRepoRemovalDefault
+    )
+
+    return showRemoveRepoDialog
       ? __DARWIN__
         ? 'Remove...'
         : '&Remove...'
