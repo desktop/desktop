@@ -32,7 +32,6 @@ export enum AppFileStatusKind {
 export type PlainFileStatus = {
   kind:
     | AppFileStatusKind.New
-    | AppFileStatusKind.Untracked
     | AppFileStatusKind.Modified
     | AppFileStatusKind.Deleted
 }
