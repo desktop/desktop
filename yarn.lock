@@ -10605,10 +10605,10 @@ typescript-eslint-parser@^21.0.2:
     eslint-visitor-keys "^1.0.0"
     typescript-estree "5.3.0"
 
-typescript-estree@5.3.0:
-  version "5.3.0"
-  resolved "https://registry.yarnpkg.com/typescript-estree/-/typescript-estree-5.3.0.tgz#fb6c977b5e21073eb16cbdc0338a7f752da99ff5"
-  integrity sha512-Vu0KmYdSCkpae+J48wsFC1ti19Hq3Wi/lODUaE+uesc3gzqhWbZ5itWbsjylLVbjNW4K41RqDzSfnaYNbmEiMQ==
+typescript-estree@5.3.0, typescript-estree@8.1.0:
+  version "8.1.0"
+  resolved "https://registry.yarnpkg.com/typescript-estree/-/typescript-estree-8.1.0.tgz#95a59c50bb02276c03bac7d22c7b4704fd85fe4d"
+  integrity sha512-O7rvu+HmWhodSCC9lJp8o6gNMNaaaFp78edF2jthStt6/ZUChqFUGIacnVDZ/LKj0v5SvSuSapCc9MBQR5x7sA==
   dependencies:
     lodash.unescape "4.0.1"
     semver "5.5.0"
