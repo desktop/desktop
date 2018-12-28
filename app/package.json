@@ -27,7 +27,7 @@
     "dexie": "^2.0.0",
     "double-ended-queue": "^2.1.0-0",
     "dugite": "^1.80.0",
-    "electron-window-state": "^5.0.3",
+    "electron-window-state": "^4.0.2",
     "event-kit": "^2.0.0",
     "file-uri-to-path": "0.0.2",
     "file-url": "^2.0.2",
