@@ -21,12 +21,12 @@ You can open a new issue at https://github.com/desktop/desktop/issues/new/choose
 <!--
 
 If this is related to a feature, bugfix or improvement, we'd love your help to
-summarize thes change to assist with drafting the release notes when this pull
+summarize these changes to assist with drafting the release notes when this pull
 request is merged.
 
 You can leave this blank if you're not sure.
 
-If you don't believe this needs to be mentioned in the release notes, write "no-notes".
+If you don't believe this PR needs to be mentioned in the release notes, write "Notes: no-notes".
 
 Some examples of changelog entries from earlier releases:
 
