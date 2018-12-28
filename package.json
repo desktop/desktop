@@ -167,7 +167,7 @@
     "@types/webpack-merge": "^4.1.3",
     "@types/winston": "^2.2.0",
     "@types/xml2js": "^0.4.0",
-    "electron": "3.0.12",
+    "electron": "3.0.13",
     "electron-builder": "20.38.3",
     "electron-packager": "^13.0.1",
     "electron-winstaller": "2.7.0"
