@@ -8,6 +8,12 @@ import { ensureDir } from 'fs-extra'
 import { log } from '../log'
 import { openDirectorySafe } from '../shell'
 
+enum ZoomDirection {
+  Reset,
+  In,
+  Out,
+}
+
 const defaultEditorLabel = __DARWIN__
   ? 'Open in External Editor'
   : 'Open in external editor'
@@ -462,12 +468,6 @@ function emit(name: MenuEvent): ClickHandler {
       ipcMain.emit('menu-event', { name })
     }
   }
-}
-
-enum ZoomDirection {
-  Reset,
-  In,
-  Out,
 }
 
 /** The zoom steps that we support, these factors must sorted */
