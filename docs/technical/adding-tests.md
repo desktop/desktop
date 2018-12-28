@@ -57,7 +57,7 @@ tests to exercise your work.
 
 ### Adding tests to a test module
 
-Feel free to borrow ideas from our [current test suite](https://github.com/desktop/desktop/tree/master/app/test/unit),
+Feel free to borrow ideas from our [current test suite](https://github.com/desktop/desktop/tree/development/app/test/unit),
 but here are some guidelines to help you figure out what to test.
 
  - focus on a specific module or function when writing unit tests - complex unit
