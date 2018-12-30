@@ -38,6 +38,7 @@ function formatPatchHeader(from: string | null, to: string | null): string {
 function formatPatchHeaderForFile(file: WorkingDirectoryFileChange) {
   switch (file.status.kind) {
     case AppFileStatusKind.New:
+    case AppFileStatusKind.Untracked:
       return formatPatchHeader(null, file.path)
 
     // One might initially believe that renamed files should diff
@@ -168,7 +169,10 @@ export function formatPatch(
         // partial patch. If the user has elected not to commit a particular
         // addition we need to generate a patch that pretends that the line
         // never existed.
-        if (file.status.kind === AppFileStatusKind.New) {
+        if (
+          file.status.kind === AppFileStatusKind.New ||
+          file.status.kind === AppFileStatusKind.Untracked
+        ) {
           return
         }
 
