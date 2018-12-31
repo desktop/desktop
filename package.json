@@ -94,7 +94,7 @@
     "mocha": "^5.2.0",
     "mocha-junit-reporter": "^1.18.0",
     "mocha-multi-reporters": "^1.1.7",
-    "node-sass": "^4.7.2",
+    "node-sass": "4.7.2",
     "octicons": "^7.0.1",
     "parallel-webpack": "^2.3.0",
     "prettier": "1.15.2",
