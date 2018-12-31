@@ -10,7 +10,7 @@
       "args": [
         "--silent",
         "--config",
-        "${workspaceFolder}/jest.config.js"
+        "${workspaceFolder}/app/jest.config.js"
       ],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
@@ -30,7 +30,7 @@
       "args": [
         "--silent",
         "--config",
-        "${workspaceFolder}/jest.config.js",
+        "${workspaceFolder}/app/jest.config.js",
         "${relativeFile}"
       ],
       "console": "integratedTerminal",
