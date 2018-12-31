@@ -2,15 +2,8 @@
 // be a bug in TS itself or ts-node.
 /// <reference path="../../../node_modules/@types/node/index.d.ts" />
 
-import 'mocha'
-import * as chai from 'chai'
-
-const chaiAsPromised = require('chai-as-promised')
 import { Application } from 'spectron'
-const path = require('path')
-
-chai.should()
-chai.use(chaiAsPromised)
+import * as path from 'path'
 
 describe('App', function(this: any) {
   let app: Application
@@ -28,16 +21,14 @@ describe('App', function(this: any) {
     if (process.platform === 'win32') {
       appPath += '.cmd'
     }
+
+    const root = path.resolve(__dirname, '..', '..', '..')
+
     app = new Application({
       path: appPath,
-      args: [path.join(__dirname, '..', '..', '..', 'out')],
+      args: [path.join(root, 'out')],
     })
     return app.start()
-  })
-
-  beforeEach(function() {
-    const anyApp = app as any
-    chaiAsPromised.transferPromiseness = anyApp.transferPromiseness
   })
 
   afterEach(function() {
@@ -47,19 +38,22 @@ describe('App', function(this: any) {
     return Promise.resolve()
   })
 
-  it('opens a window on launch', function() {
-    return app.client
-      .waitUntil(() => app.browserWindow.isVisible(), 5000)
-      .getWindowCount()
-      .should.eventually.equal(1)
-      .browserWindow.isMinimized()
-      .should.eventually.be.false.browserWindow.isDevToolsOpened()
-      .should.eventually.be.false.browserWindow.isVisible()
-      .should.eventually.be.true.browserWindow.getBounds()
-      .should.eventually.have.property('width')
-      .and.be.above(0)
-      .browserWindow.getBounds()
-      .should.eventually.have.property('height')
-      .and.be.above(0)
+  it('opens a window on launch', async () => {
+    await app.client.waitUntil(() => app.browserWindow.isVisible(), 5000)
+
+    const count = await app.client.getWindowCount()
+    expect(count).toBe(1)
+
+    const window = app.browserWindow
+    const isVisible = await window.isVisible()
+    expect(isVisible).toBe(true)
+
+    const isMinimized = await window.isMinimized()
+    expect(isMinimized).toBe(false)
+
+    const bounds = await window.getBounds()
+
+    expect(bounds.width).toBeGreaterThan(0)
+    expect(bounds.height).toBeGreaterThan(0)
   })
 })
