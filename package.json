@@ -161,6 +161,7 @@
     "@types/ua-parser-js": "^0.7.30",
     "@types/untildify": "^3.0.0",
     "@types/uuid": "^3.4.0",
+    "@types/webdriverio": "^4.13.0",
     "@types/webpack": "^4.4.0",
     "@types/webpack-bundle-analyzer": "^2.9.2",
     "@types/webpack-dev-middleware": "^2.0.1",

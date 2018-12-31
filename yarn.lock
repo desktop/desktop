@@ -483,6 +483,13 @@
   dependencies:
     "@types/node" "*"
 
+"@types/webdriverio@^4.13.0":
+  version "4.13.0"
+  resolved "https://registry.yarnpkg.com/@types/webdriverio/-/webdriverio-4.13.0.tgz#05acc3cbea6de5251c7adad16da1ee626858350e"
+  integrity sha512-4SpsMUy6MatxIQidOZR4HpAgIi5Lzpvo7nCdq+7SdLvUGCNLPLaWSwdtpHK+En3CqQTb559kSIWR4SKFWT8H3w==
+  dependencies:
+    "@types/node" "*"
+
 "@types/webpack-bundle-analyzer@^2.9.2":
   version "2.9.2"
   resolved "https://registry.yarnpkg.com/@types/webpack-bundle-analyzer/-/webpack-bundle-analyzer-2.9.2.tgz#a3f9f4dd8bc3025550001a1704cfd31125773f40"
