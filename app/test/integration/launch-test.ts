@@ -6,14 +6,14 @@ import 'mocha'
 import * as chai from 'chai'
 
 const chaiAsPromised = require('chai-as-promised')
-const { Application } = require('spectron')
+import { Application } from 'spectron'
 const path = require('path')
 
 chai.should()
 chai.use(chaiAsPromised)
 
 describe('App', function(this: any) {
-  let app: any
+  let app: Application
 
   beforeEach(function() {
     let appPath = path.join(
@@ -36,13 +36,15 @@ describe('App', function(this: any) {
   })
 
   beforeEach(function() {
-    chaiAsPromised.transferPromiseness = app.transferPromiseness
+    const anyApp = app as any
+    chaiAsPromised.transferPromiseness = anyApp.transferPromiseness
   })
 
   afterEach(function() {
     if (app && app.isRunning()) {
       return app.stop()
     }
+    return Promise.resolve()
   })
 
   it('opens a window on launch', function() {
