@@ -17,6 +17,7 @@ import { RichText } from '../lib/rich-text'
 import { Repository } from '../../models/repository'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { shell } from '../../lib/app-shell'
+import { ReleaseNotesUri } from '../lib/releases'
 
 // HACK: This is needed because the `Rich`Text` component
 // needs to know what repo to link issues against.
@@ -194,7 +195,6 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
   }
 
   private showAllReleaseNotes = () => {
-    const releaseNotesUri = 'https://desktop.github.com/release-notes/'
-    shell.openExternal(releaseNotesUri)
+    shell.openExternal(ReleaseNotesUri)
   }
 }
