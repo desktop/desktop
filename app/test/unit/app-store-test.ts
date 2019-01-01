@@ -133,7 +133,7 @@ describe('AppStore', () => {
 
       firstCommit = await getCommit(repo, 'master')
       expect(firstCommit).not.toBeNull()
-      expect(firstCommit!.parentSHAs.length).toBe(0)
+      expect(firstCommit!.parentSHAs).toHaveLength(0)
     })
 
     // This test is failing too often for my liking on Windows.
@@ -158,12 +158,12 @@ describe('AppStore', () => {
       )
 
       let state = getAppState(appStore)
-      expect(state.localCommitSHAs.length).toBe(1)
+      expect(state.localCommitSHAs).toHaveLength(1)
 
       await appStore._undoCommit(repository, firstCommit!)
 
       state = getAppState(appStore)
-      expect(state.localCommitSHAs.length).toBe(0)
+      expect(state.localCommitSHAs).toHaveLength(0)
     })
   })
 })
