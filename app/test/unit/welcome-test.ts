@@ -1,5 +1,3 @@
-import { expect } from 'chai'
-
 import {
   hasShownWelcomeFlow,
   markWelcomeFlowComplete,
@@ -14,22 +12,22 @@ describe('Welcome', () => {
     })
 
     it('defaults to false when no value found', () => {
-      expect(hasShownWelcomeFlow()).to.be.false
+      expect(hasShownWelcomeFlow()).toBeFalsy
     })
 
     it('returns false for some non-numeric value', () => {
       localStorage.setItem(key, 'a')
-      expect(hasShownWelcomeFlow()).to.be.false
+      expect(hasShownWelcomeFlow()).toBeFalsy
     })
 
     it('returns false when zero found', () => {
       localStorage.setItem(key, '0')
-      expect(hasShownWelcomeFlow()).to.be.false
+      expect(hasShownWelcomeFlow()).toBeFalsy
     })
 
     it('returns true when one found', () => {
       localStorage.setItem(key, '1')
-      expect(hasShownWelcomeFlow()).to.be.true
+      expect(hasShownWelcomeFlow()).toBeTruthy
     })
   })
 
@@ -37,7 +35,7 @@ describe('Welcome', () => {
     it('sets localStorage to 1', () => {
       markWelcomeFlowComplete()
       const value = localStorage.getItem(key)
-      expect(value).to.equal('1')
+      expect(value).toBe('1')
     })
   })
 })

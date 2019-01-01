@@ -1,5 +1,3 @@
-import { expect } from 'chai'
-
 import { groupRepositories } from '../../src/ui/repositories-list/group-repositories'
 import { Repository, ILocalRepositoryState } from '../../src/models/repository'
 import { GitHubRepository } from '../../src/models/github-repository'
@@ -32,25 +30,25 @@ describe('repository list grouping', () => {
 
   it('groups repositories by GitHub/Enterprise/Other', () => {
     const grouped = groupRepositories(repositories, cache)
-    expect(grouped.length).to.equal(3)
+    expect(grouped.length).toBe(3)
 
-    expect(grouped[0].identifier).to.equal('github')
-    expect(grouped[0].items.length).to.equal(1)
+    expect(grouped[0].identifier).toBe('github')
+    expect(grouped[0].items.length).toBe(1)
 
     let item = grouped[0].items[0]
-    expect(item.repository.path).to.equal('repo2')
+    expect(item.repository.path).toBe('repo2')
 
-    expect(grouped[1].identifier).to.equal('enterprise')
-    expect(grouped[1].items.length).to.equal(1)
+    expect(grouped[1].identifier).toBe('enterprise')
+    expect(grouped[1].items.length).toBe(1)
 
     item = grouped[1].items[0]
-    expect(item.repository.path).to.equal('repo3')
+    expect(item.repository.path).toBe('repo3')
 
-    expect(grouped[2].identifier).to.equal('other')
-    expect(grouped[2].items.length).to.equal(1)
+    expect(grouped[2].identifier).toBe('other')
+    expect(grouped[2].items.length).toBe(1)
 
     item = grouped[2].items[0]
-    expect(item.repository.path).to.equal('repo1')
+    expect(item.repository.path).toBe('repo1')
   })
 
   it('sorts repositories alphabetically within each group', () => {
@@ -74,22 +72,22 @@ describe('repository list grouping', () => {
       [repoC, repoB, repoZ, repoD, repoA],
       cache
     )
-    expect(grouped.length).to.equal(2)
+    expect(grouped.length).toBe(2)
 
-    expect(grouped[0].identifier).to.equal('github')
-    expect(grouped[0].items.length).to.equal(2)
+    expect(grouped[0].identifier).toBe('github')
+    expect(grouped[0].items.length).toBe(2)
 
     let items = grouped[0].items
-    expect(items[0].repository.path).to.equal('b')
-    expect(items[1].repository.path).to.equal('d')
+    expect(items[0].repository.path).toBe('b')
+    expect(items[1].repository.path).toBe('d')
 
-    expect(grouped[1].identifier).to.equal('other')
-    expect(grouped[1].items.length).to.equal(3)
+    expect(grouped[1].identifier).toBe('other')
+    expect(grouped[1].items.length).toBe(3)
 
     items = grouped[1].items
-    expect(items[0].repository.path).to.equal('a')
-    expect(items[1].repository.path).to.equal('c')
-    expect(items[2].repository.path).to.equal('z')
+    expect(items[0].repository.path).toBe('a')
+    expect(items[1].repository.path).toBe('c')
+    expect(items[2].repository.path).toBe('z')
   })
 
   it('marks repositories for disambiguation if they have the same name', () => {
@@ -125,19 +123,19 @@ describe('repository list grouping', () => {
     )
 
     const grouped = groupRepositories([repoA, repoB, repoC], cache)
-    expect(grouped.length).to.equal(1)
+    expect(grouped.length).toBe(1)
 
-    expect(grouped[0].identifier).to.equal('github')
-    expect(grouped[0].items.length).to.equal(3)
+    expect(grouped[0].identifier).toBe('github')
+    expect(grouped[0].items.length).toBe(3)
 
     const items = grouped[0].items
-    expect(items[0].text[0]).to.equal('cool-repo')
-    expect(items[0].needsDisambiguation).to.equal(false)
+    expect(items[0].text[0]).toBe('cool-repo')
+    expect(items[0].needsDisambiguation).toBeFalsy()
 
-    expect(items[1].text[0]).to.equal('repo')
-    expect(items[1].needsDisambiguation).to.equal(true)
+    expect(items[1].text[0]).toBe('repo')
+    expect(items[1].needsDisambiguation).toBeTruthy()
 
-    expect(items[2].text[0]).to.equal('repo')
-    expect(items[2].needsDisambiguation).to.equal(true)
+    expect(items[2].text[0]).toBe('repo')
+    expect(items[2].needsDisambiguation).toBeTruthy()
   })
 })

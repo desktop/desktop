@@ -1,5 +1,3 @@
-import { expect } from 'chai'
-
 import { CloningRepository } from '../../src/models/cloning-repository'
 
 describe('CloningRepository', () => {
@@ -10,7 +8,7 @@ describe('CloningRepository', () => {
         'https://github.com/desktop/desktop'
       )
 
-      expect(repository.name).to.equal('desktop')
+      expect(repository.name).toBe('desktop')
     })
 
     it('extracts the repo name from the url not the path', () => {
@@ -19,7 +17,7 @@ describe('CloningRepository', () => {
         'https://github.com/desktop/desktop'
       )
 
-      expect(repository.name).to.equal('desktop')
+      expect(repository.name).toBe('desktop')
     })
 
     it('extracts the repo name without git suffix', () => {
@@ -28,7 +26,7 @@ describe('CloningRepository', () => {
         'https://github.com/desktop/desktop.git'
       )
 
-      expect(repository.name).to.equal('desktop')
+      expect(repository.name).toBe('desktop')
     })
   })
 })

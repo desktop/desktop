@@ -1,7 +1,6 @@
 import * as FSE from 'fs-extra'
 import * as Path from 'path'
 import { GitProcess } from 'dugite'
-import { expect } from 'chai'
 
 import { setupEmptyRepository } from '../../helpers/repositories'
 import { getStatusOrThrow } from '../../helpers/status'
@@ -18,7 +17,7 @@ describe('gitignore', () => {
 
       const gitignore = await readGitIgnoreAtRoot(repo)
 
-      expect(gitignore).is.null
+      expect(gitignore).toBeNull()
     })
 
     it('reads contents from disk', async () => {
@@ -32,7 +31,7 @@ describe('gitignore', () => {
 
       const gitignore = await readGitIgnoreAtRoot(repo)
 
-      expect(gitignore).equals(expected)
+      expect(gitignore).toBe(expected)
     })
 
     it('when autocrlf=true and safecrlf=true, appends CRLF to file', async () => {
@@ -56,7 +55,7 @@ describe('gitignore', () => {
         ['commit', '-m', 'create the ignore file'],
         path
       )
-      expect(commit.exitCode).to.equal(0)
+      expect(commit.exitCode).toBe(0)
 
       const contents = await readGitIgnoreAtRoot(repo)
       expect(contents!.endsWith('\r\n'))
@@ -83,7 +82,7 @@ describe('gitignore', () => {
         ['commit', '-m', 'create the ignore file'],
         path
       )
-      expect(commit.exitCode).to.equal(0)
+      expect(commit.exitCode).toBe(0)
 
       const contents = await readGitIgnoreAtRoot(repo)
       expect(contents!.endsWith('\n'))
@@ -98,7 +97,7 @@ describe('gitignore', () => {
 
       const exists = await FSE.pathExists(`${repo.path}/.gitignore`)
 
-      expect(exists).is.true
+      expect(exists).toBeTruthy()
     })
 
     it('deletes gitignore file when no entries provided', async () => {
@@ -112,7 +111,7 @@ describe('gitignore', () => {
       await saveGitIgnore(repo, '')
 
       const exists = await FSE.pathExists(ignoreFile)
-      expect(exists).is.false
+      expect(exists).toBeFalsy()
     })
 
     it('applies rule correctly to repository', async () => {
@@ -133,7 +132,7 @@ describe('gitignore', () => {
       const status = await getStatusOrThrow(repo)
       const files = status.workingDirectory.files
 
-      expect(files.length).to.equal(0)
+      expect(files.length).toBe(0)
     })
   })
 
@@ -155,7 +154,7 @@ describe('gitignore', () => {
       const gitignore = await FSE.readFile(ignoreFile)
 
       const expected = 'node_modules\nyarn-error.log\n'
-      expect(gitignore.toString('utf8')).equals(expected)
+      expect(gitignore.toString('utf8')).toBe(expected)
     })
 
     it('appends multiple rules', async () => {
@@ -175,7 +174,7 @@ describe('gitignore', () => {
       const gitignore = await FSE.readFile(ignoreFile)
 
       const expected = 'node_modules\nyarn-error.log\n.eslintcache\ndist/\n'
-      expect(gitignore.toString('utf8')).equals(expected)
+      expect(gitignore.toString('utf8')).toBe(expected)
     })
   })
 })

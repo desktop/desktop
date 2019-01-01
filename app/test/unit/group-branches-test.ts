@@ -1,5 +1,3 @@
-import { expect } from 'chai'
-
 import { groupBranches } from '../../src/ui/branches'
 import { Branch, BranchType } from '../../src/models/branch'
 import { Commit } from '../../src/models/commit'
@@ -34,18 +32,18 @@ describe('Branches grouping', () => {
       allBranches,
       recentBranches
     )
-    expect(groups.length).to.equal(3)
+    expect(groups.length).toBe(3)
 
-    expect(groups[0].identifier).to.equal('default')
+    expect(groups[0].identifier).toBe('default')
     let items = groups[0].items
-    expect(items[0].branch).to.equal(defaultBranch)
+    expect(items[0].branch).toBe(defaultBranch)
 
-    expect(groups[1].identifier).to.equal('recent')
+    expect(groups[1].identifier).toBe('recent')
     items = groups[1].items
-    expect(items[0].branch).to.equal(recentBranches[0])
+    expect(items[0].branch).toBe(recentBranches[0])
 
-    expect(groups[2].identifier).to.equal('other')
+    expect(groups[2].identifier).toBe('other')
     items = groups[2].items
-    expect(items[0].branch).to.equal(otherBranch)
+    expect(items[0].branch).toBe(otherBranch)
   })
 })

@@ -1,5 +1,3 @@
-import { expect } from 'chai'
-
 import { RepositoriesStore } from '../../src/lib/stores/repositories-store'
 import { TestRepositoriesDatabase } from '../helpers/databases'
 import { IAPIRepository } from '../../src/lib/api'
@@ -20,7 +18,7 @@ describe('RepositoriesStore', () => {
       await repositoriesStore!.addRepository(repoPath)
 
       const repositories = await repositoriesStore!.getAll()
-      expect(repositories[0].path).to.equal(repoPath)
+      expect(repositories[0].path).toBe(repoPath)
     })
   })
 
@@ -30,7 +28,7 @@ describe('RepositoriesStore', () => {
       await repositoriesStore!.addRepository('/some/other/path')
 
       const repositories = await repositoriesStore!.getAll()
-      expect(repositories.length).to.equal(2)
+      expect(repositories.length).toBe(2)
     })
   })
 
@@ -69,9 +67,9 @@ describe('RepositoriesStore', () => {
 
       const repositories = await repositoriesStore!.getAll()
       const repo = repositories[0]
-      expect(repo.gitHubRepository!.private).to.equal(true)
-      expect(repo.gitHubRepository!.fork).to.equal(false)
-      expect(repo.gitHubRepository!.htmlURL).to.equal(
+      expect(repo.gitHubRepository!.private).toBeTruthy()
+      expect(repo.gitHubRepository!.fork).toBeFalsy()
+      expect(repo.gitHubRepository!.htmlURL).toBe(
         'https://github.com/my-user/my-repo'
       )
     })
@@ -95,7 +93,7 @@ describe('RepositoriesStore', () => {
         gitHubRepo
       )
 
-      expect(updatedFirstRepo.gitHubRepository!.dbID).to.equal(
+      expect(updatedFirstRepo.gitHubRepository!.dbID).toBe(
         updatedSecondRepo.gitHubRepository!.dbID
       )
     })

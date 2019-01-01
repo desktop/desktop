@@ -1,5 +1,3 @@
-import { expect } from 'chai'
-
 import {
   parseReleaseEntries,
   getReleaseSummary,
@@ -12,27 +10,27 @@ describe('release-notes', () => {
 
       const result = parseReleaseEntries(values)
 
-      expect(result.length).to.equal(1)
-      expect(result[0].kind).to.equal('fixed')
-      expect(result[0].message).to.equal('something else')
+      expect(result.length).toBe(1)
+      expect(result[0].kind).toBe('fixed')
+      expect(result[0].message).toBe('something else')
     })
     it('formats uppercased fixed message', () => {
       const values = ['[Fixed] and another thing']
 
       const result = parseReleaseEntries(values)
 
-      expect(result.length).to.equal(1)
-      expect(result[0].kind).to.equal('fixed')
-      expect(result[0].message).to.equal('and another thing')
+      expect(result.length).toBe(1)
+      expect(result[0].kind).toBe('fixed')
+      expect(result[0].message).toBe('and another thing')
     })
     it('uses [Other] for unrecognized category', () => {
       const values = ['[Foo] we did a thing!']
 
       const result = parseReleaseEntries(values)
 
-      expect(result.length).to.equal(1)
-      expect(result[0].kind).to.equal('other')
-      expect(result[0].message).to.equal('we did a thing!')
+      expect(result.length).toBe(1)
+      expect(result[0].kind).toBe('other')
+      expect(result[0].message).toBe('we did a thing!')
     })
   })
 
@@ -67,13 +65,13 @@ describe('release-notes', () => {
       }
 
       const result = getReleaseSummary(oneOhEleveRelease)
-      expect(result.latestVersion).to.equal('1.0.11')
+      expect(result.latestVersion).toBe('1.0.11')
       // the generated date here is local time, so it might either be the 5th or 6th
       // let's just test it's showing the right month and year instead
-      expect(result.datePublished).contains('December')
-      expect(result.datePublished).contains('2017')
-      expect(result.bugfixes.length).to.equal(8)
-      expect(result.enhancements.length).to.equal(12)
+      expect(result.datePublished).toContain('December')
+      expect(result.datePublished).toContain('2017')
+      expect(result.bugfixes.length).toBe(8)
+      expect(result.enhancements.length).toBe(12)
     })
 
     it('can render 1.0.10 layout', () => {
@@ -112,13 +110,13 @@ describe('release-notes', () => {
       }
 
       const result = getReleaseSummary(oneOhTenRelease)
-      expect(result.latestVersion).to.equal('1.0.10')
+      expect(result.latestVersion).toBe('1.0.10')
       // the generated date here is local time, so it might either be the 5th or 6th
       // let's just test it's showing the right month and year instead
-      expect(result.datePublished).contains('December')
-      expect(result.datePublished).contains('2017')
-      expect(result.bugfixes.length).to.equal(10)
-      expect(result.enhancements.length).to.equal(16)
+      expect(result.datePublished).toContain('December')
+      expect(result.datePublished).toContain('2017')
+      expect(result.bugfixes.length).toBe(10)
+      expect(result.enhancements.length).toBe(16)
     })
 
     it('can render 1.0.9 layout', () => {
@@ -139,13 +137,13 @@ describe('release-notes', () => {
       }
 
       const result = getReleaseSummary(oneOhNineRelease)
-      expect(result.latestVersion).to.equal('1.0.9')
+      expect(result.latestVersion).toBe('1.0.9')
       // the generated date here is local time, so it might either be the 5th or 6th
       // let's just test it's showing the right month and year instead
-      expect(result.datePublished).contains('November')
-      expect(result.datePublished).contains('2017')
-      expect(result.bugfixes.length).to.equal(4)
-      expect(result.enhancements.length).to.equal(4)
+      expect(result.datePublished).toContain('November')
+      expect(result.datePublished).toContain('2017')
+      expect(result.bugfixes.length).toBe(4)
+      expect(result.enhancements.length).toBe(4)
     })
   })
 })

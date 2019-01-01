@@ -1,5 +1,3 @@
-import { expect } from 'chai'
-
 import {
   groupRepositories,
   YourRepositoriesIdentifier,
@@ -75,25 +73,25 @@ describe('clone repository grouping', () => {
     ]
 
     const grouped = groupRepositories(repositories, 'shiftkey')
-    expect(grouped.length).to.equal(3)
+    expect(grouped.length).toBe(3)
 
-    expect(grouped[0].identifier).to.equal(YourRepositoriesIdentifier)
-    expect(grouped[0].items.length).to.equal(1)
+    expect(grouped[0].identifier).toBe(YourRepositoriesIdentifier)
+    expect(grouped[0].items.length).toBe(1)
 
     let item = grouped[0].items[0]
-    expect(item.name).to.equal('some-repo')
+    expect(item.name).toBe('some-repo')
 
-    expect(grouped[1].identifier).to.equal('desktop')
-    expect(grouped[1].items.length).to.equal(1)
+    expect(grouped[1].identifier).toBe('desktop')
+    expect(grouped[1].items.length).toBe(1)
 
     item = grouped[1].items[0]
-    expect(item.name).to.equal('desktop')
+    expect(item.name).toBe('desktop')
 
     item = grouped[2].items[0]
-    expect(grouped[2].identifier).to.equal('octokit')
-    expect(grouped[2].items.length).to.equal(1)
+    expect(grouped[2].identifier).toBe('octokit')
+    expect(grouped[2].items.length).toBe(1)
 
     item = grouped[2].items[0]
-    expect(item.name).to.equal('octokit.net')
+    expect(item.name).toBe('octokit.net')
   })
 })
