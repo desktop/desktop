@@ -48,7 +48,7 @@ describe('parseMergeResult', () => {
     expect(result.kind).toBe(MergeResultKind.Clean)
 
     const mergeResult = result as IMergeSuccess
-    expect(mergeResult.entries.length).toBe(21)
+    expect(mergeResult.entries).toHaveLength(21)
     mergeResult.entries.forEach(e => {
       expect(e.diff).not.toBe('')
     })

@@ -30,22 +30,22 @@ describe('repository list grouping', () => {
 
   it('groups repositories by GitHub/Enterprise/Other', () => {
     const grouped = groupRepositories(repositories, cache)
-    expect(grouped.length).toBe(3)
+    expect(grouped).toHaveLength(3)
 
     expect(grouped[0].identifier).toBe('github')
-    expect(grouped[0].items.length).toBe(1)
+    expect(grouped[0].items).toHaveLength(1)
 
     let item = grouped[0].items[0]
     expect(item.repository.path).toBe('repo2')
 
     expect(grouped[1].identifier).toBe('enterprise')
-    expect(grouped[1].items.length).toBe(1)
+    expect(grouped[1].items).toHaveLength(1)
 
     item = grouped[1].items[0]
     expect(item.repository.path).toBe('repo3')
 
     expect(grouped[2].identifier).toBe('other')
-    expect(grouped[2].items.length).toBe(1)
+    expect(grouped[2].items).toHaveLength(1)
 
     item = grouped[2].items[0]
     expect(item.repository.path).toBe('repo1')
@@ -72,17 +72,17 @@ describe('repository list grouping', () => {
       [repoC, repoB, repoZ, repoD, repoA],
       cache
     )
-    expect(grouped.length).toBe(2)
+    expect(grouped).toHaveLength(2)
 
     expect(grouped[0].identifier).toBe('github')
-    expect(grouped[0].items.length).toBe(2)
+    expect(grouped[0].items).toHaveLength(2)
 
     let items = grouped[0].items
     expect(items[0].repository.path).toBe('b')
     expect(items[1].repository.path).toBe('d')
 
     expect(grouped[1].identifier).toBe('other')
-    expect(grouped[1].items.length).toBe(3)
+    expect(grouped[1].items).toHaveLength(3)
 
     items = grouped[1].items
     expect(items[0].repository.path).toBe('a')
@@ -123,10 +123,10 @@ describe('repository list grouping', () => {
     )
 
     const grouped = groupRepositories([repoA, repoB, repoC], cache)
-    expect(grouped.length).toBe(1)
+    expect(grouped).toHaveLength(1)
 
     expect(grouped[0].identifier).toBe('github')
-    expect(grouped[0].items.length).toBe(3)
+    expect(grouped[0].items).toHaveLength(3)
 
     const items = grouped[0].items
     expect(items[0].text[0]).toBe('cool-repo')

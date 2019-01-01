@@ -32,7 +32,7 @@ describe('Branches grouping', () => {
       allBranches,
       recentBranches
     )
-    expect(groups.length).toBe(3)
+    expect(groups).toHaveLength(3)
 
     expect(groups[0].identifier).toBe('default')
     let items = groups[0].items

@@ -29,7 +29,7 @@ describe('git/refs', () => {
     it('does not resolve a missing ref', async () => {
       const repo = await setupEmptyRepository()
       const ref = await getSymbolicRef(repo, 'FOO')
-      expect(ref).toBeNull
+      expect(ref).toBeNull()
     })
   })
 })

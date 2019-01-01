@@ -27,7 +27,7 @@ describe('git/reset', () => {
       await reset(repository!, GitResetMode.Hard, 'HEAD')
 
       const status = await getStatusOrThrow(repository!)
-      expect(status.workingDirectory.files.length).toBe(0)
+      expect(status.workingDirectory.files).toHaveLength(0)
     })
   })
 
@@ -53,7 +53,7 @@ describe('git/reset', () => {
       )
 
       const status = await getStatusOrThrow(repository!)
-      expect(status.workingDirectory.files.length).toBe(0)
+      expect(status.workingDirectory.files).toHaveLength(0)
     })
   })
 })

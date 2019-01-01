@@ -6,7 +6,7 @@ describe('CommitIdentity', () => {
       const identity = CommitIdentity.parseIdentity(
         'Markus Olsson <markus@github.com> 1475670580 +0200'
       )
-      expect(identity).not.toBeNull
+      expect(identity).not.toBeNull()
 
       expect(identity!.name).toBe('Markus Olsson')
       expect(identity!.email).toBe('markus@github.com')
@@ -29,7 +29,7 @@ describe('CommitIdentity', () => {
       const identity = CommitIdentity.parseIdentity(
         'Markus Olsson <Markus Olsson> 1475670580 +0200'
       )
-      expect(identity).not.toBeNull
+      expect(identity).not.toBeNull()
 
       expect(identity!.name).toBe('Markus Olsson')
       expect(identity!.email).toBe('Markus Olsson')
@@ -40,7 +40,7 @@ describe('CommitIdentity', () => {
       const identity = CommitIdentity.parseIdentity(
         'Markus Olsson <Markus >Olsson> 1475670580 +0200'
       )
-      expect(identity).not.toBeNull
+      expect(identity).not.toBeNull()
 
       expect(identity!.name).toBe('Markus Olsson')
       expect(identity!.email).toBe('Markus >Olsson')

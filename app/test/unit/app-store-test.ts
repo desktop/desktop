@@ -94,7 +94,7 @@ describe('AppStore', () => {
     await appStore._selectRepository(repo)
 
     const state = appStore.getState()
-    expect(state.selectedState).not.toBeNull
+    expect(state.selectedState).not.toBeNull()
     expect(state.selectedState!.repository.path).toBe(repo.path)
   })
 

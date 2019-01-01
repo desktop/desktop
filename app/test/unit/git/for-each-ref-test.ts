@@ -21,7 +21,7 @@ describe('git/for-each-ref', () => {
         b => b.type === BranchType.Local
       )
 
-      expect(branches.length).toBe(3)
+      expect(branches).toHaveLength(3)
 
       const commitWithBody = branches[0]
       expect(commitWithBody.name).toBe('commit-with-long-description')
@@ -31,7 +31,7 @@ describe('git/for-each-ref', () => {
       )
       expect(commitWithBody.tip.summary).toBe('this is a commit title')
       expect(commitWithBody.tip.body).toContain('lucky last')
-      expect(commitWithBody.tip.parentSHAs.length).toBe(1)
+      expect(commitWithBody.tip.parentSHAs).toHaveLength(1)
 
       const commitNoBody = branches[1]
       expect(commitNoBody.name).toBe('commit-with-no-body')
@@ -40,21 +40,21 @@ describe('git/for-each-ref', () => {
         '49ec1e05f39eef8d1ab6200331a028fb3dd96828'
       )
       expect(commitNoBody.tip.summary).toBe('this is a commit title')
-      expect(commitNoBody.tip.body.length).toBe(0)
-      expect(commitNoBody.tip.parentSHAs.length).toBe(1)
+      expect(commitNoBody.tip.body).toHaveLength(0)
+      expect(commitNoBody.tip.parentSHAs).toHaveLength(1)
 
       const master = branches[2]
       expect(master.name).toBe('master')
       expect(master.upstream).toBeNull()
       expect(master.tip.sha).toBe('b9ccfc3307240b86447bca2bd6c51a4bb4ade493')
       expect(master.tip.summary).toBe('stubbed a README')
-      expect(master.tip.parentSHAs.length).toBe(1)
+      expect(master.tip.parentSHAs).toHaveLength(1)
     })
 
     it('should return empty list for empty repo', async () => {
       const repo = await setupEmptyRepository()
       const branches = await getBranches(repo)
-      expect(branches.length).toBe(0)
+      expect(branches).toHaveLength(0)
     })
 
     it('should return empty list for directory without a .git directory', async () => {

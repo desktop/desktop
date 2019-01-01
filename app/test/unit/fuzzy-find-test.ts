@@ -19,27 +19,27 @@ describe('fuzzy find', () => {
   it('should find matching item when searching by pull request number', () => {
     const results = match('4653', items, getText)
 
-    expect(results.length).toBe(1)
+    expect(results).toHaveLength(1)
     expect(results[0].item['text'].join('')).toContain('4653')
   })
 
   it('should find matching item when searching by author', () => {
     const results = match('damaneice', items, getText)
 
-    expect(results.length).toBe(1)
+    expect(results).toHaveLength(1)
     expect(results[0].item['text'].join('')).toContain('damaneice')
   })
 
   it('should find matching item when by title', () => {
     const results = match('awesome feature', items, getText)
 
-    expect(results.length).toBe(1)
+    expect(results).toHaveLength(1)
     expect(results[0].item['text'].join('')).toContain('awesome feature')
   })
 
   it('should find nothing', () => {
     const results = match('$%^', items, getText)
 
-    expect(results.length).toBe(0)
+    expect(results).toHaveLength(0)
   })
 })

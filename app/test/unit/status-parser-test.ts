@@ -14,7 +14,7 @@ describe('parsePorcelainStatus', () => {
       ].join('\0') + '\0'
     ) as ReadonlyArray<IStatusEntry>
 
-    expect(entries.length).toBe(3)
+    expect(entries).toHaveLength(3)
 
     let i = 0
     expect(entries[i].statusCode).toBe('.D')
@@ -37,7 +37,7 @@ describe('parsePorcelainStatus', () => {
       ].join('\0') + '\0'
     ) as ReadonlyArray<IStatusEntry>
 
-    expect(entries.length).toBe(2)
+    expect(entries).toHaveLength(2)
 
     let i = 0
 
@@ -59,7 +59,7 @@ describe('parsePorcelainStatus', () => {
       ['! foo'].join('\0') + '\0'
     ) as ReadonlyArray<IStatusEntry>
 
-    expect(entries.length).toBe(0)
+    expect(entries).toHaveLength(0)
   })
 
   it('parses status headers', () => {
@@ -75,7 +75,7 @@ describe('parsePorcelainStatus', () => {
       ].join('\0') + '\0'
     ) as ReadonlyArray<IStatusHeader>
 
-    expect(entries.length).toBe(4)
+    expect(entries).toHaveLength(4)
 
     let i = 0
 
@@ -92,7 +92,7 @@ describe('parsePorcelainStatus', () => {
       /.DS_Store`
     const entries = parsePorcelainStatus(x) as ReadonlyArray<IStatusEntry>
 
-    expect(entries.length).toBe(1)
+    expect(entries).toHaveLength(1)
 
     expect(entries[0].path)
       .toBe(`ProjectSID/Images.xcassets/iPhone 67/Status Center/Report X68 Y461
@@ -105,7 +105,7 @@ describe('parsePorcelainStatus', () => {
       '1 .T N... 120000 120000 100755 6165716e8b408ad09b51d1a37aa1ef50e7f84376 6165716e8b408ad09b51d1a37aa1ef50e7f84376 pdf_linux-x64/lib/libQt5Core.so.5'
     const entries = parsePorcelainStatus(x) as ReadonlyArray<IStatusEntry>
 
-    expect(entries.length).toBe(1)
+    expect(entries).toHaveLength(1)
 
     expect(entries[0].path).toBe('pdf_linux-x64/lib/libQt5Core.so.5')
     expect(entries[0].statusCode).toBe('.T')

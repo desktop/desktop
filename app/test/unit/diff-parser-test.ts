@@ -53,14 +53,14 @@ index e1d4871..3bd3ee0 100644
 
     const parser = new DiffParser()
     const diff = parser.parse(reinstateSpacesAtTheStartOfBlankLines(diffText))
-    expect(diff.hunks.length).toBe(3)
+    expect(diff.hunks).toHaveLength(3)
 
     let hunk = diff.hunks[0]
     expect(hunk.unifiedDiffStart).toBe(0)
     expect(hunk.unifiedDiffEnd).toBe(7)
 
     let lines = hunk.lines
-    expect(lines.length).toBe(8)
+    expect(lines).toHaveLength(8)
 
     let i = 0
     expect(lines[i].text).toBe(
@@ -106,7 +106,7 @@ index e1d4871..3bd3ee0 100644
     expect(hunk.unifiedDiffEnd).toBe(20)
 
     lines = hunk.lines
-    expect(lines.length).toBe(13)
+    expect(lines).toHaveLength(13)
   })
 
   it('parses new files', () => {
@@ -121,14 +121,14 @@ index 0000000..f13588b
 
     const parser = new DiffParser()
     const diff = parser.parse(diffText)
-    expect(diff.hunks.length).toBe(1)
+    expect(diff.hunks).toHaveLength(1)
 
     const hunk = diff.hunks[0]
     expect(hunk.unifiedDiffStart).toBe(0)
     expect(hunk.unifiedDiffEnd).toBe(1)
 
     const lines = hunk.lines
-    expect(lines.length).toBe(2)
+    expect(lines).toHaveLength(2)
 
     let i = 0
     expect(lines[i].text).toBe('@@ -0,0 +1 @@')
@@ -156,14 +156,14 @@ index 24219cc..bf711a5 100644
 
     const parser = new DiffParser()
     const diff = parser.parse(diffText)
-    expect(diff.hunks.length).toBe(1)
+    expect(diff.hunks).toHaveLength(1)
 
     const hunk = diff.hunks[0]
     expect(hunk.unifiedDiffStart).toBe(0)
     expect(hunk.unifiedDiffEnd).toBe(2)
 
     const lines = hunk.lines
-    expect(lines.length).toBe(3)
+    expect(lines).toHaveLength(3)
 
     let i = 0
     expect(lines[i].text).toBe('@@ -1 +1 @@')
@@ -198,28 +198,28 @@ index 0000000..faf7da1
 
     const parser = new DiffParser()
     const diff = parser.parse(diffText)
-    expect(diff.hunks.length).toBe(1)
+    expect(diff.hunks).toHaveLength(1)
 
     const hunk = diff.hunks[0]
     expect(hunk.unifiedDiffStart).toBe(0)
     expect(hunk.unifiedDiffEnd).toBe(1)
 
     const lines = hunk.lines
-    expect(lines.length).toBe(2)
+    expect(lines).toHaveLength(2)
 
     let i = 0
     expect(lines[i].text).toBe('@@ -0,0 +1 @@')
     expect(lines[i].type).toBe(DiffLineType.Hunk)
     expect(lines[i].oldLineNumber).toBeNull()
     expect(lines[i].newLineNumber).toBeNull()
-    expect(lines[i].noTrailingNewLine).toBeFalsy
+    expect(lines[i].noTrailingNewLine).toBeFalsy()
     i++
 
     expect(lines[i].text).toBe('+asdasdasd')
     expect(lines[i].type).toBe(DiffLineType.Add)
     expect(lines[i].oldLineNumber).toBeNull()
     expect(lines[i].newLineNumber).toBe(1)
-    expect(lines[i].noTrailingNewLine).toBeTruthy
+    expect(lines[i].noTrailingNewLine).toBeTruthy()
     i++
   })
 
@@ -235,35 +235,35 @@ index 1910281..257cc56 100644
 `
     const parser = new DiffParser()
     const diff = parser.parse(diffText)
-    expect(diff.hunks.length).toBe(1)
+    expect(diff.hunks).toHaveLength(1)
 
     const hunk = diff.hunks[0]
     expect(hunk.unifiedDiffStart).toBe(0)
     expect(hunk.unifiedDiffEnd).toBe(2)
 
     const lines = hunk.lines
-    expect(lines.length).toBe(3)
+    expect(lines).toHaveLength(3)
 
     let i = 0
     expect(lines[i].text).toBe('@@ -1 +1 @@')
     expect(lines[i].type).toBe(DiffLineType.Hunk)
     expect(lines[i].oldLineNumber).toBeNull()
     expect(lines[i].newLineNumber).toBeNull()
-    expect(lines[i].noTrailingNewLine).toBeFalsy
+    expect(lines[i].noTrailingNewLine).toBeFalsy()
     i++
 
     expect(lines[i].text).toBe('-foo')
     expect(lines[i].type).toBe(DiffLineType.Delete)
     expect(lines[i].oldLineNumber).toBe(1)
     expect(lines[i].newLineNumber).toBeNull()
-    expect(lines[i].noTrailingNewLine).toBeTruthy
+    expect(lines[i].noTrailingNewLine).toBeTruthy()
     i++
 
     expect(lines[i].text).toBe('+foo')
     expect(lines[i].type).toBe(DiffLineType.Add)
     expect(lines[i].oldLineNumber).toBeNull()
     expect(lines[i].newLineNumber).toBe(1)
-    expect(lines[i].noTrailingNewLine).toBeFalsy
+    expect(lines[i].noTrailingNewLine).toBeFalsy()
     i++
   })
 
@@ -284,35 +284,35 @@ index 1910281..ba0e162 100644
 `
     const parser = new DiffParser()
     const diff = parser.parse(diffText)
-    expect(diff.hunks.length).toBe(1)
+    expect(diff.hunks).toHaveLength(1)
 
     const hunk = diff.hunks[0]
     expect(hunk.unifiedDiffStart).toBe(0)
     expect(hunk.unifiedDiffEnd).toBe(2)
 
     const lines = hunk.lines
-    expect(lines.length).toBe(3)
+    expect(lines).toHaveLength(3)
 
     let i = 0
     expect(lines[i].text).toBe('@@ -1 +1 @@')
     expect(lines[i].type).toBe(DiffLineType.Hunk)
     expect(lines[i].oldLineNumber).toBeNull()
     expect(lines[i].newLineNumber).toBeNull()
-    expect(lines[i].noTrailingNewLine).toBeFalsy
+    expect(lines[i].noTrailingNewLine).toBeFalsy()
     i++
 
     expect(lines[i].text).toBe('-foo')
     expect(lines[i].type).toBe(DiffLineType.Delete)
     expect(lines[i].oldLineNumber).toBe(1)
     expect(lines[i].newLineNumber).toBeNull()
-    expect(lines[i].noTrailingNewLine).toBeTruthy
+    expect(lines[i].noTrailingNewLine).toBeTruthy()
     i++
 
     expect(lines[i].text).toBe('+bar')
     expect(lines[i].type).toBe(DiffLineType.Add)
     expect(lines[i].oldLineNumber).toBeNull()
     expect(lines[i].newLineNumber).toBe(1)
-    expect(lines[i].noTrailingNewLine).toBeTruthy
+    expect(lines[i].noTrailingNewLine).toBeTruthy()
     i++
   })
 
@@ -324,7 +324,7 @@ Binary files /dev/null and b/IMG_2306.CR2 differ
 `
     const parser = new DiffParser()
     const diff = parser.parse(diffText)
-    expect(diff.hunks.length).toBe(0)
+    expect(diff.hunks).toHaveLength(0)
     expect(diff.isBinary).toBe(true)
   })
 
@@ -338,7 +338,7 @@ index 0000000..e69de29
 
     const parser = new DiffParser()
     const diff = parser.parse(diffText)
-    expect(diff.hunks.length).toBe(0)
+    expect(diff.hunks).toHaveLength(0)
   })
 
   it('parses hunk headers with omitted line counts from new file', () => {
@@ -353,7 +353,7 @@ index 0000000..f13588b
 
     const parser = new DiffParser()
     const diff = parser.parse(diffText)
-    expect(diff.hunks.length).toBe(1)
+    expect(diff.hunks).toHaveLength(1)
 
     const hunk = diff.hunks[0]
     expect(hunk.header.oldStartLine).toBe(0)
@@ -374,7 +374,7 @@ index 0000000..f13588b
 
     const parser = new DiffParser()
     const diff = parser.parse(diffText)
-    expect(diff.hunks.length).toBe(1)
+    expect(diff.hunks).toHaveLength(1)
 
     const hunk = diff.hunks[0]
     expect(hunk.header.oldStartLine).toBe(1)

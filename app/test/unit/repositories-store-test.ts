@@ -28,7 +28,7 @@ describe('RepositoriesStore', () => {
       await repositoriesStore!.addRepository('/some/other/path')
 
       const repositories = await repositoriesStore!.getAll()
-      expect(repositories.length).toBe(2)
+      expect(repositories).toHaveLength(2)
     })
   })
 

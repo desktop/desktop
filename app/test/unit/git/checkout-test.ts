@@ -170,7 +170,7 @@ describe('git/checkout', () => {
 
       const status = await getStatusOrThrow(repository)
 
-      expect(status.workingDirectory.files.length).toBe(0)
+      expect(status.workingDirectory.files).toHaveLength(0)
     })
 
     it('updates a changed submodule reference', async () => {
@@ -193,7 +193,7 @@ describe('git/checkout', () => {
       await checkoutBranch(repository, null, devBranch)
 
       const status = await getStatusOrThrow(repository)
-      expect(status.workingDirectory.files.length).toBe(0)
+      expect(status.workingDirectory.files).toHaveLength(0)
     })
   })
 })

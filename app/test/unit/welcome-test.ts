@@ -12,22 +12,22 @@ describe('Welcome', () => {
     })
 
     it('defaults to false when no value found', () => {
-      expect(hasShownWelcomeFlow()).toBeFalsy
+      expect(hasShownWelcomeFlow()).toBeFalsy()
     })
 
     it('returns false for some non-numeric value', () => {
       localStorage.setItem(key, 'a')
-      expect(hasShownWelcomeFlow()).toBeFalsy
+      expect(hasShownWelcomeFlow()).toBeFalsy()
     })
 
     it('returns false when zero found', () => {
       localStorage.setItem(key, '0')
-      expect(hasShownWelcomeFlow()).toBeFalsy
+      expect(hasShownWelcomeFlow()).toBeFalsy()
     })
 
     it('returns true when one found', () => {
       localStorage.setItem(key, '1')
-      expect(hasShownWelcomeFlow()).toBeTruthy
+      expect(hasShownWelcomeFlow()).toBeTruthy()
     })
   })
 

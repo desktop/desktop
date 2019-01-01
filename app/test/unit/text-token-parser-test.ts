@@ -15,7 +15,7 @@ describe('Tokenizer', () => {
       const text = 'this is a string without anything interesting'
       const tokenizer = new Tokenizer(emoji)
       const results = tokenizer.tokenize(text)
-      expect(results.length).toBe(1)
+      expect(results).toHaveLength(1)
       expect(results[0].kind).toBe(TokenType.Text)
       expect(results[0].text).toBe(text)
     })
@@ -24,7 +24,7 @@ describe('Tokenizer', () => {
       const text = "let's :shipit: this thing"
       const tokenizer = new Tokenizer(emoji)
       const results = tokenizer.tokenize(text)
-      expect(results.length).toBe(3)
+      expect(results).toHaveLength(3)
       expect(results[0].kind).toBe(TokenType.Text)
       expect(results[0].text).toBe("let's ")
       expect(results[1].kind).toBe(TokenType.Emoji)
@@ -74,7 +74,7 @@ describe('Tokenizer', () => {
       const text = 'releasing the thing :shipit:'
       const tokenizer = new Tokenizer(emoji, repository)
       const results = tokenizer.tokenize(text)
-      expect(results.length).toBe(2)
+      expect(results).toHaveLength(2)
       expect(results[0].kind).toBe(TokenType.Text)
       expect(results[0].text).toBe('releasing the thing ')
 
@@ -89,7 +89,7 @@ describe('Tokenizer', () => {
       const text = 'releasing the thing :unknown:'
       const tokenizer = new Tokenizer(emoji, repository)
       const results = tokenizer.tokenize(text)
-      expect(results.length).toBe(1)
+      expect(results).toHaveLength(1)
       expect(results[0].kind).toBe(TokenType.Text)
       expect(results[0].text).toBe('releasing the thing :unknown:')
     })
@@ -98,7 +98,7 @@ describe('Tokenizer', () => {
       const text = 'the email address support@github.com should be ignored'
       const tokenizer = new Tokenizer(emoji, repository)
       const results = tokenizer.tokenize(text)
-      expect(results.length).toBe(1)
+      expect(results).toHaveLength(1)
       expect(results[0].kind).toBe(TokenType.Text)
       expect(results[0].text).toBe(
         'the email address support@github.com should be ignored'
@@ -111,7 +111,7 @@ describe('Tokenizer', () => {
 
       const tokenizer = new Tokenizer(emoji, repository)
       const results = tokenizer.tokenize(text)
-      expect(results.length).toBe(2)
+      expect(results).toHaveLength(2)
 
       expect(results[0].kind).toBe(TokenType.Link)
       const mention = results[0] as HyperlinkMatch
@@ -129,7 +129,7 @@ describe('Tokenizer', () => {
 
       const tokenizer = new Tokenizer(emoji, repository)
       const results = tokenizer.tokenize(text)
-      expect(results.length).toBe(2)
+      expect(results).toHaveLength(2)
 
       expect(results[0].kind).toBe(TokenType.Text)
       expect(results[0].text).toBe('fixed based on suggestion from ')
@@ -146,7 +146,7 @@ describe('Tokenizer', () => {
 
       const tokenizer = new Tokenizer(emoji, repository)
       const results = tokenizer.tokenize(text)
-      expect(results.length).toBe(1)
+      expect(results).toHaveLength(1)
 
       expect(results[0].kind).toBe(TokenType.Text)
       expect(results[0].text).toBe('fix double http:// in avatar URLs')
@@ -157,7 +157,7 @@ describe('Tokenizer', () => {
 
       const tokenizer = new Tokenizer(emoji, repository)
       const results = tokenizer.tokenize(text)
-      expect(results.length).toBe(1)
+      expect(results).toHaveLength(1)
 
       expect(results[0].kind).toBe(TokenType.Text)
       expect(results[0].text).toBe('fix double https:// in avatar URLs')
@@ -170,7 +170,7 @@ describe('Tokenizer', () => {
 
       const tokenizer = new Tokenizer(emoji, repository)
       const results = tokenizer.tokenize(text)
-      expect(results.length).toBe(3)
+      expect(results).toHaveLength(3)
 
       expect(results[0].kind).toBe(TokenType.Text)
       expect(results[0].text).toBe('Merge pull request ')
@@ -192,7 +192,7 @@ describe('Tokenizer', () => {
 
       const tokenizer = new Tokenizer(emoji, repository)
       const results = tokenizer.tokenize(text)
-      expect(results.length).toBe(3)
+      expect(results).toHaveLength(3)
 
       expect(results[0].kind).toBe(TokenType.Text)
       expect(results[0].text).toBe('Update README.md (')
@@ -214,7 +214,7 @@ describe('Tokenizer', () => {
 
       const tokenizer = new Tokenizer(emoji, repository)
       const results = tokenizer.tokenize(text)
-      expect(results.length).toBe(5)
+      expect(results).toHaveLength(5)
 
       expect(results[0].kind).toBe(TokenType.Text)
       expect(results[0].text).toBe(
@@ -252,7 +252,7 @@ describe('Tokenizer', () => {
 
       const tokenizer = new Tokenizer(emoji, repository)
       const results = tokenizer.tokenize(text)
-      expect(results.length).toBe(13)
+      expect(results).toHaveLength(13)
 
       expect(results[0].kind).toBe(TokenType.Text)
       expect(results[0].text).toBe('Assorted changelog typos - ')
@@ -342,7 +342,7 @@ Signed-off-by: Johannes Schindelin <johannes.schindelin@gmx.de>`
       const tokenizer = new Tokenizer(emoji, repository)
       const results = tokenizer.tokenize(text)
 
-      expect(results.length).toBe(3)
+      expect(results).toHaveLength(3)
 
       expect(results[0].kind).toBe(TokenType.Text)
       expect(results[0].text).toBe(expectedBefore)
@@ -365,7 +365,7 @@ Signed-off-by: Johannes Schindelin <johannes.schindelin@gmx.de>`
       const text = 'releasing the thing :shipit:'
       const tokenizer = new Tokenizer(emoji)
       const results = tokenizer.tokenize(text)
-      expect(results.length).toBe(2)
+      expect(results).toHaveLength(2)
       expect(results[0].kind).toBe(TokenType.Text)
       expect(results[0].text).toBe('releasing the thing ')
 
@@ -380,7 +380,7 @@ Signed-off-by: Johannes Schindelin <johannes.schindelin@gmx.de>`
       const text = 'releasing the thing :unknown:'
       const tokenizer = new Tokenizer(emoji)
       const results = tokenizer.tokenize(text)
-      expect(results.length).toBe(1)
+      expect(results).toHaveLength(1)
       expect(results[0].kind).toBe(TokenType.Text)
       expect(results[0].text).toBe(text)
     })
@@ -389,7 +389,7 @@ Signed-off-by: Johannes Schindelin <johannes.schindelin@gmx.de>`
       const text = 'fixed based on suggestion from @shiftkey'
       const tokenizer = new Tokenizer(emoji)
       const results = tokenizer.tokenize(text)
-      expect(results.length).toBe(1)
+      expect(results).toHaveLength(1)
       expect(results[0].kind).toBe(TokenType.Text)
       expect(results[0].text).toBe(text)
     })
@@ -399,7 +399,7 @@ Signed-off-by: Johannes Schindelin <johannes.schindelin@gmx.de>`
         'Merge pull request #955 from desktop/computering-icons-for-all'
       const tokenizer = new Tokenizer(emoji)
       const results = tokenizer.tokenize(text)
-      expect(results.length).toBe(1)
+      expect(results).toHaveLength(1)
       expect(results[0].kind).toBe(TokenType.Text)
       expect(results[0].text).toBe(text)
     })
@@ -422,7 +422,7 @@ Signed-off-by: Johannes Schindelin <johannes.schindelin@gmx.de>`
 
       // other tests are looking at the newline formatting here
       // let's just verify the URL conversion works
-      expect(results.length).toBe(3)
+      expect(results).toHaveLength(3)
 
       expect(results[1].kind).toBe(TokenType.Link)
       const mention = results[1] as HyperlinkMatch
