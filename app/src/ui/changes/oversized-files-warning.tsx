@@ -99,9 +99,6 @@ export class OversizedFiles extends React.Component<IOversizedFilesProps> {
       this.props.context
     )
 
-    this.props.dispatcher.setCommitMessage(this.props.repository, {
-      summary: '',
-      description: '',
-    })
+    this.props.dispatcher.setCommitMessage(this.props.repository, null)
   }
 }

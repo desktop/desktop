@@ -1073,7 +1073,14 @@ export class GitStore extends BaseStore {
   }
 
   public setCommitMessage(message: ICommitMessage | null): Promise<void> {
-    this._commitMessage = message
+    this._commitMessage =
+      message === null
+        ? {
+            summary: '',
+            description: '',
+          }
+        : message
+
     this.emitUpdate()
     return Promise.resolve()
   }

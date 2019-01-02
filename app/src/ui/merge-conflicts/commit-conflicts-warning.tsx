@@ -40,10 +40,7 @@ export class CommitConflictsWarning extends React.Component<
       this.props.context
     )
     this.props.dispatcher.clearMergeConflictsBanner()
-    this.props.dispatcher.setCommitMessage(this.props.repository, {
-      summary: '',
-      description: '',
-    })
+    this.props.dispatcher.setCommitMessage(this.props.repository, null)
   }
 
   private renderFiles(files: ReadonlyArray<WorkingDirectoryFileChange>) {
