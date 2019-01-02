@@ -133,9 +133,9 @@ describe('repository list grouping', () => {
     expect(items[0].needsDisambiguation).toBeFalsy()
 
     expect(items[1].text[0]).toBe('repo')
-    expect(items[1].needsDisambiguation).toBeTruthy()
+    expect(items[1].needsDisambiguation).toBe(true)
 
     expect(items[2].text[0]).toBe('repo')
-    expect(items[2].needsDisambiguation).toBeTruthy()
+    expect(items[2].needsDisambiguation).toBe(true)
   })
 })

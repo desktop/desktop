@@ -54,7 +54,7 @@ describe('git/checkout', () => {
       expect(error.message).toBe('fatal: invalid reference: ..\n')
     }
 
-    expect(errorRaised).toBeTruthy()
+    expect(errorRaised).toBe(true)
   })
 
   it('can checkout a valid branch name in an existing repository', async () => {
@@ -145,7 +145,7 @@ describe('git/checkout', () => {
       expect(error.message).toBe('A branch with that name already exists.')
     }
 
-    expect(errorRaised).toBeTruthy()
+    expect(errorRaised).toBe(true)
   })
 
   describe('with submodules', () => {

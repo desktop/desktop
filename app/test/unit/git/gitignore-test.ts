@@ -97,7 +97,7 @@ describe('gitignore', () => {
 
       const exists = await FSE.pathExists(`${repo.path}/.gitignore`)
 
-      expect(exists).toBeTruthy()
+      expect(exists).toBe(true)
     })
 
     it('deletes gitignore file when no entries provided', async () => {

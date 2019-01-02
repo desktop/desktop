@@ -28,7 +28,7 @@ describe('StatsStore', () => {
       const statsEntry = await statsDb.dailyMeasures.limit(1).first()
 
       expect(statsEntry).not.toBeUndefined()
-      expect(statsEntry!.active).toBeTruthy()
+      expect(statsEntry!.active).toBe(true)
     })
   })
 

@@ -41,7 +41,7 @@ describe('git/core', () => {
         threw = true
       }
 
-      expect(threw).toBeTruthy()
+      expect(threw).toBe(true)
     })
   })
 
@@ -74,7 +74,7 @@ describe('git/core', () => {
         threw = true
       }
 
-      expect(threw).toBeTruthy()
+      expect(threw).toBe(true)
     })
   })
 })

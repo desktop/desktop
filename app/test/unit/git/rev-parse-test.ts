@@ -47,7 +47,7 @@ describe('git/rev-parse', () => {
       const path = await mkdirSync('no-repository-here')
       await GitProcess.exec(['init', '--bare'], path)
       const result = await isBareRepository(path)
-      expect(result).toBeTruthy()
+      expect(result).toBe(true)
     })
 
     it('returns false for empty directory', async () => {
@@ -66,7 +66,7 @@ describe('git/rev-parse', () => {
         errorThrown = true
       }
 
-      expect(errorThrown).toBeTruthy()
+      expect(errorThrown).toBe(true)
     })
   })
 

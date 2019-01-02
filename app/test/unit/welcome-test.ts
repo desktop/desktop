@@ -27,7 +27,7 @@ describe('Welcome', () => {
 
     it('returns true when one found', () => {
       localStorage.setItem(key, '1')
-      expect(hasShownWelcomeFlow()).toBeTruthy()
+      expect(hasShownWelcomeFlow()).toBe(true)
     })
   })
 

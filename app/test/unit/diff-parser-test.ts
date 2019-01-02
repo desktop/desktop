@@ -219,7 +219,7 @@ index 0000000..faf7da1
     expect(lines[i].type).toBe(DiffLineType.Add)
     expect(lines[i].oldLineNumber).toBeNull()
     expect(lines[i].newLineNumber).toBe(1)
-    expect(lines[i].noTrailingNewLine).toBeTruthy()
+    expect(lines[i].noTrailingNewLine).toBe(true)
     i++
   })
 
@@ -256,7 +256,7 @@ index 1910281..257cc56 100644
     expect(lines[i].type).toBe(DiffLineType.Delete)
     expect(lines[i].oldLineNumber).toBe(1)
     expect(lines[i].newLineNumber).toBeNull()
-    expect(lines[i].noTrailingNewLine).toBeTruthy()
+    expect(lines[i].noTrailingNewLine).toBe(true)
     i++
 
     expect(lines[i].text).toBe('+foo')
@@ -305,14 +305,14 @@ index 1910281..ba0e162 100644
     expect(lines[i].type).toBe(DiffLineType.Delete)
     expect(lines[i].oldLineNumber).toBe(1)
     expect(lines[i].newLineNumber).toBeNull()
-    expect(lines[i].noTrailingNewLine).toBeTruthy()
+    expect(lines[i].noTrailingNewLine).toBe(true)
     i++
 
     expect(lines[i].text).toBe('+bar')
     expect(lines[i].type).toBe(DiffLineType.Add)
     expect(lines[i].oldLineNumber).toBeNull()
     expect(lines[i].newLineNumber).toBe(1)
-    expect(lines[i].noTrailingNewLine).toBeTruthy()
+    expect(lines[i].noTrailingNewLine).toBe(true)
     i++
   })
 
