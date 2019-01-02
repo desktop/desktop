@@ -609,7 +609,7 @@ describe('git/commit', () => {
 
       expect(files.length).toEqual(1)
       expect(files[0].path).toContain('first')
-      expect(files[0].status.kind).toEqual(AppFileStatusKind.New)
+      expect(files[0].status.kind).toEqual(AppFileStatusKind.Untracked)
 
       const toCommit = status!.workingDirectory.withIncludeAllFiles(true)
 

@@ -382,7 +382,7 @@ export class CloneRepository extends React.Component<
     if (tab === CloneRepositoryTab.DotCom) {
       this.setState(
         prevState => ({
-          dotComTabState: merge<IGitHubTabState, keyof IBaseTabState>(
+          dotComTabState: merge<IGitHubTabState, K>(
             prevState.dotComTabState,
             state
           ),
@@ -392,7 +392,7 @@ export class CloneRepository extends React.Component<
     } else if (tab === CloneRepositoryTab.Enterprise) {
       this.setState(
         prevState => ({
-          enterpriseTabState: merge<IGitHubTabState, keyof IBaseTabState>(
+          enterpriseTabState: merge<IGitHubTabState, K>(
             prevState.enterpriseTabState,
             state
           ),
@@ -402,10 +402,7 @@ export class CloneRepository extends React.Component<
     } else if (tab === CloneRepositoryTab.Generic) {
       this.setState(
         prevState => ({
-          urlTabState: merge<IUrlTabState, keyof IBaseTabState>(
-            prevState.urlTabState,
-            state
-          ),
+          urlTabState: merge<IUrlTabState, K>(prevState.urlTabState, state),
         }),
         callback
       )

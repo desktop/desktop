@@ -209,7 +209,8 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
 
     if (
       imageDiff.current &&
-      this.props.file.status.kind === AppFileStatusKind.New
+      (this.props.file.status.kind === AppFileStatusKind.New ||
+        this.props.file.status.kind === AppFileStatusKind.Untracked)
     ) {
       return <NewImageDiff current={imageDiff.current} />
     }
@@ -264,7 +265,10 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
 
   private renderText(diff: ITextDiff) {
     if (diff.hunks.length === 0) {
-      if (this.props.file.status.kind === AppFileStatusKind.New) {
+      if (
+        this.props.file.status.kind === AppFileStatusKind.New ||
+        this.props.file.status.kind === AppFileStatusKind.Untracked
+      ) {
         return <div className="panel empty">The file is empty</div>
       }
 

@@ -39,9 +39,9 @@ and leave a blank line before you go into detail, similar to a git commit messag
 
 ## Visibility of AppStore Methods
 
-The [`Dispatcher`](https://github.com/desktop/desktop/blob/master/app/src/lib/dispatcher/dispatcher.ts)
+The [`Dispatcher`](https://github.com/desktop/desktop/blob/development/app/src/lib/dispatcher/dispatcher.ts)
 is the entry point for most interactions with the application which update state,
-and for most usages this work is then delegated to the [`AppStore`](https://github.com/desktop/desktop/blob/master/app/src/lib/stores/app-store.ts).
+and for most usages this work is then delegated to the [`AppStore`](https://github.com/desktop/desktop/blob/development/app/src/lib/stores/app-store.ts).
 Due to this coupling, we need to discourage callers directly manipulating
 specific methods in the `AppStore` unless there's a compelling reason.
 

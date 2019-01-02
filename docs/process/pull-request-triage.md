@@ -75,7 +75,7 @@ Examples of exceptional situations:
   version
 
 - [#4319](https://github.com/desktop/desktop/pull/4319) was a minor packaging
-  change introduced unexpectedly on `master` but would affect everyone when they
+  change introduced unexpectedly on `development` but would affect everyone when they
   updated their local repositories.
 
 These should be called out by the merging person with a `#jolo` - "Josh Only
