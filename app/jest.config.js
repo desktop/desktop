@@ -20,7 +20,16 @@ module.exports = {
     // ignore index files
     '!**/index.ts',
   ],
-  reporters: ['default', 'jest-junit'],
+  reporters: [
+    'default',
+    [
+      'jest-junit',
+      {
+        outputDirectory: '.',
+        outputName: 'junit-unit-tests.xml',
+      },
+    ],
+  ],
   coverageReporters: ['text-summary', 'json', 'html', 'cobertura'],
   globals: {
     'ts-jest': {
