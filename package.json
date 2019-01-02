@@ -7,7 +7,7 @@
   "scripts": {
     "cli": "ts-node --require ./app/test/globals.ts --require ./app/src/cli/dev-commands-global.ts app/src/cli/main.ts",
     "test:integration": "cross-env TEST_ENV=1 ELECTRON_NO_ATTACH_CONSOLE=1 xvfb-maybe --auto-servernum -- jest --config ./app/jest.integration.config.js",
-    "test:unit": "cross-env ELECTRON_RUN_AS_NODE=1 ./node_modules/.bin/electron ./node_modules/jest/bin/jest --detectOpenHandles --silent --config ./app/jest.config.js",
+    "test:unit": "cross-env ELECTRON_RUN_AS_NODE=1 ./node_modules/.bin/electron ./node_modules/jest/bin/jest --detectOpenHandles --silent --config ./app/jest.unit.config.js",
     "test:unit:cov": "yarn test:unit --coverage",
     "test:script": "jest --silent --config ./script/jest.config.js",
     "test:script:cov": "yarn test:script --coverage",
