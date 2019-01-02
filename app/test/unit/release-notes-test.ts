@@ -10,7 +10,7 @@ describe('release-notes', () => {
 
       const result = parseReleaseEntries(values)
 
-      expect(result.length).toBe(1)
+      expect(result).toHaveLength(1)
       expect(result[0].kind).toBe('fixed')
       expect(result[0].message).toBe('something else')
     })
@@ -19,7 +19,7 @@ describe('release-notes', () => {
 
       const result = parseReleaseEntries(values)
 
-      expect(result.length).toBe(1)
+      expect(result).toHaveLength(1)
       expect(result[0].kind).toBe('fixed')
       expect(result[0].message).toBe('and another thing')
     })
@@ -28,7 +28,7 @@ describe('release-notes', () => {
 
       const result = parseReleaseEntries(values)
 
-      expect(result.length).toBe(1)
+      expect(result).toHaveLength(1)
       expect(result[0].kind).toBe('other')
       expect(result[0].message).toBe('we did a thing!')
     })
@@ -70,8 +70,8 @@ describe('release-notes', () => {
       // let's just test it's showing the right month and year instead
       expect(result.datePublished).toContain('December')
       expect(result.datePublished).toContain('2017')
-      expect(result.bugfixes.length).toBe(8)
-      expect(result.enhancements.length).toBe(12)
+      expect(result.bugfixes).toHaveLength(8)
+      expect(result.enhancements).toHaveLength(12)
     })
 
     it('can render 1.0.10 layout', () => {
@@ -115,8 +115,8 @@ describe('release-notes', () => {
       // let's just test it's showing the right month and year instead
       expect(result.datePublished).toContain('December')
       expect(result.datePublished).toContain('2017')
-      expect(result.bugfixes.length).toBe(10)
-      expect(result.enhancements.length).toBe(16)
+      expect(result.bugfixes).toHaveLength(10)
+      expect(result.enhancements).toHaveLength(16)
     })
 
     it('can render 1.0.9 layout', () => {
@@ -142,8 +142,8 @@ describe('release-notes', () => {
       // let's just test it's showing the right month and year instead
       expect(result.datePublished).toContain('November')
       expect(result.datePublished).toContain('2017')
-      expect(result.bugfixes.length).toBe(4)
-      expect(result.enhancements.length).toBe(4)
+      expect(result.bugfixes).toHaveLength(4)
+      expect(result.enhancements).toHaveLength(4)
     })
   })
 })

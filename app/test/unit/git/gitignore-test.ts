@@ -132,7 +132,7 @@ describe('gitignore', () => {
       const status = await getStatusOrThrow(repo)
       const files = status.workingDirectory.files
 
-      expect(files.length).toBe(0)
+      expect(files).toHaveLength(0)
     })
   })
 

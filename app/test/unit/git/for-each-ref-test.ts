@@ -60,7 +60,7 @@ describe('git/for-each-ref', () => {
     it('should return empty list for directory without a .git directory', async () => {
       const repo = setupEmptyDirectory()
       const status = await getBranches(repo)
-      expect(status).toEqual([])
+      expect(status).toHaveLength(0)
     })
   })
 })

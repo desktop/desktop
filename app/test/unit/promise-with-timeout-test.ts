@@ -14,7 +14,7 @@ describe('promiseWithMinimumTimeout', () => {
 
     // promise completes
     jest.advanceTimersByTime(250)
-    expect(resolveMock.mock.calls.length).toBe(1)
+    expect(resolveMock.mock.calls).toHaveLength(1)
 
     // timeout completes
     jest.advanceTimersByTime(250)
@@ -52,11 +52,11 @@ describe('promiseWithMinimumTimeout', () => {
 
     // timeout completes
     jest.advanceTimersByTime(500)
-    expect(resolveMock.mock.calls.length).toBe(0)
+    expect(resolveMock.mock.calls).toHaveLength(0)
 
     // promise completes
     jest.advanceTimersByTime(500)
-    expect(resolveMock.mock.calls.length).toBe(1)
+    expect(resolveMock.mock.calls).toHaveLength(1)
 
     const result = await promise
 

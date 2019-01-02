@@ -14,7 +14,7 @@ describe('git/submodule', () => {
       const testRepoPath = await setupFixtureRepository('submodule-basic-setup')
       const repository = new Repository(testRepoPath, -1, null, false)
       const result = await listSubmodules(repository)
-      expect(result.length).toBe(1)
+      expect(result).toHaveLength(1)
       expect(result[0].sha).toBe('c59617b65080863c4ca72c1f191fa1b423b92223')
       expect(result[0].path).toBe('foo/submodule')
       expect(result[0].describe).toBe('first-tag~2')
@@ -39,7 +39,7 @@ describe('git/submodule', () => {
       await checkoutBranch(submoduleRepository, null, branches[0])
 
       const result = await listSubmodules(repository)
-      expect(result.length).toBe(1)
+      expect(result).toHaveLength(1)
       expect(result[0].sha).toBe('14425bb2a4ee361af7f789a81b971f8466ae521d')
       expect(result[0].path).toBe('foo/submodule')
       expect(result[0].describe).toBe('heads/feature-branch')
