@@ -12,17 +12,17 @@ describe('Welcome', () => {
     })
 
     it('defaults to false when no value found', () => {
-      expect(hasShownWelcomeFlow()).toBeFalsy()
+      expect(hasShownWelcomeFlow()).toBe(false)
     })
 
     it('returns false for some non-numeric value', () => {
       localStorage.setItem(key, 'a')
-      expect(hasShownWelcomeFlow()).toBeFalsy()
+      expect(hasShownWelcomeFlow()).toBe(false)
     })
 
     it('returns false when zero found', () => {
       localStorage.setItem(key, '0')
-      expect(hasShownWelcomeFlow()).toBeFalsy()
+      expect(hasShownWelcomeFlow()).toBe(false)
     })
 
     it('returns true when one found', () => {

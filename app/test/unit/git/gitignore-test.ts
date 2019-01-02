@@ -111,7 +111,7 @@ describe('gitignore', () => {
       await saveGitIgnore(repo, '')
 
       const exists = await FSE.pathExists(ignoreFile)
-      expect(exists).toBeFalsy()
+      expect(exists).toBe(false)
     })
 
     it('applies rule correctly to repository', async () => {

@@ -59,7 +59,7 @@ describe('git/core', () => {
         threw = true
       }
 
-      expect(threw).toBeFalsy()
+      expect(threw).toBe(false)
     })
 
     it('throws for exit codes that were not expected', async () => {

@@ -212,7 +212,7 @@ index 0000000..faf7da1
     expect(lines[i].type).toBe(DiffLineType.Hunk)
     expect(lines[i].oldLineNumber).toBeNull()
     expect(lines[i].newLineNumber).toBeNull()
-    expect(lines[i].noTrailingNewLine).toBeFalsy()
+    expect(lines[i].noTrailingNewLine).toBe(false)
     i++
 
     expect(lines[i].text).toBe('+asdasdasd')
@@ -249,7 +249,7 @@ index 1910281..257cc56 100644
     expect(lines[i].type).toBe(DiffLineType.Hunk)
     expect(lines[i].oldLineNumber).toBeNull()
     expect(lines[i].newLineNumber).toBeNull()
-    expect(lines[i].noTrailingNewLine).toBeFalsy()
+    expect(lines[i].noTrailingNewLine).toBe(false)
     i++
 
     expect(lines[i].text).toBe('-foo')
@@ -263,7 +263,7 @@ index 1910281..257cc56 100644
     expect(lines[i].type).toBe(DiffLineType.Add)
     expect(lines[i].oldLineNumber).toBeNull()
     expect(lines[i].newLineNumber).toBe(1)
-    expect(lines[i].noTrailingNewLine).toBeFalsy()
+    expect(lines[i].noTrailingNewLine).toBe(false)
     i++
   })
 
@@ -298,7 +298,7 @@ index 1910281..ba0e162 100644
     expect(lines[i].type).toBe(DiffLineType.Hunk)
     expect(lines[i].oldLineNumber).toBeNull()
     expect(lines[i].newLineNumber).toBeNull()
-    expect(lines[i].noTrailingNewLine).toBeFalsy()
+    expect(lines[i].noTrailingNewLine).toBe(false)
     i++
 
     expect(lines[i].text).toBe('-foo')

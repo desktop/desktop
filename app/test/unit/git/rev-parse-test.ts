@@ -40,7 +40,7 @@ describe('git/rev-parse', () => {
     it('returns false for default initialized repository', async () => {
       const repository = await setupEmptyRepository()
       const result = await isBareRepository(repository.path)
-      expect(result).toBeFalsy()
+      expect(result).toBe(false)
     })
 
     it('returns true for initialized bare repository', async () => {
@@ -53,7 +53,7 @@ describe('git/rev-parse', () => {
     it('returns false for empty directory', async () => {
       const path = await mkdirSync('no-actual-repository-here')
       const result = await isBareRepository(path)
-      expect(result).toBeFalsy()
+      expect(result).toBe(false)
     })
 
     it('throws error for missing directory', async () => {

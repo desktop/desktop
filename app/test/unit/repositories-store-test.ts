@@ -68,7 +68,7 @@ describe('RepositoriesStore', () => {
       const repositories = await repositoriesStore!.getAll()
       const repo = repositories[0]
       expect(repo.gitHubRepository!.private).toBe(true)
-      expect(repo.gitHubRepository!.fork).toBeFalsy()
+      expect(repo.gitHubRepository!.fork).toBe(false)
       expect(repo.gitHubRepository!.htmlURL).toBe(
         'https://github.com/my-user/my-repo'
       )

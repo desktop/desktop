@@ -130,7 +130,7 @@ describe('repository list grouping', () => {
 
     const items = grouped[0].items
     expect(items[0].text[0]).toBe('cool-repo')
-    expect(items[0].needsDisambiguation).toBeFalsy()
+    expect(items[0].needsDisambiguation).toBe(false)
 
     expect(items[1].text[0]).toBe('repo')
     expect(items[1].needsDisambiguation).toBe(true)
