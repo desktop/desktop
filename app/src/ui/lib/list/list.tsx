@@ -735,9 +735,6 @@ export class List extends React.Component<IListProps, IListState> {
     }
     this.scrollToRow = -1
 
-    const scrollTop =
-      this.props.setScrollTop !== undefined ? this.props.setScrollTop : 0
-
     // The currently selected list item is focusable but if
     // there's no focused item (and there's items to switch between)
     // the list itself needs to be focusable so that you can reach
@@ -764,7 +761,7 @@ export class List extends React.Component<IListProps, IListState> {
           cellRenderer={this.renderRow}
           onScroll={this.onScroll}
           scrollToRow={scrollToRow}
-          scrollTop={scrollTop}
+          scrollTop={this.props.setScrollTop}
           overscanRowCount={4}
           style={this.gridStyle}
           tabIndex={tabIndex}
