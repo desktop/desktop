@@ -53,7 +53,11 @@ interface IChangesListProps {
     files: ReadonlyArray<WorkingDirectoryFileChange>,
     isDiscardingAllChanges?: boolean
   ) => void
+
+  /** Callback that fires on page scroll to pass the new scrollTop location */
   readonly onChangesListScrolled: (rowNumber: number) => void
+
+  /* The scrollTop of the compareList. It is stored to allow for scroll position persistence */
   readonly changesListScrollTop: number
 
   /**
