@@ -1,5 +1,3 @@
-import { expect, AssertionError } from 'chai'
-
 import * as Path from 'path'
 import * as FSE from 'fs-extra'
 import { GitProcess } from 'dugite'
@@ -96,22 +94,22 @@ describe('AppStore', () => {
     await appStore._selectRepository(repo)
 
     const state = appStore.getState()
-    expect(state.selectedState).is.not.null
-    expect(state.selectedState!.repository.path).to.equal(repo.path)
+    expect(state.selectedState).not.toBeNull()
+    expect(state.selectedState!.repository.path).toBe(repo.path)
   })
 
   describe('undo first commit', () => {
     function getAppState(appStore: AppStore): IRepositoryState {
       const selectedState = appStore.getState().selectedState
       if (selectedState == null) {
-        throw new AssertionError('No selected state for AppStore')
+        throw new Error('No selected state for AppStore')
       }
 
       switch (selectedState.type) {
         case SelectionType.Repository:
           return selectedState.state
         default:
-          throw new AssertionError(
+          throw new Error(
             `Got selected state of type ${
               selectedState.type
             } which is not supported.`
@@ -134,8 +132,8 @@ describe('AppStore', () => {
       await GitProcess.exec(['commit', '-m', 'added file'], repo.path)
 
       firstCommit = await getCommit(repo, 'master')
-      expect(firstCommit).to.not.equal(null)
-      expect(firstCommit!.parentSHAs.length).to.equal(0)
+      expect(firstCommit).not.toBeNull()
+      expect(firstCommit!.parentSHAs).toHaveLength(0)
     })
 
     // This test is failing too often for my liking on Windows.
@@ -160,12 +158,12 @@ describe('AppStore', () => {
       )
 
       let state = getAppState(appStore)
-      expect(state.localCommitSHAs.length).to.equal(1)
+      expect(state.localCommitSHAs).toHaveLength(1)
 
       await appStore._undoCommit(repository, firstCommit!)
 
       state = getAppState(appStore)
-      expect(state.localCommitSHAs).to.be.empty
+      expect(state.localCommitSHAs).toHaveLength(0)
     })
   })
 })
