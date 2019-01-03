@@ -44,7 +44,10 @@ interface ICommitListProps {
   /** Callback to fire to open a given commit on GitHub */
   readonly onViewCommitOnGitHub: (sha: string) => void
 
+  /** Callback that fires on page scroll to pass the new scrollTop location */
   readonly onCompareListScrolled: (rowNumber: number) => void
+
+  /* The scrollTop of the compareList. It is stored to allow for scroll position persistence */
   readonly compareListScrollTop: number
 }
 
