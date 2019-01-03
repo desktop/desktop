@@ -50,8 +50,8 @@ interface IRepositoryViewProps {
 
 interface IRepositoryViewState {
   readonly sidebarHasFocusWithin: boolean
-  readonly changesListScroll: number
-  readonly compareListScroll: number
+  readonly changesListScrollTop: number
+  readonly compareListScrollTop: number
 }
 
 const enum Tab {
@@ -68,17 +68,17 @@ export class RepositoryView extends React.Component<
 
     this.state = {
       sidebarHasFocusWithin: false,
-      changesListScroll: 0,
-      compareListScroll: 0,
+      changesListScrollTop: 0,
+      compareListScrollTop: 0,
     }
   }
 
   private onChangesListScrolled = (rowNumber: number) => {
-    this.setState({ changesListScroll: rowNumber })
+    this.setState({ changesListScrollTop: rowNumber })
   }
 
   private onCompareListScrolled = (rowNumber: number) => {
-    this.setState({ compareListScroll: rowNumber })
+    this.setState({ compareListScrollTop: rowNumber })
   }
 
   private renderChangesBadge(): JSX.Element | null {
@@ -156,7 +156,7 @@ export class RepositoryView extends React.Component<
         externalEditorLabel={this.props.externalEditorLabel}
         onOpenInExternalEditor={this.props.onOpenInExternalEditor}
         onChangesListScrolled={this.onChangesListScrolled}
-        changesListScroll={this.state.changesListScroll}
+        changesListScrollTop={this.state.changesListScrollTop}
       />
     )
   }
@@ -179,7 +179,7 @@ export class RepositoryView extends React.Component<
         onRevertCommit={this.onRevertCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
         onCompareListScrolled={this.onCompareListScrolled}
-        compareListScroll={this.state.compareListScroll}
+        compareListScrollTop={this.state.compareListScrollTop}
       />
     )
   }

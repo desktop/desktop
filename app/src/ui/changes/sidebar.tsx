@@ -66,7 +66,7 @@ interface IChangesSidebarProps {
    */
   readonly onOpenInExternalEditor: (fullPath: string) => void
   readonly onChangesListScrolled: (rowNumber: number) => void
-  readonly changesListScroll: number
+  readonly changesListScrollTop: number
 }
 
 export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
@@ -377,7 +377,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           externalEditorLabel={this.props.externalEditorLabel}
           onOpenInExternalEditor={this.props.onOpenInExternalEditor}
           onChangesListScrolled={this.props.onChangesListScrolled}
-          changesListScroll={this.props.changesListScroll}
+          changesListScrollTop={this.props.changesListScrollTop}
         />
         {this.renderMostRecentLocalCommit()}
       </div>

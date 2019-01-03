@@ -54,7 +54,7 @@ interface IChangesListProps {
     isDiscardingAllChanges?: boolean
   ) => void
   readonly onChangesListScrolled: (rowNumber: number) => void
-  readonly changesListScroll: number
+  readonly changesListScrollTop: number
 
   /**
    * Called to open a file it its default application
@@ -439,7 +439,7 @@ export class ChangesList extends React.Component<
           invalidationProps={this.props.workingDirectory}
           onRowClick={this.props.onRowClick}
           onScroll={this.onScroll}
-          setScrollTop={this.props.changesListScroll}
+          setScrollTop={this.props.changesListScrollTop}
         />
 
         <CommitMessage

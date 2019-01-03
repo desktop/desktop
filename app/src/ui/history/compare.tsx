@@ -43,7 +43,7 @@ interface ICompareSidebarProps {
   readonly onRevertCommit: (commit: Commit) => void
   readonly onViewCommitOnGitHub: (sha: string) => void
   readonly onCompareListScrolled: (rowNumber: number) => void
-  readonly compareListScroll: number
+  readonly compareListScrollTop: number
 }
 
 interface ICompareSidebarState {
@@ -265,7 +265,7 @@ export class CompareSidebar extends React.Component<
         onScroll={this.onScroll}
         emptyListMessage={emptyListMessage}
         onCompareListScrolled={this.props.onCompareListScrolled}
-        compareListScroll={this.props.compareListScroll}
+        compareListScrollTop={this.props.compareListScrollTop}
       />
     )
   }
