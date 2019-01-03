@@ -202,6 +202,17 @@ export class CloneRepository extends React.Component<
     window.removeEventListener('focus', this.onWindowFocus)
   }
 
+  private onDismissed = () => {
+    if (
+      this.props.selectedTab !== CloneRepositoryTab.Generic &&
+      this.state.dotComTabState.filterText.length > 0
+    ) {
+      this.setGitHubTabState({ filterText: '' }, this.props.selectedTab)
+    } else {
+      this.props.onDismissed()
+    }
+  }
+
   public render() {
     const { error } = this.getSelectedTabState()
     return (
@@ -209,7 +220,7 @@ export class CloneRepository extends React.Component<
         className="clone-repository"
         title={__DARWIN__ ? 'Clone a Repository' : 'Clone a repository'}
         onSubmit={this.clone}
-        onDismissed={this.props.onDismissed}
+        onDismissed={this.onDismissed}
         loading={this.state.loading}
       >
         <TabBar

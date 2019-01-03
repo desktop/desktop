@@ -226,7 +226,7 @@ export class MergeConflictsDialog extends React.Component<
       const tooltip = editorButtonTooltip(this.props.resolvedExternalEditor)
 
       content = (
-        <>
+        <div>
           <div className="column-left">
             <PathText path={path} availableWidth={200} />
             <div className="file-conflicts-status">{message}</div>
@@ -239,7 +239,7 @@ export class MergeConflictsDialog extends React.Component<
           >
             {editorButtonString(this.props.resolvedExternalEditor)}
           </Button>
-        </>
+        </div>
       )
     } else {
       content = (
@@ -323,11 +323,11 @@ export class MergeConflictsDialog extends React.Component<
     }
 
     return (
-      <>
+      <div>
         {this.renderUnmergedFilesSummary(conflictedFilesCount)}
         {this.renderUnmergedFiles(unmergedFiles)}
         {this.renderShellLink(this.openThisRepositoryInShell)}
-      </>
+      </div>
     )
   }
 

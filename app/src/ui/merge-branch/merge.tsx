@@ -99,6 +99,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
   }
 
   private onFilterTextChanged = (filterText: string) => {
+    console.log(filterText)
     this.setState({ filterText })
   }
 
@@ -230,6 +231,12 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     return renderDefaultBranch(item, matches, this.props.currentBranch)
   }
 
+  private onDismissed = () => {
+    this.state.filterText.length > 0
+      ? this.setState({ filterText: '' })
+      : this.props.onDismissed()
+  }
+
   public render() {
     const selectedBranch = this.state.selectedBranch
     const currentBranch = this.props.currentBranch
@@ -254,11 +261,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
       40
     )
     return (
-      <Dialog
-        id="merge"
-        onDismissed={this.props.onDismissed}
-        onSubmit={this.merge}
-      >
+      <Dialog id="merge" onDismissed={this.onDismissed} onSubmit={this.merge}>
         <DialogHeader
           title={
             <div className="merge-dialog-header">
