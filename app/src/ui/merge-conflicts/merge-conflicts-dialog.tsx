@@ -327,7 +327,7 @@ export class MergeConflictsDialog extends React.Component<
         {this.renderUnmergedFilesSummary(conflictedFilesCount)}
         {this.renderUnmergedFiles(unmergedFiles)}
         {this.renderShellLink(this.openThisRepositoryInShell)}
-      </>
+      <>
     )
   }
 
