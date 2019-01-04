@@ -22,14 +22,6 @@ describe('<RelativeTime/>', () => {
     return stub
   }
 
-  function asAbsoluteTime(date: Date) {
-    return moment(date).format('lll')
-  }
-
-  function asAbsoluteTimeShort(date: Date) {
-    return moment(date).format('ll')
-  }
-
   beforeEach(() => {
     realDateNow = Date.now.bind(global.Date)
   })
@@ -79,7 +71,8 @@ describe('<RelativeTime/>', () => {
     mockDateNow(fixedDate)
 
     const twoDaysAfter = new Date(fixedDate.getTime() - 20 * DAY)
-    const expectedText = asAbsoluteTimeShort(twoDaysAfter)
+    // this is the short form of the absolute date format
+    const expectedText = moment(twoDaysAfter).format('ll')
 
     const { container } = render(<RelativeTime date={twoDaysAfter} />)
     expect(container.textContent).toBe(expectedText)
@@ -90,7 +83,8 @@ describe('<RelativeTime/>', () => {
     mockDateNow(fixedDate)
 
     const twoDaysAfter = new Date(fixedDate.getTime() + 2 * DAY)
-    const expectedText = asAbsoluteTime(twoDaysAfter)
+    // this is the longer form of the absolute date format
+    const expectedText = moment(twoDaysAfter).format('lll')
 
     const { container } = render(<RelativeTime date={twoDaysAfter} />)
     expect(container.textContent).toBe(expectedText)
