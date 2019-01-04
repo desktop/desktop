@@ -2,6 +2,7 @@ import { IChangesState } from '../../../../src/lib/app-state'
 import { WorkingDirectoryStatus } from '../../../../src/models/status'
 import { merge } from '../../../../src/lib/merge'
 import { IStatusResult } from '../../../../src/lib/git'
+import { DefaultCommitMessage } from '../../../../src/models/commit-message'
 
 export function createState<K extends keyof IChangesState>(
   pick: Pick<IChangesState, K>
@@ -10,7 +11,7 @@ export function createState<K extends keyof IChangesState>(
     workingDirectory: WorkingDirectoryStatus.fromFiles([]),
     selectedFileIDs: [],
     diff: null,
-    commitMessage: null,
+    commitMessage: DefaultCommitMessage,
     showCoAuthoredBy: false,
     coAuthors: [],
     conflictState: null,

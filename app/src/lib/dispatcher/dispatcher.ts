@@ -561,7 +561,7 @@ export class Dispatcher {
    */
   public setCommitMessage(
     repository: Repository,
-    message: ICommitMessage | null
+    message: ICommitMessage
   ): Promise<void> {
     return this.appStore._setCommitMessage(repository, message)
   }
