@@ -232,9 +232,11 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
   }
 
   private onDismissed = () => {
-    this.state.filterText.length > 0
-      ? this.setState({ filterText: '' })
-      : this.props.onDismissed()
+    if (this.state.filterText.length > 0) {
+      this.setState({ filterText: '' })
+    } else {
+      this.props.onDismissed()
+    }
   }
 
   public render() {
