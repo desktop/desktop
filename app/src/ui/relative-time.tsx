@@ -73,11 +73,6 @@ interface IRelativeTimeState {
   readonly relativeText: string
 }
 
-const SECOND = 1000
-const MINUTE = SECOND * 60
-const HOUR = MINUTE * 60
-const DAY = HOUR * 24
-
 // The maximum value that can be used in setInterval or
 // setTimeout without it overflowing (2 ^ 31 - 1). See
 //  http://stackoverflow.com/a/16314807
@@ -100,6 +95,24 @@ export class RelativeTime extends React.Component<
 > {
   private timer: number | null = null
 
+  public static getDerivedStateFromProps(
+    props: IRelativeTimeProps,
+    state: IRelativeTimeState
+  ): IRelativeTimeState | null {
+    const { absoluteText, relativeText } = getRelativeDateInfo(props.date)
+
+    const hasStateChanged =
+      absoluteText !== state.absoluteText || relativeText !== state.relativeText
+
+    if (hasStateChanged) {
+      return {
+        absoluteText,
+        relativeText,
+      }
+    }
+    return null
+  }
+
   public constructor(props: IRelativeTimeProps) {
     super(props)
     this.state = { absoluteText: '', relativeText: '' }
@@ -112,55 +125,34 @@ export class RelativeTime extends React.Component<
     }
   }
 
-  private updateAndSchedule(
-    absoluteText: string,
-    relativeText: string,
-    timeout: number
-  ) {
+  private scheduleTimer(timeout: number) {
     this.clearTimer()
-    this.timer = window.setTimeout(
-      this.updateFromScheduler,
-      Math.min(timeout, MAX_INTERVAL)
-    )
-    this.setState({ absoluteText, relativeText })
+    this.timer = window.setTimeout(() => {
+      const { absoluteText, relativeText } = getRelativeDateInfo(
+        this.props.date
+      )
+
+      this.setState({ absoluteText, relativeText })
+      this.updateTimer()
+    }, Math.min(timeout, MAX_INTERVAL))
   }
 
-  private updateWithDate(date: Date) {
-    const then = moment(date)
-    const now = moment()
-    const diff = then.diff(now)
-    const duration = Math.abs(diff)
-    const absoluteText = then.format('LLLL')
+  private updateTimer() {
+    const { timerDuration } = getRelativeDateInfo(this.props.date)
 
-    // Future date, let's just show as absolute and reschedule. If it's less
-    // than a minute into the future we'll treat it as 'just now'.
-    if (diff > 0 && duration > MINUTE) {
-      this.updateAndSchedule(absoluteText, then.format('lll'), duration)
-    } else if (duration < MINUTE) {
-      this.updateAndSchedule(absoluteText, 'just now', MINUTE - duration)
-    } else if (duration < HOUR) {
-      this.updateAndSchedule(absoluteText, then.from(now), MINUTE)
-    } else if (duration < DAY) {
-      this.updateAndSchedule(absoluteText, then.from(now), HOUR)
-    } else if (duration < 7 * DAY) {
-      this.updateAndSchedule(absoluteText, then.from(now), 6 * HOUR)
-    } else {
-      this.setState({ absoluteText, relativeText: then.format('ll') })
+    if (timerDuration !== null) {
+      this.scheduleTimer(timerDuration)
     }
   }
 
-  private readonly updateFromScheduler = () => {
-    this.updateWithDate(this.props.date)
-  }
-
-  public componentWillReceiveProps(nextProps: IRelativeTimeProps) {
-    if (this.props.date !== nextProps.date) {
-      this.updateWithDate(nextProps.date)
+  public componentDidUpdate(prevProps: IRelativeTimeProps) {
+    if (this.props.date !== prevProps.date) {
+      this.updateTimer()
     }
   }
 
-  public componentWillMount() {
-    this.updateWithDate(this.props.date)
+  public componentDidMount() {
+    this.updateTimer()
   }
 
   public componentWillUnmount() {
