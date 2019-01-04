@@ -11,6 +11,8 @@
     "test:unit:cov": "yarn test:unit --coverage",
     "test:script": "jest --silent --config ./script/jest.config.js",
     "test:script:cov": "yarn test:script --coverage",
+    "test:component": "cross-env ELECTRON_RUN_AS_NODE=1 node_modules/.bin/electron ./node_modules/jest/bin/jest --detectOpenHandles --config ./app/jest.component.config.js",
+    "test:component:cov": "yarn test:component --coverage",
     "test": "yarn test:unit:cov --runInBand && yarn test:script:cov && yarn test:integration",
     "test:setup": "ts-node -P script/tsconfig.json script/test-setup.ts",
     "test:review": "ts-node  -P script/tsconfig.json script/test-review.ts",
