@@ -10,6 +10,8 @@
     "test:unit": "cross-env ELECTRON_RUN_AS_NODE=1 node_modules/.bin/electron ./node_modules/jest/bin/jest --detectOpenHandles --silent --config ./jest.config.js",
     "test:unit:cov": "yarn test:unit --coverage",
     "test:script": "mocha -t 10000 --require ts-node/register script/changelog/test/*.ts --reporter mocha-multi-reporters --reporter-options configFile=./app/test/mochareporters.json",
+    "test:component": "cross-env ELECTRON_RUN_AS_NODE=1 node_modules/.bin/electron ./node_modules/jest/bin/jest --detectOpenHandles --config ./app/jest.component.config.js",
+    "test:component:cov": "yarn test:component --coverage",
     "test": "yarn test:unit:cov --runInBand && yarn test:script && yarn test:integration",
     "test:setup": "ts-node -P script/tsconfig.json script/test-setup.ts",
     "test:review": "ts-node  -P script/tsconfig.json script/test-review.ts",
