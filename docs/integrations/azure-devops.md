@@ -1,21 +1,32 @@
-# Using GitHub Desktop with Visual Studio Team Services
+# Authenticating to Azure DevOps with GitHub Desktop
 
-## Authentication
+## Creating a Personal Access Token in Azure DevOps
 
-To authenticate against Visual Studio Team Services repositories, you need to enable the alternate authentication credentials.
+To authenticate against Azure DevOps repositories you will need to create a personal access token.
 
-- Select **Security** in the user profile's dropdown:
+- Go to your Azure DevOps account and select **Security** in the user profile dropdown:
 
 ![](https://user-images.githubusercontent.com/4404199/29400833-79755fe0-8337-11e7-8cfb-1d346a6801b4.png)
 
-- Select **Alternate authentication credentials**:
+- Select **Personal access tokens** 
 
-![](https://user-images.githubusercontent.com/4404199/29400853-8cc5918c-8337-11e7-92ad-60563d4d49e2.png)
+- Click **New token** to create a new personal access token. Give it a name, select the organizations you would like the token to apply to, and choose when you would like the token to expire.
 
- - Check the **Enable alternate authentication credentials** checkbox, and then choose a suitable username/password:
+    - **Note:** For the **Expiration** dropdown you can select **Custom defined** to select an expiration date up to a year in advance of the         current date. This is useful if you do not want to have to periodically go back and generate a new token after your current token         expires.
 
-![](https://user-images.githubusercontent.com/4404199/29400917-bed11cc8-8337-11e7-9d3e-1bda2e99d519.png)
+ - Under the **Scopes** section choose **Custom defined** and then select **Read & Write** under the **Code** section. This will grant GitHub Desktop read and write access to your Azure DevOps repositories.
 
- - Enter your chosen credentials in Desktop when prompted. You can either use your email or the chosen username to authenticate:
+- Click **Create** to create a new token, and then copy it to your clipboard.
 
+## Cloning your Azure DevOps repository in GitHub Desktop
+
+ - Open GitHub Desktop and go to **File** > **Clone Repository** > **URL**. Enter the Git URL of your Azure DevOps repository. Make sure you enter the correct URL, which should have the following structure:
+ 
+      `https://<username>@dev.azure.com/<username>/<project_name>/_git/<repository_name>`
+ 
+ - You will receive an `Authentication Failed` error. Enter your Azure DevOps username and paste in the token you just copied to your clipboard. Click **Save and Retry** to successfully clone the repository to your local machine in GitHub Desktop.
+ 
 ![](https://user-images.githubusercontent.com/4404199/29401109-8bf03536-8338-11e7-8abb-b467378b6115.png)
+
+ - **Note:** Your Azure DevOps credentials will be securely stored on your local machine so you will not need to repeat this process when cloning another repository from Azure DevOps.
+
