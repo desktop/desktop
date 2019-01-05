@@ -1,0 +1,23 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`<LinkButton/> renders an element with a link 1`] = `
+<div>
+  <a
+    class="link-button-component"
+    href="https://www.google.com/"
+  >
+    this link contains buttons
+  </a>
+</div>
+`;
+
+exports[`<LinkButton/> renders an element without the link 1`] = `
+<div>
+  <a
+    class="link-button-component"
+    href=""
+  >
+    some text goes here
+  </a>
+</div>
+`;
