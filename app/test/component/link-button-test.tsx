@@ -20,7 +20,7 @@ describe('<LinkButton/>', () => {
     expect(container).toMatchSnapshot()
   })
 
-  it(`can click element to trigger callback`, () => {
+  it(`can click and trigger callback`, () => {
     const clickEvent = jest.fn()
     const { getByText } = render(
       <LinkButton onClick={clickEvent}>click me</LinkButton>
@@ -28,5 +28,17 @@ describe('<LinkButton/>', () => {
 
     fireEvent.click(getByText('click me'))
     expect(clickEvent).toHaveBeenCalledTimes(1)
+  })
+
+  it(`does not invoke callback when disabled`, () => {
+    const clickEvent = jest.fn()
+    const { getByText } = render(
+      <LinkButton onClick={clickEvent} disabled={true}>
+        click me
+      </LinkButton>
+    )
+
+    fireEvent.click(getByText('click me'))
+    expect(clickEvent).not.toBeCalled()
   })
 })
