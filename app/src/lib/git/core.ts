@@ -319,7 +319,7 @@ export async function gitNetworkArguments(
   const protocolVersion =
     repository != null
       ? await getConfigValue(repository, name)
-      : getGlobalConfigValue(name)
+      : await getGlobalConfigValue(name)
 
   if (protocolVersion !== null) {
     // protocol.version is already set, we should not override it with our own
