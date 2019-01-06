@@ -419,7 +419,10 @@ export class List extends React.Component<IListProps, IListState> {
   }
 
   private onKeyDown = (event: React.KeyboardEvent<any>) => {
-    if (event.key === 'Enter' || event.key === ' ') {
+    if (
+      !event.defaultPrevented &&
+      (event.key === 'Enter' || event.key === ' ')
+    ) {
       this.toggleSelection(event)
       event.preventDefault()
     }
