@@ -398,7 +398,7 @@ export class List extends React.Component<IListProps, IListState> {
     }
   }
 
-  private onRowKeyDown = (
+  private handleRowKeyDown = (
     rowIndex: number,
     event: React.KeyboardEvent<any>
   ) => {
@@ -418,7 +418,7 @@ export class List extends React.Component<IListProps, IListState> {
     }
   }
 
-  private onKeyDown = (event: React.KeyboardEvent<any>) => {
+  private handleFocusContainerKeyDown = (event: React.KeyboardEvent<any>) => {
     if (
       !event.defaultPrevented &&
       (event.key === 'Enter' || event.key === ' ')
@@ -636,7 +636,7 @@ export class List extends React.Component<IListProps, IListState> {
         selected={selected}
         ariaMode={this.props.ariaMode}
         onRowClick={this.onRowClick}
-        onRowKeyDown={this.onRowKeyDown}
+        onRowKeyDown={this.handleRowKeyDown}
         onRowMouseDown={this.onRowMouseDown}
         onRowMouseOver={this.onRowMouseOver}
         style={params.style}
@@ -742,7 +742,7 @@ export class List extends React.Component<IListProps, IListState> {
     return (
       <FocusContainer
         className="list-focus-container"
-        onKeyDown={this.onKeyDown}
+        onKeyDown={this.handleFocusContainerKeyDown}
       >
         <Grid
           aria-label={''}
