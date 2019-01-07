@@ -360,7 +360,7 @@ export class List extends React.Component<IListProps, IListState> {
     }
   }
 
-  private handleKeyDown = (event: React.KeyboardEvent<any>) => {
+  private onKeyDown = (event: React.KeyboardEvent<any>) => {
     this.props.selectedRows.forEach(row => {
       if (this.props.onRowKeyDown) {
         this.props.onRowKeyDown(row, event)
@@ -681,7 +681,7 @@ export class List extends React.Component<IListProps, IListState> {
         ref={this.onRef}
         id={this.props.id}
         className="list"
-        onKeyDown={this.handleKeyDown}
+        onKeyDown={this.onKeyDown}
         role={role}
         aria-activedescendant={activeDescendant}
       >
