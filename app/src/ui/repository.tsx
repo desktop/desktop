@@ -290,8 +290,24 @@ export class RepositoryView extends React.Component<
       <UiView id="repository" onKeyDown={this.onKeyDown}>
         {this.renderSidebar()}
         {this.renderContent()}
+        <button onClick={this.onClick}>Merged Branches</button>
       </UiView>
     )
+  }
+
+  private onClick = async () => {
+    const { repository, state } = this.props
+    const { defaultBranch } = state.branchesState
+    if (defaultBranch === null) {
+      return
+    }
+
+    const branches = await this.props.dispatcher.getMergedBranches(
+      repository,
+      defaultBranch
+    )
+
+    console.log(branches)
   }
 
   private onRevertCommit = (commit: Commit) => {
