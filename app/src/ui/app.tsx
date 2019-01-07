@@ -1737,6 +1737,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     const foldoutStyle: React.CSSProperties = {
       position: 'absolute',
       marginLeft: 0,
+      width: this.state.sidebarWidth,
       minWidth: this.state.sidebarWidth,
       height: '100%',
       top: 0,
