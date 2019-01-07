@@ -17,6 +17,7 @@ import { assertNever } from './fatal-error'
 export function mapStatus(status: AppFileStatus): string {
   switch (status.kind) {
     case AppFileStatusKind.New:
+    case AppFileStatusKind.Untracked:
       return 'New'
     case AppFileStatusKind.Modified:
       return 'Modified'

@@ -121,10 +121,8 @@ export class CloneableRepositoryFilterList extends React.PureComponent<
    * time the method was called (reference equality).
    */
   private getRepositoryGroups = memoizeOne(
-    (repositories: ReadonlyArray<IAPIRepository> | null) =>
-      this.props.repositories === null
-        ? []
-        : groupRepositories(this.props.repositories, this.props.account.login)
+    (repositories: ReadonlyArray<IAPIRepository> | null, login: string) =>
+      repositories === null ? [] : groupRepositories(repositories, login)
   )
 
   /**
@@ -158,17 +156,16 @@ export class CloneableRepositoryFilterList extends React.PureComponent<
   }
 
   public render() {
-    const groups = this.getRepositoryGroups(this.props.repositories)
-    const selectedItem = this.getSelectedListItem(
-      groups,
-      this.props.selectedItem
-    )
+    const { repositories, account, selectedItem } = this.props
+
+    const groups = this.getRepositoryGroups(repositories, account.login)
+    const selectedListItem = this.getSelectedListItem(groups, selectedItem)
 
     return (
       <FilterList<IClonableRepositoryListItem>
         className="clone-github-repo"
         rowHeight={RowHeight}
-        selectedItem={selectedItem}
+        selectedItem={selectedListItem}
         renderItem={this.renderItem}
         renderGroupHeader={this.renderGroupHeader}
         onSelectionChanged={this.onSelectionChanged}
@@ -278,10 +275,10 @@ export class CloneableRepositoryFilterList extends React.PureComponent<
       <div className="no-items empty-repository-list">
         <div>
           Couldn't find any repositories for the account{' '}
-          <Ref>{this.props.account.login}</Ref> on {endpointName}.
+          <Ref>{this.props.account.login}</Ref> on {endpointName}.{' '}
           <LinkButton onClick={this.refreshRepositories}>
             Refresh the list
-          </LinkButton>
+          </LinkButton>{' '}
           if you've created a repository recently.
         </div>
       </div>

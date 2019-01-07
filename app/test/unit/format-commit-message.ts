@@ -1,5 +1,3 @@
-import { expect } from 'chai'
-
 import { formatCommitMessage } from '../../src/lib/format-commit-message'
 import { setupEmptyRepository } from '../helpers/repositories'
 
@@ -9,31 +7,31 @@ describe('formatCommitMessage', () => {
 
     expect(
       await formatCommitMessage(repo, { summary: 'test', description: null })
-    ).to.equal('test\n')
+    ).toBe('test\n')
     expect(
       await formatCommitMessage(repo, { summary: 'test', description: 'test' })
-    ).to.equal('test\n\ntest\n')
+    ).toBe('test\n\ntest\n')
   })
 
   it('omits description when null', async () => {
     const repo = await setupEmptyRepository()
     expect(
       await formatCommitMessage(repo, { summary: 'test', description: null })
-    ).to.equal('test\n')
+    ).toBe('test\n')
   })
 
   it('omits description when empty string', async () => {
     const repo = await setupEmptyRepository()
     expect(
       await formatCommitMessage(repo, { summary: 'test', description: '' })
-    ).to.equal('test\n')
+    ).toBe('test\n')
   })
 
   it('adds two newlines between summary and description', async () => {
     const repo = await setupEmptyRepository()
     expect(
       await formatCommitMessage(repo, { summary: 'foo', description: 'bar' })
-    ).to.equal('foo\n\nbar\n')
+    ).toBe('foo\n\nbar\n')
   })
 
   it('appends trailers to a summary-only message', async () => {
@@ -48,7 +46,7 @@ describe('formatCommitMessage', () => {
         description: null,
         trailers,
       })
-    ).to.equal(
+    ).toBe(
       'foo\n\n' +
         'Co-Authored-By: Markus Olsson <niik@github.com>\n' +
         'Signed-Off-By: nerdneha <nerdneha@github.com>\n'
@@ -67,7 +65,7 @@ describe('formatCommitMessage', () => {
         description: 'bar',
         trailers,
       })
-    ).to.equal(
+    ).toBe(
       'foo\n\nbar\n\n' +
         'Co-Authored-By: Markus Olsson <niik@github.com>\n' +
         'Signed-Off-By: nerdneha <nerdneha@github.com>\n'
@@ -87,7 +85,7 @@ describe('formatCommitMessage', () => {
         description: 'Co-Authored-By: Markus Olsson <niik@github.com>',
         trailers,
       })
-    ).to.equal(
+    ).toBe(
       'foo\n\n' +
         'Co-Authored-By: Markus Olsson <niik@github.com>\n' +
         'Signed-Off-By: nerdneha <nerdneha@github.com>\n'
@@ -108,7 +106,7 @@ describe('formatCommitMessage', () => {
         description: 'Co-Authored-By:Markus Olsson <niik@github.com>',
         trailers,
       })
-    ).to.equal(
+    ).toBe(
       'foo\n\n' +
         'Co-Authored-By: Markus Olsson <niik@github.com>\n' +
         'Signed-Off-By: nerdneha <nerdneha@github.com>\n'

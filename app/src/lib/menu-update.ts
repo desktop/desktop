@@ -302,7 +302,8 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
 
   return getAllMenusEnabledBuilder()
     .merge(getRepositoryMenuBuilder(state))
-    .merge(getInWelcomeFlowBuilder(state.showWelcomeFlow)).state
+    .merge(getInWelcomeFlowBuilder(state.showWelcomeFlow))
+    .merge(getNoRepositoriesBuilder(state)).state
 }
 
 function getAllMenusEnabledBuilder(): MenuStateBuilder {
@@ -330,6 +331,21 @@ function getInWelcomeFlowBuilder(inWelcomeFlow: boolean): MenuStateBuilder {
   } else {
     for (const id of welcomeScopedIds) {
       menuStateBuilder.enable(id)
+    }
+  }
+
+  return menuStateBuilder
+}
+
+function getNoRepositoriesBuilder(state: IAppState): MenuStateBuilder {
+  const noRepositoriesDisabledIds: ReadonlyArray<MenuIDs> = [
+    'show-repository-list',
+  ]
+
+  const menuStateBuilder = new MenuStateBuilder()
+  if (state.repositories.length === 0) {
+    for (const id of noRepositoriesDisabledIds) {
+      menuStateBuilder.disable(id)
     }
   }
 
