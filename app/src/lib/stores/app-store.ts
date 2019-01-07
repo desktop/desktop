@@ -18,7 +18,6 @@ import {
   Branch,
   eligibleForFastForward,
   IAheadBehind,
-  BranchType,
 } from '../../models/branch'
 import { BranchesTab } from '../../models/branches-tab'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
@@ -4039,37 +4038,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (this.resolvedExternalEditor !== resolvedExternalEditor) {
       this.resolvedExternalEditor = resolvedExternalEditor
       this.emitUpdate()
-    }
-  }
-
-  public async _pruneLocalBranches() {
-    const { repositories } = this.getState()
-
-    for (const repo of repositories) {
-      if (repo instanceof CloningRepository) {
-        continue
-      }
-
-      const repoState = this.getBranchesState(repo)
-
-      if (repoState === undefined) {
-        continue
-      }
-
-      const branches = repoState.allBranches
-
-      // Get remote branches
-      const remoteBranches = branches.filter(
-        branch => branch.type === BranchType.Remote
-      )
-
-      // Get local branches
-      const localBranches = branches.filter(
-        branch => branch.type === BranchType.Local
-      )
-
-      console.dir(remoteBranches)
-      console.dir(localBranches)
     }
   }
 }

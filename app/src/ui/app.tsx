@@ -273,8 +273,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     setInterval(() => this.checkForUpdates(true), UpdateCheckInterval)
     this.checkForUpdates(true)
 
-    setInterval(() => this.pruneStaleBranches(), PruneStaleBranchesInterval)
-
     log.info(`launching: ${getVersion()} (${getOS()})`)
     log.info(`execPath: '${process.execPath}'`)
   }
@@ -2107,10 +2105,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.executeCompare(repository, {
       kind: HistoryTabMode.History,
     })
-  }
-
-  private pruneStaleBranches(): Promise<void> {
-    return this.props.appStore._pruneLocalBranches()
   }
 }
 
