@@ -296,18 +296,8 @@ export class RepositoryView extends React.Component<
   }
 
   private onClick = async () => {
-    const { repository, state } = this.props
-    const { defaultBranch } = state.branchesState
-    if (defaultBranch === null) {
-      return
-    }
-
-    const branches = await this.props.dispatcher.getMergedBranches(
-      repository,
-      defaultBranch
-    )
-
-    console.log(branches)
+    const { repository } = this.props
+    this.props.dispatcher.pruneLocalBranches(repository)
   }
 
   private onRevertCommit = (commit: Commit) => {

@@ -443,11 +443,8 @@ export class Dispatcher {
     return this.appStore._deleteBranch(repository, branch, includeRemote)
   }
 
-  public getMergedBranches(
-    repository: Repository,
-    branch: Branch
-  ): Promise<ReadonlyArray<string>> {
-    return this.appStore._getMergedBranches(repository, branch)
+  public pruneLocalBranches(repository: Repository): Promise<void> {
+    return this.appStore._pruneLocalBranches(repository)
   }
 
   /** Discard the changes to the given files. */
