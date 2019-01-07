@@ -129,6 +129,7 @@ import {
   appendIgnoreRule,
   createMergeCommit,
   getBranchesPointedAt,
+  getMergedBranches,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -2285,6 +2286,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       return this._refreshRepository(r)
     })
+  }
+
+  public async _getMergedBranches(
+    repository: Repository,
+    branch: Branch
+  ): Promise<ReadonlyArray<string>> {
+    const gitStore = this.gitStoreCache.get(repository)
+
+    return (
+      (await gitStore.performFailableOperation(() =>
+        getMergedBranches(repository, branch)
+      )) || []
+    )
   }
 
   private updatePushPullFetchProgress(
