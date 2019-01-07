@@ -169,4 +169,5 @@ export async function getMergedBranches(
     .split('\n')
     .slice(0, -1)
     .map(s => s.trim())
+    .filter(s => s !== branch.name)
 }
