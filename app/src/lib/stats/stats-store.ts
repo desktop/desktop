@@ -37,6 +37,8 @@ const FirstPushToGitHubAtKey = 'first-push-to-github-at'
 const FirstNonDefaultBranchCheckoutAtKey =
   'first-non-default-branch-checkout-at'
 const WelcomeWizardSignInMethodKey = 'welcome-wizard-sign-in-method'
+const terminalEmulatorKey = 'shell'
+const textEditorKey: string = 'externalEditor'
 
 /** How often daily stats should be submitted (i.e., 24 hours). */
 const DailyStatsReportInterval = 1000 * 60 * 60 * 24
@@ -70,6 +72,14 @@ const DefaultDailyMeasures: IDailyMeasures = {
   mergedWithConflictWarningHintCount: 0,
   mergeSuccessAfterConflictsCount: 0,
   mergeAbortedAfterConflictsCount: 0,
+  unattributedCommits: 0,
+  enterpriseCommits: 0,
+  dotcomCommits: 0,
+  mergeConflictsDialogDismissalCount: 0,
+  anyConflictsLeftOnMergeConflictsDialogDismissalCount: 0,
+  mergeConflictsDialogReopenedCount: 0,
+  guidedConflictedMergeCompletionCount: 0,
+  unguidedConflictedMergeCompletionCount: 0,
 }
 
 interface IOnboardingStats {
@@ -220,6 +230,12 @@ interface ICalculatedStats {
    */
   readonly theme: string
 
+  /** The selected terminal emulator at the time of stats submission */
+  readonly selectedTerminalEmulator: string
+
+  /** The selected text editor at the time of stats submission */
+  readonly selectedTextEditor: string
+
   readonly eventType: 'usage'
 }
 
@@ -260,7 +276,7 @@ export class StatsStore implements IStatsStore {
     // If the user has set an opt out value but we haven't sent the ping yet,
     // give it a shot now.
     if (!getBoolean(HasSentOptInPingKey, false)) {
-      this.sendOptInStatusPing(!this.optOut, storedValue)
+      this.sendOptInStatusPing(this.optOut, storedValue)
     }
 
     this.enableUiActivityMonitoring()
@@ -367,6 +383,9 @@ export class StatsStore implements IStatsStore {
     const userType = this.determineUserType(accounts)
     const repositoryCounts = this.categorizedRepositoryCounts(repositories)
     const onboardingStats = this.getOnboardingStats()
+    const selectedTerminalEmulator =
+      localStorage.getItem(terminalEmulatorKey) || 'none'
+    const selectedTextEditor = localStorage.getItem(textEditorKey) || 'none'
 
     return {
       eventType: 'usage',
@@ -374,6 +393,8 @@ export class StatsStore implements IStatsStore {
       osVersion: getOS(),
       platform: process.platform,
       theme: getPersistedThemeName(),
+      selectedTerminalEmulator,
+      selectedTextEditor,
       ...launchStats,
       ...dailyMeasures,
       ...userType,
@@ -604,6 +625,35 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
+  /**
+   * Records that the user made a commit using an email address that
+   * was not associated with the user's account on GitHub.com or GitHub
+   * Enterprise, meaning that the commit will not be attributed to the user's
+   * account.
+   */
+  public recordUnattributedCommit(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      unattributedCommits: m.unattributedCommits + 1,
+    }))
+  }
+
+  /**
+   * Records that the user made a commit to a repository hosted on
+   * a GitHub Enterprise instance
+   */
+  public recordCommitToEnterprise(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      enterpriseCommits: m.enterpriseCommits + 1,
+    }))
+  }
+
+  /** Records that the user made a commit to a repository hosted on GitHub.com */
+  public recordCommitToDotcom(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      dotcomCommits: m.dotcomCommits + 1,
+    }))
+  }
+
   /** Set whether the user has opted out of stats reporting. */
   public async setOptOut(
     optOut: boolean,
@@ -618,7 +668,7 @@ export class StatsStore implements IStatsStore {
     setBoolean(StatsOptOutKey, optOut)
 
     if (changed || userViewedPrompt) {
-      await this.sendOptInStatusPing(!optOut, previousValue)
+      await this.sendOptInStatusPing(optOut, previousValue)
     }
   }
 
@@ -717,6 +767,58 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
+  /**
+   * Increments the `mergeConflictsDialogDismissalCount` metric
+   */
+  public async recordMergeConflictsDialogDismissal(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      mergeConflictsDialogDismissalCount:
+        m.mergeConflictsDialogDismissalCount + 1,
+    }))
+  }
+
+  /**
+   * Increments the `anyConflictsLeftOnMergeConflictsDialogDismissalCount` metric
+   */
+  public async recordAnyConflictsLeftOnMergeConflictsDialogDismissal(): Promise<
+    void
+  > {
+    return this.updateDailyMeasures(m => ({
+      anyConflictsLeftOnMergeConflictsDialogDismissalCount:
+        m.anyConflictsLeftOnMergeConflictsDialogDismissalCount + 1,
+    }))
+  }
+
+  /**
+   * Increments the `mergeConflictsDialogReopenedCount` metric
+   */
+  public async recordMergeConflictsDialogReopened(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      mergeConflictsDialogReopenedCount:
+        m.mergeConflictsDialogReopenedCount + 1,
+    }))
+  }
+
+  /**
+   * Increments the `guidedConflictedMergeCompletionCount` metric
+   */
+  public async recordGuidedConflictedMergeCompletion(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      guidedConflictedMergeCompletionCount:
+        m.guidedConflictedMergeCompletionCount + 1,
+    }))
+  }
+
+  /**
+   * Increments the `unguidedConflictedMergeCompletionCount` metric
+   */
+  public async recordUnguidedConflictedMergeCompletion(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      unguidedConflictedMergeCompletionCount:
+        m.unguidedConflictedMergeCompletionCount + 1,
+    }))
+  }
+
   public recordWelcomeWizardInitiated() {
     setNumber(WelcomeWizardInitiatedAtKey, Date.now())
     localStorage.removeItem(WelcomeWizardCompletedAtKey)
@@ -781,19 +883,31 @@ export class StatsStore implements IStatsStore {
 
   /**
    * Send opt-in ping with details of previous stored value (if known)
+   *
+   * @param optOut        Whether or not the user has opted
+   *                      out of usage reporting.
+   * @param previousValue The raw, current value stored for the
+   *                      "stats-opt-out" localStorage key, or
+   *                      undefined if no previously stored value
+   *                      exists.
    */
   private async sendOptInStatusPing(
-    optIn: boolean,
-    previousValue?: boolean
+    optOut: boolean,
+    previousValue: boolean | undefined
   ): Promise<void> {
+    // The analytics pipeline expects us to submit `optIn` but we
+    // track `optOut` so we need to invert the value before we send
+    // it.
+    const optIn = !optOut
+    const previousOptInValue =
+      previousValue === undefined ? null : !previousValue
     const direction = optIn ? 'in' : 'out'
-    const previousValueOrNull =
-      previousValue === undefined ? null : previousValue
+
     try {
       const response = await this.post({
         eventType: 'ping',
         optIn,
-        previousValue: previousValueOrNull,
+        previousOptInValue,
       })
       if (!response.ok) {
         throw new Error(

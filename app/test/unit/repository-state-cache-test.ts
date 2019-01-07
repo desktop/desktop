@@ -8,7 +8,7 @@ import {
   AppFileStatusKind,
 } from '../../src/models/status'
 import { DiffSelection, DiffSelectionType } from '../../src/models/diff'
-import { HistoryTabMode } from '../../src/lib/app-state'
+import { HistoryTabMode, IDisplayHistory } from '../../src/lib/app-state'
 import { IGitHubUser } from '../../src/lib/databases'
 
 function createSampleGitHubRepository() {
@@ -122,10 +122,12 @@ describe('RepositoryStateCache', () => {
     const cache = new RepositoryStateCache(defaultGetUsersFunc)
 
     cache.updateCompareState(repository, () => {
+      const newState: IDisplayHistory = {
+        kind: HistoryTabMode.History,
+      }
+
       return {
-        formState: {
-          kind: HistoryTabMode.History,
-        },
+        formState: newState,
         filterText,
         commitSHAs: ['deadbeef'],
       }

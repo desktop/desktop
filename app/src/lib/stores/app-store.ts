@@ -89,6 +89,7 @@ import {
   MergeResultStatus,
   ComparisonMode,
   SuccessfulMergeBannerState,
+  MergeConflictsBannerState,
 } from '../app-state'
 import { IGitHubUser } from '../databases/github-user-database'
 import {
@@ -162,7 +163,6 @@ import { hasShownWelcomeFlow, markWelcomeFlowComplete } from '../welcome'
 import { getWindowState, WindowState } from '../window-state'
 import { TypedBaseStore } from './base-store'
 import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
-import { enableMergeConflictsDialog } from '../feature-flag'
 import { MergeResultKind } from '../../models/merge'
 import { promiseWithMinimumTimeout } from '../promise'
 import { BackgroundFetcher } from './helpers/background-fetcher'
@@ -175,6 +175,7 @@ import { GitStoreCache } from './git-store-cache'
 import { MergeConflictsErrorContext } from '../git-error-context'
 import { setNumber, setBoolean, getBoolean, getNumber } from '../local-storage'
 import { ExternalEditorError } from '../editors/shared'
+import { ApiRepositoriesStore } from './api-repositories-store'
 import {
   updateChangedFiles,
   updateConflictState,
@@ -269,6 +270,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private windowZoomFactor: number = 1
   private isUpdateAvailableBannerVisible: boolean = false
   private successfulMergeBannerState: SuccessfulMergeBannerState = null
+  private mergeConflictsBannerState: MergeConflictsBannerState = null
   private confirmRepoRemoval: boolean = confirmRepoRemovalDefault
   private confirmDiscardChanges: boolean = confirmDiscardChangesDefault
   private imageDiffType: ImageDiffType = imageDiffTypeDefault
@@ -304,7 +306,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     private readonly accountsStore: AccountsStore,
     private readonly repositoriesStore: RepositoriesStore,
     private readonly pullRequestStore: PullRequestStore,
-    private readonly repositoryStateCache: RepositoryStateCache
+    private readonly repositoryStateCache: RepositoryStateCache,
+    private readonly apiRepositoriesStore: ApiRepositoriesStore
   ) {
     super()
 
@@ -388,6 +391,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.pullRequestStore.onDidUpdate(gitHubRepository =>
       this.onPullRequestStoreUpdated(gitHubRepository)
     )
+
+    this.apiRepositoriesStore.onDidUpdate(() => this.emitUpdate())
+    this.apiRepositoriesStore.onDidError(error => this.emitError(error))
   }
 
   /** Load the emoji from disk. */
@@ -475,12 +481,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public getState(): IAppState {
+    const repositories = [
+      ...this.repositories,
+      ...this.cloningRepositoriesStore.repositories,
+    ]
+
     return {
       accounts: this.accounts,
-      repositories: [
-        ...this.repositories,
-        ...this.cloningRepositoriesStore.repositories,
-      ],
+      repositories,
       localRepositoryStateLookup: this.localRepositoryStateLookup,
       windowState: this.windowState,
       windowZoomFactor: this.windowZoomFactor,
@@ -496,10 +504,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       sidebarWidth: this.sidebarWidth,
       commitSummaryWidth: this.commitSummaryWidth,
       appMenuState: this.appMenu ? this.appMenu.openMenus : [],
-      titleBarStyle: this.showWelcomeFlow ? 'light' : 'dark',
+      titleBarStyle:
+        this.showWelcomeFlow || repositories.length === 0 ? 'light' : 'dark',
       highlightAccessKeys: this.highlightAccessKeys,
       isUpdateAvailableBannerVisible: this.isUpdateAvailableBannerVisible,
       successfulMergeBannerState: this.successfulMergeBannerState,
+      mergeConflictsBannerState: this.mergeConflictsBannerState,
       askForConfirmationOnRepositoryRemoval: this.confirmRepoRemoval,
       askForConfirmationOnDiscardChanges: this.confirmDiscardChanges,
       selectedExternalEditor: this.selectedExternalEditor,
@@ -510,6 +520,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       selectedCloneRepositoryTab: this.selectedCloneRepositoryTab,
       selectedBranchesTab: this.selectedBranchesTab,
       selectedTheme: this.selectedTheme,
+      apiRepositories: this.apiRepositoriesStore.getState(),
     }
   }
 
@@ -753,11 +764,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
         return
       }
 
+      const newState: IDisplayHistory = {
+        kind: HistoryTabMode.History,
+      }
+
       this.repositoryStateCache.updateCompareState(repository, () => ({
         tip: currentSha,
-        formState: {
-          kind: HistoryTabMode.History,
-        },
+        formState: newState,
         commitSHAs: commits,
         filterText: '',
         showBranchList: false,
@@ -805,13 +818,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const commitSHAs = compare.commits.map(commit => commit.sha)
 
+    const newState: ICompareBranch = {
+      kind: HistoryTabMode.Compare,
+      comparisonBranch,
+      comparisonMode: action.comparisonMode,
+      aheadBehind,
+    }
+
     this.repositoryStateCache.updateCompareState(repository, s => ({
-      formState: {
-        kind: HistoryTabMode.Compare,
-        comparisonBranch,
-        comparisonMode: action.comparisonMode,
-        aheadBehind,
-      },
+      formState: newState,
       filterText: comparisonBranch.name,
       commitSHAs,
     }))
@@ -839,8 +854,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.currentAheadBehindUpdater.insert(from, to, aheadBehind)
     }
 
+    const loadingMerge: MergeResultStatus = { kind: MergeResultKind.Loading }
+
     this.repositoryStateCache.updateCompareState(repository, () => ({
-      mergeStatus: { kind: MergeResultKind.Loading },
+      mergeStatus: loadingMerge,
     }))
 
     this.emitUpdate()
@@ -1088,6 +1105,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
     this.stopBackgroundFetching()
     this.stopPullRequestUpdater()
+    this._setMergeConflictsBannerState(null)
 
     if (repository == null) {
       return Promise.resolve(null)
@@ -1529,15 +1547,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** starts the conflict resolution flow, if appropriate */
   private async _triggerMergeConflictsFlow(repository: Repository) {
-    if (!enableMergeConflictsDialog()) {
-      return
-    }
-
+    // are we already in the merge conflicts flow?
     const alreadyInFlow =
       this.currentPopup !== null &&
       (this.currentPopup.type === PopupType.MergeConflicts ||
         this.currentPopup.type === PopupType.AbortMerge)
-    if (alreadyInFlow) {
+
+    // have we already been shown the merge conflicts flow *and closed it*?
+    const alreadyExitedFlow = this.mergeConflictsBannerState !== null
+
+    if (alreadyInFlow || alreadyExitedFlow) {
       return
     }
 
@@ -1729,6 +1748,28 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const { trailers } = context
       if (trailers !== undefined && trailers.some(isCoAuthoredByTrailer)) {
         this.statsStore.recordCoAuthoredCommit()
+      }
+
+      const account = getAccountForRepository(this.accounts, repository)
+      if (repository.gitHubRepository !== null) {
+        if (account !== null) {
+          if (account.endpoint === getDotComAPIEndpoint()) {
+            this.statsStore.recordCommitToDotcom()
+          } else {
+            this.statsStore.recordCommitToEnterprise()
+          }
+
+          const { commitAuthor } = state
+          if (commitAuthor !== null) {
+            const commitEmailMatchesAccount = account.emails.some(
+              email =>
+                email.email.toLowerCase() === commitAuthor.email.toLowerCase()
+            )
+            if (!commitEmailMatchesAccount) {
+              this.statsStore.recordUnattributedCommit()
+            }
+          }
+        }
       }
 
       await this._refreshRepository(repository)
@@ -2559,11 +2600,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
             tip.branch.upstream
           )
 
-          gitContext = {
-            kind: 'pull',
-            tip,
-            theirBranch: tip.branch.upstream,
-          }
+          gitContext = { kind: 'pull', tip, theirBranch: tip.branch.upstream }
         }
 
         const title = `Pulling ${remote.name}`
@@ -3223,6 +3260,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
+  public _setMergeConflictsBannerState(state: MergeConflictsBannerState) {
+    this.mergeConflictsBannerState = state
+
+    this.emitUpdate()
+  }
+
   public _setDivergingBranchBannerVisibility(
     repository: Repository,
     visible: boolean
@@ -3368,6 +3411,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const repoState = selectedState.state
       const commits = repoState.commitLookup.values()
       this.loadAndCacheUsers(selectedState.repository, accounts, commits)
+    }
+
+    // If we're in the welcome flow and a user signs in we want to trigger
+    // a refresh of the repositories available for cloning straight away
+    // in order to have the list of repositories ready for them when they
+    // get to the blankslate.
+    if (this.showWelcomeFlow) {
+      this.apiRepositoriesStore.loadRepositories(account)
     }
   }
 
@@ -3620,6 +3671,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
 
     return Promise.resolve()
+  }
+
+  /**
+   * Request a refresh of the list of repositories that
+   * the provided account has explicit permissions to access.
+   * See ApiRepositoriesStore for more details.
+   */
+  public _refreshApiRepositories(account: Account) {
+    return this.apiRepositoriesStore.loadRepositories(account)
   }
 
   public _openMergeTool(repository: Repository, path: string): Promise<void> {

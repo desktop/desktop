@@ -32,6 +32,7 @@ import { Shell } from './shells'
 import { ComparisonCache } from './comparison-cache'
 
 import { ApplicationTheme } from '../ui/lib/application-theme'
+import { IAccountRepositories } from './stores/api-repositories-store'
 
 export enum SelectionType {
   Repository,
@@ -155,6 +156,9 @@ export interface IAppState {
   /** Whether we should show the merge success banner */
   readonly successfulMergeBannerState: SuccessfulMergeBannerState
 
+  /** Whether we should show the merge success banner */
+  readonly mergeConflictsBannerState: MergeConflictsBannerState
+
   /** Whether we should show a confirmation dialog */
   readonly askForConfirmationOnRepositoryRemoval: boolean
 
@@ -191,6 +195,22 @@ export interface IAppState {
 
   /** The currently selected appearance (aka theme) */
   readonly selectedTheme: ApplicationTheme
+
+  /**
+   * A map keyed on a user account (GitHub.com or GitHub Enterprise)
+   * containing an object with repositories that the authenticated
+   * user has explicit permission (:read, :write, or :admin) to access
+   * as well as information about whether the list of repositories
+   * is currently being loaded or not.
+   *
+   * If a currently signed in account is missing from the map that
+   * means that the list of accessible repositories has not yet been
+   * loaded. An entry for an account with an empty list of repositories
+   * means that no accessible repositories was found for the account.
+   *
+   * See the ApiRepositoriesStore for more details on loading repositories
+   */
+  readonly apiRepositories: ReadonlyMap<Account, IAccountRepositories>
 }
 
 export enum FoldoutType {
@@ -542,7 +562,22 @@ export interface ICompareToBranch {
  */
 export type CompareAction = IViewHistory | ICompareToBranch
 
+/** State for displaying the sucessful merge banner
+ * `null` to remove banner
+ */
 export type SuccessfulMergeBannerState = {
+  /** name of the branch that was merged into */
   ourBranch: string
+  /** name of the branch we merged into `ourBranch` */
   theirBranch?: string
+} | null
+
+/** State for displaying the merge conflicts banner
+ *  `null` to remove banner
+ */
+export type MergeConflictsBannerState = {
+  /** name of the branch that is being merged into */
+  readonly ourBranch: string
+  /** popup to be shown from the banner */
+  readonly popup: Popup
 } | null

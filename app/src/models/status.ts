@@ -23,6 +23,7 @@ export enum AppFileStatusKind {
   Copied = 'Copied',
   Renamed = 'Renamed',
   Conflicted = 'Conflicted',
+  Untracked = 'Untracked',
 }
 
 /**
@@ -71,11 +72,15 @@ type ManualConflict = {
 /** Union of potential conflict scenarios the application should handle */
 export type ConflictedFileStatus = ConflictsWithMarkers | ManualConflict
 
+/** Denotes an untracked file in the working directory) */
+export type UntrackedFileStatus = { kind: AppFileStatusKind.Untracked }
+
 /** The union of potential states associated with a file change in Desktop */
 export type AppFileStatus =
   | PlainFileStatus
   | CopiedOrRenamedFileStatus
   | ConflictedFileStatus
+  | UntrackedFileStatus
 
 /** The porcelain status for an ordinary changed entry */
 type OrdinaryEntry = {
