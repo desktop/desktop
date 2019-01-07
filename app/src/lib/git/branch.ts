@@ -156,3 +156,17 @@ export async function getBranchesPointedAt(
   // split (and remove trailing element cause its always an empty string)
   return stdout.split('\n').slice(0, -1)
 }
+
+export async function getMergedBranches(
+  repository: Repository,
+  branch: Branch
+): Promise<ReadonlyArray<string>> {
+  const args = ['branch', '--merged', branch.name]
+
+  const { stdout } = await git(args, repository.path, 'mergedBranches')
+
+  return stdout
+    .split('\n')
+    .slice(0, -1)
+    .map(s => s.trim())
+}
