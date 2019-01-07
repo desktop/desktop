@@ -2373,17 +2373,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const gitStore = this.gitStoreCache.get(repository)
     this.withAuthenticatingUser(repository, async (repo, account) => {
       gitStore.performFailableOperation(() => {
-        for (const branchName of branchesReadyForPruning) {
-          const branch = branchesState.allBranches.find(
-            branch => branch.name === branchName
+        branchesReadyForPruning
+          .map(branchName =>
+            branchesState.allBranches.find(b => b.name === branchName)
           )
-          if (branch === undefined) {
-            continue
-          }
-
-          //deleteBranch(repo, branch, account, false)
-          log.info(`deleting ${branchName}`)
-        }
+          .filter(branch => branch !== undefined)
+          .forEach(branch => {
+            // deleteBranch(repo, branch!, account, false)
+            log.info(`deleting ${branch!.name}`)
+          })
 
         return this._refreshRepository(repo)
       })
