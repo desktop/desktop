@@ -18,6 +18,7 @@ import {
   Branch,
   eligibleForFastForward,
   IAheadBehind,
+  BranchType,
 } from '../../models/branch'
 import { BranchesTab } from '../../models/branches-tab'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
@@ -2328,24 +2329,65 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
   }
 
-  public async _getMergedBranches(
+  private async getMergedBranches(
     repository: Repository,
     branch?: Branch
   ): Promise<ReadonlyArray<string>> {
-    const gitStore = this.gitStoreCache.get(repository)
     const { branchesState } = this.repositoryStateCache.get(repository)
     const { defaultBranch } = branchesState
     const baseBranch = branch === undefined ? defaultBranch : branch
-
     if (baseBranch === null) {
       return []
     }
 
+    const gitStore = this.gitStoreCache.get(repository)
     return (
       (await gitStore.performFailableOperation(() =>
         getMergedBranches(repository, baseBranch)
       )) || []
     )
+  }
+
+  public async _pruneLocalBranches(repository: Repository): Promise<void> {
+    const { branchesState } = this.repositoryStateCache.get(repository)
+    const { defaultBranch } = branchesState
+    if (defaultBranch === null) {
+      return
+    }
+
+    // Get list of branches that have been merged
+    const mergedBranches = await this.getMergedBranches(
+      repository,
+      defaultBranch
+    )
+    // Get all branches that exist on remote
+    const remoteBranches = branchesState.allBranches.filter(
+      x => x.type === BranchType.Remote
+    )
+
+    // Filter merged branches that don't exist on remote
+    const branchesReadyForPruning = mergedBranches.filter(mergedBranch =>
+      remoteBranches.find(remoteBranch => remoteBranch.name === mergedBranch)
+    )
+
+    const gitStore = this.gitStoreCache.get(repository)
+    this.withAuthenticatingUser(repository, async (repo, account) => {
+      gitStore.performFailableOperation(() => {
+        for (const branchName of branchesReadyForPruning) {
+          const branch = branchesState.allBranches.find(
+            branch => branch.name === branchName
+          )
+          if (branch === undefined) {
+            continue
+          }
+
+          //deleteBranch(repo, branch, account, false)
+          log.info(`deleting ${branchName}`)
+        }
+
+        return this._refreshRepository(repo)
+      })
+    })
   }
 
   private updatePushPullFetchProgress(
