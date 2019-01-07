@@ -2330,13 +2330,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   public async _getMergedBranches(
     repository: Repository,
-    branch: Branch
+    branch?: Branch
   ): Promise<ReadonlyArray<string>> {
     const gitStore = this.gitStoreCache.get(repository)
+    const { branchesState } = this.repositoryStateCache.get(repository)
+    const { defaultBranch } = branchesState
+    const baseBranch = branch === undefined ? defaultBranch : branch
+
+    if (baseBranch === null) {
+      return []
+    }
 
     return (
       (await gitStore.performFailableOperation(() =>
-        getMergedBranches(repository, branch)
+        getMergedBranches(repository, baseBranch)
       )) || []
     )
   }
