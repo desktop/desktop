@@ -49,7 +49,7 @@ export function enableFileSizeWarningCheck(): boolean {
 
 /** Should the app set protocol.version=2 for any fetch/push/pull/clone operation? */
 export function enableGitProtocolVersionTwo(): boolean {
-  return enableDevelopmentFeatures()
+  return enableBetaFeatures()
 }
 
 export function enableReadmeOverwriteWarning(): boolean {
