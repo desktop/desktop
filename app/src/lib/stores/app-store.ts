@@ -2366,8 +2366,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
 
     // Filter merged branches that don't exist on remote
-    const branchesReadyForPruning = mergedBranches.filter(mergedBranch =>
-      remoteBranches.find(remoteBranch => remoteBranch.name === mergedBranch)
+    const branchesReadyForPruning = mergedBranches.filter(
+      mergedBranch =>
+        remoteBranches.findIndex(
+          remoteBranch => remoteBranch.nameWithoutRemote === mergedBranch
+        ) === -1
     )
 
     const gitStore = this.gitStoreCache.get(repository)
