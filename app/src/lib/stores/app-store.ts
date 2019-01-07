@@ -43,6 +43,7 @@ import {
   CommittedFileChange,
   WorkingDirectoryFileChange,
   WorkingDirectoryStatus,
+  AppFileStatusKind,
 } from '../../models/status'
 import { TipState } from '../../models/tip'
 import { ICommitMessage } from '../../models/commit-message'
@@ -3099,13 +3100,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _createMergeCommit(
+  public async _finishConflictedMerge(
     repository: Repository,
-    files: ReadonlyArray<WorkingDirectoryFileChange>
+    workingDirectory: WorkingDirectoryStatus
   ): Promise<string | undefined> {
+    // filter out untracked files so we don't commit them
+    const trackedFiles = workingDirectory.files.filter(f => {
+      return f.status.kind !== AppFileStatusKind.Untracked
+    })
     const gitStore = this.gitStoreCache.get(repository)
     return await gitStore.performFailableOperation(() =>
-      createMergeCommit(repository, files)
+      createMergeCommit(repository, trackedFiles)
     )
   }
 
