@@ -1198,12 +1198,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.stopBackgroundFetching()
     this.stopPullRequestUpdater()
     this.stopAheadBehindUpdate()
+    this.stopBackgrounPruneTask()
 
     this.startBackgroundFetching(repository, !previouslySelectedRepository)
     this.startPullRequestUpdater(repository)
 
     this.startAheadBehindUpdater(repository)
     this.refreshMentionables(repository)
+    this.startBackgroundPruneTask(repository)
 
     this.addUpstreamRemoteIfNeeded(repository)
 
