@@ -274,6 +274,7 @@ export class RepositoriesStore extends BaseStore {
       defaultBranch: gitHubRepository.default_branch,
       cloneURL: gitHubRepository.clone_url,
       parentID: parent ? parent.dbID : null,
+      lastPruneDate: null,
     }
     if (existingRepo) {
       updatedGitHubRepo = { ...updatedGitHubRepo, id: existingRepo.id }
