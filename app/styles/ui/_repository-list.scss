@@ -108,12 +108,47 @@
     }
   }
 
-  .sidebar-message {
-    display: flex;
-    flex: 1;
-    align-items: center;
-    justify-content: center;
+  .no-items {
     text-align: center;
+    padding: var(--spacing);
+    word-wrap: break-word;
+
+    .blankslate-image {
+      margin: 0 auto;
+      max-width: 300px;
+    }
+
+    .title {
+      font-weight: var(--font-weight-semibold);
+    }
+
+    .protip {
+      padding-top: var(--spacing-double);
+      padding-left: var(--spacing-double);
+      padding-right: var(--spacing-double);
+
+      text-align: center;
+      font-size: var(--font-size-sm);
+
+      .kbd-shortcut {
+        display: inline-block;
+      }
+
+      kbd {
+        border-radius: var(--border-radius);
+        border: var(--base-border);
+        border-color: $gray-300;
+
+        display: inline-block;
+
+        padding: 1px 2px;
+        line-height: 1;
+        min-height: 16px;
+
+        font-family: var(--font-family);
+        text-align: center;
+      }
+    }
   }
 }
 
