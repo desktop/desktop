@@ -2382,6 +2382,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public async _pruneLocalBranches(repository: Repository): Promise<void> {
+    // Get the last time this repo was pruned
+    const lastPruneDate = await this.repositoriesStore.getLastPruneDate(
+      repository
+    )
+
+    // Only prune if it's been at least 24 hours since the last time
+    if (
+      lastPruneDate !== null &&
+      lastPruneDate < Date.now() + BackgroundPruneMinimumInterval
+    ) {
+      return
+    }
+
     const { branchesState } = this.repositoryStateCache.get(repository)
     const { defaultBranch } = branchesState
     if (defaultBranch === null) {
@@ -2407,7 +2420,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
 
     const gitStore = this.gitStoreCache.get(repository)
-    this.withAuthenticatingUser(repository, async (repo, account) => {
+    await this.withAuthenticatingUser(repository, async (repo, account) => {
       gitStore.performFailableOperation(() => {
         branchesReadyForPruning
           .map(branchName =>
@@ -2422,6 +2435,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
         return this._refreshRepository(repo)
       })
     })
+
+    this.repositoriesStore.updateLastPruneDate(repository)
   }
 
   private updatePushPullFetchProgress(
