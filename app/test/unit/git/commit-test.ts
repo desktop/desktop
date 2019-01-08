@@ -523,10 +523,10 @@ describe('git/commit', () => {
       })
       it('creates a merge commit', async () => {
         const status = await getStatusOrThrow(repository)
-        const untrackedFiles = status.workingDirectory.files.filter(
+        const trackedFiles = status.workingDirectory.files.filter(
           f => f.status.kind !== AppFileStatusKind.Untracked
         )
-        const sha = await createMergeCommit(repository, untrackedFiles)
+        const sha = await createMergeCommit(repository, trackedFiles)
         const newStatus = await getStatusOrThrow(repository)
         expect(sha).toHaveLength(7)
         expect(newStatus.workingDirectory.files).toHaveLength(0)

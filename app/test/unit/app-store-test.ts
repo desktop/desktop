@@ -94,7 +94,7 @@ describe('AppStore', () => {
   it('can select a repository', async () => {
     const appStore = await createAppStore()
 
-    const repo = await setupConflictedRepoWithMultipleFiles()
+    const repo = await setupEmptyRepository()
 
     await appStore._selectRepository(repo)
 
@@ -184,10 +184,10 @@ describe('AppStore', () => {
     it('commits tracked files', async () => {
       await appStore._finishConflictedMerge(repo, status.workingDirectory)
       const newStatus = await getStatusOrThrow(repo)
-      const changedFiles = newStatus.workingDirectory.files.filter(
+      const trackedFiles = newStatus.workingDirectory.files.filter(
         f => f.status.kind !== AppFileStatusKind.Untracked
       )
-      expect(changedFiles).toHaveLength(0)
+      expect(trackedFiles).toHaveLength(0)
     })
     it('leaves untracked files untracked', async () => {
       await appStore._finishConflictedMerge(repo, status.workingDirectory)
