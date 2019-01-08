@@ -2380,6 +2380,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public async _pruneLocalBranches(repository: Repository): Promise<void> {
+    if(repository.gitHubRepository === null) {
+      return
+    }
+
     // Get the last time this repo was pruned
     const lastPruneDate = await this.repositoriesStore.getLastPruneDate(
       repository
