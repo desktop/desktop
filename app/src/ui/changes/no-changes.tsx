@@ -439,8 +439,8 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
       </>
     )
 
-    const title = `Push ${aheadBehind.behind} ${
-      aheadBehind.behind === 1 ? 'commit' : 'commits'
+    const title = `Push ${aheadBehind.ahead} ${
+      aheadBehind.ahead === 1 ? 'commit' : 'commits'
     } to the ${remote.name} remote`
 
     const buttonText = `Push ${remote.name}`
