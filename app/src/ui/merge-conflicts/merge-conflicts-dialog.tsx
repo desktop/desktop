@@ -105,9 +105,9 @@ export class MergeConflictsDialog extends React.Component<
    *  commits the merge displays the repository changes tab and dismisses the modal
    */
   private onSubmit = async () => {
-    await this.props.dispatcher.createMergeCommit(
+    await this.props.dispatcher.finishConflictedMerge(
       this.props.repository,
-      this.props.workingDirectory.files,
+      this.props.workingDirectory,
       {
         ourBranch: this.props.ourBranch,
         theirBranch: this.props.theirBranch,
