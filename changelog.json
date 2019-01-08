@@ -7,7 +7,6 @@
       "[Added] Add Visual Basic syntax highlighting - #6461. Thanks @SimpleBinary!",
       "[Fixed] Don't include untracked files in merge commit - #6411",
       "[Fixed] Don't show \"Still Conflicted Warning\" when all conflicts are resolved - #6451",
-      "[Fixed] Resolved conflict check color in Changes list - #6423",
       "[Fixed] Enter when using keyboard to navigate app menu executed menu action twice - #5344",
       "[Improved] Image diff menu no longer covered by large images - #6520. Thanks @06b!"
     ],
