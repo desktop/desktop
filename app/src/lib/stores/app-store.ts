@@ -607,6 +607,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
+  private startBackgroundPruneTask(repository: Repository) {
+    if (this.backgroundPruneTask !== null) {
+      fatalError(
+        `A background prune task is already active and cannot begin pruning on ${
+          repository.name
+        }`
+      )
+    }
+
+    this._pruneLocalBranches(repository)
+    this.backgroundPruneTask = setInterval(
+      () => this._pruneLocalBranches(repository),
+      BackgroundPruneMinimumInterval
+    )
+  }
   private startAheadBehindUpdater(repository: Repository) {
     if (this.currentAheadBehindUpdater != null) {
       fatalError(
