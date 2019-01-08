@@ -40,14 +40,6 @@
       flex-shrink: 0;
     }
 
-    .path {
-      display: flex;
-      flex-direction: row;
-      flex-grow: 1;
-      min-width: 0;
-      margin-right: var(--spacing-half);
-    }
-
     .octicon {
       vertical-align: text-bottom;
     }
