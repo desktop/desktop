@@ -1,5 +1,18 @@
 {
   "releases": {
+    "1.6.0-beta1": [
+      "[New] Onboarding improvements: The Blank Slate - #6474",
+      "[New] Cloneable filter list - #6436",
+      "[Added] Empty repository list view - #5566 #6474",
+      "[Added] Add VB to syntax highlighting docs - #6461. Thanks @SimpleBinary!",
+      "[Fixed] Fix image overlapping menu - #6520. Thanks @06b!",
+      "[Fixed] Add integration for JetBrains Webstorm  - #6077. Thanks @KennethSweezy!",
+      "[Fixed] Don't include untracked files in merge commit - #6411",
+      "[Fixed] Don't show \"Still Conflicted Warning\" when all conflicts are resolved - #6451",
+      "[Fixed] Fix displayed color for conflict status - #6423",
+      "[Fixed] Ignore handled Enter event in FocusContainer keydown event handler - #5344",
+      "[Fixed] Wireup VB in syntax highlighting - #6461. Thanks @SimpleBinary!"
+    ],
     "1.5.2-beta0": [
     ],
     "1.5.1": [
