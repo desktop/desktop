@@ -276,6 +276,13 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
       return this.renderPushBranchAction(remote, aheadBehind)
     }
 
+    const isGitHub = this.props.repository.gitHubRepository !== null
+    const hasOpenPullRequest = branchesState.currentPullRequest !== null
+
+    if (isGitHub && !hasOpenPullRequest) {
+      return this.renderCreatePullRequestAction()
+    }
+
     return null
   }
 
@@ -474,6 +481,49 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
         description={description}
         discoverabilityContent={discoverabilityContent}
         buttonText={buttonText}
+        type="primary"
+      />
+    )
+  }
+
+  private renderCreatePullRequestAction() {
+    const itemId: MenuIDs = 'create-pull-request'
+    const menuItem = this.getMenuItemInfo(itemId)
+
+    if (menuItem === undefined) {
+      log.error(`Could not find matching menu item for ${itemId}`)
+      return null
+    }
+
+    if (!menuItem.enabled) {
+      return null
+    }
+
+    const { branchesState } = this.props.repositoryState
+    const { tip } = branchesState
+
+    if (tip.kind !== TipState.Valid) {
+      return null
+    }
+
+    const description = (
+      <>
+        The current branch (<Ref>{tip.branch.name}</Ref>) is already published
+        to GitHub. Create a pull request to propose and collaborate on your
+        changes.
+      </>
+    )
+
+    const title = `Create a Pull Request from your current branch`
+    const buttonText = `Create Pull Request`
+
+    return (
+      <MenuBackedBlankslateAction
+        title={title}
+        menuItemId={itemId}
+        description={description}
+        buttonText={buttonText}
+        discoverabilityContent={this.renderDiscoverabilityElements(menuItem)}
         type="primary"
       />
     )
