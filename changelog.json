@@ -1,15 +1,15 @@
 {
   "releases": {
     "1.6.0-beta1": [
-      "[New] Help users add their first repository during onboarding - #6474",
+      "[New] Help users add their first repo during onboarding - #6474",
       "[Added] Include ability for users to add new repositories when there are none available - #5566 #6474",
-      "[Fixed] Fix image overlapping menu - #6520. Thanks @06b!",
-      "[Added] Detect JetBrains Webstorm as a supported editor in Desktop  - #6077. Thanks @KennethSweezy!",
+      "[Added] Support JetBrains Webstorm as an external editor - #6077. Thanks @KennethSweezy!",
+      "[Added] Add Visual Basic syntax highlighting - #6461. Thanks @SimpleBinary!",
       "[Fixed] Don't include untracked files in merge commit - #6411",
       "[Fixed] Don't show \"Still Conflicted Warning\" when all conflicts are resolved - #6451",
-      "[Fixed] Fix displayed color for conflict status - #6423",
-      "[Fixed] Ignore handled Enter event in FocusContainer keydown event handler - #5344",
-      "[Fixed] Wireup VB in syntax highlighting - #6461. Thanks @SimpleBinary!"
+      "[Fixed] Resolved conflict check color in Changes list - #6423",
+      "[Fixed] Enter when using keyboard to navigate app menu executed menu action twice - #5344",
+      "[Improved] Image diff menu no longer covered by large images - #6520. Thanks @06b!"
     ],
     "1.5.2-beta0": [
     ],
