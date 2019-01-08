@@ -364,4 +364,33 @@ export class RepositoriesStore extends BaseStore {
 
     this.emitUpdate()
   }
+
+  public async getLastPruneDate(
+    repository: Repository
+  ): Promise<number | null> {
+    const repoID = repository.id
+    if (!repoID) {
+      return fatalError(
+        '`getLastPruneDate` can only retrieve the last prune date for a repositories that have been stored in the database.'
+      )
+    }
+
+    const githubRepo = repository.gitHubRepository
+    if (githubRepo === null) {
+      return fatalError(
+        `'getLastPruneDate' can only retrieve the last prune date for GitHub repositories.`
+      )
+    }
+
+    const gitHubRepositoryID = githubRepo.dbID
+    if (gitHubRepositoryID === null) {
+      return fatalError(
+        `'getLastPruneDate' can only retrieve the last prune date for GitHub repositories that have been stored in the database.`
+      )
+    }
+
+    const record = await this.db.gitHubRepositories.get(gitHubRepositoryID)
+
+    return record!.lastPruneDate
+  }
 }
