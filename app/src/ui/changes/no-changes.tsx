@@ -267,6 +267,10 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
       return this.renderPullBranchAction(remote, aheadBehind)
     }
 
+    if (aheadBehind.ahead > 0) {
+      return this.renderPushBranchAction(remote, aheadBehind)
+    }
+
     return null
   }
 
@@ -390,6 +394,56 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
     } from the ${remote.name} remote`
 
     const buttonText = `Pull ${remote.name}`
+
+    return (
+      <MenuBackedBlankslateAction
+        title={title}
+        menuItemId={itemId}
+        description={description}
+        discoverabilityContent={discoverabilityContent}
+        buttonText={buttonText}
+        type="primary"
+      />
+    )
+  }
+
+  private renderPushBranchAction(remote: IRemote, aheadBehind: IAheadBehind) {
+    const itemId: MenuIDs = 'push'
+    const menuItem = this.getMenuItemInfo(itemId)
+
+    if (menuItem === undefined) {
+      log.error(`Could not find matching menu item for ${itemId}`)
+      return null
+    }
+
+    const { branchesState } = this.props.repositoryState
+    const { tip } = branchesState
+
+    const isGitHub = this.props.repository.gitHubRepository !== null
+
+    if (tip.kind !== TipState.Valid) {
+      return null
+    }
+
+    const description = (
+      <>
+        You have {aheadBehind.ahead} local commits waiting to be pushed to
+        {isGitHub ? 'GitHub' : 'the remote'}
+      </>
+    )
+
+    const discoverabilityContent = (
+      <>
+        Always available in the toolbar when there are local commits waiting to
+        be pushed or {this.renderDiscoverabilityKeyboardShortcut(menuItem)}
+      </>
+    )
+
+    const title = `Push ${aheadBehind.behind} ${
+      aheadBehind.behind === 1 ? 'commit' : 'commits'
+    } to the ${remote.name} remote`
+
+    const buttonText = `Push ${remote.name}`
 
     return (
       <MenuBackedBlankslateAction
