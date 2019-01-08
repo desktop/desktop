@@ -1133,9 +1133,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.selectedRepository = repository
 
     this.emitUpdate()
-    this.stopBackgroundFetching()
     this.stopPullRequestUpdater()
     this._setMergeConflictsBannerState(null)
+    this.stopBackgroundFetching()
 
     if (repository == null) {
       return Promise.resolve(null)
@@ -1159,7 +1159,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const gitHubRepository = repository.gitHubRepository
 
-    if (gitHubRepository != null) {
+    if (gitHubRepository !== null) {
       this._refreshIssues(gitHubRepository)
       this.loadPullRequests(repository, async () => {
         const promiseForPRs = this.pullRequestStore.fetchPullRequestsFromCache(
