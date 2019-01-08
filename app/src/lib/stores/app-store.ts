@@ -623,7 +623,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
   }
 
-  private stopBackgrounPruneTask() {
+  private stopBackgroundPruneTask() {
     if (this.backgroundPruneTask === null) {
       return
     }
@@ -1198,7 +1198,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.stopBackgroundFetching()
     this.stopPullRequestUpdater()
     this.stopAheadBehindUpdate()
-    this.stopBackgrounPruneTask()
+    this.stopBackgroundPruneTask()
 
     this.startBackgroundFetching(repository, !previouslySelectedRepository)
     this.startPullRequestUpdater(repository)
