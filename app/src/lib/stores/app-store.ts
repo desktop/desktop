@@ -213,6 +213,9 @@ const shellKey = 'shell'
 // switching between apps does not result in excessive fetching in the app
 const BackgroundFetchMinimumInterval = 30 * 60 * 1000
 
+/** Check if a repo needs to be pruned at least every 24 hours */
+const BackgroundPruneMinimumInterval = 1000 * 60 * 60 * 24
+
 export class AppStore extends TypedBaseStore<IAppState> {
   private readonly gitStoreCache: GitStoreCache
 
