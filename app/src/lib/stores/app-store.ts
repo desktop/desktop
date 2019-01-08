@@ -2361,23 +2361,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
   }
 
-  private async getMergedBranches(
-    repository: Repository,
-    branch?: Branch
-  ): Promise<ReadonlyArray<string>> {
-    const defaultResult: ReadonlyArray<string> = []
+  private async findBranchesMergedIntoDefaultBranch(
+    repository: Repository
+  ): Promise<ReadonlyArray<string> | null> {
     const { branchesState } = this.repositoryStateCache.get(repository)
     const { defaultBranch } = branchesState
-    const baseBranch = branch === undefined ? defaultBranch : branch
-    if (baseBranch === null) {
-      return defaultResult
+
+    if (defaultBranch === null) {
+      return null
     }
 
     const gitStore = this.gitStoreCache.get(repository)
     return (
       (await gitStore.performFailableOperation(() =>
-        getMergedBranches(repository, baseBranch)
-      )) || defaultResult
+        getMergedBranches(repository, defaultBranch)
+      )) || null
     )
   }
 
