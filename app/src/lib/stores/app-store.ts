@@ -213,8 +213,8 @@ const shellKey = 'shell'
 // switching between apps does not result in excessive fetching in the app
 const BackgroundFetchMinimumInterval = 30 * 60 * 1000
 
-/** Check if a repo needs to be pruned at least every 24 hours */
-const BackgroundPruneMinimumInterval = 1000 * 60 * 60 * 24
+/** Check if a repo needs to be pruned at least every 4 hours */
+const BackgroundPruneMinimumInterval = 1000 * 60 * 60 * 4
 
 export class AppStore extends TypedBaseStore<IAppState> {
   private readonly gitStoreCache: GitStoreCache
@@ -2390,8 +2390,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // Only prune if it's been at least 24 hours since the last time
     if (
       lastPruneDate !== null &&
-      lastPruneDate < Date.now() + BackgroundPruneMinimumInterval
+      lastPruneDate < Date.now() + (BackgroundPruneMinimumInterval * 6)
     ) {
+      log.info(`Last prune took place ${new Date(lastPruneDate)} - skipping`)
       return
     }
 
@@ -2419,6 +2420,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         ) === -1
     )
 
+    log.info(`Pruning ${repository.name}`)
     const gitStore = this.gitStoreCache.get(repository)
     await this.withAuthenticatingUser(repository, async (repo, account) => {
       gitStore.performFailableOperation(() => {
