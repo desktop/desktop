@@ -2362,15 +2362,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private async findBranchesMergedIntoDefaultBranch(
-    repository: Repository
+    repository: Repository,
+    defaultBranch: Branch
   ): Promise<ReadonlyArray<string> | null> {
-    const { branchesState } = this.repositoryStateCache.get(repository)
-    const { defaultBranch } = branchesState
-
-    if (defaultBranch === null) {
-      return null
-    }
-
     const gitStore = this.gitStoreCache.get(repository)
     return (
       (await gitStore.performFailableOperation(() =>
@@ -2399,16 +2393,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     // Get list of branches that have been merged
+    const { branchesState } = this.repositoryStateCache.get(repository)
+    const { defaultBranch } = branchesState
+
+    if (defaultBranch === null) {
+      return
+    }
+
     const mergedBranches = await this.findBranchesMergedIntoDefaultBranch(
-      repository
+      repository,
+      defaultBranch
     )
 
     if (mergedBranches === null) {
       log.info('No branches to prune.')
       return
     }
-
-    const { branchesState } = this.repositoryStateCache.get(repository)
 
     // Get all branches that exist on remote
     const localBranches = branchesState.allBranches.filter(
