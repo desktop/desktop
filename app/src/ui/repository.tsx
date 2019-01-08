@@ -73,12 +73,12 @@ export class RepositoryView extends React.Component<
     }
   }
 
-  private onChangesListScrolled = (rowNumber: number) => {
-    this.setState({ changesListScrollTop: rowNumber })
+  private onChangesListScrolled = (scrollTop: number) => {
+    this.setState({ changesListScrollTop: scrollTop })
   }
 
-  private onCompareListScrolled = (rowNumber: number) => {
-    this.setState({ compareListScrollTop: rowNumber })
+  private onCompareListScrolled = (scrollTop: number) => {
+    this.setState({ compareListScrollTop: scrollTop })
   }
 
   private renderChangesBadge(): JSX.Element | null {

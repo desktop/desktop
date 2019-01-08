@@ -55,7 +55,7 @@ interface IChangesListProps {
   ) => void
 
   /** Callback that fires on page scroll to pass the new scrollTop location */
-  readonly onChangesListScrolled: (rowNumber: number) => void
+  readonly onChangesListScrolled: (scrollTop: number) => void
 
   /* The scrollTop of the compareList. It is stored to allow for scroll position persistence */
   readonly changesListScrollTop: number

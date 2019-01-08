@@ -65,7 +65,7 @@ interface IChangesSidebarProps {
    * @param fullPath The full path to the file on disk
    */
   readonly onOpenInExternalEditor: (fullPath: string) => void
-  readonly onChangesListScrolled: (rowNumber: number) => void
+  readonly onChangesListScrolled: (scrollTop: number) => void
   readonly changesListScrollTop: number
 }
 
