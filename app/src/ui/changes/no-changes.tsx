@@ -15,6 +15,8 @@ import { executeMenuItemById } from '../main-process-proxy'
 import { IRepositoryState } from '../../lib/app-state'
 import { TipState } from '../../models/tip'
 import { Ref } from '../lib/ref'
+import { IAheadBehind } from '../../models/branch'
+import { IRemote } from '../../models/remote'
 
 const BlankSlateImage = encodePathAsUrl(
   __dirname,
@@ -261,6 +263,10 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
       return this.renderPublishBranchAction()
     }
 
+    if (aheadBehind.behind > 0) {
+      return this.renderPullBranchAction(remote, aheadBehind)
+    }
+
     return null
   }
 
@@ -342,6 +348,56 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
         description={description}
         discoverabilityContent={discoverabilityContent}
         buttonText="Publish branch"
+        type="primary"
+      />
+    )
+  }
+
+  private renderPullBranchAction(remote: IRemote, aheadBehind: IAheadBehind) {
+    const itemId: MenuIDs = 'pull'
+    const menuItem = this.getMenuItemInfo(itemId)
+
+    if (menuItem === undefined) {
+      log.error(`Could not find matching menu item for ${itemId}`)
+      return null
+    }
+
+    const { branchesState } = this.props.repositoryState
+    const { tip } = branchesState
+
+    const isGitHub = this.props.repository.gitHubRepository !== null
+
+    if (tip.kind !== TipState.Valid) {
+      return null
+    }
+
+    const description = (
+      <>
+        The current branch (<Ref>{tip.branch.name}</Ref>) has commits on{' '}
+        {isGitHub ? 'GitHub' : 'the remote'} that doesn’t exist on your machine.
+      </>
+    )
+
+    const discoverabilityContent = (
+      <>
+        Always available in the toolbar when there are remote changes or{' '}
+        {this.renderDiscoverabilityKeyboardShortcut(menuItem)}
+      </>
+    )
+
+    const title = `Pull ${aheadBehind.behind} ${
+      aheadBehind.behind === 1 ? 'commit' : 'commits'
+    } from the ${remote.name} remote`
+
+    const buttonText = `Pull ${remote.name}`
+
+    return (
+      <MenuBackedBlankslateAction
+        title={title}
+        menuItemId={itemId}
+        description={description}
+        discoverabilityContent={discoverabilityContent}
+        buttonText={buttonText}
         type="primary"
       />
     )
