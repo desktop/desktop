@@ -2407,27 +2407,29 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const { branchesState } = this.repositoryStateCache.get(repository)
 
     // Get all branches that exist on remote
-    const remoteBranches = branchesState.allBranches.filter(
-      x => x.type === BranchType.Remote
+    const localBranches = branchesState.allBranches.filter(
+      x => x.type === BranchType.Local
     )
 
-    // Filter merged branches that don't exist on remote
-    const branchesReadyForPruning = mergedBranches.filter(
-      mergedBranch =>
-        remoteBranches.findIndex(
-          remoteBranch => remoteBranch.nameWithoutRemote === mergedBranch
-        ) === -1
-    )
+    // Create array of branches that can be pruned
+    const branchesReadyForPruning = new Array<Branch>()
+    for (const branch of mergedBranches) {
+      const localBranch = localBranches.find(
+        localBranch =>
+          localBranch.remote !== null && localBranch.name === branch
+      )
+
+      if (localBranch !== undefined) {
+        branchesReadyForPruning.push(localBranch)
+      }
+    }
+
 
     log.info(`Pruning ${repository.name}`)
     const gitStore = this.gitStoreCache.get(repository)
     await this.withAuthenticatingUser(repository, async (repo, account) => {
       gitStore.performFailableOperation(() => {
         branchesReadyForPruning
-          .map(branchName =>
-            branchesState.allBranches.find(b => b.name === branchName)
-          )
-          .filter(branch => branch !== undefined)
           .forEach(branch => {
             // deleteBranch(repo, branch!, account, false)
             log.info(`deleting ${branch!.name}`)
