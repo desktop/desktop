@@ -292,6 +292,10 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
       return null
     }
 
+    if (!menuItem.enabled) {
+      return null
+    }
+
     const discoverabilityContent = (
       <>
         Always available in the toolbar for local repositories or{' '}
@@ -321,6 +325,10 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
 
     if (menuItem === undefined) {
       log.error(`Could not find matching menu item for ${itemId}`)
+      return null
+    }
+
+    if (!menuItem.enabled) {
       return null
     }
 
@@ -371,6 +379,10 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
       return null
     }
 
+    if (!menuItem.enabled) {
+      return null
+    }
+
     const { branchesState } = this.props.repositoryState
     const { tip } = branchesState
 
@@ -418,6 +430,10 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
 
     if (menuItem === undefined) {
       log.error(`Could not find matching menu item for ${itemId}`)
+      return null
+    }
+
+    if (!menuItem.enabled) {
       return null
     }
 
