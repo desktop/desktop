@@ -233,6 +233,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** The ahead/behind updater or the currently selected repository */
   private currentAheadBehindUpdater: AheadBehindUpdater | null = null
 
+  /** The background task that prunes local branches when possible */
+  private backgroundPruneTask: NodeJS.Timer | null = null
+
   private showWelcomeFlow = false
   private focusCommitMessage = false
   private currentPopup: Popup | null = null
