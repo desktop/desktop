@@ -2394,17 +2394,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const { branchesState } = this.repositoryStateCache.get(repository)
-    const { defaultBranch } = branchesState
-    if (defaultBranch === null) {
+    // Get list of branches that have been merged
+    const mergedBranches = await this.findBranchesMergedIntoDefaultBranch(
+      repository
+    )
+
+    if (mergedBranches === null) {
+      log.info('No branches to prune.')
       return
     }
 
-    // Get list of branches that have been merged
-    const mergedBranches = await this.getMergedBranches(
-      repository,
-      defaultBranch
-    )
+    const { branchesState } = this.repositoryStateCache.get(repository)
+
     // Get all branches that exist on remote
     const remoteBranches = branchesState.allBranches.filter(
       x => x.type === BranchType.Remote
