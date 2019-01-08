@@ -622,6 +622,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
       BackgroundPruneMinimumInterval
     )
   }
+
+  private stopBackgrounPruneTask() {
+    if (this.backgroundPruneTask === null) {
+      return
+    }
+
+    this.backgroundPruneTask = null
+  }
+
   private startAheadBehindUpdater(repository: Repository) {
     if (this.currentAheadBehindUpdater != null) {
       fatalError(
