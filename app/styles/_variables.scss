@@ -282,6 +282,9 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --toast-notification-color: $gray-000;
   --toast-notification-background-color: rgba($gray-900, 0.6);
 
+  --tip-box-background-color: rgba($blue-500, 0.06);
+  --tip-box-border-color: $blue-200;
+
   /** The highlight color used for focus rings and focus box shadows */
   --focus-color: $blue;
 

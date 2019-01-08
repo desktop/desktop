@@ -387,6 +387,7 @@ export class ChangesList extends React.Component<
 
     switch (firstFile.status.kind) {
       case AppFileStatusKind.New:
+      case AppFileStatusKind.Untracked:
         return `Create ${fileName}`
       case AppFileStatusKind.Deleted:
         return `Delete ${fileName}`

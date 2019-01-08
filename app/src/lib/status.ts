@@ -14,9 +14,10 @@ import { assertNever } from './fatal-error'
  *
  * Used in file lists.
  */
-export function mapStatus(status: AppFileStatusKind): string {
-  switch (status) {
+export function mapStatus(status: AppFileStatus): string {
+  switch (status.kind) {
     case AppFileStatusKind.New:
+    case AppFileStatusKind.Untracked:
       return 'New'
     case AppFileStatusKind.Modified:
       return 'Modified'
@@ -25,6 +26,11 @@ export function mapStatus(status: AppFileStatusKind): string {
     case AppFileStatusKind.Renamed:
       return 'Renamed'
     case AppFileStatusKind.Conflicted:
+      if (status.lookForConflictMarkers) {
+        const conflictsCount = status.conflictMarkerCount
+        return conflictsCount > 0 ? 'Conflicted' : 'Resolved'
+      }
+
       return 'Conflicted'
     case AppFileStatusKind.Copied:
       return 'Copied'

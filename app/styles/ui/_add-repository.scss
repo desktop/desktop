@@ -64,19 +64,4 @@
     border-top: var(--base-border);
     padding: var(--spacing-double);
   }
-
-  .clone-loading {
-    display: flex;
-    color: var(--text-secondary-color);
-    align-items: center;
-    flex-direction: column;
-    justify-content: center;
-    text-align: center;
-    width: 100%;
-
-    .octicon {
-      fill: var(--text-secondary-color);
-      margin-right: var(--spacing-half);
-    }
-  }
 }

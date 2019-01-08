@@ -1,5 +1,3 @@
-import { expect } from 'chai'
-
 import { APIRefState } from '../../src/lib/api'
 import { getPRStatusSummary } from '../../src/ui/branches/pull-request-status'
 
@@ -16,7 +14,7 @@ describe('pull request status', () => {
       sha: '',
       statuses: [],
     }
-    expect(getPRStatusSummary(prStatus)).to.equal('Commit status: success')
+    expect(getPRStatusSummary(prStatus)).toBe('Commit status: success')
   })
 
   it('changes the failure message to something more friendly', () => {
@@ -27,7 +25,7 @@ describe('pull request status', () => {
       sha: '',
       statuses: [],
     }
-    expect(getPRStatusSummary(prStatus)).to.equal('Commit status: failed')
+    expect(getPRStatusSummary(prStatus)).toBe('Commit status: failed')
   })
 
   it('reads the statuses when they are populated', () => {
@@ -41,7 +39,7 @@ describe('pull request status', () => {
         { id: 2, state: success, description: 'second' },
       ],
     }
-    expect(getPRStatusSummary(prStatus)).to.equal('2/2 checks OK')
+    expect(getPRStatusSummary(prStatus)).toBe('2/2 checks OK')
   })
 
   it('a successful status shows the description', () => {
@@ -54,7 +52,7 @@ describe('pull request status', () => {
         { id: 1, state: success, description: 'The Travis CI build passed' },
       ],
     }
-    expect(getPRStatusSummary(prStatus)).to.equal(
+    expect(getPRStatusSummary(prStatus)).toBe(
       'Success: The Travis CI build passed'
     )
   })
@@ -69,7 +67,7 @@ describe('pull request status', () => {
         { id: 1, state: failure, description: 'The Travis CI build failed' },
       ],
     }
-    expect(getPRStatusSummary(prStatus)).to.equal(
+    expect(getPRStatusSummary(prStatus)).toBe(
       'Failure: The Travis CI build failed'
     )
   })
@@ -86,6 +84,6 @@ describe('pull request status', () => {
         { id: 2, state: pending, description: 'third' },
       ],
     }
-    expect(getPRStatusSummary(prStatus)).to.equal('1/3 checks OK')
+    expect(getPRStatusSummary(prStatus)).toBe('1/3 checks OK')
   })
 })

@@ -1,4 +1,3 @@
-import { expect } from 'chai'
 import { inferComparisonBranch } from '../../src/lib/stores/helpers/infer-comparison-branch'
 import { Branch, BranchType } from '../../src/models/branch'
 import { Commit } from '../../src/models/commit'
@@ -105,8 +104,8 @@ describe('inferComparisonBranch', () => {
       comparisonCache
     )
 
-    expect(branch).is.not.null
-    expect(branch!.tip.sha).to.equal('0')
+    expect(branch).not.toBeNull()
+    expect(branch!.tip.sha).toBe('0')
   })
 
   it('Returns the default branch of a GitHub repository', async () => {
@@ -122,8 +121,8 @@ describe('inferComparisonBranch', () => {
       comparisonCache
     )
 
-    expect(branch).is.not.null
-    expect(branch!.name).to.equal('default')
+    expect(branch).not.toBeNull()
+    expect(branch!.name).toBe('default')
   })
 
   it('Returns the branch associated with the PR', async () => {
@@ -142,8 +141,8 @@ describe('inferComparisonBranch', () => {
       comparisonCache
     )
 
-    expect(branch).is.not.null
-    expect(branch!.upstream).to.equal(branches[5].upstream)
+    expect(branch).not.toBeNull()
+    expect(branch!.upstream).toBe(branches[5].upstream)
   })
 
   it('Returns the default branch of the fork if it is ahead of the current branch', async () => {
@@ -167,8 +166,8 @@ describe('inferComparisonBranch', () => {
       comparisonCache
     )
 
-    expect(branch).is.not.null
-    expect(branch!.name).to.equal(defaultBranch.name)
+    expect(branch).not.toBeNull()
+    expect(branch!.name).toBe(defaultBranch.name)
   })
 
   it("Returns the default branch of the fork's parent branch if the fork is not ahead of the current branch", async () => {
@@ -207,7 +206,7 @@ describe('inferComparisonBranch', () => {
       comparisonCache
     )
 
-    expect(branch).is.not.null
-    expect(branch!.upstream).to.equal(defaultBranchOfParent.upstream)
+    expect(branch).not.toBeNull()
+    expect(branch!.upstream).toBe(defaultBranchOfParent.upstream)
   })
 })
