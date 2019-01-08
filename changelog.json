@@ -1,10 +1,10 @@
 {
   "releases": {
     "1.6.0-beta1": [
-      "[New] Help users add their first repo during onboarding - #6474",
+      "[New] Help users add their first repository during onboarding - #6474",
       "[Added] Include ability for users to add new repositories when there are none available - #5566 #6474",
       "[Fixed] Fix image overlapping menu - #6520. Thanks @06b!",
-      "[Added] Editor integration for JetBrains Webstorm  - #6077. Thanks @KennethSweezy!",
+      "[Added] Detect JetBrains Webstorm as a supported editor in Desktop  - #6077. Thanks @KennethSweezy!",
       "[Fixed] Don't include untracked files in merge commit - #6411",
       "[Fixed] Don't show \"Still Conflicted Warning\" when all conflicts are resolved - #6451",
       "[Fixed] Fix displayed color for conflict status - #6423",
