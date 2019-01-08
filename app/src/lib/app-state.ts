@@ -402,7 +402,7 @@ export interface IChangesState {
   readonly diff: IDiff | null
 
   /** The commit message for a work-in-progress commit in the changes view. */
-  readonly commitMessage: ICommitMessage | null
+  readonly commitMessage: ICommitMessage
 
   /**
    * Whether or not to show a field for adding co-authors to

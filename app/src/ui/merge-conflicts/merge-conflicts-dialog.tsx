@@ -18,6 +18,7 @@ import { PathText } from '../lib/path-text'
 import { DialogHeader } from '../dialog/header'
 import { LinkButton } from '../lib/link-button'
 import { isConflictedFile } from '../../lib/status'
+import { DefaultCommitMessage } from '../../models/commit-message'
 
 interface IMergeConflictsDialogProps {
   readonly dispatcher: Dispatcher
@@ -112,7 +113,10 @@ export class MergeConflictsDialog extends React.Component<
         theirBranch: this.props.theirBranch,
       }
     )
-    this.props.dispatcher.setCommitMessage(this.props.repository, null)
+    this.props.dispatcher.setCommitMessage(
+      this.props.repository,
+      DefaultCommitMessage
+    )
     this.props.dispatcher.changeRepositorySection(
       this.props.repository,
       RepositorySectionTab.Changes
