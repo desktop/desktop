@@ -252,7 +252,12 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
   }
 
   private renderRemoteAction() {
-    const { remote, aheadBehind } = this.props.repositoryState
+    const { remote, aheadBehind, branchesState } = this.props.repositoryState
+    const { tip } = branchesState
+
+    if (tip.kind !== TipState.Valid) {
+      return null
+    }
 
     if (remote === null) {
       return this.renderPublishRepositoryAction()
