@@ -335,4 +335,33 @@ export class RepositoriesStore extends BaseStore {
       repository.missing
     )
   }
+
+  public async updateLastPruneDate(repository: Repository): Promise<void> {
+    const repoID = repository.id
+    if (!repoID) {
+      return fatalError(
+        '`updateLastPruneDate` can only update the last prune date for a repository which has been added to the database.'
+      )
+    }
+
+    const githubRepo = repository.gitHubRepository
+    if (githubRepo === null) {
+      return fatalError(
+        `'updateLastPruneDate' can only update GitHub repositories`
+      )
+    }
+
+    const gitHubRepositoryID = githubRepo.dbID
+    if (gitHubRepositoryID === null) {
+      return fatalError(
+        `'updateLastPruneDate' can only update GitHub repositories with a valid ID: received ID of ${gitHubRepositoryID}`
+      )
+    }
+
+    await this.db.gitHubRepositories.update(gitHubRepositoryID, {
+      lastPruneDate: Date.now(),
+    })
+
+    this.emitUpdate()
+  }
 }
