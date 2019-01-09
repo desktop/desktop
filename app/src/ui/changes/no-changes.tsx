@@ -40,6 +40,7 @@ interface INoChangesProps {
    * 'open pr' actions.
    */
   readonly repositoryState: IRepositoryState
+  readonly isExternalEditorAvailable: boolean
 }
 
 interface IMenuItemInfo {
@@ -225,6 +226,10 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
   }
 
   private renderOpenInExternalEditor() {
+    if (!this.props.isExternalEditorAvailable) {
+      return null
+    }
+
     const itemId: MenuIDs = 'open-external-editor'
     const menuItem = this.getMenuItemInfo(itemId)
 

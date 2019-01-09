@@ -246,6 +246,9 @@ export class RepositoryView extends React.Component<
             appMenu={this.props.appMenu}
             repository={this.props.repository}
             repositoryState={this.props.state}
+            isExternalEditorAvailable={
+              this.props.externalEditorLabel !== undefined
+            }
           />
         )
       } else {
