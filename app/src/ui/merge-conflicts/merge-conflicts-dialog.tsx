@@ -238,7 +238,8 @@ export class MergeConflictsDialog extends React.Component<
       const tooltip = editorButtonTooltip(this.props.resolvedExternalEditor)
 
       const onDropdownClick = this.makeDropdownClickHandler(
-        join(this.props.repository.path, path),
+        path,
+        this.props.repository.path,
         this.props.dispatcher
       )
 
@@ -286,10 +287,12 @@ export class MergeConflictsDialog extends React.Component<
   }
 
   private makeDropdownClickHandler = (
-    absoluteFilePath: string,
+    relativeFilePath: string,
+    repositoryFilePath: string,
     dispatcher: Dispatcher
   ) => {
     return () => {
+      const absoluteFilePath = join(repositoryFilePath, relativeFilePath)
       const items: IMenuItem[] = [
         {
           label: OpenWithDefaultProgramLabel,
