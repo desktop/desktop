@@ -555,8 +555,8 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
       <>
         {remoteActions}
         <div className="actions">
-          {this.renderShowInFinderAction()}
           {this.renderOpenInExternalEditor()}
+          {this.renderShowInFinderAction()}
           {this.renderViewOnGitHub()}
         </div>
       </>
