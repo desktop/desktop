@@ -18,6 +18,7 @@ import { PathText } from '../lib/path-text'
 import { DialogHeader } from '../dialog/header'
 import { LinkButton } from '../lib/link-button'
 import { isConflictedFile } from '../../lib/status'
+import { DefaultCommitMessage } from '../../models/commit-message'
 
 interface IMergeConflictsDialogProps {
   readonly dispatcher: Dispatcher
@@ -104,15 +105,18 @@ export class MergeConflictsDialog extends React.Component<
    *  commits the merge displays the repository changes tab and dismisses the modal
    */
   private onSubmit = async () => {
-    await this.props.dispatcher.createMergeCommit(
+    await this.props.dispatcher.finishConflictedMerge(
       this.props.repository,
-      this.props.workingDirectory.files,
+      this.props.workingDirectory,
       {
         ourBranch: this.props.ourBranch,
         theirBranch: this.props.theirBranch,
       }
     )
-    this.props.dispatcher.setCommitMessage(this.props.repository, null)
+    this.props.dispatcher.setCommitMessage(
+      this.props.repository,
+      DefaultCommitMessage
+    )
     this.props.dispatcher.changeRepositorySection(
       this.props.repository,
       RepositorySectionTab.Changes

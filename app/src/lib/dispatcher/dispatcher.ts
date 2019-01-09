@@ -8,6 +8,7 @@ import { Repository } from '../../models/repository'
 import {
   WorkingDirectoryFileChange,
   CommittedFileChange,
+  WorkingDirectoryStatus,
 } from '../../models/status'
 import { DiffSelection, ImageDiffType } from '../../models/diff'
 import {
@@ -561,7 +562,7 @@ export class Dispatcher {
    */
   public setCommitMessage(
     repository: Repository,
-    message: ICommitMessage | null
+    message: ICommitMessage
   ): Promise<void> {
     return this.appStore._setCommitMessage(repository, message)
   }
@@ -633,15 +634,18 @@ export class Dispatcher {
    * commits an in-flight merge and shows a banner if successful
    *
    * @param repository
-   * @param files files to commit. should be all of them in the repository
+   * @param workingDirectory
    * @param successfulMergeBannerState information for banner to be displayed if merge is successful
    */
-  public async createMergeCommit(
+  public async finishConflictedMerge(
     repository: Repository,
-    files: ReadonlyArray<WorkingDirectoryFileChange>,
+    workingDirectory: WorkingDirectoryStatus,
     successfulMergeBannerState: SuccessfulMergeBannerState
   ) {
-    const result = await this.appStore._createMergeCommit(repository, files)
+    const result = await this.appStore._finishConflictedMerge(
+      repository,
+      workingDirectory
+    )
     if (result !== undefined) {
       this.appStore._setSuccessfulMergeBannerState(successfulMergeBannerState)
     }

@@ -20,6 +20,7 @@ import {
 import { ComparisonCache } from '../comparison-cache'
 import { IGitHubUser } from '../databases'
 import { merge } from '../merge'
+import { DefaultCommitMessage } from '../../models/commit-message'
 
 export class RepositoryStateCache {
   private readonly repositoryState = new Map<string, IRepositoryState>()
@@ -112,7 +113,7 @@ function getInitialRepositoryState(): IRepositoryState {
       ),
       selectedFileIDs: [],
       diff: null,
-      commitMessage: null,
+      commitMessage: DefaultCommitMessage,
       coAuthors: [],
       showCoAuthoredBy: false,
       conflictState: null,

@@ -19,7 +19,10 @@ import {
   TestRepositoriesDatabase,
   TestPullRequestDatabase,
 } from '../helpers/databases'
-import { setupEmptyRepository } from '../helpers/repositories'
+import {
+  setupEmptyRepository,
+  setupConflictedRepoWithMultipleFiles,
+} from '../helpers/repositories'
 import { InMemoryStore, AsyncInMemoryStore } from '../helpers/stores'
 
 import { StatsStore } from '../../src/lib/stats'
@@ -31,10 +34,12 @@ import {
 } from '../../src/lib/app-state'
 import { Repository } from '../../src/models/repository'
 import { Commit } from '../../src/models/commit'
-import { getCommit } from '../../src/lib/git'
+import { getCommit, IStatusResult } from '../../src/lib/git'
 import { TestActivityMonitor } from '../helpers/test-activity-monitor'
 import { RepositoryStateCache } from '../../src/lib/stores/repository-state-cache'
 import { ApiRepositoriesStore } from '../../src/lib/stores/api-repositories-store'
+import { getStatusOrThrow } from '../helpers/status'
+import { AppFileStatusKind } from '../../src/models/status'
 
 // enable mocked version
 jest.mock('../../src/lib/window-state')
@@ -164,6 +169,33 @@ describe('AppStore', () => {
 
       state = getAppState(appStore)
       expect(state.localCommitSHAs).toHaveLength(0)
+    })
+  })
+  describe('_finishConflictedMerge', () => {
+    let appStore: AppStore, repo: Repository, status: IStatusResult
+
+    beforeEach(async () => {
+      appStore = await createAppStore()
+      repo = await setupConflictedRepoWithMultipleFiles()
+      await appStore._selectRepository(repo)
+      status = await getStatusOrThrow(repo)
+    })
+
+    it('commits tracked files', async () => {
+      await appStore._finishConflictedMerge(repo, status.workingDirectory)
+      const newStatus = await getStatusOrThrow(repo)
+      const trackedFiles = newStatus.workingDirectory.files.filter(
+        f => f.status.kind !== AppFileStatusKind.Untracked
+      )
+      expect(trackedFiles).toHaveLength(0)
+    })
+    it('leaves untracked files untracked', async () => {
+      await appStore._finishConflictedMerge(repo, status.workingDirectory)
+      const newStatus = await getStatusOrThrow(repo)
+      const untrackedfiles = newStatus.workingDirectory.files.filter(
+        f => f.status.kind === AppFileStatusKind.Untracked
+      )
+      expect(untrackedfiles).toHaveLength(1)
     })
   })
 })

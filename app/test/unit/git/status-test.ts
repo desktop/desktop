@@ -37,7 +37,7 @@ describe('git/status', () => {
       it('parses conflicted files with markers', async () => {
         const status = await getStatusOrThrow(repository!)
         const files = status.workingDirectory.files
-        expect(files).toHaveLength(4)
+        expect(files).toHaveLength(5)
         const conflictedFiles = files.filter(
           f => f.status.kind === AppFileStatusKind.Conflicted
         )
@@ -86,7 +86,7 @@ describe('git/status', () => {
       it('parses conflicted files without markers', async () => {
         const status = await getStatusOrThrow(repository!)
         const files = status.workingDirectory.files
-        expect(files).toHaveLength(4)
+        expect(files).toHaveLength(5)
         expect(
           files.filter(f => f.status.kind === AppFileStatusKind.Conflicted)
         ).toHaveLength(4)
@@ -109,7 +109,7 @@ describe('git/status', () => {
         const status = await getStatusOrThrow(repository!)
         const files = status.workingDirectory.files
 
-        expect(files).toHaveLength(4)
+        expect(files).toHaveLength(5)
 
         // all files are now considered conflicted
         expect(
