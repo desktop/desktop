@@ -8,7 +8,6 @@ interface IBlankSlateActionProps {
   readonly discoverabilityContent: string | JSX.Element
   readonly buttonText: string | JSX.Element
   readonly onClick: () => void
-  readonly className?: string
   readonly type?: 'normal' | 'primary'
   readonly disabled?: boolean
 }
