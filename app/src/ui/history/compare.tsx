@@ -11,7 +11,7 @@ import {
 } from '../../lib/app-state'
 import { CommitList } from './commit-list'
 import { Repository } from '../../models/repository'
-import { Branch } from '../../models/branch'
+import { Branch, IAheadBehind } from '../../models/branch'
 import { Dispatcher } from '../../lib/dispatcher'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
 import { BranchList } from '../branches'
@@ -370,11 +370,9 @@ export class CompareSidebar extends React.Component<
     const currentBranchName = currentBranch != null ? currentBranch.name : null
     const branch = item.branch
 
-    let aheadBehind
+    let aheadBehind: IAheadBehind | null = null
 
-    if (currentBranch === null) {
-      aheadBehind = null
-    } else {
+    if (currentBranch !== null) {
       const key = getAheadBehindCacheKey(currentBranch.tip.sha, branch.tip.sha)
       aheadBehind = this.props.compareState.aheadBehindCache.get(key) || null
     }
