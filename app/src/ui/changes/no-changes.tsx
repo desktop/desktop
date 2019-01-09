@@ -26,6 +26,9 @@ const BlankSlateImage = encodePathAsUrl(
 const PaperStackImage = encodePathAsUrl(__dirname, 'static/paper-stack.svg')
 
 interface INoChangesProps {
+  /**
+   * The currently selected repository
+   */
   readonly repository: Repository
 
   /**
@@ -40,6 +43,13 @@ interface INoChangesProps {
    * 'open pr' actions.
    */
   readonly repositoryState: IRepositoryState
+
+  /**
+   * Whether or not the user has a configured (explicitly,
+   * or automatically) external editor. Used to
+   * determine whether or not to render the action for
+   * opening the repository in an external editor.
+   */
   readonly isExternalEditorAvailable: boolean
 }
 
