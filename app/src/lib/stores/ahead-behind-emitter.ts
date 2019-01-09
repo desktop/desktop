@@ -29,7 +29,7 @@ export type ScheduleEvent = {
  * which have a shorter lifespan must ensure they dispose their subscriptions
  * when their work is done.
  */
-export class AheadBehindCacheEmitter {
+export class AheadBehindEmitter {
   protected readonly emitter = new Emitter()
 
   /**

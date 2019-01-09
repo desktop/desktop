@@ -25,10 +25,10 @@ import { Repository } from '../../../models/repository'
 import { getAheadBehind } from '../../../lib/git'
 import { Branch, IAheadBehind } from '../../../models/branch'
 import {
-  AheadBehindCacheEmitter,
+  AheadBehindEmitter,
   ScheduleEvent,
   CacheInsertEvent,
-} from '../ahead-behind-cache-emitter'
+} from '../ahead-behind-emitter'
 import { Disposable } from 'event-kit'
 
 export function getAheadBehindCacheKey(from: string, to: string) {
@@ -46,7 +46,7 @@ export class AheadBehindUpdater {
 
   public constructor(
     private readonly repository: Repository,
-    private readonly emitter: AheadBehindCacheEmitter
+    private readonly emitter: AheadBehindEmitter
   ) {
     log.debug(
       `[AheadBehindUpdater] - subscribing to events for ${this.repository.name}`

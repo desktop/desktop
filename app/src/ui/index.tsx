@@ -52,7 +52,7 @@ import {
 import { UiActivityMonitor } from './lib/ui-activity-monitor'
 import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
 import { ApiRepositoriesStore } from '../lib/stores/api-repositories-store'
-import { AheadBehindCacheEmitter } from '../lib/stores/ahead-behind-cache-emitter'
+import { AheadBehindEmitter } from '../lib/stores/ahead-behind-emitter'
 
 if (__DEV__) {
   installDevGlobals()
@@ -132,7 +132,7 @@ const repositoryStateManager = new RepositoryStateCache(repo =>
 
 const apiRepositoriesStore = new ApiRepositoriesStore(accountsStore)
 
-const aheadBehindCacheEmitter = new AheadBehindCacheEmitter()
+const aheadBehindCacheEmitter = new AheadBehindEmitter()
 
 const appStore = new AppStore(
   gitHubUserStore,
