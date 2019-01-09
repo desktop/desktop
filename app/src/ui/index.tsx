@@ -132,7 +132,7 @@ const repositoryStateManager = new RepositoryStateCache(repo =>
 
 const apiRepositoriesStore = new ApiRepositoriesStore(accountsStore)
 
-const aheadBehindCacheEmitter = new AheadBehindEmitter()
+const aheadBehindEmitter = new AheadBehindEmitter()
 
 const appStore = new AppStore(
   gitHubUserStore,
@@ -145,7 +145,7 @@ const appStore = new AppStore(
   pullRequestStore,
   repositoryStateManager,
   apiRepositoriesStore,
-  aheadBehindCacheEmitter
+  aheadBehindEmitter
 )
 
 const dispatcher = new Dispatcher(appStore, repositoryStateManager, statsStore)
