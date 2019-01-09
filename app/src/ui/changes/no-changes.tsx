@@ -53,10 +53,42 @@ interface INoChangesProps {
   readonly isExternalEditorAvailable: boolean
 }
 
+/**
+ * Helper projection interface used to hold
+ * computed information about a particular menu item.
+ * Used internally in the NoChanges component to
+ * trace whether a menu item is enabled, what its
+ * keyboard shortcut is and so forth.
+ */
 interface IMenuItemInfo {
+  /**
+   * The textual representation of the menu item,
+   * this is what's shown in the application menu
+   */
   readonly label: string
+
+  /**
+   * Any accelerator keys (i.e. keyboard shortcut)
+   * for the menu item. A menu item which can be
+   * triggered using Command+Shift+K would be
+   * represented here as three elements in the
+   * array. Used to format and display the keyboard
+   * shortcut for activating an action.
+   */
   readonly acceleratorKeys: ReadonlyArray<string>
+
+  /**
+   * An ordered list of the labels for parent menus
+   * of a particular menu item. Used to provide
+   * a textual representation of where to locate
+   * a particular action in the menu system.
+   */
   readonly parentMenuLabels: ReadonlyArray<string>
+
+  /**
+   * Whether or not the menu item is currently
+   * enabled.
+   */
   readonly enabled: boolean
 }
 
