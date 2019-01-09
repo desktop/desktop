@@ -73,6 +73,7 @@ export class AheadBehindUpdater {
       insertDisposable.dispose()
       scheduleDisposable.dispose()
       pauseDisposable.dispose()
+      this.cache.clear()
     })
   }
 
