@@ -931,6 +931,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     newState: Pick<ICompareFormUpdate, K>
   ) {
+    const oldState = this.repositoryStateCache.get(repository)
+    const oldShowBranchesList = oldState.compareState.showBranchList
+
     this.repositoryStateCache.updateCompareState(repository, state => {
       return merge(state, newState)
     })
@@ -949,7 +952,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    if (compareState.showBranchList) {
+    const branchListNowShowing =
+      oldShowBranchesList === false && compareState.showBranchList === true
+    const branchListNowHidden =
+      oldShowBranchesList === true && compareState.showBranchList === false
+
+    if (branchListNowShowing) {
       const currentBranch = branchesState.tip.branch
 
       this.currentAheadBehindUpdater.schedule(
@@ -958,7 +966,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         compareState.recentBranches,
         compareState.allBranches
       )
-    } else {
+    } else if (branchListNowHidden) {
       this.currentAheadBehindUpdater.clear()
     }
   }
