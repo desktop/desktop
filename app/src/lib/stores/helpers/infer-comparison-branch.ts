@@ -99,11 +99,11 @@ async function getDefaultBranchOfFork(
     currentBranch.tip.sha,
     defaultBranch.tip.sha
   )
-  const aheadBehind = aheadBehindCache.get(key)
+  const aheadBehind = aheadBehindCache.get(key) || null
 
   // we want to return the default branch of the fork if it's ahead
   // of the current branch; see https://github.com/desktop/desktop/issues/4766#issue-325764371
-  if (aheadBehind != null && aheadBehind.ahead > 0) {
+  if (aheadBehind !== null && aheadBehind.ahead > 0) {
     return defaultBranch
   }
 
