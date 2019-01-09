@@ -253,11 +253,11 @@ export class MergeConflictsDialog extends React.Component<
               onClick={onOpenEditorClick}
               disabled={disabled}
               tooltip={tooltip}
-              className="small-button"
+              className="small-button button-group-item"
             >
               {editorButtonString(this.props.resolvedExternalEditor)}
             </Button>
-            <Button onClick={onDropdownClick} className="small-button">
+            <Button onClick={onDropdownClick} className="small-button button-group-item">
               <Octicon symbol={OcticonSymbol.triangleDown} />
             </Button>
           </div>
