@@ -21,6 +21,13 @@ export type ScheduleEvent = {
   readonly allBranches: ReadonlyArray<Branch>
 }
 
+/**
+ * Component responsible for connecting components that are responsible for
+ * computing ahead/behind counts in the application.
+ *
+ * This component exists for the lifetime of the app, so subscribers which have
+ * a shorter lifespan need to ensure they unsubscribe when their work is done.
+ */
 export class AheadBehindCacheEmitter {
   protected readonly emitter = new Emitter()
 
