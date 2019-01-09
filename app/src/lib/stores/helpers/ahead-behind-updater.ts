@@ -38,17 +38,33 @@ export class AheadBehindUpdater {
   })
 
   private readonly cache = new Map<string, IAheadBehind>()
-  private readonly insertSubscription: Disposable
+  private readonly subscription: Disposable
 
   public constructor(
     private readonly repository: Repository,
     private readonly emitter: AheadBehindCacheEmitter
   ) {
-    this.insertSubscription = emitter.onInsertValue(
+    const insertDisposable = emitter.onInsertValue(
       ({ from, to, aheadBehind }) => {
         this.insert(from, to, aheadBehind)
       }
     )
+
+    const scheduleDisposable = emitter.onScheduleComparisons(
+      ({ currentBranch, defaultBranch, recentBranches, allBranches }) => {
+        this.schedule(currentBranch, defaultBranch, recentBranches, allBranches)
+      }
+    )
+
+    const pauseDisposable = emitter.onPause(() => {
+      this.clear()
+    })
+
+    this.subscription = new Disposable(() => {
+      insertDisposable.dispose()
+      scheduleDisposable.dispose()
+      pauseDisposable.dispose()
+    })
   }
 
   public start() {
@@ -79,7 +95,7 @@ export class AheadBehindUpdater {
 
   public stop() {
     this.aheadBehindQueue.end()
-    this.insertSubscription.dispose()
+    this.subscription.dispose()
   }
 
   private executeTask = (
@@ -121,7 +137,7 @@ export class AheadBehindUpdater {
   /**
    * Stop any pending ahead/behind computations for the current repository
    */
-  public clear() {
+  private clear() {
     log.debug(
       `[AheadBehindUpdater] - abandoning ${
         this.aheadBehindQueue.length
@@ -140,7 +156,7 @@ export class AheadBehindUpdater {
    * @param recentBranches Recent branches in the repository
    * @param allBranches All known branches in the repository
    */
-  public schedule(
+  private schedule(
     currentBranch: Branch,
     defaultBranch: Branch | null,
     recentBranches: ReadonlyArray<Branch>,

@@ -1,6 +1,6 @@
 import { Emitter, Disposable } from 'event-kit'
 
-import { IAheadBehind } from '../../models/branch'
+import { IAheadBehind, Branch } from '../../models/branch'
 import { Repository } from '../../models/repository'
 
 export type CacheUpdatedEvent = {
@@ -12,6 +12,13 @@ export type CacheInsertEvent = {
   readonly from: string
   readonly to: string
   readonly aheadBehind: IAheadBehind
+}
+
+export type ScheduleEvent = {
+  readonly currentBranch: Branch
+  readonly defaultBranch: Branch | null
+  readonly recentBranches: ReadonlyArray<Branch>
+  readonly allBranches: ReadonlyArray<Branch>
 }
 
 export class AheadBehindCacheEmitter {
@@ -31,5 +38,21 @@ export class AheadBehindCacheEmitter {
 
   public insertValue(event: CacheInsertEvent) {
     this.emitter.emit('insert-cache', event)
+  }
+
+  public onScheduleComparisons(fn: (event: ScheduleEvent) => void): Disposable {
+    return this.emitter.on('schedule-comparisons', fn)
+  }
+
+  public scheduleComparisons(event: ScheduleEvent) {
+    this.emitter.emit('schedule-comparisons', event)
+  }
+
+  public onPause(fn: () => void): Disposable {
+    return this.emitter.on('pause-comparisons', fn)
+  }
+
+  public pause() {
+    this.emitter.emit('pause-comparisons', null)
   }
 }

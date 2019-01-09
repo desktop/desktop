@@ -948,10 +948,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    if (this.currentAheadBehindUpdater === null) {
-      return
-    }
-
     const branchListNowShowing =
       oldShowBranchesList === false && compareState.showBranchList === true
     const branchListNowHidden =
@@ -959,15 +955,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     if (branchListNowShowing) {
       const currentBranch = branchesState.tip.branch
+      const { defaultBranch, recentBranches, allBranches } = compareState
 
-      this.currentAheadBehindUpdater.schedule(
+      this.aheadBehindCacheEmitter.scheduleComparisons({
         currentBranch,
-        compareState.defaultBranch,
-        compareState.recentBranches,
-        compareState.allBranches
-      )
+        defaultBranch,
+        recentBranches,
+        allBranches,
+      })
     } else if (branchListNowHidden) {
-      this.currentAheadBehindUpdater.clear()
+      this.aheadBehindCacheEmitter.pause()
     }
   }
 
