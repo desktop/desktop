@@ -157,6 +157,11 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --box-overflow-shadow-background: linear-gradient(180deg, rgba($white, 0) 0%, rgba($white, 1) 90%, rgba($white, 1) 100%);
 
   /**
+   * Placeholder color for input boxes
+   */
+  --box-placeholder-color: $gray-500;
+
+  /**
    * Author input (co-authors)
    */
   --co-author-tag-background-color: $blue-000;
