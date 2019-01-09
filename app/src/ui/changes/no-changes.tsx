@@ -13,7 +13,7 @@ import { getPlatformSpecificNameOrSymbolForModifier } from '../../lib/menu-item'
 import { MenuBackedBlankslateAction } from './menu-backed-blankslate-action'
 import { executeMenuItemById } from '../main-process-proxy'
 import { IRepositoryState } from '../../lib/app-state'
-import { TipState } from '../../models/tip'
+import { TipState, IValidBranch } from '../../models/tip'
 import { Ref } from '../lib/ref'
 import { IAheadBehind } from '../../models/branch'
 import { IRemote } from '../../models/remote'
@@ -273,22 +273,22 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
 
     // Branch not published
     if (aheadBehind === null) {
-      return this.renderPublishBranchAction()
+      return this.renderPublishBranchAction(tip)
     }
 
     if (aheadBehind.behind > 0) {
-      return this.renderPullBranchAction(remote, aheadBehind)
+      return this.renderPullBranchAction(tip, remote, aheadBehind)
     }
 
     if (aheadBehind.ahead > 0) {
-      return this.renderPushBranchAction(remote, aheadBehind)
+      return this.renderPushBranchAction(tip, remote, aheadBehind)
     }
 
     const isGitHub = this.props.repository.gitHubRepository !== null
     const hasOpenPullRequest = branchesState.currentPullRequest !== null
 
     if (isGitHub && !hasOpenPullRequest) {
-      return this.renderCreatePullRequestAction()
+      return this.renderCreatePullRequestAction(tip)
     }
 
     return null
@@ -327,7 +327,7 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
     )
   }
 
-  private renderPublishBranchAction() {
+  private renderPublishBranchAction(tip: IValidBranch) {
     // This is a bit confusing, there's no dedicated
     // publish branch menu item, the 'Push' menu item will initiate
     // a publish if the branch doesn't have a remote tracking branch.
@@ -340,14 +340,7 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
       return null
     }
 
-    const { branchesState } = this.props.repositoryState
-    const { tip } = branchesState
-
     const isGitHub = this.props.repository.gitHubRepository !== null
-
-    if (tip.kind !== TipState.Valid) {
-      return null
-    }
 
     const description = (
       <>
@@ -379,7 +372,11 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
     )
   }
 
-  private renderPullBranchAction(remote: IRemote, aheadBehind: IAheadBehind) {
+  private renderPullBranchAction(
+    tip: IValidBranch,
+    remote: IRemote,
+    aheadBehind: IAheadBehind
+  ) {
     const itemId: MenuIDs = 'pull'
     const menuItem = this.getMenuItemInfo(itemId)
 
@@ -388,14 +385,7 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
       return null
     }
 
-    const { branchesState } = this.props.repositoryState
-    const { tip } = branchesState
-
     const isGitHub = this.props.repository.gitHubRepository !== null
-
-    if (tip.kind !== TipState.Valid) {
-      return null
-    }
 
     const description = (
       <>
@@ -430,7 +420,11 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
     )
   }
 
-  private renderPushBranchAction(remote: IRemote, aheadBehind: IAheadBehind) {
+  private renderPushBranchAction(
+    tip: IValidBranch,
+    remote: IRemote,
+    aheadBehind: IAheadBehind
+  ) {
     const itemId: MenuIDs = 'push'
     const menuItem = this.getMenuItemInfo(itemId)
 
@@ -439,14 +433,7 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
       return null
     }
 
-    const { branchesState } = this.props.repositoryState
-    const { tip } = branchesState
-
     const isGitHub = this.props.repository.gitHubRepository !== null
-
-    if (tip.kind !== TipState.Valid) {
-      return null
-    }
 
     const description = (
       <>
@@ -482,19 +469,12 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
     )
   }
 
-  private renderCreatePullRequestAction() {
+  private renderCreatePullRequestAction(tip: IValidBranch) {
     const itemId: MenuIDs = 'create-pull-request'
     const menuItem = this.getMenuItemInfo(itemId)
 
     if (menuItem === undefined) {
       log.error(`Could not find matching menu item for ${itemId}`)
-      return null
-    }
-
-    const { branchesState } = this.props.repositoryState
-    const { tip } = branchesState
-
-    if (tip.kind !== TipState.Valid) {
       return null
     }
 
