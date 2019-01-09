@@ -11,6 +11,7 @@ interface IMenuBackedBlankSlateActionProps {
   readonly className?: string
   readonly menuItemId: MenuIDs
   readonly type?: 'normal' | 'primary'
+  readonly disabled?: boolean
 }
 
 /**
@@ -33,6 +34,7 @@ export class MenuBackedBlankslateAction extends React.Component<
         onClick={this.onClick}
         className={this.props.className}
         type={this.props.type}
+        disabled={this.props.disabled}
       />
     )
   }

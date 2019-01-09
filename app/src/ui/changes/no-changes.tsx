@@ -186,10 +186,6 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
       return null
     }
 
-    if (!menuItem.enabled) {
-      return null
-    }
-
     return (
       <MenuBackedBlankslateAction
         title={title}
@@ -197,6 +193,7 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
         discoverabilityContent={this.renderDiscoverabilityElements(menuItem)}
         menuItemId={itemId}
         buttonText={menuItem.label}
+        disabled={!menuItem.enabled}
       />
     )
   }
@@ -299,10 +296,6 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
       return null
     }
 
-    if (!menuItem.enabled) {
-      return null
-    }
-
     const discoverabilityContent = (
       <>
         Always available in the toolbar for local repositories or{' '}
@@ -318,6 +311,7 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
         buttonText="Publish repository"
         menuItemId={itemId}
         type="primary"
+        disabled={!menuItem.enabled}
       />
     )
   }
@@ -332,10 +326,6 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
 
     if (menuItem === undefined) {
       log.error(`Could not find matching menu item for ${itemId}`)
-      return null
-    }
-
-    if (!menuItem.enabled) {
       return null
     }
 
@@ -373,6 +363,7 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
         discoverabilityContent={discoverabilityContent}
         buttonText="Publish branch"
         type="primary"
+        disabled={!menuItem.enabled}
       />
     )
   }
@@ -383,10 +374,6 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
 
     if (menuItem === undefined) {
       log.error(`Could not find matching menu item for ${itemId}`)
-      return null
-    }
-
-    if (!menuItem.enabled) {
       return null
     }
 
@@ -427,6 +414,7 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
         discoverabilityContent={discoverabilityContent}
         buttonText={buttonText}
         type="primary"
+        disabled={!menuItem.enabled}
       />
     )
   }
@@ -437,10 +425,6 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
 
     if (menuItem === undefined) {
       log.error(`Could not find matching menu item for ${itemId}`)
-      return null
-    }
-
-    if (!menuItem.enabled) {
       return null
     }
 
@@ -482,6 +466,7 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
         discoverabilityContent={discoverabilityContent}
         buttonText={buttonText}
         type="primary"
+        disabled={!menuItem.enabled}
       />
     )
   }
@@ -492,10 +477,6 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
 
     if (menuItem === undefined) {
       log.error(`Could not find matching menu item for ${itemId}`)
-      return null
-    }
-
-    if (!menuItem.enabled) {
       return null
     }
 
@@ -525,6 +506,7 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
         buttonText={buttonText}
         discoverabilityContent={this.renderDiscoverabilityElements(menuItem)}
         type="primary"
+        disabled={!menuItem.enabled}
       />
     )
   }

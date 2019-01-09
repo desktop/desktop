@@ -10,6 +10,7 @@ interface IBlankSlateActionProps {
   readonly onClick: () => void
   readonly className?: string
   readonly type?: 'normal' | 'primary'
+  readonly disabled?: boolean
 }
 
 /**
@@ -43,6 +44,7 @@ export class BlankslateAction extends React.Component<
         <Button
           type={primary ? 'submit' : undefined}
           onClick={this.props.onClick}
+          disabled={this.props.disabled}
         >
           {this.props.buttonText}
         </Button>
