@@ -24,7 +24,11 @@ interface Queue extends NodeJS.EventEmitter {
 import { Repository } from '../../../models/repository'
 import { getAheadBehind } from '../../../lib/git'
 import { Branch, IAheadBehind } from '../../../models/branch'
-import { AheadBehindCacheEmitter } from '../ahead-behind-cache-emitter'
+import {
+  AheadBehindCacheEmitter,
+  ScheduleEvent,
+  CacheInsertEvent,
+} from '../ahead-behind-cache-emitter'
 import { Disposable } from 'event-kit'
 
 export function getAheadBehindCacheKey(from: string, to: string) {
@@ -44,23 +48,28 @@ export class AheadBehindUpdater {
     private readonly repository: Repository,
     private readonly emitter: AheadBehindCacheEmitter
   ) {
-    const insertDisposable = emitter.onInsertValue(
-      ({ from, to, aheadBehind }) => {
-        this.insert(from, to, aheadBehind)
-      }
+    log.debug(
+      `[AheadBehindUpdater] - subscribing to events for ${this.repository.name}`
     )
 
-    const scheduleDisposable = emitter.onScheduleComparisons(
-      ({ currentBranch, defaultBranch, recentBranches, allBranches }) => {
-        this.schedule(currentBranch, defaultBranch, recentBranches, allBranches)
-      }
-    )
+    const insertDisposable = emitter.onInsertValue(event => {
+      this.insert(event)
+    })
+
+    const scheduleDisposable = emitter.onScheduleComparisons(event => {
+      this.schedule(event)
+    })
 
     const pauseDisposable = emitter.onPause(() => {
       this.clear()
     })
 
     this.subscription = new Disposable(() => {
+      log.debug(
+        `[AheadBehindUpdater] - disposing subscriptions for ${
+          this.repository.name
+        }`
+      )
       insertDisposable.dispose()
       scheduleDisposable.dispose()
       pauseDisposable.dispose()
@@ -124,14 +133,15 @@ export class AheadBehindUpdater {
   /**
    * Add a known ahead/behind value to the cache to avoid re-computation
    */
-  private insert(from: string, to: string, value: IAheadBehind) {
+  private insert(event: CacheInsertEvent) {
+    const { from, to, aheadBehind } = event
     const key = getAheadBehindCacheKey(from, to)
 
     if (this.cache.has(key)) {
       return
     }
 
-    this.cache.set(key, value)
+    this.cache.set(key, aheadBehind)
   }
 
   /**
@@ -156,13 +166,10 @@ export class AheadBehindUpdater {
    * @param recentBranches Recent branches in the repository
    * @param allBranches All known branches in the repository
    */
-  private schedule(
-    currentBranch: Branch,
-    defaultBranch: Branch | null,
-    recentBranches: ReadonlyArray<Branch>,
-    allBranches: ReadonlyArray<Branch>
-  ) {
+  private schedule(event: ScheduleEvent) {
     this.clear()
+
+    const { currentBranch, defaultBranch, recentBranches, allBranches } = event
 
     const from = currentBranch.tip.sha
 
