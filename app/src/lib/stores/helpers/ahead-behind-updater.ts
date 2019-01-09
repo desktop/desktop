@@ -130,9 +130,6 @@ export class AheadBehindUpdater {
     })
   }
 
-  /**
-   * Add a known ahead/behind value to the cache to avoid re-computation
-   */
   private insert(event: CacheInsertEvent) {
     const { from, to, aheadBehind } = event
     const key = getAheadBehindCacheKey(from, to)
