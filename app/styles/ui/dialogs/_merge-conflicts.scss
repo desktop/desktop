@@ -63,7 +63,16 @@ dialog#merge-conflicts-list {
         }
       }
 
-      button:last-child,
+      .action-buttons {
+        margin-left: auto;
+        margin-top: var(--spacing);
+        flex-shrink: 0;
+        flex: 0 1 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
       .green-circle:last-child {
         margin-left: auto;
         margin-top: var(--spacing);

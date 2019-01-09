@@ -19,6 +19,14 @@ import { DialogHeader } from '../dialog/header'
 import { LinkButton } from '../lib/link-button'
 import { isConflictedFile } from '../../lib/status'
 import { DefaultCommitMessage } from '../../models/commit-message'
+import { shell } from '../../lib/app-shell'
+import { openFile } from '../../lib/open-file'
+import { showContextualMenu } from '../main-process-proxy'
+import { IMenuItem } from '../../lib/menu-item'
+import {
+  OpenWithDefaultProgramLabel,
+  RevealInFileManagerLabel,
+} from '../lib/context-menu'
 
 interface IMergeConflictsDialogProps {
   readonly dispatcher: Dispatcher
@@ -229,20 +237,30 @@ export class MergeConflictsDialog extends React.Component<
 
       const tooltip = editorButtonTooltip(this.props.resolvedExternalEditor)
 
+      const onDropdownClick = this.makeDropdownClickHandler(
+        join(this.props.repository.path, path),
+        this.props.dispatcher
+      )
+
       content = (
         <>
           <div className="column-left">
             <PathText path={path} availableWidth={200} />
             <div className="file-conflicts-status">{message}</div>
           </div>
-          <Button
-            onClick={onOpenEditorClick}
-            disabled={disabled}
-            tooltip={tooltip}
-            className="small-button"
-          >
-            {editorButtonString(this.props.resolvedExternalEditor)}
-          </Button>
+          <div className="action-buttons">
+            <Button
+              onClick={onOpenEditorClick}
+              disabled={disabled}
+              tooltip={tooltip}
+              className="small-button"
+            >
+              {editorButtonString(this.props.resolvedExternalEditor)}
+            </Button>
+            <Button onClick={onDropdownClick} className="small-button">
+              <Octicon symbol={OcticonSymbol.triangleDown} />
+            </Button>
+          </div>
         </>
       )
     } else {
@@ -262,6 +280,25 @@ export class MergeConflictsDialog extends React.Component<
         {content}
       </li>
     ) : null
+  }
+
+  private makeDropdownClickHandler = (
+    absoluteFilePath: string,
+    dispatcher: Dispatcher
+  ) => {
+    return () => {
+      const items: IMenuItem[] = [
+        {
+          label: OpenWithDefaultProgramLabel,
+          action: () => openFile(absoluteFilePath, dispatcher),
+        },
+        {
+          label: RevealInFileManagerLabel,
+          action: () => shell.showItemInFolder(absoluteFilePath),
+        },
+      ]
+      showContextualMenu(items)
+    }
   }
 
   private renderUnmergedFile(
