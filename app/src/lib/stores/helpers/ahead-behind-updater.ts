@@ -24,25 +24,40 @@ interface Queue extends NodeJS.EventEmitter {
 import { Repository } from '../../../models/repository'
 import { getAheadBehind } from '../../../lib/git'
 import { Branch, IAheadBehind } from '../../../models/branch'
-import { ComparisonCache } from '../../comparison-cache'
+import { AheadBehindCacheEmitter } from '../ahead-behind-cache-emitter'
+import { Disposable } from 'event-kit'
+
+export function getAheadBehindCacheKey(from: string, to: string) {
+  return revSymmetricDifference(from, to)
+}
 
 export class AheadBehindUpdater {
-  private comparisonCache = new ComparisonCache()
-
   private aheadBehindQueue = queue({
     concurrency: 1,
     autostart: true,
   })
 
+  private readonly cache = new Map<string, IAheadBehind>()
+  private readonly insertSubscription: Disposable
+
   public constructor(
-    private repository: Repository,
-    private onCacheUpdate: (cache: ComparisonCache) => void
-  ) {}
+    private readonly repository: Repository,
+    private readonly emitter: AheadBehindCacheEmitter
+  ) {
+    this.insertSubscription = emitter.onInsertValue(
+      ({ from, to, aheadBehind }) => {
+        this.insert(from, to, aheadBehind)
+      }
+    )
+  }
 
   public start() {
     this.aheadBehindQueue.on('success', (result: IAheadBehind | null) => {
       if (result != null) {
-        this.onCacheUpdate(this.comparisonCache)
+        this.emitter.fireUpdate({
+          repository: this.repository,
+          aheadBehindCache: this.cache,
+        })
       }
     })
 
@@ -64,6 +79,7 @@ export class AheadBehindUpdater {
 
   public stop() {
     this.aheadBehindQueue.end()
+    this.insertSubscription.dispose()
   }
 
   private executeTask = (
@@ -71,14 +87,15 @@ export class AheadBehindUpdater {
     to: string,
     callback: (error: Error | null, result: IAheadBehind | null) => void
   ) => {
-    if (this.comparisonCache.has(from, to)) {
+    const cacheKey = getAheadBehindCacheKey(from, to)
+    if (this.cache.has(cacheKey)) {
       return
     }
 
     const range = revSymmetricDifference(from, to)
     getAheadBehind(this.repository, range).then(result => {
       if (result != null) {
-        this.comparisonCache.set(from, to, result)
+        this.cache.set(cacheKey, result)
       } else {
         log.debug(
           `[AheadBehindUpdater] unable to cache '${range}' as no result returned`
@@ -88,18 +105,29 @@ export class AheadBehindUpdater {
     })
   }
 
-  public insert(from: string, to: string, value: IAheadBehind) {
-    if (this.comparisonCache.has(from, to)) {
+  /**
+   * Add a known ahead/behind value to the cache to avoid re-computation
+   */
+  private insert(from: string, to: string, value: IAheadBehind) {
+    const key = getAheadBehindCacheKey(from, to)
+
+    if (this.cache.has(key)) {
       return
     }
 
-    this.comparisonCache.set(from, to, value)
+    this.cache.set(key, value)
   }
 
   /**
-   * Stop processing any ahead/behind computations for the current repository
+   * Stop any pending ahead/behind computations for the current repository
    */
   public clear() {
+    log.debug(
+      `[AheadBehindUpdater] - abandoning ${
+        this.aheadBehindQueue.length
+      } pending comparisons`
+    )
+
     this.aheadBehindQueue.end()
   }
 
@@ -125,7 +153,7 @@ export class AheadBehindUpdater {
     const filterBranchesNotInCache = (branches: ReadonlyArray<Branch>) => {
       return branches
         .map(b => b.tip.sha)
-        .filter(to => !this.comparisonCache.has(from, to))
+        .filter(to => !this.cache.has(getAheadBehindCacheKey(from, to)))
     }
 
     const otherBranches = [...recentBranches, ...allBranches]

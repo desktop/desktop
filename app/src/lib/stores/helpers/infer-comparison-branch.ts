@@ -1,10 +1,10 @@
-import { Branch } from '../../../models/branch'
+import { Branch, IAheadBehind } from '../../../models/branch'
 import { PullRequest } from '../../../models/pull-request'
 import { GitHubRepository } from '../../../models/github-repository'
 import { IRemote } from '../../../models/remote'
 import { Repository } from '../../../models/repository'
-import { ComparisonCache } from '../../comparison-cache'
 import { urlMatchesCloneURL } from '../../repository-matching'
+import { getAheadBehindCacheKey } from './ahead-behind-updater'
 
 type RemotesGetter = (repository: Repository) => Promise<ReadonlyArray<IRemote>>
 
@@ -30,7 +30,7 @@ export async function inferComparisonBranch(
   currentPullRequest: PullRequest | null,
   currentBranch: Branch | null,
   getRemotes: RemotesGetter,
-  comparisonCache: ComparisonCache
+  aheadBehindCache: Map<string, IAheadBehind>
 ): Promise<Branch | null> {
   if (currentPullRequest !== null) {
     return getTargetBranchOfPullRequest(branches, currentPullRequest)
@@ -44,7 +44,7 @@ export async function inferComparisonBranch(
           branches,
           currentBranch,
           getRemotes,
-          comparisonCache
+          aheadBehindCache
         )
       : getDefaultBranchOfGitHubRepo(branches, ghRepo)
   }
@@ -85,7 +85,7 @@ async function getDefaultBranchOfFork(
   branches: ReadonlyArray<Branch>,
   currentBranch: Branch,
   getRemotes: RemotesGetter,
-  comparisonCache: ComparisonCache
+  aheadBehindCache: Map<string, IAheadBehind>
 ): Promise<Branch | null> {
   // this is guaranteed to exist since this function
   // is only called if the ghRepo is not null
@@ -95,14 +95,15 @@ async function getDefaultBranchOfFork(
     return getMasterBranch(branches)
   }
 
-  const aheadBehind = comparisonCache.get(
+  const key = getAheadBehindCacheKey(
     currentBranch.tip.sha,
     defaultBranch.tip.sha
   )
+  const aheadBehind = aheadBehindCache.get(key)
 
   // we want to return the default branch of the fork if it's ahead
   // of the current branch; see https://github.com/desktop/desktop/issues/4766#issue-325764371
-  if (aheadBehind !== null && aheadBehind.ahead > 0) {
+  if (aheadBehind != null && aheadBehind.ahead > 0) {
     return defaultBranch
   }
 

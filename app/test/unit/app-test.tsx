@@ -27,6 +27,7 @@ import { InMemoryStore, AsyncInMemoryStore } from '../helpers/stores'
 import { TestActivityMonitor } from '../helpers/test-activity-monitor'
 import { RepositoryStateCache } from '../../src/lib/stores/repository-state-cache'
 import { ApiRepositoriesStore } from '../../src/lib/stores/api-repositories-store'
+import { AheadBehindCacheEmitter } from '../../src/lib/stores/ahead-behind-cache-emitter'
 
 describe('App', () => {
   let appStore: AppStore | null = null
@@ -69,6 +70,7 @@ describe('App', () => {
     )
 
     const apiRepositoriesStore = new ApiRepositoriesStore(accountsStore)
+    const aheadBehindCacheEmitter = new AheadBehindCacheEmitter()
 
     appStore = new AppStore(
       githubUserStore,
@@ -80,7 +82,8 @@ describe('App', () => {
       repositoriesStore,
       pullRequestStore,
       repositoryStateManager,
-      apiRepositoriesStore
+      apiRepositoriesStore,
+      aheadBehindCacheEmitter
     )
 
     dispatcher = new InMemoryDispatcher(

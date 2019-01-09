@@ -29,6 +29,7 @@ import {
   DismissalReason,
 } from '../notification/new-commits-banner'
 import { MergeCallToActionWithConflicts } from './merge-call-to-action-with-conflicts'
+import { getAheadBehindCacheKey } from '../../lib/stores/helpers/ahead-behind-updater'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -369,12 +370,14 @@ export class CompareSidebar extends React.Component<
     const currentBranchName = currentBranch != null ? currentBranch.name : null
     const branch = item.branch
 
-    const aheadBehind = currentBranch
-      ? this.props.compareState.aheadBehindCache.get(
-          currentBranch.tip.sha,
-          branch.tip.sha
-        )
-      : null
+    let aheadBehind
+
+    if (currentBranch === null) {
+      aheadBehind = null
+    } else {
+      const key = getAheadBehindCacheKey(currentBranch.tip.sha, branch.tip.sha)
+      aheadBehind = this.props.compareState.aheadBehindCache.get(key) || null
+    }
 
     return (
       <CompareBranchListItem

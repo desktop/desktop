@@ -1,4 +1,4 @@
-import { Branch } from '../../models/branch'
+import { Branch, IAheadBehind } from '../../models/branch'
 import { Commit } from '../../models/commit'
 import { PullRequest } from '../../models/pull-request'
 import { Repository } from '../../models/repository'
@@ -17,7 +17,6 @@ import {
   RepositorySectionTab,
   ICommitSelection,
 } from '../app-state'
-import { ComparisonCache } from '../comparison-cache'
 import { IGitHubUser } from '../databases'
 import { merge } from '../merge'
 import { DefaultCommitMessage } from '../../models/commit-message'
@@ -138,7 +137,7 @@ function getInitialRepositoryState(): IRepositoryState {
       showBranchList: false,
       filterText: '',
       commitSHAs: [],
-      aheadBehindCache: new ComparisonCache(),
+      aheadBehindCache: new Map<string, IAheadBehind>(),
       allBranches: new Array<Branch>(),
       recentBranches: new Array<Branch>(),
       defaultBranch: null,

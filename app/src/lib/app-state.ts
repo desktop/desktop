@@ -29,7 +29,6 @@ import { SignInState } from './stores/sign-in-store'
 import { WindowState } from './window-state'
 import { ExternalEditor } from './editors'
 import { Shell } from './shells'
-import { ComparisonCache } from './comparison-cache'
 
 import { ApplicationTheme } from '../ui/lib/application-theme'
 import { IAccountRepositories } from './stores/api-repositories-store'
@@ -517,7 +516,7 @@ export interface ICompareState {
   /**
    * A local cache of ahead/behind computations to compare other refs to the current branch
    */
-  readonly aheadBehindCache: ComparisonCache
+  readonly aheadBehindCache: Map<string, IAheadBehind>
 
   /**
    * The best candidate branch to compare the current branch to.

@@ -40,6 +40,7 @@ import { RepositoryStateCache } from '../../src/lib/stores/repository-state-cach
 import { ApiRepositoriesStore } from '../../src/lib/stores/api-repositories-store'
 import { getStatusOrThrow } from '../helpers/status'
 import { AppFileStatusKind } from '../../src/models/status'
+import { AheadBehindCacheEmitter } from '../../src/lib/stores/ahead-behind-cache-emitter'
 
 // enable mocked version
 jest.mock('../../src/lib/window-state')
@@ -77,6 +78,8 @@ describe('AppStore', () => {
 
     const apiRepositoriesStore = new ApiRepositoriesStore(accountsStore)
 
+    const aheadBehindCacheEmitter = new AheadBehindCacheEmitter()
+
     return new AppStore(
       githubUserStore,
       new CloningRepositoriesStore(),
@@ -87,7 +90,8 @@ describe('AppStore', () => {
       repositoriesStore,
       pullRequestStore,
       repositoryStateManager,
-      apiRepositoriesStore
+      apiRepositoriesStore,
+      aheadBehindCacheEmitter
     )
   }
 

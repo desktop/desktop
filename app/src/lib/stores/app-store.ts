@@ -162,7 +162,10 @@ import {
 import { hasShownWelcomeFlow, markWelcomeFlowComplete } from '../welcome'
 import { getWindowState, WindowState } from '../window-state'
 import { TypedBaseStore } from './base-store'
-import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
+import {
+  AheadBehindUpdater,
+  getAheadBehindCacheKey,
+} from './helpers/ahead-behind-updater'
 import { MergeResultKind } from '../../models/merge'
 import { promiseWithMinimumTimeout } from '../promise'
 import { BackgroundFetcher } from './helpers/background-fetcher'
@@ -181,6 +184,7 @@ import {
   updateConflictState,
 } from './updates/changes-state'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
+import { AheadBehindCacheEmitter } from './ahead-behind-cache-emitter'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -308,7 +312,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     private readonly repositoriesStore: RepositoriesStore,
     private readonly pullRequestStore: PullRequestStore,
     private readonly repositoryStateCache: RepositoryStateCache,
-    private readonly apiRepositoriesStore: ApiRepositoriesStore
+    private readonly apiRepositoriesStore: ApiRepositoriesStore,
+    private readonly aheadBehindCacheEmitter: AheadBehindCacheEmitter
   ) {
     super()
 
@@ -326,6 +331,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     window.webContents.getZoomFactor(factor => {
       this.onWindowZoomFactorChanged(factor)
+    })
+
+    aheadBehindCacheEmitter.onDidUpdate(({ repository, aheadBehindCache }) => {
+      this.repositoryStateCache.updateCompareState(repository, () => ({
+        aheadBehindCache,
+      }))
+      this.emitUpdate()
     })
 
     this.wireupIpcEventHandlers(window)
@@ -613,12 +625,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const updater = new AheadBehindUpdater(repository, aheadBehindCache => {
-      this.repositoryStateCache.updateCompareState(repository, () => ({
-        aheadBehindCache,
-      }))
-      this.emitUpdate()
-    })
+    const updater = new AheadBehindUpdater(
+      repository,
+      this.aheadBehindCacheEmitter
+    )
 
     this.currentAheadBehindUpdater = updater
 
@@ -679,10 +689,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
 
       if (inferredBranch !== null) {
-        aheadBehindOfInferredBranch = compareState.aheadBehindCache.get(
+        const key = getAheadBehindCacheKey(
           tip.branch.tip.sha,
           inferredBranch.tip.sha
         )
+        aheadBehindOfInferredBranch =
+          compareState.aheadBehindCache.get(key) || null
       }
     }
 
@@ -814,8 +826,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const { ahead, behind } = compare
-    const aheadBehind = { ahead, behind }
+    const aheadBehind = { ahead: compare.ahead, behind: compare.behind }
 
     const commitSHAs = compare.commits.map(commit => commit.sha)
 
@@ -842,7 +853,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       currentSha = tip.currentSha
     }
 
-    if (this.currentAheadBehindUpdater != null && currentSha != null) {
+    if (currentSha != null) {
       const from =
         action.comparisonMode === ComparisonMode.Ahead
           ? comparisonBranch.tip.sha
@@ -852,7 +863,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
           ? currentSha
           : comparisonBranch.tip.sha
 
-      this.currentAheadBehindUpdater.insert(from, to, aheadBehind)
+      this.aheadBehindCacheEmitter.insertValue({
+        from,
+        to,
+        aheadBehind,
+      })
     }
 
     const loadingMerge: MergeResultStatus = { kind: MergeResultKind.Loading }

@@ -1,5 +1,5 @@
 import { inferComparisonBranch } from '../../src/lib/stores/helpers/infer-comparison-branch'
-import { Branch, BranchType } from '../../src/models/branch'
+import { Branch, BranchType, IAheadBehind } from '../../src/models/branch'
 import { Commit } from '../../src/models/commit'
 import { CommitIdentity } from '../../src/models/commit-identity'
 import { GitHubRepository } from '../../src/models/github-repository'
@@ -7,7 +7,7 @@ import { Owner } from '../../src/models/owner'
 import { PullRequest, PullRequestRef } from '../../src/models/pull-request'
 import { Repository } from '../../src/models/repository'
 import { IRemote } from '../../src/models/remote'
-import { ComparisonCache } from '../../src/lib/comparison-cache'
+import { getAheadBehindCacheKey } from '../../src/lib/stores/helpers/ahead-behind-updater'
 
 function createTestCommit(sha: string) {
   return new Commit(
@@ -87,7 +87,7 @@ describe('inferComparisonBranch', () => {
     createTestBranch('upstream/base', '5', 'upstream'),
     createTestBranch('fork', '6', 'origin'),
   ]
-  const comparisonCache = new ComparisonCache()
+  const comparisonCache = new Map<string, IAheadBehind>()
 
   beforeEach(() => {
     comparisonCache.clear()
@@ -152,7 +152,12 @@ describe('inferComparisonBranch', () => {
     const fork = createTestGhRepo('fork', 'fork', parent)
     const repo = createTestRepo(fork)
 
-    comparisonCache.set(currentBranch.tip.sha, defaultBranch.tip.sha, {
+    const key = getAheadBehindCacheKey(
+      currentBranch.tip.sha,
+      defaultBranch.tip.sha
+    )
+
+    comparisonCache.set(key, {
       ahead: 1,
       behind: 0,
     })
@@ -188,14 +193,15 @@ describe('inferComparisonBranch', () => {
       return Promise.resolve(remotes)
     }
 
-    comparisonCache.set(
+    const key = getAheadBehindCacheKey(
       defaultBranchOfParent.tip.sha,
-      defaultBranchOfFork.tip.sha,
-      {
-        ahead: 0,
-        behind: 0,
-      }
+      defaultBranchOfFork.tip.sha
     )
+
+    comparisonCache.set(key, {
+      ahead: 0,
+      behind: 0,
+    })
 
     const branch = await inferComparisonBranch(
       repo,
