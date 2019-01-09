@@ -12,12 +12,14 @@ import {
   WorkingDirectoryFileChange,
   AppFileStatusKind,
   ConflictedFileStatus,
+  isConflictedFileStatus,
+  isConflictWithMarkers,
 } from '../../models/status'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { PathText } from '../lib/path-text'
 import { DialogHeader } from '../dialog/header'
 import { LinkButton } from '../lib/link-button'
-import { isConflictedFile } from '../../lib/status'
+import { isConflictedFile, hasUnresolvedConflicts } from '../../lib/status'
 import { DefaultCommitMessage } from '../../models/commit-message'
 
 interface IMergeConflictsDialogProps {
@@ -51,21 +53,14 @@ function getUnmergedFiles(status: WorkingDirectoryStatus) {
 /** Filter working directory changes for resolved files  */
 function getResolvedFiles(status: WorkingDirectoryStatus) {
   return status.files.filter(
-    f =>
-      isConflictedFile(f.status) &&
-      f.status.lookForConflictMarkers &&
-      f.status.conflictMarkerCount === 0
+    f => isConflictedFileStatus(f.status) && !hasUnresolvedConflicts(f.status)
   )
 }
 
 /** Filter working directory changes for conflicted files  */
 function getConflictedFiles(status: WorkingDirectoryStatus) {
   return status.files.filter(
-    f =>
-      (isConflictedFile(f.status) && !f.status.lookForConflictMarkers) ||
-      (isConflictedFile(f.status) &&
-        f.status.lookForConflictMarkers &&
-        f.status.conflictMarkerCount > 0)
+    f => isConflictedFileStatus(f.status) && hasUnresolvedConflicts(f.status)
   )
 }
 
@@ -216,7 +211,7 @@ export class MergeConflictsDialog extends React.Component<
     onOpenEditorClick: () => void
   ): JSX.Element | null {
     let content = null
-    if (status.lookForConflictMarkers) {
+    if (isConflictWithMarkers(status)) {
       const humanReadableConflicts = calculateConflicts(
         status.conflictMarkerCount
       )
@@ -270,11 +265,7 @@ export class MergeConflictsDialog extends React.Component<
     const { status } = file
     switch (status.kind) {
       case AppFileStatusKind.Conflicted:
-        const isResolved = status.lookForConflictMarkers
-          ? status.conflictMarkerCount === 0
-          : false
-
-        if (isResolved) {
+        if (!hasUnresolvedConflicts(status)) {
           return this.renderResolvedFile(file.path)
         }
 

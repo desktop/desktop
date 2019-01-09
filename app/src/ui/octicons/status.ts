@@ -1,4 +1,8 @@
-import { AppFileStatusKind, AppFileStatus } from '../../models/status'
+import {
+  AppFileStatusKind,
+  AppFileStatus,
+  isConflictWithMarkers,
+} from '../../models/status'
 import { OcticonSymbol } from './octicons.generated'
 import { assertNever } from '../../lib/fatal-error'
 
@@ -20,7 +24,7 @@ export function iconForStatus(status: AppFileStatus): OcticonSymbol {
     case AppFileStatusKind.Renamed:
       return OcticonSymbol.diffRenamed
     case AppFileStatusKind.Conflicted:
-      if (status.lookForConflictMarkers) {
+      if (isConflictWithMarkers(status)) {
         const conflictsCount = status.conflictMarkerCount
         return conflictsCount > 0 ? OcticonSymbol.alert : OcticonSymbol.check
       }

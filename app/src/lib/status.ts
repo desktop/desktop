@@ -3,6 +3,8 @@ import {
   AppFileStatus,
   ConflictedFileStatus,
   WorkingDirectoryStatus,
+  isManualConflict,
+  isConflictWithMarkers,
 } from '../models/status'
 import { assertNever } from './fatal-error'
 
@@ -26,7 +28,7 @@ export function mapStatus(status: AppFileStatus): string {
     case AppFileStatusKind.Renamed:
       return 'Renamed'
     case AppFileStatusKind.Conflicted:
-      if (status.lookForConflictMarkers) {
+      if (isConflictWithMarkers(status)) {
         const conflictsCount = status.conflictMarkerCount
         return conflictsCount > 0 ? 'Conflicted' : 'Resolved'
       }
@@ -55,4 +57,18 @@ export function hasConflictedFiles(
   workingDirectoryStatus: WorkingDirectoryStatus
 ): boolean {
   return workingDirectoryStatus.files.some(f => isConflictedFile(f.status))
+}
+
+/**
+ * Determine if we have a `ManualConflict` type
+ * or conflict markers
+ */
+export function hasUnresolvedConflicts(status: ConflictedFileStatus) {
+  if (isManualConflict(status)) {
+    // binary file doesn't contain markers
+    return true
+  }
+
+  // text file will have conflict markers removed
+  return status.conflictMarkerCount > 0
 }

@@ -500,7 +500,6 @@ describe('git/commit', () => {
           them: GitStatusEntry.UpdatedButUnmerged,
           us: GitStatusEntry.UpdatedButUnmerged,
         },
-        lookForConflictMarkers: true,
         conflictMarkerCount: 0,
       })
 
