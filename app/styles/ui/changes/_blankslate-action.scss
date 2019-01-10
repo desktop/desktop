@@ -57,4 +57,15 @@
   .button-component {
     flex-shrink: 0;
   }
+
+  /** Switch to a vertical layout at 1.25x zoom and above **/
+  @media screen and (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-start;
+
+    .text-wrapper {
+      margin-right: 0;
+      margin-bottom: var(--spacing-double);
+    }
+  }
 }

@@ -57,4 +57,16 @@
       margin-bottom: var(--spacing);
     }
   }
+
+  /** Lessen the padding at 1.5x zoom and above  **/
+  @media screen and (max-width: 640px) {
+    padding: var(--spacing-double);
+  }
+
+  /** Hide the blankslate image at high zoom levels **/
+  @media screen and (max-width: 550px) {
+    .header .blankslate-image {
+      display: none;
+    }
+  }
 }
