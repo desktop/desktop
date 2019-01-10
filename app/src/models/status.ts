@@ -55,7 +55,6 @@ export type CopiedOrRenamedFileStatus = {
 type ConflictsWithMarkers = {
   kind: AppFileStatusKind.Conflicted
   entry: TextConflictEntry
-  lookForConflictMarkers: true
   conflictMarkerCount: number
 }
 
@@ -66,11 +65,31 @@ type ConflictsWithMarkers = {
 type ManualConflict = {
   kind: AppFileStatusKind.Conflicted
   entry: ManualConflictEntry
-  lookForConflictMarkers: false
 }
 
 /** Union of potential conflict scenarios the application should handle */
 export type ConflictedFileStatus = ConflictsWithMarkers | ManualConflict
+
+/** Custom typeguard to differentiate ConflictsWithMarkers from other Conflict types */
+export function isConflictedFileStatus(
+  appFileStatus: AppFileStatus
+): appFileStatus is ConflictedFileStatus {
+  return appFileStatus.kind === AppFileStatusKind.Conflicted
+}
+
+/** Custom typeguard to differentiate ConflictsWithMarkers from other Conflict types */
+export function isConflictWithMarkers(
+  conflictedFileStatus: ConflictedFileStatus
+): conflictedFileStatus is ConflictsWithMarkers {
+  return conflictedFileStatus.hasOwnProperty('conflictMarkerCount')
+}
+
+/** Custom typeguard to differentiate ManualConflict from other Conflict types */
+export function isManualConflict(
+  conflictedFileStatus: ConflictedFileStatus
+): conflictedFileStatus is ManualConflict {
+  return !conflictedFileStatus.hasOwnProperty('conflictMarkerCount')
+}
 
 /** Denotes an untracked file in the working directory) */
 export type UntrackedFileStatus = { kind: AppFileStatusKind.Untracked }

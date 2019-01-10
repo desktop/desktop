@@ -52,7 +52,6 @@ describe('git/status', () => {
             them: GitStatusEntry.UpdatedButUnmerged,
             us: GitStatusEntry.UpdatedButUnmerged,
           },
-          lookForConflictMarkers: true,
           conflictMarkerCount: 3,
         })
 
@@ -65,7 +64,6 @@ describe('git/status', () => {
             them: GitStatusEntry.Added,
             us: GitStatusEntry.Added,
           },
-          lookForConflictMarkers: true,
           conflictMarkerCount: 3,
         })
 
@@ -78,7 +76,6 @@ describe('git/status', () => {
             them: GitStatusEntry.Added,
             us: GitStatusEntry.Added,
           },
-          lookForConflictMarkers: true,
           conflictMarkerCount: 3,
         })
       })
@@ -100,7 +97,6 @@ describe('git/status', () => {
             us: GitStatusEntry.UpdatedButUnmerged,
             them: GitStatusEntry.Deleted,
           },
-          lookForConflictMarkers: false,
         })
       })
 
@@ -125,7 +121,6 @@ describe('git/status', () => {
             them: GitStatusEntry.UpdatedButUnmerged,
             us: GitStatusEntry.UpdatedButUnmerged,
           },
-          lookForConflictMarkers: true,
           conflictMarkerCount: 0,
         })
       })
