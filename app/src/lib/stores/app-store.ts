@@ -18,7 +18,6 @@ import {
   Branch,
   eligibleForFastForward,
   IAheadBehind,
-  BranchType,
 } from '../../models/branch'
 import { BranchesTab } from '../../models/branches-tab'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
@@ -130,7 +129,6 @@ import {
   appendIgnoreRule,
   createMergeCommit,
   getBranchesPointedAt,
-  getMergedBranches,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -180,6 +178,7 @@ import {
   updateChangedFiles,
   updateConflictState,
 } from './updates/changes-state'
+import { BranchPruner } from './helpers/branch-pruner';
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -213,9 +212,6 @@ const shellKey = 'shell'
 // switching between apps does not result in excessive fetching in the app
 const BackgroundFetchMinimumInterval = 30 * 60 * 1000
 
-/** Check if a repo needs to be pruned at least every 4 hours */
-const BackgroundPruneMinimumInterval = 1000 * 60 * 60 * 4
-
 export class AppStore extends TypedBaseStore<IAppState> {
   private readonly gitStoreCache: GitStoreCache
 
@@ -233,8 +229,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** The ahead/behind updater or the currently selected repository */
   private currentAheadBehindUpdater: AheadBehindUpdater | null = null
 
-  /** The background task that prunes local branches when possible */
-  private backgroundPruneTask: NodeJS.Timer | null = null
+
+  private currentBranchPruner: BranchPruner | null = null
 
   private showWelcomeFlow = false
   private focusCommitMessage = false
@@ -605,30 +601,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this._changeCommitSelection(repository, commitSHAs[0])
       this._loadChangedFilesForCurrentSelection(repository)
     }
-  }
-
-  private startBackgroundPruneTask(repository: Repository) {
-    if (this.backgroundPruneTask !== null) {
-      fatalError(
-        `A background prune task is already active and cannot begin pruning on ${
-          repository.name
-        }`
-      )
-    }
-
-    this._pruneLocalBranches(repository)
-    this.backgroundPruneTask = setInterval(
-      () => this._pruneLocalBranches(repository),
-      BackgroundPruneMinimumInterval
-    )
-  }
-
-  private stopBackgroundPruneTask() {
-    if (this.backgroundPruneTask === null) {
-      return
-    }
-
-    this.backgroundPruneTask = null
   }
 
   private startAheadBehindUpdater(repository: Repository) {
@@ -1198,18 +1170,47 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.stopBackgroundFetching()
     this.stopPullRequestUpdater()
     this.stopAheadBehindUpdate()
-    this.stopBackgroundPruneTask()
+    this.stopBackgrounPruner()
 
     this.startBackgroundFetching(repository, !previouslySelectedRepository)
     this.startPullRequestUpdater(repository)
 
     this.startAheadBehindUpdater(repository)
     this.refreshMentionables(repository)
-    this.startBackgroundPruneTask(repository)
+    this.startBackgroundPruner(repository)
 
     this.addUpstreamRemoteIfNeeded(repository)
 
     return this.repositoryWithRefreshedGitHubRepository(repository)
+  }
+
+  private stopBackgrounPruner() {
+    const pruner = this.currentBranchPruner
+
+    if (pruner !== null) {
+      pruner.stop()
+      this.currentBranchPruner = null
+    }
+  }
+
+  private startBackgroundPruner(repository: Repository) {
+    if (this.currentBranchPruner !== null) {
+      fatalError(
+        `A branch pruner is already active and cannot start updating on ${
+          repository.name
+        }`
+      )
+
+      return
+    }
+
+    const pruner = new BranchPruner(repository, this.gitStoreCache, this.repositoriesStore, this.repositoryStateCache, (repo: Repository) => {
+      return this._refreshRepository(repo)
+    })
+
+    this.currentBranchPruner = pruner
+
+    this.currentBranchPruner.start()
   }
 
   public async _refreshIssues(repository: GitHubRepository) {
@@ -2359,89 +2360,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       return this._refreshRepository(r)
     })
-  }
-
-  private async findBranchesMergedIntoDefaultBranch(
-    repository: Repository,
-    defaultBranch: Branch
-  ): Promise<ReadonlyArray<string> | null> {
-    const gitStore = this.gitStoreCache.get(repository)
-    return (
-      (await gitStore.performFailableOperation(() =>
-        getMergedBranches(repository, defaultBranch)
-      )) || null
-    )
-  }
-
-  public async _pruneLocalBranches(repository: Repository): Promise<void> {
-    if(repository.gitHubRepository === null) {
-      return
-    }
-
-    // Get the last time this repo was pruned
-    const lastPruneDate = await this.repositoriesStore.getLastPruneDate(
-      repository
-    )
-
-    // Only prune if it's been at least 24 hours since the last time
-    if (
-      lastPruneDate !== null &&
-      lastPruneDate < Date.now() + BackgroundPruneMinimumInterval * 6
-    ) {
-      log.info(`Last prune took place ${new Date(lastPruneDate)} - skipping`)
-      return
-    }
-
-    // Get list of branches that have been merged
-    const { branchesState } = this.repositoryStateCache.get(repository)
-    const { defaultBranch } = branchesState
-
-    if (defaultBranch === null) {
-      return
-    }
-
-    const mergedBranches = await this.findBranchesMergedIntoDefaultBranch(
-      repository,
-      defaultBranch
-    )
-
-    if (mergedBranches === null) {
-      log.info('No branches to prune.')
-      return
-    }
-
-    // Get all branches that exist on remote
-    const localBranches = branchesState.allBranches.filter(
-      x => x.type === BranchType.Local
-    )
-
-    // Create array of branches that can be pruned
-    const branchesReadyForPruning = new Array<Branch>()
-    for (const branch of mergedBranches) {
-      const localBranch = localBranches.find(
-        localBranch =>
-          localBranch.remote !== null && localBranch.name === branch
-      )
-
-      if (localBranch !== undefined) {
-        branchesReadyForPruning.push(localBranch)
-      }
-    }
-
-    log.info(`Pruning ${repository.name} using ${defaultBranch.name} (${defaultBranch.tip.sha}) as base branch`)
-    const gitStore = this.gitStoreCache.get(repository)
-    await this.withAuthenticatingUser(repository, async (repo, account) => {
-      gitStore.performFailableOperation(() => {
-        branchesReadyForPruning.forEach(branch => {
-          // deleteBranch(repo, branch!, account, false)
-          log.info(`deleting ${branch.name} with tip ${branch.tip.sha}`)
-        })
-
-        return this._refreshRepository(repo)
-      })
-    })
-
-    this.repositoriesStore.updateLastPruneDate(repository)
   }
 
   private updatePushPullFetchProgress(
