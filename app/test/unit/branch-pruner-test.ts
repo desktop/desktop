@@ -3,10 +3,16 @@ import { Repository } from '../../src/models/repository'
 import { GitStoreCache } from '../../src/lib/stores/git-store-cache'
 import { RepositoriesStore } from '../../src/lib/stores'
 import { RepositoryStateCache } from '../../src/lib/stores/repository-state-cache'
-import { setupEmptyRepository } from '../helpers/repositories'
+import {
+  setupEmptyRepository,
+  setupFixtureRepository,
+} from '../helpers/repositories'
 import { shell } from '../helpers/test-app-shell'
 import { TestRepositoriesDatabase } from '../helpers/databases'
 import { IGitHubUser } from '../../src/lib/databases'
+import { getMergedBranches } from '../../src/lib/git'
+import { Branch } from '../../src/models/branch'
+import { GitProcess } from 'dugite'
 
 describe.only('BranchPruner', () => {
   const onGitStoreUpdated = () => {}
@@ -38,7 +44,8 @@ describe.only('BranchPruner', () => {
   })
 
   it.only('Does nothing on non GitHub repositories', async () => {
-    const repository = await setupEmptyRepository()
+    const path = await setupFixtureRepository('branch-prune-cases')
+    const repository = new Repository(path, 0, null, false)
     const branchPruner = new BranchPruner(
       repository,
       gitStoreCache,
@@ -46,21 +53,25 @@ describe.only('BranchPruner', () => {
       repositoriesStateCache,
       onPruneCompleted
     )
-    const refs: ReadonlyArray<string> = []
 
     // act
+    let gitOutput = await GitProcess.exec(['branch'], repository.path)
+    const branchesBeforePruning = gitOutput.stdout.split('\n')
     await branchPruner.start()
 
     // assert
-    const refsAfterPruning: ReadonlyArray<string> = []
+    gitOutput = await GitProcess.exec(['branch'], repository.path)
+    const branchesAfterPruning = gitOutput.stdout.split('\n')
+
     // Todo figure out a better way to compare arrays for eq
-    for (const ref of refs) {
-      expect(refsAfterPruning).toContain(ref)
+    for (const branch of branchesBeforePruning) {
+      expect(branchesAfterPruning).toContain(branch)
     }
   })
 
   it('Prunes for GitHub repository', async () => {
-    const repository = await setupEmptyRepository()
+    const path = await setupFixtureRepository('branch-prune-cases')
+    const repository = new Repository(path, 0, null, false)
     const branchPruner = new BranchPruner(
       repository,
       gitStoreCache,
