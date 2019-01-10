@@ -178,7 +178,7 @@ import {
   updateChangedFiles,
   updateConflictState,
 } from './updates/changes-state'
-import { BranchPruner } from './helpers/branch-pruner';
+import { BranchPruner } from './helpers/branch-pruner'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -228,7 +228,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** The ahead/behind updater or the currently selected repository */
   private currentAheadBehindUpdater: AheadBehindUpdater | null = null
-
 
   private currentBranchPruner: BranchPruner | null = null
 
@@ -1204,9 +1203,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const pruner = new BranchPruner(repository, this.gitStoreCache, this.repositoriesStore, this.repositoryStateCache, (repo: Repository) => {
-      return this._refreshRepository(repo)
-    })
+    const pruner = new BranchPruner(
+      repository,
+      this.gitStoreCache,
+      this.repositoriesStore,
+      this.repositoryStateCache,
+      (repo: Repository) => {
+        return this._refreshRepository(repo)
+      }
+    )
 
     this.currentBranchPruner = pruner
 
