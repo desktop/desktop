@@ -1,0 +1,10 @@
+0000000000000000000000000000000000000000 49ef26636f6c82b2b6832e87916a90905721184b William Shepherd <iamwillshepherd@github.com> 1547157392 -0600	clone: from https://github.com/iAmWillShepherd/branch-prune-test-repo.git
+49ef26636f6c82b2b6832e87916a90905721184b 49ef26636f6c82b2b6832e87916a90905721184b William Shepherd <iamwillshepherd@github.com> 1547157408 -0600	checkout: moving from master to b1
+49ef26636f6c82b2b6832e87916a90905721184b f3a2e9eb6d448ddc241106db8cf3edd8e6bea6a2 William Shepherd <iamwillshepherd@github.com> 1547157425 -0600	commit: ...
+f3a2e9eb6d448ddc241106db8cf3edd8e6bea6a2 49ef26636f6c82b2b6832e87916a90905721184b William Shepherd <iamwillshepherd@github.com> 1547157443 -0600	checkout: moving from b1 to master
+49ef26636f6c82b2b6832e87916a90905721184b 49ef26636f6c82b2b6832e87916a90905721184b William Shepherd <iamwillshepherd@github.com> 1547157683 -0600	checkout: moving from master to not-deleted-branch-1
+49ef26636f6c82b2b6832e87916a90905721184b c0e1760c209f98eb4773b4c87e130e63cba13659 William Shepherd <iamwillshepherd@github.com> 1547157689 -0600	commit: ...
+c0e1760c209f98eb4773b4c87e130e63cba13659 49ef26636f6c82b2b6832e87916a90905721184b William Shepherd <iamwillshepherd@github.com> 1547157836 -0600	checkout: moving from not-deleted-branch-1 to master
+49ef26636f6c82b2b6832e87916a90905721184b 566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 William Shepherd <iamwillshepherd@github.com> 1547157837 -0600	pull: Fast-forward
+566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 William Shepherd <iamwillshepherd@github.com> 1547157859 -0600	checkout: moving from master to not-merged-branch-1
+566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 a494a6a21e72e42f3d92cd0be72266b8aafd190c William Shepherd <iamwillshepherd@github.com> 1547157904 -0600	commit: ...
