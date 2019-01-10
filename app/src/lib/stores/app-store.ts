@@ -130,6 +130,7 @@ import {
   appendIgnoreRule,
   createMergeCommit,
   getBranchesPointedAt,
+  isGitRepository,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -1116,7 +1117,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     setNumber(LastSelectedRepositoryIDKey, repository.id)
 
-    if (repository.missing) {
+    // if repository might be marked missing, try checking if it has been restored
+    const refreshedRepository = await this.recoverMissingRepository(repository)
+    if (refreshedRepository.missing) {
       // as the repository is no longer found on disk, cleaning this up
       // ensures we don't accidentally run any Git operations against the
       // wrong location if the user then relocates the `.git` folder elsewhere
@@ -1124,6 +1127,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return Promise.resolve(null)
     }
 
+    return this._selectRepositoryRefreshTasks(
+      refreshedRepository,
+      previouslySelectedRepository
+    )
+  }
+
+  // finish `_selectRepository`s refresh tasks
+  private async _selectRepositoryRefreshTasks(
+    repository: Repository,
+    previouslySelectedRepository: Repository | CloningRepository | null
+  ): Promise<Repository | null> {
     this._refreshRepository(repository)
 
     const gitHubRepository = repository.gitHubRepository
@@ -1841,6 +1855,43 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
 
     return Promise.resolve()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _refreshOrRecoverRepository(
+    repository: Repository
+  ): Promise<void> {
+    // if repository is missing, try checking if it has been restored
+    if (repository.missing) {
+      const updatedRepository = await this.recoverMissingRepository(repository)
+      if (!updatedRepository.missing) {
+        // repository has been restored, attempt to refresh it now.
+        return this._refreshRepository(updatedRepository)
+      }
+    } else {
+      return this._refreshRepository(repository)
+    }
+  }
+
+  private async recoverMissingRepository(
+    repository: Repository
+  ): Promise<Repository> {
+    /* 
+        if the repository is marked missing, check to see if the file path exists, 
+        and if so then see if git recognizes the path as a valid repository,
+        and if so, reset the missing status as its been restored
+      */
+    if (
+      repository.missing
+        ? (await pathExists(repository.path))
+          ? await isGitRepository(repository.path)
+          : false
+        : false
+    ) {
+      return this._updateRepositoryMissing(repository, false)
+    } else {
+      return repository
+    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
