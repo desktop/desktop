@@ -52,7 +52,7 @@ export class BranchPruner {
     const gitStore = this.gitStoreCache.get(repository)
     return (
       (await gitStore.performFailableOperation(() =>
-        getMergedBranches(repository, defaultBranch)
+        getMergedBranches(repository, defaultBranch.name)
       )) || null
     )
   }

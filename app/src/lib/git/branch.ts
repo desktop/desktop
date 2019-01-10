@@ -159,9 +159,9 @@ export async function getBranchesPointedAt(
 
 export async function getMergedBranches(
   repository: Repository,
-  branch: Branch
+  branchName: string
 ): Promise<ReadonlyArray<string>> {
-  const args = ['branch', '--merged', branch.name]
+  const args = ['branch', '--merged', branchName]
 
   const { stdout } = await git(args, repository.path, 'mergedBranches')
 
@@ -169,5 +169,5 @@ export async function getMergedBranches(
     .split('\n')
     .slice(0, -1)
     .map(s => s.trim())
-    .filter(s => s !== branch.name)
+    .filter(s => s !== branchName)
 }
