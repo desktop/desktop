@@ -8,7 +8,7 @@ import { shell } from '../helpers/test-app-shell'
 import { TestRepositoriesDatabase } from '../helpers/databases'
 import { IGitHubUser } from '../../src/lib/databases'
 
-describe('BranchPruner', () => {
+describe.only('BranchPruner', () => {
   const onGitStoreUpdated = () => {}
   const onDidLoadNewCommits = () => {}
   const onDidError = () => {}
@@ -37,7 +37,7 @@ describe('BranchPruner', () => {
     onPruneCompleted = (_: Repository) => Promise.resolve()
   })
 
-  it('Does nothing on non GitHub repositories', async () => {
+  it.only('Does nothing on non GitHub repositories', async () => {
     const repository = await setupEmptyRepository()
     const branchPruner = new BranchPruner(
       repository,
@@ -46,14 +46,40 @@ describe('BranchPruner', () => {
       repositoriesStateCache,
       onPruneCompleted
     )
+    const refs: ReadonlyArray<string> = []
 
     // act
     await branchPruner.start()
 
     // assert
+    const refsAfterPruning: ReadonlyArray<string> = []
+    // Todo figure out a better way to compare arrays for eq
+    for (const ref of refs) {
+      expect(refsAfterPruning).toContain(ref)
+    }
   })
 
-  it('Prunes for GitHub repository', () => {})
+  it('Prunes for GitHub repository', async () => {
+    const repository = await setupEmptyRepository()
+    const branchPruner = new BranchPruner(
+      repository,
+      gitStoreCache,
+      repositoriesStore,
+      repositoriesStateCache,
+      onPruneCompleted
+    )
+    const expectedBranchesForPruning: ReadonlyArray<string> = []
+
+    // act
+    await branchPruner.start()
+
+    // assert
+    const refsAfterPruning: ReadonlyArray<string> = []
+    expect(expectedBranchesForPruning.length).toBe(refsAfterPruning.length)
+    for (const ref of expectedBranchesForPruning) {
+      expect(refsAfterPruning).not.toContain(ref)
+    }
+  })
 
   it('Does not prune if the last prune date is less than 24 hours ago', () => {})
 
