@@ -5,6 +5,7 @@ import { Branch, BranchType } from '../../../models/branch'
 import { GitStoreCache } from '../git-store-cache'
 import { getMergedBranches } from '../../git'
 import { fatalError } from '../../fatal-error'
+import { enableBranchPruning } from '../../feature-flag'
 
 /** Check if a repo needs to be pruned at least every 4 hours */
 const BackgroundPruneMinimumInterval = 1000 * 60 * 60 * 4
@@ -21,6 +22,10 @@ export class BranchPruner {
   ) {}
 
   public async start() {
+    if (enableBranchPruning() === false) {
+      return
+    }
+
     if (this.timer !== null) {
       fatalError(
         `A background prune task is already active and cannot begin pruning on ${
