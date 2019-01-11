@@ -98,8 +98,6 @@ export class BranchPruner {
       defaultBranch
     )
 
-    console.dir('merged', mergedBranches)
-
     if (mergedBranches === null) {
       log.info('No branches to prune.')
       return
@@ -109,8 +107,6 @@ export class BranchPruner {
     const localBranches = branchesState.allBranches.filter(
       x => x.type === BranchType.Local
     )
-
-    console.log('local', localBranches)
 
     // Create array of branches that can be pruned
     const branchesReadyForPruning = new Array<Branch>()
