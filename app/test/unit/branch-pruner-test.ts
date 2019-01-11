@@ -3,15 +3,10 @@ import { Repository } from '../../src/models/repository'
 import { GitStoreCache } from '../../src/lib/stores/git-store-cache'
 import { RepositoriesStore } from '../../src/lib/stores'
 import { RepositoryStateCache } from '../../src/lib/stores/repository-state-cache'
-import {
-  setupEmptyRepository,
-  setupFixtureRepository,
-} from '../helpers/repositories'
+import { setupFixtureRepository } from '../helpers/repositories'
 import { shell } from '../helpers/test-app-shell'
 import { TestRepositoriesDatabase } from '../helpers/databases'
 import { IGitHubUser } from '../../src/lib/databases'
-import { getMergedBranches } from '../../src/lib/git'
-import { Branch } from '../../src/models/branch'
 import { GitProcess } from 'dugite'
 
 describe.only('BranchPruner', () => {
