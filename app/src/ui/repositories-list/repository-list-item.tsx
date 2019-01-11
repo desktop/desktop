@@ -114,7 +114,7 @@ export class RepositoryListItem extends React.Component<
           ) : null}
         </div>
         <Octicon symbol={iconForRepository(repository)} />
-        <div className="name" title={repoTooltip}>
+        <div className="name tooltip tooltip-se" title={repoTooltip}>
           {prefix ? <span className="prefix">{prefix}</span> : null}
           <HighlightText
             text={repository.name}

@@ -1,0 +1,97 @@
+.tooltip {
+  position: relative;
+  overflow: visible !important;
+}
+
+.tooltip::after {
+  position: absolute;
+  z-index: 1000000;
+  display: none;
+  padding: 10px;
+  -webkit-font-smoothing: subpixel-antialiased;
+  color: white;
+  text-align: center;
+  text-decoration: none;
+  text-shadow: none;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: break-word;
+  white-space: pre;
+  pointer-events: none;
+  content: attr(title);
+  background: black;
+  border-radius: 3px;
+  opacity: 0;
+}
+
+// This is the tooltip arrow
+.tooltip::before {
+  position: absolute;
+  z-index: 1000001;
+  display: none;
+  width: 0;
+  height: 0;
+  color: black;
+  pointer-events: none;
+  content: "";
+  border: 6px solid transparent;
+  opacity: 0;
+}
+
+// delay animation for tooltip
+@keyframes tooltip-appear {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+// This will indicate when we'll activate the tooltip
+.tooltip:hover,
+.tooltip:active,
+.tooltip:focus {
+  &::before,
+  &::after {
+    display: inline-block;
+    text-decoration: none;
+    animation-name: tooltip-appear;
+    animation-duration: .2s;
+    animation-fill-mode: forwards;
+    animation-timing-function: ease-in;
+    animation-delay: 0;
+  }
+}
+
+// Tooltipped south
+.tooltip-s,
+.tooltip-se,
+.tooltip-sw {
+  &::after {
+    top: 100%;
+    right: 50%;
+    margin-top: 6px;
+  }
+
+  &::before {
+    top: auto;
+    right: 50%;
+    bottom: -7px;
+    margin-right: 6px;
+    border-bottom-color: black;
+  }
+}
+
+.tooltip-se {
+  &::after {
+    right: auto;
+    left: 50%;
+    margin-left: -20px;
+  }
+}
+
+.tooltip-sw::after {
+  margin-right: -20px;
+}

@@ -371,6 +371,7 @@ export class MergeConflictsDialog extends React.Component<
               type="submit"
               disabled={conflictedFilesCount > 0}
               tooltip={tooltipString}
+              className="tooltip tooltip-s"
             >
               {submitButtonString}
             </Button>
