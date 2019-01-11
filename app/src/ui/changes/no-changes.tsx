@@ -388,10 +388,9 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
 
     const description = (
       <>
-        The branch you're currently on (<Ref>{tip.branch.name}</Ref>) hasn't
-        been published to the remote yet. By publishing it{' '}
-        {isGitHub ? 'to GitHub' : ''} you can share it,{' '}
-        {isGitHub ? 'open a pull request, ' : ''}
+        The current branch (<Ref>{tip.branch.name}</Ref>) hasn't been published
+        to the remote yet. By publishing it {isGitHub ? 'to GitHub' : ''} you
+        can share it, {isGitHub ? 'open a pull request, ' : ''}
         and collaborate with others.
       </>
     )
