@@ -8,6 +8,9 @@ import { shell } from '../helpers/test-app-shell'
 import { TestRepositoriesDatabase } from '../helpers/databases'
 import { IGitHubUser } from '../../src/lib/databases'
 import { GitProcess } from 'dugite'
+import { Branch } from '../../src/models/branch'
+import { GitHubRepository } from '../../src/models/github-repository'
+import { Owner } from '../../src/models/owner'
 
 describe('BranchPruner', () => {
   const onGitStoreUpdated = () => {}
@@ -17,7 +20,12 @@ describe('BranchPruner', () => {
   let gitStoreCache: GitStoreCache
   let repositoriesStore: RepositoriesStore
   let repositoriesStateCache: RepositoryStateCache
-  let onPruneCompleted: (repository: Repository) => Promise<void>
+  let onPruneCompleted: jest.Mock<
+    (
+      repository: Repository,
+      prunedBranches: ReadonlyArray<Branch>
+    ) => Promise<void>
+  >
 
   beforeEach(async () => {
     gitStoreCache = new GitStoreCache(
@@ -35,7 +43,10 @@ describe('BranchPruner', () => {
       new Map<string, IGitHubUser>()
     repositoriesStateCache = new RepositoryStateCache(defaultGetUsersFunc)
 
-    onPruneCompleted = (_: Repository) => Promise.resolve()
+    onPruneCompleted = jest.fn(
+      () => (repository: Repository, prunedBranches: ReadonlyArray<Branch>) =>
+        Promise.resolve()
+    )
   })
 
   it('Does nothing on non GitHub repositories', async () => {
@@ -63,7 +74,17 @@ describe('BranchPruner', () => {
 
   it('Prunes for GitHub repository', async () => {
     const path = await setupFixtureRepository('branch-prune-cases')
-    const repository = new Repository(path, 0, null, false)
+    const ghRepo = new GitHubRepository(
+      'branch-prune-test',
+      new Owner('', '', null),
+      null,
+      null,
+      null,
+      'master',
+      null,
+      null
+    )
+    const repository = new Repository(path, 0, ghRepo, false)
     const branchPruner = new BranchPruner(
       repository,
       gitStoreCache,
@@ -78,6 +99,10 @@ describe('BranchPruner', () => {
     gitOutput = await GitProcess.exec(['branch'], repository.path)
     const branchesAfterPruning = gitOutput.stdout.split('\n')
 
+    expect(onPruneCompleted).toBeCalledWith(
+      repository,
+      expectedBranchesForPruning
+    )
     expect(branchesAfterPruning.length).toBe(expectedBranchesForPruning.length)
     for (let i = 0; i < expectedBranchesForPruning.length; i++) {
       expect(expectedBranchesForPruning[i]).toBe(branchesAfterPruning[i])
