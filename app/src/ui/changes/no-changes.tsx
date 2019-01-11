@@ -303,7 +303,7 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
 
   private renderRemoteAction() {
     const { remote, aheadBehind, branchesState } = this.props.repositoryState
-    const { tip } = branchesState
+    const { tip, defaultBranch } = branchesState
 
     if (tip.kind !== TipState.Valid) {
       return null
@@ -328,8 +328,10 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
 
     const isGitHub = this.props.repository.gitHubRepository !== null
     const hasOpenPullRequest = branchesState.currentPullRequest !== null
+    const isDefaultBranch =
+      defaultBranch === null ? false : tip.branch.name === defaultBranch.name
 
-    if (isGitHub && !hasOpenPullRequest) {
+    if (isGitHub && !hasOpenPullRequest && !isDefaultBranch) {
       return this.renderCreatePullRequestAction(tip)
     }
 
