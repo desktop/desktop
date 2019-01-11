@@ -49,18 +49,15 @@ describe('BranchPruner', () => {
       onPruneCompleted
     )
 
-    // act
     let gitOutput = await GitProcess.exec(['branch'], repository.path)
     const branchesBeforePruning = gitOutput.stdout.split('\n')
     await branchPruner.start()
-
-    // assert
     gitOutput = await GitProcess.exec(['branch'], repository.path)
     const branchesAfterPruning = gitOutput.stdout.split('\n')
 
-    // Todo figure out a better way to compare arrays for eq
-    for (const branch of branchesBeforePruning) {
-      expect(branchesAfterPruning).toContain(branch)
+    expect(branchesBeforePruning.length).toBe(branchesAfterPruning.length)
+    for (let i = 0; i < branchesBeforePruning.length; i++) {
+      expect(branchesAfterPruning[i]).toBe(branchesAfterPruning[i])
     }
   })
 
@@ -76,14 +73,14 @@ describe('BranchPruner', () => {
     )
     const expectedBranchesForPruning: ReadonlyArray<string> = []
 
-    // act
+    let gitOutput = await GitProcess.exec(['branch'], repository.path)
     await branchPruner.start()
+    gitOutput = await GitProcess.exec(['branch'], repository.path)
+    const branchesAfterPruning = gitOutput.stdout.split('\n')
 
-    // assert
-    const refsAfterPruning: ReadonlyArray<string> = []
-    expect(expectedBranchesForPruning.length).toBe(refsAfterPruning.length)
-    for (const ref of expectedBranchesForPruning) {
-      expect(refsAfterPruning).not.toContain(ref)
+    expect(branchesAfterPruning.length).toBe(expectedBranchesForPruning.length)
+    for (let i = 0; i < expectedBranchesForPruning.length; i++) {
+      expect(expectedBranchesForPruning[i]).toBe(branchesAfterPruning[i])
     }
   })
 
