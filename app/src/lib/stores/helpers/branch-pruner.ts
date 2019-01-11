@@ -77,7 +77,6 @@ export class BranchPruner {
 
     // Only prune if it's been at least 24 hours since the last time
     if (
-      !__DEV__ &&
       lastPruneDate !== null &&
       lastPruneDate < Date.now() + BackgroundPruneMinimumInterval * 6
     ) {
