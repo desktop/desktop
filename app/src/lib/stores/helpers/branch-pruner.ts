@@ -18,7 +18,10 @@ export class BranchPruner {
     private readonly gitStoreCache: GitStoreCache,
     private readonly repositoriesStore: RepositoriesStore,
     private readonly repositoriesStateCache: RepositoryStateCache,
-    private readonly onPruneCompleted: (repository: Repository) => Promise<void>
+    private readonly onPruneCompleted: (
+      repository: Repository,
+      prunedBranches: ReadonlyArray<Branch>
+    ) => Promise<void>
   ) {}
 
   public async start() {
@@ -135,7 +138,7 @@ export class BranchPruner {
         //await deleteBranch(this.repository, branch!, null, false)
       }
 
-      await this.onPruneCompleted(this.repository)
+      await this.onPruneCompleted(this.repository, branchesReadyForPruning)
     })
 
     this.repositoriesStore.updateLastPruneDate(this.repository)
