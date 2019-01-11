@@ -9,7 +9,7 @@ import { TestRepositoriesDatabase } from '../helpers/databases'
 import { IGitHubUser } from '../../src/lib/databases'
 import { GitProcess } from 'dugite'
 
-describe.only('BranchPruner', () => {
+describe('BranchPruner', () => {
   const onGitStoreUpdated = () => {}
   const onDidLoadNewCommits = () => {}
   const onDidError = () => {}
@@ -38,7 +38,7 @@ describe.only('BranchPruner', () => {
     onPruneCompleted = (_: Repository) => Promise.resolve()
   })
 
-  it.only('Does nothing on non GitHub repositories', async () => {
+  it('Does nothing on non GitHub repositories', async () => {
     const path = await setupFixtureRepository('branch-prune-cases')
     const repository = new Repository(path, 0, null, false)
     const branchPruner = new BranchPruner(
