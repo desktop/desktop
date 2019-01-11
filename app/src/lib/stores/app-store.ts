@@ -1208,9 +1208,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.gitStoreCache,
       this.repositoriesStore,
       this.repositoryStateCache,
-      (repo: Repository) => {
-        return this._refreshRepository(repo)
-      }
+      repository => this._refreshRepository(repository)
     )
 
     this.currentBranchPruner = pruner
