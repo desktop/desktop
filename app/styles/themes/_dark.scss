@@ -221,6 +221,12 @@ body.theme-dark {
   --text-field-focus-shadow-color: rgba($blue, 0.25);
 
   /**
+   * Blankslate actions, see `BlankslateAction` component.
+   */
+  --primary-blankslate-action-background: $blue-900;
+  --primary-blankslate-action-border-color: $blue-700;
+
+  /**
    * Diff view
    */
 
