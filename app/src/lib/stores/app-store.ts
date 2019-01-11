@@ -1183,7 +1183,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this.repositoryWithRefreshedGitHubRepository(repository)
   }
 
-  private stopBackgrounPruner() {
+  private stopBackgroundPruner() {
     const pruner = this.currentBranchPruner
 
     if (pruner !== null) {
