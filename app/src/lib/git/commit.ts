@@ -1,8 +1,18 @@
 import { git, GitError, parseCommitSHA } from './core'
 import { stageFiles } from './update-index'
 import { Repository } from '../../models/repository'
-import { WorkingDirectoryFileChange } from '../../models/status'
+import {
+  WorkingDirectoryFileChange,
+  isManualConflict,
+  isConflictedFileStatus,
+  GitStatusEntry,
+} from '../../models/status'
 import { unstageAll } from './reset'
+import {
+  ManualConflictResolution,
+  ManualConflictResolutionKind,
+} from '../../models/manual-conflict-resolution'
+import { assertNever } from '../fatal-error'
 
 /**
  * @param repository repository to execute merge in
@@ -46,20 +56,30 @@ export async function createCommit(
  */
 export async function createMergeCommit(
   repository: Repository,
-  files: ReadonlyArray<WorkingDirectoryFileChange>
+  files: ReadonlyArray<WorkingDirectoryFileChange>,
+  manualResolutions: ReadonlyMap<string, ManualConflictResolution> = new Map()
 ): Promise<string | undefined> {
   // Clear the staging area, our diffs reflect the difference between the
   // working directory and the last commit (if any) so our commits should
   // do the same thing.
   try {
     await unstageAll(repository)
-    await stageFiles(repository, files)
+
+    // apply manual conflict resolutions
+    for (const [path, resolution] of manualResolutions) {
+      const file = files.find(f => f.path === path)
+      if (file !== undefined) {
+        await stageManualConflictResolution(repository, file, resolution)
+      }
+    }
+
+    const otherFiles = files.filter(f => !manualResolutions.has(f.path))
+
+    await stageFiles(repository, otherFiles)
     const result = await git(
       [
-        'commit',
-        // no-edit here ensures the app does not accidentally invoke the user's editor
-        '--no-edit',
-        // By default Git merge commits do not contain any commentary (which
+        'commit', // no-edit here ensures the app does not accidentally invoke the user's editor
+        '--no-edit', // By default Git merge commits do not contain any commentary (which
         // are lines prefixed with `#`). This works because the Git CLI will
         // prompt the user to edit the file in `.git/COMMIT_MSG` before
         // committing, and then it will run `--cleanup=strip`.
@@ -92,6 +112,55 @@ export async function createMergeCommit(
     logCommitError(e)
     return undefined
   }
+}
+
+async function stageManualConflictResolution(
+  repository: Repository,
+  file: WorkingDirectoryFileChange,
+  manualResolution: ManualConflictResolution
+): Promise<boolean> {
+  const { status } = file
+  // if somehow the file isn't in a conflicted state
+  if (!isConflictedFileStatus(status)) {
+    console.error(`tried to manually resolve unconflicted file (${file.path})`)
+    return false
+  }
+  if (!isManualConflict(status)) {
+    console.error(
+      `tried to manually resolve conflicted file with markers (${file.path})`
+    )
+    return false
+  }
+
+  const chosen =
+    manualResolution === ManualConflictResolutionKind.theirs
+      ? status.entry.them
+      : status.entry.us
+
+  let exitCode: number = -1
+
+  switch (chosen) {
+    case GitStatusEntry.Deleted: {
+      exitCode = (await git(
+        ['rm', file.path],
+        repository.path,
+        'removeConflictedFile'
+      )).exitCode
+      break
+    }
+    case GitStatusEntry.Added:
+    case GitStatusEntry.UpdatedButUnmerged: {
+      exitCode = (await git(
+        ['add', file.path],
+        repository.path,
+        'addConflictedFile'
+      )).exitCode
+      break
+    }
+    default:
+      assertNever(chosen, 'unnacounted for git status entry possibility')
+  }
+  return exitCode === 0
 }
 
 /**

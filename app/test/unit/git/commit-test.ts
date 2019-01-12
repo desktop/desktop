@@ -15,6 +15,7 @@ import {
   setupFixtureRepository,
   setupEmptyRepository,
   setupConflictedRepo,
+  setupConflictedRepoWithMultipleFiles,
 } from '../../helpers/repositories'
 
 import { GitProcess } from 'dugite'
@@ -31,6 +32,7 @@ import {
   DiffType,
 } from '../../../src/models/diff'
 import { getStatusOrThrow } from '../../helpers/status'
+import { ManualConflictResolutionKind } from '../../../src/models/manual-conflict-resolution'
 
 async function getTextDiff(
   repo: Repository,
@@ -514,24 +516,75 @@ describe('git/commit', () => {
     })
   })
 
-  describe('createMergeCommit with a merge conflict', () => {
-    let repository: Repository
-    describe('with a merge conflict', () => {
-      beforeEach(async () => {
-        repository = await setupConflictedRepo()
+  describe('createMergeCommit', () => {
+    describe('with a simple merge conflict', () => {
+      let repository: Repository
+      describe('with a merge conflict', () => {
+        beforeEach(async () => {
+          repository = await setupConflictedRepo()
+        })
+        it('creates a merge commit', async () => {
+          const status = await getStatusOrThrow(repository)
+          const trackedFiles = status.workingDirectory.files.filter(
+            f => f.status.kind !== AppFileStatusKind.Untracked
+          )
+          const sha = await createMergeCommit(repository, trackedFiles)
+          const newStatus = await getStatusOrThrow(repository)
+          expect(sha).toHaveLength(7)
+          expect(newStatus.workingDirectory.files).toHaveLength(0)
+        })
       })
-      it('creates a merge commit', async () => {
+    })
+
+    describe('with a merge conflict and manual resolutions', () => {
+      let repository: Repository
+      beforeEach(async () => {
+        repository = await setupConflictedRepoWithMultipleFiles()
+      })
+      it('keeps files chosen to be added and commits', async () => {
         const status = await getStatusOrThrow(repository)
         const trackedFiles = status.workingDirectory.files.filter(
           f => f.status.kind !== AppFileStatusKind.Untracked
         )
-        const sha = await createMergeCommit(repository, trackedFiles)
+        const manualResolutions = new Map([
+          ['bar', ManualConflictResolutionKind.ours],
+        ])
+        const sha = await createMergeCommit(
+          repository,
+          trackedFiles,
+          manualResolutions
+        )
+        expect(await FSE.pathExists(path.join(repository.path, 'bar'))).toBe(
+          true
+        )
         const newStatus = await getStatusOrThrow(repository)
         expect(sha).toHaveLength(7)
-        expect(newStatus.workingDirectory.files).toHaveLength(0)
+        expect(newStatus.workingDirectory.files).toHaveLength(1)
+      })
+      it('keeps files chosen to be added and commits', async () => {
+        const status = await getStatusOrThrow(repository)
+        const trackedFiles = status.workingDirectory.files.filter(
+          f => f.status.kind !== AppFileStatusKind.Untracked
+        )
+        const manualResolutions = new Map([
+          ['bar', ManualConflictResolutionKind.theirs],
+        ])
+        const sha = await createMergeCommit(
+          repository,
+          trackedFiles,
+          manualResolutions
+        )
+        expect(await FSE.pathExists(path.join(repository.path, 'bar'))).toBe(
+          false
+        )
+        const newStatus = await getStatusOrThrow(repository)
+        expect(sha).toHaveLength(7)
+        expect(newStatus.workingDirectory.files).toHaveLength(1)
       })
     })
+
     describe('with no changes', () => {
+      let repository: Repository
       beforeEach(async () => {
         repository = new Repository(
           await setupFixtureRepository('test-repo'),
