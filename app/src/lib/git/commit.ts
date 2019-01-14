@@ -70,6 +70,10 @@ export async function createMergeCommit(
       const file = files.find(f => f.path === path)
       if (file !== undefined) {
         await stageManualConflictResolution(repository, file, resolution)
+      } else {
+        log.error(
+          `couldn't find file ${path} even though there's a manual resolution for it`
+        )
       }
     }
 
@@ -122,11 +126,11 @@ async function stageManualConflictResolution(
   const { status } = file
   // if somehow the file isn't in a conflicted state
   if (!isConflictedFileStatus(status)) {
-    console.error(`tried to manually resolve unconflicted file (${file.path})`)
+    log.error(`tried to manually resolve unconflicted file (${file.path})`)
     return false
   }
   if (!isManualConflict(status)) {
-    console.error(
+    log.error(
       `tried to manually resolve conflicted file with markers (${file.path})`
     )
     return false
