@@ -21,7 +21,7 @@ interface IMergeCallToActionProps {
 export class MergeCallToAction extends React.Component<
   IMergeCallToActionProps,
   {}
-  > {
+> {
   public render() {
     const count = this.props.formState.aheadBehind.behind
 

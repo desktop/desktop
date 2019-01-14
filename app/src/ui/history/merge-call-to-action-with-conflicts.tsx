@@ -25,7 +25,7 @@ interface IMergeCallToActionWithConflictsProps {
 export class MergeCallToActionWithConflicts extends React.Component<
   IMergeCallToActionWithConflictsProps,
   {}
-  > {
+> {
   public render() {
     const { commitsBehind } = this.props
 
