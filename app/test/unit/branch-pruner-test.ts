@@ -11,6 +11,8 @@ import { GitProcess } from 'dugite'
 import { Branch } from '../../src/models/branch'
 import { GitHubRepository } from '../../src/models/github-repository'
 import { Owner } from '../../src/models/owner'
+jest.useFakeTimers()
+jest.mock('../../src/lib/stores/repositories-store')
 
 describe('BranchPruner', () => {
   const onGitStoreUpdated = () => {}
@@ -26,6 +28,13 @@ describe('BranchPruner', () => {
       prunedBranches: ReadonlyArray<Branch>
     ) => Promise<void>
   >
+  let realDateNow: () => number
+
+  function mockDateNow(date: Date) {
+    const stub = jest.fn(() => date.getTime())
+    global.Date.now = stub
+    return stub
+  }
 
   beforeEach(async () => {
     gitStoreCache = new GitStoreCache(
@@ -47,6 +56,10 @@ describe('BranchPruner', () => {
       () => (repository: Repository, prunedBranches: ReadonlyArray<Branch>) =>
         Promise.resolve()
     )
+
+    realDateNow = Date.now.bind(global.Date)
+  afterEach(() => {
+    global.Date.now = realDateNow
   })
 
   it('Does nothing on non GitHub repositories', async () => {
@@ -94,6 +107,9 @@ describe('BranchPruner', () => {
     )
     const expectedBranchesForPruning: ReadonlyArray<string> = []
 
+    const fixedDate = new Date('Mon, 14 Jan 2019 16:00:00 GMT')
+    const aDayFromNow = fixedDate.setHours(fixedDate.getHours() + 24)
+    mockDateNow(new Date(aDayFromNow))
     let gitOutput = await GitProcess.exec(['branch'], repository.path)
     await branchPruner.start()
     gitOutput = await GitProcess.exec(['branch'], repository.path)
