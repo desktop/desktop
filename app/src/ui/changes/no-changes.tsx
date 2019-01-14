@@ -555,6 +555,7 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
       <>
         <ReactCSSTransitionReplace
           transitionAppear={false}
+          overflowHidden={false}
           transitionName="action"
           component="div"
           className="actions primary"
