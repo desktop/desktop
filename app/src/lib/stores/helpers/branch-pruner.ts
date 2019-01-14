@@ -76,9 +76,10 @@ export class BranchPruner {
     )
 
     // Only prune if it's been at least 24 hours since the last time
+    const currentDate = Date.now()
     if (
       lastPruneDate !== null &&
-      lastPruneDate < Date.now() + BackgroundPruneMinimumInterval * 6
+      lastPruneDate > currentDate + BackgroundPruneMinimumInterval * 6
     ) {
       log.info(`Last prune took place ${new Date(lastPruneDate)} - skipping`)
       return
