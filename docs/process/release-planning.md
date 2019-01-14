@@ -30,7 +30,7 @@ Pull Requests associated with features for our marketing releases should have a
 milestone defined as soon as possible, to indicate the anticipated release and
 help track.
 
-Pull requests for new features should leverage [feature flags](https://github.com/desktop/desktop/blob/master/docs/technical/feature-flagging.md),
+Pull requests for new features should leverage [feature flags](https://github.com/desktop/desktop/blob/development/docs/technical/feature-flagging.md),
 so we can control when a feature is made available to users. If you are using
 the GitHub Desktop [beta channel](https://github.com/desktop/desktop#beta-channel)
 you will be able to help test and provide feedback about upcoming features

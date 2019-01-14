@@ -4,6 +4,7 @@ import {
   AppFileStatusKind,
   PlainFileStatus,
   CopiedOrRenamedFileStatus,
+  UntrackedFileStatus,
 } from '../../models/status'
 import { Repository } from '../../models/repository'
 import { Commit } from '../../models/commit'
@@ -20,7 +21,7 @@ import {
 function mapStatus(
   rawStatus: string,
   oldPath?: string
-): PlainFileStatus | CopiedOrRenamedFileStatus {
+): PlainFileStatus | CopiedOrRenamedFileStatus | UntrackedFileStatus {
   const status = rawStatus.trim()
 
   if (status === 'M') {
@@ -29,6 +30,9 @@ function mapStatus(
   if (status === 'A') {
     return { kind: AppFileStatusKind.New }
   } // added
+  if (status === '?') {
+    return { kind: AppFileStatusKind.Untracked }
+  } // untracked
   if (status === 'D') {
     return { kind: AppFileStatusKind.Deleted }
   } // deleted

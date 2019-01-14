@@ -43,7 +43,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
 
   public render() {
     const status = this.props.status
-    const fileStatus = mapStatus(status.kind)
+    const fileStatus = mapStatus(status)
 
     const listItemPadding = 10 * 2
     const checkboxWidth = 20

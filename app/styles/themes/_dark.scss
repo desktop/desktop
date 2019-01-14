@@ -121,6 +121,11 @@ body.theme-dark {
   --box-overflow-shadow-background: linear-gradient(180deg, rgba($gray-900, 0) 0%, rgba($gray-900, 1) 90%, rgba($gray-900, 1) 100%);
 
   /**
+   * Placeholder color for input boxes
+   */
+  --box-placeholder-color: $gray-400;
+
+  /**
    * Author input (co-authors)
    */
   --co-author-tag-background-color: $blue-800;
@@ -214,6 +219,12 @@ body.theme-dark {
    * Variables for form elements
    */
   --text-field-focus-shadow-color: rgba($blue, 0.25);
+
+  /**
+   * Blankslate actions, see `BlankslateAction` component.
+   */
+  --primary-blankslate-action-background: $blue-900;
+  --primary-blankslate-action-border-color: $blue-700;
 
   /**
    * Diff view

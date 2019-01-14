@@ -500,7 +500,6 @@ describe('git/commit', () => {
           them: GitStatusEntry.UpdatedButUnmerged,
           us: GitStatusEntry.UpdatedButUnmerged,
         },
-        lookForConflictMarkers: true,
         conflictMarkerCount: 0,
       })
 
@@ -523,10 +522,10 @@ describe('git/commit', () => {
       })
       it('creates a merge commit', async () => {
         const status = await getStatusOrThrow(repository)
-        const sha = await createMergeCommit(
-          repository,
-          status.workingDirectory.files
+        const trackedFiles = status.workingDirectory.files.filter(
+          f => f.status.kind !== AppFileStatusKind.Untracked
         )
+        const sha = await createMergeCommit(repository, trackedFiles)
         const newStatus = await getStatusOrThrow(repository)
         expect(sha).toHaveLength(7)
         expect(newStatus.workingDirectory.files).toHaveLength(0)
@@ -609,7 +608,7 @@ describe('git/commit', () => {
 
       expect(files.length).toEqual(1)
       expect(files[0].path).toContain('first')
-      expect(files[0].status.kind).toEqual(AppFileStatusKind.New)
+      expect(files[0].status.kind).toEqual(AppFileStatusKind.Untracked)
 
       const toCommit = status!.workingDirectory.withIncludeAllFiles(true)
 

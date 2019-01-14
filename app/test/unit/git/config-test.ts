@@ -1,4 +1,3 @@
-import { expect } from 'chai'
 import { GitProcess } from 'dugite'
 import * as Path from 'path'
 
@@ -22,7 +21,7 @@ describe('git/config', () => {
   describe('config', () => {
     it('looks up config values', async () => {
       const bare = await getConfigValue(repository!, 'core.bare')
-      expect(bare).to.equal('false')
+      expect(bare).toBe('false')
     })
 
     it('returns null for undefined values', async () => {
@@ -30,7 +29,7 @@ describe('git/config', () => {
         repository!,
         'core.the-meaning-of-life'
       )
-      expect(value).to.equal(null)
+      expect(value).toBeNull()
     })
   })
 
@@ -49,7 +48,7 @@ describe('git/config', () => {
 
       it('gets the config path', async () => {
         const path = await getGlobalConfigPath(env)
-        expect(path).to.equal(expectedConfigPath)
+        expect(path).toBe(expectedConfigPath)
       })
     })
 
@@ -64,7 +63,7 @@ describe('git/config', () => {
       it('will replace all entries for a global value', async () => {
         await setGlobalConfigValue(key, 'the correct value', env)
         const value = await getGlobalConfigValue(key, env)
-        expect(value).to.equal('the correct value')
+        expect(value).toBe('the correct value')
       })
     })
   })

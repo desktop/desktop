@@ -71,7 +71,7 @@ interface IChangesListProps {
    * List Props for documentation.
    */
   readonly onRowClick?: (row: number, source: ClickSource) => void
-  readonly commitMessage: ICommitMessage | null
+  readonly commitMessage: ICommitMessage
 
   /** The autocompletion providers available to the repository. */
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
@@ -387,6 +387,7 @@ export class ChangesList extends React.Component<
 
     switch (firstFile.status.kind) {
       case AppFileStatusKind.New:
+      case AppFileStatusKind.Untracked:
         return `Create ${fileName}`
       case AppFileStatusKind.Deleted:
         return `Delete ${fileName}`

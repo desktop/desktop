@@ -31,19 +31,4 @@
     text-align: center;
     font-size: var(--font-size-sm);
   }
-
-  kbd {
-    border-radius: var(--border-radius);
-    border: var(--base-border);
-    border-color: $gray-300;
-
-    display: inline-block;
-
-    padding: 1px 2px;
-    line-height: 1;
-    min-height: 16px;
-
-    font-family: var(--font-family);
-    text-align: center;
-  }
 }

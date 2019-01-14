@@ -82,7 +82,7 @@ interface IListProps {
    * can differentiate between the two using the source parameter.
    *
    * Note that this event handler will not be called for keyboard events
-   * if event.preventDefault was called in the onRowKeyDown event handler.
+   * if `event.preventDefault()` was called in the onRowKeyDown event handler.
    *
    * Consumers of this event do _not_ have to call event.preventDefault,
    * when this event is subscribed to the list will automatically call it.
@@ -360,7 +360,7 @@ export class List extends React.Component<IListProps, IListState> {
     }
   }
 
-  private handleKeyDown = (event: React.KeyboardEvent<any>) => {
+  private onKeyDown = (event: React.KeyboardEvent<any>) => {
     this.props.selectedRows.forEach(row => {
       if (this.props.onRowKeyDown) {
         this.props.onRowKeyDown(row, event)
@@ -418,8 +418,11 @@ export class List extends React.Component<IListProps, IListState> {
     }
   }
 
-  private onKeyDown = (event: React.KeyboardEvent<any>) => {
-    if (event.key === 'Enter' || event.key === ' ') {
+  private onFocusContainerKeyDown = (event: React.KeyboardEvent<any>) => {
+    if (
+      !event.defaultPrevented &&
+      (event.key === 'Enter' || event.key === ' ')
+    ) {
       this.toggleSelection(event)
       event.preventDefault()
     }
@@ -678,7 +681,7 @@ export class List extends React.Component<IListProps, IListState> {
         ref={this.onRef}
         id={this.props.id}
         className="list"
-        onKeyDown={this.handleKeyDown}
+        onKeyDown={this.onKeyDown}
         role={role}
         aria-activedescendant={activeDescendant}
       >
@@ -739,7 +742,7 @@ export class List extends React.Component<IListProps, IListState> {
     return (
       <FocusContainer
         className="list-focus-container"
-        onKeyDown={this.onKeyDown}
+        onKeyDown={this.onFocusContainerKeyDown}
       >
         <Grid
           aria-label={''}

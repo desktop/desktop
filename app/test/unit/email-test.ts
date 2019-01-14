@@ -1,11 +1,9 @@
-import { expect } from 'chai'
-
 import { lookupPreferredEmail } from '../../src/lib/email'
 import { IAPIEmail } from '../../src/lib/api'
 
 describe('emails', () => {
   it('returns null for empty list', () => {
-    expect(lookupPreferredEmail([])).to.equal(null)
+    expect(lookupPreferredEmail([])).toBeNull()
   })
 
   it('returns the primary if it has public visibility', () => {
@@ -31,8 +29,8 @@ describe('emails', () => {
     ]
 
     const result = lookupPreferredEmail(emails)
-    expect(result).to.not.equal(null)
-    expect(result!.email).to.equal('my-primary-email@example.com')
+    expect(result).not.toBeNull()
+    expect(result!.email).toBe('my-primary-email@example.com')
   })
 
   it('returns the primary if it has null visibility', () => {
@@ -58,8 +56,8 @@ describe('emails', () => {
     ]
 
     const result = lookupPreferredEmail(emails)
-    expect(result).to.not.equal(null)
-    expect(result!.email).to.equal('my-primary-email@example.com')
+    expect(result).not.toBeNull()
+    expect(result!.email).toBe('my-primary-email@example.com')
   })
 
   it('returns the noreply if there is no public address', () => {
@@ -85,8 +83,8 @@ describe('emails', () => {
     ]
 
     const result = lookupPreferredEmail(emails)
-    expect(result).to.not.equal(null)
-    expect(result!.email).to.equal('shiftkey@users.noreply.github.com')
+    expect(result).not.toBeNull()
+    expect(result!.email).toBe('shiftkey@users.noreply.github.com')
   })
 
   it('uses first email if nothing special found', () => {
@@ -106,7 +104,7 @@ describe('emails', () => {
     ]
 
     const result = lookupPreferredEmail(emails)
-    expect(result).to.not.equal(null)
-    expect(result!.email).to.equal('shiftkey@example.com')
+    expect(result).not.toBeNull()
+    expect(result!.email).toBe('shiftkey@example.com')
   })
 })

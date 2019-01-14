@@ -26,7 +26,7 @@ import { PopupType } from '../../models/popup'
 import { enableFileSizeWarningCheck } from '../../lib/feature-flag'
 import { filesNotTrackedByLFS } from '../../lib/git/lfs'
 import { getLargeFilePaths } from '../../lib/large-files'
-import { isConflictedFile } from '../../lib/status'
+import { isConflictedFile, hasUnresolvedConflicts } from '../../lib/status'
 
 /**
  * The timeout for the animation of the enter/leave animation for Undo.
@@ -152,6 +152,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     )
 
     if (conflictedFilesLeft.length === 0) {
+      this.props.dispatcher.clearMergeConflictsBanner()
       this.props.dispatcher.recordUnguidedConflictedMergeCompletion()
     }
 
@@ -159,6 +160,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     const conflictedFilesSelected = this.props.changes.workingDirectory.files.filter(
       f =>
         isConflictedFile(f.status) &&
+        hasUnresolvedConflicts(f.status) &&
         f.selection.getSelectionType() !== DiffSelectionType.None
     )
 
