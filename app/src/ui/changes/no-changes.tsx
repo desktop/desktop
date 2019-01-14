@@ -24,6 +24,19 @@ const BlankSlateImage = encodePathAsUrl(
   'static/empty-no-file-selected.svg'
 )
 
+function formatMenuItemLabel(text: string) {
+  if (__WIN32__ || __LINUX__) {
+    return text.replace('&', '')
+  }
+
+  return text
+}
+
+function formatParentMenuLabel(menuItem: IMenuItemInfo) {
+  const parentMenusText = menuItem.parentMenuLabels.join(' -> ')
+  return formatMenuItemLabel(parentMenusText)
+}
+
 const PaperStackImage = encodePathAsUrl(__dirname, 'static/paper-stack.svg')
 
 interface INoChangesProps {
@@ -220,7 +233,7 @@ export class NoChanges extends React.Component<
   }
 
   private renderDiscoverabilityElements(menuItem: IMenuItemInfo) {
-    const parentMenusText = menuItem.parentMenuLabels.join(' -> ')
+    const parentMenusText = formatParentMenuLabel(menuItem)
 
     return (
       <>
@@ -252,7 +265,7 @@ export class NoChanges extends React.Component<
         description={description}
         discoverabilityContent={this.renderDiscoverabilityElements(menuItem)}
         menuItemId={itemId}
-        buttonText={menuItem.label}
+        buttonText={formatMenuItemLabel(menuItem.label)}
         disabled={!menuItem.enabled}
       />
     )
@@ -320,7 +333,7 @@ export class NoChanges extends React.Component<
 
   private renderRemoteAction() {
     const { remote, aheadBehind, branchesState } = this.props.repositoryState
-    const { tip } = branchesState
+    const { tip, defaultBranch, currentPullRequest } = branchesState
 
     if (tip.kind !== TipState.Valid) {
       return null
@@ -344,9 +357,11 @@ export class NoChanges extends React.Component<
     }
 
     const isGitHub = this.props.repository.gitHubRepository !== null
-    const hasOpenPullRequest = branchesState.currentPullRequest !== null
+    const hasOpenPullRequest = currentPullRequest !== null
+    const isDefaultBranch =
+      defaultBranch !== null && tip.branch.name === defaultBranch.name
 
-    if (isGitHub && !hasOpenPullRequest) {
+    if (isGitHub && !hasOpenPullRequest && !isDefaultBranch) {
       return this.renderCreatePullRequestAction(tip)
     }
 
@@ -404,10 +419,9 @@ export class NoChanges extends React.Component<
 
     const description = (
       <>
-        The branch you're currently on (<Ref>{tip.branch.name}</Ref>) hasn't
-        been published to the remote yet. By publishing it{' '}
-        {isGitHub ? 'to GitHub' : ''} you can share it,{' '}
-        {isGitHub ? 'open a pull request, ' : ''}
+        The current branch (<Ref>{tip.branch.name}</Ref>) hasn't been published
+        to the remote yet. By publishing it {isGitHub ? 'to GitHub' : ''} you
+        can share it, {isGitHub ? 'open a pull request, ' : ''}
         and collaborate with others.
       </>
     )

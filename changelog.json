@@ -1,5 +1,12 @@
 {
   "releases": {
+    "1.6.0-beta2": [
+      "[New] \"No local changes\" view makes it easy to find and accomplish common actions - #6445",
+      "[Fixed] Automatically locate a missing repository when it cannot be found - #6228. Thanks @msftrncs!",
+      "[Improved] Enable additional actions during a merge conflict - #6385",
+      "[Improved] Increase contrast on input placeholder color in dark mode - #6556",
+      "[Improved] Merge success banner no longer shown when attempted merge doesn't complete - #6282"
+    ],
     "1.6.0-beta1": [
       "[New] Help users add their first repo during onboarding - #6474",
       "[Added] Include ability for users to add new repositories when there are none available - #5566 #6474",
