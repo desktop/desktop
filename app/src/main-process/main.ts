@@ -4,12 +4,7 @@ import { app, Menu, ipcMain, BrowserWindow, shell } from 'electron'
 import * as Fs from 'fs'
 
 import { AppWindow } from './app-window'
-import {
-  buildDefaultMenu,
-  MenuEvent,
-  MenuLabels,
-  findMenuItemByID,
-} from './menu'
+import { buildDefaultMenu, MenuEvent, MenuLabels } from './menu'
 import { shellNeedsPatching, updateEnvironmentForProcess } from '../lib/shell'
 import { parseAppURL } from '../lib/parse-app-url'
 import { handleSquirrelEvent } from './squirrel-updater'
@@ -254,7 +249,7 @@ app.on('ready', () => {
   ipcMain.on(
     'execute-menu-item',
     (event: Electron.IpcMessageEvent, { id }: { id: string }) => {
-      const menuItem = findMenuItemByID(menu, id)
+      const menuItem = currentMenu.getMenuItemById(id)
       if (menuItem) {
         const window = BrowserWindow.fromWebContents(event.sender)
         const fakeEvent = { preventDefault: () => {}, sender: event.sender }
@@ -273,7 +268,7 @@ app.on('ready', () => {
 
       for (const item of items) {
         const { id, state } = item
-        const menuItem = findMenuItemByID(menu, id)
+        const menuItem = currentMenu.getMenuItemById(id)
 
         if (menuItem) {
           // Only send the updated app menu when the state actually changes
