@@ -1,6 +1,6 @@
 import { Repository } from '../../../models/repository'
 import { RepositoriesStore } from '../repositories-store'
-import { RepositoryStateCache } from '../repository-state-cache'
+import { IRepositoryStateCache } from '../repository-state-cache'
 import { Branch, BranchType } from '../../../models/branch'
 import { GitStoreCache } from '../git-store-cache'
 import { getMergedBranches } from '../../git'
@@ -17,7 +17,7 @@ export class BranchPruner {
     private readonly repository: Repository,
     private readonly gitStoreCache: GitStoreCache,
     private readonly repositoriesStore: RepositoriesStore,
-    private readonly repositoriesStateCache: RepositoryStateCache,
+    private readonly repositoriesStateCache: IRepositoryStateCache,
     private readonly onPruneCompleted: (
       repository: Repository,
       prunedBranches: ReadonlyArray<Branch>
