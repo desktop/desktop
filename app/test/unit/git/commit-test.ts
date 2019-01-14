@@ -561,7 +561,7 @@ describe('git/commit', () => {
         expect(sha).toHaveLength(7)
         expect(newStatus.workingDirectory.files).toHaveLength(1)
       })
-      it('keeps files chosen to be added and commits', async () => {
+      it('deletes files chosen to be removed and commits', async () => {
         const status = await getStatusOrThrow(repository)
         const trackedFiles = status.workingDirectory.files.filter(
           f => f.status.kind !== AppFileStatusKind.Untracked
