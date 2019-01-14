@@ -17,6 +17,10 @@
   &:focus {
     @include textboxish-focus-styles;
   }
+
+  &::-webkit-input-placeholder {
+    color: var(--box-placeholder-color);
+  }
 }
 
 @mixin textboxish-focus-styles {

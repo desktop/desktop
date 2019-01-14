@@ -173,6 +173,7 @@
 // full width of the container (minus padding).
 .foldout .blankslate-image {
   width: 100%;
+  min-width: auto;
 }
 
 // When there's not enough space to show the blankslate

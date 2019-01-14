@@ -8,6 +8,7 @@ import { PathText } from '../lib/path-text'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
 import { ICommitContext } from '../../models/commit'
+import { DefaultCommitMessage } from '../../models/commit-message'
 
 const GitLFSWebsiteURL =
   'https://help.github.com/articles/versioning-large-files/'
@@ -99,9 +100,9 @@ export class OversizedFiles extends React.Component<IOversizedFilesProps> {
       this.props.context
     )
 
-    this.props.dispatcher.setCommitMessage(this.props.repository, {
-      summary: '',
-      description: '',
-    })
+    this.props.dispatcher.setCommitMessage(
+      this.props.repository,
+      DefaultCommitMessage
+    )
   }
 }

@@ -81,7 +81,6 @@ function parseConflictedState(
       return {
         kind: AppFileStatusKind.Conflicted,
         entry,
-        lookForConflictMarkers: true,
         conflictMarkerCount: addedConflictsLeft,
       }
     case UnmergedEntrySummary.BothModified:
@@ -89,14 +88,12 @@ function parseConflictedState(
       return {
         kind: AppFileStatusKind.Conflicted,
         entry,
-        lookForConflictMarkers: true,
         conflictMarkerCount: modifedConflictsLeft,
       }
     default:
       return {
         kind: AppFileStatusKind.Conflicted,
         entry,
-        lookForConflictMarkers: false,
       }
   }
 }
