@@ -76,11 +76,11 @@
   .action-enter.action-enter-active {
     opacity: 1;
     transform: translate3d(0, 0, 0);
-    transition: opacity 200ms ease-in 250ms, transform 250ms var(--easing-ease-out-back) 250ms;
+    transition: opacity 200ms ease-in 500ms, transform 250ms var(--easing-ease-out-back) 500ms;
   }
 
   .action-height {
-    transition: height 250ms ease-in-out;
+    transition: height 250ms ease-out 250ms;
   }
 
   /** Lessen the padding at 1.5x zoom and above  **/

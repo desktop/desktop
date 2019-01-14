@@ -604,8 +604,8 @@ export class NoChanges extends React.Component<
           transitionName="action"
           component="div"
           className="actions primary"
-          transitionEnterTimeout={500}
-          transitionLeaveTimeout={250}
+          transitionEnterTimeout={750}
+          transitionLeaveTimeout={500}
         >
           {this.renderRemoteAction()}
         </ReactCSSTransitionReplace>
