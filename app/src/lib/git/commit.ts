@@ -82,8 +82,10 @@ export async function createMergeCommit(
     await stageFiles(repository, otherFiles)
     const result = await git(
       [
-        'commit', // no-edit here ensures the app does not accidentally invoke the user's editor
-        '--no-edit', // By default Git merge commits do not contain any commentary (which
+        'commit',
+        // no-edit here ensures the app does not accidentally invoke the user's editor
+        '--no-edit',
+        // By default Git merge commits do not contain any commentary (which
         // are lines prefixed with `#`). This works because the Git CLI will
         // prompt the user to edit the file in `.git/COMMIT_MSG` before
         // committing, and then it will run `--cleanup=strip`.
