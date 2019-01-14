@@ -95,6 +95,7 @@ import { PopupType, Popup } from '../models/popup'
 import { SuccessfulMerge, MergeConflictsBanner } from './banners'
 import { OversizedFiles } from './changes/oversized-files-warning'
 import { UsageStatsChange } from './usage-stats-change'
+import { PushNeedsPullWarning } from './push-needs-pull'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -1513,6 +1514,15 @@ export class App extends React.Component<IAppProps, IAppState> {
             files={popup.files}
             repository={popup.repository}
             context={popup.context}
+            onDismissed={this.onPopupDismissed}
+          />
+        )
+
+      case PopupType.PushNeedsPull:
+        return (
+          <PushNeedsPullWarning
+            dispatcher={this.props.dispatcher}
+            repository={popup.repository}
             onDismissed={this.onPopupDismissed}
           />
         )

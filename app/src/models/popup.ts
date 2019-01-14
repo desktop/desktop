@@ -42,6 +42,7 @@ export enum PopupType {
   OversizedFiles,
   UsageReportingChanges,
   CommitConflictsWarning,
+  PushNeedsPull,
 }
 
 export type Popup =
@@ -152,4 +153,8 @@ export type Popup =
       repository: Repository
       /** information for completing the commit */
       context: ICommitContext
+    }
+  | {
+      type: PopupType.PushNeedsPull
+      repository: Repository
     }
