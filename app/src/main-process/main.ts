@@ -1,6 +1,6 @@
 import '../lib/logging/main/install'
 
-import { app, Menu, ipcMain, BrowserWindow, shell, MenuItem } from 'electron'
+import { app, Menu, ipcMain, BrowserWindow, shell } from 'electron'
 import * as Fs from 'fs'
 
 import { AppWindow } from './app-window'
