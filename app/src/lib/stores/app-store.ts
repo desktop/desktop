@@ -1877,22 +1877,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private async recoverMissingRepository(
     repository: Repository
   ): Promise<Repository> {
-    /*
-        if the repository is marked missing, check to see if the file path exists,
-        and if so then see if git recognizes the path as a valid repository,
-        and if so, reset the missing status as its been restored
-      */
-    if (
-      repository.missing
-        ? (await pathExists(repository.path))
-          ? await isGitRepository(repository.path)
-          : false
-        : false
-    ) {
-      return this._updateRepositoryMissing(repository, false)
-    } else {
+    if (!repository.missing) {
       return repository
     }
+
+    let foundRepository = await pathExists(repository.path)
+
+    if (foundRepository) {
+      foundRepository = await isGitRepository(repository.path)
+    }
+
+    return this._updateRepositoryMissing(repository, foundRepository)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
