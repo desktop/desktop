@@ -318,7 +318,7 @@ export function buildDefaultMenu({
       },
       {
         label: __DARWIN__
-          ? 'Merge Into Current Branch…'
+          ? 'Merge into Current Branch…'
           : '&Merge into current branch…',
         id: 'merge-branch',
         accelerator: 'CmdOrCtrl+Shift+M',
