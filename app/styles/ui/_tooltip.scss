@@ -19,7 +19,7 @@
   white-space: pre;
   pointer-events: none;
   content: attr(title);
-  background: black;
+  background: $black;
   border-radius: 3px;
   opacity: 0;
 }
