@@ -93,6 +93,10 @@ interface IMenuItemInfo {
   readonly enabled: boolean
 }
 
+interface INoChangesState {
+  readonly enableTransitions: boolean
+}
+
 function getItemAcceleratorKeys(item: MenuItem) {
   if (item.type === 'separator' || item.type === 'submenuItem') {
     return []
@@ -136,12 +140,24 @@ function buildMenuItemInfoMap(
 }
 
 /** The component to display when there are no local changes. */
-export class NoChanges extends React.Component<INoChangesProps, {}> {
+export class NoChanges extends React.Component<
+  INoChangesProps,
+  INoChangesState
+> {
   private getMenuInfoMap = memoizeOne((menu: IMenu | undefined) =>
     menu === undefined
       ? new Map<string, IMenuItemInfo>()
       : buildMenuItemInfoMap(menu)
   )
+
+  private transitionTimer: number | null = null
+
+  public constructor(props: INoChangesProps) {
+    super(props)
+    this.state = {
+      enableTransitions: false,
+    }
+  }
 
   private getMenuItemInfo(menuItemId: MenuIDs): IMenuItemInfo | undefined {
     return this.getMenuInfoMap(this.props.appMenu).get(menuItemId)
@@ -555,6 +571,8 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
       <>
         <ReactCSSTransitionReplace
           transitionAppear={false}
+          transitionEnter={this.state.enableTransitions}
+          transitionLeave={this.state.enableTransitions}
           overflowHidden={false}
           transitionName="action"
           component="div"
@@ -571,6 +589,19 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
         </div>
       </>
     )
+  }
+
+  public componentDidMount() {
+    this.transitionTimer = window.setTimeout(() => {
+      this.setState({ enableTransitions: true })
+      this.transitionTimer = null
+    }, 500)
+  }
+
+  public componentWillUnmount() {
+    if (this.transitionTimer !== null) {
+      clearTimeout(this.transitionTimer)
+    }
   }
 
   public render() {
