@@ -107,6 +107,15 @@ interface IMenuItemInfo {
 }
 
 interface INoChangesState {
+  /**
+   * Whether or not to enable the slide in and
+   * slide out transitions for the remote actions.
+   *
+   * Disabled initially and enabled 500ms after
+   * component mounting in order to provide instant
+   * loading of the remote action when the view is
+   * initially appearing.
+   */
   readonly enableTransitions: boolean
 }
 
@@ -163,6 +172,10 @@ export class NoChanges extends React.Component<
       : buildMenuItemInfoMap(menu)
   )
 
+  /**
+   * ID for the timer that's activated when the component
+   * mounts. See componentDidMount/componenWillUnmount.
+   */
   private transitionTimer: number | null = null
 
   public constructor(props: INoChangesProps) {
