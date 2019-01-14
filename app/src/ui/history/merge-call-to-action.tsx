@@ -21,12 +21,17 @@ interface IMergeCallToActionProps {
 export class MergeCallToAction extends React.Component<
   IMergeCallToActionProps,
   {}
-> {
+  > {
   public render() {
     const count = this.props.formState.aheadBehind.behind
 
     return (
       <div className="merge-cta">
+        {this.renderMergeDetails(
+          this.props.formState,
+          this.props.currentBranch
+        )}
+
         <Button
           type="submit"
           disabled={count <= 0}
@@ -34,11 +39,6 @@ export class MergeCallToAction extends React.Component<
         >
           Merge into <strong>{this.props.currentBranch.name}</strong>
         </Button>
-
-        {this.renderMergeDetails(
-          this.props.formState,
-          this.props.currentBranch
-        )}
       </div>
     )
   }

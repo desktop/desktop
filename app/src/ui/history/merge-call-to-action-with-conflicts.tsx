@@ -25,7 +25,7 @@ interface IMergeCallToActionWithConflictsProps {
 export class MergeCallToActionWithConflicts extends React.Component<
   IMergeCallToActionWithConflictsProps,
   {}
-> {
+  > {
   public render() {
     const { commitsBehind } = this.props
 
@@ -39,11 +39,11 @@ export class MergeCallToActionWithConflicts extends React.Component<
 
     return (
       <div className="merge-cta">
+        {mergeDetails}
+
         <Button type="submit" disabled={disabled} onClick={this.onMergeClicked}>
           Merge into <strong>{this.props.currentBranch.name}</strong>
         </Button>
-
-        {mergeDetails}
       </div>
     )
   }
