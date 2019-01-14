@@ -120,6 +120,14 @@ export async function createMergeCommit(
   }
 }
 
+/**
+ * Stages a file with the given manual resolution method. Useful for resolving binary conflicts at commit-time.
+ *
+ * @param repository
+ * @param file conflicted file to stage
+ * @param manualResolution method to resolve the conflict of file
+ * @returns true if successful, false if something went wrong
+ */
 async function stageManualConflictResolution(
   repository: Repository,
   file: WorkingDirectoryFileChange,
