@@ -23,6 +23,19 @@ const BlankSlateImage = encodePathAsUrl(
   'static/empty-no-file-selected.svg'
 )
 
+function formatMenuItemLabel(text: string) {
+  if (__WIN32__ || __LINUX__) {
+    return text.replace('&', '')
+  }
+
+  return text
+}
+
+function formatParentMenuLabel(menuItem: IMenuItemInfo) {
+  const parentMenusText = menuItem.parentMenuLabels.join(' -> ')
+  return formatMenuItemLabel(parentMenusText)
+}
+
 const PaperStackImage = encodePathAsUrl(__dirname, 'static/paper-stack.svg')
 
 interface INoChangesProps {
@@ -203,7 +216,7 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
   }
 
   private renderDiscoverabilityElements(menuItem: IMenuItemInfo) {
-    const parentMenusText = menuItem.parentMenuLabels.join(' -> ')
+    const parentMenusText = formatParentMenuLabel(menuItem)
 
     return (
       <>
@@ -235,7 +248,7 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
         description={description}
         discoverabilityContent={this.renderDiscoverabilityElements(menuItem)}
         menuItemId={itemId}
-        buttonText={menuItem.label}
+        buttonText={formatMenuItemLabel(menuItem.label)}
         disabled={!menuItem.enabled}
       />
     )
