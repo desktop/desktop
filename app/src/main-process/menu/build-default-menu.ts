@@ -304,7 +304,7 @@ export function buildDefaultMenu({
       separator,
       {
         label: __DARWIN__
-          ? `Update From ${defaultBranchName}`
+          ? `Update from ${defaultBranchName}`
           : `&Update from ${defaultBranchName}`,
         id: 'update-branch',
         accelerator: 'CmdOrCtrl+Shift+U',
