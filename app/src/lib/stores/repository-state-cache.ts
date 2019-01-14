@@ -21,7 +21,11 @@ import { ComparisonCache } from '../comparison-cache'
 import { IGitHubUser } from '../databases'
 import { merge } from '../merge'
 
-export class RepositoryStateCache {
+export interface IRepositoryStateCache {
+  get: (r: Repository) => IRepositoryState
+}
+
+export class RepositoryStateCache implements IRepositoryStateCache {
   private readonly repositoryState = new Map<string, IRepositoryState>()
 
   public constructor(
