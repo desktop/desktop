@@ -148,11 +148,12 @@ describe('BranchPruner', () => {
       repositoriesStateCache,
       onPruneCompleted
     )
-    const expectedBranchesForPruning: ReadonlyArray<string> = []
 
     const fixedDate = new Date('Mon, 14 Jan 2019 16:00:00 GMT')
     const aDayFromNow = fixedDate.setHours(fixedDate.getHours() + 24)
     mockDateNow(new Date(aDayFromNow))
+
+    const expectedBranchesForPruning: ReadonlyArray<string> = []
     let gitOutput = await GitProcess.exec(['branch'], repository.path)
     await branchPruner.start()
     gitOutput = await GitProcess.exec(['branch'], repository.path)
