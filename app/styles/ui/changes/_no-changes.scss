@@ -55,7 +55,33 @@
 
     &.primary {
       margin-bottom: var(--spacing);
+      overflow: hidden;
     }
+  }
+
+  .action-leave {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  .action-leave.action-leave-active {
+    opacity: 0;
+    transform: translate3d(100%, 0, 0);
+    transition: opacity 250ms ease-in, transform 250ms ease-in;
+  }
+
+  .action-enter {
+    opacity: 0;
+    transform: translate3d(-100%, 0, 0);
+  }
+
+  .action-enter.action-enter-active {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    transition: opacity 250ms ease-in 250ms, transform 250ms ease-in 250ms;
+  }
+
+  .action-height {
+    transition: height 250ms ease-in-out;
   }
 
   /** Lessen the padding at 1.5x zoom and above  **/

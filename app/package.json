@@ -41,6 +41,7 @@
     "queue": "^4.4.2",
     "react": "^16.3.2",
     "react-addons-shallow-compare": "^15.6.2",
+    "react-css-transition-replace": "^3.0.3",
     "react-dom": "^16.3.2",
     "react-transition-group": "^1.2.0",
     "react-virtualized": "^9.20.0",

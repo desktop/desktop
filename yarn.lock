@@ -348,6 +348,29 @@
   resolved "https://registry.yarnpkg.com/@types/prop-types/-/prop-types-15.5.2.tgz#3c6b8dceb2906cc87fe4358e809f9d20c8d59be1"
   integrity sha512-pQRkAVoxiuUrLq8+CDwiQX4pTCep/PmmNgBbjIwnnsd/HoYjGpR81+FFPE030lvNXgR0haaAU6eoRtztWDE4Xw==
 
+"@types/react-addons-css-transition-group@*":
+  version "15.0.5"
+  resolved "https://registry.yarnpkg.com/@types/react-addons-css-transition-group/-/react-addons-css-transition-group-15.0.5.tgz#73665af6b8efb47730ab583ead4bed5373dae686"
+  integrity sha512-UIJt5HQDOzRI7AOmnGnc2OZA0N3p7r6yMsxZ3T0+dyGPB3zWiKOPKrMkJr9tyuY3kHKPm26GyihcJKNJdMY8CQ==
+  dependencies:
+    "@types/react" "*"
+    "@types/react-addons-transition-group" "*"
+
+"@types/react-addons-transition-group@*":
+  version "15.0.3"
+  resolved "https://registry.yarnpkg.com/@types/react-addons-transition-group/-/react-addons-transition-group-15.0.3.tgz#b1ed2a8218a0f9f3b3d6bf8f75f0aff24abb9605"
+  integrity sha512-aNZpcbSkQmm12VJRm0VOGEj7yYnx2V+614X+0US9MrR42jiehIiQIMjgfW5bUxxjNNUIhfJ5LD0EC9MaRz8XKw==
+  dependencies:
+    "@types/react" "*"
+
+"@types/react-css-transition-replace@^2.1.3":
+  version "2.1.3"
+  resolved "https://registry.yarnpkg.com/@types/react-css-transition-replace/-/react-css-transition-replace-2.1.3.tgz#d85923c3fe0522b7c90e96d94a8d5944716b246b"
+  integrity sha512-o9uDsBEaEFbbCcCexaIYXPWCzw/pwT4GB2UMrBPuCpUteoueGHFJXTI7or4tOymla4+hkcw8gkzXM8FQMmbVIA==
+  dependencies:
+    "@types/react" "*"
+    "@types/react-addons-css-transition-group" "*"
+
 "@types/react-dom@^16.0.5":
   version "16.0.6"
   resolved "https://registry.yarnpkg.com/@types/react-dom/-/react-dom-16.0.6.tgz#f1a65a4e7be8ed5d123f8b3b9eacc913e35a1a3c"

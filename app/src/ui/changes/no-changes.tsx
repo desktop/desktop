@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as classNames from 'classnames'
+import * as ReactCSSTransitionReplace from 'react-css-transition-replace'
 
 import { encodePathAsUrl } from '../../lib/path'
 import { revealInFileManager } from '../../lib/app-shell'
@@ -358,6 +359,7 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
 
     return (
       <MenuBackedBlankslateAction
+        key="publish-repository-action"
         title="Publish your repository to GitHub"
         description="This repository is currently only available on your local machine. By publishing it on GitHub you can share it, and collaborate with others."
         discoverabilityContent={discoverabilityContent}
@@ -403,6 +405,7 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
 
     return (
       <MenuBackedBlankslateAction
+        key="publish-branch-action"
         title="Publish your branch"
         menuItemId={itemId}
         description={description}
@@ -451,6 +454,7 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
 
     return (
       <MenuBackedBlankslateAction
+        key="pull-branch-action"
         title={title}
         menuItemId={itemId}
         description={description}
@@ -500,6 +504,7 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
 
     return (
       <MenuBackedBlankslateAction
+        key="push-branch-action"
         title={title}
         menuItemId={itemId}
         description={description}
@@ -533,6 +538,7 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
 
     return (
       <MenuBackedBlankslateAction
+        key="create-pr-action"
         title={title}
         menuItemId={itemId}
         description={description}
@@ -545,15 +551,18 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
   }
 
   private renderActions() {
-    const remoteAction = this.renderRemoteAction()
-    const remoteActions =
-      remoteAction === null || remoteAction === undefined ? null : (
-        <div className="actions primary">{remoteAction}</div>
-      )
-
     return (
       <>
-        {remoteActions}
+        <ReactCSSTransitionReplace
+          transitionAppear={false}
+          transitionName="action"
+          component="div"
+          className="actions primary"
+          transitionEnterTimeout={500}
+          transitionLeaveTimeout={250}
+        >
+          {this.renderRemoteAction()}
+        </ReactCSSTransitionReplace>
         <div className="actions">
           {this.renderOpenInExternalEditor()}
           {this.renderShowInFinderAction()}
