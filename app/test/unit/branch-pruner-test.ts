@@ -56,11 +56,16 @@ describe('BranchPruner', () => {
     }
 
     onPruneCompleted = jest.fn(
-      () => (repository: Repository, prunedBranches: ReadonlyArray<Branch>) =>
-        Promise.resolve()
+      () => (repository: Repository, prunedBranches: ReadonlyArray<Branch>) => {
+        console.log('repository', repository)
+        console.log('prunedBranches', prunedBranches)
+        return Promise.resolve()
+      }
     )
 
     realDateNow = Date.now.bind(global.Date)
+  })
+
   afterEach(() => {
     global.Date.now = realDateNow
   })
