@@ -2,7 +2,10 @@ import { BranchPruner } from '../../src/lib/stores/helpers/branch-pruner'
 import { Repository } from '../../src/models/repository'
 import { GitStoreCache } from '../../src/lib/stores/git-store-cache'
 import { RepositoriesStore } from '../../src/lib/stores'
-import { RepositoryStateCache } from '../../src/lib/stores/repository-state-cache'
+import {
+  IRepositoryStateCache,
+  getInitialRepositoryState,
+} from '../../src/lib/stores/repository-state-cache'
 import { setupFixtureRepository } from '../helpers/repositories'
 import { shell } from '../helpers/test-app-shell'
 import { TestRepositoriesDatabase } from '../helpers/databases'
@@ -21,7 +24,7 @@ describe('BranchPruner', () => {
 
   let gitStoreCache: GitStoreCache
   let repositoriesStore: RepositoriesStore
-  let repositoriesStateCache: RepositoryStateCache
+  let repositoriesStateCache: IRepositoryStateCache
   let onPruneCompleted: jest.Mock<
     (
       repository: Repository,
@@ -48,9 +51,9 @@ describe('BranchPruner', () => {
     await repositoriesDb.reset()
     repositoriesStore = new RepositoriesStore(repositoriesDb)
 
-    const defaultGetUsersFunc = (_: Repository) =>
-      new Map<string, IGitHubUser>()
-    repositoriesStateCache = new RepositoryStateCache(defaultGetUsersFunc)
+    repositoriesStateCache = {
+      get: (r: Repository) => getInitialRepositoryState(),
+    }
 
     onPruneCompleted = jest.fn(
       () => (repository: Repository, prunedBranches: ReadonlyArray<Branch>) =>
@@ -98,6 +101,39 @@ describe('BranchPruner', () => {
       null
     )
     const repository = new Repository(path, 0, ghRepo, false)
+    const initialRepoState = getInitialRepositoryState()
+    repositoriesStateCache = {
+      get: (r: Repository) => {
+        return {
+          ...initialRepoState,
+          branchesState: {
+            ...initialRepoState.branchesState,
+            defaultBranch: new Branch(
+              'fake branch',
+              null,
+              new Commit(
+                '123',
+                'summary',
+                'body',
+                new CommitIdentity(
+                  'jest',
+                  'jest@test.fake',
+                  new Date(Date.now())
+                ),
+                new CommitIdentity(
+                  'test',
+                  'tester@test.fake',
+                  new Date(Date.now())
+                ),
+                [],
+                []
+              ),
+              BranchType.Local
+            ),
+          },
+        }
+      },
+    }
     const branchPruner = new BranchPruner(
       repository,
       gitStoreCache,
