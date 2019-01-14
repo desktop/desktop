@@ -9,11 +9,13 @@ import {
 import { setupFixtureRepository } from '../helpers/repositories'
 import { shell } from '../helpers/test-app-shell'
 import { TestRepositoriesDatabase } from '../helpers/databases'
-import { IGitHubUser } from '../../src/lib/databases'
 import { GitProcess } from 'dugite'
-import { Branch } from '../../src/models/branch'
+import { Branch, BranchType } from '../../src/models/branch'
 import { GitHubRepository } from '../../src/models/github-repository'
 import { Owner } from '../../src/models/owner'
+import { Commit } from '../../src/models/commit'
+import { CommitIdentity } from '../../src/models/commit-identity'
+
 jest.useFakeTimers()
 jest.mock('../../src/lib/stores/repositories-store')
 
