@@ -371,25 +371,31 @@ export class RepositoriesStore extends BaseStore {
     const repoID = repository.id
     if (!repoID) {
       return fatalError(
-        '`getLastPruneDate` can only retrieve the last prune date for a repositories that have been stored in the database.'
+        '`getLastPruneDate` - can only retrieve the last prune date for a repositories that have been stored in the database.'
       )
     }
 
     const githubRepo = repository.gitHubRepository
     if (githubRepo === null) {
       return fatalError(
-        `'getLastPruneDate' can only retrieve the last prune date for GitHub repositories.`
+        `'getLastPruneDate' - can only retrieve the last prune date for GitHub repositories.`
       )
     }
 
     const gitHubRepositoryID = githubRepo.dbID
     if (gitHubRepositoryID === null) {
       return fatalError(
-        `'getLastPruneDate' can only retrieve the last prune date for GitHub repositories that have been stored in the database.`
+        `'getLastPruneDate' - can only retrieve the last prune date for GitHub repositories that have been stored in the database.`
       )
     }
 
     const record = await this.db.gitHubRepositories.get(gitHubRepositoryID)
+
+    if (record === undefined) {
+      return fatalError(
+        `'getLastPruneDate' - unable to find GitHub repository with ID: ${gitHubRepositoryID}`
+      )
+    }
 
     return record!.lastPruneDate
   }
