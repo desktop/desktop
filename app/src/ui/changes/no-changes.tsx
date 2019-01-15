@@ -477,8 +477,11 @@ export class NoChanges extends React.Component<
 
     const description = (
       <>
-        The current branch (<Ref>{tip.branch.name}</Ref>) has commits on{' '}
-        {isGitHub ? 'GitHub' : 'the remote'} that doesn’t exist on your machine.
+        The current branch (<Ref>{tip.branch.name}</Ref>) has{' '}
+        {aheadBehind.behind === 1 ? 'a commit' : 'commits'} on{' '}
+        {isGitHub ? 'GitHub' : 'the remote'} that{' '}
+        {aheadBehind.behind === 1 ? 'does not' : 'do not'} exist on your
+        machine.
       </>
     )
 
