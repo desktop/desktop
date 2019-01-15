@@ -336,9 +336,12 @@ export class RepositoriesStore extends BaseStore {
     )
   }
 
-  public async updateLastPruneDate(repository: Repository): Promise<void> {
+  public async updateLastPruneDate(
+    repository: Repository,
+    date: number
+  ): Promise<void> {
     const repoID = repository.id
-    if (!repoID) {
+    if (repoID === 0) {
       return fatalError(
         '`updateLastPruneDate` can only update the last prune date for a repository which has been added to the database.'
       )
@@ -359,7 +362,7 @@ export class RepositoriesStore extends BaseStore {
     }
 
     await this.db.gitHubRepositories.update(gitHubRepositoryID, {
-      lastPruneDate: Date.now(),
+      lastPruneDate: date,
     })
 
     this.emitUpdate()
