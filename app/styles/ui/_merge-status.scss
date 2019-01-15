@@ -17,7 +17,6 @@
 
     &:after {
       display: block;
-      border-bottom: var(--base-border);
       content: '';
       position: absolute;
       z-index: 0;
@@ -52,6 +51,10 @@
     strong {
       color: var(--text-color);
     }
+  }
+
+  .merge-message {
+    padding-bottom: 10px;
   }
 }
 
