@@ -1876,8 +1876,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private async recoverMissingRepository(
     repository: Repository
   ): Promise<Repository> {
-    /* 
-        if the repository is marked missing, check to see if the file path exists, 
+    /*
+        if the repository is marked missing, check to see if the file path exists,
         and if so then see if git recognizes the path as a valid repository,
         and if so, reset the missing status as its been restored
       */
