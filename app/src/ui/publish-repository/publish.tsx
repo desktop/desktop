@@ -251,7 +251,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
     if (isTabChanging) {
       // Clear the selected org since dot com and Enterprise will have a different
       // set of orgs.
-      const settings = { ...this.state.publishSettings, org: null }
+      const settings = { ...this.state.publishSettings }
       this.setState({ currentTab: index, publishSettings: settings })
       // Swap the current stored error from the active tab with the error from
       // the inactive tab. So that each tab saves and displays their own error.
