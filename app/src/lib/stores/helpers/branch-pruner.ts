@@ -9,7 +9,17 @@ import moment = require('moment')
 
 /** Check if a repo needs to be pruned at least every 4 hours */
 const BackgroundPruneMinimumInterval = 1000 * 60 * 60 * 4
-const ReservedBranches = ['master', 'development', 'gh-pages']
+const ReservedBranches = [
+  'master',
+  'gh-pages',
+  'HEAD',
+  'develop',
+  'dev',
+  'development',
+  'trunk',
+  'devel',
+  'release',
+]
 
 export class BranchPruner {
   private timer: number | null = null
