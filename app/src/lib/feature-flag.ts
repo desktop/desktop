@@ -55,12 +55,3 @@ export function enableGitProtocolVersionTwo(): boolean {
 export function enableReadmeOverwriteWarning(): boolean {
   return enableBetaFeatures()
 }
-
-/**
- * Whether or not to activate the new, improved, blank slate
- * shown when the user doesn't have any local changes in their
- * repository.
- */
-export function enableNewNoChangesBlankslate(): boolean {
-  return true
-}
