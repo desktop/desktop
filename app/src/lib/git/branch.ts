@@ -161,13 +161,12 @@ export async function getMergedBranches(
   repository: Repository,
   branchName: string
 ): Promise<ReadonlyArray<string>> {
-  const args = ['branch', '--merged', branchName]
+  const args = ['branch', '--format=%(refname:short)', '--merged', branchName]
 
   const { stdout } = await git(args, repository.path, 'mergedBranches')
 
   return stdout
     .split('\n')
     .slice(0, -1)
-    .map(s => s.trim())
     .filter(s => s !== branchName)
 }
