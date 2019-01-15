@@ -56,7 +56,6 @@ export function enableReadmeOverwriteWarning(): boolean {
   return enableBetaFeatures()
 }
 
-
 export function enableBranchPruning(): boolean {
   return enableDevelopmentFeatures()
 }

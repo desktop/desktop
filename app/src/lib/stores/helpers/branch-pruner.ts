@@ -1,10 +1,10 @@
 import { Repository } from '../../../models/repository'
 import { RepositoriesStore } from '../repositories-store'
-import { IRepositoryStateCache } from '../repository-state-cache'
 import { Branch, BranchType } from '../../../models/branch'
 import { GitStoreCache } from '../git-store-cache'
 import { getMergedBranches, deleteBranch } from '../../git'
 import { fatalError } from '../../fatal-error'
+import { RepositoryStateCache } from '../repository-state-cache'
 
 /** Check if a repo needs to be pruned at least every 4 hours */
 const BackgroundPruneMinimumInterval = 1000 * 60 * 60 * 4
@@ -17,7 +17,7 @@ export class BranchPruner {
     private readonly repository: Repository,
     private readonly gitStoreCache: GitStoreCache,
     private readonly repositoriesStore: RepositoriesStore,
-    private readonly repositoriesStateCache: IRepositoryStateCache,
+    private readonly repositoriesStateCache: RepositoryStateCache,
     private readonly onPruneCompleted: (
       repository: Repository,
       prunedBranches: ReadonlyArray<Branch>
@@ -137,6 +137,6 @@ export class BranchPruner {
       await this.onPruneCompleted(this.repository, branchesReadyForPruning)
     })
 
-    this.repositoriesStore.updateLastPruneDate(this.repository)
+    this.repositoriesStore.updateLastPruneDate(this.repository, Date.now())
   }
 }

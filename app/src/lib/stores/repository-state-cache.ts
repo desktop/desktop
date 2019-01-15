@@ -22,11 +22,7 @@ import { IGitHubUser } from '../databases'
 import { merge } from '../merge'
 import { DefaultCommitMessage } from '../../models/commit-message'
 
-export interface IRepositoryStateCache {
-  get: (r: Repository) => IRepositoryState
-}
-
-export class RepositoryStateCache implements IRepositoryStateCache {
+export class RepositoryStateCache {
   private readonly repositoryState = new Map<string, IRepositoryState>()
 
   public constructor(
