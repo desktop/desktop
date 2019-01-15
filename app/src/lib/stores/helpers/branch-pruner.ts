@@ -5,7 +5,7 @@ import { GitStoreCache } from '../git-store-cache'
 import { getMergedBranches, deleteBranch } from '../../git'
 import { fatalError } from '../../fatal-error'
 import { RepositoryStateCache } from '../repository-state-cache'
-import moment = require('moment')
+import * as moment from 'moment'
 
 /** Check if a repo needs to be pruned at least every 4 hours */
 const BackgroundPruneMinimumInterval = 1000 * 60 * 60 * 4
