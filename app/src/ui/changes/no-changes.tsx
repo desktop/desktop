@@ -442,12 +442,13 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
     }
 
     const isGitHub = this.props.repository.gitHubRepository !== null
-    const commitOrCommits = aheadBehind.behind === 1 ? 'commit' : 'commits'
 
     const description = (
       <>
-        The current branch (<Ref>{tip.branch.name}</Ref>) has {commitOrCommits}{' '}
-        on {isGitHub ? 'GitHub' : 'the remote'} that do not exist on your
+        The current branch (<Ref>{tip.branch.name}</Ref>) has{' '}
+        {aheadBehind.behind === 1 ? 'a commit' : 'commits'} on{' '}
+        {isGitHub ? 'GitHub' : 'the remote'} that{' '}
+        {aheadBehind.behind === 1 ? 'does not' : 'do not'} exist on your
         machine.
       </>
     )
@@ -459,9 +460,9 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
       </>
     )
 
-    const title = `Pull ${aheadBehind.behind} ${commitOrCommits} from the ${
-      remote.name
-    } remote`
+    const title = `Pull ${aheadBehind.behind} ${
+      aheadBehind.behind === 1 ? 'commit' : 'commits'
+    } from the ${remote.name} remote`
 
     const buttonText = `Pull ${remote.name}`
 
