@@ -11,7 +11,7 @@ const BackgroundPruneMinimumInterval = 1000 * 60 * 60 * 4
 const ReservedBranches = ['master', 'development', 'gh-pages']
 
 export class BranchPruner {
-  private timer: NodeJS.Timer | null = null
+  private timer: number | null = null
 
   public constructor(
     private readonly repository: Repository,
@@ -34,7 +34,7 @@ export class BranchPruner {
     }
 
     await this.pruneLocalBranches()
-    this.timer = setInterval(
+    this.timer = window.setInterval(
       () => this.pruneLocalBranches(),
       BackgroundPruneMinimumInterval
     )
