@@ -1,11 +1,9 @@
 import * as React from 'react'
-import * as classNames from 'classnames'
 import * as ReactCSSTransitionReplace from 'react-css-transition-replace'
 
 import { encodePathAsUrl } from '../../lib/path'
 import { Repository } from '../../models/repository'
 import { LinkButton } from '../lib/link-button'
-import { enableNewNoChangesBlankslate } from '../../lib/feature-flag'
 import { MenuIDs } from '../../main-process/menu'
 import { IMenu, MenuItem } from '../../models/app-menu'
 import memoizeOne from 'memoize-one'
@@ -579,15 +577,8 @@ export class NoChanges extends React.Component<
   }
 
   public render() {
-    const className = classNames({
-      // This is unneccessary but serves as a reminder to drop
-      // the ng class from here and change the scss when we
-      // remove the feature flag.
-      ng: enableNewNoChangesBlankslate(),
-    })
-
     return (
-      <div id="no-changes" className={className}>
+      <div id="no-changes">
         <div className="content">
           <div className="header">
             <div className="text">
