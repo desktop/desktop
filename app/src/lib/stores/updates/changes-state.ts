@@ -7,6 +7,7 @@ import { IChangesState, IConflictState } from '../../app-state'
 import { DiffSelectionType, IDiff } from '../../../models/diff'
 import { caseInsensitiveCompare } from '../../compare'
 import { IStatsStore } from '../../stats/stats-store'
+import { ManualConflictResolution } from '../../../models/manual-conflict-resolution'
 
 /**
  * Internal shape of the return value from this response because the compiler
@@ -92,7 +93,10 @@ export function updateChangedFiles(
 /**
  * Convert the received status information into a conflict state
  */
-function getConflictState(status: IStatusResult): IConflictState | null {
+function getConflictState(
+  status: IStatusResult,
+  manualResolutions: Map<string, ManualConflictResolution>
+): IConflictState | null {
   if (!status.mergeHeadFound) {
     return null
   }
@@ -105,6 +109,7 @@ function getConflictState(status: IStatusResult): IConflictState | null {
   return {
     currentBranch,
     currentTip,
+    manualResolutions,
   }
 }
 
@@ -114,7 +119,12 @@ export function updateConflictState(
   statsStore: IStatsStore
 ): IConflictState | null {
   const prevConflictState = state.conflictState
-  const newConflictState = getConflictState(status)
+
+  const manualResolutions = prevConflictState
+    ? prevConflictState.manualResolutions
+    : new Map<string, ManualConflictResolution>()
+
+  const newConflictState = getConflictState(status, manualResolutions)
 
   if (prevConflictState == null && newConflictState == null) {
     return null

@@ -180,6 +180,7 @@ import {
   updateChangedFiles,
   updateConflictState,
 } from './updates/changes-state'
+import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -4082,8 +4083,40 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.emitUpdate()
     }
   }
-}
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _updateManualConflictResolution(
+    repository: Repository,
+    path: string,
+    manualResolution: ManualConflictResolution | null
+  ) {
+    this.repositoryStateCache.updateChangesState(repository, state => {
+      const { conflictState } = state
+
+      if (conflictState === null) {
+        // not currently in a conflict, whatever
+        return { conflictState }
+      }
+
+      const updatedManualResolutions = new Map(conflictState.manualResolutions)
+
+      if (manualResolution !== null) {
+        updatedManualResolutions.set(path, manualResolution)
+      } else {
+        updatedManualResolutions.delete(path)
+      }
+
+      return {
+        conflictState: {
+          ...conflictState,
+          manualResolutions: updatedManualResolutions,
+        },
+      }
+    })
+
+    this.emitUpdate()
+  }
+}
 /**
  * Map the cached state of the compare view to an action
  * to perform which is then used to compute the compare
