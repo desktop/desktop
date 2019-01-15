@@ -25,10 +25,6 @@ export class BranchPruner {
   ) {}
 
   public async start() {
-    if (enableBranchPruning() === false) {
-      return
-    }
-
     if (this.timer !== null) {
       fatalError(
         `A background prune task is already active and cannot begin pruning on ${

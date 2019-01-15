@@ -181,6 +181,7 @@ import {
   updateConflictState,
 } from './updates/changes-state'
 import { BranchPruner } from './helpers/branch-pruner'
+import { enableBranchPruning } from '../feature-flag'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -1184,7 +1185,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.stopBackgroundFetching()
     this.stopPullRequestUpdater()
     this.stopAheadBehindUpdate()
-    this.stopBackgroundPruner()
+    if (enableBranchPruning()) {
+      this.stopBackgroundPruner()
+    }
 
     this.startBackgroundFetching(repository, !previouslySelectedRepository)
     this.startPullRequestUpdater(repository)
@@ -1218,17 +1221,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const pruner = new BranchPruner(
-      repository,
-      this.gitStoreCache,
-      this.repositoriesStore,
-      this.repositoryStateCache,
-      repository => this._refreshRepository(repository)
-    )
-
-    this.currentBranchPruner = pruner
-
-    this.currentBranchPruner.start()
+    if (enableBranchPruning()) {
+      const pruner = new BranchPruner(
+        repository,
+        this.gitStoreCache,
+        this.repositoriesStore,
+        this.repositoryStateCache,
+        repository => this._refreshRepository(repository)
+      )
+      this.currentBranchPruner = pruner
+      this.currentBranchPruner.start()
+    }
   }
 
   public async _refreshIssues(repository: GitHubRepository) {
@@ -1914,8 +1917,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private async recoverMissingRepository(
     repository: Repository
   ): Promise<Repository> {
-    /* 
-        if the repository is marked missing, check to see if the file path exists, 
+    /*
+        if the repository is marked missing, check to see if the file path exists,
         and if so then see if git recognizes the path as a valid repository,
         and if so, reset the missing status as its been restored
       */
