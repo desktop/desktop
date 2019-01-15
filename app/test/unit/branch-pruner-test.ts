@@ -65,26 +65,21 @@ describe('BranchPruner', () => {
       onPruneCompleted
     )
 
-    let gitOutput = await GitProcess.exec(['branch'], repo.path)
-    const branchesBeforePruning = gitOutput.stdout.split('\n')
+    const branchesBeforePruning = await getBranchesFromGit(repo)
     await branchPruner.start()
-    gitOutput = await GitProcess.exec(['branch'], repo.path)
-    const branchesAfterPruning = gitOutput.stdout.split('\n')
+    const branchesAfterPruning = await getBranchesFromGit(repo)
 
-    expect(branchesBeforePruning).toHaveLength(branchesAfterPruning.length)
-    for (let i = 0; i < branchesBeforePruning.length; i++) {
-      expect(branchesAfterPruning[i]).toBe(branchesAfterPruning[i])
-    }
+    expect(branchesBeforePruning).toEqual(branchesAfterPruning)
   })
 
   it('Prunes for GitHub repository', async () => {
     const fixedDate = moment()
-    const yesterday = fixedDate.subtract(1, 'day')
+    const lastPruneDate = fixedDate.subtract(1, 'day')
     const repo = await initializeTestRepo(
       repositoriesStore,
       repositoriesStateCache,
       true,
-      yesterday.toDate()
+      lastPruneDate.toDate()
     )
     const branchPruner = new BranchPruner(
       repo,
@@ -95,40 +90,53 @@ describe('BranchPruner', () => {
     )
 
     await branchPruner.start()
-    const gitOutput = await GitProcess.exec(['branch'], repo.path)
+    const branchesAfterPruning = await getBranchesFromGit(repo)
 
-    // NOTE: this removes the empty string at the end of the array as well as
-    //       any whitespace that we were expecting in here
-    const branchesAfterPruning = gitOutput.stdout
-      .split('\n')
-      .filter(b => b.length > 0)
-      .map(b => b.substr(2))
     const expectedBranchesAfterPruning = ['master', 'not-merged-branch-1']
-
-    // NOTE: i've used `expect.anything()` here because this API returns an array
-    //       of branches and I can't be bothered massaging the test data to check this.
-    //       Do we need to validate the branches returned?
     expect(onPruneCompleted).toBeCalledWith(repo, expect.anything())
-
-    // NOTE: this assertion seems to suggest that we *don't* expect pruning to
-    //       work, but I've updated it to indicate it's there for checking what is leftover
     expect(branchesAfterPruning).toEqual(expectedBranchesAfterPruning)
-
-    for (let i = 0; i < expectedBranchesAfterPruning.length; i++) {
-      expect(expectedBranchesAfterPruning[i]).toBe(branchesAfterPruning[i])
-    }
   })
 
-  it('Does not prune if the last prune date is less than 24 hours ago', () => {})
+  it.only('Does not prune if the last prune date is less than 24 hours ago', async () => {
+    const fixedDate = moment()
+    const lastPruneDate = fixedDate.subtract(4, 'hours')
+    const repo = await initializeTestRepo(
+      repositoriesStore,
+      repositoriesStateCache,
+      true,
+      lastPruneDate.toDate()
+    )
+    const branchPruner = new BranchPruner(
+      repo,
+      gitStoreCache,
+      repositoriesStore,
+      repositoriesStateCache,
+      onPruneCompleted
+    )
+
+    const branchesBeforePruning = await getBranchesFromGit(repo)
+    await branchPruner.start()
+    const branchesAfterPruning = await getBranchesFromGit(repo)
+
+    expect(branchesBeforePruning).toEqual(branchesAfterPruning)
+  })
 
   it('Does not prune if there is no default branch', () => {})
 })
+
+async function getBranchesFromGit(repository: Repository) {
+  const gitOutput = await GitProcess.exec(['branch'], repository.path)
+  return gitOutput.stdout
+    .split('\n')
+    .filter(s => s.length > 0)
+    .map(s => s.substr(2))
+}
 
 async function initializeTestRepo(
   repositoriesStore: RepositoriesStore,
   repositoriesStateCache: RepositoryStateCache,
   includesGhRepo: boolean,
-  date?: Date
+  lastPruneDate?: Date
 ) {
   const path = await setupFixtureRepository('branch-prune-cases')
 
@@ -163,7 +171,8 @@ async function initializeTestRepo(
   }
   await primeCaches(repository, repositoriesStateCache)
 
-  date && repositoriesStore.updateLastPruneDate(repository, date.getTime())
+  lastPruneDate &&
+    repositoriesStore.updateLastPruneDate(repository, lastPruneDate.getTime())
   return repository
 }
 
