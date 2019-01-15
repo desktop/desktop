@@ -5,6 +5,7 @@ import { GitStoreCache } from '../git-store-cache'
 import { getMergedBranches, deleteBranch } from '../../git'
 import { fatalError } from '../../fatal-error'
 import { RepositoryStateCache } from '../repository-state-cache'
+import moment = require('moment')
 
 /** Check if a repo needs to be pruned at least every 4 hours */
 const BackgroundPruneMinimumInterval = 1000 * 60 * 60 * 4
@@ -72,12 +73,15 @@ export class BranchPruner {
     )
 
     // Only prune if it's been at least 24 hours since the last time
-    const currentDate = Date.now()
-    if (
-      lastPruneDate !== null &&
-      lastPruneDate > currentDate + BackgroundPruneMinimumInterval * 6
-    ) {
-      log.info(`Last prune took place ${new Date(lastPruneDate)} - skipping`)
+    const dateNow = moment()
+    const threshold = dateNow.subtract(24, 'hours')
+
+    if (lastPruneDate !== null && threshold.isBefore(lastPruneDate)) {
+      log.info(
+        `Last prune took place ${moment(lastPruneDate).from(
+          dateNow
+        )} - skipping`
+      )
       return
     }
 
