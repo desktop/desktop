@@ -3,12 +3,12 @@ import { RepositoriesStore } from '../repositories-store'
 import { IRepositoryStateCache } from '../repository-state-cache'
 import { Branch, BranchType } from '../../../models/branch'
 import { GitStoreCache } from '../git-store-cache'
-import { getMergedBranches } from '../../git'
+import { getMergedBranches, deleteBranch } from '../../git'
 import { fatalError } from '../../fatal-error'
-import { enableBranchPruning } from '../../feature-flag'
 
 /** Check if a repo needs to be pruned at least every 4 hours */
 const BackgroundPruneMinimumInterval = 1000 * 60 * 60 * 4
+const ReservedBranches = ['master', 'development', 'gh-pages']
 
 export class BranchPruner {
   private timer: NodeJS.Timer | null = null
@@ -126,8 +126,12 @@ export class BranchPruner {
     const gitStore = this.gitStoreCache.get(this.repository)
     await gitStore.performFailableOperation(async () => {
       for (const branch of branchesReadyForPruning) {
+        if (ReservedBranches.includes(branch.name.toLocaleLowerCase())) {
+          continue
+        }
+
         log.info(`Deleting '${branch.name} (${branch.tip.sha})'`)
-        //await deleteBranch(this.repository, branch!, null, false)
+        await deleteBranch(this.repository, branch!, null, false)
       }
 
       await this.onPruneCompleted(this.repository, branchesReadyForPruning)
