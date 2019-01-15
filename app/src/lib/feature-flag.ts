@@ -62,5 +62,5 @@ export function enableReadmeOverwriteWarning(): boolean {
  * repository.
  */
 export function enableNewNoChangesBlankslate(): boolean {
-  return enableBetaFeatures()
+  return true
 }
