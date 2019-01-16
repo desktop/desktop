@@ -7873,10 +7873,10 @@ object.values@^1.0.4:
     function-bind "^1.1.0"
     has "^1.0.1"
 
-octicons@^7.0.1:
-  version "7.0.1"
-  resolved "https://registry.yarnpkg.com/octicons/-/octicons-7.0.1.tgz#2f8f8d71547213c50525b26684192d5e6be257fb"
-  integrity sha512-GGE+DQS0Htf1FQa9/PEuravY8b5t1o8Iby5/4Ij/s3DtqAzv3qXYaWn6W0w3jZoEvJmnruEeBJD0XjmC/T9H8Q==
+octicons@^8.2.0:
+  version "8.2.0"
+  resolved "https://registry.yarnpkg.com/octicons/-/octicons-8.2.0.tgz#cf077d62442248c1c54d1b00df3b19913d47f29d"
+  integrity sha512-m8qID8+tU9ETSwaHVWq8Z9Nv8dW08sPGpSuV1nyf8ziG3EdE7phUOxwW+ev5saeY9UnwwFCaHsE8ymZFq6vhDQ==
   dependencies:
     object-assign "^4.1.1"
 
