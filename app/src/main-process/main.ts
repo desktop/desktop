@@ -226,8 +226,7 @@ app.on('ready', () => {
 
   createWindow()
 
-  let currentMenu = buildDefaultMenu({})
-  Menu.setApplicationMenu(currentMenu)
+  Menu.setApplicationMenu(buildDefaultMenu({}))
 
   ipcMain.on(
     'update-preferred-app-menu-item-labels',
@@ -240,6 +239,22 @@ app.on('ready', () => {
       // race conditions where menu items which shouldn't be enabled
       // are.
       const newMenu = buildDefaultMenu(labels)
+
+      const currentMenu = Menu.getApplicationMenu()
+
+      // This shouldn't happen but whenever one says that it does
+      // so here's the escape hatch when we can't merge the current
+      // menu with the new one; we just use the new one.
+      if (currentMenu === null) {
+        // https://github.com/electron/electron/issues/2717
+        Menu.setApplicationMenu(newMenu)
+
+        if (mainWindow !== null) {
+          mainWindow.sendAppMenu()
+        }
+
+        return
+      }
 
       // It's possible that after rebuilding the menu we'll end up
       // with the exact same structural menu as we had before so we
@@ -283,7 +298,6 @@ app.on('ready', () => {
       if (menuHasChanged && mainWindow) {
         // https://github.com/electron/electron/issues/2717
         Menu.setApplicationMenu(newMenu)
-        currentMenu = newMenu
         mainWindow.sendAppMenu()
       }
     }
@@ -303,6 +317,12 @@ app.on('ready', () => {
   ipcMain.on(
     'execute-menu-item',
     (event: Electron.IpcMessageEvent, { id }: { id: string }) => {
+      const currentMenu = Menu.getApplicationMenu()
+
+      if (currentMenu === null) {
+        return
+      }
+
       const menuItem = currentMenu.getMenuItemById(id)
       if (menuItem) {
         const window = BrowserWindow.fromWebContents(event.sender)
@@ -322,6 +342,13 @@ app.on('ready', () => {
 
       for (const item of items) {
         const { id, state } = item
+
+        const currentMenu = Menu.getApplicationMenu()
+
+        if (currentMenu === null) {
+          return
+        }
+
         const menuItem = currentMenu.getMenuItemById(id)
 
         if (menuItem) {
