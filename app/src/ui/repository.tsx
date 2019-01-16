@@ -243,6 +243,7 @@ export class RepositoryView extends React.Component<
       ) {
         return (
           <NoChanges
+            key={this.props.repository.id}
             appMenu={this.props.appMenu}
             repository={this.props.repository}
             repositoryState={this.props.state}
