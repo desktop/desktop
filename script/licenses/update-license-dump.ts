@@ -1,3 +1,5 @@
+/* eslint-disable no-sync */
+
 import * as path from 'path'
 import * as fs from 'fs-extra'
 
