@@ -83,6 +83,7 @@ export class CloneGithubRepository extends React.PureComponent<
             filterText={this.props.filterText}
             onFilterTextChanged={this.props.onFilterTextChanged}
             onRefreshRepositories={this.props.onRefreshRepositories}
+            cloneOnRepoListRowEnter={this.cloneOnRepoListRowEnter}
           />
         </Row>
 
@@ -97,5 +98,11 @@ export class CloneGithubRepository extends React.PureComponent<
         </Row>
       </DialogContent>
     )
+  }
+
+  private cloneOnRepoListRowEnter = () => {
+    if (this.props.clone != null) {
+      this.props.clone()
+    }
   }
 }
