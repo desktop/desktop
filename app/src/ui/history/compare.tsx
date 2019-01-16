@@ -20,7 +20,7 @@ import { IBranchListItem } from '../branches/group-branches'
 import { TabBar } from '../tab-bar'
 import { CompareBranchListItem } from './compare-branch-list-item'
 import { FancyTextBox } from '../lib/fancy-text-box'
-import { OcticonSymbol } from '../octicons'
+import Octicon, * as OcticonSymbol from '@githubprimer/octicons-react'
 import { SelectionSource } from '../lib/filter-list'
 import { IMatches } from '../../lib/fuzzy-find'
 import { Ref } from '../lib/ref'
@@ -156,7 +156,7 @@ export class CompareSidebar extends React.Component<
 
         <div className="compare-form">
           <FancyTextBox
-            symbol={OcticonSymbol.gitBranch}
+            icon={OcticonSymbol.GitBranch}
             type="search"
             placeholder={placeholderText}
             onFocus={this.onTextBoxFocused}

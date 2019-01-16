@@ -2,7 +2,8 @@ import * as React from 'react'
 import { PathLabel } from '../lib/path-label'
 import { AppFileStatus, AppFileStatusKind } from '../../models/status'
 import { IDiff, DiffType } from '../../models/diff'
-import { Octicon, OcticonSymbol, iconForStatus } from '../octicons'
+import Octicon, * as OcticonSymbol from '@githubprimer/octicons-react'
+import { iconForStatus } from '../octicons'
 import { Button } from '../lib/button'
 import { enableMergeTool } from '../../lib/feature-flag'
 import { mapStatus } from '../../lib/status'
@@ -30,7 +31,7 @@ export class ChangedFileDetails extends React.Component<
         {this.renderDecorator()}
 
         <Octicon
-          symbol={iconForStatus(status)}
+          icon={iconForStatus(status)}
           className={'status status-' + fileStatus.toLowerCase()}
           title={fileStatus}
         />
@@ -53,7 +54,7 @@ export class ChangedFileDetails extends React.Component<
       }' to '${diff.lineEndingsChange.to}'.`
       return (
         <Octicon
-          symbol={OcticonSymbol.alert}
+          icon={OcticonSymbol.Alert}
           className={'line-endings'}
           title={message}
         />

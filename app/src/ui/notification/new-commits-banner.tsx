@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Ref } from '../lib/ref'
-import { Octicon, OcticonSymbol } from '../octicons'
+import Octicon, * as OcticonSymbol from '@githubprimer/octicons-react'
 import { Branch } from '../../models/branch'
 import { Button } from '../lib/button'
 import { Dispatcher } from '../../lib/dispatcher'
@@ -44,10 +44,7 @@ export class NewCommitsBanner extends React.Component<
 
     return (
       <div className="notification-banner diverge-banner">
-        <Octicon
-          symbol={OcticonSymbol.lightBulb}
-          className="notification-icon"
-        />
+        <Octicon icon={OcticonSymbol.lightBulb} className="notification-icon" />
 
         <div className="notification-banner-content">
           <div className="notification-banner-content-body">
@@ -79,7 +76,7 @@ export class NewCommitsBanner extends React.Component<
           aria-label="Dismiss banner"
           onClick={this.onDismissed}
         >
-          <Octicon symbol={OcticonSymbol.x} />
+          <Octicon icon={OcticonSymbol.X} />
         </a>
       </div>
     )

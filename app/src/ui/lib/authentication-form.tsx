@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { LinkButton } from '../lib/link-button'
-import { Octicon, OcticonSymbol } from '../octicons'
+import Octicon, * as OcticonSymbol from '@githubprimer/octicons-react'
 import { Loading } from './loading'
 import { Form } from './form'
 import { Button } from './button'
@@ -136,7 +136,7 @@ export class AuthenticationForm extends React.Component<
         onClick={this.signInWithBrowser}
       >
         Sign in using your browser
-        <Octicon symbol={OcticonSymbol.linkExternal} />
+        <Octicon icon={OcticonSymbol.linkExternal} />
       </LinkButton>
     )
 

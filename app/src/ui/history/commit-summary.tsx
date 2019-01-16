@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as classNames from 'classnames'
 
 import { FileChange } from '../../models/status'
-import { Octicon, OcticonSymbol } from '../octicons'
+import Octicon, * as OcticonSymbol from '@githubprimer/octicons-react'
 import { RichText } from '../lib/rich-text'
 import { IGitHubUser } from '../../lib/databases'
 import { Repository } from '../../models/repository'
@@ -198,7 +198,7 @@ export class CommitSummary extends React.Component<
 
     return (
       <a onClick={onClick} className="expander">
-        <Octicon symbol={icon} />
+        <Octicon icon={icon} />
         {expanded ? 'Collapse' : 'Expand'}
       </a>
     )
@@ -325,14 +325,14 @@ export class CommitSummary extends React.Component<
 
             <li className="commit-summary-meta-item" aria-label="SHA">
               <span aria-hidden="true">
-                <Octicon symbol={OcticonSymbol.gitCommit} />
+                <Octicon icon={OcticonSymbol.GitCommit} />
               </span>
               <span className="sha">{shortSHA}</span>
             </li>
 
             <li className="commit-summary-meta-item" title={filesDescription}>
               <span aria-hidden="true">
-                <Octicon symbol={OcticonSymbol.diff} />
+                <Octicon icon={OcticonSymbol.diff} />
               </span>
 
               {filesDescription}

@@ -1,30 +1,32 @@
-import { OcticonSymbol } from '../octicons'
 import { Repository } from '../../models/repository'
 import { CloningRepository } from '../../models/cloning-repository'
+import * as OcticonSymbol from '@githubprimer/octicons-react'
 
 /**
  * Determine the octicon to display for a given repository.
  */
-export function iconForRepository(repository: Repository | CloningRepository) {
+export function iconForRepository(
+  repository: Repository | CloningRepository
+): OcticonSymbol.Icon {
   if (repository instanceof CloningRepository) {
-    return OcticonSymbol.desktopDownload
+    return OcticonSymbol.DesktopDownload
   }
 
   if (repository.missing) {
-    return OcticonSymbol.alert
+    return OcticonSymbol.Alert
   }
 
   const gitHubRepo = repository.gitHubRepository
   if (!gitHubRepo) {
-    return OcticonSymbol.deviceDesktop
+    return OcticonSymbol.DeviceDesktop
   }
 
   if (gitHubRepo.private) {
-    return OcticonSymbol.lock
+    return OcticonSymbol.Lock
   }
   if (gitHubRepo.fork) {
-    return OcticonSymbol.repoForked
+    return OcticonSymbol.RepoForked
   }
 
-  return OcticonSymbol.repo
+  return OcticonSymbol.Repo
 }

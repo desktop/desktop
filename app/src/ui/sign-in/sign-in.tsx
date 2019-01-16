@@ -10,7 +10,7 @@ import {
 import { assertNever } from '../../lib/fatal-error'
 import { Button } from '../lib/button'
 import { LinkButton } from '../lib/link-button'
-import { Octicon, OcticonSymbol } from '../octicons'
+import Octicon, * as OcticonSymbol from '@githubprimer/octicons-react'
 import { Row } from '../lib/row'
 import { TextBox } from '../lib/text-box'
 import { ButtonGroup } from '../lib/button-group'
@@ -225,7 +225,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
             disabled={disableSubmit}
           >
             Sign in using your browser
-            <Octicon symbol={OcticonSymbol.linkExternal} />
+            <Octicon icon={OcticonSymbol.linkExternal} />
           </LinkButton>
         </Row>
       </DialogContent>

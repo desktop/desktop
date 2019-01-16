@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { Repository } from '../../models/repository'
-import { Octicon, iconForRepository, OcticonSymbol } from '../octicons'
+import Octicon, * as OcticonSymbol from '@githubprimer/octicons-react'
+import { iconForRepository } from '../octicons'
 import { showContextualMenu } from '../main-process-proxy'
 import { Repositoryish } from './group-repositories'
 import { IMenuItem } from '../../lib/menu-item'
@@ -82,10 +83,8 @@ export class RepositoryListItem extends React.Component<
 
       return (
         <div className="ahead-behind" title={aheadBehindTooltip}>
-          {ahead > 0 ? <Octicon symbol={OcticonSymbol.arrowSmallUp} /> : null}
-          {behind > 0 ? (
-            <Octicon symbol={OcticonSymbol.arrowSmallDown} />
-          ) : null}
+          {ahead > 0 ? <Octicon icon={OcticonSymbol.ArrowSmallUp} /> : null}
+          {behind > 0 ? <Octicon icon={OcticonSymbol.ArrowSmallDown} /> : null}
         </div>
       )
     }
@@ -109,11 +108,11 @@ export class RepositoryListItem extends React.Component<
           {hasChanges ? (
             <Octicon
               className="change-indicator"
-              symbol={OcticonSymbol.primitiveDot}
+              icon={OcticonSymbol.PrimitiveDot}
             />
           ) : null}
         </div>
-        <Octicon symbol={iconForRepository(repository)} />
+        <Octicon icon={iconForRepository(repository)} />
         <div className="name" title={repoTooltip}>
           {prefix ? <span className="prefix">{prefix}</span> : null}
           <HighlightText

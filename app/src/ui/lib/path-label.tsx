@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 import { AppFileStatus, AppFileStatusKind } from '../../models/status'
-import { Octicon, OcticonSymbol } from '../octicons'
+import Octicon, * as OcticonSymbol from '@githubprimer/octicons-react'
 import { PathText } from './path-text'
 
 interface IPathLabelProps {
@@ -42,7 +42,7 @@ export class PathLabel extends React.Component<IPathLabelProps, {}> {
       return (
         <label {...props}>
           <PathText path={status.oldPath} availableWidth={segmentWidth} />
-          <Octicon className="rename-arrow" symbol={OcticonSymbol.arrowRight} />
+          <Octicon className="rename-arrow" icon={OcticonSymbol.arrowRight} />
           <PathText path={this.props.path} availableWidth={segmentWidth} />
         </label>
       )

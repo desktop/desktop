@@ -7,7 +7,7 @@ import { Editor, Doc, Position } from 'codemirror'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { compare } from '../../lib/compare'
 import { arrayEquals } from '../../lib/equality'
-import { OcticonSymbol } from '../octicons'
+import * as OcticonSymbol from '@githubprimer/octicons-react'
 import { IAuthor } from '../../models/author'
 import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'
@@ -310,7 +310,7 @@ function renderUnknownHandleMarkReplacementElement(
     ? `Could not find user with username ${username}`
     : `Searching for @${username}`
 
-  const symbol = isError ? OcticonSymbol.stop : OcticonSymbol.sync
+  const symbol = isError ? OcticonSymbol.stop : OcticonSymbol.Sync
 
   const spinner = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
   spinner.classList.add('icon')

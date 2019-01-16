@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Octicon, OcticonSymbol } from '../octicons'
+import Octicon, * as OcticonSymbol from '@githubprimer/octicons-react'
 import { assertNever } from '../../lib/fatal-error'
 import * as classNames from 'classnames'
 import { MergeResultStatus } from '../../lib/app-state'
@@ -34,21 +34,21 @@ export class MergeStatusHeader extends React.Component<
             `merge-status-${state}`,
             this.props.className
           )}
-          symbol={getSymbolForState(state)}
+          icon={getSymbolForState(state)}
         />
       </div>
     )
   }
 }
 
-function getSymbolForState(status: MergeResultKind): OcticonSymbol {
+function getSymbolForState(status: MergeResultKind): Icon {
   switch (status) {
     case MergeResultKind.Loading:
       return OcticonSymbol.primitiveDot
     case MergeResultKind.Conflicts:
-      return OcticonSymbol.alert
+      return OcticonSymbol.Alert
     case MergeResultKind.Invalid:
-      return OcticonSymbol.x
+      return OcticonSymbol.X
     case MergeResultKind.Clean:
       return OcticonSymbol.check
   }

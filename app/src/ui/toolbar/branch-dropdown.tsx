@@ -1,6 +1,8 @@
+/* eslint-disable no-sync */
+
 import * as React from 'react'
 import { Dispatcher } from '../../lib/dispatcher'
-import { OcticonSymbol } from '../octicons'
+import * as OcticonSymbol from '@githubprimer/octicons-react'
 import { Repository } from '../../models/repository'
 import { TipState } from '../../models/tip'
 import { ToolbarDropdown, DropdownState } from './dropdown'
@@ -9,6 +11,7 @@ import { BranchesContainer, PullRequestBadge } from '../branches'
 import { assertNever } from '../../lib/fatal-error'
 import { BranchesTab } from '../../models/branches-tab'
 import { PullRequest } from '../../models/pull-request'
+import { Icon } from '@githubprimer/octicons-react'
 
 interface IBranchDropdownProps {
   readonly dispatcher: Dispatcher
@@ -88,7 +91,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
     const tip = branchesState.tip
     const tipKind = tip.kind
 
-    let icon = OcticonSymbol.gitBranch
+    let icon: Icon = OcticonSymbol.GitBranch
     let iconClassName: string | undefined = undefined
     let title: string
     let description = __DARWIN__ ? 'Current Branch' : 'Current branch'
@@ -96,7 +99,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
     let tooltip: string
 
     if (this.props.currentPullRequest) {
-      icon = OcticonSymbol.gitPullRequest
+      icon = OcticonSymbol.GitPullRequest
     }
 
     if (tip.kind === TipState.Unknown) {
@@ -109,7 +112,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
     } else if (tip.kind === TipState.Detached) {
       title = `On ${tip.currentSha.substr(0, 7)}`
       tooltip = 'Currently on a detached HEAD'
-      icon = OcticonSymbol.gitCommit
+      icon = OcticonSymbol.GitCommit
       description = 'Detached HEAD'
     } else if (tip.kind === TipState.Valid) {
       title = tip.branch.name
@@ -131,7 +134,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
       }
 
       progressValue = checkoutProgress.value
-      icon = OcticonSymbol.sync
+      icon = OcticonSymbol.Sync
       iconClassName = 'spin'
       canOpen = false
     }

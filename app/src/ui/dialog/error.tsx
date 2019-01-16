@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Octicon, OcticonSymbol } from '../octicons'
+import Octicon, * as OcticonSymbol from '@githubprimer/octicons-react'
 
 interface IDialogErrorProps {}
 
@@ -18,7 +18,7 @@ export class DialogError extends React.Component<IDialogErrorProps, {}> {
   public render() {
     return (
       <div className="dialog-error">
-        <Octicon symbol={OcticonSymbol.stop} />
+        <Octicon icon={OcticonSymbol.stop} />
         <div>{this.props.children}</div>
       </div>
     )

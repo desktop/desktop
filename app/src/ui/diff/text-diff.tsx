@@ -12,7 +12,7 @@ import {
   CommittedFileChange,
 } from '../../models/status'
 
-import { Octicon, OcticonSymbol } from '../octicons'
+import Octicon, * as OcticonSymbol from '@githubprimer/octicons-react'
 
 import { IEditorConfigurationExtra } from './editor-configuration-extra'
 import { DiffSyntaxMode, IDiffSyntaxModeSpec } from './diff-syntax-mode'
@@ -425,7 +425,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
           'No newline at end of file'
         )
         ReactDOM.render(
-          <Octicon symbol={narrowNoNewlineSymbol} className="no-newline" />,
+          <Octicon icon={narrowNoNewlineSymbol} className="no-newline" />,
           noNewlineReactContainer
         )
         diffLineElement.appendChild(noNewlineReactContainer)

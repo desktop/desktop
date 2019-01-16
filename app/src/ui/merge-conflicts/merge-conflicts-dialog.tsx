@@ -15,7 +15,7 @@ import {
   isConflictedFileStatus,
   isConflictWithMarkers,
 } from '../../models/status'
-import { Octicon, OcticonSymbol } from '../octicons'
+import Octicon, * as OcticonSymbol from '@githubprimer/octicons-react'
 import { PathText } from '../lib/path-text'
 import { DialogHeader } from '../dialog/header'
 import { LinkButton } from '../lib/link-button'
@@ -201,13 +201,13 @@ export class MergeConflictsDialog extends React.Component<
   private renderResolvedFile(path: string): JSX.Element {
     return (
       <li className="unmerged-file-status-resolved">
-        <Octicon symbol={OcticonSymbol.fileCode} className="file-octicon" />
+        <Octicon icon={OcticonSymbol.FileCode} className="file-octicon" />
         <div className="column-left">
           <PathText path={path} availableWidth={200} />
           <div className="file-conflicts-status">No conflicts remaining</div>
         </div>
         <div className="green-circle">
-          <Octicon symbol={OcticonSymbol.check} />
+          <Octicon icon={OcticonSymbol.Check} />
         </div>
       </li>
     )
@@ -257,7 +257,7 @@ export class MergeConflictsDialog extends React.Component<
               onClick={onDropdownClick}
               className="small-button button-group-item arrow-menu"
             >
-              <Octicon symbol={OcticonSymbol.triangleDown} />
+              <Octicon icon={OcticonSymbol.TriangleDown} />
             </Button>
           </div>
         </>
@@ -275,7 +275,7 @@ export class MergeConflictsDialog extends React.Component<
 
     return content !== null ? (
       <li key={path} className="unmerged-file-status-conflicts">
-        <Octicon symbol={OcticonSymbol.fileCode} className="file-octicon" />
+        <Octicon icon={OcticonSymbol.FileCode} className="file-octicon" />
         {content}
       </li>
     ) : null
@@ -345,7 +345,7 @@ export class MergeConflictsDialog extends React.Component<
     return (
       <div className="all-conflicts-resolved">
         <div className="green-circle">
-          <Octicon symbol={OcticonSymbol.check} />
+          <Octicon icon={OcticonSymbol.Check} />
         </div>
         <div className="message">All conflicts resolved</div>
       </div>

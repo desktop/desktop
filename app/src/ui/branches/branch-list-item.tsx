@@ -3,7 +3,7 @@ import * as moment from 'moment'
 
 import { IMatches } from '../../lib/fuzzy-find'
 
-import { Octicon, OcticonSymbol } from '../octicons'
+import Octicon, * as OcticonSymbol from '@githubprimer/octicons-react'
 import { HighlightText } from '../lib/highlight-text'
 
 interface IBranchListItemProps {
@@ -28,7 +28,7 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
     const name = this.props.name
 
     const date = lastCommitDate ? moment(lastCommitDate).fromNow() : ''
-    const icon = isCurrentBranch ? OcticonSymbol.check : OcticonSymbol.gitBranch
+    const icon = isCurrentBranch ? OcticonSymbol.Check : OcticonSymbol.GitBranch
     const infoTitle = isCurrentBranch
       ? 'Current branch'
       : lastCommitDate
@@ -36,7 +36,7 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
       : ''
     return (
       <div className="branches-list-item">
-        <Octicon className="icon" symbol={icon} />
+        <Octicon className="icon" icon={icon} />
         <div className="name" title={name}>
           <HighlightText text={name} highlight={this.props.matches.title} />
         </div>

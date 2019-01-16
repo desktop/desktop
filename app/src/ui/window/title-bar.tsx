@@ -3,7 +3,7 @@ import * as React from 'react'
 import { remote } from 'electron'
 import { WindowState } from '../../lib/window-state'
 import { WindowControls } from './window-controls'
-import { Octicon, OcticonSymbol } from '../octicons'
+import Octicon, * as OcticonSymbol from '@githubprimer/octicons-react'
 
 interface ITitleBarProps {
   /**
@@ -104,7 +104,7 @@ export class TitleBar extends React.Component<ITitleBarProps, ITitleBarState> {
       this.props.titleBarStyle === 'light' ? 'light-title-bar' : ''
 
     const appIcon = this.props.showAppIcon ? (
-      <Octicon className="app-icon" symbol={OcticonSymbol.markGithub} />
+      <Octicon className="app-icon" icon={OcticonSymbol.MarkGithub} />
     ) : null
 
     const onTitlebarDoubleClick = __DARWIN__

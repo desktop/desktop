@@ -2,7 +2,8 @@ import * as React from 'react'
 
 import { AppFileStatus } from '../../models/status'
 import { PathLabel } from '../lib/path-label'
-import { Octicon, iconForStatus } from '../octicons'
+import Octicon, * as OcticonSymbol from '@githubprimer/octicons-react'
+import { iconForStatus } from '../octicons'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { mapStatus } from '../../lib/status'
 
@@ -76,7 +77,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
         />
 
         <Octicon
-          symbol={iconForStatus(status)}
+          icon={iconForStatus(status)}
           className={'status status-' + fileStatus.toLowerCase()}
           title={fileStatus}
         />

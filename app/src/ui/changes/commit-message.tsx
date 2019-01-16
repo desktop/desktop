@@ -18,7 +18,7 @@ import { generateGravatarUrl } from '../../lib/gravatar'
 import { AuthorInput } from '../lib/author-input'
 import { FocusContainer } from '../lib/focus-container'
 import { showContextualMenu } from '../main-process-proxy'
-import { Octicon, OcticonSymbol } from '../octicons'
+import Octicon, * as OcticonSymbol from '@githubprimer/octicons-react'
 import { IAuthor } from '../../models/author'
 import { IMenuItem } from '../../lib/menu-item'
 import { shallowEquals } from '../../lib/equality'
@@ -354,7 +354,7 @@ export class CommitMessage extends React.Component<
         aria-label={this.toggleCoAuthorsText}
         disabled={this.props.isCommitting}
       >
-        <Octicon symbol={addAuthorIcon} />
+        <Octicon icon={addAuthorIcon} />
       </button>
     )
   }

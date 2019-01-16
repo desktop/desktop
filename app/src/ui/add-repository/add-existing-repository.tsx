@@ -9,7 +9,7 @@ import { ButtonGroup } from '../lib/button-group'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
-import { Octicon, OcticonSymbol } from '../octicons'
+import Octicon, * as OcticonSymbol from '@githubprimer/octicons-react'
 import { LinkButton } from '../lib/link-button'
 import { PopupType } from '../../models/popup'
 import * as Path from 'path'
@@ -103,7 +103,7 @@ export class AddExistingRepository extends React.Component<
     if (this.state.isRepositoryBare) {
       return (
         <Row className="warning-helper-text">
-          <Octicon symbol={OcticonSymbol.alert} />
+          <Octicon icon={OcticonSymbol.Alert} />
           <p>
             This directory appears to be a bare repository. Bare repositories
             are not currently supported.
@@ -114,7 +114,7 @@ export class AddExistingRepository extends React.Component<
 
     return (
       <Row className="warning-helper-text">
-        <Octicon symbol={OcticonSymbol.alert} />
+        <Octicon icon={OcticonSymbol.Alert} />
         <p>
           This directory does not appear to be a Git repository.
           <br />

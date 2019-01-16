@@ -14,7 +14,7 @@ import { assertNever } from '../../lib/fatal-error'
 import { TabBar } from '../tab-bar'
 
 import { Row } from '../lib/row'
-import { Octicon, OcticonSymbol } from '../octicons'
+import Octicon, * as OcticonSymbol from '@githubprimer/octicons-react'
 import { Button } from '../lib/button'
 
 import { BranchList } from './branch-list'
@@ -90,7 +90,7 @@ export class BranchesContainer extends React.Component<
         {this.renderSelectedTab()}
         <Row className="merge-button-row">
           <Button className="merge-button" onClick={this.onMergeClick}>
-            <Octicon className="icon" symbol={OcticonSymbol.gitMerge} />
+            <Octicon className="icon" icon={OcticonSymbol.GitMerge} />
             <span title={`Merge a branch into ${branchName}`}>
               Choose a branch to merge into <strong>{branchName}</strong>
             </span>

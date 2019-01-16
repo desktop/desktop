@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Octicon, OcticonSymbol } from '../octicons'
+import Octicon, * as OcticonSymbol from '@githubprimer/octicons-react'
 import { Banner } from './banner'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Popup } from '../../models/popup'
@@ -30,7 +30,7 @@ export class MergeConflictsBanner extends React.Component<
         dismissable={false}
         onDismissed={this.props.onDismissed}
       >
-        <Octicon className="alert-icon" symbol={OcticonSymbol.alert} />
+        <Octicon className="alert-icon" icon={OcticonSymbol.Alert} />
         <div className="banner-message">
           <span>
             Resolve conflicts and commit to merge into{' '}

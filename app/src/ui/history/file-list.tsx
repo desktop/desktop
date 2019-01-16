@@ -16,7 +16,7 @@ import {
 } from '../lib/context-menu'
 import { List } from '../lib/list'
 
-import { Octicon, iconForStatus } from '../octicons'
+import Octicon, * as OcticonSymbol from '@githubprimer/octicons-react'
 import { showContextualMenu } from '../main-process-proxy'
 import { clipboard } from 'electron'
 import { mapStatus } from '../../lib/status'
@@ -78,7 +78,7 @@ export class FileList extends React.Component<IFileListProps, {}> {
         />
 
         <Octicon
-          symbol={iconForStatus(status)}
+          icon={iconForStatus(status)}
           className={'status status-' + fileStatus.toLowerCase()}
           title={fileStatus}
         />

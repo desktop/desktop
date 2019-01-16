@@ -14,6 +14,13 @@
   dependencies:
     regenerator-runtime "^0.12.0"
 
+"@githubprimer/octicons-react@^8.3.0":
+  version "8.3.0"
+  resolved "https://registry.yarnpkg.com/@githubprimer/octicons-react/-/octicons-react-8.3.0.tgz#93894243eb76f4a6718f7d94fbe0d349e1a6dd16"
+  integrity sha512-txquKlc2YDMMoekc3fG43eBdsMedumhbig9o8K8MYACMHLGbfhp9yHvaWadnrG6vS7XAztPnNtdkgUW5LHnqcg==
+  dependencies:
+    prop-types "^15.6.1"
+
 accessibility-developer-tools@^2.11.0:
   version "2.12.0"
   resolved "https://registry.yarnpkg.com/accessibility-developer-tools/-/accessibility-developer-tools-2.12.0.tgz#3da0cce9d6ec6373964b84f35db7cfc3df7ab514"

@@ -8,7 +8,7 @@ import {
   getWindowState,
   windowStateChannelName,
 } from '../lib/window-state'
-import { Octicon, OcticonSymbol } from '../ui/octicons'
+import Octicon, * as OcticonSymbol from '@githubprimer/octicons-react'
 import { Button } from '../ui/lib/button'
 import { LinkButton } from '../ui/lib/link-button'
 import { getVersion } from '../ui/lib/app-proxy'
@@ -125,7 +125,7 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
 
     return (
       <header>
-        <Octicon symbol={OcticonSymbol.stop} className="error-icon" />
+        <Octicon icon={OcticonSymbol.Stop} className="error-icon" />
         <h1>{message}</h1>
       </header>
     )

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Octicon, OcticonSymbol } from '../octicons'
+import Octicon, * as OcticonSymbol from '@githubprimer/octicons-react'
 import * as classNames from 'classnames'
 import { assertNever } from '../../lib/fatal-error'
 import { Button } from '../lib/button'
@@ -138,7 +138,7 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, {}> {
   public render() {
     const icon = this.props.icon ? (
       <Octicon
-        symbol={this.props.icon}
+        icon={this.props.icon}
         className={classNames('icon', this.props.iconClassName)}
       />
     ) : null

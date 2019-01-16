@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Octicon, OcticonSymbol } from '../octicons'
+import Octicon, * as OcticonSymbol from '@githubprimer/octicons-react'
 import { TextBox, ITextBoxProps } from './text-box'
 import * as classNames from 'classnames'
 
@@ -36,7 +36,7 @@ export class FancyTextBox extends React.Component<
 
     return (
       <div className={componentCSS}>
-        <Octicon className={octiconCSS} symbol={this.props.symbol} />
+        <Octicon className={octiconCSS} icon={this.props.symbol} />
         <TextBox
           value={this.props.value}
           onFocus={this.onFocus}

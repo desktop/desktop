@@ -1,5 +1,6 @@
 import * as React from 'react'
-import { Octicon, OcticonSymbol } from '../octicons'
+import Octicon, * as OcticonSymbol from '@githubprimer/octicons-react'
+import { Icon } from '@githubprimer/octicons-react'
 import { APIRefState } from '../../lib/api'
 import { assertNever } from '../../lib/fatal-error'
 import * as classNames from 'classnames'
@@ -28,21 +29,21 @@ export class CIStatus extends React.Component<ICIStatusProps, {}> {
           `ci-status-${state}`,
           this.props.className
         )}
-        symbol={getSymbolForState(state)}
+        icon={getSymbolForState(state)}
         title={title}
       />
     )
   }
 }
 
-function getSymbolForState(state: APIRefState): OcticonSymbol {
+function getSymbolForState(state: APIRefState): Icon {
   switch (state) {
     case 'pending':
-      return OcticonSymbol.primitiveDot
+      return OcticonSymbol.PrimitiveDot
     case 'failure':
-      return OcticonSymbol.x
+      return OcticonSymbol.X
     case 'success':
-      return OcticonSymbol.check
+      return OcticonSymbol.Check
   }
 
   return assertNever(state, `Unknown state: ${state}`)

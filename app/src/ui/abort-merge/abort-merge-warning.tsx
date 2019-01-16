@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Dispatcher } from '../../lib/dispatcher'
 import { PopupType } from '../../models/popup'
 import { Repository } from '../../models/repository'
-import { Octicon, OcticonSymbol } from '../octicons'
+import Octicon, * as OcticonSymbol from '@githubprimer/octicons-react'
 
 interface IAbortMergeWarningProps {
   readonly dispatcher: Dispatcher
@@ -89,7 +89,7 @@ export class AbortMergeWarning extends React.Component<
         onSubmit={this.onSubmit}
       >
         <DialogContent className="content-wrapper">
-          <Octicon symbol={OcticonSymbol.alert} />
+          <Octicon icon={OcticonSymbol.Alert} />
           {this.renderTextContent(this.props.ourBranch, this.props.theirBranch)}
         </DialogContent>
         <DialogFooter>

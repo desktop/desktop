@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Octicon, OcticonSymbol } from '../octicons'
+import Octicon, * as OcticonSymbol from '@githubprimer/octicons-react'
 
 interface IBannerProps {
   readonly id?: string
@@ -29,7 +29,7 @@ export class Banner extends React.Component<IBannerProps, {}> {
     return (
       <div className="close">
         <a onClick={this.props.onDismissed}>
-          <Octicon symbol={OcticonSymbol.x} />
+          <Octicon icon={OcticonSymbol.X} />
         </a>
       </div>
     )

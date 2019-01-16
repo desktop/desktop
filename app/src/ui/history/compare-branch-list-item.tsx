@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import { Octicon, OcticonSymbol } from '../octicons'
+import Octicon, * as OcticonSymbol from '@githubprimer/octicons-react'
 import { HighlightText } from '../lib/highlight-text'
 import { Branch, IAheadBehind } from '../../models/branch'
 import { IMatches } from '../../lib/fuzzy-find'
@@ -24,7 +24,7 @@ export class CompareBranchListItem extends React.Component<
   public render() {
     const isCurrentBranch = this.props.isCurrentBranch
     const branch = this.props.branch
-    const icon = isCurrentBranch ? OcticonSymbol.check : OcticonSymbol.gitBranch
+    const icon = isCurrentBranch ? OcticonSymbol.check : OcticonSymbol.GitBranch
 
     const aheadBehind = this.props.aheadBehind
 
@@ -32,19 +32,19 @@ export class CompareBranchListItem extends React.Component<
       <div className="branch-commit-counter">
         <span className="branch-commit-counter-item">
           {aheadBehind.behind}
-          <Octicon className="icon" symbol={OcticonSymbol.arrowDown} />
+          <Octicon className="icon" icon={OcticonSymbol.arrowDown} />
         </span>
 
         <span className="branch-commit-counter-item">
           {aheadBehind.ahead}
-          <Octicon className="icon" symbol={OcticonSymbol.arrowUp} />
+          <Octicon className="icon" icon={OcticonSymbol.arrowUp} />
         </span>
       </div>
     ) : null
 
     return (
       <div className="branches-list-item">
-        <Octicon className="icon" symbol={icon} />
+        <Octicon className="icon" icon={icon} />
         <div className="name" title={branch.name}>
           <HighlightText
             text={branch.name}

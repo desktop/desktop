@@ -17,6 +17,7 @@
   },
   "license": "MIT",
   "dependencies": {
+    "@githubprimer/octicons-react": "^8.3.0",
     "app-path": "^2.2.0",
     "byline": "^5.0.0",
     "chalk": "^2.3.0",

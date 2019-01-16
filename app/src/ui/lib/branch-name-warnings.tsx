@@ -2,7 +2,7 @@ import * as React from 'react'
 import { Branch, BranchType } from '../../models/branch'
 
 import { Row } from './row'
-import { Octicon, OcticonSymbol } from '../octicons'
+import Octicon, * as OcticonSymbol from '@githubprimer/octicons-react'
 import { Ref } from './ref'
 
 export function renderBranchNameWarning(
@@ -12,7 +12,7 @@ export function renderBranchNameWarning(
   if (proposedName.length > 0 && /^\s*$/.test(sanitizedName)) {
     return (
       <Row className="warning-helper-text">
-        <Octicon symbol={OcticonSymbol.alert} />
+        <Octicon icon={OcticonSymbol.Alert} />
         <p>
           <Ref>{proposedName}</Ref> is not a valid branch name.
         </p>
@@ -21,7 +21,7 @@ export function renderBranchNameWarning(
   } else if (proposedName !== sanitizedName) {
     return (
       <Row className="warning-helper-text">
-        <Octicon symbol={OcticonSymbol.alert} />
+        <Octicon icon={OcticonSymbol.Alert} />
         <p>
           Will be created as <Ref>{sanitizedName}</Ref>.
         </p>
@@ -35,7 +35,7 @@ export function renderBranchHasRemoteWarning(branch: Branch) {
   if (branch.upstream != null) {
     return (
       <Row className="warning-helper-text">
-        <Octicon symbol={OcticonSymbol.alert} />
+        <Octicon icon={OcticonSymbol.Alert} />
         <p>
           This branch is tracking <Ref>{branch.upstream}</Ref> and renaming this
           branch will not change the branch name on the remote.
@@ -62,7 +62,7 @@ export function renderBranchNameExistsOnRemoteWarning(
 
   return (
     <Row className="warning-helper-text">
-      <Octicon symbol={OcticonSymbol.alert} />
+      <Octicon icon={OcticonSymbol.Alert} />
       <p>
         A branch named <Ref>{sanitizedName}</Ref> already exists on the remote.
       </p>

@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import { Octicon, OcticonSymbol } from '../octicons'
+import Octicon, * as OcticonSymbol from '@githubprimer/octicons-react'
 import { encodePathAsUrl } from '../../lib/path'
 
 import { ReleaseNote, ReleaseSummary } from '../../models/release-notes'
@@ -79,7 +79,7 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
     // now an anchor will have to do.
     return (
       <a className="close" onClick={this.onCloseButtonClick}>
-        <Octicon symbol={OcticonSymbol.x} />
+        <Octicon icon={OcticonSymbol.X} />
       </a>
     )
   }

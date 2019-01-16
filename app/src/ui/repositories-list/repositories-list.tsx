@@ -13,7 +13,7 @@ import { assertNever } from '../../lib/fatal-error'
 import { ILocalRepositoryState } from '../../models/repository'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Button } from '../lib/button'
-import { Octicon, OcticonSymbol } from '../octicons'
+import Octicon, * as OcticonSymbol from '@githubprimer/octicons-react'
 import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'
 import { PopupType } from '../../models/popup'
@@ -215,7 +215,7 @@ export class RepositoriesList extends React.Component<
         onClick={this.onNewRepositoryButtonClick}
       >
         Add
-        <Octicon symbol={OcticonSymbol.triangleDown} />
+        <Octicon icon={OcticonSymbol.TriangleDown} />
       </Button>
     )
   }

@@ -16,7 +16,7 @@ import { IssuesStore, GitHubUserStore } from '../lib/stores'
 import { assertNever } from '../lib/fatal-error'
 import { Account } from '../models/account'
 import { FocusContainer } from './lib/focus-container'
-import { OcticonSymbol, Octicon } from './octicons'
+import Octicon, * as OcticonSymbol from '@githubprimer/octicons-react'
 import { ImageDiffType } from '../models/diff'
 import { IMenu } from '../models/app-menu'
 
@@ -102,10 +102,7 @@ export class RepositoryView extends React.Component<
         <div className="with-indicator">
           <span>History</span>
           {this.props.state.compareState.isDivergingBranchBannerVisible ? (
-            <Octicon
-              className="indicator"
-              symbol={OcticonSymbol.primitiveDot}
-            />
+            <Octicon className="indicator" icon={OcticonSymbol.PrimitiveDot} />
           ) : null}
         </div>
       </TabBar>

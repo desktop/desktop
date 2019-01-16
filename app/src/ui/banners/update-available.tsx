@@ -2,7 +2,7 @@ import * as React from 'react'
 import { Dispatcher } from '../../lib/dispatcher/index'
 import { LinkButton } from '../lib/link-button'
 import { updateStore } from '../lib/update-store'
-import { Octicon, OcticonSymbol } from '../octicons'
+import Octicon, * as OcticonSymbol from '@githubprimer/octicons-react'
 import { PopupType } from '../../models/popup'
 import { shell } from '../../lib/app-shell'
 
@@ -28,7 +28,7 @@ export class UpdateAvailable extends React.Component<
       <Banner id="update-available" onDismissed={this.props.onDismissed}>
         <Octicon
           className="download-icon"
-          symbol={OcticonSymbol.desktopDownload}
+          icon={OcticonSymbol.DesktopDownload}
         />
 
         <span onSubmit={this.updateNow}>

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Octicon, OcticonSymbol } from '../octicons'
+import Octicon, * as OcticonSymbol from '@githubprimer/octicons-react'
 import { assertNever } from '../../lib/fatal-error'
 import { ToolbarButton, ToolbarButtonStyle } from './button'
 import { rectEquals } from '../lib/rect'
@@ -149,13 +149,13 @@ export class ToolbarDropdown extends React.Component<
     return this.props.dropdownState === 'open'
   }
 
-  private dropdownIcon(state: DropdownState): OcticonSymbol {
+  private dropdownIcon(state: DropdownState): Icon {
     // @TODO: Remake triangle octicon in a 12px version,
     // right now it's scaled badly on normal dpi monitors.
     if (state === 'open') {
-      return OcticonSymbol.triangleUp
+      return OcticonSymbol.TriangleUp
     } else if (state === 'closed') {
-      return OcticonSymbol.triangleDown
+      return OcticonSymbol.TriangleDown
     } else {
       return assertNever(state, `Unknown dropdown state ${state}`)
     }
@@ -168,9 +168,7 @@ export class ToolbarDropdown extends React.Component<
 
     const state = this.props.dropdownState
 
-    return (
-      <Octicon symbol={this.dropdownIcon(state)} className="dropdownArrow" />
-    )
+    return <Octicon icon={this.dropdownIcon(state)} className="dropdownArrow" />
   }
 
   private onClick = (event: React.MouseEvent<HTMLButtonElement>) => {

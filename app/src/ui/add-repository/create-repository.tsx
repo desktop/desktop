@@ -25,7 +25,7 @@ import { ILicense, getLicenses, writeLicense } from './licenses'
 import { writeGitAttributes } from './git-attributes'
 import { getDefaultDir, setDefaultDir } from '../lib/default-dir'
 import { Dialog, DialogContent, DialogFooter, DialogError } from '../dialog'
-import { Octicon, OcticonSymbol } from '../octicons'
+import Octicon, * as OcticonSymbol from '@githubprimer/octicons-react'
 import { LinkButton } from '../lib/link-button'
 import { PopupType } from '../../models/popup'
 import { Ref } from '../lib/ref'
@@ -358,7 +358,7 @@ export class CreateRepository extends React.Component<
 
     return (
       <Row className="warning-helper-text">
-        <Octicon symbol={OcticonSymbol.alert} />
+        <Octicon icon={OcticonSymbol.Alert} />
         Will be created as {sanitizedName}
       </Row>
     )
@@ -451,7 +451,7 @@ export class CreateRepository extends React.Component<
 
     return (
       <Row className="warning-helper-text">
-        <Octicon symbol={OcticonSymbol.alert} />
+        <Octicon icon={OcticonSymbol.Alert} />
         <p>
           This directory appears to be a Git repository. Would you like to{' '}
           <LinkButton onClick={this.onAddRepositoryClicked}>
@@ -477,7 +477,7 @@ export class CreateRepository extends React.Component<
 
     return (
       <Row className="warning-helper-text">
-        <Octicon symbol={OcticonSymbol.alert} />
+        <Octicon icon={OcticonSymbol.Alert} />
         <p>
           This directory contains a <Ref>README.md</Ref> file already. Checking
           this box will result in the existing file being overwritten.

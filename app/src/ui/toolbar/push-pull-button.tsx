@@ -1,13 +1,16 @@
+/* eslint-disable no-sync */
+
 import * as React from 'react'
 import { ToolbarButton, ToolbarButtonStyle } from './button'
 import { Progress } from '../../models/progress'
 import { Dispatcher } from '../../lib/dispatcher'
-import { Octicon, OcticonSymbol } from '../octicons'
+import Octicon, * as OcticonSymbol from '@githubprimer/octicons-react'
 import { Repository } from '../../models/repository'
 import { IAheadBehind } from '../../models/branch'
 import { TipState } from '../../models/tip'
 import { RelativeTime } from '../relative-time'
 import { FetchType } from '../../models/fetch'
+import { Icon } from '@githubprimer/octicons-react'
 
 interface IPushPullButtonProps {
   /**
@@ -106,7 +109,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
       content.push(
         <span key="ahead">
           {ahead}
-          <Octicon symbol={OcticonSymbol.arrowSmallUp} />
+          <Octicon icon={OcticonSymbol.ArrowSmallUp} />
         </span>
       )
     }
@@ -115,7 +118,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
       content.push(
         <span key="behind">
           {behind}
-          <Octicon symbol={OcticonSymbol.arrowSmallDown} />
+          <Octicon icon={OcticonSymbol.ArrowSmallDown} />
         </span>
       )
     }
@@ -145,29 +148,29 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
     return `${actionName} ${this.props.remoteName}`
   }
 
-  private getIcon(): OcticonSymbol {
+  private getIcon(): Icon {
     if (this.props.networkActionInProgress) {
-      return OcticonSymbol.sync
+      return OcticonSymbol.Sync
     }
 
     if (!this.props.remoteName) {
-      return OcticonSymbol.cloudUpload
+      return OcticonSymbol.CloudUpload
     }
     if (!this.props.aheadBehind) {
-      return OcticonSymbol.cloudUpload
+      return OcticonSymbol.CloudUpload
     }
 
     const { ahead, behind } = this.props.aheadBehind
     if (this.props.networkActionInProgress) {
-      return OcticonSymbol.sync
+      return OcticonSymbol.Sync
     }
     if (behind > 0) {
-      return OcticonSymbol.arrowDown
+      return OcticonSymbol.ArrowDown
     }
     if (ahead > 0) {
-      return OcticonSymbol.arrowUp
+      return OcticonSymbol.ArrowUp
     }
-    return OcticonSymbol.sync
+    return OcticonSymbol.Sync
   }
 
   private getDescription(tipState: TipState): JSX.Element | string {

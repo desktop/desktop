@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as moment from 'moment'
 import * as classNames from 'classnames'
-import { Octicon, OcticonSymbol } from '../octicons'
+import Octicon, * as OcticonSymbol from '@githubprimer/octicons-react'
 import { CIStatus } from './ci-status'
 import { PullRequestStatus } from '../../models/pull-request'
 import { HighlightText } from '../lib/highlight-text'
@@ -59,7 +59,7 @@ export class PullRequestListItem extends React.Component<
 
     return (
       <div className={className}>
-        <Octicon className="icon" symbol={OcticonSymbol.gitPullRequest} />
+        <Octicon className="icon" icon={OcticonSymbol.GitPullRequest} />
         <div className="info">
           <div className="title" title={title}>
             <HighlightText text={title || ''} highlight={matches.title} />

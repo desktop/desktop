@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { UiView } from '../ui-view'
 import { Button } from '../lib/button'
-import { Octicon, OcticonSymbol } from '../octicons'
+import Octicon, * as OcticonSymbol from '@githubprimer/octicons-react'
 import {
   WelcomeLeftTopImageUri,
   WelcomeLeftBottomImageUri,
@@ -312,7 +312,7 @@ export class BlankSlateView extends React.Component<
         <ul className="button-group">
           <li>
             <Button onClick={this.onShowClone}>
-              <Octicon symbol={OcticonSymbol.repoClone} />
+              <Octicon icon={OcticonSymbol.RepoClone} />
               <div>
                 {__DARWIN__
                   ? 'Clone a Repository from the Internet…'
@@ -322,7 +322,7 @@ export class BlankSlateView extends React.Component<
           </li>
           <li>
             <Button onClick={this.props.onCreate}>
-              <Octicon symbol={OcticonSymbol.plus} />
+              <Octicon icon={OcticonSymbol.Plus} />
               <div>
                 {__DARWIN__
                   ? 'Create a New Repository on Your Hard Drive…'
@@ -332,7 +332,7 @@ export class BlankSlateView extends React.Component<
           </li>
           <li>
             <Button onClick={this.props.onAdd}>
-              <Octicon symbol={OcticonSymbol.fileDirectory} />
+              <Octicon icon={OcticonSymbol.FileDirectory} />
               <div>
                 {__DARWIN__
                   ? 'Add an Existing Repository from Your Hard Drive…'
@@ -343,7 +343,7 @@ export class BlankSlateView extends React.Component<
         </ul>
 
         <div className="drag-drop-info">
-          <Octicon symbol={OcticonSymbol.lightBulb} />
+          <Octicon icon={OcticonSymbol.LightBulb} />
           <div>
             <strong>ProTip!</strong> You can drag &amp; drop an existing
             repository folder here to add it to Desktop

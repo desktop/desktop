@@ -10,7 +10,7 @@ import {
 import memoizeOne from 'memoize-one'
 import { Button } from '../lib/button'
 import { IMatches } from '../../lib/fuzzy-find'
-import { Octicon, OcticonSymbol } from '../octicons'
+import Octicon, * as OcticonSymbol from '@githubprimer/octicons-react'
 import { HighlightText } from '../lib/highlight-text'
 import { ClickSource } from '../lib/list'
 import { LinkButton } from '../lib/link-button'
@@ -225,7 +225,7 @@ export class CloneableRepositoryFilterList extends React.PureComponent<
   ) => {
     return (
       <div className="clone-repository-list-item">
-        <Octicon className="icon" symbol={item.icon} />
+        <Octicon className="icon" icon={item.icon} />
         <div className="name" title={item.text[0]}>
           <HighlightText text={item.text[0]} highlight={matches.title} />
         </div>
@@ -241,7 +241,7 @@ export class CloneableRepositoryFilterList extends React.PureComponent<
         tooltip="Refresh the list of repositories"
       >
         <Octicon
-          symbol={OcticonSymbol.sync}
+          icon={OcticonSymbol.Sync}
           className={this.props.loading ? 'spin' : undefined}
         />
       </Button>
