@@ -1,7 +1,7 @@
 import * as path from 'path'
 import * as fs from 'fs-extra'
 
-import { licenseOverrides } from '../license-overrides'
+import { licenseOverrides } from './license-overrides'
 
 import * as legalEagle from 'legal-eagle'
 import { getVersion } from '../../app/package-info'
@@ -31,11 +31,7 @@ export function updateLicenseDump(
             }\n`
           }
 
-          const overridesPath = path.join(
-            projectRoot,
-            'script',
-            'license-overrides.ts'
-          )
+          const overridesPath = path.join(__dirname, 'license-overrides.ts')
 
           const message = `The following dependencies have unknown or non-permissive licenses. Check it out and update ${overridesPath} if appropriate:\n${licensesMessage}`
           reject(new Error(message))
