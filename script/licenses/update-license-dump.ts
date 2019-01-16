@@ -4,7 +4,9 @@ import { promisify } from 'util'
 
 import { licenseOverrides } from './license-overrides'
 
-import * as legalEagle from 'legal-eagle'
+import * as _legalEagle from 'legal-eagle'
+const legalEagle = promisify(_legalEagle)
+
 import { getVersion } from '../../app/package-info'
 
 export async function updateLicenseDump(
@@ -14,7 +16,7 @@ export async function updateLicenseDump(
   const appRoot = path.join(projectRoot, 'app')
   const outPath = path.join(outRoot, 'static', 'licenses.json')
 
-  let summary = await promisify(legalEagle)({
+  let summary = await legalEagle({
     path: appRoot,
     overrides: licenseOverrides,
     omitPermissive: true,
@@ -33,7 +35,7 @@ export async function updateLicenseDump(
     throw new Error(message)
   }
 
-  summary = await promisify(legalEagle)({
+  summary = await legalEagle({
     path: appRoot,
     overrides: licenseOverrides,
   })
