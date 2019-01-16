@@ -1,5 +1,3 @@
-/* eslint-disable no-sync */
-
 import * as path from 'path'
 import * as fs from 'fs-extra'
 import { promisify } from 'util'
@@ -44,7 +42,7 @@ export async function updateLicenseDump(
   // this injects the current license and pins the source URL before we
   // dump the JSON file to disk
   const licenseSource = path.join(projectRoot, 'LICENSE')
-  const licenseText = fs.readFileSync(licenseSource, {
+  const licenseText = await fs.readFile(licenseSource, {
     encoding: 'utf-8',
   })
   const appVersion = getVersion()
@@ -56,7 +54,7 @@ export async function updateLicenseDump(
     sourceText: licenseText,
   }
 
-  fs.writeFileSync(outPath, JSON.stringify(summary), {
+  await fs.writeFile(outPath, JSON.stringify(summary), {
     encoding: 'utf8',
   })
 }
