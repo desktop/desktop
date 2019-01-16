@@ -64,3 +64,15 @@ export function enableReadmeOverwriteWarning(): boolean {
 export function enableNewNoChangesBlankslate(): boolean {
   return true
 }
+
+/**
+ * Whether or not to activate the "Create PR" blankslate action.
+ *
+ * The state of the feature as of writing this is that the underlying
+ * data source required to power this feature is not reliable enough
+ * and needs looking at so we aren't ready to move this to production
+ * just yet.
+ */
+export function enableNoChangesCreatePRBlankslateAction(): boolean {
+  return enableBetaFeatures()
+}
