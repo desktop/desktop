@@ -22,7 +22,7 @@ export function listUnencodedSassVariables(
     lineReader.on('line', (line: string) => {
       lineNumber++
 
-      let index = line.indexOf('$', 0)
+      const index = line.indexOf('$', 0)
 
       if (index > -1) {
         unencodedVariables.push({
