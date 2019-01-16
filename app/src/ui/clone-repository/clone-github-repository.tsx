@@ -62,6 +62,9 @@ interface ICloneGithubRepositoryProps {
    * available for cloning.
    */
   readonly onRefreshRepositories: (account: Account) => void
+
+  /** Initiate cloning the currently selected repository to the chosen local path. */
+  readonly clone?: () => void
 }
 
 export class CloneGithubRepository extends React.PureComponent<

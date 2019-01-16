@@ -309,6 +309,7 @@ export class CloneRepository extends React.Component<
               onRefreshRepositories={this.props.onRefreshRepositories}
               filterText={tabState.filterText}
               onFilterTextChanged={this.onFilterTextChanged}
+              clone={this.clone}
             />
           )
         }
