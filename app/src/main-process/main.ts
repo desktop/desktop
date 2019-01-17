@@ -232,7 +232,7 @@ app.on('ready', () => {
     'update-preferred-app-menu-item-labels',
     (event: Electron.IpcMessageEvent, labels: MenuLabels) => {
       // The current application menu is mutable and we frequently
-      // change wheter particular items are enabled or not through
+      // change whether particular items are enabled or not through
       // the update-menu-state IPC event. This menu that we're creating
       // now will have all the items enabled so we need to merge the
       // current state with the new in order to not get a temporary
