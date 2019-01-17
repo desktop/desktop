@@ -6,7 +6,10 @@ import { encodePathAsUrl } from '../../lib/path'
 import { revealInFileManager } from '../../lib/app-shell'
 import { Repository } from '../../models/repository'
 import { LinkButton } from '../lib/link-button'
-import { enableNewNoChangesBlankslate } from '../../lib/feature-flag'
+import {
+  enableNewNoChangesBlankslate,
+  enableNoChangesCreatePRBlankslateAction,
+} from '../../lib/feature-flag'
 import { MenuIDs } from '../../main-process/menu'
 import { IMenu, MenuItem } from '../../models/app-menu'
 import memoizeOne from 'memoize-one'
@@ -369,13 +372,15 @@ export class NoChanges extends React.Component<
       return this.renderPushBranchAction(tip, remote, aheadBehind)
     }
 
-    const isGitHub = this.props.repository.gitHubRepository !== null
-    const hasOpenPullRequest = currentPullRequest !== null
-    const isDefaultBranch =
-      defaultBranch !== null && tip.branch.name === defaultBranch.name
+    if (enableNoChangesCreatePRBlankslateAction()) {
+      const isGitHub = this.props.repository.gitHubRepository !== null
+      const hasOpenPullRequest = currentPullRequest !== null
+      const isDefaultBranch =
+        defaultBranch !== null && tip.branch.name === defaultBranch.name
 
-    if (isGitHub && !hasOpenPullRequest && !isDefaultBranch) {
-      return this.renderCreatePullRequestAction(tip)
+      if (isGitHub && !hasOpenPullRequest && !isDefaultBranch) {
+        return this.renderCreatePullRequestAction(tip)
+      }
     }
 
     return null
