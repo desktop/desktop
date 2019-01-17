@@ -99,7 +99,7 @@ export class RepositoryStateCache {
   }
 }
 
-export function getInitialRepositoryState(): IRepositoryState {
+function getInitialRepositoryState(): IRepositoryState {
   return {
     commitSelection: {
       sha: null,
