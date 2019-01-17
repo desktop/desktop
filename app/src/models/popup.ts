@@ -6,6 +6,7 @@ import { IRemote } from './remote'
 import { RetryAction } from './retry-actions'
 import { WorkingDirectoryFileChange } from './status'
 import { PreferencesTab } from './preferences'
+import { ICommitContext } from './commit'
 
 export enum PopupType {
   RenameBranch = 1,
@@ -38,7 +39,9 @@ export enum PopupType {
   DeletePullRequest,
   MergeConflicts,
   AbortMerge,
+  OversizedFiles,
   UsageReportingChanges,
+  CommitConflictsWarning,
 }
 
 export type Popup =
@@ -134,4 +137,19 @@ export type Popup =
       ourBranch: string
       theirBranch?: string
     }
+  | {
+      type: PopupType.OversizedFiles
+      oversizedFiles: ReadonlyArray<string>
+      context: ICommitContext
+      repository: Repository
+    }
   | { type: PopupType.UsageReportingChanges }
+  | {
+      type: PopupType.CommitConflictsWarning
+      /** files that were selected for committing that are also conflicted */
+      files: ReadonlyArray<WorkingDirectoryFileChange>
+      /** repository user is committing in */
+      repository: Repository
+      /** information for completing the commit */
+      context: ICommitContext
+    }

@@ -157,6 +157,11 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --box-overflow-shadow-background: linear-gradient(180deg, rgba($white, 0) 0%, rgba($white, 1) 90%, rgba($white, 1) 100%);
 
   /**
+   * Placeholder color for input boxes
+   */
+  --box-placeholder-color: $gray-500;
+
+  /**
    * Author input (co-authors)
    */
   --co-author-tag-background-color: $blue-000;
@@ -240,6 +245,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --tab-bar-height: 29px;
   --tab-bar-active-color: $blue;
   --tab-bar-background-color: $white;
+  --tab-bar-hover-background-color: $gray-100;
 
   /** Count bubble colors when used inside of a tab bar item */
   --tab-bar-count-color: var(--text-color);
@@ -256,6 +262,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --list-item-selected-badge-background-color: $gray-300;
   --list-item-selected-active-badge-color: $gray-900;
   --list-item-selected-active-badge-background-color: $white;
+  --list-item-hover-background-color: $gray-100;
 
   /** Win32 has custom scrol bars, see _scroll.scss */
   --win32-scroll-bar-size: 10px;
@@ -280,6 +287,9 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --toast-notification-color: $gray-000;
   --toast-notification-background-color: rgba($gray-900, 0.6);
 
+  --tip-box-background-color: rgba($blue-500, 0.06);
+  --tip-box-border-color: $blue-200;
+
   /** The highlight color used for focus rings and focus box shadows */
   --focus-color: $blue;
 
@@ -288,6 +298,12 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
    */
   --text-field-height: 25px;
   --text-field-focus-shadow-color: rgba($blue, 0.25);
+
+  /**
+   * Blankslate actions, see `BlankslateAction` component.
+   */
+  --primary-blankslate-action-background: $blue-000;
+  --primary-blankslate-action-border-color: $blue-200;
 
   /**
    * Diff view

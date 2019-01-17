@@ -16,7 +16,10 @@ import { Tip, TipState } from '../../models/tip'
 import { Commit } from '../../models/commit'
 import { IRemote } from '../../models/remote'
 import { IFetchProgress, IRevertProgress } from '../../models/progress'
-import { ICommitMessage } from '../../models/commit-message'
+import {
+  ICommitMessage,
+  DefaultCommitMessage,
+} from '../../models/commit-message'
 import { ComparisonMode } from '../app-state'
 
 import { IAppShell } from '../app-shell'
@@ -105,7 +108,7 @@ export class GitStore extends BaseStore {
 
   private _localCommitSHAs: ReadonlyArray<string> = []
 
-  private _commitMessage: ICommitMessage | null = null
+  private _commitMessage: ICommitMessage = DefaultCommitMessage
 
   private _showCoAuthoredBy: boolean = false
 
@@ -712,7 +715,7 @@ export class GitStore extends BaseStore {
   }
 
   /** The commit message for a work-in-progress commit in the changes view. */
-  public get commitMessage(): ICommitMessage | null {
+  public get commitMessage(): ICommitMessage {
     return this._commitMessage
   }
 
@@ -1072,8 +1075,9 @@ export class GitStore extends BaseStore {
     this.emitUpdate()
   }
 
-  public setCommitMessage(message: ICommitMessage | null): Promise<void> {
+  public setCommitMessage(message: ICommitMessage): Promise<void> {
     this._commitMessage = message
+
     this.emitUpdate()
     return Promise.resolve()
   }

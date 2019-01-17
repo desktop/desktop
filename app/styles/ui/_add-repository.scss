@@ -11,9 +11,9 @@
 .clone-github-repo {
   height: 250px;
 
-  .filter-list-filter-field {
-    padding: var(--spacing-double);
-    padding-bottom: var(--spacing);
+  &.filter-list .filter-field-row {
+    margin: var(--spacing-double);
+    margin-bottom: var(--spacing);
   }
 
   .clone-repository-list {
@@ -50,10 +50,6 @@
 .dialog-content {
   &.clone-github-repository-content {
     padding: 0;
-
-    .row-component:not(:last-child) {
-      margin: 0;
-    }
   }
 
   &.clone-generic-repository-content {
@@ -67,21 +63,6 @@
   .local-path-field {
     border-top: var(--base-border);
     padding: var(--spacing-double);
-  }
-
-  .clone-loading {
-    display: flex;
-    color: var(--text-secondary-color);
-    align-items: center;
-    flex-direction: column;
-    justify-content: center;
-    text-align: center;
-    width: 100%;
-
-    .octicon {
-      fill: var(--text-secondary-color);
-      margin-right: var(--spacing-half);
-    }
   }
 }
 

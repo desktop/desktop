@@ -21,6 +21,11 @@ export function executeMenuItem(item: ExecutableMenuItem) {
   ipcRenderer.send('execute-menu-item', { id: item.id })
 }
 
+/** Tell the main process to execute (i.e. simulate a click of) the menu item. */
+export function executeMenuItemById(id: MenuIDs) {
+  ipcRenderer.send('execute-menu-item', { id })
+}
+
 /**
  * Show the OS-provided certificate trust dialog for the certificate, using the
  * given message.

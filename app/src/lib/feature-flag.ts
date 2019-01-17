@@ -42,7 +42,25 @@ export function enableRecurseSubmodulesFlag(): boolean {
   return enableBetaFeatures()
 }
 
-/** Should the app use the MergeConflictsDialog component and flow? */
-export function enableMergeConflictsDialog(): boolean {
+/** Should the app check and warn the user about committing large files? */
+export function enableFileSizeWarningCheck(): boolean {
+  return true
+}
+
+/** Should the app set protocol.version=2 for any fetch/push/pull/clone operation? */
+export function enableGitProtocolVersionTwo(): boolean {
+  return enableBetaFeatures()
+}
+
+export function enableReadmeOverwriteWarning(): boolean {
+  return enableBetaFeatures()
+}
+
+/**
+ * Whether or not to activate the new, improved, blank slate
+ * shown when the user doesn't have any local changes in their
+ * repository.
+ */
+export function enableNewNoChangesBlankslate(): boolean {
   return true
 }

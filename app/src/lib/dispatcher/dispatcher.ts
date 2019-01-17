@@ -8,6 +8,7 @@ import { Repository } from '../../models/repository'
 import {
   WorkingDirectoryFileChange,
   CommittedFileChange,
+  WorkingDirectoryStatus,
 } from '../../models/status'
 import { DiffSelection, ImageDiffType } from '../../models/diff'
 import {
@@ -18,6 +19,7 @@ import {
   ICompareFormUpdate,
   MergeResultStatus,
   SuccessfulMergeBannerState,
+  MergeConflictsBannerState,
 } from '../app-state'
 import { AppStore } from '../stores/app-store'
 import { CloningRepository } from '../../models/cloning-repository'
@@ -62,6 +64,7 @@ import { ApplicationTheme } from '../../ui/lib/application-theme'
 import { TipState } from '../../models/tip'
 import { RepositoryStateCache } from '../stores/repository-state-cache'
 import { Popup, PopupType } from '../../models/popup'
+import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 
 /**
  * An error handler function.
@@ -262,7 +265,7 @@ export class Dispatcher {
    * Refresh the repository. This would be used, e.g., when the app gains focus.
    */
   public refreshRepository(repository: Repository): Promise<void> {
-    return this.appStore._refreshRepository(repository)
+    return this.appStore._refreshOrRecoverRepository(repository)
   }
 
   /** Show the popup. This will close any current popup. */
@@ -486,6 +489,20 @@ export class Dispatcher {
   }
 
   /**
+   * Set the successful merge banner's state
+   */
+  public setMergeConflictsBannerState(state: MergeConflictsBannerState) {
+    return this.appStore._setMergeConflictsBannerState(state)
+  }
+
+  /**
+   * Clear (close) the successful merge banner
+   */
+  public clearMergeConflictsBanner() {
+    return this.appStore._setMergeConflictsBannerState(null)
+  }
+
+  /**
    * Set the divering branch notification banner's visibility
    */
   public setDivergingBranchBannerVisibility(
@@ -546,7 +563,7 @@ export class Dispatcher {
    */
   public setCommitMessage(
     repository: Repository,
-    message: ICommitMessage | null
+    message: ICommitMessage
   ): Promise<void> {
     return this.appStore._setCommitMessage(repository, message)
   }
@@ -618,15 +635,18 @@ export class Dispatcher {
    * commits an in-flight merge and shows a banner if successful
    *
    * @param repository
-   * @param files files to commit. should be all of them in the repository
+   * @param workingDirectory
    * @param successfulMergeBannerState information for banner to be displayed if merge is successful
    */
-  public async createMergeCommit(
+  public async finishConflictedMerge(
     repository: Repository,
-    files: ReadonlyArray<WorkingDirectoryFileChange>,
+    workingDirectory: WorkingDirectoryStatus,
     successfulMergeBannerState: SuccessfulMergeBannerState
   ) {
-    const result = await this.appStore._createMergeCommit(repository, files)
+    const result = await this.appStore._finishConflictedMerge(
+      repository,
+      workingDirectory
+    )
     if (result !== undefined) {
       this.appStore._setSuccessfulMergeBannerState(successfulMergeBannerState)
     }
@@ -1147,6 +1167,15 @@ export class Dispatcher {
     return this.appStore._changeCloneRepositoriesTab(tab)
   }
 
+  /**
+   * Request a refresh of the list of repositories that
+   * the provided account has explicit permissions to access.
+   * See ApiRepositoriesStore for more details.
+   */
+  public refreshApiRepositories(account: Account) {
+    return this.appStore._refreshApiRepositories(account)
+  }
+
   /** Open the merge tool for the given file. */
   public openMergeTool(repository: Repository, path: string): Promise<void> {
     return this.appStore._openMergeTool(repository, path)
@@ -1266,6 +1295,21 @@ export class Dispatcher {
   }
 
   /**
+   *  update the manual resolution method for a file
+   */
+  public updateManualConflictResolution(
+    repository: Repository,
+    path: string,
+    manualResolution: ManualConflictResolution | null
+  ) {
+    return this.appStore._updateManualConflictResolution(
+      repository,
+      path,
+      manualResolution
+    )
+  }
+
+  /**
    * Updates the application state to indicate a conflict is in-progress
    * as a result of a pull and increments the relevant metric.
    */
@@ -1376,5 +1420,40 @@ export class Dispatcher {
 
   public recordAddExistingRepository() {
     this.statsStore.recordAddExistingRepository()
+  }
+
+  /**
+   * Increments the `mergeConflictsDialogDismissalCount` metric
+   */
+  public recordMergeConflictsDialogDismissal() {
+    this.statsStore.recordMergeConflictsDialogDismissal()
+  }
+
+  /**
+   * Increments the `mergeConflictsDialogReopenedCount` metric
+   */
+  public recordMergeConflictsDialogReopened() {
+    this.statsStore.recordMergeConflictsDialogReopened()
+  }
+
+  /**
+   * Increments the `anyConflictsLeftOnMergeConflictsDialogDismissalCount` metric
+   */
+  public recordAnyConflictsLeftOnMergeConflictsDialogDismissal() {
+    this.statsStore.recordAnyConflictsLeftOnMergeConflictsDialogDismissal()
+  }
+
+  /**
+   * Increments the `guidedConflictedMergeCompletionCount` metric
+   */
+  public recordGuidedConflictedMergeCompletion() {
+    this.statsStore.recordGuidedConflictedMergeCompletion()
+  }
+
+  /**
+   * Increments the `unguidedConflictedMergeCompletionCount` metric
+   */
+  public recordUnguidedConflictedMergeCompletion() {
+    this.statsStore.recordUnguidedConflictedMergeCompletion()
   }
 }

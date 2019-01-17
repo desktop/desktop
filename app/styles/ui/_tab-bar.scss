@@ -41,6 +41,10 @@
       box-shadow: inset 0 -3px 0px var(--tab-bar-active-color);
     }
 
+    &:hover {
+      background: var(--tab-bar-hover-background-color);
+    }
+
     .with-indicator {
       display: flex;
       align-items: center;

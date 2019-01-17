@@ -234,6 +234,12 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
       '.ps1': 'application/x-powershell',
     },
   },
+  {
+    install: () => import('codemirror/mode/vb/vb'),
+    mappings: {
+      '.vb': 'text/x-vb',
+    },
+  },
 ]
 
 /**
