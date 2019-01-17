@@ -66,5 +66,5 @@ export function enableBranchPruning(): boolean {
  * repository.
  */
 export function enableNewNoChangesBlankslate(): boolean {
-  return enableBetaFeatures()
+  return true
 }

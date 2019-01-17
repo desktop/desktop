@@ -64,6 +64,7 @@ import { ApplicationTheme } from '../../ui/lib/application-theme'
 import { TipState } from '../../models/tip'
 import { RepositoryStateCache } from '../stores/repository-state-cache'
 import { Popup, PopupType } from '../../models/popup'
+import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 
 /**
  * An error handler function.
@@ -1291,6 +1292,21 @@ export class Dispatcher {
 
   public resolveCurrentEditor() {
     return this.appStore._resolveCurrentEditor()
+  }
+
+  /**
+   *  update the manual resolution method for a file
+   */
+  public updateManualConflictResolution(
+    repository: Repository,
+    path: string,
+    manualResolution: ManualConflictResolution | null
+  ) {
+    return this.appStore._updateManualConflictResolution(
+      repository,
+      path,
+      manualResolution
+    )
   }
 
   /**

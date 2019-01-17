@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as classNames from 'classnames'
+import * as ReactCSSTransitionReplace from 'react-css-transition-replace'
 
 import { encodePathAsUrl } from '../../lib/path'
 import { revealInFileManager } from '../../lib/app-shell'
@@ -105,6 +106,19 @@ interface IMenuItemInfo {
   readonly enabled: boolean
 }
 
+interface INoChangesState {
+  /**
+   * Whether or not to enable the slide in and
+   * slide out transitions for the remote actions.
+   *
+   * Disabled initially and enabled 500ms after
+   * component mounting in order to provide instant
+   * loading of the remote action when the view is
+   * initially appearing.
+   */
+  readonly enableTransitions: boolean
+}
+
 function getItemAcceleratorKeys(item: MenuItem) {
   if (item.type === 'separator' || item.type === 'submenuItem') {
     return []
@@ -148,12 +162,28 @@ function buildMenuItemInfoMap(
 }
 
 /** The component to display when there are no local changes. */
-export class NoChanges extends React.Component<INoChangesProps, {}> {
+export class NoChanges extends React.Component<
+  INoChangesProps,
+  INoChangesState
+> {
   private getMenuInfoMap = memoizeOne((menu: IMenu | undefined) =>
     menu === undefined
       ? new Map<string, IMenuItemInfo>()
       : buildMenuItemInfoMap(menu)
   )
+
+  /**
+   * ID for the timer that's activated when the component
+   * mounts. See componentDidMount/componenWillUnmount.
+   */
+  private transitionTimer: number | null = null
+
+  public constructor(props: INoChangesProps) {
+    super(props)
+    this.state = {
+      enableTransitions: false,
+    }
+  }
 
   private getMenuItemInfo(menuItemId: MenuIDs): IMenuItemInfo | undefined {
     return this.getMenuInfoMap(this.props.appMenu).get(menuItemId)
@@ -373,6 +403,7 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
 
     return (
       <MenuBackedBlankslateAction
+        key="publish-repository-action"
         title="Publish your repository to GitHub"
         description="This repository is currently only available on your local machine. By publishing it on GitHub you can share it, and collaborate with others."
         discoverabilityContent={discoverabilityContent}
@@ -417,6 +448,7 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
 
     return (
       <MenuBackedBlankslateAction
+        key="publish-branch-action"
         title="Publish your branch"
         menuItemId={itemId}
         description={description}
@@ -445,8 +477,11 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
 
     const description = (
       <>
-        The current branch (<Ref>{tip.branch.name}</Ref>) has commits on{' '}
-        {isGitHub ? 'GitHub' : 'the remote'} that doesn’t exist on your machine.
+        The current branch (<Ref>{tip.branch.name}</Ref>) has{' '}
+        {aheadBehind.behind === 1 ? 'a commit' : 'commits'} on{' '}
+        {isGitHub ? 'GitHub' : 'the remote'} that{' '}
+        {aheadBehind.behind === 1 ? 'does not' : 'do not'} exist on your
+        machine.
       </>
     )
 
@@ -465,6 +500,7 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
 
     return (
       <MenuBackedBlankslateAction
+        key="pull-branch-action"
         title={title}
         menuItemId={itemId}
         description={description}
@@ -514,6 +550,7 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
 
     return (
       <MenuBackedBlankslateAction
+        key="push-branch-action"
         title={title}
         menuItemId={itemId}
         description={description}
@@ -547,6 +584,7 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
 
     return (
       <MenuBackedBlankslateAction
+        key="create-pr-action"
         title={title}
         menuItemId={itemId}
         description={description}
@@ -559,15 +597,21 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
   }
 
   private renderActions() {
-    const remoteAction = this.renderRemoteAction()
-    const remoteActions =
-      remoteAction === null || remoteAction === undefined ? null : (
-        <div className="actions primary">{remoteAction}</div>
-      )
-
     return (
       <>
-        {remoteActions}
+        <ReactCSSTransitionReplace
+          transitionAppear={false}
+          transitionEnter={this.state.enableTransitions}
+          transitionLeave={this.state.enableTransitions}
+          overflowHidden={false}
+          transitionName="action"
+          component="div"
+          className="actions primary"
+          transitionEnterTimeout={750}
+          transitionLeaveTimeout={500}
+        >
+          {this.renderRemoteAction()}
+        </ReactCSSTransitionReplace>
         <div className="actions">
           {this.renderOpenInExternalEditor()}
           {this.renderShowInFinderAction()}
@@ -575,6 +619,19 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
         </div>
       </>
     )
+  }
+
+  public componentDidMount() {
+    this.transitionTimer = window.setTimeout(() => {
+      this.setState({ enableTransitions: true })
+      this.transitionTimer = null
+    }, 500)
+  }
+
+  public componentWillUnmount() {
+    if (this.transitionTimer !== null) {
+      clearTimeout(this.transitionTimer)
+    }
   }
 
   public render() {
