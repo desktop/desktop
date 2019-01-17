@@ -1284,12 +1284,14 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       case PopupType.About:
+        const version = __DEV__ ? __SHA__.substr(0, 10) : getVersion()
+
         return (
           <About
             key="about"
             onDismissed={this.onPopupDismissed}
             applicationName={getName()}
-            applicationVersion={getVersion()}
+            applicationVersion={version}
             onCheckForUpdates={this.onCheckForUpdates}
             onShowAcknowledgements={this.showAcknowledgements}
             onShowTermsAndConditions={this.showTermsAndConditions}
