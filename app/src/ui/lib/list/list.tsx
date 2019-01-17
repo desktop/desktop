@@ -204,6 +204,12 @@ interface IListProps {
   readonly focusOnHover?: boolean
 
   readonly ariaMode?: 'list' | 'menu'
+
+  /**
+   * The number of pixels from the top of the list indicating
+   * where to scroll do on rendering of the list.
+   */
+  readonly setScrollTop?: number
 }
 
 interface IListState {
@@ -758,6 +764,7 @@ export class List extends React.Component<IListProps, IListState> {
           cellRenderer={this.renderRow}
           onScroll={this.onScroll}
           scrollToRow={scrollToRow}
+          scrollTop={this.props.setScrollTop}
           overscanRowCount={4}
           style={this.gridStyle}
           tabIndex={tabIndex}
