@@ -266,22 +266,35 @@ export class CloneableRepositoryFilterList extends React.PureComponent<
       )
     }
 
-    const endpointName =
-      this.props.account.endpoint === getDotComAPIEndpoint()
-        ? 'GitHub.com'
-        : getHTMLURL(this.props.account.endpoint)
+    if (navigator.onLine) {
+      const endpointName =
+        this.props.account.endpoint === getDotComAPIEndpoint()
+          ? 'GitHub.com'
+          : getHTMLURL(this.props.account.endpoint)
 
-    return (
-      <div className="no-items empty-repository-list">
-        <div>
-          Couldn't find any repositories for the account{' '}
-          <Ref>{this.props.account.login}</Ref> on {endpointName}.{' '}
-          <LinkButton onClick={this.refreshRepositories}>
-            Refresh the list
-          </LinkButton>{' '}
-          if you've created a repository recently.
+      return (
+        <div className="no-items empty-repository-list">
+          <div>
+            Couldn't find any repositories for the account{' '}
+            <Ref>{this.props.account.login}</Ref> on {endpointName}.{' '}
+            <LinkButton onClick={this.refreshRepositories}>
+              Refresh the list
+            </LinkButton>{' '}
+            if you've created a repository recently.
+          </div>
         </div>
-      </div>
-    )
+      )
+    } else {
+      const tryAgainLink = (
+        <LinkButton onClick={this.refreshRepositories}>Try again?</LinkButton>
+      )
+
+      return (
+        <div className="no-internet-connection-warning">
+          <Octicon symbol={OcticonSymbol.circleSlash} />
+          <p>No internet connection. {tryAgainLink}</p>
+        </div>
+      )
+    }
   }
 }
