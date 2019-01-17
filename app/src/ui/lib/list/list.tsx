@@ -436,9 +436,20 @@ export class List extends React.Component<IListProps, IListState> {
 
   private toggleSelection = (event: React.KeyboardEvent<any>) => {
     this.props.selectedRows.forEach(row => {
-      if (this.props.onRowClick) {
-        this.props.onRowClick(row, { kind: 'keyboard', event })
+      if (!this.props.onRowClick) {
+        return
       }
+
+      const { rowCount } = this.props
+
+      if (row < 0 || row >= rowCount) {
+        log.debug(
+          `[List.toggleSelection] unable to onRowClick for row ${row} as it is outside the bounds of the array [0, ${rowCount}]`
+        )
+        return
+      }
+
+      this.props.onRowClick(row, { kind: 'keyboard', event })
     })
   }
 
@@ -525,6 +536,15 @@ export class List extends React.Component<IListProps, IListState> {
       }
 
       if (this.props.onSelectedRowChanged) {
+        const rowCount = this.props.rowCount
+
+        if (newRow < 0 || newRow >= rowCount) {
+          log.debug(
+            `[List.moveSelection] unable to onSelectedRowChanged for row '${newRow}' as it is outside the bounds of the array [0, ${rowCount}]`
+          )
+          return
+        }
+
         this.props.onSelectedRowChanged(newRow, {
           kind: 'keyboard',
           event,
@@ -914,13 +934,24 @@ export class List extends React.Component<IListProps, IListState> {
         if (this.props.onSelectionChanged) {
           this.props.onSelectionChanged([row], { kind: 'mouseclick', event })
         }
+
         if (this.props.onSelectedRangeChanged) {
           this.props.onSelectedRangeChanged(row, row, {
             kind: 'mouseclick',
             event,
           })
         }
+
         if (this.props.onSelectedRowChanged) {
+          const { rowCount } = this.props
+
+          if (row < 0 || row >= rowCount) {
+            log.debug(
+              `[List.onRowMouseDown] unable to onSelectedRowChanged for row '${row}' as it is outside the bounds of the array [0, ${rowCount}]`
+            )
+            return
+          }
+
           this.props.onSelectedRowChanged(row, { kind: 'mouseclick', event })
         }
       }
@@ -929,6 +960,15 @@ export class List extends React.Component<IListProps, IListState> {
 
   private onRowClick = (row: number, event: React.MouseEvent<any>) => {
     if (this.canSelectRow(row) && this.props.onRowClick) {
+      const rowCount = this.props.rowCount
+
+      if (row < 0 || row >= rowCount) {
+        log.debug(
+          `[List.onRowClick] unable to onRowClick for row ${row} as it is outside the bounds of the array [0, ${rowCount}]`
+        )
+        return
+      }
+
       this.props.onRowClick(row, { kind: 'mouseclick', event })
     }
   }
