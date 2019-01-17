@@ -1,5 +1,27 @@
 {
   "releases": {
+    "1.6.0": [
+      "[New] Help users add their first repo during onboarding - #6474",
+      "[New] \"No local changes\" view helpfully suggests next actions for you to take - #6445",
+      "[Added] Support JetBrains Webstorm as an external editor - #6077. Thanks @KennethSweezy!",
+      "[Added] Add Visual Basic syntax highlighting - #6461. Thanks @SimpleBinary!",
+      "[Fixed] Automatically locate a missing repository when it cannot be found - #6228. Thanks @msftrncs!",
+      "[Fixed] Don't include untracked files in merge commit - #6411",
+      "[Fixed] Don't show \"Still Conflicted Warning\" when all conflicts are resolved - #6451",
+      "[Fixed] Only execute menu action a single time upon hitting Enter - #5344",
+      "[Fixed] Show autocompletion of GitHub handles and issues properly in commit description field - #6459",
+      "[Improved] Repository list when no repositories found - #5566 #6474",
+      "[Improved] Image diff menu no longer covered by large images - #6520. Thanks @06b!",
+      "[Improved] Enable additional actions during a merge conflict - #6385",
+      "[Improved] Increase contrast on input placeholder color in dark mode - #6556",
+      "[Improved] Don't show merge success banner when attempted merge doesn't complete - #6282",
+      "[Improved] Capitalize menu items appropriately on macOS - #6469"
+    ],
+    "1.6.0-beta3": [
+      "[Fixed] Autocomplete selection does not overflow text area - #6459",
+      "[Fixed] No local changes views incorrectly rendering ampersands - #6596",
+      "[Improved] Capitalization of menu items on macOS - #6469"
+    ],
     "1.6.0-beta2": [
       "[New] \"No local changes\" view makes it easy to find and accomplish common actions - #6445",
       "[Fixed] Automatically locate a missing repository when it cannot be found - #6228. Thanks @msftrncs!",

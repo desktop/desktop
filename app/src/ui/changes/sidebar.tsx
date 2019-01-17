@@ -62,6 +62,8 @@ interface IChangesSidebarProps {
    * @param fullPath The full path to the file on disk
    */
   readonly onOpenInExternalEditor: (fullPath: string) => void
+  readonly onChangesListScrolled: (scrollTop: number) => void
+  readonly changesListScrollTop: number
 }
 
 export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
@@ -371,6 +373,8 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           coAuthors={this.props.changes.coAuthors}
           externalEditorLabel={this.props.externalEditorLabel}
           onOpenInExternalEditor={this.props.onOpenInExternalEditor}
+          onChangesListScrolled={this.props.onChangesListScrolled}
+          changesListScrollTop={this.props.changesListScrollTop}
         />
         {this.renderMostRecentLocalCommit()}
       </div>

@@ -4,6 +4,7 @@ import * as ReactCSSTransitionReplace from 'react-css-transition-replace'
 import { encodePathAsUrl } from '../../lib/path'
 import { Repository } from '../../models/repository'
 import { LinkButton } from '../lib/link-button'
+import { enableNoChangesCreatePRBlankslateAction } from '../../lib/feature-flag'
 import { MenuIDs } from '../../main-process/menu'
 import { IMenu, MenuItem } from '../../models/app-menu'
 import memoizeOne from 'memoize-one'
@@ -314,13 +315,15 @@ export class NoChanges extends React.Component<
       return this.renderPushBranchAction(tip, remote, aheadBehind)
     }
 
-    const isGitHub = this.props.repository.gitHubRepository !== null
-    const hasOpenPullRequest = currentPullRequest !== null
-    const isDefaultBranch =
-      defaultBranch !== null && tip.branch.name === defaultBranch.name
+    if (enableNoChangesCreatePRBlankslateAction()) {
+      const isGitHub = this.props.repository.gitHubRepository !== null
+      const hasOpenPullRequest = currentPullRequest !== null
+      const isDefaultBranch =
+        defaultBranch !== null && tip.branch.name === defaultBranch.name
 
-    if (isGitHub && !hasOpenPullRequest && !isDefaultBranch) {
-      return this.renderCreatePullRequestAction(tip)
+      if (isGitHub && !hasOpenPullRequest && !isDefaultBranch) {
+        return this.renderCreatePullRequestAction(tip)
+      }
     }
 
     return null
@@ -422,8 +425,11 @@ export class NoChanges extends React.Component<
 
     const description = (
       <>
-        The current branch (<Ref>{tip.branch.name}</Ref>) has commits on{' '}
-        {isGitHub ? 'GitHub' : 'the remote'} that doesn’t exist on your machine.
+        The current branch (<Ref>{tip.branch.name}</Ref>) has{' '}
+        {aheadBehind.behind === 1 ? 'a commit' : 'commits'} on{' '}
+        {isGitHub ? 'GitHub' : 'the remote'} that{' '}
+        {aheadBehind.behind === 1 ? 'does not' : 'do not'} exist on your
+        machine.
       </>
     )
 

@@ -54,6 +54,12 @@ interface IChangesListProps {
     isDiscardingAllChanges?: boolean
   ) => void
 
+  /** Callback that fires on page scroll to pass the new scrollTop location */
+  readonly onChangesListScrolled: (scrollTop: number) => void
+
+  /* The scrollTop of the compareList. It is stored to allow for scroll position persistence */
+  readonly changesListScrollTop: number
+
   /**
    * Called to open a file it its default application
    * @param path The path of the file relative to the root of the repository
@@ -400,6 +406,10 @@ export class ChangesList extends React.Component<
     }
   }
 
+  private onScroll = (scrollTop: number, clientHeight: number) => {
+    this.props.onChangesListScrolled(scrollTop)
+  }
+
   public render() {
     const fileList = this.props.workingDirectory.files
     const fileCount = fileList.length
@@ -433,6 +443,8 @@ export class ChangesList extends React.Component<
           onSelectionChanged={this.props.onFileSelectionChanged}
           invalidationProps={this.props.workingDirectory}
           onRowClick={this.props.onRowClick}
+          onScroll={this.onScroll}
+          setScrollTop={this.props.changesListScrollTop}
         />
 
         <CommitMessage
