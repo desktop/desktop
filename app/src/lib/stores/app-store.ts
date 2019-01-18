@@ -181,6 +181,8 @@ import {
   updateConflictState,
 } from './updates/changes-state'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
+import { BranchPruner } from './helpers/branch-pruner'
+import { enableBranchPruning } from '../feature-flag'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
