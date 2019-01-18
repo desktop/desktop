@@ -41,13 +41,25 @@
   }
 
   &-code > div:last-of-type {
-    // Add a border to the end of the diff
-    border-bottom: var(--base-border);
+    .diff-line-gutter,
+    .CodeMirror-line {
+      // Add a border to the end of the diff
+      border-bottom: var(--base-border);
+    }
   }
 
   .CodeMirror-gutters {
     background: transparent;
     border: none;
+  }
+
+  .CodeMirror-gutter-wrapper {
+    top: 0;
+    bottom: 0;
+  }
+
+  .CodeMirror-gutter-elt {
+    height: 100%;
   }
 
   .diff-gutter {
@@ -61,6 +73,7 @@
   display: flex;
   height: 100%;
   background: var(--diff-gutter-background-color);
+  box-sizing: border-box;
 
   &.diff-add {
     background: var(--diff-add-gutter-background-color);
@@ -84,6 +97,8 @@
 
   .diff-line-number {
     cursor: default;
+    width: 50%;
+    padding: 0 var(--spacing-half);
   }
 
   &.diff-add,
@@ -103,7 +118,6 @@
 .diff-line-number {
   display: inline-block;
   color: var(--diff-line-number-color);
-  width: var(--diff-line-number-column-width);
   text-align: right;
 }
 
@@ -125,7 +139,7 @@
   }
 }
 
-.CodeMirror pre.diff-add {
+.CodeMirror .diff-line-gutter.diff-add {
   color: var(--diff-add-text-color);
 
   .diff-line-number {
@@ -137,7 +151,7 @@
   }
 }
 
-.CodeMirror pre.diff-delete {
+.CodeMirror .diff-line-gutter.diff-delete {
   color: var(--diff-delete-text-color);
 
   .diff-line-number {
@@ -149,7 +163,7 @@
   }
 }
 
-.CodeMirror pre.diff-context {
+.CodeMirror .diff-line-gutter.diff-context {
   color: var(--diff-text-color);
 
   .diff-line-number {
@@ -186,7 +200,7 @@
   color: var(--diff-text-color);
 }
 
-.CodeMirror pre.diff-hunk {
+.CodeMirror .diff-line-gutter.diff-hunk {
   color: var(--diff-hunk-text-color);
 
   .diff-line-number {
@@ -198,7 +212,7 @@
   }
 }
 
-.CodeMirror pre.CodeMirror-line .diff-line-selected {
+.CodeMirror .diff-line-gutter.diff-line-selected {
   .diff-line-number {
     background: var(--diff-selected-background-color);
     border-color: var(--diff-selected-border-color);
@@ -210,7 +224,7 @@
   }
 }
 
-.CodeMirror pre.CodeMirror-line .diff-line-hover {
+.CodeMirror .diff-line-gutter.diff-line-hover {
   .diff-line-number {
     background: var(--diff-hover-background-color);
     border-color: var(--diff-hover-border-color);

@@ -1,12 +1,18 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
+import * as classNames from 'classnames'
 import { clipboard } from 'electron'
-import { Editor } from 'codemirror'
+import { Editor, LineHandle } from 'codemirror'
 import { Disposable } from 'event-kit'
 
 import { fatalError } from '../../lib/fatal-error'
 
-import { DiffHunk, DiffLineType, DiffSelection } from '../../models/diff'
+import {
+  DiffHunk,
+  DiffLineType,
+  DiffSelection,
+  DiffLine,
+} from '../../models/diff'
 import {
   WorkingDirectoryFileChange,
   CommittedFileChange,
@@ -38,6 +44,7 @@ import {
 import { relativeChanges } from './changed-range'
 import { Repository } from '../../models/repository'
 import memoizeOne from 'memoize-one'
+import { selectedLineClass } from './selection/selection'
 
 /** The longest line for which we'd try to calculate a line diff. */
 const MaxIntraLineDiffStringLength = 4096
@@ -678,6 +685,102 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     this.markIntraLineChanges(cm, this.props.hunks)
   }
 
+  private onViewportChange = (
+    cm: CodeMirror.Editor,
+    from: number,
+    to: number
+  ) => {
+    const doc = cm.getDoc()
+
+    const update = new Array<LineHandle>()
+    doc.eachLine(from, to, line => {
+      const lineInfo = cm.lineInfo(line)
+
+      if (
+        lineInfo.gutterMarkers === undefined ||
+        !('diff-gutter' in lineInfo.gutterMarkers)
+      ) {
+        update.push(line)
+      }
+    })
+
+    if (update.length === 0) {
+      return
+    }
+
+    cm.operation(() => {
+      for (const line of update) {
+        const lineNumber = doc.getLineNumber(line)
+
+        if (lineNumber === null) {
+          // Clear?
+          continue
+        }
+
+        const diffLine = diffLineForIndex(this.props.hunks, lineNumber)
+
+        if (diffLine === null) {
+          continue
+        }
+
+        const marker = this.createGutterMarker(lineNumber, line, diffLine)
+
+        cm.setGutterMarker(line, 'diff-gutter', marker)
+      }
+    })
+  }
+
+  private getGutterLineClassName(index: number, diffLine: DiffLine): string {
+    let isIncluded = false
+    if (this.props.file instanceof WorkingDirectoryFileChange) {
+      isIncluded =
+        diffLine.isIncludeableLine() &&
+        this.props.file.selection.isSelected(index)
+    }
+
+    return classNames(
+      'diff-line-gutter',
+      // hoverClass,
+      {
+        'diff-add': diffLine.type === DiffLineType.Add,
+        'diff-delete': diffLine.type === DiffLineType.Delete,
+        'diff-context': diffLine.type === DiffLineType.Context,
+        'diff-hunk': diffLine.type === DiffLineType.Hunk,
+        'read-only': this.props.readOnly,
+        [selectedLineClass]: isIncluded,
+      }
+    )
+  }
+
+  private createGutterMarker(
+    index: number,
+    line: LineHandle,
+    diffLine: DiffLine
+  ): HTMLElement | null {
+    // const role =
+    //   !this.props.readOnly && this.props.line.isIncludeableLine()
+    //     ? 'button'
+    //     : undefined
+
+    const wrapper = document.createElement('div')
+    wrapper.className = this.getGutterLineClassName(index, diffLine)
+
+    const oldLineNumber = document.createElement('div')
+    oldLineNumber.textContent =
+      diffLine.oldLineNumber === null ? '' : `${diffLine.oldLineNumber}`
+    oldLineNumber.classList.add('diff-line-number', 'before')
+
+    const newLineNumber = document.createElement('div')
+    newLineNumber.textContent =
+      diffLine.newLineNumber === null ? '' : `${diffLine.newLineNumber}`
+    newLineNumber.classList.add('diff-line-number', 'after')
+
+    wrapper.appendChild(oldLineNumber)
+    wrapper.appendChild(newLineNumber)
+
+    return wrapper
+  }
+
   public componentWillReceiveProps(nextProps: ITextDiffProps) {
     // If we're reloading the same file, we want to save the current scroll
     // position and restore it after the diff's been updated.
@@ -765,6 +868,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
         options={defaultEditorOptions}
         isSelectionEnabled={this.isSelectionEnabled}
         onChanges={this.onChanges}
+        onViewportChange={this.onViewportChange}
         onRenderLine={this.renderLine}
         ref={this.getAndStoreCodeMirrorInstance}
         onCopy={this.onCopy}
