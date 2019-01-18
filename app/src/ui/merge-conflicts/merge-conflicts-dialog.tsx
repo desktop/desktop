@@ -10,10 +10,11 @@ import { Repository } from '../../models/repository'
 import {
   WorkingDirectoryStatus,
   WorkingDirectoryFileChange,
-  AppFileStatusKind,
-  ConflictedFileStatus,
   isConflictedFileStatus,
   isConflictWithMarkers,
+  isManualConflict,
+  ConflictsWithMarkers,
+  ConflictedFileStatus,
 } from '../../models/status'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { PathText } from '../lib/path-text'
@@ -29,6 +30,7 @@ import {
   OpenWithDefaultProgramLabel,
   RevealInFileManagerLabel,
 } from '../lib/context-menu'
+import { ManualConflictResolutionKind } from '../../models/manual-conflict-resolution'
 
 interface IMergeConflictsDialogProps {
   readonly dispatcher: Dispatcher
@@ -213,75 +215,127 @@ export class MergeConflictsDialog extends React.Component<
     )
   }
 
-  private renderConflictedFile(
-    path: string,
-    status: ConflictedFileStatus,
-    onOpenEditorClick: () => void
-  ): JSX.Element | null {
-    let content = null
-    if (isConflictWithMarkers(status)) {
-      const humanReadableConflicts = calculateConflicts(
-        status.conflictMarkerCount
-      )
-      const message =
-        humanReadableConflicts === 1
-          ? `1 conflict`
-          : `${humanReadableConflicts} conflicts`
+  private renderManualConflictedFile(path: string): JSX.Element {
+    const message = 'Manual conflict'
+    const onDropdownClick = this.makeManualConflictDropdownClickHandler(
+      path,
+      this.props.repository.path,
+      this.props.dispatcher
+    )
 
-      const disabled = this.props.resolvedExternalEditor === null
-
-      const tooltip = editorButtonTooltip(this.props.resolvedExternalEditor)
-
-      const onDropdownClick = this.makeDropdownClickHandler(
-        path,
-        this.props.repository.path,
-        this.props.dispatcher
-      )
-
-      content = (
-        <>
-          <div className="column-left">
-            <PathText path={path} availableWidth={200} />
-            <div className="file-conflicts-status">{message}</div>
-          </div>
-          <div className="action-buttons">
-            <Button
-              onClick={onOpenEditorClick}
-              disabled={disabled}
-              tooltip={tooltip}
-              className="small-button button-group-item"
-            >
-              {editorButtonString(this.props.resolvedExternalEditor)}
-            </Button>
-            <Button
-              onClick={onDropdownClick}
-              className="small-button button-group-item arrow-menu"
-            >
-              <Octicon symbol={OcticonSymbol.triangleDown} />
-            </Button>
-          </div>
-        </>
-      )
-    } else {
-      content = (
-        <div>
-          <PathText path={path} availableWidth={400} />
-          <div className="command-line-hint">
-            Use command line to resolve this file
-          </div>
+    const content = (
+      <>
+        <div className="column-left">
+          <PathText path={path} availableWidth={200} />
+          <div className="file-conflicts-status">{message}</div>
         </div>
-      )
-    }
+        <div className="action-buttons">
+          <Button className="small-button button-group-item">Resolve</Button>
+          <Button
+            onClick={onDropdownClick}
+            className="small-button button-group-item arrow-menu"
+          >
+            <Octicon symbol={OcticonSymbol.triangleDown} />
+          </Button>
+        </div>
+      </>
+    )
 
-    return content !== null ? (
+    return this.renderConflictedFileWrapper(path, content)
+  }
+
+  private renderConflictedFileWrapper(
+    path: string,
+    content: JSX.Element
+  ): JSX.Element {
+    return (
       <li key={path} className="unmerged-file-status-conflicts">
         <Octicon symbol={OcticonSymbol.fileCode} className="file-octicon" />
         {content}
       </li>
-    ) : null
+    )
   }
 
-  private makeDropdownClickHandler = (
+  private renderConflictedFileWithConflictMarkers(
+    path: string,
+    status: ConflictsWithMarkers,
+    onOpenEditorClick: () => void
+  ): JSX.Element {
+    const humanReadableConflicts = calculateConflicts(
+      status.conflictMarkerCount
+    )
+    const message =
+      humanReadableConflicts === 1
+        ? `1 conflict`
+        : `${humanReadableConflicts} conflicts`
+
+    const disabled = this.props.resolvedExternalEditor === null
+    const tooltip = editorButtonTooltip(this.props.resolvedExternalEditor)
+    const onDropdownClick = this.makeMarkerConflictDropdownClickHandler(
+      path,
+      this.props.repository.path,
+      this.props.dispatcher
+    )
+
+    const content = (
+      <>
+        <div className="column-left">
+          <PathText path={path} availableWidth={200} />
+          <div className="file-conflicts-status">{message}</div>
+        </div>
+        <div className="action-buttons">
+          <Button
+            onClick={onOpenEditorClick}
+            disabled={disabled}
+            tooltip={tooltip}
+            className="small-button button-group-item"
+          >
+            {editorButtonString(this.props.resolvedExternalEditor)}
+          </Button>
+          <Button
+            onClick={onDropdownClick}
+            className="small-button button-group-item arrow-menu"
+          >
+            <Octicon symbol={OcticonSymbol.triangleDown} />
+          </Button>
+        </div>
+      </>
+    )
+    return this.renderConflictedFileWrapper(path, content)
+  }
+
+  private makeManualConflictDropdownClickHandler = (
+    relativeFilePath: string,
+    repositoryFilePath: string,
+    dispatcher: Dispatcher
+  ) => {
+    return () => {
+      const absoluteFilePath = join(repositoryFilePath, relativeFilePath)
+      const items: IMenuItem[] = [
+        {
+          label: 'Use our version',
+          action: () =>
+            dispatcher.updateManualConflictResolution(
+              this.props.repository,
+              absoluteFilePath,
+              ManualConflictResolutionKind.ours
+            ),
+        },
+        {
+          label: 'Use their version',
+          action: () =>
+            dispatcher.updateManualConflictResolution(
+              this.props.repository,
+              absoluteFilePath,
+              ManualConflictResolutionKind.theirs
+            ),
+        },
+      ]
+      showContextualMenu(items)
+    }
+  }
+
+  private makeMarkerConflictDropdownClickHandler = (
     relativeFilePath: string,
     repositoryFilePath: string,
     dispatcher: Dispatcher
@@ -303,23 +357,20 @@ export class MergeConflictsDialog extends React.Component<
   }
 
   private renderUnmergedFile(
-    file: WorkingDirectoryFileChange
-  ): JSX.Element | null {
-    const { status } = file
-    switch (status.kind) {
-      case AppFileStatusKind.Conflicted:
-        if (!hasUnresolvedConflicts(status)) {
-          return this.renderResolvedFile(file.path)
-        }
-
-        return this.renderConflictedFile(file.path, status, () =>
-          this.props.openFileInExternalEditor(
-            join(this.props.repository.path, file.path)
-          )
+    path: string,
+    status: ConflictedFileStatus
+  ): JSX.Element {
+    if (isConflictWithMarkers(status)) {
+      return this.renderConflictedFileWithConflictMarkers(path, status, () =>
+        this.props.openFileInExternalEditor(
+          join(this.props.repository.path, path)
         )
-      default:
-        return null
+      )
     }
+    if (isManualConflict(status)) {
+      return this.renderManualConflictedFile(path)
+    }
+    return this.renderResolvedFile(path)
   }
 
   private renderUnmergedFiles(
@@ -327,7 +378,11 @@ export class MergeConflictsDialog extends React.Component<
   ) {
     return (
       <ul className="unmerged-file-statuses">
-        {files.map(f => this.renderUnmergedFile(f))}
+        {files.map(f =>
+          isConflictedFile(f.status)
+            ? this.renderUnmergedFile(f.path, f.status)
+            : null
+        )}
       </ul>
     )
   }
