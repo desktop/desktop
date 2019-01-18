@@ -732,10 +732,10 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
 
   private getGutterLineClassName(index: number, diffLine: DiffLine): string {
     let isIncluded = false
+    const isIncludeable = diffLine.isIncludeableLine()
+
     if (this.props.file instanceof WorkingDirectoryFileChange) {
-      isIncluded =
-        diffLine.isIncludeableLine() &&
-        this.props.file.selection.isSelected(index)
+      isIncluded = isIncludeable && this.props.file.selection.isSelected(index)
     }
 
     return classNames(
@@ -747,6 +747,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
         'diff-context': diffLine.type === DiffLineType.Context,
         'diff-hunk': diffLine.type === DiffLineType.Hunk,
         'read-only': this.props.readOnly,
+        includeable: isIncludeable,
         [selectedLineClass]: isIncluded,
       }
     )

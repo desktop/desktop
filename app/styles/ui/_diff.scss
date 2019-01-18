@@ -224,7 +224,8 @@
   }
 }
 
-.CodeMirror .diff-line-gutter.diff-line-hover {
+.CodeMirror .diff-line-gutter.diff-line-hover,
+.CodeMirror .diff-line-gutter.includeable:hover {
   .diff-line-number {
     background: var(--diff-hover-background-color);
     border-color: var(--diff-hover-border-color);
