@@ -6,7 +6,7 @@ export async function verifyInjectedSassVariables(
   outRoot: string
 ): Promise<void> {
   if (process.env.NODE_ENV !== 'production') {
-    return Promise.resolve()
+    return
   }
 
   console.log(`Checking all SASS variables have been encoded correctly…`)
@@ -27,7 +27,7 @@ export async function verifyInjectedSassVariables(
 
   if (unencodedVariables.length > 0) {
     console.log(
-      `Found some SASS variables in the generated stylesheets. This means some styles will not render as expected.`
+      `SASS variables were found in the generated stylesheets. This means some styles will not render as expected at runtime.`
     )
 
     for (const stylesheet of stylesheets) {
@@ -43,7 +43,7 @@ export async function verifyInjectedSassVariables(
     }
 
     console.log(
-      `Look for these variables under app/styles/ and ensure they are wrapped in a '#{}', otherwise the colors will not be rendered correctly in the app at runtime.`
+      `Look for the source of these styles under app/styles/ and ensure they are wrapped in a '#{}'.`
     )
 
     throw new Error()
