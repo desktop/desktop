@@ -80,6 +80,21 @@ interface ITextDiffProps {
   readonly hunks: ReadonlyArray<DiffHunk>
 }
 
+const defaultEditorOptions: IEditorConfigurationExtra = {
+  lineNumbers: false,
+  readOnly: true,
+  showCursorWhenSelecting: false,
+  cursorBlinkRate: -1,
+  lineWrapping: true,
+  mode: { name: DiffSyntaxMode.ModeName },
+  // Make sure CodeMirror doesn't capture Tab (and Shift-Tab) and thus destroy tab navigation
+  extraKeys: { Tab: false, 'Shift-Tab': false },
+  scrollbarStyle: __DARWIN__ ? 'simple' : 'native',
+  styleSelectedText: true,
+  lineSeparator: '\n',
+  specialChars: /[\u0000-\u001f\u007f-\u009f\u00ad\u061c\u200b-\u200f\u2028\u2029\ufeff]/,
+}
+
 export class TextDiff extends React.Component<ITextDiffProps, {}> {
   private codeMirror: Editor | null = null
 
@@ -715,21 +730,6 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   }
 
   public render() {
-    const options: IEditorConfigurationExtra = {
-      lineNumbers: false,
-      readOnly: true,
-      showCursorWhenSelecting: false,
-      cursorBlinkRate: -1,
-      lineWrapping: true,
-      mode: { name: DiffSyntaxMode.ModeName },
-      // Make sure CodeMirror doesn't capture Tab (and Shift-Tab) and thus destroy tab navigation
-      extraKeys: { Tab: false, 'Shift-Tab': false },
-      scrollbarStyle: __DARWIN__ ? 'simple' : 'native',
-      styleSelectedText: true,
-      lineSeparator: '\n',
-      specialChars: /[\u0000-\u001f\u007f-\u009f\u00ad\u061c\u200b-\u200f\u2028\u2029\ufeff]/,
-    }
-
     // If the text looks like it could have been formatted using Windows
     // line endings (\r\n) we need to massage it a bit before we hand it
     // off to CodeMirror. That's because CodeMirror has two ways of splitting
@@ -753,7 +753,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       <CodeMirrorHost
         className="diff-code-mirror"
         value={text}
-        options={options}
+        options={defaultEditorOptions}
         isSelectionEnabled={this.isSelectionEnabled}
         onChanges={this.onChanges}
         onRenderLine={this.renderLine}
