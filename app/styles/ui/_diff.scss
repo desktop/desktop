@@ -12,6 +12,7 @@
   background: var(--background-color);
   font-size: var(--font-size-sm);
   font-family: var(--font-family-monospace);
+  line-height: 20px;
 
   span {
     // Force word breaks. This only matters when soft wrapping is on.
@@ -20,7 +21,6 @@
 
   pre {
     border: none;
-    padding: 0;
   }
 
   // Remove blank space at the top of the diff
@@ -29,18 +29,7 @@
   }
 
   &-line {
-    display: flex;
-    padding: 0;
-
-    // The last immediate `span` is the actual content class.
-    > span:last-child {
-      // Add a little bit of space to the left of code diff
-      // `padding-left` here means mouse move events are not raised
-      padding-left: var(--spacing-half);
-      padding-top: var(--diff-line-padding-y);
-      padding-bottom: var(--diff-line-padding-y);
-      display: inline-block;
-    }
+    padding: 0 0 0 var(--spacing);
 
     svg.no-newline {
       height: 8px;
@@ -106,7 +95,6 @@
   display: inline-block;
   color: var(--diff-line-number-color);
   width: var(--diff-line-number-column-width);
-  padding: var(--diff-line-padding-y) var(--spacing-half);
   text-align: right;
 }
 
@@ -130,7 +118,6 @@
 
 .CodeMirror pre.diff-add {
   color: var(--diff-add-text-color);
-  padding: 0;
 
   .diff-line-number {
     border-color: var(--diff-add-border-color);
@@ -143,7 +130,6 @@
 
 .CodeMirror pre.diff-delete {
   color: var(--diff-delete-text-color);
-  padding: 0;
 
   .diff-line-number {
     border-color: var(--diff-delete-border-color);
@@ -156,7 +142,6 @@
 
 .CodeMirror pre.diff-context {
   color: var(--diff-text-color);
-  padding: 0;
 
   .diff-line-number {
     border-color: var(--diff-border-color);
@@ -194,7 +179,6 @@
 
 .CodeMirror pre.diff-hunk {
   color: var(--diff-hunk-text-color);
-  padding: 0;
 
   .diff-line-number {
     border-color: var(--diff-hunk-border-color);
