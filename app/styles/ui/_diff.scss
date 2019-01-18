@@ -44,6 +44,15 @@
     // Add a border to the end of the diff
     border-bottom: var(--base-border);
   }
+
+  .CodeMirror-gutters {
+    background: transparent;
+    border: none;
+  }
+
+  .diff-gutter {
+    width: 125px;
+  }
 }
 
 // The container element which holds the before and after

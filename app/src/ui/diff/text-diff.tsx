@@ -94,6 +94,7 @@ const defaultEditorOptions: IEditorConfigurationExtra = {
   styleSelectedText: true,
   lineSeparator: '\n',
   specialChars: /[\u0000-\u001f\u007f-\u009f\u00ad\u061c\u200b-\u200f\u2028\u2029\ufeff]/,
+  gutters: ['diff-gutter'],
 }
 
 export class TextDiff extends React.Component<ITextDiffProps, {}> {
