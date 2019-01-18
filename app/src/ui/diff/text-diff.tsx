@@ -688,12 +688,19 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   private onViewportChange = (
     cm: CodeMirror.Editor,
     from: number,
-    to: number
+    to: number,
+    force: boolean = false
   ) => {
     const doc = cm.getDoc()
 
     const update = new Array<LineHandle>()
+
     doc.eachLine(from, to, line => {
+      if (force) {
+        update.push(line)
+        return
+      }
+
       const lineInfo = cm.lineInfo(line)
 
       if (
@@ -846,6 +853,20 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   }
 
   public componentDidUpdate(prevProps: ITextDiffProps) {
+    if (this.codeMirror !== null) {
+      if (this.props.file instanceof WorkingDirectoryFileChange) {
+        if (
+          !(prevProps instanceof WorkingDirectoryFileChange) ||
+          this.props.file.selection !== prevProps.selection
+        ) {
+          console.log('selection updated')
+          const { from, to } = this.codeMirror.getViewport()
+          this.codeMirror.clearGutter('diff-gutter')
+          this.onViewportChange(this.codeMirror, from, to, true)
+        }
+      }
+    }
+
     if (this.props.text === prevProps.text) {
       return
     }
