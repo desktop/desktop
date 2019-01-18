@@ -543,8 +543,35 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     }
   }
 
+  private onGutterClick = (
+    cm: Editor,
+    line: number,
+    gutter: string,
+    clickEvent: Event
+  ) => {
+    console.log(`${gutter} clicked on line ${line}`)
+    const { file } = this.props
+
+    if (file instanceof WorkingDirectoryFileChange) {
+      if (this.props.onIncludeChanged) {
+        this.props.onIncludeChanged(
+          file.selection.withToggleLineSelection(line)
+        )
+      }
+    }
+  }
+
   private getAndStoreCodeMirrorInstance = (cmh: CodeMirrorHost | null) => {
-    this.codeMirror = cmh === null ? null : cmh.getEditor()
+    const newEditor = cmh === null ? null : cmh.getEditor()
+    if (newEditor === null && this.codeMirror !== null) {
+      this.codeMirror.off('gutterClick', this.onGutterClick)
+    }
+
+    this.codeMirror = newEditor
+
+    if (this.codeMirror !== null) {
+      this.codeMirror.on('gutterClick', this.onGutterClick)
+    }
   }
 
   private onCopy = (editor: Editor, event: Event) => {
