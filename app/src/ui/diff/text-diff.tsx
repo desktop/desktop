@@ -860,9 +860,15 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
           this.props.file.selection !== prevProps.selection
         ) {
           console.log('selection updated')
-          const { from, to } = this.codeMirror.getViewport()
           this.codeMirror.clearGutter('diff-gutter')
-          this.onViewportChange(this.codeMirror, from, to, true)
+
+          // If the text has changed the gutters will be recreated
+          // regardless but if it hasn't then we'll need to update
+          // the viewport.
+          if (this.props.text === prevProps.text) {
+            const { from, to } = this.codeMirror.getViewport()
+            this.onViewportChange(this.codeMirror, from, to, true)
+          }
         }
       }
     }
