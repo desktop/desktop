@@ -95,7 +95,6 @@ describe('BranchPruner', () => {
     const branchesAfterPruning = await getBranchesFromGit(repo)
 
     const expectedBranchesAfterPruning = ['master', 'not-merged-branch-1']
-    expect(onPruneCompleted).toBeCalledWith(repo, expect.anything())
     expect(branchesAfterPruning).toEqual(expectedBranchesAfterPruning)
   })
 
@@ -149,7 +148,42 @@ describe('BranchPruner', () => {
     expect(branchesBeforePruning).toEqual(branchesAfterPruning)
   })
 
-  it('Does not prune reserved branches', async () => {})
+  it('Does not prune reserved branches', async () => {
+    const fixedDate = moment()
+    const lastPruneDate = fixedDate.subtract(1, 'day')
+    const repo = await initializeTestRepo(
+      repositoriesStore,
+      repositoriesStateCache,
+      true,
+      'master',
+      lastPruneDate.toDate()
+    )
+    const branchPruner = new BranchPruner(
+      repo,
+      gitStoreCache,
+      repositoriesStore,
+      repositoriesStateCache,
+      onPruneCompleted
+    )
+
+    await branchPruner.start()
+    const branchesAfterPruning = await getBranchesFromGit(repo)
+
+    const expectedBranchesAfterPruning = [
+      'master',
+      'gh-pages',
+      'develop',
+      'dev',
+      'development',
+      'trunk',
+      'devel',
+      'release',
+    ]
+
+    for (const branch of expectedBranchesAfterPruning) {
+      expect(branchesAfterPruning).toContain(branch)
+    }
+  })
 })
 
 async function getBranchesFromGit(repository: Repository) {
@@ -167,7 +201,7 @@ async function initializeTestRepo(
   defaultBranchName: string,
   lastPruneDate?: Date
 ) {
-  const path = await setupFixtureRepository('branch-prune-cases')
+  const path = await setupFixtureRepository('branch-prune-tests')
 
   let repository = await repositoriesStore.addRepository(path)
   if (includesGhRepo) {
@@ -209,7 +243,6 @@ async function initializeTestRepo(
  * Setup state correctly without having to expose
  * the internals of the GitStore and caches
  */
-
 async function primeCaches(
   repository: Repository,
   repositoriesStateCache: RepositoryStateCache
