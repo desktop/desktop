@@ -55,7 +55,8 @@ describe('BranchPruner', () => {
     const repo = await initializeTestRepo(
       repositoriesStore,
       repositoriesStateCache,
-      false
+      false,
+      'master'
     )
     const branchPruner = new BranchPruner(
       repo,
@@ -79,6 +80,7 @@ describe('BranchPruner', () => {
       repositoriesStore,
       repositoriesStateCache,
       true,
+      'master',
       lastPruneDate.toDate()
     )
     const branchPruner = new BranchPruner(
@@ -97,13 +99,14 @@ describe('BranchPruner', () => {
     expect(branchesAfterPruning).toEqual(expectedBranchesAfterPruning)
   })
 
-  it.only('Does not prune if the last prune date is less than 24 hours ago', async () => {
+  it('Does not prune if the last prune date is less than 24 hours ago', async () => {
     const fixedDate = moment()
     const lastPruneDate = fixedDate.subtract(4, 'hours')
     const repo = await initializeTestRepo(
       repositoriesStore,
       repositoriesStateCache,
       true,
+      'master',
       lastPruneDate.toDate()
     )
     const branchPruner = new BranchPruner(
@@ -121,7 +124,30 @@ describe('BranchPruner', () => {
     expect(branchesBeforePruning).toEqual(branchesAfterPruning)
   })
 
-  it('Does not prune if there is no default branch', () => {})
+  it('Does not prune if there is no default branch', async () => {
+    const fixedDate = moment()
+    const lastPruneDate = fixedDate.subtract(1, 'day')
+    const repo = await initializeTestRepo(
+      repositoriesStore,
+      repositoriesStateCache,
+      true,
+      '',
+      lastPruneDate.toDate()
+    )
+    const branchPruner = new BranchPruner(
+      repo,
+      gitStoreCache,
+      repositoriesStore,
+      repositoriesStateCache,
+      onPruneCompleted
+    )
+
+    const branchesBeforePruning = await getBranchesFromGit(repo)
+    await branchPruner.start()
+    const branchesAfterPruning = await getBranchesFromGit(repo)
+
+    expect(branchesBeforePruning).toEqual(branchesAfterPruning)
+  })
 })
 
 async function getBranchesFromGit(repository: Repository) {
@@ -136,6 +162,7 @@ async function initializeTestRepo(
   repositoriesStore: RepositoriesStore,
   repositoriesStateCache: RepositoryStateCache,
   includesGhRepo: boolean,
+  defaultBranchName: string,
   lastPruneDate?: Date
 ) {
   const path = await setupFixtureRepository('branch-prune-cases')
@@ -158,7 +185,7 @@ async function initializeTestRepo(
       },
       private: false,
       fork: false,
-      default_branch: 'master',
+      default_branch: defaultBranchName,
       pushed_at: 'string',
       parent: null,
     }
