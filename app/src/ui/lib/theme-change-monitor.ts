@@ -39,6 +39,7 @@ class ThemeChangeMonitor implements IDisposable {
   private unsubscribe = () => {
     if (this.subscriptionID !== null) {
       remote.systemPreferences.unsubscribeNotification(this.subscriptionID)
+      this.subscriptionID = null
     }
   }
 

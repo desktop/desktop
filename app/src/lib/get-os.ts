@@ -23,17 +23,13 @@ export function isMojaveOrLater() {
     const parser = new UAParser()
     const os = parser.getOS()
 
-    if (os.version == null) {
+    if (os.version === undefined) {
       return false
     }
 
-    const parts = os.version.split('.')
-    if (parts.length < 2) {
-      // unknown version format, giving up
-      return false
-    }
+    const [major, minor] = os.version.split('.')
 
-    return parts[1] > '13'
+    return major === '10' && minor > '13'
   }
   return false
 }

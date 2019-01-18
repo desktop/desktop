@@ -44,8 +44,7 @@ export class Appearance extends React.Component<IAppearanceProps, {}> {
     const value = event.currentTarget.checked
 
     if (value) {
-      const usingDarkMode = isDarkModeEnabled()
-      this.onSelectedThemeChanged(usingDarkMode ? 1 : 0)
+      this.onSelectedThemeChanged(isDarkModeEnabled() ? 1 : 0)
     }
 
     this.props.onAutomaticallySwitchThemeChanged(value)
@@ -76,9 +75,7 @@ export class Appearance extends React.Component<IAppearanceProps, {}> {
   }
 
   public renderAutoSwitcherOption() {
-    const doesSupportDarkMode = supportsDarkMode()
-
-    if (!doesSupportDarkMode) {
+    if (!supportsDarkMode()) {
       return null
     }
 
