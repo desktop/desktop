@@ -726,13 +726,12 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     line: LineHandle,
     diffLine: DiffLine
   ): HTMLElement | null {
-    // const role =
-    //   !this.props.readOnly && this.props.line.isIncludeableLine()
-    //     ? 'button'
-    //     : undefined
-
     const wrapper = document.createElement('div')
     wrapper.className = this.getGutterLineClassName(index, diffLine)
+
+    if (!this.props.readOnly && diffLine.isIncludeableLine()) {
+      wrapper.setAttribute('role', 'button')
+    }
 
     const oldLineNumber = document.createElement('div')
     oldLineNumber.textContent =
