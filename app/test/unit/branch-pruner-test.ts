@@ -148,6 +148,8 @@ describe('BranchPruner', () => {
 
     expect(branchesBeforePruning).toEqual(branchesAfterPruning)
   })
+
+  it('Does not prune reserved branches', async () => {})
 })
 
 async function getBranchesFromGit(repository: Repository) {
@@ -203,11 +205,11 @@ async function initializeTestRepo(
   return repository
 }
 
-// NOTE: this is a rough function to get your test setup correctly without
-//       having to expose the internals of the GitStore and the caches
-//       For the moment this will help with testing, but how you're setting
-//       this up is still good guidance for how we can make our tests easier
-//       to scaffold
+/**
+ * Setup state correctly without having to expose
+ * the internals of the GitStore and caches
+ */
+
 async function primeCaches(
   repository: Repository,
   repositoriesStateCache: RepositoryStateCache
