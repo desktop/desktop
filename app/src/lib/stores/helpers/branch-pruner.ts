@@ -126,7 +126,10 @@ export class BranchPruner {
           localBranch.remote !== null && localBranch.name === branch
       )
 
-      if (localBranch !== undefined) {
+      if (
+        localBranch !== undefined &&
+        !ReservedBranches.includes(branch.toLocaleLowerCase())
+      ) {
         branchesReadyForPruning.push(localBranch)
       }
     }
@@ -140,12 +143,8 @@ export class BranchPruner {
     const gitStore = this.gitStoreCache.get(this.repository)
     await gitStore.performFailableOperation(async () => {
       for (const branch of branchesReadyForPruning) {
-        if (ReservedBranches.includes(branch.name.toLocaleLowerCase())) {
-          continue
-        }
-
-        log.info(`Deleting '${branch.name} (${branch.tip.sha})'`)
         await deleteBranch(this.repository, branch!, null, false)
+        log.info(`Deleted '${branch.name} (${branch.tip.sha})'`)
       }
 
       await this.onPruneCompleted(this.repository, branchesReadyForPruning)
