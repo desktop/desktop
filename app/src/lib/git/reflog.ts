@@ -63,3 +63,38 @@ export async function getRecentBranches(
 
   return [...names]
 }
+
+export async function getCheckoutsAfterDate(
+  repository: Repository,
+  afterDate: Date
+): Promise<ReadonlyArray<string>> {
+  //regexr.com/46n1v
+  const regex = new RegExp(
+    /^(?:.{9})\s(?:\(.*\))?\s?(?:HEAD@){(.*)}:\s(?:.*)to\s(.*)$/
+  )
+  const isoDate = afterDate.toISOString()
+  const filterDate = isoDate.substr(0, isoDate.indexOf('T'))
+  const gitOutput = await git(
+    [
+      'reflog',
+      '--date=iso',
+      `--after="${filterDate}"`,
+      '--grep-reflog="checkout: moving from .* to .*$"',
+    ],
+    repository.path,
+    'getCheckoutsAfterDate'
+  )
+  const checkouts = new Set<string>()
+  const lines = gitOutput.stdout.split('\n')
+  for (const line of lines) {
+    const parsedLine = regex.exec(line)
+
+    if (parsedLine === null || parsedLine.length !== 2) {
+      continue
+    }
+
+    checkouts.add(parsedLine[1])
+  }
+
+  return [...checkouts.keys()]
+}
