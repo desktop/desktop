@@ -309,7 +309,7 @@ export class CloneRepository extends React.Component<
               onRefreshRepositories={this.props.onRefreshRepositories}
               filterText={tabState.filterText}
               onFilterTextChanged={this.onFilterTextChanged}
-              clone={this.clone}
+              cloneIfCloningEnabled={this.cloneIfCloningEnabled}
             />
           )
         }
@@ -615,6 +615,21 @@ export class CloneRepository extends React.Component<
     }
 
     return url
+  }
+
+  private cloneIfCloningEnabled = () => {
+    const tabState = this.getSelectedTabState()
+    const { error, url, path } = tabState
+    const { loading } = this.state
+
+    const cloningDisabled =
+      url.length === 0 || path.length === 0 || loading || error !== null
+
+    if (cloningDisabled) {
+      return
+    }
+
+    this.clone()
   }
 
   private clone = async () => {

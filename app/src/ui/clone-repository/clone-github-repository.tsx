@@ -63,8 +63,8 @@ interface ICloneGithubRepositoryProps {
    */
   readonly onRefreshRepositories: (account: Account) => void
 
-  /** Initiate cloning the currently selected repository to the chosen local path. */
-  readonly clone?: () => void
+  /** Initiate cloning if a repository and cloning path are selected and no current errors. */
+  readonly cloneIfCloningEnabled?: () => void
 }
 
 export class CloneGithubRepository extends React.PureComponent<
@@ -101,8 +101,8 @@ export class CloneGithubRepository extends React.PureComponent<
   }
 
   private cloneOnRepoListRowEnter = () => {
-    if (this.props.clone != null) {
-      this.props.clone()
+    if (this.props.cloneIfCloningEnabled != null) {
+      this.props.cloneIfCloningEnabled()
     }
   }
 }
