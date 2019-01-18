@@ -64,6 +64,9 @@ export async function getRecentBranches(
   return [...names]
 }
 
+/**
+ * Gets the distinct list of branches that have been checked out after a specific date
+ */
 export async function getCheckoutsAfterDate(
   repository: Repository,
   afterDate: Date
