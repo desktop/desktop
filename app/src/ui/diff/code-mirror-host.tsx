@@ -41,6 +41,12 @@ interface ICodeMirrorHostProps {
     change: CodeMirror.EditorChangeLinkedList[]
   ) => void
 
+  readonly onViewportChange?: (
+    cm: CodeMirror.Editor,
+    from: number,
+    to: number
+  ) => void
+
   /**
    * Called when content has been copied. The default behavior may be prevented
    * by calling `preventDefault` on the event.
@@ -68,6 +74,7 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
 
     this.codeMirror.on('renderLine', this.onRenderLine)
     this.codeMirror.on('changes', this.onChanges)
+    this.codeMirror.on('viewportChange', this.onViewportChange)
     this.codeMirror.on('beforeSelectionChange', this.beforeSelectionChanged)
 
     // The type declaration for this is wrong.
@@ -88,6 +95,7 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
 
     if (cm) {
       cm.off('changes', this.onChanges)
+      cm.off('viewportChange', this.onViewportChange)
       cm.off('renderLine', this.onRenderLine)
       cm.off('beforeSelectionChange', this.beforeSelectionChanged)
       cm.off('copy', this.onCopy as any)
@@ -131,6 +139,16 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
   ) => {
     if (this.props.onChanges) {
       this.props.onChanges(cm, changes)
+    }
+  }
+
+  private onViewportChange = (
+    cm: CodeMirror.Editor,
+    from: number,
+    to: number
+  ) => {
+    if (this.props.onViewportChange) {
+      this.props.onViewportChange(cm, from, to)
     }
   }
 
