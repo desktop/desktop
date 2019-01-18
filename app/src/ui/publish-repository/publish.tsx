@@ -82,14 +82,14 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
 
     const startingTabState = {
       publishSettings: { ...publishSettings },
-      error: null
+      error: null,
     }
 
     this.state = {
       currentTab: startingTab,
       dotComTabState: { ...startingTabState },
       enterpriseTabState: { ...startingTabState },
-      publishing: false
+      publishing: false,
     }
   }
 
@@ -270,16 +270,18 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
   }
 
   private getCurrentTabState = () =>
-      this.state.currentTab === PublishTab.DotCom ? this.state.dotComTabState : this.state.enterpriseTabState
+    this.state.currentTab === PublishTab.DotCom
+      ? this.state.dotComTabState
+      : this.state.enterpriseTabState
 
   private setTabState = (tabState: IPublishTabState) => {
     if (this.state.currentTab === PublishTab.DotCom) {
       this.setState({
-        dotComTabState: { ...tabState }
+        dotComTabState: { ...tabState },
       })
     } else {
       this.setState({
-        enterpriseTabState: { ...tabState }
+        enterpriseTabState: { ...tabState },
       })
     }
   }
@@ -287,14 +289,14 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
   private setCurrentTabSettings = (settings: IPublishRepositorySettings) => {
     this.setTabState({
       ...this.getCurrentTabState(),
-      publishSettings: { ...settings }
+      publishSettings: { ...settings },
     })
   }
 
   private setCurrentTabError = (error: Error | null) => {
     this.setTabState({
       ...this.getCurrentTabState(),
-      error: error
+      error: error,
     })
   }
 }
