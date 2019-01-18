@@ -37,6 +37,7 @@ import {
 } from './syntax-highlighting'
 import { relativeChanges } from './changed-range'
 import { Repository } from '../../models/repository'
+import memoizeOne from 'memoize-one'
 
 /** The longest line for which we'd try to calculate a line diff. */
 const MaxIntraLineDiffStringLength = 4096
@@ -97,6 +98,27 @@ const defaultEditorOptions: IEditorConfigurationExtra = {
 
 export class TextDiff extends React.Component<ITextDiffProps, {}> {
   private codeMirror: Editor | null = null
+
+  private getFormattedText = memoizeOne((text: string) => {
+    // If the text looks like it could have been formatted using Windows
+    // line endings (\r\n) we need to massage it a bit before we hand it
+    // off to CodeMirror. That's because CodeMirror has two ways of splitting
+    // lines, one is the built in which splits on \n, \r\n and \r. The last
+    // one is important because that will match carriage return characters
+    // inside a diff line. The other way is when consumers supply the
+    // lineSeparator option. That option only takes a string meaning we can
+    // either make it split on '\r\n', '\n' or '\r' but not what we would like
+    // to do, namely '\r?\n'. We want to keep CR characters inside of a diff
+    // line so that we can mark them using the specialChars attribute so
+    // we convert all \r\n to \n and remove any trailing \r character.
+    if (text.indexOf('\r') === -1) {
+      return text
+    }
+
+    // Capture the \r if followed by (positive lookahead) a \n or
+    // the end of the string. Note that this does not capture the \n.
+    return text.replace(/\r(?=\n|$)/g, '')
+  })
 
   private gutterWidth: number | null = null
 
@@ -415,6 +437,11 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   }
 
   private renderLine = (instance: any, line: any, element: HTMLElement) => {
+    // TODO!
+    if (1 / 1 !== Infinity) {
+      return
+    }
+
     const existingLineDisposable = this.lineCleanup.get(line)
 
     // If we can find the line in our cleanup list that means the line is
@@ -730,29 +757,10 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   }
 
   public render() {
-    // If the text looks like it could have been formatted using Windows
-    // line endings (\r\n) we need to massage it a bit before we hand it
-    // off to CodeMirror. That's because CodeMirror has two ways of splitting
-    // lines, one is the built in which splits on \n, \r\n and \r. The last
-    // one is important because that will match carriage return characters
-    // inside a diff line. The other way is when consumers supply the
-    // lineSeparator option. That option only takes a string meaning we can
-    // either make it split on '\r\n', '\n' or '\r' but not what we would like
-    // to do, namely '\r?\n'. We want to keep CR characters inside of a diff
-    // line so that we can mark them using the specialChars attribute so
-    // we convert all \r\n to \n and remove any trailing \r character.
-    const text =
-      this.props.text.indexOf('\r') !== -1
-        ? this.props.text
-            // Capture the \r if followed by (positive lookahead) a \n or
-            // the end of the string. Note that this does not capture the \n.
-            .replace(/\r(?=\n|$)/g, '')
-        : this.props.text
-
     return (
       <CodeMirrorHost
         className="diff-code-mirror"
-        value={text}
+        value={this.getFormattedText(this.props.text)}
         options={defaultEditorOptions}
         isSelectionEnabled={this.isSelectionEnabled}
         onChanges={this.onChanges}
