@@ -94,8 +94,14 @@ describe('BranchPruner', () => {
     await branchPruner.start()
     const branchesAfterPruning = await getBranchesFromGit(repo)
 
-    const expectedBranchesAfterPruning = ['master', 'not-merged-branch-1']
-    expect(branchesAfterPruning).toEqual(expectedBranchesAfterPruning)
+    const expectedBranchesAfterPruning = [
+      'not-deleted-branch-1',
+      'deleted-branch-1',
+    ]
+
+    for (const branch of expectedBranchesAfterPruning) {
+      expect(branchesAfterPruning).not.toContain(branch)
+    }
   })
 
   it('Does not prune if the last prune date is less than 24 hours ago', async () => {
