@@ -128,8 +128,6 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     return text.replace(/\r(?=\n|$)/g, '')
   })
 
-  private gutterWidth: number | null = null
-
   /**
    * We store the scroll position before reloading the same diff so that we can
    * restore it when we're done. If we're not reloading the same diff, this'll
@@ -202,43 +200,6 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     this.lineCleanup.clear()
 
     document.removeEventListener('mouseup', this.onDocumentMouseUp)
-  }
-
-  /**
-   * compute the diff gutter width based on what's been rendered in the browser
-   */
-  private getAndCacheGutterWidth = (): number | null => {
-    if (this.gutterWidth) {
-      return this.gutterWidth
-    }
-
-    if (this.codeMirror) {
-      // as getWidth will return 0 for elements that are offscreen, this code
-      // will look for the first row of the current viewport, which should be
-      // onscreen
-      const viewport = this.codeMirror.getScrollInfo()
-      const top = viewport.top
-
-      const row = this.codeMirror.lineAtHeight(top, 'local')
-      const element = this.cachedGutterElements.get(row)
-
-      if (!element) {
-        console.error(
-          `unable to find element at ${row}, should probably look into that`
-        )
-        return null
-      }
-
-      this.gutterWidth = element.getWidth()
-
-      if (this.gutterWidth === 0) {
-        console.error(
-          `element at row ${row} does not have a width, should probably look into that`
-        )
-      }
-    }
-
-    return this.gutterWidth
   }
 
   private updateRangeHoverState = (
@@ -422,7 +383,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   }
 
   private isMouseCursorNearGutter = (ev: MouseEvent): boolean | null => {
-    const width = this.getAndCacheGutterWidth()
+    const width = 125
 
     if (!width) {
       // should fail earlier than this with a helpful error message
@@ -814,37 +775,6 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
 
     if (codeMirror && this.props.text !== nextProps.text) {
       codeMirror.setOption('mode', { name: DiffSyntaxMode.ModeName })
-    }
-
-    // HACK: This entire section is a hack. Whenever we receive
-    // props we update all currently visible gutter elements with
-    // the selection state from the file.
-    if (nextProps.file instanceof WorkingDirectoryFileChange) {
-      const selection = nextProps.file.selection
-      const oldSelection =
-        this.props.file instanceof WorkingDirectoryFileChange
-          ? this.props.file.selection
-          : null
-
-      // Nothing has changed
-      if (oldSelection === selection) {
-        return
-      }
-
-      this.gutterWidth = null
-
-      const hunks = nextProps.hunks
-      this.cachedGutterElements.forEach((element, index) => {
-        if (!element) {
-          console.error('expected DOM element for diff gutter not found')
-          return
-        }
-
-        const line = diffLineForIndex(hunks, index)
-        const isIncludable = line ? line.isIncludeableLine() : false
-        const isSelected = selection.isSelected(index) && isIncludable
-        element.setSelected(isSelected)
-      })
     }
   }
 
