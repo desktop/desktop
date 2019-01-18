@@ -265,13 +265,13 @@ export class RepositoryView extends React.Component<
           />
         )
       } else {
-        if (selectedFileIDs.length === 0) {
+        if (selectedFileIDs.length === 0 || diff === null) {
           return null
         }
 
         const selectedFile = workingDirectory.findFileWithID(selectedFileIDs[0])
 
-        if (selectedFile === null || diff === null) {
+        if (selectedFile === null) {
           return null
         }
 
