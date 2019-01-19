@@ -128,7 +128,6 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
 
     try {
       const description = await getGitDescription(this.props.repository.path)
-      console.log(description)
       const settings = {
         ...currentTabState.publishSettings,
         description,
