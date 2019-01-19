@@ -733,14 +733,16 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       isIncluded = isIncludeable && this.props.file.selection.isSelected(index)
     }
 
+    const { type } = diffLine
+
     return classNames(
       'diff-line-gutter',
       // hoverClass,
       {
-        'diff-add': diffLine.type === DiffLineType.Add,
-        'diff-delete': diffLine.type === DiffLineType.Delete,
-        'diff-context': diffLine.type === DiffLineType.Context,
-        'diff-hunk': diffLine.type === DiffLineType.Hunk,
+        'diff-add': type === DiffLineType.Add,
+        'diff-delete': type === DiffLineType.Delete,
+        'diff-context': type === DiffLineType.Context,
+        'diff-hunk': type === DiffLineType.Hunk,
         'read-only': this.props.readOnly,
         includeable: isIncludeable,
         [selectedLineClass]: isIncluded,
