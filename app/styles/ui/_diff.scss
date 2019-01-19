@@ -75,6 +75,10 @@
   background: var(--diff-gutter-background-color);
   box-sizing: border-box;
 
+  * {
+    cursor: default;
+  }
+
   &.diff-add {
     background: var(--diff-add-gutter-background-color);
   }
@@ -96,17 +100,14 @@
   }
 
   .diff-line-number {
-    cursor: default;
     width: 50%;
     padding: 0 var(--spacing-half);
   }
 
   &.diff-add,
   &.diff-delete {
-    &:not(.read-only) {
-      .diff-line-number {
-        cursor: pointer;
-      }
+    &:not(.read-only) * {
+      cursor: pointer;
     }
   }
 
