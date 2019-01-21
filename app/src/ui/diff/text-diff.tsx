@@ -470,34 +470,42 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
 
   private onViewportChange = (cm: Editor, from: number, to: number) => {
     const doc = cm.getDoc()
+    const batchedOps = new Array<Function>()
 
-    cm.operation(() => {
-      doc.eachLine(from, to, line => {
-        const lineNumber = doc.getLineNumber(line)
+    doc.eachLine(from, to, line => {
+      const lineNumber = doc.getLineNumber(line)
 
-        // Clear?
-        if (lineNumber === null) {
-          return
-        }
+      if (lineNumber === null) {
+        return
+      }
 
-        const diffLine = diffLineForIndex(this.props.hunks, lineNumber)
+      const diffLine = diffLineForIndex(this.props.hunks, lineNumber)
 
-        if (diffLine === null) {
-          return
-        }
+      if (diffLine === null) {
+        return
+      }
 
-        let marker: HTMLElement | null = null
-        const lineInfo = cm.lineInfo(line)
+      let marker: HTMLElement | null = null
+      const lineInfo = cm.lineInfo(line)
 
-        if (lineInfo.gutterMarkers && 'diff-gutter' in lineInfo.gutterMarkers) {
-          marker = lineInfo.gutterMarkers['diff-gutter'] as HTMLElement
-          this.updateGutterMarker(marker, lineNumber, line, diffLine)
-        } else {
+      if (lineInfo.gutterMarkers && 'diff-gutter' in lineInfo.gutterMarkers) {
+        marker = lineInfo.gutterMarkers['diff-gutter'] as HTMLElement
+        this.updateGutterMarker(marker, lineNumber, line, diffLine)
+      } else {
+        batchedOps.push(() => {
           marker = this.createGutterMarker(lineNumber, line, diffLine)
           cm.setGutterMarker(line, 'diff-gutter', marker)
-        }
-      })
+        })
+      }
     })
+
+    // Updating a gutter marker doesn't affect layout or rendering
+    // as far as CodeMirror is concerned so we only run an operation
+    // (which will trigger a CodeMirror refresh) when we have gutter
+    // markers to create.
+    if (batchedOps.length > 0) {
+      cm.operation(() => batchedOps.forEach(x => x()))
+    }
   }
 
   private getGutterLineClassNameInfo(
