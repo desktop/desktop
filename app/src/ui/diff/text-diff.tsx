@@ -889,9 +889,6 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
           !(prevProps instanceof WorkingDirectoryFileChange) ||
           this.props.file.selection !== prevProps.selection
         ) {
-          console.log('selection updated')
-          this.codeMirror.clearGutter('diff-gutter')
-
           // If the text has changed the gutters will be recreated
           // regardless but if it hasn't then we'll need to update
           // the viewport.
