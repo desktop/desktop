@@ -707,7 +707,6 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
 
     cm.operation(() => {
       doc.eachLine(from, to, line => {
-        const lineInfo = cm.lineInfo(line)
         const lineNumber = doc.getLineNumber(line)
 
         // Clear?
@@ -722,6 +721,8 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
         }
 
         let marker: HTMLElement | null = null
+        const lineInfo = cm.lineInfo(line)
+
         if (lineInfo.gutterMarkers && 'diff-gutter' in lineInfo.gutterMarkers) {
           marker = lineInfo.gutterMarkers['diff-gutter'] as HTMLElement
           this.updateGutterMarker(marker, lineNumber, line, diffLine)
