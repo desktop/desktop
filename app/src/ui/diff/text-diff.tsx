@@ -252,22 +252,11 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     }
 
     this.selection.paint(this.cachedGutterElements)
-    document.addEventListener('mouseup', this.onDocumentMouseUp)
+    document.addEventListener('mouseup', this.onDocumentMouseUp, { once: true })
   }
 
-  /**
-   * Helper event listener, registered when starting a selection by
-   * clicking anywhere on or near the gutter. Immediately removes itself
-   * from the mouseup event on the document element and ends any current
-   * selection.
-   *
-   * TODO: Once Electron upgrades to Chrome 55 we can drop this in favor
-   * of the 'once' option in addEventListener, see
-   * https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener
-   */
   private onDocumentMouseUp = (ev: MouseEvent) => {
     ev.preventDefault()
-    document.removeEventListener('mouseup', this.onDocumentMouseUp)
     this.endSelection()
   }
 
