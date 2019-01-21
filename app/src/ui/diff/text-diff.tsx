@@ -871,10 +871,10 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     this.dispose()
   }
 
-  // tslint:disable-next-line:react-proper-lifecycle-methods
   public componentDidUpdate(
     prevProps: ITextDiffProps,
     prevState: {},
+    // tslint:disable-next-line:react-proper-lifecycle-methods
     snapshot: CodeMirror.ScrollInfo | null
   ) {
     if (this.codeMirror !== null) {
