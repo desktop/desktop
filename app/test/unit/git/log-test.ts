@@ -20,6 +20,7 @@ describe('git/log', () => {
       const firstCommit = commits[commits.length - 1]
       expect(firstCommit.summary).toBe('first')
       expect(firstCommit.sha).toBe('7cd6640e5b6ca8dbfd0b33d0281ebe702127079c')
+      expect(firstCommit.shortSha).toBe('7cd6640')
     })
 
     it('handles repository with HEAD file on disk', async () => {
@@ -43,6 +44,7 @@ describe('git/log', () => {
 
       expect(commits).toHaveLength(1)
       expect(commits[0].sha).toBe('415e4987158c49c383ce7114e0ef00ebf4b070c1')
+      expect(commits[0].shortSha).toBe('415e498')
     })
   })
 
