@@ -21,6 +21,12 @@ const defaultBranchNameDefaultValue = __DARWIN__
   ? 'Default Branch'
   : 'default branch'
 
+enum ZoomDirection {
+  Reset,
+  In,
+  Out,
+}
+
 export type MenuLabels = {
   editorLabel?: string
   shellLabel?: string
@@ -471,12 +477,6 @@ function emit(name: MenuEvent): ClickHandler {
       ipcMain.emit('menu-event', { name })
     }
   }
-}
-
-enum ZoomDirection {
-  Reset,
-  In,
-  Out,
 }
 
 /** The zoom steps that we support, these factors must sorted */
