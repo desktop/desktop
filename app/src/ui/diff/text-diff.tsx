@@ -128,12 +128,6 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     return text.replace(/\r(?=\n|$)/g, '')
   })
 
-  /**
-   * We store the scroll position before reloading the same diff so that we can
-   * restore it when we're done. If we're not reloading the same diff, this'll
-   * be null.
-   */
-  private scrollPositionToRestore: { left: number; top: number } | null = null
 
   /**
    * A mapping from CodeMirror line handles to disposables which, when disposed
@@ -693,7 +687,6 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   }
 
   private onChanges = (cm: Editor) => {
-    this.restoreScrollPosition(cm)
 
     this.markIntraLineChanges(cm, this.props.hunks)
   }
@@ -868,28 +861,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   }
 
   public componentWillReceiveProps(nextProps: ITextDiffProps) {
-    // If we're reloading the same file, we want to save the current scroll
-    // position and restore it after the diff's been updated.
-    const sameFile =
-      nextProps.file &&
-      this.props.file &&
-      nextProps.file.id === this.props.file.id
-
-    // Happy path, if the text hasn't changed we won't re-render
-    // and subsequently won't have to restore the scroll position.
-    const textHasChanged = nextProps.text !== this.props.text
-
     const codeMirror = this.codeMirror
-    if (codeMirror && sameFile && textHasChanged) {
-      const scrollInfo = codeMirror.getScrollInfo()
-      this.scrollPositionToRestore = {
-        left: scrollInfo.left,
-        top: scrollInfo.top,
-      }
-    } else {
-      this.scrollPositionToRestore = null
-    }
-
     if (codeMirror && this.props.text !== nextProps.text) {
       codeMirror.setOption('mode', { name: DiffSyntaxMode.ModeName })
     }
@@ -899,8 +871,19 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     this.dispose()
   }
 
-  public componentDidUpdate(prevProps: ITextDiffProps) {
+  // tslint:disable-next-line:react-proper-lifecycle-methods
+  public componentDidUpdate(
+    prevProps: ITextDiffProps,
+    prevState: {},
+    snapshot: CodeMirror.ScrollInfo | null
+  ) {
     if (this.codeMirror !== null) {
+      // No need to keep potentially tons of diff gutter DOM
+      // elements around in memory when we're switching files.
+      if (this.props.file.id !== prevProps.file.id) {
+        this.codeMirror.clearGutter('diff-gutter')
+      }
+
       if (this.props.file instanceof WorkingDirectoryFileChange) {
         if (
           !(prevProps instanceof WorkingDirectoryFileChange) ||
@@ -926,9 +909,23 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
 
     if (this.codeMirror) {
       this.codeMirror.setOption('mode', { name: DiffSyntaxMode.ModeName })
+
+      if (snapshot !== null) {
+        console.log('restoring scroll position')
+        this.codeMirror.scrollTo(undefined, snapshot.top)
+      }
     }
 
     this.initDiffSyntaxMode()
+  }
+
+  public getSnapshotBeforeUpdate(prevProps: ITextDiffProps) {
+    if (this.codeMirror) {
+      if (this.props.file.id === prevProps.file.id) {
+        return this.codeMirror.getScrollInfo()
+      }
+    }
+    return null
   }
 
   public componentDidMount() {
