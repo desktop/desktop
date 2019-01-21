@@ -676,56 +676,42 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   private onViewportChange = (
     cm: CodeMirror.Editor,
     from: number,
-    to: number,
-    force: boolean = false
+    to: number
   ) => {
     const doc = cm.getDoc()
 
-    const update = new Array<LineHandle>()
-
-    doc.eachLine(from, to, line => {
-      if (force) {
-        update.push(line)
-        return
-      }
-
-      const lineInfo = cm.lineInfo(line)
-
-      if (
-        lineInfo.gutterMarkers === undefined ||
-        !('diff-gutter' in lineInfo.gutterMarkers)
-      ) {
-        update.push(line)
-      }
-    })
-
-    if (update.length === 0) {
-      return
-    }
-
     cm.operation(() => {
-      for (const line of update) {
+      doc.eachLine(from, to, line => {
+        const lineInfo = cm.lineInfo(line)
         const lineNumber = doc.getLineNumber(line)
 
+        // Clear?
         if (lineNumber === null) {
-          // Clear?
-          continue
+          return
         }
 
         const diffLine = diffLineForIndex(this.props.hunks, lineNumber)
 
         if (diffLine === null) {
-          continue
+          return
         }
 
-        const marker = this.createGutterMarker(lineNumber, line, diffLine)
-
-        cm.setGutterMarker(line, 'diff-gutter', marker)
-      }
+        let marker: HTMLElement | null = null
+        if (lineInfo.gutterMarkers && 'diff-gutter' in lineInfo.gutterMarkers) {
+          marker = lineInfo.gutterMarkers['diff-gutter'] as HTMLElement
+          this.updateGutterMarker(marker, lineNumber, line, diffLine)
+        } else {
+          marker = this.createGutterMarker(lineNumber, line, diffLine)
+          cm.setGutterMarker(line, 'diff-gutter', marker)
+        }
+      })
     })
   }
 
-  private getGutterLineClassName(index: number, diffLine: DiffLine): string {
+  private getGutterLineClassNameInfo(
+    index: number,
+    diffLine: DiffLine
+  ): { [className: string]: boolean } {
     let isIncluded = false
     const isIncludeable = diffLine.isIncludeableLine()
 
@@ -735,19 +721,23 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
 
     const { type } = diffLine
 
-    return classNames(
-      'diff-line-gutter',
-      // hoverClass,
-      {
-        'diff-add': type === DiffLineType.Add,
-        'diff-delete': type === DiffLineType.Delete,
-        'diff-context': type === DiffLineType.Context,
-        'diff-hunk': type === DiffLineType.Hunk,
-        'read-only': this.props.readOnly,
-        includeable: isIncludeable,
-        [selectedLineClass]: isIncluded,
-      }
-    )
+    const hover =
+      this.hunkHighlightRange === null
+        ? false
+        : index >= this.hunkHighlightRange.start &&
+          index <= this.hunkHighlightRange.end
+
+    return {
+      'diff-line-gutter': true,
+      'diff-add': type === DiffLineType.Add,
+      'diff-delete': type === DiffLineType.Delete,
+      'diff-context': type === DiffLineType.Context,
+      'diff-hunk': type === DiffLineType.Hunk,
+      'read-only': this.props.readOnly,
+      includeable: isIncludeable && !this.props.readOnly,
+      [selectedLineClass]: isIncluded,
+      [hoverCssClass]: hover,
+    }
   }
 
   private createGutterMarker(
@@ -755,27 +745,47 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     line: LineHandle,
     diffLine: DiffLine
   ): HTMLElement | null {
-    const wrapper = document.createElement('div')
-    wrapper.className = this.getGutterLineClassName(index, diffLine)
-
-    if (!this.props.readOnly && diffLine.isIncludeableLine()) {
-      wrapper.setAttribute('role', 'button')
-    }
+    const marker = document.createElement('div')
+    marker.className = 'diff-line-gutter'
 
     const oldLineNumber = document.createElement('div')
     oldLineNumber.textContent =
       diffLine.oldLineNumber === null ? '' : `${diffLine.oldLineNumber}`
     oldLineNumber.classList.add('diff-line-number', 'before')
+    marker.appendChild(oldLineNumber)
 
     const newLineNumber = document.createElement('div')
     newLineNumber.textContent =
       diffLine.newLineNumber === null ? '' : `${diffLine.newLineNumber}`
     newLineNumber.classList.add('diff-line-number', 'after')
+    marker.appendChild(newLineNumber)
 
-    wrapper.appendChild(oldLineNumber)
-    wrapper.appendChild(newLineNumber)
+    this.updateGutterMarker(marker, index, line, diffLine)
 
-    return wrapper
+    return marker
+  }
+
+  private updateGutterMarker(
+    marker: HTMLElement,
+    index: number,
+    line: LineHandle,
+    diffLine: DiffLine
+  ) {
+    const classNameInfo = this.getGutterLineClassNameInfo(index, diffLine)
+    for (const [className, include] of Object.entries(classNameInfo)) {
+      if (include) {
+        marker.classList.add(className)
+      } else {
+        marker.classList.remove(className)
+      }
+    }
+    if (!this.props.readOnly && diffLine.isIncludeableLine()) {
+      marker.setAttribute('role', 'button')
+    } else {
+      marker.removeAttribute('role')
+    }
+  }
+
   }
 
   public componentWillReceiveProps(nextProps: ITextDiffProps) {
@@ -825,7 +835,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
           // the viewport.
           if (this.props.text === prevProps.text) {
             const { from, to } = this.codeMirror.getViewport()
-            this.onViewportChange(this.codeMirror, from, to, true)
+            this.onViewportChange(this.codeMirror, from, to)
           }
         }
       }
