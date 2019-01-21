@@ -20,7 +20,7 @@ interface ICodeMirrorHostProps {
   readonly className?: string
 
   /** The text contents for the editor */
-  readonly value: string
+  readonly value: string | CodeMirror.Doc
 
   /** Any CodeMirror specific settings */
   readonly options?: CodeMirror.EditorConfiguration
@@ -78,7 +78,15 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
     this.codeMirror.on('beforeSelectionChange', this.beforeSelectionChanged)
     this.codeMirror.on('copy', this.onCopy)
 
-    this.codeMirror.setValue(this.props.value)
+    this.updateDoc(this.codeMirror, this.props.value)
+  }
+
+  private updateDoc(cm: CodeMirror.Editor, value: string | CodeMirror.Doc) {
+    if (typeof this.props.value === 'string') {
+      cm.setValue(this.props.value)
+    } else {
+      cm.swapDoc(this.props.value)
+    }
   }
 
   private onCopy = (instance: CodeMirror.Editor, event: Event) => {
@@ -101,9 +109,9 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
     }
   }
 
-  public componentWillReceiveProps(nextProps: ICodeMirrorHostProps) {
-    if (this.props.value !== nextProps.value) {
-      this.codeMirror!.setValue(nextProps.value)
+  public componentDidUpdate(prevProps: ICodeMirrorHostProps) {
+    if (this.codeMirror && this.props.value !== prevProps.value) {
+      this.updateDoc(this.codeMirror, this.props.value)
     }
   }
 
