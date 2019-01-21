@@ -318,63 +318,43 @@ export class NoChanges extends React.Component<
       return null
     }
 
-    const itemId: MenuIDs = 'open-external-editor'
-    const menuItem = this.getMenuItemInfo(itemId)
-
-    if (menuItem === undefined) {
-      log.error(`Could not find matching menu item for ${itemId}`)
-      return null
-    }
-
-    const preferencesMenuItem = this.getMenuItemInfo('preferences')
-
-    if (preferencesMenuItem === undefined) {
-      log.error(`Could not find matching menu item for ${itemId}`)
-      return null
-    }
-
-    const title = `Open the repository in your external editor`
-
-    const description = (
-      <>
-        Configure which editor you wish to use in{' '}
-        <LinkButton onClick={this.openPreferences}>
-          {__DARWIN__ ? 'preferences' : 'options'}
-        </LinkButton>
-      </>
+    return this.tryRenderMenuBackedAction(
+      'open-external-editor',
+      'external editor'
     )
-
-    return this.renderMenuBackedAction(itemId, title, description)
   }
 
   private renderOpenInShell() {
-    const itemId: MenuIDs = 'open-in-shell'
-    const menuItem = this.getMenuItemInfo(itemId)
+    return this.tryRenderMenuBackedAction('open-in-shell', 'shell')
+  }
+
+  private tryRenderMenuBackedAction(menuId: MenuIDs, whatToOpen: string) {
+    const menuItem = this.getMenuItemInfo(menuId)
 
     if (menuItem === undefined) {
-      log.error(`Could not find matching menu item for ${itemId}`)
+      log.error(`Could not find matching menu item for ${menuId}`)
       return null
     }
 
     const preferencesMenuItem = this.getMenuItemInfo('preferences')
 
     if (preferencesMenuItem === undefined) {
-      log.error(`Could not find matching menu item for ${itemId}`)
+      log.error(`Could not find matching menu item for ${menuId}`)
       return null
     }
 
-    const title = `Open the repository in your shell`
+    const title = `Open the repository in your ${whatToOpen}`
 
     const description = (
       <>
-        Configure which shell you wish to use in{' '}
+        Configure which ${whatToOpen} you wish to use in{' '}
         <LinkButton onClick={this.openPreferences}>
           {__DARWIN__ ? 'preferences' : 'options'}
         </LinkButton>
       </>
     )
 
-    return this.renderMenuBackedAction(itemId, title, description)
+    return this.renderMenuBackedAction(menuId, title, description)
   }
 
   private renderRemoteAction() {
