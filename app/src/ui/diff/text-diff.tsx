@@ -1,10 +1,7 @@
 import * as React from 'react'
-import * as ReactDOM from 'react-dom'
 import { clipboard } from 'electron'
-import { Editor, LineHandle } from 'codemirror'
+import { Editor, LineHandle, Doc } from 'codemirror'
 import { Disposable } from 'event-kit'
-
-import { fatalError } from '../../lib/fatal-error'
 
 import {
   DiffHunk,
@@ -17,7 +14,7 @@ import {
   CommittedFileChange,
 } from '../../models/status'
 
-import { Octicon, OcticonSymbol } from '../octicons'
+import { OcticonSymbol } from '../octicons'
 
 import { IEditorConfigurationExtra } from './editor-configuration-extra'
 import { DiffSyntaxMode, IDiffSyntaxModeSpec } from './diff-syntax-mode'
@@ -25,11 +22,9 @@ import { CodeMirrorHost } from './code-mirror-host'
 import { DiffLineGutter } from './diff-line-gutter'
 import {
   diffLineForIndex,
-  diffHunkForIndex,
   findInteractiveDiffRange,
   lineNumberForDiffLine,
 } from './diff-explorer'
-import { RangeSelectionSizePixels } from './edge-detection'
 
 import { ISelectionStrategy } from './selection/selection-strategy'
 import { RangeSelection } from './selection/range-selection-strategy'
@@ -44,6 +39,7 @@ import { relativeChanges } from './changed-range'
 import { Repository } from '../../models/repository'
 import memoizeOne from 'memoize-one'
 import { selectedLineClass, hoverCssClass } from './selection/selection'
+import { arrayEquals } from '../../lib/equality'
 
 /** The longest line for which we'd try to calculate a line diff. */
 const MaxIntraLineDiffStringLength = 4096
@@ -128,6 +124,65 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     return text.replace(/\r(?=\n|$)/g, '')
   })
 
+  private getCodeMirrorDocument = memoizeOne(
+    (text: string, noNewlineIndicatorLines: ReadonlyArray<number>) => {
+      const doc = new Doc(
+        this.getFormattedText(text),
+        { name: DiffSyntaxMode.ModeName },
+        defaultEditorOptions.firstLineNumber,
+        defaultEditorOptions.lineSeparator
+      )
+
+      for (const noNewlineLine of noNewlineIndicatorLines) {
+        const pos = {
+          line: noNewlineLine,
+          ch: doc.getLine(noNewlineLine).length,
+        }
+        const widget = document.createElement('span')
+        widget.title = 'No newline at end of file'
+
+        var xmlns = 'http://www.w3.org/2000/svg'
+        const svgElem = document.createElementNS(xmlns, 'svg')
+        svgElem.setAttribute('aria-hidden', 'true')
+        svgElem.setAttribute('version', '1.1')
+        svgElem.setAttribute(
+          'viewBox',
+          `0 0 ${narrowNoNewlineSymbol.w} ${narrowNoNewlineSymbol.h}`
+        )
+        svgElem.classList.add('no-newline')
+        const pathElem = document.createElementNS(xmlns, 'path')
+        pathElem.setAttribute('d', narrowNoNewlineSymbol.d)
+        pathElem.textContent = 'No newline at end of file'
+        svgElem.appendChild(pathElem)
+
+        widget.appendChild(svgElem)
+
+        doc.setBookmark(pos, { widget })
+      }
+
+      return doc
+    },
+    (x, y) => {
+      if (Array.isArray(x) && Array.isArray(y)) {
+        return arrayEquals(x, y)
+      }
+      return x === y
+    }
+  )
+
+  private getNoNewlineIndicatorLines = memoizeOne(
+    (hunks: ReadonlyArray<DiffHunk>) => {
+      let lines = new Array<number>()
+      for (const hunk of hunks) {
+        for (const line of hunk.lines) {
+          if (line.noTrailingNewLine) {
+            lines.push(lineNumberForDiffLine(line, hunks))
+          }
+        }
+      }
+      return lines
+    }
+  )
 
   /**
    * A mapping from CodeMirror line handles to disposables which, when disposed
@@ -194,25 +249,6 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     this.lineCleanup.clear()
 
     document.removeEventListener('mouseup', this.onDocumentMouseUp)
-  }
-
-  private updateRangeHoverState = (
-    start: number,
-    end: number,
-    show: boolean
-  ) => {
-    for (let i = start; i <= end; i++) {
-      this.hoverLine(i, show)
-    }
-  }
-
-  private hoverLine = (row: number, include: boolean) => {
-    const element = this.cachedGutterElements.get(row)
-
-    // element may not be drawn by the editor, so updating it isn't necessary
-    if (element) {
-      element.setHover(include)
-    }
   }
 
   /**
@@ -304,262 +340,8 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     this.selection = null
   }
 
-  private onGutterMouseDown = (
-    index: number,
-    hunks: ReadonlyArray<DiffHunk>,
-    isRangeSelection: boolean
-  ) => {
-    if (!(this.props.file instanceof WorkingDirectoryFileChange)) {
-      fatalError(
-        'must not start selection when selected file is not a WorkingDirectoryFileChange'
-      )
-      return
-    }
-
-    if (isRangeSelection) {
-      const hunk = diffHunkForIndex(hunks, index)
-      if (!hunk) {
-        console.error('unable to find hunk for given line in diff')
-      }
-    }
-    this.startSelection(this.props.file, hunks, index, isRangeSelection)
-  }
-
-  private onGutterMouseMove = (index: number) => {
-    if (!this.selection) {
-      return
-    }
-
-    this.selection.update(index)
-    this.selection.paint(this.cachedGutterElements)
-  }
-
-  private onDiffTextMouseMove = (
-    ev: MouseEvent,
-    hunks: ReadonlyArray<DiffHunk>,
-    index: number
-  ) => {
-    const isActive = this.isMouseCursorNearGutter(ev)
-    if (isActive === null) {
-      return
-    }
-
-    const diffLine = diffLineForIndex(hunks, index)
-    if (!diffLine) {
-      return
-    }
-
-    if (!diffLine.isIncludeableLine()) {
-      return
-    }
-
-    const range = findInteractiveDiffRange(hunks, index)
-    if (!range) {
-      console.error('unable to find range for given index in diff')
-      return
-    }
-
-    this.updateRangeHoverState(range.start, range.end, isActive)
-  }
-
-  private onDiffTextMouseDown = (
-    ev: MouseEvent,
-    hunks: ReadonlyArray<DiffHunk>,
-    index: number
-  ) => {
-    const isActive = this.isMouseCursorNearGutter(ev)
-
-    if (isActive) {
-      // this line is important because it prevents the codemirror editor
-      // from handling the event and resetting the scroll position.
-      // it doesn't do this when you click on elements in the gutter,
-      // which is an amazing joke to have placed upon me right now
-      ev.preventDefault()
-
-      if (!(this.props.file instanceof WorkingDirectoryFileChange)) {
-        fatalError(
-          'must not start selection when selected file is not a WorkingDirectoryFileChange'
-        )
-        return
-      }
-
-      this.startSelection(this.props.file, hunks, index, true)
-    }
-  }
-
-  private onDiffTextMouseLeave = (
-    ev: MouseEvent,
-    hunks: ReadonlyArray<DiffHunk>,
-    index: number
-  ) => {
-    const range = findInteractiveDiffRange(hunks, index)
-    if (!range) {
-      console.error('unable to find range for given index in diff')
-      return
-    }
-
-    this.updateRangeHoverState(range.start, range.end, false)
-  }
-
-  private isMouseCursorNearGutter = (ev: MouseEvent): boolean | null => {
-    const width = 125
-
-    if (!width) {
-      // should fail earlier than this with a helpful error message
-      return null
-    }
-
-    const deltaX = ev.layerX - width
-    return deltaX >= 0 && deltaX <= RangeSelectionSizePixels
-  }
-
   private isSelectionEnabled = () => {
     return this.selection == null
-  }
-
-  private restoreScrollPosition(cm: Editor) {
-    const scrollPosition = this.scrollPositionToRestore
-    if (cm && scrollPosition) {
-      cm.scrollTo(scrollPosition.left, scrollPosition.top)
-    }
-  }
-
-  private renderLine = (instance: any, line: any, element: HTMLElement) => {
-    // TODO!
-    if (1 / 1 !== Infinity) {
-      return
-    }
-
-    const existingLineDisposable = this.lineCleanup.get(line)
-
-    // If we can find the line in our cleanup list that means the line is
-    // being re-rendered. Agains, CodeMirror doesn't fire the 'delete' event
-    // when this happens.
-    if (existingLineDisposable) {
-      existingLineDisposable.dispose()
-      this.lineCleanup.delete(line)
-    }
-
-    const index = instance.getLineNumber(line) as number
-
-    const diffLine = diffLineForIndex(this.props.hunks, index)
-    if (diffLine) {
-      const diffLineElement = element.children[0] as HTMLSpanElement
-
-      let noNewlineReactContainer: HTMLSpanElement | null = null
-
-      if (diffLine.noTrailingNewLine) {
-        noNewlineReactContainer = document.createElement('span')
-        noNewlineReactContainer.setAttribute(
-          'title',
-          'No newline at end of file'
-        )
-        ReactDOM.render(
-          <Octicon symbol={narrowNoNewlineSymbol} className="no-newline" />,
-          noNewlineReactContainer
-        )
-        diffLineElement.appendChild(noNewlineReactContainer)
-      }
-
-      const gutterReactContainer = document.createElement('span')
-
-      let isIncluded = false
-      if (this.props.file instanceof WorkingDirectoryFileChange) {
-        isIncluded = this.props.file.selection.isSelected(index)
-      }
-
-      const cache = this.cachedGutterElements
-
-      const hunks = this.props.hunks
-
-      ReactDOM.render(
-        <DiffLineGutter
-          line={diffLine}
-          isIncluded={isIncluded}
-          index={index}
-          readOnly={this.props.readOnly}
-          hunks={hunks}
-          updateRangeHoverState={this.updateRangeHoverState}
-          isSelectionEnabled={this.isSelectionEnabled}
-          onMouseDown={this.onGutterMouseDown}
-          onMouseMove={this.onGutterMouseMove}
-        />,
-        gutterReactContainer,
-        function(this: DiffLineGutter) {
-          if (this !== undefined) {
-            cache.set(index, this)
-          }
-        }
-      )
-
-      const onMouseMoveLine: (ev: MouseEvent) => void = ev => {
-        this.onDiffTextMouseMove(ev, hunks, index)
-      }
-
-      const onMouseDownLine: (ev: MouseEvent) => void = ev => {
-        this.onDiffTextMouseDown(ev, hunks, index)
-      }
-
-      const onMouseLeaveLine: (ev: MouseEvent) => void = ev => {
-        this.onDiffTextMouseLeave(ev, hunks, index)
-      }
-
-      if (!this.props.readOnly) {
-        diffLineElement.addEventListener('mousemove', onMouseMoveLine)
-        diffLineElement.addEventListener('mousedown', onMouseDownLine)
-        diffLineElement.addEventListener('mouseleave', onMouseLeaveLine)
-      }
-
-      element.insertBefore(gutterReactContainer, diffLineElement)
-
-      // Hack(ish?). In order to be a real good citizen we need to unsubscribe from
-      // the line delete event once we've been called once or the component has been
-      // unmounted. In the latter case it's _probably_ not strictly necessary since
-      // the only thing gc rooted by the event should be isolated and eligble for
-      // collection. But let's be extra cautious I guess.
-      //
-      // The only way to unsubscribe is to pass the exact same function given to the
-      // 'on' function to the 'off' so we need a reference to ourselves, basically.
-      let deleteHandler: () => void // eslint-disable-line prefer-const
-
-      // Since we manually render a react component we have to take care of unmounting
-      // it or else we'll leak memory. This disposable will unmount the component.
-      //
-      // See https://facebook.github.io/react/blog/2015/10/01/react-render-and-top-level-api.html
-      const gutterCleanup = new Disposable(() => {
-        this.cachedGutterElements.delete(index)
-
-        ReactDOM.unmountComponentAtNode(gutterReactContainer)
-
-        if (noNewlineReactContainer) {
-          ReactDOM.unmountComponentAtNode(noNewlineReactContainer)
-        }
-
-        if (!this.props.readOnly) {
-          diffLineElement.removeEventListener('mousemove', onMouseMoveLine)
-          diffLineElement.removeEventListener('mousedown', onMouseDownLine)
-          diffLineElement.removeEventListener('mouseleave', onMouseLeaveLine)
-        }
-
-        line.off('delete', deleteHandler)
-      })
-
-      // Add the cleanup disposable to our list of disposables so that we clean up when
-      // this component is unmounted or when the line is re-rendered. When either of that
-      // happens the line 'delete' event doesn't  fire.
-      this.lineCleanup.set(line, gutterCleanup)
-
-      // If the line delete event fires we dispose of the disposable (disposing is
-      // idempotent)
-      deleteHandler = () => {
-        const disp = this.lineCleanup.get(line)
-        if (disp) {
-          this.lineCleanup.delete(line)
-          disp.dispose()
-        }
-      }
-      line.on('delete', deleteHandler)
-    }
   }
 
   private onGutterClick = (
@@ -589,6 +371,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     this.codeMirror = newEditor
 
     if (this.codeMirror !== null) {
+      this.codeMirror.on('gutterClick', this.onGutterClick)
       this.codeMirror.on('gutterClick', this.onGutterClick)
     }
   }
@@ -622,10 +405,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     }
   }
 
-  private markIntraLineChanges(
-    codeMirror: Editor,
-    hunks: ReadonlyArray<DiffHunk>
-  ) {
+  private markIntraLineChanges(doc: Doc, hunks: ReadonlyArray<DiffHunk>) {
     for (const hunk of hunks) {
       const additions = hunk.lines.filter(l => l.type === DiffLineType.Add)
       const deletions = hunk.lines.filter(l => l.type === DiffLineType.Delete)
@@ -659,9 +439,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
               line: addLineNumber,
               ch: addRange.location + addRange.length + 1,
             }
-            codeMirror
-              .getDoc()
-              .markText(addFrom, addTo, { className: 'cm-diff-add-inner' })
+            doc.markText(addFrom, addTo, { className: 'cm-diff-add-inner' })
           }
         }
 
@@ -677,7 +455,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
               line: deleteLineNumber,
               ch: deleteRange.location + deleteRange.length + 1,
             }
-            codeMirror.getDoc().markText(deleteFrom, deleteTo, {
+            doc.markText(deleteFrom, deleteTo, {
               className: 'cm-diff-delete-inner',
             })
           }
@@ -686,16 +464,11 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     }
   }
 
-  private onChanges = (cm: Editor) => {
-
-    this.markIntraLineChanges(cm, this.props.hunks)
+  private onSwapDoc = (cm: Editor, oldDoc: Doc) => {
+    this.markIntraLineChanges(cm.getDoc(), this.props.hunks)
   }
 
-  private onViewportChange = (
-    cm: CodeMirror.Editor,
-    from: number,
-    to: number
-  ) => {
+  private onViewportChange = (cm: Editor, from: number, to: number) => {
     const doc = cm.getDoc()
 
     cm.operation(() => {
@@ -860,13 +633,6 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     this.startSelection(this.props.file, this.props.hunks, lineNumber, true)
   }
 
-  public componentWillReceiveProps(nextProps: ITextDiffProps) {
-    const codeMirror = this.codeMirror
-    if (codeMirror && this.props.text !== nextProps.text) {
-      codeMirror.setOption('mode', { name: DiffSyntaxMode.ModeName })
-    }
-  }
-
   public componentWillUnmount() {
     this.dispose()
   }
@@ -930,15 +696,19 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   }
 
   public render() {
+    const doc = this.getCodeMirrorDocument(
+      this.props.text,
+      this.getNoNewlineIndicatorLines(this.props.hunks)
+    )
+
     return (
       <CodeMirrorHost
         className="diff-code-mirror"
-        value={this.getFormattedText(this.props.text)}
+        value={doc}
         options={defaultEditorOptions}
         isSelectionEnabled={this.isSelectionEnabled}
-        onChanges={this.onChanges}
+        onSwapDoc={this.onSwapDoc}
         onViewportChange={this.onViewportChange}
-        onRenderLine={this.renderLine}
         ref={this.getAndStoreCodeMirrorInstance}
         onCopy={this.onCopy}
       />
