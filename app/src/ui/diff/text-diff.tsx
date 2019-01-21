@@ -301,7 +301,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     }
 
     // A range selection is when the user clicks on the "hunk handle"
-    // which is a hit area spanning 20 or so pixels on either side of
+    // which is a hit area spanning 10 or so pixels on either side of
     // the gutter border, extending into the text area. We capture the
     // mouse down event on that hunk handle and for the mouse up event
     // we need to make sure the user is still within that hunk handle
