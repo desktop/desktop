@@ -69,11 +69,13 @@
 
 // The container element which holds the before and after
 // diff-line-number spans.
-.diff-line-gutter {
+.CodeMirror-lines .diff-line-gutter {
   display: flex;
   height: 100%;
   background: var(--diff-gutter-background-color);
   box-sizing: border-box;
+  position: relative;
+  cursor: default;
 
   * {
     cursor: default;
@@ -113,6 +115,10 @@
 
   &.read-only .after {
     border-right-width: 1px;
+  }
+
+  &.read-only {
+    pointer-events: none;
   }
 }
 
