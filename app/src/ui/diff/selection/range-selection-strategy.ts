@@ -10,6 +10,13 @@ export class RangeSelection implements ISelectionStrategy {
   private readonly _desiredSelection: boolean
   private readonly _snapshot: DiffSelection
 
+  public get start() {
+    return this._start
+  }
+  public get end() {
+    return this._end
+  }
+
   public constructor(
     start: number,
     end: number,

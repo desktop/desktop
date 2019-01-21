@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import * as classNames from 'classnames'
 import { clipboard } from 'electron'
 import { Editor, LineHandle } from 'codemirror'
 import { Disposable } from 'event-kit'
@@ -44,7 +43,7 @@ import {
 import { relativeChanges } from './changed-range'
 import { Repository } from '../../models/repository'
 import memoizeOne from 'memoize-one'
-import { selectedLineClass } from './selection/selection'
+import { selectedLineClass, hoverCssClass } from './selection/selection'
 
 /** The longest line for which we'd try to calculate a line diff. */
 const MaxIntraLineDiffStringLength = 4096
@@ -106,6 +105,7 @@ const defaultEditorOptions: IEditorConfigurationExtra = {
 
 export class TextDiff extends React.Component<ITextDiffProps, {}> {
   private codeMirror: Editor | null = null
+  private hunkHighlightRange: { start: number; end: number } | null = null
 
   private getFormattedText = memoizeOne((text: string) => {
     // If the text looks like it could have been formatted using Windows
@@ -255,8 +255,44 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     document.addEventListener('mouseup', this.onDocumentMouseUp, { once: true })
   }
 
+  private cancelSelection = () => {
+    this.selection = null
+  }
+
   private onDocumentMouseUp = (ev: MouseEvent) => {
     ev.preventDefault()
+
+    if (this.codeMirror === null || this.selection === null) {
+      return this.cancelSelection()
+    }
+
+    // A range selection is when the user clicks on the "hunk handle"
+    // which is a hit area spanning 20 or so pixels on either side of
+    // the gutter border, extending into the text area. We capture the
+    // mouse down event on that hunk handle and for the mouse up event
+    // we need to make sure the user is still within that hunk handle
+    // section and in the correct range.
+    if (this.selection instanceof RangeSelection) {
+      // Is the pointer over something that might be a hunk handle?
+      if (ev.target === null || !(ev.target instanceof HTMLElement)) {
+        return this.cancelSelection()
+      }
+
+      // Is it a hunk handle?
+      if (!ev.target.classList.contains('hunk-handle')) {
+        return this.cancelSelection()
+      }
+
+      const { start, end } = this.selection
+      const lineNumber = this.codeMirror.lineAtHeight(ev.y)
+
+      // Is the pointer over the same range (i.e hunk) that the
+      // selection was originally started from?
+      if (lineNumber < start || lineNumber > end) {
+        return this.cancelSelection()
+      }
+    }
+
     this.endSelection()
   }
 
@@ -749,6 +785,13 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     newLineNumber.classList.add('diff-line-number', 'after')
     marker.appendChild(newLineNumber)
 
+    const hunkHandle = document.createElement('div')
+    hunkHandle.addEventListener('mouseenter', this.onHunkHandleMouseEnter)
+    hunkHandle.addEventListener('mouseleave', this.onHunkHandleMouseLeave)
+    hunkHandle.addEventListener('mousedown', this.onHunkHandleMouseDown)
+    hunkHandle.classList.add('hunk-handle')
+    marker.appendChild(hunkHandle)
+
     this.updateGutterMarker(marker, index, line, diffLine)
 
     return marker
@@ -775,6 +818,52 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     }
   }
 
+  private onHunkHandleMouseEnter = (ev: MouseEvent) => {
+    if (this.codeMirror === null || this.props.readOnly) {
+      return
+    }
+    const lineNumber = this.codeMirror.lineAtHeight(ev.y)
+
+    const diffLine = diffLineForIndex(this.props.hunks, lineNumber)
+
+    if (!diffLine || !diffLine.isIncludeableLine()) {
+      return
+    }
+
+    const range = findInteractiveDiffRange(this.props.hunks, lineNumber)
+
+    this.hunkHighlightRange = range
+    console.log('hunk handle mouse enter')
+    this.updateViewport()
+  }
+
+  private updateViewport() {
+    if (!this.codeMirror) {
+      return
+    }
+    const { from, to } = this.codeMirror.getViewport()
+    this.onViewportChange(this.codeMirror, from, to)
+  }
+
+  private onHunkHandleMouseLeave = (ev: MouseEvent) => {
+    console.log('hunk handle mouse leave')
+    this.hunkHighlightRange = null
+    this.updateViewport()
+  }
+
+  private onHunkHandleMouseDown = (ev: MouseEvent) => {
+    if (!this.codeMirror) {
+      return
+    }
+
+    if (!(this.props.file instanceof WorkingDirectoryFileChange)) {
+      return
+    }
+
+    const lineNumber = this.codeMirror.lineAtHeight(ev.y)
+
+    ev.preventDefault()
+    this.startSelection(this.props.file, this.props.hunks, lineNumber, true)
   }
 
   public componentWillReceiveProps(nextProps: ITextDiffProps) {
