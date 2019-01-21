@@ -76,10 +76,7 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
     this.codeMirror.on('changes', this.onChanges)
     this.codeMirror.on('viewportChange', this.onViewportChange)
     this.codeMirror.on('beforeSelectionChange', this.beforeSelectionChanged)
-
-    // The type declaration for this is wrong.
-    // See https://github.com/DefinitelyTyped/DefinitelyTyped/pull/18824.
-    this.codeMirror.on('copy', this.onCopy as any)
+    this.codeMirror.on('copy', this.onCopy)
 
     this.codeMirror.setValue(this.props.value)
   }
