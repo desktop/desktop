@@ -350,7 +350,6 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     gutter: string,
     clickEvent: Event
   ) => {
-    console.log(`${gutter} clicked on line ${line}`)
     const { file } = this.props
 
     if (file instanceof WorkingDirectoryFileChange) {
@@ -607,7 +606,6 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     const range = findInteractiveDiffRange(this.props.hunks, lineNumber)
 
     this.hunkHighlightRange = range
-    console.log('hunk handle mouse enter')
     this.updateViewport()
   }
 
@@ -620,7 +618,6 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   }
 
   private onHunkHandleMouseLeave = (ev: MouseEvent) => {
-    console.log('hunk handle mouse leave')
     this.hunkHighlightRange = null
     this.updateViewport()
   }
