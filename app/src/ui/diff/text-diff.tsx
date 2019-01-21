@@ -292,7 +292,11 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   private onDocumentMouseUp = (ev: MouseEvent) => {
     ev.preventDefault()
 
-    if (this.codeMirror === null || this.selection === null) {
+    if (this.selection === null) {
+      return
+    }
+
+    if (this.codeMirror === null) {
       return this.cancelSelection()
     }
 
