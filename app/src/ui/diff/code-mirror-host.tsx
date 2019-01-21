@@ -47,6 +47,8 @@ interface ICodeMirrorHostProps {
     to: number
   ) => void
 
+  readonly onSwapDoc?: (cm: CodeMirror.Editor, oldDoc: CodeMirror.Doc) => void
+
   /**
    * Called when content has been copied. The default behavior may be prevented
    * by calling `preventDefault` on the event.
@@ -88,8 +90,15 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
     this.codeMirror.on('viewportChange', this.onViewportChange)
     this.codeMirror.on('beforeSelectionChange', this.beforeSelectionChanged)
     this.codeMirror.on('copy', this.onCopy)
+    this.codeMirror.on('swapDoc', this.onSwapDoc as any)
 
     CodeMirrorHost.updateDoc(this.codeMirror, this.props.value)
+  }
+
+  private onSwapDoc = (cm: CodeMirror.Editor, oldDoc: CodeMirror.Doc) => {
+    if (this.props.onSwapDoc) {
+      this.props.onSwapDoc(cm, oldDoc)
+    }
   }
 
   private onCopy = (instance: CodeMirror.Editor, event: Event) => {
@@ -107,6 +116,7 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
       cm.off('renderLine', this.onRenderLine)
       cm.off('beforeSelectionChange', this.beforeSelectionChanged)
       cm.off('copy', this.onCopy)
+      cm.off('swapDoc', this.onSwapDoc as any)
 
       this.codeMirror = null
     }
