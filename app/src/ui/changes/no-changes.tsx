@@ -347,7 +347,7 @@ export class NoChanges extends React.Component<
 
     const description = (
       <>
-        Configure which ${whatToOpen} you wish to use in{' '}
+        Configure which {whatToOpen} you wish to use in{' '}
         <LinkButton onClick={this.openPreferences}>
           {__DARWIN__ ? 'preferences' : 'options'}
         </LinkButton>
