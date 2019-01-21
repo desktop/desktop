@@ -643,43 +643,34 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     // tslint:disable-next-line:react-proper-lifecycle-methods
     snapshot: CodeMirror.ScrollInfo | null
   ) {
-    if (this.codeMirror !== null) {
-      // No need to keep potentially tons of diff gutter DOM
-      // elements around in memory when we're switching files.
-      if (this.props.file.id !== prevProps.file.id) {
-        this.codeMirror.clearGutter('diff-gutter')
-      }
+    if (this.codeMirror === null) {
+      return
+    }
 
-      if (this.props.file instanceof WorkingDirectoryFileChange) {
-        if (
-          !(prevProps instanceof WorkingDirectoryFileChange) ||
-          this.props.file.selection !== prevProps.selection
-        ) {
-          // If the text has changed the gutters will be recreated
-          // regardless but if it hasn't then we'll need to update
-          // the viewport.
-          if (this.props.text === prevProps.text) {
-            const { from, to } = this.codeMirror.getViewport()
-            this.onViewportChange(this.codeMirror, from, to)
-          }
+    // No need to keep potentially tons of diff gutter DOM
+    // elements around in memory when we're switching files.
+    if (this.props.file.id !== prevProps.file.id) {
+      this.codeMirror.clearGutter('diff-gutter')
+    }
+
+    if (this.props.file instanceof WorkingDirectoryFileChange) {
+      if (
+        !(prevProps instanceof WorkingDirectoryFileChange) ||
+        this.props.file.selection !== prevProps.selection
+      ) {
+        // If the text has changed the gutters will be recreated
+        // regardless but if it hasn't then we'll need to update
+        // the viewport.
+        if (this.props.text === prevProps.text) {
+          const { from, to } = this.codeMirror.getViewport()
+          this.onViewportChange(this.codeMirror, from, to)
         }
       }
     }
 
-    if (this.props.text === prevProps.text) {
-      return
+    if (snapshot !== null) {
+      this.codeMirror.scrollTo(undefined, snapshot.top)
     }
-
-    if (this.codeMirror) {
-      this.codeMirror.setOption('mode', { name: DiffSyntaxMode.ModeName })
-
-      if (snapshot !== null) {
-        console.log('restoring scroll position')
-        this.codeMirror.scrollTo(undefined, snapshot.top)
-      }
-    }
-
-    this.initDiffSyntaxMode()
   }
 
   public getSnapshotBeforeUpdate(prevProps: ITextDiffProps) {
