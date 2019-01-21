@@ -115,14 +115,6 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
     }
   }
 
-  public shouldComponentUpdate(nextProps: ICodeMirrorHostProps) {
-    // NB This is the only time we actually have to re-render.
-    // Updating of values is done in componentWillReceiveProps,
-    // all event handlers are marshalled through private non-changing
-    // wrappers.
-    return nextProps.className !== this.props.className
-  }
-
   private beforeSelectionChanged = (cm: CodeMirror.Editor, changeObj: any) => {
     if (this.props.isSelectionEnabled) {
       if (!this.props.isSelectionEnabled()) {
