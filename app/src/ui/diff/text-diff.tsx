@@ -372,7 +372,6 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
 
     if (this.codeMirror !== null) {
       this.codeMirror.on('gutterClick', this.onGutterClick)
-      this.codeMirror.on('gutterClick', this.onGutterClick)
     }
   }
 
