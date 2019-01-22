@@ -35,7 +35,7 @@ export class DragDropSelection implements ISelectionStrategy {
   /**
    * Return the lower bounds of the selection range
    */
-  private get lowerIndex(): number {
+  public get lowerIndex(): number {
     if (this.start <= this.current) {
       return this.start
     }
@@ -46,12 +46,16 @@ export class DragDropSelection implements ISelectionStrategy {
   /**
    * Return the upper bounds of the selection range
    */
-  private get upperIndex(): number {
+  public get upperIndex(): number {
     if (this.start <= this.current) {
       return this.current
     }
 
     return this.start
+  }
+
+  public get length(): number {
+    return this.upperIndex - this.lowerIndex + 1
   }
 
   /**
@@ -73,11 +77,9 @@ export class DragDropSelection implements ISelectionStrategy {
    * apply the selection strategy result to the current diff
    */
   public done(): DiffSelection {
-    const length = this.upperIndex - this.lowerIndex + 1
-
     const newSelection = this.snapshot.withRangeSelection(
       this.lowerIndex,
-      length,
+      this.length,
       this.desiredSelection
     )
 
