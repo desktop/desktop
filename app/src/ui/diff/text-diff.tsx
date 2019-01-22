@@ -615,8 +615,10 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   }
 
   private onHunkHandleMouseLeave = (ev: MouseEvent) => {
-    this.hunkHighlightRange = null
-    this.updateViewport()
+    if (this.hunkHighlightRange !== null) {
+      this.hunkHighlightRange = null
+      this.updateViewport()
+    }
   }
 
   private onHunkHandleMouseDown = (ev: MouseEvent) => {
