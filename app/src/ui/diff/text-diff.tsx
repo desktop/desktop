@@ -678,8 +678,8 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   }
 
   public componentWillUnmount() {
-    this.codeMirror = null
     this.cancelSelection()
+    this.codeMirror = null
   }
 
   public componentDidUpdate(
