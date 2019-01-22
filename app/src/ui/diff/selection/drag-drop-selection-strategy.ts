@@ -165,4 +165,10 @@ export class DragDropSelection implements ISelectionStrategy {
     // otherwise, just use whatever the old value was
     return this.snapshot.isSelected(index)
   }
+
+  public isIncluded(index: number) {
+    return index >= this.lowerIndex && index <= this.upperIndex
+      ? this.desiredSelection
+      : this.snapshot.isSelected(index)
+  }
 }

@@ -61,4 +61,10 @@ export class RangeSelection implements ISelectionStrategy {
 
     return newSelection
   }
+
+  public isIncluded(index: number) {
+    return index >= this.start && index <= this.end
+      ? this._desiredSelection
+      : this._snapshot.isSelected(index)
+  }
 }

@@ -14,4 +14,6 @@ export interface ISelectionStrategy {
    * get the diff selection now that the gesture is complete
    */
   done: () => DiffSelection
+
+  isIncluded: (index: number) => boolean
 }
