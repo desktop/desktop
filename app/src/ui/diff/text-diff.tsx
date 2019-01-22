@@ -248,6 +248,10 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     const selected = snapshot.isSelected(index)
     const desiredSelection = !selected
 
+    if (this.selection !== null) {
+      this.cancelSelection()
+    }
+
     if (isRangeSelection) {
       const range = findInteractiveDiffRange(hunks, index)
       if (!range) {
