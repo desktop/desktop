@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { clipboard } from 'electron'
-import { Editor, LineHandle, Doc } from 'codemirror'
+import { Editor, Doc } from 'codemirror'
 
 import {
   DiffHunk,
@@ -495,7 +495,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
         this.updateGutterMarker(marker, lineNumber, diffLine)
       } else {
         batchedOps.push(() => {
-          marker = this.createGutterMarker(lineNumber, line, diffLine)
+          marker = this.createGutterMarker(lineNumber, diffLine)
           cm.setGutterMarker(line, 'diff-gutter', marker)
         })
       }
@@ -550,11 +550,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     }
   }
 
-  private createGutterMarker(
-    index: number,
-    line: LineHandle,
-    diffLine: DiffLine
-  ): HTMLElement | null {
+  private createGutterMarker(index: number, diffLine: DiffLine) {
     const marker = document.createElement('div')
     marker.className = 'diff-line-gutter'
 
