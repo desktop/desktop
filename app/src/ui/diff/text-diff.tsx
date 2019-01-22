@@ -501,12 +501,11 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     index: number,
     diffLine: DiffLine
   ): { [className: string]: boolean } {
-    let isIncluded = false
     const isIncludeable = diffLine.isIncludeableLine()
-
-    if (this.props.file instanceof WorkingDirectoryFileChange) {
-      isIncluded = isIncludeable && this.props.file.selection.isSelected(index)
-    }
+    const isIncluded =
+      isIncludeable &&
+      this.props.file instanceof WorkingDirectoryFileChange &&
+      this.props.file.selection.isSelected(index)
 
     const { type } = diffLine
 
