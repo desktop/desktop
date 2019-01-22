@@ -448,8 +448,8 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   }
 
   private onSwapDoc = (cm: Editor, oldDoc: Doc) => {
-    this.markIntraLineChanges(cm.getDoc(), this.props.hunks)
     this.initDiffSyntaxMode()
+    this.markIntraLineChanges(cm.getDoc(), this.props.hunks)
   }
 
   private onViewportChange = (cm: Editor, from: number, to: number) => {
