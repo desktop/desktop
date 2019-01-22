@@ -146,12 +146,9 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
 
   private getCodeMirrorDocument = memoizeOne(
     (text: string, noNewlineIndicatorLines: ReadonlyArray<number>) => {
-      const doc = new Doc(
-        this.getFormattedText(text),
-        { name: DiffSyntaxMode.ModeName },
-        defaultEditorOptions.firstLineNumber,
-        defaultEditorOptions.lineSeparator
-      )
+      const { mode, firstLineNumber, lineSeparator } = defaultEditorOptions
+      const formattedText = this.getFormattedText(text)
+      const doc = new Doc(formattedText, mode, firstLineNumber, lineSeparator)
 
       for (const noNewlineLine of noNewlineIndicatorLines) {
         doc.setBookmark(
