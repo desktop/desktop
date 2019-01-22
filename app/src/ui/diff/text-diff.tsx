@@ -294,7 +294,6 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
         return this.cancelSelection()
       }
 
-      // Is it a hunk handle?
       if (!ev.target.classList.contains('hunk-handle')) {
         return this.cancelSelection()
       }
