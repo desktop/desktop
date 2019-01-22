@@ -245,8 +245,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     isRangeSelection: boolean
   ) => {
     const snapshot = file.selection
-    const selected = snapshot.isSelected(index)
-    const desiredSelection = !selected
+    const newSelection = !snapshot.isSelected(index)
 
     if (this.selection !== null) {
       this.cancelSelection()
@@ -259,14 +258,10 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
         return
       }
 
-      this.selection = new RangeSelection(
-        range.start,
-        range.end,
-        desiredSelection,
-        snapshot
-      )
+      const { start, end } = range
+      this.selection = new RangeSelection(start, end, newSelection, snapshot)
     } else {
-      this.selection = new DragDropSelection(index, desiredSelection, snapshot)
+      this.selection = new DragDropSelection(index, newSelection, snapshot)
     }
 
     document.addEventListener('mouseup', this.onDocumentMouseUp, { once: true })
