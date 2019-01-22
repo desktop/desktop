@@ -671,10 +671,8 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   }
 
   public getSnapshotBeforeUpdate(prevProps: ITextDiffProps) {
-    if (this.codeMirror) {
-      if (this.props.file.id === prevProps.file.id) {
-        return this.codeMirror.getScrollInfo()
-      }
+    if (this.codeMirror !== null && this.props.file.id === prevProps.file.id) {
+      return this.codeMirror.getScrollInfo()
     }
     return null
   }
