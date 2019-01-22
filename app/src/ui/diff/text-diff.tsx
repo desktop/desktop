@@ -641,13 +641,9 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   }
 
   private onDiffLineGutterMouseDown = (ev: MouseEvent) => {
-    // This means the hunk handle was clicked first and prevented
-    // the default action so we'll bail.
-    if (ev.defaultPrevented) {
-      return
-    }
-
-    if (!this.codeMirror) {
+    // If the event is prevented that means the hunk handle was
+    // clicked first and prevented the default action so we'll bail.
+    if (ev.defaultPrevented || this.codeMirror === null) {
       return
     }
 
@@ -657,9 +653,9 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       return
     }
 
-    const lineNumber = this.codeMirror.lineAtHeight(ev.y)
-
     ev.preventDefault()
+
+    const lineNumber = this.codeMirror.lineAtHeight(ev.y)
     this.startSelection(file, hunks, lineNumber, false)
   }
 
@@ -679,9 +675,9 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       return
     }
 
-    const lineNumber = this.codeMirror.lineAtHeight(ev.y)
-
     ev.preventDefault()
+
+    const lineNumber = this.codeMirror.lineAtHeight(ev.y)
     this.startSelection(this.props.file, this.props.hunks, lineNumber, true)
   }
 
