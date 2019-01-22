@@ -660,8 +660,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
         // regardless but if it hasn't then we'll need to update
         // the viewport.
         if (this.props.text === prevProps.text) {
-          const { from, to } = this.codeMirror.getViewport()
-          this.onViewportChange(this.codeMirror, from, to)
+          this.updateViewport()
         }
       }
     }
