@@ -41,7 +41,10 @@ async function getOldFileContent(
   repository: Repository,
   file: ChangedFile
 ): Promise<Buffer> {
-  if (file.status.kind === AppFileStatusKind.New) {
+  if (
+    file.status.kind === AppFileStatusKind.New ||
+    file.status.kind === AppFileStatusKind.Untracked
+  ) {
     return new Buffer(0)
   }
 

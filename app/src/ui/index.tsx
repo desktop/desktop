@@ -51,6 +51,7 @@ import {
 } from '../lib/source-map-support'
 import { UiActivityMonitor } from './lib/ui-activity-monitor'
 import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
+import { ApiRepositoriesStore } from '../lib/stores/api-repositories-store'
 
 if (__DEV__) {
   installDevGlobals()
@@ -128,6 +129,8 @@ const repositoryStateManager = new RepositoryStateCache(repo =>
   gitHubUserStore.getUsersForRepository(repo)
 )
 
+const apiRepositoriesStore = new ApiRepositoriesStore(accountsStore)
+
 const appStore = new AppStore(
   gitHubUserStore,
   cloningRepositoriesStore,
@@ -137,7 +140,8 @@ const appStore = new AppStore(
   accountsStore,
   repositoriesStore,
   pullRequestStore,
-  repositoryStateManager
+  repositoryStateManager,
+  apiRepositoriesStore
 )
 
 const dispatcher = new Dispatcher(appStore, repositoryStateManager, statsStore)
@@ -161,8 +165,11 @@ ipcRenderer.on('focus', () => {
   const { selectedState } = appStore.getState()
 
   // Refresh the currently selected repository on focus (if
-  // we have a selected repository).
-  if (selectedState && selectedState.type === SelectionType.Repository) {
+  // we have a selected repository, that is not cloning).
+  if (
+    selectedState &&
+    !(selectedState.type === SelectionType.CloningRepository)
+  ) {
     dispatcher.refreshRepository(selectedState.repository)
   }
 

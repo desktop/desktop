@@ -121,6 +121,11 @@ body.theme-dark {
   --box-overflow-shadow-background: linear-gradient(180deg, rgba($gray-900, 0) 0%, rgba($gray-900, 1) 90%, rgba($gray-900, 1) 100%);
 
   /**
+   * Placeholder color for input boxes
+   */
+  --box-placeholder-color: $gray-400;
+
+  /**
    * Author input (co-authors)
    */
   --co-author-tag-background-color: $blue-800;
@@ -180,6 +185,7 @@ body.theme-dark {
 
   --tab-bar-active-color: $blue;
   --tab-bar-background-color: var(--box-background-color);
+  --tab-bar-hover-background-color: $gray-800;
 
   /** Count bubble colors when used inside of a tab bar item */
   --tab-bar-count-color: var(--text-color);
@@ -196,6 +202,7 @@ body.theme-dark {
   --list-item-selected-badge-background-color: $gray-500;
   --list-item-selected-active-badge-color: $gray-900;
   --list-item-selected-active-badge-background-color: $white;
+  --list-item-hover-background-color: $gray-800;
 
   /**
    * Toast notifications are shown temporarily for things like the zoom
@@ -212,6 +219,12 @@ body.theme-dark {
    * Variables for form elements
    */
   --text-field-focus-shadow-color: rgba($blue, 0.25);
+
+  /**
+   * Blankslate actions, see `BlankslateAction` component.
+   */
+  --primary-blankslate-action-background: $blue-900;
+  --primary-blankslate-action-border-color: $blue-700;
 
   /**
    * Diff view

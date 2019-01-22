@@ -42,12 +42,28 @@ export function enableRecurseSubmodulesFlag(): boolean {
   return enableBetaFeatures()
 }
 
-/** Should the app use the MergeConflictsDialog component and flow? */
-export function enableMergeConflictsDialog(): boolean {
+/** Should the app check and warn the user about committing large files? */
+export function enableFileSizeWarningCheck(): boolean {
   return true
 }
 
 /** Should the app set protocol.version=2 for any fetch/push/pull/clone operation? */
 export function enableGitProtocolVersionTwo(): boolean {
-  return enableDevelopmentFeatures()
+  return enableBetaFeatures()
+}
+
+export function enableReadmeOverwriteWarning(): boolean {
+  return enableBetaFeatures()
+}
+
+/**
+ * Whether or not to activate the "Create PR" blankslate action.
+ *
+ * The state of the feature as of writing this is that the underlying
+ * data source required to power this feature is not reliable enough
+ * and needs looking at so we aren't ready to move this to production
+ * just yet.
+ */
+export function enableNoChangesCreatePRBlankslateAction(): boolean {
+  return enableBetaFeatures()
 }

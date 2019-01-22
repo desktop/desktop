@@ -1,21 +1,63 @@
 import { updateConflictState } from '../../../../src/lib/stores/updates/changes-state'
 import { createState, createStatus } from './changes-state-helper'
+import {
+  ManualConflictResolution,
+  ManualConflictResolutionKind,
+} from '../../../../src/models/manual-conflict-resolution'
 
 describe('updateConflictState', () => {
   const statsStore = {
     recordMergeAbortedAfterConflicts: jest.fn(),
     recordMergeSuccessAfterConflicts: jest.fn(),
   }
+  const manualResolutions = new Map<string, ManualConflictResolution>([
+    ['foo', ManualConflictResolutionKind.theirs],
+  ])
 
   it('returns null when no MERGE_HEAD file found', () => {
-    const prevState = createState({ conflictState: null })
+    const prevState = createState({
+      conflictState: {
+        currentBranch: 'old-branch',
+        currentTip: 'old-sha',
+        manualResolutions,
+      },
+    })
     const status = createStatus({ mergeHeadFound: false })
     const conflictState = updateConflictState(prevState, status, statsStore)
     expect(conflictState).toBeNull()
   })
 
+  it('preserves manual resolutions between updates in the same merge', () => {
+    const prevState = createState({
+      conflictState: {
+        currentBranch: 'old-branch',
+        currentTip: 'old-sha',
+        manualResolutions,
+      },
+    })
+    const status = createStatus({
+      mergeHeadFound: true,
+      currentBranch: 'master',
+      currentTip: 'first-sha',
+    })
+
+    const conflictState = updateConflictState(prevState, status, statsStore)
+
+    expect(conflictState).toEqual({
+      currentBranch: 'master',
+      currentTip: 'first-sha',
+      manualResolutions,
+    })
+  })
+
   it('returns null when MERGE_HEAD set but not branch or tip defined', () => {
-    const prevState = createState({ conflictState: null })
+    const prevState = createState({
+      conflictState: {
+        currentBranch: 'old-branch',
+        currentTip: 'old-sha',
+        manualResolutions,
+      },
+    })
     const status = createStatus({
       mergeHeadFound: true,
       currentBranch: undefined,
@@ -41,6 +83,7 @@ describe('updateConflictState', () => {
     expect(conflictState).toEqual({
       currentBranch: 'master',
       currentTip: 'first-sha',
+      manualResolutions: new Map<string, ManualConflictResolution>(),
     })
   })
 
@@ -49,6 +92,7 @@ describe('updateConflictState', () => {
       conflictState: {
         currentBranch: 'old-branch',
         currentTip: 'old-sha',
+        manualResolutions: new Map<string, ManualConflictResolution>(),
       },
     })
     const status = createStatus({
@@ -67,6 +111,7 @@ describe('updateConflictState', () => {
       conflictState: {
         currentBranch: 'master',
         currentTip: 'old-sha',
+        manualResolutions: new Map<string, ManualConflictResolution>(),
       },
     })
     const status = createStatus({
@@ -85,6 +130,7 @@ describe('updateConflictState', () => {
       conflictState: {
         currentBranch: 'master',
         currentTip: 'old-sha',
+        manualResolutions: new Map<string, ManualConflictResolution>(),
       },
     })
     const status = createStatus({

@@ -15,6 +15,7 @@ import {
   setupFixtureRepository,
   setupEmptyRepository,
   setupConflictedRepo,
+  setupConflictedRepoWithMultipleFiles,
 } from '../../helpers/repositories'
 
 import { GitProcess } from 'dugite'
@@ -31,6 +32,7 @@ import {
   DiffType,
 } from '../../../src/models/diff'
 import { getStatusOrThrow } from '../../helpers/status'
+import { ManualConflictResolutionKind } from '../../../src/models/manual-conflict-resolution'
 
 async function getTextDiff(
   repo: Repository,
@@ -94,7 +96,7 @@ describe('git/commit', () => {
       expect(commit).not.toBeNull()
       expect(commit!.summary).toEqual('Special commit')
       expect(commit!.body).toEqual('# this is a comment\n')
-      expect(commit!.sha.substring(0, 7)).toEqual(sha)
+      expect(commit!.shortSha).toEqual(sha)
     })
 
     it('can commit for empty repository', async () => {
@@ -186,7 +188,7 @@ describe('git/commit', () => {
       const newTip = (await getCommits(repository!, 'HEAD', 1))[0]
       expect(newTip.sha).not.toEqual(previousTip.sha)
       expect(newTip.summary).toEqual('title')
-      expect(newTip.sha.substring(0, 7)).toEqual(sha)
+      expect(newTip.shortSha).toEqual(sha)
 
       // verify that the contents of this new commit are just the new file
       const changedFiles = await getChangedFiles(repository!, newTip.sha)
@@ -293,7 +295,7 @@ describe('git/commit', () => {
       const newTip = (await getCommits(repository!, 'HEAD', 1))[0]
       expect(newTip.sha).not.toEqual(previousTip.sha)
       expect(newTip.summary).toEqual('title')
-      expect(newTip.sha.substring(0, 7)).toEqual(sha)
+      expect(newTip.shortSha).toEqual(sha)
 
       // verify that the contents of this new commit are just the modified file
       const changedFiles = await getChangedFiles(repository!, newTip.sha)
@@ -339,7 +341,7 @@ describe('git/commit', () => {
       const newTip = (await getCommits(repository!, 'HEAD', 1))[0]
       expect(newTip.sha).not.toEqual(previousTip.sha)
       expect(newTip.summary).toEqual('title')
-      expect(newTip.sha.substring(0, 7)).toEqual(sha)
+      expect(newTip.shortSha).toEqual(sha)
 
       // verify that the contents of this new commit are just the modified file
       const changedFiles = await getChangedFiles(repository!, newTip.sha)
@@ -500,7 +502,6 @@ describe('git/commit', () => {
           them: GitStatusEntry.UpdatedButUnmerged,
           us: GitStatusEntry.UpdatedButUnmerged,
         },
-        lookForConflictMarkers: true,
         conflictMarkerCount: 0,
       })
 
@@ -511,28 +512,79 @@ describe('git/commit', () => {
 
       const commits = await getCommits(repo, 'HEAD', 5)
       expect(commits[0].parentSHAs.length).toEqual(2)
-      expect(commits[0]!.sha.substring(0, 7)).toEqual(sha)
+      expect(commits[0]!.shortSha).toEqual(sha)
     })
   })
 
-  describe('createMergeCommit with a merge conflict', () => {
-    let repository: Repository
-    describe('with a merge conflict', () => {
-      beforeEach(async () => {
-        repository = await setupConflictedRepo()
+  describe('createMergeCommit', () => {
+    describe('with a simple merge conflict', () => {
+      let repository: Repository
+      describe('with a merge conflict', () => {
+        beforeEach(async () => {
+          repository = await setupConflictedRepo()
+        })
+        it('creates a merge commit', async () => {
+          const status = await getStatusOrThrow(repository)
+          const trackedFiles = status.workingDirectory.files.filter(
+            f => f.status.kind !== AppFileStatusKind.Untracked
+          )
+          const sha = await createMergeCommit(repository, trackedFiles)
+          const newStatus = await getStatusOrThrow(repository)
+          expect(sha).toHaveLength(7)
+          expect(newStatus.workingDirectory.files).toHaveLength(0)
+        })
       })
-      it('creates a merge commit', async () => {
+    })
+
+    describe('with a merge conflict and manual resolutions', () => {
+      let repository: Repository
+      beforeEach(async () => {
+        repository = await setupConflictedRepoWithMultipleFiles()
+      })
+      it('keeps files chosen to be added and commits', async () => {
         const status = await getStatusOrThrow(repository)
+        const trackedFiles = status.workingDirectory.files.filter(
+          f => f.status.kind !== AppFileStatusKind.Untracked
+        )
+        const manualResolutions = new Map([
+          ['bar', ManualConflictResolutionKind.ours],
+        ])
         const sha = await createMergeCommit(
           repository,
-          status.workingDirectory.files
+          trackedFiles,
+          manualResolutions
+        )
+        expect(await FSE.pathExists(path.join(repository.path, 'bar'))).toBe(
+          true
         )
         const newStatus = await getStatusOrThrow(repository)
         expect(sha).toHaveLength(7)
-        expect(newStatus.workingDirectory.files).toHaveLength(0)
+        expect(newStatus.workingDirectory.files).toHaveLength(1)
+      })
+      it('deletes files chosen to be removed and commits', async () => {
+        const status = await getStatusOrThrow(repository)
+        const trackedFiles = status.workingDirectory.files.filter(
+          f => f.status.kind !== AppFileStatusKind.Untracked
+        )
+        const manualResolutions = new Map([
+          ['bar', ManualConflictResolutionKind.theirs],
+        ])
+        const sha = await createMergeCommit(
+          repository,
+          trackedFiles,
+          manualResolutions
+        )
+        expect(await FSE.pathExists(path.join(repository.path, 'bar'))).toBe(
+          false
+        )
+        const newStatus = await getStatusOrThrow(repository)
+        expect(sha).toHaveLength(7)
+        expect(newStatus.workingDirectory.files).toHaveLength(1)
       })
     })
+
     describe('with no changes', () => {
+      let repository: Repository
       beforeEach(async () => {
         repository = new Repository(
           await setupFixtureRepository('test-repo'),
@@ -609,7 +661,7 @@ describe('git/commit', () => {
 
       expect(files.length).toEqual(1)
       expect(files[0].path).toContain('first')
-      expect(files[0].status.kind).toEqual(AppFileStatusKind.New)
+      expect(files[0].status.kind).toEqual(AppFileStatusKind.Untracked)
 
       const toCommit = status!.workingDirectory.withIncludeAllFiles(true)
 
@@ -623,7 +675,7 @@ describe('git/commit', () => {
       const commit = await getCommit(repo, 'HEAD')
       expect(commit).not.toBeNull()
       expect(commit!.summary).toEqual('commit again!')
-      expect(commit!.sha.substring(0, 7)).toEqual(sha)
+      expect(commit!.shortSha).toEqual(sha)
     })
   })
 })

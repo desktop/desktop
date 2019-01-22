@@ -1,5 +1,4 @@
 import * as path from 'path'
-import { expect } from 'chai'
 
 import { Repository } from '../../../src/models/repository'
 import { reset, resetPaths, GitResetMode } from '../../../src/lib/git/reset'
@@ -28,7 +27,7 @@ describe('git/reset', () => {
       await reset(repository!, GitResetMode.Hard, 'HEAD')
 
       const status = await getStatusOrThrow(repository!)
-      expect(status.workingDirectory.files.length).to.equal(0)
+      expect(status.workingDirectory.files).toHaveLength(0)
     })
   })
 
@@ -54,7 +53,7 @@ describe('git/reset', () => {
       )
 
       const status = await getStatusOrThrow(repository!)
-      expect(status.workingDirectory.files.length).to.equal(0)
+      expect(status.workingDirectory.files).toHaveLength(0)
     })
   })
 })

@@ -12,12 +12,23 @@ import {
   WorkingDirectoryFileChange,
   AppFileStatusKind,
   ConflictedFileStatus,
+  isConflictedFileStatus,
+  isConflictWithMarkers,
 } from '../../models/status'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { PathText } from '../lib/path-text'
 import { DialogHeader } from '../dialog/header'
 import { LinkButton } from '../lib/link-button'
-import { isConflictedFile } from '../../lib/status'
+import { isConflictedFile, hasUnresolvedConflicts } from '../../lib/status'
+import { DefaultCommitMessage } from '../../models/commit-message'
+import { shell } from '../../lib/app-shell'
+import { openFile } from '../../lib/open-file'
+import { showContextualMenu } from '../main-process-proxy'
+import { IMenuItem } from '../../lib/menu-item'
+import {
+  OpenWithDefaultProgramLabel,
+  RevealInFileManagerLabel,
+} from '../lib/context-menu'
 
 interface IMergeConflictsDialogProps {
   readonly dispatcher: Dispatcher
@@ -45,6 +56,20 @@ function calculateConflicts(conflictMarkers: number) {
 /** Filter working directory changes for conflicted or resolved files  */
 function getUnmergedFiles(status: WorkingDirectoryStatus) {
   return status.files.filter(f => isConflictedFile(f.status))
+}
+
+/** Filter working directory changes for resolved files  */
+function getResolvedFiles(status: WorkingDirectoryStatus) {
+  return status.files.filter(
+    f => isConflictedFileStatus(f.status) && !hasUnresolvedConflicts(f.status)
+  )
+}
+
+/** Filter working directory changes for conflicted files  */
+function getConflictedFiles(status: WorkingDirectoryStatus) {
+  return status.files.filter(
+    f => isConflictedFileStatus(f.status) && hasUnresolvedConflicts(f.status)
+  )
 }
 
 function editorButtonString(editorName: string | null): string {
@@ -83,32 +108,32 @@ export class MergeConflictsDialog extends React.Component<
    *  commits the merge displays the repository changes tab and dismisses the modal
    */
   private onSubmit = async () => {
-    await this.props.dispatcher.createMergeCommit(
+    await this.props.dispatcher.finishConflictedMerge(
       this.props.repository,
-      this.props.workingDirectory.files,
+      this.props.workingDirectory,
       {
         ourBranch: this.props.ourBranch,
         theirBranch: this.props.theirBranch,
       }
     )
-    this.props.dispatcher.setCommitMessage(this.props.repository, null)
+    this.props.dispatcher.setCommitMessage(
+      this.props.repository,
+      DefaultCommitMessage
+    )
     this.props.dispatcher.changeRepositorySection(
       this.props.repository,
       RepositorySectionTab.Changes
     )
     this.props.onDismissed()
+    this.props.dispatcher.recordGuidedConflictedMergeCompletion()
   }
 
   /**
    *  dismisses the modal and shows the abort merge warning modal
    */
   private onCancel = async () => {
-    const anyResolvedFiles = getUnmergedFiles(this.props.workingDirectory).some(
-      f =>
-        isConflictedFile(f.status) &&
-        f.status.lookForConflictMarkers &&
-        f.status.conflictMarkerCount === 0
-    )
+    const anyResolvedFiles =
+      getResolvedFiles(this.props.workingDirectory).length > 0
     if (!anyResolvedFiles) {
       await this.props.dispatcher.abortMerge(this.props.repository)
       this.props.onDismissed()
@@ -120,6 +145,23 @@ export class MergeConflictsDialog extends React.Component<
         ourBranch: this.props.ourBranch,
         theirBranch: this.props.theirBranch,
       })
+    }
+  }
+
+  private onDismissed = async () => {
+    this.props.onDismissed()
+    this.props.dispatcher.setMergeConflictsBannerState({
+      ourBranch: this.props.ourBranch,
+      popup: {
+        type: PopupType.MergeConflicts,
+        ourBranch: this.props.ourBranch,
+        theirBranch: this.props.theirBranch,
+        repository: this.props.repository,
+      },
+    })
+    this.props.dispatcher.recordMergeConflictsDialogDismissal()
+    if (getConflictedFiles(this.props.workingDirectory).length > 0) {
+      this.props.dispatcher.recordAnyConflictsLeftOnMergeConflictsDialogDismissal()
     }
   }
 
@@ -148,11 +190,10 @@ export class MergeConflictsDialog extends React.Component<
   private renderShellLink(openThisRepositoryInShell: () => void): JSX.Element {
     return (
       <div className="cli-link">
-        You can also{' '}
         <LinkButton onClick={openThisRepositoryInShell}>
-          open the command line
+          Open in command line,
         </LinkButton>{' '}
-        to resolve
+        your tool of choice, or close to resolve manually.
       </div>
     )
   }
@@ -178,7 +219,7 @@ export class MergeConflictsDialog extends React.Component<
     onOpenEditorClick: () => void
   ): JSX.Element | null {
     let content = null
-    if (status.lookForConflictMarkers) {
+    if (isConflictWithMarkers(status)) {
       const humanReadableConflicts = calculateConflicts(
         status.conflictMarkerCount
       )
@@ -191,19 +232,34 @@ export class MergeConflictsDialog extends React.Component<
 
       const tooltip = editorButtonTooltip(this.props.resolvedExternalEditor)
 
+      const onDropdownClick = this.makeDropdownClickHandler(
+        path,
+        this.props.repository.path,
+        this.props.dispatcher
+      )
+
       content = (
         <>
           <div className="column-left">
             <PathText path={path} availableWidth={200} />
             <div className="file-conflicts-status">{message}</div>
           </div>
-          <Button
-            onClick={onOpenEditorClick}
-            disabled={disabled}
-            tooltip={tooltip}
-          >
-            {editorButtonString(this.props.resolvedExternalEditor)}
-          </Button>
+          <div className="action-buttons">
+            <Button
+              onClick={onOpenEditorClick}
+              disabled={disabled}
+              tooltip={tooltip}
+              className="small-button button-group-item"
+            >
+              {editorButtonString(this.props.resolvedExternalEditor)}
+            </Button>
+            <Button
+              onClick={onDropdownClick}
+              className="small-button button-group-item arrow-menu"
+            >
+              <Octicon symbol={OcticonSymbol.triangleDown} />
+            </Button>
+          </div>
         </>
       )
     } else {
@@ -225,17 +281,34 @@ export class MergeConflictsDialog extends React.Component<
     ) : null
   }
 
+  private makeDropdownClickHandler = (
+    relativeFilePath: string,
+    repositoryFilePath: string,
+    dispatcher: Dispatcher
+  ) => {
+    return () => {
+      const absoluteFilePath = join(repositoryFilePath, relativeFilePath)
+      const items: IMenuItem[] = [
+        {
+          label: OpenWithDefaultProgramLabel,
+          action: () => openFile(absoluteFilePath, dispatcher),
+        },
+        {
+          label: RevealInFileManagerLabel,
+          action: () => shell.showItemInFolder(absoluteFilePath),
+        },
+      ]
+      showContextualMenu(items)
+    }
+  }
+
   private renderUnmergedFile(
     file: WorkingDirectoryFileChange
   ): JSX.Element | null {
     const { status } = file
     switch (status.kind) {
       case AppFileStatusKind.Conflicted:
-        const isResolved = status.lookForConflictMarkers
-          ? status.conflictMarkerCount === 0
-          : false
-
-        if (isResolved) {
+        if (!hasUnresolvedConflicts(status)) {
           return this.renderResolvedFile(file.path)
         }
 
@@ -298,9 +371,8 @@ export class MergeConflictsDialog extends React.Component<
 
   public render() {
     const unmergedFiles = getUnmergedFiles(this.props.workingDirectory)
-    const conflictedFilesCount = unmergedFiles.filter(f =>
-      isConflictedFile(f.status)
-    ).length
+    const conflictedFilesCount = getConflictedFiles(this.props.workingDirectory)
+      .length
 
     const headerTitle = this.renderHeaderTitle(
       this.props.ourBranch,
@@ -314,11 +386,16 @@ export class MergeConflictsDialog extends React.Component<
     return (
       <Dialog
         id="merge-conflicts-list"
-        dismissable={false}
-        onDismissed={this.onCancel}
+        dismissable={true}
+        onDismissed={this.onDismissed}
+        disableClickDismissalAlways={true}
         onSubmit={this.onSubmit}
       >
-        <DialogHeader title={headerTitle} dismissable={false} />
+        <DialogHeader
+          title={headerTitle}
+          dismissable={true}
+          onDismissed={this.onDismissed}
+        />
         <DialogContent>
           {this.renderContent(unmergedFiles, conflictedFilesCount)}
         </DialogContent>

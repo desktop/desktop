@@ -1,5 +1,3 @@
-import { expect } from 'chai'
-
 import { Account } from '../../src/models/account'
 import { AccountsStore } from '../../src/lib/stores'
 import { InMemoryStore, AsyncInMemoryStore } from '../helpers/stores'
@@ -21,7 +19,7 @@ describe('AccountsStore', () => {
       )
 
       const users = await accountsStore!.getAll()
-      expect(users[0].login).to.equal(newAccountLogin)
+      expect(users[0].login).toBe(newAccountLogin)
     })
   })
 })
