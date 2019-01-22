@@ -474,7 +474,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
 
       if (lineInfo.gutterMarkers && 'diff-gutter' in lineInfo.gutterMarkers) {
         marker = lineInfo.gutterMarkers['diff-gutter'] as HTMLElement
-        this.updateGutterMarker(marker, lineNumber, line, diffLine)
+        this.updateGutterMarker(marker, lineNumber, diffLine)
       } else {
         batchedOps.push(() => {
           marker = this.createGutterMarker(lineNumber, line, diffLine)
@@ -546,7 +546,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     hunkHandle.classList.add('hunk-handle')
     marker.appendChild(hunkHandle)
 
-    this.updateGutterMarker(marker, index, line, diffLine)
+    this.updateGutterMarker(marker, index, diffLine)
 
     return marker
   }
@@ -554,7 +554,6 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   private updateGutterMarker(
     marker: HTMLElement,
     index: number,
-    line: LineHandle,
     diffLine: DiffLine
   ) {
     const classNameInfo = this.getGutterLineClassNameInfo(index, diffLine)
