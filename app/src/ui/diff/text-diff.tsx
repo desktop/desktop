@@ -262,6 +262,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       this.selection = new RangeSelection(start, end, newSelection, snapshot)
     } else {
       this.selection = new DragDropSelection(index, newSelection, snapshot)
+      document.addEventListener('mousemove', this.onDocumentMouseMove)
     }
 
     document.addEventListener('mouseup', this.onDocumentMouseUp, { once: true })
@@ -269,8 +270,30 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
 
   private cancelSelection = () => {
     document.removeEventListener('mouseup', this.onDocumentMouseUp)
+    document.removeEventListener('mousemove', this.onDocumentMouseMove)
 
     this.selection = null
+  }
+
+  private onDocumentMouseMove = (ev: MouseEvent) => {
+    if (this.codeMirror === null) {
+      return
+    }
+
+    if (!(this.selection instanceof DragDropSelection)) {
+      return
+    }
+
+    const lineNumber = this.codeMirror.lineAtHeight(ev.y)
+    const { lowerIndex, upperIndex } = this.selection
+    this.selection.update(lineNumber)
+
+    if (
+      lowerIndex !== this.selection.lowerIndex ||
+      upperIndex !== this.selection.upperIndex
+    ) {
+      this.updateViewport()
+    }
   }
 
   private onDocumentMouseUp = (ev: MouseEvent) => {
@@ -308,6 +331,27 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       if (lineNumber < start || lineNumber > end) {
         return this.cancelSelection()
       }
+    } else if (this.selection instanceof DragDropSelection) {
+      const lineNumber = this.codeMirror.lineAtHeight(ev.y)
+      this.selection.update(lineNumber)
+
+      // Special case drag drop selections of 1 as single line 'click'
+      // events for which we require that the cursor is still on the
+      // original gutter element (i.e. if you mouse down on a gutter
+      // element and move the mouse out of the gutter it should not
+      // count as a click when you mouse up)
+      if (this.selection.length === 1) {
+        if (ev.target === null || !(ev.target instanceof HTMLElement)) {
+          return this.cancelSelection()
+        }
+
+        if (
+          !ev.target.classList.contains('diff-line-number') &&
+          !ev.target.classList.contains('diff-line-gutter')
+        ) {
+          return this.cancelSelection()
+        }
+      }
     }
 
     this.endSelection()
@@ -325,40 +369,19 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
 
     // operation is completed, clean this up
     this.selection = null
+
+    if (this.hunkHighlightRange !== null) {
+      this.hunkHighlightRange = null
+      this.updateViewport()
+    }
   }
 
   private isSelectionEnabled = () => {
     return this.selection == null
   }
 
-  private onGutterClick = (
-    cm: Editor,
-    line: number,
-    gutter: string,
-    clickEvent: Event
-  ) => {
-    const { file } = this.props
-
-    if (file instanceof WorkingDirectoryFileChange) {
-      if (this.props.onIncludeChanged) {
-        this.props.onIncludeChanged(
-          file.selection.withToggleLineSelection(line)
-        )
-      }
-    }
-  }
-
   private getAndStoreCodeMirrorInstance = (cmh: CodeMirrorHost | null) => {
-    const newEditor = cmh === null ? null : cmh.getEditor()
-    if (newEditor === null && this.codeMirror !== null) {
-      this.codeMirror.off('gutterClick', this.onGutterClick)
-    }
-
-    this.codeMirror = newEditor
-
-    if (this.codeMirror !== null) {
-      this.codeMirror.on('gutterClick', this.onGutterClick)
-    }
+    this.codeMirror = cmh === null ? null : cmh.getEditor()
   }
 
   private onCopy = (editor: Editor, event: Event) => {
@@ -499,10 +522,18 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     diffLine: DiffLine
   ): { [className: string]: boolean } {
     const isIncludeable = diffLine.isIncludeableLine()
-    const isIncluded =
-      isIncludeable &&
-      this.props.file instanceof WorkingDirectoryFileChange &&
-      this.props.file.selection.isSelected(index)
+
+    let isIncluded = false
+
+    if (isIncludeable) {
+      if (this.selection !== null) {
+        isIncluded = this.selection.isIncluded(index)
+      } else {
+        isIncluded =
+          this.props.file instanceof WorkingDirectoryFileChange &&
+          this.props.file.selection.isSelected(index)
+      }
+    }
 
     const { type } = diffLine
 
@@ -510,7 +541,8 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       this.hunkHighlightRange === null
         ? false
         : index >= this.hunkHighlightRange.start &&
-          index <= this.hunkHighlightRange.end
+          index <= this.hunkHighlightRange.end &&
+          isIncludeable
 
     return {
       'diff-line-gutter': true,
@@ -532,6 +564,8 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   ): HTMLElement | null {
     const marker = document.createElement('div')
     marker.className = 'diff-line-gutter'
+
+    marker.addEventListener('mousedown', this.onDiffLineGutterMouseDown)
 
     const oldLineNumber = document.createElement('div')
     oldLineNumber.classList.add('diff-line-number', 'before')
@@ -584,7 +618,11 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   }
 
   private onHunkHandleMouseEnter = (ev: MouseEvent) => {
-    if (this.codeMirror === null || this.props.readOnly) {
+    if (
+      this.codeMirror === null ||
+      this.props.readOnly ||
+      this.selection instanceof DragDropSelection
+    ) {
       return
     }
     const lineNumber = this.codeMirror.lineAtHeight(ev.y)
@@ -609,6 +647,28 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     this.onViewportChange(this.codeMirror, from, to)
   }
 
+  private onDiffLineGutterMouseDown = (ev: MouseEvent) => {
+    // This means the hunk handle was clicked first and prevented
+    // the default action so we'll bail.
+    if (ev.defaultPrevented) {
+      return
+    }
+
+    if (!this.codeMirror) {
+      return
+    }
+
+    const { file, hunks } = this.props
+
+    if (!(file instanceof WorkingDirectoryFileChange)) {
+      return
+    }
+
+    const lineNumber = this.codeMirror.lineAtHeight(ev.y)
+
+    ev.preventDefault()
+    this.startSelection(file, hunks, lineNumber, false)
+  }
 
   private onHunkHandleMouseLeave = (ev: MouseEvent) => {
     if (this.hunkHighlightRange !== null) {
