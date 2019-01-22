@@ -2489,7 +2489,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    return this.withPushPullFetch(repository, 'push', async () => {
+    return this.withPushPullFetch(repository, async () => {
       const { tip } = state.branchesState
 
       if (tip.kind === TipState.Unborn) {
@@ -2649,21 +2649,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private async withPushPullFetch(
     repository: Repository,
-    action: string,
     fn: () => Promise<void>
   ): Promise<void> {
     const state = this.repositoryStateCache.get(repository)
     // Don't allow concurrent network operations.
     if (state.isPushPullFetchInProgress) {
-      log.warn(
-        `[withPushPull] action ${action} is being skipped as isPushPullFetchInProgress is already set to true from a previous action`
-      )
       return
     }
-
-    log.warn(
-      `[withPushPull] action ${action} is setting isPushPullFetchInProgress to true`
-    )
 
     this.repositoryStateCache.update(repository, () => ({
       isPushPullFetchInProgress: true,
@@ -2673,10 +2665,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     try {
       await fn()
     } finally {
-      log.warn(
-        `[withPushPull] action ${action} is setting isPushPullFetchInProgress to false`
-      )
-
       this.repositoryStateCache.update(repository, () => ({
         isPushPullFetchInProgress: false,
       }))
@@ -2695,7 +2683,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     account: IGitAccount | null
   ): Promise<void> {
-    return this.withPushPullFetch(repository, 'pull', async () => {
+    return this.withPushPullFetch(repository, async () => {
       const gitStore = this.gitStoreCache.get(repository)
       const remote = gitStore.currentRemote
 
@@ -3051,7 +3039,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     fetchType: FetchType,
     remotes?: IRemote[]
   ): Promise<void> {
-    await this.withPushPullFetch(repository, 'fetch', async () => {
+    await this.withPushPullFetch(repository, async () => {
       const gitStore = this.gitStoreCache.get(repository)
 
       try {
