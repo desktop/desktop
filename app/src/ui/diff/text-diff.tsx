@@ -674,7 +674,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     ev.preventDefault()
 
     const lineNumber = this.codeMirror.lineAtHeight(ev.y)
-    this.startSelection(this.props.file, this.props.hunks, lineNumber, true)
+    this.startSelection(file, hunks, lineNumber, true)
   }
 
   public componentWillUnmount() {
