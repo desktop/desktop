@@ -12,6 +12,7 @@ import { ComparisonCache } from '../../src/lib/comparison-cache'
 function createTestCommit(sha: string) {
   return new Commit(
     sha,
+    sha.slice(0, 7),
     '',
     '',
     new CommitIdentity('tester', 'tester@test.com', new Date()),

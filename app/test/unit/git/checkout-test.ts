@@ -24,6 +24,7 @@ describe('git/checkout', () => {
       type: BranchType.Local,
       tip: {
         sha: '',
+        shortSha: '',
         summary: '',
         body: '',
         author: {
