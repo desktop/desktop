@@ -165,6 +165,11 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       return doc
     },
     (x, y) => {
+      // Only re-run the memoization function if the text
+      // differs or the array differs (by structural equality).
+      // This let's us re-use the document as much as possible
+      // while still recreating it if a no-newline indicator needs
+      // to be added/removed.
       if (Array.isArray(x) && Array.isArray(y)) {
         return arrayEquals(x, y)
       }
