@@ -643,9 +643,9 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       return
     }
 
-    const { file, hunks } = this.props
+    const { file, hunks, readOnly } = this.props
 
-    if (!(file instanceof WorkingDirectoryFileChange)) {
+    if (!(file instanceof WorkingDirectoryFileChange) || readOnly) {
       return
     }
 
@@ -667,7 +667,9 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       return
     }
 
-    if (!(this.props.file instanceof WorkingDirectoryFileChange)) {
+    const { file, hunks, readOnly } = this.props
+
+    if (!(file instanceof WorkingDirectoryFileChange) || readOnly) {
       return
     }
 
