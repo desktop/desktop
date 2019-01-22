@@ -191,28 +191,27 @@
 }
 
 // The cm- prefix means it's styling the line content.
-.cm-diff-hunk {
-  color: var(--diff-hunk-text-color);
-}
-
-.cm-diff-delete {
-  color: var(--diff-delete-text-color);
+.CodeMirror-line {
+  &.diff-hunk {
+    color: var(--diff-hunk-text-color);
+  }
+  &.diff-delete {
+    color: var(--diff-delete-text-color);
+  }
+  &.diff-add {
+    color: var(--diff-add-text-color);
+  }
+  &.diff-context {
+    color: var(--diff-text-color);
+  }
 }
 
 .cm-diff-delete-inner {
   background: var(--diff-delete-inner-background-color);
 }
 
-.cm-diff-add {
-  color: var(--diff-add-text-color);
-}
-
 .cm-diff-add-inner {
   background: var(--diff-add-inner-background-color);
-}
-
-.cm-diff-context {
-  color: var(--diff-text-color);
 }
 
 .CodeMirror .diff-line-gutter.diff-hunk {
