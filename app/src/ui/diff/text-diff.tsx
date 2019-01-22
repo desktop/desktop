@@ -103,6 +103,8 @@ interface ITextDiffProps {
   readonly hunks: ReadonlyArray<DiffHunk>
 }
 
+const diffGutterName = 'diff-gutter'
+
 const defaultEditorOptions: IEditorConfigurationExtra = {
   lineNumbers: false,
   readOnly: true,
@@ -116,7 +118,7 @@ const defaultEditorOptions: IEditorConfigurationExtra = {
   styleSelectedText: true,
   lineSeparator: '\n',
   specialChars: /[\u0000-\u001f\u007f-\u009f\u00ad\u061c\u200b-\u200f\u2028\u2029\ufeff]/,
-  gutters: ['diff-gutter'],
+  gutters: [diffGutterName],
 }
 
 export class TextDiff extends React.Component<ITextDiffProps, {}> {
@@ -487,13 +489,13 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       let marker: HTMLElement | null = null
       const lineInfo = cm.lineInfo(line)
 
-      if (lineInfo.gutterMarkers && 'diff-gutter' in lineInfo.gutterMarkers) {
-        marker = lineInfo.gutterMarkers['diff-gutter'] as HTMLElement
+      if (lineInfo.gutterMarkers && diffGutterName in lineInfo.gutterMarkers) {
+        marker = lineInfo.gutterMarkers[diffGutterName] as HTMLElement
         this.updateGutterMarker(marker, lineNumber, diffLine)
       } else {
         batchedOps.push(() => {
           marker = this.createGutterMarker(lineNumber, diffLine)
-          cm.setGutterMarker(line, 'diff-gutter', marker)
+          cm.setGutterMarker(line, diffGutterName, marker)
         })
       }
     })
@@ -694,7 +696,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     // No need to keep potentially tons of diff gutter DOM
     // elements around in memory when we're switching files.
     if (this.props.file.id !== prevProps.file.id) {
-      this.codeMirror.clearGutter('diff-gutter')
+      this.codeMirror.clearGutter(diffGutterName)
     }
 
     if (this.props.file instanceof WorkingDirectoryFileChange) {
