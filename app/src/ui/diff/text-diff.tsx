@@ -449,6 +449,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
 
   private onSwapDoc = (cm: Editor, oldDoc: Doc) => {
     this.markIntraLineChanges(cm.getDoc(), this.props.hunks)
+    this.initDiffSyntaxMode()
   }
 
   private onViewportChange = (cm: Editor, from: number, to: number) => {
@@ -606,6 +607,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     const { from, to } = this.codeMirror.getViewport()
     this.onViewportChange(this.codeMirror, from, to)
   }
+
 
   private onHunkHandleMouseLeave = (ev: MouseEvent) => {
     if (this.hunkHighlightRange !== null) {
