@@ -268,6 +268,8 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   }
 
   private cancelSelection = () => {
+    document.removeEventListener('mouseup', this.onDocumentMouseUp)
+
     this.selection = null
   }
 
@@ -632,7 +634,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
 
   public componentWillUnmount() {
     this.codeMirror = null
-    document.removeEventListener('mouseup', this.onDocumentMouseUp)
+    this.cancelSelection()
   }
 
   public componentDidUpdate(
