@@ -21,7 +21,7 @@ export class PushNeedsPullWarning extends React.Component<
   IPushNeedsPullWarningProps,
   IPushNeedsPullWarningState
 > {
-  constructor(props: IPushNeedsPullWarningProps) {
+  public constructor(props: IPushNeedsPullWarningProps) {
     super(props)
 
     this.state = {
