@@ -37,7 +37,7 @@ import { relativeChanges } from './changed-range'
 import { Repository } from '../../models/repository'
 import memoizeOne from 'memoize-one'
 import { selectedLineClass, hoverCssClass } from './selection/selection'
-import { arrayEquals } from '../../lib/equality'
+import { structuralEquals } from '../../lib/equality'
 
 /** The longest line for which we'd try to calculate a line diff. */
 const MaxIntraLineDiffStringLength = 4096
@@ -148,6 +148,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
 
   private getCodeMirrorDocument = memoizeOne(
     (text: string, noNewlineIndicatorLines: ReadonlyArray<number>) => {
+      console.log('recreating doc')
       const { mode, firstLineNumber, lineSeparator } = defaultEditorOptions
       const formattedText = this.getFormattedText(text)
       const doc = new Doc(formattedText, mode, firstLineNumber, lineSeparator)
@@ -161,17 +162,12 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
 
       return doc
     },
-    (x, y) => {
-      // Only re-run the memoization function if the text
-      // differs or the array differs (by structural equality).
-      // This let's us re-use the document as much as possible
-      // while still recreating it if a no-newline indicator needs
-      // to be added/removed.
-      if (Array.isArray(x) && Array.isArray(y)) {
-        return arrayEquals(x, y)
-      }
-      return x === y
-    }
+    // Only re-run the memoization function if the text
+    // differs or the array differs (by structural equality).
+    // This let's us re-use the document as much as possible
+    // while still recreating it if a no-newline indicator needs
+    // to be added/removed.
+    structuralEquals
   )
 
   private getNoNewlineIndicatorLines = memoizeOne(
