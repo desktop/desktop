@@ -50,7 +50,7 @@ export class PushNeedsPullWarning extends React.Component<
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>
-            <Button type="submit">
+            <Button type="submit" disabled={this.state.isLoading}>
               {this.state.isLoading ? <Loading /> : null} Fetch
             </Button>
           </ButtonGroup>
