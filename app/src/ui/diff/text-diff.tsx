@@ -366,14 +366,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     }
 
     this.props.onIncludeChanged(this.selection.done())
-
-    // operation is completed, clean this up
     this.selection = null
-
-    if (this.hunkHighlightRange !== null) {
-      this.hunkHighlightRange = null
-      this.updateViewport()
-    }
   }
 
   private isSelectionEnabled = () => {
