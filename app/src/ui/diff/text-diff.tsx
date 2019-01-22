@@ -551,14 +551,10 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     marker.className = 'diff-line-gutter'
 
     const oldLineNumber = document.createElement('div')
-    oldLineNumber.textContent =
-      diffLine.oldLineNumber === null ? '' : `${diffLine.oldLineNumber}`
     oldLineNumber.classList.add('diff-line-number', 'before')
     marker.appendChild(oldLineNumber)
 
     const newLineNumber = document.createElement('div')
-    newLineNumber.textContent =
-      diffLine.newLineNumber === null ? '' : `${diffLine.newLineNumber}`
     newLineNumber.classList.add('diff-line-number', 'after')
     marker.appendChild(newLineNumber)
 
@@ -593,6 +589,16 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     } else {
       marker.removeAttribute('role')
     }
+
+    const oldLineNumber = marker.childNodes[0]
+
+    oldLineNumber.textContent =
+      diffLine.oldLineNumber === null ? '' : `${diffLine.oldLineNumber}`
+
+    const newLineNumber = marker.childNodes[1]
+
+    newLineNumber.textContent =
+      diffLine.newLineNumber === null ? '' : `${diffLine.newLineNumber}`
   }
 
   private onHunkHandleMouseEnter = (ev: MouseEvent) => {
