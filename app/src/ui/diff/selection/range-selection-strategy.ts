@@ -1,7 +1,5 @@
 import { DiffSelection } from '../../../models/diff'
 import { ISelectionStrategy } from './selection-strategy'
-import { DiffLineGutter } from '../diff-line-gutter'
-import { range } from '../../../lib/range'
 
 /** apply hunk selection to the current diff */
 export class RangeSelection implements ISelectionStrategy {
@@ -31,23 +29,6 @@ export class RangeSelection implements ISelectionStrategy {
 
   public update(index: number) {
     // no-op
-  }
-
-  public paint(elements: Map<number, DiffLineGutter>) {
-    range(this._start, this._end + 1).forEach(row => {
-      const element = elements.get(row)
-
-      if (!element) {
-        // if the element has not been rendered, it's not visible to the user
-        return
-      }
-
-      if (!element.isIncluded()) {
-        return
-      }
-
-      element.setSelected(this._desiredSelection)
-    })
   }
 
   public done(): DiffSelection {
