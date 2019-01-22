@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { clipboard } from 'electron'
 import { Editor, LineHandle, Doc } from 'codemirror'
-import { Disposable } from 'event-kit'
 
 import {
   DiffHunk,
@@ -19,7 +18,6 @@ import { OcticonSymbol } from '../octicons'
 import { IEditorConfigurationExtra } from './editor-configuration-extra'
 import { DiffSyntaxMode, IDiffSyntaxModeSpec } from './diff-syntax-mode'
 import { CodeMirrorHost } from './code-mirror-host'
-import { DiffLineGutter } from './diff-line-gutter'
 import {
   diffLineForIndex,
   findInteractiveDiffRange,
@@ -192,18 +190,6 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   )
 
   /**
-   * A mapping from CodeMirror line handles to disposables which, when disposed
-   * cleans up any line gutter components and events associated with that line.
-   * See renderLine for more information.
-   */
-  private readonly lineCleanup = new Map<any, Disposable>()
-
-  /**
-   *  a local cache of gutter elements, keyed by the row in the diff
-   */
-  private cachedGutterElements = new Map<number, DiffLineGutter>()
-
-  /**
    * Maintain the current state of the user interacting with the diff gutter
    */
   private selection: ISelectionStrategy | null = null
@@ -249,15 +235,6 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     cm.setOption('mode', spec)
   }
 
-  private dispose() {
-    this.codeMirror = null
-
-    this.lineCleanup.forEach(disposable => disposable.dispose())
-    this.lineCleanup.clear()
-
-    document.removeEventListener('mouseup', this.onDocumentMouseUp)
-  }
-
   /**
    * start a selection gesture based on the current interation
    */
@@ -288,7 +265,6 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       this.selection = new DragDropSelection(index, desiredSelection, snapshot)
     }
 
-    this.selection.paint(this.cachedGutterElements)
     document.addEventListener('mouseup', this.onDocumentMouseUp, { once: true })
   }
 
@@ -655,7 +631,8 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   }
 
   public componentWillUnmount() {
-    this.dispose()
+    this.codeMirror = null
+    document.removeEventListener('mouseup', this.onDocumentMouseUp)
   }
 
   public componentDidUpdate(
