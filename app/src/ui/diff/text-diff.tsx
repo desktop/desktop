@@ -74,6 +74,28 @@ function highlightParametersEqual(
   )
 }
 
+function createNoNewlineIndicatorWidget() {
+  const widget = document.createElement('span')
+  widget.title = 'No newline at end of file'
+
+  var xmlns = 'http://www.w3.org/2000/svg'
+  const svgElem = document.createElementNS(xmlns, 'svg')
+  svgElem.setAttribute('aria-hidden', 'true')
+  svgElem.setAttribute('version', '1.1')
+  svgElem.setAttribute(
+    'viewBox',
+    `0 0 ${narrowNoNewlineSymbol.w} ${narrowNoNewlineSymbol.h}`
+  )
+  svgElem.classList.add('no-newline')
+  const pathElem = document.createElementNS(xmlns, 'path')
+  pathElem.setAttribute('d', narrowNoNewlineSymbol.d)
+  pathElem.textContent = 'No newline at end of file'
+  svgElem.appendChild(pathElem)
+
+  widget.appendChild(svgElem)
+  return widget
+}
+
 interface ITextDiffProps {
   readonly repository: Repository
   readonly file: ChangedFile
@@ -134,30 +156,10 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       )
 
       for (const noNewlineLine of noNewlineIndicatorLines) {
-        const pos = {
-          line: noNewlineLine,
-          ch: doc.getLine(noNewlineLine).length,
-        }
-        const widget = document.createElement('span')
-        widget.title = 'No newline at end of file'
-
-        var xmlns = 'http://www.w3.org/2000/svg'
-        const svgElem = document.createElementNS(xmlns, 'svg')
-        svgElem.setAttribute('aria-hidden', 'true')
-        svgElem.setAttribute('version', '1.1')
-        svgElem.setAttribute(
-          'viewBox',
-          `0 0 ${narrowNoNewlineSymbol.w} ${narrowNoNewlineSymbol.h}`
+        doc.setBookmark(
+          { line: noNewlineLine, ch: Infinity },
+          { widget: createNoNewlineIndicatorWidget() }
         )
-        svgElem.classList.add('no-newline')
-        const pathElem = document.createElementNS(xmlns, 'path')
-        pathElem.setAttribute('d', narrowNoNewlineSymbol.d)
-        pathElem.textContent = 'No newline at end of file'
-        svgElem.appendChild(pathElem)
-
-        widget.appendChild(svgElem)
-
-        doc.setBookmark(pos, { widget })
       }
 
       return doc
