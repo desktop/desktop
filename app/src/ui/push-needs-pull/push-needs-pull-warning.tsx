@@ -29,8 +29,9 @@ export class PushNeedsPullWarning extends React.Component<
         <DialogContent>
           <p>
             Desktop is unable to push commits to this branch because there are
-            new commits on the remote. It needs to fetch these new commits to
-            figure out how to reconcile these changes with your local commits.
+            commits on the remote that are not present on your local branch. It
+            needs to fetch these new commits before pushing in order to
+            reconcile them with your local commits.
           </p>
         </DialogContent>
         <DialogFooter>
