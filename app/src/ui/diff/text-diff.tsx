@@ -700,8 +700,8 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
 
     if (this.props.file instanceof WorkingDirectoryFileChange) {
       if (
-        !(prevProps instanceof WorkingDirectoryFileChange) ||
-        this.props.file.selection !== prevProps.selection
+        !(prevProps.file instanceof WorkingDirectoryFileChange) ||
+        this.props.file.selection !== prevProps.file.selection
       ) {
         // If the text has changed the gutters will be recreated
         // regardless but if it hasn't then we'll need to update
