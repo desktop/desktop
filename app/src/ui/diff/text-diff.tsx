@@ -125,7 +125,6 @@ const defaultEditorOptions: IEditorConfigurationExtra = {
 
 export class TextDiff extends React.Component<ITextDiffProps, {}> {
   private codeMirror: Editor | null = null
-  private hunkHighlightRange: { start: number; end: number } | null = null
 
   private getFormattedText = memoizeOne((text: string) => {
     // If the text looks like it could have been formatted using Windows
@@ -190,6 +189,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
    * Maintain the current state of the user interacting with the diff gutter
    */
   private selection: ISelection | null = null
+  private hunkHighlightRange: ISelection | null = null
 
   private async initDiffSyntaxMode() {
     const cm = this.codeMirror
@@ -255,8 +255,8 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
         return
       }
 
-      const { start, end } = range
-      this.selection = { isSelected, from: start, to: end, kind: 'hunk' }
+      const { from, to } = range
+      this.selection = { isSelected, from, to, kind: 'hunk' }
     } else {
       this.selection = { isSelected, from: index, to: index, kind: 'range' }
       document.addEventListener('mousemove', this.onDocumentMouseMove)
@@ -549,8 +549,8 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     const hover =
       this.hunkHighlightRange === null
         ? false
-        : index >= this.hunkHighlightRange.start &&
-          index <= this.hunkHighlightRange.end &&
+        : index >= this.hunkHighlightRange.from &&
+          index <= this.hunkHighlightRange.to &&
           isIncludeable
 
     return {
@@ -640,7 +640,12 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
 
     const range = findInteractiveDiffRange(this.props.hunks, lineNumber)
 
-    this.hunkHighlightRange = range
+    if (range === null) {
+      return
+    }
+
+    const { from, to } = range
+    this.hunkHighlightRange = { from, to, kind: 'hunk', isSelected: false }
     this.updateViewport()
   }
 
