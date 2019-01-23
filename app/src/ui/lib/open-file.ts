@@ -1,5 +1,5 @@
 import { shell } from '../../lib/app-shell'
-import { Dispatcher } from '../../lib/dispatcher/dispatcher'
+import { Dispatcher } from '../dispatcher'
 
 export async function openFile(
   fullPath: string,
