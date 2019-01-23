@@ -292,11 +292,11 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   }
 
   private onDocumentMouseMove = (ev: MouseEvent) => {
-    if (this.codeMirror === null) {
-      return
-    }
-
-    if (this.selection === null || this.selection.kind !== 'range') {
+    if (
+      this.codeMirror === null ||
+      this.selection === null ||
+      this.selection.kind !== 'range'
+    ) {
       return
     }
 
