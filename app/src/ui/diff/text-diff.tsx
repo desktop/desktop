@@ -33,6 +33,7 @@ import { relativeChanges } from './changed-range'
 import { Repository } from '../../models/repository'
 import memoizeOne from 'memoize-one'
 import { structuralEquals } from '../../lib/equality'
+import { assertNever } from '../../lib/fatal-error'
 
 /** The longest line for which we'd try to calculate a line diff. */
 const MaxIntraLineDiffStringLength = 4096
@@ -67,10 +68,12 @@ function highlightParametersEqual(
   )
 }
 
+type SelectionKind = 'hunk' | 'range'
+
 interface ISelection {
   readonly from: number
   readonly to: number
-  readonly kind: 'hunk' | 'range'
+  readonly kind: SelectionKind
   readonly isSelected: boolean
 }
 
@@ -102,6 +105,10 @@ function createNoNewlineIndicatorWidget() {
  */
 function inSelection(s: ISelection | null, ix: number): s is ISelection {
   return s !== null && ix >= s.from && ix <= s.to
+}
+
+function hasClass(e: EventTarget | null, token: string): e is HTMLElement {
+  return e instanceof HTMLElement && e.classList.contains(token)
 }
 
 interface ITextDiffProps {
@@ -243,16 +250,15 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     file: WorkingDirectoryFileChange,
     hunks: ReadonlyArray<DiffHunk>,
     index: number,
-    isRangeSelection: boolean
+    kind: SelectionKind
   ) => {
-    const snapshot = file.selection
-    const isSelected = !snapshot.isSelected(index)
+    const isSelected = !file.selection.isSelected(index)
 
     if (this.selection !== null) {
       this.cancelSelection()
     }
 
-    if (isRangeSelection) {
+    if (kind === 'hunk') {
       const range = findInteractiveDiffRange(hunks, index)
       if (!range) {
         console.error('unable to find range for given line in diff')
@@ -260,10 +266,12 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       }
 
       const { from, to } = range
-      this.selection = { isSelected, from, to, kind: 'hunk' }
-    } else {
-      this.selection = { isSelected, from: index, to: index, kind: 'range' }
+      this.selection = { isSelected, from, to, kind }
+    } else if (kind === 'range') {
+      this.selection = { isSelected, from: index, to: index, kind }
       document.addEventListener('mousemove', this.onDocumentMouseMove)
+    } else {
+      assertNever(kind, `Unknown selection kind ${kind}`)
     }
 
     document.addEventListener('mouseup', this.onDocumentMouseUp, { once: true })
@@ -315,18 +323,13 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     // we need to make sure the user is still within that hunk handle
     // section and in the correct range.
     if (this.selection.kind === 'hunk') {
-      // Is the pointer over something that might be a hunk handle?
-      if (ev.target === null || !(ev.target instanceof HTMLElement)) {
-        return this.cancelSelection()
-      }
-
-      if (!ev.target.classList.contains('hunk-handle')) {
-        return this.cancelSelection()
-      }
-
       // Is the pointer over the same range (i.e hunk) that the
       // selection was originally started from?
-      if (inSelection(this.selection, this.codeMirror.lineAtHeight(ev.y))) {
+      if (!hasClass(ev.target, 'hunk-handle')) {
+        return this.cancelSelection()
+      }
+
+      if (!inSelection(this.selection, this.codeMirror.lineAtHeight(ev.y))) {
         return this.cancelSelection()
       }
     } else if (this.selection.kind === 'range') {
@@ -336,17 +339,18 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       // element and move the mouse out of the gutter it should not
       // count as a click when you mouse up)
       if (this.selection.from - this.selection.to === 0) {
-        if (ev.target === null || !(ev.target instanceof HTMLElement)) {
-          return this.cancelSelection()
-        }
-
         if (
-          !ev.target.classList.contains('diff-line-number') &&
-          !ev.target.classList.contains('diff-line-gutter')
+          !hasClass(ev.target, 'diff-line-number') ||
+          !hasClass(ev.target, 'diff-line-gutter')
         ) {
           return this.cancelSelection()
         }
       }
+    } else {
+      return assertNever(
+        this.selection.kind,
+        `Unknown selection kind ${this.selection.kind}`
+      )
     }
 
     this.endSelection()
@@ -662,7 +666,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     ev.preventDefault()
 
     const lineNumber = this.codeMirror.lineAtHeight(ev.y)
-    this.startSelection(file, hunks, lineNumber, false)
+    this.startSelection(file, hunks, lineNumber, 'range')
   }
 
   private onHunkHandleMouseLeave = (ev: MouseEvent) => {
@@ -686,7 +690,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     ev.preventDefault()
 
     const lineNumber = this.codeMirror.lineAtHeight(ev.y)
-    this.startSelection(file, hunks, lineNumber, true)
+    this.startSelection(file, hunks, lineNumber, 'hunk')
   }
 
   public componentWillUnmount() {
