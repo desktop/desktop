@@ -12,7 +12,7 @@ import { encodePathAsUrl } from '../../lib/path'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
 import { IGitHubUser } from '../../lib/databases'
 import { Resizable } from '../resizable'
-import { openFile } from '../../lib/open-file'
+import { openFile } from '../lib/open-file'
 import { IDiff, ImageDiffType } from '../../models/diff'
 
 interface ISelectedCommitProps {

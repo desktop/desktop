@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Path from 'path'
 
 import { Repository } from '../../models/repository'
-import { openFile } from '../../lib/open-file'
+import { openFile } from '../lib/open-file'
 import { Dispatcher } from '../../lib/dispatcher/dispatcher'
 
 import { LinkButton } from '../lib/link-button'

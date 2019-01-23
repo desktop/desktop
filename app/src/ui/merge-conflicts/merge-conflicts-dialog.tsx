@@ -22,7 +22,7 @@ import { LinkButton } from '../lib/link-button'
 import { isConflictedFile, hasUnresolvedConflicts } from '../../lib/status'
 import { DefaultCommitMessage } from '../../models/commit-message'
 import { shell } from '../../lib/app-shell'
-import { openFile } from '../../lib/open-file'
+import { openFile } from '../lib/open-file'
 import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'
 import {
