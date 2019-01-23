@@ -382,7 +382,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   }
 
   private isSelectionEnabled = () => {
-    return this.selection == null
+    return this.selection === null
   }
 
   private getAndStoreCodeMirrorInstance = (cmh: CodeMirrorHost | null) => {
