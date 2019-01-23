@@ -1,5 +1,8 @@
 {
   "releases": {
+    "1.6.2-beta0": [
+      "[Fixed] Don't show \"No local changes\" view when switching between changed files"
+    ],
     "1.6.1": [
       "[Fixed] Don't show \"No local changes\" view when switching between changed files"
     ],
