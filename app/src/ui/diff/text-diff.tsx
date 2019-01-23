@@ -250,7 +250,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   }
 
   /**
-   * start a selection gesture based on the current interation
+   * start a selection gesture based on the current interaction
    */
   private startSelection = (
     file: WorkingDirectoryFileChange,
