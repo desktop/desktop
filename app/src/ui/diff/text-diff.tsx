@@ -34,6 +34,7 @@ import { Repository } from '../../models/repository'
 import memoizeOne from 'memoize-one'
 import { structuralEquals } from '../../lib/equality'
 import { assertNever } from '../../lib/fatal-error'
+import { clamp } from '../../lib/clamp'
 
 /** The longest line for which we'd try to calculate a line diff. */
 const MaxIntraLineDiffStringLength = 4096
@@ -299,11 +300,14 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       return
     }
 
-    const to = this.codeMirror.lineAtHeight(ev.y)
-    const newSelection = { ...this.selection, to }
+    // CodeMirror can return a line that doesn't exist if the
+    // pointer is placed underneath the last line so we clamp it
+    // to the range of valid values.
+    const max = Math.max(0, this.codeMirror.getDoc().lineCount() - 1)
+    const to = clamp(this.codeMirror.lineAtHeight(ev.y), 0, max)
 
-    if (newSelection.to !== this.selection.to) {
-      this.selection = newSelection
+    if (to !== this.selection.to) {
+      this.selection = { ...this.selection, to }
       this.updateViewport()
     }
   }
