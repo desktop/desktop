@@ -25,6 +25,7 @@ import { IAheadBehind } from '../../models/branch'
 import { fatalError } from '../../lib/fatal-error'
 import { enableStatusWithoutOptionalLocks } from '../feature-flag'
 import { isMergeHeadSet } from './merge'
+import { getBinaryPaths } from './diff'
 
 /**
  * V8 has a limit on the size of string it can create (~256MB), and unless we want to
@@ -73,23 +74,39 @@ type ConflictCountsByPath = ReadonlyMap<string, number>
 function parseConflictedState(
   entry: UnmergedEntry,
   path: string,
-  filesWithConflictMarkers: ConflictCountsByPath
+  filesWithConflictMarkers: ConflictCountsByPath,
+  binaryFiles: ReadonlyArray<string>
 ): ConflictedFileStatus {
   switch (entry.action) {
-    case UnmergedEntrySummary.BothAdded:
+    case UnmergedEntrySummary.BothAdded: {
       const addedConflictsLeft = filesWithConflictMarkers.get(path) || 0
-      return {
-        kind: AppFileStatusKind.Conflicted,
-        entry,
-        conflictMarkerCount: addedConflictsLeft,
+      const isBinary = binaryFiles.includes(path)
+      if (!isBinary) {
+        return {
+          kind: AppFileStatusKind.Conflicted,
+          entry,
+          conflictMarkerCount: addedConflictsLeft,
+        }
+      } else {
+        return { kind: AppFileStatusKind.Conflicted, entry }
       }
-    case UnmergedEntrySummary.BothModified:
-      const modifedConflictsLeft = filesWithConflictMarkers.get(path) || 0
-      return {
-        kind: AppFileStatusKind.Conflicted,
-        entry,
-        conflictMarkerCount: modifedConflictsLeft,
+    }
+    case UnmergedEntrySummary.BothModified: {
+      const modifiedConflictsLeft = filesWithConflictMarkers.get(path) || 0
+      const isBinary = binaryFiles.includes(path)
+      if (!isBinary) {
+        return {
+          kind: AppFileStatusKind.Conflicted,
+          entry,
+          conflictMarkerCount: modifiedConflictsLeft,
+        }
+      } else {
+        return {
+          kind: AppFileStatusKind.Conflicted,
+          entry,
+        }
       }
+    }
     default:
       return {
         kind: AppFileStatusKind.Conflicted,
@@ -102,6 +119,7 @@ function convertToAppStatus(
   path: string,
   entry: FileEntry,
   filesWithConflictMarkers: ConflictCountsByPath,
+  binaryFiles: ReadonlyArray<string>,
   oldPath?: string
 ): AppFileStatus {
   if (entry.kind === 'ordinary') {
@@ -120,7 +138,12 @@ function convertToAppStatus(
   } else if (entry.kind === 'untracked') {
     return { kind: AppFileStatusKind.Untracked }
   } else if (entry.kind === 'conflicted') {
-    return parseConflictedState(entry, path, filesWithConflictMarkers)
+    return parseConflictedState(
+      entry,
+      path,
+      filesWithConflictMarkers,
+      binaryFiles
+    )
   }
 
   return fatalError(`Unknown file status ${status}`)
@@ -178,13 +201,18 @@ export async function getStatus(
   const mergeHeadFound = await isMergeHeadSet(repository)
 
   // if we have any conflicted files reported by status, let
-  const conflictState = mergeHeadFound
+  const filesWithConflictMarkers = mergeHeadFound
     ? await getFilesWithConflictMarkers(repository.path)
     : new Map<string, number>()
 
+  const binaryFiles = mergeHeadFound
+    ? await getBinaryPaths(repository, 'MERGE_HEAD')
+    : []
+
   // Map of files keyed on their paths.
   const files = entries.reduce(
-    (files, entry) => buildStatusMap(files, entry, conflictState),
+    (files, entry) =>
+      buildStatusMap(files, entry, filesWithConflictMarkers, binaryFiles),
     new Map<string, WorkingDirectoryFileChange>()
   )
 
@@ -224,7 +252,8 @@ export async function getStatus(
 function buildStatusMap(
   files: Map<string, WorkingDirectoryFileChange>,
   entry: IStatusEntry,
-  filesWithConflictMarkers: ConflictCountsByPath
+  filesWithConflictMarkers: ConflictCountsByPath,
+  binaryFiles: ReadonlyArray<string>
 ): Map<string, WorkingDirectoryFileChange> {
   const status = mapStatus(entry.statusCode)
 
@@ -253,6 +282,7 @@ function buildStatusMap(
     entry.path,
     status,
     filesWithConflictMarkers,
+    binaryFiles,
     entry.oldPath
   )
 
