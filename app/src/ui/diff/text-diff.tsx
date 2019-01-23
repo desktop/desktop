@@ -78,17 +78,17 @@ function createNoNewlineIndicatorWidget() {
   const widget = document.createElement('span')
   widget.title = 'No newline at end of file'
 
+  const { w, h, d } = narrowNoNewlineSymbol
+
   var xmlns = 'http://www.w3.org/2000/svg'
   const svgElem = document.createElementNS(xmlns, 'svg')
   svgElem.setAttribute('aria-hidden', 'true')
   svgElem.setAttribute('version', '1.1')
-  svgElem.setAttribute(
-    'viewBox',
-    `0 0 ${narrowNoNewlineSymbol.w} ${narrowNoNewlineSymbol.h}`
-  )
+  svgElem.setAttribute('viewBox', `0 0 ${w} ${h}`)
   svgElem.classList.add('no-newline')
+
   const pathElem = document.createElementNS(xmlns, 'path')
-  pathElem.setAttribute('d', narrowNoNewlineSymbol.d)
+  pathElem.setAttribute('d', d)
   pathElem.textContent = 'No newline at end of file'
   svgElem.appendChild(pathElem)
 
