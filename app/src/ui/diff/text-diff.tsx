@@ -107,8 +107,14 @@ function inSelection(s: ISelection | null, ix: number): s is ISelection {
   return s !== null && ix >= s.from && ix <= s.to
 }
 
-function hasClass(e: EventTarget | null, token: string): e is HTMLElement {
-  return e instanceof HTMLElement && e.classList.contains(token)
+/**
+ * Utility function for checking whether an event target has a particular CSS class
+ *
+ * @param e The event
+ * @param token
+ */
+function targetHasClass(target: EventTarget | null, token: string) {
+  return target instanceof HTMLElement && target.classList.contains(token)
 }
 
 interface ITextDiffProps {
@@ -325,7 +331,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     if (this.selection.kind === 'hunk') {
       // Is the pointer over the same range (i.e hunk) that the
       // selection was originally started from?
-      if (!hasClass(ev.target, 'hunk-handle')) {
+      if (!targetHasClass(ev.target, 'hunk-handle')) {
         return this.cancelSelection()
       }
 
@@ -340,8 +346,8 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       // count as a click when you mouse up)
       if (this.selection.from - this.selection.to === 0) {
         if (
-          !hasClass(ev.target, 'diff-line-number') ||
-          !hasClass(ev.target, 'diff-line-gutter')
+          !targetHasClass(ev.target, 'diff-line-number') ||
+          !targetHasClass(ev.target, 'diff-line-gutter')
         ) {
           return this.cancelSelection()
         }
