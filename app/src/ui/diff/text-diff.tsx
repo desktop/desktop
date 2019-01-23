@@ -341,7 +341,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       // count as a click when you mouse up)
       if (this.selection.from - this.selection.to === 0) {
         if (
-          !targetHasClass(ev.target, 'diff-line-number') ||
+          !targetHasClass(ev.target, 'diff-line-number') &&
           !targetHasClass(ev.target, 'diff-line-gutter')
         ) {
           return this.cancelSelection()
