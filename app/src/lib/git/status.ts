@@ -69,36 +69,38 @@ interface IStatusHeadersData {
   match: RegExpMatchArray | null
 }
 
-type ConflictCountsByPath = ReadonlyMap<string, number>
+type ConflictFilesDetails = {
+  conflictCountsByPath: ReadonlyMap<string, number>
+  binaryFilepaths: ReadonlyArray<string>
+}
 
 function parseConflictedState(
   entry: UnmergedEntry,
   path: string,
-  filesWithConflictMarkers: ConflictCountsByPath,
-  binaryFiles: ReadonlyArray<string>
+  conflictDetails: ConflictFilesDetails
 ): ConflictedFileStatus {
   switch (entry.action) {
     case UnmergedEntrySummary.BothAdded: {
-      const addedConflictsLeft = filesWithConflictMarkers.get(path) || 0
-      const isBinary = binaryFiles.includes(path)
+      const isBinary = conflictDetails.binaryFilepaths.includes(path)
       if (!isBinary) {
         return {
           kind: AppFileStatusKind.Conflicted,
           entry,
-          conflictMarkerCount: addedConflictsLeft,
+          conflictMarkerCount:
+            conflictDetails.conflictCountsByPath.get(path) || 0,
         }
       } else {
         return { kind: AppFileStatusKind.Conflicted, entry }
       }
     }
     case UnmergedEntrySummary.BothModified: {
-      const modifiedConflictsLeft = filesWithConflictMarkers.get(path) || 0
-      const isBinary = binaryFiles.includes(path)
+      const isBinary = conflictDetails.binaryFilepaths.includes(path)
       if (!isBinary) {
         return {
           kind: AppFileStatusKind.Conflicted,
           entry,
-          conflictMarkerCount: modifiedConflictsLeft,
+          conflictMarkerCount:
+            conflictDetails.conflictCountsByPath.get(path) || 0,
         }
       } else {
         return {
@@ -118,8 +120,7 @@ function parseConflictedState(
 function convertToAppStatus(
   path: string,
   entry: FileEntry,
-  filesWithConflictMarkers: ConflictCountsByPath,
-  binaryFiles: ReadonlyArray<string>,
+  conflictDetails: ConflictFilesDetails,
   oldPath?: string
 ): AppFileStatus {
   if (entry.kind === 'ordinary') {
@@ -138,12 +139,7 @@ function convertToAppStatus(
   } else if (entry.kind === 'untracked') {
     return { kind: AppFileStatusKind.Untracked }
   } else if (entry.kind === 'conflicted') {
-    return parseConflictedState(
-      entry,
-      path,
-      filesWithConflictMarkers,
-      binaryFiles
-    )
+    return parseConflictedState(entry, path, conflictDetails)
   }
 
   return fatalError(`Unknown file status ${status}`)
@@ -201,18 +197,21 @@ export async function getStatus(
   const mergeHeadFound = await isMergeHeadSet(repository)
 
   // if we have any conflicted files reported by status, let
-  const filesWithConflictMarkers = mergeHeadFound
-    ? await getFilesWithConflictMarkers(repository.path)
-    : new Map<string, number>()
-
-  const binaryFiles = mergeHeadFound
-    ? await getBinaryPaths(repository, 'MERGE_HEAD')
-    : []
+  const conflictDetails = mergeHeadFound
+    ? {
+        conflictCountsByPath: await getFilesWithConflictMarkers(
+          repository.path
+        ),
+        binaryFilepaths: await getBinaryPaths(repository, 'MERGE_HEAD'),
+      }
+    : {
+        conflictCountsByPath: new Map<string, number>(),
+        binaryFilepaths: [],
+      }
 
   // Map of files keyed on their paths.
   const files = entries.reduce(
-    (files, entry) =>
-      buildStatusMap(files, entry, filesWithConflictMarkers, binaryFiles),
+    (files, entry) => buildStatusMap(files, entry, conflictDetails),
     new Map<string, WorkingDirectoryFileChange>()
   )
 
@@ -252,8 +251,7 @@ export async function getStatus(
 function buildStatusMap(
   files: Map<string, WorkingDirectoryFileChange>,
   entry: IStatusEntry,
-  filesWithConflictMarkers: ConflictCountsByPath,
-  binaryFiles: ReadonlyArray<string>
+  conflictDetails: ConflictFilesDetails
 ): Map<string, WorkingDirectoryFileChange> {
   const status = mapStatus(entry.statusCode)
 
@@ -281,8 +279,7 @@ function buildStatusMap(
   const appStatus = convertToAppStatus(
     entry.path,
     status,
-    filesWithConflictMarkers,
-    binaryFiles,
+    conflictDetails,
     entry.oldPath
   )
 
