@@ -39,12 +39,9 @@
     }
   }
 
-  &-code > div:last-of-type {
-    .diff-line-gutter,
-    .CodeMirror-line {
-      // Add a border to the end of the diff
-      border-bottom: var(--base-border);
-    }
+  .CodeMirror-code {
+    // Add a border to the end of the diff
+    border-bottom: var(--base-border);
   }
 
   .CodeMirror-gutters {
