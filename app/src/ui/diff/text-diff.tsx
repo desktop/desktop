@@ -339,7 +339,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       // original gutter element (i.e. if you mouse down on a gutter
       // element and move the mouse out of the gutter it should not
       // count as a click when you mouse up)
-      if (this.selection.from - this.selection.to === 0) {
+      if (this.selection.from === this.selection.to) {
         if (
           !targetHasClass(ev.target, 'diff-line-number') &&
           !targetHasClass(ev.target, 'diff-line-gutter')
