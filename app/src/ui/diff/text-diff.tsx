@@ -111,6 +111,11 @@ function targetHasClass(target: EventTarget | null, token: string) {
   return target instanceof HTMLElement && target.classList.contains(token)
 }
 
+/** Utility function for checking whether a file supports selection */
+function canSelect(file: ChangedFile): file is WorkingDirectoryFileChange {
+  return file instanceof WorkingDirectoryFileChange
+}
+
 interface ITextDiffProps {
   readonly repository: Repository
   readonly file: ChangedFile
@@ -358,27 +363,16 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   /**
    * complete the selection gesture and apply the change to the diff
    */
-    if (!this.props.onIncludeChanged || !this.selection) {
-      return
-    }
-
-    const { file } = this.props
-
-    if (!(file instanceof WorkingDirectoryFileChange)) {
   private endSelection() {
-      return
+    const { onIncludeChanged, file } = this.props
+    if (onIncludeChanged && this.selection && canSelect(file)) {
+      const current = file.selection
+      const { from, to, isSelected } = this.selection
+      const length = to - from + 1
+
+      onIncludeChanged(current.withRangeSelection(from, length, isSelected))
+      this.selection = null
     }
-
-    const currentSelection = file.selection
-
-    this.props.onIncludeChanged(
-      currentSelection.withRangeSelection(
-        this.selection.from,
-        this.selection.to - this.selection.from + 1,
-        this.selection.isSelected
-      )
-    )
-    this.selection = null
   }
 
   private isSelectionEnabled = () => {
@@ -527,13 +521,10 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
    * only whether it is indicated to be included by either selection.
    */
   private isIncluded(index: number) {
-    if (inSelection(this.selection, index)) {
-      return this.selection.isSelected
-    }
-    return (
-      this.props.file instanceof WorkingDirectoryFileChange &&
-      this.props.file.selection.isSelected(index)
-    )
+    const { file } = this.props
+    return inSelection(this.selection, index)
+      ? this.selection.isSelected
+      : canSelect(file) && file.selection.isSelected(index)
   }
 
   private getGutterLineClassNameInfo(
@@ -658,7 +649,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
 
     const { file, hunks, readOnly } = this.props
 
-    if (!(file instanceof WorkingDirectoryFileChange) || readOnly) {
+    if (!canSelect(file) || readOnly) {
       return
     }
 
@@ -682,7 +673,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
 
     const { file, hunks, readOnly } = this.props
 
-    if (!(file instanceof WorkingDirectoryFileChange) || readOnly) {
+    if (!canSelect(file) || readOnly) {
       return
     }
 
@@ -707,9 +698,9 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       return
     }
 
-    if (this.props.file instanceof WorkingDirectoryFileChange) {
+    if (canSelect(this.props.file)) {
       if (
-        !(prevProps.file instanceof WorkingDirectoryFileChange) ||
+        !canSelect(prevProps.file) ||
         this.props.file.selection !== prevProps.file.selection
       ) {
         // If the text has changed the gutters will be recreated
