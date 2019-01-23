@@ -1,7 +1,7 @@
 {
   "releases": {
     "1.6.1": [
-      "[Fix] Don't show \"No local changes\" view when switching between changed files"
+      "[Fixed] Don't show \"No local changes\" view when switching between changed files"
     ],
     "1.6.0": [
       "[New] Help users add their first repo during onboarding - #6474",
