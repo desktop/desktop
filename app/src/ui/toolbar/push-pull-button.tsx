@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { ToolbarButton, ToolbarButtonStyle } from './button'
 import { Progress } from '../../models/progress'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Repository } from '../../models/repository'
 import { IAheadBehind } from '../../models/branch'

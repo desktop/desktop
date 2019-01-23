@@ -1,4 +1,4 @@
-import { Dispatcher } from './index'
+import { Dispatcher } from '../../ui/dispatcher/index'
 import { GitError } from '../git/core'
 import {
   GitError as DugiteError,

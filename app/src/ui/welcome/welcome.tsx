@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as classNames from 'classnames'
 
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { encodePathAsUrl } from '../../lib/path'
 import { AppStore, SignInState, SignInStep } from '../../lib/stores'
 import { assertNever } from '../../lib/fatal-error'

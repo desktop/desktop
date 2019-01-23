@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Dispatcher } from '../../lib/dispatcher/index'
+import { Dispatcher } from '../dispatcher/index'
 import { LinkButton } from '../lib/link-button'
 import { updateStore } from '../lib/update-store'
 import { Octicon, OcticonSymbol } from '../octicons'
