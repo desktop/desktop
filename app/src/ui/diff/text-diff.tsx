@@ -101,7 +101,10 @@ function createNoNewlineIndicatorWidget() {
  * the given index is contained within the selection.
  */
 function inSelection(s: ISelection | null, ix: number): s is ISelection {
-  return s !== null && ix >= s.from && ix <= s.to
+  if (s === null) {
+    return false
+  }
+  return ix >= Math.min(s.from, s.to) && ix <= Math.max(s.to, s.from)
 }
 
 /** Utility function for checking whether an event target has a given CSS class */
@@ -296,17 +299,10 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       return
     }
 
-    const lineNumber = this.codeMirror.lineAtHeight(ev.y)
-    const { from, to } = this.selection
+    const to = this.codeMirror.lineAtHeight(ev.y)
+    const newSelection = { ...this.selection, to }
 
-    const newSelection = {
-      ...this.selection,
-      // Handle selections up or down while guaranteeing from <= to
-      from: lineNumber <= from ? lineNumber : from,
-      to: lineNumber <= from ? to : lineNumber,
-    }
-
-    if (newSelection.from !== from || newSelection.to !== to) {
+    if (newSelection.to !== this.selection.to) {
       this.selection = newSelection
       this.updateViewport()
     }
@@ -365,10 +361,13 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     const { onIncludeChanged, file } = this.props
     if (onIncludeChanged && this.selection && canSelect(file)) {
       const current = file.selection
-      const { from, to, isSelected } = this.selection
-      const length = to - from + 1
+      const { isSelected } = this.selection
 
-      onIncludeChanged(current.withRangeSelection(from, length, isSelected))
+      const lower = Math.min(this.selection.from, this.selection.to)
+      const upper = Math.max(this.selection.from, this.selection.to)
+      const length = upper - lower + 1
+
+      onIncludeChanged(current.withRangeSelection(lower, length, isSelected))
       this.selection = null
     }
   }
