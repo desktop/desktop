@@ -490,8 +490,10 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
             lineInfo.gutterMarkers &&
             diffGutterName in lineInfo.gutterMarkers
           ) {
-            const marker = lineInfo.gutterMarkers[diffGutterName] as HTMLElement
-            this.updateGutterMarker(marker, lineNumber, diffLine)
+            const marker = lineInfo.gutterMarkers[diffGutterName]
+            if (marker instanceof HTMLElement) {
+              this.updateGutterMarker(marker, lineNumber, diffLine)
+            }
           } else {
             batchedOps.push(() => {
               const marker = this.createGutterMarker(lineNumber, diffLine)
