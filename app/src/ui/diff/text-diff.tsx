@@ -205,10 +205,10 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     }
   )
 
-  /**
-   * Maintain the current state of the user interacting with the diff gutter
-   */
+  /** The current, active, diff gutter selection if any */
   private selection: ISelection | null = null
+
+  /** Whether a particular range should be highlighted due to hover */
   private hunkHighlightRange: ISelection | null = null
 
   private async initDiffSyntaxMode() {
