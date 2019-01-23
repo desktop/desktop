@@ -178,6 +178,11 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     structuralEquals
   )
 
+  /**
+   * Returns an array of line numbers that should be marked as lacking a
+   * new line. Memoized such that even if `hunks` changes we don't have
+   * to re-run getCodeMirrorDocument needlessly.
+   */
   private getNoNewlineIndicatorLines = memoizeOne(
     (hunks: ReadonlyArray<DiffHunk>) => {
       let lines = new Array<number>()
