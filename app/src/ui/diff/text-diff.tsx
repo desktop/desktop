@@ -244,12 +244,12 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   /**
    * start a selection gesture based on the current interaction
    */
-  private startSelection = (
+  private startSelection(
     file: WorkingDirectoryFileChange,
     hunks: ReadonlyArray<DiffHunk>,
     index: number,
     kind: SelectionKind
-  ) => {
+  ) {
     if (this.selection !== null) {
       this.cancelSelection()
     }
@@ -275,7 +275,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     document.addEventListener('mouseup', this.onDocumentMouseUp, { once: true })
   }
 
-  private cancelSelection = () => {
+  private cancelSelection() {
     if (this.selection) {
       document.removeEventListener('mouseup', this.onDocumentMouseUp)
       document.removeEventListener('mousemove', this.onDocumentMouseMove)
@@ -357,7 +357,6 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   /**
    * complete the selection gesture and apply the change to the diff
    */
-  private endSelection = () => {
     if (!this.props.onIncludeChanged || !this.selection) {
       return
     }
@@ -365,6 +364,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     const { file } = this.props
 
     if (!(file instanceof WorkingDirectoryFileChange)) {
+  private endSelection() {
       return
     }
 
