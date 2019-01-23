@@ -24,10 +24,6 @@ import {
   lineNumberForDiffLine,
 } from './diff-explorer'
 
-import { ISelectionStrategy } from './selection/selection-strategy'
-import { RangeSelection } from './selection/range-selection-strategy'
-import { DragDropSelection } from './selection/drag-drop-selection-strategy'
-
 import {
   getLineFilters,
   getFileContents,
@@ -36,7 +32,6 @@ import {
 import { relativeChanges } from './changed-range'
 import { Repository } from '../../models/repository'
 import memoizeOne from 'memoize-one'
-import { selectedLineClass, hoverCssClass } from './selection/selection'
 import { structuralEquals } from '../../lib/equality'
 
 /** The longest line for which we'd try to calculate a line diff. */
@@ -70,6 +65,13 @@ function highlightParametersEqual(
   return (
     newProps.file.id === prevProps.file.id && newProps.text === prevProps.text
   )
+}
+
+interface ISelection {
+  readonly from: number
+  readonly to: number
+  readonly kind: 'hunk' | 'range'
+  readonly isSelected: boolean
 }
 
 function createNoNewlineIndicatorWidget() {
@@ -187,7 +189,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   /**
    * Maintain the current state of the user interacting with the diff gutter
    */
-  private selection: ISelectionStrategy | null = null
+  private selection: ISelection | null = null
 
   private async initDiffSyntaxMode() {
     const cm = this.codeMirror
@@ -240,7 +242,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     isRangeSelection: boolean
   ) => {
     const snapshot = file.selection
-    const newSelection = !snapshot.isSelected(index)
+    const isSelected = !snapshot.isSelected(index)
 
     if (this.selection !== null) {
       this.cancelSelection()
@@ -254,9 +256,9 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       }
 
       const { start, end } = range
-      this.selection = new RangeSelection(start, end, newSelection, snapshot)
+      this.selection = { isSelected, from: start, to: end, kind: 'hunk' }
     } else {
-      this.selection = new DragDropSelection(index, newSelection, snapshot)
+      this.selection = { isSelected, from: index, to: index, kind: 'range' }
       document.addEventListener('mousemove', this.onDocumentMouseMove)
     }
 
@@ -275,18 +277,21 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       return
     }
 
-    if (!(this.selection instanceof DragDropSelection)) {
+    if (this.selection === null || this.selection.kind !== 'range') {
       return
     }
 
     const lineNumber = this.codeMirror.lineAtHeight(ev.y)
-    const { lowerIndex, upperIndex } = this.selection
-    this.selection.update(lineNumber)
+    const { from, to } = this.selection
 
-    if (
-      lowerIndex !== this.selection.lowerIndex ||
-      upperIndex !== this.selection.upperIndex
-    ) {
+    const newSelection = {
+      ...this.selection,
+      from: lineNumber <= from ? lineNumber : from,
+      to: lineNumber <= from ? to : lineNumber,
+    }
+
+    if (newSelection.from !== from || newSelection.to !== to) {
+      this.selection = newSelection
       this.updateViewport()
     }
   }
@@ -308,7 +313,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     // mouse down event on that hunk handle and for the mouse up event
     // we need to make sure the user is still within that hunk handle
     // section and in the correct range.
-    if (this.selection instanceof RangeSelection) {
+    if (this.selection.kind === 'hunk') {
       // Is the pointer over something that might be a hunk handle?
       if (ev.target === null || !(ev.target instanceof HTMLElement)) {
         return this.cancelSelection()
@@ -318,24 +323,21 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
         return this.cancelSelection()
       }
 
-      const { start, end } = this.selection
+      const { from, to } = this.selection
       const lineNumber = this.codeMirror.lineAtHeight(ev.y)
 
       // Is the pointer over the same range (i.e hunk) that the
       // selection was originally started from?
-      if (lineNumber < start || lineNumber > end) {
+      if (lineNumber < from || lineNumber > to) {
         return this.cancelSelection()
       }
-    } else if (this.selection instanceof DragDropSelection) {
-      const lineNumber = this.codeMirror.lineAtHeight(ev.y)
-      this.selection.update(lineNumber)
-
+    } else if (this.selection.kind === 'range') {
       // Special case drag drop selections of 1 as single line 'click'
       // events for which we require that the cursor is still on the
       // original gutter element (i.e. if you mouse down on a gutter
       // element and move the mouse out of the gutter it should not
       // count as a click when you mouse up)
-      if (this.selection.length === 1) {
+      if (this.selection.from - this.selection.to === 0) {
         if (ev.target === null || !(ev.target instanceof HTMLElement)) {
           return this.cancelSelection()
         }
@@ -349,6 +351,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       }
     }
 
+    console.log(this.selection)
     this.endSelection()
   }
 
@@ -360,7 +363,21 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       return
     }
 
-    this.props.onIncludeChanged(this.selection.done())
+    const { file } = this.props
+
+    if (!(file instanceof WorkingDirectoryFileChange)) {
+      return
+    }
+
+    const currentSelection = file.selection
+
+    this.props.onIncludeChanged(
+      currentSelection.withRangeSelection(
+        this.selection.from,
+        this.selection.to - this.selection.from + 1,
+        this.selection.isSelected
+      )
+    )
     this.selection = null
   }
 
@@ -514,8 +531,12 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     let isIncluded = false
 
     if (isIncludeable) {
-      if (this.selection !== null) {
-        isIncluded = this.selection.isIncluded(index)
+      if (
+        this.selection !== null &&
+        index >= this.selection.from &&
+        index <= this.selection.to
+      ) {
+        isIncluded = this.selection.isSelected
       } else {
         isIncluded =
           this.props.file instanceof WorkingDirectoryFileChange &&
@@ -539,9 +560,9 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       'diff-context': type === DiffLineType.Context,
       'diff-hunk': type === DiffLineType.Hunk,
       'read-only': this.props.readOnly,
+      'diff-line-selected': isIncluded,
+      'diff-line-hover': hover,
       includeable: isIncludeable && !this.props.readOnly,
-      [selectedLineClass]: isIncluded,
-      [hoverCssClass]: hover,
     }
   }
 
@@ -605,7 +626,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     if (
       this.codeMirror === null ||
       this.props.readOnly ||
-      this.selection instanceof DragDropSelection
+      (this.selection !== null && this.selection.kind === 'range')
     ) {
       return
     }
