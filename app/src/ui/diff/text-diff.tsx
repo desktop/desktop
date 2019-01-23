@@ -250,11 +250,11 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     index: number,
     kind: SelectionKind
   ) => {
-    const isSelected = !file.selection.isSelected(index)
-
     if (this.selection !== null) {
       this.cancelSelection()
     }
+
+    const isSelected = !file.selection.isSelected(index)
 
     if (kind === 'hunk') {
       const range = findInteractiveDiffRange(hunks, index)
