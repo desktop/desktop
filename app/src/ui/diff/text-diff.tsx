@@ -96,6 +96,14 @@ function createNoNewlineIndicatorWidget() {
   return widget
 }
 
+/**
+ * Utility function to check whether a selection exists, and whether
+ * the given index is contained within the selection.
+ */
+function inSelection(s: ISelection | null, ix: number): s is ISelection {
+  return s !== null && ix >= s.from && ix <= s.to
+}
+
 interface ITextDiffProps {
   readonly repository: Repository
   readonly file: ChangedFile
@@ -149,7 +157,6 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
 
   private getCodeMirrorDocument = memoizeOne(
     (text: string, noNewlineIndicatorLines: ReadonlyArray<number>) => {
-      console.log('recreating doc')
       const { mode, firstLineNumber, lineSeparator } = defaultEditorOptions
       const formattedText = this.getFormattedText(text)
       const doc = new Doc(formattedText, mode, firstLineNumber, lineSeparator)
@@ -192,12 +199,9 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   private hunkHighlightRange: ISelection | null = null
 
   private async initDiffSyntaxMode() {
-    const cm = this.codeMirror
-    const file = this.props.file
-    const hunks = this.props.hunks
-    const repo = this.props.repository
+    const { file, hunks, repository } = this.props
 
-    if (!cm) {
+    if (!this.codeMirror) {
       return
     }
 
@@ -207,13 +211,13 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     const propsSnapshot = this.props
 
     const lineFilters = getLineFilters(hunks)
-    const contents = await getFileContents(repo, file, lineFilters)
+    const contents = await getFileContents(repository, file, lineFilters)
 
     if (!highlightParametersEqual(this.props, propsSnapshot)) {
       return
     }
 
-    const tsOpt = cm.getOption('tabSize')
+    const tsOpt = this.codeMirror.getOption('tabSize')
     const tabSize = typeof tsOpt === 'number' ? tsOpt : 4
 
     const tokens = await highlightContents(contents, tabSize, lineFilters)
@@ -229,7 +233,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       newTokens: tokens.newTokens,
     }
 
-    cm.setOption('mode', spec)
+    this.codeMirror.setOption('mode', spec)
   }
 
   /**
@@ -266,10 +270,11 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   }
 
   private cancelSelection = () => {
-    document.removeEventListener('mouseup', this.onDocumentMouseUp)
-    document.removeEventListener('mousemove', this.onDocumentMouseMove)
-
-    this.selection = null
+    if (this.selection) {
+      document.removeEventListener('mouseup', this.onDocumentMouseUp)
+      document.removeEventListener('mousemove', this.onDocumentMouseMove)
+      this.selection = null
+    }
   }
 
   private onDocumentMouseMove = (ev: MouseEvent) => {
@@ -299,11 +304,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   private onDocumentMouseUp = (ev: MouseEvent) => {
     ev.preventDefault()
 
-    if (this.selection === null) {
-      return
-    }
-
-    if (this.codeMirror === null) {
+    if (this.selection === null || this.codeMirror === null) {
       return this.cancelSelection()
     }
 
@@ -323,12 +324,9 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
         return this.cancelSelection()
       }
 
-      const { from, to } = this.selection
-      const lineNumber = this.codeMirror.lineAtHeight(ev.y)
-
       // Is the pointer over the same range (i.e hunk) that the
       // selection was originally started from?
-      if (lineNumber < from || lineNumber > to) {
+      if (inSelection(this.selection, this.codeMirror.lineAtHeight(ev.y))) {
         return this.cancelSelection()
       }
     } else if (this.selection.kind === 'range') {
@@ -351,7 +349,6 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       }
     }
 
-    console.log(this.selection)
     this.endSelection()
   }
 
@@ -489,27 +486,25 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     doc.eachLine(from, to, line => {
       const lineNumber = doc.getLineNumber(line)
 
-      if (lineNumber === null) {
-        return
-      }
+      if (lineNumber !== null) {
+        const diffLine = diffLineForIndex(this.props.hunks, lineNumber)
 
-      const diffLine = diffLineForIndex(this.props.hunks, lineNumber)
+        if (diffLine !== null) {
+          const lineInfo = cm.lineInfo(line)
 
-      if (diffLine === null) {
-        return
-      }
-
-      let marker: HTMLElement | null = null
-      const lineInfo = cm.lineInfo(line)
-
-      if (lineInfo.gutterMarkers && diffGutterName in lineInfo.gutterMarkers) {
-        marker = lineInfo.gutterMarkers[diffGutterName] as HTMLElement
-        this.updateGutterMarker(marker, lineNumber, diffLine)
-      } else {
-        batchedOps.push(() => {
-          marker = this.createGutterMarker(lineNumber, diffLine)
-          cm.setGutterMarker(line, diffGutterName, marker)
-        })
+          if (
+            lineInfo.gutterMarkers &&
+            diffGutterName in lineInfo.gutterMarkers
+          ) {
+            const marker = lineInfo.gutterMarkers[diffGutterName] as HTMLElement
+            this.updateGutterMarker(marker, lineNumber, diffLine)
+          } else {
+            batchedOps.push(() => {
+              const marker = this.createGutterMarker(lineNumber, diffLine)
+              cm.setGutterMarker(line, diffGutterName, marker)
+            })
+          }
+        }
       }
     })
 
@@ -522,43 +517,36 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     }
   }
 
+  /**
+   * Returns a value indicating whether the given line index is included
+   * in the current temporary or permanent (props) selection. Note that
+   * this function does not care about whether the line can be included,
+   * only whether it is indicated to be included by either selection.
+   */
+  private isIncluded(index: number) {
+    if (inSelection(this.selection, index)) {
+      return this.selection.isSelected
+    }
+    return (
+      this.props.file instanceof WorkingDirectoryFileChange &&
+      this.props.file.selection.isSelected(index)
+    )
+  }
+
   private getGutterLineClassNameInfo(
     index: number,
     diffLine: DiffLine
   ): { [className: string]: boolean } {
     const isIncludeable = diffLine.isIncludeableLine()
-
-    let isIncluded = false
-
-    if (isIncludeable) {
-      if (
-        this.selection !== null &&
-        index >= this.selection.from &&
-        index <= this.selection.to
-      ) {
-        isIncluded = this.selection.isSelected
-      } else {
-        isIncluded =
-          this.props.file instanceof WorkingDirectoryFileChange &&
-          this.props.file.selection.isSelected(index)
-      }
-    }
-
-    const { type } = diffLine
-
-    const hover =
-      this.hunkHighlightRange === null
-        ? false
-        : index >= this.hunkHighlightRange.from &&
-          index <= this.hunkHighlightRange.to &&
-          isIncludeable
+    const isIncluded = isIncludeable && this.isIncluded(index)
+    const hover = isIncludeable && inSelection(this.hunkHighlightRange, index)
 
     return {
       'diff-line-gutter': true,
-      'diff-add': type === DiffLineType.Add,
-      'diff-delete': type === DiffLineType.Delete,
-      'diff-context': type === DiffLineType.Context,
-      'diff-hunk': type === DiffLineType.Hunk,
+      'diff-add': diffLine.type === DiffLineType.Add,
+      'diff-delete': diffLine.type === DiffLineType.Delete,
+      'diff-context': diffLine.type === DiffLineType.Context,
+      'diff-hunk': diffLine.type === DiffLineType.Hunk,
       'read-only': this.props.readOnly,
       'diff-line-selected': isIncluded,
       'diff-line-hover': hover,
@@ -605,6 +593,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
         marker.classList.remove(className)
       }
     }
+
     if (!this.props.readOnly && diffLine.isIncludeableLine()) {
       marker.setAttribute('role', 'button')
     } else {
