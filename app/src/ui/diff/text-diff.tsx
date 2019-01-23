@@ -707,12 +707,6 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       return
     }
 
-    // No need to keep potentially tons of diff gutter DOM
-    // elements around in memory when we're switching files.
-    if (this.props.file.id !== prevProps.file.id) {
-      this.codeMirror.clearGutter(diffGutterName)
-    }
-
     if (this.props.file instanceof WorkingDirectoryFileChange) {
       if (
         !(prevProps.file instanceof WorkingDirectoryFileChange) ||
