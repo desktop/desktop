@@ -297,6 +297,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
 
     const newSelection = {
       ...this.selection,
+      // Handle selections up or down while guaranteeing from <= to
       from: lineNumber <= from ? lineNumber : from,
       to: lineNumber <= from ? to : lineNumber,
     }
