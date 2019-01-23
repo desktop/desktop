@@ -12,7 +12,6 @@
   background: var(--background-color);
   font-size: var(--font-size-sm);
   font-family: var(--font-family-monospace);
-  line-height: 20px;
 
   span {
     // Force word breaks. This only matters when soft wrapping is on.
@@ -29,7 +28,7 @@
   }
 
   &-line {
-    padding: 0 0 0 var(--spacing-half);
+    padding: 2px 0 2px var(--spacing-half);
 
     svg.no-newline {
       height: 8px;
