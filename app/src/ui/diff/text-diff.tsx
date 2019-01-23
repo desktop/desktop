@@ -283,6 +283,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       document.removeEventListener('mouseup', this.onDocumentMouseUp)
       document.removeEventListener('mousemove', this.onDocumentMouseMove)
       this.selection = null
+      this.updateViewport()
     }
   }
 
