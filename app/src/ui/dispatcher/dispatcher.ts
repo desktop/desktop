@@ -20,8 +20,8 @@ import {
   MergeResultStatus,
   SuccessfulMergeBannerState,
   MergeConflictsBannerState,
-} from '../app-state'
-import { AppStore } from '../stores/app-store'
+} from '../../lib/app-state'
+import { AppStore } from '../../lib/stores/app-store'
 import { CloningRepository } from '../../models/cloning-repository'
 import { Branch } from '../../models/branch'
 import { Commit, ICommitContext } from '../../models/commit'
@@ -29,40 +29,43 @@ import { ExternalEditor } from '../../lib/editors'
 import { IAPIUser } from '../../lib/api'
 import { GitHubRepository } from '../../models/github-repository'
 import { ICommitMessage } from '../../models/commit-message'
-import { executeMenuItem } from '../../ui/main-process-proxy'
+import { executeMenuItem } from '../main-process-proxy'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
 import {
   matchExistingRepository,
   urlMatchesCloneURL,
 } from '../../lib/repository-matching'
-import { ILaunchStats, StatsStore } from '../stats'
-import { fatalError, assertNever } from '../fatal-error'
-import { isGitOnPath } from '../is-git-on-path'
-import { shell } from '../app-shell'
+import { ILaunchStats, StatsStore } from '../../lib/stats'
+import { fatalError, assertNever } from '../../lib/fatal-error'
+import { isGitOnPath } from '../../lib/is-git-on-path'
+import { shell } from '../../lib/app-shell'
 import {
   URLActionType,
   IOpenRepositoryFromURLAction,
   IUnknownAction,
-} from '../parse-app-url'
+} from '../../lib/parse-app-url'
 import {
   requestAuthenticatedUser,
   resolveOAuthRequest,
   rejectOAuthRequest,
 } from '../../lib/oauth'
-import { installCLI } from '../../ui/lib/install-cli'
-import { setGenericUsername, setGenericPassword } from '../generic-git-auth'
+import { installCLI } from '../lib/install-cli'
+import {
+  setGenericUsername,
+  setGenericPassword,
+} from '../../lib/generic-git-auth'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
-import { Shell } from '../shells'
+import { Shell } from '../../lib/shells'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { validatedRepositoryPath } from '../../lib/stores/helpers/validated-repository-path'
 import { BranchesTab } from '../../models/branches-tab'
 import { FetchType } from '../../models/fetch'
 import { PullRequest } from '../../models/pull-request'
 import { IAuthor } from '../../models/author'
-import { isGitRepository } from '../git'
-import { ApplicationTheme } from '../../ui/lib/application-theme'
+import { isGitRepository } from '../../lib/git'
+import { ApplicationTheme } from '../lib/application-theme'
 import { TipState } from '../../models/tip'
-import { RepositoryStateCache } from '../stores/repository-state-cache'
+import { RepositoryStateCache } from '../../lib/stores/repository-state-cache'
 import { Popup, PopupType } from '../../models/popup'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 
