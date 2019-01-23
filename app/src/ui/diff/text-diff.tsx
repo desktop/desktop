@@ -632,11 +632,10 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   }
 
   private updateViewport() {
-    if (!this.codeMirror) {
-      return
+    if (this.codeMirror) {
+      const { from, to } = this.codeMirror.getViewport()
+      this.onViewportChange(this.codeMirror, from, to)
     }
-    const { from, to } = this.codeMirror.getViewport()
-    this.onViewportChange(this.codeMirror, from, to)
   }
 
   private onDiffLineGutterMouseDown = (ev: MouseEvent) => {
