@@ -105,10 +105,7 @@ function inSelection(s: ISelection | null, ix: number): s is ISelection {
 }
 
 /**
- * Utility function for checking whether an event target has a particular CSS class
- *
- * @param e The event
- * @param token
+ * Utility function for checking whether an event target has a given CSS class
  */
 function targetHasClass(target: EventTarget | null, token: string) {
   return target instanceof HTMLElement && target.classList.contains(token)
