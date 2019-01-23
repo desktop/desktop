@@ -306,6 +306,8 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     const max = Math.max(0, this.codeMirror.getDoc().lineCount() - 1)
     const to = clamp(this.codeMirror.lineAtHeight(ev.y), 0, max)
 
+    this.codeMirror.scrollIntoView({ line: to, ch: 0 })
+
     if (to !== this.selection.to) {
       this.selection = { ...this.selection, to }
       this.updateViewport()
