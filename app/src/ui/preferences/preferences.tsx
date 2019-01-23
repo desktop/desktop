@@ -110,16 +110,16 @@ export class Preferences extends React.Component<
     const availableEditors = editors.map(e => e.editor)
     const availableShells = shells.map(e => e.shell)
 
-    this.setState({
+    this.setState((state, props) => ({
       committerName,
       committerEmail,
-      optOutOfUsageTracking: this.props.optOutOfUsageTracking,
-      confirmRepositoryRemoval: this.props.confirmRepositoryRemoval,
-      confirmDiscardChanges: this.props.confirmDiscardChanges,
+      optOutOfUsageTracking: props.optOutOfUsageTracking,
+      confirmRepositoryRemoval: props.confirmRepositoryRemoval,
+      confirmDiscardChanges: props.confirmDiscardChanges,
       availableShells,
       availableEditors,
       mergeTool,
-    })
+    }))
   }
 
   public render() {

@@ -101,9 +101,9 @@ export class CreateBranch extends React.Component<
   }
 
   public componentWillReceiveProps(nextProps: ICreateBranchProps) {
-    this.setState({
-      startPoint: getStartPoint(nextProps, this.state.startPoint),
-    })
+    this.setState((prevState) => ({
+      startPoint: getStartPoint(nextProps, prevState.startPoint),
+    }))
 
     if (!this.state.isCreatingBranch) {
       this.setState({

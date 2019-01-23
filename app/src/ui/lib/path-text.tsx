@@ -320,7 +320,7 @@ export class PathText extends React.PureComponent<
         // This conditional update isn't strictly necessary but it'll save
         // us one round of comparisons in the PureComponent shallowCompare
         if (availableWidth !== this.state.availableWidth) {
-          this.setState({ ...this.state, availableWidth })
+          this.setState((prevState) => ({ ...prevState, availableWidth }))
         }
 
         return
@@ -329,11 +329,11 @@ export class PathText extends React.PureComponent<
         // not doing so right now. Let's make sure we do by keeping all the
         // state properties and updating the availableWidth and setting length
         // to the maximum number of characters available.
-        this.setState({
-          ...this.state,
-          ...createPathDisplayState(this.state.normalizedPath),
+        this.setState((prevState) => ({
+          ...prevState,
+          ...createPathDisplayState(prevState.normalizedPath),
           availableWidth,
-        })
+        }))
 
         return
       }
@@ -350,21 +350,21 @@ export class PathText extends React.PureComponent<
       if (availableWidth < this.state.availableWidth) {
         // We've gotten less space to work with so we can keep our shortest non-fit since
         // that's still valid
-        this.setState({
+        this.setState((prevState) => ({
           ...resetState,
-          fullTextWidth: this.state.fullTextWidth,
-          shortestNonFit: this.state.shortestNonFit,
+          fullTextWidth: prevState.fullTextWidth,
+          shortestNonFit: prevState.shortestNonFit,
           availableWidth,
-        })
+        }))
       } else if (availableWidth > this.state.availableWidth) {
         // We've gotten more space to work with so we can keep our longest fit since
         // that's still valid.
-        this.setState({
+        this.setState((prevState)=> ({
           ...resetState,
-          fullTextWidth: this.state.fullTextWidth,
-          longestFit: this.state.longestFit,
+          fullTextWidth: prevState.fullTextWidth,
+          longestFit: prevState.longestFit,
           availableWidth,
-        })
+        }))
       }
 
       return
@@ -374,13 +374,13 @@ export class PathText extends React.PureComponent<
     // by not measuring the actual width.
     if (availableWidth === 0) {
       if (this.state.length !== 0) {
-        this.setState({
-          ...this.state,
-          ...createPathDisplayState(this.state.normalizedPath, 0),
+        this.setState((prevState) => ({
+          ...prevState,
+          ...createPathDisplayState(prevState.normalizedPath, 0),
           availableWidth,
           longestFit: 0,
           shortestNonFit: 1,
-        })
+        }))
       }
       return
     }
@@ -402,7 +402,7 @@ export class PathText extends React.PureComponent<
     if (actualWidth <= availableWidth) {
       // We're done, the entire path fits
       if (this.state.length === this.state.normalizedPath.length) {
-        this.setState({ ...this.state, availableWidth, fullTextWidth })
+        this.setState((prevState) => ({ ...prevState, availableWidth, fullTextWidth }))
         return
       } else {
         // There might be more space to fill
@@ -417,12 +417,12 @@ export class PathText extends React.PureComponent<
         // We've run out of options, it fits here but we can't grow any further, i.e
         // we're done.
         if (minChars >= maxChars) {
-          this.setState({
-            ...this.state,
+          this.setState((prevState) => ({
+            ...prevState,
             longestFit,
             availableWidth,
             fullTextWidth,
-          })
+          }))
           return
         }
 
@@ -434,12 +434,12 @@ export class PathText extends React.PureComponent<
         // width and use that instead but this works pretty well for now and lets us
         // avoid one more measure phase.
         if (availableWidth - actualWidth < 3) {
-          this.setState({
-            ...this.state,
+          this.setState((prevState) => ({
+            ...prevState,
             longestFit,
             availableWidth,
             fullTextWidth,
-          })
+          }))
           return
         }
 
@@ -450,13 +450,13 @@ export class PathText extends React.PureComponent<
         )
 
         // We could potentially fit more characters, there's room to try so we'll go for it
-        this.setState({
-          ...this.state,
-          ...createPathDisplayState(this.state.normalizedPath, length),
+        this.setState((prevState) => ({
+          ...prevState,
+          ...createPathDisplayState(prevState.normalizedPath, length),
           longestFit,
           availableWidth,
           fullTextWidth,
-        })
+        }))
       }
     } else {
       // Okay, so it didn't quite fit, let's trim it down a little
@@ -471,13 +471,13 @@ export class PathText extends React.PureComponent<
         maxChars
       )
 
-      this.setState({
-        ...this.state,
-        ...createPathDisplayState(this.state.normalizedPath, length),
+      this.setState((prevState) => ({
+        ...prevState,
+        ...createPathDisplayState(prevState.normalizedPath, length),
         shortestNonFit,
         availableWidth,
         fullTextWidth,
-      })
+      }))
     }
   }
 }
