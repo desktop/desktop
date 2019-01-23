@@ -1,16 +1,16 @@
-import { Dispatcher } from '../../ui/dispatcher/index'
-import { GitError } from '../git/core'
+import { Dispatcher } from '.'
+import { GitError } from '../../lib/git/core'
 import {
   GitError as DugiteError,
   RepositoryDoesNotExistErrorCode,
 } from 'dugite'
-import { ErrorWithMetadata } from '../error-with-metadata'
-import { ExternalEditorError } from '../editors/shared'
-import { AuthenticationErrors } from '../git/authentication'
+import { ErrorWithMetadata } from '../../lib/error-with-metadata'
+import { ExternalEditorError } from '../../lib/editors/shared'
+import { AuthenticationErrors } from '../../lib/git/authentication'
 import { Repository } from '../../models/repository'
 import { PopupType } from '../../models/popup'
-import { ShellError } from '../shells'
-import { UpstreamAlreadyExistsError } from '../stores/upstream-already-exists-error'
+import { ShellError } from '../../lib/shells'
+import { UpstreamAlreadyExistsError } from '../../lib/stores/upstream-already-exists-error'
 import { FetchType } from '../../models/fetch'
 import { TipState } from '../../models/tip'
 
