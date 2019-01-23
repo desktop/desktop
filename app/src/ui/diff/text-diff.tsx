@@ -175,11 +175,9 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
 
       return doc
     },
-    // Only re-run the memoization function if the text
-    // differs or the array differs (by structural equality).
-    // This let's us re-use the document as much as possible
-    // while still recreating it if a no-newline indicator needs
-    // to be added/removed.
+    // Only re-run the memoization function if the text differs or the array
+    // differs (by structural equality). Allows us to re-use the document as
+    // much as possible, recreating it only if a no-newline appears/disappears
     structuralEquals
   )
 
