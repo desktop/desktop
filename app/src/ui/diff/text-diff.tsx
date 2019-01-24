@@ -81,7 +81,7 @@ function createNoNewlineIndicatorWidget() {
 
   const { w, h, d } = narrowNoNewlineSymbol
 
-  var xmlns = 'http://www.w3.org/2000/svg'
+  const xmlns = 'http://www.w3.org/2000/svg'
   const svgElem = document.createElementNS(xmlns, 'svg')
   svgElem.setAttribute('aria-hidden', 'true')
   svgElem.setAttribute('version', '1.1')
@@ -192,7 +192,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
    */
   private getNoNewlineIndicatorLines = memoizeOne(
     (hunks: ReadonlyArray<DiffHunk>) => {
-      let lines = new Array<number>()
+      const lines = new Array<number>()
       for (const hunk of hunks) {
         for (const line of hunk.lines) {
           if (line.noTrailingNewLine) {
