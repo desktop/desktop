@@ -98,9 +98,6 @@ export class Preferences extends React.Component<
       }
     }
 
-    committerName = committerName || ''
-    committerEmail = committerEmail || ''
-
     const [editors, shells, mergeTool] = await Promise.all([
       getAvailableEditors(),
       getAvailableShells(),
@@ -111,8 +108,8 @@ export class Preferences extends React.Component<
     const availableShells = shells.map(e => e.shell)
 
     this.setState((_state, props) => ({
-      committerName,
-      committerEmail,
+      committerName: committerName || '',
+      committerEmail: committerEmail || '',
       optOutOfUsageTracking: props.optOutOfUsageTracking,
       confirmRepositoryRemoval: props.confirmRepositoryRemoval,
       confirmDiscardChanges: props.confirmDiscardChanges,
