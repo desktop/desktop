@@ -722,7 +722,14 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   }
 
   public getSnapshotBeforeUpdate(prevProps: ITextDiffProps) {
-    if (this.codeMirror !== null && this.props.file.id === prevProps.file.id) {
+    // Store the scroll position when the file stays the same
+    // but we probably swapped out the document
+    if (
+      this.codeMirror !== null &&
+      this.props.file !== prevProps.file &&
+      this.props.file.id === prevProps.file.id &&
+      this.props.text !== prevProps.text
+    ) {
       return this.codeMirror.getScrollInfo()
     }
     return null
