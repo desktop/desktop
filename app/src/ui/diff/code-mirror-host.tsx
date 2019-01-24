@@ -63,6 +63,15 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
   private wrapper: HTMLDivElement | null = null
   private codeMirror: CodeMirror.Editor | null = null
 
+  /**
+   * Resize observer used for tracking width changes and
+   * refreshing the internal codemirror instance when
+   * they occur
+   */
+  private readonly resizeObserver: ResizeObserver
+  private resizeDebounceId: number | null = null
+  private lastKnownWidth: number | null = null
+
   private static updateDoc(
     cm: CodeMirror.Editor,
     value: string | CodeMirror.Doc
@@ -72,6 +81,35 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
     } else {
       cm.swapDoc(value)
     }
+  }
+
+  public constructor(props: ICodeMirrorHostProps) {
+    super(props)
+
+    // Observe size changes and let codemirror know
+    // when it needs to refresh.
+    this.resizeObserver = new ResizeObserver(entries => {
+      if (entries.length === 1 && this.codeMirror) {
+        const newWidth = entries[0].contentRect.width
+
+        // We don't care about the first resize, let's just
+        // store what we've got. Codemirror already does a good
+        // job of height changes through monitoring window resize,
+        // we just need to care about when the width changes and
+        // do a re-layout
+        if (this.lastKnownWidth === null) {
+          this.lastKnownWidth = newWidth
+        } else if (this.lastKnownWidth !== newWidth) {
+          this.lastKnownWidth = newWidth
+
+          if (this.resizeDebounceId !== null) {
+            cancelAnimationFrame(this.resizeDebounceId)
+            this.resizeDebounceId = null
+          }
+          requestAnimationFrame(this.onResized)
+        }
+      }
+    })
   }
 
   /**
@@ -93,6 +131,7 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
     this.codeMirror.on('swapDoc', this.onSwapDoc as any)
 
     CodeMirrorHost.updateDoc(this.codeMirror, this.props.value)
+    this.resizeObserver.observe(this.codeMirror.getWrapperElement())
   }
 
   private onSwapDoc = (cm: CodeMirror.Editor, oldDoc: CodeMirror.Doc) => {
@@ -120,6 +159,8 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
 
       this.codeMirror = null
     }
+
+    this.resizeObserver.disconnect()
   }
 
   public componentDidUpdate(prevProps: ICodeMirrorHostProps) {
@@ -169,6 +210,13 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
   ) => {
     if (this.props.onRenderLine) {
       this.props.onRenderLine(cm, line, element)
+    }
+  }
+
+  private onResized = () => {
+    this.resizeDebounceId = null
+    if (this.codeMirror) {
+      this.codeMirror.refresh()
     }
   }
 
