@@ -126,7 +126,7 @@ export class CommitMessage extends React.Component<
     if (
       this.props.autocompletionProviders !== prevProps.autocompletionProviders
     ) {
-      this.setState((state, props) => ({
+      this.setState((_state, props) => ({
         userAutocompletionProvider: findUserAutoCompleteProvider(
           props.autocompletionProviders
         ),
@@ -139,7 +139,7 @@ export class CommitMessage extends React.Component<
 
     if (!shallowEquals(prevProps.commitMessage, this.props.commitMessage)) {
       if (this.props.commitMessage) {
-        this.setState((state, props) => ({
+        this.setState((_state, props) => ({
           summary: props.commitMessage.summary,
           description: props.commitMessage.description,
         }))

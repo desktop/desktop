@@ -320,7 +320,7 @@ export class PathText extends React.PureComponent<
         // This conditional update isn't strictly necessary but it'll save
         // us one round of comparisons in the PureComponent shallowCompare
         if (availableWidth !== this.state.availableWidth) {
-          this.setState((prevState) => ({ ...prevState, availableWidth }))
+          this.setState({ availableWidth })
         }
 
         return
@@ -329,8 +329,7 @@ export class PathText extends React.PureComponent<
         // not doing so right now. Let's make sure we do by keeping all the
         // state properties and updating the availableWidth and setting length
         // to the maximum number of characters available.
-        this.setState((prevState) => ({
-          ...prevState,
+        this.setState(prevState => ({
           ...createPathDisplayState(prevState.normalizedPath),
           availableWidth,
         }))
@@ -350,7 +349,7 @@ export class PathText extends React.PureComponent<
       if (availableWidth < this.state.availableWidth) {
         // We've gotten less space to work with so we can keep our shortest non-fit since
         // that's still valid
-        this.setState((prevState) => ({
+        this.setState(prevState => ({
           ...resetState,
           fullTextWidth: prevState.fullTextWidth,
           shortestNonFit: prevState.shortestNonFit,
@@ -359,7 +358,7 @@ export class PathText extends React.PureComponent<
       } else if (availableWidth > this.state.availableWidth) {
         // We've gotten more space to work with so we can keep our longest fit since
         // that's still valid.
-        this.setState((prevState)=> ({
+        this.setState(prevState => ({
           ...resetState,
           fullTextWidth: prevState.fullTextWidth,
           longestFit: prevState.longestFit,
@@ -374,7 +373,7 @@ export class PathText extends React.PureComponent<
     // by not measuring the actual width.
     if (availableWidth === 0) {
       if (this.state.length !== 0) {
-        this.setState((prevState) => ({
+        this.setState(prevState => ({
           ...prevState,
           ...createPathDisplayState(prevState.normalizedPath, 0),
           availableWidth,
@@ -402,7 +401,7 @@ export class PathText extends React.PureComponent<
     if (actualWidth <= availableWidth) {
       // We're done, the entire path fits
       if (this.state.length === this.state.normalizedPath.length) {
-        this.setState((prevState) => ({ ...prevState, availableWidth, fullTextWidth }))
+        this.setState({ availableWidth, fullTextWidth })
         return
       } else {
         // There might be more space to fill
@@ -417,12 +416,11 @@ export class PathText extends React.PureComponent<
         // We've run out of options, it fits here but we can't grow any further, i.e
         // we're done.
         if (minChars >= maxChars) {
-          this.setState((prevState) => ({
-            ...prevState,
+          this.setState({
             longestFit,
             availableWidth,
             fullTextWidth,
-          }))
+          })
           return
         }
 
@@ -434,12 +432,11 @@ export class PathText extends React.PureComponent<
         // width and use that instead but this works pretty well for now and lets us
         // avoid one more measure phase.
         if (availableWidth - actualWidth < 3) {
-          this.setState((prevState) => ({
-            ...prevState,
+          this.setState({
             longestFit,
             availableWidth,
             fullTextWidth,
-          }))
+          })
           return
         }
 
@@ -450,8 +447,7 @@ export class PathText extends React.PureComponent<
         )
 
         // We could potentially fit more characters, there's room to try so we'll go for it
-        this.setState((prevState) => ({
-          ...prevState,
+        this.setState(prevState => ({
           ...createPathDisplayState(prevState.normalizedPath, length),
           longestFit,
           availableWidth,
@@ -471,8 +467,7 @@ export class PathText extends React.PureComponent<
         maxChars
       )
 
-      this.setState((prevState) => ({
-        ...prevState,
+      this.setState(prevState => ({
         ...createPathDisplayState(prevState.normalizedPath, length),
         shortestNonFit,
         availableWidth,

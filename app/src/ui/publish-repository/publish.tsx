@@ -256,7 +256,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
       // Swap the current stored error from the active tab with the error from
       // the inactive tab. So that each tab saves and displays their own error.
       const temporaryError: Error | null = this.state.error
-      this.setState((prevState) => ({ error: prevState.inactiveTabError }))
+      this.setState(prevState => ({ error: prevState.inactiveTabError }))
       this.setState({ inactiveTabError: temporaryError })
     }
   }
