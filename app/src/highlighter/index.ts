@@ -240,6 +240,19 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
       '.vb': 'text/x-vb',
     },
   },
+  {
+    install: () => import('codemirror/mode/fortran/fortran'),
+    mappings: {
+      '.f': 'text/x-fortran',
+      '.f90': 'text/x-fortran',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/lua/lua'),
+    mappings: {
+      '.lua': 'text/x-lua',
+    },
+  },
 ]
 
 /**
