@@ -33,6 +33,7 @@ import { ComparisonCache } from './comparison-cache'
 
 import { ApplicationTheme } from '../ui/lib/application-theme'
 import { IAccountRepositories } from './stores/api-repositories-store'
+import { ManualConflictResolution } from '../models/manual-conflict-resolution'
 
 export enum SelectionType {
   Repository,
@@ -257,6 +258,7 @@ export enum RepositorySectionTab {
 export interface IConflictState {
   readonly currentBranch: string
   readonly currentTip: string
+  readonly manualResolutions: Map<string, ManualConflictResolution>
 }
 
 export interface IRepositoryState {
@@ -402,7 +404,7 @@ export interface IChangesState {
   readonly diff: IDiff | null
 
   /** The commit message for a work-in-progress commit in the changes view. */
-  readonly commitMessage: ICommitMessage | null
+  readonly commitMessage: ICommitMessage
 
   /**
    * Whether or not to show a field for adding co-authors to

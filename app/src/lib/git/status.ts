@@ -81,7 +81,6 @@ function parseConflictedState(
       return {
         kind: AppFileStatusKind.Conflicted,
         entry,
-        lookForConflictMarkers: true,
         conflictMarkerCount: addedConflictsLeft,
       }
     case UnmergedEntrySummary.BothModified:
@@ -89,14 +88,12 @@ function parseConflictedState(
       return {
         kind: AppFileStatusKind.Conflicted,
         entry,
-        lookForConflictMarkers: true,
         conflictMarkerCount: modifedConflictsLeft,
       }
     default:
       return {
         kind: AppFileStatusKind.Conflicted,
         entry,
-        lookForConflictMarkers: false,
       }
   }
 }
@@ -121,7 +118,7 @@ function convertToAppStatus(
   } else if (entry.kind === 'renamed' && oldPath != null) {
     return { kind: AppFileStatusKind.Renamed, oldPath }
   } else if (entry.kind === 'untracked') {
-    return { kind: AppFileStatusKind.New }
+    return { kind: AppFileStatusKind.Untracked }
   } else if (entry.kind === 'conflicted') {
     return parseConflictedState(entry, path, filesWithConflictMarkers)
   }

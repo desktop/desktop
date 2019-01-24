@@ -10,6 +10,7 @@ import { ICommitContext } from '../../models/commit'
 import { WorkingDirectoryFileChange } from '../../models/status'
 import { PathText } from '../lib/path-text'
 import { Monospaced } from '../lib/monospaced'
+import { DefaultCommitMessage } from '../../models/commit-message'
 
 interface ICommitConflictsWarningProps {
   readonly dispatcher: Dispatcher
@@ -40,10 +41,10 @@ export class CommitConflictsWarning extends React.Component<
       this.props.context
     )
     this.props.dispatcher.clearMergeConflictsBanner()
-    this.props.dispatcher.setCommitMessage(this.props.repository, {
-      summary: '',
-      description: '',
-    })
+    this.props.dispatcher.setCommitMessage(
+      this.props.repository,
+      DefaultCommitMessage
+    )
   }
 
   private renderFiles(files: ReadonlyArray<WorkingDirectoryFileChange>) {

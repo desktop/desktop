@@ -154,8 +154,6 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
   let tipStateIsUnknown = false
   let branchIsUnborn = false
 
-  let hasRemote = false
-
   if (selectedState && selectedState.type === SelectionType.Repository) {
     repositorySelected = true
 
@@ -184,8 +182,6 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     } else {
       onNonDefaultBranch = true
     }
-
-    hasRemote = !!selectedState.state.remote
 
     networkActionInProgress = selectedState.state.isPushPullFetchInProgress
   }
@@ -244,7 +240,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     )
     menuStateBuilder.setEnabled(
       'push',
-      hasRemote && !branchIsUnborn && !networkActionInProgress
+      !branchIsUnborn && !networkActionInProgress
     )
     menuStateBuilder.setEnabled(
       'pull',

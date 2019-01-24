@@ -348,9 +348,66 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.openCurrentRepositoryInExternalEditor()
       case 'select-all':
         return this.selectAll()
+      case 'show-release-notes-popup':
+        return this.showFakeReleaseNotesPopup()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
+  }
+
+  /**
+   * Show a release notes popup for a fake release, intended only to
+   * make it easier to verify changes to the popup. Has no meaning
+   * about a new release being available.
+   */
+  private showFakeReleaseNotesPopup() {
+    if (__DEV__) {
+      this.props.dispatcher.showPopup({
+        type: PopupType.ReleaseNotes,
+        newRelease: {
+          latestVersion: '42.7.99',
+          datePublished: 'Awesomeber 71, 2025',
+          pretext:
+            'There is something so different here that we wanted to include some pretext for it',
+          enhancements: [
+            {
+              kind: 'new',
+              message: 'An awesome new feature!',
+            },
+            {
+              kind: 'improved',
+              message: 'This is so much better',
+            },
+            {
+              kind: 'improved',
+              message:
+                'Testing links to profile pages by a mention to @shiftkey',
+            },
+          ],
+          bugfixes: [
+            {
+              kind: 'fixed',
+              message: 'Fixed this one thing',
+            },
+            {
+              kind: 'fixed',
+              message: 'Fixed this thing over here too',
+            },
+            {
+              kind: 'fixed',
+              message:
+                'Testing links to issues by calling out #42. Assuming it is fixed by now.',
+            },
+          ],
+          other: [
+            {
+              kind: 'other',
+              message: 'In other news...',
+            },
+          ],
+        },
+      })
+    }
   }
 
   /**
@@ -941,6 +998,11 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     // Don't render the menu bar during the welcome flow
     if (this.state.showWelcomeFlow) {
+      return null
+    }
+
+    // Don't render the menu bar when the blank slate is shown
+    if (this.state.repositories.length < 1) {
       return null
     }
 
@@ -1680,6 +1742,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     const foldoutStyle: React.CSSProperties = {
       position: 'absolute',
       marginLeft: 0,
+      width: this.state.sidebarWidth,
       minWidth: this.state.sidebarWidth,
       height: '100%',
       top: 0,
@@ -1957,6 +2020,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           accounts={state.accounts}
           externalEditorLabel={externalEditorLabel}
           onOpenInExternalEditor={this.openFileInExternalEditor}
+          appMenu={this.state.appMenuState[0]}
         />
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {

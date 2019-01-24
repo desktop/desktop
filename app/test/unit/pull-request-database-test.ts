@@ -1,5 +1,3 @@
-import { expect } from 'chai'
-
 import {
   PullRequestDatabase,
   IPullRequestStatus,
@@ -21,19 +19,18 @@ describe('PullRequestDatabase', () => {
     }
     await database.pullRequestStatus.add(prStatus)
     const prStatusFromDb = await database.pullRequestStatus.get(1)
-    expect(prStatusFromDb).to.not.be.undefined
-    expect(prStatusFromDb!.pullRequestId).to.equal(prStatus.pullRequestId)
+    expect(prStatusFromDb).not.toBeUndefined()
+    expect(prStatusFromDb!.pullRequestId).toBe(prStatus.pullRequestId)
 
     database.close()
     database = new PullRequestDatabase(databaseName, 4)
     await database.open()
 
     const upgradedPrStatusFromDb = await database.pullRequestStatus.get(1)
-    expect(upgradedPrStatusFromDb).is.not.undefined
-    expect(upgradedPrStatusFromDb!.pullRequestId).to.equal(
-      prStatus.pullRequestId
-    )
-    expect(upgradedPrStatusFromDb!.statuses).is.not.undefined
+    expect(upgradedPrStatusFromDb).not.toBeUndefined()
+    expect(upgradedPrStatusFromDb!.pullRequestId).toBe(prStatus.pullRequestId)
+
+    expect(upgradedPrStatusFromDb!.statuses).not.toBeUndefined()
 
     await database.delete()
   })

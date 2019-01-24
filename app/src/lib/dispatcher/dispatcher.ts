@@ -8,6 +8,7 @@ import { Repository } from '../../models/repository'
 import {
   WorkingDirectoryFileChange,
   CommittedFileChange,
+  WorkingDirectoryStatus,
 } from '../../models/status'
 import { DiffSelection, ImageDiffType } from '../../models/diff'
 import {
@@ -63,6 +64,7 @@ import { ApplicationTheme } from '../../ui/lib/application-theme'
 import { TipState } from '../../models/tip'
 import { RepositoryStateCache } from '../stores/repository-state-cache'
 import { Popup, PopupType } from '../../models/popup'
+import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 
 /**
  * An error handler function.
@@ -263,7 +265,7 @@ export class Dispatcher {
    * Refresh the repository. This would be used, e.g., when the app gains focus.
    */
   public refreshRepository(repository: Repository): Promise<void> {
-    return this.appStore._refreshRepository(repository)
+    return this.appStore._refreshOrRecoverRepository(repository)
   }
 
   /** Show the popup. This will close any current popup. */
@@ -561,7 +563,7 @@ export class Dispatcher {
    */
   public setCommitMessage(
     repository: Repository,
-    message: ICommitMessage | null
+    message: ICommitMessage
   ): Promise<void> {
     return this.appStore._setCommitMessage(repository, message)
   }
@@ -633,15 +635,18 @@ export class Dispatcher {
    * commits an in-flight merge and shows a banner if successful
    *
    * @param repository
-   * @param files files to commit. should be all of them in the repository
+   * @param workingDirectory
    * @param successfulMergeBannerState information for banner to be displayed if merge is successful
    */
-  public async createMergeCommit(
+  public async finishConflictedMerge(
     repository: Repository,
-    files: ReadonlyArray<WorkingDirectoryFileChange>,
+    workingDirectory: WorkingDirectoryStatus,
     successfulMergeBannerState: SuccessfulMergeBannerState
   ) {
-    const result = await this.appStore._createMergeCommit(repository, files)
+    const result = await this.appStore._finishConflictedMerge(
+      repository,
+      workingDirectory
+    )
     if (result !== undefined) {
       this.appStore._setSuccessfulMergeBannerState(successfulMergeBannerState)
     }
@@ -1287,6 +1292,21 @@ export class Dispatcher {
 
   public resolveCurrentEditor() {
     return this.appStore._resolveCurrentEditor()
+  }
+
+  /**
+   *  update the manual resolution method for a file
+   */
+  public updateManualConflictResolution(
+    repository: Repository,
+    path: string,
+    manualResolution: ManualConflictResolution | null
+  ) {
+    return this.appStore._updateManualConflictResolution(
+      repository,
+      path,
+      manualResolution
+    )
   }
 
   /**

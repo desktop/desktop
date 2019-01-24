@@ -6,7 +6,7 @@ We have three channels to which we can release: `production`, `beta`, and `test`
 
 - `production` is the channel from which the general public downloads and receives updates. It should be stable and polished.
 
-- `beta` is released more often than `production`. We want to ensure `master` is always in a state where it can be released to users, so it should be used as the source for `beta` releases as an opportunity for additional QA before releasing to `production`.
+- `beta` is released more often than `production`. We want to ensure `development` is always in a state where it can be released to users, so it should be used as the source for `beta` releases as an opportunity for additional QA before releasing to `production`.
 
 - `test` is unlike the other two. It does not receive updates. Each test release is locked in time. It's used entirely for providing test releases.
 
@@ -14,7 +14,7 @@ We have three channels to which we can release: `production`, `beta`, and `test`
 
 ### 1. GitHub Access Token
 
-From a clean working directory, set the `GITHUB_ACCESS_TOKEN` environment variable to a valid [Personal Access Token](https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/) 
+From a clean working directory, set the `GITHUB_ACCESS_TOKEN` environment variable to a valid [Personal Access Token](https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/)
 
 To check that this environment variable is set in your shell:
 
@@ -37,7 +37,7 @@ If you are creating a new Personal Access Token on GitHub:
 * make the token memorable - use a description like `Desktop Draft Release and Changelog Generator`
 * the `read:org` scope is the **only** required scope for drafting releases
 
-To set this access token as an environment in your shell: 
+To set this access token as an environment in your shell:
 
 **Bash (macOS, Linux or Git Bash)**
 ```shellsession
@@ -92,14 +92,14 @@ Here's what you should do next:
 3. Update the release notes to have user-friendly summary lines
 4. For issues prefixed with [???], look at the PR and update the prefix to one of: [New], [Added], [Fixed], [Improved], [Removed]
 5. Sort the entries so that the prefixes are ordered: [New], [Added], [Fixed], [Improved], [Removed]
-6. Commit the changes (on master or as new branch) and push them to GitHub
-7. Read this to perform the release: https://github.com/desktop/desktop/blob/master/docs/process/releasing-updates.md
+6. Commit the changes (on development or as new branch) and push them to GitHub
+7. Read this to perform the release: https://github.com/desktop/desktop/blob/development/docs/process/releasing-updates.md
 ```
 
-_Note: You should ensure the `version` in `app/package.json` is set to the new version and follows the [semver format](https://semver.org/) of `major.minor.patch`._ 
+_Note: You should ensure the `version` in `app/package.json` is set to the new version and follows the [semver format](https://semver.org/) of `major.minor.patch`._
 
 Examples:
-* for prod, `1.1.0` -> `1.1.1` or `1.1.13` -> `1.2.0` 
+* for prod, `1.1.0` -> `1.1.1` or `1.1.13` -> `1.2.0`
 * for beta, `1.1.0-beta1` -> `1.1.0-beta2` or `1.1.13-beta3` -> `1.2.0-beta1`
 * for test, `1.0.14-test2` -> `1.0.14-test3` or `1.1.14-test3` -> `1.2.0-test1`
 
@@ -120,7 +120,7 @@ Here's an example of the previous changelog draft after it has been edited:
 
 Create a new branch to represent the work that will be released to users:
 
- - for `beta` releases, branch from `master` to ensure the latest changes are published
+ - for `beta` releases, branch from `development` to ensure the latest changes are published
  - for `production` releases, branch from the latest beta tag
     - to find this tag: `git tag | grep 'beta' | sort -r | head -n 1`
 
@@ -128,7 +128,7 @@ If you are creating a new beta release, the `yarn draft-release beta` command wi
 
 If you are create a new `production` release, you should just combine and sort the previous `beta` changelog entries.
 
-Add your new changelog entries to `changelog.json`, update the version in `app/package.json`, commit the changes, and push this branch to GitHub. This becomes the release branch, and lets other maintainers continue to merge into `master` without affecting your release.
+Add your new changelog entries to `changelog.json`, update the version in `app/package.json`, commit the changes, and push this branch to GitHub. This becomes the release branch, and lets other maintainers continue to merge into `development` without affecting your release.
 
 If a maintainer would like to backport a pull request to the next release, it is their responsibilty to co-ordinate with the release owner and ensure they are fine with accepting this work.
 
@@ -161,9 +161,9 @@ You will also see this in Chat:
 
 When the release in Central is in `State: released` for `beta` or `production`, switch to your installed Desktop instance and make sure that the corresponding (prod|beta) app auto-updates.
 
-Testing that an update is detected, downloaded, and applied correctly is very important - if this is somehow broken during development then our users will not likely stay up to date!  
+Testing that an update is detected, downloaded, and applied correctly is very important - if this is somehow broken during development then our users will not likely stay up to date!
 
-If you don't have the app for `beta`, for example, you can always download the previous version on Central to see it update 
+If you don't have the app for `beta`, for example, you can always download the previous version on Central to see it update
 
 _Make sure you move your application out of the Downloads folder and into the Applications folder for macOS or it won't auto-update_.
 

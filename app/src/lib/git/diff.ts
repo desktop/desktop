@@ -143,7 +143,10 @@ export async function getWorkingDirectoryDiff(
   // `--no-ext-diff` should be provided wherever we invoke `git diff` so that any
   // diff.external program configured by the user is ignored
 
-  if (file.status.kind === AppFileStatusKind.New) {
+  if (
+    file.status.kind === AppFileStatusKind.New ||
+    file.status.kind === AppFileStatusKind.Untracked
+  ) {
     // `git diff --no-index` seems to emulate the exit codes from `diff` irrespective of
     // whether you set --exit-code
     //
@@ -229,7 +232,10 @@ async function getImageDiff(
       current = await getWorkingDirectoryImage(repository, file)
     }
 
-    if (file.status.kind !== AppFileStatusKind.New) {
+    if (
+      file.status.kind !== AppFileStatusKind.New &&
+      file.status.kind !== AppFileStatusKind.Untracked
+    ) {
       // If we have file.oldPath that means it's a rename so we'll
       // look for that file.
       previous = await getBlobImage(
@@ -245,7 +251,10 @@ async function getImageDiff(
     }
 
     // File status can't be conflicted for a file in a commit
-    if (file.status.kind !== AppFileStatusKind.New) {
+    if (
+      file.status.kind !== AppFileStatusKind.New &&
+      file.status.kind !== AppFileStatusKind.Untracked
+    ) {
       // TODO: commitish^ won't work for the first commit
       //
       // If we have file.oldPath that means it's a rename so we'll

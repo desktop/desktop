@@ -1,5 +1,3 @@
-import { expect } from 'chai'
-
 import { Repository } from '../../../src/models/repository'
 import {
   getBranches,
@@ -35,8 +33,8 @@ describe('git/reflog', () => {
       await createAndCheckout(repository!, 'branch-2')
 
       const branches = await getRecentBranches(repository!, 10)
-      expect(branches).to.contain('branch-1')
-      expect(branches).to.contain('branch-2')
+      expect(branches).toContain('branch-1')
+      expect(branches).toContain('branch-2')
     })
 
     it('works after renaming a branch', async () => {
@@ -51,10 +49,10 @@ describe('git/reflog', () => {
       await renameBranch(repository!, currentBranch!, 'branch-2-test')
 
       const branches = await getRecentBranches(repository!, 10)
-      expect(branches).to.not.contain('master')
-      expect(branches).to.not.contain('branch-2')
-      expect(branches).to.contain('branch-1')
-      expect(branches).to.contain('branch-2-test')
+      expect(branches).not.toContain('master')
+      expect(branches).not.toContain('branch-2')
+      expect(branches).toContain('branch-1')
+      expect(branches).toContain('branch-2-test')
     })
 
     it('returns a limited number of branches', async () => {
@@ -64,9 +62,9 @@ describe('git/reflog', () => {
       await createAndCheckout(repository!, 'branch-4')
 
       const branches = await getRecentBranches(repository!, 2)
-      expect(branches.length).to.equal(2)
-      expect(branches).to.contain('branch-4')
-      expect(branches).to.contain('branch-3')
+      expect(branches).toHaveLength(2)
+      expect(branches).toContain('branch-4')
+      expect(branches).toContain('branch-3')
     })
   })
 })

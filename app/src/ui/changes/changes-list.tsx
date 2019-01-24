@@ -54,6 +54,12 @@ interface IChangesListProps {
     isDiscardingAllChanges?: boolean
   ) => void
 
+  /** Callback that fires on page scroll to pass the new scrollTop location */
+  readonly onChangesListScrolled: (scrollTop: number) => void
+
+  /* The scrollTop of the compareList. It is stored to allow for scroll position persistence */
+  readonly changesListScrollTop: number
+
   /**
    * Called to open a file it its default application
    * @param path The path of the file relative to the root of the repository
@@ -71,7 +77,7 @@ interface IChangesListProps {
    * List Props for documentation.
    */
   readonly onRowClick?: (row: number, source: ClickSource) => void
-  readonly commitMessage: ICommitMessage | null
+  readonly commitMessage: ICommitMessage
 
   /** The autocompletion providers available to the repository. */
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
@@ -387,6 +393,7 @@ export class ChangesList extends React.Component<
 
     switch (firstFile.status.kind) {
       case AppFileStatusKind.New:
+      case AppFileStatusKind.Untracked:
         return `Create ${fileName}`
       case AppFileStatusKind.Deleted:
         return `Delete ${fileName}`
@@ -397,6 +404,10 @@ export class ChangesList extends React.Component<
         // affects other parts of the flow) we can just default to this for now
         return `Update ${fileName}`
     }
+  }
+
+  private onScroll = (scrollTop: number, clientHeight: number) => {
+    this.props.onChangesListScrolled(scrollTop)
   }
 
   public render() {
@@ -432,6 +443,8 @@ export class ChangesList extends React.Component<
           onSelectionChanged={this.props.onFileSelectionChanged}
           invalidationProps={this.props.workingDirectory}
           onRowClick={this.props.onRowClick}
+          onScroll={this.onScroll}
+          setScrollTop={this.props.changesListScrollTop}
         />
 
         <CommitMessage
