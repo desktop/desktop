@@ -248,6 +248,8 @@ export class About extends React.Component<IAboutProps, IAboutState> {
       <LinkButton uri={ReleaseNotesUri}>release notes</LinkButton>
     )
 
+    const versionText = __DEV__ ? `Build ${version}` : `Version ${version}`
+
     return (
       <Dialog
         id="about"
@@ -266,7 +268,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
               className="version-text"
               onClick={this.onClickVersion}
             >
-              Version {version}
+              {versionText}
             </LinkButton>{' '}
             ({releaseNotesLink})
           </p>
