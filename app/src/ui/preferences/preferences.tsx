@@ -36,6 +36,7 @@ interface IPreferencesProps {
   readonly selectedExternalEditor?: ExternalEditor
   readonly selectedShell: Shell
   readonly selectedTheme: ApplicationTheme
+  readonly automaticallySwitchTheme: boolean
 }
 
 interface IPreferencesState {
@@ -46,6 +47,7 @@ interface IPreferencesState {
   readonly optOutOfUsageTracking: boolean
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
+  readonly automaticallySwitchTheme: boolean
   readonly availableEditors: ReadonlyArray<ExternalEditor>
   readonly selectedExternalEditor?: ExternalEditor
   readonly availableShells: ReadonlyArray<Shell>
@@ -70,6 +72,7 @@ export class Preferences extends React.Component<
       optOutOfUsageTracking: false,
       confirmRepositoryRemoval: false,
       confirmDiscardChanges: false,
+      automaticallySwitchTheme: false,
       selectedExternalEditor: this.props.selectedExternalEditor,
       availableShells: [],
       selectedShell: this.props.selectedShell,
@@ -212,6 +215,10 @@ export class Preferences extends React.Component<
           <Appearance
             selectedTheme={this.props.selectedTheme}
             onSelectedThemeChanged={this.onSelectedThemeChanged}
+            automaticallySwitchTheme={this.props.automaticallySwitchTheme}
+            onAutomaticallySwitchThemeChanged={
+              this.onAutomaticallySwitchThemeChanged
+            }
           />
         )
       case PreferencesTab.Advanced: {
@@ -282,6 +289,14 @@ export class Preferences extends React.Component<
 
   private onSelectedThemeChanged = (theme: ApplicationTheme) => {
     this.props.dispatcher.setSelectedTheme(theme)
+  }
+
+  private onAutomaticallySwitchThemeChanged = (
+    automaticallySwitchTheme: boolean
+  ) => {
+    this.props.dispatcher.onAutomaticallySwitchThemeChanged(
+      automaticallySwitchTheme
+    )
   }
 
   private renderFooter() {

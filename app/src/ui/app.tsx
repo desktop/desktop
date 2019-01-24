@@ -1170,6 +1170,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={this.onPopupDismissed}
             selectedShell={this.state.selectedShell}
             selectedTheme={this.state.selectedTheme}
+            automaticallySwitchTheme={this.state.automaticallySwitchTheme}
           />
         )
       case PopupType.MergeBranch: {
