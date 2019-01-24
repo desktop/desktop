@@ -1001,6 +1001,11 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
 
+    // Don't render the menu bar when the blank slate is shown
+    if (this.state.repositories.length < 1) {
+      return null
+    }
+
     const currentFoldout = this.state.currentFoldout
 
     // AppMenuBar requires us to pass a strongly typed AppMenuFoldout state or
