@@ -456,6 +456,8 @@ export async function getWorkingDirectoryImage(
  * list the modified binary files' paths in the given repository
  * @param repository to run git operation in
  * @param ref ref (sha, branch, etc) to compare the working index against (is `HEAD` by default)
+ *
+ * if you're mid-merge pass `MERGE_HEAD` to ref to get a diff of `HEAD` vs `MERGE_HEAD`
  */
 export async function getBinaryPaths(
   repository: Repository,

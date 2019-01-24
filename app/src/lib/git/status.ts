@@ -202,6 +202,7 @@ export async function getStatus(
         conflictCountsByPath: await getFilesWithConflictMarkers(
           repository.path
         ),
+        // this will use the diff between `HEAD` and `MERGE_HEAD` to find binary files
         binaryFilepaths: await getBinaryPaths(repository, 'MERGE_HEAD'),
       }
     : {
