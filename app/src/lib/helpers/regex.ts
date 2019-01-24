@@ -2,7 +2,7 @@
  * get all regex captures within a body of text
  * @param text string to search
  * @param re regex to search with. must have global option and one capture
- * @returns ararys of strings captured by supplied regex
+ * @returns arrays of strings captured by supplied regex
  */
 export function getCaptures(
   text: string,
