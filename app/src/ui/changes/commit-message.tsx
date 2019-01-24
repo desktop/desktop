@@ -137,8 +137,8 @@ export class CommitMessage extends React.Component<
       this.focusSummary()
     }
 
-    if (!shallowEquals(prevProps.commitMessage, this.props.commitMessage)) {
-      const { commitMessage } = this.props
+    const { commitMessage } = this.props
+    if (!shallowEquals(prevProps.commitMessage, commitMessage)) {   
       if (commitMessage) {
         this.setState({
           summary: commitMessage.summary,
