@@ -429,11 +429,12 @@ describe('git/diff', () => {
           'detect-conflict-in-binary-file'
         )
         repo = new Repository(testRepoPath, -1, null, false)
+        await GitProcess.exec(['checkout', 'make-a-change'], repo.path)
+        await GitProcess.exec(['merge', 'master'], repo.path)
       })
       it('returns all conflicted image files', () => {
         expect(getBinaryPaths(repo, 'MERGE_HEAD')).resolves.toEqual([
           'my-cool-image.png',
-          ,
         ])
       })
     })
