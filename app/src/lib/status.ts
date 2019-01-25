@@ -64,7 +64,7 @@ export function hasConflictedFiles(
  */
 export function hasUnresolvedConflicts(status: ConflictedFileStatus) {
   if (isConflictWithMarkers(status)) {
-    // text file will have conflict markers removed
+    // text file may have conflict markers present
     return status.conflictMarkerCount > 0
   }
 
