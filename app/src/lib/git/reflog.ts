@@ -66,38 +66,44 @@ export async function getRecentBranches(
 
 /**
  * Gets the distinct list of branches that have been checked out after a specific date
+ *
+ * @param repository the repository who's reflog you want to check
+ * @param afterDate the minimum date a checkout has to occur
  */
 export async function getCheckoutsAfterDate(
   repository: Repository,
   afterDate: Date
-): Promise<ReadonlyArray<string>> {
+): Promise<Map<string, Date>> {
   //regexr.com/46n1v
   const regex = new RegExp(
-    /^(?:.{9})\s(?:\(.*\))?\s?(?:HEAD@){(.*)}:\s(?:.*)to\s(.*)$/
+    /^[a-z0-9]{40}\sHEAD@{(.*)}\scheckout: moving from\s.*\sto\s(.*)$/
   )
-  const isoDate = afterDate.toISOString()
-  const filterDate = isoDate.substr(0, isoDate.indexOf('T'))
   const gitOutput = await git(
     [
       'reflog',
       '--date=iso',
-      `--after="${filterDate}"`,
-      '--grep-reflog="checkout: moving from .* to .*$"',
+      `--after="${afterDate.toISOString()}"`,
+      '--pretty=%H %gd %gs',
+      `--grep-reflog=checkout: moving from .* to .*$`,
+      '--',
     ],
     repository.path,
     'getCheckoutsAfterDate'
   )
-  const checkouts = new Set<string>()
+  const checkouts = new Map<string, Date>()
   const lines = gitOutput.stdout.split('\n')
   for (const line of lines) {
     const parsedLine = regex.exec(line)
 
-    if (parsedLine === null || parsedLine.length !== 2) {
+    if (parsedLine === null || parsedLine.length !== 3) {
       continue
     }
 
-    checkouts.add(parsedLine[1])
+    const [, timestamp, branchName] = parsedLine
+    if (!checkouts.has(branchName)) {
+      checkouts.set(branchName, new Date(timestamp))
+    }
   }
 
-  return [...checkouts.keys()]
+  return checkouts
 }
