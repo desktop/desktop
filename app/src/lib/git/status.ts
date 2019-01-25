@@ -195,20 +195,7 @@ export async function getStatus(
   const entries = parsed.filter(isStatusEntry)
 
   const mergeHeadFound = await isMergeHeadSet(repository)
-
-  // if we have any conflicted files reported by status, let
-  const conflictDetails = mergeHeadFound
-    ? {
-        conflictCountsByPath: await getFilesWithConflictMarkers(
-          repository.path
-        ),
-        // this will use the diff between `HEAD` and `MERGE_HEAD` to find binary files
-        binaryFilePaths: await getBinaryPaths(repository, 'MERGE_HEAD'),
-      }
-    : {
-        conflictCountsByPath: new Map<string, number>(),
-        binaryFilePaths: [],
-      }
+  const conflictDetails = await getConflictDetails(repository, mergeHeadFound)
 
   // Map of files keyed on their paths.
   const files = entries.reduce(
@@ -330,5 +317,43 @@ function parseStatusHeader(results: IStatusHeadersData, header: IStatusHeader) {
     currentTip,
     branchAheadBehind,
     match,
+  }
+}
+
+/**
+ * gets the conflicted files count and binary file paths in a given repository.
+ * for computing an `IStatusResult`.
+ *
+ * @param repository to get details from
+ * @param mergeHeadFound whether the repository is in conflict. if not supplied, this function will compute this for you.
+ */
+async function getConflictDetails(
+  repository: Repository,
+  mergeHeadFound?: boolean
+): Promise<ConflictFilesDetails> {
+  if (mergeHeadFound === undefined) {
+    mergeHeadFound = await isMergeHeadSet(repository)
+  }
+  // if we have any conflicted files reported by status, let
+  try {
+    if (mergeHeadFound) {
+      const conflictCountsByPath = await getFilesWithConflictMarkers(
+        repository.path
+      )
+      const binaryFilePaths = await getBinaryPaths(repository, 'MERGE_HEAD')
+      return {
+        conflictCountsByPath,
+        binaryFilePaths,
+      }
+    }
+  } catch (error) {
+    log.error(
+      'Unexpected error from git operations in getConflictDetails',
+      error
+    )
+  }
+  return {
+    conflictCountsByPath: new Map<string, number>(),
+    binaryFilePaths: new Array<string>(),
   }
 }
