@@ -6,7 +6,7 @@ import { makeCommit, switchTo } from './repository-scaffolding'
  * Creates a test repository with two commits on `master`, and then
  * two commits on `branchName` to be used as the branch for testing pull
  * behaviour
-
+ *
  * @param branchName name to use for new branch
  */
 export async function createRepository(
