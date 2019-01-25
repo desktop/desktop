@@ -2,7 +2,7 @@ import * as React from 'react'
 import { WelcomeStep } from './welcome'
 import { Button } from '../lib/button'
 import { SignIn } from '../lib/sign-in'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { SignInState } from '../../lib/stores'
 
 interface ISignInEnterpriseProps {

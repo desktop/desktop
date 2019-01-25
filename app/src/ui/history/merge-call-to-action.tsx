@@ -3,7 +3,7 @@ import * as React from 'react'
 import { ICompareBranch, HistoryTabMode } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { Button } from '../lib/button'
 
 interface IMergeCallToActionProps {

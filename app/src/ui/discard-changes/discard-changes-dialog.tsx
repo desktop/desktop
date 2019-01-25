@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 import { Repository } from '../../models/repository'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { WorkingDirectoryFileChange } from '../../models/status'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
