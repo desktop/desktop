@@ -13,3 +13,18 @@ export async function getTipOrError(repository: Repository): Promise<Commit> {
 
   return commit
 }
+
+export async function getRefOrError(
+  repository: Repository,
+  ref: string
+): Promise<Commit> {
+  const commit = await getCommit(repository, ref)
+
+  if (commit === null) {
+    throw new Error(
+      'Unable to find commit for HEAD - is this an unborn repository?'
+    )
+  }
+
+  return commit
+}
