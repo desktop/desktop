@@ -3,6 +3,8 @@
 import * as Path from 'path'
 import * as FSE from 'fs-extra'
 
+import { mkdirSync } from './temp'
+
 const klawSync = require('klaw-sync')
 
 import { Repository } from '../../src/models/repository'
@@ -11,12 +13,6 @@ import { GitProcess } from 'dugite'
 type KlawEntry = {
   path: string
 }
-
-import * as temp from 'temp'
-const _temp = temp.track()
-
-export const mkdirSync = _temp.mkdirSync
-export const openSync = _temp.openSync
 
 /**
  * Set up the named fixture repository to be used in a test.
@@ -32,7 +28,7 @@ export async function setupFixtureRepository(
     'fixtures',
     repositoryName
   )
-  const testRepoPath = _temp.mkdirSync('desktop-git-test-')
+  const testRepoPath = mkdirSync('desktop-git-test-')
   await FSE.copy(testRepoFixturePath, testRepoPath)
 
   await FSE.rename(
@@ -66,7 +62,7 @@ export async function setupFixtureRepository(
  * @returns the new local repository
  */
 export async function setupEmptyRepository(): Promise<Repository> {
-  const repoPath = _temp.mkdirSync('desktop-empty-repo-')
+  const repoPath = mkdirSync('desktop-empty-repo-')
   await GitProcess.exec(['init'], repoPath)
 
   return new Repository(repoPath, -1, null, false)
@@ -78,7 +74,7 @@ export async function setupEmptyRepository(): Promise<Repository> {
  * interactions.
  */
 export function setupEmptyDirectory(): Repository {
-  const repoPath = _temp.mkdirSync('no-repository-here')
+  const repoPath = mkdirSync('no-repository-here')
   return new Repository(repoPath, -1, null, false)
 }
 
