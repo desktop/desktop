@@ -243,7 +243,7 @@ describe('git/status', () => {
         })
       })
 
-      it('Handles at least 10k untracked files without failing', async () => {
+      it.skip('Handles at least 10k untracked files without failing', async () => {
         const numFiles = 10000
         const basePath = repository!.path
 

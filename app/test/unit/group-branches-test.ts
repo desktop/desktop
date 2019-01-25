@@ -8,6 +8,7 @@ describe('Branches grouping', () => {
 
   const commit = new Commit(
     '300acef',
+    '300acef',
     'summary',
     'body',
     author,

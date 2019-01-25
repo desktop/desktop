@@ -245,18 +245,14 @@ export class RepositoryView extends React.Component<
     const selectedSection = this.props.state.selectedSection
 
     if (selectedSection === RepositorySectionTab.Changes) {
-      const changesState = this.props.state.changesState
-      const selectedFileIDs = changesState.selectedFileIDs
+      const { changesState } = this.props.state
+      const { workingDirectory, selectedFileIDs, diff } = changesState
 
       if (selectedFileIDs.length > 1) {
         return <MultipleSelection count={selectedFileIDs.length} />
       }
 
-      if (
-        changesState.workingDirectory.files.length === 0 ||
-        selectedFileIDs.length === 0 ||
-        changesState.diff === null
-      ) {
+      if (workingDirectory.files.length === 0) {
         return (
           <NoChanges
             key={this.props.repository.id}
@@ -269,10 +265,13 @@ export class RepositoryView extends React.Component<
           />
         )
       } else {
-        const workingDirectory = changesState.workingDirectory
+        if (selectedFileIDs.length === 0 || diff === null) {
+          return null
+        }
+
         const selectedFile = workingDirectory.findFileWithID(selectedFileIDs[0])
 
-        if (!selectedFile) {
+        if (selectedFile === null) {
           return null
         }
 
@@ -281,7 +280,7 @@ export class RepositoryView extends React.Component<
             repository={this.props.repository}
             dispatcher={this.props.dispatcher}
             file={selectedFile}
-            diff={changesState.diff}
+            diff={diff}
             imageDiffType={this.props.imageDiffType}
           />
         )
