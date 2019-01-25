@@ -393,7 +393,7 @@ describe('git/diff', () => {
         repo = await setupEmptyRepository()
       })
       it('throws since HEAD doesnt exist', () => {
-        expect(getBinaryPaths(repo)).rejects.toThrow()
+        expect(getBinaryPaths(repo, 'HEAD')).rejects.toThrow()
       })
     })
     describe('in repo with text only files', () => {
@@ -403,7 +403,7 @@ describe('git/diff', () => {
         repo = new Repository(testRepoPath, -1, null, false)
       })
       it('returns an empty array', () => {
-        expect(getBinaryPaths(repo)).resolves.toHaveLength(0)
+        expect(getBinaryPaths(repo, 'HEAD')).resolves.toHaveLength(0)
       })
     })
     describe('in repo with image changes', () => {
@@ -415,7 +415,7 @@ describe('git/diff', () => {
         repo = new Repository(testRepoPath, -1, null, false)
       })
       it('returns all changed image files', () => {
-        expect(getBinaryPaths(repo)).resolves.toEqual([
+        expect(getBinaryPaths(repo, 'HEAD')).resolves.toEqual([
           'modified-image.jpg',
           'new-animated-image.gif',
           'new-image.png',

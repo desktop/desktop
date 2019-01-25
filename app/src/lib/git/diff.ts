@@ -455,13 +455,14 @@ export async function getWorkingDirectoryImage(
 /**
  * list the modified binary files' paths in the given repository
  * @param repository to run git operation in
- * @param ref ref (sha, branch, etc) to compare the working index against (is `HEAD` by default)
+ * @param ref ref (sha, branch, etc) to compare the working index against
  *
- * if you're mid-merge pass `MERGE_HEAD` to ref to get a diff of `HEAD` vs `MERGE_HEAD`
+ * if you're mid-merge pass `'MERGE_HEAD'` to ref to get a diff of `HEAD` vs `MERGE_HEAD`,
+ * otherwise you should probably pass `'HEAD'` to get a diff of the working tree vs `HEAD`
  */
 export async function getBinaryPaths(
   repository: Repository,
-  ref: string = 'HEAD'
+  ref: string
 ): Promise<ReadonlyArray<string>> {
   const { output } = await spawnAndComplete(
     ['diff', '--numstat', '-z', ref],
