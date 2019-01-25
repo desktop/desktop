@@ -71,7 +71,7 @@ interface IStatusHeadersData {
 
 type ConflictFilesDetails = {
   conflictCountsByPath: ReadonlyMap<string, number>
-  binaryFilepaths: ReadonlyArray<string>
+  binaryFilePaths: ReadonlyArray<string>
 }
 
 function parseConflictedState(
@@ -81,7 +81,7 @@ function parseConflictedState(
 ): ConflictedFileStatus {
   switch (entry.action) {
     case UnmergedEntrySummary.BothAdded: {
-      const isBinary = conflictDetails.binaryFilepaths.includes(path)
+      const isBinary = conflictDetails.binaryFilePaths.includes(path)
       if (!isBinary) {
         return {
           kind: AppFileStatusKind.Conflicted,
@@ -94,7 +94,7 @@ function parseConflictedState(
       }
     }
     case UnmergedEntrySummary.BothModified: {
-      const isBinary = conflictDetails.binaryFilepaths.includes(path)
+      const isBinary = conflictDetails.binaryFilePaths.includes(path)
       if (!isBinary) {
         return {
           kind: AppFileStatusKind.Conflicted,
@@ -203,11 +203,11 @@ export async function getStatus(
           repository.path
         ),
         // this will use the diff between `HEAD` and `MERGE_HEAD` to find binary files
-        binaryFilepaths: await getBinaryPaths(repository, 'MERGE_HEAD'),
+        binaryFilePaths: await getBinaryPaths(repository, 'MERGE_HEAD'),
       }
     : {
         conflictCountsByPath: new Map<string, number>(),
-        binaryFilepaths: [],
+        binaryFilePaths: [],
       }
 
   // Map of files keyed on their paths.
