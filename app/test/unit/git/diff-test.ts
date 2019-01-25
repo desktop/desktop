@@ -422,5 +422,20 @@ describe('git/diff', () => {
         ])
       })
     })
+    describe('in repo with merge conflicts on image files', () => {
+      let repo: Repository
+      beforeEach(async () => {
+        const testRepoPath = await setupFixtureRepository(
+          'detect-conflict-in-binary-file'
+        )
+        repo = new Repository(testRepoPath, -1, null, false)
+      })
+      it('returns all conflicted image files', () => {
+        expect(getBinaryPaths(repo, 'MERGE_HEAD')).resolves.toEqual([
+          'my-cool-image.png',
+          ,
+        ])
+      })
+    })
   })
 })
