@@ -23,7 +23,6 @@ import { DiffSelectionType, DiffSelection } from '../../models/diff'
 import { Repository } from '../../models/repository'
 import { IAheadBehind } from '../../models/branch'
 import { fatalError } from '../../lib/fatal-error'
-import { enableStatusWithoutOptionalLocks } from '../feature-flag'
 import { isMergeHeadSet } from './merge'
 
 /**
@@ -133,17 +132,14 @@ function convertToAppStatus(
 export async function getStatus(
   repository: Repository
 ): Promise<IStatusResult | null> {
-  const baseArgs = [
+  const args = [
+    '--no-optional-locks',
     'status',
     '--untracked-files=all',
     '--branch',
     '--porcelain=2',
     '-z',
   ]
-
-  const args = enableStatusWithoutOptionalLocks()
-    ? ['--no-optional-locks', ...baseArgs]
-    : baseArgs
 
   const result = await spawnAndComplete(
     args,
