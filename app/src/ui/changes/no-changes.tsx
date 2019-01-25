@@ -188,7 +188,7 @@ export class NoChanges extends React.Component<
     } else if (__WIN32__) {
       return 'Explorer'
     }
-    return 'Your File Manager'
+    return 'your File Manager'
   }
 
   private renderDiscoverabilityElements(menuItem: IMenuItemInfo) {
@@ -230,7 +230,7 @@ export class NoChanges extends React.Component<
     )
   }
 
-  private renderShowInFinderAction() {
+  private renderShowInFileManager() {
     const fileManager = this.getPlatformFileManagerName()
 
     return this.renderMenuBackedAction(
@@ -562,7 +562,7 @@ export class NoChanges extends React.Component<
         </ReactCSSTransitionReplace>
         <div className="actions">
           {this.renderOpenInExternalEditor()}
-          {this.renderShowInFinderAction()}
+          {this.renderShowInFileManager()}
           {this.renderViewOnGitHub()}
         </div>
       </>
