@@ -1,6 +1,4 @@
 .merge-status-component {
-  margin-top: var(--spacing-third);
-
   .merge-status-icon-container {
     height: 20px;
     position: relative;
@@ -13,16 +11,6 @@
       box-sizing: content-box;
       position: relative;
       z-index: 1;
-    }
-
-    &:after {
-      display: block;
-      content: '';
-      position: absolute;
-      z-index: 0;
-      display: block;
-      width: 100%;
-      top: var(--spacing);
     }
   }
 
