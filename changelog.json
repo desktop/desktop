@@ -12,7 +12,7 @@
       "[Improved] Add link to all release notes in Release Notes dialog - #6443. Thanks @koralcem!",
       "[Improved] Arrow for renamed/copied changes when viewing commit - #6519. Thanks @koralcem!",
       "[Improved] Menu state updating to address race condition - #6643",
-      "[Improved] \"Ignore File\" context menu label - #6689. Thanks @PaulViola!"
+      "[Improved] Updated verbiage when clicking on changed files to make it more explicit what will occur when you ignore the file(s) - #6689. Thanks @PaulViola!"
     ],
     "1.6.2-beta0": [
       "[Fixed] Don't show \"No local changes\" view when switching between changed files"
