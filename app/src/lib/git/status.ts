@@ -25,6 +25,7 @@ import { IAheadBehind } from '../../models/branch'
 import { fatalError } from '../../lib/fatal-error'
 import { enableStatusWithoutOptionalLocks } from '../feature-flag'
 import { isMergeHeadSet } from './merge'
+import { getBinaryPaths } from './diff'
 
 /**
  * V8 has a limit on the size of string it can create (~256MB), and unless we want to
@@ -68,28 +69,46 @@ interface IStatusHeadersData {
   match: RegExpMatchArray | null
 }
 
-type ConflictCountsByPath = ReadonlyMap<string, number>
+type ConflictFilesDetails = {
+  conflictCountsByPath: ReadonlyMap<string, number>
+  binaryFilePaths: ReadonlyArray<string>
+}
 
 function parseConflictedState(
   entry: UnmergedEntry,
   path: string,
-  filesWithConflictMarkers: ConflictCountsByPath
+  conflictDetails: ConflictFilesDetails
 ): ConflictedFileStatus {
   switch (entry.action) {
-    case UnmergedEntrySummary.BothAdded:
-      const addedConflictsLeft = filesWithConflictMarkers.get(path) || 0
-      return {
-        kind: AppFileStatusKind.Conflicted,
-        entry,
-        conflictMarkerCount: addedConflictsLeft,
+    case UnmergedEntrySummary.BothAdded: {
+      const isBinary = conflictDetails.binaryFilePaths.includes(path)
+      if (!isBinary) {
+        return {
+          kind: AppFileStatusKind.Conflicted,
+          entry,
+          conflictMarkerCount:
+            conflictDetails.conflictCountsByPath.get(path) || 0,
+        }
+      } else {
+        return { kind: AppFileStatusKind.Conflicted, entry }
       }
-    case UnmergedEntrySummary.BothModified:
-      const modifedConflictsLeft = filesWithConflictMarkers.get(path) || 0
-      return {
-        kind: AppFileStatusKind.Conflicted,
-        entry,
-        conflictMarkerCount: modifedConflictsLeft,
+    }
+    case UnmergedEntrySummary.BothModified: {
+      const isBinary = conflictDetails.binaryFilePaths.includes(path)
+      if (!isBinary) {
+        return {
+          kind: AppFileStatusKind.Conflicted,
+          entry,
+          conflictMarkerCount:
+            conflictDetails.conflictCountsByPath.get(path) || 0,
+        }
+      } else {
+        return {
+          kind: AppFileStatusKind.Conflicted,
+          entry,
+        }
       }
+    }
     default:
       return {
         kind: AppFileStatusKind.Conflicted,
@@ -101,7 +120,7 @@ function parseConflictedState(
 function convertToAppStatus(
   path: string,
   entry: FileEntry,
-  filesWithConflictMarkers: ConflictCountsByPath,
+  conflictDetails: ConflictFilesDetails,
   oldPath?: string
 ): AppFileStatus {
   if (entry.kind === 'ordinary') {
@@ -120,7 +139,7 @@ function convertToAppStatus(
   } else if (entry.kind === 'untracked') {
     return { kind: AppFileStatusKind.Untracked }
   } else if (entry.kind === 'conflicted') {
-    return parseConflictedState(entry, path, filesWithConflictMarkers)
+    return parseConflictedState(entry, path, conflictDetails)
   }
 
   return fatalError(`Unknown file status ${status}`)
@@ -176,15 +195,11 @@ export async function getStatus(
   const entries = parsed.filter(isStatusEntry)
 
   const mergeHeadFound = await isMergeHeadSet(repository)
-
-  // if we have any conflicted files reported by status, let
-  const conflictState = mergeHeadFound
-    ? await getFilesWithConflictMarkers(repository.path)
-    : new Map<string, number>()
+  const conflictDetails = await getConflictDetails(repository, mergeHeadFound)
 
   // Map of files keyed on their paths.
   const files = entries.reduce(
-    (files, entry) => buildStatusMap(files, entry, conflictState),
+    (files, entry) => buildStatusMap(files, entry, conflictDetails),
     new Map<string, WorkingDirectoryFileChange>()
   )
 
@@ -224,7 +239,7 @@ export async function getStatus(
 function buildStatusMap(
   files: Map<string, WorkingDirectoryFileChange>,
   entry: IStatusEntry,
-  filesWithConflictMarkers: ConflictCountsByPath
+  conflictDetails: ConflictFilesDetails
 ): Map<string, WorkingDirectoryFileChange> {
   const status = mapStatus(entry.statusCode)
 
@@ -252,7 +267,7 @@ function buildStatusMap(
   const appStatus = convertToAppStatus(
     entry.path,
     status,
-    filesWithConflictMarkers,
+    conflictDetails,
     entry.oldPath
   )
 
@@ -302,5 +317,43 @@ function parseStatusHeader(results: IStatusHeadersData, header: IStatusHeader) {
     currentTip,
     branchAheadBehind,
     match,
+  }
+}
+
+/**
+ * gets the conflicted files count and binary file paths in a given repository.
+ * for computing an `IStatusResult`.
+ *
+ * @param repository to get details from
+ * @param mergeHeadFound whether the repository is in conflict. if not supplied, this function will compute this for you.
+ */
+async function getConflictDetails(
+  repository: Repository,
+  mergeHeadFound?: boolean
+): Promise<ConflictFilesDetails> {
+  if (mergeHeadFound === undefined) {
+    mergeHeadFound = await isMergeHeadSet(repository)
+  }
+  // if we have any conflicted files reported by status, let
+  try {
+    if (mergeHeadFound) {
+      const conflictCountsByPath = await getFilesWithConflictMarkers(
+        repository.path
+      )
+      const binaryFilePaths = await getBinaryPaths(repository, 'MERGE_HEAD')
+      return {
+        conflictCountsByPath,
+        binaryFilePaths,
+      }
+    }
+  } catch (error) {
+    log.error(
+      'Unexpected error from git operations in getConflictDetails',
+      error
+    )
+  }
+  return {
+    conflictCountsByPath: new Map<string, number>(),
+    binaryFilePaths: new Array<string>(),
   }
 }
