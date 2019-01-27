@@ -253,6 +253,18 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
       '.lua': 'text/x-lua',
     },
   },
+  {
+    install: () => import('codemirror/mode/crystal/crystal'),
+    mappings: {
+      '.cr': 'text/x-crystal',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/julia/julia'),
+    mappings: {
+      '.jl': 'text/x-julia',
+    },
+  },
 ]
 
 /**
