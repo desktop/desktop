@@ -130,6 +130,7 @@ export type Popup =
       repository: Repository
       ourBranch: string
       theirBranch?: string
+      origin: 'implicit' | 'explicit'
     }
   | {
       type: PopupType.AbortMerge

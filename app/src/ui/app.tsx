@@ -1458,6 +1458,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             openRepositoryInShell={this.openInShell}
             ourBranch={popup.ourBranch}
             theirBranch={popup.theirBranch}
+            origin={popup.origin}
           />
         )
       }

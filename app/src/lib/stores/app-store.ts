@@ -1612,6 +1612,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repository,
       ourBranch,
       theirBranch,
+      origin: 'implicit',
     })
   }
 

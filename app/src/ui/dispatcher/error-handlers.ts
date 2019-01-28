@@ -307,6 +307,7 @@ export async function mergeConflictHandler(
     repository,
     ourBranch: tip.branch.name,
     theirBranch,
+    origin: 'implicit',
   })
 
   return null

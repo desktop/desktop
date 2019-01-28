@@ -29,6 +29,7 @@ import {
   OpenWithDefaultProgramLabel,
   RevealInFileManagerLabel,
 } from '../lib/context-menu'
+import classNames = require('classnames')
 
 interface IMergeConflictsDialogProps {
   readonly dispatcher: Dispatcher
@@ -41,6 +42,7 @@ interface IMergeConflictsDialogProps {
   readonly ourBranch: string
   /* `undefined` when we didn't know the branch at the beginning of this flow */
   readonly theirBranch?: string
+  readonly origin: 'implicit' | 'explicit'
 }
 
 /**
@@ -157,6 +159,7 @@ export class MergeConflictsDialog extends React.Component<
         ourBranch: this.props.ourBranch,
         theirBranch: this.props.theirBranch,
         repository: this.props.repository,
+        origin: 'explicit',
       },
     })
     this.props.dispatcher.recordMergeConflictsDialogDismissal()
@@ -390,6 +393,7 @@ export class MergeConflictsDialog extends React.Component<
         onDismissed={this.onDismissed}
         disableClickDismissalAlways={true}
         onSubmit={this.onSubmit}
+        className={this.props.origin}
       >
         <DialogHeader
           title={headerTitle}

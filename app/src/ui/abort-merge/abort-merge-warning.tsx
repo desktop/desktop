@@ -44,6 +44,7 @@ export class AbortMergeWarning extends React.Component<
       repository: this.props.repository,
       ourBranch: this.props.ourBranch,
       theirBranch: this.props.theirBranch,
+      origin: 'implicit',
     })
   }
 
