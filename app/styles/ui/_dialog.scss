@@ -82,6 +82,54 @@ dialog {
         transition: opacity 100ms ease-in;
       }
     }
+
+    &#merge-conflicts-list {
+      &-leave {
+        opacity: 1;
+        transform: scale(1);
+        pointer-events: none;
+        transform-origin: top left;
+
+        &::backdrop {
+          opacity: 1;
+        }
+      }
+
+      &-leave-active {
+        opacity: 0.01;
+        transform: scale(0.25) translate3d(-1080px, -180px, 0);
+        transition: opacity 300ms ease-in, transform 300ms cubic-bezier(0.55, 0.055, 0.675, 0.19);
+
+        &::backdrop {
+          opacity: 0.01;
+          transition: opacity 100ms ease-in;
+        }
+      }
+    }
+
+    &#merge-conflicts-list.explicit {
+      &-enter {
+        opacity: 1;
+        transform: scale(0.75);
+        pointer-events: none;
+        transform-origin: top left;
+
+        &::backdrop {
+          opacity: 0;
+        }
+      }
+
+      &-enter-active {
+        opacity: 1;
+        transform: scale(1);
+        transition: transform 250ms var(--easing-ease-out-back);
+
+        &::backdrop {
+          opacity: 1;
+          transition: opacity 100ms ease-in;
+        }
+      }
+    }
   }
 
   &::backdrop {
