@@ -3,11 +3,11 @@
   "productName": "GitHub Desktop",
   "bundleID": "com.github.GitHubClient",
   "companyName": "GitHub, Inc.",
-<<<<<<< HEAD
+HEAD
   "version": "1.0.14-beta4",
-=======
+=
   "version": "0.0.1",
->>>>>>> back-in-time
+  back-in-time
   "main": "./main.js",
   "repository": {
     "type": "git",
