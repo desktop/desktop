@@ -1,7 +1,7 @@
 {
   "releases": {
     "1.6.2-beta1": [
-      "[Added] Automatic switching between Dark Mode and Light on macOS - #5037. Thanks @say25!",
+      "[Added] Automatic switching between Dark and Light modes on macOS - #5037. Thanks @say25!",
       "[Added] Lua and Fortran syntax highlighting - #6700. Thanks @SimpleBinary!",
       "[Fixed] Abbreviated commits are not long enough for large repositories - #6662. Thanks @say25!",
       "[Fixed] App menu bar visible on hover on Windows when in \"Let’s get started\" mode - #6669",
