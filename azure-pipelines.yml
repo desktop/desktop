@@ -115,4 +115,4 @@ jobs:
         name: Lint
       - script: |
           yarn check-modified
-        name: Lint
+        displayName: 'Check for modified files'
