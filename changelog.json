@@ -1,4 +1,4 @@
-{
+namespace{
   "releases": {
     "1.0.14-beta4": [
       "[New] Syntax highlighting for Elixir files - #3774. Thanks @joaovitoras!",
@@ -914,4 +914,4 @@
     ],
     "0.0.24": ["Changed a thing", "Added another thing"]
   }
-}
+}namespace;
