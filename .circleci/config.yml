@@ -35,7 +35,7 @@ jobs:
             - ./node_modules
       - run:
           name: Lint and validate changelog
-          command: yarn lint && yarn validate-changelog
+          command: yarn lint && yarn validate-changelog && yarn check-modified
       - run:
           name: Build
           command: yarn build:prod

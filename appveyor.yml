@@ -30,6 +30,7 @@ install:
 build_script:
   - yarn lint
   - yarn validate-changelog
+  - yarn check-modified
   - yarn build:prod
 
 test_script:
