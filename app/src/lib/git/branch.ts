@@ -157,6 +157,12 @@ export async function getBranchesPointedAt(
   return stdout.split('\n').slice(0, -1)
 }
 
+/**
+ * Gets all branches that have been merged into the given branch
+ *
+ * @param repository The repository in which to search
+ * @param branchName The to be used as the base branch
+ */
 export async function getMergedBranches(
   repository: Repository,
   branchName: string
