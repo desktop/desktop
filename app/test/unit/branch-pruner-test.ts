@@ -44,8 +44,6 @@ describe('BranchPruner', () => {
 
     onPruneCompleted = jest.fn(
       () => (repository: Repository, prunedBranches: ReadonlyArray<Branch>) => {
-        console.log('repository', repository)
-        console.log('prunedBranches', prunedBranches)
         return Promise.resolve()
       }
     )
