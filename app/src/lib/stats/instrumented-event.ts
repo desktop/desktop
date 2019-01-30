@@ -31,7 +31,7 @@ export type InstrumentedEvent =
       timestamp: number
     }
 
-export class MetricsDatabase extends Dexie {
+class MetricsDatabase extends Dexie {
   public events!: Dexie.Table<InstrumentedEvent, number>
 
   public constructor(name: string) {
@@ -40,3 +40,25 @@ export class MetricsDatabase extends Dexie {
     this.version(1).stores({ events: '++id' })
   }
 }
+
+class MetricsThingy {
+  private get eventTable() {
+    return this.db.table('events')
+  }
+
+  public async push(event: InstrumentedEvent): Promise<void> {
+    await this.eventTable.add(event)
+  }
+
+  public constructor(private readonly db: MetricsDatabase) {}
+
+  public async clearAllEvents(): Promise<void> {
+    await this.eventTable.clear()
+  }
+
+  public async getAllEvents(): Promise<ReadonlyArray<InstrumentedEvent>> {
+    return await this.eventTable.toArray()
+  }
+}
+
+export default new MetricsThingy(new MetricsDatabase('MetricsDatabase'))
