@@ -56,6 +56,7 @@ export function enableReadmeOverwriteWarning(): boolean {
   return enableBetaFeatures()
 }
 
+/** Shoult the app automatically prune branches that are no longer actively being used */
 export function enableBranchPruning(): boolean {
   return enableDevelopmentFeatures()
 }
