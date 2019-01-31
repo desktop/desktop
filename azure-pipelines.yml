@@ -87,7 +87,7 @@ jobs:
         displayName: 'Publish Test Results'
         inputs:
           testResultsFiles: '**junit*.xml'
-          testRunTitle: TestRun variables['Agent.OS']
+          testRunTitle: TestRun ${{ variables['Agent.OS'] }}
       - task: PublishCodeCoverageResults@1
         displayName: 'Publish code coverage results'
         inputs:
