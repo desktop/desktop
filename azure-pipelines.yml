@@ -25,7 +25,7 @@ jobs:
         displayName: 'Publish Test Results'
         inputs:
           testResultsFiles: '**junit*.xml'
-          testRunTitle: TestRun ${{ variables['Agent.OS'] }}
+          testRunTitle: $(Agent.OS) Test Results
       - task: PublishCodeCoverageResults@1
         displayName: 'Publish code coverage results'
         inputs:
@@ -60,7 +60,7 @@ jobs:
         displayName: 'Publish Test Results'
         inputs:
           testResultsFiles: '**junit*.xml'
-          testRunTitle: TestRun ${{ variables['Agent.OS'] }}
+          testRunTitle: $(Agent.OS) Test Results
       - task: PublishCodeCoverageResults@1
         displayName: 'Publish code coverage results'
         inputs:
@@ -87,8 +87,8 @@ jobs:
         displayName: 'Publish Test Results'
         inputs:
           testResultsFiles: '**junit*.xml'
-          testRunTitle: TestRun ${{ variables['Agent.OS'] }}
-      - task: PublishCodeCoverageResults@1
+          testRunTitle: $(Agent.OS) Test Results
+      - task: PublishCodeCoverageResults@1e
         displayName: 'Publish code coverage results'
         inputs:
           codeCoverageTool: 'cobertura'
