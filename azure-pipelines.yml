@@ -88,7 +88,7 @@ jobs:
         inputs:
           testResultsFiles: '**junit*.xml'
           testRunTitle: $(Agent.OS) Test Results
-      - task: PublishCodeCoverageResults@1e
+      - task: PublishCodeCoverageResults@1
         displayName: 'Publish code coverage results'
         inputs:
           codeCoverageTool: 'cobertura'
