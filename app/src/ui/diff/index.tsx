@@ -4,7 +4,7 @@ import { Editor } from 'codemirror'
 import { assertNever } from '../../lib/fatal-error'
 import { encodePathAsUrl } from '../../lib/path'
 
-import { Dispatcher } from '../../lib/dispatcher/dispatcher'
+import { Dispatcher } from '../dispatcher'
 
 import { Repository } from '../../models/repository'
 import {

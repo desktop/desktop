@@ -1,5 +1,42 @@
 {
   "releases": {
+    "1.6.2-beta1": [
+      "[Added] Automatic switching between Dark and Light modes on macOS - #5037. Thanks @say25!",
+      "[Added] Lua and Fortran syntax highlighting - #6700. Thanks @SimpleBinary!",
+      "[Fixed] Abbreviated commits are not long enough for large repositories - #6662. Thanks @say25!",
+      "[Fixed] App menu bar visible on hover on Windows when in \"Let’s get started\" mode - #6669",
+      "[Fixed] Remember scroll positions in History and Changes lists - #5177 #5059. Thanks @Daniel-McCarthy!",
+      "[Fixed] Inconsistent \"Reveal in …\" labels for context menus - #6466. Thanks @say25!",
+      "[Fixed] Prevent concurrent fetches between user and status indicator checks - #6121 #5438 #5328",
+      "[Fixed] Merge conflict conflict did not ask user to resolve some binary files - #6693",
+      "[Improved] Add link to all release notes in Release Notes dialog - #6443. Thanks @koralcem!",
+      "[Improved] Arrow for renamed/copied changes when viewing commit - #6519. Thanks @koralcem!",
+      "[Improved] Menu state updating to address race condition - #6643",
+      "[Improved] Updated verbiage when clicking on changed files to make it more explicit what will occur when you ignore the file(s) - #6689. Thanks @PaulViola!"
+    ],
+    "1.6.2-beta0": [
+      "[Fixed] Don't show \"No local changes\" view when switching between changed files"
+    ],
+    "1.6.1": [
+      "[Fixed] Don't show \"No local changes\" view when switching between changed files"
+    ],
+    "1.6.0": [
+      "[New] Help users add their first repo during onboarding - #6474",
+      "[New] \"No local changes\" view helpfully suggests next actions for you to take - #6445",
+      "[Added] Support JetBrains Webstorm as an external editor - #6077. Thanks @KennethSweezy!",
+      "[Added] Add Visual Basic syntax highlighting - #6461. Thanks @SimpleBinary!",
+      "[Fixed] Automatically locate a missing repository when it cannot be found - #6228. Thanks @msftrncs!",
+      "[Fixed] Don't include untracked files in merge commit - #6411",
+      "[Fixed] Don't show \"Still Conflicted Warning\" when all conflicts are resolved - #6451",
+      "[Fixed] Only execute menu action a single time upon hitting Enter - #5344",
+      "[Fixed] Show autocompletion of GitHub handles and issues properly in commit description field - #6459",
+      "[Improved] Repository list when no repositories found - #5566 #6474",
+      "[Improved] Image diff menu no longer covered by large images - #6520. Thanks @06b!",
+      "[Improved] Enable additional actions during a merge conflict - #6385",
+      "[Improved] Increase contrast on input placeholder color in dark mode - #6556",
+      "[Improved] Don't show merge success banner when attempted merge doesn't complete - #6282",
+      "[Improved] Capitalize menu items appropriately on macOS - #6469"
+    ],
     "1.6.0-beta3": [
       "[Fixed] Autocomplete selection does not overflow text area - #6459",
       "[Fixed] No local changes views incorrectly rendering ampersands - #6596",

@@ -32,11 +32,6 @@ export function enableMergeTool(): boolean {
   return enableDevelopmentFeatures()
 }
 
-/** Should `git status` use --no-optional-locks to assist with concurrent usage */
-export function enableStatusWithoutOptionalLocks(): boolean {
-  return true
-}
-
 /** Should git pass `--recurse-submodules` when performing operations? */
 export function enableRecurseSubmodulesFlag(): boolean {
   return enableBetaFeatures()
@@ -62,10 +57,13 @@ export function enableBranchPruning(): boolean {
 }
 
 /**
- * Whether or not to activate the new, improved, blank slate
- * shown when the user doesn't have any local changes in their
- * repository.
+ * Whether or not to activate the "Create PR" blankslate action.
+ *
+ * The state of the feature as of writing this is that the underlying
+ * data source required to power this feature is not reliable enough
+ * and needs looking at so we aren't ready to move this to production
+ * just yet.
  */
-export function enableNewNoChangesBlankslate(): boolean {
-  return true
+export function enableNoChangesCreatePRBlankslateAction(): boolean {
+  return enableBetaFeatures()
 }

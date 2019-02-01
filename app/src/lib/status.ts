@@ -3,7 +3,6 @@ import {
   AppFileStatus,
   ConflictedFileStatus,
   WorkingDirectoryStatus,
-  isManualConflict,
   isConflictWithMarkers,
 } from '../models/status'
 import { assertNever } from './fatal-error'
@@ -64,11 +63,11 @@ export function hasConflictedFiles(
  * or conflict markers
  */
 export function hasUnresolvedConflicts(status: ConflictedFileStatus) {
-  if (isManualConflict(status)) {
-    // binary file doesn't contain markers
-    return true
+  if (isConflictWithMarkers(status)) {
+    // text file may have conflict markers present
+    return status.conflictMarkerCount > 0
   }
 
-  // text file will have conflict markers removed
-  return status.conflictMarkerCount > 0
+  // binary file doesn't contain markers
+  return true
 }
