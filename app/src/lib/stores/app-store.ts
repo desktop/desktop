@@ -55,11 +55,14 @@ import {
 } from '../../models/progress'
 import { Popup, PopupType } from '../../models/popup'
 import { IGitAccount } from '../../models/git-account'
+import { themeChangeMonitor } from '../../ui/lib/theme-change-monitor'
 import { getAppPath } from '../../ui/lib/app-proxy'
 import {
   ApplicationTheme,
   getPersistedTheme,
   setPersistedTheme,
+  getAutoSwitchPersistedTheme,
+  setAutoSwitchPersistedTheme,
 } from '../../ui/lib/application-theme'
 import {
   getAppMenu,
@@ -297,6 +300,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private selectedBranchesTab = BranchesTab.Branches
   private selectedTheme = ApplicationTheme.Light
+  private automaticallySwitchTheme = false
 
   public constructor(
     private readonly gitHubUserStore: GitHubUserStore,
@@ -521,6 +525,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       selectedCloneRepositoryTab: this.selectedCloneRepositoryTab,
       selectedBranchesTab: this.selectedBranchesTab,
       selectedTheme: this.selectedTheme,
+      automaticallySwitchTheme: this.automaticallySwitchTheme,
       apiRepositories: this.apiRepositoriesStore.getState(),
     }
   }
@@ -1414,6 +1419,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
         : parseInt(imageDiffTypeValue)
 
     this.selectedTheme = getPersistedTheme()
+    this.automaticallySwitchTheme = getAutoSwitchPersistedTheme()
+
+    themeChangeMonitor.onThemeChanged(theme => {
+      if (this.automaticallySwitchTheme) {
+        this.selectedTheme = theme
+        this.emitUpdate()
+      }
+    })
 
     this.emitUpdateNow()
 
@@ -1947,20 +1960,27 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this._updateCurrentPullRequest(repository)
     this.updateMenuItemLabels(repository)
     this._initializeCompare(repository)
-    this.refreshIndicatorsForRepositories([repository])
+    this.refreshIndicatorsForRepositories([repository], false)
   }
 
   public refreshAllIndicators() {
-    return this.refreshIndicatorsForRepositories(this.repositories)
+    return this.refreshIndicatorsForRepositories(this.repositories, true)
   }
 
+  /**
+   * Refresh in-memory indicators for a set of repositories
+   *
+   * @param repositories the set of repositories to update
+   * @param tryBackgroundFetch whether the action should also try and fetch new changes from the remote
+   */
   private async refreshIndicatorsForRepositories(
-    repositories: ReadonlyArray<Repository>
+    repositories: ReadonlyArray<Repository>,
+    tryBackgroundFetch: boolean
   ): Promise<void> {
     const startTime = performance && performance.now ? performance.now() : null
 
     for (const repo of repositories) {
-      await this.refreshIndicatorForRepository(repo)
+      await this.refreshIndicatorForRepository(repo, tryBackgroundFetch)
     }
 
     if (startTime && repositories.length > 1) {
@@ -1976,7 +1996,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  private async refreshIndicatorForRepository(repository: Repository) {
+  /**
+   * Refresh in-memory indicators for a repository
+   *
+   * @param repository the repository to check and update
+   * @param tryBackgroundFetch whether the action should also try and fetch new changes from the remote
+   */
+  private async refreshIndicatorForRepository(
+    repository: Repository,
+    tryBackgroundFetch: boolean
+  ) {
     const lookup = this.localRepositoryStateLookup
 
     if (repository.missing) {
@@ -1997,18 +2026,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const lastPush = await inferLastPushForRepository(
-      this.accounts,
-      gitStore,
-      repository
-    )
+    if (tryBackgroundFetch) {
+      const lastPush = await inferLastPushForRepository(
+        this.accounts,
+        gitStore,
+        repository
+      )
 
-    if (this.shouldBackgroundFetch(repository, lastPush)) {
-      await this.withAuthenticatingUser(repository, (repo, account) => {
-        return gitStore.performFailableOperation(() => {
-          return gitStore.fetch(account, true)
-        })
-      })
+      if (this.shouldBackgroundFetch(repository, lastPush)) {
+        await this._fetch(repository, FetchType.BackgroundTask)
+      }
     }
 
     lookup.set(repository.id, {
@@ -2414,7 +2441,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    return this.withPushPull(repository, async () => {
+    return this.withPushPullFetch(repository, async () => {
       const { tip } = state.branchesState
 
       if (tip.kind === TipState.Unborn) {
@@ -2572,7 +2599,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
-  private async withPushPull(
+  private async withPushPullFetch(
     repository: Repository,
     fn: () => Promise<void>
   ): Promise<void> {
@@ -2608,7 +2635,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     account: IGitAccount | null
   ): Promise<void> {
-    return this.withPushPull(repository, async () => {
+    return this.withPushPullFetch(repository, async () => {
       const gitStore = this.gitStoreCache.get(repository)
       const remote = gitStore.currentRemote
 
@@ -2957,7 +2984,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     fetchType: FetchType,
     remotes?: IRemote[]
   ): Promise<void> {
-    await this.withPushPull(repository, async () => {
+    await this.withPushPullFetch(repository, async () => {
       const gitStore = this.gitStoreCache.get(repository)
 
       try {
@@ -4070,6 +4097,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _setSelectedTheme(theme: ApplicationTheme) {
     setPersistedTheme(theme)
     this.selectedTheme = theme
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  /**
+   * Set the application-wide theme
+   */
+  public _setAutomaticallySwitchTheme(automaticallySwitchTheme: boolean) {
+    setAutoSwitchPersistedTheme(automaticallySwitchTheme)
+    this.automaticallySwitchTheme = automaticallySwitchTheme
     this.emitUpdate()
 
     return Promise.resolve()

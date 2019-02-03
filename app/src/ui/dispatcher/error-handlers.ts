@@ -1,17 +1,19 @@
-import { Dispatcher } from './index'
-import { GitError } from '../git/core'
 import {
   GitError as DugiteError,
   RepositoryDoesNotExistErrorCode,
 } from 'dugite'
-import { ErrorWithMetadata } from '../error-with-metadata'
-import { ExternalEditorError } from '../editors/shared'
-import { AuthenticationErrors } from '../git/authentication'
-import { Repository } from '../../models/repository'
-import { PopupType } from '../../models/popup'
-import { ShellError } from '../shells'
-import { UpstreamAlreadyExistsError } from '../stores/upstream-already-exists-error'
+
+import { Dispatcher } from '.'
+import { ExternalEditorError } from '../../lib/editors/shared'
+import { ErrorWithMetadata } from '../../lib/error-with-metadata'
+import { AuthenticationErrors } from '../../lib/git/authentication'
+import { GitError } from '../../lib/git/core'
+import { ShellError } from '../../lib/shells'
+import { UpstreamAlreadyExistsError } from '../../lib/stores/upstream-already-exists-error'
+
 import { FetchType } from '../../models/fetch'
+import { PopupType } from '../../models/popup'
+import { Repository } from '../../models/repository'
 import { TipState } from '../../models/tip'
 
 /** An error which also has a code property. */

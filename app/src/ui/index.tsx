@@ -19,7 +19,7 @@ import {
   backgroundTaskHandler,
   pushNeedsPullHandler,
   upstreamAlreadyExistsHandler,
-} from '../lib/dispatcher'
+} from './dispatcher'
 import {
   AppStore,
   GitHubUserStore,

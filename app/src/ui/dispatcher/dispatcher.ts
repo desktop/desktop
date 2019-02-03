@@ -1,70 +1,74 @@
-import * as Path from 'path'
-
 import { remote } from 'electron'
 import { Disposable } from 'event-kit'
+import * as Path from 'path'
 
-import { Account } from '../../models/account'
-import { Repository } from '../../models/repository'
+import { IAPIUser } from '../../lib/api'
+import { shell } from '../../lib/app-shell'
 import {
-  WorkingDirectoryFileChange,
-  CommittedFileChange,
-  WorkingDirectoryStatus,
-} from '../../models/status'
-import { DiffSelection, ImageDiffType } from '../../models/diff'
-import {
-  RepositorySectionTab,
+  CompareAction,
   Foldout,
   FoldoutType,
-  CompareAction,
   ICompareFormUpdate,
-  MergeResultStatus,
-  SuccessfulMergeBannerState,
   MergeConflictsBannerState,
-} from '../app-state'
-import { AppStore } from '../stores/app-store'
-import { CloningRepository } from '../../models/cloning-repository'
-import { Branch } from '../../models/branch'
-import { Commit, ICommitContext } from '../../models/commit'
+  MergeResultStatus,
+  RepositorySectionTab,
+  SuccessfulMergeBannerState,
+} from '../../lib/app-state'
 import { ExternalEditor } from '../../lib/editors'
-import { IAPIUser } from '../../lib/api'
-import { GitHubRepository } from '../../models/github-repository'
-import { ICommitMessage } from '../../models/commit-message'
-import { executeMenuItem } from '../../ui/main-process-proxy'
-import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
+import { assertNever, fatalError } from '../../lib/fatal-error'
+import {
+  setGenericPassword,
+  setGenericUsername,
+} from '../../lib/generic-git-auth'
+import { isGitRepository } from '../../lib/git'
+import { isGitOnPath } from '../../lib/is-git-on-path'
+import {
+  rejectOAuthRequest,
+  requestAuthenticatedUser,
+  resolveOAuthRequest,
+} from '../../lib/oauth'
+import {
+  IOpenRepositoryFromURLAction,
+  IUnknownAction,
+  URLActionType,
+} from '../../lib/parse-app-url'
 import {
   matchExistingRepository,
   urlMatchesCloneURL,
 } from '../../lib/repository-matching'
-import { ILaunchStats, StatsStore } from '../stats'
-import { fatalError, assertNever } from '../fatal-error'
-import { isGitOnPath } from '../is-git-on-path'
-import { shell } from '../app-shell'
-import {
-  URLActionType,
-  IOpenRepositoryFromURLAction,
-  IUnknownAction,
-} from '../parse-app-url'
-import {
-  requestAuthenticatedUser,
-  resolveOAuthRequest,
-  rejectOAuthRequest,
-} from '../../lib/oauth'
-import { installCLI } from '../../ui/lib/install-cli'
-import { setGenericUsername, setGenericPassword } from '../generic-git-auth'
-import { RetryAction, RetryActionType } from '../../models/retry-actions'
-import { Shell } from '../shells'
-import { CloneRepositoryTab } from '../../models/clone-repository-tab'
+import { Shell } from '../../lib/shells'
+import { ILaunchStats, StatsStore } from '../../lib/stats'
+import { AppStore } from '../../lib/stores/app-store'
 import { validatedRepositoryPath } from '../../lib/stores/helpers/validated-repository-path'
-import { BranchesTab } from '../../models/branches-tab'
-import { FetchType } from '../../models/fetch'
-import { PullRequest } from '../../models/pull-request'
+import { RepositoryStateCache } from '../../lib/stores/repository-state-cache'
+
+import { Account } from '../../models/account'
+import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
 import { IAuthor } from '../../models/author'
-import { isGitRepository } from '../git'
-import { ApplicationTheme } from '../../ui/lib/application-theme'
-import { TipState } from '../../models/tip'
-import { RepositoryStateCache } from '../stores/repository-state-cache'
-import { Popup, PopupType } from '../../models/popup'
+import { Branch } from '../../models/branch'
+import { BranchesTab } from '../../models/branches-tab'
+import { CloneRepositoryTab } from '../../models/clone-repository-tab'
+import { CloningRepository } from '../../models/cloning-repository'
+import { Commit, ICommitContext } from '../../models/commit'
+import { ICommitMessage } from '../../models/commit-message'
+import { DiffSelection, ImageDiffType } from '../../models/diff'
+import { FetchType } from '../../models/fetch'
+import { GitHubRepository } from '../../models/github-repository'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
+import { Popup, PopupType } from '../../models/popup'
+import { PullRequest } from '../../models/pull-request'
+import { Repository } from '../../models/repository'
+import { RetryAction, RetryActionType } from '../../models/retry-actions'
+import {
+  CommittedFileChange,
+  WorkingDirectoryFileChange,
+  WorkingDirectoryStatus,
+} from '../../models/status'
+import { TipState } from '../../models/tip'
+
+import { ApplicationTheme } from '../lib/application-theme'
+import { installCLI } from '../lib/install-cli'
+import { executeMenuItem } from '../main-process-proxy'
 
 /**
  * An error handler function.
@@ -1351,6 +1355,13 @@ export class Dispatcher {
    */
   public setSelectedTheme(theme: ApplicationTheme) {
     return this.appStore._setSelectedTheme(theme)
+  }
+
+  /**
+   * Set the automatically switch application-wide theme
+   */
+  public onAutomaticallySwitchThemeChanged(theme: boolean) {
+    return this.appStore._setAutomaticallySwitchTheme(theme)
   }
 
   /**
