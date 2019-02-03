@@ -6,7 +6,7 @@ yarn-error.log
 .awcache
 .idea/
 .eslintcache
-
+app/coverage
 app/static/common
 app/test/fixtures
 gemoji
