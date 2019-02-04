@@ -14,22 +14,22 @@ The following are the larger areas of upcoming work the GitHub Desktop team inte
 
 #### Working with uncommitted changes
 
-- Improve workflows when you have uncommitted changes: https://github.com/desktop/desktop/issues/6107
+- Improve workflows when you have uncommitted changes: [#6107](https://github.com/desktop/desktop/issues/6107)
 - Measuring success: TBD alongside the work + usability testing
 
 #### Branch list grows with merged & deleted branches making it difficult to find those you care about
 
-- Prune branches after they've been deleted: https://github.com/desktop/desktop/issues/750
+- Prune branches after they've been deleted: [#750](https://github.com/desktop/desktop/issues/750)
 - Measuring success: TBD alongside the work + usability testing
 
 #### Repositories are difficult to find, navigate, and differentiate
 
-- Help people navigate between and visually differentiate between repos: https://github.com/desktop/desktop/issues/6460
+- Help people navigate between and visually differentiate between repos: [#6460](https://github.com/desktop/desktop/issues/6460)
 - Measuring success: TBD alonside the work + usability testing
 
 #### Users behind corporate proxies cannot clone without manual setup
 
-- Help people get set up correctly if they're behind a proxy: https://github.com/desktop/desktop/issues/2789
+- Help people get set up correctly if they're behind a proxy: [#2789](https://github.com/desktop/desktop/issues/2789)
 - Measuring success: TBD alongside the work
 
 ## Shipped in previous releases
