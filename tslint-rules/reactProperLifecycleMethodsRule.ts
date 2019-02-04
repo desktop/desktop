@@ -77,7 +77,7 @@ class ReactProperLifecycleMethodsWalker extends Lint.RuleWalker {
       const methodName = node.name.getText()
       const message = `${methodName} should not accept any parameters.`
 
-      this.addFailure(this.createFailure(start, width, message))
+      this.addFailureAt(start, width, message)
     }
   }
 
@@ -92,9 +92,7 @@ class ReactProperLifecycleMethodsWalker extends Lint.RuleWalker {
 
     if (parameterName !== expectedParameter.name) {
       const message = `parameter should be named ${expectedParameter.name}.`
-      this.addFailure(
-        this.createFailure(parameterStart, parameterWidth, message)
-      )
+      this.addFailureAt(parameterStart, parameterWidth, message)
       return false
     }
 
@@ -102,9 +100,7 @@ class ReactProperLifecycleMethodsWalker extends Lint.RuleWalker {
 
     if (parameterTypeName !== expectedParameter.type) {
       const message = `parameter should be of type ${expectedParameter.type}.`
-      this.addFailure(
-        this.createFailure(parameterStart, parameterWidth, message)
-      )
+      this.addFailureAt(parameterStart, parameterWidth, message)
       return false
     }
 
@@ -125,9 +121,7 @@ class ReactProperLifecycleMethodsWalker extends Lint.RuleWalker {
         const parameterWidth = parameter.getWidth()
         const message = `unknown parameter ${parameterName}`
 
-        this.addFailure(
-          this.createFailure(parameterStart, parameterWidth, message)
-        )
+        this.addFailureAt(parameterStart, parameterWidth, message)
         return false
       }
 
@@ -149,9 +143,7 @@ class ReactProperLifecycleMethodsWalker extends Lint.RuleWalker {
         const parameterWidth = parameter.getWidth()
         const message = `remove unused void parameter ${parameterName}.`
 
-        this.addFailure(
-          this.createFailure(parameterStart, parameterWidth, message)
-        )
+        this.addFailureAt(parameterStart, parameterWidth, message)
         return false
       } else {
         break
@@ -196,7 +188,7 @@ class ReactProperLifecycleMethodsWalker extends Lint.RuleWalker {
       'Method names starting with component or shouldComponent ' +
       'are prohibited since they can be confused with React lifecycle methods.'
 
-    this.addFailure(this.createFailure(start, width, message))
+    this.addFailureAt(start, width, message)
   }
 }
 export class Rule extends Lint.Rules.AbstractRule {

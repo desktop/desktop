@@ -88,7 +88,7 @@ class ReactNoUnboundDispatcherPropsWalker extends Lint.RuleWalker {
 
         const message = `${error} ${explanation}`
 
-        this.addFailure(this.createFailure(start, width, message))
+        this.addFailureAt(start, width, message)
       }
     })
   }

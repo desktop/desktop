@@ -68,7 +68,7 @@ class ButtonGroupOrderWalker extends Lint.RuleWalker {
 
       const message = `${error} ${explanation}`
 
-      this.addFailure(this.createFailure(start, width, message))
+      this.addFailureAt(start, width, message)
     }
 
     // If we've emitted any errors we'll bail here rather than try to emit
@@ -113,7 +113,7 @@ class ButtonGroupOrderWalker extends Lint.RuleWalker {
 
       const message = `${error} ${explanation}`
 
-      this.addFailure(this.createFailure(start, width, message))
+      this.addFailureAt(start, width, message)
     }
   }
 }

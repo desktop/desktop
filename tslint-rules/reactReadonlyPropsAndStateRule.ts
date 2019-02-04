@@ -40,7 +40,7 @@ class ReactReadonlyPropsAndStateWalker extends Lint.RuleWalker {
         const width = propertySignature.getWidth()
         const error = `Property and state signatures should be read-only`
 
-        this.addFailure(this.createFailure(start, width, error))
+        this.addFailureAt(start, width, error)
       }
     })
   }
