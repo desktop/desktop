@@ -94,7 +94,7 @@ export async function setupConflictedRepo(): Promise<Repository> {
 
   const firstCommit = {
     commitMessage: 'Commit',
-    entries: [{ path: 'foo', value: Buffer.from('') }],
+    entries: [{ path: 'foo', value: '' }],
   }
 
   await makeCommit(repo, firstCommit)
@@ -105,7 +105,7 @@ export async function setupConflictedRepo(): Promise<Repository> {
 
   const secondCommit = {
     commitMessage: 'Commit',
-    entries: [{ path: 'foo', value: Buffer.from('b1') }],
+    entries: [{ path: 'foo', value: 'b1' }],
   }
 
   await makeCommit(repo, secondCommit)
@@ -114,7 +114,7 @@ export async function setupConflictedRepo(): Promise<Repository> {
 
   const thirdCommit = {
     commitMessage: 'Commit',
-    entries: [{ path: 'foo', value: Buffer.from('b2') }],
+    entries: [{ path: 'foo', value: 'b2' }],
   }
   await makeCommit(repo, thirdCommit)
 
