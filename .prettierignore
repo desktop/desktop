@@ -1,6 +1,7 @@
 out/
 dist/
 vendor/
+tslint-rules/*.js
 npm-debug.log
 yarn-error.log
 .DS_Store
