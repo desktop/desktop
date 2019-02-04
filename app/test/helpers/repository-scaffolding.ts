@@ -17,8 +17,13 @@ type TreeEntry = {
 }
 
 type Tree = {
-  readonly commitMessage: string
   readonly entries: ReadonlyArray<TreeEntry>
+  /**
+   * Optional commit message to pass to Git.
+   *
+   * If undefined, `'commit'` will be used.
+   */
+  readonly commitMessage?: string
 }
 
 /**
@@ -53,8 +58,10 @@ export async function makeCommit(repository: Repository, tree: Tree) {
     }
   }
 
+  const message = tree.commitMessage || 'commit'
+
   await GitProcess.exec(['add', '.'], repository.path)
-  await GitProcess.exec(['commit', '-m', tree.commitMessage], repository.path)
+  await GitProcess.exec(['commit', '-m', message], repository.path)
 }
 
 export async function switchTo(repository: Repository, branch: string) {

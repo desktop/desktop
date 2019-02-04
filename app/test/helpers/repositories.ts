@@ -93,7 +93,6 @@ export async function setupConflictedRepo(): Promise<Repository> {
   const repo = await setupEmptyRepository()
 
   const firstCommit = {
-    commitMessage: 'Commit',
     entries: [{ path: 'foo', contents: '' }],
   }
 
@@ -104,7 +103,6 @@ export async function setupConflictedRepo(): Promise<Repository> {
   await GitProcess.exec(['branch', 'other-branch'], repo.path)
 
   const secondCommit = {
-    commitMessage: 'Commit',
     entries: [{ path: 'foo', contents: 'b1' }],
   }
 
@@ -113,7 +111,6 @@ export async function setupConflictedRepo(): Promise<Repository> {
   await switchTo(repo, 'other-branch')
 
   const thirdCommit = {
-    commitMessage: 'Commit',
     entries: [{ path: 'foo', contents: 'b2' }],
   }
   await makeCommit(repo, thirdCommit)
@@ -146,7 +143,6 @@ export async function setupConflictedRepoWithMultipleFiles(): Promise<
   ]
 
   const firstCommit = {
-    commitMessage: 'Commit',
     entries: [{ path: 'foo', contents: 'b0' }, { path: 'bar', contents: 'b0' }],
   }
 
@@ -157,7 +153,6 @@ export async function setupConflictedRepoWithMultipleFiles(): Promise<
   await GitProcess.exec(['branch', 'other-branch'], repo.path)
 
   const secondCommit = {
-    commitMessage: 'Commit',
     entries: [
       { path: 'foo', contents: 'b1' },
       { path: 'bar', contents: null },
@@ -171,7 +166,6 @@ export async function setupConflictedRepoWithMultipleFiles(): Promise<
   await switchTo(repo, 'other-branch')
 
   const thirdCommit = {
-    commitMessage: 'Commit',
     entries: [
       { path: 'foo', contents: 'b2' },
       { path: 'bar', contents: 'b2' },
