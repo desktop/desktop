@@ -34,7 +34,7 @@ The following are the larger areas of upcoming work the GitHub Desktop team inte
 
 ## Shipped in previous releases
 
-#### Onboarding
+#### Onboarding (1.6)
   
 - Improve onboarding for new users: [#5686](https://github.com/desktop/desktop/issues/5686)
 - Measuring success: [#5549](https://github.com/desktop/desktop/issues/5549) + usability testing
