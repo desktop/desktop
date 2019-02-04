@@ -29,7 +29,7 @@
     "compile:script": "tsc -P script/tsconfig.json",
     "lint": "yarn prettier && yarn lint:src",
     "lint:fix": "yarn prettier --write && yarn lint:src:fix",
-    "prettier": "prettier --check \"./**/*.{yaml,yml}\" \"./app/**/*.{scss,ts,tsx,js,jsx,html}\" \"./script/**/*.{ts,js}\"",
+    "prettier": "prettier --check \"./**/*.{yaml,yml,scss,ts,tsx,js,jsx,html}\"",
     "lint:src": "yarn tslint && yarn eslint-check && yarn eslint",
     "lint:src:fix": "yarn tslint --fix && yarn eslint --fix",
     "tslint": "tslint -p .",
