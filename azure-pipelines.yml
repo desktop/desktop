@@ -113,3 +113,6 @@ jobs:
       - script: |
           yarn lint
         name: Lint
+      - script: |
+          yarn check-modified
+        displayName: 'Check for modified files'
