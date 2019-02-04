@@ -55,12 +55,11 @@ export async function makeCommit(repository: Repository, tree: Tree) {
       await GitProcess.exec(['rm', entry.path], repository.path)
     } else {
       await FSE.writeFile(fullPath, entry.contents)
+      await GitProcess.exec(['add', entry.path], repository.path)
     }
   }
 
   const message = tree.commitMessage || 'commit'
-
-  await GitProcess.exec(['add', '.'], repository.path)
   await GitProcess.exec(['commit', '-m', message], repository.path)
 }
 
