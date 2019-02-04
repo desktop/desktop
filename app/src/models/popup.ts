@@ -156,7 +156,7 @@ export type Popup =
     }
   | {
       type: PopupType.LocalChangesOverwritten
-      /** repository user is committing in */
+      /** repository user is checking out in */
       repository: Repository
       retryAction: RetryAction
       overwrittenFiles: ReadonlyArray<string>
