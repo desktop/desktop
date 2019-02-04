@@ -25,7 +25,7 @@ The following are the larger areas of upcoming work the GitHub Desktop team inte
 #### Repositories are difficult to find, navigate, and differentiate
 
 - Help people navigate between and visually differentiate between repos: [#6460](https://github.com/desktop/desktop/issues/6460)
-- Measuring success: TBD alonside the work + usability testing
+- Measuring success: TBD alongside the work + usability testing
 
 #### Users behind corporate proxies cannot clone without manual setup
 
