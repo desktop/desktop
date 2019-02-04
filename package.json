@@ -41,7 +41,8 @@
     "rebuild-hard:prod": "yarn clean-slate && yarn build:prod",
     "changelog": "ts-node script/changelog/index.ts",
     "draft-release": "ts-node script/draft-release/index.ts",
-    "validate-changelog": "ts-node script/validate-changelog.ts"
+    "validate-changelog": "ts-node script/validate-changelog.ts",
+    "check-modified": "stop-build"
   },
   "author": {
     "name": "GitHub, Inc.",
@@ -99,6 +100,7 @@
     "sass-loader": "^7.0.1",
     "semver": "^5.5.0",
     "spectron": "^5.0.0",
+    "stop-build": "^1.1.0",
     "style-loader": "^0.21.0",
     "to-camel-case": "^1.0.0",
     "ts-jest": "^23.1.4",
