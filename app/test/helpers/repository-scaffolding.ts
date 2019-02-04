@@ -6,8 +6,14 @@ import { Repository } from '../../src/models/repository'
 import { mkdirSync } from './temp'
 
 type TreeEntry = {
+  /** The relative path of the file in the repository */
   readonly path: string
-  readonly value: Buffer
+  /**
+   * The contents associated with the current path.
+   *
+   * Use `null` to remove the file from the working directory before committing
+   */
+  readonly value: Buffer | string | null
 }
 
 type Tree = {
@@ -40,7 +46,11 @@ export async function cloneRepository(
 export async function makeCommit(repository: Repository, tree: Tree) {
   for (const entry of tree.entries) {
     const fullPath = Path.join(repository.path, entry.path)
-    await FSE.writeFile(fullPath, entry.value)
+    if (entry.value === null) {
+      await GitProcess.exec(['rm', entry.path], repository.path)
+    } else {
+      await FSE.writeFile(fullPath, entry.value)
+    }
   }
 
   await GitProcess.exec(['add', '.'], repository.path)
