@@ -120,6 +120,7 @@ function packageApp() {
     )
   }
 
+  /* tslint:disable:deprecation */
   const toPackageArch = (targetArch: string | undefined): packager.arch => {
     if (targetArch === undefined) {
       return 'x64'
@@ -134,6 +135,7 @@ function packageApp() {
     )
   }
 
+  /* tslint:disable:deprecation */
   const options: packager.Options & IPackageAdditionalOptions = {
     name: getExecutableName(),
     platform: toPackagePlatform(process.platform),
