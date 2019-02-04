@@ -18,7 +18,7 @@ interface ILocalChangesOverwrittenWarningProps {
   readonly workingDirectory: WorkingDirectoryStatus
 }
 
-/** A dialog to display a list of files that are too large to commit. */
+/** A dialog to display a list of files that would be overwritten by a checkout. */
 export class LocalChangesOverwrittenWarning extends React.Component<
   ILocalChangesOverwrittenWarningProps
 > {
@@ -33,7 +33,7 @@ export class LocalChangesOverwrittenWarning extends React.Component<
   }
 
   public componentDidMount() {
-    // Since focus is given to the Git LFS link by default, we will instead set focus onto the cancel button.
+    // Since focus is given to the overwritten files by default, we will instead set focus onto the cancel button.
     if (this.closeButton != null) {
       this.closeButton.focus()
     }
@@ -43,7 +43,7 @@ export class LocalChangesOverwrittenWarning extends React.Component<
     return (
       <Dialog
         id="overwritten-files"
-        title={'Files Overwritten'}
+        title={__DARWIN__ ? 'Files Overwritten' : 'Files overwritten'}
         onDismissed={this.props.onDismissed}
         type="warning"
       >
@@ -64,7 +64,9 @@ export class LocalChangesOverwrittenWarning extends React.Component<
               Cancel
             </Button>
             <Button onClick={this.discardChangesAndRetry}>
-              Discard Changes And Checkout
+              {__DARWIN__
+                ? 'Discard Changes And Checkout'
+                : 'Discard changes and checkout'}
             </Button>
           </ButtonGroup>
         </DialogFooter>
