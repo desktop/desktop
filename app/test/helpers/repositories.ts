@@ -9,6 +9,7 @@ const klawSync = require('klaw-sync')
 
 import { Repository } from '../../src/models/repository'
 import { GitProcess } from 'dugite'
+import { makeCommit, switchTo } from './repository-scaffolding'
 
 type KlawEntry = {
   path: string
@@ -90,23 +91,32 @@ export function setupEmptyDirectory(): Repository {
  */
 export async function setupConflictedRepo(): Promise<Repository> {
   const repo = await setupEmptyRepository()
-  const filePath = Path.join(repo.path, 'foo')
 
-  await FSE.writeFile(filePath, '')
-  await GitProcess.exec(['add', 'foo'], repo.path)
-  await GitProcess.exec(['commit', '-m', 'Commit'], repo.path)
+  const firstCommit = {
+    commitMessage: 'Commit',
+    entries: [{ path: 'foo', value: Buffer.from('') }],
+  }
 
+  await makeCommit(repo, firstCommit)
+
+  // create this branch starting from the first commit, but don't checkout it
+  // because we want to create a divergent history
   await GitProcess.exec(['branch', 'other-branch'], repo.path)
 
-  await FSE.writeFile(filePath, 'b1')
-  await GitProcess.exec(['add', 'foo'], repo.path)
-  await GitProcess.exec(['commit', '-m', 'Commit'], repo.path)
+  const secondCommit = {
+    commitMessage: 'Commit',
+    entries: [{ path: 'foo', value: Buffer.from('b1') }],
+  }
 
-  await GitProcess.exec(['checkout', 'other-branch'], repo.path)
+  await makeCommit(repo, secondCommit)
 
-  await FSE.writeFile(filePath, 'b2')
-  await GitProcess.exec(['add', 'foo'], repo.path)
-  await GitProcess.exec(['commit', '-m', 'Commit'], repo.path)
+  await switchTo(repo, 'other-branch')
+
+  const thirdCommit = {
+    commitMessage: 'Commit',
+    entries: [{ path: 'foo', value: Buffer.from('b2') }],
+  }
+  await makeCommit(repo, thirdCommit)
 
   await GitProcess.exec(['merge', 'master'], repo.path)
 
