@@ -145,49 +145,42 @@ export async function setupConflictedRepoWithMultipleFiles(): Promise<
     Path.join(repo.path, 'dog'),
   ]
 
-  await FSE.writeFile(filePaths[0], 'b0')
-  await FSE.writeFile(filePaths[1], 'b0')
-  await GitProcess.exec(
-    ['add', Path.basename(filePaths[0]), Path.basename(filePaths[1])],
-    repo.path
-  )
-  await GitProcess.exec(['commit', '-m', 'Commit'], repo.path)
+  const firstCommit = {
+    commitMessage: 'Commit',
+    entries: [{ path: 'foo', value: 'b0' }, { path: 'bar', value: 'b0' }],
+  }
 
+  await makeCommit(repo, firstCommit)
+
+  // create this branch starting from the first commit, but don't checkout it
+  // because we want to create a divergent history
   await GitProcess.exec(['branch', 'other-branch'], repo.path)
 
-  await FSE.writeFile(filePaths[0], 'b1')
-  await FSE.writeFile(filePaths[2], 'b1')
-  await FSE.writeFile(filePaths[3], 'b1')
-  await GitProcess.exec(['rm', Path.basename(filePaths[1])], repo.path)
-  await GitProcess.exec(
-    [
-      'add',
-      Path.basename(filePaths[0]),
-      Path.basename(filePaths[2]),
-      Path.basename(filePaths[3]),
+  const secondCommit = {
+    commitMessage: 'Commit',
+    entries: [
+      { path: 'foo', value: 'b1' },
+      { path: 'bar', value: null },
+      { path: 'baz', value: 'b1' },
+      { path: 'cat', value: 'b1' },
     ],
-    repo.path
-  )
-  await GitProcess.exec(['commit', '-m', 'Commit'], repo.path)
+  }
 
-  await GitProcess.exec(['checkout', 'other-branch'], repo.path)
+  await makeCommit(repo, secondCommit)
 
-  await FSE.writeFile(filePaths[0], 'b2')
-  await FSE.writeFile(filePaths[1], 'b2')
-  await FSE.writeFile(filePaths[2], 'b2')
-  await FSE.writeFile(filePaths[3], 'b2')
+  await switchTo(repo, 'other-branch')
 
-  await GitProcess.exec(
-    [
-      'add',
-      Path.basename(filePaths[0]),
-      Path.basename(filePaths[1]),
-      Path.basename(filePaths[2]),
-      Path.basename(filePaths[3]),
+  const thirdCommit = {
+    commitMessage: 'Commit',
+    entries: [
+      { path: 'foo', value: 'b2' },
+      { path: 'bar', value: 'b2' },
+      { path: 'baz', value: 'b2' },
+      { path: 'cat', value: 'b2' },
     ],
-    repo.path
-  )
-  await GitProcess.exec(['commit', '-m', 'Commit'], repo.path)
+  }
+
+  await makeCommit(repo, thirdCommit)
 
   await FSE.writeFile(filePaths[4], 'touch')
 
