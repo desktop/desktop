@@ -7,7 +7,7 @@ export async function getTipOrError(repository: Repository): Promise<Commit> {
 
   if (commit === null) {
     throw new Error(
-      'Unable to find commit for HEAD - is this an unborn repository?'
+      'Unable to find commit for HEAD - check that you are not working with an unborn repository'
     )
   }
 
@@ -22,7 +22,7 @@ export async function getRefOrError(
 
   if (commit === null) {
     throw new Error(
-      'Unable to find commit for HEAD - is this an unborn repository?'
+      `Unable to find commit for ${ref} - check that this exists in the repository`
     )
   }
 
