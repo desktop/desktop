@@ -33,7 +33,7 @@ describe('git/pull', () => {
         entries: [
           {
             path: 'README.md',
-            value: Buffer.from('# HELLO WORLD! \n WORDS GO HERE! \nLOL'),
+            contents: '# HELLO WORLD! \n WORDS GO HERE! \nLOL',
           },
         ],
       }
@@ -45,7 +45,7 @@ describe('git/pull', () => {
         entries: [
           {
             path: 'CONTRIBUTING.md',
-            value: Buffer.from('# HELLO WORLD! \nTHINGS GO HERE\nYES, THINGS'),
+            contents: '# HELLO WORLD! \nTHINGS GO HERE\nYES, THINGS',
           },
         ],
       }

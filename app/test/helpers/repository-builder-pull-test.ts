@@ -21,7 +21,7 @@ export async function createRepository(
     entries: [
       {
         path: 'README.md',
-        value: Buffer.from('# HELLO WORLD! \n'),
+        contents: '# HELLO WORLD! \n',
       },
     ],
   }
@@ -33,11 +33,11 @@ export async function createRepository(
     entries: [
       {
         path: 'THING.md',
-        value: Buffer.from('# HELLO WORLD! \nTHINGS GO HERE\n'),
+        contents: '# HELLO WORLD! \nTHINGS GO HERE\n',
       },
       {
         path: 'OTHER.md',
-        value: Buffer.from('# HELLO WORLD! \nTHINGS GO HERE\n'),
+        contents: '# HELLO WORLD! \nTHINGS GO HERE\n',
       },
     ],
   }
@@ -51,7 +51,7 @@ export async function createRepository(
     entries: [
       {
         path: 'CONTRIBUTING.md',
-        value: Buffer.from(''),
+        contents: '',
       },
     ],
   }
@@ -63,7 +63,7 @@ export async function createRepository(
     entries: [
       {
         path: 'README.md',
-        value: Buffer.from('things go here'),
+        contents: 'things go here',
       },
     ],
   }

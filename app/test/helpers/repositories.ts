@@ -94,7 +94,7 @@ export async function setupConflictedRepo(): Promise<Repository> {
 
   const firstCommit = {
     commitMessage: 'Commit',
-    entries: [{ path: 'foo', value: '' }],
+    entries: [{ path: 'foo', contents: '' }],
   }
 
   await makeCommit(repo, firstCommit)
@@ -105,7 +105,7 @@ export async function setupConflictedRepo(): Promise<Repository> {
 
   const secondCommit = {
     commitMessage: 'Commit',
-    entries: [{ path: 'foo', value: 'b1' }],
+    entries: [{ path: 'foo', contents: 'b1' }],
   }
 
   await makeCommit(repo, secondCommit)
@@ -114,7 +114,7 @@ export async function setupConflictedRepo(): Promise<Repository> {
 
   const thirdCommit = {
     commitMessage: 'Commit',
-    entries: [{ path: 'foo', value: 'b2' }],
+    entries: [{ path: 'foo', contents: 'b2' }],
   }
   await makeCommit(repo, thirdCommit)
 
@@ -147,7 +147,7 @@ export async function setupConflictedRepoWithMultipleFiles(): Promise<
 
   const firstCommit = {
     commitMessage: 'Commit',
-    entries: [{ path: 'foo', value: 'b0' }, { path: 'bar', value: 'b0' }],
+    entries: [{ path: 'foo', contents: 'b0' }, { path: 'bar', contents: 'b0' }],
   }
 
   await makeCommit(repo, firstCommit)
@@ -159,10 +159,10 @@ export async function setupConflictedRepoWithMultipleFiles(): Promise<
   const secondCommit = {
     commitMessage: 'Commit',
     entries: [
-      { path: 'foo', value: 'b1' },
-      { path: 'bar', value: null },
-      { path: 'baz', value: 'b1' },
-      { path: 'cat', value: 'b1' },
+      { path: 'foo', contents: 'b1' },
+      { path: 'bar', contents: null },
+      { path: 'baz', contents: 'b1' },
+      { path: 'cat', contents: 'b1' },
     ],
   }
 
@@ -173,10 +173,10 @@ export async function setupConflictedRepoWithMultipleFiles(): Promise<
   const thirdCommit = {
     commitMessage: 'Commit',
     entries: [
-      { path: 'foo', value: 'b2' },
-      { path: 'bar', value: 'b2' },
-      { path: 'baz', value: 'b2' },
-      { path: 'cat', value: 'b2' },
+      { path: 'foo', contents: 'b2' },
+      { path: 'bar', contents: 'b2' },
+      { path: 'baz', contents: 'b2' },
+      { path: 'cat', contents: 'b2' },
     ],
   }
 

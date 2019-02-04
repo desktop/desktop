@@ -13,7 +13,7 @@ type TreeEntry = {
    *
    * Use `null` to remove the file from the working directory before committing
    */
-  readonly value: Buffer | string | null
+  readonly contents: Buffer | string | null
 }
 
 type Tree = {
@@ -46,10 +46,10 @@ export async function cloneRepository(
 export async function makeCommit(repository: Repository, tree: Tree) {
   for (const entry of tree.entries) {
     const fullPath = Path.join(repository.path, entry.path)
-    if (entry.value === null) {
+    if (entry.contents === null) {
       await GitProcess.exec(['rm', entry.path], repository.path)
     } else {
-      await FSE.writeFile(fullPath, entry.value)
+      await FSE.writeFile(fullPath, entry.contents)
     }
   }
 

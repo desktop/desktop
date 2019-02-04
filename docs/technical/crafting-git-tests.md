@@ -96,7 +96,7 @@ describe('ahead and behind of tracking branch', () => {
       entries: [
         {
           path: 'README.md',
-          value: Buffer.from('# HELLO WORLD! \n WORDS GO HERE! \nLOL'),
+          contents: '# HELLO WORLD! \n WORDS GO HERE! \nLOL',
         },
       ],
     }
@@ -108,7 +108,7 @@ describe('ahead and behind of tracking branch', () => {
       entries: [
         {
           path: 'CONTRIBUTING.md',
-          value: Buffer.from('# HELLO WORLD! \nTHINGS GO HERE\nYES, THINGS'),
+          contents: '# HELLO WORLD! \nTHINGS GO HERE\nYES, THINGS',
         },
       ],
     }
