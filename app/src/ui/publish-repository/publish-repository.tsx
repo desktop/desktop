@@ -10,18 +10,22 @@ import { caseInsensitiveCompare } from '../../lib/compare'
 import { sanitizedRepositoryName } from '../add-repository/sanitized-repository-name'
 import { Octicon, OcticonSymbol } from '../octicons'
 
-interface IPublishRepositoryProps {
-  /** The user to use for publishing. */
-  readonly account: Account
+export interface GHEPublicationSettings {
+  readonly kind: 'ghe'
 
-  /** The settings to use when publishing the repository. */
-  readonly settings: IPublishRepositorySettings
+  /** The name to use when publishing the repository. */
+  readonly name: string
 
-  /** The function called when any of the publish settings are changed. */
-  readonly onSettingsChanged: (settings: IPublishRepositorySettings) => void
+  /** The repository's description. */
+  readonly description: string
+
+  /** Should the repository be private? */
+  readonly private: boolean
 }
 
-export interface IPublishRepositorySettings {
+export interface DotcomPublicationSettings {
+  readonly kind: 'dotcom'
+
   /** The name to use when publishing the repository. */
   readonly name: string
 
@@ -36,6 +40,21 @@ export interface IPublishRepositorySettings {
    * published as a personal repository.
    */
   readonly org: IAPIUser | null
+}
+
+export type RepositoryPublicationSettings =
+  | GHEPublicationSettings
+  | DotcomPublicationSettings
+
+interface IPublishRepositoryProps {
+  /** The user to use for publishing. */
+  readonly account: Account
+
+  /** The settings to use when publishing the repository. */
+  readonly settings: RepositoryPublicationSettings
+
+  /** The function called when any of the publish settings are changed. */
+  readonly onSettingsChanged: (settings: RepositoryPublicationSettings) => void
 }
 
 interface IPublishRepositoryState {
