@@ -181,14 +181,13 @@ const makeManualConflictDropdownClickHandler = (
   dispatcher: Dispatcher
 ) => {
   return () => {
-    const absoluteFilePath = join(repository.path, relativeFilePath)
     const items: IMenuItem[] = [
       {
         label: 'Use our version',
         action: () =>
           dispatcher.updateManualConflictResolution(
             repository,
-            absoluteFilePath,
+            relativeFilePath,
             ManualConflictResolutionKind.ours
           ),
       },
@@ -197,7 +196,7 @@ const makeManualConflictDropdownClickHandler = (
         action: () =>
           dispatcher.updateManualConflictResolution(
             repository,
-            absoluteFilePath,
+            relativeFilePath,
             ManualConflictResolutionKind.theirs
           ),
       },
