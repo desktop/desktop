@@ -23,6 +23,7 @@ import { openFile } from '../lib/open-file'
 import { shell } from 'electron'
 import { Button } from '../lib/button'
 import { IMenuItem } from '../../lib/menu-item'
+import { LinkButton } from '../lib/link-button'
 
 export const renderUnmergedFile: React.SFC<{
   readonly repository: Repository
@@ -51,26 +52,51 @@ export const renderUnmergedFile: React.SFC<{
       dispatcher: props.dispatcher,
     })
   }
-  return renderResolvedFile(props.path, props.manualResolution)
+  return renderResolvedFile({
+    path: props.path,
+    repository: props.repository,
+    dispatcher: props.dispatcher,
+    manualResolution: props.manualResolution,
+  })
 }
 
-function renderResolvedFile(
-  path: string,
-  manualResolution?: ManualConflictResolution
-): JSX.Element {
+const renderResolvedFile: React.SFC<{
+  readonly repository: Repository
+  readonly path: string
+  readonly manualResolution?: ManualConflictResolution
+  readonly dispatcher: Dispatcher
+}> = ({ ...props }) => {
   let statusString = 'No conflicts remaining'
-  if (manualResolution === ManualConflictResolutionKind.ours) {
+  if (props.manualResolution === ManualConflictResolutionKind.ours) {
     statusString = 'Using our version'
   }
-  if (manualResolution === ManualConflictResolutionKind.theirs) {
+  if (props.manualResolution === ManualConflictResolutionKind.theirs) {
     statusString = 'Using their version'
+  }
+  let undoLink = null
+  if (props.manualResolution !== undefined) {
+    undoLink = (
+      <LinkButton
+        onClick={makeUndoManualResolutionClickHandler(
+          props.path,
+          props.repository,
+          props.dispatcher
+        )}
+      >
+        Undo
+      </LinkButton>
+    )
   }
   return (
     <li className="unmerged-file-status-resolved">
       <Octicon symbol={OcticonSymbol.fileCode} className="file-octicon" />
       <div className="column-left">
-        <PathText path={path} availableWidth={200} />
-        <div className="file-conflicts-status">{statusString}</div>
+        <PathText path={props.path} availableWidth={200} />
+        <div className="file-conflicts-status">
+          {statusString}
+          &nbsp;
+          {undoLink}
+        </div>
       </div>
       <div className="green-circle">
         <Octicon symbol={OcticonSymbol.check} />
@@ -203,6 +229,19 @@ const makeManualConflictDropdownClickHandler = (
     ]
     showContextualMenu(items)
   }
+}
+
+const makeUndoManualResolutionClickHandler = (
+  relativeFilePath: string,
+  repository: Repository,
+  dispatcher: Dispatcher
+) => {
+  return () =>
+    dispatcher.updateManualConflictResolution(
+      repository,
+      relativeFilePath,
+      null
+    )
 }
 
 const makeMarkerConflictDropdownClickHandler = (
