@@ -150,7 +150,8 @@ export class PublishRepository extends React.Component<
     )
 
     let selectedIndex = -1
-    const selectedOrg = this.props.settings.org
+    const selectedOrg =
+      this.props.settings.kind === 'dotcom' ? this.props.settings.org : null
     for (const [index, org] of this.state.orgs.entries()) {
       if (selectedOrg && selectedOrg.id === org.id) {
         selectedIndex = index
