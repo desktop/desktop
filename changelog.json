@@ -1,5 +1,19 @@
 {
   "releases": {
+    "1.6.2-beta1": [
+      "[Added] Automatic switching between Dark and Light modes on macOS - #5037. Thanks @say25!",
+      "[Added] Lua and Fortran syntax highlighting - #6700. Thanks @SimpleBinary!",
+      "[Fixed] Abbreviated commits are not long enough for large repositories - #6662. Thanks @say25!",
+      "[Fixed] App menu bar visible on hover on Windows when in \"Let’s get started\" mode - #6669",
+      "[Fixed] Remember scroll positions in History and Changes lists - #5177 #5059. Thanks @Daniel-McCarthy!",
+      "[Fixed] Inconsistent \"Reveal in …\" labels for context menus - #6466. Thanks @say25!",
+      "[Fixed] Prevent concurrent fetches between user and status indicator checks - #6121 #5438 #5328",
+      "[Fixed] Merge conflict conflict did not ask user to resolve some binary files - #6693",
+      "[Improved] Add link to all release notes in Release Notes dialog - #6443. Thanks @koralcem!",
+      "[Improved] Arrow for renamed/copied changes when viewing commit - #6519. Thanks @koralcem!",
+      "[Improved] Menu state updating to address race condition - #6643",
+      "[Improved] Updated verbiage when clicking on changed files to make it more explicit what will occur when you ignore the file(s) - #6689. Thanks @PaulViola!"
+    ],
     "1.6.2-beta0": [
       "[Fixed] Don't show \"No local changes\" view when switching between changed files"
     ],
