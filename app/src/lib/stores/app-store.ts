@@ -1113,9 +1113,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.selectedRepository = repository
 
     this.emitUpdate()
+    this.stopBackgroundFetching()
     this.stopPullRequestUpdater()
     this._setMergeConflictsBannerState(null)
-    this.stopBackgroundFetching()
+    this.stopBackgroundPruner()
 
     if (repository == null) {
       return Promise.resolve(null)
