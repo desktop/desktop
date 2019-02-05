@@ -95,8 +95,8 @@ export class PublishRepository extends React.Component<
     this.setState({ orgs })
   }
 
-  private updateSettings<K extends keyof IPublishRepositorySettings>(
-    subset: Pick<IPublishRepositorySettings, K>
+  private updateSettings<K extends keyof RepositoryPublicationSettings>(
+    subset: Pick<RepositoryPublicationSettings, K>
   ) {
     const existingSettings = this.props.settings
     const newSettings = merge(existingSettings, subset)
