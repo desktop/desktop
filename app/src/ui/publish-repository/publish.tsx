@@ -20,16 +20,27 @@ enum PublishTab {
   Enterprise,
 }
 
+type TabState = DotcomTabState | GheTabState
 
+interface DotcomTabState {
+  readonly kind: 'dotcom'
 
   /** The settings for publishing the repository. */
   readonly settings: DotcomPublicationSettings
 
+  /**
+   * An error which, if present, is presented to the
+   * user in close proximity to the actions or input fields
+   * related to the current step.
+   */
+  readonly error: Error | null
 }
 
-interface IPublishTabState {
+interface GheTabState {
+  readonly kind: 'ghe'
+
   /** The settings for publishing the repository. */
-  readonly publishSettings: IPublishRepositorySettings
+  readonly settings: GHEPublicationSettings
 
   /**
    * An error which, if present, is presented to the
