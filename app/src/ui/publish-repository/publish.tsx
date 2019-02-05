@@ -68,10 +68,10 @@ interface IPublishState {
   readonly currentTab: PublishTab
 
   /** The state of dotCom tab. */
-  readonly dotComTabState: IPublishTabState
+  readonly dotcomTabState: DotcomTabState
 
   /** The state of enterprise tab. */
-  readonly enterpriseTabState: IPublishTabState
+  readonly gheTabState: GheTabState
 
   /** Is the repository currently being published? */
   readonly publishing: boolean
