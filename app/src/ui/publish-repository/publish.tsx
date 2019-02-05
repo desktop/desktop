@@ -1,7 +1,9 @@
 import * as React from 'react'
 import {
   PublishRepository,
-  IPublishRepositorySettings,
+  DotcomPublicationSettings,
+  GHEPublicationSettings,
+  RepositoryPublicationSettings,
 } from './publish-repository'
 import { Dispatcher } from '../dispatcher'
 import { Account } from '../../models/account'
@@ -153,7 +155,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
     try {
       const description = await getGitDescription(this.props.repository.path)
       const settings = {
-        ...currentTabState.publishSettings,
+        ...currentTabState.settings,
         description,
       }
 
@@ -171,7 +173,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
       return (
         <PublishRepository
           account={account}
-          settings={currentTabState.publishSettings}
+          settings={currentTabState.settings}
           onSettingsChanged={this.onSettingsChanged}
         />
       )
@@ -180,8 +182,23 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
     }
   }
 
-  private onSettingsChanged = (settings: IPublishRepositorySettings) => {
-    this.setCurrentTabSettings(settings)
+  private onSettingsChanged = (settings: RepositoryPublicationSettings) => {
+    let tabState: TabState
+    if (settings.kind === 'ghe') {
+      tabState = {
+        kind: 'ghe',
+        settings: settings,
+        error: this.state.gheTabState.error,
+      }
+    } else {
+      tabState = {
+        kind: 'dotcom',
+        settings: settings,
+        error: this.state.dotcomTabState.error,
+      }
+    }
+
+    this.setTabState(tabState)
   }
 
   private getAccountForTab(tab: PublishTab): Account | null {
@@ -226,7 +243,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
 
   private renderFooter() {
     const currentTabState = this.getCurrentTabState()
-    const disabled = !currentTabState.publishSettings.name.length
+    const disabled = !currentTabState.settings.name.length
     const tab = this.state.currentTab
     const user = this.getAccountForTab(tab)
     if (user) {
@@ -266,7 +283,9 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
       return
     }
 
-    const settings = currentTabState.publishSettings
+    const settings = currentTabState.settings
+    const org =
+      currentTabState.kind === 'dotcom' ? currentTabState.settings.org : null
 
     try {
       await this.props.dispatcher.publishRepository(
@@ -275,7 +294,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
         settings.description,
         settings.private,
         account,
-        settings.org
+        org
       )
 
       this.props.onDismissed()
@@ -294,26 +313,31 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
 
   private getCurrentTabState = () =>
     this.state.currentTab === PublishTab.DotCom
-      ? this.state.dotComTabState
-      : this.state.enterpriseTabState
+      ? this.state.dotcomTabState
+      : this.state.gheTabState
 
-  private setTabState = (tabState: IPublishTabState) => {
-    if (this.state.currentTab === PublishTab.DotCom) {
-      this.setState({
-        dotComTabState: { ...tabState },
-      })
+  private setTabState = (state: TabState) => {
+    if (state.kind === 'ghe') {
+      this.setState({ gheTabState: { ...state } })
     } else {
-      this.setState({
-        enterpriseTabState: { ...tabState },
-      })
+      this.setState({ dotcomTabState: { ...state } })
     }
   }
 
-  private setCurrentTabSettings = (settings: IPublishRepositorySettings) => {
-    this.setTabState({
-      ...this.getCurrentTabState(),
-      publishSettings: { ...settings },
-    })
+  private setCurrentTabSettings = (settings: RepositoryPublicationSettings) => {
+    if (settings.kind === 'ghe') {
+      const gheTabState = {
+        ...this.state.gheTabState,
+        settings: settings,
+      }
+      this.setTabState({ ...gheTabState })
+    } else {
+      const dotcomTabState: DotcomTabState = {
+        ...this.state.dotcomTabState,
+        settings: settings,
+      }
+      this.setTabState({ ...dotcomTabState })
+    }
   }
 
   private setCurrentTabError = (error: Error | null) => {
