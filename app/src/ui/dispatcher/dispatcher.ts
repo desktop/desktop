@@ -647,9 +647,20 @@ export class Dispatcher {
     workingDirectory: WorkingDirectoryStatus,
     successfulMergeBannerState: SuccessfulMergeBannerState
   ) {
+    // get manual resolutions in case there are manual conflicts
+    const repositoryState = this.repositoryStateManager.get(repository)
+    const { conflictState } = repositoryState.changesState
+    if (conflictState === null) {
+      // if this doesn't exist, something is very wrong and we shouldn't proceed 😢
+      log.error(
+        'Conflict state missing during finishConflictedMerge. No merge will be committed.'
+      )
+      return
+    }
     const result = await this.appStore._finishConflictedMerge(
       repository,
-      workingDirectory
+      workingDirectory,
+      conflictState.manualResolutions
     )
     if (result !== undefined) {
       this.appStore._setSuccessfulMergeBannerState(successfulMergeBannerState)
