@@ -10,7 +10,7 @@ import { caseInsensitiveCompare } from '../../lib/compare'
 import { sanitizedRepositoryName } from '../add-repository/sanitized-repository-name'
 import { Octicon, OcticonSymbol } from '../octicons'
 
-export interface GHEPublicationSettings {
+export interface IGHEPublicationSettings {
   readonly kind: 'ghe'
 
   /** The name to use when publishing the repository. */
@@ -23,7 +23,7 @@ export interface GHEPublicationSettings {
   readonly private: boolean
 }
 
-export interface DotcomPublicationSettings {
+export interface IDotcomPublicationSettings {
   readonly kind: 'dotcom'
 
   /** The name to use when publishing the repository. */
@@ -43,8 +43,8 @@ export interface DotcomPublicationSettings {
 }
 
 export type RepositoryPublicationSettings =
-  | GHEPublicationSettings
-  | DotcomPublicationSettings
+  | IGHEPublicationSettings
+  | IDotcomPublicationSettings
 
 interface IPublishRepositoryProps {
   /** The user to use for publishing. */
@@ -126,7 +126,7 @@ export class PublishRepository extends React.Component<
 
     const value = event.currentTarget.value
     const index = parseInt(value, 10)
-    let newSettings: DotcomPublicationSettings
+    let newSettings: IDotcomPublicationSettings
     if (index < 0 || isNaN(index)) {
       newSettings = { ...settings, org: null }
     } else {

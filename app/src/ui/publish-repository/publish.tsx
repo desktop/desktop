@@ -1,8 +1,8 @@
 import * as React from 'react'
 import {
   PublishRepository,
-  DotcomPublicationSettings,
-  GHEPublicationSettings,
+  IDotcomPublicationSettings,
+  IGHEPublicationSettings,
   RepositoryPublicationSettings,
 } from './publish-repository'
 import { Dispatcher } from '../../lib/dispatcher'
@@ -22,13 +22,13 @@ enum PublishTab {
   Enterprise,
 }
 
-type TabState = DotcomTabState | GheTabState
+type TabState = IDotcomTabState | IGheTabState
 
-interface DotcomTabState {
+interface IDotcomTabState {
   readonly kind: 'dotcom'
 
   /** The settings for publishing the repository. */
-  readonly settings: DotcomPublicationSettings
+  readonly settings: IDotcomPublicationSettings
 
   /**
    * An error which, if present, is presented to the
@@ -38,11 +38,11 @@ interface DotcomTabState {
   readonly error: Error | null
 }
 
-interface GheTabState {
+interface IGheTabState {
   readonly kind: 'ghe'
 
   /** The settings for publishing the repository. */
-  readonly settings: GHEPublicationSettings
+  readonly settings: IGHEPublicationSettings
 
   /**
    * An error which, if present, is presented to the
@@ -70,10 +70,10 @@ interface IPublishState {
   readonly currentTab: PublishTab
 
   /** The state of dotCom tab. */
-  readonly dotcomTabState: DotcomTabState
+  readonly dotcomTabState: IDotcomTabState
 
   /** The state of enterprise tab. */
-  readonly gheTabState: GheTabState
+  readonly gheTabState: IGheTabState
 
   /** Is the repository currently being published? */
   readonly publishing: boolean
@@ -99,13 +99,13 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
       private: true,
     }
 
-    const dotcomTabState: DotcomTabState = {
+    const dotcomTabState: IDotcomTabState = {
       kind: 'dotcom',
       settings: { ...GHEPublicationSettings, kind: 'dotcom', org: null },
       error: null,
     }
 
-    const gheTabState: GheTabState = {
+    const gheTabState: IGheTabState = {
       kind: 'ghe',
       settings: { ...GHEPublicationSettings, kind: 'ghe' },
       error: null,
@@ -332,7 +332,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
       }
       this.setTabState({ ...gheTabState })
     } else {
-      const dotcomTabState: DotcomTabState = {
+      const dotcomTabState: IDotcomTabState = {
         ...this.state.dotcomTabState,
         settings: settings,
       }
