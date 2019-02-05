@@ -124,7 +124,12 @@ const renderManualConflictedFile: React.SFC<{
         <div className="file-conflicts-status">{message}</div>
       </div>
       <div className="action-buttons">
-        <Button className="small-button button-group-item">Resolve</Button>
+        <Button
+          className="small-button button-group-item"
+          onClick={onDropdownClick}
+        >
+          Resolve
+        </Button>
         <Button
           onClick={onDropdownClick}
           className="small-button button-group-item arrow-menu"
