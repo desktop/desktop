@@ -20,17 +20,11 @@ enum PublishTab {
   Enterprise,
 }
 
-interface IPublishProps {
-  readonly dispatcher: Dispatcher
 
-  /** The repository being published. */
-  readonly repository: Repository
 
-  /** The signed in accounts. */
-  readonly accounts: ReadonlyArray<Account>
+  /** The settings for publishing the repository. */
+  readonly settings: DotcomPublicationSettings
 
-  /** The function to call when the dialog should be dismissed. */
-  readonly onDismissed: () => void
 }
 
 interface IPublishTabState {
@@ -43,6 +37,19 @@ interface IPublishTabState {
    * related to the current step.
    */
   readonly error: Error | null
+}
+
+interface IPublishProps {
+  readonly dispatcher: Dispatcher
+
+  /** The repository being published. */
+  readonly repository: Repository
+
+  /** The signed in accounts. */
+  readonly accounts: ReadonlyArray<Account>
+
+  /** The function to call when the dialog should be dismissed. */
+  readonly onDismissed: () => void
 }
 
 interface IPublishState {
