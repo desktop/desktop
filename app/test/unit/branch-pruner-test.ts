@@ -1,3 +1,4 @@
+import * as moment from 'moment'
 import { BranchPruner } from '../../src/lib/stores/helpers/branch-pruner'
 import { Repository } from '../../src/models/repository'
 import { GitStoreCache } from '../../src/lib/stores/git-store-cache'
@@ -9,7 +10,6 @@ import { TestRepositoriesDatabase } from '../helpers/databases'
 import { GitProcess } from 'dugite'
 import { Branch } from '../../src/models/branch'
 import { IGitHubUser } from '../../src/lib/databases'
-import moment = require('moment')
 import { IAPIRepository } from '../../src/lib/api'
 
 describe('BranchPruner', () => {
