@@ -157,6 +157,16 @@ type TextConflictEntry = {
  */
 type ManualConflictDetails =
   | {
+      readonly action: UnmergedEntrySummary.BothAdded
+      readonly us: GitStatusEntry.Added
+      readonly them: GitStatusEntry.Added
+    }
+  | {
+      readonly action: UnmergedEntrySummary.BothModified
+      readonly us: GitStatusEntry.UpdatedButUnmerged
+      readonly them: GitStatusEntry.UpdatedButUnmerged
+    }
+  | {
       readonly action: UnmergedEntrySummary.AddedByUs
       readonly us: GitStatusEntry.Added
       readonly them: GitStatusEntry.UpdatedButUnmerged

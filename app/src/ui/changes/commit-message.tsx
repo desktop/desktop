@@ -8,7 +8,7 @@ import {
 } from '../autocompletion'
 import { CommitIdentity } from '../../models/commit-identity'
 import { ICommitMessage } from '../../models/commit-message'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { IGitHubUser } from '../../lib/databases/github-user-database'
 import { Repository } from '../../models/repository'
 import { Button } from '../lib/button'

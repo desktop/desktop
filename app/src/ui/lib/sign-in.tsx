@@ -3,7 +3,7 @@ import { AuthenticationForm } from './authentication-form'
 import { assertNever } from '../../lib/fatal-error'
 import { TwoFactorAuthentication } from '../lib/two-factor-authentication'
 import { EnterpriseServerEntry } from '../lib/enterprise-server-entry'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import {
   SignInState,
   SignInStep,

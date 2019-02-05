@@ -15,9 +15,11 @@ import {
   AppFileStatusKind,
   UnmergedEntrySummary,
   GitStatusEntry,
+  isManualConflict,
 } from '../../../src/models/status'
 import * as temp from 'temp'
 import { getStatus } from '../../../src/lib/git'
+import { isConflictedFile } from '../../../src/lib/status'
 
 const _temp = temp.track()
 const mkdir = _temp.mkdir
@@ -146,6 +148,9 @@ describe('git/status', () => {
 
         const file = files[0]
         expect(file.status.kind).toBe(AppFileStatusKind.Conflicted)
+        expect(
+          isConflictedFile(file.status) && isManualConflict(file.status)
+        ).toBe(true)
       })
 
       it('parses conflicted image file on merge after removing', async () => {
@@ -162,6 +167,9 @@ describe('git/status', () => {
 
         const file = files[0]
         expect(file.status.kind).toBe(AppFileStatusKind.Conflicted)
+        expect(
+          isConflictedFile(file.status) && isManualConflict(file.status)
+        ).toBe(true)
       })
     })
 
