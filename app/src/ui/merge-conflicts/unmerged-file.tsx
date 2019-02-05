@@ -11,7 +11,10 @@ import { Dispatcher } from '../dispatcher'
 import { showContextualMenu } from '../main-process-proxy'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { PathText } from '../lib/path-text'
-import { ManualConflictResolutionKind } from '../../models/manual-conflict-resolution'
+import {
+  ManualConflictResolutionKind,
+  ManualConflictResolution,
+} from '../../models/manual-conflict-resolution'
 import {
   OpenWithDefaultProgramLabel,
   RevealInFileManagerLabel,
@@ -25,6 +28,7 @@ export const renderUnmergedFile: React.SFC<{
   readonly repository: Repository
   readonly path: string
   readonly status: ConflictedFileStatus
+  readonly manualResolution?: ManualConflictResolution
   readonly resolvedExternalEditor: string | null
   readonly openFileInExternalEditor: (path: string) => void
   readonly dispatcher: Dispatcher
@@ -40,23 +44,33 @@ export const renderUnmergedFile: React.SFC<{
       dispatcher: props.dispatcher,
     })
   }
-  if (isManualConflict(props.status)) {
+  if (isManualConflict(props.status) && props.manualResolution === undefined) {
     return renderManualConflictedFile({
       path: props.path,
       repository: props.repository,
       dispatcher: props.dispatcher,
     })
   }
-  return renderResolvedFile(props.path)
+  return renderResolvedFile(props.path, props.manualResolution)
 }
 
-function renderResolvedFile(path: string): JSX.Element {
+function renderResolvedFile(
+  path: string,
+  manualResolution?: ManualConflictResolution
+): JSX.Element {
+  let statusString = 'No conflicts remaining'
+  if (manualResolution === ManualConflictResolutionKind.ours) {
+    statusString = 'Using our version'
+  }
+  if (manualResolution === ManualConflictResolutionKind.theirs) {
+    statusString = 'Using their version'
+  }
   return (
     <li className="unmerged-file-status-resolved">
       <Octicon symbol={OcticonSymbol.fileCode} className="file-octicon" />
       <div className="column-left">
         <PathText path={path} availableWidth={200} />
-        <div className="file-conflicts-status">No conflicts remaining</div>
+        <div className="file-conflicts-status">{statusString}</div>
       </div>
       <div className="green-circle">
         <Octicon symbol={OcticonSymbol.check} />

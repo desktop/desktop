@@ -17,6 +17,7 @@ import { LinkButton } from '../lib/link-button'
 import { isConflictedFile, hasUnresolvedConflicts } from '../../lib/status'
 import { DefaultCommitMessage } from '../../models/commit-message'
 import { renderUnmergedFile } from './unmerged-file'
+import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 
 interface IMergeConflictsDialogProps {
   readonly dispatcher: Dispatcher
@@ -29,6 +30,7 @@ interface IMergeConflictsDialogProps {
   readonly ourBranch: string
   /* `undefined` when we didn't know the branch at the beginning of this flow */
   readonly theirBranch?: string
+  readonly manualResolutions: Map<string, ManualConflictResolution>
 }
 
 /** Filter working directory changes for conflicted or resolved files  */
@@ -172,6 +174,7 @@ export class MergeConflictsDialog extends React.Component<
                 openFileInExternalEditor: this.props.openFileInExternalEditor,
                 repository: this.props.repository,
                 dispatcher: this.props.dispatcher,
+                manualResolution: this.props.manualResolutions.get(f.path),
               })
             : null
         )}

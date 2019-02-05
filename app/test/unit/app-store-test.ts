@@ -40,6 +40,7 @@ import { RepositoryStateCache } from '../../src/lib/stores/repository-state-cach
 import { ApiRepositoriesStore } from '../../src/lib/stores/api-repositories-store'
 import { getStatusOrThrow } from '../helpers/status'
 import { AppFileStatusKind } from '../../src/models/status'
+import { ManualConflictResolutionKind } from '../../src/models/manual-conflict-resolution'
 
 // enable mocked version
 jest.mock('../../src/lib/window-state')
@@ -182,7 +183,11 @@ describe('AppStore', () => {
     })
 
     it('commits tracked files', async () => {
-      await appStore._finishConflictedMerge(repo, status.workingDirectory)
+      await appStore._finishConflictedMerge(
+        repo,
+        status.workingDirectory,
+        new Map<string, ManualConflictResolutionKind>()
+      )
       const newStatus = await getStatusOrThrow(repo)
       const trackedFiles = newStatus.workingDirectory.files.filter(
         f => f.status.kind !== AppFileStatusKind.Untracked
@@ -190,7 +195,11 @@ describe('AppStore', () => {
       expect(trackedFiles).toHaveLength(0)
     })
     it('leaves untracked files untracked', async () => {
-      await appStore._finishConflictedMerge(repo, status.workingDirectory)
+      await appStore._finishConflictedMerge(
+        repo,
+        status.workingDirectory,
+        new Map<string, ManualConflictResolutionKind>()
+      )
       const newStatus = await getStatusOrThrow(repo)
       const untrackedfiles = newStatus.workingDirectory.files.filter(
         f => f.status.kind === AppFileStatusKind.Untracked
