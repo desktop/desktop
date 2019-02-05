@@ -332,7 +332,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
       }
       this.setTabState({ ...gheTabState })
     } else {
-      const dotcomTabState: IDotcomTabState = {
+      const dotcomTabState = {
         ...this.state.dotcomTabState,
         settings: settings,
       }
