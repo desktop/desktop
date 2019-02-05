@@ -20,12 +20,6 @@ describe('BranchPruner', () => {
   let gitStoreCache: GitStoreCache
   let repositoriesStore: RepositoriesStore
   let repositoriesStateCache: RepositoryStateCache
-  let onPruneCompleted: jest.Mock<
-    (
-      repository: Repository,
-      prunedBranches: ReadonlyArray<Branch>
-    ) => Promise<void>
-  >
 
   beforeEach(async () => {
     gitStoreCache = new GitStoreCache(
@@ -41,12 +35,6 @@ describe('BranchPruner', () => {
     repositoriesStateCache = new RepositoryStateCache(
       () => new Map<string, IGitHubUser>()
     )
-
-    onPruneCompleted = jest.fn(
-      () => (repository: Repository, prunedBranches: ReadonlyArray<Branch>) => {
-        return Promise.resolve()
-      }
-    )
   })
 
   it('Does nothing on non GitHub repositories', async () => {
@@ -60,8 +48,7 @@ describe('BranchPruner', () => {
       repo,
       gitStoreCache,
       repositoriesStore,
-      repositoriesStateCache,
-      onPruneCompleted
+      repositoriesStateCache
     )
 
     const branchesBeforePruning = await getBranchesFromGit(repo)
@@ -85,8 +72,7 @@ describe('BranchPruner', () => {
       repo,
       gitStoreCache,
       repositoriesStore,
-      repositoriesStateCache,
-      onPruneCompleted
+      repositoriesStateCache
     )
 
     await branchPruner.start()
@@ -116,8 +102,7 @@ describe('BranchPruner', () => {
       repo,
       gitStoreCache,
       repositoriesStore,
-      repositoriesStateCache,
-      onPruneCompleted
+      repositoriesStateCache
     )
 
     const branchesBeforePruning = await getBranchesFromGit(repo)
@@ -141,8 +126,7 @@ describe('BranchPruner', () => {
       repo,
       gitStoreCache,
       repositoriesStore,
-      repositoriesStateCache,
-      onPruneCompleted
+      repositoriesStateCache
     )
 
     const branchesBeforePruning = await getBranchesFromGit(repo)
@@ -166,8 +150,7 @@ describe('BranchPruner', () => {
       repo,
       gitStoreCache,
       repositoriesStore,
-      repositoriesStateCache,
-      onPruneCompleted
+      repositoriesStateCache
     )
 
     await branchPruner.start()
