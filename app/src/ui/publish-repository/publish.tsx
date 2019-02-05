@@ -91,22 +91,28 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
       startingTab = PublishTab.Enterprise
     }
 
-    const publishSettings = {
+    const GHEPublicationSettings = {
       name: props.repository.name,
       description: '',
       private: true,
-      org: null,
     }
 
-    const startingTabState = {
-      publishSettings: { ...publishSettings },
+    const dotcomTabState: DotcomTabState = {
+      kind: 'dotcom',
+      settings: { ...GHEPublicationSettings, kind: 'dotcom', org: null },
+      error: null,
+    }
+
+    const gheTabState: GheTabState = {
+      kind: 'ghe',
+      settings: { ...GHEPublicationSettings, kind: 'ghe' },
       error: null,
     }
 
     this.state = {
       currentTab: startingTab,
-      dotComTabState: { ...startingTabState },
-      enterpriseTabState: { ...startingTabState },
+      dotcomTabState: { ...dotcomTabState },
+      gheTabState: { ...gheTabState },
       publishing: false,
     }
   }
