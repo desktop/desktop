@@ -65,7 +65,7 @@ const renderResolvedFile: React.SFC<{
   readonly path: string
   readonly manualResolution?: ManualConflictResolution
   readonly dispatcher: Dispatcher
-}> = ({ ...props }) => {
+}> = props => {
   let statusString = 'No conflicts remaining'
   if (props.manualResolution === ManualConflictResolutionKind.ours) {
     statusString = 'Using our version'
