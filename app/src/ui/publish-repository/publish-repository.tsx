@@ -119,14 +119,22 @@ export class PublishRepository extends React.Component<
   }
 
   private onOrgChange = (event: React.FormEvent<HTMLSelectElement>) => {
+    const { settings } = this.props
+    if (settings.kind !== 'dotcom') {
+      return
+    }
+
     const value = event.currentTarget.value
     const index = parseInt(value, 10)
+    let newSettings: DotcomPublicationSettings
     if (index < 0 || isNaN(index)) {
-      this.updateSettings({ org: null })
+      newSettings = { ...settings, org: null }
     } else {
       const org = this.state.orgs[index]
-      this.updateSettings({ org })
+      newSettings = { ...settings, org }
     }
+
+    this.props.onSettingsChanged(newSettings)
   }
 
   private renderOrgs(): JSX.Element | null {
