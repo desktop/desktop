@@ -62,7 +62,7 @@ describe('BranchPruner', () => {
     expect(branchesBeforePruning).toEqual(branchesAfterPruning)
   })
 
-  it('Prunes for GitHub repository', async () => {
+  it('prunes for GitHub repository', async () => {
     const fixedDate = moment()
     const lastPruneDate = fixedDate.subtract(1, 'day')
     const repo = await initializeTestRepo(
