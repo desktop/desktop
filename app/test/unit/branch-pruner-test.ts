@@ -118,7 +118,7 @@ describe('BranchPruner', () => {
     expect(branchesBeforePruning).toEqual(branchesAfterPruning)
   })
 
-  it('Does not prune if there is no default branch', async () => {
+  it('does not prune if there is no default branch', async () => {
     const fixedDate = moment()
     const lastPruneDate = fixedDate.subtract(1, 'day')
     const repo = await initializeTestRepo(
