@@ -148,8 +148,10 @@ export class BranchPruner {
       )
     }
 
-    await this.onPruneCompleted(this.repository)
-
-    this.repositoriesStore.updateLastPruneDate(this.repository, Date.now())
+    await this.repositoriesStore.updateLastPruneDate(
+      this.repository,
+      Date.now()
+    )
+    this.onPruneCompleted(this.repository)
   }
 }
