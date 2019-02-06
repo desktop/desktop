@@ -100,7 +100,6 @@ const renderManualConflictedFile: React.SFC<{
   readonly repository: Repository
   readonly dispatcher: Dispatcher
 }> = props => {
-  const message = 'Manual conflict'
   const onDropdownClick = makeManualConflictDropdownClickHandler(
     props.path,
     props.repository,
@@ -111,7 +110,7 @@ const renderManualConflictedFile: React.SFC<{
     <>
       <div className="column-left">
         <PathText path={props.path} availableWidth={200} />
-        <div className="file-conflicts-status">{message}</div>
+        <div className="file-conflicts-status">{manualConflictString}</div>
       </div>
       <div className="action-buttons">
         <Button
@@ -325,3 +324,5 @@ function editorButtonTooltip(editorName: string | null): string | undefined {
     return `No editor configured in Options > Advanced`
   }
 }
+
+const manualConflictString = 'Manual conflict'
