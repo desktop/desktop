@@ -25,11 +25,19 @@ import { Button } from '../lib/button'
 import { IMenuItem } from '../../lib/menu-item'
 import { LinkButton } from '../lib/link-button'
 
+/**
+ * Renders an unmerged file status and associated buttons for the merge conflicts modal
+ * (An "unmerged file" can be conflicted _and_ resolved or _just_ conflicted)
+ */
 export const renderUnmergedFile: React.SFC<{
+  /** repository this file is in (for pathing and git operations) */
   readonly repository: Repository
+  /** file path relative to repository */
   readonly path: string
+  /** this file must have a conflicted status (but that doesn't mean its not resolved) */
   readonly status: ConflictedFileStatus
   readonly manualResolution?: ManualConflictResolution
+  /** name of the resolved external editor */
   readonly resolvedExternalEditor: string | null
   readonly openFileInExternalEditor: (path: string) => void
   readonly dispatcher: Dispatcher
@@ -60,6 +68,7 @@ export const renderUnmergedFile: React.SFC<{
   })
 }
 
+/** renders the status of a resolved file (of a manual or markered conflict) and associated buttons for the merge conflicts modal */
 const renderResolvedFile: React.SFC<{
   readonly repository: Repository
   readonly path: string
@@ -85,6 +94,7 @@ const renderResolvedFile: React.SFC<{
   )
 }
 
+/** renders the status of a manually conflicted file and associated buttons for the merge conflicts modal */
 const renderManualConflictedFile: React.SFC<{
   readonly path: string
   readonly repository: Repository
@@ -181,6 +191,7 @@ const renderConflictedFileWithConflictMarkers: React.SFC<{
   return renderConflictedFileWrapper(props.path, content)
 }
 
+/** makes a click handling function for manual conflict resolution options */
 const makeManualConflictDropdownClickHandler = (
   relativeFilePath: string,
   repository: Repository,
@@ -211,6 +222,7 @@ const makeManualConflictDropdownClickHandler = (
   }
 }
 
+/** makes a click handling function for undoing a manual conflict resolution */
 const makeUndoManualResolutionClickHandler = (
   relativeFilePath: string,
   repository: Repository,
@@ -224,6 +236,7 @@ const makeUndoManualResolutionClickHandler = (
     )
 }
 
+/** makes a click handling function for marker conflict actions */
 const makeMarkerConflictDropdownClickHandler = (
   relativeFilePath: string,
   repositoryFilePath: string,
@@ -245,7 +258,9 @@ const makeMarkerConflictDropdownClickHandler = (
   }
 }
 
-function resolvedFileStatusString(manualResolution?: ManualConflictResolution) {
+function resolvedFileStatusString(
+  manualResolution?: ManualConflictResolution
+): string {
   if (manualResolution === ManualConflictResolutionKind.ours) {
     return 'Using our version'
   }
