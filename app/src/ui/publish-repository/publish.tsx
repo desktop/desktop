@@ -15,6 +15,7 @@ import {
   IDotcomPublicationSettings,
   IEnterprisePublicationSettings,
   RepositoryPublicationSettings,
+  PublishSettingsType,
 } from '../../models/publish-settings'
 
 enum PublishTab {
@@ -39,7 +40,7 @@ interface IDotcomTabState {
 }
 
 interface EnterpriseTabState {
-  readonly kind: 'ghe'
+  readonly kind: 'enterprise'
 
   /** The settings for publishing the repository. */
   readonly settings: IEnterprisePublicationSettings
@@ -101,13 +102,20 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
 
     const dotcomTabState: IDotcomTabState = {
       kind: 'dotcom',
-      settings: { ...publicationSettings, kind: 'dotcom', org: null },
+      settings: {
+        ...publicationSettings,
+        kind: PublishSettingsType.dotcom,
+        org: null,
+      },
       error: null,
     }
 
     const gheTabState: EnterpriseTabState = {
-      kind: 'ghe',
-      settings: { ...publicationSettings, kind: 'ghe' },
+      kind: 'enterprise',
+      settings: {
+        ...publicationSettings,
+        kind: PublishSettingsType.enterprise,
+      },
       error: null,
     }
 
@@ -184,9 +192,9 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
 
   private onSettingsChanged = (settings: RepositoryPublicationSettings) => {
     let tabState: TabState
-    if (settings.kind === 'ghe') {
+    if (settings.kind === PublishSettingsType.enterprise) {
       tabState = {
-        kind: 'ghe',
+        kind: 'enterprise',
         settings: settings,
         error: this.state.gheTabState.error,
       }
@@ -317,7 +325,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
       : this.state.gheTabState
 
   private setTabState = (state: TabState) => {
-    if (state.kind === 'ghe') {
+    if (state.kind === 'enterprise') {
       this.setState({ gheTabState: { ...state } })
     } else {
       this.setState({ dotcomTabState: { ...state } })
@@ -325,12 +333,12 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
   }
 
   private setCurrentTabSettings = (settings: RepositoryPublicationSettings) => {
-    if (settings.kind === 'ghe') {
-      const gheTabState = {
+    if (settings.kind === PublishSettingsType.enterprise) {
+      const enterpriseTabState = {
         ...this.state.gheTabState,
         settings: settings,
       }
-      this.setTabState({ ...gheTabState })
+      this.setTabState({ ...enterpriseTabState })
     } else {
       const dotcomTabState = {
         ...this.state.dotcomTabState,

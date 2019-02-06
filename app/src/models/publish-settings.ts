@@ -4,8 +4,13 @@ export type RepositoryPublicationSettings =
   | IEnterprisePublicationSettings
   | IDotcomPublicationSettings
 
+export enum PublishSettingsType {
+  'enterprise',
+  'dotcom',
+}
+
 export interface IEnterprisePublicationSettings {
-  readonly kind: 'ghe'
+  readonly kind: PublishSettingsType.enterprise
 
   /** The name to use when publishing the repository. */
   readonly name: string
@@ -18,7 +23,7 @@ export interface IEnterprisePublicationSettings {
 }
 
 export interface IDotcomPublicationSettings {
-  readonly kind: 'dotcom'
+  readonly kind: PublishSettingsType.dotcom
 
   /** The name to use when publishing the repository. */
   readonly name: string

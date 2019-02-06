@@ -12,6 +12,7 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import {
   RepositoryPublicationSettings,
   IDotcomPublicationSettings,
+  PublishSettingsType,
 } from '../../models/publish-settings'
 
 interface IPublishRepositoryProps {
@@ -88,7 +89,7 @@ export class PublishRepository extends React.Component<
 
   private onOrgChange = (event: React.FormEvent<HTMLSelectElement>) => {
     const { settings } = this.props
-    if (settings.kind !== 'dotcom') {
+    if (settings.kind !== PublishSettingsType.dotcom) {
       return
     }
 
@@ -119,7 +120,9 @@ export class PublishRepository extends React.Component<
 
     let selectedIndex = -1
     const selectedOrg =
-      this.props.settings.kind === 'dotcom' ? this.props.settings.org : null
+      this.props.settings.kind === PublishSettingsType.dotcom
+        ? this.props.settings.org
+        : null
     for (const [index, org] of this.state.orgs.entries()) {
       if (selectedOrg && selectedOrg.id === org.id) {
         selectedIndex = index
