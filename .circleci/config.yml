@@ -16,6 +16,7 @@ jobs:
     steps:
       - checkout
       - run: mkdir -p $CIRCLE_ARTIFACTS $CIRCLE_TEST_REPORTS
+      - run: git clean -xdf node_modules/electron
       - restore_cache:
           keys:
             # when lock file changes, use increasingly general patterns to restore cache
