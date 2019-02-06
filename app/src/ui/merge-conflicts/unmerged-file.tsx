@@ -80,7 +80,7 @@ const renderResolvedFile: React.SFC<{
   readonly dispatcher: Dispatcher
 }> = props => {
   return (
-    <li className="unmerged-file-status-resolved">
+    <li key={props.path} className="unmerged-file-status-resolved">
       <Octicon symbol={OcticonSymbol.fileCode} className="file-octicon" />
       <div className="column-left">
         <PathText path={props.path} availableWidth={200} />
