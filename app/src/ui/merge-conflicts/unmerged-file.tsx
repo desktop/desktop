@@ -66,37 +66,17 @@ const renderResolvedFile: React.SFC<{
   readonly manualResolution?: ManualConflictResolution
   readonly dispatcher: Dispatcher
 }> = props => {
-  let statusString = 'No conflicts remaining'
-  if (props.manualResolution === ManualConflictResolutionKind.ours) {
-    statusString = 'Using our version'
-  }
-  if (props.manualResolution === ManualConflictResolutionKind.theirs) {
-    statusString = 'Using their version'
-  }
-  let undoLink = null
-  if (props.manualResolution !== undefined) {
-    undoLink = (
-      <LinkButton
-        onClick={makeUndoManualResolutionClickHandler(
-          props.path,
-          props.repository,
-          props.dispatcher
-        )}
-      >
-        Undo
-      </LinkButton>
-    )
-  }
   return (
     <li className="unmerged-file-status-resolved">
       <Octicon symbol={OcticonSymbol.fileCode} className="file-octicon" />
       <div className="column-left">
         <PathText path={props.path} availableWidth={200} />
-        <div className="file-conflicts-status">
-          {statusString}
-          &nbsp;
-          {undoLink}
-        </div>
+        {renderResolvedFileStatusSummary(
+          props.path,
+          props.repository,
+          props.dispatcher,
+          props.manualResolution
+        )}
       </div>
       <div className="green-circle">
         <Octicon symbol={OcticonSymbol.check} />
@@ -263,6 +243,44 @@ const makeMarkerConflictDropdownClickHandler = (
     ]
     showContextualMenu(items)
   }
+}
+
+function resolvedFileStatusString(manualResolution?: ManualConflictResolution) {
+  if (manualResolution === ManualConflictResolutionKind.ours) {
+    return 'Using our version'
+  }
+  if (manualResolution === ManualConflictResolutionKind.theirs) {
+    return 'Using their version'
+  }
+  return 'No conflicts remaining'
+}
+
+function renderResolvedFileStatusSummary(
+  path: string,
+  repository: Repository,
+  dispatcher: Dispatcher,
+  manualResolution?: ManualConflictResolution
+): JSX.Element {
+  const statusString = resolvedFileStatusString(manualResolution)
+  if (manualResolution === undefined) {
+    return <div className="file-conflicts-status">{statusString}</div>
+  }
+
+  return (
+    <div className="file-conflicts-status">
+      {statusString}
+      &nbsp;
+      <LinkButton
+        onClick={makeUndoManualResolutionClickHandler(
+          path,
+          repository,
+          dispatcher
+        )}
+      >
+        Undo
+      </LinkButton>
+    </div>
+  )
 }
 
 /**
