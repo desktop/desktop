@@ -40,7 +40,7 @@ describe('BranchPruner', () => {
     })
   })
 
-  it('Does nothing on non GitHub repositories', async () => {
+  it('does nothing on non GitHub repositories', async () => {
     const repo = await initializeTestRepo(
       repositoriesStore,
       repositoriesStateCache,
