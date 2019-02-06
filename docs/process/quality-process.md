@@ -1,5 +1,5 @@
 ### Desktop Quality
-This document is a general outline of Quality Engineering practices for Desktop, both for scheduled and ad-hoc testing. The manual test cases used to test Desktop in both Mac and Windows can be found [here](https://github.com/desktop/desktop/blob/master/docs/process/testing.md). 
+This document is a general outline of Quality Engineering practices for Desktop, both for scheduled and ad-hoc testing. The manual test cases used to test Desktop in both Mac and Windows can be found [here](https://github.com/desktop/desktop/blob/development/docs/process/testing.md). 
 
 #### Test Cases
 The test cases are relevant to the latest build of Desktop, and the manifest is broken down into sections that include installation, setup, adding repositories, general use, and OS-specific cases, among others. As the manifest is a living document, it may sometimes include future features as Quality needs to stay slightly ahead of the roadmap.

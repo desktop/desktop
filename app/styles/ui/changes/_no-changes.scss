@@ -1,4 +1,92 @@
 #no-changes {
+  padding: var(--spacing-quad);
+  width: 100%;
+  min-height: 100%;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  overflow-y: auto;
+
+  .header {
+    display: flex;
+    flex-direction: row;
+
+    .text {
+      flex-grow: 1;
+      margin-right: var(--spacing-double);
+
+      h1 {
+        padding: 0;
+        margin: 0;
+        font-size: var(--font-size-xl);
+        font-weight: var(--font-weight-light);
+      }
+
+      p {
+        margin: 0;
+      }
+    }
+
+    .blankslate-image {
+      flex: 0;
+      height: 74px;
+      width: 74px;
+      min-width: 74px;
+      min-height: 74px;
+      align-self: flex-end;
+    }
+
+    margin-bottom: var(--spacing-double);
+  }
+
+  .content {
+    width: 100%;
+    max-width: 600px;
+  }
+
+  .actions {
+    display: flex;
+    flex-direction: column;
+
+    &.primary {
+      margin-bottom: var(--spacing);
+    }
+  }
+
+  .action-leave {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  .action-leave.action-leave-active {
+    opacity: 0;
+    transform: translate3d(100%, 0, 0);
+    transition: opacity 200ms ease-in, transform 250ms var(--easing-ease-in-back);
+  }
+
+  .action-enter {
+    opacity: 0;
+    transform: translate3d(-100%, 0, 0);
+  }
+
+  .action-enter.action-enter-active {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    transition: opacity 200ms ease-in 500ms, transform 250ms var(--easing-ease-out-back) 500ms;
+  }
+
+  .action-height {
+    transition: height 250ms ease-out 250ms;
+  }
+
+  /** Lessen the padding at 1.5x zoom and above  **/
+  @media screen and (max-width: 640px) {
+    padding: var(--spacing-double);
+  }
+
+  /** Hide the blankslate image at high zoom levels **/
+  @media screen and (max-width: 550px) {
+    .header .blankslate-image {
+      display: none;
+    }
+  }
 }

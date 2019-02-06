@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Banner } from './banner'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { Popup } from '../../models/popup'
 import { LinkButton } from '../lib/link-button'
 

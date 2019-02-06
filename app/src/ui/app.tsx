@@ -11,7 +11,7 @@ import {
   SuccessfulMergeBannerState,
   MergeConflictsBannerState,
 } from '../lib/app-state'
-import { Dispatcher } from '../lib/dispatcher'
+import { Dispatcher } from './dispatcher'
 import { AppStore, GitHubUserStore, IssuesStore } from '../lib/stores'
 import { assertNever } from '../lib/fatal-error'
 import { shell } from '../lib/app-shell'
@@ -347,9 +347,66 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.openCurrentRepositoryInExternalEditor()
       case 'select-all':
         return this.selectAll()
+      case 'show-release-notes-popup':
+        return this.showFakeReleaseNotesPopup()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
+  }
+
+  /**
+   * Show a release notes popup for a fake release, intended only to
+   * make it easier to verify changes to the popup. Has no meaning
+   * about a new release being available.
+   */
+  private showFakeReleaseNotesPopup() {
+    if (__DEV__) {
+      this.props.dispatcher.showPopup({
+        type: PopupType.ReleaseNotes,
+        newRelease: {
+          latestVersion: '42.7.99',
+          datePublished: 'Awesomeber 71, 2025',
+          pretext:
+            'There is something so different here that we wanted to include some pretext for it',
+          enhancements: [
+            {
+              kind: 'new',
+              message: 'An awesome new feature!',
+            },
+            {
+              kind: 'improved',
+              message: 'This is so much better',
+            },
+            {
+              kind: 'improved',
+              message:
+                'Testing links to profile pages by a mention to @shiftkey',
+            },
+          ],
+          bugfixes: [
+            {
+              kind: 'fixed',
+              message: 'Fixed this one thing',
+            },
+            {
+              kind: 'fixed',
+              message: 'Fixed this thing over here too',
+            },
+            {
+              kind: 'fixed',
+              message:
+                'Testing links to issues by calling out #42. Assuming it is fixed by now.',
+            },
+          ],
+          other: [
+            {
+              kind: 'other',
+              message: 'In other news...',
+            },
+          ],
+        },
+      })
+    }
   }
 
   /**
@@ -544,10 +601,19 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
   }
 
-  private showCloneRepo = () => {
+  private showCloneRepo = (cloneUrl?: string) => {
+    let initialURL: string | null = null
+
+    if (cloneUrl !== undefined) {
+      this.props.dispatcher.changeCloneRepositoriesTab(
+        CloneRepositoryTab.Generic
+      )
+      initialURL = cloneUrl
+    }
+
     return this.props.dispatcher.showPopup({
       type: PopupType.CloneRepository,
-      initialURL: null,
+      initialURL,
     })
   }
 
@@ -936,6 +1002,11 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
 
+    // Don't render the menu bar when the blank slate is shown
+    if (this.state.repositories.length < 1) {
+      return null
+    }
+
     const currentFoldout = this.state.currentFoldout
 
     // AppMenuBar requires us to pass a strongly typed AppMenuFoldout state or
@@ -1100,6 +1171,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={this.onPopupDismissed}
             selectedShell={this.state.selectedShell}
             selectedTheme={this.state.selectedTheme}
+            automaticallySwitchTheme={this.state.automaticallySwitchTheme}
           />
         )
       case PopupType.MergeBranch: {
@@ -1220,12 +1292,14 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       case PopupType.About:
+        const version = __DEV__ ? __SHA__.substr(0, 10) : getVersion()
+
         return (
           <About
             key="about"
             onDismissed={this.onPopupDismissed}
             applicationName={getName()}
-            applicationVersion={getVersion()}
+            applicationVersion={version}
             onCheckForUpdates={this.onCheckForUpdates}
             onShowAcknowledgements={this.showAcknowledgements}
             onShowTermsAndConditions={this.showTermsAndConditions}
@@ -1673,6 +1747,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     const foldoutStyle: React.CSSProperties = {
       position: 'absolute',
       marginLeft: 0,
+      width: this.state.sidebarWidth,
       minWidth: this.state.sidebarWidth,
       height: '100%',
       top: 0,
@@ -1810,6 +1885,14 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   // we currently only render one banner at a time
   private renderBanner(): JSX.Element | null {
+    // The inset light title bar style without the toolbar
+    // can't support banners at the moment. So for the
+    // no-repositories blank slate we'll have to live without
+    // them.
+    if (this.state.repositories.length === 0) {
+      return null
+    }
+
     let banner = null
     if (this.state.successfulMergeBannerState !== null) {
       banner = this.renderSuccessfulMergeBanner(
@@ -1878,6 +1961,13 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private renderToolbar() {
+    /**
+     * No toolbar if we're in the blank slate view.
+     */
+    if (this.state.repositories.length === 0) {
+      return null
+    }
+
     return (
       <Toolbar id="desktop-app-toolbar">
         <div
@@ -1897,9 +1987,13 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (state.repositories.length < 1) {
       return (
         <BlankSlateView
+          dotComAccount={this.getDotComAccount()}
+          enterpriseAccount={this.getEnterpriseAccount()}
           onCreate={this.showCreateRepository}
           onClone={this.showCloneRepo}
           onAdd={this.showAddLocalRepo}
+          apiRepositories={this.state.apiRepositories}
+          onRefreshRepositories={this.onRefreshRepositories}
         />
       )
     }
@@ -1931,6 +2025,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           accounts={state.accounts}
           externalEditorLabel={externalEditorLabel}
           onOpenInExternalEditor={this.openFileInExternalEditor}
+          appMenu={this.state.appMenuState[0]}
         />
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {

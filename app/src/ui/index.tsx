@@ -19,7 +19,7 @@ import {
   backgroundTaskHandler,
   pushNeedsPullHandler,
   upstreamAlreadyExistsHandler,
-} from '../lib/dispatcher'
+} from './dispatcher'
 import {
   AppStore,
   GitHubUserStore,
@@ -165,8 +165,11 @@ ipcRenderer.on('focus', () => {
   const { selectedState } = appStore.getState()
 
   // Refresh the currently selected repository on focus (if
-  // we have a selected repository).
-  if (selectedState && selectedState.type === SelectionType.Repository) {
+  // we have a selected repository, that is not cloning).
+  if (
+    selectedState &&
+    !(selectedState.type === SelectionType.CloningRepository)
+  ) {
     dispatcher.refreshRepository(selectedState.repository)
   }
 

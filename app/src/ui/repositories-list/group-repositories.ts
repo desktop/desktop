@@ -25,7 +25,7 @@ const fallbackValue = {
 
 export function groupRepositories(
   repositories: ReadonlyArray<Repositoryish>,
-  localRepositoryStateLookup: Map<number, ILocalRepositoryState>
+  localRepositoryStateLookup: ReadonlyMap<number, ILocalRepositoryState>
 ): ReadonlyArray<IFilterListGroup<IRepositoryListItem>> {
   const grouped = new Map<RepositoryGroupIdentifier, Repositoryish[]>()
   for (const repository of repositories) {

@@ -1,11 +1,7 @@
-import * as Fs from 'fs'
+import * as FSE from 'fs-extra'
 import * as Path from 'path'
 
-const runas: (
-  command: string,
-  args: ReadonlyArray<string>,
-  options?: { admin: boolean }
-) => number = require('runas')
+import * as fsAdmin from 'fs-admin'
 
 /** The path for the installed command line tool. */
 export const InstalledCLIPath = '/usr/local/bin/github'
@@ -21,46 +17,86 @@ export async function installCLI(): Promise<void> {
   }
 
   try {
-    symlinkCLI(false)
+    await symlinkCLI(false)
   } catch (e) {
     // If we error without running as an admin, try again as an admin.
-    symlinkCLI(true)
+    await symlinkCLI(true)
   }
 }
 
 async function getResolvedInstallPath(): Promise<string | null> {
-  return new Promise<string | null>((resolve, reject) => {
-    Fs.readlink(InstalledCLIPath, (err, realpath) => {
-      if (err) {
-        resolve(null)
-      } else {
-        resolve(realpath)
+  try {
+    return await FSE.readlink(InstalledCLIPath)
+  } catch {
+    return null
+  }
+}
+
+function removeExistingSymlink(asAdmin: boolean) {
+  if (!asAdmin) {
+    return FSE.unlink(InstalledCLIPath)
+  }
+
+  return new Promise<void>((resolve, reject) => {
+    fsAdmin.unlink(InstalledCLIPath, error => {
+      if (error !== null) {
+        reject(
+          new Error(
+            `Failed to remove file at ${InstalledCLIPath}. Authorization of GitHub Desktop Helper is required.`
+          )
+        )
+        return
       }
+
+      resolve()
     })
   })
 }
 
-function symlinkCLI(asAdmin: boolean) {
-  let exitCode = runas('/bin/rm', ['-f', InstalledCLIPath], { admin: asAdmin })
-  if (exitCode !== 0) {
-    throw new Error(
-      `Failed to remove file at ${InstalledCLIPath}. Authorization of GitHub Desktop Helper is required.`
-    )
+function createDirectories(asAdmin: boolean) {
+  const path = Path.dirname(InstalledCLIPath)
+
+  if (!asAdmin) {
+    return FSE.mkdirp(path)
   }
 
-  exitCode = runas('/bin/mkdir', ['-p', Path.dirname(InstalledCLIPath)], {
-    admin: asAdmin,
+  return new Promise<void>((resolve, reject) => {
+    fsAdmin.makeTree(path, error => {
+      if (error !== null) {
+        reject(
+          new Error(
+            `Failed to create intermediate directories to ${InstalledCLIPath}`
+          )
+        )
+        return
+      }
+
+      resolve()
+    })
   })
-  if (exitCode !== 0) {
-    throw new Error(
-      `Failed to create intermediate directories to ${InstalledCLIPath}`
-    )
+}
+
+function createNewSymlink(asAdmin: boolean) {
+  if (!asAdmin) {
+    return FSE.symlink(PackagedPath, InstalledCLIPath)
   }
 
-  exitCode = runas('/bin/ln', ['-s', PackagedPath, InstalledCLIPath], {
-    admin: asAdmin,
+  return new Promise<void>((resolve, reject) => {
+    fsAdmin.symlink(PackagedPath, InstalledCLIPath, error => {
+      if (error !== null) {
+        reject(
+          new Error(`Failed to symlink ${PackagedPath} to ${InstalledCLIPath}`)
+        )
+        return
+      }
+
+      resolve()
+    })
   })
-  if (exitCode !== 0) {
-    throw new Error(`Failed to symlink ${PackagedPath} to ${InstalledCLIPath}`)
-  }
+}
+
+async function symlinkCLI(asAdmin: boolean): Promise<void> {
+  await removeExistingSymlink(asAdmin)
+  await createDirectories(asAdmin)
+  await createNewSymlink(asAdmin)
 }

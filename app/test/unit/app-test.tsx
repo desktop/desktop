@@ -1,11 +1,9 @@
-import { expect } from 'chai'
-
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as TestUtils from 'react-dom/test-utils'
 
 import { App } from '../../src/ui/app'
-import { Dispatcher } from '../../src/lib/dispatcher'
+import { Dispatcher } from '../../src/ui/dispatcher'
 import {
   AppStore,
   GitHubUserStore,
@@ -107,7 +105,7 @@ describe('App', () => {
     await wait(0)
 
     const node = ReactDOM.findDOMNode(app)
-    expect(node).not.to.equal(null)
+    expect(node).not.toBeNull()
   })
 })
 

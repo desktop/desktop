@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 import { getAheadBehind, mergeTree } from '../../lib/git'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 
 import { Branch } from '../../models/branch'
 import { Repository } from '../../models/repository'

@@ -63,7 +63,15 @@ dialog#merge-conflicts-list {
         }
       }
 
-      button:last-child,
+      .action-buttons {
+        margin-left: auto;
+        flex-shrink: 0;
+        flex: 0 1 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
       .green-circle:last-child {
         margin-left: auto;
         margin-top: var(--spacing);
@@ -98,13 +106,9 @@ dialog#merge-conflicts-list {
     }
   }
 
-  .cli-link {
-    a {
-      color: $blue;
-
-      &:hover {
-        text-decoration: underline;
-      }
+  .arrow-menu {
+    .octicon {
+      width: 10px;
     }
   }
 }

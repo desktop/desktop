@@ -15,9 +15,11 @@ import {
   AppFileStatusKind,
   UnmergedEntrySummary,
   GitStatusEntry,
+  isManualConflict,
 } from '../../../src/models/status'
 import * as temp from 'temp'
 import { getStatus } from '../../../src/lib/git'
+import { isConflictedFile } from '../../../src/lib/status'
 
 const _temp = temp.track()
 const mkdir = _temp.mkdir
@@ -37,7 +39,7 @@ describe('git/status', () => {
       it('parses conflicted files with markers', async () => {
         const status = await getStatusOrThrow(repository!)
         const files = status.workingDirectory.files
-        expect(files).toHaveLength(4)
+        expect(files).toHaveLength(5)
         const conflictedFiles = files.filter(
           f => f.status.kind === AppFileStatusKind.Conflicted
         )
@@ -52,7 +54,6 @@ describe('git/status', () => {
             them: GitStatusEntry.UpdatedButUnmerged,
             us: GitStatusEntry.UpdatedButUnmerged,
           },
-          lookForConflictMarkers: true,
           conflictMarkerCount: 3,
         })
 
@@ -65,7 +66,6 @@ describe('git/status', () => {
             them: GitStatusEntry.Added,
             us: GitStatusEntry.Added,
           },
-          lookForConflictMarkers: true,
           conflictMarkerCount: 3,
         })
 
@@ -78,7 +78,6 @@ describe('git/status', () => {
             them: GitStatusEntry.Added,
             us: GitStatusEntry.Added,
           },
-          lookForConflictMarkers: true,
           conflictMarkerCount: 3,
         })
       })
@@ -86,7 +85,7 @@ describe('git/status', () => {
       it('parses conflicted files without markers', async () => {
         const status = await getStatusOrThrow(repository!)
         const files = status.workingDirectory.files
-        expect(files).toHaveLength(4)
+        expect(files).toHaveLength(5)
         expect(
           files.filter(f => f.status.kind === AppFileStatusKind.Conflicted)
         ).toHaveLength(4)
@@ -100,7 +99,6 @@ describe('git/status', () => {
             us: GitStatusEntry.UpdatedButUnmerged,
             them: GitStatusEntry.Deleted,
           },
-          lookForConflictMarkers: false,
         })
       })
 
@@ -109,7 +107,7 @@ describe('git/status', () => {
         const status = await getStatusOrThrow(repository!)
         const files = status.workingDirectory.files
 
-        expect(files).toHaveLength(4)
+        expect(files).toHaveLength(5)
 
         // all files are now considered conflicted
         expect(
@@ -125,7 +123,6 @@ describe('git/status', () => {
             them: GitStatusEntry.UpdatedButUnmerged,
             us: GitStatusEntry.UpdatedButUnmerged,
           },
-          lookForConflictMarkers: true,
           conflictMarkerCount: 0,
         })
       })
@@ -151,6 +148,9 @@ describe('git/status', () => {
 
         const file = files[0]
         expect(file.status.kind).toBe(AppFileStatusKind.Conflicted)
+        expect(
+          isConflictedFile(file.status) && isManualConflict(file.status)
+        ).toBe(true)
       })
 
       it('parses conflicted image file on merge after removing', async () => {
@@ -167,6 +167,9 @@ describe('git/status', () => {
 
         const file = files[0]
         expect(file.status.kind).toBe(AppFileStatusKind.Conflicted)
+        expect(
+          isConflictedFile(file.status) && isManualConflict(file.status)
+        ).toBe(true)
       })
     })
 
@@ -248,7 +251,7 @@ describe('git/status', () => {
         })
       })
 
-      it('Handles at least 10k untracked files without failing', async () => {
+      it.skip('Handles at least 10k untracked files without failing', async () => {
         const numFiles = 10000
         const basePath = repository!.path
 

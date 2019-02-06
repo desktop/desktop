@@ -5,7 +5,7 @@ import { readdir } from 'fs-extra'
 
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { getDefaultDir, setDefaultDir } from '../lib/default-dir'
 import { Account } from '../../models/account'
 import {
@@ -382,7 +382,7 @@ export class CloneRepository extends React.Component<
     if (tab === CloneRepositoryTab.DotCom) {
       this.setState(
         prevState => ({
-          dotComTabState: merge<IGitHubTabState, keyof IBaseTabState>(
+          dotComTabState: merge<IGitHubTabState, K>(
             prevState.dotComTabState,
             state
           ),
@@ -392,7 +392,7 @@ export class CloneRepository extends React.Component<
     } else if (tab === CloneRepositoryTab.Enterprise) {
       this.setState(
         prevState => ({
-          enterpriseTabState: merge<IGitHubTabState, keyof IBaseTabState>(
+          enterpriseTabState: merge<IGitHubTabState, K>(
             prevState.enterpriseTabState,
             state
           ),
@@ -402,10 +402,7 @@ export class CloneRepository extends React.Component<
     } else if (tab === CloneRepositoryTab.Generic) {
       this.setState(
         prevState => ({
-          urlTabState: merge<IUrlTabState, keyof IBaseTabState>(
-            prevState.urlTabState,
-            state
-          ),
+          urlTabState: merge<IUrlTabState, K>(prevState.urlTabState, state),
         }),
         callback
       )

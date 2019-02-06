@@ -6,7 +6,7 @@ import {
   itemIsSelectable,
 } from '../../models/app-menu'
 import { AppMenuBarButton } from './app-menu-bar-button'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { AppMenuFoldout, FoldoutType } from '../../lib/app-state'
 
 interface IAppMenuBarProps {

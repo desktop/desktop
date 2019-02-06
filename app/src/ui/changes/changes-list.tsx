@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Path from 'path'
 
 import { IGitHubUser } from '../../lib/databases'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { IMenuItem } from '../../lib/menu-item'
 import { revealInFileManager } from '../../lib/app-shell'
 import {
@@ -54,6 +54,12 @@ interface IChangesListProps {
     isDiscardingAllChanges?: boolean
   ) => void
 
+  /** Callback that fires on page scroll to pass the new scrollTop location */
+  readonly onChangesListScrolled: (scrollTop: number) => void
+
+  /* The scrollTop of the compareList. It is stored to allow for scroll position persistence */
+  readonly changesListScrollTop: number
+
   /**
    * Called to open a file it its default application
    * @param path The path of the file relative to the root of the repository
@@ -71,7 +77,7 @@ interface IChangesListProps {
    * List Props for documentation.
    */
   readonly onRowClick?: (row: number, source: ClickSource) => void
-  readonly commitMessage: ICommitMessage | null
+  readonly commitMessage: ICommitMessage
 
   /** The autocompletion providers available to the repository. */
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
@@ -307,16 +313,19 @@ export class ChangesList extends React.Component<
       },
       { type: 'separator' },
     ]
-
     if (paths.length === 1) {
       items.push({
-        label: __DARWIN__ ? 'Ignore File' : 'Ignore file',
+        label: __DARWIN__
+          ? 'Ignore File (Add to .gitignore)'
+          : 'Ignore file (add to .gitignore)',
         action: () => this.props.onIgnore(path),
         enabled: Path.basename(path) !== GitIgnoreFileName,
       })
     } else if (paths.length > 1) {
       items.push({
-        label: `Ignore ${paths.length} selected files`,
+        label: __DARWIN__
+          ? `Ignore ${paths.length} Selected Files (Add to .gitignore)`
+          : `Ignore ${paths.length} selected files (add to .gitignore)`,
         action: () => {
           // Filter out any .gitignores that happens to be selected, ignoring
           // those doesn't make sense.
@@ -329,15 +338,14 @@ export class ChangesList extends React.Component<
         enabled: paths.some(path => Path.basename(path) !== GitIgnoreFileName),
       })
     }
-
     // Five menu items should be enough for everyone
     Array.from(extensions)
       .slice(0, 5)
       .forEach(extension => {
         items.push({
           label: __DARWIN__
-            ? `Ignore All ${extension} Files`
-            : `Ignore all ${extension} files`,
+            ? `Ignore All ${extension} Files (Add to .gitignore)`
+            : `Ignore all ${extension} files (add to .gitignore)`,
           action: () => this.props.onIgnore(`*${extension}`),
         })
       })
@@ -387,6 +395,7 @@ export class ChangesList extends React.Component<
 
     switch (firstFile.status.kind) {
       case AppFileStatusKind.New:
+      case AppFileStatusKind.Untracked:
         return `Create ${fileName}`
       case AppFileStatusKind.Deleted:
         return `Delete ${fileName}`
@@ -397,6 +406,10 @@ export class ChangesList extends React.Component<
         // affects other parts of the flow) we can just default to this for now
         return `Update ${fileName}`
     }
+  }
+
+  private onScroll = (scrollTop: number, clientHeight: number) => {
+    this.props.onChangesListScrolled(scrollTop)
   }
 
   public render() {
@@ -432,6 +445,8 @@ export class ChangesList extends React.Component<
           onSelectionChanged={this.props.onFileSelectionChanged}
           invalidationProps={this.props.workingDirectory}
           onRowClick={this.props.onRowClick}
+          onScroll={this.onScroll}
+          setScrollTop={this.props.changesListScrollTop}
         />
 
         <CommitMessage

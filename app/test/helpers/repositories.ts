@@ -136,6 +136,7 @@ export async function setupConflictedRepoWithMultipleFiles(): Promise<
     Path.join(repo.path, 'bar'),
     Path.join(repo.path, 'baz'),
     Path.join(repo.path, 'cat'),
+    Path.join(repo.path, 'dog'),
   ]
 
   await FSE.writeFile(filePaths[0], 'b0')
@@ -181,6 +182,8 @@ export async function setupConflictedRepoWithMultipleFiles(): Promise<
     repo.path
   )
   await GitProcess.exec(['commit', '-m', 'Commit'], repo.path)
+
+  await FSE.writeFile(filePaths[4], 'touch')
 
   await GitProcess.exec(['merge', 'master'], repo.path)
 

@@ -14,11 +14,23 @@ export async function merge(
   repository: Repository,
   branch: string
 ): Promise<boolean> {
-  const result = await git(['merge', branch], repository.path, 'merge', {
-    expectedErrors: new Set([GitError.MergeConflicts]),
-  })
-  return result.exitCode === 0
+  const { exitCode, stdout } = await git(
+    ['merge', branch],
+    repository.path,
+    'merge',
+    {
+      expectedErrors: new Set([GitError.MergeConflicts]),
+    }
+  )
+
+  if (exitCode === 0 && stdout !== noopMergeMessage) {
+    return true
+  } else {
+    return false
+  }
 }
+
+const noopMergeMessage = 'Already up to date.\n'
 
 /**
  * Find the base commit between two commit-ish identifiers

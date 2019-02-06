@@ -7,6 +7,7 @@ import { IMenuItem } from '../../lib/menu-item'
 import { HighlightText } from '../lib/highlight-text'
 import { IMatches } from '../../lib/fuzzy-find'
 import { IAheadBehind } from '../../models/branch'
+import { RevealInFileManagerLabel } from '../lib/context-menu'
 
 const defaultEditorLabel = __DARWIN__
   ? 'Open in External Editor'
@@ -150,12 +151,6 @@ export class RepositoryListItem extends React.Component<
       ? `Open in ${this.props.externalEditorLabel}`
       : defaultEditorLabel
 
-    const showRepositoryLabel = __DARWIN__
-      ? 'Show in Finder'
-      : __WIN32__
-      ? 'Show in Explorer'
-      : 'Show in your File Manager'
-
     const items: ReadonlyArray<IMenuItem> = [
       {
         label: `Open in ${this.props.shellLabel}`,
@@ -163,7 +158,7 @@ export class RepositoryListItem extends React.Component<
         enabled: !missing,
       },
       {
-        label: showRepositoryLabel,
+        label: RevealInFileManagerLabel,
         action: this.showRepository,
         enabled: !missing,
       },
