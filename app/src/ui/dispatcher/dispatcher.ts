@@ -68,6 +68,7 @@ import { TipState } from '../../models/tip'
 import { ApplicationTheme } from '../lib/application-theme'
 import { installCLI } from '../lib/install-cli'
 import { executeMenuItem } from '../main-process-proxy'
+import { MergeSource } from '../../models/merge'
 
 /**
  * An error handler function.
