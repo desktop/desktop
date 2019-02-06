@@ -24,6 +24,7 @@ import { shell } from 'electron'
 import { Button } from '../lib/button'
 import { IMenuItem } from '../../lib/menu-item'
 import { LinkButton } from '../lib/link-button'
+import { hasUnresolvedConflicts } from '../../lib/status'
 
 /**
  * Renders an unmerged file status and associated buttons for the merge conflicts modal
@@ -42,7 +43,10 @@ export const renderUnmergedFile: React.SFC<{
   readonly openFileInExternalEditor: (path: string) => void
   readonly dispatcher: Dispatcher
 }> = props => {
-  if (isConflictWithMarkers(props.status)) {
+  if (
+    isConflictWithMarkers(props.status) &&
+    hasUnresolvedConflicts(props.status)
+  ) {
     return renderConflictedFileWithConflictMarkers({
       path: props.path,
       status: props.status,
