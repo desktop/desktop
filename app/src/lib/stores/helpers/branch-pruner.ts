@@ -116,17 +116,17 @@ export class BranchPruner {
     )
 
     // Create array of branches that can be pruned
+    const candidateBranches = mergedBranches.filter(
+      b => !ReservedBranches.includes(b)
+    )
     const branchesReadyForPruning = new Array<Branch>()
-    for (const branch of mergedBranches) {
+    for (const branch of candidateBranches) {
       const localBranch = localBranches.find(
         localBranch =>
           localBranch.remote !== null && localBranch.name === branch
       )
 
-      if (
-        localBranch !== undefined &&
-        !ReservedBranches.includes(branch.toLocaleLowerCase())
-      ) {
+      if (localBranch !== undefined) {
         branchesReadyForPruning.push(localBranch)
       }
     }
