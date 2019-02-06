@@ -134,7 +134,7 @@ export class BranchPruner {
     log.info(
       `Pruning ${branchesReadyForPruning.length} refs from '${
         this.repository.name
-      } using '${defaultBranch.name} (${defaultBranch.tip.sha})' as base branch`
+      }' using '${defaultBranch.name} (${defaultBranch.tip.sha})' as base branch`
     )
 
     const gitStore = this.gitStoreCache.get(this.repository)
