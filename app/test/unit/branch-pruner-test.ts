@@ -40,7 +40,7 @@ describe('BranchPruner', () => {
     })
   })
 
-  it('Does nothing on non GitHub repositories', async () => {
+  it('does nothing on non GitHub repositories', async () => {
     const repo = await initializeTestRepo(
       repositoriesStore,
       repositoriesStateCache,
@@ -62,7 +62,7 @@ describe('BranchPruner', () => {
     expect(branchesBeforePruning).toEqual(branchesAfterPruning)
   })
 
-  it('Prunes for GitHub repository', async () => {
+  it('prunes for GitHub repository', async () => {
     const fixedDate = moment()
     const lastPruneDate = fixedDate.subtract(1, 'day')
     const repo = await initializeTestRepo(
@@ -93,7 +93,7 @@ describe('BranchPruner', () => {
     }
   })
 
-  it('Does not prune if the last prune date is less than 24 hours ago', async () => {
+  it('does not prune if the last prune date is less than 24 hours ago', async () => {
     const fixedDate = moment()
     const lastPruneDate = fixedDate.subtract(4, 'hours')
     const repo = await initializeTestRepo(
@@ -118,7 +118,7 @@ describe('BranchPruner', () => {
     expect(branchesBeforePruning).toEqual(branchesAfterPruning)
   })
 
-  it('Does not prune if there is no default branch', async () => {
+  it('does not prune if there is no default branch', async () => {
     const fixedDate = moment()
     const lastPruneDate = fixedDate.subtract(1, 'day')
     const repo = await initializeTestRepo(
@@ -143,7 +143,7 @@ describe('BranchPruner', () => {
     expect(branchesBeforePruning).toEqual(branchesAfterPruning)
   })
 
-  it('Does not prune reserved branches', async () => {
+  it('does not prune reserved branches', async () => {
     const fixedDate = moment()
     const lastPruneDate = fixedDate.subtract(1, 'day')
     const repo = await initializeTestRepo(
