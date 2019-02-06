@@ -83,7 +83,9 @@ export class BranchPruner {
     const dateNow = moment()
     const threshold = dateNow.subtract(24, 'hours')
 
-    if (lastPruneDate !== null && threshold.isBefore(lastPruneDate)) {
+    // Using type coelescing behavior to deal with Dexie returning `undefined`
+    // for records that haven't been updated with the new field yet
+    if (lastPruneDate != null && threshold.isBefore(lastPruneDate)) {
       log.info(
         `Last prune took place ${moment(lastPruneDate).from(
           dateNow
@@ -134,7 +136,9 @@ export class BranchPruner {
     log.info(
       `Pruning ${branchesReadyForPruning.length} refs from '${
         this.repository.name
-      }' using '${defaultBranch.name} (${defaultBranch.tip.sha})' as base branch`
+      }' using '${defaultBranch.name} (${
+        defaultBranch.tip.sha
+      })' as base branch`
     )
 
     const gitStore = this.gitStoreCache.get(this.repository)
