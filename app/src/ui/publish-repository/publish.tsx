@@ -14,6 +14,7 @@ import { getGitDescription } from '../../lib/git'
 import {
   IDotcomPublicationSettings,
   IEnterprisePublicationSettings,
+  RepositoryPublicationSettings,
 } from '../../models/publish-settings'
 
 enum PublishTab {
