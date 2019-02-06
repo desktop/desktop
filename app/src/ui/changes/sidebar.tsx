@@ -5,7 +5,7 @@ import { ChangesList } from './changes-list'
 import { DiffSelectionType } from '../../models/diff'
 import { IChangesState } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { IGitHubUser } from '../../lib/databases'
 import { IssuesStore, GitHubUserStore } from '../../lib/stores'
 import { CommitIdentity } from '../../models/commit-identity'
@@ -20,7 +20,7 @@ import {
 import { ClickSource } from '../lib/list'
 import { WorkingDirectoryFileChange } from '../../models/status'
 import { CSSTransitionGroup } from 'react-transition-group'
-import { openFile } from '../../lib/open-file'
+import { openFile } from '../lib/open-file'
 import { Account } from '../../models/account'
 import { PopupType } from '../../models/popup'
 import { enableFileSizeWarningCheck } from '../../lib/feature-flag'
@@ -62,6 +62,8 @@ interface IChangesSidebarProps {
    * @param fullPath The full path to the file on disk
    */
   readonly onOpenInExternalEditor: (fullPath: string) => void
+  readonly onChangesListScrolled: (scrollTop: number) => void
+  readonly changesListScrollTop: number
 }
 
 export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
@@ -371,6 +373,8 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           coAuthors={this.props.changes.coAuthors}
           externalEditorLabel={this.props.externalEditorLabel}
           onOpenInExternalEditor={this.props.onOpenInExternalEditor}
+          onChangesListScrolled={this.props.onChangesListScrolled}
+          changesListScrollTop={this.props.changesListScrollTop}
         />
         {this.renderMostRecentLocalCommit()}
       </div>

@@ -33,6 +33,7 @@ import { ComparisonCache } from './comparison-cache'
 
 import { ApplicationTheme } from '../ui/lib/application-theme'
 import { IAccountRepositories } from './stores/api-repositories-store'
+import { ManualConflictResolution } from '../models/manual-conflict-resolution'
 
 export enum SelectionType {
   Repository,
@@ -196,6 +197,9 @@ export interface IAppState {
   /** The currently selected appearance (aka theme) */
   readonly selectedTheme: ApplicationTheme
 
+  /** Whether we should automatically change the currently selected appearance (aka theme) */
+  readonly automaticallySwitchTheme: boolean
+
   /**
    * A map keyed on a user account (GitHub.com or GitHub Enterprise)
    * containing an object with repositories that the authenticated
@@ -257,6 +261,7 @@ export enum RepositorySectionTab {
 export interface IConflictState {
   readonly currentBranch: string
   readonly currentTip: string
+  readonly manualResolutions: Map<string, ManualConflictResolution>
 }
 
 export interface IRepositoryState {
@@ -297,7 +302,7 @@ export interface IRepositoryState {
   /** The state of the current branch in relation to its upstream. */
   readonly aheadBehind: IAheadBehind | null
 
-  /** Is a push/pull/update in progress? */
+  /** Is a push/pull/fetch in progress? */
   readonly isPushPullFetchInProgress: boolean
 
   /** Is a commit in progress? */

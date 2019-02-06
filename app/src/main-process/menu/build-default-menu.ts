@@ -21,6 +21,12 @@ const defaultBranchNameDefaultValue = __DARWIN__
   ? 'Default Branch'
   : 'default branch'
 
+enum ZoomDirection {
+  Reset,
+  In,
+  Out,
+}
+
 export type MenuLabels = {
   editorLabel?: string
   shellLabel?: string
@@ -259,7 +265,11 @@ export function buildDefaultMenu({
         click: emit('open-in-shell'),
       },
       {
-        label: __DARWIN__ ? 'Show in Finder' : 'Show in E&xplorer',
+        label: __DARWIN__
+          ? 'Show in Finder'
+          : __WIN32__
+          ? 'Show in E&xplorer'
+          : 'Show in your File Manager',
         id: 'open-working-directory',
         accelerator: 'CmdOrCtrl+Shift+F',
         click: emit('open-working-directory'),
@@ -304,7 +314,7 @@ export function buildDefaultMenu({
       separator,
       {
         label: __DARWIN__
-          ? `Update From ${defaultBranchName}`
+          ? `Update from ${defaultBranchName}`
           : `&Update from ${defaultBranchName}`,
         id: 'update-branch',
         accelerator: 'CmdOrCtrl+Shift+U',
@@ -318,7 +328,7 @@ export function buildDefaultMenu({
       },
       {
         label: __DARWIN__
-          ? 'Merge Into Current Branch…'
+          ? 'Merge into Current Branch…'
           : '&Merge into current branch…',
         id: 'merge-branch',
         accelerator: 'CmdOrCtrl+Shift+M',
@@ -471,12 +481,6 @@ function emit(name: MenuEvent): ClickHandler {
       ipcMain.emit('menu-event', { name })
     }
   }
-}
-
-enum ZoomDirection {
-  Reset,
-  In,
-  Out,
 }
 
 /** The zoom steps that we support, these factors must sorted */

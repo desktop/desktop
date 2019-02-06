@@ -72,6 +72,7 @@ describe('git/branch', () => {
       expect(onBranch.branch.tip.sha).toEqual(
         'dfa96676b65e1c0ed43ca25492252a5e384c8efd'
       )
+      expect(onBranch.branch.tip.shortSha).toEqual('dfa9667')
     })
 
     it('returns non-origin remote', async () => {

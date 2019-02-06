@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Dispatcher } from '../../lib/dispatcher/index'
+import { Dispatcher } from '../dispatcher/index'
 import { LinkButton } from '../lib/link-button'
 import { updateStore } from '../lib/update-store'
 import { Octicon, OcticonSymbol } from '../octicons'
@@ -8,6 +8,7 @@ import { shell } from '../../lib/app-shell'
 
 import { ReleaseSummary } from '../../models/release-notes'
 import { Banner } from './banner'
+import { ReleaseNotesUri } from '../lib/releases'
 
 interface IUpdateAvailableProps {
   readonly dispatcher: Dispatcher
@@ -48,8 +49,7 @@ export class UpdateAvailable extends React.Component<
     if (this.props.newRelease == null) {
       // if, for some reason we're not able to render the release notes we
       // should redirect the user to the website so we do _something_
-      const releaseNotesUri = 'https://desktop.github.com/release-notes/'
-      shell.openExternal(releaseNotesUri)
+      shell.openExternal(ReleaseNotesUri)
     } else {
       this.props.dispatcher.showPopup({
         type: PopupType.ReleaseNotes,

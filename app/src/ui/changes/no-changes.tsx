@@ -1,11 +1,10 @@
 import * as React from 'react'
-import * as classNames from 'classnames'
+import * as ReactCSSTransitionReplace from 'react-css-transition-replace'
 
 import { encodePathAsUrl } from '../../lib/path'
-import { revealInFileManager } from '../../lib/app-shell'
 import { Repository } from '../../models/repository'
 import { LinkButton } from '../lib/link-button'
-import { enableNewNoChangesBlankslate } from '../../lib/feature-flag'
+import { enableNoChangesCreatePRBlankslateAction } from '../../lib/feature-flag'
 import { MenuIDs } from '../../main-process/menu'
 import { IMenu, MenuItem } from '../../models/app-menu'
 import memoizeOne from 'memoize-one'
@@ -18,10 +17,18 @@ import { Ref } from '../lib/ref'
 import { IAheadBehind } from '../../models/branch'
 import { IRemote } from '../../models/remote'
 
-const BlankSlateImage = encodePathAsUrl(
-  __dirname,
-  'static/empty-no-file-selected.svg'
-)
+function formatMenuItemLabel(text: string) {
+  if (__WIN32__ || __LINUX__) {
+    return text.replace('&', '')
+  }
+
+  return text
+}
+
+function formatParentMenuLabel(menuItem: IMenuItemInfo) {
+  const parentMenusText = menuItem.parentMenuLabels.join(' -> ')
+  return formatMenuItemLabel(parentMenusText)
+}
 
 const PaperStackImage = encodePathAsUrl(__dirname, 'static/paper-stack.svg')
 
@@ -92,6 +99,19 @@ interface IMenuItemInfo {
   readonly enabled: boolean
 }
 
+interface INoChangesState {
+  /**
+   * Whether or not to enable the slide in and
+   * slide out transitions for the remote actions.
+   *
+   * Disabled initially and enabled 500ms after
+   * component mounting in order to provide instant
+   * loading of the remote action when the view is
+   * initially appearing.
+   */
+  readonly enableTransitions: boolean
+}
+
 function getItemAcceleratorKeys(item: MenuItem) {
   if (item.type === 'separator' || item.type === 'submenuItem') {
     return []
@@ -135,62 +155,31 @@ function buildMenuItemInfoMap(
 }
 
 /** The component to display when there are no local changes. */
-export class NoChanges extends React.Component<INoChangesProps, {}> {
+export class NoChanges extends React.Component<
+  INoChangesProps,
+  INoChangesState
+> {
   private getMenuInfoMap = memoizeOne((menu: IMenu | undefined) =>
     menu === undefined
       ? new Map<string, IMenuItemInfo>()
       : buildMenuItemInfoMap(menu)
   )
 
+  /**
+   * ID for the timer that's activated when the component
+   * mounts. See componentDidMount/componenWillUnmount.
+   */
+  private transitionTimer: number | null = null
+
+  public constructor(props: INoChangesProps) {
+    super(props)
+    this.state = {
+      enableTransitions: false,
+    }
+  }
+
   private getMenuItemInfo(menuItemId: MenuIDs): IMenuItemInfo | undefined {
     return this.getMenuInfoMap(this.props.appMenu).get(menuItemId)
-  }
-
-  private renderClassicBlankSlate() {
-    const opener = __DARWIN__
-      ? 'Finder'
-      : __WIN32__
-      ? 'Explorer'
-      : 'your File Manager'
-    return (
-      <div className="panel blankslate" id="no-changes">
-        <img src={BlankSlateImage} className="blankslate-image" />
-        <div>No local changes</div>
-
-        <div>
-          Would you like to{' '}
-          <LinkButton onClick={this.open}>open this repository</LinkButton> in{' '}
-          {opener}?
-        </div>
-      </div>
-    )
-  }
-
-  private renderNewNoChangesBlankSlate() {
-    const className = classNames({
-      // This is unneccessary but serves as a reminder to drop
-      // the ng class from here and change the scss when we
-      // remove the feature flag.
-      ng: enableNewNoChangesBlankslate(),
-    })
-
-    return (
-      <div id="no-changes" className={className}>
-        <div className="content">
-          <div className="header">
-            <div className="text">
-              <h1>No local changes</h1>
-              <p>
-                You have no uncommitted changes in your repository! Here are
-                some friendly suggestions for what to do next.
-              </p>
-            </div>
-            <img src={PaperStackImage} className="blankslate-image" />
-          </div>
-          {this.renderActions()}
-        </div>
-      </div>
-    )
   }
 
   private getPlatformFileManagerName() {
@@ -199,11 +188,11 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
     } else if (__WIN32__) {
       return 'Explorer'
     }
-    return 'Your File Manager'
+    return 'your File Manager'
   }
 
   private renderDiscoverabilityElements(menuItem: IMenuItemInfo) {
-    const parentMenusText = menuItem.parentMenuLabels.join(' -> ')
+    const parentMenusText = formatParentMenuLabel(menuItem)
 
     return (
       <>
@@ -235,13 +224,13 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
         description={description}
         discoverabilityContent={this.renderDiscoverabilityElements(menuItem)}
         menuItemId={itemId}
-        buttonText={menuItem.label}
+        buttonText={formatMenuItemLabel(menuItem.label)}
         disabled={!menuItem.enabled}
       />
     )
   }
 
-  private renderShowInFinderAction() {
+  private renderShowInFileManager() {
     const fileManager = this.getPlatformFileManagerName()
 
     return this.renderMenuBackedAction(
@@ -326,13 +315,15 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
       return this.renderPushBranchAction(tip, remote, aheadBehind)
     }
 
-    const isGitHub = this.props.repository.gitHubRepository !== null
-    const hasOpenPullRequest = currentPullRequest !== null
-    const isDefaultBranch =
-      defaultBranch !== null && tip.branch.name === defaultBranch.name
+    if (enableNoChangesCreatePRBlankslateAction()) {
+      const isGitHub = this.props.repository.gitHubRepository !== null
+      const hasOpenPullRequest = currentPullRequest !== null
+      const isDefaultBranch =
+        defaultBranch !== null && tip.branch.name === defaultBranch.name
 
-    if (isGitHub && !hasOpenPullRequest && !isDefaultBranch) {
-      return this.renderCreatePullRequestAction(tip)
+      if (isGitHub && !hasOpenPullRequest && !isDefaultBranch) {
+        return this.renderCreatePullRequestAction(tip)
+      }
     }
 
     return null
@@ -360,6 +351,7 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
 
     return (
       <MenuBackedBlankslateAction
+        key="publish-repository-action"
         title="Publish your repository to GitHub"
         description="This repository is currently only available on your local machine. By publishing it on GitHub you can share it, and collaborate with others."
         discoverabilityContent={discoverabilityContent}
@@ -404,6 +396,7 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
 
     return (
       <MenuBackedBlankslateAction
+        key="publish-branch-action"
         title="Publish your branch"
         menuItemId={itemId}
         description={description}
@@ -432,8 +425,11 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
 
     const description = (
       <>
-        The current branch (<Ref>{tip.branch.name}</Ref>) has commits on{' '}
-        {isGitHub ? 'GitHub' : 'the remote'} that doesn’t exist on your machine.
+        The current branch (<Ref>{tip.branch.name}</Ref>) has{' '}
+        {aheadBehind.behind === 1 ? 'a commit' : 'commits'} on{' '}
+        {isGitHub ? 'GitHub' : 'the remote'} that{' '}
+        {aheadBehind.behind === 1 ? 'does not' : 'do not'} exist on your
+        machine.
       </>
     )
 
@@ -452,6 +448,7 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
 
     return (
       <MenuBackedBlankslateAction
+        key="pull-branch-action"
         title={title}
         menuItemId={itemId}
         description={description}
@@ -501,6 +498,7 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
 
     return (
       <MenuBackedBlankslateAction
+        key="push-branch-action"
         title={title}
         menuItemId={itemId}
         description={description}
@@ -534,6 +532,7 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
 
     return (
       <MenuBackedBlankslateAction
+        key="create-pr-action"
         title={title}
         menuItemId={itemId}
         description={description}
@@ -546,33 +545,60 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
   }
 
   private renderActions() {
-    const remoteAction = this.renderRemoteAction()
-    const remoteActions =
-      remoteAction === null || remoteAction === undefined ? null : (
-        <div className="actions primary">{remoteAction}</div>
-      )
-
     return (
       <>
-        {remoteActions}
+        <ReactCSSTransitionReplace
+          transitionAppear={false}
+          transitionEnter={this.state.enableTransitions}
+          transitionLeave={this.state.enableTransitions}
+          overflowHidden={false}
+          transitionName="action"
+          component="div"
+          className="actions primary"
+          transitionEnterTimeout={750}
+          transitionLeaveTimeout={500}
+        >
+          {this.renderRemoteAction()}
+        </ReactCSSTransitionReplace>
         <div className="actions">
           {this.renderOpenInExternalEditor()}
-          {this.renderShowInFinderAction()}
+          {this.renderShowInFileManager()}
           {this.renderViewOnGitHub()}
         </div>
       </>
     )
   }
 
-  public render() {
-    if (enableNewNoChangesBlankslate()) {
-      return this.renderNewNoChangesBlankSlate()
-    }
-
-    return this.renderClassicBlankSlate()
+  public componentDidMount() {
+    this.transitionTimer = window.setTimeout(() => {
+      this.setState({ enableTransitions: true })
+      this.transitionTimer = null
+    }, 500)
   }
 
-  private open = () => {
-    revealInFileManager(this.props.repository, '')
+  public componentWillUnmount() {
+    if (this.transitionTimer !== null) {
+      clearTimeout(this.transitionTimer)
+    }
+  }
+
+  public render() {
+    return (
+      <div id="no-changes">
+        <div className="content">
+          <div className="header">
+            <div className="text">
+              <h1>No local changes</h1>
+              <p>
+                You have no uncommitted changes in your repository! Here are
+                some friendly suggestions for what to do next.
+              </p>
+            </div>
+            <img src={PaperStackImage} className="blankslate-image" />
+          </div>
+          {this.renderActions()}
+        </div>
+      </div>
+    )
   }
 }

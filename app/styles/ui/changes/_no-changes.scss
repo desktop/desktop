@@ -1,9 +1,4 @@
 #no-changes {
-  display: flex;
-  flex-direction: column;
-}
-
-#no-changes.ng {
   padding: var(--spacing-quad);
   width: 100%;
   min-height: 100%;
@@ -56,6 +51,31 @@
     &.primary {
       margin-bottom: var(--spacing);
     }
+  }
+
+  .action-leave {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  .action-leave.action-leave-active {
+    opacity: 0;
+    transform: translate3d(100%, 0, 0);
+    transition: opacity 200ms ease-in, transform 250ms var(--easing-ease-in-back);
+  }
+
+  .action-enter {
+    opacity: 0;
+    transform: translate3d(-100%, 0, 0);
+  }
+
+  .action-enter.action-enter-active {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    transition: opacity 200ms ease-in 500ms, transform 250ms var(--easing-ease-out-back) 500ms;
+  }
+
+  .action-height {
+    transition: height 250ms ease-out 250ms;
   }
 
   /** Lessen the padding at 1.5x zoom and above  **/

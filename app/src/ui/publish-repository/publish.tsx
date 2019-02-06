@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { PublishRepository } from './publish-repository'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
 import { ButtonGroup } from '../lib/button-group'
