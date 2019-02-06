@@ -125,15 +125,10 @@ const renderManualConflictedFile: React.SFC<{
       </div>
       <div className="action-buttons">
         <Button
-          className="small-button button-group-item"
+          className="small-button button-group-item resolve-arrow-menu"
           onClick={onDropdownClick}
         >
           Resolve
-        </Button>
-        <Button
-          onClick={onDropdownClick}
-          className="small-button button-group-item arrow-menu"
-        >
           <Octicon symbol={OcticonSymbol.triangleDown} />
         </Button>
       </div>
