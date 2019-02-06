@@ -3,7 +3,7 @@ import { join } from 'path'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { PopupType } from '../../models/popup'
 import { RepositorySectionTab } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
@@ -22,7 +22,7 @@ import { LinkButton } from '../lib/link-button'
 import { isConflictedFile, hasUnresolvedConflicts } from '../../lib/status'
 import { DefaultCommitMessage } from '../../models/commit-message'
 import { shell } from '../../lib/app-shell'
-import { openFile } from '../../lib/open-file'
+import { openFile } from '../lib/open-file'
 import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'
 import {
@@ -189,7 +189,7 @@ export class MergeConflictsDialog extends React.Component<
 
   private renderShellLink(openThisRepositoryInShell: () => void): JSX.Element {
     return (
-      <div className="cli-link">
+      <div>
         <LinkButton onClick={openThisRepositoryInShell}>
           Open in command line,
         </LinkButton>{' '}

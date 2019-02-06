@@ -25,7 +25,7 @@ jobs:
         displayName: 'Publish Test Results'
         inputs:
           testResultsFiles: '**junit*.xml'
-          testRunTitle: TestRun ${{ parameters.name }} $(node_version)
+          testRunTitle: $(Agent.OS) Test Results
       - task: PublishCodeCoverageResults@1
         displayName: 'Publish code coverage results'
         inputs:
@@ -60,7 +60,7 @@ jobs:
         displayName: 'Publish Test Results'
         inputs:
           testResultsFiles: '**junit*.xml'
-          testRunTitle: TestRun ${{ parameters.name }} $(node_version)
+          testRunTitle: $(Agent.OS) Test Results
       - task: PublishCodeCoverageResults@1
         displayName: 'Publish code coverage results'
         inputs:
@@ -87,7 +87,7 @@ jobs:
         displayName: 'Publish Test Results'
         inputs:
           testResultsFiles: '**junit*.xml'
-          testRunTitle: TestRun ${{ parameters.name }} $(node_version)
+          testRunTitle: $(Agent.OS) Test Results
       - task: PublishCodeCoverageResults@1
         displayName: 'Publish code coverage results'
         inputs:
@@ -113,3 +113,6 @@ jobs:
       - script: |
           yarn lint
         name: Lint
+      - script: |
+          yarn check-modified
+        displayName: 'Check for modified files'
