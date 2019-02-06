@@ -1,10 +1,5 @@
 import * as React from 'react'
-import {
-  PublishRepository,
-  IDotcomPublicationSettings,
-  IGHEPublicationSettings,
-  RepositoryPublicationSettings,
-} from './publish-repository'
+import { PublishRepository } from './publish-repository'
 import { Dispatcher } from '../dispatcher'
 import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
@@ -16,6 +11,11 @@ import { getDotComAPIEndpoint } from '../../lib/api'
 import { assertNever, fatalError } from '../../lib/fatal-error'
 import { CallToAction } from '../lib/call-to-action'
 import { getGitDescription } from '../../lib/git'
+import {
+  IDotcomPublicationSettings,
+  IEnterprisePublicationSettings,
+  RepositoryPublicationSettings,
+} from '../../models/publish-settings'
 
 enum PublishTab {
   DotCom = 0,
@@ -42,7 +42,7 @@ interface IGheTabState {
   readonly kind: 'ghe'
 
   /** The settings for publishing the repository. */
-  readonly settings: IGHEPublicationSettings
+  readonly settings: IEnterprisePublicationSettings
 
   /**
    * An error which, if present, is presented to the
