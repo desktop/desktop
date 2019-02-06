@@ -51,6 +51,11 @@ export function enableReadmeOverwriteWarning(): boolean {
   return enableBetaFeatures()
 }
 
+/** Shoult the app automatically prune branches that are no longer actively being used */
+export function enableBranchPruning(): boolean {
+  return enableDevelopmentFeatures()
+}
+
 /**
  * Whether or not to activate the "Create PR" blankslate action.
  *
