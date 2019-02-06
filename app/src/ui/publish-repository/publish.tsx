@@ -21,7 +21,7 @@ enum PublishTab {
   Enterprise,
 }
 
-type TabState = IDotcomTabState | IGheTabState
+type TabState = IDotcomTabState | EnterpriseTabState
 
 interface IDotcomTabState {
   readonly kind: 'dotcom'
@@ -37,7 +37,7 @@ interface IDotcomTabState {
   readonly error: Error | null
 }
 
-interface IGheTabState {
+interface EnterpriseTabState {
   readonly kind: 'ghe'
 
   /** The settings for publishing the repository. */
@@ -72,7 +72,7 @@ interface IPublishState {
   readonly dotcomTabState: IDotcomTabState
 
   /** The state of enterprise tab. */
-  readonly gheTabState: IGheTabState
+  readonly gheTabState: EnterpriseTabState
 
   /** Is the repository currently being published? */
   readonly publishing: boolean
@@ -104,7 +104,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
       error: null,
     }
 
-    const gheTabState: IGheTabState = {
+    const gheTabState: EnterpriseTabState = {
       kind: 'ghe',
       settings: { ...GHEPublicationSettings, kind: 'ghe' },
       error: null,
