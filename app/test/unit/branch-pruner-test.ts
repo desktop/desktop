@@ -93,7 +93,7 @@ describe('BranchPruner', () => {
     }
   })
 
-  it('Does not prune if the last prune date is less than 24 hours ago', async () => {
+  it('does not prune if the last prune date is less than 24 hours ago', async () => {
     const fixedDate = moment()
     const lastPruneDate = fixedDate.subtract(4, 'hours')
     const repo = await initializeTestRepo(
