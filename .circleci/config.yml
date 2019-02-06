@@ -35,8 +35,8 @@ jobs:
             - ~/Library/Caches/Yarn/v1
             - ./node_modules
       - run:
-          name: Lint and validate changelog
-          command: yarn lint && yarn validate-changelog
+          name: Linting
+          command: yarn lint && yarn validate-changelog && yarn check-modified
       - run:
           name: Build
           command: yarn build:prod
