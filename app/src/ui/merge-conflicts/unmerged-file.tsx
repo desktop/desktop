@@ -45,7 +45,7 @@ export const renderUnmergedFile: React.SFC<{
 }> = props => {
   if (
     isConflictWithMarkers(props.status) &&
-    hasUnresolvedConflicts(props.status)
+    hasUnresolvedConflicts(props.status, props.manualResolution)
   ) {
     return renderConflictedFileWithConflictMarkers({
       path: props.path,

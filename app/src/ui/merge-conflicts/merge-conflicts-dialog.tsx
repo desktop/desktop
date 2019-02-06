@@ -17,7 +17,10 @@ import { LinkButton } from '../lib/link-button'
 import { isConflictedFile, hasUnresolvedConflicts } from '../../lib/status'
 import { DefaultCommitMessage } from '../../models/commit-message'
 import { renderUnmergedFile } from './unmerged-file'
-import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
+import {
+  ManualConflictResolution,
+  ManualConflictResolutionKind,
+} from '../../models/manual-conflict-resolution'
 
 interface IMergeConflictsDialogProps {
   readonly dispatcher: Dispatcher
@@ -39,16 +42,26 @@ function getUnmergedFiles(status: WorkingDirectoryStatus) {
 }
 
 /** Filter working directory changes for resolved files  */
-function getResolvedFiles(status: WorkingDirectoryStatus) {
+function getResolvedFiles(
+  status: WorkingDirectoryStatus,
+  manualResolutions: Map<string, ManualConflictResolutionKind>
+) {
   return status.files.filter(
-    f => isConflictedFileStatus(f.status) && !hasUnresolvedConflicts(f.status)
+    f =>
+      isConflictedFileStatus(f.status) &&
+      !hasUnresolvedConflicts(f.status, manualResolutions.get(f.path))
   )
 }
 
 /** Filter working directory changes for conflicted files  */
-function getConflictedFiles(status: WorkingDirectoryStatus) {
+function getConflictedFiles(
+  status: WorkingDirectoryStatus,
+  manualResolutions: Map<string, ManualConflictResolutionKind>
+) {
   return status.files.filter(
-    f => isConflictedFileStatus(f.status) && hasUnresolvedConflicts(f.status)
+    f =>
+      isConflictedFileStatus(f.status) &&
+      hasUnresolvedConflicts(f.status, manualResolutions.get(f.path))
   )
 }
 
@@ -95,7 +108,10 @@ export class MergeConflictsDialog extends React.Component<
    */
   private onCancel = async () => {
     const anyResolvedFiles =
-      getResolvedFiles(this.props.workingDirectory).length > 0
+      getResolvedFiles(
+        this.props.workingDirectory,
+        this.props.manualResolutions
+      ).length > 0
     if (!anyResolvedFiles) {
       await this.props.dispatcher.abortMerge(this.props.repository)
       this.props.onDismissed()
@@ -122,7 +138,12 @@ export class MergeConflictsDialog extends React.Component<
       },
     })
     this.props.dispatcher.recordMergeConflictsDialogDismissal()
-    if (getConflictedFiles(this.props.workingDirectory).length > 0) {
+    if (
+      getConflictedFiles(
+        this.props.workingDirectory,
+        this.props.manualResolutions
+      ).length > 0
+    ) {
       this.props.dispatcher.recordAnyConflictsLeftOnMergeConflictsDialogDismissal()
     }
   }
@@ -221,8 +242,10 @@ export class MergeConflictsDialog extends React.Component<
 
   public render() {
     const unmergedFiles = getUnmergedFiles(this.props.workingDirectory)
-    const conflictedFilesCount = getConflictedFiles(this.props.workingDirectory)
-      .length
+    const conflictedFilesCount = getConflictedFiles(
+      this.props.workingDirectory,
+      this.props.manualResolutions
+    ).length
 
     const headerTitle = this.renderHeaderTitle(
       this.props.ourBranch,
