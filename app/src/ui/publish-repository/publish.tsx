@@ -92,7 +92,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
       startingTab = PublishTab.Enterprise
     }
 
-    const GHEPublicationSettings = {
+    const publicationSettings = {
       name: props.repository.name,
       description: '',
       private: true,
@@ -100,13 +100,13 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
 
     const dotcomTabState: IDotcomTabState = {
       kind: 'dotcom',
-      settings: { ...GHEPublicationSettings, kind: 'dotcom', org: null },
+      settings: { ...publicationSettings, kind: 'dotcom', org: null },
       error: null,
     }
 
     const gheTabState: EnterpriseTabState = {
       kind: 'ghe',
-      settings: { ...GHEPublicationSettings, kind: 'ghe' },
+      settings: { ...publicationSettings, kind: 'ghe' },
       error: null,
     }
 
