@@ -23,6 +23,8 @@ addons:
 branches:
   only:
     - development
+    # investigating Travis integration test failures
+    - more-tabs-more-state
     - /^__release-.*/
 
 language: node_js
