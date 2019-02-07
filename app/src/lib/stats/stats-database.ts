@@ -61,6 +61,7 @@ export interface IDailyMeasures {
 
   /** The numbers of times a repo with indicators is clicked on repo list view */
   readonly repoWithIndicatorClicked: number
+
   /** The numbers of times a repo without indicators is clicked on repo list view */
   readonly repoWithoutIndicatorClicked: number
 
@@ -141,6 +142,12 @@ export interface IDailyMeasures {
 
   /** The number of times the user committed a conflicted merge outside the merge conflicts dialog */
   readonly unguidedConflictedMergeCompletionCount: number
+
+  /** The number of times the user is taken to the create pull request page on dotcom from the branch menu */
+  readonly createPullRequestFromMenuCount: number
+
+  /** The number of times the user is taken to the create pull request page on dotcom from the suggested next steps flow */
+  readonly createPullRequestFromSuggestedNextStepCount: number
 }
 
 export class StatsDatabase extends Dexie {
