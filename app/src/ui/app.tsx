@@ -1832,7 +1832,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     if (currentPullRequest == null) {
       dispatcher.createPullRequest(state.repository)
-      dispatcher.recordCreatePullRequestFromMenu()
+      dispatcher.recordCreatePullRequest()
     } else {
       dispatcher.showPullRequest(state.repository)
     }

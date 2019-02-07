@@ -1422,9 +1422,9 @@ export class Dispatcher {
   }
 
   /**
-   * Increments the `CreatePullRequestFromMenuCount` metric
+   * Increments the `CreatePullRequestCount` metric
    */
-  public recordCreatePullRequestFromMenu() {
+  public recordCreatePullRequest() {
     return this.statsStore.recordCreatePullRequest()
   }
 
