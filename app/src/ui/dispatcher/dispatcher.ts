@@ -1421,6 +1421,20 @@ export class Dispatcher {
     return this.statsStore.recordDivergingBranchBannerInitatedMerge()
   }
 
+  /**
+   * Increments the `CreatePullRequestFromMenuCount` metric
+   */
+  public recordCreatePullRequestFromMenu() {
+    return this.statsStore.recordCreatePullRequestFromMenuCount()
+  }
+
+  /**
+   * Increments the `CreatePullRequestFromSuggestedNextStepCount` metric
+   */
+  public recordCreatePullRequestFromSuggestedNextStep() {
+    return this.statsStore.recordCreatePullRequestFromSuggestedNextStepCount()
+  }
+
   public recordWelcomeWizardInitiated() {
     return this.statsStore.recordWelcomeWizardInitiated()
   }

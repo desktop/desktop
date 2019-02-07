@@ -821,6 +821,27 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
+  /**
+   * Increments the `createPullRequestFromMenuCount` metric
+   */
+  public async recordCreatePullRequestFromMenuCount(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      createPullRequestFromMenuCount: m.createPullRequestFromMenuCount + 1,
+    }))
+  }
+
+  /**
+   * Increments the `createPullRequestFromSuggestedNextStepCount` metric
+   */
+  public async recordCreatePullRequestFromSuggestedNextStepCount(): Promise<
+    void
+  > {
+    return this.updateDailyMeasures(m => ({
+      createPullRequestFromSuggestedNextStepCount:
+        m.createPullRequestFromSuggestedNextStepCount + 1,
+    }))
+  }
+
   public recordWelcomeWizardInitiated() {
     setNumber(WelcomeWizardInitiatedAtKey, Date.now())
     localStorage.removeItem(WelcomeWizardCompletedAtKey)
