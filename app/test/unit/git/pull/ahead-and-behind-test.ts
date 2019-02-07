@@ -136,7 +136,7 @@ describe('git/pull', () => {
         )
       })
 
-      it(`throws an error as the user blocks merge commits on pull`, async () => {
+      it(`throws an error as the user blocks merge commits on pull`, () => {
         expect(pull(repository, null, origin)).rejects.toThrow()
       })
     })

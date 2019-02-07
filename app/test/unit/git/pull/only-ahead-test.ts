@@ -58,7 +58,7 @@ describe('git/pull', () => {
         expect(newTip.sha).toBe(previousTip.sha)
       })
 
-      it('is different to tracking branch', async () => {
+      it('is different from tracking branch', async () => {
         const remoteCommit = await getRefOrError(repository, remoteBranch)
         expect(remoteCommit.sha).not.toBe(newTip.sha)
       })
