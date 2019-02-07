@@ -2,7 +2,7 @@
 
 import * as fs from 'fs'
 import * as cp from 'child_process'
-import { getLogFiles } from './review-logs'
+import { getLogFiles } from '../app/test/helpers/logs'
 import { getProductName } from '../app/package-info'
 import { getDistPath } from './dist-info'
 import { isCircleCI, isRunningOnFork } from './build-platforms'
@@ -22,7 +22,9 @@ const output = cp.execSync('git config -l --show-origin', { encoding: 'utf-8' })
 console.log(`Git config:\n${output}\n\n`)
 
 // delete existing log files
-getLogFiles().forEach(file => {
-  console.log(`deleting ${file}`)
-  fs.unlinkSync(file)
-})
+getLogFiles().then(files =>
+  files.forEach(file => {
+    console.log(`deleting ${file}`)
+    fs.unlinkSync(file)
+  })
+)

@@ -1,10 +1,19 @@
 /* eslint-disable no-sync */
 
-import * as fs from 'fs'
+import * as FSE from 'fs-extra'
 import * as path from 'path'
 import * as os from 'os'
-import { getProductName } from '../app/package-info'
-import { getExecutableName } from './dist-info'
+
+// TODO: we have types for this
+const klawSync = require('klaw-sync')
+
+type KlawEntry = {
+  path: string
+}
+
+import { getProductName } from '../../../app/package-info'
+// TODO: maybe this needs to live inside app
+import { getExecutableName } from '../../../script/dist-info'
 
 function getUserDataPath() {
   if (process.platform === 'win32') {
@@ -33,14 +42,28 @@ function getUserDataPath() {
   }
 }
 
-export function getLogFiles(): ReadonlyArray<string> {
-  const directory = path.join(getUserDataPath(), 'logs')
-  if (!fs.existsSync(directory)) {
+export function setupLogsDirectory() {
+  FSE.mkdirpSync(getLogsDirectory())
+}
+
+export function getLogsDirectory(): string {
+  return path.join(getUserDataPath(), 'logs')
+}
+
+function isLogFile(item: KlawEntry) {
+  return path.extname(item.path) === '.log'
+}
+
+export async function getLogFiles(): Promise<ReadonlyArray<string>> {
+  const directory = getLogsDirectory()
+  const exists = await FSE.pathExists(directory)
+
+  if (!exists) {
+    console.log(`no test directory found...`)
     return []
   }
 
-  const fileNames = fs.readdirSync(directory)
-  return fileNames
-    .filter(fileName => fileName.endsWith('.log'))
-    .map(fileName => path.join(directory, fileName))
+  const entries: ReadonlyArray<KlawEntry> = klawSync(directory, { nodir: true })
+
+  return entries.filter(isLogFile).map(l => l.path)
 }

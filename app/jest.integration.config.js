@@ -5,7 +5,7 @@ module.exports = {
   },
   testMatch: ['**/integration/**/*-test.ts{,x}'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
-  setupTestFrameworkScriptFile: '<rootDir>/test/setup-test-framework.ts',
+  setupFiles: ['<rootDir>/test/setup-integration-tests.ts'],
   reporters: [
     'default',
     [
