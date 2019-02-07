@@ -138,12 +138,12 @@ export class MergeConflictsDialog extends React.Component<
       },
     })
     this.props.dispatcher.recordMergeConflictsDialogDismissal()
-    if (
+    const anyConflictedFiles =
       getConflictedFiles(
         this.props.workingDirectory,
         this.props.manualResolutions
       ).length > 0
-    ) {
+    if (anyConflictedFiles) {
       this.props.dispatcher.recordAnyConflictsLeftOnMergeConflictsDialogDismissal()
     }
   }
