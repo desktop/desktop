@@ -21,6 +21,7 @@ jobs:
             # when lock file changes, use increasingly general patterns to restore cache
             - yarn-packages-v1-{{ .Branch }}-{{ checksum "yarn.lock" }}
             - yarn-packages-v1-{{ .Branch }}-
+      - run: git clean -xdf node_modules/electron
       - run:
           name: Install dependencies
           command: yarn install --force
