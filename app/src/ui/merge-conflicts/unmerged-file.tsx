@@ -37,6 +37,9 @@ export const renderUnmergedFile: React.SFC<{
   readonly path: string
   /** this file must have a conflicted status (but that doesn't mean its not resolved) */
   readonly status: ConflictedFileStatus
+  /** manual resolution choice for the file at `path`
+   *  (optional. only applies to manual merge conflicts)
+   */
   readonly manualResolution?: ManualConflictResolution
   /** name of the resolved external editor */
   readonly resolvedExternalEditor: string | null
