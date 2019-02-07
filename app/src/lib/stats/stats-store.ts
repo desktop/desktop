@@ -80,6 +80,8 @@ const DefaultDailyMeasures: IDailyMeasures = {
   mergeConflictsDialogReopenedCount: 0,
   guidedConflictedMergeCompletionCount: 0,
   unguidedConflictedMergeCompletionCount: 0,
+  createPullRequestFromMenuCount: 0,
+  createPullRequestFromSuggestedNextStepCount: 0,
 }
 
 interface IOnboardingStats {
