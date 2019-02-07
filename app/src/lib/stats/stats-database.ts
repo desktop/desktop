@@ -143,11 +143,8 @@ export interface IDailyMeasures {
   /** The number of times the user committed a conflicted merge outside the merge conflicts dialog */
   readonly unguidedConflictedMergeCompletionCount: number
 
-  /** The number of times the user is taken to the create pull request page on dotcom from the branch menu */
-  readonly createPullRequestFromMenuCount: number
-
-  /** The number of times the user is taken to the create pull request page on dotcom from the suggested next steps flow */
-  readonly createPullRequestFromSuggestedNextStepCount: number
+  /** The number of times the user is taken to the create pull request page on dotcom */
+  readonly createPullRequestCount: number
 }
 
 export class StatsDatabase extends Dexie {

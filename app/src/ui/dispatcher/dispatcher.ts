@@ -1425,14 +1425,7 @@ export class Dispatcher {
    * Increments the `CreatePullRequestFromMenuCount` metric
    */
   public recordCreatePullRequestFromMenu() {
-    return this.statsStore.recordCreatePullRequestFromMenuCount()
-  }
-
-  /**
-   * Increments the `CreatePullRequestFromSuggestedNextStepCount` metric
-   */
-  public recordCreatePullRequestFromSuggestedNextStep() {
-    return this.statsStore.recordCreatePullRequestFromSuggestedNextStepCount()
+    return this.statsStore.recordCreatePullRequest()
   }
 
   public recordWelcomeWizardInitiated() {

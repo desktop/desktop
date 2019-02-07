@@ -80,8 +80,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   mergeConflictsDialogReopenedCount: 0,
   guidedConflictedMergeCompletionCount: 0,
   unguidedConflictedMergeCompletionCount: 0,
-  createPullRequestFromMenuCount: 0,
-  createPullRequestFromSuggestedNextStepCount: 0,
+  createPullRequestCount: 0,
 }
 
 interface IOnboardingStats {
@@ -822,23 +821,11 @@ export class StatsStore implements IStatsStore {
   }
 
   /**
-   * Increments the `createPullRequestFromMenuCount` metric
+   * Increments the `createPullRequestCount` metric
    */
-  public async recordCreatePullRequestFromMenuCount(): Promise<void> {
+  public async recordCreatePullRequest(): Promise<void> {
     return this.updateDailyMeasures(m => ({
-      createPullRequestFromMenuCount: m.createPullRequestFromMenuCount + 1,
-    }))
-  }
-
-  /**
-   * Increments the `createPullRequestFromSuggestedNextStepCount` metric
-   */
-  public async recordCreatePullRequestFromSuggestedNextStepCount(): Promise<
-    void
-  > {
-    return this.updateDailyMeasures(m => ({
-      createPullRequestFromSuggestedNextStepCount:
-        m.createPullRequestFromSuggestedNextStepCount + 1,
+      createPullRequestCount: m.createPullRequestCount + 1,
     }))
   }
 

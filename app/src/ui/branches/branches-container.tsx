@@ -264,7 +264,6 @@ export class BranchesContainer extends React.Component<
   private onCreatePullRequest = () => {
     this.props.dispatcher.closeFoldout(FoldoutType.Branch)
     this.props.dispatcher.createPullRequest(this.props.repository)
-    this.props.dispatcher.recordCreatePullRequestFromSuggestedNextStep()
   }
 
   private onPullRequestClicked = (pullRequest: PullRequest) => {
