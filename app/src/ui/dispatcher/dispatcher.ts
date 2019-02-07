@@ -1422,7 +1422,7 @@ export class Dispatcher {
   }
 
   /**
-   * Increments the `CreatePullRequestCount` metric
+   * Increments the `createPullRequestCount` metric
    */
   public recordCreatePullRequest() {
     return this.statsStore.recordCreatePullRequest()
