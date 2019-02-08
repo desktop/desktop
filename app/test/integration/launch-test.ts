@@ -4,29 +4,37 @@
 
 import { Application } from 'spectron'
 import * as path from 'path'
+import { getDistPath, getExecutableName } from '../../../script/dist-info'
 
 describe('App', function(this: any) {
   let app: Application
 
   beforeEach(function() {
-    let appPath = path.join(
-      __dirname,
-      '..',
-      '..',
-      '..',
-      'node_modules',
-      '.bin',
-      'electron'
-    )
+    const distPath = getDistPath()
+    const programName = getExecutableName()
+
+    let appPath: string
+
     if (process.platform === 'win32') {
-      appPath += '.cmd'
+      appPath = path.join(distPath, `${programName}.exe`)
+    } else if (process.platform === 'darwin') {
+      appPath = path.join(
+        distPath,
+        `${programName}.app`,
+        'Contents',
+        'macOS',
+        programName
+      )
+    } else if (process.platform === 'linux') {
+      appPath = path.join(distPath, `desktop`)
+    } else {
+      throw new Error(`Unsupported platform: ${process.platform}`)
     }
 
-    const root = path.resolve(__dirname, '..', '..', '..')
+    console.log(`launching app '${appPath}'`)
 
     app = new Application({
       path: appPath,
-      args: [path.join(root, 'out')],
     })
     return app.start()
   })
