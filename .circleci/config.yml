@@ -31,7 +31,7 @@ jobs:
             - vendor/bundle
             - .eslintcache
             - ~/.electron
-            - ~/Library/Caches/Yarn/v1
+            - ~/Library/Caches/Yarn/v4
       - run:
           name: Linting
           command: yarn lint && yarn validate-changelog && yarn check-modified
