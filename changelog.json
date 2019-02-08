@@ -1,5 +1,11 @@
 {
   "releases": {
+    "1.6.2-beta2": [
+      "[Added] Add manual conflict resolution options in merge conflicts modal - #6062",
+      "[Added] Wire up Syntax Highlighting for Crystal and Julia - #6710. Thanks @KennethSweezy!",
+      "[Fixed] Fix pointy corners with border-radius - #6635. Thanks @lisavogtsf!",
+      "[Fixed] Use higher contrast color for links in \"Merge Conflicts\" dialog - #6758"
+    ],
     "1.6.2-beta1": [
       "[Added] Automatic switching between Dark and Light modes on macOS - #5037. Thanks @say25!",
       "[Added] Lua and Fortran syntax highlighting - #6700. Thanks @SimpleBinary!",
