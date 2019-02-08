@@ -3,7 +3,7 @@
     "1.6.2-beta2": [
       "[Added] Allow users to also resolve manual conflicts when resolving merge conflicts - #6062",
       "[Added] Crystal and Julia syntax highlighting - #6710. Thanks @KennethSweezy!",
-      "[Fixed] Fix pointy corners with border-radius - #6635. Thanks @lisavogtsf!",
+      "[Fixed] Fix pointy corners on commit message text area - #6635. Thanks @lisavogtsf!",
       "[Fixed] Use higher contrast color for links in \"Merge Conflicts\" dialog - #6758"
     ],
     "1.6.2-beta1": [
