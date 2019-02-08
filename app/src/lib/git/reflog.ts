@@ -66,9 +66,11 @@ export async function getRecentBranches(
 
 /**
  * Gets the distinct list of branches that have been checked out after a specific date
+ * Returns a map keyed on branch names
  *
  * @param repository the repository who's reflog you want to check
  * @param afterDate the minimum date a checkout has to occur
+ * @returns map of branch name -> checkout date
  */
 export async function getCheckoutsAfterDate(
   repository: Repository,
