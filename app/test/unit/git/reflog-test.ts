@@ -84,7 +84,7 @@ describe('git/reflog', () => {
       expect(branches.size).toBe(0)
     })
 
-    it('returns all branches checkedout after a specific date', async () => {
+    it('returns all branches checked out after a specific date', async () => {
       await createBranch(repository!, 'never-checked-out')
       await createAndCheckout(repository!, 'branch-1')
       await createAndCheckout(repository!, 'branch-2')
