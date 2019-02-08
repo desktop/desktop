@@ -22,7 +22,7 @@ async function createAndCheckout(
 }
 
 describe('git/reflog', () => {
-  let repository: Repository | null = null
+  let repository: Repository
 
   beforeEach(async () => {
     const testRepoPath = await setupFixtureRepository('test-repo')
@@ -31,26 +31,26 @@ describe('git/reflog', () => {
 
   describe('getRecentBranches', () => {
     it('returns the recently checked out branches', async () => {
-      await createAndCheckout(repository!, 'branch-1')
-      await createAndCheckout(repository!, 'branch-2')
+      await createAndCheckout(repository, 'branch-1')
+      await createAndCheckout(repository, 'branch-2')
 
-      const branches = await getRecentBranches(repository!, 10)
+      const branches = await getRecentBranches(repository, 10)
       expect(branches).toContain('branch-1')
       expect(branches).toContain('branch-2')
     })
 
     it('works after renaming a branch', async () => {
-      await createAndCheckout(repository!, 'branch-1')
-      await createAndCheckout(repository!, 'branch-2')
+      await createAndCheckout(repository, 'branch-1')
+      await createAndCheckout(repository, 'branch-2')
 
-      const allBranches = await getBranches(repository!)
+      const allBranches = await getBranches(repository)
       const currentBranch = allBranches.find(
         branch => branch.name === 'branch-2'
       )
 
-      await renameBranch(repository!, currentBranch!, 'branch-2-test')
+      await renameBranch(repository, currentBranch!, 'branch-2-test')
 
-      const branches = await getRecentBranches(repository!, 10)
+      const branches = await getRecentBranches(repository, 10)
       expect(branches).not.toContain('master')
       expect(branches).not.toContain('branch-2')
       expect(branches).toContain('branch-1')
@@ -58,12 +58,12 @@ describe('git/reflog', () => {
     })
 
     it('returns a limited number of branches', async () => {
-      await createAndCheckout(repository!, 'branch-1')
-      await createAndCheckout(repository!, 'branch-2')
-      await createAndCheckout(repository!, 'branch-3')
-      await createAndCheckout(repository!, 'branch-4')
+      await createAndCheckout(repository, 'branch-1')
+      await createAndCheckout(repository, 'branch-2')
+      await createAndCheckout(repository, 'branch-3')
+      await createAndCheckout(repository, 'branch-4')
 
-      const branches = await getRecentBranches(repository!, 2)
+      const branches = await getRecentBranches(repository, 2)
       expect(branches).toHaveLength(2)
       expect(branches).toContain('branch-4')
       expect(branches).toContain('branch-3')
