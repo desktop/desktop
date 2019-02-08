@@ -5,8 +5,10 @@ import {
   createBranch,
   checkoutBranch,
   renameBranch,
+  getCheckoutsAfterDate,
 } from '../../../src/lib/git'
 import { setupFixtureRepository } from '../../helpers/repositories'
+import moment = require('moment')
 
 async function createAndCheckout(
   repository: Repository,
@@ -65,6 +67,35 @@ describe('git/reflog', () => {
       expect(branches).toHaveLength(2)
       expect(branches).toContain('branch-4')
       expect(branches).toContain('branch-3')
+    })
+  })
+
+  describe('getCheckoutsAfterDate', () => {
+    it('returns does not return the branches that were checked out before a specific date', async () => {
+      await createAndCheckout(repository!, 'branch-1')
+      await createAndCheckout(repository!, 'branch-2')
+
+      const branches = await getCheckoutsAfterDate(
+        repository!,
+        moment()
+          .add(1, 'day')
+          .toDate()
+      )
+      expect(branches.size).toBe(0)
+    })
+
+    it('returns all branches checkedout after a specific date', async () => {
+      await createBranch(repository!, 'never-checked-out')
+      await createAndCheckout(repository!, 'branch-1')
+      await createAndCheckout(repository!, 'branch-2')
+
+      const branches = await getCheckoutsAfterDate(
+        repository!,
+        moment()
+          .subtract(1, 'hour')
+          .toDate()
+      )
+      expect(branches.size).toBe(2)
     })
   })
 })
