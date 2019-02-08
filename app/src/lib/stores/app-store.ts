@@ -183,7 +183,10 @@ import {
   updateChangedFiles,
   updateConflictState,
 } from './updates/changes-state'
-import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
+import {
+  ManualConflictResolution,
+  ManualConflictResolutionKind,
+} from '../../models/manual-conflict-resolution'
 import { BranchPruner } from './helpers/branch-pruner'
 import { enableBranchPruning } from '../feature-flag'
 
@@ -475,7 +478,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
         return null
       }
 
-      return { type: SelectionType.CloningRepository, repository, progress }
+      return {
+        type: SelectionType.CloningRepository,
+        repository,
+        progress,
+      }
     }
 
     if (repository.missing) {
@@ -864,7 +871,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.currentAheadBehindUpdater.insert(from, to, aheadBehind)
     }
 
-    const loadingMerge: MergeResultStatus = { kind: MergeResultKind.Loading }
+    const loadingMerge: MergeResultStatus = {
+      kind: MergeResultKind.Loading,
+    }
 
     this.repositoryStateCache.updateCompareState(repository, () => ({
       mergeStatus: loadingMerge,
@@ -2086,7 +2095,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
    */
   private async refreshChangesSection(
     repository: Repository,
-    options: { includingStatus: boolean; clearPartialState: boolean }
+    options: {
+      includingStatus: boolean
+      clearPartialState: boolean
+    }
   ): Promise<void> {
     if (options.includingStatus) {
       await this._loadStatus(repository, options.clearPartialState)
@@ -2700,7 +2712,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
             tip.branch.upstream
           )
 
-          gitContext = { kind: 'pull', tip, theirBranch: tip.branch.upstream }
+          gitContext = {
+            kind: 'pull',
+            tip,
+            theirBranch: tip.branch.upstream,
+          }
         }
 
         const title = `Pulling ${remote.name}`
@@ -2902,7 +2918,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     url: string,
     path: string,
     options?: { branch?: string }
-  ): { promise: Promise<boolean>; repository: CloningRepository } {
+  ): {
+    promise: Promise<boolean>
+    repository: CloningRepository
+  } {
     const account = this.getAccountForRemoteURL(url)
     const promise = this.cloningRepositoriesStore.clone(url, path, {
       ...options,
@@ -3216,7 +3235,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _finishConflictedMerge(
     repository: Repository,
-    workingDirectory: WorkingDirectoryStatus
+    workingDirectory: WorkingDirectoryStatus,
+    manualResolutions: Map<string, ManualConflictResolutionKind>
   ): Promise<string | undefined> {
     // filter out untracked files so we don't commit them
     const trackedFiles = workingDirectory.files.filter(f => {
@@ -3224,7 +3244,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
     const gitStore = this.gitStoreCache.get(repository)
     return await gitStore.performFailableOperation(() =>
-      createMergeCommit(repository, trackedFiles)
+      createMergeCommit(repository, trackedFiles, manualResolutions)
     )
   }
 

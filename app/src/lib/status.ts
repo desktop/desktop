@@ -6,6 +6,7 @@ import {
   isConflictWithMarkers,
 } from '../models/status'
 import { assertNever } from './fatal-error'
+import { ManualConflictResolution } from '../models/manual-conflict-resolution'
 
 /**
  * Convert a given `AppFileStatusKind` value to a human-readable string to be
@@ -59,15 +60,17 @@ export function hasConflictedFiles(
 }
 
 /**
- * Determine if we have a `ManualConflict` type
- * or conflict markers
+ * Determine if we have any conflict markers or if its been resolved manually
  */
-export function hasUnresolvedConflicts(status: ConflictedFileStatus) {
+export function hasUnresolvedConflicts(
+  status: ConflictedFileStatus,
+  manualResolution?: ManualConflictResolution
+) {
   if (isConflictWithMarkers(status)) {
     // text file may have conflict markers present
     return status.conflictMarkerCount > 0
   }
 
-  // binary file doesn't contain markers
-  return true
+  // binary file doesn't contain markers, so we check the manual resolution
+  return manualResolution === undefined
 }
