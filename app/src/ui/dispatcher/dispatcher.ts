@@ -1421,6 +1421,13 @@ export class Dispatcher {
     return this.statsStore.recordDivergingBranchBannerInitatedMerge()
   }
 
+  /**
+   * Increments the `createPullRequestCount` metric
+   */
+  public recordCreatePullRequest() {
+    return this.statsStore.recordCreatePullRequest()
+  }
+
   public recordWelcomeWizardInitiated() {
     return this.statsStore.recordWelcomeWizardInitiated()
   }
