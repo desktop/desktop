@@ -196,6 +196,8 @@ export class MergeConflictsDialog extends React.Component<
                 repository: this.props.repository,
                 dispatcher: this.props.dispatcher,
                 manualResolution: this.props.manualResolutions.get(f.path),
+                ourBranch: this.props.ourBranch,
+                theirBranch: this.props.theirBranch,
               })
             : null
         )}
