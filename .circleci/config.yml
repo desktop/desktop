@@ -32,7 +32,6 @@ jobs:
             - .eslintcache
             - ~/.electron
             - ~/Library/Caches/Yarn/v1
-            - ./node_modules
       - run:
           name: Linting
           command: yarn lint && yarn validate-changelog && yarn check-modified
