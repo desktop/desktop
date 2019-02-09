@@ -27,7 +27,39 @@ describe('App', function(this: any) {
 
   afterEach(async () => {
     if (app && app.isRunning()) {
-      await app.stop()
+      //
+      // this chunk of code is rather annoying so I'll explain what we're trying
+      // to do here for any future readers of this code
+      //
+      try {
+        // This is the expected way to end the spectron test, but it may throw
+        // an error from the internal ChromeDriver and WebDriver dependencies
+        // it sets up to perform the test.
+        await app.stop()
+      } catch (err) {
+        // Because of the order of how Spectron's Application wrapper cleans up
+        // inside `stop()` it tries to interact with the app before it cleans up
+        // the other things.
+        //
+        // This is the source for the v4 version:
+        // https://github.com/electron/spectron/blob/1c3883f3db7f807b39a6ac505805ea941b06c57b/lib/application.js#L56-L80
+        //
+        // If this fails for whatever reason, we need to do our best guess at
+        // cleaning up any running components. Errors I've seen raised recently
+        // include:
+        //  - application is in an unknown state
+        //  - WebDriver is unable to reach the running app
+        //  - etc
+        //
+
+        // First, we signal to the WebDriver client to close itself
+        app.client.close()
+
+        // Then, we try and close the ChromeDriver client, which isn't visible
+        // from the typings, so we have to hack around it
+        const anyApp = app as any
+        anyApp.chromeDriver.stop()
+      }
     }
   })
 
