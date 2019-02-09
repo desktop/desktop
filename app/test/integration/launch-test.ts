@@ -8,7 +8,7 @@ import { getEntryPointForApp } from '../../../script/dist-info'
 describe('App', function(this: any) {
   let app: Application
 
-  beforeEach(() => {
+  beforeEach(async () => {
     const appPath = getEntryPointForApp()
 
     console.log(`launching app '${appPath}'`)
@@ -16,14 +16,13 @@ describe('App', function(this: any) {
     app = new Application({
       path: appPath,
     })
-    return app.start()
+    await app.start()
   })
 
-  afterEach(function() {
+  afterEach(async () => {
     if (app && app.isRunning()) {
-      return app.stop()
+      await app.stop()
     }
-    return Promise.resolve()
   })
 
   it('opens a window on launch', async () => {
