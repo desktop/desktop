@@ -44,6 +44,11 @@ jobs:
             yarn test:setup
             yarn test
       - run:
+          name: Review Test Failures
+          command: |
+            yarn test:review
+          when: on_fail
+      - run:
           name: Report to codecov
           command: yarn test:report
           when: always

@@ -6,6 +6,13 @@ import * as os from 'os'
 import { getProductName } from '../app/package-info'
 import { getExecutableName } from './dist-info'
 
+// TODO: we have types for this
+const klawSync = require('klaw-sync')
+
+type KlawEntry = {
+  path: string
+}
+
 function getUserDataPath() {
   if (process.platform === 'win32') {
     if (process.env.APPDATA) {
@@ -33,14 +40,17 @@ function getUserDataPath() {
   }
 }
 
+export function getLogsDirectory() {
+  return path.join(getUserDataPath(), 'logs')
+}
+
 export function getLogFiles(): ReadonlyArray<string> {
-  const directory = path.join(getUserDataPath(), 'logs')
+  const directory = getLogsDirectory()
   if (!fs.existsSync(directory)) {
     return []
   }
 
-  const fileNames = fs.readdirSync(directory)
-  return fileNames
-    .filter(fileName => fileName.endsWith('.log'))
-    .map(fileName => path.join(directory, fileName))
+  const entries: ReadonlyArray<KlawEntry> = klawSync(directory, { nodir: true })
+
+  return entries.map(l => l.path).filter(item => path.extname(item) === '.log')
 }

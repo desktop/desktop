@@ -3,8 +3,10 @@
 /// <reference path="../../../node_modules/@types/node/index.d.ts" />
 
 import { Application } from 'spectron'
-import { pathExists } from 'fs-extra'
+import { pathExists, mkdirp } from 'fs-extra'
+import * as Path from 'path'
 import { getEntryPointForApp } from '../../../script/dist-info'
+import { getLogsDirectory } from '../../../script/review-logs'
 
 describe('App', function(this: any) {
   let app: Application
@@ -19,8 +21,16 @@ describe('App', function(this: any) {
       )
     }
 
+    const logsDir = getLogsDirectory()
+
+    await mkdirp(logsDir)
+
+    console.log(`Running Spectron and logging to ${logsDir}`)
+
     app = new Application({
       path: appPath,
+      chromeDriverLogPath: Path.join(logsDir, 'chrome-driver.log'),
+      webdriverLogPath: Path.join(logsDir, 'web-driver'),
     })
     await app.start()
   })
