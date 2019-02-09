@@ -3,33 +3,13 @@
 /// <reference path="../../../node_modules/@types/node/index.d.ts" />
 
 import { Application } from 'spectron'
-import * as path from 'path'
-import { getDistPath, getExecutableName } from '../../../script/dist-info'
+import { getEntryPointForApp } from '../../../script/dist-info'
 
 describe('App', function(this: any) {
   let app: Application
 
-  beforeEach(function() {
-    const distPath = getDistPath()
-    const programName = getExecutableName()
-
-    let appPath: string
-
-    if (process.platform === 'win32') {
-      appPath = path.join(distPath, `${programName}.exe`)
-    } else if (process.platform === 'darwin') {
-      appPath = path.join(
-        distPath,
-        `${programName}.app`,
-        'Contents',
-        'macOS',
-        programName
-      )
-    } else if (process.platform === 'linux') {
-      appPath = path.join(distPath, `desktop`)
-    } else {
-      throw new Error(`Unsupported platform: ${process.platform}`)
-    }
+  beforeEach(() => {
+    const appPath = getEntryPointForApp()
 
     console.log(`launching app '${appPath}'`)
 

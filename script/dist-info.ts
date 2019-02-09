@@ -32,6 +32,27 @@ export function getExecutableName() {
   }
 }
 
+export function getEntryPointForApp() {
+  const distPath = getDistPath()
+  const programName = getExecutableName()
+
+  if (process.platform === 'win32') {
+    return Path.join(distPath, `${programName}.exe`)
+  } else if (process.platform === 'darwin') {
+    return Path.join(
+      distPath,
+      `${programName}.app`,
+      'Contents',
+      'macOS',
+      programName
+    )
+  } else if (process.platform === 'linux') {
+    return Path.join(distPath, `desktop`)
+  } else {
+    throw new Error(`Unsupported platform: ${process.platform}`)
+  }
+}
+
 export function getOSXZipName() {
   return `${productName}.zip`
 }
