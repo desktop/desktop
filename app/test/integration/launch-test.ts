@@ -11,8 +11,6 @@ describe('App', function(this: any) {
   beforeEach(async () => {
     const appPath = getEntryPointForApp()
 
-    console.log(`launching app '${appPath}'`)
-
     app = new Application({
       path: appPath,
     })
