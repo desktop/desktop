@@ -3,6 +3,7 @@
 /// <reference path="../../../node_modules/@types/node/index.d.ts" />
 
 import { Application } from 'spectron'
+import { pathExists } from 'fs-extra'
 import { getEntryPointForApp } from '../../../script/dist-info'
 
 describe('App', function(this: any) {
@@ -10,6 +11,13 @@ describe('App', function(this: any) {
 
   beforeEach(async () => {
     const appPath = getEntryPointForApp()
+
+    const exists = await pathExists(appPath)
+    if (!exists) {
+      throw new Error(
+        `Application expected at ${appPath} was not found on disk. Ensure you have built the app for production mode before running the integration tests.`
+      )
+    }
 
     app = new Application({
       path: appPath,
