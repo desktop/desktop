@@ -33,10 +33,14 @@ describe('App', function(this: any) {
     expect(count).toBe(1)
 
     const window = app.browserWindow
-    expect(window.isVisible()).resolves.toBe(true)
-    expect(window.isMinimized()).resolves.toBe(false)
+    const isVisible = await window.isVisible()
+    expect(isVisible).toBe(true)
 
-    expect(window.isMinimized()).resolves.toBe(false)
+    const isMinimized = await window.isMinimized()
+    expect(isMinimized).toBe(false)
+
+    const isMaximized = await window.isMaximized()
+    expect(isMaximized).toBe(false)
 
     const bounds = await window.getBounds()
 
