@@ -158,7 +158,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
       this.props.dispatcher.recordUnguidedConflictedMergeCompletion()
     }
 
-    // which of the files selected for committing are conflicted?
+    // which of the files selected for committing are conflicted (with markers)?
     const conflictedFilesSelected = this.props.changes.workingDirectory.files.filter(
       f =>
         isConflictedFile(f.status) &&

@@ -106,9 +106,15 @@ dialog#merge-conflicts-list {
     }
   }
 
-  .arrow-menu {
+  .arrow-menu,
+  .resolve-arrow-menu {
     .octicon {
       width: 10px;
+    }
+  }
+  .resolve-arrow-menu {
+    .octicon {
+      margin-left: var(--spacing-half);
     }
   }
 }
