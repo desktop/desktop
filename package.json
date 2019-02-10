@@ -99,7 +99,7 @@
     "rimraf": "^2.5.2",
     "sass-loader": "^7.0.1",
     "semver": "^5.5.0",
-    "spectron": "4.0.0",
+    "spectron": "5.0.0",
     "stop-build": "^1.1.0",
     "style-loader": "^0.21.0",
     "to-camel-case": "^1.0.0",
