@@ -38,10 +38,11 @@ build_script:
 test_script:
   - yarn test:setup
   - ./script/test-appveyor.bat
-  - yarn test:report
 
 on_success:
+  - yarn test:report
   - yarn run publish
 
 on_finish:
   - yarn test:review
+  - yarn test:report
