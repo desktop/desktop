@@ -15,8 +15,6 @@ cache:
 branches:
   only:
     - development
-    # investigating integration test failures
-    - more-tabs-more-state
     - /^__release-.*/
 
 skip_tags: true
