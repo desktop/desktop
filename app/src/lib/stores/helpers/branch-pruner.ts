@@ -143,7 +143,7 @@ export class BranchPruner {
 
       if (
         localBranch !== undefined &&
-        recentlyCheckedOutBranches.has(localBranch.name)
+        !recentlyCheckedOutBranches.has(localBranch.name)
       ) {
         branchesReadyForPruning.push(localBranch)
       }
