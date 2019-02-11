@@ -346,6 +346,7 @@ const renderResolvedFileStatusSummary: React.SFC<{
   )
 }
 
+/** returns the name of the branch that corresponds to the chosen manual resolution */
 function getBranchForResolution(
   manualResolution: ManualConflictResolution | undefined,
   ourBranch: string,
