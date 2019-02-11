@@ -9,7 +9,7 @@ environment:
 cache:
   - .eslintcache
   - '%USERPROFILE%\.electron'
-  - '%LOCALAPPDATA%\Yarn'
+   - '%LOCALAPPDATA%\Yarn\Cache\v4'
 
 branches:
   only:
