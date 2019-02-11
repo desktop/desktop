@@ -10,6 +10,7 @@ const klawSync = require('klaw-sync')
 import { Repository } from '../../src/models/repository'
 import { GitProcess } from 'dugite'
 import { makeCommit, switchTo } from './repository-scaffolding'
+import { writeFile } from 'fs-extra'
 
 type KlawEntry = {
   path: string
@@ -114,6 +115,52 @@ export async function setupConflictedRepo(): Promise<Repository> {
     entries: [{ path: 'foo', contents: 'b2' }],
   }
   await makeCommit(repo, thirdCommit)
+
+  await GitProcess.exec(['merge', 'master'], repo.path)
+
+  return repo
+}
+
+/**
+ * Setup a repository and create a merge conflict
+ *
+ * @returns the new local repository
+ *
+ * The current branch will be 'other-branch' and the merged branch will be
+ * 'master' in your test harness.
+ *
+ * The conflicted file will be 'foo'. There will also be uncommitted changes unrelated to the merge in 'perlin'.
+ */
+export async function setupConflictedRepoWithDirt(): Promise<Repository> {
+  const repo = await setupEmptyRepository()
+
+  const firstCommit = {
+    entries: [
+      { path: 'foo', contents: '' },
+      { path: 'perlin', contents: 'perlin' },
+    ],
+  }
+
+  await makeCommit(repo, firstCommit)
+
+  // create this branch starting from the first commit, but don't checkout it
+  // because we want to create a divergent history
+  await GitProcess.exec(['branch', 'other-branch'], repo.path)
+
+  const secondCommit = {
+    entries: [{ path: 'foo', contents: 'b1' }],
+  }
+
+  await makeCommit(repo, secondCommit)
+
+  await switchTo(repo, 'other-branch')
+
+  const thirdCommit = {
+    entries: [{ path: 'foo', contents: 'b2' }],
+  }
+  await makeCommit(repo, thirdCommit)
+
+  await writeFile(Path.join(repo.path, 'perlin'), 'noise')
 
   await GitProcess.exec(['merge', 'master'], repo.path)
 
