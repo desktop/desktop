@@ -4,6 +4,7 @@ import {
   ConflictedFileStatus,
   WorkingDirectoryStatus,
   isConflictWithMarkers,
+  GitStatusEntry,
 } from '../models/status'
 import { assertNever } from './fatal-error'
 import { ManualConflictResolution } from '../models/manual-conflict-resolution'
@@ -73,4 +74,54 @@ export function hasUnresolvedConflicts(
 
   // binary file doesn't contain markers, so we check the manual resolution
   return manualResolution === undefined
+}
+
+/** the possible git status entries for a manually conflicted file status
+ * only intended for use in this file, but could evolve into an official type someday
+ */
+type UnmergedStatusEntry =
+  | GitStatusEntry.Added
+  | GitStatusEntry.UpdatedButUnmerged
+  | GitStatusEntry.Deleted
+
+/** Returns a human-readable description for a chosen version of a file
+ *  intended for use with manually resolved merge conficts
+ */
+export function getUnmergedStatusEntryDescription(
+  entry: UnmergedStatusEntry,
+  branch?: string
+): string {
+  const suffix = branch ? ` from ${branch}` : ''
+
+  switch (entry) {
+    case GitStatusEntry.Added:
+      return `Using the added file${suffix}`
+    case GitStatusEntry.UpdatedButUnmerged:
+      return `Using the modified file${suffix}`
+    case GitStatusEntry.Deleted:
+      return `Using the deleted file${suffix}`
+    default:
+      return assertNever(entry, 'Unknown status entry to format')
+  }
+}
+
+/** Returns a human-readable description for an available manual resolution method
+ *  intended for use with manually resolved merge conficts
+ */
+export function getLabelForManualResolutionOption(
+  entry: UnmergedStatusEntry,
+  branch?: string
+): string {
+  const suffix = branch ? ` from ${branch}` : ''
+
+  switch (entry) {
+    case GitStatusEntry.Added:
+      return `Use the added file${suffix}`
+    case GitStatusEntry.UpdatedButUnmerged:
+      return `Use the modified file${suffix}`
+    case GitStatusEntry.Deleted:
+      return `Use the deleted file${suffix}`
+    default:
+      return assertNever(entry, 'Unknown status entry to format')
+  }
 }
