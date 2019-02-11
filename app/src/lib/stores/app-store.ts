@@ -1943,13 +1943,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return repository
     }
 
-    let foundRepository = await pathExists(repository.path)
+    const foundRepository =
+      (await pathExists(repository.path)) &&
+      (await isGitRepository(repository.path))
 
     if (foundRepository) {
-      foundRepository = await isGitRepository(repository.path)
+      this._updateRepositoryMissing(repository, false)
     }
-
-    return this._updateRepositoryMissing(repository, foundRepository)
+    return repository
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
