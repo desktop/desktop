@@ -1,5 +1,8 @@
 {
   "releases": {
+    "1.6.2-beta3": [
+      "[Improved] Guided merge conflict resolution only commits changes relevant to the merge - #6349"
+    ],
     "1.6.2-beta2": [
       "[Added] Allow users to also resolve manual conflicts when resolving merge conflicts - #6062",
       "[Added] Crystal and Julia syntax highlighting - #6710. Thanks @KennethSweezy!",
