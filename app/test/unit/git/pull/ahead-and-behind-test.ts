@@ -128,6 +128,78 @@ describe('git/pull', () => {
       })
     })
 
+    describe('with pull.rebase=false set in config', () => {
+      let previousTip: Commit
+      let newTip: Commit
+
+      beforeEach(async () => {
+        await GitProcess.exec(
+          ['config', '--local', 'pull.rebase', 'false'],
+          repository.path
+        )
+
+        previousTip = await getTipOrError(repository)
+
+        await pull(repository, null, origin)
+
+        newTip = await getTipOrError(repository)
+      })
+
+      it('creates a merge commit', async () => {
+        expect(newTip.sha).not.toBe(previousTip.sha)
+        expect(newTip.parentSHAs).toHaveLength(2)
+      })
+
+      it('is ahead of tracking branch', async () => {
+        const range = revSymmetricDifference(
+          featureBranch,
+          `${origin}/${featureBranch}`
+        )
+
+        const aheadBehind = await getAheadBehind(repository, range)
+        expect(aheadBehind).toEqual({
+          ahead: 2,
+          behind: 0,
+        })
+      })
+    })
+
+    describe('with pull.rebase=true set in config', () => {
+      let previousTip: Commit
+      let newTip: Commit
+
+      beforeEach(async () => {
+        await GitProcess.exec(
+          ['config', '--local', 'pull.rebase', 'true'],
+          repository.path
+        )
+
+        previousTip = await getTipOrError(repository)
+
+        await pull(repository, null, origin)
+
+        newTip = await getTipOrError(repository)
+      })
+
+      it('does not create a merge commit', async () => {
+        expect(newTip.sha).not.toBe(previousTip.sha)
+        expect(newTip.parentSHAs).toHaveLength(1)
+      })
+
+      it('is ahead of tracking branch', async () => {
+        const range = revSymmetricDifference(
+          featureBranch,
+          `${origin}/${featureBranch}`
+        )
+
+        const aheadBehind = await getAheadBehind(repository, range)
+        expect(aheadBehind).toEqual({
+          ahead: 1,
+          behind: 0,
+        })
+      })
+    })
+
     describe('with pull.ff=only set in config', () => {
       beforeEach(async () => {
         await GitProcess.exec(
