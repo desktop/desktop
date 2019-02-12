@@ -22,6 +22,7 @@ import {
 import {
   setupEmptyRepository,
   setupConflictedRepoWithMultipleFiles,
+  setupConflictedRepoWithUnrelatedCommittedChange,
 } from '../helpers/repositories'
 import { InMemoryStore, AsyncInMemoryStore } from '../helpers/stores'
 
@@ -173,38 +174,63 @@ describe('AppStore', () => {
     })
   })
   describe('_finishConflictedMerge', () => {
-    let appStore: AppStore, repo: Repository, status: IStatusResult
+    describe('with tracked and untracked files', () => {
+      let appStore: AppStore, repo: Repository, status: IStatusResult
 
-    beforeEach(async () => {
-      appStore = await createAppStore()
-      repo = await setupConflictedRepoWithMultipleFiles()
-      await appStore._selectRepository(repo)
-      status = await getStatusOrThrow(repo)
+      beforeEach(async () => {
+        appStore = await createAppStore()
+        repo = await setupConflictedRepoWithMultipleFiles()
+        await appStore._selectRepository(repo)
+        status = await getStatusOrThrow(repo)
+      })
+
+      it('commits tracked files', async () => {
+        await appStore._finishConflictedMerge(
+          repo,
+          status.workingDirectory,
+          new Map<string, ManualConflictResolutionKind>()
+        )
+        const newStatus = await getStatusOrThrow(repo)
+        const trackedFiles = newStatus.workingDirectory.files.filter(
+          f => f.status.kind !== AppFileStatusKind.Untracked
+        )
+        expect(trackedFiles).toHaveLength(0)
+      })
+      it('leaves untracked files untracked', async () => {
+        await appStore._finishConflictedMerge(
+          repo,
+          status.workingDirectory,
+          new Map<string, ManualConflictResolutionKind>()
+        )
+        const newStatus = await getStatusOrThrow(repo)
+        const untrackedfiles = newStatus.workingDirectory.files.filter(
+          f => f.status.kind === AppFileStatusKind.Untracked
+        )
+        expect(untrackedfiles).toHaveLength(1)
+      })
     })
 
-    it('commits tracked files', async () => {
-      await appStore._finishConflictedMerge(
-        repo,
-        status.workingDirectory,
-        new Map<string, ManualConflictResolutionKind>()
-      )
-      const newStatus = await getStatusOrThrow(repo)
-      const trackedFiles = newStatus.workingDirectory.files.filter(
-        f => f.status.kind !== AppFileStatusKind.Untracked
-      )
-      expect(trackedFiles).toHaveLength(0)
-    })
-    it('leaves untracked files untracked', async () => {
-      await appStore._finishConflictedMerge(
-        repo,
-        status.workingDirectory,
-        new Map<string, ManualConflictResolutionKind>()
-      )
-      const newStatus = await getStatusOrThrow(repo)
-      const untrackedfiles = newStatus.workingDirectory.files.filter(
-        f => f.status.kind === AppFileStatusKind.Untracked
-      )
-      expect(untrackedfiles).toHaveLength(1)
+    describe('with unrelated changes that are uncommitted', () => {
+      let appStore: AppStore, repo: Repository, status: IStatusResult
+
+      beforeEach(async () => {
+        appStore = await createAppStore()
+        repo = await setupConflictedRepoWithUnrelatedCommittedChange()
+        await appStore._selectRepository(repo)
+        status = await getStatusOrThrow(repo)
+      })
+      it("doesn't commit unrelated changes", async () => {
+        await appStore._finishConflictedMerge(
+          repo,
+          status.workingDirectory,
+          new Map<string, ManualConflictResolutionKind>()
+        )
+        const newStatus = await getStatusOrThrow(repo)
+        const modifiedFiles = newStatus.workingDirectory.files.filter(
+          f => f.status.kind === AppFileStatusKind.Modified
+        )
+        expect(modifiedFiles).toHaveLength(1)
+      })
     })
   })
 })

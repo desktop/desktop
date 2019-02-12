@@ -50,6 +50,7 @@ export async function createCommit(
 /**
  * Creates a commit to finish an in-progress merge
  * assumes that all conflicts have already been resolved
+ * *Warning:* Does _not_ clear staged files before it commits!
  *
  * @param repository repository to execute merge in
  * @param files files to commit
@@ -59,12 +60,7 @@ export async function createMergeCommit(
   files: ReadonlyArray<WorkingDirectoryFileChange>,
   manualResolutions: ReadonlyMap<string, ManualConflictResolution> = new Map()
 ): Promise<string | undefined> {
-  // Clear the staging area, our diffs reflect the difference between the
-  // working directory and the last commit (if any) so our commits should
-  // do the same thing.
   try {
-    await unstageAll(repository)
-
     // apply manual conflict resolutions
     for (const [path, resolution] of manualResolutions) {
       const file = files.find(f => f.path === path)
