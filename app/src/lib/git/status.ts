@@ -25,6 +25,7 @@ import { IAheadBehind } from '../../models/branch'
 import { fatalError } from '../../lib/fatal-error'
 import { isMergeHeadSet } from './merge'
 import { getBinaryPaths } from './diff'
+import { isRebaseHeadSet } from './rebase'
 
 /**
  * V8 has a limit on the size of string it can create (~256MB), and unless we want to
@@ -55,6 +56,9 @@ export interface IStatusResult {
 
   /** true if repository is in a conflicted state */
   readonly mergeHeadFound: boolean
+
+  /** `true` if repository is in the middle of a rebase */
+  readonly rebaseHeadFound: boolean
 
   /** the absolute path to the repository's working directory */
   readonly workingDirectory: WorkingDirectoryStatus
@@ -191,6 +195,7 @@ export async function getStatus(
   const entries = parsed.filter(isStatusEntry)
 
   const mergeHeadFound = await isMergeHeadSet(repository)
+  const rebaseHeadFound = await isRebaseHeadSet(repository)
   const conflictDetails = await getConflictDetails(repository, mergeHeadFound)
 
   // Map of files keyed on their paths.
@@ -221,6 +226,7 @@ export async function getStatus(
     branchAheadBehind,
     exists: true,
     mergeHeadFound,
+    rebaseHeadFound,
     workingDirectory,
   }
 }
