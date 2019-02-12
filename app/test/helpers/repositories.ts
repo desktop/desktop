@@ -131,7 +131,9 @@ export async function setupConflictedRepo(): Promise<Repository> {
  *
  * The conflicted file will be 'foo'. There will also be uncommitted changes unrelated to the merge in 'perlin'.
  */
-export async function setupConflictedRepoWithDirt(): Promise<Repository> {
+export async function setupConflictedRepoWithUnrelatedCommittedChange(): Promise<
+  Repository
+> {
   const repo = await setupEmptyRepository()
 
   const firstCommit = {

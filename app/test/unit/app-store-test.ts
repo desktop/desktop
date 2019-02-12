@@ -22,7 +22,7 @@ import {
 import {
   setupEmptyRepository,
   setupConflictedRepoWithMultipleFiles,
-  setupConflictedRepoWithDirt,
+  setupConflictedRepoWithUnrelatedCommittedChange,
 } from '../helpers/repositories'
 import { InMemoryStore, AsyncInMemoryStore } from '../helpers/stores'
 
@@ -215,7 +215,7 @@ describe('AppStore', () => {
 
       beforeEach(async () => {
         appStore = await createAppStore()
-        repo = await setupConflictedRepoWithDirt()
+        repo = await setupConflictedRepoWithUnrelatedCommittedChange()
         await appStore._selectRepository(repo)
         status = await getStatusOrThrow(repo)
       })
