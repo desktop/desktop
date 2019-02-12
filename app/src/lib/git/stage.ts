@@ -12,8 +12,6 @@ import {
 import { git } from '.'
 import { assertNever } from '../fatal-error'
 
-// TODO: review and potentially unify usage with Commit.stageManualConflictResolution
-
 /**
  * Stages a file with the given manual resolution method. Useful for resolving binary conflicts at commit-time.
  *
@@ -28,7 +26,6 @@ export async function stageManualConflictResolution(
   manualResolution: ManualConflictResolution
 ): Promise<boolean> {
   const { status } = file
-
   // if somehow the file isn't in a conflicted state
   if (!isConflictedFileStatus(status)) {
     log.error(`tried to manually resolve unconflicted file (${file.path})`)
