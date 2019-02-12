@@ -3239,12 +3239,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     manualResolutions: Map<string, ManualConflictResolutionKind>
   ): Promise<string | undefined> {
     // filter out untracked files so we don't commit them
-    const trackedFiles = workingDirectory.files.filter(f => {
-      return f.status.kind !== AppFileStatusKind.Untracked
+    const conflictedFiles = workingDirectory.files.filter(f => {
+      return f.status.kind === AppFileStatusKind.Conflicted
     })
     const gitStore = this.gitStoreCache.get(repository)
     return await gitStore.performFailableOperation(() =>
-      createMergeCommit(repository, trackedFiles, manualResolutions)
+      createMergeCommit(repository, conflictedFiles, manualResolutions)
     )
   }
 
