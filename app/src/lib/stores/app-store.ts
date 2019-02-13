@@ -134,6 +134,8 @@ import {
   createMergeCommit,
   getBranchesPointedAt,
   isGitRepository,
+  abortRebase,
+  continueRebase,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -3225,6 +3227,30 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     return this._refreshRepository(repository)
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _abortRebase(repository: Repository): Promise<void> {
+    const gitStore = this.gitStoreCache.get(repository)
+    return await gitStore.performFailableOperation(() =>
+      abortRebase(repository)
+    )
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _continueRebase(
+    repository: Repository,
+    workingDirectory: WorkingDirectoryStatus
+  ) {
+    const gitStore = this.gitStoreCache.get(repository)
+
+    const trackedFiles = workingDirectory.files.filter(f => {
+      return f.status.kind !== AppFileStatusKind.Untracked
+    })
+
+    return await gitStore.performFailableOperation(() =>
+      continueRebase(repository, trackedFiles)
+    )
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
