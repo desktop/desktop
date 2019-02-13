@@ -331,11 +331,8 @@ function parseStatusHeader(results: IStatusHeadersData, header: IStatusHeader) {
  */
 async function getConflictDetails(
   repository: Repository,
-  mergeHeadFound?: boolean
+  mergeHeadFound: boolean
 ): Promise<ConflictFilesDetails> {
-  if (mergeHeadFound === undefined) {
-    mergeHeadFound = await isMergeHeadSet(repository)
-  }
   // if we have any conflicted files reported by status, let
   try {
     if (mergeHeadFound) {
