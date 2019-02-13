@@ -265,6 +265,14 @@ export type MergeConflictState = {
   readonly manualResolutions: Map<string, ManualConflictResolution>
 }
 
+// TODO: where should this live?
+
+export function isMergeConflictState(
+  conflictStatus: ConflictState
+): conflictStatus is MergeConflictState {
+  return conflictStatus.kind === 'merge'
+}
+
 /**
  * Stores information about conflicts when handling a rebase
  */
@@ -275,8 +283,15 @@ export type RebaseConflictState = {
   // TODO: what other state do we need to capture here?
 }
 
-// TODO: this could also be RebaseConflictsState
-export type ConflictState = MergeConflictState
+// TODO: where should this live?
+
+export function isRebaseConflictState(
+  conflictStatus: ConflictState
+): conflictStatus is RebaseConflictState {
+  return conflictStatus.kind === 'rebase'
+}
+
+export type ConflictState = MergeConflictState | RebaseConflictState
 
 export interface IRepositoryState {
   readonly commitSelection: ICommitSelection
