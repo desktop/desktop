@@ -201,9 +201,17 @@ export async function getStatus(
   const rebaseHeadFound = await isRebaseHeadSet(repository)
 
   if (enableNewRebaseFlow()) {
-    conflictDetails = await getConflictDetails(repository, mergeHeadFound)
+    conflictDetails = await getConflictDetails(
+      repository,
+      mergeHeadFound,
+      rebaseHeadFound
+    )
   } else {
-    conflictDetails = await getConflictDetails(repository, mergeHeadFound)
+    conflictDetails = await getConflictDetails(
+      repository,
+      mergeHeadFound,
+      false
+    )
   }
 
   // Map of files keyed on their paths.
@@ -330,28 +338,46 @@ function parseStatusHeader(results: IStatusHeadersData, header: IStatusHeader) {
   }
 }
 
+async function getMergeConflictDetails(repository: Repository) {
+  const conflictCountsByPath = await getFilesWithConflictMarkers(
+    repository.path
+  )
+  const binaryFilePaths = await getBinaryPaths(repository, 'MERGE_HEAD')
+  return {
+    conflictCountsByPath,
+    binaryFilePaths,
+  }
+}
+
+async function getRebaseConflictDetails(repository: Repository) {
+  const conflictCountsByPath = await getFilesWithConflictMarkers(
+    repository.path
+  )
+  const binaryFilePaths = await getBinaryPaths(repository, 'REBASE_HEAD')
+  return {
+    conflictCountsByPath,
+    binaryFilePaths,
+  }
+}
+
 /**
  * gets the conflicted files count and binary file paths in a given repository.
  * for computing an `IStatusResult`.
  *
  * @param repository to get details from
- * @param mergeHeadFound whether the repository is in conflict. if not supplied, this function will compute this for you.
+ * @param mergeHeadFound whether a merge conflict has been detected
+ * @param rebaseHeadFound whether a rebase conflict has been detected
  */
 async function getConflictDetails(
   repository: Repository,
-  mergeHeadFound: boolean
+  mergeHeadFound: boolean,
+  rebaseHeadFound: boolean
 ): Promise<ConflictFilesDetails> {
-  // if we have any conflicted files reported by status, let
   try {
     if (mergeHeadFound) {
-      const conflictCountsByPath = await getFilesWithConflictMarkers(
-        repository.path
-      )
-      const binaryFilePaths = await getBinaryPaths(repository, 'MERGE_HEAD')
-      return {
-        conflictCountsByPath,
-        binaryFilePaths,
-      }
+      return await getMergeConflictDetails(repository)
+    } else if (rebaseHeadFound) {
+      return await getRebaseConflictDetails(repository)
     }
   } catch (error) {
     log.error(
