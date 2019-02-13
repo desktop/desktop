@@ -64,7 +64,7 @@ interface ICloneGithubRepositoryProps {
   readonly onRefreshRepositories: (account: Account) => void
 
   /** Initiate cloning if a repository and cloning path are selected and no current errors. */
-  readonly cloneIfCloningEnabled?: () => void
+  readonly cloneIfCloningEnabled: () => void
 }
 
 export class CloneGithubRepository extends React.PureComponent<
@@ -83,7 +83,7 @@ export class CloneGithubRepository extends React.PureComponent<
             filterText={this.props.filterText}
             onFilterTextChanged={this.props.onFilterTextChanged}
             onRefreshRepositories={this.props.onRefreshRepositories}
-            cloneOnRepoListRowEnter={this.cloneOnRepoListRowEnter}
+            cloneOnRepoListRowEnter={this.props.cloneIfCloningEnabled}
           />
         </Row>
 
@@ -98,11 +98,5 @@ export class CloneGithubRepository extends React.PureComponent<
         </Row>
       </DialogContent>
     )
-  }
-
-  private cloneOnRepoListRowEnter = () => {
-    if (this.props.cloneIfCloningEnabled != null) {
-      this.props.cloneIfCloningEnabled()
-    }
   }
 }
