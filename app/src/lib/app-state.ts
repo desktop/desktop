@@ -264,6 +264,15 @@ export interface IConflictState {
   readonly manualResolutions: Map<string, ManualConflictResolution>
 }
 
+/**
+ * Stores information about conflicts when handling a rebase
+ */
+export type RebaseConflictState = {
+  readonly currentTip: string
+  readonly manualResolutions: Map<string, ManualConflictResolution>
+  // TODO: what other state do we need to capture here?
+}
+
 export interface IRepositoryState {
   readonly commitSelection: ICommitSelection
   readonly changesState: IChangesState
