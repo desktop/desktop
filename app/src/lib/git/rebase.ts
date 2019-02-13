@@ -42,7 +42,7 @@ export async function rebase(
   return await git(
     ['rebase', baseBranch, featureBranch],
     repository.path,
-    'abortRebase',
+    'rebase',
     { expectedErrors: new Set([GitError.RebaseConflicts]) }
   )
 }
