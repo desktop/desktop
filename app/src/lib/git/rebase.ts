@@ -79,7 +79,14 @@ function parseRebaseResult(result: IGitResult): ContinueRebaseResult {
   throw new Error(`Unhandled result found: '${JSON.stringify(result)}'`)
 }
 
-/** Proceed with the current rebase operation and report back on whether it completed */
+/**
+ * Proceed with the current rebase operation and report back on whether it completed
+ *
+ * It is expected that the index has staged files which are cleanly rebased onto
+ * the base branch, and the remaining unstaged files are those which need manual
+ * resolution or were changed by the user to address inline conflicts.
+ *
+ */
 export async function continueRebase(
   repository: Repository,
   files: ReadonlyArray<WorkingDirectoryFileChange>,
