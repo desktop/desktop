@@ -26,6 +26,7 @@ import { fatalError } from '../../lib/fatal-error'
 import { isMergeHeadSet } from './merge'
 import { getBinaryPaths } from './diff'
 import { isRebaseHeadSet } from './rebase'
+import { enableNewRebaseFlow } from '../feature-flag'
 
 /**
  * V8 has a limit on the size of string it can create (~256MB), and unless we want to
@@ -194,9 +195,16 @@ export async function getStatus(
   const headers = parsed.filter(isStatusHeader)
   const entries = parsed.filter(isStatusEntry)
 
+  let conflictDetails: ConflictFilesDetails
+
   const mergeHeadFound = await isMergeHeadSet(repository)
   const rebaseHeadFound = await isRebaseHeadSet(repository)
-  const conflictDetails = await getConflictDetails(repository, mergeHeadFound)
+
+  if (enableNewRebaseFlow()) {
+    conflictDetails = await getConflictDetails(repository, mergeHeadFound)
+  } else {
+    conflictDetails = await getConflictDetails(repository, mergeHeadFound)
+  }
 
   // Map of files keyed on their paths.
   const files = entries.reduce(
