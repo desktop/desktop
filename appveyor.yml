@@ -40,7 +40,6 @@ test_script:
   - ./script/test-appveyor.bat
 
 on_success:
-  - yarn test:report
   - yarn run publish
 
 on_finish:
