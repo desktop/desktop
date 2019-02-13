@@ -61,7 +61,7 @@ export enum ContinueRebaseResult {
 
 const rebaseEncounteredConflictsRe = /Resolve all conflicts manually, mark them as resolved/
 
-const filesNotMergedRe = /You must edit all merge conflicts and then\smark them as resolved/
+const filesNotMergedRe = /You must edit all merge conflicts and then\nmark them as resolved/
 
 function parseRebaseResult(result: IGitResult): ContinueRebaseResult {
   if (result.exitCode === 0) {
