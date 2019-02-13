@@ -17,6 +17,7 @@ describe('updateConflictState', () => {
   it('returns null when no MERGE_HEAD file found', () => {
     const prevState = createState({
       conflictState: {
+        kind: 'merge',
         currentBranch: 'old-branch',
         currentTip: 'old-sha',
         manualResolutions,
@@ -30,6 +31,7 @@ describe('updateConflictState', () => {
   it('preserves manual resolutions between updates in the same merge', () => {
     const prevState = createState({
       conflictState: {
+        kind: 'merge',
         currentBranch: 'old-branch',
         currentTip: 'old-sha',
         manualResolutions,
@@ -44,6 +46,7 @@ describe('updateConflictState', () => {
     const conflictState = updateConflictState(prevState, status, statsStore)
 
     expect(conflictState).toEqual({
+      kind: 'merge',
       currentBranch: 'master',
       currentTip: 'first-sha',
       manualResolutions,
@@ -53,6 +56,7 @@ describe('updateConflictState', () => {
   it('returns null when MERGE_HEAD set but not branch or tip defined', () => {
     const prevState = createState({
       conflictState: {
+        kind: 'merge',
         currentBranch: 'old-branch',
         currentTip: 'old-sha',
         manualResolutions,
@@ -81,6 +85,7 @@ describe('updateConflictState', () => {
     const conflictState = updateConflictState(prevState, status, statsStore)
 
     expect(conflictState).toEqual({
+      kind: 'merge',
       currentBranch: 'master',
       currentTip: 'first-sha',
       manualResolutions: new Map<string, ManualConflictResolution>(),
@@ -90,6 +95,7 @@ describe('updateConflictState', () => {
   it('increments abort counter when branch has changed', () => {
     const prevState = createState({
       conflictState: {
+        kind: 'merge',
         currentBranch: 'old-branch',
         currentTip: 'old-sha',
         manualResolutions: new Map<string, ManualConflictResolution>(),
@@ -109,6 +115,7 @@ describe('updateConflictState', () => {
   it('increments abort counter when conflict resolved and tip has not changed', () => {
     const prevState = createState({
       conflictState: {
+        kind: 'merge',
         currentBranch: 'master',
         currentTip: 'old-sha',
         manualResolutions: new Map<string, ManualConflictResolution>(),
@@ -128,6 +135,7 @@ describe('updateConflictState', () => {
   it('increments success counter when conflict resolved and tip has changed', () => {
     const prevState = createState({
       conflictState: {
+        kind: 'merge',
         currentBranch: 'master',
         currentTip: 'old-sha',
         manualResolutions: new Map<string, ManualConflictResolution>(),

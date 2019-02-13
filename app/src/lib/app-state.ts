@@ -258,7 +258,8 @@ export enum RepositorySectionTab {
 /**
  * Stores information about a merge conflict when it occurs
  */
-export interface IConflictState {
+export type MergeConflictState = {
+  readonly kind: 'merge'
   readonly currentBranch: string
   readonly currentTip: string
   readonly manualResolutions: Map<string, ManualConflictResolution>
@@ -268,10 +269,14 @@ export interface IConflictState {
  * Stores information about conflicts when handling a rebase
  */
 export type RebaseConflictState = {
+  readonly kind: 'rebase'
   readonly currentTip: string
   readonly manualResolutions: Map<string, ManualConflictResolution>
   // TODO: what other state do we need to capture here?
 }
+
+// TODO: this could also be RebaseConflictsState
+export type ConflictState = MergeConflictState
 
 export interface IRepositoryState {
   readonly commitSelection: ICommitSelection
@@ -438,7 +443,7 @@ export interface IChangesState {
    *
    * The absence of a value means there is no merge conflict
    */
-  readonly conflictState: IConflictState | null
+  readonly conflictState: ConflictState | null
 }
 
 /**

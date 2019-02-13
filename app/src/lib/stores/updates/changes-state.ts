@@ -3,7 +3,7 @@ import {
   WorkingDirectoryFileChange,
 } from '../../../models/status'
 import { IStatusResult } from '../../git'
-import { IChangesState, IConflictState } from '../../app-state'
+import { IChangesState, ConflictState } from '../../app-state'
 import { DiffSelectionType, IDiff } from '../../../models/diff'
 import { caseInsensitiveCompare } from '../../compare'
 import { IStatsStore } from '../../stats/stats-store'
@@ -96,7 +96,7 @@ export function updateChangedFiles(
 function getConflictState(
   status: IStatusResult,
   manualResolutions: Map<string, ManualConflictResolution>
-): IConflictState | null {
+): ConflictState | null {
   if (!status.mergeHeadFound) {
     return null
   }
@@ -107,6 +107,7 @@ function getConflictState(
   }
 
   return {
+    kind: 'merge',
     currentBranch,
     currentTip,
     manualResolutions,
@@ -117,7 +118,7 @@ export function updateConflictState(
   state: IChangesState,
   status: IStatusResult,
   statsStore: IStatsStore
-): IConflictState | null {
+): ConflictState | null {
   const prevConflictState = state.conflictState
 
   const manualResolutions = prevConflictState
