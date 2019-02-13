@@ -93,6 +93,7 @@ import {
   ComparisonMode,
   SuccessfulMergeBannerState,
   MergeConflictsBannerState,
+  MergeConflictState,
 } from '../app-state'
 import { IGitHubUser } from '../databases/github-user-database'
 import {
@@ -1625,18 +1626,70 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private async _triggerConflictsFlow(repository: Repository) {
     if (enableNewRebaseFlow()) {
-      this._triggerRebaseFlow(repository)
-      this._triggerMergeConflictsFlow(repository)
+      const repoState = this.repositoryStateCache.get(repository)
+      const { conflictState } = repoState.changesState
+
+      if (conflictState === null) {
+        return
+      }
+
+      if (conflictState.kind === 'merge') {
+        await this.showMergeConflictsDialog(repository, conflictState)
+      } else if (conflictState.kind === 'rebase') {
+        await this.showRebaseConflictsDialog(repository)
+      } else {
+        assertNever(conflictState, `Unsupported conflict kind`)
+      }
     } else {
       this._triggerMergeConflictsFlow(repository)
     }
   }
 
-  /** display the rebase flow, if necessary */
-  private async _triggerRebaseFlow(repository: Repository) {
+  /** display the rebase flow, if not already in this flow */
+  private async showRebaseConflictsDialog(repository: Repository) {
     // TODO: check the current popup is a rebase conflicts dialog
     // TODO: if already in flow, exit
     // TODO: otherwise show the popup
+  }
+
+  /** starts the conflict resolution flow, if appropriate */
+  private async showMergeConflictsDialog(
+    repository: Repository,
+    conflictState: MergeConflictState
+  ) {
+    // are we already in the merge conflicts flow?
+    const alreadyInFlow =
+      this.currentPopup !== null &&
+      (this.currentPopup.type === PopupType.MergeConflicts ||
+        this.currentPopup.type === PopupType.AbortMerge)
+
+    // have we already been shown the merge conflicts flow *and closed it*?
+    const alreadyExitedFlow = this.mergeConflictsBannerState !== null
+
+    if (alreadyInFlow || alreadyExitedFlow) {
+      return
+    }
+
+    const possibleTheirsBranches = await getBranchesPointedAt(
+      repository,
+      'MERGE_HEAD'
+    )
+    // null means we encountered an error
+    if (possibleTheirsBranches === null) {
+      return
+    }
+    const theirBranch =
+      possibleTheirsBranches.length === 1
+        ? possibleTheirsBranches[0]
+        : undefined
+
+    const ourBranch = conflictState.currentBranch
+    this._showPopup({
+      type: PopupType.MergeConflicts,
+      repository,
+      ourBranch,
+      theirBranch,
+    })
   }
 
   /** starts the conflict resolution flow, if appropriate */
