@@ -153,4 +153,61 @@ describe('updateConflictState', () => {
       expect(statsStore.recordMergeSuccessAfterConflicts).toHaveBeenCalled()
     })
   })
+
+  describe('rebase conflicts', () => {
+    it('returns null when no REBASE_HEAD file found', () => {
+      const prevState = createState({
+        conflictState: {
+          kind: 'rebase',
+          currentTip: 'old-sha',
+          manualResolutions,
+        },
+      })
+      const status = createStatus({ rebaseHeadFound: false })
+      const conflictState = updateConflictState(prevState, status, statsStore)
+      expect(conflictState).toBeNull()
+    })
+
+    it('returns a value when status has REBASE_HEAD set', () => {
+      const prevState = createState({
+        conflictState: null,
+      })
+      const status = createStatus({
+        rebaseHeadFound: true,
+        currentBranch: 'master',
+        currentTip: 'first-sha',
+      })
+
+      const conflictState = updateConflictState(prevState, status, statsStore)
+
+      expect(conflictState).toEqual({
+        kind: 'rebase',
+        currentTip: 'first-sha',
+        manualResolutions: new Map<string, ManualConflictResolution>(),
+      })
+    })
+
+    it('preserves manual resolutions when a rebase is detected', () => {
+      const prevState = createState({
+        conflictState: {
+          kind: 'rebase',
+          currentTip: 'old-sha',
+          manualResolutions,
+        },
+      })
+      const status = createStatus({
+        rebaseHeadFound: true,
+        currentBranch: 'master',
+        currentTip: 'first-sha',
+      })
+
+      const conflictState = updateConflictState(prevState, status, statsStore)
+
+      expect(conflictState).toEqual({
+        kind: 'rebase',
+        currentTip: 'first-sha',
+        manualResolutions,
+      })
+    })
+  })
 })
