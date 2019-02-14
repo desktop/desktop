@@ -1,7 +1,7 @@
 {
   "releases": {
     "1.6.3-beta1": [
-      "[Fixed] Context menu option is hard to click in Changes list - #6296. Thanks @JQuinnie!",
+      "[Fixed] Context menu option is hard to trigger in Changes list - #6296. Thanks @JQuinnie!",
       "[Improved] Enable Git protocol v2 for fetch/push/pull operations - #6142",
       "[Improved] Upgrade to Electron v3"
     ],
