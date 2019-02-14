@@ -2,7 +2,11 @@ import { Repository } from '../../../models/repository'
 import { RepositoriesStore } from '../repositories-store'
 import { Branch, BranchType } from '../../../models/branch'
 import { GitStoreCache } from '../git-store-cache'
-import { getMergedBranches, deleteBranch } from '../../git'
+import {
+  getMergedBranches,
+  deleteBranch,
+  getCheckoutsAfterDate,
+} from '../../git'
 import { fatalError } from '../../fatal-error'
 import { RepositoryStateCache } from '../repository-state-cache'
 import * as moment from 'moment'
@@ -117,6 +121,15 @@ export class BranchPruner {
       x => x.type === BranchType.Local
     )
 
+    // Get all branches checked out within the past 2 weeks
+    const twoWeeksAgo = moment()
+      .subtract(2, 'weeks')
+      .toDate()
+    const recentlyCheckedOutBranches = await getCheckoutsAfterDate(
+      this.repository,
+      twoWeeksAgo
+    )
+
     // Create array of branches that can be pruned
     const candidateBranches = mergedBranches.filter(
       b => !ReservedBranches.includes(b)
@@ -128,7 +141,10 @@ export class BranchPruner {
           localBranch.remote !== null && localBranch.name === branch
       )
 
-      if (localBranch !== undefined) {
+      if (
+        localBranch !== undefined &&
+        !recentlyCheckedOutBranches.has(localBranch.name)
+      ) {
         branchesReadyForPruning.push(localBranch)
       }
     }
