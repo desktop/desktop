@@ -8,7 +8,7 @@ import {
   getCheckoutsAfterDate,
 } from '../../../src/lib/git'
 import { setupFixtureRepository } from '../../helpers/repositories'
-import moment = require('moment')
+import * as moment from 'moment'
 
 async function createAndCheckout(
   repository: Repository,
