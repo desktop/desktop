@@ -161,6 +161,8 @@ describe('updateConflictState', () => {
           kind: 'rebase',
           currentTip: 'old-sha',
           manualResolutions,
+          targetBranch: 'my-feature-branch',
+          originalBranchTip: 'some-other-sha',
         },
       })
       const status = createStatus({ rebaseHeadFound: false })
@@ -193,6 +195,8 @@ describe('updateConflictState', () => {
           kind: 'rebase',
           currentTip: 'old-sha',
           manualResolutions,
+          targetBranch: 'my-feature-branch',
+          originalBranchTip: 'some-other-sha',
         },
       })
       const status = createStatus({

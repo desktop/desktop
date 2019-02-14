@@ -277,8 +277,9 @@ export function isMergeConflictState(
 export type RebaseConflictState = {
   readonly kind: 'rebase'
   readonly currentTip: string
+  readonly targetBranch: string
+  readonly originalBranchTip: string
   readonly manualResolutions: Map<string, ManualConflictResolution>
-  // TODO: what other state do we need to capture here?
 }
 
 export function isRebaseConflictState(

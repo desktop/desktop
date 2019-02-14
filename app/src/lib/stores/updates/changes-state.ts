@@ -127,6 +127,9 @@ function getConflictState(
       kind: 'rebase',
       currentTip,
       manualResolutions,
+      // TODO: how to get these from state?
+      targetBranch: '???',
+      originalBranchTip: '???',
     }
   }
 
