@@ -8,9 +8,8 @@ environment:
 
 cache:
   - .eslintcache
-  - node_modules -> package.json
   - '%USERPROFILE%\.electron'
-  - '%LOCALAPPDATA%\Yarn'
+  - '%LOCALAPPDATA%\Yarn\Cache\v4'
 
 branches:
   only:
