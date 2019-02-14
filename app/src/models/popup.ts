@@ -43,6 +43,7 @@ export enum PopupType {
   UsageReportingChanges,
   CommitConflictsWarning,
   LocalChangesOverwritten,
+  RebaseConflicts,
 }
 
 export type Popup =
@@ -160,4 +161,8 @@ export type Popup =
       repository: Repository
       retryAction: RetryAction
       overwrittenFiles: ReadonlyArray<string>
+    }
+  | {
+      type: PopupType.RebaseConflicts
+      repository: Repository
     }
