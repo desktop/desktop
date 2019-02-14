@@ -180,6 +180,19 @@ function performEffectsForRebaseStateChange(
   statsStore: IStatsStore
 ) {
   // TODO: run side-effects for rebase conflicts state changes
+
+  // what does a successful rebase look like?
+  // - the state changed from "in a rebase" to "no rebase"
+  // - the commit ID of branch they were trying to rebase is the same as it was before
+
+  // what does an aborted rebase look like?
+  // - the state changed from "in a rebase" to "no rebase"
+  // - the commit ID of branch they were trying to rebase is now different
+
+  // - we'd need to know the target branch they are rebasing
+  // - we'd need to know the commit ID at the start of the rebase
+  // - we'd need to know the commit ID when the rebase was done
+
   return
 }
 
