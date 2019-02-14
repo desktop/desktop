@@ -272,7 +272,7 @@ export function isMergeConflictState(
 }
 
 /**
- * Stores information about conflicts when handling a rebase
+ * Stores information about a rebase conflict when it occurs
  */
 export type RebaseConflictState = {
   readonly kind: 'rebase'
@@ -451,9 +451,9 @@ export interface IChangesState {
   readonly coAuthors: ReadonlyArray<IAuthor>
 
   /**
-   * Stores information about a merge conflict when it occurs
+   * Stores information about conflicts in the working directory
    *
-   * The absence of a value means there is no merge conflict
+   * The absence of a value means there is no merge or rebase conflict underway
    */
   readonly conflictState: ConflictState | null
 }
