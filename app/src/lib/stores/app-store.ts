@@ -1646,9 +1646,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** display the rebase flow, if not already in this flow */
   private async showRebaseConflictsDialog(repository: Repository) {
-    // TODO: check the current popup is a rebase conflicts dialog
-    // TODO: if already in flow, exit
-    // TODO: otherwise show the popup
+    const alreadyInFlow =
+      this.currentPopup !== null &&
+      this.currentPopup.type === PopupType.RebaseConflicts
+
+    if (alreadyInFlow) {
+      return
+    }
+
+    this._showPopup({
+      type: PopupType.RebaseConflicts,
+      repository,
+    })
   }
 
   /** starts the conflict resolution flow, if appropriate */
