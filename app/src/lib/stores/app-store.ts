@@ -94,6 +94,7 @@ import {
   SuccessfulMergeBannerState,
   MergeConflictsBannerState,
   MergeConflictState,
+  isMergeConflictState,
 } from '../app-state'
 import { IGitHubUser } from '../databases/github-user-database'
 import {
@@ -1709,7 +1710,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const repoState = this.repositoryStateCache.get(repository)
     const { conflictState } = repoState.changesState
-    if (conflictState === null || conflictState.kind !== 'merge') {
+    if (conflictState === null || !isMergeConflictState(conflictState)) {
       return
     }
 

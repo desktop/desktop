@@ -363,17 +363,17 @@ async function getRebaseConflictDetails(repository: Repository) {
  *
  * @param repository to get details from
  * @param mergeHeadFound whether a merge conflict has been detected
- * @param rebaseHeadFound whether a rebase conflict has been detected
+ * @param rebaseContext details about the current rebase operation (if found)
  */
 async function getConflictDetails(
   repository: Repository,
   mergeHeadFound: boolean,
-  rebaseHeadFound: RebaseContext | null
+  rebaseContext: RebaseContext | null
 ): Promise<ConflictFilesDetails> {
   try {
     if (mergeHeadFound) {
       return await getMergeConflictDetails(repository)
-    } else if (rebaseHeadFound !== null) {
+    } else if (rebaseContext !== null) {
       return await getRebaseConflictDetails(repository)
     }
   } catch (error) {

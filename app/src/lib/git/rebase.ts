@@ -23,6 +23,14 @@ function isRebaseHeadSet(repository: Repository) {
   return FSE.pathExists(path)
 }
 
+/**
+ * Detect and build up the context about the rebase being performed on a
+ * repository. This information is required to help Desktop display information
+ * to the user about the current action as well as the options available.
+ *
+ * Returns `null` if no rebase is detected, or if the expected information
+ * cannot be found in the repository.
+ */
 export async function getRebaseContext(
   repository: Repository
 ): Promise<RebaseContext | null> {

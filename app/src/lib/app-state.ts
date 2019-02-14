@@ -265,6 +265,7 @@ export type MergeConflictState = {
   readonly manualResolutions: Map<string, ManualConflictResolution>
 }
 
+/** Guard function for checking conflicts are from a merge  */
 export function isMergeConflictState(
   conflictStatus: ConflictState
 ): conflictStatus is MergeConflictState {
@@ -282,12 +283,20 @@ export type RebaseConflictState = {
   readonly manualResolutions: Map<string, ManualConflictResolution>
 }
 
+/** Guard function for checking conflicts are from a rebase  */
 export function isRebaseConflictState(
   conflictStatus: ConflictState
 ): conflictStatus is RebaseConflictState {
   return conflictStatus.kind === 'rebase'
 }
 
+/**
+ * Conflicts can occur during a rebase or a merge.
+ *
+ * Callers should inspect the `kind` field to determine the kind of conflict
+ * that is occurring, as this will then provide additional information specific
+ * to the conflict, to help with resolving the issue.
+ */
 export type ConflictState = MergeConflictState | RebaseConflictState
 
 export interface IRepositoryState {
