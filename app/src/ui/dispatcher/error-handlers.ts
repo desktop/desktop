@@ -409,7 +409,7 @@ export async function localChangesOverwrittenHandler(
 
   let match = pathRegex.exec(stderr)
 
-  while (match) {
+  while (match !== null) {
     overwrittenFiles.push(match[1])
     match = pathRegex.exec(stderr)
   }
