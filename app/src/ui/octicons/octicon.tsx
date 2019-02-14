@@ -72,12 +72,13 @@ export class Octicon extends React.Component<IOcticonProps, {}> {
     return (
       <svg
         aria-hidden="true"
+        aria-labelledby="octiconTitle octiconDescription"
         className={className}
         version="1.1"
         viewBox={viewBox}
       >
-        <title>{title}</title>
-        <desc>{shortClassName}</desc>
+        <title id="octiconTitle">{title}</title>
+        <desc id="octiconDescription">{shortClassName}</desc>
         <path d={symbol.d}>{this.renderTitle()}</path>
       </svg>
     )
