@@ -71,7 +71,6 @@ export class Octicon extends React.Component<IOcticonProps, {}> {
 
     return (
       <svg
-        aria-hidden="true"
         aria-labelledby="octiconTitle octiconDescription"
         className={className}
         version="1.1"
