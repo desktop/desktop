@@ -46,6 +46,7 @@ jobs:
       - run:
           name: Report to codecov
           command: yarn test:report
+          when: always
       - run:
           name: Teardown
           command:

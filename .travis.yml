@@ -42,7 +42,11 @@ install:
 
 script:
   - yarn lint && yarn validate-changelog && yarn check-modified && yarn
-    build:prod && yarn test:setup && yarn test && yarn test:report
+    build:prod && yarn test:setup && yarn test
+
+after_success:
+  - yarn test:report
 
 after_failure:
+  - yarn test:report
   - yarn test:review
