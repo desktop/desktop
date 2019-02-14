@@ -93,6 +93,7 @@ import { PopupType, Popup } from '../models/popup'
 import { OversizedFiles } from './changes/oversized-files-warning'
 import { UsageStatsChange } from './usage-stats-change'
 import { LocalChangesOverwrittenWarning } from './local-changes-overwritten'
+import { RebaseConflictsDialog } from './rebase'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -1508,7 +1509,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={this.onPopupDismissed}
           />
         )
-      case PopupType.LocalChangesOverwritten:
+      case PopupType.LocalChangesOverwritten: {
         const { selectedState } = this.state
         if (
           selectedState === null ||
@@ -1528,6 +1529,39 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={this.onPopupDismissed}
           />
         )
+      }
+      case PopupType.RebaseConflicts: {
+        const { selectedState } = this.state
+
+        if (
+          selectedState === null ||
+          selectedState.type !== SelectionType.Repository
+        ) {
+          return null
+        }
+
+        const {
+          workingDirectory,
+          conflictState,
+        } = selectedState.state.changesState
+
+        if (conflictState === null || conflictState.kind === 'merge') {
+          return null
+        }
+
+        return (
+          <RebaseConflictsDialog
+            dispatcher={this.props.dispatcher}
+            repository={popup.repository}
+            workingDirectory={workingDirectory}
+            manualResolutions={conflictState.manualResolutions}
+            onDismissed={this.onPopupDismissed}
+            openFileInExternalEditor={this.openFileInExternalEditor}
+            resolvedExternalEditor={this.state.resolvedExternalEditor}
+            openRepositoryInShell={this.openInShell}
+          />
+        )
+      }
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
