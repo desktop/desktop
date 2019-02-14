@@ -65,7 +65,8 @@ export class Octicon extends React.Component<IOcticonProps, {}> {
   public render() {
     const symbol = this.props.symbol
     const viewBox = `0 0 ${symbol.w} ${symbol.h}`
-    const className = classNames('octicon', this.props.className)
+    const shortClassName = this.props.className
+    const className = classNames('octicon', shortClassName)
     const title = this.props.title
 
     return (
@@ -76,6 +77,7 @@ export class Octicon extends React.Component<IOcticonProps, {}> {
         viewBox={viewBox}
       >
         <title>{title}</title>
+        <desc>{shortClassName}</desc>
         <path d={symbol.d}>{this.renderTitle()}</path>
       </svg>
     )
