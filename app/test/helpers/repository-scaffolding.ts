@@ -63,6 +63,26 @@ export async function makeCommit(repository: Repository, tree: Tree) {
   await GitProcess.exec(['commit', '-m', message], repository.path)
 }
 
+export async function createBranch(
+  repository: Repository,
+  branch: string,
+  startPoint: string
+) {
+  const result = await GitProcess.exec(
+    ['rev-parse', '--verify', branch],
+    repository.path
+  )
+
+  if (result.exitCode === 128) {
+    // ref does not exists, checkout and create the branch
+    await GitProcess.exec(['branch', branch, startPoint], repository.path)
+  } else {
+    throw new Error(
+      `Branch ${branch} already exists and resolves to '${result.stdout}'`
+    )
+  }
+}
+
 export async function switchTo(repository: Repository, branch: string) {
   const result = await GitProcess.exec(
     ['rev-parse', '--verify', branch],
