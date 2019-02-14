@@ -265,8 +265,6 @@ export type MergeConflictState = {
   readonly manualResolutions: Map<string, ManualConflictResolution>
 }
 
-// TODO: where should this live?
-
 export function isMergeConflictState(
   conflictStatus: ConflictState
 ): conflictStatus is MergeConflictState {
@@ -282,8 +280,6 @@ export type RebaseConflictState = {
   readonly manualResolutions: Map<string, ManualConflictResolution>
   // TODO: what other state do we need to capture here?
 }
-
-// TODO: where should this live?
 
 export function isRebaseConflictState(
   conflictStatus: ConflictState
