@@ -25,8 +25,9 @@ import { IAheadBehind } from '../../models/branch'
 import { fatalError } from '../../lib/fatal-error'
 import { isMergeHeadSet } from './merge'
 import { getBinaryPaths } from './diff'
-import { isRebaseHeadSet } from './rebase'
+import { getRebaseContext } from './rebase'
 import { enableNewRebaseFlow } from '../feature-flag'
+import { RebaseContext } from '../../models/rebase'
 
 /**
  * V8 has a limit on the size of string it can create (~256MB), and unless we want to
@@ -58,8 +59,8 @@ export interface IStatusResult {
   /** true if repository is in a conflicted state */
   readonly mergeHeadFound: boolean
 
-  /** `true` if repository is in the middle of a rebase */
-  readonly rebaseHeadFound: boolean
+  /** details about the rebase operation, if found */
+  readonly rebaseContext: RebaseContext | null
 
   /** the absolute path to the repository's working directory */
   readonly workingDirectory: WorkingDirectoryStatus
@@ -198,20 +199,16 @@ export async function getStatus(
   let conflictDetails: ConflictFilesDetails
 
   const mergeHeadFound = await isMergeHeadSet(repository)
-  const rebaseHeadFound = await isRebaseHeadSet(repository)
+  const rebaseContext = await getRebaseContext(repository)
 
   if (enableNewRebaseFlow()) {
     conflictDetails = await getConflictDetails(
       repository,
       mergeHeadFound,
-      rebaseHeadFound
+      rebaseContext
     )
   } else {
-    conflictDetails = await getConflictDetails(
-      repository,
-      mergeHeadFound,
-      false
-    )
+    conflictDetails = await getConflictDetails(repository, mergeHeadFound, null)
   }
 
   // Map of files keyed on their paths.
@@ -242,7 +239,7 @@ export async function getStatus(
     branchAheadBehind,
     exists: true,
     mergeHeadFound,
-    rebaseHeadFound,
+    rebaseContext,
     workingDirectory,
   }
 }
@@ -371,12 +368,12 @@ async function getRebaseConflictDetails(repository: Repository) {
 async function getConflictDetails(
   repository: Repository,
   mergeHeadFound: boolean,
-  rebaseHeadFound: boolean
+  rebaseHeadFound: RebaseContext | null
 ): Promise<ConflictFilesDetails> {
   try {
     if (mergeHeadFound) {
       return await getMergeConflictDetails(repository)
-    } else if (rebaseHeadFound) {
+    } else if (rebaseHeadFound !== null) {
       return await getRebaseConflictDetails(repository)
     }
   } catch (error) {

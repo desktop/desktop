@@ -117,19 +117,20 @@ function getConflictState(
     }
   }
 
-  if (status.rebaseHeadFound) {
+  if (status.rebaseContext !== null) {
     const { currentTip } = status
     if (currentTip == null) {
       return null
     }
 
+    const { targetBranch, originalBranchTip } = status.rebaseContext
+
     return {
       kind: 'rebase',
       currentTip,
       manualResolutions,
-      // TODO: how to get these from state?
-      targetBranch: '???',
-      originalBranchTip: '???',
+      targetBranch,
+      originalBranchTip,
     }
   }
 

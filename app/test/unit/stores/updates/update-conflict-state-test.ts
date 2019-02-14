@@ -165,7 +165,7 @@ describe('updateConflictState', () => {
           originalBranchTip: 'some-other-sha',
         },
       })
-      const status = createStatus({ rebaseHeadFound: false })
+      const status = createStatus({ rebaseContext: null })
       const conflictState = updateConflictState(prevState, status, statsStore)
       expect(conflictState).toBeNull()
     })
@@ -175,7 +175,10 @@ describe('updateConflictState', () => {
         conflictState: null,
       })
       const status = createStatus({
-        rebaseHeadFound: true,
+        rebaseContext: {
+          targetBranch: 'my-feature-branch',
+          originalBranchTip: 'some-other-sha',
+        },
         currentBranch: 'master',
         currentTip: 'first-sha',
       })
@@ -186,6 +189,8 @@ describe('updateConflictState', () => {
         kind: 'rebase',
         currentTip: 'first-sha',
         manualResolutions: new Map<string, ManualConflictResolution>(),
+        targetBranch: 'my-feature-branch',
+        originalBranchTip: 'some-other-sha',
       })
     })
 
@@ -200,7 +205,10 @@ describe('updateConflictState', () => {
         },
       })
       const status = createStatus({
-        rebaseHeadFound: true,
+        rebaseContext: {
+          targetBranch: 'my-feature-branch',
+          originalBranchTip: 'some-other-sha',
+        },
         currentBranch: 'master',
         currentTip: 'first-sha',
       })
@@ -211,6 +219,8 @@ describe('updateConflictState', () => {
         kind: 'rebase',
         currentTip: 'first-sha',
         manualResolutions,
+        targetBranch: 'my-feature-branch',
+        originalBranchTip: 'some-other-sha',
       })
     })
   })

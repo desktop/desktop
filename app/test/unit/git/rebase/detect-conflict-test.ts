@@ -21,10 +21,14 @@ const featureBranch = 'this-is-a-feature'
 describe('git/rebase', () => {
   describe('detect conflicts', () => {
     let result: IGitResult
+    let originalBranchTip: string
     let status: IStatusResult
 
     beforeEach(async () => {
       const repository = await createRepository(baseBranch, featureBranch)
+
+      const commit = await getRefOrError(repository, featureBranch)
+      originalBranchTip = commit.sha
 
       result = await rebase(repository, baseBranch, featureBranch)
 
@@ -36,7 +40,10 @@ describe('git/rebase', () => {
     })
 
     it('status detects REBASE_HEAD', async () => {
-      expect(status.rebaseHeadFound).toBe(true)
+      expect(status.rebaseContext).toEqual({
+        originalBranchTip,
+        targetBranch: 'this-is-a-feature',
+      })
     })
 
     it('has conflicted files in working directory', async () => {
@@ -66,7 +73,7 @@ describe('git/rebase', () => {
     })
 
     it('REBASE_HEAD is no longer found', async () => {
-      expect(status.rebaseHeadFound).toBe(false)
+      expect(status.rebaseContext).toBeNull()
     })
 
     it('no longer has working directory changes', async () => {
@@ -80,10 +87,14 @@ describe('git/rebase', () => {
 
   describe('attempt to continue without resolving conflicts', () => {
     let result: ContinueRebaseResult
+    let originalBranchTip: string
     let status: IStatusResult
 
     beforeEach(async () => {
       const repository = await createRepository(baseBranch, featureBranch)
+
+      const commit = await getRefOrError(repository, featureBranch)
+      originalBranchTip = commit.sha
 
       await rebase(repository, baseBranch, featureBranch)
 
@@ -100,7 +111,10 @@ describe('git/rebase', () => {
     })
 
     it('REBASE_HEAD is still found', async () => {
-      expect(status.rebaseHeadFound).toBe(true)
+      expect(status.rebaseContext).toEqual({
+        originalBranchTip,
+        targetBranch: 'this-is-a-feature',
+      })
     })
 
     it('still has conflicted files in working directory', async () => {
@@ -163,7 +177,7 @@ describe('git/rebase', () => {
     })
 
     it('REBASE_HEAD is no longer found', () => {
-      expect(status.rebaseHeadFound).toBe(false)
+      expect(status.rebaseContext).toBeNull()
     })
 
     it('no longer has working directory changes', () => {
