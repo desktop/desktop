@@ -10,6 +10,7 @@ import {
 import { fatalError } from '../../fatal-error'
 import { RepositoryStateCache } from '../repository-state-cache'
 import * as moment from 'moment'
+import { TipState } from '../../../models/tip'
 
 /** Check if a repo needs to be pruned at least every 4 hours */
 const BackgroundPruneMinimumInterval = 1000 * 60 * 60 * 4
@@ -66,11 +67,21 @@ export class BranchPruner {
     defaultBranch: Branch
   ): Promise<ReadonlyArray<string> | null> {
     const gitStore = this.gitStoreCache.get(repository)
-    return (
+    const mergedBranches =
       (await gitStore.performFailableOperation(() =>
         getMergedBranches(repository, defaultBranch.name)
       )) || null
-    )
+
+    // remove the current branch
+    if (mergedBranches !== null) {
+      const { branchesState } = this.repositoriesStateCache.get(repository)
+      const { tip } = branchesState
+      if (tip.kind === TipState.Valid) {
+        return mergedBranches.filter(x => x !== tip.branch.name)
+      }
+    }
+
+    return mergedBranches
   }
 
   private async pruneLocalBranches(): Promise<void> {
