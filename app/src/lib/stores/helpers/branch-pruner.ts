@@ -170,9 +170,13 @@ export class BranchPruner {
 
     const gitStore = this.gitStoreCache.get(this.repository)
     for (const branch of branchesReadyForPruning) {
-      await gitStore.performFailableOperation(() =>
-        deleteBranch(this.repository, branch!, null, false)
+      const isDeleted = await gitStore.performFailableOperation(() =>
+        deleteBranch(this.repository, branch, null, false)
       )
+
+      if (isDeleted) {
+        log.info(`Deleted ${branch.name} - ${branch.tip.sha}`)
+      }
     }
 
     await this.repositoriesStore.updateLastPruneDate(
