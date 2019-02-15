@@ -230,6 +230,17 @@ export class CloneRepository extends React.Component<
     )
   }
 
+  private checkIfCloningDisabled = () => {
+    const tabState = this.getSelectedTabState()
+    const { error, url, path } = tabState
+    const { loading } = this.state
+
+    const disabled =
+      url.length === 0 || path.length === 0 || loading || error !== null
+
+    return disabled
+  }
+
   private renderFooter() {
     const selectedTab = this.props.selectedTab
     if (
@@ -239,13 +250,7 @@ export class CloneRepository extends React.Component<
       return null
     }
 
-    const tabState = this.getSelectedTabState()
-
-    const { error, url, path } = tabState
-    const { loading } = this.state
-
-    const disabled =
-      url.length === 0 || path.length === 0 || loading || error !== null
+    const disabled = this.checkIfCloningDisabled()
 
     return (
       <DialogFooter>
@@ -618,14 +623,7 @@ export class CloneRepository extends React.Component<
   }
 
   private cloneIfCloningEnabled = () => {
-    const tabState = this.getSelectedTabState()
-    const { error, url, path } = tabState
-    const { loading } = this.state
-
-    const cloningDisabled =
-      url.length === 0 || path.length === 0 || loading || error !== null
-
-    if (cloningDisabled) {
+    if (this.checkIfCloningDisabled() === true) {
       return
     }
 
