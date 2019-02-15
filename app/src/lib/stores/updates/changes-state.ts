@@ -207,9 +207,10 @@ export function updateConflictState(
 ): ConflictState | null {
   const prevConflictState = state.conflictState
 
-  const manualResolutions = prevConflictState
-    ? prevConflictState.manualResolutions
-    : new Map<string, ManualConflictResolution>()
+  const manualResolutions =
+    prevConflictState !== null
+      ? prevConflictState.manualResolutions
+      : new Map<string, ManualConflictResolution>()
 
   const newConflictState = getConflictState(status, manualResolutions)
 

@@ -50,9 +50,7 @@ export async function getRebaseContext(
     )
 
     originalBranchTip = originalBranchTip.trim()
-  } catch {}
 
-  try {
     targetBranch = await FSE.readFile(
       Path.join(repository.path, '.git', 'rebase-apply', 'head-name'),
       'utf8'
