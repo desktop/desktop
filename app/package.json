@@ -3,7 +3,7 @@
   "productName": "GitHub Desktop",
   "bundleID": "com.github.GitHubClient",
   "companyName": "GitHub, Inc.",
-  "version": "1.6.2",
+  "version": "1.6.3-beta1",
   "main": "./main.js",
   "repository": {
     "type": "git",
