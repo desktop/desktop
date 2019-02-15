@@ -7,6 +7,7 @@ import { Row } from '../lib/row'
 import { Button } from '../lib/button'
 import { IAPIRepository } from '../../lib/api'
 import { CloneableRepositoryFilterList } from './cloneable-repository-filter-list'
+import { ClickSource } from '../lib/list'
 
 interface ICloneGithubRepositoryProps {
   /** The account to clone from. */
@@ -83,7 +84,7 @@ export class CloneGithubRepository extends React.PureComponent<
             filterText={this.props.filterText}
             onFilterTextChanged={this.props.onFilterTextChanged}
             onRefreshRepositories={this.props.onRefreshRepositories}
-            cloneOnRepoListRowEnter={this.props.cloneIfCloningEnabled}
+            onItemClicked={this.onItemClicked}
           />
         </Row>
 
@@ -98,5 +99,11 @@ export class CloneGithubRepository extends React.PureComponent<
         </Row>
       </DialogContent>
     )
+  }
+
+  private onItemClicked = (repository: IAPIRepository, source: ClickSource) => {
+    if (source.kind === 'keyboard' && source.event.key === 'Enter') {
+      this.props.cloneIfCloningEnabled()
+    }
   }
 }

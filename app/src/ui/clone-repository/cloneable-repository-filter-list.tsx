@@ -74,9 +74,6 @@ interface ICloneableRepositoryFilterListProps {
     repository: IAPIRepository,
     source: ClickSource
   ) => void
-
-  /** Initiates a clone when enter is pressed while focus is on a repo list row. */
-  readonly cloneOnRepoListRowEnter?: () => void
 }
 
 const RowHeight = 31
@@ -179,20 +176,8 @@ export class CloneableRepositoryFilterList extends React.PureComponent<
         renderNoItems={this.renderNoItems}
         renderPostFilter={this.renderPostFilter}
         onItemClick={this.props.onItemClicked ? this.onItemClick : undefined}
-        onRowKeyDown={this.onRowKeyDown}
       />
     )
-  }
-
-  private onRowKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    // defaultPrevented is used to avoid enter activating repeatedly.
-    // We want to attempt cloning once, and allow it time to operate.
-    if (!event.defaultPrevented && event.key === 'Enter') {
-      if (this.props.cloneOnRepoListRowEnter != null) {
-        this.props.cloneOnRepoListRowEnter()
-      }
-      event.preventDefault()
-    }
   }
 
   private onItemClick = (

@@ -144,9 +144,6 @@ interface IFilterListProps<T extends IFilterListItem> {
    * Callback to fire when the items in the filter list are updated
    */
   readonly onFilterListResultsChanged?: (resultCount: number) => void
-
-  /** Called when a key down event occurs while a filter list row is in focus. */
-  readonly onRowKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void
 }
 
 interface IFilterListState<T extends IFilterListItem> {
@@ -374,10 +371,6 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     const list = this.list
     if (!list) {
       return
-    }
-
-    if (this.props.onRowKeyDown != null) {
-      this.props.onRowKeyDown(event)
     }
 
     const rowCount = this.state.rows.length
