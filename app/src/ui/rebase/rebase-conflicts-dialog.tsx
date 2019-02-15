@@ -10,10 +10,14 @@ import { Dispatcher } from '../dispatcher'
 import { Repository } from '../../models/repository'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { ContinueRebaseResult } from '../../lib/git'
+import { BannerType } from '../../models/banner'
+import { PopupType } from '../../models/popup'
 
 interface IRebaseConflictsDialog {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
+  readonly targetBranch: string
+  readonly baseBranch?: string
   readonly onDismissed: () => void
   readonly workingDirectory: WorkingDirectoryStatus
   readonly manualResolutions: Map<string, ManualConflictResolution>
@@ -36,6 +40,16 @@ export class RebaseConflictsDialog extends React.Component<
   }
 
   private onDismissed = () => {
+    this.props.dispatcher.setBanner({
+      type: BannerType.RebaseConflictsFound,
+      targetBranch: this.props.targetBranch,
+      popup: {
+        type: PopupType.RebaseConflicts,
+        targetBranch: this.props.targetBranch,
+        baseBranch: this.props.baseBranch,
+        repository: this.props.repository,
+      },
+    })
     this.props.onDismissed()
   }
 
@@ -46,6 +60,10 @@ export class RebaseConflictsDialog extends React.Component<
     )
 
     if (result === ContinueRebaseResult.CompletedWithoutError) {
+      this.props.dispatcher.setBanner({
+        type: BannerType.SuccessfulRebase,
+        targetBranch: this.props.targetBranch,
+      })
       this.props.onDismissed()
     }
   }

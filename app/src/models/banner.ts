@@ -22,3 +22,15 @@ export type Banner =
       /** popup to be shown from the banner */
       readonly popup: Popup
     }
+  | {
+      readonly type: BannerType.SuccessfulRebase
+      /** name of the branch that was used to rebase */
+      readonly targetBranch: string
+    }
+  | {
+      readonly type: BannerType.RebaseConflictsFound
+      /** name of the branch that was used to rebase */
+      readonly targetBranch: string
+      /** popup to be shown when opening the banner */
+      readonly popup: Popup
+    }

@@ -145,6 +145,12 @@ export interface IDailyMeasures {
 
   /** The number of times the user is taken to the create pull request page on dotcom */
   readonly createPullRequestCount: number
+
+  /** The number of times the rebase conflicts dialog is dismissed */
+  readonly rebaseConflictsDialogDismissalCount: number
+
+  /** The number of times the rebase conflicts dialog is reopened */
+  readonly rebaseConflictsDialogReopenedCount: number
 }
 
 export class StatsDatabase extends Dexie {

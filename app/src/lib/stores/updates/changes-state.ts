@@ -123,7 +123,11 @@ function getConflictState(
       return null
     }
 
-    const { targetBranch, originalBranchTip } = status.rebaseContext
+    const {
+      targetBranch,
+      originalBranchTip,
+      baseBranchTip,
+    } = status.rebaseContext
 
     return {
       kind: 'rebase',
@@ -131,6 +135,7 @@ function getConflictState(
       manualResolutions,
       targetBranch,
       originalBranchTip,
+      baseBranchTip,
     }
   }
 

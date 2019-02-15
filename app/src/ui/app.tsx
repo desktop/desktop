@@ -1436,7 +1436,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           conflictState,
         } = selectedState.state.changesState
 
-        if (conflictState === null) {
+        if (conflictState === null || conflictState.kind === 'rebase') {
           return null
         }
 
@@ -1553,6 +1553,8 @@ export class App extends React.Component<IAppProps, IAppState> {
           <RebaseConflictsDialog
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
+            targetBranch={popup.targetBranch}
+            baseBranch={popup.baseBranch}
             workingDirectory={workingDirectory}
             manualResolutions={conflictState.manualResolutions}
             onDismissed={this.onPopupDismissed}

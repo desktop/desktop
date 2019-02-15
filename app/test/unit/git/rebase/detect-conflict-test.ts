@@ -22,13 +22,17 @@ describe('git/rebase', () => {
   describe('detect conflicts', () => {
     let result: IGitResult
     let originalBranchTip: string
+    let baseBranchTip: string
     let status: IStatusResult
 
     beforeEach(async () => {
       const repository = await createRepository(baseBranch, featureBranch)
 
-      const commit = await getRefOrError(repository, featureBranch)
-      originalBranchTip = commit.sha
+      const featureTip = await getRefOrError(repository, featureBranch)
+      originalBranchTip = featureTip.sha
+
+      const baseTip = await getRefOrError(repository, baseBranch)
+      baseBranchTip = baseTip.sha
 
       result = await rebase(repository, baseBranch, featureBranch)
 
@@ -42,6 +46,7 @@ describe('git/rebase', () => {
     it('status detects REBASE_HEAD', async () => {
       expect(status.rebaseContext).toEqual({
         originalBranchTip,
+        baseBranchTip,
         targetBranch: 'this-is-a-feature',
       })
     })
@@ -88,13 +93,17 @@ describe('git/rebase', () => {
   describe('attempt to continue without resolving conflicts', () => {
     let result: ContinueRebaseResult
     let originalBranchTip: string
+    let baseBranchTip: string
     let status: IStatusResult
 
     beforeEach(async () => {
       const repository = await createRepository(baseBranch, featureBranch)
 
-      const commit = await getRefOrError(repository, featureBranch)
-      originalBranchTip = commit.sha
+      const featureTip = await getRefOrError(repository, featureBranch)
+      originalBranchTip = featureTip.sha
+
+      const baseTip = await getRefOrError(repository, baseBranch)
+      baseBranchTip = baseTip.sha
 
       await rebase(repository, baseBranch, featureBranch)
 
@@ -113,6 +122,7 @@ describe('git/rebase', () => {
     it('REBASE_HEAD is still found', async () => {
       expect(status.rebaseContext).toEqual({
         originalBranchTip,
+        baseBranchTip,
         targetBranch: 'this-is-a-feature',
       })
     })

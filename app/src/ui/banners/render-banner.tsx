@@ -8,6 +8,8 @@ import { Dispatcher } from '../dispatcher'
 import { MergeConflictsBanner } from './merge-conflicts-banner'
 
 import { SuccessfulMerge } from './successful-merge'
+import { RebaseConflictsBanner } from './rebase-conflicts-banner'
+import { SuccessfulRebase } from './successful-rebase'
 
 export function renderBanner(
   banner: Banner,
@@ -34,7 +36,26 @@ export function renderBanner(
           key={'merge-conflicts'}
         />
       )
-
+    case BannerType.SuccessfulRebase:
+      return (
+        <SuccessfulRebase
+          targetBranch={banner.targetBranch}
+          // TODO: find this value somewhere
+          baseBranch="some-other-branch"
+          onDismissed={onDismissed}
+          key={'successful-rebase'}
+        />
+      )
+    case BannerType.RebaseConflictsFound:
+      return (
+        <RebaseConflictsBanner
+          dispatcher={dispatcher}
+          targetBranch={banner.targetBranch}
+          popup={banner.popup}
+          onDismissed={onDismissed}
+          key={'merge-conflicts'}
+        />
+      )
     default:
       return assertNever(banner, `Unknown popup type: ${banner}`)
   }

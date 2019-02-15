@@ -93,6 +93,7 @@ import {
   ComparisonMode,
   MergeConflictState,
   isMergeConflictState,
+  RebaseConflictState,
 } from '../app-state'
 import { IGitHubUser } from '../databases/github-user-database'
 import {
@@ -1635,7 +1636,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       if (conflictState.kind === 'merge') {
         await this.showMergeConflictsDialog(repository, conflictState)
       } else if (conflictState.kind === 'rebase') {
-        await this.showRebaseConflictsDialog(repository)
+        await this.showRebaseConflictsDialog(repository, conflictState)
       } else {
         assertNever(conflictState, `Unsupported conflict kind`)
       }
@@ -1645,18 +1646,40 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** display the rebase flow, if not already in this flow */
-  private async showRebaseConflictsDialog(repository: Repository) {
+  private async showRebaseConflictsDialog(
+    repository: Repository,
+    conflictState: RebaseConflictState
+  ) {
     const alreadyInFlow =
       this.currentPopup !== null &&
       this.currentPopup.type === PopupType.RebaseConflicts
 
-    if (alreadyInFlow) {
+    // have we already been shown the merge conflicts flow *and closed it*?
+    const alreadyExitedFlow =
+      this.currentBanner !== null &&
+      this.currentBanner.type === BannerType.RebaseConflictsFound
+
+    if (alreadyInFlow || alreadyExitedFlow) {
       return
     }
+    const possibleTheirsBranches = await getBranchesPointedAt(
+      repository,
+      conflictState.baseBranchTip
+    )
+    // null means we encountered an error
+    if (possibleTheirsBranches === null) {
+      return
+    }
+    const baseBranch =
+      possibleTheirsBranches.length === 1
+        ? possibleTheirsBranches[0]
+        : undefined
 
     this._showPopup({
       type: PopupType.RebaseConflicts,
       repository,
+      targetBranch: conflictState.targetBranch,
+      baseBranch,
     })
   }
 

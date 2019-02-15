@@ -1517,4 +1517,20 @@ export class Dispatcher {
   public recordUnguidedConflictedMergeCompletion() {
     this.statsStore.recordUnguidedConflictedMergeCompletion()
   }
+
+  // TODO: more rebase-related actions
+
+  /**
+   * Increments the `rebaseConflictsDialogDismissalCount` metric
+   */
+  public recordRebaseConflictsDialogDismissal() {
+    this.statsStore.recordRebaseConflictsDialogDismissal()
+  }
+
+  /**
+   * Increments the `rebaseConflictsDialogReopenedCount` metric
+   */
+  public recordRebaseConflictsDialogReopened() {
+    this.statsStore.recordRebaseConflictsDialogReopened()
+  }
 }

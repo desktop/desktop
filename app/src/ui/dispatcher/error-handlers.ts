@@ -467,9 +467,15 @@ export async function rebaseConflictsHandler(
   // TODO: metrics
   // TODO: any other context?
 
+  // TODO: where can I get this from in the event of a pull failing from a rebase?
+  const baseBranch = '???'
+  const targetBranch = '???'
+
   dispatcher.showPopup({
     type: PopupType.RebaseConflicts,
     repository,
+    targetBranch,
+    baseBranch,
   })
 
   return null
