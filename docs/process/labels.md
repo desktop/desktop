@@ -3,40 +3,47 @@
 This section outlines the labels currently used in the project, and adds context
 about what each label represents.
 
-## Common labels
+## Areas of Work
 
 These labels are used for both issues and pull requests, and are assigned to
-help understand the type of work involved.
+help identify what area a task is associated with. This helps organize upcoming
+work and enables contributors to focus on a specific area of the project that
+they are passionate about.
 
-|                               | Label name       | Description |
-| ----------------------------- | -----------------| ----------- |
-| [:mag_right:][docs]           | `docs`           | Issues and pull requests related to documentation work on the project |
-| [:mag_right:][infrastructure] | `infrastructure` | Issues and pull requests related to scripts and tooling for GitHub Desktop |
-| [:mag_right:][tech-debt]      | `tech-debt`      | Issues and pull requests related to addressing technical debt or improving the codebase |
+|                                       | Label name               | Description |
+| ------------------------------------- | -------------------------| ----------- |
+| [:mag_right:][area:accessibility]     | `area:accessibility`     | Accessibility issues or improvements in the product |
+| [:mag_right:][area:dependencies]      | `area:dependencies`      | Upgrading dependencies that the project uses |
+| [:mag_right:][area:diffs]             | `area:diffs`             | Diff rendering and our use of [CodeMirror](https://codemirror.net/) |
+| [:mag_right:][area:docs]              | `area:docs`              | Documentation for the project |
+| [:mag_right:][area:electron]          | `area:electron`          | How we use [Electron](https://electronjs.org) in the product |
+| [:mag_right:][area:enhancements]      | `area:enhancements`      | Improvements to the product that address a specific problem for users |
+| [:mag_right:][area:external-websites] | `area:external-websites` | External websites that the GitHub maintainers are responsible for |
+| [:mag_right:][area:integrations]      | `area:integrations`      | Editor and shell integrations that ship in the product |
+| [:mag_right:][area:metrics]           | `area:metrics`           | Required to support analytics and metrics in the product |
+| [:mag_right:][area:performance]       | `area:performance`       | Improvements to the product to ensure it is responsive for users|
+| [:mag_right:][area:tech-debt]         | `area:tech-debt`         | Keep the application code maintainable so contributors can continue building features |
+| [:mag_right:][area:themes]            | `area:themes`            | The light or dark themes that ship in the product  |
+| [:mag_right:][area:tooling]           | `area:tooling`           | Scripts and tooling for the project |
 
-## Issue-specific labels
-
-This section is organized into sub-groups, as groups of labels relate to
-specific work being done in the issue tracker.
-
-### Issue triage
+## Issue triage
 
 The triage process is how the maintainers process incoming issues and prioritize
 the work required to address the feedback raised. These labels help us to track
 the flow of an issue through this process
 
-|                                        | Label name                  | Description |
-| -------------------------------------- | ----------------------------| ----------- |
-| [:mag_right:][bug]                     | `bug`                     | Confirmed bugs or reports that are very likely to be bugs |
-| [:mag_right:][enhancement]             | `enhancement`             | Issues that propose to improve the app and solve a problem for users |
-| [:mag_right:][investigation-needed]    | `investigation-needed`    | Likely bugs, but haven't been reliably reproduced by a reviewer |
-| [:mag_right:][more-information-needed] | `more-information-needed` | The submitter needs to provide more information about the issue |
-| [:mag_right:][priority-1]              | `priority-1`              | Major bug affecting large population and inhibiting their work |
-| [:mag_right:][priority-2]              | `priority-2`              | Bug that affects more than a few users in a meaningful way but doesn't prevent core functions |
-| [:mag_right:][priority-3]              | `priority-3`              | Bugs that affect small number of users and/or relatively cosmetic in nature |
-| [:mag_right:][support]                 | `support`                 | Issues specific to an individual users' configuration requiring diagnosis and clarification to resolve |
+|                                               | Label name                       | Description |
+| --------------------------------------------- | ---------------------------------| ----------- |
+| [:mag_right:][triage:more-information-needed] | `triage:more-information-needed` | The submitter needs to provide more information about the issue to understand the behavior |
+| [:mag_right:][triage:potential-bug]           | `triage:potential-bug`           | Issue contains enough details for a reviewer to try and reproduce the problem |
+| [:mag_right:][triage:confirmed-bug]           | `triage:confirmed-bug`           | Issue contains reproducible steps and bug has been verified by a reviewer |
+| [:mag_right:][triage:not-a-bug]               | `triage:not-a-bug`               | Issue is not related to a bug, and requires review from `@desktop/product` to determine the next steps |
+| [:mag_right:][impact:priority-1]              | `impact:priority-1`              | Major bug affecting large population and inhibiting their work |
+| [:mag_right:][impact:priority-2]              | `impact:priority-2`              | Bug that affects more than a few users in a meaningful way but doesn't prevent core functions |
+| [:mag_right:][impact:priority-3]              | `impact:priority-3`              | Bugs that affect small number of users and/or relatively cosmetic in nature |
+| [:mag_right:][support]                        | `support`                        | Issues specific to an individual users' configuration requiring diagnosis and clarification to resolve |
 
-### External contributions
+## External contributions
 
 We use these labels to identify work that is ideal for external contributors to
 get involved with.
@@ -46,80 +53,75 @@ get involved with.
 | [:mag_right:][good first issue] | `good first issue` | Issues marked as ideal for a brand new contributor to start with |
 | [:mag_right:][help wanted]      | `help wanted`      | Issues marked as ideal for external contributors |
 
-### Planning
+## Collaboration
 
-We use these labels to track tasks outside the usual flow of addressing bugs or
-implementing features:
+We use these labels to track tasks that represent specific interactions as part of a productive cross-functional team:
 
-|                                   | Label name           |  Description |
-| --------------------------------- | -------------------- |  ----------- |
-| [:mag_right:][meta]               | `meta`               | Issues used to co-ordinate tasks or discuss a feature before the required work is captured |
-| [:mag_right:][user-research]      | `user-research`      | Issues that may benefit from user interviews, validations, and/or usability testing |
-| [:mag_right:][needs-design-input] | `needs-design-input` | Issues that require design input from the core team before the work can be started |
+|                                                 | Label name                         |  Description |
+| ----------------------------------------------- | ---------------------------------- |  ----------- |
+| [:mag_right:][collaboration:user-research]      | `collaboration:user-research`      | Issues that may benefit from user interviews, validations, and/or usability testing |
+| [:mag_right:][collaboration:needs-design-input] | `collaboration:needs-design-input` | Issues that require design input from the core team before the work can be started |
 
-### Specialized areas
-
-We use these labels to identify issues related to a specific area or the app,
-or a specific subset of users:
-
-|                             | Label name     | Description |
-| --------------------------- | -------------- | ----------- |
-| [:mag_right:][codemirror]   | `codemirror`   | Issues related to our use of [CodeMirror](https://codemirror.net/) that may require upstream fixes |
-| [:mag_right:][electron]     | `electron`     | Issues related to our use of [Electron](https://electronjs.org) that may need updates to Electron or upstream fixes |
-| [:mag_right:][integrations] | `integrations` | Issues related to editor and shell integrations that ship in Desktop |
-| [:mag_right:][performance]  | `performance`  | Relating to things affecting performance |
-| [:mag_right:][themes]       | `themes`       | Issues related the light or dark themes that ship in Desktop |
-| [:mag_right:][website]      | `website`      | Issues that relate to external websites and require co-ordination to resolve |
-
-### Environments
+## Platforms
 
 Sometimes issues are isolated to a specific operating system. We use these
 labels to help identify these issues, so maintainers with that setup - or
 experience with that setup - can easily find them in the issue tracker.
 
-|                        | Label name | Description |
-| ---------------------- | ---------- | ----------- |
-| [:mag_right:][linux]   | `linux`    | Issues specific to Desktop usage on Linux |
-| [:mag_right:][macOS]   | `macOS`    | Issues specific to Desktop usage on macOS |
-| [:mag_right:][windows] | `windows`  | Issues specific Desktop usage on Windows |
+|                                 | Label name          | Description |
+| ------------------------------- | ------------------- | ----------- |
+| [:mag_right:][platform:linux]   | `platform:linux`    | Issues specific to Desktop usage on Linux |
+| [:mag_right:][platform:macOS]   | `platform:macOS`    | Issues specific to Desktop usage on macOS |
+| [:mag_right:][platform:windows] | `platform:windows`  | Issues specific Desktop usage on Windows |
 
 
-## Pull Request-specific labels
+## Review Process
 
 These labels should only be assigned to pull requests, and are intended to help
-reviewers navigate the open contributions to identify how best to spend their
-time:
+reviewers navigate the outstanding pull requests to identify where to spend
+their review time:
 
-|                                 | Label name         | Description |
-| ------------------------------- | ------------------ | ----------- |
-| [:mag_right:][ready-for-review] | `ready-for-review` | Pull Requests that are ready to be reviewed by the maintainers |
-| [:mag_right:][time-sensitive]   | `time-sensitive`   | Pull Requests that require review in a more timely manner      |
+|                                      | Label name              | Description |
+| ------------------------------------ | ----------------------- | ----------- |
+| [:mag_right:][review:ready]          | `review:ready`          | Pull Requests that are ready to be reviewed by the maintainers |
+| [:mag_right:][review:time-sensitive] | `review:time-sensitive` | Pull Requests that require review in a more timely manner      |
 
+# TODO: correct all these URLs
 
-[bug]: https://github.com/desktop/desktop/labels/bug
-[codemirror]: https://github.com/desktop/desktop/labels/codemirror
-[docs]: https://github.com/desktop/desktop/labels/docs
-[electron]: https://github.com/desktop/desktop/labels/electron
-[enhancement]: https://github.com/desktop/desktop/labels/enhancement
+[area:accessibility]: https://github.com/desktop/desktop/labels/integrations
+[area:diffs]: https://github.com/desktop/desktop/labels/diffs
+[area:docs]: https://github.com/desktop/desktop/labels/docs
+[area:dependencies]: https://github.com/desktop/desktop/labels/docs
+[area:electron]: https://github.com/desktop/desktop/labels/electron
+[area:enhancements]: https://github.com/desktop/desktop/labels/enhancement
+[area:external-websites]: https://github.com/desktop/desktop/labels/website
+[area:integrations]: https://github.com/desktop/desktop/labels/integrations
+[area:metrics]: https://github.com/desktop/desktop/labels/enhancement
+[area:performance]: https://github.com/desktop/desktop/labels/performance
+[area:tech-debt]: https://github.com/desktop/desktop/labels/tech-debt
+[area:themes]: https://github.com/desktop/desktop/labels/themes
+[area:tooling]: https://github.com/desktop/desktop/labels/infrastructure
+
 [good first issue]: https://github.com/desktop/desktop/labels/good%20first%20issue
 [help wanted]: https://github.com/desktop/desktop/labels/help%20wanted
-[infrastructure]: https://github.com/desktop/desktop/labels/infrastructure
-[integrations]: https://github.com/desktop/desktop/labels/integrations
-[investigation-needed]: https://github.com/desktop/desktop/labels/investigation-needed
-[linux]: https://github.com/desktop/desktop/labels/linux
-[macOS]: https://github.com/desktop/desktop/labels/macOS
-[meta]: https://github.com/desktop/desktop/labels/meta
-[more-information-needed]: https://github.com/desktop/desktop/labels/more-information-needed
-[needs-design-input]: https://github.com/desktop/desktop/labels/needs-design-input
-[performance]: https://github.com/desktop/desktop/labels/performance
-[priority-1]: https://github.com/desktop/desktop/labels/priority-1
-[priority-2]: https://github.com/desktop/desktop/labels/priority-2
-[priority-3]: https://github.com/desktop/desktop/labels/priority-3
-[ready-for-review]: https://github.com/desktop/desktop/labels/ready-for-review
+
+[platform:windows]: https://github.com/desktop/desktop/labels/windows
+[platform:linux]: https://github.com/desktop/desktop/labels/linux
+[platform:macOS]: https://github.com/desktop/desktop/labels/macOS
+
+[collaboration:user-research]: https://github.com/desktop/desktop/labels/user-research
+[collaboration:needs-design-input]: https://github.com/desktop/desktop/labels/needs-design-input
+
+[triage:more-information-needed]: https://github.com/desktop/desktop/labels/more-information-needed
+[triage:potential-bug]: https://github.com/desktop/desktop/labels/status%3Aconfirmed-bug
+[triage:confirmed-bug]: https://github.com/desktop/desktop/labels/status%3Aconfirmed-bug
+[triage:not-a-bug]: https://github.com/desktop/desktop/labels/status%3Aconfirmed-bug
+
+[impact:priority-1]: https://github.com/desktop/desktop/labels/priority-1
+[impact:priority-2]: https://github.com/desktop/desktop/labels/priority-2
+[impact:priority-3]: https://github.com/desktop/desktop/labels/priority-3
+
 [support]: https://github.com/desktop/desktop/labels/support
-[tech-debt]: https://github.com/desktop/desktop/labels/tech-debt
-[themes]: https://github.com/desktop/desktop/labels/themes
-[time-sensitive]: https://github.com/desktop/desktop/labels/time-sensitive
-[user-research]: https://github.com/desktop/desktop/labels/user-research
-[website]: https://github.com/desktop/desktop/labels/website
-[windows]: https://github.com/desktop/desktop/labels/windows
+
+[review:ready]: https://github.com/desktop/desktop/labels/ready-for-review
+[review:time-sensitive]: https://github.com/desktop/desktop/labels/time-sensitive
