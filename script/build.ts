@@ -39,7 +39,9 @@ import {
 
 import { getReleaseChannel, getDistRoot, getExecutableName } from './dist-info'
 import { isRunningOnFork, isCircleCI } from './build-platforms'
+
 import { updateLicenseDump } from './licenses/update-license-dump'
+import { verifyInjectedSassVariables } from './validate-sass/validate-all'
 
 const projectRoot = path.join(__dirname, '..')
 const outRoot = path.join(projectRoot, 'out')
@@ -70,17 +72,28 @@ if (isCircleCI() && !isRunningOnFork()) {
   cp.execSync(path.join(__dirname, 'setup-macos-keychain'))
 }
 
-console.log('Updating our licenses dump…')
-updateLicenseDump(projectRoot, outRoot)
+verifyInjectedSassVariables(outRoot)
   .catch(err => {
     console.error(
-      'Error updating the license dump. This is fatal for a published build.'
+      'Error verifying the Sass variables in the rendered app. This is fatal for a published build.'
     )
-    console.error(err)
 
     if (isPublishableBuild) {
       process.exit(1)
     }
+  })
+  .then(() => {
+    console.log('Updating our licenses dump…')
+    return updateLicenseDump(projectRoot, outRoot).catch(err => {
+      console.error(
+        'Error updating the license dump. This is fatal for a published build.'
+      )
+      console.error(err)
+
+      if (isPublishableBuild) {
+        process.exit(1)
+      }
+    })
   })
   .then(() => {
     console.log('Packaging…')
