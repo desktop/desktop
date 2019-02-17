@@ -96,7 +96,7 @@ describe('git/commit', () => {
       expect(commit).not.toBeNull()
       expect(commit!.summary).toEqual('Special commit')
       expect(commit!.body).toEqual('# this is a comment\n')
-      expect(commit!.sha.substring(0, 7)).toEqual(sha)
+      expect(commit!.shortSha).toEqual(sha)
     })
 
     it('can commit for empty repository', async () => {
@@ -188,7 +188,7 @@ describe('git/commit', () => {
       const newTip = (await getCommits(repository!, 'HEAD', 1))[0]
       expect(newTip.sha).not.toEqual(previousTip.sha)
       expect(newTip.summary).toEqual('title')
-      expect(newTip.sha.substring(0, 7)).toEqual(sha)
+      expect(newTip.shortSha).toEqual(sha)
 
       // verify that the contents of this new commit are just the new file
       const changedFiles = await getChangedFiles(repository!, newTip.sha)
@@ -295,7 +295,7 @@ describe('git/commit', () => {
       const newTip = (await getCommits(repository!, 'HEAD', 1))[0]
       expect(newTip.sha).not.toEqual(previousTip.sha)
       expect(newTip.summary).toEqual('title')
-      expect(newTip.sha.substring(0, 7)).toEqual(sha)
+      expect(newTip.shortSha).toEqual(sha)
 
       // verify that the contents of this new commit are just the modified file
       const changedFiles = await getChangedFiles(repository!, newTip.sha)
@@ -341,7 +341,7 @@ describe('git/commit', () => {
       const newTip = (await getCommits(repository!, 'HEAD', 1))[0]
       expect(newTip.sha).not.toEqual(previousTip.sha)
       expect(newTip.summary).toEqual('title')
-      expect(newTip.sha.substring(0, 7)).toEqual(sha)
+      expect(newTip.shortSha).toEqual(sha)
 
       // verify that the contents of this new commit are just the modified file
       const changedFiles = await getChangedFiles(repository!, newTip.sha)
@@ -512,7 +512,7 @@ describe('git/commit', () => {
 
       const commits = await getCommits(repo, 'HEAD', 5)
       expect(commits[0].parentSHAs.length).toEqual(2)
-      expect(commits[0]!.sha.substring(0, 7)).toEqual(sha)
+      expect(commits[0]!.shortSha).toEqual(sha)
     })
   })
 
@@ -675,7 +675,7 @@ describe('git/commit', () => {
       const commit = await getCommit(repo, 'HEAD')
       expect(commit).not.toBeNull()
       expect(commit!.summary).toEqual('commit again!')
-      expect(commit!.sha.substring(0, 7)).toEqual(sha)
+      expect(commit!.shortSha).toEqual(sha)
     })
   })
 })

@@ -3,7 +3,7 @@ import * as ReactDOM from 'react-dom'
 import * as TestUtils from 'react-dom/test-utils'
 
 import { App } from '../../src/ui/app'
-import { Dispatcher } from '../../src/lib/dispatcher'
+import { Dispatcher } from '../../src/ui/dispatcher'
 import {
   AppStore,
   GitHubUserStore,

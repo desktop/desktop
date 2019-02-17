@@ -8,6 +8,7 @@ import { ReleaseNote, ReleaseSummary } from '../../models/release-notes'
 import { updateStore } from '../lib/update-store'
 import { ButtonGroup } from '../lib/button-group'
 import { Button } from '../lib/button'
+import { LinkButton } from '../lib/link-button'
 
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { DialogHeader } from '../dialog/header'
@@ -15,6 +16,8 @@ import { DialogHeader } from '../dialog/header'
 import { RichText } from '../lib/rich-text'
 import { Repository } from '../../models/repository'
 import { getDotComAPIEndpoint } from '../../lib/api'
+import { shell } from '../../lib/app-shell'
+import { ReleaseNotesUri } from '../lib/releases'
 
 // HACK: This is needed because the `Rich`Text` component
 // needs to know what repo to link issues against.
@@ -173,6 +176,9 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
 
         <DialogContent>{contents}</DialogContent>
         <DialogFooter>
+          <LinkButton onClick={this.showAllReleaseNotes}>
+            View all release notes
+          </LinkButton>
           <ButtonGroup destructive={true}>
             <Button type="submit">Close</Button>
             <Button onClick={this.updateNow}>
@@ -186,5 +192,9 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
 
   private updateNow = () => {
     updateStore.quitAndInstallUpdate()
+  }
+
+  private showAllReleaseNotes = () => {
+    shell.openExternal(ReleaseNotesUri)
   }
 }

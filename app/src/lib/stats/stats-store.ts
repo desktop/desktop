@@ -80,6 +80,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   mergeConflictsDialogReopenedCount: 0,
   guidedConflictedMergeCompletionCount: 0,
   unguidedConflictedMergeCompletionCount: 0,
+  createPullRequestCount: 0,
 }
 
 interface IOnboardingStats {
@@ -816,6 +817,15 @@ export class StatsStore implements IStatsStore {
     return this.updateDailyMeasures(m => ({
       unguidedConflictedMergeCompletionCount:
         m.unguidedConflictedMergeCompletionCount + 1,
+    }))
+  }
+
+  /**
+   * Increments the `createPullRequestCount` metric
+   */
+  public async recordCreatePullRequest(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      createPullRequestCount: m.createPullRequestCount + 1,
     }))
   }
 

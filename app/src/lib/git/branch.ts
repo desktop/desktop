@@ -156,3 +156,23 @@ export async function getBranchesPointedAt(
   // split (and remove trailing element cause its always an empty string)
   return stdout.split('\n').slice(0, -1)
 }
+
+/**
+ * Gets all branches that have been merged into the given branch
+ *
+ * @param repository The repository in which to search
+ * @param branchName The to be used as the base branch
+ */
+export async function getMergedBranches(
+  repository: Repository,
+  branchName: string
+): Promise<ReadonlyArray<string>> {
+  const args = ['branch', '--format=%(refname:short)', '--merged', branchName]
+
+  const { stdout } = await git(args, repository.path, 'mergedBranches')
+
+  return stdout
+    .split('\n')
+    .slice(0, -1)
+    .filter(s => s !== branchName)
+}

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { ToolbarButton, ToolbarButtonStyle } from './button'
 import { Progress } from '../../models/progress'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Repository } from '../../models/repository'
 import { IAheadBehind } from '../../models/branch'
@@ -19,7 +19,7 @@ interface IPushPullButtonProps {
   /** The name of the remote. */
   readonly remoteName: string | null
 
-  /** Is a push/pull/update in progress? */
+  /** Is a push/pull/fetch in progress? */
   readonly networkActionInProgress: boolean
 
   /** The date of the last fetch. */
