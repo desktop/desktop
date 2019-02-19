@@ -12,16 +12,63 @@ import { stageManualConflictResolution } from './stage'
 import { stageFiles } from './update-index'
 import { GitError, IGitResult } from 'dugite'
 import { getStatus } from './status'
+import { RebaseContext } from '../../models/rebase'
 
 /**
  * Check the `.git/REBASE_HEAD` file exists in a repository to confirm
  * a rebase operation is underway.
  */
-export function isRebaseHeadSet(repository: Repository) {
+function isRebaseHeadSet(repository: Repository) {
   const path = Path.join(repository.path, '.git', 'REBASE_HEAD')
   return FSE.pathExists(path)
 }
 
+/**
+ * Detect and build up the context about the rebase being performed on a
+ * repository. This information is required to help Desktop display information
+ * to the user about the current action as well as the options available.
+ *
+ * Returns `null` if no rebase is detected, or if the expected information
+ * cannot be found in the repository.
+ */
+export async function getRebaseContext(
+  repository: Repository
+): Promise<RebaseContext | null> {
+  const isRebase = await isRebaseHeadSet(repository)
+
+  if (!isRebase) {
+    return null
+  }
+
+  let originalBranchTip: string | null = null
+  let targetBranch: string | null = null
+
+  try {
+    originalBranchTip = await FSE.readFile(
+      Path.join(repository.path, '.git', 'rebase-apply', 'orig-head'),
+      'utf8'
+    )
+
+    originalBranchTip = originalBranchTip.trim()
+
+    targetBranch = await FSE.readFile(
+      Path.join(repository.path, '.git', 'rebase-apply', 'head-name'),
+      'utf8'
+    )
+
+    if (targetBranch.startsWith('refs/heads/')) {
+      targetBranch = targetBranch.substr(11).trim()
+    }
+  } catch {}
+
+  if (originalBranchTip != null && targetBranch != null) {
+    return { originalBranchTip, targetBranch }
+  }
+
+  // unable to resolve the rebase state of this repository
+
+  return null
+}
 /**
  * A stub function to use for initiating rebase in the app.
  *
