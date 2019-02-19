@@ -34,6 +34,7 @@ import { ComparisonCache } from './comparison-cache'
 import { ApplicationTheme } from '../ui/lib/application-theme'
 import { IAccountRepositories } from './stores/api-repositories-store'
 import { ManualConflictResolution } from '../models/manual-conflict-resolution'
+import { Banner } from '../models/banner'
 
 export enum SelectionType {
   Repository,
@@ -99,6 +100,7 @@ export interface IAppState {
   readonly focusCommitMessage: boolean
   readonly currentPopup: Popup | null
   readonly currentFoldout: Foldout | null
+  readonly currentBanner: Banner | null
 
   /**
    * A list of currently open menus with their selected items
@@ -153,12 +155,6 @@ export interface IAppState {
 
   /** Whether we should show the update banner */
   readonly isUpdateAvailableBannerVisible: boolean
-
-  /** Whether we should show the merge success banner */
-  readonly successfulMergeBannerState: SuccessfulMergeBannerState
-
-  /** Whether we should show the merge success banner */
-  readonly mergeConflictsBannerState: MergeConflictsBannerState
 
   /** Whether we should show a confirmation dialog */
   readonly askForConfirmationOnRepositoryRemoval: boolean
@@ -601,23 +597,3 @@ export interface ICompareToBranch {
  * An action to send to the application store to update the compare state
  */
 export type CompareAction = IViewHistory | ICompareToBranch
-
-/** State for displaying the sucessful merge banner
- * `null` to remove banner
- */
-export type SuccessfulMergeBannerState = {
-  /** name of the branch that was merged into */
-  ourBranch: string
-  /** name of the branch we merged into `ourBranch` */
-  theirBranch?: string
-} | null
-
-/** State for displaying the merge conflicts banner
- *  `null` to remove banner
- */
-export type MergeConflictsBannerState = {
-  /** name of the branch that is being merged into */
-  readonly ourBranch: string
-  /** popup to be shown from the banner */
-  readonly popup: Popup
-} | null
