@@ -25,6 +25,7 @@ import { assertNever } from '../../lib/fatal-error'
 import { CallToAction } from '../lib/call-to-action'
 import { IAccountRepositories } from '../../lib/stores/api-repositories-store'
 import { merge } from '../../lib/merge'
+import { ClickSource } from '../lib/list'
 
 interface ICloneRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -314,7 +315,7 @@ export class CloneRepository extends React.Component<
               onRefreshRepositories={this.props.onRefreshRepositories}
               filterText={tabState.filterText}
               onFilterTextChanged={this.onFilterTextChanged}
-              cloneIfCloningEnabled={this.cloneIfCloningEnabled}
+              onRowKeyDown={this.onRowKeyDown}
             />
           )
         }
@@ -622,12 +623,12 @@ export class CloneRepository extends React.Component<
     return url
   }
 
-  private cloneIfCloningEnabled = () => {
-    if (this.checkIfCloningDisabled() === true) {
-      return
+  private onRowKeyDown = (source: ClickSource) => {
+    if (source.kind === 'keyboard' && source.event.key === 'Enter') {
+      if (this.checkIfCloningDisabled() === false) {
+        this.clone()
+      }
     }
-
-    this.clone()
   }
 
   private clone = async () => {

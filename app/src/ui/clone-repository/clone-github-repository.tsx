@@ -64,8 +64,11 @@ interface ICloneGithubRepositoryProps {
    */
   readonly onRefreshRepositories: (account: Account) => void
 
-  /** Initiate cloning if a repository and cloning path are selected and no current errors. */
-  readonly cloneIfCloningEnabled: () => void
+  /**
+   * Called when a key event occurs on a clone-able repository
+   * list item.
+   */
+  readonly onRowKeyDown: (source: ClickSource) => void
 }
 
 export class CloneGithubRepository extends React.PureComponent<
@@ -102,8 +105,6 @@ export class CloneGithubRepository extends React.PureComponent<
   }
 
   private onItemClicked = (repository: IAPIRepository, source: ClickSource) => {
-    if (source.kind === 'keyboard' && source.event.key === 'Enter') {
-      this.props.cloneIfCloningEnabled()
-    }
+    this.props.onRowKeyDown(source)
   }
 }
