@@ -10,14 +10,10 @@ import { MergeConflictsBanner } from './merge-conflicts-banner'
 import { SuccessfulMerge } from './successful-merge'
 
 export function renderBanner(
-  banner: Banner | null,
+  banner: Banner,
   dispatcher: Dispatcher,
   onDismissed: () => void
-): JSX.Element | null {
-  if (!banner) {
-    return null
-  }
-
+): JSX.Element {
   switch (banner.type) {
     case BannerType.SuccessfulMerge:
       return (
