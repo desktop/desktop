@@ -3,6 +3,8 @@ import { Popup } from './popup'
 export enum BannerType {
   SuccessfulMerge = 'SuccessfulMerge',
   MergeConflictsFound = 'MergeConflictsFound',
+  SuccessfulRebase = 'SuccessfulRebase',
+  RebaseConflictsFound = 'RebaseConflictsFound',
 }
 
 export type Banner =
