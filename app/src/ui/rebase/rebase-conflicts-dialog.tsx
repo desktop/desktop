@@ -68,6 +68,25 @@ export class RebaseConflictsDialog extends React.Component<
     }
   }
 
+  private renderHeaderTitle(targetBranch: string, baseBranch?: string) {
+    if (baseBranch !== undefined) {
+      return (
+        <span>
+          {`Resolve conflicts before rebasing `}
+          <strong>{targetBranch}</strong>
+          {` on `}
+          <strong>{baseBranch}</strong>
+        </span>
+      )
+    }
+    return (
+      <span>
+        {`Resolve conflicts before rebasing `}
+        <strong>{targetBranch}</strong>
+      </span>
+    )
+  }
+
   public render() {
     const unmergedFiles = getUnmergedFiles(this.props.workingDirectory)
     const conflictedFilesCount = getConflictedFiles(
@@ -75,10 +94,16 @@ export class RebaseConflictsDialog extends React.Component<
       this.props.manualResolutions
     ).length
 
+    const headerTitle = this.renderHeaderTitle(
+      this.props.targetBranch,
+      this.props.baseBranch
+    )
+
     const tooltipString =
       conflictedFilesCount > 0
         ? 'Resolve all conflicts before continuing'
         : undefined
+
     return (
       <Dialog
         id="rebase-conflicts-list"
@@ -88,7 +113,7 @@ export class RebaseConflictsDialog extends React.Component<
         onSubmit={this.onSubmit}
       >
         <DialogHeader
-          title="Rebase conflicts found"
+          title={headerTitle}
           dismissable={true}
           onDismissed={this.onDismissed}
         />
