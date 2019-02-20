@@ -5,6 +5,18 @@ import { Branch, BranchType } from '../../models/branch'
 import { IGitAccount } from '../../models/git-account'
 import { envForAuthentication } from './authentication'
 
+export interface IMergedBranch {
+  /**
+   * The canonical reference to the merged branch
+   */
+  readonly canonicalRef: string
+
+  /**
+   * The full-length Object ID (SHA) in HEX (32 chars)
+   */
+  readonly sha: string
+}
+
 /**
  * Create a new branch from the given start point.
  *
@@ -166,13 +178,38 @@ export async function getBranchesPointedAt(
 export async function getMergedBranches(
   repository: Repository,
   branchName: string
-): Promise<ReadonlyArray<string>> {
-  const args = ['branch', '--format=%(refname)', '--merged', branchName]
+): Promise<ReadonlyArray<IMergedBranch>> {
+  const delimiter = '1F'
+  const delimiterString = String.fromCharCode(parseInt(delimiter, 16))
+
+  const canonicalBranchRef = branchName.startsWith('refs/heads/')
+    ? branchName
+    : `refs/heads/${branchName}`
+
+  const format = [
+    '%(objectname)', // SHA
+    '%(refname)',
+    `%${delimiter}`, // indicate end-of-line as %(body) may contain newlines
+  ].join('%00')
+
+  const args = [
+    'branch',
+    '--format=%(objectname)%(refname)',
+    '--merged',
+    branchName,
+  ]
 
   const { stdout } = await git(args, repository.path, 'mergedBranches')
+  const lines = stdout.split(delimiterString)
 
-  return stdout
-    .split('\n')
-    .slice(0, -1)
-    .filter(s => s !== branchName)
+  // Remove the trailing newline
+  lines.splice(-1, 1)
+
+  return lines
+    .map(l => {
+      const [sha, canonicalRef] = l.split('\0')
+      // TODO: double check that SHA and canonicalRef is valid
+      return <IMergedBranch>{ sha, canonicalRef }
+    })
+    .filter(mb => mb.canonicalRef !== canonicalBranchRef)
 }
