@@ -172,7 +172,7 @@ export class BranchPruner {
       )
 
       if (isDeleted) {
-        log.info(`Deleted ${branch.name} - ${branch.tip.sha}`)
+        log.info(`Pruned branch ${branchName} (was ${branch.sha})`)
       }
     }
 
