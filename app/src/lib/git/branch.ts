@@ -205,12 +205,21 @@ export async function getMergedBranches(
 
   // Remove the trailing newline
   lines.splice(-1, 1)
+  const mergedBranches = new Array<IMergedBranch>()
 
-  return lines
-    .map(l => {
-      const [sha, canonicalRef] = l.split('\0')
-      // TODO: double check that SHA and canonicalRef is valid
-      return <IMergedBranch>{ sha, canonicalRef }
-    })
-    .filter(mb => mb.canonicalRef !== canonicalBranchRef)
+  for (const line of lines) {
+    const [sha, canonicalRef] = line.split('\0')
+
+    if (sha === undefined || canonicalRef === undefined) {
+      continue
+    }
+
+    if (canonicalRef !== canonicalBranchRef) {
+      continue
+    }
+
+    mergedBranches.push({ sha, canonicalRef })
+  }
+
+  return mergedBranches
 }
