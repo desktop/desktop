@@ -17,16 +17,16 @@ import { TipState } from '../../../models/tip'
 
 /** Check if a repo needs to be pruned at least every 4 hours */
 const BackgroundPruneMinimumInterval = 1000 * 60 * 60 * 4
-const ReservedBranches = [
-  'master',
-  'gh-pages',
+const ReservedRefs = [
   'HEAD',
-  'develop',
-  'dev',
-  'development',
-  'trunk',
-  'devel',
-  'release',
+  'refs/heads/master',
+  'refs/heads/gh-pages',
+  'refs/heads/develop',
+  'refs/heads/dev',
+  'refs/heads/development',
+  'refs/heads/trunk',
+  'refs/heads/devel',
+  'refs/heads/release',
 ]
 
 export class BranchPruner {
@@ -145,7 +145,7 @@ export class BranchPruner {
 
     // Create array of branches that can be pruned
     const candidateBranches = mergedBranches.filter(
-      b => !ReservedBranches.includes(b)
+      mb => !ReservedRefs.includes(mb.canonicalRef)
     )
     const branchesReadyForPruning = new Array<Branch>()
     for (const branch of candidateBranches) {
