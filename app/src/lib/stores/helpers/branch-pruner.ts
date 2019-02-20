@@ -1,14 +1,14 @@
 import { Repository } from '../../../models/repository'
 import { RepositoriesStore } from '../repositories-store'
-import { Branch, BranchType } from '../../../models/branch'
+import { Branch } from '../../../models/branch'
 import { GitStoreCache } from '../git-store-cache'
 import {
   getMergedBranches,
-  deleteBranch,
   getCheckoutsAfterDate,
   getSymbolicRef,
   IMergedBranch,
   formatAsLocalRef,
+  deleteLocalBranch,
 } from '../../git'
 import { fatalError } from '../../fatal-error'
 import { RepositoryStateCache } from '../repository-state-cache'
@@ -156,9 +156,17 @@ export class BranchPruner {
     )
 
     const gitStore = this.gitStoreCache.get(this.repository)
+    const branchRefPrefix = `refs/heads/`
+
     for (const branch of branchesReadyForPruning) {
+      if (!branch.canonicalRef.startsWith(branchRefPrefix)) {
+        continue
+      }
+
+      const branchName = branch.canonicalRef.substr(branchRefPrefix.length)
+
       const isDeleted = await gitStore.performFailableOperation(() =>
-        deleteBranch(this.repository, branch, null, false)
+        deleteLocalBranch(this.repository, branchName)
       )
 
       if (isDeleted) {
