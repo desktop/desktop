@@ -6,6 +6,9 @@ import {
   getMergedBranches,
   deleteBranch,
   getCheckoutsAfterDate,
+  getSymbolicRef,
+  IMergedBranch,
+  formatAsLocalRef,
 } from '../../git'
 import { fatalError } from '../../fatal-error'
 import { RepositoryStateCache } from '../repository-state-cache'
