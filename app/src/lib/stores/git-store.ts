@@ -62,6 +62,7 @@ import {
   revRange,
   revSymmetricDifference,
   getSymbolicRef,
+  getGlobalConfigValue,
 } from '../git'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import { UpstreamAlreadyExistsError } from './upstream-already-exists-error'
@@ -91,6 +92,8 @@ export class GitStore extends BaseStore {
 
   /** The commits keyed by their SHA. */
   public readonly commitLookup = new Map<string, Commit>()
+
+  public pullWithRebase?: boolean
 
   private _history: ReadonlyArray<string> = new Array()
 
@@ -266,6 +269,7 @@ export class GitStore extends BaseStore {
 
     this.refreshDefaultBranch()
     this.refreshRecentBranches(recentBranchNames)
+    this.checkPullWithRebase()
 
     const commits = this._allBranches.map(b => b.tip)
 
@@ -318,6 +322,22 @@ export class GitStore extends BaseStore {
     }
 
     return allBranchesWithUpstream
+  }
+
+  private async checkPullWithRebase() {
+    const result = await getGlobalConfigValue('pull.rebase')
+
+    if (result === null || result === '') {
+      this.pullWithRebase = undefined
+    } else if (result === 'true') {
+      this.pullWithRebase = true
+    } else if (result === 'false') {
+      this.pullWithRebase = false
+    } else {
+      log.warn(
+        `Unexpected value found for pull.rebase in global config: ${result}`
+      )
+    }
   }
 
   private async refreshDefaultBranch() {
