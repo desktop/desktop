@@ -36,7 +36,7 @@ export class RebaseConflictsDialog extends React.Component<
 
   private onCancel = async () => {
     await this.props.dispatcher.abortRebase(this.props.repository)
-    this.onDismissed()
+    this.props.onDismissed()
   }
 
   private onDismissed = () => {
