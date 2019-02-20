@@ -4,6 +4,7 @@ import { Repository } from '../../models/repository'
 import { Branch, BranchType } from '../../models/branch'
 import { IGitAccount } from '../../models/git-account'
 import { envForAuthentication } from './authentication'
+import { formatAsLocalRef } from './refs'
 
 export interface IMergedBranch {
   /**
@@ -189,10 +190,7 @@ export async function getMergedBranches(
 ): Promise<ReadonlyArray<IMergedBranch>> {
   const delimiter = '1F'
   const delimiterString = String.fromCharCode(parseInt(delimiter, 16))
-
-  const canonicalBranchRef = branchName.startsWith('refs/heads/')
-    ? branchName
-    : `refs/heads/${branchName}`
+  const canonicalBranchRef = formatAsLocalRef(branchName)
 
   const format = [
     '%(objectname)', // SHA
