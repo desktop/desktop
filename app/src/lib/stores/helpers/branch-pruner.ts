@@ -13,7 +13,6 @@ import {
 import { fatalError } from '../../fatal-error'
 import { RepositoryStateCache } from '../repository-state-cache'
 import * as moment from 'moment'
-import { TipState } from '../../../models/tip'
 
 /** Check if a repo needs to be pruned at least every 4 hours */
 const BackgroundPruneMinimumInterval = 1000 * 60 * 60 * 4
