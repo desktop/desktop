@@ -136,6 +136,9 @@ export class BranchPruner {
       this.repository,
       twoWeeksAgo
     )
+    const recentlyCheckedOutCanonicalRefs = new Set(
+      [...recentlyCheckedOutBranches.keys()].map(formatAsLocalRef)
+    )
 
     // Create array of branches that can be pruned
     const candidateBranches = mergedBranches.filter(
