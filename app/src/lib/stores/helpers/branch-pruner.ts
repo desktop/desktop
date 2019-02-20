@@ -65,23 +65,22 @@ export class BranchPruner {
   private async findBranchesMergedIntoDefaultBranch(
     repository: Repository,
     defaultBranch: Branch
-  ): Promise<ReadonlyArray<string> | null> {
+  ): Promise<ReadonlyArray<IMergedBranch> | null> {
     const gitStore = this.gitStoreCache.get(repository)
-    const mergedBranches =
-      (await gitStore.performFailableOperation(() =>
-        getMergedBranches(repository, defaultBranch.name)
-      )) || null
+    const mergedBranches = await gitStore.performFailableOperation(() =>
+      getMergedBranches(repository, defaultBranch.name)
+    )
 
-    // remove the current branch
-    if (mergedBranches !== null) {
-      const { branchesState } = this.repositoriesStateCache.get(repository)
-      const { tip } = branchesState
-      if (tip.kind === TipState.Valid) {
-        return mergedBranches.filter(x => x !== tip.branch.name)
-      }
+    if (mergedBranches === undefined) {
+      return null
     }
 
-    return mergedBranches
+    const currentBranchCanonicalRef = await getSymbolicRef(repository, 'HEAD')
+
+    // remove the current branch
+    return mergedBranches.filter(
+      mb => mb.canonicalRef !== currentBranchCanonicalRef
+    )
   }
 
   private async pruneLocalBranches(): Promise<void> {
