@@ -214,7 +214,9 @@ export async function getMergedBranches(
       continue
     }
 
-    if (canonicalRef !== canonicalBranchRef) {
+    // Don't include the branch we're using to compare against
+    // in the list of branches merged into that branch.
+    if (canonicalRef === canonicalBranchRef) {
       continue
     }
 
