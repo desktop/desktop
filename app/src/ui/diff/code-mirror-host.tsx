@@ -6,6 +6,13 @@ import 'codemirror/addon/selection/mark-selection'
 
 // Autocompletion plugin
 import 'codemirror/addon/hint/show-hint'
+import {
+  Doc,
+  EditorChangeLinkedList,
+  Editor,
+  EditorConfiguration,
+  LineHandle,
+} from 'codemirror'
 
 if (__DARWIN__) {
   // This has to be required to support the `simple` scrollbar style.
@@ -20,32 +27,35 @@ interface ICodeMirrorHostProps {
   readonly className?: string
 
   /** The text contents for the editor */
-  readonly value: string
+  readonly value: string | Doc
 
   /** Any CodeMirror specific settings */
-  readonly options?: CodeMirror.EditorConfiguration
+  readonly options?: EditorConfiguration
 
   /** Callback for diff to control whether selection is enabled */
   readonly isSelectionEnabled?: () => boolean
 
   /** Callback for when CodeMirror renders (or re-renders) a line */
   readonly onRenderLine?: (
-    cm: CodeMirror.Editor,
-    line: CodeMirror.LineHandle,
-    element: HTMLElement
+    cm: Editor,
+    line: LineHandle,
+    elem: HTMLElement
   ) => void
 
   /** Callback for when CodeMirror has completed a batch of changes to the editor */
-  readonly onChanges?: (
-    cm: CodeMirror.Editor,
-    change: CodeMirror.EditorChangeLinkedList[]
-  ) => void
+  readonly onChanges?: (cm: Editor, change: EditorChangeLinkedList[]) => void
+
+  /** Callback for when the viewport changes due to scrolling or other updates */
+  readonly onViewportChange?: (cm: Editor, from: number, to: number) => void
+
+  /** Callback for when the editor document is swapped out for a new one */
+  readonly onSwapDoc?: (cm: Editor, oldDoc: Doc) => void
 
   /**
    * Called when content has been copied. The default behavior may be prevented
    * by calling `preventDefault` on the event.
    */
-  readonly onCopy?: (editor: CodeMirror.Editor, event: Event) => void
+  readonly onCopy?: (editor: Editor, event: Event) => void
 }
 
 /**
@@ -53,13 +63,59 @@ interface ICodeMirrorHostProps {
  */
 export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
   private wrapper: HTMLDivElement | null = null
-  private codeMirror: CodeMirror.Editor | null = null
+  private codeMirror: Editor | null = null
+
+  /**
+   * Resize observer used for tracking width changes and
+   * refreshing the internal codemirror instance when
+   * they occur
+   */
+  private readonly resizeObserver: ResizeObserver
+  private resizeDebounceId: number | null = null
+  private lastKnownWidth: number | null = null
+
+  private static updateDoc(cm: Editor, value: string | Doc) {
+    if (typeof value === 'string') {
+      cm.setValue(value)
+    } else {
+      cm.swapDoc(value)
+    }
+  }
+
+  public constructor(props: ICodeMirrorHostProps) {
+    super(props)
+
+    // Observe size changes and let codemirror know
+    // when it needs to refresh.
+    this.resizeObserver = new ResizeObserver(entries => {
+      if (entries.length === 1 && this.codeMirror) {
+        const newWidth = entries[0].contentRect.width
+
+        // We don't care about the first resize, let's just
+        // store what we've got. Codemirror already does a good
+        // job of height changes through monitoring window resize,
+        // we just need to care about when the width changes and
+        // do a re-layout
+        if (this.lastKnownWidth === null) {
+          this.lastKnownWidth = newWidth
+        } else if (this.lastKnownWidth !== newWidth) {
+          this.lastKnownWidth = newWidth
+
+          if (this.resizeDebounceId !== null) {
+            cancelAnimationFrame(this.resizeDebounceId)
+            this.resizeDebounceId = null
+          }
+          requestAnimationFrame(this.onResized)
+        }
+      }
+    })
+  }
 
   /**
    * Gets the internal CodeMirror instance or null if CodeMirror hasn't
    * been initialized yet (happens when component mounts)
    */
-  public getEditor(): CodeMirror.Editor | null {
+  public getEditor(): Editor | null {
     return this.codeMirror
   }
 
@@ -68,16 +124,22 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
 
     this.codeMirror.on('renderLine', this.onRenderLine)
     this.codeMirror.on('changes', this.onChanges)
+    this.codeMirror.on('viewportChange', this.onViewportChange)
     this.codeMirror.on('beforeSelectionChange', this.beforeSelectionChanged)
+    this.codeMirror.on('copy', this.onCopy)
+    this.codeMirror.on('swapDoc', this.onSwapDoc as any)
 
-    // The type declaration for this is wrong.
-    // See https://github.com/DefinitelyTyped/DefinitelyTyped/pull/18824.
-    this.codeMirror.on('copy', this.onCopy as any)
-
-    this.codeMirror.setValue(this.props.value)
+    CodeMirrorHost.updateDoc(this.codeMirror, this.props.value)
+    this.resizeObserver.observe(this.codeMirror.getWrapperElement())
   }
 
-  private onCopy = (instance: CodeMirror.Editor, event: Event) => {
+  private onSwapDoc = (cm: Editor, oldDoc: Doc) => {
+    if (this.props.onSwapDoc) {
+      this.props.onSwapDoc(cm, oldDoc)
+    }
+  }
+
+  private onCopy = (instance: Editor, event: Event) => {
     if (this.props.onCopy) {
       this.props.onCopy(instance, event)
     }
@@ -88,29 +150,25 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
 
     if (cm) {
       cm.off('changes', this.onChanges)
+      cm.off('viewportChange', this.onViewportChange)
       cm.off('renderLine', this.onRenderLine)
       cm.off('beforeSelectionChange', this.beforeSelectionChanged)
-      cm.off('copy', this.onCopy as any)
+      cm.off('copy', this.onCopy)
+      cm.off('swapDoc', this.onSwapDoc as any)
 
       this.codeMirror = null
     }
+
+    this.resizeObserver.disconnect()
   }
 
-  public componentWillReceiveProps(nextProps: ICodeMirrorHostProps) {
-    if (this.props.value !== nextProps.value) {
-      this.codeMirror!.setValue(nextProps.value)
+  public componentDidUpdate(prevProps: ICodeMirrorHostProps) {
+    if (this.codeMirror && this.props.value !== prevProps.value) {
+      CodeMirrorHost.updateDoc(this.codeMirror, this.props.value)
     }
   }
 
-  public shouldComponentUpdate(nextProps: ICodeMirrorHostProps) {
-    // NB This is the only time we actually have to re-render.
-    // Updating of values is done in componentWillReceiveProps,
-    // all event handlers are marshalled through private non-changing
-    // wrappers.
-    return nextProps.className !== this.props.className
-  }
-
-  private beforeSelectionChanged = (cm: CodeMirror.Editor, changeObj: any) => {
+  private beforeSelectionChanged = (cm: Editor, changeObj: any) => {
     if (this.props.isSelectionEnabled) {
       if (!this.props.isSelectionEnabled()) {
         // ignore whatever the user has currently selected, pass in a
@@ -125,22 +183,28 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
     }
   }
 
-  private onChanges = (
-    cm: CodeMirror.Editor,
-    changes: CodeMirror.EditorChangeLinkedList[]
-  ) => {
+  private onChanges = (cm: Editor, changes: EditorChangeLinkedList[]) => {
     if (this.props.onChanges) {
       this.props.onChanges(cm, changes)
     }
   }
 
-  private onRenderLine = (
-    cm: CodeMirror.Editor,
-    line: CodeMirror.LineHandle,
-    element: HTMLElement
-  ) => {
+  private onViewportChange = (cm: Editor, from: number, to: number) => {
+    if (this.props.onViewportChange) {
+      this.props.onViewportChange(cm, from, to)
+    }
+  }
+
+  private onRenderLine = (cm: Editor, line: LineHandle, elem: HTMLElement) => {
     if (this.props.onRenderLine) {
-      this.props.onRenderLine(cm, line, element)
+      this.props.onRenderLine(cm, line, elem)
+    }
+  }
+
+  private onResized = () => {
+    this.resizeDebounceId = null
+    if (this.codeMirror) {
+      this.codeMirror.refresh()
     }
   }
 
