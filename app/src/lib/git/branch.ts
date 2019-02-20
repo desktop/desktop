@@ -188,20 +188,17 @@ export async function getMergedBranches(
   repository: Repository,
   branchName: string
 ): Promise<ReadonlyArray<IMergedBranch>> {
-  const delimiter = '1F'
-  const delimiterString = String.fromCharCode(parseInt(delimiter, 16))
   const canonicalBranchRef = formatAsLocalRef(branchName)
 
-  const format = [
-    '%(objectname)', // SHA
-    '%(refname)',
-    `%${delimiter}`, // indicate end-of-line as %(body) may contain newlines
-  ].join('%00')
-
-  const args = ['branch', `--format=${format}`, '--merged', branchName]
+  const args = [
+    'branch',
+    `--format=%(objectname)%00%(refname)`,
+    '--merged',
+    branchName,
+  ]
 
   const { stdout } = await git(args, repository.path, 'mergedBranches')
-  const lines = stdout.split(delimiterString)
+  const lines = stdout.split('\n')
 
   // Remove the trailing newline
   lines.splice(-1, 1)
