@@ -150,11 +150,11 @@ export class BranchPruner {
     )
 
     log.info(
-      `Pruning ${branchesReadyForPruning.length} refs from '${
-        this.repository.name
-      }' using '${defaultBranch.name} (${
-        defaultBranch.tip.sha
-      })' as base branch`
+      `Pruning ${
+        branchesReadyForPruning.length
+      } branches that have been merged into the default branch, ${
+        defaultBranch.name
+      } (${defaultBranch.tip.sha}), from '${this.repository.name}`
     )
 
     const gitStore = this.gitStoreCache.get(this.repository)
