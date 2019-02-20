@@ -198,12 +198,7 @@ export async function getMergedBranches(
     `%${delimiter}`, // indicate end-of-line as %(body) may contain newlines
   ].join('%00')
 
-  const args = [
-    'branch',
-    '--format=%(objectname)%(refname)',
-    '--merged',
-    branchName,
-  ]
+  const args = ['branch', `--format=${format}`, '--merged', branchName]
 
   const { stdout } = await git(args, repository.path, 'mergedBranches')
   const lines = stdout.split(delimiterString)
