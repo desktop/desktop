@@ -129,11 +129,6 @@ export class BranchPruner {
       return
     }
 
-    // Get all branches that exist on remote
-    const localBranches = branchesState.allBranches.filter(
-      x => x.type === BranchType.Local
-    )
-
     // Get all branches checked out within the past 2 weeks
     const twoWeeksAgo = moment()
       .subtract(2, 'weeks')
@@ -147,20 +142,10 @@ export class BranchPruner {
     const candidateBranches = mergedBranches.filter(
       mb => !ReservedRefs.includes(mb.canonicalRef)
     )
-    const branchesReadyForPruning = new Array<Branch>()
-    for (const branch of candidateBranches) {
-      const localBranch = localBranches.find(
-        localBranch =>
-          localBranch.remote !== null && localBranch.name === branch
-      )
 
-      if (
-        localBranch !== undefined &&
-        !recentlyCheckedOutBranches.has(localBranch.name)
-      ) {
-        branchesReadyForPruning.push(localBranch)
-      }
-    }
+    const branchesReadyForPruning = candidateBranches.filter(
+      mb => !recentlyCheckedOutCanonicalRefs.has(mb.canonicalRef)
+    )
 
     log.info(
       `Pruning ${branchesReadyForPruning.length} refs from '${
