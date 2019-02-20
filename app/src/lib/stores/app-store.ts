@@ -178,7 +178,7 @@ import { validatedRepositoryPath } from './helpers/validated-repository-path'
 import { RepositoryStateCache } from './repository-state-cache'
 import { readEmoji } from '../read-emoji'
 import { GitStoreCache } from './git-store-cache'
-import { MergeConflictsErrorContext } from '../git-error-context'
+import { GitErrorContext } from '../git-error-context'
 import { setNumber, setBoolean, getBoolean, getNumber } from '../local-storage'
 import { ExternalEditorError } from '../editors/shared'
 import { ApiRepositoriesStore } from './api-repositories-store'
@@ -2819,7 +2819,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       if (tip.kind === TipState.Valid) {
         let mergeBase: string | null = null
-        let gitContext: MergeConflictsErrorContext | undefined = undefined
+        let gitContext: GitErrorContext | undefined = undefined
 
         if (tip.branch.upstream !== null) {
           mergeBase = await getMergeBase(
@@ -2830,8 +2830,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
           gitContext = {
             kind: 'pull',
-            tip,
             theirBranch: tip.branch.upstream,
+            currentBranch: tip.branch.name,
           }
         }
 

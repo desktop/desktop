@@ -1110,10 +1110,20 @@ export class GitStore extends BaseStore {
 
   /** Merge the named branch into the current branch. */
   public merge(branch: string): Promise<boolean | undefined> {
+    if (this.tip.kind !== TipState.Valid) {
+      throw new Error(
+        `unable to merge as tip state is '${
+          this.tip.kind
+        }' and the application expects the repository to be on a branch currently`
+      )
+    }
+
+    const currentBranch = this.tip.branch.name
+
     return this.performFailableOperation(() => merge(this.repository, branch), {
       gitContext: {
         kind: 'merge',
-        tip: this.tip,
+        currentBranch,
         theirBranch: branch,
       },
     })
