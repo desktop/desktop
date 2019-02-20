@@ -40,6 +40,25 @@ interface IPushPullButtonProps {
    * Used for setting the enabled/disabled and the description text.
    */
   readonly tipState: TipState
+
+  /** Has the user configured pull.rebase to anything? */
+  readonly pullWithRebase?: boolean
+}
+
+function getActionLabel(
+  { ahead, behind }: IAheadBehind,
+  remoteName: string,
+  pullWithRebase?: boolean
+) {
+  if (behind > 0) {
+    return pullWithRebase
+      ? `Pull ${remoteName} with rebase`
+      : `Pull ${remoteName}`
+  }
+  if (ahead > 0) {
+    return `Push ${remoteName}`
+  }
+  return `Fetch ${remoteName}`
 }
 
 /**
@@ -131,18 +150,11 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
       return 'Publish branch'
     }
 
-    const { ahead, behind } = this.props.aheadBehind
-    const actionName = (function() {
-      if (behind > 0) {
-        return 'Pull'
-      }
-      if (ahead > 0) {
-        return 'Push'
-      }
-      return 'Fetch'
-    })()
-
-    return `${actionName} ${this.props.remoteName}`
+    return getActionLabel(
+      this.props.aheadBehind,
+      this.props.remoteName,
+      this.props.pullWithRebase
+    )
   }
 
   private getIcon(): OcticonSymbol {

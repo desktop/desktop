@@ -1840,6 +1840,9 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const tipState = state.branchesState.tip.kind
 
+    // TODO: where shall we pull this from?
+    const pullWithRebaseValue = true
+
     return (
       <PushPullButton
         dispatcher={this.props.dispatcher}
@@ -1850,6 +1853,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         networkActionInProgress={state.isPushPullFetchInProgress}
         progress={progress}
         tipState={tipState}
+        pullWithRebase={pullWithRebaseValue}
       />
     )
   }
