@@ -1,4 +1,8 @@
-import { Repository, ILocalRepositoryState } from '../../models/repository'
+import {
+  Repository,
+  ILocalRepositoryState,
+  nameOf,
+} from '../../models/repository'
 import { CloningRepository } from '../../models/cloning-repository'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { caseInsensitiveCompare } from '../../lib/compare'
@@ -70,8 +74,10 @@ export function groupRepositories(
       const nameCount = names.get(r.name) || 0
       const { aheadBehind, changedFilesCount } =
         localRepositoryStateLookup.get(r.id) || fallbackValue
+      const repositoryText =
+        r instanceof Repository ? [r.name, nameOf(r)] : [r.name]
       return {
-        text: [r.name],
+        text: repositoryText,
         id: r.id.toString(),
         repository: r,
         needsDisambiguation: nameCount > 1,
