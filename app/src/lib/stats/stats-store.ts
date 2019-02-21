@@ -85,6 +85,8 @@ const DefaultDailyMeasures: IDailyMeasures = {
   rebaseConflictsDialogReopenedCount: 0,
   rebaseAbortedAfterConflictsCount: 0,
   rebaseSuccessAfterConflictsCount: 0,
+  pullWithRebaseCount: 0,
+  pullWithDefaultSettingCount: 0,
 }
 
 interface IOnboardingStats {
@@ -863,6 +865,14 @@ export class StatsStore implements IStatsStore {
       rebaseAbortedAfterConflictsCount: m.rebaseAbortedAfterConflictsCount + 1,
     }))
   }
+  /**
+   * Increments the `pullWithRebaseCount` metric
+   */
+  public recordPullWithRebaseEnabled() {
+    return this.updateDailyMeasures(m => ({
+      pullWithRebaseCount: m.pullWithRebaseCount + 1,
+    }))
+  }
 
   /**
    * Increments the `rebaseSuccessAfterConflictsCount` metric
@@ -870,6 +880,15 @@ export class StatsStore implements IStatsStore {
   public async recordRebaseSuccessAfterConflicts(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       rebaseSuccessAfterConflictsCount: m.rebaseSuccessAfterConflictsCount + 1,
+    }))
+  }
+
+  /**
+   * Increments the `pullWithDefaultSettingCount` metric
+   */
+  public recordPullWithDefaultSetting() {
+    return this.updateDailyMeasures(m => ({
+      pullWithDefaultSettingCount: m.pullWithDefaultSettingCount + 1,
     }))
   }
 
