@@ -50,10 +50,8 @@ export class ContinueRebase extends React.Component<IContinueRebaseProps, {}> {
 
     const loading = this.props.isCommitting ? <Loading /> : undefined
 
-    // TODO: change this ID and restyle things betterer
-
     return (
-      <div id="commit-message" role="group">
+      <div id="continue-rebase" role="group">
         <Button
           type="submit"
           className="commit-button"
