@@ -9,7 +9,12 @@ import { caseInsensitiveCompare } from '../../lib/compare'
 import { IFilterListGroup, IFilterListItem } from '../lib/filter-list'
 import { IAheadBehind } from '../../models/branch'
 
-export type RepositoryGroupIdentifier = 'github' | 'enterprise' | 'other'
+export enum KnownRepositoryGroup {
+  enterprise = 'enterprise',
+  other = 'other',
+}
+
+export type RepositoryGroupIdentifier = string | KnownRepositoryGroup
 
 export type Repositoryish = Repository | CloningRepository
 
@@ -32,18 +37,20 @@ export function groupRepositories(
   localRepositoryStateLookup: ReadonlyMap<number, ILocalRepositoryState>
 ): ReadonlyArray<IFilterListGroup<IRepositoryListItem>> {
   const grouped = new Map<RepositoryGroupIdentifier, Repositoryish[]>()
+  const gitHubOwners: Array<string> = []
   for (const repository of repositories) {
     const gitHubRepository =
       repository instanceof Repository ? repository.gitHubRepository : null
-    let group: RepositoryGroupIdentifier = 'other'
+    let group: RepositoryGroupIdentifier = KnownRepositoryGroup.other
     if (gitHubRepository) {
       if (gitHubRepository.endpoint === getDotComAPIEndpoint()) {
-        group = 'github'
+        group = gitHubRepository.owner.login
+        gitHubOwners.push(group)
       } else {
-        group = 'enterprise'
+        group = KnownRepositoryGroup.enterprise
       }
     } else {
-      group = 'other'
+      group = KnownRepositoryGroup.other
     }
 
     let repositories = grouped.get(group)
@@ -90,9 +97,17 @@ export function groupRepositories(
   }
 
   // NB: This ordering reflects the order in the repositories sidebar.
-  addGroup('github')
-  addGroup('enterprise')
-  addGroup('other')
+  const owners = gitHubOwners.reduce((acc, val) => {
+    if (!acc.includes(val)) {
+      acc.push(val)
+    }
+    return acc
+  }, new Array<string>())
+  owners.sort(caseInsensitiveCompare).forEach(o => {
+    addGroup(o)
+  })
+  addGroup(KnownRepositoryGroup.enterprise)
+  addGroup(KnownRepositoryGroup.other)
 
   return groups
 }
