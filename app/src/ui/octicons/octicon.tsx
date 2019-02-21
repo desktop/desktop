@@ -20,6 +20,11 @@ interface IOcticonProps {
    * An optional string to use as a tooltip for the icon
    */
   readonly title?: string
+
+  /**
+   * An optional string to provide accessible descriptive text
+   */
+  readonly description?: string
 }
 
 /**
@@ -68,6 +73,7 @@ export class Octicon extends React.Component<IOcticonProps, {}> {
     const shortClassName = this.props.className
     const className = classNames('octicon', shortClassName)
     const title = this.props.title
+    const description = this.props.description
 
     return (
       <svg
@@ -77,7 +83,7 @@ export class Octicon extends React.Component<IOcticonProps, {}> {
         viewBox={viewBox}
       >
         <title id="octiconTitle">{title}</title>
-        <desc id="octiconDescription">{shortClassName}</desc>
+        <desc id="octiconDescription">{description}</desc>
         <path d={symbol.d}>{this.renderTitle()}</path>
       </svg>
     )
