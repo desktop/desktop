@@ -35,6 +35,7 @@ import { basename } from 'path'
 import { ICommitContext } from '../../models/commit'
 import { RebaseConflictState } from '../../lib/app-state'
 import { ContinueRebase } from './continue-rebase'
+import { enableNewRebaseFlow } from '../../lib/feature-flag'
 
 const RowHeight = 29
 
@@ -428,7 +429,7 @@ export class ChangesList extends React.Component<
     const singleFileCommit = filesSelected.length === 1
 
     const commitMessageElement =
-      this.props.rebaseConflictState !== null ? (
+      this.props.rebaseConflictState !== null && enableNewRebaseFlow() ? (
         <ContinueRebase
           dispatcher={this.props.dispatcher}
           repository={this.props.repository}
