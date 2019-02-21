@@ -80,9 +80,11 @@ export class BranchPruner {
     const currentBranchCanonicalRef = await getSymbolicRef(repository, 'HEAD')
 
     // remove the current branch
-    return mergedBranches.filter(
-      mb => mb.canonicalRef !== currentBranchCanonicalRef
-    )
+    return currentBranchCanonicalRef === null
+      ? mergedBranches
+      : mergedBranches.filter(
+          mb => mb.canonicalRef !== currentBranchCanonicalRef
+        )
   }
 
   private async pruneLocalBranches(): Promise<void> {
