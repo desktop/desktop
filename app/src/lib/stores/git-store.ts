@@ -62,7 +62,7 @@ import {
   revRange,
   revSymmetricDifference,
   getSymbolicRef,
-  getGlobalConfigValue,
+  getConfigValue,
 } from '../git'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import { UpstreamAlreadyExistsError } from './upstream-already-exists-error'
@@ -325,7 +325,7 @@ export class GitStore extends BaseStore {
   }
 
   private async checkPullWithRebase() {
-    const result = await getGlobalConfigValue('pull.rebase')
+    const result = await getConfigValue(this.repository, 'pull.rebase')
 
     if (result === null || result === '') {
       this.pullWithRebase = undefined
