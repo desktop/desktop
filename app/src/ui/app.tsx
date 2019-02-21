@@ -347,6 +347,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.selectAll()
       case 'show-release-notes-popup':
         return this.showFakeReleaseNotesPopup()
+      case 'force-prune-branches':
+        return this.forcePruneBranches()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
@@ -405,6 +407,14 @@ export class App extends React.Component<IAppProps, IAppState> {
         },
       })
     }
+  }
+
+  private forcePruneBranches() {
+    if (!__DEV__) {
+      return
+    }
+
+    this.props.appStore._forceBranchPruning()
   }
 
   /**
