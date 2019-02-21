@@ -91,8 +91,6 @@ import {
   SelectionType,
   MergeResultStatus,
   ComparisonMode,
-  SuccessfulMergeBannerState,
-  MergeConflictsBannerState,
   MergeConflictState,
   isMergeConflictState,
 } from '../app-state'
@@ -193,6 +191,7 @@ import {
 } from '../../models/manual-conflict-resolution'
 import { BranchPruner } from './helpers/branch-pruner'
 import { enableBranchPruning, enableNewRebaseFlow } from '../feature-flag'
+import { Banner, BannerType } from '../../models/banner'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -249,6 +248,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private focusCommitMessage = false
   private currentPopup: Popup | null = null
   private currentFoldout: Foldout | null = null
+  private currentBanner: Banner | null = null
   private errors: ReadonlyArray<Error> = new Array<Error>()
   private emitQueued = false
 
@@ -284,8 +284,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private windowState: WindowState
   private windowZoomFactor: number = 1
   private isUpdateAvailableBannerVisible: boolean = false
-  private successfulMergeBannerState: SuccessfulMergeBannerState = null
-  private mergeConflictsBannerState: MergeConflictsBannerState = null
+
   private confirmRepoRemoval: boolean = confirmRepoRemovalDefault
   private confirmDiscardChanges: boolean = confirmDiscardChangesDefault
   private imageDiffType: ImageDiffType = imageDiffTypeDefault
@@ -528,8 +527,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         this.showWelcomeFlow || repositories.length === 0 ? 'light' : 'dark',
       highlightAccessKeys: this.highlightAccessKeys,
       isUpdateAvailableBannerVisible: this.isUpdateAvailableBannerVisible,
-      successfulMergeBannerState: this.successfulMergeBannerState,
-      mergeConflictsBannerState: this.mergeConflictsBannerState,
+      currentBanner: this.currentBanner,
       askForConfirmationOnRepositoryRemoval: this.confirmRepoRemoval,
       askForConfirmationOnDiscardChanges: this.confirmDiscardChanges,
       selectedExternalEditor: this.selectedExternalEditor,
@@ -1128,7 +1126,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
     this.stopBackgroundFetching()
     this.stopPullRequestUpdater()
-    this._setMergeConflictsBannerState(null)
+    this._clearBanner()
     this.stopBackgroundPruner()
 
     if (repository == null) {
@@ -1665,7 +1663,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
         this.currentPopup.type === PopupType.AbortMerge)
 
     // have we already been shown the merge conflicts flow *and closed it*?
-    const alreadyExitedFlow = this.mergeConflictsBannerState !== null
+    const alreadyExitedFlow =
+      this.currentBanner !== null &&
+      this.currentBanner.type === BannerType.MergeConflictsFound
 
     if (alreadyInFlow || alreadyExitedFlow) {
       return
@@ -1702,7 +1702,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
         this.currentPopup.type === PopupType.AbortMerge)
 
     // have we already been shown the merge conflicts flow *and closed it*?
-    const alreadyExitedFlow = this.mergeConflictsBannerState !== null
+    const alreadyExitedFlow =
+      this.currentBanner !== null &&
+      this.currentBanner.type === BannerType.MergeConflictsFound
 
     if (alreadyInFlow || alreadyExitedFlow) {
       return
@@ -3290,7 +3292,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const { tip } = gitStore
 
     if (mergeSuccessful && tip.kind === TipState.Valid) {
-      this._setSuccessfulMergeBannerState({
+      this._setBanner({
+        type: BannerType.SuccessfulMerge,
         ourBranch: tip.branch.name,
         theirBranch: branch,
       })
@@ -3492,16 +3495,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  public _setSuccessfulMergeBannerState(state: SuccessfulMergeBannerState) {
-    this.successfulMergeBannerState = state
-
+  public _setBanner(state: Banner) {
+    this.currentBanner = state
     this.emitUpdate()
   }
 
-  public _setMergeConflictsBannerState(state: MergeConflictsBannerState) {
-    this.mergeConflictsBannerState = state
-
-    this.emitUpdate()
+  public _clearBanner() {
+    if (this.currentBanner !== null) {
+      this.currentBanner = null
+      this.emitUpdate()
+    }
   }
 
   public _setDivergingBranchBannerVisibility(

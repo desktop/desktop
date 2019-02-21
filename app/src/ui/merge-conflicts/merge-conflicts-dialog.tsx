@@ -22,6 +22,7 @@ import {
 import { DefaultCommitMessage } from '../../models/commit-message'
 import { renderUnmergedFile } from './unmerged-file'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
+import { BannerType } from '../../models/banner'
 
 interface IMergeConflictsDialogProps {
   readonly dispatcher: Dispatcher
@@ -59,6 +60,7 @@ export class MergeConflictsDialog extends React.Component<
       this.props.repository,
       this.props.workingDirectory,
       {
+        type: BannerType.SuccessfulMerge,
         ourBranch: this.props.ourBranch,
         theirBranch: this.props.theirBranch,
       }
@@ -100,7 +102,8 @@ export class MergeConflictsDialog extends React.Component<
 
   private onDismissed = async () => {
     this.props.onDismissed()
-    this.props.dispatcher.setMergeConflictsBannerState({
+    this.props.dispatcher.setBanner({
+      type: BannerType.MergeConflictsFound,
       ourBranch: this.props.ourBranch,
       popup: {
         type: PopupType.MergeConflicts,
