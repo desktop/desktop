@@ -26,6 +26,8 @@ export type Banner =
       readonly type: BannerType.SuccessfulRebase
       /** name of the branch that was used to rebase */
       readonly targetBranch: string
+      /** the branch that the current branch was rebased onto (if known) */
+      readonly baseBranch?: string
     }
   | {
       readonly type: BannerType.RebaseConflictsFound

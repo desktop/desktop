@@ -63,6 +63,7 @@ export class RebaseConflictsDialog extends React.Component<
       this.props.dispatcher.setBanner({
         type: BannerType.SuccessfulRebase,
         targetBranch: this.props.targetBranch,
+        baseBranch: this.props.baseBranch,
       })
       this.props.onDismissed()
     }

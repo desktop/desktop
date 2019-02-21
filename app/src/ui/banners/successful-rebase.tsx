@@ -7,20 +7,24 @@ export function SuccessfulRebase({
   targetBranch,
   onDismissed,
 }: {
-  readonly baseBranch: string
+  readonly baseBranch?: string
   readonly targetBranch: string
   readonly onDismissed: () => void
 }) {
-  // TODO: make this message aware of the base branch (if we can resolve it)
-
-  const message = (
-    <span>
-      {'Successfully rebased '}
-      <strong>{targetBranch}</strong>
-      {' on '}
-      <strong>{baseBranch}</strong>
-    </span>
-  )
+  const message =
+    baseBranch !== undefined ? (
+      <span>
+        {'Successfully rebased '}
+        <strong>{targetBranch}</strong>
+        {' on '}
+        <strong>{baseBranch}</strong>
+      </span>
+    ) : (
+      <span>
+        {'Successfully rebased '}
+        <strong>{targetBranch}</strong>
+      </span>
+    )
 
   return (
     <Banner id="successful-rebase" timeout={5000} onDismissed={onDismissed}>

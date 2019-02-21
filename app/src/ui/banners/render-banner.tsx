@@ -40,8 +40,7 @@ export function renderBanner(
       return (
         <SuccessfulRebase
           targetBranch={banner.targetBranch}
-          // TODO: find this value somewhere
-          baseBranch="some-other-branch"
+          baseBranch={banner.baseBranch}
           onDismissed={onDismissed}
           key={'successful-rebase'}
         />
