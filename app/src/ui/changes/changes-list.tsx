@@ -416,20 +416,9 @@ export class ChangesList extends React.Component<
     this.props.onChangesListScrolled(scrollTop)
   }
 
-  public render() {
-    const fileList = this.props.workingDirectory.files
-    const fileCount = fileList.length
-    const filesPlural = fileCount === 1 ? 'file' : 'files'
-    const filesDescription = `${fileCount} changed ${filesPlural}`
-    const anyFilesSelected =
-      fileCount > 0 && this.includeAllValue !== CheckboxValue.Off
-    const filesSelected = this.props.workingDirectory.files.filter(
-      f => f.selection.getSelectionType() !== DiffSelectionType.None
-    )
-    const singleFileCommit = filesSelected.length === 1
-
-    const commitMessageElement =
-      this.props.rebaseConflictState !== null && enableNewRebaseFlow() ? (
+  private renderCommitMessageForm = (): JSX.Element => {
+    if (this.props.rebaseConflictState !== null && enableNewRebaseFlow()) {
+      return (
         <ContinueRebase
           dispatcher={this.props.dispatcher}
           repository={this.props.repository}
@@ -437,29 +426,47 @@ export class ChangesList extends React.Component<
           workingDirectory={this.props.workingDirectory}
           isCommitting={this.props.isCommitting}
         />
-      ) : (
-        <CommitMessage
-          onCreateCommit={this.props.onCreateCommit}
-          branch={this.props.branch}
-          gitHubUser={this.props.gitHubUser}
-          commitAuthor={this.props.commitAuthor}
-          anyFilesSelected={anyFilesSelected}
-          repository={this.props.repository}
-          dispatcher={this.props.dispatcher}
-          commitMessage={this.props.commitMessage}
-          focusCommitMessage={this.props.focusCommitMessage}
-          autocompletionProviders={this.props.autocompletionProviders}
-          isCommitting={this.props.isCommitting}
-          showCoAuthoredBy={this.props.showCoAuthoredBy}
-          coAuthors={this.props.coAuthors}
-          placeholder={this.getPlaceholderMessage(
-            filesSelected,
-            singleFileCommit
-          )}
-          singleFileCommit={singleFileCommit}
-          key={this.props.repository.id}
-        />
       )
+    }
+
+    const fileCount = this.props.workingDirectory.files.length
+
+    const anyFilesSelected =
+      fileCount > 0 && this.includeAllValue !== CheckboxValue.Off
+    const filesSelected = this.props.workingDirectory.files.filter(
+      f => f.selection.getSelectionType() !== DiffSelectionType.None
+    )
+    const singleFileCommit = filesSelected.length === 1
+
+    return (
+      <CommitMessage
+        onCreateCommit={this.props.onCreateCommit}
+        branch={this.props.branch}
+        gitHubUser={this.props.gitHubUser}
+        commitAuthor={this.props.commitAuthor}
+        anyFilesSelected={anyFilesSelected}
+        repository={this.props.repository}
+        dispatcher={this.props.dispatcher}
+        commitMessage={this.props.commitMessage}
+        focusCommitMessage={this.props.focusCommitMessage}
+        autocompletionProviders={this.props.autocompletionProviders}
+        isCommitting={this.props.isCommitting}
+        showCoAuthoredBy={this.props.showCoAuthoredBy}
+        coAuthors={this.props.coAuthors}
+        placeholder={this.getPlaceholderMessage(
+          filesSelected,
+          singleFileCommit
+        )}
+        singleFileCommit={singleFileCommit}
+        key={this.props.repository.id}
+      />
+    )
+  }
+
+  public render() {
+    const fileCount = this.props.workingDirectory.files.length
+    const filesPlural = fileCount === 1 ? 'file' : 'files'
+    const filesDescription = `${fileCount} changed ${filesPlural}`
 
     return (
       <div className="changes-list-container file-list">
@@ -485,7 +492,7 @@ export class ChangesList extends React.Component<
           onScroll={this.onScroll}
           setScrollTop={this.props.changesListScrollTop}
         />
-        {commitMessageElement}
+        {this.renderCommitMessageForm()}
       </div>
     )
   }
