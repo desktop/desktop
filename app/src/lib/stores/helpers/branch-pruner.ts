@@ -67,14 +67,14 @@ export class BranchPruner {
   private async findBranchesMergedIntoDefaultBranch(
     repository: Repository,
     defaultBranch: Branch
-  ): Promise<ReadonlyArray<IMergedBranch> | null> {
+  ): Promise<ReadonlyArray<IMergedBranch>> {
     const gitStore = this.gitStoreCache.get(repository)
     const mergedBranches = await gitStore.performFailableOperation(() =>
       getMergedBranches(repository, defaultBranch.name)
     )
 
     if (mergedBranches === undefined) {
-      return null
+      return []
     }
 
     const currentBranchCanonicalRef = await getSymbolicRef(repository, 'HEAD')
@@ -123,7 +123,7 @@ export class BranchPruner {
       defaultBranch
     )
 
-    if (mergedBranches === null) {
+    if (mergedBranches.length === 0) {
       log.info('No branches to prune.')
       return
     }
