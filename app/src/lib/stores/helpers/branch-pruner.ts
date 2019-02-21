@@ -1,11 +1,14 @@
 import { Repository } from '../../../models/repository'
 import { RepositoriesStore } from '../repositories-store'
-import { Branch, BranchType } from '../../../models/branch'
+import { Branch } from '../../../models/branch'
 import { GitStoreCache } from '../git-store-cache'
 import {
   getMergedBranches,
-  deleteBranch,
   getCheckoutsAfterDate,
+  getSymbolicRef,
+  IMergedBranch,
+  formatAsLocalRef,
+  deleteLocalBranch,
 } from '../../git'
 import { fatalError } from '../../fatal-error'
 import { RepositoryStateCache } from '../repository-state-cache'
@@ -13,16 +16,16 @@ import * as moment from 'moment'
 
 /** Check if a repo needs to be pruned at least every 4 hours */
 const BackgroundPruneMinimumInterval = 1000 * 60 * 60 * 4
-const ReservedBranches = [
-  'master',
-  'gh-pages',
+const ReservedRefs = [
   'HEAD',
-  'develop',
-  'dev',
-  'development',
-  'trunk',
-  'devel',
-  'release',
+  'refs/heads/master',
+  'refs/heads/gh-pages',
+  'refs/heads/develop',
+  'refs/heads/dev',
+  'refs/heads/development',
+  'refs/heads/trunk',
+  'refs/heads/devel',
+  'refs/heads/release',
 ]
 
 export class BranchPruner {
@@ -64,13 +67,24 @@ export class BranchPruner {
   private async findBranchesMergedIntoDefaultBranch(
     repository: Repository,
     defaultBranch: Branch
-  ): Promise<ReadonlyArray<string> | null> {
+  ): Promise<ReadonlyArray<IMergedBranch>> {
     const gitStore = this.gitStoreCache.get(repository)
-    return (
-      (await gitStore.performFailableOperation(() =>
-        getMergedBranches(repository, defaultBranch.name)
-      )) || null
+    const mergedBranches = await gitStore.performFailableOperation(() =>
+      getMergedBranches(repository, defaultBranch.name)
     )
+
+    if (mergedBranches === undefined) {
+      return []
+    }
+
+    const currentBranchCanonicalRef = await getSymbolicRef(repository, 'HEAD')
+
+    // remove the current branch
+    return currentBranchCanonicalRef === null
+      ? mergedBranches
+      : mergedBranches.filter(
+          mb => mb.canonicalRef !== currentBranchCanonicalRef
+        )
   }
 
   private async pruneLocalBranches(): Promise<void> {
@@ -111,15 +125,10 @@ export class BranchPruner {
       defaultBranch
     )
 
-    if (mergedBranches === null) {
+    if (mergedBranches.length === 0) {
       log.info('No branches to prune.')
       return
     }
-
-    // Get all branches that exist on remote
-    const localBranches = branchesState.allBranches.filter(
-      x => x.type === BranchType.Local
-    )
 
     // Get all branches checked out within the past 2 weeks
     const twoWeeksAgo = moment()
@@ -129,39 +138,44 @@ export class BranchPruner {
       this.repository,
       twoWeeksAgo
     )
+    const recentlyCheckedOutCanonicalRefs = new Set(
+      [...recentlyCheckedOutBranches.keys()].map(formatAsLocalRef)
+    )
 
     // Create array of branches that can be pruned
     const candidateBranches = mergedBranches.filter(
-      b => !ReservedBranches.includes(b)
+      mb => !ReservedRefs.includes(mb.canonicalRef)
     )
-    const branchesReadyForPruning = new Array<Branch>()
-    for (const branch of candidateBranches) {
-      const localBranch = localBranches.find(
-        localBranch =>
-          localBranch.remote !== null && localBranch.name === branch
-      )
 
-      if (
-        localBranch !== undefined &&
-        !recentlyCheckedOutBranches.has(localBranch.name)
-      ) {
-        branchesReadyForPruning.push(localBranch)
-      }
-    }
+    const branchesReadyForPruning = candidateBranches.filter(
+      mb => !recentlyCheckedOutCanonicalRefs.has(mb.canonicalRef)
+    )
 
     log.info(
-      `Pruning ${branchesReadyForPruning.length} refs from '${
-        this.repository.name
-      }' using '${defaultBranch.name} (${
-        defaultBranch.tip.sha
-      })' as base branch`
+      `Pruning ${
+        branchesReadyForPruning.length
+      } branches that have been merged into the default branch, ${
+        defaultBranch.name
+      } (${defaultBranch.tip.sha}), from '${this.repository.name}`
     )
 
     const gitStore = this.gitStoreCache.get(this.repository)
+    const branchRefPrefix = `refs/heads/`
+
     for (const branch of branchesReadyForPruning) {
-      await gitStore.performFailableOperation(() =>
-        deleteBranch(this.repository, branch!, null, false)
+      if (!branch.canonicalRef.startsWith(branchRefPrefix)) {
+        continue
+      }
+
+      const branchName = branch.canonicalRef.substr(branchRefPrefix.length)
+
+      const isDeleted = await gitStore.performFailableOperation(() =>
+        deleteLocalBranch(this.repository, branchName)
       )
+
+      if (isDeleted) {
+        log.info(`Pruned branch ${branchName} (was ${branch.sha})`)
+      }
     }
 
     await this.repositoriesStore.updateLastPruneDate(
