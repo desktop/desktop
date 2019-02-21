@@ -434,8 +434,6 @@ export class ChangesList extends React.Component<
           repository={this.props.repository}
           rebaseConflictState={this.props.rebaseConflictState}
           workingDirectory={this.props.workingDirectory}
-          // TODO
-          canCommit={true}
           isCommitting={this.props.isCommitting}
         />
       ) : (
