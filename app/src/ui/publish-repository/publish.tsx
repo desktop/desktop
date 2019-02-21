@@ -69,12 +69,8 @@ interface IPublishProps {
 interface IPublishState {
   /** The currently selected tab. */
   readonly currentTab: PublishTab
-
-  /** The state of dotCom tab. */
   readonly dotcomTabState: IDotcomTabState
-
-  /** The state of enterprise tab. */
-  readonly gheTabState: IEnterpriseTabState
+  readonly enterpriseTabState: IEnterpriseTabState
 
   /** Is the repository currently being published? */
   readonly publishing: boolean
@@ -122,7 +118,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
     this.state = {
       currentTab: startingTab,
       dotcomTabState: { ...dotcomTabState },
-      gheTabState: { ...gheTabState },
+      enterpriseTabState: { ...gheTabState },
       publishing: false,
     }
   }
@@ -196,7 +192,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
       tabState = {
         kind: 'enterprise',
         settings: settings,
-        error: this.state.gheTabState.error,
+        error: this.state.enterpriseTabState.error,
       }
     } else {
       tabState = {
@@ -322,29 +318,29 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
   private getCurrentTabState = () =>
     this.state.currentTab === PublishTab.DotCom
       ? this.state.dotcomTabState
-      : this.state.gheTabState
+      : this.state.enterpriseTabState
 
   private setTabState = (state: TabState) => {
     if (state.kind === 'enterprise') {
-      this.setState({ gheTabState: { ...state } })
+      this.setState({ enterpriseTabState: state })
     } else {
-      this.setState({ dotcomTabState: { ...state } })
+      this.setState({ dotcomTabState: state })
     }
   }
 
   private setCurrentTabSettings = (settings: RepositoryPublicationSettings) => {
     if (settings.kind === PublishSettingsType.enterprise) {
       const enterpriseTabState = {
-        ...this.state.gheTabState,
+        ...this.state.enterpriseTabState,
         settings: settings,
       }
-      this.setTabState({ ...enterpriseTabState })
+      this.setTabState(enterpriseTabState)
     } else {
       const dotcomTabState = {
         ...this.state.dotcomTabState,
         settings: settings,
       }
-      this.setTabState({ ...dotcomTabState })
+      this.setTabState(dotcomTabState)
     }
   }
 
