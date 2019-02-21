@@ -9,10 +9,8 @@ import {
   Foldout,
   FoldoutType,
   ICompareFormUpdate,
-  MergeConflictsBannerState,
   MergeResultStatus,
   RepositorySectionTab,
-  SuccessfulMergeBannerState,
 } from '../../lib/app-state'
 import { ExternalEditor } from '../../lib/editors'
 import { assertNever, fatalError } from '../../lib/fatal-error'
@@ -69,6 +67,7 @@ import { TipState } from '../../models/tip'
 import { ApplicationTheme } from '../lib/application-theme'
 import { installCLI } from '../lib/install-cli'
 import { executeMenuItem } from '../main-process-proxy'
+import { Banner } from '../../models/banner'
 
 /**
  * An error handler function.
@@ -486,24 +485,17 @@ export class Dispatcher {
   }
 
   /**
-   * Set the successful merge banner's state
+   * Set the banner state for the application
    */
-  public setSuccessfulMergeBannerState(state: SuccessfulMergeBannerState) {
-    return this.appStore._setSuccessfulMergeBannerState(state)
+  public setBanner(state: Banner) {
+    return this.appStore._setBanner(state)
   }
 
   /**
-   * Set the successful merge banner's state
+   * Clear the current banner from the application (if set)
    */
-  public setMergeConflictsBannerState(state: MergeConflictsBannerState) {
-    return this.appStore._setMergeConflictsBannerState(state)
-  }
-
-  /**
-   * Clear (close) the successful merge banner
-   */
-  public clearMergeConflictsBanner() {
-    return this.appStore._setMergeConflictsBannerState(null)
+  public clearBanner() {
+    return this.appStore._clearBanner()
   }
 
   /**
@@ -645,7 +637,7 @@ export class Dispatcher {
   public async finishConflictedMerge(
     repository: Repository,
     workingDirectory: WorkingDirectoryStatus,
-    successfulMergeBannerState: SuccessfulMergeBannerState
+    successfulMergeBanner: Banner
   ) {
     // get manual resolutions in case there are manual conflicts
     const repositoryState = this.repositoryStateManager.get(repository)
@@ -663,7 +655,7 @@ export class Dispatcher {
       conflictState.manualResolutions
     )
     if (result !== undefined) {
-      this.appStore._setSuccessfulMergeBannerState(successfulMergeBannerState)
+      this.setBanner(successfulMergeBanner)
     }
   }
 

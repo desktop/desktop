@@ -91,8 +91,8 @@ import {
   SelectionType,
   MergeResultStatus,
   ComparisonMode,
-  SuccessfulMergeBannerState,
-  MergeConflictsBannerState,
+  MergeConflictState,
+  isMergeConflictState,
 } from '../app-state'
 import { IGitHubUser } from '../databases/github-user-database'
 import {
@@ -134,6 +134,8 @@ import {
   createMergeCommit,
   getBranchesPointedAt,
   isGitRepository,
+  abortRebase,
+  continueRebase,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -188,7 +190,8 @@ import {
   ManualConflictResolutionKind,
 } from '../../models/manual-conflict-resolution'
 import { BranchPruner } from './helpers/branch-pruner'
-import { enableBranchPruning } from '../feature-flag'
+import { enableBranchPruning, enableNewRebaseFlow } from '../feature-flag'
+import { Banner, BannerType } from '../../models/banner'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -245,6 +248,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private focusCommitMessage = false
   private currentPopup: Popup | null = null
   private currentFoldout: Foldout | null = null
+  private currentBanner: Banner | null = null
   private errors: ReadonlyArray<Error> = new Array<Error>()
   private emitQueued = false
 
@@ -280,8 +284,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private windowState: WindowState
   private windowZoomFactor: number = 1
   private isUpdateAvailableBannerVisible: boolean = false
-  private successfulMergeBannerState: SuccessfulMergeBannerState = null
-  private mergeConflictsBannerState: MergeConflictsBannerState = null
+
   private confirmRepoRemoval: boolean = confirmRepoRemovalDefault
   private confirmDiscardChanges: boolean = confirmDiscardChangesDefault
   private imageDiffType: ImageDiffType = imageDiffTypeDefault
@@ -524,8 +527,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         this.showWelcomeFlow || repositories.length === 0 ? 'light' : 'dark',
       highlightAccessKeys: this.highlightAccessKeys,
       isUpdateAvailableBannerVisible: this.isUpdateAvailableBannerVisible,
-      successfulMergeBannerState: this.successfulMergeBannerState,
-      mergeConflictsBannerState: this.mergeConflictsBannerState,
+      currentBanner: this.currentBanner,
       askForConfirmationOnRepositoryRemoval: this.confirmRepoRemoval,
       askForConfirmationOnDiscardChanges: this.confirmDiscardChanges,
       selectedExternalEditor: this.selectedExternalEditor,
@@ -1124,7 +1126,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
     this.stopBackgroundFetching()
     this.stopPullRequestUpdater()
-    this._setMergeConflictsBannerState(null)
+    this._clearBanner()
     this.stopBackgroundPruner()
 
     if (repository == null) {
@@ -1612,13 +1614,83 @@ export class AppStore extends TypedBaseStore<IAppState> {
       conflictState: updateConflictState(state, status, this.statsStore),
     }))
 
-    this._triggerMergeConflictsFlow(repository)
+    this._triggerConflictsFlow(repository)
 
     this.emitUpdate()
 
     this.updateChangesDiffForCurrentSelection(repository)
 
     return true
+  }
+
+  private async _triggerConflictsFlow(repository: Repository) {
+    if (enableNewRebaseFlow()) {
+      const repoState = this.repositoryStateCache.get(repository)
+      const { conflictState } = repoState.changesState
+
+      if (conflictState === null) {
+        return
+      }
+
+      if (conflictState.kind === 'merge') {
+        await this.showMergeConflictsDialog(repository, conflictState)
+      } else if (conflictState.kind === 'rebase') {
+        await this.showRebaseConflictsDialog(repository)
+      } else {
+        assertNever(conflictState, `Unsupported conflict kind`)
+      }
+    } else {
+      this._triggerMergeConflictsFlow(repository)
+    }
+  }
+
+  /** display the rebase flow, if not already in this flow */
+  private async showRebaseConflictsDialog(repository: Repository) {
+    // TODO: check the current popup is a rebase conflicts dialog
+    // TODO: if already in flow, exit
+    // TODO: otherwise show the popup
+  }
+
+  /** starts the conflict resolution flow, if appropriate */
+  private async showMergeConflictsDialog(
+    repository: Repository,
+    conflictState: MergeConflictState
+  ) {
+    // are we already in the merge conflicts flow?
+    const alreadyInFlow =
+      this.currentPopup !== null &&
+      (this.currentPopup.type === PopupType.MergeConflicts ||
+        this.currentPopup.type === PopupType.AbortMerge)
+
+    // have we already been shown the merge conflicts flow *and closed it*?
+    const alreadyExitedFlow =
+      this.currentBanner !== null &&
+      this.currentBanner.type === BannerType.MergeConflictsFound
+
+    if (alreadyInFlow || alreadyExitedFlow) {
+      return
+    }
+
+    const possibleTheirsBranches = await getBranchesPointedAt(
+      repository,
+      'MERGE_HEAD'
+    )
+    // null means we encountered an error
+    if (possibleTheirsBranches === null) {
+      return
+    }
+    const theirBranch =
+      possibleTheirsBranches.length === 1
+        ? possibleTheirsBranches[0]
+        : undefined
+
+    const ourBranch = conflictState.currentBranch
+    this._showPopup({
+      type: PopupType.MergeConflicts,
+      repository,
+      ourBranch,
+      theirBranch,
+    })
   }
 
   /** starts the conflict resolution flow, if appropriate */
@@ -1630,7 +1702,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
         this.currentPopup.type === PopupType.AbortMerge)
 
     // have we already been shown the merge conflicts flow *and closed it*?
-    const alreadyExitedFlow = this.mergeConflictsBannerState !== null
+    const alreadyExitedFlow =
+      this.currentBanner !== null &&
+      this.currentBanner.type === BannerType.MergeConflictsFound
 
     if (alreadyInFlow || alreadyExitedFlow) {
       return
@@ -1638,7 +1712,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const repoState = this.repositoryStateCache.get(repository)
     const { conflictState } = repoState.changesState
-    if (conflictState === null) {
+    if (conflictState === null || !isMergeConflictState(conflictState)) {
       return
     }
 
@@ -3218,13 +3292,38 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const { tip } = gitStore
 
     if (mergeSuccessful && tip.kind === TipState.Valid) {
-      this._setSuccessfulMergeBannerState({
+      this._setBanner({
+        type: BannerType.SuccessfulMerge,
         ourBranch: tip.branch.name,
         theirBranch: branch,
       })
     }
 
     return this._refreshRepository(repository)
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _abortRebase(repository: Repository): Promise<void> {
+    const gitStore = this.gitStoreCache.get(repository)
+    return await gitStore.performFailableOperation(() =>
+      abortRebase(repository)
+    )
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _continueRebase(
+    repository: Repository,
+    workingDirectory: WorkingDirectoryStatus
+  ) {
+    const gitStore = this.gitStoreCache.get(repository)
+
+    const trackedFiles = workingDirectory.files.filter(f => {
+      return f.status.kind !== AppFileStatusKind.Untracked
+    })
+
+    return await gitStore.performFailableOperation(() =>
+      continueRebase(repository, trackedFiles)
+    )
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -3396,16 +3495,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  public _setSuccessfulMergeBannerState(state: SuccessfulMergeBannerState) {
-    this.successfulMergeBannerState = state
-
+  public _setBanner(state: Banner) {
+    this.currentBanner = state
     this.emitUpdate()
   }
 
-  public _setMergeConflictsBannerState(state: MergeConflictsBannerState) {
-    this.mergeConflictsBannerState = state
-
-    this.emitUpdate()
+  public _clearBanner() {
+    if (this.currentBanner !== null) {
+      this.currentBanner = null
+      this.emitUpdate()
+    }
   }
 
   public _setDivergingBranchBannerVisibility(

@@ -1,5 +1,10 @@
 {
   "releases": {
+    "1.6.3-beta2": [
+      "[Fixed] Text selection in wrapped diff lines now allows selection of individual lines - #1551",
+      "[Fixed] Resizing the diff area preserves text selection range - #2677",
+      "[Improved] Moving the mouse pointer outside of the visible diff while selecting a range of lines in a partial commit will now automatically scroll the diff - #658"
+    ],
     "1.6.3-beta1": [
       "[New] Branches that have been merged and deleted on GitHub.com will now be pruned after two weeks - #750",
       "[Fixed] Context menu doesn't open when right clicking on the edges of files in Changes list - #6296. Thanks @JQuinnie!",

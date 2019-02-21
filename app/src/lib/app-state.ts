@@ -34,6 +34,7 @@ import { ComparisonCache } from './comparison-cache'
 import { ApplicationTheme } from '../ui/lib/application-theme'
 import { IAccountRepositories } from './stores/api-repositories-store'
 import { ManualConflictResolution } from '../models/manual-conflict-resolution'
+import { Banner } from '../models/banner'
 
 export enum SelectionType {
   Repository,
@@ -99,6 +100,7 @@ export interface IAppState {
   readonly focusCommitMessage: boolean
   readonly currentPopup: Popup | null
   readonly currentFoldout: Foldout | null
+  readonly currentBanner: Banner | null
 
   /**
    * A list of currently open menus with their selected items
@@ -153,12 +155,6 @@ export interface IAppState {
 
   /** Whether we should show the update banner */
   readonly isUpdateAvailableBannerVisible: boolean
-
-  /** Whether we should show the merge success banner */
-  readonly successfulMergeBannerState: SuccessfulMergeBannerState
-
-  /** Whether we should show the merge success banner */
-  readonly mergeConflictsBannerState: MergeConflictsBannerState
 
   /** Whether we should show a confirmation dialog */
   readonly askForConfirmationOnRepositoryRemoval: boolean
@@ -258,11 +254,46 @@ export enum RepositorySectionTab {
 /**
  * Stores information about a merge conflict when it occurs
  */
-export interface IConflictState {
+export type MergeConflictState = {
+  readonly kind: 'merge'
   readonly currentBranch: string
   readonly currentTip: string
   readonly manualResolutions: Map<string, ManualConflictResolution>
 }
+
+/** Guard function for checking conflicts are from a merge  */
+export function isMergeConflictState(
+  conflictStatus: ConflictState
+): conflictStatus is MergeConflictState {
+  return conflictStatus.kind === 'merge'
+}
+
+/**
+ * Stores information about a rebase conflict when it occurs
+ */
+export type RebaseConflictState = {
+  readonly kind: 'rebase'
+  readonly currentTip: string
+  readonly targetBranch: string
+  readonly originalBranchTip: string
+  readonly manualResolutions: Map<string, ManualConflictResolution>
+}
+
+/** Guard function for checking conflicts are from a rebase  */
+export function isRebaseConflictState(
+  conflictStatus: ConflictState
+): conflictStatus is RebaseConflictState {
+  return conflictStatus.kind === 'rebase'
+}
+
+/**
+ * Conflicts can occur during a rebase or a merge.
+ *
+ * Callers should inspect the `kind` field to determine the kind of conflict
+ * that is occurring, as this will then provide additional information specific
+ * to the conflict, to help with resolving the issue.
+ */
+export type ConflictState = MergeConflictState | RebaseConflictState
 
 export interface IRepositoryState {
   readonly commitSelection: ICommitSelection
@@ -425,11 +456,11 @@ export interface IChangesState {
   readonly coAuthors: ReadonlyArray<IAuthor>
 
   /**
-   * Stores information about a merge conflict when it occurs
+   * Stores information about conflicts in the working directory
    *
-   * The absence of a value means there is no merge conflict
+   * The absence of a value means there is no merge or rebase conflict underway
    */
-  readonly conflictState: IConflictState | null
+  readonly conflictState: ConflictState | null
 }
 
 /**
@@ -566,23 +597,3 @@ export interface ICompareToBranch {
  * An action to send to the application store to update the compare state
  */
 export type CompareAction = IViewHistory | ICompareToBranch
-
-/** State for displaying the sucessful merge banner
- * `null` to remove banner
- */
-export type SuccessfulMergeBannerState = {
-  /** name of the branch that was merged into */
-  ourBranch: string
-  /** name of the branch we merged into `ourBranch` */
-  theirBranch?: string
-} | null
-
-/** State for displaying the merge conflicts banner
- *  `null` to remove banner
- */
-export type MergeConflictsBannerState = {
-  /** name of the branch that is being merged into */
-  readonly ourBranch: string
-  /** popup to be shown from the banner */
-  readonly popup: Popup
-} | null
