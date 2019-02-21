@@ -334,9 +334,7 @@ export class GitStore extends BaseStore {
     } else if (result === 'false') {
       this.pullWithRebase = false
     } else {
-      log.warn(
-        `Unexpected value found for pull.rebase in global config: ${result}`
-      )
+      log.warn(`Unexpected value found for pull.rebase in config: '${result}'`)
     }
   }
 
