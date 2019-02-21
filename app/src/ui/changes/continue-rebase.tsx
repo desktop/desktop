@@ -28,7 +28,7 @@ export class ContinueRebase extends React.Component<IContinueRebaseProps, {}> {
   }
 
   public render() {
-    const { targetBranch, manualResolutions } = this.props.rebaseConflictState
+    const { manualResolutions } = this.props.rebaseConflictState
 
     let canCommit = true
 
@@ -60,9 +60,7 @@ export class ContinueRebase extends React.Component<IContinueRebaseProps, {}> {
           tooltip={tooltip}
         >
           {loading}
-          <span>
-            {loading ? 'Rebasing' : 'Rebase'} <strong>{targetBranch}</strong>
-          </span>
+          <span>{loading ? 'Rebasing' : 'Continue rebase'}</span>
         </Button>
       </div>
     )
