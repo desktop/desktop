@@ -33,6 +33,8 @@ import { arrayEquals } from '../../lib/equality'
 import { clipboard } from 'electron'
 import { basename } from 'path'
 import { ICommitContext } from '../../models/commit'
+import { RebaseConflictState } from '../../lib/app-state'
+import { ContinueRebase } from './continue-rebase'
 
 const RowHeight = 29
 
@@ -41,6 +43,7 @@ const GitIgnoreFileName = '.gitignore'
 interface IChangesListProps {
   readonly repository: Repository
   readonly workingDirectory: WorkingDirectoryStatus
+  readonly rebaseConflictState: RebaseConflictState | null
   readonly selectedFileIDs: string[]
   readonly onFileSelectionChanged: (rows: ReadonlyArray<number>) => void
   readonly onIncludeChanged: (path: string, include: boolean) => void
@@ -424,6 +427,41 @@ export class ChangesList extends React.Component<
     )
     const singleFileCommit = filesSelected.length === 1
 
+    const commitMessageElement =
+      this.props.rebaseConflictState !== null ? (
+        <ContinueRebase
+          dispatcher={this.props.dispatcher}
+          repository={this.props.repository}
+          rebaseConflictState={this.props.rebaseConflictState}
+          workingDirectory={this.props.workingDirectory}
+          // TODO
+          canCommit={true}
+          isCommitting={this.props.isCommitting}
+        />
+      ) : (
+        <CommitMessage
+          onCreateCommit={this.props.onCreateCommit}
+          branch={this.props.branch}
+          gitHubUser={this.props.gitHubUser}
+          commitAuthor={this.props.commitAuthor}
+          anyFilesSelected={anyFilesSelected}
+          repository={this.props.repository}
+          dispatcher={this.props.dispatcher}
+          commitMessage={this.props.commitMessage}
+          focusCommitMessage={this.props.focusCommitMessage}
+          autocompletionProviders={this.props.autocompletionProviders}
+          isCommitting={this.props.isCommitting}
+          showCoAuthoredBy={this.props.showCoAuthoredBy}
+          coAuthors={this.props.coAuthors}
+          placeholder={this.getPlaceholderMessage(
+            filesSelected,
+            singleFileCommit
+          )}
+          singleFileCommit={singleFileCommit}
+          key={this.props.repository.id}
+        />
+      )
+
     return (
       <div className="changes-list-container file-list">
         <div className="header" onContextMenu={this.onContextMenu}>
@@ -448,28 +486,7 @@ export class ChangesList extends React.Component<
           onScroll={this.onScroll}
           setScrollTop={this.props.changesListScrollTop}
         />
-
-        <CommitMessage
-          onCreateCommit={this.props.onCreateCommit}
-          branch={this.props.branch}
-          gitHubUser={this.props.gitHubUser}
-          commitAuthor={this.props.commitAuthor}
-          anyFilesSelected={anyFilesSelected}
-          repository={this.props.repository}
-          dispatcher={this.props.dispatcher}
-          commitMessage={this.props.commitMessage}
-          focusCommitMessage={this.props.focusCommitMessage}
-          autocompletionProviders={this.props.autocompletionProviders}
-          isCommitting={this.props.isCommitting}
-          showCoAuthoredBy={this.props.showCoAuthoredBy}
-          coAuthors={this.props.coAuthors}
-          placeholder={this.getPlaceholderMessage(
-            filesSelected,
-            singleFileCommit
-          )}
-          singleFileCommit={singleFileCommit}
-          key={this.props.repository.id}
-        />
+        {commitMessageElement}
       </div>
     )
   }
