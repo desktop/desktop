@@ -29,3 +29,4 @@ export type MenuEvent =
   | 'open-external-editor'
   | 'select-all'
   | 'show-release-notes-popup'
+  | 'force-prune-branches'

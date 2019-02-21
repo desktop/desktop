@@ -434,6 +434,10 @@ export function buildDefaultMenu({
             click: emit('show-release-notes-popup'),
           },
         ],
+      },
+      {
+        label: 'Prune branches',
+        click: emit('force-prune-branches'),
       }
     )
   }
