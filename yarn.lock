@@ -174,6 +174,19 @@
   resolved "https://registry.yarnpkg.com/@types/electron-winstaller/-/electron-winstaller-2.6.0.tgz#703073ee2109fefe8a958fdadb746dfc0a827918"
   integrity sha512-pQke6avqSYtkNunEec7NF2dTDSFsf2e1Ti9VkaJFzI15UfTEOjwz22lKoImja7nXPLu8nINYSaVaPgw0XHJEkA==
 
+"@types/eslint@^4.16.6":
+  version "4.16.6"
+  resolved "https://registry.yarnpkg.com/@types/eslint/-/eslint-4.16.6.tgz#96d4ecddbea618ab0b55eaf0dffedf387129b06c"
+  integrity sha512-GL7tGJig55FeclpOytU7nCCqtR143jBoC7AUdH0DO9xBSIFiNNUFCY/S3KNWsHeQJuU3hjw/OC1+kRTFNXqUZQ==
+  dependencies:
+    "@types/estree" "*"
+    "@types/json-schema" "*"
+
+"@types/estree@*":
+  version "0.0.39"
+  resolved "https://registry.yarnpkg.com/@types/estree/-/estree-0.0.39.tgz#e177e699ee1b8c22d23174caaa7422644389509f"
+  integrity sha512-EYNwp3bU+98cpU4lAWYYL7Zz+2gryWH1qbdDTidVd6hkiR6weksdbMadyXKXNPEkQFhXM+hVO9ZygomHXp+AIw==
+
 "@types/event-kit@^1.2.28":
   version "1.2.32"
   resolved "https://registry.yarnpkg.com/@types/event-kit/-/event-kit-1.2.32.tgz#068cbdc69e8c969afae8c9f6e3a51ea4b1b5522e"
@@ -261,6 +274,11 @@
   version "23.3.1"
   resolved "https://registry.yarnpkg.com/@types/jest/-/jest-23.3.1.tgz#a4319aedb071d478e6f407d1c4578ec8156829cf"
   integrity sha512-/UMY+2GkOZ27Vrc51pqC5J8SPd39FKt7kkoGAtWJ8s4msj0b15KehDWIiJpWY3/7tLxBQLLzJhIBhnEsXdzpgw==
+
+"@types/json-schema@*", "@types/json-schema@^7.0.3":
+  version "7.0.3"
+  resolved "https://registry.yarnpkg.com/@types/json-schema/-/json-schema-7.0.3.tgz#bdfd69d61e464dcc81b25159c270d75a73c1a636"
+  integrity sha512-Il2DtDVRGDcqjDtE+rF8iqg1CArehSK84HZJCT7AMITlyXRBpuPhqGLDQMowraqqu1coEaimg4ZOqggt6L6L+A==
 
 "@types/keytar@^4.0.0":
   version "4.0.1"
