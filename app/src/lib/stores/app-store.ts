@@ -4326,6 +4326,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.emitUpdate()
   }
+
+  public _forceBranchPruning() {
+    if (this.currentBranchPruner == null) {
+      return
+    }
+
+    this.currentBranchPruner.forcePrune()
+  }
 }
 /**
  * Map the cached state of the compare view to an action
