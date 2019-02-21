@@ -4327,12 +4327,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  public _forceBranchPruning() {
+  public async _forceBranchPruning() {
     if (this.currentBranchPruner == null) {
       return
     }
 
-    this.currentBranchPruner.forcePrune()
+    await this.currentBranchPruner.forcePrune()
   }
 }
 /**
