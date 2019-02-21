@@ -30,6 +30,7 @@ import { PopupType } from '../../models/popup'
 import { filesNotTrackedByLFS } from '../../lib/git/lfs'
 import { getLargeFilePaths } from '../../lib/large-files'
 import { isConflictedFile, hasUnresolvedConflicts } from '../../lib/status'
+import { enableNewRebaseFlow } from '../../lib/feature-flag'
 
 /**
  * The timeout for the animation of the enter/leave animation for Undo.
@@ -331,6 +332,16 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     )
   }
 
+  private renderUndoCommit = (
+    rebaseConflictState: RebaseConflictState | null
+  ): JSX.Element | null => {
+    if (rebaseConflictState !== null && enableNewRebaseFlow()) {
+      return null
+    }
+
+    return this.renderMostRecentLocalCommit()
+  }
+
   public render() {
     const {
       selectedFileIDs,
@@ -357,9 +368,6 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
         ? conflictState
         : null
     }
-
-    const undoCommitComponent =
-      rebaseConflictState === null ? this.renderMostRecentLocalCommit() : null
 
     return (
       <div id="changes-sidebar-contents">
@@ -396,7 +404,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           onChangesListScrolled={this.props.onChangesListScrolled}
           changesListScrollTop={this.props.changesListScrollTop}
         />
-        {undoCommitComponent}
+        {this.renderUndoCommit(rebaseConflictState)}
       </div>
     )
   }
