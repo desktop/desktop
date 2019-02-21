@@ -87,37 +87,28 @@ export class BranchPruner {
         )
   }
 
-  private async pruneLocalBranches(): Promise<void> {
-    if (this.repository.gitHubRepository === null) {
-      return
-    }
-
-    // Get the last time this repo was pruned
-    const lastPruneDate = await this.repositoriesStore.getLastPruneDate(
-      this.repository
-    )
-
-    // Only prune if it's been at least 24 hours since the last time
-    const dateNow = moment()
-    const threshold = dateNow.subtract(24, 'hours')
-
-    // Using type coelescing behavior to deal with Dexie returning `undefined`
-    // for records that haven't been updated with the new field yet
-    if (lastPruneDate != null && threshold.isBefore(lastPruneDate)) {
-      log.info(
-        `Last prune took place ${moment(lastPruneDate).from(
-          dateNow
-        )} - skipping`
-      )
-      return
-    }
-
+  /**
+   *
+   */
+  /**
+   * Prunes branches that have been merged into the default branch
+   * and have been deleted on the remote. This is ran automatically
+   * by calling `start` on the `BranchPruner` instance
+   *
+   * @param lastCheckOutDate date from which to check if a branch was checked out - defaults to 2 weekds from today
+   * @returns true when branches have been prune and false otherwise
+   */
+  public async forcePrune(
+    lastCheckOutDate: Date = moment()
+      .subtract(2, 'weeks')
+      .toDate()
+  ): Promise<boolean> {
     // Get list of branches that have been merged
     const { branchesState } = this.repositoriesStateCache.get(this.repository)
     const { defaultBranch } = branchesState
 
     if (defaultBranch === null) {
-      return
+      return false
     }
 
     const mergedBranches = await this.findBranchesMergedIntoDefaultBranch(
@@ -127,7 +118,7 @@ export class BranchPruner {
 
     if (mergedBranches.length === 0) {
       log.info('No branches to prune.')
-      return
+      return false
     }
 
     // Get all branches checked out within the past 2 weeks
@@ -150,6 +141,10 @@ export class BranchPruner {
     const branchesReadyForPruning = candidateBranches.filter(
       mb => !recentlyCheckedOutCanonicalRefs.has(mb.canonicalRef)
     )
+
+    if (branchesReadyForPruning.length === 0) {
+      return false
+    }
 
     log.info(
       `Pruning ${
@@ -178,10 +173,39 @@ export class BranchPruner {
       }
     }
 
-    await this.repositoriesStore.updateLastPruneDate(
+    return true
+  }
+
+  private async pruneLocalBranches(): Promise<void> {
+    if (this.repository.gitHubRepository === null) {
+      return
+    }
+
+    // Get the last time this repo was pruned
+    const lastPruneDate = await this.repositoriesStore.getLastPruneDate(
+      this.repository
+    )
+
+    // Only prune if it's been at least 24 hours since the last time
+    const dateNow = moment()
+    const threshold = dateNow.subtract(24, 'hours')
+
+    // Using type coelescing behavior to deal with Dexie returning `undefined`
+    // for records that haven't been updated with the new field yet
+    if (lastPruneDate != null && threshold.isBefore(lastPruneDate)) {
+      log.info(
+        `Last prune took place ${moment(lastPruneDate).from(
+          dateNow
+        )} - skipping`
+      )
+      return
+    }
+
+    const didPruneHappen = await this.forcePrune()
+    await this.repositoriesStore.updateLastPruneAttemptDate(
       this.repository,
       Date.now()
     )
-    this.onPruneCompleted(this.repository)
+    didPruneHappen && this.onPruneCompleted(this.repository)
   }
 }
