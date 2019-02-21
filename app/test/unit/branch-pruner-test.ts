@@ -230,7 +230,10 @@ async function initializeTestRepo(
   await primeCaches(repository, repositoriesStateCache)
 
   lastPruneDate &&
-    repositoriesStore.updateLastPruneDate(repository, lastPruneDate.getTime())
+    repositoriesStore.updateLastPruneAttemptDate(
+      repository,
+      lastPruneDate.getTime()
+    )
   return repository
 }
 

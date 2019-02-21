@@ -342,7 +342,7 @@ export class RepositoriesStore extends BaseStore {
    * @param repository The repository in which to update the prune date for
    * @param date The date and time in which the last prune took place
    */
-  public async updateLastPruneDate(
+  public async updateLastPruneAttemptDate(
     repository: Repository,
     date: number
   ): Promise<void> {
