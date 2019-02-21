@@ -106,7 +106,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
       error: null,
     }
 
-    const gheTabState: IEnterpriseTabState = {
+    const enterpriseTabState: IEnterpriseTabState = {
       kind: 'enterprise',
       settings: {
         ...publicationSettings,
