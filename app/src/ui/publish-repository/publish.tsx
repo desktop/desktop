@@ -118,7 +118,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
     this.state = {
       currentTab: startingTab,
       dotcomTabState: { ...dotcomTabState },
-      enterpriseTabState: { ...gheTabState },
+      enterpriseTabState,
       publishing: false,
     }
   }
