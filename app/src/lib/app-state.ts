@@ -431,9 +431,8 @@ export interface IBranchesState {
   /**
    * Is the current branch configured to rebase on pull?
    *
-   * This can be configured in one of two ways by the user:
+   * This is equivalent to this config value in Git:
    *
-   *  - `git config branch.[name].rebase true` (local)
    *  - `git config pull.rebase true` (local or global)
    */
   readonly pullWithRebase?: boolean
