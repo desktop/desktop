@@ -134,12 +134,10 @@ export class BranchPruner {
     )
 
     // Create array of branches that can be pruned
-    const candidateBranches = mergedBranches.filter(
-      mb => !ReservedRefs.includes(mb.canonicalRef)
-    )
-
-    const branchesReadyForPruning = candidateBranches.filter(
-      mb => !recentlyCheckedOutCanonicalRefs.has(mb.canonicalRef)
+    const branchesReadyForPruning = mergedBranches.filter(
+      mb =>
+        !ReservedRefs.includes(mb.canonicalRef) &&
+        !recentlyCheckedOutCanonicalRefs.has(mb.canonicalRef)
     )
 
     if (branchesReadyForPruning.length === 0) {
