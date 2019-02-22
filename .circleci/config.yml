@@ -34,7 +34,7 @@ jobs:
             - ~/Library/Caches/Yarn/v4
       - run:
           name: Linting
-          command: yarn lint && yarn validate-changelog && yarn check-modified
+          command: yarn compile:tslint && yarn compile:eslint && yarn lint && yarn validate-changelog && yarn check-modified
       - run:
           name: Build
           command: yarn build:prod
