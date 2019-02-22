@@ -1,6 +1,8 @@
 out/
 dist/
 vendor/
+eslint-rules/*.js
+eslint-rules/types/*.js
 tslint-rules/*.js
 npm-debug.log
 yarn-error.log
