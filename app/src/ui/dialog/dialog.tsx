@@ -187,7 +187,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     }
 
     if (this.props.title) {
-      this.setState((_state, props) => ({
+      this.setState((_, props) => ({
         titleId: createUniqueId(`Dialog_${props.id}_${props.title}`),
       }))
     }

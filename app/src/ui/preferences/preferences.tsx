@@ -110,7 +110,7 @@ export class Preferences extends React.Component<
     const availableEditors = editors.map(e => e.editor)
     const availableShells = shells.map(e => e.shell)
 
-    this.setState((_state, props) => ({
+    this.setState((_, props) => ({
       committerName: committerName || '',
       committerEmail: committerEmail || '',
       optOutOfUsageTracking: props.optOutOfUsageTracking,
