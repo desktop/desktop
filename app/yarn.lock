@@ -215,17 +215,15 @@ code-point-at@^1.0.0:
   resolved "https://registry.yarnpkg.com/code-point-at/-/code-point-at-1.1.0.tgz#0d070b4d043a5bea33a2f1a40e2edb3d9a4ccf77"
   integrity sha1-DQcLTQQ6W+ozovGkDi7bPZpMz3c=
 
-codemirror-mode-elixir@1.1.1:
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/codemirror-mode-elixir/-/codemirror-mode-elixir-1.1.1.tgz#cc5b79bf5f93b6da426e32364a673a681391416c"
-  integrity sha1-zFt5v1+TttpCbjI2Smc6aBORQWw=
-  dependencies:
-    codemirror "^5.20.2"
+codemirror-mode-elixir@^1.1.2:
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/codemirror-mode-elixir/-/codemirror-mode-elixir-1.1.2.tgz#61227208d2684d928500af6934e4b9c995fb0960"
+  integrity sha512-1oIuRVHyUhLv0Za9sEIsI7urAj06EohwO/yVj10bg7aHnimHQ964Wk3uuoPH0Yn8L38EkOd+SwULYpDiCQtoTA==
 
-codemirror@^5.20.2, codemirror@^5.31.0:
-  version "5.33.0"
-  resolved "https://registry.yarnpkg.com/codemirror/-/codemirror-5.33.0.tgz#462ad9a6fe8d38b541a9536a3997e1ef93b40c6a"
-  integrity sha512-HT6PKVqkwpzwB3jl5hXFoQteEWXbSWMzG3Z8RVYlx8hZwCOLCy4NU7vkSB3dYX3e6ORwRfGw4uFOXaw4rn/a9Q==
+codemirror@^5.44.0:
+  version "5.44.0"
+  resolved "https://registry.yarnpkg.com/codemirror/-/codemirror-5.44.0.tgz#80dc2a231eeb7aab25ec2405cdca37e693ccf9cc"
+  integrity sha512-3l42syTNakCdCQuYeZJXTyxina6Y9i4V0ighSJXNCQtRbaCN76smKKLu1ZHPHQon3rnzC7l4i/0r4gp809K1wg==
 
 color-convert@^1.9.0:
   version "1.9.0"
