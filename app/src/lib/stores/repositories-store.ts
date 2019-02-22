@@ -274,6 +274,7 @@ export class RepositoriesStore extends BaseStore {
       defaultBranch: gitHubRepository.default_branch,
       cloneURL: gitHubRepository.clone_url,
       parentID: parent ? parent.dbID : null,
+      lastPruneDate: null,
     }
     if (existingRepo) {
       updatedGitHubRepo = { ...updatedGitHubRepo, id: existingRepo.id }
@@ -333,5 +334,78 @@ export class RepositoriesStore extends BaseStore {
       updatedGitHubRepo,
       repository.missing
     )
+  }
+
+  /**
+   * Set's the last time the repository was checked for pruning
+   *
+   * @param repository The repository in which to update the prune date for
+   * @param date The date and time in which the last prune took place
+   */
+  public async updateLastPruneDate(
+    repository: Repository,
+    date: number
+  ): Promise<void> {
+    const repoID = repository.id
+    if (repoID === 0) {
+      return fatalError(
+        '`updateLastPruneDate` can only update the last prune date for a repository which has been added to the database.'
+      )
+    }
+
+    const githubRepo = repository.gitHubRepository
+    if (githubRepo === null) {
+      return fatalError(
+        `'updateLastPruneDate' can only update GitHub repositories`
+      )
+    }
+
+    const gitHubRepositoryID = githubRepo.dbID
+    if (gitHubRepositoryID === null) {
+      return fatalError(
+        `'updateLastPruneDate' can only update GitHub repositories with a valid ID: received ID of ${gitHubRepositoryID}`
+      )
+    }
+
+    await this.db.gitHubRepositories.update(gitHubRepositoryID, {
+      lastPruneDate: date,
+    })
+
+    this.emitUpdate()
+  }
+
+  public async getLastPruneDate(
+    repository: Repository
+  ): Promise<number | null> {
+    const repoID = repository.id
+    if (!repoID) {
+      return fatalError(
+        '`getLastPruneDate` - can only retrieve the last prune date for a repositories that have been stored in the database.'
+      )
+    }
+
+    const githubRepo = repository.gitHubRepository
+    if (githubRepo === null) {
+      return fatalError(
+        `'getLastPruneDate' - can only retrieve the last prune date for GitHub repositories.`
+      )
+    }
+
+    const gitHubRepositoryID = githubRepo.dbID
+    if (gitHubRepositoryID === null) {
+      return fatalError(
+        `'getLastPruneDate' - can only retrieve the last prune date for GitHub repositories that have been stored in the database.`
+      )
+    }
+
+    const record = await this.db.gitHubRepositories.get(gitHubRepositoryID)
+
+    if (record === undefined) {
+      return fatalError(
+        `'getLastPruneDate' - unable to find GitHub repository with ID: ${gitHubRepositoryID}`
+      )
+    }
+
+    return record!.lastPruneDate
   }
 }

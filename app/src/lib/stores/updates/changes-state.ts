@@ -3,7 +3,14 @@ import {
   WorkingDirectoryFileChange,
 } from '../../../models/status'
 import { IStatusResult } from '../../git'
-import { IChangesState, IConflictState } from '../../app-state'
+import {
+  IChangesState,
+  ConflictState,
+  MergeConflictState,
+  isMergeConflictState,
+  isRebaseConflictState,
+  RebaseConflictState,
+} from '../../app-state'
 import { DiffSelectionType, IDiff } from '../../../models/diff'
 import { caseInsensitiveCompare } from '../../compare'
 import { IStatsStore } from '../../stats/stats-store'
@@ -96,40 +103,46 @@ export function updateChangedFiles(
 function getConflictState(
   status: IStatusResult,
   manualResolutions: Map<string, ManualConflictResolution>
-): IConflictState | null {
-  if (!status.mergeHeadFound) {
-    return null
+): ConflictState | null {
+  if (status.mergeHeadFound) {
+    const { currentBranch, currentTip } = status
+    if (currentBranch == null || currentTip == null) {
+      return null
+    }
+    return {
+      kind: 'merge',
+      currentBranch,
+      currentTip,
+      manualResolutions,
+    }
   }
 
-  const { currentBranch, currentTip } = status
-  if (currentBranch == null || currentTip == null) {
-    return null
+  if (status.rebaseContext !== null) {
+    const { currentTip } = status
+    if (currentTip == null) {
+      return null
+    }
+
+    const { targetBranch, originalBranchTip } = status.rebaseContext
+
+    return {
+      kind: 'rebase',
+      currentTip,
+      manualResolutions,
+      targetBranch,
+      originalBranchTip,
+    }
   }
 
-  return {
-    currentBranch,
-    currentTip,
-    manualResolutions,
-  }
+  return null
 }
 
-export function updateConflictState(
-  state: IChangesState,
+function performEffectsForMergeStateChange(
+  prevConflictState: MergeConflictState | null,
+  newConflictState: MergeConflictState | null,
   status: IStatusResult,
   statsStore: IStatsStore
-): IConflictState | null {
-  const prevConflictState = state.conflictState
-
-  const manualResolutions = prevConflictState
-    ? prevConflictState.manualResolutions
-    : new Map<string, ManualConflictResolution>()
-
-  const newConflictState = getConflictState(status, manualResolutions)
-
-  if (prevConflictState == null && newConflictState == null) {
-    return null
-  }
-
+): void {
   const previousBranchName =
     prevConflictState != null ? prevConflictState.currentBranch : null
   const currentBranchName =
@@ -143,7 +156,7 @@ export function updateConflictState(
   // The branch name has changed while remaining conflicted -> the merge must have been aborted
   if (branchNameChanged) {
     statsStore.recordMergeAbortedAfterConflicts()
-    return newConflictState
+    return
   }
 
   const { currentTip } = status
@@ -162,6 +175,77 @@ export function updateConflictState(
       statsStore.recordMergeAbortedAfterConflicts()
     }
   }
+}
+
+function performEffectsForRebaseStateChange(
+  prevConflictState: RebaseConflictState | null,
+  newConflictState: RebaseConflictState | null,
+  status: IStatusResult,
+  statsStore: IStatsStore
+) {
+  // TODO: run side-effects for rebase conflicts state changes
+
+  // what does a successful rebase look like?
+  // - the state changed from "in a rebase" to "no rebase"
+  // - the commit ID of branch they were trying to rebase is the same as it was before
+
+  // what does an aborted rebase look like?
+  // - the state changed from "in a rebase" to "no rebase"
+  // - the commit ID of branch they were trying to rebase is now different
+
+  // - we'd need to know the target branch they are rebasing
+  // - we'd need to know the commit ID at the start of the rebase
+  // - we'd need to know the commit ID when the rebase was done
+
+  return
+}
+
+export function updateConflictState(
+  state: IChangesState,
+  status: IStatusResult,
+  statsStore: IStatsStore
+): ConflictState | null {
+  const prevConflictState = state.conflictState
+
+  const manualResolutions =
+    prevConflictState !== null
+      ? prevConflictState.manualResolutions
+      : new Map<string, ManualConflictResolution>()
+
+  const newConflictState = getConflictState(status, manualResolutions)
+
+  if (prevConflictState == null && newConflictState == null) {
+    return null
+  }
+
+  if (
+    (prevConflictState == null || isMergeConflictState(prevConflictState)) &&
+    (newConflictState == null || isMergeConflictState(newConflictState))
+  ) {
+    performEffectsForMergeStateChange(
+      prevConflictState,
+      newConflictState,
+      status,
+      statsStore
+    )
+    return newConflictState
+  }
+
+  if (
+    (prevConflictState == null || isRebaseConflictState(prevConflictState)) &&
+    (newConflictState == null || isRebaseConflictState(newConflictState))
+  ) {
+    performEffectsForRebaseStateChange(
+      prevConflictState,
+      newConflictState,
+      status,
+      statsStore
+    )
+    return newConflictState
+  }
+
+  // Otherwise we transitioned from a merge conflict to a rebase conflict or
+  // vice versa, and we should avoid any side effects here
 
   return newConflictState
 }

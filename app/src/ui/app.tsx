@@ -8,10 +8,8 @@ import {
   FoldoutType,
   SelectionType,
   HistoryTabMode,
-  SuccessfulMergeBannerState,
-  MergeConflictsBannerState,
 } from '../lib/app-state'
-import { Dispatcher } from '../lib/dispatcher'
+import { Dispatcher } from './dispatcher'
 import { AppStore, GitHubUserStore, IssuesStore } from '../lib/stores'
 import { assertNever } from '../lib/fatal-error'
 import { shell } from '../lib/app-shell'
@@ -58,7 +56,7 @@ import {
 import { DiscardChanges } from './discard-changes'
 import { Welcome } from './welcome'
 import { AppMenuBar } from './app-menu'
-import { UpdateAvailable } from './banners'
+import { UpdateAvailable, renderBanner } from './banners'
 import { Preferences } from './preferences'
 import { Merge } from './merge-branch'
 import { RepositorySettings } from './repository-settings'
@@ -92,9 +90,10 @@ import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
 import { AbortMergeWarning } from './abort-merge'
 import { isConflictedFile } from '../lib/status'
 import { PopupType, Popup } from '../models/popup'
-import { SuccessfulMerge, MergeConflictsBanner } from './banners'
 import { OversizedFiles } from './changes/oversized-files-warning'
 import { UsageStatsChange } from './usage-stats-change'
+import { PushNeedsPullWarning } from './push-needs-pull'
+import { LocalChangesOverwrittenWarning } from './local-changes-overwritten'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -1001,6 +1000,11 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
 
+    // Don't render the menu bar when the blank slate is shown
+    if (this.state.repositories.length < 1) {
+      return null
+    }
+
     const currentFoldout = this.state.currentFoldout
 
     // AppMenuBar requires us to pass a strongly typed AppMenuFoldout state or
@@ -1081,12 +1085,6 @@ export class App extends React.Component<IAppProps, IAppState> {
   private onUpdateAvailableDismissed = () =>
     this.props.dispatcher.setUpdateBannerVisibility(false)
 
-  private onSuccessfulMergeDismissed = () =>
-    this.props.dispatcher.setSuccessfulMergeBannerState(null)
-
-  private onMergeConflictsBannerDismissed = () =>
-    this.props.dispatcher.setMergeConflictsBannerState(null)
-
   private currentPopupContent(): JSX.Element | null {
     // Hide any dialogs while we're displaying an error
     if (this.state.errors.length) {
@@ -1165,6 +1163,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={this.onPopupDismissed}
             selectedShell={this.state.selectedShell}
             selectedTheme={this.state.selectedTheme}
+            automaticallySwitchTheme={this.state.automaticallySwitchTheme}
           />
         )
       case PopupType.MergeBranch: {
@@ -1284,12 +1283,14 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       case PopupType.About:
+        const version = __DEV__ ? __SHA__.substr(0, 10) : getVersion()
+
         return (
           <About
             key="about"
             onDismissed={this.onPopupDismissed}
             applicationName={getName()}
-            applicationVersion={getVersion()}
+            applicationVersion={version}
             onCheckForUpdates={this.onCheckForUpdates}
             onShowAcknowledgements={this.showAcknowledgements}
             onShowTermsAndConditions={this.showTermsAndConditions}
@@ -1450,6 +1451,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             openRepositoryInShell={this.openInShell}
             ourBranch={popup.ourBranch}
             theirBranch={popup.theirBranch}
+            manualResolutions={conflictState.manualResolutions}
           />
         )
       }
@@ -1504,6 +1506,34 @@ export class App extends React.Component<IAppProps, IAppState> {
             files={popup.files}
             repository={popup.repository}
             context={popup.context}
+            onDismissed={this.onPopupDismissed}
+          />
+        )
+      case PopupType.PushNeedsPull:
+        return (
+          <PushNeedsPullWarning
+            dispatcher={this.props.dispatcher}
+            repository={popup.repository}
+            onDismissed={this.onPopupDismissed}
+          />
+        )
+      case PopupType.LocalChangesOverwritten:
+        const { selectedState } = this.state
+        if (
+          selectedState === null ||
+          selectedState.type !== SelectionType.Repository
+        ) {
+          return null
+        }
+
+        const { workingDirectory } = selectedState.state.changesState
+        return (
+          <LocalChangesOverwrittenWarning
+            dispatcher={this.props.dispatcher}
+            repository={popup.repository}
+            retryAction={popup.retryAction}
+            overwrittenFiles={popup.overwrittenFiles}
+            workingDirectory={workingDirectory}
             onDismissed={this.onPopupDismissed}
           />
         )
@@ -1824,6 +1854,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     if (currentPullRequest == null) {
       dispatcher.createPullRequest(state.repository)
+      dispatcher.recordCreatePullRequest()
     } else {
       dispatcher.showPullRequest(state.repository)
     }
@@ -1884,13 +1915,11 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     let banner = null
-    if (this.state.successfulMergeBannerState !== null) {
-      banner = this.renderSuccessfulMergeBanner(
-        this.state.successfulMergeBannerState
-      )
-    } else if (this.state.mergeConflictsBannerState !== null) {
-      banner = this.renderMergeConflictsBanner(
-        this.state.mergeConflictsBannerState
+    if (this.state.currentBanner !== null) {
+      banner = renderBanner(
+        this.state.currentBanner,
+        this.props.dispatcher,
+        this.onBannerDismissed
       )
     } else if (this.state.isUpdateAvailableBannerVisible) {
       banner = this.renderUpdateBanner()
@@ -1906,22 +1935,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       </CSSTransitionGroup>
     )
   }
-  private renderMergeConflictsBanner(
-    mergeConflictsBannerState: MergeConflictsBannerState
-  ): JSX.Element | null {
-    if (mergeConflictsBannerState === null) {
-      return null
-    }
-    return (
-      <MergeConflictsBanner
-        dispatcher={this.props.dispatcher}
-        ourBranch={mergeConflictsBannerState.ourBranch}
-        popup={mergeConflictsBannerState.popup}
-        onDismissed={this.onMergeConflictsBannerDismissed}
-        key={'merge-conflicts'}
-      />
-    )
-  }
 
   private renderUpdateBanner() {
     return (
@@ -1934,20 +1947,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
-  private renderSuccessfulMergeBanner(
-    successfulMergeBannerState: SuccessfulMergeBannerState
-  ) {
-    if (successfulMergeBannerState === null) {
-      return null
-    }
-    return (
-      <SuccessfulMerge
-        ourBranch={successfulMergeBannerState.ourBranch}
-        theirBranch={successfulMergeBannerState.theirBranch}
-        onDismissed={this.onSuccessfulMergeDismissed}
-        key={'successful-merge'}
-      />
-    )
+  private onBannerDismissed = () => {
+    this.props.dispatcher.clearBanner()
   }
 
   private renderToolbar() {

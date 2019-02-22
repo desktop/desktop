@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { Branch } from '../../models/branch'
 import { ButtonGroup } from '../lib/button-group'
 import { Button } from '../lib/button'

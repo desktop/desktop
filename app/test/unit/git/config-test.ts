@@ -8,7 +8,9 @@ import {
   getGlobalConfigValue,
   setGlobalConfigValue,
 } from '../../../src/lib/git'
-import { setupFixtureRepository, mkdirSync } from '../../helpers/repositories'
+
+import { mkdirSync } from '../../helpers/temp'
+import { setupFixtureRepository } from '../../helpers/repositories'
 
 describe('git/config', () => {
   let repository: Repository | null = null
