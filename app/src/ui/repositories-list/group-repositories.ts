@@ -10,12 +10,19 @@ import { IFilterListGroup, IFilterListItem } from '../lib/filter-list'
 import { IAheadBehind } from '../../models/branch'
 import { enableGroupRepositoriesByOwner } from '../../lib/feature-flag'
 
+/**
+ * Special, reserved repository group names
+ *
+ * (GitHub.com user and org names cannot contain `_`,
+ * so these are safe to union with all possible
+ * GitHub repo owner names)
+ */
 export enum KnownRepositoryGroup {
-  enterprise = 'enterprise',
-  other = 'other',
+  Enterprise = '_Enterprise_',
+  NonGitHub = '_Non-GitHub_',
 }
 
-export type RepositoryGroupIdentifier = string | KnownRepositoryGroup
+export type RepositoryGroupIdentifier = KnownRepositoryGroup | string
 
 export type Repositoryish = Repository | CloningRepository
 
@@ -42,7 +49,7 @@ export function groupRepositories(
   for (const repository of repositories) {
     const gitHubRepository =
       repository instanceof Repository ? repository.gitHubRepository : null
-    let group: RepositoryGroupIdentifier = KnownRepositoryGroup.other
+    let group: RepositoryGroupIdentifier = KnownRepositoryGroup.NonGitHub
     if (gitHubRepository) {
       if (gitHubRepository.endpoint === getDotComAPIEndpoint()) {
         if (enableGroupRepositoriesByOwner()) {
@@ -52,10 +59,10 @@ export function groupRepositories(
           group = 'GitHub.com'
         }
       } else {
-        group = KnownRepositoryGroup.enterprise
+        group = KnownRepositoryGroup.Enterprise
       }
     } else {
-      group = KnownRepositoryGroup.other
+      group = KnownRepositoryGroup.NonGitHub
     }
 
     let repositories = grouped.get(group)
@@ -94,7 +101,7 @@ export function groupRepositories(
           id: r.id.toString(),
           repository: r,
           needsDisambiguation:
-            nameCount > 1 && identifier === KnownRepositoryGroup.enterprise,
+            nameCount > 1 && identifier === KnownRepositoryGroup.Enterprise,
           aheadBehind,
           changedFilesCount,
         }
@@ -126,8 +133,8 @@ export function groupRepositories(
   } else {
     addGroup('GitHub.com')
   }
-  addGroup(KnownRepositoryGroup.enterprise)
-  addGroup(KnownRepositoryGroup.other)
+  addGroup(KnownRepositoryGroup.Enterprise)
+  addGroup(KnownRepositoryGroup.NonGitHub)
 
   return groups
 }

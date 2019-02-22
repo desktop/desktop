@@ -144,9 +144,9 @@ export class RepositoriesList extends React.Component<
   }
 
   private getGroupLabel(identifier: RepositoryGroupIdentifier) {
-    if (identifier === KnownRepositoryGroup.enterprise) {
+    if (identifier === KnownRepositoryGroup.Enterprise) {
       return 'Enterprise'
-    } else if (identifier === KnownRepositoryGroup.other) {
+    } else if (identifier === KnownRepositoryGroup.NonGitHub) {
       return 'Other'
     } else {
       return identifier

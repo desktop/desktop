@@ -41,13 +41,13 @@ describe('repository list grouping', () => {
     let item = grouped[0].items[0]
     expect(item.repository.path).toBe('repo2')
 
-    expect(grouped[1].identifier).toBe(KnownRepositoryGroup.enterprise)
+    expect(grouped[1].identifier).toBe(KnownRepositoryGroup.Enterprise)
     expect(grouped[1].items).toHaveLength(1)
 
     item = grouped[1].items[0]
     expect(item.repository.path).toBe('repo3')
 
-    expect(grouped[2].identifier).toBe(KnownRepositoryGroup.other)
+    expect(grouped[2].identifier).toBe(KnownRepositoryGroup.NonGitHub)
     expect(grouped[2].items).toHaveLength(1)
 
     item = grouped[2].items[0]
@@ -92,7 +92,7 @@ describe('repository list grouping', () => {
     expect(items[0].repository.path).toBe('b')
     expect(items[1].repository.path).toBe('d')
 
-    expect(grouped[1].identifier).toBe(KnownRepositoryGroup.other)
+    expect(grouped[1].identifier).toBe(KnownRepositoryGroup.NonGitHub)
     expect(grouped[1].items).toHaveLength(3)
 
     items = grouped[1].items
@@ -152,7 +152,7 @@ describe('repository list grouping', () => {
     expect(grouped[1].identifier).toBe('user2')
     expect(grouped[1].items).toHaveLength(1)
 
-    expect(grouped[2].identifier).toBe(KnownRepositoryGroup.enterprise)
+    expect(grouped[2].identifier).toBe(KnownRepositoryGroup.Enterprise)
     expect(grouped[2].items).toHaveLength(2)
 
     expect(grouped[0].items[0].text[0]).toBe('repo')
