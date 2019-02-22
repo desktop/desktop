@@ -92,6 +92,7 @@ import { isConflictedFile } from '../lib/status'
 import { PopupType, Popup } from '../models/popup'
 import { OversizedFiles } from './changes/oversized-files-warning'
 import { UsageStatsChange } from './usage-stats-change'
+import { LocalChangesOverwrittenWarning } from './local-changes-overwritten'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -1504,6 +1505,26 @@ export class App extends React.Component<IAppProps, IAppState> {
             files={popup.files}
             repository={popup.repository}
             context={popup.context}
+            onDismissed={this.onPopupDismissed}
+          />
+        )
+      case PopupType.LocalChangesOverwritten:
+        const { selectedState } = this.state
+        if (
+          selectedState === null ||
+          selectedState.type !== SelectionType.Repository
+        ) {
+          return null
+        }
+
+        const { workingDirectory } = selectedState.state.changesState
+        return (
+          <LocalChangesOverwrittenWarning
+            dispatcher={this.props.dispatcher}
+            repository={popup.repository}
+            retryAction={popup.retryAction}
+            overwrittenFiles={popup.overwrittenFiles}
+            workingDirectory={workingDirectory}
             onDismissed={this.onPopupDismissed}
           />
         )

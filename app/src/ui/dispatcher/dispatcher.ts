@@ -1147,6 +1147,10 @@ export class Dispatcher {
         await this.clone(retryAction.url, retryAction.path, retryAction.options)
         break
 
+      case RetryActionType.Checkout:
+        await this.checkoutBranch(retryAction.repository, retryAction.branch)
+        break
+
       default:
         return assertNever(retryAction, `Unknown retry action: ${retryAction}`)
     }
