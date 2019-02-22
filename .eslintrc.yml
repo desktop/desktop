@@ -15,6 +15,7 @@ rules:
   # CUSTOM #
   ##########
   insecure-random: error
+  button-group-order: error
 
   ###########
   # PLUGINS #
