@@ -42,6 +42,7 @@ export enum PopupType {
   OversizedFiles,
   UsageReportingChanges,
   CommitConflictsWarning,
+  PushNeedsPull,
   LocalChangesOverwritten,
   RebaseConflicts,
 }
@@ -154,6 +155,10 @@ export type Popup =
       repository: Repository
       /** information for completing the commit */
       context: ICommitContext
+    }
+  | {
+      type: PopupType.PushNeedsPull
+      repository: Repository
     }
   | {
       type: PopupType.LocalChangesOverwritten

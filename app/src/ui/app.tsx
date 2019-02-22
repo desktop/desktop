@@ -92,6 +92,7 @@ import { isConflictedFile } from '../lib/status'
 import { PopupType, Popup } from '../models/popup'
 import { OversizedFiles } from './changes/oversized-files-warning'
 import { UsageStatsChange } from './usage-stats-change'
+import { PushNeedsPullWarning } from './push-needs-pull'
 import { LocalChangesOverwrittenWarning } from './local-changes-overwritten'
 import { RebaseConflictsDialog } from './rebase'
 
@@ -1506,6 +1507,14 @@ export class App extends React.Component<IAppProps, IAppState> {
             files={popup.files}
             repository={popup.repository}
             context={popup.context}
+            onDismissed={this.onPopupDismissed}
+          />
+        )
+      case PopupType.PushNeedsPull:
+        return (
+          <PushNeedsPullWarning
+            dispatcher={this.props.dispatcher}
+            repository={popup.repository}
             onDismissed={this.onPopupDismissed}
           />
         )
