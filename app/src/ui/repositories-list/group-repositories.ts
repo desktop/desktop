@@ -93,7 +93,8 @@ export function groupRepositories(
           text: repositoryText,
           id: r.id.toString(),
           repository: r,
-          needsDisambiguation: false,
+          needsDisambiguation:
+            nameCount > 1 && identifier === KnownRepositoryGroup.enterprise,
           aheadBehind,
           changedFilesCount,
         }
