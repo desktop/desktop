@@ -21,7 +21,7 @@ export class ContinueRebase extends React.Component<IContinueRebaseProps, {}> {
   }
 
   private async continueRebase() {
-    this.props.dispatcher.continueRebase(
+    await this.props.dispatcher.continueRebase(
       this.props.repository,
       this.props.workingDirectory
     )
