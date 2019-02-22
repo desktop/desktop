@@ -8,6 +8,7 @@ import { getDotComAPIEndpoint } from '../../lib/api'
 import { caseInsensitiveCompare } from '../../lib/compare'
 import { IFilterListGroup, IFilterListItem } from '../lib/filter-list'
 import { IAheadBehind } from '../../models/branch'
+import { enableGroupRepositoriesByOwner } from '../../lib/feature-flag'
 
 export enum KnownRepositoryGroup {
   enterprise = 'enterprise',
@@ -44,8 +45,12 @@ export function groupRepositories(
     let group: RepositoryGroupIdentifier = KnownRepositoryGroup.other
     if (gitHubRepository) {
       if (gitHubRepository.endpoint === getDotComAPIEndpoint()) {
-        group = gitHubRepository.owner.login
-        gitHubOwners.push(group)
+        if (enableGroupRepositoriesByOwner()) {
+          group = gitHubRepository.owner.login
+          gitHubOwners.push(group)
+        } else {
+          group = 'GitHub.com'
+        }
       } else {
         group = KnownRepositoryGroup.enterprise
       }
@@ -83,8 +88,18 @@ export function groupRepositories(
         localRepositoryStateLookup.get(r.id) || fallbackValue
       const repositoryText =
         r instanceof Repository ? [r.name, nameOf(r)] : [r.name]
+      if (enableGroupRepositoriesByOwner()) {
+        return {
+          text: repositoryText,
+          id: r.id.toString(),
+          repository: r,
+          needsDisambiguation: false,
+          aheadBehind,
+          changedFilesCount,
+        }
+      }
       return {
-        text: repositoryText,
+        text: [r.name],
         id: r.id.toString(),
         repository: r,
         needsDisambiguation: nameCount > 1,
@@ -97,15 +112,19 @@ export function groupRepositories(
   }
 
   // NB: This ordering reflects the order in the repositories sidebar.
-  const owners = gitHubOwners.reduce((acc, val) => {
-    if (!acc.includes(val)) {
-      acc.push(val)
-    }
-    return acc
-  }, new Array<string>())
-  owners.sort(caseInsensitiveCompare).forEach(o => {
-    addGroup(o)
-  })
+  if (enableGroupRepositoriesByOwner()) {
+    const owners = gitHubOwners.reduce((acc, val) => {
+      if (!acc.includes(val)) {
+        acc.push(val)
+      }
+      return acc
+    }, new Array<string>())
+    owners.sort(caseInsensitiveCompare).forEach(o => {
+      addGroup(o)
+    })
+  } else {
+    addGroup('GitHub.com')
+  }
   addGroup(KnownRepositoryGroup.enterprise)
   addGroup(KnownRepositoryGroup.other)
 
