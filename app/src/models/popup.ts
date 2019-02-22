@@ -43,6 +43,7 @@ export enum PopupType {
   UsageReportingChanges,
   CommitConflictsWarning,
   PushNeedsPull,
+  LocalChangesOverwritten,
 }
 
 export type Popup =
@@ -157,4 +158,11 @@ export type Popup =
   | {
       type: PopupType.PushNeedsPull
       repository: Repository
+    }
+  | {
+      type: PopupType.LocalChangesOverwritten
+      /** repository user is checking out in */
+      repository: Repository
+      retryAction: RetryAction
+      overwrittenFiles: ReadonlyArray<string>
     }
