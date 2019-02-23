@@ -13,5 +13,6 @@
     "sourceMap": false,
     "esModuleInterop": true
   },
-  "compileOnSave": true
+  "compileOnSave": true,
+  "exclude": ["./proper-lifecycle-methods.ts"]
 }
