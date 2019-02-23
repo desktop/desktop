@@ -1,7 +1,7 @@
 /**
  * button-group-order
  *
- * This custom tslint rule is highly specific to GitHub Desktop and attempts
+ * This custom ESLint rule is highly specific to GitHub Desktop and attempts
  * to enforce a consistent order for buttons inside of a <ButtonGroup>
  * component.
  *
@@ -12,7 +12,7 @@
  *  <Button type='submit'>Ok</Button>
  * </ButtonGroup>
  *
- * The example above will trigger a tslint error since we want to enforce
+ * The example above will trigger an ESLint error since we want to enforce
  * a consistent order of Ok/Cancel-style buttons (the button captions vary)
  * such that the primary action precedes any secondary actions.
  *
