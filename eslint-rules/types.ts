@@ -1,4 +1,10 @@
 // Adapted from https://github.com/typescript-eslint/typescript-eslint/blob/1d9ca845d/packages/eslint-plugin/typings/ts-eslint.d.ts
+/* eslint-disable
+    @typescript-eslint/interface-name-prefix,
+    @typescript-eslint/explicit-member-accessibility,
+    no-redeclare,
+    no-restricted-syntax
+*/
 
 import { TSESTree } from '@typescript-eslint/typescript-estree'
 // import { ParserServices } from '@typescript-eslint/parser'
