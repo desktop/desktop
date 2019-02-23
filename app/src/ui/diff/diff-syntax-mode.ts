@@ -36,6 +36,7 @@ const TokenNames: { [key: string]: string | null } = {
 }
 
 interface IState {
+  // eslint-disable-next-line readonly-props-and-state
   diffLineIndex: number
 }
 

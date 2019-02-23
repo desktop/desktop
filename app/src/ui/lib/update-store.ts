@@ -31,9 +31,9 @@ export enum UpdateStatus {
 }
 
 export interface IUpdateState {
-  status: UpdateStatus
-  lastSuccessfulCheck: Date | null
-  newRelease: ReleaseSummary | null
+  readonly status: UpdateStatus
+  readonly lastSuccessfulCheck: Date | null
+  readonly newRelease: ReleaseSummary | null
 }
 
 /** A store which contains the current state of the auto updater. */

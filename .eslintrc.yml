@@ -16,6 +16,7 @@ rules:
   ##########
   insecure-random: error
   button-group-order: error
+  readonly-props-and-state: error
 
   ###########
   # PLUGINS #

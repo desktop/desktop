@@ -17,7 +17,6 @@
     "promise-must-complete": true,
     "react-no-unbound-dispatcher-props": true,
     "react-proper-lifecycle-methods": true,
-    "react-readonly-props-and-state": true,
     "react-unused-props-and-state": [
       true,
       {
