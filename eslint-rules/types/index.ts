@@ -1,6 +1,6 @@
 // Adapted from https://github.com/typescript-eslint/typescript-eslint/blob/1d9ca845d/packages/eslint-plugin/typings/ts-eslint.d.ts
 
-import * as TSESTree from './ts-estree'
+import { TSESTree } from '@typescript-eslint/typescript-estree'
 // import { ParserServices } from '@typescript-eslint/parser'
 // copied:
 import { Program } from 'typescript'

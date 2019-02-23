@@ -24,7 +24,7 @@
  */
 
 import { createRule } from './util'
-import { AST_NODE_TYPES } from './types/ast-node-types'
+import { AST_NODE_TYPES } from '@typescript-eslint/typescript-estree'
 
 export = createRule({
   meta: {
