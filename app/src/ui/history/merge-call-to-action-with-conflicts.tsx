@@ -7,6 +7,7 @@ import { Dispatcher } from '../dispatcher'
 import { Button } from '../lib/button'
 import { MergeStatusHeader } from './merge-status-header'
 import { MergeResultKind } from '../../models/merge'
+import { MergeSouce } from '../../lib/stats/instrumented-event'
 
 interface IMergeCallToActionWithConflictsProps {
   readonly repository: Repository
@@ -160,7 +161,8 @@ export class MergeCallToActionWithConflicts extends React.Component<
     await this.props.dispatcher.mergeBranch(
       repository,
       comparisonBranch.name,
-      mergeStatus
+      mergeStatus,
+      MergeSouce.NewCommitsBanner
     )
 
     this.props.dispatcher.executeCompare(repository, {

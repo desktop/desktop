@@ -5,6 +5,7 @@ import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
 import { Dispatcher } from '../dispatcher'
 import { Button } from '../lib/button'
+import { MergeSouce } from '../../lib/stats/instrumented-event'
 
 interface IMergeCallToActionProps {
   readonly repository: Repository
@@ -76,7 +77,8 @@ export class MergeCallToAction extends React.Component<
     await this.props.dispatcher.mergeBranch(
       this.props.repository,
       formState.comparisonBranch.name,
-      null
+      null,
+      MergeSouce.NewCommitsBanner
     )
 
     this.props.dispatcher.executeCompare(this.props.repository, {

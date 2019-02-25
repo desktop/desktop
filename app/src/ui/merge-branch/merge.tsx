@@ -19,6 +19,7 @@ import { MergeStatusHeader } from '../history/merge-status-header'
 import { promiseWithMinimumTimeout } from '../../lib/promise'
 import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
 import { DialogHeader } from '../dialog/header'
+import { MergeSouce } from '../../lib/stats/instrumented-event'
 
 interface IMergeProps {
   readonly dispatcher: Dispatcher
@@ -54,6 +55,8 @@ interface IMergeProps {
    * ways described in the Dialog component's dismissable prop.
    */
   readonly onDismissed: () => void
+
+  readonly source: MergeSouce
 }
 
 interface IMergeState {
@@ -330,7 +333,8 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     this.props.dispatcher.mergeBranch(
       this.props.repository,
       branch.name,
-      this.state.mergeStatus
+      this.state.mergeStatus,
+      this.props.source
     )
     this.props.dispatcher.closePopup()
   }

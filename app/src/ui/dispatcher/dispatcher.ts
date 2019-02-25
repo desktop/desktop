@@ -67,7 +67,10 @@ import { TipState } from '../../models/tip'
 import { ApplicationTheme } from '../lib/application-theme'
 import { installCLI } from '../lib/install-cli'
 import { executeMenuItem } from '../main-process-proxy'
-import { InstrumentedEvent } from '../../lib/stats/instrumented-event'
+import {
+  InstrumentedEvent,
+  MergeSouce,
+} from '../../lib/stats/instrumented-event'
 import { Banner } from '../../models/banner'
 
 /**
@@ -617,9 +620,10 @@ export class Dispatcher {
   public mergeBranch(
     repository: Repository,
     branch: string,
-    mergeStatus: MergeResultStatus | null
+    mergeStatus: MergeResultStatus | null,
+    source: MergeSouce
   ): Promise<void> {
-    return this.appStore._mergeBranch(repository, branch, mergeStatus)
+    return this.appStore._mergeBranch(repository, branch, mergeStatus, source)
   }
 
   /** aborts an in-flight merge and refreshes the repository's status */

@@ -192,7 +192,11 @@ import {
 import { BranchPruner } from './helpers/branch-pruner'
 import { enableBranchPruning, enableNewRebaseFlow } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
-import { TelemetryDoodad, InstrumentedEvent } from '../stats/instrumented-event'
+import {
+  TelemetryDoodad,
+  InstrumentedEvent,
+  MergeSouce,
+} from '../stats/instrumented-event'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -3289,7 +3293,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _mergeBranch(
     repository: Repository,
     branch: string,
-    mergeStatus: MergeResultStatus | null
+    mergeStatus: MergeResultStatus | null,
+    source: MergeSouce
   ): Promise<void> {
     const gitStore = this.gitStoreCache.get(repository)
 
@@ -3311,6 +3316,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
         type: BannerType.SuccessfulMerge,
         ourBranch: tip.branch.name,
         theirBranch: branch,
+      })
+      this._recordInstrumentedEvent({
+        type: 'merged_completed',
+        timestamp: Date.now(),
+        source,
       })
     }
 

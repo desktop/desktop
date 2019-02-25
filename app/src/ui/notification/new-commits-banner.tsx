@@ -7,6 +7,7 @@ import { Dispatcher } from '../dispatcher'
 import { Repository } from '../../models/repository'
 import { HistoryTabMode, ComparisonMode } from '../../lib/app-state'
 import { PopupType } from '../../models/popup'
+import { MergeSouce } from '../../lib/stats/instrumented-event'
 
 export type DismissalReason = 'close' | 'compare' | 'merge'
 
@@ -108,6 +109,7 @@ export class NewCommitsBanner extends React.Component<
       type: PopupType.MergeBranch,
       branch: this.props.baseBranch,
       repository,
+      source: MergeSouce.NewCommitsBanner,
     })
     dispatcher.recordDivergingBranchBannerInitatedMerge()
     this.props.onDismiss('merge')

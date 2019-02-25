@@ -94,6 +94,7 @@ import { OversizedFiles } from './changes/oversized-files-warning'
 import { UsageStatsChange } from './usage-stats-change'
 import { PushNeedsPullWarning } from './push-needs-pull'
 import { LocalChangesOverwrittenWarning } from './local-changes-overwritten'
+import { MergeSouce } from '../lib/stats/instrumented-event'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -320,7 +321,13 @@ export class App extends React.Component<IAppProps, IAppState> {
       }
       case 'merge-branch': {
         this.props.dispatcher.recordMenuInitiatedMerge()
-        return this.mergeBranch()
+        const source = MergeSouce.MergeIntoCurrentBranch
+        this.props.dispatcher.recordInstrumentedEvent({
+          type: 'merge_initated',
+          timestamp: Date.now(),
+          source,
+        })
+        return this.mergeBranch(source)
       }
       case 'show-repository-settings':
         return this.showRepositorySettings()
@@ -493,11 +500,12 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.mergeBranch(
       selectedState.repository,
       defaultBranch.name,
-      mergeStatus
+      mergeStatus,
+      MergeSouce.UpdateFromDevelopment
     )
   }
 
-  private mergeBranch() {
+  private mergeBranch(source: MergeSouce) {
     const state = this.state.selectedState
     if (state == null || state.type !== SelectionType.Repository) {
       return
@@ -506,6 +514,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.showPopup({
       type: PopupType.MergeBranch,
       repository: state.repository,
+      source,
     })
   }
 
@@ -1167,7 +1176,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       case PopupType.MergeBranch: {
-        const { repository, branch } = popup
+        const { repository, branch, source } = popup
         const state = this.props.repositoryStateManager.get(repository)
 
         const tip = state.branchesState.tip
@@ -1183,6 +1192,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         return (
           <Merge
             key="merge-branch"
+            source={source}
             dispatcher={this.props.dispatcher}
             repository={repository}
             allBranches={state.branchesState.allBranches}
