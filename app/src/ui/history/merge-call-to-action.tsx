@@ -5,7 +5,7 @@ import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
 import { Dispatcher } from '../dispatcher'
 import { Button } from '../lib/button'
-import { MergeSouce } from '../../lib/stats/instrumented-event'
+import { MergeSource } from '../../lib/stats/instrumented-event'
 
 interface IMergeCallToActionProps {
   readonly repository: Repository
@@ -71,14 +71,19 @@ export class MergeCallToAction extends React.Component<
 
   private onMergeClicked = async () => {
     const formState = this.props.formState
-
+    const source = MergeSource.NewCommitsBanner
     this.props.dispatcher.recordCompareInitiatedMerge()
 
+    await this.props.dispatcher.recordInstrumentedEvent({
+      type: 'merge_initiated',
+      timestamp: Date.now(),
+      source,
+    })
     await this.props.dispatcher.mergeBranch(
       this.props.repository,
       formState.comparisonBranch.name,
       null,
-      MergeSouce.NewCommitsBanner
+      source
     )
 
     this.props.dispatcher.executeCompare(this.props.repository, {

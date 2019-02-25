@@ -7,7 +7,7 @@ import { Dispatcher } from '../dispatcher'
 import { Button } from '../lib/button'
 import { MergeStatusHeader } from './merge-status-header'
 import { MergeResultKind } from '../../models/merge'
-import { MergeSouce } from '../../lib/stats/instrumented-event'
+import { MergeSource } from '../../lib/stats/instrumented-event'
 
 interface IMergeCallToActionWithConflictsProps {
   readonly repository: Repository
@@ -155,14 +155,19 @@ export class MergeCallToActionWithConflicts extends React.Component<
 
   private onMergeClicked = async () => {
     const { comparisonBranch, repository, mergeStatus } = this.props
+    const source = MergeSource.NewCommitsBanner
 
     this.props.dispatcher.recordCompareInitiatedMerge()
-
+    await this.props.dispatcher.recordInstrumentedEvent({
+      type: 'merge_initiated',
+      timestamp: Date.now(),
+      source,
+    })
     await this.props.dispatcher.mergeBranch(
       repository,
       comparisonBranch.name,
       mergeStatus,
-      MergeSouce.NewCommitsBanner
+      source
     )
 
     this.props.dispatcher.executeCompare(repository, {

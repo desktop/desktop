@@ -69,7 +69,7 @@ import { installCLI } from '../lib/install-cli'
 import { executeMenuItem } from '../main-process-proxy'
 import {
   InstrumentedEvent,
-  MergeSouce,
+  MergeSource,
 } from '../../lib/stats/instrumented-event'
 import { Banner } from '../../models/banner'
 
@@ -621,7 +621,7 @@ export class Dispatcher {
     repository: Repository,
     branch: string,
     mergeStatus: MergeResultStatus | null,
-    source: MergeSouce
+    source: MergeSource
   ): Promise<void> {
     return this.appStore._mergeBranch(repository, branch, mergeStatus, source)
   }

@@ -1,6 +1,6 @@
 import Dexie from 'dexie'
 
-export enum MergeSouce {
+export enum MergeSource {
   'MergeIntoCurrentBranch',
   'UpdateFromDevelopment',
   'CompareTab',
@@ -10,14 +10,14 @@ export enum MergeSouce {
 
 export type InstrumentedEvent =
   | {
-      type: 'merge_initated'
+      type: 'merge_initiated'
       timestamp: number
-      source: MergeSouce
+      source: MergeSource
     }
   | {
       type: 'merged_completed'
       timestamp: number
-      source: MergeSouce
+      source: MergeSource
     }
   | {
       type: 'merge_aborted'

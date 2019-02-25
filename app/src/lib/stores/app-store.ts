@@ -195,7 +195,7 @@ import { Banner, BannerType } from '../../models/banner'
 import {
   TelemetryDoodad,
   InstrumentedEvent,
-  MergeSouce,
+  MergeSource,
 } from '../stats/instrumented-event'
 
 /**
@@ -3294,10 +3294,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     branch: string,
     mergeStatus: MergeResultStatus | null,
-    source: MergeSouce
+    source: MergeSource
   ): Promise<void> {
     const gitStore = this.gitStoreCache.get(repository)
-
+    await this._recordInstrumentedEvent({
+      type: 'merge_initiated',
+      timestamp: Date.now(),
+      source,
+    })
     if (mergeStatus !== null) {
       if (mergeStatus.kind === MergeResultKind.Clean) {
         this.statsStore.recordMergeHintSuccessAndUserProceeded()
@@ -3317,6 +3321,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         ourBranch: tip.branch.name,
         theirBranch: branch,
       })
+
       this._recordInstrumentedEvent({
         type: 'merged_completed',
         timestamp: Date.now(),

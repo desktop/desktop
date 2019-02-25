@@ -94,7 +94,7 @@ import { OversizedFiles } from './changes/oversized-files-warning'
 import { UsageStatsChange } from './usage-stats-change'
 import { PushNeedsPullWarning } from './push-needs-pull'
 import { LocalChangesOverwrittenWarning } from './local-changes-overwritten'
-import { MergeSouce } from '../lib/stats/instrumented-event'
+import { MergeSource } from '../lib/stats/instrumented-event'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -321,13 +321,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       }
       case 'merge-branch': {
         this.props.dispatcher.recordMenuInitiatedMerge()
-        const source = MergeSouce.MergeIntoCurrentBranch
-        this.props.dispatcher.recordInstrumentedEvent({
-          type: 'merge_initated',
-          timestamp: Date.now(),
-          source,
-        })
-        return this.mergeBranch(source)
+        return this.mergeBranch(MergeSource.MergeIntoCurrentBranch)
       }
       case 'show-repository-settings':
         return this.showRepositorySettings()
@@ -345,9 +339,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.boomtown()
       case 'go-to-commit-message':
         return this.goToCommitMessage()
-      case 'open-pull-request': {
+      case 'open-pull-request':
         return this.openPullRequest()
-      }
       case 'install-cli':
         return this.props.dispatcher.installCLI()
       case 'open-external-editor':
@@ -501,16 +494,21 @@ export class App extends React.Component<IAppProps, IAppState> {
       selectedState.repository,
       defaultBranch.name,
       mergeStatus,
-      MergeSouce.UpdateFromDevelopment
+      MergeSource.UpdateFromDevelopment
     )
   }
 
-  private mergeBranch(source: MergeSouce) {
+  private async mergeBranch(source: MergeSource) {
     const state = this.state.selectedState
     if (state == null || state.type !== SelectionType.Repository) {
       return
     }
 
+    await this.props.dispatcher.recordInstrumentedEvent({
+      type: 'merge_initiated',
+      timestamp: Date.now(),
+      source,
+    })
     this.props.dispatcher.showPopup({
       type: PopupType.MergeBranch,
       repository: state.repository,
@@ -1076,6 +1074,15 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private onPopupDismissed = () => this.props.dispatcher.closePopup()
 
+  private onMergePopupDismissed = async () => {
+    await this.props.dispatcher.recordInstrumentedEvent({
+      type: 'merge_aborted',
+      conflicts: 0,
+      timestamp: Date.now(),
+    })
+    this.props.dispatcher.closePopup()
+  }
+
   private onSignInDialogDismissed = () => {
     this.props.dispatcher.resetSignInState()
     this.onPopupDismissed()
@@ -1200,7 +1207,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             recentBranches={state.branchesState.recentBranches}
             currentBranch={currentBranch}
             initialBranch={branch}
-            onDismissed={this.onPopupDismissed}
+            onDismissed={this.onMergePopupDismissed}
           />
         )
       }

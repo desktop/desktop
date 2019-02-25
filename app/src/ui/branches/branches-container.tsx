@@ -23,7 +23,7 @@ import { PullRequestsLoading } from './pull-requests-loading'
 import { IBranchListItem } from './group-branches'
 import { renderDefaultBranch } from './branch-renderer'
 import { IMatches } from '../../lib/fuzzy-find'
-import { MergeSouce } from '../../lib/stats/instrumented-event'
+import { MergeSource } from '../../lib/stats/instrumented-event'
 
 const PullRequestsLoadingCrossFadeInTimeout = 300
 const PullRequestsLoadingCrossFadeOutTimeout = 200
@@ -213,12 +213,12 @@ export class BranchesContainer extends React.Component<
     this.props.dispatcher.closeFoldout(FoldoutType.Branch)
   }
 
-  private onMergeClick = () => {
+  private onMergeClick = async () => {
     this.props.dispatcher.closeFoldout(FoldoutType.Branch)
     this.props.dispatcher.showPopup({
       type: PopupType.MergeBranch,
       repository: this.props.repository,
-      source: MergeSouce.BranchList,
+      source: MergeSource.BranchList,
     })
   }
 

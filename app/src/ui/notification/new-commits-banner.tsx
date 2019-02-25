@@ -7,7 +7,7 @@ import { Dispatcher } from '../dispatcher'
 import { Repository } from '../../models/repository'
 import { HistoryTabMode, ComparisonMode } from '../../lib/app-state'
 import { PopupType } from '../../models/popup'
-import { MergeSouce } from '../../lib/stats/instrumented-event'
+import { MergeSource } from '../../lib/stats/instrumented-event'
 
 export type DismissalReason = 'close' | 'compare' | 'merge'
 
@@ -102,14 +102,19 @@ export class NewCommitsBanner extends React.Component<
     this.props.onDismiss('compare')
   }
 
-  private onMergeClicked = () => {
+  private onMergeClicked = async () => {
     const { repository, dispatcher } = this.props
-
+    const source = MergeSource.NewCommitsBanner
+    await dispatcher.recordInstrumentedEvent({
+      type: 'merge_initiated',
+      timestamp: Date.now(),
+      source,
+    })
     dispatcher.showPopup({
       type: PopupType.MergeBranch,
       branch: this.props.baseBranch,
       repository,
-      source: MergeSouce.NewCommitsBanner,
+      source,
     })
     dispatcher.recordDivergingBranchBannerInitatedMerge()
     this.props.onDismiss('merge')
