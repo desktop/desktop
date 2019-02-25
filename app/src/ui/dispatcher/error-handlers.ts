@@ -11,7 +11,6 @@ import { GitError } from '../../lib/git/core'
 import { ShellError } from '../../lib/shells'
 import { UpstreamAlreadyExistsError } from '../../lib/stores/upstream-already-exists-error'
 
-import { FetchType } from '../../models/fetch'
 import { PopupType } from '../../models/popup'
 import { Repository } from '../../models/repository'
 import { TipState } from '../../models/tip'
@@ -242,10 +241,9 @@ export async function pushNeedsPullHandler(
     return error
   }
 
-  // Since they need to pull, go ahead and do a fetch for them.
-  dispatcher.fetch(repository, FetchType.UserInitiatedTask)
+  dispatcher.showPopup({ type: PopupType.PushNeedsPull, repository })
 
-  return error
+  return null
 }
 
 /**
@@ -355,6 +353,70 @@ export async function upstreamAlreadyExistsHandler(
     type: PopupType.UpstreamAlreadyExists,
     repository: error.repository,
     existingRemote: error.existingRemote,
+  })
+
+  return null
+}
+
+/**
+ * Handler for when we attempt to checkout a branch and there are some files that would
+ * be overwritten.
+ */
+export async function localChangesOverwrittenHandler(
+  error: Error,
+  dispatcher: Dispatcher
+): Promise<Error | null> {
+  const e = asErrorWithMetadata(error)
+  if (!e) {
+    return error
+  }
+
+  const gitError = asGitError(e.underlyingError)
+  if (!gitError) {
+    return error
+  }
+
+  const dugiteError = gitError.result.gitError
+  if (!dugiteError) {
+    return error
+  }
+
+  if (dugiteError !== DugiteError.LocalChangesOverwritten) {
+    return error
+  }
+
+  const { repository, retryAction } = e.metadata
+  if (repository == null) {
+    return error
+  }
+
+  if (!(repository instanceof Repository)) {
+    return error
+  }
+
+  if (!retryAction) {
+    log.error(`No retry action provided for a git checkout error.`, e)
+    return error
+  }
+
+  // find the overwritten files from the error
+  const overwrittenFiles = []
+
+  const pathRegex = /^\t(.*)/gm
+  const { stderr } = gitError.result
+
+  let match = pathRegex.exec(stderr)
+
+  while (match !== null) {
+    overwrittenFiles.push(match[1])
+    match = pathRegex.exec(stderr)
+  }
+
+  dispatcher.showPopup({
+    type: PopupType.LocalChangesOverwritten,
+    repository,
+    retryAction,
+    overwrittenFiles,
   })
 
   return null

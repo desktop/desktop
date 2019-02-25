@@ -1,10 +1,10 @@
 import { Branch } from './branch'
 
 export enum TipState {
-  Unknown,
-  Unborn,
-  Detached,
-  Valid,
+  Unknown = 'Unknown',
+  Unborn = 'Unborn',
+  Detached = 'Detached',
+  Valid = 'Valid',
 }
 
 export interface IUnknownRepository {

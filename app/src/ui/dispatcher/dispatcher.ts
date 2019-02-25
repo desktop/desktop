@@ -9,10 +9,8 @@ import {
   Foldout,
   FoldoutType,
   ICompareFormUpdate,
-  MergeConflictsBannerState,
   MergeResultStatus,
   RepositorySectionTab,
-  SuccessfulMergeBannerState,
 } from '../../lib/app-state'
 import { ExternalEditor } from '../../lib/editors'
 import { assertNever, fatalError } from '../../lib/fatal-error'
@@ -70,6 +68,7 @@ import { ApplicationTheme } from '../lib/application-theme'
 import { installCLI } from '../lib/install-cli'
 import { executeMenuItem } from '../main-process-proxy'
 import { InstrumentedEvent } from '../../lib/stats/instrumented-event'
+import { Banner } from '../../models/banner'
 
 /**
  * An error handler function.
@@ -487,24 +486,17 @@ export class Dispatcher {
   }
 
   /**
-   * Set the successful merge banner's state
+   * Set the banner state for the application
    */
-  public setSuccessfulMergeBannerState(state: SuccessfulMergeBannerState) {
-    return this.appStore._setSuccessfulMergeBannerState(state)
+  public setBanner(state: Banner) {
+    return this.appStore._setBanner(state)
   }
 
   /**
-   * Set the successful merge banner's state
+   * Clear the current banner from the application (if set)
    */
-  public setMergeConflictsBannerState(state: MergeConflictsBannerState) {
-    return this.appStore._setMergeConflictsBannerState(state)
-  }
-
-  /**
-   * Clear (close) the successful merge banner
-   */
-  public clearMergeConflictsBanner() {
-    return this.appStore._setMergeConflictsBannerState(null)
+  public clearBanner() {
+    return this.appStore._clearBanner()
   }
 
   /**
@@ -646,14 +638,25 @@ export class Dispatcher {
   public async finishConflictedMerge(
     repository: Repository,
     workingDirectory: WorkingDirectoryStatus,
-    successfulMergeBannerState: SuccessfulMergeBannerState
+    successfulMergeBanner: Banner
   ) {
+    // get manual resolutions in case there are manual conflicts
+    const repositoryState = this.repositoryStateManager.get(repository)
+    const { conflictState } = repositoryState.changesState
+    if (conflictState === null) {
+      // if this doesn't exist, something is very wrong and we shouldn't proceed 😢
+      log.error(
+        'Conflict state missing during finishConflictedMerge. No merge will be committed.'
+      )
+      return
+    }
     const result = await this.appStore._finishConflictedMerge(
       repository,
-      workingDirectory
+      workingDirectory,
+      conflictState.manualResolutions
     )
     if (result !== undefined) {
-      this.appStore._setSuccessfulMergeBannerState(successfulMergeBannerState)
+      this.setBanner(successfulMergeBanner)
     }
   }
 
@@ -1145,6 +1148,10 @@ export class Dispatcher {
         await this.clone(retryAction.url, retryAction.path, retryAction.options)
         break
 
+      case RetryActionType.Checkout:
+        await this.checkoutBranch(retryAction.repository, retryAction.branch)
+        break
+
       default:
         return assertNever(retryAction, `Unknown retry action: ${retryAction}`)
     }
@@ -1420,6 +1427,13 @@ export class Dispatcher {
    */
   public recordDivergingBranchBannerInitatedMerge() {
     return this.statsStore.recordDivergingBranchBannerInitatedMerge()
+  }
+
+  /**
+   * Increments the `createPullRequestCount` metric
+   */
+  public recordCreatePullRequest() {
+    return this.statsStore.recordCreatePullRequest()
   }
 
   public recordWelcomeWizardInitiated() {

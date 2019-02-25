@@ -37,17 +37,17 @@ export function enableRecurseSubmodulesFlag(): boolean {
   return enableBetaFeatures()
 }
 
-/** Should the app check and warn the user about committing large files? */
-export function enableFileSizeWarningCheck(): boolean {
+/** Should the app set protocol.version=2 for any fetch/push/pull/clone operation? */
+export function enableGitProtocolVersionTwo(): boolean {
   return true
 }
 
-/** Should the app set protocol.version=2 for any fetch/push/pull/clone operation? */
-export function enableGitProtocolVersionTwo(): boolean {
+export function enableReadmeOverwriteWarning(): boolean {
   return enableBetaFeatures()
 }
 
-export function enableReadmeOverwriteWarning(): boolean {
+/** Shoult the app automatically prune branches that are no longer actively being used */
+export function enableBranchPruning(): boolean {
   return enableBetaFeatures()
 }
 
@@ -61,4 +61,9 @@ export function enableReadmeOverwriteWarning(): boolean {
  */
 export function enableNoChangesCreatePRBlankslateAction(): boolean {
   return enableBetaFeatures()
+}
+
+/** Should the app show the new rebase flow? */
+export function enableNewRebaseFlow(): boolean {
+  return enableDevelopmentFeatures()
 }
