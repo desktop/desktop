@@ -162,6 +162,7 @@ describe('updateConflictState', () => {
           currentTip: 'old-sha',
           manualResolutions,
           targetBranch: 'my-feature-branch',
+          baseBranchTip: 'another-sha',
           originalBranchTip: 'some-other-sha',
         },
       })
@@ -177,6 +178,7 @@ describe('updateConflictState', () => {
       const status = createStatus({
         rebaseContext: {
           targetBranch: 'my-feature-branch',
+          baseBranchTip: 'another-sha',
           originalBranchTip: 'some-other-sha',
         },
         currentBranch: 'master',
@@ -189,6 +191,7 @@ describe('updateConflictState', () => {
         kind: 'rebase',
         currentTip: 'first-sha',
         manualResolutions: new Map<string, ManualConflictResolution>(),
+        baseBranchTip: 'another-sha',
         targetBranch: 'my-feature-branch',
         originalBranchTip: 'some-other-sha',
       })
@@ -201,12 +204,14 @@ describe('updateConflictState', () => {
           currentTip: 'old-sha',
           manualResolutions,
           targetBranch: 'my-feature-branch',
+          baseBranchTip: 'another-sha',
           originalBranchTip: 'some-other-sha',
         },
       })
       const status = createStatus({
         rebaseContext: {
           targetBranch: 'my-feature-branch',
+          baseBranchTip: 'another-sha',
           originalBranchTip: 'some-other-sha',
         },
         currentBranch: 'master',
@@ -220,6 +225,7 @@ describe('updateConflictState', () => {
         currentTip: 'first-sha',
         manualResolutions,
         targetBranch: 'my-feature-branch',
+        baseBranchTip: 'another-sha',
         originalBranchTip: 'some-other-sha',
       })
     })

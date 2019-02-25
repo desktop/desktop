@@ -421,3 +421,60 @@ export async function localChangesOverwrittenHandler(
 
   return null
 }
+
+/*
+ * Handler for detecting when a merge conflict is reported to direct the user
+ * to a different dialog than the generic Git error dialog.
+ */
+export async function rebaseConflictsHandler(
+  error: Error,
+  dispatcher: Dispatcher
+): Promise<Error | null> {
+  const e = asErrorWithMetadata(error)
+  if (!e) {
+    return error
+  }
+
+  const gitError = asGitError(e.underlyingError)
+  if (!gitError) {
+    return error
+  }
+
+  const dugiteError = gitError.result.gitError
+  if (!dugiteError) {
+    return error
+  }
+
+  if (dugiteError !== DugiteError.RebaseConflicts) {
+    return error
+  }
+
+  const { repository, gitContext } = e.metadata
+  if (repository == null) {
+    return error
+  }
+
+  if (!(repository instanceof Repository)) {
+    return error
+  }
+
+  if (gitContext == null) {
+    return error
+  }
+
+  // TODO: metrics
+  // TODO: any other context?
+
+  // TODO: where can I get this from in the event of a pull failing from a rebase?
+  const baseBranch = '???'
+  const targetBranch = '???'
+
+  dispatcher.showPopup({
+    type: PopupType.RebaseConflicts,
+    repository,
+    targetBranch,
+    baseBranch,
+  })
+
+  return null
+}

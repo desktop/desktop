@@ -1,0 +1,28 @@
+#successful-rebase {
+  .banner-message {
+    span {
+      max-width: 100%;
+      overflow-x: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    overflow-x: hidden;
+    display: flex;
+    flex: 1 1 auto;
+  }
+
+  .green-circle {
+    background-color: var(--color-new);
+    color: var(--background-color);
+    border-radius: 50%;
+    height: 16px;
+    width: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: var(--spacing);
+    display: flex;
+    flex-shrink: 0;
+    flex-grow: 0;
+  }
+}
