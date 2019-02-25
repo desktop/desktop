@@ -177,7 +177,7 @@ export class GitHubUserStore extends BaseStore {
   public async _loadAndCacheUser(
     accounts: ReadonlyArray<Account>,
     repository: Repository,
-    sha: string | null,
+    sha: string,
     email: string
   ) {
     const endpoint = repository.gitHubRepository
