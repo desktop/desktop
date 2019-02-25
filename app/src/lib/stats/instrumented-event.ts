@@ -1,13 +1,23 @@
 import Dexie from 'dexie'
 
+export enum MergeSouce {
+  'MergeIntoCurrentBranch',
+  'UpdateFromDevelopment',
+  'CompareTab',
+  'BranchList',
+  'NewCommitsBanner',
+}
+
 export type InstrumentedEvent =
   | {
       type: 'merge_initated'
       timestamp: number
+      source: MergeSouce
     }
   | {
       type: 'merged_completed'
       timestamp: number
+      source: MergeSouce
     }
   | {
       type: 'merge_aborted'
