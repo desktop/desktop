@@ -1,5 +1,8 @@
 {
   "releases": {
+    "1.6.3-test1": [
+      "[Improved] handling of cached users to avoid invalid state - #6940"
+    ],
     "1.6.3-beta2": [
       "[Fixed] Text selection in wrapped diff lines now allows selection of individual lines - #1551",
       "[Fixed] Resizing the diff area preserves text selection range - #2677",
