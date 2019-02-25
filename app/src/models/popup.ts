@@ -169,7 +169,8 @@ export type Popup =
     }
   | {
       type: PopupType.NoExistingRemoteBranch
-      /** repository user is checking out in */
+      /** repository user is working in */
       repository: Repository
+      /** branch user is working on */
       branchName: string
     }

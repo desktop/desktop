@@ -13,7 +13,7 @@ interface INoExistingRemoteBranchWarningProps {
   readonly repository: Repository
 }
 
-/** A dialog to display a list of files that would be overwritten by a checkout. */
+/** A dialog to display a branch that does not exist on remote */
 export class NoExistingRemoteBranchWarning extends React.Component<
   INoExistingRemoteBranchWarningProps
 > {
@@ -28,7 +28,7 @@ export class NoExistingRemoteBranchWarning extends React.Component<
   }
 
   public componentDidMount() {
-    // Since focus is given to the overwritten files by default, we will instead set focus onto the cancel button.
+    // Since focus is given to the publish branch button by default, set focus to the cancel button.
     if (this.closeButton != null) {
       this.closeButton.focus()
     }
@@ -67,7 +67,6 @@ export class NoExistingRemoteBranchWarning extends React.Component<
 
   private publishBranch = async () => {
     this.props.dispatcher.closePopup()
-
     await this.props.dispatcher.push(this.props.repository)
   }
 }
