@@ -65,5 +65,5 @@ export function enableNoChangesCreatePRBlankslateAction(): boolean {
 
 /** Should the app show the new rebase flow? */
 export function enableNewRebaseFlow(): boolean {
-  return enableDevelopmentFeatures()
+  return enableBetaFeatures()
 }
