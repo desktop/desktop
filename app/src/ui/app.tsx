@@ -94,6 +94,7 @@ import { OversizedFiles } from './changes/oversized-files-warning'
 import { UsageStatsChange } from './usage-stats-change'
 import { PushNeedsPullWarning } from './push-needs-pull'
 import { LocalChangesOverwrittenWarning } from './local-changes-overwritten'
+import { NoExistingRemoteBranchWarning } from './no-existing-remote-branch'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -1534,6 +1535,15 @@ export class App extends React.Component<IAppProps, IAppState> {
             retryAction={popup.retryAction}
             overwrittenFiles={popup.overwrittenFiles}
             workingDirectory={workingDirectory}
+            onDismissed={this.onPopupDismissed}
+          />
+        )
+      case PopupType.NoExistingRemoteBranch:
+        return (
+          <NoExistingRemoteBranchWarning
+            dispatcher={this.props.dispatcher}
+            repository={popup.repository}
+            branchName={popup.branchName}
             onDismissed={this.onPopupDismissed}
           />
         )

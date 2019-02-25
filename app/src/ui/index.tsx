@@ -20,6 +20,7 @@ import {
   pushNeedsPullHandler,
   upstreamAlreadyExistsHandler,
   localChangesOverwrittenHandler,
+  noExistingRemoteBranchHandler,
 } from './dispatcher'
 import {
   AppStore,
@@ -158,6 +159,7 @@ dispatcher.registerErrorHandler(pushNeedsPullHandler)
 dispatcher.registerErrorHandler(backgroundTaskHandler)
 dispatcher.registerErrorHandler(missingRepositoryHandler)
 dispatcher.registerErrorHandler(localChangesOverwrittenHandler)
+dispatcher.registerErrorHandler(noExistingRemoteBranchHandler)
 
 document.body.classList.add(`platform-${process.platform}`)
 

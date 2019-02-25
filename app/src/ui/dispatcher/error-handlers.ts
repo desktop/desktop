@@ -421,3 +421,56 @@ export async function localChangesOverwrittenHandler(
 
   return null
 }
+
+/**
+ * Handler for when a branch not longer exists on remote.
+ */
+export async function noExistingRemoteBranchHandler(
+  error: Error,
+  dispatcher: Dispatcher
+): Promise<Error | null> {
+  const e = asErrorWithMetadata(error)
+  if (!e) {
+    return error
+  }
+
+  const gitError = asGitError(e.underlyingError)
+  if (!gitError) {
+    return error
+  }
+
+  const dugiteError = gitError.result.gitError
+  if (!dugiteError) {
+    return error
+  }
+
+  if (dugiteError !== DugiteError.NoExistingRemoteBranch) {
+    return error
+  }
+
+  const { repository, gitContext } = e.metadata
+  if (repository == null) {
+    return error
+  }
+
+  if (!(repository instanceof Repository)) {
+    return error
+  }
+
+  if (gitContext == null) {
+    return error
+  }
+
+  const { tip } = gitContext
+  if (tip == null || tip.kind !== TipState.Valid) {
+    return error
+  }
+
+  dispatcher.showPopup({
+    type: PopupType.NoExistingRemoteBranch,
+    repository,
+    branchName: tip.branch.name,
+  })
+
+  return null
+}

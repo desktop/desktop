@@ -44,6 +44,7 @@ export enum PopupType {
   CommitConflictsWarning,
   PushNeedsPull,
   LocalChangesOverwritten,
+  NoExistingRemoteBranch,
 }
 
 export type Popup =
@@ -165,4 +166,10 @@ export type Popup =
       repository: Repository
       retryAction: RetryAction
       overwrittenFiles: ReadonlyArray<string>
+    }
+  | {
+      type: PopupType.NoExistingRemoteBranch
+      /** repository user is checking out in */
+      repository: Repository
+      branchName: string
     }
