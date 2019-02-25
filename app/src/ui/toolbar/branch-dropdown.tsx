@@ -95,6 +95,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
     let title: string
     let description = __DARWIN__ ? 'Current Branch' : 'Current branch'
     let canOpen = true
+    let disabled = false
     let tooltip: string
 
     if (this.props.currentPullRequest) {
@@ -144,6 +145,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
       description = 'Rebasing branch'
       icon = OcticonSymbol.gitBranch
       canOpen = false
+      disabled = true
     }
 
     const isOpen = this.props.isOpen
@@ -160,6 +162,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
         onDropdownStateChanged={this.onDropDownStateChanged}
         dropdownContentRenderer={this.renderBranchFoldout}
         dropdownState={currentState}
+        disabled={disabled}
         showDisclosureArrow={canOpen}
         progressValue={progressValue}
       >
