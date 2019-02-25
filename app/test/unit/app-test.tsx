@@ -21,12 +21,14 @@ import {
   TestIssuesDatabase,
   TestRepositoriesDatabase,
   TestPullRequestDatabase,
+  TestMetricsDatabase,
 } from '../helpers/databases'
 import { StatsStore } from '../../src/lib/stats'
 import { InMemoryStore, AsyncInMemoryStore } from '../helpers/stores'
 import { TestActivityMonitor } from '../helpers/test-activity-monitor'
 import { RepositoryStateCache } from '../../src/lib/stores/repository-state-cache'
 import { ApiRepositoriesStore } from '../../src/lib/stores/api-repositories-store'
+import { TelemetryDoodad } from '../../src/lib/stats/instrumented-event'
 
 describe('App', () => {
   let appStore: AppStore | null = null
@@ -50,6 +52,10 @@ describe('App', () => {
     const repositoriesDb = new TestRepositoriesDatabase()
     await repositoriesDb.reset()
     const repositoriesStore = new RepositoriesStore(repositoriesDb)
+
+    const metricsDb = new TestMetricsDatabase()
+    await metricsDb.reset()
+    const telemetryDoodad = new TelemetryDoodad(metricsDb)
 
     const accountsStore = new AccountsStore(
       new InMemoryStore(),
@@ -80,7 +86,8 @@ describe('App', () => {
       repositoriesStore,
       pullRequestStore,
       repositoryStateManager,
-      apiRepositoriesStore
+      apiRepositoriesStore,
+      telemetryDoodad
     )
 
     dispatcher = new InMemoryDispatcher(

@@ -53,6 +53,10 @@ import {
 import { UiActivityMonitor } from './lib/ui-activity-monitor'
 import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
 import { ApiRepositoriesStore } from '../lib/stores/api-repositories-store'
+import {
+  TelemetryDoodad,
+  MetricsDatabase,
+} from '../lib/stats/instrumented-event'
 
 if (__DEV__) {
   installDevGlobals()
@@ -132,6 +136,9 @@ const repositoryStateManager = new RepositoryStateCache(repo =>
 
 const apiRepositoriesStore = new ApiRepositoriesStore(accountsStore)
 
+const telemetryDoodad = new TelemetryDoodad(
+  new MetricsDatabase('MetricsDatabase')
+)
 const appStore = new AppStore(
   gitHubUserStore,
   cloningRepositoriesStore,
@@ -142,7 +149,8 @@ const appStore = new AppStore(
   repositoriesStore,
   pullRequestStore,
   repositoryStateManager,
-  apiRepositoriesStore
+  apiRepositoriesStore,
+  telemetryDoodad
 )
 
 const dispatcher = new Dispatcher(appStore, repositoryStateManager, statsStore)

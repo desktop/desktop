@@ -31,7 +31,7 @@ export type InstrumentedEvent =
       timestamp: number
     }
 
-class MetricsDatabase extends Dexie {
+export class MetricsDatabase extends Dexie {
   public events!: Dexie.Table<InstrumentedEvent, number>
 
   public constructor(name: string) {

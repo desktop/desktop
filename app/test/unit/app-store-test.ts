@@ -18,6 +18,7 @@ import {
   TestIssuesDatabase,
   TestRepositoriesDatabase,
   TestPullRequestDatabase,
+  TestMetricsDatabase,
 } from '../helpers/databases'
 import {
   setupEmptyRepository,
@@ -42,6 +43,7 @@ import { ApiRepositoriesStore } from '../../src/lib/stores/api-repositories-stor
 import { getStatusOrThrow } from '../helpers/status'
 import { AppFileStatusKind } from '../../src/models/status'
 import { ManualConflictResolutionKind } from '../../src/models/manual-conflict-resolution'
+import { TelemetryDoodad } from '../../src/lib/stats/instrumented-event'
 
 // enable mocked version
 jest.mock('../../src/lib/window-state')
@@ -60,6 +62,10 @@ describe('AppStore', () => {
     const repositoriesDb = new TestRepositoriesDatabase()
     await repositoriesDb.reset()
     const repositoriesStore = new RepositoriesStore(repositoriesDb)
+
+    const testMetricsDb = new TestMetricsDatabase()
+    await testMetricsDb.reset()
+    const telemetryDoodad = new TelemetryDoodad(testMetricsDb)
 
     const accountsStore = new AccountsStore(
       new InMemoryStore(),
@@ -89,7 +95,8 @@ describe('AppStore', () => {
       repositoriesStore,
       pullRequestStore,
       repositoryStateManager,
-      apiRepositoriesStore
+      apiRepositoriesStore,
+      telemetryDoodad
     )
   }
 
