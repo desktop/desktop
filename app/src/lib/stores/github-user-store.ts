@@ -1,4 +1,4 @@
-import { Repository } from '../../models/repository'
+import { Repository, nameOf } from '../../models/repository'
 import { Account } from '../../models/account'
 import { GitHubRepository } from '../../models/github-repository'
 import { API, getAccountForEndpoint, getDotComAPIEndpoint } from '../api'
@@ -217,8 +217,18 @@ export class GitHubUserStore extends BaseStore {
           .first()) || null
     }
 
-    // TODO: Invalidate the stored user in the db after ... some reasonable time
-    // period.
+    if (gitUser !== null) {
+      if (gitUser.login == null || gitUser.email == null) {
+        log.warn(
+          `invalid user found in cache for commit '${sha}' in '${nameOf(
+            repository
+          )}' with payload ${JSON.stringify(gitUser)}`
+        )
+        gitUser = null
+      }
+    }
+
+    // TODO: Invalidate the stored user in the db after some reasonable time period.
     if (!gitUser) {
       gitUser = await this.findUserWithAPI(
         account,
@@ -226,6 +236,17 @@ export class GitHubUserStore extends BaseStore {
         sha,
         email
       )
+    }
+
+    if (gitUser !== null) {
+      if (gitUser.login == null || gitUser.email == null) {
+        log.warn(
+          `invalid user retrieved from API for commit '${sha}' in '${nameOf(
+            repository
+          )}' with payload: ${JSON.stringify(gitUser)}`
+        )
+        gitUser = null
+      }
     }
 
     this.requestsInFlight.delete(key)
