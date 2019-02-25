@@ -241,30 +241,29 @@ export class GitHubUserStore extends BaseStore {
   private async findUserWithAPI(
     account: Account,
     repository: GitHubRepository,
-    sha: string | null,
+    sha: string,
     email: string
   ): Promise<IGitHubUser | null> {
     const api = API.fromAccount(account)
-    if (sha) {
-      const apiCommit = await api.fetchCommit(
-        repository.owner.login,
-        repository.name,
-        sha
-      )
-      if (apiCommit && apiCommit.author) {
-        const avatarURL = getAvatarWithEnterpriseFallback(
-          apiCommit.author.avatar_url,
-          email,
-          account.endpoint
-        )
 
-        return {
-          email,
-          avatarURL,
-          login: apiCommit.author.login,
-          endpoint: account.endpoint,
-          name: apiCommit.author.name || apiCommit.author.login,
-        }
+    const apiCommit = await api.fetchCommit(
+      repository.owner.login,
+      repository.name,
+      sha
+    )
+    if (apiCommit && apiCommit.author) {
+      const avatarURL = getAvatarWithEnterpriseFallback(
+        apiCommit.author.avatar_url,
+        email,
+        account.endpoint
+      )
+
+      return {
+        email,
+        avatarURL,
+        login: apiCommit.author.login,
+        endpoint: account.endpoint,
+        name: apiCommit.author.name || apiCommit.author.login,
       }
     }
 
