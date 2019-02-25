@@ -41,7 +41,7 @@ class MetricsDatabase extends Dexie {
   }
 }
 
-class MetricsThingy {
+export class TelemetryDoodad {
   private get eventTable() {
     return this.db.table('events')
   }
@@ -60,5 +60,3 @@ class MetricsThingy {
     return await this.eventTable.toArray()
   }
 }
-
-export default new MetricsThingy(new MetricsDatabase('MetricsDatabase'))
