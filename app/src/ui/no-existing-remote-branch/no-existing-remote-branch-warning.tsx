@@ -46,7 +46,7 @@ export class NoExistingRemoteBranchWarning extends React.Component<
       >
         <DialogContent>
           <p>
-            The branch <Ref>{this.props.branchName}</Ref> doesn't not exist on
+            The branch <Ref>{this.props.branchName}</Ref> does not exist on
             remote.
           </p>
         </DialogContent>
