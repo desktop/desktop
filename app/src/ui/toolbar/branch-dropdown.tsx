@@ -4,7 +4,7 @@ import { OcticonSymbol } from '../octicons'
 import { Repository } from '../../models/repository'
 import { TipState } from '../../models/tip'
 import { ToolbarDropdown, DropdownState } from './dropdown'
-import { IRepositoryState } from '../../lib/app-state'
+import { IRepositoryState, isRebaseConflictState } from '../../lib/app-state'
 import { BranchesContainer, PullRequestBadge } from '../branches'
 import { assertNever } from '../../lib/fatal-error'
 import { BranchesTab } from '../../models/branches-tab'
@@ -83,8 +83,9 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
 
   public render() {
     const { repositoryState } = this.props
-    const { branchesState, checkoutProgress } = repositoryState
+    const { branchesState, checkoutProgress, changesState } = repositoryState
     const { tip } = branchesState
+    const { conflictState } = changesState
 
     const tipKind = tip.kind
 
@@ -132,6 +133,11 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
       progressValue = checkoutProgress.value
       icon = OcticonSymbol.sync
       iconClassName = 'spin'
+      canOpen = false
+    } else if (conflictState !== null && isRebaseConflictState(conflictState)) {
+      title = conflictState.targetBranch
+      description = 'Rebasing branch'
+      icon = OcticonSymbol.gitBranch
       canOpen = false
     }
 
