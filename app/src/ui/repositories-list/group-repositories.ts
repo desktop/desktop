@@ -45,7 +45,7 @@ export function groupRepositories(
   localRepositoryStateLookup: ReadonlyMap<number, ILocalRepositoryState>
 ): ReadonlyArray<IFilterListGroup<IRepositoryListItem>> {
   const grouped = new Map<RepositoryGroupIdentifier, Repositoryish[]>()
-  const gitHubOwners: Array<string> = []
+  const gitHubOwners = new Set<string>()
   for (const repository of repositories) {
     const gitHubRepository =
       repository instanceof Repository ? repository.gitHubRepository : null
@@ -54,7 +54,7 @@ export function groupRepositories(
       if (gitHubRepository.endpoint === getDotComAPIEndpoint()) {
         if (enableGroupRepositoriesByOwner()) {
           group = gitHubRepository.owner.login
-          gitHubOwners.push(group)
+          gitHubOwners.add(group)
         } else {
           group = 'GitHub.com'
         }
@@ -121,15 +121,9 @@ export function groupRepositories(
 
   // NB: This ordering reflects the order in the repositories sidebar.
   if (enableGroupRepositoriesByOwner()) {
-    const owners = gitHubOwners.reduce((acc, val) => {
-      if (!acc.includes(val)) {
-        acc.push(val)
-      }
-      return acc
-    }, new Array<string>())
-    owners.sort(caseInsensitiveCompare).forEach(o => {
-      addGroup(o)
-    })
+    const owners = [...gitHubOwners.values()]
+    owners.sort(caseInsensitiveCompare)
+    owners.forEach(addGroup)
   } else {
     addGroup('GitHub.com')
   }
