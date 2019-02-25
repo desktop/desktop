@@ -82,10 +82,10 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
   }
 
   public render() {
-    const repositoryState = this.props.repositoryState
-    const branchesState = repositoryState.branchesState
+    const { repositoryState } = this.props
+    const { branchesState, checkoutProgress } = repositoryState
+    const { tip } = branchesState
 
-    const tip = branchesState.tip
     const tipKind = tip.kind
 
     let icon = OcticonSymbol.gitBranch
@@ -118,7 +118,6 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
       return assertNever(tip, `Unknown tip state: ${tipKind}`)
     }
 
-    const checkoutProgress = repositoryState.checkoutProgress
     let progressValue: number | undefined = undefined
 
     if (checkoutProgress) {
