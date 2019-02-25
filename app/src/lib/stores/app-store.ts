@@ -184,6 +184,7 @@ import {
   updateConflictState,
 } from './updates/changes-state'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
+import { TelemetryDoodad, InstrumentedEvent } from '../stats/instrumented-event'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -312,7 +313,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     private readonly repositoriesStore: RepositoriesStore,
     private readonly pullRequestStore: PullRequestStore,
     private readonly repositoryStateCache: RepositoryStateCache,
-    private readonly apiRepositoriesStore: ApiRepositoriesStore
+    private readonly apiRepositoriesStore: ApiRepositoriesStore,
+    private readonly telemetryDoodad: TelemetryDoodad
   ) {
     super()
 
@@ -3140,6 +3142,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     return Promise.resolve()
+  }
+
+  public async _recordInstrumentedEvent(event: InstrumentedEvent) {
+    return this.telemetryDoodad.push(event)
   }
 
   public async _mergeBranch(

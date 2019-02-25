@@ -69,6 +69,7 @@ import { TipState } from '../../models/tip'
 import { ApplicationTheme } from '../lib/application-theme'
 import { installCLI } from '../lib/install-cli'
 import { executeMenuItem } from '../main-process-proxy'
+import { InstrumentedEvent } from '../../lib/stats/instrumented-event'
 
 /**
  * An error handler function.
@@ -1466,5 +1467,9 @@ export class Dispatcher {
    */
   public recordUnguidedConflictedMergeCompletion() {
     this.statsStore.recordUnguidedConflictedMergeCompletion()
+  }
+
+  public recordInstrumentedEvent(event: InstrumentedEvent) {
+    this.appStore._recordInstrumentedEvent(event)
   }
 }
