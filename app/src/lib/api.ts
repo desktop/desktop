@@ -59,7 +59,7 @@ export interface IAPIRepository {
  */
 export interface IAPICommit {
   readonly sha: string
-  readonly author: IAPIUser | null
+  readonly author: IAPIIdentity | {} | null
 }
 
 /**
