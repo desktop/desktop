@@ -231,5 +231,74 @@ describe('updateConflictState', () => {
         originalBranchTip: 'some-other-sha',
       })
     })
+
+    it('increments abort counter when conflict remains but branch has changed', () => {
+      const prevState = createState({
+        conflictState: {
+          kind: 'rebase',
+          currentTip: 'current-sha',
+          manualResolutions,
+          targetBranch: 'my-feature-branch',
+          baseBranchTip: 'another-sha',
+          originalBranchTip: 'old-sha',
+        },
+      })
+      const status = createStatus({
+        rebaseContext: {
+          targetBranch: 'a-different-feature-branch',
+          originalBranchTip: 'some-old-sha',
+          baseBranchTip: 'an-even-older-sha',
+        },
+        currentTip: 'current-sha',
+      })
+
+      updateConflictState(prevState, status, statsStore)
+
+      expect(statsStore.recordRebaseAbortedAfterConflicts).toHaveBeenCalled()
+    })
+
+    it('increments abort counter when conflict resolved but tip has not changed', () => {
+      const prevState = createState({
+        conflictState: {
+          kind: 'rebase',
+          currentTip: 'current-sha',
+          manualResolutions,
+          targetBranch: 'my-feature-branch',
+          baseBranchTip: 'another-sha',
+          originalBranchTip: 'old-sha',
+        },
+      })
+      const status = createStatus({
+        rebaseContext: null,
+        currentBranch: 'my-feature-branch',
+        currentTip: 'old-sha',
+      })
+
+      updateConflictState(prevState, status, statsStore)
+
+      expect(statsStore.recordRebaseAbortedAfterConflicts).toHaveBeenCalled()
+    })
+
+    it('increments success counter when conflict resolved and tip has changed', () => {
+      const prevState = createState({
+        conflictState: {
+          kind: 'rebase',
+          currentTip: 'current-sha',
+          manualResolutions,
+          targetBranch: 'my-feature-branch',
+          baseBranchTip: 'even-older-sha',
+          originalBranchTip: 'old-sha',
+        },
+      })
+      const status = createStatus({
+        rebaseContext: null,
+        currentBranch: 'my-feature-branch',
+        currentTip: 'new-sha',
+      })
+
+      updateConflictState(prevState, status, statsStore)
+
+      expect(statsStore.recordRebaseSuccessAfterConflicts).toHaveBeenCalled()
+    })
   })
 })
