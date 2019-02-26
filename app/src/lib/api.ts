@@ -362,6 +362,10 @@ export class API {
   public async searchForUserWithEmail(
     email: string
   ): Promise<IAPIIdentity | null> {
+    if (email.length === 0) {
+      return null
+    }
+
     try {
       const params = { q: `${email} in:email type:user` }
       const url = urlWithQueryString('search/users', params)
