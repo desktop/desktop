@@ -42,6 +42,7 @@ export async function getRebaseContext(
 
   let originalBranchTip: string | null = null
   let targetBranch: string | null = null
+  let baseBranchTip: string | null = null
 
   try {
     originalBranchTip = await FSE.readFile(
@@ -59,10 +60,21 @@ export async function getRebaseContext(
     if (targetBranch.startsWith('refs/heads/')) {
       targetBranch = targetBranch.substr(11).trim()
     }
+
+    baseBranchTip = await FSE.readFile(
+      Path.join(repository.path, '.git', 'rebase-apply', 'onto'),
+      'utf8'
+    )
+
+    baseBranchTip = baseBranchTip.trim()
   } catch {}
 
-  if (originalBranchTip != null && targetBranch != null) {
-    return { originalBranchTip, targetBranch }
+  if (
+    originalBranchTip != null &&
+    targetBranch != null &&
+    baseBranchTip != null
+  ) {
+    return { originalBranchTip, targetBranch, baseBranchTip }
   }
 
   // unable to resolve the rebase state of this repository

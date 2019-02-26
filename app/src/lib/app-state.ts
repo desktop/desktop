@@ -276,6 +276,7 @@ export type RebaseConflictState = {
   readonly currentTip: string
   readonly targetBranch: string
   readonly originalBranchTip: string
+  readonly baseBranchTip: string
   readonly manualResolutions: Map<string, ManualConflictResolution>
 }
 

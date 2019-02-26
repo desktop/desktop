@@ -81,6 +81,8 @@ const DefaultDailyMeasures: IDailyMeasures = {
   guidedConflictedMergeCompletionCount: 0,
   unguidedConflictedMergeCompletionCount: 0,
   createPullRequestCount: 0,
+  rebaseConflictsDialogDismissalCount: 0,
+  rebaseConflictsDialogReopenedCount: 0,
 }
 
 interface IOnboardingStats {
@@ -826,6 +828,26 @@ export class StatsStore implements IStatsStore {
   public async recordCreatePullRequest(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       createPullRequestCount: m.createPullRequestCount + 1,
+    }))
+  }
+
+  /**
+   * Increments the `rebaseConflictsDialogDismissalCount` metric
+   */
+  public async recordRebaseConflictsDialogDismissal(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      rebaseConflictsDialogDismissalCount:
+        m.rebaseConflictsDialogDismissalCount + 1,
+    }))
+  }
+
+  /**
+   * Increments the `rebaseConflictsDialogDismissalCount` metric
+   */
+  public async recordRebaseConflictsDialogReopened(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      rebaseConflictsDialogReopenedCount:
+        m.rebaseConflictsDialogReopenedCount + 1,
     }))
   }
 

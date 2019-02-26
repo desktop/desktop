@@ -1,6 +1,7 @@
 @import '../mixins';
 @import 'dialogs/merge';
 @import 'dialogs/merge-conflicts';
+@import 'dialogs/rebase';
 @import 'dialogs/abort-merge';
 @import 'dialogs/push-needs-pull';
 @import 'dialogs/publish-repository';
