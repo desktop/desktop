@@ -25,6 +25,8 @@ if (!ClientID || !ClientID.length || !ClientSecret || !ClientSecret.length) {
   )
 }
 
+type GitHubAccountType = 'User' | 'Organization'
+
 /** The OAuth scopes we need. */
 const Scopes = ['repo', 'user']
 
@@ -61,9 +63,38 @@ export interface IAPICommit {
 }
 
 /**
- * Information about a user as returned by the GitHub API.
+ * Entity returned by the `/user/orgs` endpoint.
+ *
+ * Because this is specific to one endpoint it omits the `type` member from
+ * `IAPIIdentity` that callers might expect.
  */
-export interface IAPIUser {
+export interface IAPIOrganization {
+  readonly id: number
+  readonly url: string
+  readonly login: string
+  readonly avatar_url: string
+}
+
+/**
+ * Minimum subset of an identity returned by the GitHub API
+ */
+export interface IAPIIdentity {
+  readonly id: number
+  readonly url: string
+  readonly login: string
+  readonly avatar_url: string
+  readonly type: GitHubAccountType
+}
+
+/**
+ * Complete identity details returned in some situations by the GitHub API.
+ *
+ * If you are not sure what is returned as part of an API response, you should
+ * use `IAPIIdentity` as that contains the known subset of an identity and does
+ * not cover scenarios where privacy settings of a user control what information
+ * is returned.
+ */
+interface IAPIFullIdentity {
   readonly id: number
   readonly url: string
   readonly login: string
@@ -80,7 +111,7 @@ export interface IAPIUser {
    * specified a public email address in their profile.
    */
   readonly email: string | null
-  readonly type: 'User' | 'Organization'
+  readonly type: GitHubAccountType
 }
 
 /** The users we get from the mentionables endpoint. */
