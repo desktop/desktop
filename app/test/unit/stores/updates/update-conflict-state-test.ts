@@ -9,6 +9,8 @@ describe('updateConflictState', () => {
   const statsStore = {
     recordMergeAbortedAfterConflicts: jest.fn(),
     recordMergeSuccessAfterConflicts: jest.fn(),
+    recordRebaseAbortedAfterConflicts: jest.fn(),
+    recordRebaseSuccessAfterConflicts: jest.fn(),
   }
   const manualResolutions = new Map<string, ManualConflictResolution>([
     ['foo', ManualConflictResolutionKind.theirs],
