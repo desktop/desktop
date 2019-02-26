@@ -67,3 +67,11 @@ export function enableNoChangesCreatePRBlankslateAction(): boolean {
 export function enableNewRebaseFlow(): boolean {
   return enableBetaFeatures()
 }
+
+/**
+ *  Enables a new UI for the repository picker that supports
+ *  grouping and filtering (GitHub) repositories by owner/organization.
+ */
+export function enableGroupRepositoriesByOwner(): boolean {
+  return enableBetaFeatures()
+}
