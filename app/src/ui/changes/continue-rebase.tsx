@@ -31,19 +31,16 @@ export class ContinueRebase extends React.Component<IContinueRebaseProps, {}> {
     const { manualResolutions } = this.props.rebaseConflictState
 
     let canCommit = true
-
     let tooltip = 'Continue rebase'
 
-    if (this.props.rebaseConflictState) {
-      const conflictedFilesCount = getConflictedFiles(
-        this.props.workingDirectory,
-        manualResolutions
-      ).length
+    const conflictedFilesCount = getConflictedFiles(
+      this.props.workingDirectory,
+      manualResolutions
+    ).length
 
-      if (conflictedFilesCount > 0) {
-        tooltip = 'Resolve all conflicts before continuing'
-        canCommit = false
-      }
+    if (conflictedFilesCount > 0) {
+      tooltip = 'Resolve all conflicts before continuing'
+      canCommit = false
     }
 
     const buttonEnabled = canCommit && !this.props.isCommitting
