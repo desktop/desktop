@@ -17,6 +17,17 @@ import { fatalError } from '../fatal-error'
 import { compare } from '../compare'
 import { BaseStore } from './base-store'
 
+function isValidAuthor(
+  author: IAPIIdentity | {} | null
+): author is IAPIIdentity {
+  return (
+    author !== null &&
+    typeof author === 'object' &&
+    'avatar_url' in author &&
+    'login' in author
+  )
+}
+
 /**
  * The store for GitHub users. This is used to match commit authors to GitHub
  * users and avatars.
@@ -256,19 +267,23 @@ export class GitHubUserStore extends BaseStore {
         repository.name,
         sha
       )
-      if (apiCommit && apiCommit.author) {
-        const avatarURL = getAvatarWithEnterpriseFallback(
-          apiCommit.author.avatar_url,
-          email,
-          account.endpoint
-        )
 
-        return {
-          email,
-          avatarURL,
-          login: apiCommit.author.login,
-          endpoint: account.endpoint,
-          name: apiCommit.author.name || apiCommit.author.login,
+      if (apiCommit) {
+        const { author } = apiCommit
+        if (isValidAuthor(author)) {
+          const avatarURL = getAvatarWithEnterpriseFallback(
+            author.avatar_url,
+            email,
+            account.endpoint
+          )
+
+          return {
+            email,
+            avatarURL,
+            login: author.login,
+            endpoint: account.endpoint,
+            name: author.login,
+          }
         }
       }
     }
