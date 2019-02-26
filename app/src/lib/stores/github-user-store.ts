@@ -193,7 +193,7 @@ export class GitHubUserStore extends BaseStore {
   public async _loadAndCacheUser(
     accounts: ReadonlyArray<Account>,
     repository: Repository,
-    sha: string | null,
+    sha: string,
     email: string
   ) {
     const endpoint = repository.gitHubRepository
@@ -257,33 +257,32 @@ export class GitHubUserStore extends BaseStore {
   private async findUserWithAPI(
     account: Account,
     repository: GitHubRepository,
-    sha: string | null,
+    sha: string,
     email: string
   ): Promise<IGitHubUser | null> {
     const api = API.fromAccount(account)
-    if (sha) {
-      const apiCommit = await api.fetchCommit(
-        repository.owner.login,
-        repository.name,
-        sha
-      )
 
-      if (apiCommit) {
-        const { author } = apiCommit
-        if (isValidAuthor(author)) {
-          const avatarURL = getAvatarWithEnterpriseFallback(
-            author.avatar_url,
-            email,
-            account.endpoint
-          )
+    const apiCommit = await api.fetchCommit(
+      repository.owner.login,
+      repository.name,
+      sha
+    )
 
-          return {
-            email,
-            avatarURL,
-            login: author.login,
-            endpoint: account.endpoint,
-            name: author.login,
-          }
+    if (apiCommit) {
+      const { author } = apiCommit
+      if (isValidAuthor(author)) {
+        const avatarURL = getAvatarWithEnterpriseFallback(
+          author.avatar_url,
+          email,
+          account.endpoint
+        )
+
+        return {
+          email,
+          avatarURL,
+          login: author.login,
+          endpoint: account.endpoint,
+          name: author.login,
         }
       }
     }
