@@ -1,7 +1,12 @@
 import { Repository } from '../../models/repository'
 import { Account } from '../../models/account'
 import { GitHubRepository } from '../../models/github-repository'
-import { API, getAccountForEndpoint, getDotComAPIEndpoint } from '../api'
+import {
+  API,
+  getAccountForEndpoint,
+  getDotComAPIEndpoint,
+  IAPIIdentity,
+} from '../api'
 import {
   GitHubUserDatabase,
   IGitHubUser,
@@ -280,7 +285,7 @@ export class GitHubUserStore extends BaseStore {
         login: matchingUser.login,
         avatarURL,
         endpoint: account.endpoint,
-        name: matchingUser.name || matchingUser.login,
+        name: matchingUser.login,
       }
     }
 

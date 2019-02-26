@@ -46,7 +46,7 @@ export interface IAPIRepository {
   readonly ssh_url: string
   readonly html_url: string
   readonly name: string
-  readonly owner: IAPIUser
+  readonly owner: IAPIIdentity
   readonly private: boolean
   readonly fork: boolean
   readonly default_branch: string
@@ -192,7 +192,7 @@ export interface IAPIPullRequest {
   readonly number: number
   readonly title: string
   readonly created_at: string
-  readonly user: IAPIUser
+  readonly user: IAPIIdentity
   readonly head: IAPIPullRequestRef
   readonly base: IAPIPullRequestRef
 }
@@ -314,10 +314,10 @@ export class API {
   }
 
   /** Fetch the logged in account. */
-  public async fetchAccount(): Promise<IAPIUser> {
+  public async fetchAccount(): Promise<IAPIFullIdentity> {
     try {
       const response = await this.request('GET', 'user')
-      const result = await parsedResponse<IAPIUser>(response)
+      const result = await parsedResponse<IAPIFullIdentity>(response)
       return result
     } catch (e) {
       log.warn(`fetchAccount: failed with endpoint ${this.endpoint}`, e)
@@ -359,12 +359,16 @@ export class API {
   }
 
   /** Search for a user with the given public email. */
-  public async searchForUserWithEmail(email: string): Promise<IAPIUser | null> {
+  public async searchForUserWithEmail(
+    email: string
+  ): Promise<IAPIIdentity | null> {
     try {
       const params = { q: `${email} in:email type:user` }
       const url = urlWithQueryString('search/users', params)
       const response = await this.request('GET', url)
-      const result = await parsedResponse<ISearchResults<IAPIUser>>(response)
+      const result = await parsedResponse<ISearchResults<IAPIIdentity>>(
+        response
+      )
       const items = result.items
       if (items.length) {
         // The results are sorted by score, best to worst. So the first result
@@ -380,9 +384,9 @@ export class API {
   }
 
   /** Fetch all the orgs to which the user belongs. */
-  public async fetchOrgs(): Promise<ReadonlyArray<IAPIUser>> {
+  public async fetchOrgs(): Promise<ReadonlyArray<IAPIOrganization>> {
     try {
-      return this.fetchAll<IAPIUser>('user/orgs')
+      return this.fetchAll<IAPIOrganization>('user/orgs')
     } catch (e) {
       log.warn(`fetchOrgs: failed with endpoint ${this.endpoint}`, e)
       return []
@@ -391,7 +395,7 @@ export class API {
 
   /** Create a new GitHub repository with the given properties. */
   public async createRepository(
-    org: IAPIUser | null,
+    org: IAPIOrganization | null,
     name: string,
     description: string,
     private_: boolean
@@ -600,7 +604,7 @@ export class API {
    * Retrieve the public profile information of a user with
    * a given username.
    */
-  public async fetchUser(login: string): Promise<IAPIUser | null> {
+  public async fetchUser(login: string): Promise<IAPIFullIdentity | null> {
     try {
       const response = await this.request(
         'GET',
@@ -611,7 +615,7 @@ export class API {
         return null
       }
 
-      return await parsedResponse<IAPIUser>(response)
+      return await parsedResponse<IAPIFullIdentity>(response)
     } catch (e) {
       log.warn(`fetchUser: failed with endpoint ${this.endpoint}`, e)
       throw e
