@@ -57,7 +57,7 @@ export class ContinueRebase extends React.Component<IContinueRebaseProps, {}> {
           tooltip={tooltip}
         >
           {loading}
-          <span>{loading ? 'Rebasing' : 'Continue rebase'}</span>
+          <span>{loading !== undefined ? 'Rebasing' : 'Continue rebase'}</span>
         </Button>
       </div>
     )
