@@ -157,6 +157,12 @@ export interface IDailyMeasures {
 
   /** The number of times a successful rebase is detected */
   readonly rebaseSuccessAfterConflictsCount: number
+
+  /** The number of times a user performed a pull with `pull.rebase` in config set to `true` */
+  readonly pullWithRebaseCount: number
+
+  /** The number of times a user has pulled with `pull.rebase` unset or set to `false` */
+  readonly pullWithDefaultSettingCount: number
 }
 
 export class StatsDatabase extends Dexie {

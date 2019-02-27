@@ -427,6 +427,16 @@ export interface IBranchesState {
 
   /** The pull request associated with the current branch. */
   readonly currentPullRequest: PullRequest | null
+
+  /**
+   * Is the current branch configured to rebase on pull?
+   *
+   * This is the value returned from git config (local or global) for `git config pull.rebase`
+   *
+   * If this value is not found in config, this will be `undefined` to indicate
+   * that the default Git behaviour will occur.
+   */
+  readonly pullWithRebase?: boolean
 }
 
 export interface ICommitSelection {

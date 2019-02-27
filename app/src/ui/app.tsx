@@ -1839,6 +1839,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     const progress = state.pushPullFetchProgress
 
     const tipState = state.branchesState.tip.kind
+    const { pullWithRebase } = state.branchesState
 
     return (
       <PushPullButton
@@ -1850,6 +1851,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         networkActionInProgress={state.isPushPullFetchInProgress}
         progress={progress}
         tipState={tipState}
+        pullWithRebase={pullWithRebase}
       />
     )
   }
