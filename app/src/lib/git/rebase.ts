@@ -91,19 +91,23 @@ export async function getRebaseContext(
  * and it will probably have a different commit history.
  *
  * @param baseBranch the ref to start the rebase from
- * @param featureBranch the ref to rebase onto `baseBranch`
+ * @param targetBranch the ref to rebase onto `baseBranch`
  */
 export async function rebase(
   repository: Repository,
   baseBranch: string,
-  featureBranch: string
-) {
-  return await git(
-    ['rebase', baseBranch, featureBranch],
+  targetBranch: string
+): Promise<ContinueRebaseResult> {
+  const result = await git(
+    ['rebase', baseBranch, targetBranch],
     repository.path,
     'rebase',
+    // TODO: what about using successExitCodes here?
+    // successExitCodes: new Set([0, 1, 128]),
     { expectedErrors: new Set([GitError.RebaseConflicts]) }
   )
+
+  return parseRebaseResult(result)
 }
 
 /** Abandon the current rebase operation */

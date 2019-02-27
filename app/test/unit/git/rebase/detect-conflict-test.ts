@@ -1,4 +1,4 @@
-import { IGitResult, GitProcess } from 'dugite'
+import { GitProcess } from 'dugite'
 import * as FSE from 'fs-extra'
 import * as Path from 'path'
 
@@ -20,7 +20,7 @@ const featureBranch = 'this-is-a-feature'
 
 describe('git/rebase', () => {
   describe('detect conflicts', () => {
-    let result: IGitResult
+    let result: ContinueRebaseResult
     let originalBranchTip: string
     let baseBranchTip: string
     let status: IStatusResult
@@ -39,8 +39,8 @@ describe('git/rebase', () => {
       status = await getStatusOrThrow(repository)
     })
 
-    it('returns a non-zero exit code', async () => {
-      expect(result.exitCode).toBeGreaterThan(0)
+    it('returns a value indicating conflicts were encountered', async () => {
+      expect(result).toBe(ContinueRebaseResult.ConflictsEncountered)
     })
 
     it('status detects REBASE_HEAD', async () => {
