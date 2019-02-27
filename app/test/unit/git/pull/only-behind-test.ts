@@ -54,41 +54,6 @@ describe('git/pull', () => {
       await fetch(repository, null, origin)
     })
 
-    describe('by default', () => {
-      let previousTip: Commit
-      let newTip: Commit
-
-      beforeEach(async () => {
-        previousTip = await getTipOrError(repository)
-
-        await pull(repository, null, origin)
-
-        newTip = await getTipOrError(repository)
-      })
-
-      it('moves local repository to remote commit', async () => {
-        const newTip = await getTipOrError(repository)
-
-        expect(newTip.sha).not.toBe(previousTip.sha)
-        expect(newTip.parentSHAs).toHaveLength(1)
-      })
-
-      it('is same as remote branch', async () => {
-        const remoteCommit = await getRefOrError(repository, remoteBranch)
-        expect(remoteCommit.sha).toBe(newTip.sha)
-      })
-
-      it('is not behind tracking branch', async () => {
-        const range = revSymmetricDifference(featureBranch, remoteBranch)
-
-        const aheadBehind = await getAheadBehind(repository, range)
-        expect(aheadBehind).toEqual({
-          ahead: 0,
-          behind: 0,
-        })
-      })
-    })
-
     describe('with pull.rebase=false and pull.ff=false set in config', () => {
       let previousTip: Commit
       let newTip: Commit
