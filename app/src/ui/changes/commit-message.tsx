@@ -21,7 +21,6 @@ import { showContextualMenu } from '../main-process-proxy'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { IAuthor } from '../../models/author'
 import { IMenuItem } from '../../lib/menu-item'
-import { shallowEquals } from '../../lib/equality'
 import { ICommitContext } from '../../models/commit'
 
 const addAuthorIcon = new OcticonSymbol(
@@ -122,6 +121,20 @@ export class CommitMessage extends React.Component<
     this.props.dispatcher.setCommitMessage(this.props.repository, this.state)
   }
 
+  public componentWillReceiveProps(nextProps: ICommitMessageProps) {
+    const { commitMessage } = nextProps
+    if (!commitMessage) {
+      return
+    }
+
+    if (commitMessage !== this.props.commitMessage) {
+      this.setState({
+        summary: commitMessage.summary,
+        description: commitMessage.description,
+      })
+    }
+  }
+
   public componentDidUpdate(prevProps: ICommitMessageProps) {
     if (
       this.props.autocompletionProviders !== prevProps.autocompletionProviders
@@ -135,17 +148,6 @@ export class CommitMessage extends React.Component<
 
     if (this.props.focusCommitMessage) {
       this.focusSummary()
-    }
-
-    if (!shallowEquals(prevProps.commitMessage, this.props.commitMessage)) {
-      if (this.props.commitMessage) {
-        this.setState({
-          summary: this.props.commitMessage.summary,
-          description: this.props.commitMessage.description,
-        })
-      } else {
-        this.setState({ summary: '', description: null })
-      }
     }
   }
 
