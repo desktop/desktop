@@ -11,6 +11,7 @@ import {
   ICompareFormUpdate,
   MergeResultStatus,
   RepositorySectionTab,
+  isRebaseConflictState,
 } from '../../lib/app-state'
 import { ExternalEditor } from '../../lib/editors'
 import { assertNever, fatalError } from '../../lib/fatal-error'
@@ -18,7 +19,7 @@ import {
   setGenericPassword,
   setGenericUsername,
 } from '../../lib/generic-git-auth'
-import { isGitRepository } from '../../lib/git'
+import { isGitRepository, ContinueRebaseResult } from '../../lib/git'
 import { isGitOnPath } from '../../lib/is-git-on-path'
 import {
   rejectOAuthRequest,
@@ -64,7 +65,7 @@ import {
   WorkingDirectoryStatus,
 } from '../../models/status'
 import { TipState } from '../../models/tip'
-import { Banner } from '../../models/banner'
+import { Banner, BannerType } from '../../models/banner'
 
 import { ApplicationTheme } from '../lib/application-theme'
 import { installCLI } from '../lib/install-cli'
@@ -653,6 +654,19 @@ export class Dispatcher {
         tip.kind
       }`
     )
+
+    const { conflictState } = stateBefore.changesState
+
+    if (
+      result === ContinueRebaseResult.CompletedWithoutError &&
+      conflictState !== null &&
+      isRebaseConflictState(conflictState)
+    ) {
+      this.setBanner({
+        type: BannerType.SuccessfulRebase,
+        targetBranch: conflictState.targetBranch,
+      })
+    }
 
     return result
   }

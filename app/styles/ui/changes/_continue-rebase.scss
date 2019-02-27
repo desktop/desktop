@@ -1,0 +1,36 @@
+@import '../../mixins';
+
+#continue-rebase {
+  border-top: 1px solid var(--box-border-color);
+  flex-direction: column;
+  flex-shrink: 0;
+  margin-top: auto;
+
+  display: flex;
+  background-color: var(--box-alt-background-color);
+  padding: var(--spacing);
+
+  .commit-button {
+    max-width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .octicon {
+      flex-shrink: 0;
+      flex-grow: 0;
+      margin-right: var(--spacing-half);
+    }
+
+    /* Due to some weirdo bug in Chrome that affects Windows
+     * and possible other platforms we can't change the opacity
+     * for disabled buttons if the button also has a
+     * overflow: hidden property set. The workaround is to put
+     * the contents of the button in a block element and put
+     * ellipsis on that instead. See commit 67fad24ed
+     */
+    > span {
+      @include ellipsis;
+    }
+  }
+}
