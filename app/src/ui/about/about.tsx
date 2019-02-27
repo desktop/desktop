@@ -14,7 +14,7 @@ import { assertNever } from '../../lib/fatal-error'
 import { ReleaseNotesUri } from '../lib/releases'
 import { encodePathAsUrl } from '../../lib/path'
 
-const DesktopLogo = encodePathAsUrl(__dirname, 'static/logo-64x64@2.png')
+const DesktopLogo = encodePathAsUrl(__dirname, 'static/logo-64x64@2x.png')
 
 interface IAboutProps {
   /**
