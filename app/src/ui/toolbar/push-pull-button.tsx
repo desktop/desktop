@@ -8,7 +8,7 @@ import { IAheadBehind } from '../../models/branch'
 import { TipState } from '../../models/tip'
 import { RelativeTime } from '../relative-time'
 import { FetchType } from '../../models/fetch'
-import { enableNewRebaseFlow } from '../../lib/feature-flag'
+import { enablePullWithRebase } from '../../lib/feature-flag'
 
 interface IPushPullButtonProps {
   /**
@@ -52,7 +52,7 @@ function getActionLabel(
   pullWithRebase?: boolean
 ) {
   if (behind > 0) {
-    return pullWithRebase && enableNewRebaseFlow()
+    return pullWithRebase && enablePullWithRebase()
       ? `Pull ${remoteName} with rebase`
       : `Pull ${remoteName}`
   }
