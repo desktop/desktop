@@ -1,5 +1,5 @@
 import { assertNever } from '../../lib/fatal-error'
-
+import { getBoolean, setBoolean } from '../../lib/local-storage'
 /**
  * A set of the user-selectable appearances (aka themes)
  */
@@ -53,4 +53,24 @@ export function getPersistedThemeName(): string {
  */
 export function setPersistedTheme(theme: ApplicationTheme) {
   localStorage.setItem(applicationThemeKey, getThemeName(theme))
+}
+
+// The key under which the decision to automatically switch the theme is persisted
+// in localStorage.
+const automaticallySwitchApplicationThemeKey = 'autoSwitchTheme'
+
+/**
+ * Load the whether or not the user wishes to automatically switch the selected theme from the persistent
+ * store (localStorage). If no theme is selected the default
+ * theme will be returned.
+ */
+export function getAutoSwitchPersistedTheme(): boolean {
+  return getBoolean(automaticallySwitchApplicationThemeKey, false)
+}
+
+/**
+ * Store whether or not the user wishes to automatically switch the selected theme in the persistent store (localStorage).
+ */
+export function setAutoSwitchPersistedTheme(autoSwitchTheme: boolean) {
+  setBoolean(automaticallySwitchApplicationThemeKey, autoSwitchTheme)
 }

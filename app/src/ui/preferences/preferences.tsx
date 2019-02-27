@@ -2,7 +2,7 @@ import * as React from 'react'
 import { Account } from '../../models/account'
 import { PreferencesTab } from '../../models/preferences'
 import { ExternalEditor } from '../../lib/editors'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { TabBar } from '../tab-bar'
 import { Accounts } from './accounts'
 import { Advanced } from './advanced'
@@ -36,6 +36,7 @@ interface IPreferencesProps {
   readonly selectedExternalEditor?: ExternalEditor
   readonly selectedShell: Shell
   readonly selectedTheme: ApplicationTheme
+  readonly automaticallySwitchTheme: boolean
 }
 
 interface IPreferencesState {
@@ -46,6 +47,7 @@ interface IPreferencesState {
   readonly optOutOfUsageTracking: boolean
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
+  readonly automaticallySwitchTheme: boolean
   readonly availableEditors: ReadonlyArray<ExternalEditor>
   readonly selectedExternalEditor?: ExternalEditor
   readonly availableShells: ReadonlyArray<Shell>
@@ -67,9 +69,10 @@ export class Preferences extends React.Component<
       committerEmail: '',
       disallowedCharactersMessage: null,
       availableEditors: [],
-      optOutOfUsageTracking: false,
-      confirmRepositoryRemoval: false,
-      confirmDiscardChanges: false,
+      optOutOfUsageTracking: props.optOutOfUsageTracking,
+      confirmRepositoryRemoval: props.confirmRepositoryRemoval,
+      confirmDiscardChanges: props.confirmDiscardChanges,
+      automaticallySwitchTheme: false,
       selectedExternalEditor: this.props.selectedExternalEditor,
       availableShells: [],
       selectedShell: this.props.selectedShell,
@@ -107,7 +110,7 @@ export class Preferences extends React.Component<
     const availableEditors = editors.map(e => e.editor)
     const availableShells = shells.map(e => e.shell)
 
-    this.setState((_state, props) => ({
+    this.setState((_, props) => ({
       committerName: committerName || '',
       committerEmail: committerEmail || '',
       optOutOfUsageTracking: props.optOutOfUsageTracking,
@@ -209,6 +212,10 @@ export class Preferences extends React.Component<
           <Appearance
             selectedTheme={this.props.selectedTheme}
             onSelectedThemeChanged={this.onSelectedThemeChanged}
+            automaticallySwitchTheme={this.props.automaticallySwitchTheme}
+            onAutomaticallySwitchThemeChanged={
+              this.onAutomaticallySwitchThemeChanged
+            }
           />
         )
       case PreferencesTab.Advanced: {
@@ -279,6 +286,14 @@ export class Preferences extends React.Component<
 
   private onSelectedThemeChanged = (theme: ApplicationTheme) => {
     this.props.dispatcher.setSelectedTheme(theme)
+  }
+
+  private onAutomaticallySwitchThemeChanged = (
+    automaticallySwitchTheme: boolean
+  ) => {
+    this.props.dispatcher.onAutomaticallySwitchThemeChanged(
+      automaticallySwitchTheme
+    )
   }
 
   private renderFooter() {

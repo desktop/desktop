@@ -52,7 +52,7 @@ export type CopiedOrRenamedFileStatus = {
  * Details about a file marked as conflicted in the index which may have
  * conflict markers to inspect.
  */
-type ConflictsWithMarkers = {
+export type ConflictsWithMarkers = {
   kind: AppFileStatusKind.Conflicted
   entry: TextConflictEntry
   conflictMarkerCount: number
@@ -62,7 +62,7 @@ type ConflictsWithMarkers = {
  * Details about a file marked as conflicted in the index which needs to be
  * resolved manually by the user.
  */
-type ManualConflict = {
+export type ManualConflict = {
   kind: AppFileStatusKind.Conflicted
   entry: ManualConflictEntry
 }
@@ -156,6 +156,16 @@ type TextConflictEntry = {
  * in the app.
  */
 type ManualConflictDetails =
+  | {
+      readonly action: UnmergedEntrySummary.BothAdded
+      readonly us: GitStatusEntry.Added
+      readonly them: GitStatusEntry.Added
+    }
+  | {
+      readonly action: UnmergedEntrySummary.BothModified
+      readonly us: GitStatusEntry.UpdatedButUnmerged
+      readonly them: GitStatusEntry.UpdatedButUnmerged
+    }
   | {
       readonly action: UnmergedEntrySummary.AddedByUs
       readonly us: GitStatusEntry.Added

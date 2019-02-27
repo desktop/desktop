@@ -7,7 +7,7 @@ import { Branch } from '../../models/branch'
 import { BranchesTab } from '../../models/branches-tab'
 import { PopupType } from '../../models/popup'
 
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { FoldoutType } from '../../lib/app-state'
 import { assertNever } from '../../lib/fatal-error'
 

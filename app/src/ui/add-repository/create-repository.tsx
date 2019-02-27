@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Path from 'path'
 import * as FSE from 'fs-extra'
 
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import {
   initGitRepository,
   createCommit,

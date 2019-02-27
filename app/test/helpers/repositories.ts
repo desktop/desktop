@@ -3,20 +3,18 @@
 import * as Path from 'path'
 import * as FSE from 'fs-extra'
 
+import { mkdirSync } from './temp'
+
 const klawSync = require('klaw-sync')
 
 import { Repository } from '../../src/models/repository'
 import { GitProcess } from 'dugite'
+import { makeCommit, switchTo } from './repository-scaffolding'
+import { writeFile } from 'fs-extra'
 
 type KlawEntry = {
   path: string
 }
-
-import * as temp from 'temp'
-const _temp = temp.track()
-
-export const mkdirSync = _temp.mkdirSync
-export const openSync = _temp.openSync
 
 /**
  * Set up the named fixture repository to be used in a test.
@@ -32,7 +30,7 @@ export async function setupFixtureRepository(
     'fixtures',
     repositoryName
   )
-  const testRepoPath = _temp.mkdirSync('desktop-git-test-')
+  const testRepoPath = mkdirSync('desktop-git-test-')
   await FSE.copy(testRepoFixturePath, testRepoPath)
 
   await FSE.rename(
@@ -66,7 +64,7 @@ export async function setupFixtureRepository(
  * @returns the new local repository
  */
 export async function setupEmptyRepository(): Promise<Repository> {
-  const repoPath = _temp.mkdirSync('desktop-empty-repo-')
+  const repoPath = mkdirSync('desktop-empty-repo-')
   await GitProcess.exec(['init'], repoPath)
 
   return new Repository(repoPath, -1, null, false)
@@ -78,7 +76,7 @@ export async function setupEmptyRepository(): Promise<Repository> {
  * interactions.
  */
 export function setupEmptyDirectory(): Repository {
-  const repoPath = _temp.mkdirSync('no-repository-here')
+  const repoPath = mkdirSync('no-repository-here')
   return new Repository(repoPath, -1, null, false)
 }
 
@@ -94,23 +92,77 @@ export function setupEmptyDirectory(): Repository {
  */
 export async function setupConflictedRepo(): Promise<Repository> {
   const repo = await setupEmptyRepository()
-  const filePath = Path.join(repo.path, 'foo')
 
-  await FSE.writeFile(filePath, '')
-  await GitProcess.exec(['add', 'foo'], repo.path)
-  await GitProcess.exec(['commit', '-m', 'Commit'], repo.path)
+  const firstCommit = {
+    entries: [{ path: 'foo', contents: '' }],
+  }
 
+  await makeCommit(repo, firstCommit)
+
+  // create this branch starting from the first commit, but don't checkout it
+  // because we want to create a divergent history
   await GitProcess.exec(['branch', 'other-branch'], repo.path)
 
-  await FSE.writeFile(filePath, 'b1')
-  await GitProcess.exec(['add', 'foo'], repo.path)
-  await GitProcess.exec(['commit', '-m', 'Commit'], repo.path)
+  const secondCommit = {
+    entries: [{ path: 'foo', contents: 'b1' }],
+  }
 
-  await GitProcess.exec(['checkout', 'other-branch'], repo.path)
+  await makeCommit(repo, secondCommit)
 
-  await FSE.writeFile(filePath, 'b2')
-  await GitProcess.exec(['add', 'foo'], repo.path)
-  await GitProcess.exec(['commit', '-m', 'Commit'], repo.path)
+  await switchTo(repo, 'other-branch')
+
+  const thirdCommit = {
+    entries: [{ path: 'foo', contents: 'b2' }],
+  }
+  await makeCommit(repo, thirdCommit)
+
+  await GitProcess.exec(['merge', 'master'], repo.path)
+
+  return repo
+}
+
+/**
+ * Setup a repository and create a merge conflict
+ *
+ * @returns the new local repository
+ *
+ * The current branch will be 'other-branch' and the merged branch will be
+ * 'master' in your test harness.
+ *
+ * The conflicted file will be 'foo'. There will also be uncommitted changes unrelated to the merge in 'perlin'.
+ */
+export async function setupConflictedRepoWithUnrelatedCommittedChange(): Promise<
+  Repository
+> {
+  const repo = await setupEmptyRepository()
+
+  const firstCommit = {
+    entries: [
+      { path: 'foo', contents: '' },
+      { path: 'perlin', contents: 'perlin' },
+    ],
+  }
+
+  await makeCommit(repo, firstCommit)
+
+  // create this branch starting from the first commit, but don't checkout it
+  // because we want to create a divergent history
+  await GitProcess.exec(['branch', 'other-branch'], repo.path)
+
+  const secondCommit = {
+    entries: [{ path: 'foo', contents: 'b1' }],
+  }
+
+  await makeCommit(repo, secondCommit)
+
+  await switchTo(repo, 'other-branch')
+
+  const thirdCommit = {
+    entries: [{ path: 'foo', contents: 'b2' }],
+  }
+  await makeCommit(repo, thirdCommit)
+
+  await writeFile(Path.join(repo.path, 'perlin'), 'noise')
 
   await GitProcess.exec(['merge', 'master'], repo.path)
 
@@ -139,49 +191,39 @@ export async function setupConflictedRepoWithMultipleFiles(): Promise<
     Path.join(repo.path, 'dog'),
   ]
 
-  await FSE.writeFile(filePaths[0], 'b0')
-  await FSE.writeFile(filePaths[1], 'b0')
-  await GitProcess.exec(
-    ['add', Path.basename(filePaths[0]), Path.basename(filePaths[1])],
-    repo.path
-  )
-  await GitProcess.exec(['commit', '-m', 'Commit'], repo.path)
+  const firstCommit = {
+    entries: [{ path: 'foo', contents: 'b0' }, { path: 'bar', contents: 'b0' }],
+  }
 
+  await makeCommit(repo, firstCommit)
+
+  // create this branch starting from the first commit, but don't checkout it
+  // because we want to create a divergent history
   await GitProcess.exec(['branch', 'other-branch'], repo.path)
 
-  await FSE.writeFile(filePaths[0], 'b1')
-  await FSE.writeFile(filePaths[2], 'b1')
-  await FSE.writeFile(filePaths[3], 'b1')
-  await GitProcess.exec(['rm', Path.basename(filePaths[1])], repo.path)
-  await GitProcess.exec(
-    [
-      'add',
-      Path.basename(filePaths[0]),
-      Path.basename(filePaths[2]),
-      Path.basename(filePaths[3]),
+  const secondCommit = {
+    entries: [
+      { path: 'foo', contents: 'b1' },
+      { path: 'bar', contents: null },
+      { path: 'baz', contents: 'b1' },
+      { path: 'cat', contents: 'b1' },
     ],
-    repo.path
-  )
-  await GitProcess.exec(['commit', '-m', 'Commit'], repo.path)
+  }
 
-  await GitProcess.exec(['checkout', 'other-branch'], repo.path)
+  await makeCommit(repo, secondCommit)
 
-  await FSE.writeFile(filePaths[0], 'b2')
-  await FSE.writeFile(filePaths[1], 'b2')
-  await FSE.writeFile(filePaths[2], 'b2')
-  await FSE.writeFile(filePaths[3], 'b2')
+  await switchTo(repo, 'other-branch')
 
-  await GitProcess.exec(
-    [
-      'add',
-      Path.basename(filePaths[0]),
-      Path.basename(filePaths[1]),
-      Path.basename(filePaths[2]),
-      Path.basename(filePaths[3]),
+  const thirdCommit = {
+    entries: [
+      { path: 'foo', contents: 'b2' },
+      { path: 'bar', contents: 'b2' },
+      { path: 'baz', contents: 'b2' },
+      { path: 'cat', contents: 'b2' },
     ],
-    repo.path
-  )
-  await GitProcess.exec(['commit', '-m', 'Commit'], repo.path)
+  }
+
+  await makeCommit(repo, thirdCommit)
 
   await FSE.writeFile(filePaths[4], 'touch')
 

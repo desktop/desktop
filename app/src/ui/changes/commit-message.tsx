@@ -8,7 +8,7 @@ import {
 } from '../autocompletion'
 import { CommitIdentity } from '../../models/commit-identity'
 import { ICommitMessage } from '../../models/commit-message'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { IGitHubUser } from '../../lib/databases/github-user-database'
 import { Repository } from '../../models/repository'
 import { Button } from '../lib/button'
@@ -126,7 +126,7 @@ export class CommitMessage extends React.Component<
     if (
       this.props.autocompletionProviders !== prevProps.autocompletionProviders
     ) {
-      this.setState((_state, props) => ({
+      this.setState((_, props) => ({
         userAutocompletionProvider: findUserAutoCompleteProvider(
           props.autocompletionProviders
         ),
@@ -138,7 +138,7 @@ export class CommitMessage extends React.Component<
     }
 
     const { commitMessage } = this.props
-    if (!shallowEquals(prevProps.commitMessage, commitMessage)) {   
+    if (!shallowEquals(prevProps.commitMessage, commitMessage)) {
       if (commitMessage) {
         this.setState({
           summary: commitMessage.summary,
