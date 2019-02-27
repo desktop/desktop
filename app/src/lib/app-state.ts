@@ -273,10 +273,26 @@ export function isMergeConflictState(
  */
 export type RebaseConflictState = {
   readonly kind: 'rebase'
+  /**
+   * This is the commit ID of the HEAD of the in-flight rebase
+   */
   readonly currentTip: string
+  /**
+   * The branch chosen by the user to be rebased
+   */
   readonly targetBranch: string
+  /**
+   * The commit ID of the target branch before the rebase was initiated
+   */
   readonly originalBranchTip: string
+  /**
+   * The commit ID of the base branch onto which the history will be applied
+   */
   readonly baseBranchTip: string
+  /**
+   * Manual resolutions chosen by the user for conflicted files to be applied
+   * before continuing the rebase.
+   */
   readonly manualResolutions: Map<string, ManualConflictResolution>
 }
 
