@@ -77,6 +77,7 @@ import { formatCommitMessage } from '../format-commit-message'
 import { GitAuthor } from '../../models/git-author'
 import { IGitAccount } from '../../models/git-account'
 import { BaseStore } from './base-store'
+import { enablePullWithRebase } from '../feature-flag'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -269,7 +270,11 @@ export class GitStore extends BaseStore {
 
     this.refreshDefaultBranch()
     this.refreshRecentBranches(recentBranchNames)
-    this.checkPullWithRebase()
+
+    // no need to query Git config if this isn't displayed in the UI
+    if (enablePullWithRebase()) {
+      this.checkPullWithRebase()
+    }
 
     const commits = this._allBranches.map(b => b.tip)
 
