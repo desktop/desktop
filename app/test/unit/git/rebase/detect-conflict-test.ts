@@ -7,7 +7,7 @@ import {
   abortRebase,
   continueRebase,
   rebase,
-  ContinueRebaseResult,
+  RebaseResult,
 } from '../../../../src/lib/git/rebase'
 import { Commit } from '../../../../src/models/commit'
 import { AppFileStatusKind } from '../../../../src/models/status'
@@ -20,7 +20,7 @@ const featureBranch = 'this-is-a-feature'
 
 describe('git/rebase', () => {
   describe('detect conflicts', () => {
-    let result: ContinueRebaseResult
+    let result: RebaseResult
     let originalBranchTip: string
     let baseBranchTip: string
     let status: IStatusResult
@@ -40,7 +40,7 @@ describe('git/rebase', () => {
     })
 
     it('returns a value indicating conflicts were encountered', async () => {
-      expect(result).toBe(ContinueRebaseResult.ConflictsEncountered)
+      expect(result).toBe(RebaseResult.ConflictsEncountered)
     })
 
     it('status detects REBASE_HEAD', async () => {
@@ -91,7 +91,7 @@ describe('git/rebase', () => {
   })
 
   describe('attempt to continue without resolving conflicts', () => {
-    let result: ContinueRebaseResult
+    let result: RebaseResult
     let originalBranchTip: string
     let baseBranchTip: string
     let status: IStatusResult
@@ -116,7 +116,7 @@ describe('git/rebase', () => {
     })
 
     it('indicates that the rebase was not complete', async () => {
-      expect(result).toBe(ContinueRebaseResult.OutstandingFilesNotStaged)
+      expect(result).toBe(RebaseResult.OutstandingFilesNotStaged)
     })
 
     it('REBASE_HEAD is still found', async () => {
@@ -138,7 +138,7 @@ describe('git/rebase', () => {
 
   describe('continue after resolving conflicts', () => {
     let beforeRebaseTip: Commit
-    let result: ContinueRebaseResult
+    let result: RebaseResult
     let status: IStatusResult
 
     beforeEach(async () => {
@@ -183,7 +183,7 @@ describe('git/rebase', () => {
     })
 
     it('returns success', () => {
-      expect(result).toBe(ContinueRebaseResult.CompletedWithoutError)
+      expect(result).toBe(RebaseResult.CompletedWithoutError)
     })
 
     it('REBASE_HEAD is no longer found', () => {

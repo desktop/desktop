@@ -9,7 +9,7 @@ import { ConflictedFilesList } from './conflict-files-list'
 import { Dispatcher } from '../dispatcher'
 import { Repository } from '../../models/repository'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
-import { ContinueRebaseResult } from '../../lib/git'
+import { RebaseResult } from '../../lib/git'
 import { BannerType } from '../../models/banner'
 import { PopupType } from '../../models/popup'
 
@@ -59,7 +59,7 @@ export class RebaseConflictsDialog extends React.Component<
       this.props.workingDirectory
     )
 
-    if (result === ContinueRebaseResult.CompletedWithoutError) {
+    if (result === RebaseResult.CompletedWithoutError) {
       this.props.onDismissed()
     }
   }

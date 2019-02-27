@@ -97,7 +97,7 @@ export async function rebase(
   repository: Repository,
   baseBranch: string,
   targetBranch: string
-): Promise<ContinueRebaseResult> {
+): Promise<RebaseResult> {
   const result = await git(
     ['rebase', baseBranch, targetBranch],
     repository.path,
@@ -115,7 +115,7 @@ export async function abortRebase(repository: Repository) {
   await git(['rebase', '--abort'], repository.path, 'abortRebase')
 }
 
-export enum ContinueRebaseResult {
+export enum RebaseResult {
   CompletedWithoutError = 'CompletedWithoutError',
   ConflictsEncountered = 'ConflictsEncountered',
   OutstandingFilesNotStaged = 'OutstandingFilesNotStaged',
@@ -126,17 +126,17 @@ const rebaseEncounteredConflictsRe = /Resolve all conflicts manually, mark them 
 
 const filesNotMergedRe = /You must edit all merge conflicts and then\nmark them as resolved/
 
-function parseRebaseResult(result: IGitResult): ContinueRebaseResult {
+function parseRebaseResult(result: IGitResult): RebaseResult {
   if (result.exitCode === 0) {
-    return ContinueRebaseResult.CompletedWithoutError
+    return RebaseResult.CompletedWithoutError
   }
 
   if (rebaseEncounteredConflictsRe.test(result.stdout)) {
-    return ContinueRebaseResult.ConflictsEncountered
+    return RebaseResult.ConflictsEncountered
   }
 
   if (filesNotMergedRe.test(result.stdout)) {
-    return ContinueRebaseResult.OutstandingFilesNotStaged
+    return RebaseResult.OutstandingFilesNotStaged
   }
 
   throw new Error(`Unhandled result found: '${JSON.stringify(result)}'`)
@@ -154,7 +154,7 @@ export async function continueRebase(
   repository: Repository,
   files: ReadonlyArray<WorkingDirectoryFileChange>,
   manualResolutions: ReadonlyMap<string, ManualConflictResolution> = new Map()
-): Promise<ContinueRebaseResult> {
+): Promise<RebaseResult> {
   // apply conflict resolutions
   for (const [path, resolution] of manualResolutions) {
     const file = files.find(f => f.path === path)
@@ -177,7 +177,7 @@ export async function continueRebase(
     log.warn(
       `[rebase] unable to get status after staging changes, skipping any other steps`
     )
-    return ContinueRebaseResult.Aborted
+    return RebaseResult.Aborted
   }
 
   const trackedFiles = status.workingDirectory.files.filter(
