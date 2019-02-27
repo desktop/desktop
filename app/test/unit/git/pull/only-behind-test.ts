@@ -89,11 +89,15 @@ describe('git/pull', () => {
       })
     })
 
-    describe('with pull.ff=false set in config', () => {
+    describe('with pull.rebase=false and pull.ff=false set in config', () => {
       let previousTip: Commit
       let newTip: Commit
 
       beforeEach(async () => {
+        await GitProcess.exec(
+          ['config', '--local', 'pull.rebase', 'false'],
+          repository.path
+        )
         await GitProcess.exec(
           ['config', '--local', 'pull.ff', 'false'],
           repository.path

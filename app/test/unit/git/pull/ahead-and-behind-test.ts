@@ -92,11 +92,15 @@ describe('git/pull', () => {
       })
     })
 
-    describe('with pull.ff=false set in config', () => {
+    describe('with pull.rebase=false and pull.ff=false set in config', () => {
       let previousTip: Commit
       let newTip: Commit
 
       beforeEach(async () => {
+        await GitProcess.exec(
+          ['config', '--local', 'pull.rebase', 'false'],
+          repository.path
+        )
         await GitProcess.exec(
           ['config', '--local', 'pull.ff', 'false'],
           repository.path
@@ -112,6 +116,11 @@ describe('git/pull', () => {
       it('creates a merge commit', async () => {
         expect(newTip.sha).not.toBe(previousTip.sha)
         expect(newTip.parentSHAs).toHaveLength(2)
+      })
+
+      it('is different from remote branch', async () => {
+        const remoteCommit = await getRefOrError(repository, remoteBranch)
+        expect(remoteCommit.sha).not.toBe(newTip.sha)
       })
 
       it('is ahead of tracking branch', async () => {
@@ -200,8 +209,12 @@ describe('git/pull', () => {
       })
     })
 
-    describe('with pull.ff=only set in config', () => {
+    describe('with pull.rebase=false and pull.ff=only set in config', () => {
       beforeEach(async () => {
+        await GitProcess.exec(
+          ['config', '--local', 'pull.rebase', 'false'],
+          repository.path
+        )
         await GitProcess.exec(
           ['config', '--local', 'pull.ff', 'only'],
           repository.path
