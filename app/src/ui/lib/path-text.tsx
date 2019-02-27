@@ -374,7 +374,6 @@ export class PathText extends React.PureComponent<
     if (availableWidth === 0) {
       if (this.state.length !== 0) {
         this.setState(prevState => ({
-          ...prevState,
           ...createPathDisplayState(prevState.normalizedPath, 0),
           availableWidth,
           longestFit: 0,
