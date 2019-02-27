@@ -719,14 +719,12 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       return
     }
 
-    const { file } = this.props
-    const { file: prevFile } = prevProps
-    if (canSelect(file)) {
-      if (!canSelect(prevFile)) {
-        this.updateViewport()
-      } else if (file.selection !== prevFile.selection) {
-        this.updateViewport()
-      } else if (this.props.text === prevProps.text) {
+    if (canSelect(this.props.file)) {
+      if (
+        !canSelect(prevProps.file) ||
+        this.props.file.selection !== prevProps.file.selection ||
+        this.props.text === prevProps.text
+      ) {
         // If the text has changed the gutters will be recreated
         // regardless but if it hasn't then we'll need to update
         // the viewport.
