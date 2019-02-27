@@ -14,7 +14,7 @@ import { assertNever } from '../../lib/fatal-error'
 import { ReleaseNotesUri } from '../lib/releases'
 import { encodePathAsUrl } from '../../lib/path'
 
-const DesktopLogo = encodePathAsUrl(__dirname, 'static/64x64.png')
+const DesktopLogo = encodePathAsUrl(__dirname, 'static/logo-64x64@2.png')
 
 interface IAboutProps {
   /**
@@ -261,7 +261,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
         {this.renderUpdateErrors()}
         <DialogContent>
           <Row className="logo">
-            <img src={DesktopLogo} alt="GitHub Desktop" />
+            <img src={DesktopLogo} alt="GitHub Desktop" width="64" height="64" />
           </Row>
           <h2>{name}</h2>
           <p className="no-padding">
