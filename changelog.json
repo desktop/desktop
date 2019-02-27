@@ -1,9 +1,9 @@
 {
   "releases": {
     "1.6.3-beta3": [
-      "[New] Display \"pull with rebase\" if a user has set this option in their git config - #6553 #3422",
+      "[New] Display \"pull with rebase\" if a user has set this option in their Git config - #6553 #3422",
       "[Added] Provide option to discard when files would be overwritten by a checkout - #6755. Thanks @mathieudutour!",
-      "[Fixed] Fixed left padding for :emoji:/@user/#issue autocomplete forms. - #6895. Thanks @murrelljenna!",
+      "[Fixed] No left padding for :emoji:/@user/#issue autocomplete forms. - #6895. Thanks @murrelljenna!",
       "[Fixed] Reinstate missing image and fix illustration to work in the dark theme when there are no local changes - #6894",
       "[Fixed] Display question mark image when there is no commit selected in dark theme - #6915. Thanks @say25!",
       "[Improved] Group and filter repositories by owner - #6923",
