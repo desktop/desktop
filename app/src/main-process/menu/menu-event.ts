@@ -16,6 +16,7 @@ export type MenuEvent =
   | 'update-branch'
   | 'compare-to-branch'
   | 'merge-branch'
+  | 'rebase-branch'
   | 'show-repository-settings'
   | 'open-in-shell'
   | 'compare-on-github'

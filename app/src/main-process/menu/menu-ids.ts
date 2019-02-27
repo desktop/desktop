@@ -4,6 +4,7 @@ export type MenuIDs =
   | 'preferences'
   | 'update-branch'
   | 'merge-branch'
+  | 'rebase-branch'
   | 'view-repository-on-github'
   | 'compare-on-github'
   | 'open-in-shell'

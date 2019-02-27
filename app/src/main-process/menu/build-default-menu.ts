@@ -7,6 +7,7 @@ import { ensureDir } from 'fs-extra'
 
 import { log } from '../log'
 import { openDirectorySafe } from '../shell'
+import { enableRebaseDialog } from '../../lib/feature-flag'
 
 const defaultEditorLabel = __DARWIN__
   ? 'Open in External Editor'
@@ -333,6 +334,16 @@ export function buildDefaultMenu({
         id: 'merge-branch',
         accelerator: 'CmdOrCtrl+Shift+M',
         click: emit('merge-branch'),
+      },
+      {
+        label: __DARWIN__
+          ? 'Rebase Current Branch…'
+          : '&Rebase current branch…',
+        id: 'rebase-branch',
+        // TODO: confirm shortcut
+        accelerator: 'CmdOrCtrl+Shift+R',
+        click: emit('rebase-branch'),
+        visible: enableRebaseDialog(),
       },
       separator,
       {
