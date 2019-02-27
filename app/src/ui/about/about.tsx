@@ -5,7 +5,6 @@ import { Row } from '../lib/row'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogError, DialogContent, DialogFooter } from '../dialog'
-import { Octicon, OcticonSymbol } from '../octicons'
 import { LinkButton } from '../lib/link-button'
 import { updateStore, IUpdateState, UpdateStatus } from '../lib/update-store'
 import { Disposable } from 'event-kit'
@@ -13,6 +12,9 @@ import { Loading } from '../lib/loading'
 import { RelativeTime } from '../relative-time'
 import { assertNever } from '../../lib/fatal-error'
 import { ReleaseNotesUri } from '../lib/releases'
+import { encodePathAsUrl } from '../../lib/path'
+
+const DesktopLogo = encodePathAsUrl(__dirname, 'static/64x64.png')
 
 interface IAboutProps {
   /**
@@ -259,7 +261,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
         {this.renderUpdateErrors()}
         <DialogContent>
           <Row className="logo">
-            <Octicon symbol={OcticonSymbol.markGithub} />
+            <img src={DesktopLogo} alt="GitHub Desktop" />
           </Row>
           <h2>{name}</h2>
           <p className="no-padding">
