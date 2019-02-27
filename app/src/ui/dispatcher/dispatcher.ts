@@ -623,6 +623,52 @@ export class Dispatcher {
     return this.appStore._mergeBranch(repository, branch, mergeStatus)
   }
 
+  /** Starts a rebase for the given base and target branch */
+  public async rebase(
+    repository: Repository,
+    baseBranch: string,
+    targetBranch: string
+  ) {
+    const stateBefore = this.repositoryStateManager.get(repository)
+
+    const beforeSha = getTipSha(stateBefore.branchesState.tip)
+
+    log.info(`[rebase] starting rebase for ${beforeSha}`)
+
+    // TODO: this can happen very quickly for a trivial rebase or an OS with
+    // fast I/O - are we able to artificially slow this down so it completes at
+    // least after X ms?
+
+    const result = await this.appStore._rebase(
+      repository,
+      baseBranch,
+      targetBranch
+    )
+
+    await this.appStore._loadStatus(repository)
+
+    const stateAfter = this.repositoryStateManager.get(repository)
+    const { tip } = stateAfter.branchesState
+    const afterSha = getTipSha(tip)
+
+    log.info(
+      `[continueRebase] completed rebase - got ${result} and on tip ${afterSha} - kind ${
+        tip.kind
+      }`
+    )
+
+    if (result === RebaseResult.CompletedWithoutError) {
+      this.closePopup()
+      this.setBanner({
+        type: BannerType.SuccessfulRebase,
+        targetBranch: targetBranch,
+        baseBranch: baseBranch,
+      })
+    }
+
+    return result
+  }
+
   /** aborts the current rebase and refreshes the repository's status */
   public async abortRebase(repository: Repository) {
     await this.appStore._abortRebase(repository)
@@ -1391,6 +1437,13 @@ export class Dispatcher {
    */
   public recordMenuInitiatedMerge() {
     return this.statsStore.recordMenuInitiatedMerge()
+  }
+
+  /**
+   * Increments the `rebaseIntoCurrentBranchMenuCount` metric
+   */
+  public recordMenuInitiatedRebase() {
+    return this.statsStore.recordMenuInitiatedRebase()
   }
 
   /**
