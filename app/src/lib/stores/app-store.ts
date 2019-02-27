@@ -191,7 +191,7 @@ import {
   ManualConflictResolutionKind,
 } from '../../models/manual-conflict-resolution'
 import { BranchPruner } from './helpers/branch-pruner'
-import { enableBranchPruning, enableNewRebaseFlow } from '../feature-flag'
+import { enableBranchPruning, enablePullWithRebase } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 
 /**
@@ -1626,7 +1626,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private async _triggerConflictsFlow(repository: Repository) {
-    if (enableNewRebaseFlow()) {
+    if (enablePullWithRebase()) {
       const repoState = this.repositoryStateCache.get(repository)
       const { conflictState } = repoState.changesState
 

@@ -9,7 +9,7 @@ import { BranchesContainer, PullRequestBadge } from '../branches'
 import { assertNever } from '../../lib/fatal-error'
 import { BranchesTab } from '../../models/branches-tab'
 import { PullRequest } from '../../models/pull-request'
-import { enableNewRebaseFlow } from '../../lib/feature-flag'
+import { enablePullWithRebase } from '../../lib/feature-flag'
 
 interface IBranchDropdownProps {
   readonly dispatcher: Dispatcher
@@ -139,7 +139,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
     } else if (
       conflictState !== null &&
       isRebaseConflictState(conflictState) &&
-      enableNewRebaseFlow()
+      enablePullWithRebase()
     ) {
       title = conflictState.targetBranch
       description = 'Rebasing branch'

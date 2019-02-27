@@ -35,7 +35,7 @@ import { basename } from 'path'
 import { ICommitContext } from '../../models/commit'
 import { RebaseConflictState } from '../../lib/app-state'
 import { ContinueRebase } from './continue-rebase'
-import { enableNewRebaseFlow } from '../../lib/feature-flag'
+import { enablePullWithRebase } from '../../lib/feature-flag'
 
 const RowHeight = 29
 
@@ -417,7 +417,7 @@ export class ChangesList extends React.Component<
   }
 
   private renderCommitMessageForm = (): JSX.Element => {
-    if (this.props.rebaseConflictState !== null && enableNewRebaseFlow()) {
+    if (this.props.rebaseConflictState !== null && enablePullWithRebase()) {
       return (
         <ContinueRebase
           dispatcher={this.props.dispatcher}

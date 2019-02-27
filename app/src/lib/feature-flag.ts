@@ -63,8 +63,8 @@ export function enableNoChangesCreatePRBlankslateAction(): boolean {
   return enableBetaFeatures()
 }
 
-/** Should the app show the new rebase flow? */
-export function enableNewRebaseFlow(): boolean {
+/** Should the app detect and handle rebase conflicts when `pull.rebase` is set? */
+export function enablePullWithRebase(): boolean {
   return enableBetaFeatures()
 }
 
