@@ -1,8 +1,9 @@
 import * as Path from 'path'
 import * as FSE from 'fs-extra'
+import { GitError } from 'dugite'
 
 import { Repository } from '../../models/repository'
-import { git } from './core'
+import { git, IGitResult } from './core'
 import {
   WorkingDirectoryFileChange,
   AppFileStatusKind,
@@ -10,7 +11,7 @@ import {
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { stageManualConflictResolution } from './stage'
 import { stageFiles } from './update-index'
-import { GitError, IGitResult } from 'dugite'
+
 import { getStatus } from './status'
 import { RebaseContext } from '../../models/rebase'
 
@@ -102,8 +103,6 @@ export async function rebase(
     ['rebase', baseBranch, targetBranch],
     repository.path,
     'rebase',
-    // TODO: what about using successExitCodes here?
-    // successExitCodes: new Set([0, 1, 128]),
     { expectedErrors: new Set([GitError.RebaseConflicts]) }
   )
 
@@ -122,20 +121,16 @@ export enum RebaseResult {
   Aborted = 'Aborted',
 }
 
-const rebaseEncounteredConflictsRe = /Resolve all conflicts manually, mark them as resolved/
-
-const filesNotMergedRe = /You must edit all merge conflicts and then\nmark them as resolved/
-
 function parseRebaseResult(result: IGitResult): RebaseResult {
   if (result.exitCode === 0) {
     return RebaseResult.CompletedWithoutError
   }
 
-  if (rebaseEncounteredConflictsRe.test(result.stdout)) {
+  if (result.gitError === GitError.RebaseConflicts) {
     return RebaseResult.ConflictsEncountered
   }
 
-  if (filesNotMergedRe.test(result.stdout)) {
+  if (result.gitError === GitError.UnresolvedConflicts) {
     return RebaseResult.OutstandingFilesNotStaged
   }
 
@@ -197,24 +192,25 @@ export async function continueRebase(
       repository.path,
       'continueRebaseSkipCurrentCommit',
       {
-        successExitCodes: new Set([0, 1, 128]),
+        expectedErrors: new Set([
+          GitError.RebaseConflicts,
+          GitError.UnresolvedConflicts,
+        ]),
       }
     )
 
     return parseRebaseResult(result)
   }
 
-  // TODO: there are some cases we need to handle and surface here:
-  //  - rebase continued and completed without error
-  //  - rebase continued but encountered a different set of conflicts
-  //  - rebase could not continue as there are outstanding conflicts
-
   const result = await git(
     ['rebase', '--continue'],
     repository.path,
     'continueRebase',
     {
-      successExitCodes: new Set([0, 1, 128]),
+      expectedErrors: new Set([
+        GitError.RebaseConflicts,
+        GitError.UnresolvedConflicts,
+      ]),
     }
   )
 
