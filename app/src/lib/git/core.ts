@@ -268,6 +268,8 @@ function getDescriptionForError(error: DugiteError): string {
       return 'The remote branch does not exist.'
     case DugiteError.LocalChangesOverwritten:
       return 'Some of your changes would be overwritten.'
+    case DugiteError.UnresolvedConflicts:
+      return 'There are unresolved conflicts in the working directory.'
     default:
       return assertNever(error, `Unknown error: ${error}`)
   }
