@@ -338,10 +338,9 @@ export function buildDefaultMenu({
       {
         label: __DARWIN__
           ? 'Rebase Current Branch…'
-          : '&Rebase current branch…',
+          : 'R&ebase current branch…',
         id: 'rebase-branch',
-        // TODO: confirm shortcut
-        accelerator: 'CmdOrCtrl+Shift+R',
+        accelerator: 'CmdOrCtrl+Shift+E',
         click: emit('rebase-branch'),
         visible: enableRebaseDialog(),
       },
