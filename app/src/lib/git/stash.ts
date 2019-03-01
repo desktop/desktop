@@ -1,4 +1,4 @@
-export interface StashEntry {
+export interface IStashEntry {
   /** The name of the branch at the time the entry was created. */
   readonly branchName: string
 
