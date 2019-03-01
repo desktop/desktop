@@ -3,7 +3,11 @@ import * as React from 'react'
 
 import { ChangesList } from './changes-list'
 import { DiffSelectionType } from '../../models/diff'
-import { IChangesState } from '../../lib/app-state'
+import {
+  IChangesState,
+  RebaseConflictState,
+  isRebaseConflictState,
+} from '../../lib/app-state'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
 import { IGitHubUser } from '../../lib/databases'
@@ -26,6 +30,7 @@ import { PopupType } from '../../models/popup'
 import { filesNotTrackedByLFS } from '../../lib/git/lfs'
 import { getLargeFilePaths } from '../../lib/large-files'
 import { isConflictedFile, hasUnresolvedConflicts } from '../../lib/status'
+import { enablePullWithRebase } from '../../lib/feature-flag'
 
 /**
  * The timeout for the animation of the enter/leave animation for Undo.
@@ -327,6 +332,16 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     )
   }
 
+  private renderUndoCommit = (
+    rebaseConflictState: RebaseConflictState | null
+  ): JSX.Element | null => {
+    if (rebaseConflictState !== null && enablePullWithRebase()) {
+      return null
+    }
+
+    return this.renderMostRecentLocalCommit()
+  }
+
   public render() {
     const {
       selectedFileIDs,
@@ -334,6 +349,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
       commitMessage,
       showCoAuthoredBy,
       coAuthors,
+      conflictState,
     } = this.props.changes
 
     // TODO: I think user will expect the avatar to match that which
@@ -346,12 +362,20 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
       user = this.props.gitHubUsers.get(email.toLowerCase()) || null
     }
 
+    let rebaseConflictState: RebaseConflictState | null = null
+    if (conflictState !== null) {
+      rebaseConflictState = isRebaseConflictState(conflictState)
+        ? conflictState
+        : null
+    }
+
     return (
       <div id="changes-sidebar-contents">
         <ChangesList
           dispatcher={this.props.dispatcher}
           repository={this.props.repository}
           workingDirectory={workingDirectory}
+          rebaseConflictState={rebaseConflictState}
           selectedFileIDs={selectedFileIDs}
           onFileSelectionChanged={this.onFileSelectionChanged}
           onCreateCommit={this.onCreateCommit}
@@ -380,7 +404,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           onChangesListScrolled={this.props.onChangesListScrolled}
           changesListScrollTop={this.props.changesListScrollTop}
         />
-        {this.renderMostRecentLocalCommit()}
+        {this.renderUndoCommit(rebaseConflictState)}
       </div>
     )
   }

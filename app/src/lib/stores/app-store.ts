@@ -178,7 +178,7 @@ import { validatedRepositoryPath } from './helpers/validated-repository-path'
 import { RepositoryStateCache } from './repository-state-cache'
 import { readEmoji } from '../read-emoji'
 import { GitStoreCache } from './git-store-cache'
-import { MergeConflictsErrorContext } from '../git-error-context'
+import { GitErrorContext } from '../git-error-context'
 import { setNumber, setBoolean, getBoolean, getNumber } from '../local-storage'
 import { ExternalEditorError } from '../editors/shared'
 import { ApiRepositoriesStore } from './api-repositories-store'
@@ -191,7 +191,7 @@ import {
   ManualConflictResolutionKind,
 } from '../../models/manual-conflict-resolution'
 import { BranchPruner } from './helpers/branch-pruner'
-import { enableBranchPruning, enableNewRebaseFlow } from '../feature-flag'
+import { enableBranchPruning, enablePullWithRebase } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 
 /**
@@ -550,6 +550,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       defaultBranch: gitStore.defaultBranch,
       allBranches: gitStore.allBranches,
       recentBranches: gitStore.recentBranches,
+      pullWithRebase: gitStore.pullWithRebase,
     }))
 
     this.repositoryStateCache.updateChangesState(repository, () => ({
@@ -1625,7 +1626,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private async _triggerConflictsFlow(repository: Repository) {
-    if (enableNewRebaseFlow()) {
+    if (enablePullWithRebase()) {
       const repoState = this.repositoryStateCache.get(repository)
       const { conflictState } = repoState.changesState
 
@@ -2819,7 +2820,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       if (tip.kind === TipState.Valid) {
         let mergeBase: string | null = null
-        let gitContext: MergeConflictsErrorContext | undefined = undefined
+        let gitContext: GitErrorContext | undefined = undefined
 
         if (tip.branch.upstream !== null) {
           mergeBase = await getMergeBase(
@@ -2830,8 +2831,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
           gitContext = {
             kind: 'pull',
-            tip,
             theirBranch: tip.branch.upstream,
+            currentBranch: tip.branch.name,
           }
         }
 
@@ -2863,6 +2864,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
             type: RetryActionType.Pull,
             repository,
           }
+
+          if (gitStore.pullWithRebase) {
+            this.statsStore.recordPullWithRebaseEnabled()
+          } else {
+            this.statsStore.recordPullWithDefaultSetting()
+          }
+
           await gitStore.performFailableOperation(
             () =>
               pullRepo(repository, account, remote.name, progress => {

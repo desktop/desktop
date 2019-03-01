@@ -13,7 +13,6 @@ import { UpstreamAlreadyExistsError } from '../../lib/stores/upstream-already-ex
 
 import { PopupType } from '../../models/popup'
 import { Repository } from '../../models/repository'
-import { TipState } from '../../models/tip'
 
 /** An error which also has a code property. */
 interface IErrorWithCode extends Error {
@@ -295,15 +294,12 @@ export async function mergeConflictHandler(
       break
   }
 
-  const { tip, theirBranch } = gitContext
-  if (tip == null || tip.kind !== TipState.Valid) {
-    return error
-  }
+  const { currentBranch, theirBranch } = gitContext
 
   dispatcher.showPopup({
     type: PopupType.MergeConflicts,
     repository,
-    ourBranch: tip.branch.name,
+    ourBranch: currentBranch,
     theirBranch,
   })
 
@@ -515,18 +511,14 @@ export async function rebaseConflictsHandler(
     return error
   }
 
-  // TODO: metrics
-  // TODO: any other context?
+  // TODO: metrics - https://github.com/desktop/desktop/issues/6550
 
-  // TODO: where can I get this from in the event of a pull failing from a rebase?
-  const baseBranch = '???'
-  const targetBranch = '???'
+  const { currentBranch } = gitContext
 
   dispatcher.showPopup({
     type: PopupType.RebaseConflicts,
     repository,
-    targetBranch,
-    baseBranch,
+    targetBranch: currentBranch,
   })
 
   return null
