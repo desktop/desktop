@@ -240,7 +240,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     )
     menuStateBuilder.setEnabled(
       'push',
-      !branchIsUnborn && !networkActionInProgress
+      !branchIsUnborn && !onDetachedHead && !networkActionInProgress
     )
     menuStateBuilder.setEnabled(
       'pull',
