@@ -65,7 +65,7 @@ export function enableNoChangesCreatePRBlankslateAction(): boolean {
 
 /** Should the app detect and handle rebase conflicts when `pull.rebase` is set? */
 export function enablePullWithRebase(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 /**
