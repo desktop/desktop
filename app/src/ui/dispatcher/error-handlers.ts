@@ -457,15 +457,12 @@ export async function noExistingRemoteBranchHandler(
     return error
   }
 
-  const { tip } = gitContext
-  if (tip == null || tip.kind !== TipState.Valid) {
-    return error
-  }
+  const { currentBranch } = gitContext
 
   dispatcher.showPopup({
     type: PopupType.NoExistingRemoteBranch,
     repository,
-    branchName: tip.branch.name,
+    branchName: currentBranch,
   })
 
   return null
