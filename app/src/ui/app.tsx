@@ -1838,6 +1838,11 @@ export class App extends React.Component<IAppProps, IAppState> {
     const remoteName = state.remote ? state.remote.name : null
     const progress = state.pushPullFetchProgress
 
+    const { conflictState } = state.changesState
+
+    const rebaseInProgress =
+      conflictState !== null && conflictState.kind === 'rebase'
+
     const tipState = state.branchesState.tip.kind
     const { pullWithRebase } = state.branchesState
 
@@ -1852,6 +1857,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         progress={progress}
         tipState={tipState}
         pullWithRebase={pullWithRebase}
+        rebaseInProgress={rebaseInProgress}
       />
     )
   }

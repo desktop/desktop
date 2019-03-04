@@ -44,6 +44,9 @@ interface IPushPullButtonProps {
 
   /** Has the user configured pull.rebase to anything? */
   readonly pullWithRebase?: boolean
+
+  /** Is the detached HEAD state related to a rebase or not? */
+  readonly rebaseInProgress: boolean
 }
 
 function getActionLabel(
@@ -189,7 +192,9 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
     }
 
     if (tipState === TipState.Detached) {
-      return 'Cannot publish detached HEAD'
+      return this.props.rebaseInProgress
+        ? 'Rebase in progress'
+        : 'Cannot publish detached HEAD'
     }
 
     if (tipState === TipState.Unborn) {
