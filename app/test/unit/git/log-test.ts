@@ -2,7 +2,6 @@ import { Repository } from '../../../src/models/repository'
 import { getChangedFiles, getCommits } from '../../../src/lib/git'
 import { setupFixtureRepository } from '../../helpers/repositories'
 import { AppFileStatusKind } from '../../../src/models/status'
-import { GitProcess } from 'dugite'
 import { setupLocalConfig } from '../../helpers/local-config'
 
 describe('git/log', () => {
