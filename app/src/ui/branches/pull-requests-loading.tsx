@@ -41,7 +41,7 @@ const groups = [
 ]
 
 /** The placeholder for when pull requests are still loading. */
-export class PullRequestsLoading extends React.Component<{}, {}> {
+export class PullRequestsLoading extends React.PureComponent<
   public render() {
     return (
       <FilterList<IFilterListItem>
