@@ -40,6 +40,10 @@ export async function createRepository(
         path: 'OTHER.md',
         contents: '# HELLO WORLD! \nTHINGS GO HERE\n',
       },
+      {
+        path: 'THIRD.md',
+        contents: 'nothing goes here',
+      },
     ],
   }
 
