@@ -1547,4 +1547,11 @@ export class Dispatcher {
   public recordRebaseConflictsDialogReopened() {
     this.statsStore.recordRebaseConflictsDialogReopened()
   }
+
+  /**
+   * Refresh the list of open pull requests for the given repository.
+   */
+  public refreshPullRequests(repository: Repository): Promise<void> {
+    return this.appStore._refreshPullRequests(repository)
+  }
 }
