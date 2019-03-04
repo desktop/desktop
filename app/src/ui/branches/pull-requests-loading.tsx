@@ -40,8 +40,16 @@ const groups = [
   },
 ]
 
+interface IPullRequestLoadingProps {
+  /** Called to render content after the filter. */
+  readonly renderPostFilter?: () => JSX.Element | null
+}
+
 /** The placeholder for when pull requests are still loading. */
 export class PullRequestsLoading extends React.PureComponent<
+  IPullRequestLoadingProps,
+  {}
+> {
   public render() {
     return (
       <FilterList<IFilterListItem>
@@ -52,6 +60,7 @@ export class PullRequestsLoading extends React.PureComponent<
         renderItem={this.renderItem}
         invalidationProps={groups}
         disabled={true}
+        renderPostFilter={this.props.renderPostFilter}
       />
     )
   }
