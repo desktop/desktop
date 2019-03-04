@@ -78,10 +78,10 @@
   height: 100%;
   width: 100%;
 
-  .filter-list-filter-field {
+  &.filter-list .filter-field-row {
     // The rows have built-in margin to their content so
     // we only need half a spacer here
-    padding-bottom: var(--spacing-half);
+    margin-bottom: var(--spacing-half);
   }
 
   .list-item.selected:focus {
