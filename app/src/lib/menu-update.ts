@@ -253,7 +253,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     )
     menuStateBuilder.setEnabled(
       'create-branch',
-      !tipStateIsUnknown && !branchIsUnborn
+      !tipStateIsUnknown && !branchIsUnborn && !rebaseInProgress
     )
 
     menuStateBuilder.setEnabled('compare-to-branch', !onDetachedHead)
