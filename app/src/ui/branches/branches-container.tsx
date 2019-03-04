@@ -176,7 +176,12 @@ export class BranchesContainer extends React.Component<
 
   private renderPullRequests() {
     if (this.props.isLoadingPullRequests) {
-      return <PullRequestsLoading key="prs-loading" />
+      return (
+        <PullRequestsLoading
+          key="prs-loading"
+          renderPostFilter={this.renderPullRequestPostFilter}
+        />
+      )
     }
 
     const pullRequests = this.props.pullRequests
@@ -200,7 +205,27 @@ export class BranchesContainer extends React.Component<
         onFilterTextChanged={this.onPullRequestFilterTextChanged}
         onItemClick={this.onPullRequestClicked}
         onDismiss={this.onDismiss}
+        renderPostFilter={this.renderPullRequestPostFilter}
       />
+    )
+  }
+
+  private onRefreshPullRequests = () => {
+    this.props.dispatcher.refreshPullRequests(this.props.repository)
+  }
+
+  private renderPullRequestPostFilter = () => {
+    return (
+      <Button
+        disabled={this.props.isLoadingPullRequests}
+        onClick={this.onRefreshPullRequests}
+        tooltip="Refresh the list of pull requests"
+      >
+        <Octicon
+          symbol={OcticonSymbol.sync}
+          className={this.props.isLoadingPullRequests ? 'spin' : undefined}
+        />
+      </Button>
     )
   }
 
