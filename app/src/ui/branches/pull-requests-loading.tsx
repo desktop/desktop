@@ -24,24 +24,25 @@ const prLoadingItemProps: IPullRequestListItemProps = {
   },
 }
 
+const items: Array<IFilterListItem> = []
+
+for (let i = 0; i < FacadeCount; i++) {
+  items.push({
+    text: [''],
+    id: i.toString(),
+  })
+}
+
+const groups = [
+  {
+    identifier: '',
+    items: items,
+  },
+]
+
 /** The placeholder for when pull requests are still loading. */
 export class PullRequestsLoading extends React.Component<{}, {}> {
   public render() {
-    const items: Array<IFilterListItem> = []
-    for (let i = 0; i < FacadeCount; i++) {
-      items.push({
-        text: [''],
-        id: i.toString(),
-      })
-    }
-
-    const groups = [
-      {
-        identifier: '',
-        items,
-      },
-    ]
-
     return (
       <FilterList<IFilterListItem>
         className="pull-request-list"
