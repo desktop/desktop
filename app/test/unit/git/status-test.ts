@@ -20,6 +20,7 @@ import {
 import * as temp from 'temp'
 import { getStatus } from '../../../src/lib/git'
 import { isConflictedFile } from '../../../src/lib/status'
+import { setupLocalConfig } from '../../helpers/local-config'
 
 const _temp = temp.track()
 const mkdir = _temp.mkdir
@@ -229,10 +230,7 @@ describe('git/status', () => {
         // Git 2.18 now uses a new config value to handle detecting copies, so
         // users who have this enabled will see this. For reference, Desktop does
         // not enable this by default.
-        await GitProcess.exec(
-          ['config', '--local', 'status.renames', 'copies'],
-          repository.path
-        )
+        await setupLocalConfig(repository, [['status.renames', 'copies']])
 
         await GitProcess.exec(['add', '.'], repository.path)
 

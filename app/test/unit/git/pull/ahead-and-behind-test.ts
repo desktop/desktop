@@ -13,6 +13,7 @@ import {
 } from '../../../helpers/repository-scaffolding'
 import { getTipOrError, getRefOrError } from '../../../helpers/tip'
 import { GitProcess } from 'dugite'
+import { setupLocalConfig } from '../../../helpers/local-config'
 
 const featureBranch = 'this-is-a-feature'
 const origin = 'origin'
@@ -59,14 +60,10 @@ describe('git/pull', () => {
       let newTip: Commit
 
       beforeEach(async () => {
-        await GitProcess.exec(
-          ['config', '--local', 'pull.rebase', 'false'],
-          repository.path
-        )
-        await GitProcess.exec(
-          ['config', '--local', 'pull.ff', 'false'],
-          repository.path
-        )
+        await setupLocalConfig(repository, [
+          ['pull.rebase', 'false'],
+          ['pull.ff', 'false'],
+        ])
 
         previousTip = await getTipOrError(repository)
 
@@ -104,10 +101,7 @@ describe('git/pull', () => {
       let newTip: Commit
 
       beforeEach(async () => {
-        await GitProcess.exec(
-          ['config', '--local', 'pull.rebase', 'false'],
-          repository.path
-        )
+        await setupLocalConfig(repository, [['pull.rebase', 'false']])
 
         previousTip = await getTipOrError(repository)
 
@@ -140,10 +134,7 @@ describe('git/pull', () => {
       let newTip: Commit
 
       beforeEach(async () => {
-        await GitProcess.exec(
-          ['config', '--local', 'pull.rebase', 'true'],
-          repository.path
-        )
+        await setupLocalConfig(repository, [['pull.rebase', 'true']])
 
         previousTip = await getTipOrError(repository)
 
@@ -173,14 +164,10 @@ describe('git/pull', () => {
 
     describe('with pull.rebase=false and pull.ff=only set in config', () => {
       beforeEach(async () => {
-        await GitProcess.exec(
-          ['config', '--local', 'pull.rebase', 'false'],
-          repository.path
-        )
-        await GitProcess.exec(
-          ['config', '--local', 'pull.ff', 'only'],
-          repository.path
-        )
+        await setupLocalConfig(repository, [
+          ['pull.rebase', 'false'],
+          ['pull.ff', 'only'],
+        ])
       })
 
       it(`throws an error as the user blocks merge commits on pull`, () => {
