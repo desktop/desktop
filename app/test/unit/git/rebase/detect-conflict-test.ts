@@ -2,7 +2,7 @@ import { GitProcess } from 'dugite'
 import * as FSE from 'fs-extra'
 import * as Path from 'path'
 
-import { IStatusResult } from '../../../../src/lib/git'
+import { IStatusResult, getChangedFiles } from '../../../../src/lib/git'
 import {
   abortRebase,
   continueRebase,
@@ -10,7 +10,10 @@ import {
   RebaseResult,
 } from '../../../../src/lib/git/rebase'
 import { Commit } from '../../../../src/models/commit'
-import { AppFileStatusKind } from '../../../../src/models/status'
+import {
+  AppFileStatusKind,
+  CommittedFileChange,
+} from '../../../../src/models/status'
 import { createRepository } from '../../../helpers/repository-builder-rebase-test'
 import { getStatusOrThrow } from '../../../helpers/status'
 import { getRefOrError } from '../../../helpers/tip'
@@ -192,6 +195,79 @@ describe('git/rebase', () => {
 
     it('no longer has working directory changes', () => {
       expect(status.workingDirectory.files).toHaveLength(0)
+    })
+
+    it('returns to the feature branch', () => {
+      expect(status.currentBranch).toBe(featureBranch)
+    })
+
+    it('branch is now a different ref', () => {
+      expect(status.currentTip).not.toBe(beforeRebaseTip.sha)
+    })
+  })
+
+  describe('continue with additional changes unrelated to conflicted files', () => {
+    let beforeRebaseTip: Commit
+    let filesInRebasedCommit: ReadonlyArray<CommittedFileChange>
+    let result: ContinueRebaseResult
+    let status: IStatusResult
+
+    beforeEach(async () => {
+      const repository = await createRepository(baseBranch, featureBranch)
+
+      beforeRebaseTip = await getRefOrError(repository, featureBranch)
+
+      await rebase(repository, baseBranch, featureBranch)
+
+      // resolve conflicts by writing files to disk
+      await FSE.writeFile(
+        Path.join(repository.path, 'THING.md'),
+        '# HELLO WORLD! \nTHINGS GO HERE\nFEATURE BRANCH UNDERWAY\n'
+      )
+
+      await FSE.writeFile(
+        Path.join(repository.path, 'OTHER.md'),
+        '# HELLO WORLD! \nTHINGS GO HERE\nALSO FEATURE BRANCH UNDERWAY\n'
+      )
+
+      // change unrelated tracked while rebasing changes
+      await FSE.writeFile(
+        Path.join(repository.path, 'THIRD.md'),
+        'this change should be included in the latest commit'
+      )
+
+      // add untracked file before continuing rebase
+      await FSE.writeFile(
+        Path.join(repository.path, 'UNTRACKED-FILE.md'),
+        'this file should remain in the working directory'
+      )
+
+      const afterRebase = await getStatusOrThrow(repository)
+
+      const { files } = afterRebase.workingDirectory
+
+      result = await continueRebase(repository, files)
+
+      status = await getStatusOrThrow(repository)
+
+      filesInRebasedCommit = await getChangedFiles(
+        repository,
+        status.currentTip!
+      )
+    })
+
+    it('returns success', () => {
+      expect(result).toBe(ContinueRebaseResult.CompletedWithoutError)
+    })
+
+    it('keeps untracked working directory file out of rebase', () => {
+      expect(status.workingDirectory.files).toHaveLength(1)
+    })
+
+    it('has modified but unconflicted file in commit contents', () => {
+      expect(
+        filesInRebasedCommit.find(f => f.path === 'THIRD.md')
+      ).not.toBeUndefined()
     })
 
     it('returns to the feature branch', () => {
