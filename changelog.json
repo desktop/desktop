@@ -10,12 +10,9 @@
       "[Fixed] Text selection in wrapped diff lines now allows selection of individual lines - #1551",
       "[Improved] Add option to fetch when a user needs to pull changes from the remote before pushing - #2738 #5451",
       "[Improved] Enable Git protocol v2 for fetch/push/pull operations - #6142",
-      "[Improved] Group and filter repositories by owner - #6923",
       "[Improved] Moving the mouse pointer outside of the visible diff while selecting a range of lines in a partial commit will now automatically scroll the diff - #658",
       "[Improved] Sign in form validates both username and password - #6952. Thanks @say25!",
       "[Improved] Update GitHub logo in \"About\" dialog - #5619. Thanks @HashimotoYT!",
-      "[Improved] Upgrade to Electron v3 - #6391",
-      "[New] Branches that have been merged and deleted on GitHub.com will now be pruned after two weeks - #750",
       "[New] Display \"pull with rebase\" if a user has set this option in their Git config - #6553 #3422"
     ],
     "1.6.3-beta4": [
