@@ -1,5 +1,9 @@
 {
   "releases": {
+    "1.6.3-beta4": [
+      "[Improved] Update GitHub logo in \"About\" dialog - #5619. Thanks @HashimotoYT!",
+      "[Improved] Sign in form validates both username and password - #6952. Thanks @say25!"
+    ],
     "1.6.3-beta3": [
       "[New] Display \"pull with rebase\" if a user has set this option in their Git config - #6553 #3422",
       "[Added] Provide option to discard when files would be overwritten by a checkout - #6755. Thanks @mathieudutour!",
