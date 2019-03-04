@@ -68,7 +68,7 @@ describe('gitignore', () => {
         ['core.autocrlf', 'input'],
       ])
 
-      const path = repo.path
+      const { path } = repo
 
       await saveGitIgnore(repo, 'node_modules')
       await GitProcess.exec(['add', '.gitignore'], path)
@@ -134,9 +134,10 @@ describe('gitignore', () => {
   describe('appendIgnoreRule', () => {
     it('appends one rule', async () => {
       const repo = await setupEmptyRepository()
-      const path = repo.path
 
       await setupLocalConfig(repo, [['core.autocrlf', 'true']])
+
+      const { path } = repo
 
       const ignoreFile = `${path}/.gitignore`
       await FSE.writeFile(ignoreFile, 'node_modules\n')
@@ -154,7 +155,7 @@ describe('gitignore', () => {
 
       await setupLocalConfig(repo, [['core.autocrlf', 'true']])
 
-      const path = repo.path
+      const { path } = repo
 
       const ignoreFile = `${path}/.gitignore`
       await FSE.writeFile(ignoreFile, 'node_modules\n')
