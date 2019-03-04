@@ -3381,13 +3381,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     workingDirectory: WorkingDirectoryStatus
   ) {
     const gitStore = this.gitStoreCache.get(repository)
-
-    const trackedFiles = workingDirectory.files.filter(f => {
-      return f.status.kind !== AppFileStatusKind.Untracked
-    })
-
     return await gitStore.performFailableOperation(() =>
-      continueRebase(repository, trackedFiles)
+      continueRebase(repository, workingDirectory.files)
     )
   }
 
