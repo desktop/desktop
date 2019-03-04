@@ -153,6 +153,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
   let networkActionInProgress = false
   let tipStateIsUnknown = false
   let branchIsUnborn = false
+  let rebaseInProgress = false
 
   if (selectedState && selectedState.type === SelectionType.Repository) {
     repositorySelected = true
@@ -184,6 +185,10 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     }
 
     networkActionInProgress = selectedState.state.isPushPullFetchInProgress
+
+    const { conflictState } = selectedState.state.changesState
+
+    rebaseInProgress = conflictState !== null && conflictState.kind === 'rebase'
   }
 
   // These are IDs for menu items that are entirely _and only_
@@ -248,7 +253,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     )
     menuStateBuilder.setEnabled(
       'create-branch',
-      !tipStateIsUnknown && !branchIsUnborn
+      !tipStateIsUnknown && !branchIsUnborn && !rebaseInProgress
     )
 
     menuStateBuilder.setEnabled('compare-to-branch', !onDetachedHead)
