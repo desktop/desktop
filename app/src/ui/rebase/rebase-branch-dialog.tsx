@@ -145,7 +145,7 @@ export class RebaseBranchDialog extends React.Component<
               Rebase <strong>
                 {currentBranch ? currentBranch.name : ''}
               </strong>{' '}
-              on <strong>{selectedBranch ? selectedBranch.name : ''}</strong>
+              onto <strong>{selectedBranch ? selectedBranch.name : ''}</strong>
             </Button>
           </ButtonGroup>
         </DialogFooter>
