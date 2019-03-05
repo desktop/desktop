@@ -181,10 +181,10 @@ export async function continueRebase(
 
   if (trackedFiles.length === 0) {
     const rebaseHead = Path.join(repository.path, '.git', 'REBASE_HEAD')
-    const rebaseCurrentCommit = await FSE.readFile(rebaseHead)
+    const rebaseCurrentCommit = await FSE.readFile(rebaseHead, 'utf8')
 
     log.warn(
-      `[rebase] no tracked changes to commit for ${rebaseCurrentCommit}, continuing rebase but skipping this commit`
+      `[rebase] no tracked changes to commit for ${rebaseCurrentCommit.trim()}, continuing rebase but skipping this commit`
     )
 
     const result = await git(
