@@ -121,13 +121,22 @@ export class CommitMessage extends React.Component<
     this.props.dispatcher.setCommitMessage(this.props.repository, this.state)
   }
 
+  /**
+   * Special case for the summary/description being reset (empty) after a commit
+   * and the commit state changing thereafter, needing a sync with incoming props.
+   * We prefer the current UI state values if the user updated them manually.
+   *
+   * NOTE: although using the lifecycle method is generally an anti-pattern, we
+   * (and the React docs) believe it to be the right answer for this situation, see:
+   * https://reactjs.org/docs/react-component.html#unsafe_componentwillreceiveprops
+   */
   public componentWillReceiveProps(nextProps: ICommitMessageProps) {
     const { commitMessage } = nextProps
-    if (!commitMessage) {
+    if (!commitMessage || commitMessage === this.props.commitMessage) {
       return
     }
 
-    if (commitMessage !== this.props.commitMessage) {
+    if (this.state.summary === '' && !this.state.description) {
       this.setState({
         summary: commitMessage.summary,
         description: commitMessage.description,
