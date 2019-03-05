@@ -75,3 +75,12 @@ export function enablePullWithRebase(): boolean {
 export function enableGroupRepositoriesByOwner(): boolean {
   return enableBetaFeatures()
 }
+
+/**
+ * As there is some lack of clarity about this feature with how it overlaps
+ * with planned support for stashing changes, this warning dialog is behind
+ * a feature flag for the moment.
+ */
+export function enableLocalChangesWarningHandler(): boolean {
+  return enableBetaFeatures()
+}
