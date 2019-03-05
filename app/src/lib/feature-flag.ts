@@ -82,5 +82,5 @@ export function enableGroupRepositoriesByOwner(): boolean {
  * a feature flag for the moment.
  */
 export function enableLocalChangesWarningHandler(): boolean {
-  return enableBetaFeatures()
+  return enableDevelopmentFeatures()
 }
