@@ -175,7 +175,10 @@ export class BranchesContainer extends React.Component<
   }
 
   private renderPullRequests() {
-    if (this.props.isLoadingPullRequests) {
+    if (
+      this.props.isLoadingPullRequests &&
+      this.props.pullRequests.length === 0
+    ) {
       return (
         <PullRequestsLoading
           key="prs-loading"
