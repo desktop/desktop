@@ -475,12 +475,18 @@ export class API {
 
     do {
       const response = await this.request('GET', nextPath)
-      if (response.status === HttpStatusCode.NotFound) {
-        log.warn(`fetchAll: '${path}' returned a 404`)
-        return []
-      }
+
       if (response.status === HttpStatusCode.NotModified) {
         log.warn(`fetchAll: '${path}' returned a 304`)
+        return []
+      }
+
+      if (response.status >= 400 && response.status < 499) {
+        log.warn(
+          `fetchAll: '${path}' returned a client error code '${
+            response.status
+          }'`
+        )
         return []
       }
 
