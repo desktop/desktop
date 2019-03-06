@@ -484,6 +484,15 @@ export class API {
         return []
       }
 
+      if (response.status >= 500 && response.status < 599) {
+        log.warn(
+          `fetchAll: '${path}' returned a server error code '${
+            response.status
+          }'`
+        )
+        return []
+      }
+
       const items = await parsedResponse<ReadonlyArray<T>>(response)
       if (items) {
         buf.push(...items)
