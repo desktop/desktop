@@ -12,7 +12,7 @@
       "[Improved] Enable Git protocol v2 for fetch/push/pull operations - #6142",
       "[Improved] Moving mouse pointer outside visible diff while selecting a range of lines in a partial commit now automatically scrolls the diff - #658",
       "[Improved] Sign in form validates both username and password - #6952. Thanks @say25!",
-      "[Improved] Update GitHub logo in \"About\" dialog - #5619. Thanks @HashimotoYT!",
+      "[Improved] Update GitHub logo in \"About\" dialog - #5619. Thanks @HashimotoYT!"
     ],
     "1.6.3-beta4": [
       "[Improved] Update GitHub logo in \"About\" dialog - #5619. Thanks @HashimotoYT!",
