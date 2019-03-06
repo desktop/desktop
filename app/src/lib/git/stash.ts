@@ -2,6 +2,6 @@ export interface IStashEntry {
   /** The name of the branch at the time the entry was created. */
   readonly branchName: string
 
-  /** The tip commit SHA at the time the entry was created. */
+  /** The SHA of the commit object created as a result of stashing. */
   readonly sha: string
 }
