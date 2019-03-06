@@ -478,7 +478,7 @@ export class API {
 
       if (response.status === HttpStatusCode.NotModified) {
         log.warn(`fetchAll: '${path}' returned a 304`)
-        return []
+        return buf
       }
 
       if (response.status >= 400 && response.status < 499) {
@@ -487,7 +487,7 @@ export class API {
             response.status
           }'`
         )
-        return []
+        return buf
       }
 
       if (response.status >= 500 && response.status < 599) {
@@ -496,7 +496,7 @@ export class API {
             response.status
           }'`
         )
-        return []
+        return buf
       }
 
       const items = await parsedResponse<ReadonlyArray<T>>(response)
