@@ -114,15 +114,23 @@ export class BranchPruner {
       timeSinceLastCheckout
     )
     if (branchesReadyForPruning.length === 0) {
+      log.info('[Branch Pruner] no branches to prune.')
       return false
     }
+
+    const branchesReadyForPruningCount = branchesReadyForPruning.length
+    const pluralizedBranches =
+      branchesReadyForPruningCount === 1 ? 'branch' : 'branches'
+    const pluralizedHave = branchesReadyForPruningCount === 1 ? 'has' : 'have'
 
     log.info(
       `[Branch Pruner] pruning ${
         branchesReadyForPruning.length
-      } branches that have been merged into the default branch, ${
+      } ${pluralizedBranches} from ${
+        this.repository.name
+      } that ${pluralizedHave} been merged into the default branch, ${
         defaultBranch.name
-      } (${defaultBranch.tip.sha}), from '${this.repository.name}`
+      } (${defaultBranch.tip.sha}).`
     )
 
     const gitStore = this.gitStoreCache.get(this.repository)
