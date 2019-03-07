@@ -118,7 +118,7 @@ export class BranchPruner {
     }
 
     log.info(
-      `Pruning ${
+      `[Branch Pruner] pruning ${
         branchesReadyForPruning.length
       } branches that have been merged into the default branch, ${
         defaultBranch.name
@@ -135,14 +135,23 @@ export class BranchPruner {
 
       const branchName = branch.canonicalRef.substr(branchRefPrefix.length)
 
-      const isDeleted =
-        __DEV__ ||
-        (await gitStore.performFailableOperation(() =>
-          deleteLocalBranch(this.repository, branchName)
-        ))
+      // Don't delete branches when in DEV mode
+      if (__DEV__) {
+        log.info(
+          `[Branch Pruner] ${branchName} (was ${
+            branch.sha
+          }) has been marked for pruning.`
+        )
+        continue
+      }
 
+      const isDeleted = await gitStore.performFailableOperation(() =>
+        deleteLocalBranch(this.repository, branchName)
+      )
       if (isDeleted) {
-        log.info(`Pruned branch ${branchName} (was ${branch.sha})`)
+        log.info(
+          `[Branch Pruner] pruned branch ${branchName} (was ${branch.sha})`
+        )
       }
     }
 
