@@ -95,7 +95,7 @@ export class BranchPruner {
    *
    * Note: This is ran automatically by calling `start` on the `BranchPruner` instance
    *
-   * @param timeSinceLastCheckout limits pruning to branches that haven't been checked out since this date (defaults to 2 weeks before today)
+   * @param timeSinceLastCheckout limits pruning to branches that haven't been checked out since this date (defaults to 2 weeks before today), passing null ignores constraint `3`
    * @returns true when branches have been prune
    */
   public async prune(
@@ -135,8 +135,8 @@ export class BranchPruner {
 
       const branchName = branch.canonicalRef.substr(branchRefPrefix.length)
 
-      // Don't delete branches when in DEV mode
-      if (__DEV__) {
+      // Don't delete branches when in DEV mode unless it's being done automatically
+      if (__DEV__ && timeSinceLastCheckout === null) {
         log.info(
           `[Branch Pruner] ${branchName} (was ${
             branch.sha
