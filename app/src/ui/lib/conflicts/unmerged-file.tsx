@@ -47,7 +47,7 @@ export const renderUnmergedFile: React.SFC<{
    */
   readonly manualResolution?: ManualConflictResolution
   /** branch we were on before starting merge */
-  readonly ourBranch: string
+  readonly ourBranch?: string
   /* `undefined` when we didn't know the branch at the beginning of the merge conflict resolution flow */
   readonly theirBranch?: string
   /** name of the resolved external editor */
@@ -128,7 +128,7 @@ const renderManualConflictedFile: React.SFC<{
   readonly path: string
   readonly status: ManualConflict
   readonly repository: Repository
-  readonly ourBranch: string
+  readonly ourBranch?: string
   readonly theirBranch?: string
   readonly dispatcher: Dispatcher
 }> = props => {
@@ -231,7 +231,7 @@ const makeManualConflictDropdownClickHandler = (
   status: ManualConflict,
   repository: Repository,
   dispatcher: Dispatcher,
-  ourBranch: string,
+  ourBranch?: string,
   theirBranch?: string
 ) => {
   return () => {
@@ -349,7 +349,7 @@ const renderResolvedFileStatusSummary: React.SFC<{
 /** returns the name of the branch that corresponds to the chosen manual resolution */
 function getBranchForResolution(
   manualResolution: ManualConflictResolution | undefined,
-  ourBranch: string,
+  ourBranch?: string,
   theirBranch?: string
 ): string | undefined {
   if (manualResolution === ManualConflictResolutionKind.ours) {

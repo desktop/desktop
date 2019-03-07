@@ -113,8 +113,8 @@ export class RebaseConflictsDialog extends React.Component<
                 repository: this.props.repository,
                 dispatcher: this.props.dispatcher,
                 manualResolution: this.props.manualResolutions.get(f.path),
-                ourBranch: this.props.targetBranch,
-                theirBranch: this.props.baseBranch,
+                theirBranch: this.props.targetBranch,
+                ourBranch: this.props.baseBranch,
               })
             : null
         )}
