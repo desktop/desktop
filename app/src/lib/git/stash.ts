@@ -1,6 +1,7 @@
 import { git } from '.'
 import { Repository } from '../../models/repository'
 
+export const MagicStashString = '!github-desktop'
 export interface IStashEntry {
   /** The name of the branch at the time the entry was created. */
   readonly branchName: string
@@ -12,6 +13,11 @@ export interface IStashEntry {
 /** RegEx for parsing out the stash SHA and message */
 const stashEntryRe = /^([0-9a-f]{5,40})@(.+)$/
 
+/**
+ * Get the list of stash entries
+ *
+ * @param repository
+ */
 export async function getStashEntries(
   repository: Repository
 ): Promise<ReadonlyArray<IStashEntry>> {
@@ -34,11 +40,30 @@ export async function getStashEntries(
       continue
     }
 
+    const branchName = getCanonicalRefName(match[2])
+
+    // if branch name is null, the stash entry isn't using our magic string
+    if (branchName === null) {
+      continue
+    }
+
     stashEntries.push({
-      branchName: 'Todo: parse from message',
+      branchName: branchName,
       stashSha: match[1],
     })
   }
 
   return stashEntries
+}
+
+function getCanonicalRefName(stashMessage: string): string | null {
+  const parts = stashMessage.split(':').map(s => s.trim())
+  const magicString = parts[1]
+  const canonicalRef = parts[2]
+
+  if (magicString !== MagicStashString) {
+    return null
+  }
+
+  return canonicalRef
 }
