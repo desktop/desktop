@@ -5,31 +5,31 @@ import {
   ConflictedFileStatus,
   ConflictsWithMarkers,
   ManualConflict,
-} from '../../models/status'
+} from '../../../models/status'
 import { join } from 'path'
-import { Repository } from '../../models/repository'
-import { Dispatcher } from '../dispatcher'
-import { showContextualMenu } from '../main-process-proxy'
-import { Octicon, OcticonSymbol } from '../octicons'
-import { PathText } from '../lib/path-text'
+import { Repository } from '../../../models/repository'
+import { Dispatcher } from '../../dispatcher'
+import { showContextualMenu } from '../../main-process-proxy'
+import { Octicon, OcticonSymbol } from '../../octicons'
+import { PathText } from '../path-text'
 import {
   ManualConflictResolutionKind,
   ManualConflictResolution,
-} from '../../models/manual-conflict-resolution'
+} from '../../../models/manual-conflict-resolution'
 import {
   OpenWithDefaultProgramLabel,
   RevealInFileManagerLabel,
-} from '../lib/context-menu'
-import { openFile } from '../lib/open-file'
+} from '../context-menu'
+import { openFile } from '../open-file'
 import { shell } from 'electron'
-import { Button } from '../lib/button'
-import { IMenuItem } from '../../lib/menu-item'
-import { LinkButton } from '../lib/link-button'
+import { Button } from '../button'
+import { IMenuItem } from '../../../lib/menu-item'
+import { LinkButton } from '../link-button'
 import {
   hasUnresolvedConflicts,
   getUnmergedStatusEntryDescription,
   getLabelForManualResolutionOption,
-} from '../../lib/status'
+} from '../../../lib/status'
 
 /**
  * Renders an unmerged file status and associated buttons for the merge conflicts modal

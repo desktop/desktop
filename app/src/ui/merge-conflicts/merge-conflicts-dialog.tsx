@@ -20,7 +20,7 @@ import {
   getUnmergedFiles,
 } from '../../lib/status'
 import { DefaultCommitMessage } from '../../models/commit-message'
-import { renderUnmergedFile } from './unmerged-file'
+import { renderUnmergedFile } from '../lib/conflicts'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { BannerType } from '../../models/banner'
 
