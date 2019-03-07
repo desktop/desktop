@@ -99,11 +99,10 @@ export class BranchPruner {
    * @returns true when branches have been prune and false otherwise
    */
   public async forcePrune(
-    lastCheckOutDate: Date = moment()
+    timeSinceLastCheckout: Date | null = moment()
       .subtract(2, 'weeks')
       .toDate()
   ): Promise<boolean> {
-    // Get list of branches that have been merged
     const { branchesState } = this.repositoriesStateCache.get(this.repository)
     const { defaultBranch } = branchesState
 
@@ -111,35 +110,9 @@ export class BranchPruner {
       return false
     }
 
-    const mergedBranches = await this.findBranchesMergedIntoDefaultBranch(
-      this.repository,
-      defaultBranch
+    const branchesReadyForPruning = await this.getBranchesReadyForPruning(
+      timeSinceLastCheckout
     )
-
-    if (mergedBranches.length === 0) {
-      log.info('No branches to prune.')
-      return false
-    }
-
-    // Get all branches checked out within the past 2 weeks
-    const twoWeeksAgo = moment()
-      .subtract(2, 'weeks')
-      .toDate()
-    const recentlyCheckedOutBranches = await getCheckoutsAfterDate(
-      this.repository,
-      twoWeeksAgo
-    )
-    const recentlyCheckedOutCanonicalRefs = new Set(
-      [...recentlyCheckedOutBranches.keys()].map(formatAsLocalRef)
-    )
-
-    // Create array of branches that can be pruned
-    const branchesReadyForPruning = mergedBranches.filter(
-      mb =>
-        !ReservedRefs.includes(mb.canonicalRef) &&
-        !recentlyCheckedOutCanonicalRefs.has(mb.canonicalRef)
-    )
-
     if (branchesReadyForPruning.length === 0) {
       return false
     }
@@ -174,6 +147,44 @@ export class BranchPruner {
     }
 
     return true
+  }
+
+  private async getBranchesReadyForPruning(
+    timeSinceLastCheckout: Date | null
+  ): Promise<ReadonlyArray<IMergedBranch>> {
+    const { branchesState } = this.repositoriesStateCache.get(this.repository)
+    const { defaultBranch } = branchesState
+
+    if (defaultBranch === null) {
+      return []
+    }
+
+    const mergedBranches = await this.findBranchesMergedIntoDefaultBranch(
+      this.repository,
+      defaultBranch
+    )
+
+    if (mergedBranches.length === 0) {
+      return []
+    }
+
+    const recentlyCheckedOutBranches =
+      timeSinceLastCheckout !== null
+        ? await getBranchCheckouts(this.repository, timeSinceLastCheckout)
+        : new Map<string, Date>()
+
+    const recentlyCheckedOutCanonicalRefs = new Set(
+      [...recentlyCheckedOutBranches.keys()].map(formatAsLocalRef)
+    )
+
+    // Create array of branches that can be pruned
+    const branchesReadyForPruning = mergedBranches.filter(
+      mb =>
+        !ReservedRefs.includes(mb.canonicalRef) &&
+        !recentlyCheckedOutCanonicalRefs.has(mb.canonicalRef)
+    )
+
+    return branchesReadyForPruning
   }
 
   private async pruneLocalBranches(): Promise<void> {
