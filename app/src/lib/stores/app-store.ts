@@ -4328,7 +4328,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public async _forceBranchPruning() {
-    if (this.currentBranchPruner == null) {
+    if (this.currentBranchPruner === null) {
       return
     }
 
