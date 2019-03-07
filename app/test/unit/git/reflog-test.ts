@@ -5,7 +5,7 @@ import {
   createBranch,
   checkoutBranch,
   renameBranch,
-  getCheckoutsAfterDate,
+  getBranchCheckouts,
 } from '../../../src/lib/git'
 import { setupFixtureRepository } from '../../helpers/repositories'
 import * as moment from 'moment'
@@ -75,7 +75,7 @@ describe('git/reflog', () => {
       await createAndCheckout(repository!, 'branch-1')
       await createAndCheckout(repository!, 'branch-2')
 
-      const branches = await getCheckoutsAfterDate(
+      const branches = await getBranchCheckouts(
         repository!,
         moment()
           .add(1, 'day')
@@ -89,7 +89,7 @@ describe('git/reflog', () => {
       await createAndCheckout(repository!, 'branch-1')
       await createAndCheckout(repository!, 'branch-2')
 
-      const branches = await getCheckoutsAfterDate(
+      const branches = await getBranchCheckouts(
         repository!,
         moment()
           .subtract(1, 'hour')

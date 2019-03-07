@@ -4,7 +4,7 @@ import { Branch } from '../../../models/branch'
 import { GitStoreCache } from '../git-store-cache'
 import {
   getMergedBranches,
-  getCheckoutsAfterDate,
+  getBranchCheckouts,
   getSymbolicRef,
   IMergedBranch,
   formatAsLocalRef,
