@@ -23,6 +23,7 @@ interface IConfirmRemoveRepositoryProps {
 
 interface IConfirmRemoveRepositoryState {
   readonly deleteRepoFromDisk: boolean
+  readonly isRemovingRepository: boolean
 }
 
 export class ConfirmRemoveRepository extends React.Component<
@@ -34,6 +35,7 @@ export class ConfirmRemoveRepository extends React.Component<
 
     this.state = {
       deleteRepoFromDisk: false,
+      isRemovingRepository: false,
     }
   }
 
@@ -42,6 +44,8 @@ export class ConfirmRemoveRepository extends React.Component<
   }
 
   private onConfirmed = () => {
+    this.setState({ isRemovingRepository: true })
+
     this.props.onConfirmation(
       this.props.repository,
       this.state.deleteRepoFromDisk
@@ -57,6 +61,7 @@ export class ConfirmRemoveRepository extends React.Component<
         key="remove-repository-confirmation"
         type="warning"
         title={__DARWIN__ ? 'Remove Repository' : 'Remove repository'}
+        loading={this.state.isRemovingRepository}
         onDismissed={this.cancel}
         onSubmit={this.cancel}
       >
@@ -87,7 +92,12 @@ export class ConfirmRemoveRepository extends React.Component<
         <DialogFooter>
           <ButtonGroup destructive={true}>
             <Button type="submit">Cancel</Button>
-            <Button onClick={this.onConfirmed}>Remove</Button>
+            <Button
+              onClick={this.onConfirmed}
+              disabled={this.state.isRemovingRepository}
+            >
+              Remove
+            </Button>
           </ButtonGroup>
         </DialogFooter>
       </Dialog>
