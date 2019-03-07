@@ -63,7 +63,24 @@ export function enableNoChangesCreatePRBlankslateAction(): boolean {
   return enableBetaFeatures()
 }
 
-/** Should the app show the new rebase flow? */
-export function enableNewRebaseFlow(): boolean {
+/** Should the app detect and handle rebase conflicts when `pull.rebase` is set? */
+export function enablePullWithRebase(): boolean {
+  return true
+}
+
+/**
+ *  Enables a new UI for the repository picker that supports
+ *  grouping and filtering (GitHub) repositories by owner/organization.
+ */
+export function enableGroupRepositoriesByOwner(): boolean {
   return enableBetaFeatures()
+}
+
+/**
+ * As there is some lack of clarity about this feature with how it overlaps
+ * with planned support for stashing changes, this warning dialog is behind
+ * a feature flag for the moment.
+ */
+export function enableLocalChangesWarningHandler(): boolean {
+  return enableDevelopmentFeatures()
 }

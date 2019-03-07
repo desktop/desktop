@@ -3,7 +3,7 @@
   "productName": "GitHub Desktop",
   "bundleID": "com.github.GitHubClient",
   "companyName": "GitHub, Inc.",
-  "version": "1.6.3-beta2",
+  "version": "1.6.4-beta0",
   "main": "./main.js",
   "repository": {
     "type": "git",
@@ -34,7 +34,7 @@
     "fs-admin": "^0.1.7",
     "fs-extra": "^6.0.0",
     "fuzzaldrin-plus": "^0.6.0",
-    "keytar": "^4.3.0",
+    "keytar": "^4.4.1",
     "memoize-one": "^4.0.3",
     "moment": "^2.17.1",
     "mri": "^1.1.0",

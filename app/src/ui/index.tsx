@@ -54,7 +54,10 @@ import {
 import { UiActivityMonitor } from './lib/ui-activity-monitor'
 import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
 import { ApiRepositoriesStore } from '../lib/stores/api-repositories-store'
-import { enableNewRebaseFlow } from '../lib/feature-flag'
+import {
+  enablePullWithRebase,
+  enableLocalChangesWarningHandler,
+} from '../lib/feature-flag'
 
 if (__DEV__) {
   installDevGlobals()
@@ -159,8 +162,10 @@ dispatcher.registerErrorHandler(gitAuthenticationErrorHandler)
 dispatcher.registerErrorHandler(pushNeedsPullHandler)
 dispatcher.registerErrorHandler(backgroundTaskHandler)
 dispatcher.registerErrorHandler(missingRepositoryHandler)
-dispatcher.registerErrorHandler(localChangesOverwrittenHandler)
-if (enableNewRebaseFlow()) {
+if (enableLocalChangesWarningHandler()) {
+  dispatcher.registerErrorHandler(localChangesOverwrittenHandler)
+}
+if (enablePullWithRebase()) {
   dispatcher.registerErrorHandler(rebaseConflictsHandler)
 }
 

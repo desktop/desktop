@@ -479,6 +479,23 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     this.markIntraLineChanges(cm.getDoc(), this.props.hunks)
   }
 
+  /**
+   * When we swap in a new document that happens to have the exact same number
+   * of lines as the previous document and where neither of those document
+   * needs scrolling (i.e the document doesn't extend beyond the visible area
+   * of the editor) we techincally never update the viewport as far as CodeMirror
+   * is concerned, meaning that we don't get a chance to update our gutters.
+   *
+   * By subscribing to the event that happens immediately after the document
+   * swap has been completed we can check for this relatively rare condition
+   * and explicitly update the viewport (and thereby the gutters).
+   */
+  private onAfterSwapDoc = (cm: Editor, oldDoc: Doc, newDoc: Doc) => {
+    if (oldDoc.lineCount() === newDoc.lineCount()) {
+      this.updateViewport()
+    }
+  }
+
   private onViewportChange = (cm: Editor, from: number, to: number) => {
     const doc = cm.getDoc()
     const batchedOps = new Array<Function>()
@@ -752,6 +769,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
         options={defaultEditorOptions}
         isSelectionEnabled={this.isSelectionEnabled}
         onSwapDoc={this.onSwapDoc}
+        onAfterSwapDoc={this.onAfterSwapDoc}
         onViewportChange={this.onViewportChange}
         ref={this.getAndStoreCodeMirrorInstance}
         onCopy={this.onCopy}

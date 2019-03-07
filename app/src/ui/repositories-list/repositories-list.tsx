@@ -6,10 +6,10 @@ import {
   IRepositoryListItem,
   Repositoryish,
   RepositoryGroupIdentifier,
+  KnownRepositoryGroup,
 } from './group-repositories'
 import { FilterList, IFilterListGroup } from '../lib/filter-list'
 import { IMatches } from '../../lib/fuzzy-find'
-import { assertNever } from '../../lib/fatal-error'
 import { ILocalRepositoryState } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
 import { Button } from '../lib/button'
@@ -144,14 +144,12 @@ export class RepositoriesList extends React.Component<
   }
 
   private getGroupLabel(identifier: RepositoryGroupIdentifier) {
-    if (identifier === 'github') {
-      return 'GitHub.com'
-    } else if (identifier === 'enterprise') {
+    if (identifier === KnownRepositoryGroup.Enterprise) {
       return 'Enterprise'
-    } else if (identifier === 'other') {
+    } else if (identifier === KnownRepositoryGroup.NonGitHub) {
       return 'Other'
     } else {
-      return assertNever(identifier, `Unknown identifier: ${identifier}`)
+      return identifier
     }
   }
 
