@@ -214,7 +214,7 @@ export class BranchPruner {
     // for records that haven't been updated with the new field yet
     if (lastPruneDate != null && threshold.isBefore(lastPruneDate)) {
       log.info(
-        `Last prune took place ${moment(lastPruneDate).from(
+        `[Branch Pruner] last prune took place ${moment(lastPruneDate).from(
           dateNow
         )} - skipping`
       )
