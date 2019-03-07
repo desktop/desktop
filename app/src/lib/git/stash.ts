@@ -3,5 +3,5 @@ export interface IStashEntry {
   readonly branchName: string
 
   /** The SHA of the commit object created as a result of stashing. */
-  readonly sha: string
+  readonly stashSha: string
 }
