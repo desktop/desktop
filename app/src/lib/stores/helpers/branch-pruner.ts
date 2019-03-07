@@ -226,6 +226,8 @@ export class BranchPruner {
       this.repository,
       Date.now()
     )
-    didPruneHappen && this.onPruneCompleted(this.repository)
+    if (didPruneHappen) {
+      this.onPruneCompleted(this.repository)
+    }
   }
 }
