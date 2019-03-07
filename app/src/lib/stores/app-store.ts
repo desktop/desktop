@@ -4332,7 +4332,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    await this.currentBranchPruner.forcePrune()
+    await this.currentBranchPruner.prune(null)
   }
 }
 /**

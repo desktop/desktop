@@ -88,17 +88,17 @@ export class BranchPruner {
   }
 
   /**
+   * Locally prune branches when the following criteria are met
+   * 1. deleted on the remote (github.com) and
+   * 2. merged into the repository's default branch and
+   * 3. hasn't been checked out locally since `timeSinceLastCheckout`
    *
-   */
-  /**
-   * Prunes branches that have been merged into the default branch
-   * and have been deleted on the remote. This is ran automatically
-   * by calling `start` on the `BranchPruner` instance
+   * Note: This is ran automatically by calling `start` on the `BranchPruner` instance
    *
-   * @param lastCheckOutDate date from which to check if a branch was checked out - defaults to 2 weekds from today
-   * @returns true when branches have been prune and false otherwise
+   * @param timeSinceLastCheckout limits pruning to branches that haven't been checked out since this date (defaults to 2 weeks before today)
+   * @returns true when branches have been prune
    */
-  public async forcePrune(
+  public async prune(
     timeSinceLastCheckout: Date | null = moment()
       .subtract(2, 'weeks')
       .toDate()
@@ -212,7 +212,7 @@ export class BranchPruner {
       return
     }
 
-    const didPruneHappen = await this.forcePrune()
+    const didPruneHappen = await this.prune()
     await this.repositoriesStore.updateLastPruneAttemptDate(
       this.repository,
       Date.now()
