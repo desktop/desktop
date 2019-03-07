@@ -1,6 +1,9 @@
 ---
-name: 🐛 Bug report
-about: Report a problem encountered while using GitHub Desktop
+name: "   Отчет об ошибке"
+about: Сообщить о проблеме, возникающих при использовании GitHub рабочего стола
+title: ''
+labels: ''
+assignees: ''
 
 ---
 

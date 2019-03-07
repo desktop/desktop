@@ -1,6 +1,10 @@
 ---
-name: 🎉 Feature request
-about: Suggest an idea to improve GitHub Desktop
+name: " ЗАПРОС ФУНКЦИИ"
+about: Предложить идею для улучшения GitHub рабочего стола
+title: ''
+labels: ''
+assignees: ''
+
 ---
 
 **Is your feature request related to a problem? Please describe.**
