@@ -4,7 +4,7 @@ import * as React from 'react'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { Repository } from '../../models/repository'
 import { ICommitContext } from '../../models/commit'
 import { WorkingDirectoryFileChange } from '../../models/status'
@@ -40,7 +40,7 @@ export class CommitConflictsWarning extends React.Component<
       this.props.repository,
       this.props.context
     )
-    this.props.dispatcher.clearMergeConflictsBanner()
+    this.props.dispatcher.clearBanner()
     this.props.dispatcher.setCommitMessage(
       this.props.repository,
       DefaultCommitMessage

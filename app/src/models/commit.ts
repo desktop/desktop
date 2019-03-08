@@ -53,6 +53,7 @@ export class Commit {
 
   /**
    * @param sha The commit's SHA.
+   * @param shortSha The commit's shortSHA.
    * @param summary The first line of the commit message.
    * @param body The commit message without the first line and CR.
    * @param author Information about the author of this commit.
@@ -65,6 +66,7 @@ export class Commit {
    */
   public constructor(
     public readonly sha: string,
+    public readonly shortSha: string,
     public readonly summary: string,
     public readonly body: string,
     public readonly author: CommitIdentity,

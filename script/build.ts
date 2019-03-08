@@ -6,11 +6,7 @@ import * as cp from 'child_process'
 import * as fs from 'fs-extra'
 import * as packager from 'electron-packager'
 
-import { licenseOverrides } from './license-overrides'
-
 import { externals } from '../app/webpack.common'
-
-import * as legalEagle from 'legal-eagle'
 
 interface IFrontMatterResult<T> {
   readonly attributes: T
@@ -39,11 +35,13 @@ import {
   getBundleID,
   getCompanyName,
   getProductName,
-  getVersion,
 } from '../app/package-info'
 
 import { getReleaseChannel, getDistRoot, getExecutableName } from './dist-info'
 import { isRunningOnFork, isCircleCI } from './build-platforms'
+
+import { updateLicenseDump } from './licenses/update-license-dump'
+import { verifyInjectedSassVariables } from './validate-sass/validate-all'
 
 const projectRoot = path.join(__dirname, '..')
 const outRoot = path.join(projectRoot, 'out')
@@ -74,28 +72,40 @@ if (isCircleCI() && !isRunningOnFork()) {
   cp.execSync(path.join(__dirname, 'setup-macos-keychain'))
 }
 
-console.log('Updating our licenses dump…')
-updateLicenseDump(async err => {
-  if (err) {
+verifyInjectedSassVariables(outRoot)
+  .catch(err => {
     console.error(
-      'Error updating the license dump. This is fatal for a published build.'
+      'Error verifying the Sass variables in the rendered app. This is fatal for a published build.'
     )
-    console.error(err)
 
     if (isPublishableBuild) {
       process.exit(1)
     }
-  }
+  })
+  .then(() => {
+    console.log('Updating our licenses dump…')
+    return updateLicenseDump(projectRoot, outRoot).catch(err => {
+      console.error(
+        'Error updating the license dump. This is fatal for a published build.'
+      )
+      console.error(err)
 
-  console.log('Packaging…')
-  try {
-    const appPaths = await packageApp()
-    console.log(`Built to ${appPaths}`)
-  } catch (err) {
+      if (isPublishableBuild) {
+        process.exit(1)
+      }
+    })
+  })
+  .then(() => {
+    console.log('Packaging…')
+    return packageApp()
+  })
+  .catch(err => {
     console.error(err)
     process.exit(1)
-  }
-})
+  })
+  .then(appPaths => {
+    console.log(`Built to ${appPaths}`)
+  })
 
 /**
  * The additional packager options not included in the existing typing.
@@ -341,66 +351,6 @@ function copyDependencies() {
       appPathMain
     )
   }
-}
-
-function updateLicenseDump(callback: (err: Error | null) => void) {
-  const appRoot = path.join(projectRoot, 'app')
-  const outPath = path.join(outRoot, 'static', 'licenses.json')
-
-  legalEagle(
-    { path: appRoot, overrides: licenseOverrides, omitPermissive: true },
-    (err, summary) => {
-      if (err) {
-        callback(err)
-        return
-      }
-
-      if (Object.keys(summary).length > 0) {
-        const overridesPath = path.join(__dirname, 'license-overrides.js')
-        let licensesMessage = ''
-        for (const key in summary) {
-          const license = summary[key]
-          licensesMessage += `${key} (${license.repository}): ${
-            license.license
-          }\n`
-        }
-
-        const message = `The following dependencies have unknown or non-permissive licenses. Check it out and update ${overridesPath} if appropriate:\n${licensesMessage}`
-        callback(new Error(message))
-      } else {
-        legalEagle(
-          { path: appRoot, overrides: licenseOverrides },
-          (err, summary) => {
-            if (err) {
-              callback(err)
-              return
-            }
-
-            // legal-eagle still chooses to ignore the LICENSE at the root
-            // this injects the current license and pins the source URL before we
-            // dump the JSON file to disk
-            const licenseSource = path.join(projectRoot, 'LICENSE')
-            const licenseText = fs.readFileSync(licenseSource, {
-              encoding: 'utf-8',
-            })
-            const appVersion = getVersion()
-
-            summary[`desktop@${appVersion}`] = {
-              repository: 'https://github.com/desktop/desktop',
-              license: 'MIT',
-              source: `https://github.com/desktop/desktop/blob/release-${appVersion}/LICENSE`,
-              sourceText: licenseText,
-            }
-
-            fs.writeFileSync(outPath, JSON.stringify(summary), {
-              encoding: 'utf8',
-            })
-            callback(null)
-          }
-        )
-      }
-    }
-  )
 }
 
 function generateLicenseMetadata(outRoot: string) {

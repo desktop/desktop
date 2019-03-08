@@ -96,7 +96,7 @@ describe('git/commit', () => {
       expect(commit).not.toBeNull()
       expect(commit!.summary).toEqual('Special commit')
       expect(commit!.body).toEqual('# this is a comment\n')
-      expect(commit!.sha.substring(0, 7)).toEqual(sha)
+      expect(commit!.shortSha).toEqual(sha)
     })
 
     it('can commit for empty repository', async () => {
@@ -188,7 +188,7 @@ describe('git/commit', () => {
       const newTip = (await getCommits(repository!, 'HEAD', 1))[0]
       expect(newTip.sha).not.toEqual(previousTip.sha)
       expect(newTip.summary).toEqual('title')
-      expect(newTip.sha.substring(0, 7)).toEqual(sha)
+      expect(newTip.shortSha).toEqual(sha)
 
       // verify that the contents of this new commit are just the new file
       const changedFiles = await getChangedFiles(repository!, newTip.sha)
@@ -295,7 +295,7 @@ describe('git/commit', () => {
       const newTip = (await getCommits(repository!, 'HEAD', 1))[0]
       expect(newTip.sha).not.toEqual(previousTip.sha)
       expect(newTip.summary).toEqual('title')
-      expect(newTip.sha.substring(0, 7)).toEqual(sha)
+      expect(newTip.shortSha).toEqual(sha)
 
       // verify that the contents of this new commit are just the modified file
       const changedFiles = await getChangedFiles(repository!, newTip.sha)
@@ -341,7 +341,7 @@ describe('git/commit', () => {
       const newTip = (await getCommits(repository!, 'HEAD', 1))[0]
       expect(newTip.sha).not.toEqual(previousTip.sha)
       expect(newTip.summary).toEqual('title')
-      expect(newTip.sha.substring(0, 7)).toEqual(sha)
+      expect(newTip.shortSha).toEqual(sha)
 
       // verify that the contents of this new commit are just the modified file
       const changedFiles = await getChangedFiles(repository!, newTip.sha)
@@ -512,7 +512,7 @@ describe('git/commit', () => {
 
       const commits = await getCommits(repo, 'HEAD', 5)
       expect(commits[0].parentSHAs.length).toEqual(2)
-      expect(commits[0]!.sha.substring(0, 7)).toEqual(sha)
+      expect(commits[0]!.shortSha).toEqual(sha)
     })
   })
 
@@ -675,7 +675,43 @@ describe('git/commit', () => {
       const commit = await getCommit(repo, 'HEAD')
       expect(commit).not.toBeNull()
       expect(commit!.summary).toEqual('commit again!')
-      expect(commit!.sha.substring(0, 7)).toEqual(sha)
+      expect(commit!.shortSha).toEqual(sha)
+    })
+
+    it('file is deleted in index', async () => {
+      const repo = await setupEmptyRepository()
+      await FSE.writeFile(path.join(repo.path, 'secret'), 'contents\n')
+      await FSE.writeFile(path.join(repo.path, '.gitignore'), '')
+
+      // Setup repo to reproduce bug
+      await GitProcess.exec(['add', '.'], repo.path)
+      await GitProcess.exec(['commit', '-m', 'Initial commit'], repo.path)
+
+      // Make changes that should remain secret
+      await FSE.writeFile(path.join(repo.path, 'secret'), 'Somethign secret\n')
+
+      // Ignore it
+      await FSE.writeFile(path.join(repo.path, '.gitignore'), 'secret')
+
+      // Remove from index to mark as deleted
+      await GitProcess.exec(['rm', '--cached', 'secret'], repo.path)
+
+      // Make sure that file is marked as deleted
+      const beforeCommit = await getStatusOrThrow(repo)
+      const files = beforeCommit.workingDirectory.files
+      expect(files.length).toBe(2)
+      expect(files[1].status.kind).toBe(AppFileStatusKind.Deleted)
+
+      // Commit changes
+      await createCommit(repo!, 'FAIL commit', files)
+      const afterCommit = await getStatusOrThrow(repo)
+      expect(beforeCommit.currentTip).not.toBe(afterCommit.currentTip)
+
+      // Verify the file was delete in repo
+      const changedFiles = await getChangedFiles(repo, afterCommit.currentTip!)
+      expect(changedFiles.length).toBe(2)
+      expect(changedFiles[0].status.kind).toBe(AppFileStatusKind.Modified)
+      expect(changedFiles[1].status.kind).toBe(AppFileStatusKind.Deleted)
     })
   })
 })

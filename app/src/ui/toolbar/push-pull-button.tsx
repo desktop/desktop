@@ -1,13 +1,14 @@
 import * as React from 'react'
 import { ToolbarButton, ToolbarButtonStyle } from './button'
 import { Progress } from '../../models/progress'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Repository } from '../../models/repository'
 import { IAheadBehind } from '../../models/branch'
 import { TipState } from '../../models/tip'
 import { RelativeTime } from '../relative-time'
 import { FetchType } from '../../models/fetch'
+import { enablePullWithRebase } from '../../lib/feature-flag'
 
 interface IPushPullButtonProps {
   /**
@@ -19,7 +20,7 @@ interface IPushPullButtonProps {
   /** The name of the remote. */
   readonly remoteName: string | null
 
-  /** Is a push/pull/update in progress? */
+  /** Is a push/pull/fetch in progress? */
   readonly networkActionInProgress: boolean
 
   /** The date of the last fetch. */
@@ -40,6 +41,28 @@ interface IPushPullButtonProps {
    * Used for setting the enabled/disabled and the description text.
    */
   readonly tipState: TipState
+
+  /** Has the user configured pull.rebase to anything? */
+  readonly pullWithRebase?: boolean
+
+  /** Is the detached HEAD state related to a rebase or not? */
+  readonly rebaseInProgress: boolean
+}
+
+function getActionLabel(
+  { ahead, behind }: IAheadBehind,
+  remoteName: string,
+  pullWithRebase?: boolean
+) {
+  if (behind > 0) {
+    return pullWithRebase && enablePullWithRebase()
+      ? `Pull ${remoteName} with rebase`
+      : `Pull ${remoteName}`
+  }
+  if (ahead > 0) {
+    return `Push ${remoteName}`
+  }
+  return `Fetch ${remoteName}`
 }
 
 /**
@@ -131,18 +154,11 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
       return 'Publish branch'
     }
 
-    const { ahead, behind } = this.props.aheadBehind
-    const actionName = (function() {
-      if (behind > 0) {
-        return 'Pull'
-      }
-      if (ahead > 0) {
-        return 'Push'
-      }
-      return 'Fetch'
-    })()
-
-    return `${actionName} ${this.props.remoteName}`
+    return getActionLabel(
+      this.props.aheadBehind,
+      this.props.remoteName,
+      this.props.pullWithRebase
+    )
   }
 
   private getIcon(): OcticonSymbol {
@@ -176,7 +192,9 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
     }
 
     if (tipState === TipState.Detached) {
-      return 'Cannot publish detached HEAD'
+      return this.props.rebaseInProgress
+        ? 'Rebase in progress'
+        : 'Cannot publish detached HEAD'
     }
 
     if (tipState === TipState.Unborn) {

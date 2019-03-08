@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 import { Repository } from '../../models/repository'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { sanitizedBranchName } from '../../lib/sanitize-branch'
 import { Branch, StartPoint } from '../../models/branch'
 import { TextBox } from '../lib/text-box'

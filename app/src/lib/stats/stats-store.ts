@@ -80,6 +80,13 @@ const DefaultDailyMeasures: IDailyMeasures = {
   mergeConflictsDialogReopenedCount: 0,
   guidedConflictedMergeCompletionCount: 0,
   unguidedConflictedMergeCompletionCount: 0,
+  createPullRequestCount: 0,
+  rebaseConflictsDialogDismissalCount: 0,
+  rebaseConflictsDialogReopenedCount: 0,
+  rebaseAbortedAfterConflictsCount: 0,
+  rebaseSuccessAfterConflictsCount: 0,
+  pullWithRebaseCount: 0,
+  pullWithDefaultSettingCount: 0,
 }
 
 interface IOnboardingStats {
@@ -254,6 +261,8 @@ type DailyStats = ICalculatedStats &
 export interface IStatsStore {
   recordMergeAbortedAfterConflicts: () => void
   recordMergeSuccessAfterConflicts: () => void
+  recordRebaseAbortedAfterConflicts: () => void
+  recordRebaseSuccessAfterConflicts: () => void
 }
 
 /** The store for the app's stats. */
@@ -816,6 +825,70 @@ export class StatsStore implements IStatsStore {
     return this.updateDailyMeasures(m => ({
       unguidedConflictedMergeCompletionCount:
         m.unguidedConflictedMergeCompletionCount + 1,
+    }))
+  }
+
+  /**
+   * Increments the `createPullRequestCount` metric
+   */
+  public async recordCreatePullRequest(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      createPullRequestCount: m.createPullRequestCount + 1,
+    }))
+  }
+
+  /**
+   * Increments the `rebaseConflictsDialogDismissalCount` metric
+   */
+  public async recordRebaseConflictsDialogDismissal(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      rebaseConflictsDialogDismissalCount:
+        m.rebaseConflictsDialogDismissalCount + 1,
+    }))
+  }
+
+  /**
+   * Increments the `rebaseConflictsDialogDismissalCount` metric
+   */
+  public async recordRebaseConflictsDialogReopened(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      rebaseConflictsDialogReopenedCount:
+        m.rebaseConflictsDialogReopenedCount + 1,
+    }))
+  }
+
+  /**
+   * Increments the `rebaseAbortedAfterConflictsCount` metric
+   */
+  public async recordRebaseAbortedAfterConflicts(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      rebaseAbortedAfterConflictsCount: m.rebaseAbortedAfterConflictsCount + 1,
+    }))
+  }
+  /**
+   * Increments the `pullWithRebaseCount` metric
+   */
+  public recordPullWithRebaseEnabled() {
+    return this.updateDailyMeasures(m => ({
+      pullWithRebaseCount: m.pullWithRebaseCount + 1,
+    }))
+  }
+
+  /**
+   * Increments the `rebaseSuccessAfterConflictsCount` metric
+   */
+  public async recordRebaseSuccessAfterConflicts(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      rebaseSuccessAfterConflictsCount: m.rebaseSuccessAfterConflictsCount + 1,
+    }))
+  }
+
+  /**
+   * Increments the `pullWithDefaultSettingCount` metric
+   */
+  public recordPullWithDefaultSetting() {
+    return this.updateDailyMeasures(m => ({
+      pullWithDefaultSettingCount: m.pullWithDefaultSettingCount + 1,
     }))
   }
 

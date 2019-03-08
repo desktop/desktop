@@ -1,12 +1,10 @@
 import * as React from 'react'
-import * as classNames from 'classnames'
 import * as ReactCSSTransitionReplace from 'react-css-transition-replace'
 
 import { encodePathAsUrl } from '../../lib/path'
-import { revealInFileManager } from '../../lib/app-shell'
 import { Repository } from '../../models/repository'
 import { LinkButton } from '../lib/link-button'
-import { enableNewNoChangesBlankslate } from '../../lib/feature-flag'
+import { enableNoChangesCreatePRBlankslateAction } from '../../lib/feature-flag'
 import { MenuIDs } from '../../main-process/menu'
 import { IMenu, MenuItem } from '../../models/app-menu'
 import memoizeOne from 'memoize-one'
@@ -18,11 +16,6 @@ import { TipState, IValidBranch } from '../../models/tip'
 import { Ref } from '../lib/ref'
 import { IAheadBehind } from '../../models/branch'
 import { IRemote } from '../../models/remote'
-
-const BlankSlateImage = encodePathAsUrl(
-  __dirname,
-  'static/empty-no-file-selected.svg'
-)
 
 function formatMenuItemLabel(text: string) {
   if (__WIN32__ || __LINUX__) {
@@ -189,60 +182,13 @@ export class NoChanges extends React.Component<
     return this.getMenuInfoMap(this.props.appMenu).get(menuItemId)
   }
 
-  private renderClassicBlankSlate() {
-    const opener = __DARWIN__
-      ? 'Finder'
-      : __WIN32__
-      ? 'Explorer'
-      : 'your File Manager'
-    return (
-      <div className="panel blankslate" id="no-changes">
-        <img src={BlankSlateImage} className="blankslate-image" />
-        <div>No local changes</div>
-
-        <div>
-          Would you like to{' '}
-          <LinkButton onClick={this.open}>open this repository</LinkButton> in{' '}
-          {opener}?
-        </div>
-      </div>
-    )
-  }
-
-  private renderNewNoChangesBlankSlate() {
-    const className = classNames({
-      // This is unneccessary but serves as a reminder to drop
-      // the ng class from here and change the scss when we
-      // remove the feature flag.
-      ng: enableNewNoChangesBlankslate(),
-    })
-
-    return (
-      <div id="no-changes" className={className}>
-        <div className="content">
-          <div className="header">
-            <div className="text">
-              <h1>No local changes</h1>
-              <p>
-                You have no uncommitted changes in your repository! Here are
-                some friendly suggestions for what to do next.
-              </p>
-            </div>
-            <img src={PaperStackImage} className="blankslate-image" />
-          </div>
-          {this.renderActions()}
-        </div>
-      </div>
-    )
-  }
-
   private getPlatformFileManagerName() {
     if (__DARWIN__) {
       return 'Finder'
     } else if (__WIN32__) {
       return 'Explorer'
     }
-    return 'Your File Manager'
+    return 'your File Manager'
   }
 
   private renderDiscoverabilityElements(menuItem: IMenuItemInfo) {
@@ -284,7 +230,7 @@ export class NoChanges extends React.Component<
     )
   }
 
-  private renderShowInFinderAction() {
+  private renderShowInFileManager() {
     const fileManager = this.getPlatformFileManagerName()
 
     return this.renderMenuBackedAction(
@@ -369,13 +315,15 @@ export class NoChanges extends React.Component<
       return this.renderPushBranchAction(tip, remote, aheadBehind)
     }
 
-    const isGitHub = this.props.repository.gitHubRepository !== null
-    const hasOpenPullRequest = currentPullRequest !== null
-    const isDefaultBranch =
-      defaultBranch !== null && tip.branch.name === defaultBranch.name
+    if (enableNoChangesCreatePRBlankslateAction()) {
+      const isGitHub = this.props.repository.gitHubRepository !== null
+      const hasOpenPullRequest = currentPullRequest !== null
+      const isDefaultBranch =
+        defaultBranch !== null && tip.branch.name === defaultBranch.name
 
-    if (isGitHub && !hasOpenPullRequest && !isDefaultBranch) {
-      return this.renderCreatePullRequestAction(tip)
+      if (isGitHub && !hasOpenPullRequest && !isDefaultBranch) {
+        return this.renderCreatePullRequestAction(tip)
+      }
     }
 
     return null
@@ -614,7 +562,7 @@ export class NoChanges extends React.Component<
         </ReactCSSTransitionReplace>
         <div className="actions">
           {this.renderOpenInExternalEditor()}
-          {this.renderShowInFinderAction()}
+          {this.renderShowInFileManager()}
           {this.renderViewOnGitHub()}
         </div>
       </>
@@ -635,14 +583,22 @@ export class NoChanges extends React.Component<
   }
 
   public render() {
-    if (enableNewNoChangesBlankslate()) {
-      return this.renderNewNoChangesBlankSlate()
-    }
-
-    return this.renderClassicBlankSlate()
-  }
-
-  private open = () => {
-    revealInFileManager(this.props.repository, '')
+    return (
+      <div id="no-changes">
+        <div className="content">
+          <div className="header">
+            <div className="text">
+              <h1>No local changes</h1>
+              <p>
+                You have no uncommitted changes in your repository! Here are
+                some friendly suggestions for what to do next.
+              </p>
+            </div>
+            <img src={PaperStackImage} className="blankslate-image" />
+          </div>
+          {this.renderActions()}
+        </div>
+      </div>
+    )
   }
 }

@@ -19,13 +19,6 @@
 
     padding: var(--spacing-half) var(--spacing);
 
-    .path {
-      flex-grow: 1;
-      align-self: center;
-      display: flex;
-      min-width: 0;
-    }
-
     @include octicon-status;
 
     .octicon {

@@ -5,7 +5,7 @@ import { readdir } from 'fs-extra'
 
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { getDefaultDir, setDefaultDir } from '../lib/default-dir'
 import { Account } from '../../models/account'
 import {

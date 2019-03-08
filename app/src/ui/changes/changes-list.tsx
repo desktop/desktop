@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Path from 'path'
 
 import { IGitHubUser } from '../../lib/databases'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { IMenuItem } from '../../lib/menu-item'
 import { revealInFileManager } from '../../lib/app-shell'
 import {
@@ -33,6 +33,9 @@ import { arrayEquals } from '../../lib/equality'
 import { clipboard } from 'electron'
 import { basename } from 'path'
 import { ICommitContext } from '../../models/commit'
+import { RebaseConflictState } from '../../lib/app-state'
+import { ContinueRebase } from './continue-rebase'
+import { enablePullWithRebase } from '../../lib/feature-flag'
 
 const RowHeight = 29
 
@@ -41,6 +44,7 @@ const GitIgnoreFileName = '.gitignore'
 interface IChangesListProps {
   readonly repository: Repository
   readonly workingDirectory: WorkingDirectoryStatus
+  readonly rebaseConflictState: RebaseConflictState | null
   readonly selectedFileIDs: string[]
   readonly onFileSelectionChanged: (rows: ReadonlyArray<number>) => void
   readonly onIncludeChanged: (path: string, include: boolean) => void
@@ -53,6 +57,12 @@ interface IChangesListProps {
     files: ReadonlyArray<WorkingDirectoryFileChange>,
     isDiscardingAllChanges?: boolean
   ) => void
+
+  /** Callback that fires on page scroll to pass the new scrollTop location */
+  readonly onChangesListScrolled: (scrollTop: number) => void
+
+  /* The scrollTop of the compareList. It is stored to allow for scroll position persistence */
+  readonly changesListScrollTop: number
 
   /**
    * Called to open a file it its default application
@@ -307,16 +317,19 @@ export class ChangesList extends React.Component<
       },
       { type: 'separator' },
     ]
-
     if (paths.length === 1) {
       items.push({
-        label: __DARWIN__ ? 'Ignore File' : 'Ignore file',
+        label: __DARWIN__
+          ? 'Ignore File (Add to .gitignore)'
+          : 'Ignore file (add to .gitignore)',
         action: () => this.props.onIgnore(path),
         enabled: Path.basename(path) !== GitIgnoreFileName,
       })
     } else if (paths.length > 1) {
       items.push({
-        label: `Ignore ${paths.length} selected files`,
+        label: __DARWIN__
+          ? `Ignore ${paths.length} Selected Files (Add to .gitignore)`
+          : `Ignore ${paths.length} selected files (add to .gitignore)`,
         action: () => {
           // Filter out any .gitignores that happens to be selected, ignoring
           // those doesn't make sense.
@@ -329,15 +342,14 @@ export class ChangesList extends React.Component<
         enabled: paths.some(path => Path.basename(path) !== GitIgnoreFileName),
       })
     }
-
     // Five menu items should be enough for everyone
     Array.from(extensions)
       .slice(0, 5)
       .forEach(extension => {
         items.push({
           label: __DARWIN__
-            ? `Ignore All ${extension} Files`
-            : `Ignore all ${extension} files`,
+            ? `Ignore All ${extension} Files (Add to .gitignore)`
+            : `Ignore all ${extension} files (add to .gitignore)`,
           action: () => this.props.onIgnore(`*${extension}`),
         })
       })
@@ -400,17 +412,61 @@ export class ChangesList extends React.Component<
     }
   }
 
-  public render() {
-    const fileList = this.props.workingDirectory.files
-    const fileCount = fileList.length
-    const filesPlural = fileCount === 1 ? 'file' : 'files'
-    const filesDescription = `${fileCount} changed ${filesPlural}`
+  private onScroll = (scrollTop: number, clientHeight: number) => {
+    this.props.onChangesListScrolled(scrollTop)
+  }
+
+  private renderCommitMessageForm = (): JSX.Element => {
+    if (this.props.rebaseConflictState !== null && enablePullWithRebase()) {
+      return (
+        <ContinueRebase
+          dispatcher={this.props.dispatcher}
+          repository={this.props.repository}
+          rebaseConflictState={this.props.rebaseConflictState}
+          workingDirectory={this.props.workingDirectory}
+          isCommitting={this.props.isCommitting}
+        />
+      )
+    }
+
+    const fileCount = this.props.workingDirectory.files.length
+
     const anyFilesSelected =
       fileCount > 0 && this.includeAllValue !== CheckboxValue.Off
     const filesSelected = this.props.workingDirectory.files.filter(
       f => f.selection.getSelectionType() !== DiffSelectionType.None
     )
     const singleFileCommit = filesSelected.length === 1
+
+    return (
+      <CommitMessage
+        onCreateCommit={this.props.onCreateCommit}
+        branch={this.props.branch}
+        gitHubUser={this.props.gitHubUser}
+        commitAuthor={this.props.commitAuthor}
+        anyFilesSelected={anyFilesSelected}
+        repository={this.props.repository}
+        dispatcher={this.props.dispatcher}
+        commitMessage={this.props.commitMessage}
+        focusCommitMessage={this.props.focusCommitMessage}
+        autocompletionProviders={this.props.autocompletionProviders}
+        isCommitting={this.props.isCommitting}
+        showCoAuthoredBy={this.props.showCoAuthoredBy}
+        coAuthors={this.props.coAuthors}
+        placeholder={this.getPlaceholderMessage(
+          filesSelected,
+          singleFileCommit
+        )}
+        singleFileCommit={singleFileCommit}
+        key={this.props.repository.id}
+      />
+    )
+  }
+
+  public render() {
+    const fileCount = this.props.workingDirectory.files.length
+    const filesPlural = fileCount === 1 ? 'file' : 'files'
+    const filesDescription = `${fileCount} changed ${filesPlural}`
 
     return (
       <div className="changes-list-container file-list">
@@ -433,29 +489,10 @@ export class ChangesList extends React.Component<
           onSelectionChanged={this.props.onFileSelectionChanged}
           invalidationProps={this.props.workingDirectory}
           onRowClick={this.props.onRowClick}
+          onScroll={this.onScroll}
+          setScrollTop={this.props.changesListScrollTop}
         />
-
-        <CommitMessage
-          onCreateCommit={this.props.onCreateCommit}
-          branch={this.props.branch}
-          gitHubUser={this.props.gitHubUser}
-          commitAuthor={this.props.commitAuthor}
-          anyFilesSelected={anyFilesSelected}
-          repository={this.props.repository}
-          dispatcher={this.props.dispatcher}
-          commitMessage={this.props.commitMessage}
-          focusCommitMessage={this.props.focusCommitMessage}
-          autocompletionProviders={this.props.autocompletionProviders}
-          isCommitting={this.props.isCommitting}
-          showCoAuthoredBy={this.props.showCoAuthoredBy}
-          coAuthors={this.props.coAuthors}
-          placeholder={this.getPlaceholderMessage(
-            filesSelected,
-            singleFileCommit
-          )}
-          singleFileCommit={singleFileCommit}
-          key={this.props.repository.id}
-        />
+        {this.renderCommitMessageForm()}
       </div>
     )
   }

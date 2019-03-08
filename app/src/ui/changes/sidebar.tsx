@@ -3,9 +3,13 @@ import * as React from 'react'
 
 import { ChangesList } from './changes-list'
 import { DiffSelectionType } from '../../models/diff'
-import { IChangesState } from '../../lib/app-state'
+import {
+  IChangesState,
+  RebaseConflictState,
+  isRebaseConflictState,
+} from '../../lib/app-state'
 import { Repository } from '../../models/repository'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { IGitHubUser } from '../../lib/databases'
 import { IssuesStore, GitHubUserStore } from '../../lib/stores'
 import { CommitIdentity } from '../../models/commit-identity'
@@ -20,13 +24,13 @@ import {
 import { ClickSource } from '../lib/list'
 import { WorkingDirectoryFileChange } from '../../models/status'
 import { CSSTransitionGroup } from 'react-transition-group'
-import { openFile } from '../../lib/open-file'
+import { openFile } from '../lib/open-file'
 import { Account } from '../../models/account'
 import { PopupType } from '../../models/popup'
-import { enableFileSizeWarningCheck } from '../../lib/feature-flag'
 import { filesNotTrackedByLFS } from '../../lib/git/lfs'
 import { getLargeFilePaths } from '../../lib/large-files'
 import { isConflictedFile, hasUnresolvedConflicts } from '../../lib/status'
+import { enablePullWithRebase } from '../../lib/feature-flag'
 
 /**
  * The timeout for the animation of the enter/leave animation for Undo.
@@ -62,6 +66,8 @@ interface IChangesSidebarProps {
    * @param fullPath The full path to the file on disk
    */
   readonly onOpenInExternalEditor: (fullPath: string) => void
+  readonly onChangesListScrolled: (scrollTop: number) => void
+  readonly changesListScrollTop: number
 }
 
 export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
@@ -121,43 +127,43 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
   private onCreateCommit = async (
     context: ICommitContext
   ): Promise<boolean> => {
-    if (enableFileSizeWarningCheck()) {
-      const overSizedFiles = await getLargeFilePaths(
-        this.props.repository,
-        this.props.changes.workingDirectory,
-        100
-      )
-      const filesIgnoredByLFS = await filesNotTrackedByLFS(
-        this.props.repository,
-        overSizedFiles
-      )
+    const { workingDirectory } = this.props.changes
 
-      if (filesIgnoredByLFS.length !== 0) {
-        this.props.dispatcher.showPopup({
-          type: PopupType.OversizedFiles,
-          oversizedFiles: filesIgnoredByLFS,
-          context: context,
-          repository: this.props.repository,
-        })
+    const overSizedFiles = await getLargeFilePaths(
+      this.props.repository,
+      workingDirectory,
+      100
+    )
+    const filesIgnoredByLFS = await filesNotTrackedByLFS(
+      this.props.repository,
+      overSizedFiles
+    )
 
-        return false
-      }
+    if (filesIgnoredByLFS.length !== 0) {
+      this.props.dispatcher.showPopup({
+        type: PopupType.OversizedFiles,
+        oversizedFiles: filesIgnoredByLFS,
+        context: context,
+        repository: this.props.repository,
+      })
+
+      return false
     }
 
     // are any conflicted files left?
-    const conflictedFilesLeft = this.props.changes.workingDirectory.files.filter(
+    const conflictedFilesLeft = workingDirectory.files.filter(
       f =>
         isConflictedFile(f.status) &&
         f.selection.getSelectionType() === DiffSelectionType.None
     )
 
     if (conflictedFilesLeft.length === 0) {
-      this.props.dispatcher.clearMergeConflictsBanner()
+      this.props.dispatcher.clearBanner()
       this.props.dispatcher.recordUnguidedConflictedMergeCompletion()
     }
 
-    // which of the files selected for committing are conflicted?
-    const conflictedFilesSelected = this.props.changes.workingDirectory.files.filter(
+    // which of the files selected for committing are conflicted (with markers)?
+    const conflictedFilesSelected = workingDirectory.files.filter(
       f =>
         isConflictedFile(f.status) &&
         hasUnresolvedConflicts(f.status) &&
@@ -326,9 +332,25 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     )
   }
 
+  private renderUndoCommit = (
+    rebaseConflictState: RebaseConflictState | null
+  ): JSX.Element | null => {
+    if (rebaseConflictState !== null && enablePullWithRebase()) {
+      return null
+    }
+
+    return this.renderMostRecentLocalCommit()
+  }
+
   public render() {
-    const changesState = this.props.changes
-    const selectedFileIDs = changesState.selectedFileIDs
+    const {
+      selectedFileIDs,
+      workingDirectory,
+      commitMessage,
+      showCoAuthoredBy,
+      coAuthors,
+      conflictState,
+    } = this.props.changes
 
     // TODO: I think user will expect the avatar to match that which
     // they have configured in GitHub.com as well as GHE so when we add
@@ -340,12 +362,20 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
       user = this.props.gitHubUsers.get(email.toLowerCase()) || null
     }
 
+    let rebaseConflictState: RebaseConflictState | null = null
+    if (conflictState !== null) {
+      rebaseConflictState = isRebaseConflictState(conflictState)
+        ? conflictState
+        : null
+    }
+
     return (
       <div id="changes-sidebar-contents">
         <ChangesList
           dispatcher={this.props.dispatcher}
           repository={this.props.repository}
-          workingDirectory={changesState.workingDirectory}
+          workingDirectory={workingDirectory}
+          rebaseConflictState={rebaseConflictState}
           selectedFileIDs={selectedFileIDs}
           onFileSelectionChanged={this.onFileSelectionChanged}
           onCreateCommit={this.onCreateCommit}
@@ -361,18 +391,20 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           commitAuthor={this.props.commitAuthor}
           branch={this.props.branch}
           gitHubUser={user}
-          commitMessage={this.props.changes.commitMessage}
+          commitMessage={commitMessage}
           focusCommitMessage={this.props.focusCommitMessage}
           autocompletionProviders={this.autocompletionProviders!}
           availableWidth={this.props.availableWidth}
           onIgnore={this.onIgnore}
           isCommitting={this.props.isCommitting}
-          showCoAuthoredBy={this.props.changes.showCoAuthoredBy}
-          coAuthors={this.props.changes.coAuthors}
+          showCoAuthoredBy={showCoAuthoredBy}
+          coAuthors={coAuthors}
           externalEditorLabel={this.props.externalEditorLabel}
           onOpenInExternalEditor={this.props.onOpenInExternalEditor}
+          onChangesListScrolled={this.props.onChangesListScrolled}
+          changesListScrollTop={this.props.changesListScrollTop}
         />
-        {this.renderMostRecentLocalCommit()}
+        {this.renderUndoCommit(rebaseConflictState)}
       </div>
     )
   }

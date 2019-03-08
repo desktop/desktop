@@ -32,35 +32,55 @@ export function enableMergeTool(): boolean {
   return enableDevelopmentFeatures()
 }
 
-/** Should `git status` use --no-optional-locks to assist with concurrent usage */
-export function enableStatusWithoutOptionalLocks(): boolean {
-  return true
-}
-
 /** Should git pass `--recurse-submodules` when performing operations? */
 export function enableRecurseSubmodulesFlag(): boolean {
   return enableBetaFeatures()
 }
 
-/** Should the app check and warn the user about committing large files? */
-export function enableFileSizeWarningCheck(): boolean {
-  return true
-}
-
 /** Should the app set protocol.version=2 for any fetch/push/pull/clone operation? */
 export function enableGitProtocolVersionTwo(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 export function enableReadmeOverwriteWarning(): boolean {
   return enableBetaFeatures()
 }
 
+/** Shoult the app automatically prune branches that are no longer actively being used */
+export function enableBranchPruning(): boolean {
+  return enableBetaFeatures()
+}
+
 /**
- * Whether or not to activate the new, improved, blank slate
- * shown when the user doesn't have any local changes in their
- * repository.
+ * Whether or not to activate the "Create PR" blankslate action.
+ *
+ * The state of the feature as of writing this is that the underlying
+ * data source required to power this feature is not reliable enough
+ * and needs looking at so we aren't ready to move this to production
+ * just yet.
  */
-export function enableNewNoChangesBlankslate(): boolean {
+export function enableNoChangesCreatePRBlankslateAction(): boolean {
+  return enableBetaFeatures()
+}
+
+/** Should the app detect and handle rebase conflicts when `pull.rebase` is set? */
+export function enablePullWithRebase(): boolean {
   return true
+}
+
+/**
+ *  Enables a new UI for the repository picker that supports
+ *  grouping and filtering (GitHub) repositories by owner/organization.
+ */
+export function enableGroupRepositoriesByOwner(): boolean {
+  return enableBetaFeatures()
+}
+
+/**
+ * As there is some lack of clarity about this feature with how it overlaps
+ * with planned support for stashing changes, this warning dialog is behind
+ * a feature flag for the moment.
+ */
+export function enableLocalChangesWarningHandler(): boolean {
+  return enableDevelopmentFeatures()
 }

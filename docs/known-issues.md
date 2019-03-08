@@ -66,16 +66,13 @@ GitHub Desktop by default uses the Windows Secure Channel (SChannel) APIs to val
 
 **Workaround:**
 
-To use the classic OpenSSL behavior in Git, you'll need a PEM file containing certificates that are considered trusted. The [public list](https://curl.haxx.se/docs/caextract.html) provided by the curl project can be used if you are not connecting to a GitHub Enterprise instance which has it's own distinct certificates.
+**We do not recommend setting this config value for normal Git usage**. This is intended to be an "escape hatch" for situations where the network administrator has restricted the normal usage of SChannel APIs on Windows that Git is trying to use.
 
-Once you've downloaded that PEM file somewhere, open a shell with Git and run these commands:
+Run this command in your Git shell to disable the revocation check:
 
 ```shellsession
-$ git config --global http.sslBackend "openssl"
-$ git config --global http.sslCAInfo "C:/path with spaces/to/directory/cacert.pem"
+$ git config --global http.schannelCheckRevoke false
 ```
-
-Ensure you use forward slashes for the path when setting the `sslCAInfo` value.
 
 ### Using a repository configured with Folder Redirection - [#2972](https://github.com/desktop/desktop/issues/2972)
 

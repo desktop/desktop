@@ -3,10 +3,15 @@ import {
   AppFileStatus,
   ConflictedFileStatus,
   WorkingDirectoryStatus,
-  isManualConflict,
   isConflictWithMarkers,
+  GitStatusEntry,
+  isConflictedFileStatus,
 } from '../models/status'
 import { assertNever } from './fatal-error'
+import {
+  ManualConflictResolution,
+  ManualConflictResolutionKind,
+} from '../models/manual-conflict-resolution'
 
 /**
  * Convert a given `AppFileStatusKind` value to a human-readable string to be
@@ -60,15 +65,96 @@ export function hasConflictedFiles(
 }
 
 /**
- * Determine if we have a `ManualConflict` type
- * or conflict markers
+ * Determine if we have any conflict markers or if its been resolved manually
  */
-export function hasUnresolvedConflicts(status: ConflictedFileStatus) {
-  if (isManualConflict(status)) {
-    // binary file doesn't contain markers
-    return true
+export function hasUnresolvedConflicts(
+  status: ConflictedFileStatus,
+  manualResolution?: ManualConflictResolution
+) {
+  if (isConflictWithMarkers(status)) {
+    // text file may have conflict markers present
+    return status.conflictMarkerCount > 0
   }
 
-  // text file will have conflict markers removed
-  return status.conflictMarkerCount > 0
+  // binary file doesn't contain markers, so we check the manual resolution
+  return manualResolution === undefined
+}
+
+/** the possible git status entries for a manually conflicted file status
+ * only intended for use in this file, but could evolve into an official type someday
+ */
+type UnmergedStatusEntry =
+  | GitStatusEntry.Added
+  | GitStatusEntry.UpdatedButUnmerged
+  | GitStatusEntry.Deleted
+
+/** Returns a human-readable description for a chosen version of a file
+ *  intended for use with manually resolved merge conficts
+ */
+export function getUnmergedStatusEntryDescription(
+  entry: UnmergedStatusEntry,
+  branch?: string
+): string {
+  const suffix = branch ? ` from ${branch}` : ''
+
+  switch (entry) {
+    case GitStatusEntry.Added:
+      return `Using the added file${suffix}`
+    case GitStatusEntry.UpdatedButUnmerged:
+      return `Using the modified file${suffix}`
+    case GitStatusEntry.Deleted:
+      return `Using the deleted file${suffix}`
+    default:
+      return assertNever(entry, 'Unknown status entry to format')
+  }
+}
+
+/** Returns a human-readable description for an available manual resolution method
+ *  intended for use with manually resolved merge conficts
+ */
+export function getLabelForManualResolutionOption(
+  entry: UnmergedStatusEntry,
+  branch?: string
+): string {
+  const suffix = branch ? ` from ${branch}` : ''
+
+  switch (entry) {
+    case GitStatusEntry.Added:
+      return `Use the added file${suffix}`
+    case GitStatusEntry.UpdatedButUnmerged:
+      return `Use the modified file${suffix}`
+    case GitStatusEntry.Deleted:
+      return `Use the deleted file${suffix}`
+    default:
+      return assertNever(entry, 'Unknown status entry to format')
+  }
+}
+
+/** Filter working directory changes for conflicted or resolved files  */
+export function getUnmergedFiles(status: WorkingDirectoryStatus) {
+  return status.files.filter(f => isConflictedFile(f.status))
+}
+
+/** Filter working directory changes for resolved files  */
+export function getResolvedFiles(
+  status: WorkingDirectoryStatus,
+  manualResolutions: Map<string, ManualConflictResolutionKind>
+) {
+  return status.files.filter(
+    f =>
+      isConflictedFileStatus(f.status) &&
+      !hasUnresolvedConflicts(f.status, manualResolutions.get(f.path))
+  )
+}
+
+/** Filter working directory changes for conflicted files  */
+export function getConflictedFiles(
+  status: WorkingDirectoryStatus,
+  manualResolutions: Map<string, ManualConflictResolutionKind>
+) {
+  return status.files.filter(
+    f =>
+      isConflictedFileStatus(f.status) &&
+      hasUnresolvedConflicts(f.status, manualResolutions.get(f.path))
+  )
 }
