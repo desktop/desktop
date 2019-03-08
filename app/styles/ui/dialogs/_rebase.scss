@@ -12,6 +12,10 @@ dialog#rebase {
   // make it extremely hard to do so.
   .dialog-header {
     border-bottom: none;
+
+    h1 {
+      font-weight: var(--font-weight-light);
+    }
   }
 
   .dialog-content {
@@ -43,9 +47,5 @@ dialog#rebase {
       width: 100%;
       padding: var(--spacing-half);
     }
-  }
-
-  .rebase-dialog-header {
-    font-weight: var(--font-weight-light);
   }
 }

@@ -12,7 +12,6 @@ import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { BranchList, IBranchListItem, renderDefaultBranch } from '../branches'
 import { IMatches } from '../../lib/fuzzy-find'
 import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
-import { DialogHeader } from '../dialog/header'
 
 interface IRebaseBranchDialogProps {
   readonly dispatcher: Dispatcher
@@ -122,16 +121,12 @@ export class RebaseBranchDialog extends React.Component<
         onSubmit={this.startRebase}
         loading={loading}
         disabled={disabled}
+        title={
+          <>
+            Rebase <strong>{truncatedCurrentBranchName}</strong> onto…
+          </>
+        }
       >
-        <DialogHeader
-          title={
-            <div className="rebase-dialog-header">
-              Rebase <strong>{truncatedCurrentBranchName}</strong> onto…
-            </div>
-          }
-          dismissable={true}
-          onDismissed={this.props.onDismissed}
-        />
         <DialogContent>
           <BranchList
             allBranches={this.props.allBranches}
