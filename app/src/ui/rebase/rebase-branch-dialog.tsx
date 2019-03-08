@@ -68,7 +68,13 @@ export class RebaseBranchDialog extends React.Component<
   public constructor(props: IRebaseBranchDialogProps) {
     super(props)
 
-    const selectedBranch = this.resolveSelectedBranch()
+    const { initialBranch, currentBranch, defaultBranch } = props
+
+    const selectedBranch = resolveSelectedBranch(
+      currentBranch,
+      defaultBranch,
+      initialBranch
+    )
 
     this.state = {
       selectedBranch,
@@ -168,21 +174,25 @@ export class RebaseBranchDialog extends React.Component<
 
     this.setState({ isRebasing: false })
   }
+}
 
-  /**
-   * Returns the branch to use as the selected branch
-   *
-   * The initial branch is used if passed
-   * otherwise, the default branch will be used if it's
-   * not the currently checked out branch
-   */
-  private resolveSelectedBranch() {
-    const { currentBranch, defaultBranch, initialBranch } = this.props
-
-    if (initialBranch !== undefined) {
-      return initialBranch
-    }
-
-    return currentBranch === defaultBranch ? null : defaultBranch
+/**
+ * Returns the branch to use as the selected branch in the dialog.
+ *
+ * The initial branch is used if defined, otherwise the default branch will be
+ * compared to the current branch.
+ *
+ * If the current branch is the default branch, `null` is returned. Otherwise
+ * the default branch is used.
+ */
+function resolveSelectedBranch(
+  currentBranch: Branch,
+  defaultBranch: Branch | null,
+  initialBranch: Branch | undefined
+) {
+  if (initialBranch !== undefined) {
+    return initialBranch
   }
+
+  return currentBranch === defaultBranch ? null : defaultBranch
 }
