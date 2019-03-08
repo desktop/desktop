@@ -212,14 +212,11 @@ export async function gitCloneConnectionErrorHandler(
     return error
   }
 
-  const message =
-    'Cloning could not complete due to connection issues. This could be due to issues with the host or with your internet connection. You may try again or dismiss this warning.'
-
   await dispatcher.showPopup({
     type: PopupType.RetryClone,
     repository: repository,
     retryAction: e.metadata.retryAction,
-    message: message,
+    message: e.underlyingError.message,
   })
 
   return null
