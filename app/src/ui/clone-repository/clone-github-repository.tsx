@@ -65,8 +65,14 @@ interface ICloneGithubRepositoryProps {
   readonly onRefreshRepositories: (account: Account) => void
 
   /**
-   * Called when a key event occurs on a clone-able repository
-   * list item.
+   * This function will be called when a pointer device is pressed and then
+   * released on a selectable row. Note that this follows the conventions
+   * of button elements such that pressing Enter or Space on a keyboard
+   * while focused on a particular row will also trigger this event. Consumers
+   * can differentiate between the two using the source parameter.
+   *
+   * Consumers of this event do _not_ have to call event.preventDefault,
+   * when this event is subscribed to the list will automatically call it.
    */
   readonly onItemClicked: (
     repository: IAPIRepository,
