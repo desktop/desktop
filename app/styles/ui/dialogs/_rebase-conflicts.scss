@@ -106,16 +106,6 @@ dialog#rebase-conflicts-list {
     }
   }
 
-  .cli-link {
-    a {
-      color: $blue;
-
-      &:hover {
-        text-decoration: underline;
-      }
-    }
-  }
-
   .arrow-menu {
     .octicon {
       width: 10px;
