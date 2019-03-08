@@ -194,7 +194,7 @@ export async function gitCloneConnectionErrorHandler(
   dispatcher: Dispatcher
 ): Promise<Error | null> {
   const e = asErrorWithMetadata(error)
-  if (!e) {
+  if (!e || e.metadata.retryAction == null) {
     return error
   }
 
