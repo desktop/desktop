@@ -10,7 +10,11 @@ describe('git/stash', () => {
     it('returns all stash entries created by desktop', async () => {
       const repository = await setupEmptyRepository()
 
-      await FSE.writeFile(path.join(repository.path, 'README.md'), 'Hi world\n')
+      const readme = path.join(repository.path, 'README.md')
+      await FSE.writeFile(readme, '')
+      await GitProcess.exec(['add', 'README.md'], repository.path)
+      await GitProcess.exec(['commit', '-m', 'initial commit'], repository.path)
+      await FSE.appendFile(readme, 'Hello\n')
       await stash(repository)
 
       const stashEntries = await getStashEntries(repository)
@@ -21,7 +25,6 @@ describe('git/stash', () => {
 })
 
 async function stash(repository: Repository) {
-  await GitProcess.exec(['add', 'README.md'], repository.path)
   await GitProcess.exec(
     ['stash', 'push', '-m', `${MagicStashString}:some-branch`],
     repository.path
