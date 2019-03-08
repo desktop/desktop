@@ -46,9 +46,25 @@ export const renderUnmergedFile: React.SFC<{
    *  (optional. only applies to manual merge conflicts)
    */
   readonly manualResolution?: ManualConflictResolution
-  /** branch we were on before starting merge */
+  /**
+   * Current branch associated with the conflicted state for this file:
+   *
+   *  - for a merge, this is the tip of the repository
+   *  - for a rebase, this is the base branch that commits are being applied on top
+   *
+   * If the rebase is started outside Desktop, the details about this branch may
+   * not be known - the rendered component will handle this fine.
+   */
   readonly ourBranch?: string
-  /* `undefined` when we didn't know the branch at the beginning of the merge conflict resolution flow */
+  /**
+   * The other branch associated with the conflicted state for this file:
+   *
+   *  - for a merge, this is be the branch being merged into the tip of the repository
+   *  - for a rebase, this is the target branch that is having it's history rewritten
+   *
+   * If the merge is started outside Desktop, the details about this branch may
+   * not be known - the rendered component will handle this fine.
+   */
   readonly theirBranch?: string
   /** name of the resolved external editor */
   readonly resolvedExternalEditor: string | null
