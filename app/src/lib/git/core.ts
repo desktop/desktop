@@ -44,7 +44,7 @@ export interface IGitExecutionOptions extends DugiteExecutionOptions {
  */
 export interface IGitResult extends DugiteResult {
   /**
-   * The parsed git error. This will be null when the exit code is include in
+   * The parsed git error. This will be null when the exit code is included in
    * the `successExitCodes`, or when dugite was unable to parse the
    * error.
    */
