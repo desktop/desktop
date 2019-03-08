@@ -1959,7 +1959,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             retryAction={popup.retryAction}
             onDismissed={this.onPopupDismissed}
             dispatcher={this.props.dispatcher}
-            message={popup.message}
+            errorMessage={popup.errorMessage}
           />
         )
       }

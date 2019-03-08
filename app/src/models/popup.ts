@@ -241,6 +241,6 @@ export type Popup =
   | {
       type: PopupType.RetryClone
       repository: Repository | CloningRepository
-      retryAction?: RetryAction
-      message?: string
+      retryAction: RetryAction
+      errorMessage: string
     }

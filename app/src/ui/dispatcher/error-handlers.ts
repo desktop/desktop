@@ -216,7 +216,7 @@ export async function gitCloneConnectionErrorHandler(
     type: PopupType.RetryClone,
     repository: repository,
     retryAction: e.metadata.retryAction,
-    message: e.underlyingError.message,
+    errorMessage: e.underlyingError.message,
   })
 
   return null
