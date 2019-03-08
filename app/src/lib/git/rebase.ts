@@ -132,7 +132,9 @@ export enum RebaseResult {
    */
   OutstandingFilesNotStaged = 'OutstandingFilesNotStaged',
   /**
-   * The rebase was aborted and the caller should do any additional cleanup.
+   * The rebase was not attempted because it could not check the status of the
+   * repository. The caller needs to confirm the repository is in a usable
+   * state.
    */
   Aborted = 'Aborted',
 }
