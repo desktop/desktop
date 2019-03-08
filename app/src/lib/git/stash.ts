@@ -1,3 +1,6 @@
+import { git } from './core'
+import { Repository } from '../../models/repository'
+
 export interface IStashEntry {
   /** The name of the branch at the time the entry was created. */
   readonly branchName: string
@@ -13,4 +16,16 @@ export interface IStashEntry {
  * `git log -g refs/stash --pretty="%nentry: %gd%nsubject: %gs%nhash: %H%n"`
  * in a repo with some stash entries.
  */
-export async function applyStashEntry(stashSha: string): Promise<void> {}
+export async function applyStashEntry(
+  repository: Repository,
+  stashSha: string
+): Promise<void> {
+  const result = await git(
+    ['stash', 'apply', `${stashSha}`],
+    repository.path,
+    'applyStashEntry',
+    {
+      successExitCodes: new Set([0, 1, 128]),
+    }
+  )
+}
