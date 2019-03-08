@@ -99,7 +99,8 @@ export class RebaseBranchDialog extends React.Component<
       currentBranch === null ||
       currentBranch.name === selectedBranch.name
 
-    const disabled = selectedBranchIsNotCurrentBranch
+    const loading = this.state.isRebasing
+    const disabled = selectedBranchIsNotCurrentBranch || loading
 
     // the amount of characters to allow before we truncate was chosen arbitrarily
     const currentBranchName = truncateWithEllipsis(
@@ -107,13 +108,13 @@ export class RebaseBranchDialog extends React.Component<
       40
     )
 
-    const loading = this.state.isRebasing ? <Loading /> : null
-
     return (
       <Dialog
         id="rebase"
         onDismissed={this.props.onDismissed}
         onSubmit={this.startRebase}
+        loading={loading}
+        disabled={disabled}
       >
         <DialogHeader
           title={
@@ -140,11 +141,8 @@ export class RebaseBranchDialog extends React.Component<
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>
-            <Button type="submit" disabled={disabled}>
-              {loading}
-              Rebase <strong>
-                {currentBranch ? currentBranch.name : ''}
-              </strong>{' '}
+            <Button type="submit">
+              Rebase <strong>{currentBranch ? currentBranch.name : ''}</strong>{' '}
               onto <strong>{selectedBranch ? selectedBranch.name : ''}</strong>
             </Button>
           </ButtonGroup>
