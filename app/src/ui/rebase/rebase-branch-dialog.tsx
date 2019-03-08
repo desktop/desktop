@@ -13,7 +13,6 @@ import { BranchList, IBranchListItem, renderDefaultBranch } from '../branches'
 import { IMatches } from '../../lib/fuzzy-find'
 import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
 import { DialogHeader } from '../dialog/header'
-import { Loading } from '../lib/loading'
 
 interface IRebaseBranchDialogProps {
   readonly dispatcher: Dispatcher
