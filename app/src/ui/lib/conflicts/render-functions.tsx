@@ -22,9 +22,7 @@ export function renderAllResolved() {
   )
 }
 
-export function renderShellLink(
-  openThisRepositoryInShell: () => void
-): JSX.Element {
+export function renderShellLink(openThisRepositoryInShell: () => void) {
   return (
     <div>
       <LinkButton onClick={openThisRepositoryInShell}>
