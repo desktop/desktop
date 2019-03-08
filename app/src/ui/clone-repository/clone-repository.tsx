@@ -315,7 +315,7 @@ export class CloneRepository extends React.Component<
               onRefreshRepositories={this.props.onRefreshRepositories}
               filterText={tabState.filterText}
               onFilterTextChanged={this.onFilterTextChanged}
-              onRowKeyDown={this.onRowKeyDown}
+              onItemClicked={this.onItemClicked}
             />
           )
         }
@@ -623,7 +623,7 @@ export class CloneRepository extends React.Component<
     return url
   }
 
-  private onRowKeyDown = (source: ClickSource) => {
+  private onItemClicked = (repository: IAPIRepository, source: ClickSource) => {
     if (source.kind === 'keyboard' && source.event.key === 'Enter') {
       if (this.checkIfCloningDisabled() === false) {
         this.clone()

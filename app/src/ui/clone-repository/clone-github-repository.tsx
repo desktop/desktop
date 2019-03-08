@@ -68,7 +68,10 @@ interface ICloneGithubRepositoryProps {
    * Called when a key event occurs on a clone-able repository
    * list item.
    */
-  readonly onRowKeyDown: (source: ClickSource) => void
+  readonly onItemClicked: (
+    repository: IAPIRepository,
+    source: ClickSource
+  ) => void
 }
 
 export class CloneGithubRepository extends React.PureComponent<
@@ -87,7 +90,7 @@ export class CloneGithubRepository extends React.PureComponent<
             filterText={this.props.filterText}
             onFilterTextChanged={this.props.onFilterTextChanged}
             onRefreshRepositories={this.props.onRefreshRepositories}
-            onItemClicked={this.onItemClicked}
+            onItemClicked={this.props.onItemClicked}
           />
         </Row>
 
@@ -102,9 +105,5 @@ export class CloneGithubRepository extends React.PureComponent<
         </Row>
       </DialogContent>
     )
-  }
-
-  private onItemClicked = (repository: IAPIRepository, source: ClickSource) => {
-    this.props.onRowKeyDown(source)
   }
 }
