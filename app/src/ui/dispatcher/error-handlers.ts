@@ -188,6 +188,43 @@ export async function gitAuthenticationErrorHandler(
   return null
 }
 
+/** Handle git clone errors and show a better user-facing error. */
+export async function gitCloneConnectionErrorHandler(
+  error: Error,
+  dispatcher: Dispatcher
+): Promise<Error | null> {
+  const e = asErrorWithMetadata(error)
+  if (!e) {
+    return error
+  }
+
+  const gitError = asGitError(e.underlyingError)
+  if (!gitError) {
+    return error
+  }
+
+  const repository = e.metadata.repository
+  if (!repository) {
+    return error
+  }
+
+  if (gitError.result.gitError !== DugiteError.HostDown) {
+    return error
+  }
+
+  const message =
+    'Cloning could not complete due to connection issues. This could be due to issues with the host or with your internet connection. You may try again or dismiss this warning.'
+
+  await dispatcher.showPopup({
+    type: PopupType.RetryClone,
+    repository: repository,
+    retryAction: e.metadata.retryAction,
+    message: message,
+  })
+
+  return null
+}
+
 export async function externalEditorErrorHandler(
   error: Error,
   dispatcher: Dispatcher
