@@ -84,7 +84,9 @@ export class DiscardChanges extends React.Component<
 
         <DialogFooter>
           <ButtonGroup destructive={true}>
-            <Button type="submit">Cancel</Button>
+            <Button disabled={this.state.isDiscardingChanges} type="submit">
+              Cancel
+            </Button>
             <Button
               onClick={this.discard}
               disabled={this.state.isDiscardingChanges}
