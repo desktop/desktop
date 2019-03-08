@@ -25,6 +25,7 @@ import {
   samlReauthRequired,
   insufficientGitHubRepoPermissions,
   schannelUnableToCheckRevocationForCertificate,
+  gitCloneConnectionErrorHandler,
 } from './dispatcher'
 import {
   AppStore,
@@ -291,6 +292,7 @@ dispatcher.registerErrorHandler(missingRepositoryHandler)
 dispatcher.registerErrorHandler(localChangesOverwrittenHandler)
 dispatcher.registerErrorHandler(rebaseConflictsHandler)
 dispatcher.registerErrorHandler(refusedWorkflowUpdate)
+dispatcher.registerErrorHandler(gitCloneConnectionErrorHandler)
 
 document.body.classList.add(`platform-${process.platform}`)
 
