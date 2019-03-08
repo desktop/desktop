@@ -121,6 +121,7 @@ export class RebaseBranchDialog extends React.Component<
         onSubmit={this.startRebase}
         loading={loading}
         disabled={disabled}
+        dismissable={true}
         title={
           <>
             Rebase <strong>{truncatedCurrentBranchName}</strong> onto…
