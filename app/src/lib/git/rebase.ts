@@ -114,10 +114,26 @@ export async function abortRebase(repository: Repository) {
   await git(['rebase', '--abort'], repository.path, 'abortRebase')
 }
 
+/** The app-specific results from attempting to rebase a repository */
 export enum RebaseResult {
+  /**
+   * Git completed the rebase without reporting any errors, and the caller can
+   * signal success to the user.
+   */
   CompletedWithoutError = 'CompletedWithoutError',
+  /**
+   * The rebase encountered conflicts while attempting to rebase, and these
+   * need to be resolved by the user before the rebase can continue.
+   */
   ConflictsEncountered = 'ConflictsEncountered',
+  /**
+   * The rebase was not able to continue as tracked files were not staged in
+   * the index.
+   */
   OutstandingFilesNotStaged = 'OutstandingFilesNotStaged',
+  /**
+   * The rebase was aborted and the caller should do any additional cleanup.
+   */
   Aborted = 'Aborted',
 }
 
