@@ -91,8 +91,8 @@ export class RebaseBranchDialog extends React.Component<
   }
 
   public render() {
-    const selectedBranch = this.state.selectedBranch
-    const currentBranch = this.props.currentBranch
+    const { selectedBranch } = this.state
+    const { currentBranch } = this.props
 
     const selectedBranchIsNotCurrentBranch =
       selectedBranch === null ||
@@ -102,9 +102,11 @@ export class RebaseBranchDialog extends React.Component<
     const loading = this.state.isRebasing
     const disabled = selectedBranchIsNotCurrentBranch || loading
 
+    const currentBranchName = currentBranch.name
+
     // the amount of characters to allow before we truncate was chosen arbitrarily
-    const currentBranchName = truncateWithEllipsis(
-      this.props.currentBranch.name,
+    const truncatedCurrentBranchName = truncateWithEllipsis(
+      currentBranchName,
       40
     )
 
@@ -119,7 +121,7 @@ export class RebaseBranchDialog extends React.Component<
         <DialogHeader
           title={
             <div className="rebase-dialog-header">
-              Rebase <strong>{currentBranchName}</strong> onto…
+              Rebase <strong>{truncatedCurrentBranchName}</strong> onto…
             </div>
           }
           dismissable={true}
@@ -142,8 +144,8 @@ export class RebaseBranchDialog extends React.Component<
         <DialogFooter>
           <ButtonGroup>
             <Button type="submit">
-              Rebase <strong>{currentBranch ? currentBranch.name : ''}</strong>{' '}
-              onto <strong>{selectedBranch ? selectedBranch.name : ''}</strong>
+              Rebase <strong>{currentBranchName}</strong> onto{' '}
+              <strong>{selectedBranch ? selectedBranch.name : ''}</strong>
             </Button>
           </ButtonGroup>
         </DialogFooter>
