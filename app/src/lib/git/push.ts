@@ -1,3 +1,5 @@
+import { GitError as DugiteError } from 'dugite'
+
 import {
   git,
   IGitExecutionOptions,
@@ -60,9 +62,12 @@ export async function push(
     args.push('--force-with-lease')
   }
 
+  const expectedErrors = new Set<DugiteError>(AuthenticationErrors)
+  expectedErrors.add(DugiteError.ProtectedBranchForcePush)
+
   let opts: IGitExecutionOptions = {
     env: envForAuthentication(account),
-    expectedErrors: AuthenticationErrors,
+    expectedErrors,
   }
 
   if (progressCallback) {
