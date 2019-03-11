@@ -440,6 +440,9 @@ export interface IBranchesState {
    * that the default Git behaviour will occur.
    */
   readonly pullWithRebase?: boolean
+
+  /** Tracking branches that have been rebased within Desktop */
+  readonly rebasedBranches: ReadonlyMap<string, string>
 }
 
 export interface ICommitSelection {
