@@ -19,7 +19,7 @@ import {
   setGenericPassword,
   setGenericUsername,
 } from '../../lib/generic-git-auth'
-import { isGitRepository, RebaseResult } from '../../lib/git'
+import { isGitRepository, RebaseResult, PushOptions } from '../../lib/git'
 import { isGitOnPath } from '../../lib/is-git-on-path'
 import {
   rejectOAuthRequest,
@@ -321,8 +321,12 @@ export class Dispatcher {
   }
 
   /** Push the current branch. */
-  public push(repository: Repository): Promise<void> {
-    return this.appStore._push(repository)
+  public push(repository: Repository, options?: PushOptions): Promise<void> {
+    if (options && options.forceWithLease) {
+      this.dropCurrentBranchFromForcePushList(repository)
+    }
+
+    return this.appStore._push(repository, options)
   }
 
   /** Pull the current branch. */

@@ -138,6 +138,7 @@ import {
   abortRebase,
   continueRebase,
   rebase,
+  PushOptions,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -2586,15 +2587,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
-  public async _push(repository: Repository): Promise<void> {
+  public async _push(
+    repository: Repository,
+    options?: PushOptions
+  ): Promise<void> {
     return this.withAuthenticatingUser(repository, (repository, account) => {
-      return this.performPush(repository, account)
+      return this.performPush(repository, account, options)
     })
   }
 
   private async performPush(
     repository: Repository,
-    account: IGitAccount | null
+    account: IGitAccount | null,
+    options?: PushOptions
   ): Promise<void> {
     const state = this.repositoryStateCache.get(repository)
     const { remote } = state
@@ -2663,6 +2668,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
               remoteName,
               branch.name,
               branch.upstreamWithoutRemote,
+              options,
               progress => {
                 this.updatePushPullFetchProgress(repository, {
                   ...progress,
@@ -3368,7 +3374,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _abortRebase(repository: Repository): Promise<void> {
+  public async _abortRebase(repository: Repository) {
     const gitStore = this.gitStoreCache.get(repository)
     return await gitStore.performFailableOperation(() =>
       abortRebase(repository)
