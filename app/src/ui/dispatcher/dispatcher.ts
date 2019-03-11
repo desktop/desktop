@@ -64,7 +64,7 @@ import {
   WorkingDirectoryFileChange,
   WorkingDirectoryStatus,
 } from '../../models/status'
-import { TipState } from '../../models/tip'
+import { TipState, IValidBranch } from '../../models/tip'
 import { Banner, BannerType } from '../../models/banner'
 
 import { ApplicationTheme } from '../lib/application-theme'
@@ -625,6 +625,51 @@ export class Dispatcher {
     mergeStatus: MergeResultStatus | null
   ): Promise<void> {
     return this.appStore._mergeBranch(repository, branch, mergeStatus)
+  }
+
+  /**
+   * Update the per-repository list of branches that can be force-pushed
+   * after a rebase is completed.
+   */
+  private addRebasedBranchToForcePushList = (
+    repository: Repository,
+    tipWithBranch: IValidBranch,
+    beforeRebaseSha: string
+  ) => {
+    // if the commit id of the branch is unchanged, it can be excluded from
+    // this list
+    if (tipWithBranch.branch.tip.sha === beforeRebaseSha) {
+      return
+    }
+
+    const currentState = this.repositoryStateManager.get(repository)
+    const { rebasedBranches } = currentState.branchesState
+
+    const updatedMap = new Map<string, string>(rebasedBranches)
+    updatedMap.set(
+      tipWithBranch.branch.nameWithoutRemote,
+      tipWithBranch.branch.tip.sha
+    )
+
+    this.repositoryStateManager.updateBranchesState(repository, () => ({
+      rebasedBranches: updatedMap,
+    }))
+  }
+
+  private dropCurrentBranchFromForcePushList = (repository: Repository) => {
+    const currentState = this.repositoryStateManager.get(repository)
+    const { rebasedBranches, tip } = currentState.branchesState
+
+    if (tip.kind !== TipState.Valid) {
+      return
+    }
+
+    const updatedMap = new Map<string, string>(rebasedBranches)
+    updatedMap.delete(tip.branch.nameWithoutRemote)
+
+    this.repositoryStateManager.updateBranchesState(repository, () => ({
+      rebasedBranches: updatedMap,
+    }))
   }
 
   /** Starts a rebase for the given base and target branch */
