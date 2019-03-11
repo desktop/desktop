@@ -162,6 +162,9 @@ export interface IAppState {
   /** Whether we should show a confirmation dialog */
   readonly askForConfirmationOnDiscardChanges: boolean
 
+  /** Should the app prompt the user to confirm a force push? */
+  readonly askForConfirmationOnForcePush: boolean
+
   /** The external editor to use when opening repositories */
   readonly selectedExternalEditor?: ExternalEditor
 

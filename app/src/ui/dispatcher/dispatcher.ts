@@ -1420,6 +1420,10 @@ export class Dispatcher {
     )
   }
 
+  public setConfirmForcePushSetting(value: boolean) {
+    return this.appStore._setConfirmForcePushSetting(value)
+  }
+
   /**
    * Updates the application state to indicate a conflict is in-progress
    * as a result of a pull and increments the relevant metric.
