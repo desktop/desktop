@@ -701,21 +701,22 @@ export class Dispatcher {
     const afterSha = getTipSha(tip)
 
     log.info(
-      `[continueRebase] completed rebase - got ${result} and on tip ${afterSha} - kind ${
+      `[rebase] completed rebase - got ${result} and on tip ${afterSha} - kind ${
         tip.kind
       }`
     )
 
     if (result === RebaseResult.CompletedWithoutError) {
-      this.closePopup()
+      if (tip.kind === TipState.Valid) {
+        this.addRebasedBranchToForcePushList(repository, tip, beforeSha)
+      }
+
       this.setBanner({
         type: BannerType.SuccessfulRebase,
         targetBranch: targetBranch,
         baseBranch: baseBranch,
       })
     }
-
-    return result
   }
 
   /** aborts the current rebase and refreshes the repository's status */
@@ -752,18 +753,24 @@ export class Dispatcher {
 
     const { conflictState } = stateBefore.changesState
 
-    if (
-      result === RebaseResult.CompletedWithoutError &&
-      conflictState !== null &&
-      isRebaseConflictState(conflictState)
-    ) {
-      this.setBanner({
-        type: BannerType.SuccessfulRebase,
-        targetBranch: conflictState.targetBranch,
-      })
-    }
+    if (result === RebaseResult.CompletedWithoutError) {
+      this.closePopup()
 
-    return result
+      if (conflictState !== null && isRebaseConflictState(conflictState)) {
+        this.setBanner({
+          type: BannerType.SuccessfulRebase,
+          targetBranch: conflictState.targetBranch,
+        })
+
+        if (tip.kind === TipState.Valid) {
+          this.addRebasedBranchToForcePushList(
+            repository,
+            tip,
+            conflictState.originalBranchTip
+          )
+        }
+      }
+    }
   }
 
   /** aborts an in-flight merge and refreshes the repository's status */
