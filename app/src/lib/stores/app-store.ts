@@ -137,6 +137,7 @@ import {
   isGitRepository,
   abortRebase,
   continueRebase,
+  rebase,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -3349,6 +3350,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     return this._refreshRepository(repository)
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _rebase(
+    repository: Repository,
+    baseBranch: string,
+    targetBranch: string
+  ) {
+    const gitStore = this.gitStoreCache.get(repository)
+    return await gitStore.performFailableOperation(() =>
+      rebase(repository, baseBranch, targetBranch)
+    )
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
