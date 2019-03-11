@@ -188,8 +188,8 @@ export async function gitAuthenticationErrorHandler(
   return null
 }
 
-/** Handle git clone errors and show a better user-facing error. */
-export async function gitCloneConnectionErrorHandler(
+/** Handle git clone errors to give chance to retry error. */
+export async function gitCloneErrorHandler(
   error: Error,
   dispatcher: Dispatcher
 ): Promise<Error | null> {
