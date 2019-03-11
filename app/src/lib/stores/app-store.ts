@@ -2056,7 +2056,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       (await isGitRepository(repository.path))
 
     if (foundRepository) {
-      this._updateRepositoryMissing(repository, false)
+      return await this._updateRepositoryMissing(repository, false)
     }
     return repository
   }
