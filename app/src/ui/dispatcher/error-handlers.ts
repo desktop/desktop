@@ -194,7 +194,11 @@ export async function gitCloneConnectionErrorHandler(
   dispatcher: Dispatcher
 ): Promise<Error | null> {
   const e = asErrorWithMetadata(error)
-  if (!e || e.metadata.retryAction == null) {
+  if (
+    !e ||
+    e.metadata.retryAction == null ||
+    e.metadata.retryAction.type !== RetryActionType.Clone
+  ) {
     return error
   }
 
@@ -205,10 +209,6 @@ export async function gitCloneConnectionErrorHandler(
 
   const repository = e.metadata.repository
   if (!repository) {
-    return error
-  }
-
-  if (gitError.result.gitError !== DugiteError.HostDown) {
     return error
   }
 
