@@ -15,7 +15,6 @@ import {
 import { Dispatcher } from '../dispatcher'
 import { Repository } from '../../models/repository'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
-import { RebaseResult } from '../../lib/git'
 import { BannerType } from '../../models/banner'
 import { PopupType } from '../../models/popup'
 import {
@@ -66,14 +65,10 @@ export class RebaseConflictsDialog extends React.Component<
   }
 
   private onSubmit = async () => {
-    const result = await this.props.dispatcher.continueRebase(
+    await this.props.dispatcher.continueRebase(
       this.props.repository,
       this.props.workingDirectory
     )
-
-    if (result === RebaseResult.CompletedWithoutError) {
-      this.props.onDismissed()
-    }
   }
 
   private renderHeaderTitle(targetBranch: string, baseBranch?: string) {
