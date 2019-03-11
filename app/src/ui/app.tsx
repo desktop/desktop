@@ -1903,13 +1903,18 @@ export class App extends React.Component<IAppProps, IAppState> {
     const rebaseInProgress =
       conflictState !== null && conflictState.kind === 'rebase'
 
-    const { tip } = state.branchesState
+    const { pullWithRebase, tip, rebasedBranches } = state.branchesState
 
     if (tip.kind === TipState.Valid && tip.branch.remote !== null) {
       remoteName = tip.branch.remote
     }
-
-    const { pullWithRebase } = state.branchesState
+    let branchWasRebased = false
+    if (tip.kind === TipState.Valid) {
+      const localBranchName = tip.branch.nameWithoutRemote
+      const { sha } = tip.branch.tip
+      const foundEntry = rebasedBranches.get(localBranchName)
+      branchWasRebased = foundEntry === sha
+    }
 
     return (
       <PushPullButton
@@ -1923,6 +1928,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         tipState={tip.kind}
         pullWithRebase={pullWithRebase}
         rebaseInProgress={rebaseInProgress}
+        branchWasRebased={branchWasRebased}
       />
     )
   }
