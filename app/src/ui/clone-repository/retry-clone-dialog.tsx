@@ -61,7 +61,9 @@ export class RetryCloneDialog extends React.Component<IRetryCloneProps> {
     return (
       <div>
         {this.props.errorMessage}
-        <p>Would you like to retry cloning {this.props.repository.name}?</p>
+        <p>
+          Would you like to retry cloning <em>{this.props.repository.name}</em>?
+        </p>
       </div>
     )
   }
