@@ -96,6 +96,7 @@ import { PushNeedsPullWarning } from './push-needs-pull'
 import { LocalChangesOverwrittenWarning } from './local-changes-overwritten'
 import { RebaseConflictsDialog } from './rebase'
 import { RebaseBranchDialog } from './rebase/rebase-branch-dialog'
+import { ConfirmForcePush } from './rebase/confirm-force-push'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -1616,6 +1617,19 @@ export class App extends React.Component<IAppProps, IAppState> {
             openFileInExternalEditor={this.openFileInExternalEditor}
             resolvedExternalEditor={this.state.resolvedExternalEditor}
             openRepositoryInShell={this.openInShell}
+          />
+        )
+      }
+      case PopupType.ConfirmForcePush: {
+        const { askForConfirmationOnForcePush } = this.state
+
+        return (
+          <ConfirmForcePush
+            dispatcher={this.props.dispatcher}
+            repository={popup.repository}
+            upstreamBranch={popup.upstreamBranch}
+            askForConfirmationOnForcePush={askForConfirmationOnForcePush}
+            onDismissed={this.onPopupDismissed}
           />
         )
       }
