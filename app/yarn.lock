@@ -404,10 +404,10 @@ double-ended-queue@^2.1.0-0:
   resolved "https://registry.yarnpkg.com/double-ended-queue/-/double-ended-queue-2.1.0-0.tgz#103d3527fd31528f40188130c841efdd78264e5c"
   integrity sha1-ED01J/0xUo9AGIEwyEHv3XgmTlw=
 
-dugite@1.83.0:
-  version "1.83.0"
-  resolved "https://registry.yarnpkg.com/dugite/-/dugite-1.83.0.tgz#06f04f8a0521bb347e20ad913a42fb6e1b405c60"
-  integrity sha512-e+QWkpU78RwM4y+Z+6wjE3A8BE+EF0zebg+pQ56Q+cQNGleEuv3Dl0u7obQ/xJgWqr2s3HoFDGpaq1RkSwPCdg==
+dugite@1.85.0:
+  version "1.85.0"
+  resolved "https://registry.yarnpkg.com/dugite/-/dugite-1.85.0.tgz#05cff1f0d4952cf32d1d6a30f4f380811e4583f5"
+  integrity sha512-33YIKzzuSIoB8cRDrIPozvvIJiPs4+XQJGcb9g48O99Q0GkPb1ipy3YjknJTTU0TwTB+NyGjA6m1jBRoR3XvuQ==
   dependencies:
     checksum "^0.1.1"
     mkdirp "^0.5.1"
@@ -1031,10 +1031,10 @@ mocha@^3.5.0:
     mkdirp "0.5.1"
     supports-color "3.1.2"
 
-moment@^2.17.1:
-  version "2.18.1"
-  resolved "https://registry.yarnpkg.com/moment/-/moment-2.18.1.tgz#c36193dd3ce1c2eed2adb7c802dbbc77a81b1c0f"
-  integrity sha1-w2GT3Tzhwu7SrbfIAtu8d6gbHA8=
+moment@^2.24.0:
+  version "2.24.0"
+  resolved "https://registry.yarnpkg.com/moment/-/moment-2.24.0.tgz#0d055d53f5052aa653c9f6eb68bb5d12bf5c2b5b"
+  integrity sha512-bV7f+6l2QigeBBZSM/6yTNq4P2fNpSWj/0e7jQcy87A8e7o2nAfP/34/2ky5Vw4B9S446EtIhodAzkFCcR4dQg==
 
 mri@^1.1.0:
   version "1.1.0"

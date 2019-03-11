@@ -84,3 +84,8 @@ export function enableGroupRepositoriesByOwner(): boolean {
 export function enableLocalChangesWarningHandler(): boolean {
   return enableDevelopmentFeatures()
 }
+
+/** Should the app show the "rebase current branch" dialog? */
+export function enableRebaseDialog(): boolean {
+  return enableDevelopmentFeatures()
+}
