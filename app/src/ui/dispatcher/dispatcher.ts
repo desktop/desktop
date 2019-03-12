@@ -2,7 +2,7 @@ import { remote } from 'electron'
 import { Disposable } from 'event-kit'
 import * as Path from 'path'
 
-import { IAPIUser } from '../../lib/api'
+import { IAPIOrganization } from '../../lib/api'
 import { shell } from '../../lib/app-shell'
 import {
   CompareAction,
@@ -350,7 +350,7 @@ export class Dispatcher {
     description: string,
     private_: boolean,
     account: Account,
-    org: IAPIUser | null
+    org: IAPIOrganization | null
   ): Promise<Repository> {
     return this.appStore._publishRepository(
       repository,
