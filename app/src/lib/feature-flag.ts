@@ -76,15 +76,6 @@ export function enableGroupRepositoriesByOwner(): boolean {
   return enableBetaFeatures()
 }
 
-/**
- * As there is some lack of clarity about this feature with how it overlaps
- * with planned support for stashing changes, this warning dialog is behind
- * a feature flag for the moment.
- */
-export function enableLocalChangesWarningHandler(): boolean {
-  return enableDevelopmentFeatures()
-}
-
 /** Should the app show the "rebase current branch" dialog? */
 export function enableRebaseDialog(): boolean {
   return enableDevelopmentFeatures()
