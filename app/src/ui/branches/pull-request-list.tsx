@@ -50,6 +50,9 @@ interface IPullRequestListProps {
   /** Called when the user opts to create a pull request */
   readonly onCreatePullRequest: () => void
 
+  /** Called to render content after the filter. */
+  readonly renderPostFilter?: () => JSX.Element | null
+
   /** Callback fired when user selects a new pull request */
   readonly onSelectionChanged?: (
     pullRequest: PullRequest | null,
@@ -133,6 +136,7 @@ export class PullRequestList extends React.Component<
         onSelectionChanged={this.onSelectionChanged}
         onFilterKeyDown={this.props.onFilterKeyDown}
         renderNoItems={this.renderNoItems}
+        renderPostFilter={this.props.renderPostFilter}
       />
     )
   }

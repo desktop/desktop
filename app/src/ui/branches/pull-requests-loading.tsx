@@ -24,24 +24,33 @@ const prLoadingItemProps: IPullRequestListItemProps = {
   },
 }
 
+const items: Array<IFilterListItem> = []
+
+for (let i = 0; i < FacadeCount; i++) {
+  items.push({
+    text: [''],
+    id: i.toString(),
+  })
+}
+
+const groups = [
+  {
+    identifier: '',
+    items: items,
+  },
+]
+
+interface IPullRequestLoadingProps {
+  /** Called to render content after the filter. */
+  readonly renderPostFilter?: () => JSX.Element | null
+}
+
 /** The placeholder for when pull requests are still loading. */
-export class PullRequestsLoading extends React.Component<{}, {}> {
+export class PullRequestsLoading extends React.PureComponent<
+  IPullRequestLoadingProps,
+  {}
+> {
   public render() {
-    const items: Array<IFilterListItem> = []
-    for (let i = 0; i < FacadeCount; i++) {
-      items.push({
-        text: [''],
-        id: i.toString(),
-      })
-    }
-
-    const groups = [
-      {
-        identifier: '',
-        items,
-      },
-    ]
-
     return (
       <FilterList<IFilterListItem>
         className="pull-request-list"
@@ -51,6 +60,7 @@ export class PullRequestsLoading extends React.Component<{}, {}> {
         renderItem={this.renderItem}
         invalidationProps={groups}
         disabled={true}
+        renderPostFilter={this.props.renderPostFilter}
       />
     )
   }
