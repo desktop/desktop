@@ -3,15 +3,27 @@ import { DialogContent, Dialog, DialogFooter } from '../dialog'
 import { ButtonGroup } from '../lib/button-group'
 import { Button } from '../lib/button'
 import { DialogHeader } from '../dialog/header'
-import { WorkingDirectoryStatus } from '../../models/status'
-import { getUnmergedFiles, getConflictedFiles } from '../../lib/status'
-import { ConflictedFilesList } from './conflict-files-list'
+import {
+  WorkingDirectoryStatus,
+  WorkingDirectoryFileChange,
+} from '../../models/status'
+import {
+  getUnmergedFiles,
+  getConflictedFiles,
+  isConflictedFile,
+} from '../../lib/status'
 import { Dispatcher } from '../dispatcher'
 import { Repository } from '../../models/repository'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
-import { ContinueRebaseResult } from '../../lib/git'
+import { RebaseResult } from '../../lib/git'
 import { BannerType } from '../../models/banner'
 import { PopupType } from '../../models/popup'
+import {
+  renderUnmergedFilesSummary,
+  renderShellLink,
+  renderAllResolved,
+} from '../lib/conflicts/render-functions'
+import { renderUnmergedFile } from '../lib/conflicts/unmerged-file'
 
 interface IRebaseConflictsDialog {
   readonly dispatcher: Dispatcher
@@ -59,7 +71,7 @@ export class RebaseConflictsDialog extends React.Component<
       this.props.workingDirectory
     )
 
-    if (result === ContinueRebaseResult.CompletedWithoutError) {
+    if (result === RebaseResult.CompletedWithoutError) {
       this.props.onDismissed()
     }
   }
@@ -80,6 +92,50 @@ export class RebaseConflictsDialog extends React.Component<
         {`Resolve conflicts before rebasing `}
         <strong>{targetBranch}</strong>
       </span>
+    )
+  }
+
+  private openThisRepositoryInShell = () =>
+    this.props.openRepositoryInShell(this.props.repository)
+
+  private renderUnmergedFiles(
+    files: ReadonlyArray<WorkingDirectoryFileChange>
+  ) {
+    return (
+      <ul className="unmerged-file-statuses">
+        {files.map(f =>
+          isConflictedFile(f.status)
+            ? renderUnmergedFile({
+                path: f.path,
+                status: f.status,
+                resolvedExternalEditor: this.props.resolvedExternalEditor,
+                openFileInExternalEditor: this.props.openFileInExternalEditor,
+                repository: this.props.repository,
+                dispatcher: this.props.dispatcher,
+                manualResolution: this.props.manualResolutions.get(f.path),
+                theirBranch: this.props.targetBranch,
+                ourBranch: this.props.baseBranch,
+              })
+            : null
+        )}
+      </ul>
+    )
+  }
+
+  private renderContent(
+    unmergedFiles: ReadonlyArray<WorkingDirectoryFileChange>,
+    conflictedFilesCount: number
+  ): JSX.Element {
+    if (unmergedFiles.length === 0) {
+      return renderAllResolved()
+    }
+
+    return (
+      <>
+        {renderUnmergedFilesSummary(conflictedFilesCount)}
+        {this.renderUnmergedFiles(unmergedFiles)}
+        {renderShellLink(this.openThisRepositoryInShell)}
+      </>
     )
   }
 
@@ -114,13 +170,7 @@ export class RebaseConflictsDialog extends React.Component<
           onDismissed={this.onDismissed}
         />
         <DialogContent>
-          <ConflictedFilesList
-            dispatcher={this.props.dispatcher}
-            repository={this.props.repository}
-            openFileInExternalEditor={this.props.openFileInExternalEditor}
-            resolvedExternalEditor={this.props.resolvedExternalEditor}
-            files={unmergedFiles}
-          />
+          {this.renderContent(unmergedFiles, conflictedFilesCount)}
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>

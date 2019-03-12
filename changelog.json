@@ -8,6 +8,9 @@
       "[Fixed] Embedded Git not working for core.longpath usage in some environments - #7028",
       "[Fixed] \"Recover missing repository\" can get stuck in a loop - #7038"
     ],
+    "1.6.4-beta0": [
+      "[Removed] Option to discard when files would be overwritten by a checkout - #7016"
+    ],
     "1.6.3": [
       "[New] Display \"pull with rebase\" if a user has set this option in their Git config - #6553 #3422",
       "[Fixed] Context menu does not open when right clicking on the edges of files in Changes list - #6296. Thanks @JQuinnie!",

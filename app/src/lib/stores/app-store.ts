@@ -73,7 +73,7 @@ import {
   getAccountForEndpoint,
   getDotComAPIEndpoint,
   getEnterpriseAPIURL,
-  IAPIUser,
+  IAPIOrganization,
 } from '../api'
 import { shell } from '../app-shell'
 import {
@@ -137,6 +137,7 @@ import {
   isGitRepository,
   abortRebase,
   continueRebase,
+  rebase,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -2620,7 +2621,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       if (tip.kind === TipState.Valid) {
         const { branch } = tip
 
-        const pushTitle = `Pushing to ${remote.name}`
+        const remoteName = branch.remote || remote.name
+
+        const pushTitle = `Pushing to ${remoteName}`
 
         // Emit an initial progress even before our push begins
         // since we're doing some work to get remotes up front.
@@ -2628,7 +2631,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           kind: 'push',
           title: pushTitle,
           value: 0,
-          remote: remote.name,
+          remote: remoteName,
           branch: branch.name,
         })
 
@@ -2657,7 +2660,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
             await pushRepo(
               repository,
               account,
-              remote.name,
+              remoteName,
               branch.name,
               branch.upstreamWithoutRemote,
               progress => {
@@ -2978,7 +2981,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     description: string,
     private_: boolean,
     account: Account,
-    org: IAPIUser | null
+    org: IAPIOrganization | null
   ): Promise<Repository> {
     const api = API.fromAccount(account)
     const apiRepository = await api.createRepository(
@@ -3350,6 +3353,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     return this._refreshRepository(repository)
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _rebase(
+    repository: Repository,
+    baseBranch: string,
+    targetBranch: string
+  ) {
+    const gitStore = this.gitStoreCache.get(repository)
+    return await gitStore.performFailableOperation(() =>
+      rebase(repository, baseBranch, targetBranch)
+    )
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */

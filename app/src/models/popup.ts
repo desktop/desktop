@@ -45,6 +45,7 @@ export enum PopupType {
   PushNeedsPull,
   LocalChangesOverwritten,
   RebaseConflicts,
+  RebaseBranch,
 }
 
 export type Popup =
@@ -172,4 +173,9 @@ export type Popup =
       repository: Repository
       baseBranch?: string
       targetBranch: string
+    }
+  | {
+      type: PopupType.RebaseBranch
+      repository: Repository
+      branch?: Branch
     }
