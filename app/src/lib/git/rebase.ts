@@ -139,16 +139,22 @@ export enum RebaseResult {
   Aborted = 'Aborted',
 }
 
+// TODO: restore `expectedErrors` matching code
+
+const rebaseEncounteredConflictsRe = /Resolve all conflicts manually, mark them as resolved/
+
+const filesNotMergedRe = /You must edit all merge conflicts and then\nmark them as resolved/
+
 function parseRebaseResult(result: IGitResult): RebaseResult {
   if (result.exitCode === 0) {
     return RebaseResult.CompletedWithoutError
   }
 
-  if (result.gitError === GitError.RebaseConflicts) {
+  if (rebaseEncounteredConflictsRe.test(result.stdout)) {
     return RebaseResult.ConflictsEncountered
   }
 
-  if (result.gitError === GitError.UnresolvedConflicts) {
+  if (filesNotMergedRe.test(result.stdout)) {
     return RebaseResult.OutstandingFilesNotStaged
   }
 
@@ -214,10 +220,8 @@ export async function continueRebase(
       repository.path,
       'continueRebaseSkipCurrentCommit',
       {
-        expectedErrors: new Set([
-          GitError.RebaseConflicts,
-          GitError.UnresolvedConflicts,
-        ]),
+        // TODO: restore `expectedErrors` lookup code
+        successExitCodes: new Set([0, 1, 128]),
       }
     )
 
@@ -229,10 +233,8 @@ export async function continueRebase(
     repository.path,
     'continueRebase',
     {
-      expectedErrors: new Set([
-        GitError.RebaseConflicts,
-        GitError.UnresolvedConflicts,
-      ]),
+      // TODO: restore `expectedErrors` lookup code
+      successExitCodes: new Set([0, 1, 128]),
     }
   )
 
