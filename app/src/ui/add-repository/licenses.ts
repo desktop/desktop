@@ -88,6 +88,7 @@ export async function writeLicense(
     'project',
     'description',
     'year',
+    '\n'
   ]
 
   const body = replaceTokens(license.body, tokens, fields)
