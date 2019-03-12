@@ -20,6 +20,12 @@ export interface IEnterprisePublicationSettings {
 
   /** Should the repository be private? */
   readonly private: boolean
+
+  /**
+   * The org to which this repository belongs. If null, the repository should be
+   * published as a personal repository.
+   */
+  readonly org: IAPIUser | null
 }
 
 export interface IDotcomPublicationSettings {
