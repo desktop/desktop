@@ -25,7 +25,7 @@ export interface IEnterprisePublicationSettings {
    * The org to which this repository belongs. If null, the repository should be
    * published as a personal repository.
    */
-  readonly org: IAPIUser | null
+  readonly org: IAPIOrganization | null
 }
 
 export interface IDotcomPublicationSettings {
