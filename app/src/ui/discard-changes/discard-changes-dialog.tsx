@@ -60,6 +60,7 @@ export class DiscardChanges extends React.Component<
 
   public render() {
     const discardingAllChanges = this.props.discardingAllChanges
+    const isDiscardingChanges = this.state.isDiscardingChanges
 
     return (
       <Dialog
@@ -70,7 +71,8 @@ export class DiscardChanges extends React.Component<
             : toPlatformCase('Confirm Discard Changes')
         }
         onDismissed={this.props.onDismissed}
-        loading={this.state.isDiscardingChanges}
+        dismissable={isDiscardingChanges ? false : true}
+        loading={isDiscardingChanges}
         type="warning"
       >
         <DialogContent>
@@ -84,13 +86,10 @@ export class DiscardChanges extends React.Component<
 
         <DialogFooter>
           <ButtonGroup destructive={true}>
-            <Button disabled={this.state.isDiscardingChanges} type="submit">
+            <Button disabled={isDiscardingChanges} type="submit">
               Cancel
             </Button>
-            <Button
-              onClick={this.discard}
-              disabled={this.state.isDiscardingChanges}
-            >
+            <Button onClick={this.discard} disabled={isDiscardingChanges}>
               {discardingAllChanges
                 ? toPlatformCase('Discard All Changes')
                 : toPlatformCase('Discard Changes')}

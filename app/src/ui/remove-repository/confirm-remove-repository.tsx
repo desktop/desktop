@@ -55,13 +55,16 @@ export class ConfirmRemoveRepository extends React.Component<
   }
 
   public render() {
+    const isRemovingRepository = this.state.isRemovingRepository
+
     return (
       <Dialog
         id="confirm-remove-repository"
         key="remove-repository-confirmation"
         type="warning"
         title={__DARWIN__ ? 'Remove Repository' : 'Remove repository'}
-        loading={this.state.isRemovingRepository}
+        dismissable={isRemovingRepository ? false : true}
+        loading={isRemovingRepository}
         onDismissed={this.cancel}
         onSubmit={this.cancel}
       >
@@ -91,13 +94,10 @@ export class ConfirmRemoveRepository extends React.Component<
         </DialogContent>
         <DialogFooter>
           <ButtonGroup destructive={true}>
-            <Button disabled={this.state.isRemovingRepository} type="submit">
+            <Button disabled={isRemovingRepository} type="submit">
               Cancel
             </Button>
-            <Button
-              onClick={this.onConfirmed}
-              disabled={this.state.isRemovingRepository}
-            >
+            <Button onClick={this.onConfirmed} disabled={isRemovingRepository}>
               Remove
             </Button>
           </ButtonGroup>
