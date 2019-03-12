@@ -1,5 +1,9 @@
 {
   "releases": {
+    "1.6.4": [
+      "[Fixed] Embedded Git not working for core.longpath usage in some environments - #7028",
+      "[Fixed] \"Recover missing repository\" can get stuck in a loop - #7038"
+    ],
     "1.6.4-beta1": [
       "[Fixed] Embedded Git not working for core.longpath usage in some environments - #7028",
       "[Fixed] \"Recover missing repository\" can get stuck in a loop - #7038"
