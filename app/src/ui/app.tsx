@@ -1880,7 +1880,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       return <RevertProgress progress={revertProgress} />
     }
 
-    const remoteName = state.remote ? state.remote.name : null
+    let remoteName = state.remote ? state.remote.name : null
     const progress = state.pushPullFetchProgress
 
     const { conflictState } = state.changesState
@@ -1888,7 +1888,12 @@ export class App extends React.Component<IAppProps, IAppState> {
     const rebaseInProgress =
       conflictState !== null && conflictState.kind === 'rebase'
 
-    const tipState = state.branchesState.tip.kind
+    const { tip } = state.branchesState
+
+    if (tip.kind === TipState.Valid && tip.branch.remote !== null) {
+      remoteName = tip.branch.remote
+    }
+
     const { pullWithRebase } = state.branchesState
 
     return (
@@ -1900,7 +1905,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         lastFetched={state.lastFetched}
         networkActionInProgress={state.isPushPullFetchInProgress}
         progress={progress}
-        tipState={tipState}
+        tipState={tip.kind}
         pullWithRebase={pullWithRebase}
         rebaseInProgress={rebaseInProgress}
       />
