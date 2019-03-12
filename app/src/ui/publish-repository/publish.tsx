@@ -111,6 +111,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
       settings: {
         ...publicationSettings,
         kind: PublishSettingsType.enterprise,
+        org: null,
       },
       error: null,
     }
