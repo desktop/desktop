@@ -19,6 +19,7 @@ describe('git/stash', () => {
     })
 
     it('returns all stash entries created by Desktop', async () => {
+      await generateTestStashEntries(repository)
 
       const stashEntries = await getDesktopStashEntries(repository)
 
@@ -32,4 +33,19 @@ async function stash(repository: Repository) {
     ['stash', 'push', '-m', `${MagicStashString}:some-branch`],
     repository.path
   )
+}
+
+async function generateTestStashEntries(repository: Repository) {
+  const readme = path.join(repository.path, 'README.md')
+
+  // simulate stashing from CLI
+  await FSE.appendFile(readme, '1')
+  await stash(repository, 'should get filtered')
+
+  await FSE.appendFile(readme, '2')
+  await stash(repository, 'should also get filtered')
+
+  // simulate stashing from Desktop
+  await FSE.appendFile(readme, '2')
+  await stash(repository)
 }
