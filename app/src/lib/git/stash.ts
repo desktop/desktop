@@ -76,4 +76,6 @@ function extractBranchFromMessage(message: string): string | null {
   return branchName.length > 0 ? branchName : null
 }
 
+export function createStashMessage(branchName: string, tipSha: string) {
+  return `!!GitHub_Desktop<${branchName}@${tipSha}>`
 }
