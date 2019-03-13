@@ -3,7 +3,10 @@ import * as path from 'path'
 import { Repository } from '../../../src/models/repository'
 import { setupEmptyRepository } from '../../helpers/repositories'
 import { GitProcess } from 'dugite'
-import { MagicStashString, getStashEntries } from '../../../src/lib/git/stash'
+import {
+  getDesktopStashEntries,
+  createStashMessage,
+} from '../../../src/lib/git/stash'
 
 describe('git/stash', () => {
   describe('getStashEntries', () => {
@@ -28,9 +31,11 @@ describe('git/stash', () => {
   })
 })
 
-async function stash(repository: Repository) {
+async function stash(repository: Repository, message?: string) {
+  const result = await GitProcess.exec(['rev-parse', 'HEAD'], repository.path)
+  const tipSha = result.stdout.trim()
   await GitProcess.exec(
-    ['stash', 'push', '-m', `${MagicStashString}:some-branch`],
+    ['stash', 'push', '-m', message || createStashMessage('master', tipSha)],
     repository.path
   )
 }
