@@ -75,11 +75,7 @@ function replaceTokens(
 }
 
 function ensureLineEndingSet(body: string) {
-  if (body.endsWith('\n')) {
-    return body
-  } else {
-    return `${body}\n`
-  }
+  return body.endsWith('\n') ? body : `${body}\n`
 }
 
 /** Write the license to the the repository at the given path. */
@@ -95,7 +91,7 @@ export async function writeLicense(
     'email',
     'project',
     'description',
-    'year'
+    'year',
   ]
 
   const body = replaceTokens(license.body, tokens, fields)
