@@ -1,7 +1,8 @@
 import { git } from '.'
 import { Repository } from '../../models/repository'
 
-export const MagicStashString = '!github-desktop'
+export const DesktopStashEntryMarker = '!!GitHub_Desktop'
+
 export interface IStashEntry {
   /** The name of the branch at the time the entry was created. */
   readonly branchName: string
@@ -12,6 +13,14 @@ export interface IStashEntry {
 
 /** RegEx for parsing out the stash SHA and message */
 const stashEntryRe = /^([0-9a-f]{5,40})@(.+)$/
+
+/**
+ * RegEx for determining if a stash entry is created by Desktop
+ *
+ * This is done by looking for a magic string with the following
+ * format: `!!GitHub_Desktop<branch@commit>`
+ */
+const stashEntryMessageRe = /^!!GitHub_Desktop<(.+)@([0-9|a-z|A-Z]{5,40})>$/
 
 /**
  * Get the list of stash entries
@@ -39,7 +48,8 @@ export async function getStashEntries(
       continue
     }
 
-    const branchName = getCanonicalRefName(match[2])
+    const message = match[2]
+    const branchName = extractBranchFromMessage(message)
 
     // if branch name is null, the stash entry isn't using our magic string
     if (branchName === null) {
@@ -55,14 +65,15 @@ export async function getStashEntries(
   return stashEntries
 }
 
-function getCanonicalRefName(stashMessage: string): string | null {
-  const parts = stashMessage.split(':').map(s => s.trim())
-  const magicString = parts[1]
-  const canonicalRef = parts[2]
-
-  if (magicString !== MagicStashString) {
+function extractBranchFromMessage(message: string): string | null {
+  const [, desktopMessage] = message.split(':').map(s => s.trim())
+  const match = stashEntryMessageRe.exec(desktopMessage)
+  if (match === null) {
     return null
   }
 
-  return canonicalRef
+  const branchName = match[1]
+  return branchName.length > 0 ? branchName : null
+}
+
 }
