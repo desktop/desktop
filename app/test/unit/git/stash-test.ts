@@ -27,6 +27,7 @@ describe('git/stash', () => {
       const stashEntries = await getDesktopStashEntries(repository)
 
       expect(stashEntries).toHaveLength(1)
+      expect(stashEntries[0].branchName).toBe('master')
     })
   })
 })
