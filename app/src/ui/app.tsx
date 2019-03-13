@@ -94,6 +94,8 @@ import { OversizedFiles } from './changes/oversized-files-warning'
 import { UsageStatsChange } from './usage-stats-change'
 import { PushNeedsPullWarning } from './push-needs-pull'
 import { LocalChangesOverwrittenWarning } from './local-changes-overwritten'
+import { RebaseConflictsDialog } from './rebase'
+import { RebaseBranchDialog } from './rebase/rebase-branch-dialog'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -321,6 +323,10 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'merge-branch': {
         this.props.dispatcher.recordMenuInitiatedMerge()
         return this.mergeBranch()
+      }
+      case 'rebase-branch': {
+        this.props.dispatcher.recordMenuInitiatedRebase()
+        return this.showRebaseDialog()
       }
       case 'show-repository-settings':
         return this.showRepositorySettings()
@@ -926,6 +932,18 @@ export class App extends React.Component<IAppProps, IAppState> {
     return repositories
   }
 
+  private showRebaseDialog() {
+    const repository = this.getRepository()
+
+    if (!repository || repository instanceof CloningRepository) {
+      return
+    }
+    this.props.dispatcher.showPopup({
+      type: PopupType.RebaseBranch,
+      repository,
+    })
+  }
+
   private showRepositorySettings() {
     const repository = this.getRepository()
 
@@ -1436,7 +1454,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           conflictState,
         } = selectedState.state.changesState
 
-        if (conflictState === null) {
+        if (conflictState === null || conflictState.kind === 'rebase') {
           return null
         }
 
@@ -1517,7 +1535,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={this.onPopupDismissed}
           />
         )
-      case PopupType.LocalChangesOverwritten:
+      case PopupType.LocalChangesOverwritten: {
         const { selectedState } = this.state
         if (
           selectedState === null ||
@@ -1537,6 +1555,69 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={this.onPopupDismissed}
           />
         )
+      }
+      case PopupType.RebaseBranch: {
+        const { repository, branch } = popup
+        const state = this.props.repositoryStateManager.get(repository)
+
+        const tip = state.branchesState.tip
+
+        // we should never get in this state since we disable the menu
+        // item in a detatched HEAD state, this check is so TSC is happy
+        if (tip.kind !== TipState.Valid) {
+          return null
+        }
+
+        const currentBranch = tip.branch
+
+        return (
+          <RebaseBranchDialog
+            key="merge-branch"
+            dispatcher={this.props.dispatcher}
+            repository={repository}
+            allBranches={state.branchesState.allBranches}
+            defaultBranch={state.branchesState.defaultBranch}
+            recentBranches={state.branchesState.recentBranches}
+            currentBranch={currentBranch}
+            initialBranch={branch}
+            onDismissed={this.onPopupDismissed}
+          />
+        )
+      }
+      case PopupType.RebaseConflicts: {
+        const { selectedState } = this.state
+
+        if (
+          selectedState === null ||
+          selectedState.type !== SelectionType.Repository
+        ) {
+          return null
+        }
+
+        const {
+          workingDirectory,
+          conflictState,
+        } = selectedState.state.changesState
+
+        if (conflictState === null || conflictState.kind === 'merge') {
+          return null
+        }
+
+        return (
+          <RebaseConflictsDialog
+            dispatcher={this.props.dispatcher}
+            repository={popup.repository}
+            targetBranch={popup.targetBranch}
+            baseBranch={popup.baseBranch}
+            workingDirectory={workingDirectory}
+            manualResolutions={conflictState.manualResolutions}
+            onDismissed={this.onPopupDismissed}
+            openFileInExternalEditor={this.openFileInExternalEditor}
+            resolvedExternalEditor={this.state.resolvedExternalEditor}
+            openRepositoryInShell={this.openInShell}
+          />
+        )
+      }
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
@@ -1799,10 +1880,21 @@ export class App extends React.Component<IAppProps, IAppState> {
       return <RevertProgress progress={revertProgress} />
     }
 
-    const remoteName = state.remote ? state.remote.name : null
+    let remoteName = state.remote ? state.remote.name : null
     const progress = state.pushPullFetchProgress
 
-    const tipState = state.branchesState.tip.kind
+    const { conflictState } = state.changesState
+
+    const rebaseInProgress =
+      conflictState !== null && conflictState.kind === 'rebase'
+
+    const { tip } = state.branchesState
+
+    if (tip.kind === TipState.Valid && tip.branch.remote !== null) {
+      remoteName = tip.branch.remote
+    }
+
+    const { pullWithRebase } = state.branchesState
 
     return (
       <PushPullButton
@@ -1813,7 +1905,9 @@ export class App extends React.Component<IAppProps, IAppState> {
         lastFetched={state.lastFetched}
         networkActionInProgress={state.isPushPullFetchInProgress}
         progress={progress}
-        tipState={tipState}
+        tipState={tip.kind}
+        pullWithRebase={pullWithRebase}
+        rebaseInProgress={rebaseInProgress}
       />
     )
   }

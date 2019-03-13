@@ -73,7 +73,7 @@ import {
   getAccountForEndpoint,
   getDotComAPIEndpoint,
   getEnterpriseAPIURL,
-  IAPIUser,
+  IAPIOrganization,
 } from '../api'
 import { shell } from '../app-shell'
 import {
@@ -93,6 +93,7 @@ import {
   ComparisonMode,
   MergeConflictState,
   isMergeConflictState,
+  RebaseConflictState,
 } from '../app-state'
 import { IGitHubUser } from '../databases/github-user-database'
 import {
@@ -136,6 +137,7 @@ import {
   isGitRepository,
   abortRebase,
   continueRebase,
+  rebase,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -177,7 +179,7 @@ import { validatedRepositoryPath } from './helpers/validated-repository-path'
 import { RepositoryStateCache } from './repository-state-cache'
 import { readEmoji } from '../read-emoji'
 import { GitStoreCache } from './git-store-cache'
-import { MergeConflictsErrorContext } from '../git-error-context'
+import { GitErrorContext } from '../git-error-context'
 import { setNumber, setBoolean, getBoolean, getNumber } from '../local-storage'
 import { ExternalEditorError } from '../editors/shared'
 import { ApiRepositoriesStore } from './api-repositories-store'
@@ -190,7 +192,7 @@ import {
   ManualConflictResolutionKind,
 } from '../../models/manual-conflict-resolution'
 import { BranchPruner } from './helpers/branch-pruner'
-import { enableBranchPruning, enableNewRebaseFlow } from '../feature-flag'
+import { enableBranchPruning, enablePullWithRebase } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 
 /**
@@ -549,6 +551,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       defaultBranch: gitStore.defaultBranch,
       allBranches: gitStore.allBranches,
       recentBranches: gitStore.recentBranches,
+      pullWithRebase: gitStore.pullWithRebase,
     }))
 
     this.repositoryStateCache.updateChangesState(repository, () => ({
@@ -1624,7 +1627,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private async _triggerConflictsFlow(repository: Repository) {
-    if (enableNewRebaseFlow()) {
+    if (enablePullWithRebase()) {
       const repoState = this.repositoryStateCache.get(repository)
       const { conflictState } = repoState.changesState
 
@@ -1635,7 +1638,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       if (conflictState.kind === 'merge') {
         await this.showMergeConflictsDialog(repository, conflictState)
       } else if (conflictState.kind === 'rebase') {
-        await this.showRebaseConflictsDialog(repository)
+        await this.showRebaseConflictsDialog(repository, conflictState)
       } else {
         assertNever(conflictState, `Unsupported conflict kind`)
       }
@@ -1645,10 +1648,41 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** display the rebase flow, if not already in this flow */
-  private async showRebaseConflictsDialog(repository: Repository) {
-    // TODO: check the current popup is a rebase conflicts dialog
-    // TODO: if already in flow, exit
-    // TODO: otherwise show the popup
+  private async showRebaseConflictsDialog(
+    repository: Repository,
+    conflictState: RebaseConflictState
+  ) {
+    const alreadyInFlow =
+      this.currentPopup !== null &&
+      this.currentPopup.type === PopupType.RebaseConflicts
+
+    // have we already been shown the merge conflicts flow *and closed it*?
+    const alreadyExitedFlow =
+      this.currentBanner !== null &&
+      this.currentBanner.type === BannerType.RebaseConflictsFound
+
+    if (alreadyInFlow || alreadyExitedFlow) {
+      return
+    }
+    const possibleTheirsBranches = await getBranchesPointedAt(
+      repository,
+      conflictState.baseBranchTip
+    )
+    // null means we encountered an error
+    if (possibleTheirsBranches === null) {
+      return
+    }
+    const baseBranch =
+      possibleTheirsBranches.length === 1
+        ? possibleTheirsBranches[0]
+        : undefined
+
+    this._showPopup({
+      type: PopupType.RebaseConflicts,
+      repository,
+      targetBranch: conflictState.targetBranch,
+      baseBranch,
+    })
   }
 
   /** starts the conflict resolution flow, if appropriate */
@@ -2019,10 +2053,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const foundRepository =
       (await pathExists(repository.path)) &&
-      (await isGitRepository(repository.path))
+      (await isGitRepository(repository.path)) &&
+      (await this._loadStatus(repository))
 
     if (foundRepository) {
-      this._updateRepositoryMissing(repository, false)
+      return await this._updateRepositoryMissing(repository, false)
     }
     return repository
   }
@@ -2586,7 +2621,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       if (tip.kind === TipState.Valid) {
         const { branch } = tip
 
-        const pushTitle = `Pushing to ${remote.name}`
+        const remoteName = branch.remote || remote.name
+
+        const pushTitle = `Pushing to ${remoteName}`
 
         // Emit an initial progress even before our push begins
         // since we're doing some work to get remotes up front.
@@ -2594,7 +2631,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           kind: 'push',
           title: pushTitle,
           value: 0,
-          remote: remote.name,
+          remote: remoteName,
           branch: branch.name,
         })
 
@@ -2623,7 +2660,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
             await pushRepo(
               repository,
               account,
-              remote.name,
+              remoteName,
               branch.name,
               branch.upstreamWithoutRemote,
               progress => {
@@ -2787,7 +2824,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       if (tip.kind === TipState.Valid) {
         let mergeBase: string | null = null
-        let gitContext: MergeConflictsErrorContext | undefined = undefined
+        let gitContext: GitErrorContext | undefined = undefined
 
         if (tip.branch.upstream !== null) {
           mergeBase = await getMergeBase(
@@ -2798,8 +2835,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
           gitContext = {
             kind: 'pull',
-            tip,
             theirBranch: tip.branch.upstream,
+            currentBranch: tip.branch.name,
           }
         }
 
@@ -2831,6 +2868,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
             type: RetryActionType.Pull,
             repository,
           }
+
+          if (gitStore.pullWithRebase) {
+            this.statsStore.recordPullWithRebaseEnabled()
+          } else {
+            this.statsStore.recordPullWithDefaultSetting()
+          }
+
           await gitStore.performFailableOperation(
             () =>
               pullRepo(repository, account, remote.name, progress => {
@@ -2937,7 +2981,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     description: string,
     private_: boolean,
     account: Account,
-    org: IAPIUser | null
+    org: IAPIOrganization | null
   ): Promise<Repository> {
     const api = API.fromAccount(account)
     const apiRepository = await api.createRepository(
@@ -3312,6 +3356,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _rebase(
+    repository: Repository,
+    baseBranch: string,
+    targetBranch: string
+  ) {
+    const gitStore = this.gitStoreCache.get(repository)
+    return await gitStore.performFailableOperation(() =>
+      rebase(repository, baseBranch, targetBranch)
+    )
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public async _abortRebase(repository: Repository): Promise<void> {
     const gitStore = this.gitStoreCache.get(repository)
     return await gitStore.performFailableOperation(() =>
@@ -3325,13 +3381,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     workingDirectory: WorkingDirectoryStatus
   ) {
     const gitStore = this.gitStoreCache.get(repository)
-
-    const trackedFiles = workingDirectory.files.filter(f => {
-      return f.status.kind !== AppFileStatusKind.Untracked
-    })
-
     return await gitStore.performFailableOperation(() =>
-      continueRebase(repository, trackedFiles)
+      continueRebase(repository, workingDirectory.files)
     )
   }
 

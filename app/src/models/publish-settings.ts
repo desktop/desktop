@@ -1,4 +1,4 @@
-import { IAPIUser } from '../lib/api'
+import { IAPIOrganization } from '../lib/api'
 
 export type RepositoryPublicationSettings =
   | IEnterprisePublicationSettings
@@ -38,5 +38,5 @@ export interface IDotcomPublicationSettings {
    * The org to which this repository belongs. If null, the repository should be
    * published as a personal repository.
    */
-  readonly org: IAPIUser | null
+  readonly org: IAPIOrganization | null
 }

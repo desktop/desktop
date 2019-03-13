@@ -26,7 +26,7 @@ import { fatalError } from '../../lib/fatal-error'
 import { isMergeHeadSet } from './merge'
 import { getBinaryPaths } from './diff'
 import { getRebaseContext } from './rebase'
-import { enableNewRebaseFlow } from '../feature-flag'
+import { enablePullWithRebase } from '../feature-flag'
 import { RebaseContext } from '../../models/rebase'
 
 /**
@@ -201,7 +201,7 @@ export async function getStatus(
   const mergeHeadFound = await isMergeHeadSet(repository)
   const rebaseContext = await getRebaseContext(repository)
 
-  if (enableNewRebaseFlow()) {
+  if (enablePullWithRebase()) {
     conflictDetails = await getConflictDetails(
       repository,
       mergeHeadFound,

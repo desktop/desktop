@@ -13,7 +13,6 @@ import { UpstreamAlreadyExistsError } from '../../lib/stores/upstream-already-ex
 
 import { PopupType } from '../../models/popup'
 import { Repository } from '../../models/repository'
-import { TipState } from '../../models/tip'
 
 /** An error which also has a code property. */
 interface IErrorWithCode extends Error {
@@ -295,15 +294,12 @@ export async function mergeConflictHandler(
       break
   }
 
-  const { tip, theirBranch } = gitContext
-  if (tip == null || tip.kind !== TipState.Valid) {
-    return error
-  }
+  const { currentBranch, theirBranch } = gitContext
 
   dispatcher.showPopup({
     type: PopupType.MergeConflicts,
     repository,
-    ourBranch: tip.branch.name,
+    ourBranch: currentBranch,
     theirBranch,
   })
 
@@ -358,11 +354,11 @@ export async function upstreamAlreadyExistsHandler(
   return null
 }
 
-/**
- * Handler for when we attempt to checkout a branch and there are some files that would
- * be overwritten.
+/*
+ * Handler for detecting when a merge conflict is reported to direct the user
+ * to a different dialog than the generic Git error dialog.
  */
-export async function localChangesOverwrittenHandler(
+export async function rebaseConflictsHandler(
   error: Error,
   dispatcher: Dispatcher
 ): Promise<Error | null> {
@@ -381,11 +377,11 @@ export async function localChangesOverwrittenHandler(
     return error
   }
 
-  if (dugiteError !== DugiteError.LocalChangesOverwritten) {
+  if (dugiteError !== DugiteError.RebaseConflicts) {
     return error
   }
 
-  const { repository, retryAction } = e.metadata
+  const { repository, gitContext } = e.metadata
   if (repository == null) {
     return error
   }
@@ -394,29 +390,18 @@ export async function localChangesOverwrittenHandler(
     return error
   }
 
-  if (!retryAction) {
-    log.error(`No retry action provided for a git checkout error.`, e)
+  if (gitContext == null) {
     return error
   }
 
-  // find the overwritten files from the error
-  const overwrittenFiles = []
+  // TODO: metrics - https://github.com/desktop/desktop/issues/6550
 
-  const pathRegex = /^\t(.*)/gm
-  const { stderr } = gitError.result
-
-  let match = pathRegex.exec(stderr)
-
-  while (match !== null) {
-    overwrittenFiles.push(match[1])
-    match = pathRegex.exec(stderr)
-  }
+  const { currentBranch } = gitContext
 
   dispatcher.showPopup({
-    type: PopupType.LocalChangesOverwritten,
+    type: PopupType.RebaseConflicts,
     repository,
-    retryAction,
-    overwrittenFiles,
+    targetBranch: currentBranch,
   })
 
   return null

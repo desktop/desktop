@@ -4,11 +4,12 @@ import { OcticonSymbol } from '../octicons'
 import { Repository } from '../../models/repository'
 import { TipState } from '../../models/tip'
 import { ToolbarDropdown, DropdownState } from './dropdown'
-import { IRepositoryState } from '../../lib/app-state'
+import { IRepositoryState, isRebaseConflictState } from '../../lib/app-state'
 import { BranchesContainer, PullRequestBadge } from '../branches'
 import { assertNever } from '../../lib/fatal-error'
 import { BranchesTab } from '../../models/branches-tab'
 import { PullRequest } from '../../models/pull-request'
+import { enablePullWithRebase } from '../../lib/feature-flag'
 
 interface IBranchDropdownProps {
   readonly dispatcher: Dispatcher
@@ -82,10 +83,11 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
   }
 
   public render() {
-    const repositoryState = this.props.repositoryState
-    const branchesState = repositoryState.branchesState
+    const { repositoryState } = this.props
+    const { branchesState, checkoutProgress, changesState } = repositoryState
+    const { tip } = branchesState
+    const { conflictState } = changesState
 
-    const tip = branchesState.tip
     const tipKind = tip.kind
 
     let icon = OcticonSymbol.gitBranch
@@ -93,6 +95,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
     let title: string
     let description = __DARWIN__ ? 'Current Branch' : 'Current branch'
     let canOpen = true
+    let disabled = false
     let tooltip: string
 
     if (this.props.currentPullRequest) {
@@ -118,7 +121,6 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
       return assertNever(tip, `Unknown tip state: ${tipKind}`)
     }
 
-    const checkoutProgress = repositoryState.checkoutProgress
     let progressValue: number | undefined = undefined
 
     if (checkoutProgress) {
@@ -134,6 +136,16 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
       icon = OcticonSymbol.sync
       iconClassName = 'spin'
       canOpen = false
+    } else if (
+      conflictState !== null &&
+      isRebaseConflictState(conflictState) &&
+      enablePullWithRebase()
+    ) {
+      title = conflictState.targetBranch
+      description = 'Rebasing branch'
+      icon = OcticonSymbol.gitBranch
+      canOpen = false
+      disabled = true
     }
 
     const isOpen = this.props.isOpen
@@ -150,6 +162,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
         onDropdownStateChanged={this.onDropDownStateChanged}
         dropdownContentRenderer={this.renderBranchFoldout}
         dropdownState={currentState}
+        disabled={disabled}
         showDisclosureArrow={canOpen}
         progressValue={progressValue}
       >

@@ -11,7 +11,7 @@ import { PullProgressParser, executionOptionsWithProgress } from '../progress'
 import { envForAuthentication, AuthenticationErrors } from './authentication'
 import {
   enableRecurseSubmodulesFlag,
-  enableNewRebaseFlow,
+  enablePullWithRebase,
 } from '../feature-flag'
 
 async function getPullArgs(
@@ -24,7 +24,7 @@ async function getPullArgs(
 
   const args = [...networkArguments, 'pull']
 
-  if (!enableNewRebaseFlow()) {
+  if (!enablePullWithRebase()) {
     args.push('--no-rebase')
   }
 

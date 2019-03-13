@@ -10,9 +10,7 @@ import {
   WorkingDirectoryStatus,
   WorkingDirectoryFileChange,
 } from '../../models/status'
-import { Octicon, OcticonSymbol } from '../octicons'
 import { DialogHeader } from '../dialog/header'
-import { LinkButton } from '../lib/link-button'
 import {
   isConflictedFile,
   getResolvedFiles,
@@ -20,7 +18,12 @@ import {
   getUnmergedFiles,
 } from '../../lib/status'
 import { DefaultCommitMessage } from '../../models/commit-message'
-import { renderUnmergedFile } from './unmerged-file'
+import {
+  renderUnmergedFile,
+  renderUnmergedFilesSummary,
+  renderShellLink,
+  renderAllResolved,
+} from '../lib/conflicts'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { BannerType } from '../../models/banner'
 
@@ -145,17 +148,6 @@ export class MergeConflictsDialog extends React.Component<
   private openThisRepositoryInShell = () =>
     this.props.openRepositoryInShell(this.props.repository)
 
-  private renderShellLink(openThisRepositoryInShell: () => void): JSX.Element {
-    return (
-      <div>
-        <LinkButton onClick={openThisRepositoryInShell}>
-          Open in command line,
-        </LinkButton>{' '}
-        your tool of choice, or close to resolve manually.
-      </div>
-    )
-  }
-
   private renderUnmergedFiles(
     files: ReadonlyArray<WorkingDirectoryFileChange>
   ) {
@@ -180,39 +172,19 @@ export class MergeConflictsDialog extends React.Component<
     )
   }
 
-  private renderUnmergedFilesSummary(conflictedFilesCount: number) {
-    // localization, it burns :vampire:
-    const message =
-      conflictedFilesCount === 1
-        ? `1 conflicted file`
-        : `${conflictedFilesCount} conflicted files`
-    return <h3 className="summary">{message}</h3>
-  }
-
-  private renderAllResolved() {
-    return (
-      <div className="all-conflicts-resolved">
-        <div className="green-circle">
-          <Octicon symbol={OcticonSymbol.check} />
-        </div>
-        <div className="message">All conflicts resolved</div>
-      </div>
-    )
-  }
-
   private renderContent(
     unmergedFiles: ReadonlyArray<WorkingDirectoryFileChange>,
     conflictedFilesCount: number
   ): JSX.Element {
     if (unmergedFiles.length === 0) {
-      return this.renderAllResolved()
+      return renderAllResolved()
     }
 
     return (
       <>
-        {this.renderUnmergedFilesSummary(conflictedFilesCount)}
+        {renderUnmergedFilesSummary(conflictedFilesCount)}
         {this.renderUnmergedFiles(unmergedFiles)}
-        {this.renderShellLink(this.openThisRepositoryInShell)}
+        {renderShellLink(this.openThisRepositoryInShell)}
       </>
     )
   }
