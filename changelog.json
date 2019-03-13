@@ -1,7 +1,7 @@
 {
   "releases": {
     "1.6.5-beta1": [
-      "[Fixed] Publish Repository does not let you choose an organization on your Enterprise account"
+      "[Fixed] Publish Repository does not let you choose an organization on your Enterprise account - #7052"
     ],
     "1.6.4": [
       "[Fixed] Embedded Git not working for core.longpath usage in some environments - #7028",
