@@ -27,7 +27,7 @@ const stashEntryMessageRe = /^!!GitHub_Desktop<(.+)@([0-9|a-z|A-Z]{5,40})>$/
  *
  * @param repository
  */
-export async function getStashEntries(
+export async function getDesktopStashEntries(
   repository: Repository
 ): Promise<ReadonlyArray<IStashEntry>> {
   const prettyFormat = '%H@%gs'

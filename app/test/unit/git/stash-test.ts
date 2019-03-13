@@ -17,7 +17,7 @@ describe('git/stash', () => {
       await FSE.appendFile(readme, 'Hello\n')
       await stash(repository)
 
-      const stashEntries = await getStashEntries(repository)
+      const stashEntries = await getDesktopStashEntries(repository)
 
       expect(stashEntries).toHaveLength(1)
     })
