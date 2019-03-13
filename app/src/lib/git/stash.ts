@@ -35,7 +35,6 @@ export async function getStashEntries(
   for (const line of lines) {
     const match = stashEntryRe.exec(line)
 
-    console.log(match)
     if (match == null) {
       continue
     }
