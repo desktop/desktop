@@ -9,7 +9,7 @@ import {
 } from '../../../src/lib/git/stash'
 
 describe('git/stash', () => {
-  describe('getStashEntries', () => {
+  describe('getDesktopStashEntries', () => {
     let repository: Repository
     let readme: string
 
