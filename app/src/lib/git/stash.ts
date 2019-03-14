@@ -12,7 +12,7 @@ export interface IStashEntry {
 }
 
 /** RegEx for parsing out the stash SHA and message */
-const stashEntryRe = /^([0-9a-f]{5,40})@(.+)$/
+const stashEntryRe = /^([0-9a-f]{5,40}):(.+)$/
 
 /**
  * RegEx for determining if a stash entry is created by Desktop
@@ -30,7 +30,7 @@ const stashEntryMessageRe = /^!!GitHub_Desktop<(.+)@([0-9|a-z|A-Z]{5,40})>$/
 export async function getDesktopStashEntries(
   repository: Repository
 ): Promise<ReadonlyArray<IStashEntry>> {
-  const prettyFormat = '%H@%gs'
+  const prettyFormat = '%H:%gs'
   const result = await git(
     ['log', '-g', 'refs/stash', `--pretty=${prettyFormat}`],
     repository.path,
@@ -86,8 +86,7 @@ export async function createStashEntry(
 }
 
 function extractBranchFromMessage(message: string): string | null {
-  const [, desktopMessage] = message.split(':').map(s => s.trim())
-  const match = stashEntryMessageRe.exec(desktopMessage)
+  const match = stashEntryMessageRe.exec(message)
   if (match === null) {
     return null
   }
