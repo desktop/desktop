@@ -17,7 +17,6 @@ Each rotation is a week long. While first responder your primary duties are:
     * Review issues labeled [`more-information-needed`](https://github.com/desktop/desktop/issues?q=is%3Aopen+is%3Aissue+label%3Amore-information-needed+sort%3Aupdated-asc) and close any that have gone 7 days without an issue template being filled out. Otherwise, the `no-response` bot will close it after 2 weeks.
     * See [issue-triage.md](issue-triage.md) for more information on our issue triage process.
 1. Check community pull requests and label ones that are `ready-for-review`.
-1. Review community pull requests.
 
 Once those things are done, you should feel free to spend your time scratching your own itches on the project. Really wanna refactor that one monstrous component? Go for it! Wanna fix that one bug that drives you nuts? Do it! Wanna upgrade all of our dependencies? You're an awesome masochist!
 
