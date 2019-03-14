@@ -138,6 +138,20 @@ export interface IGitProgressInfo {
 }
 
 /**
+ * Base interface for parsing progess reported from Git
+ */
+export interface IGitProgressParser {
+  /**
+   * Parse the given line of output from Git, returns either an IGitProgress
+   * instance if the line could successfully be parsed as a Git progress
+   * event whose title was registered with this parser or an IGitOutput
+   * instance if the line couldn't be parsed or if the title wasn't
+   * registered with the parser.
+   */
+  parse: (line: string) => IGitProgress | IGitOutput
+}
+
+/**
  * A utility class for interpreting progress output from `git`
  * and turning that into a percentage value estimating the overall progress
  * of the an operation. An operation could be something like `git fetch`
@@ -147,7 +161,7 @@ export interface IGitProgressInfo {
  * A parser cannot be reused, it's mean to parse a single stderr stream
  * for Git.
  */
-export class GitProgressParser {
+export class GitProgressParser implements IGitProgressParser {
   private readonly steps: ReadonlyArray<IProgressStep>
 
   /* The provided steps should always occur in order but some
@@ -185,13 +199,6 @@ export class GitProgressParser {
     }))
   }
 
-  /**
-   * Parse the given line of output from Git, returns either an IGitProgress
-   * instance if the line could successfully be parsed as a Git progress
-   * event whose title was registered with this parser or an IGitOutput
-   * instance if the line couldn't be parsed or if the title wasn't
-   * registered with the parser.
-   */
   public parse(line: string): IGitProgress | IGitOutput {
     const progress = parse(line)
 
