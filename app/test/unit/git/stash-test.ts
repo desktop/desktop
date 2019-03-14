@@ -7,6 +7,7 @@ import {
   getDesktopStashEntries,
   createStashMessage,
   createStashEntry,
+  getLastStashEntry,
 } from '../../../src/lib/git/stash'
 
 describe('git/stash', () => {
@@ -23,7 +24,9 @@ describe('git/stash', () => {
     })
 
     it('returns all stash entries created by Desktop', async () => {
-      await generateTestStashEntries(repository)
+      await generateTestStashEntry(repository, 'master', false)
+      await generateTestStashEntry(repository, 'master', false)
+      await generateTestStashEntry(repository, 'master', true)
 
       const stashEntries = await getDesktopStashEntries(repository)
 
@@ -55,6 +58,41 @@ describe('git/stash', () => {
       expect(entries).toHaveLength(1)
     })
   })
+
+  describe('getLastStashEntry', () => {
+    let repository: Repository
+    let readme: string
+
+    beforeEach(async () => {
+      repository = await setupEmptyRepository()
+      readme = path.join(repository.path, 'README.md')
+      await FSE.writeFile(readme, '')
+      await GitProcess.exec(['add', 'README.md'], repository.path)
+      await GitProcess.exec(['commit', '-m', 'initial commit'], repository.path)
+    })
+
+    it('returns null when no stash entries exist for branch', async () => {
+      await generateTestStashEntry(repository, 'some-other-branch', true)
+
+      const entry = await getLastStashEntry(repository, 'master')
+
+      expect(entry).toBeNull()
+    })
+
+    it('returns last entry made for branch', async () => {
+      const branchName = 'master'
+      await generateTestStashEntry(repository, branchName, true)
+      const lastEntry = await generateTestStashEntry(
+        repository,
+        branchName,
+        true
+      )
+
+      const actual = await getLastStashEntry(repository, branchName)
+
+      expect(actual!.stashSha).toBe(lastEntry)
+    })
+  })
 })
 
 async function getTipSha(repository: Repository) {
@@ -62,25 +100,37 @@ async function getTipSha(repository: Repository) {
   return result.stdout.trim()
 }
 
-async function stash(repository: Repository, message?: string) {
+async function stash(
+  repository: Repository,
+  branchName: string,
+  message: string | null
+): Promise<string> {
   const tipSha = await getTipSha(repository)
+  const result = await GitProcess.exec(['stash', 'create'], repository.path)
+  const objectId = result.stdout.trim()
   await GitProcess.exec(
-    ['stash', 'push', '-m', message || createStashMessage('master', tipSha)],
+    [
+      'stash',
+      'store',
+      '-m',
+      message || createStashMessage(branchName, tipSha),
+      objectId,
+    ],
     repository.path
   )
+
+  return objectId
 }
 
-async function generateTestStashEntries(repository: Repository) {
+async function generateTestStashEntry(
+  repository: Repository,
+  branchName: string,
+  createdByDesktop: boolean
+): Promise<string> {
+  const message = createdByDesktop ? null : 'Should get filtered'
   const readme = path.join(repository.path, 'README.md')
-
-  // simulate stashing from CLI
   await FSE.appendFile(readme, '1')
-  await stash(repository, 'should get filtered')
+  const objectId = await stash(repository, branchName, message)
 
-  await FSE.appendFile(readme, '2')
-  await stash(repository, 'should also get filtered')
-
-  // simulate stashing from Desktop
-  await FSE.appendFile(readme, '2')
-  await stash(repository)
+  return objectId
 }
