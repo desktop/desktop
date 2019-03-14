@@ -65,6 +65,15 @@ export async function getDesktopStashEntries(
   return stashEntries
 }
 
+export async function getLastStashEntry(
+  repository: Repository,
+  branchName: string
+) {
+  const entries = await getDesktopStashEntries(repository)
+
+  return entries.find(stash => stash.branchName === branchName) || null
+}
+
 export function createStashMessage(branchName: string, tipSha: string) {
   return `!!GitHub_Desktop<${branchName}@${tipSha}>`
 }
