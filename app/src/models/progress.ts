@@ -99,6 +99,12 @@ export interface IRevertProgress extends IProgress {
   kind: 'revert'
 }
 
+/** An object describing the progress of a rebase operation */
+export interface IRebaseProgress {
+  readonly message: string
+  readonly percent: number
+}
+
 export type Progress =
   | IGenericProgress
   | ICheckoutProgress
