@@ -6,6 +6,7 @@ import { GitProcess } from 'dugite'
 import {
   getDesktopStashEntries,
   createStashMessage,
+  createStashEntry,
 } from '../../../src/lib/git/stash'
 
 describe('git/stash', () => {
@@ -30,11 +31,39 @@ describe('git/stash', () => {
       expect(stashEntries[0].branchName).toBe('master')
     })
   })
+
+  describe('createStashEntry', () => {
+    let repository: Repository
+    let readme: string
+
+    beforeEach(async () => {
+      repository = await setupEmptyRepository()
+      readme = path.join(repository.path, 'README.md')
+      await FSE.writeFile(readme, '')
+      await GitProcess.exec(['add', 'README.md'], repository.path)
+      await GitProcess.exec(['commit', '-m', 'initial commit'], repository.path)
+    })
+
+    it('creates a stash entry', async () => {
+      await await FSE.appendFile(readme, 'just testing stuff')
+      const tipSha = await getTipSha(repository)
+
+      await createStashEntry(repository, 'master', tipSha)
+
+      const result = await GitProcess.exec(['stash', 'list'], repository.path)
+      const entries = result.stdout.trim().split('\n')
+      expect(entries).toHaveLength(1)
+    })
+  })
 })
 
-async function stash(repository: Repository, message?: string) {
+async function getTipSha(repository: Repository) {
   const result = await GitProcess.exec(['rev-parse', 'HEAD'], repository.path)
-  const tipSha = result.stdout.trim()
+  return result.stdout.trim()
+}
+
+async function stash(repository: Repository, message?: string) {
+  const tipSha = await getTipSha(repository)
   await GitProcess.exec(
     ['stash', 'push', '-m', message || createStashMessage('master', tipSha)],
     repository.path
