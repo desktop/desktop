@@ -15,8 +15,7 @@ import { stageManualConflictResolution } from './stage'
 import { stageFiles } from './update-index'
 
 import { getStatus } from './status'
-import { RebaseContext } from '../../models/rebase'
-import { IRebaseProgress } from '../../models/progress'
+import { RebaseContext, RebaseProgressOptions } from '../../models/rebase'
 import { IGitProgress, IGitOutput, IGitProgressParser } from '../progress'
 import { merge } from '../merge'
 
@@ -137,18 +136,6 @@ function createStdoutProgressProcessCallback(
       progressCallback(parser.parse(line))
     })
   }
-}
-
-/**
- * Options to pass in to rebase progress reporting
- */
-export type RebaseProgressOptions = {
-  /** The number of commits already rebased as part of the operation */
-  start: number
-  /** The number of commits to be rebased as part of the operation */
-  total: number
-  /** The callback to fire when rebase progress is reported */
-  progressCallback: (progress: IRebaseProgress) => void
 }
 
 /**

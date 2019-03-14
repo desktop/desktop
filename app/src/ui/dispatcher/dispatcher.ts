@@ -19,12 +19,7 @@ import {
   setGenericPassword,
   setGenericUsername,
 } from '../../lib/generic-git-auth'
-import {
-  isGitRepository,
-  RebaseResult,
-  PushOptions,
-  RebaseProgressOptions,
-} from '../../lib/git'
+import { isGitRepository, RebaseResult, PushOptions } from '../../lib/git'
 import { isGitOnPath } from '../../lib/is-git-on-path'
 import {
   rejectOAuthRequest,
@@ -70,6 +65,7 @@ import {
   WorkingDirectoryStatus,
 } from '../../models/status'
 import { TipState, IValidBranch } from '../../models/tip'
+import { RebaseProgressOptions } from '../../models/rebase'
 import { Banner, BannerType } from '../../models/banner'
 
 import { ApplicationTheme } from '../lib/application-theme'
