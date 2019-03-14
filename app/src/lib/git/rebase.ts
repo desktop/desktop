@@ -1,9 +1,11 @@
 import * as Path from 'path'
+import { ChildProcess } from 'child_process'
 import * as FSE from 'fs-extra'
 import { GitError } from 'dugite'
+import * as byline from 'byline'
 
 import { Repository } from '../../models/repository'
-import { git, IGitResult } from './core'
+import { git, IGitResult, IGitExecutionOptions } from './core'
 import {
   WorkingDirectoryFileChange,
   AppFileStatusKind,
@@ -14,6 +16,9 @@ import { stageFiles } from './update-index'
 
 import { getStatus } from './status'
 import { RebaseContext } from '../../models/rebase'
+import { IRebaseProgress } from '../../models/progress'
+import { IGitProgress, IGitOutput, IGitProgressParser } from '../progress'
+import { merge } from '../merge'
 
 /**
  * Check the `.git/REBASE_HEAD` file exists in a repository to confirm
@@ -82,6 +87,70 @@ export async function getRebaseContext(
 
   return null
 }
+
+/**
+ * A parser to read and emit rebase progress from Git `stdout`
+ */
+class GitRebaseParser implements IGitProgressParser {
+  private currentCommitCount = 0
+
+  public constructor(
+    startCount: number,
+    private readonly totalCommitCount: number
+  ) {
+    this.currentCommitCount = startCount
+  }
+
+  public parse(line: string): IGitProgress | IGitOutput {
+    if (line.startsWith('Applying: ')) {
+      this.currentCommitCount++
+    }
+
+    const percent = 100 * (this.currentCommitCount / this.totalCommitCount)
+
+    return {
+      kind: 'context',
+      percent: percent,
+      text: line,
+    }
+  }
+}
+
+/**
+ * Reads `stdout` and uses the provided parser to emit progress to the caller.
+ *
+ * Our default progress parsing infrastructure reads `stderr` as this is how Git
+ * typically emits progres, but `git rebase` is a special case. Our default
+ * progress parsing also supports more general use cases, so this felt simpler
+ * to implement as a first iteration than baking more complexity into the
+ * defaults currently.
+ *
+ * @param parser the provided parser to process `stdout`
+ * @param progressCallback the callback to invoke with received progress data
+ */
+function createStdoutProgressProcessCallback(
+  parser: IGitProgressParser,
+  progressCallback: (progress: IGitProgress | IGitOutput) => void
+): (process: ChildProcess) => void {
+  return process => {
+    byline(process.stdout).on('data', (line: string) => {
+      progressCallback(parser.parse(line))
+    })
+  }
+}
+
+/**
+ * Options to pass in to rebase progress reporting
+ */
+export type RebaseProgressOptions = {
+  /** The number of commits already rebased as part of the operation */
+  start: number
+  /** The number of commits to be rebased as part of the operation */
+  total: number
+  /** The callback to fire when rebase progress is reported */
+  progressCallback: (progress: IRebaseProgress) => void
+}
+
 /**
  * A stub function to use for initiating rebase in the app.
  *
