@@ -31,48 +31,42 @@ export async function getDesktopStashEntries(
   repository: Repository
 ): Promise<ReadonlyArray<IStashEntry>> {
   const prettyFormat = '%H@%gs'
+  const result = await git(
+    ['log', '-g', 'refs/stash', `--pretty=${prettyFormat}`],
+    repository.path,
+    'getStashEntries'
+  )
 
-  try {
-    const result = await git(
-      ['log', '-g', 'refs/stash', `--pretty=${prettyFormat}`],
-      repository.path,
-      'getStashEntries'
-    )
-
-    if (result.gitError !== null) {
-      // figure out what to do
-    }
-
-    const out = result.stdout
-    const lines = out.split('\n')
-
-    const stashEntries: Array<IStashEntry> = []
-    for (const line of lines) {
-      const match = stashEntryRe.exec(line)
-
-      if (match == null) {
-        continue
-      }
-
-      const message = match[2]
-      const branchName = extractBranchFromMessage(message)
-
-      // if branch name is null, the stash entry isn't using our magic string
-      if (branchName === null) {
-        continue
-      }
-
-      stashEntries.push({
-        branchName: branchName,
-        stashSha: match[1],
-      })
-    }
-
-    return stashEntries
-  } catch (error) {
-    log.error(error)
-    return []
+  if (result.stderr !== '') {
+    //don't really care what the error is right now, but will once dugite is updated
+    throw new Error(result.stderr)
   }
+
+  const out = result.stdout
+  const lines = out.split('\n')
+  const stashEntries: Array<IStashEntry> = []
+  for (const line of lines) {
+    const match = stashEntryRe.exec(line)
+
+    if (match == null) {
+      continue
+    }
+
+    const message = match[2]
+    const branchName = extractBranchFromMessage(message)
+
+    // if branch name is null, the stash entry isn't using our magic string
+    if (branchName === null) {
+      continue
+    }
+
+    stashEntries.push({
+      branchName: branchName,
+      stashSha: match[1],
+    })
+  }
+
+  return stashEntries
 }
 
 function extractBranchFromMessage(message: string): string | null {
