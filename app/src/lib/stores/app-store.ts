@@ -3395,11 +3395,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _continueRebase(
     repository: Repository,
-    workingDirectory: WorkingDirectoryStatus
+    workingDirectory: WorkingDirectoryStatus,
+    manualResolutions: ReadonlyMap<string, ManualConflictResolution>
   ) {
     const gitStore = this.gitStoreCache.get(repository)
     return await gitStore.performFailableOperation(() =>
-      continueRebase(repository, workingDirectory.files)
+      continueRebase(repository, workingDirectory.files, manualResolutions)
     )
   }
 
