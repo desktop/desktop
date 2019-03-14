@@ -138,6 +138,32 @@ function createStdoutProgressProcessCallback(
   }
 }
 
+function configureOptionsForRebase(
+  options: IGitExecutionOptions,
+  progress?: RebaseProgressOptions
+) {
+  if (!progress) {
+    return options
+  }
+
+  const { start, total, progressCallback } = progress
+
+  return merge(options, {
+    processCallback: createStdoutProgressProcessCallback(
+      new GitRebaseParser(start, total),
+      progress => {
+        const message =
+          progress.kind === 'progress' ? progress.details.text : progress.text
+
+        progressCallback({
+          message,
+          percent: progress.percent,
+        })
+      }
+    ),
+  })
+}
+
 /**
  * A stub function to use for initiating rebase in the app.
  *
