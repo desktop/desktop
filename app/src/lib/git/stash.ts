@@ -31,38 +31,48 @@ export async function getDesktopStashEntries(
   repository: Repository
 ): Promise<ReadonlyArray<IStashEntry>> {
   const prettyFormat = '%H@%gs'
-  const result = await git(
-    ['log', '-g', 'refs/stash', `--pretty=${prettyFormat}`],
-    repository.path,
-    'getStashEntries'
-  )
 
-  const out = result.stdout
-  const lines = out.split('\n')
+  try {
+    const result = await git(
+      ['log', '-g', 'refs/stash', `--pretty=${prettyFormat}`],
+      repository.path,
+      'getStashEntries'
+    )
 
-  const stashEntries: Array<IStashEntry> = []
-  for (const line of lines) {
-    const match = stashEntryRe.exec(line)
-
-    if (match == null) {
-      continue
+    if (result.gitError !== null) {
+      // figure out what to do
     }
 
-    const message = match[2]
-    const branchName = extractBranchFromMessage(message)
+    const out = result.stdout
+    const lines = out.split('\n')
 
-    // if branch name is null, the stash entry isn't using our magic string
-    if (branchName === null) {
-      continue
+    const stashEntries: Array<IStashEntry> = []
+    for (const line of lines) {
+      const match = stashEntryRe.exec(line)
+
+      if (match == null) {
+        continue
+      }
+
+      const message = match[2]
+      const branchName = extractBranchFromMessage(message)
+
+      // if branch name is null, the stash entry isn't using our magic string
+      if (branchName === null) {
+        continue
+      }
+
+      stashEntries.push({
+        branchName: branchName,
+        stashSha: match[1],
+      })
     }
 
-    stashEntries.push({
-      branchName: branchName,
-      stashSha: match[1],
-    })
+    return stashEntries
+  } catch (error) {
+    log.error(error)
+    return []
   }
-
-  return stashEntries
 }
 
 function extractBranchFromMessage(message: string): string | null {
