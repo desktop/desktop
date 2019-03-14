@@ -10,7 +10,8 @@ We have a first responder rotation. The goals of the rotation are:
 Each rotation is a week long. While first responder your primary duties are:
 
 1. Triage issues.
-    * Troubleshoot or follow up on troubleshooting started by the previous first responder. The current first responder should always bear responsibility for pushing troubleshooting forward, unless another team member has explicitly taken ownership.
+    * The current first responder is not responsible for following up on issues still open from previous first responders. However, they should highlight to the team the issues that have been left unanswered for at least 5 days
+    from previous responders to increase visibility and potentially point out which are highest priority.
     * At mention @desktop/support and add `support` label if the issue feels applicable to only the user reporting it, and isn't something more broadly relevant.
     * Ensure issues are labeled accurately.
     * Review issues labeled [`reviewer-needs-to-reproduce`](https://github.com/desktop/desktop/issues?utf8=%E2%9C%93&q=is%3Aopen+is%3Aissue+sort%3Aupdated-asc+label%3Areviewer-needs-to-reproduce) and close any that have gone 2 weeks with no new activity after the last question by a reviewer.
