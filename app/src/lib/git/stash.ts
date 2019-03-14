@@ -12,7 +12,7 @@ export interface IStashEntry {
 }
 
 /** RegEx for parsing out the stash SHA and message */
-const stashEntryRe = /^([0-9a-f]{5,40}):(.+)$/
+const stashEntryRe = /^([0-9a-f]{40})@(.+)$/
 
 /**
  * RegEx for determining if a stash entry is created by Desktop
@@ -37,9 +37,13 @@ export async function getDesktopStashEntries(
     'getStashEntries'
   )
 
+  if (result.stderr !== '') {
+    //don't really care what the error is right now, but will once dugite is updated
+    throw new Error(result.stderr)
+  }
+
   const out = result.stdout
   const lines = out.split('\n')
-
   const stashEntries: Array<IStashEntry> = []
   for (const line of lines) {
     const match = stashEntryRe.exec(line)
