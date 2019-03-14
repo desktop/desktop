@@ -166,13 +166,37 @@ export type RebaseProgressOptions = {
 export async function rebase(
   repository: Repository,
   baseBranch: string,
-  targetBranch: string
+  targetBranch: string,
+  progress?: RebaseProgressOptions
 ): Promise<RebaseResult> {
+  let options: IGitExecutionOptions = {
+    expectedErrors: new Set([GitError.RebaseConflicts]),
+  }
+
+  if (progress) {
+    const { start, total, progressCallback } = progress
+
+    options = merge(options, {
+      processCallback: createStdoutProgressProcessCallback(
+        new GitRebaseParser(start, total),
+        progress => {
+          const message =
+            progress.kind === 'progress' ? progress.details.text : progress.text
+
+          progressCallback({
+            message,
+            percent: progress.percent,
+          })
+        }
+      ),
+    })
+  }
+
   const result = await git(
     ['rebase', baseBranch, targetBranch],
     repository.path,
     'rebase',
-    { expectedErrors: new Set([GitError.RebaseConflicts]) }
+    options
   )
 
   return parseRebaseResult(result)
@@ -278,6 +302,8 @@ export async function continueRebase(
       `[rebase] no tracked changes to commit for ${rebaseCurrentCommit.trim()}, continuing rebase but skipping this commit`
     )
 
+    // TODO: setup progress parsing (if set)
+
     const result = await git(
       ['rebase', '--skip'],
       repository.path,
@@ -292,6 +318,8 @@ export async function continueRebase(
 
     return parseRebaseResult(result)
   }
+
+  // TODO: setup progress parsing (if set)
 
   const result = await git(
     ['rebase', '--continue'],
