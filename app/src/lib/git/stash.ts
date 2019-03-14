@@ -65,6 +65,26 @@ export async function getDesktopStashEntries(
   return stashEntries
 }
 
+export function createStashMessage(branchName: string, tipSha: string) {
+  return `!!GitHub_Desktop<${branchName}@${tipSha}>`
+}
+
+/**
+ * Stashes the changes in the working directory
+ */
+export async function createStashEntry(
+  repository: Repository,
+  branchName: string,
+  tipSha: string
+) {
+  const message = createStashMessage(branchName, tipSha)
+  await git(
+    ['stash', 'push', '-m', message],
+    repository.path,
+    'createStashEntry'
+  )
+}
+
 function extractBranchFromMessage(message: string): string | null {
   const [, desktopMessage] = message.split(':').map(s => s.trim())
   const match = stashEntryMessageRe.exec(desktopMessage)
@@ -74,8 +94,4 @@ function extractBranchFromMessage(message: string): string | null {
 
   const branchName = match[1]
   return branchName.length > 0 ? branchName : null
-}
-
-export function createStashMessage(branchName: string, tipSha: string) {
-  return `!!GitHub_Desktop<${branchName}@${tipSha}>`
 }
