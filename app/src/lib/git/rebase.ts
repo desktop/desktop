@@ -182,28 +182,12 @@ export async function rebase(
   targetBranch: string,
   progress?: RebaseProgressOptions
 ): Promise<RebaseResult> {
-  let options: IGitExecutionOptions = {
-    expectedErrors: new Set([GitError.RebaseConflicts]),
-  }
-
-  if (progress) {
-    const { start, total, progressCallback } = progress
-
-    options = merge(options, {
-      processCallback: createStdoutProgressProcessCallback(
-        new GitRebaseParser(start, total),
-        progress => {
-          const message =
-            progress.kind === 'progress' ? progress.details.text : progress.text
-
-          progressCallback({
-            message,
-            percent: progress.percent,
-          })
-        }
-      ),
-    })
-  }
+  const options = configureOptionsForRebase(
+    {
+      expectedErrors: new Set([GitError.RebaseConflicts]),
+    },
+    progress
+  )
 
   const result = await git(
     ['rebase', baseBranch, targetBranch],
@@ -272,7 +256,8 @@ function parseRebaseResult(result: IGitResult): RebaseResult {
 export async function continueRebase(
   repository: Repository,
   files: ReadonlyArray<WorkingDirectoryFileChange>,
-  manualResolutions: ReadonlyMap<string, ManualConflictResolution> = new Map()
+  manualResolutions: ReadonlyMap<string, ManualConflictResolution> = new Map(),
+  progress?: RebaseProgressOptions
 ): Promise<RebaseResult> {
   const trackedFiles = files.filter(f => {
     return f.status.kind !== AppFileStatusKind.Untracked
@@ -307,6 +292,16 @@ export async function continueRebase(
     f => f.status.kind !== AppFileStatusKind.Untracked
   )
 
+  const options = configureOptionsForRebase(
+    {
+      expectedErrors: new Set([
+        GitError.RebaseConflicts,
+        GitError.UnresolvedConflicts,
+      ]),
+    },
+    progress
+  )
+
   if (trackedFilesAfter.length === 0) {
     const rebaseHead = Path.join(repository.path, '.git', 'REBASE_HEAD')
     const rebaseCurrentCommit = await FSE.readFile(rebaseHead, 'utf8')
@@ -315,35 +310,21 @@ export async function continueRebase(
       `[rebase] no tracked changes to commit for ${rebaseCurrentCommit.trim()}, continuing rebase but skipping this commit`
     )
 
-    // TODO: setup progress parsing (if set)
-
     const result = await git(
       ['rebase', '--skip'],
       repository.path,
       'continueRebaseSkipCurrentCommit',
-      {
-        expectedErrors: new Set([
-          GitError.RebaseConflicts,
-          GitError.UnresolvedConflicts,
-        ]),
-      }
+      options
     )
 
     return parseRebaseResult(result)
   }
 
-  // TODO: setup progress parsing (if set)
-
   const result = await git(
     ['rebase', '--continue'],
     repository.path,
     'continueRebase',
-    {
-      expectedErrors: new Set([
-        GitError.RebaseConflicts,
-        GitError.UnresolvedConflicts,
-      ]),
-    }
+    options
   )
 
   return parseRebaseResult(result)
