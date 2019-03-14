@@ -153,22 +153,6 @@ work should proceed:
 
 e.g. GitHub Desktop should support worktrees as a first class feature.
 
-### Future Proposals
-
-The Desktop team has a [roadmap](roadmap.md) defined for the next few releases,
-so that you can see what our future plans look like. Some enhancements suggested
-by the community will be for things that are interesting but are also well
-beyond the current plans of the team.
-
-We will apply the `future-proposal` label to these issues, so that they can be
-searched for when it comes time to plan for the future. However, to keep
-our issue tracker focused on tasks currently on the roadmap we will close these
-future proposals to avoid information overload.
-
-You can view [the list](https://github.com/desktop/desktop/issues?q=is%3Aissue+label%3Afuture-proposal)
-of these `future-proposal` tasks, and continue to add your thoughts and feedback
-there.
-
 ## Out-of-scope
 
 We anticipate ideas or suggestions that don't align with how we see the
