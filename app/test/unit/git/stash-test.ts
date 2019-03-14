@@ -27,7 +27,7 @@ describe('git/stash', () => {
       const repo = await setupEmptyRepository()
       readme = path.join(repo.path, 'README.md')
       await FSE.writeFile(readme, '')
-      await stash(repo)
+      await stash(repo, 'master', null)
 
       expect(getDesktopStashEntries(repo)).rejects.toThrow()
     })
