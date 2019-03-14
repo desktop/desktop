@@ -1,5 +1,8 @@
 {
   "releases": {
+    "1.6.5-beta2": [
+      "[Fixed] Publish Repository does not let you choose an organization on your Enterprise account - #7052"
+    ],
     "1.6.5-beta1": [
       "[Fixed] Publish Repository does not let you choose an organization on your Enterprise account - #7052"
     ],
