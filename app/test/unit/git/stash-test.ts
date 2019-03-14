@@ -27,9 +27,7 @@ describe('git/stash', () => {
       await FSE.writeFile(readme, '')
       await stash(repo)
 
-      const entries = await getDesktopStashEntries(repo)
-
-      expect(entries).toHaveLength(0)
+      expect(getDesktopStashEntries(repo)).rejects.toThrow()
     })
 
     it('returns all stash entries created by Desktop', async () => {
