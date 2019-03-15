@@ -100,9 +100,10 @@ export interface IRevertProgress extends IProgress {
 }
 
 /** An object describing the progress of a rebase operation */
-export interface IRebaseProgress {
-  readonly message: string
-  readonly percent: number
+export interface IRebaseProgress extends IProgress {
+  readonly kind: 'rebase'
+  /** The summary of the commit applied to the base branch */
+  readonly commitSummary: string
 }
 
 export type Progress =
@@ -112,3 +113,4 @@ export type Progress =
   | IPullProgress
   | IPushProgress
   | IRevertProgress
+  | IRebaseProgress

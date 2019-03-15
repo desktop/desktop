@@ -16,8 +16,8 @@ import { stageFiles } from './update-index'
 
 import { getStatus } from './status'
 import { RebaseContext, RebaseProgressOptions } from '../../models/rebase'
-import { IGitProgress, IGitOutput } from '../progress'
 import { merge } from '../merge'
+import { IRebaseProgress } from '../../models/progress'
 
 /**
  * Check the `.git/REBASE_HEAD` file exists in a repository to confirm
@@ -87,6 +87,8 @@ export async function getRebaseContext(
   return null
 }
 
+const rebaseApplyingRe = /^Applying: (.*)/
+
 /**
  * A parser to read and emit rebase progress from Git `stdout`
  */
@@ -100,17 +102,22 @@ class GitRebaseParser {
     this.currentCommitCount = startCount
   }
 
-  public parse(line: string): IGitProgress | IGitOutput {
-    if (line.startsWith('Applying: ')) {
-      this.currentCommitCount++
+  public parse(line: string): IRebaseProgress | null {
+    const match = rebaseApplyingRe.exec(line)
+    if (match == null || match.length != 2) {
+      return null
     }
 
-    const percent = 100 * (this.currentCommitCount / this.totalCommitCount)
+    const commitSummary = match[1]
+    this.currentCommitCount++
+
+    const value = this.currentCommitCount / this.totalCommitCount
 
     return {
-      kind: 'context',
-      percent: percent,
-      text: line,
+      kind: 'rebase',
+      title: `Rebasing ${this.currentCommitCount} of ${this.totalCommitCount}`,
+      value,
+      commitSummary,
     }
   }
 }
@@ -133,10 +140,9 @@ function configureOptionsForRebase(
       byline(process.stdout).on('data', (line: string) => {
         const progress = parser.parse(line)
 
-        const message =
-          progress.kind === 'progress' ? progress.details.text : progress.text
-
-        progressCallback({ message, percent: progress.percent })
+        if (progress != null) {
+          progressCallback(progress)
+        }
       })
     },
   })
