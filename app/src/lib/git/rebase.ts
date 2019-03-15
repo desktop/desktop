@@ -117,7 +117,9 @@ class GitRebaseParser {
 
     return {
       kind: 'rebase',
-      title: `Rebasing ${this.currentCommitCount} of ${this.totalCommitCount}`,
+      title: `Rebasing ${this.currentCommitCount} of ${
+        this.totalCommitCount
+      } commits`,
       value,
       commitSummary,
     }
