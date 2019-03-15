@@ -20,7 +20,7 @@ const stashEntryRe = /^([0-9a-f]{40})@(.+)$/
  * This is done by looking for a magic string with the following
  * format: `!!GitHub_Desktop<branch@commit>`
  */
-const stashEntryMessageRe = /^!!GitHub_Desktop<(.+)@([0-9|a-z|A-Z]{5})>$/
+const stashEntryMessageRe = /^!!GitHub_Desktop<(.+)@([0-9|a-z|A-Z]{40})>$/
 
 /**
  * Get the list of stash entries
@@ -44,6 +44,7 @@ export async function getDesktopStashEntries(
 
   const out = result.stdout
   const lines = out.split('\n')
+
   const stashEntries: Array<IStashEntry> = []
   for (const line of lines) {
     const match = stashEntryRe.exec(line)
