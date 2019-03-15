@@ -322,7 +322,7 @@ export class Dispatcher {
 
   /** Push the current branch. */
   public push(repository: Repository, options?: PushOptions): Promise<void> {
-    if (options && options.forceWithLease) {
+    if (options !== undefined && options.forceWithLease) {
       this.dropCurrentBranchFromForcePushList(repository)
     }
 
