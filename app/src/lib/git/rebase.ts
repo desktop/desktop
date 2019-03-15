@@ -104,7 +104,9 @@ class GitRebaseParser {
 
   public parse(line: string): IRebaseProgress | null {
     const match = rebaseApplyingRe.exec(line)
-    if (match == null || match.length != 2) {
+    if (match == null || match.length !== 2) {
+      // Git will sometimes emit other output (for example, when it tries to
+      // resolve conflicts) and this does not match the expected output
       return null
     }
 
