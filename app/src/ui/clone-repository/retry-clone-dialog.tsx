@@ -3,6 +3,7 @@ import { RetryAction } from '../../models/retry-actions'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
+import { Ref } from '../lib/ref'
 import { Dispatcher } from '../dispatcher'
 import { Repository } from '../../models/repository'
 import { CloningRepository } from '../../models/cloning-repository'
@@ -62,7 +63,8 @@ export class RetryCloneDialog extends React.Component<IRetryCloneProps> {
       <div>
         {this.props.errorMessage}
         <p>
-          Would you like to retry cloning <em>{this.props.repository.name}</em>?
+          Would you like to retry cloning{' '}
+          <Ref>{this.props.repository.name}</Ref>?
         </p>
       </div>
     )
