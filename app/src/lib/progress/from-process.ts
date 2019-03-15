@@ -3,7 +3,7 @@ import * as Fs from 'fs'
 import * as Path from 'path'
 import * as byline from 'byline'
 
-import { IGitProgress, IGitOutput, IGitProgressParser } from './git'
+import { GitProgressParser, IGitProgress, IGitOutput } from './git'
 import { IGitExecutionOptions } from '../git/core'
 import { merge } from '../merge'
 import { GitLFSProgressParser, createLFSProgressFile } from './lfs'
@@ -18,7 +18,7 @@ import { tailByLine } from '../file-system'
  */
 export async function executionOptionsWithProgress(
   options: IGitExecutionOptions,
-  parser: IGitProgressParser,
+  parser: GitProgressParser,
   progressCallback: (progress: IGitProgress | IGitOutput) => void
 ): Promise<IGitExecutionOptions> {
   let lfsProgressPath = null
@@ -49,7 +49,7 @@ export async function executionOptionsWithProgress(
  * process and parsing its contents using the provided parser.
  */
 function createProgressProcessCallback(
-  parser: IGitProgressParser,
+  parser: GitProgressParser,
   lfsProgressPath: string | null,
   progressCallback: (progress: IGitProgress | IGitOutput) => void
 ): (process: ChildProcess) => void {

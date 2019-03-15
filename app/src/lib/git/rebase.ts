@@ -16,7 +16,7 @@ import { stageFiles } from './update-index'
 
 import { getStatus } from './status'
 import { RebaseContext, RebaseProgressOptions } from '../../models/rebase'
-import { IGitProgress, IGitOutput, IGitProgressParser } from '../progress'
+import { IGitProgress, IGitOutput } from '../progress'
 import { merge } from '../merge'
 
 /**
@@ -90,7 +90,7 @@ export async function getRebaseContext(
 /**
  * A parser to read and emit rebase progress from Git `stdout`
  */
-class GitRebaseParser implements IGitProgressParser {
+class GitRebaseParser {
   private currentCommitCount = 0
 
   public constructor(
@@ -115,29 +115,6 @@ class GitRebaseParser implements IGitProgressParser {
   }
 }
 
-/**
- * Reads `stdout` and uses the provided parser to emit progress to the caller.
- *
- * Our default progress parsing infrastructure reads `stderr` as this is how Git
- * typically emits progres, but `git rebase` is a special case. Our default
- * progress parsing also supports more general use cases, so this felt simpler
- * to implement as a first iteration than baking more complexity into the
- * defaults currently.
- *
- * @param parser the provided parser to process `stdout`
- * @param progressCallback the callback to invoke with received progress data
- */
-function createStdoutProgressProcessCallback(
-  parser: IGitProgressParser,
-  progressCallback: (progress: IGitProgress | IGitOutput) => void
-): (process: ChildProcess) => void {
-  return process => {
-    byline(process.stdout).on('data', (line: string) => {
-      progressCallback(parser.parse(line))
-    })
-  }
-}
-
 function configureOptionsForRebase(
   options: IGitExecutionOptions,
   progress?: RebaseProgressOptions
@@ -149,18 +126,19 @@ function configureOptionsForRebase(
   const { start, total, progressCallback } = progress
 
   return merge(options, {
-    processCallback: createStdoutProgressProcessCallback(
-      new GitRebaseParser(start, total),
-      progress => {
+    processCallback: (process: ChildProcess) => {
+      const parser = new GitRebaseParser(start, total)
+
+      // rebase emits progress messages on `stdout`, not `stderr`
+      byline(process.stdout).on('data', (line: string) => {
+        const progress = parser.parse(line)
+
         const message =
           progress.kind === 'progress' ? progress.details.text : progress.text
 
-        progressCallback({
-          message,
-          percent: progress.percent,
-        })
-      }
-    ),
+        progressCallback({ message, percent: progress.percent })
+      })
+    },
   })
 }
 
