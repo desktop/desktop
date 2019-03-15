@@ -157,3 +157,28 @@ file:"C:\ProgramData/Git/config" http.sslcainfo=[some value here]
 [http]
 sslCAInfo = [some value here]
 ```
+
+### Ask-Pass-Trampoline.bat errors - [#2623](https://github.com/desktop/desktop/issues/2623), [#4124](https://github.com/desktop/desktop/issues/4124), [#6882](https://github.com/desktop/desktop/issues/6882), [#6789](https://github.com/desktop/desktop/issues/6879)
+
+An example of the error message:
+
+```
+The system cannot find the path specified.
+error: unable to read askpass response from 'C:\Users\User\AppData\Local\GitHubDesktop\app-1.6.2\resources\app\static\ask-pass-trampoline.bat'
+fatal: could not read Username for 'https://github.com': terminal prompts disabled"
+```
+
+Known causes and workarounds:
+
+-  Modifying the `AutoRun` registry entry. To check if this entry has been modified open `Regedit.exe` and navigate to `HKEY_CURRENT_USER\Software\Microsoft\Command Processor\autorun` to see if there is anything set (sometimes applications will also modify this). See [#6789](https://github.com/desktop/desktop/issues/6879#issuecomment-471042891) and [2623](https://github.com/desktop/desktop/issues/2623#issuecomment-334305916) for examples of this.
+
+- Special characters in your Windows username like a `&` or `-` can cause this error to be thrown. See [#7064](https://github.com/desktop/desktop/issues/7064) for an example of this. Try installing GitHub Desktop in a new user account to verify if this is the case.
+
+- Antivirus software can sometimes prevent GitHub Desktop from installing correctly. If you are running antivirus software that could be causing this try temporarily disabling it and reinstalling GitHub Desktop.
+
+- If none of these potential causes are present on your machine, try performing a fresh installation of GitHub Desktop to see if that gets things working again. Here are the steps you can take to do that:
+
+  1. Close GitHub Desktop
+  2. Delete the `%AppData%\GitHub Desktop\` directory
+  3. Delete the `%LocalAppData%\GitHubDesktop\` directory
+  3. Reinstall GitHub Desktop from http://desktop.github.com
