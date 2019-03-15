@@ -10,7 +10,7 @@ import {
 } from '../../../src/lib/git/stash'
 
 describe('git/stash', () => {
-  describe('getStashEntries', () => {
+  describe('getDesktopStashEntries', () => {
     let repository: Repository
     let readme: string
 
@@ -20,6 +20,22 @@ describe('git/stash', () => {
       await FSE.writeFile(readme, '')
       await GitProcess.exec(['add', 'README.md'], repository.path)
       await GitProcess.exec(['commit', '-m', 'initial commit'], repository.path)
+    })
+
+    it('handles unborn repo by returning empty list', async () => {
+      const repo = await setupEmptyRepository()
+      let didFail = false
+      readme = path.join(repo.path, 'README.md')
+      await FSE.writeFile(readme, '')
+      await stash(repo)
+
+      try {
+        await getDesktopStashEntries(repo)
+      } catch (e) {
+        didFail = true
+      }
+
+      expect(didFail).toBe(true)
     })
 
     it('returns all stash entries created by Desktop', async () => {
