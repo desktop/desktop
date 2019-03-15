@@ -21,7 +21,7 @@ describe('git/stash', () => {
       await GitProcess.exec(['commit', '-m', 'initial commit'], repository.path)
     })
 
-    it.only('handles unborn repo by returning empty list', async () => {
+    it('handles unborn repo by returning empty list', async () => {
       const repo = await setupEmptyRepository()
       let didFail = false
       readme = path.join(repo.path, 'README.md')
