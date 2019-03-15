@@ -81,5 +81,5 @@ function extractBranchFromMessage(message: string): string | null {
 }
 
 export function createStashMessage(branchName: string, tipSha: string) {
-  return `!!GitHub_Desktop<${branchName}@${tipSha}>`
+  return `${DesktopStashEntryMarker}<${branchName}@${tipSha}>`
 }
