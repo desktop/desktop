@@ -49,7 +49,7 @@ function initializeWinston(path: string): winston.LogMethod {
   // disk being full). If logging fails that's not a big deal
   // so we'll just suppress any error, besides, the console
   // logger will likely still work.
-  fileLogger.on('error', _ => {})
+  fileLogger.on('error', () => {})
 
   const consoleLogger = new winston.transports.Console({
     level: process.env.NODE_ENV === 'development' ? 'debug' : 'error',
