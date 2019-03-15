@@ -87,6 +87,7 @@ export async function getRebaseContext(
   return null
 }
 
+/** Regex for identifying when rebase applied each commit onto the base branch */
 const rebaseApplyingRe = /^Applying: (.*)/
 
 /**
