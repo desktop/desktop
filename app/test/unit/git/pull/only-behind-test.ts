@@ -12,7 +12,7 @@ import {
   makeCommit,
 } from '../../../helpers/repository-scaffolding'
 import { getTipOrError, getRefOrError } from '../../../helpers/tip'
-import { GitProcess } from 'dugite'
+import { setupLocalConfig } from '../../../helpers/local-config'
 
 const featureBranch = 'this-is-a-feature'
 const origin = 'origin'
@@ -54,50 +54,15 @@ describe('git/pull', () => {
       await fetch(repository, null, origin)
     })
 
-    describe('by default', () => {
+    describe('with pull.rebase=false and pull.ff=false set in config', () => {
       let previousTip: Commit
       let newTip: Commit
 
       beforeEach(async () => {
-        previousTip = await getTipOrError(repository)
-
-        await pull(repository, null, origin)
-
-        newTip = await getTipOrError(repository)
-      })
-
-      it('moves local repository to remote commit', async () => {
-        const newTip = await getTipOrError(repository)
-
-        expect(newTip.sha).not.toBe(previousTip.sha)
-        expect(newTip.parentSHAs).toHaveLength(1)
-      })
-
-      it('is same as remote branch', async () => {
-        const remoteCommit = await getRefOrError(repository, remoteBranch)
-        expect(remoteCommit.sha).toBe(newTip.sha)
-      })
-
-      it('is not behind tracking branch', async () => {
-        const range = revSymmetricDifference(featureBranch, remoteBranch)
-
-        const aheadBehind = await getAheadBehind(repository, range)
-        expect(aheadBehind).toEqual({
-          ahead: 0,
-          behind: 0,
-        })
-      })
-    })
-
-    describe('with pull.ff=false set in config', () => {
-      let previousTip: Commit
-      let newTip: Commit
-
-      beforeEach(async () => {
-        await GitProcess.exec(
-          ['config', '--local', 'pull.ff', 'false'],
-          repository.path
-        )
+        await setupLocalConfig(repository, [
+          ['pull.rebase', 'false'],
+          ['pull.ff', 'false'],
+        ])
 
         previousTip = await getTipOrError(repository)
 
@@ -132,10 +97,7 @@ describe('git/pull', () => {
       let newTip: Commit
 
       beforeEach(async () => {
-        await GitProcess.exec(
-          ['config', '--local', 'pull.ff', 'only'],
-          repository.path
-        )
+        await setupLocalConfig(repository, [['pull.ff', 'only']])
 
         previousTip = await getTipOrError(repository)
 
