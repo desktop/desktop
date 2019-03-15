@@ -2,7 +2,6 @@ import * as React from 'react'
 import { DialogContent, Dialog, DialogFooter } from '../dialog'
 import { ButtonGroup } from '../lib/button-group'
 import { Button } from '../lib/button'
-import { DialogHeader } from '../dialog/header'
 import {
   WorkingDirectoryStatus,
   WorkingDirectoryFileChange,
@@ -161,14 +160,10 @@ export class RebaseConflictsDialog extends React.Component<
         id="rebase-conflicts-list"
         dismissable={true}
         onDismissed={this.onDismissed}
+        title={headerTitle}
         disableClickDismissalAlways={true}
         onSubmit={this.onSubmit}
       >
-        <DialogHeader
-          title={headerTitle}
-          dismissable={true}
-          onDismissed={this.onDismissed}
-        />
         <DialogContent>
           {this.renderContent(unmergedFiles, conflictedFilesCount)}
         </DialogContent>
