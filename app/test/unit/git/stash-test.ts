@@ -111,6 +111,10 @@ async function stash(
   message: string | null
 ): Promise<string> {
   const tip = await getTipOrError(repository)
+
+  // Since we're identifying stash entries by their object ID
+  // we need to capture it at the time of creation so that we
+  // can assert against it.
   const result = await GitProcess.exec(['stash', 'create'], repository.path)
   const objectId = result.stdout.trim()
   await GitProcess.exec(
