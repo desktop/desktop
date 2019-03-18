@@ -57,7 +57,7 @@ describe('git/stash', () => {
     })
 
     it('creates a stash entry', async () => {
-      await await FSE.appendFile(readme, 'just testing stuff')
+      await FSE.appendFile(readme, 'just testing stuff')
       const tipSha = await getTipSha(repository)
 
       await createStashEntry(repository, 'master', tipSha)
