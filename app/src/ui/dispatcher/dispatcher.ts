@@ -681,10 +681,6 @@ export class Dispatcher {
 
     log.info(`[rebase] starting rebase for ${beforeSha}`)
 
-    // TODO: this can happen very quickly for a trivial rebase or an OS with
-    // fast I/O - are we able to artificially slow this down so it completes at
-    // least after X ms?
-
     const result = await this.appStore._rebase(
       repository,
       baseBranch,

@@ -1,0 +1,292 @@
+import * as React from 'react'
+import { assertNever } from '../../lib/fatal-error'
+import { Repository } from '../../models/repository'
+
+import { RebaseStep, RebaseFlowState } from '../../models/rebase-flow-state'
+
+import { ChooseBranchDialog } from './choose-branch'
+import { ShowConflictedFilesDialog } from './show-conflicted-files-dialog'
+import { Dispatcher } from '../dispatcher'
+import { RebaseProgressDialog } from './progress-dialog'
+import { BannerType } from '../../models/banner'
+import { RebaseResult } from '../../lib/git'
+import { IRepositoryState } from '../../lib/app-state'
+import { ConfirmAbortDialog } from './confirm-abort-dialog'
+import { IRebaseProgress } from '../../models/progress'
+
+interface IRebaseFlowProps {
+  readonly initialState: RebaseFlowState
+
+  readonly repository: Repository
+  readonly dispatcher: Dispatcher
+
+  readonly getRepositoryState: (Repository: Repository) => IRepositoryState
+
+  readonly openFileInExternalEditor: (path: string) => void
+  readonly resolvedExternalEditor: string | null
+  readonly openRepositoryInShell: (repository: Repository) => void
+
+  readonly onFlowEnded: () => void
+}
+
+interface IRebaseFlowState {
+  readonly rebaseFlow: RebaseFlowState
+}
+
+/** A component for initating a rebase of the current branch. */
+export class RebaseFlow extends React.Component<
+  IRebaseFlowProps,
+  IRebaseFlowState
+> {
+  public constructor(props: IRebaseFlowProps) {
+    super(props)
+
+    this.state = {
+      rebaseFlow: props.initialState,
+    }
+  }
+
+  private showConflictedFiles = () => {
+    const { changesState } = this.props.getRepositoryState(
+      this.props.repository
+    )
+
+    const { workingDirectory, conflictState } = changesState
+
+    if (conflictState === null || conflictState.kind === 'merge') {
+      throw new Error('Unable to resolve conflict state for this repository')
+    }
+
+    const { manualResolutions, targetBranch } = conflictState
+
+    this.setState({
+      rebaseFlow: {
+        step: RebaseStep.ShowConflicts,
+        targetBranch,
+        workingDirectory,
+        manualResolutions,
+      },
+    })
+  }
+
+  private updateProgress = (progress: IRebaseProgress) => {
+    // TODO: this can happen very quickly for a trivial rebase or an OS with
+    // fast I/O - are we able to artificially slow this down so there's some
+    // semblance of progress before it moves to "completed"?
+
+    const { title, value, commitSummary } = progress
+    log.info(`got progress: '${title}' '${value}' '${commitSummary}'`)
+
+    this.setState({
+      rebaseFlow: {
+        step: RebaseStep.ShowProgress,
+        value,
+      },
+    })
+  }
+
+  private moveToCompletedState = () => {
+    setTimeout(() => {
+      this.setState({
+        rebaseFlow: {
+          step: RebaseStep.Completed,
+        },
+      })
+      this.props.onFlowEnded()
+    }, 1000)
+  }
+
+  private onStartRebase = (
+    baseBranch: string,
+    targetBranch: string,
+    total: number
+  ) => {
+    if (this.state.rebaseFlow.step === RebaseStep.ChooseBranch) {
+      const actionToRun = async () => {
+        const result = await this.props.dispatcher.rebase(
+          this.props.repository,
+          baseBranch,
+          targetBranch,
+          {
+            start: 0,
+            total,
+            progressCallback: this.updateProgress,
+          }
+        )
+
+        if (result === RebaseResult.ConflictsEncountered) {
+          this.showConflictedFiles()
+        } else if (result === RebaseResult.CompletedWithoutError) {
+          this.setState(
+            {
+              rebaseFlow: {
+                step: RebaseStep.ShowProgress,
+                value: 1,
+              },
+            },
+            () => this.moveToCompletedState()
+          )
+        }
+      }
+
+      this.setState({
+        rebaseFlow: {
+          step: RebaseStep.ShowProgress,
+          value: 0,
+          actionToRun,
+        },
+      })
+    } else {
+      throw new Error(
+        `Invalid step to start rebase: ${this.state.rebaseFlow.step}`
+      )
+    }
+  }
+
+  private showRebaseConflictsBanner = () => {
+    if (this.state.rebaseFlow.step === RebaseStep.ShowConflicts) {
+      this.setState({
+        rebaseFlow: { step: RebaseStep.HideConflicts },
+      })
+
+      const { targetBranch } = this.state.rebaseFlow
+
+      this.props.dispatcher.setBanner({
+        type: BannerType.RebaseConflictsFound,
+        targetBranch,
+        onOpenDialog: () => {
+          this.showConflictedFiles()
+        },
+      })
+    } else {
+      throw new Error(
+        `Invalid step to show rebase conflicts banner: ${
+          this.state.rebaseFlow.step
+        }`
+      )
+    }
+  }
+
+  private onConfirmAbortRebase = () => {
+    // TODO: if no files resolved during rebase, skip this entire process and
+    //       just abort the rebase
+
+    const { changesState } = this.props.getRepositoryState(
+      this.props.repository
+    )
+
+    const { conflictState } = changesState
+
+    if (conflictState === null || conflictState.kind === 'merge') {
+      throw new Error('Unable to resolve conflict state for this repository')
+    }
+
+    const { targetBranch, baseBranch } = conflictState
+
+    this.setState({
+      rebaseFlow: {
+        step: RebaseStep.ConfirmAbort,
+        targetBranch,
+        baseBranch,
+      },
+    })
+  }
+
+  private onAbortRebase = async () => {
+    await this.props.dispatcher.abortRebase(this.props.repository)
+    this.props.onFlowEnded()
+  }
+
+  public render() {
+    const { rebaseFlow } = this.state
+
+    switch (rebaseFlow.step) {
+      case RebaseStep.ChooseBranch: {
+        const { repository, onFlowEnded } = this.props
+        const {
+          allBranches,
+          defaultBranch,
+          currentBranch,
+          recentBranches,
+          initialBranch,
+        } = rebaseFlow
+        return (
+          <ChooseBranchDialog
+            key="choose-branch"
+            repository={repository}
+            allBranches={allBranches}
+            defaultBranch={defaultBranch}
+            recentBranches={recentBranches}
+            currentBranch={currentBranch}
+            initialBranch={initialBranch}
+            onDismissed={onFlowEnded}
+            onStartRebase={this.onStartRebase}
+          />
+        )
+      }
+      case RebaseStep.ShowProgress:
+        const { value } = rebaseFlow
+
+        return (
+          <RebaseProgressDialog
+            value={value}
+            actionToRun={rebaseFlow.actionToRun}
+            onDismissed={this.props.onFlowEnded}
+          />
+        )
+      case RebaseStep.ShowConflicts: {
+        const {
+          repository,
+          onFlowEnded,
+          resolvedExternalEditor,
+          openFileInExternalEditor,
+          openRepositoryInShell,
+          dispatcher,
+        } = this.props
+
+        const {
+          targetBranch,
+          baseBranch,
+          workingDirectory,
+          manualResolutions,
+        } = rebaseFlow
+
+        return (
+          <ShowConflictedFilesDialog
+            key="view-conflicts"
+            repository={repository}
+            onDismissed={onFlowEnded}
+            dispatcher={dispatcher}
+            showRebaseConflictsBanner={this.showRebaseConflictsBanner}
+            targetBranch={targetBranch}
+            baseBranch={baseBranch}
+            workingDirectory={workingDirectory}
+            manualResolutions={manualResolutions}
+            resolvedExternalEditor={resolvedExternalEditor}
+            openFileInExternalEditor={openFileInExternalEditor}
+            openRepositoryInShell={openRepositoryInShell}
+            onAbortRebase={this.onConfirmAbortRebase}
+          />
+        )
+      }
+      case RebaseStep.HideConflicts:
+        // TODO
+        return null
+      case RebaseStep.ConfirmAbort:
+        const { targetBranch, baseBranch } = rebaseFlow
+        return (
+          <ConfirmAbortDialog
+            onConfirmAbort={this.onAbortRebase}
+            onReturnToConflicts={this.showConflictedFiles}
+            targetBranch={targetBranch}
+            baseBranch={baseBranch}
+          />
+        )
+      case RebaseStep.Completed:
+        // TODO
+        return null
+      default:
+        return assertNever(rebaseFlow, 'Unknown rebase step found')
+    }
+  }
+}
