@@ -394,8 +394,6 @@ export async function rebaseConflictsHandler(
     return error
   }
 
-  // TODO: metrics - https://github.com/desktop/desktop/issues/6550
-
   const { currentBranch } = gitContext
 
   dispatcher.showPopup({
