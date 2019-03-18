@@ -94,9 +94,8 @@ import { OversizedFiles } from './changes/oversized-files-warning'
 import { UsageStatsChange } from './usage-stats-change'
 import { PushNeedsPullWarning } from './push-needs-pull'
 import { LocalChangesOverwrittenWarning } from './local-changes-overwritten'
-import { RebaseConflictsDialog } from './rebase'
-import { RebaseBranchDialog } from './rebase/rebase-branch-dialog'
-import { ConfirmForcePush } from './rebase/confirm-force-push'
+import { RebaseFlow, ConfirmForcePush } from './rebase'
+import { initializeNewRebaseFlow } from '../lib/rebase'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -939,9 +938,15 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (!repository || repository instanceof CloningRepository) {
       return
     }
+
+    const repositoryState = this.props.repositoryStateManager.get(repository)
+
+    const initialState = initializeNewRebaseFlow(repositoryState)
+
     this.props.dispatcher.showPopup({
-      type: PopupType.RebaseBranch,
+      type: PopupType.RebaseFlow,
       repository,
+      initialState,
     })
   }
 
@@ -1558,35 +1563,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       }
-      case PopupType.RebaseBranch: {
-        const { repository, branch } = popup
-        const state = this.props.repositoryStateManager.get(repository)
-
-        const tip = state.branchesState.tip
-
-        // we should never get in this state since we disable the menu
-        // item in a detatched HEAD state, this check is so TSC is happy
-        if (tip.kind !== TipState.Valid) {
-          return null
-        }
-
-        const currentBranch = tip.branch
-
-        return (
-          <RebaseBranchDialog
-            key="merge-branch"
-            dispatcher={this.props.dispatcher}
-            repository={repository}
-            allBranches={state.branchesState.allBranches}
-            defaultBranch={state.branchesState.defaultBranch}
-            recentBranches={state.branchesState.recentBranches}
-            currentBranch={currentBranch}
-            initialBranch={branch}
-            onDismissed={this.onPopupDismissed}
-          />
-        )
-      }
-      case PopupType.RebaseConflicts: {
+      case PopupType.RebaseFlow: {
         const { selectedState } = this.state
 
         if (
@@ -1596,27 +1573,18 @@ export class App extends React.Component<IAppProps, IAppState> {
           return null
         }
 
-        const {
-          workingDirectory,
-          conflictState,
-        } = selectedState.state.changesState
-
-        if (conflictState === null || conflictState.kind === 'merge') {
-          return null
-        }
+        const { initialState } = popup
 
         return (
-          <RebaseConflictsDialog
-            dispatcher={this.props.dispatcher}
+          <RebaseFlow
             repository={popup.repository}
-            targetBranch={popup.targetBranch}
-            baseBranch={popup.baseBranch}
-            workingDirectory={workingDirectory}
-            manualResolutions={conflictState.manualResolutions}
-            onDismissed={this.onPopupDismissed}
             openFileInExternalEditor={this.openFileInExternalEditor}
+            dispatcher={this.props.dispatcher}
+            onFlowEnded={this.onRebaseFlowEnded}
+            initialState={initialState}
+            getRepositoryState={this.getRepositoryState}
             resolvedExternalEditor={this.state.resolvedExternalEditor}
-            openRepositoryInShell={this.openInShell}
+            openRepositoryInShell={this.openCurrentRepositoryInShell}
           />
         )
       }
@@ -1636,6 +1604,14 @@ export class App extends React.Component<IAppProps, IAppState> {
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
+  }
+
+  private getRepositoryState = (repository: Repository) => {
+    return this.props.repositoryStateManager.get(repository)
+  }
+
+  private onRebaseFlowEnded = () => {
+    this.props.dispatcher.closePopup()
   }
 
   private onUsageReportingDismissed = (optOut: boolean) => {
