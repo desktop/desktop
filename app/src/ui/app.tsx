@@ -96,6 +96,7 @@ import { PushNeedsPullWarning } from './push-needs-pull'
 import { LocalChangesOverwrittenWarning } from './local-changes-overwritten'
 import { RebaseConflictsDialog } from './rebase'
 import { RebaseBranchDialog } from './rebase/rebase-branch-dialog'
+import { ConfirmForcePush } from './rebase/confirm-force-push'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -1175,6 +1176,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             confirmDiscardChanges={
               this.state.askForConfirmationOnDiscardChanges
             }
+            confirmForcePush={this.state.askForConfirmationOnForcePush}
             selectedExternalEditor={this.state.selectedExternalEditor}
             optOutOfUsageTracking={this.props.appStore.getStatsOptOut()}
             enterpriseAccount={this.getEnterpriseAccount()}
@@ -1618,6 +1620,19 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       }
+      case PopupType.ConfirmForcePush: {
+        const { askForConfirmationOnForcePush } = this.state
+
+        return (
+          <ConfirmForcePush
+            dispatcher={this.props.dispatcher}
+            repository={popup.repository}
+            upstreamBranch={popup.upstreamBranch}
+            askForConfirmationOnForcePush={askForConfirmationOnForcePush}
+            onDismissed={this.onPopupDismissed}
+          />
+        )
+      }
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
@@ -1888,13 +1903,18 @@ export class App extends React.Component<IAppProps, IAppState> {
     const rebaseInProgress =
       conflictState !== null && conflictState.kind === 'rebase'
 
-    const { tip } = state.branchesState
+    const { pullWithRebase, tip, rebasedBranches } = state.branchesState
 
     if (tip.kind === TipState.Valid && tip.branch.remote !== null) {
       remoteName = tip.branch.remote
     }
-
-    const { pullWithRebase } = state.branchesState
+    let branchWasRebased = false
+    if (tip.kind === TipState.Valid) {
+      const localBranchName = tip.branch.nameWithoutRemote
+      const { sha } = tip.branch.tip
+      const foundEntry = rebasedBranches.get(localBranchName)
+      branchWasRebased = foundEntry === sha
+    }
 
     return (
       <PushPullButton
@@ -1908,6 +1928,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         tipState={tip.kind}
         pullWithRebase={pullWithRebase}
         rebaseInProgress={rebaseInProgress}
+        branchWasRebased={branchWasRebased}
       />
     )
   }
