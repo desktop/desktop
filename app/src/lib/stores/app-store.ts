@@ -153,6 +153,7 @@ import {
   matchGitHubRepository,
   repositoryMatchesRemote,
 } from '../repository-matching'
+import { initializeRebaseFlowForConflictedRepository } from '../rebase'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import {
   Default as DefaultShell,
@@ -1677,34 +1678,24 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ) {
     const alreadyInFlow =
       this.currentPopup !== null &&
-      this.currentPopup.type === PopupType.RebaseConflicts
+      this.currentPopup.type === PopupType.RebaseFlow
 
-    // have we already been shown the merge conflicts flow *and closed it*?
-    const alreadyExitedFlow =
-      this.currentBanner !== null &&
-      this.currentBanner.type === BannerType.RebaseConflictsFound
-
-    if (alreadyInFlow || alreadyExitedFlow) {
+    if (alreadyInFlow) {
       return
     }
-    const possibleTheirsBranches = await getBranchesPointedAt(
-      repository,
-      conflictState.baseBranchTip
+
+    const repositoryState = this.repositoryStateCache.get(repository)
+    const { workingDirectory } = repositoryState.changesState
+
+    const initialState = initializeRebaseFlowForConflictedRepository(
+      workingDirectory,
+      conflictState
     )
-    // null means we encountered an error
-    if (possibleTheirsBranches === null) {
-      return
-    }
-    const baseBranch =
-      possibleTheirsBranches.length === 1
-        ? possibleTheirsBranches[0]
-        : undefined
 
     this._showPopup({
-      type: PopupType.RebaseConflicts,
+      type: PopupType.RebaseFlow,
       repository,
-      targetBranch: conflictState.targetBranch,
-      baseBranch,
+      initialState,
     })
   }
 
