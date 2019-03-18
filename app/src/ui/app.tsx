@@ -1575,6 +1575,8 @@ export class App extends React.Component<IAppProps, IAppState> {
 
         const { initialState } = popup
 
+        const { changesState } = selectedState.state
+
         return (
           <RebaseFlow
             repository={popup.repository}
@@ -1582,7 +1584,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispatcher={this.props.dispatcher}
             onFlowEnded={this.onRebaseFlowEnded}
             initialState={initialState}
-            getRepositoryState={this.getRepositoryState}
+            changesState={changesState}
             resolvedExternalEditor={this.state.resolvedExternalEditor}
             openRepositoryInShell={this.openCurrentRepositoryInShell}
           />
@@ -1604,10 +1606,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
-  }
-
-  private getRepositoryState = (repository: Repository) => {
-    return this.props.repositoryStateManager.get(repository)
   }
 
   private onRebaseFlowEnded = () => {

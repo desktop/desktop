@@ -10,22 +10,28 @@ import { Dispatcher } from '../dispatcher'
 import { RebaseProgressDialog } from './progress-dialog'
 import { BannerType } from '../../models/banner'
 import { RebaseResult } from '../../lib/git'
-import { IRepositoryState } from '../../lib/app-state'
+import { IChangesState } from '../../lib/app-state'
 import { ConfirmAbortDialog } from './confirm-abort-dialog'
 import { IRebaseProgress } from '../../models/progress'
 
 interface IRebaseFlowProps {
+  /** Starting point for the rebase flow */
   readonly initialState: RebaseFlowState
 
   readonly repository: Repository
   readonly dispatcher: Dispatcher
 
-  readonly getRepositoryState: (Repository: Repository) => IRepositoryState
+  /** Snapshot of changes in the current repository */
+  readonly changesState: IChangesState
 
   readonly openFileInExternalEditor: (path: string) => void
   readonly resolvedExternalEditor: string | null
   readonly openRepositoryInShell: (repository: Repository) => void
 
+  /**
+   * Callback to fire to signal to the application that the rebase flow has
+   * either ended in success or has been aborted and the flow can be closed.
+   */
   readonly onFlowEnded: () => void
 }
 
@@ -47,9 +53,7 @@ export class RebaseFlow extends React.Component<
   }
 
   private showConflictedFiles = () => {
-    const { changesState } = this.props.getRepositoryState(
-      this.props.repository
-    )
+    const { changesState } = this.props
 
     const { workingDirectory, conflictState } = changesState
 
@@ -171,10 +175,7 @@ export class RebaseFlow extends React.Component<
     // TODO: if no files resolved during rebase, skip this entire process and
     //       just abort the rebase
 
-    const { changesState } = this.props.getRepositoryState(
-      this.props.repository
-    )
-
+    const { changesState } = this.props
     const { conflictState } = changesState
 
     if (conflictState === null || conflictState.kind === 'merge') {
