@@ -1,0 +1,20 @@
+dialog#rebase-progress {
+  progress {
+    -webkit-appearance: none;
+    appearance: none;
+
+    &::-webkit-progress-bar {
+      background-color: transparent;
+    }
+
+    &::-webkit-progress-value {
+      background-color: var(--dialog-rebase-progress-background);
+      // ensure a smooth transition if the rebase goes immediately from 0 to 100%
+      transition: width 1s ease;
+    }
+
+    max-width: 100%;
+    width: 100%;
+    margin-bottom: var(--spacing);
+  }
+}
