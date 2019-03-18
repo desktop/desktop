@@ -79,6 +79,8 @@ export async function getLastStashEntry(
 ) {
   const entries = await getDesktopStashEntries(repository)
 
+  // Since stash objects are returned in a LIFO manner, the first
+  // entry found is guaranteed to be the last entry created
   return entries.find(stash => stash.branchName === branchName) || null
 }
 
