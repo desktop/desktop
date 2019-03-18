@@ -170,6 +170,7 @@ function packageApp() {
     // macOS
     appBundleId: getBundleID(),
     appCategoryType: 'public.app-category.developer-tools',
+    darwinDarkModeSupport: true,
     osxSign: true,
     protocols: [
       {
