@@ -9,6 +9,7 @@ import {
   createStashEntry,
   getLastStashEntry,
 } from '../../../src/lib/git/stash'
+import { getTipOrError } from '../../helpers/tip'
 
 describe('git/stash', () => {
   describe('getDesktopStashEntries', () => {
@@ -104,17 +105,12 @@ describe('git/stash', () => {
   })
 })
 
-async function getTipSha(repository: Repository) {
-  const result = await GitProcess.exec(['rev-parse', 'HEAD'], repository.path)
-  return result.stdout.trim()
-}
-
 async function stash(
   repository: Repository,
   branchName: string,
   message: string | null
 ): Promise<string> {
-  const tipSha = await getTipSha(repository)
+  const tip = await getTipOrError(repository)
   const result = await GitProcess.exec(['stash', 'create'], repository.path)
   const objectId = result.stdout.trim()
   await GitProcess.exec(
@@ -122,7 +118,7 @@ async function stash(
       'stash',
       'store',
       '-m',
-      message || createStashMessage(branchName, tipSha),
+      message || createStashMessage(branchName, tip.sha),
       objectId,
     ],
     repository.path
