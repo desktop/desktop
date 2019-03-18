@@ -23,7 +23,7 @@ const stashEntryRe = /^([0-9a-f]{40})@(.+)$/
 const stashEntryMessageRe = /^!!GitHub_Desktop<(.+)@([0-9|a-z|A-Z]{40})>$/
 
 /**
- * Get the list of stash entries
+ * Get the list of stash entries created by Desktop in the current repository
  *
  * @param repository
  */
