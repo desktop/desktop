@@ -40,6 +40,7 @@ import { AppStore } from '../../lib/stores/app-store'
 import { validatedRepositoryPath } from '../../lib/stores/helpers/validated-repository-path'
 import { RepositoryStateCache } from '../../lib/stores/repository-state-cache'
 import { getTipSha } from '../../lib/tip'
+import { initializeRebaseFlowForConflictedRepository } from '../../lib/rebase'
 
 import { Account } from '../../models/account'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
@@ -292,6 +293,39 @@ export class Dispatcher {
   /** Close the specified foldout. */
   public closeFoldout(foldout: FoldoutType): Promise<void> {
     return this.appStore._closeFoldout(foldout)
+  }
+
+  public async launchRebaseFlow({
+    repository,
+    targetBranch,
+  }: {
+    repository: Repository
+    targetBranch: string
+  }) {
+    await this.appStore._loadStatus(repository)
+
+    const repositoryState = this.repositoryStateManager.get(repository)
+    const { conflictState, workingDirectory } = repositoryState.changesState
+
+    if (conflictState === null || conflictState.kind === 'merge') {
+      return
+    }
+
+    const updatedConflictState = { ...conflictState, targetBranch }
+
+    this.repositoryStateManager.updateChangesState(repository, () => ({
+      conflictState: updatedConflictState,
+    }))
+
+    const initialState = initializeRebaseFlowForConflictedRepository(
+      workingDirectory,
+      updatedConflictState
+    )
+    this.showPopup({
+      type: PopupType.RebaseFlow,
+      repository,
+      initialState,
+    })
   }
 
   /**

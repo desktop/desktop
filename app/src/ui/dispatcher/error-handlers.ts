@@ -396,8 +396,7 @@ export async function rebaseConflictsHandler(
 
   const { currentBranch } = gitContext
 
-  dispatcher.showPopup({
-    type: PopupType.RebaseConflicts,
+  dispatcher.launchRebaseFlow({
     repository,
     targetBranch: currentBranch,
   })
