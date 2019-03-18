@@ -23,7 +23,8 @@ const stashEntryRe = /^([0-9a-f]{40})@(.+)$/
 const stashEntryMessageRe = /^!!GitHub_Desktop<(.+)@([0-9|a-z|A-Z]{5,40})>$/
 
 /**
- * Get the list of stash entries
+ * Get the list of stash entries using the default ordering
+ * of `git stash list` i.e., stack orderings.
  *
  * @param repository
  */
