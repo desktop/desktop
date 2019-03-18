@@ -24,13 +24,20 @@ describe('git/stash', () => {
       await GitProcess.exec(['commit', '-m', 'initial commit'], repository.path)
     })
 
-    it.only('handles unborn repo by returning empty list', async () => {
+    it('handles unborn repo by returning empty list', async () => {
       const repo = await setupEmptyRepository()
+      let didFail = false
       readme = path.join(repo.path, 'README.md')
       await FSE.writeFile(readme, '')
       await stash(repo, 'master', null)
 
-      expect(getDesktopStashEntries(repo)).rejects.toThrow()
+      try {
+        await getDesktopStashEntries(repo)
+      } catch (e) {
+        didFail = true
+      }
+
+      expect(didFail).toBe(true)
     })
 
     it('returns all stash entries created by Desktop', async () => {
