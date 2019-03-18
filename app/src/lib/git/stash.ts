@@ -70,6 +70,9 @@ export async function getDesktopStashEntries(
   return stashEntries
 }
 
+/**
+ * Returns the last Desktop created stash entry for the given branch
+ */
 export async function getLastStashEntry(
   repository: Repository,
   branchName: string
@@ -79,6 +82,9 @@ export async function getLastStashEntry(
   return entries.find(stash => stash.branchName === branchName) || null
 }
 
+/**
+ * Creates a Desktop specific stash message
+ */
 export function createStashMessage(branchName: string, tipSha: string) {
   return `!!GitHub_Desktop<${branchName}@${tipSha}>`
 }
