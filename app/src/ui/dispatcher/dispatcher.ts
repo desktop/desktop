@@ -65,6 +65,7 @@ import {
   WorkingDirectoryStatus,
 } from '../../models/status'
 import { TipState, IValidBranch } from '../../models/tip'
+import { RebaseProgressOptions } from '../../models/rebase'
 import { Banner, BannerType } from '../../models/banner'
 
 import { ApplicationTheme } from '../lib/application-theme'
@@ -676,7 +677,8 @@ export class Dispatcher {
   public async rebase(
     repository: Repository,
     baseBranch: string,
-    targetBranch: string
+    targetBranch: string,
+    progress?: RebaseProgressOptions
   ) {
     const stateBefore = this.repositoryStateManager.get(repository)
 
@@ -691,7 +693,8 @@ export class Dispatcher {
     const result = await this.appStore._rebase(
       repository,
       baseBranch,
-      targetBranch
+      targetBranch,
+      progress
     )
 
     await this.appStore._loadStatus(repository)
@@ -727,7 +730,8 @@ export class Dispatcher {
 
   public async continueRebase(
     repository: Repository,
-    workingDirectory: WorkingDirectoryStatus
+    workingDirectory: WorkingDirectoryStatus,
+    manualResolutions: ReadonlyMap<string, ManualConflictResolution>
   ) {
     const stateBefore = this.repositoryStateManager.get(repository)
 
@@ -737,7 +741,8 @@ export class Dispatcher {
 
     const result = await this.appStore._continueRebase(
       repository,
-      workingDirectory
+      workingDirectory,
+      manualResolutions
     )
     await this.appStore._loadStatus(repository)
 

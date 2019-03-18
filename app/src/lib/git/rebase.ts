@@ -1,9 +1,11 @@
 import * as Path from 'path'
+import { ChildProcess } from 'child_process'
 import * as FSE from 'fs-extra'
 import { GitError } from 'dugite'
+import * as byline from 'byline'
 
 import { Repository } from '../../models/repository'
-import { git, IGitResult } from './core'
+import { git, IGitResult, IGitExecutionOptions } from './core'
 import {
   WorkingDirectoryFileChange,
   AppFileStatusKind,
@@ -13,7 +15,9 @@ import { stageManualConflictResolution } from './stage'
 import { stageFiles } from './update-index'
 
 import { getStatus } from './status'
-import { RebaseContext } from '../../models/rebase'
+import { RebaseContext, RebaseProgressOptions } from '../../models/rebase'
+import { merge } from '../merge'
+import { IRebaseProgress } from '../../models/progress'
 
 /**
  * Check the `.git/REBASE_HEAD` file exists in a repository to confirm
@@ -82,6 +86,73 @@ export async function getRebaseContext(
 
   return null
 }
+
+/** Regex for identifying when rebase applied each commit onto the base branch */
+const rebaseApplyingRe = /^Applying: (.*)/
+
+/**
+ * A parser to read and emit rebase progress from Git `stdout`
+ */
+class GitRebaseParser {
+  private currentCommitCount = 0
+
+  public constructor(
+    startCount: number,
+    private readonly totalCommitCount: number
+  ) {
+    this.currentCommitCount = startCount
+  }
+
+  public parse(line: string): IRebaseProgress | null {
+    const match = rebaseApplyingRe.exec(line)
+    if (match === null || match.length !== 2) {
+      // Git will sometimes emit other output (for example, when it tries to
+      // resolve conflicts) and this does not match the expected output
+      return null
+    }
+
+    const commitSummary = match[1]
+    this.currentCommitCount++
+
+    const value = this.currentCommitCount / this.totalCommitCount
+
+    return {
+      kind: 'rebase',
+      title: `Rebasing commit ${this.currentCommitCount} of ${
+        this.totalCommitCount
+      } commits`,
+      value,
+      commitSummary,
+    }
+  }
+}
+
+function configureOptionsForRebase(
+  options: IGitExecutionOptions,
+  progress?: RebaseProgressOptions
+) {
+  if (progress === undefined) {
+    return options
+  }
+
+  const { start, total, progressCallback } = progress
+
+  return merge(options, {
+    processCallback: (process: ChildProcess) => {
+      const parser = new GitRebaseParser(start, total)
+
+      // rebase emits progress messages on `stdout`, not `stderr`
+      byline(process.stdout).on('data', (line: string) => {
+        const progress = parser.parse(line)
+
+        if (progress != null) {
+          progressCallback(progress)
+        }
+      })
+    },
+  })
+}
+
 /**
  * A stub function to use for initiating rebase in the app.
  *
@@ -97,13 +168,21 @@ export async function getRebaseContext(
 export async function rebase(
   repository: Repository,
   baseBranch: string,
-  targetBranch: string
+  targetBranch: string,
+  progress?: RebaseProgressOptions
 ): Promise<RebaseResult> {
+  const options = configureOptionsForRebase(
+    {
+      expectedErrors: new Set([GitError.RebaseConflicts]),
+    },
+    progress
+  )
+
   const result = await git(
     ['rebase', baseBranch, targetBranch],
     repository.path,
     'rebase',
-    { expectedErrors: new Set([GitError.RebaseConflicts]) }
+    options
   )
 
   return parseRebaseResult(result)
@@ -166,7 +245,8 @@ function parseRebaseResult(result: IGitResult): RebaseResult {
 export async function continueRebase(
   repository: Repository,
   files: ReadonlyArray<WorkingDirectoryFileChange>,
-  manualResolutions: ReadonlyMap<string, ManualConflictResolution> = new Map()
+  manualResolutions: ReadonlyMap<string, ManualConflictResolution> = new Map(),
+  progress?: RebaseProgressOptions
 ): Promise<RebaseResult> {
   const trackedFiles = files.filter(f => {
     return f.status.kind !== AppFileStatusKind.Untracked
@@ -201,6 +281,16 @@ export async function continueRebase(
     f => f.status.kind !== AppFileStatusKind.Untracked
   )
 
+  const options = configureOptionsForRebase(
+    {
+      expectedErrors: new Set([
+        GitError.RebaseConflicts,
+        GitError.UnresolvedConflicts,
+      ]),
+    },
+    progress
+  )
+
   if (trackedFilesAfter.length === 0) {
     const rebaseHead = Path.join(repository.path, '.git', 'REBASE_HEAD')
     const rebaseCurrentCommit = await FSE.readFile(rebaseHead, 'utf8')
@@ -213,12 +303,7 @@ export async function continueRebase(
       ['rebase', '--skip'],
       repository.path,
       'continueRebaseSkipCurrentCommit',
-      {
-        expectedErrors: new Set([
-          GitError.RebaseConflicts,
-          GitError.UnresolvedConflicts,
-        ]),
-      }
+      options
     )
 
     return parseRebaseResult(result)
@@ -228,12 +313,7 @@ export async function continueRebase(
     ['rebase', '--continue'],
     repository.path,
     'continueRebase',
-    {
-      expectedErrors: new Set([
-        GitError.RebaseConflicts,
-        GitError.UnresolvedConflicts,
-      ]),
-    }
+    options
   )
 
   return parseRebaseResult(result)

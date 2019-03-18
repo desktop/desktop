@@ -195,6 +195,7 @@ import {
 import { BranchPruner } from './helpers/branch-pruner'
 import { enableBranchPruning, enablePullWithRebase } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
+import { RebaseProgressOptions } from '../../models/rebase'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -3374,11 +3375,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _rebase(
     repository: Repository,
     baseBranch: string,
-    targetBranch: string
+    targetBranch: string,
+    progress?: RebaseProgressOptions
   ) {
     const gitStore = this.gitStoreCache.get(repository)
     return await gitStore.performFailableOperation(() =>
-      rebase(repository, baseBranch, targetBranch)
+      rebase(repository, baseBranch, targetBranch, progress)
     )
   }
 
@@ -3393,11 +3395,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _continueRebase(
     repository: Repository,
-    workingDirectory: WorkingDirectoryStatus
+    workingDirectory: WorkingDirectoryStatus,
+    manualResolutions: ReadonlyMap<string, ManualConflictResolution>
   ) {
     const gitStore = this.gitStoreCache.get(repository)
     return await gitStore.performFailableOperation(() =>
-      continueRebase(repository, workingDirectory.files)
+      continueRebase(repository, workingDirectory.files, manualResolutions)
     )
   }
 
