@@ -81,10 +81,16 @@ export async function createDesktopStashEntry(
   branchName: string,
   tipSha: string
 ) {
+  const message = createDesktopStashMessage(branchName, tipSha)
+  const result = await git(
     ['stash', 'push', '-m', message],
     repository.path,
     'createStashEntry'
   )
+
+  if (result.stderr !== '') {
+    throw new Error(result.stderr)
+  }
 }
 
 function extractBranchFromMessage(message: string): string | null {
