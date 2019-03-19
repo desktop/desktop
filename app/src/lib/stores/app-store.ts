@@ -1684,11 +1684,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const repositoryState = this.repositoryStateCache.get(repository)
-    const { workingDirectory } = repositoryState.changesState
-
     const initialState = initializeRebaseFlowForConflictedRepository(
-      workingDirectory,
       conflictState
     )
 

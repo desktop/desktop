@@ -263,14 +263,21 @@ export class RebaseFlow extends React.Component<
           openFileInExternalEditor,
           openRepositoryInShell,
           dispatcher,
+          changesState,
         } = this.props
 
-        const {
-          targetBranch,
-          baseBranch,
-          workingDirectory,
-          manualResolutions,
-        } = rebaseFlow
+        const { workingDirectory, conflictState } = changesState
+
+        if (conflictState === null || conflictState.kind === 'merge') {
+          log.error(
+            '[RebaseFlow] unable to detect conflicts for this repository'
+          )
+          return null
+        }
+
+        const { manualResolutions } = conflictState
+
+        const { targetBranch, baseBranch } = rebaseFlow
 
         return (
           <ShowConflictedFilesDialog

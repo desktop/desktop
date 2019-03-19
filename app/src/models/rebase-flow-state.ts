@@ -1,6 +1,4 @@
-import { WorkingDirectoryStatus } from './status'
 import { Branch } from './branch'
-import { ManualConflictResolution } from './manual-conflict-resolution'
 
 /** Union type representing the possible states of the rebase flow */
 export type RebaseFlowState =
@@ -98,8 +96,6 @@ export type ShowConflictsStep = {
   readonly step: RebaseStep.ShowConflicts
   readonly targetBranch: string
   readonly baseBranch?: string
-  readonly workingDirectory: WorkingDirectoryStatus
-  readonly manualResolutions: Map<string, ManualConflictResolution>
 }
 
 /** Shape of data to track when user hides conflicts dialog */

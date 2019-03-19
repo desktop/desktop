@@ -6,7 +6,6 @@ import {
 } from '../models/rebase-flow-state'
 import { Branch } from '../models/branch'
 import { TipState } from '../models/tip'
-import { WorkingDirectoryStatus } from '../models/status'
 
 export const initializeNewRebaseFlow = (state: IRepositoryState) => {
   const {
@@ -37,17 +36,14 @@ export const initializeNewRebaseFlow = (state: IRepositoryState) => {
 }
 
 export const initializeRebaseFlowForConflictedRepository = (
-  workingDirectory: WorkingDirectoryStatus,
   conflictState: RebaseConflictState
 ) => {
-  const { targetBranch, baseBranch, manualResolutions } = conflictState
+  const { targetBranch, baseBranch } = conflictState
 
   const initialState: ShowConflictsStep = {
     step: RebaseStep.ShowConflicts,
     targetBranch,
     baseBranch,
-    workingDirectory,
-    manualResolutions,
   }
 
   return initialState

@@ -305,7 +305,7 @@ export class Dispatcher {
     await this.appStore._loadStatus(repository)
 
     const repositoryState = this.repositoryStateManager.get(repository)
-    const { conflictState, workingDirectory } = repositoryState.changesState
+    const { conflictState } = repositoryState.changesState
 
     if (conflictState === null || conflictState.kind === 'merge') {
       return
@@ -318,7 +318,6 @@ export class Dispatcher {
     }))
 
     const initialState = initializeRebaseFlowForConflictedRepository(
-      workingDirectory,
       updatedConflictState
     )
     this.showPopup({
