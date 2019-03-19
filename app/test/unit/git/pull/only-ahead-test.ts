@@ -12,7 +12,7 @@ import {
   makeCommit,
 } from '../../../helpers/repository-scaffolding'
 import { getTipOrError, getRefOrError } from '../../../helpers/tip'
-import { GitProcess } from 'dugite'
+import { setupLocalConfig } from '../../../helpers/local-config'
 
 const featureBranch = 'this-is-a-feature'
 const origin = 'origin'
@@ -80,10 +80,8 @@ describe('git/pull', () => {
       let newTip: Commit
 
       beforeEach(async () => {
-        await GitProcess.exec(
-          ['config', '--local', 'pull.ff', 'false'],
-          repository.path
-        )
+        await setupLocalConfig(repository, [['pull.ff', 'false']])
+
         previousTip = await getTipOrError(repository)
 
         await pull(repository, null, origin)
@@ -116,10 +114,7 @@ describe('git/pull', () => {
       let newTip: Commit
 
       beforeEach(async () => {
-        await GitProcess.exec(
-          ['config', '--local', 'pull.ff', 'only'],
-          repository.path
-        )
+        await setupLocalConfig(repository, [['pull.ff', 'only']])
 
         previousTip = await getTipOrError(repository)
 

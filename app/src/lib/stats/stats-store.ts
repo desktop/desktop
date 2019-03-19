@@ -87,6 +87,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   rebaseSuccessAfterConflictsCount: 0,
   pullWithRebaseCount: 0,
   pullWithDefaultSettingCount: 0,
+  rebaseCurrentBranchMenuCount: 0,
 }
 
 interface IOnboardingStats {
@@ -613,6 +614,12 @@ export class StatsStore implements IStatsStore {
   public recordMenuInitiatedMerge(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       mergeIntoCurrentBranchMenuCount: m.mergeIntoCurrentBranchMenuCount + 1,
+    }))
+  }
+
+  public recordMenuInitiatedRebase(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      rebaseCurrentBranchMenuCount: m.rebaseCurrentBranchMenuCount + 1,
     }))
   }
 

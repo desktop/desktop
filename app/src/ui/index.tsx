@@ -19,7 +19,6 @@ import {
   backgroundTaskHandler,
   pushNeedsPullHandler,
   upstreamAlreadyExistsHandler,
-  localChangesOverwrittenHandler,
   rebaseConflictsHandler,
 } from './dispatcher'
 import {
@@ -54,10 +53,7 @@ import {
 import { UiActivityMonitor } from './lib/ui-activity-monitor'
 import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
 import { ApiRepositoriesStore } from '../lib/stores/api-repositories-store'
-import {
-  enablePullWithRebase,
-  enableLocalChangesWarningHandler,
-} from '../lib/feature-flag'
+import { enablePullWithRebase } from '../lib/feature-flag'
 
 if (__DEV__) {
   installDevGlobals()
@@ -162,9 +158,7 @@ dispatcher.registerErrorHandler(gitAuthenticationErrorHandler)
 dispatcher.registerErrorHandler(pushNeedsPullHandler)
 dispatcher.registerErrorHandler(backgroundTaskHandler)
 dispatcher.registerErrorHandler(missingRepositoryHandler)
-if (enableLocalChangesWarningHandler()) {
-  dispatcher.registerErrorHandler(localChangesOverwrittenHandler)
-}
+
 if (enablePullWithRebase()) {
   dispatcher.registerErrorHandler(rebaseConflictsHandler)
 }
