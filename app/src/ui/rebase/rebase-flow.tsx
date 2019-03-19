@@ -10,9 +10,10 @@ import { Dispatcher } from '../dispatcher'
 import { RebaseProgressDialog } from './progress-dialog'
 import { BannerType } from '../../models/banner'
 import { RebaseResult } from '../../lib/git'
-import { IChangesState } from '../../lib/app-state'
+import { RebaseConflictState } from '../../lib/app-state'
 import { ConfirmAbortDialog } from './confirm-abort-dialog'
 import { IRebaseProgress } from '../../models/progress'
+import { WorkingDirectoryStatus } from '../../models/status'
 
 interface IRebaseFlowProps {
   /** Starting point for the rebase flow */
@@ -21,8 +22,16 @@ interface IRebaseFlowProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
 
-  /** Snapshot of changes in the current repository */
-  readonly changesState: IChangesState
+  /** The current state of the working directory */
+  readonly workingDirectory: WorkingDirectoryStatus
+
+  /**
+   * Snapshot of conflicts in the current repository
+   *
+   * Will be `null` while the rebase is in progress but has not encountered
+   * conflicts.
+   */
+  readonly conflictState: RebaseConflictState | null
 
   readonly openFileInExternalEditor: (path: string) => void
   readonly resolvedExternalEditor: string | null
@@ -53,11 +62,9 @@ export class RebaseFlow extends React.Component<
   }
 
   private showConflictedFiles = () => {
-    const { changesState } = this.props
+    const { workingDirectory, conflictState } = this.props
 
-    const { workingDirectory, conflictState } = changesState
-
-    if (conflictState === null || conflictState.kind === 'merge') {
+    if (conflictState === null) {
       log.error('[RebaseFlow] unable to detect conflicts for this repository')
       return
     }
@@ -192,10 +199,9 @@ export class RebaseFlow extends React.Component<
     // TODO: if no files resolved during rebase, skip this entire process and
     //       just abort the rebase
 
-    const { changesState } = this.props
-    const { conflictState } = changesState
+    const { conflictState } = this.props
 
-    if (conflictState === null || conflictState.kind === 'merge') {
+    if (conflictState === null) {
       throw new Error('Unable to resolve conflict state for this repository')
     }
 
@@ -263,15 +269,12 @@ export class RebaseFlow extends React.Component<
           openFileInExternalEditor,
           openRepositoryInShell,
           dispatcher,
-          changesState,
+          workingDirectory,
+          conflictState,
         } = this.props
 
-        const { workingDirectory, conflictState } = changesState
-
-        if (conflictState === null || conflictState.kind === 'merge') {
-          log.error(
-            '[RebaseFlow] unable to detect conflicts for this repository'
-          )
+        if (conflictState === null) {
+          log.error('[RebaseFlow] unable to find conflicts for this repository')
           return null
         }
 

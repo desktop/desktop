@@ -1576,6 +1576,14 @@ export class App extends React.Component<IAppProps, IAppState> {
         const { initialState } = popup
 
         const { changesState } = selectedState.state
+        const { workingDirectory, conflictState } = changesState
+
+        if (conflictState !== null && conflictState.kind === 'merge') {
+          log.warn(
+            '[App] invalid state encountered - rebase flow should not be started when merge conflicts found'
+          )
+          return null
+        }
 
         return (
           <RebaseFlow
@@ -1584,7 +1592,8 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispatcher={this.props.dispatcher}
             onFlowEnded={this.onRebaseFlowEnded}
             initialState={initialState}
-            changesState={changesState}
+            workingDirectory={workingDirectory}
+            conflictState={conflictState}
             resolvedExternalEditor={this.state.resolvedExternalEditor}
             openRepositoryInShell={this.openCurrentRepositoryInShell}
           />
