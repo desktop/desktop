@@ -58,7 +58,8 @@ export class RebaseFlow extends React.Component<
     const { workingDirectory, conflictState } = changesState
 
     if (conflictState === null || conflictState.kind === 'merge') {
-      throw new Error('Unable to resolve conflict state for this repository')
+      log.error('[RebaseFlow] unable to detect conflicts for this repository')
+      return
     }
 
     const { manualResolutions, targetBranch } = conflictState
@@ -122,6 +123,8 @@ export class RebaseFlow extends React.Component<
         )
 
         if (result === RebaseResult.ConflictsEncountered) {
+          await this.props.dispatcher.loadStatus(this.props.repository)
+
           this.showConflictedFiles()
         } else if (result === RebaseResult.CompletedWithoutError) {
           this.setState(
