@@ -10,7 +10,11 @@ import {
 } from './group-repositories'
 import { FilterList, IFilterListGroup } from '../lib/filter-list'
 import { IMatches } from '../../lib/fuzzy-find'
-import { ILocalRepositoryState } from '../../models/repository'
+import {
+  ILocalRepositoryState,
+  nameOf,
+  Repository,
+} from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
 import { Button } from '../lib/button'
 import { Octicon, OcticonSymbol } from '../octicons'
@@ -25,6 +29,7 @@ const BlankSlateImage = encodePathAsUrl(__dirname, 'static/empty-no-repo.svg')
 interface IRepositoriesListProps {
   readonly selectedRepository: Repositoryish | null
   readonly repositories: ReadonlyArray<Repositoryish>
+  readonly recentRepositories: ReadonlyArray<number>
 
   /** A cache of the latest repository state values, keyed by the repository id */
   readonly localRepositoryStateLookup: ReadonlyMap<
@@ -120,6 +125,49 @@ export class RepositoriesList extends React.Component<
    */
   private getSelectedListItem = memoizeOne(findMatchingListItem)
 
+  private getRecentRepositoriesGroup = (
+    recentRepositories: ReadonlyArray<number>,
+    repositories: ReadonlyArray<Repositoryish> | null,
+    localRepositoryStateLookup: ReadonlyMap<number, ILocalRepositoryState>
+  ): IFilterListGroup<IRepositoryListItem> => {
+    if (repositories === null) {
+      return { identifier: '', items: [] }
+    }
+
+    const items = recentRepositories
+      .map(id => {
+        const repository = repositories.find(r => r.id === id)
+        if (repository === undefined) {
+          return null
+        }
+        const {
+          aheadBehind,
+          changedFilesCount,
+        } = localRepositoryStateLookup.get(id) || {
+          changedFilesCount: 0,
+          aheadBehind: null,
+        }
+        const repositoryText: ReadonlyArray<string> =
+          repository instanceof Repository
+            ? [repository.name, nameOf(repository)]
+            : [repository.name]
+        return {
+          text: repositoryText,
+          id: id.toString(),
+          repository,
+          needsDisambiguation: true,
+          aheadBehind,
+          changedFilesCount,
+        }
+      })
+      .filter(el => el !== null) as ReadonlyArray<IRepositoryListItem>
+
+    return {
+      identifier: 'Recently Opened Repositories',
+      items,
+    }
+  }
+
   private renderItem = (item: IRepositoryListItem, matches: IMatches) => {
     const repository = item.repository
     return (
@@ -174,15 +222,24 @@ export class RepositoriesList extends React.Component<
   }
 
   public render() {
-    const groups = this.getRepositoryGroups(
+    const baseGroups = this.getRepositoryGroups(
       this.props.repositories,
       this.props.localRepositoryStateLookup
     )
 
     const selectedItem = this.getSelectedListItem(
-      groups,
+      baseGroups,
       this.props.selectedRepository
     )
+
+    const groups = [
+      this.getRecentRepositoriesGroup(
+        this.props.recentRepositories,
+        this.props.repositories,
+        this.props.localRepositoryStateLookup
+      ),
+      ...baseGroups,
+    ]
 
     return (
       <div className="repository-list">

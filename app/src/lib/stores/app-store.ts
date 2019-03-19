@@ -206,7 +206,6 @@ const FastForwardBranchesThreshold = 20
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
-const RecentRepositoriesKey = 'recently-selected-repositories-list'
 const RecentRepositoriesLength = 5
 
 const defaultSidebarWidth: number = 250
@@ -239,6 +238,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private accounts: ReadonlyArray<Account> = new Array<Account>()
   private repositories: ReadonlyArray<Repository> = new Array<Repository>()
+  private recentlyOpenedRepositories: ReadonlyArray<number> = new Array<
+    number
+  >()
 
   private selectedRepository: Repository | CloningRepository | null = null
 
@@ -1177,21 +1179,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
     previousRepositoryId: number | null,
     currentRepositoryId: number
   ) {
-    const recentRepositories: Set<number> = JSON.parse(
-      localStorage.get(RecentRepositoriesKey)
+    const recentRepositories = this.recentlyOpenedRepositories.filter(
+      el => el !== currentRepositoryId && el !== previousRepositoryId
     )
-    recentRepositories.delete(currentRepositoryId)
     if (previousRepositoryId !== null) {
-      recentRepositories.delete(previousRepositoryId)
-      recentRepositories.add(previousRepositoryId)
-      if (recentRepositories.size > RecentRepositoriesLength) {
-        const values = Array.from(recentRepositories.values())
-        values.splice(RecentRepositoriesLength - 1)
-        localStorage.set(JSON.stringify(values))
-      } else {
-        localStorage.set(JSON.stringify(recentRepositories))
-      }
+      recentRepositories.splice(0, 0, currentRepositoryId, previousRepositoryId)
     }
+    if (recentRepositories.length > RecentRepositoriesLength) {
+      recentRepositories.pop()
+    }
+    this.recentlyOpenedRepositories = recentRepositories
+    this.emitUpdate()
+  }
+
+  // get the stored list of recently opened repositories
+  public getRecentRepositories() {
+    return this.recentlyOpenedRepositories
   }
 
   // finish `_selectRepository`s refresh tasks
