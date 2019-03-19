@@ -121,8 +121,9 @@ export async function dropDesktopStashEntry(
     return
   }
 
+  const entry = ['stash@{', stashSha, '}'].join('')
   const result = await git(
-    ['stash', 'drop', `stash@{${stashSha}}`],
+    ['stash', 'drop', entry],
     repository.path,
     'dropStashEntry'
   )
