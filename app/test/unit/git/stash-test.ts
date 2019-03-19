@@ -7,7 +7,9 @@ import {
   getDesktopStashEntries,
   createDesktopStashMessage,
   createDesktopStashEntry,
+  dropDesktopStashEntry,
 } from '../../../src/lib/git/stash'
+import { getTipOrError } from '../../helpers/tip'
 
 describe('git/stash', () => {
   describe('getDesktopStashEntries', () => {
@@ -69,6 +71,42 @@ describe('git/stash', () => {
       const result = await GitProcess.exec(['stash', 'list'], repository.path)
       const entries = result.stdout.trim().split('\n')
       expect(entries).toHaveLength(1)
+    })
+  })
+
+  describe('dropDesktopStashEntry', () => {
+    let repository: Repository
+    let readme: string
+
+    beforeEach(async () => {
+      repository = await setupEmptyRepository()
+      readme = path.join(repository.path, 'README.md')
+      await FSE.writeFile(readme, '')
+      await GitProcess.exec(['add', 'README.md'], repository.path)
+      await GitProcess.exec(['commit', '-m', 'initial commit'], repository.path)
+    })
+
+    it('does nothing when given an empty string for `stashSha`', async () => {
+      await FSE.appendFile(readme, '1')
+      await stash(repository)
+
+      await dropDesktopStashEntry(repository, '')
+
+      const result = await GitProcess.exec(['stash', 'list'], repository.path)
+      const entries = result.stdout.trim().split('\n')
+      expect(entries).toHaveLength(1)
+    })
+
+    it('removes the entry identified by `stashSha`', async () => {
+      const { sha } = await getTipOrError(repository)
+      await FSE.appendFile(readme, '1')
+      await stash(repository)
+      await FSE.appendFile(readme, '2')
+      await stash(repository)
+
+      // using this function to get stashSha since it parses
+      // the output from git into easy to use objects
+      const entries
     })
   })
 })
