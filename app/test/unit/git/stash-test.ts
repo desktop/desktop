@@ -28,9 +28,6 @@ describe('git/stash', () => {
     it('handles unborn repo by returning empty list', async () => {
       const repo = await setupEmptyRepository()
       let didFail = false
-      readme = path.join(repo.path, 'README.md')
-      await FSE.writeFile(readme, '')
-      await stash(repo, 'master', null)
 
       try {
         await getDesktopStashEntries(repo)
@@ -77,6 +74,41 @@ describe('git/stash', () => {
     })
   })
 
+  describe('getLastDesktopStashEntry', () => {
+    let repository: Repository
+    let readme: string
+
+    beforeEach(async () => {
+      repository = await setupEmptyRepository()
+      readme = path.join(repository.path, 'README.md')
+      await FSE.writeFile(readme, '')
+      await GitProcess.exec(['add', 'README.md'], repository.path)
+      await GitProcess.exec(['commit', '-m', 'initial commit'], repository.path)
+    })
+
+    it('returns null when no stash entries exist for branch', async () => {
+      await generateTestStashEntry(repository, 'some-other-branch', true)
+
+      const entry = await getLastDesktopStashEntry(repository, 'master')
+
+      expect(entry).toBeNull()
+    })
+
+    it('returns last entry made for branch', async () => {
+      const branchName = 'master'
+      await generateTestStashEntry(repository, branchName, true)
+      const lastEntry = await generateTestStashEntry(
+        repository,
+        branchName,
+        true
+      )
+
+      const actual = await getLastDesktopStashEntry(repository, branchName)
+
+      expect(actual!.stashSha).toBe(lastEntry)
+    })
+  })
+
   describe('dropDesktopStashEntry', () => {
     let repository: Repository
     let readme: string
@@ -115,37 +147,6 @@ describe('git/stash', () => {
       expect(entries).toHaveLength(1)
       expect(entries[0].stashSha).not.toEqual(stashToDelete)
     })
-  })
-})
-
-describe('getLastDesktopStashEntry', () => {
-  let repository: Repository
-  let readme: string
-
-  beforeEach(async () => {
-    repository = await setupEmptyRepository()
-    readme = path.join(repository.path, 'README.md')
-    await FSE.writeFile(readme, '')
-    await GitProcess.exec(['add', 'README.md'], repository.path)
-    await GitProcess.exec(['commit', '-m', 'initial commit'], repository.path)
-  })
-
-  it('returns null when no stash entries exist for branch', async () => {
-    await generateTestStashEntry(repository, 'some-other-branch', true)
-
-    const entry = await getLastDesktopStashEntry(repository, 'master')
-
-    expect(entry).toBeNull()
-  })
-
-  it('returns last entry made for branch', async () => {
-    const branchName = 'master'
-    await generateTestStashEntry(repository, branchName, true)
-    const lastEntry = await generateTestStashEntry(repository, branchName, true)
-
-    const actual = await getLastDesktopStashEntry(repository, branchName)
-
-    expect(actual!.stashSha).toBe(lastEntry)
   })
 })
 

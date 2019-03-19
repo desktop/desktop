@@ -12,7 +12,7 @@ export interface IStashEntry {
 }
 
 /** RegEx for parsing out the stash SHA and message */
-const stashEntryRe = /^([0-9a-f]{40})@(.+)$/
+const stashEntryRe = /^([0-9a-f]{40}):(.+)$/
 
 /**
  * RegEx for determining if a stash entry is created by Desktop
@@ -20,7 +20,7 @@ const stashEntryRe = /^([0-9a-f]{40})@(.+)$/
  * This is done by looking for a magic string with the following
  * format: `!!GitHub_Desktop<branch@commit>`
  */
-const stashEntryMessageRe = /^!!GitHub_Desktop<(.+)@([0-9|a-z|A-Z]{40})>$/
+const desktopStashEntryRe = /^!!GitHub_Desktop<(.+)@([0-9|a-z|A-Z]{40})>$/
 
 /**
  * Get the list of stash entries created by Desktop in the current repository
@@ -122,14 +122,14 @@ export async function dropDesktopStashEntry(
   }
 
   await git(
-    ['stash', 'drop', '-q', stashSha],
+    ['stash', 'drop', '--quiet', `stash@{${stashSha}}`],
     repository.path,
     'dropStashEntry'
   )
 }
 
 function extractBranchFromMessage(message: string): string | null {
-  const match = stashEntryMessageRe.exec(message)
+  const match = desktopStashEntryRe.exec(message)
   if (match === null) {
     return null
   }
