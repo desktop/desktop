@@ -24,11 +24,12 @@ const stashEntryMessageRe = /^!!GitHub_Desktop<(.+)@([0-9|a-z|A-Z]{40})>$/
 
 /**
  * Get the list of stash entries created by Desktop in the current repository
+ * using the default ordering of `git stash list` (i.e., LIFO ordering).
  */
 export async function getDesktopStashEntries(
   repository: Repository
 ): Promise<ReadonlyArray<IStashEntry>> {
-  const prettyFormat = '%H@%gs'
+  const prettyFormat = '%H:%gs'
   const result = await git(
     ['log', '-g', 'refs/stash', `--pretty=${prettyFormat}`],
     repository.path,
@@ -66,6 +67,20 @@ export async function getDesktopStashEntries(
   }
 
   return stashEntries
+}
+
+/**
+ * Returns the last Desktop created stash entry for the given branch
+ */
+export async function getLastDesktopStashEntry(
+  repository: Repository,
+  branchName: string
+) {
+  const entries = await getDesktopStashEntries(repository)
+
+  // Since stash objects are returned in a LIFO manner, the first
+  // entry found is guaranteed to be the last entry created
+  return entries.find(stash => stash.branchName === branchName) || null
 }
 
 /** Creates a stash entry message that idicates the entry was created by Desktop */
@@ -114,8 +129,7 @@ export async function dropDesktopStashEntry(
 }
 
 function extractBranchFromMessage(message: string): string | null {
-  const [, desktopMessage] = message.split(':').map(s => s.trim())
-  const match = stashEntryMessageRe.exec(desktopMessage)
+  const match = stashEntryMessageRe.exec(message)
   if (match === null) {
     return null
   }
