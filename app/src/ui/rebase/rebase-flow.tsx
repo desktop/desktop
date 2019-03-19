@@ -14,6 +14,7 @@ import { RebaseConflictState } from '../../lib/app-state'
 import { ConfirmAbortDialog } from './confirm-abort-dialog'
 import { IRebaseProgress } from '../../models/progress'
 import { WorkingDirectoryStatus } from '../../models/status'
+import { clamp } from '../../lib/clamp'
 
 interface IRebaseFlowProps {
   /** Starting point for the rebase flow */
@@ -46,6 +47,13 @@ interface IRebaseFlowProps {
 
 interface IRebaseFlowState {
   readonly rebaseFlow: RebaseFlowState
+
+  readonly rebaseInformation: {
+    /** Track the current number of commits rebased across dialogs and states */
+    readonly count: number
+    /** Track the total number of commits to rebase across dialog and states */
+    readonly total: number
+  }
 }
 
 /** A component for initating a rebase of the current branch. */
@@ -58,6 +66,10 @@ export class RebaseFlow extends React.Component<
 
     this.state = {
       rebaseFlow: props.initialState,
+      rebaseInformation: {
+        count: 0,
+        total: 0,
+      },
     }
   }
 
@@ -93,9 +105,11 @@ export class RebaseFlow extends React.Component<
       rebaseFlow: {
         step: RebaseStep.ShowProgress,
         value,
+        commitSummary,
+      },
+      rebaseInformation: {
         count,
         total,
-        commitSummary,
       },
     })
   }
@@ -116,45 +130,121 @@ export class RebaseFlow extends React.Component<
     targetBranch: string,
     total: number
   ) => {
-    if (this.state.rebaseFlow.step === RebaseStep.ChooseBranch) {
-      const actionToRun = async () => {
-        const result = await this.props.dispatcher.rebase(
-          this.props.repository,
-          baseBranch,
-          targetBranch,
+    if (this.state.rebaseFlow.step !== RebaseStep.ChooseBranch) {
+      throw new Error(
+        `Invalid step to start rebase: ${this.state.rebaseFlow.step}`
+      )
+    }
+
+    const actionToRun = async () => {
+      const result = await this.props.dispatcher.rebase(
+        this.props.repository,
+        baseBranch,
+        targetBranch,
+        {
+          start: 0,
+          total,
+          progressCallback: this.updateProgress,
+        }
+      )
+
+      if (result === RebaseResult.ConflictsEncountered) {
+        await this.props.dispatcher.loadStatus(this.props.repository)
+
+        this.showConflictedFiles()
+      } else if (result === RebaseResult.CompletedWithoutError) {
+        this.setState(
           {
-            start: 0,
-            total,
-            progressCallback: this.updateProgress,
-          }
+            rebaseFlow: {
+              step: RebaseStep.ShowProgress,
+              commitSummary: null,
+              value: 1,
+            },
+          },
+          () => this.moveToCompletedState()
         )
+      }
+    }
 
-        if (result === RebaseResult.ConflictsEncountered) {
-          await this.props.dispatcher.loadStatus(this.props.repository)
+    this.setState(() => ({
+      rebaseInformation: {
+        count: 1,
+        total,
+      },
+      rebaseFlow: {
+        step: RebaseStep.ShowProgress,
+        value: 0,
+        count: 1,
+        total,
+        // TODO:
+        // this doesn't feel great to workaround the issue, but we don't see
+        // the commit summary from Git until after it's been applied, but maybe
+        // if I can get the list of commits that should be rebased on top of
+        // the base branch I can pass that in here?
+        commitSummary: null,
+        actionToRun,
+      },
+    }))
+  }
 
-          this.showConflictedFiles()
-        } else if (result === RebaseResult.CompletedWithoutError) {
-          this.setState(
-            {
+  private onContinueRebase = async () => {
+    if (this.state.rebaseFlow.step !== RebaseStep.ShowConflicts) {
+      throw new Error(
+        `Invalid step to continue rebase rebase: ${this.state.rebaseFlow.step}`
+      )
+    }
+
+    const { conflictState } = this.props
+    if (conflictState === null) {
+      throw new Error(`No conflicted files found, unable to continue rebase`)
+    }
+
+    const actionToRun = async () => {
+      const result = await this.props.dispatcher.continueRebase(
+        this.props.repository,
+        this.props.workingDirectory,
+        conflictState.manualResolutions
+      )
+
+      if (result === RebaseResult.ConflictsEncountered) {
+        await this.props.dispatcher.loadStatus(this.props.repository)
+
+        this.showConflictedFiles()
+      } else if (result === RebaseResult.CompletedWithoutError) {
+        this.setState(
+          prevState => {
+            const { total } = prevState.rebaseInformation
+
+            return {
               rebaseFlow: {
                 step: RebaseStep.ShowProgress,
-                count: total,
-                total,
                 commitSummary: null,
                 value: 1,
               },
-            },
-            () => this.moveToCompletedState()
-          )
-        }
+              rebaseInformation: {
+                count: total,
+                total,
+              },
+            }
+          },
+          () => this.moveToCompletedState()
+        )
       }
+    }
 
-      this.setState({
+    this.setState(prevState => {
+      const { total, count } = prevState.rebaseInformation
+
+      // move to next commit to signal progress
+      const newCount = count + 1
+      const progress = newCount / total
+      // TODO: should this live up in GitRebaseParser?
+      const value = Math.round(clamp(progress, 0, 1) * 100) / 100
+
+      return {
         rebaseFlow: {
           step: RebaseStep.ShowProgress,
-          value: 0,
-          count: 1,
-          total,
+          value,
           // TODO:
           // this doesn't feel great to workaround the issue, but we don't see
           // the commit summary from Git until after it's been applied, but maybe
@@ -163,12 +253,12 @@ export class RebaseFlow extends React.Component<
           commitSummary: null,
           actionToRun,
         },
-      })
-    } else {
-      throw new Error(
-        `Invalid step to start rebase: ${this.state.rebaseFlow.step}`
-      )
-    }
+        rebaseInformation: {
+          count: count + 1,
+          total,
+        },
+      }
+    })
   }
 
   private showRebaseConflictsBanner = () => {
@@ -249,7 +339,8 @@ export class RebaseFlow extends React.Component<
         )
       }
       case RebaseStep.ShowProgress:
-        const { value, count, total, commitSummary } = rebaseFlow
+        const { value, commitSummary } = rebaseFlow
+        const { count, total } = this.state.rebaseInformation
 
         return (
           <RebaseProgressDialog
@@ -279,7 +370,6 @@ export class RebaseFlow extends React.Component<
         }
 
         const { manualResolutions } = conflictState
-
         const { targetBranch, baseBranch } = rebaseFlow
 
         return (
@@ -287,6 +377,7 @@ export class RebaseFlow extends React.Component<
             key="view-conflicts"
             repository={repository}
             onDismissed={onFlowEnded}
+            onContinueRebase={this.onContinueRebase}
             dispatcher={dispatcher}
             showRebaseConflictsBanner={this.showRebaseConflictsBanner}
             targetBranch={targetBranch}
@@ -300,9 +391,7 @@ export class RebaseFlow extends React.Component<
           />
         )
       }
-      case RebaseStep.HideConflicts:
-        // TODO
-        return null
+
       case RebaseStep.ConfirmAbort:
         const { targetBranch, baseBranch } = rebaseFlow
         return (
@@ -313,8 +402,9 @@ export class RebaseFlow extends React.Component<
             baseBranch={baseBranch}
           />
         )
+      case RebaseStep.HideConflicts:
       case RebaseStep.Completed:
-        // TODO
+        // there is no UI to display at this point in the flow
         return null
       default:
         return assertNever(rebaseFlow, 'Unknown rebase step found')
