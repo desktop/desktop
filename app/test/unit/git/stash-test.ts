@@ -66,9 +66,9 @@ describe('git/stash', () => {
 
     it('creates a stash entry', async () => {
       await FSE.appendFile(readme, 'just testing stuff')
-      const tipSha = await getTipSha(repository)
+      const { sha } = await getTipOrError(repository)
 
-      await createStashEntry(repository, 'master', tipSha)
+      await createStashEntry(repository, 'master', sha)
 
       const result = await GitProcess.exec(['stash', 'list'], repository.path)
       const entries = result.stdout.trim().split('\n')
