@@ -121,11 +121,15 @@ export async function dropDesktopStashEntry(
     return
   }
 
-  await git(
-    ['stash', 'drop', '--quiet', `stash@{${stashSha}}`],
+  const result = await git(
+    ['stash', 'drop', `stash@{${stashSha}}`],
     repository.path,
     'dropStashEntry'
   )
+
+  if (result.stderr !== '') {
+    throw new Error(result.stderr)
+  }
 }
 
 function extractBranchFromMessage(message: string): string | null {
