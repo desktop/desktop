@@ -17,4 +17,28 @@ dialog#rebase-progress {
     width: 100%;
     margin-bottom: var(--spacing);
   }
+  .details {
+    display: flex;
+    flex-flow: row nowrap;
+    padding: var(--spacing) 0 var(--spacing-double);
+
+    .green-circle {
+      background-color: var(--color-new);
+      color: var(--background-color);
+      border-radius: 50%;
+      height: 22px;
+      width: 22px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .summary {
+      padding-left: var(--spacing);
+
+      .message {
+        font-weight: bold;
+      }
+    }
+  }
 }

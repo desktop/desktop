@@ -76,6 +76,13 @@ export type ShowProgressStep = {
   readonly step: RebaseStep.ShowProgress
   /** A numeric value between 0 and 1 representing the rebase progress */
   readonly value: number
+  /** The number of commits currently rebased onto the base branch */
+  readonly count: number
+  /** The toal number of commits to rebase on top of the current branch */
+  readonly total: number
+  /** The commit summary associated with the current commit */
+  readonly commitSummary: string | null
+
   /**
    * An optional action to run when the component is first mounted.
    *

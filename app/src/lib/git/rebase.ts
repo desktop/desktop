@@ -140,6 +140,8 @@ class GitRebaseParser {
         this.totalCommitCount
       } commits`,
       value,
+      count: this.currentCommitCount,
+      total: this.totalCommitCount,
       commitSummary,
     }
   }

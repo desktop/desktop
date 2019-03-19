@@ -2,13 +2,25 @@ import * as React from 'react'
 
 import { Dialog, DialogContent } from '../dialog'
 import { clamp } from '../../lib/clamp'
+import { Octicon, OcticonSymbol } from '../octicons'
 
 interface IRebaseProgressDialogProps {
+  /** A number between 0 and 1 representing the overall progress */
   readonly value: number
-
+  /** The number of commits currently rebased onto the base branch */
+  readonly count: number
+  /** The toal number of commits to rebase on top of the current branch */
+  readonly total: number
+  /** The commit summary associated with the current commit */
+  readonly commitSummary: string | null
+  /**
+   * An optional action to run when the component is mounted
+   *
+   * This should typically be the rebase action to perform.
+   */
   readonly actionToRun?: () => Promise<void>
 
-  // to simplify testing flow, should be removed once this is working
+  // TODO: to simplify testing flow, should be removed once this is working
   readonly onDismissed: () => void
 }
 
@@ -32,9 +44,9 @@ export class RebaseProgressDialog extends React.Component<
   }
 
   public render() {
-    const progressValue = Math.round(clamp(this.props.value, 0, 1) * 100) / 100
-    const progressNumber = (progressValue * 100).toFixed(0)
-
+    const { count, total, value, commitSummary } = this.props
+    // TODO: should this live up in GitRebaseParser?
+    const progressValue = Math.round(clamp(value, 0, 1) * 100) / 100
     return (
       <Dialog
         dismissable={false}
@@ -47,7 +59,17 @@ export class RebaseProgressDialog extends React.Component<
           <div>
             <progress value={progressValue} />
 
-            <h2>{progressNumber}% rebase completed</h2>
+            <div className="details">
+              <div className="green-circle">
+                <Octicon symbol={OcticonSymbol.check} />
+              </div>
+              <div className="summary">
+                <div className="message">
+                  Commit {count} of {total}
+                </div>
+                <div className="detail">{commitSummary}</div>
+              </div>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

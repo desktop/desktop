@@ -78,13 +78,16 @@ export class RebaseFlow extends React.Component<
     // fast I/O - are we able to artificially slow this down so there's some
     // semblance of progress before it moves to "completed"?
 
-    const { title, value, commitSummary } = progress
+    const { title, value, commitSummary, total, count } = progress
     log.info(`got progress: '${title}' '${value}' '${commitSummary}'`)
 
     this.setState({
       rebaseFlow: {
         step: RebaseStep.ShowProgress,
         value,
+        count,
+        total,
+        commitSummary,
       },
     })
   }
@@ -125,6 +128,9 @@ export class RebaseFlow extends React.Component<
             {
               rebaseFlow: {
                 step: RebaseStep.ShowProgress,
+                count: total,
+                total,
+                commitSummary: null,
                 value: 1,
               },
             },
@@ -137,6 +143,14 @@ export class RebaseFlow extends React.Component<
         rebaseFlow: {
           step: RebaseStep.ShowProgress,
           value: 0,
+          count: 1,
+          total,
+          // TODO:
+          // this doesn't feel great to workaround the issue, but we don't see
+          // the commit summary from Git until after it's been applied, but maybe
+          // if I can get the list of commits that should be rebased on top of
+          // the base branch I can pass that in here?
+          commitSummary: null,
           actionToRun,
         },
       })
@@ -226,11 +240,14 @@ export class RebaseFlow extends React.Component<
         )
       }
       case RebaseStep.ShowProgress:
-        const { value } = rebaseFlow
+        const { value, count, total, commitSummary } = rebaseFlow
 
         return (
           <RebaseProgressDialog
             value={value}
+            count={count}
+            total={total}
+            commitSummary={commitSummary}
             actionToRun={rebaseFlow.actionToRun}
             onDismissed={this.props.onFlowEnded}
           />
