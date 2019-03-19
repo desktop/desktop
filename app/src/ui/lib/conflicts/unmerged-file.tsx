@@ -5,31 +5,31 @@ import {
   ConflictedFileStatus,
   ConflictsWithMarkers,
   ManualConflict,
-} from '../../models/status'
+} from '../../../models/status'
 import { join } from 'path'
-import { Repository } from '../../models/repository'
-import { Dispatcher } from '../dispatcher'
-import { showContextualMenu } from '../main-process-proxy'
-import { Octicon, OcticonSymbol } from '../octicons'
-import { PathText } from '../lib/path-text'
+import { Repository } from '../../../models/repository'
+import { Dispatcher } from '../../dispatcher'
+import { showContextualMenu } from '../../main-process-proxy'
+import { Octicon, OcticonSymbol } from '../../octicons'
+import { PathText } from '../path-text'
 import {
   ManualConflictResolutionKind,
   ManualConflictResolution,
-} from '../../models/manual-conflict-resolution'
+} from '../../../models/manual-conflict-resolution'
 import {
   OpenWithDefaultProgramLabel,
   RevealInFileManagerLabel,
-} from '../lib/context-menu'
-import { openFile } from '../lib/open-file'
+} from '../context-menu'
+import { openFile } from '../open-file'
 import { shell } from 'electron'
-import { Button } from '../lib/button'
-import { IMenuItem } from '../../lib/menu-item'
-import { LinkButton } from '../lib/link-button'
+import { Button } from '../button'
+import { IMenuItem } from '../../../lib/menu-item'
+import { LinkButton } from '../link-button'
 import {
   hasUnresolvedConflicts,
   getUnmergedStatusEntryDescription,
   getLabelForManualResolutionOption,
-} from '../../lib/status'
+} from '../../../lib/status'
 
 /**
  * Renders an unmerged file status and associated buttons for the merge conflicts modal
@@ -46,9 +46,25 @@ export const renderUnmergedFile: React.SFC<{
    *  (optional. only applies to manual merge conflicts)
    */
   readonly manualResolution?: ManualConflictResolution
-  /** branch we were on before starting merge */
-  readonly ourBranch: string
-  /* `undefined` when we didn't know the branch at the beginning of the merge conflict resolution flow */
+  /**
+   * Current branch associated with the conflicted state for this file:
+   *
+   *  - for a merge, this is the tip of the repository
+   *  - for a rebase, this is the base branch that commits are being applied on top
+   *
+   * If the rebase is started outside Desktop, the details about this branch may
+   * not be known - the rendered component will handle this fine.
+   */
+  readonly ourBranch?: string
+  /**
+   * The other branch associated with the conflicted state for this file:
+   *
+   *  - for a merge, this is be the branch being merged into the tip of the repository
+   *  - for a rebase, this is the target branch that is having it's history rewritten
+   *
+   * If the merge is started outside Desktop, the details about this branch may
+   * not be known - the rendered component will handle this fine.
+   */
   readonly theirBranch?: string
   /** name of the resolved external editor */
   readonly resolvedExternalEditor: string | null
@@ -128,7 +144,7 @@ const renderManualConflictedFile: React.SFC<{
   readonly path: string
   readonly status: ManualConflict
   readonly repository: Repository
-  readonly ourBranch: string
+  readonly ourBranch?: string
   readonly theirBranch?: string
   readonly dispatcher: Dispatcher
 }> = props => {
@@ -231,7 +247,7 @@ const makeManualConflictDropdownClickHandler = (
   status: ManualConflict,
   repository: Repository,
   dispatcher: Dispatcher,
-  ourBranch: string,
+  ourBranch?: string,
   theirBranch?: string
 ) => {
   return () => {
@@ -349,7 +365,7 @@ const renderResolvedFileStatusSummary: React.SFC<{
 /** returns the name of the branch that corresponds to the chosen manual resolution */
 function getBranchForResolution(
   manualResolution: ManualConflictResolution | undefined,
-  ourBranch: string,
+  ourBranch?: string,
   theirBranch?: string
 ): string | undefined {
   if (manualResolution === ManualConflictResolutionKind.ours) {

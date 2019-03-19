@@ -2,7 +2,7 @@ import { Repository } from '../../../src/models/repository'
 import { getChangedFiles, getCommits } from '../../../src/lib/git'
 import { setupFixtureRepository } from '../../helpers/repositories'
 import { AppFileStatusKind } from '../../../src/models/status'
-import { GitProcess } from 'dugite'
+import { setupLocalConfig } from '../../helpers/local-config'
 
 describe('git/log', () => {
   let repository: Repository | null = null
@@ -34,11 +34,10 @@ describe('git/log', () => {
       const path = await setupFixtureRepository('just-doing-some-signing')
       const repository = new Repository(path, 1, null, false)
 
-      // ensure the test repository is configured to detect copies
-      await GitProcess.exec(
-        ['config', 'log.showSignature', 'true'],
-        repository.path
-      )
+      // ensure the default config is to try and show signatures
+      // this should be overriden by the `getCommits` function as it may not
+      // have a valid GPG agent configured
+      await setupLocalConfig(repository, [['log.showSignature', 'true']])
 
       const commits = await getCommits(repository, 'HEAD', 100)
 
@@ -91,10 +90,7 @@ describe('git/log', () => {
       repository = new Repository(testRepoPath, -1, null, false)
 
       // ensure the test repository is configured to detect copies
-      await GitProcess.exec(
-        ['config', 'diff.renames', 'copies'],
-        repository.path
-      )
+      await setupLocalConfig(repository, [['diff.renames', 'copies']])
 
       const files = await getChangedFiles(repository, 'a500bf415')
       expect(files).toHaveLength(2)
