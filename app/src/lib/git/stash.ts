@@ -93,6 +93,26 @@ export async function createDesktopStashEntry(
   }
 }
 
+/**
+ * Removes the stash entry identified by `stashSha`
+ */
+export async function dropDesktopStashEntry(
+  repository: Repository,
+  stashSha: string
+) {
+  if (stashSha === '') {
+    // the drop sub-command behaves like pop when no stash is given
+    // so we return if given an empty string to avoid that
+    return
+  }
+
+  await git(
+    ['stash', 'drop', '-q', stashSha],
+    repository.path,
+    'dropStashEntry'
+  )
+}
+
 function extractBranchFromMessage(message: string): string | null {
   const [, desktopMessage] = message.split(':').map(s => s.trim())
   const match = stashEntryMessageRe.exec(desktopMessage)
