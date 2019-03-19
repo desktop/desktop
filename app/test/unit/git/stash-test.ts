@@ -7,7 +7,7 @@ import {
   getDesktopStashEntries,
   createStashMessage,
   createStashEntry,
-  getLastStashEntry,
+  getLastDesktopStashEntry,
 } from '../../../src/lib/git/stash'
 import { getTipOrError } from '../../helpers/tip'
 
@@ -76,7 +76,7 @@ describe('git/stash', () => {
     })
   })
 
-  describe('getLastStashEntry', () => {
+  describe('getLastDesktopStashEntry', () => {
     let repository: Repository
     let readme: string
 
@@ -91,7 +91,7 @@ describe('git/stash', () => {
     it('returns null when no stash entries exist for branch', async () => {
       await generateTestStashEntry(repository, 'some-other-branch', true)
 
-      const entry = await getLastStashEntry(repository, 'master')
+      const entry = await getLastDesktopStashEntry(repository, 'master')
 
       expect(entry).toBeNull()
     })
@@ -105,7 +105,7 @@ describe('git/stash', () => {
         true
       )
 
-      const actual = await getLastStashEntry(repository, branchName)
+      const actual = await getLastDesktopStashEntry(repository, branchName)
 
       expect(actual!.stashSha).toBe(lastEntry)
     })
