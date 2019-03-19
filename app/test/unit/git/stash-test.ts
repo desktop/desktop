@@ -27,9 +27,6 @@ describe('git/stash', () => {
     it('handles unborn repo by returning empty list', async () => {
       const repo = await setupEmptyRepository()
       let didFail = false
-      readme = path.join(repo.path, 'README.md')
-      await FSE.writeFile(readme, '')
-      await stash(repo, 'master', null)
 
       try {
         await getDesktopStashEntries(repo)
@@ -107,6 +104,7 @@ describe('git/stash', () => {
 
       const actual = await getLastDesktopStashEntry(repository, branchName)
 
+      expect(actual).not.toBeNull()
       expect(actual!.stashSha).toBe(lastEntry)
     })
   })
