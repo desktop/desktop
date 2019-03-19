@@ -118,39 +118,34 @@ describe('git/stash', () => {
   })
 })
 
-  describe('getLastDesktopStashEntry', () => {
-    let repository: Repository
-    let readme: string
+describe('getLastDesktopStashEntry', () => {
+  let repository: Repository
+  let readme: string
 
-    beforeEach(async () => {
-      repository = await setupEmptyRepository()
-      readme = path.join(repository.path, 'README.md')
-      await FSE.writeFile(readme, '')
-      await GitProcess.exec(['add', 'README.md'], repository.path)
-      await GitProcess.exec(['commit', '-m', 'initial commit'], repository.path)
-    })
+  beforeEach(async () => {
+    repository = await setupEmptyRepository()
+    readme = path.join(repository.path, 'README.md')
+    await FSE.writeFile(readme, '')
+    await GitProcess.exec(['add', 'README.md'], repository.path)
+    await GitProcess.exec(['commit', '-m', 'initial commit'], repository.path)
+  })
 
-    it('returns null when no stash entries exist for branch', async () => {
-      await generateTestStashEntry(repository, 'some-other-branch', true)
+  it('returns null when no stash entries exist for branch', async () => {
+    await generateTestStashEntry(repository, 'some-other-branch', true)
 
-      const entry = await getLastDesktopStashEntry(repository, 'master')
+    const entry = await getLastDesktopStashEntry(repository, 'master')
 
-      expect(entry).toBeNull()
-    })
+    expect(entry).toBeNull()
+  })
 
-    it('returns last entry made for branch', async () => {
-      const branchName = 'master'
-      await generateTestStashEntry(repository, branchName, true)
-      const lastEntry = await generateTestStashEntry(
-        repository,
-        branchName,
-        true
-      )
+  it('returns last entry made for branch', async () => {
+    const branchName = 'master'
+    await generateTestStashEntry(repository, branchName, true)
+    const lastEntry = await generateTestStashEntry(repository, branchName, true)
 
-      const actual = await getLastDesktopStashEntry(repository, branchName)
+    const actual = await getLastDesktopStashEntry(repository, branchName)
 
-      expect(actual!.stashSha).toBe(lastEntry)
-    })
+    expect(actual!.stashSha).toBe(lastEntry)
   })
 })
 
