@@ -206,6 +206,9 @@ const FastForwardBranchesThreshold = 20
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
+const RecentRepositoriesKey = 'recently-selected-repositories-list'
+const RecentRepositoriesLength = 5
+
 const defaultSidebarWidth: number = 250
 const sidebarWidthConfigKey: string = 'sidebar-width'
 
@@ -1148,6 +1151,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     setNumber(LastSelectedRepositoryIDKey, repository.id)
 
+    const previousRepositoryId = previouslySelectedRepository
+      ? previouslySelectedRepository.id
+      : null
+    this._updateRecentRepositories(previousRepositoryId, repository.id)
+
     // if repository might be marked missing, try checking if it has been restored
     const refreshedRepository = await this.recoverMissingRepository(repository)
     if (refreshedRepository.missing) {
@@ -1162,6 +1170,28 @@ export class AppStore extends TypedBaseStore<IAppState> {
       refreshedRepository,
       previouslySelectedRepository
     )
+  }
+
+  // update the stored list of recently opened repositories
+  private _updateRecentRepositories(
+    previousRepositoryId: number | null,
+    currentRepositoryId: number
+  ) {
+    const recentRepositories: Set<number> = JSON.parse(
+      localStorage.get(RecentRepositoriesKey)
+    )
+    recentRepositories.delete(currentRepositoryId)
+    if (previousRepositoryId !== null) {
+      recentRepositories.delete(previousRepositoryId)
+      recentRepositories.add(previousRepositoryId)
+      if (recentRepositories.size > RecentRepositoriesLength) {
+        const values = Array.from(recentRepositories.values())
+        values.splice(RecentRepositoriesLength - 1)
+        localStorage.set(JSON.stringify(values))
+      } else {
+        localStorage.set(JSON.stringify(recentRepositories))
+      }
+    }
   }
 
   // finish `_selectRepository`s refresh tasks
