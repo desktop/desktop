@@ -83,27 +83,29 @@ export async function getLastDesktopStashEntry(
   return entries.find(stash => stash.branchName === branchName) || null
 }
 
-/**
- * Creates a Desktop specific stash message
- */
-export function createStashMessage(branchName: string, tipSha: string) {
+/** Creates a stash entry message that idicates the entry was created by Desktop */
+export function createDesktopStashMessage(branchName: string, tipSha: string) {
   return `${DesktopStashEntryMarker}<${branchName}@${tipSha}>`
 }
 
 /**
  * Stashes the changes in the working directory
  */
-export async function createStashEntry(
+export async function createDesktopStashEntry(
   repository: Repository,
   branchName: string,
   tipSha: string
 ) {
-  const message = createStashMessage(branchName, tipSha)
-  await git(
+  const message = createDesktopStashMessage(branchName, tipSha)
+  const result = await git(
     ['stash', 'push', '-m', message],
     repository.path,
     'createStashEntry'
   )
+
+  if (result.stderr !== '') {
+    throw new Error(result.stderr)
+  }
 }
 
 function extractBranchFromMessage(message: string): string | null {

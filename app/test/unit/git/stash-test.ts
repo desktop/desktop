@@ -5,8 +5,8 @@ import { setupEmptyRepository } from '../../helpers/repositories'
 import { GitProcess } from 'dugite'
 import {
   getDesktopStashEntries,
-  createStashMessage,
-  createStashEntry,
+  createDesktopStashMessage,
+  createDesktopStashEntry,
   getLastDesktopStashEntry,
 } from '../../../src/lib/git/stash'
 import { getTipOrError } from '../../helpers/tip'
@@ -68,7 +68,7 @@ describe('git/stash', () => {
       await FSE.appendFile(readme, 'just testing stuff')
       const { sha } = await getTipOrError(repository)
 
-      await createStashEntry(repository, 'master', sha)
+      await createDesktopStashEntry(repository, 'master', sha)
 
       const result = await GitProcess.exec(['stash', 'list'], repository.path)
       const entries = result.stdout.trim().split('\n')
@@ -129,7 +129,7 @@ async function stash(
       'stash',
       'store',
       '-m',
-      message || createStashMessage(branchName, tip.sha),
+      message || createDesktopStashMessage(branchName, tip.sha),
       objectId,
     ],
     repository.path
