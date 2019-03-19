@@ -12,7 +12,7 @@ export interface IStashEntry {
 }
 
 /** RegEx for parsing out the stash SHA and message */
-const stashEntryRe = /^([0-9a-f]{40})@(.+)$/
+const stashEntryRe = /^([0-9a-f]{40}):(.+)$/
 
 /**
  * RegEx for determining if a stash entry is created by Desktop
