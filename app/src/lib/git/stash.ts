@@ -68,20 +68,19 @@ export async function getDesktopStashEntries(
   return stashEntries
 }
 
-export function createStashMessage(branchName: string, tipSha: string) {
+/** Creates a stash entry message that idicates the entry was created by Desktop */
+export function createDesktopStashMessage(branchName: string, tipSha: string) {
   return `${DesktopStashEntryMarker}<${branchName}@${tipSha}>`
 }
 
 /**
  * Stashes the changes in the working directory
  */
-export async function createStashEntry(
+export async function createDesktopStashEntry(
   repository: Repository,
   branchName: string,
   tipSha: string
 ) {
-  const message = createStashMessage(branchName, tipSha)
-  await git(
     ['stash', 'push', '-m', message],
     repository.path,
     'createStashEntry'
