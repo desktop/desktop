@@ -79,6 +79,32 @@ export class RebaseFlow extends React.Component<
     }
   }
 
+  public async componentDidUpdate(
+    prevProps: IRebaseFlowProps,
+    prevState: IRebaseFlowState
+  ) {
+    if (this.state.step.kind !== RebaseStep.ShowProgress) {
+      return
+    }
+
+    if (this.state.progress.value !== 1) {
+      return
+    }
+
+    // waiting before this transition to give the progress UI a chance to show
+    // it reaches 100%
+    await timeout(1000)
+
+    this.setState(
+      {
+        step: {
+          kind: RebaseStep.Completed,
+        },
+      },
+      () => this.props.onFlowEnded()
+    )
+  }
+
   private showConflictedFiles = () => {
     const { workingDirectory, conflictState } = this.props
 
@@ -100,17 +126,10 @@ export class RebaseFlow extends React.Component<
   }
 
   private updateProgress = (progress: IRebaseProgress) => {
-    // TODO: this can happen very quickly for a trivial rebase or an OS with
-    // fast I/O - are we able to artificially slow this down so there's some
-    // semblance of progress before it moves to "completed"?
-
     const { title, value, commitSummary, total, count } = progress
     log.info(`got progress: '${title}' '${value}' '${commitSummary}'`)
 
     this.setState({
-      step: {
-        kind: RebaseStep.ShowProgress,
-      },
       progress: {
         value,
         commitSummary,
@@ -121,16 +140,19 @@ export class RebaseFlow extends React.Component<
   }
 
   private moveToCompletedState = async () => {
-    await timeout(1000)
-
-    this.setState(
-      {
-        step: {
-          kind: RebaseStep.Completed,
+    // this ensures the progress bar fills to 100%, and componentDidUpdate
+    // handles the state transition after a period of time to ensure the UI
+    // gracefully switches
+    this.setState(prevState => {
+      const { total } = prevState.progress
+      return {
+        progress: {
+          value: 1,
+          count: total,
+          total,
         },
-      },
-      () => this.props.onFlowEnded()
-    )
+      }
+    })
   }
 
   private onStartRebase = (
@@ -159,22 +181,7 @@ export class RebaseFlow extends React.Component<
 
         this.showConflictedFiles()
       } else if (result === RebaseResult.CompletedWithoutError) {
-        this.setState(
-          prevState => {
-            const { total } = prevState.progress
-            return {
-              step: {
-                kind: RebaseStep.ShowProgress,
-              },
-              progress: {
-                value: 1,
-                count: total,
-                total,
-              },
-            }
-          },
-          () => this.moveToCompletedState()
-        )
+        this.moveToCompletedState()
       }
     }
 
