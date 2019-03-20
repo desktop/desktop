@@ -52,6 +52,12 @@ interface ICodeMirrorHostProps {
   readonly onSwapDoc?: (cm: Editor, oldDoc: Doc) => void
 
   /**
+   * Called after the document has been swapped, meaning that consumers of this
+   * event have access to the updated viewport (as opposed to onSwapDoc)
+   */
+  readonly onAfterSwapDoc?: (cm: Editor, oldDoc: Doc, newDoc: Doc) => void
+
+  /**
    * Called when content has been copied. The default behavior may be prevented
    * by calling `preventDefault` on the event.
    */
@@ -164,7 +170,13 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
 
   public componentDidUpdate(prevProps: ICodeMirrorHostProps) {
     if (this.codeMirror && this.props.value !== prevProps.value) {
+      const oldDoc = this.codeMirror.getDoc()
       CodeMirrorHost.updateDoc(this.codeMirror, this.props.value)
+      const newDoc = this.codeMirror.getDoc()
+
+      if (this.props.onAfterSwapDoc) {
+        this.props.onAfterSwapDoc(this.codeMirror, oldDoc, newDoc)
+      }
     }
   }
 

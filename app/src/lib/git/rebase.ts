@@ -1,8 +1,11 @@
 import * as Path from 'path'
+import { ChildProcess } from 'child_process'
 import * as FSE from 'fs-extra'
+import { GitError } from 'dugite'
+import * as byline from 'byline'
 
 import { Repository } from '../../models/repository'
-import { git } from './core'
+import { git, IGitResult, IGitExecutionOptions } from './core'
 import {
   WorkingDirectoryFileChange,
   AppFileStatusKind,
@@ -10,9 +13,11 @@ import {
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { stageManualConflictResolution } from './stage'
 import { stageFiles } from './update-index'
-import { GitError, IGitResult } from 'dugite'
+
 import { getStatus } from './status'
-import { RebaseContext } from '../../models/rebase'
+import { RebaseContext, RebaseProgressOptions } from '../../models/rebase'
+import { merge } from '../merge'
+import { IRebaseProgress } from '../../models/progress'
 
 /**
  * Check the `.git/REBASE_HEAD` file exists in a repository to confirm
@@ -42,6 +47,7 @@ export async function getRebaseContext(
 
   let originalBranchTip: string | null = null
   let targetBranch: string | null = null
+  let baseBranchTip: string | null = null
 
   try {
     originalBranchTip = await FSE.readFile(
@@ -59,16 +65,94 @@ export async function getRebaseContext(
     if (targetBranch.startsWith('refs/heads/')) {
       targetBranch = targetBranch.substr(11).trim()
     }
+
+    baseBranchTip = await FSE.readFile(
+      Path.join(repository.path, '.git', 'rebase-apply', 'onto'),
+      'utf8'
+    )
+
+    baseBranchTip = baseBranchTip.trim()
   } catch {}
 
-  if (originalBranchTip != null && targetBranch != null) {
-    return { originalBranchTip, targetBranch }
+  if (
+    originalBranchTip != null &&
+    targetBranch != null &&
+    baseBranchTip != null
+  ) {
+    return { originalBranchTip, targetBranch, baseBranchTip }
   }
 
   // unable to resolve the rebase state of this repository
 
   return null
 }
+
+/** Regex for identifying when rebase applied each commit onto the base branch */
+const rebaseApplyingRe = /^Applying: (.*)/
+
+/**
+ * A parser to read and emit rebase progress from Git `stdout`
+ */
+class GitRebaseParser {
+  private currentCommitCount = 0
+
+  public constructor(
+    startCount: number,
+    private readonly totalCommitCount: number
+  ) {
+    this.currentCommitCount = startCount
+  }
+
+  public parse(line: string): IRebaseProgress | null {
+    const match = rebaseApplyingRe.exec(line)
+    if (match === null || match.length !== 2) {
+      // Git will sometimes emit other output (for example, when it tries to
+      // resolve conflicts) and this does not match the expected output
+      return null
+    }
+
+    const commitSummary = match[1]
+    this.currentCommitCount++
+
+    const value = this.currentCommitCount / this.totalCommitCount
+
+    return {
+      kind: 'rebase',
+      title: `Rebasing commit ${this.currentCommitCount} of ${
+        this.totalCommitCount
+      } commits`,
+      value,
+      commitSummary,
+    }
+  }
+}
+
+function configureOptionsForRebase(
+  options: IGitExecutionOptions,
+  progress?: RebaseProgressOptions
+) {
+  if (progress === undefined) {
+    return options
+  }
+
+  const { start, total, progressCallback } = progress
+
+  return merge(options, {
+    processCallback: (process: ChildProcess) => {
+      const parser = new GitRebaseParser(start, total)
+
+      // rebase emits progress messages on `stdout`, not `stderr`
+      byline(process.stdout).on('data', (line: string) => {
+        const progress = parser.parse(line)
+
+        if (progress != null) {
+          progressCallback(progress)
+        }
+      })
+    },
+  })
+}
+
 /**
  * A stub function to use for initiating rebase in the app.
  *
@@ -79,19 +163,29 @@ export async function getRebaseContext(
  * and it will probably have a different commit history.
  *
  * @param baseBranch the ref to start the rebase from
- * @param featureBranch the ref to rebase onto `baseBranch`
+ * @param targetBranch the ref to rebase onto `baseBranch`
  */
 export async function rebase(
   repository: Repository,
   baseBranch: string,
-  featureBranch: string
-) {
-  return await git(
-    ['rebase', baseBranch, featureBranch],
+  targetBranch: string,
+  progress?: RebaseProgressOptions
+): Promise<RebaseResult> {
+  const options = configureOptionsForRebase(
+    {
+      expectedErrors: new Set([GitError.RebaseConflicts]),
+    },
+    progress
+  )
+
+  const result = await git(
+    ['rebase', baseBranch, targetBranch],
     repository.path,
     'rebase',
-    { expectedErrors: new Set([GitError.RebaseConflicts]) }
+    options
   )
+
+  return parseRebaseResult(result)
 }
 
 /** Abandon the current rebase operation */
@@ -99,28 +193,42 @@ export async function abortRebase(repository: Repository) {
   await git(['rebase', '--abort'], repository.path, 'abortRebase')
 }
 
-export enum ContinueRebaseResult {
+/** The app-specific results from attempting to rebase a repository */
+export enum RebaseResult {
+  /**
+   * Git completed the rebase without reporting any errors, and the caller can
+   * signal success to the user.
+   */
   CompletedWithoutError = 'CompletedWithoutError',
+  /**
+   * The rebase encountered conflicts while attempting to rebase, and these
+   * need to be resolved by the user before the rebase can continue.
+   */
   ConflictsEncountered = 'ConflictsEncountered',
+  /**
+   * The rebase was not able to continue as tracked files were not staged in
+   * the index.
+   */
   OutstandingFilesNotStaged = 'OutstandingFilesNotStaged',
+  /**
+   * The rebase was not attempted because it could not check the status of the
+   * repository. The caller needs to confirm the repository is in a usable
+   * state.
+   */
   Aborted = 'Aborted',
 }
 
-const rebaseEncounteredConflictsRe = /Resolve all conflicts manually, mark them as resolved/
-
-const filesNotMergedRe = /You must edit all merge conflicts and then\nmark them as resolved/
-
-function parseRebaseResult(result: IGitResult): ContinueRebaseResult {
+function parseRebaseResult(result: IGitResult): RebaseResult {
   if (result.exitCode === 0) {
-    return ContinueRebaseResult.CompletedWithoutError
+    return RebaseResult.CompletedWithoutError
   }
 
-  if (rebaseEncounteredConflictsRe.test(result.stdout)) {
-    return ContinueRebaseResult.ConflictsEncountered
+  if (result.gitError === GitError.RebaseConflicts) {
+    return RebaseResult.ConflictsEncountered
   }
 
-  if (filesNotMergedRe.test(result.stdout)) {
-    return ContinueRebaseResult.OutstandingFilesNotStaged
+  if (result.gitError === GitError.UnresolvedConflicts) {
+    return RebaseResult.OutstandingFilesNotStaged
   }
 
   throw new Error(`Unhandled result found: '${JSON.stringify(result)}'`)
@@ -137,8 +245,13 @@ function parseRebaseResult(result: IGitResult): ContinueRebaseResult {
 export async function continueRebase(
   repository: Repository,
   files: ReadonlyArray<WorkingDirectoryFileChange>,
-  manualResolutions: ReadonlyMap<string, ManualConflictResolution> = new Map()
-): Promise<ContinueRebaseResult> {
+  manualResolutions: ReadonlyMap<string, ManualConflictResolution> = new Map(),
+  progress?: RebaseProgressOptions
+): Promise<RebaseResult> {
+  const trackedFiles = files.filter(f => {
+    return f.status.kind !== AppFileStatusKind.Untracked
+  })
+
   // apply conflict resolutions
   for (const [path, resolution] of manualResolutions) {
     const file = files.find(f => f.path === path)
@@ -151,7 +264,7 @@ export async function continueRebase(
     }
   }
 
-  const otherFiles = files.filter(f => !manualResolutions.has(f.path))
+  const otherFiles = trackedFiles.filter(f => !manualResolutions.has(f.path))
 
   await stageFiles(repository, otherFiles)
 
@@ -161,45 +274,46 @@ export async function continueRebase(
     log.warn(
       `[rebase] unable to get status after staging changes, skipping any other steps`
     )
-    return ContinueRebaseResult.Aborted
+    return RebaseResult.Aborted
   }
 
-  const trackedFiles = status.workingDirectory.files.filter(
+  const trackedFilesAfter = status.workingDirectory.files.filter(
     f => f.status.kind !== AppFileStatusKind.Untracked
   )
 
-  if (trackedFiles.length === 0) {
+  const options = configureOptionsForRebase(
+    {
+      expectedErrors: new Set([
+        GitError.RebaseConflicts,
+        GitError.UnresolvedConflicts,
+      ]),
+    },
+    progress
+  )
+
+  if (trackedFilesAfter.length === 0) {
     const rebaseHead = Path.join(repository.path, '.git', 'REBASE_HEAD')
-    const rebaseCurrentCommit = await FSE.readFile(rebaseHead)
+    const rebaseCurrentCommit = await FSE.readFile(rebaseHead, 'utf8')
 
     log.warn(
-      `[rebase] no tracked changes to commit for ${rebaseCurrentCommit}, continuing rebase but skipping this commit`
+      `[rebase] no tracked changes to commit for ${rebaseCurrentCommit.trim()}, continuing rebase but skipping this commit`
     )
 
     const result = await git(
       ['rebase', '--skip'],
       repository.path,
       'continueRebaseSkipCurrentCommit',
-      {
-        successExitCodes: new Set([0, 1, 128]),
-      }
+      options
     )
 
     return parseRebaseResult(result)
   }
 
-  // TODO: there are some cases we need to handle and surface here:
-  //  - rebase continued and completed without error
-  //  - rebase continued but encountered a different set of conflicts
-  //  - rebase could not continue as there are outstanding conflicts
-
   const result = await git(
     ['rebase', '--continue'],
     repository.path,
     'continueRebase',
-    {
-      successExitCodes: new Set([0, 1, 128]),
-    }
+    options
   )
 
   return parseRebaseResult(result)

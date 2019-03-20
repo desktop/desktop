@@ -104,6 +104,7 @@ const allMenuIds: ReadonlyArray<MenuIDs> = [
   'update-branch',
   'compare-to-branch',
   'merge-branch',
+  'rebase-branch',
   'view-repository-on-github',
   'compare-on-github',
   'open-in-shell',
@@ -153,6 +154,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
   let networkActionInProgress = false
   let tipStateIsUnknown = false
   let branchIsUnborn = false
+  let rebaseInProgress = false
 
   if (selectedState && selectedState.type === SelectionType.Repository) {
     repositorySelected = true
@@ -184,6 +186,10 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     }
 
     networkActionInProgress = selectedState.state.isPushPullFetchInProgress
+
+    const { conflictState } = selectedState.state.changesState
+
+    rebaseInProgress = conflictState !== null && conflictState.kind === 'rebase'
   }
 
   // These are IDs for menu items that are entirely _and only_
@@ -228,6 +234,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
       onNonDefaultBranch && hasDefaultBranch && !onDetachedHead
     )
     menuStateBuilder.setEnabled('merge-branch', onBranch)
+    menuStateBuilder.setEnabled('rebase-branch', onBranch)
     menuStateBuilder.setEnabled(
       'compare-on-github',
       isHostedOnGitHub && hasPublishedBranch
@@ -240,7 +247,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     )
     menuStateBuilder.setEnabled(
       'push',
-      !branchIsUnborn && !networkActionInProgress
+      !branchIsUnborn && !onDetachedHead && !networkActionInProgress
     )
     menuStateBuilder.setEnabled(
       'pull',
@@ -248,7 +255,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     )
     menuStateBuilder.setEnabled(
       'create-branch',
-      !tipStateIsUnknown && !branchIsUnborn
+      !tipStateIsUnknown && !branchIsUnborn && !rebaseInProgress
     )
 
     menuStateBuilder.setEnabled('compare-to-branch', !onDetachedHead)
@@ -282,6 +289,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     menuStateBuilder.disable('delete-branch')
     menuStateBuilder.disable('update-branch')
     menuStateBuilder.disable('merge-branch')
+    menuStateBuilder.disable('rebase-branch')
 
     menuStateBuilder.disable('push')
     menuStateBuilder.disable('pull')

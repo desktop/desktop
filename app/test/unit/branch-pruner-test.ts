@@ -210,8 +210,6 @@ async function initializeTestRepo(
         url: '',
         login: '',
         avatar_url: '',
-        name: null,
-        email: null,
         type: 'User',
       },
       private: false,

@@ -8,6 +8,7 @@ import { IAheadBehind } from '../../models/branch'
 import { TipState } from '../../models/tip'
 import { RelativeTime } from '../relative-time'
 import { FetchType } from '../../models/fetch'
+import { enablePullWithRebase } from '../../lib/feature-flag'
 
 interface IPushPullButtonProps {
   /**
@@ -40,6 +41,51 @@ interface IPushPullButtonProps {
    * Used for setting the enabled/disabled and the description text.
    */
   readonly tipState: TipState
+
+  /** Has the user configured pull.rebase to anything? */
+  readonly pullWithRebase?: boolean
+
+  /** Is the detached HEAD state related to a rebase or not? */
+  readonly rebaseInProgress: boolean
+
+  /** If the current branch has been rebased, the user is permitted to force-push */
+  readonly branchWasRebased: boolean
+}
+
+/**
+ * This represents the "double arrow" icon used to show a force-push, and is a
+ * less complicated icon than the generated Octicon from the `octicons` package.
+ */
+const forcePushIcon = new OcticonSymbol(
+  10,
+  16,
+  'M3 11H0l5-6 5 6H7v4H3v-4zM5 1l5 6H8.33L5 3 1.662 7H0l5-6z'
+)
+
+function getActionLabel(
+  aheadBehind: IAheadBehind,
+  remoteName: string,
+  branchWasRebased: boolean,
+  pullWithRebase?: boolean
+) {
+  if (isBranchRebased(branchWasRebased, aheadBehind)) {
+    return `Force push ${remoteName}`
+  }
+
+  const { ahead, behind } = aheadBehind
+  if (behind > 0) {
+    return pullWithRebase && enablePullWithRebase()
+      ? `Pull ${remoteName} with rebase`
+      : `Pull ${remoteName}`
+  }
+  if (ahead > 0) {
+    return `Push ${remoteName}`
+  }
+  return `Fetch ${remoteName}`
+}
+
+function isBranchRebased(branchWasRebased: boolean, aheadBehind: IAheadBehind) {
+  return branchWasRebased && aheadBehind.behind > 0 && aheadBehind.ahead > 0
 }
 
 /**
@@ -131,18 +177,12 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
       return 'Publish branch'
     }
 
-    const { ahead, behind } = this.props.aheadBehind
-    const actionName = (function() {
-      if (behind > 0) {
-        return 'Pull'
-      }
-      if (ahead > 0) {
-        return 'Push'
-      }
-      return 'Fetch'
-    })()
-
-    return `${actionName} ${this.props.remoteName}`
+    return getActionLabel(
+      this.props.aheadBehind,
+      this.props.remoteName,
+      this.props.branchWasRebased,
+      this.props.pullWithRebase
+    )
   }
 
   private getIcon(): OcticonSymbol {
@@ -161,6 +201,11 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
     if (this.props.networkActionInProgress) {
       return OcticonSymbol.sync
     }
+
+    if (this.props.branchWasRebased) {
+      return forcePushIcon
+    }
+
     if (behind > 0) {
       return OcticonSymbol.arrowDown
     }
@@ -176,7 +221,9 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
     }
 
     if (tipState === TipState.Detached) {
-      return 'Cannot publish detached HEAD'
+      return this.props.rebaseInProgress
+        ? 'Rebase in progress'
+        : 'Cannot publish detached HEAD'
     }
 
     if (tipState === TipState.Unborn) {
@@ -203,9 +250,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
   }
 
   private performAction = () => {
-    const repository = this.props.repository
-    const dispatcher = this.props.dispatcher
-    const aheadBehind = this.props.aheadBehind
+    const { repository, dispatcher, aheadBehind, branchWasRebased } = this.props
 
     if (!aheadBehind) {
       dispatcher.push(repository)
@@ -214,7 +259,9 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
 
     const { ahead, behind } = aheadBehind
 
-    if (behind > 0) {
+    if (isBranchRebased(branchWasRebased, aheadBehind)) {
+      dispatcher.confirmOrForcePush(repository)
+    } else if (behind > 0) {
       dispatcher.pull(repository)
     } else if (ahead > 0) {
       dispatcher.push(repository)

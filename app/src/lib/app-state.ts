@@ -162,6 +162,9 @@ export interface IAppState {
   /** Whether we should show a confirmation dialog */
   readonly askForConfirmationOnDiscardChanges: boolean
 
+  /** Should the app prompt the user to confirm a force push? */
+  readonly askForConfirmationOnForcePush: boolean
+
   /** The external editor to use when opening repositories */
   readonly selectedExternalEditor?: ExternalEditor
 
@@ -273,9 +276,26 @@ export function isMergeConflictState(
  */
 export type RebaseConflictState = {
   readonly kind: 'rebase'
+  /**
+   * This is the commit ID of the HEAD of the in-flight rebase
+   */
   readonly currentTip: string
+  /**
+   * The branch chosen by the user to be rebased
+   */
   readonly targetBranch: string
+  /**
+   * The commit ID of the target branch before the rebase was initiated
+   */
   readonly originalBranchTip: string
+  /**
+   * The commit ID of the base branch onto which the history will be applied
+   */
+  readonly baseBranchTip: string
+  /**
+   * Manual resolutions chosen by the user for conflicted files to be applied
+   * before continuing the rebase.
+   */
   readonly manualResolutions: Map<string, ManualConflictResolution>
 }
 
@@ -410,6 +430,19 @@ export interface IBranchesState {
 
   /** The pull request associated with the current branch. */
   readonly currentPullRequest: PullRequest | null
+
+  /**
+   * Is the current branch configured to rebase on pull?
+   *
+   * This is the value returned from git config (local or global) for `git config pull.rebase`
+   *
+   * If this value is not found in config, this will be `undefined` to indicate
+   * that the default Git behaviour will occur.
+   */
+  readonly pullWithRebase?: boolean
+
+  /** Tracking branches that have been rebased within Desktop */
+  readonly rebasedBranches: ReadonlyMap<string, string>
 }
 
 export interface ICommitSelection {
