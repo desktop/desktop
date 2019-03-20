@@ -294,14 +294,16 @@ export async function mergeConflictHandler(
       break
   }
 
-  const { currentBranch, theirBranch } = gitContext
+  if (gitContext.kind === 'merge' || gitContext.kind === 'pull') {
+    const { currentBranch, theirBranch } = gitContext
 
-  dispatcher.showPopup({
-    type: PopupType.MergeConflicts,
-    repository,
-    ourBranch: currentBranch,
-    theirBranch,
-  })
+    dispatcher.showPopup({
+      type: PopupType.MergeConflicts,
+      repository,
+      ourBranch: currentBranch,
+      theirBranch,
+    })
+  }
 
   return null
 }
@@ -396,13 +398,68 @@ export async function rebaseConflictsHandler(
 
   // TODO: metrics - https://github.com/desktop/desktop/issues/6550
 
-  const { currentBranch } = gitContext
+  if (gitContext.kind === 'merge' || gitContext.kind === 'pull') {
+    const { currentBranch } = gitContext
 
-  dispatcher.showPopup({
-    type: PopupType.RebaseConflicts,
-    repository,
-    targetBranch: currentBranch,
-  })
+    dispatcher.showPopup({
+      type: PopupType.RebaseConflicts,
+      repository,
+      targetBranch: currentBranch,
+    })
+  }
+
+  return null
+}
+
+/**
+ * Handler for when we attempt to checkout a branch and there are some files that would
+ * be overwritten.
+ */
+export async function localChangesOverwrittenHandler(
+  error: Error,
+  dispatcher: Dispatcher
+): Promise<Error | null> {
+  const e = asErrorWithMetadata(error)
+  if (e === null) {
+    return error
+  }
+
+  const gitError = asGitError(e.underlyingError)
+  if (!gitError) {
+    return error
+  }
+
+  const dugiteError = gitError.result.gitError
+  if (!dugiteError) {
+    return error
+  }
+
+  if (dugiteError !== DugiteError.LocalChangesOverwritten) {
+    return error
+  }
+
+  const { repository, retryAction } = e.metadata
+  if (repository == null) {
+    return error
+  }
+
+  if (!(repository instanceof Repository)) {
+    return error
+  }
+
+  if (!retryAction) {
+    log.error(`No retry action provided for a git checkout error.`, e)
+    return error
+  }
+
+  const context = e.metadata.gitContext
+  if (context !== undefined && context.kind === 'local-changes-overwritten') {
+    dispatcher.showPopup({
+      type: PopupType.StashAndSwitchBranch,
+      repository,
+      checkoutBranch: context.checkoutBranch,
+    })
+  }
 
   return null
 }

@@ -7,5 +7,12 @@ type MergeOrPullConflictsErrorContext = {
   readonly currentBranch: string
 }
 
+type LocalChangesOverwrittenContext = {
+  readonly kind: 'local-changes-overwritten'
+  readonly checkoutBranch: string
+}
+
 /** A custom shape of data for actions to provide to help with error handling */
-export type GitErrorContext = MergeOrPullConflictsErrorContext
+export type GitErrorContext =
+  | MergeOrPullConflictsErrorContext
+  | LocalChangesOverwrittenContext

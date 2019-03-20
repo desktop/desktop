@@ -20,6 +20,7 @@ import {
   pushNeedsPullHandler,
   upstreamAlreadyExistsHandler,
   rebaseConflictsHandler,
+  localChangesOverwrittenHandler,
 } from './dispatcher'
 import {
   AppStore,
@@ -53,7 +54,7 @@ import {
 import { UiActivityMonitor } from './lib/ui-activity-monitor'
 import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
 import { ApiRepositoriesStore } from '../lib/stores/api-repositories-store'
-import { enablePullWithRebase } from '../lib/feature-flag'
+import { enablePullWithRebase, enableStashing } from '../lib/feature-flag'
 
 if (__DEV__) {
   installDevGlobals()
@@ -163,6 +164,9 @@ if (enablePullWithRebase()) {
   dispatcher.registerErrorHandler(rebaseConflictsHandler)
 }
 
+if (enableStashing()) {
+  dispatcher.registerErrorHandler(localChangesOverwrittenHandler)
+}
 document.body.classList.add(`platform-${process.platform}`)
 
 dispatcher.setAppFocusState(remote.getCurrentWindow().isFocused())
