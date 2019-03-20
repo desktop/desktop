@@ -7,14 +7,11 @@ import {
   Repositoryish,
   RepositoryGroupIdentifier,
   KnownRepositoryGroup,
+  makeRecentRepositoriesGroup,
 } from './group-repositories'
 import { FilterList, IFilterListGroup } from '../lib/filter-list'
 import { IMatches } from '../../lib/fuzzy-find'
-import {
-  ILocalRepositoryState,
-  nameOf,
-  Repository,
-} from '../../models/repository'
+import { ILocalRepositoryState } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
 import { Button } from '../lib/button'
 import { Octicon, OcticonSymbol } from '../octicons'
@@ -126,49 +123,6 @@ export class RepositoriesList extends React.Component<
    */
   private getSelectedListItem = memoizeOne(findMatchingListItem)
 
-  private getRecentRepositoriesGroup = (
-    recentRepositories: ReadonlyArray<number>,
-    repositories: ReadonlyArray<Repositoryish> | null,
-    localRepositoryStateLookup: ReadonlyMap<number, ILocalRepositoryState>
-  ): IFilterListGroup<IRepositoryListItem> => {
-    if (repositories === null) {
-      return { identifier: '', items: [] }
-    }
-
-    const items = recentRepositories
-      .map(id => {
-        const repository = repositories.find(r => r.id === id)
-        if (repository === undefined) {
-          return null
-        }
-        const {
-          aheadBehind,
-          changedFilesCount,
-        } = localRepositoryStateLookup.get(id) || {
-          changedFilesCount: 0,
-          aheadBehind: null,
-        }
-        const repositoryText: ReadonlyArray<string> =
-          repository instanceof Repository
-            ? [repository.name, nameOf(repository)]
-            : [repository.name]
-        return {
-          text: repositoryText,
-          id: id.toString(),
-          repository,
-          needsDisambiguation: true,
-          aheadBehind,
-          changedFilesCount,
-        }
-      })
-      .filter(el => el !== null) as ReadonlyArray<IRepositoryListItem>
-
-    return {
-      identifier: 'Recently Opened Repositories',
-      items,
-    }
-  }
-
   private renderItem = (item: IRepositoryListItem, matches: IMatches) => {
     const repository = item.repository
     return (
@@ -235,7 +189,7 @@ export class RepositoriesList extends React.Component<
 
     const groups = enableGroupRepositoriesByOwner()
       ? [
-          this.getRecentRepositoriesGroup(
+          makeRecentRepositoriesGroup(
             this.props.recentRepositories,
             this.props.repositories,
             this.props.localRepositoryStateLookup
