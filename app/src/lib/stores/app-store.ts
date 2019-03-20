@@ -196,7 +196,11 @@ import { BranchPruner } from './helpers/branch-pruner'
 import { enableBranchPruning, enablePullWithRebase } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import { RebaseProgressOptions } from '../../models/rebase'
-import { createDesktopStashEntry } from '../git/stash'
+import {
+  createDesktopStashEntry,
+  getLastDesktopStashEntry,
+  dropDesktopStashEntry,
+} from '../git/stash'
 import { IErrorMetadata } from '../error-with-metadata'
 
 /**
@@ -4430,6 +4434,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const { tip } = branchesState
     if (tip.kind !== TipState.Valid) {
       return
+    }
+
+    const previousStash = await getLastDesktopStashEntry(repository, branchName)
+
+    if (previousStash !== null) {
+      // we want to ensure one stash per branch
+      await dropDesktopStashEntry(repository, previousStash.stashSha)
     }
 
     await createDesktopStashEntry(repository, branchName, tip.branch.tip.sha)
