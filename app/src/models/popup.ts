@@ -47,6 +47,7 @@ export enum PopupType {
   RebaseConflicts,
   RebaseBranch,
   ConfirmForcePush,
+  StashAndSwitchBranch,
 }
 
 export type Popup =
@@ -184,4 +185,9 @@ export type Popup =
       type: PopupType.ConfirmForcePush
       repository: Repository
       upstreamBranch: string
+    }
+  | {
+      type: PopupType.StashAndSwitchBranch
+      repository: Repository
+      checkoutBranch: string
     }
