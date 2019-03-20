@@ -211,7 +211,7 @@ const FastForwardBranchesThreshold = 20
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
 const RecentRepositoriesKey = 'recently-selected-repositories'
-const RecentRepositoriesLength = 5
+export const RecentRepositoriesLength = 5
 const RecentRepositoriesDelimiter = ','
 
 const defaultSidebarWidth: number = 250

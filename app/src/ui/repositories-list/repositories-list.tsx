@@ -21,6 +21,7 @@ import { PopupType } from '../../models/popup'
 import { encodePathAsUrl } from '../../lib/path'
 import memoizeOne from 'memoize-one'
 import { enableGroupRepositoriesByOwner } from '../../lib/feature-flag'
+import { RecentRepositoriesLength } from '../../lib/stores'
 
 const BlankSlateImage = encodePathAsUrl(__dirname, 'static/empty-no-repo.svg')
 
@@ -187,16 +188,18 @@ export class RepositoriesList extends React.Component<
       this.props.selectedRepository
     )
 
-    const groups = enableGroupRepositoriesByOwner()
-      ? [
-          makeRecentRepositoriesGroup(
-            this.props.recentRepositories,
-            this.props.repositories,
-            this.props.localRepositoryStateLookup
-          ),
-          ...baseGroups,
-        ]
-      : baseGroups
+    const groups =
+      enableGroupRepositoriesByOwner() &&
+      this.props.repositories.length > RecentRepositoriesLength + 2
+        ? [
+            makeRecentRepositoriesGroup(
+              this.props.recentRepositories,
+              this.props.repositories,
+              this.props.localRepositoryStateLookup
+            ),
+            ...baseGroups,
+          ]
+        : baseGroups
 
     return (
       <div className="repository-list">
