@@ -196,6 +196,7 @@ import { BranchPruner } from './helpers/branch-pruner'
 import { enableBranchPruning, enablePullWithRebase } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import { RebaseProgressOptions } from '../../models/rebase'
+import { IErrorMetadata } from '../error-with-metadata'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -2386,20 +2387,26 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return repository
     }
 
+    const errorMetadata: IErrorMetadata = {
+      repository,
+      retryAction: {
+        type: RetryActionType.Checkout,
+        repository,
+        branch,
+      },
+      gitContext: {
+        kind: 'local-changes-overwritten',
+        checkoutBranch: typeof branch === 'string' ? branch : branch.name,
+      },
+    }
+
     await this.withAuthenticatingUser(repository, (repository, account) =>
       gitStore.performFailableOperation(
         () =>
           checkoutBranch(repository, account, foundBranch, progress => {
             this.updateCheckoutProgress(repository, progress)
           }),
-        {
-          repository,
-          retryAction: {
-            type: RetryActionType.Checkout,
-            repository,
-            branch,
-          },
-        }
+        errorMetadata
       )
     )
 
