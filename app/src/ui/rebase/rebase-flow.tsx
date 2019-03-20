@@ -16,6 +16,7 @@ import { IRebaseProgress } from '../../models/progress'
 import { WorkingDirectoryStatus } from '../../models/status'
 import { clamp } from '../../lib/clamp'
 import { timeout } from '../../lib/promise'
+import { getResolvedFiles } from '../../lib/status'
 
 interface IRebaseFlowProps {
   /** Starting point for the rebase flow */
@@ -59,6 +60,13 @@ interface IRebaseFlowState {
     /** The commit summary associated with the current commit (if known) */
     readonly commitSummary?: string
   }
+
+  /**
+   * A flag to track whether the user has done work as part of this rebase,
+   * as the component should confirm with the user that they wish to abort
+   * the rebase and lose that work.
+   */
+  readonly userHasResolvedConflicts: boolean
 }
 
 /** A component for initating a rebase of the current branch. */
@@ -76,36 +84,59 @@ export class RebaseFlow extends React.Component<
         count: 0,
         total: 0,
       },
+      userHasResolvedConflicts: false,
     }
   }
 
-  public async componentDidUpdate(
-    prevProps: IRebaseFlowProps,
-    prevState: IRebaseFlowState
-  ) {
-    if (this.state.step.kind !== RebaseStep.ShowProgress) {
+  public async componentDidUpdate() {
+    if (
+      this.state.step.kind === RebaseStep.ShowConflicts &&
+      // skip re-running this check once any resolved files have been detected
+      !this.state.userHasResolvedConflicts
+    ) {
+      const { workingDirectory, conflictState } = this.props
+
+      if (conflictState === null) {
+        // no conflicts found, ignoring
+        return
+      }
+
+      const resolvedConflicts = getResolvedFiles(
+        workingDirectory,
+        conflictState.manualResolutions
+      )
+
+      if (resolvedConflicts.length > 0) {
+        this.setState({
+          userHasResolvedConflicts: true,
+        })
+      }
+
       return
     }
 
-    if (this.state.progress.value !== 1) {
-      return
-    }
+    if (
+      this.state.step.kind === RebaseStep.ShowProgress &&
+      this.state.progress.value >= 1
+    ) {
+      // waiting before the CSS animation to give the progress UI a chance to show
+      // it reaches 100%
+      await timeout(1000)
 
-    // waiting before this transition to give the progress UI a chance to show
-    // it reaches 100%
-    await timeout(1000)
-
-    this.setState(
-      {
-        step: {
-          kind: RebaseStep.Completed,
+      this.setState(
+        {
+          step: {
+            kind: RebaseStep.Completed,
+          },
         },
-      },
-      () => this.props.onFlowEnded()
-    )
+        () => this.props.onFlowEnded()
+      )
+    }
   }
 
-  private showConflictedFiles = () => {
+  private showConflictedFiles = async () => {
+    await this.props.dispatcher.loadStatus(this.props.repository)
+
     const { workingDirectory, conflictState } = this.props
 
     if (conflictState === null) {
@@ -177,8 +208,6 @@ export class RebaseFlow extends React.Component<
       )
 
       if (result === RebaseResult.ConflictsEncountered) {
-        await this.props.dispatcher.loadStatus(this.props.repository)
-
         this.showConflictedFiles()
       } else if (result === RebaseResult.CompletedWithoutError) {
         this.moveToCompletedState()
@@ -271,6 +300,7 @@ export class RebaseFlow extends React.Component<
         `Invalid step to show rebase conflicts banner: ${this.state.step.kind}`
       )
     }
+
     this.setState({
       step: { kind: RebaseStep.HideConflicts },
     })
@@ -287,8 +317,10 @@ export class RebaseFlow extends React.Component<
   }
 
   private onConfirmAbortRebase = () => {
-    // TODO: if no files resolved during rebase, skip this entire process and
-    //       just abort the rebase
+    if (!this.state.userHasResolvedConflicts) {
+      this.onAbortRebase()
+      return
+    }
 
     const { conflictState } = this.props
 
