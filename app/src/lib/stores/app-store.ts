@@ -1191,10 +1191,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (previousRepositoryId !== null) {
       recentRepositories.splice(0, 0, currentRepositoryId, previousRepositoryId)
     }
-    if (recentRepositories.length > RecentRepositoriesLength) {
-      recentRepositories.pop()
-    }
-    this.recentlyOpenedRepositories = recentRepositories
+    this.recentlyOpenedRepositories = recentRepositories.slice(
+      0,
+      RecentRepositoriesLength
+    )
     this.emitUpdate()
   }
 
