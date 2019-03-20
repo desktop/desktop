@@ -1769,6 +1769,6 @@ export class Dispatcher {
    * @param branch the branch the stash should be associated with
    */
   public createStash(repository: Repository, branch: Branch): Promise<void> {
-    return this.appStore._createStash(repository, branch)
+    return this.appStore._createStash(repository, branch.name)
   }
 }

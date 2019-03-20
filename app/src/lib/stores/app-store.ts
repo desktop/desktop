@@ -202,7 +202,11 @@ import { Banner, BannerType } from '../../models/banner'
 import { RebaseProgressOptions } from '../../models/rebase'
 import { isDarkModeEnabled } from '../../ui/lib/dark-theme'
 import { ComputedAction } from '../../models/computed-action'
-import { createDesktopStashEntry } from '../git/stash'
+import {
+  createDesktopStashEntry,
+  getLastDesktopStashEntryForBranch,
+  dropDesktopStashEntry,
+} from '../git/stash'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -4472,6 +4476,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const { tip } = branchesState
     if (tip.kind !== TipState.Valid) {
       return
+    }
+
+    const previousStash = await getLastDesktopStashEntryForBranch(
+      repository,
+      branchName
+    )
+
+    if (previousStash !== null) {
+      // Todo, we want to keep stash entries around, so figure out how to update exsiting entries
+      // so Desktop wont continue to pick them up
+      // we want to ensure one stash per branch
+      // await dropDesktopStashEntry(repository, previousStash.stashSha)
     }
 
     await createDesktopStashEntry(repository, branchName, tip.branch.tip.sha)
