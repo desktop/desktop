@@ -20,9 +20,6 @@ interface IRebaseProgressDialogProps {
    * This should typically be the rebase action to perform.
    */
   readonly onDidMount?: () => Promise<void>
-
-  // TODO: to simplify testing flow, should be removed once this is working
-  readonly onDismissed: () => void
 }
 
 export class RebaseProgressDialog extends React.Component<
@@ -30,7 +27,7 @@ export class RebaseProgressDialog extends React.Component<
   {}
 > {
   private onDismissed = () => {
-    this.props.onDismissed()
+    // this dialog is undismissable, but I need to handle the event
   }
 
   /** After a delay, run the */

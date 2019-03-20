@@ -382,7 +382,6 @@ export class RebaseFlow extends React.Component<
             total={total}
             commitSummary={commitSummary}
             onDidMount={onDidMount}
-            onDismissed={this.props.onFlowEnded}
           />
         )
       case RebaseStep.ShowConflicts: {
