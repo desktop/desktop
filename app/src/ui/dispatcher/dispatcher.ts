@@ -1709,4 +1709,8 @@ export class Dispatcher {
   public refreshPullRequests(repository: Repository): Promise<void> {
     return this.appStore._refreshPullRequests(repository)
   }
+
+  public createStash(repository: Repository, branch: Branch): Promise<void> {
+    return this.appStore._createStash(repository, branch)
+  }
 }
