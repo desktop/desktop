@@ -202,6 +202,7 @@ import { Banner, BannerType } from '../../models/banner'
 import { RebaseProgressOptions } from '../../models/rebase'
 import { isDarkModeEnabled } from '../../ui/lib/dark-theme'
 import { ComputedAction } from '../../models/computed-action'
+import { createDesktopStashEntry } from '../git/stash'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -4459,6 +4460,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
 
     this.emitUpdate()
+  }
+
+  public async _createStash(repository: Repository, branch: Branch) {
+    const branchesState = this.getBranchesState(repository)
+
+    if (branchesState === undefined) {
+      return
+    }
+
+    const { tip } = branchesState
+    if (tip.kind !== TipState.Valid) {
+      return
+    }
+
+    await createDesktopStashEntry(repository, branch.name, tip.branch.tip.sha)
   }
 }
 /**

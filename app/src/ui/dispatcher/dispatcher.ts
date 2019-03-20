@@ -1762,4 +1762,13 @@ export class Dispatcher {
   ): IDisposable {
     return this.commitStatusStore.subscribe(repository, ref, callback)
   }
+
+  /**
+   * Stashes all changes in the working director
+   *
+   * @param branch the branch the stash should be associated with
+   */
+  public createStash(repository: Repository, branch: Branch): Promise<void> {
+    return this.appStore._createStash(repository, branch)
+  }
 }
