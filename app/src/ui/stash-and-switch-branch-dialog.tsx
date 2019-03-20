@@ -93,12 +93,20 @@ export class StashAndSwitchBranch extends React.Component<
   }
 
   private onSubmit = async () => {
-    const { repository, currentBranch, checkoutBranchName } = this.props
+    const {
+      repository,
+      currentBranch,
+      checkoutBranchName,
+      dispathcer,
+    } = this.props
 
-    if (this.state.selectedOption === StashOptions.StashChanges) {
-      await this.props.dispathcer.createStash(repository, currentBranch)
-    } else {
-      await this.props.dispathcer.checkoutBranch(repository, checkoutBranchName)
-    }
+    const whereToStash =
+      this.state.selectedOption === StashOptions.StashChanges
+        ? currentBranch.name
+        : checkoutBranchName
+    await dispathcer.createStash(repository, whereToStash)
+
+    this.props.onDismissed()
+    dispathcer.checkoutBranch(repository, checkoutBranchName)
   }
 }
