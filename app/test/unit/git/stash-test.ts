@@ -66,6 +66,7 @@ describe('git/stash', () => {
       const { sha } = await getTipOrError(repository)
       const branchName = 'master'
       await FSE.appendFile(readme, 'just testing stuff')
+
       await createDesktopStashEntry(repository, branchName, sha)
 
       const result = await GitProcess.exec(['stash', 'list'], repository.path)
