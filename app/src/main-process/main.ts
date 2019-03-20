@@ -45,6 +45,12 @@ let onDidLoadFns: Array<OnDidLoadFn> | null = []
 function handleUncaughtException(error: Error) {
   preventQuit = true
 
+  // If we haven't got a window we'll assume it's because
+  // we've just launched and haven't created it yet.
+  // It could also be because we're encountering an unhandled
+  // exception on shutdown but that's less likely and since
+  // this only affects the presentation of the crash dialog
+  // it's a safe assumption to make.
   const isLaunchError = mainWindow === null
 
   if (mainWindow) {
