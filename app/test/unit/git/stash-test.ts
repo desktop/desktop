@@ -8,6 +8,7 @@ import {
   createDesktopStashMessage,
   createDesktopStashEntry,
   getLastDesktopStashEntry,
+  DesktopStashEntryMarker,
 } from '../../../src/lib/git/stash'
 import { getTipOrError } from '../../helpers/tip'
 
@@ -62,14 +63,17 @@ describe('git/stash', () => {
     })
 
     it('creates a stash entry', async () => {
-      await FSE.appendFile(readme, 'just testing stuff')
       const { sha } = await getTipOrError(repository)
-
-      await createDesktopStashEntry(repository, 'master', sha)
+      const branchName = 'master'
+      await FSE.appendFile(readme, 'just testing stuff')
+      await createDesktopStashEntry(repository, branchName, sha)
 
       const result = await GitProcess.exec(['stash', 'list'], repository.path)
       const entries = result.stdout.trim().split('\n')
       expect(entries).toHaveLength(1)
+      expect(entries[0]).toContain(
+        `${DesktopStashEntryMarker}<${branchName}@${sha}`
+      )
     })
   })
 
