@@ -13,7 +13,7 @@ interface IConfirmAbortDialogProps {
   readonly baseBranch?: string
   readonly targetBranch: string
 
-  readonly onReturnToConflicts: () => void
+  readonly onReturnToConflicts: () => Promise<void>
   readonly onConfirmAbort: () => Promise<void>
 }
 
@@ -45,10 +45,10 @@ export class ConfirmAbortDialog extends React.Component<
   }
 
   /**
-   *  dismisses the modal and shows the rebase conflicts modal
+   *  Dismisses the modal and shows the rebase conflicts modal
    */
-  private onCancel = () => {
-    this.props.onReturnToConflicts()
+  private onCancel = async () => {
+    await this.props.onReturnToConflicts()
   }
 
   private renderTextContent(targetBranch: string, baseBranch?: string) {

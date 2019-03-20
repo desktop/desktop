@@ -134,7 +134,7 @@ export class RebaseFlow extends React.Component<
     }
   }
 
-  private showConflictedFiles = async () => {
+  private moveToShowConflictedFileState = async () => {
     await this.props.dispatcher.loadStatus(this.props.repository)
 
     const { workingDirectory, conflictState } = this.props
@@ -170,7 +170,7 @@ export class RebaseFlow extends React.Component<
     })
   }
 
-  private moveToCompletedState = async () => {
+  private moveToCompletedState = () => {
     // this ensures the progress bar fills to 100%, and componentDidUpdate
     // handles the state transition after a period of time to ensure the UI
     // gracefully switches
@@ -195,7 +195,7 @@ export class RebaseFlow extends React.Component<
       throw new Error(`Invalid step to start rebase: ${this.state.step.kind}`)
     }
 
-    const onDidMount = async () => {
+    const startRebaseAction = async () => {
       const result = await this.props.dispatcher.rebase(
         this.props.repository,
         baseBranch,
@@ -208,7 +208,7 @@ export class RebaseFlow extends React.Component<
       )
 
       if (result === RebaseResult.ConflictsEncountered) {
-        this.showConflictedFiles()
+        await this.moveToShowConflictedFileState()
       } else if (result === RebaseResult.CompletedWithoutError) {
         this.moveToCompletedState()
       }
@@ -217,7 +217,7 @@ export class RebaseFlow extends React.Component<
     this.setState(() => ({
       step: {
         kind: RebaseStep.ShowProgress,
-        onDidMount,
+        onDidMount: startRebaseAction,
       },
       progress: {
         value: 0,
@@ -239,7 +239,7 @@ export class RebaseFlow extends React.Component<
       throw new Error(`No conflicted files found, unable to continue rebase`)
     }
 
-    const onDidMount = async () => {
+    const continueRebaseInner = async () => {
       const result = await this.props.dispatcher.continueRebase(
         this.props.repository,
         this.props.workingDirectory,
@@ -247,27 +247,9 @@ export class RebaseFlow extends React.Component<
       )
 
       if (result === RebaseResult.ConflictsEncountered) {
-        await this.props.dispatcher.loadStatus(this.props.repository)
-
-        this.showConflictedFiles()
+        await this.moveToShowConflictedFileState()
       } else if (result === RebaseResult.CompletedWithoutError) {
-        this.setState(
-          prevState => {
-            const { total } = prevState.progress
-
-            return {
-              step: {
-                kind: RebaseStep.ShowProgress,
-              },
-              progress: {
-                count: total,
-                total,
-                value: 1,
-              },
-            }
-          },
-          () => this.moveToCompletedState()
-        )
+        this.moveToCompletedState()
       }
     }
 
@@ -283,7 +265,7 @@ export class RebaseFlow extends React.Component<
       return {
         step: {
           kind: RebaseStep.ShowProgress,
-          onDidMount,
+          onDidMount: continueRebaseInner,
         },
         progress: {
           value,
@@ -310,8 +292,8 @@ export class RebaseFlow extends React.Component<
     this.props.dispatcher.setBanner({
       type: BannerType.RebaseConflictsFound,
       targetBranch,
-      onOpenDialog: () => {
-        this.showConflictedFiles()
+      onOpenDialog: async () => {
+        await this.moveToShowConflictedFileState()
       },
     })
   }
@@ -429,7 +411,7 @@ export class RebaseFlow extends React.Component<
         return (
           <ConfirmAbortDialog
             onConfirmAbort={this.onAbortRebase}
-            onReturnToConflicts={this.showConflictedFiles}
+            onReturnToConflicts={this.moveToShowConflictedFileState}
             targetBranch={targetBranch}
             baseBranch={baseBranch}
           />
