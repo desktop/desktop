@@ -87,6 +87,24 @@ export async function getRebaseContext(
   return null
 }
 
+/**
+ * Attempt to read the `.git/REBASE_HEAD` file inside a repository to confirm
+ * the rebase is still active.
+ */
+async function readRebaseHead(repository: Repository): Promise<string | null> {
+  try {
+    const rebaseHead = Path.join(repository.path, '.git', 'REBASE_HEAD')
+    const rebaseCurrentCommitOutput = await FSE.readFile(rebaseHead, 'utf8')
+    return rebaseCurrentCommitOutput.trim()
+  } catch (err) {
+    log.warn(
+      '[rebase] a problem was encountered reading .git/REBASE_HEAD, so it is unsafe to continue rebasing',
+      err
+    )
+    return null
+  }
+}
+
 /** Regex for identifying when rebase applied each commit onto the base branch */
 const rebaseApplyingRe = /^Applying: (.*)/
 
@@ -277,6 +295,11 @@ export async function continueRebase(
     return RebaseResult.Aborted
   }
 
+  const rebaseCurrentCommit = await readRebaseHead(repository)
+  if (rebaseCurrentCommit === null) {
+    return RebaseResult.Aborted
+  }
+
   const trackedFilesAfter = status.workingDirectory.files.filter(
     f => f.status.kind !== AppFileStatusKind.Untracked
   )
@@ -292,11 +315,8 @@ export async function continueRebase(
   )
 
   if (trackedFilesAfter.length === 0) {
-    const rebaseHead = Path.join(repository.path, '.git', 'REBASE_HEAD')
-    const rebaseCurrentCommit = await FSE.readFile(rebaseHead, 'utf8')
-
     log.warn(
-      `[rebase] no tracked changes to commit for ${rebaseCurrentCommit.trim()}, continuing rebase but skipping this commit`
+      `[rebase] no tracked changes to commit for ${rebaseCurrentCommit}, continuing rebase but skipping this commit`
     )
 
     const result = await git(
