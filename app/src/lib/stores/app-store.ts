@@ -193,7 +193,11 @@ import {
   ManualConflictResolutionKind,
 } from '../../models/manual-conflict-resolution'
 import { BranchPruner } from './helpers/branch-pruner'
-import { enableBranchPruning, enablePullWithRebase } from '../feature-flag'
+import {
+  enableBranchPruning,
+  enablePullWithRebase,
+  enableGroupRepositoriesByOwner,
+} from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import { RebaseProgressOptions } from '../../models/rebase'
 
@@ -1156,7 +1160,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const previousRepositoryId = previouslySelectedRepository
       ? previouslySelectedRepository.id
       : null
-    this._updateRecentRepositories(previousRepositoryId, repository.id)
+    if (enableGroupRepositoriesByOwner()) {
+      this._updateRecentRepositories(previousRepositoryId, repository.id)
+    }
 
     // if repository might be marked missing, try checking if it has been restored
     const refreshedRepository = await this.recoverMissingRepository(repository)
