@@ -142,7 +142,7 @@ export class RebaseFlow extends React.Component<
       throw new Error(`Invalid step to start rebase: ${this.state.step.kind}`)
     }
 
-    const actionToRun = async () => {
+    const onDidMount = async () => {
       const result = await this.props.dispatcher.rebase(
         this.props.repository,
         baseBranch,
@@ -160,12 +160,18 @@ export class RebaseFlow extends React.Component<
         this.showConflictedFiles()
       } else if (result === RebaseResult.CompletedWithoutError) {
         this.setState(
-          {
-            step: {
-              kind: RebaseStep.ShowProgress,
-              commitSummary: null,
-              value: 1,
-            },
+          prevState => {
+            const { total } = prevState.progress
+            return {
+              step: {
+                kind: RebaseStep.ShowProgress,
+              },
+              progress: {
+                value: 1,
+                count: total,
+                total,
+              },
+            }
           },
           () => this.moveToCompletedState()
         )
@@ -175,7 +181,7 @@ export class RebaseFlow extends React.Component<
     this.setState(() => ({
       step: {
         kind: RebaseStep.ShowProgress,
-        actionToRun,
+        onDidMount,
       },
       progress: {
         value: 0,
@@ -197,7 +203,7 @@ export class RebaseFlow extends React.Component<
       throw new Error(`No conflicted files found, unable to continue rebase`)
     }
 
-    const actionToRun = async () => {
+    const onDidMount = async () => {
       const result = await this.props.dispatcher.continueRebase(
         this.props.repository,
         this.props.workingDirectory,
@@ -241,7 +247,7 @@ export class RebaseFlow extends React.Component<
       return {
         step: {
           kind: RebaseStep.ShowProgress,
-          actionToRun,
+          onDidMount,
         },
         progress: {
           value,
