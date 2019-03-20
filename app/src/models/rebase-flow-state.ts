@@ -61,7 +61,7 @@ export const enum RebaseStep {
 
 /** Shape of data needed to choose the base branch for a rebase  */
 export type ChooseBranchesStep = {
-  readonly step: RebaseStep.ChooseBranch
+  readonly kind: RebaseStep.ChooseBranch
   readonly defaultBranch: Branch | null
   readonly currentBranch: Branch
   readonly allBranches: ReadonlyArray<Branch>
@@ -71,11 +71,7 @@ export type ChooseBranchesStep = {
 
 /** Shape of data to show progress of the current rebase */
 export type ShowProgressStep = {
-  readonly step: RebaseStep.ShowProgress
-  /** A numeric value between 0 and 1 representing the rebase progress */
-  readonly value: number
-  /** The commit summary associated with the current commit */
-  readonly commitSummary: string | null
+  readonly kind: RebaseStep.ShowProgress
 
   /**
    * An optional action to run when the component is mounted.
@@ -89,24 +85,24 @@ export type ShowProgressStep = {
 
 /** Shape of data to show conflicts that need to be resolved by the user */
 export type ShowConflictsStep = {
-  readonly step: RebaseStep.ShowConflicts
+  readonly kind: RebaseStep.ShowConflicts
   readonly targetBranch: string
   readonly baseBranch?: string
 }
 
 /** Shape of data to track when user hides conflicts dialog */
 export type HideConflictsStep = {
-  readonly step: RebaseStep.HideConflicts
+  readonly kind: RebaseStep.HideConflicts
 }
 
 /** Shape of data to use when confirming user should abort rebase */
 export type ConfirmAbortStep = {
-  readonly step: RebaseStep.ConfirmAbort
+  readonly kind: RebaseStep.ConfirmAbort
   readonly targetBranch: string
   readonly baseBranch?: string
 }
 
 /** Shape of data to track when rebase has completed successfully */
 export type CompletedStep = {
-  readonly step: RebaseStep.Completed
+  readonly kind: RebaseStep.Completed
 }

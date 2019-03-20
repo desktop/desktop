@@ -12,8 +12,8 @@ interface IRebaseProgressDialogProps {
   readonly count: number
   /** The toal number of commits to rebase on top of the current branch */
   readonly total: number
-  /** The commit summary associated with the current commit */
-  readonly commitSummary: string | null
+  /** The commit summary associated with the current commit (if known) */
+  readonly commitSummary?: string
   /**
    * An optional action to run when the component is mounted
    *
