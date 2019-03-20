@@ -14,14 +14,34 @@ interface IConfirmAbortDialogProps {
   readonly targetBranch: string
 
   readonly onReturnToConflicts: () => void
-  readonly onConfirmAbort: () => void
+  readonly onConfirmAbort: () => Promise<void>
+}
+
+interface IConfirmAbortDialogState {
+  readonly isAborting: boolean
 }
 
 export class ConfirmAbortDialog extends React.Component<
-  IConfirmAbortDialogProps
+  IConfirmAbortDialogProps,
+  IConfirmAbortDialogState
 > {
+  public constructor(props: IConfirmAbortDialogProps) {
+    super(props)
+    this.state = {
+      isAborting: false,
+    }
+  }
+
   private onSubmit = async () => {
-    this.props.onConfirmAbort()
+    this.setState({
+      isAborting: true,
+    })
+
+    await this.props.onConfirmAbort()
+
+    this.setState({
+      isAborting: false,
+    })
   }
 
   /**
@@ -71,6 +91,7 @@ export class ConfirmAbortDialog extends React.Component<
         dismissable={false}
         onDismissed={this.onCancel}
         onSubmit={this.onSubmit}
+        disabled={this.state.isAborting}
       >
         <DialogContent className="content-wrapper">
           <Octicon symbol={OcticonSymbol.alert} />
