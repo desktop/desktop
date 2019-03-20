@@ -1,7 +1,7 @@
 root: true
 parser: '@typescript-eslint/parser'
 plugins:
-  - typescript
+  - '@typescript-eslint'
   - babel
   - react
   - json
@@ -20,23 +20,23 @@ rules:
   # PLUGINS #
   ###########
   # TYPESCRIPT
-  typescript/interface-name-prefix:
+  '@typescript-eslint/interface-name-prefix':
     - error
     - always
-  typescript/no-angle-bracket-type-assertion: error
-  typescript/explicit-member-accessibility: error
-  typescript/no-unused-vars: error
-  typescript/no-use-before-define:
+  '@typescript-eslint/no-angle-bracket-type-assertion': error
+  '@typescript-eslint/explicit-member-accessibility': error
+  '@typescript-eslint/no-unused-vars':
+    - error
+    - args: 'none'
+  '@typescript-eslint/no-use-before-define':
     - error
     - functions: false
       variables: false
       typedefs: false
-  ## blocked by https://github.com/nzakas/eslint-plugin-typescript/pull/23
-  # typescript/member-ordering: error
-  ##
-  ## blocked by https://github.com/nzakas/eslint-plugin-typescript/issues/41
-  # typescript/type-annotation-spacing: error
-  ##
+  # this rule now works but generates a lot of issues with the codebase
+  # '@typescript-eslint/member-ordering': error
+
+  '@typescript-eslint/type-annotation-spacing': error
 
   # Babel
   babel/no-invalid-this: error
@@ -48,6 +48,8 @@ rules:
   react/jsx-key: error
   react/jsx-no-bind: error
   react/no-string-refs: error
+  react/jsx-uses-vars: error
+  react/jsx-uses-react: error
 
   ###########
   # BUILTIN #

@@ -16,7 +16,7 @@ export function SuccessfulRebase({
       <span>
         {'Successfully rebased '}
         <strong>{targetBranch}</strong>
-        {' on '}
+        {' onto '}
         <strong>{baseBranch}</strong>
       </span>
     ) : (
