@@ -7,7 +7,7 @@ import {
   getDesktopStashEntries,
   createDesktopStashMessage,
   createDesktopStashEntry,
-  getLastDesktopStashEntry,
+  getLastDesktopStashEntryForBranch,
   DesktopStashEntryMarker,
 } from '../../../src/lib/git/stash'
 import { getTipOrError } from '../../helpers/tip'
@@ -93,7 +93,10 @@ describe('git/stash', () => {
     it('returns null when no stash entries exist for branch', async () => {
       await generateTestStashEntry(repository, 'some-other-branch', true)
 
-      const entry = await getLastDesktopStashEntry(repository, 'master')
+      const entry = await getLastDesktopStashEntryForBranch(
+        repository,
+        'master'
+      )
 
       expect(entry).toBeNull()
     })
@@ -107,7 +110,10 @@ describe('git/stash', () => {
         true
       )
 
-      const actual = await getLastDesktopStashEntry(repository, branchName)
+      const actual = await getLastDesktopStashEntryForBranch(
+        repository,
+        branchName
+      )
 
       expect(actual).not.toBeNull()
       expect(actual!.stashSha).toBe(lastEntry)
@@ -149,7 +155,6 @@ async function generateTestStashEntry(
   const message = createdByDesktop ? null : 'Should get filtered'
   const readme = path.join(repository.path, 'README.md')
   await FSE.appendFile(readme, '1')
-  const objectId = await stash(repository, branchName, message)
 
-  return objectId
+  return await stash(repository, branchName, message)
 }

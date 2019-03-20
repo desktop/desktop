@@ -72,7 +72,7 @@ export async function getDesktopStashEntries(
 /**
  * Returns the last Desktop created stash entry for the given branch
  */
-export async function getLastDesktopStashEntry(
+export async function getLastDesktopStashEntryForBranch(
   repository: Repository,
   branchName: string
 ) {
