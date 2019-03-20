@@ -4420,7 +4420,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  public async _createStash(repository: Repository, branch: Branch) {
+  public async _createStash(repository: Repository, branchName: string) {
     const branchesState = this.getBranchesState(repository)
 
     if (branchesState === undefined) {
@@ -4432,7 +4432,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    await createDesktopStashEntry(repository, branch.name, tip.branch.tip.sha)
+    await createDesktopStashEntry(repository, branchName, tip.branch.tip.sha)
   }
 }
 /**
