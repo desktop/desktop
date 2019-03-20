@@ -8,6 +8,7 @@ import {
   createDesktopStashMessage,
   createDesktopStashEntry,
 } from '../../../src/lib/git/stash'
+import { getTipOrError } from '../../helpers/tip'
 
 describe('git/stash', () => {
   describe('getDesktopStashEntries', () => {
@@ -62,9 +63,9 @@ describe('git/stash', () => {
 
     it('creates a stash entry', async () => {
       await await FSE.appendFile(readme, 'just testing stuff')
-      const tipSha = await getTipSha(repository)
+      const tipCommit = await getTipOrError(repository)
 
-      await createDesktopStashEntry(repository, 'master', tipSha)
+      await createDesktopStashEntry(repository, 'master', tipCommit.sha)
 
       const result = await GitProcess.exec(['stash', 'list'], repository.path)
       const entries = result.stdout.trim().split('\n')
@@ -73,19 +74,14 @@ describe('git/stash', () => {
   })
 })
 
-async function getTipSha(repository: Repository) {
-  const result = await GitProcess.exec(['rev-parse', 'HEAD'], repository.path)
-  return result.stdout.trim()
-}
-
 async function stash(repository: Repository, message?: string) {
-  const tipSha = await getTipSha(repository)
+  const tipCommit = await getTipOrError(repository)
   await GitProcess.exec(
     [
       'stash',
       'push',
       '-m',
-      message || createDesktopStashMessage('master', tipSha),
+      message || createDesktopStashMessage('master', tipCommit.sha),
     ],
     repository.path
   )
