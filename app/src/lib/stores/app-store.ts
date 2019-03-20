@@ -210,7 +210,9 @@ const FastForwardBranchesThreshold = 20
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
+const RecentRepositoriesKey = 'recently-selected-repositories'
 const RecentRepositoriesLength = 5
+const RecentRepositoriesDelimiter = ','
 
 const defaultSidebarWidth: number = 250
 const sidebarWidthConfigKey: string = 'sidebar-width'
@@ -242,9 +244,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private accounts: ReadonlyArray<Account> = new Array<Account>()
   private repositories: ReadonlyArray<Repository> = new Array<Repository>()
-  private recentlyOpenedRepositories: ReadonlyArray<number> = new Array<
-    number
-  >()
 
   private selectedRepository: Repository | CloningRepository | null = null
 
@@ -1185,22 +1184,33 @@ export class AppStore extends TypedBaseStore<IAppState> {
     previousRepositoryId: number | null,
     currentRepositoryId: number
   ) {
-    const recentRepositories = this.recentlyOpenedRepositories.filter(
+    const recentRepositories = this.getRecentRepositories().filter(
       el => el !== currentRepositoryId && el !== previousRepositoryId
     )
     if (previousRepositoryId !== null) {
-      recentRepositories.splice(0, 0, currentRepositoryId, previousRepositoryId)
+      recentRepositories.unshift(previousRepositoryId)
     }
-    this.recentlyOpenedRepositories = recentRepositories.slice(
-      0,
-      RecentRepositoriesLength
-    )
-    this.emitUpdate()
+    const toBeStored = recentRepositories
+      .slice(0, RecentRepositoriesLength)
+      .join(RecentRepositoriesDelimiter)
+    localStorage.setItem(RecentRepositoriesKey, toBeStored)
   }
 
   // get the stored list of recently opened repositories
   public getRecentRepositories() {
-    return this.recentlyOpenedRepositories
+    const storedIds = localStorage.getItem(RecentRepositoriesKey)
+    let storedRepositories: Array<number> = []
+    if (storedIds) {
+      try {
+        storedRepositories = storedIds
+          .split(RecentRepositoriesDelimiter)
+          .map(n => parseInt(n, 10))
+          .filter(n => !isNaN(n))
+      } catch {
+        storedRepositories = []
+      }
+    }
+    return storedRepositories
   }
 
   // finish `_selectRepository`s refresh tasks
