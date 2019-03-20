@@ -100,6 +100,7 @@ import {
   initializeRebaseFlowForConflictedRepository,
 } from '../lib/rebase'
 import { BannerType } from '../models/banner'
+import { StashAndSwitchBranch } from './stash-and-switch-branch-dialog'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -1613,6 +1614,26 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={popup.repository}
             upstreamBranch={popup.upstreamBranch}
             askForConfirmationOnForcePush={askForConfirmationOnForcePush}
+            onDismissed={this.onPopupDismissed}
+          />
+        )
+      }
+      case PopupType.StashAndSwitchBranch: {
+        const { repository, checkoutBranch } = popup
+        const state = this.props.repositoryStateManager.get(repository)
+        const tip = state.branchesState.tip
+
+        if (tip.kind !== TipState.Valid) {
+          return null
+        }
+
+        const currentBranch = tip.branch
+        return (
+          <StashAndSwitchBranch
+            dispathcer={this.props.dispatcher}
+            repository={popup.repository}
+            currentBranch={currentBranch}
+            checkoutBranchName={checkoutBranch}
             onDismissed={this.onPopupDismissed}
           />
         )
