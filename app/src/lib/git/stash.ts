@@ -12,7 +12,7 @@ export interface IStashEntry {
 }
 
 /** RegEx for parsing out the stash SHA and message */
-const stashEntryRe = /^([0-9a-f]{40}):(.+)$/
+const stashEntryRe = /^([0-9a-f]{40})@(.+)$/
 
 /**
  * RegEx for determining if a stash entry is created by Desktop
@@ -29,7 +29,7 @@ const stashEntryMessageRe = /^!!GitHub_Desktop<(.+)@([0-9|a-z|A-Z]{40})>$/
 export async function getDesktopStashEntries(
   repository: Repository
 ): Promise<ReadonlyArray<IStashEntry>> {
-  const prettyFormat = '%H:%gs'
+  const prettyFormat = '%H@%gs'
   const result = await git(
     ['log', '-g', 'refs/stash', `--pretty=${prettyFormat}`],
     repository.path,
