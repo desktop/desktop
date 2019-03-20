@@ -45,12 +45,13 @@ let onDidLoadFns: Array<OnDidLoadFn> | null = []
 function handleUncaughtException(error: Error) {
   preventQuit = true
 
+  const isLaunchError = mainWindow === null
+
   if (mainWindow) {
     mainWindow.destroy()
     mainWindow = null
   }
 
-  const isLaunchError = !mainWindow
   showUncaughtException(isLaunchError, error)
 }
 
