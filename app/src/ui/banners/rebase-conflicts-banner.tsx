@@ -24,12 +24,18 @@ export class RebaseConflictsBanner extends React.Component<
     this.props.dispatcher.recordRebaseConflictsDialogReopened()
   }
 
+  private onDismissed = () => {
+    log.warn(
+      `[RebaseConflictsBanner] this is not dismissable by default unless the user clicks on the link`
+    )
+  }
+
   public render() {
     return (
       <Banner
         id="rebase-conflicts-banner"
         dismissable={false}
-        onDismissed={this.props.onDismissed}
+        onDismissed={this.onDismissed}
       >
         <Octicon className="alert-icon" symbol={OcticonSymbol.alert} />
         <div className="banner-message">
