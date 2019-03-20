@@ -15,6 +15,7 @@ import { ConfirmAbortDialog } from './confirm-abort-dialog'
 import { IRebaseProgress } from '../../models/progress'
 import { WorkingDirectoryStatus } from '../../models/status'
 import { clamp } from '../../lib/clamp'
+import { timeout } from '../../lib/promise'
 
 interface IRebaseFlowProps {
   /** Starting point for the rebase flow */
@@ -114,15 +115,17 @@ export class RebaseFlow extends React.Component<
     })
   }
 
-  private moveToCompletedState = () => {
-    setTimeout(() => {
-      this.setState({
-        rebaseFlow: {
+  private moveToCompletedState = async () => {
+    await timeout(1000)
+
+    this.setState(
+      {
+        step: {
           step: RebaseStep.Completed,
         },
-      })
-      this.props.onFlowEnded()
-    }, 1000)
+      },
+      () => this.props.onFlowEnded()
+    )
   }
 
   private onStartRebase = (

@@ -78,13 +78,13 @@ export type ShowProgressStep = {
   readonly commitSummary: string | null
 
   /**
-   * An optional action to run when the component is first mounted.
+   * An optional action to run when the component is mounted.
    *
    * This is provided to the component because a rebase can be very fast, and we
    * want to defer the rebase action until after _something_ is shown to the
    * user.
    */
-  readonly actionToRun?: () => Promise<void>
+  readonly onDidMount?: () => Promise<void>
 }
 
 /** Shape of data to show conflicts that need to be resolved by the user */
