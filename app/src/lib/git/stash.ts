@@ -74,7 +74,7 @@ export function createDesktopStashMessage(branchName: string, tipSha: string) {
 }
 
 /**
- * Stashes the changes in the working directory
+ * Stash the working directory changes for the current branch
  */
 export async function createDesktopStashEntry(
   repository: Repository,
