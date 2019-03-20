@@ -21,14 +21,14 @@ import {
 import { renderUnmergedFile } from '../lib/conflicts/unmerged-file'
 import { Dispatcher } from '../dispatcher'
 
-interface IShowConflictedFilesDialog {
+interface IShowConflictedFilesDialogProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
   readonly targetBranch: string
   readonly baseBranch?: string
   readonly onDismissed: () => void
   readonly onContinueRebase: () => void
-  readonly onAbortRebase: () => void
+  readonly onAbortRebase: () => Promise<void>
   readonly showRebaseConflictsBanner: () => void
   readonly workingDirectory: WorkingDirectoryStatus
   readonly manualResolutions: Map<string, ManualConflictResolution>
@@ -37,16 +37,32 @@ interface IShowConflictedFilesDialog {
   readonly openRepositoryInShell: (repository: Repository) => void
 }
 
+interface IShowConflictedFilesDialogState {
+  readonly isAborting: boolean
+}
+
 export class ShowConflictedFilesDialog extends React.Component<
-  IShowConflictedFilesDialog,
-  {}
+  IShowConflictedFilesDialogProps,
+  IShowConflictedFilesDialogState
 > {
+  public constructor(props: IShowConflictedFilesDialogProps) {
+    super(props)
+
+    this.state = {
+      isAborting: false,
+    }
+  }
+
   public async componentDidMount() {
     this.props.dispatcher.resolveCurrentEditor()
   }
 
   private onCancel = async () => {
-    this.props.onAbortRebase()
+    this.setState({ isAborting: true })
+
+    await this.props.onAbortRebase()
+
+    this.setState({ isAborting: false })
   }
 
   private onDismissed = () => {
@@ -159,7 +175,9 @@ export class ShowConflictedFilesDialog extends React.Component<
             >
               Continue rebase
             </Button>
-            <Button onClick={this.onCancel}>Abort rebase</Button>
+            <Button onClick={this.onCancel} disabled={this.state.isAborting}>
+              Abort rebase
+            </Button>
           </ButtonGroup>
         </DialogFooter>
       </Dialog>

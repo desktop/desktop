@@ -316,9 +316,9 @@ export class RebaseFlow extends React.Component<
     })
   }
 
-  private onConfirmAbortRebase = () => {
+  private onConfirmAbortRebase = async () => {
     if (!this.state.userHasResolvedConflicts) {
-      this.onAbortRebase()
+      await this.onAbortRebase()
       return
     }
 
