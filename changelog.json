@@ -1,5 +1,14 @@
 {
   "releases": {
+    "1.6.5": [
+      "[Fixed] Publish Repository does not let you publish to an organization on your Enterprise account - #7052"
+    ],
+    "1.6.5-beta2": [
+      "[Fixed] Publish Repository does not let you choose an organization on your Enterprise account - #7052"
+    ],
+    "1.6.5-beta1": [
+      "[Fixed] Publish Repository does not let you choose an organization on your Enterprise account - #7052"
+    ],
     "1.6.4": [
       "[Fixed] Embedded Git not working for core.longpath usage in some environments - #7028",
       "[Fixed] \"Recover missing repository\" can get stuck in a loop - #7038"
