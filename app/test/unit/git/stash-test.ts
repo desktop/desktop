@@ -50,7 +50,7 @@ describe('git/stash', () => {
     })
   })
 
-  describe('createStashEntry', () => {
+  describe('createDesktopStashEntry', () => {
     let repository: Repository
     let readme: string
 
@@ -78,7 +78,7 @@ describe('git/stash', () => {
     })
   })
 
-  describe('getLastDesktopStashEntry', () => {
+  describe('getLastDesktopStashEntryForBranch', () => {
     let repository: Repository
     let readme: string
 
