@@ -316,9 +316,10 @@ export class Dispatcher {
   /** Check out the given branch. */
   public checkoutBranch(
     repository: Repository,
-    branch: Branch | string
+    branch: Branch | string,
+    omitStashCheck?: boolean
   ): Promise<Repository> {
-    return this.appStore._checkoutBranch(repository, branch)
+    return this.appStore._checkoutBranch(repository, branch, omitStashCheck)
   }
 
   /** Push the current branch. */

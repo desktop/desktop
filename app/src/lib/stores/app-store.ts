@@ -2380,17 +2380,33 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _checkoutBranch(
     repository: Repository,
-    branch: Branch | string
+    branch: Branch | string,
+    omitStashCheck?: boolean
   ): Promise<Repository> {
     const gitStore = this.gitStoreCache.get(repository)
     const kind = 'checkout'
-
     const foundBranch =
       typeof branch === 'string'
         ? this.getLocalBranch(repository, branch)
         : branch
 
     if (foundBranch == null) {
+      return repository
+    }
+
+    const { changesState } = this.repositoryStateCache.get(repository)
+    if (
+      omitStashCheck !== true &&
+      changesState.workingDirectory.files.some(
+        f => f.status.kind !== AppFileStatusKind.New
+      )
+    ) {
+      this._showPopup({
+        type: PopupType.StashAndSwitchBranch,
+        checkoutBranch: branch,
+        repository,
+      })
+
       return repository
     }
 
