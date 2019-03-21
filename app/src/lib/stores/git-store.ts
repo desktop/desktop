@@ -78,6 +78,7 @@ import { GitAuthor } from '../../models/git-author'
 import { IGitAccount } from '../../models/git-account'
 import { BaseStore } from './base-store'
 import { enablePullWithRebase } from '../feature-flag'
+import { getDesktopStashEntries, IStashEntry } from '../git/stash'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -127,6 +128,8 @@ export class GitStore extends BaseStore {
   private _upstreamRemote: IRemote | null = null
 
   private _lastFetched: Date | null = null
+
+  private _stashEntries = new Map<string, IStashEntry>()
 
   public constructor(repository: Repository, shell: IAppShell) {
     super()
@@ -965,6 +968,29 @@ export class GitStore extends BaseStore {
     }
 
     throw new Error(`Could not load commit: '${sha}'`)
+  }
+
+  /**
+   * Refreshes the list of GitHub Desktop created stash entries for the repository
+   */
+  public async loadStashEntries(): Promise<void> {
+    const map = new Map<string, IStashEntry>()
+    const entries = await getDesktopStashEntries(this.repository)
+
+    for (const entry of entries) {
+      if (!map.has(entry.branchName)) {
+        map.set(entry.branchName, entry)
+        console.log(entry)
+      }
+    }
+
+    this._stashEntries = map
+    this.emitUpdate()
+  }
+
+  /** A map key on the canonical ref name of GitHub Desktop created stash entries for the repository */
+  public get stashEntries() {
+    return this._stashEntries
   }
 
   public async loadRemotes(): Promise<void> {
