@@ -1,4 +1,6 @@
 import { IRebaseProgress } from './progress'
+import { ComputedActionKind } from './action'
+import { Commit } from './commit'
 
 export type RebaseContext = {
   readonly targetBranch: string
@@ -17,3 +19,27 @@ export type RebaseProgressOptions = {
   /** The callback to fire when rebase progress is reported */
   progressCallback: (progress: IRebaseProgress) => void
 }
+
+export type RebaseSuccess = {
+  readonly kind: ComputedActionKind.Clean
+  readonly commits: ReadonlyArray<Commit>
+}
+
+export type RebaseConflicts = {
+  readonly kind: ComputedActionKind.Conflicts
+  readonly conflictedFiles: number
+}
+
+export type RebaseUnsupported = {
+  readonly kind: ComputedActionKind.Invalid
+}
+
+export type RebaseLoading = {
+  readonly kind: ComputedActionKind.Loading
+}
+
+export type RebasePreviewResult =
+  | RebaseSuccess
+  | RebaseConflicts
+  | RebaseUnsupported
+  | RebaseLoading
