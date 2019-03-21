@@ -38,6 +38,14 @@ export async function getDesktopStashEntries(
   )
 
   if (result.stderr !== '') {
+    if (
+      result.stderr.indexOf(
+        `ambiguous argument 'refs/stash': unknown revision or path not in the working tree.`
+      ) !== -1
+    ) {
+      return []
+    }
+
     //don't really care what the error is right now, but will once dugite is updated
     throw new Error(result.stderr)
   }
