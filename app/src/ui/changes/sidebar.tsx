@@ -32,6 +32,7 @@ import { getLargeFilePaths } from '../../lib/large-files'
 import { isConflictedFile, hasUnresolvedConflicts } from '../../lib/status'
 import { enablePullWithRebase } from '../../lib/feature-flag'
 import { IStashEntry } from '../../lib/git/stash'
+import { Octicon, OcticonSymbol } from '../octicons'
 
 /**
  * The timeout for the animation of the enter/leave animation for Undo.
@@ -408,8 +409,23 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           onChangesListScrolled={this.props.onChangesListScrolled}
           changesListScrollTop={this.props.changesListScrollTop}
         />
+        {this.renderStashedChanges()}
         {this.renderUndoCommit(rebaseConflictState)}
       </div>
+    )
+  }
+
+  private renderStashedChanges() {
+    if (this.props.stashEntry === null) {
+      return null
+    }
+
+    return (
+      <ul className="brutalism">
+        <li>
+          Stashed Changes <Octicon symbol={OcticonSymbol.arrowRight} />
+        </li>
+      </ul>
     )
   }
 }
