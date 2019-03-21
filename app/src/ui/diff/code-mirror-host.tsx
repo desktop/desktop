@@ -65,6 +65,28 @@ interface ICodeMirrorHostProps {
 }
 
 /**
+ * Attempts to cancel an active mouse selection in the
+ * given editor by accessing undocumented APIs. This is likely
+ * to break in the future.
+ */
+function cancelActiveSelection(cm: CodeMirror.Editor) {
+  if (cm.state && cm.state.selectingText instanceof Function) {
+    try {
+      // Simulate a mouseup event which will cause CodeMirror
+      // to abort its currently active selection. If no selection
+      // is active the selectingText property will not be a function
+      // so we won't end up here.
+      cm.state.selectingText(new CustomEvent('fake-event'))
+    } catch (err) {
+      // If we end up here it's likely because CodeMirror has changed
+      // its internal API.
+      // See https://github.com/codemirror/CodeMirror/issues/5821
+      log.info('Unable to cancel CodeMirror selection', err)
+    }
+  }
+}
+
+/**
  * A component hosting a CodeMirror instance
  */
 export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
@@ -84,6 +106,7 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
     if (typeof value === 'string') {
       cm.setValue(value)
     } else {
+      cancelActiveSelection(cm)
       cm.swapDoc(value)
     }
   }
