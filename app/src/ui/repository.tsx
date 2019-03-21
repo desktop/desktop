@@ -139,6 +139,13 @@ export class RepositoryView extends React.Component<
     // -1 Because of right hand side border
     const availableWidth = this.props.sidebarWidth - 1
 
+    // Using the short form ref name because the branch model does not keep track
+    // of the canonical ref name. Todo: update model to use the canonical ref name.
+    const stashEntry =
+      branch !== null
+        ? this.props.state.stashEntries.get(branch.name) || null
+        : null
+
     return (
       <ChangesSidebar
         repository={this.props.repository}
@@ -163,6 +170,7 @@ export class RepositoryView extends React.Component<
         onOpenInExternalEditor={this.props.onOpenInExternalEditor}
         onChangesListScrolled={this.onChangesListScrolled}
         changesListScrollTop={this.state.changesListScrollTop}
+        stashEntry={stashEntry}
       />
     )
   }

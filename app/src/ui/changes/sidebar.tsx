@@ -31,6 +31,7 @@ import { filesNotTrackedByLFS } from '../../lib/git/lfs'
 import { getLargeFilePaths } from '../../lib/large-files'
 import { isConflictedFile, hasUnresolvedConflicts } from '../../lib/status'
 import { enablePullWithRebase } from '../../lib/feature-flag'
+import { IStashEntry } from '../../lib/git/stash'
 
 /**
  * The timeout for the animation of the enter/leave animation for Undo.
@@ -68,6 +69,9 @@ interface IChangesSidebarProps {
   readonly onOpenInExternalEditor: (fullPath: string) => void
   readonly onChangesListScrolled: (scrollTop: number) => void
   readonly changesListScrollTop: number
+
+  /** The GitHub Desktop-created stash entry for the current branch or null if no entry exists for this branch */
+  readonly stashEntry: IStashEntry | null
 }
 
 export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
