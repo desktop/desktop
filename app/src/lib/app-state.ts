@@ -35,6 +35,7 @@ import { ApplicationTheme } from '../ui/lib/application-theme'
 import { IAccountRepositories } from './stores/api-repositories-store'
 import { ManualConflictResolution } from '../models/manual-conflict-resolution'
 import { Banner } from '../models/banner'
+import { IStashEntry } from './git/stash'
 
 export enum SelectionType {
   Repository,
@@ -362,6 +363,9 @@ export interface IRepositoryState {
 
   /** The state of the current branch in relation to its upstream. */
   readonly aheadBehind: IAheadBehind | null
+
+  /** A map key on the canonical ref name of GitHub Desktop created stash entries for the repository */
+  readonly stashEntries: ReadonlyMap<string, IStashEntry>
 
   /** Is a push/pull/fetch in progress? */
   readonly isPushPullFetchInProgress: boolean
