@@ -1,9 +1,4 @@
-export enum MergeResultKind {
-  Loading = 'loading',
-  Invalid = 'invalid',
-  Clean = 'clean',
-  Conflicts = 'conflicts',
-}
+import { ComputedActionKind } from './action'
 
 interface IBlobResult {
   readonly mode: string
@@ -22,17 +17,25 @@ export interface IMergeEntry {
 }
 
 export interface IMergeSuccess {
-  readonly kind: MergeResultKind.Clean
+  readonly kind: ComputedActionKind.Clean
   readonly entries: ReadonlyArray<IMergeEntry>
 }
 
-export interface IMergeError {
-  readonly kind: MergeResultKind.Conflicts
+export type IMergeError = {
+  readonly kind: ComputedActionKind.Conflicts
   readonly conflictedFiles: number
 }
 
-export interface IMergeUnsupported {
-  readonly kind: MergeResultKind.Invalid
+export type IMergeUnsupported = {
+  readonly kind: ComputedActionKind.Invalid
 }
 
-export type MergeResult = IMergeSuccess | IMergeError | IMergeUnsupported
+export type IMergeLoading = {
+  readonly kind: ComputedActionKind.Loading
+}
+
+export type MergeResult =
+  | IMergeSuccess
+  | IMergeError
+  | IMergeUnsupported
+  | IMergeLoading
