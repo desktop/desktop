@@ -578,6 +578,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       aheadBehind: gitStore.aheadBehind,
       remote: gitStore.currentRemote,
       lastFetched: gitStore.lastFetched,
+      stashEntries: gitStore.stashEntries,
     }))
 
     this.emitUpdate()
@@ -2124,6 +2125,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await Promise.all([
       gitStore.loadRemotes(),
       gitStore.updateLastFetched(),
+      gitStore.loadStashEntries(),
       this.refreshAuthor(repository),
       refreshSectionPromise,
     ])
