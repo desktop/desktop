@@ -1646,10 +1646,10 @@ export class App extends React.Component<IAppProps, IAppState> {
         const currentBranch = tip.branch
         return (
           <StashAndSwitchBranch
-            dispathcer={this.props.dispatcher}
+            dispatcher={this.props.dispatcher}
             repository={popup.repository}
             currentBranch={currentBranch}
-            checkoutBranchName={checkoutBranch}
+            checkoutBranch={checkoutBranch}
             onDismissed={this.onPopupDismissed}
           />
         )
