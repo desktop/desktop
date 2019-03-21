@@ -32,7 +32,7 @@ export async function getDesktopStashEntries(
 ): Promise<ReadonlyArray<IStashEntry>> {
   const prettyFormat = '%H:%gs'
   const result = await git(
-    ['log', '-g', 'refs/stash', `--pretty=${prettyFormat}`],
+    ['log', '-g', `--pretty=${prettyFormat}`, 'refs/stash'],
     repository.path,
     'getStashEntries'
   )
