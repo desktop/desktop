@@ -244,6 +244,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private accounts: ReadonlyArray<Account> = new Array<Account>()
   private repositories: ReadonlyArray<Repository> = new Array<Repository>()
+  private recentRepositories: ReadonlyArray<number> = new Array<number>()
 
   private selectedRepository: Repository | CloningRepository | null = null
 
@@ -523,6 +524,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return {
       accounts: this.accounts,
       repositories,
+      recentRepositories: this.recentRepositories,
       localRepositoryStateLookup: this.localRepositoryStateLookup,
       windowState: this.windowState,
       windowZoomFactor: this.windowZoomFactor,
@@ -1184,20 +1186,26 @@ export class AppStore extends TypedBaseStore<IAppState> {
     previousRepositoryId: number | null,
     currentRepositoryId: number
   ) {
-    const recentRepositories = this.getRecentRepositories().filter(
+    const recentRepositories = this._getRecentRepositories().filter(
       el => el !== currentRepositoryId && el !== previousRepositoryId
     )
     if (previousRepositoryId !== null) {
       recentRepositories.unshift(previousRepositoryId)
     }
-    const toBeStored = recentRepositories
-      .slice(0, RecentRepositoriesLength)
-      .join(RecentRepositoriesDelimiter)
-    localStorage.setItem(RecentRepositoriesKey, toBeStored)
+    const slicedRecentRepositories = recentRepositories.slice(
+      0,
+      RecentRepositoriesLength
+    )
+    localStorage.setItem(
+      RecentRepositoriesKey,
+      slicedRecentRepositories.join(RecentRepositoriesDelimiter)
+    )
+    this.recentRepositories = slicedRecentRepositories
+    this.emitUpdate()
   }
 
   // get the stored list of recently opened repositories
-  public getRecentRepositories() {
+  private _getRecentRepositories() {
     const storedIds = localStorage.getItem(RecentRepositoriesKey)
     let storedRepositories: Array<number> = []
     if (storedIds) {
