@@ -145,13 +145,6 @@ export function makeRecentRepositoriesGroup(
   repositories: ReadonlyArray<Repositoryish>,
   localRepositoryStateLookup: ReadonlyMap<number, ILocalRepositoryState>
 ): IFilterListGroup<IRepositoryListItem> {
-  if (repositories === null) {
-    return {
-      identifier: '',
-      items: [],
-    }
-  }
-
   const names = new Map<string, number>()
   for (const id of recentRepositories) {
     const repository = repositories.find(r => r.id === id)
