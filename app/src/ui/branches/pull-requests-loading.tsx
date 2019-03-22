@@ -17,9 +17,8 @@ const prLoadingItemProps: IPullRequestListItemProps = {
   matches: { title: [], subtitle: [] },
   status: {
     sha: '4b825dc642cb6eb9a060e54bf8d69288fbee4904',
-    totalCount: 1,
+    total_count: 1,
     state: 'pending',
-    pullRequestNumber: 0,
     statuses: [],
   },
 }

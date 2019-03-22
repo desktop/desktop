@@ -3,9 +3,9 @@ import * as moment from 'moment'
 import * as classNames from 'classnames'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { CIStatus } from './ci-status'
-import { PullRequestStatus } from '../../models/pull-request'
 import { HighlightText } from '../lib/highlight-text'
 import { IMatches } from '../../lib/fuzzy-find'
+import { IAPIRefStatus } from '../../lib/api'
 
 export interface IPullRequestListItemProps {
   /** The title. */
@@ -21,7 +21,7 @@ export interface IPullRequestListItemProps {
   readonly author: string
 
   /** The CI status. */
-  readonly status: PullRequestStatus | null
+  readonly status: IAPIRefStatus | null
 
   /**
    * Whether or not this list item is a skeleton item
@@ -76,7 +76,7 @@ export class PullRequestListItem extends React.Component<
   private renderPullRequestStatus() {
     const status = this.props.status
 
-    if (!status || status.totalCount === 0) {
+    if (!status || status.total_count === 0) {
       return null
     }
 

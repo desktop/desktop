@@ -7,7 +7,7 @@ import {
   SelectionSource,
 } from '../lib/filter-list'
 import { PullRequestListItem } from './pull-request-list-item'
-import { PullRequest, PullRequestStatus } from '../../models/pull-request'
+import { PullRequest } from '../../models/pull-request'
 import { NoPullRequests } from './no-pull-requests'
 import { IMatches } from '../../lib/fuzzy-find'
 
@@ -158,17 +158,8 @@ export class PullRequestList extends React.Component<
     matches: IMatches
   ) => {
     const pr = item.pullRequest
-    const refStatuses = pr.status != null ? pr.status.statuses : []
-    const status =
-      pr.status != null
-        ? new PullRequestStatus(
-            pr.pullRequestNumber,
-            pr.status.state,
-            pr.status.totalCount,
-            pr.status.sha,
-            refStatuses
-          )
-        : null
+    // TODO!
+    const status = null
 
     return (
       <PullRequestListItem

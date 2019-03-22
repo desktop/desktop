@@ -69,7 +69,7 @@ export class CommitStatusStore {
     }
   }
 
-  private refreshEligibleSubscriptions() {
+  private async refreshEligibleSubscriptions() {
     const refresh = new Array<IRefStatusSubscription>()
 
     for (const [key, subscriptions] of this.subscriptions) {
@@ -80,7 +80,7 @@ export class CommitStatusStore {
       }
     }
 
-    concurrentMap(refresh, this.refreshSubscription, 5).catch(() => null)
+    await concurrentMap(refresh, this.refreshSubscription, 5).catch(() => null)
   }
 
   private refreshSubscription = async (

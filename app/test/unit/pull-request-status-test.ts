@@ -1,5 +1,5 @@
 import { APIRefState } from '../../src/lib/api'
-import { getPRStatusSummary } from '../../src/ui/branches/pull-request-status'
+import { getRefStatusSummary } from '../../src/ui/branches/pull-request-status'
 
 const failure: APIRefState = 'failure'
 const pending: APIRefState = 'pending'
@@ -7,83 +7,119 @@ const success: APIRefState = 'success'
 
 describe('pull request status', () => {
   it('uses the state when no statuses found', () => {
-    const prStatus = {
-      pullRequestNumber: 23,
+    const status = {
       state: success,
-      totalCount: 0,
+      total_count: 0,
       sha: '',
       statuses: [],
     }
-    expect(getPRStatusSummary(prStatus)).toBe('Commit status: success')
+    expect(getRefStatusSummary(status)).toBe('Commit status: success')
   })
 
   it('changes the failure message to something more friendly', () => {
-    const prStatus = {
-      pullRequestNumber: 23,
+    const status = {
       state: failure,
-      totalCount: 0,
+      total_count: 0,
       sha: '',
       statuses: [],
     }
-    expect(getPRStatusSummary(prStatus)).toBe('Commit status: failed')
+    expect(getRefStatusSummary(status)).toBe('Commit status: failed')
   })
 
   it('reads the statuses when they are populated', () => {
-    const prStatus = {
-      pullRequestNumber: 23,
+    const status = {
       state: success,
-      totalCount: 2,
+      total_count: 2,
       sha: '',
       statuses: [
-        { id: 1, state: success, description: 'first' },
-        { id: 2, state: success, description: 'second' },
+        {
+          id: 1,
+          state: success,
+          description: 'first',
+          target_url: '',
+          context: '2',
+        },
+        {
+          id: 2,
+          state: success,
+          description: 'second',
+          target_url: '',
+          context: '2',
+        },
       ],
     }
-    expect(getPRStatusSummary(prStatus)).toBe('2/2 checks OK')
+    expect(getRefStatusSummary(status)).toBe('2/2 checks OK')
   })
 
   it('a successful status shows the description', () => {
-    const prStatus = {
-      pullRequestNumber: 23,
+    const status = {
       state: success,
-      totalCount: 2,
+      total_count: 2,
       sha: '',
       statuses: [
-        { id: 1, state: success, description: 'The Travis CI build passed' },
+        {
+          id: 1,
+          state: success,
+          description: 'The Travis CI build passed',
+          target_url: '',
+          context: '1',
+        },
       ],
     }
-    expect(getPRStatusSummary(prStatus)).toBe(
+    expect(getRefStatusSummary(status)).toBe(
       'Success: The Travis CI build passed'
     )
   })
 
   it('an error status shows the description', () => {
-    const prStatus = {
-      pullRequestNumber: 23,
+    const status = {
       state: success,
-      totalCount: 2,
+      total_count: 2,
       sha: '',
       statuses: [
-        { id: 1, state: failure, description: 'The Travis CI build failed' },
+        {
+          id: 1,
+          state: failure,
+          description: 'The Travis CI build failed',
+          target_url: '',
+          context: '1',
+        },
       ],
     }
-    expect(getPRStatusSummary(prStatus)).toBe(
+    expect(getRefStatusSummary(status)).toBe(
       'Failure: The Travis CI build failed'
     )
   })
 
   it('only counts the successful statuses', () => {
-    const prStatus = {
-      pullRequestNumber: 23,
+    const status = {
       state: success,
-      totalCount: 3,
+      total_count: 3,
       sha: '',
       statuses: [
-        { id: 1, state: success, description: 'first' },
-        { id: 2, state: pending, description: 'second' },
-        { id: 2, state: pending, description: 'third' },
+        {
+          id: 1,
+          state: success,
+          description: 'first',
+          target_url: '',
+          context: '1',
+        },
+        {
+          id: 2,
+          state: pending,
+          description: 'second',
+          target_url: '',
+          context: '2',
+        },
+        {
+          id: 2,
+          state: pending,
+          description: 'third',
+          target_url: '',
+          context: '3',
+        },
       ],
     }
-    expect(getPRStatusSummary(prStatus)).toBe('1/3 checks OK')
+    expect(getRefStatusSummary(status)).toBe('1/3 checks OK')
   })
 })
