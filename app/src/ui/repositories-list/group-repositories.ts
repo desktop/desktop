@@ -142,7 +142,7 @@ export function groupRepositories(
  */
 export function makeRecentRepositoriesGroup(
   recentRepositories: ReadonlyArray<number>,
-  repositories: ReadonlyArray<Repositoryish> | null,
+  repositories: ReadonlyArray<Repositoryish>,
   localRepositoryStateLookup: ReadonlyMap<number, ILocalRepositoryState>
 ): IFilterListGroup<IRepositoryListItem> {
   if (repositories === null) {
