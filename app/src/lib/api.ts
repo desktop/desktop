@@ -170,7 +170,7 @@ export interface IAPIRefStatusItem {
 }
 
 /** The API response to a ref status request. */
-interface IAPIRefStatus {
+export interface IAPIRefStatus {
   readonly state: APIRefState
   readonly total_count: number
   readonly statuses: ReadonlyArray<IAPIRefStatusItem>
