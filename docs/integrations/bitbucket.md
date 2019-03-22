@@ -10,7 +10,7 @@ To authenticate against Bitbucket repositories you will need to create a persona
 
 3. Under **App passwords** click **Create app password**
 
-![](https://user-images.githubusercontent.com/721500/54833905-603d9f00-4c95-11e9-8cd7-62a294542022.png)
+![](https://user-images.githubusercontent.com/721500/54835003-a98eee00-4c97-11e9-809f-1b409aa4c5f9.png)
 
 4. Under the **Details** section in **Add app password** enter a label for your password
 
@@ -18,7 +18,7 @@ To authenticate against Bitbucket repositories you will need to create a persona
 
 6. Click **Create** to create a new token, and then copy the token to your clipboard.
 
-![](https://user-images.githubusercontent.com/721500/54833912-63d12600-4c95-11e9-805c-6208aaccad20.png)
+![](https://user-images.githubusercontent.com/721500/54835019-b14e9280-4c97-11e9-98e2-bf308e6a42f9.png)
 
 ## Cloning your Bitbucket repository in GitHub Desktop
 
@@ -28,6 +28,6 @@ To authenticate against Bitbucket repositories you will need to create a persona
 
  2. You will receive an `Authentication Failed` error. Enter your Bitbucket username and paste in the token you just copied to your clipboard as your password. Click **Save and Retry** to successfully clone the repository to your local machine in GitHub Desktop.
 
-![](https://user-images.githubusercontent.com/721500/54832263-36cf4400-4c92-11e9-8937-6617a0a564b5.png)
+![](https://user-images.githubusercontent.com/721500/54835296-33d75200-4c98-11e9-9c6f-71bbfdd26336.png)
 
    - **Note:** Your Bitbucket credentials will be securely stored on your local machine so you will not need to repeat this process when cloning another repository from Bitbucket.

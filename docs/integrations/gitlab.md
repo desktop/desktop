@@ -6,7 +6,7 @@ To authenticate against GitLab repositories you will need to create a personal a
 
 1. Go to your GitLab account and select **Settings** in the user profile dropdown.
 
-![](https://user-images.githubusercontent.com/721500/54831873-8d884e00-4c91-11e9-9087-57af715d8321.png)
+![](https://user-images.githubusercontent.com/721500/54834720-1f468a00-4c97-11e9-9a0f-4c92224064d0.png)
 
 2. Select ** Access tokens**
 
@@ -26,6 +26,6 @@ To authenticate against GitLab repositories you will need to create a personal a
 
  2. You will receive an `Authentication Failed` error. Enter your GitLab username and paste in the token you just copied to your clipboard as your password. Click **Save and Retry** to successfully clone the repository to your local machine in GitHub Desktop.
 
-![](https://user-images.githubusercontent.com/721500/54832263-36cf4400-4c92-11e9-8937-6617a0a564b5.png)
+![](https://user-images.githubusercontent.com/721500/54835396-5f5a3c80-4c98-11e9-9306-df234f8f7abc.png)
 
    - **Note:** Your GitLab credentials will be securely stored on your local machine so you will not need to repeat this process when cloning another repository from GitLab.
