@@ -75,3 +75,8 @@ export function enablePullWithRebase(): boolean {
 export function enableGroupRepositoriesByOwner(): boolean {
   return enableBetaFeatures()
 }
+
+/** Should the app show the "rebase current branch" dialog? */
+export function enableRebaseDialog(): boolean {
+  return enableDevelopmentFeatures()
+}

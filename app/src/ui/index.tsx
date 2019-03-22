@@ -19,7 +19,6 @@ import {
   backgroundTaskHandler,
   pushNeedsPullHandler,
   upstreamAlreadyExistsHandler,
-  localChangesOverwrittenHandler,
   rebaseConflictsHandler,
 } from './dispatcher'
 import {
@@ -159,7 +158,7 @@ dispatcher.registerErrorHandler(gitAuthenticationErrorHandler)
 dispatcher.registerErrorHandler(pushNeedsPullHandler)
 dispatcher.registerErrorHandler(backgroundTaskHandler)
 dispatcher.registerErrorHandler(missingRepositoryHandler)
-dispatcher.registerErrorHandler(localChangesOverwrittenHandler)
+
 if (enablePullWithRebase()) {
   dispatcher.registerErrorHandler(rebaseConflictsHandler)
 }

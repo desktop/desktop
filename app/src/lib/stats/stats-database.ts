@@ -163,6 +163,9 @@ export interface IDailyMeasures {
 
   /** The number of times a user has pulled with `pull.rebase` unset or set to `false` */
   readonly pullWithDefaultSettingCount: number
+
+  /** The number of times the user opens the "Rebase current branch" menu item */
+  readonly rebaseCurrentBranchMenuCount: number
 }
 
 export class StatsDatabase extends Dexie {
