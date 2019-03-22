@@ -8,7 +8,7 @@ To authenticate against GitLab repositories you will need to create a personal a
 
 ![](https://user-images.githubusercontent.com/721500/54834720-1f468a00-4c97-11e9-9a0f-4c92224064d0.png)
 
-2. Select ** Access tokens**
+2. Select **Access tokens**
 
 3. Under **Add a personal access token** choose a name and set an expiration date for your token.
 
