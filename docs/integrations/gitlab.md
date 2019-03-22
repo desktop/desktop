@@ -1,6 +1,6 @@
 # Authenticating to GitLab with GitHub Desktop
 
-## Creating a Personal Access Token in Azure DevOps
+## Creating a Personal Access Token in GitLab
 
 To authenticate against GitLab repositories you will need to create a personal access token.
 
@@ -14,7 +14,7 @@ To authenticate against GitLab repositories you will need to create a personal a
 
 4. For **Scopes** select `api` to ensure that GitHub Desktop has the correct read/write access to your GitLab repositories.
 
-5. Click **Create personal access token** to create a new token, and then copy your token to the clipboard.
+5. Click **Create personal access token** to create a new token, and then copy the token to your clipboard.
 
 ![](https://user-images.githubusercontent.com/721500/54831880-8feaa800-4c91-11e9-801b-40ed2af869a0.png)
 
