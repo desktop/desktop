@@ -8,6 +8,7 @@ import { HighlightText } from '../lib/highlight-text'
 import { IMatches } from '../../lib/fuzzy-find'
 import { IAheadBehind } from '../../models/branch'
 import { RevealInFileManagerLabel } from '../lib/context-menu'
+import { OpenInXcodeLabel } from '../lib/context-menu'
 
 const defaultEditorLabel = __DARWIN__
   ? 'Open in External Editor'
@@ -27,6 +28,9 @@ interface IRepositoryListItemProps {
 
   /** Called when the repository should be shown in the shell. */
   readonly onOpenInShell: (repository: Repositoryish) => void
+
+  /** Called when the repository project should be shown in Xcode. */
+  readonly onOpenInXcode: (repository: Repositoryish) => void
 
   /** Called when the repository should be opened in an external editor */
   readonly onOpenInExternalEditor: (repository: Repositoryish) => void
@@ -158,6 +162,11 @@ export class RepositoryListItem extends React.Component<
         enabled: !missing,
       },
       {
+        label: OpenInXcodeLabel,
+        action: this.openInXcode,
+        enabled: !missing && __DARWIN__,
+      },
+      {
         label: RevealInFileManagerLabel,
         action: this.showRepository,
         enabled: !missing,
@@ -188,6 +197,10 @@ export class RepositoryListItem extends React.Component<
 
   private openInShell = () => {
     this.props.onOpenInShell(this.props.repository)
+  }
+
+  private openInXcode = () => {
+    this.props.onOpenInXcode(this.props.repository)
   }
 
   private openInExternalEditor = () => {

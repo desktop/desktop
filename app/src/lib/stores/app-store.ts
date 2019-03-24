@@ -158,6 +158,7 @@ import {
   Default as DefaultShell,
   findShellOrDefault,
   launchShell,
+  launchXcode,
   parse as parseShell,
   Shell,
 } from '../shells'
@@ -3460,6 +3461,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     try {
       const match = await findShellOrDefault(this.selectedShell)
       await launchShell(match, path, error => this._pushError(error))
+    } catch (error) {
+      this.emitError(error)
+    }
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _openXcode(path: string) {
+    this.statsStore.recordOpenShell()
+
+    try {
+      const match = await findShellOrDefault(this.selectedShell)
+      await launchXcode(match, path, error => this._pushError(error))
     } catch (error) {
       this.emitError(error)
     }

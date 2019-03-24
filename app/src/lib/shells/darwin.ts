@@ -95,9 +95,15 @@ export async function getAvailableShells(): Promise<
 
 export function launch(
   foundShell: IFoundShell<Shell>,
-  path: string
+  path: string,
+  arg: string,
+  openXcode: boolean
 ): ChildProcess {
   const bundleID = getBundleID(foundShell.shell)
-  const commandArgs = ['-b', bundleID, path]
+  var commandArgs = [arg, bundleID, path]
+  //If opening XCode, set the bundleID field to Xcode
+  if (openXcode) {
+    commandArgs = [arg, 'Xcode', path]
+  }
   return spawn('open', commandArgs)
 }

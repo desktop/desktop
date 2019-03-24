@@ -1787,6 +1787,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         }
         onRemoveRepository={this.removeRepository}
         onOpenInShell={this.openInShell}
+        onOpenInXcode={this.openInXcode}
         onShowRepository={this.showRepository}
         onOpenInExternalEditor={this.openInExternalEditor}
         externalEditorLabel={externalEditorLabel}
@@ -1802,6 +1803,14 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     this.props.dispatcher.openShell(repository.path)
+  }
+
+  private openInXcode = (repository: Repository | CloningRepository) => {
+    if (!(repository instanceof Repository)) {
+      return
+    }
+
+    this.props.dispatcher.openXcode(repository.path)
   }
 
   private openFileInExternalEditor = (fullPath: string) => {

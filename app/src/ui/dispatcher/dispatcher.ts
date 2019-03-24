@@ -865,6 +865,17 @@ export class Dispatcher {
   }
 
   /**
+   * Opens a Xcode window in the current path
+   * The option to open in Xcode will only render on UI if
+   * Xcode is installed.
+   */
+  public async openXcode(
+    path: string
+  ): Promise<void> {
+    this.appStore._openXcode(path)
+  }
+
+  /**
    * Opens a path in the external editor selected by the user.
    */
   public async openInExternalEditor(fullPath: string): Promise<void> {
