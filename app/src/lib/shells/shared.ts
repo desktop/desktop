@@ -87,12 +87,12 @@ export async function launchXcode(
       }'.  Please open ${label} and select an available shell.`
     )
   }
+  let cp: ChildProcess | null = null
   if (__DARWIN__) {
     cp = Darwin.launch(shell as IFoundShell<Darwin.Shell>, path, '-a', true)
   } else {
     throw new ShellError('Could not run on Non-Darwin sysyems.')
   }
-  let cp: ChildProcess | null = null
   if (cp != null) {
     addErrorTracing(shell.shell, cp, onError)
     return Promise.resolve()

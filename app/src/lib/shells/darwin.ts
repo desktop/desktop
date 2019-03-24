@@ -100,10 +100,10 @@ export function launch(
   openXcode: boolean
 ): ChildProcess {
   const bundleID = getBundleID(foundShell.shell)
-  var commandArgs = [arg, bundleID, path]
   //If opening XCode, set the bundleID field to Xcode
   if (openXcode) {
-    commandArgs = [arg, 'Xcode', path]
+    return spawn('open', [arg, 'Xcode', path])
+  } else {
+    return spawn('open', [arg, bundleID, path])
   }
-  return spawn('open', commandArgs)
 }
