@@ -869,9 +869,7 @@ export class Dispatcher {
    * The option to open in Xcode will only render on UI if
    * Xcode is installed.
    */
-  public async openXcode(
-    path: string
-  ): Promise<void> {
+  public async openXcode(path: string): Promise<void> {
     this.appStore._openXcode(path)
   }
 

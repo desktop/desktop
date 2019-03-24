@@ -77,41 +77,33 @@ export async function launchXcode(
   shell: FoundShell,
   path: string,
   onError: (error: Error) => void
-  ): Promise<void> {
-    // We have to manually cast the wider `Shell` type into the platform-specific
-    // type. This is less than ideal, but maybe the best we can do without
-    // platform-specific build targets.
-    const exists = await pathExists(shell.path)
-    if (!exists) {
-      const label = __DARWIN__ ? 'Preferences' : 'Options'
-      throw new ShellError(
-        `Could not find executable for '${shell.shell}' at path '${
-          shell.path
-        }'.  Please open ${label} and select an available shell.`
-      )
-    }
-
-    if (!__DARWIN__) {
-      throw new ShellError("Xcode not installed.")
-    }
-
-    let cp: ChildProcess | null = null
-
-    if (__DARWIN__) {
-      cp = Darwin.launch(shell as IFoundShell<Darwin.Shell>, path, '-a', true)
-    }
-
-    if (cp != null) {
-      addErrorTracing(shell.shell, cp, onError)
-      return Promise.resolve()
-    } else {
-      return Promise.reject(
-        `Platform not currently supported for launching shells: ${
-          process.platform
-        }`
-      )
-    }
+): Promise<void> {
+  const exists = await pathExists(shell.path)
+  if (!exists) {
+    const label = __DARWIN__ ? 'Preferences' : 'Options'
+    throw new ShellError(
+      `Could not find executable for '${shell.shell}' at path '${
+        shell.path
+      }'.  Please open ${label} and select an available shell.`
+    )
   }
+  if (__DARWIN__) {
+    cp = Darwin.launch(shell as IFoundShell<Darwin.Shell>, path, '-a', true)
+  } else {
+    throw new ShellError('Could not run on Non-Darwin sysyems.')
+  }
+  let cp: ChildProcess | null = null
+  if (cp != null) {
+    addErrorTracing(shell.shell, cp, onError)
+    return Promise.resolve()
+  } else {
+    return Promise.reject(
+      `Platform not currently supported for launching shells: ${
+        process.platform
+      }`
+    )
+  }
+}
 
 /** Launch the given shell at the path. */
 export async function launchShell(
