@@ -124,7 +124,8 @@ export class CommitStatusStore {
   }
 
   private getOrCreateSubscription(repository: GitHubRepository, ref: string) {
-    let subscription = this.subscriptions.get(getCacheKey(repository, ref))
+    const key = getCacheKey(repository, ref)
+    let subscription = this.subscriptions.get(key)
 
     if (subscription !== undefined) {
       return subscription
@@ -137,6 +138,8 @@ export class CommitStatusStore {
       ref,
       callbacks: new Set<StatusCallBack>(),
     }
+
+    this.subscriptions.set(key, subscription)
 
     return subscription
   }
