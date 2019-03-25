@@ -16,26 +16,26 @@ export interface IMergeEntry {
   readonly hasConflicts?: boolean
 }
 
-export interface IMergeSuccess {
+export interface MergeSuccess {
   readonly kind: ComputedActionKind.Clean
   readonly entries: ReadonlyArray<IMergeEntry>
 }
 
-export type IMergeError = {
+export type MergeError = {
   readonly kind: ComputedActionKind.Conflicts
   readonly conflictedFiles: number
 }
 
-export type IMergeUnsupported = {
+export type MergeUnsupported = {
   readonly kind: ComputedActionKind.Invalid
 }
 
-export type IMergeLoading = {
+export type MergeLoading = {
   readonly kind: ComputedActionKind.Loading
 }
 
 export type MergeResult =
-  | IMergeSuccess
-  | IMergeError
-  | IMergeUnsupported
-  | IMergeLoading
+  | MergeSuccess
+  | MergeError
+  | MergeUnsupported
+  | MergeLoading
