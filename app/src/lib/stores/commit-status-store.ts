@@ -2,8 +2,8 @@ import { Account } from '../../models/account'
 import { AccountsStore } from './accounts-store'
 import { GitHubRepository } from '../../models/github-repository'
 import { API, IAPIRefStatus } from '../api'
-import { concurrentMap } from '../promise'
 import { IDisposable, Disposable } from 'event-kit'
+import pLimit from 'p-limit'
 
 interface ICommitStatusCacheEntry {
   readonly status: IAPIRefStatus | null
@@ -46,6 +46,8 @@ export class CommitStatusStore {
 
   private readonly subscriptions = new Map<string, IRefStatusSubscription>()
   private readonly cache = new Map<string, ICommitStatusCacheEntry>()
+  private readonly queue = new Map<string, Promise<IAPIRefStatus | null>>()
+  private readonly limit = pLimit(5)
 
   public constructor(accountsStore: AccountsStore) {
     accountsStore.getAll().then(accounts => {
@@ -72,30 +74,42 @@ export class CommitStatusStore {
   }
 
   private async refreshEligibleSubscriptions() {
-    const refresh = new Array<IRefStatusSubscription>()
-
-    for (const [key, subscriptions] of this.subscriptions) {
+    for (const key of this.subscriptions.keys()) {
+      // Is it already being worked on?
+      if (this.queue.has(key)) {
+        return
+      }
       const entry = this.cache.get(key)
 
       if (!entry || entryIsEligibleForRefresh(entry)) {
-        refresh.push(subscriptions)
+        this.queue.set(key, this.limit(() => this.refreshSubscription(key)))
       }
     }
-
-    await concurrentMap(refresh, this.refreshSubscription, 5).catch(() => null)
   }
 
-  private refreshSubscription = async (
-    subscription: IRefStatusSubscription
-  ) => {
+  private async refreshSubscription(key: string) {
+    // Make sure it's still a valid subscription that
+    // someone might care about before fetching
+    const subscription = this.subscriptions.get(key)
+
+    if (!subscription) {
+      return null
+    }
+
+    console.log(`Refreshing ${subscription.ref}`)
+
     const { endpoint, owner, name, ref } = subscription
     const status = await this.fetchStatus(endpoint, owner, name, ref)
+
     this.cache.set(getCacheKeyForRef(endpoint, owner, name, ref), {
       status,
       fetchedAt: new Date(),
     })
 
     subscription.callbacks.forEach(cb => cb(status))
+
+    console.log(`Done refreshing ${subscription.ref}`)
+
     return status
   }
 
