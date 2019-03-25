@@ -134,7 +134,7 @@ export function groupRepositories(
 }
 
 /**
- * creates the group `Recent` of repositories recently opened for use with `FilterList` component
+ * Creates the group `Recent` of repositories recently opened for use with `FilterList` component
  *
  * @param recentRepositories list of recent repositories' ids
  * @param repositories full list of repositories (we use this to get data about the `recentRepositories`)
