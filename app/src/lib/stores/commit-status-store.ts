@@ -61,7 +61,12 @@ function entryIsEligibleForRefresh(entry: ICommitStatusCacheEntry) {
   return elapsed > 60 * 1000
 }
 
-const BackgroundRefreshInterval = 60 * 1000
+/**
+ * The interval (in milliseconds) between background updates for active
+ * commit status subscriptions. Background refresh occurs only when the
+ * application is focused.
+ */
+const BackgroundRefreshInterval = 3 * 60 * 1000
 const MaxConcurrentFetches = 5
 
 export class CommitStatusStore {
