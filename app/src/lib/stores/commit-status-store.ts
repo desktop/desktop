@@ -1,9 +1,10 @@
+import pLimit from 'p-limit'
+
 import { Account } from '../../models/account'
 import { AccountsStore } from './accounts-store'
 import { GitHubRepository } from '../../models/github-repository'
 import { API, IAPIRefStatus } from '../api'
 import { IDisposable, Disposable } from 'event-kit'
-import pLimit from 'p-limit'
 import { remote, ipcRenderer } from 'electron'
 
 interface ICommitStatusCacheEntry {
