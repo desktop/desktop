@@ -184,11 +184,6 @@ export class RepositoriesList extends React.Component<
       this.props.localRepositoryStateLookup
     )
 
-    const selectedItem = this.getSelectedListItem(
-      baseGroups,
-      this.props.selectedRepository
-    )
-
     const groups =
       enableGroupRepositoriesByOwner() &&
       this.props.repositories.length > recentRepositoriesThreshold
@@ -201,6 +196,11 @@ export class RepositoriesList extends React.Component<
             ...baseGroups,
           ]
         : baseGroups
+
+    const selectedItem = this.getSelectedListItem(
+      groups,
+      this.props.selectedRepository
+    )
 
     return (
       <div className="repository-list">
