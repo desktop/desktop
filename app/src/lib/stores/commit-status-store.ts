@@ -96,6 +96,7 @@ export class CommitStatusStore {
     })
 
     subscription.callbacks.forEach(cb => cb(status))
+    return status
   }
 
   public tryGetStatus(
