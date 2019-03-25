@@ -22,18 +22,38 @@ interface IRefStatusSubscription {
   readonly callbacks: Set<StatusCallBack>
 }
 
+/**
+ * Creates a cache key for a particular ref in a specific repository.
+ *
+ * Remarks: The cache key is currently the same as the canonical API status
+ *          URI but that has no bearing on the functionality, it does, however
+ *          help with debugging.
+ *
+ * @param repository The GitHub repository to use when looking up commit status.
+ * @param ref        The commit ref (can be a SHA or a Git ref) for which to
+ *                   fetch status.
+ */
 function getCacheKeyForRepository(repository: GitHubRepository, ref: string) {
   const { endpoint, owner, name } = repository
   return getCacheKey(endpoint, owner.login, name, ref)
 }
 
-function getCacheKey(
-  endpoint: string,
-  owner: string,
-  name: string,
-  ref: string
-) {
-  return `${endpoint}/repos/${owner}/${name}/commits/${ref}/status`
+/**
+ * Creates a cache key for a particular ref in a specific repository.
+ *
+ * Remarks: The cache key is currently the same as the canonical API status
+ *          URI but that has no bearing on the functionality, it does, however
+ *          help with debugging.
+ *
+ * @param ep    The repository endpoint (for example https://api.github.com for
+ *              GitHub.com and https://github.corporation.local/api for GHE)
+ * @param owner The repository owner's login (desktop for desktop/desktop)
+ * @param name  The repository name
+ * @param ref   The commit ref (can be a SHA or a Git ref) for which to fetch
+ *              status.
+ */
+function getCacheKey(ep: string, owner: string, name: string, ref: string) {
+  return `${ep}/repos/${owner}/${name}/commits/${ref}/status`
 }
 
 function entryIsEligibleForRefresh(entry: ICommitStatusCacheEntry) {
