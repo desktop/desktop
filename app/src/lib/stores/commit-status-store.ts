@@ -128,13 +128,17 @@ export class CommitStatusStore {
     // Make sure it's still a valid subscription that
     // someone might care about before fetching
     const subscription = this.subscriptions.get(key)
-    const account = this.accounts.find(a => a.endpoint === endpoint)
 
-    if (subscription === undefined || account == undefined) {
+    if (subscription === undefined) {
       return
     }
 
     const { endpoint, owner, name, ref } = subscription
+    const account = this.accounts.find(a => a.endpoint === endpoint)
+
+    if (account === undefined) {
+      return
+    }
 
     const status = await API.fromAccount(account)
       .fetchCombinedRefStatus(owner, name, ref)
