@@ -67,6 +67,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   enterprisePushCount: 0,
   enterpriseForcePushCount: 0,
   externalPushCount: 0,
+  externalForcePushCount: 0,
   active: false,
   mergeConflictFromPullCount: 0,
   mergeConflictFromExplicitMergeCount: 0,
@@ -787,7 +788,9 @@ export class StatsStore implements IStatsStore {
   /** Record that the user pushed to a generic remote */
   async recordPushToGenericRemote(options?: PushOptions): Promise<void> {
     if (options && options.forceWithLease) {
-      // TODO: update new measure here
+      await this.updateDailyMeasures(m => ({
+        externalForcePushCount: m.externalForcePushCount + 1,
+      }))
     } else {
       await this.updateDailyMeasures(m => ({
         externalPushCount: m.externalPushCount + 1,

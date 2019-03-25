@@ -98,6 +98,9 @@ export interface IDailyMeasures {
   /** The number of times the users pushes to a generic remote */
   readonly externalPushCount: number
 
+  /** The number of times the users pushes with `--force-with-lease` to a generic remote */
+  readonly externalForcePushCount: number
+
   /** The number of times the user merged before seeing the result of the merge hint */
   readonly mergedWithLoadingHintCount: number
 
