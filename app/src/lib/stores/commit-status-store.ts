@@ -108,7 +108,17 @@ export class CommitStatusStore {
   private readonly cache = new QuickLRU<string, ICommitStatusCacheEntry>({
     maxSize: 250,
   })
+
+  /**
+   * A set containing the currently executing (i.e. refreshing) cache
+   * keys (produced by `getCacheKey`).
+   */
   private readonly queue = new Set<string>()
+
+  /**
+   * A concurrency limiter which ensures that we only run `MaxConcurrentFetches`
+   * API requests simultaneously.
+   */
   private readonly limit = pLimit(MaxConcurrentFetches)
 
   public constructor(accountsStore: AccountsStore) {
@@ -153,6 +163,11 @@ export class CommitStatusStore {
     }
   }
 
+  /**
+   * Looks through all active commit status subscriptions and
+   * figure out which, if any, needs to be refreshed from the
+   * API.
+   */
   private refreshEligibleSubscriptions() {
     for (const key of this.subscriptions.keys()) {
       // Is it already being worked on?
@@ -200,6 +215,13 @@ export class CommitStatusStore {
     subscription.callbacks.forEach(cb => cb(status))
   }
 
+  /**
+   * Attempt to _synchronously_ retrieve a commit status for a particular
+   * ref. If the ref doesn't exist in the cache this function returns null.
+   *
+   * Useful for component who wish to have a value for the initial render
+   * instead of waiting for the subscription to produce an event.
+   */
   public tryGetStatus(
     repository: GitHubRepository,
     ref: string
