@@ -1,5 +1,5 @@
 import { StatsDatabase, ILaunchStats, IDailyMeasures } from './stats-database'
-import { getDotComAPIEndpoint } from '../api'
+import { getDotComAPIEndpoint, getEnterpriseAPIURL } from '../api'
 import { getVersion } from '../../ui/lib/app-proxy'
 import { hasShownWelcomeFlow } from '../welcome'
 import { Account } from '../../models/account'
@@ -735,8 +735,23 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
+  public async recordPush(
+    githubAccount: Account | null,
+    options?: PushOptions
+  ) {
+    if (githubAccount === null) {
+      await this.recordPushToGenericRemote(options)
+    } else if (githubAccount.endpoint === getDotComAPIEndpoint()) {
+      await this.recordPushToGitHub(options)
+    } else if (
+      githubAccount.endpoint === getEnterpriseAPIURL(githubAccount.endpoint)
+    ) {
+      await this.recordPushToGitHubEnterprise(options)
+    }
+  }
+
   /** Record that the user pushed to GitHub.com */
-  public async recordPushToGitHub(options?: PushOptions): Promise<void> {
+  async recordPushToGitHub(options?: PushOptions): Promise<void> {
     if (options && options.forceWithLease) {
       // TODO: update new measure here
     } else {
@@ -749,9 +764,7 @@ export class StatsStore implements IStatsStore {
   }
 
   /** Record that the user pushed to a GitHub Enterprise instance */
-  public async recordPushToGitHubEnterprise(
-    options?: PushOptions
-  ): Promise<void> {
+  async recordPushToGitHubEnterprise(options?: PushOptions): Promise<void> {
     if (options && options.forceWithLease) {
       // TODO: update new measure here
     } else {
@@ -766,7 +779,7 @@ export class StatsStore implements IStatsStore {
   }
 
   /** Record that the user pushed to a generic remote */
-  public async recordPushToGenericRemote(options?: PushOptions): Promise<void> {
+  async recordPushToGenericRemote(options?: PushOptions): Promise<void> {
     if (options && options.forceWithLease) {
       // TODO: update new measure here
     } else {

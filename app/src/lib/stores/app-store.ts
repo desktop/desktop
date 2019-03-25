@@ -72,7 +72,6 @@ import {
   API,
   getAccountForEndpoint,
   getDotComAPIEndpoint,
-  getEnterpriseAPIURL,
   IAPIOrganization,
 } from '../api'
 import { shell } from '../app-shell'
@@ -2816,15 +2815,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           accounts
         )
 
-        if (githubAccount === null) {
-          this.statsStore.recordPushToGenericRemote(options)
-        } else if (githubAccount.endpoint === getDotComAPIEndpoint()) {
-          this.statsStore.recordPushToGitHub(options)
-        } else if (
-          githubAccount.endpoint === getEnterpriseAPIURL(githubAccount.endpoint)
-        ) {
-          this.statsStore.recordPushToGitHubEnterprise(options)
-        }
+        this.statsStore.recordPush(githubAccount, options)
       }
     })
   }
