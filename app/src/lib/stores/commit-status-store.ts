@@ -95,6 +95,16 @@ export class CommitStatusStore {
    * to update a commit status from the API and notify subscribers.
    */
   private readonly subscriptions = new Map<string, IRefStatusSubscription>()
+
+  /**
+   * A map keyed on the value of `getCacheKey` containing one object per
+   * reference (repository specific) with the last retrieved commit status
+   * for that reference.
+   *
+   * This map also functions as a least recently used cache and will evict
+   * the least recently used commit statuses to ensure the cache won't
+   * grow unbounded
+   */
   private readonly cache = new QuickLRU<string, ICommitStatusCacheEntry>({
     maxSize: 250,
   })
