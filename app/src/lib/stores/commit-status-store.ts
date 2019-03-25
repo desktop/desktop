@@ -10,7 +10,7 @@ interface ICommitStatusCacheEntry {
   readonly fetchedAt: Date
 }
 
-type StatusCallBack = (status: IAPIRefStatus | null) => void
+export type StatusCallBack = (status: IAPIRefStatus | null) => void
 
 interface IRefStatusSubscription {
   readonly endpoint: string
