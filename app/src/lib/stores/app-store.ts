@@ -1162,7 +1162,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       ? previouslySelectedRepository.id
       : null
     if (enableGroupRepositoriesByOwner()) {
-      this._updateRecentRepositories(previousRepositoryId, repository.id)
+      this.updateRecentRepositories(previousRepositoryId, repository.id)
     }
 
     // if repository might be marked missing, try checking if it has been restored
@@ -1182,11 +1182,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   // update the stored list of recently opened repositories
-  private _updateRecentRepositories(
+  private updateRecentRepositories(
     previousRepositoryId: number | null,
     currentRepositoryId: number
   ) {
-    const recentRepositories = this._getRecentRepositories().filter(
+    const recentRepositories = this.getRecentRepositories().filter(
       el => el !== currentRepositoryId && el !== previousRepositoryId
     )
     if (previousRepositoryId !== null) {
@@ -1205,7 +1205,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   // get the stored list of recently opened repositories
-  private _getRecentRepositories() {
+  private getRecentRepositories() {
     const storedIds = localStorage.getItem(RecentRepositoriesKey)
     let storedRepositories: Array<number> = []
     if (storedIds) {
