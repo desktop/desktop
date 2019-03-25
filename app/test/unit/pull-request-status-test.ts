@@ -10,7 +10,6 @@ describe('pull request status', () => {
     const status = {
       state: success,
       total_count: 0,
-      sha: '',
       statuses: [],
     }
     expect(getRefStatusSummary(status)).toBe('Commit status: success')
@@ -20,7 +19,6 @@ describe('pull request status', () => {
     const status = {
       state: failure,
       total_count: 0,
-      sha: '',
       statuses: [],
     }
     expect(getRefStatusSummary(status)).toBe('Commit status: failed')
@@ -30,7 +28,6 @@ describe('pull request status', () => {
     const status = {
       state: success,
       total_count: 2,
-      sha: '',
       statuses: [
         {
           id: 1,
@@ -55,7 +52,6 @@ describe('pull request status', () => {
     const status = {
       state: success,
       total_count: 2,
-      sha: '',
       statuses: [
         {
           id: 1,
@@ -75,7 +71,6 @@ describe('pull request status', () => {
     const status = {
       state: success,
       total_count: 2,
-      sha: '',
       statuses: [
         {
           id: 1,
@@ -95,7 +90,6 @@ describe('pull request status', () => {
     const status = {
       state: success,
       total_count: 3,
-      sha: '',
       statuses: [
         {
           id: 1,
