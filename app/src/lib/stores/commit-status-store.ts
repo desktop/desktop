@@ -41,6 +41,7 @@ function entryIsEligibleForRefresh(entry: ICommitStatusCacheEntry) {
 }
 
 const BackgroundRefreshInterval = 60 * 1000
+const MaxConcurrentFetches = 5
 
 export class CommitStatusStore {
   private accounts: ReadonlyArray<Account> = []
@@ -51,7 +52,7 @@ export class CommitStatusStore {
   private readonly subscriptions = new Map<string, IRefStatusSubscription>()
   private readonly cache = new Map<string, ICommitStatusCacheEntry>()
   private readonly queue = new Set<string>()
-  private readonly limit = pLimit(5)
+  private readonly limit = pLimit(MaxConcurrentFetches)
 
   public constructor(accountsStore: AccountsStore) {
     accountsStore.getAll().then(accounts => (this.accounts = accounts))
