@@ -20,6 +20,7 @@ import { IMenuItem } from '../../lib/menu-item'
 import { PopupType } from '../../models/popup'
 import { encodePathAsUrl } from '../../lib/path'
 import memoizeOne from 'memoize-one'
+import { enableGroupRepositoriesByOwner } from '../../lib/feature-flag'
 
 const BlankSlateImage = encodePathAsUrl(__dirname, 'static/empty-no-repo.svg')
 
@@ -187,7 +188,9 @@ export class RepositoriesList extends React.Component<
     const selectedItem = selected !== null ? selected.item : selected
     const selectedGroup = selected !== null ? selected.group : selected
 
-    const groups = reorderGroupsWithSelected(baseGroups, selectedGroup)
+    const groups = enableGroupRepositoriesByOwner()
+      ? reorderGroupsWithSelected(baseGroups, selectedGroup)
+      : baseGroups
 
     return (
       <div className="repository-list">
