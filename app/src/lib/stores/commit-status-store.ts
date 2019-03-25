@@ -57,9 +57,21 @@ function getCacheKey(ep: string, owner: string, name: string, ref: string) {
   return `${ep}/repos/${owner}/${name}/commits/${ref}/status`
 }
 
+/**
+ * Returns a value indicating whether or not the cache entry provided
+ * should be considered stale enough that a refresh from the API is
+ * warranted.
+ */
 function entryIsEligibleForRefresh(entry: ICommitStatusCacheEntry) {
-  const elapsed = Date.now() - entry.fetchedAt.valueOf()
-  return elapsed > 60 * 1000
+  // The age (in milliseconds) of the cache entry, i.e. how long it has
+  // sat in the cache since last being fetched.
+  const now = Date.now()
+  const age = now - entry.fetchedAt.valueOf()
+
+  // The GitHub API has a max-age of 60, so no need to refresh
+  // any more frequently than that since chromium would just give
+  // us the cached value.
+  return age > 60 * 1000
 }
 
 /**
