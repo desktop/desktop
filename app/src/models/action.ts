@@ -9,6 +9,6 @@ export enum ComputedActionKind {
   Invalid = 'invalid',
   /** The action should complete without any additional work required by the user */
   Clean = 'clean',
-  /** The action requires additional work by the user to complete succesfully */
+  /** The action requires additional work by the user to complete successfully */
   Conflicts = 'conflicts',
 }

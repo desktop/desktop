@@ -27,7 +27,6 @@ export type RebaseSuccess = {
 
 export type RebaseConflicts = {
   readonly kind: ComputedActionKind.Conflicts
-  readonly conflictedFiles: number
 }
 
 export type RebaseUnsupported = {
