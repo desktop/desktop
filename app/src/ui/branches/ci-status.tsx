@@ -60,6 +60,12 @@ export class CIStatus extends React.PureComponent<
       this.props.repository !== prevProps.repository ||
       this.props.commitRef !== prevProps.commitRef
     ) {
+      this.setState({
+        status: this.props.dispatcher.tryGetCommitStatus(
+          this.props.repository,
+          this.props.commitRef
+        ),
+      })
       this.subscribe()
     }
   }
