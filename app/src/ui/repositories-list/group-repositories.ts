@@ -132,3 +132,19 @@ export function groupRepositories(
 
   return groups
 }
+
+export function reorderGroupsWithSelected(
+  groups: ReadonlyArray<IFilterListGroup<IRepositoryListItem>>,
+  selectedGroup: IFilterListGroup<IRepositoryListItem> | null
+): ReadonlyArray<IFilterListGroup<IRepositoryListItem>> {
+  if (selectedGroup === null) {
+    return groups
+  }
+  const firstGroupIndex = groups.findIndex(
+    g => g.identifier === selectedGroup.identifier
+  )
+  const reorderedGroups = Array.from(groups)
+  const firstGroup = reorderedGroups.splice(firstGroupIndex, 1)
+  reorderedGroups.unshift(...firstGroup)
+  return reorderedGroups
+}

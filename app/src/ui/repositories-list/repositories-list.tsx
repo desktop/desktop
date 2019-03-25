@@ -7,6 +7,7 @@ import {
   Repositoryish,
   RepositoryGroupIdentifier,
   KnownRepositoryGroup,
+  reorderGroupsWithSelected,
 } from './group-repositories'
 import { FilterList, IFilterListGroup } from '../lib/filter-list'
 import { IMatches } from '../../lib/fuzzy-find'
@@ -79,7 +80,7 @@ function findMatchingListItem(
     for (const group of groups) {
       for (const item of group.items) {
         if (item.repository.id === selectedRepository.id) {
-          return item
+          return { group, item }
         }
       }
     }
@@ -174,15 +175,19 @@ export class RepositoriesList extends React.Component<
   }
 
   public render() {
-    const groups = this.getRepositoryGroups(
+    const baseGroups = this.getRepositoryGroups(
       this.props.repositories,
       this.props.localRepositoryStateLookup
     )
 
-    const selectedItem = this.getSelectedListItem(
-      groups,
+    const selected = this.getSelectedListItem(
+      baseGroups,
       this.props.selectedRepository
     )
+    const selectedItem = selected !== null ? selected.item : selected
+    const selectedGroup = selected !== null ? selected.group : selected
+
+    const groups = reorderGroupsWithSelected(baseGroups, selectedGroup)
 
     return (
       <div className="repository-list">
