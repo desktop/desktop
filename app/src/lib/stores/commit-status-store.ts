@@ -1,4 +1,5 @@
 import pLimit from 'p-limit'
+import QuickLRU from 'quick-lru'
 
 import { Account } from '../../models/account'
 import { AccountsStore } from './accounts-store'
@@ -76,7 +77,9 @@ export class CommitStatusStore {
   private refreshQueued = false
 
   private readonly subscriptions = new Map<string, IRefStatusSubscription>()
-  private readonly cache = new Map<string, ICommitStatusCacheEntry>()
+  private readonly cache = new QuickLRU<string, ICommitStatusCacheEntry>({
+    maxSize: 250,
+  })
   private readonly queue = new Set<string>()
   private readonly limit = pLimit(MaxConcurrentFetches)
 
