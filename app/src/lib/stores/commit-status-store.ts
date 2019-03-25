@@ -46,7 +46,7 @@ export class CommitStatusStore {
 
   private readonly subscriptions = new Map<string, IRefStatusSubscription>()
   private readonly cache = new Map<string, ICommitStatusCacheEntry>()
-  private readonly queue = new Map<string, Promise<IAPIRefStatus | null>>()
+  private readonly queue = new Map<string, Promise<void>>()
   private readonly limit = pLimit(5)
 
   public constructor(accountsStore: AccountsStore) {
@@ -92,11 +92,9 @@ export class CommitStatusStore {
     // someone might care about before fetching
     const subscription = this.subscriptions.get(key)
 
-    if (!subscription) {
-      return null
+    if (subscription === undefined) {
+      return
     }
-
-    console.log(`Refreshing ${subscription.ref}`)
 
     const { endpoint, owner, name, ref } = subscription
     const status = await this.fetchStatus(endpoint, owner, name, ref)
@@ -107,10 +105,6 @@ export class CommitStatusStore {
     })
 
     subscription.callbacks.forEach(cb => cb(status))
-
-    console.log(`Done refreshing ${subscription.ref}`)
-
-    return status
   }
 
   public tryGetStatus(
