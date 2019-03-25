@@ -7,7 +7,6 @@ import { HighlightText } from '../lib/highlight-text'
 import { IMatches } from '../../lib/fuzzy-find'
 import { GitHubRepository } from '../../models/github-repository'
 import { Dispatcher } from '../dispatcher'
-import { PullRequestRef } from '../../models/pull-request'
 
 export interface IPullRequestListItemProps {
   /** The title. */
@@ -21,8 +20,6 @@ export interface IPullRequestListItemProps {
 
   /** The author login. */
   readonly author: string
-
-  readonly head: PullRequestRef
 
   /**
    * Whether or not this list item is a skeleton item

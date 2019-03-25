@@ -172,7 +172,6 @@ export class PullRequestList extends React.Component<
         author={pr.author}
         matches={matches}
         dispatcher={this.props.dispatcher}
-        head={pr.head}
         repository={this.props.repository}
       />
     )
