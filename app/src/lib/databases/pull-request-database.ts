@@ -71,7 +71,7 @@ export interface IPullRequestStatus {
 
 export class PullRequestDatabase extends BaseDatabase {
   public pullRequests!: Dexie.Table<IPullRequest, number>
-  public pullRequestStatus!: Dexie.Table<IPullRequestStatus, number>
+  private pullRequestStatus!: Dexie.Table<IPullRequestStatus, number>
 
   public constructor(name: string, schemaVersion?: number) {
     super(name, schemaVersion)
@@ -91,6 +91,11 @@ export class PullRequestDatabase extends BaseDatabase {
     // we need to run the upgrade function to ensure we add
     // a status field to all previous records
     this.conditionalVersion(4, {}, this.addStatusesField)
+
+    // Remove the pullRequestStatus table
+    this.conditionalVersion(5, {
+      pullRequestStatus: null,
+    })
   }
 
   private addStatusesField = async (transaction: Dexie.Transaction) => {
