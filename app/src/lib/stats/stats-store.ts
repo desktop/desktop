@@ -754,7 +754,7 @@ export class StatsStore implements IStatsStore {
   }
 
   /** Record that the user pushed to GitHub.com */
-  async recordPushToGitHub(options?: PushOptions): Promise<void> {
+  private async recordPushToGitHub(options?: PushOptions): Promise<void> {
     if (options && options.forceWithLease) {
       await this.updateDailyMeasures(m => ({
         dotcomForcePushCount: m.dotcomForcePushCount + 1,
@@ -769,7 +769,9 @@ export class StatsStore implements IStatsStore {
   }
 
   /** Record that the user pushed to a GitHub Enterprise instance */
-  async recordPushToGitHubEnterprise(options?: PushOptions): Promise<void> {
+  private async recordPushToGitHubEnterprise(
+    options?: PushOptions
+  ): Promise<void> {
     if (options && options.forceWithLease) {
       await this.updateDailyMeasures(m => ({
         enterpriseForcePushCount: m.enterpriseForcePushCount + 1,
@@ -786,7 +788,9 @@ export class StatsStore implements IStatsStore {
   }
 
   /** Record that the user pushed to a generic remote */
-  async recordPushToGenericRemote(options?: PushOptions): Promise<void> {
+  private async recordPushToGenericRemote(
+    options?: PushOptions
+  ): Promise<void> {
     if (options && options.forceWithLease) {
       await this.updateDailyMeasures(m => ({
         externalForcePushCount: m.externalForcePushCount + 1,
