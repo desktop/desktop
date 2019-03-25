@@ -31,7 +31,7 @@ function getCacheKeyForRef(
   name: string,
   ref: string
 ) {
-  return `${endpoint}/${owner}/${name}/${ref}`
+  return `${endpoint}/repos/${owner}/${name}/commits/${ref}/status`
 }
 
 function entryIsEligibleForRefresh(entry: ICommitStatusCacheEntry) {
