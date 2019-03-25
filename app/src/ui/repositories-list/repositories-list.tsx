@@ -21,9 +21,10 @@ import { PopupType } from '../../models/popup'
 import { encodePathAsUrl } from '../../lib/path'
 import memoizeOne from 'memoize-one'
 import { enableGroupRepositoriesByOwner } from '../../lib/feature-flag'
-import { RecentRepositoriesLength } from '../../lib/stores'
 
 const BlankSlateImage = encodePathAsUrl(__dirname, 'static/empty-no-repo.svg')
+
+const recentRepositoriesThreshold = 7
 
 interface IRepositoriesListProps {
   readonly selectedRepository: Repositoryish | null
@@ -190,7 +191,7 @@ export class RepositoriesList extends React.Component<
 
     const groups =
       enableGroupRepositoriesByOwner() &&
-      this.props.repositories.length > RecentRepositoriesLength + 2
+      this.props.repositories.length > recentRepositoriesThreshold
         ? [
             makeRecentRepositoriesGroup(
               this.props.recentRepositories,
