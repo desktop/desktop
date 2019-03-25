@@ -58,9 +58,7 @@ export class CommitStatusStore {
       this.accounts = accounts
     })
 
-    window.addEventListener('focus', async () => {
-      this.queueRefresh()
-    })
+    window.addEventListener('focus', () => this.queueRefresh())
   }
 
   private queueRefresh() {
