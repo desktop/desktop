@@ -37,31 +37,3 @@ export function promiseWithMinimumTimeout<T>(
       .catch(reject)
   })
 }
-
-export async function concurrentMap<T, T1>(
-  iterable: Iterable<T>,
-  selector: (item: T) => PromiseLike<T1>,
-  concurrency: number
-): Promise<T1[]> {
-  concurrency = Math.max(1, concurrency)
-
-  const results = new Array<PromiseLike<T1>>()
-  const currentlyExecuting = new Set<PromiseLike<void>>()
-
-  for (const item of iterable) {
-    const promise = selector(item)
-    results.push(promise)
-
-    const executionGate = promise.then(() => {
-      currentlyExecuting.delete(executionGate)
-    })
-
-    currentlyExecuting.add(executionGate)
-
-    if (currentlyExecuting.size >= concurrency) {
-      await Promise.race(currentlyExecuting)
-    }
-  }
-
-  return Promise.all(results)
-}
