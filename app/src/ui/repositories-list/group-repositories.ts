@@ -154,29 +154,30 @@ export function makeRecentRepositoriesGroup(
     }
   }
 
-  const items = recentRepositories
-    .map(id => {
-      const repository = repositories.find(r => r.id === id)
-      if (repository === undefined) {
-        return null
-      }
-      const { aheadBehind, changedFilesCount } =
-        localRepositoryStateLookup.get(id) || fallbackValue
-      const repositoryText: ReadonlyArray<string> =
-        repository instanceof Repository
-          ? [repository.name, nameOf(repository)]
-          : [repository.name]
-      const nameCount = names.get(repository.name) || 0
-      return {
-        text: repositoryText,
-        id: id.toString(),
-        repository,
-        needsDisambiguation: nameCount > 1,
-        aheadBehind,
-        changedFilesCount,
-      }
+  const items = new Array<IRepositoryListItem>()
+
+  for (const id of recentRepositories) {
+    const repository = repositories.find(r => r.id === id)
+    if (repository === undefined) {
+      continue
+    }
+
+    const { aheadBehind, changedFilesCount } =
+      localRepositoryStateLookup.get(id) || fallbackValue
+    const repositoryText =
+      repository instanceof Repository
+        ? [repository.name, nameOf(repository)]
+        : [repository.name]
+    const nameCount = names.get(repository.name) || 0
+    items.push({
+      text: repositoryText,
+      id: id.toString(),
+      repository,
+      needsDisambiguation: nameCount > 1,
+      aheadBehind,
+      changedFilesCount,
     })
-    .filter(el => el !== null) as ReadonlyArray<IRepositoryListItem>
+  }
 
   return {
     identifier: 'Recent',
