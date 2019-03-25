@@ -92,6 +92,9 @@ export interface IDailyMeasures {
   /** The number of times the user pushed to a GitHub enterprise instance */
   readonly enterprisePushCount: number
 
+  /** The number of times the user pushes with `--force-with-lease` to a GitHub Enterprise instance */
+  readonly enterpriseForcePushCount: number
+
   /** The number of times the users pushes to a generic remote */
   readonly externalPushCount: number
 
