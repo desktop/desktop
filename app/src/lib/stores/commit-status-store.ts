@@ -54,9 +54,8 @@ export class CommitStatusStore {
   private readonly limit = pLimit(5)
 
   public constructor(accountsStore: AccountsStore) {
-    accountsStore.getAll().then(accounts => {
-      this.accounts = accounts
-    })
+    accountsStore.getAll().then(accounts => (this.accounts = accounts))
+    accountsStore.onDidUpdate(accounts => (this.accounts = accounts))
 
     ipcRenderer.on('focus', () => {
       this.startBackgroundRefresh()
