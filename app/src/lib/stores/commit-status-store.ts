@@ -4,6 +4,7 @@ import { GitHubRepository } from '../../models/github-repository'
 import { API, IAPIRefStatus } from '../api'
 import { IDisposable, Disposable } from 'event-kit'
 import pLimit from 'p-limit'
+import { remote, ipcRenderer } from 'electron'
 
 interface ICommitStatusCacheEntry {
   readonly status: IAPIRefStatus | null
@@ -39,9 +40,12 @@ function entryIsEligibleForRefresh(entry: ICommitStatusCacheEntry) {
   return elapsed > 60 * 1000
 }
 
+const BackgroundRefreshInterval = 60 * 1000
+
 export class CommitStatusStore {
   private accounts: ReadonlyArray<Account> = []
 
+  private backgroundRefreshHandle: number | null = null
   private refreshQueued = false
 
   private readonly subscriptions = new Map<string, IRefStatusSubscription>()
@@ -54,11 +58,34 @@ export class CommitStatusStore {
       this.accounts = accounts
     })
 
-    accountsStore.onDidUpdate(accounts => {
-      this.accounts = accounts
+    ipcRenderer.on('focus', () => {
+      this.startBackgroundRefresh()
+      this.queueRefresh()
     })
 
-    window.addEventListener('focus', () => this.queueRefresh())
+    ipcRenderer.on('blur', () => this.stopBackgroundRefresh())
+
+    if (remote.getCurrentWindow().isFocused()) {
+      this.startBackgroundRefresh()
+    }
+  }
+
+  private startBackgroundRefresh() {
+    if (this.backgroundRefreshHandle === null) {
+      console.log('starting background refresh')
+      this.backgroundRefreshHandle = window.setInterval(
+        () => this.queueRefresh(),
+        BackgroundRefreshInterval
+      )
+    }
+  }
+
+  private stopBackgroundRefresh() {
+    if (this.backgroundRefreshHandle !== null) {
+      console.log('stopping background refresh')
+      window.clearInterval(this.backgroundRefreshHandle)
+      this.backgroundRefreshHandle = null
+    }
   }
 
   private queueRefresh() {
