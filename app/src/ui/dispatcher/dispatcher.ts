@@ -1,8 +1,8 @@
 import { remote } from 'electron'
-import { Disposable } from 'event-kit'
+import { Disposable, IDisposable } from 'event-kit'
 import * as Path from 'path'
 
-import { IAPIOrganization } from '../../lib/api'
+import { IAPIOrganization, IAPIRefStatus } from '../../lib/api'
 import { shell } from '../../lib/app-shell'
 import {
   CompareAction,
@@ -71,6 +71,10 @@ import { Banner, BannerType } from '../../models/banner'
 import { ApplicationTheme } from '../lib/application-theme'
 import { installCLI } from '../lib/install-cli'
 import { executeMenuItem } from '../main-process-proxy'
+import {
+  CommitStatusStore,
+  StatusCallBack,
+} from '../../lib/stores/commit-status-store'
 
 /**
  * An error handler function.
@@ -93,7 +97,8 @@ export class Dispatcher {
   public constructor(
     private readonly appStore: AppStore,
     private readonly repositoryStateManager: RepositoryStateCache,
-    private readonly statsStore: StatsStore
+    private readonly statsStore: StatsStore,
+    private readonly commitStatusStore: CommitStatusStore
   ) {}
 
   /** Load the initial state for the app. */
@@ -1708,5 +1713,20 @@ export class Dispatcher {
    */
   public refreshPullRequests(repository: Repository): Promise<void> {
     return this.appStore._refreshPullRequests(repository)
+  }
+
+  public tryGetCommitStatus(
+    repository: GitHubRepository,
+    ref: string
+  ): IAPIRefStatus | null {
+    return this.commitStatusStore.tryGetStatus(repository, ref)
+  }
+
+  public subscribeToCommitStatus(
+    repository: GitHubRepository,
+    ref: string,
+    callback: StatusCallBack
+  ): IDisposable {
+    return this.commitStatusStore.subscribe(repository, ref, callback)
   }
 }
