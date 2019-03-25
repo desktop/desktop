@@ -679,7 +679,7 @@ export class Dispatcher {
     baseBranch: string,
     targetBranch: string,
     progress?: RebaseProgressOptions
-  ) {
+  ): Promise<RebaseResult> {
     const stateBefore = this.repositoryStateManager.get(repository)
 
     const beforeSha = getTipSha(stateBefore.branchesState.tip)
@@ -720,6 +720,8 @@ export class Dispatcher {
         baseBranch: baseBranch,
       })
     }
+
+    return result
   }
 
   /** aborts the current rebase and refreshes the repository's status */
@@ -732,7 +734,7 @@ export class Dispatcher {
     repository: Repository,
     workingDirectory: WorkingDirectoryStatus,
     manualResolutions: ReadonlyMap<string, ManualConflictResolution>
-  ) {
+  ): Promise<RebaseResult> {
     const stateBefore = this.repositoryStateManager.get(repository)
 
     const beforeSha = getTipSha(stateBefore.branchesState.tip)
@@ -776,6 +778,8 @@ export class Dispatcher {
         }
       }
     }
+
+    return result
   }
 
   /** aborts an in-flight merge and refreshes the repository's status */

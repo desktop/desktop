@@ -285,6 +285,11 @@ export type RebaseConflictState = {
    */
   readonly targetBranch: string
   /**
+   * The branch chosen as the baseline for the rebase
+   */
+  readonly baseBranch?: string
+
+  /**
    * The commit ID of the target branch before the rebase was initiated
    */
   readonly originalBranchTip: string

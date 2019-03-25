@@ -139,6 +139,7 @@ import {
   continueRebase,
   rebase,
   PushOptions,
+  RebaseResult,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -3377,10 +3378,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     baseBranch: string,
     targetBranch: string,
     progress?: RebaseProgressOptions
-  ) {
+  ): Promise<RebaseResult> {
     const gitStore = this.gitStoreCache.get(repository)
-    return await gitStore.performFailableOperation(() =>
-      rebase(repository, baseBranch, targetBranch, progress)
+    return (
+      (await gitStore.performFailableOperation(() =>
+        rebase(repository, baseBranch, targetBranch, progress)
+      )) || RebaseResult.Error
     )
   }
 
@@ -3397,10 +3400,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     workingDirectory: WorkingDirectoryStatus,
     manualResolutions: ReadonlyMap<string, ManualConflictResolution>
-  ) {
+  ): Promise<RebaseResult> {
     const gitStore = this.gitStoreCache.get(repository)
-    return await gitStore.performFailableOperation(() =>
-      continueRebase(repository, workingDirectory.files, manualResolutions)
+    return (
+      (await gitStore.performFailableOperation(() =>
+        continueRebase(repository, workingDirectory.files, manualResolutions)
+      )) || RebaseResult.Error
     )
   }
 
