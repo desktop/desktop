@@ -54,8 +54,14 @@ export class CIStatus extends React.PureComponent<
     }
   }
 
-  public componentDidUpdate() {
-    this.subscribe()
+  public componentDidUpdate(prevProps: ICIStatusProps) {
+    // Re-subscribe if we're being reused to show a different status.
+    if (
+      this.props.repository !== prevProps.repository ||
+      this.props.commitRef !== prevProps.commitRef
+    ) {
+      this.subscribe()
+    }
   }
 
   public componentDidMount() {
