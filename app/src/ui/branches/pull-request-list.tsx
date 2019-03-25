@@ -71,6 +71,9 @@ interface IPullRequestListProps {
 
   readonly dispatcher: Dispatcher
   readonly repository: GitHubRepository
+
+  /** Are we currently loading pull requests? */
+  readonly isLoadingPullRequests: boolean
 }
 
 interface IPullRequestListState {
@@ -150,6 +153,7 @@ export class PullRequestList extends React.Component<
     return (
       <NoPullRequests
         isSearch={this.props.filterText.length > 0}
+        isLoadingPullRequests={this.props.isLoadingPullRequests}
         repositoryName={this.props.repositoryName}
         isOnDefaultBranch={this.props.isOnDefaultBranch}
         onCreateBranch={this.props.onCreateBranch}
