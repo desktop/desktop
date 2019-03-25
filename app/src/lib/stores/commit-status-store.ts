@@ -101,14 +101,26 @@ export class CommitStatusStore {
   private async refreshEligibleSubscriptions() {
     for (const key of this.subscriptions.keys()) {
       // Is it already being worked on?
-      if (!this.queue.has(key)) {
-        const entry = this.cache.get(key)
-
-        if (!entry || entryIsEligibleForRefresh(entry)) {
-          console.log(`${key} is eligible for refresh`)
-          this.queue.set(key, this.limit(() => this.refreshSubscription(key)))
-        }
+      if (this.queue.has(key)) {
+        continue
       }
+
+      const entry = this.cache.get(key)
+
+      if (entry && !entryIsEligibleForRefresh(entry)) {
+        continue
+      }
+
+      this.queue.set(
+        key,
+        this.limit(async () => {
+          try {
+            this.refreshSubscription(key)
+          } finally {
+            this.queue.delete(key)
+          }
+        })
+      )
     }
   }
 
