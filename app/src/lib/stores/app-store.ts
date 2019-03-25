@@ -1175,23 +1175,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (gitHubRepository !== null) {
       this._refreshIssues(gitHubRepository)
       this.loadPullRequests(repository, async () => {
-        const promiseForPRs = this.pullRequestStore.fetchPullRequestsFromCache(
-          gitHubRepository
-        )
-        const isLoading = this.pullRequestStore.isFetchingPullRequests(
+        this.repositoryStateCache.updateBranchesState(repository, () => ({
+          isLoadingPullRequests: true,
+        }))
+
+        const prs = await this.pullRequestStore.fetchPullRequestsFromCache(
           gitHubRepository
         )
 
-        const prs = await promiseForPRs
+        this.repositoryStateCache.updateBranchesState(repository, () => ({
+          openPullRequests: prs,
+          isLoadingPullRequests: this.pullRequestStore.isFetchingPullRequests(
+            gitHubRepository
+          ),
+        }))
 
-        if (prs.length > 0) {
-          this.repositoryStateCache.updateBranchesState(repository, () => {
-            return {
-              openPullRequests: prs,
-              isLoadingPullRequests: isLoading,
-            }
-          })
-        } else {
+        if (prs.length === 0) {
           this._refreshPullRequests(repository)
         }
 
