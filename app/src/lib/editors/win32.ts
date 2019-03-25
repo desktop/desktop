@@ -241,7 +241,7 @@ function getRegistryKeys(
         {
           key: HKEY.HKEY_LOCAL_MACHINE,
           subKey:
-              'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\WebStorm 2019.1',
+            'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\WebStorm 2019.1',
         },
       ]
 
@@ -277,7 +277,11 @@ function getExecutableShim(
     case ExternalEditor.SlickEdit:
       return Path.join(installLocation, 'win', 'vs.exe')
     case ExternalEditor.WebStorm:
-        return Path.join(installLocation, 'bin', 'webstorm'.concat(version,'.exe'))
+      return Path.join(
+        installLocation,
+        'bin',
+        'webstorm'.concat(version, '.exe')
+      )
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -326,7 +330,8 @@ function isExpectedInstallation(
       )
     case ExternalEditor.WebStorm:
       return (
-        displayName.startsWith('JetBrains WebStorm ') && publisher === 'JetBrains s.r.o.'
+        displayName.startsWith('JetBrains WebStorm ') &&
+        publisher === 'JetBrains s.r.o.'
       )
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
@@ -350,7 +355,12 @@ function getKeyOrEmpty(
 function extractApplicationInformation(
   editor: ExternalEditor,
   keys: ReadonlyArray<RegistryValue>
-): { displayName: string; publisher: string; installLocation: string, version: string } {
+): {
+  displayName: string
+  publisher: string
+  installLocation: string
+  version: string
+} {
   // version is used for editors like WebStorm that always offer 2 launchers and it's their name
   // that changes and not location or registry key.
   let version = ''
@@ -429,10 +439,9 @@ function extractApplicationInformation(
     const publisher = getKeyOrEmpty(keys, 'Publisher')
     const installLocation = getKeyOrEmpty(keys, 'InstallLocation')
     const displayIcon = getKeyOrEmpty(keys, 'DisplayIcon')
-    if (displayIcon.includes('64'))
-      {
-        version = '64'
-      }
+    if (displayIcon.includes('64')) {
+      version = '64'
+    }
     return { displayName, publisher, installLocation, version }
   }
 
@@ -458,7 +467,7 @@ async function findApplication(editor: ExternalEditor): Promise<string | null> {
     displayName,
     publisher,
     installLocation,
-    version
+    version,
   } = extractApplicationInformation(editor, keys)
 
   if (!isExpectedInstallation(editor, displayName, publisher)) {
@@ -495,7 +504,7 @@ export async function getAvailableEditors(): Promise<
     cfBuilderPath,
     typoraPath,
     slickeditPath,
-    webstormPath
+    webstormPath,
   ] = await Promise.all([
     findApplication(ExternalEditor.Atom),
     findApplication(ExternalEditor.VisualStudioCode),
@@ -504,7 +513,7 @@ export async function getAvailableEditors(): Promise<
     findApplication(ExternalEditor.CFBuilder),
     findApplication(ExternalEditor.Typora),
     findApplication(ExternalEditor.SlickEdit),
-    findApplication(ExternalEditor.WebStorm)
+    findApplication(ExternalEditor.WebStorm),
   ])
 
   if (atomPath) {
