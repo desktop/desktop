@@ -58,7 +58,7 @@ export class CIStatus extends React.PureComponent<
     this.subscribe()
   }
 
-  public componentWillMount() {
+  public componentDidMount() {
     this.subscribe()
   }
 
