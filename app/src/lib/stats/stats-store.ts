@@ -63,6 +63,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   divergingBranchBannerInfluencedMerge: 0,
   divergingBranchBannerDisplayed: 0,
   dotcomPushCount: 0,
+  dotcomForcePushCount: 0,
   enterprisePushCount: 0,
   externalPushCount: 0,
   active: false,
@@ -753,7 +754,9 @@ export class StatsStore implements IStatsStore {
   /** Record that the user pushed to GitHub.com */
   async recordPushToGitHub(options?: PushOptions): Promise<void> {
     if (options && options.forceWithLease) {
-      // TODO: update new measure here
+      await this.updateDailyMeasures(m => ({
+        dotcomForcePushCount: m.dotcomForcePushCount + 1,
+      }))
     } else {
       await this.updateDailyMeasures(m => ({
         dotcomPushCount: m.dotcomPushCount + 1,
