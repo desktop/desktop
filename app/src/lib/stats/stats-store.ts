@@ -13,6 +13,7 @@ import { Disposable } from 'event-kit'
 import { SignInMethod } from '../stores'
 import { assertNever } from '../fatal-error'
 import { getNumber, setNumber, getBoolean, setBoolean } from '../local-storage'
+import { PushOptions } from '../git'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
@@ -735,19 +736,29 @@ export class StatsStore implements IStatsStore {
   }
 
   /** Record that the user pushed to GitHub.com */
-  public async recordPushToGitHub(): Promise<void> {
-    await this.updateDailyMeasures(m => ({
-      dotcomPushCount: m.dotcomPushCount + 1,
-    }))
+  public async recordPushToGitHub(options?: PushOptions): Promise<void> {
+    if (options && options.forceWithLease) {
+      // TODO: update new measure here
+    } else {
+      await this.updateDailyMeasures(m => ({
+        dotcomPushCount: m.dotcomPushCount + 1,
+      }))
+    }
 
     createLocalStorageTimestamp(FirstPushToGitHubAtKey)
   }
 
   /** Record that the user pushed to a GitHub Enterprise instance */
-  public async recordPushToGitHubEnterprise(): Promise<void> {
-    await this.updateDailyMeasures(m => ({
-      enterprisePushCount: m.enterprisePushCount + 1,
-    }))
+  public async recordPushToGitHubEnterprise(
+    options?: PushOptions
+  ): Promise<void> {
+    if (options && options.forceWithLease) {
+      // TODO: update new measure here
+    } else {
+      await this.updateDailyMeasures(m => ({
+        enterprisePushCount: m.enterprisePushCount + 1,
+      }))
+    }
 
     // Note, this is not a typo. We track both GitHub.com and
     // GitHub Enteprise under the same key
@@ -755,10 +766,14 @@ export class StatsStore implements IStatsStore {
   }
 
   /** Record that the user pushed to a generic remote */
-  public async recordPushToGenericRemote(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      externalPushCount: m.externalPushCount + 1,
-    }))
+  public async recordPushToGenericRemote(options?: PushOptions): Promise<void> {
+    if (options && options.forceWithLease) {
+      // TODO: update new measure here
+    } else {
+      await this.updateDailyMeasures(m => ({
+        externalPushCount: m.externalPushCount + 1,
+      }))
+    }
   }
 
   /** Record that the user saw a 'merge conflicts' warning but continued with the merge */

@@ -2817,13 +2817,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
         )
 
         if (githubAccount === null) {
-          this.statsStore.recordPushToGenericRemote()
+          this.statsStore.recordPushToGenericRemote(options)
         } else if (githubAccount.endpoint === getDotComAPIEndpoint()) {
-          this.statsStore.recordPushToGitHub()
+          this.statsStore.recordPushToGitHub(options)
         } else if (
           githubAccount.endpoint === getEnterpriseAPIURL(githubAccount.endpoint)
         ) {
-          this.statsStore.recordPushToGitHubEnterprise()
+          this.statsStore.recordPushToGitHubEnterprise(options)
         }
       }
     })
