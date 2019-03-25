@@ -20,7 +20,7 @@ export enum ExternalEditor {
   CFBuilder = 'ColdFusion Builder',
   Typora = 'Typora',
   SlickEdit = 'SlickEdit',
-  Webstorm = 'JetBrains Webstorm',
+  WebStorm = 'JetBrains WebStorm',
 }
 
 export function parse(label: string): ExternalEditor | null {
@@ -230,13 +230,18 @@ function getRegistryKeys(
             'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{7CC0E567-ACD6-41E8-95DA-154CEEDB0A18}',
         },
       ]
-    case ExternalEditor.Webstorm:
+    case ExternalEditor.WebStorm:
       return [
-        // 32-bit version of WebStorm
+        // This depends on which version the user installed and will not change with updates
         {
           key: HKEY.HKEY_LOCAL_MACHINE,
           subKey:
             'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\WebStorm 2018.3',
+        },
+        {
+          key: HKEY.HKEY_LOCAL_MACHINE,
+          subKey:
+              'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\WebStorm 2019.1',
         },
       ]
 
@@ -253,7 +258,8 @@ function getRegistryKeys(
  */
 function getExecutableShim(
   editor: ExternalEditor,
-  installLocation: string
+  installLocation: string,
+  version: string
 ): string {
   switch (editor) {
     case ExternalEditor.Atom:
@@ -270,8 +276,8 @@ function getExecutableShim(
       return Path.join(installLocation, 'bin', 'typora.exe')
     case ExternalEditor.SlickEdit:
       return Path.join(installLocation, 'win', 'vs.exe')
-    case ExternalEditor.Webstorm:
-      return Path.join(installLocation, 'bin', 'webstorm.exe')
+    case ExternalEditor.WebStorm:
+        return Path.join(installLocation, 'bin', 'webstorm'.concat(version,'.exe'))
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -318,9 +324,9 @@ function isExpectedInstallation(
       return (
         displayName.startsWith('SlickEdit') && publisher === 'SlickEdit Inc.'
       )
-    case ExternalEditor.Webstorm:
+    case ExternalEditor.WebStorm:
       return (
-        displayName.startsWith('WebStorm') && publisher === 'JetBrains s.r.o.'
+        displayName.startsWith('JetBrains WebStorm ') && publisher === 'JetBrains s.r.o.'
       )
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
@@ -344,12 +350,16 @@ function getKeyOrEmpty(
 function extractApplicationInformation(
   editor: ExternalEditor,
   keys: ReadonlyArray<RegistryValue>
-): { displayName: string; publisher: string; installLocation: string } {
+): { displayName: string; publisher: string; installLocation: string, version: string } {
+  // version is used for editors like WebStorm that always offer 2 launchers and it's their name
+  // that changes and not location or registry key.
+  let version = ''
+
   if (editor === ExternalEditor.Atom) {
     const displayName = getKeyOrEmpty(keys, 'DisplayName')
     const publisher = getKeyOrEmpty(keys, 'Publisher')
     const installLocation = getKeyOrEmpty(keys, 'InstallLocation')
-    return { displayName, publisher, installLocation }
+    return { displayName, publisher, installLocation, version }
   }
 
   if (
@@ -359,7 +369,7 @@ function extractApplicationInformation(
     const displayName = getKeyOrEmpty(keys, 'DisplayName')
     const publisher = getKeyOrEmpty(keys, 'Publisher')
     const installLocation = getKeyOrEmpty(keys, 'InstallLocation')
-    return { displayName, publisher, installLocation }
+    return { displayName, publisher, installLocation, version }
   }
 
   if (editor === ExternalEditor.SublimeText) {
@@ -390,58 +400,40 @@ function extractApplicationInformation(
       }
     }
 
-    return { displayName, publisher, installLocation }
+    return { displayName, publisher, installLocation, version }
   }
 
   if (editor === ExternalEditor.CFBuilder) {
     const displayName = getKeyOrEmpty(keys, 'DisplayName')
     const publisher = getKeyOrEmpty(keys, 'Publisher')
     const installLocation = getKeyOrEmpty(keys, 'InstallLocation')
-    return { displayName, publisher, installLocation }
+    return { displayName, publisher, installLocation, version }
   }
 
   if (editor === ExternalEditor.Typora) {
     const displayName = getKeyOrEmpty(keys, 'DisplayName')
     const publisher = getKeyOrEmpty(keys, 'Publisher')
     const installLocation = getKeyOrEmpty(keys, 'InstallLocation')
-    return { displayName, publisher, installLocation }
+    return { displayName, publisher, installLocation, version }
   }
 
   if (editor === ExternalEditor.SlickEdit) {
     const displayName = getKeyOrEmpty(keys, 'DisplayName')
     const publisher = getKeyOrEmpty(keys, 'Publisher')
     const installLocation = getKeyOrEmpty(keys, 'InstallLocation')
-    return { displayName, publisher, installLocation }
+    return { displayName, publisher, installLocation, version }
   }
 
-  if (editor === ExternalEditor.Webstorm) {
-    let displayName = ''
-    let publisher = ''
-    let installLocation = ''
-
-    for (const item of keys) {
-      // NOTE:
-      // Webstorm adds the current release number to the end of the Display Name, below checks for "WebStorm"
-      if (
-        item.name === 'DisplayName' &&
-        item.type === RegistryValueType.REG_SZ &&
-        item.data.startsWith('WebStorm ')
-      ) {
-        displayName = 'WebStorm'
-      } else if (
-        item.name === 'Publisher' &&
-        item.type === RegistryValueType.REG_SZ
-      ) {
-        publisher = item.data
-      } else if (
-        item.name === 'InstallLocation' &&
-        item.type === RegistryValueType.REG_SZ
-      ) {
-        installLocation = item.data
+  if (editor === ExternalEditor.WebStorm) {
+    const displayName = getKeyOrEmpty(keys, 'DisplayName')
+    const publisher = getKeyOrEmpty(keys, 'Publisher')
+    const installLocation = getKeyOrEmpty(keys, 'InstallLocation')
+    const displayIcon = getKeyOrEmpty(keys, 'DisplayIcon')
+    if (displayIcon.includes('64'))
+      {
+        version = '64'
       }
-    }
-
-    return { displayName, publisher, installLocation }
+    return { displayName, publisher, installLocation, version }
   }
 
   return assertNever(editor, `Unknown external editor: ${editor}`)
@@ -466,6 +458,7 @@ async function findApplication(editor: ExternalEditor): Promise<string | null> {
     displayName,
     publisher,
     installLocation,
+    version
   } = extractApplicationInformation(editor, keys)
 
   if (!isExpectedInstallation(editor, displayName, publisher)) {
@@ -475,7 +468,7 @@ async function findApplication(editor: ExternalEditor): Promise<string | null> {
     return null
   }
 
-  const path = getExecutableShim(editor, installLocation)
+  const path = getExecutableShim(editor, installLocation, version)
   const exists = await pathExists(path)
   if (!exists) {
     log.debug(`Command line interface for ${editor} not found at '${path}'`)
@@ -502,6 +495,7 @@ export async function getAvailableEditors(): Promise<
     cfBuilderPath,
     typoraPath,
     slickeditPath,
+    webstormPath
   ] = await Promise.all([
     findApplication(ExternalEditor.Atom),
     findApplication(ExternalEditor.VisualStudioCode),
@@ -510,6 +504,7 @@ export async function getAvailableEditors(): Promise<
     findApplication(ExternalEditor.CFBuilder),
     findApplication(ExternalEditor.Typora),
     findApplication(ExternalEditor.SlickEdit),
+    findApplication(ExternalEditor.WebStorm)
   ])
 
   if (atomPath) {
@@ -564,6 +559,14 @@ export async function getAvailableEditors(): Promise<
     results.push({
       editor: ExternalEditor.SlickEdit,
       path: slickeditPath,
+    })
+  }
+
+  if (webstormPath) {
+    results.push({
+      editor: ExternalEditor.WebStorm,
+      path: webstormPath,
+      usesShell: false,
     })
   }
 
