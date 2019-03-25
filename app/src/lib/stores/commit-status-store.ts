@@ -83,11 +83,17 @@ const BackgroundRefreshInterval = 3 * 60 * 1000
 const MaxConcurrentFetches = 5
 
 export class CommitStatusStore {
+  /** The list of signed-in accounts, kept in sync with the accounts store */
   private accounts: ReadonlyArray<Account> = []
 
   private backgroundRefreshHandle: number | null = null
   private refreshQueued = false
 
+  /**
+   * A map keyed on the value of `getCacheKey` containing one object
+   * per active subscription which contain all the information required
+   * to update a commit status from the API and notify subscribers.
+   */
   private readonly subscriptions = new Map<string, IRefStatusSubscription>()
   private readonly cache = new QuickLRU<string, ICommitStatusCacheEntry>({
     maxSize: 250,
