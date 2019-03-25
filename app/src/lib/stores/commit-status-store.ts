@@ -91,18 +91,20 @@ export class CommitStatusStore {
     // Make sure it's still a valid subscription that
     // someone might care about before fetching
     const subscription = this.subscriptions.get(key)
+    const account = this.accounts.find(a => a.endpoint === endpoint)
 
-    if (subscription === undefined) {
+    if (subscription === undefined || account == undefined) {
       return
     }
 
     const { endpoint, owner, name, ref } = subscription
-    const status = await this.fetchStatus(endpoint, owner, name, ref)
 
-    this.cache.set(getCacheKeyForRef(endpoint, owner, name, ref), {
-      status,
-      fetchedAt: new Date(),
-    })
+    const status = await API.fromAccount(account)
+      .fetchCombinedRefStatus(owner, name, ref)
+      .catch(err => null)
+
+    const entry = { status, fetchedAt: new Date() }
+    this.cache.set(getCacheKeyForRef(endpoint, owner, name, ref), entry)
 
     subscription.callbacks.forEach(cb => cb(status))
   }
@@ -113,23 +115,6 @@ export class CommitStatusStore {
   ): IAPIRefStatus | null {
     const entry = this.cache.get(getCacheKey(repository, ref))
     return entry !== undefined ? entry.status : null
-  }
-
-  private async fetchStatus(
-    endpoint: string,
-    owner: string,
-    name: string,
-    ref: string
-  ): Promise<IAPIRefStatus | null> {
-    const account = this.accounts.find(a => a.endpoint === endpoint)
-
-    if (account === undefined) {
-      return null
-    }
-
-    return API.fromAccount(account)
-      .fetchCombinedRefStatus(owner, name, ref)
-      .catch(err => null)
   }
 
   private getOrCreateSubscription(repository: GitHubRepository, ref: string) {
