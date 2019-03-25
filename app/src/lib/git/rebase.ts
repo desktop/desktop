@@ -5,19 +5,21 @@ import { GitError } from 'dugite'
 import * as byline from 'byline'
 
 import { Repository } from '../../models/repository'
-import { git, IGitResult, IGitExecutionOptions } from './core'
+import { RebaseContext, RebaseProgressOptions } from '../../models/rebase'
+import { IRebaseProgress } from '../../models/progress'
 import {
   WorkingDirectoryFileChange,
   AppFileStatusKind,
 } from '../../models/status'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
+
+import { merge } from '../merge'
+import { formatRebaseValue } from '../rebase'
+
+import { git, IGitResult, IGitExecutionOptions } from './core'
 import { stageManualConflictResolution } from './stage'
 import { stageFiles } from './update-index'
-
 import { getStatus } from './status'
-import { RebaseContext, RebaseProgressOptions } from '../../models/rebase'
-import { merge } from '../merge'
-import { IRebaseProgress } from '../../models/progress'
 
 /**
  * Check the `.git/REBASE_HEAD` file exists in a repository to confirm
@@ -132,7 +134,8 @@ class GitRebaseParser {
     const commitSummary = match[1]
     this.currentCommitCount++
 
-    const value = this.currentCommitCount / this.totalCommitCount
+    const progress = this.currentCommitCount / this.totalCommitCount
+    const value = formatRebaseValue(progress)
 
     return {
       kind: 'rebase',

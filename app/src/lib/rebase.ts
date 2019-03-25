@@ -6,6 +6,7 @@ import {
 } from '../models/rebase-flow-state'
 import { Branch } from '../models/branch'
 import { TipState } from '../models/tip'
+import { clamp } from './clamp'
 
 export const initializeNewRebaseFlow = (state: IRepositoryState) => {
   const {
@@ -47,4 +48,13 @@ export const initializeRebaseFlowForConflictedRepository = (
   }
 
   return initialState
+}
+
+/**
+ * Format rebase percentage to ensure it's a value between 0 and 1, but to also
+ * constrain it to two significant figures, avoiding the remainder that comes
+ * with floating point division.
+ */
+export function formatRebaseValue(value: number) {
+  return Math.round(clamp(value, 0, 1) * 100) / 100
 }

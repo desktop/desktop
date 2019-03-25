@@ -1,22 +1,24 @@
 import * as React from 'react'
-import { assertNever } from '../../lib/fatal-error'
-import { Repository } from '../../models/repository'
 
+import { assertNever } from '../../lib/fatal-error'
+import { timeout } from '../../lib/promise'
+import { getResolvedFiles } from '../../lib/status'
+import { formatRebaseValue } from '../../lib/rebase'
+import { RebaseResult } from '../../lib/git'
+import { RebaseConflictState } from '../../lib/app-state'
+
+import { Repository } from '../../models/repository'
 import { RebaseStep, RebaseFlowState } from '../../models/rebase-flow-state'
+import { BannerType } from '../../models/banner'
+import { IRebaseProgress } from '../../models/progress'
+import { WorkingDirectoryStatus } from '../../models/status'
+
+import { Dispatcher } from '../dispatcher'
 
 import { ChooseBranchDialog } from './choose-branch'
 import { ShowConflictedFilesDialog } from './show-conflicted-files-dialog'
-import { Dispatcher } from '../dispatcher'
 import { RebaseProgressDialog } from './progress-dialog'
-import { BannerType } from '../../models/banner'
-import { RebaseResult } from '../../lib/git'
-import { RebaseConflictState } from '../../lib/app-state'
 import { ConfirmAbortDialog } from './confirm-abort-dialog'
-import { IRebaseProgress } from '../../models/progress'
-import { WorkingDirectoryStatus } from '../../models/status'
-import { clamp } from '../../lib/clamp'
-import { timeout } from '../../lib/promise'
-import { getResolvedFiles } from '../../lib/status'
 
 interface IRebaseFlowProps {
   /** Starting point for the rebase flow */
@@ -259,8 +261,7 @@ export class RebaseFlow extends React.Component<
       // move to next commit to signal progress
       const newCount = count + 1
       const progress = newCount / total
-      // TODO: should this live up in GitRebaseParser?
-      const value = Math.round(clamp(progress, 0, 1) * 100) / 100
+      const value = formatRebaseValue(progress)
 
       return {
         step: {

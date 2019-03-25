@@ -1,9 +1,10 @@
 import * as React from 'react'
 
-import { Dialog, DialogContent } from '../dialog'
-import { clamp } from '../../lib/clamp'
-import { Octicon, OcticonSymbol } from '../octicons'
 import { timeout } from '../../lib/promise'
+import { formatRebaseValue } from '../../lib/rebase'
+
+import { Dialog, DialogContent } from '../dialog'
+import { Octicon, OcticonSymbol } from '../octicons'
 
 interface IRebaseProgressDialogProps {
   /** A number between 0 and 1 representing the overall progress */
@@ -40,8 +41,7 @@ export class RebaseProgressDialog extends React.Component<
 
   public render() {
     const { count, total, value, commitSummary } = this.props
-    // TODO: should this live up in GitRebaseParser?
-    const progressValue = Math.round(clamp(value, 0, 1) * 100) / 100
+    const progressValue = formatRebaseValue(value)
     return (
       <Dialog
         dismissable={false}
