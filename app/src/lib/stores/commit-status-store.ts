@@ -21,12 +21,12 @@ interface IRefStatusSubscription {
   readonly callbacks: Set<StatusCallBack>
 }
 
-function getCacheKey(repository: GitHubRepository, ref: string) {
+function getCacheKeyForRepository(repository: GitHubRepository, ref: string) {
   const { endpoint, owner, name } = repository
-  return getCacheKeyForRef(endpoint, owner.login, name, ref)
+  return getCacheKey(endpoint, owner.login, name, ref)
 }
 
-function getCacheKeyForRef(
+function getCacheKey(
   endpoint: string,
   owner: string,
   name: string,
@@ -142,7 +142,7 @@ export class CommitStatusStore {
       .catch(err => null)
 
     const entry = { status, fetchedAt: new Date() }
-    this.cache.set(getCacheKeyForRef(endpoint, owner, name, ref), entry)
+    this.cache.set(getCacheKey(endpoint, owner, name, ref), entry)
 
     subscription.callbacks.forEach(cb => cb(status))
   }
@@ -151,12 +151,12 @@ export class CommitStatusStore {
     repository: GitHubRepository,
     ref: string
   ): IAPIRefStatus | null {
-    const entry = this.cache.get(getCacheKey(repository, ref))
+    const entry = this.cache.get(getCacheKeyForRepository(repository, ref))
     return entry !== undefined ? entry.status : null
   }
 
   private getOrCreateSubscription(repository: GitHubRepository, ref: string) {
-    const key = getCacheKey(repository, ref)
+    const key = getCacheKeyForRepository(repository, ref)
     let subscription = this.subscriptions.get(key)
 
     if (subscription !== undefined) {
@@ -181,7 +181,7 @@ export class CommitStatusStore {
     ref: string,
     callback: StatusCallBack
   ): IDisposable {
-    const key = getCacheKey(repository, ref)
+    const key = getCacheKeyForRepository(repository, ref)
     const subscription = this.getOrCreateSubscription(repository, ref)
 
     subscription.callbacks.add(callback)
