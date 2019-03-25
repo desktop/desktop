@@ -5,7 +5,9 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { CIStatus } from './ci-status'
 import { HighlightText } from '../lib/highlight-text'
 import { IMatches } from '../../lib/fuzzy-find'
-import { IAPIRefStatus } from '../../lib/api'
+import { GitHubRepository } from '../../models/github-repository'
+import { Dispatcher } from '../dispatcher'
+import { PullRequestRef } from '../../models/pull-request'
 
 export interface IPullRequestListItemProps {
   /** The title. */
@@ -20,8 +22,7 @@ export interface IPullRequestListItemProps {
   /** The author login. */
   readonly author: string
 
-  /** The CI status. */
-  readonly status: IAPIRefStatus | null
+  readonly head: PullRequestRef
 
   /**
    * Whether or not this list item is a skeleton item
@@ -34,6 +35,9 @@ export interface IPullRequestListItemProps {
 
   /** The characters in the PR title to highlight */
   readonly matches: IMatches
+
+  readonly dispatcher: Dispatcher
+  readonly repository: GitHubRepository
 }
 
 /** Pull requests as rendered in the Pull Requests list. */
@@ -74,12 +78,12 @@ export class PullRequestListItem extends React.Component<
   }
 
   private renderPullRequestStatus() {
-    const status = this.props.status
-
-    if (!status || status.total_count === 0) {
-      return null
-    }
-
-    return <CIStatus status={status} />
+    return (
+      <CIStatus
+        dispatcher={this.props.dispatcher}
+        repository={this.props.repository}
+        commitRef={this.props.head.sha}
+      />
+    )
   }
 }

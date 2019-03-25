@@ -10,6 +10,8 @@ import { PullRequestListItem } from './pull-request-list-item'
 import { PullRequest } from '../../models/pull-request'
 import { NoPullRequests } from './no-pull-requests'
 import { IMatches } from '../../lib/fuzzy-find'
+import { Dispatcher } from '../dispatcher'
+import { GitHubRepository } from '../../models/github-repository'
 
 interface IPullRequestListItem extends IFilterListItem {
   readonly id: string
@@ -66,6 +68,9 @@ interface IPullRequestListProps {
   readonly onFilterKeyDown?: (
     event: React.KeyboardEvent<HTMLInputElement>
   ) => void
+
+  readonly dispatcher: Dispatcher
+  readonly repository: GitHubRepository
 }
 
 interface IPullRequestListState {
@@ -158,8 +163,6 @@ export class PullRequestList extends React.Component<
     matches: IMatches
   ) => {
     const pr = item.pullRequest
-    // TODO!
-    const status = null
 
     return (
       <PullRequestListItem
@@ -167,8 +170,10 @@ export class PullRequestList extends React.Component<
         number={pr.pullRequestNumber}
         created={pr.created}
         author={pr.author}
-        status={status}
         matches={matches}
+        dispatcher={this.props.dispatcher}
+        head={pr.head}
+        repository={this.props.repository}
       />
     )
   }

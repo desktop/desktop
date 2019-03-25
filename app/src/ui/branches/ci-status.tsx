@@ -4,19 +4,79 @@ import { APIRefState, IAPIRefStatus } from '../../lib/api'
 import { assertNever } from '../../lib/fatal-error'
 import * as classNames from 'classnames'
 import { getRefStatusSummary } from './pull-request-status'
+import { GitHubRepository } from '../../models/github-repository'
+import { IDisposable } from 'event-kit'
+import { Dispatcher } from '../dispatcher'
 
 interface ICIStatusProps {
   /** The classname for the underlying element. */
   readonly className?: string
 
-  /** The status to display. */
-  readonly status: IAPIRefStatus
+  readonly dispatcher: Dispatcher
+  readonly repository: GitHubRepository
+  readonly commitRef: string
+}
+
+interface ICIStatusState {
+  readonly status: IAPIRefStatus | null
 }
 
 /** The little CI status indicator. */
-export class CIStatus extends React.Component<ICIStatusProps, {}> {
+export class CIStatus extends React.PureComponent<
+  ICIStatusProps,
+  ICIStatusState
+> {
+  private statusSubscription: IDisposable | null = null
+
+  public constructor(props: ICIStatusProps) {
+    super(props)
+    this.state = {
+      status: props.dispatcher.tryGetCommitStatus(
+        this.props.repository,
+        this.props.commitRef
+      ),
+    }
+  }
+
+  private subscribe() {
+    this.unsubscribe()
+
+    this.statusSubscription = this.props.dispatcher.subscribeToCommitStatus(
+      this.props.repository,
+      this.props.commitRef,
+      this.onStatus
+    )
+  }
+
+  private unsubscribe() {
+    if (this.statusSubscription) {
+      this.statusSubscription.dispose()
+    }
+  }
+
+  public componentDidUpdate() {
+    this.subscribe()
+  }
+
+  public componentWillMount() {
+    this.subscribe()
+  }
+
+  public componentWillUnmount() {
+    this.unsubscribe()
+  }
+
+  private onStatus = (status: IAPIRefStatus | null) => {
+    this.setState({ status })
+  }
+
   public render() {
-    const status = this.props.status
+    const { status } = this.state
+
+    if (status === null || status.total_count === 0) {
+      return null
+    }
+
     const title = getRefStatusSummary(status)
     const state = status.state
 

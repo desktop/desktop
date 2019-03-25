@@ -179,12 +179,13 @@ export class BranchesContainer extends React.Component<
       this.props.isLoadingPullRequests &&
       this.props.pullRequests.length === 0
     ) {
-      return (
-        <PullRequestsLoading
-          key="prs-loading"
-          renderPostFilter={this.renderPullRequestPostFilter}
-        />
-      )
+      return <PullRequestsLoading key="prs-loading" />
+    }
+
+    const repository = this.props.repository.gitHubRepository
+
+    if (repository === null) {
+      return null
     }
 
     const pullRequests = this.props.pullRequests
@@ -209,6 +210,8 @@ export class BranchesContainer extends React.Component<
         onItemClick={this.onPullRequestClicked}
         onDismiss={this.onDismiss}
         renderPostFilter={this.renderPullRequestPostFilter}
+        dispatcher={this.props.dispatcher}
+        repository={repository}
       />
     )
   }
