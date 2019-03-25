@@ -35,7 +35,8 @@ function getCacheKeyForRef(
 }
 
 function entryIsEligibleForRefresh(entry: ICommitStatusCacheEntry) {
-  return true
+  const elapsed = Date.now() - entry.fetchedAt.valueOf()
+  return elapsed > 60 * 1000
 }
 
 export class CommitStatusStore {
