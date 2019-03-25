@@ -1208,7 +1208,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  // get the stored list of recently opened repositories
   private getStoredRecentRepositories() {
     const storedIds = localStorage.getItem(RecentRepositoriesKey)
     let storedRepositories: Array<number> = []
