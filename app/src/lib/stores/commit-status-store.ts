@@ -71,7 +71,6 @@ export class CommitStatusStore {
 
   private startBackgroundRefresh() {
     if (this.backgroundRefreshHandle === null) {
-      console.log('starting background refresh')
       this.backgroundRefreshHandle = window.setInterval(
         () => this.queueRefresh(),
         BackgroundRefreshInterval
@@ -81,7 +80,6 @@ export class CommitStatusStore {
 
   private stopBackgroundRefresh() {
     if (this.backgroundRefreshHandle !== null) {
-      console.log('stopping background refresh')
       window.clearInterval(this.backgroundRefreshHandle)
       this.backgroundRefreshHandle = null
     }
