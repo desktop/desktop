@@ -43,6 +43,7 @@ export class CommitStatusStore {
   private accounts: ReadonlyArray<Account> = []
 
   private refreshQueued = false
+
   private readonly subscriptions = new Map<string, IRefStatusSubscription>()
   private readonly cache = new Map<string, ICommitStatusCacheEntry>()
 
