@@ -179,11 +179,9 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
       return null
     }
 
-    // TODO!
     return (
       <PullRequestBadge
         number={pr.pullRequestNumber}
-        head={pr.head}
         dispatcher={this.props.dispatcher}
         repository={repository}
       />
