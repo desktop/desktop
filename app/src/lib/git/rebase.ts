@@ -234,6 +234,12 @@ export enum RebaseResult {
    * state.
    */
   Aborted = 'Aborted',
+  /**
+   * An unexpected error as part of the rebase flow was caught and handled.
+   *
+   * Check the logs to find the relevant Git details.
+   */
+  Error = 'Error',
 }
 
 function parseRebaseResult(result: IGitResult): RebaseResult {
