@@ -379,7 +379,13 @@ export class RebaseFlow extends React.Component<
         } = this.props
 
         if (conflictState === null) {
-          log.error('[RebaseFlow] unable to find conflicts for this repository')
+          log.error(
+            '[RebaseFlow] unable to find conflicts for this repository despite being in conflicted state'
+          )
+          log.error(
+            '[RebaseFlow] ending rebase flow as user has likely made changes to the repository from the command line'
+          )
+          this.props.onFlowEnded()
           return null
         }
 
