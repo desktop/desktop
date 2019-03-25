@@ -1186,7 +1186,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     previousRepositoryId: number | null,
     currentRepositoryId: number
   ) {
-    const recentRepositories = this.getRecentRepositories().filter(
+    const recentRepositories = this.getStoredRecentRepositories().filter(
       el => el !== currentRepositoryId && el !== previousRepositoryId
     )
     if (previousRepositoryId !== null) {
@@ -1205,7 +1205,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   // get the stored list of recently opened repositories
-  private getRecentRepositories() {
+  private getStoredRecentRepositories() {
     const storedIds = localStorage.getItem(RecentRepositoriesKey)
     let storedRepositories: Array<number> = []
     if (storedIds) {
