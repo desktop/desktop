@@ -50,7 +50,7 @@ export class CommitStatusStore {
 
   private readonly subscriptions = new Map<string, IRefStatusSubscription>()
   private readonly cache = new Map<string, ICommitStatusCacheEntry>()
-  private readonly queue = new Map<string, Promise<void>>()
+  private readonly queue = new Set<string>()
   private readonly limit = pLimit(5)
 
   public constructor(accountsStore: AccountsStore) {
@@ -95,7 +95,7 @@ export class CommitStatusStore {
     }
   }
 
-  private async refreshEligibleSubscriptions() {
+  private refreshEligibleSubscriptions() {
     for (const key of this.subscriptions.keys()) {
       // Is it already being worked on?
       if (this.queue.has(key)) {
@@ -108,16 +108,11 @@ export class CommitStatusStore {
         continue
       }
 
-      this.queue.set(
-        key,
-        this.limit(async () => {
-          try {
-            this.refreshSubscription(key)
-          } finally {
-            this.queue.delete(key)
-          }
-        })
-      )
+      this.limit(() => this.refreshSubscription(key))
+        .catch(e => log.error('Failed refreshing commit status', e))
+        .then(() => this.queue.delete(key))
+
+      this.queue.add(key)
     }
   }
 
