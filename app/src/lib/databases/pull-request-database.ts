@@ -90,7 +90,8 @@ export class PullRequestDatabase extends BaseDatabase {
     // Version 4 added status fields to the pullRequestStatus table
     // which we've removed in version 5 so it makes no sense keeping
     // that upgrade path available and that's why it appears as if
-    // we've skipped a version.
+    // we've got a no-change version.
+    this.conditionalVersion(4, {})
 
     // Remove the pullRequestStatus table
     this.conditionalVersion(5, { pullRequestStatus: null })
