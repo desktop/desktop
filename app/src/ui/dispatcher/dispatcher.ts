@@ -1051,6 +1051,12 @@ export class Dispatcher {
 
   public async setAppFocusState(isFocused: boolean): Promise<void> {
     await this.appStore._setAppFocusState(isFocused)
+
+    if (isFocused) {
+      this.commitStatusStore.startBackgroundRefresh()
+    } else {
+      this.commitStatusStore.stopBackgroundRefresh()
+    }
   }
 
   public async dispatchURLAction(action: URLActionType): Promise<void> {

@@ -6,7 +6,6 @@ import { AccountsStore } from './accounts-store'
 import { GitHubRepository } from '../../models/github-repository'
 import { API, IAPIRefStatus } from '../api'
 import { IDisposable, Disposable } from 'event-kit'
-import { remote, ipcRenderer } from 'electron'
 
 interface ICommitStatusCacheEntry {
   readonly status: IAPIRefStatus | null
@@ -124,29 +123,36 @@ export class CommitStatusStore {
   public constructor(accountsStore: AccountsStore) {
     accountsStore.getAll().then(accounts => (this.accounts = accounts))
     accountsStore.onDidUpdate(accounts => (this.accounts = accounts))
-
-    ipcRenderer.on('focus', () => {
-      this.startBackgroundRefresh()
-      this.queueRefresh()
-    })
-
-    ipcRenderer.on('blur', () => this.stopBackgroundRefresh())
-
-    if (remote.getCurrentWindow().isFocused()) {
-      this.startBackgroundRefresh()
-    }
   }
 
-  private startBackgroundRefresh() {
+  /**
+   * Called to ensure that background refreshing is running and fetching
+   * updated commit statuses for active subscriptions. The intention is
+   * for background refreshing to be active while the application is
+   * focused.
+   *
+   * Remarks: this method will do nothing if background fetching is
+   *          already active.
+   */
+  public startBackgroundRefresh() {
     if (this.backgroundRefreshHandle === null) {
       this.backgroundRefreshHandle = window.setInterval(
         () => this.queueRefresh(),
         BackgroundRefreshInterval
       )
+      this.queueRefresh()
     }
   }
 
-  private stopBackgroundRefresh() {
+  /**
+   * Called to ensure that background refreshing is stopped. The intention
+   * is for background refreshing to be active while the application is
+   * focused.
+   *
+   * Remarks: this method will do nothing if background fetching is
+   *          not currently active.
+   */
+  public stopBackgroundRefresh() {
     if (this.backgroundRefreshHandle !== null) {
       window.clearInterval(this.backgroundRefreshHandle)
       this.backgroundRefreshHandle = null
