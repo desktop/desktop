@@ -23,11 +23,28 @@ interface ICommitStatusCacheEntry {
 
 export type StatusCallBack = (status: IAPIRefStatus | null) => void
 
+/**
+ * An interface describing one or more subscriptions for
+ * which to deliver updates about commit status for a particular
+ * ref.
+ */
 interface IRefStatusSubscription {
+  /**
+   * TThe repository endpoint (for example https://api.github.com for
+   * GitHub.com and https://github.corporation.local/api for GHE)
+   */
   readonly endpoint: string
+
+  /** Owner The repository owner's login (desktop for desktop/desktop) */
   readonly owner: string
+
+  /** The repository name */
   readonly name: string
+
+  /** The commit ref (can be a SHA or a Git ref) for which to fetch status. */
   readonly ref: string
+
+  /** One or more callbacks to notify when the commit status is updated */
   readonly callbacks: Set<StatusCallBack>
 }
 
