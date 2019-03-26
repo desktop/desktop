@@ -204,11 +204,6 @@ export class Dispatcher {
     return this.appStore._selectRepository(repository)
   }
 
-  /** Load the working directory status. */
-  public loadStatus(repository: Repository): Promise<boolean> {
-    return this.appStore._loadStatus(repository)
-  }
-
   /** Change the selected section in the repository. */
   public changeRepositorySection(
     repository: Repository,
@@ -1515,7 +1510,7 @@ export class Dispatcher {
       forceWithLease: true,
     })
 
-    await this.loadStatus(repository)
+    await this.appStore._loadStatus(repository)
   }
 
   public setConfirmForcePushSetting(value: boolean) {
