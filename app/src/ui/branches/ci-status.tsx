@@ -55,6 +55,7 @@ export class CIStatus extends React.PureComponent<
   private unsubscribe() {
     if (this.statusSubscription) {
       this.statusSubscription.dispose()
+      this.statusSubscription = null
     }
   }
 
