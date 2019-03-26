@@ -1510,7 +1510,7 @@ export class Dispatcher {
       forceWithLease: true,
     })
 
-    await this.loadStatus(repository)
+    await this.appStore._loadStatus(repository)
   }
 
   public setConfirmForcePushSetting(value: boolean) {
