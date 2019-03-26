@@ -139,6 +139,7 @@ import {
   continueRebase,
   rebase,
   PushOptions,
+  RebaseResult,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -196,6 +197,7 @@ import { BranchPruner } from './helpers/branch-pruner'
 import { enableBranchPruning, enablePullWithRebase } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import { RebaseProgressOptions } from '../../models/rebase'
+import { isDarkModeEnabled } from '../../ui/lib/dark-theme'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -1481,8 +1483,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
         ? imageDiffTypeDefault
         : parseInt(imageDiffTypeValue)
 
-    this.selectedTheme = getPersistedTheme()
     this.automaticallySwitchTheme = getAutoSwitchPersistedTheme()
+
+    if (this.automaticallySwitchTheme) {
+      this.selectedTheme = isDarkModeEnabled()
+        ? ApplicationTheme.Dark
+        : ApplicationTheme.Light
+      setPersistedTheme(this.selectedTheme)
+    } else {
+      this.selectedTheme = getPersistedTheme()
+    }
 
     themeChangeMonitor.onThemeChanged(theme => {
       if (this.automaticallySwitchTheme) {
@@ -3364,10 +3374,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     baseBranch: string,
     targetBranch: string,
     progress?: RebaseProgressOptions
-  ) {
+  ): Promise<RebaseResult> {
     const gitStore = this.gitStoreCache.get(repository)
-    return await gitStore.performFailableOperation(() =>
-      rebase(repository, baseBranch, targetBranch, progress)
+    return (
+      (await gitStore.performFailableOperation(() =>
+        rebase(repository, baseBranch, targetBranch, progress)
+      )) || RebaseResult.Error
     )
   }
 
@@ -3384,10 +3396,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     workingDirectory: WorkingDirectoryStatus,
     manualResolutions: ReadonlyMap<string, ManualConflictResolution>
-  ) {
+  ): Promise<RebaseResult> {
     const gitStore = this.gitStoreCache.get(repository)
-    return await gitStore.performFailableOperation(() =>
-      continueRebase(repository, workingDirectory.files, manualResolutions)
+    return (
+      (await gitStore.performFailableOperation(() =>
+        continueRebase(repository, workingDirectory.files, manualResolutions)
+      )) || RebaseResult.Error
     )
   }
 
