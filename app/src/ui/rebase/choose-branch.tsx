@@ -59,8 +59,6 @@ interface IChooseBranchDialogState {
 
   /** The filter text to use in the branch selector */
   readonly filterText: string
-
-  readonly isRebasing: boolean
 }
 
 /** A component for initating a rebase of the current branch. */
@@ -82,7 +80,6 @@ export class ChooseBranchDialog extends React.Component<
     this.state = {
       selectedBranch,
       filterText: '',
-      isRebasing: false,
     }
   }
 
@@ -107,8 +104,7 @@ export class ChooseBranchDialog extends React.Component<
       currentBranch === null ||
       currentBranch.name === selectedBranch.name
 
-    const loading = this.state.isRebasing
-    const disabled = selectedBranchIsNotCurrentBranch || loading
+    const disabled = selectedBranchIsNotCurrentBranch
 
     const currentBranchName = currentBranch.name
 
@@ -123,7 +119,6 @@ export class ChooseBranchDialog extends React.Component<
         id="rebase"
         onDismissed={this.props.onDismissed}
         onSubmit={this.startRebase}
-        loading={loading}
         disabled={disabled}
         dismissable={true}
         title={
