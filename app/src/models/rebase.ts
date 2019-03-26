@@ -42,3 +42,14 @@ export type RebasePreviewResult =
   | RebaseConflicts
   | RebaseUnsupported
   | RebaseLoading
+
+export type RebaseProgressSummary = {
+  /** A numeric value between 0 and 1 representing the rebase progress */
+  readonly value: number
+  /** Track the current number of commits rebased across dialogs and states */
+  readonly count: number
+  /** Track the total number of commits to rebase across dialog and states */
+  readonly total: number
+  /** The commit summary associated with the current commit (if known) */
+  readonly commitSummary?: string
+}

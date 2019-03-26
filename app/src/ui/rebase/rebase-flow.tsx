@@ -19,6 +19,7 @@ import { ChooseBranchDialog } from './choose-branch'
 import { ShowConflictedFilesDialog } from './show-conflicted-files-dialog'
 import { RebaseProgressDialog } from './progress-dialog'
 import { ConfirmAbortDialog } from './confirm-abort-dialog'
+import { RebaseProgressSummary } from '../../models/rebase'
 
 interface IRebaseFlowProps {
   /** Starting point for the rebase flow */
@@ -50,18 +51,11 @@ interface IRebaseFlowProps {
 }
 
 interface IRebaseFlowState {
+  /** The current step in the rebase flow */
   readonly step: RebaseFlowState
 
-  readonly progress: {
-    /** A numeric value between 0 and 1 representing the rebase progress */
-    readonly value: number
-    /** Track the current number of commits rebased across dialogs and states */
-    readonly count: number
-    /** Track the total number of commits to rebase across dialog and states */
-    readonly total: number
-    /** The commit summary associated with the current commit (if known) */
-    readonly commitSummary?: string
-  }
+  /** The progress information about the rebase */
+  readonly progress: RebaseProgressSummary
 
   /**
    * A flag to track whether the user has done work as part of this rebase,
