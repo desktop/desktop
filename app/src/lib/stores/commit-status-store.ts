@@ -35,7 +35,7 @@ interface IRefStatusSubscription {
    */
   readonly endpoint: string
 
-  /** Owner The repository owner's login (desktop for desktop/desktop) */
+  /** Owner The repository owner's login (i.e niik for niik/desktop) */
   readonly owner: string
 
   /** The repository name */
@@ -73,7 +73,7 @@ function getCacheKeyForRepository(repository: GitHubRepository, ref: string) {
  *
  * @param ep    The repository endpoint (for example https://api.github.com for
  *              GitHub.com and https://github.corporation.local/api for GHE)
- * @param owner The repository owner's login (desktop for desktop/desktop)
+ * @param owner The repository owner's login (i.e niik for niik/desktop)
  * @param name  The repository name
  * @param ref   The commit ref (can be a SHA or a Git ref) for which to fetch
  *              status.
