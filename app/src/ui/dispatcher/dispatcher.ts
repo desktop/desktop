@@ -1725,6 +1725,13 @@ export class Dispatcher {
     return this.appStore._refreshPullRequests(repository)
   }
 
+  /**
+   * Attempt to retrieve a commit status for a particular
+   * ref. If the ref doesn't exist in the cache this function returns null.
+   *
+   * Useful for component who wish to have a value for the initial render
+   * instead of waiting for the subscription to produce an event.
+   */
   public tryGetCommitStatus(
     repository: GitHubRepository,
     ref: string
@@ -1732,6 +1739,15 @@ export class Dispatcher {
     return this.commitStatusStore.tryGetStatus(repository, ref)
   }
 
+  /**
+   * Subscribe to commit status updates for a particular ref.
+   *
+   * @param repository The GitHub repository to use when looking up commit status.
+   * @param ref        The commit ref (can be a SHA or a Git ref) for which to
+   *                   fetch status.
+   * @param callback   A callback which will be invoked whenever the
+   *                   store updates a commit status for the given ref.
+   */
   public subscribeToCommitStatus(
     repository: GitHubRepository,
     ref: string,
