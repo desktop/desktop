@@ -1,24 +1,28 @@
 import * as React from 'react'
-import { DialogContent, Dialog, DialogFooter } from '../dialog'
-import { ButtonGroup } from '../lib/button-group'
-import { Button } from '../lib/button'
+
 import {
   WorkingDirectoryStatus,
   WorkingDirectoryFileChange,
 } from '../../models/status'
+import { Repository } from '../../models/repository'
+import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
+
 import {
   getUnmergedFiles,
   getConflictedFiles,
   isConflictedFile,
 } from '../../lib/status'
-import { Repository } from '../../models/repository'
-import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
+
+import { ButtonGroup } from '../lib/button-group'
+import { Button } from '../lib/button'
 import {
   renderUnmergedFilesSummary,
   renderShellLink,
   renderAllResolved,
 } from '../lib/conflicts/render-functions'
 import { renderUnmergedFile } from '../lib/conflicts/unmerged-file'
+
+import { DialogContent, Dialog, DialogFooter } from '../dialog'
 import { Dispatcher } from '../dispatcher'
 
 interface IShowConflictedFilesDialogProps {

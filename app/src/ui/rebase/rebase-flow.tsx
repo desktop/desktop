@@ -9,6 +9,7 @@ import { RebaseConflictState } from '../../lib/app-state'
 
 import { Repository } from '../../models/repository'
 import { RebaseStep, RebaseFlowState } from '../../models/rebase-flow-state'
+import { RebaseProgressSummary } from '../../models/rebase'
 import { BannerType } from '../../models/banner'
 import { IRebaseProgress } from '../../models/progress'
 import { WorkingDirectoryStatus } from '../../models/status'
@@ -19,7 +20,6 @@ import { ChooseBranchDialog } from './choose-branch'
 import { ShowConflictedFilesDialog } from './show-conflicted-files-dialog'
 import { RebaseProgressDialog } from './progress-dialog'
 import { ConfirmAbortDialog } from './confirm-abort-dialog'
-import { RebaseProgressSummary } from '../../models/rebase'
 
 interface IRebaseFlowProps {
   /** Starting point for the rebase flow */
@@ -355,16 +355,10 @@ export class RebaseFlow extends React.Component<
       }
       case RebaseStep.ShowProgress:
         const { onDidMount } = step
-        const { value, count, total, commitSummary } = this.state.progress
+        const { progress } = this.state
 
         return (
-          <RebaseProgressDialog
-            value={value}
-            count={count}
-            total={total}
-            commitSummary={commitSummary}
-            onDidMount={onDidMount}
-          />
+          <RebaseProgressDialog progress={progress} onDidMount={onDidMount} />
         )
       case RebaseStep.ShowConflicts: {
         const {

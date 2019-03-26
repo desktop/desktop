@@ -3,13 +3,14 @@ import * as React from 'react'
 import { Branch } from '../../models/branch'
 import { Repository } from '../../models/repository'
 
+import { IMatches } from '../../lib/fuzzy-find'
+import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
+
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { BranchList, IBranchListItem, renderDefaultBranch } from '../branches'
-import { IMatches } from '../../lib/fuzzy-find'
-import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
 
 interface IChooseBranchDialogProps {
   readonly repository: Repository

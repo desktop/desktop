@@ -5,16 +5,11 @@ import { formatRebaseValue } from '../../lib/rebase'
 
 import { Dialog, DialogContent } from '../dialog'
 import { Octicon, OcticonSymbol } from '../octicons'
+import { RebaseProgressSummary } from '../../models/rebase'
 
 interface IRebaseProgressDialogProps {
-  /** A number between 0 and 1 representing the overall progress */
-  readonly value: number
-  /** The number of commits currently rebased onto the base branch */
-  readonly count: number
-  /** The toal number of commits to rebase on top of the current branch */
-  readonly total: number
-  /** The commit summary associated with the current commit (if known) */
-  readonly commitSummary?: string
+  /** Rebase progress information */
+  readonly progress: RebaseProgressSummary
   /**
    * An optional action to run when the component is mounted
    *
@@ -40,7 +35,7 @@ export class RebaseProgressDialog extends React.Component<
   }
 
   public render() {
-    const { count, total, value, commitSummary } = this.props
+    const { count, total, value, commitSummary } = this.props.progress
     const progressValue = formatRebaseValue(value)
     return (
       <Dialog

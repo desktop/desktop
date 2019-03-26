@@ -1,9 +1,10 @@
 import * as React from 'react'
 
-import { Dialog, DialogContent, DialogFooter } from '../dialog'
-import { OcticonSymbol, Octicon } from '../octicons'
 import { ButtonGroup } from '../lib/button-group'
 import { Button } from '../lib/button'
+
+import { Dialog, DialogContent, DialogFooter } from '../dialog'
+import { OcticonSymbol, Octicon } from '../octicons'
 
 const titleString = 'Confirm abort rebase'
 const cancelButtonString = 'Cancel'
