@@ -61,13 +61,20 @@ interface IRebaseFlowState {
   /** The current step in the rebase flow */
   readonly step: RebaseFlowState
 
-  /** The progress information about the current rebase */
+  /**
+   * Tracking the tip of the repository when conflicts were last resolved to
+   * ensure the flow returns to displaying conflicts only when the rebase
+   * proceeds, and not as a side-effect of other prop changes.
+   */
+  readonly lastResolvedConflictsTip: string | null
+
+  /** Progress information about the current rebase */
   readonly progress: RebaseProgressSummary
 
   /**
-   * A flag to track whether the user has done work as part of this rebase,
-   * as the component should confirm with the user that they wish to abort
-   * the rebase and lose that work.
+   * Track whether the user has done work to resolve conflicts as part of this
+   * rebase, as the component should confirm with the user that they wish to
+   * abort the rebase and lose that work.
    */
   readonly userHasResolvedConflicts: boolean
 }
@@ -82,6 +89,7 @@ export class RebaseFlow extends React.Component<
 
     this.state = {
       step: props.initialState,
+      lastResolvedConflictsTip: null,
       progress: {
         value: 0,
         count: 0,
@@ -91,16 +99,19 @@ export class RebaseFlow extends React.Component<
     }
   }
 
-  public async componentDidUpdate(prevProps: IRebaseFlowProps) {
+  public async componentDidUpdate() {
     if (this.state.step.kind === RebaseStep.ShowProgress) {
-      const oldConflictState = prevProps.conflictState
-      const newConflictState = this.props.conflictState
-
-      if (oldConflictState === null && newConflictState !== null) {
+      // if we encounter new conflicts, transition to the resolve conflicts step
+      const { conflictState } = this.props
+      if (
+        conflictState !== null &&
+        this.state.lastResolvedConflictsTip !== conflictState.currentTip
+      ) {
         const { workingDirectory } = this.props
-        const { manualResolutions, targetBranch } = newConflictState
+        const { manualResolutions, targetBranch } = conflictState
 
         this.setState({
+          lastResolvedConflictsTip: null,
           step: {
             kind: RebaseStep.ShowConflicts,
             targetBranch,
@@ -242,6 +253,11 @@ export class RebaseFlow extends React.Component<
       throw new Error(`No conflicted files found, unable to continue rebase`)
     }
 
+    // set the know conflict tip state before continuing the rebase
+    this.setState({
+      lastResolvedConflictsTip: conflictState.currentTip,
+    })
+
     const continueRebaseAction = async () => {
       const result = await this.props.dispatcher.continueRebase(
         this.props.repository,
@@ -291,8 +307,8 @@ export class RebaseFlow extends React.Component<
         this.props.dispatcher.setBanner({
           type: BannerType.RebaseConflictsFound,
           targetBranch,
-          onOpenDialog: async () => {
-            await this.moveToShowConflictedFileState()
+          onOpenDialog: () => {
+            this.moveToShowConflictedFileState()
           },
         })
       }
