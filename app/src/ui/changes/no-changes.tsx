@@ -280,7 +280,7 @@ export class NoChanges extends React.Component<
 
     const description = (
       <>
-        Select your editor in {' '}
+        Select your editor in{' '}
         <LinkButton onClick={this.openPreferences}>
           {__DARWIN__ ? 'Preferences' : 'Options'}
         </LinkButton>
