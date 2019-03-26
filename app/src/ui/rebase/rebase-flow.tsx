@@ -90,7 +90,39 @@ export class RebaseFlow extends React.Component<
     }
   }
 
-  public async componentDidUpdate() {
+  public async componentDidUpdate(prevProps: IRebaseFlowProps) {
+    if (this.state.step.kind === RebaseStep.ShowProgress) {
+      const oldConflictState = prevProps.conflictState
+      const newConflictState = this.props.conflictState
+
+      if (oldConflictState === null && newConflictState !== null) {
+        const { workingDirectory } = this.props
+        const { manualResolutions, targetBranch } = newConflictState
+
+        this.setState({
+          step: {
+            kind: RebaseStep.ShowConflicts,
+            targetBranch,
+            workingDirectory,
+            manualResolutions,
+          },
+        })
+      } else if (this.state.progress.value >= 1) {
+        // waiting before the CSS animation to give the progress UI a chance to show
+        // it reaches 100%
+        await timeout(1000)
+
+        this.setState(
+          {
+            step: {
+              kind: RebaseStep.Completed,
+            },
+          },
+          () => this.props.onFlowEnded()
+        )
+      }
+    }
+
     if (
       this.state.step.kind === RebaseStep.ShowConflicts &&
       // skip re-running this check once any resolved files have been detected
@@ -113,32 +145,10 @@ export class RebaseFlow extends React.Component<
           userHasResolvedConflicts: true,
         })
       }
-
-      return
-    }
-
-    if (
-      this.state.step.kind === RebaseStep.ShowProgress &&
-      this.state.progress.value >= 1
-    ) {
-      // waiting before the CSS animation to give the progress UI a chance to show
-      // it reaches 100%
-      await timeout(1000)
-
-      this.setState(
-        {
-          step: {
-            kind: RebaseStep.Completed,
-          },
-        },
-        () => this.props.onFlowEnded()
-      )
     }
   }
 
-  private moveToShowConflictedFileState = async () => {
-    await this.props.dispatcher.loadStatus(this.props.repository)
-
+  private moveToShowConflictedFileState = () => {
     const { workingDirectory, conflictState } = this.props
 
     if (conflictState === null) {
@@ -173,9 +183,9 @@ export class RebaseFlow extends React.Component<
   }
 
   private moveToCompletedState = () => {
-    // this ensures the progress bar fills to 100%, and componentDidUpdate
+    // this ensures the progress bar fills to 100%, while componentDidUpdate
     // handles the state transition after a period of time to ensure the UI
-    // gracefully switches
+    // shows _something_ before closing the dialog
     this.setState(prevState => {
       const { total } = prevState.progress
       return {
@@ -209,9 +219,7 @@ export class RebaseFlow extends React.Component<
         }
       )
 
-      if (result === RebaseResult.ConflictsEncountered) {
-        await this.moveToShowConflictedFileState()
-      } else if (result === RebaseResult.CompletedWithoutError) {
+      if (result === RebaseResult.CompletedWithoutError) {
         this.moveToCompletedState()
       }
     }
@@ -248,9 +256,7 @@ export class RebaseFlow extends React.Component<
         conflictState.manualResolutions
       )
 
-      if (result === RebaseResult.ConflictsEncountered) {
-        await this.moveToShowConflictedFileState()
-      } else if (result === RebaseResult.CompletedWithoutError) {
+      if (result === RebaseResult.CompletedWithoutError) {
         this.moveToCompletedState()
       }
     }
@@ -258,7 +264,6 @@ export class RebaseFlow extends React.Component<
     this.setState(prevState => {
       const { total, count } = prevState.progress
 
-      // move to next commit to signal progress
       const newCount = count + 1
       const progress = newCount / total
       const value = formatRebaseValue(progress)
@@ -270,7 +275,7 @@ export class RebaseFlow extends React.Component<
         },
         progress: {
           value,
-          count: count + 1,
+          count: newCount,
           total,
         },
       }

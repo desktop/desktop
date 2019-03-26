@@ -13,7 +13,7 @@ interface IConfirmAbortDialogProps {
   readonly baseBranch?: string
   readonly targetBranch: string
 
-  readonly onReturnToConflicts: () => Promise<void>
+  readonly onReturnToConflicts: () => void
   readonly onConfirmAbort: () => Promise<void>
 }
 
