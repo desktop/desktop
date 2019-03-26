@@ -22,7 +22,10 @@ import { RebaseProgressDialog } from './progress-dialog'
 import { ConfirmAbortDialog } from './confirm-abort-dialog'
 
 interface IRebaseFlowProps {
-  /** Starting point for the rebase flow */
+  /**
+   * Starting point for the rebase flow - may be choosing a branch or starting
+   * from conflicts
+   */
   readonly initialState: RebaseFlowState
 
   readonly repository: Repository
@@ -39,22 +42,26 @@ interface IRebaseFlowProps {
    */
   readonly conflictState: RebaseConflictState | null
 
-  readonly openFileInExternalEditor: (path: string) => void
-  readonly resolvedExternalEditor: string | null
-  readonly openRepositoryInShell: (repository: Repository) => void
-
   /**
    * Callback to fire to signal to the application that the rebase flow has
    * either ended in success or has been aborted and the flow can be closed.
    */
   readonly onFlowEnded: () => void
+
+  /**
+   * Callbacks for the conflict selection components to let the user jump out
+   * to their preferred editor.
+   */
+  readonly openFileInExternalEditor: (path: string) => void
+  readonly resolvedExternalEditor: string | null
+  readonly openRepositoryInShell: (repository: Repository) => void
 }
 
 interface IRebaseFlowState {
   /** The current step in the rebase flow */
   readonly step: RebaseFlowState
 
-  /** The progress information about the rebase */
+  /** The progress information about the current rebase */
   readonly progress: RebaseProgressSummary
 
   /**
@@ -102,8 +109,8 @@ export class RebaseFlow extends React.Component<
           },
         })
       } else if (this.state.progress.value >= 1) {
-        // waiting before the CSS animation to give the progress UI a chance to show
-        // it reaches 100%
+        // waiting before the CSS animation to give the progress UI a chance to
+        // show it reaches 100%
         await timeout(1000)
 
         this.setState(
@@ -163,23 +170,15 @@ export class RebaseFlow extends React.Component<
   }
 
   private updateProgress = (progress: IRebaseProgress) => {
-    const { title, value, commitSummary, total, count } = progress
-    log.info(`got progress: '${title}' '${value}' '${commitSummary}'`)
-
     this.setState({
-      progress: {
-        value,
-        commitSummary,
-        count,
-        total,
-      },
+      progress,
     })
   }
 
   private moveToCompletedState = () => {
-    // this ensures the progress bar fills to 100%, while componentDidUpdate
-    // handles the state transition after a period of time to ensure the UI
-    // shows _something_ before closing the dialog
+    // this ensures the progress bar fills to 100%, while `componentDidUpdate`
+    // detects and handles the state transition after a period of time to ensure
+    // the UI shows _something_ before closing the dialog
     this.setState(prevState => {
       const { total } = prevState.progress
       return {
@@ -243,7 +242,7 @@ export class RebaseFlow extends React.Component<
       throw new Error(`No conflicted files found, unable to continue rebase`)
     }
 
-    const continueRebaseInner = async () => {
+    const continueRebaseAction = async () => {
       const result = await this.props.dispatcher.continueRebase(
         this.props.repository,
         this.props.workingDirectory,
@@ -259,13 +258,13 @@ export class RebaseFlow extends React.Component<
       const { total, count } = prevState.progress
 
       const newCount = count + 1
-      const progress = newCount / total
-      const value = formatRebaseValue(progress)
+      const newProgressValue = newCount / total
+      const value = formatRebaseValue(newProgressValue)
 
       return {
         step: {
           kind: RebaseStep.ShowProgress,
-          onDidMount: continueRebaseInner,
+          onDidMount: continueRebaseAction,
         },
         progress: {
           value,
@@ -282,12 +281,11 @@ export class RebaseFlow extends React.Component<
         `Invalid step to show rebase conflicts banner: ${this.state.step.kind}`
       )
     }
+    const { targetBranch } = this.state.step
 
     this.setState({
       step: { kind: RebaseStep.HideConflicts },
     })
-
-    const { targetBranch } = this.state.step
 
     this.props.dispatcher.setBanner({
       type: BannerType.RebaseConflictsFound,

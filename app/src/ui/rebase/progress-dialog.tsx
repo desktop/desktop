@@ -8,7 +8,7 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { RebaseProgressSummary } from '../../models/rebase'
 
 interface IRebaseProgressDialogProps {
-  /** Rebase progress information */
+  /** Progress information about the current rebase */
   readonly progress: RebaseProgressSummary
   /**
    * An optional action to run when the component is mounted
