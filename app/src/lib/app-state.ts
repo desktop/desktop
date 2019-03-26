@@ -13,7 +13,7 @@ import { CloneRepositoryTab } from '../models/clone-repository-tab'
 import { BranchesTab } from '../models/branches-tab'
 import { PullRequest } from '../models/pull-request'
 import { IAuthor } from '../models/author'
-import { MergeResultKind } from '../models/merge'
+import { MergeResult } from '../models/merge'
 import { ICommitMessage } from '../models/commit-message'
 import {
   IRevertProgress,
@@ -554,7 +554,7 @@ export interface ICompareState {
   readonly formState: IDisplayHistory | ICompareBranch
 
   /** The result of merging the compare branch into the current branch, if a branch selected */
-  readonly mergeStatus: MergeResultStatus | null
+  readonly mergeStatus: MergeResult | null
 
   /** Whether the branch list should be expanded or hidden */
   readonly showBranchList: boolean
@@ -609,17 +609,6 @@ export interface ICompareFormUpdate {
   /** Thew new state of the branches list */
   readonly showBranchList: boolean
 }
-
-export type MergeResultStatus =
-  | {
-      kind: MergeResultKind.Loading
-    }
-  | {
-      kind: MergeResultKind.Conflicts
-      conflictedFiles: number
-    }
-  | { kind: MergeResultKind.Clean }
-  | { kind: MergeResultKind.Invalid }
 
 export interface IViewHistory {
   readonly kind: HistoryTabMode.History

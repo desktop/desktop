@@ -9,7 +9,6 @@ import {
   Foldout,
   FoldoutType,
   ICompareFormUpdate,
-  MergeResultStatus,
   RepositorySectionTab,
   isRebaseConflictState,
 } from '../../lib/app-state'
@@ -71,6 +70,7 @@ import { Banner, BannerType } from '../../models/banner'
 import { ApplicationTheme } from '../lib/application-theme'
 import { installCLI } from '../lib/install-cli'
 import { executeMenuItem } from '../main-process-proxy'
+import { MergeResult } from '../../models/merge'
 
 /**
  * An error handler function.
@@ -618,7 +618,7 @@ export class Dispatcher {
   public mergeBranch(
     repository: Repository,
     branch: string,
-    mergeStatus: MergeResultStatus | null
+    mergeStatus: MergeResult | null
   ): Promise<void> {
     return this.appStore._mergeBranch(repository, branch, mergeStatus)
   }
