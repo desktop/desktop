@@ -283,17 +283,20 @@ export class RebaseFlow extends React.Component<
     }
     const { targetBranch } = this.state.step
 
-    this.setState({
-      step: { kind: RebaseStep.HideConflicts },
-    })
-
-    this.props.dispatcher.setBanner({
-      type: BannerType.RebaseConflictsFound,
-      targetBranch,
-      onOpenDialog: async () => {
-        await this.moveToShowConflictedFileState()
+    this.setState(
+      {
+        step: { kind: RebaseStep.HideConflicts },
       },
-    })
+      () => {
+        this.props.dispatcher.setBanner({
+          type: BannerType.RebaseConflictsFound,
+          targetBranch,
+          onOpenDialog: async () => {
+            await this.moveToShowConflictedFileState()
+          },
+        })
+      }
+    )
   }
 
   private onConfirmAbortRebase = async () => {
@@ -352,11 +355,11 @@ export class RebaseFlow extends React.Component<
         )
       }
       case RebaseStep.ShowProgress:
-        const { onDidMount } = step
-        const { progress } = this.state
-
         return (
-          <RebaseProgressDialog progress={progress} onDidMount={onDidMount} />
+          <RebaseProgressDialog
+            progress={this.state.progress}
+            onDidMount={step.onDidMount}
+          />
         )
       case RebaseStep.ShowConflicts: {
         const {
