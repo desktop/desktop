@@ -8,7 +8,16 @@ import { API, IAPIRefStatus } from '../api'
 import { IDisposable, Disposable } from 'event-kit'
 
 interface ICommitStatusCacheEntry {
+  /**
+   * The combined ref status from the API or null if
+   * the status could not be retrieved.
+   */
   readonly status: IAPIRefStatus | null
+
+  /**
+   * The timestamp for when this cache entry was last
+   * fetched from the API (i.e. when it was created).
+   */
   readonly fetchedAt: Date
 }
 
