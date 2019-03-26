@@ -34,6 +34,8 @@ export interface IPullRequestListItemProps {
   readonly matches: IMatches
 
   readonly dispatcher: Dispatcher
+
+  /** The GitHub repository to use when looking up commit status. */
   readonly repository: GitHubRepository
 }
 

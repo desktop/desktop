@@ -13,7 +13,11 @@ interface ICIStatusProps {
   readonly className?: string
 
   readonly dispatcher: Dispatcher
+
+  /** The GitHub repository to use when looking up commit status. */
   readonly repository: GitHubRepository
+
+  /** The commit ref (can be a SHA or a Git ref) for which to fetch status. */
   readonly commitRef: string
 }
 

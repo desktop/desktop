@@ -8,6 +8,8 @@ interface IPullRequestBadgeProps {
   readonly number: number
 
   readonly dispatcher: Dispatcher
+
+  /** The GitHub repository to use when looking up commit status. */
   readonly repository: GitHubRepository
 }
 
