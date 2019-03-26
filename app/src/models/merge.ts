@@ -16,7 +16,7 @@ export interface IMergeEntry {
   readonly hasConflicts?: boolean
 }
 
-export interface MergeSuccess {
+export type MergeSuccess = {
   readonly kind: ComputedActionKind.Clean
   readonly entries: ReadonlyArray<IMergeEntry>
 }
