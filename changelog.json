@@ -6,7 +6,7 @@
       "[Fixed] Crash when unable to create log file on disk - #7096",
       "[Fixed] Race condition with remote lookup could cause push to go to incorrect remote - #6986",
       "[Fixed] Mistaken classification of all crashes being related to launch - #7126",
-      "[Fixed] Menus disabled when \"Merge Conflicts\" is launched for inactive repository - #7018",
+      "[Fixed] Prevent menus from being disabled by activity in inactive repositories - #6313",
       "[Fixed] \"Automatically Switch Theme\" on macOS does not check theme on launch - #7116. Thanks @say25!",
       "[Fixed] Clicking \"Undo\" doesn't repopulate summary in commit form - #6390. Thanks @humphd!",
       "[Fixed] Emoji rendering in app broken when account name has special characters - #6909",
