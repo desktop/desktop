@@ -1,5 +1,22 @@
 {
   "releases": {
+    "1.7.0-beta0": [
+      "[New] Add Recent Group to Repo List - #7132",
+      "[Added] Explicit refresh of PR list and avoid skeleton loading screen when we have PRs to show - #7027",
+      "[Fixed] Cancel active selection before swapping document - #7131",
+      "[Fixed] Don't crash when failing to create log file - #7096",
+      "[Fixed] Ensure push goes to the right remote - #6986",
+      "[Fixed] Fix mistaken classification of all crashes as being related to launch - #7126",
+      "[Fixed] Make loadAndCacheUser more resilient to bad input - #6945",
+      "[Fixed] Only trigger conflicts flow for the selected repository - #7018",
+      "[Fixed] Prevent feedback loop toggling repository missing flag - #7062",
+      "[Fixed] Check OS Dark Mode On Start Up - #7116. Thanks @say25!",
+      "[Fixed] Copy commit message props to state using componentWillReceiveProps - #6390. Thanks @humphd!",
+      "[Fixed] Encode file path to each emoji when reading from cache - #6909",
+      "[Fixed] Ensure files marked for deletion in index are actually deleted - #4133",
+      "[Fixed] Feat: Add visual feedback on Remove and Discard changes dialogs - #7015. Thanks @HashimotoYT!",
+      "[Fixed] Tweaks to onboarding language - #6638. Thanks @jamesgeorge007!"
+    ],
     "1.6.5": [
       "[Fixed] Publish Repository does not let you publish to an organization on your Enterprise account - #7052"
     ],
