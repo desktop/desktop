@@ -317,7 +317,8 @@ export class API {
   public async fetchAccount(): Promise<IAPIFullIdentity> {
     try {
       const response = await this.request('GET', 'user')
-      return await parsedResponse<IAPIFullIdentity>(response)
+      const result = await parsedResponse<IAPIFullIdentity>(response)
+      return result
     } catch (e) {
       log.warn(`fetchAccount: failed with endpoint ${this.endpoint}`, e)
       throw e
