@@ -100,6 +100,14 @@
     }
   }
 
+  .repository-list-item.group-repositories-by-owner {
+    padding: 0 var(--spacing) 0 0;
+  }
+
+  .filter-list-group-header.group-repositories-by-owner {
+    padding-top: var(--spacing);
+  }
+
   .new-repository-button {
     flex-shrink: 0;
 

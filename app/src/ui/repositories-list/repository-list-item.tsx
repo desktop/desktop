@@ -8,6 +8,7 @@ import { HighlightText } from '../lib/highlight-text'
 import { IMatches } from '../../lib/fuzzy-find'
 import { IAheadBehind } from '../../models/branch'
 import { RevealInFileManagerLabel } from '../lib/context-menu'
+import { enableGroupRepositoriesByOwner } from '../../lib/feature-flag'
 
 const defaultEditorLabel = __DARWIN__
   ? 'Open in External Editor'
@@ -99,8 +100,12 @@ export class RepositoryListItem extends React.Component<
       prefix = `${gitHubRepo.owner.login}/`
     }
 
+    const className = enableGroupRepositoriesByOwner()
+      ? 'repository-list-item group-repositories-by-owner'
+      : 'repository-list-item'
+
     return (
-      <div onContextMenu={this.onContextMenu} className="repository-list-item">
+      <div onContextMenu={this.onContextMenu} className={className}>
         <div
           className="change-indicator-wrapper"
           title={
