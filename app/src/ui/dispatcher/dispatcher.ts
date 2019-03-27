@@ -9,7 +9,6 @@ import {
   Foldout,
   FoldoutType,
   ICompareFormUpdate,
-  MergeResultStatus,
   RepositorySectionTab,
   isRebaseConflictState,
 } from '../../lib/app-state'
@@ -75,6 +74,7 @@ import {
   CommitStatusStore,
   StatusCallBack,
 } from '../../lib/stores/commit-status-store'
+import { MergeResult } from '../../models/merge'
 
 /**
  * An error handler function.
@@ -207,11 +207,6 @@ export class Dispatcher {
     repository: Repository | CloningRepository
   ): Promise<Repository | null> {
     return this.appStore._selectRepository(repository)
-  }
-
-  /** Load the working directory status. */
-  public loadStatus(repository: Repository): Promise<boolean> {
-    return this.appStore._loadStatus(repository)
   }
 
   /** Change the selected section in the repository. */
@@ -628,7 +623,7 @@ export class Dispatcher {
   public mergeBranch(
     repository: Repository,
     branch: string,
-    mergeStatus: MergeResultStatus | null
+    mergeStatus: MergeResult | null
   ): Promise<void> {
     return this.appStore._mergeBranch(repository, branch, mergeStatus)
   }
@@ -1526,7 +1521,7 @@ export class Dispatcher {
       forceWithLease: true,
     })
 
-    await this.loadStatus(repository)
+    await this.appStore._loadStatus(repository)
   }
 
   public setConfirmForcePushSetting(value: boolean) {
