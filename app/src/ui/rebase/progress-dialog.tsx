@@ -19,8 +19,7 @@ interface IRebaseProgressDialogProps {
 }
 
 export class RebaseProgressDialog extends React.Component<
-  IRebaseProgressDialogProps,
-  {}
+  IRebaseProgressDialogProps
 > {
   private onDismissed = () => {
     // this dialog is undismissable, but I need to handle the event
