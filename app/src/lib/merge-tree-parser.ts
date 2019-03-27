@@ -1,4 +1,5 @@
-import { IMergeEntry, MergeResult, MergeResultKind } from '../models/merge'
+import { IMergeEntry, MergeResult } from '../models/merge'
+import { ComputedActionKind } from '../models/action'
 
 interface IBlobSource {
   readonly type: string
@@ -193,10 +194,10 @@ export function parseMergeResult(text: string): MergeResult {
 
   if (entriesWithConflicts.length > 0) {
     return {
-      kind: MergeResultKind.Conflicts,
+      kind: ComputedActionKind.Conflicts,
       conflictedFiles: entriesWithConflicts.length,
     }
   } else {
-    return { kind: MergeResultKind.Clean, entries }
+    return { kind: ComputedActionKind.Clean, entries }
   }
 }
