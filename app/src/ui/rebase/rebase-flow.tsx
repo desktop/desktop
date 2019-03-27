@@ -79,7 +79,7 @@ interface IRebaseFlowState {
   readonly userHasResolvedConflicts: boolean
 }
 
-/** A component for initating a rebase of the current branch. */
+/** A component for initiating and performing a rebase of the current branch. */
 export class RebaseFlow extends React.Component<
   IRebaseFlowProps,
   IRebaseFlowState

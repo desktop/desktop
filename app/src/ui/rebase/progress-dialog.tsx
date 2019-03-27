@@ -26,7 +26,7 @@ export class RebaseProgressDialog extends React.Component<
     // this dialog is undismissable, but I need to handle the event
   }
 
-  /** After a delay, run the */
+  /** After a delay, run the assigned action to start/continue the rebase */
   public async componentDidMount() {
     if (this.props.onDidMount) {
       await timeout(500)
