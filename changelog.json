@@ -1,6 +1,6 @@
 {
   "releases": {
-    "1.7.0-beta0": [
+    "1.7.0-beta1": [
       "[New] Repository list now displays recent repositories at top - #7132",
       "[Fixed] Error when selecting diff text while diff is updating - #7131",
       "[Fixed] Crash when unable to create log file on disk - #7096",
