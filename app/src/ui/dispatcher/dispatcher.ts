@@ -9,7 +9,6 @@ import {
   Foldout,
   FoldoutType,
   ICompareFormUpdate,
-  MergeResultStatus,
   RepositorySectionTab,
   isRebaseConflictState,
 } from '../../lib/app-state'
@@ -71,6 +70,7 @@ import { Banner, BannerType } from '../../models/banner'
 import { ApplicationTheme } from '../lib/application-theme'
 import { installCLI } from '../lib/install-cli'
 import { executeMenuItem } from '../main-process-proxy'
+import { MergeResult } from '../../models/merge'
 
 /**
  * An error handler function.
@@ -202,11 +202,6 @@ export class Dispatcher {
     repository: Repository | CloningRepository
   ): Promise<Repository | null> {
     return this.appStore._selectRepository(repository)
-  }
-
-  /** Load the working directory status. */
-  public loadStatus(repository: Repository): Promise<boolean> {
-    return this.appStore._loadStatus(repository)
   }
 
   /** Change the selected section in the repository. */
@@ -623,7 +618,7 @@ export class Dispatcher {
   public mergeBranch(
     repository: Repository,
     branch: string,
-    mergeStatus: MergeResultStatus | null
+    mergeStatus: MergeResult | null
   ): Promise<void> {
     return this.appStore._mergeBranch(repository, branch, mergeStatus)
   }
@@ -679,7 +674,7 @@ export class Dispatcher {
     baseBranch: string,
     targetBranch: string,
     progress?: RebaseProgressOptions
-  ) {
+  ): Promise<RebaseResult> {
     const stateBefore = this.repositoryStateManager.get(repository)
 
     const beforeSha = getTipSha(stateBefore.branchesState.tip)
@@ -720,6 +715,8 @@ export class Dispatcher {
         baseBranch: baseBranch,
       })
     }
+
+    return result
   }
 
   /** aborts the current rebase and refreshes the repository's status */
@@ -732,7 +729,7 @@ export class Dispatcher {
     repository: Repository,
     workingDirectory: WorkingDirectoryStatus,
     manualResolutions: ReadonlyMap<string, ManualConflictResolution>
-  ) {
+  ): Promise<RebaseResult> {
     const stateBefore = this.repositoryStateManager.get(repository)
 
     const beforeSha = getTipSha(stateBefore.branchesState.tip)
@@ -776,6 +773,8 @@ export class Dispatcher {
         }
       }
     }
+
+    return result
   }
 
   /** aborts an in-flight merge and refreshes the repository's status */
@@ -1511,7 +1510,7 @@ export class Dispatcher {
       forceWithLease: true,
     })
 
-    await this.loadStatus(repository)
+    await this.appStore._loadStatus(repository)
   }
 
   public setConfirmForcePushSetting(value: boolean) {

@@ -2,15 +2,15 @@ import * as React from 'react'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { assertNever } from '../../lib/fatal-error'
 import * as classNames from 'classnames'
-import { MergeResultStatus } from '../../lib/app-state'
-import { MergeResultKind } from '../../models/merge'
+import { MergeResult } from '../../models/merge'
+import { ComputedActionKind } from '../../models/action'
 
 interface IMergeStatusIconProps {
   /** The classname for the underlying element. */
   readonly className?: string
 
   /** The status to display. */
-  readonly status: MergeResultStatus | null
+  readonly status: MergeResult | null
 }
 
 /** The little CI status indicator. */
@@ -41,15 +41,15 @@ export class MergeStatusHeader extends React.Component<
   }
 }
 
-function getSymbolForState(status: MergeResultKind): OcticonSymbol {
+function getSymbolForState(status: ComputedActionKind): OcticonSymbol {
   switch (status) {
-    case MergeResultKind.Loading:
+    case ComputedActionKind.Loading:
       return OcticonSymbol.primitiveDot
-    case MergeResultKind.Conflicts:
+    case ComputedActionKind.Conflicts:
       return OcticonSymbol.alert
-    case MergeResultKind.Invalid:
+    case ComputedActionKind.Invalid:
       return OcticonSymbol.x
-    case MergeResultKind.Clean:
+    case ComputedActionKind.Clean:
       return OcticonSymbol.check
   }
 

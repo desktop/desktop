@@ -89,7 +89,6 @@ import {
   PossibleSelections,
   RepositorySectionTab,
   SelectionType,
-  MergeResultStatus,
   ComparisonMode,
   MergeConflictState,
   isMergeConflictState,
@@ -139,6 +138,7 @@ import {
   continueRebase,
   rebase,
   PushOptions,
+  RebaseResult,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -171,7 +171,7 @@ import { hasShownWelcomeFlow, markWelcomeFlowComplete } from '../welcome'
 import { getWindowState, WindowState } from '../window-state'
 import { TypedBaseStore } from './base-store'
 import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
-import { MergeResultKind } from '../../models/merge'
+import { MergeResult } from '../../models/merge'
 import { promiseWithMinimumTimeout } from '../promise'
 import { BackgroundFetcher } from './helpers/background-fetcher'
 import { inferComparisonBranch } from './helpers/infer-comparison-branch'
@@ -193,9 +193,15 @@ import {
   ManualConflictResolutionKind,
 } from '../../models/manual-conflict-resolution'
 import { BranchPruner } from './helpers/branch-pruner'
-import { enableBranchPruning, enablePullWithRebase } from '../feature-flag'
+import {
+  enableBranchPruning,
+  enablePullWithRebase,
+  enableGroupRepositoriesByOwner,
+} from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import { RebaseProgressOptions } from '../../models/rebase'
+import { isDarkModeEnabled } from '../../ui/lib/dark-theme'
+import { ComputedActionKind } from '../../models/action'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -205,6 +211,14 @@ import { RebaseProgressOptions } from '../../models/rebase'
 const FastForwardBranchesThreshold = 20
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
+
+const RecentRepositoriesKey = 'recently-selected-repositories'
+/**
+ *  maximum number of repositories shown in the "Recent" repositories group
+ *  in the repository switcher dropdown
+ */
+const RecentRepositoriesLength = 5
+const RecentRepositoriesDelimiter = ','
 
 const defaultSidebarWidth: number = 250
 const sidebarWidthConfigKey: string = 'sidebar-width'
@@ -236,6 +250,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private accounts: ReadonlyArray<Account> = new Array<Account>()
   private repositories: ReadonlyArray<Repository> = new Array<Repository>()
+  private recentRepositories: ReadonlyArray<number> = new Array<number>()
 
   private selectedRepository: Repository | CloningRepository | null = null
 
@@ -515,6 +530,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return {
       accounts: this.accounts,
       repositories,
+      recentRepositories: this.recentRepositories,
       localRepositoryStateLookup: this.localRepositoryStateLookup,
       windowState: this.windowState,
       windowZoomFactor: this.windowZoomFactor,
@@ -882,8 +898,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.currentAheadBehindUpdater.insert(from, to, aheadBehind)
     }
 
-    const loadingMerge: MergeResultStatus = {
-      kind: MergeResultKind.Loading,
+    const loadingMerge: MergeResult = {
+      kind: ComputedActionKind.Loading,
     }
 
     this.repositoryStateCache.updateCompareState(repository, () => ({
@@ -1148,6 +1164,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     setNumber(LastSelectedRepositoryIDKey, repository.id)
 
+    const previousRepositoryId = previouslySelectedRepository
+      ? previouslySelectedRepository.id
+      : null
+    if (enableGroupRepositoriesByOwner()) {
+      this.updateRecentRepositories(previousRepositoryId, repository.id)
+    }
+
     // if repository might be marked missing, try checking if it has been restored
     const refreshedRepository = await this.recoverMissingRepository(repository)
     if (refreshedRepository.missing) {
@@ -1162,6 +1185,45 @@ export class AppStore extends TypedBaseStore<IAppState> {
       refreshedRepository,
       previouslySelectedRepository
     )
+  }
+
+  // update the stored list of recently opened repositories
+  private updateRecentRepositories(
+    previousRepositoryId: number | null,
+    currentRepositoryId: number
+  ) {
+    const recentRepositories = this.getStoredRecentRepositories().filter(
+      el => el !== currentRepositoryId && el !== previousRepositoryId
+    )
+    if (previousRepositoryId !== null) {
+      recentRepositories.unshift(previousRepositoryId)
+    }
+    const slicedRecentRepositories = recentRepositories.slice(
+      0,
+      RecentRepositoriesLength
+    )
+    localStorage.setItem(
+      RecentRepositoriesKey,
+      slicedRecentRepositories.join(RecentRepositoriesDelimiter)
+    )
+    this.recentRepositories = slicedRecentRepositories
+    this.emitUpdate()
+  }
+
+  private getStoredRecentRepositories() {
+    const storedIds = localStorage.getItem(RecentRepositoriesKey)
+    let storedRepositories: Array<number> = []
+    if (storedIds) {
+      try {
+        storedRepositories = storedIds
+          .split(RecentRepositoriesDelimiter)
+          .map(n => parseInt(n, 10))
+          .filter(n => !isNaN(n))
+      } catch {
+        storedRepositories = []
+      }
+    }
+    return storedRepositories
   }
 
   // finish `_selectRepository`s refresh tasks
@@ -1483,8 +1545,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
         ? imageDiffTypeDefault
         : parseInt(imageDiffTypeValue)
 
-    this.selectedTheme = getPersistedTheme()
     this.automaticallySwitchTheme = getAutoSwitchPersistedTheme()
+
+    if (this.automaticallySwitchTheme) {
+      this.selectedTheme = isDarkModeEnabled()
+        ? ApplicationTheme.Dark
+        : ApplicationTheme.Light
+      setPersistedTheme(this.selectedTheme)
+    } else {
+      this.selectedTheme = getPersistedTheme()
+    }
 
     themeChangeMonitor.onThemeChanged(theme => {
       if (this.automaticallySwitchTheme) {
@@ -1628,7 +1698,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       conflictState: updateConflictState(state, status, this.statsStore),
     }))
 
-    this._triggerConflictsFlow(repository)
+    if (this.selectedRepository === repository) {
+      this._triggerConflictsFlow(repository)
+    }
 
     this.emitUpdate()
 
@@ -3343,16 +3415,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _mergeBranch(
     repository: Repository,
     branch: string,
-    mergeStatus: MergeResultStatus | null
+    mergeStatus: MergeResult | null
   ): Promise<void> {
     const gitStore = this.gitStoreCache.get(repository)
 
     if (mergeStatus !== null) {
-      if (mergeStatus.kind === MergeResultKind.Clean) {
+      if (mergeStatus.kind === ComputedActionKind.Clean) {
         this.statsStore.recordMergeHintSuccessAndUserProceeded()
-      } else if (mergeStatus.kind === MergeResultKind.Conflicts) {
+      } else if (mergeStatus.kind === ComputedActionKind.Conflicts) {
         this.statsStore.recordUserProceededAfterConflictWarning()
-      } else if (mergeStatus.kind === MergeResultKind.Loading) {
+      } else if (mergeStatus.kind === ComputedActionKind.Loading) {
         this.statsStore.recordUserProceededWhileLoading()
       }
     }
@@ -3377,10 +3449,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     baseBranch: string,
     targetBranch: string,
     progress?: RebaseProgressOptions
-  ) {
+  ): Promise<RebaseResult> {
     const gitStore = this.gitStoreCache.get(repository)
-    return await gitStore.performFailableOperation(() =>
-      rebase(repository, baseBranch, targetBranch, progress)
+    return (
+      (await gitStore.performFailableOperation(() =>
+        rebase(repository, baseBranch, targetBranch, progress)
+      )) || RebaseResult.Error
     )
   }
 
@@ -3397,10 +3471,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     workingDirectory: WorkingDirectoryStatus,
     manualResolutions: ReadonlyMap<string, ManualConflictResolution>
-  ) {
+  ): Promise<RebaseResult> {
     const gitStore = this.gitStoreCache.get(repository)
-    return await gitStore.performFailableOperation(() =>
-      continueRebase(repository, workingDirectory.files, manualResolutions)
+    return (
+      (await gitStore.performFailableOperation(() =>
+        continueRebase(repository, workingDirectory.files, manualResolutions)
+      )) || RebaseResult.Error
     )
   }
 
