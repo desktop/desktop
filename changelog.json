@@ -2,7 +2,6 @@
   "releases": {
     "1.7.0-beta0": [
       "[New] Repository list now displays recent repositories at top - #7132",
-      "[Improved] Pull Request list now supports manual refresh to improve usability - #7027",
       "[Fixed] Error when selecting diff text while diff is updating - #7131",
       "[Fixed] Crash when unable to create log file on disk - #7096",
       "[Fixed] Race condition with remote lookup could cause push to go to incorrect remote - #6986",
@@ -14,7 +13,8 @@
       "[Fixed] Emoji rendering in app broken when account name has special characters - #6909",
       "[Fixed] Files staged outside Desktop for deletion are incorrectly marked as modified after committing - #4133",
       "[Improved] Visual feedback on \"Remove Repository\" and \"Discard Changes\" dialogs to show progress - #7015. Thanks @HashimotoYT!",
-      "[Improved] Onboarding language for blank slate components - #6638. Thanks @jamesgeorge007!"
+      "[Improved] Onboarding language for blank slate components - #6638. Thanks @jamesgeorge007!",
+      "[Improved] Pull Request list now supports manual refresh to improve usability - #7027"
     ],
     "1.6.5": [
       "[Fixed] Publish Repository does not let you publish to an organization on your Enterprise account - #7052"
