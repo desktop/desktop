@@ -757,11 +757,11 @@ export class StatsStore implements IStatsStore {
       await this.updateDailyMeasures(m => ({
         dotcomForcePushCount: m.dotcomForcePushCount + 1,
       }))
-    } else {
-      await this.updateDailyMeasures(m => ({
-        dotcomPushCount: m.dotcomPushCount + 1,
-      }))
     }
+
+    await this.updateDailyMeasures(m => ({
+      dotcomPushCount: m.dotcomPushCount + 1,
+    }))
 
     createLocalStorageTimestamp(FirstPushToGitHubAtKey)
   }
@@ -774,11 +774,11 @@ export class StatsStore implements IStatsStore {
       await this.updateDailyMeasures(m => ({
         enterpriseForcePushCount: m.enterpriseForcePushCount + 1,
       }))
-    } else {
-      await this.updateDailyMeasures(m => ({
-        enterprisePushCount: m.enterprisePushCount + 1,
-      }))
     }
+
+    await this.updateDailyMeasures(m => ({
+      enterprisePushCount: m.enterprisePushCount + 1,
+    }))
 
     // Note, this is not a typo. We track both GitHub.com and
     // GitHub Enteprise under the same key
@@ -793,11 +793,11 @@ export class StatsStore implements IStatsStore {
       await this.updateDailyMeasures(m => ({
         externalForcePushCount: m.externalForcePushCount + 1,
       }))
-    } else {
-      await this.updateDailyMeasures(m => ({
-        externalPushCount: m.externalPushCount + 1,
-      }))
     }
+
+    await this.updateDailyMeasures(m => ({
+      externalPushCount: m.externalPushCount + 1,
+    }))
   }
 
   /** Record that the user saw a 'merge conflicts' warning but continued with the merge */
