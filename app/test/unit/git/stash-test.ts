@@ -1,7 +1,10 @@
 import * as FSE from 'fs-extra'
 import * as path from 'path'
 import { Repository } from '../../../src/models/repository'
-import { setupEmptyRepository } from '../../helpers/repositories'
+import {
+  setupEmptyRepository,
+  setupConflictedRepo,
+} from '../../helpers/repositories'
 import { GitProcess } from 'dugite'
 import {
   getDesktopStashEntries,
@@ -10,6 +13,7 @@ import {
   DesktopStashEntryMarker,
 } from '../../../src/lib/git/stash'
 import { getTipOrError } from '../../helpers/tip'
+import { GitError } from '../../../src/lib/git'
 
 describe('git/stash', () => {
   describe('getDesktopStashEntries', () => {
@@ -57,6 +61,48 @@ describe('git/stash', () => {
       await FSE.writeFile(readme, '')
       await GitProcess.exec(['add', 'README.md'], repository.path)
       await GitProcess.exec(['commit', '-m', 'initial commit'], repository.path)
+    })
+
+    it('fails when repository is unborn', async () => {
+      repository = await setupEmptyRepository()
+      await FSE.writeFile(readme, '')
+      let didFail = false
+
+      try {
+        await createDesktopStashEntry(repository, 'master', 'some_sha')
+      } catch (e) {
+        if (e instanceof GitError) {
+          if (
+            e.result.stderr.indexOf('fatal: Needed a single revision') !== -1
+          ) {
+            didFail = true
+          }
+        }
+      }
+
+      expect(didFail).toBe(true)
+    })
+
+    it('fails when repository is in conflicted state', async () => {
+      repository = await setupConflictedRepo()
+      await FSE.appendFile(readme, 'just testing stuff')
+      const tipCommit = await getTipOrError(repository)
+      let didFail = false
+
+      try {
+        await createDesktopStashEntry(repository, 'master', tipCommit.sha)
+      } catch (e) {
+        if (e instanceof GitError) {
+          if (
+            e.message.indexOf('fatal: git-write-tree: error building trees') !==
+            -1
+          ) {
+            didFail = true
+          }
+        }
+      }
+
+      expect(didFail).toBe(true)
     })
 
     it('creates a stash entry', async () => {
