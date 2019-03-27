@@ -317,8 +317,7 @@ export class API {
   public async fetchAccount(): Promise<IAPIFullIdentity> {
     try {
       const response = await this.request('GET', 'user')
-      const result = await parsedResponse<IAPIFullIdentity>(response)
-      return result
+      return await parsedResponse<IAPIFullIdentity>(response)
     } catch (e) {
       log.warn(`fetchAccount: failed with endpoint ${this.endpoint}`, e)
       throw e
@@ -351,7 +350,7 @@ export class API {
         log.warn(`fetchCommit: '${path}' returned a 404`)
         return null
       }
-      return parsedResponse<IAPICommit>(response)
+      return await parsedResponse<IAPICommit>(response)
     } catch (e) {
       log.warn(`fetchCommit: returned an error '${owner}/${name}@${sha}'`, e)
       return null
@@ -390,7 +389,7 @@ export class API {
   /** Fetch all the orgs to which the user belongs. */
   public async fetchOrgs(): Promise<ReadonlyArray<IAPIOrganization>> {
     try {
-      return this.fetchAll<IAPIOrganization>('user/orgs')
+      return await this.fetchAll<IAPIOrganization>('user/orgs')
     } catch (e) {
       log.warn(`fetchOrgs: failed with endpoint ${this.endpoint}`, e)
       return []
