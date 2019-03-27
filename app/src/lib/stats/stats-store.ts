@@ -1,5 +1,5 @@
 import { StatsDatabase, ILaunchStats, IDailyMeasures } from './stats-database'
-import { getDotComAPIEndpoint, getEnterpriseAPIURL } from '../api'
+import { getDotComAPIEndpoint } from '../api'
 import { getVersion } from '../../ui/lib/app-proxy'
 import { hasShownWelcomeFlow } from '../welcome'
 import { Account } from '../../models/account'
@@ -746,9 +746,7 @@ export class StatsStore implements IStatsStore {
       await this.recordPushToGenericRemote(options)
     } else if (githubAccount.endpoint === getDotComAPIEndpoint()) {
       await this.recordPushToGitHub(options)
-    } else if (
-      githubAccount.endpoint === getEnterpriseAPIURL(githubAccount.endpoint)
-    ) {
+    } else {
       await this.recordPushToGitHubEnterprise(options)
     }
   }
