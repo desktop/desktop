@@ -64,7 +64,7 @@ describe('git/stash', () => {
       await GitProcess.exec(['commit', '-m', 'initial commit'], repository.path)
     })
 
-    it('fails when repository is unborn', async () => {
+    it('throws when repository is unborn', async () => {
       repository = await setupEmptyRepository()
       await FSE.writeFile(readme, '')
       let didFail = false
@@ -84,7 +84,7 @@ describe('git/stash', () => {
       expect(didFail).toBe(true)
     })
 
-    it('fails when repository is in conflicted state', async () => {
+    it('throws when repository is in conflicted state', async () => {
       repository = await setupConflictedRepo()
       await FSE.appendFile(readme, 'just testing stuff')
       const tipCommit = await getTipOrError(repository)
