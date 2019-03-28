@@ -48,7 +48,6 @@ export class Octicon extends React.Component<IOcticonProps, {}> {
 
     let labelledBy: string | undefined = undefined
     let titleElem: JSX.Element | null = null
-    let descriptionElem: JSX.Element | null = null
 
     if (title && title.length > 0) {
       if (this.titleId === null) {
@@ -72,7 +71,6 @@ export class Octicon extends React.Component<IOcticonProps, {}> {
         viewBox={viewBox}
       >
         {titleElem}
-        {descriptionElem}
         <path d={symbol.d} />
       </svg>
     )
