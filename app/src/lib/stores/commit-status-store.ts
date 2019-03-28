@@ -99,7 +99,7 @@ function entryIsEligibleForRefresh(entry: ICommitStatusCacheEntry) {
   const age = now - entry.fetchedAt.valueOf()
 
   // The GitHub API has a max-age of 60, so no need to refresh
-  // any more frequently than that since chromium would just give
+  // any more frequently than that since Chromium would just give
   // us the cached value.
   return age > 60 * 1000
 }
