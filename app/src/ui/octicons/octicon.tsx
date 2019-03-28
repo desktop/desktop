@@ -31,9 +31,6 @@ interface IOcticonProps {
  * not the minimum size.
  *
  * Usage: `<Octicon symbol={OcticonSymbol.mark_github} />`
- *
- * @see OcticonProps
- * @extends React.Component<OcticonProps, void>
  */
 export class Octicon extends React.Component<IOcticonProps, {}> {
   private titleId: string | null = null
