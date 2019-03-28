@@ -11,6 +11,7 @@ import {
   createDesktopStashMessage,
   createDesktopStashEntry,
   DesktopStashEntryMarker,
+  stashEntryMessageRe,
 } from '../../../src/lib/git/stash'
 import { getTipOrError } from '../../helpers/tip'
 import { GitError } from '../../../src/lib/git'
@@ -118,6 +119,20 @@ describe('git/stash', () => {
       expect(entries[0]).toContain(
         `${DesktopStashEntryMarker}<${branchName}@${tipCommit.sha}`
       )
+    })
+  })
+
+  describe('createDesktopStashMessage', () => {
+    it('creates message that matches Desktop stash entry format', () => {
+      const branchName = 'master'
+      const tipSha = 'bc45b3b97993eed2c3d7872a0b766b3e29a12e4b'
+
+      const message = createDesktopStashMessage(branchName, tipSha)
+
+      expect(message).toBe(
+        '!!GitHub_Desktop<master@bc45b3b97993eed2c3d7872a0b766b3e29a12e4b>'
+      )
+      expect(message).toMatch(stashEntryMessageRe)
     })
   })
 })
