@@ -239,7 +239,7 @@ export class RebaseFlow extends React.Component<
     this.setState(() => ({
       step: {
         kind: RebaseStep.ShowProgress,
-        onDidMount: startRebaseAction,
+        rebaseAction: startRebaseAction,
       },
       progress: {
         value: 0,
@@ -288,7 +288,7 @@ export class RebaseFlow extends React.Component<
       return {
         step: {
           kind: RebaseStep.ShowProgress,
-          onDidMount: continueRebaseAction,
+          rebaseAction: continueRebaseAction,
         },
         progress: {
           value,
@@ -379,7 +379,7 @@ export class RebaseFlow extends React.Component<
         return (
           <RebaseProgressDialog
             progress={this.state.progress}
-            onDidMount={step.onDidMount}
+            rebaseAction={step.rebaseAction}
           />
         )
       case RebaseStep.ShowConflicts: {

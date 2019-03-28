@@ -15,7 +15,7 @@ interface IRebaseProgressDialogProps {
    *
    * This should typically be the rebase action to perform.
    */
-  readonly onDidMount?: () => Promise<void>
+  readonly rebaseAction?: () => Promise<void>
 }
 
 export class RebaseProgressDialog extends React.Component<
@@ -27,9 +27,9 @@ export class RebaseProgressDialog extends React.Component<
 
   /** After a delay, run the assigned action to start/continue the rebase */
   public async componentDidMount() {
-    if (this.props.onDidMount) {
+    if (this.props.rebaseAction) {
       await timeout(500)
-      await this.props.onDidMount()
+      await this.props.rebaseAction()
     }
   }
 

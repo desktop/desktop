@@ -80,7 +80,7 @@ export type ShowProgressStep = {
    * want to defer the rebase action until after _something_ is shown to the
    * user.
    */
-  readonly onDidMount?: () => Promise<void>
+  readonly rebaseAction?: () => Promise<void>
 }
 
 /** Shape of data to show conflicts that need to be resolved by the user */
