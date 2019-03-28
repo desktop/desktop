@@ -71,15 +71,20 @@ function getCacheKeyForRepository(repository: GitHubRepository, ref: string) {
  *          URI but that has no bearing on the functionality, it does, however
  *          help with debugging.
  *
- * @param ep    The repository endpoint (for example https://api.github.com for
- *              GitHub.com and https://github.corporation.local/api for GHE)
- * @param owner The repository owner's login (i.e niik for niik/desktop)
- * @param name  The repository name
- * @param ref   The commit ref (can be a SHA or a Git ref) for which to fetch
- *              status.
+ * @param endpoint The repository endpoint (for example https://api.github.com for
+ *                 GitHub.com and https://github.corporation.local/api for GHE)
+ * @param owner    The repository owner's login (i.e niik for niik/desktop)
+ * @param name     The repository name
+ * @param ref      The commit ref (can be a SHA or a Git ref) for which to fetch
+ *                 status.
  */
-function getCacheKey(ep: string, owner: string, name: string, ref: string) {
-  return `${ep}/repos/${owner}/${name}/commits/${ref}/status`
+function getCacheKey(
+  endpoint: string,
+  owner: string,
+  name: string,
+  ref: string
+) {
+  return `${endpoint}/repos/${owner}/${name}/commits/${ref}/status`
 }
 
 /**
