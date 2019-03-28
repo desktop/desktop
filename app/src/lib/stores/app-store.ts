@@ -201,7 +201,7 @@ import {
 import { Banner, BannerType } from '../../models/banner'
 import { RebaseProgressOptions } from '../../models/rebase'
 import { isDarkModeEnabled } from '../../ui/lib/dark-theme'
-import { ComputedActionKind } from '../../models/action'
+import { ComputedAction } from '../../models/computed-action'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -899,7 +899,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const loadingMerge: MergeResult = {
-      kind: ComputedActionKind.Loading,
+      kind: ComputedAction.Loading,
     }
 
     this.repositoryStateCache.updateCompareState(repository, () => ({
@@ -3420,11 +3420,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const gitStore = this.gitStoreCache.get(repository)
 
     if (mergeStatus !== null) {
-      if (mergeStatus.kind === ComputedActionKind.Clean) {
+      if (mergeStatus.kind === ComputedAction.Clean) {
         this.statsStore.recordMergeHintSuccessAndUserProceeded()
-      } else if (mergeStatus.kind === ComputedActionKind.Conflicts) {
+      } else if (mergeStatus.kind === ComputedAction.Conflicts) {
         this.statsStore.recordUserProceededAfterConflictWarning()
-      } else if (mergeStatus.kind === ComputedActionKind.Loading) {
+      } else if (mergeStatus.kind === ComputedAction.Loading) {
         this.statsStore.recordUserProceededWhileLoading()
       }
     }
