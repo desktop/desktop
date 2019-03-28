@@ -10,7 +10,6 @@ import { RebaseConflictState } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
 import { RebaseStep, RebaseFlowState } from '../../models/rebase-flow-state'
 import { RebaseProgressSummary } from '../../models/rebase'
-import { BannerType } from '../../models/banner'
 import { IRebaseProgress } from '../../models/progress'
 import { WorkingDirectoryStatus } from '../../models/status'
 
@@ -41,6 +40,15 @@ interface IRebaseFlowProps {
    * conflicts.
    */
   readonly conflictState: RebaseConflictState | null
+
+  /**
+   * Callback to hide the rebase flow and show a banner about the current state
+   * of conflicts, because this component will be unmounted by the runtime.
+   */
+  readonly onShowRebaseConflictsBanner: (
+    repository: Repository,
+    targetBranch: string
+  ) => void
 
   /**
    * Callback to fire to signal to the application that the rebase flow has
@@ -304,13 +312,10 @@ export class RebaseFlow extends React.Component<
         step: { kind: RebaseStep.HideConflicts },
       },
       () => {
-        this.props.dispatcher.setBanner({
-          type: BannerType.RebaseConflictsFound,
-          targetBranch,
-          onOpenDialog: () => {
-            this.moveToShowConflictedFileState()
-          },
-        })
+        this.props.onShowRebaseConflictsBanner(
+          this.props.repository,
+          targetBranch
+        )
       }
     )
   }

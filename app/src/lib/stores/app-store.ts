@@ -1684,6 +1684,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    const displayingBanner =
+      this.currentBanner !== null &&
+      this.currentBanner.type === BannerType.RebaseConflictsFound
+
+    if (displayingBanner) {
+      return
+    }
+
     const initialState = initializeRebaseFlowForConflictedRepository(
       conflictState
     )
