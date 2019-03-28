@@ -246,14 +246,26 @@ export class CommitStatusStore {
       return
     }
 
-    const status = await API.fromAccount(account)
-      .fetchCombinedRefStatus(owner, name, ref)
-      .catch(err => null)
+    try {
+      const api = API.fromAccount(account)
+      const status = await api.fetchCombinedRefStatus(owner, name, ref)
 
-    const entry = { status, fetchedAt: new Date() }
-    this.cache.set(getCacheKey(endpoint, owner, name, ref), entry)
+      this.cache.set(key, { status, fetchedAt: new Date() })
+      subscription.callbacks.forEach(cb => cb(status))
+    } catch (err) {
+      // Okay, so we failed retrieving the status for one reason or another.
+      // That's a bummer, but we still need to put something in the cache
+      // or else we'll consider this subscription eligible for refresh
+      // from here on until we succeed in fetching. By putting a blank
+      // cache entry (or potentially reusing the last entry) in and not
+      // notifying subscribers we ensure they keep their current status
+      // if they have one and that we attempt to fetch it again on the same
+      // schedule as the others.
+      const existingEntry = this.cache.get(key)
+      const status = existingEntry === undefined ? null : existingEntry.status
 
-    subscription.callbacks.forEach(cb => cb(status))
+      this.cache.set(key, { status, fetchedAt: new Date() })
+    }
   }
 
   /**
