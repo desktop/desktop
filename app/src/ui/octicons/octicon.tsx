@@ -21,11 +21,6 @@ interface IOcticonProps {
    * An optional string to use as a tooltip for the icon
    */
   readonly title?: string
-
-  /**
-   * An optional string to provide accessible descriptive text
-   */
-  readonly description?: string
 }
 
 /**
@@ -42,23 +37,19 @@ interface IOcticonProps {
  */
 export class Octicon extends React.Component<IOcticonProps, {}> {
   private titleId: string | null = null
-  private descriptionId: string | null = null
 
   public componentWillUnmount() {
     if (this.titleId !== null) {
       releaseUniqueId(this.titleId)
     }
-    if (this.descriptionId !== null) {
-      releaseUniqueId(this.descriptionId)
-    }
   }
 
   public render() {
-    const { symbol, title, description } = this.props
+    const { symbol, title } = this.props
     const viewBox = `0 0 ${symbol.w} ${symbol.h}`
     const className = classNames('octicon', this.props.className)
 
-    let labelledBy = new Array<string>()
+    let labelledBy: string | undefined = undefined
     let titleElem: JSX.Element | null = null
     let descriptionElem: JSX.Element | null = null
 
@@ -66,29 +57,18 @@ export class Octicon extends React.Component<IOcticonProps, {}> {
       if (this.titleId === null) {
         this.titleId = createUniqueId('octicon_title')
       }
-      labelledBy.push(this.titleId)
+      labelledBy = this.titleId
       titleElem = <title id={this.titleId}>{title}</title>
     }
-
-    if (description && description.length > 0) {
-      if (this.descriptionId === null) {
-        this.descriptionId = createUniqueId('octicon_description')
-      }
-      labelledBy.push(this.descriptionId)
-      descriptionElem = <desc id={this.descriptionId}>{description}</desc>
-    }
-
-    const ariaLabelledBy =
-      labelledBy.length === 0 ? undefined : labelledBy.join(' ')
 
     // Hide the octicon from screen readers when it's only being used
     // as a visual without any attached meaning applicable to users
     // consuming the app through an accessibility interface.
-    const ariaHidden = ariaLabelledBy === undefined ? 'true' : undefined
+    const ariaHidden = labelledBy === undefined ? 'true' : undefined
 
     return (
       <svg
-        aria-labelledby={ariaLabelledBy}
+        aria-labelledby={labelledBy}
         aria-hidden={ariaHidden}
         className={className}
         version="1.1"
