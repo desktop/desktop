@@ -51,7 +51,7 @@ export class Octicon extends React.Component<IOcticonProps, {}> {
 
     if (title && title.length > 0) {
       if (this.titleId === null) {
-        this.titleId = createUniqueId('octicon_title')
+        this.titleId = createUniqueId('Octicon_Title')
       }
       labelledBy = this.titleId
       titleElem = <title id={this.titleId}>{title}</title>
