@@ -43,14 +43,7 @@ export class Octicon extends React.Component<IOcticonProps, {}> {
 
 
 
-  private renderTitle() {
-    const title = this.props.title
-
-    if (!title) {
-      return null
     }
-
-    return <title>{title}</title>
   }
 
   public render() {
