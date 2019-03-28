@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { OcticonSymbol } from './octicons.generated'
 import * as classNames from 'classnames'
+import { createUniqueId, releaseUniqueId } from '../lib/id-pool'
 
 interface IOcticonProps {
   /**
@@ -40,28 +41,53 @@ interface IOcticonProps {
  * @extends React.Component<OcticonProps, void>
  */
 export class Octicon extends React.Component<IOcticonProps, {}> {
+  private titleId: string | null = null
+  private descriptionId: string | null = null
 
+  public componentWillUnmount() {
+    if (this.titleId !== null) {
+      releaseUniqueId(this.titleId)
+    }
+    if (this.descriptionId !== null) {
+      releaseUniqueId(this.descriptionId)
     }
   }
 
   public render() {
-    const symbol = this.props.symbol
+    const { symbol, title, description } = this.props
     const viewBox = `0 0 ${symbol.w} ${symbol.h}`
-    const shortClassName = this.props.className
-    const className = classNames('octicon', shortClassName)
-    const title = this.props.title
-    const description = this.props.description
+    const className = classNames('octicon', this.props.className)
+
+    let labelledBy = new Array<string>()
+    let titleElem: JSX.Element | null = null
+    let descriptionElem: JSX.Element | null = null
+
+    if (title && title.length > 0) {
+      if (this.titleId === null) {
+        this.titleId = createUniqueId('octicon_title')
+      }
+      labelledBy.push(this.titleId)
+      titleElem = <title id={this.titleId}>{title}</title>
+    }
+
+    if (description && description.length > 0) {
+      if (this.descriptionId === null) {
+        this.descriptionId = createUniqueId('octicon_description')
+      }
+      labelledBy.push(this.descriptionId)
+      descriptionElem = <desc id={this.descriptionId}>{description}</desc>
+    }
 
     return (
       <svg
-        aria-labelledby="octiconTitle octiconDescription"
+        aria-labelledby={labelledBy.join(' ')}
         className={className}
         version="1.1"
         viewBox={viewBox}
       >
-        <title id="octiconTitle">{title}</title>
-        <desc id="octiconDescription">{description}</desc>
-        <path d={symbol.d}>{this.renderTitle()}</path>
+        {titleElem}
+        {descriptionElem}
+        <path d={symbol.d} />
       </svg>
     )
   }
