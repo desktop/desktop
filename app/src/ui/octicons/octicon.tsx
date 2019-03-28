@@ -44,18 +44,7 @@ export class Octicon extends React.Component<IOcticonProps, {}> {
     symbol: OcticonSymbol.markGithub,
   }
 
-  public shouldComponentUpdate(nextProps: IOcticonProps) {
-    if (
-      nextProps.symbol.w !== this.props.symbol.w ||
-      nextProps.symbol.h !== this.props.symbol.h ||
-      nextProps.symbol.d !== this.props.symbol.d ||
-      nextProps.className !== this.props.className
-    ) {
-      return true
-    }
 
-    return false
-  }
 
   private renderTitle() {
     const title = this.props.title
