@@ -261,7 +261,7 @@ export class CommitStatusStore {
       // notifying subscribers we ensure they keep their current status
       // if they have one and that we attempt to fetch it again on the same
       // schedule as the others.
-      log.debug(`Failed retrieving commit status for ref ${ref}`, err)
+      log.debug(`Failed fetching status for ref ${ref} (${owner}/${name})`, err)
 
       const existingEntry = this.cache.get(key)
       const status = existingEntry === undefined ? null : existingEntry.status
