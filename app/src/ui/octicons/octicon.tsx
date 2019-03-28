@@ -78,9 +78,18 @@ export class Octicon extends React.Component<IOcticonProps, {}> {
       descriptionElem = <desc id={this.descriptionId}>{description}</desc>
     }
 
+    const ariaLabelledBy =
+      labelledBy.length === 0 ? undefined : labelledBy.join(' ')
+
+    // Hide the octicon from screen readers when it's only being used
+    // as a visual without any attached meaning applicable to users
+    // consuming the app through an accessibility interface.
+    const ariaHidden = ariaLabelledBy === undefined ? 'true' : undefined
+
     return (
       <svg
-        aria-labelledby={labelledBy.join(' ')}
+        aria-labelledby={ariaLabelledBy}
+        aria-hidden={ariaHidden}
         className={className}
         version="1.1"
         viewBox={viewBox}
