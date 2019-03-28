@@ -41,8 +41,6 @@ interface IOcticonProps {
  */
 export class Octicon extends React.Component<IOcticonProps, {}> {
 
-
-
     }
   }
 
