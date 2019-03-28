@@ -13,7 +13,7 @@ import { CloneRepositoryTab } from '../models/clone-repository-tab'
 import { BranchesTab } from '../models/branches-tab'
 import { PullRequest } from '../models/pull-request'
 import { IAuthor } from '../models/author'
-import { MergeResultKind } from '../models/merge'
+import { MergeResult } from '../models/merge'
 import { ICommitMessage } from '../models/commit-message'
 import {
   IRevertProgress,
@@ -62,6 +62,11 @@ export interface IAppState {
    * The current list of repositories tracked in the application
    */
   readonly repositories: ReadonlyArray<Repository | CloningRepository>
+
+  /**
+   * List of IDs of the most recently opened repositories (most recent first)
+   */
+  readonly recentRepositories: ReadonlyArray<number>
 
   /**
    * A cache of the latest repository state values, keyed by the repository id
@@ -284,6 +289,11 @@ export type RebaseConflictState = {
    * The branch chosen by the user to be rebased
    */
   readonly targetBranch: string
+  /**
+   * The branch chosen as the baseline for the rebase
+   */
+  readonly baseBranch?: string
+
   /**
    * The commit ID of the target branch before the rebase was initiated
    */
@@ -549,7 +559,7 @@ export interface ICompareState {
   readonly formState: IDisplayHistory | ICompareBranch
 
   /** The result of merging the compare branch into the current branch, if a branch selected */
-  readonly mergeStatus: MergeResultStatus | null
+  readonly mergeStatus: MergeResult | null
 
   /** Whether the branch list should be expanded or hidden */
   readonly showBranchList: boolean
@@ -604,17 +614,6 @@ export interface ICompareFormUpdate {
   /** Thew new state of the branches list */
   readonly showBranchList: boolean
 }
-
-export type MergeResultStatus =
-  | {
-      kind: MergeResultKind.Loading
-    }
-  | {
-      kind: MergeResultKind.Conflicts
-      conflictedFiles: number
-    }
-  | { kind: MergeResultKind.Clean }
-  | { kind: MergeResultKind.Invalid }
 
 export interface IViewHistory {
   readonly kind: HistoryTabMode.History
