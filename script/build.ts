@@ -365,12 +365,18 @@ function generateLicenseMetadata(outRoot: string) {
     const fullPath = path.join(licensesDir, file)
     const contents = fs.readFileSync(fullPath, 'utf8')
     const result = frontMatter<IChooseALicense>(contents)
+
+    const licenseText = result.body.trim()
+    // ensure that any license file created in the app does not trigger the
+    // "no newline at end of file" warning when viewing diffs
+    const licenseTextWithNewLine = `${licenseText}\n`
+
     const license: ILicense = {
       name: result.attributes.nickname || result.attributes.title,
       featured: result.attributes.featured || false,
       hidden:
         result.attributes.hidden === undefined || result.attributes.hidden,
-      body: result.body.trim(),
+      body: licenseTextWithNewLine,
     }
 
     if (!license.hidden) {
