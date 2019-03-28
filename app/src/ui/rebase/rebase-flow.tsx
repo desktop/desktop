@@ -100,8 +100,8 @@ export class RebaseFlow extends React.Component<
       lastResolvedConflictsTip: null,
       progress: {
         value: 0,
-        count: 0,
-        total: 0,
+        rebasedCommitCount: 0,
+        totalCommitCount: 0,
       },
       userHasResolvedConflicts: false,
     }
@@ -199,12 +199,12 @@ export class RebaseFlow extends React.Component<
     // detects and handles the state transition after a period of time to ensure
     // the UI shows _something_ before closing the dialog
     this.setState(prevState => {
-      const { total } = prevState.progress
+      const { totalCommitCount } = prevState.progress
       return {
         progress: {
           value: 1,
-          count: total,
-          total,
+          rebasedCommitCount: totalCommitCount,
+          totalCommitCount,
         },
       }
     })
@@ -213,7 +213,7 @@ export class RebaseFlow extends React.Component<
   private onStartRebase = (
     baseBranch: string,
     targetBranch: string,
-    total: number
+    totalCommitCount: number
   ) => {
     if (this.state.step.kind !== RebaseStep.ChooseBranch) {
       throw new Error(`Invalid step to start rebase: ${this.state.step.kind}`)
@@ -225,8 +225,8 @@ export class RebaseFlow extends React.Component<
         baseBranch,
         targetBranch,
         {
-          start: 0,
-          total,
+          rebasedCommitCount: 0,
+          totalCommitCount,
           progressCallback: this.updateProgress,
         }
       )
@@ -243,8 +243,8 @@ export class RebaseFlow extends React.Component<
       },
       progress: {
         value: 0,
-        count: 1,
-        total,
+        rebasedCommitCount: 1,
+        totalCommitCount,
       },
     }))
   }
@@ -279,10 +279,10 @@ export class RebaseFlow extends React.Component<
     }
 
     this.setState(prevState => {
-      const { total, count } = prevState.progress
+      const { rebasedCommitCount, totalCommitCount } = prevState.progress
 
-      const newCount = count + 1
-      const newProgressValue = newCount / total
+      const newCount = rebasedCommitCount + 1
+      const newProgressValue = newCount / totalCommitCount
       const value = formatRebaseValue(newProgressValue)
 
       return {
@@ -292,8 +292,8 @@ export class RebaseFlow extends React.Component<
         },
         progress: {
           value,
-          count: newCount,
-          total,
+          rebasedCommitCount: newCount,
+          totalCommitCount,
         },
       }
     })
