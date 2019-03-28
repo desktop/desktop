@@ -104,6 +104,10 @@ export interface IRebaseProgress extends IProgress {
   readonly kind: 'rebase'
   /** The summary of the commit applied to the base branch */
   readonly commitSummary: string
+  /** The number of commits currently rebased onto the base branch */
+  readonly count: number
+  /** The toal number of commits to rebase on top of the current branch */
+  readonly total: number
 }
 
 export type Progress =
