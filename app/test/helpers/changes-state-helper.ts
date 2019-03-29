@@ -1,8 +1,8 @@
-import { IChangesState } from '../../../../src/lib/app-state'
-import { WorkingDirectoryStatus } from '../../../../src/models/status'
-import { merge } from '../../../../src/lib/merge'
-import { IStatusResult } from '../../../../src/lib/git'
-import { DefaultCommitMessage } from '../../../../src/models/commit-message'
+import { IChangesState } from '../../src/lib/app-state'
+import { WorkingDirectoryStatus } from '../../src/models/status'
+import { merge } from '../../src/lib/merge'
+import { IStatusResult } from '../../src/lib/git'
+import { DefaultCommitMessage } from '../../src/models/commit-message'
 
 export function createState<K extends keyof IChangesState>(
   pick: Pick<IChangesState, K>

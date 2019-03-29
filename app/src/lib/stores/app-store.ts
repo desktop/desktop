@@ -72,7 +72,6 @@ import {
   API,
   getAccountForEndpoint,
   getDotComAPIEndpoint,
-  getEnterpriseAPIURL,
   IAPIOrganization,
 } from '../api'
 import { shell } from '../app-shell'
@@ -194,7 +193,11 @@ import {
   ManualConflictResolutionKind,
 } from '../../models/manual-conflict-resolution'
 import { BranchPruner } from './helpers/branch-pruner'
-import { enableBranchPruning, enablePullWithRebase } from '../feature-flag'
+import {
+  enableBranchPruning,
+  enablePullWithRebase,
+  enableGroupRepositoriesByOwner,
+} from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import { RebaseProgressOptions } from '../../models/rebase'
 import { isDarkModeEnabled } from '../../ui/lib/dark-theme'
@@ -208,6 +211,14 @@ import { ComputedActionKind } from '../../models/action'
 const FastForwardBranchesThreshold = 20
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
+
+const RecentRepositoriesKey = 'recently-selected-repositories'
+/**
+ *  maximum number of repositories shown in the "Recent" repositories group
+ *  in the repository switcher dropdown
+ */
+const RecentRepositoriesLength = 5
+const RecentRepositoriesDelimiter = ','
 
 const defaultSidebarWidth: number = 250
 const sidebarWidthConfigKey: string = 'sidebar-width'
@@ -239,6 +250,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private accounts: ReadonlyArray<Account> = new Array<Account>()
   private repositories: ReadonlyArray<Repository> = new Array<Repository>()
+  private recentRepositories: ReadonlyArray<number> = new Array<number>()
 
   private selectedRepository: Repository | CloningRepository | null = null
 
@@ -518,6 +530,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return {
       accounts: this.accounts,
       repositories,
+      recentRepositories: this.recentRepositories,
       localRepositoryStateLookup: this.localRepositoryStateLookup,
       windowState: this.windowState,
       windowZoomFactor: this.windowZoomFactor,
@@ -1151,6 +1164,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     setNumber(LastSelectedRepositoryIDKey, repository.id)
 
+    const previousRepositoryId = previouslySelectedRepository
+      ? previouslySelectedRepository.id
+      : null
+    if (enableGroupRepositoriesByOwner()) {
+      this.updateRecentRepositories(previousRepositoryId, repository.id)
+    }
+
     // if repository might be marked missing, try checking if it has been restored
     const refreshedRepository = await this.recoverMissingRepository(repository)
     if (refreshedRepository.missing) {
@@ -1165,6 +1185,45 @@ export class AppStore extends TypedBaseStore<IAppState> {
       refreshedRepository,
       previouslySelectedRepository
     )
+  }
+
+  // update the stored list of recently opened repositories
+  private updateRecentRepositories(
+    previousRepositoryId: number | null,
+    currentRepositoryId: number
+  ) {
+    const recentRepositories = this.getStoredRecentRepositories().filter(
+      el => el !== currentRepositoryId && el !== previousRepositoryId
+    )
+    if (previousRepositoryId !== null) {
+      recentRepositories.unshift(previousRepositoryId)
+    }
+    const slicedRecentRepositories = recentRepositories.slice(
+      0,
+      RecentRepositoriesLength
+    )
+    localStorage.setItem(
+      RecentRepositoriesKey,
+      slicedRecentRepositories.join(RecentRepositoriesDelimiter)
+    )
+    this.recentRepositories = slicedRecentRepositories
+    this.emitUpdate()
+  }
+
+  private getStoredRecentRepositories() {
+    const storedIds = localStorage.getItem(RecentRepositoriesKey)
+    let storedRepositories: Array<number> = []
+    if (storedIds) {
+      try {
+        storedRepositories = storedIds
+          .split(RecentRepositoriesDelimiter)
+          .map(n => parseInt(n, 10))
+          .filter(n => !isNaN(n))
+      } catch {
+        storedRepositories = []
+      }
+    }
+    return storedRepositories
   }
 
   // finish `_selectRepository`s refresh tasks
@@ -2751,15 +2810,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           accounts
         )
 
-        if (githubAccount === null) {
-          this.statsStore.recordPushToGenericRemote()
-        } else if (githubAccount.endpoint === getDotComAPIEndpoint()) {
-          this.statsStore.recordPushToGitHub()
-        } else if (
-          githubAccount.endpoint === getEnterpriseAPIURL(githubAccount.endpoint)
-        ) {
-          this.statsStore.recordPushToGitHubEnterprise()
-        }
+        this.statsStore.recordPush(githubAccount, options)
       }
     })
   }
