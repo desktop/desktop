@@ -1,18 +1,13 @@
 import * as FSE from 'fs-extra'
 import * as path from 'path'
 import { Repository } from '../../../src/models/repository'
-import {
-  setupEmptyRepository,
-  setupConflictedRepo,
-} from '../../helpers/repositories'
+import { setupEmptyRepository } from '../../helpers/repositories'
 import { GitProcess } from 'dugite'
 import {
   getDesktopStashEntries,
   createDesktopStashMessage,
   createDesktopStashEntry,
   getLastDesktopStashEntryForBranch,
-  DesktopStashEntryMarker,
-  stashEntryMessageRe,
 } from '../../../src/lib/git/stash'
 import { getTipOrError } from '../../helpers/tip'
 
@@ -73,6 +68,8 @@ describe('git/stash', () => {
 
       const tipCommit = await getTipOrError(repository)
       await createDesktopStashEntry(repository, branchName, tipCommit.sha)
+    })
+  })
 
   describe('getLastDesktopStashEntryForBranch', () => {
     let repository: Repository
@@ -126,7 +123,6 @@ describe('git/stash', () => {
       expect(message).toBe(
         '!!GitHub_Desktop<master@bc45b3b97993eed2c3d7872a0b766b3e29a12e4b>'
       )
-      expect(message).toMatch(stashEntryMessageRe)
     })
   })
 })
@@ -138,8 +134,6 @@ describe('git/stash', () => {
  * @param repository the repository to create the stash entry for
  * @param message passing no message will similate Desktop creating the entry
  */
-async function stash(repository: Repository, message?: string) {
-  const tipCommit = await getTipOrError(repository)
 async function stash(
   repository: Repository,
   branchName: string,
@@ -166,16 +160,12 @@ async function stash(
   return objectId
 }
 
-/**
- * Generates a several stash entries where 1 of the entries
- * is created by Desktop
- */
 async function generateTestStashEntry(
   repository: Repository,
   branchName: string,
-  createdByDesktop: boolean
+  simulateDesktopEntry: boolean
 ): Promise<string> {
-  const message = createdByDesktop ? null : 'Should get filtered'
+  const message = simulateDesktopEntry ? null : 'Should get filtered'
   const readme = path.join(repository.path, 'README.md')
   await FSE.appendFile(readme, '1')
 
