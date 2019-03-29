@@ -21,7 +21,7 @@ const stashEntryRe = /^([0-9a-f]{40})@(.+)$/
  * This is done by looking for a magic string with the following
  * format: `!!GitHub_Desktop<branch@commit>`
  */
-export const stashEntryMessageRe = /^!!GitHub_Desktop<(.+)@([0-9|a-z|A-Z]{40})>$/
+const stashEntryMessageRe = /^!!GitHub_Desktop<(.+)@([0-9|a-z|A-Z]{40})>$/
 
 /**
  * Get the list of stash entries created by Desktop in the current repository

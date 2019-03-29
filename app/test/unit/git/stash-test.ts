@@ -11,7 +11,6 @@ import {
   createDesktopStashMessage,
   createDesktopStashEntry,
   DesktopStashEntryMarker,
-  stashEntryMessageRe,
 } from '../../../src/lib/git/stash'
 import { getTipOrError } from '../../helpers/tip'
 
@@ -86,7 +85,6 @@ describe('git/stash', () => {
       expect(message).toBe(
         '!!GitHub_Desktop<master@bc45b3b97993eed2c3d7872a0b766b3e29a12e4b>'
       )
-      expect(message).toMatch(stashEntryMessageRe)
     })
   })
 })
