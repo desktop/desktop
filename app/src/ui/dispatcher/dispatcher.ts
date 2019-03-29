@@ -752,6 +752,8 @@ export class Dispatcher {
         targetBranch: targetBranch,
         baseBranch: baseBranch,
       })
+
+      await this.refreshRepository(repository)
     }
 
     return result
@@ -810,6 +812,8 @@ export class Dispatcher {
           )
         }
       }
+
+      await this.refreshRepository(repository)
     }
 
     return result
