@@ -27,6 +27,7 @@ import { InMemoryStore, AsyncInMemoryStore } from '../helpers/stores'
 import { TestActivityMonitor } from '../helpers/test-activity-monitor'
 import { RepositoryStateCache } from '../../src/lib/stores/repository-state-cache'
 import { ApiRepositoriesStore } from '../../src/lib/stores/api-repositories-store'
+import { CommitStatusStore } from '../../src/lib/stores/commit-status-store'
 
 describe('App', () => {
   let appStore: AppStore | null = null
@@ -69,6 +70,7 @@ describe('App', () => {
     )
 
     const apiRepositoriesStore = new ApiRepositoriesStore(accountsStore)
+    const commitStatusStore = new CommitStatusStore(accountsStore)
 
     appStore = new AppStore(
       githubUserStore,
@@ -86,7 +88,8 @@ describe('App', () => {
     dispatcher = new InMemoryDispatcher(
       appStore,
       repositoryStateManager,
-      statsStore
+      statsStore,
+      commitStatusStore
     )
   })
 
