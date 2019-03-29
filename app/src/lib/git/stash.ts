@@ -1,5 +1,6 @@
 import { git } from '.'
 import { Repository } from '../../models/repository'
+import { GitError, IGitResult } from './core'
 
 export const DesktopStashEntryMarker = '!!GitHub_Desktop'
 
@@ -28,34 +29,46 @@ export const stashEntryMessageRe = /^!!GitHub_Desktop<(.+)@([0-9|a-z|A-Z]{40})>$
 export async function getDesktopStashEntries(
   repository: Repository
 ): Promise<ReadonlyArray<IStashEntry>> {
+  const expectedErrorMessages = ["fatal: ambiguous argument 'refs/stash'"]
   const prettyFormat = '%H@%gs'
-  const result = await git(
-    ['log', '-g', 'refs/stash', `--pretty=${prettyFormat}`],
-    repository.path,
-    'getStashEntries'
-  )
+  let result: IGitResult | null = null
 
-  if (result.stderr !== '') {
-    //don't really care what the error is right now, but will once dugite is updated
-    throw new Error(result.stderr)
+  try {
+    result = await git(
+      ['log', '-g', 'refs/stash', `--pretty=${prettyFormat}`],
+      repository.path,
+      'getStashEntries'
+    )
+  } catch (err) {
+    if (err instanceof GitError) {
+      if (
+        !expectedErrorMessages.some(
+          message => err.message.indexOf(message) !== -1
+        )
+      ) {
+        // if the error is not expected, re-throw it so the caller can deal with it
+        throw err
+      }
+    }
   }
 
-  const out = result.stdout
-  const lines = out.split('\n')
+  if (result === null) {
+    // a git error that Desktop doesn't care about occured, so return empty list
+    return []
+  }
 
+  const lines = result.stdout.split('\n')
   const stashEntries: Array<IStashEntry> = []
   for (const line of lines) {
     const match = stashEntryRe.exec(line)
-
     if (match == null) {
       continue
     }
 
     const message = match[2]
     const branchName = extractBranchFromMessage(message)
-
-    // if branch name is null, the stash entry isn't using our magic string
     if (branchName === null) {
+      // the stash entry isn't using our magic string, so skip it
       continue
     }
 
@@ -66,6 +79,8 @@ export async function getDesktopStashEntries(
   }
 
   return stashEntries
+
+  return []
 }
 
 /** Creates a stash entry message that indicates the entry was created by Desktop */
