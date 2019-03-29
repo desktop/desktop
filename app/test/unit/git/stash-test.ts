@@ -14,7 +14,6 @@ import {
   stashEntryMessageRe,
 } from '../../../src/lib/git/stash'
 import { getTipOrError } from '../../helpers/tip'
-import { GitError } from '../../../src/lib/git'
 
 describe('git/stash', () => {
   describe('getDesktopStashEntries', () => {
