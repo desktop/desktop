@@ -89,6 +89,13 @@ describe('git/stash', () => {
   })
 })
 
+/**
+ * Creates a stash entry using `git stash push` to allow for similating
+ * entries created via the CLI and Desktop
+ *
+ * @param repository the repository to create the stash entry for
+ * @param message passing no message will similate Desktop creating the entry
+ */
 async function stash(repository: Repository, message?: string) {
   const tipCommit = await getTipOrError(repository)
   await GitProcess.exec(
@@ -102,6 +109,10 @@ async function stash(repository: Repository, message?: string) {
   )
 }
 
+/**
+ * Generates a several stash entries where 1 of the entries
+ * is created by Desktop
+ */
 async function generateTestStashEntries(repository: Repository) {
   const readme = path.join(repository.path, 'README.md')
 
