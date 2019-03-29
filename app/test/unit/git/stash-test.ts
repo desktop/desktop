@@ -170,7 +170,6 @@ async function stash(
  * Generates a several stash entries where 1 of the entries
  * is created by Desktop
  */
-async function generateTestStashEntries(repository: Repository) {
 async function generateTestStashEntry(
   repository: Repository,
   branchName: string,
