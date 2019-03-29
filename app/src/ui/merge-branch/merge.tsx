@@ -13,8 +13,8 @@ import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { BranchList, IBranchListItem, renderDefaultBranch } from '../branches'
 import { revSymmetricDifference } from '../../lib/git'
 import { IMatches } from '../../lib/fuzzy-find'
-import { MergeResultStatus } from '../../lib/app-state'
-import { MergeResultKind } from '../../models/merge'
+import { MergeResult } from '../../models/merge'
+import { ComputedActionKind } from '../../models/action'
 import { MergeStatusHeader } from '../history/merge-status-header'
 import { promiseWithMinimumTimeout } from '../../lib/promise'
 import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
@@ -61,7 +61,7 @@ interface IMergeState {
   readonly selectedBranch: Branch | null
 
   /** The merge result of comparing the selected branch to the current branch */
-  readonly mergeStatus: MergeResultStatus | null
+  readonly mergeStatus: MergeResult | null
 
   /**
    * The number of commits that would be brought in by the merge.
@@ -141,20 +141,20 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
   }
 
   private renderMergeStatusMessage(
-    mergeStatus: MergeResultStatus,
+    mergeStatus: MergeResult,
     branch: Branch,
     currentBranch: Branch,
     commitCount: number
   ): JSX.Element {
-    if (mergeStatus.kind === MergeResultKind.Loading) {
+    if (mergeStatus.kind === ComputedActionKind.Loading) {
       return this.renderLoadingMergeMessage()
     }
 
-    if (mergeStatus.kind === MergeResultKind.Clean) {
+    if (mergeStatus.kind === ComputedActionKind.Clean) {
       return this.renderCleanMergeMessage(branch, currentBranch, commitCount)
     }
 
-    if (mergeStatus.kind === MergeResultKind.Invalid) {
+    if (mergeStatus.kind === ComputedActionKind.Invalid) {
       return this.renderInvalidMergeMessage()
     }
 
@@ -244,7 +244,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
 
     const cannotMergeBranch =
       this.state.mergeStatus != null &&
-      this.state.mergeStatus.kind === MergeResultKind.Invalid
+      this.state.mergeStatus.kind === ComputedActionKind.Invalid
 
     const disabled = invalidBranchState || cannotMergeBranch
 
@@ -296,7 +296,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
   }
 
   private async updateMergeStatus(branch: Branch) {
-    this.setState({ mergeStatus: { kind: MergeResultKind.Loading } })
+    this.setState({ mergeStatus: { kind: ComputedActionKind.Loading } })
 
     const { currentBranch } = this.props
 

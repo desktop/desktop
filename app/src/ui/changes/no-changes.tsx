@@ -235,7 +235,7 @@ export class NoChanges extends React.Component<
 
     return this.renderMenuBackedAction(
       'open-working-directory',
-      `View the files in your repository in ${fileManager}`
+      `View the files of your repository in ${fileManager}`
     )
   }
 
@@ -280,9 +280,9 @@ export class NoChanges extends React.Component<
 
     const description = (
       <>
-        Configure which editor you wish to use in{' '}
+        Select your editor in{' '}
         <LinkButton onClick={this.openPreferences}>
-          {__DARWIN__ ? 'preferences' : 'options'}
+          {__DARWIN__ ? 'Preferences' : 'Options'}
         </LinkButton>
       </>
     )

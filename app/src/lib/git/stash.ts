@@ -1,5 +1,6 @@
 import { git } from '.'
 import { Repository } from '../../models/repository'
+import { GitError, IGitResult } from './core'
 
 export const DesktopStashEntryMarker = '!!GitHub_Desktop'
 
@@ -12,7 +13,7 @@ export interface IStashEntry {
 }
 
 /** RegEx for parsing out the stash SHA and message */
-const stashEntryRe = /^([0-9a-f]{40}):(.+)$/
+const stashEntryRe = /^([0-9a-f]{40})@(.+)$/
 
 /**
  * RegEx for determining if a stash entry is created by Desktop
@@ -20,8 +21,7 @@ const stashEntryRe = /^([0-9a-f]{40}):(.+)$/
  * This is done by looking for a magic string with the following
  * format: `!!GitHub_Desktop<branch@commit>`
  */
-const desktopStashEntryRe = /!!GitHub_Desktop<(.+)@([0-9|a-z|A-Z]{40})>$/
-// Todo 👆 Change this to use a space and remove tip commit sha
+const desktopStashEntryMessageRe = /^!!GitHub_Desktop<(.+)@([0-9|a-z|A-Z]{40})>$/
 
 /**
  * Get the list of stash entries created by Desktop in the current repository
@@ -30,33 +30,38 @@ const desktopStashEntryRe = /!!GitHub_Desktop<(.+)@([0-9|a-z|A-Z]{40})>$/
 export async function getDesktopStashEntries(
   repository: Repository
 ): Promise<ReadonlyArray<IStashEntry>> {
-  const prettyFormat = '%H:%gs'
-  const result = await git(
-    ['log', '-g', `--pretty=${prettyFormat}`, 'refs/stash'],
-    repository.path,
-    'getStashEntries'
-  )
+  const expectedErrorMessages = ["fatal: ambiguous argument 'refs/stash'"]
+  const prettyFormat = '%H@%gs'
+  let result: IGitResult | null = null
 
-  if (result.stderr !== '') {
-    if (
-      result.stderr.indexOf(
-        `ambiguous argument 'refs/stash': unknown revision or path not in the working tree.`
-      ) !== -1
-    ) {
-      return []
+  try {
+    result = await git(
+      ['log', '-g', 'refs/stash', `--pretty=${prettyFormat}`],
+      repository.path,
+      'getStashEntries'
+    )
+  } catch (err) {
+    if (err instanceof GitError) {
+      if (
+        !expectedErrorMessages.some(
+          message => err.message.indexOf(message) !== -1
+        )
+      ) {
+        // if the error is not expected, re-throw it so the caller can deal with it
+        throw err
+      }
     }
-
-    //don't really care what the error is right now, but will once dugite is updated
-    throw new Error(result.stderr)
   }
 
-  const out = result.stdout
-  const lines = out.split('\n')
+  if (result === null) {
+    // a git error that Desktop doesn't care about occured, so return empty list
+    return []
+  }
 
+  const lines = result.stdout.split('\n')
   const stashEntries: Array<IStashEntry> = []
   for (const line of lines) {
     const match = stashEntryRe.exec(line)
-
     if (match == null) {
       continue
     }
@@ -66,6 +71,7 @@ export async function getDesktopStashEntries(
 
     // if branch name is null, the stash entry isn't using our magic string
     if (branchName === null) {
+      // the stash entry isn't using our magic string, so skip it
       continue
     }
 
@@ -81,7 +87,7 @@ export async function getDesktopStashEntries(
 /**
  * Returns the last Desktop created stash entry for the given branch
  */
-export async function getLastDesktopStashEntry(
+export async function getLastDesktopStashEntryForBranch(
   repository: Repository,
   branchName: string
 ) {
@@ -98,7 +104,7 @@ export function createDesktopStashMessage(branchName: string, tipSha: string) {
 }
 
 /**
- * Stashes the changes in the working directory
+ * Stash the working directory changes for the current branch
  */
 export async function createDesktopStashEntry(
   repository: Repository,
@@ -106,15 +112,11 @@ export async function createDesktopStashEntry(
   tipSha: string
 ) {
   const message = createDesktopStashMessage(branchName, tipSha)
-  const result = await git(
+  await git(
     ['stash', 'push', '-m', message],
     repository.path,
     'createStashEntry'
   )
-
-  if (result.stderr !== '') {
-    throw new Error(result.stderr)
-  }
 }
 
 /**
@@ -131,19 +133,29 @@ export async function dropDesktopStashEntry(
   }
 
   const entry = ['stash@{', stashSha, '}'].join('')
-  const result = await git(
-    ['stash', 'drop', entry],
-    repository.path,
-    'dropStashEntry'
-  )
+  await git(['stash', 'drop', entry], repository.path, 'dropStashEntry')
+}
 
-  if (result.stderr !== '') {
-    throw new Error(result.stderr)
-  }
+/**
+ * Applies the stash entry identified by matching `stashSha` to its commit hash.
+ *
+ * To see the commit hash of stash entry, run
+ * `git log -g refs/stash --pretty="%nentry: %gd%nsubject: %gs%nhash: %H%n"`
+ * in a repo with some stash entries.
+ */
+export async function applyStashEntry(
+  repository: Repository,
+  stashSha: string
+): Promise<void> {
+  await git(
+    ['stash', 'apply', `${stashSha}`],
+    repository.path,
+    'applyStashEntry'
+  )
 }
 
 function extractBranchFromMessage(message: string): string | null {
-  const match = desktopStashEntryRe.exec(message)
+  const match = desktopStashEntryMessageRe.exec(message)
   if (match === null) {
     return null
   }
