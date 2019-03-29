@@ -167,8 +167,7 @@ export async function applyStashEntry(
 }
 
 function extractBranchFromMessage(message: string): string | null {
-  const [, desktopMessage] = message.split(':').map(s => s.trim())
-  const match = desktopStashEntryMessageRe.exec(desktopMessage)
+  const match = desktopStashEntryMessageRe.exec(message)
   if (match === null) {
     return null
   }
