@@ -1,16 +1,12 @@
 import * as FSE from 'fs-extra'
 import * as path from 'path'
 import { Repository } from '../../../src/models/repository'
-import {
-  setupEmptyRepository,
-  setupConflictedRepo,
-} from '../../helpers/repositories'
+import { setupEmptyRepository } from '../../helpers/repositories'
 import { GitProcess } from 'dugite'
 import {
   getDesktopStashEntries,
   createDesktopStashMessage,
   createDesktopStashEntry,
-  DesktopStashEntryMarker,
 } from '../../../src/lib/git/stash'
 import { getTipOrError } from '../../helpers/tip'
 
