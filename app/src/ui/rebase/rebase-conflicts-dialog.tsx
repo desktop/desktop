@@ -53,11 +53,13 @@ export class RebaseConflictsDialog extends React.Component<
     this.props.dispatcher.setBanner({
       type: BannerType.RebaseConflictsFound,
       targetBranch: this.props.targetBranch,
-      popup: {
-        type: PopupType.RebaseConflicts,
-        targetBranch: this.props.targetBranch,
-        baseBranch: this.props.baseBranch,
-        repository: this.props.repository,
+      onOpenDialog: () => {
+        this.props.dispatcher.showPopup({
+          type: PopupType.RebaseConflicts,
+          targetBranch: this.props.targetBranch,
+          baseBranch: this.props.baseBranch,
+          repository: this.props.repository,
+        })
       },
     })
     this.props.onDismissed()

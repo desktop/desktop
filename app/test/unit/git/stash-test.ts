@@ -1,7 +1,10 @@
 import * as FSE from 'fs-extra'
 import * as path from 'path'
 import { Repository } from '../../../src/models/repository'
-import { setupEmptyRepository } from '../../helpers/repositories'
+import {
+  setupEmptyRepository,
+  setupConflictedRepo,
+} from '../../helpers/repositories'
 import { GitProcess } from 'dugite'
 import {
   getDesktopStashEntries,
@@ -9,6 +12,7 @@ import {
   createDesktopStashEntry,
   getLastDesktopStashEntryForBranch,
   DesktopStashEntryMarker,
+  stashEntryMessageRe,
 } from '../../../src/lib/git/stash'
 import { getTipOrError } from '../../helpers/tip'
 
@@ -61,6 +65,37 @@ describe('git/stash', () => {
       await GitProcess.exec(['add', 'README.md'], repository.path)
       await GitProcess.exec(['commit', '-m', 'initial commit'], repository.path)
     })
+
+    it('throws when repository is unborn', async () => {
+      repository = await setupEmptyRepository()
+      await FSE.writeFile(readme, '')
+      let didFail = false
+
+      try {
+        await createDesktopStashEntry(repository, 'master', 'some_sha')
+      } catch (e) {
+        didFail = true
+      }
+
+      expect(didFail).toBe(true)
+    })
+
+    it('throws when repository is in conflicted state', async () => {
+      repository = await setupConflictedRepo()
+      await FSE.appendFile(readme, 'just testing stuff')
+      const tipCommit = await getTipOrError(repository)
+      let didFail = false
+
+      try {
+        await createDesktopStashEntry(repository, 'master', tipCommit.sha)
+      } catch (e) {
+        didFail = true
+      }
+
+      expect(didFail).toBe(true)
+    })
+
+    it('throws when repository is in the middle of a rebase', async () => {})
 
     it('creates a stash entry', async () => {
       const { sha } = await getTipOrError(repository)
@@ -117,6 +152,20 @@ describe('git/stash', () => {
 
       expect(actual).not.toBeNull()
       expect(actual!.stashSha).toBe(lastEntry)
+    })
+  })
+
+  describe('createDesktopStashMessage', () => {
+    it('creates message that matches Desktop stash entry format', () => {
+      const branchName = 'master'
+      const tipSha = 'bc45b3b97993eed2c3d7872a0b766b3e29a12e4b'
+
+      const message = createDesktopStashMessage(branchName, tipSha)
+
+      expect(message).toBe(
+        '!!GitHub_Desktop<master@bc45b3b97993eed2c3d7872a0b766b3e29a12e4b>'
+      )
+      expect(message).toMatch(stashEntryMessageRe)
     })
   })
 })

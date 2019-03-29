@@ -981,7 +981,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     return repository.gitHubRepository.htmlURL
   }
 
-  private openCurrentRepositoryInShell() {
+  private openCurrentRepositoryInShell = () => {
     const repository = this.getRepository()
     if (!repository) {
       return
@@ -1781,6 +1781,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         selectedRepository={selectedRepository}
         onSelectionChanged={this.onSelectionChanged}
         repositories={this.state.repositories}
+        recentRepositories={this.state.recentRepositories}
         localRepositoryStateLookup={this.state.localRepositoryStateLookup}
         askForConfirmationOnRemoveRepository={
           this.state.askForConfirmationOnRepositoryRemoval
