@@ -63,36 +63,6 @@ describe('git/stash', () => {
       await GitProcess.exec(['commit', '-m', 'initial commit'], repository.path)
     })
 
-    it('throws when repository is unborn', async () => {
-      repository = await setupEmptyRepository()
-      await FSE.writeFile(readme, '')
-      let didFail = false
-
-      try {
-        await createDesktopStashEntry(repository, 'master', 'some_sha')
-      } catch (e) {
-        didFail = true
-      }
-
-      expect(didFail).toBe(true)
-    })
-
-    it('throws when repository is in conflicted state', async () => {
-      repository = await setupConflictedRepo()
-      await FSE.appendFile(readme, 'just testing stuff')
-      const tipCommit = await getTipOrError(repository)
-      let didFail = false
-
-      try {
-        await createDesktopStashEntry(repository, 'master', tipCommit.sha)
-      } catch (e) {
-        didFail = true
-      }
-
-      expect(didFail).toBe(true)
-    })
-
-    it('throws when repository is in the middle of a rebase', async () => {})
 
     it('creates a stash entry', async () => {
       const branchName = 'master'
