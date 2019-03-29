@@ -108,9 +108,9 @@ export class ApiRepositoriesStore extends BaseStore {
     IAccountRepositories
   >()
 
-  public constructor(private readonly accountsStore: AccountsStore) {
+  public constructor(accountsStore: AccountsStore) {
     super()
-    accountsStore.onDidUpdate(() => this.onAccountsChanged())
+    accountsStore.onDidUpdate(this.onAccountsChanged)
   }
 
   /**
@@ -123,8 +123,7 @@ export class ApiRepositoriesStore extends BaseStore {
    * method therefore attempts to merge its internal state
    * with the new accounts.
    */
-  private async onAccountsChanged() {
-    const accounts = await this.accountsStore.getAll()
+  private onAccountsChanged = (accounts: ReadonlyArray<Account>) => {
     const newState = new Map<Account, IAccountRepositories>()
 
     for (const account of accounts) {

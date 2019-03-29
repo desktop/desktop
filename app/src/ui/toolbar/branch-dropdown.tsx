@@ -173,10 +173,18 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
 
   private renderPullRequestInfo() {
     const pr = this.props.currentPullRequest
-    if (!pr) {
+    const repository = this.props.repository.gitHubRepository
+
+    if (pr === null || repository === null) {
       return null
     }
 
-    return <PullRequestBadge number={pr.pullRequestNumber} status={pr.status} />
+    return (
+      <PullRequestBadge
+        number={pr.pullRequestNumber}
+        dispatcher={this.props.dispatcher}
+        repository={repository}
+      />
+    )
   }
 }

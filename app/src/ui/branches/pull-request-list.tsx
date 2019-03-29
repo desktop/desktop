@@ -7,9 +7,11 @@ import {
   SelectionSource,
 } from '../lib/filter-list'
 import { PullRequestListItem } from './pull-request-list-item'
-import { PullRequest, PullRequestStatus } from '../../models/pull-request'
+import { PullRequest } from '../../models/pull-request'
 import { NoPullRequests } from './no-pull-requests'
 import { IMatches } from '../../lib/fuzzy-find'
+import { Dispatcher } from '../dispatcher'
+import { GitHubRepository } from '../../models/github-repository'
 
 interface IPullRequestListItem extends IFilterListItem {
   readonly id: string
@@ -66,6 +68,12 @@ interface IPullRequestListProps {
   readonly onFilterKeyDown?: (
     event: React.KeyboardEvent<HTMLInputElement>
   ) => void
+
+  readonly dispatcher: Dispatcher
+  readonly repository: GitHubRepository
+
+  /** Are we currently loading pull requests? */
+  readonly isLoadingPullRequests: boolean
 }
 
 interface IPullRequestListState {
@@ -145,6 +153,7 @@ export class PullRequestList extends React.Component<
     return (
       <NoPullRequests
         isSearch={this.props.filterText.length > 0}
+        isLoadingPullRequests={this.props.isLoadingPullRequests}
         repositoryName={this.props.repositoryName}
         isOnDefaultBranch={this.props.isOnDefaultBranch}
         onCreateBranch={this.props.onCreateBranch}
@@ -158,17 +167,6 @@ export class PullRequestList extends React.Component<
     matches: IMatches
   ) => {
     const pr = item.pullRequest
-    const refStatuses = pr.status != null ? pr.status.statuses : []
-    const status =
-      pr.status != null
-        ? new PullRequestStatus(
-            pr.pullRequestNumber,
-            pr.status.state,
-            pr.status.totalCount,
-            pr.status.sha,
-            refStatuses
-          )
-        : null
 
     return (
       <PullRequestListItem
@@ -176,8 +174,9 @@ export class PullRequestList extends React.Component<
         number={pr.pullRequestNumber}
         created={pr.created}
         author={pr.author}
-        status={status}
         matches={matches}
+        dispatcher={this.props.dispatcher}
+        repository={this.props.repository}
       />
     )
   }

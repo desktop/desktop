@@ -1,18 +1,10 @@
-import {
-  PullRequestDatabase,
-  IPullRequest,
-  IPullRequestStatus,
-} from '../databases'
+import { PullRequestDatabase, IPullRequest } from '../databases'
 import { GitHubRepository } from '../../models/github-repository'
 import { Account } from '../../models/account'
 import { API, IAPIPullRequest } from '../api'
 import { fatalError, forceUnwrap } from '../fatal-error'
 import { RepositoriesStore } from './repositories-store'
-import {
-  PullRequest,
-  PullRequestRef,
-  PullRequestStatus,
-} from '../../models/pull-request'
+import { PullRequest, PullRequestRef } from '../../models/pull-request'
 import { TypedBaseStore } from './base-store'
 import { Repository } from '../../models/repository'
 import { getRemotes, removeRemote } from '../git'
@@ -61,7 +53,6 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
 
       const prs = await this.fetchPullRequestsFromCache(githubRepo)
 
-      await this.fetchAndCachePullRequestStatus(prs, githubRepo, account)
       await this.pruneForkedRemotes(repository, prs)
 
       this.emitUpdate(githubRepo)
@@ -81,33 +72,6 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
     const currentCount = this.activeFetchCountPerRepository.get(repoDbId) || 0
 
     return currentCount > 0
-  }
-
-  /** Loads the status for the given pull request. */
-  public async fetchPullRequestStatus(
-    repository: GitHubRepository,
-    account: Account,
-    pullRequest: PullRequest
-  ): Promise<void> {
-    await this.fetchAndCachePullRequestStatus(
-      [pullRequest],
-      repository,
-      account
-    )
-  }
-
-  /** Loads the status for all pull request against a given repository. */
-  public async fetchPullRequestStatuses(
-    repository: GitHubRepository,
-    account: Account
-  ): Promise<void> {
-    const prs = await this.fetchPullRequestsFromCache(repository)
-
-    try {
-      await this.fetchAndCachePullRequestStatus(prs, repository, account)
-    } catch (e) {
-      log.warn('Error updating pull request statuses', e)
-    }
   }
 
   /** Gets the pull requests against the given repository. */
@@ -161,16 +125,10 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
         record.id
       )
 
-      const pullRequestStatus = await this.findPullRequestStatus(
-        record.head.sha,
-        pullRequestDbId
-      )
-
       result.push(
         new PullRequest(
           pullRequestDbId,
           new Date(record.createdAt),
-          pullRequestStatus,
           record.title,
           record.number,
           new PullRequestRef(
@@ -248,65 +206,6 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
 
     this.activeFetchCountPerRepository.set(repoDbId, newCount)
     this.emitUpdate(repository)
-  }
-
-  private async fetchAndCachePullRequestStatus(
-    pullRequests: ReadonlyArray<PullRequest>,
-    repository: GitHubRepository,
-    account: Account
-  ): Promise<void> {
-    const apiClient = API.fromAccount(account)
-    const statuses: Array<IPullRequestStatus> = []
-
-    for (const pr of pullRequests) {
-      const combinedRefStatus = await apiClient.fetchCombinedRefStatus(
-        repository.owner.login,
-        repository.name,
-        pr.head.sha
-      )
-
-      statuses.push({
-        pullRequestId: pr.id,
-        state: combinedRefStatus.state,
-        totalCount: combinedRefStatus.total_count,
-        sha: pr.head.sha,
-        statuses: combinedRefStatus.statuses,
-      })
-    }
-
-    await this.cachePullRequestStatuses(statuses)
-    this.emitUpdate(repository)
-  }
-
-  private async findPullRequestStatus(
-    sha: string,
-    pullRequestId: number
-  ): Promise<PullRequestStatus | null> {
-    const result = await this.pullRequestDatabase.pullRequestStatus
-      .where('[sha+pullRequestId]')
-      .equals([sha, pullRequestId])
-      .limit(1)
-      .first()
-
-    if (!result) {
-      return null
-    }
-
-    const combinedRefStatuses = (result.statuses || []).map(x => {
-      return {
-        id: x.id,
-        state: x.state,
-        description: x.description,
-      }
-    })
-
-    return new PullRequestStatus(
-      result.pullRequestId,
-      result.state,
-      result.totalCount,
-      result.sha,
-      combinedRefStatuses
-    )
   }
 
   private async cachePullRequests(
@@ -396,27 +295,6 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
 
       if (prsToInsert.length > 0) {
         await table.bulkAdd(prsToInsert)
-      }
-    })
-  }
-
-  private async cachePullRequestStatuses(
-    statuses: Array<IPullRequestStatus>
-  ): Promise<void> {
-    const table = this.pullRequestDatabase.pullRequestStatus
-
-    await this.pullRequestDatabase.transaction('rw', table, async () => {
-      for (const status of statuses) {
-        const record = await table
-          .where('[sha+pullRequestId]')
-          .equals([status.sha, status.pullRequestId])
-          .first()
-
-        if (record == null) {
-          await table.add(status)
-        } else {
-          await table.put({ id: record.id, ...status })
-        }
       }
     })
   }
