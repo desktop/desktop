@@ -20,10 +20,11 @@ const stashEntryRe = /^([0-9a-f]{40})@(.+)$/
  * This is done by looking for a magic string with the following
  * format: `!!GitHub_Desktop<branch@commit>`
  */
-const stashEntryMessageRe = /^!!GitHub_Desktop<(.+)@([0-9|a-z|A-Z]{40})>$/
+const desktopStashEntryRe = /^!!GitHub_Desktop<(.+)@([0-9|a-z|A-Z]{40})>$/
 
 /**
  * Get the list of stash entries created by Desktop in the current repository
+ * using the default ordering of `git stash list` (i.e., LIFO ordering).
  */
 export async function getDesktopStashEntries(
   repository: Repository
@@ -68,17 +69,76 @@ export async function getDesktopStashEntries(
   return stashEntries
 }
 
+/**
+ * Returns the last Desktop created stash entry for the given branch
+ */
+export async function getLastDesktopStashEntryForBranch(
+  repository: Repository,
+  branchName: string
+) {
+  const entries = await getDesktopStashEntries(repository)
+
+  // Since stash objects are returned in a LIFO manner, the first
+  // entry found is guaranteed to be the last entry created
+  return entries.find(stash => stash.branchName === branchName) || null
+}
+
+/** Creates a stash entry message that idicates the entry was created by Desktop */
+export function createDesktopStashMessage(branchName: string, tipSha: string) {
+  return `${DesktopStashEntryMarker}<${branchName}@${tipSha}>`
+}
+
+/**
+ * Stash the working directory changes for the current branch
+ */
+export async function createDesktopStashEntry(
+  repository: Repository,
+  branchName: string,
+  tipSha: string
+) {
+  const message = createDesktopStashMessage(branchName, tipSha)
+  const result = await git(
+    ['stash', 'push', '-m', message],
+    repository.path,
+    'createStashEntry'
+  )
+
+  if (result.stderr !== '') {
+    throw new Error(result.stderr)
+  }
+}
+
+/**
+ * Removes the stash entry identified by `stashSha`
+ */
+export async function dropDesktopStashEntry(
+  repository: Repository,
+  stashSha: string
+) {
+  if (stashSha === '') {
+    // the drop sub-command behaves like pop when no stash is given
+    // so we return if given an empty string to avoid that
+    return
+  }
+
+  const entry = ['stash@{', stashSha, '}'].join('')
+  const result = await git(
+    ['stash', 'drop', entry],
+    repository.path,
+    'dropStashEntry'
+  )
+
+  if (result.stderr !== '') {
+    throw new Error(result.stderr)
+  }
+}
+
 function extractBranchFromMessage(message: string): string | null {
-  const [, desktopMessage] = message.split(':').map(s => s.trim())
-  const match = stashEntryMessageRe.exec(desktopMessage)
+  const match = desktopStashEntryRe.exec(message)
   if (match === null) {
     return null
   }
 
   const branchName = match[1]
   return branchName.length > 0 ? branchName : null
-}
-
-export function createStashMessage(branchName: string, tipSha: string) {
-  return `${DesktopStashEntryMarker}<${branchName}@${tipSha}>`
 }
