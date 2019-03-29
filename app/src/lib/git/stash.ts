@@ -1,5 +1,6 @@
 import { git } from '.'
 import { Repository } from '../../models/repository'
+import { GitError, IGitResult } from './core'
 
 export const DesktopStashEntryMarker = '!!GitHub_Desktop'
 
@@ -20,43 +21,54 @@ const stashEntryRe = /^([0-9a-f]{40})@(.+)$/
  * This is done by looking for a magic string with the following
  * format: `!!GitHub_Desktop<branch@commit>`
  */
-const desktopStashEntryRe = /^!!GitHub_Desktop<(.+)@([0-9|a-z|A-Z]{40})>$/
+const desktopStashEntryMessageRe = /^!!GitHub_Desktop<(.+)@([0-9|a-z|A-Z]{40})>$/
 
 /**
  * Get the list of stash entries created by Desktop in the current repository
- * using the default ordering of `git stash list` (i.e., LIFO ordering).
  */
 export async function getDesktopStashEntries(
   repository: Repository
 ): Promise<ReadonlyArray<IStashEntry>> {
+  const expectedErrorMessages = ["fatal: ambiguous argument 'refs/stash'"]
   const prettyFormat = '%H@%gs'
-  const result = await git(
-    ['log', '-g', 'refs/stash', `--pretty=${prettyFormat}`],
-    repository.path,
-    'getStashEntries'
-  )
+  let result: IGitResult | null = null
 
-  if (result.stderr !== '') {
-    //don't really care what the error is right now, but will once dugite is updated
-    throw new Error(result.stderr)
+  try {
+    result = await git(
+      ['log', '-g', 'refs/stash', `--pretty=${prettyFormat}`],
+      repository.path,
+      'getStashEntries'
+    )
+  } catch (err) {
+    if (err instanceof GitError) {
+      if (
+        !expectedErrorMessages.some(
+          message => err.message.indexOf(message) !== -1
+        )
+      ) {
+        // if the error is not expected, re-throw it so the caller can deal with it
+        throw err
+      }
+    }
   }
 
-  const out = result.stdout
-  const lines = out.split('\n')
+  if (result === null) {
+    // a git error that Desktop doesn't care about occured, so return empty list
+    return []
+  }
 
+  const lines = result.stdout.split('\n')
   const stashEntries: Array<IStashEntry> = []
   for (const line of lines) {
     const match = stashEntryRe.exec(line)
-
     if (match == null) {
       continue
     }
 
     const message = match[2]
     const branchName = extractBranchFromMessage(message)
-
-    // if branch name is null, the stash entry isn't using our magic string
     if (branchName === null) {
+      // the stash entry isn't using our magic string, so skip it
       continue
     }
 
@@ -67,23 +79,11 @@ export async function getDesktopStashEntries(
   }
 
   return stashEntries
+
+  return []
 }
 
-/**
- * Returns the last Desktop created stash entry for the given branch
- */
-export async function getLastDesktopStashEntryForBranch(
-  repository: Repository,
-  branchName: string
-) {
-  const entries = await getDesktopStashEntries(repository)
-
-  // Since stash objects are returned in a LIFO manner, the first
-  // entry found is guaranteed to be the last entry created
-  return entries.find(stash => stash.branchName === branchName) || null
-}
-
-/** Creates a stash entry message that idicates the entry was created by Desktop */
+/** Creates a stash entry message that indicates the entry was created by Desktop */
 export function createDesktopStashMessage(branchName: string, tipSha: string) {
   return `${DesktopStashEntryMarker}<${branchName}@${tipSha}>`
 }
@@ -108,33 +108,9 @@ export async function createDesktopStashEntry(
   }
 }
 
-/**
- * Removes the stash entry identified by `stashSha`
- */
-export async function dropDesktopStashEntry(
-  repository: Repository,
-  stashSha: string
-) {
-  if (stashSha === '') {
-    // the drop sub-command behaves like pop when no stash is given
-    // so we return if given an empty string to avoid that
-    return
-  }
-
-  const entry = ['stash@{', stashSha, '}'].join('')
-  const result = await git(
-    ['stash', 'drop', entry],
-    repository.path,
-    'dropStashEntry'
-  )
-
-  if (result.stderr !== '') {
-    throw new Error(result.stderr)
-  }
-}
-
 function extractBranchFromMessage(message: string): string | null {
-  const match = desktopStashEntryRe.exec(message)
+  const [, desktopMessage] = message.split(':').map(s => s.trim())
+  const match = desktopStashEntryMessageRe.exec(desktopMessage)
   if (match === null) {
     return null
   }
