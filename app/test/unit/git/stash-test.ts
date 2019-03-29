@@ -5,7 +5,7 @@ import { setupEmptyRepository } from '../../helpers/repositories'
 import { GitProcess } from 'dugite'
 import {
   getDesktopStashEntries,
-  createStashMessage,
+  createDesktopStashMessage,
 } from '../../../src/lib/git/stash'
 
 describe('git/stash', () => {
@@ -52,7 +52,12 @@ async function stash(repository: Repository, message?: string) {
   const result = await GitProcess.exec(['rev-parse', 'HEAD'], repository.path)
   const tipSha = result.stdout.trim()
   await GitProcess.exec(
-    ['stash', 'push', '-m', message || createStashMessage('master', tipSha)],
+    [
+      'stash',
+      'push',
+      '-m',
+      message || createDesktopStashMessage('master', tipSha),
+    ],
     repository.path
   )
 }
