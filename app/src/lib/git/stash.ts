@@ -112,15 +112,11 @@ export async function createDesktopStashEntry(
   tipSha: string
 ) {
   const message = createDesktopStashMessage(branchName, tipSha)
-  const result = await git(
+  await git(
     ['stash', 'push', '-m', message],
     repository.path,
     'createStashEntry'
   )
-
-  if (result.stderr !== '') {
-    throw new Error(result.stderr)
-  }
 }
 
 /**
@@ -137,15 +133,7 @@ export async function dropDesktopStashEntry(
   }
 
   const entry = ['stash@{', stashSha, '}'].join('')
-  const result = await git(
-    ['stash', 'drop', entry],
-    repository.path,
-    'dropStashEntry'
-  )
-
-  if (result.stderr !== '') {
-    throw new Error(result.stderr)
-  }
+  await git(['stash', 'drop', entry], repository.path, 'dropStashEntry')
 }
 
 /**
