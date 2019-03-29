@@ -64,20 +64,15 @@ describe('git/stash', () => {
       await GitProcess.exec(['commit', '-m', 'initial commit'], repository.path)
     })
 
-
-    it('creates a stash entry', async () => {
+    it('creates a stash entry when repo is not unborn or in any kind of conflict or rebase state', async () => {
       const branchName = 'master'
       await FSE.appendFile(readme, 'just testing stuff')
-      const tipCommit = await getTipOrError(repository)
 
+      const tipCommit = await getTipOrError(repository)
       await createDesktopStashEntry(repository, branchName, tipCommit.sha)
 
-      const result = await GitProcess.exec(['stash', 'list'], repository.path)
-      const entries = result.stdout.trim().split('\n')
-      expect(entries).toHaveLength(1)
-      expect(entries[0]).toContain(
-        `${DesktopStashEntryMarker}<${branchName}@${tipCommit.sha}`
-      )
+      const result = await getDesktopStashEntries(repository)
+      expect(result).toHaveLength(1)
     })
   })
 
