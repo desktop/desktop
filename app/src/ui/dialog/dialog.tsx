@@ -348,15 +348,20 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
       return null
     }
 
-    return (
-      <DialogHeader
-        title={this.props.title}
-        titleId={this.state.titleId}
-        dismissable={this.isDismissable()}
-        onDismissed={this.onDismiss}
-        loading={this.props.loading}
-      />
-    )
+    if (typeof this.props.title === 'string') {
+      return (
+        <DialogHeader
+          title={this.props.title}
+          titleId={this.state.titleId}
+          dismissable={this.isDismissable()}
+          onDismissed={this.onDismiss}
+          loading={this.props.loading}
+        />
+      )
+    }
+
+    // Render DialogHeader component passed via props.
+    return this.props.title
   }
 
   public render() {

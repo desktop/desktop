@@ -154,26 +154,32 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
         ? this.drawTwoColumnLayout(release)
         : this.drawSingleColumnLayout(release)
 
-    return (
-      <Dialog id="release-notes" onDismissed={this.props.onDismissed}>
-        <DialogHeader title={` `} dismissable={false}>
-          <div className="release-notes-header">
-            <img
-              className="release-note-graphic-left"
-              src={ReleaseNoteHeaderLeftUri}
-            />
-            <div className="title">
-              <p className="version">Version {release.latestVersion}</p>
-              <p className="date">{release.datePublished}</p>
-            </div>
-            <img
-              className="release-note-graphic-right"
-              src={ReleaseNoteHeaderRightUri}
-            />
-            {this.renderCloseButton()}
+    const dialogHeader = (
+      <DialogHeader title={` `} dismissable={false}>
+        <div className="release-notes-header">
+          <img
+            className="release-note-graphic-left"
+            src={ReleaseNoteHeaderLeftUri}
+          />
+          <div className="title">
+            <p className="version">Version {release.latestVersion}</p>
+            <p className="date">{release.datePublished}</p>
           </div>
-        </DialogHeader>
+          <img
+            className="release-note-graphic-right"
+            src={ReleaseNoteHeaderRightUri}
+          />
+          {this.renderCloseButton()}
+        </div>
+      </DialogHeader>
+    )
 
+    return (
+      <Dialog
+        id="release-notes"
+        onDismissed={this.props.onDismissed}
+        title={dialogHeader}
+      >
         <DialogContent>{contents}</DialogContent>
         <DialogFooter>
           <LinkButton onClick={this.showAllReleaseNotes}>
