@@ -70,24 +70,20 @@ interface IRebaseFlowProps {
 }
 
 interface IRebaseFlowState {
-  /** The current step in the rebase flow */
+  /**
+   * The current step in the rebase flow, containing application-specific
+   * state needed for the UI components.
+   */
   readonly step: RebaseFlowState
 
-  /**
-   * Tracking the tip of the repository when conflicts were last resolved to
-   * ensure the flow returns to displaying conflicts only when the rebase
-   * proceeds, and not as a side-effect of other prop changes.
-   */
-  readonly lastResolvedConflictsTip: string | null
-
-  /** Progress information about the current rebase */
+  /** Git progress information about the current rebase */
   readonly progress: RebaseProgressSummary
 
   /**
    * A preview of the rebase, using the selected base branch to test whether the
-   * current branch may be cleanly applied.
+   * current branch will be cleanly applied.
    */
-  readonly rebaseStatus: RebasePreview | null
+  readonly rebasePreview: RebasePreview | null
 
   /**
    * Track whether the user has done work to resolve conflicts as part of this
@@ -95,6 +91,13 @@ interface IRebaseFlowState {
    * abort the rebase and lose that work.
    */
   readonly userHasResolvedConflicts: boolean
+
+  /**
+   * Tracking the tip of the repository when conflicts were last resolved to
+   * ensure the flow returns to displaying conflicts only when the rebase
+   * proceeds, and not as a side-effect of other prop changes.
+   */
+  readonly lastResolvedConflictsTip: string | null
 }
 
 /** A component for initiating and performing a rebase of the current branch. */
@@ -116,7 +119,7 @@ export class RebaseFlow extends React.Component<
         commits: [],
       },
       userHasResolvedConflicts: false,
-      rebaseStatus: null,
+      rebasePreview: null,
     }
 
     const { step } = this.state
@@ -211,7 +214,7 @@ export class RebaseFlow extends React.Component<
 
     this.setState(
       () => ({
-        rebaseStatus: {
+        rebasePreview: {
           kind: ComputedAction.Loading,
         },
       }),
@@ -233,7 +236,7 @@ export class RebaseFlow extends React.Component<
         //       conflicts to come
 
         this.setState(() => ({
-          rebaseStatus: {
+          rebasePreview: {
             kind: ComputedAction.Clean,
             commits,
           },
@@ -293,7 +296,7 @@ export class RebaseFlow extends React.Component<
     this.setState(prevState => {
       let currentCommitSummary: string | undefined = undefined
 
-      const { rebaseStatus } = prevState
+      const { rebasePreview: rebaseStatus } = prevState
 
       if (rebaseStatus !== null && rebaseStatus.kind === ComputedAction.Clean) {
         const { commits } = rebaseStatus
@@ -490,7 +493,7 @@ export class RebaseFlow extends React.Component<
             onDismissed={onFlowEnded}
             onStartRebase={this.onStartRebase}
             onBranchChanged={this.testRebaseOperation}
-            rebasePreviewStatus={this.state.rebaseStatus}
+            rebasePreviewStatus={this.state.rebasePreview}
           />
         )
       }
