@@ -2,6 +2,9 @@ import * as React from 'react'
 
 import { Branch } from '../../models/branch'
 import { Repository } from '../../models/repository'
+import { RebasePreview } from '../../models/rebase'
+import { ComputedAction } from '../../models/computed-action'
+import { CommitOneLine } from '../../models/commit'
 
 import { IMatches } from '../../lib/fuzzy-find'
 import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
@@ -41,16 +44,24 @@ interface IChooseBranchDialogProps {
   readonly initialBranch?: Branch
 
   /**
+   * A preview of the rebase, using the selected base branch to test whether the
+   * current branch may be cleanly applied.
+   */
+  readonly rebasePreviewStatus: RebasePreview | null
+
+  /**
    * A function that's called when the dialog is dismissed by the user in the
    * ways described in the Dialog component's dismissable prop.
    */
   readonly onDismissed: () => void
 
+  readonly onBranchChanged: (branch: Branch) => void
+
   /** Callback to signal to start the rebase */
   readonly onStartRebase: (
     baseBranch: string,
     targetBranch: string,
-    expectedCommitCount: number
+    commits: ReadonlyArray<CommitOneLine>
   ) => void
 }
 
@@ -78,6 +89,10 @@ export class ChooseBranchDialog extends React.Component<
       initialBranch
     )
 
+    if (selectedBranch !== null) {
+      this.props.onBranchChanged(selectedBranch)
+    }
+
     this.state = {
       selectedBranch,
       filterText: '',
@@ -90,6 +105,10 @@ export class ChooseBranchDialog extends React.Component<
 
   private onSelectionChanged = (selectedBranch: Branch | null) => {
     this.setState({ selectedBranch })
+
+    if (selectedBranch !== null) {
+      this.props.onBranchChanged(selectedBranch)
+    }
   }
 
   private renderBranch = (item: IBranchListItem, matches: IMatches) => {
@@ -160,9 +179,20 @@ export class ChooseBranchDialog extends React.Component<
       return
     }
 
-    // TODO: compute the number of expected commits that will be rebased
+    const { rebasePreviewStatus } = this.props
 
-    this.props.onStartRebase(branch.name, this.props.currentBranch.name, 20)
+    if (
+      rebasePreviewStatus === null ||
+      rebasePreviewStatus.kind !== ComputedAction.Clean
+    ) {
+      return
+    }
+
+    this.props.onStartRebase(
+      branch.name,
+      this.props.currentBranch.name,
+      rebasePreviewStatus.commits
+    )
   }
 }
 
