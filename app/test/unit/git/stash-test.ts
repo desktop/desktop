@@ -184,9 +184,9 @@ describe('git/stash', () => {
         branchName: 'master',
         stashSha: 'xyz',
       }
-      generateTestStashEntry(repository, 'master', true)
-      generateTestStashEntry(repository, 'master', true)
-      generateTestStashEntry(repository, 'master', true)
+      await generateTestStashEntry(repository, 'master', true)
+      await generateTestStashEntry(repository, 'master', true)
+      await generateTestStashEntry(repository, 'master', true)
 
       try {
         await dropDesktopStashEntry(repository, doesNotExist)
