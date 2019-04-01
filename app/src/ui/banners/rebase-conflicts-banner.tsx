@@ -9,7 +9,7 @@ interface IRebaseConflictsBannerProps {
   /** branch the user is rebasing into */
   readonly targetBranch: string
   /** callback to fire when the dialog should be reopened */
-  readonly onOpenDialog: () => void
+  readonly onOpenDialog: () => Promise<void>
   /** callback to fire to dismiss the banner */
   readonly onDismissed: () => void
 }
@@ -18,9 +18,9 @@ export class RebaseConflictsBanner extends React.Component<
   IRebaseConflictsBannerProps,
   {}
 > {
-  private openDialog = () => {
+  private openDialog = async () => {
     this.props.onDismissed()
-    this.props.onOpenDialog()
+    await this.props.onOpenDialog()
     this.props.dispatcher.recordRebaseConflictsDialogReopened()
   }
 
