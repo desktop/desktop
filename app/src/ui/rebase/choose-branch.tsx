@@ -1,20 +1,18 @@
 import * as React from 'react'
 
-import { Dispatcher } from '../dispatcher'
-
 import { Branch } from '../../models/branch'
 import { Repository } from '../../models/repository'
+
+import { IMatches } from '../../lib/fuzzy-find'
+import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
 
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { BranchList, IBranchListItem, renderDefaultBranch } from '../branches'
-import { IMatches } from '../../lib/fuzzy-find'
-import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
 
-interface IRebaseBranchDialogProps {
-  readonly dispatcher: Dispatcher
+interface IChooseBranchDialogProps {
   readonly repository: Repository
 
   /**
@@ -47,24 +45,29 @@ interface IRebaseBranchDialogProps {
    * ways described in the Dialog component's dismissable prop.
    */
   readonly onDismissed: () => void
+
+  /** Callback to signal to start the rebase */
+  readonly onStartRebase: (
+    baseBranch: string,
+    targetBranch: string,
+    expectedCommitCount: number
+  ) => void
 }
 
-interface IRebaseBranchDialogState {
+interface IChooseBranchDialogState {
   /** The currently selected branch. */
   readonly selectedBranch: Branch | null
 
   /** The filter text to use in the branch selector */
   readonly filterText: string
-
-  readonly isRebasing: boolean
 }
 
 /** A component for initating a rebase of the current branch. */
-export class RebaseBranchDialog extends React.Component<
-  IRebaseBranchDialogProps,
-  IRebaseBranchDialogState
+export class ChooseBranchDialog extends React.Component<
+  IChooseBranchDialogProps,
+  IChooseBranchDialogState
 > {
-  public constructor(props: IRebaseBranchDialogProps) {
+  public constructor(props: IChooseBranchDialogProps) {
     super(props)
 
     const { initialBranch, currentBranch, defaultBranch } = props
@@ -78,7 +81,6 @@ export class RebaseBranchDialog extends React.Component<
     this.state = {
       selectedBranch,
       filterText: '',
-      isRebasing: false,
     }
   }
 
@@ -103,8 +105,7 @@ export class RebaseBranchDialog extends React.Component<
       currentBranch === null ||
       currentBranch.name === selectedBranch.name
 
-    const loading = this.state.isRebasing
-    const disabled = selectedBranchIsNotCurrentBranch || loading
+    const disabled = selectedBranchIsNotCurrentBranch
 
     const currentBranchName = currentBranch.name
 
@@ -119,7 +120,6 @@ export class RebaseBranchDialog extends React.Component<
         id="rebase"
         onDismissed={this.props.onDismissed}
         onSubmit={this.startRebase}
-        loading={loading}
         disabled={disabled}
         dismissable={true}
         title={
@@ -160,19 +160,9 @@ export class RebaseBranchDialog extends React.Component<
       return
     }
 
-    // TODO: transition to a rebase progress dialog
+    // TODO: compute the number of expected commits that will be rebased
 
-    this.setState({ isRebasing: true })
-
-    await this.props.dispatcher.rebase(
-      this.props.repository,
-      branch.name,
-      this.props.currentBranch.name
-    )
-
-    this.setState({ isRebasing: false })
-
-    this.props.onDismissed()
+    this.props.onStartRebase(branch.name, this.props.currentBranch.name, 20)
   }
 }
 
