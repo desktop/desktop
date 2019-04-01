@@ -5,6 +5,9 @@ import { GitError, IGitResult } from './core'
 export const DesktopStashEntryMarker = '!!GitHub_Desktop'
 
 export interface IStashEntry {
+  /** The name of the entry i.e., `stash@{0}` */
+  readonly name: string
+
   /** The name of the branch at the time the entry was created. */
   readonly branchName: string
 
@@ -60,6 +63,7 @@ export async function getDesktopStashEntries(
 
   const lines = result.stdout.split('\n')
   const stashEntries: Array<IStashEntry> = []
+  let ix = 0
   for (const line of lines) {
     const match = stashEntryRe.exec(line)
     if (match == null) {
@@ -75,6 +79,7 @@ export async function getDesktopStashEntries(
     }
 
     stashEntries.push({
+      name: `stash@{${ix++}}`,
       branchName: branchName,
       stashSha: match[1],
     })
