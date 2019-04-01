@@ -19,7 +19,6 @@ In the interest of stability and caution we tend to stay a version (or more) beh
 | react-dom | >= 1 minor |
 | keytar | >= 1 minor |
 
-
 ## The Impact Of A Dependency
 
 We group the dependencies in `package.json` and `app/package.json` into three
