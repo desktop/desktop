@@ -11,6 +11,7 @@ import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
 
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
+import { ActionStatusIcon } from '../lib/action-status-icon'
 
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { BranchList, IBranchListItem, renderDefaultBranch } from '../branches'
@@ -162,6 +163,7 @@ export class ChooseBranchDialog extends React.Component<
           />
         </DialogContent>
         <DialogFooter>
+          {this.renderRebaseStatus()}
           <ButtonGroup>
             <Button type="submit">
               Rebase <strong>{currentBranchName}</strong> onto{' '}
@@ -170,6 +172,90 @@ export class ChooseBranchDialog extends React.Component<
           </ButtonGroup>
         </DialogFooter>
       </Dialog>
+    )
+  }
+
+  private renderRebaseStatus = () => {
+    const { currentBranch, rebasePreviewStatus } = this.props
+    const { selectedBranch } = this.state
+
+    if (rebasePreviewStatus === null) {
+      return null
+    }
+
+    if (selectedBranch === null) {
+      return null
+    }
+
+    if (currentBranch.name === selectedBranch.name) {
+      return null
+    }
+
+    return (
+      <div className="rebase-status-component">
+        <ActionStatusIcon
+          status={this.props.rebasePreviewStatus}
+          classNamePrefix="rebase-status"
+        />
+        <p className="rebase-message">
+          {this.renderRebaseDetails(
+            currentBranch,
+            selectedBranch,
+            rebasePreviewStatus
+          )}
+        </p>
+      </div>
+    )
+  }
+
+  private renderRebaseDetails(
+    currentBranch: Branch,
+    baseBranch: Branch,
+    rebaseStatus: RebasePreview
+  ): JSX.Element | null {
+    if (rebaseStatus.kind === ComputedAction.Loading) {
+      return this.renderLoadingRebaseMessage()
+    }
+    if (rebaseStatus.kind === ComputedAction.Clean) {
+      return this.renderCleanRebaseMessage(
+        currentBranch,
+        baseBranch,
+        rebaseStatus.commits.length
+      )
+    }
+
+    // TODO: other scenarios to display some context about
+
+    return null
+  }
+
+  private renderLoadingRebaseMessage() {
+    return (
+      <React.Fragment>
+        Checking for ability to rebase automatically...
+      </React.Fragment>
+    )
+  }
+
+  private renderCleanRebaseMessage(
+    currentBranch: Branch,
+    baseBranch: Branch,
+    commitsToRebase: number
+  ) {
+    if (commitsToRebase <= 0) {
+      return null
+    }
+
+    const pluralized = commitsToRebase === 1 ? 'commit' : 'commits'
+    return (
+      <React.Fragment>
+        This will rebase
+        <strong>{` ${commitsToRebase} ${pluralized}`}</strong>
+        {` from `}
+        <strong>{currentBranch.name}</strong>
+        {` onto `}
+        <strong>{baseBranch.name}</strong>
+      </React.Fragment>
     )
   }
 
