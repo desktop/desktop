@@ -38,7 +38,7 @@ export class RebaseProgressDialog extends React.Component<
       rebasedCommitCount,
       commits,
       value,
-      commitSummary,
+      currentCommitSummary,
     } = this.props.progress
     const progressValue = formatRebaseValue(value)
     return (
@@ -61,7 +61,7 @@ export class RebaseProgressDialog extends React.Component<
                 <div className="message">
                   Commit {rebasedCommitCount} of {commits.length}
                 </div>
-                <div className="detail">{commitSummary}</div>
+                <div className="detail">{currentCommitSummary}</div>
               </div>
             </div>
           </div>
