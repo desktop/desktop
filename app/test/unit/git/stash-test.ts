@@ -9,6 +9,7 @@ import {
   createDesktopStashEntry,
   getLastDesktopStashEntryForBranch,
   dropDesktopStashEntry,
+  IStashEntry,
 } from '../../../src/lib/git/stash'
 import { getTipOrError } from '../../helpers/tip'
 
@@ -159,7 +160,42 @@ describe('git/stash', () => {
       expect(stashEntries[0].stashSha).not.toEqual(stashToDelete)
     })
 
-    it('does no-op when passed a commit sha that does not match any stash entry', async () => {})
+    it('does not fail when attempting to delete when stash is empty', async () => {
+      let didFail = false
+      const doesNotExist: IStashEntry = {
+        name: 'stash@{0}',
+        branchName: 'master',
+        stashSha: 'xyz',
+      }
+
+      try {
+        await dropDesktopStashEntry(repository, doesNotExist)
+      } catch {
+        didFail = true
+      }
+
+      expect(didFail).toBe(false)
+    })
+
+    it("does not fail when attempting to delete stash entry that doesn't exist", async () => {
+      let didFail = false
+      const doesNotExist: IStashEntry = {
+        name: 'stash@{4}',
+        branchName: 'master',
+        stashSha: 'xyz',
+      }
+      generateTestStashEntry(repository, 'master', true)
+      generateTestStashEntry(repository, 'master', true)
+      generateTestStashEntry(repository, 'master', true)
+
+      try {
+        await dropDesktopStashEntry(repository, doesNotExist)
+      } catch {
+        didFail = true
+      }
+
+      expect(didFail).toBe(false)
+    })
   })
 })
 
