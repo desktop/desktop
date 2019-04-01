@@ -39,11 +39,11 @@ describe('git/rebase', () => {
       status = await getStatusOrThrow(repository)
     })
 
-    it('returns a value indicating conflicts were encountered', async () => {
+    it('returns a value indicating conflicts were encountered', () => {
       expect(result).toBe(RebaseResult.ConflictsEncountered)
     })
 
-    it('status detects REBASE_HEAD', async () => {
+    it('status detects REBASE_HEAD', () => {
       expect(progress).not.toEqual(null)
       const p = progress!
       expect(p.commits.length).toEqual(1)
@@ -53,7 +53,7 @@ describe('git/rebase', () => {
       expect(p.value).toEqual(1)
     })
 
-    it('is a detached HEAD state', async () => {
+    it('is a detached HEAD state', () => {
       expect(status.currentBranch).toBeUndefined()
     })
   })
@@ -73,11 +73,11 @@ describe('git/rebase', () => {
       status = await getStatusOrThrow(repository)
     })
 
-    it('returns a value indicating conflicts were encountered', async () => {
+    it('returns a value indicating conflicts were encountered', () => {
       expect(result).toBe(RebaseResult.ConflictsEncountered)
     })
 
-    it('status detects REBASE_HEAD', async () => {
+    it('status detects REBASE_HEAD', () => {
       expect(progress).not.toEqual(null)
       const p = progress!
       expect(p.commits.length).toEqual(10)
@@ -87,7 +87,7 @@ describe('git/rebase', () => {
       expect(p.value).toEqual(0.1)
     })
 
-    it('is a detached HEAD state', async () => {
+    it('is a detached HEAD state', () => {
       expect(status.currentBranch).toBeUndefined()
     })
   })
