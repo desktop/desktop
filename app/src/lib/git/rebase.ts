@@ -5,19 +5,21 @@ import { GitError } from 'dugite'
 import * as byline from 'byline'
 
 import { Repository } from '../../models/repository'
-import { git, IGitResult, IGitExecutionOptions } from './core'
+import { RebaseContext, RebaseProgressOptions } from '../../models/rebase'
+import { IRebaseProgress } from '../../models/progress'
 import {
   WorkingDirectoryFileChange,
   AppFileStatusKind,
 } from '../../models/status'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
+
+import { merge } from '../merge'
+import { formatRebaseValue } from '../rebase'
+
+import { git, IGitResult, IGitExecutionOptions } from './core'
 import { stageManualConflictResolution } from './stage'
 import { stageFiles } from './update-index'
-
 import { getStatus } from './status'
-import { RebaseContext, RebaseProgressOptions } from '../../models/rebase'
-import { merge } from '../merge'
-import { IRebaseProgress } from '../../models/progress'
 
 /**
  * Check the `.git/REBASE_HEAD` file exists in a repository to confirm
@@ -112,14 +114,10 @@ const rebaseApplyingRe = /^Applying: (.*)/
  * A parser to read and emit rebase progress from Git `stdout`
  */
 class GitRebaseParser {
-  private currentCommitCount = 0
-
   public constructor(
-    startCount: number,
+    private rebasedCommitCount: number,
     private readonly totalCommitCount: number
-  ) {
-    this.currentCommitCount = startCount
-  }
+  ) {}
 
   public parse(line: string): IRebaseProgress | null {
     const match = rebaseApplyingRe.exec(line)
@@ -130,16 +128,19 @@ class GitRebaseParser {
     }
 
     const commitSummary = match[1]
-    this.currentCommitCount++
+    this.rebasedCommitCount++
 
-    const value = this.currentCommitCount / this.totalCommitCount
+    const progress = this.rebasedCommitCount / this.totalCommitCount
+    const value = formatRebaseValue(progress)
 
     return {
       kind: 'rebase',
-      title: `Rebasing commit ${this.currentCommitCount} of ${
+      title: `Rebasing commit ${this.rebasedCommitCount} of ${
         this.totalCommitCount
       } commits`,
       value,
+      rebasedCommitCount: this.rebasedCommitCount,
+      totalCommitCount: this.totalCommitCount,
       commitSummary,
     }
   }
@@ -153,11 +154,11 @@ function configureOptionsForRebase(
     return options
   }
 
-  const { start, total, progressCallback } = progress
+  const { rebasedCommitCount, totalCommitCount, progressCallback } = progress
 
   return merge(options, {
     processCallback: (process: ChildProcess) => {
-      const parser = new GitRebaseParser(start, total)
+      const parser = new GitRebaseParser(rebasedCommitCount, totalCommitCount)
 
       // rebase emits progress messages on `stdout`, not `stderr`
       byline(process.stdout).on('data', (line: string) => {

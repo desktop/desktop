@@ -7,6 +7,7 @@ import { RetryAction } from './retry-actions'
 import { WorkingDirectoryFileChange } from './status'
 import { PreferencesTab } from './preferences'
 import { ICommitContext } from './commit'
+import { RebaseFlowState } from './rebase-flow-state'
 
 export enum PopupType {
   RenameBranch = 1,
@@ -44,8 +45,7 @@ export enum PopupType {
   CommitConflictsWarning,
   PushNeedsPull,
   LocalChangesOverwritten,
-  RebaseConflicts,
-  RebaseBranch,
+  RebaseFlow,
   ConfirmForcePush,
 }
 
@@ -170,18 +170,12 @@ export type Popup =
       overwrittenFiles: ReadonlyArray<string>
     }
   | {
-      type: PopupType.RebaseConflicts
-      repository: Repository
-      baseBranch?: string
-      targetBranch: string
-    }
-  | {
-      type: PopupType.RebaseBranch
-      repository: Repository
-      branch?: Branch
-    }
-  | {
       type: PopupType.ConfirmForcePush
       repository: Repository
       upstreamBranch: string
+    }
+  | {
+      type: PopupType.RebaseFlow
+      repository: Repository
+      initialState: RebaseFlowState
     }
