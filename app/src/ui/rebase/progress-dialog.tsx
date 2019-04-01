@@ -3,6 +3,8 @@ import * as React from 'react'
 import { timeout } from '../../lib/promise'
 import { formatRebaseValue } from '../../lib/rebase'
 
+import { RichText } from '../lib/rich-text'
+
 import { Dialog, DialogContent } from '../dialog'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { RebaseProgressSummary } from '../../models/rebase'
@@ -10,6 +12,9 @@ import { RebaseProgressSummary } from '../../models/rebase'
 interface IRebaseProgressDialogProps {
   /** Progress information about the current rebase */
   readonly progress: RebaseProgressSummary
+
+  readonly emoji: Map<string, string>
+
   /**
    * An optional action to run when the component is mounted
    *
@@ -61,7 +66,12 @@ export class RebaseProgressDialog extends React.Component<
                 <div className="message">
                   Commit {rebasedCommitCount} of {commits.length}
                 </div>
-                <div className="detail">{currentCommitSummary}</div>
+                <div className="detail">
+                  <RichText
+                    emoji={this.props.emoji}
+                    text={currentCommitSummary || ''}
+                  />
+                </div>
               </div>
             </div>
           </div>
