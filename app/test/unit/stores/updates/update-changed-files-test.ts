@@ -9,7 +9,10 @@ import {
   DiffSelectionType,
   DiffType,
 } from '../../../../src/models/diff'
-import { createState, createStatus } from './changes-state-helper'
+import {
+  createState,
+  createStatus,
+} from '../../../helpers/changes-state-helper'
 
 const allSelected = DiffSelection.fromInitialSelection(DiffSelectionType.All)
 const noneSelected = DiffSelection.fromInitialSelection(DiffSelectionType.None)

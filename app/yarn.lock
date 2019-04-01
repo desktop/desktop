@@ -1025,6 +1025,18 @@ os-tmpdir@^1.0.0:
   resolved "https://registry.yarnpkg.com/os-tmpdir/-/os-tmpdir-1.0.2.tgz#bbe67406c79aa85c5cfec766fe5734555dfa1274"
   integrity sha1-u+Z0BseaqFxc/sdm/lc0VV36EnQ=
 
+p-limit@^2.2.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/p-limit/-/p-limit-2.2.0.tgz#417c9941e6027a9abcba5092dd2904e255b5fbc2"
+  integrity sha512-pZbTJpoUsCzV48Mc9Nh51VbwO0X9cuPFE8gYwx9BTCt9SF8/b7Zljd2fVgOxhIF/HDTKgpVzs+GPhyKfjLLFRQ==
+  dependencies:
+    p-try "^2.0.0"
+
+p-try@^2.0.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/p-try/-/p-try-2.1.0.tgz#c1a0f1030e97de018bb2c718929d2af59463e505"
+  integrity sha512-H2RyIJ7+A3rjkwKC2l5GGtU4H1vkxKCAGsWasNVd0Set+6i4znxbWy6/j16YDPJDWxhsgZiKAstMEP8wCdSpjA==
+
 path-is-absolute@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/path-is-absolute/-/path-is-absolute-1.0.1.tgz#174b9268735534ffbc7ace6bf53a5a9e1b5c5f5f"
@@ -1148,6 +1160,11 @@ queue@^4.4.2:
   integrity sha512-fSMRXbwhMwipcDZ08enW2vl+YDmAmhcNcr43sCJL8DIg+CFOsoRLG23ctxA+fwNk1w55SePSiS7oqQQSgQoVJQ==
   dependencies:
     inherits "~2.0.0"
+
+quick-lru@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/quick-lru/-/quick-lru-3.0.0.tgz#2f96145481567e5bc442c6c4a66e86158405c696"
+  integrity sha512-WLzHLB/msD8Q/5jNh4LviurG896aIEJRS1M3gHz91nSmaXn8q+/q4yOQvNMIETl9f5pAu3igqexB62ARWOUoOg==
 
 rc@^1.2.7:
   version "1.2.8"
