@@ -43,7 +43,8 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       const apiResult = await apiClient.fetchPullRequests(
         githubRepo.owner.login,
         githubRepo.name,
-        'open'
+        'open',
+        null
       )
 
       await this.cachePullRequests(apiResult, githubRepo)

@@ -466,9 +466,18 @@ export class API {
   public async fetchPullRequests(
     owner: string,
     name: string,
-    state: 'open' | 'closed' | 'all'
+    state: 'open' | 'closed' | 'all',
+    since: Date | null
   ): Promise<ReadonlyArray<IAPIPullRequest>> {
-    const url = urlWithQueryString(`repos/${owner}/${name}/pulls`, { state })
+    const params: { [key: string]: string } = {
+      state,
+    }
+
+    if (since && !isNaN(since.getTime())) {
+      params.since = toGitHubIsoDateString(since)
+    }
+
+    const url = urlWithQueryString(`repos/${owner}/${name}/pulls`, params)
     try {
       const prs = await this.fetchAll<IAPIPullRequest>(url)
       return prs
