@@ -3,9 +3,10 @@ import * as moment from 'moment'
 import * as classNames from 'classnames'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { CIStatus } from './ci-status'
-import { PullRequestStatus } from '../../models/pull-request'
 import { HighlightText } from '../lib/highlight-text'
 import { IMatches } from '../../lib/fuzzy-find'
+import { GitHubRepository } from '../../models/github-repository'
+import { Dispatcher } from '../dispatcher'
 
 export interface IPullRequestListItemProps {
   /** The title. */
@@ -20,9 +21,6 @@ export interface IPullRequestListItemProps {
   /** The author login. */
   readonly author: string
 
-  /** The CI status. */
-  readonly status: PullRequestStatus | null
-
   /**
    * Whether or not this list item is a skeleton item
    * put in place while the pull request information is
@@ -34,6 +32,11 @@ export interface IPullRequestListItemProps {
 
   /** The characters in the PR title to highlight */
   readonly matches: IMatches
+
+  readonly dispatcher: Dispatcher
+
+  /** The GitHub repository to use when looking up commit status. */
+  readonly repository: GitHubRepository
 }
 
 /** Pull requests as rendered in the Pull Requests list. */
@@ -74,12 +77,13 @@ export class PullRequestListItem extends React.Component<
   }
 
   private renderPullRequestStatus() {
-    const status = this.props.status
-
-    if (!status || status.totalCount === 0) {
-      return null
-    }
-
-    return <CIStatus status={status} />
+    const ref = `refs/pull/${this.props.number}/head`
+    return (
+      <CIStatus
+        dispatcher={this.props.dispatcher}
+        repository={this.props.repository}
+        commitRef={ref}
+      />
+    )
   }
 }
