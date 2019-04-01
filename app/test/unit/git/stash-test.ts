@@ -97,11 +97,11 @@ describe('git/stash', () => {
     it('returns last entry made for branch', async () => {
       const branchName = 'master'
       await generateTestStashEntry(repository, branchName, true)
-      const lastEntry = await generateTestStashEntry(
-        repository,
-        branchName,
-        true
-      )
+      await generateTestStashEntry(repository, branchName, true)
+
+      const stashEntries = await getDesktopStashEntries(repository)
+      // entries are returned in LIFO order
+      const lastEntry = stashEntries[0]
 
       const actual = await getLastDesktopStashEntryForBranch(
         repository,
@@ -109,7 +109,7 @@ describe('git/stash', () => {
       )
 
       expect(actual).not.toBeNull()
-      expect(actual!.stashSha).toBe(lastEntry)
+      expect(actual!.stashSha).toBe(lastEntry.stashSha)
     })
   })
 
@@ -132,42 +132,32 @@ describe('git/stash', () => {
  * entries created via the CLI and Desktop
  *
  * @param repository the repository to create the stash entry for
- * @param message passing no message will similate Desktop creating the entry
+ * @param message passing null will similate a Desktop created stash entry
  */
 async function stash(
   repository: Repository,
   branchName: string,
   message: string | null
-): Promise<string> {
+): Promise<void> {
   const tip = await getTipOrError(repository)
-
-  // Since we're identifying stash entries by their object ID
-  // we need to capture it at the time of creation so that we
-  // can assert against it.
-  const result = await GitProcess.exec(['stash', 'create'], repository.path)
-  const objectId = result.stdout.trim()
   await GitProcess.exec(
     [
       'stash',
-      'store',
+      'push',
       '-m',
       message || createDesktopStashMessage(branchName, tip.sha),
-      objectId,
     ],
     repository.path
   )
-
-  return objectId
 }
 
 async function generateTestStashEntry(
   repository: Repository,
   branchName: string,
   simulateDesktopEntry: boolean
-): Promise<string> {
+): Promise<void> {
   const message = simulateDesktopEntry ? null : 'Should get filtered'
   const readme = path.join(repository.path, 'README.md')
   await FSE.appendFile(readme, '1')
-
-  return await stash(repository, branchName, message)
+  await stash(repository, branchName, message)
 }
