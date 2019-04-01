@@ -128,16 +128,23 @@ export async function createDesktopStashEntry(
  */
 export async function dropDesktopStashEntry(
   repository: Repository,
-  stashSha: string
+  stash: IStashEntry
 ) {
-  if (stashSha === '') {
-    // the drop sub-command behaves like pop when no stash is given
-    // so we return if given an empty string to avoid that
+  // get the latest name for the stash entry since it may have changed
+  const stashEntries = await getDesktopStashEntries(repository)
+
+  if (stashEntries.length === 0) {
     return
   }
 
-  const entry = ['stash@{', stashSha, '}'].join('')
-  await git(['stash', 'drop', entry], repository.path, 'dropStashEntry')
+  const entryToDelete = stashEntries.find(e => e.stashSha === stash.stashSha)
+  if (entryToDelete !== undefined) {
+    await git(
+      ['stash', 'drop', entryToDelete.name],
+      repository.path,
+      'dropStashEntry'
+    )
+  }
 }
 
 /**
