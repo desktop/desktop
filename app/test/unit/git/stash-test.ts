@@ -200,7 +200,7 @@ describe('git/stash', () => {
 })
 
 /**
- * Creates a stash entry using `git stash push` to allow for similating
+ * Creates a stash entry using `git stash push` to allow for simulating
  * entries created via the CLI and Desktop
  *
  * @param repository the repository to create the stash entry for
