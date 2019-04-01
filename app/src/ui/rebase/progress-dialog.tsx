@@ -20,7 +20,7 @@ interface IRebaseProgressDialogProps {
    *
    * This should typically be the rebase action to perform.
    */
-  readonly rebaseAction?: () => Promise<void>
+  readonly rebaseAction: (() => Promise<void>) | null
 }
 
 export class RebaseProgressDialog extends React.Component<
