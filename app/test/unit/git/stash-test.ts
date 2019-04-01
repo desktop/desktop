@@ -8,6 +8,7 @@ import {
   createDesktopStashMessage,
   createDesktopStashEntry,
   getLastDesktopStashEntryForBranch,
+  dropDesktopStashEntry,
 } from '../../../src/lib/git/stash'
 import { getTipOrError } from '../../helpers/tip'
 
@@ -124,6 +125,41 @@ describe('git/stash', () => {
         '!!GitHub_Desktop<master@bc45b3b97993eed2c3d7872a0b766b3e29a12e4b>'
       )
     })
+  })
+
+  describe('dropDesktopStashEntry', () => {
+    let repository: Repository
+    let readme: string
+
+    beforeEach(async () => {
+      repository = await setupEmptyRepository()
+      readme = path.join(repository.path, 'README.md')
+      await FSE.writeFile(readme, '')
+      await GitProcess.exec(['add', 'README.md'], repository.path)
+      await GitProcess.exec(['commit', '-m', 'initial commit'], repository.path)
+    })
+
+    it('removes the entry identified by `stashSha`', async () => {
+      await FSE.appendFile(readme, '1')
+      await stash(repository, 'master', null)
+
+      let stashEntries = await getDesktopStashEntries(repository)
+      const stashToDelete = stashEntries[0]
+
+      await FSE.appendFile(readme, '2')
+      await stash(repository, 'master', null)
+
+      await dropDesktopStashEntry(repository, stashToDelete)
+
+      // using this function to get stashSha since it parses
+      // the output from git into easy to use objects
+      stashEntries = await getDesktopStashEntries(repository)
+
+      expect(stashEntries).toHaveLength(1)
+      expect(stashEntries[0].stashSha).not.toEqual(stashToDelete)
+    })
+
+    it('does no-op when passed a commit sha that does not match any stash entry', async () => {})
   })
 })
 
