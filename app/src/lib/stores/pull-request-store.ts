@@ -30,10 +30,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
   }
 
   /** Loads all pull requests against the given repository. */
-  public async fetchAndCachePullRequests(
-    repository: Repository,
-    account: Account
-  ): Promise<void> {
+  public async refreshPullRequests(repository: Repository, account: Account) {
     const githubRepo = forceUnwrap(
       'Can only refresh pull requests for GitHub repositories',
       repository.gitHubRepository

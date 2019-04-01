@@ -4149,7 +4149,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   public async _refreshPullRequests(repository: Repository): Promise<void> {
     return this.loadPullRequests(repository, async account => {
-      await this.pullRequestStore.fetchAndCachePullRequests(repository, account)
+      await this.pullRequestStore.refreshPullRequests(repository, account)
       this.updateMenuItemLabels(repository)
     })
   }
