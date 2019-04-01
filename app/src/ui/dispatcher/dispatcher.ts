@@ -721,7 +721,12 @@ export class Dispatcher {
 
     const beforeSha = getTipSha(stateBefore.branchesState.tip)
 
-    log.info(`[rebase] starting rebase for ${beforeSha}`)
+    log.info(`[rebase] starting rebase for ${targetBranch} at ${beforeSha}`)
+    log.info(
+      `[rebase] to restore the previous state if this rebase is unsatisfactory:`
+    )
+    log.info(`[rebase] - git checkout ${targetBranch}`)
+    log.info(`[rebase] - git reset ${beforeSha} --hard`)
 
     const result = await this.appStore._rebase(
       repository,
