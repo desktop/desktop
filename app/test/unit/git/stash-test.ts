@@ -154,7 +154,7 @@ describe('git/stash', () => {
       // the output from git into easy to use objects
       stashEntries = await getDesktopStashEntries(repository)
 
-      expect(stashEntries).toHaveLength(1)
+      expect(stashEntries.length).toBe(1)
       expect(stashEntries[0].stashSha).not.toEqual(stashToDelete)
     })
 
