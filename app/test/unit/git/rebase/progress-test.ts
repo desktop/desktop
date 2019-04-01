@@ -49,7 +49,7 @@ describe('git/rebase', () => {
       expect(p.commits.length).toEqual(1)
       expect(p.commits[0].summary).toEqual('Feature Branch!')
 
-      expect(p.count).toEqual(1)
+      expect(p.rebasedCommitCount).toEqual(1)
       expect(p.value).toEqual(1)
     })
 
@@ -83,7 +83,7 @@ describe('git/rebase', () => {
       expect(p.commits.length).toEqual(10)
       expect(p.commits[0].summary).toEqual('Feature Branch First Commit!')
 
-      expect(p.count).toEqual(1)
+      expect(p.rebasedCommitCount).toEqual(1)
       expect(p.value).toEqual(0.1)
     })
 
