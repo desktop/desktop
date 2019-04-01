@@ -1,5 +1,4 @@
 import Dexie from 'dexie'
-import { APIRefState, IAPIRefStatusItem } from '../api'
 import { BaseDatabase } from './base-database'
 
 export interface IPullRequestRef {
@@ -40,33 +39,6 @@ export interface IPullRequest {
 
   /** The login of the author. */
   readonly author: string
-}
-
-export interface IPullRequestStatus {
-  /**
-   * The database ID. This will be undefined if the status hasn't been inserted
-   * into the DB.
-   */
-  readonly id?: number
-
-  /** The ID of the pull request in the database. */
-  readonly pullRequestId: number
-
-  /** The status' state. */
-  readonly state: APIRefState
-
-  /** The number of statuses represented in this combined status. */
-  readonly totalCount: number
-
-  /** The SHA for which this status applies. */
-  readonly sha: string
-
-  /**
-   * The list of statuses for this specific ref or undefined
-   * if the database object was created prior to status support
-   * being added in #3588
-   */
-  readonly statuses?: ReadonlyArray<IAPIRefStatusItem>
 }
 
 export class PullRequestDatabase extends BaseDatabase {
