@@ -141,14 +141,12 @@ describe('git/stash', () => {
     })
 
     it('removes the entry identified by `stashSha`', async () => {
-      await FSE.appendFile(readme, '1')
-      await stash(repository, 'master', null)
+      await generateTestStashEntry(repository, 'master', true)
 
       let stashEntries = await getDesktopStashEntries(repository)
       const stashToDelete = stashEntries[0]
 
-      await FSE.appendFile(readme, '2')
-      await stash(repository, 'master', null)
+      await generateTestStashEntry(repository, 'master', true)
 
       await dropDesktopStashEntry(repository, stashToDelete)
 
