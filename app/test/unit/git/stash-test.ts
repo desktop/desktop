@@ -231,6 +231,6 @@ async function generateTestStashEntry(
 ): Promise<void> {
   const message = simulateDesktopEntry ? null : 'Should get filtered'
   const readme = path.join(repository.path, 'README.md')
-  await FSE.appendFile(readme, '1')
+  await FSE.appendFile(readme, 'test-stash')
   await stash(repository, branchName, message)
 }
