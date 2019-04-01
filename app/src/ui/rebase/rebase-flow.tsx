@@ -264,7 +264,7 @@ export class RebaseFlow extends React.Component<
   }
 
   private updateProgress = (progress: IRebaseProgress) => {
-    const { rebasedCommitCount, value, commitSummary } = progress
+    const { rebasedCommitCount, value, currentCommitSummary } = progress
 
     // this ensures the progress bar fills to 100%, while `componentDidUpdate`
     // detects and handles the state transition after a period of time to ensure
@@ -275,7 +275,7 @@ export class RebaseFlow extends React.Component<
         progress: {
           rebasedCommitCount,
           value,
-          currentCommitSummary: commitSummary,
+          currentCommitSummary,
           commits,
         },
       }
