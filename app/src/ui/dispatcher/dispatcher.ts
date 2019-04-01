@@ -66,7 +66,7 @@ import {
 } from '../../models/status'
 import { TipState, IValidBranch } from '../../models/tip'
 import { RebaseProgressOptions } from '../../models/rebase'
-import { Banner, BannerType } from '../../models/banner'
+import { Banner } from '../../models/banner'
 
 import { ApplicationTheme } from '../lib/application-theme'
 import { installCLI } from '../lib/install-cli'
@@ -747,12 +747,6 @@ export class Dispatcher {
         this.addRebasedBranchToForcePushList(repository, tip, beforeSha)
       }
 
-      this.setBanner({
-        type: BannerType.SuccessfulRebase,
-        targetBranch: targetBranch,
-        baseBranch: baseBranch,
-      })
-
       await this.refreshRepository(repository)
     }
 
@@ -795,22 +789,17 @@ export class Dispatcher {
 
     const { conflictState } = stateBefore.changesState
 
-    if (result === RebaseResult.CompletedWithoutError) {
-      this.closePopup()
-
-      if (conflictState !== null && isRebaseConflictState(conflictState)) {
-        this.setBanner({
-          type: BannerType.SuccessfulRebase,
-          targetBranch: conflictState.targetBranch,
-        })
-
-        if (tip.kind === TipState.Valid) {
-          this.addRebasedBranchToForcePushList(
-            repository,
-            tip,
-            conflictState.originalBranchTip
-          )
-        }
+    if (
+      result === RebaseResult.CompletedWithoutError &&
+      conflictState !== null &&
+      isRebaseConflictState(conflictState)
+    ) {
+      if (tip.kind === TipState.Valid) {
+        this.addRebasedBranchToForcePushList(
+          repository,
+          tip,
+          conflictState.originalBranchTip
+        )
       }
 
       await this.refreshRepository(repository)
