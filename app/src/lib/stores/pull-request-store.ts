@@ -267,6 +267,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
         number: pr.number,
         title: pr.title,
         createdAt: pr.created_at,
+        updatedAt: pr.updated_at,
         head: {
           ref: pr.head.ref,
           sha: pr.head.sha,

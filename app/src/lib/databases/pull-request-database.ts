@@ -31,6 +31,9 @@ export interface IPullRequest {
   /** The string formatted date on which the PR was created. */
   readonly createdAt: string
 
+  /** The string formatted date on which the PR was created. */
+  readonly updatedAt: string
+
   /** The ref from which the pull request's changes are coming. */
   readonly head: IPullRequestRef
 
@@ -67,5 +70,27 @@ export class PullRequestDatabase extends BaseDatabase {
 
     // Remove the pullRequestStatus table
     this.conditionalVersion(5, { pullRequestStatus: null })
+
+    // Unfortunately we have to clear the PRs in order to maintain
+    // data consistency in the database. The PRs table is only supposed
+    // to store 'open' PRs and if we kept the existing PRs (which)
+    // don't have an updated_at field around the initial query for
+    // max(updated_at) would return null, causing us to fetch all _open_
+    // PRs which in turn means we wouldn't be able to detect if we
+    // have any PRs in the database that have been closed since the
+    // last time we fetched. Not only that, these closed PRs wouldn't
+    // be updated to include the updated_at field unless they were actually
+    // modified at a later date.
+    //
+    // TL;DR; This is the safest approach
+    this.conditionalVersion(
+      6,
+      { pullRequests: 'id++, base.repoId, [base.repoId+updated_at]' },
+      clearPullRequests
+    )
   }
+}
+
+function clearPullRequests(transaction: Dexie.Transaction) {
+  return transaction.table('pullRequests').clear()
 }

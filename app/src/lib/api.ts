@@ -192,6 +192,7 @@ export interface IAPIPullRequest {
   readonly number: number
   readonly title: string
   readonly created_at: string
+  readonly updated_at: string
   readonly user: IAPIIdentity
   readonly head: IAPIPullRequestRef
   readonly base: IAPIPullRequestRef
