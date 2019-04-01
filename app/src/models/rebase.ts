@@ -1,6 +1,6 @@
 import { IRebaseProgress } from './progress'
-import { ComputedActionKind } from './action'
-import { Commit } from './commit'
+import { ComputedAction } from './computed-action'
+import { CommitOneLine } from './commit'
 
 export type RebaseContext = {
   readonly targetBranch: string
@@ -20,27 +20,27 @@ export type RebaseProgressOptions = {
   progressCallback: (progress: IRebaseProgress) => void
 }
 
-export type RebaseSuccess = {
-  readonly kind: ComputedActionKind.Clean
-  readonly commits: ReadonlyArray<Commit>
+export type CleanRebase = {
+  readonly kind: ComputedAction.Clean
+  readonly commits: ReadonlyArray<CommitOneLine>
 }
 
-export type RebaseConflicts = {
-  readonly kind: ComputedActionKind.Conflicts
+export type RebaseWithConflicts = {
+  readonly kind: ComputedAction.Conflicts
 }
 
-export type RebaseUnsupported = {
-  readonly kind: ComputedActionKind.Invalid
+export type RebaseNotSupported = {
+  readonly kind: ComputedAction.Invalid
 }
 
 export type RebaseLoading = {
-  readonly kind: ComputedActionKind.Loading
+  readonly kind: ComputedAction.Loading
 }
 
-export type RebasePreviewResult =
-  | RebaseSuccess
-  | RebaseConflicts
-  | RebaseUnsupported
+export type RebasePreview =
+  | CleanRebase
+  | RebaseWithConflicts
+  | RebaseNotSupported
   | RebaseLoading
 
 export type RebaseProgressSummary = {
@@ -48,8 +48,8 @@ export type RebaseProgressSummary = {
   readonly value: number
   /** Track the current number of commits rebased across dialogs and states */
   readonly rebasedCommitCount: number
-  /** Track the total number of commits to rebase across dialog and states */
-  readonly totalCommitCount: number
   /** The commit summary associated with the current commit (if known) */
   readonly commitSummary?: string
+  /** The list of known commits that will be rebased onto the base branch */
+  readonly commits: ReadonlyArray<CommitOneLine>
 }
