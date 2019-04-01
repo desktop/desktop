@@ -4,7 +4,7 @@ import { assertNever } from '../../lib/fatal-error'
 import { timeout } from '../../lib/promise'
 import { getResolvedFiles } from '../../lib/status'
 import { formatRebaseValue } from '../../lib/rebase'
-import { RebaseResult } from '../../lib/git'
+import { RebaseResult, getCommitsInRange } from '../../lib/git'
 import { RebaseConflictState } from '../../lib/app-state'
 
 import { Repository } from '../../models/repository'
@@ -19,6 +19,7 @@ import { ChooseBranchDialog } from './choose-branch'
 import { ShowConflictedFilesDialog } from './show-conflicted-files-dialog'
 import { RebaseProgressDialog } from './progress-dialog'
 import { ConfirmAbortDialog } from './confirm-abort-dialog'
+import { CommitOneLine } from '../../models/commit'
 
 interface IRebaseFlowProps {
   /**
@@ -220,7 +221,7 @@ export class RebaseFlow extends React.Component<
     })
   }
 
-  private onStartRebase = (
+  private onStartRebase = async (
     baseBranch: string,
     targetBranch: string,
     totalCommitCount: number
@@ -246,6 +247,25 @@ export class RebaseFlow extends React.Component<
       }
     }
 
+    // TODO:
+    // clean this up in https://github.com/desktop/desktop/pull/7167 as
+    // the commits will be checked in the ChooseBranch step and passed into
+    // here to start the rebase
+    let commits: ReadonlyArray<CommitOneLine> = []
+
+    try {
+      commits = await getCommitsInRange(
+        this.props.repository,
+        baseBranch,
+        targetBranch
+      )
+    } catch (err) {
+      log.warn(
+        `Unexpected error while getting commits that will be part of the rebase`,
+        err
+      )
+    }
+
     this.setState(() => ({
       step: {
         kind: RebaseStep.ShowProgress,
@@ -255,8 +275,8 @@ export class RebaseFlow extends React.Component<
         value: 0,
         rebasedCommitCount: 1,
         totalCommitCount,
-        // TODO: wire this up to live data in https://github.com/desktop/desktop/pull/7167
-        commits: [],
+
+        commits,
       },
     }))
   }
