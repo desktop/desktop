@@ -148,6 +148,9 @@ describe('git/stash', () => {
 
       await generateTestStashEntry(repository, 'master', true)
 
+      stashEntries = await getDesktopStashEntries(repository)
+      expect(stashEntries.length).toBe(2)
+
       await dropDesktopStashEntry(repository, stashToDelete)
 
       // using this function to get stashSha since it parses
