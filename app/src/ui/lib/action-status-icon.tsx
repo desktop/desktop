@@ -1,40 +1,42 @@
 import * as React from 'react'
-import { Octicon, OcticonSymbol } from '../octicons'
-import { assertNever } from '../../lib/fatal-error'
 import * as classNames from 'classnames'
-import { MergeResult } from '../../models/merge'
 import { ComputedAction } from '../../models/computed-action'
+import { assertNever } from '../../lib/fatal-error'
 
-interface IMergeStatusIconProps {
+import { Octicon, OcticonSymbol } from '../octicons'
+
+interface IActionStatusIconProps {
+  /** The status to display to the user */
+  readonly status: { kind: ComputedAction } | null
+
+  /** A required class name prefix for the Octicon component */
+  readonly classNamePrefix: string
+
   /** The classname for the underlying element. */
   readonly className?: string
-
-  /** The status to display. */
-  readonly status: MergeResult | null
 }
 
-/** The little CI status indicator. */
-export class MergeStatusHeader extends React.Component<
-  IMergeStatusIconProps,
-  {}
-> {
+/** An indicator to display representing the result of a computed action */
+export class ActionStatusIcon extends React.Component<IActionStatusIconProps> {
   public render() {
-    const { status } = this.props
+    const { status, classNamePrefix } = this.props
     if (status === null) {
       return null
     }
 
-    const state = status.kind
+    const { kind } = status
+
+    const className = `${classNamePrefix}-icon-container`
 
     return (
-      <div className="merge-status-icon-container">
+      <div className={className}>
         <Octicon
           className={classNames(
-            'merge-status',
-            `merge-status-${state}`,
+            classNamePrefix,
+            `${classNamePrefix}-${kind}`,
             this.props.className
           )}
-          symbol={getSymbolForState(state)}
+          symbol={getSymbolForState(kind)}
         />
       </div>
     )
