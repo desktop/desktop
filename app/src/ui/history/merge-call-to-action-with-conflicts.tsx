@@ -7,7 +7,7 @@ import { Dispatcher } from '../dispatcher'
 import { Button } from '../lib/button'
 import { MergeStatusHeader } from './merge-status-header'
 import { MergeResult } from '../../models/merge'
-import { ComputedActionKind } from '../../models/action'
+import { ComputedAction } from '../../models/computed-action'
 
 interface IMergeCallToActionWithConflictsProps {
   readonly repository: Repository
@@ -32,7 +32,7 @@ export class MergeCallToActionWithConflicts extends React.Component<
 
     const cannotMergeBranch =
       this.props.mergeStatus != null &&
-      this.props.mergeStatus.kind === ComputedActionKind.Invalid
+      this.props.mergeStatus.kind === ComputedAction.Invalid
 
     const disabled = commitsBehind <= 0 || cannotMergeBranch
 
@@ -74,20 +74,20 @@ export class MergeCallToActionWithConflicts extends React.Component<
       return null
     }
 
-    if (mergeStatus.kind === ComputedActionKind.Loading) {
+    if (mergeStatus.kind === ComputedAction.Loading) {
       return this.renderLoadingMergeMessage()
     }
-    if (mergeStatus.kind === ComputedActionKind.Clean) {
+    if (mergeStatus.kind === ComputedAction.Clean) {
       return this.renderCleanMergeMessage(
         currentBranch,
         comparisonBranch,
         behindCount
       )
     }
-    if (mergeStatus.kind === ComputedActionKind.Invalid) {
+    if (mergeStatus.kind === ComputedAction.Invalid) {
       return this.renderInvalidMergeMessage()
     }
-    if (mergeStatus.kind === ComputedActionKind.Conflicts) {
+    if (mergeStatus.kind === ComputedAction.Conflicts) {
       return this.renderConflictedMergeMessage(
         currentBranch,
         comparisonBranch,
