@@ -69,7 +69,6 @@ export async function getDesktopStashEntries(
     const message = match[2]
     const branchName = extractBranchFromMessage(message)
 
-    // if branch name is null, the stash entry isn't using our magic string
     if (branchName === null) {
       // the stash entry isn't using our magic string, so skip it
       continue
