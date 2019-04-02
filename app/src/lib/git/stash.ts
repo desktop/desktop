@@ -63,8 +63,11 @@ export async function getDesktopStashEntries(
 
   const lines = result.stdout.split('\n')
   const stashEntries: Array<IStashEntry> = []
-  let ix = 0
+  let ix = -1
   for (const line of lines) {
+    // need to get name from stash list
+    ix++
+
     const match = stashEntryRe.exec(line)
     if (match == null) {
       continue
@@ -79,7 +82,7 @@ export async function getDesktopStashEntries(
     }
 
     stashEntries.push({
-      name: `stash@{${ix++}}`,
+      name: `stash@{${ix}}`,
       branchName: branchName,
       stashSha: match[1],
     })
