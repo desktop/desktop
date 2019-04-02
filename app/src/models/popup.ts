@@ -183,5 +183,5 @@ export type Popup =
   | {
       type: PopupType.StashAndSwitchBranch
       repository: Repository
-      checkoutBranch: string
+      checkoutBranch: Branch
     }

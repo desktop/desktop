@@ -16,7 +16,7 @@ interface ISwitchBranchProps {
   readonly repository: Repository
   readonly dispathcer: Dispatcher
   readonly currentBranch: Branch
-  readonly checkoutBranchName: string
+  readonly branchToCheckout: Branch
   readonly onDismissed: () => void
 }
 
@@ -63,14 +63,14 @@ export class StashAndSwitchBranch extends React.Component<
   }
 
   private renderOptions() {
-    const { checkoutBranchName } = this.props
+    const { branchToCheckout } = this.props
     const items = [
       {
         title: `Yes, stash my changes from ${this.props.currentBranch.name}`,
         description: 'Stash your in-progress work and return to it later',
       },
       {
-        title: `No, bring my changes to ${checkoutBranchName}`,
+        title: `No, bring my changes to ${branchToCheckout.name}`,
         description:
           'your in-progress work will automatically follow you to the new branch',
       },
@@ -96,13 +96,13 @@ export class StashAndSwitchBranch extends React.Component<
     const {
       repository,
       currentBranch,
-      checkoutBranchName,
+      branchToCheckout: checkoutBranchName,
       dispathcer,
     } = this.props
 
     const whereToStash =
       this.state.selectedOption === StashOptions.StashChanges
-        ? currentBranch.name
+        ? currentBranch
         : checkoutBranchName
     await dispathcer.createStash(repository, whereToStash)
 

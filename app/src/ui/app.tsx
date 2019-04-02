@@ -1633,7 +1633,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispathcer={this.props.dispatcher}
             repository={popup.repository}
             currentBranch={currentBranch}
-            checkoutBranchName={checkoutBranch}
+            branchToCheckout={checkoutBranch}
             onDismissed={this.onPopupDismissed}
           />
         )
