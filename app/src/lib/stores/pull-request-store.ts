@@ -154,7 +154,9 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
     const remotes = await getRemotes(repository)
     const forkedRemotesToDelete = this.getRemotesToDelete(remotes, pullRequests)
 
-    await this.deleteRemotes(repository, forkedRemotesToDelete)
+    for (const remote of forkedRemotesToDelete) {
+      await removeRemote(repository, remote.name)
+    }
   }
 
   private getRemotesToDelete(
@@ -179,15 +181,6 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
     )
 
     return result
-  }
-
-  private async deleteRemotes(
-    repository: Repository,
-    remotes: ReadonlyArray<IRemote>
-  ) {
-    for (const remote of remotes) {
-      await removeRemote(repository, remote.name)
-    }
   }
 
   private updateActiveFetchCount(
