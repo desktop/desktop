@@ -39,7 +39,7 @@ export async function getDesktopStashEntries(
 
   try {
     result = await git(
-      ['log', '-g', 'refs/stash', `--pretty=${prettyFormat}`],
+      ['log', '-g', `--pretty=${prettyFormat}`, 'refs/stash'],
       repository.path,
       'getStashEntries'
     )
