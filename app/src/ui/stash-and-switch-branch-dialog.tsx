@@ -96,17 +96,16 @@ export class StashAndSwitchBranch extends React.Component<
     const {
       repository,
       currentBranch,
-      branchToCheckout: checkoutBranchName,
+      branchToCheckout,
       dispathcer,
     } = this.props
 
     const whereToStash =
       this.state.selectedOption === StashOptions.StashChanges
         ? currentBranch
-        : checkoutBranchName
+        : branchToCheckout
     await dispathcer.createStash(repository, whereToStash)
-
+    await dispathcer.checkoutBranch(repository, branchToCheckout)
     this.props.onDismissed()
-    dispathcer.checkoutBranch(repository, checkoutBranchName)
   }
 }
