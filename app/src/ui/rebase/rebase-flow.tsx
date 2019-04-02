@@ -59,7 +59,7 @@ interface IRebaseFlowProps {
    * Callback to fire to signal to the application that the rebase flow has
    * either ended in success or has been aborted and the flow can be closed.
    */
-  readonly onFlowEnded: () => void
+  readonly onFlowEnded: (repository: Repository) => void
 
   /**
    * Callbacks for the conflict selection components to let the user jump out
@@ -156,7 +156,7 @@ export class RebaseFlow extends React.Component<
               kind: RebaseStep.Completed,
             },
           },
-          () => this.props.onFlowEnded()
+          () => this.props.onFlowEnded(this.props.repository)
         )
       }
     }
@@ -394,7 +394,11 @@ export class RebaseFlow extends React.Component<
 
   private onAbortRebase = async () => {
     await this.props.dispatcher.abortRebase(this.props.repository)
-    this.props.onFlowEnded()
+    this.onFlowEnded()
+  }
+
+  private onFlowEnded = () => {
+    this.props.onFlowEnded(this.props.repository)
   }
 
   public render() {
@@ -402,7 +406,7 @@ export class RebaseFlow extends React.Component<
 
     switch (step.kind) {
       case RebaseStep.ChooseBranch: {
-        const { repository, onFlowEnded } = this.props
+        const { repository } = this.props
         const {
           allBranches,
           defaultBranch,
@@ -419,7 +423,7 @@ export class RebaseFlow extends React.Component<
             recentBranches={recentBranches}
             currentBranch={currentBranch}
             initialBranch={initialBranch}
-            onDismissed={onFlowEnded}
+            onDismissed={this.onFlowEnded}
             onStartRebase={this.onStartRebase}
             onBranchChanged={this.testRebaseOperation}
             rebasePreviewStatus={this.state.rebasePreview}
@@ -437,7 +441,6 @@ export class RebaseFlow extends React.Component<
       case RebaseStep.ShowConflicts: {
         const {
           repository,
-          onFlowEnded,
           resolvedExternalEditor,
           openFileInExternalEditor,
           openRepositoryInShell,
@@ -453,7 +456,7 @@ export class RebaseFlow extends React.Component<
           log.error(
             '[RebaseFlow] ending rebase flow as user has likely made changes to the repository from the command line'
           )
-          this.props.onFlowEnded()
+          this.onFlowEnded()
           return null
         }
 
@@ -464,7 +467,7 @@ export class RebaseFlow extends React.Component<
           <ShowConflictedFilesDialog
             key="view-conflicts"
             repository={repository}
-            onDismissed={onFlowEnded}
+            onDismissed={this.onFlowEnded}
             onContinueRebase={this.onContinueRebase}
             dispatcher={dispatcher}
             showRebaseConflictsBanner={this.showRebaseConflictsBanner}

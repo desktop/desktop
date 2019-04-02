@@ -139,6 +139,7 @@ import {
   rebase,
   PushOptions,
   RebaseResult,
+  getCurrentProgress,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -1752,8 +1753,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const initialState = await initializeRebaseFlowForConflictedRepository(
-      repository,
+    const progress = await getCurrentProgress(repository)
+    if (progress !== null) {
+      this._setRebaseProgress(
+        repository,
+        progress.rebasedCommitCount,
+        progress.commits
+      )
+    }
+
+    const initialState = initializeRebaseFlowForConflictedRepository(
       conflictState
     )
 
@@ -3446,6 +3455,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
             value: formatRebaseValue(newProgressValue),
             rebasedCommitCount,
             currentCommitSummary,
+          },
+        },
+      }
+    })
+
+    this.emitUpdate()
+  }
+
+  public _endRebaseFlow(repository: Repository) {
+    this.repositoryStateCache.update(repository, () => {
+      return {
+        rebaseState: {
+          progress: {
+            value: 0,
+            rebasedCommitCount: 0,
+            commits: [],
           },
         },
       }

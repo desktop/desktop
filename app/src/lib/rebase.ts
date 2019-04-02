@@ -7,8 +7,6 @@ import {
 import { Branch } from '../models/branch'
 import { TipState } from '../models/tip'
 import { clamp } from './clamp'
-import { Repository } from '../models/repository'
-import { getCurrentProgress } from './git'
 
 /**
  * Setup the rebase flow state when the user neeeds to select a branch as the
@@ -51,19 +49,15 @@ export function initializeNewRebaseFlow(state: IRepositoryState) {
  * @param repository the repository dealing with conflicts
  * @param conflictState current set of conflicts
  */
-export async function initializeRebaseFlowForConflictedRepository(
-  repository: Repository,
+export function initializeRebaseFlowForConflictedRepository(
   conflictState: RebaseConflictState
-): Promise<ShowConflictsStep> {
+): ShowConflictsStep {
   const { targetBranch, baseBranch } = conflictState
-
-  const previousProgress = await getCurrentProgress(repository)
 
   const initialState: ShowConflictsStep = {
     kind: RebaseStep.ShowConflicts,
     targetBranch,
     baseBranch,
-    previousProgress,
   }
 
   return initialState

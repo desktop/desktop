@@ -100,6 +100,7 @@ import {
   initializeRebaseFlowForConflictedRepository,
 } from '../lib/rebase'
 import { BannerType } from '../models/banner'
+import { getCurrentProgress } from '../lib/git'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -1644,8 +1645,17 @@ export class App extends React.Component<IAppProps, IAppState> {
           )
           return
         }
-        const initialState = await initializeRebaseFlowForConflictedRepository(
-          repository,
+
+        const progress = await getCurrentProgress(repository)
+        if (progress !== null) {
+          this.props.dispatcher.setRebaseProgress(
+            repository,
+            progress.rebasedCommitCount,
+            progress.commits
+          )
+        }
+
+        const initialState = initializeRebaseFlowForConflictedRepository(
           conflictState
         )
 
@@ -1658,8 +1668,9 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
   }
 
-  private onRebaseFlowEnded = () => {
+  private onRebaseFlowEnded = (repository: Repository) => {
     this.props.dispatcher.closePopup()
+    this.props.dispatcher.endRebaseFlow(repository)
   }
 
   private onUsageReportingDismissed = (optOut: boolean) => {
