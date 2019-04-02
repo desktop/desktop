@@ -5,7 +5,7 @@ trigger:
   - development
 
 pr:
-  autoCancel: false
+  autoCancel: true
 
 jobs:
   - job: Windows
