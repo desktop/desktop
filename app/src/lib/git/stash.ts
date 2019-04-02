@@ -127,11 +127,13 @@ export async function createDesktopStashEntry(
 }
 
 /**
- * Removes the stash entry identified by `stashSha`
+ * Removes the given stash entry if it exists
+ *
+ * @param stashSha the SHA that identifies the stash entry
  */
 export async function dropDesktopStashEntry(
   repository: Repository,
-  stash: IStashEntry
+  stashSha: string
 ) {
   // get the latest name for the stash entry since it may have changed
   const stashEntries = await getDesktopStashEntries(repository)
