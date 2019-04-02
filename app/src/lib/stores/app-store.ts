@@ -3436,12 +3436,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
     rebasedCommitCount: number,
     commits: ReadonlyArray<CommitOneLine>
   ) {
+    log.warn(
+      `[AppStore._setRebaseProgress] for ${rebasedCommitCount} out of ${
+        commits.length
+      }`
+    )
+
     this.repositoryStateCache.updateRebaseState(repository, () => {
       const hasValidCommit =
-        commits.length > 0 && rebasedCommitCount <= commits.length
+        commits.length > 0 &&
+        rebasedCommitCount >= 0 &&
+        rebasedCommitCount <= commits.length
 
       const currentCommitSummary = hasValidCommit
-        ? commits[rebasedCommitCount - 1].summary
+        ? commits[rebasedCommitCount].summary
         : undefined
 
       const newProgressValue = rebasedCommitCount / commits.length
@@ -3460,18 +3468,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public _setRebaseFlow(repository: Repository, step: RebaseFlowState) {
-    this.repositoryStateCache.updateRebaseState(repository, () => {
-      return {
-        step,
-      }
-    })
+    log.warn(
+      `[AppStore._setRebaseFlow] setting step to ${JSON.stringify(step)}`
+    )
+
+    this.repositoryStateCache.updateRebaseState(repository, () => ({
+      step,
+    }))
 
     this.emitUpdate()
   }
 
   public _endRebaseFlow(repository: Repository) {
+    log.warn(`[AppStore._setRebaseFlow] ending rebase flow`)
+
     this.repositoryStateCache.updateRebaseState(repository, () => {
       return {
+        step: null,
         progress: {
           value: 0,
           rebasedCommitCount: 0,
@@ -3491,6 +3504,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     commits: ReadonlyArray<CommitOneLine>
   ): Promise<RebaseResult> {
     const progressCallback = (progress: IRebaseProgress) => {
+      log.warn(
+        `[AppStore._rebase] setting progress for ${
+          progress.rebasedCommitCount
+        } out of ${commits.length}`
+      )
+
       this.repositoryStateCache.updateRebaseState(repository, () => ({
         progress: {
           ...progress,
@@ -3502,15 +3521,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const gitStore = this.gitStoreCache.get(repository)
-    return (
-      (await gitStore.performFailableOperation(() =>
-        rebase(repository, baseBranch, targetBranch, {
-          rebasedCommitCount: 1,
-          totalCommitCount: commits.length,
-          progressCallback,
-        })
-      )) || RebaseResult.Error
+    const result = await gitStore.performFailableOperation(() =>
+      rebase(repository, baseBranch, targetBranch, progressCallback)
     )
+
+    return result || RebaseResult.Error
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -3527,12 +3542,36 @@ export class AppStore extends TypedBaseStore<IAppState> {
     workingDirectory: WorkingDirectoryStatus,
     manualResolutions: ReadonlyMap<string, ManualConflictResolution>
   ): Promise<RebaseResult> {
+    const { rebaseState } = this.repositoryStateCache.get(repository)
+    const { commits } = rebaseState.progress
+
+    const progressCallback = (progress: IRebaseProgress) => {
+      log.warn(
+        `[AppStore._continueRebase] setting progress for ${
+          progress.rebasedCommitCount
+        } out of ${commits.length}`
+      )
+      this.repositoryStateCache.updateRebaseState(repository, () => ({
+        progress: {
+          ...progress,
+          commits,
+        },
+      }))
+
+      this.emitUpdate()
+    }
+
     const gitStore = this.gitStoreCache.get(repository)
-    return (
-      (await gitStore.performFailableOperation(() =>
-        continueRebase(repository, workingDirectory.files, manualResolutions)
-      )) || RebaseResult.Error
+    const result = await gitStore.performFailableOperation(() =>
+      continueRebase(
+        repository,
+        workingDirectory.files,
+        manualResolutions,
+        progressCallback
+      )
     )
+
+    return result || RebaseResult.Error
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */

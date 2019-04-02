@@ -295,14 +295,31 @@ export async function rebase(
   repository: Repository,
   baseBranch: string,
   targetBranch: string,
-  progress?: RebaseProgressOptions
+  progressCallback?: (progress: IRebaseProgress) => void
 ): Promise<RebaseResult> {
-  const options = configureOptionsForRebase(
-    {
-      expectedErrors: new Set([GitError.RebaseConflicts]),
-    },
-    progress
-  )
+  const baseOptions = {
+    expectedErrors: new Set([GitError.RebaseConflicts]),
+  }
+
+  let options: IGitExecutionOptions
+
+  if (progressCallback !== undefined) {
+    const commits = await getCommitsInRange(
+      repository,
+      baseBranch,
+      targetBranch
+    )
+
+    const totalCommitCount = commits.length
+
+    options = configureOptionsForRebase(baseOptions, {
+      rebasedCommitCount: 0,
+      totalCommitCount,
+      progressCallback,
+    })
+  } else {
+    options = baseOptions
+  }
 
   const result = await git(
     ['rebase', baseBranch, targetBranch],
@@ -378,7 +395,7 @@ export async function continueRebase(
   repository: Repository,
   files: ReadonlyArray<WorkingDirectoryFileChange>,
   manualResolutions: ReadonlyMap<string, ManualConflictResolution> = new Map(),
-  progress?: RebaseProgressOptions
+  progressCallback?: (progress: IRebaseProgress) => void
 ): Promise<RebaseResult> {
   const trackedFiles = files.filter(f => {
     return f.status.kind !== AppFileStatusKind.Untracked
@@ -391,7 +408,7 @@ export async function continueRebase(
       await stageManualConflictResolution(repository, file, resolution)
     } else {
       log.error(
-        `couldn't find file ${path} even though there's a manual resolution for it`
+        `[continueRebase] couldn't find file ${path} even though there's a manual resolution for it`
       )
     }
   }
@@ -401,10 +418,9 @@ export async function continueRebase(
   await stageFiles(repository, otherFiles)
 
   const status = await getStatus(repository)
-
   if (status == null) {
     log.warn(
-      `[rebase] unable to get status after staging changes, skipping any other steps`
+      `[continueRebase] unable to get status after staging changes, skipping any other steps`
     )
     return RebaseResult.Aborted
   }
@@ -418,15 +434,36 @@ export async function continueRebase(
     f => f.status.kind !== AppFileStatusKind.Untracked
   )
 
-  const options = configureOptionsForRebase(
-    {
-      expectedErrors: new Set([
-        GitError.RebaseConflicts,
-        GitError.UnresolvedConflicts,
-      ]),
-    },
-    progress
-  )
+  const baseOptions = {
+    expectedErrors: new Set([
+      GitError.RebaseConflicts,
+      GitError.UnresolvedConflicts,
+    ]),
+  }
+
+  let options: IGitExecutionOptions
+
+  if (progressCallback !== undefined) {
+    const progress = await getCurrentProgress(repository)
+
+    if (progress === null) {
+      log.warn(
+        `[continueRebase] unable to get rebase status, skipping any other steps`
+      )
+      return RebaseResult.Aborted
+    }
+
+    const { rebasedCommitCount, commits } = progress
+    const totalCommitCount = commits.length
+
+    options = configureOptionsForRebase(baseOptions, {
+      rebasedCommitCount,
+      totalCommitCount,
+      progressCallback,
+    })
+  } else {
+    options = baseOptions
+  }
 
   if (trackedFilesAfter.length === 0) {
     log.warn(

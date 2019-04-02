@@ -70,7 +70,7 @@ import {
   WorkingDirectoryStatus,
 } from '../../models/status'
 import { TipState, IValidBranch } from '../../models/tip'
-import { Banner } from '../../models/banner'
+import { Banner, BannerType } from '../../models/banner'
 
 import { ApplicationTheme } from '../lib/application-theme'
 import { installCLI } from '../lib/install-cli'
@@ -80,7 +80,7 @@ import {
   StatusCallBack,
 } from '../../lib/stores/commit-status-store'
 import { MergeResult } from '../../models/merge'
-import { RebaseFlowState } from '../../models/rebase-flow-state'
+import { RebaseFlowState, RebaseStep } from '../../models/rebase-flow-state'
 
 /**
  * An error handler function.
@@ -779,12 +779,26 @@ export class Dispatcher {
       }`
     )
 
-    if (result === RebaseResult.CompletedWithoutError) {
+    if (result === RebaseResult.ConflictsEncountered) {
+      this.setRebaseFlow(repository, {
+        kind: RebaseStep.ShowConflicts,
+        targetBranch,
+        baseBranch,
+      })
+    } else if (result === RebaseResult.CompletedWithoutError) {
       if (tip.kind === TipState.Valid) {
         this.addRebasedBranchToForcePushList(repository, tip, beforeSha)
       }
 
       await this.refreshRepository(repository)
+
+      this.setBanner({
+        type: BannerType.SuccessfulRebase,
+        targetBranch: targetBranch,
+        baseBranch: baseBranch,
+      })
+
+      this.endRebaseFlow(repository)
     }
 
     return result
@@ -802,6 +816,16 @@ export class Dispatcher {
     manualResolutions: ReadonlyMap<string, ManualConflictResolution>
   ): Promise<RebaseResult> {
     const stateBefore = this.repositoryStateManager.get(repository)
+    const { conflictState } = stateBefore.changesState
+
+    if (conflictState === null || !isRebaseConflictState(conflictState)) {
+      log.warn(
+        `[continueRebase] no conflicts found, likely an invalid rebase state`
+      )
+      return RebaseResult.Error
+    }
+
+    const { targetBranch, baseBranch } = conflictState
 
     const beforeSha = getTipSha(stateBefore.branchesState.tip)
 
@@ -824,13 +848,21 @@ export class Dispatcher {
       }`
     )
 
-    const { conflictState } = stateBefore.changesState
+    if (result === RebaseResult.ConflictsEncountered) {
+      this.setRebaseFlow(repository, {
+        kind: RebaseStep.ShowConflicts,
+        targetBranch,
+        baseBranch,
+      })
+    } else if (result === RebaseResult.CompletedWithoutError) {
+      this.closePopup()
 
-    if (
-      result === RebaseResult.CompletedWithoutError &&
-      conflictState !== null &&
-      isRebaseConflictState(conflictState)
-    ) {
+      this.setBanner({
+        type: BannerType.SuccessfulRebase,
+        targetBranch,
+        baseBranch,
+      })
+
       if (tip.kind === TipState.Valid) {
         this.addRebasedBranchToForcePushList(
           repository,

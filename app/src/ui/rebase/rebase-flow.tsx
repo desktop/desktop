@@ -1,7 +1,6 @@
 import * as React from 'react'
 
 import { assertNever } from '../../lib/fatal-error'
-import { timeout } from '../../lib/promise'
 import { getResolvedFiles } from '../../lib/status'
 import { RebaseResult, getCommitsInRange } from '../../lib/git'
 import { RebaseConflictState } from '../../lib/app-state'
@@ -114,37 +113,6 @@ export class RebaseFlow extends React.Component<
   }
 
   public async componentDidUpdate() {
-    if (this.props.step.kind === RebaseStep.ShowProgress) {
-      // if we encounter new conflicts, transition to the resolve conflicts step
-      const { conflictState } = this.props
-      if (
-        conflictState !== null &&
-        this.state.lastResolvedConflictsTip !== conflictState.currentTip
-      ) {
-        const { targetBranch, baseBranch } = conflictState
-
-        this.props.dispatcher.setRebaseFlow(this.props.repository, {
-          kind: RebaseStep.ShowConflicts,
-          targetBranch,
-          baseBranch,
-        })
-
-        this.setState({
-          lastResolvedConflictsTip: null,
-        })
-      } else if (this.props.progress.value >= 1) {
-        // waiting before the CSS animation to give the progress UI a chance to
-        // show it reaches 100%
-        await timeout(1000)
-
-        this.props.dispatcher.setRebaseFlow(this.props.repository, {
-          kind: RebaseStep.Completed,
-        })
-
-        this.props.onFlowEnded(this.props.repository)
-      }
-    }
-
     if (
       this.props.step.kind === RebaseStep.ShowConflicts &&
       // skip re-running this check once any resolved files have been detected
@@ -258,7 +226,7 @@ export class RebaseFlow extends React.Component<
       throw new Error(`Invalid step to start rebase: ${this.props.step.kind}`)
     }
 
-    this.props.dispatcher.setRebaseProgress(this.props.repository, 1, commits)
+    this.props.dispatcher.setRebaseProgress(this.props.repository, 0, commits)
 
     const startRebaseAction = async () => {
       const result = await this.props.dispatcher.rebase(
@@ -295,14 +263,6 @@ export class RebaseFlow extends React.Component<
     this.setState({
       lastResolvedConflictsTip: conflictState.currentTip,
     })
-
-    const nextCommit = this.props.progress.rebasedCommitCount + 1
-
-    this.props.dispatcher.setRebaseProgress(
-      this.props.repository,
-      nextCommit,
-      this.props.progress.commits
-    )
 
     const continueRebaseAction = async () => {
       const result = await this.props.dispatcher.continueRebase(
