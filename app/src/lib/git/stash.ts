@@ -140,14 +140,16 @@ export async function dropDesktopStashEntry(
     return
   }
 
-  const entryToDelete = stashEntries.find(e => e.stashSha === stash.stashSha)
-  if (entryToDelete !== undefined) {
-    await git(
-      ['stash', 'drop', entryToDelete.name],
-      repository.path,
-      'dropStashEntry'
-    )
+  const entryToDelete = stashEntries.find(e => e.stashSha === stashSha)
+  if (entryToDelete === undefined) {
+    return
   }
+
+  await git(
+    ['stash', 'drop', entryToDelete.name],
+    repository.path,
+    'dropStashEntry'
+  )
 }
 
 /**
