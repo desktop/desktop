@@ -206,6 +206,7 @@ import {
 import { Banner, BannerType } from '../../models/banner'
 import { isDarkModeEnabled } from '../../ui/lib/dark-theme'
 import { ComputedAction } from '../../models/computed-action'
+import { RebaseFlowState } from '../../models/rebase-flow-state'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -3434,7 +3435,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     rebasedCommitCount: number,
     commits: ReadonlyArray<CommitOneLine>
   ) {
-    this.repositoryStateCache.update(repository, () => {
+    this.repositoryStateCache.updateRebaseState(repository, () => {
       const hasValidCommit =
         commits.length > 0 && rebasedCommitCount <= commits.length
 
@@ -3449,13 +3450,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
 
       return {
-        rebaseState: {
-          progress: {
-            commits,
-            value: formatRebaseValue(newProgressValue),
-            rebasedCommitCount,
-            currentCommitSummary,
-          },
+        progress: {
+          commits,
+          value: formatRebaseValue(newProgressValue),
+          rebasedCommitCount,
+          currentCommitSummary,
         },
       }
     })
@@ -3463,15 +3462,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  public _endRebaseFlow(repository: Repository) {
-    this.repositoryStateCache.update(repository, () => {
+  public _setRebaseFlow(repository: Repository, step: RebaseFlowState) {
+    this.repositoryStateCache.updateRebaseState(repository, () => {
       return {
-        rebaseState: {
-          progress: {
-            value: 0,
-            rebasedCommitCount: 0,
-            commits: [],
-          },
+        step,
+      }
+    })
+
+    this.emitUpdate()
+  }
+
+  public _endRebaseFlow(repository: Repository) {
+    this.repositoryStateCache.updateRebaseState(repository, () => {
+      return {
+        progress: {
+          value: 0,
+          rebasedCommitCount: 0,
+          commits: [],
         },
       }
     })
@@ -3487,28 +3494,24 @@ export class AppStore extends TypedBaseStore<IAppState> {
     commits: ReadonlyArray<CommitOneLine>
   ): Promise<RebaseResult> {
     const progressCallback = (progress: IRebaseProgress) => {
-      this.repositoryStateCache.update(repository, () => ({
-        rebaseState: {
-          progress: {
-            ...progress,
-            commits,
-          },
+      this.repositoryStateCache.updateRebaseState(repository, () => ({
+        progress: {
+          ...progress,
+          commits,
         },
       }))
 
       this.emitUpdate()
     }
 
-    const progress = {
-      rebasedCommitCount: 1,
-      totalCommitCount: commits.length,
-      progressCallback,
-    }
-
     const gitStore = this.gitStoreCache.get(repository)
     return (
       (await gitStore.performFailableOperation(() =>
-        rebase(repository, baseBranch, targetBranch, progress)
+        rebase(repository, baseBranch, targetBranch, {
+          rebasedCommitCount: 1,
+          totalCommitCount: commits.length,
+          progressCallback,
+        })
       )) || RebaseResult.Error
     )
   }

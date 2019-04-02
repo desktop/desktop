@@ -80,6 +80,7 @@ import {
   StatusCallBack,
 } from '../../lib/stores/commit-status-store'
 import { MergeResult } from '../../models/merge'
+import { RebaseFlowState } from '../../models/rebase-flow-state'
 
 /**
  * An error handler function.
@@ -730,6 +731,10 @@ export class Dispatcher {
     commits: ReadonlyArray<CommitOneLine>
   ) {
     this.appStore._setRebaseProgress(repository, rebasedCommitCount, commits)
+  }
+
+  public setRebaseFlow(repository: Repository, step: RebaseFlowState) {
+    this.appStore._setRebaseFlow(repository, step)
   }
 
   public endRebaseFlow(repository: Repository) {

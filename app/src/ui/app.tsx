@@ -1578,13 +1578,18 @@ export class App extends React.Component<IAppProps, IAppState> {
           return null
         }
 
-        const { initialState } = popup
-
         const { changesState, rebaseState } = selectedState.state
         const { workingDirectory, conflictState } = changesState
-        const { progress } = rebaseState
+        const { progress, step } = rebaseState
 
         if (conflictState !== null && conflictState.kind === 'merge') {
+          log.warn(
+            '[App] invalid state encountered - rebase flow should not be used when merge conflicts found'
+          )
+          return null
+        }
+
+        if (step === null) {
           log.warn(
             '[App] invalid state encountered - rebase flow should not be used when merge conflicts found'
           )
@@ -1597,10 +1602,10 @@ export class App extends React.Component<IAppProps, IAppState> {
             openFileInExternalEditor={this.openFileInExternalEditor}
             dispatcher={this.props.dispatcher}
             onFlowEnded={this.onRebaseFlowEnded}
-            initialState={initialState}
             workingDirectory={workingDirectory}
             conflictState={conflictState}
             progress={progress}
+            step={step}
             resolvedExternalEditor={this.state.resolvedExternalEditor}
             openRepositoryInShell={this.openCurrentRepositoryInShell}
             onShowRebaseConflictsBanner={this.onShowRebaseConflictsBanner}

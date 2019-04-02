@@ -22,12 +22,6 @@ import { RebaseProgressDialog } from './progress-dialog'
 import { ConfirmAbortDialog } from './confirm-abort-dialog'
 
 interface IRebaseFlowProps {
-  /**
-   * Starting point for the rebase flow - may be choosing a branch or starting
-   * from conflicts
-   */
-  readonly initialState: RebaseFlowState
-
   readonly repository: Repository
   readonly dispatcher: Dispatcher
   readonly emoji: Map<string, string>
@@ -42,6 +36,12 @@ interface IRebaseFlowProps {
    * conflicts.
    */
   readonly conflictState: RebaseConflictState | null
+
+  /**
+   * The current step in the rebase flow, containing application-specific
+   * state needed for the UI components.
+   */
+  readonly step: RebaseFlowState
 
   /** Git progress information about the current rebase */
   readonly progress: RebaseProgressSummary
@@ -71,12 +71,6 @@ interface IRebaseFlowProps {
 }
 
 interface IRebaseFlowState {
-  /**
-   * The current step in the rebase flow, containing application-specific
-   * state needed for the UI components.
-   */
-  readonly step: RebaseFlowState
-
   /**
    * A preview of the rebase, using the selected base branch to test whether the
    * current branch will be cleanly applied.
@@ -109,7 +103,6 @@ export class RebaseFlow extends React.Component<
     super(props)
 
     this.state = {
-      step: props.initialState,
       lastResolvedConflictsTip: null,
       userHasResolvedConflicts: false,
       rebasePreview: null,
@@ -121,48 +114,39 @@ export class RebaseFlow extends React.Component<
   }
 
   public async componentDidUpdate() {
-    if (this.state.step.kind === RebaseStep.ShowProgress) {
+    if (this.props.step.kind === RebaseStep.ShowProgress) {
       // if we encounter new conflicts, transition to the resolve conflicts step
       const { conflictState } = this.props
       if (
         conflictState !== null &&
         this.state.lastResolvedConflictsTip !== conflictState.currentTip
       ) {
-        const { workingDirectory } = this.props
-        const { manualResolutions, targetBranch } = conflictState
+        const { targetBranch, baseBranch } = conflictState
+
+        this.props.dispatcher.setRebaseFlow(this.props.repository, {
+          kind: RebaseStep.ShowConflicts,
+          targetBranch,
+          baseBranch,
+        })
 
         this.setState({
           lastResolvedConflictsTip: null,
-          step: {
-            kind: RebaseStep.ShowConflicts,
-            targetBranch,
-            workingDirectory,
-            manualResolutions,
-            previousProgress: null,
-          },
         })
       } else if (this.props.progress.value >= 1) {
         // waiting before the CSS animation to give the progress UI a chance to
         // show it reaches 100%
         await timeout(1000)
 
-        if (this.ignoreUpdateEvents) {
-          return
-        }
+        this.props.dispatcher.setRebaseFlow(this.props.repository, {
+          kind: RebaseStep.Completed,
+        })
 
-        this.setState(
-          {
-            step: {
-              kind: RebaseStep.Completed,
-            },
-          },
-          () => this.props.onFlowEnded(this.props.repository)
-        )
+        this.props.onFlowEnded(this.props.repository)
       }
     }
 
     if (
-      this.state.step.kind === RebaseStep.ShowConflicts &&
+      this.props.step.kind === RebaseStep.ShowConflicts &&
       // skip re-running this check once any resolved files have been detected
       !this.state.userHasResolvedConflicts
     ) {
@@ -187,7 +171,7 @@ export class RebaseFlow extends React.Component<
   }
 
   private testRebaseOperation = (baseBranch: Branch) => {
-    const { step } = this.state
+    const { step } = this.props
     if (step.kind !== RebaseStep.ChooseBranch) {
       log.warn(`[RebaseFlow] testRebaseOperation invoked but on the wrong step`)
       return
@@ -227,23 +211,19 @@ export class RebaseFlow extends React.Component<
   }
 
   private moveToShowConflictedFileState = () => {
-    const { workingDirectory, conflictState } = this.props
+    const { conflictState } = this.props
 
     if (conflictState === null) {
       log.error('[RebaseFlow] unable to detect conflicts for this repository')
       return
     }
 
-    const { manualResolutions, targetBranch } = conflictState
+    const { targetBranch, baseBranch } = conflictState
 
-    this.setState({
-      step: {
-        kind: RebaseStep.ShowConflicts,
-        targetBranch,
-        workingDirectory,
-        manualResolutions,
-        previousProgress: null,
-      },
+    this.props.dispatcher.setRebaseFlow(this.props.repository, {
+      kind: RebaseStep.ShowConflicts,
+      targetBranch,
+      baseBranch,
     })
   }
 
@@ -274,8 +254,8 @@ export class RebaseFlow extends React.Component<
     targetBranch: string,
     commits: ReadonlyArray<CommitOneLine>
   ) => {
-    if (this.state.step.kind !== RebaseStep.ChooseBranch) {
-      throw new Error(`Invalid step to start rebase: ${this.state.step.kind}`)
+    if (this.props.step.kind !== RebaseStep.ChooseBranch) {
+      throw new Error(`Invalid step to start rebase: ${this.props.step.kind}`)
     }
 
     this.props.dispatcher.setRebaseProgress(this.props.repository, 1, commits)
@@ -293,18 +273,16 @@ export class RebaseFlow extends React.Component<
       }
     }
 
-    this.setState({
-      step: {
-        kind: RebaseStep.ShowProgress,
-        rebaseAction: startRebaseAction,
-      },
+    this.props.dispatcher.setRebaseFlow(this.props.repository, {
+      kind: RebaseStep.ShowProgress,
+      rebaseAction: startRebaseAction,
     })
   }
 
   private onContinueRebase = async () => {
-    if (this.state.step.kind !== RebaseStep.ShowConflicts) {
+    if (this.props.step.kind !== RebaseStep.ShowConflicts) {
       throw new Error(
-        `Invalid step to continue rebase rebase: ${this.state.step.kind}`
+        `Invalid step to continue rebase rebase: ${this.props.step.kind}`
       )
     }
 
@@ -338,35 +316,26 @@ export class RebaseFlow extends React.Component<
       }
     }
 
-    this.setState(() => {
-      return {
-        step: {
-          kind: RebaseStep.ShowProgress,
-          rebaseAction: continueRebaseAction,
-        },
-      }
+    this.props.dispatcher.setRebaseFlow(this.props.repository, {
+      kind: RebaseStep.ShowProgress,
+      rebaseAction: continueRebaseAction,
     })
   }
 
   private showRebaseConflictsBanner = () => {
-    if (this.state.step.kind !== RebaseStep.ShowConflicts) {
+    if (this.props.step.kind !== RebaseStep.ShowConflicts) {
       throw new Error(
-        `Invalid step to show rebase conflicts banner: ${this.state.step.kind}`
+        `Invalid step to show rebase conflicts banner: ${this.props.step.kind}`
       )
     }
-    const { targetBranch } = this.state.step
 
-    this.setState(
-      {
-        step: { kind: RebaseStep.HideConflicts },
-      },
-      () => {
-        this.props.onShowRebaseConflictsBanner(
-          this.props.repository,
-          targetBranch
-        )
-      }
-    )
+    this.props.dispatcher.setRebaseFlow(this.props.repository, {
+      kind: RebaseStep.HideConflicts,
+    })
+
+    const { targetBranch } = this.props.step
+
+    this.props.onShowRebaseConflictsBanner(this.props.repository, targetBranch)
   }
 
   private onConfirmAbortRebase = async () => {
@@ -383,12 +352,10 @@ export class RebaseFlow extends React.Component<
 
     const { targetBranch, baseBranch } = conflictState
 
-    this.setState({
-      step: {
-        kind: RebaseStep.ConfirmAbort,
-        targetBranch,
-        baseBranch,
-      },
+    this.props.dispatcher.setRebaseFlow(this.props.repository, {
+      kind: RebaseStep.ConfirmAbort,
+      targetBranch,
+      baseBranch,
     })
   }
 
@@ -402,7 +369,7 @@ export class RebaseFlow extends React.Component<
   }
 
   public render() {
-    const { step } = this.state
+    const { step } = this.props
 
     switch (step.kind) {
       case RebaseStep.ChooseBranch: {
