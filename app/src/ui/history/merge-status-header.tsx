@@ -3,7 +3,7 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { assertNever } from '../../lib/fatal-error'
 import * as classNames from 'classnames'
 import { MergeResult } from '../../models/merge'
-import { ComputedActionKind } from '../../models/action'
+import { ComputedAction } from '../../models/computed-action'
 
 interface IMergeStatusIconProps {
   /** The classname for the underlying element. */
@@ -41,15 +41,15 @@ export class MergeStatusHeader extends React.Component<
   }
 }
 
-function getSymbolForState(status: ComputedActionKind): OcticonSymbol {
+function getSymbolForState(status: ComputedAction): OcticonSymbol {
   switch (status) {
-    case ComputedActionKind.Loading:
+    case ComputedAction.Loading:
       return OcticonSymbol.primitiveDot
-    case ComputedActionKind.Conflicts:
+    case ComputedAction.Conflicts:
       return OcticonSymbol.alert
-    case ComputedActionKind.Invalid:
+    case ComputedAction.Invalid:
       return OcticonSymbol.x
-    case ComputedActionKind.Clean:
+    case ComputedAction.Clean:
       return OcticonSymbol.check
   }
 

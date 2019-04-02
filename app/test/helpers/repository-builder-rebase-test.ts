@@ -6,8 +6,8 @@ import { makeCommit, switchTo, createBranch } from './repository-scaffolding'
  * Creates a test repository to be used as the branch for testing rebase
  * behaviour with:
  *  - two commits on `master`,
- *  - two commits on `firstBranchName`, which is based on `master`
- *  - three commits on `secondBranchName`, which is also based on `master`
+ *  - one commit on `firstBranchName`, which is based on `master`
+ *  - one commit on `secondBranchName`, which is also based on `master`
  */
 export async function createRepository(
   firstBranchName: string,
@@ -74,7 +74,7 @@ export async function createRepository(
   await switchTo(repository, secondBranchName)
 
   const featureBranchCommit = {
-    commitMessage: 'Base Branch!',
+    commitMessage: 'Feature Branch!',
     entries: [
       {
         path: 'THING.md',
