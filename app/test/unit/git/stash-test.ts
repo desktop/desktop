@@ -142,21 +142,17 @@ describe('git/stash', () => {
 
     it('removes the entry identified by `stashSha`', async () => {
       await generateTestStashEntry(repository, 'master', true)
-
-      let stashEntries = await getDesktopStashEntries(repository)
-      const stashToDelete = stashEntries[0]
-
       await generateTestStashEntry(repository, 'master', true)
 
-      stashEntries = await getDesktopStashEntries(repository)
+      let stashEntries = await getDesktopStashEntries(repository)
       expect(stashEntries.length).toBe(2)
 
+      const stashToDelete = stashEntries[1]
       await dropDesktopStashEntry(repository, stashToDelete)
 
       // using this function to get stashSha since it parses
       // the output from git into easy to use objects
       stashEntries = await getDesktopStashEntries(repository)
-
       expect(stashEntries.length).toBe(1)
       expect(stashEntries[0].stashSha).not.toEqual(stashToDelete)
     })
