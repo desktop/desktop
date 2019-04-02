@@ -1,6 +1,6 @@
 import { IRebaseProgress } from './progress'
-import { ComputedActionKind } from './action'
-import { Commit } from './commit'
+import { ComputedAction } from './computed-action'
+import { CommitOneLine } from './commit'
 
 export type RebaseContext = {
   readonly targetBranch: string
@@ -13,32 +13,43 @@ export type RebaseContext = {
  */
 export type RebaseProgressOptions = {
   /** The number of commits already rebased as part of the operation */
-  start: number
+  rebasedCommitCount: number
   /** The number of commits to be rebased as part of the operation */
-  total: number
+  totalCommitCount: number
   /** The callback to fire when rebase progress is reported */
   progressCallback: (progress: IRebaseProgress) => void
 }
 
-export type RebaseSuccess = {
-  readonly kind: ComputedActionKind.Clean
-  readonly commits: ReadonlyArray<Commit>
+export type CleanRebase = {
+  readonly kind: ComputedAction.Clean
+  readonly commits: ReadonlyArray<CommitOneLine>
 }
 
-export type RebaseConflicts = {
-  readonly kind: ComputedActionKind.Conflicts
+export type RebaseWithConflicts = {
+  readonly kind: ComputedAction.Conflicts
 }
 
-export type RebaseUnsupported = {
-  readonly kind: ComputedActionKind.Invalid
+export type RebaseNotSupported = {
+  readonly kind: ComputedAction.Invalid
 }
 
 export type RebaseLoading = {
-  readonly kind: ComputedActionKind.Loading
+  readonly kind: ComputedAction.Loading
 }
 
-export type RebasePreviewResult =
-  | RebaseSuccess
-  | RebaseConflicts
-  | RebaseUnsupported
+export type RebasePreview =
+  | CleanRebase
+  | RebaseWithConflicts
+  | RebaseNotSupported
   | RebaseLoading
+
+export type RebaseProgressSummary = {
+  /** A numeric value between 0 and 1 representing the rebase progress */
+  readonly value: number
+  /** Track the current number of commits rebased across dialogs and states */
+  readonly rebasedCommitCount: number
+  /** The commit summary associated with the current commit (if known) */
+  readonly commitSummary?: string
+  /** The list of known commits that will be rebased onto the base branch */
+  readonly commits: ReadonlyArray<CommitOneLine>
+}

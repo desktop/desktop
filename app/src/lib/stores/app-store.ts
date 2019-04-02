@@ -72,7 +72,6 @@ import {
   API,
   getAccountForEndpoint,
   getDotComAPIEndpoint,
-  getEnterpriseAPIURL,
   IAPIOrganization,
 } from '../api'
 import { shell } from '../app-shell'
@@ -153,6 +152,7 @@ import {
   matchGitHubRepository,
   repositoryMatchesRemote,
 } from '../repository-matching'
+import { initializeRebaseFlowForConflictedRepository } from '../rebase'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import {
   Default as DefaultShell,
@@ -201,7 +201,7 @@ import {
 import { Banner, BannerType } from '../../models/banner'
 import { RebaseProgressOptions } from '../../models/rebase'
 import { isDarkModeEnabled } from '../../ui/lib/dark-theme'
-import { ComputedActionKind } from '../../models/action'
+import { ComputedAction } from '../../models/computed-action'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -411,8 +411,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.signInStore.onDidUpdate(() => this.emitUpdate())
     this.signInStore.onDidError(error => this.emitError(error))
 
-    this.accountsStore.onDidUpdate(async () => {
-      const accounts = await this.accountsStore.getAll()
+    this.accountsStore.onDidUpdate(accounts => {
       this.accounts = accounts
       this.emitUpdate()
     })
@@ -899,7 +898,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const loadingMerge: MergeResult = {
-      kind: ComputedActionKind.Loading,
+      kind: ComputedAction.Loading,
     }
 
     this.repositoryStateCache.updateCompareState(repository, () => ({
@@ -1238,23 +1237,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (gitHubRepository !== null) {
       this._refreshIssues(gitHubRepository)
       this.loadPullRequests(repository, async () => {
-        const promiseForPRs = this.pullRequestStore.fetchPullRequestsFromCache(
-          gitHubRepository
-        )
-        const isLoading = this.pullRequestStore.isFetchingPullRequests(
+        this.repositoryStateCache.updateBranchesState(repository, () => ({
+          isLoadingPullRequests: true,
+        }))
+
+        const prs = await this.pullRequestStore.fetchPullRequestsFromCache(
           gitHubRepository
         )
 
-        const prs = await promiseForPRs
+        this.repositoryStateCache.updateBranchesState(repository, () => ({
+          openPullRequests: prs,
+          isLoadingPullRequests: this.pullRequestStore.isFetchingPullRequests(
+            gitHubRepository
+          ),
+        }))
 
-        if (prs.length > 0) {
-          this.repositoryStateCache.updateBranchesState(repository, () => {
-            return {
-              openPullRequests: prs,
-              isLoadingPullRequests: isLoading,
-            }
-          })
-        } else {
+        if (prs.length === 0) {
           this._refreshPullRequests(repository)
         }
 
@@ -1737,34 +1735,28 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ) {
     const alreadyInFlow =
       this.currentPopup !== null &&
-      this.currentPopup.type === PopupType.RebaseConflicts
+      this.currentPopup.type === PopupType.RebaseFlow
 
-    // have we already been shown the merge conflicts flow *and closed it*?
-    const alreadyExitedFlow =
+    if (alreadyInFlow) {
+      return
+    }
+
+    const displayingBanner =
       this.currentBanner !== null &&
       this.currentBanner.type === BannerType.RebaseConflictsFound
 
-    if (alreadyInFlow || alreadyExitedFlow) {
+    if (displayingBanner) {
       return
     }
-    const possibleTheirsBranches = await getBranchesPointedAt(
-      repository,
-      conflictState.baseBranchTip
+
+    const initialState = initializeRebaseFlowForConflictedRepository(
+      conflictState
     )
-    // null means we encountered an error
-    if (possibleTheirsBranches === null) {
-      return
-    }
-    const baseBranch =
-      possibleTheirsBranches.length === 1
-        ? possibleTheirsBranches[0]
-        : undefined
 
     this._showPopup({
-      type: PopupType.RebaseConflicts,
+      type: PopupType.RebaseFlow,
       repository,
-      targetBranch: conflictState.targetBranch,
-      baseBranch,
+      initialState,
     })
   }
 
@@ -2799,32 +2791,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
         this.updatePushPullFetchProgress(repository, null)
 
-        const prUpdater = this.currentPullRequestUpdater
-        if (prUpdater) {
-          const state = this.repositoryStateCache.get(repository)
-          const currentPR = state.branchesState.currentPullRequest
-          const gitHubRepository = repository.gitHubRepository
-
-          if (currentPR && gitHubRepository) {
-            prUpdater.didPushPullRequest(currentPR)
-          }
-        }
-
         const { accounts } = this.getState()
         const githubAccount = await findAccountForRemoteURL(
           remote.url,
           accounts
         )
 
-        if (githubAccount === null) {
-          this.statsStore.recordPushToGenericRemote()
-        } else if (githubAccount.endpoint === getDotComAPIEndpoint()) {
-          this.statsStore.recordPushToGitHub()
-        } else if (
-          githubAccount.endpoint === getEnterpriseAPIURL(githubAccount.endpoint)
-        ) {
-          this.statsStore.recordPushToGitHubEnterprise()
-        }
+        this.statsStore.recordPush(githubAccount, options)
       }
     })
   }
@@ -3420,11 +3393,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const gitStore = this.gitStoreCache.get(repository)
 
     if (mergeStatus !== null) {
-      if (mergeStatus.kind === ComputedActionKind.Clean) {
+      if (mergeStatus.kind === ComputedAction.Clean) {
         this.statsStore.recordMergeHintSuccessAndUserProceeded()
-      } else if (mergeStatus.kind === ComputedActionKind.Conflicts) {
+      } else if (mergeStatus.kind === ComputedAction.Conflicts) {
         this.statsStore.recordUserProceededAfterConflictWarning()
-      } else if (mergeStatus.kind === ComputedActionKind.Loading) {
+      } else if (mergeStatus.kind === ComputedAction.Loading) {
         this.statsStore.recordUserProceededWhileLoading()
       }
     }

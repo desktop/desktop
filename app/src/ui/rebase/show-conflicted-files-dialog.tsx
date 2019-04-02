@@ -1,21 +1,20 @@
 import * as React from 'react'
-import { DialogContent, Dialog, DialogFooter } from '../dialog'
-import { ButtonGroup } from '../lib/button-group'
-import { Button } from '../lib/button'
+
 import {
   WorkingDirectoryStatus,
   WorkingDirectoryFileChange,
 } from '../../models/status'
+import { Repository } from '../../models/repository'
+import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
+
 import {
   getUnmergedFiles,
   getConflictedFiles,
   isConflictedFile,
 } from '../../lib/status'
-import { Dispatcher } from '../dispatcher'
-import { Repository } from '../../models/repository'
-import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
-import { BannerType } from '../../models/banner'
-import { PopupType } from '../../models/popup'
+
+import { ButtonGroup } from '../lib/button-group'
+import { Button } from '../lib/button'
 import {
   renderUnmergedFilesSummary,
   renderShellLink,
@@ -23,12 +22,18 @@ import {
 } from '../lib/conflicts/render-functions'
 import { renderUnmergedFile } from '../lib/conflicts/unmerged-file'
 
-interface IRebaseConflictsDialog {
+import { DialogContent, Dialog, DialogFooter } from '../dialog'
+import { Dispatcher } from '../dispatcher'
+
+interface IShowConflictedFilesDialogProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
   readonly targetBranch: string
   readonly baseBranch?: string
   readonly onDismissed: () => void
+  readonly onContinueRebase: () => void
+  readonly onAbortRebase: () => Promise<void>
+  readonly showRebaseConflictsBanner: () => void
   readonly workingDirectory: WorkingDirectoryStatus
   readonly manualResolutions: Map<string, ManualConflictResolution>
   readonly openFileInExternalEditor: (path: string) => void
@@ -36,41 +41,41 @@ interface IRebaseConflictsDialog {
   readonly openRepositoryInShell: (repository: Repository) => void
 }
 
-export class RebaseConflictsDialog extends React.Component<
-  IRebaseConflictsDialog,
-  {}
+interface IShowConflictedFilesDialogState {
+  readonly isAborting: boolean
+}
+
+export class ShowConflictedFilesDialog extends React.Component<
+  IShowConflictedFilesDialogProps,
+  IShowConflictedFilesDialogState
 > {
+  public constructor(props: IShowConflictedFilesDialogProps) {
+    super(props)
+
+    this.state = {
+      isAborting: false,
+    }
+  }
+
   public async componentDidMount() {
     this.props.dispatcher.resolveCurrentEditor()
   }
 
   private onCancel = async () => {
-    await this.props.dispatcher.abortRebase(this.props.repository)
-    this.props.onDismissed()
+    this.setState({ isAborting: true })
+
+    await this.props.onAbortRebase()
+
+    this.setState({ isAborting: false })
   }
 
   private onDismissed = () => {
-    this.props.dispatcher.setBanner({
-      type: BannerType.RebaseConflictsFound,
-      targetBranch: this.props.targetBranch,
-      onOpenDialog: () => {
-        this.props.dispatcher.showPopup({
-          type: PopupType.RebaseConflicts,
-          targetBranch: this.props.targetBranch,
-          baseBranch: this.props.baseBranch,
-          repository: this.props.repository,
-        })
-      },
-    })
     this.props.onDismissed()
+    this.props.showRebaseConflictsBanner()
   }
 
   private onSubmit = async () => {
-    await this.props.dispatcher.continueRebase(
-      this.props.repository,
-      this.props.workingDirectory,
-      this.props.manualResolutions
-    )
+    this.props.onContinueRebase()
   }
 
   private renderHeaderTitle(targetBranch: string, baseBranch?: string) {
@@ -174,7 +179,9 @@ export class RebaseConflictsDialog extends React.Component<
             >
               Continue rebase
             </Button>
-            <Button onClick={this.onCancel}>Abort rebase</Button>
+            <Button onClick={this.onCancel} disabled={this.state.isAborting}>
+              Abort rebase
+            </Button>
           </ButtonGroup>
         </DialogFooter>
       </Dialog>
