@@ -209,7 +209,7 @@ async function stash(
   message: string | null
 ): Promise<void> {
   const tip = await getTipOrError(repository)
-  await GitProcess.exec(
+  const result = await GitProcess.exec(
     [
       'stash',
       'push',
@@ -218,6 +218,10 @@ async function stash(
     ],
     repository.path
   )
+
+  if (result.exitCode !== 0) {
+    throw new Error(result.stderr)
+  }
 }
 
 async function generateTestStashEntry(
