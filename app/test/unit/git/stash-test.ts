@@ -148,7 +148,7 @@ describe('git/stash', () => {
       expect(stashEntries.length).toBe(2)
 
       const stashToDelete = stashEntries[1]
-      await dropDesktopStashEntry(repository, stashToDelete)
+      await dropDesktopStashEntry(repository, stashToDelete.stashSha)
 
       // using this function to get stashSha since it parses
       // the output from git into easy to use objects
@@ -166,7 +166,7 @@ describe('git/stash', () => {
       }
 
       try {
-        await dropDesktopStashEntry(repository, doesNotExist)
+        await dropDesktopStashEntry(repository, doesNotExist.stashSha)
       } catch {
         didFail = true
       }
@@ -186,7 +186,7 @@ describe('git/stash', () => {
       await generateTestStashEntry(repository, 'master', true)
 
       try {
-        await dropDesktopStashEntry(repository, doesNotExist)
+        await dropDesktopStashEntry(repository, doesNotExist.stashSha)
       } catch {
         didFail = true
       }
