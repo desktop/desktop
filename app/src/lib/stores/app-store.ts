@@ -22,7 +22,7 @@ import {
 import { BranchesTab } from '../../models/branches-tab'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { CloningRepository } from '../../models/cloning-repository'
-import { Commit, ICommitContext } from '../../models/commit'
+import { Commit, ICommitContext, CommitOneLine } from '../../models/commit'
 import {
   DiffSelection,
   DiffSelectionType,
@@ -52,6 +52,7 @@ import {
   ICheckoutProgress,
   IFetchProgress,
   IRevertProgress,
+  IRebaseProgress,
 } from '../../models/progress'
 import { Popup, PopupType } from '../../models/popup'
 import { IGitAccount } from '../../models/git-account'
@@ -199,7 +200,6 @@ import {
   enableGroupRepositoriesByOwner,
 } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
-import { RebaseProgressOptions } from '../../models/rebase'
 import { isDarkModeEnabled } from '../../ui/lib/dark-theme'
 import { ComputedAction } from '../../models/computed-action'
 
@@ -3422,8 +3422,27 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     baseBranch: string,
     targetBranch: string,
-    progress?: RebaseProgressOptions
+    commits: ReadonlyArray<CommitOneLine>
   ): Promise<RebaseResult> {
+    const progressCallback = (progress: IRebaseProgress) => {
+      this.repositoryStateCache.update(repository, () => ({
+        rebaseState: {
+          progress: {
+            ...progress,
+            commits,
+          },
+        },
+      }))
+
+      this.emitUpdate()
+    }
+
+    const progress = {
+      rebasedCommitCount: 0,
+      totalCommitCount: commits.length,
+      progressCallback,
+    }
+
     const gitStore = this.gitStoreCache.get(repository)
     return (
       (await gitStore.performFailableOperation(() =>

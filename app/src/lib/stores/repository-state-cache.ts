@@ -145,6 +145,13 @@ function getInitialRepositoryState(): IRepositoryState {
       defaultBranch: null,
       inferredComparisonBranch: { branch: null, aheadBehind: null },
     },
+    rebaseState: {
+      progress: {
+        value: 0,
+        rebasedCommitCount: 0,
+        commits: [],
+      },
+    },
     commitAuthor: null,
     gitHubUsers: new Map<string, IGitHubUser>(),
     commitLookup: new Map<string, Commit>(),

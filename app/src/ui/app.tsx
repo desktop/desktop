@@ -1579,8 +1579,9 @@ export class App extends React.Component<IAppProps, IAppState> {
 
         const { initialState } = popup
 
-        const { changesState } = selectedState.state
+        const { changesState, rebaseState } = selectedState.state
         const { workingDirectory, conflictState } = changesState
+        const { progress } = rebaseState
 
         if (conflictState !== null && conflictState.kind === 'merge') {
           log.warn(
@@ -1598,6 +1599,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             initialState={initialState}
             workingDirectory={workingDirectory}
             conflictState={conflictState}
+            progress={progress}
             resolvedExternalEditor={this.state.resolvedExternalEditor}
             openRepositoryInShell={this.openCurrentRepositoryInShell}
             onShowRebaseConflictsBanner={this.onShowRebaseConflictsBanner}

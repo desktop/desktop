@@ -35,6 +35,7 @@ import { ApplicationTheme } from '../ui/lib/application-theme'
 import { IAccountRepositories } from './stores/api-repositories-store'
 import { ManualConflictResolution } from '../models/manual-conflict-resolution'
 import { Banner } from '../models/banner'
+import { RebaseProgressSummary } from '../models/rebase'
 
 export enum SelectionType {
   Repository,
@@ -341,6 +342,8 @@ export interface IRepositoryState {
 
   readonly branchesState: IBranchesState
 
+  readonly rebaseState: IRebaseState
+
   /**
    * Mapping from lowercased email addresses to the associated GitHub user. Note
    * that an email address may not have an associated GitHub user, or the user
@@ -453,6 +456,10 @@ export interface IBranchesState {
 
   /** Tracking branches that have been rebased within Desktop */
   readonly rebasedBranches: ReadonlyMap<string, string>
+}
+
+export interface IRebaseState {
+  readonly progress: RebaseProgressSummary
 }
 
 export interface ICommitSelection {

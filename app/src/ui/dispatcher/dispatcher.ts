@@ -49,7 +49,7 @@ import { Branch } from '../../models/branch'
 import { BranchesTab } from '../../models/branches-tab'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { CloningRepository } from '../../models/cloning-repository'
-import { Commit, ICommitContext } from '../../models/commit'
+import { Commit, ICommitContext, CommitOneLine } from '../../models/commit'
 import { ICommitMessage } from '../../models/commit-message'
 import { DiffSelection, ImageDiffType } from '../../models/diff'
 import { FetchType } from '../../models/fetch'
@@ -65,7 +65,6 @@ import {
   WorkingDirectoryStatus,
 } from '../../models/status'
 import { TipState, IValidBranch } from '../../models/tip'
-import { RebaseProgressOptions } from '../../models/rebase'
 import { Banner } from '../../models/banner'
 
 import { ApplicationTheme } from '../lib/application-theme'
@@ -717,7 +716,7 @@ export class Dispatcher {
     repository: Repository,
     baseBranch: string,
     targetBranch: string,
-    progress?: RebaseProgressOptions
+    commits: ReadonlyArray<CommitOneLine>
   ): Promise<RebaseResult> {
     const stateBefore = this.repositoryStateManager.get(repository)
 
@@ -734,7 +733,7 @@ export class Dispatcher {
       repository,
       baseBranch,
       targetBranch,
-      progress
+      commits
     )
 
     await this.appStore._loadStatus(repository)

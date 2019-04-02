@@ -89,10 +89,8 @@ export type ShowConflictsStep = {
   readonly kind: RebaseStep.ShowConflicts
   readonly targetBranch: string
   readonly baseBranch?: string
-  /**
-   * Optional context to provide if rebase dialog was dismissed, as previous
-   * state should be used here when resuming the rebase.
-   */
+
+  /** @deprecated PUSH THIS INTO APP STATE */
   readonly previousProgress: RebaseProgressSummary | null
 }
 
