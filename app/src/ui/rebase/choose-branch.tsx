@@ -118,14 +118,20 @@ export class ChooseBranchDialog extends React.Component<
 
   public render() {
     const { selectedBranch } = this.state
-    const { currentBranch } = this.props
+    const { currentBranch, rebasePreviewStatus } = this.props
 
     const selectedBranchIsNotCurrentBranch =
       selectedBranch === null ||
       currentBranch === null ||
       currentBranch.name === selectedBranch.name
 
-    const disabled = selectedBranchIsNotCurrentBranch
+    const noCommitsToRebase =
+      rebasePreviewStatus !== null &&
+      rebasePreviewStatus.kind === ComputedAction.Clean
+        ? rebasePreviewStatus.commits.length === 0
+        : true
+
+    const disabled = selectedBranchIsNotCurrentBranch || noCommitsToRebase
 
     const currentBranchName = currentBranch.name
 
@@ -165,7 +171,7 @@ export class ChooseBranchDialog extends React.Component<
         <DialogFooter>
           {this.renderRebaseStatus()}
           <ButtonGroup>
-            <Button type="submit">
+            <Button type="submit" disabled={disabled}>
               Rebase <strong>{currentBranchName}</strong> onto{' '}
               <strong>{selectedBranch ? selectedBranch.name : ''}</strong>
             </Button>
@@ -243,7 +249,12 @@ export class ChooseBranchDialog extends React.Component<
     commitsToRebase: number
   ) {
     if (commitsToRebase <= 0) {
-      return null
+      return (
+        <React.Fragment>
+          This branch is up to date with{` `}
+          <strong>{currentBranch.name}</strong>
+        </React.Fragment>
+      )
     }
 
     const pluralized = commitsToRebase === 1 ? 'commit' : 'commits'
