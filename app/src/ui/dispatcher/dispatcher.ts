@@ -340,10 +340,11 @@ export class Dispatcher {
       updatedConflictState
     )
 
+    this.setRebaseFlow(repository, initialState)
+
     this.showPopup({
       type: PopupType.RebaseFlow,
       repository,
-      initialState,
     })
   }
 

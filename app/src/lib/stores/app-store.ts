@@ -1767,10 +1767,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       conflictState
     )
 
+    this._setRebaseFlow(repository, initialState)
+
     this._showPopup({
       type: PopupType.RebaseFlow,
       repository,
-      initialState,
     })
   }
 
@@ -3444,10 +3445,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
         : undefined
 
       const newProgressValue = rebasedCommitCount / commits.length
-
-      log.warn(
-        `[_setRebaseProgress] setting commit summary to ${currentCommitSummary}`
-      )
 
       return {
         progress: {

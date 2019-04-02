@@ -948,10 +948,11 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const initialState = initializeNewRebaseFlow(repositoryState)
 
+    this.props.dispatcher.setRebaseFlow(repository, initialState)
+
     this.props.dispatcher.showPopup({
       type: PopupType.RebaseFlow,
       repository,
-      initialState,
     })
   }
 
@@ -1664,10 +1665,11 @@ export class App extends React.Component<IAppProps, IAppState> {
           conflictState
         )
 
+        this.props.dispatcher.setRebaseFlow(repository, initialState)
+
         this.props.dispatcher.showPopup({
           type: PopupType.RebaseFlow,
           repository,
-          initialState,
         })
       },
     })
