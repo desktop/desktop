@@ -70,6 +70,7 @@ rules:
   strict:
     - error
     - global
+  no-buffer-constructor: error
 
   ###########
   # SPECIAL #
