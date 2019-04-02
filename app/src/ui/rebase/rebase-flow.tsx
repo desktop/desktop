@@ -2,7 +2,7 @@ import * as React from 'react'
 
 import { assertNever } from '../../lib/fatal-error'
 import { getResolvedFiles } from '../../lib/status'
-import { RebaseResult, getCommitsInRange } from '../../lib/git'
+import { RebaseResult } from '../../lib/git'
 import { RebaseConflictState } from '../../lib/app-state'
 
 import { Repository } from '../../models/repository'
@@ -11,7 +11,6 @@ import { RebaseProgressSummary, RebasePreview } from '../../models/rebase'
 import { WorkingDirectoryStatus } from '../../models/status'
 import { CommitOneLine } from '../../models/commit'
 import { Branch } from '../../models/branch'
-import { ComputedAction } from '../../models/computed-action'
 
 import { Dispatcher } from '../dispatcher'
 
@@ -42,6 +41,12 @@ interface IRebaseFlowProps {
    */
   readonly step: RebaseFlowState
 
+  /**
+   * A preview of the rebase, using the selected base branch to test whether the
+   * current branch will be cleanly applied.
+   */
+  readonly preview: RebasePreview | null
+
   /** Git progress information about the current rebase */
   readonly progress: RebaseProgressSummary
 
@@ -71,24 +76,11 @@ interface IRebaseFlowProps {
 
 interface IRebaseFlowState {
   /**
-   * A preview of the rebase, using the selected base branch to test whether the
-   * current branch will be cleanly applied.
-   */
-  readonly rebasePreview: RebasePreview | null
-
-  /**
    * Track whether the user has done work to resolve conflicts as part of this
    * rebase, as the component should confirm with the user that they wish to
    * abort the rebase and lose that work.
    */
   readonly userHasResolvedConflicts: boolean
-
-  /**
-   * Tracking the tip of the repository when conflicts were last resolved to
-   * ensure the flow returns to displaying conflicts only when the rebase
-   * proceeds, and not as a side-effect of other prop changes.
-   */
-  readonly lastResolvedConflictsTip: string | null
 }
 
 /** A component for initiating and performing a rebase of the current branch. */
@@ -100,9 +92,7 @@ export class RebaseFlow extends React.Component<
     super(props)
 
     this.state = {
-      lastResolvedConflictsTip: null,
       userHasResolvedConflicts: false,
-      rebasePreview: null,
     }
   }
 
@@ -139,36 +129,10 @@ export class RebaseFlow extends React.Component<
       return
     }
 
-    this.setState(
-      () => ({
-        rebasePreview: {
-          kind: ComputedAction.Loading,
-        },
-      }),
-      async () => {
-        const commits = await getCommitsInRange(
-          this.props.repository,
-          baseBranch.tip.sha,
-          step.currentBranch.tip.sha
-        )
-
-        // TODO: in what situations might this not be possible to compute
-
-        // TODO: check if this is a fast-forward (i.e. the selected branch is
-        //       a direct descendant of the base branch) because this is a
-        //       trivial rebase
-
-        // TODO: generate the patches associated with these commits and see if
-        //       they will apply to the base branch - if it fails, there will be
-        //       conflicts to come
-
-        this.setState(() => ({
-          rebasePreview: {
-            kind: ComputedAction.Clean,
-            commits,
-          },
-        }))
-      }
+    this.props.dispatcher.previewRebase(
+      this.props.repository,
+      baseBranch,
+      step.currentBranch
     )
   }
 
@@ -248,11 +212,6 @@ export class RebaseFlow extends React.Component<
     if (conflictState === null) {
       throw new Error(`No conflicted files found, unable to continue rebase`)
     }
-
-    // set the know conflict tip state before continuing the rebase
-    this.setState({
-      lastResolvedConflictsTip: conflictState.currentTip,
-    })
 
     const continueRebaseAction = async () => {
       const result = await this.props.dispatcher.continueRebase(
@@ -343,7 +302,7 @@ export class RebaseFlow extends React.Component<
             onDismissed={this.onFlowEnded}
             onStartRebase={this.onStartRebase}
             onBranchChanged={this.testRebaseOperation}
-            rebasePreviewStatus={this.state.rebasePreview}
+            rebasePreviewStatus={this.props.preview}
           />
         )
       }

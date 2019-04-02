@@ -140,6 +140,7 @@ import {
   PushOptions,
   RebaseResult,
   getCurrentProgress,
+  getCommitsInRange,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -207,6 +208,7 @@ import { Banner, BannerType } from '../../models/banner'
 import { isDarkModeEnabled } from '../../ui/lib/dark-theme'
 import { ComputedAction } from '../../models/computed-action'
 import { RebaseFlowState } from '../../models/rebase-flow-state'
+import { RebasePreview } from '../../models/rebase'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -3492,6 +3494,49 @@ export class AppStore extends TypedBaseStore<IAppState> {
         },
       }
     })
+
+    this.emitUpdate()
+  }
+
+  public async _previewRebase(
+    repository: Repository,
+    baseBranch: Branch,
+    targetBranch: Branch
+  ) {
+    let preview: RebasePreview = {
+      kind: ComputedAction.Loading,
+    }
+
+    this.repositoryStateCache.updateRebaseState(repository, () => ({
+      preview,
+    }))
+
+    this.emitUpdate()
+
+    const commits = await getCommitsInRange(
+      repository,
+      baseBranch.tip.sha,
+      targetBranch.tip.sha
+    )
+
+    // TODO: in what situations might this not be possible to compute
+
+    // TODO: check if this is a fast-forward (i.e. the selected branch is
+    //       a direct descendant of the base branch) because this is a
+    //       trivial rebase
+
+    // TODO: generate the patches associated with these commits and see if
+    //       they will apply to the base branch - if it fails, there will be
+    //       conflicts to come
+
+    preview = {
+      kind: ComputedAction.Clean,
+      commits,
+    }
+
+    this.repositoryStateCache.updateRebaseState(repository, () => ({
+      preview,
+    }))
 
     this.emitUpdate()
   }

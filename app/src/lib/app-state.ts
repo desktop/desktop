@@ -35,7 +35,7 @@ import { ApplicationTheme } from '../ui/lib/application-theme'
 import { IAccountRepositories } from './stores/api-repositories-store'
 import { ManualConflictResolution } from '../models/manual-conflict-resolution'
 import { Banner } from '../models/banner'
-import { RebaseProgressSummary } from '../models/rebase'
+import { RebaseProgressSummary, RebasePreview } from '../models/rebase'
 import { RebaseFlowState } from '../models/rebase-flow-state'
 
 export enum SelectionType {
@@ -462,6 +462,11 @@ export interface IBranchesState {
 export interface IRebaseState {
   readonly step: RebaseFlowState | null
   readonly progress: RebaseProgressSummary
+  /**
+   * A preview of the rebase, using the selected base branch to test whether the
+   * current branch will be cleanly applied.
+   */
+  readonly preview: RebasePreview | null
 }
 
 export interface ICommitSelection {

@@ -305,6 +305,14 @@ export class Dispatcher {
     return this.appStore._closeFoldout(foldout)
   }
 
+  public previewRebase(
+    repository: Repository,
+    baseBranch: Branch,
+    targetBranch: Branch
+  ) {
+    return this.appStore._previewRebase(repository, baseBranch, targetBranch)
+  }
+
   public async launchRebaseFlow({
     repository,
     targetBranch,
