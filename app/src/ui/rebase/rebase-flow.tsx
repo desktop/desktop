@@ -111,11 +111,6 @@ export class RebaseFlow extends React.Component<
     this.state = {
       step: props.initialState,
       lastResolvedConflictsTip: null,
-      // progress: {
-      //   value: 0,
-      //   rebasedCommitCount: 0,
-      //   commits: [],
-      // },
       userHasResolvedConflicts: false,
       rebasePreview: null,
     }
@@ -260,29 +255,18 @@ export class RebaseFlow extends React.Component<
     // this ensures the progress bar fills to 100%, while `componentDidUpdate`
     // detects and handles the state transition after a period of time to ensure
     // the UI shows _something_ before closing the dialog
-    this.setState(prevState => {
-      // let currentCommitSummary: string | undefined = undefined
 
-      // const { rebasePreview: rebaseStatus } = prevState
+    const { commits } = this.props.progress
+    if (commits.length === 0) {
+      return
+    }
 
-      // if (rebaseStatus !== null && rebaseStatus.kind === ComputedAction.Clean) {
-      //   const { commits } = rebaseStatus
-      //   if (commits.length > 0) {
-      //     const last = commits.length - 1
-      //     currentCommitSummary = commits[last].summary
-      //   }
-      // }
-
-      //const { commits } = prevState.progress
-      return {
-        // progress: {
-        //   value: 1,
-        //   currentCommitSummary,
-        //   rebasedCommitCount: commits.length,
-        //   commits,
-        // },
-      }
-    })
+    const last = commits.length - 1
+    this.props.dispatcher.setRebaseProgress(
+      this.props.repository,
+      last,
+      commits
+    )
   }
 
   private onStartRebase = async (
@@ -293,6 +277,8 @@ export class RebaseFlow extends React.Component<
     if (this.state.step.kind !== RebaseStep.ChooseBranch) {
       throw new Error(`Invalid step to start rebase: ${this.state.step.kind}`)
     }
+
+    this.props.dispatcher.setRebaseProgress(this.props.repository, 1, commits)
 
     const startRebaseAction = async () => {
       const result = await this.props.dispatcher.rebase(
@@ -307,25 +293,11 @@ export class RebaseFlow extends React.Component<
       }
     }
 
-    this.setState(() => {
-      // const currentCommitSummary =
-      //   commits.length > 0 ? commits[0].summary : undefined
-
-      // const rebasedCommitCount = 1
-      // const newProgressValue = rebasedCommitCount / commits.length
-
-      return {
-        step: {
-          kind: RebaseStep.ShowProgress,
-          rebaseAction: startRebaseAction,
-        },
-        // progress: {
-        //   commits,
-        //   value: formatRebaseValue(newProgressValue),
-        //   rebasedCommitCount,
-        //   currentCommitSummary,
-        // },
-      }
+    this.setState({
+      step: {
+        kind: RebaseStep.ShowProgress,
+        rebaseAction: startRebaseAction,
+      },
     })
   }
 
@@ -346,6 +318,14 @@ export class RebaseFlow extends React.Component<
       lastResolvedConflictsTip: conflictState.currentTip,
     })
 
+    const nextCommit = this.props.progress.rebasedCommitCount + 1
+
+    this.props.dispatcher.setRebaseProgress(
+      this.props.repository,
+      nextCommit,
+      this.props.progress.commits
+    )
+
     const continueRebaseAction = async () => {
       const result = await this.props.dispatcher.continueRebase(
         this.props.repository,
@@ -358,29 +338,12 @@ export class RebaseFlow extends React.Component<
       }
     }
 
-    // TODO: where should this progress updating occur now?
-
     this.setState(() => {
-      //const { rebasedCommitCount, commits } = prevProps.progress
-
-      //const newCount = rebasedCommitCount + 1
-      //const newProgressValue = newCount / commits.length
-      //const value = formatRebaseValue(newProgressValue)
-
-      // const currentCommitSummary =
-      //   newCount <= commits.length ? commits[newCount - 1].summary : undefined
-
       return {
         step: {
           kind: RebaseStep.ShowProgress,
           rebaseAction: continueRebaseAction,
         },
-        // progress: {
-        //   value,
-        //   rebasedCommitCount: newCount,
-        //   commits,
-        //   currentCommitSummary,
-        // },
       }
     })
   }

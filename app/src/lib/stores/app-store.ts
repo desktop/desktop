@@ -153,7 +153,10 @@ import {
   matchGitHubRepository,
   repositoryMatchesRemote,
 } from '../repository-matching'
-import { initializeRebaseFlowForConflictedRepository } from '../rebase'
+import {
+  initializeRebaseFlowForConflictedRepository,
+  formatRebaseValue,
+} from '../rebase'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import {
   Default as DefaultShell,
@@ -3417,6 +3420,40 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this._refreshRepository(repository)
   }
 
+  public _setRebaseProgress(
+    repository: Repository,
+    rebasedCommitCount: number,
+    commits: ReadonlyArray<CommitOneLine>
+  ) {
+    this.repositoryStateCache.update(repository, () => {
+      const hasValidCommit =
+        commits.length > 0 && rebasedCommitCount <= commits.length
+
+      const currentCommitSummary = hasValidCommit
+        ? commits[rebasedCommitCount - 1].summary
+        : undefined
+
+      const newProgressValue = rebasedCommitCount / commits.length
+
+      log.warn(
+        `[_setRebaseProgress] setting commit summary to ${currentCommitSummary}`
+      )
+
+      return {
+        rebaseState: {
+          progress: {
+            commits,
+            value: formatRebaseValue(newProgressValue),
+            rebasedCommitCount,
+            currentCommitSummary,
+          },
+        },
+      }
+    })
+
+    this.emitUpdate()
+  }
+
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _rebase(
     repository: Repository,
@@ -3438,7 +3475,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const progress = {
-      rebasedCommitCount: 0,
+      rebasedCommitCount: 1,
       totalCommitCount: commits.length,
       progressCallback,
     }

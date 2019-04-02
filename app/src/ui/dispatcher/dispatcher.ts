@@ -711,6 +711,18 @@ export class Dispatcher {
     }))
   }
 
+  public setRebaseProgress(
+    repository: Repository,
+    rebasedCommitCount: number,
+    commits: ReadonlyArray<CommitOneLine>
+  ) {
+    return this.appStore._setRebaseProgress(
+      repository,
+      rebasedCommitCount,
+      commits
+    )
+  }
+
   /** Starts a rebase for the given base and target branch */
   public async rebase(
     repository: Repository,
