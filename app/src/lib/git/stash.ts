@@ -120,7 +120,7 @@ export async function createDesktopStashEntry(
 ) {
   const message = createDesktopStashMessage(branchName, tipSha)
   await git(
-    ['stash', 'push', '-m', message],
+    ['stash', 'push', '--include-untracked', '-m', message],
     repository.path,
     'createStashEntry'
   )

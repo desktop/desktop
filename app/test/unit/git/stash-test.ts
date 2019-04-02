@@ -14,6 +14,7 @@ import {
 } from '../../../src/lib/git/stash'
 import { getTipOrError } from '../../helpers/tip'
 import { getStatusOrThrow } from '../../helpers/status'
+import { AppFileStatusKind } from '../../../src/models/status'
 
 describe('git/stash', () => {
   describe('getDesktopStashEntries', () => {
@@ -67,11 +68,29 @@ describe('git/stash', () => {
     })
 
     it('creates a stash entry when repo is not unborn or in any kind of conflict or rebase state', async () => {
-      const branchName = 'master'
       await FSE.appendFile(readme, 'just testing stuff')
 
       const tipCommit = await getTipOrError(repository)
-      await createDesktopStashEntry(repository, branchName, tipCommit.sha)
+      await createDesktopStashEntry(repository, 'master', tipCommit.sha)
+    })
+
+    it('stashes untracked files and removes them from the working directory', async () => {
+      const untrackedFile = path.join(repository.path, 'not-tracked.txt')
+      FSE.writeFile(untrackedFile, 'some untracked file')
+
+      let status = await getStatusOrThrow(repository)
+      let files = status.workingDirectory.files
+
+      expect(files).toHaveLength(1)
+      expect(files[0].status.kind).toBe(AppFileStatusKind.Untracked)
+
+      const tip = await getTipOrError(repository)
+      await createDesktopStashEntry(repository, 'master', tip.sha)
+
+      status = await getStatusOrThrow(repository)
+      files = status.workingDirectory.files
+
+      expect(files).toHaveLength(0)
     })
   })
 
