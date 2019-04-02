@@ -723,7 +723,7 @@ export class Dispatcher {
 
     log.info(`[rebase] starting rebase for ${targetBranch} at ${beforeSha}`)
     log.info(
-      `[rebase] to restore the previous state if this rebase is unsatisfactory:`
+      `[rebase] to restore the previous state if this completed rebase is unsatisfactory:`
     )
     log.info(`[rebase] - git checkout ${targetBranch}`)
     log.info(`[rebase] - git reset ${beforeSha} --hard`)
