@@ -93,6 +93,8 @@ export class RebaseFlow extends React.Component<
   IRebaseFlowProps,
   IRebaseFlowState
 > {
+  private ignoreUpdateEvents = false
+
   public constructor(props: IRebaseFlowProps) {
     super(props)
 
@@ -106,6 +108,10 @@ export class RebaseFlow extends React.Component<
       },
       userHasResolvedConflicts: false,
     }
+  }
+
+  public componentWillUnmount() {
+    this.ignoreUpdateEvents = true
   }
 
   public async componentDidUpdate() {
@@ -132,6 +138,10 @@ export class RebaseFlow extends React.Component<
         // waiting before the CSS animation to give the progress UI a chance to
         // show it reaches 100%
         await timeout(1000)
+
+        if (this.ignoreUpdateEvents) {
+          return
+        }
 
         this.setState(
           {
@@ -205,6 +215,10 @@ export class RebaseFlow extends React.Component<
   }
 
   private moveToCompletedState = () => {
+    if (this.ignoreUpdateEvents) {
+      return
+    }
+
     // this ensures the progress bar fills to 100%, while `componentDidUpdate`
     // detects and handles the state transition after a period of time to ensure
     // the UI shows _something_ before closing the dialog
