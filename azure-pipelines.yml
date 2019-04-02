@@ -2,11 +2,10 @@ variables:
   PYTHON: 'python2.7'
 
 trigger:
-  pr:
-    autoCancel: false
-  branches:
-    include:
-      - development
+  - development
+
+pr:
+  autoCancel: false
 
 jobs:
   - job: Windows
