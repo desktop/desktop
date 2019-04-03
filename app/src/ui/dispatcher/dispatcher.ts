@@ -11,6 +11,7 @@ import {
   ICompareFormUpdate,
   RepositorySectionTab,
   isRebaseConflictState,
+  isMergeConflictState,
 } from '../../lib/app-state'
 import { ExternalEditor } from '../../lib/editors'
 import { assertNever, fatalError } from '../../lib/fatal-error'
@@ -792,10 +793,24 @@ export class Dispatcher {
     )
 
     if (result === RebaseResult.ConflictsEncountered) {
+      const { conflictState } = stateAfter.changesState
+      if (conflictState === null) {
+        log.warn(
+          `[rebase] conflict state after rebase is null - aborting the flow`
+        )
+        return RebaseResult.Error
+      }
+
+      if (isMergeConflictState(conflictState)) {
+        log.warn(
+          `[rebase] conflict state after rebase is merge conflicts - aborting the flow`
+        )
+        return RebaseResult.Error
+      }
+
       this.setRebaseFlow(repository, {
         kind: RebaseStep.ShowConflicts,
-        targetBranch,
-        baseBranch,
+        conflictState,
       })
     } else if (result === RebaseResult.CompletedWithoutError) {
       if (tip.kind === TipState.Valid) {
@@ -861,10 +876,24 @@ export class Dispatcher {
     )
 
     if (result === RebaseResult.ConflictsEncountered) {
+      const { conflictState } = stateAfter.changesState
+      if (conflictState === null) {
+        log.warn(
+          `[continueRebase] conflict state after rebase is null - abandoning the operation`
+        )
+        return RebaseResult.Error
+      }
+
+      if (isMergeConflictState(conflictState)) {
+        log.warn(
+          `[continueRebase] conflict state after rebase is merge conflicts - abandoning the operation`
+        )
+        return RebaseResult.Error
+      }
+
       this.setRebaseFlow(repository, {
         kind: RebaseStep.ShowConflicts,
-        targetBranch,
-        baseBranch,
+        conflictState,
       })
     } else if (result === RebaseResult.CompletedWithoutError) {
       this.closePopup()

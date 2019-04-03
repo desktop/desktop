@@ -1,4 +1,5 @@
 import { Branch } from './branch'
+import { RebaseConflictState } from '../lib/app-state'
 
 /** Union type representing the possible states of the rebase flow */
 export type RebaseFlowState =
@@ -86,8 +87,7 @@ export type ShowProgressStep = {
 /** Shape of data to show conflicts that need to be resolved by the user */
 export type ShowConflictsStep = {
   readonly kind: RebaseStep.ShowConflicts
-  readonly targetBranch: string
-  readonly baseBranch?: string
+  readonly conflictState: RebaseConflictState
 }
 
 /** Shape of data to track when user hides conflicts dialog */

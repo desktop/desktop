@@ -25,10 +25,13 @@ import { renderUnmergedFile } from '../lib/conflicts/unmerged-file'
 import { DialogContent, Dialog, DialogFooter } from '../dialog'
 import { Dispatcher } from '../dispatcher'
 import { RebaseConflictState } from '../../lib/app-state'
+import { ShowConflictsStep } from '../../models/rebase-flow-state'
 
 interface IShowConflictedFilesDialogProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
+
+  readonly step: ShowConflictsStep
 
   readonly userHasResolvedConflicts: boolean
   readonly conflictState: RebaseConflictState
@@ -36,8 +39,8 @@ interface IShowConflictedFilesDialogProps {
 
   readonly onDismissed: () => void
   readonly onContinueRebase: () => void
-  readonly onAbortRebase: (conflictState: RebaseConflictState) => void
-  readonly showRebaseConflictsBanner: () => void
+  readonly onAbortRebase: (step: ShowConflictsStep) => void
+  readonly showRebaseConflictsBanner: (step: ShowConflictsStep) => void
 
   readonly openFileInExternalEditor: (path: string) => void
   readonly resolvedExternalEditor: string | null
@@ -91,14 +94,14 @@ export class ShowConflictedFilesDialog extends React.Component<
   private onCancel = async () => {
     this.setState({ isAborting: true })
 
-    this.props.onAbortRebase(this.props.conflictState)
+    this.props.onAbortRebase(this.props.step)
 
     this.setState({ isAborting: false })
   }
 
   private onDismissed = () => {
     this.props.onDismissed()
-    this.props.showRebaseConflictsBanner()
+    this.props.showRebaseConflictsBanner(this.props.step)
   }
 
   private onSubmit = async () => {

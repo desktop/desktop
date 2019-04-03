@@ -52,14 +52,10 @@ export function initializeNewRebaseFlow(state: IRepositoryState) {
 export function initializeRebaseFlowForConflictedRepository(
   conflictState: RebaseConflictState
 ): ShowConflictsStep {
-  const { targetBranch, baseBranch } = conflictState
-
   const initialState: ShowConflictsStep = {
     kind: RebaseStep.ShowConflicts,
-    targetBranch,
-    baseBranch,
+    conflictState,
   }
-
   return initialState
 }
 

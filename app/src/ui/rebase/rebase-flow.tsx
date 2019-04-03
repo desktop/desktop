@@ -5,7 +5,11 @@ import { RebaseResult } from '../../lib/git'
 import { RebaseConflictState } from '../../lib/app-state'
 
 import { Repository } from '../../models/repository'
-import { RebaseStep, RebaseFlowState } from '../../models/rebase-flow-state'
+import {
+  RebaseStep,
+  RebaseFlowState,
+  ShowConflictsStep,
+} from '../../models/rebase-flow-state'
 import { RebaseProgressSummary, RebasePreview } from '../../models/rebase'
 import { WorkingDirectoryStatus } from '../../models/status'
 import { CommitOneLine } from '../../models/commit'
@@ -113,12 +117,9 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
       return
     }
 
-    const { targetBranch, baseBranch } = conflictState
-
     this.props.dispatcher.setRebaseFlow(this.props.repository, {
       kind: RebaseStep.ShowConflicts,
-      targetBranch,
-      baseBranch,
+      conflictState,
     })
   }
 
@@ -200,25 +201,19 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
     })
   }
 
-  private showRebaseConflictsBanner = () => {
-    if (this.props.step.kind !== RebaseStep.ShowConflicts) {
-      throw new Error(
-        `Invalid step to show rebase conflicts banner: ${this.props.step.kind}`
-      )
-    }
-
+  private showRebaseConflictsBanner = (step: ShowConflictsStep) => {
     this.props.dispatcher.setRebaseFlow(this.props.repository, {
       kind: RebaseStep.HideConflicts,
     })
 
-    const { targetBranch } = this.props.step
+    const { targetBranch } = step.conflictState
 
     this.props.onShowRebaseConflictsBanner(this.props.repository, targetBranch)
   }
 
-  private onConfirmAbortRebase = (conflictState: RebaseConflictState) => {
+  private onConfirmAbortRebase = (step: ShowConflictsStep) => {
     const { workingDirectory, userHasResolvedConflicts } = this.props
-    const { manualResolutions, targetBranch, baseBranch } = conflictState
+    const { manualResolutions, targetBranch, baseBranch } = step.conflictState
 
     if (userHasResolvedConflicts) {
       // a previous commit was resolved by the user
@@ -320,9 +315,8 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
           <ShowConflictedFilesDialog
             key="view-conflicts"
             repository={repository}
-            onDismissed={this.onFlowEnded}
-            onContinueRebase={this.onContinueRebase}
             dispatcher={dispatcher}
+            step={step}
             showRebaseConflictsBanner={this.showRebaseConflictsBanner}
             conflictState={conflictState}
             workingDirectory={workingDirectory}
@@ -331,6 +325,8 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
             openFileInExternalEditor={openFileInExternalEditor}
             openRepositoryInShell={openRepositoryInShell}
             onAbortRebase={this.onConfirmAbortRebase}
+            onDismissed={this.onFlowEnded}
+            onContinueRebase={this.onContinueRebase}
           />
         )
       }
