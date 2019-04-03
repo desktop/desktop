@@ -1,6 +1,5 @@
 import { Branch } from './branch'
 import { RebaseConflictState } from '../lib/app-state'
-import { RebaseResult } from '../lib/git'
 
 /** Union type representing the possible states of the rebase flow */
 export type RebaseFlowStep =
@@ -82,7 +81,7 @@ export type ShowProgressStep = {
    * want to defer the rebase action until after _something_ is shown to the
    * user.
    */
-  readonly rebaseAction: (() => Promise<RebaseResult>) | null
+  readonly rebaseAction: (() => Promise<void>) | null
 }
 
 /** Shape of data to show conflicts that need to be resolved by the user */

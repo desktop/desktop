@@ -756,7 +756,7 @@ export class Dispatcher {
     repository: Repository,
     baseBranch: string,
     targetBranch: string
-  ): Promise<RebaseResult> {
+  ): Promise<void> {
     const stateBefore = this.repositoryStateManager.get(repository)
 
     const beforeSha = getTipSha(stateBefore.branchesState.tip)
@@ -790,16 +790,16 @@ export class Dispatcher {
       const { conflictState } = stateAfter.changesState
       if (conflictState === null) {
         log.warn(
-          `[rebase] conflict state after rebase is null - aborting the flow`
+          `[rebase] conflict state after rebase is null - unable to continue`
         )
-        return RebaseResult.Error
+        return
       }
 
       if (isMergeConflictState(conflictState)) {
         log.warn(
-          `[rebase] conflict state after rebase is merge conflicts - aborting the flow`
+          `[rebase] conflict state after rebase is merge conflicts - unable to continue`
         )
-        return RebaseResult.Error
+        return
       }
 
       this.switchToConflicts(repository, conflictState)
@@ -810,7 +810,7 @@ export class Dispatcher {
             tip.kind
           } but this should be a valid tip if the rebase completed without error`
         )
-        return RebaseResult.Error
+        return
       }
 
       await this.completeRebase(
@@ -824,21 +824,23 @@ export class Dispatcher {
         beforeSha
       )
     }
-
-    return result
   }
 
-  /** aborts the current rebase and refreshes the repository's status */
+  /** Abort the current rebase and refreshes the repository status */
   public async abortRebase(repository: Repository) {
     await this.appStore._abortRebase(repository)
     await this.appStore._loadStatus(repository)
   }
 
+  /**
+   * Continue with the rebase after the user has resovled all conflicts with
+   * tracked files in the working directory.
+   */
   public async continueRebase(
     repository: Repository,
     workingDirectory: WorkingDirectoryStatus,
     manualResolutions: ReadonlyMap<string, ManualConflictResolution>
-  ): Promise<RebaseResult> {
+  ): Promise<void> {
     const stateBefore = this.repositoryStateManager.get(repository)
     const { conflictState } = stateBefore.changesState
 
@@ -846,7 +848,7 @@ export class Dispatcher {
       log.warn(
         `[continueRebase] no conflicts found, likely an invalid rebase state`
       )
-      return RebaseResult.Error
+      return
     }
 
     const { targetBranch, baseBranch, originalBranchTip } = conflictState
@@ -876,16 +878,16 @@ export class Dispatcher {
       const { conflictState } = stateAfter.changesState
       if (conflictState === null) {
         log.warn(
-          `[continueRebase] conflict state after rebase is null - abandoning the operation`
+          `[continueRebase] conflict state after rebase is null - unable to continue`
         )
-        return RebaseResult.Error
+        return
       }
 
       if (isMergeConflictState(conflictState)) {
         log.warn(
-          `[continueRebase] conflict state after rebase is merge conflicts - abandoning the operation`
+          `[continueRebase] conflict state after rebase is merge conflicts - unable to continue`
         )
-        return RebaseResult.Error
+        return
       }
 
       this.switchToConflicts(repository, conflictState)
@@ -896,7 +898,7 @@ export class Dispatcher {
             tip.kind
           } but this should be a valid tip if the rebase completed without error`
         )
-        return RebaseResult.Error
+        return
       }
 
       await this.completeRebase(
@@ -910,10 +912,9 @@ export class Dispatcher {
         originalBranchTip
       )
     }
-
-    return result
   }
 
+  /** Switch the rebase flow to show the latest conflicts */
   private switchToConflicts = (
     repository: Repository,
     conflictState: RebaseConflictState
@@ -924,6 +925,7 @@ export class Dispatcher {
     })
   }
 
+  /** Tidy up the rebase flow after reaching the end */
   private async completeRebase(
     repository: Repository,
     banner: Banner,
