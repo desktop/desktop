@@ -10,7 +10,11 @@ import { clamp } from './clamp'
 import { Repository } from '../models/repository'
 import { getCurrentProgress } from './git'
 
-export const initializeNewRebaseFlow = (state: IRepositoryState) => {
+/**
+ * Setup the rebase flow state when the user neeeds to select a branch as the
+ * base for the operation.
+ */
+export function initializeNewRebaseFlow(state: IRepositoryState) {
   const {
     defaultBranch,
     allBranches,
@@ -38,10 +42,19 @@ export const initializeNewRebaseFlow = (state: IRepositoryState) => {
   return initialState
 }
 
-export const initializeRebaseFlowForConflictedRepository = async (
+/**
+ * Setup the rebase flow when rebase conflicts are detected in the repository.
+ *
+ * This indicates a rebase is in progress, and the application needs to guide
+ * the user to resolve conflicts and complete the rebae.
+ *
+ * @param repository the repository dealing with conflicts
+ * @param conflictState current set of conflicts
+ */
+export async function initializeRebaseFlowForConflictedRepository(
   repository: Repository,
   conflictState: RebaseConflictState
-): Promise<ShowConflictsStep> => {
+): Promise<ShowConflictsStep> {
   const { targetBranch, baseBranch } = conflictState
 
   const previousProgress = await getCurrentProgress(repository)
