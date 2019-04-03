@@ -25,7 +25,7 @@ import { renderUnmergedFile } from '../lib/conflicts/unmerged-file'
 import { DialogContent, Dialog, DialogFooter } from '../dialog'
 import { Dispatcher } from '../dispatcher'
 import { RebaseConflictState } from '../../lib/app-state'
-import { ShowConflictsStep } from '../../models/rebase-flow-state'
+import { ShowConflictsStep } from '../../models/rebase-flow-step'
 
 interface IShowConflictedFilesDialogProps {
   readonly dispatcher: Dispatcher

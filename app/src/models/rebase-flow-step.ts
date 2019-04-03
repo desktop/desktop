@@ -2,7 +2,7 @@ import { Branch } from './branch'
 import { RebaseConflictState } from '../lib/app-state'
 
 /** Union type representing the possible states of the rebase flow */
-export type RebaseFlowState =
+export type RebaseFlowStep =
   | ChooseBranchesStep
   | ShowProgressStep
   | ShowConflictsStep

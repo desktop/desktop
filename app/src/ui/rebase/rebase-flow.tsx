@@ -7,9 +7,9 @@ import { RebaseConflictState } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
 import {
   RebaseStep,
-  RebaseFlowState,
+  RebaseFlowStep,
   ShowConflictsStep,
-} from '../../models/rebase-flow-state'
+} from '../../models/rebase-flow-step'
 import { GitRebaseProgress, RebasePreview } from '../../models/rebase'
 import { WorkingDirectoryStatus } from '../../models/status'
 import { CommitOneLine } from '../../models/commit'
@@ -43,7 +43,7 @@ interface IRebaseFlowProps {
    * The current step in the rebase flow, containing application-specific
    * state needed for the UI components.
    */
-  readonly step: RebaseFlowState
+  readonly step: RebaseFlowStep
 
   /**
    * A preview of the rebase, using the selected base branch to test whether the

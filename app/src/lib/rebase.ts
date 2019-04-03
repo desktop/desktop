@@ -3,7 +3,7 @@ import {
   ChooseBranchesStep,
   RebaseStep,
   ShowConflictsStep,
-} from '../models/rebase-flow-state'
+} from '../models/rebase-flow-step'
 import { Branch } from '../models/branch'
 import { TipState } from '../models/tip'
 import { clamp } from './clamp'

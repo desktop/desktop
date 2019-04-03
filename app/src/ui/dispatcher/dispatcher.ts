@@ -81,7 +81,7 @@ import {
   StatusCallBack,
 } from '../../lib/stores/commit-status-store'
 import { MergeResult } from '../../models/merge'
-import { RebaseFlowState, RebaseStep } from '../../models/rebase-flow-state'
+import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 
 /**
  * An error handler function.
@@ -749,7 +749,7 @@ export class Dispatcher {
 
   public setRebaseFlow(
     repository: Repository,
-    step: RebaseFlowState
+    step: RebaseFlowStep
   ): Promise<void> {
     return this.appStore._setRebaseFlow(repository, step)
   }

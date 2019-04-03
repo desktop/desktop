@@ -36,7 +36,7 @@ import { IAccountRepositories } from './stores/api-repositories-store'
 import { ManualConflictResolution } from '../models/manual-conflict-resolution'
 import { Banner } from '../models/banner'
 import { GitRebaseProgress, RebasePreview } from '../models/rebase'
-import { RebaseFlowState } from '../models/rebase-flow-state'
+import { RebaseFlowStep } from '../models/rebase-flow-step'
 
 export enum SelectionType {
   Repository,
@@ -466,7 +466,7 @@ export interface IRebaseState {
    *
    * `null` indicates that there is no rebase underway.
    */
-  readonly step: RebaseFlowState | null
+  readonly step: RebaseFlowStep | null
 
   /**
    * A preview of the rebase, tested before performing the rebase itself, using

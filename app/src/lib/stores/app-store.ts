@@ -207,7 +207,7 @@ import {
 import { Banner, BannerType } from '../../models/banner'
 import { isDarkModeEnabled } from '../../ui/lib/dark-theme'
 import { ComputedAction } from '../../models/computed-action'
-import { RebaseFlowState, RebaseStep } from '../../models/rebase-flow-state'
+import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { RebasePreview } from '../../models/rebase'
 
 /**
@@ -3480,7 +3480,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   public async _setRebaseFlow(
     repository: Repository,
-    step: RebaseFlowState
+    step: RebaseFlowStep
   ): Promise<void> {
     log.warn(
       `[AppStore._setRebaseFlow] setting step to ${JSON.stringify(step)}`
