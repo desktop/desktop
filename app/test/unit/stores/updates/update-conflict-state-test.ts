@@ -1,5 +1,8 @@
 import { updateConflictState } from '../../../../src/lib/stores/updates/changes-state'
-import { createState, createStatus } from './changes-state-helper'
+import {
+  createState,
+  createStatus,
+} from '../../../helpers/changes-state-helper'
 import {
   ManualConflictResolution,
   ManualConflictResolutionKind,

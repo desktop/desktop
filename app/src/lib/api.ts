@@ -170,7 +170,7 @@ export interface IAPIRefStatusItem {
 }
 
 /** The API response to a ref status request. */
-interface IAPIRefStatus {
+export interface IAPIRefStatus {
   readonly state: APIRefState
   readonly total_count: number
   readonly statuses: ReadonlyArray<IAPIRefStatusItem>
@@ -351,7 +351,7 @@ export class API {
         log.warn(`fetchCommit: '${path}' returned a 404`)
         return null
       }
-      return parsedResponse<IAPICommit>(response)
+      return await parsedResponse<IAPICommit>(response)
     } catch (e) {
       log.warn(`fetchCommit: returned an error '${owner}/${name}@${sha}'`, e)
       return null
@@ -390,7 +390,7 @@ export class API {
   /** Fetch all the orgs to which the user belongs. */
   public async fetchOrgs(): Promise<ReadonlyArray<IAPIOrganization>> {
     try {
-      return this.fetchAll<IAPIOrganization>('user/orgs')
+      return await this.fetchAll<IAPIOrganization>('user/orgs')
     } catch (e) {
       log.warn(`fetchOrgs: failed with endpoint ${this.endpoint}`, e)
       return []
@@ -477,24 +477,20 @@ export class API {
     }
   }
 
-  /** Get the combined status for the given ref. */
+  /**
+   * Get the combined status for the given ref.
+   *
+   * Note: Contrary to many other methods in this class this will not
+   * suppress or log errors, callers must ensure that they handle errors.
+   */
   public async fetchCombinedRefStatus(
     owner: string,
     name: string,
     ref: string
   ): Promise<IAPIRefStatus> {
     const path = `repos/${owner}/${name}/commits/${ref}/status`
-    try {
-      const response = await this.request('GET', path)
-      const status = await parsedResponse<IAPIRefStatus>(response)
-      return status
-    } catch (e) {
-      log.warn(
-        `fetchCombinedRefStatus: failed for repository ${owner}/${name} on ref ${ref}`,
-        e
-      )
-      throw e
-    }
+    const response = await this.request('GET', path)
+    return await parsedResponse<IAPIRefStatus>(response)
   }
 
   /**

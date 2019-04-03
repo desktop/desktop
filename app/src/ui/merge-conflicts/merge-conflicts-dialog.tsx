@@ -10,7 +10,6 @@ import {
   WorkingDirectoryStatus,
   WorkingDirectoryFileChange,
 } from '../../models/status'
-import { DialogHeader } from '../dialog/header'
 import {
   isConflictedFile,
   getResolvedFiles,
@@ -212,12 +211,8 @@ export class MergeConflictsDialog extends React.Component<
         onDismissed={this.onDismissed}
         disableClickDismissalAlways={true}
         onSubmit={this.onSubmit}
+        title={headerTitle}
       >
-        <DialogHeader
-          title={headerTitle}
-          dismissable={true}
-          onDismissed={this.onDismissed}
-        />
         <DialogContent>
           {this.renderContent(unmergedFiles, conflictedFilesCount)}
         </DialogContent>
