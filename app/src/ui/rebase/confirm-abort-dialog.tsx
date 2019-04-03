@@ -77,8 +77,8 @@ export class ConfirmAbortDialog extends React.Component<
       <div className="column-left">
         {firstParagraph}
         <p>
-          Aborting this merge will take you back to the pre-merge state and the
-          conflicts you've already resolved will still be present.
+          Aborting this rebase will take you back to the original branch state
+          and and the conflicts you have already resolved will be discarded.
         </p>
       </div>
     )
