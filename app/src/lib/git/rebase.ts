@@ -8,7 +8,7 @@ import { Repository } from '../../models/repository'
 import {
   RebaseContext,
   RebaseProgressOptions,
-  RebaseProgressSummary,
+  GitRebaseProgress,
 } from '../../models/rebase'
 import { IRebaseProgress } from '../../models/progress'
 import {
@@ -106,7 +106,7 @@ export async function getRebaseContext(
  */
 export async function getCurrentProgress(
   repository: Repository
-): Promise<RebaseProgressSummary | null> {
+): Promise<GitRebaseProgress | null> {
   const rebaseHead = await isRebaseHeadSet(repository)
   if (!rebaseHead) {
     return null

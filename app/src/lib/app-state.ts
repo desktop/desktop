@@ -35,7 +35,7 @@ import { ApplicationTheme } from '../ui/lib/application-theme'
 import { IAccountRepositories } from './stores/api-repositories-store'
 import { ManualConflictResolution } from '../models/manual-conflict-resolution'
 import { Banner } from '../models/banner'
-import { RebaseProgressSummary, RebasePreview } from '../models/rebase'
+import { GitRebaseProgress, RebasePreview } from '../models/rebase'
 import { RebaseFlowState } from '../models/rebase-flow-state'
 
 export enum SelectionType {
@@ -481,7 +481,7 @@ export interface IRebaseState {
   /**
    * The underlying Git information associated with the current rebase
    */
-  readonly progress: RebaseProgressSummary
+  readonly progress: GitRebaseProgress
 
   /**
    * Whether the user has done work to resolve any conflicts as part of this

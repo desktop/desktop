@@ -10,7 +10,7 @@ import {
   RebaseFlowState,
   ShowConflictsStep,
 } from '../../models/rebase-flow-state'
-import { RebaseProgressSummary, RebasePreview } from '../../models/rebase'
+import { GitRebaseProgress, RebasePreview } from '../../models/rebase'
 import { WorkingDirectoryStatus } from '../../models/status'
 import { CommitOneLine } from '../../models/commit'
 import { Branch } from '../../models/branch'
@@ -52,7 +52,7 @@ interface IRebaseFlowProps {
   readonly preview: RebasePreview | null
 
   /** Git progress information about the current rebase */
-  readonly progress: RebaseProgressSummary
+  readonly progress: GitRebaseProgress
 
   /**
    * Track whether the user has done work to resolve conflicts as part of this

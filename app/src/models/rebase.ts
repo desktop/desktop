@@ -43,7 +43,7 @@ export type RebasePreview =
   | RebaseNotSupported
   | RebaseLoading
 
-export type RebaseProgressSummary = {
+export type GitRebaseProgress = {
   /** A numeric value between 0 and 1 representing the rebase progress */
   readonly value: number
   /** Track the current number of commits rebased across dialogs and states */

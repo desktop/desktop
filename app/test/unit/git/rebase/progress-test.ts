@@ -7,7 +7,7 @@ import {
 import { createRepository as createShortRebaseTest } from '../../../helpers/repository-builder-rebase-test'
 import { createRepository as createLongRebaseTest } from '../../../helpers/repository-builder-long-rebase-test'
 import { getStatusOrThrow } from '../../../helpers/status'
-import { RebaseProgressSummary } from '../../../../src/models/rebase'
+import { GitRebaseProgress } from '../../../../src/models/rebase'
 import { setupEmptyDirectory } from '../../../helpers/repositories'
 
 const baseBranch = 'base-branch'
@@ -26,7 +26,7 @@ describe('git/rebase', () => {
 
   describe('can parse progress', () => {
     let result: RebaseResult
-    let progress: RebaseProgressSummary | null
+    let progress: GitRebaseProgress | null
     let status: IStatusResult
 
     beforeEach(async () => {
@@ -60,7 +60,7 @@ describe('git/rebase', () => {
 
   describe('can parse progress for long rebase', () => {
     let result: RebaseResult
-    let progress: RebaseProgressSummary | null
+    let progress: GitRebaseProgress | null
     let status: IStatusResult
 
     beforeEach(async () => {

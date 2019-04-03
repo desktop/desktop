@@ -6,11 +6,11 @@ import { RichText } from '../lib/rich-text'
 
 import { Dialog, DialogContent } from '../dialog'
 import { Octicon, OcticonSymbol } from '../octicons'
-import { RebaseProgressSummary } from '../../models/rebase'
+import { GitRebaseProgress } from '../../models/rebase'
 
 interface IRebaseProgressDialogProps {
   /** Progress information about the current rebase */
-  readonly progress: RebaseProgressSummary
+  readonly progress: GitRebaseProgress
 
   readonly emoji: Map<string, string>
 }
