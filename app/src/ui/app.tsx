@@ -945,9 +945,9 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const repositoryState = this.props.repositoryStateManager.get(repository)
 
-    const initialState = initializeNewRebaseFlow(repositoryState)
+    const initialStep = initializeNewRebaseFlow(repositoryState)
 
-    this.props.dispatcher.setRebaseFlowStep(repository, initialState)
+    this.props.dispatcher.setRebaseFlowStep(repository, initialStep)
 
     this.props.dispatcher.showPopup({
       type: PopupType.RebaseFlow,
@@ -1660,11 +1660,11 @@ export class App extends React.Component<IAppProps, IAppState> {
 
         await this.props.dispatcher.setRebaseProgressFromState(repository)
 
-        const initialState = initializeRebaseFlowForConflictedRepository(
+        const initialStep = initializeRebaseFlowForConflictedRepository(
           conflictState
         )
 
-        this.props.dispatcher.setRebaseFlowStep(repository, initialState)
+        this.props.dispatcher.setRebaseFlowStep(repository, initialStep)
 
         this.props.dispatcher.showPopup({
           type: PopupType.RebaseFlow,

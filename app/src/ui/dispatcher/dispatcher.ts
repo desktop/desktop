@@ -302,6 +302,9 @@ export class Dispatcher {
     return this.appStore._closeFoldout(foldout)
   }
 
+  /**
+   * Compute a preview of the planned rebase action
+   */
   public previewRebase(
     repository: Repository,
     baseBranch: Branch,
@@ -331,11 +334,11 @@ export class Dispatcher {
 
     await this.setRebaseProgressFromState(repository)
 
-    const initialState = initializeRebaseFlowForConflictedRepository(
+    const initialStep = initializeRebaseFlowForConflictedRepository(
       updatedConflictState
     )
 
-    this.setRebaseFlowStep(repository, initialState)
+    this.setRebaseFlowStep(repository, initialStep)
 
     this.showPopup({
       type: PopupType.RebaseFlow,

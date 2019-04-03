@@ -3426,6 +3426,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this._refreshRepository(repository)
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public _setRebaseProgressFromState = async (repository: Repository) => {
     const snapshot = await getRebaseSnapshot(repository)
     if (snapshot === null) {
@@ -3455,6 +3456,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public _initializeRebaseProgress(
     repository: Repository,
     commits: ReadonlyArray<CommitOneLine>
@@ -3477,6 +3479,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public _setConflictsResolved(repository: Repository) {
     // an update is not emitted here because there is no need
     // to trigger a re-render at this point
@@ -3503,6 +3506,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public _endRebaseFlow(repository: Repository) {
     this.repositoryStateCache.updateRebaseState(repository, () => ({
       step: null,
@@ -3515,6 +3519,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public async _previewRebase(
     repository: Repository,
     baseBranch: Branch,
