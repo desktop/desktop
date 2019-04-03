@@ -980,7 +980,6 @@ export class GitStore extends BaseStore {
     for (const entry of entries) {
       if (!map.has(entry.branchName)) {
         map.set(entry.branchName, entry)
-        console.log(entry)
       }
     }
 

@@ -470,6 +470,7 @@ export class ChangesList extends React.Component<
   private onStashEntryClicked = () => {
     console.log(this.props.stashEntry)
   }
+
   private renderStashedChanges() {
     if (this.props.stashEntry === null) {
       return null
