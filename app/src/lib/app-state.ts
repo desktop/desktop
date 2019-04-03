@@ -508,6 +508,9 @@ export interface IChangesState {
    * The absence of a value means there is no merge or rebase conflict underway
    */
   readonly conflictState: ConflictState | null
+
+  /** Whether or not to show the UI for restoring or clearing a stash entry */
+  readonly isShowingStashEntry: boolean
 }
 
 /**

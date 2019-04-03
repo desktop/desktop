@@ -15,6 +15,7 @@ export function createState<K extends keyof IChangesState>(
     showCoAuthoredBy: false,
     coAuthors: [],
     conflictState: null,
+    isShowingStashEntry: false,
   }
 
   return merge(baseChangesState, pick)
