@@ -36,6 +36,8 @@ import { ICommitContext } from '../../models/commit'
 import { RebaseConflictState } from '../../lib/app-state'
 import { ContinueRebase } from './continue-rebase'
 import { enablePullWithRebase } from '../../lib/feature-flag'
+import { IStashEntry } from '../../lib/git/stash'
+import { Octicon, OcticonSymbol } from '../octicons'
 
 const RowHeight = 29
 
@@ -113,6 +115,8 @@ interface IChangesListProps {
    * @param fullPath The full path to the file on disk
    */
   readonly onOpenInExternalEditor: (fullPath: string) => void
+
+  readonly stashEntry: IStashEntry | null
 }
 
 interface IChangesState {
@@ -463,6 +467,23 @@ export class ChangesList extends React.Component<
     )
   }
 
+  private onStashEntryClicked = () => {
+    console.log(this.props.stashEntry)
+  }
+  private renderStashedChanges() {
+    if (this.props.stashEntry === null) {
+      return null
+    }
+
+    return (
+      <ul className="brutalism">
+        <li onClick={this.onStashEntryClicked}>
+          Stashed Changes <Octicon symbol={OcticonSymbol.arrowRight} />
+        </li>
+      </ul>
+    )
+  }
+
   public render() {
     const fileCount = this.props.workingDirectory.files.length
     const filesPlural = fileCount === 1 ? 'file' : 'files'
@@ -492,6 +513,7 @@ export class ChangesList extends React.Component<
           onScroll={this.onScroll}
           setScrollTop={this.props.changesListScrollTop}
         />
+        {this.renderStashedChanges()}
         {this.renderCommitMessageForm()}
       </div>
     )
