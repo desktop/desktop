@@ -3433,22 +3433,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const { progress, commits } = snapshot
-    const { totalCommitCount, rebasedCommitCount } = progress
+    const { rebasedCommitCount } = progress
 
-    log.warn(
-      `[AppStore._setRebaseProgressFromState] for ${rebasedCommitCount} out of ${totalCommitCount}`
-    )
+    const hasValidCommit =
+      commits.length > 0 &&
+      rebasedCommitCount >= 0 &&
+      rebasedCommitCount <= commits.length
+
+    const currentCommitSummary = hasValidCommit
+      ? commits[rebasedCommitCount].summary
+      : undefined
 
     this.repositoryStateCache.updateRebaseState(repository, () => {
-      const hasValidCommit =
-        commits.length > 0 &&
-        rebasedCommitCount >= 0 &&
-        rebasedCommitCount <= commits.length
-
-      const currentCommitSummary = hasValidCommit
-        ? commits[rebasedCommitCount].summary
-        : undefined
-
       return {
         progress: {
           ...progress,
@@ -3463,28 +3459,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     commits: ReadonlyArray<CommitOneLine>
   ) {
-    const totalCommitCount = commits.length
-    const rebasedCommitCount = 0
-
-    log.warn(
-      `[AppStore._initializeRebaseProgress] for ${rebasedCommitCount} out of ${totalCommitCount}`
-    )
-
     this.repositoryStateCache.updateRebaseState(repository, () => {
-      const hasValidCommit = commits.length > 0
-
-      const currentCommitSummary = hasValidCommit
-        ? commits[0].summary
-        : undefined
-
-      const newProgressValue = rebasedCommitCount / totalCommitCount
+      const hasCommits = commits.length > 0
+      const firstCommitSummary = hasCommits ? commits[0].summary : undefined
 
       return {
         progress: {
-          value: formatRebaseValue(newProgressValue),
-          rebasedCommitCount,
-          currentCommitSummary,
-          totalCommitCount,
+          value: formatRebaseValue(0),
+          rebasedCommitCount: 0,
+          currentCommitSummary: firstCommitSummary,
+          totalCommitCount: commits.length,
         },
         commits,
       }
@@ -3494,22 +3478,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public _setConflictsResolved(repository: Repository) {
+    // an update is not emitted here because there is no need
+    // to trigger a re-render at this point
+
     this.repositoryStateCache.updateRebaseState(repository, () => ({
       userHasResolvedConflicts: true,
     }))
-
-    // an update is not emitted here because there is no need
-    // to trigger a re-render at this point
   }
 
   public async _setRebaseFlow(
     repository: Repository,
     step: RebaseFlowStep
   ): Promise<void> {
-    log.warn(
-      `[AppStore._setRebaseFlow] setting step to ${JSON.stringify(step)}`
-    )
-
     this.repositoryStateCache.updateRebaseState(repository, () => ({
       step,
     }))
@@ -3523,8 +3503,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public _endRebaseFlow(repository: Repository) {
-    log.warn(`[AppStore._setRebaseFlow] ending rebase flow`)
-
     this.repositoryStateCache.updateRebaseState(repository, () => ({
       step: null,
       progress: null,
@@ -3583,23 +3561,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _rebase(
     repository: Repository,
     baseBranch: string,
-    targetBranch: string,
-    commits: ReadonlyArray<CommitOneLine>
+    targetBranch: string
   ): Promise<RebaseResult> {
     const progressCallback = (progress: IRebaseProgress) => {
-      log.warn(
-        `[AppStore._rebase] setting progress for ${
-          progress.rebasedCommitCount
-        } out of ${progress.totalCommitCount} with messsage: '${
-          progress.currentCommitSummary
-        }'`
-      )
-
       this.repositoryStateCache.updateRebaseState(repository, () => ({
-        progress: {
-          ...progress,
-          commits,
-        },
+        progress,
       }))
 
       this.emitUpdate()
@@ -3628,14 +3594,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     manualResolutions: ReadonlyMap<string, ManualConflictResolution>
   ): Promise<RebaseResult> {
     const progressCallback = (progress: IRebaseProgress) => {
-      log.warn(
-        `[AppStore._continueRebase] setting progress for ${
-          progress.rebasedCommitCount
-        } out of ${progress.totalCommitCount} with messsage: '${
-          progress.currentCommitSummary
-        }'`
-      )
-
       this.repositoryStateCache.updateRebaseState(repository, () => ({
         progress,
       }))

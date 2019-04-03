@@ -754,8 +754,7 @@ export class Dispatcher {
   public async rebase(
     repository: Repository,
     baseBranch: string,
-    targetBranch: string,
-    commits: ReadonlyArray<CommitOneLine>
+    targetBranch: string
   ): Promise<RebaseResult> {
     const stateBefore = this.repositoryStateManager.get(repository)
 
@@ -771,8 +770,7 @@ export class Dispatcher {
     const result = await this.appStore._rebase(
       repository,
       baseBranch,
-      targetBranch,
-      commits
+      targetBranch
     )
 
     await this.appStore._loadStatus(repository)

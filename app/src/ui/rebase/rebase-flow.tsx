@@ -140,8 +140,7 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
       return this.props.dispatcher.rebase(
         this.props.repository,
         baseBranch,
-        targetBranch,
-        commits
+        targetBranch
       )
     }
 
