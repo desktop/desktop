@@ -6,7 +6,7 @@ import * as byline from 'byline'
 
 import { Repository } from '../../models/repository'
 import {
-  RebaseContext,
+  RebaseInternalState,
   RebaseProgressOptions,
   GitRebaseProgress,
 } from '../../models/rebase'
@@ -37,16 +37,16 @@ function isRebaseHeadSet(repository: Repository) {
 }
 
 /**
- * Detect and build up the context about the rebase being performed on a
- * repository. This information is required to help Desktop display information
- * to the user about the current action as well as the options available.
+ * Get the internal state about the rebase being performed on a repository. This
+ * information is required to help Desktop display information to the user
+ * about the current action as well as the options available.
  *
  * Returns `null` if no rebase is detected, or if the expected information
  * cannot be found in the repository.
  */
-export async function getRebaseContext(
+export async function getRebaseInternalState(
   repository: Repository
-): Promise<RebaseContext | null> {
+): Promise<RebaseInternalState | null> {
   const isRebase = await isRebaseHeadSet(repository)
 
   if (!isRebase) {
@@ -96,14 +96,15 @@ export async function getRebaseContext(
 }
 
 /**
- * Inspect the `.git/rebase-apply` folder and convert the current context into
- * a progress summary that can be passed into the rebase flow to hydrate the
- * component state.
+ * Inspect the `.git/rebase-apply` folder and convert the current rebase state
+ * into data that can be provided to the rebase flow to update the application
+ * state.
  *
  * This is required when Desktop is not responsible for initiating the rebase:
  *
  *   - when a rebase outside Desktop encounters conflicts
  *   - when a `git pull --rebase` was run and encounters conflicts
+ *
  */
 export async function getRebaseSnapshot(
   repository: Repository

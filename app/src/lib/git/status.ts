@@ -25,9 +25,9 @@ import { IAheadBehind } from '../../models/branch'
 import { fatalError } from '../../lib/fatal-error'
 import { isMergeHeadSet } from './merge'
 import { getBinaryPaths } from './diff'
-import { getRebaseContext } from './rebase'
+import { getRebaseInternalState } from './rebase'
 import { enablePullWithRebase } from '../feature-flag'
-import { RebaseContext } from '../../models/rebase'
+import { RebaseInternalState } from '../../models/rebase'
 
 /**
  * V8 has a limit on the size of string it can create (~256MB), and unless we want to
@@ -60,7 +60,7 @@ export interface IStatusResult {
   readonly mergeHeadFound: boolean
 
   /** details about the rebase operation, if found */
-  readonly rebaseContext: RebaseContext | null
+  readonly rebaseContext: RebaseInternalState | null
 
   /** the absolute path to the repository's working directory */
   readonly workingDirectory: WorkingDirectoryStatus
@@ -199,7 +199,7 @@ export async function getStatus(
   let conflictDetails: ConflictFilesDetails
 
   const mergeHeadFound = await isMergeHeadSet(repository)
-  const rebaseContext = await getRebaseContext(repository)
+  const rebaseContext = await getRebaseInternalState(repository)
 
   if (enablePullWithRebase()) {
     conflictDetails = await getConflictDetails(
@@ -368,7 +368,7 @@ async function getRebaseConflictDetails(repository: Repository) {
 async function getConflictDetails(
   repository: Repository,
   mergeHeadFound: boolean,
-  rebaseContext: RebaseContext | null
+  rebaseContext: RebaseInternalState | null
 ): Promise<ConflictFilesDetails> {
   try {
     if (mergeHeadFound) {
