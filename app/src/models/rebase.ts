@@ -63,7 +63,7 @@ export type GitRebaseProgress = {
   /** The current number of commits rebased as part of this operation */
   readonly rebasedCommitCount: number
   /** The commit summary associated with the current commit (if found) */
-  readonly currentCommitSummary?: string
+  readonly currentCommitSummary: string | null
   /** The count of known commits that will be rebased onto the base branch */
   readonly totalCommitCount: number
 }

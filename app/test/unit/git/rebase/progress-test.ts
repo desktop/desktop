@@ -50,6 +50,8 @@ describe('git/rebase', () => {
       expect(s.commits[0].summary).toEqual('Feature Branch!')
 
       expect(s.progress.rebasedCommitCount).toEqual(1)
+      expect(s.progress.totalCommitCount).toEqual(1)
+      expect(s.progress.currentCommitSummary).toEqual('Feature Branch!')
       expect(s.progress.value).toEqual(1)
     })
 
@@ -84,6 +86,10 @@ describe('git/rebase', () => {
       expect(s.commits[0].summary).toEqual('Feature Branch First Commit!')
 
       expect(s.progress.rebasedCommitCount).toEqual(1)
+      expect(s.progress.totalCommitCount).toEqual(10)
+      expect(s.progress.currentCommitSummary).toEqual(
+        'Feature Branch First Commit!'
+      )
       expect(s.progress.value).toEqual(0.1)
     })
 

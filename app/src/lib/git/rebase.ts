@@ -191,11 +191,24 @@ export async function getRebaseSnapshot(
       return null
     }
 
+    // this number starts from 1, but our array of commits starts from 0
+    const nextCommitIndex = next - 1
+
+    const hasValidCommit =
+      commits.length > 0 &&
+      nextCommitIndex >= 0 &&
+      nextCommitIndex <= commits.length
+
+    const currentCommitSummary = hasValidCommit
+      ? commits[nextCommitIndex].summary
+      : null
+
     return {
       progress: {
         value,
         rebasedCommitCount: next,
         totalCommitCount: last,
+        currentCommitSummary,
       },
       commits,
     }

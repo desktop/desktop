@@ -3434,23 +3434,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const { progress, commits } = snapshot
-    const { rebasedCommitCount } = progress
-
-    const hasValidCommit =
-      commits.length > 0 &&
-      rebasedCommitCount >= 0 &&
-      rebasedCommitCount <= commits.length
-
-    const currentCommitSummary = hasValidCommit
-      ? commits[rebasedCommitCount].summary
-      : undefined
 
     this.repositoryStateCache.updateRebaseState(repository, () => {
       return {
-        progress: {
-          ...progress,
-          currentCommitSummary,
-        },
+        progress,
         commits,
       }
     })
@@ -3463,7 +3450,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ) {
     this.repositoryStateCache.updateRebaseState(repository, () => {
       const hasCommits = commits.length > 0
-      const firstCommitSummary = hasCommits ? commits[0].summary : undefined
+      const firstCommitSummary = hasCommits ? commits[0].summary : null
 
       return {
         progress: {
