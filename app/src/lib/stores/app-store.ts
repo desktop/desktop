@@ -2460,7 +2460,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const { changesState } = this.repositoryStateCache.get(repository)
     if (
-      omitStashCheck !== true &&
+      !omitStashCheck &&
       changesState.workingDirectory.files.some(
         f => f.status.kind !== AppFileStatusKind.New
       )
