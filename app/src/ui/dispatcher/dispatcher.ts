@@ -747,8 +747,11 @@ export class Dispatcher {
     this.appStore._setRebaseProgress(repository, rebasedCommitCount, commits)
   }
 
-  public setRebaseFlow(repository: Repository, step: RebaseFlowState) {
-    this.appStore._setRebaseFlow(repository, step)
+  public setRebaseFlow(
+    repository: Repository,
+    step: RebaseFlowState
+  ): Promise<void> {
+    return this.appStore._setRebaseFlow(repository, step)
   }
 
   public endRebaseFlow(repository: Repository) {

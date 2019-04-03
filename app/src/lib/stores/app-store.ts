@@ -178,7 +178,7 @@ import { getWindowState, WindowState } from '../window-state'
 import { TypedBaseStore } from './base-store'
 import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
 import { MergeResult } from '../../models/merge'
-import { promiseWithMinimumTimeout } from '../promise'
+import { promiseWithMinimumTimeout, timeout } from '../promise'
 import { BackgroundFetcher } from './helpers/background-fetcher'
 import { inferComparisonBranch } from './helpers/infer-comparison-branch'
 import { PullRequestUpdater } from './helpers/pull-request-updater'
@@ -207,7 +207,7 @@ import {
 import { Banner, BannerType } from '../../models/banner'
 import { isDarkModeEnabled } from '../../ui/lib/dark-theme'
 import { ComputedAction } from '../../models/computed-action'
-import { RebaseFlowState } from '../../models/rebase-flow-state'
+import { RebaseFlowState, RebaseStep } from '../../models/rebase-flow-state'
 import { RebasePreview } from '../../models/rebase'
 
 /**
@@ -3478,7 +3478,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // to trigger a re-render at this point
   }
 
-  public _setRebaseFlow(repository: Repository, step: RebaseFlowState) {
+  public async _setRebaseFlow(
+    repository: Repository,
+    step: RebaseFlowState
+  ): Promise<void> {
     log.warn(
       `[AppStore._setRebaseFlow] setting step to ${JSON.stringify(step)}`
     )
@@ -3488,6 +3491,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }))
 
     this.emitUpdate()
+
+    if (step.kind === RebaseStep.ShowProgress && step.rebaseAction !== null) {
+      await timeout(500)
+      await step.rebaseAction()
+    }
   }
 
   public _endRebaseFlow(repository: Repository) {

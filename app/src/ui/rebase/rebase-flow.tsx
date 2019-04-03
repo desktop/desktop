@@ -285,7 +285,6 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
           <RebaseProgressDialog
             progress={this.props.progress}
             emoji={this.props.emoji}
-            rebaseAction={step.rebaseAction}
           />
         )
       case RebaseStep.ShowConflicts: {

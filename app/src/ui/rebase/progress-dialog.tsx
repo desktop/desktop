@@ -1,6 +1,5 @@
 import * as React from 'react'
 
-import { timeout } from '../../lib/promise'
 import { formatRebaseValue } from '../../lib/rebase'
 
 import { RichText } from '../lib/rich-text'
@@ -14,13 +13,6 @@ interface IRebaseProgressDialogProps {
   readonly progress: RebaseProgressSummary
 
   readonly emoji: Map<string, string>
-
-  /**
-   * An optional action to run when the component is mounted
-   *
-   * This should typically be the rebase action to perform.
-   */
-  readonly rebaseAction: (() => Promise<void>) | null
 }
 
 export class RebaseProgressDialog extends React.Component<
@@ -28,14 +20,6 @@ export class RebaseProgressDialog extends React.Component<
 > {
   private onDismissed = () => {
     // this dialog is undismissable, but I need to handle the event
-  }
-
-  /** After a delay, run the assigned action to start/continue the rebase */
-  public async componentDidMount() {
-    if (this.props.rebaseAction) {
-      await timeout(500)
-      await this.props.rebaseAction()
-    }
   }
 
   public render() {
