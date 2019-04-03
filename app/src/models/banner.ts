@@ -34,5 +34,5 @@ export type Banner =
       /** name of the branch that was used to rebase */
       readonly targetBranch: string
       /** callback to run when user clicks on link in banner text */
-      readonly onOpenDialog: () => Promise<void>
+      readonly onOpenDialog: () => void
     }
