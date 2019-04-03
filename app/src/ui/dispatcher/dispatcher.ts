@@ -310,13 +310,10 @@ export class Dispatcher {
     return this.appStore._previewRebase(repository, baseBranch, targetBranch)
   }
 
-  public async launchRebaseFlow({
-    repository,
-    targetBranch,
-  }: {
-    repository: Repository
-    targetBranch: string
-  }) {
+  /**
+   * Initialize and launch the rebase flow for a conflicted repository
+   */
+  public async launchRebaseFlow(repository: Repository, targetBranch: string) {
     await this.appStore._loadStatus(repository)
 
     const repositoryState = this.repositoryStateManager.get(repository)
@@ -338,7 +335,7 @@ export class Dispatcher {
       updatedConflictState
     )
 
-    this.setRebaseFlow(repository, initialState)
+    this.setRebaseFlowStep(repository, initialState)
 
     this.showPopup({
       type: PopupType.RebaseFlow,
@@ -725,27 +722,28 @@ export class Dispatcher {
   }
 
   public setConflictsResolved(repository: Repository) {
-    this.appStore._setConflictsResolved(repository)
+    return this.appStore._setConflictsResolved(repository)
   }
 
   public initializeRebaseProgress(
     repository: Repository,
     commits: ReadonlyArray<CommitOneLine>
   ) {
-    this.appStore._initializeRebaseProgress(repository, commits)
+    return this.appStore._initializeRebaseProgress(repository, commits)
   }
 
   public setRebaseProgressFromState(repository: Repository) {
     return this.appStore._setRebaseProgressFromState(repository)
   }
 
-  public setRebaseFlow(
+  public setRebaseFlowStep(
     repository: Repository,
     step: RebaseFlowStep
   ): Promise<void> {
-    return this.appStore._setRebaseFlow(repository, step)
+    return this.appStore._setRebaseFlowStep(repository, step)
   }
 
+  /** End the rebase flow and cleanup any related app state */
   public endRebaseFlow(repository: Repository) {
     return this.appStore._endRebaseFlow(repository)
   }
@@ -917,7 +915,7 @@ export class Dispatcher {
     repository: Repository,
     conflictState: RebaseConflictState
   ) => {
-    this.setRebaseFlow(repository, {
+    this.setRebaseFlowStep(repository, {
       kind: RebaseStep.ShowConflicts,
       conflictState,
     })

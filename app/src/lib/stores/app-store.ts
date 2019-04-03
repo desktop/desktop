@@ -1758,11 +1758,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     await this._setRebaseProgressFromState(repository)
 
-    const initialState = initializeRebaseFlowForConflictedRepository(
-      conflictState
-    )
+    const step = initializeRebaseFlowForConflictedRepository(conflictState)
 
-    this._setRebaseFlow(repository, initialState)
+    this.repositoryStateCache.updateRebaseState(repository, () => ({
+      step,
+    }))
 
     this._showPopup({
       type: PopupType.RebaseFlow,
@@ -3486,7 +3486,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }))
   }
 
-  public async _setRebaseFlow(
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _setRebaseFlowStep(
     repository: Repository,
     step: RebaseFlowStep
   ): Promise<void> {

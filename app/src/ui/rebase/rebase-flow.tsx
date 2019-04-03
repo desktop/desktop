@@ -116,7 +116,7 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
       return
     }
 
-    this.props.dispatcher.setRebaseFlow(this.props.repository, {
+    this.props.dispatcher.setRebaseFlowStep(this.props.repository, {
       kind: RebaseStep.ShowConflicts,
       conflictState,
     })
@@ -144,7 +144,7 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
       )
     }
 
-    this.props.dispatcher.setRebaseFlow(this.props.repository, {
+    this.props.dispatcher.setRebaseFlowStep(this.props.repository, {
       kind: RebaseStep.ShowProgress,
       rebaseAction: startRebaseAction,
     })
@@ -170,14 +170,14 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
       )
     }
 
-    this.props.dispatcher.setRebaseFlow(this.props.repository, {
+    this.props.dispatcher.setRebaseFlowStep(this.props.repository, {
       kind: RebaseStep.ShowProgress,
       rebaseAction: continueRebaseAction,
     })
   }
 
   private showRebaseConflictsBanner = (step: ShowConflictsStep) => {
-    this.props.dispatcher.setRebaseFlow(this.props.repository, {
+    this.props.dispatcher.setRebaseFlowStep(this.props.repository, {
       kind: RebaseStep.HideConflicts,
     })
 
@@ -192,7 +192,7 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
 
     if (userHasResolvedConflicts) {
       // a previous commit was resolved by the user
-      this.props.dispatcher.setRebaseFlow(this.props.repository, {
+      this.props.dispatcher.setRebaseFlowStep(this.props.repository, {
         kind: RebaseStep.ConfirmAbort,
         targetBranch,
         baseBranch,
@@ -207,7 +207,7 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
     )
 
     if (resolvedConflicts.length > 0) {
-      this.props.dispatcher.setRebaseFlow(this.props.repository, {
+      this.props.dispatcher.setRebaseFlowStep(this.props.repository, {
         kind: RebaseStep.ConfirmAbort,
         targetBranch,
         baseBranch,
