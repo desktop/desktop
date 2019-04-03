@@ -1597,7 +1597,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
         if (step === null) {
           log.warn(
-            '[App] invalid state encountered - rebase flow should not be used when merge conflicts found'
+            '[App] invalid state encountered - rebase flow should not be active when step is null'
           )
           return null
         }
