@@ -37,9 +37,23 @@ import { RebaseConflictState } from '../../lib/app-state'
 import { ContinueRebase } from './continue-rebase'
 import { enablePullWithRebase } from '../../lib/feature-flag'
 import { IStashEntry } from '../../lib/git/stash'
+import { ListRow } from '../lib/list/list-row'
 import { Octicon, OcticonSymbol } from '../octicons'
+import { FocusContainer } from '../lib/focus-container'
 
 const RowHeight = 29
+const StashListRowStyle: React.CSSProperties = {
+  height: RowHeight,
+}
+const StashIcon = new OcticonSymbol(
+  16,
+  16,
+  'M3.002 15H15V4c.51 0 1 .525 1 .996V15c0 .471-.49 1-1 1H4.002c-.51 ' +
+    '0-1-.529-1-1zm-2-2H13V2c.51 0 1 .525 1 .996V13c0 .471-.49 1-1 ' +
+    '1H2.002c-.51 0-1-.529-1-1zm10.14-13A.86.86 0 0 1 12 .857v10.286a.86.86 ' +
+    '0 0 1-.857.857H.857A.86.86 0 0 1 0 11.143V.857A.86.86 0 0 1 .857 0h10.286zM11 ' +
+    '11V1H1v10h10zM3 6c0-1.66 1.34-3 3-3s3 1.34 3 3-1.34 3-3 3-3-1.34-3-3z'
+)
 
 const GitIgnoreFileName = '.gitignore'
 
@@ -470,6 +484,7 @@ export class ChangesList extends React.Component<
   }
 
   private onStashEntryClicked = () => {
+    this.props.dispatcher.showStashEntry(this.props.repository)
     console.log(this.props.stashEntry)
   }
 
@@ -479,11 +494,24 @@ export class ChangesList extends React.Component<
     }
 
     return (
-      <ul className="brutalism">
-        <li onClick={this.onStashEntryClicked}>
-          Stashed Changes <Octicon symbol={OcticonSymbol.arrowRight} />
-        </li>
-      </ul>
+      <FocusContainer className="list-focus-container">
+        <ListRow
+          rowCount={1}
+          rowIndex={0}
+          selectable={true}
+          selected={this.props.isShowingStashEntry}
+          onRowClick={this.onStashEntryClicked}
+          tabIndex={0}
+          style={StashListRowStyle}
+          className="stash-entry-row"
+        >
+          <div className="stash-entry-row-content">
+            <Octicon className="icon" symbol={StashIcon} />
+            <div className="text">Stashed Changes</div>
+            <Octicon className="arrow" symbol={OcticonSymbol.chevronRight} />
+          </div>
+        </ListRow>
+      </FocusContainer>
     )
   }
 
@@ -502,7 +530,6 @@ export class ChangesList extends React.Component<
             disabled={fileCount === 0 || this.props.isCommitting}
           />
         </div>
-
         <List
           id="changes-list"
           rowCount={this.props.workingDirectory.files.length}
