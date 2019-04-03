@@ -297,11 +297,11 @@ export async function rebase(
   targetBranch: string,
   progressCallback?: (progress: IRebaseProgress) => void
 ): Promise<RebaseResult> {
-  const baseOptions = {
+  const baseOptions: IGitExecutionOptions = {
     expectedErrors: new Set([GitError.RebaseConflicts]),
   }
 
-  let options: IGitExecutionOptions
+  let options = baseOptions
 
   if (progressCallback !== undefined) {
     const commits = await getCommitsInRange(
@@ -317,8 +317,6 @@ export async function rebase(
       totalCommitCount,
       progressCallback,
     })
-  } else {
-    options = baseOptions
   }
 
   const result = await git(
@@ -434,14 +432,14 @@ export async function continueRebase(
     f => f.status.kind !== AppFileStatusKind.Untracked
   )
 
-  const baseOptions = {
+  const baseOptions: IGitExecutionOptions = {
     expectedErrors: new Set([
       GitError.RebaseConflicts,
       GitError.UnresolvedConflicts,
     ]),
   }
 
-  let options: IGitExecutionOptions
+  let options = baseOptions
 
   if (progressCallback !== undefined) {
     const progress = await getCurrentProgress(repository)
@@ -461,8 +459,6 @@ export async function continueRebase(
       totalCommitCount,
       progressCallback,
     })
-  } else {
-    options = baseOptions
   }
 
   if (trackedFilesAfter.length === 0) {

@@ -459,19 +459,25 @@ export interface IBranchesState {
   readonly rebasedBranches: ReadonlyMap<string, string>
 }
 
+/** State associated with a rebase being performed on a repository */
 export interface IRebaseState {
+  /** The current step of the flow the user should see */
   readonly step: RebaseFlowState | null
-  readonly progress: RebaseProgressSummary
+
   /**
-   * A preview of the rebase, using the selected base branch to test whether the
-   * current branch will be cleanly applied.
+   * A preview of the rebase, tested before performing the rebase itself, using
+   * the selected base branch to test whether the current branch will be cleanly
+   * applied.
    */
   readonly preview: RebasePreview | null
 
+  /** The underlying Git information associated with the current rebase */
+  readonly progress: RebaseProgressSummary
+
   /**
-   * Track whether the user has done work to resolve conflicts as part of this
-   * rebase, as the component should confirm with the user that they wish to
-   * abort the rebase and lose that work.
+   * Whether the user has done work to resolve any conflicts as part of this
+   * rebase, as the rebase flow should confirm the user wishes to abort the
+   * rebase and lose that work.
    */
   readonly userHasResolvedConflicts: boolean
 }
