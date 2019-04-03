@@ -262,7 +262,27 @@ export class RepositoryView extends React.Component<
       } = changesState
 
       if (isShowingStashEntry) {
-        return <p>There's a stash</p>
+        const { branchesState, stashEntries } = this.props.state
+        const tip = branchesState.tip
+        if (tip.kind !== TipState.Valid) {
+          return null
+        }
+
+        const branch = tip.branch
+        const stashEntry = stashEntries.get(branch.name)
+        if (stashEntry === undefined) {
+          return null
+        }
+
+        return (
+          <div>
+            <p>
+              {`${stashEntry.name} created on ${
+                stashEntry.branchName
+              }@${stashEntry.stashSha.substr(0, 7)}`}
+            </p>
+          </div>
+        )
       }
 
       if (selectedFileIDs.length > 1) {
