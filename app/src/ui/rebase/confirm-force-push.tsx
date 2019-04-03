@@ -1,10 +1,13 @@
 import * as React from 'react'
-import { Dispatcher } from '../dispatcher'
-import { ButtonGroup } from '../lib/button-group'
-import { DialogFooter, DialogContent, Dialog } from '../dialog'
-import { Button } from '../lib/button'
+
 import { Repository } from '../../models/repository'
+
+import { Button } from '../lib/button'
+import { ButtonGroup } from '../lib/button-group'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
+
+import { Dispatcher } from '../dispatcher'
+import { DialogFooter, DialogContent, Dialog } from '../dialog'
 
 interface IConfirmForcePushProps {
   readonly dispatcher: Dispatcher

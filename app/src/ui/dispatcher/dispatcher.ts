@@ -40,6 +40,7 @@ import { AppStore } from '../../lib/stores/app-store'
 import { validatedRepositoryPath } from '../../lib/stores/helpers/validated-repository-path'
 import { RepositoryStateCache } from '../../lib/stores/repository-state-cache'
 import { getTipSha } from '../../lib/tip'
+import { initializeRebaseFlowForConflictedRepository } from '../../lib/rebase'
 
 import { Account } from '../../models/account'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
@@ -65,7 +66,7 @@ import {
 } from '../../models/status'
 import { TipState, IValidBranch } from '../../models/tip'
 import { RebaseProgressOptions } from '../../models/rebase'
-import { Banner, BannerType } from '../../models/banner'
+import { Banner } from '../../models/banner'
 
 import { ApplicationTheme } from '../lib/application-theme'
 import { installCLI } from '../lib/install-cli'
@@ -299,6 +300,38 @@ export class Dispatcher {
     return this.appStore._closeFoldout(foldout)
   }
 
+  public async launchRebaseFlow({
+    repository,
+    targetBranch,
+  }: {
+    repository: Repository
+    targetBranch: string
+  }) {
+    await this.appStore._loadStatus(repository)
+
+    const repositoryState = this.repositoryStateManager.get(repository)
+    const { conflictState } = repositoryState.changesState
+
+    if (conflictState === null || conflictState.kind === 'merge') {
+      return
+    }
+
+    const updatedConflictState = { ...conflictState, targetBranch }
+
+    this.repositoryStateManager.updateChangesState(repository, () => ({
+      conflictState: updatedConflictState,
+    }))
+
+    const initialState = initializeRebaseFlowForConflictedRepository(
+      updatedConflictState
+    )
+    this.showPopup({
+      type: PopupType.RebaseFlow,
+      repository,
+      initialState,
+    })
+  }
+
   /**
    * Create a new branch from the given starting point and check it out.
    *
@@ -322,7 +355,11 @@ export class Dispatcher {
   }
 
   /** Push the current branch. */
-  public push(repository: Repository, options?: PushOptions): Promise<void> {
+  public push(repository: Repository): Promise<void> {
+    return this.appStore._push(repository)
+  }
+
+  private pushWithOptions(repository: Repository, options?: PushOptions) {
     if (options !== undefined && options.forceWithLease) {
       this.dropCurrentBranchFromForcePushList(repository)
     }
@@ -684,11 +721,12 @@ export class Dispatcher {
 
     const beforeSha = getTipSha(stateBefore.branchesState.tip)
 
-    log.info(`[rebase] starting rebase for ${beforeSha}`)
-
-    // TODO: this can happen very quickly for a trivial rebase or an OS with
-    // fast I/O - are we able to artificially slow this down so it completes at
-    // least after X ms?
+    log.info(`[rebase] starting rebase for ${targetBranch} at ${beforeSha}`)
+    log.info(
+      `[rebase] to restore the previous state if this completed rebase is unsatisfactory:`
+    )
+    log.info(`[rebase] - git checkout ${targetBranch}`)
+    log.info(`[rebase] - git reset ${beforeSha} --hard`)
 
     const result = await this.appStore._rebase(
       repository,
@@ -714,11 +752,7 @@ export class Dispatcher {
         this.addRebasedBranchToForcePushList(repository, tip, beforeSha)
       }
 
-      this.setBanner({
-        type: BannerType.SuccessfulRebase,
-        targetBranch: targetBranch,
-        baseBranch: baseBranch,
-      })
+      await this.refreshRepository(repository)
     }
 
     return result
@@ -760,23 +794,20 @@ export class Dispatcher {
 
     const { conflictState } = stateBefore.changesState
 
-    if (result === RebaseResult.CompletedWithoutError) {
-      this.closePopup()
-
-      if (conflictState !== null && isRebaseConflictState(conflictState)) {
-        this.setBanner({
-          type: BannerType.SuccessfulRebase,
-          targetBranch: conflictState.targetBranch,
-        })
-
-        if (tip.kind === TipState.Valid) {
-          this.addRebasedBranchToForcePushList(
-            repository,
-            tip,
-            conflictState.originalBranchTip
-          )
-        }
+    if (
+      result === RebaseResult.CompletedWithoutError &&
+      conflictState !== null &&
+      isRebaseConflictState(conflictState)
+    ) {
+      if (tip.kind === TipState.Valid) {
+        this.addRebasedBranchToForcePushList(
+          repository,
+          tip,
+          conflictState.originalBranchTip
+        )
       }
+
+      await this.refreshRepository(repository)
     }
 
     return result
@@ -1517,7 +1548,7 @@ export class Dispatcher {
   }
 
   public async performForcePush(repository: Repository) {
-    await this.push(repository, {
+    await this.pushWithOptions(repository, {
       forceWithLease: true,
     })
 
