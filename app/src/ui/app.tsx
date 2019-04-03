@@ -100,7 +100,6 @@ import {
   initializeRebaseFlowForConflictedRepository,
 } from '../lib/rebase'
 import { BannerType } from '../models/banner'
-import { getRebaseSnapshot } from '../lib/git'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -1659,15 +1658,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           return
         }
 
-        const snapshot = await getRebaseSnapshot(repository)
-        if (snapshot !== null) {
-          const { commits, progress } = snapshot
-          this.props.dispatcher.setRebaseProgress(
-            repository,
-            progress.rebasedCommitCount,
-            commits
-          )
-        }
+        await this.props.dispatcher.setRebaseProgressFromState(repository)
 
         const initialState = initializeRebaseFlowForConflictedRepository(
           conflictState

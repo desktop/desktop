@@ -131,7 +131,10 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
       throw new Error(`Invalid step to start rebase: ${this.props.step.kind}`)
     }
 
-    this.props.dispatcher.setRebaseProgress(this.props.repository, 0, commits)
+    this.props.dispatcher.initializeRebaseProgress(
+      this.props.repository,
+      commits
+    )
 
     const startRebaseAction = () => {
       return this.props.dispatcher.rebase(

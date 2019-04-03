@@ -20,12 +20,7 @@ import {
   setGenericPassword,
   setGenericUsername,
 } from '../../lib/generic-git-auth'
-import {
-  isGitRepository,
-  RebaseResult,
-  PushOptions,
-  getRebaseSnapshot,
-} from '../../lib/git'
+import { isGitRepository, RebaseResult, PushOptions } from '../../lib/git'
 import { isGitOnPath } from '../../lib/is-git-on-path'
 import {
   rejectOAuthRequest,
@@ -337,11 +332,7 @@ export class Dispatcher {
       conflictState: updatedConflictState,
     }))
 
-    const snapshot = await getRebaseSnapshot(repository)
-    if (snapshot !== null) {
-      const { progress, commits } = snapshot
-      this.setRebaseProgress(repository, progress.rebasedCommitCount, commits)
-    }
+    await this.setRebaseProgressFromState(repository)
 
     const initialState = initializeRebaseFlowForConflictedRepository(
       updatedConflictState
@@ -737,12 +728,15 @@ export class Dispatcher {
     this.appStore._setConflictsResolved(repository)
   }
 
-  public setRebaseProgress(
+  public initializeRebaseProgress(
     repository: Repository,
-    rebasedCommitCount: number,
     commits: ReadonlyArray<CommitOneLine>
   ) {
-    this.appStore._setRebaseProgress(repository, rebasedCommitCount, commits)
+    this.appStore._initializeRebaseProgress(repository, commits)
+  }
+
+  public setRebaseProgressFromState(repository: Repository) {
+    return this.appStore._setRebaseProgressFromState(repository)
   }
 
   public setRebaseFlow(

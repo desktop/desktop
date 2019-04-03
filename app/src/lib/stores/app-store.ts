@@ -1756,11 +1756,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const snapshot = await getRebaseSnapshot(repository)
-    if (snapshot !== null) {
-      const { progress, commits } = snapshot
-      this._setRebaseProgress(repository, progress.rebasedCommitCount, commits)
-    }
+    await this._setRebaseProgressFromState(repository)
 
     const initialState = initializeRebaseFlowForConflictedRepository(
       conflictState
@@ -3430,15 +3426,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this._refreshRepository(repository)
   }
 
-  public _setRebaseProgress(
-    repository: Repository,
-    rebasedCommitCount: number,
-    commits: ReadonlyArray<CommitOneLine>
-  ) {
-    const totalCommitCount = commits.length
+  public _setRebaseProgressFromState = async (repository: Repository) => {
+    const snapshot = await getRebaseSnapshot(repository)
+    if (snapshot === null) {
+      return
+    }
+
+    const { progress, commits } = snapshot
+    const { totalCommitCount, rebasedCommitCount } = progress
 
     log.warn(
-      `[AppStore._setRebaseProgress] for ${rebasedCommitCount} out of ${totalCommitCount}`
+      `[AppStore._setRebaseProgressFromState] for ${rebasedCommitCount} out of ${totalCommitCount}`
     )
 
     this.repositoryStateCache.updateRebaseState(repository, () => {
@@ -3449,6 +3447,34 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       const currentCommitSummary = hasValidCommit
         ? commits[rebasedCommitCount].summary
+        : undefined
+
+      return {
+        progress: {
+          ...progress,
+          currentCommitSummary,
+        },
+        commits,
+      }
+    })
+  }
+
+  public _initializeRebaseProgress(
+    repository: Repository,
+    commits: ReadonlyArray<CommitOneLine>
+  ) {
+    const totalCommitCount = commits.length
+    const rebasedCommitCount = 0
+
+    log.warn(
+      `[AppStore._initializeRebaseProgress] for ${rebasedCommitCount} out of ${totalCommitCount}`
+    )
+
+    this.repositoryStateCache.updateRebaseState(repository, () => {
+      const hasValidCommit = commits.length > 0
+
+      const currentCommitSummary = hasValidCommit
+        ? commits[0].summary
         : undefined
 
       const newProgressValue = rebasedCommitCount / totalCommitCount
