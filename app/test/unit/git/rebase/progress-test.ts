@@ -45,12 +45,12 @@ describe('git/rebase', () => {
 
     it('status detects REBASE_HEAD', () => {
       expect(snapshot).not.toEqual(null)
-      const p = snapshot!
-      expect(p.commits.length).toEqual(1)
-      expect(p.commits[0].summary).toEqual('Feature Branch!')
+      const s = snapshot!
+      expect(s.commits.length).toEqual(1)
+      expect(s.commits[0].summary).toEqual('Feature Branch!')
 
-      expect(p.progress.rebasedCommitCount).toEqual(1)
-      expect(p.progress.value).toEqual(1)
+      expect(s.progress.rebasedCommitCount).toEqual(1)
+      expect(s.progress.value).toEqual(1)
     })
 
     it('is a detached HEAD state', () => {
@@ -79,12 +79,12 @@ describe('git/rebase', () => {
 
     it('status detects REBASE_HEAD', () => {
       expect(snapshot).not.toEqual(null)
-      const p = snapshot!
-      expect(p.commits.length).toEqual(10)
-      expect(p.commits[0].summary).toEqual('Feature Branch First Commit!')
+      const s = snapshot!
+      expect(s.commits.length).toEqual(10)
+      expect(s.commits[0].summary).toEqual('Feature Branch First Commit!')
 
-      expect(p.progress.rebasedCommitCount).toEqual(1)
-      expect(p.progress.value).toEqual(0.1)
+      expect(s.progress.rebasedCommitCount).toEqual(1)
+      expect(s.progress.value).toEqual(0.1)
     })
 
     it('is a detached HEAD state', () => {
