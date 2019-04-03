@@ -254,7 +254,16 @@ export class RepositoryView extends React.Component<
 
     if (selectedSection === RepositorySectionTab.Changes) {
       const { changesState } = this.props.state
-      const { workingDirectory, selectedFileIDs, diff } = changesState
+      const {
+        workingDirectory,
+        selectedFileIDs,
+        diff,
+        isShowingStashEntry,
+      } = changesState
+
+      if (isShowingStashEntry) {
+        return <p>There's a stash</p>
+      }
 
       if (selectedFileIDs.length > 1) {
         return <MultipleSelection count={selectedFileIDs.length} />
