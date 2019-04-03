@@ -133,6 +133,12 @@ export class ChooseBranchDialog extends React.Component<
 
     const disabled = selectedBranchIsNotCurrentBranch || noCommitsToRebase
 
+    const tooltip = selectedBranchIsNotCurrentBranch
+      ? 'You are not able to rebase this branch onto itself'
+      : noCommitsToRebase
+      ? 'There are no commits on the current branch to rebase'
+      : undefined
+
     const currentBranchName = currentBranch.name
 
     // the amount of characters to allow before we truncate was chosen arbitrarily
@@ -146,7 +152,6 @@ export class ChooseBranchDialog extends React.Component<
         id="rebase"
         onDismissed={this.props.onDismissed}
         onSubmit={this.startRebase}
-        disabled={disabled}
         dismissable={true}
         title={
           <>
@@ -171,7 +176,7 @@ export class ChooseBranchDialog extends React.Component<
         <DialogFooter>
           {this.renderRebaseStatus()}
           <ButtonGroup>
-            <Button type="submit" disabled={disabled}>
+            <Button type="submit" disabled={disabled} tooltip={tooltip}>
               Rebase <strong>{currentBranchName}</strong> onto{' '}
               <strong>{selectedBranch ? selectedBranch.name : ''}</strong>
             </Button>
