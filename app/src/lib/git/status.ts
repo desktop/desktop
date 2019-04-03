@@ -60,7 +60,7 @@ export interface IStatusResult {
   readonly mergeHeadFound: boolean
 
   /** details about the rebase operation, if found */
-  readonly rebaseContext: RebaseInternalState | null
+  readonly rebaseInternalState: RebaseInternalState | null
 
   /** the absolute path to the repository's working directory */
   readonly workingDirectory: WorkingDirectoryStatus
@@ -199,13 +199,13 @@ export async function getStatus(
   let conflictDetails: ConflictFilesDetails
 
   const mergeHeadFound = await isMergeHeadSet(repository)
-  const rebaseContext = await getRebaseInternalState(repository)
+  const rebaseInternalState = await getRebaseInternalState(repository)
 
   if (enablePullWithRebase()) {
     conflictDetails = await getConflictDetails(
       repository,
       mergeHeadFound,
-      rebaseContext
+      rebaseInternalState
     )
   } else {
     conflictDetails = await getConflictDetails(repository, mergeHeadFound, null)
@@ -239,7 +239,7 @@ export async function getStatus(
     branchAheadBehind,
     exists: true,
     mergeHeadFound,
-    rebaseContext,
+    rebaseInternalState: rebaseInternalState,
     workingDirectory,
   }
 }
@@ -363,17 +363,17 @@ async function getRebaseConflictDetails(repository: Repository) {
  *
  * @param repository to get details from
  * @param mergeHeadFound whether a merge conflict has been detected
- * @param rebaseContext details about the current rebase operation (if found)
+ * @param rebaseInternalState details about the current rebase operation (if found)
  */
 async function getConflictDetails(
   repository: Repository,
   mergeHeadFound: boolean,
-  rebaseContext: RebaseInternalState | null
+  rebaseInternalState: RebaseInternalState | null
 ): Promise<ConflictFilesDetails> {
   try {
     if (mergeHeadFound) {
       return await getMergeConflictDetails(repository)
-    } else if (rebaseContext !== null) {
+    } else if (rebaseInternalState !== null) {
       return await getRebaseConflictDetails(repository)
     }
   } catch (error) {
