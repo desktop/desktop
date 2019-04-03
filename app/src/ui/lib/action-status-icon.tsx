@@ -16,7 +16,7 @@ interface IActionStatusIconProps {
   readonly className?: string
 }
 
-/** 
+/**
  * A component used to render a visual indication of a `ComputedAction` state.
  *
  * In essence this is a small wrapper around an `Octicon` which determines which
