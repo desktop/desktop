@@ -248,6 +248,11 @@ class GitRebaseParser {
     const progress = this.rebasedCommitCount / this.totalCommitCount
     const value = formatRebaseValue(progress)
 
+    // TODO: dig into why we sometimes get an extra progress event reported
+    if (this.rebasedCommitCount > this.totalCommitCount) {
+      this.rebasedCommitCount = this.totalCommitCount
+    }
+
     return {
       kind: 'rebase',
       title: `Rebasing commit ${this.rebasedCommitCount} of ${

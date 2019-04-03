@@ -3590,7 +3590,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       log.warn(
         `[AppStore._rebase] setting progress for ${
           progress.rebasedCommitCount
-        } out of ${commits.length}`
+        } out of ${progress.totalCommitCount} with messsage: '${
+          progress.currentCommitSummary
+        }'`
       )
 
       this.repositoryStateCache.updateRebaseState(repository, () => ({
@@ -3629,8 +3631,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       log.warn(
         `[AppStore._continueRebase] setting progress for ${
           progress.rebasedCommitCount
-        } out of ${progress.totalCommitCount}`
+        } out of ${progress.totalCommitCount} with messsage: '${
+          progress.currentCommitSummary
+        }'`
       )
+
       this.repositoryStateCache.updateRebaseState(repository, () => ({
         progress,
       }))
