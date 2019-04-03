@@ -250,23 +250,23 @@ export class ChooseBranchDialog extends React.Component<
   ) {
     if (commitsToRebase <= 0) {
       return (
-        <React.Fragment>
+        <>
           This branch is up to date with{` `}
           <strong>{currentBranch.name}</strong>
-        </React.Fragment>
+        </>
       )
     }
 
     const pluralized = commitsToRebase === 1 ? 'commit' : 'commits'
     return (
-      <React.Fragment>
+      <>
         This will rebase
         <strong>{` ${commitsToRebase} ${pluralized}`}</strong>
         {` from `}
         <strong>{currentBranch.name}</strong>
         {` onto `}
         <strong>{baseBranch.name}</strong>
-      </React.Fragment>
+      </>
     )
   }
 
