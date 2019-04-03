@@ -461,17 +461,26 @@ export interface IBranchesState {
 
 /** State associated with a rebase being performed on a repository */
 export interface IRebaseState {
-  /** The current step of the flow the user should see */
+  /**
+   * The current step of the flow the user should see.
+   *
+   * `null` indicates that there is no rebase underway.
+   */
   readonly step: RebaseFlowState | null
 
   /**
    * A preview of the rebase, tested before performing the rebase itself, using
    * the selected base branch to test whether the current branch will be cleanly
    * applied.
+   *
+   * This will be set to `null` when no base branch has been selected to
+   * initiate the rebase.
    */
   readonly preview: RebasePreview | null
 
-  /** The underlying Git information associated with the current rebase */
+  /**
+   * The underlying Git information associated with the current rebase
+   */
   readonly progress: RebaseProgressSummary
 
   /**
