@@ -236,11 +236,7 @@ export class ChooseBranchDialog extends React.Component<
   }
 
   private renderLoadingRebaseMessage() {
-    return (
-      <React.Fragment>
-        Checking for ability to rebase automatically...
-      </React.Fragment>
-    )
+    return <>Checking for ability to rebase automatically...</>
   }
 
   private renderCleanRebaseMessage(
