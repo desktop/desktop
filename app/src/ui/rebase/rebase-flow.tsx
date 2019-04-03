@@ -1,7 +1,6 @@
 import * as React from 'react'
 
 import { assertNever } from '../../lib/fatal-error'
-import { RebaseResult } from '../../lib/git'
 import { RebaseConflictState } from '../../lib/app-state'
 
 import { Repository } from '../../models/repository'
@@ -52,7 +51,7 @@ interface IRebaseFlowProps {
   readonly preview: RebasePreview | null
 
   /** Git progress information about the current rebase */
-  readonly progress: GitRebaseProgress
+  readonly progress: GitRebaseProgress | null
 
   /**
    * Track whether the user has done work to resolve conflicts as part of this
@@ -123,24 +122,6 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
     })
   }
 
-  private moveToCompletedState = () => {
-    // this ensures the progress bar fills to 100%, while `componentDidUpdate`
-    // detects and handles the state transition after a period of time to ensure
-    // the UI shows _something_ before closing the dialog
-
-    const { commits } = this.props.progress
-    if (commits.length === 0) {
-      return
-    }
-
-    const last = commits.length - 1
-    this.props.dispatcher.setRebaseProgress(
-      this.props.repository,
-      last,
-      commits
-    )
-  }
-
   private onStartRebase = async (
     baseBranch: string,
     targetBranch: string,
@@ -152,17 +133,13 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
 
     this.props.dispatcher.setRebaseProgress(this.props.repository, 0, commits)
 
-    const startRebaseAction = async () => {
-      const result = await this.props.dispatcher.rebase(
+    const startRebaseAction = () => {
+      return this.props.dispatcher.rebase(
         this.props.repository,
         baseBranch,
         targetBranch,
         commits
       )
-
-      if (result === RebaseResult.CompletedWithoutError) {
-        this.moveToCompletedState()
-      }
     }
 
     this.props.dispatcher.setRebaseFlow(this.props.repository, {
@@ -183,16 +160,12 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
       throw new Error(`No conflicted files found, unable to continue rebase`)
     }
 
-    const continueRebaseAction = async () => {
-      const result = await this.props.dispatcher.continueRebase(
+    const continueRebaseAction = () => {
+      return this.props.dispatcher.continueRebase(
         this.props.repository,
         this.props.workingDirectory,
         conflictState.manualResolutions
       )
-
-      if (result === RebaseResult.CompletedWithoutError) {
-        this.moveToCompletedState()
-      }
     }
 
     this.props.dispatcher.setRebaseFlow(this.props.repository, {
@@ -281,12 +254,16 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
         )
       }
       case RebaseStep.ShowProgress:
-        return (
-          <RebaseProgressDialog
-            progress={this.props.progress}
-            emoji={this.props.emoji}
-          />
-        )
+        const { progress, emoji } = this.props
+
+        if (progress === null) {
+          log.error(
+            '[RebaseFlow] progress is null despite trying to show the progress view. Skipping rendering...'
+          )
+          return null
+        }
+
+        return <RebaseProgressDialog progress={progress} emoji={emoji} />
       case RebaseStep.ShowConflicts: {
         const {
           repository,

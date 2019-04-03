@@ -159,12 +159,9 @@ function getInitialRepositoryState(): IRepositoryState {
     },
     rebaseState: {
       step: null,
-      progress: {
-        value: 0,
-        rebasedCommitCount: 0,
-        commits: [],
-      },
+      progress: null,
       preview: null,
+      commits: null,
       userHasResolvedConflicts: false,
     },
     commitAuthor: null,

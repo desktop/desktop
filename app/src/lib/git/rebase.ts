@@ -25,6 +25,7 @@ import { stageManualConflictResolution } from './stage'
 import { stageFiles } from './update-index'
 import { getStatus } from './status'
 import { getCommitsInRange } from './rev-list'
+import { CommitOneLine } from '../../models/commit'
 
 /**
  * Check the `.git/REBASE_HEAD` file exists in a repository to confirm
@@ -104,9 +105,12 @@ export async function getRebaseContext(
  *   - when a rebase outside Desktop encounters conflicts
  *   - when a `git pull --rebase` was run and encounters conflicts
  */
-export async function getCurrentProgress(
+export async function getRebaseSnapshot(
   repository: Repository
-): Promise<GitRebaseProgress | null> {
+): Promise<{
+  progress: GitRebaseProgress
+  commits: ReadonlyArray<CommitOneLine>
+} | null> {
   const rebaseHead = await isRebaseHeadSet(repository)
   if (!rebaseHead) {
     return null
@@ -187,8 +191,11 @@ export async function getCurrentProgress(
     }
 
     return {
-      rebasedCommitCount: next,
-      value,
+      progress: {
+        value,
+        rebasedCommitCount: next,
+        totalCommitCount: last,
+      },
       commits,
     }
   }
@@ -442,17 +449,17 @@ export async function continueRebase(
   let options = baseOptions
 
   if (progressCallback !== undefined) {
-    const progress = await getCurrentProgress(repository)
+    const snapshot = await getRebaseSnapshot(repository)
 
-    if (progress === null) {
+    if (snapshot === null) {
       log.warn(
         `[continueRebase] unable to get rebase status, skipping any other steps`
       )
       return RebaseResult.Aborted
     }
 
-    const { rebasedCommitCount, commits } = progress
-    const totalCommitCount = commits.length
+    const { progress } = snapshot
+    const { rebasedCommitCount, totalCommitCount } = progress
 
     options = configureOptionsForRebase(baseOptions, {
       rebasedCommitCount,

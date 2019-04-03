@@ -24,7 +24,7 @@ import {
   isGitRepository,
   RebaseResult,
   PushOptions,
-  getCurrentProgress,
+  getRebaseSnapshot,
 } from '../../lib/git'
 import { isGitOnPath } from '../../lib/is-git-on-path'
 import {
@@ -337,13 +337,10 @@ export class Dispatcher {
       conflictState: updatedConflictState,
     }))
 
-    const progress = await getCurrentProgress(repository)
-    if (progress !== null) {
-      this.setRebaseProgress(
-        repository,
-        progress.rebasedCommitCount,
-        progress.commits
-      )
+    const snapshot = await getRebaseSnapshot(repository)
+    if (snapshot !== null) {
+      const { progress, commits } = snapshot
+      this.setRebaseProgress(repository, progress.rebasedCommitCount, commits)
     }
 
     const initialState = initializeRebaseFlowForConflictedRepository(

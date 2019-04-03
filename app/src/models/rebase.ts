@@ -43,7 +43,7 @@ export type RebasePreview =
   | RebaseNotSupported
   | RebaseLoading
 
-/** Represents a snapshot of a Git rebase operation as shown to the user */
+/** Represents the progress of a Git rebase operation to be shown to the user */
 export type GitRebaseProgress = {
   /** A numeric value between 0 and 1 representing the percent completed */
   readonly value: number
@@ -51,6 +51,14 @@ export type GitRebaseProgress = {
   readonly rebasedCommitCount: number
   /** The commit summary associated with the current commit (if found) */
   readonly currentCommitSummary?: string
-  /** The list of known commits that will be rebased onto the base branch */
+  /** The count of known commits that will be rebased onto the base branch */
+  readonly totalCommitCount: number
+}
+
+/** Represents a snapshot of the rebase state from the Git repository  */
+export type GitRebaseSnapshot = {
+  /** The sequence of commits that are used in the rebase */
   readonly commits: ReadonlyArray<CommitOneLine>
+  /** The progress of the operation */
+  readonly progress: GitRebaseProgress
 }
