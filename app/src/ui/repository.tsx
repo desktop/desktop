@@ -138,13 +138,7 @@ export class RepositoryView extends React.Component<
 
     // -1 Because of right hand side border
     const availableWidth = this.props.sidebarWidth - 1
-
-    // Using the short form ref name because the branch model does not keep track
-    // of the canonical ref name. Todo: update model to use the canonical ref name.
-    const stashEntry =
-      branch !== null
-        ? this.props.state.stashEntries.get(branch.name) || null
-        : null
+    const stashEntry = this.currentStashForBranch()
 
     return (
       <ChangesSidebar
@@ -249,9 +243,26 @@ export class RepositoryView extends React.Component<
     }
   }
 
+  private currentStashForBranch() {
+    const { branchesState, stashEntries } = this.props.state
+    const tip = branchesState.tip
+    if (tip.kind !== TipState.Valid) {
+      return null
+    }
+
+    // Using the short form ref name because the branch model does not keep track
+    // of the canonical ref name. Todo: update model to use the canonical ref name.
+    const branch = tip.branch
+    const stashEntry = stashEntries.get(branch.name)
+    if (stashEntry === undefined) {
+      return null
+    }
+
+    return stashEntry
+  }
+
   private renderContent(): JSX.Element | null {
     const selectedSection = this.props.state.selectedSection
-
     if (selectedSection === RepositorySectionTab.Changes) {
       const { changesState } = this.props.state
       const {
@@ -261,16 +272,9 @@ export class RepositoryView extends React.Component<
         isShowingStashEntry,
       } = changesState
 
-      if (isShowingStashEntry) {
-        const { branchesState, stashEntries } = this.props.state
-        const tip = branchesState.tip
-        if (tip.kind !== TipState.Valid) {
-          return null
-        }
-
-        const branch = tip.branch
-        const stashEntry = stashEntries.get(branch.name)
-        if (stashEntry === undefined) {
+      if (isShowingStashEntry && selectedFileIDs.length === 0) {
+        const stashEntry = this.currentStashForBranch()
+        if (stashEntry === null) {
           return null
         }
 
