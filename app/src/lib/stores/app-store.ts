@@ -1880,7 +1880,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.repositoryStateCache.updateChangesState(repository, state => ({
       selectedFileIDs: selectedFiles.map(file => file.id),
       diff: null,
-      isShowingStashEntry: selectedFiles.length !== 0 ? false : state.isShowingStashEntry,
+      isShowingStashEntry:
+        selectedFiles.length !== 0 ? false : state.isShowingStashEntry,
     }))
     this.emitUpdate()
 
