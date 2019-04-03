@@ -4509,6 +4509,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     await createDesktopStashEntry(repository, branchName, tip.branch.tip.sha)
   }
+
+  public _showStashEntry(repository: Repository) {
+    this.repositoryStateCache.updateChangesState(repository, state => {
+      return {
+        isShowingStashEntry: true,
+        selectedFileIDs: [],
+      }
+    })
+
+    this.emitUpdate()
+  }
 }
 /**
  * Map the cached state of the compare view to an action

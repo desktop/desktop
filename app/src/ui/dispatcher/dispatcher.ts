@@ -1772,4 +1772,11 @@ export class Dispatcher {
   public createStash(repository: Repository, branch: Branch): Promise<void> {
     return this.appStore._createStash(repository, branch.name)
   }
+
+  /**
+   * Show the diff UI for a stash entry
+   */
+  public showStashEntry(repository: Repository) {
+    return this.appStore._showStashEntry(repository)
+  }
 }
