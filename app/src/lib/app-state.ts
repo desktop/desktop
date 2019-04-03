@@ -467,6 +467,13 @@ export interface IRebaseState {
    * current branch will be cleanly applied.
    */
   readonly preview: RebasePreview | null
+
+  /**
+   * Track whether the user has done work to resolve conflicts as part of this
+   * rebase, as the component should confirm with the user that they wish to
+   * abort the rebase and lose that work.
+   */
+  readonly userHasResolvedConflicts: boolean
 }
 
 export interface ICommitSelection {

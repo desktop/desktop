@@ -165,6 +165,7 @@ function getInitialRepositoryState(): IRepositoryState {
         commits: [],
       },
       preview: null,
+      userHasResolvedConflicts: false,
     },
     commitAuthor: null,
     gitHubUsers: new Map<string, IGitHubUser>(),

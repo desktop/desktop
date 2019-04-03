@@ -1,7 +1,6 @@
 import * as React from 'react'
 
 import { assertNever } from '../../lib/fatal-error'
-import { getResolvedFiles } from '../../lib/status'
 import { RebaseResult } from '../../lib/git'
 import { RebaseConflictState } from '../../lib/app-state'
 
@@ -51,6 +50,13 @@ interface IRebaseFlowProps {
   readonly progress: RebaseProgressSummary
 
   /**
+   * Track whether the user has done work to resolve conflicts as part of this
+   * rebase, as the component should confirm with the user that they wish to
+   * abort the rebase and lose that work.
+   */
+  readonly userHasResolvedConflicts: boolean
+
+  /**
    * Callback to hide the rebase flow and show a banner about the current state
    * of conflicts, because this component will be unmounted by the runtime.
    */
@@ -74,51 +80,13 @@ interface IRebaseFlowProps {
   readonly openRepositoryInShell: (repository: Repository) => void
 }
 
-interface IRebaseFlowState {
-  /**
-   * Track whether the user has done work to resolve conflicts as part of this
-   * rebase, as the component should confirm with the user that they wish to
-   * abort the rebase and lose that work.
-   */
-  readonly userHasResolvedConflicts: boolean
-}
-
 /** A component for initiating and performing a rebase of the current branch. */
-export class RebaseFlow extends React.Component<
-  IRebaseFlowProps,
-  IRebaseFlowState
-> {
+export class RebaseFlow extends React.Component<IRebaseFlowProps> {
   public constructor(props: IRebaseFlowProps) {
     super(props)
 
     this.state = {
       userHasResolvedConflicts: false,
-    }
-  }
-
-  public async componentDidUpdate() {
-    if (
-      this.props.step.kind === RebaseStep.ShowConflicts &&
-      // skip re-running this check once any resolved files have been detected
-      !this.state.userHasResolvedConflicts
-    ) {
-      const { workingDirectory, conflictState } = this.props
-
-      if (conflictState === null) {
-        // no conflicts found, ignoring
-        return
-      }
-
-      const resolvedConflicts = getResolvedFiles(
-        workingDirectory,
-        conflictState.manualResolutions
-      )
-
-      if (resolvedConflicts.length > 0) {
-        this.setState({
-          userHasResolvedConflicts: true,
-        })
-      }
     }
   }
 
@@ -248,7 +216,7 @@ export class RebaseFlow extends React.Component<
   }
 
   private onConfirmAbortRebase = async () => {
-    if (!this.state.userHasResolvedConflicts) {
+    if (!this.props.userHasResolvedConflicts) {
       await this.onAbortRebase()
       return
     }
@@ -323,6 +291,7 @@ export class RebaseFlow extends React.Component<
           dispatcher,
           workingDirectory,
           conflictState,
+          userHasResolvedConflicts,
         } = this.props
 
         if (conflictState === null) {
@@ -351,6 +320,7 @@ export class RebaseFlow extends React.Component<
             baseBranch={baseBranch}
             workingDirectory={workingDirectory}
             manualResolutions={manualResolutions}
+            userHasResolvedConflicts={userHasResolvedConflicts}
             resolvedExternalEditor={resolvedExternalEditor}
             openFileInExternalEditor={openFileInExternalEditor}
             openRepositoryInShell={openRepositoryInShell}

@@ -1581,7 +1581,12 @@ export class App extends React.Component<IAppProps, IAppState> {
 
         const { changesState, rebaseState } = selectedState.state
         const { workingDirectory, conflictState } = changesState
-        const { progress, step, preview } = rebaseState
+        const {
+          progress,
+          step,
+          preview,
+          userHasResolvedConflicts,
+        } = rebaseState
 
         if (conflictState !== null && conflictState.kind === 'merge') {
           log.warn(
@@ -1608,6 +1613,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             progress={progress}
             step={step}
             preview={preview}
+            userHasResolvedConflicts={userHasResolvedConflicts}
             resolvedExternalEditor={this.state.resolvedExternalEditor}
             openRepositoryInShell={this.openCurrentRepositoryInShell}
             onShowRebaseConflictsBanner={this.onShowRebaseConflictsBanner}

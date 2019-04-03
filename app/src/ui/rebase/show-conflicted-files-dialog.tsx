@@ -28,14 +28,18 @@ import { Dispatcher } from '../dispatcher'
 interface IShowConflictedFilesDialogProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
+
+  readonly userHasResolvedConflicts: boolean
   readonly targetBranch: string
   readonly baseBranch?: string
+  readonly workingDirectory: WorkingDirectoryStatus
+  readonly manualResolutions: Map<string, ManualConflictResolution>
+
   readonly onDismissed: () => void
   readonly onContinueRebase: () => void
   readonly onAbortRebase: () => Promise<void>
   readonly showRebaseConflictsBanner: () => void
-  readonly workingDirectory: WorkingDirectoryStatus
-  readonly manualResolutions: Map<string, ManualConflictResolution>
+
   readonly openFileInExternalEditor: (path: string) => void
   readonly resolvedExternalEditor: string | null
   readonly openRepositoryInShell: (repository: Repository) => void
