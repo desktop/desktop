@@ -1,16 +1,16 @@
 import { remote } from 'electron'
-import { Disposable } from 'event-kit'
+import { Disposable, IDisposable } from 'event-kit'
 import * as Path from 'path'
 
-import { IAPIUser } from '../../lib/api'
+import { IAPIOrganization, IAPIRefStatus } from '../../lib/api'
 import { shell } from '../../lib/app-shell'
 import {
   CompareAction,
   Foldout,
   FoldoutType,
   ICompareFormUpdate,
-  MergeResultStatus,
   RepositorySectionTab,
+  isRebaseConflictState,
 } from '../../lib/app-state'
 import { ExternalEditor } from '../../lib/editors'
 import { assertNever, fatalError } from '../../lib/fatal-error'
@@ -18,7 +18,7 @@ import {
   setGenericPassword,
   setGenericUsername,
 } from '../../lib/generic-git-auth'
-import { isGitRepository } from '../../lib/git'
+import { isGitRepository, RebaseResult, PushOptions } from '../../lib/git'
 import { isGitOnPath } from '../../lib/is-git-on-path'
 import {
   rejectOAuthRequest,
@@ -39,6 +39,8 @@ import { ILaunchStats, StatsStore } from '../../lib/stats'
 import { AppStore } from '../../lib/stores/app-store'
 import { validatedRepositoryPath } from '../../lib/stores/helpers/validated-repository-path'
 import { RepositoryStateCache } from '../../lib/stores/repository-state-cache'
+import { getTipSha } from '../../lib/tip'
+import { initializeRebaseFlowForConflictedRepository } from '../../lib/rebase'
 
 import { Account } from '../../models/account'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
@@ -62,12 +64,18 @@ import {
   WorkingDirectoryFileChange,
   WorkingDirectoryStatus,
 } from '../../models/status'
-import { TipState } from '../../models/tip'
+import { TipState, IValidBranch } from '../../models/tip'
+import { RebaseProgressOptions } from '../../models/rebase'
+import { Banner } from '../../models/banner'
 
 import { ApplicationTheme } from '../lib/application-theme'
 import { installCLI } from '../lib/install-cli'
 import { executeMenuItem } from '../main-process-proxy'
-import { Banner } from '../../models/banner'
+import {
+  CommitStatusStore,
+  StatusCallBack,
+} from '../../lib/stores/commit-status-store'
+import { MergeResult } from '../../models/merge'
 
 /**
  * An error handler function.
@@ -90,7 +98,8 @@ export class Dispatcher {
   public constructor(
     private readonly appStore: AppStore,
     private readonly repositoryStateManager: RepositoryStateCache,
-    private readonly statsStore: StatsStore
+    private readonly statsStore: StatsStore,
+    private readonly commitStatusStore: CommitStatusStore
   ) {}
 
   /** Load the initial state for the app. */
@@ -201,11 +210,6 @@ export class Dispatcher {
     return this.appStore._selectRepository(repository)
   }
 
-  /** Load the working directory status. */
-  public loadStatus(repository: Repository): Promise<boolean> {
-    return this.appStore._loadStatus(repository)
-  }
-
   /** Change the selected section in the repository. */
   public changeRepositorySection(
     repository: Repository,
@@ -296,6 +300,38 @@ export class Dispatcher {
     return this.appStore._closeFoldout(foldout)
   }
 
+  public async launchRebaseFlow({
+    repository,
+    targetBranch,
+  }: {
+    repository: Repository
+    targetBranch: string
+  }) {
+    await this.appStore._loadStatus(repository)
+
+    const repositoryState = this.repositoryStateManager.get(repository)
+    const { conflictState } = repositoryState.changesState
+
+    if (conflictState === null || conflictState.kind === 'merge') {
+      return
+    }
+
+    const updatedConflictState = { ...conflictState, targetBranch }
+
+    this.repositoryStateManager.updateChangesState(repository, () => ({
+      conflictState: updatedConflictState,
+    }))
+
+    const initialState = initializeRebaseFlowForConflictedRepository(
+      updatedConflictState
+    )
+    this.showPopup({
+      type: PopupType.RebaseFlow,
+      repository,
+      initialState,
+    })
+  }
+
   /**
    * Create a new branch from the given starting point and check it out.
    *
@@ -323,6 +359,14 @@ export class Dispatcher {
     return this.appStore._push(repository)
   }
 
+  private pushWithOptions(repository: Repository, options?: PushOptions) {
+    if (options !== undefined && options.forceWithLease) {
+      this.dropCurrentBranchFromForcePushList(repository)
+    }
+
+    return this.appStore._push(repository, options)
+  }
+
   /** Pull the current branch. */
   public pull(repository: Repository): Promise<void> {
     return this.appStore._pull(repository)
@@ -348,7 +392,7 @@ export class Dispatcher {
     description: string,
     private_: boolean,
     account: Account,
-    org: IAPIUser | null
+    org: IAPIOrganization | null
   ): Promise<Repository> {
     return this.appStore._publishRepository(
       repository,
@@ -616,9 +660,157 @@ export class Dispatcher {
   public mergeBranch(
     repository: Repository,
     branch: string,
-    mergeStatus: MergeResultStatus | null
+    mergeStatus: MergeResult | null
   ): Promise<void> {
     return this.appStore._mergeBranch(repository, branch, mergeStatus)
+  }
+
+  /**
+   * Update the per-repository list of branches that can be force-pushed
+   * after a rebase is completed.
+   */
+  private addRebasedBranchToForcePushList = (
+    repository: Repository,
+    tipWithBranch: IValidBranch,
+    beforeRebaseSha: string
+  ) => {
+    // if the commit id of the branch is unchanged, it can be excluded from
+    // this list
+    if (tipWithBranch.branch.tip.sha === beforeRebaseSha) {
+      return
+    }
+
+    const currentState = this.repositoryStateManager.get(repository)
+    const { rebasedBranches } = currentState.branchesState
+
+    const updatedMap = new Map<string, string>(rebasedBranches)
+    updatedMap.set(
+      tipWithBranch.branch.nameWithoutRemote,
+      tipWithBranch.branch.tip.sha
+    )
+
+    this.repositoryStateManager.updateBranchesState(repository, () => ({
+      rebasedBranches: updatedMap,
+    }))
+  }
+
+  private dropCurrentBranchFromForcePushList = (repository: Repository) => {
+    const currentState = this.repositoryStateManager.get(repository)
+    const { rebasedBranches, tip } = currentState.branchesState
+
+    if (tip.kind !== TipState.Valid) {
+      return
+    }
+
+    const updatedMap = new Map<string, string>(rebasedBranches)
+    updatedMap.delete(tip.branch.nameWithoutRemote)
+
+    this.repositoryStateManager.updateBranchesState(repository, () => ({
+      rebasedBranches: updatedMap,
+    }))
+  }
+
+  /** Starts a rebase for the given base and target branch */
+  public async rebase(
+    repository: Repository,
+    baseBranch: string,
+    targetBranch: string,
+    progress?: RebaseProgressOptions
+  ): Promise<RebaseResult> {
+    const stateBefore = this.repositoryStateManager.get(repository)
+
+    const beforeSha = getTipSha(stateBefore.branchesState.tip)
+
+    log.info(`[rebase] starting rebase for ${targetBranch} at ${beforeSha}`)
+    log.info(
+      `[rebase] to restore the previous state if this completed rebase is unsatisfactory:`
+    )
+    log.info(`[rebase] - git checkout ${targetBranch}`)
+    log.info(`[rebase] - git reset ${beforeSha} --hard`)
+
+    const result = await this.appStore._rebase(
+      repository,
+      baseBranch,
+      targetBranch,
+      progress
+    )
+
+    await this.appStore._loadStatus(repository)
+
+    const stateAfter = this.repositoryStateManager.get(repository)
+    const { tip } = stateAfter.branchesState
+    const afterSha = getTipSha(tip)
+
+    log.info(
+      `[rebase] completed rebase - got ${result} and on tip ${afterSha} - kind ${
+        tip.kind
+      }`
+    )
+
+    if (result === RebaseResult.CompletedWithoutError) {
+      if (tip.kind === TipState.Valid) {
+        this.addRebasedBranchToForcePushList(repository, tip, beforeSha)
+      }
+
+      await this.refreshRepository(repository)
+    }
+
+    return result
+  }
+
+  /** aborts the current rebase and refreshes the repository's status */
+  public async abortRebase(repository: Repository) {
+    await this.appStore._abortRebase(repository)
+    await this.appStore._loadStatus(repository)
+  }
+
+  public async continueRebase(
+    repository: Repository,
+    workingDirectory: WorkingDirectoryStatus,
+    manualResolutions: ReadonlyMap<string, ManualConflictResolution>
+  ): Promise<RebaseResult> {
+    const stateBefore = this.repositoryStateManager.get(repository)
+
+    const beforeSha = getTipSha(stateBefore.branchesState.tip)
+
+    log.info(`[continueRebase] continuing rebase for ${beforeSha}`)
+
+    const result = await this.appStore._continueRebase(
+      repository,
+      workingDirectory,
+      manualResolutions
+    )
+    await this.appStore._loadStatus(repository)
+
+    const stateAfter = this.repositoryStateManager.get(repository)
+    const { tip } = stateAfter.branchesState
+    const afterSha = getTipSha(tip)
+
+    log.info(
+      `[continueRebase] completed rebase - got ${result} and on tip ${afterSha} - kind ${
+        tip.kind
+      }`
+    )
+
+    const { conflictState } = stateBefore.changesState
+
+    if (
+      result === RebaseResult.CompletedWithoutError &&
+      conflictState !== null &&
+      isRebaseConflictState(conflictState)
+    ) {
+      if (tip.kind === TipState.Valid) {
+        this.addRebasedBranchToForcePushList(
+          repository,
+          tip,
+          conflictState.originalBranchTip
+        )
+      }
+
+      await this.refreshRepository(repository)
+    }
+
+    return result
   }
 
   /** aborts an in-flight merge and refreshes the repository's status */
@@ -889,6 +1081,12 @@ export class Dispatcher {
 
   public async setAppFocusState(isFocused: boolean): Promise<void> {
     await this.appStore._setAppFocusState(isFocused)
+
+    if (isFocused) {
+      this.commitStatusStore.startBackgroundRefresh()
+    } else {
+      this.commitStatusStore.stopBackgroundRefresh()
+    }
   }
 
   public async dispatchURLAction(action: URLActionType): Promise<void> {
@@ -1147,6 +1345,10 @@ export class Dispatcher {
         await this.clone(retryAction.url, retryAction.path, retryAction.options)
         break
 
+      case RetryActionType.Checkout:
+        await this.checkoutBranch(retryAction.repository, retryAction.branch)
+        break
+
       default:
         return assertNever(retryAction, `Unknown retry action: ${retryAction}`)
     }
@@ -1316,6 +1518,47 @@ export class Dispatcher {
     )
   }
 
+  public async confirmOrForcePush(repository: Repository) {
+    const { askForConfirmationOnForcePush } = this.appStore.getState()
+
+    const { branchesState } = this.repositoryStateManager.get(repository)
+    const { tip } = branchesState
+
+    if (tip.kind !== TipState.Valid) {
+      log.warn(`Could not find a branch to perform force push`)
+      return
+    }
+
+    const { upstream } = tip.branch
+
+    if (upstream === null) {
+      log.warn(`Could not find an upstream branch which will be pushed`)
+      return
+    }
+
+    if (askForConfirmationOnForcePush) {
+      this.showPopup({
+        type: PopupType.ConfirmForcePush,
+        repository,
+        upstreamBranch: upstream,
+      })
+    } else {
+      await this.performForcePush(repository)
+    }
+  }
+
+  public async performForcePush(repository: Repository) {
+    await this.pushWithOptions(repository, {
+      forceWithLease: true,
+    })
+
+    await this.appStore._loadStatus(repository)
+  }
+
+  public setConfirmForcePushSetting(value: boolean) {
+    return this.appStore._setConfirmForcePushSetting(value)
+  }
+
   /**
    * Updates the application state to indicate a conflict is in-progress
    * as a result of a pull and increments the relevant metric.
@@ -1337,6 +1580,13 @@ export class Dispatcher {
    */
   public recordMenuInitiatedMerge() {
     return this.statsStore.recordMenuInitiatedMerge()
+  }
+
+  /**
+   * Increments the `rebaseIntoCurrentBranchMenuCount` metric
+   */
+  public recordMenuInitiatedRebase() {
+    return this.statsStore.recordMenuInitiatedRebase()
   }
 
   /**
@@ -1380,27 +1630,6 @@ export class Dispatcher {
    */
   public recordDivergingBranchBannerDismissal() {
     return this.statsStore.recordDivergingBranchBannerDismissal()
-  }
-
-  /**
-   * Increments the `dotcomPushCount` metric
-   */
-  public recordPushToGitHub() {
-    return this.statsStore.recordPushToGitHub()
-  }
-
-  /**
-   * Increments the `enterprisePushCount` metric
-   */
-  public recordPushToGitHubEnterprise() {
-    return this.statsStore.recordPushToGitHubEnterprise()
-  }
-
-  /**
-   * Increments the `externalPushCount` metric
-   */
-  public recordPushToGenericRemote() {
-    return this.statsStore.recordPushToGenericRemote()
   }
 
   /**
@@ -1476,5 +1705,59 @@ export class Dispatcher {
    */
   public recordUnguidedConflictedMergeCompletion() {
     this.statsStore.recordUnguidedConflictedMergeCompletion()
+  }
+
+  // TODO: more rebase-related actions
+
+  /**
+   * Increments the `rebaseConflictsDialogDismissalCount` metric
+   */
+  public recordRebaseConflictsDialogDismissal() {
+    this.statsStore.recordRebaseConflictsDialogDismissal()
+  }
+
+  /**
+   * Increments the `rebaseConflictsDialogReopenedCount` metric
+   */
+  public recordRebaseConflictsDialogReopened() {
+    this.statsStore.recordRebaseConflictsDialogReopened()
+  }
+
+  /**
+   * Refresh the list of open pull requests for the given repository.
+   */
+  public refreshPullRequests(repository: Repository): Promise<void> {
+    return this.appStore._refreshPullRequests(repository)
+  }
+
+  /**
+   * Attempt to retrieve a commit status for a particular
+   * ref. If the ref doesn't exist in the cache this function returns null.
+   *
+   * Useful for component who wish to have a value for the initial render
+   * instead of waiting for the subscription to produce an event.
+   */
+  public tryGetCommitStatus(
+    repository: GitHubRepository,
+    ref: string
+  ): IAPIRefStatus | null {
+    return this.commitStatusStore.tryGetStatus(repository, ref)
+  }
+
+  /**
+   * Subscribe to commit status updates for a particular ref.
+   *
+   * @param repository The GitHub repository to use when looking up commit status.
+   * @param ref        The commit ref (can be a SHA or a Git ref) for which to
+   *                   fetch status.
+   * @param callback   A callback which will be invoked whenever the
+   *                   store updates a commit status for the given ref.
+   */
+  public subscribeToCommitStatus(
+    repository: GitHubRepository,
+    ref: string,
+    callback: StatusCallBack
+  ): IDisposable {
+    return this.commitStatusStore.subscribe(repository, ref, callback)
   }
 }

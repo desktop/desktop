@@ -63,7 +63,20 @@ export function enableNoChangesCreatePRBlankslateAction(): boolean {
   return enableBetaFeatures()
 }
 
-/** Should the app show the new rebase flow? */
-export function enableNewRebaseFlow(): boolean {
+/** Should the app detect and handle rebase conflicts when `pull.rebase` is set? */
+export function enablePullWithRebase(): boolean {
+  return true
+}
+
+/**
+ *  Enables a new UI for the repository picker that supports
+ *  grouping and filtering (GitHub) repositories by owner/organization.
+ */
+export function enableGroupRepositoriesByOwner(): boolean {
+  return enableBetaFeatures()
+}
+
+/** Should the app show the "rebase current branch" dialog? */
+export function enableRebaseDialog(): boolean {
   return enableDevelopmentFeatures()
 }

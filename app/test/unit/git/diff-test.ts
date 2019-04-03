@@ -348,6 +348,7 @@ describe('git/diff', () => {
         repo.path
       )
 
+      // change config on-the-fly to trigger the line endings change warning
       await GitProcess.exec(['config', 'core.autocrlf', 'true'], repo.path)
       lineEnding = '\n\n'
 

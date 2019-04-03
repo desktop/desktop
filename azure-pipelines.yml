@@ -1,6 +1,15 @@
 variables:
   PYTHON: 'python2.7'
 
+trigger:
+  batch: true
+  branches:
+    include:
+      - development
+
+pr:
+  autoCancel: true
+
 jobs:
   - job: Windows
     pool:

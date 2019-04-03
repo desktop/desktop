@@ -11,10 +11,8 @@ import { GitError } from '../../lib/git/core'
 import { ShellError } from '../../lib/shells'
 import { UpstreamAlreadyExistsError } from '../../lib/stores/upstream-already-exists-error'
 
-import { FetchType } from '../../models/fetch'
 import { PopupType } from '../../models/popup'
 import { Repository } from '../../models/repository'
-import { TipState } from '../../models/tip'
 
 /** An error which also has a code property. */
 interface IErrorWithCode extends Error {
@@ -242,10 +240,9 @@ export async function pushNeedsPullHandler(
     return error
   }
 
-  // Since they need to pull, go ahead and do a fetch for them.
-  dispatcher.fetch(repository, FetchType.UserInitiatedTask)
+  dispatcher.showPopup({ type: PopupType.PushNeedsPull, repository })
 
-  return error
+  return null
 }
 
 /**
@@ -297,15 +294,12 @@ export async function mergeConflictHandler(
       break
   }
 
-  const { tip, theirBranch } = gitContext
-  if (tip == null || tip.kind !== TipState.Valid) {
-    return error
-  }
+  const { currentBranch, theirBranch } = gitContext
 
   dispatcher.showPopup({
     type: PopupType.MergeConflicts,
     repository,
-    ourBranch: tip.branch.name,
+    ourBranch: currentBranch,
     theirBranch,
   })
 
@@ -355,6 +349,56 @@ export async function upstreamAlreadyExistsHandler(
     type: PopupType.UpstreamAlreadyExists,
     repository: error.repository,
     existingRemote: error.existingRemote,
+  })
+
+  return null
+}
+
+/*
+ * Handler for detecting when a merge conflict is reported to direct the user
+ * to a different dialog than the generic Git error dialog.
+ */
+export async function rebaseConflictsHandler(
+  error: Error,
+  dispatcher: Dispatcher
+): Promise<Error | null> {
+  const e = asErrorWithMetadata(error)
+  if (!e) {
+    return error
+  }
+
+  const gitError = asGitError(e.underlyingError)
+  if (!gitError) {
+    return error
+  }
+
+  const dugiteError = gitError.result.gitError
+  if (!dugiteError) {
+    return error
+  }
+
+  if (dugiteError !== DugiteError.RebaseConflicts) {
+    return error
+  }
+
+  const { repository, gitContext } = e.metadata
+  if (repository == null) {
+    return error
+  }
+
+  if (!(repository instanceof Repository)) {
+    return error
+  }
+
+  if (gitContext == null) {
+    return error
+  }
+
+  const { currentBranch } = gitContext
+
+  dispatcher.launchRebaseFlow({
+    repository,
+    targetBranch: currentBranch,
   })
 
   return null

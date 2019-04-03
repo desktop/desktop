@@ -1,5 +1,67 @@
 {
   "releases": {
+    "1.7.0-beta1": [
+      "[New] Recently opened repositories appear at the top of the repository list - #7132",
+      "[Fixed] Error when selecting diff text while diff is updating - #7131",
+      "[Fixed] Crash when unable to create log file on disk - #7096",
+      "[Fixed] Race condition with remote lookup could cause push to go to incorrect remote - #6986",
+      "[Fixed] Mistaken classification of all crashes being related to launch - #7126",
+      "[Fixed] Prevent menus from being disabled by activity in inactive repositories - #6313",
+      "[Fixed] \"Automatically Switch Theme\" on macOS does not check theme on launch - #7116. Thanks @say25!",
+      "[Fixed] Clicking \"Undo\" doesn't repopulate summary in commit form - #6390. Thanks @humphd!",
+      "[Fixed] Emoji rendering in app broken when account name has special characters - #6909",
+      "[Fixed] Files staged outside Desktop for deletion are incorrectly marked as modified after committing - #4133",
+      "[Improved] Visual feedback on \"Remove Repository\" and \"Discard Changes\" dialogs to show progress - #7015. Thanks @HashimotoYT!",
+      "[Improved] Onboarding language for blank slate components - #6638. Thanks @jamesgeorge007!",
+      "[Improved] Manually refresh pull requests instead of having to wait for a fetch - #7027"
+    ],
+    "1.6.5": [
+      "[Fixed] Publish Repository does not let you publish to an organization on your Enterprise account - #7052"
+    ],
+    "1.6.5-beta2": [
+      "[Fixed] Publish Repository does not let you choose an organization on your Enterprise account - #7052"
+    ],
+    "1.6.5-beta1": [
+      "[Fixed] Publish Repository does not let you choose an organization on your Enterprise account - #7052"
+    ],
+    "1.6.4": [
+      "[Fixed] Embedded Git not working for core.longpath usage in some environments - #7028",
+      "[Fixed] \"Recover missing repository\" can get stuck in a loop - #7038"
+    ],
+    "1.6.4-beta1": [
+      "[Fixed] Embedded Git not working for core.longpath usage in some environments - #7028",
+      "[Fixed] \"Recover missing repository\" can get stuck in a loop - #7038"
+    ],
+    "1.6.4-beta0": [
+      "[Removed] Option to discard when files would be overwritten by a checkout - #7016"
+    ],
+    "1.6.3": [
+      "[New] Display \"pull with rebase\" if a user has set this option in their Git config - #6553 #3422",
+      "[Fixed] Context menu does not open when right clicking on the edges of files in Changes list - #6296. Thanks @JQuinnie!",
+      "[Fixed] Display question mark in image when no commit selected in dark theme - #6915. Thanks @say25!",
+      "[Fixed] No left padding for :emoji:/@user/#issue autocomplete forms. - #6895. Thanks @murrelljenna!",
+      "[Fixed] Reinstate missing image and update illustration in dark theme when no local changes exist - #6894",
+      "[Fixed] Resizing the diff area preserves text selection range - #2677",
+      "[Fixed] Text selection in wrapped diff lines now allows selection of individual lines - #1551",
+      "[Improved] Add option to fetch when a user needs to pull changes from the remote before pushing - #2738 #5451",
+      "[Improved] Enable Git protocol v2 for fetch/push/pull operations - #6142",
+      "[Improved] Moving mouse pointer outside visible diff while selecting a range of lines in a partial commit now automatically scrolls the diff - #658",
+      "[Improved] Sign in form validates both username and password - #6952. Thanks @say25!",
+      "[Improved] Update GitHub logo in \"About\" dialog - #5619. Thanks @HashimotoYT!"
+    ],
+    "1.6.3-beta4": [
+      "[Improved] Update GitHub logo in \"About\" dialog - #5619. Thanks @HashimotoYT!",
+      "[Improved] Sign in form validates both username and password - #6952. Thanks @say25!"
+    ],
+    "1.6.3-beta3": [
+      "[New] Display \"pull with rebase\" if a user has set this option in their Git config - #6553 #3422",
+      "[Added] Provide option to discard when files would be overwritten by a checkout - #6755. Thanks @mathieudutour!",
+      "[Fixed] No left padding for :emoji:/@user/#issue autocomplete forms. - #6895. Thanks @murrelljenna!",
+      "[Fixed] Reinstate missing image and fix illustration to work in the dark theme when there are no local changes - #6894",
+      "[Fixed] Display question mark image when there is no commit selected in dark theme - #6915. Thanks @say25!",
+      "[Improved] Group and filter repositories by owner - #6923",
+      "[Improved] Add option to fetch when a user needs to pull changes from the remote before pushing - #2738 #5451"
+    ],
     "1.6.3-beta2": [
       "[Fixed] Text selection in wrapped diff lines now allows selection of individual lines - #1551",
       "[Fixed] Resizing the diff area preserves text selection range - #2677",

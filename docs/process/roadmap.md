@@ -2,29 +2,29 @@
 
 The following are the larger areas of upcoming work the GitHub Desktop team intends to explore. This is not inclusive of everything we're working on, and it's not written in stone. We'll continue to update it as our priorities evolve.
 
-#### Merge conflicts iteration
+#### Support rebase when pulling (in progress)
 
-- Iterate on initial merge conflicts ship: [#6213](https://github.com/desktop/desktop/issues/6213)
-- Measuring success: [#6388](https://github.com/desktop/desktop/issues/6388)
+- Respect user's git config for pull --rebase and resolve conflicts: [#3422](https://github.com/desktop/desktop/issues/3422)
+- Measuring success: [#6550](https://github.com/desktop/desktop/issues/6550)
 
-#### Support rebase workflows
+#### Support full rebase story, including rebasing one branch onto another locally (in progress)
 
 - Improve rebase workflows: [#5953](https://github.com/desktop/desktop/issues/5953)
 - Measuring success: TBD alongside the work + usability testing
 
-#### Working with uncommitted changes
-
-- Improve workflows when you have uncommitted changes: [#6107](https://github.com/desktop/desktop/issues/6107)
-- Measuring success: TBD alongside the work + usability testing
-
-#### Branch list grows with merged & deleted branches making it difficult to find those you care about
+#### Branch list grows with merged & deleted branches making it difficult to find those you care about (in progress)
 
 - Prune branches after they've been deleted: [#750](https://github.com/desktop/desktop/issues/750)
-- Measuring success: TBD alongside the work + usability testing
+- Measuring success: N/A for now
 
-#### Repositories are difficult to find, navigate, and differentiate
+#### Repositories are difficult to find, navigate, and differentiate (in progress)
 
 - Help people navigate between and visually differentiate between repos: [#6460](https://github.com/desktop/desktop/issues/6460)
+- Measuring success: TBD alongside the work + usability testing
+
+#### Working with uncommitted changes (in progress)
+
+- Improve workflows when you have uncommitted changes: [#6107](https://github.com/desktop/desktop/issues/6107)
 - Measuring success: TBD alongside the work + usability testing
 
 #### Users behind corporate proxies cannot clone without manual setup
@@ -39,10 +39,15 @@ The following are the larger areas of upcoming work the GitHub Desktop team inte
 - Improve onboarding for new users: [#5686](https://github.com/desktop/desktop/issues/5686)
 - Measuring success: [#5549](https://github.com/desktop/desktop/issues/5549) + usability testing
 
-#### Suggested next steps
+#### Suggested next steps (1.6)
 
 - Suggest logical next steps based on what state a person's repository is in: [#6445](https://github.com/desktop/desktop/pull/6445)
 - Measuring success: [#6714](https://github.com/desktop/desktop/issues/6714)
+
+#### Merge conflicts iteration (1.6)
+
+- Iterate on initial merge conflicts ship: [#6213](https://github.com/desktop/desktop/issues/6213)
+- Measuring success: [#6388](https://github.com/desktop/desktop/issues/6388)
   
 #### Merge conflicts handling (1.5)
 

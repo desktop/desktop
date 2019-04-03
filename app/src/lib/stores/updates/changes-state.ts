@@ -123,7 +123,11 @@ function getConflictState(
       return null
     }
 
-    const { targetBranch, originalBranchTip } = status.rebaseContext
+    const {
+      targetBranch,
+      originalBranchTip,
+      baseBranchTip,
+    } = status.rebaseContext
 
     return {
       kind: 'rebase',
@@ -131,6 +135,7 @@ function getConflictState(
       manualResolutions,
       targetBranch,
       originalBranchTip,
+      baseBranchTip,
     }
   }
 
@@ -183,19 +188,42 @@ function performEffectsForRebaseStateChange(
   status: IStatusResult,
   statsStore: IStatsStore
 ) {
-  // TODO: run side-effects for rebase conflicts state changes
+  const previousBranchName =
+    prevConflictState != null ? prevConflictState.targetBranch : null
+  const currentBranchName =
+    newConflictState != null ? newConflictState.targetBranch : null
 
-  // what does a successful rebase look like?
-  // - the state changed from "in a rebase" to "no rebase"
-  // - the commit ID of branch they were trying to rebase is the same as it was before
+  const branchNameChanged =
+    previousBranchName != null &&
+    currentBranchName != null &&
+    previousBranchName !== currentBranchName
 
-  // what does an aborted rebase look like?
-  // - the state changed from "in a rebase" to "no rebase"
-  // - the commit ID of branch they were trying to rebase is now different
+  // The branch name has changed while remaining conflicted -> the rebase must have been aborted
+  if (branchNameChanged) {
+    statsStore.recordRebaseAbortedAfterConflicts()
+    return
+  }
 
-  // - we'd need to know the target branch they are rebasing
-  // - we'd need to know the commit ID at the start of the rebase
-  // - we'd need to know the commit ID when the rebase was done
+  const { currentTip, currentBranch } = status
+
+  // if the repository is no longer conflicted, what do we think happened?
+  if (
+    prevConflictState != null &&
+    newConflictState == null &&
+    currentTip != null &&
+    currentBranch != null
+  ) {
+    const previousTip = prevConflictState.originalBranchTip
+
+    if (
+      previousTip !== currentTip &&
+      currentBranch === prevConflictState.targetBranch
+    ) {
+      statsStore.recordRebaseSuccessAfterConflicts()
+    } else {
+      statsStore.recordRebaseAbortedAfterConflicts()
+    }
+  }
 
   return
 }

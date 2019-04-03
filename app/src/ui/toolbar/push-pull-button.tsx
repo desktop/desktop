@@ -1,13 +1,18 @@
 import * as React from 'react'
-import { ToolbarButton, ToolbarButtonStyle } from './button'
+
 import { Progress } from '../../models/progress'
-import { Dispatcher } from '../dispatcher'
-import { Octicon, OcticonSymbol } from '../octicons'
 import { Repository } from '../../models/repository'
 import { IAheadBehind } from '../../models/branch'
 import { TipState } from '../../models/tip'
-import { RelativeTime } from '../relative-time'
 import { FetchType } from '../../models/fetch'
+
+import { enablePullWithRebase } from '../../lib/feature-flag'
+
+import { Dispatcher } from '../dispatcher'
+import { Octicon, OcticonSymbol } from '../octicons'
+import { RelativeTime } from '../relative-time'
+
+import { ToolbarButton, ToolbarButtonStyle } from './button'
 
 interface IPushPullButtonProps {
   /**
@@ -40,6 +45,227 @@ interface IPushPullButtonProps {
    * Used for setting the enabled/disabled and the description text.
    */
   readonly tipState: TipState
+
+  /** Has the user configured pull.rebase to anything? */
+  readonly pullWithRebase?: boolean
+
+  /** Is the detached HEAD state related to a rebase or not? */
+  readonly rebaseInProgress: boolean
+
+  /** If the current branch has been rebased, the user is permitted to force-push */
+  readonly branchWasRebased: boolean
+}
+
+function renderAheadBehind(aheadBehind: IAheadBehind) {
+  const { ahead, behind } = aheadBehind
+  if (ahead === 0 && behind === 0) {
+    return null
+  }
+
+  const content = new Array<JSX.Element>()
+  if (ahead > 0) {
+    content.push(
+      <span key="ahead">
+        {ahead}
+        <Octicon symbol={OcticonSymbol.arrowSmallUp} />
+      </span>
+    )
+  }
+
+  if (behind > 0) {
+    content.push(
+      <span key="behind">
+        {behind}
+        <Octicon symbol={OcticonSymbol.arrowSmallDown} />
+      </span>
+    )
+  }
+
+  return <div className="ahead-behind">{content}</div>
+}
+
+function renderLastFetched(lastFetched: Date | null): JSX.Element | string {
+  if (lastFetched) {
+    return (
+      <span>
+        Last fetched <RelativeTime date={lastFetched} />
+      </span>
+    )
+  } else {
+    return 'Never fetched'
+  }
+}
+
+/** The common props for all button states */
+const defaultProps = {
+  className: 'push-pull-button',
+  style: ToolbarButtonStyle.Subtitle,
+}
+
+function progressButton(progress: Progress, networkActionInProgress: boolean) {
+  return (
+    <ToolbarButton
+      {...defaultProps}
+      title={progress.title}
+      description={progress.description || 'Hang on…'}
+      progressValue={progress.value}
+      icon={OcticonSymbol.sync}
+      iconClassName={networkActionInProgress ? 'spin' : ''}
+      tooltip={progress.description}
+      disabled={true}
+    />
+  )
+}
+
+function publishRepositoryButton(onClick: () => void) {
+  return (
+    <ToolbarButton
+      {...defaultProps}
+      title="Publish repository"
+      description="Publish this repository to GitHub"
+      className="push-pull-button"
+      icon={OcticonSymbol.cloudUpload}
+      style={ToolbarButtonStyle.Subtitle}
+      onClick={onClick}
+    />
+  )
+}
+
+function unbornRepositoryButton() {
+  return (
+    <ToolbarButton
+      {...defaultProps}
+      title="Publish branch"
+      description="Cannot publish unborn HEAD"
+      icon={OcticonSymbol.cloudUpload}
+      disabled={true}
+    />
+  )
+}
+
+function detachedHeadButton(rebaseInProgress: boolean) {
+  const description = rebaseInProgress
+    ? 'Rebase in progress'
+    : 'Cannot publish detached HEAD'
+
+  return (
+    <ToolbarButton
+      {...defaultProps}
+      title="Publish branch"
+      description={description}
+      icon={OcticonSymbol.cloudUpload}
+      disabled={true}
+    />
+  )
+}
+
+function publishBranchButton(isGitHub: boolean, onClick: () => void) {
+  const description = isGitHub
+    ? 'Publish this branch to GitHub'
+    : 'Publish this branch to the remote'
+
+  return (
+    <ToolbarButton
+      {...defaultProps}
+      title="Publish branch"
+      description={description}
+      icon={OcticonSymbol.cloudUpload}
+      onClick={onClick}
+    />
+  )
+}
+
+function fetchButton(
+  remoteName: string,
+  aheadBehind: IAheadBehind,
+  lastFetched: Date | null,
+  onClick: () => void
+) {
+  const title = `Fetch ${remoteName}`
+  return (
+    <ToolbarButton
+      {...defaultProps}
+      title={title}
+      description={renderLastFetched(lastFetched)}
+      icon={OcticonSymbol.sync}
+      onClick={onClick}
+    >
+      {renderAheadBehind(aheadBehind)}
+    </ToolbarButton>
+  )
+}
+
+function pullButton(
+  remoteName: string,
+  aheadBehind: IAheadBehind,
+  lastFetched: Date | null,
+  pullWithRebase: boolean,
+  onClick: () => void
+) {
+  const title =
+    pullWithRebase && enablePullWithRebase()
+      ? `Pull ${remoteName} with rebase`
+      : `Pull ${remoteName}`
+
+  return (
+    <ToolbarButton
+      {...defaultProps}
+      title={title}
+      description={renderLastFetched(lastFetched)}
+      icon={OcticonSymbol.arrowDown}
+      onClick={onClick}
+    >
+      {renderAheadBehind(aheadBehind)}
+    </ToolbarButton>
+  )
+}
+
+function pushButton(
+  remoteName: string,
+  aheadBehind: IAheadBehind,
+  lastFetched: Date | null,
+  onClick: () => void
+) {
+  return (
+    <ToolbarButton
+      {...defaultProps}
+      title={`Push ${remoteName}`}
+      description={renderLastFetched(lastFetched)}
+      icon={OcticonSymbol.arrowUp}
+      onClick={onClick}
+    >
+      {renderAheadBehind(aheadBehind)}
+    </ToolbarButton>
+  )
+}
+
+/**
+ * This represents the "double arrow" icon used to show a force-push, and is a
+ * less complicated icon than the generated Octicon from the `octicons` package.
+ */
+const forcePushIcon = new OcticonSymbol(
+  10,
+  16,
+  'M3 11H0l5-6 5 6H7v4H3v-4zM5 1l5 6H8.33L5 3 1.662 7H0l5-6z'
+)
+
+function forcePushButton(
+  remoteName: string,
+  aheadBehind: IAheadBehind,
+  lastFetched: Date | null,
+  onClick: () => void
+) {
+  return (
+    <ToolbarButton
+      {...defaultProps}
+      title={`Force push ${remoteName}`}
+      description={renderLastFetched(lastFetched)}
+      icon={forcePushIcon}
+      onClick={onClick}
+    >
+      {renderAheadBehind(aheadBehind)}
+    </ToolbarButton>
+  )
 }
 
 /**
@@ -47,179 +273,85 @@ interface IPushPullButtonProps {
  * repository.
  */
 export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
-  public render() {
-    const progress = this.props.progress
+  private push = () => {
+    this.props.dispatcher.push(this.props.repository)
+  }
 
-    const title = progress ? progress.title : this.getTitle()
+  private forcePushWithLease = () => {
+    this.props.dispatcher.confirmOrForcePush(this.props.repository)
+  }
 
-    const description = progress
-      ? progress.description || 'Hang on…'
-      : this.getDescription(this.props.tipState)
+  private pull = () => {
+    this.props.dispatcher.pull(this.props.repository)
+  }
 
-    const progressValue = progress ? progress.value : undefined
-
-    const networkActive =
-      this.props.networkActionInProgress || !!this.props.progress
-
-    // if we have a remote associated with this repository, we should enable this branch
-    // when the tip is valid (no detached HEAD, no unborn repository)
-    //
-    // otherwise we consider the repository unpublished, and they should be able to
-    // open the publish dialog - we'll handle publishing the current branch afterwards
-    // if it exists
-    const validState = this.props.remoteName
-      ? this.props.tipState === TipState.Valid
-      : true
-
-    const disabled = !validState || networkActive
-
-    return (
-      <ToolbarButton
-        title={title}
-        description={description}
-        progressValue={progressValue}
-        className="push-pull-button"
-        icon={this.getIcon()}
-        iconClassName={this.props.networkActionInProgress ? 'spin' : ''}
-        style={ToolbarButtonStyle.Subtitle}
-        onClick={this.performAction}
-        tooltip={progress ? progress.description : undefined}
-        disabled={disabled}
-      >
-        {this.renderAheadBehind()}
-      </ToolbarButton>
+  private fetch = () => {
+    this.props.dispatcher.fetch(
+      this.props.repository,
+      FetchType.UserInitiatedTask
     )
   }
 
-  private renderAheadBehind() {
-    if (!this.props.aheadBehind || this.props.progress) {
-      return null
+  public render() {
+    const {
+      progress,
+      networkActionInProgress,
+      aheadBehind,
+      remoteName,
+      repository,
+      tipState,
+      rebaseInProgress,
+      lastFetched,
+      pullWithRebase,
+      branchWasRebased,
+    } = this.props
+
+    if (progress !== null) {
+      return progressButton(progress, networkActionInProgress)
     }
 
-    const { ahead, behind } = this.props.aheadBehind
-    if (ahead === 0 && behind === 0) {
-      return null
-    }
-
-    const content: JSX.Element[] = []
-    if (ahead > 0) {
-      content.push(
-        <span key="ahead">
-          {ahead}
-          <Octicon symbol={OcticonSymbol.arrowSmallUp} />
-        </span>
-      )
-    }
-
-    if (behind > 0) {
-      content.push(
-        <span key="behind">
-          {behind}
-          <Octicon symbol={OcticonSymbol.arrowSmallDown} />
-        </span>
-      )
-    }
-
-    return <div className="ahead-behind">{content}</div>
-  }
-
-  private getTitle(): string {
-    if (!this.props.remoteName) {
-      return 'Publish repository'
-    }
-    if (!this.props.aheadBehind) {
-      return 'Publish branch'
-    }
-
-    const { ahead, behind } = this.props.aheadBehind
-    const actionName = (function() {
-      if (behind > 0) {
-        return 'Pull'
-      }
-      if (ahead > 0) {
-        return 'Push'
-      }
-      return 'Fetch'
-    })()
-
-    return `${actionName} ${this.props.remoteName}`
-  }
-
-  private getIcon(): OcticonSymbol {
-    if (this.props.networkActionInProgress) {
-      return OcticonSymbol.sync
-    }
-
-    if (!this.props.remoteName) {
-      return OcticonSymbol.cloudUpload
-    }
-    if (!this.props.aheadBehind) {
-      return OcticonSymbol.cloudUpload
-    }
-
-    const { ahead, behind } = this.props.aheadBehind
-    if (this.props.networkActionInProgress) {
-      return OcticonSymbol.sync
-    }
-    if (behind > 0) {
-      return OcticonSymbol.arrowDown
-    }
-    if (ahead > 0) {
-      return OcticonSymbol.arrowUp
-    }
-    return OcticonSymbol.sync
-  }
-
-  private getDescription(tipState: TipState): JSX.Element | string {
-    if (!this.props.remoteName) {
-      return 'Publish this repository to GitHub'
-    }
-
-    if (tipState === TipState.Detached) {
-      return 'Cannot publish detached HEAD'
+    if (remoteName === null) {
+      return publishRepositoryButton(this.push)
     }
 
     if (tipState === TipState.Unborn) {
-      return 'Cannot publish unborn HEAD'
+      return unbornRepositoryButton()
     }
 
-    if (!this.props.aheadBehind) {
-      const isGitHub = !!this.props.repository.gitHubRepository
-      return isGitHub
-        ? 'Publish this branch to GitHub'
-        : 'Publish this branch to the remote'
+    if (tipState === TipState.Detached) {
+      return detachedHeadButton(rebaseInProgress)
     }
 
-    const lastFetched = this.props.lastFetched
-    if (lastFetched) {
-      return (
-        <span>
-          Last fetched <RelativeTime date={lastFetched} />
-        </span>
-      )
-    } else {
-      return 'Never fetched'
-    }
-  }
-
-  private performAction = () => {
-    const repository = this.props.repository
-    const dispatcher = this.props.dispatcher
-    const aheadBehind = this.props.aheadBehind
-
-    if (!aheadBehind) {
-      dispatcher.push(repository)
-      return
+    if (aheadBehind === null) {
+      const isGitHubRepository = repository.gitHubRepository !== null
+      return publishBranchButton(isGitHubRepository, this.push)
     }
 
     const { ahead, behind } = aheadBehind
 
-    if (behind > 0) {
-      dispatcher.pull(repository)
-    } else if (ahead > 0) {
-      dispatcher.push(repository)
-    } else {
-      dispatcher.fetch(repository, FetchType.UserInitiatedTask)
+    if (ahead === 0 && behind === 0) {
+      return fetchButton(remoteName, aheadBehind, lastFetched, this.fetch)
     }
+
+    if (branchWasRebased && behind > 0 && ahead > 0) {
+      return forcePushButton(
+        remoteName,
+        aheadBehind,
+        lastFetched,
+        this.forcePushWithLease
+      )
+    }
+
+    if (behind > 0) {
+      return pullButton(
+        remoteName,
+        aheadBehind,
+        lastFetched,
+        pullWithRebase || false,
+        this.pull
+      )
+    }
+
+    return pushButton(remoteName, aheadBehind, lastFetched, this.push)
   }
 }

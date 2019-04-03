@@ -1,6 +1,7 @@
 @import '../../mixins';
 
-dialog#merge-conflicts-list {
+dialog#merge-conflicts-list,
+dialog#rebase-conflicts-list {
   width: 500px;
 
   .summary {
@@ -81,16 +82,16 @@ dialog#merge-conflicts-list {
     }
 
     .unmerged-file-status-resolved .file-conflicts-status {
-      color: $green;
+      color: var(--color-new);
     }
 
     .unmerged-file-status-conflicts {
       .file-conflicts-status {
-        color: $orange;
+        color: var(--color-conflicted);
       }
 
       .command-line-hint {
-        color: $gray;
+        color: var(--text-secondary-color);
       }
     }
   }
@@ -106,15 +107,10 @@ dialog#merge-conflicts-list {
     }
   }
 
-  .arrow-menu,
-  .resolve-arrow-menu {
+  .arrow-menu {
     .octicon {
       width: 10px;
-    }
-  }
-  .resolve-arrow-menu {
-    .octicon {
-      margin-left: var(--spacing-half);
+      height: 14px;
     }
   }
 }
