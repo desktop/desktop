@@ -1713,6 +1713,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const { conflictState } = repoState.changesState
 
       if (conflictState === null) {
+        this.clearConflictsFlowVisuals()
         return
       }
 
@@ -1725,6 +1726,52 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     } else {
       this._triggerMergeConflictsFlow(repository)
+    }
+  }
+
+  /**
+   * Cleanup any related UI related to conflicts if still in use.
+   */
+  private clearConflictsFlowVisuals() {
+    if (this.currentPopup === null && this.currentBanner === null) {
+      return
+    }
+
+    const mergeConflictsPopupFound =
+      this.currentPopup !== null &&
+      (this.currentPopup.type === PopupType.MergeConflicts ||
+        this.currentPopup.type === PopupType.AbortMerge)
+
+    if (mergeConflictsPopupFound) {
+      this._closePopup()
+      return
+    }
+
+    const mergeConflictsBannerFound =
+      this.currentBanner !== null &&
+      this.currentBanner.type === BannerType.MergeConflictsFound
+
+    if (mergeConflictsBannerFound) {
+      this._clearBanner()
+      return
+    }
+
+    const rebaseFlowFound =
+      this.currentPopup !== null &&
+      this.currentPopup.type === PopupType.RebaseFlow
+
+    if (rebaseFlowFound) {
+      this._closePopup()
+      return
+    }
+
+    const rebaseConflictsBannerFound =
+      this.currentBanner !== null &&
+      this.currentBanner.type === BannerType.RebaseConflictsFound
+
+    if (rebaseConflictsBannerFound) {
+      this._clearBanner()
+      return
     }
   }
 
