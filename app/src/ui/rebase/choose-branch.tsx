@@ -15,8 +15,11 @@ import { ActionStatusIcon } from '../lib/action-status-icon'
 
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { BranchList, IBranchListItem, renderDefaultBranch } from '../branches'
+import { Dispatcher } from '../dispatcher'
 
 interface IChooseBranchDialogProps {
+  readonly dispatcher: Dispatcher
+
   readonly repository: Repository
 
   /**
@@ -56,8 +59,6 @@ interface IChooseBranchDialogProps {
    */
   readonly onDismissed: () => void
 
-  readonly onBranchChanged: (branch: Branch) => void
-
   /** Callback to signal to start the rebase */
   readonly onStartRebase: (
     baseBranch: string,
@@ -91,7 +92,7 @@ export class ChooseBranchDialog extends React.Component<
     )
 
     if (selectedBranch !== null) {
-      this.props.onBranchChanged(selectedBranch)
+      this.onBranchChanged(selectedBranch)
     }
 
     this.state = {
@@ -104,11 +105,21 @@ export class ChooseBranchDialog extends React.Component<
     this.setState({ filterText })
   }
 
+  private onBranchChanged = (selectedBranch: Branch) => {
+    const { currentBranch } = this.props
+
+    this.props.dispatcher.previewRebase(
+      this.props.repository,
+      selectedBranch,
+      currentBranch
+    )
+  }
+
   private onSelectionChanged = (selectedBranch: Branch | null) => {
     this.setState({ selectedBranch })
 
     if (selectedBranch !== null) {
-      this.props.onBranchChanged(selectedBranch)
+      this.onBranchChanged(selectedBranch)
     }
   }
 

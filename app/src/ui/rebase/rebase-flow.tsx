@@ -12,7 +12,6 @@ import {
 import { GitRebaseProgress, RebasePreview } from '../../models/rebase'
 import { WorkingDirectoryStatus } from '../../models/status'
 import { CommitOneLine } from '../../models/commit'
-import { Branch } from '../../models/branch'
 
 import { Dispatcher } from '../dispatcher'
 
@@ -92,20 +91,6 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
     this.state = {
       userHasResolvedConflicts: false,
     }
-  }
-
-  private testRebaseOperation = (baseBranch: Branch) => {
-    const { step } = this.props
-    if (step.kind !== RebaseStep.ChooseBranch) {
-      log.warn(`[RebaseFlow] testRebaseOperation invoked but on the wrong step`)
-      return
-    }
-
-    this.props.dispatcher.previewRebase(
-      this.props.repository,
-      baseBranch,
-      step.currentBranch
-    )
   }
 
   private moveToShowConflictedFileState = () => {
@@ -231,7 +216,7 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
 
     switch (step.kind) {
       case RebaseStep.ChooseBranch: {
-        const { repository } = this.props
+        const { repository, dispatcher } = this.props
         const {
           allBranches,
           defaultBranch,
@@ -243,6 +228,7 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
           <ChooseBranchDialog
             key="choose-branch"
             repository={repository}
+            dispatcher={dispatcher}
             allBranches={allBranches}
             defaultBranch={defaultBranch}
             recentBranches={recentBranches}
@@ -250,7 +236,6 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
             initialBranch={initialBranch}
             onDismissed={this.onFlowEnded}
             onStartRebase={this.onStartRebase}
-            onBranchChanged={this.testRebaseOperation}
             rebasePreviewStatus={this.props.preview}
           />
         )
