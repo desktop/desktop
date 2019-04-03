@@ -98,11 +98,7 @@ export class BranchPruner {
    * @param timeSinceLastCheckout limits pruning to branches that haven't been checked out since this date (defaults to 2 weeks before today), passing null ignores constraint `3`
    * @returns true when branches have been prune
    */
-  public async prune(
-    timeSinceLastCheckout: Date | null = moment()
-      .subtract(2, 'weeks')
-      .toDate()
-  ): Promise<boolean> {
+  public async prune(timeSinceLastCheckout: Date | null): Promise<boolean> {
     const { branchesState } = this.repositoriesStateCache.get(this.repository)
     const { defaultBranch } = branchesState
 
@@ -229,7 +225,10 @@ export class BranchPruner {
       return
     }
 
-    const didPruneHappen = await this.prune()
+    const timeSinceLastCheckout = moment()
+      .subtract(2, 'weeks')
+      .toDate()
+    const didPruneHappen = await this.prune(timeSinceLastCheckout)
     await this.repositoriesStore.updateLastPruneAttemptDate(
       this.repository,
       Date.now()
