@@ -300,7 +300,10 @@ export class RebaseFlow extends React.Component<
 
       if (rebaseStatus !== null && rebaseStatus.kind === ComputedAction.Clean) {
         const { commits } = rebaseStatus
-        currentCommitSummary = commits[commits.length - 1].summary
+        if (commits.length > 0) {
+          const last = commits.length - 1
+          currentCommitSummary = commits[last].summary
+        }
       }
 
       const { commits } = prevState.progress
