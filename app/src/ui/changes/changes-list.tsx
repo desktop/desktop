@@ -117,6 +117,8 @@ interface IChangesListProps {
   readonly onOpenInExternalEditor: (fullPath: string) => void
 
   readonly stashEntry: IStashEntry | null
+
+  readonly isShowingStashEntry: boolean
 }
 
 interface IChangesState {
