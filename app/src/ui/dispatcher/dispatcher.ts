@@ -734,6 +734,10 @@ export class Dispatcher {
     }))
   }
 
+  public setConflictsResolved(repository: Repository) {
+    this.appStore._setConflictsResolved(repository)
+  }
+
   public setRebaseProgress(
     repository: Repository,
     rebasedCommitCount: number,

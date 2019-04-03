@@ -3469,6 +3469,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
+  public _setConflictsResolved(repository: Repository) {
+    this.repositoryStateCache.updateRebaseState(repository, () => ({
+      userHasResolvedConflicts: true,
+    }))
+
+    // an update is not emitted here because there is no need
+    // to trigger a re-render at this point
+  }
+
   public _setRebaseFlow(repository: Repository, step: RebaseFlowState) {
     log.warn(
       `[AppStore._setRebaseFlow] setting step to ${JSON.stringify(step)}`
@@ -3492,6 +3501,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
           rebasedCommitCount: 0,
           commits: [],
         },
+        preview: null,
+        userHasResolvedConflicts: false,
       }
     })
 

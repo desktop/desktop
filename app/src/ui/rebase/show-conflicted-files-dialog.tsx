@@ -5,12 +5,12 @@ import {
   WorkingDirectoryFileChange,
 } from '../../models/status'
 import { Repository } from '../../models/repository'
-import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 
 import {
   getUnmergedFiles,
   getConflictedFiles,
   isConflictedFile,
+  getResolvedFiles,
 } from '../../lib/status'
 
 import { ButtonGroup } from '../lib/button-group'
@@ -24,20 +24,19 @@ import { renderUnmergedFile } from '../lib/conflicts/unmerged-file'
 
 import { DialogContent, Dialog, DialogFooter } from '../dialog'
 import { Dispatcher } from '../dispatcher'
+import { RebaseConflictState } from '../../lib/app-state'
 
 interface IShowConflictedFilesDialogProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
 
   readonly userHasResolvedConflicts: boolean
-  readonly targetBranch: string
-  readonly baseBranch?: string
+  readonly conflictState: RebaseConflictState
   readonly workingDirectory: WorkingDirectoryStatus
-  readonly manualResolutions: Map<string, ManualConflictResolution>
 
   readonly onDismissed: () => void
   readonly onContinueRebase: () => void
-  readonly onAbortRebase: () => Promise<void>
+  readonly onAbortRebase: (conflictState: RebaseConflictState) => void
   readonly showRebaseConflictsBanner: () => void
 
   readonly openFileInExternalEditor: (path: string) => void
@@ -61,14 +60,38 @@ export class ShowConflictedFilesDialog extends React.Component<
     }
   }
 
-  public async componentDidMount() {
+  public componentDidMount() {
     this.props.dispatcher.resolveCurrentEditor()
+  }
+
+  public componentWillUnmount() {
+    const {
+      workingDirectory,
+      conflictState,
+      userHasResolvedConflicts,
+    } = this.props
+
+    const { manualResolutions } = conflictState
+
+    // skip this work once we know conflicts have been resolved
+    if (userHasResolvedConflicts) {
+      return
+    }
+
+    const resolvedConflicts = getResolvedFiles(
+      workingDirectory,
+      manualResolutions
+    )
+
+    if (resolvedConflicts.length > 0) {
+      this.props.dispatcher.setConflictsResolved(this.props.repository)
+    }
   }
 
   private onCancel = async () => {
     this.setState({ isAborting: true })
 
-    await this.props.onAbortRebase()
+    this.props.onAbortRebase(this.props.conflictState)
 
     this.setState({ isAborting: false })
   }
@@ -107,6 +130,12 @@ export class ShowConflictedFilesDialog extends React.Component<
   private renderUnmergedFiles(
     files: ReadonlyArray<WorkingDirectoryFileChange>
   ) {
+    const {
+      manualResolutions,
+      targetBranch,
+      baseBranch,
+    } = this.props.conflictState
+
     return (
       <ul className="unmerged-file-statuses">
         {files.map(f =>
@@ -118,9 +147,9 @@ export class ShowConflictedFilesDialog extends React.Component<
                 openFileInExternalEditor: this.props.openFileInExternalEditor,
                 repository: this.props.repository,
                 dispatcher: this.props.dispatcher,
-                manualResolution: this.props.manualResolutions.get(f.path),
-                theirBranch: this.props.targetBranch,
-                ourBranch: this.props.baseBranch,
+                manualResolution: manualResolutions.get(f.path),
+                theirBranch: targetBranch,
+                ourBranch: baseBranch,
               })
             : null
         )}
@@ -146,16 +175,16 @@ export class ShowConflictedFilesDialog extends React.Component<
   }
 
   public render() {
-    const unmergedFiles = getUnmergedFiles(this.props.workingDirectory)
+    const { workingDirectory, conflictState } = this.props
+    const { manualResolutions, targetBranch, baseBranch } = conflictState
+
+    const unmergedFiles = getUnmergedFiles(workingDirectory)
     const conflictedFilesCount = getConflictedFiles(
-      this.props.workingDirectory,
-      this.props.manualResolutions
+      workingDirectory,
+      manualResolutions
     ).length
 
-    const headerTitle = this.renderHeaderTitle(
-      this.props.targetBranch,
-      this.props.baseBranch
-    )
+    const headerTitle = this.renderHeaderTitle(targetBranch, baseBranch)
 
     const tooltipString =
       conflictedFilesCount > 0
