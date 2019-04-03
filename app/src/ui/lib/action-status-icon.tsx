@@ -16,7 +16,15 @@ interface IActionStatusIconProps {
   readonly className?: string
 }
 
-/** An indicator to display representing the result of a computed action */
+/** 
+ * A component used to render a visual indication of a `ComputedAction` state.
+ *
+ * In essence this is a small wrapper around an `Octicon` which determines which
+ * icon to use based on the `ComputedAction`. A computed action is essentially
+ * the current state of a merge or a rebase operation and this component is used
+ * in the header of merge or rebase conflict dialogs to augment the textual
+ * representation of the current merge or rebase progress.
+ */
 export class ActionStatusIcon extends React.Component<IActionStatusIconProps> {
   public render() {
     const { status, classNamePrefix } = this.props
