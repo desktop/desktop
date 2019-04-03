@@ -15,7 +15,7 @@
   }
 
   .rebase-status-loading {
-    color: $yellow-700;
+    color: var(--status-pending-color);
   }
 
   .rebase-status-conflicts {
@@ -23,11 +23,11 @@
   }
 
   .rebase-status-invalid {
-    color: $red-500;
+    color: var(--status-error-color);
   }
 
   .rebase-status-clean {
-    color: $green-500;
+    color: var(--status-success-color);
   }
 
   .rebase-message,
