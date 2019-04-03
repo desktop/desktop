@@ -12,6 +12,7 @@ import {
   RepositorySectionTab,
   isRebaseConflictState,
   isMergeConflictState,
+  RebaseConflictState,
 } from '../../lib/app-state'
 import { ExternalEditor } from '../../lib/editors'
 import { assertNever, fatalError } from '../../lib/fatal-error'
@@ -811,24 +812,27 @@ export class Dispatcher {
         return RebaseResult.Error
       }
 
-      this.setRebaseFlow(repository, {
-        kind: RebaseStep.ShowConflicts,
-        conflictState,
-      })
+      this.switchToConflicts(repository, conflictState)
     } else if (result === RebaseResult.CompletedWithoutError) {
-      if (tip.kind === TipState.Valid) {
-        this.addRebasedBranchToForcePushList(repository, tip, beforeSha)
+      if (tip.kind !== TipState.Valid) {
+        log.warn(
+          `[continueRebase] tip after completing rebase is ${
+            tip.kind
+          } but this should be a valid tip if the rebase completed without error`
+        )
+        return RebaseResult.Error
       }
 
-      await this.refreshRepository(repository)
-
-      this.setBanner({
-        type: BannerType.SuccessfulRebase,
-        targetBranch: targetBranch,
-        baseBranch: baseBranch,
-      })
-
-      this.endRebaseFlow(repository)
+      await this.completeRebase(
+        repository,
+        {
+          type: BannerType.SuccessfulRebase,
+          targetBranch: targetBranch,
+          baseBranch: baseBranch,
+        },
+        tip,
+        beforeSha
+      )
     }
 
     return result
@@ -855,7 +859,7 @@ export class Dispatcher {
       return RebaseResult.Error
     }
 
-    const { targetBranch, baseBranch } = conflictState
+    const { targetBranch, baseBranch, originalBranchTip } = conflictState
 
     const beforeSha = getTipSha(stateBefore.branchesState.tip)
 
@@ -894,31 +898,59 @@ export class Dispatcher {
         return RebaseResult.Error
       }
 
-      this.setRebaseFlow(repository, {
-        kind: RebaseStep.ShowConflicts,
-        conflictState,
-      })
+      this.switchToConflicts(repository, conflictState)
     } else if (result === RebaseResult.CompletedWithoutError) {
-      this.closePopup()
-
-      this.setBanner({
-        type: BannerType.SuccessfulRebase,
-        targetBranch,
-        baseBranch,
-      })
-
-      if (tip.kind === TipState.Valid) {
-        this.addRebasedBranchToForcePushList(
-          repository,
-          tip,
-          conflictState.originalBranchTip
+      if (tip.kind !== TipState.Valid) {
+        log.warn(
+          `[continueRebase] tip after completing rebase is ${
+            tip.kind
+          } but this should be a valid tip if the rebase completed without error`
         )
+        return RebaseResult.Error
       }
 
-      await this.refreshRepository(repository)
+      await this.completeRebase(
+        repository,
+        {
+          type: BannerType.SuccessfulRebase,
+          targetBranch: targetBranch,
+          baseBranch: baseBranch,
+        },
+        tip,
+        originalBranchTip
+      )
     }
 
     return result
+  }
+
+  private switchToConflicts = (
+    repository: Repository,
+    conflictState: RebaseConflictState
+  ) => {
+    this.setRebaseFlow(repository, {
+      kind: RebaseStep.ShowConflicts,
+      conflictState,
+    })
+  }
+
+  private async completeRebase(
+    repository: Repository,
+    banner: Banner,
+    tip: IValidBranch,
+    originalBranchTip: string
+  ): Promise<void> {
+    this.closePopup()
+
+    this.setBanner(banner)
+
+    if (tip.kind === TipState.Valid) {
+      this.addRebasedBranchToForcePushList(repository, tip, originalBranchTip)
+    }
+
+    this.endRebaseFlow(repository)
+
+    await this.refreshRepository(repository)
   }
 
   /** aborts an in-flight merge and refreshes the repository's status */
