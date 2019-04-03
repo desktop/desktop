@@ -16,6 +16,7 @@ import {
   AppFileStatusKind,
 } from '../../models/status'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
+import { CommitOneLine } from '../../models/commit'
 
 import { merge } from '../merge'
 import { formatRebaseValue } from '../rebase'
@@ -25,7 +26,6 @@ import { stageManualConflictResolution } from './stage'
 import { stageFiles } from './update-index'
 import { getStatus } from './status'
 import { getCommitsInRange } from './rev-list'
-import { CommitOneLine } from '../../models/commit'
 
 /**
  * Check the `.git/REBASE_HEAD` file exists in a repository to confirm
