@@ -207,7 +207,11 @@ import {
 import { Banner, BannerType } from '../../models/banner'
 import { isDarkModeEnabled } from '../../ui/lib/dark-theme'
 import { ComputedAction } from '../../models/computed-action'
-import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
+import {
+  RebaseFlowStep,
+  RebaseStep,
+  ShowConflictsStep,
+} from '../../models/rebase-flow-step'
 import { RebasePreview } from '../../models/rebase'
 
 /**
@@ -1703,6 +1707,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       conflictState: updateConflictState(state, status, this.statsStore),
     }))
 
+    this.updateRebaseFlowConflictsIfFound(repository)
+
     if (this.selectedRepository === repository) {
       this._triggerConflictsFlow(repository)
     }
@@ -1712,6 +1718,31 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.updateChangesDiffForCurrentSelection(repository)
 
     return true
+  }
+
+  private updateRebaseFlowConflictsIfFound(repository: Repository) {
+    const { changesState, rebaseState } = this.repositoryStateCache.get(
+      repository
+    )
+    const { conflictState } = changesState
+
+    if (conflictState === null || isMergeConflictState(conflictState)) {
+      return
+    }
+
+    const { step } = rebaseState
+    if (step === null || step.kind !== RebaseStep.ShowConflicts) {
+      return
+    }
+
+    const updatedStep: ShowConflictsStep = {
+      kind: RebaseStep.ShowConflicts,
+      conflictState,
+    }
+
+    this.repositoryStateCache.updateRebaseState(repository, () => ({
+      step: updatedStep,
+    }))
   }
 
   private async _triggerConflictsFlow(repository: Repository) {
