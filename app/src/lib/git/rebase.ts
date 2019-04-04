@@ -5,19 +5,26 @@ import { GitError } from 'dugite'
 import * as byline from 'byline'
 
 import { Repository } from '../../models/repository'
-import { git, IGitResult, IGitExecutionOptions } from './core'
+import {
+  RebaseContext,
+  RebaseProgressOptions,
+  RebaseProgressSummary,
+} from '../../models/rebase'
+import { IRebaseProgress } from '../../models/progress'
 import {
   WorkingDirectoryFileChange,
   AppFileStatusKind,
 } from '../../models/status'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
+
+import { merge } from '../merge'
+import { formatRebaseValue } from '../rebase'
+
+import { git, IGitResult, IGitExecutionOptions } from './core'
 import { stageManualConflictResolution } from './stage'
 import { stageFiles } from './update-index'
-
 import { getStatus } from './status'
-import { RebaseContext, RebaseProgressOptions } from '../../models/rebase'
-import { merge } from '../merge'
-import { IRebaseProgress } from '../../models/progress'
+import { getCommitsInRange } from './rev-list'
 
 /**
  * Check the `.git/REBASE_HEAD` file exists in a repository to confirm
@@ -88,6 +95,108 @@ export async function getRebaseContext(
 }
 
 /**
+ * Inspect the `.git/rebase-apply` folder and convert the current context into
+ * a progress summary that can be passed into the rebase flow to hydrate the
+ * component state.
+ *
+ * This is required when Desktop is not responsible for initiating the rebase:
+ *
+ *   - when a rebase outside Desktop encounters conflicts
+ *   - when a `git pull --rebase` was run and encounters conflicts
+ */
+export async function getCurrentProgress(
+  repository: Repository
+): Promise<RebaseProgressSummary | null> {
+  const rebaseHead = await isRebaseHeadSet(repository)
+  if (!rebaseHead) {
+    return null
+  }
+
+  let next: number = -1
+  let last: number = -1
+  let originalBranchTip: string | null = null
+  let baseBranchTip: string | null = null
+
+  // if the repository is in the middle of a rebase `.git/rebase-apply` will
+  // contain all the patches of commits that are being rebased into
+  // auto-incrementing files, e.g. `0001`, `0002`, `0003`, etc ...
+
+  try {
+    // this contains the patch number that was recently applied to the repository
+    const nextText = await FSE.readFile(
+      Path.join(repository.path, '.git', 'rebase-apply', 'next'),
+      'utf8'
+    )
+
+    next = parseInt(nextText, 10)
+
+    if (isNaN(next)) {
+      log.warn(
+        `[getCurrentProgress] found '${nextText}' in .git/rebase-apply/next which could not be parsed to a valid number`
+      )
+      next = -1
+    }
+
+    // this contains the total number of patches to be applied to the repository
+    const lastText = await FSE.readFile(
+      Path.join(repository.path, '.git', 'rebase-apply', 'last'),
+      'utf8'
+    )
+
+    last = parseInt(lastText, 10)
+
+    if (isNaN(last)) {
+      log.warn(
+        `[getCurrentProgress] found '${lastText}' in .git/rebase-apply/last which could not be parsed to a valid number`
+      )
+      last = -1
+    }
+
+    originalBranchTip = await FSE.readFile(
+      Path.join(repository.path, '.git', 'rebase-apply', 'orig-head'),
+      'utf8'
+    )
+
+    originalBranchTip = originalBranchTip.trim()
+
+    baseBranchTip = await FSE.readFile(
+      Path.join(repository.path, '.git', 'rebase-apply', 'onto'),
+      'utf8'
+    )
+
+    baseBranchTip = baseBranchTip.trim()
+  } catch {}
+
+  if (
+    next > 0 &&
+    last > 0 &&
+    originalBranchTip !== null &&
+    baseBranchTip !== null
+  ) {
+    const percentage = next / last
+    const value = formatRebaseValue(percentage)
+
+    const commits = await getCommitsInRange(
+      repository,
+      baseBranchTip,
+      originalBranchTip
+    )
+
+    if (commits.length === 0) {
+      return null
+    }
+
+    return {
+      rebasedCommitCount: next,
+      value,
+      commits,
+    }
+  }
+
+  return null
+}
+
+/**
  * Attempt to read the `.git/REBASE_HEAD` file inside a repository to confirm
  * the rebase is still active.
  */
@@ -112,14 +221,10 @@ const rebaseApplyingRe = /^Applying: (.*)/
  * A parser to read and emit rebase progress from Git `stdout`
  */
 class GitRebaseParser {
-  private currentCommitCount = 0
-
   public constructor(
-    startCount: number,
+    private rebasedCommitCount: number,
     private readonly totalCommitCount: number
-  ) {
-    this.currentCommitCount = startCount
-  }
+  ) {}
 
   public parse(line: string): IRebaseProgress | null {
     const match = rebaseApplyingRe.exec(line)
@@ -129,18 +234,21 @@ class GitRebaseParser {
       return null
     }
 
-    const commitSummary = match[1]
-    this.currentCommitCount++
+    const currentCommitSummary = match[1]
+    this.rebasedCommitCount++
 
-    const value = this.currentCommitCount / this.totalCommitCount
+    const progress = this.rebasedCommitCount / this.totalCommitCount
+    const value = formatRebaseValue(progress)
 
     return {
       kind: 'rebase',
-      title: `Rebasing commit ${this.currentCommitCount} of ${
+      title: `Rebasing commit ${this.rebasedCommitCount} of ${
         this.totalCommitCount
       } commits`,
       value,
-      commitSummary,
+      rebasedCommitCount: this.rebasedCommitCount,
+      totalCommitCount: this.totalCommitCount,
+      currentCommitSummary,
     }
   }
 }
@@ -153,11 +261,11 @@ function configureOptionsForRebase(
     return options
   }
 
-  const { start, total, progressCallback } = progress
+  const { rebasedCommitCount, totalCommitCount, progressCallback } = progress
 
   return merge(options, {
     processCallback: (process: ChildProcess) => {
-      const parser = new GitRebaseParser(start, total)
+      const parser = new GitRebaseParser(rebasedCommitCount, totalCommitCount)
 
       // rebase emits progress messages on `stdout`, not `stderr`
       byline(process.stdout).on('data', (line: string) => {

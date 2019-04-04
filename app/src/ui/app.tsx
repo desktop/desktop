@@ -94,9 +94,12 @@ import { OversizedFiles } from './changes/oversized-files-warning'
 import { UsageStatsChange } from './usage-stats-change'
 import { PushNeedsPullWarning } from './push-needs-pull'
 import { LocalChangesOverwrittenWarning } from './local-changes-overwritten'
-import { RebaseConflictsDialog } from './rebase'
-import { RebaseBranchDialog } from './rebase/rebase-branch-dialog'
-import { ConfirmForcePush } from './rebase/confirm-force-push'
+import { RebaseFlow, ConfirmForcePush } from './rebase'
+import {
+  initializeNewRebaseFlow,
+  initializeRebaseFlowForConflictedRepository,
+} from '../lib/rebase'
+import { BannerType } from '../models/banner'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -939,9 +942,15 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (!repository || repository instanceof CloningRepository) {
       return
     }
+
+    const repositoryState = this.props.repositoryStateManager.get(repository)
+
+    const initialState = initializeNewRebaseFlow(repositoryState)
+
     this.props.dispatcher.showPopup({
-      type: PopupType.RebaseBranch,
+      type: PopupType.RebaseFlow,
       repository,
+      initialState,
     })
   }
 
@@ -1558,36 +1567,8 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       }
-      case PopupType.RebaseBranch: {
-        const { repository, branch } = popup
-        const state = this.props.repositoryStateManager.get(repository)
-
-        const tip = state.branchesState.tip
-
-        // we should never get in this state since we disable the menu
-        // item in a detatched HEAD state, this check is so TSC is happy
-        if (tip.kind !== TipState.Valid) {
-          return null
-        }
-
-        const currentBranch = tip.branch
-
-        return (
-          <RebaseBranchDialog
-            key="merge-branch"
-            dispatcher={this.props.dispatcher}
-            repository={repository}
-            allBranches={state.branchesState.allBranches}
-            defaultBranch={state.branchesState.defaultBranch}
-            recentBranches={state.branchesState.recentBranches}
-            currentBranch={currentBranch}
-            initialBranch={branch}
-            onDismissed={this.onPopupDismissed}
-          />
-        )
-      }
-      case PopupType.RebaseConflicts: {
-        const { selectedState } = this.state
+      case PopupType.RebaseFlow: {
+        const { selectedState, emoji } = this.state
 
         if (
           selectedState === null ||
@@ -1596,27 +1577,31 @@ export class App extends React.Component<IAppProps, IAppState> {
           return null
         }
 
-        const {
-          workingDirectory,
-          conflictState,
-        } = selectedState.state.changesState
+        const { initialState } = popup
 
-        if (conflictState === null || conflictState.kind === 'merge') {
+        const { changesState } = selectedState.state
+        const { workingDirectory, conflictState } = changesState
+
+        if (conflictState !== null && conflictState.kind === 'merge') {
+          log.warn(
+            '[App] invalid state encountered - rebase flow should not be used when merge conflicts found'
+          )
           return null
         }
 
         return (
-          <RebaseConflictsDialog
-            dispatcher={this.props.dispatcher}
+          <RebaseFlow
             repository={popup.repository}
-            targetBranch={popup.targetBranch}
-            baseBranch={popup.baseBranch}
-            workingDirectory={workingDirectory}
-            manualResolutions={conflictState.manualResolutions}
-            onDismissed={this.onPopupDismissed}
             openFileInExternalEditor={this.openFileInExternalEditor}
+            dispatcher={this.props.dispatcher}
+            onFlowEnded={this.onRebaseFlowEnded}
+            initialState={initialState}
+            workingDirectory={workingDirectory}
+            conflictState={conflictState}
             resolvedExternalEditor={this.state.resolvedExternalEditor}
-            openRepositoryInShell={this.openInShell}
+            openRepositoryInShell={this.openCurrentRepositoryInShell}
+            onShowRebaseConflictsBanner={this.onShowRebaseConflictsBanner}
+            emoji={emoji}
           />
         )
       }
@@ -1636,6 +1621,43 @@ export class App extends React.Component<IAppProps, IAppState> {
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
+  }
+
+  private onShowRebaseConflictsBanner = (
+    repository: Repository,
+    targetBranch: string
+  ) => {
+    this.props.dispatcher.setBanner({
+      type: BannerType.RebaseConflictsFound,
+      targetBranch,
+      onOpenDialog: async () => {
+        const { changesState } = this.props.repositoryStateManager.get(
+          repository
+        )
+        const { conflictState } = changesState
+
+        if (conflictState === null || conflictState.kind === 'merge') {
+          log.debug(
+            `[App.onShowRebasConflictsBanner] no conflict state found, ignoring...`
+          )
+          return
+        }
+        const initialState = await initializeRebaseFlowForConflictedRepository(
+          repository,
+          conflictState
+        )
+
+        this.props.dispatcher.showPopup({
+          type: PopupType.RebaseFlow,
+          repository,
+          initialState,
+        })
+      },
+    })
+  }
+
+  private onRebaseFlowEnded = () => {
+    this.props.dispatcher.closePopup()
   }
 
   private onUsageReportingDismissed = (optOut: boolean) => {

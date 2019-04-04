@@ -5,7 +5,7 @@ import * as glob from 'glob'
 import { parseMergeResult } from '../../../src/lib/merge-tree-parser'
 
 import { MergeSuccess, MergeError } from '../../../src/models/merge'
-import { ComputedActionKind } from '../../../src/models/action'
+import { ComputedAction } from '../../../src/models/computed-action'
 
 const filenameRegex = /merge\-(.*)\-into\-(.*).txt/
 
@@ -43,7 +43,7 @@ describe('parseMergeResult', () => {
     const input = await FSE.readFile(filePath, { encoding: 'utf8' })
 
     const result = parseMergeResult(input)
-    expect(result.kind).toBe(ComputedActionKind.Clean)
+    expect(result.kind).toBe(ComputedAction.Clean)
 
     const mergeResult = result as MergeSuccess
     expect(mergeResult.entries).toHaveLength(21)
@@ -61,7 +61,7 @@ describe('parseMergeResult', () => {
     const input = await FSE.readFile(filePath, { encoding: 'utf8' })
 
     const result = parseMergeResult(input)
-    expect(result.kind).toBe(ComputedActionKind.Conflicts)
+    expect(result.kind).toBe(ComputedAction.Conflicts)
 
     const mergeResult = result as MergeError
     expect(mergeResult.conflictedFiles).toBe(1)
@@ -77,7 +77,7 @@ describe('parseMergeResult', () => {
         const input = await FSE.readFile(f, { encoding: 'utf8' })
 
         const result = parseMergeResult(input)
-        expect(result.kind).toBe(ComputedActionKind.Conflicts)
+        expect(result.kind).toBe(ComputedAction.Conflicts)
 
         const mergeResult = result as MergeError
         expect(mergeResult.conflictedFiles).toBeGreaterThan(0)
@@ -95,7 +95,7 @@ describe('parseMergeResult', () => {
         const input = await FSE.readFile(f, { encoding: 'utf8' })
 
         const result = parseMergeResult(input)
-        expect(result.kind).toBe(ComputedActionKind.Conflicts)
+        expect(result.kind).toBe(ComputedAction.Conflicts)
 
         const mergeResult = result as MergeError
         expect(mergeResult.conflictedFiles).toBeGreaterThan(0)
@@ -113,7 +113,7 @@ describe('parseMergeResult', () => {
         const input = await FSE.readFile(f, { encoding: 'utf8' })
 
         const result = parseMergeResult(input)
-        expect(result.kind).toBe(ComputedActionKind.Conflicts)
+        expect(result.kind).toBe(ComputedAction.Conflicts)
 
         const mergeResult = result as MergeError
         expect(mergeResult.conflictedFiles).toBeGreaterThan(0)
