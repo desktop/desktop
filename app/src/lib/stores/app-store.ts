@@ -4523,7 +4523,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.emitUpdate()
   }
+
+  public _hideStashEntry(repository: Repository) {
+    this.repositoryStateCache.updateChangesState(repository, state => {
+      return {
+        isShowingStashEntry: false,
+        selectedFileIDs:
+          state.workingDirectory.files.length > 0
+            ? [state.workingDirectory.files[0].id]
+            : [],
+      }
+    })
+
+    this.emitUpdate()
+  }
 }
+
 /**
  * Map the cached state of the compare view to an action
  * to perform which is then used to compute the compare

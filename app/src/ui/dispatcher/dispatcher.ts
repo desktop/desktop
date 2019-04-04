@@ -1779,4 +1779,11 @@ export class Dispatcher {
   public showStashEntry(repository: Repository) {
     return this.appStore._showStashEntry(repository)
   }
+
+  /**
+   * Hide the diff UI for a stash entry
+   */
+  public hideStashEntry(repository: Repository) {
+    return this.appStore._hideStashEntry(repository)
+  }
 }
