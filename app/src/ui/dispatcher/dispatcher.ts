@@ -724,10 +724,21 @@ export class Dispatcher {
     }))
   }
 
+  /**
+   * Update the rebase state to indicate the user has resolved conflicts in the
+   * current repository.
+   */
   public setConflictsResolved(repository: Repository) {
     return this.appStore._setConflictsResolved(repository)
   }
 
+  /**
+   * Initialize the progress in application state based on the known commits
+   * that will be applied in the rebase.
+   *
+   * @param commits the list of commits that exist on the target branch which do
+   *                not exist on the base branch
+   */
   public initializeRebaseProgress(
     repository: Repository,
     commits: ReadonlyArray<CommitOneLine>
@@ -735,10 +746,17 @@ export class Dispatcher {
     return this.appStore._initializeRebaseProgress(repository, commits)
   }
 
+  /**
+   * Update the rebase progress in application state by querying the Git
+   * repository state.
+   */
   public setRebaseProgressFromState(repository: Repository) {
     return this.appStore._setRebaseProgressFromState(repository)
   }
 
+  /**
+   * Move the rebase flow to a new state.
+   */
   public setRebaseFlowStep(
     repository: Repository,
     step: RebaseFlowStep
