@@ -281,7 +281,7 @@ export class Dispatcher {
   }
 
   /**
-   * Close the current popup (or optionally a specific type of popup).
+   * Close the current popup, if found
    *
    * @param popupType only close the popup if it matches this `PopupType`
    */
@@ -540,9 +540,9 @@ export class Dispatcher {
   }
 
   /**
-   * Close the current banner (or optionally only close specific banner).
+   * Close the current banner, if found.
    *
-   * @param popupType only close the banner if it matches this `BannerType`
+   * @param bannerType only close the banner if it matches this `BannerType`
    */
   public clearBanner(bannerType?: BannerType) {
     return this.appStore._clearBanner(bannerType)
