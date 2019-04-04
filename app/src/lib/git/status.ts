@@ -239,7 +239,7 @@ export async function getStatus(
     branchAheadBehind,
     exists: true,
     mergeHeadFound,
-    rebaseInternalState: rebaseInternalState,
+    rebaseInternalState,
     workingDirectory,
   }
 }
@@ -373,7 +373,9 @@ async function getConflictDetails(
   try {
     if (mergeHeadFound) {
       return await getMergeConflictDetails(repository)
-    } else if (rebaseInternalState !== null) {
+    }
+    
+    if (rebaseInternalState !== null) {
       return await getRebaseConflictDetails(repository)
     }
   } catch (error) {
