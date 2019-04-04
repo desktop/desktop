@@ -3519,6 +3519,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
 
     if (step.kind === RebaseStep.ShowProgress && step.rebaseAction !== null) {
+      // this timeout is intended to defer the action from running immediately
+      // after the progress UI is shown, to better show that rebase is
+      // progressing rather than suddenly appearing and disappearing again
       await timeout(500)
       await step.rebaseAction()
     }
