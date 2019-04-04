@@ -66,7 +66,7 @@ import {
 } from '../../models/status'
 import { TipState, IValidBranch } from '../../models/tip'
 import { RebaseProgressOptions } from '../../models/rebase'
-import { Banner, BannerType } from '../../models/banner'
+import { Banner } from '../../models/banner'
 
 import { ApplicationTheme } from '../lib/application-theme'
 import { installCLI } from '../lib/install-cli'
@@ -322,9 +322,11 @@ export class Dispatcher {
       conflictState: updatedConflictState,
     }))
 
-    const initialState = initializeRebaseFlowForConflictedRepository(
+    const initialState = await initializeRebaseFlowForConflictedRepository(
+      repository,
       updatedConflictState
     )
+
     this.showPopup({
       type: PopupType.RebaseFlow,
       repository,
@@ -722,7 +724,12 @@ export class Dispatcher {
 
     const beforeSha = getTipSha(stateBefore.branchesState.tip)
 
-    log.info(`[rebase] starting rebase for ${beforeSha}`)
+    log.info(`[rebase] starting rebase for ${targetBranch} at ${beforeSha}`)
+    log.info(
+      `[rebase] to restore the previous state if this completed rebase is unsatisfactory:`
+    )
+    log.info(`[rebase] - git checkout ${targetBranch}`)
+    log.info(`[rebase] - git reset ${beforeSha} --hard`)
 
     const result = await this.appStore._rebase(
       repository,
@@ -748,11 +755,7 @@ export class Dispatcher {
         this.addRebasedBranchToForcePushList(repository, tip, beforeSha)
       }
 
-      this.setBanner({
-        type: BannerType.SuccessfulRebase,
-        targetBranch: targetBranch,
-        baseBranch: baseBranch,
-      })
+      await this.refreshRepository(repository)
     }
 
     return result
@@ -794,23 +797,20 @@ export class Dispatcher {
 
     const { conflictState } = stateBefore.changesState
 
-    if (result === RebaseResult.CompletedWithoutError) {
-      this.closePopup()
-
-      if (conflictState !== null && isRebaseConflictState(conflictState)) {
-        this.setBanner({
-          type: BannerType.SuccessfulRebase,
-          targetBranch: conflictState.targetBranch,
-        })
-
-        if (tip.kind === TipState.Valid) {
-          this.addRebasedBranchToForcePushList(
-            repository,
-            tip,
-            conflictState.originalBranchTip
-          )
-        }
+    if (
+      result === RebaseResult.CompletedWithoutError &&
+      conflictState !== null &&
+      isRebaseConflictState(conflictState)
+    ) {
+      if (tip.kind === TipState.Valid) {
+        this.addRebasedBranchToForcePushList(
+          repository,
+          tip,
+          conflictState.originalBranchTip
+        )
       }
+
+      await this.refreshRepository(repository)
     }
 
     return result
