@@ -211,6 +211,7 @@ import {
   RebaseFlowStep,
   RebaseStep,
   ShowConflictsStep,
+  ConfirmAbortStep,
 } from '../../models/rebase-flow-step'
 import { RebasePreview } from '../../models/rebase'
 
@@ -1720,6 +1721,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return true
   }
 
+  /**
+   * Push changes from latest conflicts into current rebase flow step, if needed
+   */
   private updateRebaseFlowConflictsIfFound(repository: Repository) {
     const { changesState, rebaseState } = this.repositoryStateCache.get(
       repository
@@ -1731,18 +1735,29 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const { step } = rebaseState
-    if (step === null || step.kind !== RebaseStep.ShowConflicts) {
+    if (step === null) {
       return
     }
 
-    const updatedStep: ShowConflictsStep = {
-      kind: RebaseStep.ShowConflicts,
-      conflictState,
-    }
+    if (step.kind === RebaseStep.ShowConflicts) {
+      const updatedStep: ShowConflictsStep = {
+        kind: RebaseStep.ShowConflicts,
+        conflictState,
+      }
 
-    this.repositoryStateCache.updateRebaseState(repository, () => ({
-      step: updatedStep,
-    }))
+      this.repositoryStateCache.updateRebaseState(repository, () => ({
+        step: updatedStep,
+      }))
+    } else if (step.kind === RebaseStep.ConfirmAbort) {
+      const updatedStep: ConfirmAbortStep = {
+        kind: RebaseStep.ConfirmAbort,
+        conflictState,
+      }
+
+      this.repositoryStateCache.updateRebaseState(repository, () => ({
+        step: updatedStep,
+      }))
+    }
   }
 
   private async _triggerConflictsFlow(repository: Repository) {
