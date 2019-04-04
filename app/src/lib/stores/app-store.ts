@@ -2393,10 +2393,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _closePopup(popupType?: PopupType): Promise<void> {
+  public _closePopup(popupType?: PopupType) {
     const currentPopup = this.currentPopup
     if (currentPopup == null) {
-      return Promise.resolve()
+      return
     }
 
     if (currentPopup.type === PopupType.CloneRepository) {
@@ -2404,13 +2404,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     if (popupType !== undefined && currentPopup.type !== popupType) {
-      return Promise.resolve()
+      return
     }
 
     this.currentPopup = null
     this.emitUpdate()
-
-    return Promise.resolve()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */

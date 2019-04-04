@@ -285,7 +285,7 @@ export class Dispatcher {
    *
    * @param popupType only close the popup if it matches this `PopupType`
    */
-  public closePopup(popupType?: PopupType): Promise<void> {
+  public closePopup(popupType?: PopupType) {
     return this.appStore._closePopup(popupType)
   }
 
