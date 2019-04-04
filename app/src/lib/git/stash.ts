@@ -155,20 +155,32 @@ export async function dropDesktopStashEntry(
 }
 
 /**
- * Applies the stash entry identified by matching `stashSha` to its commit hash.
+ * Pops the stash entry identified by matching `stashSha` to its commit hash.
  *
  * To see the commit hash of stash entry, run
  * `git log -g refs/stash --pretty="%nentry: %gd%nsubject: %gs%nhash: %H%n"`
  * in a repo with some stash entries.
  */
-export async function applyStashEntry(
+export async function popStashEntry(
   repository: Repository,
   stashSha: string
 ): Promise<void> {
+  // get the latest name for the stash entry since it may have changed
+  const stashEntries = await getDesktopStashEntries(repository)
+
+  if (stashEntries.length === 0) {
+    return
+  }
+
+  const stashToPop = stashEntries.find(e => e.stashSha === stashSha)
+  if (stashToPop === undefined) {
+    return
+  }
+
   await git(
-    ['stash', 'apply', `${stashSha}`],
+    ['stash', 'pop', `${stashToPop.name}`],
     repository.path,
-    'applyStashEntry'
+    'popStashEntry'
   )
 }
 

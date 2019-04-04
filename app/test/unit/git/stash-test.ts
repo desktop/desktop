@@ -10,7 +10,7 @@ import {
   getLastDesktopStashEntryForBranch,
   dropDesktopStashEntry,
   IStashEntry,
-  applyStashEntry,
+  popStashEntry,
 } from '../../../src/lib/git/stash'
 import { getTipOrError } from '../../helpers/tip'
 import { getStatusOrThrow } from '../../helpers/status'
@@ -238,7 +238,7 @@ describe('git/stash', () => {
       expect(files).toHaveLength(0)
 
       const entryToApply = entries[0]
-      await applyStashEntry(repository, entryToApply.stashSha)
+      await popStashEntry(repository, entryToApply.stashSha)
 
       status = await getStatusOrThrow(repository)
       files = status.workingDirectory.files
