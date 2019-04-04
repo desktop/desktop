@@ -9,9 +9,12 @@ import { RebaseConflictState } from '../../lib/app-state'
 
 import { Repository } from '../../models/repository'
 import { RebaseStep, RebaseFlowState } from '../../models/rebase-flow-state'
-import { RebaseProgressSummary } from '../../models/rebase'
+import { RebaseProgressSummary, RebasePreview } from '../../models/rebase'
 import { IRebaseProgress } from '../../models/progress'
 import { WorkingDirectoryStatus } from '../../models/status'
+import { CommitOneLine } from '../../models/commit'
+import { Branch } from '../../models/branch'
+import { ComputedAction } from '../../models/computed-action'
 
 import { Dispatcher } from '../dispatcher'
 
@@ -19,7 +22,6 @@ import { ChooseBranchDialog } from './choose-branch'
 import { ShowConflictedFilesDialog } from './show-conflicted-files-dialog'
 import { RebaseProgressDialog } from './progress-dialog'
 import { ConfirmAbortDialog } from './confirm-abort-dialog'
-import { CommitOneLine } from '../../models/commit'
 
 interface IRebaseFlowProps {
   /**
@@ -30,6 +32,7 @@ interface IRebaseFlowProps {
 
   readonly repository: Repository
   readonly dispatcher: Dispatcher
+  readonly emoji: Map<string, string>
 
   /** The current state of the working directory */
   readonly workingDirectory: WorkingDirectoryStatus
@@ -67,18 +70,20 @@ interface IRebaseFlowProps {
 }
 
 interface IRebaseFlowState {
-  /** The current step in the rebase flow */
+  /**
+   * The current step in the rebase flow, containing application-specific
+   * state needed for the UI components.
+   */
   readonly step: RebaseFlowState
 
-  /**
-   * Tracking the tip of the repository when conflicts were last resolved to
-   * ensure the flow returns to displaying conflicts only when the rebase
-   * proceeds, and not as a side-effect of other prop changes.
-   */
-  readonly lastResolvedConflictsTip: string | null
-
-  /** Progress information about the current rebase */
+  /** Git progress information about the current rebase */
   readonly progress: RebaseProgressSummary
+
+  /**
+   * A preview of the rebase, using the selected base branch to test whether the
+   * current branch will be cleanly applied.
+   */
+  readonly rebasePreview: RebasePreview | null
 
   /**
    * Track whether the user has done work to resolve conflicts as part of this
@@ -86,6 +91,13 @@ interface IRebaseFlowState {
    * abort the rebase and lose that work.
    */
   readonly userHasResolvedConflicts: boolean
+
+  /**
+   * Tracking the tip of the repository when conflicts were last resolved to
+   * ensure the flow returns to displaying conflicts only when the rebase
+   * proceeds, and not as a side-effect of other prop changes.
+   */
+  readonly lastResolvedConflictsTip: string | null
 }
 
 /** A component for initiating and performing a rebase of the current branch. */
@@ -93,6 +105,8 @@ export class RebaseFlow extends React.Component<
   IRebaseFlowProps,
   IRebaseFlowState
 > {
+  private ignoreUpdateEvents = false
+
   public constructor(props: IRebaseFlowProps) {
     super(props)
 
@@ -105,7 +119,24 @@ export class RebaseFlow extends React.Component<
         commits: [],
       },
       userHasResolvedConflicts: false,
+      rebasePreview: null,
     }
+
+    const { step } = this.state
+
+    if (
+      step.kind === RebaseStep.ShowConflicts &&
+      step.previousProgress !== null
+    ) {
+      this.state = {
+        ...this.state,
+        progress: step.previousProgress,
+      }
+    }
+  }
+
+  public componentWillUnmount() {
+    this.ignoreUpdateEvents = true
   }
 
   public async componentDidUpdate() {
@@ -126,12 +157,17 @@ export class RebaseFlow extends React.Component<
             targetBranch,
             workingDirectory,
             manualResolutions,
+            previousProgress: null,
           },
         })
       } else if (this.state.progress.value >= 1) {
         // waiting before the CSS animation to give the progress UI a chance to
         // show it reaches 100%
         await timeout(1000)
+
+        if (this.ignoreUpdateEvents) {
+          return
+        }
 
         this.setState(
           {
@@ -169,6 +205,46 @@ export class RebaseFlow extends React.Component<
     }
   }
 
+  private testRebaseOperation = (baseBranch: Branch) => {
+    const { step } = this.state
+    if (step.kind !== RebaseStep.ChooseBranch) {
+      log.warn(`[RebaseFlow] testRebaseOperation invoked but on the wrong step`)
+      return
+    }
+
+    this.setState(
+      () => ({
+        rebasePreview: {
+          kind: ComputedAction.Loading,
+        },
+      }),
+      async () => {
+        const commits = await getCommitsInRange(
+          this.props.repository,
+          baseBranch.tip.sha,
+          step.currentBranch.tip.sha
+        )
+
+        // TODO: in what situations might this not be possible to compute
+
+        // TODO: check if this is a fast-forward (i.e. the selected branch is
+        //       a direct descendant of the base branch) because this is a
+        //       trivial rebase
+
+        // TODO: generate the patches associated with these commits and see if
+        //       they will apply to the base branch - if it fails, there will be
+        //       conflicts to come
+
+        this.setState(() => ({
+          rebasePreview: {
+            kind: ComputedAction.Clean,
+            commits,
+          },
+        }))
+      }
+    )
+  }
+
   private moveToShowConflictedFileState = () => {
     const { workingDirectory, conflictState } = this.props
 
@@ -185,11 +261,14 @@ export class RebaseFlow extends React.Component<
         targetBranch,
         workingDirectory,
         manualResolutions,
+        previousProgress: null,
       },
     })
   }
 
   private updateProgress = (progress: IRebaseProgress) => {
+    const { rebasedCommitCount, value, currentCommitSummary } = progress
+
     // this ensures the progress bar fills to 100%, while `componentDidUpdate`
     // detects and handles the state transition after a period of time to ensure
     // the UI shows _something_ before closing the dialog
@@ -197,7 +276,9 @@ export class RebaseFlow extends React.Component<
       const { commits } = prevState.progress
       return {
         progress: {
-          ...progress,
+          rebasedCommitCount,
+          value,
+          currentCommitSummary,
           commits,
         },
       }
@@ -205,16 +286,32 @@ export class RebaseFlow extends React.Component<
   }
 
   private moveToCompletedState = () => {
+    if (this.ignoreUpdateEvents) {
+      return
+    }
+
     // this ensures the progress bar fills to 100%, while `componentDidUpdate`
     // detects and handles the state transition after a period of time to ensure
     // the UI shows _something_ before closing the dialog
     this.setState(prevState => {
+      let currentCommitSummary: string | undefined = undefined
+
+      const { rebasePreview: rebaseStatus } = prevState
+
+      if (rebaseStatus !== null && rebaseStatus.kind === ComputedAction.Clean) {
+        const { commits } = rebaseStatus
+        if (commits.length > 0) {
+          const last = commits.length - 1
+          currentCommitSummary = commits[last].summary
+        }
+      }
+
       const { commits } = prevState.progress
-      const rebasedCommitCount = commits.length
       return {
         progress: {
           value: 1,
-          rebasedCommitCount,
+          currentCommitSummary,
+          rebasedCommitCount: commits.length,
           commits,
         },
       }
@@ -224,11 +321,13 @@ export class RebaseFlow extends React.Component<
   private onStartRebase = async (
     baseBranch: string,
     targetBranch: string,
-    totalCommitCount: number
+    commits: ReadonlyArray<CommitOneLine>
   ) => {
     if (this.state.step.kind !== RebaseStep.ChooseBranch) {
       throw new Error(`Invalid step to start rebase: ${this.state.step.kind}`)
     }
+
+    const totalCommitCount = commits.length
 
     const startRebaseAction = async () => {
       const result = await this.props.dispatcher.rebase(
@@ -247,38 +346,26 @@ export class RebaseFlow extends React.Component<
       }
     }
 
-    // TODO:
-    // clean this up in https://github.com/desktop/desktop/pull/7167 as
-    // the commits will be checked in the ChooseBranch step and passed into
-    // here to start the rebase
-    let commits: ReadonlyArray<CommitOneLine> = []
+    this.setState(() => {
+      const currentCommitSummary =
+        commits.length > 0 ? commits[0].summary : undefined
 
-    try {
-      commits = await getCommitsInRange(
-        this.props.repository,
-        baseBranch,
-        targetBranch
-      )
-    } catch (err) {
-      log.warn(
-        `Unexpected error while getting commits that will be part of the rebase`,
-        err
-      )
-    }
+      const rebasedCommitCount = 1
+      const newProgressValue = rebasedCommitCount / commits.length
 
-    this.setState(() => ({
-      step: {
-        kind: RebaseStep.ShowProgress,
-        rebaseAction: startRebaseAction,
-      },
-      progress: {
-        value: 0,
-        rebasedCommitCount: 1,
-        totalCommitCount,
-
-        commits,
-      },
-    }))
+      return {
+        step: {
+          kind: RebaseStep.ShowProgress,
+          rebaseAction: startRebaseAction,
+        },
+        progress: {
+          commits,
+          value: formatRebaseValue(newProgressValue),
+          rebasedCommitCount,
+          currentCommitSummary,
+        },
+      }
+    })
   }
 
   private onContinueRebase = async () => {
@@ -317,6 +404,9 @@ export class RebaseFlow extends React.Component<
       const newProgressValue = newCount / commits.length
       const value = formatRebaseValue(newProgressValue)
 
+      const currentCommitSummary =
+        newCount <= commits.length ? commits[newCount - 1].summary : undefined
+
       return {
         step: {
           kind: RebaseStep.ShowProgress,
@@ -326,6 +416,7 @@ export class RebaseFlow extends React.Component<
           value,
           rebasedCommitCount: newCount,
           commits,
+          currentCommitSummary,
         },
       }
     })
@@ -404,6 +495,8 @@ export class RebaseFlow extends React.Component<
             initialBranch={initialBranch}
             onDismissed={onFlowEnded}
             onStartRebase={this.onStartRebase}
+            onBranchChanged={this.testRebaseOperation}
+            rebasePreviewStatus={this.state.rebasePreview}
           />
         )
       }
@@ -411,6 +504,7 @@ export class RebaseFlow extends React.Component<
         return (
           <RebaseProgressDialog
             progress={this.state.progress}
+            emoji={this.props.emoji}
             rebaseAction={step.rebaseAction}
           />
         )
