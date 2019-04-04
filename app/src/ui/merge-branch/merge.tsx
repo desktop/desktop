@@ -15,7 +15,7 @@ import { revSymmetricDifference } from '../../lib/git'
 import { IMatches } from '../../lib/fuzzy-find'
 import { MergeResult } from '../../models/merge'
 import { ComputedAction } from '../../models/computed-action'
-import { MergeStatusHeader } from '../history/merge-status-header'
+import { ActionStatusIcon } from '../lib/action-status-icon'
 import { promiseWithMinimumTimeout } from '../../lib/promise'
 import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
 
@@ -126,7 +126,10 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
 
     return (
       <div className="merge-status-component">
-        <MergeStatusHeader status={this.state.mergeStatus} />
+        <ActionStatusIcon
+          status={this.state.mergeStatus}
+          classNamePrefix="merge-status"
+        />
         <p className="merge-info">
           {this.renderMergeStatusMessage(
             mergeStatus,

@@ -234,7 +234,7 @@ class GitRebaseParser {
       return null
     }
 
-    const commitSummary = match[1]
+    const currentCommitSummary = match[1]
     this.rebasedCommitCount++
 
     const progress = this.rebasedCommitCount / this.totalCommitCount
@@ -248,7 +248,7 @@ class GitRebaseParser {
       value,
       rebasedCommitCount: this.rebasedCommitCount,
       totalCommitCount: this.totalCommitCount,
-      commitSummary,
+      currentCommitSummary,
     }
   }
 }

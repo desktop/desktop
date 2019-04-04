@@ -326,9 +326,11 @@ export class Dispatcher {
       conflictState: updatedConflictState,
     }))
 
-    const initialState = initializeRebaseFlowForConflictedRepository(
+    const initialState = await initializeRebaseFlowForConflictedRepository(
+      repository,
       updatedConflictState
     )
+
     this.showPopup({
       type: PopupType.RebaseFlow,
       repository,
