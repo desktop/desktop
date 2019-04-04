@@ -4539,6 +4539,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     await popStashEntry(repository, stash.stashSha)
+    log.warn(`Popped stash with commit id ${stash.stashSha}`)
   }
 
   public _showStashEntry(repository: Repository) {
