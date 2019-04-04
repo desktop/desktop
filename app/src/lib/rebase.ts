@@ -46,7 +46,6 @@ export function initializeNewRebaseFlow(state: IRepositoryState) {
  * This indicates a rebase is in progress, and the application needs to guide
  * the user to resolve conflicts and complete the rebae.
  *
- * @param repository the repository dealing with conflicts
  * @param conflictState current set of conflicts
  */
 export function initializeRebaseFlowForConflictedRepository(
