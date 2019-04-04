@@ -5,14 +5,14 @@ import { Button } from '../lib/button'
 
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { OcticonSymbol, Octicon } from '../octicons'
+import { ConfirmAbortStep } from '../../models/rebase-flow-step'
 
 const titleString = 'Confirm abort rebase'
 const cancelButtonString = 'Cancel'
 const abortButtonString = 'Abort rebase'
 
 interface IConfirmAbortDialogProps {
-  readonly baseBranch?: string
-  readonly targetBranch: string
+  readonly step: ConfirmAbortStep
 
   readonly onReturnToConflicts: () => void
   readonly onConfirmAbort: () => Promise<void>
@@ -85,6 +85,8 @@ export class ConfirmAbortDialog extends React.Component<
   }
 
   public render() {
+    const { targetBranch, baseBranch } = this.props.step.conflictState
+
     return (
       <Dialog
         id="abort-merge-warning"
@@ -96,10 +98,7 @@ export class ConfirmAbortDialog extends React.Component<
       >
         <DialogContent className="content-wrapper">
           <Octicon symbol={OcticonSymbol.alert} />
-          {this.renderTextContent(
-            this.props.targetBranch,
-            this.props.baseBranch
-          )}
+          {this.renderTextContent(targetBranch, baseBranch)}
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>

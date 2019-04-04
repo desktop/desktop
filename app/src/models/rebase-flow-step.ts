@@ -98,8 +98,7 @@ export type HideConflictsStep = {
 /** Shape of data to use when confirming user should abort rebase */
 export type ConfirmAbortStep = {
   readonly kind: RebaseStep.ConfirmAbort
-  readonly targetBranch: string
-  readonly baseBranch?: string
+  readonly conflictState: RebaseConflictState
 }
 
 /** Shape of data to track when rebase has completed successfully */

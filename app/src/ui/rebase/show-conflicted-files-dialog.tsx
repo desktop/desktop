@@ -24,7 +24,6 @@ import { renderUnmergedFile } from '../lib/conflicts/unmerged-file'
 
 import { DialogContent, Dialog, DialogFooter } from '../dialog'
 import { Dispatcher } from '../dispatcher'
-import { RebaseConflictState } from '../../lib/app-state'
 import { ShowConflictsStep } from '../../models/rebase-flow-step'
 
 interface IShowConflictedFilesDialogProps {
@@ -34,7 +33,6 @@ interface IShowConflictedFilesDialogProps {
   readonly step: ShowConflictsStep
 
   readonly userHasResolvedConflicts: boolean
-  readonly conflictState: RebaseConflictState
   readonly workingDirectory: WorkingDirectoryStatus
 
   readonly onDismissed: () => void
@@ -68,12 +66,8 @@ export class ShowConflictedFilesDialog extends React.Component<
   }
 
   public componentWillUnmount() {
-    const {
-      workingDirectory,
-      conflictState,
-      userHasResolvedConflicts,
-    } = this.props
-
+    const { workingDirectory, step, userHasResolvedConflicts } = this.props
+    const { conflictState } = step
     const { manualResolutions } = conflictState
 
     // skip this work once we know conflicts have been resolved
@@ -137,7 +131,7 @@ export class ShowConflictedFilesDialog extends React.Component<
       manualResolutions,
       targetBranch,
       baseBranch,
-    } = this.props.conflictState
+    } = this.props.step.conflictState
 
     return (
       <ul className="unmerged-file-statuses">
@@ -178,8 +172,8 @@ export class ShowConflictedFilesDialog extends React.Component<
   }
 
   public render() {
-    const { workingDirectory, conflictState } = this.props
-    const { manualResolutions, targetBranch, baseBranch } = conflictState
+    const { workingDirectory, step } = this.props
+    const { manualResolutions, targetBranch, baseBranch } = step.conflictState
 
     const unmergedFiles = getUnmergedFiles(workingDirectory)
     const conflictedFilesCount = getConflictedFiles(

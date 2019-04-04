@@ -160,14 +160,14 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
 
   private onConfirmAbortRebase = (step: ShowConflictsStep) => {
     const { workingDirectory, userHasResolvedConflicts } = this.props
-    const { manualResolutions, targetBranch, baseBranch } = step.conflictState
+    const { conflictState } = step
+    const { manualResolutions } = conflictState
 
     if (userHasResolvedConflicts) {
       // a previous commit was resolved by the user
       this.props.dispatcher.setRebaseFlowStep(this.props.repository, {
         kind: RebaseStep.ConfirmAbort,
-        targetBranch,
-        baseBranch,
+        conflictState,
       })
       return
     }
@@ -181,8 +181,7 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
     if (resolvedConflicts.length > 0) {
       this.props.dispatcher.setRebaseFlowStep(this.props.repository, {
         kind: RebaseStep.ConfirmAbort,
-        targetBranch,
-        baseBranch,
+        conflictState,
       })
     } else {
       this.onAbortRebase()
@@ -246,20 +245,8 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
           openRepositoryInShell,
           dispatcher,
           workingDirectory,
-          conflictState,
           userHasResolvedConflicts,
         } = this.props
-
-        if (conflictState === null) {
-          log.error(
-            '[RebaseFlow] unable to find conflicts for this repository despite being in conflicted state'
-          )
-          log.error(
-            '[RebaseFlow] ending rebase flow as user has likely made changes to the repository from the command line'
-          )
-          this.onFlowEnded()
-          return null
-        }
 
         return (
           <ShowConflictedFilesDialog
@@ -268,7 +255,6 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
             dispatcher={dispatcher}
             step={step}
             showRebaseConflictsBanner={this.showRebaseConflictsBanner}
-            conflictState={conflictState}
             workingDirectory={workingDirectory}
             userHasResolvedConflicts={userHasResolvedConflicts}
             resolvedExternalEditor={resolvedExternalEditor}
@@ -282,13 +268,11 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
       }
 
       case RebaseStep.ConfirmAbort:
-        const { targetBranch, baseBranch } = step
         return (
           <ConfirmAbortDialog
+            step={step}
             onConfirmAbort={this.onAbortRebase}
             onReturnToConflicts={this.moveToShowConflictedFileState}
-            targetBranch={targetBranch}
-            baseBranch={baseBranch}
           />
         )
       case RebaseStep.HideConflicts:
