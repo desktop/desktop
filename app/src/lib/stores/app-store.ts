@@ -207,12 +207,7 @@ import {
 import { Banner, BannerType } from '../../models/banner'
 import { isDarkModeEnabled } from '../../ui/lib/dark-theme'
 import { ComputedAction } from '../../models/computed-action'
-import {
-  RebaseFlowStep,
-  RebaseStep,
-  ShowConflictsStep,
-  ConfirmAbortStep,
-} from '../../models/rebase-flow-step'
+import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { RebasePreview } from '../../models/rebase'
 
 /**
@@ -1740,22 +1735,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     if (step.kind === RebaseStep.ShowConflicts) {
-      const updatedStep: ShowConflictsStep = {
-        kind: RebaseStep.ShowConflicts,
-        conflictState,
-      }
-
       this.repositoryStateCache.updateRebaseState(repository, () => ({
-        step: updatedStep,
+        step: { ...step, conflictState },
       }))
     } else if (step.kind === RebaseStep.ConfirmAbort) {
-      const updatedStep: ConfirmAbortStep = {
-        kind: RebaseStep.ConfirmAbort,
-        conflictState,
-      }
-
       this.repositoryStateCache.updateRebaseState(repository, () => ({
-        step: updatedStep,
+        step: { ...step, conflictState },
       }))
     }
   }
