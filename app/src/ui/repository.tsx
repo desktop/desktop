@@ -284,7 +284,14 @@ export class RepositoryView extends React.Component<
           return null
         }
 
-        return renderStashDiff({ stashEntry })
+        return renderStashDiff({
+          stashEntry,
+          availableWidth: this.props.sidebarWidth - 1,
+          externalEditorLabel: this.props.externalEditorLabel,
+          onOpenInExternalEditor: this.props.onOpenInExternalEditor,
+          repository: this.props.repository,
+          dispatcher: this.props.dispatcher,
+        })
       }
 
       if (selectedFileIDs.length > 1) {
