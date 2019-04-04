@@ -2393,9 +2393,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _closePopup(): Promise<void> {
+  public _closePopup(popupType?: PopupType): Promise<void> {
     const currentPopup = this.currentPopup
     if (currentPopup == null) {
+      return Promise.resolve()
+    }
+
+    if (popupType !== undefined && currentPopup.type !== popupType) {
       return Promise.resolve()
     }
 
@@ -3681,11 +3685,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  public _clearBanner() {
-    if (this.currentBanner !== null) {
-      this.currentBanner = null
-      this.emitUpdate()
+  public _clearBanner(bannerType?: BannerType) {
+    if (this.currentBanner === null) {
+      return
     }
+
+    if (bannerType !== undefined && this.currentBanner.type !== bannerType) {
+      return
+    }
+
+    this.currentBanner = null
+    this.emitUpdate()
   }
 
   public _setDivergingBranchBannerVisibility(

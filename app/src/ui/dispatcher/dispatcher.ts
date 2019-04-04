@@ -66,7 +66,7 @@ import {
 } from '../../models/status'
 import { TipState, IValidBranch } from '../../models/tip'
 import { RebaseProgressOptions } from '../../models/rebase'
-import { Banner } from '../../models/banner'
+import { Banner, BannerType } from '../../models/banner'
 
 import { ApplicationTheme } from '../lib/application-theme'
 import { installCLI } from '../lib/install-cli'
@@ -280,9 +280,13 @@ export class Dispatcher {
     return this.appStore._showPopup(popup)
   }
 
-  /** Close the current popup. */
-  public closePopup(): Promise<void> {
-    return this.appStore._closePopup()
+  /**
+   * Close the current popup (or optionally a specific type of popup).
+   *
+   * @param popupType only close the popup if it matches this `PopupType`
+   */
+  public closePopup(popupType?: PopupType): Promise<void> {
+    return this.appStore._closePopup(popupType)
   }
 
   /** Show the foldout. This will close any current popup. */
@@ -536,10 +540,12 @@ export class Dispatcher {
   }
 
   /**
-   * Clear the current banner from the application (if set)
+   * Close the current banner (or optionally only close specific banner).
+   *
+   * @param popupType only close the banner if it matches this `BannerType`
    */
-  public clearBanner() {
-    return this.appStore._clearBanner()
+  public clearBanner(bannerType?: BannerType) {
+    return this.appStore._clearBanner(bannerType)
   }
 
   /**
