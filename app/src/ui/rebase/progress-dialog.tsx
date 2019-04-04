@@ -30,8 +30,8 @@ export class RebaseProgressDialog extends React.Component<
       currentCommitSummary,
     } = this.props.progress
 
-    // ensure progress always starts from 0
-    const count = rebasedCommitCount === 0 ? 1 : rebasedCommitCount
+    // ensure progress always starts from 1
+    const count = rebasedCommitCount <= 1 ? 1 : rebasedCommitCount
 
     const progressValue = formatRebaseValue(value)
     return (
