@@ -1608,7 +1608,6 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispatcher={this.props.dispatcher}
             onFlowEnded={this.onRebaseFlowEnded}
             workingDirectory={workingDirectory}
-            conflictState={conflictState}
             progress={progress}
             step={step}
             preview={preview}

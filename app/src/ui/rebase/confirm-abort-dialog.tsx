@@ -14,7 +14,7 @@ const abortButtonString = 'Abort rebase'
 interface IConfirmAbortDialogProps {
   readonly step: ConfirmAbortStep
 
-  readonly onReturnToConflicts: () => void
+  readonly onReturnToConflicts: (step: ConfirmAbortStep) => void
   readonly onConfirmAbort: () => Promise<void>
 }
 
@@ -49,7 +49,7 @@ export class ConfirmAbortDialog extends React.Component<
    *  Dismisses the modal and shows the rebase conflicts modal
    */
   private onCancel = async () => {
-    await this.props.onReturnToConflicts()
+    await this.props.onReturnToConflicts(this.props.step)
   }
 
   private renderTextContent(targetBranch: string, baseBranch?: string) {

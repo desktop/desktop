@@ -1,13 +1,13 @@
 import * as React from 'react'
 
 import { assertNever } from '../../lib/fatal-error'
-import { RebaseConflictState } from '../../lib/app-state'
 
 import { Repository } from '../../models/repository'
 import {
   RebaseStep,
   RebaseFlowStep,
   ShowConflictsStep,
+  ConfirmAbortStep,
 } from '../../models/rebase-flow-step'
 import { GitRebaseProgress, RebasePreview } from '../../models/rebase'
 import { WorkingDirectoryStatus } from '../../models/status'
@@ -28,14 +28,6 @@ interface IRebaseFlowProps {
 
   /** The current state of the working directory */
   readonly workingDirectory: WorkingDirectoryStatus
-
-  /**
-   * Snapshot of conflicts in the current repository
-   *
-   * Will be `null` while the rebase is in progress but has not encountered
-   * conflicts.
-   */
-  readonly conflictState: RebaseConflictState | null
 
   /**
    * The current step in the rebase flow, containing application-specific
@@ -93,14 +85,8 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
     }
   }
 
-  private moveToShowConflictedFileState = () => {
-    const { conflictState } = this.props
-
-    if (conflictState === null) {
-      log.error('[RebaseFlow] unable to detect conflicts for this repository')
-      return
-    }
-
+  private moveToShowConflictedFileState = (step: ConfirmAbortStep) => {
+    const { conflictState } = step
     this.props.dispatcher.setRebaseFlowStep(this.props.repository, {
       kind: RebaseStep.ShowConflicts,
       conflictState,
