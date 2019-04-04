@@ -374,7 +374,7 @@ async function getConflictDetails(
     if (mergeHeadFound) {
       return await getMergeConflictDetails(repository)
     }
-    
+
     if (rebaseInternalState !== null) {
       return await getRebaseConflictDetails(repository)
     }
