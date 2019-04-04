@@ -112,10 +112,6 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
     targetBranch: string,
     commits: ReadonlyArray<CommitOneLine>
   ) => {
-    if (this.props.step.kind !== RebaseStep.ChooseBranch) {
-      throw new Error(`Invalid step to start rebase: ${this.props.step.kind}`)
-    }
-
     this.props.dispatcher.initializeRebaseProgress(
       this.props.repository,
       commits
