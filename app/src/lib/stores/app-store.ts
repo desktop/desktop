@@ -3685,12 +3685,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public _clearBanner(bannerType?: BannerType) {
-    if (this.currentBanner === null) {
+    const { currentBanner } = this
+    if (currentBanner === null) {
       return
     }
 
-    if (bannerType !== undefined && this.currentBanner.type !== bannerType) {
+    if (bannerType !== undefined && currentBanner.type !== bannerType) {
       return
     }
 
