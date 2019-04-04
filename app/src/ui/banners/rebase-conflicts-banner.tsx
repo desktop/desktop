@@ -18,7 +18,7 @@ export class RebaseConflictsBanner extends React.Component<
   IRebaseConflictsBannerProps,
   {}
 > {
-  private openDialog = () => {
+  private openDialog = async () => {
     this.props.onDismissed()
     this.props.onOpenDialog()
     this.props.dispatcher.recordRebaseConflictsDialogReopened()
