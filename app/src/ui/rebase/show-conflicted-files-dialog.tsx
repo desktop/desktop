@@ -38,7 +38,7 @@ interface IShowConflictedFilesDialogProps {
   readonly workingDirectory: WorkingDirectoryStatus
 
   readonly onDismissed: () => void
-  readonly onContinueRebase: () => void
+  readonly onContinueRebase: (step: ShowConflictsStep) => void
   readonly onAbortRebase: (step: ShowConflictsStep) => void
   readonly showRebaseConflictsBanner: (step: ShowConflictsStep) => void
 
@@ -105,7 +105,7 @@ export class ShowConflictedFilesDialog extends React.Component<
   }
 
   private onSubmit = async () => {
-    this.props.onContinueRebase()
+    this.props.onContinueRebase(this.props.step)
   }
 
   private renderHeaderTitle(targetBranch: string, baseBranch?: string) {

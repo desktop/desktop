@@ -135,17 +135,8 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
     })
   }
 
-  private onContinueRebase = async () => {
-    if (this.props.step.kind !== RebaseStep.ShowConflicts) {
-      throw new Error(
-        `Invalid step to continue rebase: ${this.props.step.kind}`
-      )
-    }
-
-    const { conflictState } = this.props
-    if (conflictState === null) {
-      throw new Error(`No conflicted files found, unable to continue rebase`)
-    }
+  private onContinueRebase = async (step: ShowConflictsStep) => {
+    const { conflictState } = step
 
     const continueRebaseAction = () => {
       return this.props.dispatcher.continueRebase(
