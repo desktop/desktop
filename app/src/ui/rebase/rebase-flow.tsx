@@ -138,7 +138,7 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
   private onContinueRebase = async () => {
     if (this.props.step.kind !== RebaseStep.ShowConflicts) {
       throw new Error(
-        `Invalid step to continue rebase rebase: ${this.props.step.kind}`
+        `Invalid step to continue rebase: ${this.props.step.kind}`
       )
     }
 
