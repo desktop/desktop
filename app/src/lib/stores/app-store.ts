@@ -3427,7 +3427,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _setRebaseProgressFromState = async (repository: Repository) => {
+  public async _setRebaseProgressFromState(repository: Repository) {
     const snapshot = await getRebaseSnapshot(repository)
     if (snapshot === null) {
       return
