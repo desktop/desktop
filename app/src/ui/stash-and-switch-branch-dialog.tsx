@@ -7,6 +7,7 @@ import { Row } from './lib/row'
 import { Branch } from '../models/branch'
 import { ButtonGroup } from './lib/button-group'
 import { Button } from './lib/button'
+import { UncommittedChangesStrategy } from '../models/uncommitted-changes-strategy'
 
 enum StashOptions {
   StashChanges = 0,
@@ -14,7 +15,7 @@ enum StashOptions {
 }
 interface ISwitchBranchProps {
   readonly repository: Repository
-  readonly dispathcer: Dispatcher
+  readonly dispatcher: Dispatcher
   readonly currentBranch: Branch
   readonly branchToCheckout: Branch
   readonly onDismissed: () => void
@@ -93,19 +94,23 @@ export class StashAndSwitchBranch extends React.Component<
   }
 
   private onSubmit = async () => {
-    const {
-      repository,
-      currentBranch,
-      branchToCheckout,
-      dispathcer,
-    } = this.props
+    const { repository, branchToCheckout, dispatcher } = this.props
+    const { selectedOption } = this.state
 
-    const whereToStash =
-      this.state.selectedOption === StashOptions.StashChanges
-        ? currentBranch
-        : branchToCheckout
-    await dispathcer.createStash(repository, whereToStash)
-    await dispathcer.checkoutBranch(repository, branchToCheckout, true)
+    if (selectedOption === StashOptions.StashChanges) {
+      await dispatcher.checkoutBranch(
+        repository,
+        branchToCheckout,
+        UncommittedChangesStrategy.stashOnCurrentBranch
+      )
+    } else if (selectedOption === StashOptions.BringChangesToBranch) {
+      await dispatcher.checkoutBranch(
+        repository,
+        branchToCheckout,
+        UncommittedChangesStrategy.moveToNewBranch
+      )
+    }
+
     this.props.onDismissed()
   }
 }
