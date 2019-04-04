@@ -2536,7 +2536,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       })
     }
 
-    const { branchesState } = this.repositoryStateCache.get(repository)
     const { defaultBranch } = branchesState
     if (defaultBranch !== null && foundBranch.name !== defaultBranch.name) {
       this.statsStore.recordNonDefaultBranchCheckout()
