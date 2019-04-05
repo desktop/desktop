@@ -74,7 +74,10 @@ export class StashAndSwitchBranch extends React.Component<
   }
 
   private renderStashOverwriteWarning() {
-    if (!this.props.hasAssociatedStash) {
+    if (
+      !this.props.hasAssociatedStash ||
+      this.state.selectedStashAction !== StashAction.StashOnCurrentBranch
+    ) {
       return null
     }
 
