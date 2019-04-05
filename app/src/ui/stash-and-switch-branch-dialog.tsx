@@ -50,7 +50,7 @@ export class StashAndSwitchBranch extends React.Component<
         loading={isStashingChanges}
         disabled={isStashingChanges}
       >
-        <DialogContent>{this.renderOptions()}</DialogContent>
+        <DialogContent>{this.renderStashActions()}</DialogContent>
         <DialogFooter>
           <ButtonGroup>
             <Button type="submit">
@@ -63,7 +63,7 @@ export class StashAndSwitchBranch extends React.Component<
     )
   }
 
-  private renderOptions() {
+  private renderStashActions() {
     const { branchToCheckout } = this.props
     const items = [
       {
@@ -89,8 +89,8 @@ export class StashAndSwitchBranch extends React.Component<
     )
   }
 
-  private onSelectionChanged = (selection: StashAction) => {
-    this.setState({ selectedStashAction: selection })
+  private onSelectionChanged = (action: StashAction) => {
+    this.setState({ selectedStashAction: action })
   }
 
   private onSubmit = async () => {
