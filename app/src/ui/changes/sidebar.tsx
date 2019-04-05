@@ -70,7 +70,7 @@ interface IChangesSidebarProps {
   readonly onChangesListScrolled: (scrollTop: number) => void
   readonly changesListScrollTop: number
 
-  /** The GitHub Desktop-created stash entry for the current branch or null if no entry exists for this branch */
+  /** The Desktop-created stash entry for the current branch or null if no entry exists */
   readonly stashEntry: IStashEntry | null
 }
 

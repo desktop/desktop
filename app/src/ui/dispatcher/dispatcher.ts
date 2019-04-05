@@ -1765,7 +1765,7 @@ export class Dispatcher {
   }
 
   /**
-   * Stashes all changes in the working director
+   * Stashes all changes, including those in untracked files, in the working directory
    *
    * @param branch the branch the stash should be associated with
    */
@@ -1774,14 +1774,14 @@ export class Dispatcher {
   }
 
   /**
-   * Show the diff UI for a stash entry
+   * Show the UI for stashed changes
    */
   public showStashEntry(repository: Repository) {
     return this.appStore._showStashEntry(repository)
   }
 
   /**
-   * Hide the diff UI for a stash entry
+   * Hide the UI for stashed changes
    */
   public hideStashEntry(repository: Repository) {
     return this.appStore._hideStashEntry(repository)
