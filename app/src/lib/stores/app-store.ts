@@ -22,7 +22,7 @@ import {
 import { BranchesTab } from '../../models/branches-tab'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { CloningRepository } from '../../models/cloning-repository'
-import { Commit, ICommitContext } from '../../models/commit'
+import { Commit, ICommitContext, CommitOneLine } from '../../models/commit'
 import {
   DiffSelection,
   DiffSelectionType,
@@ -52,6 +52,7 @@ import {
   ICheckoutProgress,
   IFetchProgress,
   IRevertProgress,
+  IRebaseProgress,
 } from '../../models/progress'
 import { Popup, PopupType } from '../../models/popup'
 import { IGitAccount } from '../../models/git-account'
@@ -138,6 +139,8 @@ import {
   rebase,
   PushOptions,
   RebaseResult,
+  getRebaseSnapshot,
+  getCommitsInRange,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -152,7 +155,10 @@ import {
   matchGitHubRepository,
   repositoryMatchesRemote,
 } from '../repository-matching'
-import { initializeRebaseFlowForConflictedRepository } from '../rebase'
+import {
+  initializeRebaseFlowForConflictedRepository,
+  formatRebaseValue,
+} from '../rebase'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import {
   Default as DefaultShell,
@@ -172,7 +178,7 @@ import { getWindowState, WindowState } from '../window-state'
 import { TypedBaseStore } from './base-store'
 import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
 import { MergeResult } from '../../models/merge'
-import { promiseWithMinimumTimeout } from '../promise'
+import { promiseWithMinimumTimeout, timeout } from '../promise'
 import { BackgroundFetcher } from './helpers/background-fetcher'
 import { inferComparisonBranch } from './helpers/infer-comparison-branch'
 import { PullRequestUpdater } from './helpers/pull-request-updater'
@@ -199,9 +205,10 @@ import {
   enableGroupRepositoriesByOwner,
 } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
-import { RebaseProgressOptions } from '../../models/rebase'
 import { isDarkModeEnabled } from '../../ui/lib/dark-theme'
 import { ComputedAction } from '../../models/computed-action'
+import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
+import { RebasePreview } from '../../models/rebase'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -1696,6 +1703,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       conflictState: updateConflictState(state, status, this.statsStore),
     }))
 
+    this.updateRebaseFlowConflictsIfFound(repository)
+
     if (this.selectedRepository === repository) {
       this._triggerConflictsFlow(repository)
     }
@@ -1705,6 +1714,35 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.updateChangesDiffForCurrentSelection(repository)
 
     return true
+  }
+
+  /**
+   * Push changes from latest conflicts into current rebase flow step, if needed
+   */
+  private updateRebaseFlowConflictsIfFound(repository: Repository) {
+    const { changesState, rebaseState } = this.repositoryStateCache.get(
+      repository
+    )
+    const { conflictState } = changesState
+
+    if (conflictState === null || isMergeConflictState(conflictState)) {
+      return
+    }
+
+    const { step } = rebaseState
+    if (step === null) {
+      return
+    }
+
+    if (step.kind === RebaseStep.ShowConflicts) {
+      this.repositoryStateCache.updateRebaseState(repository, () => ({
+        step: { ...step, conflictState },
+      }))
+    } else if (step.kind === RebaseStep.ConfirmAbort) {
+      this.repositoryStateCache.updateRebaseState(repository, () => ({
+        step: { ...step, conflictState },
+      }))
+    }
   }
 
   private async _triggerConflictsFlow(repository: Repository) {
@@ -1762,15 +1800,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const initialState = await initializeRebaseFlowForConflictedRepository(
-      repository,
-      conflictState
-    )
+    await this._setRebaseProgressFromState(repository)
+
+    const step = initializeRebaseFlowForConflictedRepository(conflictState)
+
+    this.repositoryStateCache.updateRebaseState(repository, () => ({
+      step,
+    }))
 
     this._showPopup({
       type: PopupType.RebaseFlow,
       repository,
-      initialState,
     })
   }
 
@@ -3433,18 +3473,152 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _setRebaseProgressFromState(repository: Repository) {
+    const snapshot = await getRebaseSnapshot(repository)
+    if (snapshot === null) {
+      return
+    }
+
+    const { progress, commits } = snapshot
+
+    this.repositoryStateCache.updateRebaseState(repository, () => {
+      return {
+        progress,
+        commits,
+      }
+    })
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _initializeRebaseProgress(
+    repository: Repository,
+    commits: ReadonlyArray<CommitOneLine>
+  ) {
+    this.repositoryStateCache.updateRebaseState(repository, () => {
+      const hasCommits = commits.length > 0
+      const firstCommitSummary = hasCommits ? commits[0].summary : null
+
+      return {
+        progress: {
+          value: formatRebaseValue(0),
+          rebasedCommitCount: 0,
+          currentCommitSummary: firstCommitSummary,
+          totalCommitCount: commits.length,
+        },
+        commits,
+      }
+    })
+
+    this.emitUpdate()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _setConflictsResolved(repository: Repository) {
+    // an update is not emitted here because there is no need
+    // to trigger a re-render at this point
+
+    this.repositoryStateCache.updateRebaseState(repository, () => ({
+      userHasResolvedConflicts: true,
+    }))
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _setRebaseFlowStep(
+    repository: Repository,
+    step: RebaseFlowStep
+  ): Promise<void> {
+    this.repositoryStateCache.updateRebaseState(repository, () => ({
+      step,
+    }))
+
+    this.emitUpdate()
+
+    if (step.kind === RebaseStep.ShowProgress && step.rebaseAction !== null) {
+      // this timeout is intended to defer the action from running immediately
+      // after the progress UI is shown, to better show that rebase is
+      // progressing rather than suddenly appearing and disappearing again
+      await timeout(500)
+      await step.rebaseAction()
+    }
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _endRebaseFlow(repository: Repository) {
+    this.repositoryStateCache.updateRebaseState(repository, () => ({
+      step: null,
+      progress: null,
+      commits: null,
+      preview: null,
+      userHasResolvedConflicts: false,
+    }))
+
+    this.emitUpdate()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _previewRebase(
+    repository: Repository,
+    baseBranch: Branch,
+    targetBranch: Branch
+  ) {
+    let preview: RebasePreview = {
+      kind: ComputedAction.Loading,
+    }
+
+    this.repositoryStateCache.updateRebaseState(repository, () => ({
+      preview,
+    }))
+
+    this.emitUpdate()
+
+    const commits = await getCommitsInRange(
+      repository,
+      baseBranch.tip.sha,
+      targetBranch.tip.sha
+    )
+
+    // TODO: in what situations might this not be possible to compute
+
+    // TODO: check if this is a fast-forward (i.e. the selected branch is
+    //       a direct descendant of the base branch) because this is a
+    //       trivial rebase
+
+    // TODO: generate the patches associated with these commits and see if
+    //       they will apply to the base branch - if it fails, there will be
+    //       conflicts to come
+
+    preview = {
+      kind: ComputedAction.Clean,
+      commits,
+    }
+
+    this.repositoryStateCache.updateRebaseState(repository, () => ({
+      preview,
+    }))
+
+    this.emitUpdate()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public async _rebase(
     repository: Repository,
     baseBranch: string,
-    targetBranch: string,
-    progress?: RebaseProgressOptions
+    targetBranch: string
   ): Promise<RebaseResult> {
+    const progressCallback = (progress: IRebaseProgress) => {
+      this.repositoryStateCache.updateRebaseState(repository, () => ({
+        progress,
+      }))
+
+      this.emitUpdate()
+    }
+
     const gitStore = this.gitStoreCache.get(repository)
-    return (
-      (await gitStore.performFailableOperation(() =>
-        rebase(repository, baseBranch, targetBranch, progress)
-      )) || RebaseResult.Error
+    const result = await gitStore.performFailableOperation(() =>
+      rebase(repository, baseBranch, targetBranch, progressCallback)
     )
+
+    return result || RebaseResult.Error
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -3461,12 +3635,25 @@ export class AppStore extends TypedBaseStore<IAppState> {
     workingDirectory: WorkingDirectoryStatus,
     manualResolutions: ReadonlyMap<string, ManualConflictResolution>
   ): Promise<RebaseResult> {
+    const progressCallback = (progress: IRebaseProgress) => {
+      this.repositoryStateCache.updateRebaseState(repository, () => ({
+        progress,
+      }))
+
+      this.emitUpdate()
+    }
+
     const gitStore = this.gitStoreCache.get(repository)
-    return (
-      (await gitStore.performFailableOperation(() =>
-        continueRebase(repository, workingDirectory.files, manualResolutions)
-      )) || RebaseResult.Error
+    const result = await gitStore.performFailableOperation(() =>
+      continueRebase(
+        repository,
+        workingDirectory.files,
+        manualResolutions,
+        progressCallback
+      )
     )
+
+    return result || RebaseResult.Error
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
