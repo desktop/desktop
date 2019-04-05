@@ -203,10 +203,7 @@ import { Banner, BannerType } from '../../models/banner'
 import { RebaseProgressOptions } from '../../models/rebase'
 import { isDarkModeEnabled } from '../../ui/lib/dark-theme'
 import { ComputedAction } from '../../models/computed-action'
-import {
-  createDesktopStashEntry,
-  getLastDesktopStashEntryForBranch,
-} from '../git/stash'
+import { createDesktopStashEntry } from '../git/stash'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
