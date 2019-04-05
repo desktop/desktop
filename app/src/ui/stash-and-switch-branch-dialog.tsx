@@ -8,9 +8,9 @@ import { Branch } from '../models/branch'
 import { ButtonGroup } from './lib/button-group'
 import { Button } from './lib/button'
 
-enum StashOptions {
-  StashChanges = 0,
-  BringChangesToBranch = 1,
+enum StashAction {
+  KeepOnCurrentBranch,
+  MoveToNewBranch,
 }
 interface ISwitchBranchProps {
   readonly repository: Repository
@@ -22,7 +22,7 @@ interface ISwitchBranchProps {
 
 interface ISwitchBranchState {
   readonly isStashingChanges: boolean
-  readonly selectedOption: StashOptions
+  readonly selectedStashAction: StashAction
 }
 
 export class StashAndSwitchBranch extends React.Component<
@@ -34,7 +34,7 @@ export class StashAndSwitchBranch extends React.Component<
 
     this.state = {
       isStashingChanges: false,
-      selectedOption: 0,
+      selectedStashAction: StashAction.KeepOnCurrentBranch,
     }
   }
 
@@ -81,15 +81,15 @@ export class StashAndSwitchBranch extends React.Component<
         <VerticalSegmentedControl
           label="Do you want to stash your changes?"
           items={items}
-          selectedIndex={this.state.selectedOption}
+          selectedIndex={this.state.selectedStashAction}
           onSelectionChanged={this.onSelectionChanged}
         />
       </Row>
     )
   }
 
-  private onSelectionChanged = (selection: StashOptions) => {
-    this.setState({ selectedOption: selection })
+  private onSelectionChanged = (selection: StashAction) => {
+    this.setState({ selectedStashAction: selection })
   }
 
   private onSubmit = async () => {
@@ -101,7 +101,7 @@ export class StashAndSwitchBranch extends React.Component<
     } = this.props
 
     const whereToStash =
-      this.state.selectedOption === StashOptions.StashChanges
+      this.state.selectedStashAction === StashAction.KeepOnCurrentBranch
         ? currentBranch
         : branchToCheckout
     await dispathcer.createStash(repository, whereToStash)
