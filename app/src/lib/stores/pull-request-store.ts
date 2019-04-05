@@ -8,7 +8,7 @@ import { PullRequest, PullRequestRef } from '../../models/pull-request'
 import { TypedBaseStore } from './base-store'
 import { Repository } from '../../models/repository'
 import { getRemotes, removeRemote } from '../git'
-import { IRemote, ForkedRemotePrefix } from '../../models/remote'
+import { ForkedRemotePrefix } from '../../models/remote'
 
 const Decrement = (n: number) => n - 1
 const Increment = (n: number) => n + 1
@@ -152,35 +152,21 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
     pullRequests: ReadonlyArray<PullRequest>
   ) {
     const remotes = await getRemotes(repository)
-    const forkedRemotesToDelete = this.getRemotesToDelete(remotes, pullRequests)
+    const prRemotes = new Set<string>()
 
-    for (const remote of forkedRemotesToDelete) {
-      await removeRemote(repository, remote.name)
-    }
-  }
+    for (const pr of pullRequests) {
+      const prRepo = pr.head.gitHubRepository
 
-  private getRemotesToDelete(
-    remotes: ReadonlyArray<IRemote>,
-    openPullRequests: ReadonlyArray<PullRequest>
-  ): ReadonlyArray<IRemote> {
-    const forkedRemotes = remotes.filter(remote =>
-      remote.name.startsWith(ForkedRemotePrefix)
-    )
-    const remotesOfPullRequests = new Set<string>()
-
-    openPullRequests.forEach(pr => {
-      const { gitHubRepository } = pr.head
-
-      if (gitHubRepository != null && gitHubRepository.cloneURL != null) {
-        remotesOfPullRequests.add(gitHubRepository.cloneURL)
+      if (prRepo !== null && prRepo.cloneURL !== null) {
+        prRemotes.add(prRepo.cloneURL)
       }
-    })
+    }
 
-    const result = forkedRemotes.filter(
-      forkedRemote => !remotesOfPullRequests.has(forkedRemote.url)
-    )
-
-    return result
+    for (const r of remotes) {
+      if (r.name.startsWith(ForkedRemotePrefix) && !prRemotes.has(r.url)) {
+        await removeRemote(repository, r.name)
+      }
+    }
   }
 
   private updateActiveFetchCount(
