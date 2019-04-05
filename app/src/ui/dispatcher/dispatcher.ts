@@ -67,7 +67,6 @@ import {
   WorkingDirectoryStatus,
 } from '../../models/status'
 import { TipState, IValidBranch } from '../../models/tip'
-import { RebaseProgressOptions } from '../../models/rebase'
 import { Banner, BannerType } from '../../models/banner'
 
 import { ApplicationTheme } from '../lib/application-theme'
