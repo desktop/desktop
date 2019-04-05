@@ -197,6 +197,7 @@ import {
   enableBranchPruning,
   enablePullWithRebase,
   enableGroupRepositoriesByOwner,
+  enableStashing,
 } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import { RebaseProgressOptions } from '../../models/rebase'
@@ -2461,6 +2462,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const { changesState } = this.repositoryStateCache.get(repository)
     if (
+      enableStashing() &&
       !omitStashCheck &&
       changesState.workingDirectory.files.some(
         f => f.status.kind !== AppFileStatusKind.New
