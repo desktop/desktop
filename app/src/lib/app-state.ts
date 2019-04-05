@@ -4,7 +4,7 @@ import { IDiff, ImageDiffType } from '../models/diff'
 import { Repository, ILocalRepositoryState } from '../models/repository'
 import { Branch, IAheadBehind } from '../models/branch'
 import { Tip } from '../models/tip'
-import { Commit } from '../models/commit'
+import { Commit, CommitOneLine } from '../models/commit'
 import { CommittedFileChange, WorkingDirectoryStatus } from '../models/status'
 import { CloningRepository } from '../models/cloning-repository'
 import { IMenu } from '../models/app-menu'
@@ -36,6 +36,8 @@ import { IAccountRepositories } from './stores/api-repositories-store'
 import { ManualConflictResolution } from '../models/manual-conflict-resolution'
 import { Banner } from '../models/banner'
 import { IStashEntry } from './git/stash'
+import { GitRebaseProgress, RebasePreview } from '../models/rebase'
+import { RebaseFlowStep } from '../models/rebase-flow-step'
 
 export enum SelectionType {
   Repository,
@@ -342,6 +344,8 @@ export interface IRepositoryState {
 
   readonly branchesState: IBranchesState
 
+  readonly rebaseState: IRebaseState
+
   /**
    * Mapping from lowercased email addresses to the associated GitHub user. Note
    * that an email address may not have an associated GitHub user, or the user
@@ -457,6 +461,49 @@ export interface IBranchesState {
 
   /** Tracking branches that have been rebased within Desktop */
   readonly rebasedBranches: ReadonlyMap<string, string>
+}
+
+/** State associated with a rebase being performed on a repository */
+export interface IRebaseState {
+  /**
+   * The current step of the flow the user should see.
+   *
+   * `null` indicates that there is no rebase underway.
+   */
+  readonly step: RebaseFlowStep | null
+
+  /**
+   * A preview of the rebase, tested before performing the rebase itself, using
+   * the selected base branch to test whether the current branch will be cleanly
+   * applied.
+   *
+   * This will be set to `null` when no base branch has been selected to
+   * initiate the rebase.
+   */
+  readonly preview: RebasePreview | null
+
+  /**
+   * The underlying Git information associated with the current rebase
+   *
+   * This will be set to `null` when no base branch has been selected to
+   * initiate the rebase.
+   */
+  readonly progress: GitRebaseProgress | null
+
+  /**
+   * The known range of commits that will be applied to the repository
+   *
+   * This will be set to `null` when no base branch has been selected to
+   * initiate the rebase.
+   */
+  readonly commits: ReadonlyArray<CommitOneLine> | null
+
+  /**
+   * Whether the user has done work to resolve any conflicts as part of this
+   * rebase, as the rebase flow should confirm the user wishes to abort the
+   * rebase and lose that work.
+   */
+  readonly userHasResolvedConflicts: boolean
 }
 
 export interface ICommitSelection {

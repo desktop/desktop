@@ -16,6 +16,7 @@ import {
   IRepositoryState,
   RepositorySectionTab,
   ICommitSelection,
+  IRebaseState,
 } from '../app-state'
 import { ComparisonCache } from '../comparison-cache'
 import { IGitHubUser } from '../databases'
@@ -98,6 +99,17 @@ export class RepositoryStateCache {
       return { branchesState: newState }
     })
   }
+
+  public updateRebaseState<K extends keyof IRebaseState>(
+    repository: Repository,
+    fn: (branchesState: IRebaseState) => Pick<IRebaseState, K>
+  ) {
+    this.update(repository, state => {
+      const { rebaseState } = state
+      const newState = merge(rebaseState, fn(rebaseState))
+      return { rebaseState: newState }
+    })
+  }
 }
 
 function getInitialRepositoryState(): IRepositoryState {
@@ -146,6 +158,13 @@ function getInitialRepositoryState(): IRepositoryState {
       recentBranches: new Array<Branch>(),
       defaultBranch: null,
       inferredComparisonBranch: { branch: null, aheadBehind: null },
+    },
+    rebaseState: {
+      step: null,
+      progress: null,
+      preview: null,
+      commits: null,
+      userHasResolvedConflicts: false,
     },
     commitAuthor: null,
     gitHubUsers: new Map<string, IGitHubUser>(),

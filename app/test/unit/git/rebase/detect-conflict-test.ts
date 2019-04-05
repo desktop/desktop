@@ -47,7 +47,7 @@ describe('git/rebase', () => {
     })
 
     it('status detects REBASE_HEAD', async () => {
-      expect(status.rebaseContext).toEqual({
+      expect(status.rebaseInternalState).toEqual({
         originalBranchTip,
         baseBranchTip,
         targetBranch: 'this-is-a-feature',
@@ -81,7 +81,7 @@ describe('git/rebase', () => {
     })
 
     it('REBASE_HEAD is no longer found', async () => {
-      expect(status.rebaseContext).toBeNull()
+      expect(status.rebaseInternalState).toBeNull()
     })
 
     it('no longer has working directory changes', async () => {
@@ -123,7 +123,7 @@ describe('git/rebase', () => {
     })
 
     it('REBASE_HEAD is still found', async () => {
-      expect(status.rebaseContext).toEqual({
+      expect(status.rebaseInternalState).toEqual({
         originalBranchTip,
         baseBranchTip,
         targetBranch: 'this-is-a-feature',
@@ -190,7 +190,7 @@ describe('git/rebase', () => {
     })
 
     it('REBASE_HEAD is no longer found', () => {
-      expect(status.rebaseContext).toBeNull()
+      expect(status.rebaseInternalState).toBeNull()
     })
 
     it('no longer has working directory changes', () => {
