@@ -1620,7 +1620,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         )
       }
       case PopupType.StashAndSwitchBranch: {
-        const { repository, checkoutBranch } = popup
+        const { repository, branchToCheckout } = popup
         const state = this.props.repositoryStateManager.get(repository)
         const tip = state.branchesState.tip
 
@@ -1634,7 +1634,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispathcer={this.props.dispatcher}
             repository={popup.repository}
             currentBranch={currentBranch}
-            branchToCheckout={checkoutBranch}
+            branchToCheckout={branchToCheckout}
             onDismissed={this.onPopupDismissed}
           />
         )

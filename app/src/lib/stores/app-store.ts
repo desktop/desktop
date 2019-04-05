@@ -2467,7 +2467,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     ) {
       this._showPopup({
         type: PopupType.StashAndSwitchBranch,
-        checkoutBranch: foundBranch,
+        branchToCheckout: foundBranch,
         repository,
       })
 
