@@ -10,7 +10,7 @@ import { Button } from './lib/button'
 import { UncommittedChangesStrategy } from '../models/uncommitted-changes-strategy'
 
 enum StashAction {
-  KeepOnCurrentBranch,
+  StashOnCurrentBranch,
   MoveToNewBranch,
 }
 interface ISwitchBranchProps {
@@ -35,7 +35,7 @@ export class StashAndSwitchBranch extends React.Component<
 
     this.state = {
       isStashingChanges: false,
-      selectedStashAction: StashAction.KeepOnCurrentBranch,
+      selectedStashAction: StashAction.StashOnCurrentBranch,
     }
   }
 
@@ -97,7 +97,7 @@ export class StashAndSwitchBranch extends React.Component<
     const { repository, branchToCheckout, dispatcher } = this.props
     const { selectedStashAction } = this.state
 
-    if (selectedStashAction === StashAction.KeepOnCurrentBranch) {
+    if (selectedStashAction === StashAction.StashOnCurrentBranch) {
       await dispatcher.checkoutBranch(
         repository,
         branchToCheckout,
