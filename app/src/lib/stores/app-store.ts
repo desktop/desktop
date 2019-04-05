@@ -4488,6 +4488,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public async _createStash(repository: Repository, branchName: string) {
     const branchesState = this.getBranchesState(repository)
 
@@ -4503,6 +4504,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await createDesktopStashEntry(repository, branchName, tip.branch.tip.sha)
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public _showStashEntry(repository: Repository) {
     this.repositoryStateCache.updateChangesState(repository, state => {
       return {
@@ -4514,6 +4516,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public _hideStashEntry(repository: Repository) {
     this.repositoryStateCache.updateChangesState(repository, state => {
       return {
