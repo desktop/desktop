@@ -5,16 +5,16 @@ import { Button } from '../lib/button'
 
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { OcticonSymbol, Octicon } from '../octicons'
+import { ConfirmAbortStep } from '../../models/rebase-flow-step'
 
 const titleString = 'Confirm abort rebase'
 const cancelButtonString = 'Cancel'
 const abortButtonString = 'Abort rebase'
 
 interface IConfirmAbortDialogProps {
-  readonly baseBranch?: string
-  readonly targetBranch: string
+  readonly step: ConfirmAbortStep
 
-  readonly onReturnToConflicts: () => void
+  readonly onReturnToConflicts: (step: ConfirmAbortStep) => void
   readonly onConfirmAbort: () => Promise<void>
 }
 
@@ -49,7 +49,7 @@ export class ConfirmAbortDialog extends React.Component<
    *  Dismisses the modal and shows the rebase conflicts modal
    */
   private onCancel = async () => {
-    await this.props.onReturnToConflicts()
+    await this.props.onReturnToConflicts(this.props.step)
   }
 
   private renderTextContent(targetBranch: string, baseBranch?: string) {
@@ -77,14 +77,16 @@ export class ConfirmAbortDialog extends React.Component<
       <div className="column-left">
         {firstParagraph}
         <p>
-          Aborting this merge will take you back to the pre-merge state and the
-          conflicts you've already resolved will still be present.
+          Aborting this rebase will take you back to the original branch state
+          and and the conflicts you have already resolved will be discarded.
         </p>
       </div>
     )
   }
 
   public render() {
+    const { targetBranch, baseBranch } = this.props.step.conflictState
+
     return (
       <Dialog
         id="abort-merge-warning"
@@ -96,10 +98,7 @@ export class ConfirmAbortDialog extends React.Component<
       >
         <DialogContent className="content-wrapper">
           <Octicon symbol={OcticonSymbol.alert} />
-          {this.renderTextContent(
-            this.props.targetBranch,
-            this.props.baseBranch
-          )}
+          {this.renderTextContent(targetBranch, baseBranch)}
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>
