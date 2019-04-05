@@ -1,14 +1,15 @@
 import * as React from 'react'
-import { Dialog, DialogContent, DialogFooter } from './dialog'
-import { Repository } from '../models/repository'
-import { Dispatcher } from './dispatcher'
-import { VerticalSegmentedControl } from './lib/vertical-segmented-control'
-import { Row } from './lib/row'
-import { Branch } from '../models/branch'
-import { ButtonGroup } from './lib/button-group'
-import { Button } from './lib/button'
-import { UncommittedChangesStrategy } from '../models/uncommitted-changes-strategy'
-import { Octicon, OcticonSymbol } from './octicons'
+import { Dialog, DialogContent, DialogFooter } from '../dialog'
+import { Repository } from '../../models/repository'
+import { Dispatcher } from '../dispatcher'
+import { VerticalSegmentedControl } from '../lib/vertical-segmented-control'
+import { Row } from '../lib/row'
+import { Branch } from '../../models/branch'
+import { ButtonGroup } from '../lib/button-group'
+import { Button } from '../lib/button'
+import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
+import { Octicon, OcticonSymbol } from '../octicons'
+import { PopupType } from '../../models/popup'
 
 enum StashAction {
   StashOnCurrentBranch,
@@ -56,7 +57,7 @@ export class StashAndSwitchBranch extends React.Component<
         loading={isStashingChanges}
         disabled={isStashingChanges}
       >
-        <DialogContent>
+        <DialogContent className="content-wrapper">
           {this.renderOptions()}
           {this.renderStashOverwriteWarning()}
         </DialogContent>
@@ -79,10 +80,10 @@ export class StashAndSwitchBranch extends React.Component<
 
     return (
       <Row>
-        <p>
-          <Octicon symbol={OcticonSymbol.triangleUp} /> Your branch already has
-          an associated stash.
-        </p>
+        <>
+          <Octicon symbol={OcticonSymbol.alert} /> Your current stash will be
+          overwritten by creating a new stash
+        </>
       </Row>
     )
   }
@@ -118,6 +119,30 @@ export class StashAndSwitchBranch extends React.Component<
   }
 
   private onSubmit = async () => {
+    const {
+      repository,
+      dispatcher,
+      hasAssociatedStash,
+      branchToCheckout,
+    } = this.props
+
+    if (
+      this.state.selectedStashAction === StashAction.StashOnCurrentBranch &&
+      hasAssociatedStash
+    ) {
+      dispatcher.showPopup({
+        type: PopupType.ConfirmOverwriteStash,
+        repository,
+        branchToCheckout,
+      })
+      return
+    }
+
+    await this.stashAndCheckout()
+    this.props.onDismissed()
+  }
+
+  private async stashAndCheckout() {
     const { repository, branchToCheckout, dispatcher } = this.props
     const { selectedStashAction } = this.state
 
@@ -134,7 +159,5 @@ export class StashAndSwitchBranch extends React.Component<
         UncommittedChangesStrategy.moveToNewBranch
       )
     }
-
-    this.props.onDismissed()
   }
 }
