@@ -364,7 +364,7 @@ export interface IRepositoryState {
   /** The state of the current branch in relation to its upstream. */
   readonly aheadBehind: IAheadBehind | null
 
-  /** A map key on the canonical ref name of GitHub Desktop created stash entries for the repository */
+  /** A map keyed on the canonical ref name of stash entries created by Desktop. */
   readonly stashEntries: ReadonlyMap<string, IStashEntry>
 
   /** Is a push/pull/fetch in progress? */
@@ -509,8 +509,8 @@ export interface IChangesState {
    */
   readonly conflictState: ConflictState | null
 
-  /** Whether or not to show the UI for restoring or clearing a stash entry */
   readonly isShowingStashEntry: boolean
+  /** Whether or not to show the UI for a stash entry. */
 }
 
 /**
