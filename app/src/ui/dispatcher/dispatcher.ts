@@ -331,7 +331,10 @@ export class Dispatcher {
       return
     }
 
-    const updatedConflictState = { ...conflictState, targetBranch }
+    const updatedConflictState = {
+      ...conflictState,
+      targetBranch,
+    }
 
     this.repositoryStateManager.updateChangesState(repository, () => ({
       conflictState: updatedConflictState,
@@ -1944,5 +1947,9 @@ export class Dispatcher {
    */
   public hideStashEntry(repository: Repository) {
     return this.appStore._hideStashEntry(repository)
+  }
+
+  public loadStashedFiles(repository: Repository, branchName: string) {
+    return this.appStore._loadStashedFiles(repository, branchName)
   }
 }
