@@ -77,7 +77,7 @@ import { formatCommitMessage } from '../format-commit-message'
 import { GitAuthor } from '../../models/git-author'
 import { IGitAccount } from '../../models/git-account'
 import { BaseStore } from './base-store'
-import { enablePullWithRebase } from '../feature-flag'
+import { enablePullWithRebase, enableStashing } from '../feature-flag'
 import { getDesktopStashEntries, IStashEntry } from '../git/stash'
 
 /** The number of commits to load from history per batch. */
@@ -974,6 +974,10 @@ export class GitStore extends BaseStore {
    * Refreshes the list of GitHub Desktop created stash entries for the repository
    */
   public async loadStashEntries(): Promise<void> {
+    if (!enableStashing()) {
+      return
+    }
+
     const map = new Map<string, IStashEntry>()
     const entries = await getDesktopStashEntries(this.repository)
 

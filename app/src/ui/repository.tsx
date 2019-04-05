@@ -19,6 +19,7 @@ import { FocusContainer } from './lib/focus-container'
 import { OcticonSymbol, Octicon } from './octicons'
 import { ImageDiffType } from '../models/diff'
 import { IMenu } from '../models/app-menu'
+import { enableStashing } from '../lib/feature-flag'
 
 /** The widest the sidebar can be with the minimum window size. */
 const MaxSidebarWidth = 495
@@ -244,6 +245,10 @@ export class RepositoryView extends React.Component<
   }
 
   private currentStashForBranch() {
+    if (!enableStashing()) {
+      return null
+    }
+
     const { branchesState, stashEntries } = this.props.state
     const tip = branchesState.tip
     if (tip.kind !== TipState.Valid) {
@@ -269,10 +274,10 @@ export class RepositoryView extends React.Component<
         workingDirectory,
         selectedFileIDs,
         diff,
-        isShowingStashEntry,
+        shouldShowStashedChanges,
       } = changesState
 
-      if (isShowingStashEntry && selectedFileIDs.length === 0) {
+      if (shouldShowStashedChanges && selectedFileIDs.length === 0) {
         const stashEntry = this.currentStashForBranch()
         if (stashEntry === null) {
           return null

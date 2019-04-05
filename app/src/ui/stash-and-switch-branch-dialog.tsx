@@ -9,9 +9,9 @@ import { ButtonGroup } from './lib/button-group'
 import { Button } from './lib/button'
 import { UncommittedChangesStrategy } from '../models/uncommitted-changes-strategy'
 
-enum StashOptions {
-  StashChanges = 0,
-  BringChangesToBranch = 1,
+enum StashAction {
+  KeepOnCurrentBranch,
+  MoveToNewBranch,
 }
 interface ISwitchBranchProps {
   readonly repository: Repository
@@ -23,7 +23,7 @@ interface ISwitchBranchProps {
 
 interface ISwitchBranchState {
   readonly isStashingChanges: boolean
-  readonly selectedOption: StashOptions
+  readonly selectedStashAction: StashAction
 }
 
 export class StashAndSwitchBranch extends React.Component<
@@ -35,7 +35,7 @@ export class StashAndSwitchBranch extends React.Component<
 
     this.state = {
       isStashingChanges: false,
-      selectedOption: 0,
+      selectedStashAction: StashAction.KeepOnCurrentBranch,
     }
   }
 
@@ -82,28 +82,28 @@ export class StashAndSwitchBranch extends React.Component<
         <VerticalSegmentedControl
           label="Do you want to stash your changes?"
           items={items}
-          selectedIndex={this.state.selectedOption}
+          selectedIndex={this.state.selectedStashAction}
           onSelectionChanged={this.onSelectionChanged}
         />
       </Row>
     )
   }
 
-  private onSelectionChanged = (selection: StashOptions) => {
-    this.setState({ selectedOption: selection })
+  private onSelectionChanged = (selection: StashAction) => {
+    this.setState({ selectedStashAction: selection })
   }
 
   private onSubmit = async () => {
     const { repository, branchToCheckout, dispatcher } = this.props
-    const { selectedOption } = this.state
+    const { selectedStashAction } = this.state
 
-    if (selectedOption === StashOptions.StashChanges) {
+    if (selectedStashAction === StashAction.KeepOnCurrentBranch) {
       await dispatcher.checkoutBranch(
         repository,
         branchToCheckout,
         UncommittedChangesStrategy.stashOnCurrentBranch
       )
-    } else if (selectedOption === StashOptions.BringChangesToBranch) {
+    } else if (selectedStashAction === StashAction.MoveToNewBranch) {
       await dispatcher.checkoutBranch(
         repository,
         branchToCheckout,

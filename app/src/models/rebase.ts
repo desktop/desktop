@@ -2,9 +2,22 @@ import { IRebaseProgress } from './progress'
 import { ComputedAction } from './computed-action'
 import { CommitOneLine } from './commit'
 
-export type RebaseContext = {
+/**
+ * Rebase internal state used to track how and where the rebase is applied to
+ * the repository.
+ */
+export type RebaseInternalState = {
+  /** The branch containing commits that should be rebased */
   readonly targetBranch: string
+  /**
+   * The commit ID of the base branch, to be used as a starting point for
+   * the rebase.
+   */
   readonly baseBranchTip: string
+  /**
+   * The commit ID of the target branch at the start of the rebase, which points
+   * to the original commit history.
+   */
   readonly originalBranchTip: string
 }
 
@@ -43,13 +56,22 @@ export type RebasePreview =
   | RebaseNotSupported
   | RebaseLoading
 
-export type RebaseProgressSummary = {
-  /** A numeric value between 0 and 1 representing the rebase progress */
+/** Represents the progress of a Git rebase operation to be shown to the user */
+export type GitRebaseProgress = {
+  /** A numeric value between 0 and 1 representing the percent completed */
   readonly value: number
-  /** Track the current number of commits rebased across dialogs and states */
+  /** The current number of commits rebased as part of this operation */
   readonly rebasedCommitCount: number
-  /** The commit summary associated with the current commit (if known) */
-  readonly currentCommitSummary?: string
-  /** The list of known commits that will be rebased onto the base branch */
+  /** The commit summary associated with the current commit (if found) */
+  readonly currentCommitSummary: string | null
+  /** The count of known commits that will be rebased onto the base branch */
+  readonly totalCommitCount: number
+}
+
+/** Represents a snapshot of the rebase state from the Git repository  */
+export type GitRebaseSnapshot = {
+  /** The sequence of commits that are used in the rebase */
   readonly commits: ReadonlyArray<CommitOneLine>
+  /** The progress of the operation */
+  readonly progress: GitRebaseProgress
 }

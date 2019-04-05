@@ -45,6 +45,7 @@ interface IListRowProps {
    */
   readonly selectable: boolean
 
+  /** a custom css class to apply to the row */
   readonly className?: string
 }
 
