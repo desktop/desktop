@@ -18,6 +18,9 @@ interface ISwitchBranchProps {
   readonly dispatcher: Dispatcher
   readonly currentBranch: Branch
   readonly branchToCheckout: Branch
+
+  /** Whether `currentBranch` has an existing stash association */
+  readonly hasAssociatedStash: boolean
   readonly onDismissed: () => void
 }
 
