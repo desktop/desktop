@@ -78,5 +78,5 @@ export function enableGroupRepositoriesByOwner(): boolean {
 
 /** Should the app show the "rebase current branch" dialog? */
 export function enableRebaseDialog(): boolean {
-  return enableDevelopmentFeatures()
+  return enableBetaFeatures()
 }
