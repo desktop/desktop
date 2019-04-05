@@ -1,4 +1,5 @@
 import { Branch } from './branch'
+import { RebaseProgressSummary } from './rebase'
 
 /** Union type representing the possible states of the rebase flow */
 export type RebaseFlowState =
@@ -80,7 +81,7 @@ export type ShowProgressStep = {
    * want to defer the rebase action until after _something_ is shown to the
    * user.
    */
-  readonly rebaseAction?: () => Promise<void>
+  readonly rebaseAction: (() => Promise<void>) | null
 }
 
 /** Shape of data to show conflicts that need to be resolved by the user */
@@ -88,6 +89,11 @@ export type ShowConflictsStep = {
   readonly kind: RebaseStep.ShowConflicts
   readonly targetBranch: string
   readonly baseBranch?: string
+  /**
+   * Optional context to provide if rebase dialog was dismissed, as previous
+   * state should be used here when resuming the rebase.
+   */
+  readonly previousProgress: RebaseProgressSummary | null
 }
 
 /** Shape of data to track when user hides conflicts dialog */
