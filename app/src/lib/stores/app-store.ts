@@ -4779,7 +4779,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
             : [],
       }
     })
+  }
 
+  public async _loadStashedFiles(repository: Repository, branchName: string) {
+    const gitStore = this.gitStoreCache.get(repository)
+    await gitStore.loadStashedFiles(branchName)
     this.emitUpdate()
   }
 }
