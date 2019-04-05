@@ -3,12 +3,10 @@ import {
   ChooseBranchesStep,
   RebaseStep,
   ShowConflictsStep,
-} from '../models/rebase-flow-state'
+} from '../models/rebase-flow-step'
 import { Branch } from '../models/branch'
 import { TipState } from '../models/tip'
 import { clamp } from './clamp'
-import { Repository } from '../models/repository'
-import { getCurrentProgress } from './git'
 
 /**
  * Setup the rebase flow state when the user neeeds to select a branch as the
@@ -48,24 +46,15 @@ export function initializeNewRebaseFlow(state: IRepositoryState) {
  * This indicates a rebase is in progress, and the application needs to guide
  * the user to resolve conflicts and complete the rebae.
  *
- * @param repository the repository dealing with conflicts
  * @param conflictState current set of conflicts
  */
-export async function initializeRebaseFlowForConflictedRepository(
-  repository: Repository,
+export function initializeRebaseFlowForConflictedRepository(
   conflictState: RebaseConflictState
-): Promise<ShowConflictsStep> {
-  const { targetBranch, baseBranch } = conflictState
-
-  const previousProgress = await getCurrentProgress(repository)
-
+): ShowConflictsStep {
   const initialState: ShowConflictsStep = {
     kind: RebaseStep.ShowConflicts,
-    targetBranch,
-    baseBranch,
-    previousProgress,
+    conflictState,
   }
-
   return initialState
 }
 
