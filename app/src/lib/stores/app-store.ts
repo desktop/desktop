@@ -4500,18 +4500,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const previousStash = await getLastDesktopStashEntryForBranch(
-      repository,
-      branchName
-    )
-
-    if (previousStash !== null) {
-      // Todo, we want to keep stash entries around, so figure out how to update exsiting entries
-      // so Desktop wont continue to pick them up
-      // we want to ensure one stash per branch
-      // await dropDesktopStashEntry(repository, previousStash.stashSha)
-    }
-
     await createDesktopStashEntry(repository, branchName, tip.branch.tip.sha)
   }
 
