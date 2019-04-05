@@ -75,6 +75,7 @@ export async function getDesktopStashEntries(
       name: `stash@{${ix}}`,
       branchName: branchName,
       stashSha: match[1],
+      files: StashedChangesLoadStates.NotLoaded,
     })
   }
 
