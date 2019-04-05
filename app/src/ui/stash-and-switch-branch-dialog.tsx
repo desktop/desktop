@@ -17,6 +17,8 @@ interface ISwitchBranchProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
   readonly currentBranch: Branch
+
+  /** The branch to checkout after the user selects a stash action */
   readonly branchToCheckout: Branch
 
   /** Whether `currentBranch` has an existing stash association */
