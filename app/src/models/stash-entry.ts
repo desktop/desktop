@@ -1,3 +1,5 @@
+import { StashedFileChanges } from './stash'
+
 export interface IStashEntry {
   /** The name of the entry i.e., `stash@{0}` */
   readonly name: string
@@ -7,4 +9,6 @@ export interface IStashEntry {
 
   /** The SHA of the commit object created as a result of stashing. */
   readonly stashSha: string
+
+  readonly files: StashedFileChanges
 }
