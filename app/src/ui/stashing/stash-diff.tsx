@@ -1,7 +1,5 @@
 import * as React from 'react'
 import { IStashEntry } from '../../lib/git/stash'
-import { Diff } from '../diff'
-import { ImageDiffType } from '../../models/diff'
 import { FileList } from '../history/file-list'
 import { UiView } from '../ui-view'
 import { Dispatcher } from '../dispatcher'
@@ -12,19 +10,23 @@ import { join } from 'path'
 
 export const renderStashDiff: React.SFC<{
   stashEntry: IStashEntry
-  files: ReadonlyArray<FileChange>
   availableWidth: number
-  onOpenItem: (path: string) => void
   externalEditorLabel?: string
   onOpenInExternalEditor: (path: string) => void
   repository: Repository
   dispatcher: Dispatcher
 }> = props => {
+  const placeholderFn = () => {
+    console.log('hi')
+  }
+  const files = Array.isArray(props.stashEntry.files)
+    ? props.stashEntry.files
+    : new Array<FileChange>()
   return (
-    <UiView id="repository" onKeyDown={this.onKeyDown}>
+    <UiView id="repository">
       <FileList
-        files={props.files}
-        onSelectedFileChanged={() => {}}
+        files={files}
+        onSelectedFileChanged={placeholderFn}
         selectedFile={null}
         availableWidth={props.availableWidth}
         onOpenItem={makeOnOpenItem(props.repository, props.dispatcher)}
