@@ -8,6 +8,7 @@ import { Branch } from '../models/branch'
 import { ButtonGroup } from './lib/button-group'
 import { Button } from './lib/button'
 import { UncommittedChangesStrategy } from '../models/uncommitted-changes-strategy'
+import { Octicon, OcticonSymbol } from './octicons'
 
 enum StashAction {
   StashOnCurrentBranch,
@@ -55,7 +56,10 @@ export class StashAndSwitchBranch extends React.Component<
         loading={isStashingChanges}
         disabled={isStashingChanges}
       >
-        <DialogContent>{this.renderOptions()}</DialogContent>
+        <DialogContent>
+          {this.renderOptions()}
+          {this.renderStashOverwriteWarning()}
+        </DialogContent>
         <DialogFooter>
           <ButtonGroup>
             <Button type="submit">
@@ -65,6 +69,21 @@ export class StashAndSwitchBranch extends React.Component<
           </ButtonGroup>
         </DialogFooter>
       </Dialog>
+    )
+  }
+
+  private renderStashOverwriteWarning() {
+    if (!this.props.hasAssociatedStash) {
+      return null
+    }
+
+    return (
+      <Row>
+        <p>
+          <Octicon symbol={OcticonSymbol.triangleUp} /> Your branch already has
+          an associated stash.
+        </p>
+      </Row>
     )
   }
 
