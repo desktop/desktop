@@ -1881,8 +1881,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.repositoryStateCache.updateChangesState(repository, state => ({
       selectedFileIDs: selectedFiles.map(file => file.id),
       diff: null,
-      isShowingStashEntry:
-        selectedFiles.length !== 0 ? false : state.isShowingStashEntry,
+      shouldShowStashedChanges:
+        selectedFiles.length !== 0 ? false : state.shouldShowStashedChanges,
     }))
     this.emitUpdate()
 
@@ -4516,7 +4516,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _showStashEntry(repository: Repository) {
     this.repositoryStateCache.updateChangesState(repository, state => {
       return {
-        isShowingStashEntry: true,
+        shouldShowStashedChanges: true,
         selectedFileIDs: [],
       }
     })
@@ -4527,7 +4527,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _hideStashEntry(repository: Repository) {
     this.repositoryStateCache.updateChangesState(repository, state => {
       return {
-        isShowingStashEntry: false,
+        shouldShowStashedChanges: false,
         selectedFileIDs:
           state.workingDirectory.files.length > 0
             ? [state.workingDirectory.files[0].id]

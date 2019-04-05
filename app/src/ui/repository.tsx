@@ -269,10 +269,10 @@ export class RepositoryView extends React.Component<
         workingDirectory,
         selectedFileIDs,
         diff,
-        isShowingStashEntry,
+        shouldShowStashedChanges,
       } = changesState
 
-      if (isShowingStashEntry && selectedFileIDs.length === 0) {
+      if (shouldShowStashedChanges && selectedFileIDs.length === 0) {
         const stashEntry = this.currentStashForBranch()
         if (stashEntry === null) {
           return null

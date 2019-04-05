@@ -408,7 +408,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           onChangesListScrolled={this.props.onChangesListScrolled}
           changesListScrollTop={this.props.changesListScrollTop}
           stashEntry={this.props.stashEntry}
-          isShowingStashEntry={this.props.changes.isShowingStashEntry}
+          isShowingStashEntry={this.props.changes.shouldShowStashedChanges}
         />
         {this.renderUndoCommit(rebaseConflictState)}
       </div>

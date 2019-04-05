@@ -509,8 +509,8 @@ export interface IChangesState {
    */
   readonly conflictState: ConflictState | null
 
-  readonly isShowingStashEntry: boolean
   /** Whether or not to show the UI for a stash entry. */
+  readonly shouldShowStashedChanges: boolean
 }
 
 /**
