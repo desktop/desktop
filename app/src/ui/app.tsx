@@ -1643,12 +1643,18 @@ export class App extends React.Component<IAppProps, IAppState> {
         }
 
         const currentBranch = tip.branch
+        const hasAssociatedStash =
+          state.stashEntries.get(currentBranch.name) !== undefined
+            ? true
+            : false
+
         return (
           <StashAndSwitchBranch
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
             currentBranch={currentBranch}
             branchToCheckout={branchToCheckout}
+            hasAssociatedStash={hasAssociatedStash}
             onDismissed={this.onPopupDismissed}
           />
         )
