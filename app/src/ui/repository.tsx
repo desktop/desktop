@@ -284,14 +284,22 @@ export class RepositoryView extends React.Component<
           return null
         }
 
-        return renderStashDiff({
-          stashEntry,
-          availableWidth: this.props.sidebarWidth - 1,
-          externalEditorLabel: this.props.externalEditorLabel,
-          onOpenInExternalEditor: this.props.onOpenInExternalEditor,
-          repository: this.props.repository,
-          dispatcher: this.props.dispatcher,
-        })
+        if (Array.isArray(stashEntry.files)) {
+          return renderStashDiff({
+            stashEntry,
+            availableWidth: this.props.sidebarWidth - 1,
+            externalEditorLabel: this.props.externalEditorLabel,
+            onOpenInExternalEditor: this.props.onOpenInExternalEditor,
+            repository: this.props.repository,
+            dispatcher: this.props.dispatcher,
+          })
+        } else if (this.props.state.branchesState.tip.kind === TipState.Valid) {
+          this.props.dispatcher.loadStashedFiles(
+            this.props.repository,
+            this.props.state.branchesState.tip.branch.name
+          )
+          return null
+        }
       }
 
       if (selectedFileIDs.length > 1) {
