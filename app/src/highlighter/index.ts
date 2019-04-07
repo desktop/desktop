@@ -113,6 +113,7 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
       '.vcxproj': 'text/xml',
       '.vbproj': 'text/xml',
       '.svg': 'text/xml',
+      '.resx': 'text/xml',
     },
   },
   {
