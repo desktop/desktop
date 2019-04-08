@@ -332,11 +332,10 @@ export class Dispatcher {
   ): Promise<void> {
     const { askForConfirmationOnForcePush } = this.appStore.getState()
 
-    if (
-      !askForConfirmationOnForcePush ||
-      options === undefined ||
-      options.continueWithForcePush === false
-    ) {
+    const hasOverridenForcePushCheck =
+      options !== undefined && options.continueWithForcePush
+
+    if (askForConfirmationOnForcePush && !hasOverridenForcePushCheck) {
       // if the branch is tracking a remote branch
       if (targetBranch.upstream !== null) {
         // and the remote branch has commits that don't exist on the base branch
