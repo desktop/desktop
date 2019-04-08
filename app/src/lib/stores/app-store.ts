@@ -4792,6 +4792,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     file: CommittedFileChange
   ): Promise<void> {
+    this.repositoryStateCache.updateChangesState(repository, () => ({
+      selectedStashedFile: file,
+      selectedStashedFileDiff: null,
+    }))
+    this.emitUpdate()
+
     const diff = await getCommitDiff(repository, file, file.commitish)
 
     this.repositoryStateCache.updateChangesState(repository, () => ({

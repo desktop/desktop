@@ -16,6 +16,7 @@ export function createState<K extends keyof IChangesState>(
     coAuthors: [],
     conflictState: null,
     shouldShowStashedChanges: false,
+    selectedStashedFile: null,
     selectedStashedFileDiff: null,
   }
 
