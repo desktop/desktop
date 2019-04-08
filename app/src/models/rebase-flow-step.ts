@@ -1,9 +1,11 @@
 import { Branch } from './branch'
 import { RebaseConflictState } from '../lib/app-state'
+import { CommitOneLine } from './commit'
 
 /** Union type representing the possible states of the rebase flow */
 export type RebaseFlowStep =
   | ChooseBranchesStep
+  | WarnForcePushStep
   | ShowProgressStep
   | ShowConflictsStep
   | HideConflictsStep
@@ -20,6 +22,15 @@ export const enum RebaseStep {
    * conflicts.
    */
   ChooseBranch = 'ChooseBranch',
+  /**
+   * The initial state of a rebase - the user choosing the start point.
+   *
+   * This is not encountered if the user tries to 'pull with rebase' and
+   * encounters conflicts, because the rebase happens as part of the pull
+   * operation and the only remaining work for the user is to resolve any
+   * conflicts.
+   */
+  WarnForcePush = 'WarnForcePush',
   /**
    * After the user chooses which branch to use as the base branch for the
    * rebase, the progress view is shown indicating how the rebase work is
@@ -68,6 +79,13 @@ export type ChooseBranchesStep = {
   readonly allBranches: ReadonlyArray<Branch>
   readonly recentBranches: ReadonlyArray<Branch>
   readonly initialBranch?: Branch
+}
+
+export type WarnForcePushStep = {
+  readonly kind: RebaseStep.WarnForcePush
+  readonly baseBranch: string
+  readonly targetBranch: string
+  readonly commits: ReadonlyArray<CommitOneLine>
 }
 
 /** Shape of data to show progress of the current rebase */

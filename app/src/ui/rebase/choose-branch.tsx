@@ -4,7 +4,6 @@ import { Branch } from '../../models/branch'
 import { Repository } from '../../models/repository'
 import { RebasePreview } from '../../models/rebase'
 import { ComputedAction } from '../../models/computed-action'
-import { CommitOneLine } from '../../models/commit'
 
 import { IMatches } from '../../lib/fuzzy-find'
 import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
@@ -58,13 +57,6 @@ interface IChooseBranchDialogProps {
    * ways described in the Dialog component's dismissable prop.
    */
   readonly onDismissed: () => void
-
-  /** Callback to signal to start the rebase */
-  readonly onStartRebase: (
-    baseBranch: string,
-    targetBranch: string,
-    commits: ReadonlyArray<CommitOneLine>
-  ) => void
 }
 
 interface IChooseBranchDialogState {
@@ -297,7 +289,8 @@ export class ChooseBranchDialog extends React.Component<
       return
     }
 
-    this.props.onStartRebase(
+    this.props.dispatcher.startRebase(
+      this.props.repository,
       branch.name,
       this.props.currentBranch.name,
       rebasePreviewStatus.commits

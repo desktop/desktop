@@ -317,6 +317,38 @@ export class Dispatcher {
     return this.appStore._previewRebase(repository, baseBranch, targetBranch)
   }
 
+  /** Initialize and start the rebase operation */
+  public async startRebase(
+    repository: Repository,
+    baseBranch: string,
+    targetBranch: string,
+    commits: ReadonlyArray<CommitOneLine>
+  ) {
+    // TODO:
+    //
+    // if the target branch is tracking a remote branch
+    //
+    // AND
+    //
+    // the remote branch contains commits that will be rewritten as part of
+    // this rebase
+    //
+    // THEN
+    //
+    // the app should move to the "Warn Force Push" step first
+
+    this.initializeRebaseProgress(repository, commits)
+
+    const startRebaseAction = () => {
+      return this.rebase(repository, baseBranch, targetBranch)
+    }
+
+    this.setRebaseFlowStep(repository, {
+      kind: RebaseStep.ShowProgress,
+      rebaseAction: startRebaseAction,
+    })
+  }
+
   /**
    * Initialize and launch the rebase flow for a conflicted repository
    */
