@@ -1952,4 +1952,18 @@ export class Dispatcher {
   public loadStashedFiles(repository: Repository, branchName: string) {
     return this.appStore._loadStashedFiles(repository, branchName)
   }
+
+  /**
+   * Change the selected changed file in the stash diff viewer.
+   *
+   * @param repository The currently active repository instance
+   *
+   * @param file
+   */
+  public changeStashedFileSelection(
+    repository: Repository,
+    file: CommittedFileChange
+  ): Promise<void> {
+    return this.appStore._changeStashedFileSelection(repository, file)
+  }
 }

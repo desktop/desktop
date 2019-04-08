@@ -4786,6 +4786,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await gitStore.loadStashedFiles(branchName)
     this.emitUpdate()
   }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _changeStashedFileSelection(
+    repository: Repository,
+    file: CommittedFileChange
+  ): Promise<void> {
+    const diff = await getCommitDiff(repository, file, file.commitish)
+
+    this.repositoryStateCache.updateChangesState(repository, () => ({
+      selectedStashedFileDiff: diff,
+    }))
+
+    this.emitUpdate()
+  }
 }
 
 /**
