@@ -51,6 +51,8 @@ interface IRebaseFlowProps {
    */
   readonly userHasResolvedConflicts: boolean
 
+  readonly askForConfirmationOnForcePush: boolean
+
   /**
    * Callback to hide the rebase flow and show a banner about the current state
    * of conflicts, because this component will be unmounted by the runtime.
@@ -237,15 +239,18 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
           />
         )
       case RebaseStep.WarnForcePush:
-        const { repository, dispatcher } = this.props
+        const {
+          repository,
+          dispatcher,
+          askForConfirmationOnForcePush,
+        } = this.props
 
         return (
           <WarnForcePushDialog
             step={step}
             dispatcher={dispatcher}
             repository={repository}
-            // TODO: should we plumb the preference into here?
-            askForConfirmationOnForcePush={true}
+            askForConfirmationOnForcePush={askForConfirmationOnForcePush}
             onDismissed={this.onFlowEnded}
           />
         )

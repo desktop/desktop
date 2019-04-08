@@ -325,27 +325,32 @@ export class Dispatcher {
     commits: ReadonlyArray<CommitOneLine>,
     options?: { continueWithForcePush: boolean }
   ): Promise<void> {
-    if (options === undefined || options.continueWithForcePush === false) {
-      // TODO:
-      //
-      // if the target branch is tracking a remote branch
-      //
-      // AND
-      //
-      // the remote branch contains commits that will be rewritten as part of
-      // this rebase
-      //
-      // THEN
-      //
-      // the app should move to the "Warn Force Push" step first
+    const { askForConfirmationOnForcePush } = this.appStore.getState()
 
-      this.setRebaseFlowStep(repository, {
-        kind: RebaseStep.WarnForcePush,
-        baseBranch,
-        targetBranch,
-        commits,
-      })
-      return
+    if (
+      !askForConfirmationOnForcePush ||
+      options === undefined ||
+      options.continueWithForcePush === false
+    ) {
+      // if the branch is tracking a remote branch
+      if (targetBranch.upstream !== null) {
+        // TODO:
+        //
+        // if the remote branch contains commits that will be rewritten as part of
+        // this rebase
+        //
+        // THEN
+        //
+        // the app should move to the "Warn Force Push" step first
+
+        this.setRebaseFlowStep(repository, {
+          kind: RebaseStep.WarnForcePush,
+          baseBranch,
+          targetBranch,
+          commits,
+        })
+        return
+      }
     }
 
     this.initializeRebaseProgress(repository, commits)
