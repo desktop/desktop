@@ -158,6 +158,7 @@ import {
 import {
   initializeRebaseFlowForConflictedRepository,
   formatRebaseValue,
+  isCurrentBranchForcePush,
 } from '../rebase'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import {
@@ -1624,18 +1625,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return undefined
     }
 
-    const { tip, rebasedBranches } = branchesState
-    const { ahead, behind } = aheadBehind
-
-    let branchWasRebased = false
-    if (tip.kind === TipState.Valid) {
-      const localBranchName = tip.branch.nameWithoutRemote
-      const { sha } = tip.branch.tip
-      const foundEntry = rebasedBranches.get(localBranchName)
-      branchWasRebased = foundEntry === sha
-    }
-
-    const forcePush = branchWasRebased && behind > 0 && ahead > 0
+    const forcePush = isCurrentBranchForcePush(branchesState, aheadBehind)
 
     if (forcePush) {
       if (this.askForConfirmationOnForcePush) {
