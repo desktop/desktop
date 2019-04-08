@@ -1621,21 +1621,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repository
     )
 
-    if (aheadBehind === null) {
-      return undefined
-    }
-
     const forcePush = isCurrentBranchForcePush(branchesState, aheadBehind)
 
-    if (forcePush) {
-      if (this.askForConfirmationOnForcePush) {
-        return __DARWIN__ ? 'Force Push…' : 'Force P&ush…'
-      } else {
-        return __DARWIN__ ? 'Force Push' : 'Force P&ush'
-      }
-    } else {
+    if (!forcePush) {
       return __DARWIN__ ? 'Push' : 'P&ush'
     }
+
+    if (this.askForConfirmationOnForcePush) {
+      return __DARWIN__ ? 'Force Push…' : 'Force P&ush…'
+    }
+
+    return __DARWIN__ ? 'Force Push' : 'Force P&ush'
   }
 
   private getRemoveRepoLabel() {
