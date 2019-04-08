@@ -11,6 +11,7 @@ import { IDiff, ImageDiffType } from '../../models/diff'
 
 export const renderStashDiff: React.SFC<{
   stashEntry: IStashEntry
+  selectedStashedFile: CommittedFileChange | null
   stashedFileDiff: IDiff | null
   availableWidth: number
   externalEditorLabel?: string
@@ -32,18 +33,18 @@ export const renderStashDiff: React.SFC<{
       <FileList
         files={files}
         onSelectedFileChanged={placeholderFn}
-        selectedFile={null}
+        selectedFile={props.selectedStashedFile}
         availableWidth={props.availableWidth}
         onOpenItem={makeOnOpenItem(props.repository, props.dispatcher)}
         externalEditorLabel={props.externalEditorLabel}
         onOpenInExternalEditor={props.onOpenInExternalEditor}
         repository={props.repository}
       />
-      {props.stashedFileDiff && (
+      {props.selectedStashedFile && props.stashedFileDiff && (
         <Diff
           repository={props.repository}
           readOnly={true}
-          file={files[0]}
+          file={props.selectedStashedFile}
           diff={props.stashedFileDiff}
           dispatcher={props.dispatcher}
           imageDiffType={ImageDiffType.OnionSkin}
@@ -56,6 +57,6 @@ export const renderStashDiff: React.SFC<{
 const makeOnOpenItem = (
   repository: Repository,
   dispatcher: Dispatcher
-): (path: string) => void => {
+): ((path: string) => void) => {
   return (path: string) => openFile(join(repository.path, path), dispatcher)
 }
