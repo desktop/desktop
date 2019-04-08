@@ -42,6 +42,7 @@ export class WarnForcePushDialog extends React.Component<
         title="This rebase will require a force push"
         onDismissed={this.props.onDismissed}
         onSubmit={this.onContinueRebase}
+        disableClickDismissalAlways={true}
         type="warning"
       >
         <DialogContent>
