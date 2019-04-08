@@ -1,0 +1,16 @@
+#stash-diff-viewer {
+  display: flex;
+  flex: 1;
+
+  // Necessary so that the diff doesn't expand
+  // beyond the width of the history
+  min-width: 0;
+
+  // for stash diff viewer
+  .file-list {
+    display: flex;
+    flex: 1;
+
+    border-right: var(--base-border);
+  }
+}
