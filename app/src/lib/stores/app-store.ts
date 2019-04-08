@@ -93,6 +93,8 @@ import {
   MergeConflictState,
   isMergeConflictState,
   RebaseConflictState,
+  IRebaseState,
+  IRepositoryState,
 } from '../app-state'
 import { IGitHubUser } from '../databases/github-user-database'
 import {
@@ -1747,11 +1749,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private async _triggerConflictsFlow(repository: Repository) {
     if (enablePullWithRebase()) {
-      const repoState = this.repositoryStateCache.get(repository)
-      const { conflictState } = repoState.changesState
+      const state = this.repositoryStateCache.get(repository)
+      const { conflictState } = state.changesState
 
       if (conflictState === null) {
-        this.clearConflictsFlowVisuals()
+        this.clearConflictsFlowVisuals(state)
         return
       }
 
@@ -1770,7 +1772,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /**
    * Cleanup any related UI related to conflicts if still in use.
    */
-  private clearConflictsFlowVisuals() {
+  private clearConflictsFlowVisuals(state: IRepositoryState) {
+    if (userIsStartingRebaseFlow(this.currentPopup, state.rebaseState)) {
+      return
+    }
+
     this._closePopup(PopupType.MergeConflicts)
     this._closePopup(PopupType.AbortMerge)
     this._clearBanner(BannerType.MergeConflictsFound)
@@ -4704,4 +4710,36 @@ function getBehindOrDefault(aheadBehind: IAheadBehind | null): number {
   }
 
   return aheadBehind.behind
+}
+
+/**
+ * Check if the user is in a rebase flow step that doesn't depend on conflicted
+ * state, as the app should not attempt to clean up any popups or banners while
+ * this is occurring.
+ */
+function userIsStartingRebaseFlow(
+  currentPopup: Popup | null,
+  state: IRebaseState
+) {
+  if (currentPopup === null) {
+    return false
+  }
+
+  if (currentPopup.type !== PopupType.RebaseFlow) {
+    return false
+  }
+
+  if (state.step === null) {
+    return false
+  }
+
+  if (
+    state.step.kind === RebaseStep.ChooseBranch ||
+    state.step.kind === RebaseStep.WarnForcePush ||
+    state.step.kind === RebaseStep.ShowProgress
+  ) {
+    return true
+  }
+
+  return false
 }
