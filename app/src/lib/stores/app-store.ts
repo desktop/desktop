@@ -240,6 +240,9 @@ const sidebarWidthConfigKey: string = 'sidebar-width'
 const defaultCommitSummaryWidth: number = 250
 const commitSummaryWidthConfigKey: string = 'commit-summary-width'
 
+const defaultStashedFilesWidth: number = 250
+const stashedFilesWidthConfigKey: string = 'stashed-files-width'
+
 const confirmRepoRemovalDefault: boolean = true
 const confirmDiscardChangesDefault: boolean = true
 const askForConfirmationOnForcePushDefault = true
@@ -316,6 +319,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private sidebarWidth: number = defaultSidebarWidth
   private commitSummaryWidth: number = defaultCommitSummaryWidth
+  private stashedFilesWidth: number = defaultStashedFilesWidth
   private windowState: WindowState
   private windowZoomFactor: number = 1
   private isUpdateAvailableBannerVisible: boolean = false
@@ -558,6 +562,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       emoji: this.emoji,
       sidebarWidth: this.sidebarWidth,
       commitSummaryWidth: this.commitSummaryWidth,
+      stashedFilesWidth: this.stashedFilesWidth,
       appMenuState: this.appMenu ? this.appMenu.openMenus : [],
       titleBarStyle:
         this.showWelcomeFlow || repositories.length === 0 ? 'light' : 'dark',
@@ -4805,6 +4810,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }))
 
     this.emitUpdate()
+  }
+
+  public _setStashedFilesWidth(width: number): Promise<void> {
+    this.stashedFilesWidth = width
+    setNumber(stashedFilesWidthConfigKey, width)
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  public _resetStashedFilesWidth(): Promise<void> {
+    this.stashedFilesWidth = defaultStashedFilesWidth
+    localStorage.removeItem(stashedFilesWidthConfigKey)
+    this.emitUpdate()
+
+    return Promise.resolve()
   }
 }
 

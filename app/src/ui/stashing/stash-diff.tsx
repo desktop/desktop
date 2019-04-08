@@ -8,13 +8,14 @@ import { openFile } from '../lib/open-file'
 import { join } from 'path'
 import { Diff } from '../diff'
 import { IDiff, ImageDiffType } from '../../models/diff'
+import { Resizable } from '../resizable'
 
 export const renderStashDiff: React.SFC<{
   stashEntry: IStashEntry
   selectedStashedFile: CommittedFileChange | null
   stashedFileDiff: IDiff | null
   imageDiffType: ImageDiffType
-  availableWidth: number
+  width: number
   externalEditorLabel?: string
   onOpenInExternalEditor: (path: string) => void
   repository: Repository
@@ -31,16 +32,23 @@ export const renderStashDiff: React.SFC<{
     : new Array<FileChange>()
   return (
     <section id="stash-diff-viewer">
-      <FileList
-        files={files}
-        onSelectedFileChanged={placeholderFn}
-        selectedFile={props.selectedStashedFile}
-        availableWidth={props.availableWidth}
-        onOpenItem={makeOnOpenItem(props.repository, props.dispatcher)}
-        externalEditorLabel={props.externalEditorLabel}
-        onOpenInExternalEditor={props.onOpenInExternalEditor}
-        repository={props.repository}
-      />
+      <Resizable
+        width={props.width}
+        maximumWidth={500}
+        onResize={props.dispatcher.setStashedFilesWidth}
+        onReset={props.dispatcher.resetStashedFilesWidth}
+      >
+        <FileList
+          files={files}
+          onSelectedFileChanged={placeholderFn}
+          selectedFile={props.selectedStashedFile}
+          availableWidth={props.width}
+          onOpenItem={makeOnOpenItem(props.repository, props.dispatcher)}
+          externalEditorLabel={props.externalEditorLabel}
+          onOpenInExternalEditor={props.onOpenInExternalEditor}
+          repository={props.repository}
+        />
+      </Resizable>
       {props.selectedStashedFile && props.stashedFileDiff && (
         <Diff
           repository={props.repository}

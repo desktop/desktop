@@ -32,6 +32,7 @@ interface IRepositoryViewProps {
   readonly emoji: Map<string, string>
   readonly sidebarWidth: number
   readonly commitSummaryWidth: number
+  readonly stashedFilesWidth: number
   readonly issuesStore: IssuesStore
   readonly gitHubUserStore: GitHubUserStore
   readonly onViewCommitOnGitHub: (SHA: string) => void
@@ -292,7 +293,7 @@ export class RepositoryView extends React.Component<
             stashedFileDiff: this.props.state.changesState
               .selectedStashedFileDiff,
             imageDiffType: this.props.imageDiffType,
-            availableWidth: this.props.sidebarWidth - 1,
+            width: this.props.stashedFilesWidth,
             externalEditorLabel: this.props.externalEditorLabel,
             onOpenInExternalEditor: this.props.onOpenInExternalEditor,
             repository: this.props.repository,
