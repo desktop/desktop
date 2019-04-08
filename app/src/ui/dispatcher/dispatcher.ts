@@ -1966,4 +1966,20 @@ export class Dispatcher {
   ): Promise<void> {
     return this.appStore._changeStashedFileSelection(repository, file)
   }
+
+  /**
+   * Set the width of the commit summary column in the
+   * history view to the given value.
+   */
+  public setStashedFilesWidth = (width: number): Promise<void> => {
+    return this.appStore._setStashedFilesWidth(width)
+  }
+
+  /**
+   * Reset the width of the commit summary column in the
+   * history view to its default value.
+   */
+  public resetStashedFilesWidth = (): Promise<void> => {
+    return this.appStore._resetStashedFilesWidth()
+  }
 }
