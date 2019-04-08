@@ -1626,10 +1626,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
-    return showRemoveRepoDialog
+  private getRemoveRepoLabel() {
+    return this.confirmRepoRemoval
       ? __DARWIN__
-        ? 'Remove...'
-        : '&Remove...'
+        ? 'Remove…'
+        : '&Remove…'
       : __DARWIN__
       ? 'Remove'
       : '&Remove'
