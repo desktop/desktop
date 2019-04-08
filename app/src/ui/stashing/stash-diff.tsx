@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { IStashEntry } from '../../lib/git/stash'
 import { FileList } from '../history/file-list'
-import { UiView } from '../ui-view'
 import { Dispatcher } from '../dispatcher'
 import { FileChange } from '../../models/status'
 import { Repository } from '../../models/repository'
@@ -23,7 +22,7 @@ export const renderStashDiff: React.SFC<{
     ? props.stashEntry.files
     : new Array<FileChange>()
   return (
-    <UiView id="repository">
+    <section id="stash-diff-viewer">
       <FileList
         files={files}
         onSelectedFileChanged={placeholderFn}
@@ -42,7 +41,7 @@ export const renderStashDiff: React.SFC<{
         dispatcher={props.dispatcher}
         imageDiffType={ImageDiffType.OnionSkin}
       /> */}
-    </UiView>
+    </section>
   )
 }
 
