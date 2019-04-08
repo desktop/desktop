@@ -13,6 +13,7 @@ export const renderStashDiff: React.SFC<{
   stashEntry: IStashEntry
   selectedStashedFile: CommittedFileChange | null
   stashedFileDiff: IDiff | null
+  imageDiffType: ImageDiffType
   availableWidth: number
   externalEditorLabel?: string
   onOpenInExternalEditor: (path: string) => void
@@ -47,7 +48,7 @@ export const renderStashDiff: React.SFC<{
           file={props.selectedStashedFile}
           diff={props.stashedFileDiff}
           dispatcher={props.dispatcher}
-          imageDiffType={ImageDiffType.OnionSkin}
+          imageDiffType={props.imageDiffType}
         />
       )}
     </section>
