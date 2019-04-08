@@ -56,6 +56,6 @@ export const renderStashDiff: React.SFC<{
 const makeOnOpenItem = (
   repository: Repository,
   dispatcher: Dispatcher
-): ((path: string) => void) => {
+): (path: string) => void => {
   return (path: string) => openFile(join(repository.path, path), dispatcher)
 }
