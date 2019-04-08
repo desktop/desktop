@@ -559,6 +559,7 @@ export interface IChangesState {
   /** Whether or not to show the UI for a stash entry. */
   readonly shouldShowStashedChanges: boolean
 
+  readonly selectedStashedFile: CommittedFileChange | null
   readonly selectedStashedFileDiff: IDiff | null
 }
 
