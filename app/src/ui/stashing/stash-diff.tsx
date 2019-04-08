@@ -2,21 +2,27 @@ import * as React from 'react'
 import { IStashEntry } from '../../lib/git/stash'
 import { FileList } from '../history/file-list'
 import { Dispatcher } from '../dispatcher'
-import { FileChange } from '../../models/status'
+import { FileChange, CommittedFileChange } from '../../models/status'
 import { Repository } from '../../models/repository'
 import { openFile } from '../lib/open-file'
 import { join } from 'path'
+import { Diff } from '../diff'
+import { IDiff, ImageDiffType } from '../../models/diff'
 
 export const renderStashDiff: React.SFC<{
   stashEntry: IStashEntry
+  stashedFileDiff: IDiff | null
   availableWidth: number
   externalEditorLabel?: string
   onOpenInExternalEditor: (path: string) => void
   repository: Repository
   dispatcher: Dispatcher
 }> = props => {
-  const placeholderFn = () => {
-    console.log('hi')
+  const placeholderFn = (file: FileChange) => {
+    props.dispatcher.changeStashedFileSelection(
+      props.repository,
+      file as CommittedFileChange
+    )
   }
   const files = Array.isArray(props.stashEntry.files)
     ? props.stashEntry.files
@@ -33,14 +39,16 @@ export const renderStashDiff: React.SFC<{
         onOpenInExternalEditor={props.onOpenInExternalEditor}
         repository={props.repository}
       />
-      {/* <Diff
-        repository={props.repository}
-        readOnly={true}
-        file={props.files[0]}
-        diff={props.diff}
-        dispatcher={props.dispatcher}
-        imageDiffType={ImageDiffType.OnionSkin}
-      /> */}
+      {props.stashedFileDiff && (
+        <Diff
+          repository={props.repository}
+          readOnly={true}
+          file={files[0]}
+          diff={props.stashedFileDiff}
+          dispatcher={props.dispatcher}
+          imageDiffType={ImageDiffType.OnionSkin}
+        />
+      )}
     </section>
   )
 }
@@ -48,6 +56,6 @@ export const renderStashDiff: React.SFC<{
 const makeOnOpenItem = (
   repository: Repository,
   dispatcher: Dispatcher
-): (path: string) => void => {
+): ((path: string) => void) => {
   return (path: string) => openFile(join(repository.path, path), dispatcher)
 }
