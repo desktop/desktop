@@ -16,8 +16,7 @@ import {
 } from '../../../../src/models/status'
 import { createRepository } from '../../../helpers/repository-builder-rebase-test'
 import { getStatusOrThrow } from '../../../helpers/status'
-import { getRefOrError, getBranchOrError } from '../../../helpers/tip'
-import { Branch } from '../../../../src/models/branch'
+import { getBranchOrError } from '../../../helpers/git'
 
 const baseBranchName = 'base-branch'
 const featureBranchName = 'this-is-a-feature'
