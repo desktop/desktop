@@ -1607,11 +1607,24 @@ export class AppStore extends TypedBaseStore<IAppState> {
       shellLabel: `Open in ${this.selectedShell}`,
       defaultBranchName: this.getDefaultBranchName(repository),
       removeRepoLabel: this.getRemoveRepoLabel(),
+      pushLabel: this.getPushLabel(),
     })
   }
 
-  private getRemoveRepoLabel() {
-    const showRemoveRepoDialog = this.confirmRepoRemoval
+  private getPushLabel() {
+    const forcePush = true // ???
+    const confirmForcePush = this.askForConfirmationOnForcePush
+
+    if (forcePush) {
+      if (confirmForcePush) {
+        return __DARWIN__ ? 'Force Push…' : 'Force P&ush…'
+      } else {
+        return __DARWIN__ ? 'Force Push' : 'Force P&ush'
+      }
+    } else {
+      return __DARWIN__ ? 'Push' : 'P&ush'
+    }
+  }
 
     return showRemoveRepoDialog
       ? __DARWIN__

@@ -22,6 +22,7 @@ const defaultBranchNameDefaultValue = __DARWIN__
   ? 'Default Branch'
   : 'default branch'
 const defaultRepositoryRemovalLabel = __DARWIN__ ? 'Remove' : '&Remove'
+const defaultPushLabel = __DARWIN__ ? 'Push' : 'P&ush'
 
 enum ZoomDirection {
   Reset,
@@ -35,6 +36,7 @@ export type MenuLabels = {
   pullRequestLabel?: string
   defaultBranchName?: string
   removeRepoLabel?: string
+  pushLabel?: string
 }
 
 export function buildDefaultMenu({
@@ -43,6 +45,7 @@ export function buildDefaultMenu({
   pullRequestLabel = defaultPullRequestLabel,
   defaultBranchName = defaultBranchNameDefaultValue,
   removeRepoLabel = defaultRepositoryRemovalLabel,
+  pushLabel = defaultPushLabel,
 }: MenuLabels): Electron.Menu {
   defaultBranchName = truncateWithEllipsis(defaultBranchName, 25)
 
@@ -239,7 +242,7 @@ export function buildDefaultMenu({
     submenu: [
       {
         id: 'push',
-        label: __DARWIN__ ? 'Push' : 'P&ush',
+        label: pushLabel,
         accelerator: 'CmdOrCtrl+P',
         click: emit('push'),
       },
