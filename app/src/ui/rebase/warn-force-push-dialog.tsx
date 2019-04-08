@@ -51,10 +51,10 @@ export class WarnForcePushDialog extends React.Component<
             onto <strong>{baseBranch.name}</strong>?
           </p>
           <p>
-            In order to push this branch to your remote branch, you will need to
-            force push the branch after the rebase is complete. That will alter
-            the history on the remote and potentially cause problems for others
-            collaborating on this branch.
+            At the end of the rebase flow, you will need to force push the
+            branch to update the upstream branch. That will alter the history on
+            the remote and potentially cause problems for others collaborating
+            on this branch.
           </p>
           <div>
             <Checkbox
