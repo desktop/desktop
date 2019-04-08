@@ -3,6 +3,11 @@ import { Commit } from '../../src/models/commit'
 import { Repository } from '../../src/models/repository'
 import { Branch } from '../../src/models/branch'
 
+/**
+ * Get the tip commit of the current repository
+ *
+ * Throws an error if the repository is unborn, to indicate an invalid state.
+ */
 export async function getTipOrError(repository: Repository): Promise<Commit> {
   const commit = await getCommit(repository, 'HEAD')
 
@@ -15,6 +20,11 @@ export async function getTipOrError(repository: Repository): Promise<Commit> {
   return commit
 }
 
+/**
+ * Get the commit associated with a provided ref (could also be a commit ID or a branch name).
+ *
+ * Throws an error if the commit cannot be found in the repository.
+ */
 export async function getRefOrError(
   repository: Repository,
   ref: string
@@ -30,6 +40,12 @@ export async function getRefOrError(
   return commit
 }
 
+/**
+ * Get the branch object associated with a local branch name.
+ *
+ * Throws an error if it cannot find the expected `refs/heads/{name}` ref in the
+ * repository.
+ */
 export async function getBranchOrError(
   repository: Repository,
   name: string

@@ -16,10 +16,11 @@ import {
 } from '../../../../src/models/status'
 import { createRepository } from '../../../helpers/repository-builder-rebase-test'
 import { getStatusOrThrow } from '../../../helpers/status'
-import { getRefOrError } from '../../../helpers/tip'
+import { getRefOrError, getBranchOrError } from '../../../helpers/tip'
+import { Branch } from '../../../../src/models/branch'
 
-const baseBranch = 'base-branch'
-const featureBranch = 'this-is-a-feature'
+const baseBranchName = 'base-branch'
+const featureBranchName = 'this-is-a-feature'
 
 describe('git/rebase', () => {
   describe('detect conflicts', () => {
@@ -29,13 +30,19 @@ describe('git/rebase', () => {
     let status: IStatusResult
 
     beforeEach(async () => {
-      const repository = await createRepository(baseBranch, featureBranch)
+      const repository = await createRepository(
+        baseBranchName,
+        featureBranchName
+      )
 
-      const featureTip = await getRefOrError(repository, featureBranch)
-      originalBranchTip = featureTip.sha
+      const featureBranch = await getBranchOrError(
+        repository,
+        featureBranchName
+      )
+      originalBranchTip = featureBranch.tip.sha
 
-      const baseTip = await getRefOrError(repository, baseBranch)
-      baseBranchTip = baseTip.sha
+      const baseBranch = await getBranchOrError(repository, baseBranchName)
+      baseBranchTip = baseBranch.tip.sha
 
       result = await rebase(repository, baseBranch, featureBranch)
 
@@ -71,7 +78,17 @@ describe('git/rebase', () => {
     let status: IStatusResult
 
     beforeEach(async () => {
-      const repository = await createRepository(baseBranch, featureBranch)
+      const repository = await createRepository(
+        baseBranchName,
+        featureBranchName
+      )
+
+      const featureBranch = await getBranchOrError(
+        repository,
+        featureBranchName
+      )
+
+      const baseBranch = await getBranchOrError(repository, baseBranchName)
 
       await rebase(repository, baseBranch, featureBranch)
 
@@ -89,7 +106,7 @@ describe('git/rebase', () => {
     })
 
     it('returns to the feature branch', async () => {
-      expect(status.currentBranch).toBe(featureBranch)
+      expect(status.currentBranch).toBe(featureBranchName)
     })
   })
 
@@ -100,13 +117,19 @@ describe('git/rebase', () => {
     let status: IStatusResult
 
     beforeEach(async () => {
-      const repository = await createRepository(baseBranch, featureBranch)
+      const repository = await createRepository(
+        baseBranchName,
+        featureBranchName
+      )
 
-      const featureTip = await getRefOrError(repository, featureBranch)
-      originalBranchTip = featureTip.sha
+      const featureBranch = await getBranchOrError(
+        repository,
+        featureBranchName
+      )
+      originalBranchTip = featureBranch.tip.sha
 
-      const baseTip = await getRefOrError(repository, baseBranch)
-      baseBranchTip = baseTip.sha
+      const baseBranch = await getBranchOrError(repository, baseBranchName)
+      baseBranchTip = baseBranch.tip.sha
 
       await rebase(repository, baseBranch, featureBranch)
 
@@ -145,9 +168,18 @@ describe('git/rebase', () => {
     let status: IStatusResult
 
     beforeEach(async () => {
-      const repository = await createRepository(baseBranch, featureBranch)
+      const repository = await createRepository(
+        baseBranchName,
+        featureBranchName
+      )
 
-      beforeRebaseTip = await getRefOrError(repository, featureBranch)
+      const featureBranch = await getBranchOrError(
+        repository,
+        featureBranchName
+      )
+      beforeRebaseTip = featureBranch.tip
+
+      const baseBranch = await getBranchOrError(repository, baseBranchName)
 
       await rebase(repository, baseBranch, featureBranch)
 
@@ -198,7 +230,7 @@ describe('git/rebase', () => {
     })
 
     it('returns to the feature branch', () => {
-      expect(status.currentBranch).toBe(featureBranch)
+      expect(status.currentBranch).toBe(featureBranchName)
     })
 
     it('branch is now a different ref', () => {
@@ -213,9 +245,18 @@ describe('git/rebase', () => {
     let status: IStatusResult
 
     beforeEach(async () => {
-      const repository = await createRepository(baseBranch, featureBranch)
+      const repository = await createRepository(
+        baseBranchName,
+        featureBranchName
+      )
 
-      beforeRebaseTip = await getRefOrError(repository, featureBranch)
+      const featureBranch = await getBranchOrError(
+        repository,
+        featureBranchName
+      )
+      beforeRebaseTip = featureBranch.tip
+
+      const baseBranch = await getBranchOrError(repository, baseBranchName)
 
       await rebase(repository, baseBranch, featureBranch)
 
@@ -271,7 +312,7 @@ describe('git/rebase', () => {
     })
 
     it('returns to the feature branch', () => {
-      expect(status.currentBranch).toBe(featureBranch)
+      expect(status.currentBranch).toBe(featureBranchName)
     })
 
     it('branch is now a different ref', () => {
@@ -283,7 +324,17 @@ describe('git/rebase', () => {
     let result: RebaseResult
 
     beforeEach(async () => {
-      const repository = await createRepository(baseBranch, featureBranch)
+      const repository = await createRepository(
+        baseBranchName,
+        featureBranchName
+      )
+
+      const featureBranch = await getBranchOrError(
+        repository,
+        featureBranchName
+      )
+
+      const baseBranch = await getBranchOrError(repository, baseBranchName)
 
       await rebase(repository, baseBranch, featureBranch)
 
