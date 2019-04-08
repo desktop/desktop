@@ -95,7 +95,8 @@ export class WarnForcePushDialog extends React.Component<
       this.props.repository,
       baseBranch,
       targetBranch,
-      commits
+      commits,
+      { continueWithForcePush: true }
     )
   }
 }

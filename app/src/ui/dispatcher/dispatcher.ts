@@ -320,27 +320,38 @@ export class Dispatcher {
   /** Initialize and start the rebase operation */
   public async startRebase(
     repository: Repository,
-    baseBranch: string,
-    targetBranch: string,
-    commits: ReadonlyArray<CommitOneLine>
+    baseBranch: Branch,
+    targetBranch: Branch,
+    commits: ReadonlyArray<CommitOneLine>,
+    options?: { continueWithForcePush: boolean }
   ) {
-    // TODO:
-    //
-    // if the target branch is tracking a remote branch
-    //
-    // AND
-    //
-    // the remote branch contains commits that will be rewritten as part of
-    // this rebase
-    //
-    // THEN
-    //
-    // the app should move to the "Warn Force Push" step first
+    if (options === undefined || options.continueWithForcePush === false) {
+      // TODO:
+      //
+      // if the target branch is tracking a remote branch
+      //
+      // AND
+      //
+      // the remote branch contains commits that will be rewritten as part of
+      // this rebase
+      //
+      // THEN
+      //
+      // the app should move to the "Warn Force Push" step first
+
+      this.setRebaseFlowStep(repository, {
+        kind: RebaseStep.WarnForcePush,
+        baseBranch,
+        targetBranch,
+        commits,
+      })
+      return
+    }
 
     this.initializeRebaseProgress(repository, commits)
 
     const startRebaseAction = () => {
-      return this.rebase(repository, baseBranch, targetBranch)
+      return this.rebase(repository, baseBranch.name, targetBranch.name)
     }
 
     this.setRebaseFlowStep(repository, {

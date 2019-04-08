@@ -291,8 +291,8 @@ export class ChooseBranchDialog extends React.Component<
 
     this.props.dispatcher.startRebase(
       this.props.repository,
-      branch.name,
-      this.props.currentBranch.name,
+      branch,
+      this.props.currentBranch,
       rebasePreviewStatus.commits
     )
   }

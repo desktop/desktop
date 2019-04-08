@@ -83,8 +83,8 @@ export type ChooseBranchesStep = {
 
 export type WarnForcePushStep = {
   readonly kind: RebaseStep.WarnForcePush
-  readonly baseBranch: string
-  readonly targetBranch: string
+  readonly baseBranch: Branch
+  readonly targetBranch: Branch
   readonly commits: ReadonlyArray<CommitOneLine>
 }
 
