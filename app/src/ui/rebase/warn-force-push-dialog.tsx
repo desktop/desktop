@@ -46,8 +46,8 @@ export class WarnForcePushDialog extends React.Component<
       >
         <DialogContent>
           <p>
-            Are you sure you want to rebase <strong>{targetBranch}</strong> onto{' '}
-            <strong>{baseBranch}</strong>?
+            Are you sure you want to rebase <strong>{targetBranch.name}</strong>{' '}
+            onto <strong>{baseBranch.name}</strong>?
           </p>
           <p>
             This rebase will rewrite history and require a force push to update
@@ -87,7 +87,6 @@ export class WarnForcePushDialog extends React.Component<
     this.props.dispatcher.setConfirmForcePushSetting(
       this.state.askForConfirmationOnForcePush
     )
-    this.props.onDismissed()
 
     const { baseBranch, targetBranch, commits } = this.props.step
 

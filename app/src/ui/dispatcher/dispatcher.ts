@@ -324,7 +324,7 @@ export class Dispatcher {
     targetBranch: Branch,
     commits: ReadonlyArray<CommitOneLine>,
     options?: { continueWithForcePush: boolean }
-  ) {
+  ): Promise<void> {
     if (options === undefined || options.continueWithForcePush === false) {
       // TODO:
       //
