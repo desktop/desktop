@@ -9,7 +9,7 @@
   // for stash diff viewer
   .file-list {
     display: flex;
-    flex: 1;
+    flex: 0 1 350px;
 
     border-right: var(--base-border);
   }
