@@ -50,8 +50,8 @@ export class WarnForcePushDialog extends React.Component<
             onto <strong>{baseBranch.name}</strong>?
           </p>
           <p>
-            This rebase will rewrite history and require a force push to update
-            the remote branch.
+            This rebase will rewrite the history on the remote branch and
+            require a force push to complete the rebase flow.
           </p>
           <div>
             <Checkbox
