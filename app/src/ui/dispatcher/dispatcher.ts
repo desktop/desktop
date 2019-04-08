@@ -356,7 +356,7 @@ export class Dispatcher {
     this.initializeRebaseProgress(repository, commits)
 
     const startRebaseAction = () => {
-      return this.rebase(repository, baseBranch.name, targetBranch.name)
+      return this.rebase(repository, baseBranch, targetBranch)
     }
 
     this.setRebaseFlowStep(repository, {
@@ -826,8 +826,8 @@ export class Dispatcher {
   /** Starts a rebase for the given base and target branch */
   public async rebase(
     repository: Repository,
-    baseBranch: string,
-    targetBranch: string
+    baseBranch: Branch,
+    targetBranch: Branch
   ): Promise<void> {
     const stateBefore = this.repositoryStateManager.get(repository)
 
@@ -889,8 +889,8 @@ export class Dispatcher {
         repository,
         {
           type: BannerType.SuccessfulRebase,
-          targetBranch: targetBranch,
-          baseBranch: baseBranch,
+          targetBranch: targetBranch.name,
+          baseBranch: baseBranch.name,
         },
         tip,
         beforeSha

@@ -3602,8 +3602,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _rebase(
     repository: Repository,
-    baseBranch: string,
-    targetBranch: string
+    baseBranch: Branch,
+    targetBranch: Branch
   ): Promise<RebaseResult> {
     const progressCallback = (progress: IRebaseProgress) => {
       this.repositoryStateCache.updateRebaseState(repository, () => ({
