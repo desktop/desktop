@@ -1607,16 +1607,38 @@ export class AppStore extends TypedBaseStore<IAppState> {
       shellLabel: `Open in ${this.selectedShell}`,
       defaultBranchName: this.getDefaultBranchName(repository),
       removeRepoLabel: this.getRemoveRepoLabel(),
-      pushLabel: this.getPushLabel(),
+      pushLabel: this.getPushLabel(repository),
     })
   }
 
-  private getPushLabel() {
-    const forcePush = true // ???
-    const confirmForcePush = this.askForConfirmationOnForcePush
+  private getPushLabel(repository?: Repository) {
+    if (repository === undefined) {
+      return undefined
+    }
+
+    const { branchesState, aheadBehind } = this.repositoryStateCache.get(
+      repository
+    )
+
+    if (aheadBehind === null) {
+      return undefined
+    }
+
+    const { tip, rebasedBranches } = branchesState
+    const { ahead, behind } = aheadBehind
+
+    let branchWasRebased = false
+    if (tip.kind === TipState.Valid) {
+      const localBranchName = tip.branch.nameWithoutRemote
+      const { sha } = tip.branch.tip
+      const foundEntry = rebasedBranches.get(localBranchName)
+      branchWasRebased = foundEntry === sha
+    }
+
+    const forcePush = branchWasRebased && behind > 0 && ahead > 0
 
     if (forcePush) {
-      if (confirmForcePush) {
+      if (this.askForConfirmationOnForcePush) {
         return __DARWIN__ ? 'Force Push…' : 'Force P&ush…'
       } else {
         return __DARWIN__ ? 'Force Push' : 'Force P&ush'
