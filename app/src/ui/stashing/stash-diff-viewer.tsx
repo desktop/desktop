@@ -24,6 +24,18 @@ export const renderStashDiffViewer: React.SFC<{
   const files = Array.isArray(props.stashEntry.files)
     ? props.stashEntry.files
     : new Array<FileChange>()
+
+  const diffComponent =
+    props.selectedStashedFile && props.stashedFileDiff ? (
+      <Diff
+        repository={props.repository}
+        readOnly={true}
+        file={props.selectedStashedFile}
+        diff={props.stashedFileDiff}
+        dispatcher={props.dispatcher}
+        imageDiffType={props.imageDiffType}
+      />
+    ) : null
   return (
     <section id="stash-diff-viewer">
       <Resizable
@@ -46,16 +58,7 @@ export const renderStashDiffViewer: React.SFC<{
           repository={props.repository}
         />
       </Resizable>
-      {props.selectedStashedFile && props.stashedFileDiff && (
-        <Diff
-          repository={props.repository}
-          readOnly={true}
-          file={props.selectedStashedFile}
-          diff={props.stashedFileDiff}
-          dispatcher={props.dispatcher}
-          imageDiffType={props.imageDiffType}
-        />
-      )}
+      {diffComponent}
     </section>
   )
 }
