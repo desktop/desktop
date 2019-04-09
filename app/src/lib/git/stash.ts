@@ -1,6 +1,7 @@
 import { git } from '.'
 import { Repository } from '../../models/repository'
 import { GitError, IGitResult } from './core'
+import { GitError as DugiteError } from 'dugite'
 
 export const DesktopStashEntryMarker = '!!GitHub_Desktop'
 
@@ -45,11 +46,10 @@ export async function getDesktopStashEntries(
     )
   } catch (err) {
     if (err instanceof GitError) {
-      if (
-        !expectedErrorMessages.some(
-          message => err.message.indexOf(message) !== -1
-        )
-      ) {
+      const shouldThrow = !expectedErrorMessages.some(
+        message => err.message.indexOf(message) !== -1
+      )
+      if (shouldThrow) {
         // if the error is not expected, re-throw it so the caller can deal with it
         throw err
       }
@@ -167,6 +167,9 @@ export async function popStashEntry(
   repository: Repository,
   stashSha: string
 ): Promise<void> {
+  // ignoring these git errors for now, this will change when we start
+  // implementing the stash conflict flow
+  const expectedErrors = new Set<DugiteError>([DugiteError.MergeConflicts])
   // get the latest name for the stash entry since it may have changed
   const stashEntries = await getDesktopStashEntries(repository)
 
@@ -182,7 +185,10 @@ export async function popStashEntry(
   await git(
     ['stash', 'pop', `${stashToPop.name}`],
     repository.path,
-    'popStashEntry'
+    'popStashEntry',
+    {
+      expectedErrors,
+    }
   )
 }
 
