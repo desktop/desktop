@@ -36,6 +36,7 @@ export const renderStashDiffViewer: React.SFC<{
         imageDiffType={props.imageDiffType}
       />
     ) : null
+
   return (
     <section id="stash-diff-viewer">
       <Resizable
