@@ -1,6 +1,32 @@
+@import '../variables';
+
 #stash-diff-viewer {
   display: flex;
+  flex-direction: column;
   flex: 1;
+
+  .header {
+    h3 {
+      font-weight: var(--font-weight-light);
+      font-size: var(--font-size-xl);
+    }
+    display: flex;
+    flex-direction: column;
+    border-bottom: var(--base-border);
+    padding: var(--spacing-double) calc(var(--spacing) * 1.5);
+
+    .button-group {
+      display: flex;
+      button {
+        margin-right: var(--spacing);
+      }
+    }
+  }
+
+  .content {
+    display: flex;
+    flex: 1;
+  }
 
   // Necessary so that the diff doesn't expand
   // beyond the width of the history
