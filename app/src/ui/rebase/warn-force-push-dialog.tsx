@@ -41,7 +41,7 @@ export class WarnForcePushDialog extends React.Component<
       <Dialog
         title="This rebase will require a force push"
         onDismissed={this.props.onDismissed}
-        onSubmit={this.onContinueRebase}
+        onSubmit={this.onBeginRebase}
         disableClickDismissalAlways={true}
         type="warning"
       >
@@ -86,7 +86,7 @@ export class WarnForcePushDialog extends React.Component<
     this.setState({ askForConfirmationOnForcePush: value })
   }
 
-  private onContinueRebase = async () => {
+  private onBeginRebase = async () => {
     this.props.dispatcher.setConfirmForcePushSetting(
       this.state.askForConfirmationOnForcePush
     )
