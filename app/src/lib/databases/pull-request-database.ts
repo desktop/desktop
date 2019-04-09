@@ -83,16 +83,16 @@ export class PullRequestDatabase extends BaseDatabase {
     // modified at a later date.
     //
     // TL;DR; This is the safest approach
+    //
+    // Also adds a unique index to look up a PR in a repository by number
     this.conditionalVersion(
       6,
-      { pullRequests: 'id++, base.repoId, [base.repoId+updated_at]' },
+      {
+        pullRequests:
+          'id++, base.repoId, [base.repoId+updatedAt], &[base.repoId+number]',
+      },
       clearPullRequests
     )
-
-    this.conditionalVersion(7, {
-      pullRequests:
-        'id++, base.repoId, [base.repoId+updated_at], &[base.repoId+number]',
-    })
   }
 }
 
