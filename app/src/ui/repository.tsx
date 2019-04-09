@@ -20,7 +20,7 @@ import { OcticonSymbol, Octicon } from './octicons'
 import { ImageDiffType } from '../models/diff'
 import { IMenu } from '../models/app-menu'
 import { enableStashing } from '../lib/feature-flag'
-import { renderStashDiff } from './stashing'
+import { renderStashDiffViewer } from './stashing'
 
 /** The widest the sidebar can be with the minimum window size. */
 const MaxSidebarWidth = 495
@@ -286,7 +286,7 @@ export class RepositoryView extends React.Component<
         }
 
         if (Array.isArray(stashEntry.files)) {
-          return renderStashDiff({
+          return renderStashDiffViewer({
             stashEntry,
             selectedStashedFile: this.props.state.changesState
               .selectedStashedFile,
