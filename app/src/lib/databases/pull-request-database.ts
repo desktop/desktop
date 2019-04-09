@@ -88,6 +88,11 @@ export class PullRequestDatabase extends BaseDatabase {
       { pullRequests: 'id++, base.repoId, [base.repoId+updated_at]' },
       clearPullRequests
     )
+
+    this.conditionalVersion(7, {
+      pullRequests:
+        'id++, base.repoId, [base.repoId+updated_at], &[base.repoId+number]',
+    })
   }
 }
 
