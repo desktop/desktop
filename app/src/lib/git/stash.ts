@@ -182,14 +182,20 @@ export async function popStashEntry(
     return
   }
 
-  await git(
-    ['stash', 'pop', `${stashToPop.name}`],
-    repository.path,
-    'popStashEntry',
-    {
-      expectedErrors,
+  try {
+    await git(
+      ['stash', 'pop', `${stashToPop.name}`],
+      repository.path,
+      'popStashEntry',
+      {
+        expectedErrors,
+      }
+    )
+  } catch (err) {
+    if (err instanceof GitError) {
+      log.error(err.message)
     }
-  )
+  }
 }
 
 function extractBranchFromMessage(message: string): string | null {
