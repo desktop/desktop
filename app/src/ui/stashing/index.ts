@@ -1,1 +1,1 @@
-export * from './stash-diff'
+export * from './stash-diff-viewer'
