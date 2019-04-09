@@ -21,12 +21,6 @@ export const renderStashDiffViewer: React.SFC<{
   repository: Repository
   dispatcher: Dispatcher
 }> = props => {
-  const placeholderFn = (file: FileChange) => {
-    props.dispatcher.changeStashedFileSelection(
-      props.repository,
-      file as CommittedFileChange
-    )
-  }
   const files = Array.isArray(props.stashEntry.files)
     ? props.stashEntry.files
     : new Array<FileChange>()
@@ -40,7 +34,10 @@ export const renderStashDiffViewer: React.SFC<{
       >
         <FileList
           files={files}
-          onSelectedFileChanged={placeholderFn}
+          onSelectedFileChanged={makeHandleSelectedFileChanged(
+            props.repository,
+            props.dispatcher
+          )}
           selectedFile={props.selectedStashedFile}
           availableWidth={props.width}
           onOpenItem={makeOnOpenItem(props.repository, props.dispatcher)}
@@ -61,6 +58,17 @@ export const renderStashDiffViewer: React.SFC<{
       )}
     </section>
   )
+}
+
+const makeHandleSelectedFileChanged = (
+  repository: Repository,
+  dispatcher: Dispatcher
+) => {
+  return (file: FileChange) =>
+    dispatcher.changeStashedFileSelection(
+      repository,
+      file as CommittedFileChange
+    )
 }
 
 const makeOnOpenItem = (repository: Repository, dispatcher: Dispatcher) => {
