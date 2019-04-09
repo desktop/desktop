@@ -23,9 +23,9 @@ const stashEntryRe = /^([0-9a-f]{40})@(.+)$/
  * RegEx for determining if a stash entry is created by Desktop
  *
  * This is done by looking for a magic string with the following
- * format: `!!GitHub_Desktop<branch@commit>`
+ * format: `!!GitHub_Desktop<branch>`
  */
-const desktopStashEntryMessageRe = /!!GitHub_Desktop<(.+)@([0-9|a-z|A-Z]{40})>$/
+const desktopStashEntryMessageRe = /!!GitHub_Desktop<(.+)>$/
 
 /**
  * Get the list of stash entries created by Desktop in the current repository
@@ -106,8 +106,8 @@ export async function getLastDesktopStashEntryForBranch(
 }
 
 /** Creates a stash entry message that idicates the entry was created by Desktop */
-export function createDesktopStashMessage(branchName: string, tipSha: string) {
-  return `${DesktopStashEntryMarker}<${branchName}@${tipSha}>`
+export function createDesktopStashMessage(branchName: string) {
+  return `${DesktopStashEntryMarker}<${branchName}>`
 }
 
 /**
@@ -117,10 +117,9 @@ export function createDesktopStashMessage(branchName: string, tipSha: string) {
  */
 export async function createDesktopStashEntry(
   repository: Repository,
-  branchName: string,
-  tipSha: string
+  branchName: string
 ) {
-  const message = createDesktopStashMessage(branchName, tipSha)
+  const message = createDesktopStashMessage(branchName)
   await git(
     ['stash', 'push', '--include-untracked', '-m', message],
     repository.path,
