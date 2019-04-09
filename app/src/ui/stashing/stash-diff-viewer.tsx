@@ -1,3 +1,5 @@
+/* tslint:disable:button-group-order */
+
 import * as React from 'react'
 import { IStashEntry } from '../../models/stash-entry'
 import { FileList } from '../history/file-list'
@@ -9,6 +11,8 @@ import { join } from 'path'
 import { Diff } from '../diff'
 import { IDiff, ImageDiffType } from '../../models/diff'
 import { Resizable } from '../resizable'
+import { Button } from '../lib/button'
+import { ButtonGroup } from '../lib/button-group'
 
 export const StashDiffViewer: React.SFC<{
   stashEntry: IStashEntry
@@ -39,6 +43,11 @@ export const StashDiffViewer: React.SFC<{
 
   return (
     <section id="stash-diff-viewer">
+      <Header
+        stashEntry={props.stashEntry}
+        repository={props.repository}
+        dispatcher={props.dispatcher}
+      />
       <Resizable
         width={props.width}
         maximumWidth={500}
@@ -77,4 +86,20 @@ const makeHandleSelectedFileChanged = (
 
 const makeOnOpenItem = (repository: Repository, dispatcher: Dispatcher) => {
   return (path: string) => openFile(join(repository.path, path), dispatcher)
+}
+
+const Header: React.SFC<{
+  stashEntry: IStashEntry
+  repository: Repository
+  dispatcher: Dispatcher
+}> = () => {
+  return (
+    <header>
+      <h1>Stashed changes</h1>
+      <ButtonGroup>
+        <Button>Clear</Button>
+        <Button type="submit">Apply</Button>
+      </ButtonGroup>
+    </header>
+  )
 }
