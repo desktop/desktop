@@ -81,7 +81,6 @@ import { BaseStore } from './base-store'
 import { enablePullWithRebase, enableStashing } from '../feature-flag'
 import { getDesktopStashEntries } from '../git/stash'
 import { IStashEntry } from '../../models/stash-entry'
-import { updateStashedFileChanges } from '../../models/stash'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -1009,10 +1008,7 @@ export class GitStore extends BaseStore {
     }
     const files = await getChangedFiles(this.repository, stashEntry.stashSha)
 
-    this._stashEntries.set(
-      branchName,
-      updateStashedFileChanges(stashEntry, files)
-    )
+    this._stashEntries.set(branchName, { ...stashEntry, files })
     this.emitUpdate()
   }
 

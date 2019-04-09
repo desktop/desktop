@@ -3,6 +3,7 @@ import { Repository } from '../../models/repository'
 import { GitError, IGitResult } from './core'
 import { GitError as DugiteError } from 'dugite'
 import { IStashEntry } from '../../models/stash-entry'
+import { StashedChangesLoadStates } from '../../models/stash'
 
 export const DesktopStashEntryMarker = '!!GitHub_Desktop'
 

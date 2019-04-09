@@ -1,4 +1,3 @@
-import { IStashEntry } from '../models/stash-entry'
 import { CommittedFileChange } from './status'
 
 export enum StashedChangesLoadStates {
@@ -9,10 +8,3 @@ export enum StashedChangesLoadStates {
 export type StashedFileChanges =
   | ReadonlyArray<CommittedFileChange>
   | StashedChangesLoadStates
-
-export function updateStashedFileChanges(
-  stashEntry: IStashEntry,
-  files: ReadonlyArray<CommittedFileChange>
-): IStashEntry {
-  return { ...stashEntry, files }
-}
