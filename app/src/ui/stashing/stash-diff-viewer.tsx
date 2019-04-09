@@ -98,7 +98,7 @@ const Header: React.SFC<{
       <h1>Stashed changes</h1>
       <ButtonGroup>
         <Button>Clear</Button>
-        <Button type="submit">Apply</Button>
+        <Button type="submit">Restore</Button>
       </ButtonGroup>
     </header>
   )
