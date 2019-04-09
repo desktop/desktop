@@ -4155,13 +4155,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private async onPullRequestStoreUpdated(gitHubRepository: GitHubRepository) {
-    const promiseForPRs = this.pullRequestStore.fetchPullRequestsFromCache(
-      gitHubRepository
-    )
-    const isLoading = this.pullRequestStore.isFetchingPullRequests(
-      gitHubRepository
-    )
-
     const repository = this.repositories.find(
       r =>
         !!r.gitHubRepository &&
@@ -4171,11 +4164,24 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const prs = await promiseForPRs
+    this.repositoryStateCache.updateBranchesState(repository, () => {
+      return {
+        isLoadingPullRequests: this.pullRequestStore.isFetchingPullRequests(
+          gitHubRepository
+        ),
+      }
+    })
+
+    const prs = await this.pullRequestStore.fetchPullRequestsFromCache(
+      gitHubRepository
+    )
+
     this.repositoryStateCache.updateBranchesState(repository, () => {
       return {
         openPullRequests: prs,
-        isLoadingPullRequests: isLoading,
+        isLoadingPullRequests: this.pullRequestStore.isFetchingPullRequests(
+          gitHubRepository
+        ),
       }
     })
 
