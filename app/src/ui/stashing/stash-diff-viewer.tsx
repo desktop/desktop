@@ -48,27 +48,29 @@ export const StashDiffViewer: React.SFC<{
         repository={props.repository}
         dispatcher={props.dispatcher}
       />
-      <Resizable
-        width={props.width}
-        maximumWidth={500}
-        onResize={props.dispatcher.setStashedFilesWidth}
-        onReset={props.dispatcher.resetStashedFilesWidth}
-      >
-        <FileList
-          files={files}
-          onSelectedFileChanged={makeHandleSelectedFileChanged(
-            props.repository,
-            props.dispatcher
-          )}
-          selectedFile={props.selectedStashedFile}
-          availableWidth={props.width}
-          onOpenItem={makeOnOpenItem(props.repository, props.dispatcher)}
-          externalEditorLabel={props.externalEditorLabel}
-          onOpenInExternalEditor={props.onOpenInExternalEditor}
-          repository={props.repository}
-        />
-      </Resizable>
-      {diffComponent}
+      <div className="content">
+        <Resizable
+          width={props.width}
+          maximumWidth={500}
+          onResize={props.dispatcher.setStashedFilesWidth}
+          onReset={props.dispatcher.resetStashedFilesWidth}
+        >
+          <FileList
+            files={files}
+            onSelectedFileChanged={makeHandleSelectedFileChanged(
+              props.repository,
+              props.dispatcher
+            )}
+            selectedFile={props.selectedStashedFile}
+            availableWidth={props.width}
+            onOpenItem={makeOnOpenItem(props.repository, props.dispatcher)}
+            externalEditorLabel={props.externalEditorLabel}
+            onOpenInExternalEditor={props.onOpenInExternalEditor}
+            repository={props.repository}
+          />
+        </Resizable>
+        {diffComponent}
+      </div>
     </section>
   )
 }
@@ -94,12 +96,12 @@ const Header: React.SFC<{
   dispatcher: Dispatcher
 }> = () => {
   return (
-    <header>
-      <h1>Stashed changes</h1>
+    <div className="header">
+      <h3>Stashed changes</h3>
       <ButtonGroup>
         <Button>Clear</Button>
         <Button type="submit">Restore</Button>
       </ButtonGroup>
-    </header>
+    </div>
   )
 }
