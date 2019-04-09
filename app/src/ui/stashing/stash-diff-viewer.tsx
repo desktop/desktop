@@ -10,7 +10,7 @@ import { Diff } from '../diff'
 import { IDiff, ImageDiffType } from '../../models/diff'
 import { Resizable } from '../resizable'
 
-export const renderStashDiffViewer: React.SFC<{
+export const StashDiffViewer: React.SFC<{
   stashEntry: IStashEntry
   selectedStashedFile: CommittedFileChange | null
   stashedFileDiff: IDiff | null

@@ -20,7 +20,7 @@ import { OcticonSymbol, Octicon } from './octicons'
 import { ImageDiffType } from '../models/diff'
 import { IMenu } from '../models/app-menu'
 import { enableStashing } from '../lib/feature-flag'
-import { renderStashDiffViewer } from './stashing'
+import { StashDiffViewer } from './stashing'
 
 /** The widest the sidebar can be with the minimum window size. */
 const MaxSidebarWidth = 495
@@ -286,19 +286,23 @@ export class RepositoryView extends React.Component<
         }
 
         if (Array.isArray(stashEntry.files)) {
-          return renderStashDiffViewer({
-            stashEntry,
-            selectedStashedFile: this.props.state.changesState
-              .selectedStashedFile,
-            stashedFileDiff: this.props.state.changesState
-              .selectedStashedFileDiff,
-            imageDiffType: this.props.imageDiffType,
-            width: this.props.stashedFilesWidth,
-            externalEditorLabel: this.props.externalEditorLabel,
-            onOpenInExternalEditor: this.props.onOpenInExternalEditor,
-            repository: this.props.repository,
-            dispatcher: this.props.dispatcher,
-          })
+          return (
+            <StashDiffViewer
+              stashEntry={stashEntry}
+              selectedStashedFile={
+                this.props.state.changesState.selectedStashedFile
+              }
+              stashedFileDiff={
+                this.props.state.changesState.selectedStashedFileDiff
+              }
+              imageDiffType={this.props.imageDiffType}
+              width={this.props.stashedFilesWidth}
+              externalEditorLabel={this.props.externalEditorLabel}
+              onOpenInExternalEditor={this.props.onOpenInExternalEditor}
+              repository={this.props.repository}
+              dispatcher={this.props.dispatcher}
+            />
+          )
         } else if (this.props.state.branchesState.tip.kind === TipState.Valid) {
           this.props.dispatcher.loadStashedFiles(
             this.props.repository,
