@@ -2538,7 +2538,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       currentBranch !== null &&
       uncommittedChangesStrategy === UncommittedChangesStrategy.moveToNewBranch
     ) {
-      await this._createStash(repository, foundBranch.name)
+      await this._createStash(repository, foundBranch.name, false)
       shouldPopStash = true
     }
 
@@ -4703,7 +4703,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _createStash(repository: Repository, branchName: string) {
+  public async _createStash(
+    repository: Repository,
+    branchName: string,
+    removePreviousStash: boolean = true
+  ) {
     const { branchesState } = this.repositoryStateCache.get(repository)
 
     if (branchesState === undefined) {
@@ -4716,21 +4720,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     // get the previous stash before we create a new one
-    const previousStash = await getLastDesktopStashEntryForBranch(
-      repository,
-      branchName
-    )
+    const previousStash = removePreviousStash
+      ? await getLastDesktopStashEntryForBranch(repository, branchName)
+      : null
 
     await createDesktopStashEntry(repository, branchName, tip.branch.tip.sha)
 
-    if (previousStash !== null) {
-      await dropDesktopStashEntry(repository, previousStash.stashSha)
-      log.warn(
-        `Dropped stash '${previousStash.stashSha}' associated with ${
-          previousStash.branchName
-        }`
-      )
+    if (previousStash === null) {
+      return
     }
+
+    await dropDesktopStashEntry(repository, previousStash.stashSha)
+    log.warn(
+      `Dropped stash '${previousStash.stashSha}' associated with ${
+        previousStash.branchName
+      }`
+    )
   }
 
   public async _popStash(repository: Repository, branch: Branch) {
