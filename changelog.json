@@ -1,5 +1,14 @@
 {
   "releases": {
+      "1.7.0-beta2": [
+        "[New] Rebase your current branch onto another branch using a guided flow - #5953",
+        "[Fixed] Horizontal scroll bar appears unnecessarily when switching branches - #7212",
+        "[Fixed] License templates do not end with newline character - #6999",
+        "[Fixed] Merge/Rebase conflicts banners do not clear when aborting the operation outside Desktop - #7046",
+        "[Fixed] Missing tooltips for change indicators in the sidebar - #7174",
+        "[Fixed] Icon accessibility labels fail when multiple icons are visible at the same time - #7174",
+        "[Improved] Pull requests load faster and PR build status updates automatically - #7163"
+      ],
     "1.7.0-beta1": [
       "[New] Recently opened repositories appear at the top of the repository list - #7132",
       "[Fixed] Error when selecting diff text while diff is updating - #7131",
