@@ -1241,9 +1241,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           isLoadingPullRequests: true,
         }))
 
-        const prs = await this.pullRequestStore.fetchPullRequestsFromCache(
-          gitHubRepository
-        )
+        const prs = await this.pullRequestStore.getAll(gitHubRepository)
 
         this.repositoryStateCache.updateBranchesState(repository, () => ({
           openPullRequests: prs,
@@ -4172,9 +4170,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     })
 
-    const prs = await this.pullRequestStore.fetchPullRequestsFromCache(
-      gitHubRepository
-    )
+    const prs = await this.pullRequestStore.getAll(gitHubRepository)
 
     this.repositoryStateCache.updateBranchesState(repository, () => {
       return {

@@ -88,7 +88,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
 
       await this.cachePullRequests(apiResult, githubRepo)
 
-      const prs = await this.fetchPullRequestsFromCache(githubRepo)
+      const prs = await this.getAll(githubRepo)
 
       await this.pruneForkedRemotes(repository, prs)
 
@@ -111,8 +111,8 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
     return currentCount > 0
   }
 
-  /** Gets the pull requests against the given repository. */
-  public async fetchPullRequestsFromCache(repository: GitHubRepository) {
+  /** Gets all stored pull requests for the given repository. */
+  public async getAll(repository: GitHubRepository) {
     if (repository.dbID == null) {
       return fatalError("Can't fetch PRs for repository, no dbId")
     }
