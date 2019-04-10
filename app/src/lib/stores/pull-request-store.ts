@@ -112,9 +112,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
   }
 
   /** Gets the pull requests against the given repository. */
-  public async fetchPullRequestsFromCache(
-    repository: GitHubRepository
-  ): Promise<ReadonlyArray<PullRequest>> {
+  public async fetchPullRequestsFromCache(repository: GitHubRepository) {
     if (repository.dbID == null) {
       return fatalError("Can't fetch PRs for repository, no dbId")
     }
