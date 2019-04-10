@@ -140,4 +140,22 @@ export class PullRequestDatabase extends BaseDatabase {
 
     return this.pullRequests.get([repository.dbID, prNumber])
   }
+
+  /**
+   * Get the highest value of the 'updatedAt' field for PRs in a given
+   * repository. This value is used to request delta updates from the API
+   * using the 'since' parameter.
+   */
+  public async getLastUpdated(repository: GitHubRepository) {
+    if (repository.dbID === null) {
+      return fatalError("Can't retrieve PRs for repository, no dbId")
+    }
+
+    const last = await this.pullRequests
+      .where('[base.repoId+updatedAt]')
+      .between([repository.dbID], [repository.dbID + 1])
+      .last()
+
+    return last ? new Date(last.updatedAt) : null
+  }
 }
