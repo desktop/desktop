@@ -230,13 +230,13 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       )
 
       if (headRepo.dbID === null) {
-        throw new Error('PR cannot have non-existent repo')
+        return fatalError('PR cannot have non-existent repo')
       }
 
       // We know the base repo isn't null since that's where we got the PR from
       // in the first place.
       if (pr.base.repo === null) {
-        throw new Error('PR cannot have a null base repo')
+        return fatalError('PR cannot have a null base repo')
       }
 
       const baseGitHubRepo = await this.repositoryStore.upsertGitHubRepository(
@@ -245,7 +245,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       )
 
       if (baseGitHubRepo.dbID === null) {
-        throw new Error('PR cannot have a null parent database id')
+        return fatalError('PR cannot have a null parent database id')
       }
 
       const dbPr: IPullRequest = {
