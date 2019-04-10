@@ -2527,18 +2527,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     let shouldPopStash = false
 
-    if (
-      currentBranch !== null &&
-      uncommittedChangesStrategy ===
+    if (currentBranch !== null) {
+      if (
+        uncommittedChangesStrategy ===
         UncommittedChangesStrategy.stashOnCurrentBranch
-    ) {
-      await this._createStash(repository, currentBranch.name)
-    } else if (
-      currentBranch !== null &&
-      uncommittedChangesStrategy === UncommittedChangesStrategy.moveToNewBranch
-    ) {
-      await this._createStash(repository, foundBranch.name)
-      shouldPopStash = true
+      ) {
+        await this._createStash(repository, currentBranch.name)
+      } else if (
+        uncommittedChangesStrategy ===
+        UncommittedChangesStrategy.moveToNewBranch
+      ) {
+        await this._createStash(repository, foundBranch.name)
+        shouldPopStash = true
+      }
     }
 
     await this.withAuthenticatingUser(repository, (repository, account) =>
