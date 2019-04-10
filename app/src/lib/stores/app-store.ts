@@ -4697,7 +4697,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _createStash(repository: Repository, branchName: string) {
-    const branchesState = this.getBranchesState(repository)
+    const { branchesState } = this. repositoryStateCache.get(repository)
 
     if (branchesState === undefined) {
       return
