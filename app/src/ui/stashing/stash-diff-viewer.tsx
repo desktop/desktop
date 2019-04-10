@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { IStashEntry } from '../../lib/git/stash'
+import { IStashEntry } from '../../models/stash-entry'
 import { FileList } from '../history/file-list'
 import { Dispatcher } from '../dispatcher'
 import { FileChange, CommittedFileChange } from '../../models/status'
