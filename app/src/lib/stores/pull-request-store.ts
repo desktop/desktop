@@ -281,7 +281,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
         prsToUpsert.length
       } to upsert`
     )
-    return this.db.transaction('rw', this.db.pullRequests, async () => {
+    await this.db.transaction('rw', this.db.pullRequests, async () => {
       await this.db.deletePullRequests(prsToDelete)
       await this.db.putPullRequests(prsToUpsert)
     })
