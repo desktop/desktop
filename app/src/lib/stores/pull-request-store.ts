@@ -270,7 +270,6 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       // In cases where the user has removed the fork of the repository after
       // opening a pull request, this can be `null`, and the app will not store
       // this pull request.
-
       if (pr.head.repo == null) {
         log.debug(
           `Unable to store pull request #${pr.number} for repository ${
@@ -280,30 +279,29 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
         continue
       }
 
-      const githubRepo = await this.repositoryStore.upsertGitHubRepository(
+      const headRepo = await this.repositoryStore.upsertGitHubRepository(
         repository.endpoint,
         pr.head.repo
       )
 
-      const githubRepoDbId = forceUnwrap(
-        'PR cannot have non-existent repo',
-        githubRepo.dbID
-      )
+      if (headRepo.dbID === null) {
+        throw new Error('PR cannot have non-existent repo')
+      }
 
       // We know the base repo isn't null since that's where we got the PR from
       // in the first place.
-      const baseRepo = forceUnwrap(
-        'PR cannot have a null base repo',
-        pr.base.repo
-      )
+      if (pr.base.repo === null) {
+        throw new Error('PR cannot have a null base repo')
+      }
+
       const baseGitHubRepo = await this.repositoryStore.upsertGitHubRepository(
         repository.endpoint,
-        baseRepo
+        pr.base.repo
       )
-      const baseGitHubRepoDbId = forceUnwrap(
-        'PR cannot have a null parent database id',
-        baseGitHubRepo.dbID
-      )
+
+      if (baseGitHubRepo.dbID === null) {
+        throw new Error('PR cannot have a null parent database id')
+      }
 
       const dbPr: IPullRequest = {
         number: pr.number,
@@ -313,12 +311,12 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
         head: {
           ref: pr.head.ref,
           sha: pr.head.sha,
-          repoId: githubRepoDbId,
+          repoId: headRepo.dbID,
         },
         base: {
           ref: pr.base.ref,
           sha: pr.base.sha,
-          repoId: baseGitHubRepoDbId,
+          repoId: baseGitHubRepo.dbID,
         },
         author: pr.user.login,
       }
