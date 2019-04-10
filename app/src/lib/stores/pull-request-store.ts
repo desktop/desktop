@@ -91,9 +91,9 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
     // already retrieved GitHubRepository instances.
     //
     // This optimization decreased the run time of this method from 6
-    // seconds to just under 26 ms while testing using a large internal
-    // repository. Even in the worst-case scenario (i.e a repository with
-    // a very large number of open PRs, all originating from forks) this
+    // seconds to just under 26 ms while testing using an internal
+    // repository with 1k+ PRs. Even in the worst-case scenario (i.e
+    // a repository with a huge number of open PRs from forks) this
     // will reduce the N+2 to N+1.
     const getRepo = mem((id: number) =>
       this.repositoryStore.findGitHubRepositoryByID(id)
