@@ -9,6 +9,7 @@ import { TypedBaseStore } from './base-store'
 import { Repository } from '../../models/repository'
 import { getRemotes, removeRemote } from '../git'
 import { ForkedRemotePrefix } from '../../models/remote'
+import mem from 'mem'
 
 const Decrement = (n: number) => n - 1
 const Increment = (n: number) => n + 1
@@ -123,70 +124,33 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
 
     // In order to avoid what would otherwise be a very expensive
     // N+1 (N+2 really) query where we look up the head and base
-    // GitHubRepository from IndexedDB for each pull request we'll store
-    // already retrieved GitHubRepository instances in this map and seed
-    // it with the repository provided to us when initiating the load(which,
-    // for most cases will be the only thing we'll need unless the repository
-    // contains PRs from forks). Adding this optimization decreased the
-    // run time of this method from 6 seconds to just under 26 ms while
-    // testing using a large internal repository. Even in the worst-case
-    // scenario (i.e a repository with a very large number of open PRs, all
-    // originating from forks) this will reduce the N+2 to N+1.
-    const repoCache = new Map<number, GitHubRepository | null>()
-    repoCache.set(repository.dbID, repository)
+    // GitHubRepository from IndexedDB for each pull request we'll memoize
+    // already retrieved GitHubRepository instances.
+    //
+    // This optimization decreased the run time of this method from 6
+    // seconds to just under 26 ms while testing using a large internal
+    // repository. Even in the worst-case scenario (i.e a repository with
+    // a very large number of open PRs, all originating from forks) this
+    // will reduce the N+2 to N+1.
+    const getRepo = mem(this.repositoryStore.findGitHubRepositoryByID)
 
     for (const record of records) {
-      const repositoryDbId = record.head.repoId
-      let githubRepository: GitHubRepository | null | undefined = null
+      const headRepository = record.head.repoId
+        ? await getRepo(record.head.repoId)
+        : null
+      const baseRepository = await getRepo(record.base.repoId)
 
-      if (repositoryDbId != null) {
-        githubRepository = repoCache.get(repositoryDbId)
-        if (githubRepository === undefined) {
-          githubRepository = await this.repositoryStore.findGitHubRepositoryByID(
-            repositoryDbId
-          )
-          repoCache.set(repositoryDbId, githubRepository)
-        }
+      if (baseRepository === null) {
+        return fatalError("base repository can't be null")
       }
-
-      // We know the base repo ID can't be null since it's the repository we
-      // fetched the PR from in the first place.
-      const parentRepositoryDbId = forceUnwrap(
-        'A pull request cannot have a null base repo id',
-        record.base.repoId
-      )
-      let parentGitGubRepository:
-        | GitHubRepository
-        | undefined
-        | null = repoCache.get(parentRepositoryDbId)
-
-      if (parentGitGubRepository === undefined) {
-        parentGitGubRepository = await this.repositoryStore.findGitHubRepositoryByID(
-          parentRepositoryDbId
-        )
-        repoCache.set(parentRepositoryDbId, parentGitGubRepository)
-      }
-
-      const parentGitHubRepository = forceUnwrap(
-        'PR cannot have a null base repo',
-        parentGitGubRepository
-      )
 
       result.push(
         new PullRequest(
           new Date(record.createdAt),
           record.title,
           record.number,
-          new PullRequestRef(
-            record.head.ref,
-            record.head.sha,
-            githubRepository
-          ),
-          new PullRequestRef(
-            record.base.ref,
-            record.base.sha,
-            parentGitHubRepository
-          ),
+          new PullRequestRef(record.head.ref, record.head.sha, headRepository),
+          new PullRequestRef(record.base.ref, record.base.sha, baseRepository),
           record.author
         )
       )
