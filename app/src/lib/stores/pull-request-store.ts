@@ -17,18 +17,13 @@ const Increment = (n: number) => n + 1
 
 /** The store for GitHub Pull Requests. */
 export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
-  private readonly db: PullRequestDatabase
-  private readonly repositoryStore: RepositoriesStore
   private readonly activeFetchCountPerRepository = new Map<number, number>()
 
   public constructor(
-    db: PullRequestDatabase,
-    repositoriesStore: RepositoriesStore
+    private readonly db: PullRequestDatabase,
+    private readonly repositoryStore: RepositoriesStore
   ) {
     super()
-
-    this.db = db
-    this.repositoryStore = repositoriesStore
   }
 
   /** Loads all pull requests against the given repository. */
