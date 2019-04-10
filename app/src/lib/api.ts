@@ -494,7 +494,7 @@ export class API {
    * PRs that have been update more recently than the `since`
    * parameter.
    */
-  public async fetchPullRequestsUpdatedSince(
+  public async fetchUpdatedPullRequests(
     owner: string,
     name: string,
     since: Date

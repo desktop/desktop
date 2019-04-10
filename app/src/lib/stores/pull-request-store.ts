@@ -83,7 +83,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       // after the timestamp we give it we will always get at least one issue
       // back.
       const apiResult = lastUpdatedAt
-        ? await api.fetchPullRequestsUpdatedSince(owner, name, lastUpdatedAt)
+        ? await api.fetchUpdatedPullRequests(owner, name, lastUpdatedAt)
         : await api.fetchPullRequests(owner, name, 'open')
 
       await this.cachePullRequests(apiResult, githubRepo)
