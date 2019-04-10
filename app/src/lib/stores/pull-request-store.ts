@@ -85,10 +85,9 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
     }
 
     const records = await this.pullRequestDatabase.pullRequests
-      .where('base.repoId')
-      .equals(gitHubRepositoryID)
-      .reverse()
-      .sortBy('number')
+      .where('[base.repoId+number]')
+      .between([gitHubRepositoryID], [gitHubRepositoryID + 1], true, false)
+      .toArray()
 
     const result = new Array<PullRequest>()
 
@@ -171,7 +170,12 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       )
     }
 
-    return result
+    // Reversing the results in place manually instead of using
+    // .reverse on the IndexedDB query has measured to have favorable
+    // performance characteristics for repositories with a lot of pull
+    // requests since it means Dexie is able to leverage the IndexedDB
+    // getAll method as opposed to creating a reverse cursor.
+    return result.reverse()
   }
 
   private async pruneForkedRemotes(
