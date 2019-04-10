@@ -92,14 +92,32 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
 
     const result = new Array<PullRequest>()
 
+    // In order to avoid what would otherwise be a very expensive
+    // N+1 (N+2 really) query where we look up the head and base
+    // GitHubRepository from IndexedDB for each pull request we'll store
+    // already retrieved GitHubRepository instances in this map and seed
+    // it with the repository provided to us when initiating the load(which,
+    // for most cases will be the only thing we'll need unless the repository
+    // contains PRs from forks). Adding this optimization decreased the
+    // run time of this method from 6 seconds to just under 26 ms while
+    // testing using a large internal repository. Even in the worst-case
+    // scenario (i.e a repository with a very large number of open PRs, all
+    // originating from forks) this will reduce the N+2 to N+1.
+    const repoCache = new Map<number, GitHubRepository | null>()
+    repoCache.set(gitHubRepositoryID, repository)
+
     for (const record of records) {
       const repositoryDbId = record.head.repoId
-      let githubRepository: GitHubRepository | null = null
+      let githubRepository: GitHubRepository | null | undefined = null
 
       if (repositoryDbId != null) {
-        githubRepository = await this.repositoryStore.findGitHubRepositoryByID(
-          repositoryDbId
-        )
+        githubRepository = repoCache.get(repositoryDbId) || null
+        if (githubRepository === undefined) {
+          githubRepository = await this.repositoryStore.findGitHubRepositoryByID(
+            repositoryDbId
+          )
+          repoCache.set(repositoryDbId, githubRepository)
+        }
       }
 
       // We know the base repo ID can't be null since it's the repository we
@@ -108,9 +126,18 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
         'A pull request cannot have a null base repo id',
         record.base.repoId
       )
-      const parentGitGubRepository: GitHubRepository | null = await this.repositoryStore.findGitHubRepositoryByID(
-        parentRepositoryDbId
-      )
+      let parentGitGubRepository:
+        | GitHubRepository
+        | undefined
+        | null = repoCache.get(parentRepositoryDbId)
+
+      if (parentGitGubRepository === undefined) {
+        parentGitGubRepository = await this.repositoryStore.findGitHubRepositoryByID(
+          parentRepositoryDbId
+        )
+        repoCache.set(parentRepositoryDbId, parentGitGubRepository)
+      }
+
       const parentGitHubRepository = forceUnwrap(
         'PR cannot have a null base repo',
         parentGitGubRepository
