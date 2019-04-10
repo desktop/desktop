@@ -1,3 +1,5 @@
+import mem from 'mem'
+
 import { PullRequestDatabase, IPullRequest } from '../databases'
 import { GitHubRepository } from '../../models/github-repository'
 import { Account } from '../../models/account'
@@ -10,7 +12,7 @@ import { Repository } from '../../models/repository'
 import { getRemotes, removeRemote } from '../git'
 import { ForkedRemotePrefix } from '../../models/remote'
 import { structuralEquals } from '../equality'
-import mem from 'mem'
+import { Emitter, Disposable } from 'event-kit'
 
 const Decrement = (n: number) => n - 1
 const Increment = (n: number) => n + 1
