@@ -180,16 +180,8 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
         parentGitGubRepository
       )
 
-      // We can be certain the PR ID is valid since we just got it from the
-      // database.
-      const pullRequestDbId = forceUnwrap(
-        'PR cannot have a null ID after being retrieved from the database',
-        record.id
-      )
-
       result.push(
         new PullRequest(
-          pullRequestDbId,
           new Date(record.createdAt),
           record.title,
           record.number,
@@ -257,8 +249,6 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
     pullRequestsFromAPI: ReadonlyArray<IAPIPullRequest>,
     repository: GitHubRepository
   ): Promise<void> {
-    const table = this.pullRequestDatabase.pullRequests
-
     const prsToDelete = new Array<IPullRequest>()
     const prsToUpsert = new Array<IPullRequest>()
 
@@ -335,41 +325,9 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
     )
     const db = this.pullRequestDatabase
 
-    function getPullRequest(gitHubRepositoryID: number, prNumber: number) {
-      return db.pullRequests
-        .where('[base.repoId+number]')
-        .equals([gitHubRepositoryID, prNumber])
-        .limit(1)
-        .first()
-    }
-
-    return this.pullRequestDatabase.transaction('rw', table, async () => {
-      let deleted = 0
-      let updated = 0
-      let inserted = 0
-
-      for (const pr of prsToDelete) {
-        const existing = await getPullRequest(repoDbId, pr.number)
-        if (existing) {
-          await db.pullRequests.delete(existing.id!)
-          deleted++
-        }
-      }
-
-      for (const pr of prsToUpsert) {
-        const existing = await getPullRequest(repoDbId, pr.number)
-        if (existing) {
-          await db.pullRequests.update(existing.id!, pr)
-          updated++
-        } else {
-          await db.pullRequests.add(pr)
-          inserted++
-        }
-      }
-
-      console.log(
-        `PR: deleted ${deleted}, updated ${updated}, and inserted ${inserted}`
-      )
+    return db.transaction('rw', db.pullRequests, async () => {
+      await db.deletePullRequests(prsToDelete)
+      await db.putPullRequests(prsToUpsert)
     })
   }
 }

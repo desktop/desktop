@@ -45,8 +45,10 @@ export interface IPullRequest {
   readonly author: string
 }
 
+type PullRequestKey = [number, number]
+
 export class PullRequestDatabase extends BaseDatabase {
-  public pullRequests!: Dexie.Table<IPullRequest, number>
+  public pullRequests!: Dexie.Table<IPullRequest, PullRequestKey>
 
   public constructor(name: string, schemaVersion?: number) {
     super(name, schemaVersion)
@@ -72,31 +74,33 @@ export class PullRequestDatabase extends BaseDatabase {
     // Remove the pullRequestStatus table
     this.conditionalVersion(5, { pullRequestStatus: null })
 
-    // Unfortunately we have to clear the PRs in order to maintain
-    // data consistency in the database. The PRs table is only supposed
-    // to store 'open' PRs and if we kept the existing PRs (which)
-    // don't have an updated_at field around the initial query for
-    // max(updated_at) would return null, causing us to fetch all _open_
-    // PRs which in turn means we wouldn't be able to detect if we
-    // have any PRs in the database that have been closed since the
-    // last time we fetched. Not only that, these closed PRs wouldn't
-    // be updated to include the updated_at field unless they were actually
-    // modified at a later date.
-    //
-    // TL;DR; This is the safest approach
-    //
-    // Also adds a unique index to look up a PR in a repository by number
-    this.conditionalVersion(
-      6,
-      {
-        pullRequests:
-          'id++, base.repoId, [base.repoId+updatedAt], &[base.repoId+number]',
-      },
-      clearPullRequests
-    )
-  }
-}
+    // Delete pullRequestsTable in order to recreate it again
+    // in version 7 with a new primary key
+    this.conditionalVersion(6, { pullRequests: null })
 
-function clearPullRequests(transaction: Dexie.Transaction) {
-  return transaction.table('pullRequests').clear()
+    // new primary key and a new index for updatedAt
+    this.conditionalVersion(7, {
+      pullRequests:
+        '[base.repoId+number], base.repoId, [base.repoId+updatedAt]',
+    })
+  }
+
+  public async deletePullRequests(prs: IPullRequest[]) {
+    // I believe this to be a bug in Dexie's type declarations.
+    // It defeinitely supports passing an array of keys but the
+    // type thinks that if it's an array it should be an array
+    // of void which I believe to be a mistake. Therefore we
+    // first ensure that the array is what _we_ expect it to
+    // be (i.e. PullRequestKey[]) before typing it as any and
+    // handing it off to Dexie.
+    const ids = (<PullRequestKey[]>(
+      prs.map(pr => [pr.base.repoId, pr.number])
+    )) as any
+
+    return this.pullRequests.bulkDelete(ids)
+  }
+
+  public putPullRequests(prs: IPullRequest[]) {
+    return this.pullRequests.bulkPut(prs)
+  }
 }

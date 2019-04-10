@@ -67,7 +67,7 @@ function createTestPrRef(
 }
 
 function createTestPr(head: PullRequestRef, base: PullRequestRef) {
-  return new PullRequest(-1, new Date(), '', 1, head, base, '')
+  return new PullRequest(new Date(), '', 1, head, base, '')
 }
 
 function createTestRepo(ghRepo: GitHubRepository | null = null) {
