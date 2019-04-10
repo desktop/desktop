@@ -77,6 +77,7 @@ import {
   StatusCallBack,
 } from '../../lib/stores/commit-status-store'
 import { MergeResult } from '../../models/merge'
+import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 
 /**
@@ -368,9 +369,13 @@ export class Dispatcher {
   public checkoutBranch(
     repository: Repository,
     branch: Branch | string,
-    omitStashCheck?: boolean
+    uncommittedChangesStrategy?: UncommittedChangesStrategy
   ): Promise<Repository> {
-    return this.appStore._checkoutBranch(repository, branch, omitStashCheck)
+    return this.appStore._checkoutBranch(
+      repository,
+      branch,
+      uncommittedChangesStrategy
+    )
   }
 
   /** Push the current branch. */

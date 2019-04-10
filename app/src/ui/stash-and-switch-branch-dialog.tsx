@@ -7,9 +7,10 @@ import { Row } from './lib/row'
 import { Branch } from '../models/branch'
 import { ButtonGroup } from './lib/button-group'
 import { Button } from './lib/button'
+import { UncommittedChangesStrategy } from '../models/uncommitted-changes-strategy'
 
 enum StashAction {
-  KeepOnCurrentBranch,
+  StashOnCurrentBranch,
   MoveToNewBranch,
 }
 interface ISwitchBranchProps {
@@ -34,7 +35,7 @@ export class StashAndSwitchBranch extends React.Component<
 
     this.state = {
       isStashingChanges: false,
-      selectedStashAction: StashAction.KeepOnCurrentBranch,
+      selectedStashAction: StashAction.StashOnCurrentBranch,
     }
   }
 
@@ -49,7 +50,7 @@ export class StashAndSwitchBranch extends React.Component<
         loading={isStashingChanges}
         disabled={isStashingChanges}
       >
-        <DialogContent>{this.renderOptions()}</DialogContent>
+        <DialogContent>{this.renderStashActions()}</DialogContent>
         <DialogFooter>
           <ButtonGroup>
             <Button type="submit">
@@ -62,7 +63,7 @@ export class StashAndSwitchBranch extends React.Component<
     )
   }
 
-  private renderOptions() {
+  private renderStashActions() {
     const { branchToCheckout } = this.props
     const items = [
       {
@@ -88,24 +89,28 @@ export class StashAndSwitchBranch extends React.Component<
     )
   }
 
-  private onSelectionChanged = (selection: StashAction) => {
-    this.setState({ selectedStashAction: selection })
+  private onSelectionChanged = (action: StashAction) => {
+    this.setState({ selectedStashAction: action })
   }
 
   private onSubmit = async () => {
-    const {
-      repository,
-      currentBranch,
-      branchToCheckout,
-      dispatcher: dispathcer,
-    } = this.props
+    const { repository, branchToCheckout, dispatcher } = this.props
+    const { selectedStashAction } = this.state
 
-    const whereToStash =
-      this.state.selectedStashAction === StashAction.KeepOnCurrentBranch
-        ? currentBranch
-        : branchToCheckout
-    await dispathcer.createStash(repository, whereToStash)
-    await dispathcer.checkoutBranch(repository, branchToCheckout, true)
+    if (selectedStashAction === StashAction.StashOnCurrentBranch) {
+      await dispatcher.checkoutBranch(
+        repository,
+        branchToCheckout,
+        UncommittedChangesStrategy.stashOnCurrentBranch
+      )
+    } else if (selectedStashAction === StashAction.MoveToNewBranch) {
+      await dispatcher.checkoutBranch(
+        repository,
+        branchToCheckout,
+        UncommittedChangesStrategy.moveToNewBranch
+      )
+    }
+
     this.props.onDismissed()
   }
 }
