@@ -160,7 +160,8 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
     // .reverse on the IndexedDB query has measured to have favorable
     // performance characteristics for repositories with a lot of pull
     // requests since it means Dexie is able to leverage the IndexedDB
-    // getAll method as opposed to creating a reverse cursor.
+    // getAll method as opposed to creating a reverse cursor. Reversing
+    // in place versus unshifting is also dramatically more performant.
     return result.reverse()
   }
 
