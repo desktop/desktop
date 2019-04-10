@@ -292,6 +292,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     switch (name) {
       case 'push':
         return this.push()
+      case 'force-push':
+        return this.push({ forceWithLease: true })
       case 'pull':
         return this.pull()
       case 'show-changes':
@@ -695,13 +697,17 @@ export class App extends React.Component<IAppProps, IAppState> {
     return this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
   }
 
-  private push() {
+  private push(options?: { forceWithLease: boolean }) {
     const state = this.state.selectedState
     if (state == null || state.type !== SelectionType.Repository) {
       return
     }
 
-    this.props.dispatcher.push(state.repository)
+    if (options && options.forceWithLease) {
+      this.props.dispatcher.confirmOrForcePush(state.repository)
+    } else {
+      this.props.dispatcher.push(state.repository)
+    }
   }
 
   private async pull() {

@@ -1608,11 +1608,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
       shellLabel: `Open in ${this.selectedShell}`,
       defaultBranchName: this.getDefaultBranchName(repository),
       removeRepoLabel: this.getRemoveRepoLabel(),
-      pushLabel: this.getPushLabel(repository),
+      isForcePushForCurrentRepository: this.isCurrentBranchForcePush(
+        repository
+      ),
+      askForConfirmationOnForcePush: this.askForConfirmationOnForcePush,
     })
   }
 
-  private getPushLabel(repository?: Repository) {
+  private isCurrentBranchForcePush(repository?: Repository) {
     if (repository === undefined) {
       return undefined
     }
@@ -1621,17 +1624,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repository
     )
 
-    const forcePush = isCurrentBranchForcePush(branchesState, aheadBehind)
-
-    if (!forcePush) {
-      return __DARWIN__ ? 'Push' : 'P&ush'
-    }
-
-    if (this.askForConfirmationOnForcePush) {
-      return __DARWIN__ ? 'Force Push…' : 'Force P&ush…'
-    }
-
-    return __DARWIN__ ? 'Force Push' : 'Force P&ush'
+    return isCurrentBranchForcePush(branchesState, aheadBehind)
   }
 
   private getRemoveRepoLabel() {

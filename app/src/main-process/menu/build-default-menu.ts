@@ -22,7 +22,6 @@ const defaultBranchNameDefaultValue = __DARWIN__
   ? 'Default Branch'
   : 'default branch'
 const defaultRepositoryRemovalLabel = __DARWIN__ ? 'Remove' : '&Remove'
-const defaultPushLabel = __DARWIN__ ? 'Push' : 'P&ush'
 
 enum ZoomDirection {
   Reset,
@@ -36,7 +35,8 @@ export type MenuLabels = {
   pullRequestLabel?: string
   defaultBranchName?: string
   removeRepoLabel?: string
-  pushLabel?: string
+  isForcePushForCurrentRepository?: boolean
+  askForConfirmationOnForcePush?: boolean
 }
 
 export function buildDefaultMenu({
@@ -45,7 +45,8 @@ export function buildDefaultMenu({
   pullRequestLabel = defaultPullRequestLabel,
   defaultBranchName = defaultBranchNameDefaultValue,
   removeRepoLabel = defaultRepositoryRemovalLabel,
-  pushLabel = defaultPushLabel,
+  isForcePushForCurrentRepository = false,
+  askForConfirmationOnForcePush = false,
 }: MenuLabels): Electron.Menu {
   defaultBranchName = truncateWithEllipsis(defaultBranchName, 25)
 
@@ -236,6 +237,13 @@ export function buildDefaultMenu({
     ],
   })
 
+  const pushLabel = getPushLabel(
+    isForcePushForCurrentRepository,
+    askForConfirmationOnForcePush
+  )
+
+  const pushEventType = isForcePushForCurrentRepository ? 'force-push' : 'push'
+
   template.push({
     label: __DARWIN__ ? 'Repository' : '&Repository',
     id: 'repository',
@@ -244,7 +252,7 @@ export function buildDefaultMenu({
         id: 'push',
         label: pushLabel,
         accelerator: 'CmdOrCtrl+P',
-        click: emit('push'),
+        click: emit(pushEventType),
       },
       {
         id: 'pull',
@@ -477,6 +485,21 @@ export function buildDefaultMenu({
   ensureItemIds(template)
 
   return Menu.buildFromTemplate(template)
+}
+
+function getPushLabel(
+  isForcePushForCurrentRepository: boolean,
+  askForConfirmationOnForcePush: boolean
+): string {
+  if (!isForcePushForCurrentRepository) {
+    return __DARWIN__ ? 'Push' : 'P&ush'
+  }
+
+  if (askForConfirmationOnForcePush) {
+    return __DARWIN__ ? 'Force Push…' : 'Force P&ush…'
+  }
+
+  return __DARWIN__ ? 'Force Push' : 'Force P&ush'
 }
 
 type ClickHandler = (

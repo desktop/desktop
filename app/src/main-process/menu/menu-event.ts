@@ -1,5 +1,6 @@
 export type MenuEvent =
   | 'push'
+  | 'force-push'
   | 'pull'
   | 'show-changes'
   | 'show-history'
