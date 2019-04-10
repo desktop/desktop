@@ -143,7 +143,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       let githubRepository: GitHubRepository | null | undefined = null
 
       if (repositoryDbId != null) {
-        githubRepository = repoCache.get(repositoryDbId) || null
+        githubRepository = repoCache.get(repositoryDbId)
         if (githubRepository === undefined) {
           githubRepository = await this.repositoryStore.findGitHubRepositoryByID(
             repositoryDbId
