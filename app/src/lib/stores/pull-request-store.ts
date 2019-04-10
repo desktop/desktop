@@ -7,7 +7,6 @@ import { API, IAPIPullRequest } from '../api'
 import { fatalError, forceUnwrap } from '../fatal-error'
 import { RepositoriesStore } from './repositories-store'
 import { PullRequest, PullRequestRef } from '../../models/pull-request'
-import { TypedBaseStore } from './base-store'
 import { Repository } from '../../models/repository'
 import { getRemotes, removeRemote } from '../git'
 import { ForkedRemotePrefix } from '../../models/remote'
@@ -18,14 +17,53 @@ const Decrement = (n: number) => n - 1
 const Increment = (n: number) => n + 1
 
 /** The store for GitHub Pull Requests. */
-export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
+export class PullRequestStore {
+  protected readonly emitter = new Emitter()
   private readonly activeFetchCountPerRepository = new Map<number, number>()
 
   public constructor(
     private readonly db: PullRequestDatabase,
     private readonly repositoryStore: RepositoriesStore
+  ) {}
+
+  private emitPullRequestsChanged(
+    repository: GitHubRepository,
+    pullRequests: ReadonlyArray<PullRequest>
   ) {
-    super()
+    this.emitter.emit('onPullRequestsChanged', { repository, pullRequests })
+  }
+
+  /** Register a function to be called when the store updates. */
+  public onPullRequestsChanged(
+    fn: (
+      repository: GitHubRepository,
+      pullRequests: ReadonlyArray<PullRequest>
+    ) => void
+  ): Disposable {
+    return this.emitter.on('onPullRequestsChanged', value => {
+      const { repository, pullRequests } = value
+      fn(repository, pullRequests)
+    })
+  }
+
+  private emitIsLoadingPullRequests(
+    repository: GitHubRepository,
+    isLoadingPullRequests: boolean
+  ) {
+    this.emitter.emit('onIsLoadingPullRequest', {
+      repository,
+      isLoadingPullRequests,
+    })
+  }
+
+  /** Register a function to be called when the store updates. */
+  public onIsLoadingPullRequests(
+    fn: (repository: GitHubRepository, isLoadingPullRequests: boolean) => void
+  ): Disposable {
+    return this.emitter.on('onIsLoadingPullRequest', value => {
+      const { repository, isLoadingPullRequests } = value
+      fn(repository, isLoadingPullRequests)
+    })
   }
 
   /** Loads all pull requests against the given repository. */
@@ -58,24 +96,13 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       if (await this.cachePullRequests(apiResult, githubRepo)) {
         const prs = await this.getAll(githubRepo)
         await this.pruneForkedRemotes(repository, prs)
-        this.emitUpdate(githubRepo)
+        this.emitPullRequestsChanged(githubRepo, prs)
       }
     } catch (error) {
       log.warn(`Error refreshing pull requests for '${repository.name}'`, error)
     } finally {
       this.updateActiveFetchCount(githubRepo, Decrement)
     }
-  }
-
-  /** Is the store currently fetching the list of open pull requests? */
-  public isFetchingPullRequests(repository: GitHubRepository): boolean {
-    const repoDbId = forceUnwrap(
-      'Cannot fetch PRs for a repository which is not in the database',
-      repository.dbID
-    )
-    const currentCount = this.activeFetchCountPerRepository.get(repoDbId) || 0
-
-    return currentCount > 0
   }
 
   /** Gets all stored pull requests for the given repository. */
@@ -166,7 +193,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
     const newCount = update(currentCount)
 
     this.activeFetchCountPerRepository.set(repoDbId, newCount)
-    this.emitUpdate(repository)
+    this.emitIsLoadingPullRequests(repository, newCount > 0)
   }
 
   /**

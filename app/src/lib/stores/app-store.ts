@@ -423,9 +423,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.emitUpdate()
     })
 
-    this.pullRequestStore.onDidError(error => this.emitError(error))
-    this.pullRequestStore.onDidUpdate(gitHubRepository =>
-      this.onPullRequestStoreUpdated(gitHubRepository)
+    this.pullRequestStore.onPullRequestsChanged((ghRepo, pullRequests) =>
+      this.onPullRequestStoreUpdated(ghRepo, pullRequests)
+    )
+    this.pullRequestStore.onIsLoadingPullRequests(
+      (ghRepo, isLoadingPullRequests) => {
+        const repository = this.findRepositoryByGitHubRepository(ghRepo)
+
+        if (!repository) {
+          return
+        }
+
+        this.repositoryStateCache.updateBranchesState(repository, () => {
+          return { isLoadingPullRequests }
+        })
+        this.emitUpdate()
+      }
     )
 
     this.apiRepositoriesStore.onDidUpdate(() => this.emitUpdate())
@@ -1236,27 +1249,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     if (gitHubRepository !== null) {
       this._refreshIssues(gitHubRepository)
-      this.loadPullRequests(repository, async () => {
-        this.repositoryStateCache.updateBranchesState(repository, () => ({
-          isLoadingPullRequests: true,
-        }))
-
-        const prs = await this.pullRequestStore.getAll(gitHubRepository)
-
-        this.repositoryStateCache.updateBranchesState(repository, () => ({
-          openPullRequests: prs,
-          isLoadingPullRequests: this.pullRequestStore.isFetchingPullRequests(
-            gitHubRepository
-          ),
-        }))
-
-        if (prs.length === 0) {
-          this._refreshPullRequests(repository)
-        }
-
-        this._updateCurrentPullRequest(repository)
-        this.emitUpdate()
+      const openPullRequests = await this.pullRequestStore.getAll(
+        gitHubRepository
+      )
+      this.repositoryStateCache.updateBranchesState(repository, () => {
+        return { openPullRequests }
       })
+      this._refreshPullRequests(repository)
     }
 
     // The selected repository could have changed while we were refreshing.
@@ -4123,65 +4122,42 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await this._openInBrowser(baseURL)
   }
 
-  private async loadPullRequests(
-    repository: Repository,
-    loader: (account: Account) => void
-  ) {
-    const gitHubRepository = repository.gitHubRepository
-
-    if (gitHubRepository == null) {
-      return
-    }
-
-    const account = getAccountForEndpoint(
-      this.accounts,
-      gitHubRepository.endpoint
-    )
-
-    if (account == null) {
-      return
-    }
-
-    await loader(account)
-  }
-
   public async _refreshPullRequests(repository: Repository): Promise<void> {
-    return this.loadPullRequests(repository, async account => {
-      await this.pullRequestStore.refreshPullRequests(repository, account)
-      this.updateMenuItemLabels(repository)
-    })
+    const { gitHubRepository } = repository
+
+    if (gitHubRepository) {
+      const { endpoint } = gitHubRepository
+      const account = getAccountForEndpoint(this.accounts, endpoint)
+
+      if (account) {
+        await this.pullRequestStore.refreshPullRequests(repository, account)
+      }
+    }
   }
 
-  private async onPullRequestStoreUpdated(gitHubRepository: GitHubRepository) {
-    const repository = this.repositories.find(
+  private findRepositoryByGitHubRepository(gitHubRepository: GitHubRepository) {
+    return this.repositories.find(
       r =>
-        !!r.gitHubRepository &&
+        r.gitHubRepository !== null &&
         r.gitHubRepository.dbID === gitHubRepository.dbID
     )
+  }
+
+  private async onPullRequestStoreUpdated(
+    gitHubRepository: GitHubRepository,
+    openPullRequests: ReadonlyArray<PullRequest>
+  ) {
+    const repository = this.findRepositoryByGitHubRepository(gitHubRepository)
     if (!repository) {
       return
     }
 
     this.repositoryStateCache.updateBranchesState(repository, () => {
-      return {
-        isLoadingPullRequests: this.pullRequestStore.isFetchingPullRequests(
-          gitHubRepository
-        ),
-      }
-    })
-
-    const prs = await this.pullRequestStore.getAll(gitHubRepository)
-
-    this.repositoryStateCache.updateBranchesState(repository, () => {
-      return {
-        openPullRequests: prs,
-        isLoadingPullRequests: this.pullRequestStore.isFetchingPullRequests(
-          gitHubRepository
-        ),
-      }
+      return { openPullRequests }
     })
 
     this._updateCurrentPullRequest(repository)
+    this.updateMenuItemLabels(repository)
     this.emitUpdate()
   }
 
