@@ -105,6 +105,10 @@ export class PullRequestDatabase extends BaseDatabase {
     return this.pullRequests.bulkDelete(ids)
   }
 
+  /**
+   * Inserts the given pull requests, overwriting any existing records
+   * in the process.
+   */
   public putPullRequests(prs: IPullRequest[]) {
     return this.pullRequests.bulkPut(prs)
   }
