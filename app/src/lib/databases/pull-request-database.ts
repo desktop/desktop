@@ -119,7 +119,7 @@ export class PullRequestDatabase extends BaseDatabase {
 
     return this.pullRequests
       .where('[base.repoId+number]')
-      .between([repository.dbID], [repository.dbID + 1], true, false)
+      .between([repository.dbID], [repository.dbID + 1])
       .toArray()
   }
 }
