@@ -129,4 +129,15 @@ export class PullRequestDatabase extends BaseDatabase {
       .between([repository.dbID], [repository.dbID + 1])
       .toArray()
   }
+
+  /**
+   * Get a single pull requests for a particular repository
+   */
+  public getPullRequest(repository: GitHubRepository, prNumber: number) {
+    if (repository.dbID === null) {
+      return fatalError("Can't retrieve PRs for repository, no dbId")
+    }
+
+    return this.pullRequests.get([repository.dbID, prNumber])
+  }
 }
