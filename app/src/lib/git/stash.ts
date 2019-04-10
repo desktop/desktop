@@ -2,19 +2,9 @@ import { git } from '.'
 import { Repository } from '../../models/repository'
 import { GitError, IGitResult } from './core'
 import { GitError as DugiteError } from 'dugite'
+import { IStashEntry } from '../../models/stash-entry'
 
 export const DesktopStashEntryMarker = '!!GitHub_Desktop'
-
-export interface IStashEntry {
-  /** The name of the entry i.e., `stash@{0}` */
-  readonly name: string
-
-  /** The name of the branch at the time the entry was created. */
-  readonly branchName: string
-
-  /** The SHA of the commit object created as a result of stashing. */
-  readonly stashSha: string
-}
 
 /** RegEx for parsing out the stash SHA and message */
 const stashEntryRe = /^([0-9a-f]{40})@(.+)$/

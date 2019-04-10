@@ -36,10 +36,10 @@ import { ICommitContext } from '../../models/commit'
 import { RebaseConflictState } from '../../lib/app-state'
 import { ContinueRebase } from './continue-rebase'
 import { enablePullWithRebase } from '../../lib/feature-flag'
-import { IStashEntry } from '../../lib/git/stash'
 import { ListRow } from '../lib/list/list-row'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { FocusContainer } from '../lib/focus-container'
+import { IStashEntry } from '../../models/stash-entry'
 
 const RowHeight = 29
 const StashListRowStyle: React.CSSProperties = {

@@ -1759,6 +1759,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const { conflictState } = repoState.changesState
 
       if (conflictState === null) {
+        this.clearConflictsFlowVisuals()
         return
       }
 
@@ -1772,6 +1773,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     } else {
       this._triggerMergeConflictsFlow(repository)
     }
+  }
+
+  /**
+   * Cleanup any related UI related to conflicts if still in use.
+   */
+  private clearConflictsFlowVisuals() {
+    this._closePopup(PopupType.MergeConflicts)
+    this._closePopup(PopupType.AbortMerge)
+    this._clearBanner(BannerType.MergeConflictsFound)
+
+    this._closePopup(PopupType.RebaseFlow)
+    this._clearBanner(BannerType.RebaseConflictsFound)
   }
 
   /** display the rebase flow, if not already in this flow */
@@ -2398,20 +2411,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _closePopup(): Promise<void> {
+  public _closePopup(popupType?: PopupType) {
     const currentPopup = this.currentPopup
     if (currentPopup == null) {
-      return Promise.resolve()
+      return
     }
 
     if (currentPopup.type === PopupType.CloneRepository) {
       this._completeOpenInDesktop(() => Promise.resolve(null))
     }
 
+    if (popupType !== undefined && currentPopup.type !== popupType) {
+      return
+    }
+
     this.currentPopup = null
     this.emitUpdate()
-
-    return Promise.resolve()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -3875,11 +3890,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  public _clearBanner() {
-    if (this.currentBanner !== null) {
-      this.currentBanner = null
-      this.emitUpdate()
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _clearBanner(bannerType?: BannerType) {
+    const { currentBanner } = this
+    if (currentBanner === null) {
+      return
     }
+
+    if (bannerType !== undefined && currentBanner.type !== bannerType) {
+      return
+    }
+
+    this.currentBanner = null
+    this.emitUpdate()
   }
 
   public _setDivergingBranchBannerVisibility(

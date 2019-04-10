@@ -35,9 +35,9 @@ import { ApplicationTheme } from '../ui/lib/application-theme'
 import { IAccountRepositories } from './stores/api-repositories-store'
 import { ManualConflictResolution } from '../models/manual-conflict-resolution'
 import { Banner } from '../models/banner'
-import { IStashEntry } from './git/stash'
 import { GitRebaseProgress, RebasePreview } from '../models/rebase'
 import { RebaseFlowStep } from '../models/rebase-flow-step'
+import { IStashEntry } from '../models/stash-entry'
 
 export enum SelectionType {
   Repository,
