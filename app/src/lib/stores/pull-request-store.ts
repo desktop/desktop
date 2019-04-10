@@ -9,6 +9,7 @@ import { TypedBaseStore } from './base-store'
 import { Repository } from '../../models/repository'
 import { getRemotes, removeRemote } from '../git'
 import { ForkedRemotePrefix } from '../../models/remote'
+import { structuralEquals } from '../equality'
 import mem from 'mem'
 
 const Decrement = (n: number) => n - 1
@@ -86,13 +87,11 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
         ? await api.fetchUpdatedPullRequests(owner, name, lastUpdatedAt)
         : await api.fetchPullRequests(owner, name, 'open')
 
-      await this.cachePullRequests(apiResult, githubRepo)
-
-      const prs = await this.getAll(githubRepo)
-
-      await this.pruneForkedRemotes(repository, prs)
-
-      this.emitUpdate(githubRepo)
+      if (await this.cachePullRequests(apiResult, githubRepo)) {
+        const prs = await this.getAll(githubRepo)
+        await this.pruneForkedRemotes(repository, prs)
+        this.emitUpdate(githubRepo)
+      }
     } catch (error) {
       log.warn(`Error refreshing pull requests for '${repository.name}'`, error)
     } finally {
@@ -202,10 +201,21 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
     this.emitUpdate(repository)
   }
 
+  /**
+   * Stores all pull requests that are open and deletes all that are merged
+   * or closed. Returns a value indicating whether it's safe to avoid
+   * emitting an event that the store has been updated. In other words, when
+   * this method returns false it's safe to say that nothing has been changed
+   * in the pull requests table.
+   */
   private async cachePullRequests(
     pullRequestsFromAPI: ReadonlyArray<IAPIPullRequest>,
     repository: GitHubRepository
-  ): Promise<void> {
+  ) {
+    if (pullRequestsFromAPI.length === 0) {
+      return false
+    }
+
     const prsToDelete = new Array<IPullRequest>()
     const prsToUpsert = new Array<IPullRequest>()
 
@@ -278,6 +288,21 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       }
     }
 
+    // When loading only PRs that has changed since the last fetch
+    // we get back all PRs modified _at_ or after the timestamp we give it
+    // meaning we will always get at least one issue back but. This
+    // check detect this particular condition and lets us avoid expensive
+    // branch pruning and updates for a single PR that hasn't actually
+    // been updated.
+    if (prsToDelete.length === 0 && prsToUpsert.length === 1) {
+      const cur = prsToUpsert[0]
+      const prev = await this.db.getPullRequest(repository, cur.number)
+
+      if (prev !== undefined && structuralEquals(cur, prev)) {
+        return false
+      }
+    }
+
     console.log(
       `Found ${prsToDelete.length} PRs to delete and ${
         prsToUpsert.length
@@ -287,5 +312,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       await this.db.deletePullRequests(prsToDelete)
       await this.db.putPullRequests(prsToUpsert)
     })
+
+    return true
   }
 }
