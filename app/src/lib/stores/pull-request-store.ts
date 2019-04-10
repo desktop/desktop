@@ -15,7 +15,7 @@ const Increment = (n: number) => n + 1
 
 /** The store for GitHub Pull Requests. */
 export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
-  private readonly pullRequestDatabase: PullRequestDatabase
+  private readonly db: PullRequestDatabase
   private readonly repositoryStore: RepositoriesStore
   private readonly activeFetchCountPerRepository = new Map<number, number>()
 
@@ -25,7 +25,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
   ) {
     super()
 
-    this.pullRequestDatabase = db
+    this.db = db
     this.repositoryStore = repositoriesStore
   }
 
@@ -44,7 +44,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       )
     }
 
-    const latestUpdatedPullRequest = await this.pullRequestDatabase.pullRequests
+    const latestUpdatedPullRequest = await this.db.pullRequests
       .where('[base.repoId+updatedAt]')
       .between([gitHubRepositoryID], [gitHubRepositoryID + 1], true, false)
       .last()
@@ -118,10 +118,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       return fatalError("Can't fetch PRs for repository, no dbId")
     }
 
-    const records = await this.pullRequestDatabase.getAllPullRequestsInRepository(
-      repository
-    )
-
+    const records = await this.db.getAllPullRequestsInRepository(repository)
     const result = new Array<PullRequest>()
 
     // In order to avoid what would otherwise be a very expensive
@@ -318,11 +315,9 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
         prsToUpsert.length
       } to upsert`
     )
-    const db = this.pullRequestDatabase
-
-    return db.transaction('rw', db.pullRequests, async () => {
-      await db.deletePullRequests(prsToDelete)
-      await db.putPullRequests(prsToUpsert)
+    return this.db.transaction('rw', this.db.pullRequests, async () => {
+      await this.db.deletePullRequests(prsToDelete)
+      await this.db.putPullRequests(prsToUpsert)
     })
   }
 }
