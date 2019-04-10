@@ -4769,6 +4769,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return popStashEntry(repository, stashEntry.stashSha)
     })
     log.info(`Popped stash with commit id ${stashEntry.stashSha}`)
+
+    await this._refreshRepository(repository)
+
+    this.emitUpdate()
   }
 
   public async _dropStashEntry(
@@ -4780,6 +4784,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return dropDesktopStashEntry(repository, stashEntry.stashSha)
     })
     log.info(`Dropped stash with commit id ${stashEntry.stashSha}`)
+
+    await this._refreshRepository(repository)
+
+    this.emitUpdate()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
