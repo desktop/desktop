@@ -257,7 +257,9 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
     }
 
     const table = this.pullRequestDatabase.pullRequests
-    const prsToInsert = new Array<IPullRequest>()
+
+    const prsToDelete = new Array<IPullRequest>()
+    const prsToUpsert = new Array<IPullRequest>()
 
     for (const pr of pullRequestsFromAPI) {
       // `pr.head.repo` represents the source of the pull request. It might be
@@ -302,7 +304,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
         parentGitHubRepo.dbID
       )
 
-      prsToInsert.push({
+      const dbPr: IPullRequest = {
         number: pr.number,
         title: pr.title,
         createdAt: pr.created_at,
@@ -318,21 +320,57 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
           repoId: parentGitHubRepoDbId,
         },
         author: pr.user.login,
-      })
+      }
+
+      if (pr.state === 'closed' || pr.state === 'merged') {
+        prsToDelete.push(dbPr)
+      } else {
+        prsToUpsert.push(dbPr)
+      }
+    }
+
+    console.log(
+      `Found ${prsToDelete.length} PRs to delete and ${
+        prsToUpsert.length
+      } to upsert`
+    )
+    const db = this.pullRequestDatabase
+
+    function getPullRequest(gitHubRepositoryID: number, prNumber: number) {
+      return db.pullRequests
+        .where('[base.repoId+number]')
+        .equals([gitHubRepositoryID, prNumber])
+        .limit(1)
+        .first()
     }
 
     return this.pullRequestDatabase.transaction('rw', table, async () => {
-      // we need to delete the stales PRs from the db
-      // so we remove all for a repo to avoid having to
-      // do diffing
-      await table
-        .where('base.repoId')
-        .equals(repoDbId)
-        .delete()
+      let deleted = 0
+      let updated = 0
+      let inserted = 0
 
-      if (prsToInsert.length > 0) {
-        await table.bulkAdd(prsToInsert)
+      for (const pr of prsToDelete) {
+        const existing = await getPullRequest(repoDbId, pr.number)
+        if (existing) {
+          await db.pullRequests.delete(existing.id!)
+          deleted++
+        }
       }
+
+      for (const pr of prsToUpsert) {
+        const existing = await getPullRequest(repoDbId, pr.number)
+        if (existing) {
+          await db.pullRequests.update(existing.id!, pr)
+          updated++
+        } else {
+          await db.pullRequests.add(pr)
+          inserted++
+        }
+      }
+
+      console.log(
+        `PR: deleted ${deleted}, updated ${updated}, and inserted ${inserted}`
+      )
     })
   }
 }
