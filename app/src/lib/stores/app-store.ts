@@ -455,7 +455,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         this.emitUpdate()
       })
       .catch(err => {
-        log.info(`Unexpected issue when trying to read emoji into memory`, err)
+        log.warn(`Unexpected issue when trying to read emoji into memory`, err)
       })
   }
 
