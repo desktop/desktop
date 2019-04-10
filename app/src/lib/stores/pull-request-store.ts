@@ -64,17 +64,26 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       'Can only refresh pull requests for GitHub repositories',
       repository.gitHubRepository
     )
-    const apiClient = API.fromAccount(account)
-
     this.updateActiveFetchCount(githubRepo, Increment)
 
+    const lastUpdatedAt = await this.getLatestUpdatedAt(githubRepo)
+
     try {
-      const apiResult = await apiClient.fetchPullRequests(
-        githubRepo.owner.login,
-        githubRepo.name,
-        'open',
-        null
-      )
+      const api = API.fromAccount(account)
+      const owner = githubRepo.owner.login
+      const name = githubRepo.name
+
+      // If we don't have a lastUpdatedAt that mean we haven't fetched any PRs
+      // for the repository yet which in turn means we only have to fetch the
+      // currently open PRs. If we have fetched before we get all PRs
+      // that have been modified since the last time we fetched so that we
+      // can prune closed issues from our database. Note that since
+      // fetchPullRequestsUpdatedSince returns all issues modified _at_ or
+      // after the timestamp we give it we will always get at least one issue
+      // back.
+      const apiResult = lastUpdatedAt
+        ? await api.fetchPullRequestsUpdatedSince(owner, name, lastUpdatedAt)
+        : await api.fetchPullRequests(owner, name, 'open')
 
       await this.cachePullRequests(apiResult, githubRepo)
 
