@@ -257,14 +257,6 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
     pullRequestsFromAPI: ReadonlyArray<IAPIPullRequest>,
     repository: GitHubRepository
   ): Promise<void> {
-    const repoDbId = repository.dbID
-
-    if (repoDbId == null) {
-      return fatalError(
-        "Cannot store pull requests for a repository that hasn't been inserted into the database!"
-      )
-    }
-
     const table = this.pullRequestDatabase.pullRequests
 
     const prsToDelete = new Array<IPullRequest>()
