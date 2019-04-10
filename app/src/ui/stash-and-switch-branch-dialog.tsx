@@ -14,7 +14,7 @@ enum StashAction {
 }
 interface ISwitchBranchProps {
   readonly repository: Repository
-  readonly dispathcer: Dispatcher
+  readonly dispatcher: Dispatcher
   readonly currentBranch: Branch
   readonly branchToCheckout: Branch
   readonly onDismissed: () => void
@@ -97,7 +97,7 @@ export class StashAndSwitchBranch extends React.Component<
       repository,
       currentBranch,
       branchToCheckout,
-      dispathcer,
+      dispatcher: dispathcer,
     } = this.props
 
     const whereToStash =
