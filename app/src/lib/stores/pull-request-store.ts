@@ -29,6 +29,35 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
     this.repositoryStore = repositoriesStore
   }
 
+  /**
+   * Get the highest value of the 'updatedAt' field for PRs in a given
+   * repository. This value is used to request delta updates from the API
+   * using the 'since' parameter.
+   */
+  private async getLatestUpdatedAt(
+    repository: GitHubRepository
+  ): Promise<Date | null> {
+    const gitHubRepositoryID = repository.dbID
+    if (!gitHubRepositoryID) {
+      return fatalError(
+        "Cannot get issues for a repository that hasn't been inserted into the database!"
+      )
+    }
+
+    const latestUpdatedPullRequest = await this.pullRequestDatabase.pullRequests
+      .where('[base.repoId+updatedAt]')
+      .between([gitHubRepositoryID], [gitHubRepositoryID + 1], true, false)
+      .last()
+
+    if (!latestUpdatedPullRequest || !latestUpdatedPullRequest.updatedAt) {
+      return null
+    }
+
+    const lastUpdatedAt = new Date(latestUpdatedPullRequest.updatedAt)
+
+    return !isNaN(lastUpdatedAt.getTime()) ? lastUpdatedAt : null
+  }
+
   /** Loads all pull requests against the given repository. */
   public async refreshPullRequests(repository: Repository, account: Account) {
     const githubRepo = forceUnwrap(
