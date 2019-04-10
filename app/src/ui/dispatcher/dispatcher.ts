@@ -79,6 +79,7 @@ import {
 import { MergeResult } from '../../models/merge'
 import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
+import { IStashEntry } from '../../models/stash-entry'
 
 /**
  * An error handler function.
@@ -1933,6 +1934,10 @@ export class Dispatcher {
    */
   public createStash(repository: Repository, branch: Branch): Promise<void> {
     return this.appStore._createStash(repository, branch.name)
+  }
+
+  public dropStash(repository: Repository, stashEntry: IStashEntry) {
+    return this.appStore._dropStashEntry(repository, stashEntry)
   }
 
   /**
