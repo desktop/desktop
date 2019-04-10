@@ -4771,9 +4771,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     stashEntry: IStashEntry
   ) {
     const gitStore = this.gitStoreCache.get(repository)
-    return await gitStore.performFailableOperation(() => {
+    await gitStore.performFailableOperation(() => {
       return dropDesktopStashEntry(repository, stashEntry.stashSha)
     })
+    log.info(`Dropped stash with commit id ${stashEntry.stashSha}`)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
