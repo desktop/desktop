@@ -4763,6 +4763,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     log.info(`Popped stash with commit id ${stash.stashSha}`)
   }
 
+  public async _popStashEntry(repository: Repository, stashEntry: IStashEntry) {
+    const gitStore = this.gitStoreCache.get(repository)
+    await gitStore.performFailableOperation(() => {
+      return popStashEntry(repository, stashEntry.stashSha)
+    })
+    log.info(`Popped stash with commit id ${stashEntry.stashSha}`)
+  }
+
   public async _dropStashEntry(
     repository: Repository,
     stashEntry: IStashEntry

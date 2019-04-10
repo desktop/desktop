@@ -1940,6 +1940,10 @@ export class Dispatcher {
     return this.appStore._dropStashEntry(repository, stashEntry)
   }
 
+  public popStashEntry(repository: Repository, stashEntry: IStashEntry) {
+    return this.appStore._popStashEntry(repository, stashEntry)
+  }
+
   /**
    * Show the UI for stashed changes
    */
