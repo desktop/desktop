@@ -945,12 +945,13 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const repositoryState = this.props.repositoryStateManager.get(repository)
 
-    const initialState = initializeNewRebaseFlow(repositoryState)
+    const initialStep = initializeNewRebaseFlow(repositoryState)
+
+    this.props.dispatcher.setRebaseFlowStep(repository, initialStep)
 
     this.props.dispatcher.showPopup({
       type: PopupType.RebaseFlow,
       repository,
-      initialState,
     })
   }
 
@@ -1568,7 +1569,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         )
       }
       case PopupType.RebaseFlow: {
-        const { selectedState } = this.state
+        const { selectedState, emoji } = this.state
 
         if (
           selectedState === null ||
@@ -1577,14 +1578,25 @@ export class App extends React.Component<IAppProps, IAppState> {
           return null
         }
 
-        const { initialState } = popup
-
-        const { changesState } = selectedState.state
+        const { changesState, rebaseState } = selectedState.state
         const { workingDirectory, conflictState } = changesState
+        const {
+          progress,
+          step,
+          preview,
+          userHasResolvedConflicts,
+        } = rebaseState
 
         if (conflictState !== null && conflictState.kind === 'merge') {
           log.warn(
             '[App] invalid state encountered - rebase flow should not be used when merge conflicts found'
+          )
+          return null
+        }
+
+        if (step === null) {
+          log.warn(
+            '[App] invalid state encountered - rebase flow should not be active when step is null'
           )
           return null
         }
@@ -1595,12 +1607,15 @@ export class App extends React.Component<IAppProps, IAppState> {
             openFileInExternalEditor={this.openFileInExternalEditor}
             dispatcher={this.props.dispatcher}
             onFlowEnded={this.onRebaseFlowEnded}
-            initialState={initialState}
             workingDirectory={workingDirectory}
-            conflictState={conflictState}
+            progress={progress}
+            step={step}
+            preview={preview}
+            userHasResolvedConflicts={userHasResolvedConflicts}
             resolvedExternalEditor={this.state.resolvedExternalEditor}
             openRepositoryInShell={this.openCurrentRepositoryInShell}
             onShowRebaseConflictsBanner={this.onShowRebaseConflictsBanner}
+            emoji={emoji}
           />
         )
       }
@@ -1629,7 +1644,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.setBanner({
       type: BannerType.RebaseConflictsFound,
       targetBranch,
-      onOpenDialog: () => {
+      onOpenDialog: async () => {
         const { changesState } = this.props.repositoryStateManager.get(
           repository
         )
@@ -1641,21 +1656,26 @@ export class App extends React.Component<IAppProps, IAppState> {
           )
           return
         }
-        const initialState = initializeRebaseFlowForConflictedRepository(
+
+        await this.props.dispatcher.setRebaseProgressFromState(repository)
+
+        const initialStep = initializeRebaseFlowForConflictedRepository(
           conflictState
         )
+
+        this.props.dispatcher.setRebaseFlowStep(repository, initialStep)
 
         this.props.dispatcher.showPopup({
           type: PopupType.RebaseFlow,
           repository,
-          initialState,
         })
       },
     })
   }
 
-  private onRebaseFlowEnded = () => {
+  private onRebaseFlowEnded = (repository: Repository) => {
     this.props.dispatcher.closePopup()
+    this.props.dispatcher.endRebaseFlow(repository)
   }
 
   private onUsageReportingDismissed = (optOut: boolean) => {

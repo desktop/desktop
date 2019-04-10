@@ -316,6 +316,11 @@ body.theme-dark {
   --notification-banner-background: #{$gray-800};
   --notification-banner-border-color: #{$gray-700};
   --notification-ref-background: #{$gray-700};
+
+  /** merge/rebase status indicators */
+  --status-pending-color: #{$yellow-700};
+  --status-error-color: #{$red-500};
+  --status-success-color: #{$green-500};
 }
 
 // this emulates the cursor for the co-author input because it isn't exactly
