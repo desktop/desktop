@@ -78,7 +78,8 @@ import { GitAuthor } from '../../models/git-author'
 import { IGitAccount } from '../../models/git-account'
 import { BaseStore } from './base-store'
 import { enablePullWithRebase, enableStashing } from '../feature-flag'
-import { getDesktopStashEntries, IStashEntry } from '../git/stash'
+import { getDesktopStashEntries } from '../git/stash'
+import { IStashEntry } from '../../models/stash-entry'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100

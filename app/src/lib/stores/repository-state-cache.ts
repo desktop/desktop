@@ -22,7 +22,7 @@ import { ComparisonCache } from '../comparison-cache'
 import { IGitHubUser } from '../databases'
 import { merge } from '../merge'
 import { DefaultCommitMessage } from '../../models/commit-message'
-import { IStashEntry } from '../git/stash'
+import { IStashEntry } from '../../models/stash-entry'
 
 export class RepositoryStateCache {
   private readonly repositoryState = new Map<string, IRepositoryState>()

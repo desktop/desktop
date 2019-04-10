@@ -31,7 +31,7 @@ import { filesNotTrackedByLFS } from '../../lib/git/lfs'
 import { getLargeFilePaths } from '../../lib/large-files'
 import { isConflictedFile, hasUnresolvedConflicts } from '../../lib/status'
 import { enablePullWithRebase } from '../../lib/feature-flag'
-import { IStashEntry } from '../../lib/git/stash'
+import { IStashEntry } from '../../models/stash-entry'
 
 /**
  * The timeout for the animation of the enter/leave animation for Undo.

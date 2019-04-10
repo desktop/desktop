@@ -9,12 +9,12 @@ import {
   createDesktopStashEntry,
   getLastDesktopStashEntryForBranch,
   dropDesktopStashEntry,
-  IStashEntry,
   applyStashEntry,
 } from '../../../src/lib/git/stash'
 import { getTipOrError } from '../../helpers/tip'
 import { getStatusOrThrow } from '../../helpers/status'
 import { AppFileStatusKind } from '../../../src/models/status'
+import { IStashEntry } from '../../../src/models/stash-entry'
 
 describe('git/stash', () => {
   describe('getDesktopStashEntries', () => {
