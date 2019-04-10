@@ -1,5 +1,7 @@
 import Dexie from 'dexie'
 import { BaseDatabase } from './base-database'
+import { GitHubRepository } from '../../models/github-repository'
+import { fatalError } from '../fatal-error'
 
 export interface IPullRequestRef {
   /**
@@ -102,5 +104,22 @@ export class PullRequestDatabase extends BaseDatabase {
 
   public putPullRequests(prs: IPullRequest[]) {
     return this.pullRequests.bulkPut(prs)
+  }
+
+  /**
+   * Retrieve all PRs for the given repository.
+   *
+   * Note: This method will throw if the GitHubRepository hasn't
+   * yet been inserted into the databas (i.e the dbID field is null).
+   */
+  public getAllPullRequestsInRepository(repository: GitHubRepository) {
+    if (repository.dbID === null) {
+      return fatalError("Can't retrieve PRs for repository, no dbId")
+    }
+
+    return this.pullRequests
+      .where('[base.repoId+number]')
+      .between([repository.dbID], [repository.dbID + 1], true, false)
+      .toArray()
   }
 }

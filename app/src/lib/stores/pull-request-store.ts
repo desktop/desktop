@@ -114,18 +114,13 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
   public async fetchPullRequestsFromCache(
     repository: GitHubRepository
   ): Promise<ReadonlyArray<PullRequest>> {
-    const gitHubRepositoryID = repository.dbID
-
-    if (gitHubRepositoryID == null) {
-      return fatalError(
-        "Cannot get pull requests for a repository that hasn't been inserted into the database!"
-      )
+    if (repository.dbID == null) {
+      return fatalError("Can't fetch PRs for repository, no dbId")
     }
 
-    const records = await this.pullRequestDatabase.pullRequests
-      .where('[base.repoId+number]')
-      .between([gitHubRepositoryID], [gitHubRepositoryID + 1], true, false)
-      .toArray()
+    const records = await this.pullRequestDatabase.getAllPullRequestsInRepository(
+      repository
+    )
 
     const result = new Array<PullRequest>()
 
@@ -141,7 +136,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
     // scenario (i.e a repository with a very large number of open PRs, all
     // originating from forks) this will reduce the N+2 to N+1.
     const repoCache = new Map<number, GitHubRepository | null>()
-    repoCache.set(gitHubRepositoryID, repository)
+    repoCache.set(repository.dbID, repository)
 
     for (const record of records) {
       const repositoryDbId = record.head.repoId
