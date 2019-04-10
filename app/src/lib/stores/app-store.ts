@@ -424,7 +424,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
 
     this.pullRequestStore.onPullRequestsChanged((ghRepo, pullRequests) =>
-      this.onPullRequestStoreUpdated(ghRepo, pullRequests)
+      this.onPullRequestChanged(ghRepo, pullRequests)
     )
     this.pullRequestStore.onIsLoadingPullRequests(
       (ghRepo, isLoadingPullRequests) => {
@@ -1250,7 +1250,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (gitHubRepository !== null) {
       this._refreshIssues(gitHubRepository)
       this.pullRequestStore.getAll(gitHubRepository).then(prs => {
-        this.onPullRequestStoreUpdated(gitHubRepository, prs)
+        this.onPullRequestChanged(gitHubRepository, prs)
       })
       this._refreshPullRequests(repository)
     }
@@ -4140,7 +4140,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
   }
 
-  private async onPullRequestStoreUpdated(
+  private async onPullRequestChanged(
     gitHubRepository: GitHubRepository,
     openPullRequests: ReadonlyArray<PullRequest>
   ) {
