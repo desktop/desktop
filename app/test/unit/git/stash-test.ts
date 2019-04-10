@@ -13,8 +13,10 @@ import {
 } from '../../../src/lib/git/stash'
 import { getStatusOrThrow } from '../../helpers/status'
 import { AppFileStatusKind } from '../../../src/models/status'
-import { IStashEntry } from '../../../src/models/stash-entry'
-import { StashedChangesLoadStates } from '../../../src/models/stash'
+import {
+  IStashEntry,
+  StashedChangesLoadStates,
+} from '../../../src/models/stash-entry'
 
 describe('git/stash', () => {
   describe('getDesktopStashEntries', () => {
