@@ -15,13 +15,14 @@ export interface IPullRequestRef {
   readonly sha: string
 }
 
-export interface IPullRequest {
+export interface IBasePullRequestRef extends IPullRequestRef {
   /**
-   * The database ID. This will be undefined if the pull request hasn't been
-   * inserted into the DB.
+   * The database ID of the GitHub repository in which this ref lives.
    */
-  readonly id?: number
+  readonly repoId: number
+}
 
+export interface IPullRequest {
   /** The GitHub PR number. */
   readonly number: number
 
@@ -38,7 +39,7 @@ export interface IPullRequest {
   readonly head: IPullRequestRef
 
   /** The ref which the pull request is targetting. */
-  readonly base: IPullRequestRef
+  readonly base: IBasePullRequestRef
 
   /** The login of the author. */
   readonly author: string
