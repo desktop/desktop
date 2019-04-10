@@ -300,17 +300,17 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
 
       // We know the base repo isn't null since that's where we got the PR from
       // in the first place.
-      const parentRepo = forceUnwrap(
+      const baseRepo = forceUnwrap(
         'PR cannot have a null base repo',
         pr.base.repo
       )
-      const parentGitHubRepo = await this.repositoryStore.upsertGitHubRepository(
+      const baseGitHubRepo = await this.repositoryStore.upsertGitHubRepository(
         repository.endpoint,
-        parentRepo
+        baseRepo
       )
-      const parentGitHubRepoDbId = forceUnwrap(
+      const baseGitHubRepoDbId = forceUnwrap(
         'PR cannot have a null parent database id',
-        parentGitHubRepo.dbID
+        baseGitHubRepo.dbID
       )
 
       const dbPr: IPullRequest = {
@@ -326,7 +326,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
         base: {
           ref: pr.base.ref,
           sha: pr.base.sha,
-          repoId: parentGitHubRepoDbId,
+          repoId: baseGitHubRepoDbId,
         },
         author: pr.user.login,
       }
