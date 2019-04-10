@@ -99,7 +99,7 @@ const Header: React.SFC<{
     props.dispatcher.dropStash(props.repository, props.stashEntry)
   }
   const onSubmitClick = () => {
-    props.dispatcher.dropStash(props.repository, props.stashEntry)
+    props.dispatcher.popStash(props.repository, props.stashEntry)
   }
   return (
     <div className="header">
