@@ -4412,9 +4412,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         )
       }
 
-      return {
-        currentPullRequest,
-      }
+      return { currentPullRequest }
     })
 
     this.emitUpdate()
