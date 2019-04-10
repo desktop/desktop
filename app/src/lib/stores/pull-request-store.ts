@@ -130,7 +130,9 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
     // repository. Even in the worst-case scenario (i.e a repository with
     // a very large number of open PRs, all originating from forks) this
     // will reduce the N+2 to N+1.
-    const getRepo = mem(this.repositoryStore.findGitHubRepositoryByID)
+    const getRepo = mem((id: number) =>
+      this.repositoryStore.findGitHubRepositoryByID(id)
+    )
 
     for (const record of records) {
       const headRepository = record.head.repoId
