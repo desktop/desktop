@@ -1760,6 +1760,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const { conflictState } = repoState.changesState
 
       if (conflictState === null) {
+        this.clearConflictsFlowVisuals()
         return
       }
 
@@ -1773,6 +1774,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     } else {
       this._triggerMergeConflictsFlow(repository)
     }
+  }
+
+  /**
+   * Cleanup any related UI related to conflicts if still in use.
+   */
+  private clearConflictsFlowVisuals() {
+    this._closePopup(PopupType.MergeConflicts)
+    this._closePopup(PopupType.AbortMerge)
+    this._clearBanner(BannerType.MergeConflictsFound)
+
+    this._closePopup(PopupType.RebaseFlow)
+    this._clearBanner(BannerType.RebaseConflictsFound)
   }
 
   /** display the rebase flow, if not already in this flow */
@@ -2399,20 +2412,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _closePopup(): Promise<void> {
+  public _closePopup(popupType?: PopupType) {
     const currentPopup = this.currentPopup
     if (currentPopup == null) {
-      return Promise.resolve()
+      return
     }
 
     if (currentPopup.type === PopupType.CloneRepository) {
       this._completeOpenInDesktop(() => Promise.resolve(null))
     }
 
+    if (popupType !== undefined && currentPopup.type !== popupType) {
+      return
+    }
+
     this.currentPopup = null
     this.emitUpdate()
-
-    return Promise.resolve()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -2528,18 +2543,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     let shouldPopStash = false
 
-    if (
-      currentBranch !== null &&
-      uncommittedChangesStrategy ===
+    if (currentBranch !== null) {
+      if (
+        uncommittedChangesStrategy ===
         UncommittedChangesStrategy.stashOnCurrentBranch
-    ) {
-      await this._createStash(repository, currentBranch.name)
-    } else if (
-      currentBranch !== null &&
-      uncommittedChangesStrategy === UncommittedChangesStrategy.moveToNewBranch
-    ) {
-      await this._createStash(repository, foundBranch.name, false)
-      shouldPopStash = true
+      ) {
+        await this._createStash(repository, currentBranch.name)
+      } else if (
+        uncommittedChangesStrategy ===
+        UncommittedChangesStrategy.moveToNewBranch
+      ) {
+        await this._createStash(repository, foundBranch.name)
+        shouldPopStash = true
+      }
     }
 
     await this.withAuthenticatingUser(repository, (repository, account) =>
@@ -3875,11 +3891,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  public _clearBanner() {
-    if (this.currentBanner !== null) {
-      this.currentBanner = null
-      this.emitUpdate()
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _clearBanner(bannerType?: BannerType) {
+    const { currentBanner } = this
+    if (currentBanner === null) {
+      return
     }
+
+    if (bannerType !== undefined && currentBanner.type !== bannerType) {
+      return
+    }
+
+    this.currentBanner = null
+    this.emitUpdate()
   }
 
   public _setDivergingBranchBannerVisibility(
@@ -4724,7 +4748,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       ? await getLastDesktopStashEntryForBranch(repository, branchName)
       : null
 
-    await createDesktopStashEntry(repository, branchName, tip.branch.tip.sha)
+    await createDesktopStashEntry(repository, branchName)
 
     if (previousStash === null) {
       return
@@ -4750,7 +4774,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     await popStashEntry(repository, stash.stashSha)
-    log.warn(`Popped stash with commit id ${stash.stashSha}`)
+    log.info(`Popped stash with commit id ${stash.stashSha}`)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
