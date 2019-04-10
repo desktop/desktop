@@ -25,9 +25,9 @@ import { IAheadBehind } from '../../models/branch'
 import { fatalError } from '../../lib/fatal-error'
 import { isMergeHeadSet } from './merge'
 import { getBinaryPaths } from './diff'
-import { getRebaseContext } from './rebase'
-import { enableNewRebaseFlow } from '../feature-flag'
-import { RebaseContext } from '../../models/rebase'
+import { getRebaseInternalState } from './rebase'
+import { enablePullWithRebase } from '../feature-flag'
+import { RebaseInternalState } from '../../models/rebase'
 
 /**
  * V8 has a limit on the size of string it can create (~256MB), and unless we want to
@@ -60,7 +60,7 @@ export interface IStatusResult {
   readonly mergeHeadFound: boolean
 
   /** details about the rebase operation, if found */
-  readonly rebaseContext: RebaseContext | null
+  readonly rebaseInternalState: RebaseInternalState | null
 
   /** the absolute path to the repository's working directory */
   readonly workingDirectory: WorkingDirectoryStatus
@@ -199,13 +199,13 @@ export async function getStatus(
   let conflictDetails: ConflictFilesDetails
 
   const mergeHeadFound = await isMergeHeadSet(repository)
-  const rebaseContext = await getRebaseContext(repository)
+  const rebaseInternalState = await getRebaseInternalState(repository)
 
-  if (enableNewRebaseFlow()) {
+  if (enablePullWithRebase()) {
     conflictDetails = await getConflictDetails(
       repository,
       mergeHeadFound,
-      rebaseContext
+      rebaseInternalState
     )
   } else {
     conflictDetails = await getConflictDetails(repository, mergeHeadFound, null)
@@ -239,7 +239,7 @@ export async function getStatus(
     branchAheadBehind,
     exists: true,
     mergeHeadFound,
-    rebaseContext,
+    rebaseInternalState,
     workingDirectory,
   }
 }
@@ -363,17 +363,19 @@ async function getRebaseConflictDetails(repository: Repository) {
  *
  * @param repository to get details from
  * @param mergeHeadFound whether a merge conflict has been detected
- * @param rebaseContext details about the current rebase operation (if found)
+ * @param rebaseInternalState details about the current rebase operation (if found)
  */
 async function getConflictDetails(
   repository: Repository,
   mergeHeadFound: boolean,
-  rebaseContext: RebaseContext | null
+  rebaseInternalState: RebaseInternalState | null
 ): Promise<ConflictFilesDetails> {
   try {
     if (mergeHeadFound) {
       return await getMergeConflictDetails(repository)
-    } else if (rebaseContext !== null) {
+    }
+
+    if (rebaseInternalState !== null) {
       return await getRebaseConflictDetails(repository)
     }
   } catch (error) {

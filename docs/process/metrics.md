@@ -42,7 +42,13 @@ These are general metrics about feature usage and specific feature behaviors. Th
 | `divergingBranchBannerInitatedMerge` | The number of times the user merges from the diverged branch notification merge CTA button. | To understand usage patterns around the notification of diverging from the default branch feature. |
 | `divergingBranchBannerInitiatedCompare` | The number of times the user compares from the diverged branch notification compare CTA button. | To understand usage patterns around the notification of diverging from the default branch feature. |
 | `dotcomCommits` | The number of time the user made a commit to a repo hosted on Github.com. | To understand the total percentage of commits made to GitHub repos compared to GitHub Enterprise and other remotes to help prioritize our work and focus areas |
+| `dotcomPushCount` | The number of time the user pushed commits to a repo hosted on Github.com. | To understand how often users are pushing their work to a GitHub remote |
+| `dotcomForcePushCount` | The number of time the user pushed commits to a repo hosted on Github.com with `--force-with-lease` enabled. | To understand how often users are pushing their work and rewriting history to a GitHub remote |
 | `enterpriseCommits` | The number of times the user made a commit to a repo hosted on a GitHub Enterprise instance. | To understand the total percentage of commits made to GitHub Enterprise repos to help prioritize our work associated with enterprise use of GitHub Desktop compared to GitHub |
+| `enterprisePushCount` | The number of time the user pushed commits to a repo hosted on GitHub Enterprise. | To understand how often users are pushing their work to a GitHub Enterprise remote  |
+| `enterpriseForcePushCount` | The number of time the user pushed commits to a repo hosted on GitHub Enterprise with `--force-with-lease` enabled. | To understand how often users are pushing their work and rewriting history to a GitHub Enterprise remote |
+| `externalPushCount` | The number of time the user pushed commits to a repo not hosted on GitHub or GitHub enterprise. | To understand how often users are pushing their work to a non-GitHub remote |
+| `externalForcePushCount` | The number of time the user pushed commits to a repo not hosted on GitHub or GitHub enterprise with `--force-with-lease` enabled. | To understand how often users are pushing their work and rewriting history to a non-GitHub remote |
 | `guidedConflictedMergeCompletionCount` | The number of times a conflicted merge is completed from the Merge Conflicts Dialog. | To understand how many times people prefer to finish the merge in the guided flow after resolving conflicts. |
 | `loadTime` | The time (in milliseconds) it takes from when loading begins to loading end. | To make sure new versions of Desktop are not regressing on performance. |
 | `mainReadyTime` | The time (in milliseconds) it takes from when our main process code is first loaded until the app `ready` event is emitted. | To make sure new versions of Desktop are not regressing on performance. |
@@ -60,6 +66,12 @@ These are general metrics about feature usage and specific feature behaviors. Th
 | `openShellCount` | The number of times the user has opened a shell from the app. | To understand if people need to use the command line because of missing features. |
 | `partialCommits` | The number of partial commits. | To understand usage patterns of commits made in Desktop. |
 | `prBranchCheckouts` | The number of times the user checks out a branch using the PR menu. | To understand usage patterns around the PR checkout menu. |
+| `pullWithDefaultSettingCount` | The number of times a user has pulled with `pull.rebase` unset or set to `false`. | To understand how many users have "pull with rebase" enabled as part of their workflow. |
+| `pullWithRebaseCount` |  The number of times a user performed a pull with `pull.rebase` in config set to `true`. | To understand how many users have "pull with rebase" enabled as part of their workflow. |
+| `rebaseAbortedAfterConflictsCount` | The number of times an aborted rebase is detected in the app. | To understand whether users are exiting the rebase conflicts flow after encountering trouble. |
+| `rebaseConflictsDialogDismissalCount` | The number of times the rebase conflicts dialog is dismissed. | To understand how users respond when they encounter rebase conflicts. |
+| `rebaseConflictsDialogReopenedCount` | The number of times the rebase conflicts dialog is reopened. |To understand how users respond when they encounter rebase conflicts. |
+| `rebaseSuccessAfterConflictsCount` |  The number of times a successful rebase is detected in the app. | To understand whether users are able to complete the rebase conflicts flow. |
 | `rendererReadyTime` | The time (in milliseconds) it takes from when our renderer process code is first loaded until the renderer `ready` event is emitted. | To make sure new versions of Desktop are not regressing on performance. |
 | `repoWithIndicatorClicked` | The numbers of times a repo with indicators is clicked on repo list view. | To understand usage patterns around the repository indicators feature. |
 | `repoWithoutIndicatorClicked` | The numbers of times a repo without indicators is clicked on repo list view.  | To understand usage patterns around the repository indicators feature. |

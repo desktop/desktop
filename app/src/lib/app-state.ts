@@ -4,7 +4,7 @@ import { IDiff, ImageDiffType } from '../models/diff'
 import { Repository, ILocalRepositoryState } from '../models/repository'
 import { Branch, IAheadBehind } from '../models/branch'
 import { Tip } from '../models/tip'
-import { Commit } from '../models/commit'
+import { Commit, CommitOneLine } from '../models/commit'
 import { CommittedFileChange, WorkingDirectoryStatus } from '../models/status'
 import { CloningRepository } from '../models/cloning-repository'
 import { IMenu } from '../models/app-menu'
@@ -13,7 +13,7 @@ import { CloneRepositoryTab } from '../models/clone-repository-tab'
 import { BranchesTab } from '../models/branches-tab'
 import { PullRequest } from '../models/pull-request'
 import { IAuthor } from '../models/author'
-import { MergeResultKind } from '../models/merge'
+import { MergeResult } from '../models/merge'
 import { ICommitMessage } from '../models/commit-message'
 import {
   IRevertProgress,
@@ -35,6 +35,8 @@ import { ApplicationTheme } from '../ui/lib/application-theme'
 import { IAccountRepositories } from './stores/api-repositories-store'
 import { ManualConflictResolution } from '../models/manual-conflict-resolution'
 import { Banner } from '../models/banner'
+import { GitRebaseProgress, RebasePreview } from '../models/rebase'
+import { RebaseFlowStep } from '../models/rebase-flow-step'
 
 export enum SelectionType {
   Repository,
@@ -62,6 +64,11 @@ export interface IAppState {
    * The current list of repositories tracked in the application
    */
   readonly repositories: ReadonlyArray<Repository | CloningRepository>
+
+  /**
+   * List of IDs of the most recently opened repositories (most recent first)
+   */
+  readonly recentRepositories: ReadonlyArray<number>
 
   /**
    * A cache of the latest repository state values, keyed by the repository id
@@ -161,6 +168,9 @@ export interface IAppState {
 
   /** Whether we should show a confirmation dialog */
   readonly askForConfirmationOnDiscardChanges: boolean
+
+  /** Should the app prompt the user to confirm a force push? */
+  readonly askForConfirmationOnForcePush: boolean
 
   /** The external editor to use when opening repositories */
   readonly selectedExternalEditor?: ExternalEditor
@@ -273,10 +283,31 @@ export function isMergeConflictState(
  */
 export type RebaseConflictState = {
   readonly kind: 'rebase'
+  /**
+   * This is the commit ID of the HEAD of the in-flight rebase
+   */
   readonly currentTip: string
+  /**
+   * The branch chosen by the user to be rebased
+   */
   readonly targetBranch: string
+  /**
+   * The branch chosen as the baseline for the rebase
+   */
+  readonly baseBranch?: string
+
+  /**
+   * The commit ID of the target branch before the rebase was initiated
+   */
   readonly originalBranchTip: string
+  /**
+   * The commit ID of the base branch onto which the history will be applied
+   */
   readonly baseBranchTip: string
+  /**
+   * Manual resolutions chosen by the user for conflicted files to be applied
+   * before continuing the rebase.
+   */
   readonly manualResolutions: Map<string, ManualConflictResolution>
 }
 
@@ -311,6 +342,8 @@ export interface IRepositoryState {
   readonly commitAuthor: CommitIdentity | null
 
   readonly branchesState: IBranchesState
+
+  readonly rebaseState: IRebaseState
 
   /**
    * Mapping from lowercased email addresses to the associated GitHub user. Note
@@ -411,6 +444,62 @@ export interface IBranchesState {
 
   /** The pull request associated with the current branch. */
   readonly currentPullRequest: PullRequest | null
+
+  /**
+   * Is the current branch configured to rebase on pull?
+   *
+   * This is the value returned from git config (local or global) for `git config pull.rebase`
+   *
+   * If this value is not found in config, this will be `undefined` to indicate
+   * that the default Git behaviour will occur.
+   */
+  readonly pullWithRebase?: boolean
+
+  /** Tracking branches that have been rebased within Desktop */
+  readonly rebasedBranches: ReadonlyMap<string, string>
+}
+
+/** State associated with a rebase being performed on a repository */
+export interface IRebaseState {
+  /**
+   * The current step of the flow the user should see.
+   *
+   * `null` indicates that there is no rebase underway.
+   */
+  readonly step: RebaseFlowStep | null
+
+  /**
+   * A preview of the rebase, tested before performing the rebase itself, using
+   * the selected base branch to test whether the current branch will be cleanly
+   * applied.
+   *
+   * This will be set to `null` when no base branch has been selected to
+   * initiate the rebase.
+   */
+  readonly preview: RebasePreview | null
+
+  /**
+   * The underlying Git information associated with the current rebase
+   *
+   * This will be set to `null` when no base branch has been selected to
+   * initiate the rebase.
+   */
+  readonly progress: GitRebaseProgress | null
+
+  /**
+   * The known range of commits that will be applied to the repository
+   *
+   * This will be set to `null` when no base branch has been selected to
+   * initiate the rebase.
+   */
+  readonly commits: ReadonlyArray<CommitOneLine> | null
+
+  /**
+   * Whether the user has done work to resolve any conflicts as part of this
+   * rebase, as the rebase flow should confirm the user wishes to abort the
+   * rebase and lose that work.
+   */
+  readonly userHasResolvedConflicts: boolean
 }
 
 export interface ICommitSelection {
@@ -517,7 +606,7 @@ export interface ICompareState {
   readonly formState: IDisplayHistory | ICompareBranch
 
   /** The result of merging the compare branch into the current branch, if a branch selected */
-  readonly mergeStatus: MergeResultStatus | null
+  readonly mergeStatus: MergeResult | null
 
   /** Whether the branch list should be expanded or hidden */
   readonly showBranchList: boolean
@@ -572,17 +661,6 @@ export interface ICompareFormUpdate {
   /** Thew new state of the branches list */
   readonly showBranchList: boolean
 }
-
-export type MergeResultStatus =
-  | {
-      kind: MergeResultKind.Loading
-    }
-  | {
-      kind: MergeResultKind.Conflicts
-      conflictedFiles: number
-    }
-  | { kind: MergeResultKind.Clean }
-  | { kind: MergeResultKind.Invalid }
 
 export interface IViewHistory {
   readonly kind: HistoryTabMode.History

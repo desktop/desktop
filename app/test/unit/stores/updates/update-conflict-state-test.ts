@@ -1,5 +1,8 @@
 import { updateConflictState } from '../../../../src/lib/stores/updates/changes-state'
-import { createState, createStatus } from './changes-state-helper'
+import {
+  createState,
+  createStatus,
+} from '../../../helpers/changes-state-helper'
 import {
   ManualConflictResolution,
   ManualConflictResolutionKind,
@@ -9,6 +12,8 @@ describe('updateConflictState', () => {
   const statsStore = {
     recordMergeAbortedAfterConflicts: jest.fn(),
     recordMergeSuccessAfterConflicts: jest.fn(),
+    recordRebaseAbortedAfterConflicts: jest.fn(),
+    recordRebaseSuccessAfterConflicts: jest.fn(),
   }
   const manualResolutions = new Map<string, ManualConflictResolution>([
     ['foo', ManualConflictResolutionKind.theirs],
@@ -166,7 +171,7 @@ describe('updateConflictState', () => {
           originalBranchTip: 'some-other-sha',
         },
       })
-      const status = createStatus({ rebaseContext: null })
+      const status = createStatus({ rebaseInternalState: null })
       const conflictState = updateConflictState(prevState, status, statsStore)
       expect(conflictState).toBeNull()
     })
@@ -176,7 +181,7 @@ describe('updateConflictState', () => {
         conflictState: null,
       })
       const status = createStatus({
-        rebaseContext: {
+        rebaseInternalState: {
           targetBranch: 'my-feature-branch',
           baseBranchTip: 'another-sha',
           originalBranchTip: 'some-other-sha',
@@ -209,7 +214,7 @@ describe('updateConflictState', () => {
         },
       })
       const status = createStatus({
-        rebaseContext: {
+        rebaseInternalState: {
           targetBranch: 'my-feature-branch',
           baseBranchTip: 'another-sha',
           originalBranchTip: 'some-other-sha',
@@ -228,6 +233,75 @@ describe('updateConflictState', () => {
         baseBranchTip: 'another-sha',
         originalBranchTip: 'some-other-sha',
       })
+    })
+
+    it('increments abort counter when conflict remains but branch has changed', () => {
+      const prevState = createState({
+        conflictState: {
+          kind: 'rebase',
+          currentTip: 'current-sha',
+          manualResolutions,
+          targetBranch: 'my-feature-branch',
+          baseBranchTip: 'another-sha',
+          originalBranchTip: 'old-sha',
+        },
+      })
+      const status = createStatus({
+        rebaseInternalState: {
+          targetBranch: 'a-different-feature-branch',
+          originalBranchTip: 'some-old-sha',
+          baseBranchTip: 'an-even-older-sha',
+        },
+        currentTip: 'current-sha',
+      })
+
+      updateConflictState(prevState, status, statsStore)
+
+      expect(statsStore.recordRebaseAbortedAfterConflicts).toHaveBeenCalled()
+    })
+
+    it('increments abort counter when conflict resolved but tip has not changed', () => {
+      const prevState = createState({
+        conflictState: {
+          kind: 'rebase',
+          currentTip: 'current-sha',
+          manualResolutions,
+          targetBranch: 'my-feature-branch',
+          baseBranchTip: 'another-sha',
+          originalBranchTip: 'old-sha',
+        },
+      })
+      const status = createStatus({
+        rebaseInternalState: null,
+        currentBranch: 'my-feature-branch',
+        currentTip: 'old-sha',
+      })
+
+      updateConflictState(prevState, status, statsStore)
+
+      expect(statsStore.recordRebaseAbortedAfterConflicts).toHaveBeenCalled()
+    })
+
+    it('increments success counter when conflict resolved and tip has changed', () => {
+      const prevState = createState({
+        conflictState: {
+          kind: 'rebase',
+          currentTip: 'current-sha',
+          manualResolutions,
+          targetBranch: 'my-feature-branch',
+          baseBranchTip: 'even-older-sha',
+          originalBranchTip: 'old-sha',
+        },
+      })
+      const status = createStatus({
+        rebaseInternalState: null,
+        currentBranch: 'my-feature-branch',
+        currentTip: 'new-sha',
+      })
+
+      updateConflictState(prevState, status, statsStore)
+
+      expect(statsStore.recordRebaseSuccessAfterConflicts).toHaveBeenCalled()
     })
   })
 })

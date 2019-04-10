@@ -9,6 +9,8 @@ import { IRemote } from '../../../models/remote'
  *
  * @param remotes A list of remotes for a given repository
  */
-export function findDefaultRemote(remotes: ReadonlyArray<IRemote>) {
+export function findDefaultRemote(
+  remotes: ReadonlyArray<IRemote>
+): IRemote | null {
   return remotes.find(x => x.name === 'origin') || remotes[0] || null
 }

@@ -86,11 +86,20 @@ export interface IDailyMeasures {
   /** The number of times the user pushes to GitHub.com */
   readonly dotcomPushCount: number
 
+  /** The number of times the user pushes with `--force-with-lease` to GitHub.com */
+  readonly dotcomForcePushCount: number
+
   /** The number of times the user pushed to a GitHub enterprise instance */
   readonly enterprisePushCount: number
 
+  /** The number of times the user pushes with `--force-with-lease` to a GitHub Enterprise instance */
+  readonly enterpriseForcePushCount: number
+
   /** The number of times the users pushes to a generic remote */
   readonly externalPushCount: number
+
+  /** The number of times the users pushes with `--force-with-lease` to a generic remote */
+  readonly externalForcePushCount: number
 
   /** The number of times the user merged before seeing the result of the merge hint */
   readonly mergedWithLoadingHintCount: number
@@ -151,6 +160,21 @@ export interface IDailyMeasures {
 
   /** The number of times the rebase conflicts dialog is reopened */
   readonly rebaseConflictsDialogReopenedCount: number
+
+  /** The number of times an aborted rebase is detected */
+  readonly rebaseAbortedAfterConflictsCount: number
+
+  /** The number of times a successful rebase is detected */
+  readonly rebaseSuccessAfterConflictsCount: number
+
+  /** The number of times a user performed a pull with `pull.rebase` in config set to `true` */
+  readonly pullWithRebaseCount: number
+
+  /** The number of times a user has pulled with `pull.rebase` unset or set to `false` */
+  readonly pullWithDefaultSettingCount: number
+
+  /** The number of times the user opens the "Rebase current branch" menu item */
+  readonly rebaseCurrentBranchMenuCount: number
 }
 
 export class StatsDatabase extends Dexie {

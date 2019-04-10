@@ -1,16 +1,18 @@
 import { remote } from 'electron'
-import { Disposable } from 'event-kit'
+import { Disposable, IDisposable } from 'event-kit'
 import * as Path from 'path'
 
-import { IAPIUser } from '../../lib/api'
+import { IAPIOrganization, IAPIRefStatus } from '../../lib/api'
 import { shell } from '../../lib/app-shell'
 import {
   CompareAction,
   Foldout,
   FoldoutType,
   ICompareFormUpdate,
-  MergeResultStatus,
   RepositorySectionTab,
+  isRebaseConflictState,
+  isMergeConflictState,
+  RebaseConflictState,
 } from '../../lib/app-state'
 import { ExternalEditor } from '../../lib/editors'
 import { assertNever, fatalError } from '../../lib/fatal-error'
@@ -18,7 +20,7 @@ import {
   setGenericPassword,
   setGenericUsername,
 } from '../../lib/generic-git-auth'
-import { isGitRepository } from '../../lib/git'
+import { isGitRepository, RebaseResult, PushOptions } from '../../lib/git'
 import { isGitOnPath } from '../../lib/is-git-on-path'
 import {
   rejectOAuthRequest,
@@ -40,6 +42,7 @@ import { AppStore } from '../../lib/stores/app-store'
 import { validatedRepositoryPath } from '../../lib/stores/helpers/validated-repository-path'
 import { RepositoryStateCache } from '../../lib/stores/repository-state-cache'
 import { getTipSha } from '../../lib/tip'
+import { initializeRebaseFlowForConflictedRepository } from '../../lib/rebase'
 
 import { Account } from '../../models/account'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
@@ -48,7 +51,7 @@ import { Branch } from '../../models/branch'
 import { BranchesTab } from '../../models/branches-tab'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { CloningRepository } from '../../models/cloning-repository'
-import { Commit, ICommitContext } from '../../models/commit'
+import { Commit, ICommitContext, CommitOneLine } from '../../models/commit'
 import { ICommitMessage } from '../../models/commit-message'
 import { DiffSelection, ImageDiffType } from '../../models/diff'
 import { FetchType } from '../../models/fetch'
@@ -63,12 +66,18 @@ import {
   WorkingDirectoryFileChange,
   WorkingDirectoryStatus,
 } from '../../models/status'
-import { TipState } from '../../models/tip'
-import { Banner } from '../../models/banner'
+import { TipState, IValidBranch } from '../../models/tip'
+import { Banner, BannerType } from '../../models/banner'
 
 import { ApplicationTheme } from '../lib/application-theme'
 import { installCLI } from '../lib/install-cli'
 import { executeMenuItem } from '../main-process-proxy'
+import {
+  CommitStatusStore,
+  StatusCallBack,
+} from '../../lib/stores/commit-status-store'
+import { MergeResult } from '../../models/merge'
+import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 
 /**
  * An error handler function.
@@ -91,7 +100,8 @@ export class Dispatcher {
   public constructor(
     private readonly appStore: AppStore,
     private readonly repositoryStateManager: RepositoryStateCache,
-    private readonly statsStore: StatsStore
+    private readonly statsStore: StatsStore,
+    private readonly commitStatusStore: CommitStatusStore
   ) {}
 
   /** Load the initial state for the app. */
@@ -202,11 +212,6 @@ export class Dispatcher {
     return this.appStore._selectRepository(repository)
   }
 
-  /** Load the working directory status. */
-  public loadStatus(repository: Repository): Promise<boolean> {
-    return this.appStore._loadStatus(repository)
-  }
-
   /** Change the selected section in the repository. */
   public changeRepositorySection(
     repository: Repository,
@@ -277,9 +282,13 @@ export class Dispatcher {
     return this.appStore._showPopup(popup)
   }
 
-  /** Close the current popup. */
-  public closePopup(): Promise<void> {
-    return this.appStore._closePopup()
+  /**
+   * Close the current popup, if found
+   *
+   * @param popupType only close the popup if it matches this `PopupType`
+   */
+  public closePopup(popupType?: PopupType) {
+    return this.appStore._closePopup(popupType)
   }
 
   /** Show the foldout. This will close any current popup. */
@@ -295,6 +304,50 @@ export class Dispatcher {
   /** Close the specified foldout. */
   public closeFoldout(foldout: FoldoutType): Promise<void> {
     return this.appStore._closeFoldout(foldout)
+  }
+
+  /**
+   * Compute a preview of the planned rebase action
+   */
+  public previewRebase(
+    repository: Repository,
+    baseBranch: Branch,
+    targetBranch: Branch
+  ) {
+    return this.appStore._previewRebase(repository, baseBranch, targetBranch)
+  }
+
+  /**
+   * Initialize and launch the rebase flow for a conflicted repository
+   */
+  public async launchRebaseFlow(repository: Repository, targetBranch: string) {
+    await this.appStore._loadStatus(repository)
+
+    const repositoryState = this.repositoryStateManager.get(repository)
+    const { conflictState } = repositoryState.changesState
+
+    if (conflictState === null || conflictState.kind === 'merge') {
+      return
+    }
+
+    const updatedConflictState = { ...conflictState, targetBranch }
+
+    this.repositoryStateManager.updateChangesState(repository, () => ({
+      conflictState: updatedConflictState,
+    }))
+
+    await this.setRebaseProgressFromState(repository)
+
+    const initialStep = initializeRebaseFlowForConflictedRepository(
+      updatedConflictState
+    )
+
+    this.setRebaseFlowStep(repository, initialStep)
+
+    this.showPopup({
+      type: PopupType.RebaseFlow,
+      repository,
+    })
   }
 
   /**
@@ -324,6 +377,14 @@ export class Dispatcher {
     return this.appStore._push(repository)
   }
 
+  private pushWithOptions(repository: Repository, options?: PushOptions) {
+    if (options !== undefined && options.forceWithLease) {
+      this.dropCurrentBranchFromForcePushList(repository)
+    }
+
+    return this.appStore._push(repository, options)
+  }
+
   /** Pull the current branch. */
   public pull(repository: Repository): Promise<void> {
     return this.appStore._pull(repository)
@@ -349,7 +410,7 @@ export class Dispatcher {
     description: string,
     private_: boolean,
     account: Account,
-    org: IAPIUser | null
+    org: IAPIOrganization | null
   ): Promise<Repository> {
     return this.appStore._publishRepository(
       repository,
@@ -493,10 +554,12 @@ export class Dispatcher {
   }
 
   /**
-   * Clear the current banner from the application (if set)
+   * Close the current banner, if found.
+   *
+   * @param bannerType only close the banner if it matches this `BannerType`
    */
-  public clearBanner() {
-    return this.appStore._clearBanner()
+  public clearBanner(bannerType?: BannerType) {
+    return this.appStore._clearBanner(bannerType)
   }
 
   /**
@@ -617,22 +680,202 @@ export class Dispatcher {
   public mergeBranch(
     repository: Repository,
     branch: string,
-    mergeStatus: MergeResultStatus | null
+    mergeStatus: MergeResult | null
   ): Promise<void> {
     return this.appStore._mergeBranch(repository, branch, mergeStatus)
   }
 
-  /** aborts the current rebase and refreshes the repository's status */
+  /**
+   * Update the per-repository list of branches that can be force-pushed
+   * after a rebase is completed.
+   */
+  private addRebasedBranchToForcePushList = (
+    repository: Repository,
+    tipWithBranch: IValidBranch,
+    beforeRebaseSha: string
+  ) => {
+    // if the commit id of the branch is unchanged, it can be excluded from
+    // this list
+    if (tipWithBranch.branch.tip.sha === beforeRebaseSha) {
+      return
+    }
+
+    const currentState = this.repositoryStateManager.get(repository)
+    const { rebasedBranches } = currentState.branchesState
+
+    const updatedMap = new Map<string, string>(rebasedBranches)
+    updatedMap.set(
+      tipWithBranch.branch.nameWithoutRemote,
+      tipWithBranch.branch.tip.sha
+    )
+
+    this.repositoryStateManager.updateBranchesState(repository, () => ({
+      rebasedBranches: updatedMap,
+    }))
+  }
+
+  private dropCurrentBranchFromForcePushList = (repository: Repository) => {
+    const currentState = this.repositoryStateManager.get(repository)
+    const { rebasedBranches, tip } = currentState.branchesState
+
+    if (tip.kind !== TipState.Valid) {
+      return
+    }
+
+    const updatedMap = new Map<string, string>(rebasedBranches)
+    updatedMap.delete(tip.branch.nameWithoutRemote)
+
+    this.repositoryStateManager.updateBranchesState(repository, () => ({
+      rebasedBranches: updatedMap,
+    }))
+  }
+
+  /**
+   * Update the rebase state to indicate the user has resolved conflicts in the
+   * current repository.
+   */
+  public setConflictsResolved(repository: Repository) {
+    return this.appStore._setConflictsResolved(repository)
+  }
+
+  /**
+   * Initialize the progress in application state based on the known commits
+   * that will be applied in the rebase.
+   *
+   * @param commits the list of commits that exist on the target branch which do
+   *                not exist on the base branch
+   */
+  public initializeRebaseProgress(
+    repository: Repository,
+    commits: ReadonlyArray<CommitOneLine>
+  ) {
+    return this.appStore._initializeRebaseProgress(repository, commits)
+  }
+
+  /**
+   * Update the rebase progress in application state by querying the Git
+   * repository state.
+   */
+  public setRebaseProgressFromState(repository: Repository) {
+    return this.appStore._setRebaseProgressFromState(repository)
+  }
+
+  /**
+   * Move the rebase flow to a new state.
+   */
+  public setRebaseFlowStep(
+    repository: Repository,
+    step: RebaseFlowStep
+  ): Promise<void> {
+    return this.appStore._setRebaseFlowStep(repository, step)
+  }
+
+  /** End the rebase flow and cleanup any related app state */
+  public endRebaseFlow(repository: Repository) {
+    return this.appStore._endRebaseFlow(repository)
+  }
+
+  /** Starts a rebase for the given base and target branch */
+  public async rebase(
+    repository: Repository,
+    baseBranch: string,
+    targetBranch: string
+  ): Promise<void> {
+    const stateBefore = this.repositoryStateManager.get(repository)
+
+    const beforeSha = getTipSha(stateBefore.branchesState.tip)
+
+    log.info(`[rebase] starting rebase for ${targetBranch} at ${beforeSha}`)
+    log.info(
+      `[rebase] to restore the previous state if this completed rebase is unsatisfactory:`
+    )
+    log.info(`[rebase] - git checkout ${targetBranch}`)
+    log.info(`[rebase] - git reset ${beforeSha} --hard`)
+
+    const result = await this.appStore._rebase(
+      repository,
+      baseBranch,
+      targetBranch
+    )
+
+    await this.appStore._loadStatus(repository)
+
+    const stateAfter = this.repositoryStateManager.get(repository)
+    const { tip } = stateAfter.branchesState
+    const afterSha = getTipSha(tip)
+
+    log.info(
+      `[rebase] completed rebase - got ${result} and on tip ${afterSha} - kind ${
+        tip.kind
+      }`
+    )
+
+    if (result === RebaseResult.ConflictsEncountered) {
+      const { conflictState } = stateAfter.changesState
+      if (conflictState === null) {
+        log.warn(
+          `[rebase] conflict state after rebase is null - unable to continue`
+        )
+        return
+      }
+
+      if (isMergeConflictState(conflictState)) {
+        log.warn(
+          `[rebase] conflict state after rebase is merge conflicts - unable to continue`
+        )
+        return
+      }
+
+      this.switchToConflicts(repository, conflictState)
+    } else if (result === RebaseResult.CompletedWithoutError) {
+      if (tip.kind !== TipState.Valid) {
+        log.warn(
+          `[continueRebase] tip after completing rebase is ${
+            tip.kind
+          } but this should be a valid tip if the rebase completed without error`
+        )
+        return
+      }
+
+      await this.completeRebase(
+        repository,
+        {
+          type: BannerType.SuccessfulRebase,
+          targetBranch: targetBranch,
+          baseBranch: baseBranch,
+        },
+        tip,
+        beforeSha
+      )
+    }
+  }
+
+  /** Abort the current rebase and refreshes the repository status */
   public async abortRebase(repository: Repository) {
     await this.appStore._abortRebase(repository)
     await this.appStore._loadStatus(repository)
   }
 
+  /**
+   * Continue with the rebase after the user has resovled all conflicts with
+   * tracked files in the working directory.
+   */
   public async continueRebase(
     repository: Repository,
-    workingDirectory: WorkingDirectoryStatus
-  ) {
+    workingDirectory: WorkingDirectoryStatus,
+    manualResolutions: ReadonlyMap<string, ManualConflictResolution>
+  ): Promise<void> {
     const stateBefore = this.repositoryStateManager.get(repository)
+    const { conflictState } = stateBefore.changesState
+
+    if (conflictState === null || !isRebaseConflictState(conflictState)) {
+      log.warn(
+        `[continueRebase] no conflicts found, likely an invalid rebase state`
+      )
+      return
+    }
+
+    const { targetBranch, baseBranch, originalBranchTip } = conflictState
 
     const beforeSha = getTipSha(stateBefore.branchesState.tip)
 
@@ -640,7 +883,8 @@ export class Dispatcher {
 
     const result = await this.appStore._continueRebase(
       repository,
-      workingDirectory
+      workingDirectory,
+      manualResolutions
     )
     await this.appStore._loadStatus(repository)
 
@@ -654,7 +898,75 @@ export class Dispatcher {
       }`
     )
 
-    return result
+    if (result === RebaseResult.ConflictsEncountered) {
+      const { conflictState } = stateAfter.changesState
+      if (conflictState === null) {
+        log.warn(
+          `[continueRebase] conflict state after rebase is null - unable to continue`
+        )
+        return
+      }
+
+      if (isMergeConflictState(conflictState)) {
+        log.warn(
+          `[continueRebase] conflict state after rebase is merge conflicts - unable to continue`
+        )
+        return
+      }
+
+      this.switchToConflicts(repository, conflictState)
+    } else if (result === RebaseResult.CompletedWithoutError) {
+      if (tip.kind !== TipState.Valid) {
+        log.warn(
+          `[continueRebase] tip after completing rebase is ${
+            tip.kind
+          } but this should be a valid tip if the rebase completed without error`
+        )
+        return
+      }
+
+      await this.completeRebase(
+        repository,
+        {
+          type: BannerType.SuccessfulRebase,
+          targetBranch: targetBranch,
+          baseBranch: baseBranch,
+        },
+        tip,
+        originalBranchTip
+      )
+    }
+  }
+
+  /** Switch the rebase flow to show the latest conflicts */
+  private switchToConflicts = (
+    repository: Repository,
+    conflictState: RebaseConflictState
+  ) => {
+    this.setRebaseFlowStep(repository, {
+      kind: RebaseStep.ShowConflicts,
+      conflictState,
+    })
+  }
+
+  /** Tidy up the rebase flow after reaching the end */
+  private async completeRebase(
+    repository: Repository,
+    banner: Banner,
+    tip: IValidBranch,
+    originalBranchTip: string
+  ): Promise<void> {
+    this.closePopup()
+
+    this.setBanner(banner)
+
+    if (tip.kind === TipState.Valid) {
+      this.addRebasedBranchToForcePushList(repository, tip, originalBranchTip)
+    }
+
+    this.endRebaseFlow(repository)
+
+    await this.refreshRepository(repository)
   }
 
   /** aborts an in-flight merge and refreshes the repository's status */
@@ -925,6 +1237,12 @@ export class Dispatcher {
 
   public async setAppFocusState(isFocused: boolean): Promise<void> {
     await this.appStore._setAppFocusState(isFocused)
+
+    if (isFocused) {
+      this.commitStatusStore.startBackgroundRefresh()
+    } else {
+      this.commitStatusStore.stopBackgroundRefresh()
+    }
   }
 
   public async dispatchURLAction(action: URLActionType): Promise<void> {
@@ -1356,6 +1674,47 @@ export class Dispatcher {
     )
   }
 
+  public async confirmOrForcePush(repository: Repository) {
+    const { askForConfirmationOnForcePush } = this.appStore.getState()
+
+    const { branchesState } = this.repositoryStateManager.get(repository)
+    const { tip } = branchesState
+
+    if (tip.kind !== TipState.Valid) {
+      log.warn(`Could not find a branch to perform force push`)
+      return
+    }
+
+    const { upstream } = tip.branch
+
+    if (upstream === null) {
+      log.warn(`Could not find an upstream branch which will be pushed`)
+      return
+    }
+
+    if (askForConfirmationOnForcePush) {
+      this.showPopup({
+        type: PopupType.ConfirmForcePush,
+        repository,
+        upstreamBranch: upstream,
+      })
+    } else {
+      await this.performForcePush(repository)
+    }
+  }
+
+  public async performForcePush(repository: Repository) {
+    await this.pushWithOptions(repository, {
+      forceWithLease: true,
+    })
+
+    await this.appStore._loadStatus(repository)
+  }
+
+  public setConfirmForcePushSetting(value: boolean) {
+    return this.appStore._setConfirmForcePushSetting(value)
+  }
+
   /**
    * Updates the application state to indicate a conflict is in-progress
    * as a result of a pull and increments the relevant metric.
@@ -1377,6 +1736,13 @@ export class Dispatcher {
    */
   public recordMenuInitiatedMerge() {
     return this.statsStore.recordMenuInitiatedMerge()
+  }
+
+  /**
+   * Increments the `rebaseIntoCurrentBranchMenuCount` metric
+   */
+  public recordMenuInitiatedRebase() {
+    return this.statsStore.recordMenuInitiatedRebase()
   }
 
   /**
@@ -1420,27 +1786,6 @@ export class Dispatcher {
    */
   public recordDivergingBranchBannerDismissal() {
     return this.statsStore.recordDivergingBranchBannerDismissal()
-  }
-
-  /**
-   * Increments the `dotcomPushCount` metric
-   */
-  public recordPushToGitHub() {
-    return this.statsStore.recordPushToGitHub()
-  }
-
-  /**
-   * Increments the `enterprisePushCount` metric
-   */
-  public recordPushToGitHubEnterprise() {
-    return this.statsStore.recordPushToGitHubEnterprise()
-  }
-
-  /**
-   * Increments the `externalPushCount` metric
-   */
-  public recordPushToGenericRemote() {
-    return this.statsStore.recordPushToGenericRemote()
   }
 
   /**
@@ -1532,5 +1877,43 @@ export class Dispatcher {
    */
   public recordRebaseConflictsDialogReopened() {
     this.statsStore.recordRebaseConflictsDialogReopened()
+  }
+
+  /**
+   * Refresh the list of open pull requests for the given repository.
+   */
+  public refreshPullRequests(repository: Repository): Promise<void> {
+    return this.appStore._refreshPullRequests(repository)
+  }
+
+  /**
+   * Attempt to retrieve a commit status for a particular
+   * ref. If the ref doesn't exist in the cache this function returns null.
+   *
+   * Useful for component who wish to have a value for the initial render
+   * instead of waiting for the subscription to produce an event.
+   */
+  public tryGetCommitStatus(
+    repository: GitHubRepository,
+    ref: string
+  ): IAPIRefStatus | null {
+    return this.commitStatusStore.tryGetStatus(repository, ref)
+  }
+
+  /**
+   * Subscribe to commit status updates for a particular ref.
+   *
+   * @param repository The GitHub repository to use when looking up commit status.
+   * @param ref        The commit ref (can be a SHA or a Git ref) for which to
+   *                   fetch status.
+   * @param callback   A callback which will be invoked whenever the
+   *                   store updates a commit status for the given ref.
+   */
+  public subscribeToCommitStatus(
+    repository: GitHubRepository,
+    ref: string,
+    callback: StatusCallBack
+  ): IDisposable {
+    return this.commitStatusStore.subscribe(repository, ref, callback)
   }
 }

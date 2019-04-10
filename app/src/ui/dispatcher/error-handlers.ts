@@ -13,7 +13,6 @@ import { UpstreamAlreadyExistsError } from '../../lib/stores/upstream-already-ex
 
 import { PopupType } from '../../models/popup'
 import { Repository } from '../../models/repository'
-import { TipState } from '../../models/tip'
 
 /** An error which also has a code property. */
 interface IErrorWithCode extends Error {
@@ -295,15 +294,12 @@ export async function mergeConflictHandler(
       break
   }
 
-  const { tip, theirBranch } = gitContext
-  if (tip == null || tip.kind !== TipState.Valid) {
-    return error
-  }
+  const { currentBranch, theirBranch } = gitContext
 
   dispatcher.showPopup({
     type: PopupType.MergeConflicts,
     repository,
-    ourBranch: tip.branch.name,
+    ourBranch: currentBranch,
     theirBranch,
   })
 
@@ -358,70 +354,6 @@ export async function upstreamAlreadyExistsHandler(
   return null
 }
 
-/**
- * Handler for when we attempt to checkout a branch and there are some files that would
- * be overwritten.
- */
-export async function localChangesOverwrittenHandler(
-  error: Error,
-  dispatcher: Dispatcher
-): Promise<Error | null> {
-  const e = asErrorWithMetadata(error)
-  if (!e) {
-    return error
-  }
-
-  const gitError = asGitError(e.underlyingError)
-  if (!gitError) {
-    return error
-  }
-
-  const dugiteError = gitError.result.gitError
-  if (!dugiteError) {
-    return error
-  }
-
-  if (dugiteError !== DugiteError.LocalChangesOverwritten) {
-    return error
-  }
-
-  const { repository, retryAction } = e.metadata
-  if (repository == null) {
-    return error
-  }
-
-  if (!(repository instanceof Repository)) {
-    return error
-  }
-
-  if (!retryAction) {
-    log.error(`No retry action provided for a git checkout error.`, e)
-    return error
-  }
-
-  // find the overwritten files from the error
-  const overwrittenFiles = []
-
-  const pathRegex = /^\t(.*)/gm
-  const { stderr } = gitError.result
-
-  let match = pathRegex.exec(stderr)
-
-  while (match !== null) {
-    overwrittenFiles.push(match[1])
-    match = pathRegex.exec(stderr)
-  }
-
-  dispatcher.showPopup({
-    type: PopupType.LocalChangesOverwritten,
-    repository,
-    retryAction,
-    overwrittenFiles,
-  })
-
-  return null
-}
-
 /*
  * Handler for detecting when a merge conflict is reported to direct the user
  * to a different dialog than the generic Git error dialog.
@@ -462,19 +394,9 @@ export async function rebaseConflictsHandler(
     return error
   }
 
-  // TODO: metrics
-  // TODO: any other context?
+  const { currentBranch } = gitContext
 
-  // TODO: where can I get this from in the event of a pull failing from a rebase?
-  const baseBranch = '???'
-  const targetBranch = '???'
-
-  dispatcher.showPopup({
-    type: PopupType.RebaseConflicts,
-    repository,
-    targetBranch,
-    baseBranch,
-  })
+  dispatcher.launchRebaseFlow(repository, currentBranch)
 
   return null
 }

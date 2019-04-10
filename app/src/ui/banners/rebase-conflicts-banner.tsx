@@ -2,15 +2,15 @@ import * as React from 'react'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Banner } from './banner'
 import { Dispatcher } from '../dispatcher'
-import { Popup } from '../../models/popup'
 import { LinkButton } from '../lib/link-button'
 
 interface IRebaseConflictsBannerProps {
   readonly dispatcher: Dispatcher
   /** branch the user is rebasing into */
   readonly targetBranch: string
-  /** rebase conflicts dialog popup to be shown by this banner */
-  readonly popup: Popup
+  /** callback to fire when the dialog should be reopened */
+  readonly onOpenDialog: () => void
+  /** callback to fire to dismiss the banner */
   readonly onDismissed: () => void
 }
 
@@ -18,10 +18,16 @@ export class RebaseConflictsBanner extends React.Component<
   IRebaseConflictsBannerProps,
   {}
 > {
-  private openDialog = () => {
+  private openDialog = async () => {
     this.props.onDismissed()
-    this.props.dispatcher.showPopup(this.props.popup)
+    this.props.onOpenDialog()
     this.props.dispatcher.recordRebaseConflictsDialogReopened()
+  }
+
+  private onDismissed = () => {
+    log.warn(
+      `[RebaseConflictsBanner] this is not dismissable by default unless the user clicks on the link`
+    )
   }
 
   public render() {
@@ -29,7 +35,7 @@ export class RebaseConflictsBanner extends React.Component<
       <Banner
         id="rebase-conflicts-banner"
         dismissable={false}
-        onDismissed={this.props.onDismissed}
+        onDismissed={this.onDismissed}
       >
         <Octicon className="alert-icon" symbol={OcticonSymbol.alert} />
         <div className="banner-message">
