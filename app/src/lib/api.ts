@@ -14,6 +14,11 @@ import { uuid } from './uuid'
 import { getAvatarWithEnterpriseFallback } from './gravatar'
 import { getDefaultEmail } from './email'
 
+interface IFetchAllOptions<T> {
+  perPage?: number
+  continue?: (page: ReadonlyArray<T>, all: ReadonlyArray<T>) => boolean
+}
+
 const username: () => Promise<string> = require('username')
 
 const ClientID = process.env.TEST_ENV ? '' : __OAUTH_CLIENT_ID__
@@ -511,12 +516,18 @@ export class API {
    * pages when available, buffers all items and returns them in
    * one array when done.
    */
-  private async fetchAll<T>(path: string): Promise<ReadonlyArray<T>> {
+  private async fetchAll<T>(
+    path: string,
+    options?: IFetchAllOptions<T>
+  ): Promise<ReadonlyArray<T>> {
     const buf = new Array<T>()
-
-    const params = {
-      per_page: '100',
+    const defaultOpts = {
+      perPage: 100,
     }
+
+    const opts: IFetchAllOptions<T> = { ...defaultOpts, ...options }
+
+    const params = { per_page: `${opts.perPage}` }
     let nextPath: string | null = urlWithQueryString(path, params)
 
     do {
@@ -534,7 +545,14 @@ export class API {
       if (items) {
         buf.push(...items)
       }
+
       nextPath = getNextPagePath(response)
+
+      if (nextPath) {
+        if (opts.continue !== undefined && !opts.continue(items, buf)) {
+          break
+        }
+      }
     } while (nextPath)
 
     return buf
