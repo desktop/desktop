@@ -207,6 +207,9 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
     const prsToDelete = new Array<IPullRequest>()
     const prsToUpsert = new Array<IPullRequest>()
 
+    // The API endpoint for this PR, i.e api.github.com or a GHE url
+    const { endpoint } = repository
+
     for (const pr of pullRequestsFromAPI) {
       // `pr.head.repo` represents the source of the pull request. It might be
       // a branch associated with the current repository, or a fork of the
@@ -225,7 +228,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       }
 
       const headRepo = await this.repositoryStore.upsertGitHubRepository(
-        repository.endpoint,
+        endpoint,
         pr.head.repo
       )
 
@@ -240,7 +243,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       }
 
       const baseGitHubRepo = await this.repositoryStore.upsertGitHubRepository(
-        repository.endpoint,
+        endpoint,
         pr.base.repo
       )
 
