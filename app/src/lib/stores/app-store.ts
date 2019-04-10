@@ -4363,7 +4363,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return { openPullRequests }
     })
 
-    this._updateCurrentPullRequest(repository)
+    this.updateCurrentPullRequest(repository)
     this.updateMenuItemLabels(repository)
     this.emitUpdate()
   }
@@ -4391,7 +4391,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return pr
   }
 
-  private _updateCurrentPullRequest(repository: Repository) {
+  private updateCurrentPullRequest(repository: Repository) {
     const gitHubRepository = repository.gitHubRepository
 
     if (!gitHubRepository) {
