@@ -1,4 +1,4 @@
-import { StashedFileChanges } from './stash'
+import { CommittedFileChange } from './status'
 
 export interface IStashEntry {
   /** The name of the entry i.e., `stash@{0}` */
@@ -12,3 +12,12 @@ export interface IStashEntry {
 
   readonly files: StashedFileChanges
 }
+
+export enum StashedChangesLoadStates {
+  NotLoaded,
+  Loading,
+}
+
+export type StashedFileChanges =
+  | ReadonlyArray<CommittedFileChange>
+  | StashedChangesLoadStates
