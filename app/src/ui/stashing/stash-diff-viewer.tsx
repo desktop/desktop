@@ -98,12 +98,17 @@ const Header: React.SFC<{
   const onClearClick = () => {
     props.dispatcher.dropStash(props.repository, props.stashEntry)
   }
+  const onSubmitClick = () => {
+    props.dispatcher.dropStash(props.repository, props.stashEntry)
+  }
   return (
     <div className="header">
       <h3>Stashed changes</h3>
       <ButtonGroup>
         <Button onClick={onClearClick}>Clear</Button>
-        <Button type="submit">Restore</Button>
+        <Button onClick={onSubmitClick} type="submit">
+          Restore
+        </Button>
       </ButtonGroup>
     </div>
   )
