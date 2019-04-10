@@ -472,23 +472,61 @@ export class API {
   public async fetchPullRequests(
     owner: string,
     name: string,
-    state: 'open' | 'closed' | 'all',
-    since: Date | null
+    state: 'open' | 'closed' | 'all'
   ): Promise<ReadonlyArray<IAPIPullRequest>> {
+    const url = urlWithQueryString(`repos/${owner}/${name}/pulls`, { state })
+    try {
+      return await this.fetchAll<IAPIPullRequest>(url)
+    } catch (e) {
+      log.warn(`fetchPullRequests: failed for repository ${owner}/${name}`, e)
+      throw e
+    }
+  }
+
+  /**
+   * Fetch all pull requests in the given repository that have been
+   * updated on or after the provided date.
+   *
+   * Note: The GitHub API doesn't support providing a last-updated
+   * limitation for PRs like it does for issues so we're emulating
+   * the issues API by sorting PRs descending by last updated and
+   * only grab as many pages as we need to until we no longer receive
+   * PRs that have been update more recently than the `since`
+   * parameter.
+   */
+  public async fetchPullRequestsUpdatedSince(
+    owner: string,
+    name: string,
+    since: Date
+  ) {
     const params: { [key: string]: string } = {
-      state,
+      state: 'all',
+      sort: 'updated',
+      direction: 'desc',
     }
 
-    if (since && !isNaN(since.getTime())) {
-      params.since = toGitHubIsoDateString(since)
-    }
+    const sinceTime = since.getTime()
 
     const url = urlWithQueryString(`repos/${owner}/${name}/pulls`, params)
     try {
-      const prs = await this.fetchAll<IAPIPullRequest>(url)
-      return prs
+      const prs = await this.fetchAll<IAPIPullRequest>(url, {
+        perPage: 30,
+        continue(page) {
+          if (page.length === 0) {
+            return true
+          }
+
+          const lastItem = page[page.length - 1]
+          const lastItemUpdatedAt = new Date(lastItem.updated_at).getTime()
+          return lastItemUpdatedAt > sinceTime
+        },
+      })
+      return prs.filter(pr => Date.parse(pr.updated_at) >= sinceTime)
     } catch (e) {
-      log.warn(`fetchPullRequests: failed for repository ${owner}/${name}`, e)
+      log.warn(
+        `fetchPullRequestsUpdatedSince: failed for repository ${owner}/${name}`,
+        e
+      )
       throw e
     }
   }
