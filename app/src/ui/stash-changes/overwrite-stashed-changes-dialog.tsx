@@ -27,6 +27,7 @@ export class OverwriteStash extends React.Component<
         title={title}
         onDismissed={this.props.onDismissed}
         type="warning"
+        onSubmit={this.onSubmit}
       >
         <DialogContent>
           <Row>
@@ -36,15 +37,15 @@ export class OverwriteStash extends React.Component<
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>
-            <Button type="submit">Cancel</Button>
-            <Button onClick={this.onClick}>Continue</Button>
+            <Button type="submit">Continue</Button>
+            <Button onClick={this.props.onDismissed}>Cancel</Button>
           </ButtonGroup>
         </DialogFooter>
       </Dialog>
     )
   }
 
-  private onClick = async () => {
+  private onSubmit = async () => {
     const { dispatcher, repository, branchToCheckout, onDismissed } = this.props
 
     await dispatcher.checkoutBranch(
