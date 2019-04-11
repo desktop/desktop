@@ -15,20 +15,34 @@ interface IOverwriteStashProps {
   readonly onDismissed: () => void
 }
 
+interface IOverwriteStashState {
+  readonly isCheckingOutBranch: boolean
+}
+
 export class OverwriteStash extends React.Component<
   IOverwriteStashProps,
   IOverwriteStashState
 > {
+  public constructor(props: IOverwriteStashProps) {
+    super(props)
+
+    this.state = {
+      isCheckingOutBranch: false,
+    }
+  }
+
   public render() {
     const title = __DARWIN__ ? 'Overwrite Stash?' : 'Overwrite stash?'
 
     return (
       <Dialog
         id="overwrite-stash"
-        title={title}
-        onDismissed={this.props.onDismissed}
         type="warning"
+        title={title}
+        loading={this.state.isCheckingOutBranch}
+        disabled={this.state.isCheckingOutBranch}
         onSubmit={this.onSubmit}
+        onDismissed={this.props.onDismissed}
       >
         <DialogContent>
           <Row>
@@ -49,11 +63,22 @@ export class OverwriteStash extends React.Component<
   private onSubmit = async () => {
     const { dispatcher, repository, branchToCheckout, onDismissed } = this.props
 
-    await dispatcher.checkoutBranch(
-      repository,
-      branchToCheckout,
-      UncommittedChangesStrategy.stashOnCurrentBranch
-    )
+    this.setState({
+      isCheckingOutBranch: true,
+    })
+
+    try {
+      await dispatcher.checkoutBranch(
+        repository,
+        branchToCheckout,
+        UncommittedChangesStrategy.stashOnCurrentBranch
+      )
+    } finally {
+      this.setState({
+        isCheckingOutBranch: false,
+      })
+    }
+
     onDismissed()
   }
 }
