@@ -1945,4 +1945,9 @@ export class Dispatcher {
   public hideStashEntry(repository: Repository) {
     return this.appStore._hideStashEntry(repository)
   }
+
+  /** Record when the user takes no action on the stash entry */
+  public recordNoActionTakenOnStash(): Promise<void> {
+    return this.statsStore.recordNoActionTakenOnStash()
+  }
 }
