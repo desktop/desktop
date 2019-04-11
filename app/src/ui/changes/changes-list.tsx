@@ -39,6 +39,7 @@ import { enablePullWithRebase } from '../../lib/feature-flag'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { FocusContainer } from '../lib/focus-container'
 import { IStashEntry } from '../../models/stash-entry'
+import classNames = require('classnames')
 
 const RowHeight = 29
 const StashListRowStyle: React.CSSProperties = {
@@ -495,10 +496,15 @@ export class ChangesList extends React.Component<
       return null
     }
 
+    const className = classNames(
+      'stashed-changes-row',
+      this.props.isShowingStashEntry ? 'selected' : null
+    )
+
     return (
       <FocusContainer className="list-focus-container">
         <div
-          className="stash-entry-row-content"
+          className={className}
           style={StashListRowStyle}
           onClick={this.onStashEntryClicked}
         >

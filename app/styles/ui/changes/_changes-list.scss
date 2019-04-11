@@ -18,15 +18,16 @@
     }
   }
 
-  .stash-entry-row {
-    border-top: var(--base-border);
-    border-bottom: 0;
-  }
+  @include list-item;
 
-  .stash-entry-row-content {
+  .stashed-changes-row {
     display: flex;
     flex-grow: 1;
     padding: 0 var(--spacing);
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    border-top: var(--base-border);
 
     .icon {
       fill: var(--color-modified);
