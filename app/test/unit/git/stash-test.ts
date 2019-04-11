@@ -13,7 +13,10 @@ import {
 } from '../../../src/lib/git/stash'
 import { getStatusOrThrow } from '../../helpers/status'
 import { AppFileStatusKind } from '../../../src/models/status'
-import { IStashEntry } from '../../../src/models/stash-entry'
+import {
+  IStashEntry,
+  StashedChangesLoadStates,
+} from '../../../src/models/stash-entry'
 
 describe('git/stash', () => {
   describe('getDesktopStashEntries', () => {
@@ -183,6 +186,7 @@ describe('git/stash', () => {
         name: 'stash@{0}',
         branchName: 'master',
         stashSha: 'xyz',
+        files: { kind: StashedChangesLoadStates.NotLoaded },
       }
 
       try {
@@ -200,6 +204,7 @@ describe('git/stash', () => {
         name: 'stash@{4}',
         branchName: 'master',
         stashSha: 'xyz',
+        files: { kind: StashedChangesLoadStates.NotLoaded },
       }
       await generateTestStashEntry(repository, 'master', true)
       await generateTestStashEntry(repository, 'master', true)

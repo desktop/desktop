@@ -63,6 +63,7 @@ import {
   revSymmetricDifference,
   getSymbolicRef,
   getConfigValue,
+  getChangedFiles,
 } from '../git'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import { UpstreamAlreadyExistsError } from './upstream-already-exists-error'
@@ -79,7 +80,7 @@ import { IGitAccount } from '../../models/git-account'
 import { BaseStore } from './base-store'
 import { enablePullWithRebase, enableStashing } from '../feature-flag'
 import { getDesktopStashEntries } from '../git/stash'
-import { IStashEntry } from '../../models/stash-entry'
+import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -997,6 +998,22 @@ export class GitStore extends BaseStore {
   /** A map key on the canonical ref name of GitHub Desktop created stash entries for the repository */
   public get stashEntries() {
     return this._stashEntries
+  }
+
+  /**
+   * Updates the latest stash entry with a list of files that it changes
+   */
+  public async loadStashedFiles(stashEntry: IStashEntry) {
+    const files = await getChangedFiles(this.repository, stashEntry.stashSha)
+
+    this._stashEntries.set(stashEntry.branchName, {
+      ...stashEntry,
+      files: {
+        kind: StashedChangesLoadStates.Loaded,
+        files,
+      },
+    })
+    this.emitUpdate()
   }
 
   public async loadRemotes(): Promise<void> {

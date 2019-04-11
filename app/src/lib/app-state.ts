@@ -152,6 +152,9 @@ export interface IAppState {
   /** The width of the commit summary column in the history view */
   readonly commitSummaryWidth: number
 
+  /** The width of the files list in the stash view */
+  readonly stashedFilesWidth: number
+
   /** Whether we should hide the toolbar (and show inverted window controls) */
   readonly titleBarStyle: 'light' | 'dark'
 
@@ -558,6 +561,12 @@ export interface IChangesState {
 
   /** Whether or not to show the UI for a stash entry. */
   readonly shouldShowStashedChanges: boolean
+
+  /** Currently selected file in the stash diff viewer UI (aka the file we want to show the diff for) */
+  readonly selectedStashedFile: CommittedFileChange | null
+
+  /** Currently selected file's diff */
+  readonly selectedStashedFileDiff: IDiff | null
 }
 
 /**

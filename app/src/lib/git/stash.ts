@@ -2,7 +2,7 @@ import { git } from '.'
 import { Repository } from '../../models/repository'
 import { GitError, IGitResult } from './core'
 import { GitError as DugiteError } from 'dugite'
-import { IStashEntry } from '../../models/stash-entry'
+import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 
 export const DesktopStashEntryMarker = '!!GitHub_Desktop'
 
@@ -75,6 +75,7 @@ export async function getDesktopStashEntries(
       name: `stash@{${ix}}`,
       branchName: branchName,
       stashSha: match[1],
+      files: { kind: StashedChangesLoadStates.NotLoaded },
     })
   }
 

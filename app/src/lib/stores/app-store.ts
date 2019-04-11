@@ -215,6 +215,7 @@ import {
   dropDesktopStashEntry,
 } from '../git/stash'
 import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
+import { IStashEntry } from '../../models/stash-entry'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { RebasePreview } from '../../models/rebase'
 
@@ -240,6 +241,9 @@ const sidebarWidthConfigKey: string = 'sidebar-width'
 
 const defaultCommitSummaryWidth: number = 250
 const commitSummaryWidthConfigKey: string = 'commit-summary-width'
+
+const defaultStashedFilesWidth: number = 250
+const stashedFilesWidthConfigKey: string = 'stashed-files-width'
 
 const confirmRepoRemovalDefault: boolean = true
 const confirmDiscardChangesDefault: boolean = true
@@ -317,6 +321,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private sidebarWidth: number = defaultSidebarWidth
   private commitSummaryWidth: number = defaultCommitSummaryWidth
+  private stashedFilesWidth: number = defaultStashedFilesWidth
   private windowState: WindowState
   private windowZoomFactor: number = 1
   private isUpdateAvailableBannerVisible: boolean = false
@@ -559,6 +564,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       emoji: this.emoji,
       sidebarWidth: this.sidebarWidth,
       commitSummaryWidth: this.commitSummaryWidth,
+      stashedFilesWidth: this.stashedFilesWidth,
       appMenuState: this.appMenu ? this.appMenu.openMenus : [],
       titleBarStyle:
         this.showWelcomeFlow || repositories.length === 0 ? 'light' : 'dark',
@@ -2576,7 +2582,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
 
     if (shouldPopStash) {
-      await this._popStash(repository, foundBranch)
+      const stash = await getLastDesktopStashEntryForBranch(
+        repository,
+        foundBranch.name
+      )
+
+      if (stash !== null) {
+        await this._popStashEntry(repository, stash)
+      } else {
+        log.warn('no stash found that matches')
+      }
     }
 
     try {
@@ -4757,19 +4772,37 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
   }
 
-  public async _popStash(repository: Repository, branch: Branch) {
-    const stash = await getLastDesktopStashEntryForBranch(
-      repository,
-      branch.name
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _popStashEntry(repository: Repository, stashEntry: IStashEntry) {
+    const gitStore = this.gitStoreCache.get(repository)
+    await gitStore.performFailableOperation(() => {
+      return popStashEntry(repository, stashEntry.stashSha)
+    })
+    log.info(
+      `[AppStore. _popStashEntry] popped stash with commit id ${
+        stashEntry.stashSha
+      }`
     )
 
-    if (stash === null) {
-      log.warn('no stash found that matches')
-      return
-    }
+    await this._refreshRepository(repository)
+  }
 
-    await popStashEntry(repository, stash.stashSha)
-    log.info(`Popped stash with commit id ${stash.stashSha}`)
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _dropStashEntry(
+    repository: Repository,
+    stashEntry: IStashEntry
+  ) {
+    const gitStore = this.gitStoreCache.get(repository)
+    await gitStore.performFailableOperation(() => {
+      return dropDesktopStashEntry(repository, stashEntry.stashSha)
+    })
+    log.info(
+      `[AppStore. _dropStashEntry] dropped stash with commit id ${
+        stashEntry.stashSha
+      }`
+    )
+
+    await this._refreshRepository(repository)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -4797,6 +4830,52 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
 
     this.emitUpdate()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _loadStashedFiles(
+    repository: Repository,
+    stashEntry: IStashEntry
+  ) {
+    const gitStore = this.gitStoreCache.get(repository)
+    await gitStore.loadStashedFiles(stashEntry)
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _changeStashedFileSelection(
+    repository: Repository,
+    file: CommittedFileChange
+  ): Promise<void> {
+    this.repositoryStateCache.updateChangesState(repository, () => ({
+      selectedStashedFile: file,
+      selectedStashedFileDiff: null,
+    }))
+    this.emitUpdate()
+
+    const diff = await getCommitDiff(repository, file, file.commitish)
+
+    this.repositoryStateCache.updateChangesState(repository, () => ({
+      selectedStashedFileDiff: diff,
+    }))
+
+    this.emitUpdate()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _setStashedFilesWidth(width: number): Promise<void> {
+    this.stashedFilesWidth = width
+    setNumber(stashedFilesWidthConfigKey, width)
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  public _resetStashedFilesWidth(): Promise<void> {
+    this.stashedFilesWidth = defaultStashedFilesWidth
+    localStorage.removeItem(stashedFilesWidthConfigKey)
+    this.emitUpdate()
+
+    return Promise.resolve()
   }
 }
 

@@ -20,6 +20,8 @@ import { OcticonSymbol, Octicon } from './octicons'
 import { ImageDiffType } from '../models/diff'
 import { IMenu } from '../models/app-menu'
 import { enableStashing } from '../lib/feature-flag'
+import { StashDiffViewer } from './stashing'
+import { StashedChangesLoadStates } from '../models/stash-entry'
 
 /** The widest the sidebar can be with the minimum window size. */
 const MaxSidebarWidth = 495
@@ -31,6 +33,7 @@ interface IRepositoryViewProps {
   readonly emoji: Map<string, string>
   readonly sidebarWidth: number
   readonly commitSummaryWidth: number
+  readonly stashedFilesWidth: number
   readonly issuesStore: IssuesStore
   readonly gitHubUserStore: GitHubUserStore
   readonly onViewCommitOnGitHub: (SHA: string) => void
@@ -283,15 +286,31 @@ export class RepositoryView extends React.Component<
           return null
         }
 
-        return (
-          <div>
-            <p>
-              {`${stashEntry.name} created on ${
-                stashEntry.branchName
-              }@${stashEntry.stashSha.substr(0, 7)}`}
-            </p>
-          </div>
-        )
+        if (stashEntry.files.kind === StashedChangesLoadStates.Loaded) {
+          return (
+            <StashDiffViewer
+              stashEntry={stashEntry}
+              selectedStashedFile={
+                this.props.state.changesState.selectedStashedFile
+              }
+              stashedFileDiff={
+                this.props.state.changesState.selectedStashedFileDiff
+              }
+              imageDiffType={this.props.imageDiffType}
+              fileListWidth={this.props.stashedFilesWidth}
+              externalEditorLabel={this.props.externalEditorLabel}
+              onOpenInExternalEditor={this.props.onOpenInExternalEditor}
+              repository={this.props.repository}
+              dispatcher={this.props.dispatcher}
+            />
+          )
+        } else if (this.props.state.branchesState.tip.kind === TipState.Valid) {
+          this.props.dispatcher.loadStashedFiles(
+            this.props.repository,
+            stashEntry
+          )
+          return null
+        }
       }
 
       if (selectedFileIDs.length > 1) {

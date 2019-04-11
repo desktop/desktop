@@ -1,3 +1,5 @@
+import { CommittedFileChange } from './status'
+
 export interface IStashEntry {
   /** The name of the entry i.e., `stash@{0}` */
   readonly name: string
@@ -7,4 +9,25 @@ export interface IStashEntry {
 
   /** The SHA of the commit object created as a result of stashing. */
   readonly stashSha: string
+
+  /** The list of files this stash touches */
+  readonly files: StashedFileChanges
 }
+
+/** Whether file changes for a stash entry are loaded or not */
+export enum StashedChangesLoadStates {
+  NotLoaded = 'NotLoaded',
+  Loading = 'Loading',
+  Loaded = 'Loaded',
+}
+
+type StashedFileChanges =
+  | {
+      kind:
+        | StashedChangesLoadStates.NotLoaded
+        | StashedChangesLoadStates.Loading
+    }
+  | {
+      kind: StashedChangesLoadStates.Loaded
+      files: ReadonlyArray<CommittedFileChange>
+    }
