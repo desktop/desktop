@@ -531,12 +531,12 @@ export class API {
     try {
       const prs = await this.fetchAll<IAPIPullRequest>(url, {
         perPage: 30,
-        continue(page) {
-          if (page.length === 0) {
+        continue(results) {
+          if (results.length === 0) {
             return true
           }
 
-          const lastItem = page[page.length - 1]
+          const lastItem = results[results.length - 1]
           const lastItemUpdatedAt = new Date(lastItem.updated_at).getTime()
           return lastItemUpdatedAt > sinceTime
         },
