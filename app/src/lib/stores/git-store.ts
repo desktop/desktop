@@ -983,6 +983,8 @@ export class GitStore extends BaseStore {
     const entries = await getDesktopStashEntries(this.repository)
 
     for (const entry of entries) {
+      // we only want the first entry we find for each branch,
+      // so we skip all subsequent ones
       if (!map.has(entry.branchName)) {
         map.set(entry.branchName, entry)
       }
