@@ -76,11 +76,11 @@ export class PullRequestStore {
 
     const lastUpdatedAt = await this.db.getLastUpdated(githubRepo)
 
-    try {
-      const api = API.fromAccount(account)
-      const owner = githubRepo.owner.login
-      const name = githubRepo.name
+    const api = API.fromAccount(account)
+    const owner = githubRepo.owner.login
+    const name = githubRepo.name
 
+    try {
       // If we don't have a lastUpdatedAt that mean we haven't fetched any PRs
       // for the repository yet which in turn means we only have to fetch the
       // currently open PRs. If we have fetched before we get all PRs
@@ -98,8 +98,8 @@ export class PullRequestStore {
         await this.pruneForkedRemotes(repository, prs)
         this.emitPullRequestsChanged(githubRepo, prs)
       }
-    } catch (error) {
-      log.warn(`Error refreshing pull requests for '${repository.name}'`, error)
+    } catch (err) {
+      log.warn(`Error refreshing pull requests for '${owner}/${name}'`, err)
     } finally {
       this.updateActiveFetchCount(githubRepo, Decrement)
     }
