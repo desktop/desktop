@@ -26,7 +26,7 @@ const ResizeArrowPadding = 10
 export class PathLabel extends React.Component<IPathLabelProps, {}> {
   public render() {
     const props: React.HTMLProps<HTMLLabelElement> = {
-      className: 'path',
+      className: 'path-label-component',
     }
 
     const { status } = this.props

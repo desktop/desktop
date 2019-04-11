@@ -1,5 +1,237 @@
 {
   "releases": {
+      "1.7.0-beta2": [
+        "[New] Rebase your current branch onto another branch using a guided flow - #5953",
+        "[Fixed] Horizontal scroll bar appears unnecessarily when switching branches - #7212",
+        "[Fixed] License templates do not end with newline character - #6999",
+        "[Fixed] Merge/Rebase conflicts banners do not clear when aborting the operation outside Desktop - #7046",
+        "[Fixed] Missing tooltips for change indicators in the sidebar - #7174",
+        "[Fixed] Icon accessibility labels fail when multiple icons are visible at the same time - #7174",
+        "[Improved] Pull requests load faster and PR build status updates automatically - #7163"
+      ],
+    "1.7.0-beta1": [
+      "[New] Recently opened repositories appear at the top of the repository list - #7132",
+      "[Fixed] Error when selecting diff text while diff is updating - #7131",
+      "[Fixed] Crash when unable to create log file on disk - #7096",
+      "[Fixed] Race condition with remote lookup could cause push to go to incorrect remote - #6986",
+      "[Fixed] Mistaken classification of all crashes being related to launch - #7126",
+      "[Fixed] Prevent menus from being disabled by activity in inactive repositories - #6313",
+      "[Fixed] \"Automatically Switch Theme\" on macOS does not check theme on launch - #7116. Thanks @say25!",
+      "[Fixed] Clicking \"Undo\" doesn't repopulate summary in commit form - #6390. Thanks @humphd!",
+      "[Fixed] Emoji rendering in app broken when account name has special characters - #6909",
+      "[Fixed] Files staged outside Desktop for deletion are incorrectly marked as modified after committing - #4133",
+      "[Improved] Visual feedback on \"Remove Repository\" and \"Discard Changes\" dialogs to show progress - #7015. Thanks @HashimotoYT!",
+      "[Improved] Onboarding language for blank slate components - #6638. Thanks @jamesgeorge007!",
+      "[Improved] Manually refresh pull requests instead of having to wait for a fetch - #7027"
+    ],
+    "1.6.5": [
+      "[Fixed] Publish Repository does not let you publish to an organization on your Enterprise account - #7052"
+    ],
+    "1.6.5-beta2": [
+      "[Fixed] Publish Repository does not let you choose an organization on your Enterprise account - #7052"
+    ],
+    "1.6.5-beta1": [
+      "[Fixed] Publish Repository does not let you choose an organization on your Enterprise account - #7052"
+    ],
+    "1.6.4": [
+      "[Fixed] Embedded Git not working for core.longpath usage in some environments - #7028",
+      "[Fixed] \"Recover missing repository\" can get stuck in a loop - #7038"
+    ],
+    "1.6.4-beta1": [
+      "[Fixed] Embedded Git not working for core.longpath usage in some environments - #7028",
+      "[Fixed] \"Recover missing repository\" can get stuck in a loop - #7038"
+    ],
+    "1.6.4-beta0": [
+      "[Removed] Option to discard when files would be overwritten by a checkout - #7016"
+    ],
+    "1.6.3": [
+      "[New] Display \"pull with rebase\" if a user has set this option in their Git config - #6553 #3422",
+      "[Fixed] Context menu does not open when right clicking on the edges of files in Changes list - #6296. Thanks @JQuinnie!",
+      "[Fixed] Display question mark in image when no commit selected in dark theme - #6915. Thanks @say25!",
+      "[Fixed] No left padding for :emoji:/@user/#issue autocomplete forms. - #6895. Thanks @murrelljenna!",
+      "[Fixed] Reinstate missing image and update illustration in dark theme when no local changes exist - #6894",
+      "[Fixed] Resizing the diff area preserves text selection range - #2677",
+      "[Fixed] Text selection in wrapped diff lines now allows selection of individual lines - #1551",
+      "[Improved] Add option to fetch when a user needs to pull changes from the remote before pushing - #2738 #5451",
+      "[Improved] Enable Git protocol v2 for fetch/push/pull operations - #6142",
+      "[Improved] Moving mouse pointer outside visible diff while selecting a range of lines in a partial commit now automatically scrolls the diff - #658",
+      "[Improved] Sign in form validates both username and password - #6952. Thanks @say25!",
+      "[Improved] Update GitHub logo in \"About\" dialog - #5619. Thanks @HashimotoYT!"
+    ],
+    "1.6.3-beta4": [
+      "[Improved] Update GitHub logo in \"About\" dialog - #5619. Thanks @HashimotoYT!",
+      "[Improved] Sign in form validates both username and password - #6952. Thanks @say25!"
+    ],
+    "1.6.3-beta3": [
+      "[New] Display \"pull with rebase\" if a user has set this option in their Git config - #6553 #3422",
+      "[Added] Provide option to discard when files would be overwritten by a checkout - #6755. Thanks @mathieudutour!",
+      "[Fixed] No left padding for :emoji:/@user/#issue autocomplete forms. - #6895. Thanks @murrelljenna!",
+      "[Fixed] Reinstate missing image and fix illustration to work in the dark theme when there are no local changes - #6894",
+      "[Fixed] Display question mark image when there is no commit selected in dark theme - #6915. Thanks @say25!",
+      "[Improved] Group and filter repositories by owner - #6923",
+      "[Improved] Add option to fetch when a user needs to pull changes from the remote before pushing - #2738 #5451"
+    ],
+    "1.6.3-beta2": [
+      "[Fixed] Text selection in wrapped diff lines now allows selection of individual lines - #1551",
+      "[Fixed] Resizing the diff area preserves text selection range - #2677",
+      "[Improved] Moving the mouse pointer outside of the visible diff while selecting a range of lines in a partial commit will now automatically scroll the diff - #658"
+    ],
+    "1.6.3-beta1": [
+      "[New] Branches that have been merged and deleted on GitHub.com will now be pruned after two weeks - #750",
+      "[Fixed] Context menu doesn't open when right clicking on the edges of files in Changes list - #6296. Thanks @JQuinnie!",
+      "[Improved] Enable Git protocol v2 for fetch/push/pull operations - #6142",
+      "[Improved] Upgrade to Electron v3 - #6391"
+    ],
+    "1.6.2": [
+      "[Added] Allow users to also resolve manual conflicts when resolving merge conflicts - #6062",
+      "[Added] Automatic switching between Dark and Light modes on macOS - #5037. Thanks @say25!",
+      "[Added] Crystal and Julia syntax highlighting - #6710. Thanks @KennethSweezy!",
+      "[Added] Lua and Fortran syntax highlighting - #6700. Thanks @SimpleBinary!",
+      "[Fixed] Abbreviated commits are not long enough for large repositories - #6662. Thanks @say25!",
+      "[Fixed] App menu bar visible on hover on Windows when in \"Let’s get started\" mode - #6669",
+      "[Fixed] Fix pointy corners on commit message text area - #6635. Thanks @lisavogtsf!",
+      "[Fixed] Inconsistent \"Reveal in …\" labels for context menus - #6466. Thanks @say25!",
+      "[Fixed] Merge conflict conflict did not ask user to resolve some binary files - #6693",
+      "[Fixed] Prevent concurrent fetches between user and status indicator checks - #6121 #5438 #5328",
+      "[Fixed] Remember scroll positions in History and Changes lists - #5177 #5059. Thanks @Daniel-McCarthy!",
+      "[Improved] Guided merge conflict resolution only commits changes relevant to the merge - #6349",
+      "[Improved] Use higher contrast color for links in \"Merge Conflicts\" dialog - #6758",
+      "[Improved] Add link to all release notes in Release Notes dialog - #6443. Thanks @koralcem!",
+      "[Improved] Arrow for renamed/copied changes when viewing commit - #6519. Thanks @koralcem!",
+      "[Improved] Updated verbiage for ignoring the files - #6689. Thanks @PaulViola!"
+    ],
+    "1.6.2-beta3": [
+      "[Improved] Guided merge conflict resolution only commits changes relevant to the merge - #6349"
+    ],
+    "1.6.2-beta2": [
+      "[Added] Allow users to also resolve manual conflicts when resolving merge conflicts - #6062",
+      "[Added] Crystal and Julia syntax highlighting - #6710. Thanks @KennethSweezy!",
+      "[Fixed] Fix pointy corners on commit message text area - #6635. Thanks @lisavogtsf!",
+      "[Fixed] Use higher contrast color for links in \"Merge Conflicts\" dialog - #6758"
+    ],
+    "1.6.2-beta1": [
+      "[Added] Automatic switching between Dark and Light modes on macOS - #5037. Thanks @say25!",
+      "[Added] Lua and Fortran syntax highlighting - #6700. Thanks @SimpleBinary!",
+      "[Fixed] Abbreviated commits are not long enough for large repositories - #6662. Thanks @say25!",
+      "[Fixed] App menu bar visible on hover on Windows when in \"Let’s get started\" mode - #6669",
+      "[Fixed] Remember scroll positions in History and Changes lists - #5177 #5059. Thanks @Daniel-McCarthy!",
+      "[Fixed] Inconsistent \"Reveal in …\" labels for context menus - #6466. Thanks @say25!",
+      "[Fixed] Prevent concurrent fetches between user and status indicator checks - #6121 #5438 #5328",
+      "[Fixed] Merge conflict conflict did not ask user to resolve some binary files - #6693",
+      "[Improved] Add link to all release notes in Release Notes dialog - #6443. Thanks @koralcem!",
+      "[Improved] Arrow for renamed/copied changes when viewing commit - #6519. Thanks @koralcem!",
+      "[Improved] Menu state updating to address race condition - #6643",
+      "[Improved] Updated verbiage when clicking on changed files to make it more explicit what will occur when you ignore the file(s) - #6689. Thanks @PaulViola!"
+    ],
+    "1.6.2-beta0": [
+      "[Fixed] Don't show \"No local changes\" view when switching between changed files"
+    ],
+    "1.6.1": [
+      "[Fixed] Don't show \"No local changes\" view when switching between changed files"
+    ],
+    "1.6.0": [
+      "[New] Help users add their first repo during onboarding - #6474",
+      "[New] \"No local changes\" view helpfully suggests next actions for you to take - #6445",
+      "[Added] Support JetBrains Webstorm as an external editor - #6077. Thanks @KennethSweezy!",
+      "[Added] Add Visual Basic syntax highlighting - #6461. Thanks @SimpleBinary!",
+      "[Fixed] Automatically locate a missing repository when it cannot be found - #6228. Thanks @msftrncs!",
+      "[Fixed] Don't include untracked files in merge commit - #6411",
+      "[Fixed] Don't show \"Still Conflicted Warning\" when all conflicts are resolved - #6451",
+      "[Fixed] Only execute menu action a single time upon hitting Enter - #5344",
+      "[Fixed] Show autocompletion of GitHub handles and issues properly in commit description field - #6459",
+      "[Improved] Repository list when no repositories found - #5566 #6474",
+      "[Improved] Image diff menu no longer covered by large images - #6520. Thanks @06b!",
+      "[Improved] Enable additional actions during a merge conflict - #6385",
+      "[Improved] Increase contrast on input placeholder color in dark mode - #6556",
+      "[Improved] Don't show merge success banner when attempted merge doesn't complete - #6282",
+      "[Improved] Capitalize menu items appropriately on macOS - #6469"
+    ],
+    "1.6.0-beta3": [
+      "[Fixed] Autocomplete selection does not overflow text area - #6459",
+      "[Fixed] No local changes views incorrectly rendering ampersands - #6596",
+      "[Improved] Capitalization of menu items on macOS - #6469"
+    ],
+    "1.6.0-beta2": [
+      "[New] \"No local changes\" view makes it easy to find and accomplish common actions - #6445",
+      "[Fixed] Automatically locate a missing repository when it cannot be found - #6228. Thanks @msftrncs!",
+      "[Improved] Enable additional actions during a merge conflict - #6385",
+      "[Improved] Increase contrast on input placeholder color in dark mode - #6556",
+      "[Improved] Merge success banner no longer shown when attempted merge doesn't complete - #6282"
+    ],
+    "1.6.0-beta1": [
+      "[New] Help users add their first repo during onboarding - #6474",
+      "[Added] Include ability for users to add new repositories when there are none available - #5566 #6474",
+      "[Added] Support JetBrains Webstorm as an external editor - #6077. Thanks @KennethSweezy!",
+      "[Added] Add Visual Basic syntax highlighting - #6461. Thanks @SimpleBinary!",
+      "[Fixed] Don't include untracked files in merge commit - #6411",
+      "[Fixed] Don't show \"Still Conflicted Warning\" when all conflicts are resolved - #6451",
+      "[Fixed] Enter when using keyboard to navigate app menu executed menu action twice - #5344",
+      "[Improved] Image diff menu no longer covered by large images - #6520. Thanks @06b!"
+    ],
+    "1.5.2-beta0": [
+    ],
+    "1.5.1": [
+      "[Added] Provide keyboard shortcut for getting to commit summary field - #1719. Thanks @bruncun!",
+      "[Added] Add hover states on list items and tabs - #6310",
+      "[Added] Add Dockerfile syntax highlighting - #4533. Thanks @say25!",
+      "[Added] Support Visual SlickEdit as an external editor - #6029. Thanks @texasaggie97!",
+      "[Fixed] Allow repositories to be cloned to empty folders - #5857. Thanks @Daniel-McCarthy!",
+      "[Fixed] Prevent creating branch with detached HEAD from reverting to default branch - #6085",
+      "[Fixed] Fix \"Open In External Editor\" for Atom/VS Code on Windows when paths contain spaces - #6181. Thanks @msftrncs!",
+      "[Fixed] Persist Branch List and Pull Request List filter text - #6002. Thanks @Daniel-McCarthy!",
+      "[Fixed] Retain renamed branches position in recent branches list - #6155. Thanks @gnehcc!",
+      "[Fixed] Prevent avatar duplication when user is co-author and committer - #6135. Thanks @bblarney!",
+      "[Fixed] Provide keyboard selection for the \"Clone a Repository\" dialog - #3596. Thanks @a-golovanov!",
+      "[Fixed] Close License & Open Source Notices dialog upon pressing \"Enter\" in dialog - #6137. Thanks @bblarney!",
+      "[Fixed] Dismiss \"Merge into Branch\" dialog with escape key - #6154. Thanks @altaf933!",
+      "[Fixed] Focus branch selector when comparing to branch from menu - #5600",
+      "[Fixed] Reverse fold/unfold icons for expand/collapse commit summary - #6196. Thanks @HazemAM!",
+      "[Improved] Allow toggling between diff modes - #6231. Thanks @06b!",
+      "[Improved] Show focus around full input field - #6234. Thanks @seokju-na!",
+      "[Improved] Make lists scroll to bring selected items into view - #6279",
+      "[Improved] Consistently order the options for adding a repository - #6396. Thanks @vilanz!",
+      "[Improved] Clear merge conflicts banner after there are no more conflicted files - #6428"
+    ],
+    "1.5.1-beta6": [
+      "[Improved] Consistently order the options for adding a repository - #6396. Thanks @vilanz!",
+      "[Improved] Clear merge conflicts banner after there are no more conflicted files - #6428"
+    ],
+    "1.5.1-beta5": [
+      "[Improved] Commit conflicted files warning - #6381",
+      "[Improved] Dismissable merge conflict dialog and associated banner - #6379 #6380",
+      "[Fixed] Fix feature flag for readme overwrite warning so that it shows on beta - #6412"
+    ],
+    "1.5.1-beta4": [
+      "[Improved] Display warning if existing readme file will be overwritten - #6338. Thanks @Daniel-McCarthy!",
+      "[Improved] Add check for attempts to commit >100 MB files without Git LFS - #997. Thanks @Daniel-McCarthy!",
+      "[Improved] Merge conflicts dialog visual updates - #6377"
+    ],
+    "1.5.1-beta3": [
+      "[Improved] Maintains state on tabs for different methods of cloning repositories - #5937"
+    ],
+    "1.5.1-beta2": [
+      "[Improved] Clarified internal documentation - #6348. Thanks @bblarney!"
+    ],
+    "1.5.1-beta1": [
+      "[Added] Provide keyboard shortcut for getting to commit summary field - #1719. Thanks @bruncun!",
+      "[Added] Add hover states on list items and tabs - #6310",
+      "[Added] Add Dockerfile syntax highlighting - #4533. Thanks @say25!",
+      "[Added] Support Visual SlickEdit as an external editor - #6029. Thanks @texasaggie97!",
+      "[Improved] Allow toggling between diff modes - #6231. Thanks @06b!",
+      "[Improved] Show focus around full input field - #6234. Thanks @seokju-na!",
+      "[Improved] Make lists scroll to bring selected items into view - #6279",
+      "[Fixed] Allow repositories to be cloned to empty folders - #5857. Thanks @Daniel-McCarthy!",
+      "[Fixed] Prevent creating branch with detached HEAD from reverting to default branch - #6085",
+      "[Fixed] Fix 'Open In External Editor' for Atom/VS Code on Windows when paths contain spaces - #6181. Thanks @msftrncs!",
+      "[Fixed] Persist Branch List and Pull Request List filter text - #6002. Thanks @Daniel-McCarthy!",
+      "[Fixed] Retain renamed branches position in recent branches list - #6155. Thanks @gnehcc!",
+      "[Fixed] Prevent avatar duplication when user is co-author and committer - #6135. Thanks @bblarney!",
+      "[Fixed] Provide keyboard selection for the ‘Clone a Repository’ dialog - #3596. Thanks @a-golovanov!",
+      "[Fixed] Close License & Open Source Notices dialog upon pressing \"Enter\" in dialog - #6137. Thanks @bblarney!",
+      "[Fixed] Dismiss \"Merge into Branch\" dialog with escape key - #6154. Thanks @altaf933!",
+      "[Fixed] Focus branch selector when comparing to branch from menu - #5600",
+      "[Fixed] Reverse fold/unfold icons for expand/collapse commit summary - #6196. Thanks @HazemAM!"
+    ],
     "1.5.1-beta0": [
     ],
     "1.5.0": [

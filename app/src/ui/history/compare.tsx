@@ -13,7 +13,7 @@ import {
 import { CommitList } from './commit-list'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
 import { BranchList } from '../branches'
 import { TextBox } from '../lib/text-box'
@@ -43,6 +43,8 @@ interface ICompareSidebarProps {
   readonly selectedCommitSha: string | null
   readonly onRevertCommit: (commit: Commit) => void
   readonly onViewCommitOnGitHub: (sha: string) => void
+  readonly onCompareListScrolled: (scrollTop: number) => void
+  readonly compareListScrollTop: number
 }
 
 interface ICompareSidebarState {
@@ -267,6 +269,8 @@ export class CompareSidebar extends React.Component<
         onCommitSelected={this.onCommitSelected}
         onScroll={this.onScroll}
         emptyListMessage={emptyListMessage}
+        onCompareListScrolled={this.props.onCompareListScrolled}
+        compareListScrollTop={this.props.compareListScrollTop}
       />
     )
   }

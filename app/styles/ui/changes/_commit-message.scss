@@ -76,9 +76,6 @@
     // Fake that we're a text-box
     cursor: text;
 
-    // Hide overflowed content
-    overflow: hidden;
-
     &.focus-within {
       outline: none;
       border-color: var(--focus-color);
@@ -94,14 +91,13 @@
         width: 100%;
         bottom: 0px;
         height: 5px;
-        background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.1) 100%);
+        background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.1) 100%);
         border-bottom: var(--base-border);
       }
     }
 
     textarea {
       border: none;
-      border-radius: 0;
       color: currentColor;
       font-size: var(--font-size);
       font-family: var(--font-family-sans-serif);
@@ -119,6 +115,7 @@
     .action-bar {
       padding: var(--spacing-half);
       background: var(--box-background-color);
+      border-radius: var(--border-radius);
 
       // We're not faking being a textbox any more
       cursor: default;

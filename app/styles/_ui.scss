@@ -31,6 +31,7 @@
 @import 'ui/foldout';
 @import 'ui/preferences';
 @import 'ui/path-text';
+@import 'ui/path-label';
 @import 'ui/configure-git-user';
 @import 'ui/form';
 @import 'ui/text-box';
@@ -51,7 +52,6 @@
 @import 'ui/avatar';
 @import 'ui/call-to-action';
 @import 'ui/acknowledgements';
-@import 'ui/update-notification';
 @import 'ui/vertical-segmented-control';
 @import 'ui/blank-slate';
 @import 'ui/terms-and-conditions';
@@ -68,3 +68,5 @@
 @import 'ui/fancy-text-box';
 @import 'ui/notification-banner';
 @import 'ui/merge-status';
+@import 'ui/rebase-status';
+@import 'ui/cloneable-repository-filter-list';

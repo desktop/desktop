@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Path from 'path'
 import * as FSE from 'fs-extra'
 
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import {
   initGitRepository,
   createCommit,
@@ -28,6 +28,8 @@ import { Dialog, DialogContent, DialogFooter, DialogError } from '../dialog'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { LinkButton } from '../lib/link-button'
 import { PopupType } from '../../models/popup'
+import { Ref } from '../lib/ref'
+import { enableReadmeOverwriteWarning } from '../../lib/feature-flag'
 
 /** The sentinel value used to indicate no gitignore should be used. */
 const NoGitIgnoreValue = 'None'
@@ -76,6 +78,13 @@ interface ICreateRepositoryState {
 
   /** The license to include in the repository. */
   readonly license: string
+
+  /**
+   * Whether or not a README.md file already exists in the
+   * directory that may be overwritten by initializing with
+   * a new README.md.
+   */
+  readonly readMeExists: boolean
 }
 
 /** The Create New Repository component. */
@@ -106,6 +115,7 @@ export class CreateRepository extends React.Component<
       license: NoLicenseValue.name,
       isValidPath: null,
       isRepository: false,
+      readMeExists: false,
     }
   }
 
@@ -118,15 +128,28 @@ export class CreateRepository extends React.Component<
 
     const isRepository = await isGitRepository(this.state.path)
     this.setState({ isRepository })
+
+    await this.updateReadMeExists(this.state.path, this.state.name)
+
+    window.addEventListener('focus', this.onWindowFocus)
+  }
+
+  public componentWillUnmount() {
+    window.removeEventListener('focus', this.onWindowFocus)
   }
 
   private onPathChanged = async (path: string) => {
     const isRepository = await isGitRepository(path)
+    await this.updateReadMeExists(path, this.state.name)
 
     this.setState({ isRepository, path, isValidPath: null })
   }
 
-  private onNameChanged = (name: string) => {
+  private onNameChanged = async (name: string) => {
+    if (enableReadmeOverwriteWarning()) {
+      await this.updateReadMeExists(this.state.path, name)
+    }
+
     this.setState({ name })
   }
 
@@ -147,6 +170,12 @@ export class CreateRepository extends React.Component<
     const isRepository = await isGitRepository(path)
 
     this.setState({ isRepository, path })
+  }
+
+  private async updateReadMeExists(path: string, name: string) {
+    const fullPath = Path.join(path, sanitizedRepositoryName(name), 'README.md')
+    const readMeExists = await FSE.pathExists(fullPath)
+    this.setState({ readMeExists })
   }
 
   private resolveRepositoryRoot = async (): Promise<string> => {
@@ -434,6 +463,29 @@ export class CreateRepository extends React.Component<
     )
   }
 
+  private renderReadmeOverwriteWarning() {
+    if (!enableReadmeOverwriteWarning()) {
+      return null
+    }
+
+    if (
+      this.state.createWithReadme === false ||
+      this.state.readMeExists === false
+    ) {
+      return null
+    }
+
+    return (
+      <Row className="warning-helper-text">
+        <Octicon symbol={OcticonSymbol.alert} />
+        <p>
+          This directory contains a <Ref>README.md</Ref> file already. Checking
+          this box will result in the existing file being overwritten.
+        </p>
+      </Row>
+    )
+  }
+
   private onAddRepositoryClicked = () => {
     return this.props.dispatcher.showPopup({
       type: PopupType.AddRepository,
@@ -509,6 +561,7 @@ export class CreateRepository extends React.Component<
               onChange={this.onCreateWithReadmeChange}
             />
           </Row>
+          {this.renderReadmeOverwriteWarning()}
 
           {this.renderGitIgnores()}
           {this.renderLicenses()}
@@ -525,5 +578,13 @@ export class CreateRepository extends React.Component<
         </DialogFooter>
       </Dialog>
     )
+  }
+
+  private onWindowFocus = async () => {
+    // Verify whether or not a README.md file exists at the chosen directory
+    // in case one has been added or removed and the warning can be displayed.
+    if (enableReadmeOverwriteWarning()) {
+      await this.updateReadMeExists(this.state.path, this.state.name)
+    }
   }
 }

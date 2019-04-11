@@ -1,11 +1,12 @@
 import * as React from 'react'
 
 import { UiView } from './ui-view'
-import { Dispatcher } from '../lib/dispatcher'
+import { Dispatcher } from './dispatcher'
 import { Repository } from '../models/repository'
 
 import { Button } from './lib/button'
 import { Row } from './lib/row'
+import { LinkButton } from './lib/link-button'
 
 interface IMissingRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -45,7 +46,8 @@ export class MissingRepository extends React.Component<
           <div className="title">Can't find "{this.props.repository.name}"</div>
           <div className="details">
             It was last seen at{' '}
-            <span className="path">{this.props.repository.path}</span>
+            <span className="path">{this.props.repository.path}</span>.{' '}
+            <LinkButton onClick={this.checkAgain}>Check&nbsp;again.</LinkButton>
           </div>
         </div>
 
@@ -57,6 +59,10 @@ export class MissingRepository extends React.Component<
   private canCloneAgain() {
     const gitHubRepository = this.props.repository.gitHubRepository
     return gitHubRepository && gitHubRepository.cloneURL
+  }
+
+  private checkAgain = () => {
+    this.props.dispatcher.refreshRepository(this.props.repository)
   }
 
   private remove = () => {

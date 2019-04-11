@@ -19,7 +19,7 @@ review.
 
 ## Windows
 
-The source for the Windows shell integration is found in [`app/src/lib/shells/win32.ts`](https://github.com/desktop/desktop/blob/master/app/src/lib/shells/win32.ts).
+The source for the Windows shell integration is found in [`app/src/lib/shells/win32.ts`](https://github.com/desktop/desktop/blob/development/app/src/lib/shells/win32.ts).
 
 These shells are currently supported:
 
@@ -119,7 +119,7 @@ changes here to handle a new shell.
 
 ## macOS
 
-The source for the macOS shell integration is found in [`app/src/lib/shells/darwin.ts`](https://github.com/desktop/desktop/blob/master/app/src/lib/shells/darwin.ts).
+The source for the macOS shell integration is found in [`app/src/lib/shells/darwin.ts`](https://github.com/desktop/desktop/blob/development/app/src/lib/shells/darwin.ts).
 
 These shells are currently supported:
 
@@ -204,7 +204,7 @@ export function launch(
 
 ## Linux
 
-The source for the Linux shell integration is found in [`app/src/lib/shells/linux.ts`](https://github.com/desktop/desktop/blob/master/app/src/lib/shells/linux.ts).
+The source for the Linux shell integration is found in [`app/src/lib/shells/linux.ts`](https://github.com/desktop/desktop/blob/development/app/src/lib/shells/linux.ts).
 
 These shells are currently supported:
 

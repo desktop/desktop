@@ -43,6 +43,15 @@ interface ICommitListProps {
 
   /** Callback to fire to open a given commit on GitHub */
   readonly onViewCommitOnGitHub: (sha: string) => void
+
+  /**
+   * Optional callback that fires on page scroll in order to allow passing
+   * a new scrollTop value up to the parent component for storing.
+   */
+  readonly onCompareListScrolled?: (scrollTop: number) => void
+
+  /* The scrollTop of the compareList. It is stored to allow for scroll position persistence */
+  readonly compareListScrollTop: number
 }
 
 /** A component which displays the list of commits. */
@@ -89,6 +98,11 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     const top = Math.floor(scrollTop / RowHeight)
     const bottom = top + numberOfRows
     this.props.onScroll(top, bottom)
+
+    // Pass new scroll value so the scroll position will be remembered (if the callback has been supplied).
+    if (this.props.onCompareListScrolled != null) {
+      this.props.onCompareListScrolled(scrollTop)
+    }
   }
 
   private rowForSHA(sha_: string | null): number {
@@ -120,6 +134,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
             commits: this.props.commitSHAs,
             gitHubUsers: this.props.gitHubUsers,
           }}
+          setScrollTop={this.props.compareListScrollTop}
         />
       </div>
     )

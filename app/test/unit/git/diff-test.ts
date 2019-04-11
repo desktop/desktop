@@ -22,6 +22,7 @@ import {
   getWorkingDirectoryDiff,
   getWorkingDirectoryImage,
   getBlobImage,
+  getBinaryPaths,
 } from '../../../src/lib/git'
 import { getStatusOrThrow } from '../../helpers/status'
 
@@ -347,6 +348,7 @@ describe('git/diff', () => {
         repo.path
       )
 
+      // change config on-the-fly to trigger the line endings change warning
       await GitProcess.exec(['config', 'core.autocrlf', 'true'], repo.path)
       lineEnding = '\n\n'
 
@@ -382,6 +384,60 @@ describe('git/diff', () => {
 
       const diff = await getTextDiff(repo, files[0])
       expect(diff.text).toBe(`@@ -0,0 +1 @@\n+${testString}`)
+    })
+  })
+
+  describe('getBinaryPaths', () => {
+    describe('in empty repo', () => {
+      let repo: Repository
+      beforeEach(async () => {
+        repo = await setupEmptyRepository()
+      })
+      it('throws since HEAD doesnt exist', () => {
+        expect(getBinaryPaths(repo, 'HEAD')).rejects.toThrow()
+      })
+    })
+    describe('in repo with text only files', () => {
+      let repo: Repository
+      beforeEach(async () => {
+        const testRepoPath = await setupFixtureRepository('repo-with-changes')
+        repo = new Repository(testRepoPath, -1, null, false)
+      })
+      it('returns an empty array', async () => {
+        expect(await getBinaryPaths(repo, 'HEAD')).toHaveLength(0)
+      })
+    })
+    describe('in repo with image changes', () => {
+      let repo: Repository
+      beforeEach(async () => {
+        const testRepoPath = await setupFixtureRepository(
+          'repo-with-image-changes'
+        )
+        repo = new Repository(testRepoPath, -1, null, false)
+      })
+      it('returns all changed image files', async () => {
+        expect(await getBinaryPaths(repo, 'HEAD')).toEqual([
+          'modified-image.jpg',
+          'new-animated-image.gif',
+          'new-image.png',
+        ])
+      })
+    })
+    describe('in repo with merge conflicts on image files', () => {
+      let repo: Repository
+      beforeEach(async () => {
+        const testRepoPath = await setupFixtureRepository(
+          'detect-conflict-in-binary-file'
+        )
+        repo = new Repository(testRepoPath, -1, null, false)
+        await GitProcess.exec(['checkout', 'make-a-change'], repo.path)
+        await GitProcess.exec(['merge', 'master'], repo.path)
+      })
+      it('returns all conflicted image files', async () => {
+        expect(await getBinaryPaths(repo, 'MERGE_HEAD')).toEqual([
+          'my-cool-image.png',
+        ])
+      })
     })
   })
 })

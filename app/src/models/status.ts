@@ -23,6 +23,7 @@ export enum AppFileStatusKind {
   Copied = 'Copied',
   Renamed = 'Renamed',
   Conflicted = 'Conflicted',
+  Untracked = 'Untracked',
 }
 
 /**
@@ -51,10 +52,9 @@ export type CopiedOrRenamedFileStatus = {
  * Details about a file marked as conflicted in the index which may have
  * conflict markers to inspect.
  */
-type ConflictsWithMarkers = {
+export type ConflictsWithMarkers = {
   kind: AppFileStatusKind.Conflicted
   entry: TextConflictEntry
-  lookForConflictMarkers: true
   conflictMarkerCount: number
 }
 
@@ -62,20 +62,44 @@ type ConflictsWithMarkers = {
  * Details about a file marked as conflicted in the index which needs to be
  * resolved manually by the user.
  */
-type ManualConflict = {
+export type ManualConflict = {
   kind: AppFileStatusKind.Conflicted
   entry: ManualConflictEntry
-  lookForConflictMarkers: false
 }
 
 /** Union of potential conflict scenarios the application should handle */
 export type ConflictedFileStatus = ConflictsWithMarkers | ManualConflict
+
+/** Custom typeguard to differentiate ConflictsWithMarkers from other Conflict types */
+export function isConflictedFileStatus(
+  appFileStatus: AppFileStatus
+): appFileStatus is ConflictedFileStatus {
+  return appFileStatus.kind === AppFileStatusKind.Conflicted
+}
+
+/** Custom typeguard to differentiate ConflictsWithMarkers from other Conflict types */
+export function isConflictWithMarkers(
+  conflictedFileStatus: ConflictedFileStatus
+): conflictedFileStatus is ConflictsWithMarkers {
+  return conflictedFileStatus.hasOwnProperty('conflictMarkerCount')
+}
+
+/** Custom typeguard to differentiate ManualConflict from other Conflict types */
+export function isManualConflict(
+  conflictedFileStatus: ConflictedFileStatus
+): conflictedFileStatus is ManualConflict {
+  return !conflictedFileStatus.hasOwnProperty('conflictMarkerCount')
+}
+
+/** Denotes an untracked file in the working directory) */
+export type UntrackedFileStatus = { kind: AppFileStatusKind.Untracked }
 
 /** The union of potential states associated with a file change in Desktop */
 export type AppFileStatus =
   | PlainFileStatus
   | CopiedOrRenamedFileStatus
   | ConflictedFileStatus
+  | UntrackedFileStatus
 
 /** The porcelain status for an ordinary changed entry */
 type OrdinaryEntry = {
@@ -132,6 +156,16 @@ type TextConflictEntry = {
  * in the app.
  */
 type ManualConflictDetails =
+  | {
+      readonly action: UnmergedEntrySummary.BothAdded
+      readonly us: GitStatusEntry.Added
+      readonly them: GitStatusEntry.Added
+    }
+  | {
+      readonly action: UnmergedEntrySummary.BothModified
+      readonly us: GitStatusEntry.UpdatedButUnmerged
+      readonly them: GitStatusEntry.UpdatedButUnmerged
+    }
   | {
       readonly action: UnmergedEntrySummary.AddedByUs
       readonly us: GitStatusEntry.Added

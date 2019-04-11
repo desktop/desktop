@@ -8,7 +8,7 @@ import {
 } from '../autocompletion'
 import { CommitIdentity } from '../../models/commit-identity'
 import { ICommitMessage } from '../../models/commit-message'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { IGitHubUser } from '../../lib/databases/github-user-database'
 import { Repository } from '../../models/repository'
 import { Button } from '../lib/button'
@@ -21,7 +21,6 @@ import { showContextualMenu } from '../main-process-proxy'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { IAuthor } from '../../models/author'
 import { IMenuItem } from '../../lib/menu-item'
-import { shallowEquals } from '../../lib/equality'
 import { ICommitContext } from '../../models/commit'
 
 const addAuthorIcon = new OcticonSymbol(
@@ -122,6 +121,29 @@ export class CommitMessage extends React.Component<
     this.props.dispatcher.setCommitMessage(this.props.repository, this.state)
   }
 
+  /**
+   * Special case for the summary/description being reset (empty) after a commit
+   * and the commit state changing thereafter, needing a sync with incoming props.
+   * We prefer the current UI state values if the user updated them manually.
+   *
+   * NOTE: although using the lifecycle method is generally an anti-pattern, we
+   * (and the React docs) believe it to be the right answer for this situation, see:
+   * https://reactjs.org/docs/react-component.html#unsafe_componentwillreceiveprops
+   */
+  public componentWillReceiveProps(nextProps: ICommitMessageProps) {
+    const { commitMessage } = nextProps
+    if (!commitMessage || commitMessage === this.props.commitMessage) {
+      return
+    }
+
+    if (this.state.summary === '' && !this.state.description) {
+      this.setState({
+        summary: commitMessage.summary,
+        description: commitMessage.description,
+      })
+    }
+  }
+
   public componentDidUpdate(prevProps: ICommitMessageProps) {
     if (
       this.props.autocompletionProviders !== prevProps.autocompletionProviders
@@ -135,17 +157,6 @@ export class CommitMessage extends React.Component<
 
     if (this.props.focusCommitMessage) {
       this.focusSummary()
-    }
-
-    if (!shallowEquals(prevProps.commitMessage, this.props.commitMessage)) {
-      if (this.props.commitMessage) {
-        this.setState({
-          summary: this.props.commitMessage.summary,
-          description: this.props.commitMessage.description,
-        })
-      } else {
-        this.setState({ summary: '', description: null })
-      }
     }
   }
 

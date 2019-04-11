@@ -1,5 +1,7 @@
 import * as React from 'react'
-import { Dispatcher } from '../../lib/dispatcher'
+import * as classNames from 'classnames'
+
+import { Dispatcher } from '../dispatcher'
 import { encodePathAsUrl } from '../../lib/path'
 import { AppStore, SignInState, SignInStep } from '../../lib/stores'
 import { assertNever } from '../../lib/fatal-error'
@@ -27,6 +29,14 @@ interface IWelcomeProps {
 
 interface IWelcomeState {
   readonly currentStep: WelcomeStep
+
+  /**
+   * Whether the welcome wizard is terminating. Used
+   * in order to delay the actual dismissal of the view
+   * such that the exit animations (defined in css) have
+   * time to run to completion.
+   */
+  readonly exiting: boolean
 }
 
 // Note that we're reusing the welcome illustrations in the crash process, any
@@ -35,11 +45,11 @@ const WelcomeRightImageUri = encodePathAsUrl(
   __dirname,
   'static/welcome-illustration-right.svg'
 )
-const WelcomeLeftTopImageUri = encodePathAsUrl(
+export const WelcomeLeftTopImageUri = encodePathAsUrl(
   __dirname,
   'static/welcome-illustration-left-top.svg'
 )
-const WelcomeLeftBottomImageUri = encodePathAsUrl(
+export const WelcomeLeftBottomImageUri = encodePathAsUrl(
   __dirname,
   'static/welcome-illustration-left-bottom.svg'
 )
@@ -49,7 +59,7 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
   public constructor(props: IWelcomeProps) {
     super(props)
 
-    this.state = { currentStep: WelcomeStep.Start }
+    this.state = { currentStep: WelcomeStep.Start, exiting: false }
   }
 
   public componentWillReceiveProps(nextProps: IWelcomeProps) {
@@ -182,12 +192,21 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
   }
 
   private done = () => {
-    this.props.dispatcher.endWelcomeFlow()
+    // Add a delay so that the exit animations (defined in css)
+    // have time to run to completion.
+    this.setState({ exiting: true }, () => {
+      setTimeout(() => {
+        this.props.dispatcher.endWelcomeFlow()
+      }, 250)
+    })
   }
 
   public render() {
+    const className = classNames({
+      exiting: this.state.exiting,
+    })
     return (
-      <UiView id="welcome">
+      <UiView id="welcome" className={className}>
         <div className="welcome-left">
           <div className="welcome-content">
             {this.getComponentForCurrentStep()}
