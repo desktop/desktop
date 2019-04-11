@@ -1003,15 +1003,10 @@ export class GitStore extends BaseStore {
   /**
    * Updates the latest stash entry with a list of files that it changes
    */
-  public async loadStashedFiles(branchName: string) {
-    // get current branch stash entry
-    const stashEntry = this._stashEntries.get(branchName)
-    if (stashEntry === undefined) {
-      return
-    }
+  public async loadStashedFiles(stashEntry: IStashEntry) {
     const files = await getChangedFiles(this.repository, stashEntry.stashSha)
 
-    this._stashEntries.set(branchName, { ...stashEntry, files })
+    this._stashEntries.set(stashEntry.branchName, { ...stashEntry, files })
     this.emitUpdate()
   }
 

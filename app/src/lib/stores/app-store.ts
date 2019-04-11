@@ -4816,9 +4816,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _loadStashedFiles(repository: Repository, branchName: string) {
+  public async _loadStashedFiles(
+    repository: Repository,
+    stashEntry: IStashEntry
+  ) {
     const gitStore = this.gitStoreCache.get(repository)
-    await gitStore.loadStashedFiles(branchName)
+    await gitStore.loadStashedFiles(stashEntry)
     this.emitUpdate()
   }
 

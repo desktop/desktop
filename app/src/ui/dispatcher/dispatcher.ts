@@ -1961,8 +1961,8 @@ export class Dispatcher {
   }
 
   /** Loads the list of changed files for the latest stash on this branch   */
-  public loadStashedFiles(repository: Repository, branchName: string) {
-    return this.appStore._loadStashedFiles(repository, branchName)
+  public loadStashedFiles(repository: Repository, stashEntry: IStashEntry) {
+    return this.appStore._loadStashedFiles(repository, stashEntry)
   }
 
   /**

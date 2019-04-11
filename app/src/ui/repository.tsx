@@ -306,7 +306,7 @@ export class RepositoryView extends React.Component<
         } else if (this.props.state.branchesState.tip.kind === TipState.Valid) {
           this.props.dispatcher.loadStashedFiles(
             this.props.repository,
-            this.props.state.branchesState.tip.branch.name
+            stashEntry
           )
           return null
         }
