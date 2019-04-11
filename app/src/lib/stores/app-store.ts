@@ -2579,6 +2579,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       await this._popStash(repository, foundBranch)
     }
 
+    // Make sure changes or suggested next step are visible after branch checkout
+    this._hideStashEntry(repository)
+
     try {
       this.updateCheckoutProgress(repository, {
         kind,
