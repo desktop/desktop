@@ -39,7 +39,7 @@ import { enablePullWithRebase } from '../../lib/feature-flag'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { FocusContainer } from '../lib/focus-container'
 import { IStashEntry } from '../../models/stash-entry'
-import classNames = require('classnames')
+import * as classNames from 'classnames'
 
 const RowHeight = 29
 const StashListRowStyle: React.CSSProperties = {
