@@ -14,8 +14,29 @@ import { uuid } from './uuid'
 import { getAvatarWithEnterpriseFallback } from './gravatar'
 import { getDefaultEmail } from './email'
 
+/**
+ * Optional set of configurable settings for the fetchAll method
+ */
 interface IFetchAllOptions<T> {
+  /**
+   * The number of results to ask for on each page when making
+   * requests to paged API endpoints.
+   */
   perPage?: number
+
+  /**
+   * An optional predicate which determines whether or not to
+   * continue loading results from the API. This can be used
+   * to put a limit on the number of results to return from
+   * a paged API resource.
+   *
+   * As an example, to stop loading results after 500 results:
+   *
+   * `(page, all) => all.length < 500`
+   *
+   * @param page The last retrieved page of results
+   * @param all  All results retrieved thus far
+   */
   continue?: (page: ReadonlyArray<T>, all: ReadonlyArray<T>) => boolean
 }
 
