@@ -4811,6 +4811,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
             : [],
       }
     })
+
+    this.emitUpdate()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
