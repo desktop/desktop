@@ -4765,7 +4765,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     await popStashEntry(repository, stash.stashSha)
     if (requestByUser) {
-      this.statsStore.recordStashDrop()
+      this.statsStore.recordStashPop()
     }
 
     log.info(`Popped stash with commit id ${stash.stashSha}`)

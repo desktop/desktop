@@ -1015,10 +1015,10 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
-  /** Record when the user drops the stash entry */
-  public async recordStashDropped(): Promise<void> {
+  /** Record when the user pops the stash entry */
+  public async recordStashPop(): Promise<void> {
     return this.updateDailyMeasures(m => ({
-      stashDropCount: m.stashDropCount + 1,
+      stashPopCount: m.stashPopCount + 1,
     }))
   }
 
