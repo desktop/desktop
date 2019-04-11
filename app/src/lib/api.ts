@@ -32,12 +32,11 @@ interface IFetchAllOptions<T> {
    *
    * As an example, to stop loading results after 500 results:
    *
-   * `(page, all) => all.length < 500`
+   * `(results) => results.length < 500`
    *
-   * @param page The last retrieved page of results
-   * @param all  All results retrieved thus far
+   * @param results  All results retrieved thus far
    */
-  continue?: (page: ReadonlyArray<T>, all: ReadonlyArray<T>) => boolean
+  continue?: (results: ReadonlyArray<T>) => boolean
 }
 
 const username: () => Promise<string> = require('username')
@@ -601,11 +600,7 @@ export class API {
       }
 
       nextPath = getNextPagePath(response)
-
-      if (nextPath && opts.continue && !opts.continue(items, buf)) {
-        break
-      }
-    } while (nextPath)
+    } while (nextPath && opts.continue && !opts.continue(buf))
 
     return buf
   }
