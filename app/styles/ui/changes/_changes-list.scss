@@ -10,8 +10,8 @@
   display: flex;
   flex-direction: column;
 
-  .stash-focus-container.focus-within {
-    .stashed-changes-row.selected {
+  .stash-focus-container {
+    &.focus-within .stashed-changes-row.selected {
       --text-color: var(--box-selected-active-text-color);
       --text-secondary-color: var(--box-selected-active-text-color);
 
