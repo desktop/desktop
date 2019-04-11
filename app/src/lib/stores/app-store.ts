@@ -212,6 +212,7 @@ import {
   createDesktopStashEntry,
   getLastDesktopStashEntryForBranch,
   popStashEntry,
+  dropDesktopStashEntry,
 } from '../git/stash'
 import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
@@ -4726,14 +4727,34 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _createStash(repository: Repository, branchName: string) {
+  public async _createStash(
+    repository: Repository,
+    branchName: string,
+    removePreviousStash: boolean = true
+  ) {
     const { branchesState } = this.repositoryStateCache.get(repository)
     const { tip } = branchesState
     if (tip.kind !== TipState.Valid) {
       return
     }
 
+    // get the previous stash before we create a new one
+    const previousStash = removePreviousStash
+      ? await getLastDesktopStashEntryForBranch(repository, branchName)
+      : null
+
     await createDesktopStashEntry(repository, branchName)
+
+    if (previousStash === null) {
+      return
+    }
+
+    await dropDesktopStashEntry(repository, previousStash.stashSha)
+    log.warn(
+      `Dropped stash '${previousStash.stashSha}' associated with ${
+        previousStash.branchName
+      }`
+    )
   }
 
   public async _popStash(repository: Repository, branch: Branch) {
