@@ -92,6 +92,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   pullWithRebaseCount: 0,
   pullWithDefaultSettingCount: 0,
   rebaseCurrentBranchMenuCount: 0,
+  stashViewedAfterCheckoutCount: 0,
 }
 
 interface IOnboardingStats {
@@ -978,6 +979,13 @@ export class StatsStore implements IStatsStore {
   public async recordMergeAbortedAfterConflicts(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       mergeAbortedAfterConflictsCount: m.mergeAbortedAfterConflictsCount + 1,
+    }))
+  }
+
+  /** Record when the user views a stash entry after checking out a branch */
+  public async recordStashViewedAfterCheckout(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      stashViewedAfterCheckoutCount: m.stashViewedAfterCheckoutCount + 1,
     }))
   }
 
