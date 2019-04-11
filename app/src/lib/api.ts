@@ -544,7 +544,7 @@ export class API {
       }
 
       nextPath = getNextPagePath(response)
-    } while (nextPath && opts.continue && !opts.continue(buf))
+    } while (nextPath && (!opts.continue || opts.continue(buf)))
 
     return buf
   }
