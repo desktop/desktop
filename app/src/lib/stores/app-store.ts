@@ -4743,6 +4743,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await createDesktopStashEntry(repository, branchName)
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public async _popStash(repository: Repository, branch: Branch) {
     const stash = await getLastDesktopStashEntryForBranch(
       repository,
@@ -4758,6 +4759,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     log.info(`Popped stash with commit id ${stash.stashSha}`)
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public async _popStashEntry(repository: Repository, stashEntry: IStashEntry) {
     const gitStore = this.gitStoreCache.get(repository)
     await gitStore.performFailableOperation(() => {
@@ -4770,6 +4772,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public async _dropStashEntry(
     repository: Repository,
     stashEntry: IStashEntry
@@ -4810,6 +4813,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public async _loadStashedFiles(repository: Repository, branchName: string) {
     const gitStore = this.gitStoreCache.get(repository)
     await gitStore.loadStashedFiles(branchName)
@@ -4836,6 +4840,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public _setStashedFilesWidth(width: number): Promise<void> {
     this.stashedFilesWidth = width
     setNumber(stashedFilesWidthConfigKey, width)

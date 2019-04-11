@@ -1936,10 +1936,12 @@ export class Dispatcher {
     return this.appStore._createStash(repository, branch.name)
   }
 
+  /** Drops the given stash in the given repository */
   public dropStash(repository: Repository, stashEntry: IStashEntry) {
     return this.appStore._dropStashEntry(repository, stashEntry)
   }
 
+  /** Pop the given stash in the given repository */
   public popStash(repository: Repository, stashEntry: IStashEntry) {
     return this.appStore._popStashEntry(repository, stashEntry)
   }
@@ -1958,6 +1960,7 @@ export class Dispatcher {
     return this.appStore._hideStashEntry(repository)
   }
 
+  /** Loads the list of changed files for the latest stash on this branch   */
   public loadStashedFiles(repository: Repository, branchName: string) {
     return this.appStore._loadStashedFiles(repository, branchName)
   }

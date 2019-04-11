@@ -152,7 +152,9 @@ export interface IAppState {
   /** The width of the commit summary column in the history view */
   readonly commitSummaryWidth: number
 
+  /** The width of the files list in the stash view */
   readonly stashedFilesWidth: number
+
   /** Whether we should hide the toolbar (and show inverted window controls) */
   readonly titleBarStyle: 'light' | 'dark'
 
