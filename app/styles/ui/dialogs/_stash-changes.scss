@@ -2,4 +2,10 @@
 
 dialog#stash-changes {
   width: 450px;
+  .dialog-content {
+    .octicon {
+      color: var(--dialog-warning-color);
+      margin-right: var(--spacing);
+    }
+  }
 }
