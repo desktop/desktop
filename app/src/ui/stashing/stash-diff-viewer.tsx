@@ -14,12 +14,21 @@ import { Resizable } from '../resizable'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 
+/**
+ * Component to display a selected stash's file list and diffs
+ *
+ * _(Like viewing a selected commit in history but for a stash)_
+ */
 export const StashDiffViewer: React.SFC<{
+  /** The stash in question. */
   stashEntry: IStashEntry
+  /** Currently selected file in the list */
   selectedStashedFile: CommittedFileChange | null
+  /** Diff to be displayed */
   stashedFileDiff: IDiff | null
   imageDiffType: ImageDiffType
-  width: number
+  /** width to use for the files list pane */
+  fileListWidth: number
   externalEditorLabel?: string
   onOpenInExternalEditor: (path: string) => void
   repository: Repository
@@ -50,7 +59,7 @@ export const StashDiffViewer: React.SFC<{
       />
       <div className="content">
         <Resizable
-          width={props.width}
+          width={props.fileListWidth}
           maximumWidth={500}
           onResize={props.dispatcher.setStashedFilesWidth}
           onReset={props.dispatcher.resetStashedFilesWidth}
@@ -62,7 +71,7 @@ export const StashDiffViewer: React.SFC<{
               props.dispatcher
             )}
             selectedFile={props.selectedStashedFile}
-            availableWidth={props.width}
+            availableWidth={props.fileListWidth}
             onOpenItem={makeOnOpenItem(props.repository, props.dispatcher)}
             externalEditorLabel={props.externalEditorLabel}
             onOpenInExternalEditor={props.onOpenInExternalEditor}

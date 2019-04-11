@@ -296,7 +296,7 @@ export class RepositoryView extends React.Component<
                 this.props.state.changesState.selectedStashedFileDiff
               }
               imageDiffType={this.props.imageDiffType}
-              width={this.props.stashedFilesWidth}
+              fileListWidth={this.props.stashedFilesWidth}
               externalEditorLabel={this.props.externalEditorLabel}
               onOpenInExternalEditor={this.props.onOpenInExternalEditor}
               repository={this.props.repository}
