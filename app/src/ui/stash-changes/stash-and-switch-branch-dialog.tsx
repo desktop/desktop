@@ -57,7 +57,7 @@ export class StashAndSwitchBranch extends React.Component<
         loading={isStashingChanges}
         disabled={isStashingChanges}
       >
-        <DialogContent className="content-wrapper">
+        <DialogContent className="dialog-content">
           {this.renderStashActions()}
           {this.renderStashOverwriteWarning()}
         </DialogContent>
