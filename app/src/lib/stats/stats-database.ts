@@ -184,6 +184,15 @@ export interface IDailyMeasures {
 
   /** The number of times the user elects to take changes to new branch instead of stashing them */
   readonly changesTakenToNewBranchCount: number
+
+  /** The number of times the user elects to pop an entry from their stash */
+  readonly stashPopCount: number
+
+  /** The number of times the user elects to drop a stash entry */
+  readonly stashDropCount: number
+
+  /** The number of times the user takes no action on a stash entry once viewed */
+  readonly noActionTakenOnStashCount: number
 }
 
 export class StatsDatabase extends Dexie {
