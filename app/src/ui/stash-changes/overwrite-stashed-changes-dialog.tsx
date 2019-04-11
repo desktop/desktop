@@ -7,16 +7,16 @@ import { ButtonGroup } from '../lib/button-group'
 import { Button } from '../lib/button'
 import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
 
-interface IOverwriteStashedChanges {
+interface IOverwriteStashProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
   readonly branchToCheckout: Branch
   readonly onDismissed: () => void
 }
 
-export class OverwriteStashedChanges extends React.Component<
-  IOverwriteStashedChanges,
-  {}
+export class OverwriteStash extends React.Component<
+  IOverwriteStashProps,
+  IOverwriteStashState
 > {
   public render() {
     const title = __DARWIN__

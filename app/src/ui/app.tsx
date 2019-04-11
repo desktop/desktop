@@ -101,7 +101,7 @@ import {
 } from '../lib/rebase'
 import { BannerType } from '../models/banner'
 import { StashAndSwitchBranch } from './stash-changes/stash-and-switch-branch-dialog'
-import { OverwriteStashedChanges } from './stash-changes/overwrite-stashed-changes-dialog'
+import { OverwriteStash } from './stash-changes/overwrite-stashed-changes-dialog'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -1665,7 +1665,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.ConfirmOverwriteStash: {
         const { repository, branchToCheckout: branchToCheckout } = popup
         return (
-          <OverwriteStashedChanges
+          <OverwriteStash
             dispatcher={this.props.dispatcher}
             repository={repository}
             branchToCheckout={branchToCheckout}
