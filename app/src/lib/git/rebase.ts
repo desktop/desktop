@@ -6,9 +6,9 @@ import * as byline from 'byline'
 
 import { Repository } from '../../models/repository'
 import {
-  RebaseContext,
+  RebaseInternalState,
   RebaseProgressOptions,
-  RebaseProgressSummary,
+  GitRebaseProgress,
 } from '../../models/rebase'
 import { IRebaseProgress } from '../../models/progress'
 import {
@@ -16,6 +16,7 @@ import {
   AppFileStatusKind,
 } from '../../models/status'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
+import { CommitOneLine } from '../../models/commit'
 
 import { merge } from '../merge'
 import { formatRebaseValue } from '../rebase'
@@ -36,16 +37,16 @@ function isRebaseHeadSet(repository: Repository) {
 }
 
 /**
- * Detect and build up the context about the rebase being performed on a
- * repository. This information is required to help Desktop display information
- * to the user about the current action as well as the options available.
+ * Get the internal state about the rebase being performed on a repository. This
+ * information is required to help Desktop display information to the user
+ * about the current action as well as the options available.
  *
  * Returns `null` if no rebase is detected, or if the expected information
  * cannot be found in the repository.
  */
-export async function getRebaseContext(
+export async function getRebaseInternalState(
   repository: Repository
-): Promise<RebaseContext | null> {
+): Promise<RebaseInternalState | null> {
   const isRebase = await isRebaseHeadSet(repository)
 
   if (!isRebase) {
@@ -95,18 +96,22 @@ export async function getRebaseContext(
 }
 
 /**
- * Inspect the `.git/rebase-apply` folder and convert the current context into
- * a progress summary that can be passed into the rebase flow to hydrate the
- * component state.
+ * Inspect the `.git/rebase-apply` folder and convert the current rebase state
+ * into data that can be provided to the rebase flow to update the application
+ * state.
  *
  * This is required when Desktop is not responsible for initiating the rebase:
  *
  *   - when a rebase outside Desktop encounters conflicts
  *   - when a `git pull --rebase` was run and encounters conflicts
+ *
  */
-export async function getCurrentProgress(
+export async function getRebaseSnapshot(
   repository: Repository
-): Promise<RebaseProgressSummary | null> {
+): Promise<{
+  progress: GitRebaseProgress
+  commits: ReadonlyArray<CommitOneLine>
+} | null> {
   const rebaseHead = await isRebaseHeadSet(repository)
   if (!rebaseHead) {
     return null
@@ -186,9 +191,25 @@ export async function getCurrentProgress(
       return null
     }
 
+    // this number starts from 1, but our array of commits starts from 0
+    const nextCommitIndex = next - 1
+
+    const hasValidCommit =
+      commits.length > 0 &&
+      nextCommitIndex >= 0 &&
+      nextCommitIndex <= commits.length
+
+    const currentCommitSummary = hasValidCommit
+      ? commits[nextCommitIndex].summary
+      : null
+
     return {
-      rebasedCommitCount: next,
-      value,
+      progress: {
+        value,
+        rebasedCommitCount: next,
+        totalCommitCount: last,
+        currentCommitSummary,
+      },
       commits,
     }
   }
@@ -239,6 +260,11 @@ class GitRebaseParser {
 
     const progress = this.rebasedCommitCount / this.totalCommitCount
     const value = formatRebaseValue(progress)
+
+    // TODO: dig into why we sometimes get an extra progress event reported
+    if (this.rebasedCommitCount > this.totalCommitCount) {
+      this.rebasedCommitCount = this.totalCommitCount
+    }
 
     return {
       kind: 'rebase',
@@ -295,14 +321,29 @@ export async function rebase(
   repository: Repository,
   baseBranch: string,
   targetBranch: string,
-  progress?: RebaseProgressOptions
+  progressCallback?: (progress: IRebaseProgress) => void
 ): Promise<RebaseResult> {
-  const options = configureOptionsForRebase(
-    {
-      expectedErrors: new Set([GitError.RebaseConflicts]),
-    },
-    progress
-  )
+  const baseOptions: IGitExecutionOptions = {
+    expectedErrors: new Set([GitError.RebaseConflicts]),
+  }
+
+  let options = baseOptions
+
+  if (progressCallback !== undefined) {
+    const commits = await getCommitsInRange(
+      repository,
+      baseBranch,
+      targetBranch
+    )
+
+    const totalCommitCount = commits.length
+
+    options = configureOptionsForRebase(baseOptions, {
+      rebasedCommitCount: 0,
+      totalCommitCount,
+      progressCallback,
+    })
+  }
 
   const result = await git(
     ['rebase', baseBranch, targetBranch],
@@ -378,7 +419,7 @@ export async function continueRebase(
   repository: Repository,
   files: ReadonlyArray<WorkingDirectoryFileChange>,
   manualResolutions: ReadonlyMap<string, ManualConflictResolution> = new Map(),
-  progress?: RebaseProgressOptions
+  progressCallback?: (progress: IRebaseProgress) => void
 ): Promise<RebaseResult> {
   const trackedFiles = files.filter(f => {
     return f.status.kind !== AppFileStatusKind.Untracked
@@ -391,7 +432,7 @@ export async function continueRebase(
       await stageManualConflictResolution(repository, file, resolution)
     } else {
       log.error(
-        `couldn't find file ${path} even though there's a manual resolution for it`
+        `[continueRebase] couldn't find file ${path} even though there's a manual resolution for it`
       )
     }
   }
@@ -401,10 +442,9 @@ export async function continueRebase(
   await stageFiles(repository, otherFiles)
 
   const status = await getStatus(repository)
-
   if (status == null) {
     log.warn(
-      `[rebase] unable to get status after staging changes, skipping any other steps`
+      `[continueRebase] unable to get status after staging changes, skipping any other steps`
     )
     return RebaseResult.Aborted
   }
@@ -418,15 +458,34 @@ export async function continueRebase(
     f => f.status.kind !== AppFileStatusKind.Untracked
   )
 
-  const options = configureOptionsForRebase(
-    {
-      expectedErrors: new Set([
-        GitError.RebaseConflicts,
-        GitError.UnresolvedConflicts,
-      ]),
-    },
-    progress
-  )
+  const baseOptions: IGitExecutionOptions = {
+    expectedErrors: new Set([
+      GitError.RebaseConflicts,
+      GitError.UnresolvedConflicts,
+    ]),
+  }
+
+  let options = baseOptions
+
+  if (progressCallback !== undefined) {
+    const snapshot = await getRebaseSnapshot(repository)
+
+    if (snapshot === null) {
+      log.warn(
+        `[continueRebase] unable to get rebase status, skipping any other steps`
+      )
+      return RebaseResult.Aborted
+    }
+
+    const { progress } = snapshot
+    const { rebasedCommitCount, totalCommitCount } = progress
+
+    options = configureOptionsForRebase(baseOptions, {
+      rebasedCommitCount,
+      totalCommitCount,
+      progressCallback,
+    })
+  }
 
   if (trackedFilesAfter.length === 0) {
     log.warn(

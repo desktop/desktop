@@ -7,7 +7,6 @@ import { RetryAction } from './retry-actions'
 import { WorkingDirectoryFileChange } from './status'
 import { PreferencesTab } from './preferences'
 import { ICommitContext } from './commit'
-import { RebaseFlowState } from './rebase-flow-state'
 
 export enum PopupType {
   RenameBranch = 1,
@@ -177,5 +176,4 @@ export type Popup =
   | {
       type: PopupType.RebaseFlow
       repository: Repository
-      initialState: RebaseFlowState
     }
