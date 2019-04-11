@@ -7,6 +7,7 @@ import { Row } from '../lib/row'
 import { Button } from '../lib/button'
 import { IAPIRepository } from '../../lib/api'
 import { CloneableRepositoryFilterList } from './cloneable-repository-filter-list'
+import { ClickSource } from '../lib/list'
 
 interface ICloneGithubRepositoryProps {
   /** The account to clone from. */
@@ -62,6 +63,21 @@ interface ICloneGithubRepositoryProps {
    * available for cloning.
    */
   readonly onRefreshRepositories: (account: Account) => void
+
+  /**
+   * This function will be called when a pointer device is pressed and then
+   * released on a selectable row. Note that this follows the conventions
+   * of button elements such that pressing Enter or Space on a keyboard
+   * while focused on a particular row will also trigger this event. Consumers
+   * can differentiate between the two using the source parameter.
+   *
+   * Consumers of this event do _not_ have to call event.preventDefault,
+   * when this event is subscribed to the list will automatically call it.
+   */
+  readonly onItemClicked: (
+    repository: IAPIRepository,
+    source: ClickSource
+  ) => void
 }
 
 export class CloneGithubRepository extends React.PureComponent<
@@ -80,6 +96,7 @@ export class CloneGithubRepository extends React.PureComponent<
             filterText={this.props.filterText}
             onFilterTextChanged={this.props.onFilterTextChanged}
             onRefreshRepositories={this.props.onRefreshRepositories}
+            onItemClicked={this.props.onItemClicked}
           />
         </Row>
 
