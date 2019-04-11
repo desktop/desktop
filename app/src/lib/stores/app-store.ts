@@ -2582,7 +2582,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
 
     if (shouldPopStash) {
-      await this._popStash(repository, foundBranch)
+      const stash = await getLastDesktopStashEntryForBranch(
+        repository,
+        foundBranch.name
+      )
+
+      if (stash !== null) {
+        await this._popStashEntry(repository, stash)
+      } else {
+        log.warn('no stash found that matches')
+      }
     }
 
     try {
@@ -4741,22 +4750,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     await createDesktopStashEntry(repository, branchName)
-  }
-
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _popStash(repository: Repository, branch: Branch) {
-    const stash = await getLastDesktopStashEntryForBranch(
-      repository,
-      branch.name
-    )
-
-    if (stash === null) {
-      log.warn('no stash found that matches')
-      return
-    }
-
-    await popStashEntry(repository, stash.stashSha)
-    log.info(`Popped stash with commit id ${stash.stashSha}`)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
