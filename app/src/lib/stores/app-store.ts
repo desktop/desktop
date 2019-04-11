@@ -2888,6 +2888,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
         this.updatePushPullFetchProgress(repository, null)
 
+        this.updateMenuLabelsForSelectedRepository()
+
         const { accounts } = this.getState()
         const githubAccount = await findAccountForRemoteURL(
           remote.url,
