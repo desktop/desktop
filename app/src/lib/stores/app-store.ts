@@ -4765,8 +4765,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
 
     await this._refreshRepository(repository)
-
-    this.emitUpdate()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
