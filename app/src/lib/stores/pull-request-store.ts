@@ -91,7 +91,7 @@ export class PullRequestStore {
       // back.
       const apiResult = lastUpdatedAt
         ? await api.fetchUpdatedPullRequests(owner, name, lastUpdatedAt)
-        : await api.fetchPullRequests(owner, name, 'open')
+        : await api.fetchAllOpenPullRequests(owner, name)
 
       if (await this.storePullRequests(apiResult, githubRepo)) {
         const prs = await this.getAll(githubRepo)

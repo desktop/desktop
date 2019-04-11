@@ -488,13 +488,11 @@ export class API {
     }
   }
 
-  /** Fetch the pull requests in the given repository. */
-  public async fetchPullRequests(
-    owner: string,
-    name: string,
-    state: 'open' | 'closed' | 'all'
-  ): Promise<ReadonlyArray<IAPIPullRequest>> {
-    const url = urlWithQueryString(`repos/${owner}/${name}/pulls`, { state })
+  /** Fetch all open pull requests in the given repository. */
+  public async fetchAllOpenPullRequests(owner: string, name: string) {
+    const url = urlWithQueryString(`repos/${owner}/${name}/pulls`, {
+      state: 'open',
+    })
     try {
       return await this.fetchAll<IAPIPullRequest>(url)
     } catch (e) {
