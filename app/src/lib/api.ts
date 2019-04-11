@@ -519,26 +519,23 @@ export class API {
     name: string,
     since: Date
   ) {
-    const params: { [key: string]: string } = {
+    const sinceTime = since.getTime()
+    const url = urlWithQueryString(`repos/${owner}/${name}/pulls`, {
       state: 'all',
       sort: 'updated',
       direction: 'desc',
-    }
+    })
 
-    const sinceTime = since.getTime()
-
-    const url = urlWithQueryString(`repos/${owner}/${name}/pulls`, params)
     try {
       const prs = await this.fetchAll<IAPIPullRequest>(url, {
         perPage: 30,
         continue(results) {
-          if (results.length === 0) {
-            return true
-          }
-
-          const lastItem = results[results.length - 1]
-          const lastItemUpdatedAt = new Date(lastItem.updated_at).getTime()
-          return lastItemUpdatedAt > sinceTime
+          // Given that we sort the results in descending order by their
+          // updated_at field we can safely say that if the last item
+          // is modified after our sinceTime then haven't reached the
+          // end of updated PRs.
+          const last = results[results.length - 1]
+          return last !== undefined && Date.parse(last.updated_at) > sinceTime
         },
       })
       return prs.filter(pr => Date.parse(pr.updated_at) >= sinceTime)
