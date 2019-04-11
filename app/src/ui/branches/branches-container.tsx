@@ -95,16 +95,19 @@ export class BranchesContainer extends React.Component<
     )
   }
 
+  private renderOpenPullRequestsBubble() {
+    const { pullRequests } = this.props
+
+    if (pullRequests.length > 0) {
+      return <span className="count">{pullRequests.length}</span>
+    }
+
+    return null
+  }
+
   private renderTabBar() {
     if (!this.props.repository.gitHubRepository) {
       return null
-    }
-
-    let countElement = null
-    if (this.props.pullRequests) {
-      countElement = (
-        <span className="count">{this.props.pullRequests.length}</span>
-      )
     }
 
     return (
@@ -115,8 +118,7 @@ export class BranchesContainer extends React.Component<
         <span>Branches</span>
         <span className="pull-request-tab">
           {__DARWIN__ ? 'Pull Requests' : 'Pull requests'}
-
-          {countElement}
+          {this.renderOpenPullRequestsBubble()}
         </span>
       </TabBar>
     )
