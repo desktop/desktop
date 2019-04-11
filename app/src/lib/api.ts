@@ -528,6 +528,9 @@ export class API {
 
     try {
       const prs = await this.fetchAll<IAPIPullRequest>(url, {
+        // We use the default page size here rather than 100 because we
+        // expect that the majority use case will return much less than
+        // 100 results.
         perPage: 30,
         continue(results) {
           // Given that we sort the results in descending order by their
