@@ -18,9 +18,9 @@
     }
   }
 
-  @include list-item;
-
   .stashed-changes-row {
+    @include list-item;
+
     display: flex;
     flex-grow: 1;
     padding: 0 var(--spacing);
