@@ -577,18 +577,14 @@ export class API {
   private async fetchAll<T>(path: string, options?: IFetchAllOptions<T>) {
     const buf = new Array<T>()
     const opts: IFetchAllOptions<T> = { perPage: 100, ...options }
-
     const params = { per_page: `${opts.perPage}` }
-    let nextPath: string | null = urlWithQueryString(path, params)
+    const { NotFound, NotModified } = HttpStatusCode
 
+    let nextPath: string | null = urlWithQueryString(path, params)
     do {
       const response = await this.request('GET', nextPath)
-      if (response.status === HttpStatusCode.NotFound) {
-        log.warn(`fetchAll: '${path}' returned a 404`)
-        return []
-      }
-      if (response.status === HttpStatusCode.NotModified) {
-        log.warn(`fetchAll: '${path}' returned a 304`)
+      if (response.status === NotFound || response.status === NotModified) {
+        log.warn(`fetchAll: '${path}' returned a ${response.status}`)
         return []
       }
 
