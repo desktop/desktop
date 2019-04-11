@@ -1636,9 +1636,10 @@ export class App extends React.Component<IAppProps, IAppState> {
       }
       case PopupType.StashAndSwitchBranch: {
         const { repository, branchToCheckout } = popup
-        const { branchesState } = this.props.repositoryStateManager.get(
-          repository
-        )
+        const {
+          branchesState,
+          stashEntries,
+        } = this.props.repositoryStateManager.get(repository)
         const { tip } = branchesState
 
         if (tip.kind !== TipState.Valid) {
@@ -1646,10 +1647,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         }
 
         const currentBranch = tip.branch
-        const hasAssociatedStash =
-          state.stashEntries.get(currentBranch.name) !== undefined
-            ? true
-            : false
+        const hasAssociatedStash = stashEntries.has(currentBranch.name)
 
         return (
           <StashAndSwitchBranch
