@@ -4747,7 +4747,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await createDesktopStashEntry(repository, branchName)
   }
 
-  public async _popStash(repository: Repository, branch: Branch) {
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public async _popStash(
     repository: Repository,
     branch: Branch,
