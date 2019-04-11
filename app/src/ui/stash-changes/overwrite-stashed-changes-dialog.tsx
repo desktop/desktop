@@ -44,7 +44,7 @@ export class OverwriteStash extends React.Component<
         onSubmit={this.onSubmit}
         onDismissed={this.props.onDismissed}
       >
-        <DialogContent className="dialog-content">
+        <DialogContent>
           <Row>
             Clear or restore your current stash before continuing, or your
             current stash will be overwritten.
