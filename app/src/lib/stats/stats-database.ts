@@ -175,6 +175,9 @@ export interface IDailyMeasures {
 
   /** The number of times the user opens the "Rebase current branch" menu item */
   readonly rebaseCurrentBranchMenuCount: number
+
+  /** The number of times the users views a stash entry after checking out a branch */
+  readonly stashViewedAfterCheckoutCount: number
 }
 
 export class StatsDatabase extends Dexie {
