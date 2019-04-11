@@ -14,13 +14,14 @@ export interface IStashEntry {
   readonly files: StashedFileChanges
 }
 
+/** Whether file changes for a stash entry are loaded or not */
 export enum StashedChangesLoadStates {
   NotLoaded = 'NotLoaded',
   Loading = 'Loading',
   Loaded = 'Loaded',
 }
 
-export type StashedFileChanges =
+type StashedFileChanges =
   | {
       kind:
         | StashedChangesLoadStates.NotLoaded
