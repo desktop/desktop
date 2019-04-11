@@ -25,6 +25,7 @@ import { assertNever } from '../../lib/fatal-error'
 import { CallToAction } from '../lib/call-to-action'
 import { IAccountRepositories } from '../../lib/stores/api-repositories-store'
 import { merge } from '../../lib/merge'
+import { ClickSource } from '../lib/list'
 
 interface ICloneRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -230,6 +231,17 @@ export class CloneRepository extends React.Component<
     )
   }
 
+  private checkIfCloningDisabled = () => {
+    const tabState = this.getSelectedTabState()
+    const { error, url, path } = tabState
+    const { loading } = this.state
+
+    const disabled =
+      url.length === 0 || path.length === 0 || loading || error !== null
+
+    return disabled
+  }
+
   private renderFooter() {
     const selectedTab = this.props.selectedTab
     if (
@@ -239,13 +251,7 @@ export class CloneRepository extends React.Component<
       return null
     }
 
-    const tabState = this.getSelectedTabState()
-
-    const { error, url, path } = tabState
-    const { loading } = this.state
-
-    const disabled =
-      url.length === 0 || path.length === 0 || loading || error !== null
+    const disabled = this.checkIfCloningDisabled()
 
     return (
       <DialogFooter>
@@ -309,6 +315,7 @@ export class CloneRepository extends React.Component<
               onRefreshRepositories={this.props.onRefreshRepositories}
               filterText={tabState.filterText}
               onFilterTextChanged={this.onFilterTextChanged}
+              onItemClicked={this.onItemClicked}
             />
           )
         }
@@ -614,6 +621,14 @@ export class CloneRepository extends React.Component<
     }
 
     return url
+  }
+
+  private onItemClicked = (repository: IAPIRepository, source: ClickSource) => {
+    if (source.kind === 'keyboard' && source.event.key === 'Enter') {
+      if (this.checkIfCloningDisabled() === false) {
+        this.clone()
+      }
+    }
   }
 
   private clone = async () => {
