@@ -16,14 +16,13 @@ interface IContinueRebaseProps {
 }
 
 export class ContinueRebase extends React.Component<IContinueRebaseProps, {}> {
-  private onSubmit = () => {
-    this.continueRebase()
-  }
+  private onSubmit = async () => {
+    const { manualResolutions } = this.props.rebaseConflictState
 
-  private async continueRebase() {
     await this.props.dispatcher.continueRebase(
       this.props.repository,
-      this.props.workingDirectory
+      this.props.workingDirectory,
+      manualResolutions
     )
   }
 

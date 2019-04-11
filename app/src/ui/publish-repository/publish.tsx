@@ -111,6 +111,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
       settings: {
         ...publicationSettings,
         kind: PublishSettingsType.enterprise,
+        org: null,
       },
       error: null,
     }
@@ -288,8 +289,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
     }
 
     const settings = currentTabState.settings
-    const org =
-      currentTabState.kind === 'dotcom' ? currentTabState.settings.org : null
+    const { org } = currentTabState.settings
 
     try {
       await this.props.dispatcher.publishRepository(

@@ -333,7 +333,7 @@ export class BlankSlateView extends React.Component<
               <Octicon symbol={OcticonSymbol.plus} />
               <div>
                 {__DARWIN__
-                  ? 'Create a New Repository on Your Hard Drive…'
+                  ? 'Create a New Repository on your Hard Drive…'
                   : 'Create a New Repository on your hard drive…'}
               </div>
             </Button>
@@ -343,7 +343,7 @@ export class BlankSlateView extends React.Component<
               <Octicon symbol={OcticonSymbol.fileDirectory} />
               <div>
                 {__DARWIN__
-                  ? 'Add an Existing Repository from Your Hard Drive…'
+                  ? 'Add an Existing Repository from your Hard Drive…'
                   : 'Add an Existing Repository from your hard drive…'}
               </div>
             </Button>

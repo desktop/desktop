@@ -31,7 +31,7 @@ interface IDialogProps {
    * By omitting this consumers may use their own custom DialogHeader
    * for when the default component doesn't cut it.
    */
-  readonly title?: string
+  readonly title?: string | JSX.Element
 
   /**
    * Whether or not the dialog should be dismissable. A dismissable dialog
@@ -187,8 +187,12 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     }
 
     if (this.props.title) {
+      // createUniqueId handles static strings fine, so in the case of receiving
+      // a JSX element for the title we can just pass in a fixed value rather
+      // than trying to generate a string from an arbitrary element
+      const id = typeof this.props.title === 'string' ? this.props.title : '???'
       this.setState({
-        titleId: createUniqueId(`Dialog_${this.props.id}_${this.props.title}`),
+        titleId: createUniqueId(`Dialog_${this.props.id}_${id}`),
       })
     }
   }

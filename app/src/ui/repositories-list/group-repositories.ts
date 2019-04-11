@@ -132,3 +132,55 @@ export function groupRepositories(
 
   return groups
 }
+
+/**
+ * Creates the group `Recent` of repositories recently opened for use with `FilterList` component
+ *
+ * @param recentRepositories list of recent repositories' ids
+ * @param repositories full list of repositories (we use this to get data about the `recentRepositories`)
+ * @param localRepositoryStateLookup cache of local state about full list of repositories (we use this to get data about the `recentRepositories`)
+ */
+export function makeRecentRepositoriesGroup(
+  recentRepositories: ReadonlyArray<number>,
+  repositories: ReadonlyArray<Repositoryish>,
+  localRepositoryStateLookup: ReadonlyMap<number, ILocalRepositoryState>
+): IFilterListGroup<IRepositoryListItem> {
+  const names = new Map<string, number>()
+  for (const id of recentRepositories) {
+    const repository = repositories.find(r => r.id === id)
+    if (repository !== undefined) {
+      const existingCount = names.get(repository.name) || 0
+      names.set(repository.name, existingCount + 1)
+    }
+  }
+
+  const items = new Array<IRepositoryListItem>()
+
+  for (const id of recentRepositories) {
+    const repository = repositories.find(r => r.id === id)
+    if (repository === undefined) {
+      continue
+    }
+
+    const { aheadBehind, changedFilesCount } =
+      localRepositoryStateLookup.get(id) || fallbackValue
+    const repositoryText =
+      repository instanceof Repository
+        ? [repository.name, nameOf(repository)]
+        : [repository.name]
+    const nameCount = names.get(repository.name) || 0
+    items.push({
+      text: repositoryText,
+      id: id.toString(),
+      repository,
+      needsDisambiguation: nameCount > 1,
+      aheadBehind,
+      changedFilesCount,
+    })
+  }
+
+  return {
+    identifier: 'Recent',
+    items,
+  }
+}

@@ -2,6 +2,7 @@ import { GitError } from 'dugite'
 import { git } from './core'
 import { Repository } from '../../models/repository'
 import { Branch, BranchType, IAheadBehind } from '../../models/branch'
+import { CommitOneLine } from '../../models/commit'
 
 /**
  * Convert two refs into the Git range syntax representing the set of commits
@@ -90,4 +91,54 @@ export async function getBranchAheadBehind(
   // "through" merges.
   const range = revSymmetricDifference(branch.name, upstream)
   return getAheadBehind(repository, range)
+}
+
+/**
+ * Get a list of commits from the target branch that do not exist on the base
+ * branch, ordered how they will be applied to the base branch.
+ *
+ * This emulates how `git rebase` initially determines what will be applied to
+ * the repository.
+ */
+export async function getCommitsInRange(
+  repository: Repository,
+  baseBranchSha: string,
+  targetBranchSha: string
+): Promise<ReadonlyArray<CommitOneLine>> {
+  const range = revRange(baseBranchSha, targetBranchSha)
+
+  const args = [
+    'rev-list',
+    range,
+    '--reverse',
+    // the combination of these two arguments means each line of the stdout
+    // will contain the full commit sha and a commit summary
+    `--oneline`,
+    `--no-abbrev-commit`,
+    '--',
+  ]
+
+  const result = await git(args, repository.path, 'getCommitsInRange')
+
+  const lines = result.stdout.split('\n')
+
+  const commits = new Array<CommitOneLine>()
+
+  const commitSummaryRe = /^([a-z0-9]{40}) (.*)$/
+
+  for (const line of lines) {
+    const match = commitSummaryRe.exec(line)
+
+    if (match !== null && match.length === 3) {
+      const sha = match[1]
+      const summary = match[2]
+
+      commits.push({
+        sha,
+        summary,
+      })
+    }
+  }
+
+  return commits
 }

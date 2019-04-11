@@ -44,7 +44,8 @@ export enum PopupType {
   CommitConflictsWarning,
   PushNeedsPull,
   LocalChangesOverwritten,
-  RebaseConflicts,
+  RebaseFlow,
+  ConfirmForcePush,
 }
 
 export type Popup =
@@ -168,8 +169,11 @@ export type Popup =
       overwrittenFiles: ReadonlyArray<string>
     }
   | {
-      type: PopupType.RebaseConflicts
+      type: PopupType.ConfirmForcePush
       repository: Repository
-      baseBranch?: string
-      targetBranch: string
+      upstreamBranch: string
+    }
+  | {
+      type: PopupType.RebaseFlow
+      repository: Repository
     }
