@@ -348,6 +348,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private selectedTheme = ApplicationTheme.Light
   private automaticallySwitchTheme = false
 
+  private hasUserViewedStash: boolean = false
+
   public constructor(
     private readonly gitHubUserStore: GitHubUserStore,
     private readonly cloningRepositoriesStore: CloningRepositoriesStore,
@@ -2557,6 +2559,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     }
 
+    this.hasUserViewedStash = false
+
     await this.withAuthenticatingUser(repository, (repository, account) =>
       gitStore.performFailableOperation(
         () =>
@@ -4758,6 +4762,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _showStashEntry(repository: Repository) {
+    if (!this.hasUserViewedStash) {
+      this.statsStore.recordStashViewedAfterCheckout()
+      this.hasUserViewedStash = true
+    }
+
     this.repositoryStateCache.updateChangesState(repository, state => {
       return {
         shouldShowStashedChanges: true,
