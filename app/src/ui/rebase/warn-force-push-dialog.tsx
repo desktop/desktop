@@ -9,6 +9,7 @@ import { Checkbox, CheckboxValue } from '../lib/checkbox'
 
 import { Dispatcher } from '../dispatcher'
 import { DialogFooter, DialogContent, Dialog } from '../dialog'
+import { Ref } from '../lib/ref'
 
 interface IWarnForcePushProps {
   readonly dispatcher: Dispatcher
@@ -37,9 +38,13 @@ export class WarnForcePushDialog extends React.Component<
   public render() {
     const { baseBranch, targetBranch } = this.props.step
 
+    const title = __DARWIN__
+      ? 'Rebase Will Require Force Push'
+      : 'Rebase will require force push'
+
     return (
       <Dialog
-        title="This rebase will require a force push"
+        title={title}
         onDismissed={this.props.onDismissed}
         onSubmit={this.onBeginRebase}
         disableClickDismissalAlways={true}
@@ -47,8 +52,8 @@ export class WarnForcePushDialog extends React.Component<
       >
         <DialogContent>
           <p>
-            Are you sure you want to rebase <strong>{targetBranch.name}</strong>{' '}
-            onto <strong>{baseBranch.name}</strong>?
+            Are you sure you want to rebase <Ref>{targetBranch.name}</Ref> onto{' '}
+            <Ref>{baseBranch.name}</Ref>?
           </p>
           <p>
             At the end of the rebase flow, GitHub Desktop will enable you to
