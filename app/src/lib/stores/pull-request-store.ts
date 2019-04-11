@@ -93,7 +93,7 @@ export class PullRequestStore {
         ? await api.fetchUpdatedPullRequests(owner, name, lastUpdatedAt)
         : await api.fetchPullRequests(owner, name, 'open')
 
-      if (await this.cachePullRequests(apiResult, githubRepo)) {
+      if (await this.storePullRequests(apiResult, githubRepo)) {
         const prs = await this.getAll(githubRepo)
         await this.pruneForkedRemotes(repository, prs)
         this.emitPullRequestsChanged(githubRepo, prs)
@@ -203,7 +203,7 @@ export class PullRequestStore {
    * this method returns false it's safe to say that nothing has been changed
    * in the pull requests table.
    */
-  private async cachePullRequests(
+  private async storePullRequests(
     pullRequestsFromAPI: ReadonlyArray<IAPIPullRequest>,
     repository: GitHubRepository
   ) {
