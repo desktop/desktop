@@ -502,7 +502,7 @@ export class ChangesList extends React.Component<
     )
 
     return (
-      <FocusContainer className="list-focus-container">
+      <FocusContainer className="stash-focus-container">
         <div
           className={className}
           style={StashListRowStyle}
