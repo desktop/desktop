@@ -19,9 +19,7 @@ export class OverwriteStash extends React.Component<
   IOverwriteStashState
 > {
   public render() {
-    const title = __DARWIN__
-      ? 'Are You Sure You Want To Overwrite Your Current Stash?'
-      : 'Are you sure you want to overwrite your current stash?'
+    const title = __DARWIN__ ? 'Overwrite Stash?' : 'Overwrite stash?'
 
     return (
       <Dialog
@@ -31,8 +29,10 @@ export class OverwriteStash extends React.Component<
         type="warning"
       >
         <DialogContent>
-          Clear or restore your current stash before continuing, or your current
-          stash will be overwritten.
+          <Row>
+            Clear or restore your current stash before continuing, or your
+            current stash will be overwritten.
+          </Row>
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>
