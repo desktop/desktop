@@ -4669,6 +4669,25 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     })
 
+    // update rebase flow state after choosing manual resolution
+
+    const currentState = this.repositoryStateCache.get(repository)
+
+    const { changesState, rebaseState } = currentState
+    const { conflictState } = changesState
+    const { step } = rebaseState
+
+    if (
+      conflictState !== null &&
+      conflictState.kind === 'rebase' &&
+      step !== null &&
+      step.kind === RebaseStep.ShowConflicts
+    ) {
+      this.repositoryStateCache.updateRebaseState(repository, () => ({
+        step: { ...step, conflictState },
+      }))
+    }
+
     this.emitUpdate()
   }
 }
