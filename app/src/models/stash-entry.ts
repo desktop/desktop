@@ -17,8 +17,16 @@ export interface IStashEntry {
 export enum StashedChangesLoadStates {
   NotLoaded = 'NotLoaded',
   Loading = 'Loading',
+  Loaded = 'Loaded',
 }
 
 export type StashedFileChanges =
-  | ReadonlyArray<CommittedFileChange>
-  | StashedChangesLoadStates
+  | {
+      kind:
+        | StashedChangesLoadStates.NotLoaded
+        | StashedChangesLoadStates.Loading
+    }
+  | {
+      kind: StashedChangesLoadStates.Loaded
+      files: ReadonlyArray<CommittedFileChange>
+    }

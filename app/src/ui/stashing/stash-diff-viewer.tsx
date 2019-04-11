@@ -1,7 +1,7 @@
 /* tslint:disable:button-group-order */
 
 import * as React from 'react'
-import { IStashEntry } from '../../models/stash-entry'
+import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { FileList } from '../history/file-list'
 import { Dispatcher } from '../dispatcher'
 import { FileChange, CommittedFileChange } from '../../models/status'
@@ -51,9 +51,10 @@ export class StashDiffViewer extends React.PureComponent<
   private onReset = () => this.props.dispatcher.resetStashedFilesWidth
 
   public render() {
-    const files = Array.isArray(this.props.stashEntry.files)
-      ? this.props.stashEntry.files
-      : new Array<FileChange>()
+    const files =
+      this.props.stashEntry.files.kind === StashedChangesLoadStates.Loaded
+        ? this.props.stashEntry.files.files
+        : new Array<FileChange>()
 
     const diffComponent =
       this.props.selectedStashedFile && this.props.stashedFileDiff ? (

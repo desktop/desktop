@@ -186,7 +186,7 @@ describe('git/stash', () => {
         name: 'stash@{0}',
         branchName: 'master',
         stashSha: 'xyz',
-        files: StashedChangesLoadStates.NotLoaded,
+        files: { kind: StashedChangesLoadStates.NotLoaded },
       }
 
       try {
@@ -204,7 +204,7 @@ describe('git/stash', () => {
         name: 'stash@{4}',
         branchName: 'master',
         stashSha: 'xyz',
-        files: StashedChangesLoadStates.NotLoaded,
+        files: { kind: StashedChangesLoadStates.NotLoaded },
       }
       await generateTestStashEntry(repository, 'master', true)
       await generateTestStashEntry(repository, 'master', true)

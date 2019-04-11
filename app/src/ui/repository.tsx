@@ -21,6 +21,7 @@ import { ImageDiffType } from '../models/diff'
 import { IMenu } from '../models/app-menu'
 import { enableStashing } from '../lib/feature-flag'
 import { StashDiffViewer } from './stashing'
+import { StashedChangesLoadStates } from '../models/stash-entry'
 
 /** The widest the sidebar can be with the minimum window size. */
 const MaxSidebarWidth = 495
@@ -285,7 +286,7 @@ export class RepositoryView extends React.Component<
           return null
         }
 
-        if (Array.isArray(stashEntry.files)) {
+        if (stashEntry.files.kind === StashedChangesLoadStates.Loaded) {
           return (
             <StashDiffViewer
               stashEntry={stashEntry}
