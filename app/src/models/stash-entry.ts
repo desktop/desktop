@@ -15,8 +15,8 @@ export interface IStashEntry {
 }
 
 export enum StashedChangesLoadStates {
-  NotLoaded,
-  Loading,
+  NotLoaded = 'NotLoaded',
+  Loading = 'Loading',
 }
 
 export type StashedFileChanges =
