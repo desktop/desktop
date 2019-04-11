@@ -562,7 +562,10 @@ export interface IChangesState {
   /** Whether or not to show the UI for a stash entry. */
   readonly shouldShowStashedChanges: boolean
 
+  /** Currently selected file in the stash diff viewer UI (aka the file we want to show the diff for) */
   readonly selectedStashedFile: CommittedFileChange | null
+
+  /** Currently selected file's diff */
   readonly selectedStashedFileDiff: IDiff | null
 }
 
