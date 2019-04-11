@@ -12,6 +12,7 @@ import { TabBar } from '../tab-bar'
 import { CloneableRepositoryFilterList } from '../clone-repository/cloneable-repository-filter-list'
 import { IAPIRepository } from '../../lib/api'
 import { assertNever } from '../../lib/fatal-error'
+import { ClickSource } from '../lib/list'
 
 interface IBlankSlateProps {
   /** A function to call when the user chooses to create a repository. */
@@ -217,10 +218,17 @@ export class BlankSlateView extends React.Component<
           repositories={repositories}
           onSelectionChanged={this.onSelectionChanged}
           onFilterTextChanged={this.onFilterTextChanged}
+          onItemClicked={this.onItemClicked}
         />
         {this.renderCloneSelectedRepositoryButton(selectedItem)}
       </>
     )
+  }
+
+  private onItemClicked = (repository: IAPIRepository, source: ClickSource) => {
+    if (source.kind === 'keyboard' && source.event.key === 'Enter') {
+      this.onCloneSelectedRepository()
+    }
   }
 
   private renderCloneSelectedRepositoryButton(
