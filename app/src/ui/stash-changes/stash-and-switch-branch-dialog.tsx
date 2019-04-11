@@ -99,7 +99,7 @@ export class StashAndSwitchBranch extends React.Component<
       {
         title: `No, bring my changes to ${branchToCheckout.name}`,
         description:
-          'your in-progress work will automatically follow you to the new branch',
+          'Your in-progress work will automatically follow you to the new branch',
       },
     ]
 

@@ -4733,11 +4733,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     removePreviousStash: boolean = true
   ) {
     const { branchesState } = this.repositoryStateCache.get(repository)
-
-    if (branchesState === undefined) {
-      return
-    }
-
     const { tip } = branchesState
     if (tip.kind !== TipState.Valid) {
       return
