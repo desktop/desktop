@@ -8,6 +8,7 @@ import { Checkbox, CheckboxValue } from '../lib/checkbox'
 
 import { Dispatcher } from '../dispatcher'
 import { DialogFooter, DialogContent, Dialog } from '../dialog'
+import { Ref } from '../lib/ref'
 
 interface IConfirmForcePushProps {
   readonly dispatcher: Dispatcher
@@ -47,9 +48,9 @@ export class ConfirmForcePush extends React.Component<
         <DialogContent>
           <p>
             A force push will rewrite history on{' '}
-            <strong>{this.props.upstreamBranch}</strong>. Any collaborators
-            working on this branch will need to reset their own local branch to
-            match the history of the remote.
+            <Ref>{this.props.upstreamBranch}</Ref>. Any collaborators working on
+            this branch will need to reset their own local branch to match the
+            history of the remote.
           </p>
           <div>
             <Checkbox
