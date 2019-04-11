@@ -575,15 +575,10 @@ export class API {
    * pages when available, buffers all items and returns them in
    * one array when done.
    */
-  private async fetchAll<T>(
-    path: string,
-    options?: IFetchAllOptions<T>
-  ): Promise<ReadonlyArray<T>> {
+  private async fetchAll<T>(path: string, options?: IFetchAllOptions<T>) {
     const buf = new Array<T>()
-    const defaultOpts = {
-      perPage: 100,
-    }
 
+    const defaultOpts = { perPage: 100 }
     const opts: IFetchAllOptions<T> = { ...defaultOpts, ...options }
 
     const params = { per_page: `${opts.perPage}` }
@@ -607,10 +602,8 @@ export class API {
 
       nextPath = getNextPagePath(response)
 
-      if (nextPath) {
-        if (opts.continue !== undefined && !opts.continue(items, buf)) {
-          break
-        }
+      if (nextPath && opts.continue && !opts.continue(items, buf)) {
+        break
       }
     } while (nextPath)
 
