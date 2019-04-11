@@ -14,89 +14,89 @@ import { Resizable } from '../resizable'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 
+interface IStashDiffViewerProps {
+  /** The stash in question. */
+  readonly stashEntry: IStashEntry
+  /** Currently selected file in the list */
+  readonly selectedStashedFile: CommittedFileChange | null
+  /** Diff to be displayed */
+  readonly stashedFileDiff: IDiff | null
+  readonly imageDiffType: ImageDiffType
+  /** width to use for the files list pane */
+  readonly fileListWidth: number
+  readonly externalEditorLabel?: string
+  readonly onOpenInExternalEditor: (path: string) => void
+  readonly repository: Repository
+  readonly dispatcher: Dispatcher
+}
+
 /**
  * Component to display a selected stash's file list and diffs
  *
  * _(Like viewing a selected commit in history but for a stash)_
  */
-export const StashDiffViewer: React.SFC<{
-  /** The stash in question. */
-  stashEntry: IStashEntry
-  /** Currently selected file in the list */
-  selectedStashedFile: CommittedFileChange | null
-  /** Diff to be displayed */
-  stashedFileDiff: IDiff | null
-  imageDiffType: ImageDiffType
-  /** width to use for the files list pane */
-  fileListWidth: number
-  externalEditorLabel?: string
-  onOpenInExternalEditor: (path: string) => void
-  repository: Repository
-  dispatcher: Dispatcher
-}> = props => {
-  const files = Array.isArray(props.stashEntry.files)
-    ? props.stashEntry.files
-    : new Array<FileChange>()
-
-  const diffComponent =
-    props.selectedStashedFile && props.stashedFileDiff ? (
-      <Diff
-        repository={props.repository}
-        readOnly={true}
-        file={props.selectedStashedFile}
-        diff={props.stashedFileDiff}
-        dispatcher={props.dispatcher}
-        imageDiffType={props.imageDiffType}
-      />
-    ) : null
-
-  return (
-    <section id="stash-diff-viewer">
-      <Header
-        stashEntry={props.stashEntry}
-        repository={props.repository}
-        dispatcher={props.dispatcher}
-      />
-      <div className="content">
-        <Resizable
-          width={props.fileListWidth}
-          maximumWidth={500}
-          onResize={props.dispatcher.setStashedFilesWidth}
-          onReset={props.dispatcher.resetStashedFilesWidth}
-        >
-          <FileList
-            files={files}
-            onSelectedFileChanged={makeHandleSelectedFileChanged(
-              props.repository,
-              props.dispatcher
-            )}
-            selectedFile={props.selectedStashedFile}
-            availableWidth={props.fileListWidth}
-            onOpenItem={makeOnOpenItem(props.repository, props.dispatcher)}
-            externalEditorLabel={props.externalEditorLabel}
-            onOpenInExternalEditor={props.onOpenInExternalEditor}
-            repository={props.repository}
-          />
-        </Resizable>
-        {diffComponent}
-      </div>
-    </section>
-  )
-}
-
-const makeHandleSelectedFileChanged = (
-  repository: Repository,
-  dispatcher: Dispatcher
-) => {
-  return (file: FileChange) =>
-    dispatcher.changeStashedFileSelection(
-      repository,
+export class StashDiffViewer extends React.PureComponent<
+  IStashDiffViewerProps
+> {
+  private onSelectedFileChanged = (file: FileChange) =>
+    this.props.dispatcher.changeStashedFileSelection(
+      this.props.repository,
       file as CommittedFileChange
     )
-}
 
-const makeOnOpenItem = (repository: Repository, dispatcher: Dispatcher) => {
-  return (path: string) => openFile(join(repository.path, path), dispatcher)
+  private onOpenItem = (path: string) =>
+    openFile(join(this.props.repository.path, path), this.props.dispatcher)
+
+  private onResize = () => this.props.dispatcher.setStashedFilesWidth
+  private onReset = () => this.props.dispatcher.resetStashedFilesWidth
+
+  public render() {
+    const files = Array.isArray(this.props.stashEntry.files)
+      ? this.props.stashEntry.files
+      : new Array<FileChange>()
+
+    const diffComponent =
+      this.props.selectedStashedFile && this.props.stashedFileDiff ? (
+        <Diff
+          repository={this.props.repository}
+          readOnly={true}
+          file={this.props.selectedStashedFile}
+          diff={this.props.stashedFileDiff}
+          dispatcher={this.props.dispatcher}
+          imageDiffType={this.props.imageDiffType}
+        />
+      ) : null
+
+    return (
+      <section id="stash-diff-viewer">
+        <Header
+          stashEntry={this.props.stashEntry}
+          repository={this.props.repository}
+          dispatcher={this.props.dispatcher}
+        />
+        <div className="content">
+          <Resizable
+            width={this.props.fileListWidth}
+            maximumWidth={500}
+            onResize={this.onResize}
+            onReset={this.onReset}
+          >
+            <FileList
+              files={files}
+              onSelectedFileChanged={this.onSelectedFileChanged}
+              selectedFile={this.props.selectedStashedFile}
+              availableWidth={this.props.fileListWidth}
+              onOpenItem={this.onOpenItem}
+              externalEditorLabel={this.props.externalEditorLabel}
+              onOpenInExternalEditor={this.props.onOpenInExternalEditor}
+              repository={this.props.repository}
+            />
+          </Resizable>
+          {diffComponent}
+        </div>
+      </section>
+    )
+  }
 }
 
 const Header: React.SFC<{
