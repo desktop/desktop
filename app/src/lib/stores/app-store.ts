@@ -2550,11 +2550,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
         UncommittedChangesStrategy.stashOnCurrentBranch
       ) {
         await this._createStash(repository, currentBranch.name)
+        this.statsStore.recordStashCreatedOnCurrentBranch()
       } else if (
         uncommittedChangesStrategy ===
         UncommittedChangesStrategy.moveToNewBranch
       ) {
         await this._createStash(repository, foundBranch.name)
+        this.statsStore.recordChangesTakenToNewBranch()
         shouldPopStash = true
       }
     }
