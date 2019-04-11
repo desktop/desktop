@@ -507,6 +507,7 @@ export class ChangesList extends React.Component<
           className={className}
           style={StashListRowStyle}
           onClick={this.onStashEntryClicked}
+          tabIndex={0}
         >
           <Octicon className="icon" symbol={StashIcon} />
           <div className="text">Stashed Changes</div>
