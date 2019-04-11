@@ -576,9 +576,7 @@ export class API {
    */
   private async fetchAll<T>(path: string, options?: IFetchAllOptions<T>) {
     const buf = new Array<T>()
-
-    const defaultOpts = { perPage: 100 }
-    const opts: IFetchAllOptions<T> = { ...defaultOpts, ...options }
+    const opts: IFetchAllOptions<T> = { perPage: 100, ...options }
 
     const params = { per_page: `${opts.perPage}` }
     let nextPath: string | null = urlWithQueryString(path, params)
