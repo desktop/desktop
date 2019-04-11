@@ -4748,6 +4748,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public async _popStash(repository: Repository, branch: Branch) {
+  public async _popStash(
+    repository: Repository,
+    branch: Branch,
+    requestByUser: boolean = false
+  ) {
     const stash = await getLastDesktopStashEntryForBranch(
       repository,
       branch.name
@@ -4759,6 +4764,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     await popStashEntry(repository, stash.stashSha)
+    if (requestByUser) {
+      this.statsStore.recordStashDrop()
+    }
+
     log.info(`Popped stash with commit id ${stash.stashSha}`)
   }
 
