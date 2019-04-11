@@ -4758,7 +4758,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await gitStore.performFailableOperation(() => {
       return popStashEntry(repository, stashEntry.stashSha)
     })
-    log.info(`[AppStore. _popStashEntry] popped stash with commit id ${stashEntry.stashSha}`)
+    log.info(
+      `[AppStore. _popStashEntry] popped stash with commit id ${
+        stashEntry.stashSha
+      }`
+    )
 
     await this._refreshRepository(repository)
 
@@ -4774,7 +4778,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await gitStore.performFailableOperation(() => {
       return dropDesktopStashEntry(repository, stashEntry.stashSha)
     })
-    log.info(`[AppStore. _dropStashEntry] dropped stash with commit id ${stashEntry.stashSha}`)
+    log.info(
+      `[AppStore. _dropStashEntry] dropped stash with commit id ${
+        stashEntry.stashSha
+      }`
+    )
 
     await this._refreshRepository(repository)
 
