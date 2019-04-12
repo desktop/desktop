@@ -1,6 +1,5 @@
 import { git } from '.'
 import { Repository } from '../../models/repository'
-import { GitError, IGitResult } from './core'
 import { GitError as DugiteError } from 'dugite'
 import {
   IStashEntry,
