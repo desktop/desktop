@@ -91,11 +91,8 @@ export async function createDesktopStashEntry(
   branchName: string
 ) {
   const message = createDesktopStashMessage(branchName)
-  await git(
-    ['stash', 'push', '--include-untracked', '-m', message],
-    repository.path,
-    'createStashEntry'
-  )
+  const args = ['stash', 'push', '--include-untracked', '-m', message]
+  await git(args, repository.path, 'createStashEntry')
 }
 
 async function getStashEntryMatchingSha(repository: Repository, sha: string) {
@@ -144,10 +141,5 @@ export async function popStashEntry(
 
 function extractBranchFromMessage(message: string): string | null {
   const match = desktopStashEntryMessageRe.exec(message)
-  if (match === null) {
-    return null
-  }
-
-  const branchName = match[1]
-  return branchName.length > 0 ? branchName : null
+  return match === null || match[1].length === 0 ? null : match[1]
 }
