@@ -6,6 +6,7 @@ import { Button } from '../lib/button'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { OcticonSymbol, Octicon } from '../octicons'
 import { ConfirmAbortStep } from '../../models/rebase-flow-step'
+import { Ref } from '../lib/ref'
 
 const titleString = 'Confirm abort rebase'
 const cancelButtonString = 'Cancel'
@@ -59,16 +60,16 @@ export class ConfirmAbortDialog extends React.Component<
       firstParagraph = (
         <p>
           {'Are you sure you want to abort rebasing '}
-          <strong>{baseBranch}</strong>
+          <Ref>{baseBranch}</Ref>
           {' onto '}
-          <strong>{targetBranch}</strong>?
+          <Ref>{targetBranch}</Ref>?
         </p>
       )
     } else {
       firstParagraph = (
         <p>
           {'Are you sure you want to abort rebasing '}
-          <strong>{targetBranch}</strong>?
+          <Ref>{targetBranch}</Ref>?
         </p>
       )
     }
