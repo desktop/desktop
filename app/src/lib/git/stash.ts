@@ -112,23 +112,12 @@ export async function dropDesktopStashEntry(
   repository: Repository,
   stashSha: string
 ) {
-  // get the latest name for the stash entry since it may have changed
-  const stashEntries = await getDesktopStashEntries(repository)
+  const entryToDelete = await getStashEntryMatchingSha(repository, stashSha)
 
-  if (stashEntries.length === 0) {
-    return
+  if (entryToDelete !== null) {
+    const args = ['stash', 'drop', entryToDelete.name]
+    await git(args, repository.path, 'dropStashEntry')
   }
-
-  const entryToDelete = stashEntries.find(e => e.stashSha === stashSha)
-  if (entryToDelete === undefined) {
-    return
-  }
-
-  await git(
-    ['stash', 'drop', entryToDelete.name],
-    repository.path,
-    'dropStashEntry'
-  )
 }
 
 /**
