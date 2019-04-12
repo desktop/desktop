@@ -211,11 +211,11 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   private hunkHighlightRange: ISelection | null = null
 
   private async initDiffSyntaxMode() {
-    const { file, hunks, repository } = this.props
-
     if (!this.codeMirror) {
       return
     }
+
+    const { file, hunks, repository } = this.props
 
     // Store the current props to that we can see if anything
     // changes from underneath us as we're making asynchronous
