@@ -10,6 +10,7 @@ import {
   envForRemoteOperation,
   getFallbackUrlForProxyResolve,
 } from './environment'
+import { NullDelimiterParser } from './null-delimiter-parser'
 
 /**
  * Create a new branch from the given start point.
@@ -165,35 +166,24 @@ export async function getMergedBranches(
   branchName: string
 ): Promise<Map<string, string>> {
   const canonicalBranchRef = formatAsLocalRef(branchName)
+  const parser = new NullDelimiterParser(
+    {
+      sha: '%(objectname)',
+      canonicalRef: '%(refname)',
+    },
+    '%00'
+  )
 
-  const args = [
-    'branch',
-    `--format=%(objectname)%00%(refname)`,
-    '--merged',
-    branchName,
-  ]
-
-  const { stdout } = await git(args, repository.path, 'mergedBranches')
-  const lines = stdout.split('\n')
-
-  // Remove the trailing newline
-  lines.splice(-1, 1)
+  const args = ['branch', `--format=${parser.format}`, '--merged', branchName]
   const mergedBranches = new Map<string, string>()
+  const { stdout } = await git(args, repository.path, 'mergedBranches')
 
-  for (const line of lines) {
-    const [sha, canonicalRef] = line.split('\0')
-
-    if (sha === undefined || canonicalRef === undefined) {
-      continue
-    }
-
+  for (const branch of parser.parse(stdout)) {
     // Don't include the branch we're using to compare against
     // in the list of branches merged into that branch.
-    if (canonicalRef === canonicalBranchRef) {
-      continue
+    if (branch.canonicalRef !== canonicalBranchRef) {
+      mergedBranches.set(branch.canonicalRef, branch.sha)
     }
-
-    mergedBranches.set(canonicalRef, sha)
   }
 
   return mergedBranches
