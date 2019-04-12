@@ -108,11 +108,6 @@ export async function getCommits(
   const trailerSeparators = await getTrailerSeparatorCharacters(repository)
 
   return parser.parse(result.stdout).map(commit => {
-    const trailers = parseRawUnfoldedTrailers(
-      commit.trailers,
-      trailerSeparators
-    )
-
     const tags = getCaptures(commit.refs, /tag: ([^\s,]+)/g)
       .filter(i => i[0] !== undefined)
       .map(i => i[0])
@@ -125,7 +120,7 @@ export async function getCommits(
       CommitIdentity.parseIdentity(commit.author),
       CommitIdentity.parseIdentity(commit.committer),
       commit.parents.split(' '),
-      trailers,
+      parseRawUnfoldedTrailers(commit.trailers, trailerSeparators),
       tags
     )
   })
