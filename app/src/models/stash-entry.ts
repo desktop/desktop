@@ -23,11 +23,11 @@ export enum StashedChangesLoadStates {
 
 export type StashedFileChanges =
   | {
-      kind:
+      readonly kind:
         | StashedChangesLoadStates.NotLoaded
         | StashedChangesLoadStates.Loading
     }
   | {
-      kind: StashedChangesLoadStates.Loaded
-      files: ReadonlyArray<CommittedFileChange>
+      readonly kind: StashedChangesLoadStates.Loaded
+      readonly files: ReadonlyArray<CommittedFileChange>
     }
