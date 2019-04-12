@@ -2596,7 +2596,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       if (stash !== null) {
         await this._popStashEntry(repository, stash)
       } else {
-        log.warn(`[AppStore._checkoutBranch] no stash found that matches ${foundBranch.name}`)
+        log.warn(
+          `[AppStore._checkoutBranch] no stash found that matches ${
+            foundBranch.name
+          }`
+        )
       }
     }
 
