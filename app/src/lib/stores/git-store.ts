@@ -1020,6 +1020,12 @@ export class GitStore extends BaseStore {
    * Updates the latest stash entry with a list of files that it changes
    */
   public async loadStashedFiles(stashEntry: IStashEntry) {
+    this._stashEntries.set(stashEntry.branchName, {
+      ...stashEntry,
+      files: { kind: StashedChangesLoadStates.Loading },
+    })
+    this.emitUpdate()
+
     const files = await getChangedFiles(this.repository, stashEntry.stashSha)
 
     this._stashEntries.set(stashEntry.branchName, {
