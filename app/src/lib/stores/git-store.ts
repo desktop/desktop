@@ -1020,16 +1020,30 @@ export class GitStore extends BaseStore {
       return
     }
 
-    this._stashEntries.set(stashEntry.branchName, {
-      ...stashEntry,
+    let existingEntry = this._stashEntries.get(stashEntry.branchName)
+
+    if (existingEntry === undefined) {
+      return
+    }
+
+    const { branchName } = existingEntry
+
+    this._stashEntries.set(branchName, {
+      ...existingEntry,
       files: { kind: StashedChangesLoadStates.Loading },
     })
     this.emitUpdate()
 
-    const files = await getChangedFiles(this.repository, stashEntry.stashSha)
+    const files = await getChangedFiles(this.repository, existingEntry.stashSha)
+
+    existingEntry = this._stashEntries.get(branchName)
+
+    if (existingEntry === undefined) {
+      return
+    }
 
     this._stashEntries.set(stashEntry.branchName, {
-      ...stashEntry,
+      ...existingEntry,
       files: {
         kind: StashedChangesLoadStates.Loaded,
         files,
