@@ -12,7 +12,7 @@ import {
   IStashEntry,
   applyStashEntry,
 } from '../../../src/lib/git/stash'
-import { getTipOrError } from '../../helpers/tip'
+import { getTipOrError } from '../../helpers/git'
 import { getStatusOrThrow } from '../../helpers/status'
 import { AppFileStatusKind } from '../../../src/models/status'
 
