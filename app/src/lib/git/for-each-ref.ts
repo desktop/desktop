@@ -16,13 +16,8 @@ export async function getBranches(
       shortName: '%(refname:short)',
       upstreamShortName: '%(upstream:short)',
       sha: '%(objectname)',
-      shortSha: '%(objectname:short)',
       author: '%(author)',
-      parent: '%(parent)',
       symRef: '%(symref)',
-      subject: '%(subject)',
-      body: '%(body)',
-      trailers: '%(trailers:unfold,only)',
     },
     '%00'
   )
@@ -60,14 +55,10 @@ export async function getBranches(
       ? BranchType.Local
       : BranchType.Remote
 
-    branches.push(
-      new Branch(
-        ref.shortName,
-        ref.upstreamShortName.length > 0 ? ref.upstreamShortName : null,
-        tip,
-        type
-      )
-    )
+    const upstream =
+      ref.upstreamShortName.length > 0 ? ref.upstreamShortName : null
+
+    branches.push(new Branch(ref.shortName, upstream, tip, type))
   }
 
   return branches
