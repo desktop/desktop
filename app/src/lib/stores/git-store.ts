@@ -987,7 +987,16 @@ export class GitStore extends BaseStore {
       // we only want the first entry we find for each branch,
       // so we skip all subsequent ones
       if (!map.has(entry.branchName)) {
-        map.set(entry.branchName, entry)
+        const existing = this._stashEntries.get(entry.branchName)
+
+        // If we've already loaded the files for this stash there's
+        // no point in us doing it again. We know the contents haven't
+        // changed since the SHA is the same.
+        if (existing !== undefined && existing.stashSha === entry.stashSha) {
+          map.set(entry.branchName, { ...entry, files: existing.files })
+        } else {
+          map.set(entry.branchName, entry)
+        }
       }
     }
 
@@ -1004,10 +1013,34 @@ export class GitStore extends BaseStore {
    * Updates the latest stash entry with a list of files that it changes
    */
   public async loadStashedFiles(stashEntry: IStashEntry) {
-    const files = await getChangedFiles(this.repository, stashEntry.stashSha)
+    if (stashEntry.files.kind !== StashedChangesLoadStates.NotLoaded) {
+      return
+    }
+
+    let existingEntry = this._stashEntries.get(stashEntry.branchName)
+
+    if (existingEntry === undefined) {
+      return
+    }
+
+    const { branchName } = existingEntry
+
+    this._stashEntries.set(branchName, {
+      ...existingEntry,
+      files: { kind: StashedChangesLoadStates.Loading },
+    })
+    this.emitUpdate()
+
+    const files = await getChangedFiles(this.repository, existingEntry.stashSha)
+
+    existingEntry = this._stashEntries.get(branchName)
+
+    if (existingEntry === undefined) {
+      return
+    }
 
     this._stashEntries.set(stashEntry.branchName, {
-      ...stashEntry,
+      ...existingEntry,
       files: {
         kind: StashedChangesLoadStates.Loaded,
         files,
