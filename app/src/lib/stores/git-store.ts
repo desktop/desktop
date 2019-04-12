@@ -987,7 +987,23 @@ export class GitStore extends BaseStore {
       // we only want the first entry we find for each branch,
       // so we skip all subsequent ones
       if (!map.has(entry.branchName)) {
-        map.set(entry.branchName, entry)
+        const existing = this._stashEntries.get(entry.branchName)
+
+        // If we've already loaded the files for this stash there's
+        // no point in us doing it again. We know the contents haven't
+        // changed since the SHA is the same.
+        if (
+          existing !== undefined &&
+          existing.stashSha === entry.stashSha &&
+          existing.files.kind === StashedChangesLoadStates.Loaded
+        ) {
+          map.set(entry.branchName, {
+            ...entry,
+            files: existing.files,
+          })
+        } else {
+          map.set(entry.branchName, entry)
+        }
       }
     }
 
