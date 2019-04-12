@@ -24,11 +24,12 @@ const desktopStashEntryMessageRe = /!!GitHub_Desktop<(.+)>$/
 export async function getDesktopStashEntries(
   repository: Repository
 ): Promise<ReadonlyArray<IStashEntry>> {
-  const prettyFormat = '%H@%gs'
-  let result: IGitResult | null = null
+  const delimiter = '1F'
+  const delimiterString = String.fromCharCode(parseInt(delimiter, 16))
+  const format = ['%gd', '%H', '%gs'].join(`%x${delimiter}`)
 
-  result = await git(
-    ['log', '-g', `--pretty=${prettyFormat}`, 'refs/stash'],
+  const result = await git(
+    ['log', '-g', '-z', `--pretty=${format}`, 'refs/stash'],
     repository.path,
     'getStashEntries',
     {
@@ -42,32 +43,20 @@ export async function getDesktopStashEntries(
     return []
   }
 
-  const lines = result.stdout.split('\n')
   const stashEntries: Array<IStashEntry> = []
-  let ix = -1
-  for (const line of lines) {
-    // need to get name from stash list
-    ix++
+  const files: StashedFileChanges = { kind: StashedChangesLoadStates.NotLoaded }
 
-    const match = stashEntryRe.exec(line)
-    if (match == null) {
-      continue
+  for (const line of result.stdout.split('\0')) {
+    const pieces = line.split(delimiterString)
+
+    if (pieces.length === 3) {
+      const [name, stashSha, message] = pieces
+      const branchName = extractBranchFromMessage(message)
+
+      if (branchName !== null) {
+        stashEntries.push({ name, branchName, stashSha, files })
+      }
     }
-
-    const message = match[2]
-    const branchName = extractBranchFromMessage(message)
-
-    if (branchName === null) {
-      // the stash entry isn't using our magic string, so skip it
-      continue
-    }
-
-    stashEntries.push({
-      name: `stash@{${ix}}`,
-      branchName: branchName,
-      stashSha: match[1],
-      files: { kind: StashedChangesLoadStates.NotLoaded },
-    })
   }
 
   return stashEntries
