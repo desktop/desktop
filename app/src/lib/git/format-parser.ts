@@ -39,11 +39,15 @@ class NullDelimiterParser<T extends { [name: string]: string }> {
       head = tail + 1
       fieldIndex++
 
+      // Have we filled up an entire entry yet?
       if (fieldIndex % keys.length === 0) {
         entries.push(entry)
         entry = {} as T
 
+        // Look for the record terminator, NULL or NL.
         if (head < output.length) {
+          // We can support both NULL and NL here because we always terminate
+          // our records with NULL.
           if (output[head] !== '\0' && output[head] !== '\n') {
             const char = output.charCodeAt(head)
             throw new Error(
