@@ -3,7 +3,7 @@ import { GitError } from 'dugite'
 import { Repository } from '../../models/repository'
 import { Branch, BranchType, IBranchTip } from '../../models/branch'
 import { CommitIdentity } from '../../models/commit-identity'
-import { NullDelimiterParser } from './null-delimiter-parser'
+import { NullDelimiterParser, DelimiterFormat } from './null-delimiter-parser'
 
 /** Get all the branches. */
 export async function getBranches(
@@ -19,7 +19,7 @@ export async function getBranches(
       author: '%(author)',
       symRef: '%(symref)',
     },
-    '%00'
+    DelimiterFormat.Git
   )
 
   if (!prefixes || !prefixes.length) {
