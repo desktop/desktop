@@ -245,7 +245,9 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       newTokens: tokens.newTokens,
     }
 
-    this.codeMirror.setOption('mode', spec)
+    if (this.codeMirror) {
+      this.codeMirror.setOption('mode', spec)
+    }
   }
 
   /**
