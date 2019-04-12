@@ -1,5 +1,8 @@
 import { updateConflictState } from '../../../../src/lib/stores/updates/changes-state'
-import { createState, createStatus } from './changes-state-helper'
+import {
+  createState,
+  createStatus,
+} from '../../../helpers/changes-state-helper'
 import {
   ManualConflictResolution,
   ManualConflictResolutionKind,
@@ -168,7 +171,7 @@ describe('updateConflictState', () => {
           originalBranchTip: 'some-other-sha',
         },
       })
-      const status = createStatus({ rebaseContext: null })
+      const status = createStatus({ rebaseInternalState: null })
       const conflictState = updateConflictState(prevState, status, statsStore)
       expect(conflictState).toBeNull()
     })
@@ -178,7 +181,7 @@ describe('updateConflictState', () => {
         conflictState: null,
       })
       const status = createStatus({
-        rebaseContext: {
+        rebaseInternalState: {
           targetBranch: 'my-feature-branch',
           baseBranchTip: 'another-sha',
           originalBranchTip: 'some-other-sha',
@@ -211,7 +214,7 @@ describe('updateConflictState', () => {
         },
       })
       const status = createStatus({
-        rebaseContext: {
+        rebaseInternalState: {
           targetBranch: 'my-feature-branch',
           baseBranchTip: 'another-sha',
           originalBranchTip: 'some-other-sha',
@@ -244,7 +247,7 @@ describe('updateConflictState', () => {
         },
       })
       const status = createStatus({
-        rebaseContext: {
+        rebaseInternalState: {
           targetBranch: 'a-different-feature-branch',
           originalBranchTip: 'some-old-sha',
           baseBranchTip: 'an-even-older-sha',
@@ -269,7 +272,7 @@ describe('updateConflictState', () => {
         },
       })
       const status = createStatus({
-        rebaseContext: null,
+        rebaseInternalState: null,
         currentBranch: 'my-feature-branch',
         currentTip: 'old-sha',
       })
@@ -291,7 +294,7 @@ describe('updateConflictState', () => {
         },
       })
       const status = createStatus({
-        rebaseContext: null,
+        rebaseInternalState: null,
         currentBranch: 'my-feature-branch',
         currentTip: 'new-sha',
       })

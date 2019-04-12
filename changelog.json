@@ -1,5 +1,46 @@
 {
   "releases": {
+      "1.7.0-beta2": [
+        "[New] Rebase your current branch onto another branch using a guided flow - #5953",
+        "[Fixed] Horizontal scroll bar appears unnecessarily when switching branches - #7212",
+        "[Fixed] License templates do not end with newline character - #6999",
+        "[Fixed] Merge/Rebase conflicts banners do not clear when aborting the operation outside Desktop - #7046",
+        "[Fixed] Missing tooltips for change indicators in the sidebar - #7174",
+        "[Fixed] Icon accessibility labels fail when multiple icons are visible at the same time - #7174",
+        "[Improved] Pull requests load faster and PR build status updates automatically - #7163"
+      ],
+    "1.7.0-beta1": [
+      "[New] Recently opened repositories appear at the top of the repository list - #7132",
+      "[Fixed] Error when selecting diff text while diff is updating - #7131",
+      "[Fixed] Crash when unable to create log file on disk - #7096",
+      "[Fixed] Race condition with remote lookup could cause push to go to incorrect remote - #6986",
+      "[Fixed] Mistaken classification of all crashes being related to launch - #7126",
+      "[Fixed] Prevent menus from being disabled by activity in inactive repositories - #6313",
+      "[Fixed] \"Automatically Switch Theme\" on macOS does not check theme on launch - #7116. Thanks @say25!",
+      "[Fixed] Clicking \"Undo\" doesn't repopulate summary in commit form - #6390. Thanks @humphd!",
+      "[Fixed] Emoji rendering in app broken when account name has special characters - #6909",
+      "[Fixed] Files staged outside Desktop for deletion are incorrectly marked as modified after committing - #4133",
+      "[Improved] Visual feedback on \"Remove Repository\" and \"Discard Changes\" dialogs to show progress - #7015. Thanks @HashimotoYT!",
+      "[Improved] Onboarding language for blank slate components - #6638. Thanks @jamesgeorge007!",
+      "[Improved] Manually refresh pull requests instead of having to wait for a fetch - #7027"
+    ],
+    "1.6.5": [
+      "[Fixed] Publish Repository does not let you publish to an organization on your Enterprise account - #7052"
+    ],
+    "1.6.5-beta2": [
+      "[Fixed] Publish Repository does not let you choose an organization on your Enterprise account - #7052"
+    ],
+    "1.6.5-beta1": [
+      "[Fixed] Publish Repository does not let you choose an organization on your Enterprise account - #7052"
+    ],
+    "1.6.4": [
+      "[Fixed] Embedded Git not working for core.longpath usage in some environments - #7028",
+      "[Fixed] \"Recover missing repository\" can get stuck in a loop - #7038"
+    ],
+    "1.6.4-beta1": [
+      "[Fixed] Embedded Git not working for core.longpath usage in some environments - #7028",
+      "[Fixed] \"Recover missing repository\" can get stuck in a loop - #7038"
+    ],
     "1.6.4-beta0": [
       "[Removed] Option to discard when files would be overwritten by a checkout - #7016"
     ],

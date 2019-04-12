@@ -117,7 +117,7 @@ function getConflictState(
     }
   }
 
-  if (status.rebaseContext !== null) {
+  if (status.rebaseInternalState !== null) {
     const { currentTip } = status
     if (currentTip == null) {
       return null
@@ -127,7 +127,7 @@ function getConflictState(
       targetBranch,
       originalBranchTip,
       baseBranchTip,
-    } = status.rebaseContext
+    } = status.rebaseInternalState
 
     return {
       kind: 'rebase',

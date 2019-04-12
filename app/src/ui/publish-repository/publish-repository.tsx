@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Account } from '../../models/account'
-import { API, IAPIUser } from '../../lib/api'
+import { API, IAPIOrganization } from '../../lib/api'
 import { TextBox } from '../lib/text-box'
 import { Select } from '../lib/select'
 import { DialogContent } from '../dialog'
@@ -9,11 +9,7 @@ import { merge } from '../../lib/merge'
 import { caseInsensitiveCompare } from '../../lib/compare'
 import { sanitizedRepositoryName } from '../add-repository/sanitized-repository-name'
 import { Octicon, OcticonSymbol } from '../octicons'
-import {
-  RepositoryPublicationSettings,
-  IDotcomPublicationSettings,
-  PublishSettingsType,
-} from '../../models/publish-settings'
+import { RepositoryPublicationSettings } from '../../models/publish-settings'
 
 interface IPublishRepositoryProps {
   /** The user to use for publishing. */
@@ -27,7 +23,7 @@ interface IPublishRepositoryProps {
 }
 
 interface IPublishRepositoryState {
-  readonly orgs: ReadonlyArray<IAPIUser>
+  readonly orgs: ReadonlyArray<IAPIOrganization>
 }
 
 /** The Publish Repository component. */
@@ -59,7 +55,8 @@ export class PublishRepository extends React.Component<
 
   private async fetchOrgs(account: Account) {
     const api = API.fromAccount(account)
-    const orgs = (await api.fetchOrgs()) as Array<IAPIUser>
+    const apiOrgs = await api.fetchOrgs()
+    const orgs = [...apiOrgs]
     orgs.sort((a, b) => caseInsensitiveCompare(a.login, b.login))
     this.setState({ orgs })
   }
@@ -89,13 +86,10 @@ export class PublishRepository extends React.Component<
 
   private onOrgChange = (event: React.FormEvent<HTMLSelectElement>) => {
     const { settings } = this.props
-    if (settings.kind !== PublishSettingsType.dotcom) {
-      return
-    }
 
     const value = event.currentTarget.value
     const index = parseInt(value, 10)
-    let newSettings: IDotcomPublicationSettings
+    let newSettings: RepositoryPublicationSettings
     if (index < 0 || isNaN(index)) {
       newSettings = { ...settings, org: null }
     } else {
@@ -119,10 +113,8 @@ export class PublishRepository extends React.Component<
     )
 
     let selectedIndex = -1
-    const selectedOrg =
-      this.props.settings.kind === PublishSettingsType.dotcom
-        ? this.props.settings.org
-        : null
+
+    const selectedOrg = this.props.settings.org
     for (const [index, org] of this.state.orgs.entries()) {
       if (selectedOrg && selectedOrg.id === org.id) {
         selectedIndex = index

@@ -2,7 +2,7 @@ import { GitProcess } from 'dugite'
 import * as FSE from 'fs-extra'
 import * as Path from 'path'
 
-import { IStatusResult } from '../../../../src/lib/git'
+import { IStatusResult, getChangedFiles } from '../../../../src/lib/git'
 import {
   abortRebase,
   continueRebase,
@@ -10,13 +10,16 @@ import {
   RebaseResult,
 } from '../../../../src/lib/git/rebase'
 import { Commit } from '../../../../src/models/commit'
-import { AppFileStatusKind } from '../../../../src/models/status'
+import {
+  AppFileStatusKind,
+  CommittedFileChange,
+} from '../../../../src/models/status'
 import { createRepository } from '../../../helpers/repository-builder-rebase-test'
 import { getStatusOrThrow } from '../../../helpers/status'
-import { getRefOrError } from '../../../helpers/tip'
+import { getBranchOrError } from '../../../helpers/git'
 
-const baseBranch = 'base-branch'
-const featureBranch = 'this-is-a-feature'
+const baseBranchName = 'base-branch'
+const featureBranchName = 'this-is-a-feature'
 
 describe('git/rebase', () => {
   describe('detect conflicts', () => {
@@ -26,13 +29,19 @@ describe('git/rebase', () => {
     let status: IStatusResult
 
     beforeEach(async () => {
-      const repository = await createRepository(baseBranch, featureBranch)
+      const repository = await createRepository(
+        baseBranchName,
+        featureBranchName
+      )
 
-      const featureTip = await getRefOrError(repository, featureBranch)
-      originalBranchTip = featureTip.sha
+      const featureBranch = await getBranchOrError(
+        repository,
+        featureBranchName
+      )
+      originalBranchTip = featureBranch.tip.sha
 
-      const baseTip = await getRefOrError(repository, baseBranch)
-      baseBranchTip = baseTip.sha
+      const baseBranch = await getBranchOrError(repository, baseBranchName)
+      baseBranchTip = baseBranch.tip.sha
 
       result = await rebase(repository, baseBranch, featureBranch)
 
@@ -44,7 +53,7 @@ describe('git/rebase', () => {
     })
 
     it('status detects REBASE_HEAD', async () => {
-      expect(status.rebaseContext).toEqual({
+      expect(status.rebaseInternalState).toEqual({
         originalBranchTip,
         baseBranchTip,
         targetBranch: 'this-is-a-feature',
@@ -68,7 +77,17 @@ describe('git/rebase', () => {
     let status: IStatusResult
 
     beforeEach(async () => {
-      const repository = await createRepository(baseBranch, featureBranch)
+      const repository = await createRepository(
+        baseBranchName,
+        featureBranchName
+      )
+
+      const featureBranch = await getBranchOrError(
+        repository,
+        featureBranchName
+      )
+
+      const baseBranch = await getBranchOrError(repository, baseBranchName)
 
       await rebase(repository, baseBranch, featureBranch)
 
@@ -78,7 +97,7 @@ describe('git/rebase', () => {
     })
 
     it('REBASE_HEAD is no longer found', async () => {
-      expect(status.rebaseContext).toBeNull()
+      expect(status.rebaseInternalState).toBeNull()
     })
 
     it('no longer has working directory changes', async () => {
@@ -86,7 +105,7 @@ describe('git/rebase', () => {
     })
 
     it('returns to the feature branch', async () => {
-      expect(status.currentBranch).toBe(featureBranch)
+      expect(status.currentBranch).toBe(featureBranchName)
     })
   })
 
@@ -97,13 +116,19 @@ describe('git/rebase', () => {
     let status: IStatusResult
 
     beforeEach(async () => {
-      const repository = await createRepository(baseBranch, featureBranch)
+      const repository = await createRepository(
+        baseBranchName,
+        featureBranchName
+      )
 
-      const featureTip = await getRefOrError(repository, featureBranch)
-      originalBranchTip = featureTip.sha
+      const featureBranch = await getBranchOrError(
+        repository,
+        featureBranchName
+      )
+      originalBranchTip = featureBranch.tip.sha
 
-      const baseTip = await getRefOrError(repository, baseBranch)
-      baseBranchTip = baseTip.sha
+      const baseBranch = await getBranchOrError(repository, baseBranchName)
+      baseBranchTip = baseBranch.tip.sha
 
       await rebase(repository, baseBranch, featureBranch)
 
@@ -120,7 +145,7 @@ describe('git/rebase', () => {
     })
 
     it('REBASE_HEAD is still found', async () => {
-      expect(status.rebaseContext).toEqual({
+      expect(status.rebaseInternalState).toEqual({
         originalBranchTip,
         baseBranchTip,
         targetBranch: 'this-is-a-feature',
@@ -142,9 +167,18 @@ describe('git/rebase', () => {
     let status: IStatusResult
 
     beforeEach(async () => {
-      const repository = await createRepository(baseBranch, featureBranch)
+      const repository = await createRepository(
+        baseBranchName,
+        featureBranchName
+      )
 
-      beforeRebaseTip = await getRefOrError(repository, featureBranch)
+      const featureBranch = await getBranchOrError(
+        repository,
+        featureBranchName
+      )
+      beforeRebaseTip = featureBranch.tip
+
+      const baseBranch = await getBranchOrError(repository, baseBranchName)
 
       await rebase(repository, baseBranch, featureBranch)
 
@@ -187,7 +221,7 @@ describe('git/rebase', () => {
     })
 
     it('REBASE_HEAD is no longer found', () => {
-      expect(status.rebaseContext).toBeNull()
+      expect(status.rebaseInternalState).toBeNull()
     })
 
     it('no longer has working directory changes', () => {
@@ -195,11 +229,144 @@ describe('git/rebase', () => {
     })
 
     it('returns to the feature branch', () => {
-      expect(status.currentBranch).toBe(featureBranch)
+      expect(status.currentBranch).toBe(featureBranchName)
     })
 
     it('branch is now a different ref', () => {
       expect(status.currentTip).not.toBe(beforeRebaseTip.sha)
+    })
+  })
+
+  describe('continue with additional changes unrelated to conflicted files', () => {
+    let beforeRebaseTip: Commit
+    let filesInRebasedCommit: ReadonlyArray<CommittedFileChange>
+    let result: RebaseResult
+    let status: IStatusResult
+
+    beforeEach(async () => {
+      const repository = await createRepository(
+        baseBranchName,
+        featureBranchName
+      )
+
+      const featureBranch = await getBranchOrError(
+        repository,
+        featureBranchName
+      )
+      beforeRebaseTip = featureBranch.tip
+
+      const baseBranch = await getBranchOrError(repository, baseBranchName)
+
+      await rebase(repository, baseBranch, featureBranch)
+
+      // resolve conflicts by writing files to disk
+      await FSE.writeFile(
+        Path.join(repository.path, 'THING.md'),
+        '# HELLO WORLD! \nTHINGS GO HERE\nFEATURE BRANCH UNDERWAY\n'
+      )
+
+      await FSE.writeFile(
+        Path.join(repository.path, 'OTHER.md'),
+        '# HELLO WORLD! \nTHINGS GO HERE\nALSO FEATURE BRANCH UNDERWAY\n'
+      )
+
+      // change unrelated tracked while rebasing changes
+      await FSE.writeFile(
+        Path.join(repository.path, 'THIRD.md'),
+        'this change should be included in the latest commit'
+      )
+
+      // add untracked file before continuing rebase
+      await FSE.writeFile(
+        Path.join(repository.path, 'UNTRACKED-FILE.md'),
+        'this file should remain in the working directory'
+      )
+
+      const afterRebase = await getStatusOrThrow(repository)
+
+      const { files } = afterRebase.workingDirectory
+
+      result = await continueRebase(repository, files)
+
+      status = await getStatusOrThrow(repository)
+
+      filesInRebasedCommit = await getChangedFiles(
+        repository,
+        status.currentTip!
+      )
+    })
+
+    it('returns success', () => {
+      expect(result).toBe(RebaseResult.CompletedWithoutError)
+    })
+
+    it('keeps untracked working directory file out of rebase', () => {
+      expect(status.workingDirectory.files).toHaveLength(1)
+    })
+
+    it('has modified but unconflicted file in commit contents', () => {
+      expect(
+        filesInRebasedCommit.find(f => f.path === 'THIRD.md')
+      ).not.toBeUndefined()
+    })
+
+    it('returns to the feature branch', () => {
+      expect(status.currentBranch).toBe(featureBranchName)
+    })
+
+    it('branch is now a different ref', () => {
+      expect(status.currentTip).not.toBe(beforeRebaseTip.sha)
+    })
+  })
+
+  describe('continue with tracked change omitted from list', () => {
+    let result: RebaseResult
+
+    beforeEach(async () => {
+      const repository = await createRepository(
+        baseBranchName,
+        featureBranchName
+      )
+
+      const featureBranch = await getBranchOrError(
+        repository,
+        featureBranchName
+      )
+
+      const baseBranch = await getBranchOrError(repository, baseBranchName)
+
+      await rebase(repository, baseBranch, featureBranch)
+
+      // resolve conflicts by writing files to disk
+      await FSE.writeFile(
+        Path.join(repository.path, 'THING.md'),
+        '# HELLO WORLD! \nTHINGS GO HERE\nFEATURE BRANCH UNDERWAY\n'
+      )
+
+      await FSE.writeFile(
+        Path.join(repository.path, 'OTHER.md'),
+        '# HELLO WORLD! \nTHINGS GO HERE\nALSO FEATURE BRANCH UNDERWAY\n'
+      )
+
+      // change unrelated tracked while rebasing changes
+      await FSE.writeFile(
+        Path.join(repository.path, 'THIRD.md'),
+        'this change should be included in the latest commit'
+      )
+
+      const afterRebase = await getStatusOrThrow(repository)
+
+      const { files } = afterRebase.workingDirectory
+
+      // omit the last change should cause Git to error because it requires
+      // all tracked changes to be staged as a prerequisite for rebasing
+      const onlyConflictedFiles = files.filter(f => f.path !== 'THIRD.md')
+
+      result = await continueRebase(repository, onlyConflictedFiles)
+    })
+
+    it('returns error code indicating that required files were missing', () => {
+      expect(result).toBe(RebaseResult.OutstandingFilesNotStaged)
     })
   })
 })

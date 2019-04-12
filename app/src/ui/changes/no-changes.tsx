@@ -235,7 +235,7 @@ export class NoChanges extends React.Component<
 
     return this.renderMenuBackedAction(
       'open-working-directory',
-      `View the files in your repository in ${fileManager}`
+      `View the files of your repository in ${fileManager}`
     )
   }
 
@@ -280,9 +280,9 @@ export class NoChanges extends React.Component<
 
     const description = (
       <>
-        Configure which editor you wish to use in{' '}
+        Select your editor in{' '}
         <LinkButton onClick={this.openPreferences}>
-          {__DARWIN__ ? 'preferences' : 'options'}
+          {__DARWIN__ ? 'Preferences' : 'Options'}
         </LinkButton>
       </>
     )
@@ -292,7 +292,12 @@ export class NoChanges extends React.Component<
 
   private renderRemoteAction() {
     const { remote, aheadBehind, branchesState } = this.props.repositoryState
-    const { tip, defaultBranch, currentPullRequest } = branchesState
+    const {
+      tip,
+      defaultBranch,
+      currentPullRequest,
+      rebasedBranches,
+    } = branchesState
 
     if (tip.kind !== TipState.Valid) {
       return null
@@ -305,6 +310,18 @@ export class NoChanges extends React.Component<
     // Branch not published
     if (aheadBehind === null) {
       return this.renderPublishBranchAction(tip)
+    }
+
+    const localBranchName = tip.branch.nameWithoutRemote
+    const { sha } = tip.branch.tip
+    const foundEntry = rebasedBranches.get(localBranchName)
+    const branchWasRebased = foundEntry === sha
+
+    if (branchWasRebased) {
+      // do not render an action currently after the rebase has completed, as
+      // the default behaviour is currently to pull in changes from the tracking
+      // branch which will could potentially lead to a more confusing history
+      return null
     }
 
     if (aheadBehind.behind > 0) {

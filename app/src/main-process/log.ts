@@ -43,6 +43,14 @@ function initializeWinston(path: string): winston.LogMethod {
     maxFiles: MaxLogFiles,
   })
 
+  // The file logger handles errors when it can't write to an
+  // existing file but emits an error when attempting to create
+  // a file and failing (for example due to permissions or the
+  // disk being full). If logging fails that's not a big deal
+  // so we'll just suppress any error, besides, the console
+  // logger will likely still work.
+  fileLogger.on('error', () => {})
+
   const consoleLogger = new winston.transports.Console({
     level: process.env.NODE_ENV === 'development' ? 'debug' : 'error',
   })
