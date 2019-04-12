@@ -98,6 +98,11 @@ export async function createDesktopStashEntry(
   )
 }
 
+async function getStashEntryMatchingSha(repository: Repository, sha: string) {
+  const stashEntries = await getDesktopStashEntries(repository)
+  return stashEntries.find(e => e.stashSha === sha) || null
+}
+
 /**
  * Removes the given stash entry if it exists
  *
