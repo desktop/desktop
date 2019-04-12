@@ -18,9 +18,7 @@ export class NullDelimiterParser<T extends { [name: string]: string }> {
     let entry = {} as T
 
     while (head < output.length && (tail = output.indexOf('\0', head)) !== -1) {
-      const value = output.substring(head, tail)
-      const key = keys[fieldIndex % keys.length]
-      entry[key] = value
+      entry[keys[fieldIndex % keys.length]] = output.substring(head, tail)
 
       head = tail + 1
       fieldIndex++
