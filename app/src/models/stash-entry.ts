@@ -21,7 +21,7 @@ export enum StashedChangesLoadStates {
   Loaded = 'Loaded',
 }
 
-type StashedFileChanges =
+export type StashedFileChanges =
   | {
       kind:
         | StashedChangesLoadStates.NotLoaded
