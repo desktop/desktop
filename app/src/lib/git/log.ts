@@ -113,18 +113,6 @@ export async function getCommits(
       trailerSeparators
     )
 
-    const author = CommitIdentity.parseIdentity(commit.author)
-
-    if (!author) {
-      throw new Error(`Couldn't parse author identity ${commit.author}`)
-    }
-
-    const committer = CommitIdentity.parseIdentity(commit.committer)
-
-    if (!committer) {
-      throw new Error(`Couldn't parse committer identity ${commit.committer}`)
-    }
-
     const tags = getCaptures(commit.refs, /tag: ([^\s,]+)/g)
       .filter(i => i[0] !== undefined)
       .map(i => i[0])
@@ -134,8 +122,8 @@ export async function getCommits(
       commit.shortSha,
       commit.summary,
       commit.body,
-      author,
-      committer,
+      CommitIdentity.parseIdentity(commit.author),
+      CommitIdentity.parseIdentity(commit.committer),
       commit.parents.split(' '),
       trailers,
       tags

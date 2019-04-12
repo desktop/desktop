@@ -18,7 +18,6 @@ export async function getBranches(
       sha: '%(objectname)',
       shortSha: '%(objectname:short)',
       author: '%(author)',
-      committer: '%(committer)',
       parent: '%(parent)',
       symRef: '%(symref)',
       subject: '%(subject)',
@@ -55,17 +54,6 @@ export async function getBranches(
     }
 
     const author = CommitIdentity.parseIdentity(ref.author)
-
-    if (!author) {
-      throw new Error(`Couldn't parse author identity ${ref.author}`)
-    }
-
-    const committer = CommitIdentity.parseIdentity(ref.committer)
-
-    if (!committer) {
-      throw new Error(`Couldn't parse committer identity ${ref.committer}`)
-    }
-
     const tip: IBranchTip = { sha: ref.sha, author }
 
     const type = ref.fullName.startsWith('refs/head')
