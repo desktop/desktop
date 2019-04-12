@@ -993,10 +993,7 @@ export class GitStore extends BaseStore {
         // no point in us doing it again. We know the contents haven't
         // changed since the SHA is the same.
         if (existing !== undefined && existing.stashSha === entry.stashSha) {
-          map.set(entry.branchName, {
-            ...entry,
-            files: existing.files,
-          })
+          map.set(entry.branchName, { ...entry, files: existing.files })
         } else {
           map.set(entry.branchName, entry)
         }
