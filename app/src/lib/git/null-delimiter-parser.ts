@@ -9,8 +9,9 @@ export class NullDelimiterParser<T extends { [name: string]: string }> {
     }
   }
 
-  public *parse(output: string): Iterable<T> {
+  public parse(output: string): T[] {
     const { keys } = this
+    const entries = new Array<T>()
 
     let head = 0
     let tail = 0
@@ -24,7 +25,7 @@ export class NullDelimiterParser<T extends { [name: string]: string }> {
       fieldIndex++
 
       if (fieldIndex % keys.length === 0) {
-        yield entry
+        entries.push(entry)
         entry = {} as T
 
         if (head < output.length) {
@@ -38,5 +39,6 @@ export class NullDelimiterParser<T extends { [name: string]: string }> {
         }
       }
     }
+    return entries
   }
 }
