@@ -1,13 +1,13 @@
 import { git } from '.'
 import { Repository } from '../../models/repository'
-import { GitError, IGitResult } from './core'
 import { GitError as DugiteError } from 'dugite'
-import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
+import {
+  IStashEntry,
+  StashedChangesLoadStates,
+  StashedFileChanges,
+} from '../../models/stash-entry'
 
 export const DesktopStashEntryMarker = '!!GitHub_Desktop'
-
-/** RegEx for parsing out the stash SHA and message */
-const stashEntryRe = /^([0-9a-f]{40})@(.+)$/
 
 /**
  * RegEx for determining if a stash entry is created by Desktop
@@ -24,59 +24,39 @@ const desktopStashEntryMessageRe = /!!GitHub_Desktop<(.+)>$/
 export async function getDesktopStashEntries(
   repository: Repository
 ): Promise<ReadonlyArray<IStashEntry>> {
-  const expectedErrorMessages = ["fatal: ambiguous argument 'refs/stash'"]
-  const prettyFormat = '%H@%gs'
-  let result: IGitResult | null = null
+  const delimiter = '1F'
+  const delimiterString = String.fromCharCode(parseInt(delimiter, 16))
+  const format = ['%gd', '%H', '%gs'].join(`%x${delimiter}`)
 
-  try {
-    result = await git(
-      ['log', '-g', `--pretty=${prettyFormat}`, 'refs/stash'],
-      repository.path,
-      'getStashEntries'
-    )
-  } catch (err) {
-    if (err instanceof GitError) {
-      const shouldThrow = !expectedErrorMessages.some(
-        message => err.message.indexOf(message) !== -1
-      )
-      if (shouldThrow) {
-        // if the error is not expected, re-throw it so the caller can deal with it
-        throw err
-      }
+  const result = await git(
+    ['log', '-g', '-z', `--pretty=${format}`, 'refs/stash'],
+    repository.path,
+    'getStashEntries',
+    {
+      successExitCodes: new Set([0, 128]),
     }
-  }
+  )
 
-  if (result === null) {
-    // a git error that Desktop doesn't care about occured, so return empty list
+  // There's no refs/stashes reflog in the repository or it's not
+  // even a repository. In either case we don't care
+  if (result.exitCode === 128) {
     return []
   }
 
-  const lines = result.stdout.split('\n')
   const stashEntries: Array<IStashEntry> = []
-  let ix = -1
-  for (const line of lines) {
-    // need to get name from stash list
-    ix++
+  const files: StashedFileChanges = { kind: StashedChangesLoadStates.NotLoaded }
 
-    const match = stashEntryRe.exec(line)
-    if (match == null) {
-      continue
+  for (const line of result.stdout.split('\0')) {
+    const pieces = line.split(delimiterString)
+
+    if (pieces.length === 3) {
+      const [name, stashSha, message] = pieces
+      const branchName = extractBranchFromMessage(message)
+
+      if (branchName !== null) {
+        stashEntries.push({ name, branchName, stashSha, files })
+      }
     }
-
-    const message = match[2]
-    const branchName = extractBranchFromMessage(message)
-
-    if (branchName === null) {
-      // the stash entry isn't using our magic string, so skip it
-      continue
-    }
-
-    stashEntries.push({
-      name: `stash@{${ix}}`,
-      branchName: branchName,
-      stashSha: match[1],
-      files: { kind: StashedChangesLoadStates.NotLoaded },
-    })
   }
 
   return stashEntries
@@ -111,11 +91,13 @@ export async function createDesktopStashEntry(
   branchName: string
 ) {
   const message = createDesktopStashMessage(branchName)
-  await git(
-    ['stash', 'push', '--include-untracked', '-m', message],
-    repository.path,
-    'createStashEntry'
-  )
+  const args = ['stash', 'push', '--include-untracked', '-m', message]
+  await git(args, repository.path, 'createStashEntry')
+}
+
+async function getStashEntryMatchingSha(repository: Repository, sha: string) {
+  const stashEntries = await getDesktopStashEntries(repository)
+  return stashEntries.find(e => e.stashSha === sha) || null
 }
 
 /**
@@ -127,23 +109,12 @@ export async function dropDesktopStashEntry(
   repository: Repository,
   stashSha: string
 ) {
-  // get the latest name for the stash entry since it may have changed
-  const stashEntries = await getDesktopStashEntries(repository)
+  const entryToDelete = await getStashEntryMatchingSha(repository, stashSha)
 
-  if (stashEntries.length === 0) {
-    return
+  if (entryToDelete !== null) {
+    const args = ['stash', 'drop', entryToDelete.name]
+    await git(args, repository.path, 'dropStashEntry')
   }
-
-  const entryToDelete = stashEntries.find(e => e.stashSha === stashSha)
-  if (entryToDelete === undefined) {
-    return
-  }
-
-  await git(
-    ['stash', 'drop', entryToDelete.name],
-    repository.path,
-    'dropStashEntry'
-  )
 }
 
 /**
@@ -160,40 +131,15 @@ export async function popStashEntry(
   // ignoring these git errors for now, this will change when we start
   // implementing the stash conflict flow
   const expectedErrors = new Set<DugiteError>([DugiteError.MergeConflicts])
-  // get the latest name for the stash entry since it may have changed
-  const stashEntries = await getDesktopStashEntries(repository)
+  const stashToPop = await getStashEntryMatchingSha(repository, stashSha)
 
-  if (stashEntries.length === 0) {
-    return
-  }
-
-  const stashToPop = stashEntries.find(e => e.stashSha === stashSha)
-  if (stashToPop === undefined) {
-    return
-  }
-
-  try {
-    await git(
-      ['stash', 'pop', `${stashToPop.name}`],
-      repository.path,
-      'popStashEntry',
-      {
-        expectedErrors,
-      }
-    )
-  } catch (err) {
-    if (err instanceof GitError) {
-      log.error(err.message)
-    }
+  if (stashToPop !== null) {
+    const args = ['stash', 'pop', `${stashToPop.name}`]
+    await git(args, repository.path, 'popStashEntry', { expectedErrors })
   }
 }
 
 function extractBranchFromMessage(message: string): string | null {
   const match = desktopStashEntryMessageRe.exec(message)
-  if (match === null) {
-    return null
-  }
-
-  const branchName = match[1]
-  return branchName.length > 0 ? branchName : null
+  return match === null || match[1].length === 0 ? null : match[1]
 }

@@ -47,8 +47,10 @@ export class StashDiffViewer extends React.PureComponent<
   private onOpenItem = (path: string) =>
     openFile(join(this.props.repository.path, path), this.props.dispatcher)
 
-  private onResize = () => this.props.dispatcher.setStashedFilesWidth
-  private onReset = () => this.props.dispatcher.resetStashedFilesWidth
+  private onResize = (width: number) =>
+    this.props.dispatcher.setStashedFilesWidth(width)
+
+  private onReset = () => this.props.dispatcher.resetStashedFilesWidth()
 
   public render() {
     const files =
@@ -78,7 +80,6 @@ export class StashDiffViewer extends React.PureComponent<
         <div className="content">
           <Resizable
             width={this.props.fileListWidth}
-            maximumWidth={500}
             onResize={this.onResize}
             onReset={this.onReset}
           >
