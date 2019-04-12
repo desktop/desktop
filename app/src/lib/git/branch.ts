@@ -10,7 +10,7 @@ import {
   envForRemoteOperation,
   getFallbackUrlForProxyResolve,
 } from './environment'
-import { NullDelimiterParser, DelimiterFormat } from './null-delimiter-parser'
+import { GitFormatParser } from './format-parser'
 
 /**
  * Create a new branch from the given start point.
@@ -166,13 +166,10 @@ export async function getMergedBranches(
   branchName: string
 ): Promise<Map<string, string>> {
   const canonicalBranchRef = formatAsLocalRef(branchName)
-  const parser = new NullDelimiterParser(
-    {
-      sha: '%(objectname)',
-      canonicalRef: '%(refname)',
-    },
-    DelimiterFormat.Git
-  )
+  const parser = new GitFormatParser({
+    sha: '%(objectname)',
+    canonicalRef: '%(refname)',
+  })
 
   const args = ['branch', `--format=${parser.format}`, '--merged', branchName]
   const mergedBranches = new Map<string, string>()

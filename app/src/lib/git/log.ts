@@ -14,7 +14,7 @@ import {
   parseRawUnfoldedTrailers,
 } from './interpret-trailers'
 import { getCaptures } from '../helpers/regex'
-import { NullDelimiterParser, DelimiterFormat } from './null-delimiter-parser'
+import { GitLogFormatParser } from './format-parser'
 
 /**
  * Map the raw status text from Git to an app-friendly value
@@ -67,23 +67,20 @@ export async function getCommits(
   limit: number,
   additionalArgs: ReadonlyArray<string> = []
 ): Promise<ReadonlyArray<Commit>> {
-  const parser = new NullDelimiterParser(
-    {
-      sha: '%H', // SHA
-      shortSha: '%h', // short SHA
-      summary: '%s', // summary
-      body: '%b', // body
-      // author identity string, matching format of GIT_AUTHOR_IDENT.
-      //   author name <author email> <author date>
-      // author date format dependent on --date arg, should be raw
-      author: '%an <%ae> %ad',
-      committer: '%cn <%ce> %cd',
-      parents: '%P', // parent SHAs,
-      trailers: '%(trailers:unfold,only)',
-      refs: '%D',
-    },
-    DelimiterFormat.GitLog
-  )
+  const parser = new GitLogFormatParser({
+    sha: '%H', // SHA
+    shortSha: '%h', // short SHA
+    summary: '%s', // summary
+    body: '%b', // body
+    // author identity string, matching format of GIT_AUTHOR_IDENT.
+    //   author name <author email> <author date>
+    // author date format dependent on --date arg, should be raw
+    author: '%an <%ae> %ad',
+    committer: '%cn <%ce> %cd',
+    parents: '%P', // parent SHAs,
+    trailers: '%(trailers:unfold,only)',
+    refs: '%D',
+  })
 
   const result = await git(
     [

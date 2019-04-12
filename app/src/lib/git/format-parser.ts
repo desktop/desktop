@@ -1,27 +1,8 @@
-import { assertNever } from '../fatal-error'
-
-export enum DelimiterFormat {
-  Git,
-  GitLog,
-}
-
-function getDelimiterString(format: DelimiterFormat) {
-  switch (format) {
-    case DelimiterFormat.Git:
-      return '%00'
-    case DelimiterFormat.GitLog:
-      return '%x00'
-  }
-
-  return assertNever(format, `Unknown delimiter format: ${format}`)
-}
-
-export class NullDelimiterParser<T extends { [name: string]: string }> {
+class NullDelimiterParser<T extends { [name: string]: string }> {
   private readonly keys = new Array<string>()
   public readonly format: string = ''
 
-  public constructor(fields: T, delimiterFormat: DelimiterFormat) {
-    const delimiterString = getDelimiterString(delimiterFormat)
+  public constructor(fields: T, delimiterString: string) {
     for (const [key, value] of Object.entries(fields)) {
       this.keys.push(key)
       this.format = `${this.format}${value}${delimiterString}`
@@ -59,5 +40,20 @@ export class NullDelimiterParser<T extends { [name: string]: string }> {
       }
     }
     return entries
+  }
+}
+
+export class GitLogFormatParser<
+  T extends { [name: string]: string }
+> extends NullDelimiterParser<T> {
+  public constructor(fields: T) {
+    super(fields, '%x00')
+  }
+}
+export class GitFormatParser<
+  T extends { [name: string]: string }
+> extends NullDelimiterParser<T> {
+  public constructor(fields: T) {
+    super(fields, '%00')
   }
 }

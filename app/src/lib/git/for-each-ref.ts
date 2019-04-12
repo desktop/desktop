@@ -3,24 +3,21 @@ import { GitError } from 'dugite'
 import { Repository } from '../../models/repository'
 import { Branch, BranchType, IBranchTip } from '../../models/branch'
 import { CommitIdentity } from '../../models/commit-identity'
-import { NullDelimiterParser, DelimiterFormat } from './null-delimiter-parser'
+import { GitFormatParser } from './format-parser'
 
 /** Get all the branches. */
 export async function getBranches(
   repository: Repository,
   ...prefixes: string[]
 ): Promise<ReadonlyArray<Branch>> {
-  const parser = new NullDelimiterParser(
-    {
-      fullName: '%(refname)',
-      shortName: '%(refname:short)',
-      upstreamShortName: '%(upstream:short)',
-      sha: '%(objectname)',
-      author: '%(author)',
-      symRef: '%(symref)',
-    },
-    DelimiterFormat.Git
-  )
+  const parser = new GitFormatParser({
+    fullName: '%(refname)',
+    shortName: '%(refname:short)',
+    upstreamShortName: '%(upstream:short)',
+    sha: '%(objectname)',
+    author: '%(author)',
+    symRef: '%(symref)',
+  })
 
   if (!prefixes || !prefixes.length) {
     prefixes = ['refs/heads', 'refs/remotes']
