@@ -269,6 +269,37 @@ export class RepositoryView extends React.Component<
     return stashEntry
   }
 
+  private renderStashedChangesContent(): JSX.Element | null {
+    const stashEntry = this.currentStashForBranch()
+    if (stashEntry === null) {
+      return null
+    }
+
+    if (stashEntry.files.kind === StashedChangesLoadStates.Loaded) {
+      return (
+        <StashDiffViewer
+          stashEntry={stashEntry}
+          selectedStashedFile={
+            this.props.state.changesState.selectedStashedFile
+          }
+          stashedFileDiff={
+            this.props.state.changesState.selectedStashedFileDiff
+          }
+          imageDiffType={this.props.imageDiffType}
+          fileListWidth={this.props.stashedFilesWidth}
+          externalEditorLabel={this.props.externalEditorLabel}
+          onOpenInExternalEditor={this.props.onOpenInExternalEditor}
+          repository={this.props.repository}
+          dispatcher={this.props.dispatcher}
+        />
+      )
+    } else if (this.props.state.branchesState.tip.kind === TipState.Valid) {
+      this.props.dispatcher.loadStashedFiles(this.props.repository, stashEntry)
+      return null
+    }
+    return null
+  }
+
   private renderContent(): JSX.Element | null {
     const selectedSection = this.props.state.selectedSection
     if (selectedSection === RepositorySectionTab.Changes) {
@@ -280,36 +311,9 @@ export class RepositoryView extends React.Component<
         shouldShowStashedChanges,
       } = changesState
 
-      if (shouldShowStashedChanges && selectedFileIDs.length === 0) {
-        const stashEntry = this.currentStashForBranch()
-        if (stashEntry === null) {
-          return null
-        }
-
-        if (stashEntry.files.kind === StashedChangesLoadStates.Loaded) {
-          return (
-            <StashDiffViewer
-              stashEntry={stashEntry}
-              selectedStashedFile={
-                this.props.state.changesState.selectedStashedFile
-              }
-              stashedFileDiff={
-                this.props.state.changesState.selectedStashedFileDiff
-              }
-              imageDiffType={this.props.imageDiffType}
-              fileListWidth={this.props.stashedFilesWidth}
-              externalEditorLabel={this.props.externalEditorLabel}
-              onOpenInExternalEditor={this.props.onOpenInExternalEditor}
-              repository={this.props.repository}
-              dispatcher={this.props.dispatcher}
-            />
-          )
-        } else if (this.props.state.branchesState.tip.kind === TipState.Valid) {
-          this.props.dispatcher.loadStashedFiles(
-            this.props.repository,
-            stashEntry
-          )
-          return null
+      if (enableStashing()) {
+        if (shouldShowStashedChanges && selectedFileIDs.length === 0) {
+          return this.renderStashedChangesContent()
         }
       }
 
