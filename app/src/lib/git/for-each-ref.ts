@@ -49,6 +49,11 @@ export async function getBranches(
   const branches = []
 
   for (const ref of parser.parse(result.stdout)) {
+    // excude symbolic refs from the branch list
+    if (ref.symRef.length > 0) {
+      continue
+    }
+
     const author = CommitIdentity.parseIdentity(ref.author)
 
     if (!author) {
@@ -66,11 +71,6 @@ export async function getBranches(
     const type = ref.fullName.startsWith('refs/head')
       ? BranchType.Local
       : BranchType.Remote
-
-    // excude symbolic refs from the branch list
-    if (ref.symRef.length > 0) {
-      continue
-    }
 
     branches.push(
       new Branch(
