@@ -28,6 +28,6 @@ type StashedFileChanges =
         | StashedChangesLoadStates.Loading
     }
   | {
-      kind: StashedChangesLoadStates.Loaded
+      readonly kind: StashedChangesLoadStates.Loaded
       files: ReadonlyArray<CommittedFileChange>
     }
