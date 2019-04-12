@@ -24,30 +24,21 @@ const desktopStashEntryMessageRe = /!!GitHub_Desktop<(.+)>$/
 export async function getDesktopStashEntries(
   repository: Repository
 ): Promise<ReadonlyArray<IStashEntry>> {
-  const expectedErrorMessages = ["fatal: ambiguous argument 'refs/stash'"]
   const prettyFormat = '%H@%gs'
   let result: IGitResult | null = null
 
-  try {
-    result = await git(
-      ['log', '-g', `--pretty=${prettyFormat}`, 'refs/stash'],
-      repository.path,
-      'getStashEntries'
-    )
-  } catch (err) {
-    if (err instanceof GitError) {
-      const shouldThrow = !expectedErrorMessages.some(
-        message => err.message.indexOf(message) !== -1
-      )
-      if (shouldThrow) {
-        // if the error is not expected, re-throw it so the caller can deal with it
-        throw err
-      }
+  result = await git(
+    ['log', '-g', `--pretty=${prettyFormat}`, 'refs/stash'],
+    repository.path,
+    'getStashEntries',
+    {
+      successExitCodes: new Set([0, 128]),
     }
-  }
+  )
 
-  if (result === null) {
-    // a git error that Desktop doesn't care about occured, so return empty list
+  // There's no refs/stashes reflog in the repository or it's not
+  // even a repository. In either case we don't care
+  if (result.exitCode === 128) {
     return []
   }
 
