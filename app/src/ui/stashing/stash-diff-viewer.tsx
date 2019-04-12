@@ -17,11 +17,14 @@ import { ButtonGroup } from '../lib/button-group'
 interface IStashDiffViewerProps {
   /** The stash in question. */
   readonly stashEntry: IStashEntry
+
   /** Currently selected file in the list */
   readonly selectedStashedFile: CommittedFileChange | null
+
   /** Diff to be displayed */
   readonly stashedFileDiff: IDiff | null
   readonly imageDiffType: ImageDiffType
+
   /** width to use for the files list pane */
   readonly fileListWidth: number
   readonly externalEditorLabel?: string

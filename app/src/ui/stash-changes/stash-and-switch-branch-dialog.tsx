@@ -33,6 +33,10 @@ interface ISwitchBranchState {
   readonly selectedStashAction: StashAction
 }
 
+/**
+ * Dialog that alerts users that their changes may be lost and offers them the
+ * chance to stash them or potentially take them to another branch
+ */
 export class StashAndSwitchBranch extends React.Component<
   ISwitchBranchProps,
   ISwitchBranchState

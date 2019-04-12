@@ -21,6 +21,12 @@ export enum StashedChangesLoadStates {
   Loaded = 'Loaded',
 }
 
+/**
+ * The status of stashed file changes
+ *
+ * When the status us `Loaded` all the files associated
+ * with the stash are made available.
+ */
 export type StashedFileChanges =
   | {
       readonly kind:
