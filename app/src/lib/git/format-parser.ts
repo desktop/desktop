@@ -78,6 +78,12 @@ export class GitLogFormatParser<
   T extends { [name: string]: string }
 > extends NullDelimiterParser<T> {
   /**
+   * An array containing -z and --format arguments to use
+   * when calling git log derived commands.
+   */
+  public readonly formatArgs: Array<string>
+
+  /**
    * Create a new `GitLogFormatParser` suitable for parsing --format
    * output from commands such as `git log`, `git stash`, and
    * other commands that are not derived from `ref-filter`.
@@ -93,6 +99,7 @@ export class GitLogFormatParser<
    */
   public constructor(fields: T) {
     super(fields, '%x00')
+    this.formatArgs = ['-z', `--format=${this.format}`]
   }
 }
 
