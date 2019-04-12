@@ -134,26 +134,12 @@ export async function popStashEntry(
   // ignoring these git errors for now, this will change when we start
   // implementing the stash conflict flow
   const expectedErrors = new Set<DugiteError>([DugiteError.MergeConflicts])
-  // get the latest name for the stash entry since it may have changed
-  const stashEntries = await getDesktopStashEntries(repository)
+  const stashToPop = await getStashEntryMatchingSha(repository, stashSha)
 
-  if (stashEntries.length === 0) {
-    return
+  if (stashToPop !== null) {
+    const args = ['stash', 'pop', `${stashToPop.name}`]
+    await git(args, repository.path, 'popStashEntry', { expectedErrors })
   }
-
-  const stashToPop = stashEntries.find(e => e.stashSha === stashSha)
-  if (stashToPop === undefined) {
-    return
-  }
-
-  await git(
-    ['stash', 'pop', `${stashToPop.name}`],
-    repository.path,
-    'popStashEntry',
-    {
-      expectedErrors,
-    }
-  )
 }
 
 function extractBranchFromMessage(message: string): string | null {
