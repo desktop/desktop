@@ -83,8 +83,6 @@ export function createDesktopStashMessage(branchName: string) {
 
 /**
  * Stash the working directory changes for the current branch
- *
- * @param tipSha is only used to format the message.
  */
 export async function createDesktopStashEntry(
   repository: Repository,
