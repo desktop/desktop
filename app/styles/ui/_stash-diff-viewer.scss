@@ -9,6 +9,8 @@
     h3 {
       font-weight: var(--font-weight-light);
       font-size: var(--font-size-xl);
+      line-height: 1;
+      margin-bottom: var(--spacing);
     }
     display: flex;
     flex-direction: column;
