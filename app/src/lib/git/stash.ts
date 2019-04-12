@@ -6,6 +6,8 @@ import {
   StashedChangesLoadStates,
   StashedFileChanges,
 } from '../../models/stash-entry'
+import { CommittedFileChange } from '../../models/status'
+import { mapStatus } from './log'
 
 export const DesktopStashEntryMarker = '!!GitHub_Desktop'
 
@@ -140,4 +142,48 @@ export async function popStashEntry(
 function extractBranchFromMessage(message: string): string | null {
   const match = desktopStashEntryMessageRe.exec(message)
   return match === null || match[1].length === 0 ? null : match[1]
+}
+
+/** Get the files that were changed in the given stash commit.
+ *  This is different than `getChangedFiles` because stashes
+ *  have _3 parents(!!!)_
+ */
+export async function getStashedFiles(
+  repository: Repository,
+  sha: string
+): Promise<ReadonlyArray<CommittedFileChange>> {
+  // opt-in for rename detection (-M) and copies detection (-C)
+  // this is equivalent to the user configuring 'diff.renames' to 'copies'
+  // NOTE: order here matters - doing -M before -C means copies aren't detected
+
+  // git diff -C -M --name-status -z [STASH_SHA] [STASH_SHA]^
+  const args = ['stash', 'show', '-C', '-M', '--name-status', '-z', sha, '--']
+  const result = await git(args, repository.path, 'getStashedFiles')
+
+  const out = result.stdout
+  const lines = out.split('\0')
+  // Remove the trailing empty line
+  lines.splice(-1, 1)
+
+  const files: CommittedFileChange[] = []
+  for (let i = 0; i < lines.length; i++) {
+    const statusText = lines[i]
+
+    let oldPath: string | undefined = undefined
+
+    if (
+      statusText.length > 0 &&
+      (statusText[0] === 'R' || statusText[0] === 'C')
+    ) {
+      oldPath = lines[++i]
+    }
+
+    const status = mapStatus(statusText, oldPath)
+
+    const path = lines[++i]
+
+    files.push(new CommittedFileChange(path, status, sha))
+  }
+
+  return files
 }
