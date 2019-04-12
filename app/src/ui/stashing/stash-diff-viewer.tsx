@@ -80,7 +80,6 @@ export class StashDiffViewer extends React.PureComponent<
         <div className="content">
           <Resizable
             width={this.props.fileListWidth}
-            maximumWidth={500}
             onResize={this.onResize}
             onReset={this.onReset}
           >
