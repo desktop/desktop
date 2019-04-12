@@ -20,7 +20,12 @@ import {
   setGenericPassword,
   setGenericUsername,
 } from '../../lib/generic-git-auth'
-import { isGitRepository, RebaseResult, PushOptions } from '../../lib/git'
+import {
+  isGitRepository,
+  RebaseResult,
+  PushOptions,
+  getCommitsInRange,
+} from '../../lib/git'
 import { isGitOnPath } from '../../lib/is-git-on-path'
 import {
   rejectOAuthRequest,
@@ -317,6 +322,53 @@ export class Dispatcher {
     targetBranch: Branch
   ) {
     return this.appStore._previewRebase(repository, baseBranch, targetBranch)
+  }
+
+  /** Initialize and start the rebase operation */
+  public async startRebase(
+    repository: Repository,
+    baseBranch: Branch,
+    targetBranch: Branch,
+    commits: ReadonlyArray<CommitOneLine>,
+    options?: { continueWithForcePush: boolean }
+  ): Promise<void> {
+    const { askForConfirmationOnForcePush } = this.appStore.getState()
+
+    const hasOverridenForcePushCheck =
+      options !== undefined && options.continueWithForcePush
+
+    if (askForConfirmationOnForcePush && !hasOverridenForcePushCheck) {
+      // if the branch is tracking a remote branch
+      if (targetBranch.upstream !== null) {
+        // and the remote branch has commits that don't exist on the base branch
+        const remoteCommits = await getCommitsInRange(
+          repository,
+          baseBranch.tip.sha,
+          targetBranch.upstream
+        )
+
+        if (remoteCommits.length > 0) {
+          this.setRebaseFlowStep(repository, {
+            kind: RebaseStep.WarnForcePush,
+            baseBranch,
+            targetBranch,
+            commits,
+          })
+          return
+        }
+      }
+    }
+
+    this.initializeRebaseProgress(repository, commits)
+
+    const startRebaseAction = () => {
+      return this.rebase(repository, baseBranch, targetBranch)
+    }
+
+    this.setRebaseFlowStep(repository, {
+      kind: RebaseStep.ShowProgress,
+      rebaseAction: startRebaseAction,
+    })
   }
 
   /**
@@ -788,8 +840,8 @@ export class Dispatcher {
   /** Starts a rebase for the given base and target branch */
   public async rebase(
     repository: Repository,
-    baseBranch: string,
-    targetBranch: string
+    baseBranch: Branch,
+    targetBranch: Branch
   ): Promise<void> {
     const stateBefore = this.repositoryStateManager.get(repository)
 
@@ -851,8 +903,8 @@ export class Dispatcher {
         repository,
         {
           type: BannerType.SuccessfulRebase,
-          targetBranch: targetBranch,
-          baseBranch: baseBranch,
+          targetBranch: targetBranch.name,
+          baseBranch: baseBranch.name,
         },
         tip,
         beforeSha
