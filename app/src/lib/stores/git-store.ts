@@ -1013,6 +1013,10 @@ export class GitStore extends BaseStore {
    * Updates the latest stash entry with a list of files that it changes
    */
   public async loadStashedFiles(stashEntry: IStashEntry) {
+    if (!enableStashing()) {
+      return
+    }
+
     if (stashEntry.files.kind !== StashedChangesLoadStates.NotLoaded) {
       return
     }
