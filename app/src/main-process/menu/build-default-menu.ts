@@ -395,11 +395,13 @@ export function buildDefaultMenu({
       shell.openExternal('https://help.github.com/desktop/guides/')
     },
   }
-  
+
   const showKeyboardShortcuts: Electron.MenuItemConstructorOptions = {
     label: 'Show Keyboard Shortcuts',
     click() {
-      shell.openExternal('https://help.github.com/en/desktop/getting-started-with-github-desktop/keyboard-shortcuts-in-github-desktop')
+      shell.openExternal(
+        'https://help.github.com/en/desktop/getting-started-with-github-desktop/keyboard-shortcuts-in-github-desktop'
+      )
     },
   }
 
