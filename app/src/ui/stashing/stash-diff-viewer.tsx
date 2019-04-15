@@ -1,5 +1,3 @@
-/* tslint:disable:button-group-order */
-
 import * as React from 'react'
 import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { FileList } from '../history/file-list'
@@ -119,10 +117,10 @@ const Header: React.SFC<{
     <div className="header">
       <h3>Stashed changes</h3>
       <ButtonGroup>
-        <Button onClick={onClearClick}>Clear</Button>
         <Button onClick={onSubmitClick} type="submit">
           Restore
         </Button>
+        <Button onClick={onClearClick}>Clear</Button>
       </ButtonGroup>
     </div>
   )
