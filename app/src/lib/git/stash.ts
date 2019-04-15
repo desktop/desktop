@@ -7,7 +7,7 @@ import {
   StashedFileChanges,
 } from '../../models/stash-entry'
 import { CommittedFileChange } from '../../models/status'
-import { mapStatus } from './log'
+import { fileChangesFromStatusOutput } from './log'
 
 export const DesktopStashEntryMarker = '!!GitHub_Desktop'
 
@@ -147,6 +147,8 @@ function extractBranchFromMessage(message: string): string | null {
 /** Get the files that were changed in the given stash commit.
  *  This is different than `getChangedFiles` because stashes
  *  have _3 parents(!!!)_
+ *
+ * TODO: support showing untracked files in the diff
  */
 export async function getStashedFiles(
   repository: Repository,
@@ -160,30 +162,5 @@ export async function getStashedFiles(
   const args = ['diff', '-C', '-M', '--name-status', '-z', sha, `${sha}^`, '--']
   const result = await git(args, repository.path, 'getStashedFiles')
 
-  const out = result.stdout
-  const lines = out.split('\0')
-  // Remove the trailing empty line
-  lines.splice(-1, 1)
-
-  const files: CommittedFileChange[] = []
-  for (let i = 0; i < lines.length; i++) {
-    const statusText = lines[i]
-
-    let oldPath: string | undefined = undefined
-
-    if (
-      statusText.length > 0 &&
-      (statusText[0] === 'R' || statusText[0] === 'C')
-    ) {
-      oldPath = lines[++i]
-    }
-
-    const status = mapStatus(statusText, oldPath)
-
-    const path = lines[++i]
-
-    files.push(new CommittedFileChange(path, status, sha))
-  }
-
-  return files
+  return fileChangesFromStatusOutput(result.stdout, sha)
 }

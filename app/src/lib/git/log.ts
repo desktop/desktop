@@ -18,7 +18,7 @@ import {
  * Map the raw status text from Git to an app-friendly value
  * shamelessly borrowed from GitHub Desktop (Windows)
  */
-export function mapStatus(
+function mapStatus(
   rawStatus: string,
   oldPath?: string
 ): PlainFileStatus | CopiedOrRenamedFileStatus | UntrackedFileStatus {
@@ -179,11 +179,23 @@ export async function getChangedFiles(
   ]
   const result = await git(args, repository.path, 'getChangedFiles')
 
-  const out = result.stdout
-  const lines = out.split('\0')
+  return fileChangesFromStatusOutput(result.stdout, sha)
+}
+
+/**
+ * Parses git `show` or `diff` output into a list of of changed files
+ * (but not a complete diff)
+ *
+ * @param statusOutput ouput from a git log or diff with `-z` and `--name-status` flags
+ * @param sha commit command was run on
+ */
+export function fileChangesFromStatusOutput(
+  statusOutput: string,
+  sha: string
+): ReadonlyArray<CommittedFileChange> {
+  const lines = statusOutput.split('\0')
   // Remove the trailing empty line
   lines.splice(-1, 1)
-
   const files: CommittedFileChange[] = []
   for (let i = 0; i < lines.length; i++) {
     const statusText = lines[i]
