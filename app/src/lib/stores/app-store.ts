@@ -2555,7 +2555,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     let shouldPopStash = false
 
-    if (currentBranch !== null) {
+    if (enableStashing() && currentBranch !== null) {
       if (
         uncommittedChangesStrategy ===
         UncommittedChangesStrategy.stashOnCurrentBranch
@@ -4760,6 +4760,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     branchName: string,
     removePreviousStash: boolean = true
   ) {
+    if (!enableStashing()) {
+      return
+    }
     const { branchesState } = this.repositoryStateCache.get(repository)
     const { tip } = branchesState
     if (tip.kind !== TipState.Valid) {
@@ -4787,6 +4790,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _popStashEntry(repository: Repository, stashEntry: IStashEntry) {
+    if (!enableStashing()) {
+      return
+    }
     const gitStore = this.gitStoreCache.get(repository)
     await gitStore.performFailableOperation(() => {
       return popStashEntry(repository, stashEntry.stashSha)
@@ -4805,6 +4811,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     stashEntry: IStashEntry
   ) {
+    if (!enableStashing()) {
+      return
+    }
     const gitStore = this.gitStoreCache.get(repository)
     await gitStore.performFailableOperation(() => {
       return dropDesktopStashEntry(repository, stashEntry.stashSha)
@@ -4820,6 +4829,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _showStashEntry(repository: Repository) {
+    if (!enableStashing()) {
+      return
+    }
     this.repositoryStateCache.updateChangesState(repository, state => {
       return {
         shouldShowStashedChanges: true,
@@ -4832,6 +4844,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _hideStashEntry(repository: Repository) {
+    if (!enableStashing()) {
+      return
+    }
     this.repositoryStateCache.updateChangesState(repository, state => {
       return {
         shouldShowStashedChanges: false,
@@ -4850,6 +4865,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     stashEntry: IStashEntry
   ) {
+    if (!enableStashing()) {
+      return
+    }
     const gitStore = this.gitStoreCache.get(repository)
     await gitStore.loadStashedFiles(stashEntry)
   }
@@ -4859,6 +4877,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     file: CommittedFileChange
   ): Promise<void> {
+    if (!enableStashing()) {
+      return
+    }
     this.repositoryStateCache.updateChangesState(repository, () => ({
       selectedStashedFile: file,
       selectedStashedFileDiff: null,
