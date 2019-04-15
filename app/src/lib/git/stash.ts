@@ -7,7 +7,7 @@ import {
   StashedFileChanges,
 } from '../../models/stash-entry'
 import { CommittedFileChange } from '../../models/status'
-import { fileChangesFromStatusOutput } from './log'
+import { parseChangedFiles } from './log'
 
 export const DesktopStashEntryMarker = '!!GitHub_Desktop'
 
@@ -162,5 +162,5 @@ export async function getStashedFiles(
   const args = ['diff', '-C', '-M', '--name-status', '-z', sha, `${sha}^`, '--']
   const result = await git(args, repository.path, 'getStashedFiles')
 
-  return fileChangesFromStatusOutput(result.stdout, sha)
+  return parseChangedFiles(result.stdout, sha)
 }

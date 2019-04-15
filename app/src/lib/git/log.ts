@@ -179,21 +179,21 @@ export async function getChangedFiles(
   ]
   const result = await git(args, repository.path, 'getChangedFiles')
 
-  return fileChangesFromStatusOutput(result.stdout, sha)
+  return parseChangedFiles(result.stdout, sha)
 }
 
 /**
- * Parses git `show` or `diff` output into a list of of changed files
- * (but not a complete diff)
+ * Parses git `log` or `diff` output into a list of changed files
+ * (see `getChangedFiles` for an example of use)
  *
- * @param statusOutput ouput from a git log or diff with `-z` and `--name-status` flags
- * @param sha commit command was run on
+ * @param stdout raw ouput from a git `-z` and `--name-status` flags
+ * @param committish commitish command was run against
  */
-export function fileChangesFromStatusOutput(
-  statusOutput: string,
-  sha: string
+export function parseChangedFiles(
+  stdout: string,
+  committish: string
 ): ReadonlyArray<CommittedFileChange> {
-  const lines = statusOutput.split('\0')
+  const lines = stdout.split('\0')
   // Remove the trailing empty line
   lines.splice(-1, 1)
   const files: CommittedFileChange[] = []
@@ -213,7 +213,7 @@ export function fileChangesFromStatusOutput(
 
     const path = lines[++i]
 
-    files.push(new CommittedFileChange(path, status, sha))
+    files.push(new CommittedFileChange(path, status, committish))
   }
 
   return files
