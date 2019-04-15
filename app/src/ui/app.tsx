@@ -100,6 +100,8 @@ import {
   initializeRebaseFlowForConflictedRepository,
 } from '../lib/rebase'
 import { BannerType } from '../models/banner'
+import { StashAndSwitchBranch } from './stash-changes/stash-and-switch-branch-dialog'
+import { OverwriteStash } from './stash-changes/overwrite-stashed-changes-dialog'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -1635,6 +1637,43 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       }
+      case PopupType.StashAndSwitchBranch: {
+        const { repository, branchToCheckout } = popup
+        const {
+          branchesState,
+          stashEntries,
+        } = this.props.repositoryStateManager.get(repository)
+        const { tip } = branchesState
+
+        if (tip.kind !== TipState.Valid) {
+          return null
+        }
+
+        const currentBranch = tip.branch
+        const hasAssociatedStash = stashEntries.has(currentBranch.name)
+
+        return (
+          <StashAndSwitchBranch
+            dispatcher={this.props.dispatcher}
+            repository={popup.repository}
+            currentBranch={currentBranch}
+            branchToCheckout={branchToCheckout}
+            hasAssociatedStash={hasAssociatedStash}
+            onDismissed={this.onPopupDismissed}
+          />
+        )
+      }
+      case PopupType.ConfirmOverwriteStash: {
+        const { repository, branchToCheckout: branchToCheckout } = popup
+        return (
+          <OverwriteStash
+            dispatcher={this.props.dispatcher}
+            repository={repository}
+            branchToCheckout={branchToCheckout}
+            onDismissed={this.onPopupDismissed}
+          />
+        )
+      }
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
@@ -2164,6 +2203,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           emoji={state.emoji}
           sidebarWidth={state.sidebarWidth}
           commitSummaryWidth={state.commitSummaryWidth}
+          stashedFilesWidth={state.stashedFilesWidth}
           issuesStore={this.props.issuesStore}
           gitHubUserStore={this.props.gitHubUserStore}
           onViewCommitOnGitHub={this.onViewCommitOnGitHub}

@@ -30,9 +30,10 @@ export interface IMergedBranch {
 export async function createBranch(
   repository: Repository,
   name: string,
-  startPoint?: string
+  startPoint: string | null
 ): Promise<Branch | null> {
-  const args = startPoint ? ['branch', name, startPoint] : ['branch', name]
+  const args =
+    startPoint !== null ? ['branch', name, startPoint] : ['branch', name]
 
   try {
     await git(args, repository.path, 'createBranch')
