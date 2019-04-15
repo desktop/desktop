@@ -71,6 +71,12 @@ dialog#rebase-conflicts-list {
         display: flex;
         align-items: center;
         justify-content: center;
+
+        .resolve-arrow-menu {
+          .octicon {
+            margin-left: var(--spacing-half);
+          }
+        }
       }
 
       .green-circle:last-child {
