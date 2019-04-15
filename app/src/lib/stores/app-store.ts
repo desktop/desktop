@@ -2487,7 +2487,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return repository
     }
 
-    return await this._checkoutBranch(repository, branch)
+    return await this._checkoutBranch(repository, branch, UncommittedChangesStrategy.moveToNewBranch)
   }
 
   private updateCheckoutProgress(
