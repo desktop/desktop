@@ -157,7 +157,7 @@ export async function getStashedFiles(
   // NOTE: order here matters - doing -M before -C means copies aren't detected
 
   // git diff -C -M --name-status -z [STASH_SHA] [STASH_SHA]^
-  const args = ['stash', 'show', '-C', '-M', '--name-status', '-z', sha, '--']
+  const args = ['diff', '-C', '-M', '--name-status', '-z', sha, `${sha}^`, '--']
   const result = await git(args, repository.path, 'getStashedFiles')
 
   const out = result.stdout
