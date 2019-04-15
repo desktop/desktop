@@ -1619,6 +1619,9 @@ export class App extends React.Component<IAppProps, IAppState> {
             step={step}
             preview={preview}
             userHasResolvedConflicts={userHasResolvedConflicts}
+            askForConfirmationOnForcePush={
+              this.state.askForConfirmationOnForcePush
+            }
             resolvedExternalEditor={this.state.resolvedExternalEditor}
             openRepositoryInShell={this.openCurrentRepositoryInShell}
             onShowRebaseConflictsBanner={this.onShowRebaseConflictsBanner}
