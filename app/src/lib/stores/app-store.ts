@@ -4781,7 +4781,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     await dropDesktopStashEntry(repository, previousStash.stashSha)
-    log.warn(
+    log.info(
       `Dropped stash '${previousStash.stashSha}' associated with ${
         previousStash.branchName
       }`
