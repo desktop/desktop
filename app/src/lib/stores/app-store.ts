@@ -4786,6 +4786,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
         previousStash.branchName
       }`
     )
+
+    await this._refreshRepository(repository)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
