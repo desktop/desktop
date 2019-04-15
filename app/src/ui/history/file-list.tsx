@@ -21,10 +21,10 @@ import { showContextualMenu } from '../main-process-proxy'
 import { clipboard } from 'electron'
 import { mapStatus } from '../../lib/status'
 
-interface IFileListProps {
-  readonly files: ReadonlyArray<FileChange>
-  readonly selectedFile: FileChange | null
-  readonly onSelectedFileChanged: (file: FileChange) => void
+interface IFileListProps<T extends FileChange> {
+  readonly files: ReadonlyArray<T>
+  readonly selectedFile: T | null
+  readonly onSelectedFileChanged: (file: T) => void
   readonly availableWidth: number
 
   /**
@@ -49,7 +49,9 @@ interface IFileListProps {
   readonly repository: Repository
 }
 
-export class FileList extends React.Component<IFileListProps, {}> {
+export class FileList<T extends FileChange> extends React.Component<
+  IFileListProps<T>
+> {
   private onSelectedRowChanged = (row: number) => {
     const file = this.props.files[row]
     this.props.onSelectedFileChanged(file)
