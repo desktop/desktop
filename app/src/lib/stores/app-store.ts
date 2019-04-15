@@ -4787,6 +4787,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }`
     )
 
+    this._changeStashedFileSelection(repository, null)
+
     await this._refreshRepository(repository)
   }
 
