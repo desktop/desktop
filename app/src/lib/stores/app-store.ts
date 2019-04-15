@@ -4877,7 +4877,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _changeStashedFileSelection(
     repository: Repository,
-    file: CommittedFileChange
+    file: CommittedFileChange | null
   ): Promise<void> {
     if (!enableStashing()) {
       return
@@ -4887,6 +4887,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       selectedStashedFileDiff: null,
     }))
     this.emitUpdate()
+
+    if (file === null) {
+      return
+    }
 
     const diff = await getCommitDiff(repository, file, file.commitish)
 

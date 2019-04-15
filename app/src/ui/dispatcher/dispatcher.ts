@@ -2026,7 +2026,7 @@ export class Dispatcher {
    */
   public changeStashedFileSelection(
     repository: Repository,
-    file: CommittedFileChange
+    file: CommittedFileChange | null
   ): Promise<void> {
     return this.appStore._changeStashedFileSelection(repository, file)
   }
