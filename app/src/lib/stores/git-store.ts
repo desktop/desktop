@@ -63,7 +63,6 @@ import {
   revSymmetricDifference,
   getSymbolicRef,
   getConfigValue,
-  getChangedFiles,
 } from '../git'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import { UpstreamAlreadyExistsError } from './upstream-already-exists-error'
@@ -79,7 +78,7 @@ import { GitAuthor } from '../../models/git-author'
 import { IGitAccount } from '../../models/git-account'
 import { BaseStore } from './base-store'
 import { enablePullWithRebase, enableStashing } from '../feature-flag'
-import { getDesktopStashEntries } from '../git/stash'
+import { getDesktopStashEntries, getStashedFiles } from '../git/stash'
 import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 
 /** The number of commits to load from history per batch. */
@@ -1035,7 +1034,7 @@ export class GitStore extends BaseStore {
     })
     this.emitUpdate()
 
-    const files = await getChangedFiles(this.repository, existingEntry.stashSha)
+    const files = await getStashedFiles(this.repository, existingEntry.stashSha)
 
     existingEntry = this._stashEntries.get(branchName)
 

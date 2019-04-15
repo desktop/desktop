@@ -6,6 +6,8 @@ import {
   StashedChangesLoadStates,
   StashedFileChanges,
 } from '../../models/stash-entry'
+import { CommittedFileChange } from '../../models/status'
+import { parseChangedFiles } from './log'
 
 export const DesktopStashEntryMarker = '!!GitHub_Desktop'
 
@@ -140,4 +142,25 @@ export async function popStashEntry(
 function extractBranchFromMessage(message: string): string | null {
   const match = desktopStashEntryMessageRe.exec(message)
   return match === null || match[1].length === 0 ? null : match[1]
+}
+
+/** Get the files that were changed in the given stash commit.
+ *  This is different than `getChangedFiles` because stashes
+ *  have _3 parents(!!!)_
+ *
+ * TODO: support showing untracked files in the diff
+ */
+export async function getStashedFiles(
+  repository: Repository,
+  sha: string
+): Promise<ReadonlyArray<CommittedFileChange>> {
+  // opt-in for rename detection (-M) and copies detection (-C)
+  // this is equivalent to the user configuring 'diff.renames' to 'copies'
+  // NOTE: order here matters - doing -M before -C means copies aren't detected
+
+  // git diff -C -M --name-status -z [STASH_SHA] [STASH_SHA]^
+  const args = ['diff', '-C', '-M', '--name-status', '-z', sha, `${sha}^`, '--']
+  const result = await git(args, repository.path, 'getStashedFiles')
+
+  return parseChangedFiles(result.stdout, sha)
 }
