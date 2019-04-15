@@ -2476,7 +2476,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _createBranch(
     repository: Repository,
     name: string,
-    startPoint?: string,
+    startPoint: string | null,
     uncommittedChangesStrategy: UncommittedChangesStrategy = UncommittedChangesStrategy.askForConfirmation
   ): Promise<Repository> {
     const gitStore = this.gitStoreCache.get(repository)
