@@ -37,6 +37,7 @@ import { ManualConflictResolution } from '../models/manual-conflict-resolution'
 import { Banner } from '../models/banner'
 import { GitRebaseProgress, RebasePreview } from '../models/rebase'
 import { RebaseFlowStep } from '../models/rebase-flow-step'
+import { IStashEntry } from '../models/stash-entry'
 
 export enum SelectionType {
   Repository,
@@ -150,6 +151,9 @@ export interface IAppState {
 
   /** The width of the commit summary column in the history view */
   readonly commitSummaryWidth: number
+
+  /** The width of the files list in the stash view */
+  readonly stashedFilesWidth: number
 
   /** Whether we should hide the toolbar (and show inverted window controls) */
   readonly titleBarStyle: 'light' | 'dark'
@@ -367,6 +371,9 @@ export interface IRepositoryState {
   /** The state of the current branch in relation to its upstream. */
   readonly aheadBehind: IAheadBehind | null
 
+  /** A map keyed on the canonical ref name of stash entries created by Desktop. */
+  readonly stashEntries: ReadonlyMap<string, IStashEntry>
+
   /** Is a push/pull/fetch in progress? */
   readonly isPushPullFetchInProgress: boolean
 
@@ -551,6 +558,15 @@ export interface IChangesState {
    * The absence of a value means there is no merge or rebase conflict underway
    */
   readonly conflictState: ConflictState | null
+
+  /** Whether or not to show the UI for a stash entry. */
+  readonly shouldShowStashedChanges: boolean
+
+  /** Currently selected file in the stash diff viewer UI (aka the file we want to show the diff for) */
+  readonly selectedStashedFile: CommittedFileChange | null
+
+  /** Currently selected file's diff */
+  readonly selectedStashedFileDiff: IDiff | null
 }
 
 /**
