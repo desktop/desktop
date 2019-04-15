@@ -416,9 +416,15 @@ export class Dispatcher {
   public createBranch(
     repository: Repository,
     name: string,
-    startPoint?: string
+    startPoint: string | null,
+    uncommittedChangesStrategy: UncommittedChangesStrategy = UncommittedChangesStrategy.askForConfirmation
   ): Promise<Repository> {
-    return this.appStore._createBranch(repository, name, startPoint)
+    return this.appStore._createBranch(
+      repository,
+      name,
+      startPoint,
+      uncommittedChangesStrategy
+    )
   }
 
   /** Check out the given branch. */
