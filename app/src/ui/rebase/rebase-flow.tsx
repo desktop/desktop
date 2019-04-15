@@ -11,7 +11,6 @@ import {
 } from '../../models/rebase-flow-step'
 import { GitRebaseProgress, RebasePreview } from '../../models/rebase'
 import { WorkingDirectoryStatus } from '../../models/status'
-import { CommitOneLine } from '../../models/commit'
 
 import { Dispatcher } from '../dispatcher'
 
@@ -20,6 +19,7 @@ import { ShowConflictedFilesDialog } from './show-conflicted-files-dialog'
 import { RebaseProgressDialog } from './progress-dialog'
 import { ConfirmAbortDialog } from './confirm-abort-dialog'
 import { getResolvedFiles } from '../../lib/status'
+import { WarnForcePushDialog } from './warn-force-push-dialog'
 
 interface IRebaseFlowProps {
   readonly repository: Repository
@@ -50,6 +50,8 @@ interface IRebaseFlowProps {
    * abort the rebase and lose that work.
    */
   readonly userHasResolvedConflicts: boolean
+
+  readonly askForConfirmationOnForcePush: boolean
 
   /**
    * Callback to hide the rebase flow and show a banner about the current state
@@ -90,30 +92,6 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
     this.props.dispatcher.setRebaseFlowStep(this.props.repository, {
       kind: RebaseStep.ShowConflicts,
       conflictState,
-    })
-  }
-
-  private onStartRebase = async (
-    baseBranch: string,
-    targetBranch: string,
-    commits: ReadonlyArray<CommitOneLine>
-  ) => {
-    this.props.dispatcher.initializeRebaseProgress(
-      this.props.repository,
-      commits
-    )
-
-    const startRebaseAction = () => {
-      return this.props.dispatcher.rebase(
-        this.props.repository,
-        baseBranch,
-        targetBranch
-      )
-    }
-
-    this.props.dispatcher.setRebaseFlowStep(this.props.repository, {
-      kind: RebaseStep.ShowProgress,
-      rebaseAction: startRebaseAction,
     })
   }
 
@@ -207,7 +185,6 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
             currentBranch={currentBranch}
             initialBranch={initialBranch}
             onDismissed={this.onFlowEnded}
-            onStartRebase={this.onStartRebase}
             rebasePreviewStatus={this.props.preview}
           />
         )
@@ -261,6 +238,23 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
             onReturnToConflicts={this.moveToShowConflictedFileState}
           />
         )
+      case RebaseStep.WarnForcePush:
+        const {
+          repository,
+          dispatcher,
+          askForConfirmationOnForcePush,
+        } = this.props
+
+        return (
+          <WarnForcePushDialog
+            step={step}
+            dispatcher={dispatcher}
+            repository={repository}
+            askForConfirmationOnForcePush={askForConfirmationOnForcePush}
+            onDismissed={this.onFlowEnded}
+          />
+        )
+
       case RebaseStep.HideConflicts:
       case RebaseStep.Completed:
         // there is no UI to display at this point in the flow
