@@ -62,7 +62,8 @@ export class StashDiffViewer extends React.PureComponent<
         : new Array<CommittedFileChange>()
 
     const diffComponent =
-      this.props.selectedStashedFile && this.props.stashedFileDiff ? (
+      this.props.selectedStashedFile !== null &&
+      this.props.stashedFileDiff !== null ? (
         <Diff
           repository={this.props.repository}
           readOnly={true}
