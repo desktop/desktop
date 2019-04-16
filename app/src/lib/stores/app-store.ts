@@ -1959,7 +1959,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
-  /** This shouldn't be called directly. See `Dispatcher`. */
+  /**
+   * Changes the selection in the changes view to the working directory and
+   * optionally selects a particular file from the working directory.
+   *
+   *  @param files An array of files to select when showing the working directory.
+   *               If undefined this method will preserve the previously selected
+   *               files or pick the first changed file if no selection exists.
+   *
+   * Note: This shouldn't be called directly. See `Dispatcher`.
+   */
   public async _selectWorkingDirectoryFiles(
     repository: Repository,
     files?: ReadonlyArray<WorkingDirectoryFileChange>
