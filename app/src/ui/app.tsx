@@ -1641,7 +1641,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         const { repository, branchToCheckout } = popup
         const {
           branchesState,
-          stashEntries,
+          changesState,
         } = this.props.repositoryStateManager.get(repository)
         const { tip } = branchesState
 
@@ -1650,7 +1650,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         }
 
         const currentBranch = tip.branch
-        const hasAssociatedStash = stashEntries.has(currentBranch.name)
+        const hasAssociatedStash = changesState.stashEntry !== null
 
         return (
           <StashAndSwitchBranch
