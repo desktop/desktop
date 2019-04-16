@@ -331,9 +331,7 @@ export function selectWorkingDirectoryFiles(
 
   return {
     selection: {
-      kind: <ChangesSelectionKind.WorkingDirectory>(
-        ChangesSelectionKind.WorkingDirectory
-      ),
+      kind: ChangesSelectionKind.WorkingDirectory as ChangesSelectionKind.WorkingDirectory,
       selectedFileIDs,
       diff: null,
     },
