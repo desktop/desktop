@@ -144,7 +144,10 @@ function extractBranchFromMessage(message: string): string | null {
   return match === null || match[1].length === 0 ? null : match[1]
 }
 
-/** The SHA for the empty tree. */
+/**
+ * The SHA for the [empty tree](https://stackoverflow.com/questions/9765453/is-gits-semi-secret-empty-tree-object-reliable-and-why-is-there-not-a-symbolic).
+ *
+ */
 const NullTreeSHA = '4b825dc642cb6eb9a060e54bf8d69288fbee4904'
 
 /**
