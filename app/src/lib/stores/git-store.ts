@@ -132,6 +132,8 @@ export class GitStore extends BaseStore {
 
   private _stashEntries = new Map<string, IStashEntry>()
 
+  private _currentBranchStashEntry: IStashEntry | null = null
+
   public constructor(repository: Repository, shell: IAppShell) {
     super()
 
@@ -1000,12 +1002,20 @@ export class GitStore extends BaseStore {
     }
 
     this._stashEntries = map
+    this._currentBranchStashEntry =
+      this._tip && this._tip.kind === TipState.Valid
+        ? map.get(this._tip.branch.name) || null
+        : null
+
     this.emitUpdate()
   }
 
-  /** A map key on the canonical ref name of GitHub Desktop created stash entries for the repository */
-  public get stashEntries() {
-    return this._stashEntries
+  /**
+   * A GitHub Desktop created stash entries for the current branch or
+   * null if no entry exists
+   */
+  public get currentBranchStashEntry() {
+    return this._currentBranchStashEntry
   }
 
   /**
