@@ -166,7 +166,7 @@ export async function getStashedFiles(
   // this is equivalent to the user configuring 'diff.renames' to 'copies'
   // NOTE: order here matters - doing -M before -C means copies aren't detected
   const baseArgs = ['diff', '-C', '-M', '--name-status', '-z']
-  const trackedArgs = [...baseArgs, committish, `${committish}^`, '--']
+  const trackedArgs = [...baseArgs, `${committish}^..${committish}`, '--']
   const trackedResult = await git(
     trackedArgs,
     repository.path,
