@@ -116,7 +116,7 @@ const Header: React.SFC<{
   return (
     <div className="header">
       <h3>Stashed changes</h3>
-      <ButtonGroup>
+      <ButtonGroup destructive={true}>
         <Button onClick={onSubmitClick} type="submit">
           Restore
         </Button>
