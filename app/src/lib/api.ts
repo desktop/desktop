@@ -14,6 +14,31 @@ import { uuid } from './uuid'
 import { getAvatarWithEnterpriseFallback } from './gravatar'
 import { getDefaultEmail } from './email'
 
+/**
+ * Optional set of configurable settings for the fetchAll method
+ */
+interface IFetchAllOptions<T> {
+  /**
+   * The number of results to ask for on each page when making
+   * requests to paged API endpoints.
+   */
+  perPage?: number
+
+  /**
+   * An optional predicate which determines whether or not to
+   * continue loading results from the API. This can be used
+   * to put a limit on the number of results to return from
+   * a paged API resource.
+   *
+   * As an example, to stop loading results after 500 results:
+   *
+   * `(results) => results.length < 500`
+   *
+   * @param results  All results retrieved thus far
+   */
+  continue?: (results: ReadonlyArray<T>) => boolean
+}
+
 const username: () => Promise<string> = require('username')
 
 const ClientID = process.env.TEST_ENV ? '' : __OAUTH_CLIENT_ID__
@@ -500,31 +525,26 @@ export class API {
    * pages when available, buffers all items and returns them in
    * one array when done.
    */
-  private async fetchAll<T>(path: string): Promise<ReadonlyArray<T>> {
+  private async fetchAll<T>(path: string, options?: IFetchAllOptions<T>) {
     const buf = new Array<T>()
+    const opts: IFetchAllOptions<T> = { perPage: 100, ...options }
+    const params = { per_page: `${opts.perPage}` }
 
-    const params = {
-      per_page: '100',
-    }
     let nextPath: string | null = urlWithQueryString(path, params)
-
     do {
       const response = await this.request('GET', nextPath)
-      if (response.status === HttpStatusCode.NotFound) {
-        log.warn(`fetchAll: '${path}' returned a 404`)
-        return []
-      }
-      if (response.status === HttpStatusCode.NotModified) {
-        log.warn(`fetchAll: '${path}' returned a 304`)
-        return []
+      if (!response.ok) {
+        log.warn(`fetchAll: '${path}' returned a ${response.status}`)
+        return buf
       }
 
       const items = await parsedResponse<ReadonlyArray<T>>(response)
       if (items) {
         buf.push(...items)
       }
+
       nextPath = getNextPagePath(response)
-    } while (nextPath)
+    } while (nextPath && (!opts.continue || opts.continue(buf)))
 
     return buf
   }
