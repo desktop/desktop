@@ -196,9 +196,15 @@ export async function getStashedFiles(
       `${committish}^3`
     )
 
-    // order is important here, since we want untracked changes to
-    // override potential (and uncommon) collisions with tracked changes
-    return [...trackedFiles, ...untrackedFiles]
+    // we want untracked changes to override potential
+    // collisions with tracked changes
+    const allFiles = Array.from(untrackedFiles)
+    for (const trackedFile of trackedFiles) {
+      if (!untrackedFiles.some(f => f.path === trackedFile.path)) {
+        allFiles.push(trackedFile)
+      }
+    }
+    return allFiles
   }
 
   return trackedFiles
