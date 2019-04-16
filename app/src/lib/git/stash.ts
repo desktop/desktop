@@ -144,43 +144,53 @@ function extractBranchFromMessage(message: string): string | null {
   return match === null || match[1].length === 0 ? null : match[1]
 }
 
+/** The SHA for the null tree. */
 const NullTreeSHA = '4b825dc642cb6eb9a060e54bf8d69288fbee4904'
 
-/** Get the files that were changed in the given stash commit.
- *  This is different than `getChangedFiles` because stashes
- *  have _3 parents(!!!)_
+/**
+ * Get the files that were changed in the given stash commit.
  *
- * TODO: support showing untracked files in the diff
+ * Runs `git diff` twice, once for tracked changes in the stash
+ * and once for untracked changes in the stash.
+ * This is different than `getChangedFiles` because stashes
+ * have _3 parents(!!!)_
  */
 export async function getStashedFiles(
   repository: Repository,
-  sha: string
+  committish: string
 ): Promise<ReadonlyArray<CommittedFileChange>> {
   // opt-in for rename detection (-M) and copies detection (-C)
   // this is equivalent to the user configuring 'diff.renames' to 'copies'
   // NOTE: order here matters - doing -M before -C means copies aren't detected
   const baseArgs = ['diff', '-C', '-M', '--name-status', '-z']
-  const trackedArgs = [...baseArgs, sha, `${sha}^`, '--']
+  const trackedArgs = [...baseArgs, committish, `${committish}^`, '--']
   const trackedResult = await git(
     trackedArgs,
     repository.path,
     'getStashedFiles (tracked)'
   )
 
-  const trackedFiles = parseChangedFiles(trackedResult.stdout, sha)
+  const trackedFiles = parseChangedFiles(trackedResult.stdout, committish)
 
-  const untrackedArgs = [...baseArgs, NullTreeSHA, `${sha}^3`, '--']
+  const untrackedArgs = [...baseArgs, NullTreeSHA, `${committish}^3`, '--']
   const untrackedResult = await git(
     untrackedArgs,
     repository.path,
     'getStashedFiles (untracked)',
     {
+      // if this fails, its most likely
+      // because there weren't any untracked files,
+      // and that's okay!
       successExitCodes: new Set([0, 128]),
     }
   )
 
-  const untrackedFiles = parseChangedFiles(untrackedResult.stdout, `${sha}^3`)
+  const untrackedFiles = parseChangedFiles(
+    untrackedResult.stdout,
+    `${committish}^3`
+  )
 
-  // order is important here
+  // order is important here, since we want untracked changes to
+  // override potential (and uncommon) collisions with tracked changes
   return [...trackedFiles, ...untrackedFiles]
 }
