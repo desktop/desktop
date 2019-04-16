@@ -575,6 +575,12 @@ export interface IChangesState {
    */
   readonly conflictState: ConflictState | null
 
+  /**
+   * The latest GitHub Desktop stash entry for the current branch, or null
+   * if no stash exists for the current branch.
+   */
+  readonly stashEntry: IStashEntry | null
+
   readonly selection: ChangesSelection | null
 }
 
