@@ -22,6 +22,7 @@ import { ComparisonCache } from '../comparison-cache'
 import { IGitHubUser } from '../databases'
 import { merge } from '../merge'
 import { DefaultCommitMessage } from '../../models/commit-message'
+import { IStashEntry } from '../../models/stash-entry'
 
 export class RepositoryStateCache {
   private readonly repositoryState = new Map<string, IRepositoryState>()
@@ -129,6 +130,9 @@ function getInitialRepositoryState(): IRepositoryState {
       coAuthors: [],
       showCoAuthoredBy: false,
       conflictState: null,
+      shouldShowStashedChanges: false,
+      selectedStashedFile: null,
+      selectedStashedFileDiff: null,
     },
     selectedSection: RepositorySectionTab.Changes,
     branchesState: {
@@ -178,5 +182,6 @@ function getInitialRepositoryState(): IRepositoryState {
     revertProgress: null,
     branchFilterText: '',
     pullRequestFilterText: '',
+    stashEntries: new Map<string, IStashEntry>(),
   }
 }

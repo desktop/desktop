@@ -19,6 +19,9 @@ import { FocusContainer } from './lib/focus-container'
 import { OcticonSymbol, Octicon } from './octicons'
 import { ImageDiffType } from '../models/diff'
 import { IMenu } from '../models/app-menu'
+import { enableStashing } from '../lib/feature-flag'
+import { StashDiffViewer } from './stashing'
+import { StashedChangesLoadStates } from '../models/stash-entry'
 
 /** The widest the sidebar can be with the minimum window size. */
 const MaxSidebarWidth = 495
@@ -30,6 +33,7 @@ interface IRepositoryViewProps {
   readonly emoji: Map<string, string>
   readonly sidebarWidth: number
   readonly commitSummaryWidth: number
+  readonly stashedFilesWidth: number
   readonly issuesStore: IssuesStore
   readonly gitHubUserStore: GitHubUserStore
   readonly onViewCommitOnGitHub: (SHA: string) => void
@@ -138,6 +142,7 @@ export class RepositoryView extends React.Component<
 
     // -1 Because of right hand side border
     const availableWidth = this.props.sidebarWidth - 1
+    const stashEntry = this.currentStashForBranch()
 
     return (
       <ChangesSidebar
@@ -163,6 +168,7 @@ export class RepositoryView extends React.Component<
         onOpenInExternalEditor={this.props.onOpenInExternalEditor}
         onChangesListScrolled={this.onChangesListScrolled}
         changesListScrollTop={this.state.changesListScrollTop}
+        stashEntry={stashEntry}
       />
     )
   }
@@ -241,12 +247,75 @@ export class RepositoryView extends React.Component<
     }
   }
 
+  private currentStashForBranch() {
+    if (!enableStashing()) {
+      return null
+    }
+
+    const { branchesState, stashEntries } = this.props.state
+    const tip = branchesState.tip
+    if (tip.kind !== TipState.Valid) {
+      return null
+    }
+
+    // Using the short form ref name because the branch model does not keep track
+    // of the canonical ref name. Todo: update model to use the canonical ref name.
+    const branch = tip.branch
+    const stashEntry = stashEntries.get(branch.name)
+    if (stashEntry === undefined) {
+      return null
+    }
+
+    return stashEntry
+  }
+
+  private renderStashedChangesContent(): JSX.Element | null {
+    const stashEntry = this.currentStashForBranch()
+    if (stashEntry === null) {
+      return null
+    }
+
+    if (stashEntry.files.kind === StashedChangesLoadStates.Loaded) {
+      return (
+        <StashDiffViewer
+          stashEntry={stashEntry}
+          selectedStashedFile={
+            this.props.state.changesState.selectedStashedFile
+          }
+          stashedFileDiff={
+            this.props.state.changesState.selectedStashedFileDiff
+          }
+          imageDiffType={this.props.imageDiffType}
+          fileListWidth={this.props.stashedFilesWidth}
+          externalEditorLabel={this.props.externalEditorLabel}
+          onOpenInExternalEditor={this.props.onOpenInExternalEditor}
+          repository={this.props.repository}
+          dispatcher={this.props.dispatcher}
+        />
+      )
+    } else if (this.props.state.branchesState.tip.kind === TipState.Valid) {
+      this.props.dispatcher.loadStashedFiles(this.props.repository, stashEntry)
+      return null
+    }
+    return null
+  }
+
   private renderContent(): JSX.Element | null {
     const selectedSection = this.props.state.selectedSection
-
     if (selectedSection === RepositorySectionTab.Changes) {
       const { changesState } = this.props.state
-      const { workingDirectory, selectedFileIDs, diff } = changesState
+      const {
+        workingDirectory,
+        selectedFileIDs,
+        diff,
+        shouldShowStashedChanges,
+      } = changesState
+
+      if (enableStashing()) {
+        if (shouldShowStashedChanges && selectedFileIDs.length === 0) {
+          return this.renderStashedChangesContent()
+        }
+      }
 
       if (selectedFileIDs.length > 1) {
         return <MultipleSelection count={selectedFileIDs.length} />

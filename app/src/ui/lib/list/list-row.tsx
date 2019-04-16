@@ -27,16 +27,16 @@ interface IListRowProps {
   readonly onRef?: (element: HTMLDivElement | null) => void
 
   /** callback to fire when the row receives a mouseover event */
-  readonly onRowMouseOver: (index: number, e: React.MouseEvent<any>) => void
+  readonly onRowMouseOver?: (index: number, e: React.MouseEvent<any>) => void
 
   /** callback to fire when the row receieves a mousedown event */
-  readonly onRowMouseDown: (index: number, e: React.MouseEvent<any>) => void
+  readonly onRowMouseDown?: (index: number, e: React.MouseEvent<any>) => void
 
   /** callback to fire when the row is clicked */
-  readonly onRowClick: (index: number, e: React.MouseEvent<any>) => void
+  readonly onRowClick?: (index: number, e: React.MouseEvent<any>) => void
 
   /** callback to fire when the row receives a keyboard event */
-  readonly onRowKeyDown: (index: number, e: React.KeyboardEvent<any>) => void
+  readonly onRowKeyDown?: (index: number, e: React.KeyboardEvent<any>) => void
 
   /**
    * Whether or not this list row is going to be selectable either through
@@ -44,23 +44,34 @@ interface IListRowProps {
    * whether or not to present a hover state for the list row.
    */
   readonly selectable: boolean
+
+  /** a custom css class to apply to the row */
+  readonly className?: string
 }
 
 export class ListRow extends React.Component<IListRowProps, {}> {
   private onRowMouseOver = (e: React.MouseEvent<HTMLDivElement>) => {
-    this.props.onRowMouseOver(this.props.rowIndex, e)
+    if (this.props.onRowMouseOver !== undefined) {
+      this.props.onRowMouseOver(this.props.rowIndex, e)
+    }
   }
 
   private onRowMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    this.props.onRowMouseDown(this.props.rowIndex, e)
+    if (this.props.onRowMouseDown !== undefined) {
+      this.props.onRowMouseDown(this.props.rowIndex, e)
+    }
   }
 
   private onRowClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    this.props.onRowClick(this.props.rowIndex, e)
+    if (this.props.onRowClick !== undefined) {
+      this.props.onRowClick(this.props.rowIndex, e)
+    }
   }
 
   private onRowKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    this.props.onRowKeyDown(this.props.rowIndex, e)
+    if (this.props.onRowKeyDown !== undefined) {
+      this.props.onRowKeyDown(this.props.rowIndex, e)
+    }
   }
 
   public render() {
@@ -68,7 +79,8 @@ export class ListRow extends React.Component<IListRowProps, {}> {
     const className = classNames(
       'list-item',
       { selected },
-      { 'not-selectable': this.props.selectable === false }
+      { 'not-selectable': this.props.selectable === false },
+      this.props.className
     )
     const role = this.props.ariaMode === 'menu' ? 'menuitem' : 'option'
 

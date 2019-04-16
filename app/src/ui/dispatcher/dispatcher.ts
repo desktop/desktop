@@ -82,7 +82,9 @@ import {
   StatusCallBack,
 } from '../../lib/stores/commit-status-store'
 import { MergeResult } from '../../models/merge'
+import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
+import { IStashEntry } from '../../models/stash-entry'
 
 /**
  * An error handler function.
@@ -382,7 +384,10 @@ export class Dispatcher {
       return
     }
 
-    const updatedConflictState = { ...conflictState, targetBranch }
+    const updatedConflictState = {
+      ...conflictState,
+      targetBranch,
+    }
 
     this.repositoryStateManager.updateChangesState(repository, () => ({
       conflictState: updatedConflictState,
@@ -411,17 +416,28 @@ export class Dispatcher {
   public createBranch(
     repository: Repository,
     name: string,
-    startPoint?: string
+    startPoint: string | null,
+    uncommittedChangesStrategy: UncommittedChangesStrategy = UncommittedChangesStrategy.askForConfirmation
   ): Promise<Repository> {
-    return this.appStore._createBranch(repository, name, startPoint)
+    return this.appStore._createBranch(
+      repository,
+      name,
+      startPoint,
+      uncommittedChangesStrategy
+    )
   }
 
   /** Check out the given branch. */
   public checkoutBranch(
     repository: Repository,
-    branch: Branch | string
+    branch: Branch | string,
+    uncommittedChangesStrategy?: UncommittedChangesStrategy
   ): Promise<Repository> {
-    return this.appStore._checkoutBranch(repository, branch)
+    return this.appStore._checkoutBranch(
+      repository,
+      branch,
+      uncommittedChangesStrategy
+    )
   }
 
   /** Push the current branch. */
@@ -1967,5 +1983,73 @@ export class Dispatcher {
     callback: StatusCallBack
   ): IDisposable {
     return this.commitStatusStore.subscribe(repository, ref, callback)
+  }
+
+  /**
+   * Stashes all changes, including those in untracked files, in the working directory
+   *
+   * @param branch the branch the stash should be associated with
+   */
+  public createStash(repository: Repository, branch: Branch): Promise<void> {
+    return this.appStore._createStash(repository, branch.name)
+  }
+
+  /** Drops the given stash in the given repository */
+  public dropStash(repository: Repository, stashEntry: IStashEntry) {
+    return this.appStore._dropStashEntry(repository, stashEntry)
+  }
+
+  /** Pop the given stash in the given repository */
+  public popStash(repository: Repository, stashEntry: IStashEntry) {
+    return this.appStore._popStashEntry(repository, stashEntry)
+  }
+
+  /**
+   * Show the UI for stashed changes
+   */
+  public showStashEntry(repository: Repository) {
+    return this.appStore._showStashEntry(repository)
+  }
+
+  /**
+   * Hide the UI for stashed changes
+   */
+  public hideStashEntry(repository: Repository) {
+    return this.appStore._hideStashEntry(repository)
+  }
+
+  /** Loads the list of changed files for the latest stash on this branch   */
+  public loadStashedFiles(repository: Repository, stashEntry: IStashEntry) {
+    return this.appStore._loadStashedFiles(repository, stashEntry)
+  }
+
+  /**
+   * Change the selected changed file in the stash diff viewer.
+   *
+   * @param repository The currently active repository instance
+   *
+   * @param file
+   */
+  public changeStashedFileSelection(
+    repository: Repository,
+    file: CommittedFileChange
+  ): Promise<void> {
+    return this.appStore._changeStashedFileSelection(repository, file)
+  }
+
+  /**
+   * Set the width of the commit summary column in the
+   * history view to the given value.
+   */
+  public setStashedFilesWidth = (width: number): Promise<void> => {
+    return this.appStore._setStashedFilesWidth(width)
+  }
+
+  /**
+   * Reset the width of the commit summary column in the
+   * history view to its default value.
+   */
+  public resetStashedFilesWidth = (): Promise<void> => {
+    return this.appStore._resetStashedFilesWidth()
   }
 }
