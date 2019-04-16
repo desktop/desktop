@@ -17,6 +17,7 @@ import {
   RepositorySectionTab,
   ICommitSelection,
   IRebaseState,
+  ChangesSelectionKind,
 } from '../app-state'
 import { ComparisonCache } from '../comparison-cache'
 import { IGitHubUser } from '../databases'
@@ -124,15 +125,16 @@ function getInitialRepositoryState(): IRepositoryState {
       workingDirectory: WorkingDirectoryStatus.fromFiles(
         new Array<WorkingDirectoryFileChange>()
       ),
-      selectedFileIDs: [],
-      diff: null,
+      selection: {
+        kind: ChangesSelectionKind.WorkingDirectory,
+        selectedFileIDs: [],
+        diff: null,
+      },
       commitMessage: DefaultCommitMessage,
       coAuthors: [],
       showCoAuthoredBy: false,
       conflictState: null,
-      shouldShowStashedChanges: false,
-      selectedStashedFile: null,
-      selectedStashedFileDiff: null,
+      stashEntry: null,
     },
     selectedSection: RepositorySectionTab.Changes,
     branchesState: {
