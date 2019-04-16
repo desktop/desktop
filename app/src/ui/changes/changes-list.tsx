@@ -485,9 +485,9 @@ export class ChangesList extends React.Component<
 
   private onStashEntryClicked = () => {
     if (this.props.isShowingStashEntry) {
-      this.props.dispatcher.hideStashEntry(this.props.repository)
+      this.props.dispatcher.selectWorkingDirectoryFiles(this.props.repository)
     } else {
-      this.props.dispatcher.showStashEntry(this.props.repository)
+      this.props.dispatcher.selectStashedFile(this.props.repository)
     }
   }
 
