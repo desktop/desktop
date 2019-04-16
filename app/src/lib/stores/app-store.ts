@@ -604,6 +604,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       commitMessage: gitStore.commitMessage,
       showCoAuthoredBy: gitStore.showCoAuthoredBy,
       coAuthors: gitStore.coAuthors,
+      stashEntry: gitStore.currentBranchStashEntry,
     }))
 
     this.repositoryStateCache.update(repository, () => ({
@@ -612,7 +613,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       aheadBehind: gitStore.aheadBehind,
       remote: gitStore.currentRemote,
       lastFetched: gitStore.lastFetched,
-      stashEntries: gitStore.stashEntries,
     }))
 
     this.emitUpdate()

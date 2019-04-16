@@ -371,9 +371,6 @@ export interface IRepositoryState {
   /** The state of the current branch in relation to its upstream. */
   readonly aheadBehind: IAheadBehind | null
 
-  /** A map keyed on the canonical ref name of stash entries created by Desktop. */
-  readonly stashEntries: ReadonlyMap<string, IStashEntry>
-
   /** Is a push/pull/fetch in progress? */
   readonly isPushPullFetchInProgress: boolean
 
