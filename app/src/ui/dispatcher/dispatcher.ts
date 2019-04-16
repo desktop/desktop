@@ -2007,15 +2007,6 @@ export class Dispatcher {
     return this.commitStatusStore.subscribe(repository, ref, callback)
   }
 
-  /**
-   * Stashes all changes, including those in untracked files, in the working directory
-   *
-   * @param branch the branch the stash should be associated with
-   */
-  public createStash(repository: Repository, branch: Branch): Promise<void> {
-    return this.appStore._createStash(repository, branch.name)
-  }
-
   /** Drops the given stash in the given repository */
   public dropStash(repository: Repository, stashEntry: IStashEntry) {
     return this.appStore._dropStashEntry(repository, stashEntry)
