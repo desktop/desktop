@@ -584,6 +584,12 @@ export interface IChangesState {
    */
   readonly stashEntry: IStashEntry | null
 
+  /**
+   * The current selection state in the Changes view. Can be either
+   * working directory or a stash. In the case of a working directory
+   * selection multiple files may be selected. See `ChangesSelection`
+   * for more information about the differences between the two.
+   */
   readonly selection: ChangesSelection
 }
 
