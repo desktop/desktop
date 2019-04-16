@@ -2105,7 +2105,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
           selectedStashedFile = null
         }
       } else {
-        selectedStashedFile = file
+        const { stashEntry } = state
+        if (
+          file !== null &&
+          stashEntry !== null &&
+          stashEntry.files.kind === StashedChangesLoadStates.Loaded
+        ) {
+          const files = stashEntry.files.files
+
+          // Look up the selected file in the stash entry, it's possible that
+          // the stash entry or file list has changed since the consumer called
+          // us. The workingdirectory selection handles this by using IDs rather
+          // than references.
+          selectedStashedFile = files.find(x => x.id === file.id) || null
+        } else {
+          selectedStashedFile = null
+        }
       }
 
       return {
