@@ -1002,7 +1002,7 @@ export class GitStore extends BaseStore {
     this._stashEntries = map
     this.emitUpdate()
 
-    this.loadStashedFilesForCurrentStashEntry()
+    this.loadFilesForCurrentStashEntry()
   }
 
   /**
@@ -1018,7 +1018,7 @@ export class GitStore extends BaseStore {
   /**
    * Updates the latest stash entry with a list of files that it changes
    */
-  private async loadStashedFilesForCurrentStashEntry() {
+  private async loadFilesForCurrentStashEntry() {
     if (!enableStashing()) {
       return
     }
