@@ -3,7 +3,7 @@ import * as Path from 'path'
 import { pathExists } from 'fs-extra'
 import { revealInFileManager } from '../../lib/app-shell'
 
-import { FileChange, CommittedFileChange } from '../../models/status'
+import { CommittedFileChange } from '../../models/status'
 import { Repository } from '../../models/repository'
 
 import { PathLabel } from '../lib/path-label'
@@ -89,7 +89,7 @@ export class FileList extends React.Component<IFileListProps> {
     )
   }
 
-  private rowForFile(file: FileChange | null): number {
+  private rowForFile(file: CommittedFileChange | null): number {
     return file ? this.props.files.findIndex(f => f.path === file.path) : -1
   }
 
