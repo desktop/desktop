@@ -603,17 +603,26 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }))
 
     let selectWorkingDirectory = false
+    let selectStashEntry = false
 
     this.repositoryStateCache.updateChangesState(repository, state => {
       const stashEntry = gitStore.currentBranchStashEntry
 
-      // If we're showing a stash now and the stash entry doesn't exist
-      // any more we need to switch back over to the working directory.
-      // If not, we'll just keep the selection that we've got.
-      selectWorkingDirectory =
-        state.selection.kind === ChangesSelectionKind.Stash &&
-        state.stashEntry !== null &&
-        stashEntry === null
+      // Figure out what selection changes we need to make as a result of this
+      // change.
+      if (state.selection.kind === ChangesSelectionKind.Stash) {
+        if (state.stashEntry !== null) {
+          if (stashEntry === null) {
+            // We're showing a stash now and the stash entry has just dissapeared
+            // so we need to switch back over to the working directory.
+            selectWorkingDirectory = true
+          } else if (state.stashEntry.stashSha !== stashEntry.stashSha) {
+            // The current stash entry has changed from underneath so we must
+            // ensure we have a valid selection.
+            selectStashEntry = true
+          }
+        }
+      }
 
       return {
         commitMessage: gitStore.commitMessage,
@@ -631,9 +640,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       lastFetched: gitStore.lastFetched,
     }))
 
+    // _selectWorkingDirectoryFiles and _selectStashedFile will
+    // emit updates by themselves.
     if (selectWorkingDirectory) {
-      // _selectWorkingDirectoryFiles will emit an update
       this._selectWorkingDirectoryFiles(repository)
+    } else if (selectStashEntry) {
+      this._selectStashedFile(repository)
     } else {
       this.emitUpdate()
     }
