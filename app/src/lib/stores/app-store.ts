@@ -2110,51 +2110,41 @@ export class AppStore extends TypedBaseStore<IAppState> {
     file?: CommittedFileChange | null
   ): Promise<void> {
     this.repositoryStateCache.updateChangesState(repository, state => {
-      let selectedStashedFile: CommittedFileChange | null
+      let selectedStashedFile: CommittedFileChange | null = null
+      const { stashEntry, selection } = state
+
+      const currentlySelectedFile =
+        selection.kind === ChangesSelectionKind.Stash
+          ? selection.selectedStashedFile
+          : null
+
+      const currentFiles =
+        stashEntry !== null &&
+        stashEntry.files.kind === StashedChangesLoadStates.Loaded
+          ? stashEntry.files.files
+          : []
 
       if (file === undefined) {
-        if (
-          state.stashEntry &&
-          state.stashEntry.files.kind === StashedChangesLoadStates.Loaded &&
-          state.stashEntry.files.files.length > 0
-        ) {
-          const files = state.stashEntry.files.files
-          const { selection } = state
-
-          // Try to preserve the selection
-          if (
-            selection.kind === ChangesSelectionKind.Stash &&
-            selection.selectedStashedFile !== null
-          ) {
-            const currentlySelected = selection.selectedStashedFile
-
-            selectedStashedFile =
-              currentlySelected !== null
-                ? files.find(x => x.id === currentlySelected.id) || files[0]
-                : null
-          } else {
-            selectedStashedFile = files[0]
-          }
+        if (currentlySelectedFile !== null) {
+          // Ensure the requested file exists in the stash entry and
+          // that we can use reference equality to figure out which file
+          // is selected in the list. If we can't find it we'll pick the
+          // first file available or null if no files have been loaded.
+          selectedStashedFile =
+            currentFiles.find(x => x.id === currentlySelectedFile.id) ||
+            currentFiles[0] ||
+            null
         } else {
-          selectedStashedFile = null
+          // No current selection, let's just pick the first file available
+          // or null if no files have been loaded.
+          selectedStashedFile = currentFiles[0] || null
         }
-      } else {
-        const { stashEntry } = state
-        if (
-          file !== null &&
-          stashEntry !== null &&
-          stashEntry.files.kind === StashedChangesLoadStates.Loaded
-        ) {
-          const files = stashEntry.files.files
-
-          // Look up the selected file in the stash entry, it's possible that
-          // the stash entry or file list has changed since the consumer called
-          // us. The workingdirectory selection handles this by using IDs rather
-          // than references.
-          selectedStashedFile = files.find(x => x.id === file.id) || null
-        } else {
-          selectedStashedFile = null
-        }
+      } else if (file !== null) {
+        // Look up the selected file in the stash entry, it's possible that
+        // the stash entry or file list has changed since the consumer called
+        // us. The working directory selection handles this by using IDs rather
+        // than references.
+        selectedStashedFile = currentFiles.find(x => x.id === file.id) || null
       }
 
       return {
