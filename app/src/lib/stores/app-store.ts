@@ -196,6 +196,7 @@ import { ApiRepositoriesStore } from './api-repositories-store'
 import {
   updateChangedFiles,
   updateConflictState,
+  selectWorkingDirectoryFiles,
 } from './updates/changes-state'
 import {
   ManualConflictResolution,
@@ -1949,29 +1950,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     files?: ReadonlyArray<WorkingDirectoryFileChange>
   ): Promise<void> {
-    this.repositoryStateCache.updateChangesState(repository, state => {
-      let selectedFileIDs: Array<string>
-
-      if (files === undefined) {
-        if (state.workingDirectory.files.length > 0) {
-          selectedFileIDs = [state.workingDirectory.files[0].id]
-        } else {
-          selectedFileIDs = new Array<string>()
-        }
-      } else {
-        selectedFileIDs = files.map(x => x.id)
-      }
-
-      return {
-        selection: {
-          kind: <ChangesSelectionKind.WorkingDirectory>(
-            ChangesSelectionKind.WorkingDirectory
-          ),
-          selectedFileIDs,
-          diff: null,
-        },
-      }
-    })
+    this.repositoryStateCache.updateChangesState(repository, state =>
+      selectWorkingDirectoryFiles(state, files)
+    )
 
     this.emitUpdate()
     this.updateChangesWorkingDirectoryDiff(repository)

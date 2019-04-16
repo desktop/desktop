@@ -295,3 +295,47 @@ export function updateConflictState(
 
   return newConflictState
 }
+
+/**
+ * Generate the partial state needed to update ChangesState selection property
+ * when a user or external constraints require us to do so.
+ *
+ * @param state The current changes state
+ * @param files An array of files to select when showing the working directory.
+ *              If undefined this method will preserve the previously selected
+ *              files or pick the first changed file if no selection exists.
+ */
+export function selectWorkingDirectoryFiles(
+  state: IChangesState,
+  files?: ReadonlyArray<WorkingDirectoryFileChange>
+): Pick<IChangesState, 'selection'> {
+  let selectedFileIDs: Array<string>
+
+  if (files === undefined) {
+    if (state.selection.kind === ChangesSelectionKind.WorkingDirectory) {
+      // No files provided, just a desire to make sure selection is
+      // working directory. If it already is there's nothing for us to do.
+      return { selection: state.selection }
+    } else if (state.workingDirectory.files.length > 0) {
+      // No files provided and the current selection is stash, pick the
+      // first file we've got.
+      selectedFileIDs = [state.workingDirectory.files[0].id]
+    } else {
+      // Not much to do here. No files provided, nothing in the
+      // working directory.
+      selectedFileIDs = new Array<string>()
+    }
+  } else {
+    selectedFileIDs = files.map(x => x.id)
+  }
+
+  return {
+    selection: {
+      kind: <ChangesSelectionKind.WorkingDirectory>(
+        ChangesSelectionKind.WorkingDirectory
+      ),
+      selectedFileIDs,
+      diff: null,
+    },
+  }
+}
