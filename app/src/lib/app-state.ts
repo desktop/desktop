@@ -522,6 +522,12 @@ export interface ICommitSelection {
   /** The diff of the currently-selected file */
   readonly diff: IDiff | null
 }
+
+export enum ChangesSelectionKind {
+  WorkingDirectory,
+  Stash,
+}
+
 export type ChangesWorkingDirectorySelection = {
   readonly kind: 'workingDirectory'
 
@@ -534,7 +540,7 @@ export type ChangesWorkingDirectorySelection = {
 }
 
 export type ChangesStashSelection = {
-  readonly kind: 'stash'
+  readonly kind: ChangesSelectionKind.Stash
 
   /** Currently selected file in the stash diff viewer UI (aka the file we want to show the diff for) */
   readonly selectedStashedFile: CommittedFileChange | null
@@ -581,7 +587,7 @@ export interface IChangesState {
    */
   readonly stashEntry: IStashEntry | null
 
-  readonly selection: ChangesSelection | null
+  readonly selection: ChangesSelection
 }
 
 /**
