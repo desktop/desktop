@@ -144,6 +144,8 @@ function extractBranchFromMessage(message: string): string | null {
   return match === null || match[1].length === 0 ? null : match[1]
 }
 
+const NullTreeSHA = '4b825dc642cb6eb9a060e54bf8d69288fbee4904'
+
 /** Get the files that were changed in the given stash commit.
  *  This is different than `getChangedFiles` because stashes
  *  have _3 parents(!!!)_
@@ -157,10 +159,28 @@ export async function getStashedFiles(
   // opt-in for rename detection (-M) and copies detection (-C)
   // this is equivalent to the user configuring 'diff.renames' to 'copies'
   // NOTE: order here matters - doing -M before -C means copies aren't detected
+  const baseArgs = ['diff', '-C', '-M', '--name-status', '-z']
+  const trackedArgs = [...baseArgs, sha, `${sha}^`, '--']
+  const trackedResult = await git(
+    trackedArgs,
+    repository.path,
+    'getStashedFiles (tracked)'
+  )
 
-  // git diff -C -M --name-status -z [STASH_SHA] [STASH_SHA]^
-  const args = ['diff', '-C', '-M', '--name-status', '-z', sha, `${sha}^`, '--']
-  const result = await git(args, repository.path, 'getStashedFiles')
+  const trackedFiles = parseChangedFiles(trackedResult.stdout, sha)
 
-  return parseChangedFiles(result.stdout, sha)
+  const untrackedArgs = [...baseArgs, NullTreeSHA, `${sha}^3`, '--']
+  const untrackedResult = await git(
+    untrackedArgs,
+    repository.path,
+    'getStashedFiles (untracked)',
+    {
+      successExitCodes: new Set([0, 128]),
+    }
+  )
+
+  const untrackedFiles = parseChangedFiles(untrackedResult.stdout, `${sha}^3`)
+
+  // order is important here
+  return [...trackedFiles, ...untrackedFiles]
 }
