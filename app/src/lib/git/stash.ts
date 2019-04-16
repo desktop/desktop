@@ -144,7 +144,7 @@ function extractBranchFromMessage(message: string): string | null {
   return match === null || match[1].length === 0 ? null : match[1]
 }
 
-/** The SHA for the null tree. */
+/** The SHA for the empty tree. */
 const NullTreeSHA = '4b825dc642cb6eb9a060e54bf8d69288fbee4904'
 
 /**
