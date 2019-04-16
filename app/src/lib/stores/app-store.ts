@@ -601,12 +601,26 @@ export class AppStore extends TypedBaseStore<IAppState> {
       pullWithRebase: gitStore.pullWithRebase,
     }))
 
-    this.repositoryStateCache.updateChangesState(repository, () => ({
-      commitMessage: gitStore.commitMessage,
-      showCoAuthoredBy: gitStore.showCoAuthoredBy,
-      coAuthors: gitStore.coAuthors,
-      stashEntry: gitStore.currentBranchStashEntry,
-    }))
+    this.repositoryStateCache.updateChangesState(repository, state => {
+      const stashEntry = gitStore.currentBranchStashEntry
+
+      // If we're showing a stash now and the stash entry doesn't exist
+      // any more we need to switch back over to the working directory.
+      // If not, we'll just keep the selection that we've got.
+      const selection =
+        state.selection.kind === ChangesSelectionKind.Stash &&
+        stashEntry === null
+          ? selectWorkingDirectoryFiles(state)
+          : { selection: state.selection }
+
+      return {
+        commitMessage: gitStore.commitMessage,
+        showCoAuthoredBy: gitStore.showCoAuthoredBy,
+        coAuthors: gitStore.coAuthors,
+        stashEntry,
+        ...selection,
+      }
+    })
 
     this.repositoryStateCache.update(repository, () => ({
       commitLookup: gitStore.commitLookup,
