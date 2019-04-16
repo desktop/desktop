@@ -13,7 +13,7 @@ interface IFileListProps {
   readonly selectedFile: CommittedFileChange | null
   readonly onSelectedFileChanged: (file: CommittedFileChange) => void
   readonly availableWidth: number
-  readonly onContextMenu?: () => void
+  readonly onContextMenu?: (event: React.MouseEvent<HTMLDivElement>) => void
 }
 
 /**
@@ -40,7 +40,7 @@ export class FileList extends React.Component<IFileListProps> {
       statusWidth
 
     return (
-      <div className="file" onContextMenu={this.onContextMenu}>
+      <div className="file" onContextMenu={this.props.onContextMenu}>
         <PathLabel
           path={file.path}
           status={file.status}
@@ -72,13 +72,5 @@ export class FileList extends React.Component<IFileListProps> {
         />
       </div>
     )
-  }
-
-  private onContextMenu = async (event: React.MouseEvent<HTMLDivElement>) => {
-    event.preventDefault()
-
-    if (this.props.onContextMenu) {
-      this.props.onContextMenu()
-    }
   }
 }

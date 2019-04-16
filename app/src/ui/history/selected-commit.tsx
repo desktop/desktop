@@ -221,7 +221,9 @@ export class SelectedCommit extends React.Component<
     )
   }
 
-  private onContextMenu = async () => {
+  private onContextMenu = async (event: React.MouseEvent<HTMLDivElement>) => {
+    event.preventDefault()
+
     if (this.props.selectedFile == null) {
       return
     }
