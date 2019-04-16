@@ -10,6 +10,38 @@
   display: flex;
   flex-direction: column;
 
+  .list-focus-container.focus-within {
+    .list-item.selected {
+      .icon {
+        fill: currentColor;
+      }
+    }
+  }
+
+  .stash-entry-row {
+    border-top: var(--base-border);
+    border-bottom: 0;
+  }
+
+  .stash-entry-row-content {
+    display: flex;
+    flex-grow: 1;
+    padding: 0 var(--spacing);
+
+    .icon {
+      fill: var(--color-modified);
+    }
+
+    .text {
+      flex-grow: 1;
+      margin: 0 var(--spacing-half);
+    }
+
+    .octicon {
+      flex-shrink: 0;
+    }
+  }
+
   .header {
     background: var(--box-alt-background-color);
     border-bottom: 1px solid var(--box-border-color);
