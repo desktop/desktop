@@ -185,12 +185,18 @@ export async function getStashedFiles(
     }
   )
 
-  const untrackedFiles = parseChangedFiles(
-    untrackedResult.stdout,
-    `${committish}^3`
-  )
+  // if that command is successful and has output, we'll parse it
+  // and merge it with the other output
+  if (untrackedResult.exitCode === 0 && untrackedResult.stdout.length > 0) {
+    const untrackedFiles = parseChangedFiles(
+      untrackedResult.stdout,
+      `${committish}^3`
+    )
 
-  // order is important here, since we want untracked changes to
-  // override potential (and uncommon) collisions with tracked changes
-  return [...trackedFiles, ...untrackedFiles]
+    // order is important here, since we want untracked changes to
+    // override potential (and uncommon) collisions with tracked changes
+    return [...trackedFiles, ...untrackedFiles]
+  }
+
+  return trackedFiles
 }
