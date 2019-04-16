@@ -175,7 +175,7 @@ export async function getStashedFiles(
 
   const trackedFiles = parseChangedFiles(trackedResult.stdout, committish)
 
-  const untrackedArgs = [...baseArgs, NullTreeSHA, `${committish}^3`, '--']
+  const untrackedArgs = [...baseArgs, `${NullTreeSHA}..${committish}^3`, '--']
   const untrackedResult = await git(
     untrackedArgs,
     repository.path,
