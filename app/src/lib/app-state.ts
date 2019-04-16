@@ -530,7 +530,7 @@ export type ChangesWorkingDirectorySelection = {
 
   /**
    * The ID of the selected files. The files themselves can be looked up in
-   * `workingDirectory`.
+   * the `workingDirectory` property in IChangesState.
    */
   readonly selectedFileIDs: string[]
   readonly diff: IDiff | null
