@@ -543,6 +543,10 @@ export type ChangesStashSelection = {
   readonly selectedStashedFileDiff: IDiff | null
 }
 
+export type ChangesSelection =
+  | ChangesWorkingDirectorySelection
+  | ChangesStashSelection
+
 export interface IChangesState {
   readonly workingDirectory: WorkingDirectoryStatus
 
@@ -571,10 +575,7 @@ export interface IChangesState {
    */
   readonly conflictState: ConflictState | null
 
-  readonly selection:
-    | ChangesWorkingDirectorySelection
-    | ChangesStashSelection
-    | null
+  readonly selection: ChangesSelection | null
 }
 
 /**
