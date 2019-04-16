@@ -530,7 +530,7 @@ export type ChangesWorkingDirectorySelection = {
 
   /**
    * The ID of the selected files. The files themselves can be looked up in
-   * the `workingDirectory` property in IChangesState.
+   * the `workingDirectory` property in `IChangesState`.
    */
   readonly selectedFileIDs: string[]
   readonly diff: IDiff | null
@@ -579,7 +579,7 @@ export interface IChangesState {
   readonly conflictState: ConflictState | null
 
   /**
-   * The latest GitHub Desktop stash entry for the current branch, or null
+   * The latest GitHub Desktop stash entry for the current branch, or `null`
    * if no stash exists for the current branch.
    */
   readonly stashEntry: IStashEntry | null
