@@ -95,6 +95,7 @@ import {
   RebaseConflictState,
   IRebaseState,
   IRepositoryState,
+  ChangesSelectionKind,
 } from '../app-state'
 import { IGitHubUser } from '../databases/github-user-database'
 import {
