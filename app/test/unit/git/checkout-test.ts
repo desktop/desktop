@@ -135,7 +135,7 @@ describe('git/checkout', () => {
       throw new Error(`Could not find branch: '${firstBranch}'`)
     }
 
-    await createBranch(repository, expectedBranch)
+    await createBranch(repository, expectedBranch, null)
 
     let errorRaised = false
 

@@ -9,12 +9,14 @@ import {
   createDesktopStashEntry,
   getLastDesktopStashEntryForBranch,
   dropDesktopStashEntry,
-  IStashEntry,
-  applyStashEntry,
+  popStashEntry,
 } from '../../../src/lib/git/stash'
-import { getTipOrError } from '../../helpers/git'
 import { getStatusOrThrow } from '../../helpers/status'
 import { AppFileStatusKind } from '../../../src/models/status'
+import {
+  IStashEntry,
+  StashedChangesLoadStates,
+} from '../../../src/models/stash-entry'
 
 describe('git/stash', () => {
   describe('getDesktopStashEntries', () => {
@@ -70,8 +72,12 @@ describe('git/stash', () => {
     it('creates a stash entry when repo is not unborn or in any kind of conflict or rebase state', async () => {
       await FSE.appendFile(readme, 'just testing stuff')
 
-      const tipCommit = await getTipOrError(repository)
-      await createDesktopStashEntry(repository, 'master', tipCommit.sha)
+      await createDesktopStashEntry(repository, 'master')
+
+      const entries = await getDesktopStashEntries(repository)
+
+      expect(entries).toHaveLength(1)
+      expect(entries[0].branchName).toBe('master')
     })
 
     it('stashes untracked files and removes them from the working directory', async () => {
@@ -84,8 +90,7 @@ describe('git/stash', () => {
       expect(files).toHaveLength(1)
       expect(files[0].status.kind).toBe(AppFileStatusKind.Untracked)
 
-      const tip = await getTipOrError(repository)
-      await createDesktopStashEntry(repository, 'master', tip.sha)
+      await createDesktopStashEntry(repository, 'master')
 
       status = await getStatusOrThrow(repository)
       files = status.workingDirectory.files
@@ -139,13 +144,10 @@ describe('git/stash', () => {
   describe('createDesktopStashMessage', () => {
     it('creates message that matches Desktop stash entry format', () => {
       const branchName = 'master'
-      const tipSha = 'bc45b3b97993eed2c3d7872a0b766b3e29a12e4b'
 
-      const message = createDesktopStashMessage(branchName, tipSha)
+      const message = createDesktopStashMessage(branchName)
 
-      expect(message).toBe(
-        '!!GitHub_Desktop<master@bc45b3b97993eed2c3d7872a0b766b3e29a12e4b>'
-      )
+      expect(message).toBe('!!GitHub_Desktop<master>')
     })
   })
 
@@ -184,6 +186,7 @@ describe('git/stash', () => {
         name: 'stash@{0}',
         branchName: 'master',
         stashSha: 'xyz',
+        files: { kind: StashedChangesLoadStates.NotLoaded },
       }
 
       try {
@@ -201,6 +204,7 @@ describe('git/stash', () => {
         name: 'stash@{4}',
         branchName: 'master',
         stashSha: 'xyz',
+        files: { kind: StashedChangesLoadStates.NotLoaded },
       }
       await generateTestStashEntry(repository, 'master', true)
       await generateTestStashEntry(repository, 'master', true)
@@ -238,7 +242,7 @@ describe('git/stash', () => {
       expect(files).toHaveLength(0)
 
       const entryToApply = entries[0]
-      await applyStashEntry(repository, entryToApply.stashSha)
+      await popStashEntry(repository, entryToApply.stashSha)
 
       status = await getStatusOrThrow(repository)
       files = status.workingDirectory.files
@@ -259,14 +263,8 @@ async function stash(
   branchName: string,
   message: string | null
 ): Promise<void> {
-  const tip = await getTipOrError(repository)
   const result = await GitProcess.exec(
-    [
-      'stash',
-      'push',
-      '-m',
-      message || createDesktopStashMessage(branchName, tip.sha),
-    ],
+    ['stash', 'push', '-m', message || createDesktopStashMessage(branchName)],
     repository.path
   )
 

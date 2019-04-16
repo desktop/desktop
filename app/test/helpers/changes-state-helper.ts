@@ -15,6 +15,9 @@ export function createState<K extends keyof IChangesState>(
     showCoAuthoredBy: false,
     coAuthors: [],
     conflictState: null,
+    shouldShowStashedChanges: false,
+    selectedStashedFile: null,
+    selectedStashedFileDiff: null,
   }
 
   return merge(baseChangesState, pick)
