@@ -4,10 +4,8 @@ import * as React from 'react'
 import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { FileList } from '../history/file-list'
 import { Dispatcher } from '../dispatcher'
-import { FileChange, CommittedFileChange } from '../../models/status'
+import { CommittedFileChange } from '../../models/status'
 import { Repository } from '../../models/repository'
-import { openFile } from '../lib/open-file'
-import { join } from 'path'
 import { Diff } from '../diff'
 import { IDiff, ImageDiffType } from '../../models/diff'
 import { Resizable } from '../resizable'
@@ -27,8 +25,6 @@ interface IStashDiffViewerProps {
 
   /** width to use for the files list pane */
   readonly fileListWidth: number
-  readonly externalEditorLabel?: string
-  readonly onOpenInExternalEditor: (path: string) => void
   readonly repository: Repository
   readonly dispatcher: Dispatcher
 }
@@ -41,14 +37,11 @@ interface IStashDiffViewerProps {
 export class StashDiffViewer extends React.PureComponent<
   IStashDiffViewerProps
 > {
-  private onSelectedFileChanged = (file: FileChange) =>
+  private onSelectedFileChanged = (file: CommittedFileChange) =>
     this.props.dispatcher.changeStashedFileSelection(
       this.props.repository,
-      file as CommittedFileChange
+      file
     )
-
-  private onOpenItem = (path: string) =>
-    openFile(join(this.props.repository.path, path), this.props.dispatcher)
 
   private onResize = (width: number) =>
     this.props.dispatcher.setStashedFilesWidth(width)
@@ -59,10 +52,11 @@ export class StashDiffViewer extends React.PureComponent<
     const files =
       this.props.stashEntry.files.kind === StashedChangesLoadStates.Loaded
         ? this.props.stashEntry.files.files
-        : new Array<FileChange>()
+        : new Array<CommittedFileChange>()
 
     const diffComponent =
-      this.props.selectedStashedFile && this.props.stashedFileDiff ? (
+      this.props.selectedStashedFile !== null &&
+      this.props.stashedFileDiff !== null ? (
         <Diff
           repository={this.props.repository}
           readOnly={true}
@@ -91,10 +85,6 @@ export class StashDiffViewer extends React.PureComponent<
               onSelectedFileChanged={this.onSelectedFileChanged}
               selectedFile={this.props.selectedStashedFile}
               availableWidth={this.props.fileListWidth}
-              onOpenItem={this.onOpenItem}
-              externalEditorLabel={this.props.externalEditorLabel}
-              onOpenInExternalEditor={this.props.onOpenInExternalEditor}
-              repository={this.props.repository}
             />
           </Resizable>
           {diffComponent}
