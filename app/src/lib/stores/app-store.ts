@@ -2779,7 +2779,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         uncommittedChangesStrategy ===
         UncommittedChangesStrategy.moveToNewBranch
       ) {
-        await this._createStash(repository, foundBranch.name)
+        await this._createStash(repository, foundBranch.name, false)
         shouldPopStash = true
       }
     }
