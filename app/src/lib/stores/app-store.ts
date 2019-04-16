@@ -95,6 +95,8 @@ import {
   RebaseConflictState,
   IRebaseState,
   IRepositoryState,
+  ChangesSelectionKind,
+  ChangesWorkingDirectorySelection,
 } from '../app-state'
 import { IGitHubUser } from '../databases/github-user-database'
 import {
@@ -195,6 +197,7 @@ import { ApiRepositoriesStore } from './api-repositories-store'
 import {
   updateChangedFiles,
   updateConflictState,
+  selectWorkingDirectoryFiles,
 } from './updates/changes-state'
 import {
   ManualConflictResolution,
@@ -217,9 +220,10 @@ import {
   dropDesktopStashEntry,
 } from '../git/stash'
 import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
-import { IStashEntry } from '../../models/stash-entry'
+import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { RebasePreview } from '../../models/rebase'
+import { arrayEquals } from '../equality'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -598,11 +602,35 @@ export class AppStore extends TypedBaseStore<IAppState> {
       pullWithRebase: gitStore.pullWithRebase,
     }))
 
-    this.repositoryStateCache.updateChangesState(repository, () => ({
-      commitMessage: gitStore.commitMessage,
-      showCoAuthoredBy: gitStore.showCoAuthoredBy,
-      coAuthors: gitStore.coAuthors,
-    }))
+    let selectWorkingDirectory = false
+    let selectStashEntry = false
+
+    this.repositoryStateCache.updateChangesState(repository, state => {
+      const stashEntry = gitStore.currentBranchStashEntry
+
+      // Figure out what selection changes we need to make as a result of this
+      // change.
+      if (state.selection.kind === ChangesSelectionKind.Stash) {
+        if (state.stashEntry !== null) {
+          if (stashEntry === null) {
+            // We're showing a stash now and the stash entry has just dissapeared
+            // so we need to switch back over to the working directory.
+            selectWorkingDirectory = true
+          } else if (state.stashEntry.stashSha !== stashEntry.stashSha) {
+            // The current stash entry has changed from underneath so we must
+            // ensure we have a valid selection.
+            selectStashEntry = true
+          }
+        }
+      }
+
+      return {
+        commitMessage: gitStore.commitMessage,
+        showCoAuthoredBy: gitStore.showCoAuthoredBy,
+        coAuthors: gitStore.coAuthors,
+        stashEntry,
+      }
+    })
 
     this.repositoryStateCache.update(repository, () => ({
       commitLookup: gitStore.commitLookup,
@@ -610,10 +638,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
       aheadBehind: gitStore.aheadBehind,
       remote: gitStore.currentRemote,
       lastFetched: gitStore.lastFetched,
-      stashEntries: gitStore.stashEntries,
     }))
 
-    this.emitUpdate()
+    // _selectWorkingDirectoryFiles and _selectStashedFile will
+    // emit updates by themselves.
+    if (selectWorkingDirectory) {
+      this._selectWorkingDirectoryFiles(repository)
+    } else if (selectStashEntry) {
+      this._selectStashedFile(repository)
+    } else {
+      this.emitUpdate()
+    }
   }
 
   private clearSelectedCommit(repository: Repository) {
@@ -1728,7 +1763,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.emitUpdate()
 
-    this.updateChangesDiffForCurrentSelection(repository)
+    this.updateChangesWorkingDirectoryDiff(repository)
 
     return true
   }
@@ -1942,20 +1977,26 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _changeChangesSelection(
+  /**
+   * Changes the selection in the changes view to the working directory and
+   * optionally selects one or more files from the working directory.
+   *
+   *  @param files An array of files to select when showing the working directory.
+   *               If undefined this method will preserve the previously selected
+   *               files or pick the first changed file if no selection exists.
+   *
+   * Note: This shouldn't be called directly. See `Dispatcher`.
+   */
+  public async _selectWorkingDirectoryFiles(
     repository: Repository,
-    selectedFiles: WorkingDirectoryFileChange[]
+    files?: ReadonlyArray<WorkingDirectoryFileChange>
   ): Promise<void> {
-    this.repositoryStateCache.updateChangesState(repository, state => ({
-      selectedFileIDs: selectedFiles.map(file => file.id),
-      diff: null,
-      shouldShowStashedChanges:
-        selectedFiles.length !== 0 ? false : state.shouldShowStashedChanges,
-    }))
-    this.emitUpdate()
+    this.repositoryStateCache.updateChangesState(repository, state =>
+      selectWorkingDirectoryFiles(state, files)
+    )
 
-    this.updateChangesDiffForCurrentSelection(repository)
+    this.emitUpdate()
+    this.updateChangesWorkingDirectoryDiff(repository)
   }
 
   /**
@@ -1963,18 +2004,30 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * in the working directory. This operation is a noop if there's no currently
    * selected file.
    */
-  private async updateChangesDiffForCurrentSelection(
+  private async updateChangesWorkingDirectoryDiff(
     repository: Repository
   ): Promise<void> {
     const stateBeforeLoad = this.repositoryStateCache.get(repository)
     const changesStateBeforeLoad = stateBeforeLoad.changesState
-    const selectedFileIDsBeforeLoad = changesStateBeforeLoad.selectedFileIDs
+
+    if (
+      changesStateBeforeLoad.selection.kind !==
+      ChangesSelectionKind.WorkingDirectory
+    ) {
+      return
+    }
+
+    const selectionBeforeLoad = changesStateBeforeLoad.selection
+    const selectedFileIDsBeforeLoad = selectionBeforeLoad.selectedFileIDs
 
     // We only render diffs when a single file is selected.
     if (selectedFileIDsBeforeLoad.length !== 1) {
-      if (changesStateBeforeLoad.diff !== null) {
+      if (selectionBeforeLoad.diff !== null) {
         this.repositoryStateCache.updateChangesState(repository, () => ({
-          diff: null,
+          selection: {
+            ...selectionBeforeLoad,
+            diff: null,
+          },
         }))
         this.emitUpdate()
       }
@@ -2001,11 +2054,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // A different file (or files) could have been selected while we were
     // loading the diff in which case we no longer care about the diff we
     // just loaded.
-    if (changesState.selectedFileIDs.length !== 1) {
+    if (
+      changesState.selection.kind !== ChangesSelectionKind.WorkingDirectory ||
+      !arrayEquals(
+        changesState.selection.selectedFileIDs,
+        selectedFileIDsBeforeLoad
+      )
+    ) {
       return
     }
 
-    const selectedFileID = changesState.selectedFileIDs[0]
+    const selectedFileID = changesState.selection.selectedFileIDs[0]
 
     if (selectedFileID !== selectedFileIdBeforeLoad) {
       return
@@ -2044,9 +2103,140 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
     const workingDirectory = WorkingDirectoryStatus.fromFiles(updatedFiles)
 
-    this.repositoryStateCache.updateChangesState(repository, () => ({
+    const selection: ChangesWorkingDirectorySelection = {
+      ...changesState.selection,
       diff,
+    }
+
+    this.repositoryStateCache.updateChangesState(repository, () => ({
+      selection,
       workingDirectory,
+    }))
+    this.emitUpdate()
+  }
+
+  /**
+   * Changes the selection in the changes view to the stash entry view and
+   * optionally selects a particular file from the current stash entry.
+   *
+   *  @param file  A file to select when showing the stash entry.
+   *               If undefined this method will preserve the previously selected
+   *               file or pick the first changed file if no selection exists.
+   *
+   * Note: This shouldn't be called directly. See `Dispatcher`.
+   */
+  public async _selectStashedFile(
+    repository: Repository,
+    file?: CommittedFileChange | null
+  ): Promise<void> {
+    this.repositoryStateCache.updateChangesState(repository, state => {
+      let selectedStashedFile: CommittedFileChange | null = null
+      const { stashEntry, selection } = state
+
+      const currentlySelectedFile =
+        selection.kind === ChangesSelectionKind.Stash
+          ? selection.selectedStashedFile
+          : null
+
+      const currentFiles =
+        stashEntry !== null &&
+        stashEntry.files.kind === StashedChangesLoadStates.Loaded
+          ? stashEntry.files.files
+          : []
+
+      if (file === undefined) {
+        if (currentlySelectedFile !== null) {
+          // Ensure the requested file exists in the stash entry and
+          // that we can use reference equality to figure out which file
+          // is selected in the list. If we can't find it we'll pick the
+          // first file available or null if no files have been loaded.
+          selectedStashedFile =
+            currentFiles.find(x => x.id === currentlySelectedFile.id) ||
+            currentFiles[0] ||
+            null
+        } else {
+          // No current selection, let's just pick the first file available
+          // or null if no files have been loaded.
+          selectedStashedFile = currentFiles[0] || null
+        }
+      } else if (file !== null) {
+        // Look up the selected file in the stash entry, it's possible that
+        // the stash entry or file list has changed since the consumer called
+        // us. The working directory selection handles this by using IDs rather
+        // than references.
+        selectedStashedFile = currentFiles.find(x => x.id === file.id) || null
+      }
+
+      return {
+        selection: {
+          kind: ChangesSelectionKind.Stash as ChangesSelectionKind.Stash,
+          selectedStashedFile,
+          selectedStashedFileDiff: null,
+        },
+      }
+    })
+
+    this.emitUpdate()
+    this.updateChangesStashDiff(repository)
+  }
+
+  private async updateChangesStashDiff(repository: Repository) {
+    const stateBeforeLoad = this.repositoryStateCache.get(repository)
+    const changesStateBeforeLoad = stateBeforeLoad.changesState
+    const selectionBeforeLoad = changesStateBeforeLoad.selection
+
+    if (selectionBeforeLoad.kind !== ChangesSelectionKind.Stash) {
+      return
+    }
+
+    const stashEntry = changesStateBeforeLoad.stashEntry
+
+    if (stashEntry === null) {
+      return
+    }
+
+    let file = selectionBeforeLoad.selectedStashedFile
+
+    if (file === null) {
+      if (stashEntry.files.kind === StashedChangesLoadStates.Loaded) {
+        if (stashEntry.files.files.length > 0) {
+          file = stashEntry.files.files[0]
+        }
+      }
+    }
+
+    if (file === null) {
+      this.repositoryStateCache.updateChangesState(repository, () => ({
+        selection: {
+          kind: ChangesSelectionKind.Stash as ChangesSelectionKind.Stash,
+          selectedStashedFile: null,
+          selectedStashedFileDiff: null,
+        },
+      }))
+      this.emitUpdate()
+      return
+    }
+
+    const diff = await getCommitDiff(repository, file, file.commitish)
+
+    const stateAfterLoad = this.repositoryStateCache.get(repository)
+    const changesStateAfterLoad = stateAfterLoad.changesState
+
+    // Something has changed during our async getCommitDiff, bail
+    if (
+      changesStateAfterLoad.selection.kind !== ChangesSelectionKind.Stash ||
+      changesStateAfterLoad.selection.selectedStashedFile !==
+        selectionBeforeLoad.selectedStashedFile
+    ) {
+      return
+    }
+
+    this.repositoryStateCache.updateChangesState(repository, () => ({
+      selection: {
+        kind: ChangesSelectionKind.Stash as ChangesSelectionKind.Stash,
+        selectedStashedFile: file,
+        selectedStashedFileDiff: diff,
+      },
     }))
     this.emitUpdate()
   }
@@ -2629,7 +2819,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     // Make sure changes or suggested next step are visible after branch checkout
-    this._hideStashEntry(repository)
+    this._selectWorkingDirectoryFiles(repository)
 
     try {
       this.updateCheckoutProgress(repository, {
@@ -4810,6 +5000,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
         previousStash.branchName
       }`
     )
+
+    await this._refreshRepository(repository)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -4848,75 +5040,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }`
     )
 
-    await this._refreshRepository(repository)
-  }
-
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public _showStashEntry(repository: Repository) {
-    if (!enableStashing()) {
-      return
-    }
-    this.repositoryStateCache.updateChangesState(repository, state => {
-      return {
-        shouldShowStashedChanges: true,
-        selectedFileIDs: [],
-      }
-    })
-
-    this.emitUpdate()
-  }
-
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public _hideStashEntry(repository: Repository) {
-    if (!enableStashing()) {
-      return
-    }
-    this.repositoryStateCache.updateChangesState(repository, state => {
-      return {
-        shouldShowStashedChanges: false,
-        selectedFileIDs:
-          state.workingDirectory.files.length > 0
-            ? [state.workingDirectory.files[0].id]
-            : [],
-      }
-    })
-
-    this.emitUpdate()
-  }
-
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _loadStashedFiles(
-    repository: Repository,
-    stashEntry: IStashEntry
-  ) {
-    if (!enableStashing()) {
-      return
-    }
-    const gitStore = this.gitStoreCache.get(repository)
-    await gitStore.loadStashedFiles(stashEntry)
-  }
-
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _changeStashedFileSelection(
-    repository: Repository,
-    file: CommittedFileChange
-  ): Promise<void> {
-    if (!enableStashing()) {
-      return
-    }
-    this.repositoryStateCache.updateChangesState(repository, () => ({
-      selectedStashedFile: file,
-      selectedStashedFileDiff: null,
-    }))
-    this.emitUpdate()
-
-    const diff = await getCommitDiff(repository, file, file.commitish)
-
-    this.repositoryStateCache.updateChangesState(repository, () => ({
-      selectedStashedFileDiff: diff,
-    }))
-
-    this.emitUpdate()
+    await this.gitStoreCache.get(repository).loadStashEntries()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
