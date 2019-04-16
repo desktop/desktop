@@ -80,3 +80,8 @@ export function enableGroupRepositoriesByOwner(): boolean {
 export function enableRebaseDialog(): boolean {
   return enableBetaFeatures()
 }
+
+/** Should the app show the "stash changes" dialog? */
+export function enableStashing(): boolean {
+  return enableDevelopmentFeatures()
+}
