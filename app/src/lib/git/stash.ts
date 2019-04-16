@@ -160,22 +160,22 @@ const NullTreeSHA = '4b825dc642cb6eb9a060e54bf8d69288fbee4904'
  */
 export async function getStashedFiles(
   repository: Repository,
-  committish: string
+  stashSha: string
 ): Promise<ReadonlyArray<CommittedFileChange>> {
   // opt-in for rename detection (-M) and copies detection (-C)
   // this is equivalent to the user configuring 'diff.renames' to 'copies'
   // NOTE: order here matters - doing -M before -C means copies aren't detected
   const baseArgs = ['diff', '-C', '-M', '--name-status', '-z']
-  const trackedArgs = [...baseArgs, `${committish}^..${committish}`, '--']
+  const trackedArgs = [...baseArgs, `${stashSha}^..${stashSha}`, '--']
   const trackedResult = await git(
     trackedArgs,
     repository.path,
     'getStashedFiles (tracked)'
   )
 
-  const trackedFiles = parseChangedFiles(trackedResult.stdout, committish)
+  const trackedFiles = parseChangedFiles(trackedResult.stdout, stashSha)
 
-  const untrackedArgs = [...baseArgs, `${NullTreeSHA}..${committish}^3`, '--']
+  const untrackedArgs = [...baseArgs, `${NullTreeSHA}..${stashSha}^3`, '--']
   const untrackedResult = await git(
     untrackedArgs,
     repository.path,
@@ -193,7 +193,7 @@ export async function getStashedFiles(
   if (untrackedResult.exitCode === 0 && untrackedResult.stdout.length > 0) {
     const untrackedFiles = parseChangedFiles(
       untrackedResult.stdout,
-      `${committish}^3`
+      `${stashSha}^3`
     )
 
     // we want untracked changes to override potential
