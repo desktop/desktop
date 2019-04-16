@@ -1023,34 +1023,36 @@ export class GitStore extends BaseStore {
       return
     }
 
-    let existingEntry = this.currentBranchStashEntry
+    const stashEntry = this.currentBranchStashEntry
 
-    if (!existingEntry) {
+    if (
+      !stashEntry ||
+      stashEntry.files.kind !== StashedChangesLoadStates.NotLoaded
+    ) {
       return
     }
 
-    if (existingEntry.files.kind !== StashedChangesLoadStates.NotLoaded) {
-      return
-    }
-
-    const { branchName } = existingEntry
+    const { branchName } = stashEntry
 
     this._stashEntries.set(branchName, {
-      ...existingEntry,
+      ...stashEntry,
       files: { kind: StashedChangesLoadStates.Loading },
     })
     this.emitUpdate()
 
-    const files = await getStashedFiles(this.repository, existingEntry.stashSha)
+    const files = await getStashedFiles(this.repository, stashEntry.stashSha)
 
-    existingEntry = this._stashEntries.get(branchName) || null
+    // It's possible that we've refreshed the list of stash entries since we
+    // started getStashedFiles. Load the latest entry for the branch and make
+    // sure the SHAs match up.
+    const currentEntry = this._stashEntries.get(branchName)
 
-    if (existingEntry === null) {
+    if (!currentEntry || currentEntry.stashSha !== stashEntry.stashSha) {
       return
     }
 
     this._stashEntries.set(branchName, {
-      ...existingEntry,
+      ...currentEntry,
       files: {
         kind: StashedChangesLoadStates.Loaded,
         files,
