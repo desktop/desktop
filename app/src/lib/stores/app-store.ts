@@ -2159,7 +2159,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           selectedStashedFileDiff: null,
         },
       }))
-
+      this.emitUpdate()
       return
     }
 
@@ -2184,6 +2184,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         selectedStashedFileDiff: diff,
       },
     }))
+    this.emitUpdate()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
