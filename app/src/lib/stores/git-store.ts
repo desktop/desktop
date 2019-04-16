@@ -1002,10 +1002,16 @@ export class GitStore extends BaseStore {
     }
 
     this._stashEntries = map
-    this._currentBranchStashEntry =
+
+    const currentStashEntry =
       this._tip && this._tip.kind === TipState.Valid
         ? map.get(this._tip.branch.name) || null
         : null
+
+    if (currentStashEntry) {
+      await this.loadStashedFiles(currentStashEntry)
+      this._currentBranchStashEntry = currentStashEntry
+    }
 
     this.emitUpdate()
   }
