@@ -229,7 +229,7 @@ export class Dispatcher {
 
   /**
    * Changes the selection in the changes view to the working directory and
-   * optionally selects a particular file from the working directory.
+   * optionally selects one or more files from the working directory.
    *
    *  @param files An array of files to select when showing the working directory.
    *               If undefined this method will preserve the previously selected
