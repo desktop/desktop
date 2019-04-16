@@ -96,6 +96,7 @@ import {
   IRebaseState,
   IRepositoryState,
   ChangesSelectionKind,
+  ChangesWorkingDirectorySelection,
 } from '../app-state'
 import { IGitHubUser } from '../databases/github-user-database'
 import {
@@ -2085,11 +2086,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
     const workingDirectory = WorkingDirectoryStatus.fromFiles(updatedFiles)
 
+    const selection: ChangesWorkingDirectorySelection = {
+      ...changesState.selection,
+      diff,
+    }
+
     this.repositoryStateCache.updateChangesState(repository, () => ({
-      selection: {
-        ...changesState.selection,
-        diff,
-      },
+      selection,
       workingDirectory,
     }))
     this.emitUpdate()
