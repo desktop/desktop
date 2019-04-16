@@ -4957,7 +4957,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }`
     )
 
-    await this.gitStoreCache.get(repository).loadStashEntries()
+    await this._refreshRepository(repository)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -4975,7 +4975,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }`
     )
 
-    await this.gitStoreCache.get(repository).loadStashEntries()
+    await this._refreshRepository(repository)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
