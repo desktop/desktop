@@ -602,24 +602,24 @@ export class AppStore extends TypedBaseStore<IAppState> {
       pullWithRebase: gitStore.pullWithRebase,
     }))
 
+    let selectWorkingDirectory = false
+
     this.repositoryStateCache.updateChangesState(repository, state => {
       const stashEntry = gitStore.currentBranchStashEntry
 
       // If we're showing a stash now and the stash entry doesn't exist
       // any more we need to switch back over to the working directory.
       // If not, we'll just keep the selection that we've got.
-      const selection =
+      selectWorkingDirectory =
         state.selection.kind === ChangesSelectionKind.Stash &&
+        state.stashEntry !== null &&
         stashEntry === null
-          ? selectWorkingDirectoryFiles(state)
-          : { selection: state.selection }
 
       return {
         commitMessage: gitStore.commitMessage,
         showCoAuthoredBy: gitStore.showCoAuthoredBy,
         coAuthors: gitStore.coAuthors,
         stashEntry,
-        ...selection,
       }
     })
 
@@ -631,7 +631,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       lastFetched: gitStore.lastFetched,
     }))
 
-    this.emitUpdate()
+    if (selectWorkingDirectory) {
+      // _selectWorkingDirectoryFiles will emit an update
+      this._selectWorkingDirectoryFiles(repository)
+    } else {
+      this.emitUpdate()
+    }
   }
 
   private clearSelectedCommit(repository: Repository) {
