@@ -522,17 +522,29 @@ export interface ICommitSelection {
   /** The diff of the currently-selected file */
   readonly diff: IDiff | null
 }
-
-export interface IChangesState {
-  readonly workingDirectory: WorkingDirectoryStatus
+export type ChangesWorkingDirectorySelection = {
+  readonly kind: 'workingDirectory'
 
   /**
    * The ID of the selected files. The files themselves can be looked up in
    * `workingDirectory`.
    */
   readonly selectedFileIDs: string[]
-
   readonly diff: IDiff | null
+}
+
+export type ChangesStashSelection = {
+  readonly kind: 'stash'
+
+  /** Currently selected file in the stash diff viewer UI (aka the file we want to show the diff for) */
+  readonly selectedStashedFile: CommittedFileChange | null
+
+  /** Currently selected file's diff */
+  readonly selectedStashedFileDiff: IDiff | null
+}
+
+export interface IChangesState {
+  readonly workingDirectory: WorkingDirectoryStatus
 
   /** The commit message for a work-in-progress commit in the changes view. */
   readonly commitMessage: ICommitMessage
@@ -559,14 +571,10 @@ export interface IChangesState {
    */
   readonly conflictState: ConflictState | null
 
-  /** Whether or not to show the UI for a stash entry. */
-  readonly shouldShowStashedChanges: boolean
-
-  /** Currently selected file in the stash diff viewer UI (aka the file we want to show the diff for) */
-  readonly selectedStashedFile: CommittedFileChange | null
-
-  /** Currently selected file's diff */
-  readonly selectedStashedFileDiff: IDiff | null
+  readonly selection:
+    | ChangesWorkingDirectorySelection
+    | ChangesStashSelection
+    | null
 }
 
 /**
