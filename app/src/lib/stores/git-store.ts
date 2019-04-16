@@ -132,8 +132,6 @@ export class GitStore extends BaseStore {
 
   private _stashEntries = new Map<string, IStashEntry>()
 
-  private _currentBranchStashEntry: IStashEntry | null = null
-
   public constructor(repository: Repository, shell: IAppShell) {
     super()
 
@@ -1002,18 +1000,9 @@ export class GitStore extends BaseStore {
     }
 
     this._stashEntries = map
-
-    const currentStashEntry =
-      this._tip && this._tip.kind === TipState.Valid
-        ? map.get(this._tip.branch.name) || null
-        : null
-
-    if (currentStashEntry) {
-      await this.loadStashedFiles(currentStashEntry)
-      this._currentBranchStashEntry = currentStashEntry
-    }
-
     this.emitUpdate()
+
+    this.loadStashedFilesForCurrentStashEntry()
   }
 
   /**
@@ -1021,24 +1010,26 @@ export class GitStore extends BaseStore {
    * null if no entry exists
    */
   public get currentBranchStashEntry() {
-    return this._currentBranchStashEntry
+    return this._tip && this._tip.kind === TipState.Valid
+      ? this._stashEntries.get(this._tip.branch.name) || null
+      : null
   }
 
   /**
    * Updates the latest stash entry with a list of files that it changes
    */
-  private async loadStashedFiles(stashEntry: IStashEntry) {
+  private async loadStashedFilesForCurrentStashEntry() {
     if (!enableStashing()) {
       return
     }
 
-    if (stashEntry.files.kind !== StashedChangesLoadStates.NotLoaded) {
+    let existingEntry = this.currentBranchStashEntry
+
+    if (!existingEntry) {
       return
     }
 
-    let existingEntry = this._stashEntries.get(stashEntry.branchName)
-
-    if (existingEntry === undefined) {
+    if (existingEntry.files.kind !== StashedChangesLoadStates.NotLoaded) {
       return
     }
 
@@ -1052,13 +1043,13 @@ export class GitStore extends BaseStore {
 
     const files = await getStashedFiles(this.repository, existingEntry.stashSha)
 
-    existingEntry = this._stashEntries.get(branchName)
+    existingEntry = this._stashEntries.get(branchName) || null
 
-    if (existingEntry === undefined) {
+    if (existingEntry === null) {
       return
     }
 
-    this._stashEntries.set(stashEntry.branchName, {
+    this._stashEntries.set(branchName, {
       ...existingEntry,
       files: {
         kind: StashedChangesLoadStates.Loaded,
