@@ -5,7 +5,7 @@ import { CommitSummary } from './commit-summary'
 import { Diff } from '../diff'
 import { FileList } from './file-list'
 import { Repository } from '../../models/repository'
-import { CommittedFileChange, FileChange } from '../../models/status'
+import { CommittedFileChange } from '../../models/status'
 import { Commit } from '../../models/commit'
 import { Dispatcher } from '../dispatcher'
 import { encodePathAsUrl } from '../../lib/path'
@@ -58,11 +58,8 @@ export class SelectedCommit extends React.Component<
     }
   }
 
-  private onFileSelected = (file: FileChange) => {
-    this.props.dispatcher.changeFileSelection(
-      this.props.repository,
-      file as CommittedFileChange
-    )
+  private onFileSelected = (file: CommittedFileChange) => {
+    this.props.dispatcher.changeFileSelection(this.props.repository, file)
   }
 
   private onHistoryRef = (ref: HTMLDivElement | null) => {
