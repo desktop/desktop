@@ -33,7 +33,7 @@ const files = [
 ]
 
 describe('updateChangedFiles', () => {
-  describe(ChangesSelectionKind.WorkingDirectory, () => {
+  describe('workingDirectory', () => {
     let partiallySelectedFile: WorkingDirectoryFileChange
     let oldWorkingDirectory: WorkingDirectoryStatus
 
