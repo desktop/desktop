@@ -166,7 +166,8 @@ export async function getStashedFiles(
   return [...files.values()].sort((x, y) => compare(x.path, y.path))
 }
 
-/**Same thing as `getChangedFiles` but with extra handling for 128 exit code
+/**
+ * Same thing as `getChangedFiles` but with extra handling for 128 exit code
  * (which happens if the commit's parent is not valid)
  *
  * **TODO:** merge this with `getChangedFiles` in `log.ts`
