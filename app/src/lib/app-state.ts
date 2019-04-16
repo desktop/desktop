@@ -521,8 +521,8 @@ export interface ICommitSelection {
 }
 
 export enum ChangesSelectionKind {
-  WorkingDirectory,
-  Stash,
+  WorkingDirectory = 'WorkingDirectory',
+  Stash = 'Stash',
 }
 
 export type ChangesWorkingDirectorySelection = {
