@@ -242,6 +242,14 @@ export class Dispatcher {
     return this.appStore._selectWorkingDirectoryFiles(repository, selectedFiles)
   }
 
+  /**
+   * Changes the selection in the changes view to the stash entry view and
+   * optionally selects a particular file from the current stash entry.
+   *
+   *  @param file  A file to select when showing the stash entry.
+   *               If undefined this method will preserve the previously selected
+   *               file or pick the first changed file if no selection exists.
+   */
   public selectStashedFile(
     repository: Repository,
     file?: CommittedFileChange | null
