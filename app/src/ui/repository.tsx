@@ -10,7 +10,11 @@ import { FilesChangedBadge } from './changes/files-changed-badge'
 import { SelectedCommit, CompareSidebar } from './history'
 import { Resizable } from './resizable'
 import { TabBar } from './tab-bar'
-import { IRepositoryState, RepositorySectionTab } from '../lib/app-state'
+import {
+  IRepositoryState,
+  RepositorySectionTab,
+  ChangesSelectionKind,
+} from '../lib/app-state'
 import { Dispatcher } from './dispatcher'
 import { IssuesStore, GitHubUserStore } from '../lib/stores'
 import { assertNever } from '../lib/fatal-error'
@@ -270,8 +274,10 @@ export class RepositoryView extends React.Component<
   }
 
   private renderStashedChangesContent(): JSX.Element | null {
-    const stashEntry = this.currentStashForBranch()
-    if (stashEntry === null) {
+    const { changesState } = this.props.state
+    const { selection, stashEntry } = changesState
+
+    if (selection.kind !== ChangesSelectionKind.Stash || stashEntry === null) {
       return null
     }
 
@@ -279,12 +285,8 @@ export class RepositoryView extends React.Component<
       return (
         <StashDiffViewer
           stashEntry={stashEntry}
-          selectedStashedFile={
-            this.props.state.changesState.selectedStashedFile
-          }
-          stashedFileDiff={
-            this.props.state.changesState.selectedStashedFileDiff
-          }
+          selectedStashedFile={selection.selectedStashedFile}
+          stashedFileDiff={selection.selectedStashedFileDiff}
           imageDiffType={this.props.imageDiffType}
           fileListWidth={this.props.stashedFilesWidth}
           externalEditorLabel={this.props.externalEditorLabel}
@@ -304,18 +306,13 @@ export class RepositoryView extends React.Component<
     const selectedSection = this.props.state.selectedSection
     if (selectedSection === RepositorySectionTab.Changes) {
       const { changesState } = this.props.state
-      const {
-        workingDirectory,
-        selectedFileIDs,
-        diff,
-        shouldShowStashedChanges,
-      } = changesState
+      const { workingDirectory, selection } = changesState
 
-      if (enableStashing()) {
-        if (shouldShowStashedChanges && selectedFileIDs.length === 0) {
-          return this.renderStashedChangesContent()
-        }
+      if (selection.kind === ChangesSelectionKind.Stash) {
+        return this.renderStashedChangesContent()
       }
+
+      const { selectedFileIDs, diff } = selection
 
       if (selectedFileIDs.length > 1) {
         return <MultipleSelection count={selectedFileIDs.length} />
