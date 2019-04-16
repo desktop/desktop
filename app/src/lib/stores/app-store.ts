@@ -2118,7 +2118,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
           state.stashEntry.files.kind === StashedChangesLoadStates.Loaded &&
           state.stashEntry.files.files.length > 0
         ) {
-          selectedStashedFile = state.stashEntry.files.files[0]
+          const files = state.stashEntry.files.files
+          const { selection } = state
+
+          // Try to preserve the selection
+          if (
+            selection.kind === ChangesSelectionKind.Stash &&
+            selection.selectedStashedFile !== null
+          ) {
+            const currentlySelected = selection.selectedStashedFile
+
+            selectedStashedFile =
+              currentlySelected !== null
+                ? files.find(x => x.id === currentlySelected.id) || files[0]
+                : null
+          } else {
+            selectedStashedFile = files[0]
+          }
         } else {
           selectedStashedFile = null
         }
