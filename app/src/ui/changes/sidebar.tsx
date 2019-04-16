@@ -32,7 +32,6 @@ import { filesNotTrackedByLFS } from '../../lib/git/lfs'
 import { getLargeFilePaths } from '../../lib/large-files'
 import { isConflictedFile, hasUnresolvedConflicts } from '../../lib/status'
 import { enablePullWithRebase } from '../../lib/feature-flag'
-import { IStashEntry } from '../../models/stash-entry'
 
 /**
  * The timeout for the animation of the enter/leave animation for Undo.
@@ -70,9 +69,6 @@ interface IChangesSidebarProps {
   readonly onOpenInExternalEditor: (fullPath: string) => void
   readonly onChangesListScrolled: (scrollTop: number) => void
   readonly changesListScrollTop: number
-
-  /** The Desktop-created stash entry for the current branch or null if no entry exists */
-  readonly stashEntry: IStashEntry | null
 }
 
 export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
@@ -418,7 +414,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           onOpenInExternalEditor={this.props.onOpenInExternalEditor}
           onChangesListScrolled={this.props.onChangesListScrolled}
           changesListScrollTop={this.props.changesListScrollTop}
-          stashEntry={this.props.stashEntry}
+          stashEntry={this.props.changes.stashEntry}
           isShowingStashEntry={isShowingStashEntry}
         />
         {this.renderUndoCommit(rebaseConflictState)}
