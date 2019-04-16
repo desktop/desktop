@@ -529,7 +529,7 @@ export enum ChangesSelectionKind {
 }
 
 export type ChangesWorkingDirectorySelection = {
-  readonly kind: 'workingDirectory'
+  readonly kind: ChangesSelectionKind.WorkingDirectory
 
   /**
    * The ID of the selected files. The files themselves can be looked up in
