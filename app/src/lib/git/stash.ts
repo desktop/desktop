@@ -148,8 +148,6 @@ function extractBranchFromMessage(message: string): string | null {
 /**
  * Get the files that were changed in the given stash commit.
  *
- * Runs `git diff` twice, once for tracked changes in the stash
- * and once for untracked changes in the stash.
  * This is different than `getChangedFiles` because stashes
  * have _3 parents(!!!)_
  */
