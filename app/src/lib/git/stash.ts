@@ -8,6 +8,7 @@ import {
 } from '../../models/stash-entry'
 import { CommittedFileChange } from '../../models/status'
 import { parseChangedFiles } from './log'
+import { compare } from '../compare'
 
 export const DesktopStashEntryMarker = '!!GitHub_Desktop'
 
@@ -145,12 +146,6 @@ function extractBranchFromMessage(message: string): string | null {
 }
 
 /**
- * The SHA for the [empty tree](https://stackoverflow.com/questions/9765453/is-gits-semi-secret-empty-tree-object-reliable-and-why-is-there-not-a-symbolic).
- *
- */
-const NullTreeSHA = '4b825dc642cb6eb9a060e54bf8d69288fbee4904'
-
-/**
  * Get the files that were changed in the given stash commit.
  *
  * Runs `git diff` twice, once for tracked changes in the stash
@@ -162,50 +157,48 @@ export async function getStashedFiles(
   repository: Repository,
   stashSha: string
 ): Promise<ReadonlyArray<CommittedFileChange>> {
+  const [trackedFiles, untrackedFiles] = await Promise.all([
+    getChangedFilesWithinStash(repository, stashSha),
+    getChangedFilesWithinStash(repository, `${stashSha}^3`),
+  ])
+
+  const files = new Map<string, CommittedFileChange>()
+  trackedFiles.forEach(x => files.set(x.path, x))
+  untrackedFiles.forEach(x => files.set(x.path, x))
+  return [...files.values()].sort((x, y) => compare(x.path, y.path))
+}
+
+/**Same thing as `getChangedFiles` but with extra handling for 128 exit code
+ * (which happens if the commit's parent is not valid)
+ *
+ * **TODO:** merge this with `getChangedFiles` in `log.ts`
+ */
+async function getChangedFilesWithinStash(repository: Repository, sha: string) {
   // opt-in for rename detection (-M) and copies detection (-C)
   // this is equivalent to the user configuring 'diff.renames' to 'copies'
   // NOTE: order here matters - doing -M before -C means copies aren't detected
-  const baseArgs = ['diff', '-C', '-M', '--name-status', '-z']
-  const trackedArgs = [...baseArgs, `${stashSha}^..${stashSha}`, '--']
-  const trackedResult = await git(
-    trackedArgs,
-    repository.path,
-    'getStashedFiles (tracked)'
-  )
-
-  const trackedFiles = parseChangedFiles(trackedResult.stdout, stashSha)
-
-  const untrackedArgs = [...baseArgs, `${NullTreeSHA}..${stashSha}^3`, '--']
-  const untrackedResult = await git(
-    untrackedArgs,
-    repository.path,
-    'getStashedFiles (untracked)',
-    {
-      // if this fails, its most likely
-      // because there weren't any untracked files,
-      // and that's okay!
-      successExitCodes: new Set([0, 128]),
-    }
-  )
-
-  // if that command is successful and has output, we'll parse it
-  // and merge it with the other output
-  if (untrackedResult.exitCode === 0 && untrackedResult.stdout.length > 0) {
-    const untrackedFiles = parseChangedFiles(
-      untrackedResult.stdout,
-      `${stashSha}^3`
-    )
-
-    // we want untracked changes to override potential
-    // collisions with tracked changes
-    const allFiles = Array.from(untrackedFiles)
-    for (const trackedFile of trackedFiles) {
-      if (!untrackedFiles.some(f => f.path === trackedFile.path)) {
-        allFiles.push(trackedFile)
-      }
-    }
-    return allFiles
+  const args = [
+    'log',
+    sha,
+    '-C',
+    '-M',
+    '-m',
+    '-1',
+    '--no-show-signature',
+    '--first-parent',
+    '--name-status',
+    '--format=format:',
+    '-z',
+    '--',
+  ]
+  const result = await git(args, repository.path, 'getChangedFilesForStash', {
+    // if this fails, its most likely
+    // because there weren't any untracked files,
+    // and that's okay!
+    successExitCodes: new Set([0, 128]),
+  })
+  if (result.exitCode === 0 && result.stdout.length > 0) {
+    return parseChangedFiles(result.stdout, sha)
   }
-
-  return trackedFiles
+  return []
 }
