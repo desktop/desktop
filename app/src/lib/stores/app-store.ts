@@ -4988,18 +4988,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _loadStashedFiles(
-    repository: Repository,
-    stashEntry: IStashEntry
-  ) {
-    if (!enableStashing()) {
-      return
-    }
-    const gitStore = this.gitStoreCache.get(repository)
-    await gitStore.loadStashedFiles(stashEntry)
-  }
-
-  /** This shouldn't be called directly. See `Dispatcher`. */
   public _setStashedFilesWidth(width: number): Promise<void> {
     this.stashedFilesWidth = width
     setNumber(stashedFilesWidthConfigKey, width)

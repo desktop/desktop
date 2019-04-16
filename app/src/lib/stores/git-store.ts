@@ -1021,7 +1021,7 @@ export class GitStore extends BaseStore {
   /**
    * Updates the latest stash entry with a list of files that it changes
    */
-  public async loadStashedFiles(stashEntry: IStashEntry) {
+  private async loadStashedFiles(stashEntry: IStashEntry) {
     if (!enableStashing()) {
       return
     }

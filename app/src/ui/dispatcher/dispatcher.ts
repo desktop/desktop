@@ -2011,11 +2011,6 @@ export class Dispatcher {
     return this.appStore._popStashEntry(repository, stashEntry)
   }
 
-  /** Loads the list of changed files for the latest stash on this branch   */
-  public loadStashedFiles(repository: Repository, stashEntry: IStashEntry) {
-    return this.appStore._loadStashedFiles(repository, stashEntry)
-  }
-
   /**
    * Set the width of the commit summary column in the
    * history view to the given value.
