@@ -3,7 +3,7 @@ import * as Path from 'path'
 import { pathExists } from 'fs-extra'
 import { revealInFileManager } from '../../lib/app-shell'
 
-import { FileChange } from '../../models/status'
+import { FileChange, CommittedFileChange } from '../../models/status'
 import { Repository } from '../../models/repository'
 
 import { PathLabel } from '../lib/path-label'
@@ -21,10 +21,10 @@ import { showContextualMenu } from '../main-process-proxy'
 import { clipboard } from 'electron'
 import { mapStatus } from '../../lib/status'
 
-interface IFileListProps<T extends FileChange> {
-  readonly files: ReadonlyArray<T>
-  readonly selectedFile: T | null
-  readonly onSelectedFileChanged: (file: T) => void
+interface IFileListProps {
+  readonly files: ReadonlyArray<CommittedFileChange>
+  readonly selectedFile: CommittedFileChange | null
+  readonly onSelectedFileChanged: (file: CommittedFileChange) => void
   readonly availableWidth: number
 
   /**
@@ -49,9 +49,7 @@ interface IFileListProps<T extends FileChange> {
   readonly repository: Repository
 }
 
-export class FileList<T extends FileChange> extends React.Component<
-  IFileListProps<T>
-> {
+export class FileList extends React.Component<IFileListProps> {
   private onSelectedRowChanged = (row: number) => {
     const file = this.props.files[row]
     this.props.onSelectedFileChanged(file)

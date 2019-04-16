@@ -87,7 +87,7 @@ export class StashDiffViewer extends React.PureComponent<
             onResize={this.onResize}
             onReset={this.onReset}
           >
-            <FileList<CommittedFileChange>
+            <FileList
               files={files}
               onSelectedFileChanged={this.onSelectedFileChanged}
               selectedFile={this.props.selectedStashedFile}

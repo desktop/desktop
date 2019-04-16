@@ -161,7 +161,7 @@ export class SelectedCommit extends React.Component<
     const availableWidth = this.props.commitSummaryWidth - 1
 
     return (
-      <FileList<CommittedFileChange>
+      <FileList
         files={files}
         onSelectedFileChanged={this.onFileSelected}
         selectedFile={this.props.selectedFile}
