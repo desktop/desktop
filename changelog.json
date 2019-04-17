@@ -1,6 +1,18 @@
 {
   "releases": {
-      "1.7.0-beta2": [
+    "1.7.0-beta3": [
+      "[New] Adds workflow that allows users to take changes with them to new branch - #7248",
+      "[Added] \"Show keyboard shortcuts\" menu item added to Help menu - #7184",
+      "[Added] RESX syntax highlighting support - #7235. Thanks @say25!",
+      "[Fixed] Disable revert commit if comparing a branch's 'behind' commits - #6300. Thanks @msftrncs!",
+      "[Improved] Warn before rebase if operation requires a force push - #6963",
+      "[Improved] Pull request count is hidden when no open pull requests found - #7258",
+      "[Improved] Accessibility attributes for dialog - #6496. Thanks @HirdayGupta!",
+      "[Improved] Initiate cloning by pressing \"Enter\" on a clonable repository list selection - #6570. Thanks @Daniel-McCarthy!",
+      "[Improved] Manual Conflicts button styling - #7302",
+      "[Improved] \"Add\" button in repository list can be obscured - #6646"
+    ],
+    "1.7.0-beta2": [
         "[New] Rebase your current branch onto another branch using a guided flow - #5953",
         "[Fixed] Horizontal scroll bar appears unnecessarily when switching branches - #7212",
         "[Fixed] License templates do not end with newline character - #6999",
