@@ -1,7 +1,7 @@
 {
   "releases": {
     "1.7.0-beta4": [
-      "[Fixed] Ensure manual resolution choices are in sync with rebase flow - #7255",
+      "[Fixed] Manual conflict resolution choice not updated when resolving rebase conflicts - #7255",
       "[Fixed] Show \"force push\" label after rebase which requires it - #4976 #7138 #7231"
     ],
     "1.7.0-beta3": [
