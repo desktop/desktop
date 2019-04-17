@@ -227,12 +227,34 @@ export class Dispatcher {
     return this.appStore._changeRepositorySection(repository, section)
   }
 
-  /** Change the currently selected file in Changes. */
-  public changeChangesSelection(
+  /**
+   * Changes the selection in the changes view to the working directory and
+   * optionally selects one or more files from the working directory.
+   *
+   *  @param files An array of files to select when showing the working directory.
+   *               If undefined this method will preserve the previously selected
+   *               files or pick the first changed file if no selection exists.
+   */
+  public selectWorkingDirectoryFiles(
     repository: Repository,
-    selectedFiles: WorkingDirectoryFileChange[]
+    selectedFiles?: WorkingDirectoryFileChange[]
   ): Promise<void> {
-    return this.appStore._changeChangesSelection(repository, selectedFiles)
+    return this.appStore._selectWorkingDirectoryFiles(repository, selectedFiles)
+  }
+
+  /**
+   * Changes the selection in the changes view to the stash entry view and
+   * optionally selects a particular file from the current stash entry.
+   *
+   *  @param file  A file to select when showing the stash entry.
+   *               If undefined this method will preserve the previously selected
+   *               file or pick the first changed file if no selection exists.
+   */
+  public selectStashedFile(
+    repository: Repository,
+    file?: CommittedFileChange | null
+  ): Promise<void> {
+    return this.appStore._selectStashedFile(repository, file)
   }
 
   /**
@@ -1985,15 +2007,6 @@ export class Dispatcher {
     return this.commitStatusStore.subscribe(repository, ref, callback)
   }
 
-  /**
-   * Stashes all changes, including those in untracked files, in the working directory
-   *
-   * @param branch the branch the stash should be associated with
-   */
-  public createStash(repository: Repository, branch: Branch): Promise<void> {
-    return this.appStore._createStash(repository, branch.name)
-  }
-
   /** Drops the given stash in the given repository */
   public dropStash(repository: Repository, stashEntry: IStashEntry) {
     return this.appStore._dropStashEntry(repository, stashEntry)
@@ -2002,39 +2015,6 @@ export class Dispatcher {
   /** Pop the given stash in the given repository */
   public popStash(repository: Repository, stashEntry: IStashEntry) {
     return this.appStore._popStashEntry(repository, stashEntry)
-  }
-
-  /**
-   * Show the UI for stashed changes
-   */
-  public showStashEntry(repository: Repository) {
-    return this.appStore._showStashEntry(repository)
-  }
-
-  /**
-   * Hide the UI for stashed changes
-   */
-  public hideStashEntry(repository: Repository) {
-    return this.appStore._hideStashEntry(repository)
-  }
-
-  /** Loads the list of changed files for the latest stash on this branch   */
-  public loadStashedFiles(repository: Repository, stashEntry: IStashEntry) {
-    return this.appStore._loadStashedFiles(repository, stashEntry)
-  }
-
-  /**
-   * Change the selected changed file in the stash diff viewer.
-   *
-   * @param repository The currently active repository instance
-   *
-   * @param file
-   */
-  public changeStashedFileSelection(
-    repository: Repository,
-    file: CommittedFileChange
-  ): Promise<void> {
-    return this.appStore._changeStashedFileSelection(repository, file)
   }
 
   /**
