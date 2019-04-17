@@ -15,11 +15,9 @@ Let's see if you have the right version of `node` installed. Open a terminal and
 $ node -v
 ```
 
-If you see an error about being unable to find `node`, that probably means you don't have any Node tools installed. You can install Node 8 from the [Node.js website](https://nodejs.org/download/release/v8.12.0/) and restart your shell.
+If you see an error about being unable to find `node`, that probably means you don't have any Node tools installed. You can download Node from the [Node.js website](https://nodejs.org/), install the package, and restart your shell.
 
-If you see the output `v8.12.0`, you're good to go.
-
-If you see the output `v10.x.y` you're ahead of what we currently support. See [#5876](https://github.com/desktop/desktop/issues/5876) for details about building GitHub Desktop with Node 10, which we can hopefully resolve soon. If you don't care about the version you are running, you can install the version from the [Node.js website](https://nodejs.org/download/release/v8.12.0/) over the top of your current install.
+If you see the output `v10.x.y`, you're good to go.
 
 ### I need to use different versions of Node.js in different projects!
 
@@ -47,7 +45,7 @@ $ nvm use
 $ node -v
 ```
 
-If you see `v8.12.0`, you're good to go.
+If you see any version number, you're good to go.
 
 #### Configuring `asdf-nodejs`
 
@@ -75,7 +73,7 @@ macOS comes with Python pre-installed, and it happens to be the right version, s
 $ python --version
 ```
 
-If you see the output `Python 2.7`, you're good to go!
+If you see the output `Python 2.7.x`, you're good to go!
 
 ### I need to use different versions of Python in different projects!
 
@@ -106,3 +104,7 @@ xcode-select --install
 ```
 
 If you already have them, it'll say so!
+
+## Back to setup
+
+Once you've gotten all the necessary dependencies, head back to the [setup page](https://github.com/desktop/desktop/blob/development/docs/contributing/setup.md) to finish getting set up.
