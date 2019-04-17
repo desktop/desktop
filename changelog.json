@@ -1,5 +1,8 @@
 {
   "releases": {
+    "1.7.0-beta4": [
+
+    ],
     "1.7.0-beta3": [
       "[New] Users can choose to bring changes with them to a new branch or stash them on the current branch when switching branches - #6107",
       "[Added] GitHub Desktop keyboard shortcuts available in Help menu - #7184",
