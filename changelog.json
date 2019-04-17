@@ -1,8 +1,8 @@
 {
   "releases": {
     "1.7.0-beta3": [
-      "[New] Workflow that allows users to take changes with them to new branch - #7248",
-      "[Added] \"Show keyboard shortcuts\" menu item added to Help menu - #7184",
+      "[New] Users can choose to bring changes with them to a new branch or stash them on the current branch when switching branches - #7210,
+      "[Added] GitHub Desktop keyboard shortcuts available in Help menu - #7184",
       "[Added] .resx file extension highlighting support - #7235. Thanks @say25!",
       "[Fixed] Able to revert commits not on current branch - #6300. Thanks @msftrncs!",
       "[Improved] Warn before rebase if operation requires a force push - #6963",
