@@ -2741,7 +2741,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return repository
     }
 
-    return await this._checkoutBranch(repository, branch)
+    const repo = await this._checkoutBranch(repository, branch)
+    this._closePopup()
+    return repo
   }
 
   private updateCheckoutProgress(
