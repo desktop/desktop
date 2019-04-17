@@ -53,7 +53,7 @@ interface IPushPullButtonProps {
   readonly rebaseInProgress: boolean
 
   /** If the current branch has been rebased, the user is permitted to force-push */
-  readonly branchWasRebased: boolean
+  readonly isForcePush: boolean
 }
 
 function renderAheadBehind(aheadBehind: IAheadBehind) {
@@ -303,7 +303,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
       rebaseInProgress,
       lastFetched,
       pullWithRebase,
-      branchWasRebased,
+      isForcePush,
     } = this.props
 
     if (progress !== null) {
@@ -333,7 +333,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
       return fetchButton(remoteName, aheadBehind, lastFetched, this.fetch)
     }
 
-    if (branchWasRebased && behind > 0 && ahead > 0) {
+    if (isForcePush) {
       return forcePushButton(
         remoteName,
         aheadBehind,
