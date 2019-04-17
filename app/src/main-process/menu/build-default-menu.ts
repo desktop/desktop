@@ -21,6 +21,7 @@ const defaultPullRequestLabel = __DARWIN__
 const defaultBranchNameDefaultValue = __DARWIN__
   ? 'Default Branch'
   : 'default branch'
+const defaultRepositoryRemovalLabel = __DARWIN__ ? 'Remove' : '&Remove'
 
 enum ZoomDirection {
   Reset,
@@ -33,6 +34,9 @@ export type MenuLabels = {
   shellLabel?: string
   pullRequestLabel?: string
   defaultBranchName?: string
+  removeRepoLabel?: string
+  isForcePushForCurrentRepository?: boolean
+  askForConfirmationOnForcePush?: boolean
 }
 
 export function buildDefaultMenu({
@@ -40,6 +44,9 @@ export function buildDefaultMenu({
   shellLabel = defaultShellLabel,
   pullRequestLabel = defaultPullRequestLabel,
   defaultBranchName = defaultBranchNameDefaultValue,
+  removeRepoLabel = defaultRepositoryRemovalLabel,
+  isForcePushForCurrentRepository = false,
+  askForConfirmationOnForcePush = false,
 }: MenuLabels): Electron.Menu {
   defaultBranchName = truncateWithEllipsis(defaultBranchName, 25)
 
@@ -230,15 +237,22 @@ export function buildDefaultMenu({
     ],
   })
 
+  const pushLabel = getPushLabel(
+    isForcePushForCurrentRepository,
+    askForConfirmationOnForcePush
+  )
+
+  const pushEventType = isForcePushForCurrentRepository ? 'force-push' : 'push'
+
   template.push({
     label: __DARWIN__ ? 'Repository' : '&Repository',
     id: 'repository',
     submenu: [
       {
         id: 'push',
-        label: __DARWIN__ ? 'Push' : 'P&ush',
+        label: pushLabel,
         accelerator: 'CmdOrCtrl+P',
-        click: emit('push'),
+        click: emit(pushEventType),
       },
       {
         id: 'pull',
@@ -247,7 +261,7 @@ export function buildDefaultMenu({
         click: emit('pull'),
       },
       {
-        label: __DARWIN__ ? 'Remove' : '&Remove',
+        label: removeRepoLabel,
         id: 'remove-repository',
         accelerator: 'CmdOrCtrl+Delete',
         click: emit('remove-repository'),
@@ -481,6 +495,21 @@ export function buildDefaultMenu({
   ensureItemIds(template)
 
   return Menu.buildFromTemplate(template)
+}
+
+function getPushLabel(
+  isForcePushForCurrentRepository: boolean,
+  askForConfirmationOnForcePush: boolean
+): string {
+  if (!isForcePushForCurrentRepository) {
+    return __DARWIN__ ? 'Push' : 'P&ush'
+  }
+
+  if (askForConfirmationOnForcePush) {
+    return __DARWIN__ ? 'Force Push…' : 'Force P&ush…'
+  }
+
+  return __DARWIN__ ? 'Force Push' : 'Force P&ush'
 }
 
 type ClickHandler = (

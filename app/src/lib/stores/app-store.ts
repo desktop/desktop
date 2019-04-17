@@ -162,6 +162,7 @@ import {
 import {
   initializeRebaseFlowForConflictedRepository,
   formatRebaseValue,
+  isCurrentBranchForcePush,
 } from '../rebase'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import {
@@ -223,6 +224,7 @@ import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-str
 import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { RebasePreview } from '../../models/rebase'
+import { MenuLabels } from '../../main-process/menu'
 import { arrayEquals } from '../equality'
 
 /**
@@ -1594,7 +1596,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const shellValue = localStorage.getItem(shellKey)
     this.selectedShell = shellValue ? parseShell(shellValue) : DefaultShell
 
-    this.updateMenuItemLabels()
+    this.updateMenuLabelsForSelectedRepository()
 
     const imageDiffTypeValue = localStorage.getItem(imageDiffTypeKey)
     this.imageDiffType =
@@ -1646,50 +1648,85 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /**
-   * Update menu labels for editor, shell, and pull requests.
+   * Update menu labels for the selected repository.
+   *
+   * If selected repository type is a `CloningRepository` or
+   * `MissingRepository`, the menu labels will be updated but they will lack
+   * the expected `IRepositoryState` and revert to the default values.
    */
-  private updateMenuItemLabels(repository?: Repository) {
-    const editorLabel = this.selectedExternalEditor
-      ? `Open in ${this.selectedExternalEditor}`
-      : undefined
+  private updateMenuLabelsForSelectedRepository() {
+    const { selectedState } = this.getState()
 
-    updatePreferredAppMenuItemLabels({
-      editorLabel: editorLabel,
-      pullRequestLabel: this.getPullRequestLabel(repository),
-      shellLabel: `Open in ${this.selectedShell}`,
-      defaultBranchName: this.getDefaultBranchName(repository),
-    })
+    if (
+      selectedState !== null &&
+      selectedState.type === SelectionType.Repository
+    ) {
+      this.updateMenuItemLabels(selectedState.state)
+    } else {
+      this.updateMenuItemLabels(null)
+    }
   }
 
-  private getBranchesState(repository?: Repository) {
-    if (!repository || !repository.gitHubRepository) {
-      return undefined
+  /**
+   * Update the menus in the main process using the provided repository state
+   *
+   * @param state the current repository state, or `null` if the repository is
+   *              being cloned or is missing
+   */
+  private updateMenuItemLabels(state: IRepositoryState | null) {
+    const shellLabel = `Open in ${this.selectedShell}`
+    const removeRepoLabel = this.getRemoveRepoLabel()
+
+    let labels: MenuLabels = {
+      shellLabel,
+      removeRepoLabel,
     }
 
-    const state = this.repositoryStateCache.get(repository)
-    return state.branchesState
+    if (this.selectedExternalEditor !== undefined) {
+      labels = {
+        ...labels,
+        editorLabel: `Open in ${this.selectedExternalEditor}`,
+      }
+    }
+
+    if (state !== null) {
+      labels = {
+        ...labels,
+        pullRequestLabel: this.getPullRequestLabel(state),
+        defaultBranchName: this.getDefaultBranchName(state),
+        isForcePushForCurrentRepository: this.isCurrentBranchForcePush(state),
+        askForConfirmationOnForcePush: this.askForConfirmationOnForcePush,
+      }
+    }
+
+    updatePreferredAppMenuItemLabels(labels)
   }
 
-  private getPullRequestLabel(repository?: Repository) {
-    const branchesState = this.getBranchesState(repository)
-    if (branchesState == null) {
-      return undefined
-    }
+  private isCurrentBranchForcePush(state: IRepositoryState) {
+    const { branchesState, aheadBehind } = state
+    return isCurrentBranchForcePush(branchesState, aheadBehind)
+  }
 
-    if (branchesState.currentPullRequest === null) {
+  private getRemoveRepoLabel() {
+    return this.confirmRepoRemoval
+      ? __DARWIN__
+        ? 'Remove…'
+        : '&Remove…'
+      : __DARWIN__
+      ? 'Remove'
+      : '&Remove'
+  }
+
+  private getPullRequestLabel(state: IRepositoryState) {
+    if (state.branchesState.currentPullRequest === null) {
       return undefined
     }
 
     return __DARWIN__ ? 'Show Pull Request' : 'Show &pull request'
   }
 
-  private getDefaultBranchName(repository?: Repository) {
-    const branchesState = this.getBranchesState(repository)
-    if (branchesState == null) {
-      return undefined
-    }
-
-    const { defaultBranch } = branchesState
+  private getDefaultBranchName(state: IRepositoryState) {
+    const { defaultBranch } = state.branchesState
     if (defaultBranch == null || defaultBranch.upstreamWithoutRemote == null) {
       return undefined
     }
@@ -2455,7 +2492,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     ])
 
     this._updateCurrentPullRequest(repository)
-    this.updateMenuItemLabels(repository)
+
+    const latestState = this.repositoryStateCache.get(repository)
+    this.updateMenuItemLabels(latestState)
+
     this._initializeCompare(repository)
     this.refreshIndicatorsForRepositories([repository], false)
   }
@@ -2701,7 +2741,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return repository
     }
 
-    return await this._checkoutBranch(repository, branch)
+    const repo = await this._checkoutBranch(repository, branch)
+    this._closePopup()
+    return repo
   }
 
   private updateCheckoutProgress(
@@ -3142,6 +3184,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
         )
 
         this.updatePushPullFetchProgress(repository, null)
+
+        this.updateMenuLabelsForSelectedRepository()
 
         const { accounts } = this.getState()
         const githubAccount = await findAccountForRemoteURL(
@@ -4073,6 +4117,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<void> {
     this.confirmRepoRemoval = confirmRepoRemoval
     setBoolean(confirmRepoRemovalKey, confirmRepoRemoval)
+
+    this.updateMenuLabelsForSelectedRepository()
+
     this.emitUpdate()
 
     return Promise.resolve()
@@ -4090,7 +4137,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _setConfirmForcePushSetting(value: boolean): Promise<void> {
     this.askForConfirmationOnForcePush = value
     setBoolean(confirmForcePushKey, value)
+
+    this.updateMenuLabelsForSelectedRepository()
+
     this.emitUpdate()
+
     return Promise.resolve()
   }
 
@@ -4099,7 +4150,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     localStorage.setItem(externalEditorKey, selectedEditor)
     this.emitUpdate()
 
-    this.updateMenuItemLabels()
+    this.updateMenuLabelsForSelectedRepository()
 
     return Promise.resolve()
   }
@@ -4109,7 +4160,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     localStorage.setItem(shellKey, shell)
     this.emitUpdate()
 
-    this.updateMenuItemLabels()
+    this.updateMenuLabelsForSelectedRepository()
 
     return Promise.resolve()
   }
@@ -4657,7 +4708,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _refreshPullRequests(repository: Repository): Promise<void> {
     return this.loadPullRequests(repository, async account => {
       await this.pullRequestStore.fetchAndCachePullRequests(repository, account)
-      this.updateMenuItemLabels(repository)
+      this.updateMenuLabelsForSelectedRepository()
     })
   }
 
