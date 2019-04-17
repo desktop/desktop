@@ -937,6 +937,11 @@ export class Dispatcher {
         tip,
         beforeSha
       )
+    } else if (result === RebaseResult.Error) {
+      // we were unable to successfully start the rebase, and an error should
+      // be shown through the default error handling infrastructure, so we can
+      // just abandon the rebase for now
+      this.endRebaseFlow(repository)
     }
   }
 
