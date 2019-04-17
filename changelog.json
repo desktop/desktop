@@ -1,7 +1,7 @@
 {
   "releases": {
     "1.7.0-beta3": [
-      "[New] Users can choose to bring changes with them to a new branch or stash them on the current branch when switching branches - #7210",
+      "[New] Users can choose to bring changes with them to a new branch or stash them on the current branch when switching branches - #6107",
       "[Added] GitHub Desktop keyboard shortcuts available in Help menu - #7184",
       "[Added] .resx file extension highlighting support - #7235. Thanks @say25!",
       "[Fixed] Attempting to revert commits not on current branch results in an error - #6300. Thanks @msftrncs!",
