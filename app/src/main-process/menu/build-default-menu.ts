@@ -396,6 +396,15 @@ export function buildDefaultMenu({
     },
   }
 
+  const showKeyboardShortcuts: Electron.MenuItemConstructorOptions = {
+    label: __DARWIN__ ? 'Show Keyboard Shortcuts' : 'Show keyboard shortcuts',
+    click() {
+      shell.openExternal(
+        'https://help.github.com/en/desktop/getting-started-with-github-desktop/keyboard-shortcuts-in-github-desktop'
+      )
+    },
+  }
+
   const showLogsLabel = __DARWIN__
     ? 'Show Logs in Finder'
     : __WIN32__
@@ -420,6 +429,7 @@ export function buildDefaultMenu({
     submitIssueItem,
     contactSupportItem,
     showUserGuides,
+    showKeyboardShortcuts,
     showLogsItem,
   ]
 

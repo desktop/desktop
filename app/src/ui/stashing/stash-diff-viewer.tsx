@@ -1,13 +1,9 @@
-/* tslint:disable:button-group-order */
-
 import * as React from 'react'
 import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { FileList } from '../history/file-list'
 import { Dispatcher } from '../dispatcher'
 import { CommittedFileChange } from '../../models/status'
 import { Repository } from '../../models/repository'
-import { openFile } from '../lib/open-file'
-import { join } from 'path'
 import { Diff } from '../diff'
 import { IDiff, ImageDiffType } from '../../models/diff'
 import { Resizable } from '../resizable'
@@ -27,8 +23,6 @@ interface IStashDiffViewerProps {
 
   /** width to use for the files list pane */
   readonly fileListWidth: number
-  readonly externalEditorLabel?: string
-  readonly onOpenInExternalEditor: (path: string) => void
   readonly repository: Repository
   readonly dispatcher: Dispatcher
 }
@@ -42,13 +36,7 @@ export class StashDiffViewer extends React.PureComponent<
   IStashDiffViewerProps
 > {
   private onSelectedFileChanged = (file: CommittedFileChange) =>
-    this.props.dispatcher.changeStashedFileSelection(
-      this.props.repository,
-      file
-    )
-
-  private onOpenItem = (path: string) =>
-    openFile(join(this.props.repository.path, path), this.props.dispatcher)
+    this.props.dispatcher.selectStashedFile(this.props.repository, file)
 
   private onResize = (width: number) =>
     this.props.dispatcher.setStashedFilesWidth(width)
@@ -92,10 +80,6 @@ export class StashDiffViewer extends React.PureComponent<
               onSelectedFileChanged={this.onSelectedFileChanged}
               selectedFile={this.props.selectedStashedFile}
               availableWidth={this.props.fileListWidth}
-              onOpenItem={this.onOpenItem}
-              externalEditorLabel={this.props.externalEditorLabel}
-              onOpenInExternalEditor={this.props.onOpenInExternalEditor}
-              repository={this.props.repository}
             />
           </Resizable>
           {diffComponent}
@@ -119,11 +103,11 @@ const Header: React.SFC<{
   return (
     <div className="header">
       <h3>Stashed changes</h3>
-      <ButtonGroup>
-        <Button onClick={onClearClick}>Clear</Button>
+      <ButtonGroup destructive={true}>
         <Button onClick={onSubmitClick} type="submit">
           Restore
         </Button>
+        <Button onClick={onClearClick}>Discard</Button>
       </ButtonGroup>
     </div>
   )
