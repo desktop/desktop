@@ -63,4 +63,4 @@ $ sudo apt install libsecret-1-dev libgconf-2-4
 
 ## Back to setup
 
-Once you've gotten all the necessary dependencies, head back to the [setup page](https://github.com/desktop/desktop/blob/development/docs/contributing/setup.md) to finish getting set up.
+Once you've installed the necessary dependencies, head back to the [setup page](https://github.com/desktop/desktop/blob/development/docs/contributing/setup.md) to finish getting set up.
