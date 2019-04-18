@@ -4,7 +4,7 @@ You will need to install these tools on your machine:
 
  - Node.js
  - Yarn
- - Python
+ - Python 2
  - Visual C++ Build Tools
 
 ## Node.js
