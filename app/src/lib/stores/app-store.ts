@@ -2241,7 +2241,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       return {
         selection: {
-          kind: ChangesSelectionKind.Stash as ChangesSelectionKind.Stash,
+          kind: ChangesSelectionKind.Stash,
           selectedStashedFile,
           selectedStashedFileDiff: null,
         },
@@ -2281,7 +2281,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (file === null) {
       this.repositoryStateCache.updateChangesState(repository, () => ({
         selection: {
-          kind: ChangesSelectionKind.Stash as ChangesSelectionKind.Stash,
+          kind: ChangesSelectionKind.Stash,
           selectedStashedFile: null,
           selectedStashedFileDiff: null,
         },
@@ -2306,7 +2306,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.repositoryStateCache.updateChangesState(repository, () => ({
       selection: {
-        kind: ChangesSelectionKind.Stash as ChangesSelectionKind.Stash,
+        kind: ChangesSelectionKind.Stash,
         selectedStashedFile: file,
         selectedStashedFileDiff: diff,
       },
