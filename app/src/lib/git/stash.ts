@@ -103,10 +103,13 @@ export async function createDesktopStashEntry(
   })
 
   if (result.exitCode === 1) {
-    // check stderr for any error messages and rethrow, because these should
-    // prevent the stash from being created
-    const stderrLines = result.stderr.split('\n')
-    if (stderrLines.some(l => l.startsWith('error:'))) {
+    // search for any line starting with `error:` -  /m here to ensure this is
+    // applied to each line, without needing to split the text
+    const errorPrefixRe = /^error: /m
+
+    const matches = errorPrefixRe.exec(result.stderr)
+    if (matches !== null && matches.length > 0) {
+      // rethrow, because these messages should prevent the stash from being created
       throw new GitError(result, args)
     }
 
