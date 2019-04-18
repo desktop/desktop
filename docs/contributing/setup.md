@@ -33,7 +33,7 @@ editor to work nicely with the GitHub Desktop repository.
 
 ## Building Desktop
 
-First, create a fork of desktop/desktop and then clone the repository to your local machine. You'll need to be inside the repository in order to build the application locally.
+First, create a fork of `desktop/desktop` and then clone the repository to your local machine. You'll need to be inside the repository in order to build the application locally.
 
 The typical workflow to get up running is as follows:
 
