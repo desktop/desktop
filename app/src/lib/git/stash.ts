@@ -1,15 +1,18 @@
-import { git } from '.'
-import { Repository } from '../../models/repository'
 import { GitError as DugiteError } from 'dugite'
-import { GitError } from './core'
+import { git } from '.'
+
+import { Repository } from '../../models/repository'
 import {
   IStashEntry,
   StashedChangesLoadStates,
   StashedFileChanges,
 } from '../../models/stash-entry'
 import { CommittedFileChange } from '../../models/status'
-import { parseChangedFiles } from './log'
+
 import { compare } from '../compare'
+
+import { GitError } from './core'
+import { parseChangedFiles } from './log'
 
 export const DesktopStashEntryMarker = '!!GitHub_Desktop'
 
