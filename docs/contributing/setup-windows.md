@@ -2,9 +2,9 @@
 
 You will need to install these tools on your machine:
 
- - Node.js v8.12.0
+ - Node.js
  - Yarn
- - Python 2.7
+ - Python
  - Visual C++ Build Tools
 
 ## Node.js
@@ -16,19 +16,10 @@ run this command:
 $ node -v
 ```
 
-If you see an error about being unable to find `node`, that probably means you
-don't have any Node tools installed. You can install Node 8 from the
-[Node.js website](https://nodejs.org/download/release/v8.12.0/) and restart your
-shell.
+If you see an error about being unable to find `node`, that probably means you don't have any Node tools installed.
+You can download Node from the [Node.js website](https://nodejs.org/), install the package, and restart your shell.
 
-If you see the output `v8.12.0`, you're good to go.
-
-If you see the output `v10.x.y` you're ahead of what we currently support. See
-[#5876](https://github.com/desktop/desktop/issues/5876) for details about
-building GitHub Desktop with Node 10, which we can hopefully resolve soon. If
-you don't care about the version you are running, you can install the version
-from the [Node.js website](https://nodejs.org/download/release/v8.12.0/) over
-the top of your current install.
+If you see the output `v10.x.y`, you're good to go.
 
 **Node.js installation notes:**
  - make sure you allow the Node.js installer to add `node` to the PATH.
@@ -59,7 +50,7 @@ $ nvm use
 $ node -v
 ```
 
-If you see `v8.12.0`, you're good to go.
+If you see any version number, you're good to go.
 
 ## Yarn
 
@@ -83,7 +74,7 @@ Open a shell and run this command:
 $ python --version
 ```
 
-If you see the output `Python 2.7`, you're good to go!
+If you see the output `Python 2.7.x`, you're good to go!
 
 If you see an error about being unable to find `python`, that probably means you
 don't have any Node tools installed. You can install Python 2.7 from the
@@ -142,3 +133,7 @@ of NPM:
 ```shellsession
 $ npm config set msvs_version 2015
 ```
+
+## Back to setup
+
+Once you've gotten all the necessary dependencies, head back to the [setup page](https://github.com/desktop/desktop/blob/development/docs/contributing/setup.md) to finish getting set up.
