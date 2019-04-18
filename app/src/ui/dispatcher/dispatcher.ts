@@ -874,11 +874,13 @@ export class Dispatcher {
 
     const beforeSha = getTipSha(stateBefore.branchesState.tip)
 
-    log.info(`[rebase] starting rebase for ${targetBranch} at ${beforeSha}`)
+    log.info(
+      `[rebase] starting rebase for ${targetBranch.name} at ${beforeSha}`
+    )
     log.info(
       `[rebase] to restore the previous state if this completed rebase is unsatisfactory:`
     )
-    log.info(`[rebase] - git checkout ${targetBranch}`)
+    log.info(`[rebase] - git checkout ${targetBranch.name}`)
     log.info(`[rebase] - git reset ${beforeSha} --hard`)
 
     const result = await this.appStore._rebase(
@@ -925,7 +927,7 @@ export class Dispatcher {
     } else if (result === RebaseResult.CompletedWithoutError) {
       if (tip.kind !== TipState.Valid) {
         log.warn(
-          `[continueRebase] tip after completing rebase is ${
+          `[rebase] tip after completing rebase is ${
             tip.kind
           } but this should be a valid tip if the rebase completed without error`
         )
