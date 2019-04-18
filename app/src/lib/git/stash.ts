@@ -102,7 +102,7 @@ export async function createDesktopStashEntry(
     successExitCodes: new Set<number>([0, 1]),
   })
 
-  if (result.exitCode === 1 && result.stderr.length > 0) {
+  if (result.exitCode === 1) {
     // check stderr for any error messages and rethrow, because these should
     // prevent the stash from being created
     const stderrLines = result.stderr.split('\n')
