@@ -10,7 +10,6 @@ import {
   FoldoutType,
   ICompareFormUpdate,
   RepositorySectionTab,
-  isRebaseConflictState,
   isMergeConflictState,
   RebaseConflictState,
 } from '../../lib/app-state'
@@ -953,19 +952,15 @@ export class Dispatcher {
   public async continueRebase(
     repository: Repository,
     workingDirectory: WorkingDirectoryStatus,
-    manualResolutions: ReadonlyMap<string, ManualConflictResolution>
+    conflictsState: RebaseConflictState
   ): Promise<void> {
     const stateBefore = this.repositoryStateManager.get(repository)
-    const { conflictState } = stateBefore.changesState
-
-    if (conflictState === null || !isRebaseConflictState(conflictState)) {
-      log.warn(
-        `[continueRebase] no conflicts found, likely an invalid rebase state`
-      )
-      return
-    }
-
-    const { targetBranch, baseBranch, originalBranchTip } = conflictState
+    const {
+      targetBranch,
+      baseBranch,
+      originalBranchTip,
+      manualResolutions,
+    } = conflictsState
 
     const beforeSha = getTipSha(stateBefore.branchesState.tip)
 
