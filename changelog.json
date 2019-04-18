@@ -1,6 +1,22 @@
 {
   "releases": {
-      "1.7.0-beta2": [
+    "1.7.0-beta4": [
+      "[Fixed] Manual conflict resolution choice not updated when resolving rebase conflicts - #7255",
+      "[Fixed] Menu items don't display the expected verbiage for force push and removing a repository - #4976 #7138"
+    ],
+    "1.7.0-beta3": [
+      "[New] Users can choose to bring changes with them to a new branch or stash them on the current branch when switching branches - #6107",
+      "[Added] GitHub Desktop keyboard shortcuts available in Help menu - #7184",
+      "[Added] .resx file extension highlighting support - #7235. Thanks @say25!",
+      "[Fixed] Attempting to revert commits not on current branch results in an error - #6300. Thanks @msftrncs!",
+      "[Improved] Warn users before rebase if operation will require a force push after rebase complete - #6963",
+      "[Improved] Do not show the number of pull requests when there are no open pull requests - #7258",
+      "[Improved] Accessibility attributes for dialog - #6496. Thanks @HirdayGupta!",
+      "[Improved] Initiate cloning by pressing \"Enter\" when a repository is selected - #6570. Thanks @Daniel-McCarthy!",
+      "[Improved] Manual Conflicts button styling - #7302",
+      "[Improved] \"Add\" button in repository list should always be visible - #6646"
+    ],
+    "1.7.0-beta2": [
         "[New] Rebase your current branch onto another branch using a guided flow - #5953",
         "[Fixed] Horizontal scroll bar appears unnecessarily when switching branches - #7212",
         "[Fixed] License templates do not end with newline character - #6999",

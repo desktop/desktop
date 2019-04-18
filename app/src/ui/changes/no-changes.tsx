@@ -16,6 +16,7 @@ import { TipState, IValidBranch } from '../../models/tip'
 import { Ref } from '../lib/ref'
 import { IAheadBehind } from '../../models/branch'
 import { IRemote } from '../../models/remote'
+import { isCurrentBranchForcePush } from '../../lib/rebase'
 
 function formatMenuItemLabel(text: string) {
   if (__WIN32__ || __LINUX__) {
@@ -292,12 +293,7 @@ export class NoChanges extends React.Component<
 
   private renderRemoteAction() {
     const { remote, aheadBehind, branchesState } = this.props.repositoryState
-    const {
-      tip,
-      defaultBranch,
-      currentPullRequest,
-      rebasedBranches,
-    } = branchesState
+    const { tip, defaultBranch, currentPullRequest } = branchesState
 
     if (tip.kind !== TipState.Valid) {
       return null
@@ -312,12 +308,8 @@ export class NoChanges extends React.Component<
       return this.renderPublishBranchAction(tip)
     }
 
-    const localBranchName = tip.branch.nameWithoutRemote
-    const { sha } = tip.branch.tip
-    const foundEntry = rebasedBranches.get(localBranchName)
-    const branchWasRebased = foundEntry === sha
-
-    if (branchWasRebased) {
+    const isForcePush = isCurrentBranchForcePush(branchesState, aheadBehind)
+    if (isForcePush) {
       // do not render an action currently after the rebase has completed, as
       // the default behaviour is currently to pull in changes from the tracking
       // branch which will could potentially lead to a more confusing history
