@@ -1,4 +1,4 @@
-import { IChangesState } from '../../src/lib/app-state'
+import { IChangesState, ChangesSelectionKind } from '../../src/lib/app-state'
 import { WorkingDirectoryStatus } from '../../src/models/status'
 import { merge } from '../../src/lib/merge'
 import { IStatusResult } from '../../src/lib/git'
@@ -9,15 +9,16 @@ export function createState<K extends keyof IChangesState>(
 ): IChangesState {
   const baseChangesState: IChangesState = {
     workingDirectory: WorkingDirectoryStatus.fromFiles([]),
-    selectedFileIDs: [],
-    diff: null,
+    selection: {
+      kind: ChangesSelectionKind.WorkingDirectory,
+      selectedFileIDs: [],
+      diff: null,
+    },
     commitMessage: DefaultCommitMessage,
     showCoAuthoredBy: false,
     coAuthors: [],
     conflictState: null,
-    shouldShowStashedChanges: false,
-    selectedStashedFile: null,
-    selectedStashedFileDiff: null,
+    stashEntry: null,
   }
 
   return merge(baseChangesState, pick)

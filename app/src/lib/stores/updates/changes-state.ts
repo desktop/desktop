@@ -10,11 +10,14 @@ import {
   isMergeConflictState,
   isRebaseConflictState,
   RebaseConflictState,
+  ChangesSelection,
+  ChangesSelectionKind,
 } from '../../app-state'
-import { DiffSelectionType, IDiff } from '../../../models/diff'
+import { DiffSelectionType } from '../../../models/diff'
 import { caseInsensitiveCompare } from '../../compare'
 import { IStatsStore } from '../../stats/stats-store'
 import { ManualConflictResolution } from '../../../models/manual-conflict-resolution'
+import { assertNever } from '../../fatal-error'
 
 /**
  * Internal shape of the return value from this response because the compiler
@@ -23,8 +26,7 @@ import { ManualConflictResolution } from '../../../models/manual-conflict-resolu
  */
 type ChangedFilesResult = {
   readonly workingDirectory: WorkingDirectoryStatus
-  readonly selectedFileIDs: string[]
-  readonly diff: IDiff | null
+  readonly selection: ChangesSelection
 }
 
 export function updateChangedFiles(
@@ -62,19 +64,6 @@ export function updateChangedFiles(
   // lookups using .find on the mergedFiles array.
   const mergedFileIds = new Set(mergedFiles.map(x => x.id))
 
-  // The previously selected files might not be available in the working
-  // directory any more due to having been committed or discarded so we'll
-  // do a pass over and filter out any selected files that aren't available.
-  let selectedFileIDs = state.selectedFileIDs.filter(id =>
-    mergedFileIds.has(id)
-  )
-
-  // Select the first file if we don't have anything selected and we
-  // have something to select.
-  if (selectedFileIDs.length === 0 && mergedFiles.length > 0) {
-    selectedFileIDs = [mergedFiles[0].id]
-  }
-
   // The file selection could have changed if the previously selected files
   // are no longer selectable (they were discarded or committed) but if they
   // were not changed we can reuse the diff. Note, however that we only render
@@ -83,17 +72,46 @@ export function updateChangedFiles(
   // diff we had, if not we'll clear it.
   const workingDirectory = WorkingDirectoryStatus.fromFiles(mergedFiles)
 
-  const diff =
-    selectedFileIDs.length === 1 &&
-    state.selectedFileIDs.length === 1 &&
-    state.selectedFileIDs[0] === selectedFileIDs[0]
-      ? state.diff
-      : null
+  const selectionKind = state.selection.kind
+  if (state.selection.kind === ChangesSelectionKind.WorkingDirectory) {
+    // The previously selected files might not be available in the working
+    // directory any more due to having been committed or discarded so we'll
+    // do a pass over and filter out any selected files that aren't available.
+    let selectedFileIDs = state.selection.selectedFileIDs.filter(id =>
+      mergedFileIds.has(id)
+    )
 
-  return {
-    workingDirectory,
-    selectedFileIDs,
-    diff,
+    // Select the first file if we don't have anything selected and we
+    // have something to select.
+    if (selectedFileIDs.length === 0 && mergedFiles.length > 0) {
+      selectedFileIDs = [mergedFiles[0].id]
+    }
+
+    const diff =
+      selectedFileIDs.length === 1 &&
+      state.selection.selectedFileIDs.length === 1 &&
+      state.selection.selectedFileIDs[0] === selectedFileIDs[0]
+        ? state.selection.diff
+        : null
+
+    return {
+      workingDirectory,
+      selection: {
+        kind: ChangesSelectionKind.WorkingDirectory,
+        selectedFileIDs,
+        diff,
+      },
+    }
+  } else if (state.selection.kind === ChangesSelectionKind.Stash) {
+    return {
+      workingDirectory,
+      selection: state.selection,
+    }
+  } else {
+    return assertNever(
+      state.selection,
+      `Unknown selection kind ${selectionKind}`
+    )
   }
 }
 
@@ -276,4 +294,46 @@ export function updateConflictState(
   // vice versa, and we should avoid any side effects here
 
   return newConflictState
+}
+
+/**
+ * Generate the partial state needed to update ChangesState selection property
+ * when a user or external constraints require us to do so.
+ *
+ * @param state The current changes state
+ * @param files An array of files to select when showing the working directory.
+ *              If undefined this method will preserve the previously selected
+ *              files or pick the first changed file if no selection exists.
+ */
+export function selectWorkingDirectoryFiles(
+  state: IChangesState,
+  files?: ReadonlyArray<WorkingDirectoryFileChange>
+): Pick<IChangesState, 'selection'> {
+  let selectedFileIDs: Array<string>
+
+  if (files === undefined) {
+    if (state.selection.kind === ChangesSelectionKind.WorkingDirectory) {
+      // No files provided, just a desire to make sure selection is
+      // working directory. If it already is there's nothing for us to do.
+      return { selection: state.selection }
+    } else if (state.workingDirectory.files.length > 0) {
+      // No files provided and the current selection is stash, pick the
+      // first file we've got.
+      selectedFileIDs = [state.workingDirectory.files[0].id]
+    } else {
+      // Not much to do here. No files provided, nothing in the
+      // working directory.
+      selectedFileIDs = new Array<string>()
+    }
+  } else {
+    selectedFileIDs = files.map(x => x.id)
+  }
+
+  return {
+    selection: {
+      kind: ChangesSelectionKind.WorkingDirectory as ChangesSelectionKind.WorkingDirectory,
+      selectedFileIDs,
+      diff: null,
+    },
+  }
 }
