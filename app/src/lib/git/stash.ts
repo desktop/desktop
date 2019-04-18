@@ -1,6 +1,7 @@
 import { git } from '.'
 import { Repository } from '../../models/repository'
 import { GitError as DugiteError } from 'dugite'
+import { GitError } from './core'
 import {
   IStashEntry,
   StashedChangesLoadStates,
@@ -93,7 +94,28 @@ export async function createDesktopStashEntry(
 ) {
   const message = createDesktopStashMessage(branchName)
   const args = ['stash', 'push', '--include-untracked', '-m', message]
-  await git(args, repository.path, 'createStashEntry')
+
+  const result = await git(args, repository.path, 'createStashEntry', {
+    successExitCodes: new Set<number>([0, 1]),
+  })
+
+  if (result.exitCode === 1 && result.stderr.length > 0) {
+    // check stderr for any error messages and rethrow, because these should
+    // prevent the stash from being created
+    const stderrLines = result.stderr.split('\n')
+    if (stderrLines.some(l => l.startsWith('error:'))) {
+      throw new GitError(result, args)
+    }
+
+    // if no error messages were emitted by Git, we should log but continue because
+    // a valid stash was created and this should not interfere with the checkout
+
+    log.info(
+      `[createDesktopStashEntry] a stash was created successfully but exit code ${
+        result.exitCode
+      } reported. stderr: ${result.stderr}`
+    )
+  }
 }
 
 async function getStashEntryMatchingSha(repository: Repository, sha: string) {
