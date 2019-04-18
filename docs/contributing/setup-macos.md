@@ -2,9 +2,9 @@
 
 You will need to install these tools on your machine:
 
- - Node.js v8.12.0
+ - Node.js
  - Yarn
- - Python 2.7
+ - Python
  - Xcode and Xcode Command Line Tools (Xcode -> Preferences -> Downloads)
 
 ## Node.js
