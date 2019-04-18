@@ -1007,7 +1007,14 @@ export class Dispatcher {
         return
       }
 
-      this.switchToConflicts(repository, conflictState)
+      // ensure branches are persisted when transitioning back to conflicts
+      const conflictsWithBranches: RebaseConflictState = {
+        ...conflictState,
+        baseBranch,
+        targetBranch,
+      }
+
+      this.switchToConflicts(repository, conflictsWithBranches)
     } else if (result === RebaseResult.CompletedWithoutError) {
       if (tip.kind !== TipState.Valid) {
         log.warn(
