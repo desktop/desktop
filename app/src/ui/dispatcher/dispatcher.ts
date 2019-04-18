@@ -915,7 +915,13 @@ export class Dispatcher {
         return
       }
 
-      this.switchToConflicts(repository, conflictState)
+      const conflictsWithBranches: RebaseConflictState = {
+        ...conflictState,
+        baseBranch: baseBranch.name,
+        targetBranch: targetBranch.name,
+      }
+
+      this.switchToConflicts(repository, conflictsWithBranches)
     } else if (result === RebaseResult.CompletedWithoutError) {
       if (tip.kind !== TipState.Valid) {
         log.warn(
