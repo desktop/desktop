@@ -55,8 +55,8 @@ export class OverwriteStash extends React.Component<
         </DialogContent>
         <DialogFooter>
           <ButtonGroup destructive={true}>
-            <Button type="submit">Overwrite</Button>
             <Button onClick={this.props.onDismissed}>Cancel</Button>
+            <Button type="submit">Overwrite</Button>
           </ButtonGroup>
         </DialogFooter>
       </Dialog>
