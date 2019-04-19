@@ -18,7 +18,7 @@ interface IDiscardStashState {
   readonly isDiscarding: boolean
 }
 /**
- * Dialog that alerts user that their stash will be overwritten
+ * Dialog to confirm dropping a stash
  */
 export class DiscardStash extends React.Component<
   IDiscardStashProps,
