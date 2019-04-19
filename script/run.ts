@@ -41,5 +41,5 @@ export function run(spawnOptions: SpawnOptions) {
     NODE_ENV: 'development',
   })
 
-  return spawn(binaryPath, [], opts)
+  return spawn(binaryPath, ['--remote-debugging-port=1234'], opts)
 }
