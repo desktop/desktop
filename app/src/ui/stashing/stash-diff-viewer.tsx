@@ -9,6 +9,7 @@ import { IDiff, ImageDiffType } from '../../models/diff'
 import { Resizable } from '../resizable'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
+import { PopupType } from '../../models/popup'
 
 interface IStashDiffViewerProps {
   /** The stash in question. */
@@ -95,11 +96,17 @@ const Header: React.SFC<{
   dispatcher: Dispatcher
 }> = props => {
   const onClearClick = () => {
-    props.dispatcher.dropStash(props.repository, props.stashEntry)
+    props.dispatcher.showPopup({
+      type: PopupType.ConfirmDiscardStash,
+      repository: props.repository,
+      stash: props.stashEntry,
+    })
   }
+
   const onSubmitClick = () => {
     props.dispatcher.popStash(props.repository, props.stashEntry)
   }
+
   return (
     <div className="header">
       <h3>Stashed changes</h3>
