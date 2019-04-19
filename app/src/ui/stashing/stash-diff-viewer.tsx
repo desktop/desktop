@@ -118,15 +118,30 @@ const Header: React.SFC<{
   const onSubmitClick = () => {
     dispatcher.popStash(repository, stashEntry)
   }
+
+  const restoreMessage = isWorkingTreeClean ? (
+    'This will pop this stash as changed files.'
+  ) : (
+    <div>
+      <Octicon symbol={OcticonSymbol.alert} /> Unable to restore stash when
+      changes are present on your branch.{' '}
+    </div>
+  )
+
   return (
     <div className="header">
       <h3>Stashed changes</h3>
       <ButtonGroup destructive={true}>
-        <Button onClick={onSubmitClick} type="submit">
+        <Button
+          onClick={onSubmitClick}
+          type="submit"
+          disabled={!isWorkingTreeClean}
+        >
           Restore
         </Button>
         <Button onClick={onClearClick}>Discard</Button>
       </ButtonGroup>
+      <div className="explanatory-text">{restoreMessage}</div>
     </div>
   )
 }
