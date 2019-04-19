@@ -6,21 +6,42 @@
   flex: 1;
 
   .header {
+    display: flex;
+    flex-direction: column;
+    border-bottom: var(--base-border);
+    padding: var(--spacing);
+
     h3 {
       font-weight: var(--font-weight-light);
       font-size: var(--font-size-xl);
       line-height: 1;
       margin-bottom: var(--spacing);
     }
-    display: flex;
-    flex-direction: column;
-    border-bottom: var(--base-border);
-    padding: var(--spacing-double);
 
     .button-group {
       display: flex;
       button {
         margin-right: var(--spacing);
+      }
+    }
+
+    .explanatory-text {
+      display: flex;
+      flex-grow: 1;
+      flex-direction: column;
+      padding-top: var(--spacing);
+
+      .text {
+        flex-grow: 1;
+        margin: 0 var(--spacing-half);
+      }
+
+      .icon {
+        fill: var(--color-modified);
+      }
+
+      .octicon {
+        flex-shrink: 0;
       }
     }
   }

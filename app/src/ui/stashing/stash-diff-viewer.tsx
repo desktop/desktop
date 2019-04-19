@@ -123,8 +123,10 @@ const Header: React.SFC<{
     'This will pop this stash as changed files.'
   ) : (
     <div>
-      <Octicon symbol={OcticonSymbol.alert} /> Unable to restore stash when
-      changes are present on your branch.{' '}
+      <Octicon className="icon" symbol={OcticonSymbol.alert} />
+      <span className="text">
+        Unable to restore stash when changes are present on your branch.
+      </span>
     </div>
   )
 
