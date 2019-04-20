@@ -1,16 +1,16 @@
 import * as puppeteer from 'puppeteer'
-// import { getDistPath, getExecutableName } from '../../../script/dist-info'
-// // import { join } from 'path'
+import { getDistPath, getExecutableName } from '../../../script/dist-info'
+import { join } from 'path'
 
-// // const distPath = getDistPath()
-// // const productName = getExecutableName()
-// // // const binary = join(
-// // //   distPath,
-// // //   `${productName}.app`,
-// // //   'Contents',
-// // //   'MacOS',
-// // //   `${productName}`
-// // // )
+const distPath = getDistPath()
+const productName = getExecutableName()
+const binary = join(
+  distPath,
+  `${productName}.app`,
+  'Contents',
+  'MacOS',
+  `${productName}`
+)
 
 describe('ui', () => {
   let browser: puppeteer.Browser | null = null
@@ -21,14 +21,10 @@ describe('ui', () => {
   })
 
   it('works', async () => {
-    browser = await puppeteer.connect({
-      browserURL: 'http://localhost:1234',
+    browser = await puppeteer.launch({
+      executablePath: binary,
+      args: [],
     })
-
-    // browser = await puppeteer.launch({
-    //   executablePath: binary,
-    //   args: [],
-    // })
 
     const pages = await browser.pages()
     const page = pages.find(x => x.url().includes('file:///'))

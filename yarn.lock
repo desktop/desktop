@@ -331,6 +331,13 @@
   resolved "https://registry.yarnpkg.com/@types/prop-types/-/prop-types-15.5.2.tgz#3c6b8dceb2906cc87fe4358e809f9d20c8d59be1"
   integrity sha512-pQRkAVoxiuUrLq8+CDwiQX4pTCep/PmmNgBbjIwnnsd/HoYjGpR81+FFPE030lvNXgR0haaAU6eoRtztWDE4Xw==
 
+"@types/puppeteer@1.12.3":
+  version "1.12.3"
+  resolved "https://registry.yarnpkg.com/@types/puppeteer/-/puppeteer-1.12.3.tgz#1309882d368ed21004dfc4520864fdafcf126277"
+  integrity sha512-mJtUPdXqB8THRwiHPbx8pkGYi+8IPf3dMuwJS9hHpr59BwkuLDkkEJ4qMST0k6TbOUXp+wyMJii30ouSkoEtaw==
+  dependencies:
+    "@types/node" "*"
+
 "@types/react-addons-css-transition-group@*":
   version "15.0.5"
   resolved "https://registry.yarnpkg.com/@types/react-addons-css-transition-group/-/react-addons-css-transition-group-15.0.5.tgz#73665af6b8efb47730ab583ead4bed5373dae686"
