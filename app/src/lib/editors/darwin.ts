@@ -17,6 +17,7 @@ export enum ExternalEditor {
   WebStorm = 'WebStorm',
   Typora = 'Typora',
   SlickEdit = 'SlickEdit',
+  Xcode = 'Xcode',
 }
 
 export function parse(label: string): ExternalEditor | null {
@@ -59,6 +60,9 @@ export function parse(label: string): ExternalEditor | null {
   if (label === ExternalEditor.SlickEdit) {
     return ExternalEditor.SlickEdit
   }
+  if (label == ExternalEditor.Xcode) {
+    return ExternalEditor.Xcode
+  }
   return null
 }
 
@@ -100,6 +104,8 @@ function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
         'com.slickedit.SlickEditPro2016',
         'com.slickedit.SlickEditPro2015',
       ]
+    case ExternalEditor.Xcode:
+      return ['com.apple.dt.Xcode']
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -142,6 +148,8 @@ function getExecutableShim(
       return Path.join(installPath, 'Contents', 'MacOS', 'Typora')
     case ExternalEditor.SlickEdit:
       return Path.join(installPath, 'Contents', 'MacOS', 'vs')
+    case ExternalEditor.Xcode:
+      return Path.join(installPath, 'Contents', 'MacOS', 'Xcode')
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -190,6 +198,7 @@ export async function getAvailableEditors(): Promise<
     webStormPath,
     typoraPath,
     slickeditPath,
+    xCodePath,
   ] = await Promise.all([
     findApplication(ExternalEditor.Atom),
     findApplication(ExternalEditor.MacVim),
@@ -204,6 +213,7 @@ export async function getAvailableEditors(): Promise<
     findApplication(ExternalEditor.WebStorm),
     findApplication(ExternalEditor.Typora),
     findApplication(ExternalEditor.SlickEdit),
+    findApplication(ExternalEditor.Xcode),
   ])
 
   if (atomPath) {
@@ -259,6 +269,10 @@ export async function getAvailableEditors(): Promise<
 
   if (slickeditPath) {
     results.push({ editor: ExternalEditor.SlickEdit, path: slickeditPath })
+  }
+
+  if (xCodePath) {
+    results.push({ editor: ExternalEditor.Xcode, path: xCodePath })
   }
 
   return results
