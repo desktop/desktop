@@ -60,7 +60,7 @@ export function parse(label: string): ExternalEditor | null {
   if (label === ExternalEditor.SlickEdit) {
     return ExternalEditor.SlickEdit
   }
-  if (label == ExternalEditor.Xcode) {
+  if (label === ExternalEditor.Xcode) {
     return ExternalEditor.Xcode
   }
   return null
