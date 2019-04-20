@@ -257,6 +257,36 @@ export class NoChanges extends React.Component<
     executeMenuItemById('preferences')
   }
 
+  private renderOpenInShell() {
+    const itemId: MenuIDs = 'open-in-shell'
+    const menuItem = this.getMenuItemInfo(itemId)
+
+    if (menuItem === undefined) {
+      log.error(`Could not find matching menu item for ${itemId}`)
+      return null
+    }
+
+    const preferencesMenuItem = this.getMenuItemInfo('preferences')
+
+    if (preferencesMenuItem === undefined) {
+      log.error(`Could not find matching menu item for ${itemId}`)
+      return null
+    }
+
+    const title = `Open the repository in your shell`
+
+    const description = (
+      <>
+        Select your shell in{' '}
+        <LinkButton onClick={this.openPreferences}>
+          {__DARWIN__ ? 'Preferences' : 'Options'}
+        </LinkButton>
+      </>
+    )
+
+    return this.renderMenuBackedAction(itemId, title, description)
+  }
+
   private renderOpenInExternalEditor() {
     if (!this.props.isExternalEditorAvailable) {
       return null
@@ -571,6 +601,7 @@ export class NoChanges extends React.Component<
         </ReactCSSTransitionReplace>
         <div className="actions">
           {this.renderOpenInExternalEditor()}
+          {this.renderOpenInShell()}
           {this.renderShowInFileManager()}
           {this.renderViewOnGitHub()}
         </div>
