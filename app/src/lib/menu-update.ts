@@ -155,11 +155,12 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
   let tipStateIsUnknown = false
   let branchIsUnborn = false
   let rebaseInProgress = false
+  let branchHasStashEntry = false
 
   if (selectedState && selectedState.type === SelectionType.Repository) {
     repositorySelected = true
 
-    const branchesState = selectedState.state.branchesState
+    const { branchesState, changesState } = selectedState.state
     const tip = branchesState.tip
     const defaultBranch = branchesState.defaultBranch
 
@@ -181,6 +182,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
       }
 
       hasPublishedBranch = !!tip.branch.upstream
+      branchHasStashEntry = changesState.stashEntry !== null
     } else {
       onNonDefaultBranch = true
     }
@@ -259,6 +261,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     )
 
     menuStateBuilder.setEnabled('compare-to-branch', !onDetachedHead)
+    menuStateBuilder.setEnabled('show-stashed-changes', branchHasStashEntry)
 
     if (
       selectedState &&
@@ -295,7 +298,9 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     menuStateBuilder.disable('pull')
     menuStateBuilder.disable('compare-to-branch')
     menuStateBuilder.disable('compare-on-github')
+    menuStateBuilder.disable('show-stashed-changes')
   }
+
   return menuStateBuilder
 }
 
