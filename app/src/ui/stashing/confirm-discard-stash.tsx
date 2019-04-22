@@ -50,7 +50,7 @@ export class DiscardStash extends React.Component<
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>
-            <Button type="submit">Continue</Button>
+            <Button type="submit">Discard</Button>
             <Button onClick={this.props.onDismissed}>Cancel</Button>
           </ButtonGroup>
         </DialogFooter>
