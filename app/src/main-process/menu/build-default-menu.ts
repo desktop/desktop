@@ -166,6 +166,12 @@ export function buildDefaultMenu({
         click: emit('show-history'),
       },
       {
+        label: __DARWIN__ ? 'Show Stashed Changes' : 'Sho&w stashed changes',
+        id: 'show-stashed-changes',
+        accelerator: 'Ctrl+1',
+        click: emit('show-stashed-changes'),
+      },
+      {
         label: __DARWIN__ ? 'Show Repository List' : 'Repository &list',
         id: 'show-repository-list',
         accelerator: 'CmdOrCtrl+T',

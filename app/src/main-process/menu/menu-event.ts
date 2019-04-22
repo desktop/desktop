@@ -31,3 +31,4 @@ export type MenuEvent =
   | 'open-external-editor'
   | 'select-all'
   | 'show-release-notes-popup'
+  | 'show-stashed-changes'
