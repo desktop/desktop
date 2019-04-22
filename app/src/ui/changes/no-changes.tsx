@@ -17,6 +17,7 @@ import { Ref } from '../lib/ref'
 import { IAheadBehind } from '../../models/branch'
 import { IRemote } from '../../models/remote'
 import { isCurrentBranchForcePush } from '../../lib/rebase'
+import { StashedChangesLoadStates } from '../../models/stash-entry'
 
 function formatMenuItemLabel(text: string) {
   if (__WIN32__ || __LINUX__) {
@@ -339,6 +340,50 @@ export class NoChanges extends React.Component<
   }
 
   private renderStashAction() {
+    const { changesState, branchesState } = this.props.repositoryState
+
+    const { tip } = branchesState
+    if (tip.kind !== TipState.Valid) {
+      return null
+    }
+
+    const { stashEntry } = changesState
+    if (stashEntry === null) {
+      return null
+    }
+
+    if (stashEntry.files.kind !== StashedChangesLoadStates.Loaded) {
+      return null
+    }
+
+    const numChanges = stashEntry.files.files.length
+    const description = (
+      <>
+        You have {numChanges} {numChanges === 1 ? 'change' : 'changes'} in
+        progress that you have not yet committed.
+      </>
+    )
+    const discoverabilityContent = (
+      <>
+        When a stash exists, access it at the bottom of the Changes tab to the
+        left.
+      </>
+    )
+    const itemId: MenuIDs = 'view-stashed-changes'
+
+    return (
+      <MenuBackedBlankslateAction
+        key="view-stash-action"
+        title="View your stashed changes"
+        menuItemId={itemId}
+        description={description}
+        discoverabilityContent={discoverabilityContent}
+        buttonText="View stash"
+        type="primary"
+        disabled={true}
+      />
+    )
+
     return null
   }
 
