@@ -57,6 +57,7 @@ const StashIcon = new OcticonSymbol(
 
 const GitIgnoreFileName = '.gitignore'
 
+/** Compute the 'Include All' checkbox value from the repository state */
 function getIncludeAllValue(
   workingDirectory: WorkingDirectoryStatus,
   rebaseConflictState: RebaseConflictState | null
