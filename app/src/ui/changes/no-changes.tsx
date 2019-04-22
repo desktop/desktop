@@ -370,6 +370,11 @@ export class NoChanges extends React.Component<
       </>
     )
     const itemId: MenuIDs = 'show-stashed-changes'
+    const menuItem = this.getMenuItemInfo(itemId)
+    if (menuItem === undefined) {
+      log.error(`Could not find matching menu item for ${itemId}`)
+      return null
+    }
 
     return (
       <MenuBackedBlankslateAction
@@ -380,7 +385,7 @@ export class NoChanges extends React.Component<
         discoverabilityContent={discoverabilityContent}
         buttonText="View stash"
         type="primary"
-        disabled={true}
+        disabled={menuItem !== null && !menuItem.enabled}
       />
     )
 
