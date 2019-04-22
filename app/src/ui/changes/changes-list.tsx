@@ -57,7 +57,19 @@ const StashIcon = new OcticonSymbol(
 
 const GitIgnoreFileName = '.gitignore'
 
-function getIncludeAllValue(workingDirectory: WorkingDirectoryStatus) {
+function getIncludeAllValue(
+  workingDirectory: WorkingDirectoryStatus,
+  rebaseConflictState: RebaseConflictState | null
+) {
+  if (rebaseConflictState !== null) {
+    // there should be changes to rebase if conflicts are detected
+    return workingDirectory.files.some(
+      f => f.status.kind === AppFileStatusKind.Untracked
+    )
+      ? CheckboxValue.Mixed
+      : CheckboxValue.On
+  }
+
   const { includeAll } = workingDirectory
   if (includeAll === true) {
     return CheckboxValue.On
@@ -468,7 +480,10 @@ export class ChangesList extends React.Component<
 
     const anyFilesSelected =
       fileCount > 0 &&
-      getIncludeAllValue(this.props.workingDirectory) !== CheckboxValue.Off
+      getIncludeAllValue(
+        this.props.workingDirectory,
+        this.props.rebaseConflictState
+      ) !== CheckboxValue.Off
     const filesSelected = this.props.workingDirectory.files.filter(
       f => f.selection.getSelectionType() !== DiffSelectionType.None
     )
@@ -541,7 +556,15 @@ export class ChangesList extends React.Component<
     const fileCount = this.props.workingDirectory.files.length
     const filesPlural = fileCount === 1 ? 'file' : 'files'
     const filesDescription = `${fileCount} changed ${filesPlural}`
-    const includeAllValue = getIncludeAllValue(this.props.workingDirectory)
+    const includeAllValue = getIncludeAllValue(
+      this.props.workingDirectory,
+      this.props.rebaseConflictState
+    )
+
+    const disableAllCheckbox =
+      fileCount === 0 ||
+      this.props.isCommitting ||
+      this.props.rebaseConflictState !== null
 
     return (
       <div className="changes-list-container file-list">
@@ -550,7 +573,7 @@ export class ChangesList extends React.Component<
             label={filesDescription}
             value={includeAllValue}
             onChange={this.onIncludeAllChanged}
-            disabled={fileCount === 0 || this.props.isCommitting}
+            disabled={disableAllCheckbox}
           />
         </div>
         <List
