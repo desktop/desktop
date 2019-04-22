@@ -196,17 +196,25 @@ export class ChangesList extends React.Component<
         ? false
         : null
 
+    const include =
+      this.props.rebaseConflictState !== null
+        ? file.status.kind !== AppFileStatusKind.Untracked
+        : includeAll
+
+    const disableSelection =
+      this.props.isCommitting || this.props.rebaseConflictState !== null
+
     return (
       <ChangedFile
         id={file.id}
         path={file.path}
         status={file.status}
-        include={includeAll}
+        include={include}
         key={file.id}
         onContextMenu={this.onItemContextMenu}
         onIncludeChanged={this.props.onIncludeChanged}
         availableWidth={this.props.availableWidth}
-        disableSelection={this.props.isCommitting}
+        disableSelection={disableSelection}
       />
     )
   }
