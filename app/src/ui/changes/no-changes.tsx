@@ -369,7 +369,7 @@ export class NoChanges extends React.Component<
         left.
       </>
     )
-    const itemId: MenuIDs = 'view-stashed-changes'
+    const itemId: MenuIDs = 'show-stashed-changes'
 
     return (
       <MenuBackedBlankslateAction
