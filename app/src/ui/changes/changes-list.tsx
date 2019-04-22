@@ -57,6 +57,17 @@ const StashIcon = new OcticonSymbol(
 
 const GitIgnoreFileName = '.gitignore'
 
+function getIncludeAllValue(workingDirectory: WorkingDirectoryStatus) {
+  const { includeAll } = workingDirectory
+  if (includeAll === true) {
+    return CheckboxValue.On
+  } else if (includeAll === false) {
+    return CheckboxValue.Off
+  } else {
+    return CheckboxValue.Mixed
+  }
+}
+
 interface IChangesListProps {
   readonly repository: Repository
   readonly workingDirectory: WorkingDirectoryStatus
@@ -224,17 +235,6 @@ export class ChangesList extends React.Component<
         disableSelection={disableSelection}
       />
     )
-  }
-
-  private get includeAllValue(): CheckboxValue {
-    const includeAll = this.props.workingDirectory.includeAll
-    if (includeAll === true) {
-      return CheckboxValue.On
-    } else if (includeAll === false) {
-      return CheckboxValue.Off
-    } else {
-      return CheckboxValue.Mixed
-    }
   }
 
   private onDiscardAllChanges = () => {
@@ -467,7 +467,8 @@ export class ChangesList extends React.Component<
     const fileCount = this.props.workingDirectory.files.length
 
     const anyFilesSelected =
-      fileCount > 0 && this.includeAllValue !== CheckboxValue.Off
+      fileCount > 0 &&
+      getIncludeAllValue(this.props.workingDirectory) !== CheckboxValue.Off
     const filesSelected = this.props.workingDirectory.files.filter(
       f => f.selection.getSelectionType() !== DiffSelectionType.None
     )
@@ -540,13 +541,14 @@ export class ChangesList extends React.Component<
     const fileCount = this.props.workingDirectory.files.length
     const filesPlural = fileCount === 1 ? 'file' : 'files'
     const filesDescription = `${fileCount} changed ${filesPlural}`
+    const includeAllValue = getIncludeAllValue(this.props.workingDirectory)
 
     return (
       <div className="changes-list-container file-list">
         <div className="header" onContextMenu={this.onContextMenu}>
           <Checkbox
             label={filesDescription}
-            value={this.includeAllValue}
+            value={includeAllValue}
             onChange={this.onIncludeAllChanged}
             disabled={fileCount === 0 || this.props.isCommitting}
           />
