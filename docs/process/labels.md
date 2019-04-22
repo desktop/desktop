@@ -57,6 +57,19 @@ implementing features:
 | [:mag_right:][user-research]      | `user-research`      | Issues that may benefit from user interviews, validations, and/or usability testing |
 | [:mag_right:][needs-design-input] | `needs-design-input` | Issues that require design input from the core team before the work can be started |
 
+### Workflows
+
+As we work on new parts of the application, or refining existing workflows, we use
+these labels to track issues that arise as part of the development process.
+
+These labels should be cleaned up when contributors switch focus to different areas,
+so that they don't become noisy.
+
+|                                  | Label name         |  Description |
+| -------------------------------- | ------------------ |  ----------- |
+| [:mag_right:][workflow:rebase]   | `workflow:rebase`  | Supporting rebase flows in the app |
+| [:mag_right:][workflow:stashing] | `workflow:stashing`| Supporting stashing uncommitted changes in the app |
+
 ### Specialized areas
 
 We use these labels to identify issues related to a specific area or the app,
