@@ -186,7 +186,15 @@ export class ChangesList extends React.Component<
   }
 
   private renderRow = (row: number): JSX.Element => {
-    const file = this.props.workingDirectory.files[row]
+    const {
+      workingDirectory,
+      rebaseConflictState,
+      isCommitting,
+      onIncludeChanged,
+      availableWidth,
+    } = this.props
+
+    const file = workingDirectory.files[row]
     const selection = file.selection.getSelectionType()
 
     const includeAll =
@@ -197,12 +205,11 @@ export class ChangesList extends React.Component<
         : null
 
     const include =
-      this.props.rebaseConflictState !== null
+      rebaseConflictState !== null
         ? file.status.kind !== AppFileStatusKind.Untracked
         : includeAll
 
-    const disableSelection =
-      this.props.isCommitting || this.props.rebaseConflictState !== null
+    const disableSelection = isCommitting || rebaseConflictState !== null
 
     return (
       <ChangedFile
@@ -212,8 +219,8 @@ export class ChangesList extends React.Component<
         include={include}
         key={file.id}
         onContextMenu={this.onItemContextMenu}
-        onIncludeChanged={this.props.onIncludeChanged}
-        availableWidth={this.props.availableWidth}
+        onIncludeChanged={onIncludeChanged}
+        availableWidth={availableWidth}
         disableSelection={disableSelection}
       />
     )
