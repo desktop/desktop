@@ -465,27 +465,37 @@ export class ChangesList extends React.Component<
   }
 
   private renderCommitMessageForm = (): JSX.Element => {
-    if (this.props.rebaseConflictState !== null && enablePullWithRebase()) {
+    const {
+      rebaseConflictState,
+      workingDirectory,
+      repository,
+      dispatcher,
+      isCommitting,
+    } = this.props
+
+    if (rebaseConflictState !== null && enablePullWithRebase()) {
       return (
         <ContinueRebase
-          dispatcher={this.props.dispatcher}
-          repository={this.props.repository}
-          rebaseConflictState={this.props.rebaseConflictState}
-          workingDirectory={this.props.workingDirectory}
-          isCommitting={this.props.isCommitting}
+          dispatcher={dispatcher}
+          repository={repository}
+          rebaseConflictState={rebaseConflictState}
+          workingDirectory={workingDirectory}
+          isCommitting={isCommitting}
         />
       )
     }
 
-    const fileCount = this.props.workingDirectory.files.length
+    const fileCount = workingDirectory.files.length
+
+    const includeAllValue = getIncludeAllValue(
+      workingDirectory,
+      rebaseConflictState
+    )
 
     const anyFilesSelected =
-      fileCount > 0 &&
-      getIncludeAllValue(
-        this.props.workingDirectory,
-        this.props.rebaseConflictState
-      ) !== CheckboxValue.Off
-    const filesSelected = this.props.workingDirectory.files.filter(
+      fileCount > 0 && includeAllValue !== CheckboxValue.Off
+
+    const filesSelected = workingDirectory.files.filter(
       f => f.selection.getSelectionType() !== DiffSelectionType.None
     )
     const singleFileCommit = filesSelected.length === 1
@@ -497,12 +507,12 @@ export class ChangesList extends React.Component<
         gitHubUser={this.props.gitHubUser}
         commitAuthor={this.props.commitAuthor}
         anyFilesSelected={anyFilesSelected}
-        repository={this.props.repository}
-        dispatcher={this.props.dispatcher}
+        repository={repository}
+        dispatcher={dispatcher}
         commitMessage={this.props.commitMessage}
         focusCommitMessage={this.props.focusCommitMessage}
         autocompletionProviders={this.props.autocompletionProviders}
-        isCommitting={this.props.isCommitting}
+        isCommitting={isCommitting}
         showCoAuthoredBy={this.props.showCoAuthoredBy}
         coAuthors={this.props.coAuthors}
         placeholder={this.getPlaceholderMessage(
@@ -510,7 +520,7 @@ export class ChangesList extends React.Component<
           singleFileCommit
         )}
         singleFileCommit={singleFileCommit}
-        key={this.props.repository.id}
+        key={repository.id}
       />
     )
   }
