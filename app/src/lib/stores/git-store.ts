@@ -78,8 +78,8 @@ import { GitAuthor } from '../../models/git-author'
 import { IGitAccount } from '../../models/git-account'
 import { BaseStore } from './base-store'
 import { enablePullWithRebase, enableStashing } from '../feature-flag'
-import { getDesktopStashEntries } from '../git/stash'
-import { IStashEntry } from '../../models/stash-entry'
+import { getDesktopStashEntries, getStashedFiles } from '../git/stash'
+import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -983,18 +983,82 @@ export class GitStore extends BaseStore {
     const entries = await getDesktopStashEntries(this.repository)
 
     for (const entry of entries) {
+      // we only want the first entry we find for each branch,
+      // so we skip all subsequent ones
       if (!map.has(entry.branchName)) {
-        map.set(entry.branchName, entry)
+        const existing = this._stashEntries.get(entry.branchName)
+
+        // If we've already loaded the files for this stash there's
+        // no point in us doing it again. We know the contents haven't
+        // changed since the SHA is the same.
+        if (existing !== undefined && existing.stashSha === entry.stashSha) {
+          map.set(entry.branchName, { ...entry, files: existing.files })
+        } else {
+          map.set(entry.branchName, entry)
+        }
       }
     }
 
     this._stashEntries = map
     this.emitUpdate()
+
+    this.loadFilesForCurrentStashEntry()
   }
 
-  /** A map key on the canonical ref name of GitHub Desktop created stash entries for the repository */
-  public get stashEntries() {
-    return this._stashEntries
+  /**
+   * A GitHub Desktop created stash entries for the current branch or
+   * null if no entry exists
+   */
+  public get currentBranchStashEntry() {
+    return this._tip && this._tip.kind === TipState.Valid
+      ? this._stashEntries.get(this._tip.branch.name) || null
+      : null
+  }
+
+  /**
+   * Updates the latest stash entry with a list of files that it changes
+   */
+  private async loadFilesForCurrentStashEntry() {
+    if (!enableStashing()) {
+      return
+    }
+
+    const stashEntry = this.currentBranchStashEntry
+
+    if (
+      !stashEntry ||
+      stashEntry.files.kind !== StashedChangesLoadStates.NotLoaded
+    ) {
+      return
+    }
+
+    const { branchName } = stashEntry
+
+    this._stashEntries.set(branchName, {
+      ...stashEntry,
+      files: { kind: StashedChangesLoadStates.Loading },
+    })
+    this.emitUpdate()
+
+    const files = await getStashedFiles(this.repository, stashEntry.stashSha)
+
+    // It's possible that we've refreshed the list of stash entries since we
+    // started getStashedFiles. Load the latest entry for the branch and make
+    // sure the SHAs match up.
+    const currentEntry = this._stashEntries.get(branchName)
+
+    if (!currentEntry || currentEntry.stashSha !== stashEntry.stashSha) {
+      return
+    }
+
+    this._stashEntries.set(branchName, {
+      ...currentEntry,
+      files: {
+        kind: StashedChangesLoadStates.Loaded,
+        files,
+      },
+    })
+    this.emitUpdate()
   }
 
   public async loadRemotes(): Promise<void> {

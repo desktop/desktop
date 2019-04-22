@@ -19,6 +19,9 @@ interface IOverwriteStashState {
   readonly isCheckingOutBranch: boolean
 }
 
+/**
+ * Dialog that alerts user that their stash will be overwritten
+ */
 export class OverwriteStash extends React.Component<
   IOverwriteStashProps,
   IOverwriteStashState

@@ -35,7 +35,8 @@ import { basename } from 'path'
 import { ICommitContext } from '../../models/commit'
 import { RebaseConflictState } from '../../lib/app-state'
 import { ContinueRebase } from './continue-rebase'
-import { enablePullWithRebase } from '../../lib/feature-flag'
+import { enablePullWithRebase, enableStashing } from '../../lib/feature-flag'
+import { ListRow } from '../lib/list/list-row'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { FocusContainer } from '../lib/focus-container'
 import { IStashEntry } from '../../models/stash-entry'
@@ -485,13 +486,16 @@ export class ChangesList extends React.Component<
 
   private onStashEntryClicked = () => {
     if (this.props.isShowingStashEntry) {
-      this.props.dispatcher.hideStashEntry(this.props.repository)
+      this.props.dispatcher.selectWorkingDirectoryFiles(this.props.repository)
     } else {
-      this.props.dispatcher.showStashEntry(this.props.repository)
+      this.props.dispatcher.selectStashedFile(this.props.repository)
     }
   }
 
   private renderStashedChanges() {
+    if (!enableStashing()) {
+      return null
+    }
     if (this.props.stashEntry === null) {
       return null
     }

@@ -33,6 +33,10 @@ interface ISwitchBranchState {
   readonly selectedStashAction: StashAction
 }
 
+/**
+ * Dialog that alerts users that their changes may be lost and offers them the
+ * chance to stash them or potentially take them to another branch
+ */
 export class StashAndSwitchBranch extends React.Component<
   ISwitchBranchProps,
   ISwitchBranchState
@@ -57,7 +61,7 @@ export class StashAndSwitchBranch extends React.Component<
         loading={isStashingChanges}
         disabled={isStashingChanges}
       >
-        <DialogContent className="dialog-content">
+        <DialogContent>
           {this.renderStashActions()}
           {this.renderStashOverwriteWarning()}
         </DialogContent>
@@ -93,7 +97,7 @@ export class StashAndSwitchBranch extends React.Component<
     const { branchToCheckout } = this.props
     const items = [
       {
-        title: `Yes, stash my changes from ${this.props.currentBranch.name}`,
+        title: `Yes, stash my changes on ${this.props.currentBranch.name}`,
         description: 'Stash your in-progress work and return to it later',
       },
       {
