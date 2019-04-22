@@ -63,7 +63,7 @@ As we work on new parts of the application, or refining existing workflows, we u
 these labels to track issues that arise as part of the development process.
 
 These labels should be cleaned up when contributors switch focus to different areas,
-so that they don't become noisy.
+so that they don't become overused and add noise.
 
 |                                  | Label name         |  Description |
 | -------------------------------- | ------------------ |  ----------- |
