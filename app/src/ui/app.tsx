@@ -364,6 +364,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.selectAll()
       case 'show-release-notes-popup':
         return this.showFakeReleaseNotesPopup()
+      case 'show-stashed-changes':
+        return this.showStashedChanges()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
@@ -720,6 +722,8 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     this.props.dispatcher.pull(state.repository)
   }
+
+  private showStashedChanges() {}
 
   public componentDidMount() {
     document.ondragover = e => {
