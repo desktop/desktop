@@ -62,12 +62,12 @@ implementing features:
 As we work on new parts of the application, or refining existing workflows, we use
 these labels to track issues that arise as part of the development process.
 
-This label is intended to make searching for issue related to an epic easier, and a
+This label is intended to make searching for issues related to an epic easier, and a
 project board should be used to organize and prioritize the work within an epic
-around the relevant releases.
+based on the upcoming release schedule.
 
-Each label should be cleaned up when the project board is closed, so they don't
-become overused and add noise to the issue tracker.
+Each label should be removed from the repository when the project board is closed, so
+these labels do not become overused and add noise to the issue tracker.
 
 |                              | Label name     |  Description |
 | ---------------------------- | -------------- |  ----------- |
