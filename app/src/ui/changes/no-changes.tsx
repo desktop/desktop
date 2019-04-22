@@ -338,6 +338,10 @@ export class NoChanges extends React.Component<
     return null
   }
 
+  private renderStashAction() {
+    return null
+  }
+
   private renderPublishRepositoryAction() {
     // This is a bit confusing, there's no dedicated
     // publish menu item, the 'Push' menu item will initiate
@@ -567,7 +571,7 @@ export class NoChanges extends React.Component<
           transitionEnterTimeout={750}
           transitionLeaveTimeout={500}
         >
-          {this.renderRemoteAction()}
+          {this.renderStashAction() || this.renderRemoteAction()}
         </ReactCSSTransitionReplace>
         <div className="actions">
           {this.renderOpenInExternalEditor()}
