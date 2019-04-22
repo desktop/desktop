@@ -97,7 +97,7 @@ export class StashAndSwitchBranch extends React.Component<
     const { branchToCheckout } = this.props
     const items = [
       {
-        title: `Yes, stash my changes from ${this.props.currentBranch.name}`,
+        title: `Yes, stash my changes on ${this.props.currentBranch.name}`,
         description: 'Stash your in-progress work and return to it later',
       },
       {
