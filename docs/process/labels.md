@@ -57,18 +57,22 @@ implementing features:
 | [:mag_right:][user-research]      | `user-research`      | Issues that may benefit from user interviews, validations, and/or usability testing |
 | [:mag_right:][needs-design-input] | `needs-design-input` | Issues that require design input from the core team before the work can be started |
 
-### Workflows
+### Epics
 
 As we work on new parts of the application, or refining existing workflows, we use
 these labels to track issues that arise as part of the development process.
 
-These labels should be cleaned up when contributors switch focus to different areas,
-so that they don't become overused and add noise.
+This label is intended to make searching for issue related to an epic easier, and a
+project board should be used to organize and prioritize the work within an epic
+around the relevant releases.
 
-|                                  | Label name         |  Description |
-| -------------------------------- | ------------------ |  ----------- |
-| [:mag_right:][workflow:rebase]   | `workflow:rebase`  | Supporting rebase flows in the app |
-| [:mag_right:][workflow:stashing] | `workflow:stashing`| Supporting stashing uncommitted changes in the app |
+Each label should be cleaned up when the project board is closed, so they don't
+become overused and add noise to the issue tracker.
+
+|                              | Label name     |  Description |
+| ---------------------------- | -------------- |  ----------- |
+| [:mag_right:][epic:rebase]   | `epic:rebase`  | Supporting rebase flows in the app |
+| [:mag_right:][epic:stashing] | `epic:stashing`| Supporting stashing uncommitted changes in the app |
 
 ### Specialized areas
 
