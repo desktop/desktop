@@ -168,15 +168,6 @@ export function buildDefaultMenu({
         click: emit('show-history'),
       },
       {
-        label: getStashedChangesLabel(isStashedChangesVisible),
-        id: 'toggle-stashed-changes',
-        accelerator: 'Ctrl+H',
-        click: isStashedChangesVisible
-          ? emit('hide-stashed-changes')
-          : emit('show-stashed-changes'),
-        visible: enableStashing(),
-      },
-      {
         label: __DARWIN__ ? 'Show Repository List' : 'Repository &list',
         id: 'show-repository-list',
         accelerator: 'CmdOrCtrl+T',
@@ -194,6 +185,15 @@ export function buildDefaultMenu({
         id: 'go-to-commit-message',
         accelerator: 'CmdOrCtrl+G',
         click: emit('go-to-commit-message'),
+      },
+      {
+        label: getStashedChangesLabel(isStashedChangesVisible),
+        id: 'toggle-stashed-changes',
+        accelerator: 'Ctrl+H',
+        click: isStashedChangesVisible
+          ? emit('hide-stashed-changes')
+          : emit('show-stashed-changes'),
+        visible: enableStashing(),
       },
       {
         label: __DARWIN__ ? 'Toggle Full Screen' : 'Toggle &full screen',
