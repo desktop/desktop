@@ -261,7 +261,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     )
 
     menuStateBuilder.setEnabled('compare-to-branch', !onDetachedHead)
-    menuStateBuilder.setEnabled('show-stashed-changes', branchHasStashEntry)
+    menuStateBuilder.setEnabled('toggle-stashed-changes', branchHasStashEntry)
 
     if (
       selectedState &&
@@ -298,7 +298,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     menuStateBuilder.disable('pull')
     menuStateBuilder.disable('compare-to-branch')
     menuStateBuilder.disable('compare-on-github')
-    menuStateBuilder.disable('show-stashed-changes')
+    menuStateBuilder.disable('toggle-stashed-changes')
   }
 
   return menuStateBuilder

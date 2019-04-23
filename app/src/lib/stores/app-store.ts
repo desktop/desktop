@@ -1696,6 +1696,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
         defaultBranchName: this.getDefaultBranchName(state),
         isForcePushForCurrentRepository: this.isCurrentBranchForcePush(state),
         askForConfirmationOnForcePush: this.askForConfirmationOnForcePush,
+        isStashedChangesVisible:
+          state.changesState.selection.kind === ChangesSelectionKind.Stash,
       }
     }
 
@@ -2172,6 +2174,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       },
     }))
     this.emitUpdate()
+
+    this.updateMenuLabelsForSelectedRepository()
   }
 
   public _hideStashedChanges(repository: Repository) {
@@ -2190,6 +2194,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     })
     this.emitUpdate()
+
+    this.updateMenuLabelsForSelectedRepository()
   }
 
   /**

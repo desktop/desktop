@@ -32,3 +32,4 @@ export type MenuEvent =
   | 'select-all'
   | 'show-release-notes-popup'
   | 'show-stashed-changes'
+  | 'hide-stashed-changes'

@@ -369,7 +369,7 @@ export class NoChanges extends React.Component<
         left.
       </>
     )
-    const itemId: MenuIDs = 'show-stashed-changes'
+    const itemId: MenuIDs = 'toggle-stashed-changes'
     const menuItem = this.getMenuItemInfo(itemId)
     if (menuItem === undefined) {
       log.error(`Could not find matching menu item for ${itemId}`)

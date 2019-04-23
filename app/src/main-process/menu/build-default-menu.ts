@@ -37,6 +37,7 @@ export type MenuLabels = {
   removeRepoLabel?: string
   isForcePushForCurrentRepository?: boolean
   askForConfirmationOnForcePush?: boolean
+  isStashedChangesVisible?: boolean
 }
 
 export function buildDefaultMenu({
@@ -47,6 +48,7 @@ export function buildDefaultMenu({
   removeRepoLabel = defaultRepositoryRemovalLabel,
   isForcePushForCurrentRepository = false,
   askForConfirmationOnForcePush = false,
+  isStashedChangesVisible = false,
 }: MenuLabels): Electron.Menu {
   defaultBranchName = truncateWithEllipsis(defaultBranchName, 25)
 
@@ -166,10 +168,12 @@ export function buildDefaultMenu({
         click: emit('show-history'),
       },
       {
-        label: __DARWIN__ ? 'Show Stashed Changes' : 'Sho&w stashed changes',
-        id: 'show-stashed-changes',
-        accelerator: 'Ctrl+1',
-        click: emit('show-stashed-changes'),
+        label: getStashedChangesLabel(isStashedChangesVisible),
+        id: 'toggle-stashed-changes',
+        accelerator: 'Alt+1',
+        click: isStashedChangesVisible
+          ? emit('hide-stashed-changes')
+          : emit('show-stashed-changes'),
       },
       {
         label: __DARWIN__ ? 'Show Repository List' : 'Repository &list',
@@ -516,6 +520,14 @@ function getPushLabel(
   }
 
   return __DARWIN__ ? 'Force Push' : 'Force P&ush'
+}
+
+function getStashedChangesLabel(isStashedChangesVisible: boolean): string {
+  if (isStashedChangesVisible) {
+    return __DARWIN__ ? 'Hide Stashed Changes' : 'H&ide stashed'
+  }
+
+  return __DARWIN__ ? 'Show Stashed Changes' : 'Sho&w stashed changes'
 }
 
 type ClickHandler = (
