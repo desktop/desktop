@@ -10,7 +10,6 @@ import {
   FoldoutType,
   ICompareFormUpdate,
   RepositorySectionTab,
-  isRebaseConflictState,
   isMergeConflictState,
   RebaseConflictState,
 } from '../../lib/app-state'
@@ -875,11 +874,13 @@ export class Dispatcher {
 
     const beforeSha = getTipSha(stateBefore.branchesState.tip)
 
-    log.info(`[rebase] starting rebase for ${targetBranch} at ${beforeSha}`)
+    log.info(
+      `[rebase] starting rebase for ${targetBranch.name} at ${beforeSha}`
+    )
     log.info(
       `[rebase] to restore the previous state if this completed rebase is unsatisfactory:`
     )
-    log.info(`[rebase] - git checkout ${targetBranch}`)
+    log.info(`[rebase] - git checkout ${targetBranch.name}`)
     log.info(`[rebase] - git reset ${beforeSha} --hard`)
 
     const result = await this.appStore._rebase(
@@ -916,11 +917,17 @@ export class Dispatcher {
         return
       }
 
-      this.switchToConflicts(repository, conflictState)
+      const conflictsWithBranches: RebaseConflictState = {
+        ...conflictState,
+        baseBranch: baseBranch.name,
+        targetBranch: targetBranch.name,
+      }
+
+      this.switchToConflicts(repository, conflictsWithBranches)
     } else if (result === RebaseResult.CompletedWithoutError) {
       if (tip.kind !== TipState.Valid) {
         log.warn(
-          `[continueRebase] tip after completing rebase is ${
+          `[rebase] tip after completing rebase is ${
             tip.kind
           } but this should be a valid tip if the rebase completed without error`
         )
@@ -958,19 +965,15 @@ export class Dispatcher {
   public async continueRebase(
     repository: Repository,
     workingDirectory: WorkingDirectoryStatus,
-    manualResolutions: ReadonlyMap<string, ManualConflictResolution>
+    conflictsState: RebaseConflictState
   ): Promise<void> {
     const stateBefore = this.repositoryStateManager.get(repository)
-    const { conflictState } = stateBefore.changesState
-
-    if (conflictState === null || !isRebaseConflictState(conflictState)) {
-      log.warn(
-        `[continueRebase] no conflicts found, likely an invalid rebase state`
-      )
-      return
-    }
-
-    const { targetBranch, baseBranch, originalBranchTip } = conflictState
+    const {
+      targetBranch,
+      baseBranch,
+      originalBranchTip,
+      manualResolutions,
+    } = conflictsState
 
     const beforeSha = getTipSha(stateBefore.branchesState.tip)
 
@@ -1009,7 +1012,14 @@ export class Dispatcher {
         return
       }
 
-      this.switchToConflicts(repository, conflictState)
+      // ensure branches are persisted when transitioning back to conflicts
+      const conflictsWithBranches: RebaseConflictState = {
+        ...conflictState,
+        baseBranch,
+        targetBranch,
+      }
+
+      this.switchToConflicts(repository, conflictsWithBranches)
     } else if (result === RebaseResult.CompletedWithoutError) {
       if (tip.kind !== TipState.Valid) {
         log.warn(

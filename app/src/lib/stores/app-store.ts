@@ -1823,13 +1823,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    if (step.kind === RebaseStep.ShowConflicts) {
+    if (
+      step.kind === RebaseStep.ShowConflicts ||
+      step.kind === RebaseStep.ConfirmAbort
+    ) {
+      // merge in new conflicts with known branches so they are not forgotten
+      const { baseBranch, targetBranch } = step.conflictState
+      const newConflictsState = {
+        ...conflictState,
+        baseBranch,
+        targetBranch,
+      }
+
       this.repositoryStateCache.updateRebaseState(repository, () => ({
-        step: { ...step, conflictState },
-      }))
-    } else if (step.kind === RebaseStep.ConfirmAbort) {
-      this.repositoryStateCache.updateRebaseState(repository, () => ({
-        step: { ...step, conflictState },
+        step: { ...step, conflictState: newConflictsState },
       }))
     }
   }
