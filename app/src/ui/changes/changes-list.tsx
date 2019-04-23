@@ -309,7 +309,7 @@ export class ChangesList extends React.Component<
     showContextualMenu(items)
   }
 
-  private showDefaultContextMenu(file: WorkingDirectoryFileChange) {
+  private getDefaultContextMenu(file: WorkingDirectoryFileChange) {
     const { id, path, status } = file
 
     const extension = Path.extname(path)
@@ -430,10 +430,10 @@ export class ChangesList extends React.Component<
       }
     )
 
-    showContextualMenu(items)
+    return items
   }
 
-  private showRebaseContextMenu(file: WorkingDirectoryFileChange) {
+  private getRebaseContextMenu(file: WorkingDirectoryFileChange) {
     const { path, status } = file
 
     const extension = Path.extname(path)
@@ -486,7 +486,7 @@ export class ChangesList extends React.Component<
       }
     )
 
-    showContextualMenu(items)
+    return items
   }
 
   private onItemContextMenu = (
@@ -495,11 +495,12 @@ export class ChangesList extends React.Component<
   ) => {
     event.preventDefault()
 
-    if (this.props.rebaseConflictState === null) {
-      this.showDefaultContextMenu(file)
-    } else {
-      this.showRebaseContextMenu(file)
-    }
+    const items =
+      this.props.rebaseConflictState === null
+        ? this.getDefaultContextMenu(file)
+        : this.getRebaseContextMenu(file)
+
+    showContextualMenu(items)
   }
 
   private getPlaceholderMessage(
