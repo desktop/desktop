@@ -309,7 +309,9 @@ export class ChangesList extends React.Component<
     showContextualMenu(items)
   }
 
-  private getDefaultContextMenu(file: WorkingDirectoryFileChange) {
+  private getDefaultContextMenu(
+    file: WorkingDirectoryFileChange
+  ): ReadonlyArray<IMenuItem> {
     const { id, path, status } = file
 
     const extension = Path.extname(path)
@@ -433,7 +435,9 @@ export class ChangesList extends React.Component<
     return items
   }
 
-  private getRebaseContextMenu(file: WorkingDirectoryFileChange) {
+  private getRebaseContextMenu(
+    file: WorkingDirectoryFileChange
+  ): ReadonlyArray<IMenuItem> {
     const { path, status } = file
 
     const extension = Path.extname(path)
