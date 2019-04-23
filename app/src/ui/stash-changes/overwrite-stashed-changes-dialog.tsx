@@ -44,19 +44,19 @@ export class OverwriteStash extends React.Component<
         title={title}
         loading={this.state.isCheckingOutBranch}
         disabled={this.state.isCheckingOutBranch}
-        onSubmit={this.onSubmit}
+        onSubmit={this.props.onDismissed}
         onDismissed={this.props.onDismissed}
       >
         <DialogContent>
           <Row>
-            Clear or restore your current stash before continuing, or your
-            current stash will be overwritten.
+            Are you sure you want to proceed? This will overwrite your existing
+            stash with your current changes.
           </Row>
         </DialogContent>
         <DialogFooter>
-          <ButtonGroup>
-            <Button type="submit">Continue</Button>
-            <Button onClick={this.props.onDismissed}>Cancel</Button>
+          <ButtonGroup destructive={true}>
+            <Button type="submit">Cancel</Button>
+            <Button onClick={this.onSubmit}>Overwrite</Button>
           </ButtonGroup>
         </DialogFooter>
       </Dialog>
