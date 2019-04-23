@@ -7,7 +7,7 @@ import { ensureDir } from 'fs-extra'
 
 import { log } from '../log'
 import { openDirectorySafe } from '../shell'
-import { enableRebaseDialog } from '../../lib/feature-flag'
+import { enableRebaseDialog, enableStashing } from '../../lib/feature-flag'
 
 const defaultEditorLabel = __DARWIN__
   ? 'Open in External Editor'
