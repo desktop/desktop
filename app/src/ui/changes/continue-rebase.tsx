@@ -13,6 +13,7 @@ interface IContinueRebaseProps {
   readonly workingDirectory: WorkingDirectoryStatus
   readonly rebaseConflictState: RebaseConflictState
   readonly isCommitting: boolean
+  readonly hasUntrackedChanges: boolean
 }
 
 export class ContinueRebase extends React.Component<IContinueRebaseProps, {}> {
@@ -46,8 +47,16 @@ export class ContinueRebase extends React.Component<IContinueRebaseProps, {}> {
 
     const loading = this.props.isCommitting ? <Loading /> : undefined
 
+    const warnAboutUncommittedFiles = this.props.hasUntrackedChanges ? (
+      <div className="warning-uncommitted-files">
+        Uncommitted files will be ignored
+      </div>
+    ) : (
+      undefined
+    )
+
     return (
-      <div id="continue-rebase" role="group">
+      <div id="continue-rebase">
         <Button
           type="submit"
           className="commit-button"
@@ -58,6 +67,8 @@ export class ContinueRebase extends React.Component<IContinueRebaseProps, {}> {
           {loading}
           <span>{loading !== undefined ? 'Rebasing' : 'Continue rebase'}</span>
         </Button>
+
+        {warnAboutUncommittedFiles}
       </div>
     )
   }

@@ -474,6 +474,10 @@ export class ChangesList extends React.Component<
     } = this.props
 
     if (rebaseConflictState !== null && enablePullWithRebase()) {
+      const hasUntrackedChanges = workingDirectory.files.some(
+        f => f.status.kind === AppFileStatusKind.Untracked
+      )
+
       return (
         <ContinueRebase
           dispatcher={dispatcher}
@@ -481,6 +485,7 @@ export class ChangesList extends React.Component<
           rebaseConflictState={rebaseConflictState}
           workingDirectory={workingDirectory}
           isCommitting={isCommitting}
+          hasUntrackedChanges={hasUntrackedChanges}
         />
       )
     }

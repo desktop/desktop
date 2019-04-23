@@ -10,6 +10,11 @@
   background-color: var(--box-alt-background-color);
   padding: var(--spacing);
 
+  .warning-uncommitted-files {
+    padding: var(--spacing-half);
+    text-align: center;
+  }
+
   .commit-button {
     max-width: 100%;
     display: flex;
