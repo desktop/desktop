@@ -4,11 +4,11 @@ import { getCaptures } from '../helpers/regex'
 /**
  * returns a list of files with conflict markers present
  * @param repositoryPath filepath to repository
- * @returns set of filepaths with conflict markers
+ * @returns filepaths with their number of conflicted markers
  */
 export async function getFilesWithConflictMarkers(
   repositoryPath: string
-): Promise<Set<string>> {
+): Promise<Map<string, number>> {
   // git operation
   const args = ['diff', '--check']
   const { output } = await spawnAndComplete(
@@ -20,13 +20,18 @@ export async function getFilesWithConflictMarkers(
 
   // result parsing
   const outputStr = output.toString('utf8')
-  const flatSet = new Set<string>()
-  const captures = await getCaptures(outputStr, fileNameCaptureRe)
-  captures.forEach(match =>
-    // fileNameCaptureRe only has one capture
-    flatSet.add(match[0])
+  const captures = getCaptures(outputStr, fileNameCaptureRe)
+  if (captures.length === 0) {
+    return new Map<string, number>()
+  }
+  // flatten the list (only does one level deep)
+  const flatCaptures = captures.reduce((acc, val) => acc.concat(val))
+  // count number of occurences
+  const counted = flatCaptures.reduce(
+    (acc, val) => acc.set(val, (acc.get(val) || 0) + 1),
+    new Map<string, number>()
   )
-  return flatSet
+  return counted
 }
 
 /**

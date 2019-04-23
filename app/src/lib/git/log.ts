@@ -1,5 +1,11 @@
 import { git } from './core'
-import { AppFileStatus, CommittedFileChange } from '../../models/status'
+import {
+  CommittedFileChange,
+  AppFileStatusKind,
+  PlainFileStatus,
+  CopiedOrRenamedFileStatus,
+  UntrackedFileStatus,
+} from '../../models/status'
 import { Repository } from '../../models/repository'
 import { Commit } from '../../models/commit'
 import { CommitIdentity } from '../../models/commit-identity'
@@ -12,36 +18,42 @@ import {
  * Map the raw status text from Git to an app-friendly value
  * shamelessly borrowed from GitHub Desktop (Windows)
  */
-function mapStatus(rawStatus: string): AppFileStatus {
+function mapStatus(
+  rawStatus: string,
+  oldPath?: string
+): PlainFileStatus | CopiedOrRenamedFileStatus | UntrackedFileStatus {
   const status = rawStatus.trim()
 
   if (status === 'M') {
-    return AppFileStatus.Modified
+    return { kind: AppFileStatusKind.Modified }
   } // modified
   if (status === 'A') {
-    return AppFileStatus.New
+    return { kind: AppFileStatusKind.New }
   } // added
+  if (status === '?') {
+    return { kind: AppFileStatusKind.Untracked }
+  } // untracked
   if (status === 'D') {
-    return AppFileStatus.Deleted
+    return { kind: AppFileStatusKind.Deleted }
   } // deleted
-  if (status === 'R') {
-    return AppFileStatus.Renamed
+  if (status === 'R' && oldPath != null) {
+    return { kind: AppFileStatusKind.Renamed, oldPath }
   } // renamed
-  if (status === 'C') {
-    return AppFileStatus.Copied
+  if (status === 'C' && oldPath != null) {
+    return { kind: AppFileStatusKind.Copied, oldPath }
   } // copied
 
   // git log -M --name-status will return a RXXX - where XXX is a percentage
-  if (status.match(/R[0-9]+/)) {
-    return AppFileStatus.Renamed
+  if (status.match(/R[0-9]+/) && oldPath != null) {
+    return { kind: AppFileStatusKind.Renamed, oldPath }
   }
 
   // git log -C --name-status will return a CXXX - where XXX is a percentage
-  if (status.match(/C[0-9]+/)) {
-    return AppFileStatus.Copied
+  if (status.match(/C[0-9]+/) && oldPath != null) {
+    return { kind: AppFileStatusKind.Copied, oldPath }
   }
 
-  return AppFileStatus.Modified
+  return { kind: AppFileStatusKind.Modified }
 }
 
 /**
@@ -57,6 +69,7 @@ export async function getCommits(
   const delimiterString = String.fromCharCode(parseInt(delimiter, 16))
   const prettyFormat = [
     '%H', // SHA
+    '%h', // short SHA
     '%s', // summary
     '%b', // body
     // author identity string, matching format of GIT_AUTHOR_IDENT.
@@ -105,14 +118,15 @@ export async function getCommits(
   const commits = lines.map(line => {
     const pieces = line.split(delimiterString)
     const sha = pieces[0]
-    const summary = pieces[1]
-    const body = pieces[2]
-    const authorIdentity = pieces[3]
-    const committerIdentity = pieces[4]
-    const shaList = pieces[5]
+    const shortSha = pieces[1]
+    const summary = pieces[2]
+    const body = pieces[3]
+    const authorIdentity = pieces[4]
+    const committerIdentity = pieces[5]
+    const shaList = pieces[6]
 
     const parentSHAs = shaList.length ? shaList.split(' ') : []
-    const trailers = parseRawUnfoldedTrailers(pieces[6], trailerSeparators)
+    const trailers = parseRawUnfoldedTrailers(pieces[7], trailerSeparators)
 
     const author = CommitIdentity.parseIdentity(authorIdentity)
 
@@ -128,6 +142,7 @@ export async function getCommits(
 
     return new Commit(
       sha,
+      shortSha,
       summary,
       body,
       author,
@@ -164,26 +179,41 @@ export async function getChangedFiles(
   ]
   const result = await git(args, repository.path, 'getChangedFiles')
 
-  const out = result.stdout
-  const lines = out.split('\0')
+  return parseChangedFiles(result.stdout, sha)
+}
+
+/**
+ * Parses git `log` or `diff` output into a list of changed files
+ * (see `getChangedFiles` for an example of use)
+ *
+ * @param stdout raw ouput from a git `-z` and `--name-status` flags
+ * @param committish commitish command was run against
+ */
+export function parseChangedFiles(
+  stdout: string,
+  committish: string
+): ReadonlyArray<CommittedFileChange> {
+  const lines = stdout.split('\0')
   // Remove the trailing empty line
   lines.splice(-1, 1)
-
   const files: CommittedFileChange[] = []
   for (let i = 0; i < lines.length; i++) {
     const statusText = lines[i]
 
-    const status = mapStatus(statusText)
-
     let oldPath: string | undefined = undefined
 
-    if (status === AppFileStatus.Renamed || status === AppFileStatus.Copied) {
+    if (
+      statusText.length > 0 &&
+      (statusText[0] === 'R' || statusText[0] === 'C')
+    ) {
       oldPath = lines[++i]
     }
 
+    const status = mapStatus(statusText, oldPath)
+
     const path = lines[++i]
 
-    files.push(new CommittedFileChange(path, status, sha, oldPath))
+    files.push(new CommittedFileChange(path, status, committish))
   }
 
   return files

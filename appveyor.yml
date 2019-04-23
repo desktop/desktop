@@ -4,17 +4,16 @@ platform:
   - x64
 
 environment:
-  nodejs_version: '8.11'
+  nodejs_version: '8.12'
 
 cache:
   - .eslintcache
-  - node_modules
   - '%USERPROFILE%\.electron'
-  - '%LOCALAPPDATA%\Yarn'
+  - '%LOCALAPPDATA%\Yarn\Cache\v4'
 
 branches:
   only:
-    - master
+    - development
     - /^__release-.*/
 
 skip_tags: true
@@ -30,15 +29,16 @@ install:
 build_script:
   - yarn lint
   - yarn validate-changelog
+  - yarn check-modified
   - yarn build:prod
 
 test_script:
   - yarn test:setup
   - ./script/test-appveyor.bat
-  - yarn test:report
 
 on_success:
   - yarn run publish
 
 on_finish:
   - yarn test:review
+  - yarn test:report

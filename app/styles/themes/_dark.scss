@@ -6,29 +6,29 @@
 @import '~primer-support/lib/variables/color-system.scss';
 
 body.theme-dark {
-  --color-new: $green;
-  --color-deleted: $red;
-  --color-modified: $yellow-700;
-  --color-renamed: $blue;
-  --color-conflicted: $orange;
+  --color-new: #{$green};
+  --color-deleted: #{$red};
+  --color-modified: #{$yellow-700};
+  --color-renamed: #{$blue};
+  --color-conflicted: #{$orange};
 
-  --text-color: $gray-300;
-  --text-secondary-color: $gray-400;
-  --background-color: $gray-900;
+  --text-color: #{$gray-300};
+  --text-secondary-color: #{$gray-400};
+  --background-color: #{$gray-900};
 
-  --button-background: $blue;
-  --button-hover-background: lighten($blue, 5%);
-  --button-text-color: $white;
-  --button-focus-border-color: $blue-600;
+  --button-background: #{$blue};
+  --button-hover-background: #{lighten($blue, 5%)};
+  --button-text-color: #{$white};
+  --button-focus-border-color: #{$blue-600};
 
-  --link-button-color: lighten($blue-400, 3%);
-  --link-button-hover-color: $blue-400;
+  --link-button-color: #{lighten($blue-400, 3%)};
+  --link-button-hover-color: #{$blue-400};
 
-  --secondary-button-background: $gray-800;
+  --secondary-button-background: #{$gray-800};
   --secondary-button-hover-background: var(--secondary-button-background);
   --secondary-button-text-color: var(--text-color);
-  --secondary-button-focus-shadow-color: rgba($gray-200, 0.75);
-  --secondary-button-focus-border-color: $gray-300;
+  --secondary-button-focus-shadow-color: #{rgba($gray-200, 0.75)};
+  --secondary-button-focus-border-color: #{$gray-300};
 
   /**
    * Background color for custom scroll bars.
@@ -53,25 +53,25 @@ body.theme-dark {
   // or an item in a tab control header. It's up to each implementation
   // to decide what states to support (active selection, selection, etc).
 
-  --box-background-color: darken($gray-900, 3%);
-  --box-alt-background-color: $gray-800;
+  --box-background-color: #{darken($gray-900, 3%)};
+  --box-alt-background-color: #{$gray-800};
 
   /**
    * Background color for skeleton or "loading" boxes
    */
-  --box-skeleton-background-color: $gray-700;
+  --box-skeleton-background-color: #{$gray-700};
   --skeleton-background-gradient: -webkit-linear-gradient(left, rgba(36, 41, 46, 0) 0%, rgba(36, 41, 46, 0.5) 50%, rgba(36, 41, 46, 0) 100%);
 
   /**
    * Border color for boxes.
    */
   --box-border-color: #141414;
-  --box-border-accent-color: $blue;
+  --box-border-accent-color: #{$blue};
 
   /**
    * Background color for selected boxes without keyboard focus
    */
-  --box-selected-background-color: $gray-700;
+  --box-selected-background-color: #{$gray-700};
 
   /**
    * Text color for when a user hovers over a boxe with a
@@ -96,42 +96,47 @@ body.theme-dark {
   /**
    * Border color for selected boxes without keyboard focus
    */
-  --box-selected-border-color: $gray-400;
+  --box-selected-border-color: #{$gray-400};
 
   /**
    * Background color for selected boxes with active keyboard focus
    */
-  --box-selected-active-background-color: $blue;
+  --box-selected-active-background-color: #{$blue};
 
   /**
    * Text color for selected boxes with active keyboard focus
    */
-  --box-selected-active-text-color: $white;
+  --box-selected-active-text-color: #{$white};
 
   /**
    * Border color for selected boxes with active keyboard focus
    */
-  --box-selected-active-border-color: $gray-400;
+  --box-selected-active-border-color: #{$gray-400};
 
   /**
    * Gradient used to indicate that content is overflowing, intended
    * for use when content can be expanded through other means than
    * scrolling.
    */
-  --box-overflow-shadow-background: linear-gradient(180deg, rgba($gray-900, 0) 0%, rgba($gray-900, 1) 90%, rgba($gray-900, 1) 100%);
+  --box-overflow-shadow-background: #{linear-gradient(180deg, rgba($gray-900, 0) 0%, rgba($gray-900, 1) 90%, rgba($gray-900, 1) 100%)};
+
+  /**
+   * Placeholder color for input boxes
+   */
+  --box-placeholder-color: #{$gray-400};
 
   /**
    * Author input (co-authors)
    */
-  --co-author-tag-background-color: $blue-800;
-  --co-author-tag-border-color: $blue-700;
+  --co-author-tag-background-color: #{$blue-800};
+  --co-author-tag-border-color: #{$blue-700};
 
   --base-border: 1px solid var(--box-border-color);
 
-  --shadow-color: rgba(black, 0.5);
+  --shadow-color: #{rgba(black, 0.5)};
   --base-box-shadow: 0 2px 7px var(--shadow-color);
 
-  --toolbar-background-color: darken($gray-900, 3%);
+  --toolbar-background-color: #{darken($gray-900, 3%)};
   --toolbar-border-color: var(--box-border-color);
   --toolbar-text-color: var(--text-color);
   --toolbar-text-secondary-color: var(--text-secondary-color);
@@ -141,20 +146,20 @@ body.theme-dark {
   --toolbar-button-border-color: var(--box-border-color);
   --toolbar-button-secondary-color: var(--toolbar-text-secondary-color);
 
-  --toolbar-button-hover-color: $white;
-  --toolbar-button-hover-background-color: $gray-800;
+  --toolbar-button-hover-color: #{$white};
+  --toolbar-button-hover-background-color: #{$gray-800};
   --toolbar-button-hover-border-color: var(--toolbar-button-border-color);
 
-  --toolbar-button-focus-background-color: $gray-800;
+  --toolbar-button-focus-background-color: #{$gray-800};
 
   --toolbar-button-active-color: var(--text-color);
   --toolbar-button-active-background-color: var(--background-color);
   --toolbar-button-active-border-color: var(--box-border-color);
 
-  --toolbar-button-progress-color: $gray-800;
-  --toolbar-button-focus-progress-color: $gray-700;
-  --toolbar-button-hover-progress-color: $gray-700;
-  --toolbar-dropdown-open-progress-color: $gray-200;
+  --toolbar-button-progress-color: #{$gray-800};
+  --toolbar-button-focus-progress-color: #{$gray-700};
+  --toolbar-button-hover-progress-color: #{$gray-700};
+  --toolbar-dropdown-open-progress-color: #{$gray-200};
 
   /**
     * App menu bar colors (Windows/Linux only)
@@ -163,11 +168,11 @@ body.theme-dark {
   --app-menu-button-hover-color: var(--toolbar-button-hover-color);
   --app-menu-button-hover-background-color: var(--toolbar-button-hover-background-color);
   --app-menu-button-active-color: var(--text-color);
-  --app-menu-button-active-background-color: $gray-800;
+  --app-menu-button-active-background-color: #{$gray-800};
   --app-menu-pane-color: var(--text-color);
   --app-menu-pane-secondary-color: var(--text-secondary-color);
-  --app-menu-pane-background-color: $gray-800;
-  --app-menu-divider-color: $gray-600;
+  --app-menu-pane-background-color: #{$gray-800};
+  --app-menu-divider-color: #{$gray-600};
 
   /**
    * Background color for badges inside of toolbar buttons.
@@ -175,15 +180,16 @@ body.theme-dark {
    * push/pull button and the PR badge in the branch drop
    * down button.
    */
-  --toolbar-badge-background-color: $gray-700;
-  --toolbar-badge-active-background-color: $gray-700;
+  --toolbar-badge-background-color: #{$gray-700};
+  --toolbar-badge-active-background-color: #{$gray-700};
 
-  --tab-bar-active-color: $blue;
+  --tab-bar-active-color: #{$blue};
   --tab-bar-background-color: var(--box-background-color);
+  --tab-bar-hover-background-color: #{$gray-800};
 
   /** Count bubble colors when used inside of a tab bar item */
   --tab-bar-count-color: var(--text-color);
-  --tab-bar-count-background-color: $gray-700;
+  --tab-bar-count-background-color: #{$gray-700};
 
   /**
     * Badge colors when used inside of list items.
@@ -191,11 +197,12 @@ body.theme-dark {
     * of the repository list.
     */
   --list-item-badge-color: var(--text-color);
-  --list-item-badge-background-color: $gray-600;
-  --list-item-selected-badge-color: $white;
-  --list-item-selected-badge-background-color: $gray-500;
-  --list-item-selected-active-badge-color: $gray-900;
-  --list-item-selected-active-badge-background-color: $white;
+  --list-item-badge-background-color: #{$gray-600};
+  --list-item-selected-badge-color: #{$white};
+  --list-item-selected-badge-background-color: #{$gray-500};
+  --list-item-selected-active-badge-color: #{$gray-900};
+  --list-item-selected-active-badge-background-color: #{$white};
+  --list-item-hover-background-color: #{$gray-800};
 
   /**
    * Toast notifications are shown temporarily for things like the zoom
@@ -203,106 +210,117 @@ body.theme-dark {
    * window mode.
    */
   --toast-notification-color: var(--text-color);
-  --toast-notification-background-color: rgba(black, 0.8);
+  --toast-notification-background-color: #{rgba(black, 0.8)};
 
   /** The highlight color used for focus rings and focus box shadows */
-  --focus-color: $blue;
+  --focus-color: #{$blue};
 
   /**
    * Variables for form elements
    */
-  --text-field-focus-shadow-color: rgba($blue, 0.25);
+  --text-field-focus-shadow-color: #{rgba($blue, 0.25)};
+
+  /**
+   * Blankslate actions, see `BlankslateAction` component.
+   */
+  --primary-blankslate-action-background: #{$blue-900};
+  --primary-blankslate-action-border-color: #{$blue-700};
 
   /**
    * Diff view
    */
 
   --diff-text-color: var(--text-color);
-  --diff-border-color: $gray-800;
-  --diff-gutter-color: $gray-800;
-  --diff-gutter-background-color: darken($gray-900, 3%);
+  --diff-border-color: #{$gray-800};
+  --diff-gutter-color: #{$gray-800};
+  --diff-gutter-background-color: #{darken($gray-900, 3%)};
 
   --diff-line-number-color: var(--text-secondary-color);
   --diff-line-number-column-width: 50px;
 
-  --diff-selected-background-color: $blue-700;
-  --diff-selected-border-color: $blue-600;
-  --diff-selected-gutter-color: $blue-600;
+  --diff-selected-background-color: #{$blue-700};
+  --diff-selected-border-color: #{$blue-600};
+  --diff-selected-gutter-color: #{$blue-600};
   --diff-selected-text-color: var(--text-color);
 
-  --diff-add-background-color: darken($green-900, 3%);
-  --diff-add-border-color: darken($green-900, 2%);
-  --diff-add-gutter-color: darken($green-900, 2%);
-  --diff-add-gutter-background-color: darken($green-900, 8%);
-  --diff-add-inner-background-color: $green-600;
+  --diff-add-background-color: #{darken($green-900, 3%)};
+  --diff-add-border-color: #{darken($green-900, 2%)};
+  --diff-add-gutter-color: #{darken($green-900, 2%)};
+  --diff-add-gutter-background-color: #{darken($green-900, 8%)};
+  --diff-add-inner-background-color: #{$green-600};
   --diff-add-text-color: var(--diff-text-color);
 
-  --diff-delete-background-color: darken($red-900, 15%);
-  --diff-delete-border-color: darken($red-900, 10%);
-  --diff-delete-gutter-color: darken($red-900, 10%);
-  --diff-delete-gutter-background-color: darken($red-900, 20%);
-  --diff-delete-inner-background-color: $red-700;
-  --diff-delete-text-color: $red-100;
+  --diff-delete-background-color: #{darken($red-900, 15%)};
+  --diff-delete-border-color: #{darken($red-900, 10%)};
+  --diff-delete-gutter-color: #{darken($red-900, 10%)};
+  --diff-delete-gutter-background-color: #{darken($red-900, 20%)};
+  --diff-delete-inner-background-color: #{$red-700};
+  --diff-delete-text-color: #{$red-100};
 
-  --diff-hunk-background-color: darken($gray-900, 3%);
-  --diff-hunk-border-color: lighten($gray-900, 3%);
-  --diff-hunk-gutter-color: lighten($gray-900, 3%);
-  --diff-hunk-gutter-background-color: darken($gray-900, 6%);
+  --diff-hunk-background-color: #{darken($gray-900, 3%)};
+  --diff-hunk-border-color: #{lighten($gray-900, 3%)};
+  --diff-hunk-gutter-color: #{lighten($gray-900, 3%)};
+  --diff-hunk-gutter-background-color: #{darken($gray-900, 6%)};
   --diff-hunk-text-color: var(--text-secondary-color);
 
-  --diff-hover-background-color: $blue-500;
-  --diff-hover-border-color: $blue-400;
-  --diff-hover-gutter-color: $blue-400;
+  --diff-hover-background-color: #{$blue-500};
+  --diff-hover-border-color: #{$blue-400};
+  --diff-hover-gutter-color: #{$blue-400};
   --diff-hover-text-color: var(--diff-text-color);
 
-  --diff-add-hover-background-color: $green-900;
-  --diff-add-hover-border-color: $green-700;
-  --diff-add-hover-gutter-color: $green-700;
+  --diff-add-hover-background-color: #{$green-900};
+  --diff-add-hover-border-color: #{$green-700};
+  --diff-add-hover-gutter-color: #{$green-700};
   --diff-add-hover-text-color: var(--text-color);
 
-  --diff-delete-hover-background-color: $red-800;
-  --diff-delete-hover-border-color: $red-700;
-  --diff-delete-hover-gutter-color: $red-700;
+  --diff-delete-hover-background-color: #{$red-800};
+  --diff-delete-hover-border-color: #{$red-700};
+  --diff-delete-hover-gutter-color: #{$red-700};
   --diff-delete-hover-text-color: var(--text-color);
 
   // Syntax highlighting text colors
-  --syntax-variable-color: $purple-300;
-  --syntax-alt-variable-color: $blue-300;
-  --syntax-keyword-color: $red-300;
-  --syntax-atom-color: $blue-300;
-  --syntax-string-color: $orange-300;
-  --syntax-qualifier-color: $purple-300;
-  --syntax-type-color: $red-300;
-  --syntax-comment-color: $gray-400;
-  --syntax-tag-color: $green-400;
-  --syntax-attribute-color: $purple-300;
-  --syntax-link-color: $blue-300;
-  --syntax-header-color: $red-300;
+  --syntax-variable-color: #{$purple-300};
+  --syntax-alt-variable-color: #{$blue-300};
+  --syntax-keyword-color: #{$red-300};
+  --syntax-atom-color: #{$blue-300};
+  --syntax-string-color: #{$orange-300};
+  --syntax-qualifier-color: #{$purple-300};
+  --syntax-type-color: #{$red-300};
+  --syntax-comment-color: #{$gray-400};
+  --syntax-tag-color: #{$green-400};
+  --syntax-attribute-color: #{$purple-300};
+  --syntax-link-color: #{$blue-300};
+  --syntax-header-color: #{$red-300};
 
   // Colors for form errors
-  --error-color: $red;
-  --form-error-background: darken($red-900, 3%);
-  --form-error-border-color: $red-900;
+  --error-color: #{$red};
+  --form-error-background: #{darken($red-900, 3%)};
+  --form-error-border-color: #{$red-900};
   --form-error-text-color: var(--text-color);
 
   /** Overlay is used as a background for both modals and foldouts */
   --overlay-background-color: rgba(0, 0, 0, 0.5);
 
   /** Dialog */
-  --dialog-warning-color: $yellow-600;
-  --dialog-error-color: $red-600;
+  --dialog-warning-color: #{$yellow-600};
+  --dialog-error-color: #{$red-600};
 
   /** Inline paths and code */
-  --path-segment-background: $gray-700;
+  --path-segment-background: #{$gray-700};
 
   .blankslate-image {
     filter: #{'invert()'} grayscale(1) brightness(8) contrast(0.6);
   }
 
   /** Diverging notification banner colors */
-  --notification-banner-background: $gray-800;
-  --notification-banner-border-color: $gray-700;
-  --notification-ref-background: $gray-700;
+  --notification-banner-background: #{$gray-800};
+  --notification-banner-border-color: #{$gray-700};
+  --notification-ref-background: #{$gray-700};
+
+  /** merge/rebase status indicators */
+  --status-pending-color: #{$yellow-700};
+  --status-error-color: #{$red-500};
+  --status-success-color: #{$green-500};
 }
 
 // this emulates the cursor for the co-author input because it isn't exactly

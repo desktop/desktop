@@ -61,6 +61,7 @@ export interface IDailyMeasures {
 
   /** The numbers of times a repo with indicators is clicked on repo list view */
   readonly repoWithIndicatorClicked: number
+
   /** The numbers of times a repo without indicators is clicked on repo list view */
   readonly repoWithoutIndicatorClicked: number
 
@@ -85,11 +86,20 @@ export interface IDailyMeasures {
   /** The number of times the user pushes to GitHub.com */
   readonly dotcomPushCount: number
 
+  /** The number of times the user pushes with `--force-with-lease` to GitHub.com */
+  readonly dotcomForcePushCount: number
+
   /** The number of times the user pushed to a GitHub enterprise instance */
   readonly enterprisePushCount: number
 
+  /** The number of times the user pushes with `--force-with-lease` to a GitHub Enterprise instance */
+  readonly enterpriseForcePushCount: number
+
   /** The number of times the users pushes to a generic remote */
   readonly externalPushCount: number
+
+  /** The number of times the users pushes with `--force-with-lease` to a generic remote */
+  readonly externalForcePushCount: number
 
   /** The number of times the user merged before seeing the result of the merge hint */
   readonly mergedWithLoadingHintCount: number
@@ -108,6 +118,63 @@ export interface IDailyMeasures {
 
   /** The number of times a `git merge` initiated by Desktop resulted in a merge conflict for the user */
   readonly mergeConflictFromExplicitMergeCount: number
+
+  /** The number of times a conflicted merge was successfully completed by the user */
+  readonly mergeSuccessAfterConflictsCount: number
+
+  /** The number of times a conflicted merge was aborted by the user */
+  readonly mergeAbortedAfterConflictsCount: number
+
+  /** The number of commits that will go unattributed to GitHub users */
+  readonly unattributedCommits: number
+
+  /**
+   * The number of times the user made a commit to a repo hosted on
+   * a GitHub Enterprise instance
+   */
+  readonly enterpriseCommits: number
+
+  /** The number of time the user made a commit to a repo hosted on Github.com */
+  readonly dotcomCommits: number
+
+  /** The number of times the user dismissed the merge conflicts dialog */
+  readonly mergeConflictsDialogDismissalCount: number
+
+  /** The number of times the user dismissed the merge conflicts dialog with conflicts left */
+  readonly anyConflictsLeftOnMergeConflictsDialogDismissalCount: number
+
+  /** The number of times the user reopened the merge conflicts dialog (after closing it) */
+  readonly mergeConflictsDialogReopenedCount: number
+
+  /** The number of times the user committed a conflicted merge via the merge conflicts dialog */
+  readonly guidedConflictedMergeCompletionCount: number
+
+  /** The number of times the user committed a conflicted merge outside the merge conflicts dialog */
+  readonly unguidedConflictedMergeCompletionCount: number
+
+  /** The number of times the user is taken to the create pull request page on dotcom */
+  readonly createPullRequestCount: number
+
+  /** The number of times the rebase conflicts dialog is dismissed */
+  readonly rebaseConflictsDialogDismissalCount: number
+
+  /** The number of times the rebase conflicts dialog is reopened */
+  readonly rebaseConflictsDialogReopenedCount: number
+
+  /** The number of times an aborted rebase is detected */
+  readonly rebaseAbortedAfterConflictsCount: number
+
+  /** The number of times a successful rebase is detected */
+  readonly rebaseSuccessAfterConflictsCount: number
+
+  /** The number of times a user performed a pull with `pull.rebase` in config set to `true` */
+  readonly pullWithRebaseCount: number
+
+  /** The number of times a user has pulled with `pull.rebase` unset or set to `false` */
+  readonly pullWithDefaultSettingCount: number
+
+  /** The number of times the user opens the "Rebase current branch" menu item */
+  readonly rebaseCurrentBranchMenuCount: number
 }
 
 export class StatsDatabase extends Dexie {

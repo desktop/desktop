@@ -31,7 +31,7 @@ interface IDialogProps {
    * By omitting this consumers may use their own custom DialogHeader
    * for when the default component doesn't cut it.
    */
-  readonly title?: string
+  readonly title?: string | JSX.Element
 
   /**
    * Whether or not the dialog should be dismissable. A dismissable dialog
@@ -47,6 +47,14 @@ interface IDialogProps {
    * Defaults to true if omitted.
    */
   readonly dismissable?: boolean
+
+  /**
+   * Option to prevent dismissal by clicking outside of the dialog.
+   * Requires `dismissal` to be true (or omitted) to have an effect.
+   *
+   * Defaults to false if omitted
+   */
+  readonly disableClickDismissalAlways?: boolean
 
   /**
    * Event triggered when the dialog is dismissed by the user in the
@@ -179,8 +187,12 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     }
 
     if (this.props.title) {
+      // createUniqueId handles static strings fine, so in the case of receiving
+      // a JSX element for the title we can just pass in a fixed value rather
+      // than trying to generate a string from an arbitrary element
+      const id = typeof this.props.title === 'string' ? this.props.title : '???'
       this.setState({
-        titleId: createUniqueId(`Dialog_${this.props.id}_${this.props.title}`),
+        titleId: createUniqueId(`Dialog_${this.props.id}_${id}`),
       })
     }
   }
@@ -283,7 +295,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
       rect.left <= e.clientX &&
       e.clientX <= rect.left + rect.width
 
-    if (!isInDialog) {
+    if (!this.props.disableClickDismissalAlways && !isInDialog) {
       e.preventDefault()
       this.onDismiss()
     }
@@ -308,7 +320,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
 
   private onKeyDown = (event: KeyboardEvent) => {
     const shortcutKey = __DARWIN__ ? event.metaKey : event.ctrlKey
-    if (shortcutKey && event.key === 'w') {
+    if ((shortcutKey && event.key === 'w') || event.key === 'Escape') {
       this.onDialogCancel(event)
     }
   }

@@ -1,20 +1,34 @@
 import * as React from 'react'
+import { clipboard } from 'electron'
+import { pathExists } from 'fs-extra'
 import * as Path from 'path'
 
-import { CommitSummary } from './commit-summary'
-import { Diff } from '../diff'
-import { FileList } from './file-list'
 import { Repository } from '../../models/repository'
-import { CommittedFileChange, FileChange } from '../../models/status'
+import { CommittedFileChange } from '../../models/status'
 import { Commit } from '../../models/commit'
-import { Dispatcher } from '../../lib/dispatcher'
-import { ImageDiffType } from '../../lib/app-state'
+import { IDiff, ImageDiffType } from '../../models/diff'
+
 import { encodePathAsUrl } from '../../lib/path'
-import { ThrottledScheduler } from '../lib/throttled-scheduler'
 import { IGitHubUser } from '../../lib/databases'
+import { revealInFileManager } from '../../lib/app-shell'
+
+import { openFile } from '../lib/open-file'
+import {
+  isSafeFileExtension,
+  CopyFilePathLabel,
+  DefaultEditorLabel,
+  RevealInFileManagerLabel,
+  OpenWithDefaultProgramLabel,
+} from '../lib/context-menu'
+import { ThrottledScheduler } from '../lib/throttled-scheduler'
+
+import { Diff } from '../diff'
+import { Dispatcher } from '../dispatcher'
 import { Resizable } from '../resizable'
-import { openFile } from '../../lib/open-file'
-import { IDiff } from '../../models/diff'
+import { showContextualMenu } from '../main-process-proxy'
+
+import { CommitSummary } from './commit-summary'
+import { FileList } from './file-list'
 
 interface ISelectedCommitProps {
   readonly repository: Repository
@@ -59,11 +73,8 @@ export class SelectedCommit extends React.Component<
     }
   }
 
-  private onFileSelected = (file: FileChange) => {
-    this.props.dispatcher.changeFileSelection(
-      this.props.repository,
-      file as CommittedFileChange
-    )
+  private onFileSelected = (file: CommittedFileChange) => {
+    this.props.dispatcher.changeFileSelection(this.props.repository, file)
   }
 
   private onHistoryRef = (ref: HTMLDivElement | null) => {
@@ -170,10 +181,7 @@ export class SelectedCommit extends React.Component<
         onSelectedFileChanged={this.onFileSelected}
         selectedFile={this.props.selectedFile}
         availableWidth={availableWidth}
-        onOpenItem={this.onOpenItem}
-        externalEditorLabel={this.props.externalEditorLabel}
-        onOpenInExternalEditor={this.props.onOpenInExternalEditor}
-        repository={this.props.repository}
+        onContextMenu={this.onContextMenu}
       />
     )
   }
@@ -211,6 +219,59 @@ export class SelectedCommit extends React.Component<
         </div>
       </div>
     )
+  }
+
+  private onContextMenu = async (event: React.MouseEvent<HTMLDivElement>) => {
+    event.preventDefault()
+
+    if (this.props.selectedFile == null) {
+      return
+    }
+
+    const filePath = this.props.selectedFile.path
+    const fullPath = Path.join(this.props.repository.path, filePath)
+    const fileExistsOnDisk = await pathExists(fullPath)
+    if (!fileExistsOnDisk) {
+      showContextualMenu([
+        {
+          label: __DARWIN__
+            ? 'File Does Not Exist on Disk'
+            : 'File does not exist on disk',
+          enabled: false,
+        },
+      ])
+      return
+    }
+
+    const extension = Path.extname(filePath)
+
+    const isSafeExtension = isSafeFileExtension(extension)
+    const openInExternalEditor = this.props.externalEditorLabel
+      ? `Open in ${this.props.externalEditorLabel}`
+      : DefaultEditorLabel
+
+    const items = [
+      {
+        label: CopyFilePathLabel,
+        action: () => clipboard.writeText(fullPath),
+      },
+      {
+        label: RevealInFileManagerLabel,
+        action: () => revealInFileManager(this.props.repository, filePath),
+        enabled: fileExistsOnDisk,
+      },
+      {
+        label: openInExternalEditor,
+        action: () => this.props.onOpenInExternalEditor(fullPath),
+        enabled: isSafeExtension && fileExistsOnDisk,
+      },
+      {
+        label: OpenWithDefaultProgramLabel,
+        action: () => this.onOpenItem(filePath),
+        enabled: isSafeExtension && fileExistsOnDisk,
+      },
+    ]
+    showContextualMenu(items)
   }
 }
 

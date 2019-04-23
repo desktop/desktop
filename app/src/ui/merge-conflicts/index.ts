@@ -1,1 +1,2 @@
-export * from './merge-conflicts-warning'
+export * from './merge-conflicts-dialog'
+export * from './commit-conflicts-warning'

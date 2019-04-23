@@ -1,5 +1,3 @@
-import { expect } from 'chai'
-
 import { Repository } from '../../../src/models/repository'
 import {
   getRemotes,
@@ -12,6 +10,7 @@ import {
   setupEmptyDirectory,
 } from '../../helpers/repositories'
 import { findDefaultRemote } from '../../../src/lib/stores/helpers/find-default-remote'
+import { GitProcess } from 'dugite'
 
 describe('git/remote', () => {
   describe('getRemotes', () => {
@@ -27,22 +26,48 @@ describe('git/remote', () => {
 
       const result = await getRemotes(repository)
 
-      expect(result[0].name).to.equal('bassoon')
-      expect(result[0].url.endsWith(nwo)).to.equal(true)
+      expect(result[0].name).toEqual('bassoon')
+      expect(result[0].url.endsWith(nwo)).toEqual(true)
 
-      expect(result[1].name).to.equal('origin')
-      expect(result[1].url.endsWith(nwo)).to.equal(true)
+      expect(result[1].name).toEqual('origin')
+      expect(result[1].url.endsWith(nwo)).toEqual(true)
+    })
+
+    it('returns remotes sorted alphabetically', async () => {
+      const repository = await setupEmptyRepository()
+
+      // adding these remotes out-of-order to test how they are then retrieved
+      const url = 'https://github.com/desktop/not-found.git'
+
+      await GitProcess.exec(['remote', 'add', 'X', url], repository.path)
+      await GitProcess.exec(['remote', 'add', 'A', url], repository.path)
+      await GitProcess.exec(['remote', 'add', 'L', url], repository.path)
+      await GitProcess.exec(['remote', 'add', 'T', url], repository.path)
+      await GitProcess.exec(['remote', 'add', 'D', url], repository.path)
+
+      const result = await getRemotes(repository)
+      expect(result).toHaveLength(5)
+
+      expect(result[0].name).toEqual('A')
+      expect(result[1].name).toEqual('D')
+      expect(result[2].name).toEqual('L')
+      expect(result[3].name).toEqual('T')
+      expect(result[4].name).toEqual('X')
     })
 
     it('returns empty array for directory without a .git directory', async () => {
       const repository = setupEmptyDirectory()
-
-      const status = await getRemotes(repository)
-      expect(status).eql([])
+      const remotes = await getRemotes(repository)
+      expect(remotes).toHaveLength(0)
     })
   })
 
   describe('findDefaultRemote', () => {
+    it('returns null for empty array', async () => {
+      const result = await findDefaultRemote([])
+      expect(result).toBeNull()
+    })
+
     it('returns origin when multiple remotes found', async () => {
       const testRepoPath = await setupFixtureRepository(
         'repo-with-multiple-remotes'
@@ -52,7 +77,7 @@ describe('git/remote', () => {
       const remotes = await getRemotes(repository)
       const result = await findDefaultRemote(remotes)
 
-      expect(result!.name).to.equal('origin')
+      expect(result!.name).toEqual('origin')
     })
 
     it('returns something when origin removed', async () => {
@@ -65,7 +90,7 @@ describe('git/remote', () => {
       const remotes = await getRemotes(repository)
       const result = await findDefaultRemote(remotes)
 
-      expect(result!.name).to.equal('bassoon')
+      expect(result!.name).toEqual('bassoon')
     })
 
     it('returns null for new repository', async () => {
@@ -74,7 +99,7 @@ describe('git/remote', () => {
       const remotes = await getRemotes(repository)
       const result = await findDefaultRemote(remotes)
 
-      expect(result).to.be.null
+      expect(result).toBeNull()
     })
   })
 
@@ -90,14 +115,14 @@ describe('git/remote', () => {
       const remotes = await getRemotes(repository)
       const result = await findDefaultRemote(remotes)
 
-      expect(result!.name).to.equal('origin')
+      expect(result!.name).toEqual('origin')
     })
   })
 
   describe('removeRemote', () => {
     it('silently fails when remote not defined', async () => {
       const repository = await setupEmptyRepository()
-      await removeRemote(repository, 'origin')
+      expect(removeRemote(repository, 'origin')).resolves.not.toThrow()
     })
   })
 })

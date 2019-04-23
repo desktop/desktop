@@ -1,7 +1,7 @@
 import { remote } from 'electron'
 import * as React from 'react'
 
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { isGitRepository } from '../../lib/git'
 import { isBareRepository } from '../../lib/git'
 import { Button } from '../lib/button'
@@ -11,7 +11,7 @@ import { Row } from '../lib/row'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { LinkButton } from '../lib/link-button'
-import { PopupType } from '../../lib/app-state'
+import { PopupType } from '../../models/popup'
 import * as Path from 'path'
 
 import untildify = require('untildify')

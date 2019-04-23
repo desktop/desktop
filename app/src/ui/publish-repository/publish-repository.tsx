@@ -1,43 +1,29 @@
 import * as React from 'react'
 import { Account } from '../../models/account'
-import { API, IAPIUser } from '../../lib/api'
+import { API, IAPIOrganization } from '../../lib/api'
 import { TextBox } from '../lib/text-box'
 import { Select } from '../lib/select'
 import { DialogContent } from '../dialog'
 import { Row } from '../lib/row'
 import { merge } from '../../lib/merge'
 import { caseInsensitiveCompare } from '../../lib/compare'
+import { sanitizedRepositoryName } from '../add-repository/sanitized-repository-name'
+import { Octicon, OcticonSymbol } from '../octicons'
+import { RepositoryPublicationSettings } from '../../models/publish-settings'
 
 interface IPublishRepositoryProps {
   /** The user to use for publishing. */
   readonly account: Account
 
   /** The settings to use when publishing the repository. */
-  readonly settings: IPublishRepositorySettings
+  readonly settings: RepositoryPublicationSettings
 
   /** The function called when any of the publish settings are changed. */
-  readonly onSettingsChanged: (settings: IPublishRepositorySettings) => void
-}
-
-export interface IPublishRepositorySettings {
-  /** The name to use when publishing the repository. */
-  readonly name: string
-
-  /** The repository's description. */
-  readonly description: string
-
-  /** Should the repository be private? */
-  readonly private: boolean
-
-  /**
-   * The org to which this repository belongs. If null, the repository should be
-   * published as a personal repository.
-   */
-  readonly org: IAPIUser | null
+  readonly onSettingsChanged: (settings: RepositoryPublicationSettings) => void
 }
 
 interface IPublishRepositoryState {
-  readonly orgs: ReadonlyArray<IAPIUser>
+  readonly orgs: ReadonlyArray<IAPIOrganization>
 }
 
 /** The Publish Repository component. */
@@ -45,10 +31,14 @@ export class PublishRepository extends React.Component<
   IPublishRepositoryProps,
   IPublishRepositoryState
 > {
+  /** The repository name entered by the user. It has not yet been sanitized. */
+  private name: string
+
   public constructor(props: IPublishRepositoryProps) {
     super(props)
 
     this.state = { orgs: [] }
+    this.name = props.settings.name
   }
 
   public async componentWillMount() {
@@ -65,13 +55,14 @@ export class PublishRepository extends React.Component<
 
   private async fetchOrgs(account: Account) {
     const api = API.fromAccount(account)
-    const orgs = (await api.fetchOrgs()) as Array<IAPIUser>
+    const apiOrgs = await api.fetchOrgs()
+    const orgs = [...apiOrgs]
     orgs.sort((a, b) => caseInsensitiveCompare(a.login, b.login))
     this.setState({ orgs })
   }
 
-  private updateSettings<K extends keyof IPublishRepositorySettings>(
-    subset: Pick<IPublishRepositorySettings, K>
+  private updateSettings<K extends keyof RepositoryPublicationSettings>(
+    subset: Pick<RepositoryPublicationSettings, K>
   ) {
     const existingSettings = this.props.settings
     const newSettings = merge(existingSettings, subset)
@@ -79,6 +70,9 @@ export class PublishRepository extends React.Component<
   }
 
   private onNameChange = (name: string) => {
+    this.name = name
+
+    name = sanitizedRepositoryName(name)
     this.updateSettings({ name })
   }
 
@@ -91,14 +85,19 @@ export class PublishRepository extends React.Component<
   }
 
   private onOrgChange = (event: React.FormEvent<HTMLSelectElement>) => {
+    const { settings } = this.props
+
     const value = event.currentTarget.value
     const index = parseInt(value, 10)
+    let newSettings: RepositoryPublicationSettings
     if (index < 0 || isNaN(index)) {
-      this.updateSettings({ org: null })
+      newSettings = { ...settings, org: null }
     } else {
       const org = this.state.orgs[index]
-      this.updateSettings({ org })
+      newSettings = { ...settings, org }
     }
+
+    this.props.onSettingsChanged(newSettings)
   }
 
   private renderOrgs(): JSX.Element | null {
@@ -114,6 +113,7 @@ export class PublishRepository extends React.Component<
     )
 
     let selectedIndex = -1
+
     const selectedOrg = this.props.settings.org
     for (const [index, org] of this.state.orgs.entries()) {
       if (selectedOrg && selectedOrg.id === org.id) {
@@ -144,11 +144,13 @@ export class PublishRepository extends React.Component<
         <Row>
           <TextBox
             label="Name"
-            value={this.props.settings.name}
+            value={this.name}
             autoFocus={true}
             onValueChanged={this.onNameChange}
           />
         </Row>
+
+        {this.renderSanitizedName()}
 
         <Row>
           <TextBox
@@ -171,6 +173,20 @@ export class PublishRepository extends React.Component<
 
         {this.renderOrgs()}
       </DialogContent>
+    )
+  }
+
+  private renderSanitizedName() {
+    const sanitizedName = this.props.settings.name
+    if (this.name === sanitizedName) {
+      return null
+    }
+
+    return (
+      <Row className="warning-helper-text">
+        <Octicon symbol={OcticonSymbol.alert} />
+        Will be created as {sanitizedName}
+      </Row>
     )
   }
 }

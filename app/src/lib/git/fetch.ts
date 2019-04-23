@@ -1,8 +1,42 @@
 import { git, IGitExecutionOptions, gitNetworkArguments } from './core'
 import { Repository } from '../../models/repository'
+import { IGitAccount } from '../../models/git-account'
+import { IFetchProgress } from '../../models/progress'
 import { FetchProgressParser, executionOptionsWithProgress } from '../progress'
-import { IFetchProgress } from '../app-state'
-import { IGitAccount, envForAuthentication } from './authentication'
+import { envForAuthentication } from './authentication'
+import { enableRecurseSubmodulesFlag } from '../feature-flag'
+
+async function getFetchArgs(
+  repository: Repository,
+  remote: string,
+  account: IGitAccount | null,
+  progressCallback?: (progress: IFetchProgress) => void
+) {
+  const networkArguments = await gitNetworkArguments(repository, account)
+
+  if (enableRecurseSubmodulesFlag()) {
+    return progressCallback != null
+      ? [
+          ...networkArguments,
+          'fetch',
+          '--progress',
+          '--prune',
+          '--recurse-submodules=on-demand',
+          remote,
+        ]
+      : [
+          ...networkArguments,
+          'fetch',
+          '--prune',
+          '--recurse-submodules=on-demand',
+          remote,
+        ]
+  } else {
+    return progressCallback != null
+      ? [...networkArguments, 'fetch', '--progress', '--prune', remote]
+      : [...networkArguments, 'fetch', '--prune', remote]
+  }
+}
 
 /**
  * Fetch from the given remote.
@@ -60,10 +94,7 @@ export async function fetch(
     progressCallback({ kind, title, value: 0, remote })
   }
 
-  const args = progressCallback
-    ? [...gitNetworkArguments, 'fetch', '--progress', '--prune', remote]
-    : [...gitNetworkArguments, 'fetch', '--prune', remote]
-
+  const args = await getFetchArgs(repository, remote, account, progressCallback)
   await git(args, repository.path, 'fetch', opts)
 }
 
@@ -79,7 +110,9 @@ export async function fetchRefspec(
     env: envForAuthentication(account),
   }
 
-  const args = [...gitNetworkArguments, 'fetch', remote, refspec]
+  const networkArguments = await gitNetworkArguments(repository, account)
+
+  const args = [...networkArguments, 'fetch', remote, refspec]
 
   await git(args, repository.path, 'fetchRefspec', options)
 }

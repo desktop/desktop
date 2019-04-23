@@ -8,9 +8,9 @@ about: Report a problem encountered while using GitHub Desktop
 First and foremost, we’d like to thank you for taking the time to contribute to our project. Before submitting your issue, please follow these steps:
 
 1. Familiarize yourself with our contributing guide:
-	* https://github.com/desktop/desktop/blob/master/.github/CONTRIBUTING.md#contributing-to-github-desktop
+	* https://github.com/desktop/desktop/blob/development/.github/CONTRIBUTING.md#contributing-to-github-desktop
 2. Check if your issue (and sometimes workaround) is in the known-issues doc:
-	* https://github.com/desktop/desktop/blob/master/docs/known-issues.md
+	* https://github.com/desktop/desktop/blob/development/docs/known-issues.md
 3. Make sure your issue isn’t a duplicate of another issue
 4. If you have made it to this step, go ahead and fill out the template below
 -->
@@ -56,8 +56,8 @@ If you have screen shots or gifs that demonstrate the issue, please include them
 
 If the issue involves a specific public repository, including the information about it will make it easier to recreate the issue.
 
-If you are dealing with a performance issue or regression, attaching a Timeline profile of the task will help the developers understand the runtime behavior of the application on your machine.
-https://github.com/desktop/desktop/blob/master/docs/contributing/timeline-profile.md
+If you are dealing with a performance issue or regression, attaching a Performance profile of the task will help the developers understand the runtime behavior of the application on your machine.
+https://github.com/desktop/desktop/blob/development/docs/contributing/timeline-profile.md
 -->
 
 ### Logs

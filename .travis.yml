@@ -5,8 +5,6 @@ notifications:
 
 dist: trusty
 
-sudo: false
-
 os: linux
 compiler: clang
 
@@ -21,30 +19,20 @@ addons:
       # this package is essential for testing Electron in a headless fashion
       # https://github.com/electron/electron/blob/master/docs/tutorial/testing-on-headless-ci.md
       - xvfb
-      # packages required for electron-installer-debian
-      - fakeroot
-      - dpkg
-      # packages required for electron-installer-redhat
-      - rpm
-      # packages required for electron-installer-appimage
-      - xz-utils
-      - xorriso
-      - zsync
 
 branches:
   only:
-    - master
+    - development
     - /^__release-.*/
 
 language: node_js
 node_js:
-  - '8.11.4'
+  - '8.12'
 
 cache:
   yarn: true
   timeout: 600
   directories:
-    - node_modules
     - $HOME/.electron
     - .eslintcache
     - $HOME/.cache/electron-builder
@@ -53,8 +41,12 @@ install:
   - yarn install --force
 
 script:
-  - yarn lint && yarn validate-changelog && yarn build:prod && yarn test:setup
-    && yarn test && yarn test:report
+  - yarn lint && yarn validate-changelog && yarn check-modified && yarn
+    build:prod && yarn test:setup && yarn test
+
+after_success:
+  - yarn test:report
 
 after_failure:
+  - yarn test:report
   - yarn test:review

@@ -7,8 +7,13 @@
 
   min-width: inherit;
 
-  &-filter-field {
-    padding: var(--spacing);
+  .filter-field-row {
+    margin: var(--spacing);
+    min-width: 0;
+
+    .filter-list-filter-field {
+      min-width: 0;
+    }
   }
 
   &-container {
@@ -26,4 +31,21 @@
 .no-results-found {
   width: 100%;
   text-align: center;
+}
+
+.merge-button {
+  &.button-component {
+    align-self: auto;
+  }
+
+  &-row {
+    display: flex;
+    flex-direction: column;
+    border-top: var(--base-border);
+    padding: var(--spacing);
+  }
+
+  .icon {
+    margin-right: var(--spacing-half);
+  }
 }

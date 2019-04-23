@@ -1,0 +1,3 @@
+[submodule "inner"]
+	path = inner
+	url = https://github.com/shiftkey/inner-submodule-public

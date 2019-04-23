@@ -1,17 +1,18 @@
 import * as React from 'react'
 
-import { CompareActionKind, MergeResultStatus } from '../../lib/app-state'
+import { HistoryTabMode } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { Button } from '../lib/button'
-import { MergeStatusHeader } from './merge-status-header'
-import { MergeResultKind } from '../../models/merge'
+import { ActionStatusIcon } from '../lib/action-status-icon'
+import { MergeResult } from '../../models/merge'
+import { ComputedAction } from '../../models/computed-action'
 
 interface IMergeCallToActionWithConflictsProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
-  readonly mergeStatus: MergeResultStatus | null
+  readonly mergeStatus: MergeResult | null
   readonly currentBranch: Branch
   readonly comparisonBranch: Branch
   readonly commitsBehind: number
@@ -31,7 +32,7 @@ export class MergeCallToActionWithConflicts extends React.Component<
 
     const cannotMergeBranch =
       this.props.mergeStatus != null &&
-      this.props.mergeStatus.kind === MergeResultKind.Invalid
+      this.props.mergeStatus.kind === ComputedAction.Invalid
 
     const disabled = commitsBehind <= 0 || cannotMergeBranch
 
@@ -39,11 +40,11 @@ export class MergeCallToActionWithConflicts extends React.Component<
 
     return (
       <div className="merge-cta">
+        {mergeDetails}
+
         <Button type="submit" disabled={disabled} onClick={this.onMergeClicked}>
           Merge into <strong>{this.props.currentBranch.name}</strong>
         </Button>
-
-        {mergeDetails}
       </div>
     )
   }
@@ -51,7 +52,10 @@ export class MergeCallToActionWithConflicts extends React.Component<
   private renderMergeStatus() {
     return (
       <div className="merge-status-component">
-        <MergeStatusHeader status={this.props.mergeStatus} />
+        <ActionStatusIcon
+          status={this.props.mergeStatus}
+          classNamePrefix="merge-status"
+        />
 
         {this.renderMergeDetails(
           this.props.currentBranch,
@@ -66,27 +70,27 @@ export class MergeCallToActionWithConflicts extends React.Component<
   private renderMergeDetails(
     currentBranch: Branch,
     comparisonBranch: Branch,
-    mergeStatus: MergeResultStatus | null,
+    mergeStatus: MergeResult | null,
     behindCount: number
   ) {
     if (mergeStatus === null) {
       return null
     }
 
-    if (mergeStatus.kind === MergeResultKind.Loading) {
+    if (mergeStatus.kind === ComputedAction.Loading) {
       return this.renderLoadingMergeMessage()
     }
-    if (mergeStatus.kind === MergeResultKind.Clean) {
+    if (mergeStatus.kind === ComputedAction.Clean) {
       return this.renderCleanMergeMessage(
         currentBranch,
         comparisonBranch,
         behindCount
       )
     }
-    if (mergeStatus.kind === MergeResultKind.Invalid) {
+    if (mergeStatus.kind === ComputedAction.Invalid) {
       return this.renderInvalidMergeMessage()
     }
-    if (mergeStatus.kind === MergeResultKind.Conflicts) {
+    if (mergeStatus.kind === ComputedAction.Conflicts) {
       return this.renderConflictedMergeMessage(
         currentBranch,
         comparisonBranch,
@@ -164,7 +168,7 @@ export class MergeCallToActionWithConflicts extends React.Component<
     )
 
     this.props.dispatcher.executeCompare(repository, {
-      kind: CompareActionKind.History,
+      kind: HistoryTabMode.History,
     })
 
     this.props.dispatcher.updateCompareForm(repository, {

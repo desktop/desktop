@@ -27,22 +27,23 @@ interface IModeDefinition {
 
   /**
    * A map between file extensions (including the leading dot, i.e.
-   * ".jpeg") and the selected mime type to use when highlighting
-   * that extension as specified in the CodeMirror mode itself.
+   * ".jpeg") or basenames (i.e. "dockerfile") and the selected mime
+   * type to use when highlighting that extension as specified in
+   * the CodeMirror mode itself.
    */
-  readonly extensions: {
+  readonly mappings: {
     readonly [key: string]: string
   }
 }
 
 /**
- * Array describing all currently supported modes and the file extensions
+ * Array describing all currently supported extensionModes and the file extensions
  * that they cover.
  */
-const modes: ReadonlyArray<IModeDefinition> = [
+const extensionModes: ReadonlyArray<IModeDefinition> = [
   {
     install: () => import('codemirror/mode/javascript/javascript'),
-    extensions: {
+    mappings: {
       '.ts': 'text/typescript',
       '.js': 'text/javascript',
       '.json': 'application/json',
@@ -50,33 +51,33 @@ const modes: ReadonlyArray<IModeDefinition> = [
   },
   {
     install: () => import('codemirror/mode/coffeescript/coffeescript'),
-    extensions: {
+    mappings: {
       '.coffee': 'text/x-coffeescript',
     },
   },
   {
     install: () => import('codemirror/mode/jsx/jsx'),
-    extensions: {
+    mappings: {
       '.tsx': 'text/typescript-jsx',
       '.jsx': 'text/jsx',
     },
   },
   {
     install: () => import('codemirror/mode/htmlmixed/htmlmixed'),
-    extensions: {
+    mappings: {
       '.html': 'text/html',
       '.htm': 'text/html',
     },
   },
   {
     install: () => import('codemirror/mode/htmlembedded/htmlembedded'),
-    extensions: {
+    mappings: {
       '.jsp': 'application/x-jsp',
     },
   },
   {
     install: () => import('codemirror/mode/css/css'),
-    extensions: {
+    mappings: {
       '.css': 'text/css',
       '.scss': 'text/x-scss',
       '.less': 'text/x-less',
@@ -84,27 +85,27 @@ const modes: ReadonlyArray<IModeDefinition> = [
   },
   {
     install: () => import('codemirror/mode/vue/vue'),
-    extensions: {
+    mappings: {
       '.vue': 'text/x-vue',
     },
   },
   {
     install: () => import('codemirror/mode/markdown/markdown'),
-    extensions: {
+    mappings: {
       '.markdown': 'text/x-markdown',
       '.md': 'text/x-markdown',
     },
   },
   {
     install: () => import('codemirror/mode/yaml/yaml'),
-    extensions: {
+    mappings: {
       '.yaml': 'text/yaml',
       '.yml': 'text/yaml',
     },
   },
   {
     install: () => import('codemirror/mode/xml/xml'),
-    extensions: {
+    mappings: {
       '.xml': 'text/xml',
       '.xaml': 'text/xml',
       '.csproj': 'text/xml',
@@ -112,11 +113,12 @@ const modes: ReadonlyArray<IModeDefinition> = [
       '.vcxproj': 'text/xml',
       '.vbproj': 'text/xml',
       '.svg': 'text/xml',
+      '.resx': 'text/xml',
     },
   },
   {
     install: () => import('codemirror/mode/clike/clike'),
-    extensions: {
+    mappings: {
       '.m': 'text/x-objectivec',
       '.scala': 'text/x-scala',
       '.sc': 'text/x-scala',
@@ -132,7 +134,7 @@ const modes: ReadonlyArray<IModeDefinition> = [
   },
   {
     install: () => import('codemirror/mode/mllike/mllike'),
-    extensions: {
+    mappings: {
       '.ml': 'text/x-ocaml',
       '.fs': 'text/x-fsharp',
       '.fsx': 'text/x-fsharp',
@@ -141,61 +143,61 @@ const modes: ReadonlyArray<IModeDefinition> = [
   },
   {
     install: () => import('codemirror/mode/swift/swift'),
-    extensions: {
+    mappings: {
       '.swift': 'text/x-swift',
     },
   },
   {
     install: () => import('codemirror/mode/shell/shell'),
-    extensions: {
+    mappings: {
       '.sh': 'text/x-sh',
     },
   },
   {
     install: () => import('codemirror/mode/sql/sql'),
-    extensions: {
+    mappings: {
       '.sql': 'text/x-sql',
     },
   },
   {
     install: () => import('codemirror/mode/cypher/cypher'),
-    extensions: {
+    mappings: {
       '.cql': 'application/x-cypher-query',
     },
   },
   {
     install: () => import('codemirror/mode/go/go'),
-    extensions: {
+    mappings: {
       '.go': 'text/x-go',
     },
   },
   {
     install: () => import('codemirror/mode/perl/perl'),
-    extensions: {
+    mappings: {
       '.pl': 'text/x-perl',
     },
   },
   {
     install: () => import('codemirror/mode/php/php'),
-    extensions: {
+    mappings: {
       '.php': 'application/x-httpd-php',
     },
   },
   {
     install: () => import('codemirror/mode/python/python'),
-    extensions: {
+    mappings: {
       '.py': 'text/x-python',
     },
   },
   {
     install: () => import('codemirror/mode/ruby/ruby'),
-    extensions: {
+    mappings: {
       '.rb': 'text/x-ruby',
     },
   },
   {
     install: () => import('codemirror/mode/clojure/clojure'),
-    extensions: {
+    mappings: {
       '.clj': 'text/x-clojure',
       '.cljc': 'text/x-clojure',
       '.cljs': 'text/x-clojure',
@@ -204,43 +206,94 @@ const modes: ReadonlyArray<IModeDefinition> = [
   },
   {
     install: () => import('codemirror/mode/rust/rust'),
-    extensions: {
+    mappings: {
       '.rs': 'text/x-rustsrc',
     },
   },
   {
     install: () => import('codemirror-mode-elixir'),
-    extensions: {
+    mappings: {
       '.ex': 'text/x-elixir',
       '.exs': 'text/x-elixir',
     },
   },
   {
     install: () => import('codemirror/mode/haxe/haxe'),
-    extensions: {
+    mappings: {
       '.hx': 'text/x-haxe',
     },
   },
   {
     install: () => import('codemirror/mode/r/r'),
-    extensions: {
+    mappings: {
       '.r': 'text/x-rsrc',
     },
   },
   {
     install: () => import('codemirror/mode/powershell/powershell'),
-    extensions: {
+    mappings: {
       '.ps1': 'application/x-powershell',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/vb/vb'),
+    mappings: {
+      '.vb': 'text/x-vb',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/fortran/fortran'),
+    mappings: {
+      '.f': 'text/x-fortran',
+      '.f90': 'text/x-fortran',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/lua/lua'),
+    mappings: {
+      '.lua': 'text/x-lua',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/crystal/crystal'),
+    mappings: {
+      '.cr': 'text/x-crystal',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/julia/julia'),
+    mappings: {
+      '.jl': 'text/x-julia',
     },
   },
 ]
 
 /**
  * A map between file extensions and mime types, see
- * the 'extensions' property on the IModeDefinition interface
+ * the 'mappings' property on the IModeDefinition interface
  * for more information
  */
 const extensionMIMEMap = new Map<string, string>()
+
+/**
+ * Array describing all currently supported basenameModes and the file names
+ * that they cover.
+ */
+const basenameModes: ReadonlyArray<IModeDefinition> = [
+  {
+    install: () => import('codemirror/mode/dockerfile/dockerfile'),
+    mappings: {
+      dockerfile: 'text/x-dockerfile',
+    },
+  },
+]
+
+/**
+ * A map between file basenames and mime types, see
+ * the 'basenames' property on the IModeDefinition interface
+ * for more information
+ */
+const basenameMIMEMap = new Map<string, string>()
 
 /**
  * A map between mime types and mode definitions. See the
@@ -249,10 +302,17 @@ const extensionMIMEMap = new Map<string, string>()
  */
 const mimeModeMap = new Map<string, IModeDefinition>()
 
-for (const mode of modes) {
-  for (const [extension, mimeType] of Object.entries(mode.extensions)) {
-    extensionMIMEMap.set(extension, mimeType)
-    mimeModeMap.set(mimeType, mode)
+for (const extensionMode of extensionModes) {
+  for (const [mapping, mimeType] of Object.entries(extensionMode.mappings)) {
+    extensionMIMEMap.set(mapping, mimeType)
+    mimeModeMap.set(mimeType, extensionMode)
+  }
+}
+
+for (const basenameMode of basenameModes) {
+  for (const [mapping, mimeType] of Object.entries(basenameMode.mappings)) {
+    basenameMIMEMap.set(mapping, mimeType)
+    mimeModeMap.set(mimeType, basenameMode)
   }
 }
 
@@ -293,6 +353,7 @@ async function detectMode(
 ): Promise<CodeMirror.Mode<{}> | null> {
   const mimeType =
     extensionMIMEMap.get(request.extension.toLowerCase()) ||
+    basenameMIMEMap.get(request.basename.toLowerCase()) ||
     guessMimeType(request.contents)
 
   if (!mimeType) {

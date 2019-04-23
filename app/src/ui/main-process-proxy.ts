@@ -1,6 +1,6 @@
 import { ipcRenderer } from 'electron'
 import { ExecutableMenuItem } from '../models/app-menu'
-import { MenuIDs } from '../main-process/menu'
+import { MenuIDs, MenuLabels } from '../main-process/menu'
 import { IMenuItemState } from '../lib/menu-update'
 import { IMenuItem } from '../lib/menu-item'
 
@@ -19,6 +19,11 @@ export function sendReady(time: number) {
 /** Tell the main process to execute (i.e. simulate a click of) the menu item. */
 export function executeMenuItem(item: ExecutableMenuItem) {
   ipcRenderer.send('execute-menu-item', { id: item.id })
+}
+
+/** Tell the main process to execute (i.e. simulate a click of) the menu item. */
+export function executeMenuItemById(id: MenuIDs) {
+  ipcRenderer.send('execute-menu-item', { id })
 }
 
 /**
@@ -93,11 +98,7 @@ export function showContextualMenu(items: ReadonlyArray<IMenuItem>) {
 }
 
 /** Update the menu item labels with the user's preferred apps. */
-export function updatePreferredAppMenuItemLabels(labels: {
-  editor?: string
-  pullRequestLabel?: string
-  shell: string
-}) {
+export function updatePreferredAppMenuItemLabels(labels: MenuLabels) {
   ipcRenderer.send('update-preferred-app-menu-item-labels', labels)
 }
 

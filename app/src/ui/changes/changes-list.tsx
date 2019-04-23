@@ -1,19 +1,19 @@
 import * as React from 'react'
 import * as Path from 'path'
 
-import { ICommitMessage } from '../../lib/app-state'
 import { IGitHubUser } from '../../lib/databases'
-import { Dispatcher } from '../../lib/dispatcher'
-import { ITrailer } from '../../lib/git/interpret-trailers'
+import { Dispatcher } from '../dispatcher'
 import { IMenuItem } from '../../lib/menu-item'
 import { revealInFileManager } from '../../lib/app-shell'
 import {
   AppFileStatus,
   WorkingDirectoryStatus,
   WorkingDirectoryFileChange,
+  AppFileStatusKind,
 } from '../../models/status'
 import { DiffSelectionType } from '../../models/diff'
 import { CommitIdentity } from '../../models/commit-identity'
+import { ICommitMessage } from '../../models/commit-message'
 import { Repository } from '../../models/repository'
 import { IAuthor } from '../../models/author'
 import { List, ClickSource } from '../lib/list'
@@ -21,6 +21,7 @@ import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import {
   isSafeFileExtension,
   DefaultEditorLabel,
+  CopyFilePathLabel,
   RevealInFileManagerLabel,
   OpenWithDefaultProgramLabel,
 } from '../lib/context-menu'
@@ -29,29 +30,55 @@ import { ChangedFile } from './changed-file'
 import { IAutocompletionProvider } from '../autocompletion'
 import { showContextualMenu } from '../main-process-proxy'
 import { arrayEquals } from '../../lib/equality'
+import { clipboard } from 'electron'
+import { basename } from 'path'
+import { ICommitContext } from '../../models/commit'
+import { RebaseConflictState } from '../../lib/app-state'
+import { ContinueRebase } from './continue-rebase'
+import { enablePullWithRebase, enableStashing } from '../../lib/feature-flag'
+import { ListRow } from '../lib/list/list-row'
+import { Octicon, OcticonSymbol } from '../octicons'
+import { FocusContainer } from '../lib/focus-container'
+import { IStashEntry } from '../../models/stash-entry'
 
 const RowHeight = 29
+const StashListRowStyle: React.CSSProperties = {
+  height: RowHeight,
+}
+const StashIcon = new OcticonSymbol(
+  16,
+  16,
+  'M3.002 15H15V4c.51 0 1 .525 1 .996V15c0 .471-.49 1-1 1H4.002c-.51 ' +
+    '0-1-.529-1-1zm-2-2H13V2c.51 0 1 .525 1 .996V13c0 .471-.49 1-1 ' +
+    '1H2.002c-.51 0-1-.529-1-1zm10.14-13A.86.86 0 0 1 12 .857v10.286a.86.86 ' +
+    '0 0 1-.857.857H.857A.86.86 0 0 1 0 11.143V.857A.86.86 0 0 1 .857 0h10.286zM11 ' +
+    '11V1H1v10h10zM3 6c0-1.66 1.34-3 3-3s3 1.34 3 3-1.34 3-3 3-3-1.34-3-3z'
+)
 
 const GitIgnoreFileName = '.gitignore'
 
 interface IChangesListProps {
   readonly repository: Repository
   readonly workingDirectory: WorkingDirectoryStatus
+  readonly rebaseConflictState: RebaseConflictState | null
   readonly selectedFileIDs: string[]
   readonly onFileSelectionChanged: (rows: ReadonlyArray<number>) => void
   readonly onIncludeChanged: (path: string, include: boolean) => void
   readonly onSelectAll: (selectAll: boolean) => void
-  readonly onCreateCommit: (
-    summary: string,
-    description: string | null,
-    trailers?: ReadonlyArray<ITrailer>
-  ) => Promise<boolean>
+  readonly onCreateCommit: (context: ICommitContext) => Promise<boolean>
   readonly onDiscardChanges: (file: WorkingDirectoryFileChange) => void
   readonly askForConfirmationOnDiscardChanges: boolean
+  readonly focusCommitMessage: boolean
   readonly onDiscardAllChanges: (
     files: ReadonlyArray<WorkingDirectoryFileChange>,
     isDiscardingAllChanges?: boolean
   ) => void
+
+  /** Callback that fires on page scroll to pass the new scrollTop location */
+  readonly onChangesListScrolled: (scrollTop: number) => void
+
+  /* The scrollTop of the compareList. It is stored to allow for scroll position persistence */
+  readonly changesListScrollTop: number
 
   /**
    * Called to open a file it its default application
@@ -70,8 +97,7 @@ interface IChangesListProps {
    * List Props for documentation.
    */
   readonly onRowClick?: (row: number, source: ClickSource) => void
-  readonly commitMessage: ICommitMessage | null
-  readonly contextualCommitMessage: ICommitMessage | null
+  readonly commitMessage: ICommitMessage
 
   /** The autocompletion providers available to the repository. */
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
@@ -103,6 +129,10 @@ interface IChangesListProps {
    * @param fullPath The full path to the file on disk
    */
   readonly onOpenInExternalEditor: (fullPath: string) => void
+
+  readonly stashEntry: IStashEntry | null
+
+  readonly isShowingStashEntry: boolean
 }
 
 interface IChangesState {
@@ -163,15 +193,14 @@ export class ChangesList extends React.Component<
       selection === DiffSelectionType.All
         ? true
         : selection === DiffSelectionType.None
-          ? false
-          : null
+        ? false
+        : null
 
     return (
       <ChangedFile
         id={file.id}
         path={file.path}
         status={file.status}
-        oldPath={file.oldPath}
         include={includeAll}
         key={file.id}
         onContextMenu={this.onItemContextMenu}
@@ -235,8 +264,8 @@ export class ChangesList extends React.Component<
           ? `Discard Changes`
           : `Discard changes`
         : __DARWIN__
-          ? `Discard ${files.length} Selected Changes`
-          : `Discard ${files.length} selected changes`
+        ? `Discard ${files.length} Selected Changes`
+        : `Discard ${files.length} selected changes`
 
     return this.props.askForConfirmationOnDiscardChanges ? `${label}…` : label
   }
@@ -308,16 +337,19 @@ export class ChangesList extends React.Component<
       },
       { type: 'separator' },
     ]
-
     if (paths.length === 1) {
       items.push({
-        label: __DARWIN__ ? 'Ignore File' : 'Ignore file',
+        label: __DARWIN__
+          ? 'Ignore File (Add to .gitignore)'
+          : 'Ignore file (add to .gitignore)',
         action: () => this.props.onIgnore(path),
         enabled: Path.basename(path) !== GitIgnoreFileName,
       })
     } else if (paths.length > 1) {
       items.push({
-        label: `Ignore ${paths.length} selected files`,
+        label: __DARWIN__
+          ? `Ignore ${paths.length} Selected Files (Add to .gitignore)`
+          : `Ignore ${paths.length} selected files (add to .gitignore)`,
         action: () => {
           // Filter out any .gitignores that happens to be selected, ignoring
           // those doesn't make sense.
@@ -330,15 +362,14 @@ export class ChangesList extends React.Component<
         enabled: paths.some(path => Path.basename(path) !== GitIgnoreFileName),
       })
     }
-
     // Five menu items should be enough for everyone
     Array.from(extensions)
       .slice(0, 5)
       .forEach(extension => {
         items.push({
           label: __DARWIN__
-            ? `Ignore All ${extension} Files`
-            : `Ignore all ${extension} files`,
+            ? `Ignore All ${extension} Files (Add to .gitignore)`
+            : `Ignore all ${extension} files (add to .gitignore)`,
           action: () => this.props.onIgnore(`*${extension}`),
         })
       })
@@ -346,9 +377,16 @@ export class ChangesList extends React.Component<
     items.push(
       { type: 'separator' },
       {
+        label: CopyFilePathLabel,
+        action: () => {
+          const fullPath = Path.join(this.props.repository.path, path)
+          clipboard.writeText(fullPath)
+        },
+      },
+      {
         label: RevealInFileManagerLabel,
         action: () => revealInFileManager(this.props.repository, path),
-        enabled: status !== AppFileStatus.Deleted,
+        enabled: status.kind !== AppFileStatusKind.Deleted,
       },
       {
         label: openInExternalEditor,
@@ -356,29 +394,137 @@ export class ChangesList extends React.Component<
           const fullPath = Path.join(this.props.repository.path, path)
           this.props.onOpenInExternalEditor(fullPath)
         },
-        enabled: isSafeExtension && status !== AppFileStatus.Deleted,
+        enabled: isSafeExtension && status.kind !== AppFileStatusKind.Deleted,
       },
       {
         label: OpenWithDefaultProgramLabel,
         action: () => this.props.onOpenItem(path),
-        enabled: isSafeExtension && status !== AppFileStatus.Deleted,
+        enabled: isSafeExtension && status.kind !== AppFileStatusKind.Deleted,
       }
     )
 
     showContextualMenu(items)
   }
 
-  public render() {
-    const fileList = this.props.workingDirectory.files
-    const fileCount = fileList.length
-    const filesPlural = fileCount === 1 ? 'file' : 'files'
-    const filesDescription = `${fileCount} changed ${filesPlural}`
+  private getPlaceholderMessage(
+    files: ReadonlyArray<WorkingDirectoryFileChange>,
+    singleFileCommit: boolean
+  ) {
+    if (!singleFileCommit) {
+      return 'Summary (required)'
+    }
+
+    const firstFile = files[0]
+    const fileName = basename(firstFile.path)
+
+    switch (firstFile.status.kind) {
+      case AppFileStatusKind.New:
+      case AppFileStatusKind.Untracked:
+        return `Create ${fileName}`
+      case AppFileStatusKind.Deleted:
+        return `Delete ${fileName}`
+      default:
+        // TODO:
+        // this doesn't feel like a great message for AppFileStatus.Copied or
+        // AppFileStatus.Renamed but without more insight (and whether this
+        // affects other parts of the flow) we can just default to this for now
+        return `Update ${fileName}`
+    }
+  }
+
+  private onScroll = (scrollTop: number, clientHeight: number) => {
+    this.props.onChangesListScrolled(scrollTop)
+  }
+
+  private renderCommitMessageForm = (): JSX.Element => {
+    if (this.props.rebaseConflictState !== null && enablePullWithRebase()) {
+      return (
+        <ContinueRebase
+          dispatcher={this.props.dispatcher}
+          repository={this.props.repository}
+          rebaseConflictState={this.props.rebaseConflictState}
+          workingDirectory={this.props.workingDirectory}
+          isCommitting={this.props.isCommitting}
+        />
+      )
+    }
+
+    const fileCount = this.props.workingDirectory.files.length
+
     const anyFilesSelected =
       fileCount > 0 && this.includeAllValue !== CheckboxValue.Off
     const filesSelected = this.props.workingDirectory.files.filter(
       f => f.selection.getSelectionType() !== DiffSelectionType.None
     )
     const singleFileCommit = filesSelected.length === 1
+
+    return (
+      <CommitMessage
+        onCreateCommit={this.props.onCreateCommit}
+        branch={this.props.branch}
+        gitHubUser={this.props.gitHubUser}
+        commitAuthor={this.props.commitAuthor}
+        anyFilesSelected={anyFilesSelected}
+        repository={this.props.repository}
+        dispatcher={this.props.dispatcher}
+        commitMessage={this.props.commitMessage}
+        focusCommitMessage={this.props.focusCommitMessage}
+        autocompletionProviders={this.props.autocompletionProviders}
+        isCommitting={this.props.isCommitting}
+        showCoAuthoredBy={this.props.showCoAuthoredBy}
+        coAuthors={this.props.coAuthors}
+        placeholder={this.getPlaceholderMessage(
+          filesSelected,
+          singleFileCommit
+        )}
+        singleFileCommit={singleFileCommit}
+        key={this.props.repository.id}
+      />
+    )
+  }
+
+  private onStashEntryClicked = () => {
+    if (this.props.isShowingStashEntry) {
+      this.props.dispatcher.selectWorkingDirectoryFiles(this.props.repository)
+    } else {
+      this.props.dispatcher.selectStashedFile(this.props.repository)
+    }
+  }
+
+  private renderStashedChanges() {
+    if (!enableStashing()) {
+      return null
+    }
+    if (this.props.stashEntry === null) {
+      return null
+    }
+
+    return (
+      <FocusContainer className="list-focus-container">
+        <ListRow
+          rowCount={1}
+          rowIndex={0}
+          selectable={true}
+          selected={this.props.isShowingStashEntry}
+          onRowClick={this.onStashEntryClicked}
+          tabIndex={0}
+          style={StashListRowStyle}
+          className="stash-entry-row"
+        >
+          <div className="stash-entry-row-content">
+            <Octicon className="icon" symbol={StashIcon} />
+            <div className="text">Stashed Changes</div>
+            <Octicon className="arrow" symbol={OcticonSymbol.chevronRight} />
+          </div>
+        </ListRow>
+      </FocusContainer>
+    )
+  }
+
+  public render() {
+    const fileCount = this.props.workingDirectory.files.length
+    const filesPlural = fileCount === 1 ? 'file' : 'files'
+    const filesDescription = `${fileCount} changed ${filesPlural}`
 
     return (
       <div className="changes-list-container file-list">
@@ -390,7 +536,6 @@ export class ChangesList extends React.Component<
             disabled={fileCount === 0 || this.props.isCommitting}
           />
         </div>
-
         <List
           id="changes-list"
           rowCount={this.props.workingDirectory.files.length}
@@ -401,29 +546,11 @@ export class ChangesList extends React.Component<
           onSelectionChanged={this.props.onFileSelectionChanged}
           invalidationProps={this.props.workingDirectory}
           onRowClick={this.props.onRowClick}
+          onScroll={this.onScroll}
+          setScrollTop={this.props.changesListScrollTop}
         />
-
-        <CommitMessage
-          onCreateCommit={this.props.onCreateCommit}
-          branch={this.props.branch}
-          gitHubUser={this.props.gitHubUser}
-          commitAuthor={this.props.commitAuthor}
-          anyFilesSelected={anyFilesSelected}
-          repository={this.props.repository}
-          dispatcher={this.props.dispatcher}
-          commitMessage={this.props.commitMessage}
-          contextualCommitMessage={this.props.contextualCommitMessage}
-          autocompletionProviders={this.props.autocompletionProviders}
-          isCommitting={this.props.isCommitting}
-          showCoAuthoredBy={this.props.showCoAuthoredBy}
-          coAuthors={this.props.coAuthors}
-          placeholder={
-            singleFileCommit
-              ? `Update ${filesSelected[0].path}`
-              : 'Summary (required)'
-          }
-          singleFileCommit={singleFileCommit}
-        />
+        {this.renderStashedChanges()}
+        {this.renderCommitMessageForm()}
       </div>
     )
   }

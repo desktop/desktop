@@ -1,0 +1,22 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = false
+	logallrefupdates = true
+	ignorecase = true
+	precomposeunicode = true
+[remote "origin"]
+	url = https://github.com/shiftkey/outer-submodule-public.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "master"]
+	remote = origin
+	merge = refs/heads/master
+[submodule "inner"]
+	url = https://github.com/shiftkey/inner-submodule-public
+	active = true
+[branch "dev"]
+	remote = origin
+	merge = refs/heads/dev
+[submodule "private"]
+	url = https://github.com/shiftkey/inner-repository-private
+	active = true

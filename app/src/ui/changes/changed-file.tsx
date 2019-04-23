@@ -1,15 +1,15 @@
 import * as React from 'react'
 
-import { AppFileStatus, mapStatus, iconForStatus } from '../../models/status'
+import { AppFileStatus } from '../../models/status'
 import { PathLabel } from '../lib/path-label'
-import { Octicon } from '../octicons'
+import { Octicon, iconForStatus } from '../octicons'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
+import { mapStatus } from '../../lib/status'
 
 interface IChangedFileProps {
   readonly id: string
   readonly path: string
   readonly status: AppFileStatus
-  readonly oldPath?: string
   readonly include: boolean | null
   readonly availableWidth: number
   readonly disableSelection: boolean
@@ -71,7 +71,6 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
 
         <PathLabel
           path={this.props.path}
-          oldPath={this.props.oldPath}
           status={this.props.status}
           availableWidth={availablePathWidth}
         />

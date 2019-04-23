@@ -1,8 +1,22 @@
 import { CommitIdentity } from './commit-identity'
 import { ITrailer, isCoAuthoredByTrailer } from '../lib/git/interpret-trailers'
 import { GitAuthor } from './git-author'
-import { GitHubRepository } from './github-repository'
-import { getDotComAPIEndpoint } from '../lib/api'
+
+/** Grouping of information required to create a commit */
+export interface ICommitContext {
+  /**
+   * The summary of the commit message (required)
+   */
+  readonly summary: string
+  /**
+   * Additional details for the commit message (optional)
+   */
+  readonly description: string | null
+  /**
+   * An optional array of commit trailers (for example Co-Authored-By trailers) which will be appended to the commit message in accordance with the Git trailer configuration.
+   */
+  readonly trailers?: ReadonlyArray<ITrailer>
+}
 
 /**
  * Extract any Co-Authored-By trailers from an array of arbitrary
@@ -23,6 +37,20 @@ function extractCoAuthors(trailers: ReadonlyArray<ITrailer>) {
   return coAuthors
 }
 
+/**
+ * A minimal shape of data to represent a commit, for situations where the
+ * application does not require the full commit metadata.
+ *
+ * Equivalent to the output where Git command support the
+ * `--oneline --no-abbrev-commit` arguments to format a commit.
+ */
+export type CommitOneLine = {
+  /** The full commit id associated with the commit */
+  readonly sha: string
+  /** The first line of the commit message */
+  readonly summary: string
+}
+
 /** A git commit. */
 export class Commit {
   /**
@@ -39,6 +67,7 @@ export class Commit {
 
   /**
    * @param sha The commit's SHA.
+   * @param shortSha The commit's shortSHA.
    * @param summary The first line of the commit message.
    * @param body The commit message without the first line and CR.
    * @param author Information about the author of this commit.
@@ -51,6 +80,7 @@ export class Commit {
    */
   public constructor(
     public readonly sha: string,
+    public readonly shortSha: string,
     public readonly summary: string,
     public readonly body: string,
     public readonly author: CommitIdentity,
@@ -63,39 +93,5 @@ export class Commit {
     this.authoredByCommitter =
       this.author.name === this.committer.name &&
       this.author.email === this.committer.email
-  }
-
-  /**
-   * Best-effort attempt to figure out if this commit was committed using
-   * the web flow on GitHub.com or GitHub Enterprise. Web flow
-   * commits (such as PR merges) will have a special GitHub committer
-   * with a noreply email address.
-   *
-   * For GitHub.com we can be spot on but for GitHub Enterprise it's
-   * possible we could fail if they've set up a custom smtp host
-   * that doesn't correspond to the hostname.
-   */
-  public isWebFlowCommitter(gitHubRepository: GitHubRepository) {
-    if (!gitHubRepository) {
-      return false
-    }
-
-    const endpoint = gitHubRepository.owner.endpoint
-    const { name, email } = this.committer
-
-    if (
-      endpoint === getDotComAPIEndpoint() &&
-      name === 'GitHub' &&
-      email === 'noreply@github.com'
-    ) {
-      return true
-    }
-
-    if (this.committer.name === 'GitHub Enterprise') {
-      const host = new URL(endpoint).host.toLowerCase()
-      return email.endsWith(`@${host}`)
-    }
-
-    return false
   }
 }

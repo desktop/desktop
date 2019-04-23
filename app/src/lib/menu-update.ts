@@ -104,6 +104,7 @@ const allMenuIds: ReadonlyArray<MenuIDs> = [
   'update-branch',
   'compare-to-branch',
   'merge-branch',
+  'rebase-branch',
   'view-repository-on-github',
   'compare-on-github',
   'open-in-shell',
@@ -111,6 +112,7 @@ const allMenuIds: ReadonlyArray<MenuIDs> = [
   'pull',
   'branch',
   'repository',
+  'go-to-commit-message',
   'create-branch',
   'show-changes',
   'show-history',
@@ -152,8 +154,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
   let networkActionInProgress = false
   let tipStateIsUnknown = false
   let branchIsUnborn = false
-
-  let hasRemote = false
+  let rebaseInProgress = false
 
   if (selectedState && selectedState.type === SelectionType.Repository) {
     repositorySelected = true
@@ -184,9 +185,11 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
       onNonDefaultBranch = true
     }
 
-    hasRemote = !!selectedState.state.remote
-
     networkActionInProgress = selectedState.state.isPushPullFetchInProgress
+
+    const { conflictState } = selectedState.state.changesState
+
+    rebaseInProgress = conflictState !== null && conflictState.kind === 'rebase'
   }
 
   // These are IDs for menu items that are entirely _and only_
@@ -199,6 +202,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     'open-in-shell',
     'open-working-directory',
     'show-repository-settings',
+    'go-to-commit-message',
     'show-changes',
     'show-history',
     'show-branches-list',
@@ -230,6 +234,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
       onNonDefaultBranch && hasDefaultBranch && !onDetachedHead
     )
     menuStateBuilder.setEnabled('merge-branch', onBranch)
+    menuStateBuilder.setEnabled('rebase-branch', onBranch)
     menuStateBuilder.setEnabled(
       'compare-on-github',
       isHostedOnGitHub && hasPublishedBranch
@@ -242,7 +247,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     )
     menuStateBuilder.setEnabled(
       'push',
-      hasRemote && !branchIsUnborn && !networkActionInProgress
+      !branchIsUnborn && !onDetachedHead && !networkActionInProgress
     )
     menuStateBuilder.setEnabled(
       'pull',
@@ -250,7 +255,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     )
     menuStateBuilder.setEnabled(
       'create-branch',
-      !tipStateIsUnknown && !branchIsUnborn
+      !tipStateIsUnknown && !branchIsUnborn && !rebaseInProgress
     )
 
     menuStateBuilder.setEnabled('compare-to-branch', !onDetachedHead)
@@ -284,10 +289,12 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     menuStateBuilder.disable('delete-branch')
     menuStateBuilder.disable('update-branch')
     menuStateBuilder.disable('merge-branch')
+    menuStateBuilder.disable('rebase-branch')
 
     menuStateBuilder.disable('push')
     menuStateBuilder.disable('pull')
     menuStateBuilder.disable('compare-to-branch')
+    menuStateBuilder.disable('compare-on-github')
   }
   return menuStateBuilder
 }
@@ -299,7 +306,8 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
 
   return getAllMenusEnabledBuilder()
     .merge(getRepositoryMenuBuilder(state))
-    .merge(getInWelcomeFlowBuilder(state.showWelcomeFlow)).state
+    .merge(getInWelcomeFlowBuilder(state.showWelcomeFlow))
+    .merge(getNoRepositoriesBuilder(state)).state
 }
 
 function getAllMenusEnabledBuilder(): MenuStateBuilder {
@@ -327,6 +335,21 @@ function getInWelcomeFlowBuilder(inWelcomeFlow: boolean): MenuStateBuilder {
   } else {
     for (const id of welcomeScopedIds) {
       menuStateBuilder.enable(id)
+    }
+  }
+
+  return menuStateBuilder
+}
+
+function getNoRepositoriesBuilder(state: IAppState): MenuStateBuilder {
+  const noRepositoriesDisabledIds: ReadonlyArray<MenuIDs> = [
+    'show-repository-list',
+  ]
+
+  const menuStateBuilder = new MenuStateBuilder()
+  if (state.repositories.length === 0) {
+    for (const id of noRepositoriesDisabledIds) {
+      menuStateBuilder.disable(id)
     }
   }
 

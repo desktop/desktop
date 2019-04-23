@@ -4,14 +4,14 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  width: 300px;
+  width: 350px;
 
   & > .tab-bar {
     border-top: var(--base-border);
   }
 
   .branches-list {
-    width: 300px;
+    width: 350px;
   }
 }
 
@@ -49,39 +49,14 @@
   }
 }
 
-#pr-transition-div {
-  display: flex;
-  flex: 1;
-  position: relative;
-
-  .cross-fade-enter {
-    opacity: 0;
-  }
-
-  .cross-fade-enter.cross-fade-enter-active {
-    opacity: 1;
-    transition: opacity 300ms ease-in;
-  }
-
-  .cross-fade-leave {
-    opacity: 1;
-  }
-
-  .cross-fade-leave.cross-fade-leave-active {
-    opacity: 0;
-    transition: opacity 200ms ease-in;
-  }
-}
-
 .pull-request-list {
-  position: absolute;
   height: 100%;
   width: 100%;
 
-  .filter-list-filter-field {
+  &.filter-list .filter-field-row {
     // The rows have built-in margin to their content so
     // we only need half a spacer here
-    padding-bottom: var(--spacing-half);
+    margin-bottom: var(--spacing-half);
   }
 
   .list-item.selected:focus {
@@ -133,53 +108,6 @@
     .ci-status {
       margin-right: var(--spacing-half);
     }
-
-    &.loading {
-      .icon {
-        color: var(--box-skeleton-background-color);
-      }
-
-      .info {
-        .title,
-        .subtitle {
-          background-color: var(--box-skeleton-background-color);
-          // The title with text in it is 18px (1em = 12px and with 1.5 x
-          // line height we'll get 18) but we don't want to fill the entire
-          // box because then we'll end up with one big slab of gray rather
-          // than two fake gray text lines. So we'll split the difference
-          // between 1em and 1.5em between the top and bottom margin so that
-          // it looks nicely positioned with the text that'll fade in later.
-          height: 1em;
-          margin-top: 0.2em;
-          margin-bottom: 0.3em;
-
-          border-radius: 1px;
-        }
-      }
-
-      .ci-status {
-        color: var(--box-skeleton-background-color);
-      }
-
-      &::after {
-        background: var(--skeleton-background-gradient);
-        content: '';
-        display: block;
-        height: 100%;
-        width: 100%;
-        position: absolute;
-        animation: loading-pulse 1.5s ease-in-out infinite;
-      }
-    }
-  }
-}
-
-@keyframes loading-pulse {
-  from {
-    transform: translate(-100%, 0);
-  }
-  to {
-    transform: translate(200%, 0);
   }
 }
 
@@ -225,20 +153,10 @@
       white-space: nowrap;
     }
   }
-
-  .filter-list-filter-field {
-    padding-right: 0;
-  }
-
-  // We need to beat Row's style at the specificity game :|
-  button.new-branch-button {
-    align-self: center;
-    margin-right: var(--spacing);
-  }
 }
 
 .no-pull-requests {
-  width: 300px;
+  width: 350px;
   display: flex;
   flex-direction: column;
 

@@ -18,6 +18,9 @@ export interface IDatabaseGitHubRepository {
 
   /** The database ID of the parent repository if the repository is a fork. */
   readonly parentID: number | null
+
+  /** The last time a prune was attempted on the repository */
+  readonly lastPruneDate: number | null
 }
 
 export interface IDatabaseRepository {

@@ -1,4 +1,3 @@
-import { expect } from 'chai'
 import { inferComparisonBranch } from '../../src/lib/stores/helpers/infer-comparison-branch'
 import { Branch, BranchType } from '../../src/models/branch'
 import { Commit } from '../../src/models/commit'
@@ -13,6 +12,7 @@ import { ComparisonCache } from '../../src/lib/comparison-cache'
 function createTestCommit(sha: string) {
   return new Commit(
     sha,
+    sha.slice(0, 7),
     '',
     '',
     new CommitIdentity('tester', 'tester@test.com', new Date()),
@@ -31,10 +31,18 @@ function createTestBranch(
 }
 
 function createTestGhRepo(
-  name: string,
+  owner: string,
   defaultBranch: string | null = null,
   parent: GitHubRepository | null = null
 ) {
+  if (owner.indexOf('/') !== -1) {
+    throw new Error(
+      'Providing a slash in the repository name is no longer supported, please update your test'
+    )
+  }
+
+  const cloneURL = `https://github.com/${owner}/my-cool-repo.git`
+
   return new GitHubRepository(
     name,
     new Owner('', '', null),
@@ -46,7 +54,7 @@ function createTestGhRepo(
         ? defaultBranch.split('/')[1]
         : defaultBranch
     }`,
-    `${name.indexOf('/') !== -1 ? name.split('/')[1] : name}.git`,
+    cloneURL,
     parent
   )
 }
@@ -59,7 +67,7 @@ function createTestPrRef(
 }
 
 function createTestPr(head: PullRequestRef, base: PullRequestRef) {
-  return new PullRequest(-1, new Date(), null, '', 1, head, base, '')
+  return new PullRequest(-1, new Date(), '', 1, head, base, '')
 }
 
 function createTestRepo(ghRepo: GitHubRepository | null = null) {
@@ -97,8 +105,8 @@ describe('inferComparisonBranch', () => {
       comparisonCache
     )
 
-    expect(branch).is.not.null
-    expect(branch!.tip.sha).to.equal('0')
+    expect(branch).not.toBeNull()
+    expect(branch!.tip.sha).toBe('0')
   })
 
   it('Returns the default branch of a GitHub repository', async () => {
@@ -114,8 +122,8 @@ describe('inferComparisonBranch', () => {
       comparisonCache
     )
 
-    expect(branch).is.not.null
-    expect(branch!.name).to.equal('default')
+    expect(branch).not.toBeNull()
+    expect(branch!.name).toBe('default')
   })
 
   it('Returns the branch associated with the PR', async () => {
@@ -134,8 +142,8 @@ describe('inferComparisonBranch', () => {
       comparisonCache
     )
 
-    expect(branch).is.not.null
-    expect(branch!.upstream).to.equal(branches[5].upstream)
+    expect(branch).not.toBeNull()
+    expect(branch!.upstream).toBe(branches[5].upstream)
   })
 
   it('Returns the default branch of the fork if it is ahead of the current branch', async () => {
@@ -159,8 +167,8 @@ describe('inferComparisonBranch', () => {
       comparisonCache
     )
 
-    expect(branch).is.not.null
-    expect(branch!.name).to.equal(defaultBranch.name)
+    expect(branch).not.toBeNull()
+    expect(branch!.name).toBe(defaultBranch.name)
   })
 
   it("Returns the default branch of the fork's parent branch if the fork is not ahead of the current branch", async () => {
@@ -199,7 +207,7 @@ describe('inferComparisonBranch', () => {
       comparisonCache
     )
 
-    expect(branch).is.not.null
-    expect(branch!.upstream).to.equal(defaultBranchOfParent.upstream)
+    expect(branch).not.toBeNull()
+    expect(branch!.upstream).toBe(defaultBranchOfParent.upstream)
   })
 })

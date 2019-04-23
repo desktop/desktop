@@ -17,7 +17,7 @@ describe('getFilesWithConflictMarkers', () => {
 
     it('finds one conflicted file', async () => {
       expect(await getFilesWithConflictMarkers(repository.path)).toEqual(
-        new Set<string>(['foo'])
+        new Map([['foo', 3]])
       )
     })
   })
@@ -28,7 +28,7 @@ describe('getFilesWithConflictMarkers', () => {
     })
     it('finds multiple conflicted files', async () => {
       expect(await getFilesWithConflictMarkers(repository.path)).toEqual(
-        new Set<string>(['foo', 'bar', 'baz'])
+        new Map([['baz', 3], ['cat', 3], ['foo', 3]])
       )
     })
   })
@@ -40,7 +40,7 @@ describe('getFilesWithConflictMarkers', () => {
 
     it('finds one conflicted file', async () => {
       expect(await getFilesWithConflictMarkers(repository.path)).toEqual(
-        new Set<string>([])
+        new Map()
       )
     })
   })

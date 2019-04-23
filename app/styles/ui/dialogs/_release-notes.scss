@@ -41,6 +41,11 @@
     }
   }
 
+  .dialog-footer {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
   ul {
     list-style: none;
     padding-left: 0;
@@ -57,7 +62,8 @@
     flex-direction: row;
     padding-left: var(--spacing-triple);
     padding-right: var(--spacing-triple);
-    overflow: auto hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
     justify-content: space-around;
 
     .column {

@@ -1,11 +1,13 @@
 import { Menu, ipcMain, shell, app } from 'electron'
 import { ensureItemIds } from './ensure-item-ids'
 import { MenuEvent } from './menu-event'
+import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
 import { getLogDirectoryPath } from '../../lib/logging/get-log-path'
 import { ensureDir } from 'fs-extra'
 
 import { log } from '../log'
 import { openDirectorySafe } from '../shell'
+import { enableRebaseDialog } from '../../lib/feature-flag'
 
 const defaultEditorLabel = __DARWIN__
   ? 'Open in External Editor'
@@ -16,12 +18,38 @@ const defaultShellLabel = __DARWIN__
 const defaultPullRequestLabel = __DARWIN__
   ? 'Create Pull Request'
   : 'Create &pull request'
+const defaultBranchNameDefaultValue = __DARWIN__
+  ? 'Default Branch'
+  : 'default branch'
+const defaultRepositoryRemovalLabel = __DARWIN__ ? 'Remove' : '&Remove'
 
-export function buildDefaultMenu(
-  editorLabel: string = defaultEditorLabel,
-  shellLabel: string = defaultShellLabel,
-  pullRequestLabel: string = defaultPullRequestLabel
-): Electron.Menu {
+enum ZoomDirection {
+  Reset,
+  In,
+  Out,
+}
+
+export type MenuLabels = {
+  editorLabel?: string
+  shellLabel?: string
+  pullRequestLabel?: string
+  defaultBranchName?: string
+  removeRepoLabel?: string
+  isForcePushForCurrentRepository?: boolean
+  askForConfirmationOnForcePush?: boolean
+}
+
+export function buildDefaultMenu({
+  editorLabel = defaultEditorLabel,
+  shellLabel = defaultShellLabel,
+  pullRequestLabel = defaultPullRequestLabel,
+  defaultBranchName = defaultBranchNameDefaultValue,
+  removeRepoLabel = defaultRepositoryRemovalLabel,
+  isForcePushForCurrentRepository = false,
+  askForConfirmationOnForcePush = false,
+}: MenuLabels): Electron.Menu {
+  defaultBranchName = truncateWithEllipsis(defaultBranchName, 25)
+
   const template = new Array<Electron.MenuItemConstructorOptions>()
   const separator: Electron.MenuItemConstructorOptions = { type: 'separator' }
 
@@ -151,6 +179,12 @@ export function buildDefaultMenu(
       },
       separator,
       {
+        label: __DARWIN__ ? 'Go to Summary' : 'Go to &Summary',
+        id: 'go-to-commit-message',
+        accelerator: 'CmdOrCtrl+G',
+        click: emit('go-to-commit-message'),
+      },
+      {
         label: __DARWIN__ ? 'Toggle Full Screen' : 'Toggle &full screen',
         role: 'togglefullscreen',
       },
@@ -177,8 +211,7 @@ export function buildDefaultMenu(
         // Ctrl+Alt is interpreted as AltGr on international keyboards and this
         // can clash with other shortcuts. We should always use Ctrl+Shift for
         // chorded shortcuts, but this menu item is not a user-facing feature
-        // so we are going to keep this one around and save Ctrl+Shift+R for
-        // a different shortcut in the future...
+        // so we are going to keep this one around.
         accelerator: 'CmdOrCtrl+Alt+R',
         click(item: any, focusedWindow: Electron.BrowserWindow) {
           if (focusedWindow) {
@@ -204,15 +237,22 @@ export function buildDefaultMenu(
     ],
   })
 
+  const pushLabel = getPushLabel(
+    isForcePushForCurrentRepository,
+    askForConfirmationOnForcePush
+  )
+
+  const pushEventType = isForcePushForCurrentRepository ? 'force-push' : 'push'
+
   template.push({
     label: __DARWIN__ ? 'Repository' : '&Repository',
     id: 'repository',
     submenu: [
       {
         id: 'push',
-        label: __DARWIN__ ? 'Push' : 'P&ush',
+        label: pushLabel,
         accelerator: 'CmdOrCtrl+P',
-        click: emit('push'),
+        click: emit(pushEventType),
       },
       {
         id: 'pull',
@@ -221,8 +261,9 @@ export function buildDefaultMenu(
         click: emit('pull'),
       },
       {
-        label: __DARWIN__ ? 'Remove' : '&Remove',
+        label: removeRepoLabel,
         id: 'remove-repository',
+        accelerator: 'CmdOrCtrl+Delete',
         click: emit('remove-repository'),
       },
       separator,
@@ -239,7 +280,11 @@ export function buildDefaultMenu(
         click: emit('open-in-shell'),
       },
       {
-        label: __DARWIN__ ? 'Show in Finder' : 'Show in E&xplorer',
+        label: __DARWIN__
+          ? 'Show in Finder'
+          : __WIN32__
+          ? 'Show in E&xplorer'
+          : 'Show in your File Manager',
         id: 'open-working-directory',
         accelerator: 'CmdOrCtrl+Shift+F',
         click: emit('open-working-directory'),
@@ -272,18 +317,20 @@ export function buildDefaultMenu(
       {
         label: __DARWIN__ ? 'Rename…' : '&Rename…',
         id: 'rename-branch',
+        accelerator: 'CmdOrCtrl+Shift+R',
         click: emit('rename-branch'),
       },
       {
         label: __DARWIN__ ? 'Delete…' : '&Delete…',
         id: 'delete-branch',
+        accelerator: 'CmdOrCtrl+Shift+D',
         click: emit('delete-branch'),
       },
       separator,
       {
         label: __DARWIN__
-          ? 'Update From Default Branch'
-          : '&Update from default branch',
+          ? `Update from ${defaultBranchName}`
+          : `&Update from ${defaultBranchName}`,
         id: 'update-branch',
         accelerator: 'CmdOrCtrl+Shift+U',
         click: emit('update-branch'),
@@ -296,11 +343,20 @@ export function buildDefaultMenu(
       },
       {
         label: __DARWIN__
-          ? 'Merge Into Current Branch…'
+          ? 'Merge into Current Branch…'
           : '&Merge into current branch…',
         id: 'merge-branch',
         accelerator: 'CmdOrCtrl+Shift+M',
         click: emit('merge-branch'),
+      },
+      {
+        label: __DARWIN__
+          ? 'Rebase Current Branch…'
+          : 'R&ebase current branch…',
+        id: 'rebase-branch',
+        accelerator: 'CmdOrCtrl+Shift+E',
+        click: emit('rebase-branch'),
+        visible: enableRebaseDialog(),
       },
       separator,
       {
@@ -354,11 +410,20 @@ export function buildDefaultMenu(
     },
   }
 
+  const showKeyboardShortcuts: Electron.MenuItemConstructorOptions = {
+    label: __DARWIN__ ? 'Show Keyboard Shortcuts' : 'Show keyboard shortcuts',
+    click() {
+      shell.openExternal(
+        'https://help.github.com/en/desktop/getting-started-with-github-desktop/keyboard-shortcuts-in-github-desktop'
+      )
+    },
+  }
+
   const showLogsLabel = __DARWIN__
     ? 'Show Logs in Finder'
     : __WIN32__
-      ? 'S&how logs in Explorer'
-      : 'S&how logs in your File Manager'
+    ? 'S&how logs in Explorer'
+    : 'S&how logs in your File Manager'
 
   const showLogsItem: Electron.MenuItemConstructorOptions = {
     label: showLogsLabel,
@@ -378,6 +443,7 @@ export function buildDefaultMenu(
     submitIssueItem,
     contactSupportItem,
     showUserGuides,
+    showKeyboardShortcuts,
     showLogsItem,
   ]
 
@@ -393,6 +459,15 @@ export function buildDefaultMenu(
       {
         label: 'Crash renderer process…',
         click: emit('boomtown'),
+      },
+      {
+        label: 'Show popup',
+        submenu: [
+          {
+            label: 'Release notes',
+            click: emit('show-release-notes-popup'),
+          },
+        ],
       }
     )
   }
@@ -422,6 +497,21 @@ export function buildDefaultMenu(
   return Menu.buildFromTemplate(template)
 }
 
+function getPushLabel(
+  isForcePushForCurrentRepository: boolean,
+  askForConfirmationOnForcePush: boolean
+): string {
+  if (!isForcePushForCurrentRepository) {
+    return __DARWIN__ ? 'Push' : 'P&ush'
+  }
+
+  if (askForConfirmationOnForcePush) {
+    return __DARWIN__ ? 'Force Push…' : 'Force P&ush…'
+  }
+
+  return __DARWIN__ ? 'Force Push' : 'Force P&ush'
+}
+
 type ClickHandler = (
   menuItem: Electron.MenuItem,
   browserWindow: Electron.BrowserWindow,
@@ -440,12 +530,6 @@ function emit(name: MenuEvent): ClickHandler {
       ipcMain.emit('menu-event', { name })
     }
   }
-}
-
-enum ZoomDirection {
-  Reset,
-  In,
-  Out,
 }
 
 /** The zoom steps that we support, these factors must sorted */
@@ -490,9 +574,8 @@ function zoom(direction: ZoomDirection): ClickHandler {
         // zoom factors the value is referring to.
         const currentZoom = findClosestValue(zoomFactors, rawZoom)
 
-        const nextZoomLevel = zoomFactors.find(
-          f =>
-            direction === ZoomDirection.In ? f > currentZoom : f < currentZoom
+        const nextZoomLevel = zoomFactors.find(f =>
+          direction === ZoomDirection.In ? f > currentZoom : f < currentZoom
         )
 
         // If we couldn't find a zoom level (likely due to manual manipulation

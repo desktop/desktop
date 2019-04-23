@@ -194,7 +194,7 @@ export class CommitSummary extends React.Component<
 
     const expanded = this.props.isExpanded
     const onClick = expanded ? this.onCollapse : this.onExpand
-    const icon = expanded ? OcticonSymbol.unfold : OcticonSymbol.fold
+    const icon = expanded ? OcticonSymbol.fold : OcticonSymbol.unfold
 
     return (
       <a onClick={onClick} className="expander">
@@ -292,7 +292,7 @@ export class CommitSummary extends React.Component<
     const fileCount = this.props.files.length
     const filesPlural = fileCount === 1 ? 'file' : 'files'
     const filesDescription = `${fileCount} changed ${filesPlural}`
-    const shortSHA = this.props.commit.sha.slice(0, 7)
+    const shortSHA = this.props.commit.shortSha
 
     const className = classNames({
       expanded: this.props.isExpanded,

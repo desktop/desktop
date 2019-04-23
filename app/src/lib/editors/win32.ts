@@ -19,6 +19,8 @@ export enum ExternalEditor {
   SublimeText = 'Sublime Text',
   CFBuilder = 'ColdFusion Builder',
   Typora = 'Typora',
+  SlickEdit = 'SlickEdit',
+  Webstorm = 'JetBrains Webstorm',
 }
 
 export function parse(label: string): ExternalEditor | null {
@@ -39,6 +41,9 @@ export function parse(label: string): ExternalEditor | null {
   }
   if (label === ExternalEditor.Typora) {
     return ExternalEditor.Typora
+  }
+  if (label === ExternalEditor.SlickEdit) {
+    return ExternalEditor.SlickEdit
   }
 
   return null
@@ -156,6 +161,84 @@ function getRegistryKeys(
             'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{37771A20-7167-44C0-B322-FD3E54C56156}_is1',
         },
       ]
+    case ExternalEditor.SlickEdit:
+      return [
+        // 64-bit version of SlickEdit Pro 2018
+        {
+          key: HKEY.HKEY_LOCAL_MACHINE,
+          subKey:
+            'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{18406187-F49E-4822-CAF2-1D25C0C83BA2}',
+        },
+        // 32-bit version of SlickEdit Pro 2018
+        {
+          key: HKEY.HKEY_LOCAL_MACHINE,
+          subKey:
+            'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{18006187-F49E-4822-CAF2-1D25C0C83BA2}',
+        },
+        // 64-bit version of SlickEdit Standard 2018
+        {
+          key: HKEY.HKEY_LOCAL_MACHINE,
+          subKey:
+            'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{18606187-F49E-4822-CAF2-1D25C0C83BA2}',
+        },
+        // 32-bit version of SlickEdit Standard 2018
+        {
+          key: HKEY.HKEY_LOCAL_MACHINE,
+          subKey:
+            'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{18206187-F49E-4822-CAF2-1D25C0C83BA2}',
+        },
+        // 64-bit version of SlickEdit Pro 2017
+        {
+          key: HKEY.HKEY_LOCAL_MACHINE,
+          subKey:
+            'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{15406187-F49E-4822-CAF2-1D25C0C83BA2}',
+        },
+        // 32-bit version of SlickEdit Pro 2017
+        {
+          key: HKEY.HKEY_LOCAL_MACHINE,
+          subKey:
+            'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{15006187-F49E-4822-CAF2-1D25C0C83BA2}',
+        },
+        // 64-bit version of SlickEdit Pro 2016 (21.0.1)
+        {
+          key: HKEY.HKEY_LOCAL_MACHINE,
+          subKey:
+            'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{10C06187-F49E-4822-CAF2-1D25C0C83BA2}',
+        },
+        // 64-bit version of SlickEdit Pro 2016 (21.0.0)
+        {
+          key: HKEY.HKEY_LOCAL_MACHINE,
+          subKey:
+            'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{10406187-F49E-4822-CAF2-1D25C0C83BA2}',
+        },
+        // 64-bit version of SlickEdit Pro 2015 (20.0.3)
+        {
+          key: HKEY.HKEY_LOCAL_MACHINE,
+          subKey:
+            'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{0DC06187-F49E-4822-CAF2-1D25C0C83BA2}',
+        },
+        // 64-bit version of SlickEdit Pro 2015 (20.0.2)
+        {
+          key: HKEY.HKEY_LOCAL_MACHINE,
+          subKey:
+            'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{0D406187-F49E-4822-CAF2-1D25C0C83BA2}',
+        },
+        // 64-bit version of SlickEdit Pro 2014 (19.0.2)
+        {
+          key: HKEY.HKEY_LOCAL_MACHINE,
+          subKey:
+            'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{7CC0E567-ACD6-41E8-95DA-154CEEDB0A18}',
+        },
+      ]
+    case ExternalEditor.Webstorm:
+      return [
+        // 32-bit version of WebStorm
+        {
+          key: HKEY.HKEY_LOCAL_MACHINE,
+          subKey:
+            'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\WebStorm 2018.3',
+        },
+      ]
 
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
@@ -174,17 +257,21 @@ function getExecutableShim(
 ): string {
   switch (editor) {
     case ExternalEditor.Atom:
-      return Path.join(installLocation, 'bin', 'atom.cmd')
+      return Path.join(installLocation, 'bin', 'atom.cmd') // remember, CMD must 'useShell'
     case ExternalEditor.VisualStudioCode:
-      return Path.join(installLocation, 'bin', 'code.cmd')
+      return Path.join(installLocation, 'bin', 'code.cmd') // remember, CMD must 'useShell'
     case ExternalEditor.VisualStudioCodeInsiders:
-      return Path.join(installLocation, 'bin', 'code-insiders.cmd')
+      return Path.join(installLocation, 'bin', 'code-insiders.cmd') // remember, CMD must 'useShell'
     case ExternalEditor.SublimeText:
       return Path.join(installLocation, 'subl.exe')
     case ExternalEditor.CFBuilder:
       return Path.join(installLocation, 'CFBuilder.exe')
     case ExternalEditor.Typora:
       return Path.join(installLocation, 'bin', 'typora.exe')
+    case ExternalEditor.SlickEdit:
+      return Path.join(installLocation, 'win', 'vs.exe')
+    case ExternalEditor.Webstorm:
+      return Path.join(installLocation, 'bin', 'webstorm.exe')
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -227,6 +314,14 @@ function isExpectedInstallation(
       )
     case ExternalEditor.Typora:
       return displayName.startsWith('Typora') && publisher === 'typora.io'
+    case ExternalEditor.SlickEdit:
+      return (
+        displayName.startsWith('SlickEdit') && publisher === 'SlickEdit Inc.'
+      )
+    case ExternalEditor.Webstorm:
+      return (
+        displayName.startsWith('WebStorm') && publisher === 'JetBrains s.r.o.'
+      )
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -312,6 +407,43 @@ function extractApplicationInformation(
     return { displayName, publisher, installLocation }
   }
 
+  if (editor === ExternalEditor.SlickEdit) {
+    const displayName = getKeyOrEmpty(keys, 'DisplayName')
+    const publisher = getKeyOrEmpty(keys, 'Publisher')
+    const installLocation = getKeyOrEmpty(keys, 'InstallLocation')
+    return { displayName, publisher, installLocation }
+  }
+
+  if (editor === ExternalEditor.Webstorm) {
+    let displayName = ''
+    let publisher = ''
+    let installLocation = ''
+
+    for (const item of keys) {
+      // NOTE:
+      // Webstorm adds the current release number to the end of the Display Name, below checks for "WebStorm"
+      if (
+        item.name === 'DisplayName' &&
+        item.type === RegistryValueType.REG_SZ &&
+        item.data.startsWith('WebStorm ')
+      ) {
+        displayName = 'WebStorm'
+      } else if (
+        item.name === 'Publisher' &&
+        item.type === RegistryValueType.REG_SZ
+      ) {
+        publisher = item.data
+      } else if (
+        item.name === 'InstallLocation' &&
+        item.type === RegistryValueType.REG_SZ
+      ) {
+        installLocation = item.data
+      }
+    }
+
+    return { displayName, publisher, installLocation }
+  }
+
   return assertNever(editor, `Unknown external editor: ${editor}`)
 }
 
@@ -369,6 +501,7 @@ export async function getAvailableEditors(): Promise<
     sublimePath,
     cfBuilderPath,
     typoraPath,
+    slickeditPath,
   ] = await Promise.all([
     findApplication(ExternalEditor.Atom),
     findApplication(ExternalEditor.VisualStudioCode),
@@ -376,12 +509,14 @@ export async function getAvailableEditors(): Promise<
     findApplication(ExternalEditor.SublimeText),
     findApplication(ExternalEditor.CFBuilder),
     findApplication(ExternalEditor.Typora),
+    findApplication(ExternalEditor.SlickEdit),
   ])
 
   if (atomPath) {
     results.push({
       editor: ExternalEditor.Atom,
       path: atomPath,
+      usesShell: true,
     })
   }
 
@@ -389,6 +524,7 @@ export async function getAvailableEditors(): Promise<
     results.push({
       editor: ExternalEditor.VisualStudioCode,
       path: codePath,
+      usesShell: true,
     })
   }
 
@@ -396,6 +532,7 @@ export async function getAvailableEditors(): Promise<
     results.push({
       editor: ExternalEditor.VisualStudioCodeInsiders,
       path: codeInsidersPath,
+      usesShell: true,
     })
   }
 
@@ -403,6 +540,7 @@ export async function getAvailableEditors(): Promise<
     results.push({
       editor: ExternalEditor.SublimeText,
       path: sublimePath,
+      usesShell: false,
     })
   }
 
@@ -410,6 +548,7 @@ export async function getAvailableEditors(): Promise<
     results.push({
       editor: ExternalEditor.CFBuilder,
       path: cfBuilderPath,
+      usesShell: false,
     })
   }
 
@@ -417,6 +556,14 @@ export async function getAvailableEditors(): Promise<
     results.push({
       editor: ExternalEditor.Typora,
       path: typoraPath,
+      usesShell: false,
+    })
+  }
+
+  if (slickeditPath) {
+    results.push({
+      editor: ExternalEditor.SlickEdit,
+      path: slickeditPath,
     })
   }
 

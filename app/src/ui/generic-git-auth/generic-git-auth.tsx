@@ -6,7 +6,7 @@ import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Monospaced } from '../lib/monospaced'
-import { RetryAction } from '../../lib/retry-actions'
+import { RetryAction } from '../../models/retry-actions'
 
 interface IGenericGitAuthenticationProps {
   /** The hostname with which the user tried to authenticate. */
@@ -44,7 +44,7 @@ export class GenericGitAuthentication extends React.Component<
   }
 
   public render() {
-    const disabled = !this.state.password.length && !this.state.username.length
+    const disabled = !this.state.password.length || !this.state.username.length
     return (
       <Dialog
         id="generic-git-auth"

@@ -1,0 +1,22 @@
+@import '../../mixins';
+
+dialog#abort-merge-warning {
+  width: 450px;
+
+  .content-wrapper {
+    display: flex;
+    padding-top: var(--spacing-triple);
+    padding-bottom: var(--spacing-triple);
+
+    .octicon {
+      color: var(--dialog-warning-color);
+      margin-right: var(--spacing);
+    }
+  }
+
+  .column-left {
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: start;
+  }
+}

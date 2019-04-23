@@ -9,16 +9,20 @@ import {
 } from '../../models/status'
 import { TipState } from '../../models/tip'
 import {
-  ComparisonView,
+  HistoryTabMode,
   IBranchesState,
   IChangesState,
   ICompareState,
   IRepositoryState,
   RepositorySectionTab,
+  ICommitSelection,
+  IRebaseState,
+  ChangesSelectionKind,
 } from '../app-state'
 import { ComparisonCache } from '../comparison-cache'
 import { IGitHubUser } from '../databases'
 import { merge } from '../merge'
+import { DefaultCommitMessage } from '../../models/commit-message'
 
 export class RepositoryStateCache {
   private readonly repositoryState = new Map<string, IRepositoryState>()
@@ -74,6 +78,17 @@ export class RepositoryStateCache {
     })
   }
 
+  public updateCommitSelection<K extends keyof ICommitSelection>(
+    repository: Repository,
+    fn: (state: ICommitSelection) => Pick<ICommitSelection, K>
+  ) {
+    this.update(repository, state => {
+      const { commitSelection } = state
+      const newState = merge(commitSelection, fn(commitSelection))
+      return { commitSelection: newState }
+    })
+  }
+
   public updateBranchesState<K extends keyof IBranchesState>(
     repository: Repository,
     fn: (branchesState: IBranchesState) => Pick<IBranchesState, K>
@@ -82,6 +97,17 @@ export class RepositoryStateCache {
       const changesState = state.branchesState
       const newState = merge(changesState, fn(changesState))
       return { branchesState: newState }
+    })
+  }
+
+  public updateRebaseState<K extends keyof IRebaseState>(
+    repository: Repository,
+    fn: (branchesState: IRebaseState) => Pick<IRebaseState, K>
+  ) {
+    this.update(repository, state => {
+      const { rebaseState } = state
+      const newState = merge(rebaseState, fn(rebaseState))
+      return { rebaseState: newState }
     })
   }
 }
@@ -98,12 +124,16 @@ function getInitialRepositoryState(): IRepositoryState {
       workingDirectory: WorkingDirectoryStatus.fromFiles(
         new Array<WorkingDirectoryFileChange>()
       ),
-      selectedFileIDs: [],
-      diff: null,
-      contextualCommitMessage: null,
-      commitMessage: null,
+      selection: {
+        kind: ChangesSelectionKind.WorkingDirectory,
+        selectedFileIDs: [],
+        diff: null,
+      },
+      commitMessage: DefaultCommitMessage,
       coAuthors: [],
       showCoAuthoredBy: false,
+      conflictState: null,
+      stashEntry: null,
     },
     selectedSection: RepositorySectionTab.Changes,
     branchesState: {
@@ -114,10 +144,14 @@ function getInitialRepositoryState(): IRepositoryState {
       openPullRequests: new Array<PullRequest>(),
       currentPullRequest: null,
       isLoadingPullRequests: false,
+      rebasedBranches: new Map<string, string>(),
     },
     compareState: {
       isDivergingBranchBannerVisible: false,
-      formState: { kind: ComparisonView.None },
+      formState: {
+        kind: HistoryTabMode.History,
+      },
+      tip: null,
       mergeStatus: null,
       showBranchList: false,
       filterText: '',
@@ -127,6 +161,13 @@ function getInitialRepositoryState(): IRepositoryState {
       recentBranches: new Array<Branch>(),
       defaultBranch: null,
       inferredComparisonBranch: { branch: null, aheadBehind: null },
+    },
+    rebaseState: {
+      step: null,
+      progress: null,
+      preview: null,
+      commits: null,
+      userHasResolvedConflicts: false,
     },
     commitAuthor: null,
     gitHubUsers: new Map<string, IGitHubUser>(),
@@ -140,5 +181,7 @@ function getInitialRepositoryState(): IRepositoryState {
     checkoutProgress: null,
     pushPullFetchProgress: null,
     revertProgress: null,
+    branchFilterText: '',
+    pullRequestFilterText: '',
   }
 }
