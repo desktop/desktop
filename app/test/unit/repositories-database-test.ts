@@ -1,5 +1,3 @@
-import { expect } from 'chai'
-
 import {
   RepositoriesDatabase,
   IDatabaseGitHubRepository,
@@ -20,6 +18,7 @@ describe('RepositoriesDatabase', () => {
       defaultBranch: 'master',
       cloneURL: 'http://github.com/desktop/desktop.git',
       parentID: null,
+      lastPruneDate: null,
     }
     const originalId = await db.gitHubRepositories.add({ ...gitHubRepo })
     const duplicateId = await db.gitHubRepositories.add({ ...gitHubRepo })
@@ -29,10 +28,10 @@ describe('RepositoriesDatabase', () => {
     await db.open()
 
     const original = await db.gitHubRepositories.get(originalId)
-    expect(original).not.to.equal(undefined)
+    expect(original).not.toBeUndefined()
 
     const dupe = await db.gitHubRepositories.get(duplicateId)
-    expect(dupe).to.equal(undefined)
+    expect(dupe).toBeUndefined()
 
     await db.delete()
   })

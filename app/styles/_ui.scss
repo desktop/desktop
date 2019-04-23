@@ -31,6 +31,7 @@
 @import 'ui/foldout';
 @import 'ui/preferences';
 @import 'ui/path-text';
+@import 'ui/path-label';
 @import 'ui/configure-git-user';
 @import 'ui/form';
 @import 'ui/text-box';
@@ -67,4 +68,6 @@
 @import 'ui/fancy-text-box';
 @import 'ui/notification-banner';
 @import 'ui/merge-status';
+@import 'ui/rebase-status';
 @import 'ui/cloneable-repository-filter-list';
+@import 'ui/stash-diff-viewer';

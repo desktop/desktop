@@ -1,5 +1,6 @@
 export type MenuEvent =
   | 'push'
+  | 'force-push'
   | 'pull'
   | 'show-changes'
   | 'show-history'
@@ -16,6 +17,7 @@ export type MenuEvent =
   | 'update-branch'
   | 'compare-to-branch'
   | 'merge-branch'
+  | 'rebase-branch'
   | 'show-repository-settings'
   | 'open-in-shell'
   | 'compare-on-github'
@@ -28,3 +30,4 @@ export type MenuEvent =
   | 'install-cli'
   | 'open-external-editor'
   | 'select-all'
+  | 'show-release-notes-popup'

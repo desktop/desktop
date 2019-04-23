@@ -1,6 +1,15 @@
 variables:
   PYTHON: 'python2.7'
 
+trigger:
+  batch: true
+  branches:
+    include:
+      - development
+
+pr:
+  autoCancel: true
+
 jobs:
   - job: Windows
     pool:
@@ -25,12 +34,14 @@ jobs:
         displayName: 'Publish Test Results'
         inputs:
           testResultsFiles: '**junit*.xml'
-          testRunTitle: TestRun ${{ parameters.name }} $(node_version)
+          testRunTitle: $(Agent.OS) Test Results
+        condition: always()
       - task: PublishCodeCoverageResults@1
         displayName: 'Publish code coverage results'
         inputs:
           codeCoverageTool: 'cobertura'
-          summaryFileLocation: '**/coverage/cobertura-coverage.xml'
+          summaryFileLocation: '**/app/coverage/cobertura-coverage.xml'
+        condition: always()
 
   - job: Linux
     pool:
@@ -60,12 +71,14 @@ jobs:
         displayName: 'Publish Test Results'
         inputs:
           testResultsFiles: '**junit*.xml'
-          testRunTitle: TestRun ${{ parameters.name }} $(node_version)
+          testRunTitle: $(Agent.OS) Test Results
+        condition: always()
       - task: PublishCodeCoverageResults@1
         displayName: 'Publish code coverage results'
         inputs:
           codeCoverageTool: 'cobertura'
-          summaryFileLocation: '**/coverage/cobertura-coverage.xml'
+          summaryFileLocation: '**/app/coverage/cobertura-coverage.xml'
+        condition: always()
 
   - job: macOS
     pool:
@@ -87,12 +100,14 @@ jobs:
         displayName: 'Publish Test Results'
         inputs:
           testResultsFiles: '**junit*.xml'
-          testRunTitle: TestRun ${{ parameters.name }} $(node_version)
+          testRunTitle: $(Agent.OS) Test Results
+        condition: always()
       - task: PublishCodeCoverageResults@1
         displayName: 'Publish code coverage results'
         inputs:
           codeCoverageTool: 'cobertura'
-          summaryFileLocation: '**/coverage/cobertura-coverage.xml'
+          summaryFileLocation: '**/app/coverage/cobertura-coverage.xml'
+        condition: always()
 
   - job: Lint
     pool:
@@ -113,3 +128,6 @@ jobs:
       - script: |
           yarn lint
         name: Lint
+      - script: |
+          yarn check-modified
+        displayName: 'Check for modified files'

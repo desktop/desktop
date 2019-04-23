@@ -36,7 +36,7 @@ export class Start extends React.Component<IStartProps, {}> {
 
         <div>
           <LinkButton className="welcome-button" onClick={this.signInToDotCom}>
-            Sign into GitHub.com
+            Sign in to GitHub.com
           </LinkButton>
         </div>
 
@@ -45,7 +45,7 @@ export class Start extends React.Component<IStartProps, {}> {
             className="welcome-button"
             onClick={this.signInToEnterprise}
           >
-            Sign into GitHub Enterprise
+            Sign in to GitHub Enterprise
           </LinkButton>
         </div>
 

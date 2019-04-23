@@ -44,7 +44,7 @@ export interface IGitExecutionOptions extends DugiteExecutionOptions {
  */
 export interface IGitResult extends DugiteResult {
   /**
-   * The parsed git error. This will be null when the exit code is include in
+   * The parsed git error. This will be null when the exit code is included in
    * the `successExitCodes`, or when dugite was unable to parse the
    * error.
    */
@@ -264,6 +264,12 @@ function getDescriptionForError(error: DugiteError): string {
       return 'A lock file already exists in the repository, which blocks this operation from completing.'
     case DugiteError.NoMergeToAbort:
       return 'There is no merge in progress, so there is nothing to abort.'
+    case DugiteError.NoExistingRemoteBranch:
+      return 'The remote branch does not exist.'
+    case DugiteError.LocalChangesOverwritten:
+      return 'Some of your changes would be overwritten.'
+    case DugiteError.UnresolvedConflicts:
+      return 'There are unresolved conflicts in the working directory.'
     default:
       return assertNever(error, `Unknown error: ${error}`)
   }
@@ -319,7 +325,7 @@ export async function gitNetworkArguments(
   const protocolVersion =
     repository != null
       ? await getConfigValue(repository, name)
-      : getGlobalConfigValue(name)
+      : await getGlobalConfigValue(name)
 
   if (protocolVersion !== null) {
     // protocol.version is already set, we should not override it with our own

@@ -1,5 +1,3 @@
-import { expect } from 'chai'
-
 import {
   GitProgressParser,
   IGitProgress,
@@ -9,7 +7,7 @@ import { parse } from '../../../src/lib/progress/git'
 
 describe('GitProgressParser', () => {
   it('requires at least one step', () => {
-    expect(() => new GitProgressParser([])).to.throw()
+    expect(() => new GitProgressParser([])).toThrow()
   })
 
   it('parses progress with one step', () => {
@@ -19,7 +17,7 @@ describe('GitProgressParser', () => {
 
     expect(
       parser.parse('remote: Compressing objects:  72% (16/22)')
-    ).to.have.property('percent', 16 / 22)
+    ).toHaveProperty('percent', 16 / 22)
   })
 
   it('parses progress with several steps', () => {
@@ -32,15 +30,15 @@ describe('GitProgressParser', () => {
 
     result = parser.parse('remote: Compressing objects:  72% (16/22)')
 
-    expect(result.kind).to.equal('progress')
-    expect((result as IGitProgress).percent).to.equal(16 / 22 / 2)
+    expect(result.kind).toBe('progress')
+    expect((result as IGitProgress).percent).toBe(16 / 22 / 2)
 
     result = parser.parse(
       'Receiving objects:  99% (166741/167587), 267.24 MiB | 2.40 MiB/s'
     )
 
-    expect(result.kind).to.equal('progress')
-    expect((result as IGitProgress).percent).to.equal(0.5 + 166741 / 167587 / 2)
+    expect(result.kind).toBe('progress')
+    expect((result as IGitProgress).percent).toBe(0.5 + 166741 / 167587 / 2)
   })
 
   it('enforces ordering of steps', () => {
@@ -53,25 +51,25 @@ describe('GitProgressParser', () => {
 
     result = parser.parse('remote: Compressing objects:  72% (16/22)')
 
-    expect(result.kind).to.equal('progress')
-    expect((result as IGitProgress).percent).to.equal(16 / 22 / 2)
+    expect(result.kind).toBe('progress')
+    expect((result as IGitProgress).percent).toBe(16 / 22 / 2)
 
     result = parser.parse(
       'Receiving objects:  99% (166741/167587), 267.24 MiB | 2.40 MiB/s'
     )
 
-    expect(result.kind).to.equal('progress')
-    expect((result as IGitProgress).percent).to.equal(0.5 + 166741 / 167587 / 2)
+    expect(result.kind).toBe('progress')
+    expect((result as IGitProgress).percent).toBe(0.5 + 166741 / 167587 / 2)
 
     result = parser.parse('remote: Compressing objects:  72% (16/22)')
 
-    expect(result.kind).to.equal('context')
+    expect(result.kind).toBe('context')
   })
 
   it('parses progress with no total', () => {
     const result = parse('remote: Counting objects: 167587')
 
-    expect(result).to.deep.equal({
+    expect(result).toEqual({
       title: 'remote: Counting objects',
       text: 'remote: Counting objects: 167587',
       value: 167587,
@@ -84,7 +82,7 @@ describe('GitProgressParser', () => {
   it('parses final progress with no total', () => {
     const result = parse('remote: Counting objects: 167587, done.')
 
-    expect(result).to.deep.equal({
+    expect(result).toEqual({
       title: 'remote: Counting objects',
       text: 'remote: Counting objects: 167587, done.',
       value: 167587,
@@ -97,7 +95,7 @@ describe('GitProgressParser', () => {
   it('parses progress with total', () => {
     const result = parse('remote: Compressing objects:  72% (16/22)')
 
-    expect(result).to.deep.equal({
+    expect(result).toEqual({
       title: 'remote: Compressing objects',
       text: 'remote: Compressing objects:  72% (16/22)',
       value: 16,
@@ -110,7 +108,7 @@ describe('GitProgressParser', () => {
   it('parses final with total', () => {
     const result = parse('remote: Compressing objects: 100% (22/22), done.')
 
-    expect(result).to.deep.equal({
+    expect(result).toEqual({
       title: 'remote: Compressing objects',
       text: 'remote: Compressing objects: 100% (22/22), done.',
       value: 22,
@@ -125,7 +123,7 @@ describe('GitProgressParser', () => {
       'Receiving objects:  99% (166741/167587), 267.24 MiB | 2.40 MiB/s'
     )
 
-    expect(result).to.deep.equal({
+    expect(result).toEqual({
       title: 'Receiving objects',
       text: 'Receiving objects:  99% (166741/167587), 267.24 MiB | 2.40 MiB/s',
       value: 166741,
@@ -140,7 +138,7 @@ describe('GitProgressParser', () => {
       'Receiving objects: 100% (167587/167587), 279.67 MiB | 2.43 MiB/s, done.'
     )
 
-    expect(result).to.deep.equal({
+    expect(result).toEqual({
       title: 'Receiving objects',
       text:
         'Receiving objects: 100% (167587/167587), 279.67 MiB | 2.43 MiB/s, done.',
@@ -155,6 +153,6 @@ describe('GitProgressParser', () => {
     const result = parse(
       'remote: Total 167587 (delta 19), reused 11 (delta 11), pack-reused 167554         '
     )
-    expect(result).to.be.null
+    expect(result).toBeNull()
   })
 })

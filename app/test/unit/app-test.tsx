@@ -1,11 +1,9 @@
-import { expect } from 'chai'
-
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as TestUtils from 'react-dom/test-utils'
 
 import { App } from '../../src/ui/app'
-import { Dispatcher } from '../../src/lib/dispatcher'
+import { Dispatcher } from '../../src/ui/dispatcher'
 import {
   AppStore,
   GitHubUserStore,
@@ -29,6 +27,7 @@ import { InMemoryStore, AsyncInMemoryStore } from '../helpers/stores'
 import { TestActivityMonitor } from '../helpers/test-activity-monitor'
 import { RepositoryStateCache } from '../../src/lib/stores/repository-state-cache'
 import { ApiRepositoriesStore } from '../../src/lib/stores/api-repositories-store'
+import { CommitStatusStore } from '../../src/lib/stores/commit-status-store'
 
 describe('App', () => {
   let appStore: AppStore | null = null
@@ -71,6 +70,7 @@ describe('App', () => {
     )
 
     const apiRepositoriesStore = new ApiRepositoriesStore(accountsStore)
+    const commitStatusStore = new CommitStatusStore(accountsStore)
 
     appStore = new AppStore(
       githubUserStore,
@@ -88,7 +88,8 @@ describe('App', () => {
     dispatcher = new InMemoryDispatcher(
       appStore,
       repositoryStateManager,
-      statsStore
+      statsStore,
+      commitStatusStore
     )
   })
 
@@ -107,7 +108,7 @@ describe('App', () => {
     await wait(0)
 
     const node = ReactDOM.findDOMNode(app)
-    expect(node).not.to.equal(null)
+    expect(node).not.toBeNull()
   })
 })
 

@@ -63,3 +63,49 @@ export async function getRecentBranches(
 
   return [...names]
 }
+
+/**
+ * Gets the distinct list of branches that have been checked out after a specific date
+ * Returns a map keyed on branch names
+ *
+ * @param repository the repository who's reflog you want to check
+ * @param afterDate the minimum date a checkout has to occur
+ * @returns map of branch name -> checkout date
+ */
+export async function getCheckoutsAfterDate(
+  repository: Repository,
+  afterDate: Date
+): Promise<Map<string, Date>> {
+  //regexr.com/46n1v
+  const regex = new RegExp(
+    /^[a-z0-9]{40}\sHEAD@{(.*)}\scheckout: moving from\s.*\sto\s(.*)$/
+  )
+  const gitOutput = await git(
+    [
+      'reflog',
+      '--date=iso',
+      `--after="${afterDate.toISOString()}"`,
+      '--pretty=%H %gd %gs',
+      `--grep-reflog=checkout: moving from .* to .*$`,
+      '--',
+    ],
+    repository.path,
+    'getCheckoutsAfterDate'
+  )
+  const checkouts = new Map<string, Date>()
+  const lines = gitOutput.stdout.split('\n')
+  for (const line of lines) {
+    const parsedLine = regex.exec(line)
+
+    if (parsedLine === null || parsedLine.length !== 3) {
+      continue
+    }
+
+    const [, timestamp, branchName] = parsedLine
+    if (!checkouts.has(branchName)) {
+      checkouts.set(branchName, new Date(timestamp))
+    }
+  }
+
+  return checkouts
+}

@@ -72,6 +72,7 @@ describe('git/branch', () => {
       expect(onBranch.branch.tip.sha).toEqual(
         'dfa96676b65e1c0ed43ca25492252a5e384c8efd'
       )
+      expect(onBranch.branch.tip.shortSha).toEqual('dfa9667')
     })
 
     it('returns non-origin remote', async () => {
@@ -135,7 +136,7 @@ describe('git/branch', () => {
       beforeEach(async () => {
         const path = await setupFixtureRepository('repo-with-multiple-remotes')
         repository = new Repository(path, -1, null, false)
-        await createBranch(repository, 'other-branch')
+        await createBranch(repository, 'other-branch', null)
       })
       it('finds multiple branch names', async () => {
         const branches = await getBranchesPointedAt(repository, 'HEAD')

@@ -1,7 +1,6 @@
 import * as path from 'path'
 import * as FSE from 'fs-extra'
 import * as os from 'os'
-import { expect } from 'chai'
 
 import { Repository } from '../../../src/models/repository'
 import {
@@ -12,10 +11,10 @@ import {
 import { git } from '../../../src/lib/git/core'
 import {
   setupFixtureRepository,
-  mkdirSync,
   setupEmptyRepository,
 } from '../../helpers/repositories'
 import { GitProcess } from 'dugite'
+import { mkdirSync } from '../../helpers/temp'
 
 describe('git/rev-parse', () => {
   let repository: Repository | null = null
@@ -28,12 +27,12 @@ describe('git/rev-parse', () => {
   describe('isGitRepository', () => {
     it('should return true for a repository', async () => {
       const result = await isGitRepository(repository!.path)
-      expect(result).to.equal(true)
+      expect(result).toBe(true)
     })
 
     it('should return false for a directory', async () => {
       const result = await isGitRepository(path.dirname(repository!.path))
-      expect(result).to.equal(false)
+      expect(result).toBe(false)
     })
   })
 
@@ -41,20 +40,20 @@ describe('git/rev-parse', () => {
     it('returns false for default initialized repository', async () => {
       const repository = await setupEmptyRepository()
       const result = await isBareRepository(repository.path)
-      expect(result).is.false
+      expect(result).toBe(false)
     })
 
     it('returns true for initialized bare repository', async () => {
       const path = await mkdirSync('no-repository-here')
       await GitProcess.exec(['init', '--bare'], path)
       const result = await isBareRepository(path)
-      expect(result).is.true
+      expect(result).toBe(true)
     })
 
     it('returns false for empty directory', async () => {
       const path = await mkdirSync('no-actual-repository-here')
       const result = await isBareRepository(path)
-      expect(result).is.false
+      expect(result).toBe(false)
     })
 
     it('throws error for missing directory', async () => {
@@ -67,31 +66,31 @@ describe('git/rev-parse', () => {
         errorThrown = true
       }
 
-      expect(errorThrown).is.true
+      expect(errorThrown).toBe(true)
     })
   })
 
   describe('getTopLevelWorkingDirectory', () => {
     it('should return an absolute path when run inside a working directory', async () => {
       const result = await getTopLevelWorkingDirectory(repository!.path)
-      expect(result).to.equal(repository!.path)
+      expect(result).toBe(repository!.path)
 
       const subdirPath = path.join(repository!.path, 'subdir')
       await FSE.mkdir(subdirPath)
 
       const subDirResult = await getTopLevelWorkingDirectory(repository!.path)
-      expect(subDirResult).to.equal(repository!.path)
+      expect(subDirResult).toBe(repository!.path)
     })
 
     it('should return null when not run inside a working directory', async () => {
       const result = await getTopLevelWorkingDirectory(os.tmpdir())
-      expect(result).to.be.null
+      expect(result).toBeNull()
     })
 
     it('should resolve top level directory run inside the .git folder', async () => {
       const p = path.join(repository!.path, '.git')
       const result = await getTopLevelWorkingDirectory(p)
-      expect(result).to.equal(p)
+      expect(result).toBe(p)
     })
 
     it('should return correct path for submodules', async () => {
@@ -112,11 +111,11 @@ describe('git/rev-parse', () => {
       await git(['submodule', 'add', '../repo2'], firstRepoPath, '')
 
       let result = await getTopLevelWorkingDirectory(firstRepoPath)
-      expect(result).to.equal(firstRepoPath)
+      expect(result).toBe(firstRepoPath)
 
       const subModulePath = path.join(firstRepoPath, 'repo2')
       result = await getTopLevelWorkingDirectory(subModulePath)
-      expect(result).to.equal(subModulePath)
+      expect(result).toBe(subModulePath)
     })
   })
 })

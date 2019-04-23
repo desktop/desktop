@@ -42,6 +42,12 @@ export enum PopupType {
   OversizedFiles,
   UsageReportingChanges,
   CommitConflictsWarning,
+  PushNeedsPull,
+  LocalChangesOverwritten,
+  RebaseFlow,
+  ConfirmForcePush,
+  StashAndSwitchBranch,
+  ConfirmOverwriteStash,
 }
 
 export type Popup =
@@ -152,4 +158,34 @@ export type Popup =
       repository: Repository
       /** information for completing the commit */
       context: ICommitContext
+    }
+  | {
+      type: PopupType.PushNeedsPull
+      repository: Repository
+    }
+  | {
+      type: PopupType.LocalChangesOverwritten
+      /** repository user is checking out in */
+      repository: Repository
+      retryAction: RetryAction
+      overwrittenFiles: ReadonlyArray<string>
+    }
+  | {
+      type: PopupType.ConfirmForcePush
+      repository: Repository
+      upstreamBranch: string
+    }
+  | {
+      type: PopupType.RebaseFlow
+      repository: Repository
+    }
+  | {
+      type: PopupType.StashAndSwitchBranch
+      repository: Repository
+      branchToCheckout: Branch
+    }
+  | {
+      type: PopupType.ConfirmOverwriteStash
+      repository: Repository
+      branchToCheckout: Branch
     }
