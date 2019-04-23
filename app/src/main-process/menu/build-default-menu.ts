@@ -525,7 +525,7 @@ function getPushLabel(
 
 function getStashedChangesLabel(isStashedChangesVisible: boolean): string {
   if (isStashedChangesVisible) {
-    return __DARWIN__ ? 'Hide Stashed Changes' : 'H&ide stashed'
+    return __DARWIN__ ? 'Hide Stashed Changes' : 'H&ide stashed changes'
   }
 
   return __DARWIN__ ? 'Show Stashed Changes' : 'Sho&w stashed changes'
