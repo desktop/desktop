@@ -321,6 +321,36 @@ export class ChangesList extends React.Component<
     }
   }
 
+  private getRevealInFileManagerMenuItem = (
+    file: WorkingDirectoryFileChange
+  ): IMenuItem => {
+    return {
+      label: RevealInFileManagerLabel,
+      action: () => revealInFileManager(this.props.repository, file.path),
+      enabled: file.status.kind !== AppFileStatusKind.Deleted,
+    }
+  }
+
+  private getOpenInExternalEditorMenuItem = (
+    file: WorkingDirectoryFileChange,
+    enabled: boolean
+  ): IMenuItem => {
+    const { externalEditorLabel, repository } = this.props
+
+    const openInExternalEditor = externalEditorLabel
+      ? `Open in ${externalEditorLabel}`
+      : DefaultEditorLabel
+
+    return {
+      label: openInExternalEditor,
+      action: () => {
+        const fullPath = Path.join(repository.path, file.path)
+        this.props.onOpenInExternalEditor(fullPath)
+      },
+      enabled,
+    }
+  }
+
   private getDefaultContextMenu(
     file: WorkingDirectoryFileChange
   ): ReadonlyArray<IMenuItem> {
@@ -329,16 +359,7 @@ export class ChangesList extends React.Component<
     const extension = Path.extname(path)
     const isSafeExtension = isSafeFileExtension(extension)
 
-    const {
-      workingDirectory,
-      externalEditorLabel,
-      selectedFileIDs,
-      repository,
-    } = this.props
-
-    const openInExternalEditor = externalEditorLabel
-      ? `Open in ${externalEditorLabel}`
-      : DefaultEditorLabel
+    const { workingDirectory, selectedFileIDs } = this.props
 
     const selectedFiles = new Array<WorkingDirectoryFileChange>()
     const paths = new Array<string>()
@@ -420,19 +441,8 @@ export class ChangesList extends React.Component<
     items.push(
       { type: 'separator' },
       this.getCopyPathMenuItem(file),
-      {
-        label: RevealInFileManagerLabel,
-        action: () => revealInFileManager(repository, path),
-        enabled: status.kind !== AppFileStatusKind.Deleted,
-      },
-      {
-        label: openInExternalEditor,
-        action: () => {
-          const fullPath = Path.join(repository.path, path)
-          this.props.onOpenInExternalEditor(fullPath)
-        },
-        enabled,
-      },
+      this.getRevealInFileManagerMenuItem(file),
+      this.getOpenInExternalEditorMenuItem(file, enabled),
       {
         label: OpenWithDefaultProgramLabel,
         action: () => this.props.onOpenItem(path),
@@ -451,12 +461,6 @@ export class ChangesList extends React.Component<
     const extension = Path.extname(path)
     const isSafeExtension = isSafeFileExtension(extension)
 
-    const { externalEditorLabel, repository } = this.props
-
-    const openInExternalEditor = externalEditorLabel
-      ? `Open in ${externalEditorLabel}`
-      : DefaultEditorLabel
-
     const items = new Array<IMenuItem>()
 
     if (file.status.kind === AppFileStatusKind.Untracked) {
@@ -474,19 +478,8 @@ export class ChangesList extends React.Component<
 
     items.push(
       this.getCopyPathMenuItem(file),
-      {
-        label: RevealInFileManagerLabel,
-        action: () => revealInFileManager(repository, path),
-        enabled: status.kind !== AppFileStatusKind.Deleted,
-      },
-      {
-        label: openInExternalEditor,
-        action: () => {
-          const fullPath = Path.join(repository.path, path)
-          this.props.onOpenInExternalEditor(fullPath)
-        },
-        enabled,
-      },
+      this.getRevealInFileManagerMenuItem(file),
+      this.getOpenInExternalEditorMenuItem(file, enabled),
       {
         label: OpenWithDefaultProgramLabel,
         action: () => this.props.onOpenItem(path),
