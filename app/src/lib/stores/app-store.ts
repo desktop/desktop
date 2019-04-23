@@ -2169,6 +2169,24 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
+  public _hideStashedChanges(repository: Repository) {
+    this.repositoryStateCache.updateChangesState(repository, state => {
+      const files = state.workingDirectory.files
+      const selectedFileIds = files
+        .filter(f => f.selection.getSelectionType() !== DiffSelectionType.None)
+        .map(f => f.id)
+
+      return {
+        selection: {
+          kind: ChangesSelectionKind.WorkingDirectory as ChangesSelectionKind.Stash,
+          diff: null,
+          selectedFileIDs: selectedFileIds,
+        },
+      }
+    })
+    this.emitUpdate()
+  }
+
   /**
    * Changes the selection in the changes view to the stash entry view and
    * optionally selects a particular file from the current stash entry.
