@@ -196,7 +196,10 @@ export async function getStatus(
   const headers = parsed.filter(isStatusHeader)
   const entries = parsed.filter(isStatusEntry)
 
-  let conflictDetails: ConflictFilesDetails
+  let conflictDetails: ConflictFilesDetails = {
+    conflictCountsByPath: new Map<string, number>(),
+    binaryFilePaths: new Array<string>(),
+  }
 
   const mergeHeadFound = await isMergeHeadSet(repository)
   const rebaseInternalState = await getRebaseInternalState(repository)
@@ -207,7 +210,9 @@ export async function getStatus(
       mergeHeadFound,
       rebaseInternalState
     )
-  } else {
+    // a little optimization so we don't run `getWorkingDirectoryConflictDetails`
+    // when there are no files to even detect conflicts in
+  } else if (entries.length > 0) {
     conflictDetails = await getConflictDetails(repository, mergeHeadFound, null)
   }
 
@@ -358,6 +363,26 @@ async function getRebaseConflictDetails(repository: Repository) {
 }
 
 /**
+ * We need to do these operations to detect conflicts that were the result
+ * of popping a stash into the index
+ */
+async function getWorkingDirectoryConflictDetails(repository: Repository) {
+  const conflictCountsByPath = await getFilesWithConflictMarkers(
+    repository.path
+  )
+  let binaryFilePaths: ReadonlyArray<string> = []
+  try {
+    // its totally fine if HEAD doesn't exist, which throws an error
+    binaryFilePaths = await getBinaryPaths(repository, 'HEAD')
+  } catch (error) {}
+
+  return {
+    conflictCountsByPath,
+    binaryFilePaths,
+  }
+}
+
+/**
  * gets the conflicted files count and binary file paths in a given repository.
  * for computing an `IStatusResult`.
  *
@@ -384,8 +409,5 @@ async function getConflictDetails(
       error
     )
   }
-  return {
-    conflictCountsByPath: new Map<string, number>(),
-    binaryFilePaths: new Array<string>(),
-  }
+  return getWorkingDirectoryConflictDetails(repository)
 }
