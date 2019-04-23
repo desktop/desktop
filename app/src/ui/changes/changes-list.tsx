@@ -309,12 +309,7 @@ export class ChangesList extends React.Component<
     showContextualMenu(items)
   }
 
-  private onItemContextMenu = (
-    file: WorkingDirectoryFileChange,
-    event: React.MouseEvent<HTMLDivElement>
-  ) => {
-    event.preventDefault()
-
+  private showDefaultContextMenu(file: WorkingDirectoryFileChange) {
     const { id, path, status } = file
 
     const extension = Path.extname(path)
@@ -436,6 +431,73 @@ export class ChangesList extends React.Component<
     )
 
     showContextualMenu(items)
+  }
+
+  private showRebaseContextMenu(file: WorkingDirectoryFileChange) {
+    const { path, status } = file
+
+    const extension = Path.extname(path)
+    const isSafeExtension = isSafeFileExtension(extension)
+
+    const { externalEditorLabel, repository } = this.props
+
+    const openInExternalEditor = externalEditorLabel
+      ? `Open in ${externalEditorLabel}`
+      : DefaultEditorLabel
+
+    const items = new Array<IMenuItem>()
+
+    if (file.status.kind === AppFileStatusKind.Untracked) {
+      const paths = [file.path]
+      items.push(
+        {
+          label: this.getDiscardChangesMenuItemLabel(paths),
+          action: () => this.onDiscardChanges(paths),
+        },
+        { type: 'separator' }
+      )
+    }
+
+    items.push(
+      {
+        label: CopyFilePathLabel,
+        action: () => {
+          const fullPath = Path.join(repository.path, path)
+          clipboard.writeText(fullPath)
+        },
+      },
+      {
+        label: RevealInFileManagerLabel,
+        action: () => revealInFileManager(repository, path),
+        enabled: status.kind !== AppFileStatusKind.Deleted,
+      },
+      {
+        label: openInExternalEditor,
+        action: () => {
+          const fullPath = Path.join(repository.path, path)
+          this.props.onOpenInExternalEditor(fullPath)
+        },
+        enabled: isSafeExtension && status.kind !== AppFileStatusKind.Deleted,
+      },
+      {
+        label: OpenWithDefaultProgramLabel,
+        action: () => this.props.onOpenItem(path),
+        enabled: isSafeExtension && status.kind !== AppFileStatusKind.Deleted,
+      }
+    )
+  }
+
+  private onItemContextMenu = (
+    file: WorkingDirectoryFileChange,
+    event: React.MouseEvent<HTMLDivElement>
+  ) => {
+    event.preventDefault()
+
+    if (this.props.rebaseConflictState === null) {
+      this.showDefaultContextMenu(file)
+    } else {
+      this.showRebaseContextMenu(file)
+    }
   }
 
   private getPlaceholderMessage(
