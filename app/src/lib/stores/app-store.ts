@@ -1823,13 +1823,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    if (step.kind === RebaseStep.ShowConflicts) {
+    if (
+      step.kind === RebaseStep.ShowConflicts ||
+      step.kind === RebaseStep.ConfirmAbort
+    ) {
+      // merge in new conflicts with known branches so they are not forgotten
+      const { baseBranch, targetBranch } = step.conflictState
+      const newConflictsState = {
+        ...conflictState,
+        baseBranch,
+        targetBranch,
+      }
+
       this.repositoryStateCache.updateRebaseState(repository, () => ({
-        step: { ...step, conflictState },
-      }))
-    } else if (step.kind === RebaseStep.ConfirmAbort) {
-      this.repositoryStateCache.updateRebaseState(repository, () => ({
-        step: { ...step, conflictState },
+        step: { ...step, conflictState: newConflictsState },
       }))
     }
   }
@@ -3917,20 +3924,31 @@ export class AppStore extends TypedBaseStore<IAppState> {
       targetBranch.tip.sha
     )
 
-    // TODO: in what situations might this not be possible to compute
+    // TODO: in what situations might this not be possible to compute?
 
-    // TODO: check if this is a fast-forward (i.e. the selected branch is
-    //       a direct descendant of the base branch) because this is a
-    //       trivial rebase
+    const base = await getMergeBase(
+      repository,
+      baseBranch.tip.sha,
+      targetBranch.tip.sha
+    )
+
+    if (base === baseBranch.tip.sha) {
+      // the target branch is a direct descendant of the base branch
+      // which means the target branch is already up to date
+      preview = {
+        kind: ComputedAction.Clean,
+        commits: [],
+      }
+    } else {
+      preview = {
+        kind: ComputedAction.Clean,
+        commits,
+      }
+    }
 
     // TODO: generate the patches associated with these commits and see if
     //       they will apply to the base branch - if it fails, there will be
     //       conflicts to come
-
-    preview = {
-      kind: ComputedAction.Clean,
-      commits,
-    }
 
     this.repositoryStateCache.updateRebaseState(repository, () => ({
       preview,

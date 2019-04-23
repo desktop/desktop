@@ -102,7 +102,7 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
       return this.props.dispatcher.continueRebase(
         this.props.repository,
         this.props.workingDirectory,
-        conflictState.manualResolutions
+        conflictState
       )
     }
 
