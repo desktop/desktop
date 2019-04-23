@@ -170,7 +170,7 @@ export function buildDefaultMenu({
       {
         label: getStashedChangesLabel(isStashedChangesVisible),
         id: 'toggle-stashed-changes',
-        accelerator: 'Alt+1',
+        accelerator: 'Ctrl+H',
         click: isStashedChangesVisible
           ? emit('hide-stashed-changes')
           : emit('show-stashed-changes'),
