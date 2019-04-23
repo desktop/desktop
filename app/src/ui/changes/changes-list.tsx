@@ -485,6 +485,8 @@ export class ChangesList extends React.Component<
         enabled: isSafeExtension && status.kind !== AppFileStatusKind.Deleted,
       }
     )
+
+    showContextualMenu(items)
   }
 
   private onItemContextMenu = (
