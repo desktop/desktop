@@ -2161,6 +2161,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    this.repositoryStateCache.update(repository, () => ({
+      selectedSection: RepositorySectionTab.Changes,
+    }))
     this.repositoryStateCache.updateChangesState(repository, () => ({
       selection: {
         kind: ChangesSelectionKind.Stash as ChangesSelectionKind.Stash,
