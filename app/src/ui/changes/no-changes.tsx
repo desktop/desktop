@@ -4,7 +4,10 @@ import * as ReactCSSTransitionReplace from 'react-css-transition-replace'
 import { encodePathAsUrl } from '../../lib/path'
 import { Repository } from '../../models/repository'
 import { LinkButton } from '../lib/link-button'
-import { enableNoChangesCreatePRBlankslateAction } from '../../lib/feature-flag'
+import {
+  enableNoChangesCreatePRBlankslateAction,
+  enableStashing,
+} from '../../lib/feature-flag'
 import { MenuIDs } from '../../main-process/menu'
 import { IMenu, MenuItem } from '../../models/app-menu'
 import memoizeOne from 'memoize-one'
@@ -340,6 +343,10 @@ export class NoChanges extends React.Component<
   }
 
   private renderStashAction() {
+    if (!enableStashing()) {
+      return null
+    }
+
     const { changesState, branchesState } = this.props.repositoryState
 
     const { tip } = branchesState
