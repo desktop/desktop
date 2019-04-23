@@ -2037,4 +2037,9 @@ export class Dispatcher {
   public resetStashedFilesWidth = (): Promise<void> => {
     return this.appStore._resetStashedFilesWidth()
   }
+
+  /** Show the diff for stashed changes */
+  public showStashedChanges(repository: Repository) {
+    return this.appStore._showStashedChanges(repository)
+  }
 }

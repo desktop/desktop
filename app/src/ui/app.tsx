@@ -723,7 +723,14 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.pull(state.repository)
   }
 
-  private showStashedChanges() {}
+  private showStashedChanges() {
+    const state = this.state.selectedState
+    if (state == null || state.type !== SelectionType.Repository) {
+      return
+    }
+
+    this.props.dispatcher.showStashedChanges(state.repository)
+  }
 
   public componentDidMount() {
     document.ondragover = e => {
