@@ -49,7 +49,7 @@ export class ContinueRebase extends React.Component<IContinueRebaseProps, {}> {
 
     const warnAboutUncommittedFiles = this.props.hasUntrackedChanges ? (
       <div className="warning-uncommitted-files">
-        Uncommitted files will be ignored
+        Uncommitted files will be excluded
       </div>
     ) : (
       undefined
