@@ -319,17 +319,24 @@ export class ChangesList extends React.Component<
 
     const extension = Path.extname(path)
     const isSafeExtension = isSafeFileExtension(extension)
-    const openInExternalEditor = this.props.externalEditorLabel
-      ? `Open in ${this.props.externalEditorLabel}`
+
+    const {
+      workingDirectory,
+      externalEditorLabel,
+      selectedFileIDs,
+      repository,
+    } = this.props
+
+    const openInExternalEditor = externalEditorLabel
+      ? `Open in ${externalEditorLabel}`
       : DefaultEditorLabel
 
-    const wd = this.props.workingDirectory
     const selectedFiles = new Array<WorkingDirectoryFileChange>()
     const paths = new Array<string>()
     const extensions = new Set<string>()
 
     const addItemToArray = (fileID: string) => {
-      const newFile = wd.findFileWithID(fileID)
+      const newFile = workingDirectory.findFileWithID(fileID)
       if (newFile) {
         selectedFiles.push(newFile)
         paths.push(newFile.path)
@@ -341,10 +348,10 @@ export class ChangesList extends React.Component<
       }
     }
 
-    if (this.props.selectedFileIDs.includes(id)) {
+    if (selectedFileIDs.includes(id)) {
       // user has selected a file inside an existing selection
       // -> context menu entries should be applied to all selected files
-      this.props.selectedFileIDs.forEach(addItemToArray)
+      selectedFileIDs.forEach(addItemToArray)
     } else {
       // this is outside their previous selection
       // -> context menu entries should be applied to just this file
@@ -404,19 +411,19 @@ export class ChangesList extends React.Component<
       {
         label: CopyFilePathLabel,
         action: () => {
-          const fullPath = Path.join(this.props.repository.path, path)
+          const fullPath = Path.join(repository.path, path)
           clipboard.writeText(fullPath)
         },
       },
       {
         label: RevealInFileManagerLabel,
-        action: () => revealInFileManager(this.props.repository, path),
+        action: () => revealInFileManager(repository, path),
         enabled: status.kind !== AppFileStatusKind.Deleted,
       },
       {
         label: openInExternalEditor,
         action: () => {
-          const fullPath = Path.join(this.props.repository.path, path)
+          const fullPath = Path.join(repository.path, path)
           this.props.onOpenInExternalEditor(fullPath)
         },
         enabled: isSafeExtension && status.kind !== AppFileStatusKind.Deleted,
