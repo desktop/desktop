@@ -309,6 +309,22 @@ export class ChangesList extends React.Component<
     showContextualMenu(items)
   }
 
+  private getDiscardChangesMenuItem = (
+    paths: ReadonlyArray<string>
+  ): IMenuItem => {
+    return {
+      label: this.getDiscardChangesMenuItemLabel(paths),
+      action: () => this.onDiscardChanges(paths),
+    }
+  }
+
+  private getDiscardAllChangesMenuItem = (): IMenuItem => {
+    return {
+      label: __DARWIN__ ? 'Discard All Changes…' : 'Discard all changes…',
+      action: () => this.onDiscardAllChanges(),
+    }
+  }
+
   private getCopyPathMenuItem = (
     file: WorkingDirectoryFileChange
   ): IMenuItem => {
@@ -389,14 +405,8 @@ export class ChangesList extends React.Component<
     }
 
     const items: IMenuItem[] = [
-      {
-        label: this.getDiscardChangesMenuItemLabel(paths),
-        action: () => this.onDiscardChanges(paths),
-      },
-      {
-        label: __DARWIN__ ? 'Discard All Changes…' : 'Discard all changes…',
-        action: () => this.onDiscardAllChanges(),
-      },
+      this.getDiscardChangesMenuItem(paths),
+      this.getDiscardAllChangesMenuItem(),
       { type: 'separator' },
     ]
     if (paths.length === 1) {
@@ -464,14 +474,9 @@ export class ChangesList extends React.Component<
     const items = new Array<IMenuItem>()
 
     if (file.status.kind === AppFileStatusKind.Untracked) {
-      const paths = [file.path]
-      items.push(
-        {
-          label: this.getDiscardChangesMenuItemLabel(paths),
-          action: () => this.onDiscardChanges(paths),
-        },
-        { type: 'separator' }
-      )
+      items.push(this.getDiscardChangesMenuItem([file.path]), {
+        type: 'separator',
+      })
     }
 
     const enabled = isSafeExtension && status.kind !== AppFileStatusKind.Deleted
