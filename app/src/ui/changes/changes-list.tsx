@@ -309,6 +309,18 @@ export class ChangesList extends React.Component<
     showContextualMenu(items)
   }
 
+  private getCopyPathMenuItem = (
+    file: WorkingDirectoryFileChange
+  ): IMenuItem => {
+    return {
+      label: CopyFilePathLabel,
+      action: () => {
+        const fullPath = Path.join(this.props.repository.path, file.path)
+        clipboard.writeText(fullPath)
+      },
+    }
+  }
+
   private getDefaultContextMenu(
     file: WorkingDirectoryFileChange
   ): ReadonlyArray<IMenuItem> {
@@ -407,13 +419,7 @@ export class ChangesList extends React.Component<
 
     items.push(
       { type: 'separator' },
-      {
-        label: CopyFilePathLabel,
-        action: () => {
-          const fullPath = Path.join(repository.path, path)
-          clipboard.writeText(fullPath)
-        },
-      },
+      this.getCopyPathMenuItem(file),
       {
         label: RevealInFileManagerLabel,
         action: () => revealInFileManager(repository, path),
@@ -467,13 +473,7 @@ export class ChangesList extends React.Component<
     const enabled = isSafeExtension && status.kind !== AppFileStatusKind.Deleted
 
     items.push(
-      {
-        label: CopyFilePathLabel,
-        action: () => {
-          const fullPath = Path.join(repository.path, path)
-          clipboard.writeText(fullPath)
-        },
-      },
+      this.getCopyPathMenuItem(file),
       {
         label: RevealInFileManagerLabel,
         action: () => revealInFileManager(repository, path),
