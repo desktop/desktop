@@ -174,6 +174,7 @@ export function buildDefaultMenu({
         click: isStashedChangesVisible
           ? emit('hide-stashed-changes')
           : emit('show-stashed-changes'),
+        visible: enableStashing(),
       },
       {
         label: __DARWIN__ ? 'Show Repository List' : 'Repository &list',
