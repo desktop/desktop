@@ -118,6 +118,8 @@ time:
 [docs]: https://github.com/desktop/desktop/labels/docs
 [electron]: https://github.com/desktop/desktop/labels/electron
 [enhancement]: https://github.com/desktop/desktop/labels/enhancement
+[epic:rebase]:https://github.com/desktop/desktop/labels/epic%3Arebase
+[epic:stashing]:https://github.com/desktop/desktop/labels/epic%3Astashing
 [good first issue]: https://github.com/desktop/desktop/labels/good%20first%20issue
 [help wanted]: https://github.com/desktop/desktop/labels/help%20wanted
 [infrastructure]: https://github.com/desktop/desktop/labels/infrastructure
