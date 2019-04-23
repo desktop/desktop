@@ -6,7 +6,6 @@ import { Dispatcher } from '../dispatcher'
 import { IMenuItem } from '../../lib/menu-item'
 import { revealInFileManager } from '../../lib/app-shell'
 import {
-  AppFileStatus,
   WorkingDirectoryStatus,
   WorkingDirectoryFileChange,
   AppFileStatusKind,
@@ -237,9 +236,7 @@ export class ChangesList extends React.Component<
 
     return (
       <ChangedFile
-        id={file.id}
-        path={file.path}
-        status={file.status}
+        file={file}
         include={include}
         key={file.id}
         onContextMenu={this.onItemContextMenu}
@@ -313,12 +310,12 @@ export class ChangesList extends React.Component<
   }
 
   private onItemContextMenu = (
-    id: string,
-    path: string,
-    status: AppFileStatus,
+    file: WorkingDirectoryFileChange,
     event: React.MouseEvent<HTMLDivElement>
   ) => {
     event.preventDefault()
+
+    const { id, path, status } = file
 
     const extension = Path.extname(path)
     const isSafeExtension = isSafeFileExtension(extension)
