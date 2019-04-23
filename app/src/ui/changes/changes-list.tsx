@@ -403,6 +403,8 @@ export class ChangesList extends React.Component<
         })
       })
 
+    const enabled = isSafeExtension && status.kind !== AppFileStatusKind.Deleted
+
     items.push(
       { type: 'separator' },
       {
@@ -423,12 +425,12 @@ export class ChangesList extends React.Component<
           const fullPath = Path.join(repository.path, path)
           this.props.onOpenInExternalEditor(fullPath)
         },
-        enabled: isSafeExtension && status.kind !== AppFileStatusKind.Deleted,
+        enabled,
       },
       {
         label: OpenWithDefaultProgramLabel,
         action: () => this.props.onOpenItem(path),
-        enabled: isSafeExtension && status.kind !== AppFileStatusKind.Deleted,
+        enabled,
       }
     )
 
@@ -462,6 +464,8 @@ export class ChangesList extends React.Component<
       )
     }
 
+    const enabled = isSafeExtension && status.kind !== AppFileStatusKind.Deleted
+
     items.push(
       {
         label: CopyFilePathLabel,
@@ -481,12 +485,12 @@ export class ChangesList extends React.Component<
           const fullPath = Path.join(repository.path, path)
           this.props.onOpenInExternalEditor(fullPath)
         },
-        enabled: isSafeExtension && status.kind !== AppFileStatusKind.Deleted,
+        enabled,
       },
       {
         label: OpenWithDefaultProgramLabel,
         action: () => this.props.onOpenItem(path),
-        enabled: isSafeExtension && status.kind !== AppFileStatusKind.Deleted,
+        enabled,
       }
     )
 
