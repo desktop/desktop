@@ -120,7 +120,9 @@ const Header: React.SFC<{
   }
 
   const restoreMessage = isWorkingTreeClean ? (
-    'Restore will move your stashed files to the Changes list.'
+    <span className="text">
+      <strong>Restore</strong> will move your stashed files to the Changes list.
+    </span>
   ) : (
     <div>
       <Octicon className="icon" symbol={OcticonSymbol.alert} />
