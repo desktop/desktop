@@ -8,7 +8,6 @@ import {
 } from '../../models/stash-entry'
 import { CommittedFileChange } from '../../models/status'
 import { parseChangedFiles } from './log'
-import { compare } from '../compare'
 
 export const DesktopStashEntryMarker = '!!GitHub_Desktop'
 
@@ -163,7 +162,7 @@ export async function getStashedFiles(
   const files = new Map<string, CommittedFileChange>()
   trackedFiles.forEach(x => files.set(x.path, x))
   untrackedFiles.forEach(x => files.set(x.path, x))
-  return [...files.values()].sort((x, y) => compare(x.path, y.path))
+  return [...files.values()].sort((x, y) => x.path.localeCompare(y.path))
 }
 
 /**
