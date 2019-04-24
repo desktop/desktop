@@ -180,7 +180,7 @@ export class ChooseBranchDialog extends React.Component<
           {this.renderRebaseStatus()}
           <ButtonGroup>
             <Button type="submit" disabled={disabled} tooltip={tooltip}>
-              Rebase <strong>{currentBranchName}</strong>
+              Start rebase
             </Button>
           </ButtonGroup>
         </DialogFooter>
@@ -263,7 +263,8 @@ export class ChooseBranchDialog extends React.Component<
     const pluralized = commitsToRebase === 1 ? 'commit' : 'commits'
     return (
       <>
-        This will apply
+        This will update <strong>{currentBranch.name}</strong>
+        {` by applying `}
         <strong>{` ${commitsToRebase} ${pluralized}`}</strong>
         {` on top of `}
         <strong>{baseBranch.name}</strong>
