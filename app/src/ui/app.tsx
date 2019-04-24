@@ -731,7 +731,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    this.props.dispatcher.showStashedChanges(state.repository)
+    this.props.dispatcher.selectStashedFile(state.repository)
   }
 
   private hideStashedChanges() {

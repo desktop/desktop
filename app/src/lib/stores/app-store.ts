@@ -2163,28 +2163,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  public _showStashedChanges(repository: Repository) {
-    const { changesState } = this.repositoryStateCache.get(repository)
-
-    if (changesState.stashEntry === null) {
-      return
-    }
-
-    this.repositoryStateCache.update(repository, () => ({
-      selectedSection: RepositorySectionTab.Changes,
-    }))
-    this.repositoryStateCache.updateChangesState(repository, () => ({
-      selection: {
-        kind: ChangesSelectionKind.Stash as ChangesSelectionKind.Stash,
-        selectedStashedFile: null,
-        selectedStashedFileDiff: null,
-      },
-    }))
-    this.emitUpdate()
-
-    this.updateMenuLabelsForSelectedRepository()
-  }
-
   public _hideStashedChanges(repository: Repository) {
     this.repositoryStateCache.updateChangesState(repository, state => {
       const files = state.workingDirectory.files
