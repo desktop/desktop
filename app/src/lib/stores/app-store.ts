@@ -2043,6 +2043,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       selectWorkingDirectoryFiles(state, files)
     )
 
+    this.updateMenuLabelsForSelectedRepository()
     this.emitUpdate()
     this.updateChangesWorkingDirectoryDiff(repository)
   }
