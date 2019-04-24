@@ -9,7 +9,7 @@
     display: flex;
     flex-direction: column;
     border-bottom: var(--base-border);
-    padding: var(--spacing);
+    padding: var(--spacing-triple) var(--spacing-double);
 
     h3 {
       font-weight: var(--font-weight-light);
@@ -21,7 +21,7 @@
     .row {
       display: flex;
       align-items: center;
-      margin: var(--spacing) 0;
+      margin-top: var(--spacing);
     }
 
     .button-group {
@@ -35,14 +35,15 @@
       display: flex;
       align-items: center;
       flex-grow: 1;
+      margin-left: var(--spacing-half);
 
       .text {
         flex-grow: 1;
-        margin: 0 var(--spacing-half);
       }
 
-      .icon {
-        fill: var(--color-modified);
+      .octicon {
+        fill: var(--text-secondary-color);
+        margin: 0 var(--spacing-half);
       }
 
       .octicon {

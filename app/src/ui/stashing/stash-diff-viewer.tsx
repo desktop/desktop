@@ -124,12 +124,12 @@ const Header: React.SFC<{
       <strong>Restore</strong> will move your stashed files to the Changes list.
     </span>
   ) : (
-    <div>
-      <Octicon className="icon" symbol={OcticonSymbol.alert} />
+    <>
+      <Octicon symbol={OcticonSymbol.alert} />
       <span className="text">
         Unable to restore stash when changes are present on your branch.
       </span>
-    </div>
+    </>
   )
 
   return (
