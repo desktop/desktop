@@ -10,7 +10,6 @@ import { Button } from '../lib/button'
 import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { PopupType } from '../../models/popup'
-import { enableStashing } from '../../lib/feature-flag'
 
 enum StashAction {
   StashOnCurrentBranch,
@@ -95,10 +94,6 @@ export class StashAndSwitchBranch extends React.Component<
   }
 
   private renderStashActions() {
-    if (!enableStashing()) {
-      return null
-    }
-
     const { branchToCheckout } = this.props
     const items = [
       {
