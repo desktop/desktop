@@ -298,6 +298,11 @@ export class ChangesList extends React.Component<
   private onContextMenu = (event: React.MouseEvent<any>) => {
     event.preventDefault()
 
+    // need to preserve the working directory state while dealing with conflicts
+    if (this.props.rebaseConflictState !== null) {
+      return
+    }
+
     const items: IMenuItem[] = [
       {
         label: __DARWIN__ ? 'Discard All Changes…' : 'Discard all changes…',
