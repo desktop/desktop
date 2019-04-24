@@ -4728,6 +4728,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
 
     this.updateCurrentPullRequest(repository)
+    this.gitStoreCache.get(repository).pruneForkedRemotes(openPullRequests)
 
     const selectedState = this.getSelectedState()
 

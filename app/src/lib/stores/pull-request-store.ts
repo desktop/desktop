@@ -8,8 +8,6 @@ import { fatalError, forceUnwrap } from '../fatal-error'
 import { RepositoriesStore } from './repositories-store'
 import { PullRequest, PullRequestRef } from '../../models/pull-request'
 import { Repository } from '../../models/repository'
-import { getRemotes, removeRemote } from '../git'
-import { ForkedRemotePrefix } from '../../models/remote'
 import { structuralEquals } from '../equality'
 import { Emitter, Disposable } from 'event-kit'
 
@@ -94,9 +92,7 @@ export class PullRequestStore {
         : await api.fetchAllOpenPullRequests(owner, name)
 
       if (await this.storePullRequests(apiResult, githubRepo)) {
-        const prs = await this.getAll(githubRepo)
-        await this.pruneForkedRemotes(repository, prs)
-        this.emitPullRequestsChanged(githubRepo, prs)
+        this.emitPullRequestsChanged(githubRepo, await this.getAll(githubRepo))
       }
     } catch (err) {
       log.warn(`Error refreshing pull requests for '${owner}/${name}'`, err)
@@ -157,28 +153,6 @@ export class PullRequestStore {
     // getAll method as opposed to creating a reverse cursor. Reversing
     // in place versus unshifting is also dramatically more performant.
     return result.reverse()
-  }
-
-  private async pruneForkedRemotes(
-    repository: Repository,
-    pullRequests: ReadonlyArray<PullRequest>
-  ) {
-    const remotes = await getRemotes(repository)
-    const prRemotes = new Set<string>()
-
-    for (const pr of pullRequests) {
-      const prRepo = pr.head.gitHubRepository
-
-      if (prRepo !== null && prRepo.cloneURL !== null) {
-        prRemotes.add(prRepo.cloneURL)
-      }
-    }
-
-    for (const r of remotes) {
-      if (r.name.startsWith(ForkedRemotePrefix) && !prRemotes.has(r.url)) {
-        await removeRemote(repository, r.name)
-      }
-    }
   }
 
   private updateActiveFetchCount(
