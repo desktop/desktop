@@ -2198,6 +2198,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     file?: CommittedFileChange | null
   ): Promise<void> {
+    this.repositoryStateCache.update(repository, () => ({
+      selectedSection: RepositorySectionTab.Changes,
+    }))
     this.repositoryStateCache.updateChangesState(repository, state => {
       let selectedStashedFile: CommittedFileChange | null = null
       const { stashEntry, selection } = state
@@ -2245,6 +2248,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     })
 
+    this.updateMenuLabelsForSelectedRepository()
     this.emitUpdate()
     this.updateChangesStashDiff(repository)
   }
