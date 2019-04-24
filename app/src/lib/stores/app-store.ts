@@ -1420,23 +1420,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    if (!repository.gitHubRepository) {
-      return
-    }
-
     const account = getAccountForRepository(this.accounts, repository)
+    const { gitHubRepository } = repository
 
-    if (!account) {
+    if (account === null || gitHubRepository === null) {
       return
     }
 
     const updater = new PullRequestUpdater(
-      repository,
+      gitHubRepository,
       account,
       this.pullRequestStore
     )
-    this.currentPullRequestUpdater = updater
 
+    this.currentPullRequestUpdater = updater
     this.currentPullRequestUpdater.start()
   }
 
@@ -4694,16 +4691,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public async _refreshPullRequests(repository: Repository): Promise<void> {
+    const account = getAccountForRepository(this.accounts, repository)
     const { gitHubRepository } = repository
 
-    if (gitHubRepository) {
-      const { endpoint } = gitHubRepository
-      const account = getAccountForEndpoint(this.accounts, endpoint)
-
-      if (account) {
-        await this.pullRequestStore.refreshPullRequests(repository, account)
-      }
+    if (gitHubRepository === null || account === null) {
+      return
     }
+
+    await this.pullRequestStore.refreshPullRequests(gitHubRepository, account)
   }
 
   private findRepositoryByGitHubRepository(gitHubRepository: GitHubRepository) {

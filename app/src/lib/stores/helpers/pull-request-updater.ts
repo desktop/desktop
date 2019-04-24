@@ -1,7 +1,7 @@
 import { PullRequestStore } from '../pull-request-store'
 import { Account } from '../../../models/account'
 import { fatalError } from '../../fatal-error'
-import { Repository } from '../../../models/repository'
+import { GitHubRepository } from '../../../models/github-repository'
 
 //** Interval to check for pull requests */
 const PullRequestInterval = 1000 * 60 * 10
@@ -17,22 +17,14 @@ enum TimeoutHandles {
  * and status info from GitHub.
  */
 export class PullRequestUpdater {
-  private readonly repository: Repository
-  private readonly account: Account
-  private readonly store: PullRequestStore
-
   private readonly timeoutHandles = new Map<TimeoutHandles, number>()
   private isStopped: boolean = true
 
   public constructor(
-    repository: Repository,
-    account: Account,
-    pullRequestStore: PullRequestStore
-  ) {
-    this.repository = repository
-    this.account = account
-    this.store = pullRequestStore
-  }
+    private readonly repository: GitHubRepository,
+    private readonly account: Account,
+    private readonly store: PullRequestStore
+  ) {}
 
   /** Starts the updater */
   public start() {

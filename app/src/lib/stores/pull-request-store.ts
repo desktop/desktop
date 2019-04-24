@@ -7,7 +7,6 @@ import { API, IAPIPullRequest } from '../api'
 import { fatalError, forceUnwrap } from '../fatal-error'
 import { RepositoriesStore } from './repositories-store'
 import { PullRequest, PullRequestRef } from '../../models/pull-request'
-import { Repository } from '../../models/repository'
 import { structuralEquals } from '../equality'
 import { Emitter, Disposable } from 'event-kit'
 
@@ -65,18 +64,14 @@ export class PullRequestStore {
   }
 
   /** Loads all pull requests against the given repository. */
-  public async refreshPullRequests(repository: Repository, account: Account) {
-    const githubRepo = forceUnwrap(
-      'Can only refresh pull requests for GitHub repositories',
-      repository.gitHubRepository
-    )
-    this.updateActiveFetchCount(githubRepo, Increment)
+  public async refreshPullRequests(repo: GitHubRepository, account: Account) {
+    this.updateActiveFetchCount(repo, Increment)
 
-    const lastUpdatedAt = await this.db.getLastUpdated(githubRepo)
+    const lastUpdatedAt = await this.db.getLastUpdated(repo)
 
     const api = API.fromAccount(account)
-    const owner = githubRepo.owner.login
-    const name = githubRepo.name
+    const owner = repo.owner.login
+    const name = repo.name
 
     try {
       // If we don't have a lastUpdatedAt that mean we haven't fetched any PRs
@@ -91,13 +86,13 @@ export class PullRequestStore {
         ? await api.fetchUpdatedPullRequests(owner, name, lastUpdatedAt)
         : await api.fetchAllOpenPullRequests(owner, name)
 
-      if (await this.storePullRequests(apiResult, githubRepo)) {
-        this.emitPullRequestsChanged(githubRepo, await this.getAll(githubRepo))
+      if (await this.storePullRequests(apiResult, repo)) {
+        this.emitPullRequestsChanged(repo, await this.getAll(repo))
       }
     } catch (err) {
       log.warn(`Error refreshing pull requests for '${owner}/${name}'`, err)
     } finally {
-      this.updateActiveFetchCount(githubRepo, Decrement)
+      this.updateActiveFetchCount(repo, Decrement)
     }
   }
 
