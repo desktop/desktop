@@ -7,24 +7,24 @@ import { Button } from '../lib/button'
 import { Row } from '../lib/row'
 import { IStashEntry } from '../../models/stash-entry'
 
-interface IDiscardStashProps {
+interface IConfirmDiscardStashProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
   readonly stash: IStashEntry
   readonly onDismissed: () => void
 }
 
-interface IDiscardStashState {
+interface IConfirmDiscardStashState {
   readonly isDiscarding: boolean
 }
 /**
  * Dialog to confirm dropping a stash
  */
-export class DiscardStash extends React.Component<
-  IDiscardStashProps,
-  IDiscardStashState
+export class ConfirmDiscardStash extends React.Component<
+  IConfirmDiscardStashProps,
+  IConfirmDiscardStashState
 > {
-  public constructor(props: IDiscardStashProps) {
+  public constructor(props: IConfirmDiscardStashProps) {
     super(props)
 
     this.state = {
