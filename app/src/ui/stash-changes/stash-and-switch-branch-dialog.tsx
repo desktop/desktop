@@ -97,20 +97,20 @@ export class StashAndSwitchBranch extends React.Component<
     const { branchToCheckout } = this.props
     const items = [
       {
-        title: `Yes, stash my changes on ${this.props.currentBranch.name}`,
-        description: 'Stash your in-progress work and return to it later',
+        title: `Leave my changes on ${this.props.currentBranch.name}`,
+        description: 'Your in-progress work will be stashed on this branch for you to return to later',
       },
       {
-        title: `No, bring my changes to ${branchToCheckout.name}`,
+        title: `Bring my changes to ${branchToCheckout.name}`,
         description:
-          'Your in-progress work will automatically follow you to the new branch',
+          'Your in-progress work will follow you to the new branch',
       },
     ]
 
     return (
       <Row>
         <VerticalSegmentedControl
-          label="Do you want to stash your changes?"
+          label="You have changes on this branch. What would you like to do with them?"
           items={items}
           selectedIndex={this.state.selectedStashAction}
           onSelectionChanged={this.onSelectionChanged}
