@@ -65,28 +65,10 @@ export class PullRequestStore {
 
   /** Loads all pull requests against the given repository. */
   public async refreshPullRequests(repo: GitHubRepository, account: Account) {
-    this.updateActiveFetchCount(repo, Increment)
-
-    const lastUpdatedAt = await this.db.getLastUpdated(repo)
-
-    const api = API.fromAccount(account)
-    const owner = repo.owner.login
-    const name = repo.name
 
     try {
-      // If we don't have a lastUpdatedAt that mean we haven't fetched any PRs
-      // for the repository yet which in turn means we only have to fetch the
-      // currently open PRs. If we have fetched before we get all PRs
-      // that have been modified since the last time we fetched so that we
-      // can prune closed issues from our database. Note that since
-      // fetchPullRequestsUpdatedSince returns all issues modified _at_ or
-      // after the timestamp we give it we will always get at least one issue
-      // back.
-      const apiResult = lastUpdatedAt
-        ? await api.fetchUpdatedPullRequests(owner, name, lastUpdatedAt)
-        : await api.fetchAllOpenPullRequests(owner, name)
-
-      if (await this.storePullRequests(apiResult, repo)) {
+      this.updateActiveFetchCount(repo, Increment)
+      if (await this.fetchAndStorePullRequests(repo, account)) {
         this.emitPullRequestsChanged(repo, await this.getAll(repo))
       }
     } catch (err) {
@@ -94,6 +76,39 @@ export class PullRequestStore {
     } finally {
       this.updateActiveFetchCount(repo, Decrement)
     }
+  }
+
+  /**
+   * Fetches pull requests from the API (either all open PRs if it's the
+   * first time fetching for this repository or all updated PRs if not).
+   *
+   * Returns a value indicating whether it's safe to avoid
+   * emitting an event that the store has been updated. In other words, when
+   * this method returns false it's safe to say that nothing has been changed
+   * in the pull requests table.
+   */
+  private async fetchAndStorePullRequests(
+    repo: GitHubRepository,
+    account: Account
+  ) {
+    const api = API.fromAccount(account)
+    const owner = repo.owner.login
+    const name = repo.name
+    const lastUpdatedAt = await this.db.getLastUpdated(repo)
+
+    // If we don't have a lastUpdatedAt that mean we haven't fetched any PRs
+    // for the repository yet which in turn means we only have to fetch the
+    // currently open PRs. If we have fetched before we get all PRs
+    // that have been modified since the last time we fetched so that we
+    // can prune closed issues from our database. Note that since
+    // fetchPullRequestsUpdatedSince returns all issues modified _at_ or
+    // after the timestamp we give it we will always get at least one issue
+    // back.
+    const apiResult = lastUpdatedAt
+      ? await api.fetchUpdatedPullRequests(owner, name, lastUpdatedAt)
+      : await api.fetchAllOpenPullRequests(owner, name)
+
+    return await this.storePullRequests(apiResult, repo)
   }
 
   /** Gets all stored pull requests for the given repository. */
