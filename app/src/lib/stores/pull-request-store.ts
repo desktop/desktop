@@ -267,11 +267,6 @@ export class PullRequestStore {
       }
     }
 
-    console.log(
-      `Found ${prsToDelete.length} PRs to delete and ${
-        prsToUpsert.length
-      } to upsert`
-    )
     await this.db.transaction('rw', this.db.pullRequests, async () => {
       await this.db.deletePullRequests(prsToDelete)
       await this.db.putPullRequests(prsToUpsert)
