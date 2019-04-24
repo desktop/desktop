@@ -37,6 +37,7 @@ import { ManualConflictResolution } from '../models/manual-conflict-resolution'
 import { Banner } from '../models/banner'
 import { GitRebaseProgress, RebasePreview } from '../models/rebase'
 import { RebaseFlowStep } from '../models/rebase-flow-step'
+import { IStashEntry } from '../models/stash-entry'
 
 export enum SelectionType {
   Repository,
@@ -150,6 +151,9 @@ export interface IAppState {
 
   /** The width of the commit summary column in the history view */
   readonly commitSummaryWidth: number
+
+  /** The width of the files list in the stash view */
+  readonly stashedFilesWidth: number
 
   /** Whether we should hide the toolbar (and show inverted window controls) */
   readonly titleBarStyle: 'light' | 'dark'
@@ -516,16 +520,38 @@ export interface ICommitSelection {
   readonly diff: IDiff | null
 }
 
-export interface IChangesState {
-  readonly workingDirectory: WorkingDirectoryStatus
+export enum ChangesSelectionKind {
+  WorkingDirectory = 'WorkingDirectory',
+  Stash = 'Stash',
+}
+
+export type ChangesWorkingDirectorySelection = {
+  readonly kind: ChangesSelectionKind.WorkingDirectory
 
   /**
    * The ID of the selected files. The files themselves can be looked up in
-   * `workingDirectory`.
+   * the `workingDirectory` property in `IChangesState`.
    */
   readonly selectedFileIDs: string[]
-
   readonly diff: IDiff | null
+}
+
+export type ChangesStashSelection = {
+  readonly kind: ChangesSelectionKind.Stash
+
+  /** Currently selected file in the stash diff viewer UI (aka the file we want to show the diff for) */
+  readonly selectedStashedFile: CommittedFileChange | null
+
+  /** Currently selected file's diff */
+  readonly selectedStashedFileDiff: IDiff | null
+}
+
+export type ChangesSelection =
+  | ChangesWorkingDirectorySelection
+  | ChangesStashSelection
+
+export interface IChangesState {
+  readonly workingDirectory: WorkingDirectoryStatus
 
   /** The commit message for a work-in-progress commit in the changes view. */
   readonly commitMessage: ICommitMessage
@@ -551,6 +577,20 @@ export interface IChangesState {
    * The absence of a value means there is no merge or rebase conflict underway
    */
   readonly conflictState: ConflictState | null
+
+  /**
+   * The latest GitHub Desktop stash entry for the current branch, or `null`
+   * if no stash exists for the current branch.
+   */
+  readonly stashEntry: IStashEntry | null
+
+  /**
+   * The current selection state in the Changes view. Can be either
+   * working directory or a stash. In the case of a working directory
+   * selection multiple files may be selected. See `ChangesSelection`
+   * for more information about the differences between the two.
+   */
+  readonly selection: ChangesSelection
 }
 
 /**

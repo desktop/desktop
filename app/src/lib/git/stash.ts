@@ -1,30 +1,24 @@
 import { git } from '.'
 import { Repository } from '../../models/repository'
-import { GitError, IGitResult } from './core'
+import { GitError as DugiteError } from 'dugite'
+import {
+  IStashEntry,
+  StashedChangesLoadStates,
+  StashedFileChanges,
+} from '../../models/stash-entry'
+import { CommittedFileChange } from '../../models/status'
+import { parseChangedFiles } from './log'
+import { compare } from '../compare'
 
 export const DesktopStashEntryMarker = '!!GitHub_Desktop'
-
-export interface IStashEntry {
-  /** The name of the entry i.e., `stash@{0}` */
-  readonly name: string
-
-  /** The name of the branch at the time the entry was created. */
-  readonly branchName: string
-
-  /** The SHA of the commit object created as a result of stashing. */
-  readonly stashSha: string
-}
-
-/** RegEx for parsing out the stash SHA and message */
-const stashEntryRe = /^([0-9a-f]{40})@(.+)$/
 
 /**
  * RegEx for determining if a stash entry is created by Desktop
  *
  * This is done by looking for a magic string with the following
- * format: `!!GitHub_Desktop<branch@commit>`
+ * format: `!!GitHub_Desktop<branch>`
  */
-const desktopStashEntryMessageRe = /!!GitHub_Desktop<(.+)@([0-9|a-z|A-Z]{40})>$/
+const desktopStashEntryMessageRe = /!!GitHub_Desktop<(.+)>$/
 
 /**
  * Get the list of stash entries created by Desktop in the current repository
@@ -33,59 +27,39 @@ const desktopStashEntryMessageRe = /!!GitHub_Desktop<(.+)@([0-9|a-z|A-Z]{40})>$/
 export async function getDesktopStashEntries(
   repository: Repository
 ): Promise<ReadonlyArray<IStashEntry>> {
-  const expectedErrorMessages = ["fatal: ambiguous argument 'refs/stash'"]
-  const prettyFormat = '%H@%gs'
-  let result: IGitResult | null = null
+  const delimiter = '1F'
+  const delimiterString = String.fromCharCode(parseInt(delimiter, 16))
+  const format = ['%gd', '%H', '%gs'].join(`%x${delimiter}`)
 
-  try {
-    result = await git(
-      ['log', '-g', 'refs/stash', `--pretty=${prettyFormat}`],
-      repository.path,
-      'getStashEntries'
-    )
-  } catch (err) {
-    if (err instanceof GitError) {
-      if (
-        !expectedErrorMessages.some(
-          message => err.message.indexOf(message) !== -1
-        )
-      ) {
-        // if the error is not expected, re-throw it so the caller can deal with it
-        throw err
-      }
+  const result = await git(
+    ['log', '-g', '-z', `--pretty=${format}`, 'refs/stash'],
+    repository.path,
+    'getStashEntries',
+    {
+      successExitCodes: new Set([0, 128]),
     }
-  }
+  )
 
-  if (result === null) {
-    // a git error that Desktop doesn't care about occured, so return empty list
+  // There's no refs/stashes reflog in the repository or it's not
+  // even a repository. In either case we don't care
+  if (result.exitCode === 128) {
     return []
   }
 
-  const lines = result.stdout.split('\n')
   const stashEntries: Array<IStashEntry> = []
-  let ix = -1
-  for (const line of lines) {
-    // need to get name from stash list
-    ix++
+  const files: StashedFileChanges = { kind: StashedChangesLoadStates.NotLoaded }
 
-    const match = stashEntryRe.exec(line)
-    if (match == null) {
-      continue
+  for (const line of result.stdout.split('\0')) {
+    const pieces = line.split(delimiterString)
+
+    if (pieces.length === 3) {
+      const [name, stashSha, message] = pieces
+      const branchName = extractBranchFromMessage(message)
+
+      if (branchName !== null) {
+        stashEntries.push({ name, branchName, stashSha, files })
+      }
     }
-
-    const message = match[2]
-    const branchName = extractBranchFromMessage(message)
-
-    if (branchName === null) {
-      // the stash entry isn't using our magic string, so skip it
-      continue
-    }
-
-    stashEntries.push({
-      name: `stash@{${ix}}`,
-      branchName: branchName,
-      stashSha: match[1],
-    })
   }
 
   return stashEntries
@@ -106,8 +80,8 @@ export async function getLastDesktopStashEntryForBranch(
 }
 
 /** Creates a stash entry message that idicates the entry was created by Desktop */
-export function createDesktopStashMessage(branchName: string, tipSha: string) {
-  return `${DesktopStashEntryMarker}<${branchName}@${tipSha}>`
+export function createDesktopStashMessage(branchName: string) {
+  return `${DesktopStashEntryMarker}<${branchName}>`
 }
 
 /**
@@ -115,15 +89,16 @@ export function createDesktopStashMessage(branchName: string, tipSha: string) {
  */
 export async function createDesktopStashEntry(
   repository: Repository,
-  branchName: string,
-  tipSha: string
+  branchName: string
 ) {
-  const message = createDesktopStashMessage(branchName, tipSha)
-  await git(
-    ['stash', 'push', '--include-untracked', '-m', message],
-    repository.path,
-    'createStashEntry'
-  )
+  const message = createDesktopStashMessage(branchName)
+  const args = ['stash', 'push', '--include-untracked', '-m', message]
+  await git(args, repository.path, 'createStashEntry')
+}
+
+async function getStashEntryMatchingSha(repository: Repository, sha: string) {
+  const stashEntries = await getDesktopStashEntries(repository)
+  return stashEntries.find(e => e.stashSha === sha) || null
 }
 
 /**
@@ -135,49 +110,94 @@ export async function dropDesktopStashEntry(
   repository: Repository,
   stashSha: string
 ) {
-  // get the latest name for the stash entry since it may have changed
-  const stashEntries = await getDesktopStashEntries(repository)
+  const entryToDelete = await getStashEntryMatchingSha(repository, stashSha)
 
-  if (stashEntries.length === 0) {
-    return
+  if (entryToDelete !== null) {
+    const args = ['stash', 'drop', entryToDelete.name]
+    await git(args, repository.path, 'dropStashEntry')
   }
-
-  const entryToDelete = stashEntries.find(e => e.stashSha === stashSha)
-  if (entryToDelete === undefined) {
-    return
-  }
-
-  await git(
-    ['stash', 'drop', entryToDelete.name],
-    repository.path,
-    'dropStashEntry'
-  )
 }
 
 /**
- * Applies the stash entry identified by matching `stashSha` to its commit hash.
+ * Pops the stash entry identified by matching `stashSha` to its commit hash.
  *
  * To see the commit hash of stash entry, run
  * `git log -g refs/stash --pretty="%nentry: %gd%nsubject: %gs%nhash: %H%n"`
  * in a repo with some stash entries.
  */
-export async function applyStashEntry(
+export async function popStashEntry(
   repository: Repository,
   stashSha: string
 ): Promise<void> {
-  await git(
-    ['stash', 'apply', `${stashSha}`],
-    repository.path,
-    'applyStashEntry'
-  )
+  // ignoring these git errors for now, this will change when we start
+  // implementing the stash conflict flow
+  const expectedErrors = new Set<DugiteError>([DugiteError.MergeConflicts])
+  const stashToPop = await getStashEntryMatchingSha(repository, stashSha)
+
+  if (stashToPop !== null) {
+    const args = ['stash', 'pop', `${stashToPop.name}`]
+    await git(args, repository.path, 'popStashEntry', { expectedErrors })
+  }
 }
 
 function extractBranchFromMessage(message: string): string | null {
   const match = desktopStashEntryMessageRe.exec(message)
-  if (match === null) {
-    return null
-  }
+  return match === null || match[1].length === 0 ? null : match[1]
+}
 
-  const branchName = match[1]
-  return branchName.length > 0 ? branchName : null
+/**
+ * Get the files that were changed in the given stash commit.
+ *
+ * This is different than `getChangedFiles` because stashes
+ * have _3 parents(!!!)_
+ */
+export async function getStashedFiles(
+  repository: Repository,
+  stashSha: string
+): Promise<ReadonlyArray<CommittedFileChange>> {
+  const [trackedFiles, untrackedFiles] = await Promise.all([
+    getChangedFilesWithinStash(repository, stashSha),
+    getChangedFilesWithinStash(repository, `${stashSha}^3`),
+  ])
+
+  const files = new Map<string, CommittedFileChange>()
+  trackedFiles.forEach(x => files.set(x.path, x))
+  untrackedFiles.forEach(x => files.set(x.path, x))
+  return [...files.values()].sort((x, y) => compare(x.path, y.path))
+}
+
+/**
+ * Same thing as `getChangedFiles` but with extra handling for 128 exit code
+ * (which happens if the commit's parent is not valid)
+ *
+ * **TODO:** merge this with `getChangedFiles` in `log.ts`
+ */
+async function getChangedFilesWithinStash(repository: Repository, sha: string) {
+  // opt-in for rename detection (-M) and copies detection (-C)
+  // this is equivalent to the user configuring 'diff.renames' to 'copies'
+  // NOTE: order here matters - doing -M before -C means copies aren't detected
+  const args = [
+    'log',
+    sha,
+    '-C',
+    '-M',
+    '-m',
+    '-1',
+    '--no-show-signature',
+    '--first-parent',
+    '--name-status',
+    '--format=format:',
+    '-z',
+    '--',
+  ]
+  const result = await git(args, repository.path, 'getChangedFilesForStash', {
+    // if this fails, its most likely
+    // because there weren't any untracked files,
+    // and that's okay!
+    successExitCodes: new Set([0, 128]),
+  })
+  if (result.exitCode === 0 && result.stdout.length > 0) {
+    return parseChangedFiles(result.stdout, sha)
+  }
+  return []
 }

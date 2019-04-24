@@ -35,9 +35,25 @@ import { basename } from 'path'
 import { ICommitContext } from '../../models/commit'
 import { RebaseConflictState } from '../../lib/app-state'
 import { ContinueRebase } from './continue-rebase'
-import { enablePullWithRebase } from '../../lib/feature-flag'
+import { enablePullWithRebase, enableStashing } from '../../lib/feature-flag'
+import { ListRow } from '../lib/list/list-row'
+import { Octicon, OcticonSymbol } from '../octicons'
+import { FocusContainer } from '../lib/focus-container'
+import { IStashEntry } from '../../models/stash-entry'
 
 const RowHeight = 29
+const StashListRowStyle: React.CSSProperties = {
+  height: RowHeight,
+}
+const StashIcon = new OcticonSymbol(
+  16,
+  16,
+  'M3.002 15H15V4c.51 0 1 .525 1 .996V15c0 .471-.49 1-1 1H4.002c-.51 ' +
+    '0-1-.529-1-1zm-2-2H13V2c.51 0 1 .525 1 .996V13c0 .471-.49 1-1 ' +
+    '1H2.002c-.51 0-1-.529-1-1zm10.14-13A.86.86 0 0 1 12 .857v10.286a.86.86 ' +
+    '0 0 1-.857.857H.857A.86.86 0 0 1 0 11.143V.857A.86.86 0 0 1 .857 0h10.286zM11 ' +
+    '11V1H1v10h10zM3 6c0-1.66 1.34-3 3-3s3 1.34 3 3-1.34 3-3 3-3-1.34-3-3z'
+)
 
 const GitIgnoreFileName = '.gitignore'
 
@@ -113,6 +129,10 @@ interface IChangesListProps {
    * @param fullPath The full path to the file on disk
    */
   readonly onOpenInExternalEditor: (fullPath: string) => void
+
+  readonly stashEntry: IStashEntry | null
+
+  readonly isShowingStashEntry: boolean
 }
 
 interface IChangesState {
@@ -463,6 +483,44 @@ export class ChangesList extends React.Component<
     )
   }
 
+  private onStashEntryClicked = () => {
+    if (this.props.isShowingStashEntry) {
+      this.props.dispatcher.selectWorkingDirectoryFiles(this.props.repository)
+    } else {
+      this.props.dispatcher.selectStashedFile(this.props.repository)
+    }
+  }
+
+  private renderStashedChanges() {
+    if (!enableStashing()) {
+      return null
+    }
+    if (this.props.stashEntry === null) {
+      return null
+    }
+
+    return (
+      <FocusContainer className="list-focus-container">
+        <ListRow
+          rowCount={1}
+          rowIndex={0}
+          selectable={true}
+          selected={this.props.isShowingStashEntry}
+          onRowClick={this.onStashEntryClicked}
+          tabIndex={0}
+          style={StashListRowStyle}
+          className="stash-entry-row"
+        >
+          <div className="stash-entry-row-content">
+            <Octicon className="icon" symbol={StashIcon} />
+            <div className="text">Stashed Changes</div>
+            <Octicon className="arrow" symbol={OcticonSymbol.chevronRight} />
+          </div>
+        </ListRow>
+      </FocusContainer>
+    )
+  }
+
   public render() {
     const fileCount = this.props.workingDirectory.files.length
     const filesPlural = fileCount === 1 ? 'file' : 'files'
@@ -478,7 +536,6 @@ export class ChangesList extends React.Component<
             disabled={fileCount === 0 || this.props.isCommitting}
           />
         </div>
-
         <List
           id="changes-list"
           rowCount={this.props.workingDirectory.files.length}
@@ -492,6 +549,7 @@ export class ChangesList extends React.Component<
           onScroll={this.onScroll}
           setScrollTop={this.props.changesListScrollTop}
         />
+        {this.renderStashedChanges()}
         {this.renderCommitMessageForm()}
       </div>
     )

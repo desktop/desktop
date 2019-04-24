@@ -7,6 +7,7 @@ import {
   IChangesState,
   RebaseConflictState,
   isRebaseConflictState,
+  ChangesSelectionKind,
 } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
@@ -188,7 +189,10 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
 
   private onFileSelectionChanged = (rows: ReadonlyArray<number>) => {
     const files = rows.map(i => this.props.changes.workingDirectory.files[i])
-    this.props.dispatcher.changeChangesSelection(this.props.repository, files)
+    this.props.dispatcher.selectWorkingDirectoryFiles(
+      this.props.repository,
+      files
+    )
   }
 
   private onIncludeChanged = (path: string, include: boolean) => {
@@ -344,12 +348,12 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
 
   public render() {
     const {
-      selectedFileIDs,
       workingDirectory,
       commitMessage,
       showCoAuthoredBy,
       coAuthors,
       conflictState,
+      selection,
     } = this.props.changes
 
     // TODO: I think user will expect the avatar to match that which
@@ -368,6 +372,13 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
         ? conflictState
         : null
     }
+
+    const selectedFileIDs =
+      selection.kind === ChangesSelectionKind.WorkingDirectory
+        ? selection.selectedFileIDs
+        : []
+
+    const isShowingStashEntry = selection.kind === ChangesSelectionKind.Stash
 
     return (
       <div id="changes-sidebar-contents">
@@ -403,6 +414,8 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           onOpenInExternalEditor={this.props.onOpenInExternalEditor}
           onChangesListScrolled={this.props.onChangesListScrolled}
           changesListScrollTop={this.props.changesListScrollTop}
+          stashEntry={this.props.changes.stashEntry}
+          isShowingStashEntry={isShowingStashEntry}
         />
         {this.renderUndoCommit(rebaseConflictState)}
       </div>

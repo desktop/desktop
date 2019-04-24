@@ -46,6 +46,8 @@ export enum PopupType {
   LocalChangesOverwritten,
   RebaseFlow,
   ConfirmForcePush,
+  StashAndSwitchBranch,
+  ConfirmOverwriteStash,
 }
 
 export type Popup =
@@ -176,4 +178,14 @@ export type Popup =
   | {
       type: PopupType.RebaseFlow
       repository: Repository
+    }
+  | {
+      type: PopupType.StashAndSwitchBranch
+      repository: Repository
+      branchToCheckout: Branch
+    }
+  | {
+      type: PopupType.ConfirmOverwriteStash
+      repository: Repository
+      branchToCheckout: Branch
     }

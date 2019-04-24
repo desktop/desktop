@@ -576,14 +576,13 @@ export class API {
     const buf = new Array<T>()
     const opts: IFetchAllOptions<T> = { perPage: 100, ...options }
     const params = { per_page: `${opts.perPage}` }
-    const { NotFound, NotModified } = HttpStatusCode
 
     let nextPath: string | null = urlWithQueryString(path, params)
     do {
       const response = await this.request('GET', nextPath)
-      if (response.status === NotFound || response.status === NotModified) {
+      if (!response.ok) {
         log.warn(`fetchAll: '${path}' returned a ${response.status}`)
-        return []
+        return buf
       }
 
       const items = await parsedResponse<ReadonlyArray<T>>(response)
@@ -592,7 +591,7 @@ export class API {
       }
 
       nextPath = getNextPagePath(response)
-    } while (nextPath && opts.continue && !opts.continue(buf))
+    } while (nextPath && (!opts.continue || opts.continue(buf)))
 
     return buf
   }
