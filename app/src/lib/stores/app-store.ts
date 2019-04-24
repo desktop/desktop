@@ -2173,7 +2173,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       return {
         selection: {
-          kind: ChangesSelectionKind.WorkingDirectory as ChangesSelectionKind.WorkingDirectory,
+          kind: ChangesSelectionKind.WorkingDirectory,
           diff: null,
           selectedFileIDs: selectedFileIds,
         },
