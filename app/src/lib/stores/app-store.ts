@@ -4728,7 +4728,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
 
     this.updateCurrentPullRequest(repository)
-    this.updateMenuItemLabels(repository)
+
+    const selectedState = this.getSelectedState()
+
+    // Update menu labels if the currently selected repository is the
+    // repository for which we received an update.
+    if (selectedState && selectedState.type === SelectionType.Repository) {
+      if (selectedState.repository.id === repository.id) {
+        this.updateMenuLabelsForSelectedRepository()
+      }
+    }
     this.emitUpdate()
   }
 
