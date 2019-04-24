@@ -10,13 +10,10 @@ import { PullRequest, PullRequestRef } from '../../models/pull-request'
 import { structuralEquals } from '../equality'
 import { Emitter, Disposable } from 'event-kit'
 
-const Decrement = (n: number) => n - 1
-const Increment = (n: number) => n + 1
-
 /** The store for GitHub Pull Requests. */
 export class PullRequestStore {
   protected readonly emitter = new Emitter()
-  private readonly activeFetchCountPerRepository = new Map<number, number>()
+  private readonly currentRefreshOperations = new Map<number, Promise<void>>()
 
   public constructor(
     private readonly db: PullRequestDatabase,
@@ -64,18 +61,28 @@ export class PullRequestStore {
   }
 
   /** Loads all pull requests against the given repository. */
-  public async refreshPullRequests(repo: GitHubRepository, account: Account) {
+  public refreshPullRequests(repo: GitHubRepository, account: Account) {
+    const dbId = forceUnwrap("Can't refresh PRs, no dbId", repo.dbID)
 
-    try {
-      this.updateActiveFetchCount(repo, Increment)
-      if (await this.fetchAndStorePullRequests(repo, account)) {
-        this.emitPullRequestsChanged(repo, await this.getAll(repo))
-      }
-    } catch (err) {
-      log.warn(`Error refreshing pull requests for '${repo.fullName}'`, err)
-    } finally {
-      this.updateActiveFetchCount(repo, Decrement)
+    const currentOp = this.currentRefreshOperations.get(dbId)
+
+    if (currentOp !== undefined) {
+      return currentOp
     }
+
+    this.emitIsLoadingPullRequests(repo, true)
+
+    const promise = this.fetchAndStorePullRequests(repo, account)
+      .catch(err => {
+        log.warn(`Error refreshing pull requests for '${repo.fullName}'`, err)
+      })
+      .then(() => {
+        this.currentRefreshOperations.delete(dbId)
+        this.emitIsLoadingPullRequests(repo, false)
+      })
+
+    this.currentRefreshOperations.set(dbId, promise)
+    return promise
   }
 
   /**
@@ -108,7 +115,9 @@ export class PullRequestStore {
       ? await api.fetchUpdatedPullRequests(owner, name, lastUpdatedAt)
       : await api.fetchAllOpenPullRequests(owner, name)
 
-    return await this.storePullRequests(apiResult, repo)
+    if (await this.storePullRequests(apiResult, repo)) {
+      this.emitPullRequestsChanged(repo, await this.getAll(repo))
+    }
   }
 
   /** Gets all stored pull requests for the given repository. */
@@ -163,21 +172,6 @@ export class PullRequestStore {
     // getAll method as opposed to creating a reverse cursor. Reversing
     // in place versus unshifting is also dramatically more performant.
     return result.reverse()
-  }
-
-  private updateActiveFetchCount(
-    repository: GitHubRepository,
-    update: (count: number) => number
-  ) {
-    const repoDbId = forceUnwrap(
-      'Cannot fetch PRs for a repository which is not in the database',
-      repository.dbID
-    )
-    const currentCount = this.activeFetchCountPerRepository.get(repoDbId) || 0
-    const newCount = update(currentCount)
-
-    this.activeFetchCountPerRepository.set(repoDbId, newCount)
-    this.emitIsLoadingPullRequests(repository, newCount > 0)
   }
 
   /**
