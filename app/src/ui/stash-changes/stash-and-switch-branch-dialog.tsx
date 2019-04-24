@@ -98,12 +98,12 @@ export class StashAndSwitchBranch extends React.Component<
     const items = [
       {
         title: `Leave my changes on ${this.props.currentBranch.name}`,
-        description: 'Your in-progress work will be stashed on this branch for you to return to later',
+        description:
+          'Your in-progress work will be stashed on this branch for you to return to later',
       },
       {
         title: `Bring my changes to ${branchToCheckout.name}`,
-        description:
-          'Your in-progress work will follow you to the new branch',
+        description: 'Your in-progress work will follow you to the new branch',
       },
     ]
 
