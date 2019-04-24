@@ -94,20 +94,26 @@ const Header: React.SFC<{
   repository: Repository
   dispatcher: Dispatcher
 }> = props => {
-  const onClearClick = () => {
+  const onDiscardClick = () => {
     props.dispatcher.dropStash(props.repository, props.stashEntry)
   }
-  const onSubmitClick = () => {
+  const onRestoreClick = () => {
     props.dispatcher.popStash(props.repository, props.stashEntry)
   }
   return (
     <div className="header">
       <h3>Stashed changes</h3>
-      <ButtonGroup destructive={true}>
-        <Button onClick={onSubmitClick} type="submit">
+      {/*
+      this is false because ButtonGroup assumes the submit button
+      performs the destructive action. In this case the destructive
+      action is performed by the non-submit button so we lie to the
+      props to get the correct button ordering
+       */}
+      <ButtonGroup destructive={false}>
+        <Button onClick={onRestoreClick} type="submit">
           Restore
         </Button>
-        <Button onClick={onClearClick}>Discard</Button>
+        <Button onClick={onDiscardClick}>Discard</Button>
       </ButtonGroup>
     </div>
   )
