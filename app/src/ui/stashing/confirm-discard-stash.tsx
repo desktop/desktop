@@ -20,7 +20,7 @@ interface IConfirmDiscardStashState {
 /**
  * Dialog to confirm dropping a stash
  */
-export class ConfirmDiscardStash extends React.Component<
+export class ConfirmDiscardStashDialog extends React.Component<
   IConfirmDiscardStashProps,
   IConfirmDiscardStashState
 > {
