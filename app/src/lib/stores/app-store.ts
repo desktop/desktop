@@ -1427,13 +1427,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const updater = new PullRequestUpdater(
+    this.currentPullRequestUpdater = new PullRequestUpdater(
       gitHubRepository,
       account,
       this.pullRequestStore
     )
-
-    this.currentPullRequestUpdater = updater
     this.currentPullRequestUpdater.start()
   }
 
