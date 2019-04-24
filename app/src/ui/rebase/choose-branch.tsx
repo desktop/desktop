@@ -264,7 +264,7 @@ export class ChooseBranchDialog extends React.Component<
     return (
       <>
         This will update <strong>{currentBranch.name}</strong>
-        {` by applying `}
+        {` by applying its `}
         <strong>{` ${commitsToRebase} ${pluralized}`}</strong>
         {` on top of `}
         <strong>{baseBranch.name}</strong>
