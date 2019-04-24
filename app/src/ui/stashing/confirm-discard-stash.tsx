@@ -42,23 +42,23 @@ export class ConfirmDiscardStash extends React.Component<
         title={title}
         loading={this.state.isDiscarding}
         disabled={this.state.isDiscarding}
-        onSubmit={this.onSubmit}
+        onSubmit={this.props.onDismissed}
         onDismissed={this.props.onDismissed}
       >
         <DialogContent>
           <Row>Are you sure you want to discard these stashed changes?</Row>
         </DialogContent>
         <DialogFooter>
-          <ButtonGroup>
-            <Button type="submit">Discard</Button>
-            <Button onClick={this.props.onDismissed}>Cancel</Button>
+          <ButtonGroup destructive={true}>
+            <Button type="submit">Cancel</Button>
+            <Button onClick={this.onDiscardClick}>Discard</Button>
           </ButtonGroup>
         </DialogFooter>
       </Dialog>
     )
   }
 
-  private onSubmit = async () => {
+  private onDiscardClick = async () => {
     const { dispatcher, repository, stash, onDismissed } = this.props
 
     this.setState({
