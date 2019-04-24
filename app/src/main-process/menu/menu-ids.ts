@@ -28,3 +28,4 @@ export type MenuIDs =
   | 'about'
   | 'create-pull-request'
   | 'compare-to-branch'
+  | 'toggle-stashed-changes'
