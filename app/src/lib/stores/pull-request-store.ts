@@ -90,7 +90,7 @@ export class PullRequestStore {
         this.emitPullRequestsChanged(repo, await this.getAll(repo))
       }
     } catch (err) {
-      log.warn(`Error refreshing pull requests for '${owner}/${name}'`, err)
+      log.warn(`Error refreshing pull requests for '${repo.fullName}'`, err)
     } finally {
       this.updateActiveFetchCount(repo, Decrement)
     }
