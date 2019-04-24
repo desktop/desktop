@@ -62,12 +62,27 @@ function getIncludeAllValue(
   rebaseConflictState: RebaseConflictState | null
 ) {
   if (rebaseConflictState !== null) {
-    // there should be changes to rebase if conflicts are detected
-    return workingDirectory.files.some(
+    if (workingDirectory.files.length === 0) {
+      // the current commit will be skipped in the rebase
+      return CheckboxValue.Off
+    }
+
+    // untracked files will be skipped by the rebase, so we need to ensure that
+    // the "Include All" checkbox matches this state
+    const onlyUntrackedFilesFound = workingDirectory.files.every(
       f => f.status.kind === AppFileStatusKind.Untracked
     )
-      ? CheckboxValue.Mixed
-      : CheckboxValue.On
+
+    if (onlyUntrackedFilesFound) {
+      return CheckboxValue.Off
+    }
+
+    const onlyTrackedFilesFound = workingDirectory.files.every(
+      f => f.status.kind !== AppFileStatusKind.Untracked
+    )
+
+    // show "Mixed" if we have a mixture of tracked and untracked changes
+    return onlyTrackedFilesFound ? CheckboxValue.On : CheckboxValue.Mixed
   }
 
   const { includeAll } = workingDirectory
