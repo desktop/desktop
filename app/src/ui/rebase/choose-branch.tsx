@@ -16,6 +16,7 @@ import { ActionStatusIcon } from '../lib/action-status-icon'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { BranchList, IBranchListItem, renderDefaultBranch } from '../branches'
 import { Dispatcher } from '../dispatcher'
+import { promiseWithMinimumTimeout } from '../../lib/promise'
 
 interface IChooseBranchDialogProps {
   readonly dispatcher: Dispatcher
@@ -113,19 +114,23 @@ export class ChooseBranchDialog extends React.Component<
       },
     })
 
-    const commits = await getCommitsInRange(
-      this.props.repository,
-      baseBranch.tip.sha,
-      targetBranch.tip.sha
-    )
+    const { commits, base } = await promiseWithMinimumTimeout(async () => {
+      const commits = await getCommitsInRange(
+        this.props.repository,
+        baseBranch.tip.sha,
+        targetBranch.tip.sha
+      )
 
-    // TODO: in what situations might this not be possible to compute?
+      // TODO: in what situations might this not be possible to compute?
 
-    const base = await getMergeBase(
-      repository,
-      baseBranch.tip.sha,
-      targetBranch.tip.sha
-    )
+      const base = await getMergeBase(
+        repository,
+        baseBranch.tip.sha,
+        targetBranch.tip.sha
+      )
+
+      return { commits, base }
+    }, 500)
 
     if (base === baseBranch.tip.sha) {
       // the target branch is a direct descendant of the base branch
