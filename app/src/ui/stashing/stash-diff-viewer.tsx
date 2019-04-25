@@ -131,15 +131,14 @@ const Header: React.SFC<{
     </>
   )
 
+  // we pass `false` to `ButtonGroup` below because it assumes
+  // the "submit" button performs the destructive action.
+  // In this case the destructive action is performed by the
+  // non-submit button so we _lie_ to the props to get
+  // the correct button ordering
   return (
     <div className="header">
       <h3>Stashed changes</h3>
-      {/*
-      this is false because ButtonGroup assumes the submit button
-      performs the destructive action. In this case the destructive
-      action is performed by the non-submit button so we lie to the
-      props to get the correct button ordering
-       */}
       <ButtonGroup destructive={false}>
         <Button onClick={onRestoreClick} type="submit">
           Restore
