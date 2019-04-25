@@ -50,6 +50,19 @@ export class StashAndSwitchBranch extends React.Component<
     }
   }
 
+  public shouldComponentUpdate(
+    nextProps: ISwitchBranchProps,
+    nextState: ISwitchBranchState
+  ) {
+    // If we are in the middle of checking out a branch, prevent the component from rendering to avoid
+    // the button text that represents `StashAction.StashOnCurrentBranch` from updating before the component
+    // is dismissed. (see https://github.com/desktop/desktop/issues/7402)
+    return !(
+      nextState.selectedStashAction === StashAction.MoveToNewBranch &&
+      nextState.isStashingChanges
+    )
+  }
+
   public render() {
     const { isStashingChanges } = this.state
     return (
@@ -147,9 +160,7 @@ export class StashAndSwitchBranch extends React.Component<
 
     try {
       await this.stashAndCheckout()
-    } finally {
-      this.setState({ isStashingChanges: false })
-    }
+    } catch {}
 
     this.props.onDismissed()
   }
