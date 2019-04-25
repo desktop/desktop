@@ -9,6 +9,7 @@ import { IDiff, ImageDiffType } from '../../models/diff'
 import { Resizable } from '../resizable'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
+import { PopupType } from '../../models/popup'
 import { Octicon, OcticonSymbol } from '../octicons'
 
 interface IStashDiffViewerProps {
@@ -112,7 +113,11 @@ const Header: React.SFC<{
   const { dispatcher, repository, stashEntry, isWorkingTreeClean } = props
 
   const onClearClick = () => {
-    dispatcher.dropStash(repository, stashEntry)
+    props.dispatcher.showPopup({
+      type: PopupType.ConfirmDiscardStash,
+      repository: props.repository,
+      stash: props.stashEntry,
+    })
   }
 
   const onSubmitClick = () => {
