@@ -137,7 +137,7 @@ interface IToolbarDropdownState {
 export class ToolbarDropdown extends React.Component<
   IToolbarDropdownProps,
   IToolbarDropdownState
-  > {
+> {
   private innerButton: ToolbarButton | null = null
 
   public constructor(props: IToolbarDropdownProps) {
