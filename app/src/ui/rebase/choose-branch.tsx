@@ -143,23 +143,18 @@ export class ChooseBranchDialog extends React.Component<
       return
     }
 
-    if (base === baseBranch.tip.sha) {
-      // the target branch is a direct descendant of the base branch
-      // which means the target branch is already up to date
-      this.setState({
-        rebasePreview: {
-          kind: ComputedAction.Clean,
-          commits: [],
-        },
-      })
-    } else {
-      this.setState({
-        rebasePreview: {
-          kind: ComputedAction.Clean,
-          commits,
-        },
-      })
-    }
+    // the target branch is a direct descendant of the base branch
+    // which means the target branch is already up to date and the commits
+    // do not need to be applied
+    const isDirectDescendant = base === baseBranch.tip.sha
+    const commitsOrIgnore = isDirectDescendant ? [] : commits
+
+    this.setState({
+      rebasePreview: {
+        kind: ComputedAction.Clean,
+        commits: commitsOrIgnore,
+      },
+    })
 
     // TODO: generate the patches associated with these commits and see if
     //       they will apply to the base branch - if it fails, there will be
