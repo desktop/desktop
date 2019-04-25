@@ -191,7 +191,7 @@ export async function getStashedFiles(
   const files = new Map<string, CommittedFileChange>()
   trackedFiles.forEach(x => files.set(x.path, x))
   untrackedFiles.forEach(x => files.set(x.path, x))
-  return [...files.values()].sort((x, y) => compare(x.path, y.path))
+  return [...files.values()].sort((x, y) => x.path.localeCompare(y.path))
 }
 
 /**
