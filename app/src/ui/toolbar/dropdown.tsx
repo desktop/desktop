@@ -137,7 +137,7 @@ interface IToolbarDropdownState {
 export class ToolbarDropdown extends React.Component<
   IToolbarDropdownProps,
   IToolbarDropdownState
-> {
+  > {
   private innerButton: ToolbarButton | null = null
 
   public constructor(props: IToolbarDropdownProps) {
@@ -279,6 +279,7 @@ export class ToolbarDropdown extends React.Component<
         <div
           className="foldout"
           style={this.getFoldoutStyle()}
+          tabIndex={0}
           onKeyDown={this.onFoldoutKeyDown}
         >
           {this.props.dropdownContentRenderer()}
