@@ -209,7 +209,87 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     this.setState({ isAppearing: true })
     this.scheduleDismissGraceTimeout()
 
+    this.focusFirstSuitableChild()
+
     window.addEventListener('focus', this.onWindowFocus)
+  }
+
+  private focusFirstSuitableChild() {
+    const dialog = this.dialogElement
+    const activeElement = document.activeElement
+
+    if (dialog === null || activeElement === null) {
+      return
+    }
+
+    if (
+      activeElement.hasAttribute('autofocus') &&
+      dialog.contains(activeElement)
+    ) {
+      return
+    }
+
+    const selector = [
+      'input:not([type=hidden]):not(:disabled):not([tabindex="-1"])',
+      'textarea:not(:disabled):not([tabindex="-1"])',
+      'button:not(:disabled):not([tabindex="-1"])',
+      '[tabindex]:not(:disabled):not([tabindex="-1"])',
+    ].join(', ')
+
+    let maxTabIndex: { 0: number; 1: HTMLElement | null } = [-1, null]
+    let firstSubmitButton: HTMLElement | null = null
+    let firstButton: HTMLElement | null = null
+    let firstTabbable: HTMLElement | null = null
+
+    const excludedInputTypes = [
+      'button',
+      'submit',
+      'reset',
+      'hidden',
+      'checkbox',
+      'radio',
+    ]
+      .map(x => `:not([type=${x}])`)
+      .join('')
+
+    const inputSelector = `input${excludedInputTypes}, textarea`
+    const buttonSelector =
+      'input[type=button], input[type=submit] input[type=reset], button'
+    const submitSelector = 'input[type=submit], button[type=submit]'
+
+    for (const candidate of dialog.querySelectorAll(selector)) {
+      if (!(candidate instanceof HTMLElement)) {
+        continue
+      }
+
+      const tabIndex = candidate.getAttribute('tabindex')
+      if (tabIndex !== null && tabIndex.length > 0) {
+        const ti = parseInt(tabIndex, 10)
+        if (!isNaN(ti) && ti > 0 && ti > maxTabIndex[0]) {
+          maxTabIndex = [ti, candidate]
+        }
+      }
+
+      if (
+        !firstTabbable &&
+        (tabIndex === '0' || candidate.matches(inputSelector))
+      ) {
+        firstTabbable = candidate
+      } else if (!firstSubmitButton && candidate.matches(submitSelector)) {
+        firstSubmitButton = candidate
+      } else if (!firstButton && candidate.matches(buttonSelector)) {
+        firstButton = candidate
+      }
+    }
+
+    const maxTabIndexElement = maxTabIndex[0] !== -1 ? maxTabIndex[1] : null
+    const newActive =
+      maxTabIndexElement || firstTabbable || firstSubmitButton || firstButton
+
+    if (newActive) {
+      console.log(`making ${newActive.outerHTML} the new active`)
+      newActive.focus()
+    }
   }
 
   private onWindowFocus = () => {
