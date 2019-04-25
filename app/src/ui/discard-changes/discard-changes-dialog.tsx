@@ -3,14 +3,13 @@ import * as React from 'react'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
 import { WorkingDirectoryFileChange } from '../../models/status'
-import { Button } from '../lib/button'
-import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { PathText } from '../lib/path-text'
 import { Monospaced } from '../lib/monospaced'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { TrashNameLabel } from '../lib/context-menu'
 import { toPlatformCase } from '../../lib/platform-case'
+import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 interface IDiscardChangesProps {
   readonly repository: Repository
@@ -58,6 +57,13 @@ export class DiscardChanges extends React.Component<
     }
   }
 
+  private getOkButtonLabel() {
+    if (this.props.discardingAllChanges) {
+      return __DARWIN__ ? 'Discard All Changes' : 'Discard all changes'
+    }
+    return __DARWIN__ ? 'Discard changes' : 'Discard changes'
+  }
+
   public render() {
     const discardingAllChanges = this.props.discardingAllChanges
     const isDiscardingChanges = this.state.isDiscardingChanges
@@ -71,8 +77,10 @@ export class DiscardChanges extends React.Component<
             : toPlatformCase('Confirm Discard Changes')
         }
         onDismissed={this.props.onDismissed}
+        onSubmit={this.discard}
         dismissable={isDiscardingChanges ? false : true}
         loading={isDiscardingChanges}
+        disabled={isDiscardingChanges}
         type="warning"
       >
         <DialogContent>
@@ -85,16 +93,10 @@ export class DiscardChanges extends React.Component<
         </DialogContent>
 
         <DialogFooter>
-          <ButtonGroup destructive={true}>
-            <Button disabled={isDiscardingChanges} type="submit">
-              Cancel
-            </Button>
-            <Button onClick={this.discard} disabled={isDiscardingChanges}>
-              {discardingAllChanges
-                ? toPlatformCase('Discard All Changes')
-                : toPlatformCase('Discard Changes')}
-            </Button>
-          </ButtonGroup>
+          <OkCancelButtonGroup
+            destructive
+            okButtonText={this.getOkButtonLabel()}
+          />
         </DialogFooter>
       </Dialog>
     )
