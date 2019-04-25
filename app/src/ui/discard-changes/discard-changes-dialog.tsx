@@ -94,7 +94,7 @@ export class DiscardChanges extends React.Component<
 
         <DialogFooter>
           <OkCancelButtonGroup
-            destructive
+            destructive={true}
             okButtonText={this.getOkButtonLabel()}
           />
         </DialogFooter>
