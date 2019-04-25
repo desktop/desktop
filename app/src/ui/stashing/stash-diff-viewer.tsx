@@ -9,6 +9,7 @@ import { IDiff, ImageDiffType } from '../../models/diff'
 import { Resizable } from '../resizable'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
+import { Octicon, OcticonSymbol } from '../octicons'
 
 interface IStashDiffViewerProps {
   /** The stash in question. */
@@ -25,6 +26,9 @@ interface IStashDiffViewerProps {
   readonly fileListWidth: number
   readonly repository: Repository
   readonly dispatcher: Dispatcher
+
+  /** Are there any uncommitted changes */
+  readonly isWorkingTreeClean: boolean
 }
 
 /**
@@ -44,30 +48,40 @@ export class StashDiffViewer extends React.PureComponent<
   private onReset = () => this.props.dispatcher.resetStashedFilesWidth()
 
   public render() {
+    const {
+      stashEntry,
+      selectedStashedFile,
+      stashedFileDiff,
+      repository,
+      dispatcher,
+      imageDiffType,
+      isWorkingTreeClean,
+      fileListWidth,
+    } = this.props
     const files =
-      this.props.stashEntry.files.kind === StashedChangesLoadStates.Loaded
-        ? this.props.stashEntry.files.files
+      stashEntry.files.kind === StashedChangesLoadStates.Loaded
+        ? stashEntry.files.files
         : new Array<CommittedFileChange>()
 
     const diffComponent =
-      this.props.selectedStashedFile !== null &&
-      this.props.stashedFileDiff !== null ? (
+      selectedStashedFile !== null && stashedFileDiff !== null ? (
         <Diff
-          repository={this.props.repository}
+          repository={repository}
           readOnly={true}
-          file={this.props.selectedStashedFile}
-          diff={this.props.stashedFileDiff}
-          dispatcher={this.props.dispatcher}
-          imageDiffType={this.props.imageDiffType}
+          file={selectedStashedFile}
+          diff={stashedFileDiff}
+          dispatcher={dispatcher}
+          imageDiffType={imageDiffType}
         />
       ) : null
 
     return (
       <section id="stash-diff-viewer">
         <Header
-          stashEntry={this.props.stashEntry}
-          repository={this.props.repository}
-          dispatcher={this.props.dispatcher}
+          stashEntry={stashEntry}
+          repository={repository}
+          dispatcher={dispatcher}
+          isWorkingTreeClean={isWorkingTreeClean}
         />
         <div className="content">
           <Resizable
@@ -78,8 +92,8 @@ export class StashDiffViewer extends React.PureComponent<
             <FileList
               files={files}
               onSelectedFileChanged={this.onSelectedFileChanged}
-              selectedFile={this.props.selectedStashedFile}
-              availableWidth={this.props.fileListWidth}
+              selectedFile={selectedStashedFile}
+              availableWidth={fileListWidth}
             />
           </Resizable>
           {diffComponent}
@@ -93,22 +107,47 @@ const Header: React.SFC<{
   stashEntry: IStashEntry
   repository: Repository
   dispatcher: Dispatcher
+  isWorkingTreeClean: boolean
 }> = props => {
+  const { dispatcher, repository, stashEntry, isWorkingTreeClean } = props
+
   const onClearClick = () => {
-    props.dispatcher.dropStash(props.repository, props.stashEntry)
+    dispatcher.dropStash(repository, stashEntry)
   }
+
   const onSubmitClick = () => {
-    props.dispatcher.popStash(props.repository, props.stashEntry)
+    dispatcher.popStash(repository, stashEntry)
   }
+
+  const restoreMessage = isWorkingTreeClean ? (
+    <span className="text">
+      <strong>Restore</strong> will move your stashed files to the Changes list.
+    </span>
+  ) : (
+    <>
+      <Octicon symbol={OcticonSymbol.alert} />
+      <span className="text">
+        Unable to restore stash when changes are present on your branch.
+      </span>
+    </>
+  )
+
   return (
     <div className="header">
       <h3>Stashed changes</h3>
-      <ButtonGroup destructive={true}>
-        <Button onClick={onSubmitClick} type="submit">
-          Restore
-        </Button>
-        <Button onClick={onClearClick}>Discard</Button>
-      </ButtonGroup>
+      <div className="row">
+        <ButtonGroup destructive={true}>
+          <Button
+            onClick={onSubmitClick}
+            type="submit"
+            disabled={!isWorkingTreeClean}
+          >
+            Restore
+          </Button>
+          <Button onClick={onClearClick}>Discard</Button>
+        </ButtonGroup>
+        <div className="explanatory-text">{restoreMessage}</div>
+      </div>
     </div>
   )
 }
