@@ -109,11 +109,13 @@ const Header: React.SFC<{
   dispatcher: Dispatcher
   isWorkingTreeClean: boolean
 }> = props => {
+  const { dispatcher, repository, stashEntry, isWorkingTreeClean } = props
+
   const onDiscardClick = () => {
-    props.dispatcher.dropStash(props.repository, props.stashEntry)
+    dispatcher.dropStash(repository, stashEntry)
   }
   const onRestoreClick = () => {
-    props.dispatcher.popStash(props.repository, props.stashEntry)
+    dispatcher.popStash(repository, stashEntry)
   }
 
   const restoreMessage = isWorkingTreeClean ? (
@@ -144,6 +146,7 @@ const Header: React.SFC<{
         </Button>
         <Button onClick={onDiscardClick}>Discard</Button>
       </ButtonGroup>
+      <div className="explanatory-text">{restoreMessage}</div>
     </div>
   )
 }
