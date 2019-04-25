@@ -7,9 +7,7 @@ import { Branch, StartPoint } from '../../models/branch'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 import { Ref } from '../lib/ref'
-import { Button } from '../lib/button'
 import { LinkButton } from '../lib/link-button'
-import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogError, DialogContent, DialogFooter } from '../dialog'
 import { VerticalSegmentedControl } from '../lib/vertical-segmented-control'
 import {
@@ -24,6 +22,7 @@ import {
   renderBranchNameExistsOnRemoteWarning,
 } from '../lib/branch-name-warnings'
 import { getStartPoint } from '../../lib/create-branch'
+import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 interface ICreateBranchProps {
   readonly repository: Repository
@@ -241,12 +240,10 @@ export class CreateBranch extends React.Component<
         </DialogContent>
 
         <DialogFooter>
-          <ButtonGroup>
-            <Button type="submit" disabled={disabled}>
-              {__DARWIN__ ? 'Create Branch' : 'Create branch'}
-            </Button>
-            <Button onClick={this.props.onDismissed}>Cancel</Button>
-          </ButtonGroup>
+          <OkCancelButtonGroup
+            okButtonText={__DARWIN__ ? 'Create Branch' : 'Create branch'}
+            okButtonDisabled={disabled}
+          />
         </DialogFooter>
       </Dialog>
     )
