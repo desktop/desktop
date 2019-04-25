@@ -1,14 +1,16 @@
-import { git } from '.'
-import { Repository } from '../../models/repository'
 import { GitError as DugiteError } from 'dugite'
+import { git } from '.'
+
+import { Repository } from '../../models/repository'
 import {
   IStashEntry,
   StashedChangesLoadStates,
   StashedFileChanges,
 } from '../../models/stash-entry'
 import { CommittedFileChange } from '../../models/status'
+
+import { GitError } from './core'
 import { parseChangedFiles } from './log'
-import { compare } from '../compare'
 
 export const DesktopStashEntryMarker = '!!GitHub_Desktop'
 
@@ -93,7 +95,31 @@ export async function createDesktopStashEntry(
 ) {
   const message = createDesktopStashMessage(branchName)
   const args = ['stash', 'push', '--include-untracked', '-m', message]
-  await git(args, repository.path, 'createStashEntry')
+
+  const result = await git(args, repository.path, 'createStashEntry', {
+    successExitCodes: new Set<number>([0, 1]),
+  })
+
+  if (result.exitCode === 1) {
+    // search for any line starting with `error:` -  /m here to ensure this is
+    // applied to each line, without needing to split the text
+    const errorPrefixRe = /^error: /m
+
+    const matches = errorPrefixRe.exec(result.stderr)
+    if (matches !== null && matches.length > 0) {
+      // rethrow, because these messages should prevent the stash from being created
+      throw new GitError(result, args)
+    }
+
+    // if no error messages were emitted by Git, we should log but continue because
+    // a valid stash was created and this should not interfere with the checkout
+
+    log.info(
+      `[createDesktopStashEntry] a stash was created successfully but exit code ${
+        result.exitCode
+      } reported. stderr: ${result.stderr}`
+    )
+  }
 }
 
 async function getStashEntryMatchingSha(repository: Repository, sha: string) {
@@ -163,7 +189,7 @@ export async function getStashedFiles(
   const files = new Map<string, CommittedFileChange>()
   trackedFiles.forEach(x => files.set(x.path, x))
   untrackedFiles.forEach(x => files.set(x.path, x))
-  return [...files.values()].sort((x, y) => compare(x.path, y.path))
+  return [...files.values()].sort((x, y) => x.path.localeCompare(y.path))
 }
 
 /**

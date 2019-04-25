@@ -1696,6 +1696,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
         defaultBranchName: this.getDefaultBranchName(state),
         isForcePushForCurrentRepository: this.isCurrentBranchForcePush(state),
         askForConfirmationOnForcePush: this.askForConfirmationOnForcePush,
+        isStashedChangesVisible:
+          state.changesState.selection.kind === ChangesSelectionKind.Stash,
       }
     }
 
@@ -1823,13 +1825,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    if (step.kind === RebaseStep.ShowConflicts) {
+    if (
+      step.kind === RebaseStep.ShowConflicts ||
+      step.kind === RebaseStep.ConfirmAbort
+    ) {
+      // merge in new conflicts with known branches so they are not forgotten
+      const { baseBranch, targetBranch } = step.conflictState
+      const newConflictsState = {
+        ...conflictState,
+        baseBranch,
+        targetBranch,
+      }
+
       this.repositoryStateCache.updateRebaseState(repository, () => ({
-        step: { ...step, conflictState },
-      }))
-    } else if (step.kind === RebaseStep.ConfirmAbort) {
-      this.repositoryStateCache.updateRebaseState(repository, () => ({
-        step: { ...step, conflictState },
+        step: { ...step, conflictState: newConflictsState },
       }))
     }
   }
@@ -2004,6 +2013,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }))
     this.emitUpdate()
 
+    this._hideStashedChanges(repository)
+
     if (selectedSection === RepositorySectionTab.History) {
       return this.refreshHistorySection(repository)
     } else if (selectedSection === RepositorySectionTab.Changes) {
@@ -2032,6 +2043,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       selectWorkingDirectoryFiles(state, files)
     )
 
+    this.updateMenuLabelsForSelectedRepository()
     this.emitUpdate()
     this.updateChangesWorkingDirectoryDiff(repository)
   }
@@ -2152,6 +2164,26 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
+  public _hideStashedChanges(repository: Repository) {
+    this.repositoryStateCache.updateChangesState(repository, state => {
+      const files = state.workingDirectory.files
+      const selectedFileIds = files
+        .filter(f => f.selection.getSelectionType() !== DiffSelectionType.None)
+        .map(f => f.id)
+
+      return {
+        selection: {
+          kind: ChangesSelectionKind.WorkingDirectory as ChangesSelectionKind.WorkingDirectory,
+          diff: null,
+          selectedFileIDs: selectedFileIds,
+        },
+      }
+    })
+    this.emitUpdate()
+
+    this.updateMenuLabelsForSelectedRepository()
+  }
+
   /**
    * Changes the selection in the changes view to the stash entry view and
    * optionally selects a particular file from the current stash entry.
@@ -2166,6 +2198,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     file?: CommittedFileChange | null
   ): Promise<void> {
+    this.repositoryStateCache.update(repository, () => ({
+      selectedSection: RepositorySectionTab.Changes,
+    }))
     this.repositoryStateCache.updateChangesState(repository, state => {
       let selectedStashedFile: CommittedFileChange | null = null
       const { stashEntry, selection } = state
@@ -2213,6 +2248,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     })
 
+    this.updateMenuLabelsForSelectedRepository()
     this.emitUpdate()
     this.updateChangesStashDiff(repository)
   }
@@ -3917,20 +3953,31 @@ export class AppStore extends TypedBaseStore<IAppState> {
       targetBranch.tip.sha
     )
 
-    // TODO: in what situations might this not be possible to compute
+    // TODO: in what situations might this not be possible to compute?
 
-    // TODO: check if this is a fast-forward (i.e. the selected branch is
-    //       a direct descendant of the base branch) because this is a
-    //       trivial rebase
+    const base = await getMergeBase(
+      repository,
+      baseBranch.tip.sha,
+      targetBranch.tip.sha
+    )
+
+    if (base === baseBranch.tip.sha) {
+      // the target branch is a direct descendant of the base branch
+      // which means the target branch is already up to date
+      preview = {
+        kind: ComputedAction.Clean,
+        commits: [],
+      }
+    } else {
+      preview = {
+        kind: ComputedAction.Clean,
+        commits,
+      }
+    }
 
     // TODO: generate the patches associated with these commits and see if
     //       they will apply to the base branch - if it fails, there will be
     //       conflicts to come
-
-    preview = {
-      kind: ComputedAction.Clean,
-      commits,
-    }
 
     this.repositoryStateCache.updateRebaseState(repository, () => ({
       preview,

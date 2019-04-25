@@ -14,7 +14,10 @@ import {
   createState,
   createStatus,
 } from '../../../helpers/changes-state-helper'
-import { ChangesSelectionKind } from '../../../../src/lib/app-state'
+import {
+  ChangesSelectionKind,
+  ChangesWorkingDirectorySelection,
+} from '../../../../src/lib/app-state'
 
 const allSelected = DiffSelection.fromInitialSelection(DiffSelectionType.All)
 const noneSelected = DiffSelection.fromInitialSelection(DiffSelectionType.None)
@@ -123,14 +126,12 @@ describe('updateChangedFiles', () => {
       const { selection } = updateChangedFiles(prevState, status, false)
 
       expect(selection.kind).toBe(ChangesSelectionKind.WorkingDirectory)
-
-      if (selection.kind === ChangesSelectionKind.WorkingDirectory) {
-        const { selectedFileIDs } = selection
-        expect(selectedFileIDs).toHaveLength(1)
-        // NOTE: `updateChangedFiles` sorts the paths and `app/package.json` will
-        // appear in list before `README.md`
-        expect(selectedFileIDs[0]).toBe(files[1].id)
-      }
+      const workingDirectorySelection = selection as ChangesWorkingDirectorySelection
+      const { selectedFileIDs } = workingDirectorySelection
+      expect(selectedFileIDs).toHaveLength(1)
+      // NOTE: `updateChangedFiles` sorts the paths and `app/package.json` will
+      // appear in list before `README.md`
+      expect(selectedFileIDs[0]).toBe(files[1].id)
     })
 
     it('remembers previous selection if file is found in status', () => {
@@ -149,12 +150,10 @@ describe('updateChangedFiles', () => {
       const { selection } = updateChangedFiles(prevState, status, false)
 
       expect(selection.kind).toBe(ChangesSelectionKind.WorkingDirectory)
-
-      if (selection.kind === ChangesSelectionKind.WorkingDirectory) {
-        const { selectedFileIDs } = selection
-        expect(selectedFileIDs).toHaveLength(1)
-        expect(selectedFileIDs[0]).toBe(firstFile)
-      }
+      const workingDirectorySelection = selection as ChangesWorkingDirectorySelection
+      const { selectedFileIDs } = workingDirectorySelection
+      expect(selectedFileIDs).toHaveLength(1)
+      expect(selectedFileIDs[0]).toBe(firstFile)
     })
 
     it('clears selection if no files found in status', () => {
@@ -171,11 +170,9 @@ describe('updateChangedFiles', () => {
       const { selection } = updateChangedFiles(prevState, status, false)
 
       expect(selection.kind).toBe(ChangesSelectionKind.WorkingDirectory)
-
-      if (selection.kind === ChangesSelectionKind.WorkingDirectory) {
-        const { selectedFileIDs } = selection
-        expect(selectedFileIDs).toHaveLength(0)
-      }
+      const workingDirectorySelection = selection as ChangesWorkingDirectorySelection
+      const { selectedFileIDs } = workingDirectorySelection
+      expect(selectedFileIDs).toHaveLength(0)
     })
   })
 
@@ -198,9 +195,8 @@ describe('updateChangedFiles', () => {
 
       expect(selection.kind).toBe(ChangesSelectionKind.WorkingDirectory)
 
-      if (selection.kind === ChangesSelectionKind.WorkingDirectory) {
-        expect(selection.diff).toBeNull()
-      }
+      const workingDirectorySelection = selection as ChangesWorkingDirectorySelection
+      expect(workingDirectorySelection.diff).toBeNull()
     })
 
     it('returns same diff if selected file from previous state is found', () => {
@@ -224,10 +220,8 @@ describe('updateChangedFiles', () => {
 
       const { selection } = updateChangedFiles(prevState, status, false)
       expect(selection.kind).toBe(ChangesSelectionKind.WorkingDirectory)
-
-      if (selection.kind === ChangesSelectionKind.WorkingDirectory) {
-        expect(selection.diff).toBe(diff)
-      }
+      const workingDirectorySelection = selection as ChangesWorkingDirectorySelection
+      expect(workingDirectorySelection.diff).toBe(diff)
     })
   })
 })
