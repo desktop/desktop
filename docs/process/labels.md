@@ -60,7 +60,7 @@ implementing features:
 ### Epics
 
 As we work on new parts of the application, or refining existing workflows, we use
-these labels to track issues that arise as part of the development process.
+epic labels, ex: `epic:rebase` to track issues and PRs that are part of a common feature focus area, or epic.
 
 This label is intended to make searching for issues related to an epic easier, and a
 project board should be used to organize and prioritize the work within an epic
