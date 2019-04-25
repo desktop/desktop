@@ -120,7 +120,7 @@ export class ChooseBranchDialog extends React.Component<
 
     const { commits, base } = await promiseWithMinimumTimeout(async () => {
       const commits = await getCommitsInRange(
-        this.props.repository,
+        repository,
         baseBranch.tip.sha,
         targetBranch.tip.sha
       )
