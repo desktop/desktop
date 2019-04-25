@@ -1,5 +1,21 @@
 {
   "releases": {
+    "1.7.0-beta5": [
+      "[???] Check if the target branch has already been rebased  - #7343",
+      "[???] Handle warnings if stash creation encounters permission issue - #7351",
+      "[???] Rebase flow - update copy when choosing branch - #7391",
+      "[???] Update verbiage for leaving changes on current branch vs bringing them to new branch - #7393. Thanks @billygriffin!",
+      "[Fixed] Add \"View stash entry\" action to suggested next steps - #7353",
+      "[Fixed] Cleanup rebase if unable to start the operation - #7223",
+      "[Fixed] Fix stash diff viewer button order (for mac) - #7273",
+      "[Fixed] Handle text diff component unmount in the middle of syntax highlighting - #6970",
+      "[Fixed] Keep the branch name in memory while the rebase is in progress - #7220",
+      "[Fixed] Lock file state when in rebase conflicts - #7006",
+      "[Fixed] Update confirm dialog when overwriting a previous stash - #7361. Thanks @billygriffin!",
+      "[Fixed] [Stashing] Adds a bit of explanatory text for restore button - #7303",
+      "[Fixed] [Stashing] Confirm before discarding stash - #7348",
+      "[Fixed] Stashed changes are now presented in alphabetical sort for diff stash viewer - #7327"
+    ],
     "1.7.0-beta4": [
       "[Fixed] Manual conflict resolution choice not updated when resolving rebase conflicts - #7255",
       "[Fixed] Menu items don't display the expected verbiage for force push and removing a repository - #4976 #7138"
