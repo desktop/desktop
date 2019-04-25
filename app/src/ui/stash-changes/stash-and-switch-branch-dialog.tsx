@@ -31,6 +31,7 @@ interface ISwitchBranchProps {
 interface ISwitchBranchState {
   readonly isStashingChanges: boolean
   readonly selectedStashAction: StashAction
+  readonly currentBranchName: string
 }
 
 /**
@@ -47,20 +48,8 @@ export class StashAndSwitchBranch extends React.Component<
     this.state = {
       isStashingChanges: false,
       selectedStashAction: StashAction.StashOnCurrentBranch,
+      currentBranchName: props.currentBranch.name,
     }
-  }
-
-  public shouldComponentUpdate(
-    nextProps: ISwitchBranchProps,
-    nextState: ISwitchBranchState
-  ) {
-    // If we are in the middle of checking out a branch, prevent the component from rendering to avoid
-    // the button text that represents `StashAction.StashOnCurrentBranch` from updating before the component
-    // is dismissed. (see https://github.com/desktop/desktop/issues/7402)
-    return !(
-      nextState.selectedStashAction === StashAction.MoveToNewBranch &&
-      nextState.isStashingChanges
-    )
   }
 
   public render() {
@@ -110,7 +99,7 @@ export class StashAndSwitchBranch extends React.Component<
     const { branchToCheckout } = this.props
     const items = [
       {
-        title: `Leave my changes on ${this.props.currentBranch.name}`,
+        title: `Leave my changes on ${this.state.currentBranchName}`,
         description:
           'Your in-progress work will be stashed on this branch for you to return to later',
       },
@@ -160,7 +149,9 @@ export class StashAndSwitchBranch extends React.Component<
 
     try {
       await this.stashAndCheckout()
-    } catch {}
+    } finally {
+      this.setState({ isStashingChanges: false })
+    }
 
     this.props.onDismissed()
   }
