@@ -23,7 +23,7 @@ export interface IButtonProps {
   readonly disabled?: boolean
 
   /** Whether the button is a submit. */
-  readonly type?: 'submit'
+  readonly type?: 'submit' | 'reset' | 'button'
 
   /** CSS class names */
   readonly className?: string
@@ -139,7 +139,7 @@ export class Button extends React.Component<IButtonProps, {}> {
   }
 
   private onClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    if (this.props.type !== 'submit') {
+    if (this.props.type === undefined) {
       event.preventDefault()
     }
 
