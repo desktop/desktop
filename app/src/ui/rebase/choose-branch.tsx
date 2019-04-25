@@ -74,6 +74,8 @@ export class ChooseBranchDialog extends React.Component<
   IChooseBranchDialogProps,
   IChooseBranchDialogState
 > {
+  private computingRebaseForBranch: string | null = null
+
   public constructor(props: IChooseBranchDialogProps) {
     super(props)
 
@@ -107,6 +109,8 @@ export class ChooseBranchDialog extends React.Component<
   }
 
   private async updateRebaseStatus(baseBranch: Branch, targetBranch: Branch) {
+    this.computingRebaseForBranch = baseBranch.name
+
     const { repository } = this.props
     this.setState({
       rebasePreview: {
@@ -131,6 +135,13 @@ export class ChooseBranchDialog extends React.Component<
 
       return { commits, base }
     }, 500)
+
+    // if the branch being track has changed since we started this work, abandon
+    // any further state updates (this function is re-entrant if the user is
+    // using the keyboard to quickly switch branches)
+    if (this.computingRebaseForBranch !== baseBranch.name) {
+      return
+    }
 
     if (base === baseBranch.tip.sha) {
       // the target branch is a direct descendant of the base branch
