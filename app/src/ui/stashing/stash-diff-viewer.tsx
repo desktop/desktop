@@ -139,14 +139,14 @@ const Header: React.SFC<{
   return (
     <div className="header">
       <h3>Stashed changes</h3>
-      <ButtonGroup destructive={false}>
       <div className="row">
-        <Button onClick={onRestoreClick} type="submit">
-          Restore
-        </Button>
-        <Button onClick={onDiscardClick}>Discard</Button>
-      </ButtonGroup>
-      <div className="explanatory-text">{restoreMessage}</div>
+        <ButtonGroup destructive={false}>
+          <Button onClick={onRestoreClick} type="submit">
+            Restore
+          </Button>
+          <Button onClick={onDiscardClick}>Discard</Button>
+        </ButtonGroup>
+        <div className="explanatory-text">{restoreMessage}</div>
       </div>
     </div>
   )
