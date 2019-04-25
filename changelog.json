@@ -1,20 +1,20 @@
 {
   "releases": {
     "1.7.0-beta5": [
-      "[Fixed] Handle warnings if stash creation encounters permission issue - #7351",
+      "[Fixed] Handle warnings if stash creation encounters file permission issue - #7351",
       "[Fixed] Add \"View stash entry\" action to suggested next steps - #7353",
-      "[Fixed] Handle and recover from failed Rebase flow starts - #7223",
-      "[Fixed] Reverse Button order for Stash Viewer on macOS - #7273",
+      "[Fixed] Handle and recover from failed rebase flow starts - #7223",
+      "[Fixed] Reverse button order when viewing a stash on macOS - #7273",
       "[Fixed] Prevent console errors due to underlying component unmounts - #6970",
-      "[Fixed] Base branch not remembered when showing rebase success banner - #7220",
-      "[Fixed] Adds a bit of explanatory text for restore button - #7303",
+      "[Fixed] Rebase success banner always includes base branch name - #7220",
+      "[Improved] Added explanatory text for \"Restore\" button for stashes - #7303",
+      "[Improved] Ask for confirmation before discarding stash - #7348",
       "[Improved] Order stashed changes files alphabetically - #7327",
       "[Improved] Clarify \"Overwrite Stash Confirmation\" Dialog Text - #7361.",
       "[Improved] Message shown in rebase setup when target branch is already rebased  - #7343",
-      "[Improved] Update verbiage for leaving changes on current branch vs bringing them to new branch - #7393.",
-      "[Improved] Rebase setup dialog copy - #7391",
-      "[Improved] Changes list now reflects what will be committed when handling rebase conflicts - #7006",
-      "[Added] Add confirmation dialog when discarding a stash - #7348"
+      "[Improved] Update stashing prompt verbiage - #7393.",
+      "[Improved] Update \"Start Rebase\" dialog verbiage - #7391",
+      "[Improved] Changes list now reflects what will be committed when handling rebase conflicts - #7006"
     ],
     "1.7.0-beta4": [
       "[Fixed] Manual conflict resolution choice not updated when resolving rebase conflicts - #7255",
