@@ -41,7 +41,8 @@ export class OkCancelButtonGroup extends React.Component<
     if (this.props.destructive === true) {
       event.preventDefault()
       if (event.currentTarget.form) {
-        event.currentTarget.form.submit()
+        // https://stackoverflow.com/a/12820780/2114
+        event.currentTarget.form.dispatchEvent(new Event('submit'))
       }
     }
   }
@@ -60,7 +61,8 @@ export class OkCancelButtonGroup extends React.Component<
     if (this.props.destructive === true) {
       event.preventDefault()
       if (event.currentTarget.form) {
-        event.currentTarget.form.reset()
+        // https://stackoverflow.com/a/12820780/2114
+        event.currentTarget.form.dispatchEvent(new Event('reset'))
       }
     }
   }
