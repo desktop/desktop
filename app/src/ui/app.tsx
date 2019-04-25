@@ -103,6 +103,7 @@ import {
 import { BannerType } from '../models/banner'
 import { StashAndSwitchBranch } from './stash-changes/stash-and-switch-branch-dialog'
 import { OverwriteStash } from './stash-changes/overwrite-stashed-changes-dialog'
+import { ConfirmDiscardStashDialog } from './stashing/confirm-discard-stash'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -364,6 +365,10 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.selectAll()
       case 'show-release-notes-popup':
         return this.showFakeReleaseNotesPopup()
+      case 'show-stashed-changes':
+        return this.showStashedChanges()
+      case 'hide-stashed-changes':
+        return this.hideStashedChanges()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
@@ -719,6 +724,24 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     this.props.dispatcher.pull(state.repository)
+  }
+
+  private showStashedChanges() {
+    const state = this.state.selectedState
+    if (state == null || state.type !== SelectionType.Repository) {
+      return
+    }
+
+    this.props.dispatcher.selectStashedFile(state.repository)
+  }
+
+  private hideStashedChanges() {
+    const state = this.state.selectedState
+    if (state == null || state.type !== SelectionType.Repository) {
+      return
+    }
+
+    this.props.dispatcher.hideStashedChanges(state.repository)
   }
 
   public componentDidMount() {
@@ -1677,6 +1700,18 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispatcher={this.props.dispatcher}
             repository={repository}
             branchToCheckout={branchToCheckout}
+            onDismissed={this.onPopupDismissed}
+          />
+        )
+      }
+      case PopupType.ConfirmDiscardStash: {
+        const { repository, stash } = popup
+
+        return (
+          <ConfirmDiscardStashDialog
+            dispatcher={this.props.dispatcher}
+            repository={repository}
+            stash={stash}
             onDismissed={this.onPopupDismissed}
           />
         )
