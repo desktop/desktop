@@ -9,8 +9,6 @@ import {
 } from '../../models/stash-entry'
 import { CommittedFileChange } from '../../models/status'
 
-import { compare } from '../compare'
-
 import { GitError } from './core'
 import { parseChangedFiles } from './log'
 
