@@ -107,7 +107,7 @@ interface IChangesListProps {
   readonly onDiscardChanges: (file: WorkingDirectoryFileChange) => void
   readonly askForConfirmationOnDiscardChanges: boolean
   readonly focusCommitMessage: boolean
-  readonly onDiscardAllChanges: (
+  readonly onDiscardChangesFromFiles: (
     files: ReadonlyArray<WorkingDirectoryFileChange>,
     isDiscardingAllChanges?: boolean
   ) => void
@@ -288,7 +288,7 @@ export class ChangesList extends React.Component<
         const discardingAllChanges =
           modifiedFiles.length === workingDirectory.files.length
 
-        this.props.onDiscardAllChanges(modifiedFiles, discardingAllChanges)
+        this.props.onDiscardChangesFromFiles(modifiedFiles, discardingAllChanges)
       }
     }
   }
