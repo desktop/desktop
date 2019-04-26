@@ -9,6 +9,9 @@ import configs = require('../app/webpack.development')
 
 import { run } from './run'
 
+import fetch from 'node-fetch'
+import { exec } from 'child_process'
+
 function getPortOrDefault() {
   const port = process.env.PORT
   if (port != null) {
@@ -23,7 +26,7 @@ function getPortOrDefault() {
 }
 
 function startApp() {
-  const runningApp = run({ stdio: 'inherit' })
+  const runningApp = run()
   if (runningApp == null) {
     console.error(
       "Couldn't launch the app. You probably need to build it first. Run `yarn build:dev`."
@@ -37,6 +40,8 @@ function startApp() {
   runningApp.on('close', () => {
     process.exit(0)
   })
+
+  return runningApp
 }
 
 if (process.env.NODE_ENV === 'production') {
@@ -68,7 +73,28 @@ if (process.env.NODE_ENV === 'production') {
       return
     }
 
-    console.log(`Server running at http://localhost:${port}`)
-    startApp()
+    const app = startApp()
+
+    const url = `http://localhost:1234/json/version`
+
+    setTimeout(() => {
+      fetch(url)
+        .then(async res => {
+          const json = await res.json()
+          const endpoint = json.webSocketDebuggerUrl
+
+          exec(
+            `yarn test:ui`,
+            { env: { ...process.env, endpoint } },
+            (err, stdout, stderr) => {
+              console.error('[UI-test ERROR]', err)
+              console.log('[UI-test stdout]', stdout)
+              console.log('[UI-test stderr]', stderr)
+              app!.kill()
+            }
+          )
+        })
+        .catch(err => console.error('something went wrong', err))
+    }, 10000)
   })
 }
