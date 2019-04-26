@@ -262,10 +262,6 @@ export class ChangesList extends React.Component<
     )
   }
 
-  private onDiscardAllChanges = () => {
-    this.props.onDiscardAllChanges(this.props.workingDirectory.files)
-  }
-
   private onDiscardChanges = (files: ReadonlyArray<string>) => {
     const workingDirectory = this.props.workingDirectory
 
@@ -316,13 +312,6 @@ export class ChangesList extends React.Component<
     return {
       label: this.getDiscardChangesMenuItemLabel(paths),
       action: () => this.onDiscardChanges(paths),
-    }
-  }
-
-  private getDiscardAllChangesMenuItem = (): IMenuItem => {
-    return {
-      label: __DARWIN__ ? 'Discard All Changes…' : 'Discard all changes…',
-      action: () => this.onDiscardAllChanges(),
     }
   }
 
@@ -407,7 +396,6 @@ export class ChangesList extends React.Component<
 
     const items: IMenuItem[] = [
       this.getDiscardChangesMenuItem(paths),
-      this.getDiscardAllChangesMenuItem(),
       { type: 'separator' },
     ]
     if (paths.length === 1) {
