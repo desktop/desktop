@@ -7,7 +7,6 @@
   "scripts": {
     "cli": "ts-node --require ./app/test/globals.ts --require ./app/src/cli/dev-commands-global.ts app/src/cli/main.ts",
     "test:ui": "cross-env NODE_ENV=development jest --detectOpenHandles --config ./app/jest.unit.config.js",
-    "start:ui": "cross-env NODE_ENV=development ts-node -P script/tsconfig.json script/start-ui.ts",
     "test:integration": "cross-env TEST_ENV=1 ELECTRON_NO_ATTACH_CONSOLE=1 xvfb-maybe --auto-servernum -- jest --config ./app/jest.integration.config.js",
     "test:unit": "cross-env ELECTRON_RUN_AS_NODE=1 ./node_modules/.bin/electron ./node_modules/jest/bin/jest --detectOpenHandles --silent --config ./app/jest.unit.config.js",
     "test:unit:cov": "yarn test:unit --coverage",
@@ -172,6 +171,7 @@
     "electron": "3.1.6",
     "electron-builder": "20.28.4",
     "electron-packager": "^13.1.0",
-    "electron-winstaller": "2.5.2"
+    "electron-winstaller": "2.5.2",
+    "wait-port": "0.2.2"
   }
 }

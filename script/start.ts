@@ -7,7 +7,7 @@ import { forceUnwrap as u } from '../app/src/lib/fatal-error'
 
 import configs = require('../app/webpack.development')
 
-import { run } from './run'
+import { startApp } from './start-app'
 
 function getPortOrDefault() {
   const port = process.env.PORT
@@ -20,21 +20,6 @@ function getPortOrDefault() {
   }
 
   return 3000
-}
-
-function startApp() {
-  const runningApp = run({ stdio: 'inherit' })
-  if (runningApp == null) {
-    console.error(
-      "Couldn't launch the app. You probably need to build it first. Run `yarn build:dev`."
-    )
-    process.exit(1)
-    return
-  }
-
-  runningApp.on('close', () => {
-    process.exit(0)
-  })
 }
 
 if (process.env.NODE_ENV === 'production') {
@@ -66,7 +51,6 @@ if (process.env.NODE_ENV === 'production') {
       return
     }
 
-    console.log(`Server running at http://localhost:${port}`)
     startApp()
   })
 }
