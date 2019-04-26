@@ -100,6 +100,7 @@ function menuItemStateEqual(state: IMenuItemState, menuItem: MenuItem) {
 const allMenuIds: ReadonlyArray<MenuIDs> = [
   'rename-branch',
   'delete-branch',
+  'discard-all-changes',
   'preferences',
   'update-branch',
   'compare-to-branch',
@@ -210,6 +211,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     'show-branches-list',
     'open-external-editor',
     'compare-to-branch',
+    'discard-all-changes',
   ]
 
   const menuStateBuilder = new MenuStateBuilder()
