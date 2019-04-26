@@ -320,7 +320,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'delete-branch':
         return this.deleteBranch()
       case 'discard-all-changes':
-        return this.discardAllChanges();
+        return this.discardAllChanges()
       case 'show-preferences':
         return this.props.dispatcher.showPopup({ type: PopupType.Preferences })
       case 'open-working-directory':
@@ -614,7 +614,9 @@ export class App extends React.Component<IAppProps, IAppState> {
   private discardAllChanges() {
     const state = this.state.selectedState
 
-    if (state == null || state.type !== SelectionType.Repository) { return; }
+    if (state == null || state.type !== SelectionType.Repository) {
+      return
+    }
 
     const { workingDirectory } = state.state.changesState
 
@@ -624,7 +626,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       files: workingDirectory.files,
       showDiscardChangesSetting: false,
       discardingAllChanges: true,
-    });
+    })
   }
 
   private showAddLocalRepo = () => {
