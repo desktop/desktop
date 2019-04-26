@@ -150,10 +150,10 @@ export class StashAndSwitchBranch extends React.Component<
     try {
       await this.stashAndCheckout()
     } finally {
-      this.setState({ isStashingChanges: false })
+      this.setState({ isStashingChanges: false }, () => {
+        this.props.onDismissed()
+      })
     }
-
-    this.props.onDismissed()
   }
 
   private async stashAndCheckout() {
