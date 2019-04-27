@@ -265,7 +265,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
 
     menuStateBuilder.setEnabled(
       'discard-all-changes',
-      repositoryActive && hasChangedFiles
+      repositoryActive && hasChangedFiles && !rebaseInProgress
     )
 
     menuStateBuilder.setEnabled('compare-to-branch', !onDetachedHead)
