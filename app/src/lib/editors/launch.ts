@@ -42,21 +42,21 @@ function launchVisualStudioCode(
   editor: FoundEditor,
   repoRootFolderPath: string
 ) {
-  const workspacePattern = join(repoRootFolderPath, '*.code-workspace')
-  const glob = require("glob")
-  glob(workspacePattern, (error: Error, files: string[]) => {
-    if (error) {
-      throw error
-    }
-    else {
-      const workspaceFilePath = chooseWorkspaceFileToOpen(files, repoRootFolderPath)
-      const openTarget = workspaceFilePath === '' ? repoRootFolderPath : workspaceFilePath
+    const workspacePattern = join(repoRootFolderPath, '*.code-workspace')
+    const glob = require("glob")
+    glob(workspacePattern, (error: Error, files: string[]) => {
+      if (error) {
+        throw error
+      }
+      else {
+        const workspaceFilePath = chooseWorkspaceFileToOpen(files, repoRootFolderPath)
+        const openTarget = workspaceFilePath === '' ? repoRootFolderPath : workspaceFilePath
       const usesShell = editor.usesShell ? editor.usesShell : false
 
-      spwanExternalEditor(editor.path, openTarget, usesShell)
-    }
-  })
-}
+        spwanExternalEditor(editor.path, openTarget, usesShell)
+      }
+    })
+  }
 
 /**
  * Choose workspace file to open in Visual Studio Code.
@@ -84,7 +84,11 @@ function chooseWorkspaceFileToOpen(
       ]
     });
 
-    workspaceFilePath = selectedAllFileName.pop()
+    if (selectedAllFileName === undefined) {
+      workspaceFilePath = ''
+    } else {
+      workspaceFilePath = selectedAllFileName.pop()
+    }
   }
 
   return workspaceFilePath === undefined ? '' : workspaceFilePath
