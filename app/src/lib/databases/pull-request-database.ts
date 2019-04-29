@@ -47,6 +47,11 @@ export interface IPullRequest {
   readonly author: string
 }
 
+/**
+ * Internal helper type, Pull Requests are keyed on
+ * the ID of the GitHubRepository that they belong to _and_
+ * the PR number.
+ */
 type PullRequestKey = [number, number]
 
 export class PullRequestDatabase extends BaseDatabase {
