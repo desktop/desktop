@@ -1677,11 +1677,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
    */
   private updateMenuItemLabels(state: IRepositoryState | null) {
     const shellLabel = `Open in ${this.selectedShell}`
-    const removeRepoLabel = this.getRemoveRepoLabel()
 
     let labels: MenuLabelsEvent = {
       shellLabel,
-      removeRepoLabel,
     }
 
     if (this.selectedExternalEditor !== undefined) {
@@ -1696,6 +1694,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         ...labels,
         pullRequestLabel: this.getPullRequestLabel(state),
         defaultBranchName: this.getDefaultBranchName(state),
+        askForConfirmationOnRepositoryRemoval: this.confirmRepoRemoval,
         isForcePushForCurrentRepository: this.isCurrentBranchForcePush(state),
         askForConfirmationOnForcePush: this.askForConfirmationOnForcePush,
         isStashedChangesVisible:
@@ -1709,16 +1708,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private isCurrentBranchForcePush(state: IRepositoryState) {
     const { branchesState, aheadBehind } = state
     return isCurrentBranchForcePush(branchesState, aheadBehind)
-  }
-
-  private getRemoveRepoLabel() {
-    return this.confirmRepoRemoval
-      ? __DARWIN__
-        ? 'Remove…'
-        : '&Remove…'
-      : __DARWIN__
-      ? 'Remove'
-      : '&Remove'
   }
 
   private getPullRequestLabel(state: IRepositoryState) {

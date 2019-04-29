@@ -22,6 +22,7 @@ const defaultPullRequestLabel = __DARWIN__
 const defaultBranchNameDefaultValue = __DARWIN__
   ? 'Default Branch'
   : 'default branch'
+const defaultConfirmRepositoryRemovalLabel = __DARWIN__ ? 'Remove…' : '&Remove…'
 const defaultRepositoryRemovalLabel = __DARWIN__ ? 'Remove' : '&Remove'
 
 enum ZoomDirection {
@@ -35,12 +36,16 @@ export function buildDefaultMenu({
   shellLabel = defaultShellLabel,
   pullRequestLabel = defaultPullRequestLabel,
   defaultBranchName = defaultBranchNameDefaultValue,
-  removeRepoLabel = defaultRepositoryRemovalLabel,
+  askForConfirmationOnRepositoryRemoval = false,
   isForcePushForCurrentRepository = false,
   askForConfirmationOnForcePush = false,
   isStashedChangesVisible = false,
 }: MenuLabelsEvent): Electron.Menu {
   defaultBranchName = truncateWithEllipsis(defaultBranchName, 25)
+
+  const removeRepoLabel = askForConfirmationOnRepositoryRemoval
+    ? defaultConfirmRepositoryRemovalLabel
+    : defaultRepositoryRemovalLabel
 
   const template = new Array<Electron.MenuItemConstructorOptions>()
   const separator: Electron.MenuItemConstructorOptions = { type: 'separator' }
