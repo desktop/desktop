@@ -24,7 +24,7 @@ export async function launchExternalEditor(
       { openPreferences: true }
     )
   }
-  if (editor.editor === 'Visual Studio Code') {
+  if (editor.editor === 'Visual Studio Code' || editor.editor === 'Visual Studio Code (Insiders)') {
     launchVisualStudioCode(editor, fullPath)
   } else {
     const usesShell = editor.usesShell ? editor.usesShell : false
