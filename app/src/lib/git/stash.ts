@@ -158,11 +158,34 @@ export async function popStashEntry(
   // ignoring these git errors for now, this will change when we start
   // implementing the stash conflict flow
   const expectedErrors = new Set<DugiteError>([DugiteError.MergeConflicts])
+  const successExitCodes = new Set<number>([0, 1])
   const stashToPop = await getStashEntryMatchingSha(repository, stashSha)
 
   if (stashToPop !== null) {
-    const args = ['stash', 'pop', `${stashToPop.name}`]
-    await git(args, repository.path, 'popStashEntry', { expectedErrors })
+    const args = ['stash', 'pop', '--quiet', `${stashToPop.name}`]
+    const result = await git(args, repository.path, 'popStashEntry', {
+      expectedErrors,
+      successExitCodes,
+    })
+
+    // popping a stashes that create conflicts in the working directory
+    // report an exit code of `1` and are not dropped after being applied.
+    // so, we check for this case and drop them manually
+    if (result.exitCode === 1) {
+      // because we use --quiet flag, we don't get output successful
+      // stash pops that have conflicts
+      if (result.stderr.length > 0 || result.stdout.length > 0) {
+        throw new GitError(result, args)
+      }
+
+      log.info(
+        `[popStashEntry] a stash was popped successfully but exit code ${
+          result.exitCode
+        } reported.`
+      )
+      // bye bye
+      await dropDesktopStashEntry(repository, stashSha)
+    }
   }
 }
 
