@@ -220,7 +220,7 @@ describe('git/stash', () => {
     })
   })
 
-  describe('applyStashEntry', () => {
+  describe('popStashEntry', () => {
     let repository: Repository
     let readme: string
 
@@ -231,22 +231,67 @@ describe('git/stash', () => {
       await GitProcess.exec(['add', 'README.md'], repository.path)
       await GitProcess.exec(['commit', '-m', 'initial commit'], repository.path)
     })
+    describe('without any conflicts', () => {
+      it('restores changes back to the working directory', async () => {
+        await generateTestStashEntry(repository, 'master', true)
+        const entries = await getDesktopStashEntries(repository)
+        expect(entries.length).toBe(1)
 
-    it('restores changes back to the working directory', async () => {
-      await generateTestStashEntry(repository, 'master', true)
-      const entries = await getDesktopStashEntries(repository)
-      expect(entries.length).toBe(1)
+        let status = await getStatusOrThrow(repository)
+        let files = status.workingDirectory.files
+        expect(files).toHaveLength(0)
 
-      let status = await getStatusOrThrow(repository)
-      let files = status.workingDirectory.files
-      expect(files).toHaveLength(0)
+        const entryToApply = entries[0]
+        await popStashEntry(repository, entryToApply.stashSha)
 
-      const entryToApply = entries[0]
-      await popStashEntry(repository, entryToApply.stashSha)
+        status = await getStatusOrThrow(repository)
+        files = status.workingDirectory.files
+        expect(files).toHaveLength(1)
+      })
+    })
 
-      status = await getStatusOrThrow(repository)
-      files = status.workingDirectory.files
-      expect(files).toHaveLength(1)
+    describe('when there are (resolvable) conflicts', () => {
+      it('restores changes and drops stash', async () => {
+        await generateTestStashEntry(repository, 'master', true)
+        const entries = await getDesktopStashEntries(repository)
+        expect(entries.length).toBe(1)
+
+        const readme = path.join(repository.path, 'README.md')
+        await FSE.appendFile(readme, Math.random()) // eslint-disable-line insecure-random
+        await GitProcess.exec(
+          ['commit', '-am', 'later commit'],
+          repository.path
+        )
+
+        let status = await getStatusOrThrow(repository)
+        let files = status.workingDirectory.files
+        expect(files).toHaveLength(0)
+
+        const entryToApply = entries[0]
+        await popStashEntry(repository, entryToApply.stashSha)
+
+        status = await getStatusOrThrow(repository)
+        files = status.workingDirectory.files
+        expect(files).toHaveLength(1)
+
+        const entriesAfter = await getDesktopStashEntries(repository)
+        expect(entriesAfter).not.toContain(entryToApply)
+      })
+    })
+    describe('when there are unresolvable conflicts', () => {
+      it('throws an error', async () => {
+        await generateTestStashEntry(repository, 'master', true)
+        const entries = await getDesktopStashEntries(repository)
+        expect(entries.length).toBe(1)
+
+        const readme = path.join(repository.path, 'README.md')
+        await FSE.writeFile(readme, Math.random()) // eslint-disable-line insecure-random
+
+        const entryToApply = entries[0]
+        expect(
+          popStashEntry(repository, entryToApply.stashSha)
+        ).rejects.toThrowError()
+      })
     })
   })
 })
