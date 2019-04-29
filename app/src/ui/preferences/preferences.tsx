@@ -34,6 +34,7 @@ interface IPreferencesProps {
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
   readonly confirmForcePush: boolean
+  readonly useWorkspaceFileInVSCode: boolean
   readonly selectedExternalEditor?: ExternalEditor
   readonly selectedShell: Shell
   readonly selectedTheme: ApplicationTheme
@@ -49,6 +50,7 @@ interface IPreferencesState {
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
   readonly confirmForcePush: boolean
+  readonly useWorkspaceFileInVSCode: boolean
   readonly automaticallySwitchTheme: boolean
   readonly availableEditors: ReadonlyArray<ExternalEditor>
   readonly selectedExternalEditor?: ExternalEditor
@@ -61,7 +63,7 @@ interface IPreferencesState {
 export class Preferences extends React.Component<
   IPreferencesProps,
   IPreferencesState
-> {
+  > {
   public constructor(props: IPreferencesProps) {
     super(props)
 
@@ -75,6 +77,7 @@ export class Preferences extends React.Component<
       confirmRepositoryRemoval: false,
       confirmDiscardChanges: false,
       confirmForcePush: false,
+      useWorkspaceFileInVSCode: false,
       automaticallySwitchTheme: false,
       selectedExternalEditor: this.props.selectedExternalEditor,
       availableShells: [],
@@ -123,6 +126,7 @@ export class Preferences extends React.Component<
       confirmRepositoryRemoval: this.props.confirmRepositoryRemoval,
       confirmDiscardChanges: this.props.confirmDiscardChanges,
       confirmForcePush: this.props.confirmForcePush,
+      useWorkspaceFileInVSCode: this.props.useWorkspaceFileInVSCode,
       availableShells,
       availableEditors,
       mergeTool,
@@ -232,6 +236,7 @@ export class Preferences extends React.Component<
             confirmRepositoryRemoval={this.state.confirmRepositoryRemoval}
             confirmDiscardChanges={this.state.confirmDiscardChanges}
             confirmForcePush={this.state.confirmForcePush}
+            useWorkspaceFileInVSCode={this.state.useWorkspaceFileInVSCode}
             availableEditors={this.state.availableEditors}
             selectedExternalEditor={this.state.selectedExternalEditor}
             onOptOutofReportingchanged={this.onOptOutofReportingChanged}
@@ -240,6 +245,9 @@ export class Preferences extends React.Component<
             }
             onConfirmDiscardChangesChanged={this.onConfirmDiscardChangesChanged}
             onConfirmForcePushChanged={this.onConfirmForcePushChanged}
+            onUseWorkspaceFileInVSCodeChanged={
+              this.onUseWorkspaceFileInVSCodeChanged
+            }
             onSelectedEditorChanged={this.onSelectedEditorChanged}
             availableShells={this.state.availableShells}
             selectedShell={this.state.selectedShell}
@@ -269,6 +277,10 @@ export class Preferences extends React.Component<
 
   private onConfirmForcePushChanged = (value: boolean) => {
     this.setState({ confirmForcePush: value })
+  }
+
+  private onUseWorkspaceFileInVSCodeChanged = (value: boolean) => {
+    this.setState({ useWorkspaceFileInVSCode: value })
   }
 
   private onCommitterNameChanged = (committerName: string) => {
@@ -348,6 +360,10 @@ export class Preferences extends React.Component<
 
     await this.props.dispatcher.setConfirmForcePushSetting(
       this.state.confirmForcePush
+    )
+
+    await this.props.dispatcher.setUseWorkspaceFileInVSCodeSetting(
+      this.state.useWorkspaceFileInVSCode
     )
 
     if (this.state.selectedExternalEditor) {

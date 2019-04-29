@@ -108,7 +108,7 @@ export class Dispatcher {
     private readonly repositoryStateManager: RepositoryStateCache,
     private readonly statsStore: StatsStore,
     private readonly commitStatusStore: CommitStatusStore
-  ) {}
+  ) { }
 
   /** Load the initial state for the app. */
   public loadInitialState(): Promise<void> {
@@ -897,7 +897,7 @@ export class Dispatcher {
 
     log.info(
       `[rebase] completed rebase - got ${result} and on tip ${afterSha} - kind ${
-        tip.kind
+      tip.kind
       }`
     )
 
@@ -928,7 +928,7 @@ export class Dispatcher {
       if (tip.kind !== TipState.Valid) {
         log.warn(
           `[rebase] tip after completing rebase is ${
-            tip.kind
+          tip.kind
           } but this should be a valid tip if the rebase completed without error`
         )
         return
@@ -992,7 +992,7 @@ export class Dispatcher {
 
     log.info(
       `[continueRebase] completed rebase - got ${result} and on tip ${afterSha} - kind ${
-        tip.kind
+      tip.kind
       }`
     )
 
@@ -1024,7 +1024,7 @@ export class Dispatcher {
       if (tip.kind !== TipState.Valid) {
         log.warn(
           `[continueRebase] tip after completing rebase is ${
-            tip.kind
+          tip.kind
           } but this should be a valid tip if the rebase completed without error`
         )
         return
@@ -1428,7 +1428,7 @@ export class Dispatcher {
         const unknownAction: IUnknownAction = action
         log.warn(
           `Unknown URL action: ${
-            unknownAction.name
+          unknownAction.name
           } - payload: ${JSON.stringify(unknownAction)}`
         )
     }
@@ -1818,6 +1818,10 @@ export class Dispatcher {
 
   public setConfirmForcePushSetting(value: boolean) {
     return this.appStore._setConfirmForcePushSetting(value)
+  }
+
+  public setUseWorkspaceFileInVSCodeSetting(value: boolean) {
+    return this.appStore._setUseWorkspaceFileInVSCodeSetting(value)
   }
 
   /**

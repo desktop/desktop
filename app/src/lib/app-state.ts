@@ -47,15 +47,15 @@ export enum SelectionType {
 
 export type PossibleSelections =
   | {
-      type: SelectionType.Repository
-      repository: Repository
-      state: IRepositoryState
-    }
+    type: SelectionType.Repository
+    repository: Repository
+    state: IRepositoryState
+  }
   | {
-      type: SelectionType.CloningRepository
-      repository: CloningRepository
-      progress: ICloneProgress
-    }
+    type: SelectionType.CloningRepository
+    repository: CloningRepository
+    progress: ICloneProgress
+  }
   | { type: SelectionType.MissingRepository; repository: Repository }
 
 /** All of the shared app state. */
@@ -175,6 +175,9 @@ export interface IAppState {
 
   /** Should the app prompt the user to confirm a force push? */
   readonly askForConfirmationOnForcePush: boolean
+
+  /** Whether we use workspase file when we launch Visual Studio Code */
+  readonly useWorkspaceFileInVSCode: boolean
 
   /** The external editor to use when opening repositories */
   readonly selectedExternalEditor?: ExternalEditor

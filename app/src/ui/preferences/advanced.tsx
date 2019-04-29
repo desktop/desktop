@@ -16,6 +16,7 @@ interface IAdvancedPreferencesProps {
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
   readonly confirmForcePush: boolean
+  readonly useWorkspaceFileInVSCode: boolean
   readonly availableEditors: ReadonlyArray<ExternalEditor>
   readonly selectedExternalEditor?: ExternalEditor
   readonly availableShells: ReadonlyArray<Shell>
@@ -24,6 +25,7 @@ interface IAdvancedPreferencesProps {
   readonly onConfirmDiscardChangesChanged: (checked: boolean) => void
   readonly onConfirmRepositoryRemovalChanged: (checked: boolean) => void
   readonly onConfirmForcePushChanged: (checked: boolean) => void
+  readonly onUseWorkspaceFileInVSCodeChanged: (checked: boolean) => void
   readonly onSelectedEditorChanged: (editor: ExternalEditor) => void
   readonly onSelectedShellChanged: (shell: Shell) => void
 
@@ -39,12 +41,13 @@ interface IAdvancedPreferencesState {
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
   readonly confirmForcePush: boolean
+  readonly useWorkspaceFileInVSCode: boolean
 }
 
 export class Advanced extends React.Component<
   IAdvancedPreferencesProps,
   IAdvancedPreferencesState
-> {
+  > {
   public constructor(props: IAdvancedPreferencesProps) {
     super(props)
 
@@ -53,6 +56,7 @@ export class Advanced extends React.Component<
       confirmRepositoryRemoval: this.props.confirmRepositoryRemoval,
       confirmDiscardChanges: this.props.confirmDiscardChanges,
       confirmForcePush: this.props.confirmForcePush,
+      useWorkspaceFileInVSCode: this.props.useWorkspaceFileInVSCode,
       selectedExternalEditor: this.props.selectedExternalEditor,
       selectedShell: this.props.selectedShell,
     }
@@ -123,6 +127,15 @@ export class Advanced extends React.Component<
     this.props.onConfirmRepositoryRemovalChanged(value)
   }
 
+  private onUseWorkspaceFileInVSCodeChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    const value = event.currentTarget.checked
+
+    this.setState({ useWorkspaceFileInVSCode: value })
+    this.props.onUseWorkspaceFileInVSCodeChanged(value)
+  }
+
   private onSelectedEditorChanged = (
     event: React.FormEvent<HTMLSelectElement>
   ) => {
@@ -186,6 +199,28 @@ export class Advanced extends React.Component<
     )
   }
 
+  private renderUseWorkspaceFileInVSCode() {
+    const { selectedExternalEditor } = this.state
+    const isVisualStudioCode = selectedExternalEditor === 'Visual Studio Code'
+      || 'Visual Studio Code (Insiders)'
+
+    if (isVisualStudioCode) {
+      return (
+        <Row>
+          <Checkbox
+            label="Use workspace file in repository root folder"
+            value={
+              this.state.useWorkspaceFileInVSCode ? CheckboxValue.On : CheckboxValue.Off
+            }
+            onChange={this.onUseWorkspaceFileInVSCodeChanged}
+          />
+        </Row>
+      )
+    }
+
+    return null
+  }
+
   private renderSelectedShell() {
     const options = this.props.availableShells
 
@@ -238,6 +273,7 @@ export class Advanced extends React.Component<
     return (
       <DialogContent>
         <Row>{this.renderExternalEditor()}</Row>
+        {this.renderUseWorkspaceFileInVSCode()}
         <Row>{this.renderSelectedShell()}</Row>
         {this.renderMergeTool()}
         <Row>
