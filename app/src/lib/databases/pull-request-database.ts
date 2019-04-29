@@ -161,6 +161,6 @@ export class PullRequestDatabase extends BaseDatabase {
       .between([repository.dbID], [repository.dbID + 1])
       .last()
 
-    return last ? new Date(last.updatedAt) : null
+    return last !== undefined ? new Date(last.updatedAt) : null
   }
 }
