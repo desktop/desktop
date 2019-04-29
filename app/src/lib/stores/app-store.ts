@@ -1679,6 +1679,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     let labels: MenuLabelsEvent = {
       selectedShell: this.selectedShell,
       externalEditor: this.selectedExternalEditor || null,
+      askForConfirmationOnRepositoryRemoval: this.confirmRepoRemoval,
+      askForConfirmationOnForcePush: this.askForConfirmationOnForcePush,
     }
 
     if (state === null) {
@@ -1690,19 +1692,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const { defaultBranch, currentPullRequest } = branchesState
 
     const defaultBranchName =
-      defaultBranch == null || defaultBranch.upstreamWithoutRemote == null
+      defaultBranch === null || defaultBranch.upstreamWithoutRemote === null
         ? undefined
         : defaultBranch.upstreamWithoutRemote
 
     updatePreferredAppMenuItemLabels({
       ...labels,
       defaultBranchName,
-      askForConfirmationOnRepositoryRemoval: this.confirmRepoRemoval,
       isForcePushForCurrentRepository: isCurrentBranchForcePush(
         branchesState,
         aheadBehind
       ),
-      askForConfirmationOnForcePush: this.askForConfirmationOnForcePush,
       isStashedChangesVisible:
         changesState.selection.kind === ChangesSelectionKind.Stash,
       hasCurrentPullRequest: currentPullRequest !== null,
