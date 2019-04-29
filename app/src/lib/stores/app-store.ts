@@ -327,18 +327,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
    */
   private appIsFocused: boolean = false
 
-  private sidebarWidth: number = getNumber(
-    sidebarWidthConfigKey,
-    defaultSidebarWidth
-  )
-  private commitSummaryWidth: number = getNumber(
-    commitSummaryWidthConfigKey,
-    defaultCommitSummaryWidth
-  )
-  private stashedFilesWidth: number = getNumber(
-    stashedFilesWidthConfigKey,
-    defaultStashedFilesWidth
-  )
+  private sidebarWidth: number = defaultSidebarWidth
+  private commitSummaryWidth: number = defaultCommitSummaryWidth
+  private stashedFilesWidth: number = defaultStashedFilesWidth
   private windowState: WindowState
   private windowZoomFactor: number = 1
   private isUpdateAvailableBannerVisible: boolean = false
