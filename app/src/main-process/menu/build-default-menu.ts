@@ -35,8 +35,8 @@ enum ZoomDirection {
 }
 
 export function buildDefaultMenu({
-  editorLabel = defaultEditorLabel,
-  shellLabel = defaultShellLabel,
+  externalEditor,
+  selectedShell,
   hasCurrentPullRequest = false,
   defaultBranchName = defaultBranchNameDefaultValue,
   askForConfirmationOnRepositoryRemoval = false,
@@ -53,6 +53,12 @@ export function buildDefaultMenu({
   const pullRequestLabel = hasCurrentPullRequest
     ? showPullRequestLabel
     : defaultPullRequestLabel
+
+  const shellLabel =
+    selectedShell === null ? defaultShellLabel : `Open in ${selectedShell}`
+
+  const editorLabel =
+    externalEditor === null ? defaultEditorLabel : `Open in ${externalEditor}`
 
   const template = new Array<Electron.MenuItemConstructorOptions>()
   const separator: Electron.MenuItemConstructorOptions = { type: 'separator' }

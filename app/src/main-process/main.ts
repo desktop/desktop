@@ -233,7 +233,9 @@ app.on('ready', () => {
 
   createWindow()
 
-  Menu.setApplicationMenu(buildDefaultMenu({}))
+  Menu.setApplicationMenu(
+    buildDefaultMenu({ selectedShell: null, externalEditor: null })
+  )
 
   ipcMain.on(
     'update-preferred-app-menu-item-labels',

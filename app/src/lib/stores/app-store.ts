@@ -1676,44 +1676,37 @@ export class AppStore extends TypedBaseStore<IAppState> {
    *              being cloned or is missing
    */
   private updateMenuItemLabels(state: IRepositoryState | null) {
-    const shellLabel = `Open in ${this.selectedShell}`
-
     let labels: MenuLabelsEvent = {
-      shellLabel,
+      selectedShell: this.selectedShell,
+      externalEditor: this.selectedExternalEditor || null,
     }
 
-    if (this.selectedExternalEditor !== undefined) {
-      labels = {
-        ...labels,
-        editorLabel: `Open in ${this.selectedExternalEditor}`,
-      }
+    if (state === null) {
+      updatePreferredAppMenuItemLabels(labels)
+      return
     }
 
-    if (state !== null) {
-      const { changesState, branchesState, aheadBehind } = state
-      const { defaultBranch, currentPullRequest } = branchesState
+    const { changesState, branchesState, aheadBehind } = state
+    const { defaultBranch, currentPullRequest } = branchesState
 
-      const defaultBranchName =
-        defaultBranch == null || defaultBranch.upstreamWithoutRemote == null
-          ? undefined
-          : defaultBranch.upstreamWithoutRemote
+    const defaultBranchName =
+      defaultBranch == null || defaultBranch.upstreamWithoutRemote == null
+        ? undefined
+        : defaultBranch.upstreamWithoutRemote
 
-      labels = {
-        ...labels,
-        defaultBranchName,
-        askForConfirmationOnRepositoryRemoval: this.confirmRepoRemoval,
-        isForcePushForCurrentRepository: isCurrentBranchForcePush(
-          branchesState,
-          aheadBehind
-        ),
-        askForConfirmationOnForcePush: this.askForConfirmationOnForcePush,
-        isStashedChangesVisible:
-          changesState.selection.kind === ChangesSelectionKind.Stash,
-        hasCurrentPullRequest: currentPullRequest !== null,
-      }
-    }
-
-    updatePreferredAppMenuItemLabels(labels)
+    updatePreferredAppMenuItemLabels({
+      ...labels,
+      defaultBranchName,
+      askForConfirmationOnRepositoryRemoval: this.confirmRepoRemoval,
+      isForcePushForCurrentRepository: isCurrentBranchForcePush(
+        branchesState,
+        aheadBehind
+      ),
+      askForConfirmationOnForcePush: this.askForConfirmationOnForcePush,
+      isStashedChangesVisible:
+        changesState.selection.kind === ChangesSelectionKind.Stash,
+      hasCurrentPullRequest: currentPullRequest !== null,
+    })
   }
 
   private updateRepositorySelectionAfterRepositoriesChanged() {
