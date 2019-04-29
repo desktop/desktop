@@ -8,6 +8,7 @@ import { ensureDir } from 'fs-extra'
 import { log } from '../log'
 import { openDirectorySafe } from '../shell'
 import { enableRebaseDialog, enableStashing } from '../../lib/feature-flag'
+import { MenuLabelsEvent } from '../../models/menu-labels'
 
 const defaultEditorLabel = __DARWIN__
   ? 'Open in External Editor'
@@ -29,17 +30,6 @@ enum ZoomDirection {
   Out,
 }
 
-export type MenuLabels = {
-  editorLabel?: string
-  shellLabel?: string
-  pullRequestLabel?: string
-  defaultBranchName?: string
-  removeRepoLabel?: string
-  isForcePushForCurrentRepository?: boolean
-  askForConfirmationOnForcePush?: boolean
-  isStashedChangesVisible?: boolean
-}
-
 export function buildDefaultMenu({
   editorLabel = defaultEditorLabel,
   shellLabel = defaultShellLabel,
@@ -49,7 +39,7 @@ export function buildDefaultMenu({
   isForcePushForCurrentRepository = false,
   askForConfirmationOnForcePush = false,
   isStashedChangesVisible = false,
-}: MenuLabels): Electron.Menu {
+}: MenuLabelsEvent): Electron.Menu {
   defaultBranchName = truncateWithEllipsis(defaultBranchName, 25)
 
   const template = new Array<Electron.MenuItemConstructorOptions>()

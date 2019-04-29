@@ -222,8 +222,8 @@ import {
 import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
 import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
-import { MenuLabels } from '../../main-process/menu'
 import { arrayEquals } from '../equality'
+import { MenuLabelsEvent } from '../../models/menu-labels'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -1679,7 +1679,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const shellLabel = `Open in ${this.selectedShell}`
     const removeRepoLabel = this.getRemoveRepoLabel()
 
-    let labels: MenuLabels = {
+    let labels: MenuLabelsEvent = {
       shellLabel,
       removeRepoLabel,
     }
