@@ -63,7 +63,7 @@ function chooseWorkspaceFileToOpen(
     workspaceFilePath = files.pop()
   } else {
     const dialog = require('electron').remote.dialog;
-    const fileName = dialog.showOpenDialog({
+    const selectedAllFileName = dialog.showOpenDialog({
       properties: ['openFile'],
       title: 'Open Workspace',
       defaultPath: repoRootFolderPath,
@@ -72,7 +72,7 @@ function chooseWorkspaceFileToOpen(
       ]
     });
 
-    workspaceFilePath = fileName.pop()
+    workspaceFilePath = selectedAllFileName.pop()
   }
 
   return workspaceFilePath === undefined ? '' : workspaceFilePath
