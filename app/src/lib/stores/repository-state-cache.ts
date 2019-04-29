@@ -165,7 +165,6 @@ function getInitialRepositoryState(): IRepositoryState {
     rebaseState: {
       step: null,
       progress: null,
-      preview: null,
       commits: null,
       userHasResolvedConflicts: false,
     },
