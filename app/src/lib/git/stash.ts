@@ -172,9 +172,8 @@ export async function popStashEntry(
     // report an exit code of `1` and are not dropped after being applied.
     // so, we check for this case and drop them manually
     if (result.exitCode === 1) {
-      // because we use --quiet flag, we don't get output for
-      // successful stash pops that have conflicts
-      if (result.stderr.length > 0 || result.stdout.length > 0) {
+      if (result.stderr.length > 0) {
+        // rethrow, because anything in stderr should prevent the stash from being popped
         throw new GitError(result, args)
       }
 
