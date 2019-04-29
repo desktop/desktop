@@ -32,6 +32,12 @@ export async function launchExternalEditor(
   }
 }
 
+/**
+ * Open a given file or folder in Visual Studio Code.
+ *
+ * @param editor The external editor to launch.
+ * @param repoRootFolderPath The repositry root folder to pass as an argument when launching the editor.
+ */
 function launchVisualStudioCode(
   editor: FoundEditor,
   repoRootFolderPath: string
@@ -52,6 +58,12 @@ function launchVisualStudioCode(
   })
 }
 
+/**
+ * Choose workspace file to open in Visual Studio Code.
+ *
+ * @param files All workspace file in repositry root folder.
+ * @param repoRootFolderPath The repositry root folder to pass as an argument when launching the editor.
+ */
 function chooseWorkspaceFileToOpen(
   files: string[],
   repoRootFolderPath: string
@@ -78,6 +90,13 @@ function chooseWorkspaceFileToOpen(
   return workspaceFilePath === undefined ? '' : workspaceFilePath
 }
 
+/**
+ * Execute command to open a given file or folder in the desired external editor.
+ *
+ * @param editorPath The external editor path to launch.
+ * @param repoRootFolderPath The repositry root folder to pass as an argument when launching the editor.
+ * @param usesShell Whether we use shell when we launch the external editor.
+ */
 function spwanExternalEditor(
   editorPath: string,
   repoRootFolderPath: string,
