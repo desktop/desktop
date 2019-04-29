@@ -1,6 +1,6 @@
 import { ipcRenderer } from 'electron'
 import { ExecutableMenuItem } from '../models/app-menu'
-import { MenuIDs } from '../main-process/menu'
+import { MenuIDs } from '../models/menu-ids'
 import { IMenuItemState } from '../lib/menu-update'
 import { IMenuItem } from '../lib/menu-item'
 import { MenuLabelsEvent } from '../models/menu-labels'
