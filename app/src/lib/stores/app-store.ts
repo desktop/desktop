@@ -1692,13 +1692,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (state !== null) {
       labels = {
         ...labels,
-        pullRequestLabel: this.getPullRequestLabel(state),
         defaultBranchName: this.getDefaultBranchName(state),
         askForConfirmationOnRepositoryRemoval: this.confirmRepoRemoval,
         isForcePushForCurrentRepository: this.isCurrentBranchForcePush(state),
         askForConfirmationOnForcePush: this.askForConfirmationOnForcePush,
         isStashedChangesVisible:
           state.changesState.selection.kind === ChangesSelectionKind.Stash,
+        hasCurrentPullRequest: state.branchesState.currentPullRequest !== null,
       }
     }
 
@@ -1708,14 +1708,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private isCurrentBranchForcePush(state: IRepositoryState) {
     const { branchesState, aheadBehind } = state
     return isCurrentBranchForcePush(branchesState, aheadBehind)
-  }
-
-  private getPullRequestLabel(state: IRepositoryState) {
-    if (state.branchesState.currentPullRequest === null) {
-      return undefined
-    }
-
-    return __DARWIN__ ? 'Show Pull Request' : 'Show &pull request'
   }
 
   private getDefaultBranchName(state: IRepositoryState) {
