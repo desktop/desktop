@@ -19,12 +19,15 @@ export async function launchExternalEditor(
     const label = __DARWIN__ ? 'Preferences' : 'Options'
     throw new ExternalEditorError(
       `Could not find executable for '${editor.editor}' at path '${
-      editor.path
+        editor.path
       }'.  Please open ${label} and select an available editor.`,
       { openPreferences: true }
     )
   }
-  if (editor.editor === 'Visual Studio Code' || editor.editor === 'Visual Studio Code (Insiders)') {
+  if (
+    editor.editor === 'Visual Studio Code' ||
+    editor.editor === 'Visual Studio Code (Insiders)'
+  ) {
     launchVisualStudioCode(editor, fullPath)
   } else {
     const usesShell = editor.usesShell ? editor.usesShell : false
@@ -49,15 +52,18 @@ function launchVisualStudioCode(
     spwanExternalEditor(editor.path, repoRootFolderPath, usesShell)
   } else {
     const workspacePattern = join(repoRootFolderPath, '*.code-workspace')
-    const glob = require("glob")
+    const glob = require('glob')
 
     glob(workspacePattern, (error: Error, files: string[]) => {
       if (error) {
         throw error
-      }
-      else {
-        const workspaceFilePath = chooseWorkspaceFileToOpen(files, repoRootFolderPath)
-        const openTarget = workspaceFilePath === '' ? repoRootFolderPath : workspaceFilePath
+      } else {
+        const workspaceFilePath = chooseWorkspaceFileToOpen(
+          files,
+          repoRootFolderPath
+        )
+        const openTarget =
+          workspaceFilePath === '' ? repoRootFolderPath : workspaceFilePath
 
         spwanExternalEditor(editor.path, openTarget, usesShell)
       }
@@ -81,15 +87,13 @@ function chooseWorkspaceFileToOpen(
   } else if (files.length === 1) {
     workspaceFilePath = files.pop()
   } else {
-    const dialog = require('electron').remote.dialog;
+    const dialog = require('electron').remote.dialog
     const selectedAllFileName = dialog.showOpenDialog({
       properties: ['openFile'],
       title: 'Open Workspace',
       defaultPath: repoRootFolderPath,
-      filters: [
-        { name: 'Code Workspace', extensions: ['code-workspace'] }
-      ]
-    });
+      filters: [{ name: 'Code Workspace', extensions: ['code-workspace'] }],
+    })
 
     if (selectedAllFileName === undefined) {
       workspaceFilePath = ''

@@ -47,7 +47,7 @@ interface IAdvancedPreferencesState {
 export class Advanced extends React.Component<
   IAdvancedPreferencesProps,
   IAdvancedPreferencesState
-  > {
+> {
   public constructor(props: IAdvancedPreferencesProps) {
     super(props)
 
@@ -201,8 +201,9 @@ export class Advanced extends React.Component<
 
   private renderUseWorkspaceFileInVSCode() {
     const { selectedExternalEditor } = this.state
-    const isVisualStudioCode = selectedExternalEditor === 'Visual Studio Code'
-      || 'Visual Studio Code (Insiders)'
+    const isVisualStudioCode =
+      selectedExternalEditor === 'Visual Studio Code' ||
+      'Visual Studio Code (Insiders)'
 
     if (isVisualStudioCode) {
       return (
@@ -210,7 +211,9 @@ export class Advanced extends React.Component<
           <Checkbox
             label="Use workspace file in repository root folder"
             value={
-              this.state.useWorkspaceFileInVSCode ? CheckboxValue.On : CheckboxValue.Off
+              this.state.useWorkspaceFileInVSCode
+                ? CheckboxValue.On
+                : CheckboxValue.Off
             }
             onChange={this.onUseWorkspaceFileInVSCodeChanged}
           />

@@ -550,7 +550,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const compareURL = `${htmlURL}/compare/${
       branchTip.branch.upstreamWithoutRemote
-      }`
+    }`
     this.props.dispatcher.openInBrowser(compareURL)
   }
 
