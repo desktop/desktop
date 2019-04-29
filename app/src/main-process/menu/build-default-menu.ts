@@ -16,7 +16,7 @@ const defaultEditorLabel = __DARWIN__
 const defaultShellLabel = __DARWIN__
   ? 'Open in Terminal'
   : 'Open in Command Prompt'
-const defaultPullRequestLabel = __DARWIN__
+const createPullRequestLabel = __DARWIN__
   ? 'Create Pull Request'
   : 'Create &pull request'
 const showPullRequestLabel = __DARWIN__
@@ -25,8 +25,8 @@ const showPullRequestLabel = __DARWIN__
 const defaultBranchNameDefaultValue = __DARWIN__
   ? 'Default Branch'
   : 'default branch'
-const defaultConfirmRepositoryRemovalLabel = __DARWIN__ ? 'Remove…' : '&Remove…'
-const defaultRepositoryRemovalLabel = __DARWIN__ ? 'Remove' : '&Remove'
+const confirmRepositoryRemovalLabel = __DARWIN__ ? 'Remove…' : '&Remove…'
+const repositoryRemovalLabel = __DARWIN__ ? 'Remove' : '&Remove'
 
 enum ZoomDirection {
   Reset,
@@ -47,12 +47,12 @@ export function buildDefaultMenu({
   defaultBranchName = truncateWithEllipsis(defaultBranchName, 25)
 
   const removeRepoLabel = askForConfirmationOnRepositoryRemoval
-    ? defaultConfirmRepositoryRemovalLabel
-    : defaultRepositoryRemovalLabel
+    ? confirmRepositoryRemovalLabel
+    : repositoryRemovalLabel
 
   const pullRequestLabel = hasCurrentPullRequest
     ? showPullRequestLabel
-    : defaultPullRequestLabel
+    : createPullRequestLabel
 
   const shellLabel =
     selectedShell === null ? defaultShellLabel : `Open in ${selectedShell}`
