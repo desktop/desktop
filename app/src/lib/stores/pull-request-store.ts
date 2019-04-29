@@ -166,7 +166,7 @@ export class PullRequestStore {
     }
 
     // Reversing the results in place manually instead of using
-    // .reverse on the IndexedDB query has measured to have favorable
+    // .reverse on the IndexedDB query has been measured to have favorable
     // performance characteristics for repositories with a lot of pull
     // requests since it means Dexie is able to leverage the IndexedDB
     // getAll method as opposed to creating a reverse cursor. Reversing
