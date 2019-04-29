@@ -42,8 +42,15 @@ function launchVisualStudioCode(
   editor: FoundEditor,
   repoRootFolderPath: string
 ) {
+  const usesShell = editor.usesShell ? editor.usesShell : false
+  const useWorkspace = editor.useWorkspace ? editor.useWorkspace : false
+
+  if (!useWorkspace) {
+    spwanExternalEditor(editor.path, repoRootFolderPath, usesShell)
+  } else {
     const workspacePattern = join(repoRootFolderPath, '*.code-workspace')
     const glob = require("glob")
+
     glob(workspacePattern, (error: Error, files: string[]) => {
       if (error) {
         throw error
@@ -51,12 +58,12 @@ function launchVisualStudioCode(
       else {
         const workspaceFilePath = chooseWorkspaceFileToOpen(files, repoRootFolderPath)
         const openTarget = workspaceFilePath === '' ? repoRootFolderPath : workspaceFilePath
-      const usesShell = editor.usesShell ? editor.usesShell : false
 
         spwanExternalEditor(editor.path, openTarget, usesShell)
       }
     })
   }
+}
 
 /**
  * Choose workspace file to open in Visual Studio Code.
