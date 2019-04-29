@@ -257,17 +257,13 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
         continue
       }
 
-      const tabIndex = candidate.getAttribute('tabindex')
-      if (tabIndex !== null && tabIndex.length > 0) {
-        const ti = parseInt(tabIndex, 10)
-        if (!isNaN(ti) && ti > 0 && ti > maxTabIndex[0]) {
-          maxTabIndex = [ti, candidate]
-        }
-      }
+      const tabIndex = parseInt(candidate.getAttribute('tabindex') || '', 10)
 
-      if (
+      if (tabIndex > 0 && tabIndex > maxTabIndex[0]) {
+        maxTabIndex = [tabIndex, candidate]
+      } else if (
         !firstTabbable &&
-        (tabIndex === '0' || candidate.matches(inputSelector))
+        (tabIndex === 0 || candidate.matches(inputSelector))
       ) {
         firstTabbable = candidate
       } else if (!firstSubmitButton && candidate.matches(submitSelector)) {
