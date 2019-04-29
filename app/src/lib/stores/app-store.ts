@@ -1572,6 +1572,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       commitSummaryWidthConfigKey,
       defaultCommitSummaryWidth
     )
+    this.stashedFilesWidth = getNumber(
+      stashedFilesWidthConfigKey,
+      defaultStashedFilesWidth
+    )
 
     this.confirmRepoRemoval = getBoolean(
       confirmRepoRemovalKey,
