@@ -146,7 +146,11 @@ const Header: React.SFC<{
       <h3>Stashed changes</h3>
       <div className="row">
         <ButtonGroup destructive={false}>
-          <Button onClick={onRestoreClick} type="submit">
+          <Button
+            disabled={!isWorkingTreeClean}
+            onClick={onRestoreClick}
+            type="submit"
+          >
             Restore
           </Button>
           <Button onClick={onDiscardClick}>Discard</Button>

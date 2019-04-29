@@ -279,6 +279,7 @@ export class ToolbarDropdown extends React.Component<
         <div
           className="foldout"
           style={this.getFoldoutStyle()}
+          tabIndex={-1}
           onKeyDown={this.onFoldoutKeyDown}
         >
           {this.props.dropdownContentRenderer()}
