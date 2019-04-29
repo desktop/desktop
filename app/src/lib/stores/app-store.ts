@@ -1685,6 +1685,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
         defaultBranchName: this.getDefaultBranchName(state),
         isForcePushForCurrentRepository: this.isCurrentBranchForcePush(state),
         askForConfirmationOnForcePush: this.askForConfirmationOnForcePush,
+        isStashedChangesVisible:
+          state.changesState.selection.kind === ChangesSelectionKind.Stash,
       }
     }
 
@@ -2000,6 +2002,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }))
     this.emitUpdate()
 
+    this._hideStashedChanges(repository)
+
     if (selectedSection === RepositorySectionTab.History) {
       return this.refreshHistorySection(repository)
     } else if (selectedSection === RepositorySectionTab.Changes) {
@@ -2028,6 +2032,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       selectWorkingDirectoryFiles(state, files)
     )
 
+    this.updateMenuLabelsForSelectedRepository()
     this.emitUpdate()
     this.updateChangesWorkingDirectoryDiff(repository)
   }
@@ -2148,6 +2153,26 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
+  public _hideStashedChanges(repository: Repository) {
+    this.repositoryStateCache.updateChangesState(repository, state => {
+      const files = state.workingDirectory.files
+      const selectedFileIds = files
+        .filter(f => f.selection.getSelectionType() !== DiffSelectionType.None)
+        .map(f => f.id)
+
+      return {
+        selection: {
+          kind: ChangesSelectionKind.WorkingDirectory as ChangesSelectionKind.WorkingDirectory,
+          diff: null,
+          selectedFileIDs: selectedFileIds,
+        },
+      }
+    })
+    this.emitUpdate()
+
+    this.updateMenuLabelsForSelectedRepository()
+  }
+
   /**
    * Changes the selection in the changes view to the stash entry view and
    * optionally selects a particular file from the current stash entry.
@@ -2162,6 +2187,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     file?: CommittedFileChange | null
   ): Promise<void> {
+    this.repositoryStateCache.update(repository, () => ({
+      selectedSection: RepositorySectionTab.Changes,
+    }))
     this.repositoryStateCache.updateChangesState(repository, state => {
       let selectedStashedFile: CommittedFileChange | null = null
       const { stashEntry, selection } = state
@@ -2209,6 +2237,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     })
 
+    this.updateMenuLabelsForSelectedRepository()
     this.emitUpdate()
     this.updateChangesStashDiff(repository)
   }
