@@ -103,6 +103,7 @@ import {
 import { BannerType } from '../models/banner'
 import { StashAndSwitchBranch } from './stash-changes/stash-and-switch-branch-dialog'
 import { OverwriteStash } from './stash-changes/overwrite-stashed-changes-dialog'
+import { ConfirmDiscardStashDialog } from './stashing/confirm-discard-stash'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -1700,6 +1701,18 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispatcher={this.props.dispatcher}
             repository={repository}
             branchToCheckout={branchToCheckout}
+            onDismissed={this.onPopupDismissed}
+          />
+        )
+      }
+      case PopupType.ConfirmDiscardStash: {
+        const { repository, stash } = popup
+
+        return (
+          <ConfirmDiscardStashDialog
+            dispatcher={this.props.dispatcher}
+            repository={repository}
+            stash={stash}
             onDismissed={this.onPopupDismissed}
           />
         )

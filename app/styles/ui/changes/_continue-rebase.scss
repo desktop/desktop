@@ -10,6 +10,11 @@
   background-color: var(--box-alt-background-color);
   padding: var(--spacing);
 
+  .warning-untracked-files {
+    padding-top: var(--spacing-half);
+    text-align: center;
+  }
+
   .commit-button {
     max-width: 100%;
     display: flex;
