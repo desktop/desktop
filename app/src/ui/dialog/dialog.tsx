@@ -222,10 +222,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
       return
     }
 
-    if (
-      activeElement.hasAttribute('autofocus') &&
-      dialog.contains(activeElement)
-    ) {
+    if (activeElement.hasAttribute('autofocus')) {
       return
     }
 
