@@ -234,7 +234,12 @@ app.on('ready', () => {
   createWindow()
 
   Menu.setApplicationMenu(
-    buildDefaultMenu({ selectedShell: null, selectedExternalEditor: null })
+    buildDefaultMenu({
+      selectedShell: null,
+      selectedExternalEditor: null,
+      askForConfirmationOnRepositoryRemoval: false,
+      askForConfirmationOnForcePush: false,
+    })
   )
 
   ipcMain.on(

@@ -19,6 +19,16 @@ export type MenuLabelsEvent = {
   readonly selectedExternalEditor: ExternalEditor | null
 
   /**
+   * Has the use enabled "Show confirmation dialog before force pushing"?
+   */
+  readonly askForConfirmationOnForcePush: boolean
+
+  /**
+   * Has the use enabled "Show confirmation dialog before removing repositories"?
+   */
+  readonly askForConfirmationOnRepositoryRemoval: boolean
+
+  /**
    * Specify the default branch associated with the current repository.
    *
    * Omit this value to indicate that the default branch is unknown.
@@ -29,16 +39,6 @@ export type MenuLabelsEvent = {
    * Is the current branch in a state where it can be force pushed to the remote?
    */
   readonly isForcePushForCurrentRepository?: boolean
-
-  /**
-   * Has the use enabled "Show confirmation dialog before force pushing"?
-   */
-  readonly askForConfirmationOnForcePush?: boolean
-
-  /**
-   * Has the use enabled "Show confirmation dialog before removing repositories"?
-   */
-  readonly askForConfirmationOnRepositoryRemoval?: boolean
 
   /**
    * Specify whether a pull request is associated with the current branch.
