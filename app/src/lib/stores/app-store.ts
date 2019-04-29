@@ -1704,15 +1704,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
         ? undefined
         : defaultBranch.upstreamWithoutRemote
 
+    const isForcePushForCurrentRepository = isCurrentBranchForcePush(
+      branchesState,
+      aheadBehind
+    )
+
+    const isStashedChangesVisible =
+      changesState.selection.kind === ChangesSelectionKind.Stash
+
     updatePreferredAppMenuItemLabels({
       ...labels,
       defaultBranchName,
-      isForcePushForCurrentRepository: isCurrentBranchForcePush(
-        branchesState,
-        aheadBehind
-      ),
-      isStashedChangesVisible:
-        changesState.selection.kind === ChangesSelectionKind.Stash,
+      isForcePushForCurrentRepository,
+      isStashedChangesVisible,
       hasCurrentPullRequest: currentPullRequest !== null,
     })
   }
