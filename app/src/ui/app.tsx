@@ -1632,12 +1632,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
         const { changesState, rebaseState } = selectedState.state
         const { workingDirectory, conflictState } = changesState
-        const {
-          progress,
-          step,
-          preview,
-          userHasResolvedConflicts,
-        } = rebaseState
+        const { progress, step, userHasResolvedConflicts } = rebaseState
 
         if (conflictState !== null && conflictState.kind === 'merge') {
           log.warn(
@@ -1662,7 +1657,6 @@ export class App extends React.Component<IAppProps, IAppState> {
             workingDirectory={workingDirectory}
             progress={progress}
             step={step}
-            preview={preview}
             userHasResolvedConflicts={userHasResolvedConflicts}
             askForConfirmationOnForcePush={
               this.state.askForConfirmationOnForcePush

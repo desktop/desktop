@@ -144,7 +144,6 @@ import {
   PushOptions,
   RebaseResult,
   getRebaseSnapshot,
-  getCommitsInRange,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -223,7 +222,6 @@ import {
 import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
 import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
-import { RebasePreview } from '../../models/rebase'
 import { MenuLabels } from '../../main-process/menu'
 import { arrayEquals } from '../equality'
 
@@ -1572,6 +1570,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       commitSummaryWidthConfigKey,
       defaultCommitSummaryWidth
     )
+    this.stashedFilesWidth = getNumber(
+      stashedFilesWidthConfigKey,
+      defaultStashedFilesWidth
+    )
 
     this.confirmRepoRemoval = getBoolean(
       confirmRepoRemovalKey,
@@ -2173,7 +2175,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       return {
         selection: {
-          kind: ChangesSelectionKind.WorkingDirectory as ChangesSelectionKind.WorkingDirectory,
+          kind: ChangesSelectionKind.WorkingDirectory,
           diff: null,
           selectedFileIDs: selectedFileIds,
         },
@@ -2241,7 +2243,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       return {
         selection: {
-          kind: ChangesSelectionKind.Stash as ChangesSelectionKind.Stash,
+          kind: ChangesSelectionKind.Stash,
           selectedStashedFile,
           selectedStashedFileDiff: null,
         },
@@ -2281,7 +2283,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (file === null) {
       this.repositoryStateCache.updateChangesState(repository, () => ({
         selection: {
-          kind: ChangesSelectionKind.Stash as ChangesSelectionKind.Stash,
+          kind: ChangesSelectionKind.Stash,
           selectedStashedFile: null,
           selectedStashedFileDiff: null,
         },
@@ -2306,7 +2308,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.repositoryStateCache.updateChangesState(repository, () => ({
       selection: {
-        kind: ChangesSelectionKind.Stash as ChangesSelectionKind.Stash,
+        kind: ChangesSelectionKind.Stash,
         selectedStashedFile: file,
         selectedStashedFileDiff: diff,
       },
@@ -3926,61 +3928,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       commits: null,
       preview: null,
       userHasResolvedConflicts: false,
-    }))
-
-    this.emitUpdate()
-  }
-
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _previewRebase(
-    repository: Repository,
-    baseBranch: Branch,
-    targetBranch: Branch
-  ) {
-    let preview: RebasePreview = {
-      kind: ComputedAction.Loading,
-    }
-
-    this.repositoryStateCache.updateRebaseState(repository, () => ({
-      preview,
-    }))
-
-    this.emitUpdate()
-
-    const commits = await getCommitsInRange(
-      repository,
-      baseBranch.tip.sha,
-      targetBranch.tip.sha
-    )
-
-    // TODO: in what situations might this not be possible to compute?
-
-    const base = await getMergeBase(
-      repository,
-      baseBranch.tip.sha,
-      targetBranch.tip.sha
-    )
-
-    if (base === baseBranch.tip.sha) {
-      // the target branch is a direct descendant of the base branch
-      // which means the target branch is already up to date
-      preview = {
-        kind: ComputedAction.Clean,
-        commits: [],
-      }
-    } else {
-      preview = {
-        kind: ComputedAction.Clean,
-        commits,
-      }
-    }
-
-    // TODO: generate the patches associated with these commits and see if
-    //       they will apply to the base branch - if it fails, there will be
-    //       conflicts to come
-
-    this.repositoryStateCache.updateRebaseState(repository, () => ({
-      preview,
     }))
 
     this.emitUpdate()

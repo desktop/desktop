@@ -35,7 +35,7 @@ import { ApplicationTheme } from '../ui/lib/application-theme'
 import { IAccountRepositories } from './stores/api-repositories-store'
 import { ManualConflictResolution } from '../models/manual-conflict-resolution'
 import { Banner } from '../models/banner'
-import { GitRebaseProgress, RebasePreview } from '../models/rebase'
+import { GitRebaseProgress } from '../models/rebase'
 import { RebaseFlowStep } from '../models/rebase-flow-step'
 import { IStashEntry } from '../models/stash-entry'
 
@@ -471,16 +471,6 @@ export interface IRebaseState {
    * `null` indicates that there is no rebase underway.
    */
   readonly step: RebaseFlowStep | null
-
-  /**
-   * A preview of the rebase, tested before performing the rebase itself, using
-   * the selected base branch to test whether the current branch will be cleanly
-   * applied.
-   *
-   * This will be set to `null` when no base branch has been selected to
-   * initiate the rebase.
-   */
-  readonly preview: RebasePreview | null
 
   /**
    * The underlying Git information associated with the current rebase
