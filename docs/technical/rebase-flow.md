@@ -155,8 +155,50 @@ files in the directory.
 
 ## Completing the rebase
 
-**TODO**: write a section about the decisions made here
+After detecting that the user has resolved all conflicts in the working
+directory - both in files with conflict markers and files requiring a manual
+resolution ("ours" or "theirs") - the rebase flow will determine what the next
+rebase action should be.
+
+After staging all the tracked files, if there are no changes in the index this
+means the current commit is a no-op and the changes it contains are already
+available in the base branch. This means the commit can be omitted by the
+rebase by running `git rebase --skip`.
+
+If there are changes in the index after staging all the changes, the rebase flow
+will run `git rebase --continue` to indicate the current commit should be
+updated and used in the rebased branch.
+
+And like before, the rebase flow will monitor the output from this new rebase
+command and report progress, until it either completes or encounters conflicts
+again.
+
+## Aborting the rebase
+
+If the rebase encounters conflicts, the user has the opportunity to abort the
+rebase if they feel uncomfortable with proceeding.
+
+If the user has resolved conflicts before trying to abort, the rebase flow will
+ask the user to confirm they wish to abort the rebase, as those changes will not
+be available if they proceed.
 
 ## Force Push
 
-**TODO**: write a section about the decisions made here
+When the rebase is completed, the application will update it's list of rebased
+branches to indicate that the current branch was updated by the user and is
+eligible to be "force pushed" to the remote repository.
+
+This has potential downsides, so there are additional checks as part of this
+work:
+
+ - only a branch that completed the rebase flow in Desktop will be eligible for
+ a "force push" operation - branches rebased outside Desktop will be ignored
+ - other branches which are ahead and behind will need to have these commits
+ resolved before any commits can be pushed. Depending on your Git configuration,
+ this could be a `pull with rebase` or a `pull with merge` commit
+ - if the user has enabled "Show Confirmation Dialog before Force Pushing"
+ (enabled by default), the user will see a prompt that explains the downstream
+ impact of rewriting the branch for other contributors
+ - when Desktop invokes `git push` it will also pass the `--force-with-lease`
+ flag that guards against the tracking branch being updated without the user
+ knowing, to avoid overwriting newer commits since the rebase was completed
