@@ -1690,32 +1690,30 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     if (state !== null) {
+      const { changesState, branchesState, aheadBehind } = state
+      const { defaultBranch, currentPullRequest } = branchesState
+
+      const defaultBranchName =
+        defaultBranch == null || defaultBranch.upstreamWithoutRemote == null
+          ? undefined
+          : defaultBranch.upstreamWithoutRemote
+
       labels = {
         ...labels,
-        defaultBranchName: this.getDefaultBranchName(state),
+        defaultBranchName,
         askForConfirmationOnRepositoryRemoval: this.confirmRepoRemoval,
-        isForcePushForCurrentRepository: this.isCurrentBranchForcePush(state),
+        isForcePushForCurrentRepository: isCurrentBranchForcePush(
+          branchesState,
+          aheadBehind
+        ),
         askForConfirmationOnForcePush: this.askForConfirmationOnForcePush,
         isStashedChangesVisible:
-          state.changesState.selection.kind === ChangesSelectionKind.Stash,
-        hasCurrentPullRequest: state.branchesState.currentPullRequest !== null,
+          changesState.selection.kind === ChangesSelectionKind.Stash,
+        hasCurrentPullRequest: currentPullRequest !== null,
       }
     }
 
     updatePreferredAppMenuItemLabels(labels)
-  }
-
-  private isCurrentBranchForcePush(state: IRepositoryState) {
-    const { branchesState, aheadBehind } = state
-    return isCurrentBranchForcePush(branchesState, aheadBehind)
-  }
-
-  private getDefaultBranchName(state: IRepositoryState) {
-    const { defaultBranch } = state.branchesState
-    if (defaultBranch == null || defaultBranch.upstreamWithoutRemote == null) {
-      return undefined
-    }
-    return defaultBranch.upstreamWithoutRemote
   }
 
   private updateRepositorySelectionAfterRepositoriesChanged() {
