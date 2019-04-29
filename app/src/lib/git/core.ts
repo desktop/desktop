@@ -149,16 +149,18 @@ export async function git(
   }
 
   // The caller should either handle this error, or expect that exit code.
-  const errorMessage = []
+  const errorMessage = new Array<string>()
   errorMessage.push(
     `\`git ${args.join(' ')}\` exited with an unexpected code: ${exitCode}.`
   )
 
   if (result.stdout) {
+    errorMessage.push('stdout:')
     errorMessage.push(result.stdout)
   }
 
   if (result.stderr) {
+    errorMessage.push('stderr:')
     errorMessage.push(result.stderr)
   }
 

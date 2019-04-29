@@ -9,6 +9,7 @@ import { IDiff, ImageDiffType } from '../../models/diff'
 import { Resizable } from '../resizable'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
+import { PopupType } from '../../models/popup'
 import { Octicon, OcticonSymbol } from '../octicons'
 
 interface IStashDiffViewerProps {
@@ -111,11 +112,14 @@ const Header: React.SFC<{
 }> = props => {
   const { dispatcher, repository, stashEntry, isWorkingTreeClean } = props
 
-  const onClearClick = () => {
-    dispatcher.dropStash(repository, stashEntry)
+  const onDiscardClick = () => {
+    props.dispatcher.showPopup({
+      type: PopupType.ConfirmDiscardStash,
+      repository: props.repository,
+      stash: props.stashEntry,
+    })
   }
-
-  const onSubmitClick = () => {
+  const onRestoreClick = () => {
     dispatcher.popStash(repository, stashEntry)
   }
 
@@ -132,19 +136,20 @@ const Header: React.SFC<{
     </>
   )
 
+  // we pass `false` to `ButtonGroup` below because it assumes
+  // the "submit" button performs the destructive action.
+  // In this case the destructive action is performed by the
+  // non-submit button so we _lie_ to the props to get
+  // the correct button ordering
   return (
     <div className="header">
       <h3>Stashed changes</h3>
       <div className="row">
-        <ButtonGroup destructive={true}>
-          <Button
-            onClick={onSubmitClick}
-            type="submit"
-            disabled={!isWorkingTreeClean}
-          >
+        <ButtonGroup destructive={false}>
+          <Button onClick={onRestoreClick} type="submit">
             Restore
           </Button>
-          <Button onClick={onClearClick}>Discard</Button>
+          <Button onClick={onDiscardClick}>Discard</Button>
         </ButtonGroup>
         <div className="explanatory-text">{restoreMessage}</div>
       </div>
