@@ -332,7 +332,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private windowZoomFactor: number = 1
   private isUpdateAvailableBannerVisible: boolean = false
 
-  private confirmRepoRemoval: boolean = confirmRepoRemovalDefault
+  private askForConfirmationOnRepositoryRemoval: boolean = confirmRepoRemovalDefault
   private confirmDiscardChanges: boolean = confirmDiscardChangesDefault
   private askForConfirmationOnForcePush = askForConfirmationOnForcePushDefault
   private imageDiffType: ImageDiffType = imageDiffTypeDefault
@@ -577,7 +577,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       highlightAccessKeys: this.highlightAccessKeys,
       isUpdateAvailableBannerVisible: this.isUpdateAvailableBannerVisible,
       currentBanner: this.currentBanner,
-      askForConfirmationOnRepositoryRemoval: this.confirmRepoRemoval,
+      askForConfirmationOnRepositoryRemoval: this
+        .askForConfirmationOnRepositoryRemoval,
       askForConfirmationOnDiscardChanges: this.confirmDiscardChanges,
       askForConfirmationOnForcePush: this.askForConfirmationOnForcePush,
       selectedExternalEditor: this.selectedExternalEditor,
@@ -1575,7 +1576,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       defaultStashedFilesWidth
     )
 
-    this.confirmRepoRemoval = getBoolean(
+    this.askForConfirmationOnRepositoryRemoval = getBoolean(
       confirmRepoRemovalKey,
       confirmRepoRemovalDefault
     )
@@ -1678,8 +1679,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private updateMenuItemLabels(state: IRepositoryState | null) {
     const labels: MenuLabelsEvent = {
       selectedShell: this.selectedShell,
-      externalEditor: this.selectedExternalEditor || null,
-      askForConfirmationOnRepositoryRemoval: this.confirmRepoRemoval,
+      selectedExternalEditor: this.selectedExternalEditor || null,
+      askForConfirmationOnRepositoryRemoval: this
+        .askForConfirmationOnRepositoryRemoval,
       askForConfirmationOnForcePush: this.askForConfirmationOnForcePush,
     }
 
@@ -4081,7 +4083,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _setConfirmRepositoryRemovalSetting(
     confirmRepoRemoval: boolean
   ): Promise<void> {
-    this.confirmRepoRemoval = confirmRepoRemoval
+    this.askForConfirmationOnRepositoryRemoval = confirmRepoRemoval
     setBoolean(confirmRepoRemovalKey, confirmRepoRemoval)
 
     this.updateMenuLabelsForSelectedRepository()

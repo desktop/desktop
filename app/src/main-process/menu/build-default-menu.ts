@@ -35,7 +35,7 @@ enum ZoomDirection {
 }
 
 export function buildDefaultMenu({
-  externalEditor,
+  selectedExternalEditor: externalEditor,
   selectedShell,
   hasCurrentPullRequest = false,
   defaultBranchName = defaultBranchNameDefaultValue,

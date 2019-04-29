@@ -16,7 +16,7 @@ export type MenuLabelsEvent = {
    * Specify `null` to indicate that it is not known currently, which will
    * default to a placeholder based on the current platform.
    */
-  readonly externalEditor: ExternalEditor | null
+  readonly selectedExternalEditor: ExternalEditor | null
 
   /**
    * Specify the default branch associated with the current repository.
