@@ -4767,7 +4767,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private findAssociatedPullRequest(
     branch: Branch,
     pullRequests: ReadonlyArray<PullRequest>,
-    gitHubRepository: GitHubRepository,
     remote: IRemote
   ): PullRequest | null {
     const upstream = branch.upstreamWithoutRemote
@@ -4803,7 +4802,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
         currentPullRequest = this.findAssociatedPullRequest(
           state.tip.branch,
           state.openPullRequests,
-          gitHubRepository,
           remote
         )
       }
