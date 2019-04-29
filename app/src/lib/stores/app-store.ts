@@ -1676,7 +1676,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
    *              being cloned or is missing
    */
   private updateMenuItemLabels(state: IRepositoryState | null) {
-    let labels: MenuLabelsEvent = {
+    const labels: MenuLabelsEvent = {
       selectedShell: this.selectedShell,
       externalEditor: this.selectedExternalEditor || null,
       askForConfirmationOnRepositoryRemoval: this.confirmRepoRemoval,
