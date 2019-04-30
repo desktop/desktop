@@ -92,6 +92,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   pullWithRebaseCount: 0,
   pullWithDefaultSettingCount: 0,
   rebaseCurrentBranchMenuCount: 0,
+  errorWhenSwitchingBranchesWithUncommmittedChanges: 0,
 }
 
 interface IOnboardingStats {
@@ -978,6 +979,19 @@ export class StatsStore implements IStatsStore {
   public async recordMergeAbortedAfterConflicts(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       mergeAbortedAfterConflictsCount: m.mergeAbortedAfterConflictsCount + 1,
+    }))
+  }
+
+  /**
+   * Record the number of times the user experiences the error
+   * "Some of your changes would be overwritten" when switching branches
+   */
+  public async recordErrorWhenSwitchingBranchesWithUncommmittedChanges(): Promise<
+    void
+  > {
+    return this.updateDailyMeasures(m => ({
+      errorWhenSwitchingBranchesWithUncommmittedChanges:
+        m.errorWhenSwitchingBranchesWithUncommmittedChanges + 1,
     }))
   }
 

@@ -175,6 +175,11 @@ export interface IDailyMeasures {
 
   /** The number of times the user opens the "Rebase current branch" menu item */
   readonly rebaseCurrentBranchMenuCount: number
+  /**
+   * The number of times the user is presented with the error
+   * message "Some of your changes would be overwritten"
+   */
+  readonly errorWhenSwitchingBranchesWithUncommmittedChanges: number
 }
 
 export class StatsDatabase extends Dexie {

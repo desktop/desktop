@@ -2041,4 +2041,11 @@ export class Dispatcher {
   public hideStashedChanges(repository: Repository) {
     return this.appStore._hideStashedChanges(repository)
   }
+
+  /**
+   * Increments the `errorWhenSwitchingBranchesWithUncommmittedChanges` metric
+   */
+  public recordErrorWhenSwitchingBranchesWithUncommmittedChanges() {
+    return this.statsStore.recordErrorWhenSwitchingBranchesWithUncommmittedChanges()
+  }
 }
