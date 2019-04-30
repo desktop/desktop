@@ -92,6 +92,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   pullWithRebaseCount: 0,
   pullWithDefaultSettingCount: 0,
   rebaseCurrentBranchMenuCount: 0,
+  stashesCreatedOutsideDesktop: 0,
   errorWhenSwitchingBranchesWithUncommmittedChanges: 0,
 }
 
@@ -979,6 +980,15 @@ export class StatsStore implements IStatsStore {
   public async recordMergeAbortedAfterConflicts(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       mergeAbortedAfterConflictsCount: m.mergeAbortedAfterConflictsCount + 1,
+    }))
+  }
+
+  /** Record the number of stash entries created outside of Desktop for the day */
+  public async recordStashesCreatedOutsideDesktop(
+    stashCount: number
+  ): Promise<void> {
+    return this.updateDailyMeasures(() => ({
+      stashesCreatedOutsideDesktop: stashCount,
     }))
   }
 
