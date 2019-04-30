@@ -984,11 +984,11 @@ export class StatsStore implements IStatsStore {
   }
 
   /** Record the number of stash entries created outside of Desktop for the day */
-  public async recordStashesCreatedOutsideDesktop(
+  public async addStashesCreatedOutsideDesktop(
     stashCount: number
   ): Promise<void> {
-    return this.updateDailyMeasures(() => ({
-      stashesCreatedOutsideDesktop: stashCount,
+    return this.updateDailyMeasures(m => ({
+      stashesCreatedOutsideDesktop: m.stashesCreatedOutsideDesktop + stashCount,
     }))
   }
 
