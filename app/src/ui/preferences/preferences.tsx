@@ -63,7 +63,7 @@ interface IPreferencesState {
 export class Preferences extends React.Component<
   IPreferencesProps,
   IPreferencesState
-  > {
+> {
   public constructor(props: IPreferencesProps) {
     super(props)
 

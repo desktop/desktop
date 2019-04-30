@@ -20,7 +20,7 @@ export async function launchExternalEditor(
     const label = __DARWIN__ ? 'Preferences' : 'Options'
     throw new ExternalEditorError(
       `Could not find executable for '${editor.editor}' at path '${
-      editor.path
+        editor.path
       }'.  Please open ${label} and select an available editor.`,
       { openPreferences: true }
     )
@@ -42,10 +42,7 @@ export async function launchExternalEditor(
  * @param editor The external editor to launch.
  * @param fullPath A folder or file path to pass as an argument when launching the editor.
  */
-function launchVisualStudioCode(
-  editor: FoundEditor,
-  fullPath: string
-) {
+function launchVisualStudioCode(editor: FoundEditor, fullPath: string) {
   const usesShell = editor.usesShell ? editor.usesShell : false
   const useWorkspace = editor.useWorkspace ? editor.useWorkspace : false
 
@@ -58,10 +55,7 @@ function launchVisualStudioCode(
       if (error) {
         throw error
       } else {
-        const workspaceFilePath = chooseWorkspaceFileToOpen(
-          files,
-          fullPath
-        )
+        const workspaceFilePath = chooseWorkspaceFileToOpen(files, fullPath)
         const openTarget =
           workspaceFilePath === '' ? fullPath : workspaceFilePath
 
@@ -77,10 +71,7 @@ function launchVisualStudioCode(
  * @param files All workspace file in repository root folder.
  * @param fullPath A folder or file path to pass as an argument when launching the editor.
  */
-function chooseWorkspaceFileToOpen(
-  files: string[],
-  fullPath: string
-): string {
+function chooseWorkspaceFileToOpen(files: string[], fullPath: string): string {
   let workspaceFilePath: string | undefined
   if (files.length === 0) {
     workspaceFilePath = ''
