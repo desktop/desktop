@@ -254,7 +254,7 @@ export class PullRequestStore {
         author: pr.user.login,
       }
 
-      if (pr.state === 'closed' || pr.state === 'merged') {
+      if (pr.state === 'closed') {
         prsToDelete.push(dbPr)
       } else {
         prsToUpsert.push(dbPr)
