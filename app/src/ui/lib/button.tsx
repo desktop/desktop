@@ -67,6 +67,7 @@ export interface IButtonProps {
   readonly role?: string
   readonly ariaExpanded?: boolean
   readonly ariaHasPopup?: boolean
+  readonly ariaSelected?: boolean
 }
 
 /**
@@ -132,6 +133,7 @@ export class Button extends React.Component<IButtonProps, {}> {
         role={this.props.role}
         aria-expanded={this.props.ariaExpanded}
         aria-haspopup={this.props.ariaHasPopup}
+        aria-selected={this.props.ariaSelected}
       >
         {this.props.children}
       </button>
