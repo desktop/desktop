@@ -288,7 +288,7 @@ describe('git/stash', () => {
         await FSE.writeFile(readme, Math.random()) // eslint-disable-line insecure-random
 
         const entryToApply = entries[0]
-        expect(
+        await expect(
           popStashEntry(repository, entryToApply.stashSha)
         ).rejects.toThrowError()
       })
