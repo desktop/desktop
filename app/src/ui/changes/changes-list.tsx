@@ -109,7 +109,7 @@ interface IChangesListProps {
   readonly focusCommitMessage: boolean
   readonly onDiscardChangesFromFiles: (
     files: ReadonlyArray<WorkingDirectoryFileChange>,
-    isDiscardingAllChanges?: boolean
+    isDiscardingAllChanges: boolean
   ) => void
 
   /** Callback that fires on page scroll to pass the new scrollTop location */
