@@ -1,6 +1,7 @@
 import { spawn } from 'child_process'
 import { pathExists } from 'fs-extra'
 import { join } from 'path'
+import * as glob from 'glob'
 import { ExternalEditorError, FoundEditor } from './shared'
 
 /**
@@ -19,7 +20,7 @@ export async function launchExternalEditor(
     const label = __DARWIN__ ? 'Preferences' : 'Options'
     throw new ExternalEditorError(
       `Could not find executable for '${editor.editor}' at path '${
-        editor.path
+      editor.path
       }'.  Please open ${label} and select an available editor.`,
       { openPreferences: true }
     )
@@ -52,9 +53,8 @@ function launchVisualStudioCode(
     spwanExternalEditor(editor.path, repoRootFolderPath, usesShell)
   } else {
     const workspacePattern = join(repoRootFolderPath, '*.code-workspace')
-    const glob = require('glob')
 
-    glob(workspacePattern, (error: Error, files: string[]) => {
+    glob(workspacePattern, (error, files) => {
       if (error) {
         throw error
       } else {
