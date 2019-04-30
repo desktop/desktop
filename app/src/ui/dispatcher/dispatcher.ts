@@ -334,17 +334,6 @@ export class Dispatcher {
     return this.appStore._closeFoldout(foldout)
   }
 
-  /**
-   * Compute a preview of the planned rebase action
-   */
-  public previewRebase(
-    repository: Repository,
-    baseBranch: Branch,
-    targetBranch: Branch
-  ) {
-    return this.appStore._previewRebase(repository, baseBranch, targetBranch)
-  }
-
   /** Initialize and start the rebase operation */
   public async startRebase(
     repository: Repository,
