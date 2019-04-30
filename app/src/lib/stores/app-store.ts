@@ -2530,20 +2530,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       refreshSectionPromise,
     ])
 
-    const lastStashEntryCheck = await this.repositoriesStore.getLastStashCheckDate(
-      repository
-    )
-
-    const dateNow = moment()
-    const threshold = dateNow.subtract(24, 'hours')
-    if (lastStashEntryCheck == null || threshold.isAfter(lastStashEntryCheck)) {
-      const { stashEntryCount, desktopStashEntryCount } = gitStore
-      const numEntriesCreatedOutsideDesktop = stashEntryCount - desktopStashEntryCount
-      this.statsStore.addStashesCreatedOutsideDesktop(
-        numEntriesCreatedOutsideDesktop
-      )
-      await this.repositoriesStore.updateLastStashCheckDate(repository)
-    }
+    await this.updateStashEntryCountMetric(repository, gitStore)
 
     this._updateCurrentPullRequest(repository)
 
@@ -2552,6 +2539,26 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this._initializeCompare(repository)
     this.refreshIndicatorsForRepositories([repository], false)
+  }
+
+  private async updateStashEntryCountMetric(
+    repository: Repository,
+    gitStore: GitStore
+  ) {
+    const lastStashEntryCheck = await this.repositoriesStore.getLastStashCheckDate(
+      repository
+    )
+    const dateNow = moment()
+    const threshold = dateNow.subtract(24, 'hours')
+    if (lastStashEntryCheck == null || threshold.isAfter(lastStashEntryCheck)) {
+      const { stashEntryCount, desktopStashEntryCount } = gitStore
+      const numEntriesCreatedOutsideDesktop =
+        stashEntryCount - desktopStashEntryCount
+      this.statsStore.addStashesCreatedOutsideDesktop(
+        numEntriesCreatedOutsideDesktop
+      )
+      await this.repositoriesStore.updateLastStashCheckDate(repository)
+    }
   }
 
   public refreshAllIndicators() {
