@@ -9,7 +9,7 @@ fieldset.vertical-segmented-control {
 
   legend {
     margin-bottom: var(--spacing-third);
-    padding: 0;
+    padding: 0 0 5px 0;
     @include ellipsis;
   }
 
