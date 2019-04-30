@@ -224,6 +224,7 @@ import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { MenuLabels } from '../../main-process/menu'
 import { arrayEquals } from '../equality'
+import moment = require('moment')
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -2528,6 +2529,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.refreshAuthor(repository),
       refreshSectionPromise,
     ])
+
+    const lastStashEntryCheck = await this.repositoriesStore.getLastStashCheckDate(
+      repository
+    )
+
+    const dateNow = moment()
+    const threshold = dateNow.subtract(24, 'hours')
+    if (lastStashEntryCheck == null || threshold.isAfter(lastStashEntryCheck)) {
+      const { stashEntryCount, desktopStashEntryCount } = gitStore
+      const numEntriesCreatedOutsideDesktop = stashEntryCount - desktopStashEntryCount
+      this.statsStore.addStashesCreatedOutsideDesktop(
+        numEntriesCreatedOutsideDesktop
+      )
+      await this.repositoriesStore.updateLastStashCheckDate(repository)
+    }
 
     this._updateCurrentPullRequest(repository)
 
