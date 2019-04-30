@@ -526,10 +526,10 @@ export class API {
 
     try {
       const prs = await this.fetchAll<IAPIPullRequest>(url, {
-        // We use the default page size here rather than 100 because we
+        // We use a page size smaller than our default 100 here because we
         // expect that the majority use case will return much less than
         // 100 results.
-        perPage: 30,
+        perPage: 20,
         continue(results) {
           // Given that we sort the results in descending order by their
           // updated_at field we can safely say that if the last item
