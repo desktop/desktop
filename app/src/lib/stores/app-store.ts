@@ -256,7 +256,7 @@ const stashedFilesWidthConfigKey: string = 'stashed-files-width'
 const confirmRepoRemovalDefault: boolean = true
 const confirmDiscardChangesDefault: boolean = true
 const askForConfirmationOnForcePushDefault = true
-const useWorkspaceFileInVSCodeDefault = false
+const useWorkspaceFileInVSCodeDefault = true
 const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
 const confirmDiscardChangesKey: string = 'confirmDiscardChanges'
 const confirmForcePushKey: string = 'confirmForcePush'
@@ -713,7 +713,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (this.currentAheadBehindUpdater != null) {
       fatalError(
         `An ahead/behind updater is already active and cannot start updating on ${
-          repository.name
+        repository.name
         }`
       )
 
@@ -768,8 +768,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // and it also exists in the repository
     const defaultBranch =
       currentBranch != null &&
-      cachedDefaultBranch != null &&
-      currentBranch.name !== cachedDefaultBranch.name
+        cachedDefaultBranch != null &&
+        currentBranch.name !== cachedDefaultBranch.name
         ? cachedDefaultBranch
         : null
 
@@ -986,7 +986,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         .catch(err => {
           log.warn(
             `Error occurred while trying to merge ${tip.branch.name} (${
-              tip.branch.tip.sha
+            tip.branch.tip.sha
             }) and ${action.branch.name} (${action.branch.tip.sha})`,
             err
           )
@@ -1364,7 +1364,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (this.currentBranchPruner !== null) {
       fatalError(
         `A branch pruner is already active and cannot start updating on ${
-          repository.name
+        repository.name
         }`
       )
 
@@ -1505,7 +1505,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (this.currentBackgroundFetcher) {
       fatalError(
         `We should only have on background fetcher active at once, but we're trying to start background fetching on ${
-          repository.name
+        repository.name
         } while another background fetcher is still active!`
       )
       return
@@ -1724,8 +1724,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
         ? 'Remove…'
         : '&Remove…'
       : __DARWIN__
-      ? 'Remove'
-      : '&Remove'
+        ? 'Remove'
+        : '&Remove'
   }
 
   private getPullRequestLabel(state: IRepositoryState) {
@@ -2221,7 +2221,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       const currentFiles =
         stashEntry !== null &&
-        stashEntry.files.kind === StashedChangesLoadStates.Loaded
+          stashEntry.files.kind === StashedChangesLoadStates.Loaded
           ? stashEntry.files.files
           : []
 
@@ -2308,7 +2308,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (
       changesStateAfterLoad.selection.kind !== ChangesSelectionKind.Stash ||
       changesStateAfterLoad.selection.selectedStashedFile !==
-        selectionBeforeLoad.selectedStashedFile
+      selectionBeforeLoad.selectedStashedFile
     ) {
       return
     }
@@ -2570,7 +2570,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const timeInSeconds = (delta / 1000).toFixed(3)
       log.info(
         `Background fetch for ${
-          repositories.length
+        repositories.length
         } repositories took ${timeInSeconds}sec`
       )
     }
@@ -2775,7 +2775,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       hasChanges &&
       currentBranch !== null &&
       uncommittedChangesStrategy ===
-        UncommittedChangesStrategy.askForConfirmation
+      UncommittedChangesStrategy.askForConfirmation
     ) {
       this._showPopup({
         type: PopupType.StashAndSwitchBranch,
@@ -2843,7 +2843,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       hasChanges &&
       currentBranch !== null &&
       uncommittedChangesStrategy ===
-        UncommittedChangesStrategy.askForConfirmation
+      UncommittedChangesStrategy.askForConfirmation
     ) {
       this._showPopup({
         type: PopupType.StashAndSwitchBranch,
@@ -2899,7 +2899,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       } else {
         log.info(
           `[AppStore._checkoutBranch] no stash found that matches ${
-            foundBranch.name
+          foundBranch.name
           }`
         )
       }
@@ -3438,14 +3438,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (eligibleBranches.length >= FastForwardBranchesThreshold) {
       log.info(
         `skipping fast-forward for all branches as there are ${
-          eligibleBranches.length
+        eligibleBranches.length
         } local branches - this will run again when there are less than ${FastForwardBranchesThreshold} local branches tracking remotes`
       )
 
       const defaultBranch = state.branchesState.defaultBranch
       eligibleBranches =
         defaultBranch != null &&
-        eligibleForFastForward(defaultBranch, currentBranchName)
+          eligibleForFastForward(defaultBranch, currentBranchName)
           ? [defaultBranch]
           : []
     }
@@ -3520,7 +3520,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           account.token.length > 0 ? 'has token' : 'empty token'
         log.info(
           `[AppStore.getAccountForRemoteURL] account found for remote: ${remote} - ${
-            account.login
+          account.login
           } (${hasValidToken})`
         )
         return account
@@ -4395,7 +4395,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _removeAccount(account: Account): Promise<void> {
     log.info(
       `[AppStore] removing account ${account.login} (${
-        account.name
+      account.name
       }) from store`
     )
     return this.accountsStore.removeAccount(account)
@@ -4577,7 +4577,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         account.token.length > 0 ? 'has token' : 'empty token'
       log.info(
         `[AppStore.withAuthenticatingUser] account found for repository: ${
-          repository.name
+        repository.name
         } - ${account.login} (${hasValidToken})`
       )
     }
@@ -4750,7 +4750,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const baseURL = `${gitHubRepository.htmlURL}/pull/${
       currentPullRequest.pullRequestNumber
-    }`
+      }`
 
     await this._openInBrowser(baseURL)
   }
@@ -4877,7 +4877,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const urlEncodedBranchName = escape(branch.nameWithoutRemote)
     const baseURL = `${
       gitHubRepository.htmlURL
-    }/pull/new/${urlEncodedBranchName}`
+      }/pull/new/${urlEncodedBranchName}`
 
     await this._openInBrowser(baseURL)
   }
@@ -4970,7 +4970,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       if (remote.url !== cloneURL) {
         const error = new Error(
           `Expected PR remote ${remoteName} url to be ${cloneURL} got ${
-            remote.url
+          remote.url
           }.`
         )
 
@@ -5139,7 +5139,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await dropDesktopStashEntry(repository, previousStash.stashSha)
     log.info(
       `Dropped stash '${previousStash.stashSha}' associated with ${
-        previousStash.branchName
+      previousStash.branchName
       }`
     )
 
@@ -5157,7 +5157,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
     log.info(
       `[AppStore. _popStashEntry] popped stash with commit id ${
-        stashEntry.stashSha
+      stashEntry.stashSha
       }`
     )
 
@@ -5178,7 +5178,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
     log.info(
       `[AppStore. _dropStashEntry] dropped stash with commit id ${
-        stashEntry.stashSha
+      stashEntry.stashSha
       }`
     )
 

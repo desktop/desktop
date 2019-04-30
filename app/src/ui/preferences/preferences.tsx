@@ -63,7 +63,7 @@ interface IPreferencesState {
 export class Preferences extends React.Component<
   IPreferencesProps,
   IPreferencesState
-> {
+  > {
   public constructor(props: IPreferencesProps) {
     super(props)
 
@@ -77,7 +77,7 @@ export class Preferences extends React.Component<
       confirmRepositoryRemoval: false,
       confirmDiscardChanges: false,
       confirmForcePush: false,
-      useWorkspaceFileInVSCode: false,
+      useWorkspaceFileInVSCode: true,
       automaticallySwitchTheme: false,
       selectedExternalEditor: this.props.selectedExternalEditor,
       availableShells: [],
