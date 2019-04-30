@@ -2551,6 +2551,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const dateNow = moment()
     const threshold = dateNow.subtract(24, 'hours')
     if (lastStashEntryCheck == null || threshold.isAfter(lastStashEntryCheck)) {
+      await this.repositoriesStore.updateLastStashCheckDate(repository)
+
       // `lastStashEntryCheck` being equal to null means we've never checked for
       // the given repo
       const { stashEntryCount, desktopStashEntryCount } = gitStore
@@ -2559,7 +2561,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.statsStore.addStashesCreatedOutsideDesktop(
         numEntriesCreatedOutsideDesktop
       )
-      await this.repositoriesStore.updateLastStashCheckDate(repository)
     }
   }
 
