@@ -2551,6 +2551,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const dateNow = moment()
     const threshold = dateNow.subtract(24, 'hours')
     if (lastStashEntryCheck == null || threshold.isAfter(lastStashEntryCheck)) {
+      // `lastStashEntryCheck` being equal to null means we've never checked for
+      // the given repo
       const { stashEntryCount, desktopStashEntryCount } = gitStore
       const numEntriesCreatedOutsideDesktop =
         stashEntryCount - desktopStashEntryCount
