@@ -34,15 +34,15 @@ describe('git/stash', () => {
     it('handles unborn repo by returning empty list', async () => {
       const repo = await setupEmptyRepository()
 
-      const entries = await getStash(repo)
+      const stash = await getStash(repo)
 
-      expect(entries).toHaveLength(0)
+      expect(stash.desktopEntries).toHaveLength(0)
     })
 
     it('returns an empty list when no stash entries have been created', async () => {
-      const entries = await getStash(repository)
+      const stash = await getStash(repository)
 
-      expect(entries).toHaveLength(0)
+      expect(stash.desktopEntries).toHaveLength(0)
     })
 
     it('returns all stash entries created by Desktop', async () => {
