@@ -94,7 +94,7 @@ export class OpenRepositoryInVSCode extends React.Component<
           <SelectFromLocationList
             locationList={this.getLocationList()}
             selectedLocationPath={this.state.selectedLocationPath}
-            onChanged={this.onSelectedLocationChanged}
+            onChange={this.onSelectedLocationChanged}
           />
         </DialogContent>
         <DialogFooter>

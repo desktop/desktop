@@ -8,7 +8,7 @@ interface ISelectFromLocationListProps {
   readonly locationList: ILocationList[]
 
   readonly selectedLocationPath: string
-  readonly onChanged: (location: string) => void
+  readonly onChange: (location: string) => void
 }
 
 export class SelectFromLocationList extends React.Component<
@@ -21,7 +21,7 @@ export class SelectFromLocationList extends React.Component<
   private onLocationChanged = (event: React.FormEvent<HTMLSelectElement>) => {
     const location = event.currentTarget.value
 
-    this.props.onChanged(location)
+    this.props.onChange(location)
   }
 
   public render() {
