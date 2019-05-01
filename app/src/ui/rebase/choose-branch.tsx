@@ -7,7 +7,13 @@ import { ComputedAction } from '../../models/computed-action'
 
 import { IMatches } from '../../lib/fuzzy-find'
 import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
-import { getCommitsInRange, getMergeBase } from '../../lib/git'
+import {
+  getCommitsInRange,
+  getMergeBase,
+  findOrCreateTemporaryWorkTree,
+  formatPatch,
+  checkPatch,
+} from '../../lib/git'
 
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
@@ -17,6 +23,26 @@ import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { BranchList, IBranchListItem, renderDefaultBranch } from '../branches'
 import { Dispatcher } from '../dispatcher'
 import { promiseWithMinimumTimeout } from '../../lib/promise'
+import { enableRebaseConflictDetection } from '../../lib/feature-flag'
+
+function canStartRebase(rebasePreview: RebasePreview | null) {
+  if (rebasePreview === null) {
+    return false
+  }
+
+  if (
+    rebasePreview.kind === ComputedAction.Loading ||
+    rebasePreview.kind === ComputedAction.Invalid
+  ) {
+    return false
+  }
+
+  if (rebasePreview.kind === ComputedAction.Conflicts) {
+    return true
+  }
+
+  return rebasePreview.commits.length > 0
+}
 
 interface IChooseBranchDialogProps {
   readonly dispatcher: Dispatcher
@@ -150,18 +176,46 @@ export class ChooseBranchDialog extends React.Component<
     // which means the target branch is already up to date and the commits
     // do not need to be applied
     const isDirectDescendant = base === baseBranch.tip.sha
-    const commitsOrIgnore = isDirectDescendant ? [] : commits
 
-    this.setState({
-      rebasePreview: {
-        kind: ComputedAction.Clean,
-        commits: commitsOrIgnore,
-      },
-    })
+    if (isDirectDescendant) {
+      this.setState({
+        rebasePreview: {
+          kind: ComputedAction.Clean,
+          commits: [],
+        },
+      })
+      return
+    }
 
-    // TODO: generate the patches associated with these commits and see if
-    //       they will apply to the base branch - if it fails, there will be
-    //       conflicts to come
+    if (enableRebaseConflictDetection()) {
+      const worktree = await findOrCreateTemporaryWorkTree(
+        repository,
+        baseBranch.tip.sha
+      )
+
+      const patch = await formatPatch(
+        repository,
+        baseBranch.tip.sha,
+        targetBranch.tip.sha
+      )
+
+      const result = await checkPatch(worktree, patch)
+
+      if (result) {
+        this.setState({
+          rebasePreview: {
+            kind: ComputedAction.Clean,
+            commits,
+          },
+        })
+      } else {
+        this.setState({
+          rebasePreview: {
+            kind: ComputedAction.Conflicts,
+          },
+        })
+      }
+    }
   }
 
   private onSelectionChanged = (selectedBranch: Branch | null) => {
@@ -185,16 +239,13 @@ export class ChooseBranchDialog extends React.Component<
       currentBranch === null ||
       currentBranch.name === selectedBranch.name
 
-    const noCommitsToRebase =
-      rebasePreview !== null && rebasePreview.kind === ComputedAction.Clean
-        ? rebasePreview.commits.length === 0
-        : true
+    const startRebase = canStartRebase(rebasePreview)
 
-    const disabled = selectedBranchIsNotCurrentBranch || noCommitsToRebase
+    const disabled = selectedBranchIsNotCurrentBranch || !startRebase
 
     const tooltip = selectedBranchIsNotCurrentBranch
       ? 'You are not able to rebase this branch onto itself'
-      : noCommitsToRebase
+      : startRebase // TODO: maybe this could be more granular?
       ? 'There are no commits on the current branch to rebase'
       : undefined
 
@@ -293,6 +344,9 @@ export class ChooseBranchDialog extends React.Component<
       )
     }
 
+    if (rebaseStatus.kind === ComputedAction.Conflicts) {
+      return this.renderConflictsWarningMessage(currentBranch, baseBranch)
+    }
     // TODO: other scenarios to display some context about
 
     return null
@@ -322,6 +376,20 @@ export class ChooseBranchDialog extends React.Component<
         This will update <strong>{currentBranch.name}</strong>
         {` by applying its `}
         <strong>{` ${commitsToRebase} ${pluralized}`}</strong>
+        {` on top of `}
+        <strong>{baseBranch.name}</strong>
+      </>
+    )
+  }
+
+  private renderConflictsWarningMessage(
+    currentBranch: Branch,
+    baseBranch: Branch
+  ) {
+    return (
+      <>
+        Conflicts will need to be resolved to apply the commits from{' '}
+        <strong>{currentBranch.name}</strong>
         {` on top of `}
         <strong>{baseBranch.name}</strong>
       </>
