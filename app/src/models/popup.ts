@@ -50,6 +50,7 @@ export enum PopupType {
   StashAndSwitchBranch,
   ConfirmOverwriteStash,
   ConfirmDiscardStash,
+  openRepositoryInVSCode,
 }
 
 export type Popup =
@@ -195,4 +196,8 @@ export type Popup =
       type: PopupType.ConfirmDiscardStash
       repository: Repository
       stash: IStashEntry
+    }
+  | {
+      type: PopupType.openRepositoryInVSCode
+      repositoryPath: string
     }

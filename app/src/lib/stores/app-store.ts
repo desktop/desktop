@@ -1,5 +1,6 @@
 import { ipcRenderer, remote } from 'electron'
 import { pathExists } from 'fs-extra'
+import { lstatSync } from 'fs'
 import { escape } from 'querystring'
 import {
   AccountsStore,
@@ -4139,6 +4140,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
         match.editor === 'Visual Studio Code (Insiders)'
       ) {
         match.useWorkspace = this.getState().useWorkspaceFileInVSCode
+      }
+
+      if (lstatSync(fullPath).isDirectory()) {
+        this._showPopup({
+          type: PopupType.openRepositoryInVSCode,
+          repositoryPath: fullPath,
+        })
       }
 
       await launchExternalEditor(fullPath, match)
