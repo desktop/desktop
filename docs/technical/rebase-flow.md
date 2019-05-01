@@ -61,7 +61,7 @@ there will be some words here eventually to help explain how the solution works.
 
 If the target branch is tracking a remote branch and the user has enabled the
 _Show confirmation dialog before force pushing_ setting, Desktop
-the rebase Desktop will check if any commits exist in the range
+will check if any commits exist in the range
 `<upstream_oid>..<remote_branch_oid>`, where `<remote_branch_oid>` is the tip of
 the tracking branch.
 
