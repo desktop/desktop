@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Row } from '../../ui/lib/row'
+import { Row } from '../lib/row'
 import { Select } from '../lib/select'
 import { ILocationList } from './open-repository-in-vscode'
 
@@ -20,17 +20,15 @@ export class SelectFromLocationList extends React.Component<
   public constructor(props: ISelectFromLocationListProps) {
     super(props)
 
-    const initialLocation = this.props.locationList[0]
-    let initialLocationPath: string
+    const { locationList } = this.props
+    const initialLocation = locationList.shift()
 
     if (initialLocation === undefined) {
-      initialLocationPath = ''
-    } else {
-      initialLocationPath = initialLocation.path
+      throw new Error('Could not find selected open target.')
     }
 
     this.state = {
-      selectedLocationPath: initialLocationPath,
+      selectedLocationPath: initialLocation.path,
     }
   }
 

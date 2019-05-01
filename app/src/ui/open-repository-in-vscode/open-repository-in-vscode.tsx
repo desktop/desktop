@@ -7,7 +7,7 @@ import { ExternalEditor, launchExternalEditor } from '../../lib/editors'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
-import { SelectFromLocationList } from './location-list'
+import { SelectFromLocationList } from './select-from-location-list'
 
 export interface ILocationList {
   /** The location name of the path to open the repository */
