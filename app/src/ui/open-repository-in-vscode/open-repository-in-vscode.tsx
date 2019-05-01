@@ -1,11 +1,21 @@
 import * as React from 'react'
+import { join } from 'path'
+import * as glob from 'glob'
+import { basename } from 'path'
 import { IFoundEditor } from '../../lib/editors/found-editor'
 import { ExternalEditor, launchVisualStudioCode } from '../../lib/editors'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
-import { Row } from '../../ui/lib/row'
-// import { Select } from '../lib/select'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
+import { SelectFromLocationList } from './location-list'
+
+export interface ILocationList {
+  /** The location name of the path to open the repository */
+  locationName: string
+
+  /** The path to open the repository */
+  path: string
+}
 
 interface IOpenRepositoryInVSCodeProps {
   /** The external editor to launch */
@@ -22,11 +32,30 @@ interface IOpenRepositoryInVSCodeProps {
 }
 
 export class OpenRepositoryInVSCode extends React.Component<
-  IOpenRepositoryInVSCodeProps,
-  {}
+  IOpenRepositoryInVSCodeProps
 > {
   public constructor(props: IOpenRepositoryInVSCodeProps) {
     super(props)
+  }
+
+  private getLocationList = () => {
+    const workspacePattern = join(this.props.repositoryPath, '*.code-workspace')
+    const locationList: ILocationList[] = [
+      {
+        locationName: __DARWIN__
+          ? 'The Repository Root Directory'
+          : 'The repository root directry',
+        path: this.props.repositoryPath,
+      },
+    ]
+
+    glob.sync(workspacePattern).map(filePath => {
+      locationList.push({
+        locationName: basename(filePath),
+        path: filePath,
+      })
+    })
+    return locationList
   }
 
   private submit = async () => {
@@ -35,7 +64,6 @@ export class OpenRepositoryInVSCode extends React.Component<
       this.props.repositoryPath,
       this.props.useWorkspaceFile
     )
-
     this.props.onDismissed()
   }
 
@@ -53,7 +81,7 @@ export class OpenRepositoryInVSCode extends React.Component<
         onDismissed={this.cancel}
       >
         <DialogContent>
-          <Row>Which location will you open?</Row>
+          <SelectFromLocationList locationList={this.getLocationList()} />
         </DialogContent>
         <DialogFooter>
           <ButtonGroup destructive={true}>
