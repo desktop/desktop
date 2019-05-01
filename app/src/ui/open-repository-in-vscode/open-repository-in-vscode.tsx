@@ -3,7 +3,7 @@ import { join } from 'path'
 import * as glob from 'glob'
 import { basename } from 'path'
 import { IFoundEditor } from '../../lib/editors/found-editor'
-import { ExternalEditor, launchVisualStudioCode } from '../../lib/editors'
+import { ExternalEditor, launchExternalEditor } from '../../lib/editors'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
@@ -23,9 +23,6 @@ interface IOpenRepositoryInVSCodeProps {
 
   /** The repository path */
   readonly repositoryPath: string
-
-  /** Whether we use workspase file when we launch Visual Studio Code */
-  readonly useWorkspaceFile: boolean
 
   /** The action to execute when the user cancels */
   readonly onDismissed: () => void
@@ -59,11 +56,7 @@ export class OpenRepositoryInVSCode extends React.Component<
   }
 
   private submit = async () => {
-    await launchVisualStudioCode(
-      this.props.editor,
-      this.props.repositoryPath,
-      this.props.useWorkspaceFile
-    )
+    await launchExternalEditor(this.props.repositoryPath, this.props.editor)
     this.props.onDismissed()
   }
 
