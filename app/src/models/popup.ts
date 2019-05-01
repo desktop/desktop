@@ -203,5 +203,4 @@ export type Popup =
       type: PopupType.openRepositoryInVSCode
       editor: IFoundEditor<ExternalEditor>
       repositoryPath: string
-      useWorkspaceFile: boolean
     }

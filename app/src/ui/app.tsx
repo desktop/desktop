@@ -1719,10 +1719,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         )
       }
       case PopupType.openRepositoryInVSCode: {
-        const { editor, repositoryPath, useWorkspaceFile } = popup
-        if (!useWorkspaceFile) {
-          return null
-        }
+        const { editor, repositoryPath } = popup
 
         return (
           <OpenRepositoryInVSCode

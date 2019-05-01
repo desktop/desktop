@@ -4149,7 +4149,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
           type: PopupType.openRepositoryInVSCode,
           editor: match,
           repositoryPath: fullPath,
-          useWorkspaceFile: useWorkspaceFileInVSCode,
         })
       } else {
         await launchExternalEditor(fullPath, match)
