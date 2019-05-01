@@ -10,23 +10,30 @@
   display: flex;
   flex-direction: column;
 
-  .list-focus-container.focus-within {
-    .list-item.selected {
+  .stash-focus-container {
+    &.focus-within .stashed-changes-row.selected {
+      --text-color: var(--box-selected-active-text-color);
+      --text-secondary-color: var(--box-selected-active-text-color);
+
+      color: var(--text-color);
+      background-color: var(--box-selected-active-background-color);
+
       .icon {
         fill: currentColor;
       }
     }
   }
 
-  .stash-entry-row {
-    border-top: var(--base-border);
-    border-bottom: 0;
-  }
+  .stashed-changes-row {
+    @include list-item;
 
-  .stash-entry-row-content {
     display: flex;
     flex-grow: 1;
     padding: 0 var(--spacing);
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    border-top: var(--base-border);
 
     .icon {
       fill: var(--color-modified);

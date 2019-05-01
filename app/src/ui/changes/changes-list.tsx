@@ -35,10 +35,10 @@ import { ICommitContext } from '../../models/commit'
 import { RebaseConflictState } from '../../lib/app-state'
 import { ContinueRebase } from './continue-rebase'
 import { enablePullWithRebase, enableStashing } from '../../lib/feature-flag'
-import { ListRow } from '../lib/list/list-row'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { FocusContainer } from '../lib/focus-container'
 import { IStashEntry } from '../../models/stash-entry'
+import * as classNames from 'classnames'
 
 const RowHeight = 29
 const StashListRowStyle: React.CSSProperties = {
@@ -641,24 +641,23 @@ export class ChangesList extends React.Component<
       return null
     }
 
+    const className = classNames(
+      'stashed-changes-row',
+      this.props.isShowingStashEntry ? 'selected' : null
+    )
+
     return (
-      <FocusContainer className="list-focus-container">
-        <ListRow
-          rowCount={1}
-          rowIndex={0}
-          selectable={true}
-          selected={this.props.isShowingStashEntry}
-          onRowClick={this.onStashEntryClicked}
-          tabIndex={0}
+      <FocusContainer className="stash-focus-container">
+        <div
+          className={className}
           style={StashListRowStyle}
-          className="stash-entry-row"
+          onClick={this.onStashEntryClicked}
+          tabIndex={0}
         >
-          <div className="stash-entry-row-content">
-            <Octicon className="icon" symbol={StashIcon} />
-            <div className="text">Stashed Changes</div>
-            <Octicon className="arrow" symbol={OcticonSymbol.chevronRight} />
-          </div>
-        </ListRow>
+          <Octicon className="icon" symbol={StashIcon} />
+          <div className="text">Stashed Changes</div>
+          <Octicon className="arrow" symbol={OcticonSymbol.chevronRight} />
+        </div>
       </FocusContainer>
     )
   }
