@@ -150,6 +150,7 @@ import {
   RebaseResult,
   getRebaseSnapshot,
   IStatusResult,
+  cleanupTemporaryWorkTrees,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -4046,6 +4047,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }))
 
     this.emitUpdate()
+
+    cleanupTemporaryWorkTrees(repository)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
