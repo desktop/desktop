@@ -1,7 +1,5 @@
 import { spawn } from 'child_process'
 import { pathExists } from 'fs-extra'
-import { join } from 'path'
-import * as glob from 'glob'
 import { ExternalEditorError, FoundEditor } from './shared'
 
 /**
@@ -10,54 +8,10 @@ import { ExternalEditorError, FoundEditor } from './shared'
  * @param fullPath A folder or file path to pass as an argument when launching the editor.
  * @param editor The external editor to launch.
  */
-export function launchExternalEditor(fullPath: string, editor: FoundEditor) {
-  checkExternalEditorPathExists(editor)
-
-  const usesShell = editor.usesShell ? editor.usesShell : false
-
-  spwanExternalEditor(editor.path, fullPath, usesShell)
-}
-
-/**
- * Open a given file or folder in Visual Studio Code.
- *
- * @param editor The external editor to launch.
- * @param fullPath A folder or file path to pass as an argument when launching the editor.
- */
-export function launchVisualStudioCode(
-  editor: FoundEditor,
+export async function launchExternalEditor(
   fullPath: string,
-  useWorkspace: boolean
-) {
-  checkExternalEditorPathExists(editor)
-
-  const usesShell = editor.usesShell ? editor.usesShell : false
-
-  if (!useWorkspace) {
-    spwanExternalEditor(editor.path, fullPath, usesShell)
-  } else {
-    const workspacePattern = join(fullPath, '*.code-workspace')
-
-    glob(workspacePattern, (error, files) => {
-      if (error) {
-        throw error
-      } else {
-        const workspaceFilePath = chooseWorkspaceFileToOpen(files, fullPath)
-        const openTarget =
-          workspaceFilePath === '' ? fullPath : workspaceFilePath
-
-        spwanExternalEditor(editor.path, openTarget, usesShell)
-      }
-    })
-  }
-}
-
-/**
- * Check the external editor path exists.
- *
- * @param editor The external editor to launch.
- */
-async function checkExternalEditorPathExists(editor: FoundEditor) {
+  editor: FoundEditor
+): Promise<void> {
   const editorPath = editor.path
   const exists = await pathExists(editorPath)
   if (!exists) {
@@ -69,52 +23,7 @@ async function checkExternalEditorPathExists(editor: FoundEditor) {
       { openPreferences: true }
     )
   }
-}
-
-/**
- * Choose workspace file to open in Visual Studio Code.
- *
- * @param files All workspace file in repository root folder.
- * @param fullPath A folder or file path to pass as an argument when launching the editor.
- */
-function chooseWorkspaceFileToOpen(files: string[], fullPath: string): string {
-  let workspaceFilePath: string | undefined
-  if (files.length === 0) {
-    workspaceFilePath = ''
-  } else if (files.length === 1) {
-    workspaceFilePath = files.pop()
-  } else {
-    const dialog = require('electron').remote.dialog
-    const selectedAllFileName = dialog.showOpenDialog({
-      properties: ['openFile'],
-      title: 'Open Workspace',
-      defaultPath: fullPath,
-      filters: [{ name: 'Code Workspace', extensions: ['code-workspace'] }],
-    })
-
-    if (selectedAllFileName === undefined) {
-      workspaceFilePath = ''
-    } else {
-      workspaceFilePath = selectedAllFileName.pop()
-    }
-  }
-
-  return workspaceFilePath === undefined ? '' : workspaceFilePath
-}
-
-/**
- * Execute command to open a given file or folder in the desired external editor.
- *
- * @param editorPath The external editor path to launch.
- * @param fullPath A folder or file path to pass as an argument when launching the editor.
- * @param usesShell Whether we use shell when we launch the external editor.
- */
-function spwanExternalEditor(
-  editorPath: string,
-  fullPath: string,
-  usesShell: boolean
-) {
-  if (usesShell) {
+  if (editor.usesShell) {
     spawn(`"${editorPath}"`, [`"${fullPath}"`], { shell: true })
   } else {
     spawn(editorPath, [fullPath])
