@@ -86,7 +86,7 @@ export class OpenRepositoryInVSCode extends React.Component<
       <Dialog
         id="open-repository-in-vscode"
         type="normal"
-        title={'Open the repository'}
+        title="Open the repository"
         onSubmit={this.submit}
         onDismissed={this.cancel}
       >
