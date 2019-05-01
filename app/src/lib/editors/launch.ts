@@ -42,7 +42,6 @@ export function launchVisualStudioCode(
       if (error) {
         throw error
       } else {
-        console.log(editor)
         const workspaceFilePath = chooseWorkspaceFileToOpen(files, fullPath)
         const openTarget =
           workspaceFilePath === '' ? fullPath : workspaceFilePath
