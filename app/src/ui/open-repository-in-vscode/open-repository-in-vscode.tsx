@@ -28,11 +28,21 @@ interface IOpenRepositoryInVSCodeProps {
   readonly onDismissed: () => void
 }
 
+interface IOpenRepositoryInVSCodeState {
+  /** The path of selected location */
+  readonly selectedLocationPath: string
+}
+
 export class OpenRepositoryInVSCode extends React.Component<
-  IOpenRepositoryInVSCodeProps
+  IOpenRepositoryInVSCodeProps,
+  IOpenRepositoryInVSCodeState
 > {
   public constructor(props: IOpenRepositoryInVSCodeProps) {
     super(props)
+
+    this.state = {
+      selectedLocationPath: this.props.repositoryPath,
+    }
   }
 
   private getLocationList = () => {
@@ -55,6 +65,10 @@ export class OpenRepositoryInVSCode extends React.Component<
     return locationList
   }
 
+  private onSelectedLocationChanged = (location: string) => {
+    this.setState({ selectedLocationPath: location })
+  }
+
   private submit = async () => {
     await launchExternalEditor(this.props.repositoryPath, this.props.editor)
     this.props.onDismissed()
@@ -74,7 +88,11 @@ export class OpenRepositoryInVSCode extends React.Component<
         onDismissed={this.cancel}
       >
         <DialogContent>
-          <SelectFromLocationList locationList={this.getLocationList()} />
+          <SelectFromLocationList
+            locationList={this.getLocationList()}
+            selectedLocationPath={this.state.selectedLocationPath}
+            onChanged={this.onSelectedLocationChanged}
+          />
         </DialogContent>
         <DialogFooter>
           <ButtonGroup destructive={true}>

@@ -6,36 +6,22 @@ import { ILocationList } from './open-repository-in-vscode'
 interface ISelectFromLocationListProps {
   /** The location list to open the repository in Visual Studio Code */
   readonly locationList: ILocationList[]
-}
 
-interface ISelectFromLocationListState {
-  /** The path of selected location */
   readonly selectedLocationPath: string
+  readonly onChanged: (location: string) => void
 }
 
 export class SelectFromLocationList extends React.Component<
-  ISelectFromLocationListProps,
-  ISelectFromLocationListState
+  ISelectFromLocationListProps
 > {
   public constructor(props: ISelectFromLocationListProps) {
     super(props)
-
-    const { locationList } = this.props
-    const initialLocation = locationList.shift()
-
-    if (initialLocation === undefined) {
-      throw new Error('Could not find selected open target.')
-    }
-
-    this.state = {
-      selectedLocationPath: initialLocation.path,
-    }
   }
 
   private onLocationChange = (event: React.FormEvent<HTMLSelectElement>) => {
     const location = event.currentTarget.value
 
-    this.setState({ selectedLocationPath: location })
+    this.props.onChanged(location)
   }
 
   public render() {
@@ -46,7 +32,7 @@ export class SelectFromLocationList extends React.Component<
       <Row>
         <Select
           label={__DARWIN__ ? darwinLabel : windowsLabel}
-          value={this.state.selectedLocationPath}
+          value={this.props.selectedLocationPath}
           onChange={this.onLocationChange}
         >
           {this.props.locationList.map((file, index) => (
