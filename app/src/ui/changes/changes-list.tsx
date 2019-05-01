@@ -36,7 +36,6 @@ import { RebaseConflictState } from '../../lib/app-state'
 import { ContinueRebase } from './continue-rebase'
 import { enablePullWithRebase, enableStashing } from '../../lib/feature-flag'
 import { Octicon, OcticonSymbol } from '../octicons'
-import { FocusContainer } from '../lib/focus-container'
 import { IStashEntry } from '../../models/stash-entry'
 import * as classNames from 'classnames'
 
@@ -619,7 +618,7 @@ export class ChangesList extends React.Component<
     )
 
     return (
-      <FocusContainer className="stash-focus-container">
+      <div className="stash-focus-container">
         <button
           className={className}
           style={StashListRowStyle}
@@ -630,7 +629,7 @@ export class ChangesList extends React.Component<
           <div className="text">Stashed Changes</div>
           <Octicon className="arrow" symbol={OcticonSymbol.chevronRight} />
         </button>
-      </FocusContainer>
+      </div>
     )
   }
 
