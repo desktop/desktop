@@ -184,7 +184,7 @@ be available if they proceed.
 
 ## Force Push
 
-When the rebase is completed, the application will update it's list of rebased
+When the rebase is completed, the application will update its list of rebased
 branches to indicate that the current branch was updated by the user and is
 eligible to be "force pushed" to the remote repository.
 
