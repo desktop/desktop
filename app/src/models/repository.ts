@@ -68,3 +68,11 @@ export function nameOf(repository: Repository) {
 
   return gitHubRepository !== null ? gitHubRepository.fullName : repository.name
 }
+
+/** A minimal shape associated with the worktree information reported by Git */
+export type WorkTreeSummary = {
+  /** The path to the worktree in the repository */
+  readonly path: string
+  /** The commit associated with the HEAD of the repository */
+  readonly head: string
+}
