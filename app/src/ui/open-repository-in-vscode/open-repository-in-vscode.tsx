@@ -70,7 +70,10 @@ export class OpenRepositoryInVSCode extends React.Component<
   }
 
   private submit = async () => {
-    await launchExternalEditor(this.props.repositoryPath, this.props.editor)
+    await launchExternalEditor(
+      this.state.selectedLocationPath,
+      this.props.editor
+    )
     this.props.onDismissed()
   }
 
