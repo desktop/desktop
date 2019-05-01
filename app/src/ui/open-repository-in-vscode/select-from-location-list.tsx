@@ -18,7 +18,7 @@ export class SelectFromLocationList extends React.Component<
     super(props)
   }
 
-  private onLocationChange = (event: React.FormEvent<HTMLSelectElement>) => {
+  private onLocationChanged = (event: React.FormEvent<HTMLSelectElement>) => {
     const location = event.currentTarget.value
 
     this.props.onChanged(location)
@@ -33,7 +33,7 @@ export class SelectFromLocationList extends React.Component<
         <Select
           label={__DARWIN__ ? darwinLabel : windowsLabel}
           value={this.props.selectedLocationPath}
-          onChange={this.onLocationChange}
+          onChange={this.onLocationChanged}
         >
           {this.props.locationList.map((file, index) => (
             <option key={index} value={file.path}>
