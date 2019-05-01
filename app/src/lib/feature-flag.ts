@@ -93,3 +93,8 @@ export function enableStashing(): boolean {
 export function enableBranchProtectionWarning(): boolean {
   return true
 }
+
+/** Should the app try the new experimental "rebase conflict" detection? */
+export function enableRebaseConflictDetection(): boolean {
+  return enableDevelopmentFeatures()
+}
