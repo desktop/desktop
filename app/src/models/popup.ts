@@ -8,6 +8,8 @@ import { WorkingDirectoryFileChange } from './status'
 import { PreferencesTab } from './preferences'
 import { ICommitContext } from './commit'
 import { IStashEntry } from './stash-entry'
+import { IFoundEditor } from '../lib/editors/found-editor'
+import { ExternalEditor } from '../lib/editors'
 
 export enum PopupType {
   RenameBranch = 1,
@@ -199,5 +201,7 @@ export type Popup =
     }
   | {
       type: PopupType.openRepositoryInVSCode
+      editor: IFoundEditor<ExternalEditor>
       repositoryPath: string
+      useWorkspaceFile: boolean
     }

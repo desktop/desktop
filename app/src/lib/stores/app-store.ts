@@ -4135,21 +4135,25 @@ export class AppStore extends TypedBaseStore<IAppState> {
         return
       }
 
-      if (
+      const isVisualStudioCode =
         match.editor === 'Visual Studio Code' ||
         match.editor === 'Visual Studio Code (Insiders)'
-      ) {
-        match.useWorkspace = this.getState().useWorkspaceFileInVSCode
-      }
+      const useWorkspaceFileInVSCode = this.getState().useWorkspaceFileInVSCode
 
-      if (lstatSync(fullPath).isDirectory()) {
+      if (
+        isVisualStudioCode &&
+        lstatSync(fullPath).isDirectory() &&
+        useWorkspaceFileInVSCode
+      ) {
         this._showPopup({
           type: PopupType.openRepositoryInVSCode,
+          editor: match,
           repositoryPath: fullPath,
+          useWorkspaceFile: useWorkspaceFileInVSCode,
         })
+      } else {
+        await launchExternalEditor(fullPath, match)
       }
-
-      await launchExternalEditor(fullPath, match)
     } catch (error) {
       this.emitError(error)
     }

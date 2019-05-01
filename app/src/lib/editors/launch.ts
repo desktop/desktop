@@ -10,30 +10,12 @@ import { ExternalEditorError, FoundEditor } from './shared'
  * @param fullPath A folder or file path to pass as an argument when launching the editor.
  * @param editor The external editor to launch.
  */
-export async function launchExternalEditor(
-  fullPath: string,
-  editor: FoundEditor
-): Promise<void> {
-  const editorPath = editor.path
-  const exists = await pathExists(editorPath)
-  if (!exists) {
-    const label = __DARWIN__ ? 'Preferences' : 'Options'
-    throw new ExternalEditorError(
-      `Could not find executable for '${editor.editor}' at path '${
-        editor.path
-      }'.  Please open ${label} and select an available editor.`,
-      { openPreferences: true }
-    )
-  }
-  if (
-    editor.editor === 'Visual Studio Code' ||
-    editor.editor === 'Visual Studio Code (Insiders)'
-  ) {
-    launchVisualStudioCode(editor, fullPath)
-  } else {
-    const usesShell = editor.usesShell ? editor.usesShell : false
-    spwanExternalEditor(editorPath, fullPath, usesShell)
-  }
+export function launchExternalEditor(fullPath: string, editor: FoundEditor) {
+  checkExternalEditorPathExists(editor)
+
+  const usesShell = editor.usesShell ? editor.usesShell : false
+
+  spwanExternalEditor(editor.path, fullPath, usesShell)
 }
 
 /**
@@ -42,9 +24,14 @@ export async function launchExternalEditor(
  * @param editor The external editor to launch.
  * @param fullPath A folder or file path to pass as an argument when launching the editor.
  */
-function launchVisualStudioCode(editor: FoundEditor, fullPath: string) {
+export function launchVisualStudioCode(
+  editor: FoundEditor,
+  fullPath: string,
+  useWorkspace: boolean
+) {
+  checkExternalEditorPathExists(editor)
+
   const usesShell = editor.usesShell ? editor.usesShell : false
-  const useWorkspace = editor.useWorkspace ? editor.useWorkspace : false
 
   if (!useWorkspace) {
     spwanExternalEditor(editor.path, fullPath, usesShell)
@@ -55,6 +42,7 @@ function launchVisualStudioCode(editor: FoundEditor, fullPath: string) {
       if (error) {
         throw error
       } else {
+        console.log(editor)
         const workspaceFilePath = chooseWorkspaceFileToOpen(files, fullPath)
         const openTarget =
           workspaceFilePath === '' ? fullPath : workspaceFilePath
@@ -62,6 +50,25 @@ function launchVisualStudioCode(editor: FoundEditor, fullPath: string) {
         spwanExternalEditor(editor.path, openTarget, usesShell)
       }
     })
+  }
+}
+
+/**
+ * Check the external editor path exists.
+ *
+ * @param editor The external editor to launch.
+ */
+async function checkExternalEditorPathExists(editor: FoundEditor) {
+  const editorPath = editor.path
+  const exists = await pathExists(editorPath)
+  if (!exists) {
+    const label = __DARWIN__ ? 'Preferences' : 'Options'
+    throw new ExternalEditorError(
+      `Could not find executable for '${editor.editor}' at path '${
+        editor.path
+      }'.  Please open ${label} and select an available editor.`,
+      { openPreferences: true }
+    )
   }
 }
 

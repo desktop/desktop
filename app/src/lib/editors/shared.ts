@@ -37,10 +37,6 @@ export type FoundEditor = {
    * the editor requires a shell spawn to launch
    */
   usesShell?: boolean
-  /**
-   * Whether we use workspase file when we launch Visual Studio Code
-   */
-  useWorkspace?: boolean
 }
 
 interface IErrorMetadata {
