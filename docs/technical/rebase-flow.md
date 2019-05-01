@@ -66,8 +66,8 @@ will check if any commits exist in the range
 the tracking branch.
 
 This check is important to identify any remote commits that will be caught in
-this rebase, because this will require rewriting the history on the remote,
-which the user may not have permission to do based on branch protections.
+this rebase, because their existence would require rewriting the history on the remote,
+which the user may not have permission to do based on branch protections or may not want to do because of the impact it can have on other collaborators.
 
 If commits are found, a dialog is shown to ask the user to confirm they wish
 to proceed with the rebase.
