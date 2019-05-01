@@ -9,6 +9,7 @@ interface ISelectFromLocationListProps {
 }
 
 interface ISelectFromLocationListState {
+  /** The path of selected location */
   readonly selectedLocationPath: string
 }
 
