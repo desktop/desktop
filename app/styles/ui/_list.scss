@@ -74,26 +74,5 @@
 }
 
 .list-item {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-
-  width: 100%;
-  height: 100%;
-
-  &.selected {
-    --text-color: var(--box-selected-text-color);
-    --text-secondary-color: var(--box-selected-text-color);
-
-    color: var(--text-color);
-    background-color: var(--box-selected-background-color);
-  }
-
-  &:focus {
-    outline: none;
-  }
-
-  &:not(.not-selectable):hover {
-    background: var(--list-item-hover-background-color);
-  }
+  @include list-item;
 }
