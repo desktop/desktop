@@ -1,7 +1,9 @@
+import chalk from 'chalk'
 import * as Path from 'path'
 
 import { ICommandModule, mriArgv } from '../load-commands'
 import { openDesktop } from '../open-desktop'
+import { parseRemote } from '../../lib/remote-parsing'
 
 const command: ICommandModule = {
   command: 'open <path>',
@@ -21,9 +23,18 @@ const command: ICommandModule = {
       openDesktop()
       return
     }
-    const repositoryPath = Path.resolve(process.cwd(), pathArg)
-    const url = `openLocalRepo/${encodeURIComponent(repositoryPath)}`
-    openDesktop(url)
+    //Check if the pathArg is a remote url
+    if (parseRemote(pathArg) != null) {
+      console.log(
+        `\nYou cannot open a remote URL in GitHub Desktop\n` +
+          `Use \`${chalk.bold(`git clone ` + pathArg)}\`` +
+          ` instead to initiate the clone`
+      )
+    } else {
+      const repositoryPath = Path.resolve(process.cwd(), pathArg)
+      const url = `openLocalRepo/${encodeURIComponent(repositoryPath)}`
+      openDesktop(url)
+    }
   },
 }
 export = command
