@@ -1164,7 +1164,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     previouslySelectedRepository: Repository | CloningRepository | null
   ): Promise<Repository | null> {
-    this._refreshRepository(repository)
+    this._refreshRepositoryBy(repository, '_selectRepositoryRefreshTasks')
 
     const gitHubRepository = repository.gitHubRepository
 
@@ -1247,7 +1247,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         this.gitStoreCache,
         this.repositoriesStore,
         this.repositoryStateCache,
-        repository => this._refreshRepository(repository)
+        repository => this._refreshRepositoryBy(repository, 'BranchPruner')
       )
       this.currentBranchPruner = pruner
       this.currentBranchPruner.start()
@@ -1957,7 +1957,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         }
       }
 
-      await this._refreshRepository(repository)
+      await this._refreshRepositoryBy(repository, '_commitIncludedChanges')
       await this.refreshChangesSection(repository, {
         includingStatus: true,
         clearPartialState: true,
@@ -2038,10 +2038,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const updatedRepository = await this.recoverMissingRepository(repository)
       if (!updatedRepository.missing) {
         // repository has been restored, attempt to refresh it now.
-        return this._refreshRepository(updatedRepository)
+        return this._refreshRepositoryBy(
+          updatedRepository,
+          '_refreshOrRecoverRepository - first path'
+        )
       }
     } else {
-      return this._refreshRepository(repository)
+      return this._refreshRepositoryBy(
+        repository,
+        '_refreshOrRecoverRepository - second path'
+      )
     }
   }
 
@@ -2063,8 +2069,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return repository
   }
 
+  public async _refreshRepositoryBy(repository: Repository, context: string) {
+    log.warn(`[refresh] started by ${context}`)
+    await this._refreshRepository(repository)
+    log.warn(`[refresh] completed by ${context}`)
+  }
+
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _refreshRepository(repository: Repository): Promise<void> {
+  private async _refreshRepository(repository: Repository): Promise<void> {
     if (repository.missing) {
       return
     }
@@ -2403,7 +2415,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         targetBranch: foundBranch.name,
       })
 
-      await this._refreshRepository(repository)
+      await this._refreshRepositoryBy(repository, '_checkoutBranch')
     } finally {
       this.updateCheckoutProgress(repository, null)
       this._initializeCompare(repository, {
@@ -2544,7 +2556,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       renameBranch(repository, branch, newName)
     )
 
-    return this._refreshRepository(repository)
+    return this._refreshRepositoryBy(repository, '_renameBranch')
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -2572,7 +2584,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         deleteBranch(r, branch, account, includeRemote)
       )
 
-      return this._refreshRepository(r)
+      return this._refreshRepositoryBy(r, '_deleteBranch')
     })
   }
 
@@ -2696,7 +2708,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
               value: refreshStartProgress,
             })
 
-            await this._refreshRepository(repository)
+            await this._refreshRepositoryBy(repository, 'performPush')
 
             this.updatePushPullFetchProgress(repository, {
               kind: 'generic',
@@ -2905,7 +2917,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
             await gitStore.reconcileHistory(mergeBase)
           }
 
-          await this._refreshRepository(repository)
+          await this._refreshRepositoryBy(repository, 'performPull')
 
           this.updatePushPullFetchProgress(repository, {
             kind: 'generic',
@@ -3080,7 +3092,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const gitStore = this.gitStoreCache.get(repository)
     await gitStore.discardChanges(files)
 
-    return this._refreshRepository(repository)
+    return this._refreshRepositoryBy(repository, '_discardChanges')
   }
 
   public async _undoCommit(
@@ -3097,7 +3109,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.clearSelectedCommit(repository)
     }
 
-    return this._refreshRepository(repository)
+    return this._refreshRepositoryBy(repository, '_undoCommit')
   }
 
   /**
@@ -3119,7 +3131,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         const gitStore = this.gitStoreCache.get(repository)
         await gitStore.fetchRefspec(account, refspec)
 
-        return this._refreshRepository(repository)
+        return this._refreshRepositoryBy(repository, '_fetchRefspec')
       }
     )
   }
@@ -3203,7 +3215,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           value: fetchWeight,
         })
 
-        await this._refreshRepository(repository)
+        await this._refreshRepositoryBy(repository, 'performFetch')
 
         this.updatePushPullFetchProgress(repository, {
           kind: 'generic',
@@ -3353,7 +3365,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       })
     }
 
-    return this._refreshRepository(repository)
+    return this._refreshRepositoryBy(repository, '_mergeBranch')
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -3474,7 +3486,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     text: string
   ): Promise<void> {
     await saveGitIgnore(repository, text)
-    return this._refreshRepository(repository)
+    return this._refreshRepositoryBy(repository, '_saveGitIgnore')
   }
 
   /** Has the user opted out of stats reporting? */
@@ -3618,7 +3630,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     pattern: string | string[]
   ): Promise<void> {
     await appendIgnoreRule(repository, pattern)
-    return this._refreshRepository(repository)
+    return this._refreshRepositoryBy(repository, '_appendIgnoreRule')
   }
 
   public _resetSignInState(): Promise<void> {
@@ -3919,7 +3931,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       })
 
       this.updateRevertProgress(repo, null)
-      await this._refreshRepository(repository)
+      await this._refreshRepositoryBy(repository, '_revertCommit')
     })
   }
 
@@ -4196,7 +4208,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const gitStore = this.gitStoreCache.get(repository)
     await gitStore.updateExistingUpstreamRemote()
 
-    return this._refreshRepository(repository)
+    return this._refreshRepositoryBy(
+      repository,
+      '_updateExistingUpstreamRemote'
+    )
   }
 
   private getIgnoreExistingUpstreamRemoteKey(repository: Repository): string {
