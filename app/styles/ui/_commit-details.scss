@@ -1,0 +1,34 @@
+@import '../mixins';
+
+.commit-details {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+
+  .fill-window {
+    // necessary for "no files in commit" view to
+    // look right alongside blank diff
+    border-right: var(--base-border);
+  }
+
+  .panel {
+    display: flex;
+    flex: 1;
+
+    &.empty,
+    &.renamed,
+    &.binary {
+      justify-content: center;
+      align-items: center;
+    }
+    &.large-diff {
+      margin: var(--spacing-double);
+      text-align: center;
+      justify-content: initial;
+
+      .blankslate-image {
+        max-height: 150px;
+      }
+    }
+  }
+}
