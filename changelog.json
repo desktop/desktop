@@ -1,5 +1,15 @@
 {
   "releases": {
+    "1.7.0-beta6": [
+      "[Fixed] Stash viewer does not disable restore button when changes present - #7409",
+      "[Fixed] Stash viewer does not center \"no content\" text - #7299",
+      "[Fixed] Stash viewer pane width not remembered between sessions - #7416",
+      "[Fixed] \"Esc\" key does not close Repository or Branch list - #7177. Thanks @roottool!",
+      "[Fixed] Stash not cleaned up when it conflicts with working directory contents - #7383",
+      "[Improved] Branch names not updated in dialog when stashing and switching branches - #7402",
+      "[Improved] Moved \"Discard all changes\" to Branch menu - #7394. Thanks @ahuth!",
+      "[Improved] UI responsiveness when using keyboard to choose branch in rebase flow - #7407"
+    ],
     "1.7.0-beta5": [
       "[Fixed] Handle warnings if stash creation encounters file permission issue - #7351",
       "[Fixed] Add \"View stash entry\" action to suggested next steps - #7353",
