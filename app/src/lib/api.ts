@@ -528,7 +528,11 @@ export class API {
       const prs = await this.fetchAll<IAPIPullRequest>(url, {
         // We use a page size smaller than our default 100 here because we
         // expect that the majority use case will return much less than
-        // 100 results.
+        // 100 results. Given that as long as _any_ PR has changed we'll
+        // get the full list back (PRs doesn't support ?since=) we want
+        // to keep this number fairly conservative in order to not use
+        // up bandwidth needlessly while balancing it such that we don't
+        // have to use a lot of requests to update our database.
         perPage: 10,
         continue(results) {
           // Given that we sort the results in descending order by their
