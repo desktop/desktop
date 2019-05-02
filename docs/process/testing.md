@@ -44,6 +44,8 @@
     - [ ] Checked by default; user can uncheck. (Should not be checked by default if user on free plan only.)
       - [ ] Clicking `Finish`, results in user being signed-in successfully
     - [ ] `Cancel` returns to initial Configure Git page
+    
+### Onboarding (wip)
 
 ### Repositories landing page; default no repositories 
   - [ ] Create New Repository (Mac: `⌘N`; Windows: `Ctrl+N`)
@@ -128,7 +130,8 @@
       - [ ] `Cancel` button does not save any changes made; modal closed
     - [ ] Appearance
       - [ ] Light theme is default
-      - [ ] Dark theme is optional      
+      - [ ] Dark theme is optional 
+      - [ ] For MAC OS, users can opt to match system prefence theme with checkbox
     - [ ] Advanced
       - [ ] External Editor options shown in dropdown; else show "Install Atom?" link
       - [ ] Shell options shown in dropdown
@@ -168,6 +171,8 @@
   - [ ] Show History (Mac: `⌘2`; Windows: `Ctrl+2`)
   - [ ] Show Repositories List (Mac: `⌘T`; Windows: `Ctrl+T`)
   - [ ] Show Branches List (Mac: `⌘B`; Windows: `Ctrl+B`)
+  - [ ] Go to Summary (Mac: `⌘G`; Windows: `Ctrl+G`)
+  - [ ] Show/Hide Stashed Changes (Mac: `^H`; Windows: `Ctrl+H`)
   - [ ] Enter Full Screen (Mac: `^⌘F`; Windows: `F11`)
   - [ ] Reset Zoom (Mac: `⌘0`; Windows: `Ctrl+0`)
   - [ ] Zoom In (Mac: `⌘=`; Windows: `Ctrl+=`)
@@ -227,11 +232,22 @@
     - [ ] Merge hint shows status and branches to be merged
     - [ ] `Merge` button only activated if something to merge (includes awaiting conflicts)
       - [ ] If merged, success banner is shown temporarily; user can `X` to remove
-      - [ ] If conflicts, conflict modal shows quality of files, ability to open in [editor], open in command line, `Abort` button, while `Commit merge` button is deactivated until files are resolved; Changes tab shows all files 
+      - [ ] If conflicts, conflict modal shows quanity of files, ability to open in [editor], open in command line, `Abort` button, while `Commit merge` button is deactivated until files are resolved; Changes tab shows all files 
         - [ ] If conflict resolved, files marked green, and user can click `Commit merge` button
 	    - [ ] If merged, success banner is shown temporarily; user can `X` to remove
 	    - [ ] Binary files must be resolved in command line before committing merge
         - [ ] Aborting partially resolved commit surfaces "Are you sure?" dialogue; `Cancel` or `Abort merge` buttons
+  - [ ] Rebase Current Branch...
+    - [ ] Use can filter to find existing branches
+    - [ ] User can select branch, other than current one
+    - [ ] Rebase hint shows status and branches to be merged
+    - [ ] `Start rebase` button only activated if something to rebase
+      - [ ] If rebase, success banner is shown temporarily; user can `X` to remove
+      - [ ] If conflicts, conflict modal shows quanity of files, ability to open in [editor], open in command line, `Abort` button, while `Continue rebase` button is deactivated until files are resolved
+        - [ ] If rebase resolved, files marked green, and user can click `Continue rebase` button
+	    - [ ] If rebased, success banner is shown temporarily; user can `X` to remove
+	    - [ ] Binary files must be resolved in command line before committing rebase
+        - [ ] Aborting partially resolved rebase surfaces "Are you sure?" dialogue; `Cancel` or `Abort merge` buttons
   - [ ] Compare on GitHub (Mac: `⇧⌘C`; Windows: `Ctrl+Shift+C`) (if repository already published on `github.com`)
   - [ ] Create Pull Request (Mac: `⌘R`; Windows: `Ctrl+R`) opens Pull Request on `github.com` 
     - [ ] If branch unpublished, dialogue asks to publish the branch
@@ -244,14 +260,18 @@
   - [ ] `Report Issue...` opens issue filing in Desktop repository on `github.com`
   - [ ] `Contact GitHub Support...` opens `https://github.com/contact` page with user and build prepopulated
   - [ ] `Show User Guides` opens Desktop help page on `github.com`
+  - [ ] `Show Keyboard Shurtcuts` opens `https://help.github.com/en/desktop/getting-started-with-github-desktop/keyboard-shortcuts-in-github-desktop`
   - [ ] `Show Logs in Finder/Explorer` opens Finder/Explorer logs in local directory
     - [ ] Mac: `ls ~/Library/Application\ Support/GitHub\ Desktop/Logs/*.log`
     - [ ] Windows: `%LOCALAPPDATA%\\Desktop\\*.desktop.production.log`
   - [ ] About GitHub Desktop (Windows only)
+  
+### Next Steps (wip)
 
 ### Repositories list
   - [ ] Current repository is always shown in top slot with respective icon; if repository exists
-  - [ ] Opening list shows all repositories in categorized alpha format with a working filter
+  - [ ] Opening list shows all repositories in categorized by owner in alpha format with a working filter
+    - [ ] If more than six repostories, a Recent group will appear at the top of the list; limit 3 repositories
     - [ ] `ESC` clears the filter
     - [ ] Search filter match results in bold characters
     - [ ] A repository with uncommitted files shows a `•` next to name
@@ -285,6 +305,11 @@
 	- [ ] User can open in finder, preferred editor, or OS default program  
   - [ ] Panes can be resized horizontally, and contents resize to take the full width
     - [ ] Quitting Desktop and relaunching remembers pane sizes
+  - [ ] Uncommited files are stashing if user attempts to switch branches
+    - [ ] Modal asks user to stash on current branch or bring changes to new branch; `Cancel` or `Switch Branch` buttons
+      - [ ] If stashed then changes shown under Stashed Changes section of the under Changes tab
+        - [ ] Stashed changes section show all stashed files; user can discard or restore to Changes
+      - [ ] If moved to new branch, files under Changes tab
 
 ### History tab
   - [ ] History tab shows commits on your current branch by default
