@@ -93,7 +93,6 @@ import { PopupType, Popup } from '../models/popup'
 import { OversizedFiles } from './changes/oversized-files-warning'
 import { UsageStatsChange } from './usage-stats-change'
 import { PushNeedsPullWarning } from './push-needs-pull'
-import { LocalChangesOverwrittenWarning } from './local-changes-overwritten'
 import { RebaseFlow, ConfirmForcePush } from './rebase'
 import {
   initializeNewRebaseFlow,
@@ -1579,27 +1578,6 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={this.onPopupDismissed}
           />
         )
-      case PopupType.LocalChangesOverwritten: {
-        const { selectedState } = this.state
-        if (
-          selectedState === null ||
-          selectedState.type !== SelectionType.Repository
-        ) {
-          return null
-        }
-
-        const { workingDirectory } = selectedState.state.changesState
-        return (
-          <LocalChangesOverwrittenWarning
-            dispatcher={this.props.dispatcher}
-            repository={popup.repository}
-            retryAction={popup.retryAction}
-            overwrittenFiles={popup.overwrittenFiles}
-            workingDirectory={workingDirectory}
-            onDismissed={this.onPopupDismissed}
-          />
-        )
-      }
       case PopupType.RebaseFlow: {
         const { selectedState, emoji } = this.state
 
