@@ -2,8 +2,6 @@
   "recommendations": [
     "ms-vscode.vscode-typescript-tslint-plugin",
     "msjsdiag.debugger-for-chrome",
-    "samverschueren.final-newline",
-    "DmitryDorofeev.empty-indent",
     "esbenp.prettier-vscode"
   ]
 }
