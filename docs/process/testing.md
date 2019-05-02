@@ -232,7 +232,7 @@
     - [ ] Merge hint shows status and branches to be merged
     - [ ] `Merge` button only activated if something to merge (includes awaiting conflicts)
       - [ ] If merged, success banner is shown temporarily; user can `X` to remove
-      - [ ] If conflicts, conflict modal shows quanity of files, ability to open in [editor], open in command line, `Abort` button, while `Commit merge` button is deactivated until files are resolved; Changes tab shows all files 
+      - [ ] If conflicts, conflict modal shows quantity of files, ability to open in [editor], open in command line, `Abort` button, while `Commit merge` button is deactivated until files are resolved; Changes tab shows all files 
         - [ ] If conflict resolved, files marked green, and user can click `Commit merge` button
 	    - [ ] If merged, success banner is shown temporarily; user can `X` to remove
 	    - [ ] Binary files must be resolved in command line before committing merge
