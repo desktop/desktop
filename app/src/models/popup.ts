@@ -44,7 +44,6 @@ export enum PopupType {
   UsageReportingChanges,
   CommitConflictsWarning,
   PushNeedsPull,
-  LocalChangesOverwritten,
   RebaseFlow,
   ConfirmForcePush,
   StashAndSwitchBranch,
@@ -164,13 +163,6 @@ export type Popup =
   | {
       type: PopupType.PushNeedsPull
       repository: Repository
-    }
-  | {
-      type: PopupType.LocalChangesOverwritten
-      /** repository user is checking out in */
-      repository: Repository
-      retryAction: RetryAction
-      overwrittenFiles: ReadonlyArray<string>
     }
   | {
       type: PopupType.ConfirmForcePush
