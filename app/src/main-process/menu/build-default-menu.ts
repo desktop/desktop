@@ -339,6 +339,12 @@ export function buildDefaultMenu({
       },
       separator,
       {
+        label: __DARWIN__ ? 'Discard All Changes…' : 'Discard all changes…',
+        id: 'discard-all-changes',
+        click: emit('discard-all-changes'),
+      },
+      separator,
+      {
         label: __DARWIN__
           ? `Update from ${defaultBranchName}`
           : `&Update from ${defaultBranchName}`,
