@@ -38,7 +38,6 @@ import { enablePullWithRebase, enableStashing } from '../../lib/feature-flag'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { IStashEntry } from '../../models/stash-entry'
 import * as classNames from 'classnames'
-import { Button } from '../lib/button'
 
 const RowHeight = 29
 const StashIcon = new OcticonSymbol(
@@ -611,20 +610,21 @@ export class ChangesList extends React.Component<
     }
 
     const className = classNames(
-      'stashed-changes-row',
+      'stashed-changes-button',
       this.props.isShowingStashEntry ? 'selected' : null
     )
 
     return (
-      <Button
+      <button
         className={className}
         onClick={this.onStashEntryClicked}
-        ariaSelected={this.props.isShowingStashEntry}
+        tabIndex={0}
+        aria-selected={this.props.isShowingStashEntry}
       >
         <Octicon className="icon" symbol={StashIcon} />
         <div className="text">Stashed Changes</div>
         <Octicon className="arrow" symbol={OcticonSymbol.chevronRight} />
-      </Button>
+      </button>
     )
   }
 
