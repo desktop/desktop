@@ -131,7 +131,7 @@
     - [ ] Appearance
       - [ ] Light theme is default
       - [ ] Dark theme is optional 
-      - [ ] For MAC OS, users can opt to match system prefence theme with checkbox
+      - [ ] For Mac, users can opt to match system preference theme with checkbox
     - [ ] Advanced
       - [ ] External Editor options shown in dropdown; else show "Install Atom?" link
       - [ ] Shell options shown in dropdown
