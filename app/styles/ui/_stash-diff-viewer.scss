@@ -49,11 +49,6 @@
     }
   }
 
-  .content {
-    display: flex;
-    flex: 1;
-  }
-
   // Necessary so that the diff doesn't expand
   // beyond the width of the history
   min-width: 0;
