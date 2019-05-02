@@ -49,13 +49,17 @@
     &.selected:hover {
       color: var(--box-selected-active-text-color);
       background-color: var(--box-selected-active-background-color);
+      .stack-icon {
+        fill: var(--box-selected-active-text-color);
+      }
     }
 
-    .icon {
+    .stack-icon {
       fill: var(--color-modified);
     }
 
     .text {
+      flex-grow: 1;
       margin: 0 var(--spacing-half);
     }
 

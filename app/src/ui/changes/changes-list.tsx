@@ -621,9 +621,9 @@ export class ChangesList extends React.Component<
         tabIndex={0}
         aria-selected={this.props.isShowingStashEntry}
       >
-        <Octicon className="icon" symbol={StashIcon} />
+        <Octicon className="stack-icon" symbol={StashIcon} />
         <div className="text">Stashed Changes</div>
-        <Octicon className="arrow" symbol={OcticonSymbol.chevronRight} />
+        <Octicon symbol={OcticonSymbol.chevronRight} />
       </button>
     )
   }
