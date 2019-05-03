@@ -308,7 +308,7 @@
   - [ ] Uncommitted files are optionally stashed if user attempts to switch branches
     - [ ] Modal asks user to stash on current branch or bring changes to new branch; `Cancel` or `Switch Branch` buttons
       - [ ] If stashed then changes shown under Stashed Changes section of the under Changes tab
-        - [ ] Stashed changes section show all stashed files; user can discard or restore to Changes
+        - [ ] Stashed changes section show all stashed files and diffs; user can discard or restore to Changes
       - [ ] If moved to new branch, files under Changes tab
 
 ### History tab
