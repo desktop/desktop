@@ -305,7 +305,7 @@
 	- [ ] User can open in finder, preferred editor, or OS default program  
   - [ ] Panes can be resized horizontally, and contents resize to take the full width
     - [ ] Quitting Desktop and relaunching remembers pane sizes
-  - [ ] Uncommited files are stashing if user attempts to switch branches
+  - [ ] Uncommitted files are optionally stashed if user attempts to switch branches
     - [ ] Modal asks user to stash on current branch or bring changes to new branch; `Cancel` or `Switch Branch` buttons
       - [ ] If stashed then changes shown under Stashed Changes section of the under Changes tab
         - [ ] Stashed changes section show all stashed files; user can discard or restore to Changes
