@@ -47,6 +47,11 @@ export interface IPullRequest {
   readonly author: string
 }
 
+interface IPullRequestsLastUpdated {
+  readonly repoId: number
+  readonly lastUpdated: number
+}
+
 /**
  * Internal helper type, Pull Requests are keyed on
  * the ID of the GitHubRepository that they belong to _and_
@@ -56,6 +61,7 @@ type PullRequestKey = [number, number]
 
 export class PullRequestDatabase extends BaseDatabase {
   public pullRequests!: Dexie.Table<IPullRequest, PullRequestKey>
+  public pullRequestsLastUpdated!: Dexie.Table<IPullRequestsLastUpdated, number>
 
   public constructor(name: string, schemaVersion?: number) {
     super(name, schemaVersion)
@@ -89,6 +95,7 @@ export class PullRequestDatabase extends BaseDatabase {
     this.conditionalVersion(7, {
       pullRequests:
         '[base.repoId+number], base.repoId, [base.repoId+updatedAt]',
+      pullRequestsLastUpdated: 'repoId',
     })
   }
 
@@ -147,20 +154,43 @@ export class PullRequestDatabase extends BaseDatabase {
   }
 
   /**
-   * Get the highest value of the 'updatedAt' field for PRs in a given
-   * repository. This value is used to request delta updates from the API
-   * using the 'since' parameter.
+   * Gets a value indicating the most recently updated PR
+   * that we've seen for a particular repository.
+   *
+   * Note:
+   * This value might differ from max(updated_at) in the pullRequests
+   * table since the most recently updated PR we saw might have
+   * been closed and we only store open PRs in the pullRequests
+   * table.
    */
   public async getLastUpdated(repository: GitHubRepository) {
     if (repository.dbID === null) {
       return fatalError("Can't retrieve PRs for repository, no dbId")
     }
 
-    const last = await this.pullRequests
-      .where('[base.repoId+updatedAt]')
-      .between([repository.dbID], [repository.dbID + 1])
-      .last()
+    const row = await this.pullRequestsLastUpdated.get(repository.dbID)
 
-    return last !== undefined ? new Date(last.updatedAt) : null
+    return row ? new Date(row.lastUpdated) : null
+  }
+
+  /**
+   * Set a value indicating the most recently updated PR
+   * that we've seen for a particular repository.
+   *
+   * Note:
+   * This value might differ from max(updated_at) in the pullRequests
+   * table since the most recently updated PR we saw might have
+   * been closed and we only store open PRs in the pullRequests
+   * table.
+   */
+  public async setLastUpdated(repository: GitHubRepository, lastUpdated: Date) {
+    if (repository.dbID === null) {
+      throw new Error("Can't set last updated for PR, no dbId")
+    }
+
+    await this.pullRequestsLastUpdated.put({
+      repoId: repository.dbID,
+      lastUpdated: lastUpdated.getTime(),
+    })
   }
 }
