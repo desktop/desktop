@@ -187,10 +187,9 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
     repository: Repository,
     remotes: ReadonlyArray<IRemote>
   ) {
-    const promises: Array<Promise<void>> = []
-
-    remotes.forEach(r => promises.push(removeRemote(repository, r.name)))
-    await Promise.all(promises)
+    for (const remote of remotes) {
+      await removeRemote(repository, remote.name)
+    }
   }
 
   private updateActiveFetchCount(
