@@ -301,8 +301,11 @@ export class Dispatcher {
   /**
    * Refresh the repository. This would be used, e.g., when the app gains focus.
    */
-  public refreshRepository(repository: Repository): Promise<void> {
-    return this.appStore._refreshOrRecoverRepository(repository)
+  public refreshRepository(
+    repository: Repository,
+    context: string
+  ): Promise<void> {
+    return this.appStore._refreshOrRecoverRepository(repository, context)
   }
 
   /** Show the popup. This will close any current popup. */
@@ -1060,7 +1063,7 @@ export class Dispatcher {
 
     this.endRebaseFlow(repository)
 
-    await this.refreshRepository(repository)
+    await this.refreshRepository(repository, 'completeRebase')
   }
 
   /** aborts an in-flight merge and refreshes the repository's status */
@@ -1464,7 +1467,7 @@ export class Dispatcher {
 
     // ensure a fresh clone repository has it's in-memory state
     // up-to-date before performing the "Clone in Desktop" steps
-    await this.appStore._refreshRepositoryBy(
+    await this.refreshRepository(
       repository,
       'Dispatcher.handleCloneInDesktopOptions'
     )

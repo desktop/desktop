@@ -2447,23 +2447,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _refreshOrRecoverRepository(
-    repository: Repository
+    repository: Repository,
+    context: string
   ): Promise<void> {
     // if repository is missing, try checking if it has been restored
     if (repository.missing) {
       const updatedRepository = await this.recoverMissingRepository(repository)
       if (!updatedRepository.missing) {
         // repository has been restored, attempt to refresh it now.
-        return this._refreshRepositoryBy(
-          updatedRepository,
-          '_refreshOrRecoverRepository - first path'
-        )
+        return this._refreshRepositoryBy(updatedRepository, context)
       }
     } else {
-      return this._refreshRepositoryBy(
-        repository,
-        '_refreshOrRecoverRepository - second path'
-      )
+      return this._refreshRepositoryBy(repository, context)
     }
   }
 
