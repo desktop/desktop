@@ -238,7 +238,7 @@
 	    - [ ] Binary files must be resolved in command line before committing merge
         - [ ] Aborting partially resolved commit surfaces "Are you sure?" dialogue; `Cancel` or `Abort merge` buttons
   - [ ] Rebase Current Branch...
-    - [ ] Use can filter to find existing branches
+    - [ ] User can filter to find existing branches
     - [ ] User can select branch, other than current one
     - [ ] Rebase hint shows status and branches to be merged
     - [ ] `Start rebase` button only activated if something to rebase
