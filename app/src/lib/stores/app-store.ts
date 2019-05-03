@@ -2481,8 +2481,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public async _refreshRepositoryBy(repository: Repository, context: string) {
-    log.warn(`[refresh] started by ${context}`)
+    const message = `[refresh] started by ${context}`
+    log.warn(message)
+    console.time(message)
     await this._refreshRepository(repository)
+    console.timeEnd(message)
     log.warn(`[refresh] completed by ${context}`)
   }
 

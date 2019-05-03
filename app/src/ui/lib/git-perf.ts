@@ -27,9 +27,9 @@ export async function measure<T>(
   } finally {
     if (startTime) {
       const rawTime = performance.now() - startTime
-      if (rawTime > 1000) {
+      if (rawTime > 100) {
         const timeInSeconds = (rawTime / 1000).toFixed(3)
-        log.info(`Executing ${cmd} (took ${timeInSeconds}s)`)
+        log.warn(`Executing ${cmd} (took ${timeInSeconds}s)`)
       }
     }
 
