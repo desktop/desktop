@@ -62,7 +62,7 @@ export class MissingRepository extends React.Component<
   }
 
   private checkAgain = () => {
-    this.props.dispatcher.refreshRepository(this.props.repository)
+    this.props.dispatcher.refreshRepository(this.props.repository, 'checkAgain')
   }
 
   private remove = () => {

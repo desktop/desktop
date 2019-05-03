@@ -178,7 +178,7 @@ ipcRenderer.on('focus', () => {
     selectedState &&
     !(selectedState.type === SelectionType.CloningRepository)
   ) {
-    dispatcher.refreshRepository(selectedState.repository)
+    dispatcher.refreshRepository(selectedState.repository, 'focus')
   }
 
   dispatcher.setAppFocusState(true)
