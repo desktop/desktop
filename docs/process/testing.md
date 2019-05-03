@@ -45,8 +45,13 @@
       - [ ] Clicking `Finish`, results in user being signed-in successfully
     - [ ] `Cancel` returns to initial Configure Git page
     
-### Onboarding (wip)
-
+### Onboarding
+  - [ ] Onboarding shown if user is new to Desktop and has no repositories in the application
+    - [ ] If user logged in during sign-up process with repository lists for GitHub.com and/or Enterprise
+    - [ ] Always show three suggested steps: Clone repository, Add existing repository, Add new repository
+      - [ ] Adding a repository will automically exit Onboarding
+        - [ ] User can revert to Onboarding if all respositories are removed
+      
 ### Repositories landing page; default no repositories 
   - [ ] Create New Repository (Mac: `⌘N`; Windows: `Ctrl+N`)
     - [ ] Modal opens with name, path (choose option), readme (unchecked), git ignore, license. Name and path mandatory.
