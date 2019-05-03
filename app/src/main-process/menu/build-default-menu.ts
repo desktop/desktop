@@ -7,7 +7,7 @@ import { ensureDir } from 'fs-extra'
 
 import { log } from '../log'
 import { openDirectorySafe } from '../shell'
-import { enableRebaseDialog } from '../../lib/feature-flag'
+import { enableRebaseDialog, enableStashing } from '../../lib/feature-flag'
 
 const defaultEditorLabel = __DARWIN__
   ? 'Open in External Editor'
@@ -37,6 +37,7 @@ export type MenuLabels = {
   removeRepoLabel?: string
   isForcePushForCurrentRepository?: boolean
   askForConfirmationOnForcePush?: boolean
+  isStashedChangesVisible?: boolean
 }
 
 export function buildDefaultMenu({
@@ -47,6 +48,7 @@ export function buildDefaultMenu({
   removeRepoLabel = defaultRepositoryRemovalLabel,
   isForcePushForCurrentRepository = false,
   askForConfirmationOnForcePush = false,
+  isStashedChangesVisible = false,
 }: MenuLabels): Electron.Menu {
   defaultBranchName = truncateWithEllipsis(defaultBranchName, 25)
 
@@ -183,6 +185,15 @@ export function buildDefaultMenu({
         id: 'go-to-commit-message',
         accelerator: 'CmdOrCtrl+G',
         click: emit('go-to-commit-message'),
+      },
+      {
+        label: getStashedChangesLabel(isStashedChangesVisible),
+        id: 'toggle-stashed-changes',
+        accelerator: 'Ctrl+H',
+        click: isStashedChangesVisible
+          ? emit('hide-stashed-changes')
+          : emit('show-stashed-changes'),
+        visible: enableStashing(),
       },
       {
         label: __DARWIN__ ? 'Toggle Full Screen' : 'Toggle &full screen',
@@ -325,6 +336,12 @@ export function buildDefaultMenu({
         id: 'delete-branch',
         accelerator: 'CmdOrCtrl+Shift+D',
         click: emit('delete-branch'),
+      },
+      separator,
+      {
+        label: __DARWIN__ ? 'Discard All Changes…' : 'Discard all changes…',
+        id: 'discard-all-changes',
+        click: emit('discard-all-changes'),
       },
       separator,
       {
@@ -510,6 +527,14 @@ function getPushLabel(
   }
 
   return __DARWIN__ ? 'Force Push' : 'Force P&ush'
+}
+
+function getStashedChangesLabel(isStashedChangesVisible: boolean): string {
+  if (isStashedChangesVisible) {
+    return __DARWIN__ ? 'Hide Stashed Changes' : 'H&ide stashed changes'
+  }
+
+  return __DARWIN__ ? 'Show Stashed Changes' : 'Sho&w stashed changes'
 }
 
 type ClickHandler = (

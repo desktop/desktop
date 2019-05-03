@@ -27,16 +27,16 @@ interface IListRowProps {
   readonly onRef?: (element: HTMLDivElement | null) => void
 
   /** callback to fire when the row receives a mouseover event */
-  readonly onRowMouseOver?: (index: number, e: React.MouseEvent<any>) => void
+  readonly onRowMouseOver: (index: number, e: React.MouseEvent<any>) => void
 
   /** callback to fire when the row receieves a mousedown event */
-  readonly onRowMouseDown?: (index: number, e: React.MouseEvent<any>) => void
+  readonly onRowMouseDown: (index: number, e: React.MouseEvent<any>) => void
 
   /** callback to fire when the row is clicked */
-  readonly onRowClick?: (index: number, e: React.MouseEvent<any>) => void
+  readonly onRowClick: (index: number, e: React.MouseEvent<any>) => void
 
   /** callback to fire when the row receives a keyboard event */
-  readonly onRowKeyDown?: (index: number, e: React.KeyboardEvent<any>) => void
+  readonly onRowKeyDown: (index: number, e: React.KeyboardEvent<any>) => void
 
   /**
    * Whether or not this list row is going to be selectable either through
@@ -51,27 +51,19 @@ interface IListRowProps {
 
 export class ListRow extends React.Component<IListRowProps, {}> {
   private onRowMouseOver = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (this.props.onRowMouseOver !== undefined) {
-      this.props.onRowMouseOver(this.props.rowIndex, e)
-    }
+    this.props.onRowMouseOver(this.props.rowIndex, e)
   }
 
   private onRowMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (this.props.onRowMouseDown !== undefined) {
-      this.props.onRowMouseDown(this.props.rowIndex, e)
-    }
+    this.props.onRowMouseDown(this.props.rowIndex, e)
   }
 
   private onRowClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (this.props.onRowClick !== undefined) {
-      this.props.onRowClick(this.props.rowIndex, e)
-    }
+    this.props.onRowClick(this.props.rowIndex, e)
   }
 
   private onRowKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (this.props.onRowKeyDown !== undefined) {
-      this.props.onRowKeyDown(this.props.rowIndex, e)
-    }
+    this.props.onRowKeyDown(this.props.rowIndex, e)
   }
 
   public render() {

@@ -1,5 +1,31 @@
 {
   "releases": {
+    "1.7.0-beta6": [
+      "[Fixed] Stash viewer does not disable restore button when changes present - #7409",
+      "[Fixed] Stash viewer does not center \"no content\" text - #7299",
+      "[Fixed] Stash viewer pane width not remembered between sessions - #7416",
+      "[Fixed] \"Esc\" key does not close Repository or Branch list - #7177. Thanks @roottool!",
+      "[Fixed] Stash not cleaned up when it conflicts with working directory contents - #7383",
+      "[Improved] Branch names remain accurate in dialog when stashing and switching branches - #7402",
+      "[Improved] Moved \"Discard all changes\" to Branch menu to prevent unintentionally discarding all changes - #7394. Thanks @ahuth!",
+      "[Improved] UI responsiveness when using keyboard to choose branch in rebase flow - #7407"
+    ],
+    "1.7.0-beta5": [
+      "[Fixed] Handle warnings if stash creation encounters file permission issue - #7351",
+      "[Fixed] Add \"View stash entry\" action to suggested next steps - #7353",
+      "[Fixed] Handle and recover from failed rebase flow starts - #7223",
+      "[Fixed] Reverse button order when viewing a stash on macOS - #7273",
+      "[Fixed] Prevent console errors due to underlying component unmounts - #6970",
+      "[Fixed] Rebase success banner always includes base branch name - #7220",
+      "[Improved] Added explanatory text for \"Restore\" button for stashes - #7303",
+      "[Improved] Ask for confirmation before discarding stash - #7348",
+      "[Improved] Order stashed changes files alphabetically - #7327",
+      "[Improved] Clarify \"Overwrite Stash Confirmation\" dialog text - #7361.",
+      "[Improved] Message shown in rebase setup when target branch is already rebased  - #7343",
+      "[Improved] Update stashing prompt verbiage - #7393.",
+      "[Improved] Update \"Start Rebase\" dialog verbiage - #7391",
+      "[Improved] Changes list now reflects what will be committed when handling rebase conflicts - #7006"
+    ],
     "1.7.0-beta4": [
       "[Fixed] Manual conflict resolution choice not updated when resolving rebase conflicts - #7255",
       "[Fixed] Menu items don't display the expected verbiage for force push and removing a repository - #4976 #7138"
@@ -17,14 +43,14 @@
       "[Improved] \"Add\" button in repository list should always be visible - #6646"
     ],
     "1.7.0-beta2": [
-        "[New] Rebase your current branch onto another branch using a guided flow - #5953",
-        "[Fixed] Horizontal scroll bar appears unnecessarily when switching branches - #7212",
-        "[Fixed] License templates do not end with newline character - #6999",
-        "[Fixed] Merge/Rebase conflicts banners do not clear when aborting the operation outside Desktop - #7046",
-        "[Fixed] Missing tooltips for change indicators in the sidebar - #7174",
-        "[Fixed] Icon accessibility labels fail when multiple icons are visible at the same time - #7174",
-        "[Improved] Pull requests load faster and PR build status updates automatically - #7163"
-      ],
+      "[New] Rebase your current branch onto another branch using a guided flow - #5953",
+      "[Fixed] Horizontal scroll bar appears unnecessarily when switching branches - #7212",
+      "[Fixed] License templates do not end with newline character - #6999",
+      "[Fixed] Merge/Rebase conflicts banners do not clear when aborting the operation outside Desktop - #7046",
+      "[Fixed] Missing tooltips for change indicators in the sidebar - #7174",
+      "[Fixed] Icon accessibility labels fail when multiple icons are visible at the same time - #7174",
+      "[Improved] Pull requests load faster and PR build status updates automatically - #7163"
+    ],
     "1.7.0-beta1": [
       "[New] Recently opened repositories appear at the top of the repository list - #7132",
       "[Fixed] Error when selecting diff text while diff is updating - #7131",

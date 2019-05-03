@@ -1,14 +1,16 @@
-import { git } from '.'
-import { Repository } from '../../models/repository'
 import { GitError as DugiteError } from 'dugite'
+import { git } from '.'
+
+import { Repository } from '../../models/repository'
 import {
   IStashEntry,
   StashedChangesLoadStates,
   StashedFileChanges,
 } from '../../models/stash-entry'
 import { CommittedFileChange } from '../../models/status'
+
+import { GitError } from './core'
 import { parseChangedFiles } from './log'
-import { compare } from '../compare'
 
 export const DesktopStashEntryMarker = '!!GitHub_Desktop'
 
@@ -93,7 +95,31 @@ export async function createDesktopStashEntry(
 ) {
   const message = createDesktopStashMessage(branchName)
   const args = ['stash', 'push', '--include-untracked', '-m', message]
-  await git(args, repository.path, 'createStashEntry')
+
+  const result = await git(args, repository.path, 'createStashEntry', {
+    successExitCodes: new Set<number>([0, 1]),
+  })
+
+  if (result.exitCode === 1) {
+    // search for any line starting with `error:` -  /m here to ensure this is
+    // applied to each line, without needing to split the text
+    const errorPrefixRe = /^error: /m
+
+    const matches = errorPrefixRe.exec(result.stderr)
+    if (matches !== null && matches.length > 0) {
+      // rethrow, because these messages should prevent the stash from being created
+      throw new GitError(result, args)
+    }
+
+    // if no error messages were emitted by Git, we should log but continue because
+    // a valid stash was created and this should not interfere with the checkout
+
+    log.info(
+      `[createDesktopStashEntry] a stash was created successfully but exit code ${
+        result.exitCode
+      } reported. stderr: ${result.stderr}`
+    )
+  }
 }
 
 async function getStashEntryMatchingSha(repository: Repository, sha: string) {
@@ -132,11 +158,33 @@ export async function popStashEntry(
   // ignoring these git errors for now, this will change when we start
   // implementing the stash conflict flow
   const expectedErrors = new Set<DugiteError>([DugiteError.MergeConflicts])
+  const successExitCodes = new Set<number>([0, 1])
   const stashToPop = await getStashEntryMatchingSha(repository, stashSha)
 
   if (stashToPop !== null) {
-    const args = ['stash', 'pop', `${stashToPop.name}`]
-    await git(args, repository.path, 'popStashEntry', { expectedErrors })
+    const args = ['stash', 'pop', '--quiet', `${stashToPop.name}`]
+    const result = await git(args, repository.path, 'popStashEntry', {
+      expectedErrors,
+      successExitCodes,
+    })
+
+    // popping a stashes that create conflicts in the working directory
+    // report an exit code of `1` and are not dropped after being applied.
+    // so, we check for this case and drop them manually
+    if (result.exitCode === 1) {
+      if (result.stderr.length > 0) {
+        // rethrow, because anything in stderr should prevent the stash from being popped
+        throw new GitError(result, args)
+      }
+
+      log.info(
+        `[popStashEntry] a stash was popped successfully but exit code ${
+          result.exitCode
+        } reported.`
+      )
+      // bye bye
+      await dropDesktopStashEntry(repository, stashSha)
+    }
   }
 }
 
@@ -163,7 +211,7 @@ export async function getStashedFiles(
   const files = new Map<string, CommittedFileChange>()
   trackedFiles.forEach(x => files.set(x.path, x))
   untrackedFiles.forEach(x => files.set(x.path, x))
-  return [...files.values()].sort((x, y) => compare(x.path, y.path))
+  return [...files.values()].sort((x, y) => x.path.localeCompare(y.path))
 }
 
 /**

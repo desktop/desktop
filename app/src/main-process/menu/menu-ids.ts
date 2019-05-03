@@ -1,6 +1,7 @@
 export type MenuIDs =
   | 'rename-branch'
   | 'delete-branch'
+  | 'discard-all-changes'
   | 'preferences'
   | 'update-branch'
   | 'merge-branch'
@@ -28,3 +29,4 @@ export type MenuIDs =
   | 'about'
   | 'create-pull-request'
   | 'compare-to-branch'
+  | 'toggle-stashed-changes'
