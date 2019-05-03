@@ -246,7 +246,6 @@
       - [ ] If conflicts, conflict modal shows quantity of files, ability to open in [editor], open in command line, `Abort` button, while `Continue rebase` button is deactivated until files are resolved
         - [ ] If conflicts resolved, files marked green, and user can click `Continue rebase` button
 	    - [ ] If rebased, success banner is shown temporarily; user can `X` to remove
-	    - [ ] Binary files must be resolved in command line before committing rebase
         - [ ] Aborting partially resolved rebase surfaces "Are you sure?" dialogue; `Cancel` or `Abort merge` buttons
   - [ ] Compare on GitHub (Mac: `⇧⌘C`; Windows: `Ctrl+Shift+C`) (if repository already published on `github.com`)
   - [ ] Create Pull Request (Mac: `⌘R`; Windows: `Ctrl+R`) opens Pull Request on `github.com` 
