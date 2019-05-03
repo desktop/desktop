@@ -243,7 +243,7 @@
     - [ ] Rebase hint shows status and branches to be merged
     - [ ] `Start rebase` button only activated if something to rebase
       - [ ] If rebase, success banner is shown temporarily; user can `X` to remove
-      - [ ] If conflicts, conflict modal shows quanity of files, ability to open in [editor], open in command line, `Abort` button, while `Continue rebase` button is deactivated until files are resolved
+      - [ ] If conflicts, conflict modal shows quantity of files, ability to open in [editor], open in command line, `Abort` button, while `Continue rebase` button is deactivated until files are resolved
         - [ ] If rebase resolved, files marked green, and user can click `Continue rebase` button
 	    - [ ] If rebased, success banner is shown temporarily; user can `X` to remove
 	    - [ ] Binary files must be resolved in command line before committing rebase
