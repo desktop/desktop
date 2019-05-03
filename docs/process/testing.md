@@ -309,7 +309,7 @@
     - [ ] Modal asks user to stash on current branch or bring changes to new branch; `Cancel` or `Switch Branch` buttons
       - [ ] If stashed then changes shown under Stashed Changes section of the under Changes tab
         - [ ] Stashed changes section show all stashed files and diffs; user can discard or restore to Changes
-      - [ ] If moved to new branch, files under Changes tab
+      - [ ] If moved to new branch, all previously changed files will exist under Changes tab on the new branch
 
 ### History tab
   - [ ] History tab shows commits on your current branch by default
