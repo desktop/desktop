@@ -270,7 +270,7 @@
 
 ### Repositories list
   - [ ] Current repository is always shown in top slot with respective icon; if repository exists
-  - [ ] Opening list shows all repositories in categorized by owner in alpha format with a working filter
+  - [ ] Opening list shows all repositories, categorized by owner in alpha format with a working filter
     - [ ] If more than six repostories, a Recent group will appear at the top of the list; limit 3 repositories
     - [ ] `ESC` clears the filter
     - [ ] Search filter match results in bold characters
