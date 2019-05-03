@@ -260,7 +260,7 @@
   - [ ] `Report Issue...` opens issue filing in Desktop repository on `github.com`
   - [ ] `Contact GitHub Support...` opens `https://github.com/contact` page with user and build prepopulated
   - [ ] `Show User Guides` opens Desktop help page on `github.com`
-  - [ ] `Show Keyboard Shurtcuts` opens `https://help.github.com/en/desktop/getting-started-with-github-desktop/keyboard-shortcuts-in-github-desktop`
+  - [ ] `Show Keyboard Shortcuts` opens `https://help.github.com/en/desktop/getting-started-with-github-desktop/keyboard-shortcuts-in-github-desktop`
   - [ ] `Show Logs in Finder/Explorer` opens Finder/Explorer logs in local directory
     - [ ] Mac: `ls ~/Library/Application\ Support/GitHub\ Desktop/Logs/*.log`
     - [ ] Windows: `%LOCALAPPDATA%\\Desktop\\*.desktop.production.log`
