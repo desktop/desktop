@@ -37,6 +37,14 @@ interface IFetchAllOptions<T> {
    * @param results  All results retrieved thus far
    */
   continue?: (results: ReadonlyArray<T>) => boolean
+
+  /**
+   * Calculate the next page path given the response.
+   *
+   * Optional, see `getNextPagePathFromLink` for the default
+   * implementation.
+   */
+  getNextPagePath?: (response: Response) => string | null
 }
 
 const username: () => Promise<string> = require('username')
@@ -262,7 +270,7 @@ interface ISearchResults<T> {
  *
  * If no link rel next header is found this method returns null.
  */
-function getNextPagePath(response: Response): string | null {
+function getNextPagePathFromLink(response: Response): string | null {
   const linkHeader = response.headers.get('Link')
 
   if (!linkHeader) {
@@ -583,7 +591,7 @@ export class API {
 
     let nextPath: string | null = urlWithQueryString(path, params)
     do {
-      const response = await this.request('GET', nextPath)
+      const response: Response = await this.request('GET', nextPath)
       if (!response.ok) {
         log.warn(`fetchAll: '${path}' returned a ${response.status}`)
         return buf
@@ -594,7 +602,9 @@ export class API {
         buf.push(...items)
       }
 
-      nextPath = getNextPagePath(response)
+      nextPath = opts.getNextPagePath
+        ? opts.getNextPagePath(response)
+        : getNextPagePathFromLink(response)
     } while (nextPath && (!opts.continue || opts.continue(buf)))
 
     return buf
