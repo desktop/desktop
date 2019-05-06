@@ -1547,4 +1547,9 @@ export class Dispatcher {
   public recordRebaseConflictsDialogReopened() {
     this.statsStore.recordRebaseConflictsDialogReopened()
   }
+
+  /** Increments the `errorWhenSwitchingBranchesWithUncommmittedChanges` metric */
+  public recordErrorWhenSwitchingBranchesWithUncommmittedChanges() {
+    return this.statsStore.recordErrorWhenSwitchingBranchesWithUncommmittedChanges()
+  }
 }
