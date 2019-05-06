@@ -2843,7 +2843,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         uncommittedChangesStrategy ===
         UncommittedChangesStrategy.moveToNewBranch
       ) {
-        await this._createStash(repository, foundBranch.name, false)
+        await createDesktopStashEntry(repository, foundBranch.name)
         shouldPopStash = true
       }
     }
@@ -2872,7 +2872,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
 
       if (stash !== null) {
-        await this._popStashEntry(repository, stash)
+        await gitStore.performFailableOperation(() => {
+          return popStashEntry(repository, stash.stashSha)
+        })
       } else {
         log.info(
           `[AppStore._checkoutBranch] no stash found that matches ${
