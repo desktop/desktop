@@ -155,7 +155,8 @@ export class PullRequestStore {
     // repository with 1k+ PRs. Even in the worst-case scenario (i.e
     // a repository with a huge number of open PRs from forks) this
     // will reduce the N+2 to N+1.
-    const getRepo = mem(this.repositoryStore.findGitHubRepositoryByID)
+    const store = this.repositoryStore
+    const getRepo = mem(store.findGitHubRepositoryByID.bind(store))
 
     for (const record of records) {
       const headRepository = record.head.repoId
@@ -208,6 +209,7 @@ export class PullRequestStore {
 
     // The API endpoint for this PR, i.e api.github.com or a GHE url
     const { endpoint } = repository
+    const store = this.repositoryStore
 
     // Upsert will always query the database for a repository. Given that
     // we've receive these repositories in a batch response from the API
@@ -215,7 +217,7 @@ export class PullRequestStore {
     // to use the upsert just to ensure that the repo exists in the database
     // and reuse the same object without going to the database for all that
     // follow.
-    const upsertRepo = mem(this.repositoryStore.upsertGitHubRepository, {
+    const upsertRepo = mem(store.upsertGitHubRepository.bind(store), {
       cacheKey: (_, repo) => repo.clone_url,
     })
 
