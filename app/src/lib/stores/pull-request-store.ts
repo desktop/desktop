@@ -76,7 +76,7 @@ export class PullRequestStore {
 
     const promise = this.fetchAndStorePullRequests(repo, account)
       .catch(err => {
-        log.warn(`Error refreshing pull requests for '${repo.fullName}'`, err)
+        log.error(`Error refreshing pull requests for '${repo.fullName}'`, err)
       })
       .then(() => {
         this.currentRefreshOperations.delete(dbId)
