@@ -1420,6 +1420,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    // We don't want to run the pull request updater when the app is in
+    // the background.
+    if (!this.appIsFocused) {
+      return
+    }
+
     const account = getAccountForRepository(this.accounts, repository)
     const { gitHubRepository } = repository
 
@@ -1436,10 +1442,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private stopPullRequestUpdater() {
-    const updater = this.currentPullRequestUpdater
-
-    if (updater) {
-      updater.stop()
+    if (this.currentPullRequestUpdater) {
+      this.currentPullRequestUpdater.stop()
       this.currentPullRequestUpdater = null
     }
   }
@@ -4313,6 +4317,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (this.appIsFocused !== isFocused) {
       this.appIsFocused = isFocused
       this.emitUpdate()
+    }
+
+    if (this.appIsFocused) {
+      if (this.selectedRepository instanceof Repository) {
+        this.startPullRequestUpdater(this.selectedRepository)
+      }
+    } else {
+      this.stopPullRequestUpdater()
     }
   }
 
