@@ -216,7 +216,7 @@ export class PullRequestStore {
     // and reuse the same object without going to the database for all that
     // follow.
     const upsertRepo = mem(this.repositoryStore.upsertGitHubRepository, {
-      cacheKey: (_, repo) => `${repo.owner}/${repo.name}`,
+      cacheKey: (_, repo) => repo.clone_url,
     })
 
     for (const pr of pullRequestsFromAPI) {
