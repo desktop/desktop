@@ -209,6 +209,16 @@ export class PullRequestStore {
     // The API endpoint for this PR, i.e api.github.com or a GHE url
     const { endpoint } = repository
 
+    // Upsert will always query the database for a repository. Given that
+    // we've receive these repositories in a batch response from the API
+    // it's pretty unlikely that they'd differ between PRs so we're going
+    // to use the upsert just to ensure that the repo exists in the database
+    // and reuse the same object without going to the database for all that
+    // follow.
+    const upsertRepo = mem(this.repositoryStore.upsertGitHubRepository, {
+      cacheKey: (_, repo) => `${repo.owner}/${repo.name}`,
+    })
+
     for (const pr of pullRequestsFromAPI) {
       // `pr.head.repo` represents the source of the pull request. It might be
       // a branch associated with the current repository, or a fork of the
@@ -226,10 +236,7 @@ export class PullRequestStore {
         continue
       }
 
-      const headRepo = await this.repositoryStore.upsertGitHubRepository(
-        endpoint,
-        pr.head.repo
-      )
+      const headRepo = await upsertRepo(endpoint, pr.head.repo)
 
       if (headRepo.dbID === null) {
         return fatalError('PR cannot have non-existent repo')
@@ -241,10 +248,7 @@ export class PullRequestStore {
         return fatalError('PR cannot have a null base repo')
       }
 
-      const baseGitHubRepo = await this.repositoryStore.upsertGitHubRepository(
-        endpoint,
-        pr.base.repo
-      )
+      const baseGitHubRepo = await upsertRepo(endpoint, pr.base.repo)
 
       if (baseGitHubRepo.dbID === null) {
         return fatalError('PR cannot have a null parent database id')
