@@ -2487,7 +2487,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const status = await this._loadStatus(repository)
     if (!status) {
       await this._updateRepositoryMissing(repository, true)
-      this.updateRepositoryIndicator(repository, null)
+      this.updateSidebarIndicator(repository, null)
       return
     }
 
@@ -2521,13 +2521,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.updateMenuItemLabels(latestState)
 
     this._initializeCompare(repository)
-    this.updateRepositoryIndicator(repository, status)
+    this.updateSidebarIndicator(repository, status)
   }
 
   /**
    * Update the repository sidebar indicator for the repository
    */
-  private async updateRepositoryIndicator(
+  private async updateSidebarIndicator(
     repository: Repository,
     status: IStatusResult | null
   ): Promise<void> {
@@ -2552,7 +2552,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /**
    * Refresh sidebar indicators for the set of repositories tracked in the app.
    */
-  public async refreshAllIndicators() {
+  public async refreshAllSidebarIndicators() {
     const startTime = performance && performance.now ? performance.now() : null
 
     // keep a reference to the current set of repositories to avoid the array
