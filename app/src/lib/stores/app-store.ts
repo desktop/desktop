@@ -3589,6 +3589,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (lastStashEntryCheck == null || threshold.isAfter(lastStashEntryCheck)) {
       // `lastStashEntryCheck` being equal to null means we've never checked for
       // the given repo
+      const stashSize = await getStashSize(repository)
+      this.statsStore.addStashesCreatedOutsideDesktop(stashSize)
 
       await this.repositoriesStore.updateLastStashCheckDate(repository)
     }
