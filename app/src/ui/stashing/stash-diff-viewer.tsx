@@ -84,7 +84,7 @@ export class StashDiffViewer extends React.PureComponent<
           dispatcher={dispatcher}
           isWorkingTreeClean={isWorkingTreeClean}
         />
-        <div className="content">
+        <div className="commit-details">
           <Resizable
             width={this.props.fileListWidth}
             onResize={this.onResize}
@@ -146,7 +146,11 @@ const Header: React.SFC<{
       <h3>Stashed changes</h3>
       <div className="row">
         <ButtonGroup destructive={false}>
-          <Button onClick={onRestoreClick} type="submit">
+          <Button
+            disabled={!isWorkingTreeClean}
+            onClick={onRestoreClick}
+            type="submit"
+          >
             Restore
           </Button>
           <Button onClick={onDiscardClick}>Discard</Button>

@@ -31,6 +31,7 @@ interface ISwitchBranchProps {
 interface ISwitchBranchState {
   readonly isStashingChanges: boolean
   readonly selectedStashAction: StashAction
+  readonly currentBranchName: string
 }
 
 /**
@@ -47,6 +48,7 @@ export class StashAndSwitchBranch extends React.Component<
     this.state = {
       isStashingChanges: false,
       selectedStashAction: StashAction.StashOnCurrentBranch,
+      currentBranchName: props.currentBranch.name,
     }
   }
 
@@ -97,7 +99,7 @@ export class StashAndSwitchBranch extends React.Component<
     const { branchToCheckout } = this.props
     const items = [
       {
-        title: `Leave my changes on ${this.props.currentBranch.name}`,
+        title: `Leave my changes on ${this.state.currentBranchName}`,
         description:
           'Your in-progress work will be stashed on this branch for you to return to later',
       },
@@ -148,10 +150,10 @@ export class StashAndSwitchBranch extends React.Component<
     try {
       await this.stashAndCheckout()
     } finally {
-      this.setState({ isStashingChanges: false })
+      this.setState({ isStashingChanges: false }, () => {
+        this.props.onDismissed()
+      })
     }
-
-    this.props.onDismissed()
   }
 
   private async stashAndCheckout() {
