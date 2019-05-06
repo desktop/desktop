@@ -47,8 +47,23 @@ export interface IPullRequest {
   readonly author: string
 }
 
+/**
+ * Interface describing a record in the
+ * pullRequestsLastUpdated table.
+ */
 interface IPullRequestsLastUpdated {
+  /**
+   * The primary key. Corresponds to the
+   * dbId property for the associated `GitHubRepository`
+   * instance.
+   */
   readonly repoId: number
+
+  /**
+   * The maximum value of the updated_at field on a
+   * pull request that we've seen in milliseconds since
+   * the epoch.
+   */
   readonly lastUpdated: number
 }
 
