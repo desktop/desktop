@@ -442,4 +442,8 @@ export async function localChangesOverwrittenHandler(
   if (!(repository instanceof Repository)) {
     return error
   }
+
+  dispatcher.recordErrorWhenSwitchingBranchesWithUncommmittedChanges()
+
+  return error
 }
