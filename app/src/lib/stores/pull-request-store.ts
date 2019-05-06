@@ -14,6 +14,7 @@ import { Emitter, Disposable } from 'event-kit'
 export class PullRequestStore {
   protected readonly emitter = new Emitter()
   private readonly currentRefreshOperations = new Map<number, Promise<void>>()
+  private readonly lastRefreshForRepository = new Map<number, number>()
 
   public constructor(
     private readonly db: PullRequestDatabase,
@@ -70,6 +71,7 @@ export class PullRequestStore {
       return currentOp
     }
 
+    this.lastRefreshForRepository.set(dbId, Date.now())
     this.emitIsLoadingPullRequests(repo, true)
 
     const promise = this.fetchAndStorePullRequests(repo, account)
@@ -126,6 +128,12 @@ export class PullRequestStore {
     if (await this.storePullRequests(apiResult, repo)) {
       this.emitPullRequestsChanged(repo, await this.getAll(repo))
     }
+  }
+
+  public getLastRefreshed(repository: GitHubRepository) {
+    return repository.dbID
+      ? this.lastRefreshForRepository.get(repository.dbID)
+      : undefined
   }
 
   /** Gets all stored pull requests for the given repository. */
