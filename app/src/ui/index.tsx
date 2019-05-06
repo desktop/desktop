@@ -20,6 +20,7 @@ import {
   pushNeedsPullHandler,
   upstreamAlreadyExistsHandler,
   rebaseConflictsHandler,
+  localChangesOverwrittenHandler,
 } from './dispatcher'
 import {
   AppStore,
@@ -158,6 +159,7 @@ dispatcher.registerErrorHandler(gitAuthenticationErrorHandler)
 dispatcher.registerErrorHandler(pushNeedsPullHandler)
 dispatcher.registerErrorHandler(backgroundTaskHandler)
 dispatcher.registerErrorHandler(missingRepositoryHandler)
+dispatcher.registerErrorHandler(localChangesOverwrittenHandler)
 
 if (enablePullWithRebase()) {
   dispatcher.registerErrorHandler(rebaseConflictsHandler)
