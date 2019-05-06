@@ -2838,7 +2838,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         uncommittedChangesStrategy ===
         UncommittedChangesStrategy.stashOnCurrentBranch
       ) {
-        await this._createStash(repository, currentBranch.name)
+        await this.createStash(repository, currentBranch.name)
       } else if (
         uncommittedChangesStrategy ===
         UncommittedChangesStrategy.moveToNewBranch
@@ -5018,43 +5018,30 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _createStash(
-    repository: Repository,
-    branchName: string,
-    removePreviousStash: boolean = true
-  ) {
+  /**
+   *  Note: **drops the existing desktop stash** on that branch (if there is one)
+   */
+  private async createStash(repository: Repository, branchName: string) {
     if (!enableStashing()) {
-      return
-    }
-    const { branchesState } = this.repositoryStateCache.get(repository)
-    const { tip } = branchesState
-    if (tip.kind !== TipState.Valid) {
       return
     }
 
     // get the previous stash before we create a new one
-    const previousStash = removePreviousStash
-      ? await getLastDesktopStashEntryForBranch(repository, branchName)
-      : null
+    const previousStash = await getLastDesktopStashEntryForBranch(
+      repository,
+      branchName
+    )
 
     await createDesktopStashEntry(repository, branchName)
 
-    if (previousStash === null) {
-      return
+    if (previousStash !== null) {
+      await dropDesktopStashEntry(repository, previousStash.stashSha)
+      log.info(
+        `Dropped stash '${previousStash.stashSha}' associated with ${
+          previousStash.branchName
+        }`
+      )
     }
-
-    await dropDesktopStashEntry(repository, previousStash.stashSha)
-    log.info(
-      `Dropped stash '${previousStash.stashSha}' associated with ${
-        previousStash.branchName
-      }`
-    )
-
-    await Promise.all([
-      this._loadStatus(repository, true),
-      this.gitStoreCache.get(repository).loadStashEntries(),
-    ])
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
