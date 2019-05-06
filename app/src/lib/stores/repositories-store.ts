@@ -147,6 +147,7 @@ export class RepositoriesStore extends BaseStore {
             path,
             gitHubRepositoryID: null,
             missing: false,
+            lastStashCheckDate: null,
           })
         }
 
