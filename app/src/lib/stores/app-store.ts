@@ -144,6 +144,7 @@ import {
   PushOptions,
   RebaseResult,
   getRebaseSnapshot,
+  IStatusResult,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -1764,12 +1765,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _loadStatus(
     repository: Repository,
     clearPartialState: boolean = false
-  ): Promise<boolean> {
+  ): Promise<IStatusResult | null> {
     const gitStore = this.gitStoreCache.get(repository)
     const status = await gitStore.loadStatus()
 
-    if (!status) {
-      return false
+    if (status === null) {
+      return null
     }
 
     this.repositoryStateCache.updateChangesState(repository, state =>
@@ -1790,7 +1791,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.updateChangesWorkingDirectoryDiff(repository)
 
-    return true
+    return status
   }
 
   /**
@@ -2486,6 +2487,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const status = await this._loadStatus(repository)
     if (!status) {
       await this._updateRepositoryMissing(repository, true)
+      this.updateRepositoryIndicator(repository, null)
       return
     }
 
@@ -2519,7 +2521,32 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.updateMenuItemLabels(latestState)
 
     this._initializeCompare(repository)
-    this.refreshIndicatorsForRepositories([repository], false)
+    this.updateRepositoryIndicator(repository, status)
+  }
+
+  /**
+   * Update the repository sidebar indicator for the repository
+   */
+  private async updateRepositoryIndicator(
+    repository: Repository,
+    status: IStatusResult | null
+  ): Promise<void> {
+    const lookup = this.localRepositoryStateLookup
+
+    if (repository.missing) {
+      lookup.delete(repository.id)
+      return
+    }
+
+    if (status === null) {
+      lookup.delete(repository.id)
+      return
+    }
+
+    lookup.set(repository.id, {
+      aheadBehind: status.branchAheadBehind || null,
+      changedFilesCount: status.workingDirectory.files.length,
+    })
   }
 
   public refreshAllIndicators() {
