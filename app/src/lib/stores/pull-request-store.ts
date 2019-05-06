@@ -155,9 +155,7 @@ export class PullRequestStore {
     // repository with 1k+ PRs. Even in the worst-case scenario (i.e
     // a repository with a huge number of open PRs from forks) this
     // will reduce the N+2 to N+1.
-    const getRepo = mem((id: number) =>
-      this.repositoryStore.findGitHubRepositoryByID(id)
-    )
+    const getRepo = mem(this.repositoryStore.findGitHubRepositoryByID)
 
     for (const record of records) {
       const headRepository = record.head.repoId
