@@ -290,6 +290,50 @@ function getNextPagePathFromLink(response: Response): string | null {
   return null
 }
 
+/**
+ * Parses the 'next' Link header from GitHub using
+ * `getNextPagePathFromLink`. Unlike getNextPagePathFromLink
+ * this method will attempt to double the page size when
+ * the current page index and the page size allows for it
+ * leading to a ramp up in page size.
+ *
+ * This might sound confusing, and it is, but the primary use
+ * case for this is when retrieving updated PRs. By specifying
+ * an initial page size of, for example, 10 this method will
+ * increase the page size to 20 once the second page has been
+ * loaded. See the table below for an example. The ramp-up
+ * will stop at a page size of 100 since that's the maximum
+ * that the GitHub API supports.
+ *
+ * |-----------|------|-----------|-----------------|
+ * | Request # | Page | Page size | Retrieved items |
+ * |-----------|------|-----------|-----------------|
+ * | 1         | 1    | 10        | 10              |
+ * | 2         | 2    | 10        | 20              |
+ * | 3         | 2    | 20        | 40              |
+ * | 4         | 2    | 40        | 80              |
+ * | 5         | 2    | 80        | 160             |
+ * | 6         | 3    | 80        | 240             |
+ * | 7         | 4    | 80        | 320             |
+ * | 8         | 5    | 80        | 400             |
+ * | 9         | 2    | 100       | 500             |
+ * |-----------|------|-----------|-----------------|
+ *
+ * This algorithm means we can have the best of both worlds.
+ * If there's a small number of changed pull requests since
+ * our last update we'll do small requests that use minimal
+ * bandwidth but if we encounter a repository where a lot
+ * of PRs have changed since our last fetch (like a very
+ * active repository or one we haven't fetched in a long time)
+ * we'll spool up our page size in just a few requests and load
+ * in bulk.
+ *
+ * As an example I used a very active internal repository and
+ * asked for all PRs updated in the last 24 hours which was 320.
+ * With the previous regime of fetching with a page size of 10
+ * that obviously took 32 requests. With this new regime it
+ * would take 7.
+ */
 function getNextPagePathWithIncreasingPageSize(response: Response) {
   let nextPath = getNextPagePathFromLink(response)
 
