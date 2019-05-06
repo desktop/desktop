@@ -1,4 +1,4 @@
-import { MenuIDs } from '../main-process/menu'
+import { MenuIDs } from '../models/menu-ids'
 import { merge } from './merge'
 import { IAppState, SelectionType } from '../lib/app-state'
 import { Repository } from '../models/repository'
