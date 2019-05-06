@@ -5074,7 +5074,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     await Promise.all([
       this._loadStatus(repository, true),
-      this.gitStoreCache.get(repository).loadStashEntries(),
+      gitStore.loadStashEntries(),
     ])
   }
 
@@ -5096,7 +5096,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }`
     )
 
-    await this.gitStoreCache.get(repository).loadStashEntries()
+    await gitStore.loadStashEntries()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
