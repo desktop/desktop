@@ -235,6 +235,57 @@ export class RepositoriesStore extends BaseStore {
     )
   }
 
+  /**
+   * Sets the last time the repository was checked for stash entries
+   *
+   * @param repository The repository in which to update the last stash check date for
+   * @param date The date and time in which the last stash check took place; defaults to
+   * the current time
+   */
+  public async updateLastStashCheckDate(
+    repository: Repository,
+    date: number = Date.now()
+  ): Promise<void> {
+    const repoID = repository.id
+    if (repoID === 0) {
+      return fatalError(
+        '`updateLastStashCheckDate` can only update the last stash check date for a repository which has been added to the database.'
+      )
+    }
+
+    await this.db.repositories.update(repoID, {
+      lastStashCheckDate: date,
+    })
+
+    this.emitUpdate()
+  }
+
+  /**
+   * Gets the last time the repository was checked for stash entries
+   *
+   * @param repository The repository in which to update the last stash check date for
+   */
+  public async getLastStashCheckDate(
+    repository: Repository
+  ): Promise<number | null> {
+    const repoID = repository.id
+    if (!repoID) {
+      return fatalError(
+        '`getLastStashCheckDate` - can only retrieve the last stash check date for a repositories that have been stored in the database.'
+      )
+    }
+
+    const record = await this.db.repositories.get(repoID)
+
+    if (record === undefined) {
+      return fatalError(
+        `'getLastStashCheckDate' - unable to find repository with ID: ${repoID}`
+      )
+    }
+
+    return record!.lastStashCheckDate
+  }
+
   private async putOwner(endpoint: string, login: string): Promise<Owner> {
     login = login.toLowerCase()
 
