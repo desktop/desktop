@@ -179,14 +179,16 @@ export class RepositoriesStore extends BaseStore {
       )
     }
 
-    const gitHubRepositoryID = repository.gitHubRepository
-      ? repository.gitHubRepository.dbID
-      : null
+    const oldRecord = await this.db.repositories.get(repoID)
+    if (oldRecord === undefined) {
+      return fatalError(
+        `\`updateRepositoryMissing\` - unable to find repo with ID ${repoID} in database.`
+      )
+    }
+
     await this.db.repositories.put({
-      id: repository.id,
-      path: repository.path,
+      ...oldRecord,
       missing,
-      gitHubRepositoryID,
     })
 
     this.emitUpdate()
@@ -211,14 +213,16 @@ export class RepositoriesStore extends BaseStore {
       )
     }
 
-    const gitHubRepositoryID = repository.gitHubRepository
-      ? repository.gitHubRepository.dbID
-      : null
+    const oldRecord = await this.db.repositories.get(repoID)
+    if (oldRecord === undefined) {
+      return fatalError(
+        `\`updateRepositoryPath\` - unable to find repo with ID ${repoID} in database.`
+      )
+    }
+
     await this.db.repositories.put({
-      id: repository.id,
-      missing: false,
-      path: path,
-      gitHubRepositoryID,
+      ...oldRecord,
+      path,
     })
 
     this.emitUpdate()
