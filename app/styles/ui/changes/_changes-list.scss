@@ -61,6 +61,7 @@
     .text {
       flex-grow: 1;
       margin: 0 var(--spacing-half);
+      text-align: start;
     }
 
     .octicon {
