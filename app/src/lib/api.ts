@@ -290,6 +290,42 @@ function getNextPagePathFromLink(response: Response): string | null {
   return null
 }
 
+function getNextPagePathWithIncreasingPageSize(response: Response) {
+  let nextPath = getNextPagePathFromLink(response)
+
+  if (!nextPath) {
+    return null
+  }
+
+  const { pathname, query } = URL.parse(nextPath, true)
+
+  let per_page =
+    typeof query.per_page === 'string' ? parseInt(query.per_page, 10) : NaN
+
+  let page = typeof query.page === 'string' ? parseInt(query.page, 10) : NaN
+
+  // Confusing, but we're looking at the _next_ page path here
+  // so the current is whatever came before it.
+  const currentPage = page - 1
+
+  // Number of received items thus far
+  const received = currentPage * per_page
+
+  const nextPageSize = per_page * 2
+
+  // Have we received exactly the amount of items
+  // such that doubling the page size and loading the
+  // second page would seamlessly fit? No sense going
+  // above 100 since that's the max the API supports
+  if (nextPageSize <= 100 && received % nextPageSize === 0) {
+    query['per_page'] = `${nextPageSize}`
+    query['page'] = '2'
+    return URL.format({ pathname, query })
+  }
+
+  return nextPath
+}
+
 /**
  * Returns an ISO 8601 time string with second resolution instead of
  * the standard javascript toISOString which returns millisecond
@@ -540,8 +576,11 @@ export class API {
         // get the full list back (PRs doesn't support ?since=) we want
         // to keep this number fairly conservative in order to not use
         // up bandwidth needlessly while balancing it such that we don't
-        // have to use a lot of requests to update our database.
+        // have to use a lot of requests to update our database. We then
+        // ramp up the page size (see getNextPagePathWithIncreasingPageSize)
+        // if it turns out there's a lot of updated PRs.
         perPage: 10,
+        getNextPagePath: getNextPagePathWithIncreasingPageSize,
         continue(results) {
           // Given that we sort the results in descending order by their
           // updated_at field we can safely say that if the last item
