@@ -2549,20 +2549,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
   }
 
-  public refreshAllIndicators() {
-    return this.refreshIndicatorsForRepositories(this.repositories)
-  }
-
   /**
-   * Refresh in-memory indicators for a set of repositories
-   *
-   * @param repositories the set of repositories to update
-   * @param tryBackgroundFetch whether the action should also try and fetch new changes from the remote
+   * Refresh sidebar indicators for the set of repositories tracked in the app.
    */
-  private async refreshIndicatorsForRepositories(
-    repositories: ReadonlyArray<Repository>
-  ): Promise<void> {
+  public async refreshAllIndicators() {
     const startTime = performance && performance.now ? performance.now() : null
+
+    // keep a reference to the current set of repositories to avoid the array
+    // changing while this is running
+    const repositories = new Array<Repository>(...this.repositories)
 
     for (const repo of repositories) {
       await this.refreshIndicatorForRepository(repo)
