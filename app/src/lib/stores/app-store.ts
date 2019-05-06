@@ -222,8 +222,8 @@ import {
 import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
 import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
-import { MenuLabels } from '../../main-process/menu'
 import { arrayEquals } from '../equality'
+import { MenuLabelsEvent } from '../../models/menu-labels'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -332,7 +332,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private windowZoomFactor: number = 1
   private isUpdateAvailableBannerVisible: boolean = false
 
-  private confirmRepoRemoval: boolean = confirmRepoRemovalDefault
+  private askForConfirmationOnRepositoryRemoval: boolean = confirmRepoRemovalDefault
   private confirmDiscardChanges: boolean = confirmDiscardChangesDefault
   private askForConfirmationOnForcePush = askForConfirmationOnForcePushDefault
   private imageDiffType: ImageDiffType = imageDiffTypeDefault
@@ -577,7 +577,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       highlightAccessKeys: this.highlightAccessKeys,
       isUpdateAvailableBannerVisible: this.isUpdateAvailableBannerVisible,
       currentBanner: this.currentBanner,
-      askForConfirmationOnRepositoryRemoval: this.confirmRepoRemoval,
+      askForConfirmationOnRepositoryRemoval: this
+        .askForConfirmationOnRepositoryRemoval,
       askForConfirmationOnDiscardChanges: this.confirmDiscardChanges,
       askForConfirmationOnForcePush: this.askForConfirmationOnForcePush,
       selectedExternalEditor: this.selectedExternalEditor,
@@ -1575,7 +1576,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       defaultStashedFilesWidth
     )
 
-    this.confirmRepoRemoval = getBoolean(
+    this.askForConfirmationOnRepositoryRemoval = getBoolean(
       confirmRepoRemovalKey,
       confirmRepoRemovalDefault
     )
@@ -1676,65 +1677,48 @@ export class AppStore extends TypedBaseStore<IAppState> {
    *              being cloned or is missing
    */
   private updateMenuItemLabels(state: IRepositoryState | null) {
-    const shellLabel = `Open in ${this.selectedShell}`
-    const removeRepoLabel = this.getRemoveRepoLabel()
+    const {
+      selectedShell,
+      selectedExternalEditor,
+      askForConfirmationOnRepositoryRemoval,
+      askForConfirmationOnForcePush,
+    } = this
 
-    let labels: MenuLabels = {
-      shellLabel,
-      removeRepoLabel,
+    const labels: MenuLabelsEvent = {
+      selectedShell,
+      selectedExternalEditor: selectedExternalEditor || null,
+      askForConfirmationOnRepositoryRemoval,
+      askForConfirmationOnForcePush,
     }
 
-    if (this.selectedExternalEditor !== undefined) {
-      labels = {
-        ...labels,
-        editorLabel: `Open in ${this.selectedExternalEditor}`,
-      }
+    if (state === null) {
+      updatePreferredAppMenuItemLabels(labels)
+      return
     }
 
-    if (state !== null) {
-      labels = {
-        ...labels,
-        pullRequestLabel: this.getPullRequestLabel(state),
-        defaultBranchName: this.getDefaultBranchName(state),
-        isForcePushForCurrentRepository: this.isCurrentBranchForcePush(state),
-        askForConfirmationOnForcePush: this.askForConfirmationOnForcePush,
-        isStashedChangesVisible:
-          state.changesState.selection.kind === ChangesSelectionKind.Stash,
-      }
-    }
+    const { changesState, branchesState, aheadBehind } = state
+    const { defaultBranch, currentPullRequest } = branchesState
 
-    updatePreferredAppMenuItemLabels(labels)
-  }
+    const defaultBranchName =
+      defaultBranch === null || defaultBranch.upstreamWithoutRemote === null
+        ? undefined
+        : defaultBranch.upstreamWithoutRemote
 
-  private isCurrentBranchForcePush(state: IRepositoryState) {
-    const { branchesState, aheadBehind } = state
-    return isCurrentBranchForcePush(branchesState, aheadBehind)
-  }
+    const isForcePushForCurrentRepository = isCurrentBranchForcePush(
+      branchesState,
+      aheadBehind
+    )
 
-  private getRemoveRepoLabel() {
-    return this.confirmRepoRemoval
-      ? __DARWIN__
-        ? 'Remove…'
-        : '&Remove…'
-      : __DARWIN__
-      ? 'Remove'
-      : '&Remove'
-  }
+    const isStashedChangesVisible =
+      changesState.selection.kind === ChangesSelectionKind.Stash
 
-  private getPullRequestLabel(state: IRepositoryState) {
-    if (state.branchesState.currentPullRequest === null) {
-      return undefined
-    }
-
-    return __DARWIN__ ? 'Show Pull Request' : 'Show &pull request'
-  }
-
-  private getDefaultBranchName(state: IRepositoryState) {
-    const { defaultBranch } = state.branchesState
-    if (defaultBranch == null || defaultBranch.upstreamWithoutRemote == null) {
-      return undefined
-    }
-    return defaultBranch.upstreamWithoutRemote
+    updatePreferredAppMenuItemLabels({
+      ...labels,
+      defaultBranchName,
+      isForcePushForCurrentRepository,
+      isStashedChangesVisible,
+      hasCurrentPullRequest: currentPullRequest !== null,
+    })
   }
 
   private updateRepositorySelectionAfterRepositoriesChanged() {
@@ -4109,7 +4093,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _setConfirmRepositoryRemovalSetting(
     confirmRepoRemoval: boolean
   ): Promise<void> {
-    this.confirmRepoRemoval = confirmRepoRemoval
+    this.askForConfirmationOnRepositoryRemoval = confirmRepoRemoval
     setBoolean(confirmRepoRemovalKey, confirmRepoRemoval)
 
     this.updateMenuLabelsForSelectedRepository()
