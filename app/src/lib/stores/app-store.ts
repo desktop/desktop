@@ -2550,7 +2550,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public refreshAllIndicators() {
-    return this.refreshIndicatorsForRepositories(this.repositories, true)
+    return this.refreshIndicatorsForRepositories(this.repositories)
   }
 
   /**
@@ -2560,13 +2560,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * @param tryBackgroundFetch whether the action should also try and fetch new changes from the remote
    */
   private async refreshIndicatorsForRepositories(
-    repositories: ReadonlyArray<Repository>,
-    tryBackgroundFetch: boolean
+    repositories: ReadonlyArray<Repository>
   ): Promise<void> {
     const startTime = performance && performance.now ? performance.now() : null
 
     for (const repo of repositories) {
-      await this.refreshIndicatorForRepository(repo, tryBackgroundFetch)
+      await this.refreshIndicatorForRepository(repo)
     }
 
     if (startTime && repositories.length > 1) {
@@ -2588,10 +2587,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * @param repository the repository to check and update
    * @param tryBackgroundFetch whether the action should also try and fetch new changes from the remote
    */
-  private async refreshIndicatorForRepository(
-    repository: Repository,
-    tryBackgroundFetch: boolean
-  ) {
+  private async refreshIndicatorForRepository(repository: Repository) {
     const lookup = this.localRepositoryStateLookup
 
     if (repository.missing) {
@@ -2612,16 +2608,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    if (tryBackgroundFetch) {
-      const lastPush = await inferLastPushForRepository(
-        this.accounts,
-        gitStore,
-        repository
-      )
+    const lastPush = await inferLastPushForRepository(
+      this.accounts,
+      gitStore,
+      repository
+    )
 
-      if (this.shouldBackgroundFetch(repository, lastPush)) {
-        await this._fetch(repository, FetchType.BackgroundTask)
-      }
+    if (this.shouldBackgroundFetch(repository, lastPush)) {
+      await this._fetch(repository, FetchType.BackgroundTask)
     }
 
     lookup.set(repository.id, {
