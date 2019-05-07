@@ -2,14 +2,8 @@ import { git } from './core'
 import { GitError } from 'dugite'
 
 import { Repository } from '../../models/repository'
-//import { Commit } from '../../models/commit'
 import { Branch, BranchType } from '../../models/branch'
-import { CommitIdentity } from '../../models/commit-identity'
 import { ForkedRemotePrefix } from '../../models/remote'
-// import {
-//   getTrailerSeparatorCharacters,
-//   parseRawUnfoldedTrailers,
-// } from './interpret-trailers'
 
 const ForksReferencesPrefix = `refs/remotes/${ForkedRemotePrefix}`
 
