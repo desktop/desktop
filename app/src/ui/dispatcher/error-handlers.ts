@@ -14,6 +14,7 @@ import { UpstreamAlreadyExistsError } from '../../lib/stores/upstream-already-ex
 import { PopupType } from '../../models/popup'
 import { Repository } from '../../models/repository'
 import { UncommittedChangesStrategyKind } from '../../models/uncommitted-changes-strategy'
+import { enableStashing } from '../../lib/feature-flag'
 
 /** An error which also has a code property. */
 interface IErrorWithCode extends Error {
@@ -440,6 +441,10 @@ export async function localChangesOverwrittenHandler(
 
   const { checkoutBranch } = e.metadata
   if (checkoutBranch === undefined) {
+    return error
+  }
+
+  if (!enableStashing()) {
     return error
   }
 

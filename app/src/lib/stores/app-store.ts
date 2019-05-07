@@ -2880,8 +2880,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
 
     if (
+      enableStashing() &&
       uncommittedChangesStrategy.kind ===
-      UncommittedChangesStrategyKind.moveToNewBranch
+        UncommittedChangesStrategyKind.moveToNewBranch
     ) {
       const { transientStashEntry } = uncommittedChangesStrategy
       if (transientStashEntry !== null) {
