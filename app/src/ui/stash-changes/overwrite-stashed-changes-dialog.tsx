@@ -6,10 +6,7 @@ import { Dispatcher } from '../dispatcher'
 import { ButtonGroup } from '../lib/button-group'
 import { Button } from '../lib/button'
 import { Row } from '../lib/row'
-import {
-  uncommittedChangesStrategyKind,
-  stashOnCurrentBranch,
-} from '../../models/uncommitted-changes-strategy'
+import { stashOnCurrentBranch } from '../../models/uncommitted-changes-strategy'
 
 interface IOverwriteStashProps {
   readonly dispatcher: Dispatcher
