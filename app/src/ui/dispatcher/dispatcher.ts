@@ -301,8 +301,11 @@ export class Dispatcher {
   /**
    * Refresh the repository. This would be used, e.g., when the app gains focus.
    */
-  public refreshRepository(repository: Repository): Promise<void> {
-    return this.appStore._refreshOrRecoverRepository(repository)
+  public refreshRepository(
+    repository: Repository,
+    label: string
+  ): Promise<void> {
+    return this.appStore._refreshOrRecoverRepository(repository, label)
   }
 
   /** Show the popup. This will close any current popup. */
@@ -1060,7 +1063,7 @@ export class Dispatcher {
 
     this.endRebaseFlow(repository)
 
-    await this.refreshRepository(repository)
+    await this.refreshRepository(repository, 'complete rebase')
   }
 
   /** aborts an in-flight merge and refreshes the repository's status */
