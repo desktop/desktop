@@ -269,8 +269,11 @@ export class Dispatcher {
   /**
    * Refresh the repository. This would be used, e.g., when the app gains focus.
    */
-  public refreshRepository(repository: Repository): Promise<void> {
-    return this.appStore._refreshOrRecoverRepository(repository)
+  public refreshRepository(
+    repository: Repository,
+    label: string
+  ): Promise<void> {
+    return this.appStore._refreshOrRecoverRepository(repository, label)
   }
 
   /** Show the popup. This will close any current popup. */

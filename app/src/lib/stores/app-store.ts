@@ -2028,7 +2028,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _refreshOrRecoverRepository(
-    repository: Repository
+    repository: Repository,
+    label: string
   ): Promise<void> {
     // if repository is missing, try checking if it has been restored
     if (repository.missing) {
@@ -2037,11 +2038,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
         // repository has been restored, attempt to refresh it now.
         return this._refreshRepository(
           updatedRepository,
-          'refresh or recover (1)'
+          `refresh or recover '${label}' (1)`
         )
       }
     } else {
-      return this._refreshRepository(repository, 'refresh or recover (2)')
+      return this._refreshRepository(
+        repository,
+        `refresh or recover '${label}' (2)`
+      )
     }
   }
 
