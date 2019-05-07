@@ -7,7 +7,7 @@ import { ButtonGroup } from '../lib/button-group'
 import { Button } from '../lib/button'
 import { Row } from '../lib/row'
 import {
-  UncommittedChangesStrategyKind,
+  uncommittedChangesStrategyKind,
   stashOnCurrentBranch,
 } from '../../models/uncommitted-changes-strategy'
 

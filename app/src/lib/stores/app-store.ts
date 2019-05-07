@@ -221,7 +221,7 @@ import {
 } from '../git/stash'
 import {
   UncommittedChangesStrategy,
-  UncommittedChangesStrategyKind,
+  uncommittedChangesStrategyKind,
   askToStash,
 } from '../../models/uncommitted-changes-strategy'
 import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
@@ -2756,7 +2756,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       hasChanges &&
       currentBranch !== null &&
       uncommittedChangesStrategy.kind ===
-        UncommittedChangesStrategyKind.askForConfirmation
+        uncommittedChangesStrategyKind.askForConfirmation
     ) {
       this._showPopup({
         type: PopupType.StashAndSwitchBranch,
@@ -2824,7 +2824,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       hasChanges &&
       currentBranch !== null &&
       uncommittedChangesStrategy.kind ===
-        UncommittedChangesStrategyKind.askForConfirmation
+        uncommittedChangesStrategyKind.askForConfirmation
     ) {
       this._showPopup({
         type: PopupType.StashAndSwitchBranch,
@@ -2838,7 +2838,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (enableStashing() && currentBranch !== null) {
       if (
         uncommittedChangesStrategy.kind ===
-        UncommittedChangesStrategyKind.stashOnCurrentBranch
+        uncommittedChangesStrategyKind.stashOnCurrentBranch
       ) {
         await this._createStash(
           repository,
@@ -2879,7 +2879,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (
       enableStashing() &&
       uncommittedChangesStrategy.kind ===
-        UncommittedChangesStrategyKind.moveToNewBranch
+        uncommittedChangesStrategyKind.moveToNewBranch
     ) {
       const { transientStashEntry } = uncommittedChangesStrategy
       if (transientStashEntry !== null) {

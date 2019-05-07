@@ -8,7 +8,7 @@ import { Branch } from '../../models/branch'
 import { ButtonGroup } from '../lib/button-group'
 import { Button } from '../lib/button'
 import {
-  UncommittedChangesStrategyKind,
+  uncommittedChangesStrategyKind,
   stashOnCurrentBranch,
 } from '../../models/uncommitted-changes-strategy'
 import { Octicon, OcticonSymbol } from '../octicons'
@@ -169,7 +169,7 @@ export class StashAndSwitchBranch extends React.Component<
       )
     } else if (selectedStashAction === StashAction.MoveToNewBranch) {
       await dispatcher.checkoutBranch(repository, branchToCheckout, {
-        kind: UncommittedChangesStrategyKind.moveToNewBranch,
+        kind: uncommittedChangesStrategyKind.moveToNewBranch,
         transientStashEntry: null,
       })
     }
