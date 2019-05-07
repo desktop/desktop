@@ -1066,7 +1066,7 @@ export class Dispatcher {
 
     // ensure a fresh clone repository has it's in-memory state
     // up-to-date before performing the "Clone in Desktop" steps
-    await this.appStore._refreshRepository(repository)
+    await this.appStore._refreshRepository(repository, 'clone in desktop')
 
     const state = this.repositoryStateManager.get(repository)
 
