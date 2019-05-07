@@ -219,7 +219,10 @@ import {
   popStashEntry,
   dropDesktopStashEntry,
 } from '../git/stash'
-import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
+import {
+  UncommittedChangesStrategy,
+  UncommittedChangesStrategyKind,
+} from '../../models/uncommitted-changes-strategy'
 import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { arrayEquals } from '../equality'
@@ -2729,7 +2732,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     name: string,
     startPoint: string | null,
-    uncommittedChangesStrategy: UncommittedChangesStrategy = UncommittedChangesStrategy.askForConfirmation
+    uncommittedChangesStrategy: UncommittedChangesStrategy = {
+      kind: UncommittedChangesStrategyKind.askForConfirmation,
+    }
   ): Promise<Repository> {
     const gitStore = this.gitStoreCache.get(repository)
     const branch = await gitStore.performFailableOperation(() =>
@@ -2751,8 +2756,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       enableStashing() &&
       hasChanges &&
       currentBranch !== null &&
-      uncommittedChangesStrategy ===
-        UncommittedChangesStrategy.askForConfirmation
+      uncommittedChangesStrategy.kind ===
+        UncommittedChangesStrategyKind.askForConfirmation
     ) {
       this._showPopup({
         type: PopupType.StashAndSwitchBranch,
@@ -2795,7 +2800,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _checkoutBranch(
     repository: Repository,
     branch: Branch | string,
-    uncommittedChangesStrategy: UncommittedChangesStrategy = UncommittedChangesStrategy.askForConfirmation
+    uncommittedChangesStrategy: UncommittedChangesStrategy = {
+      kind: UncommittedChangesStrategyKind.askForConfirmation,
+    }
   ): Promise<Repository> {
     const gitStore = this.gitStoreCache.get(repository)
     const kind = 'checkout'
@@ -2819,8 +2826,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       enableStashing() &&
       hasChanges &&
       currentBranch !== null &&
-      uncommittedChangesStrategy ===
-        UncommittedChangesStrategy.askForConfirmation
+      uncommittedChangesStrategy.kind ===
+        UncommittedChangesStrategyKind.askForConfirmation
     ) {
       this._showPopup({
         type: PopupType.StashAndSwitchBranch,
@@ -2835,8 +2842,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     if (enableStashing() && currentBranch !== null) {
       if (
-        uncommittedChangesStrategy ===
-        UncommittedChangesStrategy.stashOnCurrentBranch
+        uncommittedChangesStrategy.kind ===
+        UncommittedChangesStrategyKind.stashOnCurrentBranch
       ) {
         await this._createStash(repository, currentBranch.name)
       } else if (

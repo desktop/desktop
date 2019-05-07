@@ -24,7 +24,6 @@ import {
   renderBranchNameExistsOnRemoteWarning,
 } from '../lib/branch-name-warnings'
 import { getStartPoint } from '../../lib/create-branch'
-import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
 
 interface ICreateBranchProps {
   readonly repository: Repository
