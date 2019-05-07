@@ -10,6 +10,7 @@ import { Button } from '../lib/button'
 import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { PopupType } from '../../models/popup'
+import { groupLogMessages } from '../lib/group-log-messages'
 
 enum StashAction {
   StashOnCurrentBranch,
@@ -148,7 +149,9 @@ export class StashAndSwitchBranch extends React.Component<
     this.setState({ isStashingChanges: true })
 
     try {
+      const disposable = groupLogMessages('Stash and checkout')
       await this.stashAndCheckout()
+      disposable.dispose()
     } finally {
       this.setState({ isStashingChanges: false }, () => {
         this.props.onDismissed()
