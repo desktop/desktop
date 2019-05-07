@@ -28,12 +28,7 @@ export async function getBranches(
     '%(objectname)', // SHA
     '%(objectname:short)', // short SHA
     '%(author)',
-    '%(committer)',
-    '%(parent)', // parent SHAs
     '%(symref)',
-    '%(subject)',
-    '%(body)',
-    '%(trailers:unfold,only)',
     `%${delimiter}`, // indicate end-of-line as %(body) may contain newlines
   ].join('%00')
 
@@ -65,8 +60,6 @@ export async function getBranches(
     return []
   }
 
-  //const trailerSeparators = await getTrailerSeparatorCharacters(repository)
-
   const branches = []
 
   for (const [ix, line] of lines.entries()) {
@@ -86,34 +79,7 @@ export async function getBranches(
       throw new Error(`Couldn't parse author identity ${authorIdentity}`)
     }
 
-    // const committerIdentity = pieces[6]
-    // const committer = CommitIdentity.parseIdentity(committerIdentity)
-
-    // if (!committer) {
-    //   throw new Error(`Couldn't parse committer identity ${committerIdentity}`)
-    // }
-
-    //const parentSHAs = pieces[7].split(' ')
-    const symref = pieces[8]
-    // const summary = pieces[9]
-    // const body = pieces[10]
-    // const trailers = parseRawUnfoldedTrailers(pieces[11], trailerSeparators)
-
-    // const tip = new Commit(
-    //   sha,
-    //   shortSha,
-    //   summary,
-    //   body,
-    //   author,
-    //   committer,
-    //   parentSHAs,
-    //   trailers
-    // )
-
-    const type = ref.startsWith('refs/head')
-      ? BranchType.Local
-      : BranchType.Remote
-
+    const symref = pieces[6]
     if (symref.length > 0) {
       // excude symbolic refs from the branch list
       continue
@@ -126,6 +92,10 @@ export async function getBranches(
       // ref names
       continue
     }
+
+    const type = ref.startsWith('refs/head')
+      ? BranchType.Local
+      : BranchType.Remote
 
     branches.push(
       new Branch(
