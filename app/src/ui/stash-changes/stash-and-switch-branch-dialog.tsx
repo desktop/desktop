@@ -126,25 +126,6 @@ export class StashAndSwitchBranch extends React.Component<
   }
 
   private onSubmit = async () => {
-    const {
-      repository,
-      dispatcher,
-      hasAssociatedStash,
-      branchToCheckout,
-    } = this.props
-
-    if (
-      this.state.selectedStashAction === StashAction.StashOnCurrentBranch &&
-      hasAssociatedStash
-    ) {
-      dispatcher.showPopup({
-        type: PopupType.ConfirmOverwriteStash,
-        repository,
-        branchToCheckout,
-      })
-      return
-    }
-
     this.setState({ isStashingChanges: true })
 
     try {
@@ -157,8 +138,25 @@ export class StashAndSwitchBranch extends React.Component<
   }
 
   private async stashAndCheckout() {
-    const { repository, branchToCheckout, dispatcher } = this.props
+    const {
+      repository,
+      branchToCheckout,
+      dispatcher,
+      hasAssociatedStash,
+    } = this.props
     const { selectedStashAction } = this.state
+
+    if (
+      selectedStashAction === StashAction.StashOnCurrentBranch &&
+      hasAssociatedStash
+    ) {
+      dispatcher.showPopup({
+        type: PopupType.ConfirmOverwriteStash,
+        repository,
+        branchToCheckout,
+      })
+      return
+    }
 
     if (selectedStashAction === StashAction.StashOnCurrentBranch) {
       await dispatcher.checkoutBranch(repository, branchToCheckout, {
