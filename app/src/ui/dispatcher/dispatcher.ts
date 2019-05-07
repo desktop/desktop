@@ -2037,7 +2037,7 @@ export class Dispatcher {
     return this.appStore._resetStashedFilesWidth()
   }
 
-  //** Hide the diff for stashed changes */
+  /** Hide the diff for stashed changes */
   public hideStashedChanges(repository: Repository) {
     return this.appStore._hideStashedChanges(repository)
   }
