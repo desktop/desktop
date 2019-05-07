@@ -5046,7 +5046,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
         repository,
         branchName
       )
-      await onPreviousStashEntryFound(previousStashEntry)
+
+      if (previousStashEntry !== null) {
+        await onPreviousStashEntryFound(previousStashEntry)
+      }
     }
 
     await createDesktopStashEntry(repository, branchName)
