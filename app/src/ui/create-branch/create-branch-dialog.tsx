@@ -295,8 +295,7 @@ export class CreateBranch extends React.Component<
       await this.props.dispatcher.createBranch(
         this.props.repository,
         name,
-        startPoint,
-        UncommittedChangesStrategy.askForConfirmation
+        startPoint
       )
     }
   }

@@ -2041,4 +2041,26 @@ export class Dispatcher {
   public hideStashedChanges(repository: Repository) {
     return this.appStore._hideStashedChanges(repository)
   }
+
+  /**
+   * Creates a Desktop stash entry
+   *
+   * @param repository the repository to create the stash entry in
+   * @param branch the branch to associate the stash entry to
+   * @param preAction callback to execute **before** the stash entry is created
+   * @param postAction callback to execute **after** the stash entry is created
+   */
+  public async createStash(
+    repository: Repository,
+    branch: Branch,
+    preAction: ((previousStash: IStashEntry | null) => Promise<void>) | null,
+    postAction: ((stashEntry: IStashEntry) => Promise<void>) | null
+  ) {
+    return this.appStore._createStash(
+      repository,
+      branch.name,
+      preAction,
+      postAction
+    )
+  }
 }

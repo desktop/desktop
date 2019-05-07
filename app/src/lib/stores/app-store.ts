@@ -2838,20 +2838,26 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return repository
     }
 
-    let shouldPopStash = false
-
     if (enableStashing() && currentBranch !== null) {
       if (
         uncommittedChangesStrategy.kind ===
         UncommittedChangesStrategyKind.stashOnCurrentBranch
       ) {
-        await this._createStash(repository, currentBranch.name)
-      } else if (
-        uncommittedChangesStrategy ===
-        UncommittedChangesStrategy.moveToNewBranch
-      ) {
-        await this._createStash(repository, foundBranch.name, false)
-        shouldPopStash = true
+        await this._createStash(
+          repository,
+          currentBranch.name,
+          async previousStash => {
+            if (previousStash !== null) {
+              await dropDesktopStashEntry(repository, previousStash.stashSha)
+              log.info(
+                `Dropped stash '${previousStash.stashSha}' associated with ${
+                  previousStash.branchName
+                }`
+              )
+            }
+          },
+          null
+        )
       }
     }
 
@@ -2873,20 +2879,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
     )
 
-    if (shouldPopStash) {
-      const stash = await getLastDesktopStashEntryForBranch(
-        repository,
-        foundBranch.name
-      )
-
-      if (stash !== null) {
-        await this._popStashEntry(repository, stash)
-      } else {
-        log.info(
-          `[AppStore._checkoutBranch] no stash found that matches ${
-            foundBranch.name
-          }`
-        )
+    if (
+      uncommittedChangesStrategy.kind ===
+      UncommittedChangesStrategyKind.moveToNewBranch
+    ) {
+      const { transientStashEntry } = uncommittedChangesStrategy
+      if (transientStashEntry !== null) {
+        await this._popStashEntry(repository, transientStashEntry)
       }
     }
 
@@ -5028,7 +5027,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _createStash(
     repository: Repository,
     branchName: string,
-    removePreviousStash: boolean = true
+    preAction:
+      | ((previousStashEntry: IStashEntry | null) => Promise<void>)
+      | null,
+    postAction: ((stashEntry: IStashEntry) => Promise<void>) | null
   ) {
     if (!enableStashing()) {
       return
@@ -5039,23 +5041,29 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    // get the previous stash before we create a new one
-    const previousStash = removePreviousStash
-      ? await getLastDesktopStashEntryForBranch(repository, branchName)
-      : null
+    if (preAction != null) {
+      const previousStashEntry = await getLastDesktopStashEntryForBranch(
+        repository,
+        branchName
+      )
+      await preAction(previousStashEntry)
+    }
 
     await createDesktopStashEntry(repository, branchName)
 
-    if (previousStash === null) {
-      return
-    }
+    if (postAction != null) {
+      const previousStashEntry = await getLastDesktopStashEntryForBranch(
+        repository,
+        branchName
+      )
 
-    await dropDesktopStashEntry(repository, previousStash.stashSha)
-    log.info(
-      `Dropped stash '${previousStash.stashSha}' associated with ${
-        previousStash.branchName
-      }`
-    )
+      // if we can't find the stash we just created, something went wrong
+      if (previousStashEntry === null) {
+        throw Error('Something bad happened')
+      }
+
+      await postAction(previousStashEntry)
+    }
 
     await this._refreshRepository(repository)
   }
