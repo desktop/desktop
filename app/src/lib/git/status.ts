@@ -202,18 +202,25 @@ export async function getStatus(
   }
 
   const mergeHeadFound = await isMergeHeadSet(repository)
+  const conflictedFilesInIndex = entries.some(e => e.statusCode === 'UU')
   const rebaseInternalState = await getRebaseInternalState(repository)
 
   if (enablePullWithRebase()) {
     conflictDetails = await getConflictDetails(
       repository,
       mergeHeadFound,
+      conflictedFilesInIndex,
       rebaseInternalState
     )
     // a little optimization so we don't run `getWorkingDirectoryConflictDetails`
     // when there are no files to even detect conflicts in
   } else if (entries.length > 0) {
-    conflictDetails = await getConflictDetails(repository, mergeHeadFound, null)
+    conflictDetails = await getConflictDetails(
+      repository,
+      mergeHeadFound,
+      conflictedFilesInIndex,
+      null
+    )
   }
 
   // Map of files keyed on their paths.
@@ -388,11 +395,13 @@ async function getWorkingDirectoryConflictDetails(repository: Repository) {
  *
  * @param repository to get details from
  * @param mergeHeadFound whether a merge conflict has been detected
+ * @param lookForStashConflicts whether it looks like a stash has introduced conflicts
  * @param rebaseInternalState details about the current rebase operation (if found)
  */
 async function getConflictDetails(
   repository: Repository,
   mergeHeadFound: boolean,
+  lookForStashConflicts: boolean,
   rebaseInternalState: RebaseInternalState | null
 ): Promise<ConflictFilesDetails> {
   try {
@@ -403,11 +412,18 @@ async function getConflictDetails(
     if (rebaseInternalState !== null) {
       return await getRebaseConflictDetails(repository)
     }
+
+    if (lookForStashConflicts) {
+      return await getWorkingDirectoryConflictDetails(repository)
+    }
   } catch (error) {
     log.error(
       'Unexpected error from git operations in getConflictDetails',
       error
     )
   }
-  return getWorkingDirectoryConflictDetails(repository)
+  return {
+    conflictCountsByPath: new Map<string, number>(),
+    binaryFilePaths: new Array<string>(),
+  }
 }
