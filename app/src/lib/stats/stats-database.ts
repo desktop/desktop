@@ -168,7 +168,7 @@ export interface IDailyMeasures {
    * The number of stash entries created outside of Desktop
    * in a given 24 hour day
    */
-  readonly stashesCreatedOutsideDesktop: number
+  readonly stashEntriesCreatedOutsideDesktop: number
 
   /**
    * The number of times the user is presented with the error

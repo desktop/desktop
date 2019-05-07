@@ -3589,7 +3589,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       // `lastStashEntryCheck` being equal to null means we've never checked for
       // the given repo
       const stashSize = await getStashSize(repository)
-      this.statsStore.addStashesCreatedOutsideDesktop(stashSize)
+      this.statsStore.addStashEntriesCreatedOutsideDesktop(stashSize)
 
       await this.repositoriesStore.updateLastStashCheckDate(repository)
     }
