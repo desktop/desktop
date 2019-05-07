@@ -21,7 +21,7 @@ export async function getBranches(
     '%(upstream:short)',
     '%(objectname)', // SHA
     '%(objectname:short)', // short SHA
-    '%(author)',
+    '%(authordate:iso)',
     '%(symref)',
     `%${delimiter}`, // indicate end-of-line as %(body) may contain newlines
   ].join('%00')
@@ -66,12 +66,7 @@ export async function getBranches(
     const sha = pieces[3]
     const shortSha = pieces[4]
 
-    const authorIdentity = pieces[5]
-    const author = CommitIdentity.parseIdentity(authorIdentity)
-
-    if (!author) {
-      throw new Error(`Couldn't parse author identity ${authorIdentity}`)
-    }
+    const lastCommitDate = new Date(pieces[5])
 
     const symref = pieces[6]
     if (symref.length > 0) {
@@ -97,7 +92,7 @@ export async function getBranches(
         upstream.length > 0 ? upstream : null,
         sha,
         shortSha,
-        author.date,
+        lastCommitDate,
         type
       )
     )
