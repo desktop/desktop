@@ -1141,6 +1141,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return Promise.resolve(null)
     }
 
+    this.updateStashEntryCountMetric(repository)
     setNumber(LastSelectedRepositoryIDKey, repository.id)
 
     // if repository might be marked missing, try checking if it has been restored
@@ -2392,8 +2393,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
         }
       )
     )
-
-    this.updateStashEntryCountMetric(repository)
 
     try {
       this.updateCheckoutProgress(repository, {
