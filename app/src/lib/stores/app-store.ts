@@ -222,6 +222,7 @@ import {
 import {
   UncommittedChangesStrategy,
   UncommittedChangesStrategyKind,
+  askToStash,
 } from '../../models/uncommitted-changes-strategy'
 import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
@@ -2732,9 +2733,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     name: string,
     startPoint: string | null,
-    uncommittedChangesStrategy: UncommittedChangesStrategy = {
-      kind: UncommittedChangesStrategyKind.askForConfirmation,
-    }
+    uncommittedChangesStrategy: UncommittedChangesStrategy = askToStash
   ): Promise<Repository> {
     const gitStore = this.gitStoreCache.get(repository)
     const branch = await gitStore.performFailableOperation(() =>
@@ -2800,9 +2799,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _checkoutBranch(
     repository: Repository,
     branch: Branch | string,
-    uncommittedChangesStrategy: UncommittedChangesStrategy = {
-      kind: UncommittedChangesStrategyKind.askForConfirmation,
-    }
+    uncommittedChangesStrategy: UncommittedChangesStrategy = askToStash
   ): Promise<Repository> {
     const gitStore = this.gitStoreCache.get(repository)
     const kind = 'checkout'

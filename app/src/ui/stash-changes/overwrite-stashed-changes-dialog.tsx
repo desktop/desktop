@@ -6,7 +6,10 @@ import { Dispatcher } from '../dispatcher'
 import { ButtonGroup } from '../lib/button-group'
 import { Button } from '../lib/button'
 import { Row } from '../lib/row'
-import { UncommittedChangesStrategyKind } from '../../models/uncommitted-changes-strategy'
+import {
+  UncommittedChangesStrategyKind,
+  stashOnCurrentBranch,
+} from '../../models/uncommitted-changes-strategy'
 
 interface IOverwriteStashProps {
   readonly dispatcher: Dispatcher
@@ -71,9 +74,11 @@ export class OverwriteStash extends React.Component<
     })
 
     try {
-      await dispatcher.checkoutBranch(repository, branchToCheckout, {
-        kind: UncommittedChangesStrategyKind.stashOnCurrentBranch,
-      })
+      await dispatcher.checkoutBranch(
+        repository,
+        branchToCheckout,
+        stashOnCurrentBranch
+      )
     } finally {
       this.setState({
         isCheckingOutBranch: false,

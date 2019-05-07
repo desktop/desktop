@@ -7,7 +7,10 @@ import { Row } from '../lib/row'
 import { Branch } from '../../models/branch'
 import { ButtonGroup } from '../lib/button-group'
 import { Button } from '../lib/button'
-import { UncommittedChangesStrategyKind } from '../../models/uncommitted-changes-strategy'
+import {
+  UncommittedChangesStrategyKind,
+  stashOnCurrentBranch,
+} from '../../models/uncommitted-changes-strategy'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { PopupType } from '../../models/popup'
 
@@ -159,9 +162,11 @@ export class StashAndSwitchBranch extends React.Component<
     }
 
     if (selectedStashAction === StashAction.StashOnCurrentBranch) {
-      await dispatcher.checkoutBranch(repository, branchToCheckout, {
-        kind: UncommittedChangesStrategyKind.stashOnCurrentBranch,
-      })
+      await dispatcher.checkoutBranch(
+        repository,
+        branchToCheckout,
+        stashOnCurrentBranch
+      )
     } else if (selectedStashAction === StashAction.MoveToNewBranch) {
       await dispatcher.checkoutBranch(repository, branchToCheckout, {
         kind: UncommittedChangesStrategyKind.moveToNewBranch,
